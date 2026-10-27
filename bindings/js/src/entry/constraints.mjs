@@ -12,6 +12,11 @@ import { homeAddressKey, isStoreReceiver } from './state.mjs';
 // load path, no addon call and no store act; it is a FIELD READ of state the instance already owns, taken the
 // way the kernel's four part modules take it.
 import { kernelFor } from './kernel-foundations.mjs';
+// **⟶ AND THE CARRIERS, ADDED 2026-10-26 FOR THE REFUSAL'S OWN UNDOING (`DEF-W`'s `(a)`).** The
+// compensating act below reaches the store's own verb at its entry, with the SAME carrier forms every member
+// hands it (`carrier.mjs` is the boundary's one encoder for the three positions and imports nothing of this
+// file, so this reach adds no cycle and no second conversion rule).
+import { encodeAddress, encodeTier, encodeValue } from './carrier.mjs';
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
 // THE POST-CREATION CONSTRAINT SET — `surface.md §2.12` items 1–5, `A126` (2026-10-16), AND ITS TWO ROUTES
@@ -1057,7 +1062,12 @@ function constraintCrossing(refusal) {
 // attempt's first op) is not re-walked by it.**
 //
 // **AND THE SHAPE CHOSEN IS `(a)` OF THE PASS'S OWN TWO, MEASURED AND NOT ASSUMED: THE REFUSAL COMES AFTER
-// THE REVERSAL AND THE REVERSAL'S EFFECT STANDS.** Shape `(b)` — computing the terminal state WITHOUT
+// THE REVERSAL — **⟶ AND THE SECOND HALF OF THAT NAME, *"AND THE REVERSAL'S EFFECT STANDS"*, IS SUPERSEDED
+// 2026-10-26 (`DEF-W`'s `(a)` discharged, `contract.md §2.6`'s second annotate-beside of that date): `(a)`'s
+// MEASUREMENT stands — the refusal is still answered after the reversal, because `(b)` is not computable — but
+// the effect is now UNDONE before the refusal is thrown (`judgeReversal`'s `restoreReversal`), because a refusal
+// that reports the violation while leaving it is not a discharge. The bytes below stand and are read through
+// this clause.** Shape `(b)` — computing the terminal state WITHOUT
 // applying it — was measured against the artefact's own export set and is **NOT COMPUTABLE**: the addon
 // publishes thirteen names (`read`, `readLiteral`, `write`, `delete`, `rollback`, `listen`, `unlisten`,
 // `removeListener`, `commitFile`, `register`, `storeCreate`, `errorMessage`, `version`) and **no journal read,
@@ -1200,22 +1210,112 @@ export function reversalWatch(state, instance) {
 /// `undefined` on the lawful arm (**and the caller's record then crosses unchanged**) and THROWS the surface's
 /// one plain form on the refusing arm. `reversalId` is the store's own echo of the id the reversal named
 /// (`answer.opId` at the member), carried as the refusal's log entry's `opId` so the record names the act.
+///
+/// **⟶ AND A REFUSAL RESTORES WHAT IT REFUSED, 2026-10-26 — `DEF-W`'s `(a)` CLOSED.** **WHAT WAS MEASURED:**
+/// the refusal was thrown AFTER the reversal and the reversal's effect STOOD, so the store ended in a state NO
+/// constraint approved — the very state `DEF-W` was filed about. **A refusal that reports the violation while
+/// leaving it is not a discharge.** The watch has already taken `{entry, address, before}` for every enabled
+/// pair's every address BEFORE the addon's reversal (`reversalWatch`), so the pre-reversal standing is in hand:
+/// **every address this reversal MOVED is restored to the standing it held before the reversal, THEN the refusal
+/// is thrown and its log says the reversal was undone** — so a consumer learns the store is back where it
+/// started and not left holding the state the judgement refused.
+///
+/// **AND THE RESTORE IS NOT JUDGED AND RECURSES INTO NOTHING** (`restoreReversal` below states both): it is a
+/// COMPENSATING ACT and not a consumer write, it reaches the store verb at its entry — no `K-2`, no pass, no
+/// listener delivery and no second `rollback` — and every address it touches is one the watch already read.
 export function judgeReversal(instance, watched, reversalId) {
+  // THE MOVED SET IS TAKEN FIRST, ONCE: the judgement's subject is the CHANGE the reversal made and nothing
+  // wider, and the same list is what a refusal has to put back.
+  const moved = [];
   for (let index = 0; index < watched.length; index += 1) {
     const one = watched[index];
     // THE ADDRESS IS READ AGAIN, AT THE STATE THE REVERSAL LEFT. **A STANDING THIS REVERSAL DID NOT MOVE IS
     // NOT A STANDING IT LEFT**, so the pair is not asked and cannot refuse the reversal for a state the
-    // reversal found: the judgement's subject is the CHANGE the reversal made and nothing wider.
+    // reversal found.
     const after = standingAt(instance, one.address);
     if (sameStanding(one.before, after) === true) continue;
-    const outcome = reversalOutcome(one.entry, one.address, after);
+    appendOwn(moved, { entry: one.entry, address: one.address, before: one.before, after });
+  }
+  for (let index = 0; index < moved.length; index += 1) {
+    const one = moved[index];
+    const outcome = reversalOutcome(one.entry, one.address, one.after);
     if (outcome === true) continue;
     // **THE FIRST VIOLATING PAIR DECIDES AND THE SECOND IS NOT EVALUATED** (`attempt-lifecycle.md §2.4` item 5
-    // (ii)–(iii), at the reversal's own instant).
-    throw reversalRefusal(one, after, reversalSaid(outcome), reversalId);
+    // (ii)–(iii), at the reversal's own instant) — and BEFORE the refusal is built, EVERY address the reversal
+    // moved is put back, so the store the consumer meets holds no state this refusal refused.
+    const undo = restoreReversal(instance, moved);
+    throw reversalRefusal(one, one.after, reversalSaid(outcome), reversalId, undo);
   }
   return undefined;
 }
+
+/// **THE REFUSAL'S OWN UNDOING — EVERY ADDRESS THE REVERSAL MOVED IS RESTORED TO ITS PRE-REVERSAL STANDING.**
+///
+/// **WHY IT IS NOT A JUDGED WRITE.** The restore is the refusal's own compensating act: it runs INSIDE the
+/// refusal's production, after the judgement has already decided, and it reaches the store's verb AT ITS ENTRY
+/// (`withAddon().delete` / `.write`, bound to the instance, carrying the boundary's own encoders) — **so no
+/// `K-2` opens, no pass runs, no `reversalWatch`/`judgeReversal` is re-entered, no listener is delivered and no
+/// pair body is asked a second time.** A consumer call would be judged because it is the state the caller then
+/// reads; **this act is not a state anyone chose, it is the state that stood before the refusal's subject.**
+///
+/// **AND WHY IT CANNOT RECURSE INTO THE MEMBER.** `judgeReversal` is reached from `index.mjs`'s `rollback`
+/// member; the restore never calls that member, the addon's `rollback`, or any package member — only the two
+/// store verbs at the entry — so the judgement's ONE pass over the pairs stays one pass and `D-40`'s floor law
+/// is not re-walked.
+///
+/// **THE ADDRESS IS CLEARED ON EVERY TIER FIRST, THEN SET AT `mem` WHEN A VALUE STOOD THERE.** The watch's
+/// `before` is the CROSS-TIER standing (the same `read` the judgement read), so the address must stand exactly
+/// there and at no tier the reversal left something at; the value is then written at the canonical middle tier.
+/// **THE RECORD OF WHAT IT DID IS RETURNED AND CARRIED INTO THE REFUSAL'S LOG** — a consumer is told the
+/// reversal was undone, and told so plainly where a restore could not be taken.
+function restoreReversal(instance, moved) {
+  const addon_ = withAddon();
+  let restored = 0;
+  const failed = [];
+  for (let index = 0; index < moved.length; index += 1) {
+    const one = moved[index];
+    try {
+      // EVERY TIER AT THE ADDRESS, REMOVED — the receipt is not read and nothing is delivered (`triggered` is
+      // the store's own answer and this act performs no invocation; `surface.md §2.7`).
+      Reflect.apply(addon_.delete, instance, [
+        encodeAddress(one.address, undefined, 'first argument'),
+        encodeTier(undefined, false, false, 'first argument'),
+      ]);
+      if (one.before !== undefined) {
+        const fault = { found: null, value: undefined, path: [], subject: null, nodes: 0 };
+        const carried = encodeValue(one.before, [], 0, [], fault);
+        if (fault.found !== null) throw fault.found;
+        Reflect.apply(addon_.write, instance, [
+          encodeAddress(one.address, undefined, 'first argument'),
+          encodeTier('mem', true, false, 'first argument'),
+          carried,
+        ]);
+      }
+      restored += 1;
+    } catch (refused) {
+      // A RESTORE THAT COULD NOT BE TAKEN IS NOT SWALLOWED: the address is named in the refusal's log, so the
+      // consumer is never told the store was put back when it was not.
+      appendOwn(failed, one.address);
+    }
+  }
+  return { restored, total: moved.length, failed };
+}
+
+/// **THE SENTENCE THE LOG CARRIES ABOUT THE UNDOING** — the refusal's own record of the compensating act, read
+/// at the ONE site that builds the log entry. It names the act and, where a restore could not be taken, the
+/// addresses still standing at the state the judgement refused (`DEF-Q`: no column prints `undefined`).
+function undoSpelling(undo) {
+  if (undo.failed.length === 0) {
+    return 'the reversal was UNDONE: every address it moved stands again at its pre-reversal state';
+  }
+  let named = '';
+  for (let index = 0; index < undo.failed.length; index += 1) {
+    named += index === 0 ? addressSpelling(undo.failed[index]) : `, ${addressSpelling(undo.failed[index])}`;
+  }
+  return `the reversal was NOT undone at every address it moved: ${named} stand at the state this `
+    + 'judgement refused';
+}
+
 
 /// **THE STORE'S STANDING AT ONE ADDRESS, READ AND NOT LANDED** — the kernel's own `readCurrent`
 /// (`kernel-registration.mjs`), member for member: **the zero-tier call on the product's own `read` member**
@@ -1325,7 +1425,7 @@ function reversalSaid(outcome) {
 /// the kernel's own shape** (`kernel-surface.md §2.5` item 1, whose kind set is CLOSED and whose `state` is
 /// `null` on the three non-`outcome` kinds), so the entry is a log entry a consumer can already read and no
 /// SEVENTH member is minted.
-function reversalRefusal(one, after, said, reversalId) {
+function reversalRefusal(one, after, said, reversalId, undo) {
   const addon_ = withAddon();
   // **THE `<SEGMENT>` SLOT IS THE ADDRESS SPELLING THE KERNEL'S OWN REGISTRATION REFUSAL HANDS THE SAME
   // GENERATOR** (`kernel-registration.mjs`'s `registrationRefusal`: the segments joined by `/`, BARE — the
@@ -1345,9 +1445,14 @@ function reversalRefusal(one, after, said, reversalId) {
     seq: 1,
     kind: 'constraint-check',
     id: one.entry.id,
+    // **⟶ AND THE ENTRY SAYS THE REVERSAL WAS UNDONE, 2026-10-26 (`DEF-W`'s `(a)`)** — the refusal's own
+    // record, beside the state it refused, so a consumer that catches it knows the store stands again where the
+    // reversal found it (and is told plainly where a restore could not be taken). ONE ENTRY, SIX MEMBERS: the
+    // sentence is this entry's, and no second log entry and no seventh member is minted.
     message: `the constraint ${one.entry.id} refused the state the reversal left at `
       + `${JSON.stringify(one.address)}: the value there is ${standingSpelling(after)}`
-      + (said === null ? '' : ` — ${said}`),
+      + (said === null ? '' : ` — ${said}`)
+      + ` — ${undoSpelling(undo)}`,
     // **THE STORE'S OWN ECHO OF THE ID THE REVERSAL NAMED, OR `null`** — the entry's sixth member is always
     // present and of the kernel's own domain (`kernel-surface.md §2.5` item 1: a `string | null`), never absent.
     opId: typeof reversalId === 'string' ? reversalId : null,

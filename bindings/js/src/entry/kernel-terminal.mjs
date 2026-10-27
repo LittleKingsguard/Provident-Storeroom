@@ -168,47 +168,189 @@ export function close(kernel, attempt, outcome) {
  * `checkpoint` is the attempt's ONE value. **THE COMPOSITION THEREFORE RECORDS ONE STEP WHERE IT ISSUED ONE
  * CALL**, and the report's `rollback` carries the rollback that actually happened.
  *
+ * **⟶ AND `D-40`'S SPATIAL SCOPE IS CLOSED, 2026-10-26: ONE FLOOR CALL PER DISTINCT ADDRESS THE ATTEMPT'S
+ * OWED OPS TOUCHED, AT THAT ADDRESS'S OWN FIRST OWED OP.** **THE MEASURED RESIDUAL THIS CLOSES, SAID AS IT WAS
+ * FOUND:** the single call's scope is the ADDRESSED SUBTREE of its named op (`src/store.rs`'s `rollback`: the
+ * `is_prefix(&address, &entry.address) && entry.seq >= floor` filter), so a repair that landed at a BESIDE
+ * address — an address the named op's subtree does not contain — is in NO candidate set of that call; **the
+ * attempt's own address is restored and the beside address's value STANDS**, and the ruling's sentence *"a
+ * failed attempt leaves the store exactly as it found it"* was true of one address and false of the other.
+ * **THE STORE'S FLOOR IS PER ADDRESS**, so the cure is per address: the plan below issues ONE call per distinct
+ * address at that address's own first owed op — no per-op walk, one call per address, the single call's
+ * property kept whole.
+ *
+ * **THE CALL PLAN — the ordering rule, stated so it can be checked (`floorCallPlan`): the addresses are taken
+ * SHALLOWEST FIRST (segment count ascending, creation order within a length) and a candidate UNDER an address
+ * already issued is SKIPPED, because that earlier call's floor — the earliest owed op at or under the earlier
+ * address — already swept every entry this address has.** So the issued addresses form an ANTICHAIN: no one is
+ * a prefix of another, their subtrees are PAIRWISE DISJOINT, and a call's candidate set can contain no entry a
+ * previous call compacted. **That is the ordering check, and it is structural rather than empirical: a later
+ * call can never re-compact what an earlier one undid, because it cannot see it.**
+ *
  * **THE FLOOR (`item 5 (b)`) IS STILL THE STORE'S OWN CODE AND STILL `KC-8`**: a call that throws either floor
- * code is the arm's answer, named in the attempt's ONE `outcome` entry, and nothing is restored (item 6 (a);
- * `fail-surface.md §2`'s `KC-8` row). **THE ARM IS UNMOVED AND IS NO LONGER A CONSEQUENCE OF THE WALK'S ORDER
- * — it is the store's answer to the attempt's own floor call.**
+ * code is the arm's answer, named in the attempt's ONE `outcome` entry (item 6 (a); `fail-surface.md §2`'s
+ * `KC-8` row). **THE ARM IS UNMOVED AND IS NO LONGER A CONSEQUENCE OF ANY ORDER — it is the store's answer to
+ * the attempt's own floor call — and where several calls are issued the FIRST floor met is the arm's, the steps
+ * before it standing in the report beside it** (the composition reports what it PERFORMED; `§2.6` item 3).
  */
 function composeRollback(kernel, attempt) {
-  // THE CALL: the attempt's own first op, which every later op of the attempt stands at or after. An attempt
-  // with no op at all owes no call, and nor does one whose `checkpoint` op IS its first op — item 1's filter
-  // leaves that list empty and the composition records no step for it.
+  // An attempt with no op at all owes no call, and nor does one whose `checkpoint` op IS its first op — item 1's
+  // filter leaves that list empty and the composition records no step for it.
   if (attempt.ops.length === 0) return null;
   const first = attempt.ops[0];
   if (attempt.checkpoint !== null && first.opId === attempt.checkpoint) return null;
-  let answer = 'ok';
-  let failed = false;
-  let record = null;
-  try {
-    record = attempt.store.rollback(first.opId);
-  } catch (thrown) {
-    failed = true;
-    answer = thrown !== null && typeof thrown === 'object' && typeof thrown.status === 'string'
-      ? thrown.status
-      : 'the call threw';
+  const plan = floorCallPlan(attempt);
+  let floor = null;
+  for (let index = 0; index < plan.length; index += 1) {
+    const call = plan[index];
+    let answer = 'ok';
+    let failed = false;
+    let record = null;
+    try {
+      record = attempt.store.rollback(call.opId);
+    } catch (thrown) {
+      failed = true;
+      answer = thrown !== null && typeof thrown === 'object' && typeof thrown.status === 'string'
+        ? thrown.status
+        : 'the call threw';
+    }
+    // THE FLOOR, TAKEN OFF THE STORE'S OWN CODE AND OFF NOTHING ELSE (`§2.6` item 5 (b)).
+    if (floor === null && failed && STORE_FLOOR_CODES.includes(answer)) {
+      floor = { opId: call.opId, code: answer };
+    }
+    const undoneOps = record !== null && Array.isArray(record.undoneOps) ? record.undoneOps : [];
+    appendOwn(attempt.rollback, {
+      opId: call.opId,
+      answer,
+      failed,
+      undoneOps,
+      // THE THROWING ARM CANNOT READ A RETURNED `RollbackResult`: the state stands at the NAMED OP's own
+      // subtree, read at the store's own verb (item 3) — the subtree of THIS call's address.
+      restoredTo: record !== null && record.restoredTo !== undefined && record.restoredTo !== null
+        ? record.restoredTo
+        : baseState(attempt.store, call.address),
+      checkpoint: attempt.checkpoint,
+    });
   }
-  // THE FLOOR, TAKEN OFF THE STORE'S OWN CODE AND OFF NOTHING ELSE (`§2.6` item 5 (b)).
-  const floor = failed && STORE_FLOOR_CODES.includes(answer)
-    ? { opId: first.opId, code: answer }
-    : null;
-  const undoneOps = record !== null && Array.isArray(record.undoneOps) ? record.undoneOps : [];
-  appendOwn(attempt.rollback, {
-    opId: first.opId,
-    answer,
-    failed,
-    undoneOps,
-    // THE THROWING ARM CANNOT READ A RETURNED `RollbackResult`: the state stands at the NAMED OP's own
-    // subtree, read at the store's own verb (item 3).
-    restoredTo: record !== null && record.restoredTo !== undefined && record.restoredTo !== null
-      ? record.restoredTo
-      : baseState(attempt.store, first.address),
-    checkpoint: attempt.checkpoint,
-  });
   return floor;
+}
+
+/**
+ * **THE FLOOR CALL PLAN** — one call per distinct address the attempt's ops touched, each at that address's
+ * own FIRST owed op, ordered SHALLOWEST-FIRST so an outer address is called before any address inside it.
+ *
+ * **THE STORE'S CALL SCOPE IS THE NAMED OP'S OWN ADDRESSED SUBTREE AT OR AFTER THAT OP'S `seq`**
+ * (`src/store.rs`'s `rollback`), so a call at an address's first owed op sweeps every LATER op under that
+ * address and nothing above it. **THAT IS WHY THE ADDRESS'S OWN FIRST OWED OP IS THE FLOOR — never an op
+ * beneath it**: a call at a DEEPER op carries the deeper address and cannot reach the shallower one's own
+ * entries. **AND IT IS WHY THE OUTER ADDRESS GOES FIRST**: a container's shape must be back before a value is
+ * set into it (a repair that landed at an ancestor replaced the subtree with a leaf, so restoring the
+ * descendant first has no parent to stand in), and an outer call issued at or before a descendant's first owed
+ * op sweeps that descendant whole.
+ *
+ * **A CANDIDATE IS SKIPPED IN TWO CASES, AND EACH IS THE STORE'S OWN LAW RATHER THAN A PREFERENCE:**
+ *   * **COVERED** — an issued address is a prefix of it AND that call's floor stands at or before its own first
+ *     owed op: every entry it has was already swept, so a second call could only meet the store's COMPACTED
+ *     MARK and the floor is all-or-nothing (undoing nothing).
+ *   * **UNREACHABLE** — an issued address is a prefix of it and that call's floor stands AFTER its own first
+ *     owed op, while this address still has an owed op at or after that floor. **The two calls cannot both be
+ *     issued**: the outer one has already compacted the later entries, so the inner one's scope would contain a
+ *     compacted entry and undo nothing. **THE OUTER ADDRESS IS KEPT AND THE INNER ADDRESS'S EARLIER ENTRIES
+ *     STAND** — the one residual this plan cannot remove, named here rather than left to a measurement (it
+ *     needs an attempt whose repair order writes at a DESCENDANT and then at its ANCESTOR, with a later
+ *     descendant write still owed).
+ * **THE ISSUED CALLS' CANDIDATE SETS ARE THEREFORE PAIRWISE DISJOINT, AND THAT IS THE PROPERTY THE ORDERING
+ * BUYS**: a call issued now is either disjoint from every call already issued (its address is unrelated, or it
+ * is nested but stands wholly BELOW the outer call's floor) or it is skipped — so no call can see an entry an
+ * earlier one compacted, no call can re-compact what an earlier one undid, and **the composition's own ordering
+ * can never be the producer of `RollbackCompacted`**. **AND THE ATTEMPT'S FIRST OP IS THE FIRST CALL'S FLOOR
+ * WHENEVER ITS ADDRESS IS THE SHALLOWEST** — the call the reduction named is still issued, and in the
+ * single-address case it is the only one. **AND ONE STORE-LEVEL LIMIT IS NAMED RATHER THAN LEFT TO A
+ * MEASUREMENT**: where a repair landed at an ANCESTOR of the attempt's address, the ancestor's call puts the
+ * CONTAINER back but the store's own `restore` for the descendant's op does not reach into the re-minted
+ * container — measured, `['a']` answers `{b: 99}` where the pre-attempt standing was `{b: 0}`. The plan still
+ * issues the call (the container is back and the descendant is readable again), and the value beneath it is the
+ * STORE's restore limit and not this composition's ordering.
+ */
+function floorCallPlan(attempt) {
+  const candidates = [];
+  for (let index = 0; index < attempt.ops.length; index += 1) {
+    const op = attempt.ops[index];
+    let known = false;
+    for (let seen = 0; seen < candidates.length; seen += 1) {
+      if (sameSegments(candidates[seen].address, op.address)) {
+        known = true;
+        break;
+      }
+    }
+    if (known === false) appendOwn(candidates, { address: op.address, order: index });
+  }
+  // SHALLOWEST FIRST, CREATION ORDER WITHIN A LENGTH — a local insertion sort, so no `Array.prototype.sort` is
+  // read on this path (`contract.md §2.1`'s clause of 2026-10-24 on `F7-1`).
+  for (let index = 1; index < candidates.length; index += 1) {
+    const held = candidates[index];
+    let at = index - 1;
+    while (at >= 0 && (candidates[at].address.length > held.address.length
+      || (candidates[at].address.length === held.address.length && candidates[at].order > held.order))) {
+      candidates[at + 1] = candidates[at];
+      at -= 1;
+    }
+    candidates[at + 1] = held;
+  }
+  const issued = [];
+  const plan = [];
+  for (let index = 0; index < candidates.length; index += 1) {
+    const candidate = candidates[index];
+    let covered = false;
+    let unreachable = false;
+    for (let seen = 0; seen < issued.length; seen += 1) {
+      const one = issued[seen];
+      if (addressBelow(one.address, candidate.address) === false) continue;
+      if (one.floor <= candidate.order) {
+        covered = true;
+        break;
+      }
+      // THE OUTER CALL'S FLOOR STANDS AFTER THIS ADDRESS'S FIRST OWED OP: a call issued now would meet an entry
+      // the outer call compacted. IT IS UNREACHABLE ONLY WHERE SUCH AN ENTRY EXISTS — a candidate whose every
+      // entry stands BELOW the outer floor is disjoint from the outer scope and is issued after it safely.
+      for (let scan = one.floor; scan < attempt.ops.length; scan += 1) {
+        if (addressBelow(candidate.address, attempt.ops[scan].address)) {
+          unreachable = true;
+          break;
+        }
+      }
+      if (unreachable) break;
+    }
+    if (covered || unreachable) continue;
+    const floorOp = attempt.ops[candidate.order];
+    appendOwn(issued, { address: candidate.address, floor: candidate.order });
+    appendOwn(plan, { address: candidate.address, opId: floorOp.opId });
+  }
+  return plan;
+}
+
+/** Whether `outer` is a prefix of `inner` — the store's own scope relation (`§6.4` `M-5`, `DD-21`), read here
+ *  on the decoded segment arrays the journal op carries. */
+function addressBelow(outer, inner) {
+  if (outer.length > inner.length) return false;
+  for (let index = 0; index < outer.length; index += 1) {
+    if (!sameSegment(outer[index], inner[index])) return false;
+  }
+  return true;
+}
+
+/** One segment's equality: a string against a string, an index against an index, and never a coercion. */
+function sameSegment(left, right) {
+  return typeof left === typeof right && left === right;
+}
+
+/** Two decoded addresses' equality by their segments. */
+function sameSegments(left, right) {
+  if (left.length !== right.length) return false;
+  for (let index = 0; index < left.length; index += 1) {
+    if (!sameSegment(left[index], right[index])) return false;
+  }
+  return true;
 }
 
 /**

@@ -51,6 +51,16 @@ import { join } from 'node:path';
 import { test } from 'node:test';
 
 import { storeCreate } from '../../bindings/js/index.mjs';
+// **⟶ ADDED 2026-10-26 FOR `DEF-W (3)`, THE CELL THAT TELLS THE DISCRIMINATOR'S TWO SOURCES APART.** The
+// kernel's own entry is the declared caller-side route (`K-2`/`K-3`), and `kernelFor` is the accessor the
+// judgement's field read goes through — the cell reads BOTH sources at the instant it drives, so the divergence
+// is measured and not asserted from memory.
+import { commit as kernelCommit, runAttempt as kernelRunAttempt } from '../../bindings/js/src/constraint-kernel.mjs';
+import { kernelFor } from '../../bindings/js/src/entry/kernel-foundations.mjs';
+
+/** The symbol channel `reversalAtRest` used to read (`finalizer-and-teardown.md §4.2` item 1): the number of OPEN
+ *  COMMITS for that store. It survives on the instance; it is no longer the discriminator. */
+const ATTEMPT_COUNT = Symbol.for('provident-storeroom.attempt-count');
 
 // ---------------------------------------------------------------------------------------------
 // THE DECLARED LITERALS THIS FILE ASSERTS AGAINST — and the clauses they rest on
@@ -676,13 +686,18 @@ test('DEF-R · five `constraints()` snapshots across a pass, a refusal, a toggle
 //   (2) LAWFUL — the same shape with a pair that admits every value this reversal can leave: **the call answers
 //       its success record and no `log`, byte for byte what it answered before `DEF-W` landed.**
 //
-// **AND THE ARM THIS ROW PINS FOR THE RECORD — SHAPE `(a)`, THE ONE THE PASS MEASURED AND CHOSE.** The refusal
-// is answered AFTER the reversal has run and **the reversal's effect STANDS** (the store then reads `SEED`).
-// `(b)` — computing the terminal state WITHOUT applying it — is not computable from what the artefact
-// publishes: its thirteen names carry no journal read and no candidate-set query, and the store's rollback
-// scope is temporally floored at the named op's own `seq` and all-or-nothing at the compacted mark
-// (`src/store.rs:2374–2430`), so a JS guess at it would be a second implementation of the store's own rule.
-// **THE STORE-STANDS-AT-`SEED` READING IS THEREFORE AN ASSERTION HERE AND NOT AN OMISSION.**
+// **AND THE ARM THIS ROW PINS FOR THE RECORD — THE SHAPE `(a)` THAT PASS MEASURED IS SUPERSEDED BY `DEF-W`'s
+// OWN DISCHARGE, 2026-10-26.** The refusal is still answered AFTER the reversal has run — `(b)`, computing the
+// terminal state WITHOUT applying it, is not computable from what the artefact publishes: its thirteen names
+// carry no journal read and no candidate-set query, and the store's rollback scope is temporally floored at the
+// named op's own `seq` and all-or-nothing at the compacted mark (`src/store.rs:2374–2430`), so a JS guess at it
+// would be a second implementation of the store's own rule. **WHAT MOVES IS WHAT HAPPENS TO THE REVERSAL'S
+// EFFECT: IT IS UNDONE.** Under the as-filed shape `(a)` the effect STOOD, so the store ended in the very state
+// the judgement had refused — *"a refusal that reports the violation while leaving it is not a discharge"* — and
+// the declaration now requires the pre-reversal standing back (`contract.md §2.6`'s clause of 2026-10-26,
+// annotate-beside; `judgeReversal`'s `restoreReversal`). **THE STORE-STANDS-AT-`W_SECOND` READING — THE
+// PRE-REVERSAL STANDING — IS THEREFORE THE ASSERTION HERE**, the refusal's `log` says the reversal was undone,
+// and the restore is shown to ask no pair body and to deliver no listener.
 //
 // **THE OTHER THIRTEEN MEMBERS ARE NOT THIS CELL'S SUBJECT AND NO MEMBER BUT `rollback` MOVES.** The cells that
 // would catch a change to any of them are named where they live, and they are the census and the sweeps:
@@ -714,13 +729,23 @@ test('DEF-W · under `D-38` (2026-10-26) a `rollback` whose TERMINAL state a reg
   const refusing = make();
   refusing.write(['a'], 'mem', W_FIRST);
   const second = refusing.write(['a'], 'mem', W_SECOND);
+  // **THE DRIVE'S OWN INSTRUMENTS FOR THE RESTORE'S TWO FORBIDDEN ACTS** (`judgeReversal`'s `restoreReversal`):
+  // a listener stands at `['a']` so a delivered invocation would be COUNTED, and the pair's every ask is
+  // recorded so a second ask by the restore would be COUNTED. Both must stay at their lawful counts.
+  const refusedDelivered = [];
+  const refusedHandle = refusing.listen('blind-def-w-a', [['a']]);
+  refusing.register(refusedHandle, (address) => { refusedDelivered.push(address); });
+  const refusedAsked = [];
   const refusingPair = attempt(() => refusing.addConstraint({ address: ['a'], id: 'w1' },
-    (context) => (context.value === W_SECOND
-      ? true
-      : { message: 'this pair admits the second value alone' })));
+    (context) => {
+      refusedAsked.push(context.value);
+      return context.value === W_SECOND
+        ? true
+        : { message: 'this pair admits the second value alone' };
+    }));
   const refused = attempt(() => refusing.rollback(second.op.opId));
-  // **WHAT THE STORE STANDS AT AFTERWARDS IS SHAPE `(a)`'s OWN READING** — the reversal ran, the judgement
-  // refused the state it left, and the reversal's effect was NOT undone by the refusal.
+  // **WHAT THE STORE STANDS AT AFTERWARDS IS THE PRE-REVERSAL STANDING** — the reversal ran, the judgement
+  // refused the state it left, and the refusal UNDID the reversal (`DEF-W`'s `(a)` discharged).
   const refusedStanding = refusing.read(['a']);
   const refusedShape = shapeOf(refused.caught);
   const refusedLog = refused.caught !== null && typeof refused.caught === 'object' && Array.isArray(refused.caught.log)
@@ -816,17 +841,39 @@ test('DEF-W · under `D-38` (2026-10-26) a `rollback` whose TERMINAL state a reg
   assert.equal(lawfulStanding, W_FIRST,
     `and the store stands where the lawful reversal left it; the drive read ${JSON.stringify(lawfulStanding)}`);
 
-  // ── SHAPE `(a)`, ASSERTED RATHER THAN ASSUMED: THE REFUSAL COMES AFTER THE REVERSAL AND ITS EFFECT STANDS.
-  assert.equal(refusedStanding, W_FIRST,
-    `THE REFUSED ARM'S STORE STATE — shape \`(a)\` of this pass's own two: the reversal RAN, the judgement `
-      + `refused the state it left, and the reversal's effect was not rolled forward again. THE DRIVE READ `
-      + `${JSON.stringify(refusedStanding)} where the reversal's terminal state is ${JSON.stringify(W_FIRST)}`);
+  // ── THE REFUSAL UNDOES THE REVERSAL — `DEF-W`'s `(a)` DISCHARGED, 2026-10-26. ───────────────
+  assert.equal(refusedStanding, W_SECOND,
+    `THE REFUSED ARM'S STORE STATE — the refusal reports the violation AND puts the store back: the reversal `
+      + `RAN, the judgement refused the state it left (${JSON.stringify(W_FIRST)}), and the pre-reversal `
+      + `standing was restored. THE DRIVE READ ${JSON.stringify(refusedStanding)} where the pre-reversal `
+      + `standing is ${JSON.stringify(W_SECOND)} and the refused state is ${JSON.stringify(W_FIRST)}`);
+  // **AND THE LOG SAYS SO**, so a consumer that catches the refusal knows the store is back where it started
+  // (the entry's `message` is this arm's own record; the crossed `message` stays the store's sentence,
+  // `DD-52`). ONE ENTRY, SIX MEMBERS: no second log entry and no seventh member is minted for the undo.
+  assert.equal(refusedLog.length, 1,
+    `the refusal's \`log\` is ONE entry at this arm (\`contract.md §2.6\` item 4: the no-attempt refusal's arm `
+      + `is a single kernel-shaped \`constraint-check\` entry). THE DRIVE READ ${JSON.stringify(refusedLog)}`);
+  assert.equal(typeof refusedLog[0].message === 'string' && /undone/i.test(refusedLog[0].message), true,
+    `the refusal's log entry says the reversal was UNDONE, or a consumer is left believing the store still `
+      + `holds the state the judgement refused. THE DRIVE READ ${JSON.stringify(refusedLog[0]?.message)}`);
+  // **AND THE RESTORE IS NOT JUDGED AND RECURSES INTO NOTHING** (`restoreReversal`): no listener was delivered
+  // and no pair body was asked a second time. The pair's asks are its registration ask (`W_SECOND`) and the
+  // judgement's ask (the post-reversal state); a third ask would be a member the restore had re-entered.
+  assert.deepEqual(refusedDelivered, [],
+    `the restoring act is a COMPENSATING ACT and not a consumer write: it delivers no listener. THE DRIVE `
+      + `RECORDED ${JSON.stringify(refusedDelivered)} invocation(s)`);
+  assert.deepEqual(refusedAsked, [W_SECOND, W_FIRST],
+    `the pair is asked TWICE and no more — once at registration (${JSON.stringify(W_SECOND)}) and once by the `
+      + `judgement (${JSON.stringify(W_FIRST)}); the restore asks nothing. THE DRIVE WAS ASKED AT `
+      + `${JSON.stringify(refusedAsked)}`);
 
   // ── THE READINGS, PRINTED ON BOTH ARMS (`D-21`: a cell owes what it read). ───────────────────
   t.diagnostic(`DEF-W · D-38 (2026-10-26) · REFUSED reversal: rolled back op ${JSON.stringify(second.op.opId)} `
     + `to ${JSON.stringify(W_FIRST)} against pair 'w1'; status = ${JSON.stringify(refused.caught.status)}; `
     + `message = ${JSON.stringify(refused.caught.message)}; log = ${JSON.stringify(refusedLog)}; `
-    + `store stands at ${JSON.stringify(refusedStanding)} (shape (a): the reversal's effect STANDS)`);
+    + `store stands at ${JSON.stringify(refusedStanding)} (the pre-reversal standing; the refused state `
+    + `${JSON.stringify(W_FIRST)} no longer stands); listener deliveries during the restore = `
+    + `${JSON.stringify(refusedDelivered)}; pair asks = ${JSON.stringify(refusedAsked)}`);
   t.diagnostic(`DEF-W · D-38 (2026-10-26) · LAWFUL reversal: rolled back op `
     + `${JSON.stringify(lawfulSecond.op.opId)} to ${JSON.stringify(W_FIRST)} against pair 'w2'; `
     + `record = ${JSON.stringify(lawful.value)}; keys = ${JSON.stringify(lawfulKeys)}; `
@@ -853,7 +900,8 @@ test('DEF-W · under `D-38` (2026-10-26) a `rollback` whose TERMINAL state a reg
 //       over: the reversal call would throw `ConstraintPassRefused` and an extra invocation would be recorded);
 //   (2) THE AT-REST CONTROL — the same seed, the same second write, the same reversal, asked at the surface.
 //       No attempt is open, so the state it leaves is the state the caller then reads, and the pair that admits
-//       the SECOND value and refuses the FIRST must refuse it: **`ConstraintPassRefused` and its log.**
+//       the SECOND value and refuses the FIRST must refuse it: **`ConstraintPassRefused` and its log** — and,
+//       from 2026-10-26 (`DEF-W`'s `(a)` discharged), the refusal puts the pre-reversal standing back and says so.
 // **THE CONTROL IS WHAT MAKES ARM (1) A FINDING AND NOT A VACUOUS GREEN**: it proves the pair really does
 // refuse the exact state the step's reversal left, so arm (1)'s success record can only be explained by the
 // discriminator declining to judge a step.
@@ -944,16 +992,21 @@ test('DEF-W (2) · a reversal performed INSIDE an open attempt is an UNWINDING S
     `the step's reversal took effect and nothing judged it afterwards: the store stands at `
       + `${JSON.stringify(stepStanding)}`);
 
-  // ── AND THE CONTROL'S SHAPE: THE REFUSAL RAN AFTER THE REVERSAL AND ITS EFFECT STANDS (`(a)`, as `DEF-W`).
+  // ── AND THE CONTROL'S SHAPE: THE REFUSAL UNDOES THE REVERSAL IT REFUSED (`DEF-W`'s `(a)`, discharged
+  // 2026-10-26): the pre-reversal standing is back, and the log says so.
   assert.deepEqual(Object.keys(restRollback.caught).sort(), REFUSAL_MEMBERS,
     `the control's refusal crosses this surface as ${JSON.stringify(REFUSAL_MEMBERS)}: the drive caught `
       + `${JSON.stringify(shapeOf(restRollback.caught))}`);
   assert.equal(restLog.some((entry) => entry.id === 'w4'), true,
     `the control's \`log\` names the pair that refused (\`kernel-surface.md §2.5\` item 1): `
       + `${JSON.stringify(restLog)}`);
-  assert.equal(restStanding, SEED,
-    `the control's reversal ran before the refusal and its effect stands: the store reads `
-      + `${JSON.stringify(restStanding)}`);
+  assert.equal(restStanding, REFUSED,
+    `the control's reversal ran, the judgement refused the seed it left, and the refusal put the store back `
+      + `at the pre-reversal standing it found: the store reads ${JSON.stringify(restStanding)} where the `
+      + `pre-reversal standing is ${JSON.stringify(REFUSED)} and the refused state is ${JSON.stringify(SEED)}`);
+  assert.equal(restLog.some((entry) => typeof entry.message === 'string' && /undone/i.test(entry.message)), true,
+    `the control's refusal says the reversal was UNDONE, so a consumer knows the store is back where it `
+      + `started: ${JSON.stringify(restLog.map((entry) => entry.message))}`);
 
   // ── THE READINGS, PRINTED ON BOTH ARMS (`D-21`: a cell owes what it read). ───────────────────
   t.diagnostic(`DEF-W (2) · D-38/D-40 (2026-10-26) · STEP arm: the pair 'w3' issued `
@@ -963,8 +1016,169 @@ test('DEF-W (2) · a reversal performed INSIDE an open attempt is an UNWINDING S
     + `${JSON.stringify(stepStanding)}`);
   t.diagnostic(`DEF-W (2) · D-38 (2026-10-26) · AT-REST control: the SAME reversal at the surface was REFUSED `
     + `with status ${JSON.stringify(restRollback.caught.status)}, log ${JSON.stringify(restLog)}; the store `
-    + `stands at ${JSON.stringify(restStanding)} — so arm (1) is green because the step is a step, and not `
-    + `because the pair would have admitted it`);
+    + `stands at ${JSON.stringify(restStanding)} — the PRE-REVERSAL standing, restored by the refusal — so arm `
+    + `(1) is green because the step is a step, and not because the pair would have admitted it`);
+});
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+// DEF-W (3) — THE DISCRIMINATOR'S TWO SOURCES, TOLD APART AT THE ONE INSTANT THEY DISAGREE
+//
+// **WHY THIS CELL EXISTS.** `reversalAtRest` decides whether a reversal is a terminal act (judged) or an
+// unwinding step (not judged). It used to read a symbol channel on the instance — `Symbol.for(
+// 'provident-storeroom.attempt-count')`, which answers the number of OPEN COMMITS for that store — and from
+// 2026-10-26 it reads the instance kernel's own map of open attempts, `kernelFor(instance).live.size`. **RESTORING
+// THE OLD READ REDDENED NOTHING**: the battery could not tell the two sources apart, because every cell it drove
+// had them agreeing. **THEY DISAGREE EXACTLY WHERE THE COUNT OF OPEN COMMITS AND THE COUNT OF OPEN ATTEMPTS
+// PART**: a delivered listener body runs while the entry's own write window is open (`channel` `1`) and the
+// write's attempt is already released (`live` `0`) — and, in the other direction, a pass driven through the
+// kernel's own `K-2`/`K-3` runs with an attempt live (`live` `1`) and no commit window open at all (the store
+// leg's window closed when `K-2` returned; `channel` `0`).
+//
+// **THE DECLARED ANSWER IS THE RE-SOURCED ONE** (`docs/specs/storeroom-js/contract.md §2.6` item 1's clause of
+// 2026-10-26: *"The judgement is taken where the store owns no open commit (`reversalAtRest`, ⟶ RE-SOURCED …
+// IT READS … `kernelFor(instance).live.size === 0` … AND NOT the symbol channel named here, which stands as the
+// reading of its own date)"*): **an OPEN ATTEMPT is a step and is not judged; no open attempt is at rest and is
+// judged** — whatever the commit count says. So:
+//   (A) LISTENER-DELIVERY INSTANT — `channel` `1`, `live` `0` ⇒ AT REST ⇒ the judgement IS taken, and the pair
+//       is asked at the state the reversal left. Under the old channel read it was skipped;
+//   (B) KERNEL-DRIVEN PASS — `channel` `0`, `live` `1` ⇒ A STEP ⇒ not judged: the call answers, no body is
+//       invoked by a judgement, and the reversal's own effect stands. Under the old channel read it was judged,
+//       and the judgement's ask (at the state the reversal left, which this pair REFUSES) would have thrown out
+//       of the body's own `rollback` call and failed the write.
+//
+// **THE CONTROL IS WHAT MAKES ARM (B) NON-VACUOUS**: the same pair at the surface, at rest, refuses the very
+// state the step's reversal leaves — so arm (B)'s answer can only be explained by the discriminator declining to
+// judge a step and not by a pair that would have admitted it.
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+test('DEF-W (3) · the two discriminator sources are told apart: a reversal at a LISTENER-DELIVERY instant (an open commit, no open attempt) is judged, and a reversal inside a KERNEL-DRIVEN pass (an open attempt, no open commit) is a step — the channel answers `1`/`0` where `live` answers `0`/`1`, and `live` is the declared source', (t) => {
+  const W_FIRST = SEED;      // 5 — the state the reversal restores, and the state the arm-B pair REFUSES
+  const W_SECOND = REFUSED;  // 9 — the value the reversal's op landed
+  const W_THIRD = 7;         // 7 — arm (A)'s write, and arm (B)'s pass value
+
+  // ── (A) THE LISTENER-DELIVERY INSTANT. Seed, second write (the reversal's target op), a listener at `['a']`,
+  // then a pair that ADMITS everything — so the judgement, where it is taken, cannot refuse this arm and the
+  // cell reads the judgement's ASK rather than a refusal. The write that follows delivers the listener INSIDE
+  // its own commit window (`openCommit` at the member's first act, `closeCommit` at its `finally`), and the
+  // write's attempt has already been released at the delivery instant (`kernel-attempt.mjs`: `close`, then
+  // `settleArm`).
+  const deliveryStore = make();
+  deliveryStore.write(['a'], 'mem', W_FIRST);
+  const deliverySecond = deliveryStore.write(['a'], 'mem', W_SECOND);
+  const deliveryFacts = [];
+  let deliveryRollback = null;
+  const deliveryHandle = deliveryStore.listen('blind-def-w3-a', [['a']]);
+  deliveryStore.register(deliveryHandle, () => {
+    deliveryFacts.push({
+      channel: typeof deliveryStore[ATTEMPT_COUNT] === 'function' ? deliveryStore[ATTEMPT_COUNT]() : 'absent',
+      live: kernelFor(deliveryStore).live.size,
+    });
+    if (deliveryRollback === null) {
+      deliveryRollback = attempt(() => deliveryStore.rollback(deliverySecond.op.opId));
+    }
+  });
+  const deliveryAsked = [];
+  deliveryStore.addConstraint({ address: ['a'], id: 'wa' }, (context) => {
+    deliveryAsked.push(context.value);
+    return true;
+  });
+  const deliveryWrite = attempt(() => deliveryStore.write(['a'], 'mem', W_THIRD));
+  const deliveryStanding = deliveryStore.read(['a']);
+
+  // ── (B) THE KERNEL-DRIVEN PASS. The same seed and second write, a pair that REFUSES the seed and, during a
+  // pass (its context carries the attempt; a judgement's does not), issues the reversal ONCE. The drive opens
+  // the attempt with the kernel's own `K-2` (`commit`) and runs it with `K-3` (`runAttempt`) — the two calls a
+  // consumer's own kernel route makes — so no package member holds a commit window open across the pass.
+  const passStore = make();
+  passStore.write(['a'], 'mem', W_FIRST);
+  const passSecond = passStore.write(['a'], 'mem', W_SECOND);
+  const passFacts = [];
+  let passRollback = null;
+  const passAsked = [];
+  passStore.addConstraint({ address: ['a'], id: 'wb' }, (context) => {
+    passAsked.push(context.value);
+    if (context.attempt !== null) {
+      passFacts.push({
+        channel: typeof passStore[ATTEMPT_COUNT] === 'function' ? passStore[ATTEMPT_COUNT]() : 'absent',
+        live: kernelFor(passStore).live.size,
+      });
+    }
+    if (context.attempt !== null && passRollback === null) {
+      passRollback = attempt(() => passStore.rollback(passSecond.op.opId));
+    }
+    return context.value === W_FIRST ? { message: 'this pair admits every value but the seed' } : true;
+  });
+  const passRecord = kernelCommit(passStore, ['a'], 'mem', W_THIRD);
+  const passRun = attempt(() => kernelRunAttempt(passStore, passRecord));
+  const passStanding = passStore.read(['a']);
+
+  // ── (C) THE CONTROL FOR ARM (B): the same pair at rest, at the surface, refuses the state a reversal leaves.
+  const controlStore = make();
+  controlStore.write(['a'], 'mem', W_FIRST);
+  const controlSecond = controlStore.write(['a'], 'mem', W_SECOND);
+  controlStore.addConstraint({ address: ['a'], id: 'wc' },
+    (context) => (context.value === W_FIRST ? { message: 'this pair admits every value but the seed' } : true));
+  const controlRollback = attempt(() => controlStore.rollback(controlSecond.op.opId));
+
+  // ── THE DRIVE IS COHERENT, OR THE CELL SAYS SO INSTEAD OF REPORTING A VERDICT. ──────────────
+  assert.deepEqual(deliveryFacts, [{ channel: 1, live: 0 }],
+    `arm (A) must reach a delivery instant with ONE OPEN COMMIT and NO OPEN ATTEMPT — the one instant the two `
+      + `sources disagree — or this cell is not driving the divergence: the drive recorded `
+      + `${JSON.stringify(deliveryFacts)}`);
+  assert.deepEqual(passFacts, [{ channel: 0, live: 1 }],
+    `arm (B) must reach a pass instant with NO OPEN COMMIT and ONE OPEN ATTEMPT — the divergence in the other `
+      + `direction — or this cell is not driving it: the drive recorded ${JSON.stringify(passFacts)}`);
+  assert.equal(deliveryWrite.ok, true,
+    `arm (A)'s write must complete (its pair admits every value); it caught `
+      + `${JSON.stringify(shapeOf(deliveryWrite.caught))}`);
+  assert.equal(passRun.ok, true,
+    `arm (B)'s pass must complete (a judgement over the step's reversal would throw out of the body's own `
+      + `rollback call and fail it); the run caught ${JSON.stringify(shapeOf(passRun.caught))}`);
+  assert.equal(deliveryRollback.ok, true,
+    `arm (A)'s reversal must answer: the pair admits the state it leaves, so a judgement cannot refuse it. The `
+      + `call caught ${JSON.stringify(shapeOf(deliveryRollback.caught))}`);
+  assert.equal(passRollback.ok, true,
+    `arm (B)'s reversal must answer its unchanged record: it is a STEP. The call caught `
+      + `${JSON.stringify(shapeOf(passRollback.caught))}`);
+
+  // ── THE DECLARED ANSWER, AT BOTH INSTANTS. ──────────────────────────────────────────────────
+  // (A) AN OPEN COMMIT WITH NO OPEN ATTEMPT IS AT REST: THE JUDGEMENT IS TAKEN.
+  assert.deepEqual(deliveryAsked, [W_SECOND, W_THIRD, W_FIRST],
+    `arm (A)'s pair is asked THREE times — at registration (${W_SECOND}), by the pass (${W_THIRD}) and BY THE `
+      + `JUDGEMENT at the state the reversal left (${W_FIRST}) — because no attempt is open at that instant, `
+      + `whatever the commit count says. THE DRIVE WAS ASKED AT ${JSON.stringify(deliveryAsked)}`);
+  assert.deepEqual(Object.keys(deliveryRollback.value).sort(), ['opId', 'restoredTo', 'undoneOps'],
+    `a judged reversal the judgement ADMITS answers its declared record (PAR-JS-9): the drive read `
+      + `${JSON.stringify(Object.keys(deliveryRollback.value))}`);
+  assert.equal(deliveryStanding, W_FIRST,
+    `the reversal's own effect is what it is: nothing refused it, so the value it restored STANDS — the drive `
+      + `read ${JSON.stringify(deliveryStanding)}`);
+  // (B) AN OPEN ATTEMPT WITH NO OPEN COMMIT IS A STEP: IT IS NOT JUDGED.
+  assert.equal(passAsked.includes(W_FIRST), false,
+    `arm (B)'s reversal is a STEP, so no body may be invoked by a judgement — and this pair REFUSES the seed, `
+      + `so a judgement's ask would have thrown. THE DRIVE WAS ASKED AT ${JSON.stringify(passAsked)}`);
+  assert.deepEqual(passAsked, [W_SECOND, W_THIRD],
+    `arm (B)'s pair is asked TWICE and no more — at registration and by the pass; a third ask is a judgement's. `
+      + `THE DRIVE WAS ASKED AT ${JSON.stringify(passAsked)}`);
+  assert.equal(passStanding, W_FIRST,
+    `the step's reversal took effect and nothing judged it afterwards: the store stands at `
+      + `${JSON.stringify(passStanding)}`);
+  // (C) AND THE CONTROL: THE PAIR REALLY DOES REFUSE THE STATE THE STEP'S REVERSAL LEFT.
+  assert.deepEqual([controlRollback.ok, controlRollback.caught?.status], [false, 'ConstraintPassRefused'],
+    `the control's at-rest reversal of the SAME shape must be REFUSED, or arm (B)'s green is vacuous: the `
+      + `control answered ok=${controlRollback.ok} caught=${JSON.stringify(shapeOf(controlRollback.caught))}`);
+
+  // ── THE READINGS, PRINTED ON EVERY ARM (`D-21`: a cell owes what it read). ───────────────────
+  t.diagnostic(`DEF-W (3) · D-38 (2026-10-26) · ARM A (listener delivery, inside the write's window): channel=`
+    + `${deliveryFacts[0].channel} (open commit) live=${deliveryFacts[0].live} (open attempt) ⇒ AT REST ⇒ judged; `
+    + `pair asked at ${JSON.stringify(deliveryAsked)}; record = ${JSON.stringify(deliveryRollback.value)}; store `
+    + `stands at ${JSON.stringify(deliveryStanding)} — the old channel read skipped this judgement`);
+  t.diagnostic(`DEF-W (3) · D-38 (2026-10-26) · ARM B (kernel-driven pass): channel=${passFacts[0].channel} `
+    + `(open commit) live=${passFacts[0].live} (open attempt) ⇒ A STEP ⇒ not judged; pair asked at `
+    + `${JSON.stringify(passAsked)}; record = ${JSON.stringify(passRollback.value)}; store stands at `
+    + `${JSON.stringify(passStanding)} — the old channel read judged it and would have thrown at the seed`);
+  t.diagnostic(`DEF-W (3) · D-38 (2026-10-26) · CONTROL: the same pair at rest refuses the seed — status `
+    + `${JSON.stringify(controlRollback.caught?.status)}, so arm B's green is not a pair that would have admitted it`);
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════

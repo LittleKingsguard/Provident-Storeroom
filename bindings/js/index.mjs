@@ -493,13 +493,19 @@ export function storeCreate(cfg) {
     ///     and throws the surface's one plain form, `{status: 'ConstraintPassRefused', message, log}` at the
     ///     set's rank `20`, where a pair the reversal TOUCHED refuses that state.
     /// **A LAWFUL REVERSAL IS UNCHANGED — same record, same three members, no throw** — **and `D-40`'s floor
-    /// law is not re-walked: this member still performs ONE store call, and the judgement is a judgement of
-    /// the state that call left and not a sequence of per-op approvals.** **THE SHAPE IS `(a)` AND IT WAS
-    /// MEASURED: the refusal comes AFTER the reversal and the reversal's effect STANDS**, because `(b)` —
-    /// computing the terminal state without applying it — is not computable from the thirteen names the
-    /// artefact publishes (there is no journal read and no candidate-set query among them) and a JS guess at
-    /// the store's temporally floored, all-or-nothing rollback scope (`src/store.rs:2374–2430`) is the one
-    /// thing this pass refused to write.
+    /// law is not re-walked: this member still performs the store's own calls, and the judgement is a judgement
+    /// of the state those calls left and not a sequence of per-op approvals.** **THE SHAPE IS `(a)` AND IT WAS
+    /// MEASURED: the refusal comes AFTER the reversal**, because `(b)` — computing the terminal state without
+    /// applying it — is not computable from the thirteen names the artefact publishes (there is no journal read
+    /// and no candidate-set query among them) and a JS guess at the store's temporally floored, all-or-nothing
+    /// rollback scope (`src/store.rs:2374–2430`) is the one thing this pass refused to write. **⟶ AND ITS SECOND
+    /// HALF — *"the reversal's effect STANDS"* — IS SUPERSEDED 2026-10-26 (`DEF-W`'s `(a)` discharged;
+    /// `contract.md §2.6`'s second annotate-beside of that date): a refusal that reports the violation while
+    /// leaving it is not a discharge, so `judgeReversal` RESTORES the pre-reversal standing of every address the
+    /// reversal moved before it throws the one plain form, and the log says the reversal was undone.** **THE
+    /// RESTORE IS NOT A JUDGED WRITE AND RECURSES INTO NOTHING**: it is the refusal's own compensating act,
+    /// taken at the store's entry with no `K-2`, no pass, no listener delivery and no second judgement
+    /// (`constraints.mjs`'s `restoreReversal`).
     rollback(opId) {
       const args = arguments.length >= 1 ? [encodeOpId(opId)] : [];
       // THE WATCH COMES FIRST, ON THIS SIDE OF THE STORE CALL: the standing it takes is the one the reversal

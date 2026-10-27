@@ -977,7 +977,13 @@ scenario(() => {
     `checkpoints=${JSON.stringify([...new Set(stF.map((s) => s.checkpoint))])} declaredList=${JSON.stringify(declaredF)} performed=${JSON.stringify(stF.map((s) => s.opId))}`);
 
   // ── (B) THE SAME SHAPE WHERE THE CALLS RETURN: what the composition performed, and nothing wider.
+  // **⟶ AND THE BESIDE ADDRESS IS SEEDED, 2026-10-26, SO THE COMPOSITION'S REACH IS READ AS A VALUE AND NOT AS
+  // AN ABSENCE.** The repair lands at `['b']`, which the attempt's own address `['a']` does not contain; the seed
+  // is what the store stood at there BEFORE the attempt, so a failing attempt that restores the address answers
+  // `BESIDE_SEED` and one that leaves it answers the repair's `7`.
+  const BESIDE_SEED = 41;
   const store2 = newStore();
+  store2.write(['b'], 'mem', BESIDE_SEED);
   register(store2, ['a'], 'A', (ctx) => (ctx.value <= 10
     ? true
     : { repair: (rc) => { const w = store2.write(['b'], 'mem', 7, rc); return { ok: true, message: 'repaired at b', op: w.op }; }, message: 'A violated' }));
@@ -995,24 +1001,36 @@ scenario(() => {
       && new Set(st2.map((s) => s.opId)).size === st2.length
       && st2.every((s) => declared2.includes(s.opId)) && st2.length <= declared2.length,
     `steps=${JSON.stringify(st2.map((s) => s.opId))} declaredList=${JSON.stringify(declared2)} status=${f2.status}`);
-  // ── **⟶ RE-DERIVED 2026-10-26 (`D-40`, 2026-10-26): THE UNION IS STILL "THE REACH AND NO WIDER", AND THE
-  // REACH IS NOW ONE CALL'S OWN SPATIAL-TEMPORALLY BOUNDED SET.** With ONE call over the attempt's first op,
-  // the reach is the addressed subtree at or after that op's `seq`: both ops standing AT `['a']` are named, and
-  // **an op the repair landed at a DIFFERENT address (`['b']` here) is in NO candidate set of that call** — it
-  // is named by no step and its value STANDS, which is the measured residual this row now reports rather than
-  // asserts away (the attempt's address is restored, the beside address is not reached).
-  cell(6, "the union of the steps' undoneOps is the reach the composition actually had, and no wider — the floor call restores the address the attempt wrote and an address a repair landed at beside it is NOT restored, the spatial scope declared at storeroom-js/contract.md §2.6's clause of 2026-10-26 (item 5) and no longer taken on D-40's unscoped sentence: it names every op of the attempt that stands in the floor call's own spatial-temporally bounded set (both ops at ['a']), names NO op outside it (the op the repair landed at ['b'] is in no step's undoneOps and in no step's opId), and reports a call that performed nothing only where `failed` is true",
-    `${C.ps217} observable; ${C.cs26} item 5 (a); storeroom-js/contract.md §2.6's clause of 2026-10-26, item 5 (D-40's spatial scope: the floor call restores the address the attempt wrote; an address a repair landed at beside it is not restored)`,
+  // ── **⟶ RE-DERIVED 2026-10-26 (`D-40`'s SPATIAL SCOPE CLOSED): ONE FLOOR CALL PER DISTINCT ADDRESS, AND
+  // EVERY ADDRESS THE ATTEMPT MOVED IS RESTORED.** The single call over the attempt's first op reaches the
+  // addressed subtree at or after that op's `seq`, so an op the repair landed at a DIFFERENT address (`['b']`
+  // here) is in NO candidate set of that call and its value STOOD — the measured residual that cell asserted.
+  // **THE COMPOSITION NOW ISSUES ONE CALL PER DISTINCT ADDRESS AT THAT ADDRESS'S OWN FIRST OWED OP**
+  // (`kernel-terminal.mjs`'s `floorCallPlan`, ordered shallowest-first so the issued addresses form an antichain
+  // and no call can meet an earlier call's compacted mark), **so the beside address's value comes back to the
+  // seed and the attempt's own address comes back to what it found.**
+  cell(6, "the composition's reach is the ATTEMPT'S WHOLE FOOTPRINT — one floor call per distinct address the attempt's owed ops touched, at each address's own first owed op — so a failing attempt leaves BESIDE addresses too restored: the repair's address answers its seeded value, the attempt's own address answers what stood there before it, every op of every touched address is named in a step's undoneOps and in that address's step opId, and no step performs nothing unless `failed` is true",
+    `${C.ps217} observable; ${C.cs26} item 5 (a); storeroom-js/contract.md §2.6's clause of 2026-10-26, item 5 (annotate-beside: the spatial scope is superseded — one floor call per distinct address, the attempt's footprint restored)`,
     (() => {
       const union = new Set(st2.flatMap((s) => s.undoneOps ?? []));
       const performed = new Set(st2.map((s) => s.opId));
+      // THE DISTINCT ADDRESSES THE ATTEMPT'S OPS TOUCHED, and each one's FIRST owed op — the declared plan.
+      const addresses = [];
+      for (const op of rr2.ops) {
+        const key = JSON.stringify(op.address);
+        if (!addresses.some((a) => a.key === key)) addresses.push({ key, first: op.opId });
+      }
       const own = rr2.ops.filter((o) => JSON.stringify(o.address) === JSON.stringify(['a'])).map((o) => o.opId);
       const beside = rr2.ops.filter((o) => JSON.stringify(o.address) !== JSON.stringify(['a'])).map((o) => o.opId);
-      return own.every((id) => union.has(id) || performed.has(id))
-        && beside.every((id) => !union.has(id) && !performed.has(id))
+      return own.every((id) => union.has(id))
+        && beside.every((id) => union.has(id))
+        && st2.length === addresses.length
+        && addresses.every((a) => performed.has(a.first))
+        && readVal(store2, ['b']) === BESIDE_SEED
+        && readVal(store2, ['a']) !== 99
         && st2.every((s) => (s.undoneOps ?? []).length > 0 || s.failed === true);
     })(),
-    `union=${JSON.stringify([...new Set(st2.flatMap((s) => s.undoneOps ?? []))])} declaredList=${JSON.stringify(declared2)} ops=${JSON.stringify(rr2.ops.map((o) => o.opId))}`);
+    `union=${JSON.stringify([...new Set(st2.flatMap((s) => s.undoneOps ?? []))])} steps=${JSON.stringify(st2.map((s) => ({ opId: s.opId, answer: s.answer, undoneOps: s.undoneOps, restoredTo: s.restoredTo })))} declaredList=${JSON.stringify(declared2)} ops=${JSON.stringify(rr2.ops.map((o) => ({ id: o.opId, address: o.address })))} read(['a'])=${JSON.stringify(readOr(store2, ['a']))} read(['b'])=${JSON.stringify(readOr(store2, ['b']))} (the seed at ['b'] was ${JSON.stringify(BESIDE_SEED)}; the repair wrote 7 there; ['a'] held nothing before the attempt and the attempt landed 99)`);
   cell(7, 'no op is passed to the store verb twice, and no call of the walk comes AFTER a call that had already undone it',
     `${C.cs26} item 4 (the guard) and item 5 (a) (the skip); ${C.ps217} outside values`,
     new Set(st2.map((s) => s.opId)).size === st2.length
