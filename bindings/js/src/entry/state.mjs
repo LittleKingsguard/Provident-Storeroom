@@ -121,6 +121,32 @@ export const FORGET_PAIR = Symbol.for('provident-storeroom.forget-pair');
 const ATTEMPT_COUNT = Symbol.for('provident-storeroom.attempt-count');
 const ATTEMPT_OPENED = Symbol.for('provident-storeroom.attempt-opened');
 
+/// **⟶ ADDED 2026-10-27 — `D-44`'s ENFORCEMENT POINT: THE COMMIT SCOPE, AND IT IS THE SEAM'S THIRD CHANNEL.**
+///
+/// **THE RULING IS THE ARCHITECT'S, VERBATIM: *"There should be no state where a constraint is being checked
+/// without an open commit. Any action that would cause a constraint check should open a commit before
+/// beginning"*** (`strata/decisions.md` · `D-44`) — **and it is an INVARIANT, enforced WHERE THE CHECK RUNS and
+/// not at its callers**: *"a seam a driver can bypass is not an invariant."* `runAttempt` has ONE production
+/// call site (`constraints.mjs`'s `constraintWrite`) **and is also driven DIRECTLY by the batteries**, so a
+/// bracket taken in the entry would be bypassed by every direct drive. **THE SCOPE IS THEREFORE OPENED BY THE
+/// PASS ITSELF**, and the kernel — which declares an EMPTY import footprint (`kernel-surface.md §1` item 1) and
+/// cannot import this module — reaches it through the seam `installAttemptSeam` already installs: the same
+/// `Symbol.for` device, a third channel on the object `storeCreate` returns.
+///
+/// **WHAT THE CHANNEL DOES, AND THE ONE RULE IT KEEPS**: `store[COMMIT_SCOPE](run)` runs the thunk `run` inside
+/// a commit window — **OPENING one if none is open, JOINING the extant one if one is, and CLOSING ONLY WHAT IT
+/// OPENED** (`openCommit` answers whether THIS call opened; `closeCommit` releases iff it did). **THAT IS
+/// `§4.1`'s OWN RULE** — *"a verb that finds an extant commit JOINS it rather than opening a second, which is
+/// what keeps the count exact under nesting"* — **so the production path's nesting is JOINED and never
+/// doubled**: the caller's verb bracket already holds the count at `1` and the pass's scope inside it moves the
+/// count by nothing. **A THROWABLE OUT OF `run` CROSSES UNCHANGED**, and the window is released on that arm
+/// too, so no count is ever left standing (`§5`'s failure list).
+///
+/// **NO MEMBER IS ADDED TO ANY RECORD AND NONE TO THE PRODUCT**: the channel is a `Symbol.for` key, invisible to
+/// `Object.keys` and to `Object.getOwnPropertyNames` (`A117` (D6)), so the product's declared own members are
+/// unmoved, no census of a `CommitRecord` moves and no kernel item is minted (`kernel-surface.md §1` item 2).
+const COMMIT_SCOPE = Symbol.for('provident-storeroom.commit-scope');
+
 /** The per-store index: `{ open, observers }`, keyed by the store instance and by nothing else. */
 const ATTEMPT_INDEX = new WeakMap();
 
@@ -231,6 +257,25 @@ export function installAttemptSeam(instance) {
           }
           index.observers = kept;
         };
+      },
+      writable: true,
+      enumerable: false,
+      configurable: true,
+    });
+  }
+  // **⟶ AND THE SCOPE, INSTALLED ONCE BY THE SAME RULE** (`§4.2` item 4: *"`storeCreate` installs each channel
+  // once on the object it returns"*; `D-44`). **It is the two moments `openCommit`/`closeCommit` already own,
+  // composed into one bracket and minting no third count**: this channel adds no index, no state and no
+  // increment — it only decides WHO opens.
+  if (typeof instance[COMMIT_SCOPE] !== 'function') {
+    Object.defineProperty(instance, COMMIT_SCOPE, {
+      value: (run) => {
+        const opened = openCommit(instance);
+        try {
+          return run();
+        } finally {
+          closeCommit(instance, opened);
+        }
       },
       writable: true,
       enumerable: false,

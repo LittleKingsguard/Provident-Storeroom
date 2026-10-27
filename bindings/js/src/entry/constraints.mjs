@@ -1236,6 +1236,21 @@ function constraintCrossing(refusal) {
 /// measurement of convenience: judging a step *"would invoke bodies mid-attempt and break `D-40`'s 'leaves
 /// the store exactly as it found it'"* (`§2.6` item 1). A verb window is in flight whatever its attempt map
 /// says, and its state is not the state that stands.
+///
+/// **⟶ AND THE SECOND DIRECTION IS CLOSED BY `D-44`, 2026-10-27 — THE PARAGRAPH ABOVE IS READ THROUGH THIS
+/// ONE AND NOTHING BELOW IT MOVES.** *"There should be no state where a constraint is being checked without an
+/// open commit. Any action that would cause a constraint check should open a commit before beginning"*
+/// (`strata/decisions.md` · `D-44`), and the state it names by hand is exactly the one printed above: *"`D-42`'s
+/// window `4` (a pass driven by hand, `open=0`/`live=1`): **that state must not exist**."* **SO A PASS DRIVEN
+/// STRAIGHT THROUGH `K-2`/`K-3` NOW SEES `open` `1`, `live` `1`** — the pass opens its own scope
+/// (`kernel-attempt.mjs`'s `runAttempt`, through the `commit-scope` channel `state.mjs` installs) — **and
+/// `reversalAtRest` IS UNMOVED**: both conjuncts stand, the restart is not a third conjunct, and a reversal
+/// inside a directly driven pass is still a STEP (the `live` conjunct decides it now, where before either
+/// conjunct would have). **WHAT THIS FILE STILL DOES NOT DO FOR THAT PASS IS CONSUME ITS REQUEST**: the
+/// restart's only consumer is `constraintWrite`'s `restartInvalidatedCheck`, and a directly driven pass has no
+/// such frame above it, so a body's request dies with its window through the epoch rule (`clearStaleRestart`).
+/// **THE INVARIANT IS THE PRECONDITION OF THE CHECK (`open` `≥` `1`), AND IT IS ENFORCED AT THE CHECK; THE
+/// RESTART'S CONSUMER IS A SECOND, SEPARATE CARRIER AND IS NOT CLAIMED HERE.**
 /// **SO THE DISCRIMINATOR ANSWERS *AT REST* IFF BOTH ARE ZERO**, which matches the clause's words and its
 /// reason at once, **AND IT STILL CANNOT FAIL**: the open-commit count is taken through `state.mjs`'s
 /// exported `openCommits(store)` — a PLAIN ACCESSOR over the same index the channel reads, NOT the channel

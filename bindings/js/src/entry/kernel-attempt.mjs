@@ -4,7 +4,45 @@ import { commitAttemptIdOf, terminal, close } from './kernel-terminal.mjs';
 // ---------------------------------------------------------------------------------------------
 // `K-3` `runAttempt(store, commit) -> AttemptReport`
 // ---------------------------------------------------------------------------------------------
+/// **`D-44`'s CHANNEL, SPELLED ON THIS SIDE TOO** — `state.mjs`'s `installAttemptSeam` installs it and this
+/// module reads it, **and neither side imports the other**: the key is a `Symbol.for` spelling, the same device
+/// `SETTLED_ON_THE_PASSING_ARM`, `SAVE_FAILED_AT_THE_TERMINAL_ARM` and `TERMINAL_ARM` already cross this boundary
+/// by (`kernel-surface.md §1` item 1: this module's import footprint is EMPTY, so it cannot import `state.mjs`
+/// and must not).
+///
+/// **THE INVARIANT IS THE ARCHITECT'S, VERBATIM: *"There should be no state where a constraint is being checked
+/// without an open commit. Any action that would cause a constraint check should open a commit before
+/// beginning"*** (`strata/decisions.md` · `D-44`) — **and it is enforced HERE, at the one frame where a check
+/// runs, and not at the frame that called it**: a bracket taken in `constraintWrite` would be bypassed by every
+/// direct `K-2`/`K-3` drive, and *"a seam a driver can bypass is not an invariant."*  **SO THE PASS OPENS ITS OWN
+/// SCOPE, AND A STORE THAT CARRIES NO CHANNEL IS REFUSED RATHER THAN RUN UNCOMMITTED** — the invariant fails
+/// closed, `KC-2` (the kernel's own argument token, the one its other two store-mismatch arms answer with; no
+/// ninth token is minted, `fail-surface.md §2`).
+const COMMIT_SCOPE = Symbol.for('provident-storeroom.commit-scope');
+
 export function runAttempt(store, commitRecord) {
+  // THE SEAM, READ BEFORE ANY STATE MOVES: **a store this package did not build carries no such channel, so it
+  // is not this package's store and no pass of this kernel may run against it.** The refusal is thrown BEFORE
+  // `status` moves, before an entry is appended and before a body is invoked, so a caller's attempt stands
+  // exactly as it stood and nothing is evaluated outside a commit.
+  const scope = store !== null && typeof store === 'object' ? store[COMMIT_SCOPE] : undefined;
+  if (typeof scope !== 'function') {
+    refuse(KC.arg,
+      'the store this constraint attempt would be run against carries no commit-scope channel, so there is no '
+        + 'open commit a constraint could be checked in',
+      []);
+  }
+  return scope(() => passInCommitScope(store, commitRecord));
+}
+
+/// **THE PASS AND ITS WHOLE TERMINAL ACT, TAKEN INSIDE THE COMMIT WINDOW `D-44` REQUIRES.** The scope covers
+/// everything a check reaches — the landing's pass, every re-run, the residue's delivery and the `file`-tier save
+/// — so a body of a delivered set, a repair and a pair body are all invoked in a window. **ON THE PRODUCTION PATH
+/// THE SCOPE JOINS THE VERB'S OWN COMMIT AND MOVES NOTHING** (`state.mjs`'s `openCommit` answers `false` where the
+/// count already stands above zero, which is `§4.1`'s join rule); **on a DIRECT `K-2`/`K-3` DRIVE IT OPENS THE ONE
+/// THE PASS OWES AND CLOSES ONLY THAT**, so the state *"no open commit, one open attempt"* — `D-44`'s direct-pass
+/// window — no longer exists on any path.
+function passInCommitScope(store, commitRecord) {
   const kernel = kernelFor(store);
   const id = commitAttemptIdOf(commitRecord);
   const attempt = kernel.live.get(id);

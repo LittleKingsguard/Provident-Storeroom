@@ -1132,9 +1132,27 @@ test('DEF-W (2) · a reversal performed INSIDE an open attempt is a STEP and is 
 // commit**, so the ruling's own words do not reach it — it is the conjunction's second conjunct, it answers its
 // record, and the request its body raises dies with its window (`constraints.mjs`'s epoch rule). **ARM (C) IS
 // UNTOUCHED.**
+//
+// **⟶ AND ARM (B)'S WINDOW MOVED 2026-10-27 — `strata/decisions.md` · `D-44`, THE ARCHITECT, VERBATIM: *"There
+// should be no state where a constraint is being checked without an open commit. Any action that would cause a
+// constraint check should open a commit before beginning"*** `RCA-8(g)` ANNOTATE-BESIDE: **every byte above
+// stands BYTE-FOR-BYTE and is read THROUGH this paragraph; the sentences that print arm (B)'s window as
+// `open` `0` / `live` `1` are SUPERSEDED and are not restated.** `D-44` names exactly that state — *"`D-42`'s
+// window `4` (a pass driven by hand, `open=0`/`live=1`): **that state must not exist**"* — and makes `open
+// commit` the PRECONDITION of the check, enforced WHERE THE CHECK RUNS: **the pass opens its own scope**
+// (`state.mjs`'s `installAttemptSeam` installs the `Symbol.for('provident-storeroom.commit-scope')` channel;
+// `kernel-attempt.mjs`'s `runAttempt` runs its pass inside it). **SO ARM (B)'S MEASUREMENT IS NOW `open` `1` /
+// `live` `1`** — the direct drive's own commit, joined by nothing, opened by the pass — **and the divergence
+// this cell was cut to show (`open` `1`/`live` `0` versus `open` `0`/`live` `1`) is now the ATTEMPT's alone.**
+// **THE DISCRIMINATOR IS UNMOVED and answers exactly what it answered**: `live` `1` is still not at rest, so
+// the reversal is still not judged at its instant, its call still answers its unchanged record, and **its
+// request still has no consumer on this path** — a directly driven pass has no `constraintWrite` frame above it
+// to restart the check, so the request dies with its window (`constraints.mjs`'s epoch rule) and no body is
+// asked at the state the reversal left. **WHAT MOVES IS THE INVARIANT, NOT THIS ARM'S ANSWER**: no check runs
+// where no commit is open.
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 
-test('DEF-W (3) · the discriminator is the CONJUNCTION: a reversal at a LISTENER-DELIVERY instant (open commit 1, live 0) is NOT judged AT ITS INSTANT — `D-42` restarts the check at the terminal call, which asks the pair at the state the reversal left and passes — a reversal inside a KERNEL-DRIVEN pass (open commit 0, live 1) is NOT judged, and a TERMINAL reversal (open 0, live 0) IS judged with `ConstraintPassRefused`', (t) => {
+test('DEF-W (3) · the discriminator is the CONJUNCTION: a reversal at a LISTENER-DELIVERY instant (open commit 1, live 0) is NOT judged AT ITS INSTANT — `D-42` restarts the check at the terminal call, which asks the pair at the state the reversal left and passes — a reversal inside a KERNEL-DRIVEN pass (open commit 1 — the pass opens it, `D-44` — live 1) is NOT judged, and a TERMINAL reversal (open 0, live 0) IS judged with `ConstraintPassRefused`', (t) => {
   const W_FIRST = SEED;      // 5 — the state the reversal restores, and the state a judgement's ask carries
   const W_SECOND = REFUSED;  // 9 — the value the reversal's op landed
   const W_THIRD = 7;         // 7 — arm (A)'s write, and arm (B)'s pass value
@@ -1214,9 +1232,12 @@ test('DEF-W (3) · the discriminator is the CONJUNCTION: a reversal at a LISTENE
     `arm (A) must reach a delivery instant with ONE OPEN COMMIT and NO OPEN ATTEMPT — one direction of the `
       + `divergence, and NOT AT REST under the conjunction — or this cell is not driving it: the drive recorded `
       + `${JSON.stringify(deliveryFacts)}`);
-  assert.deepEqual(passFacts, [{ open: 0, live: 1 }],
-    `arm (B) must reach a pass instant with NO OPEN COMMIT and ONE OPEN ATTEMPT — the divergence in the other `
-      + `direction — or this cell is not driving it: the drive recorded ${JSON.stringify(passFacts)}`);
+  assert.deepEqual(passFacts, [{ open: 1, live: 1 }],
+    `arm (B) must reach a pass instant with ONE OPEN COMMIT AND ONE OPEN ATTEMPT — the pass opens its own `
+      + `commit scope (\`D-44\`: *"A pass opens a commit before it begins"*, wherever it was driven from) and `
+      + `the attempt is the kernel's — or this cell is not driving it: the drive recorded `
+      + `${JSON.stringify(passFacts)}. \`open\` \`0\` here was the window \`D-44\` closed: *"that state must not `
+      + `exist"*`);
   assert.deepEqual(controlFacts, [{ open: 0, live: 0 }],
     `arm (C) must be measured at a TERMINAL instant — no open commit and no open attempt — or its judgement `
       + `would be the discriminator's accident and not its declaration: the drive recorded `
@@ -1297,11 +1318,11 @@ test('DEF-W (3) · the discriminator is the CONJUNCTION: a reversal at a LISTENE
     + `THE RESTART'S, at ${JSON.stringify(W_FIRST)}, at the terminal call's own end; record = `
     + `${JSON.stringify(deliveryRollback.value)}; store stands at ${JSON.stringify(deliveryStanding)} — the `
     + `restart asked and PASSED, so no refusal was produced (the lawful in-commit arm)`);
-  t.diagnostic(`DEF-W (3) · D-38 (2026-10-26) · ARM B (kernel-driven pass): open=${passFacts[0].open} `
-    + `(open commit) live=${passFacts[0].live} (open attempt) ⇒ NOT AT REST ⇒ not judged (the attempt is the `
-    + `ground here, the commit count is 0, so D-42's window is not open and the request dies with it); pair `
-    + `asked at ${JSON.stringify(passAsked)}; record = `
-    + `${JSON.stringify(passRollback.value)}; store stands at ${JSON.stringify(passStanding)}`);
+  t.diagnostic(`DEF-W (3) · D-38/D-44 (2026-10-26, 2026-10-27) · ARM B (kernel-driven pass): `
+    + `open=${passFacts[0].open} (open commit — the PASS's own scope, \`D-44\`) live=${passFacts[0].live} (open `
+    + `attempt) ⇒ NOT AT REST ⇒ not judged at its instant; pair asked at ${JSON.stringify(passAsked)}; record = `
+    + `${JSON.stringify(passRollback.value)}; store stands at ${JSON.stringify(passStanding)} — the request this `
+    + `direct pass raises has no \`constraintWrite\` above it to restart the check, so it dies with its window`);
   t.diagnostic(`DEF-W (3) · D-38 (2026-10-26) · ARM C (terminal reversal): open=${controlFacts[0].open} `
     + `(open commit) live=${controlFacts[0].live} (open attempt) ⇒ AT REST ⇒ JUDGED; status `
     + `${JSON.stringify(controlRollback.caught?.status)} with log ${JSON.stringify(controlLog)}; store stands `
