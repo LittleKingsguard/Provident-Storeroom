@@ -54,7 +54,7 @@ reached INTERNALLY by the package's own resolution step and is not an entry poin
 | `read(address, tier?)` | a leaf's literal, a branch's assembled value, or the empty address's whole register |
 | `readLiteral(address, tier?)` | the same, narrowed to a leaf (`ReadTargetIsBranch` on a branch) |
 | `write(address, tier, value, commit?)` | `{op, watched, triggered}` — **four positions, `commit` the fourth and optional** |
-| `delete(address, tier?)` | `{address, tiers, triggered}` |
+| `delete(address, tier?)` | `{address, op, tiers, triggered}`, plus a non-enumerable `discarded` witness |
 | `rollback(opId)` | `{opId, undoneOps, restoredTo}` |
 | `listen(handle, addresses)` | **the handle it watches under** (`Handle`) — **you spell it**, and position `2` is a SET |
 | `unlisten(handle)` | `undefined` — the withdrawal: the store-side entry and this package's registry entry |
@@ -114,6 +114,17 @@ every failure whose attempt exists carries that attempt's own entries — the ke
 records, with the `outcome` entry's `state` carrying the `KC` token where the constraint pass produced one**
 (`index.d.ts`, `LogEntry`; `surface.md §2.5` items 3–4). **The `message` is generated from the code and the
 failing trigger's arguments**, never hand-authored at a call site.
+
+**★ AND TWO THINGS ABOUT THAT LIST THAT A CONSUMER COUNTING IT NEEDS — DECLARED HERE BECAUSE THE SURFACE DOES NOT
+TELL YOU EITHER BY ITSELF.** **ONE: THE LIST BELONGS TO THE COMMIT, NOT TO THE ATTEMPT.** One write is one commit,
+and everything the commit does — the passes that judged its value, a repair's own write, the re-run after that
+repair, the terminal arm's `outcome` entry — appends to **one** array, **so a crossed report carries the entries of
+EVERY attempt in the commit, including a write a constraint body makes** (a listener's write opens a commit of its
+own, so its entries are that new commit's). **`log.length` is therefore every entry of the commit and not "how many
+constraints were evaluated".** **TWO: AN ENTRY'S `seq` IS THE POSITION OF THE ENTRY IN THAT LIST — NOT THE STORE'S
+JOURNAL ORDINAL.** `JournalOp.seq` orders the store's own record; this `seq` orders the commit's message log, and
+the two differ by design (a refusal's entry can carry `seq` `1` while the store's journal counter reads `41`). **The
+kernel's `state` token set is `KC-1`…`KC-9`, `KC-9` being the save arm's own; the store's status set has not moved.**
 
 ## The status set is TWENTY, and open by design
 
@@ -178,8 +189,9 @@ is REJECTED in both directions** — a listener and a constraint do not share on
 constraint arm is declared, and none is owed.
 
 **What a refusal costs you:** a write whose registered constraint refuses it **throws
-`{status: 'ConstraintPassRefused', message, log}`** — rank `20` — with the failure's `log` carrying the
-attempt's own entries and the kernel's `KC` token on the `outcome` entry's `state`. **The value is not written
+`{status: 'ConstraintPassRefused', message, log}`** — rank `20` — with the failure's `log` carrying the entries of
+the write's whole commit (the attempt's own among them, and every attempt the commit held) and the kernel's `KC`
+token on the `outcome` entry's `state`. **The value is not written
 and a failed attempt leaves the store exactly as it found it**, whether the constraint refused outright or its
 repair failed on the re-run (`D-40`).
 
@@ -268,8 +280,12 @@ empirically by `delivery` together with the e2e/install instruments. **No declar
 exclusivity binds the allowlist** — a hand-maintained count in its place would re-create the constraint those
 rulings lifted. **ONE DOCUMENTATION ROW IS ADDITIVE AND DECLARED AS SUCH:** `README.guide.md` names no module and
 imports nothing, so it travels in the reachability rule's own declared non-code class (`README*` at the package
-root) and no limb of that rule moves for it. **The prohibitions are unmoved:** no `.node`, no `build/Release`
-path and no `postinstall` route in this package's own tarball, and no `LICENSE` row.
+root) and no limb of that rule moves for it. **AND A SECOND: `RELEASE-NOTES.md` is the change list, staged
+byte-for-byte at the packaging root by the release's assembly, names no module and imports nothing, and is likewise
+admitted and declared** — so the manifest's `files` allowlist reads **seven rows** and the packed set reads **`20`
+members bare / `21` assembled** (`1` manifest + `5` root files + `13` entry modules + `1` kernel `= 20`, plus the
+licence at assembly). **The prohibitions are unmoved:** no `.node`, no `build/Release` path and no `postinstall`
+route in this package's own tarball, and no `LICENSE` row.
 
 ## Tests — a REPOSITORY instruction, not a consumer one
 
@@ -279,12 +295,12 @@ nothing by them. **A consumer's own tests are the consumer's.**
 
 ```sh
 cargo test  --manifest-path tests/Cargo.toml -p storeroom-tests --no-fail-fast   # THE BATTERY'S LEG — 235 cells, 0 fail
-cargo test --offline -p storeroom-native                                          # THE STORE'S LEG — 415 cells, 0 fail
-cargo test                                                                        # BOTH — 650 cells, 0 fail
+cargo test --offline -p storeroom-native                                          # THE STORE'S LEG — 434 cells, 0 fail
+cargo test                                                                        # BOTH — 669 cells, 0 fail
 ```
 
 **AND THE THIRD COMMAND IS NOT A FOURTH LEG:** a bare `cargo test` runs `default-members = [".", "tests"]`, so
-it is EXACTLY the store's `415` plus the battery's `235` — `415 + 235 = 650` ✓ — in one run (`D-34`: one
+it is EXACTLY the store's `434` plus the battery's `235` — `434 + 235 = 669` ✓ — in one run (`D-34`: one
 workspace at the repository root, `members = [".", "bindings/js", "tests"]`). **`-p` IS NOT DECORATION ON THE
 BUILD SIDE EITHER:** the store's leg keeps `--offline`, and a workspace-root `cargo build --offline` would pull
 this crate's `napi` crates and `--offline` would refuse them.

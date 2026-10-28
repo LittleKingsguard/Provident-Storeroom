@@ -42,6 +42,17 @@
         "e2e_breakdown": { "test_mjs": 55, "runners": 12, "support_modules": 8, "evidence_json": 1, "documents": 3 },
         "note": "the readings above (`present_population_verified_2026-10-25`, 44 / 33 / 5 / 1 = 83) are KEPT AS THEY STAND and are read through this key: tests/e2e/ has grown 44 -> 79, three classes of growth (32 more *.test.mjs, 1 more runner and 2 more documents), while integration, unit and the manifest are unmoved; the 79 closes as 55 + 12 + 8 + 1 + 3"
       },
+      "present_population_reconfirmed_2026_10_28_at_the_tree_nine_commits_past_v1_2_0": {
+        "measured": "2026-10-28",
+        "method": "counted with `find <dir> -type f`, and the five e2e classes with `find tests/e2e -name …`, at this tree (`git describe` reads v1.2.0-9-g989c216)",
+        "tests/e2e/": 79,
+        "tests/integration/": 33,
+        "tests/unit/": 5,
+        "tests/Cargo.toml": 1,
+        "tests_total": 118,
+        "e2e_breakdown": { "test_mjs": 55, "runners": 12, "support_modules": 8, "evidence_json": 1, "documents": 3 },
+        "note": "UNMOVED from `present_population_remeasured_2026_10_28`, recorded so a reader need not assume it: the nine commits since the v1.2.0 cut added no file under `tests/`. The five-class e2e reading still closes 55 + 12 + 8 + 1 + 3 = 79 (the 12 runners excluding the 8 support modules and every *.test.mjs), and the three scopes plus the manifest still close 118. The matching prose clause is docs/L1/test-stratification.md's `2026-10-28` re-measure."
+      },
       "of_the_75": 75,
       "created_by_the_migration_not_in_the_75": 8,
       "the_eight": [

@@ -1,5 +1,19 @@
 # Release notes — `provident-storeroom` `1.1.0`
 
+**⟶ THE FILE'S OPERATIVE READING, 2026-10-28 — THE HEAD IS CORRECTED HERE, AND THE DEFECT WAS ONE LEVEL IN: A DOCUMENT
+DENYING THE STATE IT DESCRIBED.** `RCA-8(g)` ANNOTATE-BESIDE: **the title line above and every dated paragraph below
+stand BYTE-FOR-BYTE as the reading of their own date; THIS clause and the `§MAIN` section beneath it are the operative
+readings of the two things the head got wrong.** **(i) `1.2.0` IS NOT UNRELEASED.** `git tag --list` answers `v1.0.0` ·
+`v1.0.1` · `v1.1.0` · `v1.2.0`; the tag `v1.2.0` names a tree whose `bindings/js/package.json` reads `"version": "1.2.0"`
+at its own bytes; and the registry carries `1.2.0`. **So the section that stood under *"UNRELEASED"* is the change list
+of a CUT release, its *"no `v1.2.0` tag exists"* sentence and its *"what is installed today is still `1.1.0`"* sentence
+are the reading of the date they were written, and its heading is corrected at its own line** — the withdrawn bytes are
+recorded there, because a heading that denies its own tag is exactly the class of defect this project calls `DEF-AC`.
+**(ii) THE PUBLISHED FIGURE IS `1.2.0`, NOT `1.1.0`, AND THE TREE READ HERE IS NINE COMMITS PAST THAT RELEASE WITH NO
+TAG ON IT.** **So this file now carries a section for the tree that is not cut (`§MAIN`, prepared and marked so) beside
+the section for the release that is (`§1.2.0`).** **No version is bumped, no manifest moves, and nothing in `§MAIN`
+claims to be installable.**
+
 **THE ONE THING THIS DOCUMENT IS FOR: `1.1.0` IS A MINOR, AND THIS IS WHERE ITS BREAKING CHANGES ARE
 DECLARED.** `1.0.1` was published as a PATCH and it carried behaviour changes a patch may not carry. The
 architect ruled the remedy a MINOR — *"the next release is `1.1.0`"* (`strata/decisions.md` · `D-42` item `1`)
@@ -33,7 +47,119 @@ the value to assert against, not the crate's own `Cargo.toml` version.
 
 ---
 
-## §1.2.0 · **UNRELEASED** — what the release in preparation adds, derived from the tree
+## §MAIN · **PREPARED — NOT CUT** — what stands on `main`, nine commits past `v1.2.0`
+
+**★ THIS SECTION DESCRIBES A TREE NOTHING CAN INSTALL, AND IT IS MARKED BEFORE IT SAYS ANYTHING ELSE, BECAUSE A MARK
+ADDED AFTERWARDS IS THE DEFECT THIS FILE JUST CORRECTED ONE SECTION DOWN.** **THE PUBLISHED RELEASE IS `1.2.0`**: `git
+tag --list` answers `v1.0.0` · `v1.0.1` · `v1.1.0` · `v1.2.0`, the tag `v1.2.0` names a tree whose
+`bindings/js/package.json` reads `"version": "1.2.0"` at its own bytes, and the registry carries that release. **THE TREE
+THIS SECTION IS DERIVED FROM IS NINE COMMITS PAST IT** — `git describe` reads `v1.2.0-9-g989c216`, `git rev-list --count
+v1.2.0..HEAD` reads `9`, and **no version bump is in any of those nine commits: the manifest still reads `1.2.0` at
+eleven sites and no tag names this tree.** **SO THE HONEST READING IS THIS: A CONSUMER INSTALLING `1.2.0` GETS `1.2.0`'S
+BYTES AND `1.2.0`'S CHANGE LIST (the section below); WHAT THIS SECTION DECLARES IS PREPARED AND NOT CUT, and a prepared
+change is not a shipped one.** **No consumer can install any of it yet, and every figure this section prints is a
+figure of the TREE and not of a tarball.**
+
+**IT DECLARES TWO BEHAVIOUR CHANGES A CONSUMER WILL FEEL, AND THEN FOUR SMALLER ITEMS. THE TWO COME FIRST BECAUSE THEY
+ARE THE CONTENT.**
+
+**1 · ★ THE MESSAGE LOG BELONGS TO THE COMMIT NOW — SO A CROSSED REPORT CARRIES MORE ENTRIES THAN `1.2.0`'S DID.**
+**`AT `1.2.0`:** the `log` was the **ATTEMPT's** own list — the constraint-judged write inside a commit carried the
+entries its own pass appended, and where an attempt was **nested** inside another (a write a constraint body makes, a
+repair's own write) the enclosing report carried the **enclosing** attempt's list: the nested refusal's entries were not
+in it, and on the arm the downstream filed (`DEF-AK`) the inner refusal's own entry was **REPLACED** rather than joined.
+**NOW:** the list belongs to the **COMMIT** — it is taken once per commit off the kernel's frame stack, defined on the
+`CommitRecord` under a symbol, and **every attempt in that commit holds a reference to it** — so **a crossed report
+carries the entries of EVERY attempt in the commit**, including a nested write made by a constraint body, whose refusal
+now shows its own `constraint-check` and `outcome` entries verbatim before the enclosing `outcome` entry. **A CONSUMER
+DIFFING `1.2.0` AGAINST THIS RELEASE SEES A REPORT CARRY MORE ENTRIES** — and that is the whole change: what is refused,
+what is restored, and which status crosses have not moved with it. **The one declared reach that is still a new list: a
+listener's write opens a commit of its own** (*"the triggering commit already passed constraints"*), so its entries are
+not in the triggering commit's list; and a pair body asked at a reversal's judgement names no commit, so a write that
+body makes opens one.
+**AND THE ENTRY'S `seq` IS THE POSITION IN THAT LIST — NOT THE STORE'S JOURNAL ORDINAL.** **`1.2.0`'s declaration said
+*"the ordinal of the list it stands in"* and that sentence was read as the journal's** (`DEF-AI`, measured): a refusal's
+entry carried `seq` `1` while the store's own journal counter read `41`. **They are two ordinals with two homes:
+`JournalOp.seq` is the store's append ordinal that orders the store's record, and this `seq` orders the COMMIT's message
+log and nothing else; neither equals the other by design.** **One repair write appends five entries in one list at `seq`
+`1..5`, strictly increasing in array order** — the pass's `constraint-check`, the repair's `repair-run`, the repair's
+`commit`, the re-run's `constraint-check`, and the terminal `commit`/`outcome` — **and no entry is ever minted from the
+store's journal counter.** **Say it to yourself before you count: `log.length` is every entry of the COMMIT, not "how
+many constraints were evaluated" and not "how many attempts this write made".**
+
+**2 · ★ A REVERSAL RAISED INSIDE A PASS IS NOW JUDGED — THREE HOSTS CHANGED FROM "A PASS RAN AND THE REVERSAL'S EFFECT
+STOOD" TO "REFUSED AND RESTORED".** **`AT `1.2.0`:** a reversal raised where a pass was running could be **left unjudged
+with its effect standing**, and the shipped guide said so falsely: *"And every pass that DOES run drains its own restart
+request — so the fail-state is bounded by the two acts that run none."* **That sentence is WITHDRAWN AS FALSE** (`D-54`;
+measured by the downstream): **a pass no longer consumes a request it did not raise, and the request is carried to the
+pass's own terminal state.** **The rule, quoted from the shipped guide:** ***"no pass consumes a restart request it did
+not raise, and a request raised inside a pass is carried to that pass's own terminal state and judged there — once,
+never per step."*** **THE THREE HOSTS, EACH MEASURED, BEFORE → AFTER:**
+- **A REPAIR BODY'S REVERSAL** — the judge was asked the pairs `[9,7]` and never `[5]`, with `0` judge invocations and the
+  refused `5` standing; **now the pairs asked are `[9,7,5]`, the invocation count is `1`, the write crosses
+  `ConstraintPassRefused`, and the store reads `9`** — the refused value does not stand.
+- **A REVERSAL INSIDE A `delete`'S CONSTRAINT PASS** — the same `[9,7]`/`0`/standing-`5` reading, and **now the same
+  `[9,7,5]`/`1`/`9`**, with the delete's own `discarded` witness reading `[]` because nothing was discarded.
+- **A REENTRANT REVERSAL-THEN-WRITE** — the write used to answer with the reversal's effect standing at `5`; **now it
+  REFUSES and the store reads `9`.**
+**AND THE TWO DECLARED PASSLESS WINDOWS STILL RUN NO PASS, WITH THEIR EXITS UNCHANGED: a `delete`'s LISTENER DELIVERY
+(a listener invoked by a delete's delivery runs no constraint pass, so a reversal raised inside it is unjudged and its
+effect stands, and the `discarded` witness reports the discard) and a REGISTRATION'S OWN EVALUATION (`addConstraint`'s
+and `constraintRegister`'s evaluation of a supplied body runs no pass, so an action raised there is unjudged and its
+effect stands).** **Their exits are the two the guide declares and they are unchanged: RELOAD THE FILE — a restore that
+moved a `file`-tier version saves the restored image, so a fresh boot over that path returns to judged bytes — or
+REGENERATE THE STORE, replaying your writes.** **A reversal raised by the listener a `delete`'s delivery fires INSIDE a
+pass is a THIRD case and not the declared window: that pass's terminal check now asks the pairs at the state the
+reversal left.** `D-42`, `D-38`'s once-per-terminal-state rule, the restart budget (`3`), its spend-and-never-reset rule
+and its failing-closed arm are **untouched**; what changed is where the request is carried and who may consume it.
+
+**3 · THE RESTORE NO LONGER REPORTS A SUCCEEDED WHOLE-COMMIT UNDO AS A FAILURE (`DEF-AJ`).** **`AT `1.2.0`:** a message
+could say *"0 of the 1 address it moved stand again"* when **every** address stood: the restore verified each moved
+address against the watch's **pre-reversal capture** while the store returned it to the **journal mark the commit cached
+at its OPENING**, and on the restart arm the commit had already landed `7` before the reversal ran, so the mark's `9`
+did not equal the capture's `7` and a complete whole-commit undo read as a failure. **NOW:** a successful restore counts
+every measured address restored to the mark, a standing **past** the capture is recorded as a `wholeCommit` and spoken as
+such with the baseline named, and **only a refused mark, a cacheless window or an unrestored address say NOT undone.**
+The message's meaning is the thing that moved; nothing about what a refusal restores moved with it.
+
+**4 · THE `discarded` WITNESS NAMES WHAT MOVED, NOT THE WHOLE WATCHED REGISTRY (`DEF-AM`).** A delete's `discarded`
+carries `addresses` — the addresses the discarded check would have been asked at — and **those are now the addresses the
+reversal actually MOVED, measured once against the standing the store holds, and not every address the registry
+watches.** **Measured: two pairs in the registry, one moved, and the witness names one.** **The witness is still a
+WITNESS and not a repair** — the delete answers what it answered, throws nothing, and the reversal's effect still
+stands in that declared window — and it is still **non-enumerable** (`Object.keys` never shows it; a spread copy loses
+it).
+
+**5 · THE CHANGE LIST ITSELF NOW SHIPS IN THE TARBALL (`DEF-AC` (a)).** **`RELEASE-NOTES.md` is the SEVENTH row of the
+main manifest's `files` allowlist**, staged **byte-for-byte** from this repository-root home to the packaging root as
+`bindings/js/RELEASE-NOTES.md` by the release's assembly — the same mechanism that lands `README.guide.md` and the
+`LICENSE` copy — and the preflight REFUSES a drifted landing. **So a consumer installing the next release has this
+change list at `node_modules/provident-storeroom/RELEASE-NOTES.md`**, and the packed member set reads **`20` bare / `21`
+assembled** (`1` manifest + `5` root files + `13` entry modules + `1` kernel = `20`, plus the licence at assembly).
+**This is the half of `DEF-AC` that is already cut in `1.2.0` and it stays cut in this tree.**
+
+**6 · THE PREFLIGHT GENERATES AND ASSERTS THE SHIPPED GUIDE'S VERSION LINE AND CUT-STATE (`DEF-AC` (b)).** **The
+guide's version line and cut-state sentence used to be HAND-WRITTEN, which is how the guide came to deny the release it
+travelled in.** **Now `scripts/publish.sh` GENERATES both from `bindings/js/package.json`'s `version` and `git tag
+--list`, and its preflight REFUSES when the shipped guide's two marked lines disagree** — a hand-written *"IS NOT CUT"*
+beside a generated *"IS CUT"* fails, and the generated line passes; `--figures` runs that one check read-only. **A
+hand-written line that contradicts the manifest can no longer travel.**
+
+**NOTHING IN THIS SECTION IS CUT, NO TAG NAMES IT, NO VERSION BUMP IS PROPOSED, AND THE ELEVEN VERSION SITES STAY AT
+`1.2.0`.** **The two behaviour changes are declared here because a consumer must be able to read them BEFORE the cut and
+must not be told they are in a tarball that does not carry them** — the same honesty the corrected head above owes.
+
+---
+
+## §1.2.0 · **CUT AND PUBLISHED — tag `v1.2.0`** — what that release adds, derived from the tree
+
+**⟶ THE HEADING THAT STOOD HERE WAS *"`## §1.2.0 · **UNRELEASED** — what the release in preparation adds, derived from
+the tree`"*, AND IT IS CORRECTED RATHER THAN ANNOTATED AROUND, 2026-10-28.** `RCA-8(g)` ANNOTATE-BESIDE: **the withdrawn
+bytes are quoted above and the section's body below stands BYTE-FOR-BYTE as the reading of its own date; every reading
+in it that says the release is not cut is read THROUGH the head clause and the clause of 2026-10-28 at the end of this
+section's opening paragraphs.** **THE DEFECT: a heading denying the release it describes is the `DEF-AC` class one level
+in, and a reader opening this file met *"UNRELEASED"* over a version the registry carries.** **The tag is cut — `git tag
+--list` answers `v1.0.0` · `v1.0.1` · `v1.1.0` · `v1.2.0` — and the release this section describes is published.**
 
 **★ THIS SECTION DESCRIBES A RELEASE THAT HAS NOT BEEN CUT, AND IT IS MARKED SO IT CAN NEVER BE MISTAKEN FOR A
 DECLARATION OF SHIPPED BYTES.** `bindings/js/package.json`'s `version` reads **`1.2.0`** at its own bytes this

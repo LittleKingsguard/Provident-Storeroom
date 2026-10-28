@@ -44,6 +44,8 @@ replaced, because the project's supersession convention is ANNOTATE-BESIDE and n
 
 **THE THREE FIGURES THIS FILE DOES NOT MOVE.** **19 modules**, **61 endpoints**, and the path denominator
 (`docs/L1/module-map.md` FIGURES: `105 owned + 1 co-owned + 20 unowned = 126`, with the declared target at `138`).
+
+**⟶ AND THE THIRD OF THOSE FIGURES IS THE ONE THAT MOVED WITHOUT THIS FILE, 2026-10-28 — THE DENOMINATOR IS `198`, AND THE TWO THAT ARE THIS FILE'S SUBJECT ARE UNMOVED.** `RCA-8(g)` ANNOTATE-BESIDE: **the paragraph above stands BYTE-FOR-BYTE and is read THROUGH this clause; its `126` and its `138` are the readings of their own date.** **MEASURED AT THE INDEX THIS DATE: `git ls-files | grep -v '^scratch/'` RETURNS `198` AND THE WHOLE INDEX IS `675`, so `675 = 477 + 198` ✓** (`docs/L1/module-map.md`'s own `2026-10-28` clause carries the thirteen-term by-tree list; the owned/unowned split is owed a walk that clause did not take). **THE 19 MODULES AND THE 61 ENDPOINTS THIS FILE DOES NOT MOVE ARE EXACTLY AS PRINTED** — a tracked file is not a module, and `DEF-AC` (a)'s seventh allowlist row (`RELEASE-NOTES.md`) adds one tracked path and no endpoint. **So a reader checking this file's three figures finds two green and the third superseded at the map rather than here.**
 None of the seven rulings adds an I/O surface any other module reaches: `listen`'s return travels the surface it
 already travels, the batch's element is the config the entry already receives, and the kernel's occupancy is
 already an interaction (`I-12`). **What this file therefore owes `modules.json` is not an endpoint but a reading**

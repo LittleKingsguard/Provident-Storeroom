@@ -433,7 +433,7 @@
         "scripts/publish.sh",
         "tests/Cargo.toml"
       ],
-      "owns_note": "⟶ ONE PATH ADDED TO THE TREE, 2026-10-25: `tests/Cargo.toml`, the manifest of the third workspace member `tests` (package `storeroom-tests`) that hosts the Rust batteries — `D-34` put it at the repository root and a manifest is this module's kind of artifact, which the map's §2.3 row already said and this twin had not. The two now agree. Its `files` reading is unchanged in kind: the allowlist is a FACT OF THE TREE plus REACHABILITY, never a declared arity (`D-3`, `D-4`, `D-8`), and the tree now carries five rows (index.mjs · README.md · index.d.ts · src/entry/ · src/constraint-kernel.mjs). ⟶ RE-READ 2026-10-28 AND THE ROW COUNT IS SIX: bindings/js/package.json's own `files` array carries SIX rows — index.mjs · README.md · README.guide.md · index.d.ts · src/entry/ · src/constraint-kernel.mjs — the sixth being the consumer guide's landed copy; the five-spelling above is the reading of its own date and is read THROUGH this clause. Nothing is deleted and the reachability rule is unmoved.",
+      "owns_note": "⟶ ONE PATH ADDED TO THE TREE, 2026-10-25: `tests/Cargo.toml`, the manifest of the third workspace member `tests` (package `storeroom-tests`) that hosts the Rust batteries — `D-34` put it at the repository root and a manifest is this module's kind of artifact, which the map's §2.3 row already said and this twin had not. The two now agree. Its `files` reading is unchanged in kind: the allowlist is a FACT OF THE TREE plus REACHABILITY, never a declared arity (`D-3`, `D-4`, `D-8`), and the tree now carries five rows (index.mjs · README.md · index.d.ts · src/entry/ · src/constraint-kernel.mjs). ⟶ RE-READ 2026-10-28 AND THE ROW COUNT IS SIX: bindings/js/package.json's own `files` array carries SIX rows — index.mjs · README.md · README.guide.md · index.d.ts · src/entry/ · src/constraint-kernel.mjs — the sixth being the consumer guide's landed copy; the five-spelling above is the reading of its own date and is read THROUGH this clause. Nothing is deleted and the reachability rule is unmoved. ⟶ RE-READ AGAIN 2026-10-28 AND THE ROW COUNT IS SEVEN: bindings/js/package.json's own `files` array carries SEVEN rows — index.mjs · README.md · README.guide.md · RELEASE-NOTES.md · index.d.ts · src/entry/ · src/constraint-kernel.mjs — the seventh being the CHANGE LIST's landed copy, staged byte-for-byte from the repository root by the same assembly and admitted by the same declared non-code class (DEF-AC (a)); the SIX above is the reading of its own date and is read THROUGH this clause, and the packed set reads 20 members bare and 21 assembled.",
       "responsibility": "Own the package manifest, the five per-platform packages, both crate manifests, the shipped README and the release pipeline. ⟶ CORRECTED 2026-10-25: THE CRATE MANIFESTS ARE THREE, NOT TWO — Cargo.toml (the workspace root), bindings/js/Cargo.toml and tests/Cargo.toml (the third member storeroom-tests, which D-34 put at the repository root); all three are in this module's `owns` array and in the tree, and 'both crate manifests' above is the superseded reading.",
       "endpoints": [
         {
@@ -651,13 +651,37 @@
         "sum": 156
       },
       "the_nine_that_the_147_missed": "147 = 126 + 13 (the new files under `bindings/js/src/entry/`) + 8 (the battery tree's net) was ARITHMETIC ON THE MAP'S 126, and the 126's own tree-by-tree list itemises NO `docs/L1` path — so `docs/L1` stood outside that denominator when it was struck (it held two files then), while `strata/decisions.md` was recorded as unverified. The nine are therefore `docs/L1`'s 8 present files plus `strata/decisions.md`'s 1, AND ALL NINE ARE UNOWNED. That is why the owned column the map printed for 147 (127) is still 127: only the unowned column moves, 20 → 29.",
-      "how_verified": "BY ENUMERATION, NOT BY git. Every path above was listed with the file tools on 2026-10-25 and the twelve tree totals close at 156. THIS PASS HAD NO SHELL: it could not run `git ls-files`, and it cannot distinguish a tracked path from an untracked-but-not-ignored one, so the agreement of its own 156 with L0's measured 156 is CORROBORATION and not the same measurement. `scratch/`'s tracked files stay outside the denominator by the project's convention, never by an ignore rule (module-map.md §5.4)."
+      "how_verified": "BY ENUMERATION, NOT BY git. Every path above was listed with the file tools on 2026-10-25 and the twelve tree totals close at 156. THIS PASS HAD NO SHELL: it could not run `git ls-files`, and it cannot distinguish a tracked path from an untracked-but-not-ignored one, so the agreement of its own 156 with L0's measured 156 is CORROBORATION and not the same measurement. `scratch/`'s tracked files stay outside the denominator by the project's convention, never by an ignore rule (module-map.md §5.4).",
+      "denominator_remeasured_2026_10_28": {
+        "denominator": 198,
+        "whole_index": 675,
+        "scratch_tracked": 477,
+        "identity": "675 = 477 + 198 ✓, measured by `git ls-files | grep -v '^scratch/'` on this tree 2026-10-28",
+        "by_tree": {
+          "src/": 7, "tests/": 118, "bindings/js/ (root)": 9, "bindings/js/src/": 18, "bindings/js/platforms/": 10,
+          "docs/specs/": 9, "docs/L1/": 9, "docs/guides/": 1, "typecheck/": 1, ".github/workflows/": 1, "scripts/": 3,
+          "strata/": 2, "root": 10, "sum": 198
+        },
+        "what_moved": "one term, `bindings/js/` root 8 -> 9, and the path is `RELEASE-NOTES.md` — the change list's landed copy made a TRACKED, GENERATED file at the packaging root by DEF-AC (a), the same class as `README.guide.md`. `tests/` 118, `scripts/` 3, `docs/L1/` 9, `docs/guides/` 1, `bindings/js/src/` 18 and the other terms are the readings of the 2026-10-28 clause in docs/L1/module-map.md and are unmoved here.",
+        "owned_unowned_split": "OWED A WALK THIS PASS DID NOT TAKE, exactly as the 185's and the 197's were. The `127 owned + 0 co-owned + 29 unowned = 156` split above is the 156's own and is NOT asserted at 198.",
+        "note": "THE `156` IS KEPT AS ITS OWN READING AND IS NOT REWRITTEN: this key is the annotate-beside reading of 2026-10-28 and the map's FIGURES block carries the matching clause."
+      }
     },
     "battery_owns_reconciled": {
       "store-battery": 15, "binding-battery": 7, "js-battery": 46, "greens-harness": 14, "delivery_tests_Cargo_toml": 1,
       "sum": 83,
       "tests_present_population": 83,
-      "note": "The four battery modules plus `delivery`'s single `tests/Cargo.toml` PARTITION `tests/` exactly — 15 + 7 + 46 + 14 + 1 = 83 — with no path owned twice and none unowned. The scopes reconcile to the declaration's own census: tests/e2e/ 44, tests/integration/ 33, tests/unit/ 5, tests/Cargo.toml 1."
+      "note": "The four battery modules plus `delivery`'s single `tests/Cargo.toml` PARTITION `tests/` exactly — 15 + 7 + 46 + 14 + 1 = 83 — with no path owned twice and none unowned. The scopes reconcile to the declaration's own census: tests/e2e/ 44, tests/integration/ 33, tests/unit/ 5, tests/Cargo.toml 1.",
+      "present_population_remeasured_2026_10_28": {
+        "method": "`find <dir> -type f`, one directory at a time, on this tree",
+        "tests/e2e/": 79,
+        "tests/integration/": 33,
+        "tests/unit/": 5,
+        "tests/Cargo.toml": 1,
+        "tests_total": 118,
+        "e2e_breakdown": { "test_mjs": 55, "runners": 12, "support_modules": 8, "evidence_json": 1, "documents": 3 },
+        "note": "THE `83` ABOVE IS THE READING OF 2026-10-25 AND IS KEPT: `tests/` has grown 83 -> 118 (e2e 44 -> 79), and the 118 closes as 55 + 12 + 8 + 1 + 3 = 79 in e2e, 33 integration, 5 unit and 1 manifest. The per-module ownership of the 35 added e2e paths is OWED a walk this pass did not take, so the four `owns` arrays still reconcile 83 and are not asserted at 118. The matching re-read is docs/L1/test-stratification.md's `2026-10-28` clause and docs/L1/test-stratification.json's `present_population_remeasured_2026_10_28` key."
+      }
     },
     "entry_owns_reconciled": {
       "hub": "bindings/js/index.mjs → js-surface, whole",
@@ -669,7 +693,23 @@
         "js-registry-delivery": ["state.mjs", "delivery.mjs"],
         "js-constraints": ["constraints.mjs", "kernel-foundations.mjs", "kernel-registration.mjs", "kernel-commit.mjs", "kernel-attempt.mjs", "kernel-terminal.mjs"]
       },
-      "note": "13 files = 8 entry parts (refusal 82 · artefact 355 · state 600 · class-decision 1,204 · carrier 960 · frame 416 · delivery 639 · constraints 795) + 5 kernel parts (foundations 529 · registration 644 · commit 156 · attempt 570 · terminal 324), each owned by exactly one module. THE DIRECTORY HOLDS NO FOURTEENTH FILE: `walk.mjs` is NOT on disk — `D-33`'s split of part 6 landed as `carrier.mjs` and `frame.mjs`."
+      "note": "13 files = 8 entry parts (refusal 82 · artefact 355 · state 600 · class-decision 1,204 · carrier 960 · frame 416 · delivery 639 · constraints 795) + 5 kernel parts (foundations 529 · registration 644 · commit 156 · attempt 570 · terminal 324), each owned by exactly one module. THE DIRECTORY HOLDS NO FOURTEENTH FILE: `walk.mjs` is NOT on disk — `D-33`'s split of part 6 landed as `carrier.mjs` and `frame.mjs`.",
+      "sizes_remeasured_2026_10_28": {
+        "method": "`wc -l` at each file's own last line on this tree",
+        "entry_parts": {
+          "refusal.mjs": 161, "artefact.mjs": 376, "state.mjs": 1038, "class-decision.mjs": 1214, "carrier.mjs": 1002,
+          "frame.mjs": 418, "delivery.mjs": 668, "constraints.mjs": 2695
+        },
+        "kernel_parts": {
+          "kernel-foundations.mjs": 908, "kernel-registration.mjs": 772, "kernel-commit.mjs": 190,
+          "kernel-attempt.mjs": 879, "kernel-terminal.mjs": 422
+        },
+        "src_entry_total": 10743,
+        "barrel": 4,
+        "index_mjs": 1573,
+        "index_d_ts": 1053,
+        "note": "THE `note` ABOVE IS THE READING OF 2026-10-25 AND IS KEPT BYTE-FOR-BYTE; every part has grown since (constraints 795 -> 2,695 is the largest movement), the directory still holds exactly thirteen files, and `index.mjs` reads 1,573 where that pass read 1,409. The matching clause is docs/L1/entry-subdivision.md's `2026-10-28` re-measure."
+      }
     },
     "what_moved_and_what_did_not": {
       "moved": [
