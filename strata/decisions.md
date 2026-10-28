@@ -3842,3 +3842,26 @@ untouched descendant not asked, a deleted subtree's descendants asked).**
 **WHAT THE FIRST COSTS, NAMED**: **the deletion at `K-1` had a reason** — **a constraint is not a listener handle, and `store.register(home, noopListener)` minted an inert listener body to make one.** **So restoring it needs the store's registry to admit a THIRD kind** — **a registration that is neither adopted as a listener nor given an inert body, but fired and identified as a constraint** — **which is a `src/**` shape, not a re-point.**
 
 **TERMS: the premise measured false (`1`), the two mechanisms (`2` = the store's `triggered`, the kernel's walk), the abandonment's site and its reason (`2` = the `K-1` deletion, the "seam not a decision" clause), `D-66`'s asymmetry as a symptom (`1`), the two options (`2`), the first's cost (`1` = the store's registry admitting a third kind).**
+
+---
+
+### `D-69` — THERE IS NO THIRD KIND: a registration is a HANDLE AND A BODY, and a constraint already has both
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, correcting `D-68`'s cost.
+
+**THE CORRECTION, VERBATIM:** *"It doesn't need to mint an inert listener body, it already should require a constraint function with a handle"*
+
+**AND `D-68`'S "THIRD KIND" WAS A SHAPE THAT ALREADY EXISTS.** **The store's registration is a HANDLE AND A BODY** — **a listener carries `{handle, address, listener}`; a constraint carries `{handle, address, constraint}`.** **The pair HAS a handle — its `id` is its handle (`D-29`) — and it HAS a body — the `constraint` function (`D-26`).** **So registering a pair with the store passes WHAT IT ALREADY HAS.** **The inert body `store.register(home, noopListener)` minted was a SEAM because it fabricated a listener to make a handle; it is not a seam to pass the constraint's own function, because that function IS the registration's body.**
+
+**SO `D-68`'S OPTION 1 IS CHEAP, AND ITS OPTION 2 DISAPPEARS.** **There is nothing to invent:**
+
+- **`K-1` registers the pair with the store, handing it the pair's `id` and the pair's `constraint`** — **no fake body**;
+- **the store's registry holds it beside the listeners**, **the same shape with the other slot filled**;
+- **`triggered` therefore names the pair's `id` in `{handle, address}`**, exactly as it names a listener's handle;
+- **and the PASS becomes a FILTER over `triggered` rather than a walk over `kernel.pairs`** — **an element whose handle is a constraint's `id` is asked; a listener's is delivered.** **ONE PREDICATE, in the store, where the per-tier versions live.**
+
+**AND THIS IS WHAT `D-67` AND `D-66` WERE BOTH REACHING FOR.** **`D-67` found the listener silent on a touched descendant; `D-66` gave the pass a predicate the store did not share.** **Both are the same defect: the store computes the reach of an act, and the kernel computed a second one.** **Restoring the registration makes the store's answer the only answer** — **and the per-tier residual closes with it, because the store knows which versions it purged.**
+
+**WHY THE DELETION AT `K-1` LOOKED RIGHT, AND WAS HALF RIGHT.** **`store.register(home, noopListener)` deserved to go: it made a listener-shaped thing that was not a listener.** **What it should have been replaced with is the pair's own function — and the deletion took the registration instead of the seam.**
+
+**TERMS: the correction (`1` = no third kind), the shape (`1` = handle + body, both already on the pair), the pass as a filter (`1`), the single predicate (`1`), the per-tier residual closed by it (`1`), the deletion's half-rightness (`1` = the seam deserved to go, the registration did not).**
