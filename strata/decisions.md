@@ -3732,3 +3732,21 @@ branch built:
 **TERMS: the boundary stated (`1`), the pass's internals confirmed inside (`3` = restart, carry, drain), the bump
 confirmed as a movement and not an invocation (`1`), the obligation (`1` = keep post-pass re-entry off the tree), and
 `D-63`'s clause confirmed as the one the machine keeps (`1`).**
+
+---
+
+### `D-65` — THE LOG ENTRY SHOULD NOT CARRY `seq`: the array index IS the position, and the member restates it
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, asking why a log entry carries `seq` at all.
+
+**THE QUESTION IS THE ANSWER, AND IT IS `DEF-AI`'S OWN FALLBACK.** **`seq: attempt.log.length + 1` IS THE ARRAY INDEX.** **A log entry's position in a list is where it stands in that list** — **and a member that restates it is a SECOND SOURCE OF TRUTH for a fact the array already encodes.**
+
+**AND THIS BRANCH HAS SPENT ITSELF REMOVING EXACTLY THAT CLASS**: the allowlist as a hand-count replaced by reachability (`D-3`) · the hand-named greens chain replaced by discovery · a hand-transcribed status census replaced by derivation from `CODES` · the commit's log taken off the attempt so there is **one** list (`D-53`) · the store's copy dropped so there is **one** copy (`D-58`). **`seq` on a log entry is the same shape at its smallest scale: two places that must agree, and only one of them is authoritative.**
+
+**WHY IT WAS THERE, STATED SO THE REMOVAL IS NOT A MYSTERY.** **It is part of the declared six-member `LogEntry` shape** (`seq · kind · id · opId · message · state`), **and `D-53`'s argument for it was that a MERGE would have to renumber** — **but `D-53` also concluded there is nothing to merge, because there is one list.** **So the argument survives only as an argument for not needing `seq`, and was read as an argument for keeping it.** **A member justified by a problem that was shown not to exist is the exact form of the defects this branch has been closing.**
+
+**AND THE ROW ITSELF ALREADY OFFERED THE FIX**: `DEF-AI`'s demand is *"mint `seq` from the attempt's counter, **or omit the member**."* **The tree did neither — it declared.** **Removing it is the version that cannot drift**: **there is no second copy of the position, so there is nothing to disagree with the journal's ordinal.**
+
+**THE COST, PRICED.** **`LogEntry` moves from six members to five** — **a breaking change for a typed consumer reading `entry.seq`**, and **every cell that reads `log[].seq` or censuses six members moves with it.** **That is the price of one fewer thing that can be wrong, and it is the same price every removal on this list charged.**
+
+**TERMS: the member removed (`1`), the six-member shape moving to five (`1`), the class named (`1` = a member restating its container), the cells to re-derive (`2` = the `SEQ` census and the monotonicity arm), the declaration's `seq` sentence retired (`1`).**
