@@ -3225,3 +3225,43 @@ not cover, which is the same error as reading a figure from the wrong table.**
 
 **AND IT WAS CAUGHT BY THE PASS THAT WAS IMPLEMENTING IT**, before the sentence could travel any further than one guide
 revision — which is the difference between a ruling written with its measurement beside it and one written ahead of it.
+
+---
+
+### `D-51` — THE `1.2.0` REVIEW (ROUND 12): the release's one behaviour change ships declared nowhere, and two rows are confirmed worse than read
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the adjacent consumer's rebuilt handoff (701 lines, 54,545 bytes)
+against the published `1.2.0`. **Four rows by consumer harm, and the first is L0's.**
+
+**1 · ★ THE RELEASE'S ONE BEHAVIOUR CHANGE IS DECLARED IN NO SHIPPED DOCUMENT.** **The refused reversal's restore to
+the commit's OPENING mark is the only behaviour `1.2.0` changes** — **it is declared in `RELEASE-NOTES.md`, which is at
+the repository root and rides no tarball**, and **the shipped guide does not state it.** **So a consumer installing
+`1.2.0` receives a behaviour change with no shipped declaration of it.** **That is `B-3` of the previous release's
+breach repeating in a smaller key: the record knew and the tarball did not.**
+
+**2 · `DEF-AL` — THE BUDGET REFUSAL ACCUSES THE WRONG PAIR, AND IS INDISTINGUISHABLE FROM A REAL REFUSAL.**
+**The restart budget's refusal names the FIRST WATCHED ADDRESS rather than the one that spent the budget**, so
+**registration order decides the accusation**; **the pair it names answered true on every ask it received**; and **the
+message is byte-identical to a genuine refusal's**, so **a consumer reading only the message cannot tell a real refusal
+from an exhausted budget.** `log[0]` names the true cause **while naming a passing pair by id.** **A diagnostic that
+accuses the innocent is worse than no diagnostic: it sends the reader to the wrong constraint.**
+
+**3 · `DEF-AK` — ONE INNER REFUSAL, TWO HOSTS, TWO ANSWERS.** **A listener body propagates an inner refusal verbatim**:
+same status, same message, same two-entry log, same op. **A constraint body making the identical write has it REPLACED
+by a generated `ConstraintBodyThrew`** whose single outcome entry is **the outer attempt's**, with **the inner refusal's
+distinctive literal occurring ZERO TIMES anywhere.** **So which host you are inside decides what you are told** — a
+second instance beside `DEF-X`'s two-of-seven — **and the crossed sentence claims *"a constraint body's throwable
+crosses as this refusal"* while a marked error of this kind crosses nowhere at all.**
+
+**4 · THE WITNESS IS EMPTIED BY THE ACT THAT NEEDS IT.** **`DeleteRecord.discarded` reports a discarded request on the
+delete's own receipt — and the listener standing inside that same delivery cannot read it, because the receipt does not
+exist at its instant.** **The witness serves the party who acts AFTER; the party who could act DURING is the one it
+withholds from.**
+
+**AND THE WITHDRAWALS, NAMED SO THE DEMANDS ARE NOT READ AS UNBOUNDED**: **four by the architect, and three of the
+consumer's own filings that did not survive contact.** **The discipline that produced them is theirs and it is the best
+thing in six rounds**: *a preference is an observation with a cost; it becomes a defect only when it breaks a clause the
+contract requires.*
+
+**TERMS: shipped declaration owed (`1` = the behaviour change), misattribution owed (`1` = `DEF-AL`), swallowed inner
+refusal owed (`1` = `DEF-AK`), the witness's reach named (`1`), withdrawals counted (`7` = 4 + 3).**
