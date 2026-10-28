@@ -600,9 +600,17 @@ export function terminalArm(state, record) {
   const triggeringAddress = answer === null || answer === undefined || answer.op === null || answer.op === undefined
     ? undefined
     : answer.op.address;
-  // `deliver` is THE SAME loop the post-verb window uses (`docs/specs/storeroom-js/surface.md §2.4` rules 1–3 read once, at both instants): ONE
-  // invocation per DISTINCT handle, and a handle with no registered function fires nothing silently.
-  deliver(state, triggered, triggeringAddress);
+  // **⟶ AND THE ARM PERFORMS THE DELIVERY FOR A KERNEL-DRIVEN WRITE AND FOR NO OTHER ACT — 2026-10-29.** A
+  // `delete`'s delivery is its OWN MEMBER's (`D-49` declares that window the one whose check never ran, and a
+  // request raised there is the witness's and not a pass's); the record is the delete's, so this arm is
+  // reached for it — the `file`-tier save above is the arm's act on BOTH — and the residue's delivery is the
+  // member's. **THE FACT IS THE PACKAGE'S OWN STATE AND NEVER A MEMBER OF ANY RECORD**, and it is `'arm'` on
+  // every path that does not name another, so a write's delivery is exactly where it was.
+  if (state.legDelivery !== 'member') {
+    // `deliver` is THE SAME loop the post-verb window uses (`docs/specs/storeroom-js/surface.md §2.4` rules 1–3 read once, at both instants): ONE
+    // invocation per DISTINCT handle, and a handle with no registered function fires nothing silently.
+    deliver(state, triggered, triggeringAddress);
+  }
   return undefined;
 }
 

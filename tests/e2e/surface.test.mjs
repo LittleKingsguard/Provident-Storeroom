@@ -734,7 +734,7 @@ test('constraint_pattern_no_constraint_verb_parameter_or_record_exists', () => {
 // `§2.8` the two file-behaviour readings a JS caller will meet
 // ---------------------------------------------------------------------------------------------
 
-test('file_readings_a_delete_and_a_rollback_perform_no_file_io', async () => {
+test('file_readings_a_file_tier_delete_saves_its_own_op_and_a_rollback_performs_no_file_io', async () => {
   const { mkdtemp, rm } = await import('node:fs/promises');
   const { tmpdir } = await import('node:os');
   const { join } = await import('node:path');
@@ -744,21 +744,39 @@ test('file_readings_a_delete_and_a_rollback_perform_no_file_io', async () => {
     const inst = storeCreate({ filePath: path, journalLength: 8, listeners: [] });
     // **⟶ RE-POINTED 2026-10-15 (`RCA-9`; `contract.md §7.2` items 1–2 AS AMENDED, `surface.md §2.11`
     // clause 2): the last successful `file` WRITE's bytes are put at the path by THE TERMINAL ARM'S OWN ACT,
-    // which this cell now drives after the verb returned its `WriteResult`.** The two readings this cell
-    // asserts — the delete is not durable, and the fresh boot re-loads the WRITE's image — are unmoved.
+    // which this cell now drives after the verb returned its `WriteResult`.**
     const held = await fileCommit(inst, ['a'], 1);
     assert.equal(
       held.outcome,
       'passed',
       `P-TP-8: the attempt HELD — the terminal arm's own act landed at the path (rollback: ${JSON.stringify(held.rollback)})`,
     );
-    inst.delete(['a'], 'file');
+    const removed = inst.delete(['a'], 'file');
     assert.throws(() => inst.read(['a'], 'file'), 'removed in the live store');
+    // **⟶ AMENDED 2026-10-29 — THE DELETE MINTS A `CommitRecord`, THE ENTRY ADOPTS IT, AND ITS `file`-TIER OP
+    // IS SAVED BY THE TERMINAL ARM.** The reading this cell asserted (`DD-45`/`DD-28`: a delete performs no file
+    // I/O, so the removed version STANDS AGAIN after a re-boot) was the reading of the tree BEFORE the record
+    // existed: the delete's own journal op was never named to the save, so nothing persisted its removal. **With
+    // the record minted and the delete's own returned receipt adopted into the leg slot, a `file`-tier delete's
+    // op IS the op the arm saves** — the same act, at the same instant, that a `file`-tier write's op gets.
+    assert.deepEqual(
+      Object.getOwnPropertyNames(removed),
+      ['address', 'tiers', 'triggered', 'op', 'commit', 'discarded'],
+      'the receipt carries the record the act minted, under the non-enumerable member `index.d.ts` declares',
+    );
+    assert.equal(removed.commit.op.opId, removed.op.opId, 'and the record names the op the delete landed');
     const fresh = storeCreate({ filePath: path, journalLength: 8, listeners: [] });
     assert.equal(
-      fresh.read(['a'], 'file'),
-      1,
-      'DD-45: a fresh boot over an equal path re-loads the last successful `file` WRITE, and the removed version STANDS AGAIN'
+      (() => {
+        try {
+          return fresh.read(['a'], 'file');
+        } catch (thrown) {
+          return `<${thrown.status}>`;
+        }
+      })(),
+      '<AddressNotFound>',
+      'a fresh boot over an equal path reads the IMAGE THE SAVE WROTE: the `file`-tier delete\'s own op was '
+        + 'saved, so the version it removed does NOT stand again'
       // **⟶ RESHAPED 2026-10-16 (`surface.md §2.4` item 9 (f)'s `A127` clause; `§2.9` item 1's `A127`
       // clause): the as-filed `inst.inst.read(fresh, …)` read a member `inst` off a receiver whose twelve
       // declared members are `10 + 1 + 1 = 12` — `inst.inst` is not one of them — and carried the fresh

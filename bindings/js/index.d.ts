@@ -521,13 +521,48 @@ export interface DeleteRecord {
    */
   readonly op: JournalOp | null;
   /**
+   * **⟶ ADDED 2026-10-29 — THE COMMIT RECORD THIS ACT MINTED, THE IDENTITY THE WHOLE COMMIT'S MACHINERY IS
+   * KEYED BY** (`D-55` item `3`; `kernel-surface.md §2.1` item `2`; `A112`).
+   *
+   * **IT IS THE SAME FOUR-MEMBER `CommitRecord` A WRITE'S `K-2` RETURNS** — `attempt` · `op` · `triggered` ·
+   * `pending` — minted by the delete's own commit act, held by the entry for adoption, and handed here on the
+   * receipt. **THE FOUR READINGS THAT FOLLOW FROM IT, EACH A MEASUREMENT THIS RELEASE PRINTED:**
+   *   * **`pending` IS THE DELETE'S RESIDUE** — the store's returned set, WHOLE at the landing, minus the
+   *     handles this delete's own pass checked off as it passed. **IT IS THE SET THE DELIVERY FIRES**: this
+   *     act delivers `pending`, not the whole `triggered` list, exactly as a write does;
+   *   * **A `file`-TIER DELETE SAVES ITS OWN OP** — the terminal arm names `op.opId` to the store's
+   *     `commit_file` on the act's PASSING arm, so the bytes describe the state the delete left (`§2.11`
+   *     clause 2, the same act a `file`-tier write gets). **THE STORE'S `delete` VERB STILL COMMITS NOTHING**
+   *     (`DD-28`; `native contract.md §7.2` item 5): the save is the ARM's, at the record's own op, and a
+   *     WHOLE-TARGET delete's op stands at no tier, so that arm serializes nothing;
+   *   * **THE LOG AND THE REPORT ARE ANSWERABLE BY REF** — `K.log(store, record.attempt)` and
+   *     `K.report(store, record.attempt)` answer the delete's own attempt after it passed, not only from a
+   *     refusal's `log` (`attempt-lifecycle.md §2.4` item 1: those items take an `AttemptRef` or its `id`);
+   *   * **AND IT CAN BE HANDED BACK** — a nested `write(address, tier, value, record)` names this commit at its
+   *     fourth position and JOINS it (`D-46`), the same object `write`'s own position accepts.
+   *
+   * **`null` IS THE `D-3` ARM** — an act that removed nothing opens no attempt, so there is no record: the member
+   * is PRESENT and says so rather than being absent (`D-21`).
+   *
+   * **AND IT IS A NON-ENUMERABLE OWN `data` PROPERTY**, the device `discarded` below declares for the same
+   * reason: `Object.keys(receipt)` and every deep-equality over the receipt read the four enumerable members
+   * they read before, while a caller reads the record **by its name** (`receipt.commit`). A spread or
+   * `Object.assign` copy does not carry it — read the member off the receipt itself.
+   */
+  readonly commit: CommitRecord | null;
+  /**
    * **THE DISCARD'S WITNESS — THE REVERSALS THIS ACT'S OWN DELIVERY RAISED AND THE PACKAGE THREW AWAY**
    * (`strata/decisions.md` · `D-49`, the architect, verbatim: *"Make discard observable"*; `DEF-AH`).
    *
-   * **WHY THIS MEMBER EXISTS.** A `delete`'s listener delivery **runs no constraint pass** — there is no attempt
-   * for one to run over — so a `rollback` a listener body issues inside it raises a **restart request with no
-   * consumer**, and the fail-state is honest only if the caller learns it happened (`D-43` item 2's fail-state
-   * and both exits stand; `D-49` owes the witness and nothing else). **A listener at `window.tabs` fires for a
+   * **WHY THIS MEMBER EXISTS.** A `delete`'s listener delivery stands **after the pass's own drain** (`D-55`
+   * item `3` put the delivery after the judgement), so a `rollback` a listener body issues inside it raises a
+   * **restart request with no consumer left in this act**, and the fail-state is honest only if the caller learns
+   * it happened (`D-43` item 2's fail-state and both exits stand; `D-49` owes the witness and nothing else).
+   * **⟶ AND THE GROUND MOVED BY ONE FACT ON 2026-10-29, SAID PLAINLY:** this member's clause read *"a `delete`'s
+   * listener delivery runs no constraint pass — there is no attempt for one to run over"*, and from `D-55` item
+   * `3` the delete DOES run a pass. **WHAT IS UNMOVED IS THE READER'S FACT**: the delivery is outside that pass,
+   * its drain has already run, and a request raised here is still discarded — so the witness still has its
+   * subject and still reports it. **A listener at `window.tabs` fires for a
    * delete at `window.tabs.landingPage`** — the triggered set's membership rule is the address prefix — **and the
    * check it runs there is exactly the act the window discards**; this member is where that caller reads it.
    *

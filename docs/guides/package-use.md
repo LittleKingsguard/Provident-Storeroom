@@ -1148,6 +1148,22 @@ removed version still stands again after the re-boot; **the save is the REFUSED 
 entry (a save is an effect and not an op), and a save that cannot land is reported (`FileCommitFailed`, the
 in-memory state restored and the bytes not updated) rather than swallowed.**
 
+**⟶ AND A `file`-TIER `DELETE` NOW SAVES ITS OWN OP, 2026-10-29 — THE SECTION HEADING ABOVE IS READ THROUGH THIS
+CLAUSE AND SO IS EVERY SENTENCE OF IT THAT NAMES A `delete`.** `RCA-8(g)` ANNOTATE-BESIDE: **THE READING ABOVE WAS TAKEN ON A TREE WHERE A `delete` MINTED NO
+`CommitRecord`, so nothing ever named its journal op to the save — and a
+consumer was told to expect a durable deletion back after a restart.** **WHAT MOVED:** the delete now mints the
+same four-member record a write's `K-2` mints, the entry adopts it, and **the terminal arm saves the DELETE's own
+op on its passing arm** — the same `commit_file` a `file`-tier write's save is. **MEASURED, ON THIS TREE:**
+`store.write(['a'], 'file', 1)` then `store.delete(['a'], 'file')` leaves the bytes at `filePath` reading `{}`
+where they read `{"a":1}`, and a fresh `storeCreate` over that path answers `AddressNotFound` where it answered
+`1`. **WHAT STILL READS AS THE SECTION SAYS, SAID SO THE CORRECTION IS NOT TAKEN WIDER THAN IT IS:** **the `delete`
+VERB still commits nothing of its own** (`DD-28`; the save is the ARM's), **a `rollback` still performs no file
+I/O** (its control reading is unmoved), **a WHOLE-TARGET delete — no tier named — names an op standing at no
+tier, so nothing is saved and the version still comes back after a re-boot**, and **a save that cannot land is
+reported the write's way** (`FileCommitFailed`, the store's journal rollback first, the message second, the
+commit's log carrying the one `outcome` entry at `KC-9`) rather than swallowed. **So the one-line advice above is
+now: a `file`-tier deletion is durable; a whole-target deletion is not.**
+
 ### §9.4 When the save itself fails
 
 **On a `file`-tier write's save that fails — the act itself failing, not a constraint — the store rolls the write

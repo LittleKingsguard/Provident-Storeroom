@@ -438,15 +438,17 @@ test("verbs · native contract.md §4.1.1 · `readLiteral` refuses EXACTLY TWO s
 // §7 — THE NO-FILE-I/O CLAUSES
 // ---------------------------------------------------------------------------------------------
 
-test('verbs · native contract.md `DD-28` and js contract.md `DD-45` · a DELETE performs NO FILE I/O: a version it removed in memory STANDS AGAIN after a fresh boot over the same `cfg.filePath`, and that re-boot is the DECLARED consequence and not a defect', () => {
-  // DECLARED: "**the `delete` and the `rollback` DO NOT COMMIT THE FILE, and the `file` tier's
-  // durability is a WRITE's act alone** … **a `delete` — of any tier scope, including one that
-  // removes `file`-tier versions — performs NO file I/O, and a `rollback` performs NO file I/O**;
-  // consequently **a FRESH `storeCreate(cfg)` with the same `cfg.filePath` re-boots from the last
-  // committed `file` write's bytes, so a version the delete or the rollback removed in memory STANDS
-  // AGAIN after the re-boot** — that re-boot being *"`§7.2` item 6's declared boot, and it is the
-  // declared consequence of this row rather than a defect"*" (`native contract.md`, `DD-28`);
-  // `DD-45` carries the same rule on the JS side.
+test('verbs · js contract.md §2.8 read through its 2026-10-29 clause · a `file`-tier DELETE SAVES its own journal op, so the version it removed does NOT stand again after a fresh boot over the same `cfg.filePath` — while `DD-28`\'s durability rule and the `rollback` control beside it are unmoved', () => {
+  // **DECLARED, AT THE 2026-10-29 CLAUSE THIS CELL NOW DRIVES.** `native contract.md`'s `DD-28` stands
+  // byte-for-byte — *"`file`-TIER DURABILITY IS PRODUCED BY A SUCCESSFUL `file`-TIER `write` ONLY"* — and the
+  // store's `delete` VERB still commits nothing (`§7.2` item 5). **WHAT MOVED IS THE TERMINAL ARM'S SAVE**: a
+  // `file`-tier `delete` now mints the `CommitRecord` `K-2` mints for a write, the entry adopts the delete's own
+  // receipt, and the arm names THE DELETE'S OP to `commitFile` — so the bytes describe the state the delete
+  // left, exactly as a `file`-tier write's bytes describe the state its own op left. **THE PRE-2026-10-29
+  // READING IS RECORDED HERE SO THE MOVEMENT IS NOT SILENT:** *"a `delete` — of any tier scope — performs NO
+  // file I/O, and a FRESH `storeCreate(cfg)` re-boots from the last committed `file` write's bytes, so a version
+  // the delete removed in memory STANDS AGAIN after the re-boot"* — that was the tree before the record
+  // existed. **THE ROLLBACK CONTROL IS THE NEXT CELL AND ITS READING IS UNMOVED.**
   const directory = mkdtempSync(join(tmpdir(), 'sr-blind-noio-'));
   const filePath = join(directory, 'store.json');
 
@@ -456,13 +458,26 @@ test('verbs · native contract.md `DD-28` and js contract.md `DD-45` · a DELETE
   // path reading the written value (`native contract.md §7.2`).
   assert.equal(make({ filePath }).read(['keep'], 'file'), 'committed');
 
-  // THE DELETE — of the `file`-tier version itself — performs NO file I/O.
+  // THE DELETE — of the `file`-tier version itself — carries its own op AND the record the act minted.
   const receipt = instance.delete(['keep'], 'file');
   assert.deepEqual(receipt.tiers, ['file']);
   assert.equal(catchIt(() => instance.read(['keep'], 'file')).status, 'AddressNotFound');
+  assert.equal(receipt.commit.op.opId, receipt.op.opId,
+    'the record names the DELETE\'s own op — the op the terminal arm saves');
+  assert.equal(receipt.commit.op.tier, 'file', 'and that op stands at the `file` tier, which is the save\'s gate');
 
-  // … AND THE VERSION STANDS AGAIN AFTER THE RE-BOOT.
-  assert.equal(make({ filePath }).read(['keep'], 'file'), 'committed');
+  // … AND THE REMOVAL STANDS AFTER THE RE-BOOT, because the save wrote the image the delete left.
+  assert.equal(catchIt(() => make({ filePath }).read(['keep'], 'file')).status, 'AddressNotFound',
+    'a fresh boot reads the image the DELETE\'s save wrote — the version does not stand again');
+  // **AND THE WHOLE-TARGET ARM NAMES NO TIER AND THEREFORE SAVES NOTHING** (the store's own `commit_file`
+  // answers a tier-less op with no write at all): `DD-28`'s reading survives for THAT arm, and the gate is the
+  // op's own `tier` member rather than a choice of this build's.
+  const whole = instance.write(['other'], 'file', 'kept');
+  assert.equal(whole.op.tier, 'file');
+  instance.delete(['other']);
+  assert.equal(make({ filePath }).read(['other'], 'file'), 'kept',
+    'a WHOLE-TARGET delete (no tier) names an op standing at no tier, so the store\'s own `commit_file` '
+      + 'serializes nothing and the version STANDS AGAIN — `DD-28`\'s reading survives for that arm');
 });
 
 test('verbs · native contract.md `DD-28` and §6.4 item 5 (`M-9`) · a ROLLBACK performs NO FILE I/O either, and it appends NO journal entry — so the re-boot reads the LAST COMMITTED `file` write, not the reversed one', () => {

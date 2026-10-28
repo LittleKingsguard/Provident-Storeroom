@@ -884,9 +884,19 @@ export function constraintWrite(state, instance, address, tier, value) {
  * `commitRemoval` answers `null`, **no attempt is opened, no pass runs and no entry is appended** — there is no
  * state for a pair to refuse and nothing for the safe-state rule to undo. The record crosses as it always did.
  *
- * **THE DELIVERY IS NOT THIS FUNCTION'S** and it is not the kernel's: `index.mjs`'s member performs it AFTER
- * this call returns, so a listener fired by a delete sees the JUDGED state (`D-55` item 3's third demand) and a
- * refused delete delivers nothing, its commit having been undone.
+ * **THE DELIVERY IS THE TERMINAL ARM'S FROM 2026-10-29, AND IT IS WHY THE PASS IS HANDED THE `CommitRecord`
+ * (`D-55` item 3's third demand: a listener fired by a delete sees the JUDGED state, and a refused delete
+ * delivers nothing, its commit having been undone).** `commitRemoval` now mints the record the pass's terminal
+ * arm is keyed by, and `runAttempt` reaches that arm with it (`settleArm` → the entry's `TERMINAL_ARM`), so the
+ * residue `record.pending` — the delete's returned set MINUS the handles its own pass checked off — is
+ * delivered at the arm, after the judgement, exactly as a write's is. **A REFUSED DELETE STILL DELIVERS
+ * NOTHING**: the failing arm reaches the same seam with the residue the discard emptied (`terminal`).
+ *
+ * **AND THE RECORD IS HANDED TO THE CONSUMER ON THE RECEIPT, UNDER THE `D-49` DEVICE.** `DeleteRecord` keeps
+ * its enumerable members; `commit` is a NON-ENUMERABLE own `data` property, visible by its name and declared in
+ * `index.d.ts`, exactly as `discarded` is — so the record a delete minted can be held (`receipt.commit`) and
+ * handed back (`K-4`/`K-5` take its `attempt`; a nested `write` takes the record itself at its fourth
+ * position). **`null` IS THE `D-3` ARM'S VALUE**: no attempt was opened there, so there is no record to carry.
  */
 export function constraintDelete(instance, address, tier, remove) {
   // THE DELETE-SHAPED ATTEMPT, OPENED AROUND THE STORE'S OWN LEG: `remove` is the addon's `delete`, already
@@ -905,14 +915,21 @@ export function constraintDelete(instance, address, tier, remove) {
     // same rank-`20` form a write does and a store refusal crosses verbatim (`§2.5` item 10 (ii)).
     constraintCrossing(refusal);
   }
-  if (attempt === null) return receipt;
-  // THE PASS, INSIDE THE COMMIT THE MEMBER OPENED (`D-44`): `runAttempt` names the commit this attempt carries
-  // (`attempt.name`), so its scope JOINS — the delete's window is the pass's window, and the pairs standing at
-  // THIS address are asked against the delete's own op. A failing pass throws the kernel's own refusal with
-  // its log and its compensating act already taken.
+  // **THE `D-3` ARM CARRIES ITS `null`** — no attempt, so no record, and the member is present rather than
+  // absent (`D-21`: a member whose act did not run says so).
+  if (attempt === null) {
+    exposeCommit(receipt, null);
+    return receipt;
+  }
+  // THE PASS, INSIDE THE COMMIT THE MEMBER OPENED (`D-44`): `runAttempt` names THE RECORD `commitRemoval`
+  // minted (`attempt.record` — the same object `K-2` hands `K-3`), so its scope JOINS — the delete's window is
+  // the pass's window, and the pairs standing at THIS address are asked against the delete's own op. **THE
+  // TERMINAL ARM IS REACHED WITH THAT RECORD AND NOTHING ELSE** (`settleArm`), so the delivery and the
+  // `file`-tier save are the record's own facts. A failing pass throws the kernel's own refusal with its log
+  // and its compensating act already taken.
   let report;
   try {
-    report = runAttempt(instance, attempt.name);
+    report = runAttempt(instance, attempt.record);
   } catch (refusal) {
     constraintCrossing(refusal);
   }
@@ -925,7 +942,26 @@ export function constraintDelete(instance, address, tier, remove) {
   if (restarted !== undefined) {
     constraintCrossing(restarted);
   }
+  exposeCommit(receipt, attempt.record);
   return receipt;
+}
+
+/// **THE RECORD ON THE RECEIPT — A NON-ENUMERABLE OWN `data` PROPERTY, THE DEVICE `D-49` DECLARED.**
+///
+/// `Object.keys(receipt)`, every deep-equality over a receipt and every census of its ENUMERABLE members read
+/// exactly what they read before, while a caller reads the commit **by its name** (`receipt.commit`) and
+/// `index.d.ts` declares it. **IT IS A `data` PROPERTY AND NOT AN ACCESSOR**: a getter would run caller-side
+/// code on a read, which is the read half `D-35` closes everywhere else. **A RECEIPT THAT ALREADY CARRIES ONE**
+/// — the thunk answers the store's own object and this entry owns it — takes the value it was handed, and the
+/// member is defined on every arm so its presence never depends on the arm.
+function exposeCommit(receipt, record) {
+  if (receipt === null || typeof receipt !== 'object') return;
+  Object.defineProperty(receipt, 'commit', {
+    value: record === undefined ? null : record,
+    enumerable: false,
+    writable: false,
+    configurable: true,
+  });
 }
 
 /// **THE FAIL ARM'S CROSSING — `A120` (2): THE ENTRY CARRIES THE KERNEL'S TOKEN, THE THROW KEEPS THE

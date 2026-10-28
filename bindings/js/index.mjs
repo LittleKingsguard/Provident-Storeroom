@@ -239,6 +239,14 @@ export function storeCreate(cfg) {
   // a member of the product.
   const state = {
     home: [], registry: new Map(), constraints: new Map(), leg: null, receiver: null, establishing: null,
+    // **⟶ AND THE RESIDUE'S DELIVERER, ADDED 2026-10-29 — A PRIVATE FACT ABOUT WHICH ACT OWNS A LEG'S
+    // DELIVERY.** The terminal arm performs `surface.md §2.7` item 7's delivery for a kernel-driven WRITE
+    // (`delivery.mjs`'s `terminalArm`), and it is the delete's OWN member that performs it (`D-49` declared that
+    // delivery the window whose check never ran, and this build does not move it). **IT IS A VALUE OF THE
+    // PACKAGE'S OWN STATE AND NOT A MEMBER OF ANY RECORD** (`surface.md §2.1` (e) item 1: a record, a commit
+    // and a Map are never own members of the product): `'arm'` on every path that does not say otherwise, and
+    // `'member'` for the instant a `delete` stands in, restored in the same `finally` as the leg itself.
+    legDelivery: 'arm',
   };
   // **⟶ THE RECEIVER IS THE STORE OBJECT ITSELF, AND THE INTEGER THE PACKAGE USED TO HAND ACROSS IS NOT
   // HANDED AT ALL** (`receiver-and-refusal.md §1`; `js-unwrap.md §4`). The addon resolves its store from the
@@ -543,39 +551,70 @@ export function storeCreate(cfg) {
         // is not). **A REFUSAL LEAVES BY THROW, FROM INSIDE THAT CALL**, with the store already back at the
         // state this commit opened at (`D-55` item 5) — so nothing below is reached and nothing is delivered.
         let answer;
-        const receipt = constraintDelete(instance, address, arguments.length >= 2 ? tier : undefined, () => {
-          // THE ENTRY IS INVOKED BY `Reflect.apply`, NOT BY A SPREAD — see `read`'s clause of 2026-10-24 above.
-          answer = carryRefusal(() => Reflect.apply(entryOf().delete, this, args), args);
-          return {
-            address: decodeSegments(answer.address),
-            tiers: answer.tiers,
-            triggered: crossTriggered(state, answer.triggered),
-            op: answer.op === null ? null : decodeJournalOp(answer.op),
-          };
-        });
-        // **⟶ AND THE DELIVERY MOVES AFTER THE PASS — `D-55` item `3`, MEASURED BEFORE THIS LINE MOVED.** At
-        // `1.3.0` this call stood where the thunk's answer was returned and BEFORE any judgement, so a listener
-        // fired by a delete observed a state no constraint had approved and that a refusal would undo. **A
-        // LISTENER FIRED BY A DELETE NOW SEES A JUDGED STATE**, and a refused delete reaches no delivery at all.
-        // **THE RULE IS THE WRITE'S OWN** (`surface.md §2.7` item 6): constraints first, then the other
-        // listeners. `A43`: a delete FIRES its own triggered set, on the same window as a write.
-        deliver(state, receipt.triggered, answer.triggeringAddress);
-        // **⟶ `D-49`: THE WITNESS, READ AFTER THE DELIVERY AND REPORTED BESIDE THE RECORD** — the delivery is
-        // the act's remaining body-invoking instant, so a request standing after it is one this window raised
-        // from a LISTENER BODY. **A REQUEST A PAIR BODY RAISES INSIDE THE PASS IS NOT THIS WITNESS'S**: it is
-        // consumed and judged by the pass's own restart drain (`D-42`; `D-54` (b)), and by the time this line
-        // runs it has either passed or refused the delete outright.
-        // **ONLY A DELETE THAT OPENED ITS OWN WINDOW REPORTS**: a call that joined an enclosing commit has no
-        // window of its own to witness, and any request under that identity belongs to the act that opened it
-        // (`witnessDiscardedReversal` clears a request of the window handed in and of no other).
-        const discarded = opened === true ? witnessDiscardedReversal(instance, window) : null;
-        Object.defineProperty(receipt, 'discarded', {
-          value: discarded === null ? [] : [discarded],
-          enumerable: false,
-          writable: false,
-          configurable: true,
-        });
-        return receipt;
+        // **⟶ THE ADOPTION, 2026-10-29 — `K-2`'S OWN SEMANTICS REACHED BY THE DELETE'S OWN ROUTE.** A write's
+        // record reaches the entry at `write`'s FOURTH POSITION and that member stands it in `state.leg`, the
+        // slot the TERMINAL ARM reads for the triggering address and for the `file`-tier save's own op. **A
+        // delete's arity is the declared `delete(address, tier)`, so it has no such position** — the adoption is
+        // therefore taken HERE, at the instant the store's own verb returned and BEFORE the pass, which is the
+        // same instant and the same slot: the delete's own returned receipt stands where a write's record
+        // stands, so the terminal arm saves the DELETE's op and delivers at the DELETE's address.
+        // **AND THE ENTRY'S OWN LEG IS PUT BACK, BESIDE `closeCommit` AND IN THE SAME `finally`**: a leg left
+        // standing would be read by an ENCLOSING write's terminal arm (`state.leg` is one slot and a nested act
+        // is reached from a body — `D-53`), and the delete's record must not become the enclosing commit's.
+        const standing = state.leg;
+        const standingDelivery = state.legDelivery;
+        // THE LEG'S DELIVERY IS THIS MEMBER'S FOR THE DURATION (`D-49`'s window, unmoved): the arm saves the
+        // delete's op and delivers nothing, so the residue reaches each listener ONCE — from `deliver` below.
+        state.legDelivery = 'member';
+        try {
+          const receipt = constraintDelete(instance, address, arguments.length >= 2 ? tier : undefined, () => {
+            // THE ENTRY IS INVOKED BY `Reflect.apply`, NOT BY A SPREAD — see `read`'s clause of 2026-10-24 above.
+            answer = carryRefusal(() => Reflect.apply(entryOf().delete, this, args), args);
+            const crossed = {
+              address: decodeSegments(answer.address),
+              tiers: answer.tiers,
+              triggered: crossTriggered(state, answer.triggered),
+              op: answer.op === null ? null : decodeJournalOp(answer.op),
+            };
+            // THE ADOPTION ITSELF — one assignment, at the verb's own return.
+            state.leg = crossed;
+            return crossed;
+          });
+          // **⟶ AND THE DELIVERY NOW READS THE RECORD'S `pending` RESIDUE, 2026-10-29 — THE FOURTH MEMBER'S
+          // OWN ACT, `K-2`'s SEMANTICS REACHED BY THE DELETE'S OWN INSTANT.** The delivery's position is
+          // UNMOVED (`D-55` item `3` put it after the pass, and `D-49` declares this delivery the window whose
+          // check never ran — a request raised here is the witness's, not the drain's, and this build changes
+          // neither). **WHAT MOVES IS WHAT IT DELIVERS**: before the record existed this call handed the
+          // store's WHOLE returned set, and it now hands `record.pending` — that set MINUS the handles this
+          // delete's own pass checked off as it passed (`releasePending`), which is the write's own delivered
+          // set (`surface.md §2.7` item 7 (a)). **A `D-3` DELETE HAS NO RECORD**, so it falls back to the
+          // receipt's own `triggered` — the arm's set, empty by the store's own declaration.
+          const owed = receipt.commit === null || receipt.commit === undefined
+            ? receipt.triggered
+            : receipt.commit.pending;
+          // **THE RULE IS THE WRITE'S OWN** (`surface.md §2.7` item 6): constraints first, then the other
+          // listeners. `A43`: a delete FIRES its own triggered set, on the same window as a write.
+          deliver(state, owed, answer.triggeringAddress);
+          // **⟶ `D-49`: THE WITNESS, READ AFTER THE DELIVERY AND REPORTED BESIDE THE RECORD** — the delivery is
+          // the act's remaining body-invoking instant, so a request standing after it is one this window raised
+          // from a LISTENER BODY. **A REQUEST A PAIR BODY RAISES INSIDE THE PASS IS NOT THIS WITNESS'S**: it is
+          // consumed and judged by the pass's own restart drain (`D-42`; `D-54` (b)), and by the time this line
+          // runs it has either passed or refused the delete outright.
+          // **ONLY A DELETE THAT OPENED ITS OWN WINDOW REPORTS**: a call that joined an enclosing commit has no
+          // window of its own to witness, and any request under that identity belongs to the act that opened it
+          // (`witnessDiscardedReversal` clears a request of the window handed in and of no other).
+          const discarded = opened === true ? witnessDiscardedReversal(instance, window) : null;
+          Object.defineProperty(receipt, 'discarded', {
+            value: discarded === null ? [] : [discarded],
+            enumerable: false,
+            writable: false,
+            configurable: true,
+          });
+          return receipt;
+        } finally {
+          state.leg = standing;
+          state.legDelivery = standingDelivery;
+        }
       } finally {
         closeCommit(instance, opened);
       }

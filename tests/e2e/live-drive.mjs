@@ -872,10 +872,15 @@ console.log(JSON.stringify({ pid: process.pid, value: i.read(${JSON.stringify(['
 
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
-// LIVE-12 — THE FILE-TIER DELETE'S DECLARED READING: NO FILE I/O, SO THE REMOVED VERSION STANDS AGAIN
-// (`bindings/js/README.md`: *"A `delete` and a `rollback` perform no file I/O, so a consumer that deletes a
-// `file`-tier version and then constructs a fresh instance over an equal `filePath` sees the removed
-// version STAND AGAIN — that re-boot is the store's own declared boot and not a defect."*)
+// LIVE-12 — THE FILE-TIER DELETE'S DECLARED READING, RE-DERIVED 2026-10-29: THE DELETE SAVES ITS OWN OP, SO
+// THE REMOVAL STANDS AFTER A RE-BOOT — WHILE A WHOLE-TARGET DELETE SAVES NOTHING AND THAT VERSION DOES STAND
+// AGAIN (`docs/specs/storeroom-js/contract.md §2.6`'s 2026-10-29 clause, items `4`–`5`; the store's own
+// `§7.2` item 6 boot is unmoved, and the `delete` VERB still commits nothing of its own.)
+//
+// **THE READING THIS SCENARIO SHIPPED WITH, KEPT AS ITS HISTORY:** *"A `delete` and a `rollback` perform no
+// file I/O, so a consumer that deletes a `file`-tier version and then constructs a fresh instance over an
+// equal `filePath` sees the removed version STAND AGAIN"* — true of the tree before the delete minted the
+// `CommitRecord` that names its own op to the terminal arm's save.
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 {
   const sc = 'LIVE-12';
@@ -898,12 +903,39 @@ console.log(JSON.stringify({ pid: process.pid, value: i.read(${JSON.stringify(['
     Array.isArray(del.tiers) && del.tiers.length === 1 && del.tiers[0] === 'file', JSON.stringify(del.tiers));
   const gone = thrown(() => inst.read(['dd']));
   A(`${sc}.2`, 'store §4.3', 'in the SAME instance the address no longer resolves', gone.threw && statusOf(gone) === 'AddressNotFound', statusOf(gone));
+  // **⟶ RE-DERIVED 2026-10-29 — THE FILE-TIER DELETE'S OWN OP IS SAVED BY THE TERMINAL ARM** (`D-55` item `3`'s
+  // follow-ons; `docs/specs/storeroom-js/contract.md §2.6`'s 2026-10-29 clause, item `4`): the delete mints the
+  // same four-member `CommitRecord` a write's `K-2` mints, the entry adopts it, and the arm names the DELETE's
+  // `opId` to the store's `commit_file` on the passing arm — so the bytes describe the state the delete left and
+  // THE REMOVAL STANDS AT THE NEXT BOOT. **THE RECEIPT NAMES THE RECORD THAT DID IT**, non-enumerably and by
+  // declaration (`index.d.ts` `DeleteRecord.commit`).
+  A(`${sc}.5`, '`contract.md §2.6` 2026-10-29 clause item `4`; `index.d.ts` `DeleteRecord.commit`; `DD-28` read through that clause',
+    'the receipt carries the `CommitRecord` the act minted, and that record names the DELETE\'s own op at the file tier',
+    del.commit !== null && typeof del.commit === 'object'
+      && del.commit.op.opId === del.op.opId && del.commit.op.tier === 'file'
+      && Array.isArray(del.commit.pending) && del.commit.pending.length === 0,
+    del.commit === null || del.commit === undefined
+      ? 'no record'
+      : `${del.commit.op.opId}@${del.commit.op.tier} pending=${del.commit.pending.length}`);
   const fresh = ns.storeCreate(cfg);
   const back = thrown(() => fresh.read(['dd']));
-  A(`${sc}.3`, "the README's file-behaviour reading; store §7.2 item 6 (a delete and a rollback perform no file I/O)",
-    'the booted instance sees the removed version STAND AGAIN — the store\'s own declared boot, not a defect',
-    !back.threw && back.value === 'durable-dd', back.threw ? statusOf(back) : String(back.value));
-  end(sc, `the file-tier delete answered tiers ${JSON.stringify(del.tiers)} and ['dd'] answered ${statusOf(gone)} in that instance, while the booted instance read the removed version back as ${back.threw ? statusOf(back) : JSON.stringify(back.value)} — the declared non-durability of the delete`);
+  A(`${sc}.3`, '`contract.md §2.6` 2026-10-29 clause item `4` (read through store §7.2 item 6, whose boot is unmoved)',
+    'the booted instance reads the image the DELETE\'s own save wrote — the removed version does NOT stand again',
+    back.threw && statusOf(back) === 'AddressNotFound', back.threw ? statusOf(back) : String(back.value));
+  // **AND THE WHOLE-TARGET ARM IS THE CONTROL, AND ITS READING IS UNMOVED**: a delete naming NO tier lands an
+  // op whose `tier` is absent, so the store's own `commit_file` serializes nothing and the version STANDS AGAIN —
+  // the store's declared boot, not a defect (`DD-28`'s reading survives for that arm).
+  const wholeSeed = kernelSaveFileLive(inst, ['dw'], 'durable-whole');
+  A(`${sc}.6`, 'surface.md §2.11 clause 2', 'the control seed landed on the TERMINAL ARM (no throw)',
+    !wholeSeed.threw, wholeSeed.threw ? `threw ${statusOf(wholeSeed)}` : 'the save landed');
+  inst.delete(['dw']);
+  const wholeFresh = ns.storeCreate(cfg);
+  const wholeBack = thrown(() => wholeFresh.read(['dw']));
+  A(`${sc}.7`, 'store §7.2 item 6; `contract.md §2.6` 2026-10-29 clause item `4` (the whole-target arm)',
+    'a delete naming NO tier saves nothing — the booted instance sees THAT version STAND AGAIN',
+    !wholeBack.threw && wholeBack.value === 'durable-whole',
+    wholeBack.threw ? statusOf(wholeBack) : String(wholeBack.value));
+  end(sc, `the file-tier delete answered tiers ${JSON.stringify(del.tiers)}, carried the record naming ${del.commit === null || del.commit === undefined ? 'no op' : del.commit.op.opId}, and ['dd'] answered ${statusOf(gone)} in that instance, while the booted instance read ${back.threw ? statusOf(back) : JSON.stringify(back.value)} — the delete's own save is what persists it; the WHOLE-TARGET control at ['dw'] read ${wholeBack.threw ? statusOf(wholeBack) : JSON.stringify(wholeBack.value)} after its boot, which is the store's declared boot for an op standing at no tier`);
 }
 
 

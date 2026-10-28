@@ -199,9 +199,14 @@ repair failed on the re-run (`D-40`).
 
 **Durability is produced by a successful `file`-TIER WRITE ONLY** (`DD-28`, `D-32`). **So a BARE `file`-tier
 write persists**: `store.write(['k'], 'file', 1)` commits with no kernel attempt in the path, and a fresh
-`storeCreate` over the same `filePath` resolves the address. **A `delete` and a `rollback` perform no file I/O
-at any tier scope**, so a durable version deleted in memory stands again after a re-boot — that re-boot is the
-store's declared boot and not a defect.
+`storeCreate` over the same `filePath` resolves the address. **⟶ A `DELETE` NOW SAVES AND A `ROLLBACK` STILL DOES NOT, 2026-10-28.** The sentence this replaces said **both**
+performed no file I/O at any tier scope — **and that was measured false for a `delete` once it became an editing
+verb with its own attempt**: a `file`-tier delete's save is the terminal arm's at the record's own op, so
+**`delete(['k'], 'file')` followed by a fresh `storeCreate` over the same `filePath` answers `AddressNotFound`
+rather than the version it removed** (measured `{"a":1}` → `{}`, boot `1` → absent). **A `ROLLBACK` still performs no
+file I/O at any tier scope** — **a reversal appends no journal op (`M-9`), so its terminal arm has no op of its own
+to save at** — **and a durable version a reversal removed in memory therefore stands again after a re-boot, which is
+the store's declared boot and not a defect.**
 
 **A kernel-driven write's `file`-tier save is a DIFFERENT save of a different scope**: it is the package's
 terminal arm, performed on the passing arm alone, before any delivered listener body runs, keyed by the

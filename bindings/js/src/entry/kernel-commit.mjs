@@ -209,14 +209,33 @@ export function commit(store, address, tier, value) {
 //     `delete`, a repair's), and `null` at a consumer's own call. **ONE LIST PER COMMIT, AND A DELETE'S ENTRIES
 //     JOIN IT** — there is no second list and no merge.
 //
-// **WHAT IT DOES NOT DO IS LAND A WRITE.** `K-2` mints a `CommitRecord`, adopts it and calls the store's
-// `write`. **This act mints an `AttemptRecord` of kind `delete` and calls THE STORE'S OWN LEG THE CALLER HANDS
-// IT** — the addon's `delete`, already crossed by the entry — so **the state the attempt is judged at is the
-// state the delete LEFT and never a state a probe wrote.** The act's own answer (`removal`) is the delete's
-// declared receipt: its `op` is the DELETE's journal op and so THE ATTEMPT'S ONE LANDING (`attempt.ops`), which
-// is what the pass's context carries and what the failing arm's composition rolls back; its `triggered` set is
-// the store's own returned set, kept on `attempt.write` for the terminal act's discard rule exactly as a
-// failed write's is.
+// **WHAT IT DOES NOT DO IS LAND A WRITE.** `K-2` calls the store's `write`. **This act mints an `AttemptRecord`
+// of kind `delete` and calls THE STORE'S OWN LEG THE CALLER HANDS IT** — the addon's `delete`, already crossed
+// by the entry — so **the state the attempt is judged at is the state the delete LEFT and never a state a probe
+// wrote.** The act's own answer (`removal`) is the delete's declared receipt: its `op` is the DELETE's journal
+// op and so THE ATTEMPT'S ONE LANDING (`attempt.ops`), which is what the pass's context carries and what the
+// failing arm's composition rolls back; its `triggered` set is the store's own returned set, kept on
+// `attempt.write` for the terminal act's discard rule exactly as a failed write's is.
+//
+// **⟶ AND IT MINTS THE `CommitRecord` TOO, 2026-10-29 — THE FOUR MEMBERS, THE SYMBOL-KEYED LOG, AND THE ONE
+// IDENTITY THE WHOLE COMMIT'S MACHINERY IS KEYED BY.** The `DEF-X` build measured the four residuals this
+// closes and printed them; each is a `K-2` behaviour that follows from the record and from nothing else:
+//   * **ADOPTION** — the record is what `K-2` hands the store's own verb at its fourth position, and what the
+//     entry holds so that the TERMINAL ARM performs the delivery and the save. A delete has no fourth position
+//     (its declared arity is `delete(address, tier)`), so the entry adopts the record it holds the same way it
+//     adopts a write's: it stands the delete's own returned receipt in the leg slot the terminal arm reads
+//     (`index.mjs`'s `delete`), and the RECORD is what `settleArm` hands that arm.
+//   * **THE `pending` RESIDUE** — written exactly as `K-2` writes it: the returned set WHOLE at this instant,
+//     and a handle leaves it only by its own pair's check-off (`releasePending`) or by the failing arm's
+//     discard (`terminal`). **NO SIFT**: the delete's own returned set is carried, member for member.
+//   * **THE `file`-TIER SAVE** — the terminal arm's save is gated on the record this act mints
+//     (`SETTLED_ON_THE_PASSING_ARM`, placed by the passing arm) and on the leg the entry adopted, so a
+//     `file`-tier delete SAVES its own op exactly as a `file`-tier write saves its own.
+//   * **`K-4`/`K-5` BY REF** — the record carries `attempt`, the `AttemptRef` those two items accept, so the
+//     delete's log and report are answerable after a PASSING delete and not only from a refusal's log.
+// **THE RECORD'S FOUR MEMBERS AND ITS SYMBOL-KEYED LOG ARE `K-2`'S OWN, SPELLED THE SAME WAY**: the log is
+// defined with `Object.defineProperty` under `COMMIT_LOG` and is not a fifth member (`A117` (D6)), so a census
+// of any record moves by nothing.
 //
 // **THE `D-3` ARM IS KEPT AND A HELD ADDRESS IS JOINED RATHER THAN REFUSED** (the ground is printed at the act
 // itself and it is a measurement, not a preference: a repair has no fourth position to name its commit at, so
@@ -229,8 +248,9 @@ export function commit(store, address, tier, value) {
 //     no pass, and nothing is added to any log.** A delete that changed nothing cannot be refused by a
 //     constraint, because it is not an edit. **NO `KC` TOKEN IS MINTED FOR IT AND NO TENTH TOKEN EXISTS.**
 //
-// **WHAT IT ANSWERS.** The attempt record, open and live, for the pass the caller runs next (`entry`'s
-// `constraintDelete`), or `null` on the `D-3` arm. **NO KERNEL ITEM IS MINTED**: `kernel-surface.md §1` item
+// **WHAT IT ANSWERS.** The attempt record, open and live — **carrying `attempt.record`, the `CommitRecord` this
+// act minted** — for the pass the caller runs next (`entry`'s `constraintDelete`), or `null` on the `D-3` arm.
+// **NO KERNEL ITEM IS MINTED**: `kernel-surface.md §1` item
 // `2` closes the kernel's EXPORT SET at the five `K-1`–`K-5` items and that barrel
 // (`src/constraint-kernel.mjs`) is untouched — this function is a part module's own act, reached by the entry
 // the way every other kernel part is, and it is named by no `K-` number.
@@ -258,16 +278,13 @@ export function commitRemoval(store, address, tier, remove) {
   const ref = { id: `attempt-${kernel.attempts}` };
   const attempt = {
     // **THE KIND — the discriminator the write's attempt never needed**: an attempt that landed no write is
-    // judged against the DELETE's op and owes no `CommitRecord`, no adoption, no delivery residue and no save
-    // of its own (the delete's own file save is the store's own act).
+    // judged against the DELETE's op, and it now owes the SAME `CommitRecord` a write's attempt does.
     kind: 'delete',
     ref,
-    // **THE NAME THE BODIES THIS PASS INVOKES JOIN** (`D-46`/`D-53`). A `CommitRecord` is the write's and this
-    // act has none, so the commit is named by the one member `commitAttemptIdOf` reads (`{ attempt }`), and
-    // `kernel-attempt.mjs`'s `evaluate` hands THIS object to the invocation channel in place of a record. A
-    // body's write therefore JOINS the delete's commit instead of opening a second one — what `D-53`'s
-    // *"Constraints/Repairs should always use the same commit"* requires — and the pass's own scope names the
-    // same object (`runAttempt`).
+    // **THE NAME THE BODIES THIS PASS INVOKES JOIN** (`D-46`/`D-53`). The record below is that name from now
+    // on — `kernel-attempt.mjs`'s `evaluate` hands `attempt.record` to the invocation channel where one exists —
+    // and this one-member object STANDS AS THE RECORD'S ABSENT ARM, so a body's write joins the delete's commit
+    // instead of opening a second one on either arm.
     name: { attempt: ref },
     store,
     address: addressCopy,
@@ -289,15 +306,43 @@ export function commitRemoval(store, address, tier, remove) {
     status: 'open',
     report: null,
   };
+  // **THE RECORD, BUILT BEFORE THE STORE'S LEG IS CALLED — `K-2`'s OWN INSTANT AND `K-2`'s OWN FOUR MEMBERS**
+  // (`kernel-surface.md §2.1` item 2; `A112` re-spells the fourth: *"`pending` IS THE WHOLE RETURNED SET"*).
+  // Its members are FILLED from the receipt below; it is built here so the commit's identity exists before the
+  // act lands anything, exactly as it does for a write.
+  const record = {
+    attempt: attempt.ref,
+    op: null,
+    triggered: [],
+    pending: [],
+  };
+  attempt.record = record;
+  // AND THE COMMIT'S LIST TRAVELS ON IT UNDER THE SYMBOL KEY, VERBATIM AS `K-2` DEFINES IT (`D-53`): ONE LIST
+  // PER COMMIT, and the record is the identity it hangs from. **NO MEMBER IS ADDED** (`A117` (D6)).
+  Object.defineProperty(record, COMMIT_LOG, {
+    value: attempt.log,
+    enumerable: false,
+    writable: false,
+    configurable: true,
+  });
   // **THE STORE'S OWN LEG, AND IT IS THE CALLER'S** (`kernel-surface.md §1` item 1's empty import footprint:
   // this module reaches no entry and no addon of its own; the thunk is the entry's own addon call).
   const removal = remove();
-  // `D-3`: nothing was removed — no entry was appended, so there is no op to name and no state to judge.
+  // `D-3`: nothing was removed — no entry was appended, so there is no op to name and no state to judge. **NO
+  // ATTEMPT IS OPENED AND NO RECORD CROSSES**: the receipt is the whole answer, its `tiers` and `triggered`
+  // empty, and the record built above dies with this attempt.
   if (removal === null || typeof removal !== 'object' || removal.op === null || removal.op === undefined) {
+    attempt.status = 'closed';
     return null;
   }
   attempt.write = removal;
   attempt.ops = [removal.op];
+  // **THE RECEIPT'S OWN MEMBERS, READ OFF IT VERBATIM — `K-2`'s three assignments at its own record's name.**
+  // `triggered` is the store's returned set and `pending` is that set WHOLE (no sift; `A112`), so the residue
+  // the terminal arm delivers and the failing arm's discard reads are the delete's own, unfiltered.
+  record.op = removal.op;
+  record.triggered = removal.triggered;
+  record.pending = removal.triggered.slice();
   // THE ATTEMPT IS PLACED LIVE HERE, BEFORE THE FIRST BODY OF THE PASS RUNS: the store's own `delete` invokes
   // nothing, so there is no window between the act and this line in which a caller's code could interleave —
   // and the address is held from this instant through the pass and its terminal act, exactly as `K-2` holds

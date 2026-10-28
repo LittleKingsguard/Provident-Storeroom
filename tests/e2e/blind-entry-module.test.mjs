@@ -339,7 +339,7 @@ test('entry-module · index.d.ts `StoreRefusal` and `LogEntry` · the failure fo
     + 'and that the two differ by design (`DEF-AI`)');
 });
 
-test('entry-module · index.d.ts `WriteRecord` · `DeleteRecord` · `RollbackRecord` · the three verb records a consumer reads: three members on the write and the reversal, FIVE on the delete — its `op` beside the three and its `discarded` witness — and `undoneOps` is the LIST of the ids the reversal undid', () => {
+test('entry-module · index.d.ts `WriteRecord` · `DeleteRecord` · `RollbackRecord` · the three verb records a consumer reads: three members on the write and the reversal, SIX on the delete — its `op` beside the three, its `discarded` witness and its `commit` record — and `undoneOps` is the LIST of the ids the reversal undid', () => {
   assert.deepEqual(membersOf('WriteRecord').map((m) => m.name), ['op', 'watched', 'triggered']);
   // ⟶ **`D-43` ITEM 3 (`strata/decisions.md`, verbatim: *"Delete should be journaled and reversible"*): THE
   // DELETE RECORD GAINS `op`, THE MEMBER `WriteRecord` CARRIES AT THE SAME NAME** — one spelling for "the op
@@ -352,7 +352,14 @@ test('entry-module · index.d.ts `WriteRecord` · `DeleteRecord` · `RollbackRec
   // so the record's ENUMERABLE four are the ones every census of a receipt reads (`index.d.ts`
   // `DeleteRecord.discarded`). **THE ROW'S SUBJECT IS UNMOVED**: the declared member set is the one `index.d.ts`
   // declares, and it gained this second member on that ruling.
-  assert.deepEqual(membersOf('DeleteRecord').map((m) => m.name), ['address', 'tiers', 'triggered', 'op', 'discarded']);
+  // ⟶ **AND §2.6'S 2026-10-29 CLAUSE (`D-55` item `3`'s follow-ons): THE RECORD GAINS `commit`, THE
+  // `CommitRecord` THE ACT MINTS** — the four-member kernel record (`kernel-surface.md §2.1` item `2`), `null` on
+  // `D-3`'s no-op arm. **DECLARED HERE FOR THE SAME REASON `discarded` IS**: a declared member is the whole of
+  // what a consumer reading `node_modules` can find, and it is carried at runtime as a NON-ENUMERABLE own
+  // property, so the receipt's ENUMERABLE four are still the ones every census of a receipt reads
+  // (`index.d.ts` `DeleteRecord.commit`). **THE ROW'S SUBJECT IS UNMOVED**: the declared member set is the one
+  // `index.d.ts` declares, and it gained this third member on that build.
+  assert.deepEqual(membersOf('DeleteRecord').map((m) => m.name), ['address', 'tiers', 'triggered', 'op', 'commit', 'discarded']);
   assert.deepEqual(membersOf('RollbackRecord').map((m) => m.name), ['opId', 'undoneOps', 'restoredTo']);
   assert.match(DECLARATION, /readonly undoneOps: readonly string\[\];/);
 });
