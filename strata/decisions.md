@@ -3959,3 +3959,32 @@ that fired it invokes its next listener.** **The outer loop is suspended, not in
 
 **TERMS: the nesting stated (`1`), the suspension order (`1`), depth unbounded (`1`), re-entrancy open (`1`), upward
 invisibility (`1`), the guide owed (`1`).**
+
+---
+
+### `D-73` — THE LISTENER'S THROW STAYS: it is the one thing a listener can do to its caller, and it exists so errors can be logged
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, ruling the asymmetry `D-71` revealed.
+
+**THE RULING, VERBATIM:** *"Keep the throw so that the client can log errors cleanly"*
+
+**SO THE ASYMMETRY IS THE DESIGN, AND `D-71`'S SENTENCE NEEDS ONE CLAUSE TO BE TRUE.** **A listener's REFUSAL is
+CONTAINED** — **its own commit refused, the caller's write answering its own record, the refused value never landing** —
+**because a refusal is a JUDGEMENT ABOUT DATA, and the data had its chance.** **A listener's THROW PROPAGATES TO THE
+CALLER** — **the caller's write throws the listener's error** — **because a throw is an ERROR IN THE CLIENT'S CODE, and
+code that swallows errors cannot be debugged.**
+
+**THE REASON IS THE WHOLE RULING: A CONTAINED THROW IS AN ERROR NOBODY CAN LOG.** **A listener is where a client's own
+handler runs** — **the screen update, the render, the external call** — **and when that code fails, the failure belongs to
+the client, at the point the client can see it.** **Containment would turn "your listener exploded" into "your write
+succeeded and nothing happened", which is the least debuggable outcome a library can produce.**
+
+**AND THE CONSEQUENCE, STATED SO IT IS NOT A SURPRISE**: **a listener that throws leaves the triggering write
+UNANSWERED** — **the caller sees the listener's error instead of its own record.** **That is the caller's signal to log
+and decide**, and it is the one place where a listener's failure is not silent.
+
+**SO `D-71` READS, COMPLETE: a listener is independent of the caller's commit, and its OUTCOME is its own — its refusal is
+contained; its THROW is the exception, and it is the client's to log.**
+
+**TERMS: the throw kept (`1`), the refusal's containment unchanged (`1`), the reason (`1` = a contained throw is an
+unloggable error), the unanswered write declared (`1`), `D-71` completed by one clause (`1`).**
