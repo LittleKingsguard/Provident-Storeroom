@@ -3750,3 +3750,42 @@ confirmed as a movement and not an invocation (`1`), the obligation (`1` = keep 
 **THE COST, PRICED.** **`LogEntry` moves from six members to five** — **a breaking change for a typed consumer reading `entry.seq`**, and **every cell that reads `log[].seq` or censuses six members moves with it.** **That is the price of one fewer thing that can be wrong, and it is the same price every removal on this list charged.**
 
 **TERMS: the member removed (`1`), the six-member shape moving to five (`1`), the class named (`1` = a member restating its container), the cells to re-derive (`2` = the `SEQ` census and the monotonicity arm), the declaration's `seq` sentence retired (`1`).**
+
+---
+
+### `D-66` — THE DESCENDANT DIRECTION IS RULED, AND IT IS "ONLY WHAT THE CHANGE TOUCHED"
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, completing `D-56`'s one-directional sentence.
+
+**THE RULING, VERBATIM:**
+
+> A pair at a descendant should only be asked if the change also affects that descendant, ex. write(['a', 'b'], {'c':
+> "foo", 'd': "bar"} should trigger at ['a'], ['a', 'b'], ['a', 'b', 'c'], and ['a', 'b', 'd'], but not ['a', 'b', 'e']
+
+**IT COMPLETES `D-56` WITH THE DIRECTION IT LEFT OUT, AND THE CRITERION IS THE SAME ONE**: **a pair is asked when the act
+CHANGES THE VALUE AT THE PAIR'S ADDRESS.** **That sentence already produced the ancestor rule** (*a read at a prefix
+contains its subtree, so a change below it changes what that read returns*). **It produces the descendant rule with one
+more step**: **a WRITE at `['a','b']` with `{c, d}` DOES create `['a','b','c']` and `['a','b','d']`** — **those nodes exist
+after the write and did not before** — **and it does NOT create `['a','b','e']`.**
+
+**SO THE SET IS:**
+- **the act's own address** (equality);
+- **every ANCESTOR of it** (`D-56` — the value at a prefix contains the subtree);
+- **and every DESCENDANT THE ACT ACTUALLY TOUCHED**:
+  - **for a WRITE**, **exactly the paths the written value contains** — `{c, d}` touches `['a','b','c']` and
+    `['a','b','d']` and nothing else; **a nested object touches its own sub-paths, by the same rule one level down**;
+  - **for a DELETE**, **the WHOLE SUBTREE at the act's address**, **because the act removes all of it** — a descendant of
+    a deleted node is ABSENT after the act and was not before, **which is a change to what a read there returns**.
+
+**AND THE DISTINCTION `D-56` COULD NOT DRAW IS NOW THE WHOLE POINT**: **a pair at `['a','b','e']` is NOT asked for a write
+at `['a','b']` with `{c, d}`, because the write did not touch `e`.** **The criterion is not "descendant", it is
+"TOUCHED"** — **and touched is computable from the act's kind and the value it carried.**
+
+**WHAT IT REQUIRES**: **the pass must know WHAT THE ACT WROTE**, not merely where — **for a write, the value's path set;
+for a delete, the subtree's address set.** **The attempt carries the op, and the op carries the value and the address**
+(`D-53`'s record, `JournalOp`'s `after`/`address`) — **measure whether the path set is reachable from what the attempt
+holds, and say so plainly if it is not.**
+
+**TERMS: the direction ruled (`1`), the criterion named (`1` = touched, not descendant), the two act kinds (`2` = write's
+paths, delete's subtree), the path set's reachability to be measured (`1`), the cells owed (`3` = a written path asked, an
+untouched descendant not asked, a deleted subtree's descendants asked).**
