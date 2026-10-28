@@ -3303,3 +3303,48 @@ carry and the fourteen members expose no route to.**
 **SO `D-51`'s DIAGNOSIS STANDS AND ITS PRESCRIPTION DOES NOT.** **Six rows, one mechanism — that is right. The three
 rules for making the bypasses unreachable are L0's guess at HOW, and the tree refuted two of them and could not decide
 the third.** **The three questions are the architect's, and they are asked exactly, with the measurements beside them.**
+
+---
+
+### `D-53` — THE LOG BELONGS TO THE COMMIT, NOT THE ATTEMPT; and the four rulings that follow
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, answering `D-52`'s three questions.
+
+**THE RULINGS, VERBATIM:**
+
+> 1. Open the token set
+> 2. Both combined to identify which constraint iteration it is on
+> 3. Elaborate
+> **Commit use invariants:** If it's part of the same commit, then it uses the same message log. If it opens a new
+> commit, it uses the new commit's message log. Constraints/Repairs should always use the same commit. Listeners should
+> open a new commit, because the triggering commit already passed constraints.
+
+**★ THE INVARIANTS DISSOLVE `D-52`'S SECOND QUESTION RATHER THAN ANSWERING IT, AND THEY EXPOSE THE ARCHITECTURAL ERROR.**
+**The log lives on the ATTEMPT today** (`attempt.log`). **It must live on the COMMIT.** **A commit is the unit of work; an
+attempt is the constraint-judged write inside it.** **A commit may hold several attempts — a check, its repair, the
+re-run — and by the first invariant every one of them appends to ONE list.**
+
+- **`DEF-AK` NEEDED NO MERGE BECAUSE THERE SHOULD NEVER HAVE BEEN TWO LISTS.** A constraint body's write is **part of the
+  same commit**, so **its entries are the same list's entries**; the crossed report **is** that list. **No merge, no
+  renumbering, no seventh member, and `seq` keeps its declaration** — *the ordinal of the list it stands in* — **because
+  there is one list.**
+- **A LISTENER'S WRITE OWNS ITS OWN LOG**, and the reason is now **semantic rather than authorial**: **"the triggering
+  commit already passed constraints."** **What the listener saw was already approved; whatever it does now is a NEW
+  question and must not inherit the old verdict.** **That is a better ground than `D-45`'s authorship rule, and it
+  supersedes the REASON while keeping the RULE.**
+- **AND A CONSTRAINT OR A REPAIR NEVER OPENS A COMMIT.** **They are the commit.** **`D-45`'s marking of repair bodies as
+  owners was already reversed by `D-46` on tracking grounds; this states the invariant it was reaching for.**
+
+**`D-52`'s FIRST QUESTION — RULE 1 — IS ANSWERED BY "BOTH COMBINED":** **an entry carries the PAIR identity and the OP
+identity together, and the PAIR identifies WHICH CONSTRAINT of that pair's evaluations is being spoken about.** **So a
+`constraint-check` names the pair and the op it judged; a `repair-run` names them; an `outcome` names them where they
+exist. The two columns are not alternatives — they are one identity.**
+
+**AND `D-52`'s THIRD QUESTION — RULE 3 — IS ANSWERED BY OPENING THE TOKEN SET:** **the save arm gets its own state token**,
+so **a save failure and a constraint refusal cross with different statuses AND each is derivable from the log's terminal
+state** — which was the contradiction `D-52` measured, resolved by letting the set grow rather than by weakening either
+half. **The `KC` set's declared count `^KC-[1-8]$` moves with it, and every cell that pins the count.**
+
+**TERMS: the log moves from the attempt to the commit (`1` = the structural change), the invariants (`4` = same-commit
+log, new-commit log, constraints-and-repairs never open, listeners always open), `D-52`'s questions answered (`2` = rules
+1 and 3) and dissolved (`1` = rule 2), the token set opens (`1`), `D-45`'s REASON superseded while its rule stands (`1`).**
