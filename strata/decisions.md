@@ -4089,3 +4089,34 @@ discipline is right: move the superseded bytes out with a one-line pointer, and 
 
 **TERMS: the paraphrase's escalation (`1` = permission to prohibition), the throw's status ambiguity (`1`), the two
 passages (`2`), the class (`1` = corrected at one site, not the others), the migration note owed (`1`).**
+
+---
+
+### `D-77` — NEW MEMBER: the failure form gains a fourth, so a caller can tell its own refusal from a listener's throw
+
+**DATE:** 2026-10-29. **BRANCH:** `main`. **SOURCE:** the architect, answering `D-76`'s owed ruling.
+
+**THE RULING, VERBATIM: *"New member"***
+
+**THE MEASUREMENT IT ANSWERS.** **A caller's own act refused and a caller's act that PASSED while a listener threw cross
+with the same status, the same message, the same keys and the same two log entries** — **only the `opId` differs, and a
+refused act answers no `op` for the caller to key against.** **So the caller is told the wrong thing by omission**: **it
+reads `ConstraintPassRefused` and concludes its write did not happen, while the store says it did** — **and that is
+`D-73`'s retry hazard with nothing in the answer to stop it.**
+
+**SO THE ONE PLAIN FORM GAINS A FOURTH MEMBER, AND IT IS THE ONE THING THE CALLER NEEDS: WHICH ACT WAS REFUSED.** **The
+caller wrote an address; it knows that address; the answer carries the address the refusal is about; `equal` means your
+own act, `different` means a listener's, and a retry is then a decision rather than a guess.**
+
+**THE COST, NAMED AND ACCEPTED AS THE RULING'S OWN**: **the form is declared as EXACTLY THREE MEMBERS and asserted that way
+on every arm by cells on both sides of the boundary.** **It becomes FOUR** — **a breaking change to the failure form**, and
+**every "exactly three" census, every `Object.keys(caught)` assertion, and every prose that prints the three-member set
+moves with it.** **That is the price of an answer that can be told apart from its neighbour.**
+
+**AND WHAT IT MUST NOT BECOME**: **not a fifth status** (the closed set is `D-38`'s and twenty stands), **not a
+heuristic the caller has to reproduce**, and **not a member present only sometimes** — **a member absent on some arm is the
+`DEF-AH` defect wearing a new name.** **Present on every refusal, `null` where there is nothing to name, and asserted
+everywhere.**
+
+**TERMS: the member (`1`), the form three to four (`1`), the breaking change declared (`1`), every census to move (`1`),
+the absences forbidden (`1`), the retry hazard made decidable (`1`).**
