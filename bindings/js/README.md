@@ -70,6 +70,17 @@ reached INTERNALLY by the package's own resolution step and is not an entry poin
 | `removeConstraint(pair)` | `undefined` — **the one act that deletes an identity** |
 | `constraints()` | the registered pairs, `{address, id}` only — **no function, no order, no `enabled`** |
 
+**⟶ AND THE `delete` ROW'S ANSWER HAS A SECOND NON-ENUMERABLE MEMBER, 2026-10-29 — ITS COMMIT RECORD.** The row above
+names the `discarded` witness and stops there; **a `delete` is an editing verb with its own attempt, its own pass and
+its own commit, so the receipt ALSO carries `commit`, a NON-ENUMERABLE own member holding the same four-member
+`CommitRecord` a `K-2` returns — `attempt` · `op` · `triggered` · `pending` — and `null` on the arm that removed
+nothing.** **Measured on this checkout: `Object.keys(receipt)` reads `["address","tiers","triggered","op"]` — four —
+while `Object.getOwnPropertyNames(receipt)` reads six, `commit` and `discarded` being the two it does not list** — so
+a spread or `Object.assign` copy of a receipt loses BOTH, and nothing throws when it does. **Read either off the
+receipt itself.** **No member is added to the FOURTEEN and no enumerable shape moves.** (`D-57`; `D-55` item `3`;
+`index.d.ts`'s `DeleteRecord.commit`; the long-form reading — the adoption, the `pending` residue, the `file`-tier
+save and `K-4`/`K-5` by reference — is the shipped guide's `§7.8`, which is where those four follow-ons are stated.)
+
 **THE RECEIVER IS THE STORE, SO NO CALL CARRIES AN `instance` POSITION** (`surface.md §2.1` (e) item 3):
 `store.write(address, tier, value)` is the shape every method takes, and a leading `instance` is a SUPERSEDED
 SPELLING — wrong, not redundant. **AND NO OWN MEMBER IS A DATA MEMBER:** there is no `store.data`, no `state`
@@ -131,6 +142,19 @@ constraints were evaluated".** **TWO: AN ENTRY'S `seq` IS THE POSITION OF THE EN
 JOURNAL ORDINAL.** `JournalOp.seq` orders the store's own record; this `seq` orders the commit's message log, and
 the two differ by design (a refusal's entry can carry `seq` `1` while the store's journal counter reads `41`). **The
 kernel's `state` token set is `KC-1`…`KC-9`, `KC-9` being the save arm's own; the store's status set has not moved.**
+
+**⟶ AND THE SECOND OF THOSE TWO THINGS IS WITHDRAWN AT THE MEMBER, 2026-10-28 — `D-65`: `LogEntry` CARRIES NO `seq`,
+AND AN ENTRY'S POSITION IS ITS ARRAY INDEX.** `RCA-8(g)` ANNOTATE-BESIDE: **every byte above stands BYTE-FOR-BYTE as
+the reading of its own date and is read THROUGH this clause — the withdrawn sentence is *"AN ENTRY'S `seq` IS THE
+POSITION OF THE ENTRY IN THAT LIST … the two differ by design"*, and it described a member that no longer exists.**
+**THE RULING, THE ARCHITECT, ONE WORD: *"Drop it"*** — `seq: log.length + 1` WAS the index of the entry being
+appended, a second copy of a fact the array already carries. **WHAT YOU READ NOW: FIVE members, `kind` · `id` ·
+`opId` · `message` · `state`** (declared at the same place the clause above declares them, and stated there beside
+its `seq` retirement), **and the position of an entry is `log.indexOf(entry)` or the index of the loop you are
+already in.** **`JournalOp.seq` IS STILL THE STORE'S OWN APPEND ORDINAL, so the distinction the sentence above drew
+has not disappeared — only the member that could be confused with it has**, and the two are now impossible to
+confuse for that reason. **So do not read `entry.seq` for an ordering, and do not read its absence as an entry that
+lost its place: the list's order is the commit's append order and the index is the place.**
 
 ## The status set is TWENTY, and open by design
 

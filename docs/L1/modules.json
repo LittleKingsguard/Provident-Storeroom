@@ -681,6 +681,22 @@
         "tests_total": 118,
         "e2e_breakdown": { "test_mjs": 55, "runners": 12, "support_modules": 8, "evidence_json": 1, "documents": 3 },
         "note": "THE `83` ABOVE IS THE READING OF 2026-10-25 AND IS KEPT: `tests/` has grown 83 -> 118 (e2e 44 -> 79), and the 118 closes as 55 + 12 + 8 + 1 + 3 = 79 in e2e, 33 integration, 5 unit and 1 manifest. The per-module ownership of the 35 added e2e paths is OWED a walk this pass did not take, so the four `owns` arrays still reconcile 83 and are not asserted at 118. The matching re-read is docs/L1/test-stratification.md's `2026-10-28` clause and docs/L1/test-stratification.json's `present_population_remeasured_2026_10_28` key."
+      },
+      "present_population_reconfirmed_2026_10_28_at_the_tree_eleven_past_v1_4_0": {
+        "method": "`find <dir> -type f` and `find tests -name '*.test.mjs'`, at this tree (`git describe` reads v1.4.0-11-g90f810c)",
+        "tests/e2e/": 79,
+        "tests/integration/": 33,
+        "tests/unit/": 5,
+        "tests/Cargo.toml": 1,
+        "tests_total": 118,
+        "test_mjs_under_tests": 69,
+        "e2e_breakdown": { "test_mjs": 55, "runners": 12, "support_modules": 8, "evidence_json": 1, "documents": 3 },
+        "figures_restated": {
+          "status_set": 20, "kc_token_set": 9, "own_members": 14, "files_allowlist": 7,
+          "packed_members": { "bare": 20, "assembled": 21 }, "blind_instances": 13,
+          "log_entry_members": 5, "src_entry_files": 13, "denominator": 198
+        },
+        "note": "UNMOVED from the 2026-10-28 population key above, and read through it: the eleven commits past the v1.4.0 cut added cells to existing files and never files, so 79 / 33 / 5 / 1 = 118, the 55 + 12 + 8 + 1 + 3 = 79 five-class reading and the 69 `*.test.mjs` all stand. The two figures that moved are SHAPES and not counts: `LogEntry` is five members since `D-65` (kind, id, opId, message, state; the position is the array index), and the closed record's four follow-ons are the delete's `CommitRecord`, declared at the guide's §7.8."
       }
     },
     "entry_owns_reconciled": {
@@ -733,6 +749,34 @@
           "index_d_ts": 1053
         },
         "note": "THE `sizes_remeasured_2026_10_28` KEY ABOVE IS THE READING OF ITS OWN DATE AND IS KEPT BYTE-FOR-BYTE; this key re-reads every one of its figures and supersedes none of its bytes. MOVED: `delivery.mjs` 668 -> 676, `constraints.mjs` 2,695 -> 2,951, `kernel-foundations.mjs` 908 -> 1,058, `kernel-registration.mjs` 772 -> 785, `kernel-commit.mjs` 190 -> 355 (the delete's `CommitRecord` and its own pass), `kernel-attempt.mjs` 879 -> 920, `index.mjs` 1,573 -> 1,651, `index.d.ts` 1,053 -> 1,088; UNMOVED: the other eight entry parts, `kernel-terminal.mjs` 422, the barrel's 4 lines, and the directory's thirteen files. THE MATCHING CLAUSES ARE docs/L1/entry-subdivision.md's, kernel-subdivision.md's and module-map.md's `2026-10-28` (`D-57`) re-measures."
+      },
+      "sizes_remeasured_2026_10_28_eleven_past_v1_4_0": {
+        "method": "`wc -l` at each file's own last line on this tree, re-measured for the eleven commits past `v1.4.0` (`git describe`: v1.4.0-11-g90f810c)",
+        "entry_parts": {
+          "refusal.mjs": 161, "artefact.mjs": 376, "state.mjs": 1125, "class-decision.mjs": 1214, "carrier.mjs": 1002,
+          "frame.mjs": 418, "delivery.mjs": 676, "constraints.mjs": 3014
+        },
+        "kernel_parts": {
+          "kernel-foundations.mjs": 1083, "kernel-registration.mjs": 793, "kernel-commit.mjs": 356,
+          "kernel-attempt.mjs": 991, "kernel-terminal.mjs": 468
+        },
+        "kernel_parts_total": 3691,
+        "src_entry_total": 11677,
+        "barrel": 4,
+        "index_mjs": 1651,
+        "index_d_ts": 1089,
+        "crate_rows": { "codec.rs": 1071, "facade.rs": 1252, "crossing.rs": 1276, "src/lib.rs": 99,
+                        "src/lib.rs (the store crate)": 41, "src/store.rs": 2876, "src/error.rs": 886,
+                        "src/args.rs": 329, "src/value.rs": 330, "src/records.rs": 290, "src/json.rs": 203 },
+        "superseded_by_this_key": {
+          "entry_parts": {"refusal.mjs": 161, "artefact.mjs": 376, "state.mjs": 1038, "class-decision.mjs": 1214, "carrier.mjs": 1002, "frame.mjs": 418, "delivery.mjs": 676, "constraints.mjs": 2951},
+          "kernel_parts": {"kernel-foundations.mjs": 1058, "kernel-registration.mjs": 785, "kernel-commit.mjs": 355, "kernel-attempt.mjs": 920, "kernel-terminal.mjs": 422},
+          "kernel_parts_total": 3540,
+          "src_entry_total": 11376,
+          "index_mjs": 1651,
+          "index_d_ts": 1088
+        },
+        "note": "THE `sizes_remeasured_2026_10_28_d57` KEY ABOVE IS THE READING OF ITS OWN DATE AND IS KEPT BYTE-FOR-BYTE; this key re-reads every one of its figures and supersedes none of its bytes. MOVED: `state.mjs` 1,038 -> 1,125 (`D-58`), `constraints.mjs` 2,951 -> 3,014 (`D-63` and `D-65`), `kernel-foundations.mjs` 1,058 -> 1,083 (`D-65`), `kernel-registration.mjs` 785 -> 793, `kernel-commit.mjs` 355 -> 356, `kernel-attempt.mjs` 920 -> 991 (`D-58` and `D-65`), `kernel-terminal.mjs` 422 -> 468 (`D-58`), `index.d.ts` 1,088 -> 1,089; UNMOVED: the other six entry parts, `index.mjs` 1,651, the barrel's 4 lines, the directory's thirteen files, and every crate row. THE MATCHING CLAUSES ARE docs/L1/entry-subdivision.md's, kernel-subdivision.md's, module-map.md's, surface-deltas.md's and open-items-2026-10-25.md's third `2026-10-28` re-measures, and the set/manifest figures are in this file's `battery_owns_reconciled.present_population_reconfirmed_2026_10_28_at_the_tree_eleven_past_v1_4_0` key."
       }
     },
     "what_moved_and_what_did_not": {

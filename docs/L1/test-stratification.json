@@ -72,6 +72,32 @@
         },
         "note": "UNMOVED from `present_population_reconfirmed_2026_10_28_at_the_tree_nine_commits_past_v1_2_0` and read through it: the seven commits since the v1.3.0 cut added CELLS to existing files, never files, so 79 / 33 / 5 / 1 = 118, the 55 + 12 + 8 + 1 + 3 = 79 five-class reading and the 69 `*.test.mjs` under `tests/` all stand, and every leg re-run on this date ends `0` fail. The matching prose clause is docs/L1/test-stratification.md's `D-57` re-measure of the same date."
       },
+      "present_population_reconfirmed_2026_10_28_at_the_tree_eleven_past_v1_4_0": {
+        "measured": "2026-10-28",
+        "method": "counted with `find <dir> -type f`, `find tests -name '*.test.mjs'` and `find tests/e2e -name …`, at this tree (`git describe` reads v1.4.0-11-g90f810c)",
+        "tests/e2e/": 79,
+        "tests/integration/": 33,
+        "tests/unit/": 5,
+        "tests/Cargo.toml": 1,
+        "tests_total": 118,
+        "test_mjs_under_tests": 69,
+        "e2e_breakdown": { "test_mjs": 55, "runners": 12, "support_modules": 8, "evidence_json": 1, "documents": 3 },
+        "denominator": { "whole_index": 675, "scratch_tracked": 477, "denominator": 198, "identity": "675 = 477 + 198 ✓, `git ls-files | grep -v '^scratch/'`" },
+        "legs": {
+          "npm_test": { "tests": 1121, "pass": 1120, "fail": 0, "skip": 1, "exit": 0 },
+          "cargo_store": 434, "cargo_battery": 235, "cargo_all": 669,
+          "greens_runners": 11, "greens_exit": 0,
+          "e2e": { "declared": 15, "PASS": 14, "LAYER_LIMIT": 1, "FAIL": 0, "exit": 0 },
+          "typecheck_exit": 0
+        },
+        "figures_restated": {
+          "status_set": 20, "kc_token_set": 9, "own_members": 14, "files_allowlist": 7,
+          "packed_members": { "bare": 20, "assembled": 21 }, "blind_instances": 13,
+          "log_entry_members": 5,
+          "version": "1.4.0", "version_sites": 11, "tags": ["v1.0.0", "v1.0.1", "v1.1.0", "v1.2.0", "v1.3.0", "v1.4.0"]
+        },
+        "note": "UNMOVED from `present_population_reconfirmed_2026_10_28_at_the_tree_eight_commits_past_v1_3_0` and read through it: the eleven commits since the v1.4.0 cut added CELLS to existing files, never files, so 79 / 33 / 5 / 1 = 118, the 55 + 12 + 8 + 1 + 3 = 79 five-class reading, the 69 `*.test.mjs` under `tests/` and the 198 denominator all stand, and every leg re-run on this date ends 0 fail. THE ONE SHAPE THAT MOVED: `LogEntry` is FIVE members since `D-65` — kind, id, opId, message, state — and the two cells whose purpose was the position were re-derived to assert it by array index, so no cell was retired. The matching prose clause is docs/L1/test-stratification.md's third `2026-10-28` re-measure."
+      },
       "of_the_75": 75,
       "created_by_the_migration_not_in_the_75": 8,
       "the_eight": [

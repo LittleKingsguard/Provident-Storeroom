@@ -592,6 +592,25 @@ the write's address** (`index.d.ts`, `TriggerPair`; `held-listener/contract.md �
 - **The kernel's own `pending` list carries the same pair element as `triggered`**, because `pending` is seeded as
   a clone of the store's returned set (`index.d.ts`, `CommitRecord`; `held-listener/contract.md §2.4` item 3).
 
+**⟶ AND THAT BULLET IS THE ONE THAT MOVED, 2026-10-29 — `D-56`: A PASSING WRITE NOW EMPTIES `pending`.** `RCA-8(g)`
+ANNOTATE-BESIDE: **every clause above stands BYTE-FOR-BYTE and is read THROUGH this one; the record's four members,
+the seeding rule and the by-identity check-off do not move — what moves is HOW MUCH of the seeded set the pass takes
+out of it.** **THE MECHANISM, IN ONE SENTENCE: `pending` is seeded whole from the store's `triggered` set and every
+handle the pass EVALUATES is checked off by identity, so when the pass's set and the store's set are the SAME SET the
+residue is EMPTY.** **`AT `1.4.0`'s PREDECESSOR** the pass selected only the pairs standing at the act's EXACT
+address, the store's `triggered` set was already the wider PREFIX set, and the difference was the residue you saw: a
+pair at `['window','tabs']` fired for a write at `['window','tabs','landingPage']` (a listener, `§6.4`) and was
+never asked by the pass — so its handle stayed in `pending` and the delivery ran it. **NOW the pass's set IS the
+`triggered` set** (`§7.6`'s clause of 2026-10-29, `D-56`), **so on a PASSING write every handle in the returned set is
+checked off, `record.pending` reads `[]`, and the delivery's residue is empty.** **MEASURED `1` → `0` on a passing
+write.** **WHAT THAT MEANS FOR YOU, SAID PLAINLY: `pending` IS NO LONGER A LIST OF "WHAT I STILL OWE A DELIVERY TO" —
+IT IS THE LIST OF HANDLES THE PASS DID NOT EVALUATE, and on a passing write there are none.** **A non-empty `pending`
+therefore means one of two things and only two**: the write FAILED (the record's `pending` is then the whole returned
+set, because a failing arm checks nothing off), or a handle stands in `triggered` that stands at none of the pass's
+addresses — **which, from this date, is the DESCENDANT direction `D-56` does not cover.** **Read `triggered` for what
+fired and `pending` for what the pass left; on a passing write they are no longer the same list, and `pending` is the
+shorter one.** (`D-56`; `index.d.ts`'s `CommitRecord`; §7.6's prefix-set clause; §7.8's ancestor clause.)
+
 **And one store behaviour that shows up in the records if you use integer addresses: a delete of an indexed
 version of an array container RENUMBERS the surviving anchors in container order from `0`, each keeping its tier
 and its node** (`write-and-read.md §4.4`'s renumbering clause).
@@ -822,6 +841,30 @@ pass** — the pass keeps the write's exact-address rule and not the trigger set
 such a listener DOES fire for the delete (`§6.4`). **And a delete that removes nothing is not an edit**: `tiers: []`,
 no pass, no refusal, no delivery (`§5.3`).
 
+**⟶ AND THE SECOND OF THOSE THREE SENTENCES IS CORRECTED, 2026-10-29 — `D-56`: THE PAIR AT AN ANCESTOR IS ASKED, AND
+THE DELETE AT `['window','tabs','landingPage']` IS ASKED OF THE PAIR AT `['window','tabs']`.** `RCA-8(g)`
+ANNOTATE-BESIDE: **the paragraph above stands BYTE-FOR-BYTE as the rule of the build that printed it and is read
+THROUGH this clause; the AFTER-state, the `tier`, the attempt identity, the `discarded` witness, the "removes nothing
+mints nothing" rule and the four steps above are all unmoved.** **THE ARCHITECT, VERBATIM: *"A listener/constraint
+should fire when the descendants of their targeted address node change, because the descendants become part of the
+object that is read from that address"*** (`D-56`) — **so the delete's pass asks the pairs standing at the deleted
+address AND the pairs standing at every ANCESTOR of it, because the value read at an ancestor CONTAINS the subtree the
+delete moved.** **WHAT YOU SEE, ON THE EXACT TREE `§6.4` USES:** with a pair registered at `['window','tabs']` and a
+**`delete(['window','tabs','landingPage'])`**, **the pair IS asked** — and **its refusal CROSSES and the delete ROLLS
+BACK**, so `window.tabs` reads `{"landingPage":{"active":true},"settings":{"active":false}}` again. **MEASURED
+2026-10-29 on this checkout through the published entry** (`tests/e2e/discard-witness.mjs`'s
+`DW-10.13`/`DW-10.15`/`DW-10.16`): the ancestor pair is asked **2** times (its registration's evaluation and the
+pass's), a pair AT the deleted address is asked **once** by the pass and unchanged, **and a pair at a DESCENDANT of
+the deleted address is asked `0` times and its address reads ABSENT afterwards** — that last direction is the one
+`D-56` does not cover and this guide does not claim. **THE MEMBERSHIP RULE, ONCE: your pair is asked when THE ACT'S
+ADDRESS IS AT OR BELOW YOUR PAIR'S ADDRESS.** **AND WHAT YOUR PAIR IS HANDED DID NOT MOVE**: the ACT's `address`, the
+ACT's `tier` and the value that landed at the ACT's address (absence, for a delete) — **not** the object standing at
+its own address — so **a pair that wants its OWN object reads it** (`§7.6`'s `read()` rule, which `D-56` leaves
+standing and which is no longer NECESSARY for an ancestor's interest in a descendant). **So the "exactly one tab is
+active" constraint `§6.4` writes now judges the delete as well as the write — and a delete that would leave a state
+your pair refuses is refused at the delete.** (`D-56`; §7.6's prefix-set clause of the same date; `HL-8` item 1 and
+attempt-lifecycle `§2.4` item 5 (iv), annotated at their own homes and not rewritten.)
+
 **Why you care: a delete cannot be used to slip a state past a constraint you registered, and a listener you write
 for the use case in `§6.4` — "exactly one tab is active" — now runs on a state the pass has already approved.**
 **WHAT THE WITNESS STILL SPEAKS FOR** (§8's `record.discarded`): a `rollback` your listener raises inside the
@@ -833,6 +876,39 @@ its registration and the delete's pass — where before this clause it was asked
 delete reads the pass's ask already taken (`1`, where it read `0`) and the after-state the pass approved; a
 refused delete leaves the store at the state it opened at; and the delete's log is the commit's ONE list with
 `seq` `1..2` (`tests/e2e/discard-witness.mjs`'s `DW-10.8`–`DW-10.13`).
+
+**⟶ AND TWO READINGS OF THAT MEASUREMENT SENTENCE ARE THE READINGS OF THEIR OWN DATE, 2026-10-29 — THE POSITION IS
+THE ARRAY INDEX (`D-65`) AND A REFUSED DELETE RESTS AT THE LAST VALIDATED STATE (`D-63`).** `RCA-8(g)`
+ANNOTATE-BESIDE: **every clause of §7.8 above stands BYTE-FOR-BYTE and is read THROUGH this one; the asks, the
+after-state, the witness and the four steps are unmoved — two figures and one noun move.** **(i) *"the delete's log is
+the commit's ONE list with `seq` `1..2`"* IS READ AS: the commit's ONE list, TWO entries, standing at INDEX `0` and
+`1`** — the `seq` member is gone from `LogEntry` (`D-65`; §8.0a's retirement clause below), so `log[0]` is the
+`constraint-check` entry and `log[1]` the `outcome` entry, and the position is where an entry stands in the array.
+**(ii) *"a refused delete leaves the store at the state it opened at"* IS READ AS: at THE LAST VALIDATED STATE** —
+which is the state it opened at whenever the delete's sweep never passed, and the state a passing sweep approved
+otherwise (`D-63`; §5.4's `D-63` clause). **AND THE THIRD THING THIS CLAUSE OWES, WHICH NO EARLIER CLAUSE OF §7.8
+NAMES: WHAT THE DELETE'S RECEIPT CARRIES AND WHAT FOLLOWS FROM IT.**
+- **THE RECEIPT.** `delete` still ANSWERS `{address, op, tiers, triggered}` (`index.d.ts`, `DeleteRecord`), and the
+  **non-enumerable `discarded` witness** still rides it unlisted (`§8`). **⟶ AND BESIDE BOTH, FROM THIS DATE, A
+  NON-ENUMERABLE `commit` MEMBER** — **the same four-member `CommitRecord` a write's `K-2` mints** (`attempt`, `op`,
+  `triggered`, `pending`). **`Object.keys(receipt)` still shows the record's own members and not this one**, so a
+  consumer that copies a receipt loses the commit as it loses the witness — **read it off the receipt itself.**
+- **ADOPTION.** The entry **ADOPTS** that record: it stands the delete's own receipt in the leg slot for the pass and
+  **restores the enclosing leg in a `finally`**, so a refusal raised inside the delete's pass reports the DELETE's
+  record and not an enclosing write's.
+- **THE `pending` RESIDUE.** The delete's `pending` is **the returned set MINUS the handles the delete's own pass
+  checked off** — on a passing delete, empty (`D-56`; §6.2's clause) — **and the delivery fires THE RESIDUE**, not the
+  whole returned set.
+- **`K-4` AND `K-5` BY REFERENCE.** Both readers now answer a delete's attempt **BY REFERENCE** where they refused
+  `NO-REF` before — so `K.log(store, receipt.commit.attempt)` and `K.report(store, receipt.commit.attempt)`
+  reach the delete's own attempt once it has passed, and not only through a refusal's `log` — and **both still
+  refuse a LIVE attempt with `KC-7`** (`D-58`; §8.6's clause). **`receipt.commit` is `null` on the arm that removed
+  nothing** (`D-3`), so guard it before you reach through it.
+- **THE SAVE.** The `file`-tier save is the delete's own op, on the passing arm — **§9.3's clause below is its home
+  and this bullet does not restate its scope.**
+**AND NO KERNEL ITEM IS OWED FOR ANY OF IT: the verb is the surface, the kernel's set stays `K-1`…`K-6`, and a `K-7`
+`commitRemoval` would be owed only if you could drive a delete's attempt directly — you cannot** (`D-57`'s second
+half; `D-3`; `D-44`; `D-53`).
 
 ---
 
@@ -943,6 +1019,8 @@ refusal (`js/contract.md §2.6`'s `D-53` clause, item `6`).
 
 **⟶ AND THE RECORD YOU ARE HANDED IS FINAL, 2026-10-28 — `D-55` ITEM 6 · `DEF-AO`, MEASURED.** `RCA-8(g)` ANNOTATE-BESIDE: **every clause above stands BYTE-FOR-BYTE and is read THROUGH this one; the log's home on the commit, its entries and its identity are unmoved.** **THE RULING, THE ARCHITECT, VERBATIM: *"Attempts don't log. This is what the commits are for. The commits have their log handed off to the client and are dropped after closing out."*** **SO: a closed attempt's report and its log DO NOT MUTATE AFTER THE HANDOFF — a consumer holding a refusal is holding the record, and a record that changes after it is given out is not a record.** **WHAT THE PACKAGE DOES: at the end of the commit's own processing — the restarted check's amendment included, which is part of closing out — the report and the log it carries are `Object.freeze`d**, so a later act can neither append an entry nor re-member the report. **THE LIST IS THE SAME LIST** (`D-53`: *"the crossed report IS that list"*) — the refusal you caught and `report(store, ref)`'s `log` are ONE array, now sealed. **AND THE LIST IS SEALED WITH ITS COMMIT**, never at a nested attempt's own handoff: a constraint body's nested write is part of your commit (`D-53`), so freezing the list from inside it would stop the enclosing attempt's own `append`. (`tests/e2e/discard-witness.mjs`'s `DW-10.6` holds the crossed refusal and the closed report, drives four further acts, and prints the bytes before → after beside `Object.isFrozen` on both; RED under a revert of the seal.)
 **⟶ AND ITS SECOND HALF IS NOW DELIVERED, 2026-10-28 — `D-58` · THE DROP, AND NOTHING OF A RUNNING COMMIT.** `RCA-8(g)` ANNOTATE-BESIDE: **every clause above stands BYTE-FOR-BYTE and is read THROUGH this one; the seal, the list's identity and the log's home on the commit are unmoved.** **THE RULING, THE ARCHITECT, VERBATIM: *"The client does not need any insight into the current state of a commit/attempt before it completes. Don't expose any of it. After a commit/attempt resolves/rejects, the store does not need to retain the message log or other client-returned data. Don't retain it."*** **WHAT THAT MEANS FOR YOU, IN TWO SENTENCES. (1) A RUNNING COMMIT HANDS YOU NOTHING**: the log reader refuses a live attempt with `KC-7` — the same refusal the report reader already answered — so an in-flight `seq` list is no longer a thing you can read; **and (2) ONCE THE COMMIT RESOLVES OR REJECTS, THE STORE KEEPS NO MESSAGE LOG**: what it goes on holding is the outcome, the ops and the reversal's record, and the list it handed you — the entries on the refusal you caught, or on `report`'s return — is the ONLY copy, sealed at the handoff. **WHAT THIS COSTS, SAID PLAINLY**: on an arm whose handoff carries no list at all — a repair body that throws, and a PASSING `write` (whose answer is `{op, watched, triggered}` and has never carried one) — the entries are no longer readable after the call. **THAT IS THE RULING'S PRICE AND NOT A DEFECT**, and it is why the seal mattered: a record you hold is the record. (`tests/e2e/discard-witness.mjs`'s `DW-11.1`–`DW-11.4` print both readers, the pass's own instant, the retained shape before → after and the single-copy proof; each RED under its own `/tmp` revert.)
+
+**AND THE RECORD THAT SURVIVES THE HANDOFF HAS FOUR MEMBERS, NAMED HERE BECAUSE THE CLAUSE ABOVE SAYS WHAT IT HOLDS WITHOUT SPELLING ITS SHAPE: `{attempt, ops, outcome, rollback}`** — the attempt's identity, the ops the commit appended, the outcome it reached, and the reversal's record where one ran — **and NO message list.** **A log entry's position is its ARRAY INDEX (`D-65`), so *"an in-flight `seq` list"* above is read as an in-flight ENTRY list**: there is no `seq` member in it and no list to read while the attempt runs. (`D-58`; `D-65`; `bindings/js/src/entry/kernel-terminal.mjs`'s `dropHandoff`, which is where the closed record's four members are written; `D-55` item `6` is the seal they are frozen under.)
 
 
 **EVERY REFUSAL NAMES ITSELF** — by a `status` from the store's own closed set, and by a **human `message` that
