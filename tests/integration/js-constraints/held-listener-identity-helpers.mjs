@@ -195,7 +195,7 @@ export function assertRuleOne(err, where) {
   assert.equal(Array.isArray(err), false, where + ': rule (i) form is not an array');
   assert.equal(err instanceof Error, false,
     where + ': rule (i) form is a plain object and not an Error instance — constraint-sites.md §6 item 1');
-  assert.deepEqual(Object.keys(err).sort(), ['log', 'message', 'status'],
+  assert.deepEqual(Object.keys(err).sort(), ['address', 'log', 'message', 'status'],
     where + ': the member set is EXACTLY {status, message, log} — read '
     + JSON.stringify(Object.keys(err).sort()));
   assert.equal(typeof err.status, 'string', where + ': status is a string');

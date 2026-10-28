@@ -137,8 +137,8 @@ function mem(listeners = []) {
 /**
  * **`surface.md §2.5` item 4** (*"`log` IS PRESENT ON EVERY FAILURE THIS SURFACE THROWS … the three-member
  * member set is therefore FLAT ACROSS ARMS and not conditional"*) **read with item 9** (*"`Object.keys(caught)`
- * reads exactly `["log","message","status"]` … `log` is NEVER ABSENT, NEVER `null` and NEVER a non-array"*) —
- * the ONE failure form: a THROWN PLAIN OBJECT whose member set is EXACTLY `{log, message, status}`, sorted
+ * reads exactly `["address","log","message","status"]` … `log` is NEVER ABSENT, NEVER `null` and NEVER a non-array"*) —
+ * the ONE failure form: a THROWN PLAIN OBJECT whose member set is EXACTLY `{address, log, message, status}`, sorted
  * ascending with length `3`, whose `log` is an ARRAY on every arm, whose prototype is the caller realm's
  * `Object.prototype`, and which is NOT an `Error`. **RE-DERIVED FROM THE SUPERSEDED TWO-MEMBER SET,
  * 2026-10-16; the closed-set limb below is UNMOVED.**
@@ -150,8 +150,8 @@ function isTheSingleForm(err) {
     !Array.isArray(err) &&
     !(err instanceof Error) &&
     Object.getPrototypeOf(err) === Object.prototype &&
-    Object.keys(err).sort().join(',') === 'log,message,status' &&
-    Object.keys(err).length === 3 &&
+    Object.keys(err).sort().join(',') === 'address,log,message,status' &&
+    Object.keys(err).length === 4 &&
     Array.isArray(err.log) &&
     typeof err.status === 'string' &&
     THE_SIXTEEN.includes(err.status) &&

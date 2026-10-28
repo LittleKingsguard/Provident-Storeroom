@@ -409,7 +409,7 @@ scenario(() => {
       && typeof opRepair === 'string' && opRepair !== cFirst.op.opId,
     `evaluations the pass took: x=${evalAt.x - evalBeforeCommit.x} y=${evalAt.y - evalBeforeCommit.y} z=${evalAt.z - evalBeforeCommit.z} of which the caller's earlier write's landing pass took x=${evalAfterEarlier.x} y=${evalAfterEarlier.y} z=${evalAfterEarlier.z}; repair's op=${opRepair} write op=${cFirst.op.opId}`);
   cell(3, 'the attempt fails by THROWING {status, message, log} and never by returning',
-    `${C.fs11} items 1 and 4`, !run1.ok && keysOf(f) === 'log,message,status',
+    `${C.fs11} items 1 and 4`, !run1.ok && keysOf(f) === 'address,log,message,status',
     `threw=${!run1.ok} keys=${keysOf(f)}`);
   // ── **⟶ RE-DERIVED 2026-10-25: THE TOKEN MOVES `KC-6` → `KC-8`, AND THE CELL'S SUBJECT IS KEPT.** **This is
   // the SAME two-op failing attempt at ONE address whose token `constraint-kernel-rollback.test.mjs:336–350`
@@ -590,7 +590,7 @@ scenario(() => {
   const f = run1.err ?? {};
 
   cell(1, 'the attempt throws the kernel form with exactly {status, message, log}',
-    `${C.fs11} item 1`, keysOf(f) === 'log,message,status', `keys=${keysOf(f)}`);
+    `${C.fs11} item 1`, keysOf(f) === 'address,log,message,status', `keys=${keysOf(f)}`);
   cell(2, "status is KC-4 and the thrown form's log differs from the open record's by TWO entries: the repair-run entry and the outcome entry",
     `${C.fs11} item 3; ${C.ks25} item 1`,
     f.status === 'KC-4' && (f.log ?? []).length === 3 && (f.log ?? []).filter((e) => e.kind === 'outcome').length === 1,
@@ -761,7 +761,7 @@ scenario(() => {
     `after the first attempt's own pass: A=${afterFirst.A} B=${afterFirst.B}; totals after the second attempt's own pass: A=${ctxA.length} B=${ctxB.length}`);
   cell(3, "BOTH halves of the two-state rule: (a) a second K-2 at the SAME address while the first attempt stands OPEN — the hold opening with K-2's own write verb and released only by the attempt's own terminal arm — is REFUSED with KC-7 BEFORE the write verb is reached; (b) a second K-2 at that address ONCE THE EARLIER ATTEMPT HAS REACHED ITS TERMINAL ARM is LAWFUL WHENEVER IT IS ISSUED and RETURNS A FRESH CommitRecord, no second act being needed beside the terminal arm",
     `${C.ks21} item 2 (the hold's timing and both halves of the rule, read whole: the KC-7 refusal and the fresh record); ${C.fs2}'s KC-7 row; ${C.fs2}'s KC-2 row`,
-    heldK2.ok === false && heldK2.err?.status === 'KC-7' && keysOf(heldK2.err) === 'log,message,status'
+    heldK2.ok === false && heldK2.err?.status === 'KC-7' && keysOf(heldK2.err) === 'address,log,message,status'
       && freshK2.ok === true && keysOf(freshK2.value) === 'attempt,op,pending,triggered'
       && freshK2.value.attempt.id !== c1.attempt.id
       && staleK3.ok === false && staleK3.err?.status === 'KC-2',
@@ -1261,7 +1261,7 @@ scenario(() => {
 
   cell(1, "the kernel refuses an address shape outside its domain BEFORE the store's listen is called: KC-1, in the kernel's own form, with an empty log",
     `${C.ks21} item 1 channel (i); ${C.fs11} item 1`,
-    !r1.ok && r1.err?.status === 'KC-1' && keysOf(r1.err) === 'log,message,status',
+    !r1.ok && r1.err?.status === 'KC-1' && keysOf(r1.err) === 'address,log,message,status',
     `status=${status(r1)} keys=${keysOf(r1.err)}`);
   cell(2, "an id that is not a non-empty string is KC-2 (the kernel's own channel)",
     `${C.ks21} item 1 channel (i); parameter-semantics.md §2.2`, !r2.ok && r2.err?.status === 'KC-2',
@@ -1296,12 +1296,12 @@ scenario(() => {
   // ⟶ **RE-DERIVED 2026-10-25: THE FORM IS THE SURFACE'S ONE THREE-MEMBER FORM, NOT THE STORE'S TWO.** The
   // as-filed expectation (*"the store's own two-member form (no log member)"*) is the pre-2026-10-17 reading that
   // the architect OVERRODE (*"Override the failure form limit"*, read with *"Bubble the message log to the client
-  // on failure"*): `surface.md §2.5` item 4 makes the set `{log, message, status}` FLAT ACROSS ARMS, `log` an
+  // on failure"*): `surface.md §2.5` item 4 makes the set `{address, log, message, status}` FLAT ACROSS ARMS, `log` an
   // ARRAY and `[]` where the cause has no attempt — and a tier refusal mints no attempt. **The CODE limb
   // (`OutOfDomainTier`) is kept whole and is the cell's subject.**
-  cell(1, "a tier the store refuses throws the STORE's own code OutOfDomainTier at the verb call, in the surface's ONE thrown form — a plain object whose member set is exactly {log, message, status}, `log` an ARRAY",
+  cell(1, "a tier the store refuses throws the STORE's own code OutOfDomainTier at the verb call, in the surface's ONE thrown form — a plain object whose member set is exactly {address, log, message, status}, `log` an ARRAY",
     `${C.ks21} item 2 (the tier refusal); ${C.fs3} item 2; ${C.fs12} item 2; surface.md §2.5 items 4 and 9 (the failure-form override, 2026-10-17)`,
-    !tierRefusal.ok && tierRefusal.err?.status === 'OutOfDomainTier' && keysOf(tierRefusal.err) === 'log,message,status'
+    !tierRefusal.ok && tierRefusal.err?.status === 'OutOfDomainTier' && keysOf(tierRefusal.err) === 'address,log,message,status'
       && Array.isArray(tierRefusal.err?.log),
     `status=${status(tierRefusal)} keys=${keysOf(tierRefusal.err)} log=${JSON.stringify(tierRefusal.err?.log)}`);
   cell(2, 'it opens NO attempt: a second refused commit at the same address is refused the same way and never KC-7',
@@ -1329,12 +1329,12 @@ scenario(() => {
 
   // ── **⟶ RE-DERIVED 2026-10-25: EVERY ARM THROWS THE SURFACE'S ONE THREE-MEMBER FORM.** The as-filed cell
   // demanded the store's pre-2026-10-17 TWO-member shape (`{message, status}`, no `log`), which `surface.md
-  // §2.5` item 4 OVERRODE: *"the set is `{log, message, status}` FLAT ACROSS ARMS, `log` an ARRAY and `[]`
+  // §2.5` item 4 OVERRODE: *"the set is `{address, log, message, status}` FLAT ACROSS ARMS, `log` an ARRAY and `[]`
   // where the cause has no attempt"* — and this store write's refusal mints no attempt, so its `log` is `[]`.
   // **THE CODE LIMB (`WriteParentNotLink`) IS KEPT WHOLE AND IS THE CELL'S SUBJECT.**
-  cell(3, "the repair's own write at an address whose ancestor is a leaf is refused by the store with the store's own code, in the surface's ONE thrown form — a plain object whose member set is exactly {log, message, status}, `log` an ARRAY and `[]` (no attempt was minted)",
+  cell(3, "the repair's own write at an address whose ancestor is a leaf is refused by the store with the store's own code, in the surface's ONE thrown form — a plain object whose member set is exactly {address, log, message, status}, `log` an ARRAY and `[]` (no attempt was minted)",
     `${C.fs3} item 2 (the write path's own codes); ${C.ps27}; surface.md §2.5 items 4 and 9 (the failure-form override, 2026-10-17)`,
-    !bodyThrow.ok && bodyThrow.err?.status === 'WriteParentNotLink' && keysOf(bodyThrow.err) === 'log,message,status'
+    !bodyThrow.ok && bodyThrow.err?.status === 'WriteParentNotLink' && keysOf(bodyThrow.err) === 'address,log,message,status'
       && Array.isArray(bodyThrow.err?.log) && bodyThrow.err.log.length === 0,
     `repair write status=${status(bodyThrow)} keys=${keysOf(bodyThrow.err)} log=${JSON.stringify(bodyThrow.err?.log)} message=${JSON.stringify(bodyThrow.err?.message)}`);
   const thrown = run1.ok ? undefined : run1.err;
@@ -1347,10 +1347,10 @@ scenario(() => {
   // THREE members `{status, message, log}` with `status: 'KC-4'`, its `log`'s `repair-run` entry's `message`
   // NAMES the store's own code"*. **THE CELL'S SUBJECT — WHICH OBJECT THE CALLER HOLDS, AND WHICH CHANNEL
   // ANSWERED — IS KEPT AND ITS EXPECTATION MOVED TO THE CODE FACT.**
-  cell(4, "the repair body THREW at its own verb call, so K-3 answers on the KERNEL's own channel — the thrown form is the kernel's `{log, message, status}` with `status: KC-4`, and the body's own caught object is NOT what the caller holds (the kernel converts no channel into another; it NAMES the store's code in its sentence)",
+  cell(4, "the repair body THREW at its own verb call, so K-3 answers on the KERNEL's own channel — the thrown form is the kernel's `{address, log, message, status}` with `status: KC-4`, and the body's own caught object is NOT what the caller holds (the kernel converts no channel into another; it NAMES the store's code in its sentence)",
     `${C.ps216} (a throwing repair body); ${C.al24} item 8 (i); ${C.fs12} item 1 (no conversion); e2e-scenarios-b.md E2E-C-13 step (5) (β)`,
     caught !== null && caught.status === 'WriteParentNotLink'
-      && f !== caught && keysOf(f) === 'log,message,status' && f.status === 'KC-4'
+      && f !== caught && keysOf(f) === 'address,log,message,status' && f.status === 'KC-4'
       && typeof f.message === 'string' && f.message.includes('WriteParentNotLink'),
     `the object the body caught is the store's own (status=${caught?.status}, keys=${keysOf(caught)}); the object K-3 threw back is the kernel's (status=${f?.status}, keys=${keysOf(f)}); identity between them=${f === caught}; the kernel's sentence=${JSON.stringify(f?.message)}`);
   cell(5, "the attempt is closed as failed and its own outcome entry carries KC-4's token — the kernel's own state for a repair that threw, on the kernel's own channel",
@@ -1365,7 +1365,7 @@ scenario(() => {
     `repair-run=${JSON.stringify((f.log ?? []).find((e) => e.kind === 'repair-run'))} — the store's own code the repair's verb call threw (${caught?.status}) IS named inside this entry's message (the message table's own carrier clause, kernel-surface.md §2.5 item 1) and the entry's state stays null`);
   cell(7, "the two channels are not converted into one another: the store's code reached the repair body UNCHANGED at its own verb call (same status, same members), no store code is ever a kernel state, the thrown form's `status` is the kernel's own token, and the repair ran once",
     `${C.fs12} item 1 (no conversion), items 2 and 4; ${C.fs11} item 1 (a) (a thrown form's status IS a kernel token)`,
-    caught !== null && caught.status === 'WriteParentNotLink' && keysOf(caught) === 'log,message,status'
+    caught !== null && caught.status === 'WriteParentNotLink' && keysOf(caught) === 'address,log,message,status'
       && f?.status === 'KC-4' && KC.has(f.status) && KC.has(outcomeOf(f.log)?.state)
       && repairCalls === 1 && heldByCaller === f
       && (f.log ?? []).every((e) => !String(e.state ?? '').includes('WriteParentNotLink')),

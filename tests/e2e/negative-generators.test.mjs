@@ -181,8 +181,8 @@ function mem(listeners = []) {
 /// The failure form's own predicate — **`surface.md §2.5` item 4** (*"`log` IS PRESENT ON EVERY FAILURE
 /// THIS SURFACE THROWS … the three-member member set is therefore FLAT ACROSS ARMS and not conditional"*)
 /// **and item 9** (*"`log` stands on the thrown object as an ORDINARY OWN ENUMERABLE DATA MEMBER … so
-/// `Object.keys(caught)` reads exactly `["log","message","status"]` … `log` is NEVER ABSENT, NEVER `null`
-/// and NEVER a non-array"*): exactly `{log, message, status}` — THREE members, sorted ascending, a plain
+/// `Object.keys(caught)` reads exactly `["address","log","message","status"]` … `log` is NEVER ABSENT, NEVER `null`
+/// and NEVER a non-array"*): exactly `{address, log, message, status}` — THREE members, sorted ascending, a plain
 /// object of the caller's realm, no `Error` subclass, `log` an ARRAY on every arm, and **the status a
 /// member of the store's closed set** — so a package-minted code fails HERE rather than passing as "an
 /// error occurred". **RE-DERIVED FROM THE SUPERSEDED TWO-MEMBER SET, 2026-10-16; the `status`-membership
@@ -217,8 +217,8 @@ function isTheFailureForm(err) {
     err !== null &&
     typeof err === 'object' &&
     !Array.isArray(err) &&
-    Object.keys(err).sort().join(',') === 'log,message,status' &&
-    Object.keys(err).length === 3 &&
+    Object.keys(err).sort().join(',') === 'address,log,message,status' &&
+    Object.keys(err).length === 4 &&
     ownsTheFailureFormMember(err, 'log') &&
     ownsTheFailureFormMember(err, 'message') &&
     ownsTheFailureFormMember(err, 'status') &&
@@ -1608,11 +1608,11 @@ test('ng_js_h_the_absent_addon_state_answers_the_one_form_and_the_two_arms_messa
     // **THE ARM IS A `[]` ARM**: the absent-addon load state fails before any attempt exists, which is
     // `§2.5` item 4's own enumeration (*"a `read`/`readLiteral`/`delete`/`rollback` store refusal with no
     // attempt live … carry `log: []`"*, read here at the `cfg`-side load refusal).
-    assert.deepEqual(answer.keys, ['log', 'message', 'status'],
-      'the member set is EXACTLY {log, message, status} — FLAT across arms and not conditional '
+    assert.deepEqual(answer.keys, ['address', 'log', 'message', 'status'],
+      'the member set is EXACTLY {address, log, message, status} — FLAT across arms and not conditional '
       + '(`surface.md §2.5` item 4), sorted ascending (item 9)');
-    assert.equal(answer.keyCount, 3,
-      'and `Object.keys(caught).length` is `3` (`surface.md §2.5` item 9)');
+    assert.equal(answer.keyCount, 4,
+      'and `Object.keys(caught).length` is `4` (`surface.md §2.5` item 9, `D-77`)');
     assert.equal(answer.hasLog, true,
       '`log` is PRESENT as an own enumerable data member and is NEVER ABSENT and NEVER `null` '
       + '(`surface.md §2.5` item 9)');

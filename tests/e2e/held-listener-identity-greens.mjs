@@ -32,7 +32,7 @@ const KERNEL_ITEMS = ['commit', 'log', 'register', 'remove', 'report', 'runAttem
 // fail-surface.md §2's `KC` set, closed at EIGHT.
 const KC_SET = ['KC-1', 'KC-2', 'KC-3', 'KC-4', 'KC-5', 'KC-6', 'KC-7', 'KC-8', 'KC-9'];
 // surface.md §2.5 item 4 / item 9: the crossed failure form, three members, `log` on every arm.
-const FORM_MEMBERS = 'log,message,status';
+const FORM_MEMBERS = 'address,log,message,status';
 // **⟶ RE-DERIVED 2026-10-26: store contract §8.1's closed set at its canonical rank order, and the figure is
 // TWENTY, not the sixteen this line printed** — `A148` Q3 appended rank `17`, the `DEF-S`/`DEF-N` ruling
 // appended `18` and `19`, and the `DEF-H`/`DEF-W` ruling appended rank `20` (`ConstraintPassRefused`, the ONE
@@ -909,7 +909,7 @@ const K6 = (store, pair) => kernel.remove(store, pair);
     reg.threw && !(reg.err instanceof TypeError) && reg.err !== null && typeof reg.err === 'object'
       && Object.getPrototypeOf(reg.err) === Object.prototype,
     reg.threw ? `${String(reg.err?.constructor?.name)} keys=${fmt(ownNames(reg.err))}` : 'returned');
-  A('HLI-11.6', '`docs/L1/surface-deltas.md` §2.5 item 2 (the status is `AddressMalformed`) read with `surface.md §2.5` item 4 (the member set is `{log, message, status}`)',
+  A('HLI-11.6', '`docs/L1/surface-deltas.md` §2.5 item 2 (the status is `AddressMalformed`) read with `surface.md §2.5` item 4 (the member set is `{address, log, message, status}`)',
     "the thrown value carries a `status` member and it is the store's `AddressMalformed` (the member the act's own subject takes)",
     reg.threw && Object.prototype.hasOwnProperty.call(reg.err, 'status') && reg.err.status === 'AddressMalformed',
     reg.threw ? fmt(`${ownNames(reg.err)} status=${String(reg.err?.status)}`) : 'returned');

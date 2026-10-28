@@ -566,12 +566,12 @@ test('fts_prop_P_SM_4_S_REFUSAL_rollback_first_message_second_and_no_repair', as
       // NAMED SO IT IS NOT READ AS RE-DERIVED: NO REPAIR MEMBER, NO THIRD-PARTY SHAPE AND NO PACKAGE
       // ENVELOPE IS CARRIED BY THIS ANSWER** — the only member the form gained is the declared `log`, so
       // `caught.repair` remains absent and the "no repair return" observable still holds.
-      assert.deepEqual(Object.keys(caught).sort(), ['log', 'message', 'status'],
+      assert.deepEqual(Object.keys(caught).sort(), ['address', 'log', 'message', 'status'],
         'P-SM-4: and the answer is the surface\'s THREE-member form — FLAT across arms and not conditional '
         + '(`surface.md §2.5` item 4), sorted ascending with length `3` (item 9) — so the only member it '
         + 'gained over the superseded `§8.3` record is the declared `log`, and no repair member and no '
         + 'envelope is a shape this answer can carry at all');
-      assert.equal(Object.keys(caught).length, 3,
+      assert.equal(Object.keys(caught).length, 4,
         'P-SM-4: `Object.keys(caught).length` is `3` on this arm as on every arm (`surface.md §2.5` item 9)');
       assert.ok(Array.isArray(caught.log),
         'P-SM-4: `log` is an ARRAY — never absent, never `null`, never a non-array (`surface.md §2.5` '
@@ -771,10 +771,10 @@ test('fts_prop_P_TP_6_S_CONSTRAINTS_KEY_instance_iff_the_list_lies_inside_its_do
           // **RE-DERIVED TO THE THREE-MEMBER FORM 2026-10-16** — a `cfg`-side construction refusal is
           // `surface.md §2.5` item 4's own enumerated `log: []` arm, so the set is three members, sorted
           // ascending, with the empty array as the DECLARED value and not an absence (item 9).
-          assert.deepEqual(Object.keys(err).sort(), ['log', 'message', 'status'],
+          assert.deepEqual(Object.keys(err).sort(), ['address', 'log', 'message', 'status'],
             'P-TP-6: in the surface\'s three-member form — FLAT across arms (`surface.md §2.5` item 4), '
             + 'sorted ascending with length `3` (item 9)');
-          assert.equal(Object.keys(err).length, 3,
+          assert.equal(Object.keys(err).length, 4,
             'P-TP-6: `Object.keys(caught).length` is `3` on this arm (`surface.md §2.5` item 9)');
           assert.ok(Array.isArray(err.log),
             'P-TP-6: `log` is an ARRAY — never absent, never `null`, never a non-array (`surface.md §2.5` '

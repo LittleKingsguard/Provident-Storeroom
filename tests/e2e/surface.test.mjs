@@ -98,8 +98,8 @@ async function fileCommit(inst, address, value) {
 
 /// The one failure form's own predicate — **`surface.md §2.5` item 4** (*"the three-member member set is
 /// therefore FLAT ACROSS ARMS and not conditional"*) **read with item 9** (*"`Object.keys(caught)` reads
-/// exactly `["log","message","status"]` … `log` is NEVER ABSENT, NEVER `null` and NEVER a non-array"*):
-/// exactly `{log, message, status}`, a plain object of the caller's realm, `log` an ARRAY on every arm, and
+/// exactly `["address","log","message","status"]` … `log` is NEVER ABSENT, NEVER `null` and NEVER a non-array"*):
+/// exactly `{address, log, message, status}`, a plain object of the caller's realm, `log` an ARRAY on every arm, and
 /// no `Error` subclass. **RE-DERIVED FROM THE SUPERSEDED TWO-MEMBER SET, 2026-10-16** — the `status` and
 /// `message` limbs are unmoved.
 function isTheFailureForm(err) {
@@ -108,8 +108,8 @@ function isTheFailureForm(err) {
     typeof err === 'object' &&
     !Array.isArray(err) &&
     Object.getPrototypeOf(err) === Object.prototype &&
-    Object.keys(err).sort().join(',') === 'log,message,status' &&
-    Object.keys(err).length === 3 &&
+    Object.keys(err).sort().join(',') === 'address,log,message,status' &&
+    Object.keys(err).length === 4 &&
     Array.isArray(err.log) &&
     typeof err.status === 'string' &&
     typeof err.message === 'string' &&
@@ -550,7 +550,7 @@ test('address_the_package_performs_no_arity_check_of_its_own', () => {
 // **⟶ RE-DERIVED 2026-10-16 — THE CELL'S WHOLE SUBJECT WAS THE THROWN RECORD'S MEMBER SET, AND THAT SET
 // IS NOW THREE MEMBERS AND NOT TWO** (`surface.md §2.5` item 4: *"the three-member member set is therefore
 // FLAT ACROSS ARMS and not conditional"*; item 9: *"`Object.keys(caught)` reads exactly
-// `["log","message","status"]` and `Object.keys(caught).length` is `3` on EVERY arm"*). **THE CELL IS
+// `["address","log","message","status"]` and `Object.keys(caught).length` is `3` on EVERY arm"*). **THE CELL IS
 // RE-DERIVED RATHER THAN DELETED: its subject is the same one — the thrown record's plain shape at its own
 // throw site — and the `AddressNotFound` status it pinned is UNMOVED.** The member-set limb now reads the
 // three declared members, and the arm is a `[]` arm: a `read` whose address is absent opens no attempt
@@ -569,10 +569,10 @@ test('failure_form_the_thrown_object_is_a_plain_three_member_record', () => {
   } catch (err) {
     caught = err;
   }
-  assert.deepEqual(Object.keys(caught).sort(), ['log', 'message', 'status'],
+  assert.deepEqual(Object.keys(caught).sort(), ['address', 'log', 'message', 'status'],
     'the thrown record carries EXACTLY the three declared members, sorted ascending — FLAT across every '
     + 'arm of this surface (`surface.md §2.5` item 4; item 9)');
-  assert.equal(Object.keys(caught).length, 3,
+  assert.equal(Object.keys(caught).length, 4,
     '`Object.keys(caught).length` is `3` on this arm (`surface.md §2.5` item 9)');
   assert.ok(Array.isArray(caught.log),
     '`log` is an ARRAY — never absent, never `null`, never a non-array (`surface.md §2.5` item 9; '

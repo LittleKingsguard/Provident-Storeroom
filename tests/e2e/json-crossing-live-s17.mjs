@@ -495,7 +495,7 @@ function settledProblems(drive) {
 }
 
 /** A CARRIER refusal's object: three members, the declared message bytes, no `undefined`, no marker. */
-function carrierObjectCheck(carrier, { expectedMessage, marker = null, allowKeys = ['log', 'message', 'status'] }) {
+function carrierObjectCheck(carrier, { expectedMessage, marker = null, allowKeys = ['address', 'log', 'message', 'status'] }) {
   const problems = [];
   if (carrier.ok) {
     problems.push('the carrier ADMITTED the argument (no refusal at the slot)');

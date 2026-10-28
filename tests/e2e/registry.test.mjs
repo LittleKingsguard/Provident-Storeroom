@@ -238,8 +238,8 @@ test('handle_two_caller_spelled_handles_bind_by_address_and_a_foreign_instances_
     (err) =>
       !(err instanceof TypeError) &&
       Object.getPrototypeOf(err) === Object.prototype &&
-      Object.keys(err).sort().join(',') === 'log,message,status' &&
-      Object.keys(err).length === 3 &&
+      Object.keys(err).sort().join(',') === 'address,log,message,status' &&
+      Object.keys(err).length === 4 &&
       Array.isArray(err.log) &&
       err.log.length === 0 &&
       err.status === 'AddressMalformed' &&

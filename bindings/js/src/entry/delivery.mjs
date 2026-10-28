@@ -632,7 +632,11 @@ export function terminalArm(state, record) {
       // save arm's own `KC-9` in `state`). **THE LIST IS READ OFF THE RECORD THE KERNEL BUILT** (`commitLogOf(record)` — `record[COMMIT_LOG]`,
       // a symbol key on `CommitRecord`'s own identity — no member is added, `A117` (D6)), and a record carrying none
       // is a record this package did not build, whose failure keeps the declared `[]`.
-      carryRefusal(() => commitFile(state.receiver, answer.op.opId), [encodeOpId(answer.op.opId)], commitLogOf(record));
+      // **⟶ AND THE SAVE'S OWN ADDRESS GOES WITH THE CALL — `D-77`.** The failed save's act is the write's
+      // act at the commit's own op address, and that address is read off the leg the store's verb left
+      // (`state.leg.op.address`, decoded by `index.mjs` at the verb's return) — the carrier this call hands
+      // spells an OP ID and never an address, so the member would be `null` if it were derived here.
+      carryRefusal(() => commitFile(state.receiver, answer.op.opId), [encodeOpId(answer.op.opId)], commitLogOf(record), answer.op.address);
     } catch (saveFailure) {
       // **THE FAILURE CARRIES THE VERY THROWABLE AND ITS OWN MARK** (`docs/specs/storeroom-js/surface.md §2.11` clause 9): the kernel's catch
       // reads `SAVE_FAILED_AT_THE_TERMINAL_ARM` to tell a failed save from a body of the delivered set that

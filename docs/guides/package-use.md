@@ -758,7 +758,7 @@ see the listener's error instead of your own record, and that is your signal to 
   takes away is the ANSWER, not the write.**
 - **THE REFUSAL, as the control.** One listener at `['a']` whose body writes `['b'] = 'bad'`, against a constraint
   at `['b']` refusing `'bad'`. **The listener's own write was refused INSIDE the listener** — `{status:
-  'ConstraintPassRefused', message: 'b may not be bad', log: […] }`, own members `["status","message","log"]` —
+  'ConstraintPassRefused', message: 'b may not be bad', log: […] }`, own members `["status","message","log","address"]` —
   **`store.write(['a'], 'mem', 1)` RETURNED ITS OWN RECORD** with **no status and no `log`**, and `['b']` read
   **ABSENT**. **The same caller writing `['b'] = 'bad'` directly WAS refused with the same status — so the
   constraint was armed throughout, and the difference is only WHAT CROSSES.**
@@ -909,7 +909,7 @@ overwrite a listener with a constraint or vice versa is rejected"*; `D-29`: *"Li
 only other listeners"*).
 
 **Measured 2026-10-26, from the constraint-then-listener direction:** with `c1` armed at `['a']`,
-`store.listen('h1', [['a']])` threw the **one plain form** — `Object.keys` `["status","message","log"]`, `status`
+`store.listen('h1', [['a']])` threw the **one plain form** — `Object.keys` `["status","message","log","address"]`, `status`
 `'AddressMalformed'`, `log` `[]` — whose message names BOTH sides and carries the shared rule sentence **"a
 listener and a constraint do not share one"**. **The form is the surface's one thrown form and NOT a `TypeError`**
 (`index.d.ts`, `addConstraint`'s and `register`'s cross-kind clauses). **No state moves: the rejection is taken
@@ -1008,12 +1008,14 @@ body.**
 
 ### §7.7 ★ The check is BOUNDED — THREE restarts per terminal act, and past the budget it fails closed
 
-**★ THE LIMIT, DECLARED HERE BECAUSE NO CLAUSE OF THIS GUIDE SAID IT: A CONSTRAINT CHECK RESTARTS AT MOST THREE TIMES PER TERMINAL ACT.** The bound is **`RESTART_LIMIT` = `3`**, one exported constant at **`bindings/js/src/entry/constraints.mjs:1366`**. **THE BUDGET IS SPENT AND NOT RESET by an action raised inside a restart** — a body that reverses again inside a restart's own ask spends the SAME budget and not a fresh one — **AND PAST IT THE CHECK FAILS CLOSED IN THE ONE FORM:** the write throws the same plain `{status, message, log}` it throws for a refused pass (§8), with `status` **`'ConstraintPassRefused'`** and **ONE log entry** whose message says the budget was spent rather than that a pair refused a state it never judged. **The store is restored** — the request's own watch records what is owed — so the terminal act leaves no unjudged effect standing (`D-42` item `3`; `D-41` item `4`).
+**★ THE LIMIT, DECLARED HERE BECAUSE NO CLAUSE OF THIS GUIDE SAID IT: A CONSTRAINT CHECK RESTARTS AT MOST THREE TIMES PER TERMINAL ACT.** The bound is **`RESTART_LIMIT` = `3`**, one exported constant at **`bindings/js/src/entry/constraints.mjs:1366`**. **THE BUDGET IS SPENT AND NOT RESET by an action raised inside a restart** — a body that reverses again inside a restart's own ask spends the SAME budget and not a fresh one — **AND PAST IT THE CHECK FAILS CLOSED IN THE ONE FORM:** the write throws the same plain `{status, message, log, address}` it throws for a refused pass (§8), with `status` **`'ConstraintPassRefused'`** and **ONE log entry** whose message says the budget was spent rather than that a pair refused a state it never judged. **The store is restored** — the request's own watch records what is owed — so the terminal act leaves no unjudged effect standing (`D-42` item `3`; `D-41` item `4`).
+
+**⟶ AND THE CROSSED FORM IS FOUR MEMBERS FROM 2026-10-29 — `D-77`, THE ARCHITECT'S RULING, ONE WORD: *"New member"*.** Every figure above and below that prints that form as THREE is read THROUGH this clause and stands as the reading of its own date. **THE FOURTH MEMBER IS *WHICH ACT WAS REFUSED* — `address`, the ADDRESS the refusal is about**: a segment array in the caller's own domain, or the declared `null` where there is nothing to name. The measurement it answers: **a caller's OWN act refused and a caller's act that PASSED while a LISTENER's was refused cross with the same `status`, the same `message`, the same keys and the same two log entries** — only the `opId` differs, and a refused act answers no `op` to key against — so the caller read `ConstraintPassRefused` and concluded its own write did not happen while the store says it did. **Compare the member with the address you wrote: `equal` means your own act, `different` means a listener's, and a retry is then a decision rather than a guess.** **IT IS PRESENT ON EVERY REFUSAL, `null` WHERE NOTHING IS NAMEABLE** (*"a member absent on some arm is the `DEF-AH` defect wearing a new name"*), so `Object.keys(caught)` reads exactly `["status","message","log","address"]`, length `4`, on EVERY arm. **THE CLOSED STATUS SET IS NOT REACHED — twenty stays twenty — and the member is no heuristic a consumer has to reproduce.** The form's one home is `docs/specs/storeroom-js/surface.md §2.5` item `4-ter`.
 
 **⟶ AND THE ARM PAST THE BUDGET NAMES THE PAIR THAT WAS BEING ASKED, AND SAYS WHAT IT IS, 2026-10-28 — `DEF-AL`, MEASURED AND CLOSED HERE.** `RCA-8(g)` ANNOTATE-BESIDE: **the two clauses above stand BYTE-FOR-BYTE and are read THROUGH this one; this clause re-reads what the refusal NAMES and what its `message` SAYS, and moves no status, no form and no bound.** **WHAT WAS MEASURED:** the arm named the FIRST WATCHED ADDRESS rather than the one the budget was spent at, **so registration order decided the accusation — the pair it named had answered `true` on every ask it received**, and the crossed `message` was **byte-identical to a genuine refusal's**, so a consumer reading only the message could not tell a pair refusing from a budget running out. **WHAT IT DOES NOW:**
 - **the one `log` entry names the pair that was BEING ASKED when the budget ran out, and the address it was being asked at** — not the first watched address — **and its sentence says that pair refused nothing and that the check could not settle**;
 - **the crossed `message` keeps the store's generated sentence for `ConstraintPassRefused` and then says, in its own words, that this is a RESTART BUDGET EXHAUSTION and NOT a constraint pair refusing a state** — no pair refused the state the check was asking it for, a pair body acted inside the check at every restart, and the budget is spent. **A GENUINE refusal never carries that clause**, so the two are distinguishable by the message alone.
-**`status` stays `ConstraintPassRefused`, the form stays `{status, message, log}`, ONE log entry stands, and the store is still restored by the refusal's own compensating act.** (`D-42`; `D-41` item `4`; §7.7's bound above.) **MEASURED 2026-10-28, on this checkout, with a passing pair registered FIRST: the entry named the passing pair and the passing pair's address before this clause, and names the pair the check was asking and its own address after it; the crossed message said `'t5' was refused by a constraint pass, the state this act would leave is not one the registered constraints admit` before and carries the budget's own clause after — beside a control in which a genuine refusal still reads as its refusing pair's own sentence.**
+**`status` stays `ConstraintPassRefused`, the form stays `{status, message, log, address}`, ONE log entry stands, and the store is still restored by the refusal's own compensating act.** (`D-42`; `D-41` item `4`; §7.7's bound above.) **MEASURED 2026-10-28, on this checkout, with a passing pair registered FIRST: the entry named the passing pair and the passing pair's address before this clause, and names the pair the check was asking and its own address after it; the crossed message said `'t5' was refused by a constraint pass, the state this act would leave is not one the registered constraints admit` before and carries the budget's own clause after — beside a control in which a genuine refusal still reads as its refusing pair's own sentence.**
 
 **MEASURED 2026-10-28, ON THIS CHECKOUT, THROUGH THE PUBLISHED ENTRY — AND THE MEASUREMENT IS THE POINT: THE RESIDUAL IS THE BUDGET, NOT THE STATE AND NOT THE JOURNAL.** A pair whose body raises ONE FRESH REVERSAL on every ask the restart makes, **with every ask passing**, was driven twice: **with `60` fresh reversals available it rests at exactly `3` restart asks** (the listener's own action plus one per ask — `4` actions in all), **and with `40` available it answers identically, `3`.** **The body had `57` and `37` reversals it never got to spend, and nothing structural stopped it: every ask it made passed.** The terminal write then refused `ConstraintPassRefused` with its log entry saying the budget was spent.
 
@@ -1037,7 +1039,7 @@ three editing verbs — `write`, `delete`, `rollback` — all ask the pairs, and
    absence, with the delete's own journal op handed to the pair as `context.op`, so a constraint can tell a
    delete from a write and refuse one;
 3. **every one of them passes ⇒ you get the record** — `{ address, tiers, triggered, op }` (`§3.3`), unchanged;
-   **one refuses ⇒ you get the ordinary refusal**: the same `{status, message, log}` every constraint refusal
+   **one refuses ⇒ you get the ordinary refusal**: the same `{status, message, log, address}` every constraint refusal
    throws (§8), `status: 'ConstraintPassRefused'`, its `log` naming the pair and carrying the kernel's token in
    the terminal entry's `state`, **and the delete is UNDONE together with every edit the delete's own attempt made** (a repair's write included)
    — the store stands at the state the commit opened at;
@@ -1243,21 +1245,21 @@ try {
 }
 ```
 
-**A refusal is a thrown object literal carrying exactly `{status, message, log}`** — **never an `Error` subclass,
+**A refusal is a thrown object literal carrying exactly `{status, message, log, address}`** — **never an `Error` subclass,
 never a returned tagged union, never a `Promise` rejection**, so `try/catch` is the whole error model
 (`bindings/js/index.d.ts`, `StoreRefusal`; `surface.md §2.5`'s clause of 2026-10-16, the crossing form's one home;
 `js/contract.md §1.4`).
 
 **★ AND THE `log` MEMBER IS ALWAYS PRESENT, and it is a plain own enumerable data member of that same object** —
 written with an object literal, not `defineProperty`, not a getter, not on a prototype and not behind a `Symbol`.
-**So `Object.keys(caught)` reads exactly `["log","message","status"]` and its length is `3` on EVERY arm. It is
+**So `Object.keys(caught)` reads exactly `["status","message","log","address"]` and its length is `3` on EVERY arm. It is
 never absent, never `null` and never a non-array; `[]` is its declared value where the failure's cause has no
 attempt at all, and every failure whose attempt exists carries that attempt's own entries**
 (`index.d.ts`, `StoreRefusal` items 4, 9 and 10; `surface.md §2.5`).
 
 **Measured 2026-10-26, on refusals from `read`, `readLiteral`, `write`, `delete`, `rollback`, `listen`,
 `unlisten`, `register` and `removeListener`: every one was an `Object` whose `Object.keys` was
-`["status","message","log"]`, whose `log` was `[]`, and which was not an `Error` instance.**
+`["status","message","log","address"]`, whose `log` was `[]`, and which was not an `Error` instance.**
 
 ### §8.0a What the `log` IS: one list per COMMIT — and what that buys you
 
@@ -1421,9 +1423,9 @@ store's to close; **the package mints no member, widens no set and renames none.
 **★ AND ONE ARM OF ROW `20` IS NOT WHOSE IT LOOKS LIKE, DECLARED HERE SO YOU MEET IT BEFORE A TEST DOES — `D-76` ITEM 2 (`DEF-AU`), 2026-10-29.** **`ConstraintPassRefused` ALSO CROSSES WHEN THE REFUSED ACT WAS A LISTENER'S AND NOT YOURS**: **your own write's data then STANDS IN THE STORE**, and the answer carries **no member that says so** — *"so the status alone is not a statement that your write did not happen."* **WHAT TO DO IS `§6.5a`'s rule of use, where both arms are measured and printed side by side: DO NOT RETRY ON THE ANSWER — READ THE ADDRESS YOU WROTE.** **NO RANK MOVES, NO MEMBER IS MINTED AND NO BEHAVIOUR MOVES: the distinction is a closed set's business (`D-38`) and the architect's call, not this guide's** (`D-76`; `D-73`; `§6.5a`).
 
 **⟶ AND AN INNER REFUSAL A CONSTRAINT BODY THREW NOW CROSSES BESIDE THE CROSSED ONE, 2026-10-28 — `DEF-AK`, MEASURED AND DECLARED.** `RCA-8(g)` ANNOTATE-BESIDE: **the paragraph above stands BYTE-FOR-BYTE and is read THROUGH this one; no rank moves and no member is minted.** **WHAT WAS MEASURED: a LISTENER body propagates an inner refusal VERBATIM — same `status`, same `message`, same two-entry `log` — while a CONSTRAINT body making the IDENTICAL write had it REPLACED by a generated `ConstraintBodyThrew` whose single log entry was the OUTER attempt's, with the inner refusal's own literal occurring ZERO TIMES anywhere. WHICH HOST YOU WERE INSIDE DECIDED WHAT YOU WERE TOLD.**
-- **`ConstraintBodyThrew` is still the `status` that crosses** — the body did throw, and rank `18` says so — **but the inner refusal is now REACHABLE from what you catch, under `Symbol.for('provident-storeroom.inner-refusal')`:** a non-enumerable own member carrying the value the body threw, so **its own `status`, its own `message` and its own `log` are all there to read.** `Object.keys(caught)` still reads `["status","message","log"]` — three members in the form's own order — and the form is unmoved.
+- **`ConstraintBodyThrew` is still the `status` that crosses** — the body did throw, and rank `18` says so — **but the inner refusal is now REACHABLE from what you catch, under `Symbol.for('provident-storeroom.inner-refusal')`:** a non-enumerable own member carrying the value the body threw, so **its own `status`, its own `message` and its own `log` are all there to read.** `Object.keys(caught)` still reads `["status","message","log","address"]` — FOUR members in the form's own order (`D-77`) — and the form is unmoved.
 - **AND THE CROSSED SENTENCE STOPS CLAIMING MORE THAN IT DELIVERS.** Its own bytes — *"a constraint body's throwable crosses as this refusal"* — now stand followed by **the package's own clause saying the value the body threw does NOT cross as this refusal, naming the inner `status` and quoting the inner `message`, and saying where the inner refusal crosses instead.** A body that threw something that is **not** a refusal (**a `TypeError`, a string**) has **nothing carried beside the crossed form**; there is no inner refusal to name, and the generated sentence names the CODE rather than promising a value.
-- **A FORGED THREE-MEMBER OBJECT IS STILL NOT QUOTED.** The inner refusal is recognised by **a mark this package sets on the forms IT builds** — never by the shape a caller can spell — so a body throwing `{status, message, log}` of its own gets the generated sentence and nothing of its text is repeated back as though the package had found a refusal there (`DEF-A`'s protection, extended one layer in).
+- **A FORGED THREE-MEMBER OBJECT IS STILL NOT QUOTED.** The inner refusal is recognised by **a mark this package sets on the forms IT builds** — never by the shape a caller can spell — so a body throwing `{status, message, log, address}` of its own gets the generated sentence and nothing of its text is repeated back as though the package had found a refusal there (`DEF-A`'s protection, extended one layer in).
 - **THE LISTENER ARM IS UNCHANGED, AND THAT IS THE CONTROL:** nothing marks a listener's throw, so it still crosses **as itself**, by identity — `caught === thrown`, its own `status`, `message` and `log`. **A `rollback` whose judgement a pair's body threw** crosses `ConstraintBodyThrew` at rank `18` and carries any inner refusal the same way (`§5.4`).
 - **⟶ AND THE CONSTRAINT HOST'S LIST IS NOW THE COMMIT'S, WHICH IS THE DEEPER HALF OF THE SAME RULING (2026-10-28, `D-53`).** The inner refusal's own two entries are **IN the crossed report** — the `constraint-check` entry naming the inner pair and the `outcome` entry carrying `KC-3` — on the same array the enclosing attempt appends to, at a continuous `seq`; **`carriedInner.log` and `caught.log` are ONE array, not two.** **READ §8.0a ABOVE BEFORE COUNTING ENTRIES**: the listener's list is still its own, because the listener's write opens its own commit, and that difference between the two hosts is now the difference the ruling draws rather than an asymmetry nobody declared.
 
@@ -1465,7 +1467,7 @@ directory; a path that is a directory; an existing file that is not writable; a 
 SYMLINK; a parent on a read-only mount (`EROFS`); and a create the process is denied (`EACCES`)
 (`docs/specs/storeroom-native/contract.md §8.1` #13's amended trigger clause; `§10.4` part 5).
 
-### §8.3 The refusal that is not `{status, message, log}` — declared, and narrow
+### §8.3 The refusal that is not `{status, message, log, address}` — declared, and narrow
 
 **Two positions throw a `TypeError` instead of the one form, and both are DECLARED rather than accidental:**
 
@@ -2079,7 +2081,7 @@ happened"* (`D-49`).
 log's own words: *"`skipped 1` is a cell that did not run"* (`strata/decisions.md`, the examiner's findings) —
 **and a client's own throw is not the package's form.** **A listener body that throws is NOT CAUGHT, NOT RETRIED
 AND NOT REPORTED:** the package does not wrap your callback, and what escapes is your own throwable, not
-`{status, message, log}` (`docs/specs/storeroom-js/surface.md §2.7` item 4). **WHY IT IS OUT OF SCOPE:** `D-35` —
+`{status, message, log, address}` (`docs/specs/storeroom-js/surface.md §2.7` item 4). **WHY IT IS OUT OF SCOPE:** `D-35` —
 **anything that enters the package from your side and leaves it is your shape, and the one thrown form is the
 package's answer to its OWN refusals.** **WHAT TO DO INSTEAD:** **catch inside your listener if you want a
 listener's failure to be yours**, and **never count a skipped test as a passed one** — and never treat a caught

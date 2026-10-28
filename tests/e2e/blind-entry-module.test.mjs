@@ -317,11 +317,14 @@ test('entry-module · index.d.ts `StoreStatus` · THE CLOSED SET READS TWENTY LI
   assert.match(DECLARATION, /\| \(string & \{\}\);/);
 });
 
-test('entry-module · index.d.ts `StoreRefusal` and `LogEntry` · the failure form is THREE members and the log entry is FIVE — `{kind, id, message, opId, state}` with `seq` ABSENT (`D-65`: the array index is the position) — with `kind` the kernel\'s closed four-member set', () => {
+// **⟶ AND THE FORM'S OWN COUNT MOVES `3 → 4` — `D-77`, 2026-10-29: the fourth member is `address`, the act the
+// refusal is about.** The title moves with the count, as it did for the status set above.
+test('entry-module · index.d.ts `StoreRefusal` and `LogEntry` · the failure form is FOUR members and the log entry is FIVE — `{kind, id, message, opId, state}` with `seq` ABSENT (`D-65`: the array index is the position) — with `kind` the kernel\'s closed four-member set', () => {
   assert.deepEqual(
     membersOf('StoreRefusal').map((member) => member.name),
-    ['status', 'message', 'log'],
+    ['status', 'message', 'log', 'address'],
   );
+  assert.equal(membersOf('StoreRefusal').length, 4, '`D-77`: the form is FOUR members, present on every arm');
   assert.deepEqual(
     membersOf('LogEntry').map((member) => member.name),
     ['kind', 'id', 'message', 'opId', 'state'],

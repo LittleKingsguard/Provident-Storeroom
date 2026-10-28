@@ -975,7 +975,7 @@ test('JC-TC-51 a Proxy standing as a prototype is refused as its row\'s class wi
   const revokedError = drive(revokedValue);
   assert.ok(revokedError, 'a REVOKED Proxy standing as a prototype is refused as its row\'s class');
   assertClass(revokedError, ROW_14);
-  assert.deepEqual(Object.keys(revokedError).sort(), ['log', 'message', 'status'],
+  assert.deepEqual(Object.keys(revokedError).sort(), ['address', 'log', 'message', 'status'],
     'the refusal is the one three-member form: a revoked link costs no second form and no raw host error');
   assert.ok(!(revokedError instanceof Error), 'no host error escapes for the revoked link');
 
@@ -1386,7 +1386,7 @@ test('JC-TC-55 a carrier position\'s subject is its own declared descriptor and 
   // `undefined` appears nowhere, and the refusal is the one three-member form.
   const assertCarrierSubject = (label, err, subject) => {
     assert.ok(err, `${label}: the construction declares a carrier refusal at the constraints list; it ADMITTED the entry`);
-    assert.deepEqual(Object.keys(err).sort(), ['log', 'message', 'status'],
+    assert.deepEqual(Object.keys(err).sort(), ['address', 'log', 'message', 'status'],
       `${label}: the refusal must be the one three-member form (surface.md §2.5 item 9); got ${JSON.stringify(Object.keys(err))}`);
     assert.equal(err.message, carrierMessage(subject),
       `${label}: the carrier slot's subject must be its own declared descriptor (§2.1 F-RA-18 items (c)/(d)(ii)/(e)); `
@@ -1634,7 +1634,7 @@ test('JC-TC-56 the element limb tests the current path, so an aliased element re
   for (let i = 0; i < 3; i += 1) {
     const cycleError = drive(arrayChain([cyclic], 127));
     assert.ok(cycleError, 'a self-containing element is refused at the depth arm');
-    assert.deepEqual(Object.keys(cycleError).sort(), ['log', 'message', 'status'],
+    assert.deepEqual(Object.keys(cycleError).sort(), ['address', 'log', 'message', 'status'],
       'the cycle\'s answer is the one failure form: no host error and no second form escapes it');
     assert.ok(!(cycleError instanceof RangeError) && !(cycleError instanceof Error),
       'the cycle must not answer a raw host error (a RangeError from an unbounded recursion is a FINDING)');
@@ -1697,7 +1697,7 @@ test('JC-TC-56 the element limb tests the current path, so an aliased element re
   assert.equal(twoLinkA[0], twoLinkB, 'the fixture is a TWO-LINK cycle: a holds b and b holds a');
   const twoLinkError = drive(arrayChain(twoLinkA, 127));
   assert.ok(twoLinkError, 'a cycle of length 2 at the refused position is refused at the depth arm');
-  assert.deepEqual(Object.keys(twoLinkError).sort(), ['log', 'message', 'status'],
+  assert.deepEqual(Object.keys(twoLinkError).sort(), ['address', 'log', 'message', 'status'],
     'the two-link cycle answers the one failure form: no host error and no second form escapes it');
   assert.ok(!(twoLinkError instanceof Error), 'the two-link cycle answers no raw host error');
   assert.equal(twoLinkError.message, declaredMessage(ROW_8, ROW_8, deepPath),

@@ -502,11 +502,14 @@ const CLOSED_SET = ${JSON.stringify(CLOSED_SET)};
 function recordArm(err) {
   if (err !== null && typeof err === 'object') {
     const own = Object.keys(err);
-    const DECLARED_MEMBERS = ['log', 'message', 'status'];
-    if (own.length === 3 && DECLARED_MEMBERS.every((member) => own.includes(member))
+    const DECLARED_MEMBERS = ['address', 'log', 'message', 'status'];
+    if (own.length === 4 && DECLARED_MEMBERS.every((member) => own.includes(member))
         && !(err instanceof Error) && CLOSED_SET.includes(err.status)
         && typeof err.message === 'string' && Array.isArray(err.log) && err.log.length === 0) {
-      report.arm = { status: err.status, message: err.message, log: err.log };
+      // AND THE FOURTH MEMBER IS CARRIED THROUGH — D-77. The observer RECORDS the form it saw, member for
+      // member; a copy that dropped the address member would answer a three-member arm at the cells above
+      // and would be the observer's defect, not the tree's.
+      report.arm = { status: err.status, message: err.message, log: err.log, address: err.address };
       return true; // THE DECLARED ARM — the answer, and NOT an absorbed state
     }
     report.arm = { notTheArm: true, name: err.constructor ? err.constructor.name : 'unknown', code: err.code ?? null, message: String(err.message ?? err).slice(0, 200) };
@@ -862,11 +865,11 @@ function assertArm(report, { subject }) {
   // is \`3\` on EVERY arm of this surface"\*).** **THE TWO STORE MEMBERS KEEP THE TEST THEY HAD** — item 10
   // (ii): *"the store's \`status\` and \`message\` are preserved byte-for-byte and \`log\` is attached beside
   // them"* — **and the three assertions below this one are unmoved.**
-  assert.deepEqual(Object.keys(A).sort(), ['log', 'message', 'status'],
-    '`surface.md §2.5` items 4 and 9: the member set is EXACTLY `{log, message, status}` — FLAT across arms '
+  assert.deepEqual(Object.keys(A).sort(), ['address', 'log', 'message', 'status'],
+    '`surface.md §2.5` items 4 and 9: the member set is EXACTLY `{address, log, message, status}` — FLAT across arms '
     + 'and not conditional; the `§1.4` item 1 "no third member" clause and the two-member `Refusal` struct / '
     + '`DD-12` are SUPERSEDED by the Architect\'s ruling');
-  assert.equal(Object.keys(A).length, 3,
+  assert.equal(Object.keys(A).length, 4,
     '`surface.md §2.5` item 9: `Object.keys(caught).length` is `3` on EVERY arm of this surface');
   assert.equal(Array.isArray(A.log), true,
     '`surface.md §2.5` item 9: `log` is an ARRAY on every arm — never absent, never `null`, never a non-array');
@@ -1624,9 +1627,9 @@ cell('P-PUB-4', 'S-VERSION a second failure shape fails; the arm\'s form is fixe
     ['the mismatch', mismatch, COVERED[0].name],
   ]) {
     const A = assertArm(r, subject === undefined ? {} : { subject });
-    assert.deepEqual(Object.keys(A).sort(), ['log', 'message', 'status'],
-      `${label}: exactly {log, message, status} — no member outside the declared set (\`surface.md §2.5\` item 9)`);
-    assert.equal(Object.keys(A).length, 3, `${label}: \`Object.keys(caught).length\` is \`3\` (\`surface.md §2.5\` item 9)`);
+    assert.deepEqual(Object.keys(A).sort(), ['address', 'log', 'message', 'status'],
+      `${label}: exactly {address, log, message, status} — no member outside the declared set (\`surface.md §2.5\` item 9)`);
+    assert.equal(Object.keys(A).length, 4, `${label}: \`Object.keys(caught).length\` is \`3\` (\`surface.md §2.5\` item 9)`);
     assert.equal(Array.isArray(A.log), true, `${label}: \`log\` is an ARRAY (\`surface.md §2.5\` item 9)`);
     assert.equal(A.log.length, 0, `${label}: and its value is \`[]\` where the cause has NO ATTEMPT AT ALL (\`surface.md §2.5\` item 4)`);
     assert.equal(typeof A.status, 'string', `${label}: the status is a JS string, carried verbatim`);
@@ -1832,7 +1835,7 @@ cell('P-PUB-5', 'S-TAXONOMY musl × present-wrong-version and musl × present-ri
 
 cell('P-PUB-5', 'S-ONEARM the arm is a plain object of exactly three members', async () => {
   // `surface.md` `§2.5` items 4 and 9 (the Architect's overriding ruling) read with `§1.4` item 1: a THROWN
-  // PLAIN OBJECT whose member set is EXACTLY `{log, message, status}` — and its prototype is the caller's
+  // PLAIN OBJECT whose member set is EXACTLY `{address, log, message, status}` — and its prototype is the caller's
   // own realm's object prototype, in the order item 9 prints. **THE CELL'S AS-FILED TITLE READ *"exactly two
   // members"*, WHICH IS THE SUPERSEDED `§1.4` item 1 / `resolution.md §5.3` item 1 / `DD-12` READING; the
   // title and the header comment move with the limbs so a reader is not told two where the cell asserts
@@ -1853,13 +1856,13 @@ cell('P-PUB-5', 'S-ONEARM the arm is a plain object of exactly three members', a
   // by the code and this cell re-derives to a form the entry really carries, not to a false green.**
   // **EVERY OTHER LIMB IS KEPT**: the plain-object prototype, the `string` status, the `string` message, and
   // the arm's own single-shape claim that no key outside the declared three exists.
-  assert.deepEqual(Object.keys(A).sort(), ['log', 'message', 'status'],
-    '`surface.md §2.5` items 4 and 9: EXACTLY {log, message, status}, sorted ascending — FLAT across arms and '
+  assert.deepEqual(Object.keys(A).sort(), ['address', 'log', 'message', 'status'],
+    '`surface.md §2.5` items 4 and 9: EXACTLY {address, log, message, status}, sorted ascending — FLAT across arms and '
     + 'not conditional (`§1.4` item 1\'s "no third member" half and `DD-12`\'s two-member `Refusal` are SUPERSEDED)');
   assert.equal(Object.getPrototypeOf(A), Object.prototype, 'a PLAIN object, not an `Error` and not a subclass');
   assert.equal(typeof A.status, 'string', 'the status is the member token, carried verbatim');
   assert.equal(typeof A.message, 'string', 'the message is a string');
-  assert.equal(Object.keys(A).length, 3,
+  assert.equal(Object.keys(A).length, 4,
     '`surface.md §2.5` item 9: `Object.keys(caught).length` is `3` on EVERY arm of this surface');
   assert.equal(Array.isArray(A.log), true,
     '`surface.md §2.5` item 9: `log` is an ARRAY — never absent, never `null`, never a non-array');
@@ -1968,8 +1971,8 @@ cell('P-PUB-5', 'S-ONEARM the artefact that LOADED and carries no usable generat
     // other — and the `alt` second shape `§1.4` item 7 prices and refuses is any member OUTSIDE that set,
     // which is what the assertion below still catches. MEASURED on this state before the edit: `log` present,
     // `[]`, own enumerable data member.
-    assert.deepEqual(Object.keys(A).sort(), ['log', 'message', 'status'],
-      '`surface.md §2.5` items 4 and 9: the arm\'s member set is EXACTLY `{log, message, status}` — FLAT '
+    assert.deepEqual(Object.keys(A).sort(), ['address', 'log', 'message', 'status'],
+      '`surface.md §2.5` items 4 and 9: the arm\'s member set is EXACTLY `{address, log, message, status}` — FLAT '
       + 'across arms; a member outside it is a second shape');
     assert.equal(Array.isArray(A.log), true,
       '`surface.md §2.5` item 9: `log` is an ARRAY — never absent, never `null`, never a non-array');
@@ -2069,7 +2072,7 @@ cell('P-PUB-5', 'S-ONEARM the artefact that LOADED and carries no usable generat
   // for. **THE ANCHOR MOVES TO THE SHIPPED THREE-MEMBER THROW, AND THE MUTANT STILL MINTS \`code\` — a member
   // OUTSIDE the declared set — so the property this control has always tested is untouched: a fourth member
   // must not reach a consumer and must surface as an absorbed state rather than as the one arm.**
-  const FAIL_SITE = `  throw { status: refusal.status, message: refusal.message, log: refusalLog(log) };`;
+  const FAIL_SITE = `  throw {\n    status: refusal.status,\n    message: refusal.message,\n    log: refusalLog(log),\n    address: refusalAddress(address),\n  };`;
   // **THE SECOND CONTROL'S SITE IS IN ANOTHER PART AND IS FOUND THE SAME WAY**: `fail` lives in
   // `src/entry/refusal.mjs`, so the mutant that mints the fourth member is staged AS THAT PART while the first
   // control's mutant is staged as `src/entry/artefact.mjs`. **The two controls therefore never share a file**,
@@ -2078,14 +2081,14 @@ cell('P-PUB-5', 'S-ONEARM the artefact that LOADED and carries no usable generat
   assert.ok(refusalCarrier.bytes.includes(FAIL_SITE),
     `the module's one arm-building site is present, in '${refusalCarrier.relativePath}'`);
   const secondShapeEntry = refusalCarrier.bytes.replace(FAIL_SITE,
-    `  throw { status: refusal.status, message: refusal.message, log: refusalLog(log), code: 'AddonVersionMismatch' };`);
+    `  throw {\n    status: refusal.status,\n    message: refusal.message,\n    log: refusalLog(log),\n    address: refusalAddress(address),\n    code: 'AddonVersionMismatch',\n  };`);
   assert.ok(secondShapeEntry !== refusalCarrier.bytes && secondShapeEntry.includes('AddonVersionMismatch'),
     'THE SECOND CONTROL really MINTS A SECOND FAILURE SHAPE — the `alt` `§1.4` item 7 prices and REFUSES');
   assert.equal(refusalCarrier.bytes.includes('AddonVersionMismatch'), false,
     'and the shipped bytes mint no code of their own: the status stays the store\'s closed member, carried verbatim');
   const shapeVerdict = controlVerdict({ relativePath: refusalCarrier.relativePath, bytes: secondShapeEntry });
   assert.ok(shapeVerdict !== null,
-    'THE SECOND CONTROL MUST FAIL: a member outside `{log, message, status}` — or any shape but the declared '
+    'THE SECOND CONTROL MUST FAIL: a member outside `{address, log, message, status}` — or any shape but the declared '
     + 'one (`surface.md §2.5` items 4 and 9) — is caught at this state too');
   assert.ok(shapeVerdict.message.includes('no arm was thrown') && shapeVerdict.message.includes('notTheArm'),
     'and the verdict names what it refused: the thrown value is NOT the one arm, and the state surfaces as an '

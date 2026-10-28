@@ -1,6 +1,6 @@
 // `D-2` (`docs/L1/entry-subdivision.md` §1 part `8`) — bytes moved from `bindings/js/index.mjs`; no logic changed.
 import { types } from 'node:util';
-import { appendOwn, fail, refusalLog } from './refusal.mjs';
+import { appendOwn, fail, refusalAddress, refusalLog } from './refusal.mjs';
 import { withAddon, require_ } from './artefact.mjs';
 import { classSpelling, isAdmittedArray, isPlainObjectValue } from './class-decision.mjs';
 import { constraintAddress } from './frame.mjs';
@@ -435,7 +435,7 @@ export function carryConstraint(state, instance, addresses, id, constraint) {
       try {
         constraintsKernel().register(instance, addresses[position], id, constraint);
       } catch (refusal) {
-        registrationCrossing(refusal);
+        registrationCrossing(refusal, addresses[position]);
       }
     }
   } finally {
@@ -486,7 +486,7 @@ export function carryConstraint(state, instance, addresses, id, constraint) {
 /// **AND A BODY'S OWN THROW IS THAT SECOND ARM AND NOT A THIRD**: `fail-surface.md §1.1` item 5 leaves a
 /// throwing constraint or repair body *"untouched and unconverted"*, and it carries no mark, so it is
 /// re-thrown by the one line above the render.
-export function registrationCrossing(refusal) {
+export function registrationCrossing(refusal, address) {
   // **⟶ AND THE MARKED BODY-THROW ARM STANDS FIRST, 2026-10-26 (`DEF-S`; the architect's ruling, verbatim:
   // *"Expand the returned error set for both S/N"*).** **THE CONVERSION IS THE WHOLE POINT AND THE
   // DISCRIMINATOR IS THE MARK:** the kernel sets [`CONSTRAINT_BODY_THREW_ENTRY`] on a value IT caught from a
@@ -526,6 +526,10 @@ export function registrationCrossing(refusal) {
     status: refusal.status,
     message: generated,
     log: refusalLog(refusal.log),
+    // **THE FOURTH MEMBER — `D-77`: the act this registration refused is the one at THIS address**, handed by
+    // the frame that took the registration and never read off the kernel's own slot (its `segment` is only a
+    // spelling).
+    address: refusalAddress(address),
   });
 }
 
@@ -787,7 +791,7 @@ export function constraintWrite(state, instance, address, tier, value) {
   try {
     record = kernel.commit(instance, address, tier, value);
   } catch (refusal) {
-    constraintCrossing(refusal);
+    constraintCrossing(refusal, address);
   }
   const answer = state.leg;
   let report;
@@ -802,7 +806,7 @@ export function constraintWrite(state, instance, address, tier, value) {
     // pass's window identity and dies at the next pass's drain — **A FAILING NESTED WRITE's request is in the
     // ENCLOSING window, so the delivery's outer pass still consumes it, exactly as the old outer-frame clear
     // left it in hand.**
-    constraintCrossing(refusal);
+    constraintCrossing(refusal, address);
   }
   // **⟶ AND THE RESTART'S REFUSAL, WHERE THE RESTARTED CHECK REFUSED — `D-42` (2026-10-27), REACHED THROUGH
   // THE REPORT SINCE 2026-10-27.** The attempt's own terminal arm returned (its pass, its save and its
@@ -816,7 +820,7 @@ export function constraintWrite(state, instance, address, tier, value) {
   // REFUSAL AND RETURNS ITS RECORD UNCHANGED.**
   const restarted = report !== null && typeof report === 'object' ? report[RESTART_REFUSAL] : undefined;
   if (restarted !== undefined) {
-    constraintCrossing(restarted);
+    constraintCrossing(restarted, address);
   }
   // **⟶ THE PASSING ARM RETURNS THE REPORT THE ATTEMPT ITSELF BUILT — `D-40`'S SECOND HALF (`DEF-M` (2)),
   // 2026-10-26.** **WHAT IT WAS:** `return answer` returned the **STORE LEG'S** record — the one `index.mjs`
@@ -952,7 +956,7 @@ export function constraintDelete(instance, address, tier, remove) {
     // THE KERNEL'S OWN `KC-7` (a held address, before the store is reached) or the store's own refusal: the
     // ONE crossing every kernel-driven path takes, so a nested delete at a live attempt's address answers the
     // same rank-`20` form a write does and a store refusal crosses verbatim (`§2.5` item 10 (ii)).
-    constraintCrossing(refusal);
+    constraintCrossing(refusal, address);
   }
   // **THE `D-3` ARM CARRIES ITS `null`** — no attempt, so no record, and the member is present rather than
   // absent (`D-21`: a member whose act did not run says so).
@@ -970,7 +974,7 @@ export function constraintDelete(instance, address, tier, remove) {
   try {
     report = runAttempt(instance, attempt.record);
   } catch (refusal) {
-    constraintCrossing(refusal);
+    constraintCrossing(refusal, address);
   }
   // **AND THE RESTART'S REFUSAL, WHERE THE PASS ITSELF PASSED** (`D-42`; `D-54` (b)): a reversal raised by a
   // body inside this pass is drained at the pass's terminal state, and where the restarted check refused, the
@@ -979,7 +983,7 @@ export function constraintDelete(instance, address, tier, remove) {
   // RECEIPT UNCHANGED.
   const restarted = report !== null && typeof report === 'object' ? report[RESTART_REFUSAL] : undefined;
   if (restarted !== undefined) {
-    constraintCrossing(restarted);
+    constraintCrossing(restarted, address);
   }
   exposeCommit(receipt, attempt.record);
   return receipt;
@@ -1325,6 +1329,11 @@ function bodyThrowRefusal(carried, thrown, recorded) {
     status: BODY_THREW_STATUS,
     message: generated,
     log: refusalLog(carried.log),
+    // **⟶ AND THE FOURTH MEMBER IS THE ADDRESS THE BODY WAS EVALUATED AT — `D-77`.** The mark carries the
+    // segment list itself (`markBodyThrow`'s `segments` slot) as well as the `<SEGMENT>` spelling this
+    // sentence was generated from, because the caller compares the member with the address IT wrote and a
+    // spelling cannot be read back into one.
+    address: refusalAddress(carried.segments),
   };
   packageRefusal(crossed);
   if (inner !== null) {
@@ -1340,7 +1349,7 @@ function bodyThrowRefusal(carried, thrown, recorded) {
   return crossed;
 }
 
-function constraintCrossing(refusal) {
+function constraintCrossing(refusal, address) {
   // **⟶ AND THE MARKED BODY-THROW ARM STANDS FIRST HERE TOO, 2026-10-26 (`DEF-S`), for the reason
   // `registrationCrossing` states at its own bytes.** A body that threw at a LANDING reaches this frame
   // through `constraintWrite`'s catch around `kernel.runAttempt`; the mark carries the attempt's own log,
@@ -1389,6 +1398,8 @@ function constraintCrossing(refusal) {
       status: refusal.status,
       message: refusal.message,
       log: refusalLog(log),
+      // **`D-77`: the act the store verb refused is the one at THIS address.**
+      address: refusalAddress(address),
     });
   }
   // **THE KERNEL'S OWN `KC` REFUSAL.** Its `{status, message, log}` is the KERNEL'S OWN three-member form
@@ -1404,6 +1415,12 @@ function constraintCrossing(refusal) {
       ? refusal.message
       : 'the write was refused by a constraint of this attempt',
     log: refusalLog(log),
+    // **⟶ AND THIS IS `D-77`'S ROW.** The status, the message and the log are the same on an act of the
+    // caller's own that a pair refused and on an act of the caller's that PASSED while a listener's write was
+    // refused; **the ADDRESS is what tells the two apart**, because a listener's refused act is at the
+    // listener's address and not the caller's. **THE ADDRESS IS THE ATTEMPT'S, HANDED IN BY THE FRAME THAT
+    // OPENED IT** — never read off the refusal, which a listener's crossing built at ITS own address.
+    address: refusalAddress(address),
   });
 }
 
@@ -3035,6 +3052,9 @@ function reversalOutcome(instance, entry, address, value) {
     // address spelling joined by `/`, and the log as it stood when the body threw — `[]` here, because no
     // attempt stands at a reversal's judgement.
     carried.address = addressSpelling(address);
+    // **⟶ AND THE LIST ITSELF BESIDE ITS SPELLING — `D-77`**: `markBodyThrow`'s third slot, so the crossed
+    // form's fourth member is the segment array the caller compares with its own and not a spelling.
+    carried.segments = refusalAddress(address);
     carried.log = [];
     // **⟶ AND THE BODY'S OWN VALUE IS HANDED IN, 2026-10-28 (`DEF-AK`)**: `bodyThrowRefusal` carries an inner
     // refusal beside the crossed one and names it in the crossed sentence, and the value the body threw is
@@ -3227,7 +3247,9 @@ function reversalRefusal(one, after, said, reversalId, undo, thrown, unsettled =
   // **THE CROSSED `status` IS THE ARM'S OWN AND IS NEVER MINTED** (`DD-40`): rank `20` where a pair refused the
   // state the reversal left, rank `18` where a pair's body threw at the judgement of it (`D-41` item `4`). The
   // sentence beside it was generated for that same code — one source for each (`DD-52`).
-  const crossed = packageRefusal({ status, message, log: refusalLog(log) });
+  // **AND THE FOURTH MEMBER IS THE ADDRESS THE JUDGEMENT ASKED AT — `D-77`**: the act the reversal left
+  // refused by a pair is the one at that pair's own address, which is the address the caller reads back.
+  const crossed = packageRefusal({ status, message, log: refusalLog(log), address: refusalAddress(one.address) });
   if (inner !== null) {
     // THE INNER REFUSAL TRAVELS ON THE REFUSAL THE CALLER CATCHES, under the same symbol and the same
     // non-enumerable discipline `bodyThrowRefusal` uses: the crossed form's three members are unmoved.

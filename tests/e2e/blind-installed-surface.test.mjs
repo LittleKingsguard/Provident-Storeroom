@@ -137,7 +137,8 @@ const ARMED_STATUS = 'FilePathUnreachable';
 const GENERATOR_CLAUSE = 'is not reachable at construction, the path must exist or the application must be able to write it';
 /** `contract.md §1.4` item 1 as read through its `RCA-8(g)` pointer: the arm's members are `{status, message,
  *  log}`, `3` members, and `log`'s declared value on every state of THIS unit's arm is `[]`. */
-const ARM_MEMBERS = ['status', 'message', 'log'];
+// **⟶ AND THE ARM'S FORM IS FOUR MEMBERS FROM 2026-10-29 — `D-77`: `address`, the act the refusal is about.**
+const ARM_MEMBERS = ['status', 'message', 'log', 'address'];
 
 /** `contract.md §1.5` item 6 (a): the both-paths separator is `', '` — **a comma and one space, and no
  *  other separator is lawful.** */
@@ -851,7 +852,7 @@ test('installed · contract.md §1.1 rung three + §1.4 item 3 · with NO platfo
   assert.equal(report.returned, null, `the absent-addon state returned ${JSON.stringify(report.returned)}`);
 });
 
-test('installed · contract.md §1.4 item 1 (`RCA-8(g)`: `{status, message, log}`, `3` members, `log: []`) · the refusal is a THROWN PLAIN OBJECT of exactly those three own members, and it is not an `Error`, not a raw host error and not a package-minted shape', () => {
+test('installed · contract.md §1.4 item 1 (`RCA-8(g)`: `{status, message, log, address}`, `4` members, `log: []`) · the refusal is a THROWN PLAIN OBJECT of exactly those four own members, and it is not an `Error`, not a raw host error and not a package-minted shape', () => {
   // DECLARED: "**THE SINGLE DECLARED FAILURE ARM, ITS FORM AND ITS SUBJECT, FIXED ONCE** … its member set is
   // EXACTLY `{status, message}`" as read through the `RCA-8(g)` pointer: "**THE OPERATIVE FORM OF THIS
   // UNIT'S ARM IS `{status, message, log}`, `3` MEMBERS … and its declared value on every state of THIS

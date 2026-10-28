@@ -49,7 +49,7 @@ import { storeCreate } from '../../bindings/js/index.mjs';
 
 // surface.md §2.5 items 1–4 and item 9's clause of 2026-10-25: the one plain form, and its own
 // source order in `Object.keys` — `status`, `message`, `log`.
-const FORM_KEYS = ['status', 'message', 'log'];
+const FORM_KEYS = ['status', 'message', 'log', 'address'];
 
 // index.d.ts `LogEntry`; kernel-surface.md §2.5 item 1 (cited from surface.md §2.5 item 3), read through
 // `strata/decisions.md` · `D-65` (2026-10-28): the shape is FIVE members and `seq` is ABSENT — the array
@@ -89,7 +89,7 @@ function assertOnePlainForm(value, where) {
   assert.deepEqual(
     Object.keys(value),
     FORM_KEYS,
-    `${where}: surface.md §2.5 item 9 — Object.keys reads ["status","message","log"] on EVERY arm`,
+    `${where}: surface.md §2.5 item 9 — Object.keys reads ["status","message","log","address"] on EVERY arm`,
   );
   assert.equal(typeof value.status, 'string', `${where}: the status is carried as a JS string (§2.5 item 1)`);
   assert.ok(value.status.length > 0, `${where}: the status is never empty (§2.5 item 1)`);
@@ -466,10 +466,14 @@ test('def_s_a_forged_object_crosses_as_itself_only_where_no_constraint_body_thre
     'DEF-A / surface.md §2.12 (B): `[]` where no attempt exists, which is the registration instant (§2.5 item 4)',
   );
   assert.deepEqual(storeA.constraints(), [], 'DEF-A: a registration its own body threw at carries no pair; the refusal leaves the entry exactly as it stood');
+  // **⟶ AND THIS ARRAY IS THE CALLER'S OWN, NOT THE FORM'S — `D-77` MOVES THE FORM AND NOT A FORGED VALUE.**
+  // The object asserted here was BUILT BY THIS DRIVE with three members; the package crosses it AS ITSELF
+  // (`caught === thrown`), so its key set is the one the drive wrote and a fourth member would be the
+  // package forging a member into a caller's object — the `DEF-A` defect this cell exists to catch.
   assert.deepEqual(
     Object.keys(forgedAtRegistration),
-    FORM_KEYS,
-    "DEF-A: the kernel's mark is a SYMBOL-keyed, non-enumerable own member, so the caller's own form still reads its three members — no member of it is forged, renamed or dropped",
+    ['status', 'message', 'log'],
+    "DEF-A: the kernel's mark is a SYMBOL-keyed, non-enumerable own member, so the caller's own form still reads the three members IT was built with — no member of it is forged, renamed or dropped",
   );
 
   assertOnePlainForm(seenAtWrite, 'DEF-A the converted write arm');

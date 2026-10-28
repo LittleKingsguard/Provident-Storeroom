@@ -132,7 +132,7 @@ export function assertAttemptRef(ref, where) {
 export function assertKernelForm(err, where) {
   assert.equal(typeof err, 'object', `${where}: the kernel's failure is a thrown object`);
   assert.notEqual(err, null, `${where}: the kernel's failure is not null`);
-  assert.deepEqual(Object.keys(err).sort(), ['log', 'message', 'status'],
+  assert.deepEqual(Object.keys(err).sort(), ['address', 'log', 'message', 'status'],
     `${where}: the failure form's member set is exactly {status, message, log}`);
   assert.equal(typeof err.status, 'string', `${where}: status is a string`);
   assert.equal(typeof err.message, 'string', `${where}: message is a string`);

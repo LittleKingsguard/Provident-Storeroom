@@ -79,7 +79,7 @@ const PASS_REFUSED = 'ConstraintPassRefused';
 /** `surface.md §2.2`'s delete record, its enumerable members — `op` joined them 2026-10-27 (`D-43`). */
 const RECEIPT_ENUMERABLE = ['address', 'op', 'tiers', 'triggered'];
 /** `surface.md §2.5` items 3–4: the one crossed form's own three members, sorted. */
-const REFUSAL_MEMBERS = ['log', 'message', 'status'];
+const REFUSAL_MEMBERS = ['address', 'log', 'message', 'status'];
 /** **THE COUNT'S OWN OBSERVER** (`§4.2` item 2: *"`observer` is a FUNCTION called once per commit that OPENS
  *  for that store"*) — the same `Symbol.for` key `state.mjs` installs and this drive reads. */
 const ATTEMPT_OPENED = Symbol.for('provident-storeroom.attempt-opened');
@@ -3639,6 +3639,299 @@ console.log('\n── W18 · `D-75` · EVERY DISCARDED RAISE, AT ANY COUNT, ON E
   console.log('        on the `delete`\'s receipt, on the `write`\'s record and on the `rollback`\'s own answer.');
 }
 
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════
+// SECTION `W19` — `D-77`: THE FAILURE FORM'S FOURTH MEMBER, *WHICH ACT WAS REFUSED*
+//
+// **THE RULING** (`strata/decisions.md` · `D-77`, 2026-10-29, the architect, verbatim): *"New member"* — and
+// **the measurement it answers**: **a caller's OWN act refused and a caller's act that PASSED while a
+// LISTENER's act was refused cross with the same `status`, the same `message`, the same keys and the same two
+// log entries**, only the `opId` differing — **and a refused act answers no `op` for the caller to key
+// against** — so a consumer read `ConstraintPassRefused` and concluded its own write did not happen while the
+// store says it did. **THE FOURTH MEMBER IS THE ADDRESS THE REFUSAL IS ABOUT**: `equal` to the address the
+// caller wrote means the caller's own act, `different` means a listener's, and a retry is then a DECISION.
+//
+// **WHAT THIS SECTION DRIVES, IN THE ORDER THE RULING ASKS FOR IT.**
+//   (W19.1) **★ THE TWO ARMS, PRINTED TOGETHER — THE ROW.** The SAME constraint, the SAME value it refuses,
+//           twice: once as the caller's own write (refused) and once as a listener's write inside a caller's
+//           write that PASSED. The two refusals are the same status, the same message shape, the same keys
+//           and the same two entries; **the fourth member is the ONLY datum that tells them apart**, and the
+//           caller's decision follows from it — **RETRY** on the own arm (the write did not happen) and
+//           **DO NOT RETRY** on the listener arm (the caller's write stands).
+//   (W19.2) **THE MEMBER IS PRESENT ON EVERY ARM, `null` WHERE NOTHING IS NAMEABLE** — the sweep, printed as a
+//           table, over every refusal arm this suite can reach: the two `ConstraintPassRefused` arms, the
+//           body-throw arm, `AddressMalformed`, `AddressNotFound`, `FilePathUnreachable`,
+//           `ConstraintListInvalid`, `ConstraintRefusedAtRegistration`, a save failure's
+//           `FileCommitFailed` and the `KC`-bearing ones. **A member absent on some arm is the `DEF-AH`
+//           defect wearing a new name.**
+//   (W19.3) **THE CENSUS**: `Object.keys(caught)` reads `["status","message","log","address"]`, length `4`, on
+//           every arm reached above — the form moved `3 → 4` and the closed status set did NOT move.
+//
+// **`D-21`.** Every cell prints the readings it took; a cell that cannot reach its arm says so and exits
+// non-zero rather than reporting a verdict. **`D-17`.** The expectations are literals here and the citations
+// are comments — no `docs/**` path is opened at runtime.
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+{
+  console.log('');
+  console.log('═══════════════════════════════════════════════════════════════════════════════════════════════');
+  console.log('W19 · `D-77` — THE FOURTH MEMBER: WHICH ACT WAS REFUSED');
+  console.log('═══════════════════════════════════════════════════════════════════════════════════════════════');
+
+  /** The whole form of a caught value, printed the way a consumer reads it. */
+  const formOf = (caught) => ({
+    keys: caught === null || typeof caught !== 'object' ? null : Object.keys(caught),
+    status: caught === null || typeof caught !== 'object' ? null : caught.status,
+    message: caught === null || typeof caught !== 'object' ? null : caught.message,
+    entries: caught !== null && typeof caught === 'object' && Array.isArray(caught.log)
+      ? caught.log.map((entry) => `${entry.kind}${entry.state === null ? '' : `/${entry.state}`}`)
+      : null,
+    address: caught !== null && typeof caught === 'object' && Object.hasOwn(caught, 'address')
+      ? caught.address
+      : '<THE MEMBER IS ABSENT>',
+  });
+  const ownFourKeys = (caught) => keysOf(caught).join(',') === 'address,log,message,status';
+
+  // ── W19.1 · ★ THE TWO ARMS, THE SAME STATUS AND THE SAME ENTRIES, TWO DIFFERENT ACTS ────────────────
+  {
+    // ARM (a) — THE CALLER'S OWN ACT IS REFUSED. A pair at `['own']` admits `1` alone; the caller writes `2`
+    // at it. NOTHING ELSE STANDS BETWEEN THE CALL AND THE REFUSAL: no listener, no second commit.
+    const own = make();
+    own.write(['own'], 'mem', 1);
+    own.addConstraint({ address: ['own'], id: 'admits-one' }, (ctx) => ctx.value === 1);
+    const callerAddress = ['own'];
+    const ownArm = attempt(() => own.write(callerAddress, 'mem', 2));
+
+    // ARM (b) — THE CALLER'S ACT PASSES WHILE A LISTENER'S ACT IS REFUSED. The caller writes `2` at `['outer']`,
+    // where NO pair stands, so its own write passes and lands. A listener bound there performs its OWN write at
+    // `['inner']`, where a pair of the SAME id and the SAME body refuses it. **THE LISTENER'S REFUSAL CROSSES TO
+    // THE CALLER** (`D-73`: the throw is the channel) and the caller's own write stands.
+    const nested = make();
+    nested.write(['outer'], 'mem', 1);
+    nested.write(['inner'], 'mem', 1);
+    nested.listen('watch-outer', [['outer']]);
+    nested.register('watch-outer', () => { nested.write(['inner'], 'mem', 2); });
+    nested.addConstraint({ address: ['inner'], id: 'admits-one' }, (ctx) => ctx.value === 1);
+    const outerAddress = ['outer'];
+    const listenerArm = attempt(() => nested.write(outerAddress, 'mem', 2));
+    // THE STORE'S OWN ANSWER FOR THE CALLER'S ACT, READ BACK AFTER THE CATCH — the fact the fourth member is
+    // what lets a consumer BELIEVE.
+    const outerStands = attempt(() => nested.read(outerAddress, 'mem'));
+
+    const ownForm = ownArm.ok ? null : formOf(ownArm.caught);
+    const listenerForm = listenerArm.ok ? null : formOf(listenerArm.caught);
+    P('W19.1 · arm (a) · the caller\'s own act REFUSED — the whole form', ownForm);
+    P('W19.1 · arm (b) · the caller\'s act PASSED, a LISTENER\'s refused — the whole form', listenerForm);
+    P('W19.1 · the caller wrote', { own: callerAddress, listener: outerAddress });
+    P('W19.1 · the same keys, the same status, the same entry kinds on both arms', {
+      sameKeys: JSON.stringify(ownForm && ownForm.keys) === JSON.stringify(listenerForm && listenerForm.keys),
+      sameStatus: ownForm && listenerForm && ownForm.status === listenerForm.status,
+      sameEntryKinds: JSON.stringify(ownForm && ownForm.entries) === JSON.stringify(listenerForm && listenerForm.entries),
+    });
+    P('W19.1 · ★ THE FOURTH MEMBER — the ONLY datum that differs', {
+      own: ownForm && ownForm.address,
+      listener: listenerForm && listenerForm.address,
+    });
+    // THE CALLER'S DECISION, TAKEN FROM THE MEMBER AND NOTHING ELSE (`D-77`: *"a retry is then a decision
+    // rather than a guess"*).
+    const decide = (caught, wrote) => (keyOfAddr(caught.address) === keyOfAddr(wrote)
+      ? { act: 'your own', retry: true, why: 'the write at this address did not happen — the store is at its pre-write state' }
+      : { act: 'a listener\'s', retry: false, why: 'your own write at this address STANDS; retrying it would apply it twice' });
+    const ownDecision = ownArm.ok ? null : decide(ownArm.caught, callerAddress);
+    const listenerDecision = listenerArm.ok ? null : decide(listenerArm.caught, outerAddress);
+    P('W19.1 · the decision the caller makes from the member — arm (a)', ownDecision);
+    P('W19.1 · the decision the caller makes from the member — arm (b)', listenerDecision);
+    P('W19.1 · the caller\'s own write at the triggering address, read back', outerStands);
+
+    A('DW-19.1', '`D-77` (★ *"\\`equal\\` means the caller\'s own act, \\`different\\` means a listener\'s, and a retry is then a decision rather than a guess"*)',
+      'THE ROW: the caller\'s OWN act refused carries the CALLER\'s address in the fourth member and the caller decides RETRY; a caller\'s act that PASSED while a listener\'s was refused carries the LISTENER\'s address and the caller decides NOT TO RETRY — with the same status, the same keys and the same entry kinds on both arms, which is why the member is the only thing that can decide it',
+      ownArm.ok === false && listenerArm.ok === false
+        && keyOfAddr(ownForm.address) === keyOfAddr(callerAddress)
+        && keyOfAddr(listenerForm.address) === keyOfAddr(['inner'])
+        && keyOfAddr(listenerForm.address) !== keyOfAddr(outerAddress)
+        && ownForm.status === PASS_REFUSED && listenerForm.status === PASS_REFUSED
+        && JSON.stringify(ownForm.keys) === JSON.stringify(listenerForm.keys)
+        && JSON.stringify(ownForm.entries) === JSON.stringify(listenerForm.entries)
+        && ownDecision.retry === true && listenerDecision.retry === false
+        && outerStands.ok === true && outerStands.value === 2,
+      JSON.stringify({ ownForm, listenerForm, ownDecision, listenerDecision, outerStands }));
+  }
+
+  // ── W19.2 · THE MEMBER IS PRESENT ON EVERY ARM, `null` WHERE NOTHING IS NAMEABLE ─────────────────────
+  {
+    // EVERY ARM IS DRIVEN HERE AND ITS FORM READ; the table below is the whole of the sweep.
+    const arms = [];
+    const note = (label, caught, expectNull) => arms.push({ label, caught, expectNull });
+
+    // (1) the caller's own act refused — a pair refuses the write.
+    {
+      const s = make();
+      s.write(['a'], 'mem', 1);
+      s.addConstraint({ address: ['a'], id: 'p' }, (ctx) => ctx.value === 1);
+      note('ConstraintPassRefused (the caller\'s own act)', (attempt(() => s.write(['a'], 'mem', 2)).caught), false);
+    }
+    // (2) a listener's act refused inside a caller's passing write.
+    {
+      const s = make();
+      s.write(['a'], 'mem', 1); s.write(['b'], 'mem', 1);
+      s.listen('l', [['a']]);
+      s.register('l', () => { s.write(['b'], 'mem', 2); });
+      s.addConstraint({ address: ['b'], id: 'p' }, (ctx) => ctx.value === 1);
+      note('ConstraintPassRefused (a listener\'s act)', (attempt(() => s.write(['a'], 'mem', 2)).caught), false);
+    }
+    // (3) a constraint BODY threw at a LANDING — the pair passes its registration and throws on the write.
+    {
+      const s = make();
+      s.write(['a'], 'mem', 1);
+      attempt(() => s.addConstraint({ address: ['a'], id: 'thrower' }, (ctx) => {
+        if (ctx.value === 2) throw new Error('the body threw at the landing');
+        return true;
+      }));
+      note('ConstraintBodyThrew (at the landing)', (attempt(() => s.write(['a'], 'mem', 2)).caught), false);
+    }
+    // (3-b) the same status at the REGISTRATION instant — the body throws there, so the refusal IS the
+    // registration's own evaluation and the address is the pair's.
+    {
+      const s = make();
+      s.write(['a'], 'mem', 1);
+      const refused = attempt(() => s.addConstraint({ address: ['a'], id: 'thrower' }, () => {
+        throw new Error('the body threw at the registration instant');
+      }));
+      note('ConstraintBodyThrew (at the registration instant)', refused.ok ? undefined : refused.caught, false);
+    }
+    // (4) a STORE VERB's own refusal at an address the caller named — the tier is outside the store's
+    // three tokens, so the store answers its own `OutOfDomainTier` and the member names the act's address.
+    {
+      const s = make();
+      s.write(['a'], 'mem', 1);
+      note('OutOfDomainTier (a store verb, at the address the caller named)',
+        (attempt(() => s.read(['a'], 'nonsense')).caught), false);
+    }
+    // (5) `AddressMalformed` — an address OUTSIDE the domain, refused by the boundary's own walk.
+    {
+      const s = make();
+      note('AddressMalformed (the address position is not an array)',
+        (attempt(() => s.read('not-an-address', 'mem')).caught), true);
+    }
+    // (6) `AddressNotFound`.
+    {
+      const s = make();
+      s.write(['a'], 'mem', 1);
+      note('AddressNotFound', (attempt(() => s.read(['absent'], 'mem')).caught), false);
+    }
+    // (7) `FilePathUnreachable` — a construction whose parent directory cannot be written.
+    {
+      const refused = attempt(() => storeCreate({
+        filePath: '/proc/provident-storeroom-cannot-write/store.json', journalLength: 8, listeners: [],
+      }));
+      note('FilePathUnreachable (the store\'s own path arm)', refused.caught, true);
+    }
+    // (8) `ConstraintListInvalid` — a batch element that is not a `{address, id, constraint}` pair.
+    {
+      const refused = attempt(() => storeCreate({
+        journalLength: 8, listeners: [], constraints: [{ address: ['a'], id: 'x', constraint: 42 }],
+      }));
+      note('ConstraintListInvalid', refused.caught, true);
+    }
+    // (9) `ConstraintRefusedAtRegistration` — a well-formed pair whose own body refuses its state.
+    {
+      const s = make();
+      s.write(['a'], 'mem', 1);
+      note('ConstraintRefusedAtRegistration',
+        (attempt(() => s.addConstraint({ address: ['a'], id: 'no' }, () => false)).caught), false);
+    }
+    // (10) `FileCommitFailed` — a `file`-tier save whose path was removed beneath it.
+    {
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'psr-dw19-'));
+      const file = path.join(dir, 'store.json');
+      const s = storeCreate({ filePath: file, journalLength: 64, listeners: [] });
+      s.write(['a'], 'file', 1);
+      fs.rmSync(dir, { recursive: true, force: true });
+      note('FileCommitFailed (a failed `file`-tier save)', (attempt(() => s.write(['a'], 'file', 2)).caught), false);
+    }
+    // (11) a `KC`-BEARING one — a nested write at the address the enclosing pass holds (`KC-7`), which crosses
+    //      the surface as the rank-`20` member with the kernel's token in the entry and NOT in the status.
+    {
+      const s = make();
+      s.write(['a'], 'mem', 1);
+      let nestedCaught = null;
+      s.addConstraint({ address: ['a'], id: 'reenter' }, () => {
+        const inner = attempt(() => s.write(['a'], 'mem', 9));
+        if (inner.ok === false) nestedCaught = inner.caught;
+        return true;
+      });
+      attempt(() => s.write(['a'], 'mem', 2));
+      note('the `KC`-bearing arm (`KC-7`, held address)', nestedCaught, false);
+    }
+    // (12) a `register` refusal — the act names a HANDLE and no address at all.
+    {
+      const s = make();
+      note('AddressMalformed (a `register` refusal: a handle, no address)', (attempt(() => s.register(42, () => {})).caught), true);
+    }
+
+    const table = arms.map((one) => ({
+      arm: one.label,
+      present: one.caught !== null && typeof one.caught === 'object' && Object.hasOwn(one.caught, 'address'),
+      address: one.caught !== null && typeof one.caught === 'object' && Object.hasOwn(one.caught, 'address')
+        ? one.caught.address
+        : '<ABSENT>',
+      status: one.caught !== null && typeof one.caught === 'object' ? one.caught.status : null,
+      expectNull: one.expectNull,
+      fourKeys: ownFourKeys(one.caught),
+    }));
+    console.log('        W19.2 · THE EVERY-ARM SWEEP — the member PRESENT on every arm, `null` where nothing is nameable:');
+    for (const row of table) {
+      console.log(`          ${row.present ? 'present' : 'ABSENT '} · address=${JSON.stringify(row.address)} · `
+        + `status=${row.status} · keys=${row.fourKeys ? '4' : 'NOT FOUR'} · ${row.arm}`);
+    }
+    P('W19.2 · arms driven', arms.length);
+    P('W19.2 · arms whose fourth member is `null` (nothing nameable)', table.filter((row) => row.address === null).length);
+    P('W19.2 · arms whose fourth member names an act', table.filter((row) => Array.isArray(row.address)).length);
+
+    A('DW-19.2', '`D-77` (*"a member absent on some arm is the `DEF-AH` defect wearing a new name"*; *"Present on every refusal, `null` where there is nothing to name, and asserted everywhere"*)',
+      'THE SWEEP: every refusal arm this suite reaches carries the fourth member as an OWN enumerable member — the two `ConstraintPassRefused` arms, `ConstraintBodyThrew` at a landing and at a registration, the store verb\'s `OutOfDomainTier`, `AddressMalformed` at an outside address and at a `register` call, `AddressNotFound`, `FilePathUnreachable`, `ConstraintListInvalid`, `ConstraintRefusedAtRegistration`, a failed save\'s `FileCommitFailed` and the `KC`-bearing arm — each naming its act where it has one and `null` where nothing is nameable, and NONE of them absent',
+      arms.length === 13
+        && table.every((row) => row.present === true)
+        && table.every((row) => (row.expectNull ? row.address === null : Array.isArray(row.address)))
+        && table.every((row) => row.fourKeys === true),
+      JSON.stringify({ driven: arms.length, table }));
+  }
+
+  // ── W19.3 · THE CENSUS — FOUR MEMBERS ON EVERY ARM, AND THE STATUS SET IS UNMOVED ───────────────────
+  {
+    const s = make();
+    s.write(['a'], 'mem', 1);
+    s.addConstraint({ address: ['a'], id: 'p' }, (ctx) => ctx.value === 1);
+    const caught = attempt(() => s.write(['a'], 'mem', 2)).caught;
+    const keys = keysOf(caught);
+    const ownNames = ownNamesOf(caught);
+    P('W19.3 · `Object.keys(caught)`', keys);
+    P('W19.3 · `Object.getOwnPropertyNames(caught)`', ownNames);
+    P('W19.3 · the address member\'s own descriptor', Object.getOwnPropertyDescriptor(caught, 'address'));
+    // **THE MEMBER IS NOT A FIFTH STATUS**: the closed set is `src/error.rs`'s twenty and the member carries an
+    // ADDRESS — `D-77`'s own prohibition, measured rather than asserted by citation.
+    P('W19.3 · the arm\'s status is a member of the closed twenty (an address is NOT a status)', {
+      status: caught.status,
+      isStatusMember: caught.status === PASS_REFUSED,
+      addressIsStatus: typeof caught.address === 'string' && /^[A-Z][A-Za-z]+$/.test(String(caught.address)),
+    });
+
+    A('DW-19.3', '`D-77` (*"the form is declared as EXACTLY THREE MEMBERS and asserted that way … It becomes FOUR"*) read with `surface.md §2.5` item 9 and `D-38` (*"the closed set is twenty and stays twenty"*)',
+      'THE CENSUS: `Object.keys(caught)` reads exactly `["status","message","log","address"]` — FOUR members, in the object literal\'s own source order — and the fourth is an ordinary own enumerable writable configurable data member; the arm\'s `status` is still the closed set\'s rank-20 member and the member is NOT a status',
+      keys.join(',') === 'address,log,message,status'
+        && keys.length === 4
+        && caught.status === PASS_REFUSED
+        && Object.hasOwn(caught, 'address')
+        && Object.getOwnPropertyDescriptor(caught, 'address').enumerable === true
+        && Object.getOwnPropertyDescriptor(caught, 'address').writable === true
+        && typeof caught.address === 'object',
+      JSON.stringify({ keys, ownNames, status: caught.status, address: caught.address }));
+  }
+
+  console.log('');
+  console.log('        THE SENTENCE TO CARRY AWAY (`D-77`): THE STATUS TELLS YOU A CONSTRAINT REFUSED SOMETHING.');
+  console.log('        THE ADDRESS TELLS YOU WHETHER IT WAS YOURS — compare it with what you wrote: equal means');
+  console.log('        YOUR act did not happen and a retry is yours to make; different means a LISTENER\'s act was');
+  console.log('        refused and your own write STANDS, so a retry would apply it twice.');
+}
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════
 // THE RUN'S OWN REPORT — `D-21`: a cell that did not run may not exit 0
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════

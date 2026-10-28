@@ -109,22 +109,26 @@ position**. A refused position stops the write: no store call is reached and no 
 
 ## The failure form is ONE
 
-**Every refusal is THROWN as a plain object carrying exactly `{status, message, log}`** — never an `Error`
+**Every refusal is THROWN as a plain object carrying exactly `{status, message, log, address}`** — never an `Error`
 subclass, never a returned tagged union and never a `Promise` rejection, so `try`/`catch` is the whole error
 model (`index.d.ts`, `StoreRefusal`; `surface.md §2.5`).
+
+**⟶ AND THE CROSSED FORM IS FOUR MEMBERS FROM 2026-10-29 — `D-77`, THE ARCHITECT'S RULING, ONE WORD: *"New member"*.** Every figure above and below that prints that form as THREE is read THROUGH this clause and stands as the reading of its own date. **THE FOURTH MEMBER IS *WHICH ACT WAS REFUSED* — `address`, the ADDRESS the refusal is about**: a segment array in the caller's own domain, or the declared `null` where there is nothing to name. The measurement it answers: **a caller's OWN act refused and a caller's act that PASSED while a LISTENER's was refused cross with the same `status`, the same `message`, the same keys and the same two log entries** — only the `opId` differs, and a refused act answers no `op` to key against — so the caller read `ConstraintPassRefused` and concluded its own write did not happen while the store says it did. **Compare the member with the address you wrote: `equal` means your own act, `different` means a listener's, and a retry is then a decision rather than a guess.** **IT IS PRESENT ON EVERY REFUSAL, `null` WHERE NOTHING IS NAMEABLE** (*"a member absent on some arm is the `DEF-AH` defect wearing a new name"*), so `Object.keys(caught)` reads exactly `["status","message","log","address"]`, length `4`, on EVERY arm. **THE CLOSED STATUS SET IS NOT REACHED — twenty stays twenty — and the member is no heuristic a consumer has to reproduce.** The form's one home is `docs/specs/storeroom-js/surface.md §2.5` item `4-ter`.
 
 ```js
 try {
   store.write(['users', 0, 'name'], 'mem', 'ada');
 } catch (e) {
-  const { status, message, log } = e;   // Object.keys(e) is ["status","message","log"] on EVERY arm
+  // The FOUR members, in the form's own order (`D-77`: `address` is the act the refusal is about).
+  const { status, message, log, address } = e;   // Object.keys(e) is ["status","message","log","address"] on EVERY arm
+  // equal to the address you wrote ⇒ YOUR OWN act was refused; different ⇒ a LISTENER's was and your write stands.
 }
 ```
 
 **★ AND `log` IS NEVER ABSENT.** It is an ordinary own enumerable data member of that same object — written
 with an object literal, not `defineProperty`, not a getter, not on a prototype and not behind a `Symbol` — and
-**`Object.keys(caught)` reads exactly its three members in the form's own order, `["status","message","log"]`,
-length `3`, on EVERY arm.** **`[]` is its declared value where the failure's cause has no attempt at all, and
+**`Object.keys(caught)` reads exactly its FOUR members in the form's own order, `["status","message","log","address"]`,
+length `4`, on EVERY arm.** **`[]` is its declared value where the failure's cause has no attempt at all, and
 every failure whose attempt exists carries that attempt's own entries — the kernel's FIVE-member `LogEntry`
 records, with the `outcome` entry's `state` carrying the `KC` token where the constraint pass produced one** **⟶ AND IT IS
 FIVE SINCE `D-65`: `kind` · `id` · `opId` · `message` · `state` — the `seq` member is GONE, because a log entry's position

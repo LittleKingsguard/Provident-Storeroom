@@ -76,7 +76,7 @@ function thrown(fn) { try { return { threw: false, value: fn() }; } catch (e) { 
 // IS SUPERSEDED AND THE HELPER NOW ASSERTS THE DECLARED THREE-MEMBER FORM AT ITS OWN BYTES.
 // `docs/specs/storeroom-js/surface.md §2.5` ITEM 9: *"`log` stands on the thrown object as an ORDINARY OWN
 // ENUMERABLE DATA MEMBER of the same plain object that carries `status` and `message` … so `Object.keys(caught)`
-// reads exactly `["log","message","status"]` and `Object.keys(caught).length` is `3` on EVERY arm of this
+// reads exactly `["address","log","message","status"]` and `Object.keys(caught).length` is `3` on EVERY arm of this
 // surface"* — and *"`log` is NEVER ABSENT, NEVER `null` and NEVER a non-array"*. ITEM 4: *"`log` IS PRESENT ON
 // EVERY FAILURE THIS SURFACE THROWS, AND `[]` IS ITS DECLARED VALUE WHERE THE FAILURE'S CAUSE HAS NO ATTEMPT AT
 // ALL … The three-member member set is therefore FLAT ACROSS ARMS and not conditional."*
@@ -104,7 +104,7 @@ function isSingleForm(e) {
   if (e === null || typeof e !== 'object' || e instanceof Error) return false;
   if (Object.getPrototypeOf(e) !== Object.prototype) return false;
   const k = Object.getOwnPropertyNames(e).sort().join(',');
-  return k === 'log,message,status' && typeof e.status === 'string' && e.status.length > 0
+  return k === 'address,log,message,status' && typeof e.status === 'string' && e.status.length > 0
     && typeof e.message === 'string' && e.message.length > 0
     && Array.isArray(e.log);
 }
@@ -548,14 +548,14 @@ console.log(JSON.stringify({ pid: process.pid, value: i.read(${JSON.stringify(['
   // ⟶ RE-DERIVED 2026-10-17 (THE FAILURE-FORM OVERRIDE, this driver's last cell). `role_spec_writer` /
   // `role_test_writer`: the text *"exactly {message, status}"* PINNED THE SUPERSEDED TWO-MEMBER FORM. Re-derived to
   // the declared three-member form AT ITS OWN CELL, at `docs/specs/storeroom-js/surface.md §2.5` ITEM 9 (the own
-  // member set is EXACTLY `["log","message","status"]`, length `3`, `log` an ORDINARY OWN ENUMERABLE DATA MEMBER,
+  // member set is EXACTLY `["address","log","message","status"]`, length `3`, `log` an ORDINARY OWN ENUMERABLE DATA MEMBER,
   // never absent, never `null`, never a non-array) and ITEM 4 (`log` PRESENT on every failure, `[]` where the cause
   // has NO attempt — the arm all three of these refusals sit on). The two limbs item 5 (e) owns are UNMOVED and are
   // still asserted: no raw host `Error`, and the one form. `isAttemptLessForm` adds item 4's emptiness for this
   // arm; the plain-`Object.prototype` prototype, non-empty-`string` status and non-empty-`string` message limbs
   // all stand inside `isSingleForm` unchanged. THE ID IS KEPT (`LIVE-7.5`), as the override requires.
-  A(`${sc}.5`, 'surface.md §2.5 item 5 (e); §2.5 items 4 and 9 (the three-member set `["log","message","status"]`, FLAT ACROSS ARMS, `log` an ARRAY and `[]` on this no-attempt arm); A76',
-    'not one refusal is a raw host Error, and every one is the ONE form: a plain object whose own member set is exactly {log, message, status} — length 3, `log` an ARRAY and `[]` here — with status and message both non-empty strings',
+  A(`${sc}.5`, 'surface.md §2.5 item 5 (e); §2.5 items 4 and 9 (the three-member set `["address","log","message","status"]`, FLAT ACROSS ARMS, `log` an ARRAY and `[]` on this no-attempt arm); A76',
+    'not one refusal is a raw host Error, and every one is the ONE form: a plain object whose own member set is exactly {address, log, message, status} — length 3, `log` an ARRAY and `[]` here — with status and message both non-empty strings',
     all.every((x) => x.threw && isAttemptLessForm(x.err)),
     all.map((x) => (x.threw ? `${statusOf(x)}[${Object.keys(x.err).sort().join(',')}|log=${Array.isArray(x.err.log) ? `len ${x.err.log.length}` : typeof x.err.log}]` : 'no throw')).join(','));
   end(sc, `three refusals, each thrown in the single form; verbatim messages — ValueNotAdmitted: "${b.threw ? b.err.message : ''}" · ValueNotAdmitted(class): "${c.threw ? c.err.message : ''}" · AddressNotFound: "${n.threw ? n.err.message : ''}"`);

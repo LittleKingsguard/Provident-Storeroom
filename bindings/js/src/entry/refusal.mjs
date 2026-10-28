@@ -1,12 +1,12 @@
 // `D-2` (`docs/L1/entry-subdivision.md` §1 part `2`) — bytes moved from `bindings/js/index.mjs`; no logic changed.
 /// `surface.md §2.5`: **THE SINGLE FAILURE FORM** — a THROWN plain object carrying EXACTLY
-/// `{status, message, log}`. **The status and the message are the store's own and are carried
+/// `{status, message, log, address}`. **The status and the message are the store's own and are carried
 /// VERBATIM** (`docs/specs/storeroom-js/surface.md §2.5` items 1–2, `DD-40`): this function constructs the form out of the refusal the addon
 /// threw and mints no code of its own and authors no message of its own.
 ///
-/// **⟶ AND THE FORM CROSSES AT THREE MEMBERS FROM 2026-10-16 — `surface.md §2.5` ITEM 4, THE ARCHITECT'S
+/// **⟶ AND THE FORM CROSSED AT THREE MEMBERS FROM 2026-10-16 — `surface.md §2.5` ITEM 4, THE ARCHITECT'S
 /// RULING OF THAT DATE: *"`log` IS PRESENT ON EVERY FAILURE THIS SURFACE THROWS, AND `[]` IS ITS DECLARED
-/// VALUE WHERE THE FAILURE'S CAUSE HAS NO ATTEMPT AT ALL."*** **The three-member member set is FLAT ACROSS
+/// VALUE WHERE THE FAILURE'S CAUSE HAS NO ATTEMPT AT ALL."*** **The member set is FLAT ACROSS
 /// ARMS and not conditional:** a `read`/`readLiteral`/`delete`/`rollback` store refusal with no attempt
 /// live, the construction's own `cfg`-side refusals, `a.register`'s refusal and the constraint methods'
 /// `TypeError` all carry `log: []` — **the EMPTY ARRAY, never an absent member, never `null`, and never a
@@ -14,13 +14,36 @@
 /// (`§2.5` items 3–4 and 10 (i)–(iii); `docs/specs/storeroom-js/surface.md §2.12` item 1's mark of the same date). **AND WHERE A STORE ACT
 /// PRODUCED IT, THE STORE'S `status` AND `message` ARE PRESERVED BYTE-FOR-BYTE AND `log` IS ATTACHED BESIDE
 /// THEM — nothing is converted, a member is added** (`§2.5` item 10 (ii); `fail-surface.md §1.2`'s
-/// *"the kernel NEVER CONVERTS ONE CHANNEL'S FAILURE INTO THE OTHER'S FORM"* stands whole).
+/// *"the kernel NEVER CONVERTS ONE CHANNEL'S FAILURE INTO THE OTHER'S FORM"* stands whole). **THE ARITY IS
+/// FOUR FROM 2026-10-29 AND THE FLATNESS READING IS ANNOTATED BESIDE, NOT WITHDRAWN** (`D-77`: `address` is
+/// present on every arm, `null` where nothing is nameable).
 ///
 /// **THE `log` MEMBER IS AN ORDINARY OWN ENUMERABLE DATA MEMBER** — written with the object literal below,
 /// **not `Object.defineProperty`, not a getter, not on a prototype and not behind a `Symbol`** — so
-/// `Object.keys(caught)` reads exactly `["log","message","status"]` and its length is `3` on every arm
-/// (`docs/specs/storeroom-js/surface.md §2.5` item 9). **IT IS NOT `defineProperty`'D BECAUSE A MEMBER THAT IS NOT ENUMERABLE IS NOT A MEMBER
+/// `Object.keys(caught)` reads exactly `["status","message","log","address"]` and its length is `4` on every
+/// arm (`docs/specs/storeroom-js/surface.md §2.5` item 9). **IT IS NOT `defineProperty`'D BECAUSE A MEMBER THAT IS NOT ENUMERABLE IS NOT A MEMBER
 /// A CANONICAL CENSUS CAN SEE**, and it is not a getter because a client reads a list and not a call.
+///
+/// **⟶ AND THE FORM CROSSES AT FOUR MEMBERS FROM 2026-10-29 — `D-77`, THE ARCHITECT'S RULING, ONE WORD:
+/// *"New member"*.** **THE MEASUREMENT IT ANSWERS**: **a caller's own act refused and a caller's act that
+/// PASSED while a LISTENER threw cross with the same `status`, the same `message`, the same keys and the same
+/// two log entries** — only the `opId` differs, **and a refused act answers no `op` for the caller to key
+/// against** — so the caller read `ConstraintPassRefused` and concluded its own write did not happen while the
+/// store says it did. **THE FOURTH MEMBER IS *WHICH ACT WAS REFUSED*, AND IT IS THE ADDRESS THE REFUSAL IS
+/// ABOUT**: the caller wrote an address and knows it, **so `equal` means the caller's own act and `different`
+/// means a listener's, and a retry is a decision rather than a guess**. **IT IS PRESENT ON EVERY REFUSAL,
+/// `null` WHERE THERE IS NOTHING TO NAME** — *"a member absent on some arm is the `DEF-AH` defect wearing a new
+/// name"* (`strata/decisions.md` · `D-77`). **THE CLOSED STATUS SET IS NOT REACHED: twenty stays twenty**, and
+/// the member is no heuristic a caller has to reproduce.
+///
+/// **THE NAME IS THE DECLARATION'S OWN CONVENTION AND NOT A NEW ONE (`bindings/js/index.d.ts`).** Its three
+/// siblings are ONE BARE NOUN EACH NAMING EXACTLY THE THING CARRIED — `status` (the store's code), `message`
+/// (the store's sentence), `log` (the attempt's entries) — **and the package spells this datum `address` at
+/// every signature it appears in**: `read(address, tier?)`, `write(address, tier, value, commit?)`,
+/// `delete(address, tier)`, `listen(handle, addresses)`, `AttemptContext.address`, `JournalOp.address`,
+/// `pair.address`. **`refusedAddress` WOULD BE A SECOND WORD FOR A DATUM THE WHOLE DECLARATION ALREADY CALLS
+/// `address`**, and `act` would name no address at all.
+///
 ///
 /// **⟶ AND ITS TWO STORE MEMBERS ARE READ OFF THE STORE'S OWN REFUSAL AND OFF NOTHING ELSE — CORRECTED
 /// 2026-10-17 (`A64`'s one form read with `surface.md §2.5` item 5 (e)).** **THE CONSTRUCTION BELOW ONCE
@@ -69,10 +92,11 @@
 /// prototype at all, so a key reached only through a chain is ABSENT here and the provenance test above
 /// answers exactly as it does for a value that carries no such member: **the value is thrown AS ITSELF and
 /// neither a status nor a message is minted for it.** **NOTHING ELSE MOVES:** a genuine store refusal still
-/// crosses byte-for-byte (its own bytes are the core's own bytes), the third member is still attached
+/// crosses byte-for-byte (its own bytes are the core's own bytes), the `log` member is still attached
 /// beside them, and the shape of the thrown form — a fresh plain object literal with exactly
-/// `{status, message, log}` — is unmoved (`D-35`; `surface.md §2.5` items 1–2; the `F8-2` class).
-export function fail(refusal, log) {
+/// `{status, message, log, address}` (`D-77`'s fourth member, added beside the other three) — is the
+/// declaration's own (`D-35`; `surface.md §2.5` items 1–2; the `F8-2` class).
+export function fail(refusal, log, address) {
   if (refusal === null || typeof refusal !== 'object') {
     throw refusal;
   }
@@ -87,8 +111,39 @@ export function fail(refusal, log) {
   // bytes and can no longer be answered by a prototype. **THE THROW'S OWN BYTES ARE UNMOVED** (`NG-PUB-F`'s
   // control is cut on that line, and a control is re-cut by its owner rather than by this pass): its two
   // member reads are the projection's own members, so nothing it evaluates reaches a chain.
+  //
+  // **AND THE THIRD POSITION IS THE FOURTH MEMBER — THE ADDRESS THE REFUSAL IS ABOUT (`D-77`).** **A SITE THAT
+  // KNOWS THE ACT'S ADDRESS HANDS IT; A SITE WHOSE REFUSAL IS ABOUT NO ACT HANDS NOTHING, AND `null` IS ITS
+  // DECLARED VALUE** (`refusalAddress` below) — the member is PRESENT on every arm either way.
   refusal = { status, message };
-  throw { status: refusal.status, message: refusal.message, log: refusalLog(log) };
+  throw {
+    status: refusal.status,
+    message: refusal.message,
+    log: refusalLog(log),
+    address: refusalAddress(address),
+  };
+}
+
+/// **THE ONE PLACE A REFUSAL'S FOURTH MEMBER IS DECIDED** — `D-77`'s *which act was refused*, taken once so no
+/// arm can spell it differently.
+///
+/// **ITS DOMAIN IS THE CALLER'S OWN ADDRESS DOMAIN AND NOTHING ELSE** (`bindings/js/index.d.ts`'s `Address`,
+/// the segment array the caller writes): **the caller compares what it wrote with what it caught, so the
+/// answer is spelled the way the question was** — `equal` means its own act, `different` means a listener's.
+/// **A FRESH DENSE LIST, BUILT BY INDEX** (`appendOwn`, the file's own idiom): the refusal's own array is never
+/// an alias of the caller's argument and no `Array.prototype` member is taken on a refusal path
+/// (`contract.md §2.1`'s clause of 2026-10-24 on `F7-1`).
+///
+/// **EVERY OTHER VALUE IS THE DECLARED `null`, WHICH IS *"THERE IS NOTHING TO NAME"* AND NOT AN ABSENT
+/// MEMBER** — absent for a refusal whose subject is a config, a list, a handle, an attempt identity or an
+/// addon path, none of which is an act at an address. **A NON-ARRAY IS `null` RATHER THAN A FINDING**: the
+/// encoder's own carriers (`{k:'L', s:[…]}`) are not addresses, and this helper's callers hand it either the
+/// segment list or nothing.
+export function refusalAddress(address) {
+  if (Array.isArray(address) === false) return null;
+  const segments = [];
+  for (let i = 0; i < address.length; i += 1) appendOwn(segments, address[i]);
+  return segments;
 }
 
 /// **ONE MEMBER OF A HANDED VALUE, READ AS AN OWN DATA PROPERTY OR NOT AT ALL** — `[[GetOwnProperty]]`'s

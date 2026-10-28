@@ -177,7 +177,7 @@ test('D-35 §1 (parameter access) · surface.md §2.5 items 1–2, 9 · the one 
           `${where}: \`status\` is an OWN member of the thrown form — the native half defines it and does not `
           + '`[[Set]]` it, which is the hole `facade.rs:170` was measured at (`hasOwnStatus=false`)');
         assert.equal(hostile.ownMessage, true, `${where}: \`message\` is an OWN member of the thrown form`);
-        assert.deepEqual(hostile.keys, ['log', 'message', 'status'],
+        assert.deepEqual(hostile.keys, ['address', 'log', 'message', 'status'],
           `${where}: the form carries exactly the three declared members; got ${JSON.stringify(hostile.keys)}`);
         assert.deepEqual(hostile.log, [], `${where}: \`log\` is the declared empty array`);
       }
@@ -234,7 +234,7 @@ test('D-35 §1 (parameter access) · surface.md §2.5 items 1–2, 9 · the one 
       }
       assert.equal(ownThrown !== null && typeof ownThrown === 'object', true,
         'the store\'s own two-member form is thrown as a form');
-      assert.deepEqual(Object.keys(ownThrown).sort(), ['log', 'message', 'status'],
+      assert.deepEqual(Object.keys(ownThrown).sort(), ['address', 'log', 'message', 'status'],
         'the form carries exactly the three declared members');
       assert.equal(ownThrown.status, 'AddressNotFound', 'the store\'s own status crosses VERBATIM');
       assert.equal(ownThrown.message, 'a message the package generated',

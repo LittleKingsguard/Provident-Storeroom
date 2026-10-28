@@ -503,7 +503,7 @@ test('D-41 · a constraint body that THROWS at the judgement of a reversal fails
       + `${JSON.stringify(rollback.value)}`);
 
   // ── THE REFUSAL'S FORM AND CODE. ────────────────────────────────────────────────────────────
-  assert.deepEqual(Object.keys(rollback.caught).sort(), ['log', 'message', 'status'],
+  assert.deepEqual(Object.keys(rollback.caught).sort(), ['address', 'log', 'message', 'status'],
     `the refusal crosses as the ONE plain form \`{status, message, log}\` (\`surface.md §2.5\` items 3–4): THE `
       + `DRIVE CAUGHT ${JSON.stringify(Object.keys(rollback.caught))}`);
   assert.equal(rollback.caught.status, 'ConstraintBodyThrew',

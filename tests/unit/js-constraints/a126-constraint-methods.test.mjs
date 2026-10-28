@@ -547,7 +547,7 @@ test('a126_a_functionless_batch_element_is_REFUSED_at_the_construction_and_no_in
   assert.equal(refusal.status, 'ConstraintListInvalid',
     'and its member is the list\'s own validation code at rank `16` — the package MINTS NO CODE (`D-26` item 5; '
     + '`D-27`; `contract.md §8.1` #16)');
-  assert.deepEqual(Object.keys(refusal).sort(), ['log', 'message', 'status'],
+  assert.deepEqual(Object.keys(refusal).sort(), ['address', 'log', 'message', 'status'],
     'and it is the surface\'s ONE thrown form with `log: []` — no attempt was opened and no instance exists '
     + '(`surface.md §2.5` item 4)');
   assert.ok(!(refusal instanceof TypeError),

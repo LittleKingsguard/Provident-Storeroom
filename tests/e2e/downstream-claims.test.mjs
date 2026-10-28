@@ -66,7 +66,7 @@ import { openCommits } from '../../bindings/js/src/entry/state.mjs';
 // ---------------------------------------------------------------------------------------------
 
 /** `surface.md §2.5` items 3–4: the ONE crossed form's member set, sorted ascending. */
-const REFUSAL_MEMBERS = ['log', 'message', 'status'];
+const REFUSAL_MEMBERS = ['address', 'log', 'message', 'status'];
 
 /** `kernel-surface.md §2.5` item 1 read through `strata/decisions.md` · `D-65` (2026-10-28): the log entry's
  *  FIVE members — `seq` is ABSENT, the array index is the position — and its CLOSED four-kind set. */

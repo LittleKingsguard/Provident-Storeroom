@@ -902,7 +902,7 @@ test('sas_d4_s_refuse_keys_the_arm_carries_the_three_members_and_is_no_error', (
     + '`failure-form.md §1`: "A refusal crossing the boundary is never an `Error`. Not an `Error` subclass, '
     + 'not a value with an `Error` prototype."');
   const keys = Object.keys(thrownValue).sort();
-  assert.deepEqual(keys.filter((member) => member !== 'stack'), ['log', 'message', 'status'],
+  assert.deepEqual(keys.filter((member) => member !== 'stack'), ['address', 'log', 'message', 'status'],
     'and the member set is the declared three — `docs/specs/storeroom-addon-adoption/failure-form.md §1`: '
     + '"a THROWN PLAIN OBJECT carrying exactly three members — `status`, `message`, `log` — and nothing '
     + 'else". **`stack` IS FILTERED OUT DELIBERATELY AND THE FILTER IS THE CLAUSE\'S OWN CAVEAT**: '

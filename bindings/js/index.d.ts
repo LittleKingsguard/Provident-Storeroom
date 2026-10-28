@@ -21,10 +21,19 @@
 // listener registration, the second the registered-pair read; **`settle(record) -> undefined` STOOD HERE
 // AS THE ORDERING SEAM AND IS REMOVED WHOLE** (the clause below carries the mark and the ruling); and (3) the
 // failure surface, a thrown plain object with exactly
-// `{status, message, log}` — **THREE MEMBERS FROM 2026-10-16, `2 → 3`, on the architect's ruling *"Bubble
+// `{status, message, log, address}` — **THREE MEMBERS FROM 2026-10-16, `2 → 3`, on the architect's ruling *"Bubble
 // the message log to the client on failure, override any clauses that forbid this."*** (`surface.md §2.5`'s
 // clause of that date, the crossing form's ONE home; **the ONE figure that moves is the arity, and
 // `storeCreate` remains the namespace's one name and the product its twelve own members**).
+//
+// **⟶ AND THE FORM IS FOUR MEMBERS FROM 2026-10-29 — `D-77`, THE ARCHITECT'S RULING, ONE WORD: *"New member"*.**
+// `RCA-8(g)` ANNOTATE-BESIDE: **the sentence above stands BYTE-FOR-BYTE as the reading of 2026-10-16 and is read
+// THROUGH THIS one; the operative member set is `{status, message, log, address}`, `4` members, and the fourth is
+// WHICH ACT WAS REFUSED** — the address the refusal is about, a segment array in the caller's own domain or the
+// declared `null` where nothing is nameable — **so a caller can tell its own refused act from a listener's whose
+// act was refused with the same `status`, the same `message` and the same entries.** **THE CLOSED STATUS SET IS NOT
+// REACHED (twenty stands) AND NO OTHER FIGURE OF THIS HEADER MOVES.** (`storeCreate`'s one name, the product's
+// fourteen own members, `LogEntry`'s five and the twelve/ten method figures are unmoved.)
 //
 // **⟶ AND THE METHOD LIST ABOVE CARRIES ONE STALE SPELLING AND ONE STALE ARITY, SUPERSEDED HERE, 2026-10-19:**
 // **`listen` IS `listen(handle, addresses)` AND NOT `listen(address)` — arity `2`, position `1` the
@@ -386,20 +395,38 @@ export interface LogEntry {
 
 /**
  * **THE SINGLE FAILURE SURFACE** (`contract.md §1.4`; `distribution.md §5.2` item 3) — **AND ITS MEMBER SET
- * MOVES `2 → 3` FROM 2026-10-16 ON THE ARCHITECT'S RULING *"Bubble the message log to the client on failure,
+ * MOVED `2 → 3` FROM 2026-10-16 ON THE ARCHITECT'S RULING *"Bubble the message log to the client on failure,
  * override any clauses that forbid this."*** (`surface.md §2.5`'s clause of that date, whose items 1–10 are
- * the crossing form's ONE home). A THROWN plain object carrying exactly `{status, message, log}` — never an
- * `Error` subclass, never a returned tagged union and never a `Promise` rejection. **The status is carried
- * VERBATIM from the store's own closed set and the message is the store's own generated string**; this
- * package mints neither.
+ * the crossing form's ONE home). A THROWN plain object carrying exactly `{status, message, log, address}` —
+ * never an `Error` subclass, never a returned tagged union and never a `Promise` rejection. **The status is
+ * carried VERBATIM from the store's own closed set and the message is the store's own generated string**; this
+ * package mints neither. **⟶ AND THE SET MOVED `3 → 4` FROM 2026-10-29 — `D-77`: the fourth member is
+ * `address`, the act the refusal is about** (its clause below).
  *
  * **`log` IS AN ORDINARY OWN ENUMERABLE DATA MEMBER OF THAT SAME PLAIN OBJECT** (item 9): *"written with an
  * object literal, not `Object.defineProperty`, not a getter, not on a prototype and not behind a `Symbol`"* —
- * so `Object.keys(caught)` reads exactly `["log","message","status"]` and its length is `3` on EVERY arm. **IT
- * IS NEVER ABSENT, NEVER `null` AND NEVER A NON-ARRAY** (item 9), **and `[]` is its declared value where the
- * failure's cause has no attempt at all** (item 4: the empty array, never an absent member and never a
- * placeholder entry) — **while every failure whose attempt exists carries that attempt's own entries, taken
+ * so `Object.keys(caught)` reads exactly `["status","message","log","address"]` and its length is `4` on EVERY
+ * arm. **IT IS NEVER ABSENT, NEVER `null` AND NEVER A NON-ARRAY** (item 9), **and `[]` is its declared value
+ * where the failure's cause has no attempt at all** (item 4: the empty array, never an absent member and never
+ * a placeholder entry) — **while every failure whose attempt exists carries that attempt's own entries, taken
  * BEFORE the attempt is disposed of** (item 10 (iii)).
+ *
+ * **⟶ AND THE FORM IS FOUR MEMBERS FROM 2026-10-29 — `D-77`, THE ARCHITECT'S RULING, ONE WORD: *"New
+ * member"*.** **THE MEASUREMENT IT ANSWERS**: a caller's OWN act refused and a caller's act that PASSED while
+ * a LISTENER threw cross with the **same `status`, the same `message`, the same keys and the same two log
+ * entries** — only the `opId` differs, and a refused act answers no `op` to key against — **so a consumer read
+ * `ConstraintPassRefused` and concluded its own write did not happen, while the store says it did.** **SO THE
+ * FORM GAINS THE ONE THING THE CALLER NEEDS: `address`, WHICH ACT WAS REFUSED.** The caller wrote an address
+ * and knows it; **`equal` means the caller's own act, `different` means a listener's** — a retry is then a
+ * decision rather than a guess. **IT IS PRESENT ON EVERY REFUSAL AND IS `null` WHERE THERE IS NOTHING TO
+ * NAME**: a refusal about a `cfg`, a constraint LIST, a handle, an attempt identity or an artefact path names
+ * no act at an address and says so with the declared `null`, never by omitting the member.
+ *
+ * **IT IS NOT A FIFTH STATUS AND NOT A HEURISTIC**: the closed set is `StoreStatus`'s and stays twenty, and the
+ * member is authored by the package at the refusal's own crossing, so no consumer reproduces a rule to read it.
+ * **ITS NAME IS THE DECLARATION'S OWN CONVENTION**: its siblings are one bare noun each naming exactly the
+ * datum carried, and this one is the datum the whole declaration already calls `address` — the segment array
+ * `read`/`write`/`delete` take, `AttemptContext.address`, `JournalOp.address`, `pair.address`.
  *
  * **⟶ AND FROM 2026-10-28 THOSE ENTRIES ARE THE COMMIT'S (`D-53`).** *"That attempt's own entries"* is read
  * through **the one list the whole commit appends to**: an attempt holds a REFERENCE to its commit's log, so a
@@ -413,6 +440,16 @@ export interface StoreRefusal {
   readonly status: StoreStatus;
   readonly message: string;
   readonly log: LogEntry[];
+  /**
+   * **WHICH ACT WAS REFUSED — `D-77`'s fourth member, and the reason the form is four.** The address the
+   * refusal is ABOUT, in the caller's own domain: **compare it with the address you wrote — equal means your
+   * own act was refused, different means a LISTENER's act was** (a listener's refused write crosses to you, and
+   * your own write stands). **`null` where the refusal names no act at an address** — a `cfg`-side refusal, a
+   * constraint list's validation, a handle's registration, an attempt identity, an absent artefact. **The
+   * member is always present**: a member absent on some arm is the `DEF-AH` defect wearing a new name
+   * (`strata/decisions.md` · `D-77`).
+   */
+  readonly address: Address | null;
 }
 
 /**

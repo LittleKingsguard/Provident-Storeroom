@@ -22,7 +22,7 @@ export function commit(store, address, tier, value) {
     refuse(KC.attemptOpen,
       `a constraint attempt is already open at ${addressSpelling(address)}; it is disposed of by its own `
       + 'K-3 and by no other act',
-      []);
+      [], address);
   }
 
   // THE HOLD IS TAKEN AT `K-2`'S OWN ACT AND BEFORE THE STORE'S WRITE VERB IS REACHED

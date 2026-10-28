@@ -271,7 +271,7 @@ function passInCommitScope(store, commitRecord) {
   if (attempt.status === 'running') {
     // THE RE-ENTRANT `K-3`, refused by the SAME `KC-7` member a live address answers with.
     refuse(KC.attemptOpen,
-      `the constraint attempt at ${addressSpelling(attempt.address)} is already running`, []);
+      `the constraint attempt at ${addressSpelling(attempt.address)} is already running`, [], attempt.address);
   }
 
   attempt.status = 'running';
@@ -293,7 +293,7 @@ function passInCommitScope(store, commitRecord) {
     // THE ARM IS READ OFF THE CLOSED ATTEMPT WHERE THE COMPOSITION'S OWN FLOOR OVERRODE IT: a still-owed
     // op's call meeting `RollbackCompacted`/`JournalOpUnknown` is `KC-8` and not the pass's own arm
     // (`composition-and-states.md §2.6` item 5 (b); `KC-8`'s own row).
-    refuse(attempt.throwState, attempt.throwMessage, attempt.log);
+    refuse(attempt.throwState, attempt.throwMessage, attempt.log, attempt.address);
   }
 
   // THE SUCCESS ARM: the registry entry removed and the five-member report — **AND THE `commit` ENTRY IS
@@ -848,7 +848,7 @@ function evaluate(kernel, attempt, landing) {
           // store's own token in its MESSAGE and not in its `status` (§1.2 item 3). **A BODY WHOSE THROW
           // CARRIES NO STORE CODE REACHES THE CALLER UNCONVERTED**, below: the unconverted throw is that
           // body's own arm and this conversion is the refused-verb's.
-          refuse(attempt.throwState, attempt.throwMessage, attempt.log);
+          refuse(attempt.throwState, attempt.throwMessage, attempt.log, attempt.address);
         }
         terminalComposed(kernel, attempt, KC.repairFailed, `the repair ${pair.id} threw; the attempt is closed`);
         throw body;

@@ -999,7 +999,7 @@ export function isStoreReceiver(candidate) {
   return state !== undefined && state.receiver === candidate;
 }
 
-export function carryRefusal(call, args, log) {
+export function carryRefusal(call, args, log, address) {
   try {
     return call();
   } catch (refusal) {
@@ -1008,7 +1008,18 @@ export function carryRefusal(call, args, log) {
     // FAILED SAVE's call is the one that passes a list, and it passes `commitLogOf(record)` — the commit's own
     // entries, carried beside the store's two-member form and never re-shaped (`surface.md §2.5` item 10 (ii):
     // *"nothing is converted, and a member is added"*).
-    fail(notFoundRendering(refusal, listedSegments(args[0])), log);
+    //
+    // **⟶ AND THE FOURTH IS `D-77`'S — THE ADDRESS THE REFUSAL IS ABOUT.** **THE ADDRESS-CARRYING VERBS NEED
+    // SUPPLY NOTHING: their FIRST ARGUMENT IS THE ENCODER'S OWN ADDRESS CARRIER**, whose `s` member IS the
+    // caller's segment list (`listedSegments`, the same read the `AddressNotFound` rendering above takes) — so
+    // `read`, `readLiteral`, `delete` and `write` name their own act with no second position and no second
+    // conversion. **A VERB WHOSE FIRST POSITION IS NOT AN ADDRESS NAMES NOTHING**: `rollback`'s opId, a
+    // handle's `listen`/`unlisten`/`removeListener` and `commitFile`'s opId all reach `fail`'s declared `null`,
+    // which is the member's value where there is nothing to name. **THE ONE POSITION THAT OVERRIDES THE
+    // DERIVATION IS HANDED EXPLICITLY**: the failed save's address is the COMMIT's own op address, which its
+    // carrier does not spell, so `terminalArm` passes it.
+    const spelled = address === undefined ? listedSegments(args[0]) : address;
+    fail(notFoundRendering(refusal, listedSegments(args[0])), log, spelled);
   }
 }
 
@@ -1070,7 +1081,7 @@ function listedSegments(arg) {
 /// `[A1 bindings/js/index.mjs:2439 · :2454 · :2429 · :2432; docs/specs/storeroom-json-crossing/contract.md §6
 /// row 4; docs/specs/storeroom-addon-surface/js-unwrap.md §3; docs/specs/storeroom-native/write-and-read.md
 /// §3.4 `F-1` | requirement]`
-export function writeRefusal(refusal, fault, record) {
+export function writeRefusal(refusal, fault, record, address) {
   if (fault.found !== null && refusal !== null && typeof refusal === 'object' && refusal.status === 'ValueNotAdmitted') {
     valueReject(fault);
   }
@@ -1079,7 +1090,9 @@ export function writeRefusal(refusal, fault, record) {
   // entries — a nested write refused by the store from inside a constraint body or a repair — told the caller
   // NOTHING of the commit's verdict. **THE LIST IS THE COMMIT'S**, handed by the member that holds the record,
   // and it stays `[]` where no commit stands (a caller's own write, whose commit is the one this verb is opening).
-  fail(refusal, commitLogOf(record));
+  // **AND THE FOURTH MEMBER IS THE WRITE'S OWN ADDRESS — `D-77`**: a store verb refusing this write is the
+  // act at the address the caller spelled.
+  fail(refusal, commitLogOf(record), address);
 }
 
 /// `docs/specs/storeroom-js/contract.md §2.10`: `listen` mints a token, populates the store's home and wraps it for JS — and its `address` is

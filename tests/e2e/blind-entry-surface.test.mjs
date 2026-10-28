@@ -337,7 +337,7 @@ test("entry · index.d.ts's `(string & {})` escape arm · the form's `status` is
 // §5 — THE SINGLE FAILURE FORM
 // ---------------------------------------------------------------------------------------------
 
-test('entry · surface.md §2.5 items 1–4 and 9 · the failure form is ONE thrown plain object carrying exactly the THREE members `status`, `message` and `log`, with `log` an ordinary own enumerable data member', () => {
+test('entry · surface.md §2.5 items 1–4 and 9 · the failure form is ONE thrown plain object carrying exactly the FOUR members `status`, `message`, `log` and `address` (`D-77`), with `log` an ordinary own enumerable data member', () => {
   // DECLARED: "A FAILURE CROSSES AS A THROWN PLAIN OBJECT WITH EXACTLY TWO MEMBERS, AND THERE IS EXACTLY
   // ONE SUCH FORM" (§2.5's opening), read through its 2026-10-16 clause on the architect's ruling
   // *"Bubble the message log to the client on failure, override any clauses that forbid this."*:
@@ -352,8 +352,8 @@ test('entry · surface.md §2.5 items 1–4 and 9 · the failure form is ONE thr
   const instance = make();
   const caught = catchIt(() => instance.read(['nowhere'], 'mem'));
 
-  assert.deepEqual(Object.keys(caught).sort(), ['log', 'message', 'status']);
-  assert.equal(Object.keys(caught).length, 3);
+  assert.deepEqual(Object.keys(caught).sort(), ['address', 'log', 'message', 'status']);
+  assert.equal(Object.keys(caught).length, 4);
 
   // "`log` IS AN ORDINARY OWN ENUMERABLE DATA MEMBER" — an own data property, enumerable, not a getter.
   const logDescriptor = Object.getOwnPropertyDescriptor(caught, 'log');
@@ -386,13 +386,13 @@ test("entry · surface.md §2.5 item 9 (as corrected 2026-10-25) · THE CLAUSE'S
   //   (a) THE SUPERSEDED READING, as this cell first met it: "**`log` IS AN ORDINARY OWN ENUMERABLE
   //       DATA MEMBER OF THAT SAME PLAIN OBJECT** (item 9): *"written with an object literal, not
   //       `Object.defineProperty`, not a getter, not on a prototype and not behind a `Symbol`"* — so
-  //       `Object.keys(caught)` reads exactly `["log","message","status"]` and its length is `3` on
+  //       `Object.keys(caught)` reads exactly `["address","log","message","status"]` and its length is `3` on
   //       EVERY arm." (`surface.md` §2.5 item 9; the same sentence at index.d.ts's `StoreRefusal`.)
   //   (b) THE OPERATIVE READING, LANDED AT THAT ITEM BY THE 2026-10-25 CORRECTION CLAUSE WRITTEN ON
   //       THIS PASS'S EVIDENCE: "**THE ORDER THIS ITEM PRINTS IS SUPERSEDED, AND `Object.keys(caught)`
   //       READS `["status","message","log"]` — THE OBJECT LITERAL'S OWN SOURCE ORDER, which is the
   //       order the form is spelled in at EVERY OTHER CELL OF THIS SECTION.**" Its ground is item 8's
-  //       own words, *"the set they must re-derive TO is `{log, message, status}`, sorted ascending,
+  //       own words, *"the set they must re-derive TO is `{address, log, message, status}`, sorted ascending,
   //       length `3`"* — a sorted SET spelling, which the superseded sentence carried into an
   //       `Object.keys` print where an object literal answers INSERTION ORDER.
   //
@@ -401,15 +401,16 @@ test("entry · surface.md §2.5 item 9 (as corrected 2026-10-25) · THE CLAUSE'S
   // correction landed. The build was not changed and no byte of it was read.
   const instance = make();
   const caught = catchIt(() => instance.read(['nowhere'], 'mem'));
-  assert.deepEqual(Object.keys(caught), ['status', 'message', 'log']);
+  // **`D-77`'S FOURTH MEMBER IS THE OBJECT LITERAL'S LAST, AND THE ORDER IS STILL THE SOURCE'S OWN.**
+  assert.deepEqual(Object.keys(caught), ['status', 'message', 'log', 'address']);
 });
 
-test('entry · surface.md §2.5 item 4 · the construction\'s own refusals carry the same flat three-member form, so `log` is never absent and never `null`', () => {
+test('entry · surface.md §2.5 item 4 · the construction\'s own refusals carry the same flat four-member form (`D-77`), so `log` is never absent and never `null` and `address` names nothing but is present', () => {
   // DECLARED: "The three-member member set is therefore FLAT ACROSS ARMS and not conditional: the
   // construction's own refusals (`cfg`-side) … all carry `log: []` — the EMPTY ARRAY, never an absent
   // member, never `null`, and never a placeholder entry".
   const caught = catchIt(() => storeCreate({ journalLength: 8 }));
-  assert.deepEqual(Object.keys(caught).sort(), ['log', 'message', 'status']);
+  assert.deepEqual(Object.keys(caught).sort(), ['address', 'log', 'message', 'status']);
   assert.deepEqual(caught.log, []);
 });
 

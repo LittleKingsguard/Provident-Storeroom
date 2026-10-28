@@ -691,10 +691,10 @@ function verbRefusal() {
 function assertThirdForm(refusal, where) {
   assert.equal(typeof refusal, 'object', `${where}: a refusal crossing this boundary is a THROWN OBJECT`);
   assert.notEqual(refusal, null, `${where}: and never a null`);
-  assert.deepEqual(Object.keys(refusal).sort(), ['log', 'message', 'status'],
+  assert.deepEqual(Object.keys(refusal).sort(), ['address', 'log', 'message', 'status'],
     `${where}: failure-form.md §1 — the form carries exactly the three members \`status\`, \`message\`, `
     + '`log`, and NOTHING ELSE. F-3 is "a refusal carries a fourth member, or an `Error` prototype"');
-  assert.equal(Object.keys(refusal).length, 3, `${where}: THE MEMBER COUNT IS THREE`);
+  assert.equal(Object.keys(refusal).length, 4, `${where}: THE MEMBER COUNT IS FOUR`);
   assert.equal(typeof refusal.status, 'string', `${where}: \`status\` is a string`);
   assert.notEqual(refusal.status.length, 0, `${where}: and a NON-EMPTY one (S-FF-STATUS)`);
   assert.equal(typeof refusal.message, 'string', `${where}: \`message\` is a string`);

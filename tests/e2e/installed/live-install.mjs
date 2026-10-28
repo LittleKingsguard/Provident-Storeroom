@@ -723,7 +723,7 @@ try {
     }
     const joinHolds = joinArm.received === joinArm.expected
       && joinArm.status === 'FilePathUnreachable'
-      && JSON.stringify(joinArm.members) === JSON.stringify(['log', 'message', 'status'])
+      && JSON.stringify(joinArm.members) === JSON.stringify(['address', 'log', 'message', 'status'])
       && joinArm.instance === false;
 
     // ---- ARM U: THE UNCOVERED TARGET — rung one is NOT attempted, and the subject is rung two's path alone

@@ -157,7 +157,7 @@ test('kernel · §2.1 item 1, channel (i) (`KC-1`) · AN ADDRESS SHAPE OUTSIDE T
   for (const outside of [null, undefined, 'a', 7, (() => {})(), ['a', true], ['a', -1], ['a', 1.5]]) {
     const caught = catchIt(() => register(store, outside, 'c1', () => true));
     assert.equal(caught.status, 'KC-1', `the address ${JSON.stringify(outside)} is outside the shape domain`);
-    assert.deepEqual(Object.keys(caught).sort(), ['log', 'message', 'status']);
+    assert.deepEqual(Object.keys(caught).sort(), ['address', 'log', 'message', 'status']);
     assert.equal(Array.isArray(caught.log), true);
   }
 });
@@ -167,7 +167,7 @@ test('kernel · §2.1 item 1, channel (ii) (`KC-2`) and `PAR-C-2` · AN `id` THA
   for (const outside of ['', null, undefined, 7, true, {}, ['x']]) {
     const caught = catchIt(() => register(store, ['a'], outside, () => true));
     assert.equal(caught.status, 'KC-2', `the id ${JSON.stringify(outside)} is outside the domain`);
-    assert.deepEqual(Object.keys(caught).sort(), ['log', 'message', 'status']);
+    assert.deepEqual(Object.keys(caught).sort(), ['address', 'log', 'message', 'status']);
   }
   for (const outside of [undefined, null, 7, 'fn', {}, [], true]) {
     assert.equal(catchIt(() => register(store, ['a'], 'c1', outside)).status, 'KC-2');
@@ -274,7 +274,7 @@ test('kernel · fail-surface §1.1 items 1–4 and §2 · THE `KC` SET IS CLOSED
   const store = make();
   const observed = new Set();
   const note = (caught) => {
-    assert.deepEqual(Object.keys(caught).sort(), ['log', 'message', 'status'], 'the kernel\u2019s own act throws the three-member form');
+    assert.deepEqual(Object.keys(caught).sort(), ['address', 'log', 'message', 'status'], 'the kernel\u2019s own act throws the three-member form');
     assert.equal(typeof caught.message, 'string');
     assert.equal(caught.message.length > 0, true);
     observed.add(caught.status);

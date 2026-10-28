@@ -118,10 +118,10 @@ function assertArmHere(report) {
   // \`[\"log\",\"message\",\"status\"]\` and \`Object.keys(caught).length\` is \`3\` on EVERY arm"\*).** **THE THREE
   // LIMBS BELOW IT ARE UNMOVED**: the store-member status (\`PUB-DD-17\`), its CLOSED-set membership (\`§0.1\`
   // item 7) and the \`string\` message.
-  assert.deepEqual(Object.keys(A).sort(), ['log', 'message', 'status'],
-    '`surface.md §2.5` items 4 and 9: the member set is EXACTLY `{log, message, status}` — FLAT across arms '
+  assert.deepEqual(Object.keys(A).sort(), ['address', 'log', 'message', 'status'],
+    '`surface.md §2.5` items 4 and 9: the member set is EXACTLY `{address, log, message, status}` — FLAT across arms '
     + 'and not conditional; no minted code and no member outside the declared set');
-  assert.equal(Object.keys(A).length, 3,
+  assert.equal(Object.keys(A).length, 4,
     '`surface.md §2.5` item 9: `Object.keys(caught).length` is `3` on every arm');
   assert.equal(Array.isArray(A.log), true,
     '`surface.md §2.5` item 9: `log` is an ARRAY — never absent, never `null`, never a non-array');
@@ -223,10 +223,13 @@ const CLOSED_SET = ${JSON.stringify(CLOSED_SET)};
 function recordArm(err) {
   if (err !== null && typeof err === 'object') {
     const own = Object.keys(err);
-    if (own.length === 3 && own.includes('log') && own.includes('status') && own.includes('message')
+    if (own.length === 4 && own.includes('address') && own.includes('log') && own.includes('status') && own.includes('message')
         && !(err instanceof Error) && CLOSED_SET.includes(err.status)
         && Array.isArray(err.log) && err.log.length === 0) {
-      report.arm = { status: err.status, message: err.message, log: err.log };
+      // AND THE FOURTH MEMBER IS CARRIED THROUGH — D-77. The observer RECORDS the form it saw, member for
+      // member; a copy that dropped the address member would answer a three-member arm at the cells above
+      // and would be the observer's defect, not the tree's.
+      report.arm = { status: err.status, message: err.message, log: err.log, address: err.address };
     } else {
       report.arm = { notTheArm: true, name: err.constructor ? err.constructor.name : 'unknown', code: err.code ?? null, message: String(err.message ?? err).slice(0, 200) };
     }
@@ -860,9 +863,9 @@ generator('NG-PUB-C', 'a throwing version() is the arm, never a fallback to a lo
     // **⟶ RE-DERIVED TO THE THREE-MEMBER FORM** (`surface.md` `§2.5` items 4 and 9; the `§1.4` item 1
     // *"no third member"* half and `DD-12`'s two-member `Refusal` are SUPERSEDED by the Architect). The
     // generator's own claim is kept: ONE arm, its declared member set, nothing minted.
-    assert.deepEqual(Object.keys(r.arm).sort(), ['log', 'message', 'status'],
-      '`surface.md §2.5` items 4 and 9: the member set is EXACTLY `{log, message, status}`');
-    assert.equal(Object.keys(r.arm).length, 3, '`surface.md §2.5` item 9: and its length is `3`');
+    assert.deepEqual(Object.keys(r.arm).sort(), ['address', 'log', 'message', 'status'],
+      '`surface.md §2.5` items 4 and 9: the member set is EXACTLY `{address, log, message, status}`');
+    assert.equal(Object.keys(r.arm).length, 4, '`surface.md §2.5` item 9: and its length is `4`');
     assert.equal(Array.isArray(r.arm.log) && r.arm.log.length === 0, true,
       '`surface.md §2.5` item 4: `log` is the EMPTY ARRAY where the cause has no attempt at all');
     assert.equal(r.arm.status, ARM_STATUS, 'and the status is the store\'s own member, never a minted one');
@@ -1050,18 +1053,18 @@ generator('NG-PUB-F', 'an artefact with no usable generator names rung one\'s pa
     // reporting *"the entry's one arm-building site moved"* rather than measuring the shape it is cut for.
     // **THE ANCHOR MOVES TO THE SHIPPED THREE-MEMBER THROW AND `code` IS STILL THE MEMBER MINTED OUTSIDE THE
     // DECLARED SET — the `alt` second shape `§1.4` item 7 prices and refuses — so the control measures exactly
-    // what it measured before: a member outside `{log, message, status}` must not reach a consumer.**
+    // what it measured before: a member outside `{address, log, message, status}` must not reach a consumer.**
     'control-the-sub-case-mints-a-second-shape': controlEntry('NG-PUB-F', (text) => {
       const before = `        addonArm = { status: 'FilePathUnreachable', message: mismatchArmMessage(candidate, name) };`;
       assert.ok(text.includes(before), 'NG-PUB-F: the mismatch arm site moved; the control must be re-cut');
-      const memberSite = `  throw { status: refusal.status, message: refusal.message, log: refusalLog(log) };`;
+      const memberSite = `  throw {\n    status: refusal.status,\n    message: refusal.message,\n    log: refusalLog(log),\n    address: refusalAddress(address),\n  };`;
       assert.ok(text.includes(memberSite),
         'NG-PUB-F: the entry\'s one arm-building site moved; the control must be re-cut where the member set is built');
       return text
         .replace(before,
           "        addonArm = { status: 'FilePathUnreachable', message: mismatchArmMessage(candidate, name), code: 'AddonVersionMismatch' };")
         .replace(memberSite,
-          "  throw { status: refusal.status, message: refusal.message, log: refusalLog(log), code: 'AddonVersionMismatch' };");
+          "  throw {\n    status: refusal.status,\n    message: refusal.message,\n    log: refusalLog(log),\n    address: refusalAddress(address),\n    code: \'AddonVersionMismatch\',\n  };");
     }),
     // (3) THE ARM (b) FALLBACK ITSELF NAMES A PATH THE WALK NEVER TRIED.
     // **⟶ RE-CUT BY THE `F-14` PASS (`§13`), AND THE AS-FILED SITE IS KEPT BESIDE THE NEW ONE.** `absentSubject()`

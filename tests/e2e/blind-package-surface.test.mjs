@@ -323,7 +323,7 @@ test("package · `§1.4` items 1, 2 and 6 (`PUB-DD-17`) · THE ONE DECLARED ABSE
   assert.ok(caught, 'a construction at an unreachable path returned an instance');
   assert.equal(caught.status, 'FilePathUnreachable');
   assert.equal(caught.message, `'${missingParent}' is not reachable at construction, the path must exist or the application must be able to write it`);
-  assert.deepEqual(Object.keys(caught).sort(), ['log', 'message', 'status']);
+  assert.deepEqual(Object.keys(caught).sort(), ['address', 'log', 'message', 'status']);
   assert.deepEqual(caught.log, []);
 
   // AND THE TWO ARMS OF `§1.4` ITEM 6 ARE ONE STRING: the reproduction the entry makes where no

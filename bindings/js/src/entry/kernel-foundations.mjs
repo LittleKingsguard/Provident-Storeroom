@@ -147,7 +147,13 @@ export const SETTLED_ON_THE_PASSING_ARM = Symbol.for('provident-storeroom.settle
  */
 export const SAVE_FAILED_AT_THE_TERMINAL_ARM = Symbol.for('provident-storeroom.save-failed-at-the-terminal-arm');
 
-/** `fail-surface.md §1.1` — ONE THROWN PLAIN OBJECT, EXACTLY THREE MEMBERS, NEVER AN `Error`. */
+/** `fail-surface.md §1.1` — ONE THROWN PLAIN OBJECT, NEVER AN `Error`.
+ *
+ *  **⟶ AND IT IS FOUR MEMBERS FROM 2026-10-29 — `D-77`, *"New member"*: the fourth is the ADDRESS THE
+ *  REFUSAL IS ABOUT**, a segment list in the caller's own domain or the declared `null` where there is
+ *  nothing to name. **THE KERNEL'S FORM AND THE SURFACE'S FORM ARE ONE FORM** (the surface attaches nothing
+ *  the kernel did not already carry), so the member is present on both builders' every arm — here and at
+ *  `refusal.mjs`'s `fail`. */
 export const KERNEL_REFUSAL = Symbol.for('provident-storeroom.kernel-refusal');
 
 /// **⟶ ADDED 2026-10-18 — THE TERMINAL ARM'S CHANNEL, SPELLED ON THIS SIDE TOO** (`docs/specs/storeroom-js/
@@ -159,13 +165,28 @@ export const KERNEL_REFUSAL = Symbol.for('provident-storeroom.kernel-refusal');
 /// ADDED** to the product (`§2.4` item 9 (f): TWELVE own members, *"AND NOTHING ELSE"*): the key is
 /// invisible to `Object.keys` and to `Object.getOwnPropertyNames` (`A117` (D6)).
 export const TERMINAL_ARM = Symbol.for('provident-storeroom.terminal-arm');
-export function refuse(status, message, log) {
+/// **`fail-surface.md §1.1`'s ONE FORM, THROWN — AND ITS FOURTH MEMBER IS `D-77`'S** (*which act was
+/// refused*): the third position is the attempt's log (the declared `[]` where none stands) and the fourth is
+/// **THE ADDRESS THE REFUSAL IS ABOUT**, or nothing where the arm names no act. **`null` IS THAT ABSENCE AND
+/// IS ALWAYS WRITTEN** — *"a member absent on some arm is the `DEF-AH` defect wearing a new name"*.
+export function refuse(status, message, log, address) {
   throw {
     status,
     message,
     log: log === undefined ? [] : log,
+    address: kernelRefusalAddress(address),
     [KERNEL_REFUSAL]: true,
   };
+}
+
+/// **THE FOURTH MEMBER'S ONE DECISION ON THIS SIDE** — a fresh dense segment list built by index, or the
+/// declared `null`. **`refusalAddress` (`refusal.mjs`) IS THE SAME RULE AT THE CROSSING**; this module may not
+/// reach it (the empty import footprint, `§1` item 1), so the form is spelled here as `appendOwn` is.
+function kernelRefusalAddress(address) {
+  if (Array.isArray(address) === false) return null;
+  const segments = [];
+  for (let i = 0; i < address.length; i += 1) appendOwn(segments, address[i]);
+  return segments;
 }
 
 /**
@@ -206,9 +227,16 @@ export const CONSTRAINT_BODY_THREW = Symbol.for('provident-storeroom.constraint-
 /// `address` is the pair's own address (the place the body was evaluated) and `log` the attempt's log where
 /// one stands at the instant of the throw, `[]` where none does (a registration opens no attempt before its
 /// body returns).
+///
+/// **⟶ AND THE MARK CARRIES THE ADDRESS ITSELF AS WELL AS ITS SPELLING — `D-77`, 2026-10-29.** The two slots
+/// above are the `<SEGMENT>` text the store's generator is handed and the list the crossing carries; **the
+/// fourth member of the crossed form is a SEGMENT ARRAY in the caller's own domain** (the caller compares it
+/// with the address it wrote), and a spelling cannot be read back into one — a segment may contain `/`. **So a
+/// third slot carries the list the body was evaluated at, and no member of the crossed form is minted here.**
 export function markBodyThrow(thrown, address, log) {
   const carried = Object.create(null);
   carried.address = address.map((segment) => String(segment)).join('/');
+  carried.segments = kernelRefusalAddress(address);
   carried.log = Array.isArray(log) ? log : [];
   const isObject = thrown !== null && (typeof thrown === 'object' || typeof thrown === 'function');
   if (isObject === false) return { value: thrown, [CONSTRAINT_BODY_THREW]: carried };

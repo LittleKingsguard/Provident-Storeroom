@@ -187,20 +187,23 @@ function isRefusal(site, { target = null, why = null, position = null, thrown = 
   if (Object.getPrototypeOf(err) !== Object.prototype) {
     return 'the thrown object\'s prototype is not the caller realm\'s `Object.prototype` (`DD-12`)';
   }
-  // **⟶ RE-DERIVED TO THE THREE-MEMBER SET, 2026-10-16** (`surface.md §2.5` item 4: *"the three-member
-  // member set is therefore FLAT ACROSS ARMS and not conditional"*; item 9: *"`Object.keys(caught)` reads
-  // exactly `["log","message","status"]` … `log` is NEVER ABSENT, NEVER `null` and NEVER a non-array"*).
+  // **⟶ RE-DERIVED TO THE SET IT PRINTS, 2026-10-29** (`D-77`: FOUR members, `address` present on every arm)
+  // — the 2026-10-16 reading is the one that stood, and the count is the print's own. (`surface.md §2.5` item 4: *"the member
+  // set is therefore FLAT ACROSS ARMS and not conditional"*; item 9: *"`Object.keys(caught)` reads
+  // exactly `["address","log","message","status"]` … `log` is NEVER ABSENT, NEVER `null` and NEVER a non-array"*).
   // **A THIRD MEMBER IS NO LONGER THE PROHIBITION THIS PREDICATE WROTE** — the prohibition survives only
   // for members OUTSIDE the declared three, and `log` is now one of the three. **THE `log` LIMB IS THE
   // MEMBER'S TYPE, NOT ITS CONTENT** (`PAR-JS-26`): the entries belong to an attempt and are asserted at
   // the cells that drive one, while this predicate only refuses a missing, `null` or non-array member.
   const members = Object.keys(err).sort().join(',');
-  if (members !== 'log,message,status') {
-    return `the member set is \`{${members}}\` and is EXACTLY \`{log, message, status}\` and nothing else `
+  if (members !== 'address,log,message,status') {
+    return `the member set is \`{${members}}\` and is EXACTLY \`{address, log, message, status}\` and nothing else `
       + '(surface.md §2.5 item 4; item 9)';
   }
-  if (Object.keys(err).length !== 3) {
-    return `the member set's length is \`${Object.keys(err).length}\` and must be \`3\` (surface.md §2.5 item 9)`;
+  // **⟶ AND THE COUNT IS FOUR FROM 2026-10-29 — `D-77`.** The set print above moved with it; the length is
+  // the same fact said a second way, so the two limbs cannot disagree.
+  if (Object.keys(err).length !== 4) {
+    return `the member set's length is \`${Object.keys(err).length}\` and must be \`4\` (surface.md §2.5 item 9)`;
   }
   if (!Array.isArray(err.log)) {
     return '`log` is not an ARRAY — never absent, never `null`, never a non-array (surface.md §2.5 item 9; '

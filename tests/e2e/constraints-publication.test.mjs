@@ -849,7 +849,7 @@ test('cp_write_path_a_four_position_write_enters_the_kernel_and_the_passing_arm_
   assert.throws(
     () => conflictProbe.register('a-callers-own-listener', () => {}),
     (err) => err.status === 'AddressMalformed' && !(err instanceof TypeError)
-      && JSON.stringify(Object.keys(err).sort()) === '["log","message","status"]',
+      && JSON.stringify(Object.keys(err).sort()) === '["address","log","message","status"]',
     'AND A CALLER\'s LISTENER AT THE PAIR\'S OWN ADDRESS IS REFUSED in the surface\'s ONE plain thrown form '
     + 'with the store\'s `AddressMalformed` — never the `TypeError` this arm carried while a reserved '
     + '`constraint@` prefix existed to be exempted (`D-25`; `docs/L1/surface-deltas.md` §2.5)');
@@ -942,7 +942,7 @@ test('cp_write_path_the_failing_arm_reports_the_declared_three_member_form_and_d
   assert.throws(
     () => conflictProbe.register('a-callers-own-listener', () => {}),
     (err) => err.status === 'AddressMalformed' && !(err instanceof TypeError)
-      && JSON.stringify(Object.keys(err).sort()) === '["log","message","status"]',
+      && JSON.stringify(Object.keys(err).sort()) === '["address","log","message","status"]',
     'AND A CALLER\'s LISTENER AT THE PAIR\'S OWN ADDRESS IS REFUSED in the surface\'s ONE plain thrown form '
     + 'with the store\'s `AddressMalformed` — never the `TypeError` this arm carried while a reserved '
     + '`constraint@` prefix existed to be exempted (`D-25`; `docs/L1/surface-deltas.md` §2.5)');
@@ -988,10 +988,10 @@ test('cp_write_path_the_failing_arm_reports_the_declared_three_member_form_and_d
   // *"every failure whose attempt exists carries that attempt's own entries"*), which is why only the
   // member's TYPE and the presence of the entry the refusal appended are asserted here — the content
   // clauses are `item 3`'s and are driven at the kernel's own cells (`PAR-JS-26`).
-  assert.deepEqual(Object.keys(r.thrown).sort(), ['log', 'message', 'status'],
+  assert.deepEqual(Object.keys(r.thrown).sort(), ['address', 'log', 'message', 'status'],
     'the refusal is a thrown plain object of EXACTLY the surface\'s THREE members — FLAT across arms and '
     + 'not conditional (`§2.5` item 4), sorted ascending with length `3` (item 9)');
-  assert.equal(Object.keys(r.thrown).length, 3,
+  assert.equal(Object.keys(r.thrown).length, 4,
     '`Object.keys(caught).length` is `3` on this arm too (`§2.5` item 9)');
   assertStoreRefusal(r.thrown, 'the failing arm\'s refusal');
   assert.equal('log' in r.thrown, true,

@@ -326,7 +326,7 @@ scenario('FTS-04', 'the failing save: rollback first, message second, the pre-im
     // client on failure, override any clauses that forbid this."*: THIS CELL'S MEMBER-SET LIMB WAS THE SUPERSEDED
     // `DD-12` / `Refusal` DECLARATION (*"EXACTLY two members, no third"*), and the AMENDED CLAUSE IS
     // `surface.md §2.5` item 4 — the member set is THREE and FLAT ACROSS ARMS — read with item 9 (`log` an
-    // ORDINARY OWN ENUMERABLE DATA MEMBER; `Object.keys(caught)` reads `["log","message","status"]`, length `3`).
+    // ORDINARY OWN ENUMERABLE DATA MEMBER; `Object.keys(caught)` reads `["address","log","message","status"]`, length `3`).
     // THE OTHER LIMBS ARE KEPT WHOLE: the caught value is a THROWN PLAIN OBJECT (`!instanceof Error`) that is
     // NEVER RETURNED, `status` and `message` are both PRESENT. AND THIS ARM'S `log` VALUE IS `[]` BY ITEM 4: the
     // failing save is the TERMINAL ARM's own act on a record whose attempt is live — but the assertion this cell
@@ -335,7 +335,7 @@ scenario('FTS-04', 'the failing save: rollback first, message second, the pre-im
     cell('FTS-04.2', 'contract.md §8.1 #15 (the caller meets the store\'s single failure form) read with surface.md §2.5 items 4 and 9 and the Architect\'s *"Override the failure form limit"* — the two-member limit this cell took from `DD-12` is superseded',
       'the caught value is the store\'s form: a plain object of exactly three members { log, message, status }, `log` an ARRAY, never returned',
       () => C(caught && typeof caught === 'object' && !(caught instanceof Error)
-        && Object.getOwnPropertyNames(caught).sort().join(',') === 'log,message,status'
+        && Object.getOwnPropertyNames(caught).sort().join(',') === 'address,log,message,status'
         && 'status' in caught && 'message' in caught && Array.isArray(caught.log),
         `members=${caught ? Object.getOwnPropertyNames(caught).join(',') : '-'} log=${Array.isArray(caught && caught.log) ? `[]×${caught.log.length}` : describe(caught && caught.log)} caught=${describe(caught)}`));
     cell('FTS-04.3', 'contract.md §8.1 rank #15 (FileCommitFailed; the trigger widened to reach the save act)',

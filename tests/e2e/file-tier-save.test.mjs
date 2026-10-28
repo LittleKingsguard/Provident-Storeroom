@@ -212,7 +212,7 @@ function modState(filePath) {
  * THROWS, AND `[]` IS ITS DECLARED VALUE WHERE THE FAILURE'S CAUSE HAS NO ATTEMPT AT ALL … the
  * three-member member set is therefore FLAT ACROSS ARMS and not conditional"*) **READ WITH `§2.5` ITEM 9**
  * (*"`log` stands on the thrown object as an ORDINARY OWN ENUMERABLE DATA MEMBER … so `Object.keys(caught)`
- * reads exactly `["log","message","status"]` and `Object.keys(caught).length` is `3` on EVERY arm"*).
+ * reads exactly `["address","log","message","status"]` and `Object.keys(caught).length` is `3` on EVERY arm"*).
  * **EVERY ARM THIS HELPER GUARDS IS A `log: []` ARM** — the construction's own `cfg`-side refusals and a
  * store refusal with no attempt live are `§2.5` item 4's OWN enumeration — so the empty array is asserted
  * as the DECLARED VALUE and never as an absence: `[]` is IN the domain (`parameter-semantics.md §2.26`'s
@@ -223,10 +223,10 @@ function modState(filePath) {
 function storeFailure(code, extra) {
   return (err) => {
     assert.ok(err !== null && typeof err === 'object', `${extra}: the store's failure is a thrown object`);
-    assert.deepEqual(Object.keys(err).sort(), ['log', 'message', 'status'],
-      `${extra}: the store's form carries exactly {log, message, status} — the three-member set is FLAT `
+    assert.deepEqual(Object.keys(err).sort(), ['address', 'log', 'message', 'status'],
+      `${extra}: the store's form carries exactly {address, log, message, status} — the three-member set is FLAT `
       + 'across arms and not conditional (`surface.md §2.5` item 4; item 9)');
-    assert.equal(Object.keys(err).length, 3,
+    assert.equal(Object.keys(err).length, 4,
       `${extra}: and the member set's length is \`3\` on EVERY arm (\`surface.md §2.5\` item 9)`);
     assert.ok(Array.isArray(err.log),
       `${extra}: \`log\` is an ARRAY on every arm — never absent, never \`null\`, never a non-array `
@@ -1046,10 +1046,10 @@ test('fts_S_CONSTRAINTS_KEY_no_package_side_code_and_no_package_side_message_is_
     // **RE-DERIVED TO THE THREE-MEMBER FORM 2026-10-16** — the `cfg`-side refusal is `surface.md §2.5`
     // item 4's OWN enumerated `log: []` arm (*"the construction's own refusals (`cfg`-side) … all carry
     // `log: []`"*), read with item 9's own-enumerable-descriptor clause.
-    assert.deepEqual(Object.keys(err).sort(), ['log', 'message', 'status'],
+    assert.deepEqual(Object.keys(err).sort(), ['address', 'log', 'message', 'status'],
       'S-CONSTRAINTS-KEY: in the surface\'s three-member form — FLAT across arms (`surface.md §2.5` item 4), '
       + 'the set sorted ascending and length `3` (item 9)');
-    assert.equal(Object.keys(err).length, 3,
+    assert.equal(Object.keys(err).length, 4,
       'S-CONSTRAINTS-KEY: `Object.keys(caught).length` is `3` on this arm too (`surface.md §2.5` item 9)');
     assert.ok(Array.isArray(err.log),
       'S-CONSTRAINTS-KEY: `log` is an ARRAY — never absent, never `null`, never a non-array '
@@ -1116,10 +1116,10 @@ test('fts_S_CONSTRAINTS_KEY_the_load_side_failure_answers_ConstraintListInvalid_
     // **RE-DERIVED TO THE THREE-MEMBER FORM 2026-10-16**: the LOAD-side refusal is likewise a
     // construction `cfg`-side refusal — `surface.md §2.5` item 4's own enumerated `log: []` arm — so the
     // set is three members and the empty array is the DECLARED value, not an absence.
-    assert.deepEqual(Object.keys(err).sort(), ['log', 'message', 'status'],
+    assert.deepEqual(Object.keys(err).sort(), ['address', 'log', 'message', 'status'],
       'S-CONSTRAINTS-KEY: the load-side answer is the surface\'s THREE-member form, FLAT across arms '
       + '(`surface.md §2.5` item 4), sorted ascending with length `3` (item 9)');
-    assert.equal(Object.keys(err).length, 3,
+    assert.equal(Object.keys(err).length, 4,
       'S-CONSTRAINTS-KEY: `Object.keys(caught).length` is `3` on the load-side instant as on every arm '
       + '(`surface.md §2.5` item 9)');
     assert.ok(Array.isArray(err.log),
@@ -2214,11 +2214,11 @@ test('fts_FTS_09_zero_byte_file_boots_an_instance_while_a_two_byte_empty_image_i
   // `cfg`-side class of construction refusal, so `surface.md §2.5` item 4's own `log: []` enumeration
   // governs it. **THE CELL'S OTHER LIMB IS UNMOVED**: no package-side code and no package-side message is
   // minted for this arm, which is asserted by the code and message limbs around this one.
-  assert.deepEqual(Object.keys(refused || {}).sort(), ['log', 'message', 'status'],
+  assert.deepEqual(Object.keys(refused || {}).sort(), ['address', 'log', 'message', 'status'],
     'FTS-09.6: in the surface\'s THREE-member form — FLAT across arms, sorted ascending (surface.md §2.5 '
     + 'item 4; item 9) — and never a package-side code or message '
     + '(`surface.md §2.5`; `parameter-semantics.md §2.21`\'s declared-answer cell)');
-  assert.equal(Object.keys(refused || {}).length, 3,
+  assert.equal(Object.keys(refused || {}).length, 4,
     'FTS-09.6: and the member set\'s length is `3` on this refused boot as on every arm '
     + '(`surface.md §2.5` item 9)');
   assert.ok(Array.isArray(refused && refused.log),

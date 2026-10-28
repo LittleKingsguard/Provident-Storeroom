@@ -328,7 +328,7 @@ test("listener · the cross-kind refusal's FORM · index.d.ts (rulings `D-25`/`D
   // THE ONE DECLARED FORM: the surface's flat three-member shape, the store's own `AddressMalformed`,
   // and `log: []` (the failure's cause has no attempt at all — `surface.md §2.5` item 4's enumeration
   // names the registration site's refusal among the `[]` arms).
-  assert.deepEqual(Object.keys(caught).sort(), ['log', 'message', 'status']);
+  assert.deepEqual(Object.keys(caught).sort(), ['address', 'log', 'message', 'status']);
   assert.equal(caught.status, 'AddressMalformed');
   assert.equal(typeof caught.message, 'string');
   assert.deepEqual(caught.log, []);

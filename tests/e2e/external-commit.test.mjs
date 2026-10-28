@@ -44,7 +44,7 @@ import { kernelFor } from '../../bindings/js/src/entry/kernel-foundations.mjs';
 import { openCommits } from '../../bindings/js/src/entry/state.mjs';
 
 /** `surface.md §2.5` items 3–4: the ONE crossed form's member set, sorted ascending. */
-const REFUSAL_MEMBERS = ['log', 'message', 'status'];
+const REFUSAL_MEMBERS = ['address', 'log', 'message', 'status'];
 /** The set's rank-`20` member (`src/error.rs`'s `CODES`, `[`str; 20]`) — the ONE status both arms of a
  *  constraint refusal cross with (`DEF-H`; `D-38`). */
 const PASS_REFUSED = 'ConstraintPassRefused';

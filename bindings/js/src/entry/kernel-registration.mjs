@@ -70,7 +70,7 @@ export function register(store, address, id, constraint) {
     refuse(KC.arg,
       'a registration\'s key is an address and a NON-EMPTY STRING id, and its third argument is a '
       + 'function',
-      []);
+      [], address);
   }
 
   // CHANNEL (ii) — THE STORE'S OWN. An in-domain address the store's own listener machinery refuses
@@ -800,7 +800,7 @@ export function remove(store, pair) {
   // DIFFERENT pair.
   const row = pairRowAt(kernel, set[0], pair.id);
   if (row === null) {
-    refuse(KC.arg, `no constraint pair answers to '${pair.id}'`, []);
+    refuse(KC.arg, `no constraint pair answers to '${pair.id}'`, [], set[0]);
   }
   const { key } = row;
 

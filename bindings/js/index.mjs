@@ -191,6 +191,8 @@ export function storeCreate(cfg) {
   try {
     id = addon_.storeCreate(encoded);
   } catch (refusal) {
+    // **`D-77`'s `null` ARM**: the construction's own refusal is about a `cfg`, an artefact or a store path
+    // and never about an act at an address, so the member is present and names nothing.
     fail(refusal);
   }
   // **ONE HANDLE PER TOKEN PER INSTANCE**: the map is read in BOTH directions, so a token the store
@@ -424,7 +426,9 @@ export function storeCreate(cfg) {
         // the commit's log already carries** instead of the declared `[]`. A caller's own five-position write (or
         // any record this package did not build) carries no such key and answers `undefined`, which is `fail`'s
         // declared `[]` arm — unchanged on every one of those paths.
-        writeRefusal(refusal, fault, arguments.length >= 4 ? commit : undefined);
+        // **AND THE WRITE'S OWN ADDRESS IS THE FOURTH MEMBER'S SUBJECT — `D-77`.** A store verb refusing this
+        // write is the act at the address the caller spelled, carried in the caller's own domain.
+        writeRefusal(refusal, fault, arguments.length >= 4 ? commit : undefined, address);
         throw refusal;
       }
       const watched = [];
@@ -1062,13 +1066,19 @@ export function storeCreate(cfg) {
       // keep: the pair still evaluates and `constraints()` is unmoved** (`restoreHeldPair` above;
       // `constraint-sites.md §4` item 2; `§2.1` item 1). **`restoreHeldPair` READS `held`, WHICH IS UNMOVED ON
       // EVERY REFUSING ARM**: the extension below is written to the entry only after this loop has passed.
+      let refusedAt = null;
       try {
         for (let position = 0; position < extended.length; position += 1) {
+          // **THE ADDRESS THIS REGISTRATION IS BEING MADE AT IS KEPT FOR THE REFUSAL'S FOURTH MEMBER —
+          // `D-77`.** The loop's own index is out of scope in the `catch` below (it is the `for` statement's),
+          // so the datum is taken where it stands rather than re-derived there.
+          refusedAt = extended[position];
           constraintsKernel().register(instance, extended[position], site.id, constraint);
         }
       } catch (refusal) {
         restoreHeldPair(site.state, instance, held);
-        registrationCrossing(refusal);
+        // **`D-77`: the act refused is the registration at THIS address of the pair's own set.**
+        registrationCrossing(refusal, refusedAt);
       }
       // **AND THE READ MODEL CARRIES THE UNION, NOT THE CALL'S SET** — this is defect 2's whole fix and it is
       // the other side of the same change: `enumerateConstraints` answers one row per carried pair with this
@@ -1167,13 +1177,18 @@ export function storeCreate(cfg) {
         // 2–3; `§4` item 2; `§2.1` item 1). **⟶ AND IT IS REACHABLE ON THIS ARM AND ON NO ARM OF `constraintOff`**
         // (`DEF-2026-10-20-F` consequence (i): a `remove`-only arm cannot refuse a re-registration, so the disable
         // arm's `try`/`catch` went with its loop — `:4113` onwards).
+        let refusedAt = null;
         try {
           for (const address of entry.addresses) {
+            // **THE ADDRESS THIS RE-REGISTRATION IS BEING MADE AT, KEPT FOR THE REFUSAL'S FOURTH MEMBER —
+            // `D-77`** (the loop's own binding is out of scope in the `catch`).
+            refusedAt = address;
             constraintsKernel().register(instance, address, entry.id, entry.fn);
           }
         } catch (refusal) {
           restoreHeldPair(site.state, instance, entry);
-          registrationCrossing(refusal);
+          // **`D-77`: the act refused is the re-registration at THIS address.**
+          registrationCrossing(refusal, refusedAt);
         }
         entry.enabled = true;
         // **⟶ AND THE PAIR'S STATE ROW STANDS UNDER THE SAME PAIR IDENTITY** (`P: docs/pending.md · (O-3)`
@@ -1582,7 +1597,8 @@ export function storeCreate(cfg) {
     try {
       carryConstraint(state, instance, batch[i].addresses, batch[i].id, batch[i].constraint);
     } catch (refusal) {
-      registrationCrossing(refusal);
+      // **`D-77`: the batch element's own address — the construction's registration act is at it.**
+      registrationCrossing(refusal, batch[i].addresses[0]);
     }
   }
   // **⟶ AND THE CONSTRUCTION'S OWN ADOPTION ENTERS THE PACKAGE'S HOME MIRROR** (`docs/specs/storeroom-js/surface.md §2.4` item 7 (b)'s dated

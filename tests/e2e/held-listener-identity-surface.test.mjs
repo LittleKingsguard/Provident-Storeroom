@@ -915,7 +915,7 @@ test('hli_surface_the_constraint_listener_conflict_throws_the_one_plain_form_nam
     'and its `status` IS the store\'s `AddressMalformed` in the surface\'s one thrown form (`D-25`; '
     + '`docs/L1/surface-deltas.md` §2.5: the `TypeError` the arm carried *"is neither the one plain '
     + '{status, message} form the surface declares for every refusal nor a bare TypeError"*)');
-  assert.deepEqual(Object.keys(conflict.thrown).sort(), ['log', 'message', 'status'],
+  assert.deepEqual(Object.keys(conflict.thrown).sort(), ['address', 'log', 'message', 'status'],
     'and the refusal carries exactly the three declared members, `log` present and EMPTY — the census '
     + '`index.d.ts` fixes for every arm (`surface.md §2.5` item 9)');
   assert.ok(conflict.thrown.message.length > 0,
@@ -976,7 +976,7 @@ test('hli_surface_listen_at_a_constraint_pairs_address_is_rejected_and_overwriti
     'and its member follows the act\'s own subject: `listen` is a SINGLE REGISTRATION, so it takes the '
     + 'handle domain\'s `AddressMalformed`, exactly as `B-5` (`register`) does (`docs/L1/surface-deltas.md` '
     + '§2.9; `D-29`)');
-  assert.deepEqual(Object.keys(refused.thrown).sort(), ['log', 'message', 'status'],
+  assert.deepEqual(Object.keys(refused.thrown).sort(), ['address', 'log', 'message', 'status'],
     'and it is the surface\'s ONE thrown form with `log: []` — no attempt was opened (`surface.md §2.5` '
     + 'item 4)');
   // NO STATE MOVED: the pair is still enumerated, still enforced, and the refused handle names nothing.

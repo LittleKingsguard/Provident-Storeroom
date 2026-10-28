@@ -276,7 +276,7 @@ process.stdout.write(JSON.stringify(out));
       '`storeCreate` answered a RAW HOST object under this mutation: §2.5 requires the ONE form; got '
       + `${child.message}`);
     assert.equal(child.plain, true, 'the thrown value is a plain object and not an `Error`');
-    assert.deepEqual([...child.keys].sort(), ['log', 'message', 'status'],
+    assert.deepEqual([...child.keys].sort(), ['address', 'log', 'message', 'status'],
       `the one form carries exactly {status, message, log}; got ${JSON.stringify(child.keys)}`);
     assert.equal(child.status, 'FilePathUnreachable',
       'an artefact that could not be loaded is the construction\'s own declared arm');

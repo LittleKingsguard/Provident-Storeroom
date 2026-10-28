@@ -118,7 +118,7 @@ function assertTheOnePlainForm(thrown, where) {
   assert.equal(thrown instanceof Error, false,
     `${where} — \`§2.5\` item 3: "no \`Error\` subclass". It is `
     + `${Object.prototype.toString.call(thrown)} and the ruling's defect is exactly this class error`);
-  assert.deepEqual(Object.keys(thrown).sort(), ['log', 'message', 'status'],
+  assert.deepEqual(Object.keys(thrown).sort(), ['address', 'log', 'message', 'status'],
     `${where} — \`§2.5\` items 1–4: EXACTLY three members, \`{status, message, log}\` and no fourth. `
     + `It carries ${JSON.stringify(Object.keys(thrown))}`);
   assert.deepEqual(thrown.log, [],

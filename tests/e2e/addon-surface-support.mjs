@@ -371,7 +371,7 @@ export function deletedWrapperCallSites(codeFiles, names) {
 // **AND NOT ONE BYTE OF THIS PREDICATE READS `status`.** That is `OWED-1`'s half: the token is asserted
 // nowhere, and a predicate that read it would make every `P-SAS-4` cell fail the moment the arm's author
 // chose — *"for a reason that is not a defect"* (`failure-form.md §3`).
-export const FORM_MEMBERS = ['log', 'message', 'status'];
+export const FORM_MEMBERS = ['address', 'log', 'message', 'status'];
 
 /** ═════════════════════════════════════════════════════════════════════════════════════════════════════
  *  **THE FORM IS SPLIT BY LAYER, BECAUSE `log` HAS EXACTLY ONE HOME AND IT IS THE JS BOUNDARY.**

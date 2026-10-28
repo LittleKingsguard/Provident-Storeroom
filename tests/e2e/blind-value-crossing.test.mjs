@@ -201,7 +201,7 @@ test("crossing · json-crossing contract.md §2 (the status paragraph) and §2.1
     assert.equal(caught.status, 'ValueRefusedAtBoundary', `row ${row} (${spelling}) answered ${caught.status}`);
     // THE ONE FORM'S THREE MEMBERS — a package refusal is the same flat shape as a store one
     // (`surface.md §2.5` item 4: the construction's and the crossing's refusals carry `log: []`).
-    assert.deepEqual(Object.keys(caught).sort(), ['log', 'message', 'status'], `row ${row}`);
+    assert.deepEqual(Object.keys(caught).sort(), ['address', 'log', 'message', 'status'], `row ${row}`);
     assert.deepEqual(caught.log, [], `row ${row}`);
     assert.equal(
       caught.message.includes(spelling),

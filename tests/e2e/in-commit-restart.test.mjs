@@ -45,7 +45,7 @@ import { openCommits } from '../../bindings/js/src/entry/state.mjs';
 import { RESTART_LIMIT } from '../../bindings/js/src/entry/constraints.mjs';
 
 /** `surface.md §2.5` items 3–4: the ONE crossed form's member set, sorted ascending. */
-const REFUSAL_MEMBERS = ['log', 'message', 'status'];
+const REFUSAL_MEMBERS = ['address', 'log', 'message', 'status'];
 /** `contract.md §2.6` item 4, read through `strata/decisions.md` · `D-65` (2026-10-28): the no-attempt refusal's
  *  entry carries the kernel's DECLARED FIVE and `seq` is ABSENT — the position is the array index of the
  *  one-entry list it stands in, and no member restates it. (This constant read *"the DECLARED SIX, `seq`

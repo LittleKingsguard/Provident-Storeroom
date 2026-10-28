@@ -57,7 +57,7 @@ import { kernelFor } from '../../bindings/js/src/entry/kernel-foundations.mjs';
 import { openCommits } from '../../bindings/js/src/entry/state.mjs';
 
 /** The ONE crossed form's member set (`docs/specs/storeroom-js/surface.md §2.5` items 3–4), sorted. */
-const REFUSAL_MEMBERS = ['log', 'message', 'status'];
+const REFUSAL_MEMBERS = ['address', 'log', 'message', 'status'];
 /** The set's rank-`20` member, the ONE status a constraint refusal crosses with (`D-38` · `DEF-H`). */
 const PASS_REFUSED = 'ConstraintPassRefused';
 /** `P-SM-6`'s limb (i)'s token, carried on the attempt's `outcome` entry's `state` (`fail-surface.md §2`). */
