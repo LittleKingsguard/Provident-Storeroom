@@ -1,5 +1,5 @@
 // `D-13` (`docs/L1/kernel-subdivision.md` §1 part `9d`) — the pass: bytes moved from `bindings/js/src/constraint-kernel.mjs`; no logic changed.
-import { KC, KC_TOKENS, SETTLED_ON_THE_PASSING_ARM, SAVE_FAILED_AT_THE_TERMINAL_ARM, TERMINAL_ARM, markBodyThrow, refuse, isKernelRefusal, pairSpelling, addressSpelling, sameAddress, kernelFor, append, appendOwn, ownMember, withdraw, landedOp, landedOpDefect, pairsAtAddress, enterCommitFrame, leaveCommitFrame } from './kernel-foundations.mjs';
+import { KC, KC_TOKENS, SETTLED_ON_THE_PASSING_ARM, SAVE_FAILED_AT_THE_TERMINAL_ARM, TERMINAL_ARM, markBodyThrow, throwableForm, refuse, isKernelRefusal, pairSpelling, addressSpelling, sameAddress, kernelFor, append, appendOwn, ownMember, withdraw, landedOp, landedOpDefect, pairsAtAddress, enterCommitFrame, leaveCommitFrame, commitLogInFlight, sealHandoff } from './kernel-foundations.mjs';
 import { commitAttemptIdOf, terminal, close } from './kernel-terminal.mjs';
 // ---------------------------------------------------------------------------------------------
 // `K-3` `runAttempt(store, commit) -> AttemptReport`
@@ -160,7 +160,12 @@ export function runAttempt(store, commitRecord) {
     } catch (thrown) {
       return drainFailingPass(store, commitRecord, thrown);
     }
-    return drainRestart(store, report);
+    // **⟶ AND THE RECORD IS SEALED AT THE HANDOFF — `D-55` item 6, `DEF-AO`, 2026-10-28.** The drain above is
+    // the LAST act of closing out (it amends the report's own `outcome` and appends the refusal's entry to the
+    // report's list BEFORE this line), so what the seal freezes is the record the driver receives and no record
+    // in flight: `report.log` and the report are `Object.freeze`d, and a later act can neither append to the
+    // commit's list nor re-member the report. **A PASSING ARM IS SEALED TOO** — its list is handed off once.
+    return sealHandoff(drainRestart(store, report), commitLogInFlight(kernelFor(store)) !== null);
   }, commitRecord);
 }
 
@@ -182,6 +187,11 @@ function drainFailingPass(store, commitRecord, thrown) {
   const closed = kernelFor(store).closed.get(commitAttemptIdOf(commitRecord));
   if (closed === undefined) throw thrown;
   const answered = drainRestart(store, closed);
+  // **⟶ THE FAILING ARM'S RECORD IS SEALED AT ITS OWN HANDOFF — `DEF-AO`.** The drain has already amended the
+  // closed report if the restarted check refused, so the seal stands before this arm picks which value crosses:
+  // the restarted refusal and the pass's own throwable both carry the SAME frozen list (`D-53`), and neither
+  // can be appended to after this line.
+  sealHandoff(answered, commitLogInFlight(kernelFor(store)) !== null);
   const restarted = answered !== null && typeof answered === 'object' ? answered[RESTART_REFUSAL] : undefined;
   if (restarted !== undefined && isKernelRefusal(thrown) === true) throw restarted;
   throw thrown;
@@ -508,7 +518,17 @@ function evaluate(kernel, attempt, landing) {
         // A body that threw returned nothing, so no `constraint-check` entry stands and the attempt is
         // closed (`PAR-C-6`; `NX-2`; `composition-and-states.md §2.7` item 13).
         withdraw(attempt, check);
-        terminalComposed(kernel, attempt, null, `the constraint ${pair.id} threw; the attempt is closed`);
+        // **⟶ AND THE THROWABLE'S OWN FORM ENTERS THE COMMIT'S LOG — `D-55` ITEM 1, `DEF-AK`, 2026-10-28.**
+        // The architect, verbatim: *"Include a thrown message in the message log. Obviously."* **THE ENTRY IS
+        // THE ONE THE TERMINAL ACT ALREADY APPENDS**: this arm closes the attempt with its ONE `outcome` entry
+        // (`composition-and-states.md §2.7` item 13), and NO second entry and NO fifth `kind` is minted —
+        // `constraint-check` was WITHDRAWN above and must not come back (`fail-surface.md §1.1` item 1 (b),
+        // which the kernel-level cells assert as *"NO entry stands for the pair whose body returned nothing"*).
+        // **SO THE TERMINAL ENTRY'S SENTENCE CARRIES THE FORM** (`throwableForm`: the string's own text, the
+        // object's own `message` member, or the kind of value it was, read off own members only), and the
+        // closed report's list — the list the crossing hands the caller — holds it at that entry's `seq`.
+        terminalComposed(kernel, attempt, null, `the constraint ${pair.id} threw; the attempt is closed — the `
+          + `value it threw was ${throwableForm(body)}`);
         // **⟶ AND THE VALUE IS MARKED HERE, BY THE FRAME THAT CAUGHT IT FROM THE BODY — `DEF-S`, 2026-10-26,
         // on the architect's ruling *"Expand the returned error set for both S/N"*.** The mark is what the
         // entry's `constraintCrossing` converts on, and an UNMARKED value still crosses as itself

@@ -53,6 +53,10 @@
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 
 import { storeCreate } from '../../bindings/js/index.mjs';
+// **`D-55`'s `DEF-AO`/`DEF-X` CELLS READ THE KERNEL'S OWN ITEMS** (`K-2`/`K-3`/`K-5`): the closed report a
+// consumer holds and the pass shape the delete has no verb for are kernel-level facts, and the barrel is the
+// kernel's one checkout home (`kernel-surface.md §1` item 1).
+import * as kernel from '../../bindings/js/src/constraint-kernel.mjs';
 import { kernelFor } from '../../bindings/js/src/entry/kernel-foundations.mjs';
 import { currentWindow, openCommits } from '../../bindings/js/src/entry/state.mjs';
 
@@ -890,6 +894,310 @@ console.log('\n── W9 · `D-54` — three hosts where a pass runs, and the re
   console.log('        judges it there; and no pass consumes a request another window raised. The two declared');
   console.log('        windows that run NO pass stand exactly as they stood: the delete\'s delivery (reported on');
   console.log('        `discarded`, effect standing) and the registration\'s own evaluation (silent, identity-only).');
+}
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+// (W10) `D-55`'s CLARIFICATIONS — THE FIVE ROWS THIS PASS SETTLES, EACH MEASURED ON THE SHIPPED ARTEFACT
+//
+// **THE RULING** (`strata/decisions.md` · `D-55`, 2026-10-28, the architect, verbatim, six clarifications).
+// The rows are `DEF-AH` (a witness entry's address LIST is never empty), `DEF-AK` (a thrown message stands in
+// the message log), `DEF-AN` (a refused edit undoes the WHOLE commit), `DEF-AO` (a closed attempt's report and
+// log do not mutate after the handoff) and `DEF-AP` (two listeners each reversing in one commit judge the
+// state the commit STANDS at). `DEF-X` IS A MEASUREMENT and not a build: can a delete run a constraint pass?
+//
+// **EACH CELL PRINTS THE READING IT TOOK BEFORE IT ASSERTS ANYTHING** (`D-21`), and every clause cited is a
+// comment — no `docs/**` path is opened at runtime (`D-17`).
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+console.log('\n── W10 · `D-55` — the five settled rows, measured ───────────────────────────────────');
+{
+  /** THE CROSSED STATUS OF A CAUGHT VALUE, or `<answered>` — a local spelling, so no cell here reads a
+   *  helper another section happens to define. */
+  const statusOf = (caught) => (caught !== null && typeof caught === 'object' && typeof caught.status === 'string'
+    ? caught.status
+    : '<no status on the caught value>');
+
+  // ── (AH-1) AN ENTRY WITH AN EMPTY ADDRESS LIST IS NEVER SHIPPED — `DEF-AH` ─────────────────────────
+  // THE MEASUREMENT THE ROW FILES, DRIVEN: a delete's listener makes a NESTED WRITE and then reverses an op
+  // that moved NOTHING the registry watches. The request is raised (the action ran in this window), its
+  // moved set is EMPTY, and `1.3.0` reported `addresses: []` — a LIST, which `D-55` says is not a legal
+  // response for any watched address. **NOTHING MOVED, SO THERE IS NO DISCARD TO REPORT: THE ENTRY IS ABSENT.**
+  const ahStore = make();
+  ahStore.write(['window'], 'mem', tabsSeed());
+  const ahPrior = ahStore.write(['elsewhere'], 'mem', 1);
+  const ahAsks = [];
+  attempt(() => ahStore.addConstraint({ address: ['window'], id: 'window-pair' }, (context) => {
+    ahAsks.push(context.attempt === null ? 'registration' : 'pass');
+    return true;
+  }));
+  let ahRollback = null;
+  const ahHandle = ahStore.listen('ah-listener', [['window', 'tabs']]);
+  ahStore.register(ahHandle, () => {
+    // THE NESTED WRITE, and then a reversal of an op the watched address never held.
+    attempt(() => ahStore.write(['elsewhere'], 'mem', 2));
+    ahRollback = attempt(() => ahStore.rollback(ahPrior.op.opId));
+  });
+  const ahReceipt = attempt(() => ahStore.delete(['window', 'tabs', 'landingPage']));
+  const ahDiscarded = ahReceipt.ok && Array.isArray(ahReceipt.value.discarded) ? ahReceipt.value.discarded : null;
+  const ahEmptyEntries = ahDiscarded === null ? null : ahDiscarded.filter((one) => Array.isArray(one.addresses)
+    && one.addresses.length === 0).length;
+  P('DEF-AH · the delete\'s `discarded` (the nested-write arm)', ahDiscarded);
+  P('DEF-AH · entries with an EMPTY address list', ahEmptyEntries);
+  P('DEF-AH · the pair\'s asks (registration / pass)', ahAsks);
+  P('DEF-AH · the reversal the listener raised', ahRollback === null ? '<not reached>'
+    : (ahRollback.ok ? 'answered its record' : String(ahRollback.caught)));
+  A('DW-10.1', '`D-55` item 2 / `DEF-AH` (2026-10-28): *"A witness address of [] corresponds to the register itself. This is not a legal response for any other watched address"* — an empty address LIST is never lawful',
+    'a discarded request whose reversal moved NOTHING ships NO entry — `discarded` is the empty list, and no entry carries an empty `addresses` — because nothing moved and there is no discard to report',
+    ahReceipt.ok === true && ahDiscarded !== null && ahDiscarded.length === 0 && ahEmptyEntries === 0
+      && ahRollback !== null && ahRollback.ok === true,
+    `receipt ${ahReceipt.ok ? 'answered' : String(ahReceipt.caught)} · discarded ${JSON.stringify(ahDiscarded)} · `
+      + `empty-list entries ${ahEmptyEntries} · asks ${JSON.stringify(ahAsks)}`);
+
+  // ── (AH-2) AND THE ROOT STAYS AN ADDRESS — `[[]]`, NOT `[]` ─────────────────────────────────────────
+  // The pair stands at the ROOT (`[]` — the register itself), so a reversal that moves the root's assembled
+  // value moves THAT ADDRESS. **ONE ELEMENT WHOSE SEGMENT LIST IS EMPTY** is the distinction the ruling draws,
+  // and it is printed beside the empty-LIST arm above so a reader cannot confuse the two.
+  const ahRootStore = make();
+  ahRootStore.write(['a'], 'mem', 1);
+  const ahRootPrior = ahRootStore.write(['c'], 'mem', 5);
+  const ahRootPair = attempt(() => ahRootStore.addConstraint({ address: [], id: 'root-pair' }, () => true));
+  const ahRootHandle = ahRootStore.listen('ah-root-listener', [['a']]);
+  ahRootStore.register(ahRootHandle, () => { attempt(() => ahRootStore.rollback(ahRootPrior.op.opId)); });
+  const ahRootReceipt = attempt(() => ahRootStore.delete(['a']));
+  const ahRootDiscarded = ahRootReceipt.ok && Array.isArray(ahRootReceipt.value.discarded)
+    ? ahRootReceipt.value.discarded : null;
+  const ahRootAddresses = ahRootDiscarded !== null && ahRootDiscarded.length === 1
+    && Array.isArray(ahRootDiscarded[0].addresses) ? ahRootDiscarded[0].addresses : null;
+  P('DEF-AH · the ROOT pair registered', ahRootPair.ok);
+  P('DEF-AH · `discarded` where the reversal moved the ROOT', ahRootDiscarded);
+  P('DEF-AH · `addresses` — one element, the empty SEGMENT list', ahRootAddresses);
+  A('DW-10.2', '`D-55` item 2 / `DEF-AH`: an ADDRESS of `[]` IS the register and must appear — `[[]]` — while a LIST of `[]` is never shipped',
+    'a reversal that moves the root reports `addresses: [[]]` — length `1`, whose one element is the empty segment list — so the root is distinguishable from the empty list above',
+    ahRootPair.ok === true && ahRootDiscarded !== null && ahRootDiscarded.length === 1
+      && ahRootAddresses !== null && ahRootAddresses.length === 1
+      && Array.isArray(ahRootAddresses[0]) && ahRootAddresses[0].length === 0,
+    `pair ${ahRootPair.ok} · discarded ${JSON.stringify(ahRootDiscarded)} · addresses ${JSON.stringify(ahRootAddresses)}`);
+
+  // ── (AK) THE THROWN MESSAGE STANDS IN THE MESSAGE LOG — `D-55` item 1 / `DEF-AK` ────────────────────
+  // THE CLARIFICATION, VERBATIM: *"Include a thrown message in the message log. Obviously."* **THE MEASURED
+  // DEFECT:** the crossed rank-`18` form's `log` carried only the attempt's `outcome` entry and the thrown
+  // value's own literal occurred ZERO times in it, while the crossed sentence claimed *"a constraint body's
+  // throwable crosses as this refusal"*. **Now the terminal entry's sentence carries the form the value took,
+  // and the crossed sentence says in its own words that the value does NOT cross as this refusal.**
+  const thrownForms = [
+    { label: 'an `Error`', thrown: new Error('DW-THROWN-ERROR'), literal: 'DW-THROWN-ERROR', expects: 'own `message` member' },
+    { label: 'a string', thrown: 'DW-THROWN-STRING', literal: 'DW-THROWN-STRING', expects: 'a string whose text is' },
+    { label: 'an object without `message`', thrown: { note: 'no message member' }, literal: null, expects: 'carrying no own string' },
+  ];
+  const thrownReadings = [];
+  for (const one of thrownForms) {
+    const store = make();
+    store.write(['a'], 'mem', 1);
+    const pair = attempt(() => store.addConstraint({ address: ['a'], id: 'thrower' }, (context) => {
+      if (context.value === 7) throw one.thrown;
+      return true;
+    }));
+    const caught = attempt(() => store.write(['a'], 'mem', 7));
+    const crossed = caught.ok ? null : caught.caught;
+    const log = crossed !== null && Array.isArray(crossed.log) ? crossed.log : [];
+    thrownReadings.push({
+      label: one.label,
+      pair: pair.ok,
+      status: crossed === null ? null : crossed.status,
+      message: crossed === null ? null : crossed.message,
+      log: log.map((entry) => ({ seq: entry.seq, kind: entry.kind, message: entry.message })),
+      inLog: one.literal === null ? null : log.some((entry) => String(entry.message).includes(one.literal)),
+      formSaid: log.some((entry) => String(entry.message).includes(one.expects)),
+    });
+  }
+  P('DEF-AK · the throwable\'s form in the crossed `log`', thrownReadings.map((one) => ({
+    thrown: one.label, status: one.status, inLog: one.inLog, form: one.formSaid,
+    log: one.log.map((entry) => `${entry.kind}: ${entry.message}`),
+  })));
+  P('DEF-AK · the crossed message for an `Error`', thrownReadings[0] === undefined ? '<not reached>' : thrownReadings[0].message);
+  A('DW-10.3', '`D-55` item 1 / `DEF-AK` (2026-10-28): *"Include a thrown message in the message log. Obviously."*',
+    'a constraint body that throws an `Error` crosses `ConstraintBodyThrew` whose `log` holds an entry PRINTING THE THROWN MESSAGE, and the crossed sentence says the value does NOT cross as this refusal',
+    thrownReadings.length === 3 && thrownReadings.every((one) => one.pair === true && one.status === 'ConstraintBodyThrew')
+      && thrownReadings[0].inLog === true && thrownReadings[0].formSaid === true
+      && typeof thrownReadings[0].message === 'string'
+      && thrownReadings[0].message.includes('does NOT cross as this refusal'),
+    JSON.stringify(thrownReadings.map((one) => ({ thrown: one.label, status: one.status, inLog: one.inLog }))));
+  A('DW-10.4', '`D-55` item 1 / `DEF-AK` — a NON-`Error` reaches the log in a form a consumer can read, and the form is SAID rather than silently stringified',
+    'a thrown string reaches the log as *"a string whose text is …"* with the literal present, and a thrown object with no `message` reaches it as *"an object … carrying no own string `message` member"* — the form each value took is named',
+    thrownReadings.length === 3
+      && thrownReadings[1].inLog === true && thrownReadings[1].formSaid === true
+      && thrownReadings[2].formSaid === true,
+    JSON.stringify(thrownReadings.map((one) => ({ thrown: one.label, inLog: one.inLog, form: one.formSaid }))));
+
+  // ── (AN) A REFUSED EDIT UNDOES THE WHOLE COMMIT — `D-55` item 5 / `DEF-AN` ──────────────────────────
+  // THE BEHAVIOUR WAS ALREADY CORRECT AND NOTHING SAID SO: the restore names the mark the commit cached at its
+  // OUTERMOST OPENING, so a write that SUCCEEDED earlier in the same commit is undone with the refusal. **THE
+  // MEASUREMENT: the write lands, a listener's reversal inside its window moves the watched state, the
+  // restarted check refuses, and the store stands at the state the commit OPENED at — the landing's own value
+  // gone with the reversal's.**
+  const anStore = make();
+  anStore.write(['x'], 'mem', { y: 1 });
+  const anPrior = anStore.write(['x', 'z'], 'mem', 9);
+  const anAsks = [];
+  attempt(() => anStore.addConstraint({ address: ['x'], id: 'x-must-keep-z' }, (context) => {
+    anAsks.push(context.value);
+    return context.value !== undefined && context.value.z === 9
+      ? true : { message: 'x must keep z' };
+  }));
+  const anHandle = anStore.listen('an-listener', [['x', 'y']]);
+  anStore.register(anHandle, () => { attempt(() => anStore.rollback(anPrior.op.opId)); });
+  const anOpenedAt = anStore.read(['x']);
+  const anWrite = attempt(() => anStore.write(['x', 'y'], 'mem', 2));
+  const anAfter = anStore.read(['x']);
+  P('DEF-AN · the state the commit OPENED at', anOpenedAt);
+  P('DEF-AN · the write\'s answer', anWrite.ok ? 'ANSWERED (no refusal — the finding)' : statusOf(anWrite.caught));
+  P('DEF-AN · the pair asked at', anAsks);
+  P('DEF-AN · the store after the refusal (the landing undone with it)', anAfter);
+  A('DW-10.5', '`D-55` item 5 / `DEF-AN`: *"A constraint-refused edit rolls back to the previous safe state, with all edits in the commit undone"* — and the restore is the OUTERMOST opening mark',
+    'the write that SUCCEEDED before the refusal is undone with it: the refusal crosses `ConstraintPassRefused` and the store stands at the state the commit opened at — `x.y` back at `1` and `x.z` back at `9`',
+    anWrite.ok === false && statusOf(anWrite.caught) === PASS_REFUSED
+      && JSON.stringify(anAfter) === JSON.stringify(anOpenedAt)
+      && anAsks.length === 2 && anAsks[0].z === 9 && anAsks[1].z === undefined,
+    `answer ${anWrite.ok ? 'ANSWERED' : statusOf(anWrite.caught)} · asks ${JSON.stringify(anAsks)} · opened `
+      + `${JSON.stringify(anOpenedAt)} · after ${JSON.stringify(anAfter)}`);
+
+  // ── (AO) THE HANDED-OFF RECORD IS FINAL — `D-55` item 6 / `DEF-AO` ──────────────────────────────────
+  // THE CLARIFICATION, VERBATIM: *"Attempts don't log. This is what the commits are for. The commits have their
+  // log handed off to the client and are dropped after closing out."* **SO THE CLOSED REPORT AND THE LOG ARE
+  // SEALED AT THE HANDOFF**: the drain's amendment is the last act of closing out, and after it a later act can
+  // neither append to the list nor re-member the report. **THE DRIVE HOLDS BOTH RECORDS — the crossed refusal
+  // and the closed report read through `K-5` — AND DRIVES MORE.**
+  const aoStore = make();
+  aoStore.write(['a'], 'mem', 9);
+  attempt(() => aoStore.addConstraint({ address: ['a'], id: 'must-be-9' }, (context) => (context.value === 9
+    ? true : { message: 'a must stand at 9' })));
+  // THE RECORD IS TAKEN THROUGH THE KERNEL'S OWN ITEMS SO THE **REPORT** IS IN HAND TOO (`K-2`/`K-3`/`K-5`).
+  const aoRecord = kernel.commit(aoStore, ['a'], 'mem', 5);
+  const aoThrown = attempt(() => kernel.runAttempt(aoStore, aoRecord));
+  const aoReport = kernel.report(aoStore, aoRecord.attempt);
+  const aoCrossedLog = !aoThrown.ok && aoThrown.caught !== null && typeof aoThrown.caught === 'object'
+    && Array.isArray(aoThrown.caught.log) ? aoThrown.caught.log : null;
+  const aoBefore = aoReport === undefined || aoReport === null ? null : JSON.stringify(aoReport.log);
+  const aoBeforeOutcome = aoReport === undefined || aoReport === null ? null : aoReport.outcome;
+  // DRIVE MORE: a passing write, a refused write, a reversal, a delete — the commit this record belongs to is
+  // closed and dropped, so none of them may move it.
+  attempt(() => aoStore.write(['b'], 'mem', 1));
+  attempt(() => aoStore.write(['a'], 'mem', 6));
+  const aoLater = attempt(() => aoStore.write(['a'], 'mem', 8));
+  if (aoLater.ok) attempt(() => aoStore.rollback(aoLater.value.op.opId));
+  attempt(() => aoStore.delete(['b']));
+  const aoAfter = aoReport === undefined || aoReport === null ? null : JSON.stringify(aoReport.log);
+  P('DEF-AO · the crossed refusal\'s status / log', aoThrown.ok ? '<no throw>' : [statusOf(aoThrown.caught),
+    aoCrossedLog === null ? '<no log>' : aoCrossedLog.length]);
+  P('DEF-AO · the closed report (`K-5`) — outcome · one list? · frozen?', aoReport === undefined || aoReport === null
+    ? '<none>' : [aoBeforeOutcome, aoReport.log === aoCrossedLog, Object.isFrozen(aoReport)]);
+  P('DEF-AO · `report.log` frozen? · the CROSSED log is that same list?', aoReport === undefined || aoReport === null
+    ? '<none>' : [Object.isFrozen(aoReport.log), aoReport.log === aoCrossedLog]);
+  P('DEF-AO · the held log BEFORE → AFTER the further drives', [aoBefore, aoAfter]);
+  A('DW-10.6', '`D-55` item 6 / `DEF-AO` (2026-10-28): *"a consumer holding a refusal is holding the record, and a record that changes after the handoff is not a record"*',
+    'the closed attempt\'s report AND its log are FROZEN at the handoff, the crossed refusal\'s log is that same list, and further drives leave the held record byte-for-byte unchanged',
+    aoThrown.ok === false && aoReport !== undefined && aoReport !== null
+      && aoBefore !== null && aoBefore === aoAfter
+      && Object.isFrozen(aoReport) === true && Object.isFrozen(aoReport.log) === true
+      && aoReport.log === aoCrossedLog,
+    `report ${aoReport === undefined || aoReport === null ? '<none>' : 'held'} · frozen report `
+      + `${aoReport === undefined || aoReport === null ? '<none>' : Object.isFrozen(aoReport)} · frozen log `
+      + `${aoReport === undefined || aoReport === null ? '<none>' : Object.isFrozen(aoReport.log)} · `
+      + `same list ${aoReport === undefined || aoReport === null ? '<none>' : aoReport.log === aoCrossedLog} · `
+      + `unchanged ${aoBefore === aoAfter}`);
+
+  // ── (AP) THE DRAIN JUDGES THE STATE THE COMMIT STANDS AT — `D-55` item 6 / `DEF-AP` ──────────────────
+  // THE MEASUREMENT THE ROW FILES, DRIVEN: TWO LISTENERS EACH REVERSE IN ONE COMMIT. Registered first is the
+  // pair the passing raise would be judged against (`b`), and the VIOLATING raise belongs to the listener that
+  // registered FIRST (`a`) — so under the old one-request record the later raise REPLACED the earlier, the
+  // earlier violation was asked ZERO times, and the write returned normally with it standing. **NOW the request
+  // merges to the earliest capture of each address, so BOTH pairs are asked at the state the commit stands at
+  // and the write is refused.**
+  const apStore = make();
+  apStore.write(['a'], 'mem', {});
+  apStore.write(['b'], 'mem', {});
+  apStore.write(['t'], 'mem', {});
+  const apOpA = apStore.write(['a', 'keep'], 'mem', 5);
+  const apOpB = apStore.write(['b', 'keep'], 'mem', 5);
+  const apAsksB = [];
+  const apAsksA = [];
+  // REGISTRATION ORDER puts the PASSING pair (`b`) first, so the walk reaches it before the violating one.
+  attempt(() => apStore.addConstraint({ address: ['b'], id: 'b-pair' }, (context) => {
+    apAsksB.push(context.value);
+    return true;
+  }));
+  attempt(() => apStore.addConstraint({ address: ['a'], id: 'a-pair' }, (context) => {
+    apAsksA.push(context.value);
+    return context.value !== undefined && context.value.keep === 5
+      ? true : { message: 'a.keep must stand at 5' };
+  }));
+  // LISTENER ORDER: the VIOLATING raise first (`a`), the passing one second.
+  const apListenerA = apStore.listen('ap-a', [['t']]);
+  const apListenerB = apStore.listen('ap-b', [['t']]);
+  apStore.register(apListenerA, () => { attempt(() => apStore.rollback(apOpA.op.opId)); });
+  apStore.register(apListenerB, () => { attempt(() => apStore.rollback(apOpB.op.opId)); });
+  const apOpenedAt = [apStore.read(['a']), apStore.read(['b'])];
+  const apWrite = attempt(() => apStore.write(['t', 'x'], 'mem', 1));
+  const apAfter = [apStore.read(['a']), apStore.read(['b'])];
+  P('DEF-AP · the pairs asked (`b` first, `a` the earlier listener\'s) — registration, then the drain', [apAsksB, apAsksA]);
+  P('DEF-AP · the write\'s answer', apWrite.ok ? 'ANSWERED (a violation still standing — the finding)' : statusOf(apWrite.caught));
+  P('DEF-AP · the store the commit opened at → after', [apOpenedAt, apAfter]);
+  A('DW-10.7', '`D-55` item 6 / `DEF-AP` (2026-10-28): the drain judges THE STATE THE COMMIT STANDS AT, not the request that happened to survive',
+    'with two listeners each reversing in ONE commit, BOTH pairs are asked at the drain — the earlier listener\'s raise is not lost — and the write is refused `ConstraintPassRefused` with the whole commit undone',
+    apWrite.ok === false && statusOf(apWrite.caught) === PASS_REFUSED
+      && apAsksA.length === 2 && apAsksB.length === 2
+      && JSON.stringify(apAfter) === JSON.stringify(apOpenedAt),
+    `answer ${apWrite.ok ? 'ANSWERED' : statusOf(apWrite.caught)} · asks b=${JSON.stringify(apAsksB)} `
+      + `a=${JSON.stringify(apAsksA)} · opened ${JSON.stringify(apOpenedAt)} · after ${JSON.stringify(apAfter)}`);
+
+  // ── (X) THE DELETE'S PATH — A MEASUREMENT, NOT A BUILD (`DEF-X`) ────────────────────────────────────
+  // THE CLARIFICATION, VERBATIM: *"A delete is an editing verb and must pass constraints."* **THE QUESTION THIS
+  // CELL ANSWERS IS THE CONSUMER'S OWN DOUBT: can ANY shape at `1.3.0` make a delete open a commit and run a
+  // pass?** The delete's path is printed act by act — the entry's `delete`, the addon's `delete` entry, its
+  // own commit window, its delivery, its record's `op` — and then the ONE pass shape the artefact has (`K-2`
+  // then `K-3`) is driven at the same address to show what it costs: `K-2` **LANDS A WRITE**, so the pass it
+  // runs judges a state the delete is not in. **NO SHAPE RUNS A PASS ON A DELETE'S BEHALF, AND THIS PASS DOES
+  // NOT BUILD ONE.**
+  const xStore = make();
+  xStore.write(['a'], 'mem', { b: 1 });
+  const xAsks = [];
+  const xPair = attempt(() => xStore.addConstraint({ address: ['a'], id: 'a-pair' }, (context) => {
+    xAsks.push({ at: context.attempt === null ? 'registration' : 'pass', value: context.value });
+    return true;
+  }));
+  const xAsksBefore = xAsks.length;
+  let xOpenInsideDelivery = null;
+  const xHandle = xStore.listen('x-listener', [['a', 'b']]);
+  xStore.register(xHandle, () => { xOpenInsideDelivery = openCommits(xStore); });
+  const xReceipt = attempt(() => xStore.delete(['a', 'b']));
+  const xAsksAfter = xAsks.length;
+  // THE ONLY PASS SHAPE THE ARTEFACT HAS, DRIVEN AT THE SAME ADDRESS — and it lands a write of its own.
+  const xKernelRecord = kernel.commit(xStore, ['a'], 'mem', { c: 2 });
+  const xKernelRun = attempt(() => kernel.runAttempt(xStore, xKernelRecord));
+  const xAfterKernel = xStore.read(['a']);
+  P('DEF-X · the delete\'s path — its record', xReceipt.ok
+    ? { address: xReceipt.value.address, tiers: xReceipt.value.tiers, op: xReceipt.value.op === null ? null : xReceipt.value.op.kind }
+    : String(xReceipt.caught));
+  P('DEF-X · the commit count inside the delete\'s own delivery', xOpenInsideDelivery);
+  P('DEF-X · the pair\'s asks — before the delete · after it', [xAsksBefore, xAsksAfter]);
+  P('DEF-X · the ONE pass shape (`K-2`+`K-3`), driven at the same address', xKernelRun.ok
+    ? { pairAsked: xAsks.length > xAsksAfter, storeAfter: xAfterKernel } : String(xKernelRun.caught));
+  A('DW-10.8', '`D-55` item 3 / `DEF-X` (2026-10-28): *"A delete is an editing verb and must pass constraints"* — and no shape at `1.3.0` admits one',
+    'the delete opens a commit window of its own and runs NO pass: the pair is asked exactly as often as its registration asked it, and the only pass shape the artefact has (`K-2`+`K-3`) LANDS A WRITE of its own before it judges — so a delete would have to be GIVEN a commit and an attempt of its own, which the current verb does not have',
+    xPair.ok === true && xReceipt.ok === true && xOpenInsideDelivery === 1
+      && xAsksBefore === 1 && xAsksAfter === 1
+      && xKernelRun.ok === true && xAsks.length === xAsksAfter + 1
+      && JSON.stringify(xAfterKernel) === JSON.stringify({ c: 2 }),
+    `pair ${xPair.ok} · delete ${xReceipt.ok} · open inside delivery ${xOpenInsideDelivery} · asks `
+      + `${JSON.stringify([xAsksBefore, xAsksAfter])} · kernel pass ${xKernelRun.ok} · store after the kernel `
+      + `pass ${JSON.stringify(xAfterKernel)}`);
+  console.log('');
+  console.log('        THE SENTENCE TO CARRY AWAY (`D-55`): A WITNESS ENTRY NEVER SHIPS AN EMPTY ADDRESS LIST while');
+  console.log('        the ROOT still stands as `[[]]`; a thrown message stands in the commit\'s log and the crossed');
+  console.log('        sentence no longer claims the value crosses; a refused edit undoes the WHOLE commit to the');
+  console.log('        mark its OUTERMOST opening cached; the handed-off report and log are FROZEN; and the drain');
+  console.log('        judges the STATE THE COMMIT STANDS AT, so two raises in one commit are both judged.');
+  console.log('        AND `DEF-X` IS STILL A MEASUREMENT: the delete runs no pass, and no shape at this version');
+  console.log('        can make it run one without being given a commit and an attempt of its own.');
 }
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════

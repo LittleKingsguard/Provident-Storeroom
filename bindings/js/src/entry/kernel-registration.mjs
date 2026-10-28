@@ -549,6 +549,12 @@ function registrationRerun(kernel, attempt, produced) {
       // **⟶ ADDED 2026-10-26 (`DEF-S`, the same ruling): a body thrown at the synthetic attempt's re-run is
       // marked at this frame too — the mark carries the attempt's own log and address, and the entry's
       // crossing converts a marked value only** (`markBodyThrow`, `kernel-foundations.mjs`).
+      // **⟶ AND NEITHER THIS FRAME NOR THE REGISTRATION-TIME EVALUATION ABOVE APPENDS A THROWABLE ENTRY, 2026-10-28
+      // — `DEF-AK`'s RECORDED ARM IS THE LANDING'S.** The re-run appends no `constraint-check` entry for the
+      // evaluation it threw in (the pair's own function ran at the registration instant), and no `outcome`
+      // entry stands because this throwable propagates before any terminal act — so there is no entry of the
+      // closed four this frame could honestly extend, and no fifth `kind` is minted for it. The registration
+      // instant's `log` is `surface.md §2.5` item 4's declared `[]` and stays it (`DEF-S`'s own cell reads it).
       throw markBodyThrow(body, attempt.address, attempt.log);
     } finally {
       leaveCommitFrame(kernel);

@@ -229,6 +229,61 @@ export function markBodyThrow(thrown, address, log) {
   }
 }
 
+/// **⟶ ADDED 2026-10-28 — `D-55` ITEM 1, THE ARCHITECT, VERBATIM: *"Include a thrown message in the message
+/// log. Obviously."*** **THE MEASURED DEFECT (`DEF-AK`):** a constraint body that threw its own `Error`
+/// crossed as the rank-`18` `ConstraintBodyThrew` whose `log` carried **only the attempt's `outcome` entry** —
+/// the thrown value's own literal occurred **zero times** in it — while the crossed sentence said *"a
+/// constraint body's throwable crosses as this refusal"*. **The commit's log now carries the throwable's own
+/// form, written into the ONE `outcome` entry the terminal act appends at the frame that caught the body —
+/// before the attempt is disposed of and before the record is handed off** (`kernel-attempt.mjs`'s `evaluate`;
+/// no second entry and no fifth `kind` is minted).
+///
+/// **WHAT THE FORM IS, AND WHY IT NAMES WHAT IT READ RATHER THAN A CLASS.** The value is the CALLER'S OWN —
+/// it may be an `Error`, a string, a number, an object with no `message`, a `Proxy` — so the spelling is
+/// built from **own data members only** (`ownMember`, `[[GetOwnProperty]]`, `D-35`'s read half) and from the
+/// language's own `typeof`. **NO PROTOTYPE IS CONSULTED**: `instanceof`, `constructor.name` and
+/// `Object.prototype.toString` all walk a chain a caller owns, and a `Proxy`'s trap would RUN here, on a
+/// refusal path. **AND A CLASS IS NEVER CLAIMED**: *"an object whose own `message` member is the string …"*
+/// is true of an `Error` and of a plain object alike, which is what the reading supports.
+///
+/// **THE FORM IS NAMED AND NOT SILENTLY STRINGIFIED**: a thrown string is *"a string whose text is …"*, a
+/// number *"a number whose value is …"*, a thrown `void 0` *"no value at all"*, an object without a `message`
+/// *"an object carrying no own string `message` member"*. A consumer therefore reads WHAT KIND of value the
+/// body threw beside whatever text it carried.
+///
+/// **IT IS TOTAL, AND THE ONLY READ THAT COULD RUN CALLER CODE IS THE GUARDED ONE**: this frame invokes
+/// nothing of the caller's — `ownMember` is `[[GetOwnProperty]]` and consults no chain — and the one trap it
+/// can trip (a `Proxy`'s `getOwnPropertyDescriptor`) is inside a `try`, whose arm past it answers a sentence of
+/// this frame's own. **NO `undefined` IS EVER PRINTED** (`native/contract.md §8.2` property (c); the `DEF-Q`
+/// sweep reads every entry's message for it): a thrown `void 0` says *"no value at all"* and a missing member
+/// is named as absent rather than spelled.
+export function throwableForm(thrown) {
+  if (thrown === null) return '`null`';
+  const kind = typeof thrown;
+  if (kind === 'undefined') return 'no value at all (the body threw `void 0`)';
+  if (kind === 'string') return `a string whose text is ${JSON.stringify(thrown)}`;
+  if (kind === 'number') return `a number whose value is ${String(thrown)}`;
+  if (kind === 'boolean') return `a boolean whose value is ${String(thrown)}`;
+  if (kind === 'bigint') return `a bigint whose value is ${String(thrown)}`;
+  if (kind === 'symbol') return 'a symbol, which carries no text a log can print';
+  if (kind === 'function') return 'a function, which carries no message';
+  let message;
+  let name;
+  try {
+    message = ownMember(thrown, 'message');
+    name = ownMember(thrown, 'name');
+  } catch {
+    // A `Proxy` whose `getOwnPropertyDescriptor` trap throws cannot be read at all: this frame says so and
+    // runs nothing further (`D-35`: the refusal path invokes no caller code it was not already handed).
+    return 'an object this frame could not read, so its form is not printed';
+  }
+  const named = typeof name === 'string' && name.length > 0 ? ` named ${JSON.stringify(name)}` : '';
+  if (typeof message === 'string') {
+    return `an object${named} whose own \`message\` member is the string ${JSON.stringify(message)}`;
+  }
+  return `an object${named} carrying no own string \`message\` member`;
+}
+
 /// **WHETHER A VALUE IS A REFUSAL THIS KERNEL BUILT** — the entry's crossing and this kernel's own repair
 /// arm both ask this and nothing else.
 ///
@@ -653,6 +708,44 @@ export function ownMember(value, name) {
 // nothing else — so the list travels ON the record under a symbol key that `Object.keys` and
 // `Object.getOwnPropertyNames` read past, and the record keeps its FOUR declared members.
 export const COMMIT_LOG = Symbol.for('provident-storeroom.commit-log');
+
+// ---------------------------------------------------------------------------------------------
+// **⟶ THE HANDOFF'S OWN SEAL — `D-55` ITEM 6, `DEF-AO`, ADDED 2026-10-28.** The architect, verbatim:
+// *"Attempts don't log. This is what the commits are for. The commits have their log handed off to the client
+// and are dropped after closing out."* **SO THE RECORD IS HANDED OFF ONCE, AT THE END OF THE COMMIT'S OWN
+// PROCESSING, AND A RECORD THAT CHANGES AFTER THE HANDOFF IS NOT A RECORD.**
+//
+// **WHAT WAS MEASURED BEFORE THIS ACT EXISTED.** The drain amends the REPORT a pass already closed — it sets
+// `outcome` and appends the refusal's entry to the report's list — and the list it appends to is THE COMMIT'S
+// OWN, held by reference by every attempt of the commit, the crossed refusals included. A consumer that took
+// the closed report (or a refusal carrying that list) before the drain therefore held a record that moved
+// under it. **FREEZING AT THE SEAL MAKES THE HANDED-OFF RECORD FINAL**: the drain's amendment happens BEFORE
+// this call (it is part of closing out), and nothing after it can append, renumber or re-member the list.
+//
+// **WHAT IT FREEZES, AND WHY THE LOG'S SEAL IS THE COMMIT'S.** `D-53` makes the message log THE COMMIT'S: an
+// attempt's `log` is that one list, carried by reference, and every attempt of the commit appends to it — a
+// constraint body's nested write, a repair's write, the re-run. **SO THE REPORT IS SEALED AT EVERY ATTEMPT'S
+// HANDOFF AND THE LIST IS SEALED AT THE HANDOFF OF THE ATTEMPT WHOSE SCOPE OWNS IT** (the one whose commit is
+// not an enclosing invocation's list, read off `commitLogInFlight`): freezing the list at a NESTED attempt's
+// handoff would stop the enclosing attempt's own `append` and turn a lawful write into a raw host `TypeError`
+// — measured, and the reason the `shared` argument exists. **THE LIST IS SEALED WITH ITS COMMIT**, which is
+// what *"the commits have their log handed off to the client and are dropped after closing out"* says.
+//
+// **IT FREEZES TWO THINGS AND ONLY TWO**: the report's `log` array (where this attempt's scope owns it) and
+// the report itself. **NO MEMBER MOVES, NO MEMBER IS ADDED, AND THE LIST'S IDENTITY IS UNCHANGED** — `D-53`'s
+// *"the crossed report IS that list"* is a statement about WHICH array crosses, and the same array crosses
+// (frozen): `K-5`, `K-4` and every refusal built from it read the same entries at the same `seq` ordinals.
+// **A PASSING ATTEMPT'S REPORT IS SEALED TOO** — its log is handed off exactly once and drops with the commit.
+export function sealHandoff(report, shared) {
+  if (report === null || typeof report !== 'object') return report;
+  // THE REPORT'S OWN `log` MEMBER, READ AS A MEMBER OF THE OBJECT THIS FRAME BUILT (`kernel-terminal.mjs`
+  // places the commit's list there and nothing else): an absent or non-array member is not this act's, and
+  // `refusalLog`'s own rule (`surface.md §2.5` item 4) is that a `log` is a list on every arm.
+  const log = report.log;
+  if (shared !== true && Array.isArray(log) === true) Object.freeze(log);
+  Object.freeze(report);
+  return report;
+}
 
 // **THE COMMIT'S FRAME — THE ONE STRUCTURE THAT MAKES "THE SAME COMMIT" A FACT RATHER THAN A CONVENTION.** It is
 // a per-instance stack on the kernel record (`kernel.frames`, created by `kernelFor`), pushed by the kernel

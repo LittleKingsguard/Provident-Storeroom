@@ -19,7 +19,7 @@ import { currentWindow, homeAddressKey, installRestartConsumer, isStoreReceiver,
 // function the pass appends with — rather than pushed here with a member set of its own; the REFUSAL's own
 // list keeps its five members and no `seq`, because no attempt stands at the judgement that built it
 // (`D-41` item 4). Two records, two honest forms, one append.
-import { append, externalCall, kernelFor } from './kernel-foundations.mjs';
+import { append, externalCall, kernelFor, throwableForm } from './kernel-foundations.mjs';
 // **⟶ AND THE CARRIERS, ADDED 2026-10-26 FOR THE REFUSAL'S OWN UNDOING (`DEF-W`'s `(a)`).** The
 // compensating act below reaches the store's own verb at its entry, with the SAME carrier forms every member
 // hands it (`carrier.mjs` is the boundary's one encoder for the three positions and imports nothing of this
@@ -489,7 +489,11 @@ export function registrationCrossing(refusal) {
   // is the caller's own value and is answered as it was thrown.
   const carried = bodyThrowCarried(refusal);
   if (carried !== null) {
-    const converted = bodyThrowRefusal(carried, refusal);
+    // **`false` — THE REGISTRATION INSTANT RECORDS NOTHING, AND THE CLAUSE SAYS SO.** No attempt stands at
+    // this evaluation, so the crossing's `log` is `surface.md §2.5` item 4's declared `[]` (`DEF-S`'s own cell
+    // reads it) and no terminal entry exists to carry the throwable's form: the crossed sentence must not
+    // point at a log that does not hold it (`DEF-AK`, 2026-10-28).
+    const converted = bodyThrowRefusal(carried, refusal, false);
     if (converted !== null) throw converted;
   }
   if (isKernelBuiltRefusal(refusal) === false) throw refusal;
@@ -1111,7 +1115,7 @@ function innerRefusalCarried(value) {
 /// **A TREE THAT CARRIES NO USABLE GENERATOR ANSWERS `null`**, and both crossings then re-throw the marked
 /// value AS ITSELF — the same safe direction `registrationCrossing` takes for a kernel refusal, and no
 /// sentence is authored here.
-function bodyThrowRefusal(carried, thrown) {
+function bodyThrowRefusal(carried, thrown, recorded) {
   const addon_ = withAddon();
   if (typeof addon_.errorMessage !== 'function') return null;
   const subject = typeof carried.address === 'string' ? carried.address : '';
@@ -1130,6 +1134,22 @@ function bodyThrowRefusal(carried, thrown) {
       + `ITSELF a refusal, ${JSON.stringify(innerStatus)} with the message ${JSON.stringify(innerSaid)}, and it `
       + `crosses BESIDE this one under Symbol.for('provident-storeroom.inner-refusal') with its own log — the `
       + `generated sentence above names the CODE for a body that threw and not the value the body threw`;
+  } else {
+    // **⟶ AND THE PLAIN THROWABLE'S SENTENCE STOPS CLAIMING A CROSSING IT DOES NOT MAKE — `D-55` ITEM 1,
+    // `DEF-AK`, 2026-10-28.** The generated sentence's own bytes are *"a constraint body's throwable crosses
+    // as this refusal"*, and the throwable DOES NOT: it is not carried, its members are not merged and its
+    // identity is not handed on. **WHAT DOES CROSS IS ITS MESSAGE, IN THE COMMIT'S LOG** — the terminal arm of
+    // the attempt that caught it put the form the value took (the string's own text, the object's own
+    // `message` member, or the kind of value it was) in the ONE entry the arm appends. **`recorded` IS THAT
+    // FACT, SAID BY THE CROSSING THAT CALLED THIS FRAME** (`constraintCrossing` reads the arm that records it;
+    // `registrationCrossing` and the judgement do not), **so no arm points at a `log` that does not carry it**:
+    // where the arm records nothing the clause says so and names the declared `[]` (`surface.md §2.5` item 4).
+    const where = recorded === true
+      ? `the form the throwable took stands in the \`outcome\` entry of this refusal's \`log\`, which is where `
+        + `a throwable's own message crosses`
+      : `no entry of this failure's \`log\` records it — \`log\` is the declared empty list where no attempt `
+        + `stands (surface.md §2.5 item 4) — so nothing of the value crosses`;
+    generated = `${generated} — the value the constraint body threw does NOT cross as this refusal: ${where}`;
   }
   const crossed = {
     status: BODY_THREW_STATUS,
@@ -1159,7 +1179,10 @@ function constraintCrossing(refusal) {
   // `{status, message}` AND NO MARK STILL CROSSES AS ITSELF, BELOW.**
   const carried = bodyThrowCarried(refusal);
   if (carried !== null) {
-    const converted = bodyThrowRefusal(carried, refusal);
+    // **`true` — THIS IS THE LANDING'S OWN CROSSING, AND ITS TERMINAL ARM RECORDS THE THROWABLE'S FORM**
+    // (`kernel-attempt.mjs`'s `evaluate`: the attempt closes with ONE `outcome` entry whose sentence carries
+    // `throwableForm(body)`), so the crossed sentence may point at it and `DEF-AK`'s log entry exists.
+    const converted = bodyThrowRefusal(carried, refusal, true);
     if (converted !== null) throw converted;
   }
   const isObject = refusal !== null && typeof refusal === 'object';
@@ -1494,6 +1517,23 @@ const COMPENSATING = Symbol.for('provident-storeroom.compensating-rollback');
 /// first address, which is a fact about registration order and not about the check.
 const ASKING = new WeakMap();
 
+/// **⟶ THE VALUE A BODY THREW, CARRIED FROM THE FRAME THAT CAUGHT IT TO THE ENTRY THAT MUST PRINT IT, ADDED
+/// 2026-10-28 — `D-55` ITEM 1, `DEF-AK`, MEASURED.**
+///
+/// **THE WINDOW IT CLOSES.** A pair body that throws at a reversal's judgement is caught by `reversalOutcome`,
+/// which converts it to the surface's rank-`18` form; `judgeReversal` then catches that and builds the refusal
+/// whose ONE log entry names the throwing pair. **NOTHING OF THE THROWABLE REACHED ANY RECORD**: the crossed
+/// sentence said *"a constraint body's throwable crosses as this refusal"* and the log carried only the pair's
+/// name. **D-55's clarification (the architect, verbatim: *"Include a thrown message in the message log.
+/// Obviously."*) makes the message a log entry's own business**, and no attempt log stands at this judgement —
+/// so the form travels here, from the catch frame to `reversalRefusal`'s entry sentence.
+///
+/// **A `WeakMap` KEYED BY THE CONVERTED FORM AND NOTHING ELSE** (`D-30`'s device, `D-46`): the form's three
+/// declared members are unmoved, no symbol is spelled on a value a caller holds, and the record dies with the
+/// value. **A TREE WITH NO USABLE GENERATOR IS NOT CONVERTED**, so its raw value reaches `reversalRefusal` and
+/// that frame spells the form itself (`throwableForm`) — the map answers nothing and nothing is invented.
+const THROWN_FORM = new WeakMap();
+
 /// **HOW MANY RESTARTS ONE PASS'S COMMIT SCOPE MAY TAKE** — the bound `drainRestartRequests` spends. Three is
 /// the declared figure: two fewer than any arm of this package's own batteries drives, and enough that a lawful
 /// in-commit action's single restart never meets it.
@@ -1690,6 +1730,17 @@ export function witnessDiscardedReversal(instance, window) {
   }
   // THE STORE'S OWN ECHO OF THE ID THE REVERSAL NAMED — `null` where the reversal's call answered no id (the
   // request stands and the act's answer did not reach the echo, which is a real arm a caller can see).
+  //
+  // **⟶ AND AN ENTRY IS NEVER SHIPPED WITH AN EMPTY ADDRESS LIST — `D-55` ITEM 2, `DEF-AH`, 2026-10-28.**
+  // The architect, verbatim: *"A witness address of [] corresponds to the register itself. This is not a legal
+  // response for any other watched address."* **SO `[]` IS THE REGISTER (THE ROOT) AND IS AN ADDRESS, NEVER A
+  // LIST**: a request whose reversal moved NOTHING has no discard to report — there is no legal response to
+  // give it — so **the entry is ABSENT (`null`) rather than empty**, and the caller reads `discarded: []`
+  // because nothing was discarded *observably*. **AND THE ROOT STAYS DISTINGUISHABLE**: an address that IS
+  // `[]` is one element of `addresses` — `[[]]` — which is length `1` and therefore survives this test; the
+  // distinction the ruling draws is between an ADDRESS of `[]` and a LIST of `[]`, and this is the one line
+  // where it is measured.
+  if (addresses.length === 0) return null;
   return {
     opId: typeof request.reversalId === 'string' ? request.reversalId : null,
     addresses,
@@ -1823,13 +1874,55 @@ export function reversalWatch(state, instance) {
     // judgement — a listener's own window is the measured arm), and the arm past the budget then says so
     // rather than naming a pair it cannot know.
     const asking = ASKING.get(instance);
-    restartRecord(instance).pending = {
-      watched: watchStanding(state, instance),
+    const window = currentWindow(instance);
+    // **⟶ AND A SECOND RAISE IN THE SAME COMMIT MERGES INTO THE REQUEST RATHER THAN REPLACING IT — `D-55`
+    // ITEM 6's SECOND HALF, `DEF-AP`, 2026-10-28, MEASURED.** **WHAT WAS MEASURED:** two listeners each
+    // reversing inside ONE commit — two raises in one window — left only the LAST raise judged; the earlier
+    // listener's own violation was asked **zero** times, registration order decided which raise was lost, and
+    // when the survivor's judgement passed the write returned normally **with the violation standing**. **THE
+    // ROW'S OWN ESCAPE — declare that an overwritten raise may leave a violation unjudged — IS UNAVAILABLE**,
+    // because `DEF-AN`'s safe-state rule is the promise: a refused edit undoes the WHOLE commit.
+    // **SO THE DRAIN JUDGES THE STATE THE COMMIT STANDS AT, NOT THE REQUEST THAT HAPPENED TO SURVIVE**: the
+    // request's captures are merged to the EARLIEST reading of each address — the state the commit opened at —
+    // so `movedStanding` at the drain sees every address the WHOLE commit moved, whichever raise named it.
+    // **THE WALK'S ORDER AND MEMBERSHIP STAY THE REGISTRY'S** (`watchStanding`'s `D-39` order, re-read now):
+    // an address this raise's walk carries takes the earlier capture where one exists, and an address the
+    // earlier watch carried but the registry no longer does leaves the debt record (it is not the check's
+    // subject now). **THE LATEST RAISE KEEPS ITS OWN ASK AND ITS `moved` IS RE-MEASURED**; the `reversalId`
+    // stays the first echo it recorded (`judgeReversal`'s in-flight arm sets it once), so the entry a refusal
+    // names is never re-spelled.
+    const next = watchStanding(state, instance);
+    const record = restartRecord(instance);
+    const prior = record.pending;
+    if (prior !== null && prior.window === window) {
+      const merged = [];
+      for (let index = 0; index < next.length; index += 1) {
+        const one = next[index];
+        const spelling = homeAddressKey(one.address);
+        let earlier = null;
+        for (let known = 0; known < prior.watched.length; known += 1) {
+          if (homeAddressKey(prior.watched[known].address) === spelling) {
+            earlier = prior.watched[known];
+            break;
+          }
+        }
+        appendOwn(merged, earlier === null ? one : earlier);
+      }
+      prior.watched = merged;
+      // THE MOVED SET IS RE-MEASURED AGAINST THE MERGED CAPTURES (`judgeReversal`'s in-flight arm does it at
+      // the reversal's own instant, one frame below this call) — a set measured against the later watch would
+      // hide the earlier raise's movement, which is the defect this merge closes.
+      prior.moved = null;
+      prior.asked = asking === undefined ? prior.asked : asking;
+      return watched;
+    }
+    record.pending = {
+      watched: next,
       // **AND THE MOVED SET IS MEASURED BY THE JUDGEMENT, NOT BY THE WATCH** (`judgeReversal`'s in-flight arm;
       // `DEF-AM`): the watch is taken BEFORE the reversal runs, so what moved is not knowable here.
       moved: null,
       reversalId: null,
-      window: currentWindow(instance),
+      window,
       asked: asking === undefined ? null : asking,
     };
     return watched;
@@ -2498,7 +2591,18 @@ function reversalOutcome(instance, entry, address, value) {
     // **⟶ AND THE BODY'S OWN VALUE IS HANDED IN, 2026-10-28 (`DEF-AK`)**: `bodyThrowRefusal` carries an inner
     // refusal beside the crossed one and names it in the crossed sentence, and the value the body threw is
     // the only place that refusal stands.
-    const converted = bodyThrowRefusal(carried, body);
+    //
+    // **⟶ AND ITS FORM IS TAKEN HERE, 2026-10-28 — `D-55` ITEM 1, `DEF-AK`.** No attempt stands at a reversal's
+    // judgement, so there is no terminal entry for the kernel to record it in: **the judgement's own refusal
+    // list is the log this failure crosses with**, and its ONE entry carries the form the body threw
+    // (`reversalRefusal` reads it off this `WeakMap`). **A `WeakMap` AND NOT A MEMBER**: the converted form's
+    // three members are unmoved and nothing is added to any record (`A117` (D6)).
+    const form = throwableForm(body);
+    // **`false` — NO ATTEMPT LOG STANDS AT A JUDGEMENT, AND THIS FRAME'S OWN LIST KEEPS ITS ONE ENTRY**: the
+    // form the body threw is carried through `THROWN_FORM` and printed in that entry's sentence by
+    // `reversalRefusal`, so the crossed sentence points at the `log` it actually carries (`DEF-AK`).
+    const converted = bodyThrowRefusal(carried, body, false);
+    if (converted !== null && typeof converted === 'object') THROWN_FORM.set(converted, form);
     throw converted === null ? body : converted;
   }
 }
@@ -2615,8 +2719,18 @@ function reversalRefusal(one, after, said, reversalId, undo, thrown, unsettled =
       + (said === null ? '' : ` — ${said}`)
       + ` — ${undoSpelling(undo)}`;
   } else {
+    // **⟶ AND THE THROWABLE'S OWN FORM IS PRINTED IN THIS ENTRY — `D-55` ITEM 1, `DEF-AK`, 2026-10-28.** No
+    // attempt stands at a reversal's judgement, so no commit log exists for the kernel to append to: **this
+    // refusal's ONE entry is the log the failure crosses with**, so the value the body threw is named HERE —
+    // the form the catch frame took (`THROWN_FORM`) where the value was converted, and the value's own form
+    // where the tree carried no generator to convert it. **THE ENTRY'S SHAPE, KIND, `seq` AND MEMBER COUNT DO
+    // NOT MOVE**: the form is in the sentence, not in a seventh member and not in a second entry (`D-41` item
+    // `4`'s one-entry arm, which the restoration's cell asserts).
+    const took = THROWN_FORM.get(thrown);
+    const form = typeof took === 'string' ? took : throwableForm(thrown);
     spelled = `the constraint ${one.entry.id} THREW at the judgement of the state the reversal left at `
       + `${addressSpelling(one.address)}: the value there is ${standingSpelling(after)}`
+      + ` — the value it threw was ${form}`
       + ` — ${undoSpelling(undo)}`;
   }
   const entry = {

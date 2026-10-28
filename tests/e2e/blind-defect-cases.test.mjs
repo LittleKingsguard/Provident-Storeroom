@@ -260,10 +260,28 @@ test('def_s_a_constraint_bodys_throw_at_the_write_crosses_as_the_one_plain_form'
     'ConstraintBodyThrew',
     `DEF-S: surface.md §2.12 item 3 (B) — a body's throw crosses as the set's rank 18 member; status read ${JSON.stringify(caught.status)}`,
   );
+  // **⟶ AND THE SENTENCE'S OWN BYTES ARE READ THROUGH `D-55`'s FIRST CLARIFICATION FROM 2026-10-28 — `DEF-AK`.**
+  // The architect, verbatim: *"Include a thrown message in the message log. Obviously."* **The store's generated
+  // sentence still LEADS the message BYTE-FOR-BYTE** (`DD-52`: one source for the code, and no second source is
+  // authored here), and the package appends its OWN clause AFTER it: the clause says in its own words that the
+  // throwable does NOT cross as this refusal and names where the form it threw stands — in the `outcome` entry
+  // of the `log` this refusal carries. **THE CLAUSE IS APPENDED AND NEVER SUBSTITUTED**, which is the one thing
+  // the equality below used to say and cannot say now: the base sentence is asserted as a PREFIX and the
+  // caller's own text is asserted ABSENT, so the clause this cell protects (the answer is the store's sentence
+  // and never the caller's) is measured either way.
   assert.equal(
-    caught.message,
-    RANK_18_SENTENCE,
-    `DEF-S: native/contract.md §8.2's appended rank-18 row, whose own worked example is this sentence; message read ${JSON.stringify(caught.message)}`,
+    typeof caught.message === 'string' && caught.message.startsWith(RANK_18_SENTENCE),
+    true,
+    `DEF-S: native/contract.md §8.2's appended rank-18 row, whose own worked example is this sentence, LEADS `
+      + `the answer's message (the package's clause follows it, \`D-55\`/\`DEF-AK\`); message read `
+      + `${JSON.stringify(caught.message)}`,
+  );
+  assert.equal(
+    caught.message.includes('the body refuses to answer'),
+    false,
+    `DEF-S: and the caller's own thrown text is QUOTED NOWHERE in the crossed sentence — the form the body threw `
+      + `crosses in the LOG and not in the sentence (\`DEF-A\`'s protection, unmoved); message read `
+      + `${JSON.stringify(caught.message)}`,
   );
   // §2.12 (B): "the `log` the attempt's own list where an attempt stands".
   assert.ok(caught.log.length > 0, "DEF-S: the write's refusal carries the attempt's own entries (§2.12 (B))");
@@ -287,10 +305,16 @@ test('def_s_a_constraint_bodys_throw_at_registration_crosses_as_the_one_plain_fo
     'ConstraintBodyThrew',
     `DEF-S: surface.md §2.12 item 3 (B) — the same rank 18 member at the registration instant; status read ${JSON.stringify(caught.status)}`,
   );
+  // **⟶ READ THROUGH `D-55`'s FIRST CLARIFICATION TOO (`DEF-AK`, 2026-10-28), AND THE `[]` BELOW IS WHY THE
+  // CLAUSE SAYS WHAT IT SAYS.** No attempt stands at this instant, so there is no log entry the form could
+  // stand in; the appended clause therefore says that nothing of the value crosses here and names the declared
+  // `[]` rather than pointing at a log that does not carry it. **The generated sentence still leads.**
   assert.equal(
-    caught.message,
-    RANK_18_SENTENCE,
-    `DEF-S: native/contract.md §8.2's appended rank-18 row at the registration instant; message read ${JSON.stringify(caught.message)}`,
+    typeof caught.message === 'string' && caught.message.startsWith(RANK_18_SENTENCE),
+    true,
+    `DEF-S: native/contract.md §8.2's appended rank-18 row at the registration instant LEADS the answer's `
+      + `message (\`D-55\`/\`DEF-AK\` appends the package's clause after it); message read `
+      + `${JSON.stringify(caught.message)}`,
   );
   assert.deepEqual(
     caught.log,
@@ -406,10 +430,20 @@ test('def_s_a_forged_object_crosses_as_itself_only_where_no_constraint_body_thre
     forgedAtRegistration.status,
     "DEF-A: the caller's forged `status` is not the answer at the registration instant — the conversion mints the set's rank 18 member and reads nothing of the caller's form",
   );
+  // **⟶ READ THROUGH `D-55`'s FIRST CLARIFICATION (`DEF-AK`, 2026-10-28): the store's generated sentence LEADS
+  // the answer's message and the package's OWN clause follows it. THE CLAUSE THIS CELL PROTECTS IS UNMOVED AND
+  // IS ASSERTED TWICE OVER: the generated sentence is the prefix, and the caller's forged text is nowhere in
+  // the message — the package quotes a throwable's form in the LOG, and never a caller's word in its own
+  // sentence.**
   assert.equal(
-    seenAtRegistration.message,
-    RANK_18_SENTENCE,
-    `DEF-A: native/contract.md §8.2's appended rank-18 row — the answer's message is the STORE'S GENERATED sentence and never the caller's forged text; message read ${JSON.stringify(seenAtRegistration && seenAtRegistration.message)}`,
+    typeof seenAtRegistration.message === 'string' && seenAtRegistration.message.startsWith(RANK_18_SENTENCE),
+    true,
+    `DEF-A: native/contract.md §8.2's appended rank-18 row LEADS the answer's message — it is the STORE'S GENERATED sentence; message read ${JSON.stringify(seenAtRegistration && seenAtRegistration.message)}`,
+  );
+  assert.equal(
+    seenAtRegistration.message.includes(forgedAtRegistration.message),
+    false,
+    `DEF-A: and the caller's forged text is QUOTED NOWHERE in the answer's message; message read ${JSON.stringify(seenAtRegistration && seenAtRegistration.message)}`,
   );
   assert.notEqual(
     seenAtRegistration,
@@ -436,9 +470,14 @@ test('def_s_a_forged_object_crosses_as_itself_only_where_no_constraint_body_thre
   );
   assert.notEqual(seenAtWrite.status, forgedAtWrite.status, 'DEF-A: the forged status is not the answer at the write instant either');
   assert.equal(
-    seenAtWrite.message,
-    RANK_18_SENTENCE,
-    `DEF-A: the same generated sentence at the write instant; message read ${JSON.stringify(seenAtWrite && seenAtWrite.message)}`,
+    typeof seenAtWrite.message === 'string' && seenAtWrite.message.startsWith(RANK_18_SENTENCE),
+    true,
+    `DEF-A: the same generated sentence LEADS the message at the write instant (D-55/DEF-AK appends the package's clause after it); message read ${JSON.stringify(seenAtWrite && seenAtWrite.message)}`,
+  );
+  assert.equal(
+    seenAtWrite.message.includes(forgedAtWrite.message),
+    false,
+    `DEF-A: and the caller's forged text is QUOTED NOWHERE in the answer's message at this instant either; message read ${JSON.stringify(seenAtWrite && seenAtWrite.message)}`,
   );
   assert.notEqual(seenAtWrite, forgedAtWrite, "DEF-A: and the converted arm is not the caller's own object here either");
   assert.ok(
