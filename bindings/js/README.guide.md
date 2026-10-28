@@ -715,6 +715,46 @@ cross, while a raw throw is not a commit outcome and does cross, because the cal
 catches it on the way up — and the caller's write is then never answered at all.** **If you want a listener's
 failure to stay the listener's, catch it in the listener's own body.**
 
+### §6.5a ★ THE ASYMMETRY IS THE DESIGN — a refusal is CONTAINED, a throw is NOT, and the reason is whose code failed
+
+**★ THE RULING, THE ARCHITECT, VERBATIM** (`strata/decisions.md` · `D-73`): *"Keep the throw so that the client can
+log errors cleanly"* — **and it completes `§6.5`: the independence stands, and the THROW is the one thing it does not
+cover.** **STATE THE TWO HALVES AS A PAIR, BECAUSE THE ASYMMETRY IS THE POINT:**
+
+- **A LISTENER'S REFUSAL IS CONTAINED.** **Its own commit is refused, YOUR write answers its own record, and the
+  refused value never lands** — **because a refusal is a JUDGEMENT ABOUT DATA, and the data had its chance.**
+- **★ A LISTENER'S THROW PROPAGATES TO YOU.** **YOUR write throws the listener's error** — **because a throw is an
+  ERROR IN THE CLIENT'S CODE, and code that swallows errors cannot be debugged.** **A CONTAINED THROW IS AN ERROR
+  NOBODY CAN LOG.**
+
+**AND THE REASON IS WHERE THE CODE RUNS: a listener is where YOUR handler runs** — **the screen update, the render,
+the external call** — **so when that code fails, the failure belongs to you, at the point you can see it.**
+**CONTAINMENT WOULD PRODUCE THE OPPOSITE: "your write succeeded and nothing happened" — the least debuggable outcome
+a library can produce.**
+
+**★ AND THE CONSEQUENCE, STATED SO IT IS NOT A SURPRISE: A LISTENER THAT THROWS LEAVES YOUR WRITE UNANSWERED.** **You
+see the listener's error instead of your own record, and that is your signal to log and decide.** **MEASURED
+2026-10-29 ON THIS CHECKOUT, THROUGH THE PUBLISHED ENTRY, BOTH HALVES PRINTED RAW:**
+
+- **THE THROW.** One listener at `['a']` throwing `new Error('boom-in-listener')`. **`store.write(['a'], 'mem', 1)`
+  THREW**, and what it threw **IS the listener's own `Error` — identity `===` true**, `{name: 'Error', message:
+  'boom-in-listener'}` — **and the write ANSWERED NOTHING** (`undefined`; no record was produced). **The data had
+  already landed (`read(['a'])` answered `1`), because the commit resolved before its delivery ran; what the throw
+  takes away is the ANSWER, not the write.**
+- **THE REFUSAL, as the control.** One listener at `['a']` whose body writes `['b'] = 'bad'`, against a constraint
+  at `['b']` refusing `'bad'`. **The listener's own write was refused INSIDE the listener** — `{status:
+  'ConstraintPassRefused', message: 'b may not be bad', log: […] }`, own members `["status","message","log"]` —
+  **`store.write(['a'], 'mem', 1)` RETURNED ITS OWN RECORD** with **no status and no `log`**, and `['b']` read
+  **ABSENT**. **The same caller writing `['b'] = 'bad'` directly WAS refused with the same status — so the
+  constraint was armed throughout, and the difference is only WHAT CROSSES.**
+
+**WHAT THAT MEANS FOR YOU, AND IT IS THE SHAPE TO WRITE: A LISTENER BODY LOGS ITS OWN ERRORS AND DECIDES WHETHER TO
+RETHROW.** **YOUR WRITE IS THE ONE PLACE THE LISTENER'S FAILURE SURFACES.** **Catch in the body to keep a failure
+inside the listener** (`§6.5`'s closing sentence) **— and let it out to hand the error to the caller that can log
+it.** **There is no middle arm: nothing in your record reports a listener's throw afterwards, because after a throw
+there is no record — only the error.** (`D-73`; `D-71`; `D-45`; `docs/specs/storeroom-js/contract.md §2.7`'s clause
+of the same date; `§6.6`'s item 5, where a DEPTH-TWO throw's destination is measured.)
+
 ### §6.6 ★ DELIVERY NESTS — every window is a synchronous call on one thread, and the stack is the only place its order exists
 
 **★ THE SHAPE, IN ONE STACK** (`strata/decisions.md` · `D-72`). **A commit resolves and its delivery begins; a
@@ -746,6 +786,25 @@ window that fired it invokes its next listener.** **The outer loop is suspended,
 4. **AND NOTHING ABOVE SEES BELOW** (`D-71`; `§6.5`). **A chain that fails at depth three is indistinguishable, to
    the original caller, from one that never ran:** the original record is its own, and the depth-three refusal is
    that nested commit's.
+
+5. **★ AND A THROW AT DEPTH TWO REACHES THE ORIGINAL CALLER — THE PROPERTY THIS NESTING LEFT UNDECLARED, NOW MEASURED
+   AND DECIDED.** **A FIFTH PROPERTY JOINS THE FOUR ABOVE.** (`RCA-8(g)` ANNOTATE-BESIDE: **the four stand
+   BYTE-FOR-BYTE as the reading of their own date, and item 4's *"nothing above sees below"* is unmoved for
+   OUTCOMES; what this item decides is the THROW's destination, which `D-73` alone rules.**) **THE REASON IS THE
+   STACK'S: a throw is not a commit outcome, so no nested commit contains it, and every level of this chain is a
+   synchronous call with nothing catching in between** (`§6.5a`). **MEASURED 2026-10-29 ON THIS CHECKOUT, THROUGH
+   THE PUBLISHED ENTRY:** `hA` at `['a']` whose body writes `['x']`, and `hN` at `['x']` throwing
+   `new Error('boom-in-nested-listener')`. **THE TRACE WAS `["A enters", "N throws", "A: its own write THREW
+   Error{name:'Error',message:'boom-in-nested-listener'} (=== nested error: true)", "A leaves"]`, AND THE ORIGINAL
+   `store.write(['a'], 'mem', 1)` THREW THE SAME `Error` — identity `===` true — AND ANSWERED NOTHING.** **SO WHERE
+   IT SURFACES IS: FIRST AT `A`'s OWN `write(['x'], …)` INSIDE THE LISTENER, THEN — `A` NOT HAVING CAUGHT IT — OUT
+   THROUGH THE OUTER DELIVERY INTO THE ORIGINAL CALLER.** **YES: A DEPTH-TWO THROW REACHES THE ORIGINAL CALLER, AS
+   THE SAME ERROR OBJECT AT EVERY HOP, AND LEAVES THE ORIGINAL WRITE UNANSWERED.** **AND THE STOP IS YOURS TO PLACE:
+   with `A`'s body catching instead, the measured trace was `["A enters", "N throws", "A caught Error{…} (===
+   nested error: true)", "A leaves"]` and the original write ANSWERED ITS OWN RECORD with `threw: false`** — **so
+   the DEPTH is invisible in the error unless the listener adds it, and a caller that must know where a chain failed
+   annotates the throw itself.** (`D-73`; `D-72`; `§6.5a`; `docs/specs/storeroom-js/contract.md §2.7`'s clause of
+   the same date.)
 
 **WHAT THAT MEANS FOR YOU, IN ONE SENTENCE: if you write a listener that writes, you have moved the order of your
 own effects out of the record and into the call stack, and the only thing you can still hold is the depth you

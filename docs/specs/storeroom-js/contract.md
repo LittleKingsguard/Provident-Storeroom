@@ -2089,6 +2089,35 @@ properties below are its elaboration.**
    the kernel's nine tokens and six items, `RESTART_LIMIT` `3`, the per-op floor and `§2.7`'s recipient-set reading
    are unmoved; no second window and no delivery order is minted.** (`strata/decisions.md` · `D-71` · `D-72` ·
    `D-45` · `D-70`; `DD-37`; the guide's `§6.5`–`§6.6`.)
+6. **★ ⟶ ADDED 2026-10-29 — `D-73`: THE THROW STAYS, AND THE ASYMMETRY IS THE DESIGN.** `RCA-8(g)` ANNOTATE-BESIDE:
+   **items 1–5 above stand BYTE-FOR-BYTE and are read THROUGH this clause; it adds no member, no verb, no
+   parameter, no status, no bound and no order claim.** **THE RULING, THE ARCHITECT, VERBATIM** (`strata/decisions.md`
+   · `D-73`): *"Keep the throw so that the client can log errors cleanly"* — **and it supplies the one clause item 1's
+   sentence (*"the caller does not need to know about the outcome of the listeners"*) needed to be true.** **THE TWO
+   HALVES, AS A PAIR, BECAUSE THE ASYMMETRY IS THE POINT:** a listener's **REFUSAL IS CONTAINED** — its own commit
+   refused, the triggering caller's write answering **its own record**, the refused value never landing — **because a
+   refusal is a JUDGEMENT ABOUT DATA, and the data had its chance**; a listener's **THROW PROPAGATES** — **the
+   caller's write throws the listener's error** — **because a throw is an ERROR IN THE CLIENT'S CODE, and code that
+   swallows errors cannot be debugged; a CONTAINED THROW IS AN ERROR NOBODY CAN LOG.** **THE REASON IS WHERE THE CODE
+   RUNS: a listener is where the client's own handler runs** — the screen update, the render, the external call — **so
+   a failure there belongs to the client, at the point the client can see it; containment would produce *"your write
+   succeeded and nothing happened"*, the least debuggable outcome a library can produce.** **AND THE CONSEQUENCE IS
+   DECLARED RATHER THAN LEFT TO A READER: A LISTENER THAT THROWS LEAVES THE TRIGGERING WRITE UNANSWERED** — the caller
+   sees the listener's error instead of its own record, **which is its signal to log and decide.** **MEASURED ON THIS
+   TREE, THROUGH THE PUBLISHED ENTRY, 2026-10-29:** a listener at `['a']` throwing `new Error('boom-in-listener')` —
+   `write(['a'], 'mem', 1)` **THREW that same `Error` (identity `===`) and answered nothing**, while the data had
+   landed (`read(['a'])` `1`); **the control arm's listener whose own write a pair at `['b']` refuses was refused
+   `ConstraintPassRefused` INSIDE the listener, and the caller's write RETURNED its own record with no status and no
+   `log`**; **and a DEPTH-TWO throw — `hA` at `['a']` writing `['x']` and `hN` at `['x']` throwing — surfaced FIRST at
+   `hA`'s own `write(['x'], …)` and, `hA` not catching it, REACHED THE ORIGINAL CALLER as the same error object, its
+   write unanswered** (**with `hA` catching instead, the trace stopped there and the original write answered its own
+   record — the stop is the client's to place**). **SO `D-71`'s sentence READS COMPLETE: a listener is independent of
+   the caller's commit, and its OUTCOME is its own — its refusal contained; its THROW the exception, and the client's
+   to log.** **NO CODE MOVED AND NO CELL OF THIS SECTION CHANGES** — the throw propagated before this ruling
+   (`fc81fd3`'s measurement) and **the shape a client writes is a listener body that logs its own errors and decides
+   whether to rethrow, the caller's write being the one place the error surfaces.** (`strata/decisions.md` · `D-73` ·
+   `D-71` · `D-45`; `docs/specs/storeroom-js/surface.md §2.7` item 10's clause of the same date; the guide's
+   `§6.5a`–`§6.6` item 5.)
 
 ### §2.8 The two file-behaviour readings a JS caller will meet
 

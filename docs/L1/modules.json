@@ -824,6 +824,24 @@
         "index_d_ts": 1089,
         "moved": false,
         "note": "THE `sizes_remeasured_2026_10_29` KEY ABOVE IS THE READING OF ITS OWN DATE AND IS KEPT BYTE-FOR-BYTE; this key re-reads every one of its figures and supersedes none of its bytes. MOVED: NOTHING — all thirteen part sizes, `src_entry_total` 11,974 ✓, `kernel_parts_total` 3,917 ✓, `index.mjs` 1,661 ✓, `index.d.ts` 1,089 ✓ and the barrel's 4 lines ✓ stand as that key printed them — because the three commits since it write `docs/` and `strata/` alone. THE MATCHING CLAUSES ARE docs/L1/entry-subdivision.md's, kernel-subdivision.md's, module-map.md's, test-stratification.md's and surface-deltas.md's fifth `2026-10-29` re-measures; the denominator, the tests, the allowlist, the packed members and the version are this file's `ownership_remeasured_2026_10_29` key."
+      },
+      "sizes_remeasured_2026_10_29_twenty_six_past_v1_4_0": {
+        "method": "`wc -l` at each file's own last line on this tree, re-measured 2026-10-29 for the twenty-six commits past `v1.4.0` (`git describe`: v1.4.0-26-g92d2ec6), the two after the 24-commit reading being one declaration pass (`fc81fd3`) and the `D-73` record (`92d2ec6`)",
+        "entry_parts": {
+          "refusal.mjs": 161, "artefact.mjs": 376, "state.mjs": 1125, "class-decision.mjs": 1214, "carrier.mjs": 1002,
+          "frame.mjs": 418, "delivery.mjs": 747, "constraints.mjs": 3014
+        },
+        "kernel_parts": {
+          "kernel-foundations.mjs": 1226, "kernel-registration.mjs": 847, "kernel-commit.mjs": 356,
+          "kernel-attempt.mjs": 1020, "kernel-terminal.mjs": 468
+        },
+        "kernel_parts_total": 3917,
+        "src_entry_total": 11974,
+        "barrel": 4,
+        "index_mjs": 1661,
+        "index_d_ts": 1089,
+        "moved": false,
+        "note": "THE `sizes_remeasured_2026_10_29_twenty_four_past_v1_4_0` KEY ABOVE IS THE READING OF ITS OWN DATE AND IS KEPT BYTE-FOR-BYTE; this key re-reads every one of its figures and supersedes none of its bytes. MOVED: NOTHING — all thirteen part sizes, `src_entry_total` 11,974 ✓, `kernel_parts_total` 3,917 ✓, `index.mjs` 1,661 ✓, `index.d.ts` 1,089 ✓ and the barrel's 4 lines ✓ stand as that key printed them — because the two commits since it write `docs/` and `strata/` alone: `D-73` keeps the listener's throw and declares its propagation, and a declaration moves no source line. THE MATCHING CLAUSES ARE docs/L1/entry-subdivision.md's, kernel-subdivision.md's, module-map.md's, test-stratification.md's and surface-deltas.md's sixth `2026-10-29` re-measures; the denominator, the tests, the allowlist, the packed members and the version are this file's `ownership_remeasured_2026_10_29` key."
       }
     },
     "ownership_remeasured_2026_10_29": {

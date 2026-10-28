@@ -1709,6 +1709,32 @@ independence this item declares is the COMMIT's and not the exception's.** **NOT
 unmoved.** (`strata/decisions.md` · `D-71` · `D-72` · `D-45` · `D-70`; `docs/specs/storeroom-js/contract.md §2.7`'s
 clause of the same date; the guide's `§6.5`–`§6.6`.)
 
+**10. ★ ⟶ ADDED 2026-10-29 — `D-73`: A LISTENER'S THROW IS NOT CONTAINED, AND THAT IS THE DESIGN.**
+`RCA-8(g)` ANNOTATE-BESIDE: **items 1–9 above stand BYTE-FOR-BYTE and are read THROUGH this item; it adds no member,
+no verb, no parameter, no status and no bound, and it relaxes nothing item 9 states.** **THE RULING, THE ARCHITECT,
+VERBATIM** (`strata/decisions.md` · `D-73`): *"Keep the throw so that the client can log errors cleanly"* — **and it
+supplies the clause item 9's independence needed to be true.** **THE TWO HALVES, AS A PAIR:** a listener's **REFUSAL
+IS CONTAINED** — its own commit refused, the caller's write answering **its own record**, the refused value never
+landing — **because a refusal is a JUDGEMENT ABOUT DATA, and the data had its chance**; a listener's **THROW
+PROPAGATES TO THE CALLER** — **the caller's write throws the listener's error** — **because a throw is an ERROR IN THE
+CLIENT'S CODE, and code that swallows errors cannot be debugged; a contained throw is an error nobody can log.** **THE
+REASON IS WHERE THE CODE RUNS:** a listener is where the client's own handler runs — **the screen update, the render,
+the external call** — **so a failure there belongs to the client at the point the client can see it, and containment
+would produce *"your write succeeded and nothing happened"*, the least debuggable outcome a library can produce.**
+**THE CONSEQUENCE, DECLARED: a listener that throws leaves the triggering write UNANSWERED** — **the caller sees the
+listener's error instead of its own record, which is its signal to log and decide.** **MEASURED ON THIS TREE, THROUGH
+THE PUBLISHED ENTRY, 2026-10-29:** the throw (a listener at `['a']` throwing — the caller's write threw **that same
+`Error`, identity `===`**, and answered nothing, while the data had landed); the refusal, as the control (refused
+`ConstraintPassRefused` inside the listener, the caller's record returned with no status and no `log`); **and the
+DEPTH-TWO throw** (`hA` at `['a']` writing `['x']`, `hN` at `['x']` throwing — it surfaced first at `hA`'s own
+`write(['x'], …)` and, `hA` not catching, **reached the ORIGINAL CALLER as the same error object, its write
+unanswered**; with `hA` catching instead it stopped there and the original write answered its own record). **SO THE
+SHAPE A CLIENT WRITES IS A LISTENER BODY THAT LOGS ITS OWN ERRORS AND DECIDES WHETHER TO RETHROW, the caller's write
+being the one place the error surfaces; `D-71`'s independence is the COMMIT's and not the exception's.** **NOTHING
+ELSE MOVES: the member set, the status set, the kernel's items and the bounds are unmoved, and no code changed with
+this clause.** (`strata/decisions.md` · `D-73` · `D-71` · `D-45`; `docs/specs/storeroom-js/contract.md §2.7`'s item
+6 of the same date; the guide's `§6.5a`–`§6.6` item 5.)
+
 ### §2.8 The two file-behaviour readings a JS caller will meet
 
 1. **A `delete` AND A `rollback` PERFORM NO FILE I/O.** **`file`-tier durability is produced by a

@@ -228,6 +228,31 @@
    `D-70`; `docs/specs/storeroom-js/contract.md §2.7`'s clause of the same date.)
    `[CONTRACT]`
 
+7. **★ ⟶ ADDED 2026-10-29 — `D-73`: THE THROW IS NOT CONTAINED, AND THE TWO LISTS THIS CONTRACT GOVERNS KEEP THEIR
+   SHAPES.** `RCA-8(g)` ANNOTATE-BESIDE: **items 1–6 above stand BYTE-FOR-BYTE and are read THROUGH this clause; it
+   adds no member to either list, no count, no order and no bound.** **THE RULING, THE ARCHITECT, VERBATIM**
+   (`strata/decisions.md` · `D-73`): *"Keep the throw so that the client can log errors cleanly"* — **and it
+   completes item 6's sentence about the exception.** **THE TWO HALVES AS A PAIR: a listener's REFUSAL IS CONTAINED**
+   — its own commit refused, the triggering caller's write answering **its own record**, the refused value never
+   landing — **because a refusal is a JUDGEMENT ABOUT DATA, and the data had its chance**; **a listener's THROW
+   PROPAGATES TO THE CALLER** — **the caller's write throws the listener's error** — **because a throw is an ERROR IN
+   THE CLIENT'S CODE, and code that swallows errors cannot be debugged; a contained throw is an error nobody can
+   log.** **AND THE REASON IS WHERE THE CODE RUNS:** a listener is where the client's own handler runs — the screen
+   update, the render, the external call — **so a failure there belongs to the client at the point the client can see
+   it, and containment would produce *"your write succeeded and nothing happened"*, the least debuggable outcome a
+   library can produce.** **THE CONSEQUENCE IS DECLARED: a listener that throws leaves the triggering write
+   UNANSWERED** — **nothing in `triggered` or `pending` reports it afterwards, because after a throw there is no
+   record, only the error; the caller sees the listener's error instead of its own record, which is its signal to log
+   and decide.** **MEASURED ON THIS TREE, THROUGH THE PUBLISHED ENTRY, 2026-10-29:** the throw reaching the caller as
+   **the same `Error` object (identity `===`) with the write unanswered**; the refusal contained, the caller's record
+   returned with no status and no `log`; **and a depth-two throw reaching the ORIGINAL caller as the same error
+   object, with the original write unanswered, when the depth-one body does not catch it.** **SO THE SHAPE A CLIENT
+   WRITES IS A LISTENER BODY THAT LOGS ITS OWN ERRORS AND DECIDES WHETHER TO RETHROW, the caller's write being the one
+   place the error surfaces.** **NO `P-HL` STRATEGY OR FAILURE-LIST ENTRY MOVES, `§5.5`'s DEDUPE AND WINDOW ARE
+   UNMOVED, and no member of either list changes.** (`strata/decisions.md` · `D-73` · `D-71` · `D-45`; the guide's
+   `§6.5a`–`§6.6` item 5; `docs/specs/storeroom-js/contract.md §2.7`'s item 6 of the same date.)
+   `[CONTRACT]`
+
 ### §2.6 `HL-6` — THE CONSTRAINT'S IDENTITY LIVES IN THE STORE
 
 1. **THE IDENTITY MOVES INTO THE STORE, AND THE JS CACHE STOPS BEING ITS HOME.** **`PAR-JS-25`'s IDENTITY BECOMES A STORE-SIDE FACT, RETURNED WITH THE PAIR, AND NO JS CACHE IS LOAD-BEARING FOR IT** (`P: docs/pending.md · (AA-2)`, verbatim: *"Move the identity into the store"*; `P: docs/pending.md · (Z-2)`'s question, answered). **What this retires, each at its own bytes: `(Y-2)`'s carrier reading — the cache keyed by `JSON.stringify(singleAddress)` (`bindings/js/index.mjs:2944`, `:2950`) is no longer the identity's home, so the set-address key problem `(Z-2)` raised DISSOLVES with the carrier; the single-silent-failure finding — a cache miss is no longer indistinguishable from a removal, because the identity's presence IS a store row's presence; and `(M-3)`'s proposal that `kernel.pairs` key on `id` alone is now the identity's own key, since the store holds one row per pair** (`P: docs/pending.md · (AA-2)`, items (i)–(iii)). `[CONTRACT]`
