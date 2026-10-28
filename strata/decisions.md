@@ -3988,3 +3988,33 @@ contained; its THROW is the exception, and it is the client's to log.**
 
 **TERMS: the throw kept (`1`), the refusal's containment unchanged (`1`), the reason (`1` = a contained throw is an
 unloggable error), the unanswered write declared (`1`), `D-71` completed by one clause (`1`).**
+
+---
+
+### `D-74` — `DEF-AR`: THE MESSAGE IS BOUNDED AND THE LOG ENTRY IS NOT; the log entry must be a SUMMARY of the inner refusal
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the downstream's `DEF-AR` row.
+
+**THE HALF THEY WITHDRAW, AND IT IS THEIR OWN CORRECTION.** They filed *"at N = 28 the refused state stood"*; measured
+since, **a `ConstraintBodyThrew` on a single act leaves the pre-attempt value standing** — **the restore reaches.** **Their
+earlier reading mistook a lawfully admitted inner act for a leak** — **the same error class as `DEF-AU`, third time**,
+**and they say so.**
+
+**★ THE HALF THAT STANDS, AND IT IS REAL: `longestLogEntryChars` IS `268,446,684` AT `N = 28`** (**`268,446,682` at
+`N = 26`**). **The chain is lawful — it stops at the caller's own depth limit, no loop — but A QUARTER-GIGABYTE LOG ENTRY
+IS A LIVE OBJECT A CONSUMER CAN BE HANDED.** **`1.4.0` gave `RangeError: Invalid string length` inside the caller's own
+frame and NO REFUSAL AT ALL; `1.5.0` answers `ConstraintBodyThrew` with a 307-character message at depth 28** — **so the
+MESSAGE was bounded and the LOG ENTRY never was.** **The message's bound was never applied to the entry beside it.**
+
+**THE DEMAND, VERBATIM: *"bound the log entry as the message is bounded — compose it from a summary of the inner refusal
+rather than re-serialising it."*** **So: when the value a body threw is itself a refusal — with its own status, message
+and log — the `outcome` entry's form must be a SUMMARY** (**status, entry count, the first message's own bound**),
+**never the serialised refusal.** **The entry is a log LINE, and a log line that can be 268 MB is not a line.**
+
+**AND THIS IS THE `D-58`/`D-65` CLASS ONCE MORE**: **a datum restating another datum's content instead of naming it.**
+**The message already summarised; the entry re-serialised.** **Two treatments of the same thrown value, one bounded and
+one not, and only the consumer's measurement found the second.**
+
+**TERMS: the withdrawn half (`1`), the standing half (`1` = a 268 MB entry), the bound's asymmetry (`1` = message
+bounded, entry not), the demand (`1` = summarise, do not re-serialise), the class named (`1` = a datum restating another's
+content), the cells owed (`2` = a summary form at depth, and a bound asserted on every entry).**
