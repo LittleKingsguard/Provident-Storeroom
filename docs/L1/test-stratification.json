@@ -562,5 +562,80 @@
       "it changed no member, status, token, kernel item or bound: 20 statuses · 9 `KC` tokens · 14 own members · 7 allowlist rows · 20/21 packed members · 5 `LogEntry` members · 13 `src/entry/` files · denominator 198 are all unmoved",
       "it edited no test, no source and no manifest: documentation and declarations only"
     ]
+  },
+  "remeasured_2026_10_29_twenty_seven_past_v1_4_0":   {
+    "method": "one run of each leg plus `find <dir> -type f` and `find tests -name '*.test.mjs'`, on this tree at `git describe` `v1.4.0-27-ga3312b7` \u2014 the twenty-seven commits past `v1.4.0`, and this reading is the `1.5.0` preparation, whose one commit since the 26-commit reading (`a3312b7`) writes the guide and five declarations and reaches no path under `tests/`",
+    "denominator": {
+      "figure": 198,
+      "was": 198,
+      "moved": false,
+      "reading": "`git ls-files | grep -v '^scratch/'` \u2014 the whole index is `675` and `scratch/` holds `477`, so `675 = 477 + 198` \u2713 (the itemised split is `docs/L1/modules.json`'s `ownership_remeasured_2026_10_29_twenty_seven_past_v1_4_0` key)"
+    },
+    "present_population": {
+      "tests/e2e/": 79,
+      "tests/integration/": 33,
+      "tests/unit/": 5,
+      "tests/Cargo.toml": 1,
+      "tests_total": 118,
+      "test_mjs_under_tests": 69,
+      "e2e_breakdown": {
+        "test_mjs": 55,
+        "runners": 12,
+        "support_modules": 8,
+        "evidence_json": 1,
+        "documents": 3
+      },
+      "moved": false,
+      "note": "UNMOVED against the `remeasured_2026_10_29_twenty_six_past_v1_4_0` key above: 79 + 33 + 5 + 1 = 118 \u2713 \u00b7 55 + 12 + 8 + 1 + 3 = 79 \u2713 \u00b7 69 `*.test.mjs` \u2713 (55 e2e \u00b7 11 integration \u00b7 3 unit). The twenty-seven commits add no path under `tests/` and the `1.5.0` preparation adds none."
+    },
+    "legs": {
+      "npm test": {
+        "tests": 1121,
+        "pass": 1120,
+        "fail": 0,
+        "skip": 1,
+        "exit": 0,
+        "note": "the one skip is the dispatcher-shape cell, as every reading from 2026-10-28 records"
+      },
+      "cargo test --offline": {
+        "total": 669,
+        "storeroom-native": 434,
+        "storeroom-tests": 235,
+        "failed": 0,
+        "exit": 0,
+        "reading": "434 + 235 = 669 \u2713"
+      },
+      "cargo test --offline -p storeroom-native": {
+        "passed": 434,
+        "failed": 0
+      },
+      "cargo test --offline -p storeroom-tests": {
+        "passed": 235,
+        "failed": 0
+      },
+      "npm run greens": {
+        "exit": 0,
+        "discovered_runners": 11,
+        "reading": "`CHAIN COMPLETE \u2014 11 discovered runner(s), every one exit 0`; AUTHORED 103 \u00b7 EXECUTED 103 \u00b7 PASS 103 \u00b7 FAIL 0; layer `LIVE / ASSEMBLED PACKAGE`, `APP` `NONE`"
+      },
+      "npm run test:e2e": {
+        "exit": 0,
+        "declared": 15,
+        "recorded": 15,
+        "PASS": 14,
+        "LAYER-LIMIT": 1,
+        "FAIL": 0,
+        "note": "`INSTALL-09` is the LAYER-LIMIT, as declared; `INSTALL-01` reads the packed tarball at `members=21`, version `1.5.0`"
+      },
+      "npm run typecheck": {
+        "exit": 0
+      },
+      "scripts/publish.sh --figures": {
+        "exit": 0,
+        "reading": "three shipped documents, three version lines, one generator: README.md \u00b7 README.guide.md \u00b7 RELEASE-NOTES.md each read `1.5.0`, the figure generated from `bindings/js/package.json`"
+      }
+    },
+    "moved": false,
+    "note": "THE `remeasured_2026_10_29_twenty_six_past_v1_4_0` KEY ABOVE IS THE READING OF ITS OWN DATE AND IS KEPT BYTE-FOR-BYTE; this key re-reads every one of its figures and supersedes none of its bytes. NOT ONE COUNT MOVED, and the reason is measured rather than assumed: the twenty-seven commits past `v1.4.0` add no path under `tests/`, and the `1.5.0` preparation edits eleven manifests, the rebuilt artefact, the guide, the change list and six `docs/L1` records and creates nothing. THE MATCHING CLAUSE IS docs/L1/test-stratification.md's seventh `2026-10-29` re-measure."
   }
 }
