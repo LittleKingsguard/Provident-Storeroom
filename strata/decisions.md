@@ -3393,3 +3393,24 @@ the sentence must go rather than be narrowed.**
 **TERMS: the clause false and withdrawn (`1`), `DEF-X` re-derived to three (`1`, with two of their own withdrawals),
 the CI premise refuted (`1`), the ask (`2` = do not consume what a pass did not raise; carry what it did), the
 delete-pass question answered as a third case (`1`).**
+
+---
+
+### `D-55` — THE SIX CLARIFICATIONS THAT SETTLE SEVEN ROWS, AND THE THREE THAT ARE STRUCTURAL
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the downstream's Round 13, and the architect's clarifications answering it.
+
+**THE CLARIFICATIONS, VERBATIM, EACH WITH THE ROWS IT SETTLES.**
+
+1. **"Include a thrown message in the message log. Obviously."** → **`DEF-AK`**: a body's throwable must reach **the commit's message log**, not merely be claimed in the crossed sentence. **A claim that something "crosses as this refusal" while crossing nothing is the `DEF-H` class in the sentence a consumer reads first.**
+2. **"A witness address of [] corresponds to the register itself. This is not a legal response for any other watched address"** → **`DEF-AH`**: **an ADDRESS of `[]` is the register** and is legal **for the root only**; **an entry whose address LIST is empty is never legal** — **do not ship one.** **The row's `addresses: []` is a list, not a root.**
+3. **"A delete is an editing verb and must pass constraints. This includes all of the relevant commit and message logic."** → **`DEF-X` ANSWERED: YES.** **A delete runs a constraint pass** — **and the consumer is right that no shape at `1.3.0` admits one**, so **its `1.2.0` measurement may have measured something the artifact cannot express.** **The demand is to make it expressible, not to dispute the measurement.**
+4. **"A reverse is an editing verb and must be treated as above"** → **`rollback` already is** (`D-38`), **and the rule now covers both**: **every editing verb passes constraints and carries the commit and message logic.**
+5. **"A constraint-refused edit rolls back to the previous safe state, with all edits in the commit undone. Specify this."** → **`DEF-AN` ANSWERED**: **the restore to the commit's OUTERMOST OPENING mark is CORRECT** — **a write that succeeded inside the same commit is undone *because the commit is undone*** — **and the answer must SAY SO**, since today nothing does. **The behaviour is right; the declaration is missing.**
+6. **"Attempts don't log. This is what the commits are for. The commits have their log handed off to the client and are dropped after closing out"** → **`DEF-AO` ANSWERED and `D-53` CONFIRMED at its root**: **the attempt holds no log (done), the COMMIT's log is handed off and dropped on close**, **so a closed attempt's report and log must not mutate afterwards** — **a consumer holding a refusal is holding the record, and a record that changes after the handoff is not a record.**
+
+**AND `DEF-AP` — TWO LISTENERS EACH REVERSING IN ONE COMMIT, ONLY THE LAST RAISE JUDGED** — **the demand is *judge the standing state at the drain*, and it follows from 5 and 6**: **if a refused edit undoes the whole commit, then the drain must judge the state the commit STANDS at, not the request that happened to survive.** **The row's own escape — declare that an overwritten raise can leave a violation unjudged — is now unavailable**, because 5 says the safe-state rule is the promise.
+
+**AND `DEF-AC` IS THE GUARD'S OWN ROW, ONE RELEASE ON**: **the cut-state guard was right and could not fire before its fact.** **The published `1.3.0` tarball says `v1.3.0 DOES NOT EXIST`** — **and the consumer's demand is the correct one: generate at publish, fail the publish on disagreement, and GUARD THE RELEASE NOTES TOO.** **`README.md` declaring no version is its own small gap.**
+
+**TERMS: settled by clarification (`4` = `DEF-AK`, `DEF-AH`, `DEF-X`, `DEF-AN`), confirmed and extended (`2` = `DEF-AO` from 6, `DEF-AP` from 5+6), structural (`3` = the delete's pass, the log's handoff and immutability, the standing-state drain), the guard's own row open (`1` = `DEF-AC`, with the notes and `README.md`), observations (`2` = `DEF-AD`, `DEF-AM`).**
