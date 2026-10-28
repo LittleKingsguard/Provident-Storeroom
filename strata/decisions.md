@@ -3927,3 +3927,35 @@ so nothing else can be bounded.**
 
 **TERMS: the residual closed as the design (`1`), the independence stated (`1`), the caller's blindness to a listener's
 outcome (`1`), the consequence for observability (`1` = cost is the only exposed property).**
+
+---
+
+### `D-72` — DELIVERY WINDOWS NEST SYNCHRONOUSLY AND UNBOUNDEDLY; nothing declares the cross-window order, and nothing above sees below
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the elaboration of `D-70`'s second residual, for the guide.
+
+**THE SHAPE, IN ONE STACK.** **A commit resolves and its DELIVERY begins; a listener that writes opens a commit of its
+own (`D-45`), which runs its own pass and then ITS delivery — so windows are live at once, NESTED, every level a
+synchronous call on one thread:**
+
+`outer write → its commit → its pass → its delivery → listener A → A's write (a NEW commit) → A's pass → A's delivery → listener B → …`
+
+**SO "INTERLEAVING" IS NOT CONCURRENCY; IT IS NESTED SUSPENSION.** **`A`'s entire chain runs to completion before the window
+that fired it invokes its next listener.** **The outer loop is suspended, not interleaved.**
+
+**FOUR PROPERTIES ARE UNDECLARED, AND EACH IS STATED SO THE GUIDE CAN CARRY IT:**
+
+1. **DEPTH IS UNBOUNDED** — no counter, no cap, no instrument (`D-70`'s absence). **The stack grows until the caller's
+   code stops calling.**
+2. **THE CROSS-WINDOW ORDER IS REAL AND UNDECLARED** — **within one window the order is unspecified and the list is a
+   set** (`DD-37`), **but across windows the nesting imposes one**: **a nested chain precedes the window's next
+   listener.** **The machine provides that guarantee and no clause promises it** — **so a consumer relying on the
+   opposite relies on nothing.**
+3. **RE-ENTRANCY IS UNAVOIDABLY OPEN** — **a listener that writes at the address it was delivered for fires itself
+   again**, because the store's trigger set is computed per act. **Nothing detects it; nothing is meant to. That is the
+   loop the missing guard leaves open, and the concrete shape of "no instrument you can read."**
+4. **AND NOTHING ABOVE SEES BELOW** (`D-71`) — **a nested commit's outcome, refusal and record are invisible upward, so
+   a chain that fails at depth three is indistinguishable, to the original caller, from one that never ran.**
+
+**TERMS: the nesting stated (`1`), the suspension order (`1`), depth unbounded (`1`), re-entrancy open (`1`), upward
+invisibility (`1`), the guide owed (`1`).**
