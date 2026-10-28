@@ -3480,3 +3480,41 @@ cells owed (`2` = the ancestor pair asked, and the descendant-pair direction's m
 **AND THE ONE THING THAT WOULD CHANGE THE ANSWER, NAMED SO IT IS NOT DISCOVERED**: **if a consumer must drive a delete's attempt DIRECTLY** — without going through the verb — **then it needs an item, and `K-7` `commitRemoval` becomes owed.** **No consumer can: the kernel is not a subpath, and the verb is the surface.**
 
 **TERMS: the cut-state dropped (`1`), the version line kept (`1`), the assertion narrowed (`1`), the tag set demoted to a record (`1`), the delete's commit's five jobs (`5`), the kernel item not owed and the condition that would owe it (`1`).**
+
+---
+
+### `D-58` — NO IN-FLIGHT INSIGHT, AND NO RETENTION AFTER THE HANDOFF
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, while the downstream builds its review.
+
+**THE RULING, VERBATIM:**
+
+> The client does not need any insight into the current state of a commit/attempt before it completes. Don't expose
+> any of it. After a commit/attempt resolves/rejects, the store does not need to retain the message log or other
+> client-returned data. Don't retain it.
+
+**TWO DEMANDS, EACH WITH A MEASURED TARGET ON THIS TREE.**
+
+**1 · NO IN-FLIGHT EXPOSURE.** **`K-5` (`report`) already refuses a LIVE attempt with `KC-7`** — *"the constraint attempt
+… is still open"* — **so the report cannot be read mid-run.** **`K-4` (`log`) DOES NOT: it answers a live attempt's log
+today**, **which is exactly the insight this ruling forbids** — **`D-39`'s `seq` sequence, part-way through, as a
+consumer read.** **So `K-4`'s live arm must refuse, and the same member `K-5` uses (`KC-7`) is the declared answer.** **And
+a `CommitRecord` is handed out only when the commit RESOLVES OR REJECTS** — **never while it runs.**
+
+**2 · NO RETENTION AFTER THE HANDOFF.** **`D-55` item 6 made the commit's log be *"handed off to the client and dropped
+after closing out"*** — **and only the SEAL was built** (`sealHandoff` freezes what the client received). **The DROP was
+not.** **Measured: the closed attempt's record is retained in `kernel.closed`, and the log travels with it.** **That is the
+retention `DEF-J` filed as *"no deletion site"* — and this ruling IS the deletion site.**
+
+**SO: once a commit resolves or rejects, the store keeps NO message log and no other client-returned data.** **What the
+store still needs it keeps (the outcome for `K-5`'s answer, the ops the journal holds, the reversal's record); what the
+CLIENT was handed, the store lets go.** **A retained copy is a second source of truth that can disagree with the one
+the consumer holds — and `D-55`'s seal exists precisely because a record that changes after handoff is not a record.**
+
+**AND THE BOUND THIS GIVES `R16` IS THE ONE `D-39` COULD NOT STATE**: **the resident set of the client-returned data is
+THE INSTANCE'S LIFETIME AND NOTHING LONGER, and within the instance it is THE OPEN COMMIT'S — not the closed one's.**
+**`DEF-J`'s closed-map growth stops being unbounded-in-kind**: **it may still hold outcomes, but it must not hold logs.**
+
+**TERMS: in-flight exposure closed (`1` = `K-4`'s live arm, with `K-5`'s existing `KC-7`), retention dropped (`1` = the
+log and client data on close), the deletion site `DEF-J` lacked (`1`), the handoff made single-copy (`1`), the bound
+`R16` gains (`1`).**
