@@ -1,5 +1,5 @@
 // `D-13` (`docs/L1/kernel-subdivision.md` §1 part `9d`) — the pass: bytes moved from `bindings/js/src/constraint-kernel.mjs`; no logic changed.
-import { KC, KC_TOKENS, SETTLED_ON_THE_PASSING_ARM, SAVE_FAILED_AT_THE_TERMINAL_ARM, TERMINAL_ARM, markBodyThrow, throwableForm, refuse, isKernelRefusal, pairSpelling, addressSpelling, sameAddress, kernelFor, append, appendOwn, ownMember, withdraw, landedOp, landedOpDefect, pairsAtAddress, enterCommitFrame, leaveCommitFrame, commitLogInFlight, sealHandoff } from './kernel-foundations.mjs';
+import { KC, KC_TOKENS, SETTLED_ON_THE_PASSING_ARM, SAVE_FAILED_AT_THE_TERMINAL_ARM, TERMINAL_ARM, markBodyThrow, throwableForm, refuse, isKernelRefusal, pairSpelling, addressSpelling, sameAddress, kernelFor, append, appendOwn, ownMember, withdraw, landedOp, landedOpDefect, pairsTriggered, enterCommitFrame, leaveCommitFrame, commitLogInFlight, sealHandoff } from './kernel-foundations.mjs';
 import { commitAttemptIdOf, terminal, close, dropHandoff } from './kernel-terminal.mjs';
 
 /// **⟶ ADDED 2026-10-28 — THE BUMP'S CHANNEL, SPELLED ON THIS SIDE TOO (`D-63`).** **THE PASSING SWEEP MOVES THE
@@ -553,7 +553,25 @@ function evaluate(kernel, attempt, landing) {
   // `releasePending`'s check-off — and the touched descendants INTERLEAVE into the one registration order the
   // ancestors already stand in rather than forming a second. **NO SECOND MEMBERSHIP TEST IS MINTED HERE**: the
   // predicate is `pairsAtAddress`'s, and this line only hands it the act.
-  const list = pairsAtAddress(kernel, attempt.address, landing);
+  // **⟶ AND THE SET IS THE STORE'S OWN `triggered`, FILTERED — `D-69`, 2026-10-29. THIS LINE IS THE WHOLE OF THE
+  // MOVE.** The bytes that stood here read `pairsAtAddress(kernel, attempt.address, landing)`: **the kernel walked
+  // its registry and COMPUTED A SECOND REACH** — the prefix arm from `attempt.address` and the touched arm from the
+  // act's own values (`D-66`) — while the store computed the same reach for its own trigger set, with the per-tier
+  // versions in hand (`D-67`: *"the store computes the reach of an act, and the kernel computed a second one"*).
+  // **NOW THE KERNEL COMPUTES NONE**: `pairsTriggered` asks the store's returned list which of the registry's rows
+  // it names (an equality test on a handle, no address relation), the registry supplies `HL-8` item 6's ORDER, and
+  // `D-56`'s and `D-66`'s predicates stand where the versions live (`src/store.rs`'s `registration_triggered` and
+  // `touched_below`).
+  //
+  // **THE LIST READ IS THE COMMIT'S OWN STORE ANSWER** — `record.triggered`, the set the store returned at the
+  // instant this commit's act landed (`K-2`'s write and `K-2`'s delete alike), which is the set `pending` carries
+  // whole. **AND THE RE-RUN ASKS THE SAME SET, WHICH IS `CX-12`'s OWN RULE** — *"a PASS's evaluated set is FIXED
+  // WHEN THE PASS BEGINS … the first pass and every re-run alike"* (`attempt-lifecycle.md §2.4` item 5 (iv)) —
+  // **and it is not a narrowing**: the act a repair lands runs ITS OWN pass at its own address (a verb called from
+  // a repair body is a write at the surface, `D-45`/`D-46`), so the pairs that act reaches are asked by that pass,
+  // and this re-run's office is to re-ask THIS attempt's set against the new state.
+  const stored = attempt.record === undefined ? undefined : attempt.record.triggered;
+  const list = pairsTriggered(kernel, stored);
   // **⟶ AND THE COMMIT THE INVOCATIONS OF THIS RUN NAME — `D-55` ITEM 3's DELETE-SHAPED ATTEMPT, 2026-10-29.**
   // **A WRITE'S ATTEMPT NAMES ITS `CommitRecord`** (`attempt.record`, the object `K-2` built and adopted), and
   // every verb a body calls under it JOINS that commit (`D-46`). **A DELETE'S ATTEMPT HAS NO `CommitRecord`** —

@@ -89,7 +89,7 @@ import { encodeAddress, encodeFilePath, encodeJournalLength, encodeOpId, encodeT
 import { admittedConstraintBatch, constraintAddress, decodeBaseState, decodeJournalOp, decodeSegments, decodeValue, encodeConfig, spellConstraintAddress } from './src/entry/frame.mjs';
 import { addressSpelling } from './src/entry/kernel-foundations.mjs';
 import { FORGET_PAIR, INSTANCES, STORE_INDEX, STORE_RETIREMENT, TERMINAL_ARM, carryRefusal, closeCommit, crossTriggered, currentWindow, entryOf, homeAddressKey, installAttemptSeam, isStoreReceiver, openCommit, writeRefusal } from './src/entry/state.mjs';
-import { commitPositionRefusal, constraintOverwrittenByListen, deliver, listenerStandingAt, registerOn, terminalArm } from './src/entry/delivery.mjs';
+import { commitPositionRefusal, constraintOverwrittenByListen, deliver, installRegistrationSeam, listenerStandingAt, registerOn, terminalArm } from './src/entry/delivery.mjs';
 import { ARGUMENT_POSITION_FIRST, addressSetKey, carryConstraint, constraintDetached, constraintPairKey, constraintRefuse, constraintSite, constraintUncarried, constraintDelete, constraintWrite, constraintsKernel, enumerateConstraints, judgeReversal, registrationCrossing, restoreHeldPair, reversalWatch, unionAddressSets, withEmptyLog, witnessDiscardedReversal, withdrawStanding } from './src/entry/constraints.mjs';
 const require_ = createRequire(import.meta.url);
 const ADDON_PATH = join(dirOf(fileURLToPath(import.meta.url)), 'build', 'Release', 'storeroom_js_binding.node');
@@ -1638,6 +1638,12 @@ export function storeCreate(cfg) {
   // `§4.2` item 4). **IT IS INSTALLED AFTER THE BATCH ROUTES ABOVE**, so a `listen` the construction itself
   // performs is not counted as a commit the caller opened and leaves the count at `0` on the return.
   installAttemptSeam(instance);
+  // **⟶ AND `D-69`'S REGISTRATION CHANNEL, ONCE, BY THE SAME RULE — 2026-10-29.** The registration entry admits a
+  // body of EITHER kind, and the kernel's `K-1` hands the pair's own constraint function through this channel after
+  // `listen` has written the home entry. **IT IS INSTALLED HERE BECAUSE THE REGISTRY IT FILLS IS THIS FACTORY'S
+  // `state`** (`delivery.mjs`'s `installRegistrationSeam` states the shape and the two places the kinds part
+  // company), **and it is symbol-keyed, so the product's FOURTEEN own members are unmoved** (`A117` (D6)).
+  installRegistrationSeam(instance, state);
   return instance;
 }
 

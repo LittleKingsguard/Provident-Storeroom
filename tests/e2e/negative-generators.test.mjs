@@ -1103,7 +1103,7 @@ test('ng_js_f_the_handle_inputs_answer_the_declared_form_and_no_other_registrati
 // | `3` DISTINCT ids registered at ONE address | `triggered` carries `3`, and each id fires ITS OWN function |
 // | two construction entries at one address carrying ONE caller-spelled token | `triggered` carries it ONCE, and ONE invocation happens |
 // | a `delete`'s receipt | its own `triggered` set, on the same prefix test, and its own invocation |
-// | a `delete` **AT** an entry's own address, with an entry bound at a STRICT DESCENDANT standing | `triggered` carries the NAMED address's own handle — and every STRICT ANCESTOR's, and the register-bound entry's — **and the DESCENDANT-bound handle is NOT carried, even though the delete destroys that entry's node** |
+// | a `delete` **AT** an entry's own address, with an entry bound at a STRICT DESCENDANT standing | `triggered` carries the NAMED address's own handle — and every STRICT ANCESTOR's, and the register-bound entry's — **AND the DESCENDANT-bound handle, because the delete REMOVES that entry's node and `D-66`'s criterion is TOUCHED** |
 // | a `delete` **BELOW** a listener's address | `triggered` carries the ANCESTOR-bound handle AND the handle at the deleted address itself (and the register-bound one) |
 // | the register-bound entry (`address: []`) at any edit | it fires, because the empty address IS a prefix of every address |
 // | a write whose trigger set is EMPTY | no invocation, no throw |
@@ -1119,13 +1119,16 @@ test('ng_js_f_the_handle_inputs_answer_the_declared_form_and_no_other_registrati
 // *"a delete's receipt carried `${receipt.triggered.length}` ids, not 2 — the entry AT the deleted address
 // and the entry BESIDE it are BOTH prefixes of the triggering address (§2.3 item 5), and both are
 // registered"*. **THE FALSE PREMISE IS ITS SECOND HALF: `['del','deep']` IS NOT A PREFIX OF `['del']`.**
-// **THE DECLARED RULE:** `write-and-read.md §6.5` item 10 (d) (iii) — *"a listener bound at address `W` is
-// triggered by a successful `write` or `delete` at address `X` iff `W` is a PREFIX of `X`"* — with
-// `surface.md §2.3` item 5 (*"a handle appears in a trigger's list EXACTLY where its listener's address is a
-// PREFIX of the triggering address"*) and the delete's own clause, **VERBATIM:** *"a listener bound at a
-// STRICT DESCENDANT of it does NOT [fire] (the delete resolves to the named node and removes its subtree;
-// it passes through the named address's ancestors and not through its descendants)"* (`write-and-read.md`
-// `§4.4`'s dated firing clause). **THE DECLARED RULE IS PINNED, IN THE STORE'S OWN TREE, BY**
+// **THE DECLARED RULE, AS OF 2026-10-29 (`D-67`/`D-69`):** `write-and-read.md §6.5` item 10 (d) (iii)'s prefix
+// test — *"a listener bound at address `W` is triggered by a successful `write` or `delete` at address `X`
+// iff `W` is a PREFIX of `X`"* — **is the FIRST ARM of the one predicate, and the second is `D-66`'s TOUCHED
+// ARM**: *"a pair at a descendant should only be asked if the change also affects that descendant"*. **A
+// DELETE REMOVES THE WHOLE SUBTREE AT ITS ADDRESS**, so every descendant node it destroys changed, and its
+// registration IS reached (`src/store.rs`'s `registration_triggered` over `touched_below`). **THE SENTENCE
+// THIS CELL USED TO CITE — *"a listener bound at a STRICT DESCENDANT of it does NOT [fire]"* (`write-and-read.md`
+// `§4.4`'s dated firing clause) — IS `D-67`'S OWN FINDING AND IS SUPERSEDED BY NAME**: the architect measured
+// that asymmetry and ruled it a defect (*"Does the listener get fired when the value is purged by a
+// higher-persistence write that doesn't include it? Because that's the actual problem"*). **THE DECLARED RULE IS PINNED, IN THE STORE'S OWN TREE, BY**
 // `tests/e2e_listener_firing.rs`'s `lf_d3_a_delete_at_an_ancestor_does_not_fire_the_descendant_bound_listener`
 // **— whose drive is this arm's, byte for byte — and by its mirror**
 // `lf_d2_a_delete_at_a_descendant_fires_the_ancestor_bound_listener` **for the other direction, which the
@@ -1248,22 +1251,22 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
       return `the invocation's ONE argument is not the TRIGGERING address: ${JSON.stringify(dupArgs[0])}`;
     }
 
-    // (3) **THE DELETE'S FIRING SET IS THE PREFIX SET — AND THE TEST IS DIRECTIONAL.** `§6.5` item 10 (d)
-    // (iii): a listener bound at address `W` is triggered by a successful `write` or `delete` at address `X`
-    // iff `W` is a PREFIX of `X`; `§2.3` item 5 puts the handle in the list EXACTLY on that test; and the
-    // delete's own clause is explicit that the window runs through the named address's ANCESTORS and NOT
-    // through its DESCENDANTS (`write-and-read.md §4.4`'s dated firing clause, verbatim: *"a listener bound at
-    // a STRICT DESCENDANT of it does NOT"*), pinned by the store's `lf_d3`/`lf_d2` cells. **SO A DELETE AT `X`
-    // FIRES THE ENTRY AT `X`, EVERY ENTRY AT A STRICT ANCESTOR OF `X`, AND THE REGISTER-BOUND ENTRY AT THE
-    // EMPTY ADDRESS (a prefix of every address — `§6.5` item 3; the store's `lf_a6`), AND IT DOES NOT FIRE AN
-    // ENTRY BOUND AT A STRICT DESCENDANT OF `X`, even though the delete DESTROYS that entry's node.**
+    // (3) **THE DELETE'S FIRING SET IS THE PREFIX SET TOGETHER WITH THE TOUCHED SET — `D-67`/`D-69`, 2026-10-29.**
+    // `§6.5` item 10 (d) (iii): a listener bound at address `W` is triggered by a successful `write` or
+    // `delete` at address `X` iff `W` is a PREFIX of `X`; **`D-66` adds the second arm — the act TOUCHED `W`** —
+    // and a DELETE removes the WHOLE SUBTREE at its address, so every node below `X` changed. **SO A DELETE AT
+    // `X` FIRES THE ENTRY AT `X`, EVERY ENTRY AT A STRICT ANCESTOR OF `X`, THE REGISTER-BOUND ENTRY AT THE EMPTY
+    // ADDRESS (a prefix of every address — `§6.5` item 3; the store's `lf_a6`), AND EVERY ENTRY BOUND AT A
+    // DESCENDANT OF `X`, whose node the delete destroys.** **THIS ARM'S EXPECTATION WAS REVERSED BY `D-67`**,
+    // whose own measured finding is that the descendant arm's absence was the defect.
     // The containers are created in ADDRESS order, because a write's parent is resolved by address.
     // **AND THE IDENTITY IS READ, NEVER THE SIZE** (`A77`): each entry's own handle is obtained by `listen`
     // at its address — idempotent, `§6.5` item 12 (c) returns the EXISTING entry's handle — and the receipt's
     // set is compared MEMBER BY MEMBER in BOTH directions.
 
     // (3a) **THE DELETE AT THE NAMED ADDRESS, WITH A DESCENDANT-BOUND ENTRY STANDING.** The prefix set of
-    // `['del']` is the empty address and `['del']` itself; `['del','deep']` is NOT in it.
+    // `['del']` is the empty address and `['del']` itself; **`['del','deep']` is in the TOUCHED set**, because the
+    // delete removes its node (`D-66`'s delete arm).
     const deleting = mem([
       { address: [], handle: 'reg' },
       { address: ['del'], handle: 'x' },
@@ -1304,26 +1307,29 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
         'prefix of every address, so the register-bound entry fires (§6.5 item 3; the store\'s lf_a6)'
       );
     }
-    // **THE DESCENDANT-BOUND HALF — THE ONE THE AS-FILED CELL GOT WRONG, ASSERTED AS AN EXPLICIT NEGATIVE:**
-    // `['del','deep']` is NOT a prefix of `['del']`, so the entry bound there does NOT fire.
-    if (carriesHandle(receipt.triggered, atDescendant)) {
+    // **THE DESCENDANT-BOUND HALF — ASSERTED AS AN EXPLICIT POSITIVE SINCE 2026-10-29 (`D-67`/`D-66`):**
+    // `['del','deep']` is NOT a prefix of `['del']`, and the delete REMOVES the node that entry is bound at, so
+    // the act TOUCHED it and the handle IS carried. **THE INVERSE ASSERTION THIS REPLACES — *"the descendant's
+    // handle is NOT carried"* — was `D-67`'s measured defect, printed at that ruling's own bytes.**
+    if (!carriesHandle(receipt.triggered, atDescendant)) {
       return (
-        "a delete at ['del'] returned the handle of the entry at ['del','deep'], a STRICT DESCENDANT of the " +
-        "deleted address and NOT a prefix of it: *\"a listener bound at a STRICT DESCENDANT of it does NOT\"* " +
-        '(§4.4; §6.5 item 10 (d) (iii))'
+        "a delete at ['del'] did not return the handle of the entry at ['del','deep'], which is a STRICT " +
+        "DESCENDANT of the deleted address: a delete REMOVES that node, so the act TOUCHED it and the element " +
+        "IS reached (D-66's delete arm; D-67)"
       );
     }
     // **⟶ RE-DERIVED 2026-10-18: the loop reads the pair's `handle` member** (`trigger-and-pair.md §4`
-    // item 1). **THE CLAIM IS UNMOVED: every member is ONE of the two prefix-bound handles.**
+    // item 1). **THE CLAIM IS UNMOVED: every member is ONE of the three handles this arm's registrations carry.**
     for (const id of setHandles(receipt.triggered)) {
-      if (id !== atRegister && id !== atNamed) {
-        return "a delete at ['del'] carried an id that is neither prefix-bound handle of this arm";
+      if (id !== atRegister && id !== atNamed && id !== atDescendant) {
+        return "a delete at ['del'] carried an id that is neither prefix-bound nor touched-bound handle of this arm";
       }
     }
-    if (receipt.triggered.length !== 2) {
+    if (receipt.triggered.length !== 3) {
       return (
-        `a delete at ['del'] carried ${receipt.triggered.length} ids where the prefix set has exactly 2 — a ` +
-        'handle DUPLICATED in the list is caught here, where the two membership checks above cannot catch it'
+        `a delete at ['del'] carried ${receipt.triggered.length} ids where the prefix set and the touched set ` +
+        'together name exactly 3 — a handle DUPLICATED in the list is caught here, where the membership checks ' +
+        'above cannot catch it'
       );
     }
 
@@ -2070,10 +2076,25 @@ test('ng_js_j_the_in_delivery_corpus_changes_nothing_inside_the_window_and_every
       });
       const outer = inst.write([key, 'n'], 'mem', 1);
       if (outer.triggered.length !== 2) return `nested-delivery: the outer trigger set carried ${outer.triggered.length} identities, not 2`;
-      if (descendantFires !== 1) {
-        return `nested-delivery: the descendant-bound identity ran ${descendantFires} times in the outer window, not once`;
+      // **⟶ RE-DERIVED 2026-10-29 (`D-67`/`D-66`): THE DESCENDANT-BOUND IDENTITY IS INVOKED TWICE — ONCE PER
+      // WINDOW — AND THE NESTED TRIGGER CARRIES TWO.**
+      //
+      // **THE MEASURED CONSEQUENCE, PRINTED BECAUSE IT IS THE RULINGS' OWN.** The nested verb is
+      // `inst.write([key], 'mem', 9)`: it lands a SCALAR at `[key]`, which **DESTROYS the whole subtree there** —
+      // so the node at `[key,'n']`, where the descendant-bound body stands, is REMOVED, and `D-66`'s criterion (*"a
+      // pair is asked when the act changes the value at the pair's address"*) is met: **the act TOUCHED
+      // `[key,'n']`, its registration IS reached, and it is invoked in the nested window as well as in the outer
+      // one.** **BEFORE 2026-10-29 THE DESCENDANT-BOUND IDENTITY WAS SILENT HERE** (`D-67`: *"a listener bound at
+      // `W` fires ... never when the act reached below it"*), **and that silence was the defect** — *"Does the
+      // listener get fired when the value is purged by a higher-persistence write that doesn't include it?
+      // Because that's the actual problem"*. **THE ONE-INVOCATION-PER-WINDOW RULE IS UNMOVED AND IS WHAT THIS ARM
+      // STILL ASSERTS**: two windows, two invocations, and never a sequence inside one.
+      if (descendantFires !== 2) {
+        return `nested-delivery: the descendant-bound identity ran ${descendantFires} times, and it stands in TWO windows — the nested one, whose act PURGED its node, and the outer one — ONE invocation PER WINDOW (D-66\'s delete/purge arm; D-67)`;
       }
-      if (nestedTriggered !== 1) return `nested-delivery: the nested trigger carried ${nestedTriggered} identities, and ONE stands at that address`;
+      if (nestedTriggered !== 2) {
+        return `nested-delivery: the nested trigger carried ${nestedTriggered} identities, and TWO registrations are reached by it — the entry AT that address and the entry at the DESCENDANT whose node the write purges (D-66; D-67)`;
+      }
       if (addressFires !== 2) {
         return `nested-delivery: the address-bound identity ran ${addressFires} times, and it stands in TWO windows (the outer one and the nested one) — ONE invocation PER WINDOW, never a sequence`;
       }

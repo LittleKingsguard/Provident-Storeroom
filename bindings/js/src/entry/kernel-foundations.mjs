@@ -996,119 +996,69 @@ function opSpelling(value) {
 }
 
 /**
- * **THE PASS'S EVALUATED SET, MATERIALISED FROM `attempt.address` AGAINST `kernel.pairs`** — the ONE
- * replacement for `byAddress`'s index, declared at `contract.md §2.8` item 6 (`HL-DD-6`) and
- * `kernel-selection.md §3` item 1.
+ * **THE PASS'S EVALUATED SET — A FILTER OVER THE STORE'S OWN `triggered`, AND NO SECOND REACH.**
  *
- * **⟶ THE PREDICATE IS WIDENED FROM EXACT ADDRESS TO PREFIX, 2026-10-29 — `D-56`, AND THE CLAUSE BELOW STANDS
- * BYTE-FOR-BYTE AS THE RULE THIS ONE SUPERSEDES.** `RCA-8(g)` ANNOTATE-BESIDE: **the paragraph that stood here
- * read** *"THE SET IS THE PAIRS WHOSE OWN ADDRESS IS THE ATTEMPT'S — selected by an EXACT-ADDRESS match and NEVER
- * widened to `triggered`'s prefix set"* (`P: docs/pending.md · (AA-1)`, verbatim: *"the pass selects the rows
- * whose address IS the triggering address, which PRESERVES the EXACT-ADDRESS RULE rather than widening it to
- * `triggered`'s prefix set"*; `contract.md §2.8` item 1), **and the architect has superseded it**, verbatim:
- * *"A listener/constraint should fire when the descendants of its targeted address node change, because the
- * descendants become part of the object that is read from that address"* (`strata/decisions.md` · `D-56`).
- * **THE TWO CLAUSES `D-56` NAMES BY NUMBER ARE `HL-8` ITEM 1'S OWN SENTENCE AND
- * `attempt-lifecycle.md §2.4` ITEM 5 (iv)'s EXACT-ADDRESS RULE — both superseded, both annotated in place, and
- * neither rewritten.**
+ * **`D-69`, THE RULING, VERBATIM: *"It doesn't need to mint an inert listener body, it already should require a
+ * constraint function with a handle"*** (`strata/decisions.md`). **THE REGISTRATION IS A HANDLE AND A BODY, AND A
+ * PAIR HAS BOTH** — its `id` is the handle (`D-29`), its `constraint` is the body (`D-26`) — **so `K-1` hands the
+ * store what the pair already has, `triggered` names the pair's `id` beside the listeners' handles, and this
+ * function asks the elements whose handle is a CONSTRAINT'S `id`.** **WHAT IT REPLACES IS `pairsAtAddress`, WHOSE
+ * WALK OVER `kernel.pairs` COMPUTED A SECOND REACH** — `D-67`'s own finding: *"the store computes the reach of an
+ * act, and the kernel computed a second one"*. **THAT WALK IS GONE.**
  *
- * **THE SET IS NOW THE PAIRS WHOSE OWN ADDRESS IS A PREFIX OF THE ATTEMPT'S — equality included — WHICH IS
- * `isAddressPrefix(standing, address)` AND IS `D-56`'s ONE SENTENCE**: a pair at `['tabs']` IS asked for a
- * delete at `['tabs','landingPage']`, a pair at `['tabs','landingPage']` IS asked for that same delete, and a
- * pair at `['tabs','landingPage','x']` is NOT asked because the act did not change it (**the unruled direction,
- * measured and not implemented** — `D-56`'s own terms). **THE REASON IS THE READ:** the value read at a prefix
- * contains its subtree, so a descendant's change changes what the ancestor's read returns, and the ancestor pair
- * **judges an object that moved.**
+ * **THE ONE PREDICATE IS THE STORE'S** (`src/store.rs`'s `registration_triggered`, over the set
+ * `Store::touched_below` materialises from the versions the store itself holds): **the registration's address is
+ * a PREFIX of the act's (`D-56`) or the act TOUCHED it (`D-66`), and `touched` is computed WHERE THE VERSIONS
+ * LIVE** — which is what closes `D-66`'s per-tier residual, a higher-persistence write that purges a value the
+ * crossing's `before` state collapsed into one array per tier. **`D-56`'s and `D-66`'s predicates did not
+ * disappear; they MOVED INTO `triggered_for` and they are read here as their answer.**
  *
- * **IT IS STILL A SCAN, AND THE COST IS STILL PRICED AND ACCEPTED** (`P: docs/pending.md · (AA-1)`, verbatim:
- * *"selecting rows by address is a scan over `kernel.pairs` … THAT GROUND WAS WRONG AND IS WITHDRAWN: the store
- * names the ADDRESS, and the kernel selects"*) — **and `D-56` re-prices it not at all**: the scan reads one
- * prefix test per standing address instead of one equality test per standing address, on the same rows.
+ * **WHAT THIS FUNCTION STILL DECIDES, AND IT IS ONE THING: THE ORDER.** `HL-8` ITEM 6's rule — each pair
+ * evaluated once in its FIRST-REGISTRATION order — survives both rulings, and the store's list is a SET whose
+ * order is UNSPECIFIED (`DD-37`: the home is a `HashMap`). **So the registry supplies the ORDER and the store
+ * supplies the MEMBERSHIP**: the loop walks `kernel.pairs` (whose `Map` iteration IS `D-39`'s registration
+ * sequence) and admits a pair iff the store's returned set names its `id`. **THE WALK COMPUTES NO REACH** — it
+ * compares one string per row per element, an EQUALITY test and never an address relation. **EACH PAIR IS
+ * EVALUATED AT MOST ONCE** (`contract.md §2.6` item 5) and the set is ONE SNAPSHOT taken at pass start (`CX-12`).
  *
- * **AND THE RESULT IS STILL MATERIALISED ONCE, WHICH IS WHAT IMPLEMENTS `CX-12`'s *"the pass's evaluated set is
- * FIXED WHEN THE PASS BEGINS"*** (`P: docs/pending.md · R-B3`'s snapshot clause; `contract.md §2.8` item 6;
- * `D-56`'s third deferrer, which changes WHAT is materialised and not WHEN): the returned list is a fresh array,
- * so a `K-1` that returns DURING the pass enters the NEXT pass's set and no earlier one, and a pair PURGED
- * mid-pass is still evaluated by the pass that began with it (`kernel-selection.md §3` item 5). **THE PASS READS
- * THIS LIST AND NEVER THE REGISTRY**, and **`D-56` says nothing that moves that**: the ancestors are members of
- * the SAME one snapshot, taken at the SAME instant.
- *
- * **THE ORDER IS STILL THE PAIR'S FIRST-REGISTRATION ORDER — `HL-8` ITEM 6's RULE SURVIVES `D-56` — AND THE
- * ANCESTORS INTERLEAVE INTO THAT ONE ORDER RATHER THAN FORMING A SECOND.** `attempt-lifecycle.md:193`'s *"clause
- * (ii)'s first-registration order"* **is supplied by `kernel.pairs`' own `Map` iteration**, which is the order
- * the ruling says is preserved *"by the store's own returned order, not by an index's append order"*
- * (`P: docs/pending.md · M-3`, its closing sentence; `contract.md §2.8` item 6's `HL-DD-6`). **THE WIDENING ADDS
- * NO ITERATION AND NO SORT**: `D-39`'s registration sequence is the `Map`'s insertion order over the pair rows,
- * the one loop below walks it once, and **a row is admitted or not by its own `addresses` member** — so an
- * ancestor registered FIRST is asked FIRST, an ancestor registered THIRD is asked THIRD, **interleaved with the
- * act's own pairs by the one sequence both stand in.** There is no "ancestors first", no "ancestors last", and
- * no second list: **one order, one list, one snapshot.** **EACH ELEMENT IS EVALUATED AT MOST ONCE** — the `break`
- * below is that rule, so a pair standing at N addresses of which two are prefixes of the act is reached once
- * (`contract.md §2.6` item 5).
- *
- * **⟶ AND THE PREDICATE IS WIDENED AGAIN, FROM PREFIX-ONLY TO PREFIX-OR-TOUCHED-DESCENDANT, 2026-10-29 —
- * `D-66`, AND THE PARAGRAPH ABOVE STANDS BYTE-FOR-BYTE AS THE RULE THIS ONE COMPLETES.** `RCA-8(g)`
- * ANNOTATE-BESIDE. **`D-56` RULED ONE DIRECTION AND LEFT THE OTHER MEASURED-AND-NOT-IMPLEMENTED; `D-66` RULES
- * THE OTHER, AND THE CRITERION IT NAMES IS NOT "DESCENDANT":**
- *
- *     A pair at a descendant should only be asked if the change also affects that descendant, ex.
- *     write(['a', 'b'], {'c': "foo", 'd': "bar"} should trigger at ['a'], ['a', 'b'], ['a', 'b', 'c'],
- *     and ['a', 'b', 'd'], but not ['a', 'b', 'e']
- *
- * **SO A PAIR IS ASKED WHEN THE ACT CHANGES THE VALUE AT THE PAIR'S ADDRESS, WHICH IS `D-56`'s ONE SENTENCE
- * APPLIED TO BOTH DIRECTIONS**: the value at a prefix CONTAINS its subtree, so a change anywhere below it
- * changes it (the ancestor arm, `D-56`, unmoved); and a node the act CREATED OR DESTROYED has a value that
- * changed, so its own pair is asked (the descendant arm, `D-66`). **`['a','b','e']` IS NOT ASKED BECAUSE THE
- * WRITE DID NOT TOUCH `e`** — it exists neither before nor after the act, so its value did not change.
- *
- * **THE TOUCHED SET IS COMPUTED FROM THE ACT'S KIND AND WHAT IT CARRIED** (`touchedAddresses` below, whose own
- * clause states the two arms and what a value's path set is):
- *   * **a WRITE touches exactly the paths its value contains** — `{c, d}` touches `['a','b','c']` and
- *     `['a','b','d']` and nothing else, and a nested object touches its own sub-paths by the same rule one level
- *     down;
- *   * **a DELETE touches the WHOLE SUBTREE at its address**, because it removes all of it — a descendant of a
- *     deleted node is ABSENT after the act and was not before, **which is a change to what a read there
- *     returns.**
- *
- * **⟶ AND THE WRITE'S SET IS NOW SYMMETRIC — THE UNION OF BOTH VALUES' PATH SETS, 2026-10-29.** `RCA-8(g)`
- * ANNOTATE-BESIDE: **the two bullets above are the reading of their own date and are read THROUGH this clause;
- * the write bullet's *"exactly the paths its value contains"* is superseded, and the delete bullet is unmoved.**
- * **A WRITE THAT REPLACES A NODE DROPS THE SUB-PATHS THE OLD VALUE CARRIED**: `{c: 1}` over `{c: {x: 1}}` leaves
- * `['a','b','c','x']` present-before and absent-after, **and that IS a change, so its pair IS asked** — the
- * criterion above (*"a pair is asked when the act changes the value at the pair's address"*) already decides it,
- * because **a path that disappears changed as surely as a path that appears.** **THE SOURCE IS `op.before.value`,
- * and the place is `touchedAddresses` and nowhere else** — this function's own body does not change by one byte,
- * so both pass call sites inherit the widened set exactly as they inherited `D-56`'s. **`['a','b','e']` STILL IS
- * NOT ASKED**, for the reason its bullet gives: `e` stands in neither value, so neither half touches it.
- *
- * **`D-66` DEFERS TO `D-56` AND TO `CX-12`, AND NOTHING BELOW MOVES FOR IT**: the set is STILL materialised once,
- * frozen at pass start, and STILL ordered by the one `Map` iteration — the touched descendants INTERLEAVE into
- * that one order exactly as the ancestors do, admitted by the same `break`, so a row standing at one address the
- * act touched and one it merely stands above is reached ONCE. **THE WIDENING ADDS NO ITERATION AND NO SORT AND NO
- * SECOND LIST**: the loop below still walks `kernel.pairs` once, and the only thing it reads that `D-56` did not
- * is the act's own value.
- *
- * **AND THE ACT IS REACHED THROUGH THE ATTEMPT, WHICH IS WHERE `D-53` PUT IT** (`D-66`'s own measurement
- * instruction): `attempt.ops` carries `JournalOp`s, and a `JournalOp` carries `address` and `after`/`before`. **The
- * two pass call sites hand the op each of them is evaluating** — the landing, on `K-3`'s run and each re-run
- * (`kernel-attempt.mjs`), and the repair's own op on a registration's re-run (`kernel-registration.mjs`) — so the
- * predicate stays in THIS ONE PLACE and neither site mints a second membership rule. **A call that hands no act
- * gets `D-56`'s set exactly**, which is the arm this function had before this date.
+ * **THE ELEMENTS ARE `{handle, address}`** (`contract.md §2.4` item 1) — the store's own list, read through its
+ * own members by `ownMember` (`D-35`'s read half). **A LIST THAT IS NOT AN ARRAY HAS NO MEMBER AND ANSWERS THE
+ * EMPTY SET**: a drive that hands one is not a pass this kernel opened, and the pass over no pair is the pass
+ * arm (`contract.md §2.8` item 1).
  */
-export function pairsAtAddress(kernel, address, act) {
-  // **THE TOUCHED SET IS MATERIALISED ONCE, HERE, AT PASS START** — the same instant the row list is, so the two
-  // halves of the set are fixed together and neither is re-read while the pass runs (`CX-12`).
-  const touched = touchedAddresses(act);
+export function pairsTriggered(kernel, triggered) {
   const out = [];
+  if (!Array.isArray(triggered)) return out;
   for (const [key, pair] of kernel.pairs) {
-    for (const standing of pair.addresses) {
-      if (isAddressPrefix(standing, address) || touchesAddress(touched, standing)) {
+    for (let i = 0; i < triggered.length; i += 1) {
+      const element = triggered[i];
+      if (element === null || typeof element !== 'object') continue;
+      // **THE PAIR'S `id` IS ITS HANDLE — `D-29`, verbatim: *"Handle becomes the internal ID"* — so the store's
+      // element names the pair by the very string the registry is keyed by.**
+      if (ownMember(element, 'handle') === pair.id) {
         appendOwn(out, key);
         break;
       }
     }
   }
   return out;
+}
+
+/**
+ * **WHETHER A PAIR STANDS AT ONE OF THE ADDRESSES ONE OF ITS ELEMENTS NAMES** — the store's list read for a
+ * single pair, the arm `K-6`'s row lookup and `pairsTriggered`'s membership test are both written from.
+ *
+ * **IT IS THE ONE MEMBERSHIP TEST AND IT IS NOT A REACH**: it compares the pair's `id` with the element's
+ * `handle` and asks nothing about any address (`D-69`).
+ */
+export function triggeredNames(triggered, id) {
+  if (!Array.isArray(triggered)) return false;
+  for (let i = 0; i < triggered.length; i += 1) {
+    const element = triggered[i];
+    if (element === null || typeof element !== 'object') continue;
+    if (ownMember(element, 'handle') === id) return true;
+  }
+  return false;
 }
 
 /**

@@ -293,6 +293,15 @@ requirement]`)
 5. **THE HANDLE'S PRESENCE IN A TRIGGERED SET IS DECIDED BY ADDRESS AND BY NOTHING ELSE:** **a handle
    appears in a trigger's list EXACTLY where its listener's address is a PREFIX of the triggering address**
    (`[A3 docs/specs/storeroom-native/contract.md §6.5 item 3 | requirement]`).
+   **⟶ AND THE ADDRESS TEST IS `PREFIX OR TOUCHED` FROM 2026-10-29 — `D-66` AND `D-67`.** `RCA-8(g)`
+   ANNOTATE-BESIDE: **the sentence above is the reading of its own date and is read THROUGH this clause.**
+   **A registration appears in a trigger's list where its address IS A PREFIX of the triggering address or
+   WHERE THE ACT TOUCHED IT** (`D-66`: *"a pair at a descendant should only be asked if the change also
+   affects that descendant"*), **and the reach is the STORE's** (`D-69`: *"the store's answer is the only
+   answer"*) **because only the store holds the per-tier versions a purge removes** (`D-67`). **A CONSTRAINT
+   STANDS IN THE SAME LIST**: a registration is a HANDLE AND A BODY, the pair has both — its `id` (`D-29`)
+   and its `constraint` (`D-26`) — **so the trigger list names both kinds, and the KERNEL filters it: an
+   element whose handle is a constraint's `id` is ASKED, a listener's is DELIVERED.**
 
 **⟶ AND ONE CONSEQUENCE OF THE INHERITED MINT RULE FALLS ON THIS SECTION, STATED HERE SO THE TWO HOMES OF
 `§2.3` AGREE: A REPEAT `listen` AT AN ALREADY-REGISTERED ADDRESS MINTS NOTHING AND RETURNS THE ENTRY'S OWN
@@ -1606,6 +1615,22 @@ never retain beside**; `docs/decisions.md` · `A122`, 2026-10-16).
    (`[A3 docs/specs/storeroom-native/contract.md §6.5 item 5 — *"NO ORDER IS DECLARED FOR THE LIST"*; A1
    docs/specs/storeroom-js-proposal.md §15 · A73's neighbourhood — the firing window is this unit's own
    carriage | ordering claim]`)
+
+5. **⟶ AND THE DELIVERED SET IS THE RESIDUE, NOT THE WHOLE TRIGGER SET — `D-56`, `D-66`, `D-67` AND `D-69`,
+   2026-10-29.** `RCA-8(g)` ANNOTATE-BESIDE: **items 1–4 stand byte-for-byte and are read THROUGH this item,
+   which states what the residue now holds.**
+   **`pending` IS *"THE LIST OF HANDLES THE PASS DID NOT EVALUATE"*: the store's WHOLE returned set MINUS the
+   elements the pass ASKED, checked off as they passed** (`A112`; `kernel-surface.md §2.1` item 2).
+   **THE KERNEL'S PASS IS A FILTER OVER THAT ONE LIST FROM THIS DATE** (`D-69`: *"the pass becomes a FILTER
+   over `triggered` … an element whose handle is a constraint's `id` is ASKED; a listener's is DELIVERED"*),
+   **so the member's COMPOSITION moves at `K-2` and is UNMOVED after the pass** — measured, and the figure is
+   the reason this item exists: **the store now names a constraint standing at a TOUCHED DESCENDANT**
+   (`D-66`/`D-67` — *"a pair at a descendant should only be asked if the change also affects that
+   descendant"*), **so `pending` carries that `id` until the pass asks it and checks it off, where before
+   this date the element was never in the returned set at all.** **THE DELIVERED RESIDUE IS THEREFORE THE SAME
+   ONE IT ALWAYS WAS — THE LISTENERS' HANDLES — and a listener at a TOUCHED DESCENDANT now fires**, which is
+   `D-67`'s whole finding (*"A CONSTRAINT AT A TOUCHED DESCENDANT IS ASKED; A LISTENER AT THE SAME ADDRESS IS
+   NEVER TOLD"*).
 
 **⟶ ADDED 2026-10-11 — THE BOUNDED DECLARATION PASS (`role_spec_writer`), ON `A77`: THE INVOCATION'S ONE
 ARGUMENT, DECLARED BESIDE THE INVOCATION'S OWN WINDOW.** `RCA-8(d)` ANNOTATE-BESIDE: **items 1–4 above stand

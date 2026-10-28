@@ -170,9 +170,15 @@ export function deliver(state, triggered, triggeringAddress) {
     // **an entry that is absent or `off` is SKIPPED THERE, and the recipients list carries the FUNCTION**,
     // so the invocation loop below performs the call unconditionally and consults the flag no second time.
     const entry = state.registry.get(item.handle);
+    // **⟶ AND A CONSTRAINT'S ENTRY IS SKIPPED HERE — `D-69`, 2026-10-29.** The registration now holds the pair's
+    // OWN body (`K-1` hands it over, `installRegistrationSeam`), so the test that used to keep an inert entry out
+    // of this list — *"a handle the registry holds NO function for fires NOTHING, SILENTLY"* (`docs/specs/
+    // storeroom-js/surface.md §2.4` rule 1) — no longer excludes it by ABSENCE. **THE KIND DOES**: *"an element
+    // whose handle is a constraint's `id` is asked; a listener's is delivered."* **A PAIR'S BODY IS ASKED BY THE
+    // PASS, WITH THE `AttemptContext` ITS SHAPE DECLARES; IT IS NEVER INVOKED HERE, WITH THE TRIGGERING ADDRESS.**
     appendOwn(recipients, [
       item.handle,
-      entry === undefined || entry.off === true ? undefined : entry.fn,
+      entry === undefined || entry.off === true || entry.kind === 'constraint' ? undefined : entry.fn,
     ]);
   }
   for (let r = 0; r < recipients.length; r += 1) {
@@ -220,6 +226,64 @@ export function deliver(state, triggered, triggeringAddress) {
 
 // ⟶ MOVED 2026-10-18 (`RCA-8(g)`): removeListener is deleted; its doc block and body are now the
 // `removeListener` member's own (P-8; archive/p8-merge/2026-10-18/blocks/removeListener.md).
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+// **⟶ ADDED 2026-10-29 — THE REGISTRATION'S OTHER SLOT: `D-69`'S HANDLE AND BODY, SPELLED ONCE.**
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+//
+// **`D-69`'S RULING, VERBATIM: *"It doesn't need to mint an inert listener body, it already should require a
+// constraint function with a handle"*** (`strata/decisions.md`). **THE STORE'S REGISTRATION IS A HANDLE AND A
+// BODY** — a listener carries `{handle, address, listener}`, a constraint carries `{handle, address, constraint}`
+// — **and a pair HAS both**: its `id` is its handle (`D-29`) and its `constraint` is its body (`D-26`). **So
+// `K-1` hands the registration what the pair already has, and the entry below admits EITHER body.**
+//
+// **WHY THE KIND IS A MEMBER OF THE ENTRY AND NOT OF THE STORE'S HOME.** The FUNCTION never crosses the boundary
+// (`DD-15`), so the home (`src/store.rs`) holds `{address, handle}` and nothing else; a kind held there would be a
+// SECOND COPY of a fact whose home is this registry — the class `D-65` condemned at its smallest scale (*"two places
+// that must agree, and only one of them is authoritative"*). **THE ENTRY THEREFORE GROWS THE OTHER SLOT**: one entry
+// per handle — the same shape for both kinds — whose `kind` member says whether `fn` is a listener's body or a
+// constraint's. **THAT IS THE CHOICE THIS PASS TAKES, AND THE REASON IT BEATS A THIRD REGISTRY: one handle names ONE
+// registration** (`D-29`), so a second map would be a second population route for the same identity.
+//
+// **WHAT THE KIND DECIDES, AT THE TWO PLACES THE TWO KINDS PART COMPANY** — and nowhere else:
+//   * **`deliver` skips it** (`D-69`: *"an element whose handle is a constraint's `id` is asked; a listener's is
+//     delivered"*), so a pair's own body is never invoked as a listener with the triggering address;
+//   * **`listenerStandingAt` does not read it as a listener** (`D-24`'s same-kind overwrite must stay lawful at a
+//     held pair, and `D-25`'s cross-kind refusal must stay pointed at a LISTENER's handle).
+//
+// **THE CHANNEL IS THE SEVENTH-BESIDE DEVICE EVERY KERNEL→ENTRY FACT USES** (`TERMINAL_ARM`, `COMMIT_SCOPE`,
+// `EXTERNAL_CALL`, `FORGET_PAIR`): `kernel-registration.mjs` may not import this file (`kernel-surface.md §1` item
+// 1's empty import footprint) and this file may not import it, **so both sides spell the same `Symbol.for` key and
+// the install is once per instance** (`§4.2` item 4). **IT IS INVISIBLE TO `Object.keys` AND TO
+// `Object.getOwnPropertyNames`**, so the product's declared FOURTEEN own members are unmoved and no census moves
+// (`A117` (D6)).
+const REGISTER_BODY = Symbol.for('provident-storeroom.register-body');
+
+/// **THE INSTALL, CALLED ONCE BY `storeCreate`** — the channel `K-1` reaches with the pair's own body. **IT TAKES
+/// THREE POSITIONS AND MINTS NOTHING**: the handle `listen` just wrote, the caller's function, and the kind the
+/// entry is to carry.
+///
+/// **AN ENTRY THE HANDLE NAMES NOTHING FOR IS LEFT UNTOUCHED** — a store this package did not build, or a handle a
+/// caller has withdrawn between the two acts, has no slot to fill, and a registration that installed a body into a
+/// map nobody reads would be the seam this channel exists to avoid. **IT RE-TAKES THE ENTRY'S `off`** (`register`'s
+/// own rule: *"`register(handle, listener)` CLEARS `off` AND INSTALLS THE FUNCTION"*, `P: docs/pending.md · P-5`,
+/// part (b)), because a body that is present is a body that fires.
+export function installRegistrationSeam(instance, state) {
+  if (typeof instance[REGISTER_BODY] === 'function') return;
+  Object.defineProperty(instance, REGISTER_BODY, {
+    value: (handle, body, kind) => {
+      const entry = state.registry.get(handle);
+      if (entry === undefined) return undefined;
+      entry.fn = body;
+      entry.off = false;
+      entry.kind = kind;
+      return undefined;
+    },
+    writable: true,
+    enumerable: false,
+    configurable: true,
+  });
+}
 
 /// **THE REGISTRY'S OWN SITE AT THE PACKAGE'S BOUNDARY** (`surface.md §2.4` item 5): the caller's FUNCTION
 /// for a handle, held by the package (`DD-15`) and invoked after the verb has returned (`docs/specs/storeroom-js/surface.md §2.7` item 2).
@@ -438,6 +502,13 @@ function constraintAtAnyAddress(state, handle) {
 export function listenerStandingAt(state, handle) {
   const entry = state.registry.get(handle);
   if (entry === undefined || entry.off !== false || typeof entry.fn !== 'function') return null;
+  // **⟶ AND A CONSTRAINT'S OWN ENTRY IS NOT A LISTENER'S — `D-69`, 2026-10-29.** The clause above reads
+  // *"a LISTENER stands exactly where `off === false` AND `fn` is a function"* and that pair of facts now also
+  // holds of a pair's registration, because `K-1` installs the pair's own constraint function in that slot. **THE
+  // KIND IS THE THIRD FACT AND IT IS WHAT KEEPS `D-25`'s CROSS-KIND REFUSAL POINTED AT A LISTENER**: a pair's `id`
+  // is its own handle, and a re-add at a held pair must stay LAWFUL (`D-24`) while a listener claiming a pair's
+  // `id`, or a pair claiming a listener's, must still be refused.
+  if (entry.kind === 'constraint') return null;
   for (let i = 0; i < state.home.length; i += 1) {
     if (state.home[i].handle === handle) return { address: state.home[i].address };
   }

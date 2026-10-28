@@ -625,6 +625,24 @@ contract.md §2.6` — *"evaluate constraints AFTER a `write` returns"*; `A: doc
 contract.md §6.5` item 5 with `docs/specs/storeroom-native/write-and-read.md §6.5` item 10 (d) — the store
 NEVER invokes anything, it RETURNS the handles — READ WITH `kernel-surface.md §2.2` item 2's SPLIT, WHOSE PARTITION PREDICATE IS **THE WRITE'S AUTHOR AND NOT THE LISTENER'S KIND** — THE KERNEL INVOKES A HANDLE A WRITE THE KERNEL ITSELF MADE RETURNED, AND EVERY HANDLE A CALLER-MADE WRITE RETURNED STANDS IN `CommitRecord.pending`** — **AND THAT MEMBER CARRIES THE WHOLE RETURNED SET OF TRIGGERED CONSTRAINTS, EACH ENTRY LEAVING IT ONLY BY BEING CHECKED OFF AS IT PASSES, SO THE `FOR **THE CALLER'S OWN LOOP** TO RUN, THAT LOOP BEING LAYER (b)'s ONLY INVOKER` SPELLING THAT ONCE STOOD HERE IS WITHDRAWN BY NAME AT THE `A112` DELIVERY-MODEL RE-SPELL PASS OF 2026-10-13 (`A: docs/decisions.md` · `A112`): THE JS SURFACE RUNS THE TRIGGERED CONSTRAINTS FIRST AND, ONCE ALL CONSTRAINTS PASS, THE OTHER LISTENERS, BEFORE RETURNING TO THE CALLING PROCESS, AND THE CALLER'S OWN LOOP IS ONE INVOKER AMONG THOSE LAYERS AND NOT THE ONLY ONE — SIFTING A SUBSET OUT OF THE RETURNED SET BEING UNNECESSARY AND UNLAWFUL (`A107` `D1`; `A108` `D1`/`D2`; `A109` `D2`; `A112`; `kernel-surface.md §2.1` item 2)** — no callback parameter existing on `K-1`–`K-5` and no sixth surface item being declared (`A: docs/decisions.md` · `A107` `D1`; `A108` `D1`/`D2`; `A109` `D2`; `kernel-surface.md §2.1` item 2); `R: §11.5` — `AR-9` | CONTRACT`)
 
+**⟶ AND THE PASS'S EVALUATED SET IS A FILTER OVER THE STORE'S OWN `triggered`, 2026-10-29 — `D-69` AND `D-67`.**
+`RCA-8(g)` ANNOTATE-BESIDE: **every byte above stands BYTE-FOR-BYTE, is read THROUGH this clause, and is the
+reading its own date produced.** **THE RULING, THE ARCHITECT, VERBATIM: *"It doesn't need to mint an inert
+listener body, it already should require a constraint function with a handle"*** (`strata/decisions.md` · `D-69`).
+**THE REGISTRATION IS A HANDLE AND A BODY, AND A PAIR HAS BOTH** — its `id` is the handle (`D-29`), its
+`constraint` is the body (`D-26`) — **so `K-1` hands the store what the pair already has, `triggered` names the
+pair's `id` beside the listeners' handles, and the KERNEL COMPUTES NO SECOND REACH**: *"the pass becomes a
+FILTER over `triggered` rather than a walk over `kernel.pairs` — an element whose handle is a constraint's `id`
+is asked; a listener's is delivered"* (`D-69`). **THE PREDICATE IS THE STORE'S AND IT IS ONE** — *"the
+registration's address is a PREFIX of the act's, OR the act TOUCHED it"*, with `touched` computed **where the
+versions live** (`D-67`), **which is what closes `D-66`'s per-tier residual**: a higher-persistence write that
+purges a value reaches the listener AND the constraint bound at the purged node. **THE ORDER IS STILL THE
+KERNEL'S** — `HL-8` item 6's first-registration order, over `kernel.pairs`' own `Map` iteration — so the
+registry supplies the ORDER and the store supplies the MEMBERSHIP, and the two facts stand at their own homes.
+**`pending`'S COMPOSITION MOVES WITH THE WIDER SET AND IS MEASURED, NOT ASSUMED**: at `K-2` the member carries
+the `id` of a constraint standing at a TOUCHED DESCENDANT, which the prefix-only set never named, and after the
+pass that element is CHECKED OFF as the pass asks it — so the DELIVERED residue is the same one it always was.
+
 **⟶ AND THE ORDINAL'S SUBJECT IS NAMED AT THIS ROW, 2026-10-28 — `DEF-AI`, MEASURED.** `RCA-8(d)` ANNOTATE-BESIDE:
 **every byte above stands BYTE-FOR-BYTE and is read THROUGH this clause.** **`seq` is the position of the entry in
 the COMMIT's own message log; it is not the store's journal ordinal, and the two differ by design** (`D-53` moves

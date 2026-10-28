@@ -824,19 +824,26 @@ fn lf_c1_w_3_a_fresh_literal_fires_the_listener_bound_there() {
     );
 }
 
-// SCENARIO C2 — `W-4`: an unoccupied key and a STRUCTURE — the branch-tree is minted RECURSIVELY, and the
-// listener bound at the edited address fires ONCE.
+// SCENARIO C2 — `W-4`: an unoccupied key and a STRUCTURE — the branch-tree is minted RECURSIVELY, and BOTH
+// listeners fire: the edited address's AND the MINTED DESCENDANT's.
 // Clauses: `§3.4` arm `W-4` (*"turning any key/index that is a literal into a leaf node and turning
-//   objects/arrays into branches until all keys have been mapped"*); `§5.8` (a).
+//   objects/arrays into branches until all keys have been mapped"*); `§5.8` (a); `D-56`; **`D-66`** — *"a pair
+//   at a descendant should only be asked if the change also affects that descendant"* — whose own example is
+//   this drive: `write(['a','b'], {'c': …, 'd': …})` triggers at `['a','b','c']` **because the write CREATES
+//   it**.
 // Drive: `listen(["a"])`; `listen(["a","b"])`; `write(["a"], mem, {b: 2})`.
-// Expected `triggered`: EXACTLY `{ h_a }` — ONE member, although the arm resolves `["a","b"]` in the
-//   course of the install: the trigger address is the WRITE's address.
-// Observable: the set, and `read(["a","b"]) == 2` (the recursion landed).
+// Expected `triggered`: EXACTLY `{ h_a, h_ab }` — the edited address by the prefix arm, and `["a","b"]` by the
+//   TOUCHED arm, because this write MINTS that node (it stands after the act and did not before).
+// **⟶ RE-DERIVED 2026-10-29 (`D-66`/`D-67`).** The as-filed expectation was `{ h_a }` alone, on the ground
+//   that *"the trigger address is the WRITE's address"* — **which is exactly the asymmetry `D-67` measured as
+//   a DEFECT** (*"A CONSTRAINT AT A TOUCHED DESCENDANT IS ASKED; A LISTENER AT THE SAME ADDRESS IS NEVER
+//   TOLD"*). The minted node's value changed, so its registration is reached.
+// Observable: the set, the binding addresses, and `read(["a","b"]) == 2` (the recursion landed).
 #[test]
 fn lf_c2_w_4_a_fresh_structure_fires_the_listener_bound_there_once() {
     let mut store = new_store();
     let h = listen_at(&mut store, key(&["a"]), "§6.5 item 12 (c)");
-    let _deep = listen_at(&mut store, key(&["a", "b"]), "§6.5 item 12 (c) at the minted descendant");
+    let deep = listen_at(&mut store, key(&["a", "b"]), "§6.5 item 12 (c) at the minted descendant");
     let r = write_at(
         &mut store,
         key(&["a"]),
@@ -847,9 +854,18 @@ fn lf_c2_w_4_a_fresh_structure_fires_the_listener_bound_there_once() {
     assert_triggered(
         "C2 (W-4)",
         &r.triggered,
-        &one_handle(&h),
-        "§5.8 (a): the recursion mints `[\"a\",\"b\"]`, but the TRIGGER ADDRESS is the write's own — so the \
-         descendant-bound listener is silent and the edited address fires EXACTLY ONCE",
+        &[h.clone(), deep.clone()],
+        "§5.8 (a) + `D-66`: the recursion MINTS `[\"a\",\"b\"]`, so that node's value changed and the \
+         listener bound there is reached; the edited address is reached by the prefix arm. `D-67` measured \
+         the earlier expectation as the DEFECT — *\"a listener bound at `W` fires ... never when the act \
+         reached below it\"*",
+    );
+    assert_binding_addresses(
+        "C2 (W-4)",
+        &r.triggered,
+        &[key(&["a"]), key(&["a", "b"])],
+        "§0.4's `ListenerTrigger` row: each element carries ITS BINDING's address — the write's address \
+         reaches two bindings and the pair says which is which",
     );
     assert_eq!(
         read_at(&store, &key(&["a", "b"])),
@@ -899,17 +915,22 @@ fn lf_c3_w_1_the_same_tier_edit_fires_the_listener_and_the_count_does_not_grow()
 }
 
 // SCENARIO C4 — `W-2`: the TARGET is a `leaf` and the value is a STRUCTURE — RE-MINT, *"WHATEVER TIER THE
-// LEAF'S ANCHOR CARRIES"*. The listener bound at the re-minted address fires once.
-// Clauses: `§3.4` arm `W-2`; `§6.5` item 9 (a) (`A46`); `§5.8` (a).
+// LEAF'S ANCHOR CARRIES"*. Both listeners fire: the re-minted address's and the one at the node the
+// structure MINTS below it.
+// Clauses: `§3.4` arm `W-2`; `§6.5` item 9 (a) (`A46`); `§5.8` (a); **`D-66`**.
 // Drive: `listen(["a"])`; `listen(["a","b"])`; `write(["a"], mem, 1)` (the leaf); `write(["a"], mem, {b:2})`.
-// Expected `triggered`: EXACTLY `{ h_a }` at the re-mint; the listener bound at the destroyed leaf's
-//   descendant address does NOT fire.
-// Observable: the set, `read(["a","b"]) == 2`, and one version at `["a"]`.
+// Expected `triggered`: EXACTLY `{ h_a, h_ab }` at the re-mint — the re-minted address by the prefix arm, and
+//   `["a","b"]` by the TOUCHED arm, **because `["a","b"]` STANDS AFTER THE ACT AND DID NOT BEFORE**.
+// **⟶ RE-DERIVED 2026-10-29 (`D-66`/`D-67`), and the as-filed ground it replaces is quoted so the reversal is
+//   a reading and not a drift**: *"the destroyed node's descendant binding is not on the trigger address"* was
+//   the PREFIX-ONLY rule, and `D-67` measured its consequence as the defect. `D-66`'s criterion settles it —
+//   the act CREATED that node, so the value read at that address changed.
+// Observable: the set, the binding addresses, `read(["a","b"]) == 2`, and one version at `["a"]`.
 #[test]
 fn lf_c4_w_2_a_structure_over_a_leaf_re_mints_and_fires_once() {
     let mut store = new_store();
     let h = listen_at(&mut store, key(&["a"]), "§6.5 item 12 (c)");
-    let _descendant = listen_at(&mut store, key(&["a", "b"]), "§6.5 item 12 (c)");
+    let descendant = listen_at(&mut store, key(&["a", "b"]), "§6.5 item 12 (c)");
     write_at(
         &mut store,
         key(&["a"]),
@@ -927,10 +948,16 @@ fn lf_c4_w_2_a_structure_over_a_leaf_re_mints_and_fires_once() {
     assert_triggered(
         "C4 (W-2)",
         &r.triggered,
-        &one_handle(&h),
-        "§5.8 (a) + §6.5 item 9 (a): the re-mint DESTROYS the leaf's pointing anchor and places a new one \
-         on the SAME link — the address's listener fires, and the destroyed node's descendant binding is \
-         not on the trigger address",
+        &[h.clone(), descendant.clone()],
+        "§5.8 (a) + §6.5 item 9 (a) + `D-66`: the re-mint DESTROYS the leaf's pointing anchor and places a \
+         new one on the SAME link — the address's listener fires — AND the structure MINTS `[\"a\",\"b\"]`, \
+         which stood neither before nor after the previous act and stands now, so that binding is reached too",
+    );
+    assert_binding_addresses(
+        "C4 (W-2)",
+        &r.triggered,
+        &[key(&["a"]), key(&["a", "b"])],
+        "§0.4's `ListenerTrigger` row: the pair's member is each binding's OWN address",
     );
     assert_eq!(
         read_at(&store, &key(&["a", "b"])),
@@ -1189,22 +1216,25 @@ fn lf_d2_a_delete_at_a_descendant_fires_the_ancestor_bound_listener() {
     );
 }
 
-// SCENARIO D3 — **the other direction, asserted from the clause's own words:** a delete at a strict
-// ANCESTOR of a listener's address does NOT fire that listener.
-// Clauses: `§4.4`'s dated firing clause, VERBATIM: *"a listener bound at a STRICT DESCENDANT of it does
-//   NOT (the delete resolves to the named node and removes its subtree; it passes through the named
-//   address's ancestors and not through its descendants)"*; `§6.5` item 10 (d) (iii).
+// SCENARIO D3 — **the other direction, RE-DERIVED 2026-10-29 (`D-67`): a delete at a strict ANCESTOR of a
+// listener's address DOES fire that listener, because the cascade DESTROYS its node.**
+// Clauses: **`D-67`** — whose VERBATIM question is this arm and whose answer is the ruling — *"Does the
+//   listener get fired when the value is purged by a higher-persistence write that doesn't include it?
+//   Because that's the actual problem"* — with `D-66`'s delete arm (*"the WHOLE SUBTREE at the act's address,
+//   because the act removes all of it"*) and `§6.5` item 10 (d) (iii)'s prefix arm, which is UNMOVED.
+// **THE SENTENCE THE AS-FILED CELL CITED — `§4.4`'s dated firing clause, *"a listener bound at a STRICT
+//   DESCENDANT of it does NOT"* — IS SUPERSEDED BY NAME AND IS THE ASYMMETRY `D-67` RULED A DEFECT.**
 // Drive: `listen(["a"])` and `listen(["a","b"])`; `write(["a"], mem, {})`; `write(["a","b"], mem, 1)`;
 //   then `delete(["a"], absent)`.
-// Expected `triggered`: EXACTLY `{ h_a }` — the ancestor-bound listener fires (the delete resolves TO its
-//   address) and the DESCENDANT-bound listener does NOT, even though its node is destroyed by the
-//   cascade.
-// Observable: the receipt's `triggered` set, and `read(["a"])` failing afterwards.
+// Expected `triggered`: EXACTLY `{ h_a, h_ab }` — the ancestor-bound listener by the prefix arm (the delete
+//   resolves TO its address) and the DESCENDANT-bound listener by the touched arm, **because the cascade
+//   removes its node**, which is a change to what a read there returns.
+// Observable: the receipt's `triggered` set, the binding addresses, and `read(["a"])` failing afterwards.
 #[test]
-fn lf_d3_a_delete_at_an_ancestor_does_not_fire_the_descendant_bound_listener() {
+fn lf_d3_a_delete_at_an_ancestor_fires_the_descendant_bound_listener() {
     let mut store = new_store();
     let ancestor = listen_at(&mut store, key(&["a"]), "§6.5 item 12 (c)");
-    let _descendant = listen_at(&mut store, key(&["a", "b"]), "§6.5 item 12 (c) at the descendant");
+    let descendant = listen_at(&mut store, key(&["a", "b"]), "§6.5 item 12 (c) at the descendant");
     write_at(&mut store, key(&["a"]), w_mem(), v_obj(&[]), "§3.4 W-4");
     write_at(&mut store, key(&["a", "b"]), w_mem(), v_num(1.0), "§3.4 W-3");
     let receipt = delete_at(
@@ -1216,10 +1246,17 @@ fn lf_d3_a_delete_at_an_ancestor_does_not_fire_the_descendant_bound_listener() {
     assert_triggered(
         "D3 (a delete at an ancestor, with a descendant-bound listener standing)",
         &receipt.triggered,
-        &one_handle(&ancestor),
-        "§4.4's dated clause: *\"a listener bound at a STRICT DESCENDANT of it does NOT [fire] — the delete \
-         resolves to the named node and removes its subtree; it passes through the named address's \
-         ancestors and not through its descendants\"*",
+        &[ancestor.clone(), descendant.clone()],
+        "`D-67` + `D-66`'s delete arm: the ancestor-bound listener fires by the PREFIX arm and the \
+         DESCENDANT-bound one by the TOUCHED arm, because the cascade REMOVES its node — *\"the WHOLE SUBTREE \
+         at the act's address, because the act removes all of it\"*",
+    );
+    assert_binding_addresses(
+        "D3 (a delete at an ancestor)",
+        &receipt.triggered,
+        &[key(&["a"]), key(&["a", "b"])],
+        "§0.4's `ListenerTrigger` row: the two elements carry the two BINDINGS' addresses, and neither \
+         carries the deleted address as its member",
     );
     assert!(
         register(&store) == v_obj(&[]),

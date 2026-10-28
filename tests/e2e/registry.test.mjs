@@ -620,15 +620,25 @@ test('delivery_listen_carries_no_tier_qualifier_its_address_is_the_whole_of_its_
   const atDepth = inst.write(['a', 'b', 'c'], 'mem', 1);
   assert.equal(atDepth.triggered.length, 1, 'the listener binds by ADDRESS alone');
   assert.equal(atDepth.triggered[0].handle, 'h');
-  // **AND A WRITE ABOVE THE REGISTRATION DOES NOT FIRE IT** (§6.5 item 3: the selection rule is PREFIX AND
-  // DESCENDANT-INCLUSIVE — `is_prefix(&listener.address, address)` — so the registration must be a PREFIX of
-  // the write and never the other way round). Driven at its own store so the leaf the line above made is not
-  // in the path.
+  // **⟶ AND A WRITE ABOVE THE REGISTRATION IS THE TOUCHED ARM, RE-DERIVED 2026-10-29 — `D-67`/`D-66`.** The bytes
+  // that stood here read *"a write ABOVE the registration does not fire it"* on `§6.5` item 3's prefix rule, and
+  // **`D-66`/`D-67` SUPERSEDE THAT EXPECTATION AS A GENERAL CLAIM**: a registration is reached when the act's
+  // address is at or below its own (the prefix arm) **OR WHEN THE ACT TOUCHED IT** (the descendant and purge arm).
+  // **THE TWO ARMS ARE DRIVEN AT THEIR OWN STATES, which is what keeps the cell's subject — the ADDRESS is the
+  // whole of the key — while stating the rule the tree now has.**
   const up = mem();
   up.listen('deep', [['p', 'q']]);
-  up.write(['p'], 'mem', {});
+  // (a) THE UNTOUCHED DESCENDANT: the write at `['p']` carries `{r: 1}`, so it creates `['p','r']` and NOT
+  // `['p','q']` — `D-66`'s own example, in this address's letters. Nothing at the registration's address
+  // changed, so nothing is reached.
+  assert.deepEqual(up.write(['p'], 'mem', { r: 1 }).triggered, [],
+    'a write above the registration that does not touch it does not fire it (D-66)');
+  // (b) THE TOUCHED DESCENDANT: the write at `['p']` carries `{}` and DESTROYS `['p','q']` whole, so the node at the
+  // registration's own address was removed — the act TOUCHED it and the identity IS carried (`D-66`'s delete-arm
+  // ground applied to a write's purge; `D-67`'s own measured finding).
   up.write(['p', 'q'], 'mem', {});
-  assert.deepEqual(up.write(['p'], 'mem', {}).triggered, [], 'a write ABOVE the registration does not fire it');
+  assert.deepEqual(up.write(['p'], 'mem', {}).triggered.map((element) => element.handle), ['deep'],
+    'a write above the registration that PURGES its node fires it (D-66; D-67)');
   // **AND THE TIER IS NO PART OF THE KEY** (`PAR-JS-13`'s reach): the registration named no tier, and the
   // firing is the ADDRESS's and never the tier's.
   assert.equal(up.write(['p', 'q'], 'mem', 3).triggered.length, 1,

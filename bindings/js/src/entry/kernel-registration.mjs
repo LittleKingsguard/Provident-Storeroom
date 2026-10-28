@@ -1,5 +1,5 @@
 // `D-13` (`docs/L1/kernel-subdivision.md` §1 part `9b`) — the registration act, its evaluation, and the registry's removal: bytes moved from `bindings/js/src/constraint-kernel.mjs`; no logic changed.
-import { KC, KERNEL_REFUSAL, markBodyThrow, refuse, inDomainAddress, inDomainId, pairRowAt, sameAddress, kernelFor, append, appendOwn, landedOp, pairsAtAddress, enterCommitFrame, leaveCommitFrame } from './kernel-foundations.mjs';
+import { KC, KERNEL_REFUSAL, markBodyThrow, refuse, inDomainAddress, inDomainId, pairRowAt, sameAddress, kernelFor, append, appendOwn, landedOp, pairsTriggered, enterCommitFrame, leaveCommitFrame } from './kernel-foundations.mjs';
 import { dropHandoff } from './kernel-terminal.mjs';
 
 /// **⟶ ADDED 2026-10-27 — `D-46`'s NAME ON A REPAIR INVOCATION'S OWN ENTRY, SPELLED HERE AS
@@ -22,6 +22,14 @@ import { dropHandoff } from './kernel-terminal.mjs';
 /// CARRIES NO SUCH CHANNEL ANSWERS THE INVOCATION WITH NOTHING NAMED**, and the repair's write opens its own
 /// commit — the rule's absent arm, never a commit nobody named.
 const EXTERNAL_CALL = Symbol.for('provident-storeroom.external-call');
+
+/// **⟶ AND `D-69`'S REGISTRATION CHANNEL, SPELLED ON THIS SIDE TOO — 2026-10-29.** `delivery.mjs`'s
+/// `installRegistrationSeam` installs it and this module reaches it, **and neither side imports the other**: the
+/// same `Symbol.for` device `EXTERNAL_CALL`, `TERMINAL_ARM`, `COMMIT_SCOPE` and `FORGET_PAIR` already cross by
+/// (`kernel-surface.md §1` item 1's empty import footprint; `A110`). **IT TAKES THE HANDLE `listen` WAS JUST GIVEN,
+/// THE PAIR'S OWN CONSTRAINT FUNCTION, AND THE KIND** — and it mints nothing: no kernel item (`K-1`…`K-6` and no
+/// seventh name, `§1` item 2), no member on any record, no store act.
+const REGISTER_BODY = Symbol.for('provident-storeroom.register-body');
 
 /// **THE INVOCATION OF A REPAIR BODY, WITH THE SYNTHETIC ATTEMPT'S COMMIT NAMED ON ITS ENTRY** — one call, its
 /// answer the body's own, and a throwable crosses unchanged. **THE SECOND COPY OF THE FIVE-LINE FORM
@@ -138,7 +146,27 @@ export function register(store, address, id, constraint) {
   //      nothing needs to get past the test"*).
   //   4. **THE REGISTRY ENTRY THE `listen` CREATES STAYS RESERVED** and `K-6`'s route (`removeListener`) removes
   //      it whole — so a `removeConstraint` still leaves nothing behind.
+  // **⟶ AND THE REGISTRATION'S OWN BODY IS HANDED OVER WITH THE HANDLE — `D-69`, 2026-10-29.**
+  //
+  // **THE RULING: *"It doesn't need to mint an inert listener body, it already should require a constraint function
+  // with a handle"*** (`strata/decisions.md`). **WHAT `D-22` DELETED WAS `store.register(home, noopListener)`** — a
+  // SEAM, because it fabricated a LISTENER to make a handle (`:134`'s sentence, unmoved: *"IT MAKES NO SECOND CALL.
+  // `store.register(home, noopListener)` IS DELETED, NOT RE-POINTED"*). **WHAT IT SHOULD HAVE BEEN, AND IS NOW, IS
+  // THE PAIR'S OWN FUNCTION**: the registration is a HANDLE AND A BODY, the pair has both — `id` (`D-29`) and
+  // `constraint` (`D-26`) — **so no second call is made here and no body is invented: the ONE call that stands is
+  // handed both members it always had, and the inert spelling does not return.** **THE KIND IS NAMED BECAUSE THE
+  // ENTRY ADMITS EITHER** (`delivery.mjs`'s `installRegistrationSeam`, whose own clause states the shape and the two
+  // places the kinds part company).
+  //
+  // **THE CHANNEL IS REACHED AFTER THE STORE VERB AND NOT INSTEAD OF IT**: `listen` writes the home entry — the
+  // handle at its address set — and the body fills the SAME registration's other slot, which is what makes
+  // `triggered` name this pair's `id` beside the listeners' handles and the pass able to filter it. **A STORE THAT
+  // CARRIES NO SUCH CHANNEL ANSWERS NOTHING AND NOTHING IS TOLD** (the device's own absent arm, `state.mjs`'s
+  // fallback read at `externalCall`/`bumpMark`): such a store is not this package's product, and its kernel is not
+  // this kernel's pass.
   const adopted = store.listen(id, set);
+  const install = store[REGISTER_BODY];
+  if (typeof install === 'function') install.call(store, id, constraint, 'constraint');
   // **THE PAIR'S OWN IDEMPOTENCE: a second registration under the SAME pair keeps the replaced registration's
   // PLACE and replaces only its function** (`kernel-surface.md §2.1` item 1; `CC-7`). **AND UNDER
   // PURGE-THEN-ADD THE STANDING ARM IS NO LONGER THE ORDINARY PATH** — a re-registration over a held pair
@@ -497,7 +525,7 @@ function registrationAttempt(kernel, store, pair) {
   // THE RE-RUN — `3-bis` (d)'s arms (e)/(f) and `3-bis` (e)'s ordinary landing rules: the repair's op
   // LANDED, so the pairs registered at ITS OWN landing's address are evaluated by the ordinary pass
   // (`kernel-surface.md §2.3` item 1), in first-registration order, against THAT op.
-  const failed = registrationRerun(kernel, attempt, produced);
+  const failed = registrationRerun(kernel, attempt, produced, key);
   if (failed !== null) {
     closeRegistrationAttempt(kernel, attempt);
     return registrationRefusal(address, pair.id, attempt.log);
@@ -517,7 +545,7 @@ function registrationAttempt(kernel, store, pair) {
 /// pair under repair is IN `ran` — arm (b) wrote it — and arm (b) has just put it in `appliedRepairs`, so a
 /// repeat by the repair's OWN edit reaches `(e)`; a pair IN `ran` and NOT in `appliedRepairs` reaches
 /// `(f)`. **`(c)` is unreachable here**, the pair's own function having already run at this instant.
-function registrationRerun(kernel, attempt, produced) {
+function registrationRerun(kernel, attempt, produced, key) {
   // **⟶ THE PAIR LIST IS READ OFF `attempt.address` AND NOT OFF AN INDEX** (`P: docs/pending.md · R-B3`,
   // verbatim: *"Delete byAddress — attempt.address already carries it"*; `contract.md §2.8` item 2 item (1)).
   // **THE ADDRESS IS IN HAND ONE FRAME ABOVE the `byAddress.get` call that stood here**, and the store→kernel
@@ -546,9 +574,24 @@ function registrationRerun(kernel, attempt, produced) {
   // wrote `{c, d}` at the attempt's address now asks the pairs standing at `['…','c']` and `['…','d']` as `D-66`
   // requires. **THE SNAPSHOT'S OWN PROPERTIES ARE UNMOVED** (`CX-12`; `HL-8` item 6): one materialisation, frozen
   // here, one registration order.
-  const list = pairsAtAddress(kernel, attempt.address, produced);
-  for (const key of list) {
-    const pair = kernel.pairs.get(key);
+  // **⟶ AND THE SET IS THE STORE'S OWN `triggered`, FILTERED — `D-69`, 2026-10-29.** The bytes that stood here read
+  // `pairsAtAddress(kernel, attempt.address, produced)`, so the registration's re-run COMPUTED A REACH of its own
+  // out of the repair's op — the same reach the store had already computed for the act, in the one place the
+  // per-tier versions live (`D-67`: *"the store computes the reach of an act, and the kernel computed a second
+  // one"*). **IT NO LONGER COMPUTES ONE**: `pairsTriggered` asks a store-returned list which of the registry's rows
+  // it names, and `D-56`'s and `D-66`'s predicates stand in `src/store.rs`.
+  //
+  // **AND THE LIST THIS INSTANT HAS IS `pending`'S OWN — THE SET THE STORE NAMED FOR THE PAIR THE REGISTRATION
+  // EVALUATED — BECAUSE A REGISTRATION LANDS NO ACT OF ITS OWN.** `3-bis` (a) declares *"the `CommitRecord` of the
+  // registration act"*, and that record carries no write's `triggered` set (*"with no write's op and no write's
+  // triggered set, because a registration lands no `K-2` of its own"*, `registrationAttempt`'s own clause). **SO
+  // THE RE-RUN'S SET IS THE ONE PAIR THIS INSTANT WAS EVER ABOUT**: `register`'s third step declares its scope
+  // once — *"The scope is THAT ONE PAIR and no other: no pass is opened over the registry and no other registered
+  // pair is re-evaluated"* — **and a re-run of a registration is not a pass over the registry.** The pair is named
+  // by its OWN REGISTRY KEY, the identity `3-bis` (a) reads off the row, and no second membership rule is minted.
+  const list = [key];
+  for (const evaluated of list) {
+    const pair = kernel.pairs.get(evaluated);
     if (pair === undefined) continue;
     let outcome;
     const context = {

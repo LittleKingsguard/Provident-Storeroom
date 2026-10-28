@@ -565,6 +565,23 @@ instance and not a function you hand to the store.**
 2. **`triggered` membership is decided by address and by nothing else:** a handle appears exactly where **its
    listener's address is a PREFIX of the triggering address** (`surface.md §2.3` item 5). **So a listener bound at
    a strict descendant of a deleted address does NOT fire.**
+
+   **⟶ AND THE SECOND ARM IS `TOUCHED`, 2026-10-29 — `D-66` AND `D-67`, AND THE SENTENCE ABOVE IS READ THROUGH
+   THIS ONE.** `RCA-8(g)` ANNOTATE-BESIDE: **that sentence was the build's rule until this date, and the
+   architect measured what it costs** — verbatim: *"Does the listener get fired when the value is purged by a
+   higher-persistence write that doesn't include it? Because that's the actual problem"* (`strata/decisions.md`
+   · `D-67`). **THE ANSWER WAS NO, AND THAT WAS THE DEFECT.** **So a handle now appears where its address is a
+   PREFIX of the triggering address (`D-56`, unmoved) OR WHERE THE ACT TOUCHED IT (`D-66`)** — the touched set
+   being the paths the act's value contains together with the whole subtree of every version that act PURGED,
+   **a purge at a higher persistence included, which is the case the prefix rule could not reach.** **A LISTENER
+   BOUND AT A STRICT DESCENDANT OF A DELETED ADDRESS DOES FIRE**: the cascade removed its node, so the value a
+   read there returns changed. **AND A CONSTRAINT IS REACHED BY THE SAME ONE PREDICATE** (`D-69`: a registration
+   is a handle and a body, and a pair has both), **so `triggered` names both kinds in one list and the kernel
+   filters it — an element that is a constraint's `id` is ASKED, a listener's is DELIVERED.** **MEASURED
+   2026-10-29 on this checkout** (`tests/e2e/discard-witness.mjs`'s `DW-14.1`/`DW-14.2`/`DW-14.3`): a listener at
+   `['a','b','c']` fires once for a write at `['a','b']` that writes `c`; a `file`-tier write that purges a node
+   with a `mem` shadow fires the listener bound at the purged path **and** asks the constraint bound there, while
+   the pair at an address neither value names is asked nothing.
 3. **A registration made during a firing window is not invoked during that window.** A delivery's recipient set
    is read from the array as it stands when the window opens (`surface.md §2.4`, the delivery-window clause).
 4. **One invocation per distinct handle.** A handle bound at two addresses that both match fires ONCE
@@ -610,6 +627,25 @@ set, because a failing arm checks nothing off), or a handle stands in `triggered
 addresses — **which, from this date, is the DESCENDANT direction `D-56` does not cover.** **Read `triggered` for what
 fired and `pending` for what the pass left; on a passing write they are no longer the same list, and `pending` is the
 shorter one.** (`D-56`; `index.d.ts`'s `CommitRecord`; §7.6's prefix-set clause; §7.8's ancestor clause.)
+
+**⟶ AND THE COMPOSITION IS NOW MEASURED, 2026-10-29 — `D-69`, AND EVERY SENTENCE ABOVE STANDS BYTE-FOR-BYTE.**
+`RCA-8(g)` ANNOTATE-BESIDE: **the clause above reasons about the member's SIZE; this one states what the member now
+CARRIES, because `D-69` moved the store's set as well as the pass's.** **THE STORE NOW NAMES A CONSTRAINT STANDING AT
+A TOUCHED DESCENDANT** — `D-66`'s criterion, computed where the per-tier versions live (`D-67`) — **so `pending` is
+seeded with that `id` where it was not before, and the pass then ASKS it and CHECKS IT OFF like any other element.**
+**MEASURED, BEFORE → AFTER, on one drive** (`tests/e2e/discard-witness.mjs`'s `DW-14.4`): a write whose pair stands at a
+TOUCHED DESCENDANT and whose listener stands at an ancestor — at `K-2`'s return the member carries **2** elements
+(the constraint's `id` AND the listener's handle) where the prefix-only composition carried **1**, and after the pass
+it carries **1** (the listener's handle, which is the DELIVERY's work and never the pass's) — **so the composition
+moves AT `K-2` and the delivered residue is unmoved.** **WHAT THAT MEANS FOR YOU, SAID PLAINLY: a `pending` entry is
+either a listener the delivery still owes (the residue) or a constraint the pass has not reached (the failing arm's
+whole set) — and on a passing write the pass asks EVERY element the store named that IT HOLDS A ROW FOR, so the
+residue's only remaining constraint is one it holds no row for.** **THAT ONE STATE IS REACHABLE AND MEASURED**
+(`tests/e2e/discard-witness.mjs`'s `DW-14.3`): **a registration whose own constraint REFUSED it at the registration
+instant** — `ConstraintRefusedAtRegistration`, state `2` of `contract.md §7.3` (b) — **leaves the store-side entry
+standing and NO row in the kernel's registry**, so the store's `triggered` names that handle, the pass asks nothing
+for it, and it stays in the residue; **it fires NOTHING, silently, and its body's one run is the registration's own
+evaluation** (`surface.md §2.4` rule 1). (`D-69`; `D-66`; `D-67`; `kernel-surface.md §2.1` item 2's `A112` reading.)
 
 **And one store behaviour that shows up in the records if you use integer addresses: a delete of an indexed
 version of an array container RENUMBERS the surviving anchors in container order from `0`, each keeping its tier

@@ -24,7 +24,7 @@ use crate::records::{
     ListenerHandle, ListenerTrigger, NodeRef, RollbackResult, Tier, WriteResult,
 };
 use crate::value::{Segment, StoreValue};
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::sync::atomic::{AtomicU64, Ordering};
 
 /// The one query the declared child container asks about an anchor that the container itself does not
@@ -379,6 +379,14 @@ impl Home {
     /// `Listener` and no other shape.
     fn members(&self) -> impl Iterator<Item = &Listener> {
         self.members.values().flatten()
+    }
+
+    /// **WHETHER THE HOME NAMES A REGISTRATION AT ALL** — the guard an act's reach is measured behind: **a store
+    /// that names none has nothing to reach, and its touched set is EMPTY BY CONSTRUCTION rather than by a walk**
+    /// (`touched_below`'s caller). **Nothing is decided here**: `triggered_for`/`watched_for` over an empty home
+    /// answer the empty list whether or not the set was materialised, so this guard moves the cost and no answer.
+    fn is_empty(&self) -> bool {
+        self.members.values().all(|bucket| bucket.is_empty())
     }
 
     /// **THE CONSTRUCTION'S ADOPTION** (`§7.1` step 5; `DD-39`; `§0.4` clause 2 (b)): an accepted
@@ -1866,11 +1874,22 @@ impl Store {
     /// the listener's key, so NO TIER TEST RUNS AT ANY TRIGGER.** **The store RETURNS these handles and
     /// INVOKES NOTHING** (`A57`); **the order is unspecified and the list is a SET** (`DD-37`).
     ///
+    /// **⟶ AND THE SELECTION RULE IS WIDENED TO THE PASS'S OWN, 2026-10-29 — `D-67` AND `D-66`.** `RCA-8(g)`
+    /// ANNOTATE-BESIDE: **this item's prefix-only sentence stands as the reading of its own date and IS READ
+    /// THROUGH THIS CLAUSE, which supersedes it.** **`D-67` measured the asymmetry it produced: A CONSTRAINT AT
+    /// A TOUCHED DESCENDANT WAS ASKED AND A LISTENER AT THE SAME ADDRESS WAS NEVER TOLD**, because `D-66`
+    /// widened the KERNEL's predicate while this filter stayed `is_prefix`. **`D-69` rules that the store's
+    /// answer is the ONLY answer, so the two predicates are one and it is here**: a registration is triggered
+    /// by an act at `X` iff **ITS ADDRESS IS A PREFIX OF `X`** (the ancestor arm, `D-56`, unmoved) **OR THE ACT
+    /// TOUCHED ITS ADDRESS** (the descendant arm, `D-66`) — **and `touched` is handed in by the verb that
+    /// performed the act, because THE VERSIONS ARE THE STORE'S OWN and only the store can name every path a
+    /// purge removed** (`touched_below`).
+    ///
     /// **THE ONE HOME IS THE SOURCE OF THE SET** (`A45`/`A48`; `§5.8` (c)/(d)): a node's `active`/`carried`
     /// lists are *"an INDEX FOR LOOKUP COST only"*, and *"the same two sets must be produced whether the
     /// index is consulted or the home is scanned"* — so the selection below reads the home directly and no
     /// membership depends on a node's lifetime (`A46`) or on the `active`/`carried` split (`A47`).
-    fn triggered_for(&self, address: &[Segment]) -> Vec<ListenerTrigger> {
+    fn triggered_for(&self, address: &[Segment], touched: &[Vec<Segment>]) -> Vec<ListenerTrigger> {
         // **`F-9`: THE MAP'S OWN MEMBERS ARE ITERATED — each address's own bucket, in the map's own
         // iteration — and no keyed scan of a linear home runs.**
         //
@@ -1882,12 +1901,14 @@ impl Store {
         // and NO `triggeredAddresses` ARRAY EXISTS** (the aligned form is an i-th correspondence, and it
         // reverses `DD-37`; `contract.md §2.4` item 1).
         //
-        // **AND THE PREFIX RULE IS UNMOVED**: the filter is still `is_prefix(&listener.address, address)`,
-        // descendant-inclusive, so a listener bound at `['a']` fired by a write at `['a','b','c']` carries
-        // `['a']` — THE BINDING's address — while the invocation's ONE argument stays the WRITE's.
+        // **AND THE PREFIX RULE IS SUPERSEDED BY THE ONE PREDICATE — `D-67`/`D-69`, 2026-10-29.** The filter
+        // is `registration_triggered(&listener.address, address, touched)`: the prefix arm is unmoved
+        // (descendant-inclusive, so a binding at `['a']` fired by a write at `['a','b','c']` carries `['a']` —
+        // THE BINDING's address — while the invocation's ONE argument stays the WRITE's), **and the second arm
+        // admits a registration whose own address the act TOUCHED**, whichever kind it is.
         self.home
             .members()
-            .filter(|listener| is_prefix(&listener.address, address))
+            .filter(|listener| registration_triggered(&listener.address, address, touched))
             .map(|listener| ListenerTrigger {
                 handle: listener.handle.clone(),
                 address: listener.address.clone(),
@@ -1902,16 +1923,92 @@ impl Store {
     /// with its OWN handle"*, adopted VERBATIM and never re-minted (`§0.4` clause 2 (b)) — **and there the
     /// address is one member while both handles fire; `listen` itself never adds a second entry at an
     /// address the home already holds** (`§6.5` item 12 (c)).
-    fn watched_for(&self, address: &[Segment]) -> Vec<Vec<Segment>> {
+    fn watched_for(&self, address: &[Segment], touched: &[Vec<Segment>]) -> Vec<Vec<Segment>> {
         let mut watched: Vec<Vec<Segment>> = Vec::new();
         // **`F-9`: the home's own members, one member per distinct address** — the set is the addresses the
         // map's entries carry, and the DISTINCT rule (`§6.5` item 2's kept half) is applied as they walk.
+        // **⟶ AND THE MEMBERSHIP TEST IS THE ONE `triggered_for` TAKES — `D-67`/`D-69`, 2026-10-29.** `§5.8`'s
+        // re-derived `(vi)(3)` reads `watched` as *"the ADDRESS PROJECTION of `triggered`"*, so the two lists
+        // must be produced by ONE predicate or the projection is false: **a registration the act touched below
+        // stands in the trigger set, and its address therefore stands here too.**
         for listener in self.home.members() {
-            if is_prefix(&listener.address, address) && !watched.contains(&listener.address) {
+            if registration_triggered(&listener.address, address, touched)
+                && !watched.contains(&listener.address)
+            {
                 watched.push(listener.address.clone());
             }
         }
         watched
+    }
+
+    /// **THE ADDRESSES AN ACT TOUCHED BELOW ITS OWN — `D-66`'s COMPUTATION, AT THE ONE PLACE THE VERSIONS
+    /// LIVE.**
+    ///
+    /// **WHY IT IS HERE AND NOT IN THE KERNEL, STATED AS THE DEFECT IT CLOSES** (`D-67`, verbatim: *"the store
+    /// computes the reach of an act, and the kernel computed a second one"*): **`bindings/js/src/entry/
+    /// kernel-foundations.mjs`'s `touchedAddresses` reads the act's `after`/`before` VALUES**, and a
+    /// higher-persistence write that purges a shadow leaves a `before` whose per-tier versions collapse into one
+    /// array — **so the JS reader could not name the paths the purge removed, while the store holds them as
+    /// `Captured` records with their tiers.** **THE STORE THEREFORE COMPUTES IT, FROM `captured` AND THE TIERS
+    /// IT IS ABOUT TO REMOVE, AND THE PASS READS THE RESULT OFF `triggered`** (`D-69`: one predicate, in the
+    /// store, where the per-tier versions live).
+    ///
+    /// **ITS TWO ARMS, EACH A PROPERTY OF WHAT THE ACT MOVED:**
+    ///   * **WHAT THE ACT WROTE** — `written`'s own path set below the act's address: an object contributes one
+    ///     path per own member name, an array one per index (as a `number` segment and never a string, `§1.5`),
+    ///     each recursed into one level down; a scalar contributes nothing, because it has no members;
+    ///   * **WHAT THE ACT REMOVED** — every captured path whose ENCLOSING version was removed, which is the
+    ///     whole subtree of every purged version: a write's `doomed` versions (`W-6`'s purge, the equal-tier
+    ///     replacement included) and a delete's `removed` ones, **at the tier the act actually took**, so a
+    ///     version standing at a HIGHER persistence and left standing keeps its own subtree UNTOUCHED.
+    ///
+    /// **THE ENCLOSING VERSION IS `Captured::under`** — `None` at an operation's own node (so a register-wide
+    /// delete's TOP-LEVEL captures, whose paths are absolute, are judged by their OWN tier and not by a parent
+    /// that does not exist), and `Some(tier)` beneath it. **A FIRST WRITE AT AN ADDRESS HAS NO BEFORE VALUE AND
+    /// TOUCHES NOTHING THROUGH THIS ARM**: it purges nothing, so `removed_tiers` is empty and no captured path
+    /// qualifies.
+    ///
+    /// **THE RESULT IS A SET OF ADDRESSES, APPENDED WITHOUT DUPLICATION, AND THE ACT'S OWN ADDRESS IS NOT ONE OF
+    /// THEM** — equality is the prefix arm's, already, and this list is the DESCENDANT arm alone.
+    fn touched_below(
+        &self,
+        address: &[Segment],
+        captured: &[Captured],
+        removed_tiers: &[Tier],
+        written: Option<&StoreValue>,
+    ) -> Vec<Vec<Segment>> {
+        let mut out: Vec<Vec<Segment>> = Vec::new();
+        // **THE SET'S MEMBERSHIP IS A HASH LOOKUP AND NOT A SCAN.** The measured reason: a dense array of
+        // `999,999` members written at one address materialises `999,999` paths, and a scan per append is
+        // `O(n^2)` — measured as a HANG, not a slowness (`tests/e2e/json-crossing.test.mjs`'s `JC-TC-42`).
+        let mut seen: HashSet<Vec<Segment>> = HashSet::new();
+        if let Some(value) = written {
+            append_value_paths(&mut out, &mut seen, address, value);
+        }
+        if removed_tiers.is_empty() {
+            return out;
+        }
+        for entry in captured {
+            // The act's OWN node is the prefix arm's, never this one's.
+            if entry.path.is_empty() {
+                continue;
+            }
+            let enclosing_removed = match entry.under {
+                Some(under) => removed_tiers.contains(&under),
+                // The register's own capture: its top-level paths hang under no version, so the version that
+                // stood at that path IS the one the act removed and its own tier is the test.
+                None => removed_tiers.contains(&entry.tier),
+            };
+            if !enclosing_removed {
+                continue;
+            }
+            let mut path: Vec<Segment> = address.to_vec();
+            path.extend(entry.path.iter().cloned());
+            if seen.insert(path.clone()) {
+                out.push(path);
+            }
+        }
+        out
     }
 
     // -----------------------------------------------------------------------------------------------
@@ -2184,6 +2281,19 @@ impl Store {
                 }
             }
         }
+        // **⟶ THE TIERS THIS WRITE PURGES, READ OFF THE VERSIONS THEMSELVES BEFORE THEY LEAVE THE ARENA —
+        // `D-66`/`D-67`, 2026-10-29.** The `doomed` references are handed to `remove_refs` below, after which
+        // their arena rows are the removal's and no tier can be read off them: **so the set is taken HERE, and
+        // it is what makes the touched descendants a property of the store's OWN versions rather than of a
+        // value the crossing carried** (`touched_below`). **A tier stands at most once per node** (`A34`), so
+        // the collection de-duplicates by the tier itself.
+        let mut doomed_tiers: Vec<Tier> = Vec::new();
+        for reference in &doomed {
+            let tier = self.refs[*reference].anchor.tier;
+            if !doomed_tiers.contains(&tier) {
+                doomed_tiers.push(tier);
+            }
+        }
         self.remove_refs(parent_link, &doomed, false);
         self.mint(parent_link, key, write_tier, &value);
         let before = self.state_from_captured(&segments, &captured);
@@ -2212,8 +2322,18 @@ impl Store {
             Some(home.clone()),
             compacted_before.clone(),
         );
-        let watched = self.watched_for(&segments);
-        let triggered = self.triggered_for(&segments);
+        // **⟶ AND THE ACT'S REACH IS COMPUTED HERE, ONCE, FROM THE STATE THIS WRITE DISPLACED AND THE VALUE IT
+        // INSTALLED — `D-67`/`D-66`.** The two lists below are the SAME set seen twice (`§5.8`'s re-derived
+        // `(vi)(3)`), so both are handed the one materialisation: **the paths the written value contains, plus
+        // the whole subtree of every version this write purged at a tier it reached.** No second reach is
+        // computed anywhere else — the kernel's `pairsAtAddress` walk is gone (`D-69`).
+        let touched = if self.home.is_empty() {
+            Vec::new()
+        } else {
+            self.touched_below(&segments, &captured, &doomed_tiers, Some(&value))
+        };
+        let watched = self.watched_for(&segments, &touched);
+        let triggered = self.triggered_for(&segments, &touched);
         // **⟶ AMENDED 2026-10-15 (`contract.md §7.2` item 1, read with `surface.md §2.11` clause 1): THE
         // WRITE RECORDS, INSTALLS, APPENDS AND RETURNS ITS `WriteResult` ON EVERY TIER AND PERFORMS NO FILE
         // I/O ON ANY OF ITS ARMS.** **THE `file` TIER'S DURABLE COMMIT IS NO LONGER A VERB'S ARM AT ALL: it
@@ -2326,6 +2446,19 @@ impl Store {
                 tiers.push(tier);
             }
         }
+        // **⟶ AND THE ACT'S REACH, COMPUTED BEFORE THE VERSIONS LEAVE THE ARENA — `D-67`/`D-66`, 2026-10-29.**
+        // **A DELETE TOUCHES THE WHOLE SUBTREE AT ITS ADDRESS AT THE TIERS IT NAMED** (`D-66`'s delete arm: *"the
+        // WHOLE SUBTREE at the act's address, because the act removes all of it"*), and **the paths are read off
+        // the store's OWN captured versions rather than off a value the crossing carried**: every captured path
+        // whose ENCLOSING version is one this delete removed is a path the act moved. **A version standing at a
+        // tier the delete did not name keeps its own subtree, and that subtree is NOT touched** — the per-tier
+        // half `D-67` measured as the residual. `tiers` is the ordered spelling of the same set, so the two
+        // cannot disagree.
+        let touched = if self.home.is_empty() {
+            Vec::new()
+        } else {
+            self.touched_below(&segments, &captured, &tiers, None)
+        };
         // **A DELETE removes the index itself**: an array container's position closes up **in the arena**
         // (`§1.3`/`R-3`; `Children::remove`'s `close_up: true`, which is the whole of the closing).
         match &key {
@@ -2376,7 +2509,7 @@ impl Store {
         let op = self.append(op, captured, after_state, home, uncompacted);
         // **`§6.5` item 11 / `§5.8` (b): THE DELETE IS THE SECOND TRIGGER EVENT** (`A43`) — the receipt
         // carries the handles of the listeners the trigger fired, selected by the SAME prefix rule.
-        let triggered = self.triggered_for(&segments);
+        let triggered = self.triggered_for(&segments, &touched);
         Ok(DeleteReceipt {
             address: segments,
             tiers,
@@ -2873,4 +3006,60 @@ fn child_paths(captured: &[Captured], walked: &[Segment]) -> Vec<Vec<Segment>> {
 /// The rollback's scope relation (`§6.4` `M-5`, `DD-21`): `op.address` is a prefix of the entry's address.
 fn is_prefix(prefix: &[Segment], address: &[Segment]) -> bool {
     prefix.len() <= address.len() && prefix.iter().zip(address.iter()).all(|(a, b)| a == b)
+}
+
+/// **`D-66`/`D-67`'s ONE PREDICATE, SPELLED ONCE FOR BOTH RETURNED LISTS — an act at `address` triggers a
+/// registration bound at `registration` iff THE REGISTRATION'S ADDRESS IS A PREFIX OF THE ACT'S (`D-56`, the
+/// ancestor arm, equality included) OR THE ACT TOUCHED IT (`D-66`, the descendant arm, and the purge arm that
+/// closes the per-tier residual).**
+///
+/// **THE TWO ARMS ARE ONE CRITERION AND NOT TWO RULES**: a pair is asked (and a listener told) when the act
+/// CHANGES THE VALUE AT ITS ADDRESS — the value read at a prefix contains its subtree, so a change anywhere
+/// below it moves it; **and a node the act CREATED OR PURGED has a value that changed, so its own registration
+/// is reached.** An address that is neither above the act nor touched by it is NOT reached: `['a','b','e']`
+/// stays silent for a write at `['a','b']` with `{c, d}` (`D-66`'s own example).
+fn registration_triggered(
+    registration: &[Segment],
+    address: &[Segment],
+    touched: &[Vec<Segment>],
+) -> bool {
+    is_prefix(registration, address) || touched.iter().any(|path| path == registration)
+}
+
+/// **ONE VALUE'S PATH SET, APPENDED UNDER `prefix`** — the walk `Store::touched_below` states the rule of. Each
+/// member's address is built FRESH, a copy of `prefix` plus the one segment, and a path already standing in the
+/// list is not appended a second time: the answer is a SET.
+///
+/// **THE SEGMENT CLASS IS THE CONTAINER'S OWN** (`§1.5`: an index key is a non-negative integer), so an array
+/// contributes `Segment::Index` and an object `Segment::Key` — `[7, 8]` written at `['a']` touches `['a',0]` and
+/// `['a',1]` and NEVER `['a','0']`. **A SCALAR HAS NO MEMBERS AND TOUCHES NOTHING.**
+fn append_value_paths(
+    out: &mut Vec<Vec<Segment>>,
+    seen: &mut HashSet<Vec<Segment>>,
+    prefix: &[Segment],
+    value: &StoreValue,
+) {
+    match value {
+        StoreValue::Object(members) => {
+            for (name, member) in members {
+                let mut path: Vec<Segment> = prefix.to_vec();
+                path.push(Segment::Key(name.clone()));
+                if seen.insert(path.clone()) {
+                    out.push(path.clone());
+                }
+                append_value_paths(out, seen, &path, member);
+            }
+        }
+        StoreValue::Array(items) => {
+            for (index, member) in items.iter().enumerate() {
+                let mut path: Vec<Segment> = prefix.to_vec();
+                path.push(Segment::Index(index as u64));
+                if seen.insert(path.clone()) {
+                    out.push(path.clone());
+                }
+                append_value_paths(out, seen, &path, member);
+            }
+        }
+        _ => {}
+    }
 }

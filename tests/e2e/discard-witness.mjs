@@ -65,6 +65,11 @@ import { currentWindow, openCommits, windowMark } from '../../bindings/js/src/en
 // `D-63`'s two boundaries are measured with (`state.mjs`'s opening cache IS this answer, and the bump IS its
 // re-read). A cell that measured the gap from anywhere else would be measuring its own arithmetic.
 import { withAddon } from '../../bindings/js/src/entry/artefact.mjs';
+// **THE `D-67`/`D-66` PER-TIER CELL NEEDS A `file`-TIER STORE** — the residual is a HIGHER-PERSISTENCE write that
+// purges a value, so the drive constructs at an OS-temporary path and removes it at the end of its own block.
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 
 const LAYER = 'ENVELOPE/PURE';
 const APP_LAYER = 'NONE';
@@ -2455,6 +2460,239 @@ console.log('\n── W13 · `D-66` · A PAIR AT A DESCENDANT IS ASKED ONLY WHEN
   console.log('        disappears changed as surely as a path that appears — and a delete the whole subtree it removed.');
   console.log('        A descendant neither value touched is NOT asked, and the set is still one snapshot, frozen at');
   console.log('        pass start, in one registration order.');
+}
+
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+// (W14) `D-67` + `D-69` — THE STORE'S ANSWER IS THE ONLY ANSWER: the listener at a touched descendant, the
+// per-tier residual, the pass as a filter, and `pending`'s composition
+//
+// **THE TWO RULINGS** (`strata/decisions.md`, 2026-10-28):
+//   · `D-67`, verbatim: *"Does the listener get fired when the value is purged by a higher-persistence write that
+//     doesn't include it? Because that's the actual problem, not whether the before/after displays by tier"* —
+//     **measured NO**, because `triggered_for` filtered by `is_prefix` while the PASS had been widened to the
+//     touched descendants (`D-66`): *"A CONSTRAINT AT A TOUCHED DESCENDANT IS ASKED; A LISTENER AT THE SAME
+//     ADDRESS IS NEVER TOLD."*
+//   · `D-69`, verbatim: *"It doesn't need to mint an inert listener body, it already should require a constraint
+//     function with a handle"* — **the registration is a HANDLE AND A BODY, and a pair has both** (`id`, `D-29`;
+//     `constraint`, `D-26`), **so `K-1` hands the store what the pair already has and the pass becomes a FILTER
+//     over `triggered`.**
+// **THE ONE PREDICATE NOW LIVES WHERE THE VERSIONS DO** (`src/store.rs`'s `registration_triggered` over
+// `touched_below`): *the registration's address is a PREFIX of the act's, OR the act TOUCHED it*, and *touched*
+// counts **the paths the written value contains AND the whole subtree of every version the act purged**.
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+console.log('\n── W14 · `D-67`/`D-69` · THE STORE\'S ANSWER IS THE ONLY ANSWER ─────────────────────');
+{
+  // ── DW-14.1 · ★ THE `D-67` ARM: A LISTENER AT A TOUCHED DESCENDANT FIRES ─────────────────────────
+  // The listener stands at `['a','b','c']` and the act is at `['a','b']`, so its address is NOT a prefix of the
+  // act's — **it fires because the write TOUCHED it (`D-66`): `['a','b','c']` stands in the value the write
+  // installed.** Before 2026-10-29 this invocation count was `0`.
+  const dStore = make();
+  dStore.write(['a'], 'mem', { b: { c: 'old' } });
+  const dFired = [];
+  const dHandle = dStore.listen('deep-listener', [['a', 'b', 'c']]);
+  dStore.register(dHandle, (address) => { dFired.push(address); });
+  const dRecord = attempt(() => dStore.write(['a', 'b'], 'mem', { c: 'new' }));
+  P('D-67 · the listener at [a,b,c], invoked how many times', dFired.length);
+  P('D-67 · the ONE argument it was handed (the TRIGGERING address)', dFired[0]);
+  P('D-67 · the write\'s `triggered` list', dRecord.ok ? dRecord.value.triggered : String(dRecord.caught));
+  A('DW-14.1', '`strata/decisions.md` · `D-67` (the ruling, verbatim: *"Does the listener get fired when the value is purged by a higher-persistence write that doesn\'t include it? Because that\'s the actual problem"*) read with `D-66`\'s criterion (*"a pair is asked when the act changes the value at the pair\'s address"*) and `src/store.rs`\'s `registration_triggered`',
+    '★ A LISTENER AT A TOUCHED DESCENDANT FIRES: the listener bound at `[a,b,c]` runs EXACTLY ONCE for a write at `[a,b]` that writes `c`, and receives the TRIGGERING address `[a,b]` — its own address is NOT a prefix of the act\'s, so the touched arm is the only one that can reach it',
+    dRecord.ok && dFired.length === 1
+      && keyOfAddr(dFired[0]) === keyOfAddr(['a', 'b'])
+      && dRecord.value.triggered.some((one) => one.handle === 'deep-listener'
+        && keyOfAddr(one.address) === keyOfAddr(['a', 'b', 'c'])),
+    `invocations ${dFired.length} · argument ${JSON.stringify(dFired[0])} · triggered ${dRecord.ok ? JSON.stringify(dRecord.value.triggered) : String(dRecord.caught)}`);
+
+  // ── DW-14.2 · ★ THE PER-TIER RESIDUAL: A HIGHER-PERSISTENCE WRITE THAT PURGES A VALUE ──────────
+  // **`D-67`'s OWN QUESTION, DRIVEN.** `['a','b']` stands at TWO tiers at once — a `file` version carrying `{f:1}`
+  // and a `mem` shadow carrying `{m:2}` — and the act is a write at `[a,b]` at the `file` tier carrying `{n:3}`.
+  // **IT PURGES BOTH**, and with them `['a','b','f']` and `['a','b','m']`. A listener AND a constraint stand at
+  // `['a','b','f']`; a control constraint stands at `['a','b','z']`, which neither value names.
+  const wDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sr-w14-'));
+  try {
+    const wStore = storeCreate({ filePath: path.join(wDir, 'state.json'), journalLength: 256, listeners: [] });
+    wStore.write(['a'], 'file', {});
+    wStore.write(['a', 'b'], 'file', { f: 1 });
+    wStore.write(['a', 'b'], 'mem', { m: 2 });
+    P('D-66 residual · the versions standing at [a,b] before the act',
+      wStore.read(['a', 'b']));
+    P('D-66 residual · the same node read at each tier',
+      { file: attempt(() => wStore.read(['a', 'b'], 'file')).ok, mem: attempt(() => wStore.read(['a', 'b'], 'mem')).ok });
+    const wFired = [];
+    const wHandle = wStore.listen('at-f-listener', [['a', 'b', 'f']]);
+    wStore.register(wHandle, (address) => { wFired.push(address); });
+    const wAsks = [];
+    const wBody = (id) => (context) => {
+      if (context.attempt !== null) wAsks.push(id);
+      return true;
+    };
+    const wPair = attempt(() => wStore.addConstraint({ address: [['a', 'b', 'f']], id: 'at-f-pair' }, wBody('at-f-pair')));
+    const wControl = attempt(() => wStore.addConstraint({ address: [['a', 'b', 'z']], id: 'at-z-pair' }, wBody('at-z-pair')));
+    const wRecord = attempt(() => wStore.write(['a', 'b'], 'file', { n: 3 }));
+    // **THE JS PROJECTION, PRINTED BESIDE THE STORE'S ANSWER** — `touchedAddresses` reads the act's own
+    // `before`/`after` VALUES, and this write's `before` collapses the node's TWO versions into ONE array of two
+    // values (§6.2's `BaseState`), **so the paths the purge removed are not nameable from it**. That gap IS the
+    // residual `D-66` left open and `D-67` closes by computing the set where the versions live.
+    const wProjected = wRecord.ok ? touchedAddresses(wRecord.value.op) : [];
+    P('D-66 residual · the JS projection `touchedAddresses(op)`, printed as the crossing answers it', wProjected);
+    P('D-66 residual · the store\'s `triggered` list', wRecord.ok ? wRecord.value.triggered : String(wRecord.caught));
+    P('D-66 residual · the listener\'s invocations', wFired);
+    P('D-66 residual · the pass\'s asks', wAsks);
+    A('DW-14.2', '`strata/decisions.md` · `D-67` (*"the store computes `touched`, because it alone knows the versions it purged"*) read with `D-66`\'s criterion and `src/store.rs`\'s `touched_below` (`Captured::under` names the enclosing version, so a PURGED version\'s whole subtree is touched at the tier the act actually took)',
+      '★ THE PER-TIER RESIDUAL IS CLOSED: a `file`-tier write at `[a,b]` that PURGES the shadow there fires the listener bound at `[a,b,f]` (`1` invocation) and ASKS the constraint standing at `[a,b,f]` — the node both of them bind was removed — while the control at `[a,b,z]`, which neither value names, is asked NOTHING and is not in the trigger set; and the JS projection of the same act NAMES NEITHER, which is the residual the store\'s answer closes',
+      wPair.ok && wControl.ok && wRecord.ok
+        && wFired.length === 1
+        && wAsks.includes('at-f-pair') && wAsks.includes('at-z-pair') === false
+        && wRecord.value.triggered.some((one) => one.handle === 'at-f-listener')
+        && wRecord.value.triggered.some((one) => one.handle === 'at-f-pair')
+        && wRecord.value.triggered.some((one) => one.handle === 'at-z-pair') === false
+        && wProjected.some((one) => keyOfAddr(one) === keyOfAddr(['a', 'b', 'f'])) === false,
+      `invocations ${wFired.length} · asks ${JSON.stringify(wAsks)} · projected ${JSON.stringify(wProjected)} · `
+        + `triggered ${wRecord.ok ? JSON.stringify(wRecord.value.triggered.map((one) => one.handle)) : String(wRecord.caught)} · `
+        + `pairs ${JSON.stringify([wPair.ok, wControl.ok])}`);
+  } finally {
+    try { fs.rmSync(wDir, { recursive: true, force: true }); } catch { /* the drive's own scratch */ }
+  }
+
+  // ── DW-14.3 · THE PASS IS A FILTER: ONE `triggered` LIST CARRYING BOTH KINDS ─────────────────────
+  // **`D-69`: *"an element whose handle is a constraint's `id` is asked; a listener's is delivered."*** The drive
+  // stands a constraint at `['a','b','c']` and a listener at `['a']` — **one list, two kinds** — and reads what
+  // each of them receives: the constraint the five-member `AttemptContext`, the listener the triggering address.
+  // **AND THE CONSTRAINT IS NOT DELIVERED**: its body runs ONCE, asked by the pass, and never a second time with
+  // the address as its argument — which is what the registration's `kind` member is for.
+  const fStore = make();
+  fStore.write(['a'], 'mem', { b: { c: 1 } });
+  const fCalls = [];
+  const fPair = attempt(() => fStore.addConstraint({ address: [['a', 'b', 'c']], id: 'the-constraint' }, (context) => {
+    if (context.attempt !== null) {
+      fCalls.push({ kind: 'constraint', received: keysOf(context), address: context.address.slice() });
+    }
+    return true;
+  }));
+  const fListener = fStore.listen('the-listener', [['a']]);
+  fStore.register(fListener, (address) => { fCalls.push({ kind: 'listener', received: address }); });
+  const fRecord = attempt(() => fStore.write(['a', 'b'], 'mem', { c: 2 }));
+  P('DW-14.3 · ONE `triggered` list carrying BOTH kinds', fRecord.ok ? fRecord.value.triggered : String(fRecord.caught));
+  P('DW-14.3 · what each kind RECEIVED, in the order it ran', fCalls);
+  // **AND THE KIND IS WHAT KEEPS A PAIR'S BODY OUT OF THE DELIVERY — THE REACHABLE ARM.** A registration whose
+  // own constraint REFUSED it (`ConstraintRefusedAtRegistration`, state 2 of `§7.3` (b)) leaves **NO row in the
+  // kernel's registry and its store-side entry standing** — the declared `(D-vi)` state, where the pair's two
+  // standings are two facts — so **the store's `triggered` names that handle and the pass asks NOTHING for it**:
+  // the handle therefore stays in `pending` and reaches the terminal arm's delivery. **WITHOUT THE KIND THE
+  // REFUSED CONSTRAINT'S OWN BODY WOULD BE INVOKED THERE, WITH THE TRIGGERING ADDRESS AS ITS ONE ARGUMENT** — a
+  // body asked by a pass being delivered as if it were a listener.
+  const rStore = make();
+  rStore.write(['a'], 'mem', { b: { c: 1 } });
+  const rCalls = [];
+  const rRefused = attempt(() => rStore.addConstraint({ address: [['a', 'b', 'c']], id: 'refused-pair' }, () => {
+    rCalls.push('the refused body ran');
+    return { message: 'no' };
+  }));
+  const rStatus = rRefused.ok === false && rRefused.caught !== null && typeof rRefused.caught === 'object'
+    ? rRefused.caught.status
+    : '<admitted>';
+  // **AND THE RESIDUE IS READ AT BOTH OF ITS INSTANTS** (`A112`: the whole set at `K-2`, the checked-off residue
+  // after the pass): the refused handle is in the member at BOTH, because the pass holds no row to ask.
+  const rRecord = attempt(() => kernel.commit(rStore, ['a', 'b'], 'mem', { c: 2 }));
+  const rAtK2 = rRecord.ok ? rRecord.value.pending.map((one) => one.handle) : [];
+  const rRun = rRecord.ok ? attempt(() => kernel.runAttempt(rStore, rRecord.value)) : null;
+  const rAfter = rRecord.ok ? rRecord.value.pending.map((one) => one.handle) : [];
+  P('DW-14.3 · a REFUSED registration: the status, the carried read, the later write\'s `triggered`, and `pending` at both instants', {
+    status: rStatus,
+    carried: rStore.constraints().length,
+    triggered: rRecord.ok ? rRecord.value.triggered.map((one) => one.handle) : String(rRecord.caught),
+    pendingAtK2: rAtK2,
+    pendingAfter: rAfter,
+    delivered: rCalls.length,
+  });
+  A('DW-14.3', '`strata/decisions.md` · `D-69` (*"the pass becomes a FILTER over `triggered` rather than a walk over `kernel.pairs` — an element whose handle is a constraint\'s `id` is asked; a listener\'s is delivered"*) read with `kernel-surface.md §2.3` item 1 (the five-member `AttemptContext`) and `PAR-JS-12` (a listener\'s ONE argument is the triggering address)',
+    'THE PASS IS A FILTER AND THE TWO KINDS PART COMPANY THERE: the write\'s `triggered` is ONE list carrying the listener\'s handle AND the constraint\'s `id`; the constraint is ASKED — handed the `AttemptContext` — and the listener is DELIVERED the triggering address, ONCE each, in that order; and a REFUSED registration\'s residual handle, which the store still names and no pass asks, is DELIVERED NOTHING — the body\'s ONE run is the registration\'s own evaluation and never a listener\'s invocation',
+    fPair.ok && fRecord.ok
+      && fRecord.value.triggered.length === 2
+      && fRecord.value.triggered.some((one) => one.handle === 'the-listener')
+      && fRecord.value.triggered.some((one) => one.handle === 'the-constraint')
+      && fCalls.length === 2
+      && fCalls[0].kind === 'constraint' && fCalls[0].received.includes('address')
+      && fCalls[0].received.includes('attempt') && fCalls[0].received.includes('op')
+      && fCalls[1].kind === 'listener' && keyOfAddr(fCalls[1].received) === keyOfAddr(['a', 'b'])
+      && rRefused.ok === false && rStatus === 'ConstraintRefusedAtRegistration'
+      && rRecord.ok === true && rRecord.value.triggered.some((one) => one.handle === 'refused-pair')
+      && rAtK2.includes('refused-pair') && rAfter.includes('refused-pair')
+      && rRun !== null && rRun.ok === true && rRun.value.outcome === 'passed'
+      && rCalls.length === 1,
+    `triggered ${fRecord.ok ? JSON.stringify(fRecord.value.triggered.map((one) => one.handle)) : String(fRecord.caught)} · `
+      + `calls ${JSON.stringify(fCalls)} · refused ${rStatus} · pending ${JSON.stringify([rAtK2, rAfter])} · `
+      + `its body delivered ${rCalls.length} time(s)`);
+
+  // ── DW-14.4 · `pending`'S COMPOSITION, BEFORE → AFTER ────────────────────────────────────────────
+  // **`D-56`'S `pending` IS *"the list of handles the pass did not evaluate"*** (`kernel-surface.md §2.1` item 2;
+  // `A112`: *"`pending` IS THE WHOLE RETURNED SET … AND CHECKS EACH OFF AS IT PASSES"*). **THE STORE NOW SEES
+  // CONSTRAINTS, SO THE SET IT RETURNS IS WIDER AND THE MEMBER'S COMPOSITION MOVES WITH IT** — measured here
+  // rather than assumed: at `K-2` the member carries the store's WHOLE set, and after the pass every element the
+  // pass asked is GONE. **The `before` column is the prefix-only subset, computed by the DRIVE as an instrument
+  // and labelled as one**, since it is the set the store returned before 2026-10-29.
+  const pStore = make();
+  pStore.write(['p'], 'mem', { q: { r: 1 } });
+  const pCalls = [];
+  const pPair = attempt(() => pStore.addConstraint({ address: [['p', 'q', 'r']], id: 'touched-pair' }, (context) => {
+    if (context.attempt !== null) pCalls.push(context.address.slice());
+    return true;
+  }));
+  const pListener = pStore.listen('ancestor-listener', [['p']]);
+  pStore.register(pListener, () => {});
+  const pRecord = attempt(() => kernel.commit(pStore, ['p', 'q'], 'mem', { r: 2 }));
+  const pAtK2 = pRecord.ok ? pRecord.value.pending.slice() : [];
+  const isPrefixOfAct = (address) => Array.isArray(address)
+    && address.length <= 2
+    && address[0] === 'p' && (address.length === 1 || address[1] === 'q');
+  const pPrefixOnly = pAtK2.filter((one) => isPrefixOfAct(one.address));
+  const pRun = pRecord.ok ? attempt(() => kernel.runAttempt(pStore, pRecord.value)) : null;
+  const pAfter = pRecord.ok ? pRecord.value.pending.slice() : [];
+  P('pending · AT K-2, the store\'s WHOLE returned set', pAtK2.map((one) => one.handle));
+  P('pending · AT K-2, the PREFIX-ONLY subset (the composition before 2026-10-29, an instrument)', pPrefixOnly.map((one) => one.handle));
+  P('pending · AFTER the pass (every asked element checked off)', pAfter.map((one) => one.handle));
+  P('pending · the pass\'s asks', pCalls);
+  A('DW-14.4', '`kernel-surface.md §2.1` item 2 read with `A112` (*"`pending` IS THE WHOLE RETURNED SET … AND CHECKS EACH OFF AS IT PASSES"*) and `D-69`\'s single predicate; the measured change is that the store now NAMES a constraint standing at a TOUCHED DESCENDANT, so the member carries it until the pass asks it',
+    '`pending`\'S COMPOSITION MOVES AT `K-2` AND IS UNMOVED AFTER THE PASS: the whole returned set now carries the TOUCHED-DESCENDANT constraint\'s `id` beside the ancestor listener\'s handle (2 members where the prefix-only composition had 1), and after the pass the asked element is CHECKED OFF and only the listener\'s handle stands — so the DELIVERED residue is the same one member it always was',
+    pPair.ok && pRecord.ok && pRun !== null && pRun.ok === true
+      && pAtK2.length === 2 && pPrefixOnly.length === 1
+      && pPrefixOnly[0].handle === 'ancestor-listener'
+      && pAtK2.some((one) => one.handle === 'touched-pair')
+      && pAfter.length === 1 && pAfter[0].handle === 'ancestor-listener'
+      && pCalls.length === 1,
+    `at-K2 ${JSON.stringify(pAtK2.map((one) => one.handle))} · prefix-only ${JSON.stringify(pPrefixOnly.map((one) => one.handle))} · `
+      + `after ${JSON.stringify(pAfter.map((one) => one.handle))} · asks ${JSON.stringify(pCalls)} · `
+      + `run ${pRun === null ? '<not reached>' : (pRun.ok ? pRun.value.outcome : statusOf(pRun.caught))}`);
+
+  // ── DW-14.5 · THE CENSUSES `D-69`'s REGISTRATION LEAVES UNMOVED ──────────────────────────────────
+  // **A REGISTRATION IS NOT A KERNEL ITEM** (`D-57`: *"the kernel's six items are the WRITE's surface, not the
+  // constraint machinery's whole surface"*), and **`K-1` handing the store a body mints no member on the
+  // product**: the channel it reaches is a `Symbol.for` key, invisible to `Object.getOwnPropertyNames`
+  // (`A117` (D6)). Both figures are read LIVE here, not quoted.
+  const censusStore = make();
+  const censusRegistered = attempt(() => censusStore.addConstraint({ address: [['c']], id: 'census-pair' }, () => true));
+  const members = ownNamesOf(censusStore);
+  const kernelItems = Object.keys(kernel).sort();
+  P('census · the product\'s own members, after a registration', members);
+  P('census · the kernel barrel\'s own items, after a registration', kernelItems);
+  A('DW-14.5', '`surface.md §2.4` item 9 (f)\'s clause (`10 + 1 + 1 + 2 = 14`), `docs/specs/storeroom-js/surface.md §1`\'s kernel extent (`commit · log · register · remove · report · runAttempt`) and `D-57` (no kernel item is owed to the constraint machinery)',
+    '`K-1` REGISTERING THE PAIR WITH THE STORE MINTS NOTHING: the product still carries EXACTLY its fourteen own members and the kernel barrel EXACTLY its six items, so no seventh kernel item and no fifteenth product member came with the registration',
+    censusRegistered.ok === true
+      && keyOfAddr(members) === keyOfAddr(['addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete',
+        'listen', 'read', 'readLiteral', 'register', 'removeConstraint', 'removeListener', 'rollback', 'unlisten',
+        'write'])
+      && keyOfAddr(kernelItems) === keyOfAddr(['commit', 'log', 'register', 'remove', 'report', 'runAttempt']),
+    `members ${members.length} ${JSON.stringify(members)} · kernel items ${kernelItems.length} ${JSON.stringify(kernelItems)}`);
+
+  console.log('');
+  console.log('        THE SENTENCE TO CARRY AWAY (`D-69`): THE REGISTRATION IS A HANDLE AND A BODY, AND A PAIR HAS');
+  console.log('        BOTH — its `id` (`D-29`) and its `constraint` (`D-26`). So `K-1` hands the store what it');
+  console.log('        already has, `triggered` names the pair beside the listeners, and the pass FILTERS that one');
+  console.log('        list: an element whose handle is a constraint\'s `id` is ASKED, a listener\'s is DELIVERED.');
+  console.log('        The reach is the STORE\'s — the registration\'s address is a prefix of the act\'s OR the act');
+  console.log('        TOUCHED it — and it is computed where the versions live, which is what makes a purge');
+  console.log('        visible to a listener and to a constraint alike.');
 }
 
 
