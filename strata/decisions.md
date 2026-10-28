@@ -3597,3 +3597,27 @@ joining, applied to the record of what landed.**
 **TERMS: the split (`2` = listener discrete, repair atomic), `D-59`'s placement reversed (`1`), the `1.4.0` sentence
 corrected in the other direction (`1`), the mechanism ruled (`1` = a commit identity per journal op), the cells owed
 (`2` = a listener's write surviving an outer refusal, and a repair's write NOT surviving).**
+
+---
+
+### `D-61` — `D-60` IS BLOCKED ON THREE GRANTS AND ONE UNRULED CASE, AND TWO OF ITS THREE ARMS ARE ALREADY MEASURED
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the pass that measured `D-60`'s arms and stopped rather than declare a behaviour the tree does not have.
+
+**THE MEASUREMENT, ON THE SHIPPED ARTEFACT — AND IT SPLITS THE RULING IN TWO.**
+
+| arm | verdict |
+|---|---|
+| **★ a listener's write SURVIVES an outer refusal** | **RED — it does NOT survive.** The listener's `write(['g'],'mem',1)` returned; the outer write crossed `ConstraintPassRefused`; **`read(['g'])` throws `AddressNotFound`.** **This is `DEF-AN`'s arm, and it is the defect.** |
+| **a repair's write does NOT survive** | **GREEN** — the repair landed `a = 1`, the re-run refused, `read(['a']) === 5`. **The repair goes with the write, as `D-60` rules.** |
+| **a client's second write is atomic from the first** | **GREEN — and this has never been measured before.** `A` answered `op-4`; `B` refused; **`read(['A']) === 1`**. **`D-59`'s promise holds.** |
+
+**WHY IT CANNOT BE BUILT IN THE GRANTED SCOPE — THREE GRANTS AND ONE UNRULED CASE, EACH MEASURED.**
+
+1. **THE COMMIT IDENTITY DOES NOT CROSS.** **The JS knows the commit** (`state.mjs`'s `index.windowSeq`, minted once per commit that opens, joined by a join) — **and it never reaches Rust**: `facade.rs`'s `verb_write` **declares a fourth position `commit_identity: JsVal` and never reads it**; `crossing.rs`'s `Instance::write` takes **three**; `index.mjs` builds **three** args, so that position is `undefined` on every path. **`delete`'s addon entry declares two and has none.** **The fix therefore needs `facade.rs`, `crossing.rs` and `index.mjs`** — **none of them in the granted scope.**
+2. **THE ARITY IS PINNED.** `restoreMark`'s arity is asserted at `1` and the addon's export set at **exactly fifteen names** by set equality — **so a new `restoreCommit` verb is a red cell the pass may not edit.**
+3. **AND ONE SEMANTICS `D-60` DOES NOT DECIDE, WHICH THE PASS REFUSED TO INVENT.** **Stamping each op with the opening the store observes at the existing `journalMark()` read would make a declared PURE READ mint per-opening state** — and **it cannot separate two commits that open at the SAME journal head**, which is reachable: **a reversal opens a commit and appends no entry**, so **a pair-body write invoked at its judgement opens at that same head.** **So two commits can share an opening mark, and a mark-keyed restore cannot tell them apart.**
+
+**AND THE DECLARATION WAS CORRECTLY NOT LANDED.** The correction owed — *a listener's write is discrete and atomic, because it runs after all constraints; a repair's write is atomic with the write it repairs* — **would declare behaviour the tree measurably lacks.** **The `1.4.0` clause stands as written until the tree moves, and that is the right order for a declaration.**
+
+**TERMS: the ruling split (`3` = one red, two green), grants owed (`3` = `facade.rs`, `crossing.rs`, `index.mjs`), pinned cells to be ruled (`2` = `restoreMark`'s arity, the export set's fifteen), unruled semantics (`1` = two commits at one journal head), declaration withheld and why (`1`).**
