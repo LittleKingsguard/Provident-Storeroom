@@ -1076,7 +1076,8 @@ console.log('\n── W10 · `D-55` — the five settled rows, measured ──�
       pair: pair.ok,
       status: crossed === null ? null : crossed.status,
       message: crossed === null ? null : crossed.message,
-      log: log.map((entry) => ({ seq: entry.seq, kind: entry.kind, message: entry.message })),
+      // **`D-65` (2026-10-28): the position is the ARRAY INDEX and no member — the reading prints the index.**
+      log: log.map((entry, position) => ({ position, kind: entry.kind, message: entry.message })),
       inLog: one.literal === null ? null : log.some((entry) => String(entry.message).includes(one.literal)),
       formSaid: log.some((entry) => String(entry.message).includes(one.expects)),
     });
@@ -1306,8 +1307,8 @@ console.log('\n── W10 · `D-55` — the five settled rows, measured ──�
   P('X2 · the delete — answered, or refused?', rDelete.ok ? 'ANSWERED (no pass judged it)' : 'REFUSED');
   P('X2 · the crossed form — own keys · status', rCaught === null ? '<none>' : [ownNamesOf(rCaught), statusOf(rCaught)]);
   P('X2 · the message', rCaught === null ? '<none>' : rCaught.message);
-  P('X2 · the log — each entry\'s `seq` sequence', rCaught === null || !Array.isArray(rCaught.log)
-    ? '<none>' : rCaught.log.map((entry) => ({ seq: entry.seq, kind: entry.kind, id: entry.id, state: entry.state })));
+  P('X2 · the log — each entry\'s POSITION (the array index; `seq` removed by `D-65`)', rCaught === null || !Array.isArray(rCaught.log)
+    ? '<none>' : rCaught.log.map((entry, position) => ({ position, kind: entry.kind, id: entry.id, state: entry.state })));
   P('X2 · the store the commit opened at → after the refusal', [rOpenedAt.ok ? rOpenedAt.value : statusOf(rOpenedAt.caught),
     rAfter.ok ? rAfter.value : statusOf(rAfter.caught)]);
   A('DW-10.9', '`D-55` item 3 (a delete passes constraints) and item 5 (a refused edit rolls back to the safe state); `D-38` (ONE status for a constraint refusal; the token rides `log[].state`); `surface.md §2.5` (the one crossed form)',
@@ -1351,20 +1352,23 @@ console.log('\n── W10 · `D-55` — the five settled rows, measured ──�
       && xDelivery.storeAtFire === 'AddressNotFound',
     `delivery ${JSON.stringify(xDelivery)}`);
 
-  // ── (X4) THE LOG: THE DELETE'S ENTRIES IN THE COMMIT'S ONE LIST, WITH THE `seq` SEQUENCE ────────────
+  // ── (X4) THE LOG: THE DELETE'S ENTRIES IN THE COMMIT'S ONE LIST, WITH THEIR POSITIONS ──────────────
+  // **⟶ `D-65`, 2026-10-28: THE POSITION IS THE ARRAY INDEX AND THE `seq` MEMBER IS GONE.** The readings below
+  // print the index each entry stands at — the array's own ordinal — and the cell asserts the same order the
+  // member used to carry, at the index.
   const log = rCaught !== null && Array.isArray(rCaught.log) ? rCaught.log : [];
-  P('X4 · the commit\'s one list — entry by entry', log.map((entry) => ({
-    seq: entry.seq, kind: entry.kind, id: entry.id, opId: entry.opId, state: entry.state, message: entry.message,
+  P('X4 · the commit\'s one list — entry by entry, at its own index', log.map((entry, position) => ({
+    position, kind: entry.kind, id: entry.id, opId: entry.opId, state: entry.state, message: entry.message,
   })));
-  const seqs = log.map((entry) => entry.seq);
-  A('DW-10.11', '`D-53` (one list per commit; `seq` the ordinal of the list it stands in); `kernel-surface.md §2.5` item 1 (the entry\'s six members; `seq` ascending from `1`)',
-    'the delete\'s log IS the commit\'s one list: `seq` ascends `1..n` with no gap and no renumbering, the `constraint-check` entry names the pair AND the delete\'s op (`D-53`\'s combined identity), the terminal `outcome` entry names the same op with the kernel\'s token in `state`, and every entry carries exactly the six declared members',
-    seqs.length === 2 && seqs[0] === 1 && seqs[1] === 2
+  const positions = log.map((entry) => log.indexOf(entry));
+  A('DW-10.11', '`D-53` (one list per commit); `D-65` (the ARRAY INDEX IS THE POSITION — the `seq` member is removed, 2026-10-28); `kernel-surface.md §2.5` item 1 (the entry\'s five members; `seq` absent)',
+    'the delete\'s log IS the commit\'s one list: each entry stands at its own index `0..n-1` with no gap, no duplicate and no renumbering, the `constraint-check` entry names the pair AND the delete\'s op (`D-53`\'s combined identity), the terminal `outcome` entry names the same op with the kernel\'s token in `state`, and every entry carries exactly the five declared members with `seq` absent',
+    positions.length === 2 && positions[0] === 0 && positions[1] === 1
       && log[0].kind === 'constraint-check' && log[0].id === 'refusing-pair'
       && typeof log[0].opId === 'string' && log[0].opId === log[1].opId
       && log[1].kind === 'outcome' && log[1].state === 'KC-3'
-      && log.every((entry) => keyOfAddr(ownNamesOf(entry)) === keyOfAddr(['id', 'kind', 'message', 'opId', 'seq', 'state'])),
-    `seq ${JSON.stringify(seqs)} · kinds ${JSON.stringify(log.map((entry) => entry.kind))} · opIds `
+      && log.every((entry) => keyOfAddr(ownNamesOf(entry)) === keyOfAddr(['id', 'kind', 'message', 'opId', 'state'])),
+    `positions ${JSON.stringify(positions)} · kinds ${JSON.stringify(log.map((entry) => entry.kind))} · opIds `
       + `${JSON.stringify(log.map((entry) => entry.opId))} · entries `
       + `${JSON.stringify(log.map((entry) => ownNamesOf(entry)))}`);
 
@@ -1431,7 +1435,7 @@ console.log('\n── W10 · `D-55` — the five settled rows, measured ──�
   // **`D-53`'s FIRST INVARIANT: *"If it's part of the same commit, then it uses the same message log."*** A
   // delete performed INSIDE a constraint body is part of that body's commit, so its entries are THAT list's
   // entries — no second list, no merge and no renumbering — and the enclosing refusal's `log` is where both
-  // attempts' entries stand, in one `seq` sequence.
+  // attempts' entries stand, each at its own index (`D-65`: the position is the array index; `seq` is gone).
   const oStore = make();
   oStore.write(['o'], 'mem', 1);
   oStore.write(['p'], 'mem', 2);
@@ -1448,20 +1452,21 @@ console.log('\n── W10 · `D-55` — the five settled rows, measured ──�
     inner: oInner === null ? '<not reached>' : (oInner.ok ? `answered ${oInner.value.op && oInner.value.op.opId}` : statusOf(oInner.caught)),
     outer: oCaught === null ? 'ANSWERED' : statusOf(oCaught),
   });
-  P('X5b · the commit\'s ONE list — both attempts\' entries, in `seq` order', oLog.map((entry) => ({
-    seq: entry.seq, kind: entry.kind, id: entry.id, opId: entry.opId, state: entry.state,
+  P('X5b · the commit\'s ONE list — both attempts\' entries, at their own indices (`seq` removed, `D-65`)', oLog.map((entry, position) => ({
+    position, kind: entry.kind, id: entry.id, opId: entry.opId, state: entry.state,
   })));
-  A('DW-10.14', '`D-53` (one list per commit; `seq` the ordinal of the list it stands in); `D-55` item 3',
-    'a delete inside a constraint body JOINS the enclosing commit\'s list: the enclosing pass\'s `constraint-check`, the delete\'s own terminal `commit` entry and the enclosing attempt\'s terminal `outcome` stand in ONE list with `seq` `1..3`, no second list and no renumbering',
+  A('DW-10.14', '`D-53` (one list per commit); `D-65` (the ARRAY INDEX IS THE POSITION, 2026-10-28); `D-55` item 3',
+    'a delete inside a constraint body JOINS the enclosing commit\'s list: the enclosing pass\'s `constraint-check`, the delete\'s own terminal `commit` entry and the enclosing attempt\'s terminal `outcome` stand in ONE list at indices `0..2`, no second list, no renumbering and no `seq` member',
     oPair.ok === true && oInner !== null && oInner.ok === true
       && oCaught !== null && statusOf(oCaught) === PASS_REFUSED
       && oLog.length === 3
-      && oLog[0].seq === 1 && oLog[0].kind === 'constraint-check' && oLog[0].id === 'outer-pair'
-      && oLog[1].seq === 2 && oLog[1].kind === 'commit'
-      && oLog[2].seq === 3 && oLog[2].kind === 'outcome' && typeof oLog[2].state === 'string',
+      && oLog.indexOf(oLog[0]) === 0 && oLog[0].kind === 'constraint-check' && oLog[0].id === 'outer-pair'
+      && oLog.indexOf(oLog[1]) === 1 && oLog[1].kind === 'commit'
+      && oLog.indexOf(oLog[2]) === 2 && oLog[2].kind === 'outcome' && typeof oLog[2].state === 'string'
+      && oLog.every((entry) => Object.hasOwn(entry, 'seq') === false),
     `inner ${oInner === null ? '<not reached>' : JSON.stringify(oInner.ok ? 'answered' : statusOf(oInner.caught))}`
       + ` · outer ${oCaught === null ? 'ANSWERED' : statusOf(oCaught)} · list `
-      + `${JSON.stringify(oLog.map((entry) => [entry.seq, entry.kind, entry.id || null, entry.opId || null]))}`);
+      + `${JSON.stringify(oLog.map((entry) => [oLog.indexOf(entry), entry.kind, entry.id || null, entry.opId || null]))}`);
 
   // ═════════════════════════════════════════════════════════════════════════════════════════════════════
   // (X6) `D-56` — THE PASS'S SET WIDENS FROM EXACT ADDRESS TO PREFIX, AND THE DIRECTION IT DOES NOT RULE
@@ -1519,7 +1524,7 @@ console.log('\n── W10 · `D-55` — the five settled rows, measured ──�
   P('X6a · BEFORE — `window.tabs` (the pair\'s own address) at the delete\'s opening', tabsBefore);
   P('X6a · the pair\'s asks, in order — {at, askAddress, active}', aAsks);
   P('X6a · AFTER — the delete\'s answer', aReceipt.ok ? 'ANSWERED (no refusal)' : `${statusOf(aCaught)} · ${JSON.stringify(aCaught.message)}`);
-  P('X6a · the crossed log (the commit\'s ONE list)', aLog.map((entry) => ({ seq: entry.seq, kind: entry.kind, id: entry.id, state: entry.state })));
+  P('X6a · the crossed log (the commit\'s ONE list), each entry at its own index', aLog.map((entry, position) => ({ position, kind: entry.kind, id: entry.id, state: entry.state })));
   P('X6a · AFTER — `window.tabs` once the refusal has taken its rollback', tabsAfter.ok ? tabsAfter.value : `<refused: ${statusOf(tabsAfter.caught)}>`);
   P('X6a · the listener the refused delete delivered to', aDelivered.length);
   A('DW-10.13', '`strata/decisions.md` · `D-56` (a pair is asked when the act\'s address is at or below its own — the pair\'s address is a prefix of the act\'s, equality included); `D-55` item 5 (a refused edit rolls back to the safe state); `D-50` (a body that cares about a location reads it)',
@@ -1601,7 +1606,8 @@ console.log('\n── W10 · `D-55` — the five settled rows, measured ──�
   // The drive: FOUR pairs, registered in this order — `['window']` (a deep ancestor), `['window','tabs']` (the
   // act's parent), `['window','tabs','landingPage']` (the act's own address), and a mid-pass registrar that
   // registers `['window']`-second DURING the pass. **The pass must ask exactly the first three, in that order,
-  // and the fourth not at all** (it enters the NEXT pass's set), and the printed `seq` must be `1..3` with the
+  // and the fourth not at all** (it enters the NEXT pass's set), and the printed POSITIONS of the
+  // `constraint-check` entries must be `0..2` in list order, the
   // `commit` entry after them — one materialisation, frozen at the pass's start.
   const dStore = make();
   dStore.write(['window'], 'mem', tabsSeed());
@@ -1639,9 +1645,12 @@ console.log('\n── W10 · `D-55` — the five settled rows, measured ──�
   const dLog = dReceipt.ok
     ? (dClosed !== null && dClosed.ok && Array.isArray(dClosed.value) ? dClosed.value : [])
     : (Array.isArray(dReceipt.caught.log) ? dReceipt.caught.log : []);
-  const dCheckedSeq = dLog.filter((entry) => entry.kind === 'constraint-check').map((entry) => [entry.seq, entry.id]);
+  // **⟶ `D-65`: THE POSITION IS THE ARRAY INDEX.** The reading prints each `constraint-check` entry with the
+  // index it stands at — the list's own ordinal — and no `seq` member is read anywhere.
+  const dCheckedSeq = dLog.filter((entry) => entry.kind === 'constraint-check')
+    .map((entry) => [dLog.indexOf(entry), entry.id]);
   P('X6d · the pass\'s asks, IN ORDER (registration order across ancestors and the act\'s own)', dPassAsks);
-  P('X6d · the `constraint-check` entries with their `seq`', dCheckedSeq);
+  P('X6d · the `constraint-check` entries with their POSITIONS (the array index)', dCheckedSeq);
   P('X6d · the mid-pass registration and where it was asked', {
     registered: dMidPassRegistered,
     inThisPass: dPassAsks.includes(dMidPassId),
@@ -1682,7 +1691,8 @@ console.log('\n── W10 · `D-55` — the five settled rows, measured ──�
 //     message log or other client-returned data. Don't retain it.
 //
 // **TWO DEMANDS, EACH DRIVEN AND PRINTED.** (1) **NOTHING ABOUT A RUNNING COMMIT IS READABLE**: `K-4`'s live arm
-// used to answer the in-flight list — `D-39`'s `seq` sequence PART-WAY THROUGH the pass, as a consumer read —
+// used to answer the in-flight list — `D-39`'s entry sequence PART-WAY THROUGH the pass, as a consumer read
+// (and since `D-65` the ordinal there is the array index, not a `seq` member) —
 // and it refuses `KC-7` now, **the same member `K-5` already used**, so the two readers refuse with ONE shape,
 // ONE message family and ONE empty `log`. (2) **NOTHING IS RETAINED AFTER THE HANDOFF**: `K-5` answers the record
 // the store still NEEDS — the outcome, the ops the journal holds, the reversal's record — and **not the message
@@ -1724,7 +1734,7 @@ console.log('\n── W11 · `D-58` · NO IN-FLIGHT INSIGHT, AND NO RETENTION AF
     liveReport.ok ? null : liveReport.caught.message, liveReport.ok ? null : liveReport.caught.log]);
   P("D-58 · the readers' refusal forms", [keysOf(liveLog.caught), keysOf(liveReport.caught)]);
   A('DW-11.1', '`D-58` (2026-10-28) — *"The client does not need any insight into the current state of a commit/attempt before it completes. Don\'t expose any of it."* — read with `kernel-surface.md §2.1` item 5\'s `KC-7` row',
-    '`K-4` OVER A LIVE ATTEMPT REFUSES `KC-7` — the member `K-5` uses — in the same three-member form, the same empty `log` and the same message family; and it no longer answers the in-flight `seq` list',
+    '`K-4` OVER A LIVE ATTEMPT REFUSES `KC-7` — the member `K-5` uses — in the same three-member form, the same empty `log` and the same message family; and it no longer answers the in-flight list',
     liveLog.ok === false && liveLog.caught.status === 'KC-7'
       && liveReport.ok === false && liveReport.caught.status === 'KC-7'
       && keysOf(liveLog.caught).join(',') === keysOf(liveReport.caught).join(',')

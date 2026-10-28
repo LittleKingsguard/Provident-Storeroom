@@ -337,9 +337,10 @@ export type StoreStatus =
   | (string & {});
 
 /**
- * **THE KERNEL'S OWN LOG ENTRY** — *"exactly six members — `seq` · `kind` · `id` · `message` · `opId` ·
- * `state`"* (`docs/specs/storeroom-constraints/kernel-surface.md §2.5` item 1, whose member set is CLOSED:
- * *"a seventh member of `LogEntry` … is not a variation, it is a different shape"*). **DECLARED HERE ONLY
+ * **THE KERNEL'S OWN LOG ENTRY** — *"exactly FIVE members — `kind` · `id` · `message` · `opId` · `state`"*
+ * (`docs/specs/storeroom-constraints/kernel-surface.md §2.5` item 1's shape, read through `D-65` of 2026-10-28;
+ * its member set is CLOSED: *"a seventh member of `LogEntry` … is not a variation, it is a different shape"*).
+ * **DECLARED HERE ONLY
  * AS THE ELEMENT SHAPE OF THE FAILURE'S `log` MEMBER, AND MINTED BY NO CLAUSE OF THIS UNIT**: an attempt's
  * message log entries are the KERNEL'S records, carried VERBATIM, and no flattening is declared — a client
  * that reads one reads the kernel's own entry.
@@ -352,20 +353,21 @@ export type StoreStatus =
  * uses the new commit's message log. Constraints/Repairs should always use the same commit. Listeners should open
  * a new commit, because the triggering commit already passed constraints"*** (`strata/decisions.md` · `D-53`).
  * **SO ONE COMMIT'S WORK IS ONE LIST**: a write, the constraint passes that judged it, a repair's own write and
- * the re-run after it all append to the same array, `seq` is *"the ordinal of the list it stands in"* and it runs
- * `1..n` CONTINUOUSLY across those attempts, and **the `log` a refusal crosses with IS that array** — which is what
+ * the re-run after it all append to the same array, **each entry standing at its own INDEX** and the list running
+ * `0..n-1` CONTINUOUSLY across those attempts, and **the `log` a refusal crosses with IS that array** — which is what
  * `DEF-AK`'s *"one inner refusal, two hosts"* measures and what `D-52`'s merge question dissolved into. **A
  * LISTENER'S WRITE IS THE ONE THAT STARTS A FRESH LIST**, because the commit that triggered it has already passed
  * its constraints and what the listener does is a new question.
  *
- * **⟶ AND WHAT `seq` IS TRUE OF IS SAID PLAINLY HERE, 2026-10-28 — `DEF-AI`, MEASURED.** **`seq` is the position
- * of the entry in the commit's own message log; it is not the store's journal ordinal, and the two differ by
- * design.** The kernel mints it as `log.length + 1` on the one list its commit appends to
- * (`bindings/js/src/entry/kernel-foundations.mjs`), so a refusal's entry can carry `seq` `1` while the store's
- * own journal counter reads `41`. **READ THE TWO AS TWO ORDINALS WITH TWO HOMES**: `JournalOp.seq` is the
- * STORE's append ordinal and orders the store's record; this `seq` orders the COMMIT's message log and nothing
- * else. **A consumer that compares them compares two different subjects, and no reading of this declaration
- * says the first equals the second.**
+ * **⟶ AND THE MEMBER THAT USED TO CARRY THAT POSITION IS GONE, 2026-10-28 — `D-65`: THE ARRAY INDEX IS THE
+ * POSITION.** `RCA-8(g)` ANNOTATE-BESIDE: **the clause below stands BYTE-FOR-BYTE as the reading of its own date
+ * and is read THROUGH this one; what it said of `seq` is RETIRED, not rewritten.** **THE RULING, THE ARCHITECT,
+ * ONE WORD: *"Drop it"*** (`strata/decisions.md` · `D-65`) — and `DEF-AI`'s own demand had offered the route:
+ * *"mint `seq` from the attempt's counter, **or omit the member**."* **THIS DECLARATION OMITS IT.** A log entry
+ * no longer carries `seq`: **the member is gone, the position is the array index, and there is no second copy of
+ * it to disagree with the journal's ordinal.** **`JournalOp.seq` IS UNMOVED AND IS STILL A DIFFERENT SUBJECT** —
+ * the store's own append ordinal, ordered in the store's record — **and the two are now impossible to confuse,
+ * because the one that named the commit's list is no longer there to be read.**
  *
  * **AND `state`'S DOMAIN IS `KC-1`…`KC-9`, NOT `KC-1`…`KC-8`.** **`D-53`'s THIRD RULING — *"Open the token
  * set"* — gives the SAVE ARM a token of its own (`KC-9`)**, so that a `file`-tier save that fails at the terminal
@@ -375,7 +377,6 @@ export type StoreStatus =
  * never `status`, exactly as every `KC` token does, so the closed status set keeps its `20` members and its ranks.
  */
 export interface LogEntry {
-  readonly seq: number;
   readonly kind: 'constraint-check' | 'repair-run' | 'commit' | 'outcome';
   readonly id: string | null;
   readonly message: string;

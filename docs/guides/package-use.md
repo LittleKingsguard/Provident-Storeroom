@@ -811,8 +811,8 @@ store.addConstraint({ address: ['window','tabs','landingPage'], id: 'landing-pag
 
 store.delete(['window','tabs','landingPage']);
 // throws { status: 'ConstraintPassRefused', message: 'the landing page is not removable', log: [ … ] }
-// log[0] = { seq: 1, kind: 'constraint-check', id: 'landing-page-must-stand', opId: 'op-3', state: null, … }
-// log[1] = { seq: 2, kind: 'outcome',         id: null,                 opId: 'op-3', state: 'KC-3', … }
+// log[0] = { kind: 'constraint-check', id: 'landing-page-must-stand', opId: 'op-3', state: null, … }
+// log[1] = { kind: 'outcome',         id: null,                 opId: 'op-3', state: 'KC-3', … }
 store.read(['window','tabs','landingPage']);   // { active: true } — the delete was undone
 ```
 
@@ -879,9 +879,10 @@ commit does — the constraint passes that judged its value, a repair's own writ
 and the terminal arm's `outcome` entry — **appends to ONE array**. Consequences you can rely on, each measured
 on this checkout:
 
-- **`seq` runs `1..n` CONTINUOUSLY across those steps**, because it is *the ordinal of the list it stands in*
-  and there is one list. A repair's `commit` entry can stand in the middle of the list, between the refused
-  pass's entries and the re-run's: **it is a real entry of the same commit, not a second log.**
+- **the entries run `0..n-1` CONTINUOUSLY across those steps**, because the position of an entry in the list
+  **IS the array index** and there is one list (`D-65`; the `seq` member that used to restate it is gone). A
+  repair's `commit` entry can stand in the middle of the list, between the refused pass's entries and the
+  re-run's: **it is a real entry of the same commit, not a second log.**
 
 **⟶ AND WHAT `seq` IS TRUE OF, SAID PLAINLY, 2026-10-28 — `DEF-AI`, MEASURED.** **`seq` is the position of the
 entry in the commit's own message log; it is not the store's journal ordinal, and the two differ by design.**
@@ -895,6 +896,18 @@ CLAIMED: one repair write appends the five entries `constraint-check` `1` · `re
 the repair's own joined write and the re-run** (`tests/e2e/repair-in-commit.test.mjs`'s `D-46` (1) cell, printed).
 **No entry is ever minted from the store's journal counter**: that would be a second ordinal with no consumer.
 (`D-53`; `D-48` · `DEF-AI`; `index.d.ts`'s `LogEntry` carries the same sentence.)
+
+**⟶ AND THE MEMBER THAT SENTENCE WAS ABOUT IS GONE, 2026-10-28 — `D-65`: THE ARRAY INDEX IS THE POSITION.**
+`RCA-8(g)` ANNOTATE-BESIDE: **every byte above stands BYTE-FOR-BYTE and is read THROUGH this paragraph; what it says
+of `seq` is RETIRED, not rewritten.** **THE RULING, THE ARCHITECT, ONE WORD: *"Drop it"*** (`strata/decisions.md` ·
+`D-65`) — `seq: log.length + 1` IS the index of the entry being appended, a second copy of a fact the array already
+carries, so **the entry carries FIVE members — `kind` · `id` · `message` · `opId` · `state` — and NO `seq`.**
+**WHAT THAT MEANS FOR YOU, WITHOUT A MEMBER TO READ:** the position of an entry is **`log.indexOf(entry)`**, or
+the index of the loop you are already in; the order across a commit's attempts is the same order those bullets
+measured, read off the array; and **`JournalOp.seq` IS UNMOVED** — the store's append ordinal is a different subject
+and is now impossible to confuse with the commit's, because the commit's no longer has a member to be confused
+with. **NO OTHER MEMBER, KIND, STATUS, COUNT OR SENTENCE OF THIS GUIDE MOVES** (`bindings/js/index.d.ts`'s
+`LogEntry` carries the same retirement).
 - **A nested write a CONSTRAINT body makes is part of the same commit**, so **its entries are in YOUR list** —
   which is why a constraint body that performs a refused write now shows you that refusal's own
   `constraint-check` and `outcome` entries, verbatim, before the enclosing `outcome` entry. **That is `DEF-AK`'s
@@ -923,7 +936,7 @@ invoked at a REVERSAL's judgement has no commit record standing beside it to nam
 makes still opens a commit of its own and its entries land in that commit's list and not in the reversal's
 refusal (`js/contract.md §2.6`'s `D-53` clause, item `6`).
 
-**⟶ AND A THROWN MESSAGE STANDS IN THAT LOG, 2026-10-28 — `D-55` ITEM 1 · `DEF-AK`, MEASURED.** `RCA-8(g)` ANNOTATE-BESIDE: **every clause of §8.0a above stands BYTE-FOR-BYTE and is read THROUGH this one; the list's home, its six members, its one-`kind`-per-entry rule and its `seq` ordinal do not move.** **THE RULING, THE ARCHITECT, VERBATIM: *"Include a thrown message in the message log. Obviously."*** **WHAT `1.3.0` DID, MEASURED: a constraint body that threw its own `Error` crossed `ConstraintBodyThrew` whose `log` carried only the attempt's `outcome` entry — the thrown value's own literal occurred ZERO TIMES in it — while the crossed sentence said *"a constraint body's throwable crosses as this refusal"*, a carriage the log did not make.** **WHAT YOU GET NOW:**
+**⟶ AND A THROWN MESSAGE STANDS IN THAT LOG, 2026-10-28 — `D-55` ITEM 1 · `DEF-AK`, MEASURED.** `RCA-8(g)` ANNOTATE-BESIDE: **every clause of §8.0a above stands BYTE-FOR-BYTE and is read THROUGH this one; the list's home, its one-`kind`-per-entry rule and its `seq` ordinal do not move — ⟶ and from 2026-10-28 the ordinal is the ARRAY INDEX and the member is gone (`D-65`), so *"its six members"* above is read as the FIVE-member shape this guide declares at `LogEntry`.** **THE RULING, THE ARCHITECT, VERBATIM: *"Include a thrown message in the message log. Obviously."*** **WHAT `1.3.0` DID, MEASURED: a constraint body that threw its own `Error` crossed `ConstraintBodyThrew` whose `log` carried only the attempt's `outcome` entry — the thrown value's own literal occurred ZERO TIMES in it — while the crossed sentence said *"a constraint body's throwable crosses as this refusal"*, a carriage the log did not make.** **WHAT YOU GET NOW:**
 - **the value the body threw is PRINTED IN THE LOG**, in the ONE entry the attempt's terminal act appends (the `outcome` entry): *"the constraint `c1` threw; the attempt is closed — the value it threw was …"*. **THE FORM IS NAMED AND NOT SILENTLY STRINGIFIED**: an `Error` (or any object) reads *"an object whose own `message` member is the string "…""*, a thrown string reads *"a string whose text is "…""*, a thrown number *"a number whose value is 42"*, a thrown `void 0` *"no value at all"*, and an object with no `message` *"an object carrying no own string `message` member"*. **Nothing is read off a prototype and no caller code runs to spell it**;
 - **and the crossed `message` stops claiming the value crosses**: after the store's generated sentence it says, in its own words, that the value the body threw does **NOT** cross as this refusal — and it names where the form it threw stands, which is that `log` entry. **THE CALLER'S OWN TEXT IS QUOTED IN THE LOG AND NEVER IN THE SENTENCE**, so a forged `{status, message}` cannot make the package speak a refusal it did not find (`DEF-A`'s protection, unmoved);
 - **where no attempt stands there is no commit log to carry it** — a registration-time body's throw crosses with `log: []`, which is `surface.md §2.5` item 4's declared arm — **and the crossed sentence says exactly that instead of pointing at a list that would not hold the form**. (`tests/e2e/discard-witness.mjs`'s `DW-10.3`/`DW-10.4` print the readings for an `Error`, a string and an object with no `message`; both cells are RED under a revert of the terminal sentence.)

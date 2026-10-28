@@ -15,8 +15,9 @@
 //     the five-member closed report; the SIX states; the closed transition table and the four
 //     disjointness predicates) and item 2 (the pair key)
 //   · .../storeroom-constraints/kernel-surface.md §2.1 items 1–5 (the item shapes and their answers) and
-//     §2.5 item 1 (the `LogEntry`'s six members, its four kinds, `seq` ascending from `1`, `state` `null`
-//     on the three non-`outcome` kinds, and whose text each kind's `message` carries)
+//     §2.5 item 1 (the `LogEntry`'s FIVE members, its four kinds, `seq` ABSENT since `D-65` — the array index
+//     is the position — `state` `null` on the three non-`outcome` kinds, and whose text each kind's `message`
+//     carries)
 //   · .../storeroom-constraints/fail-surface.md §1.1 items 1–4 (the one three-member thrown form and the
 //     token spelling) and §2 (the closed set of eight and the `KC-2`/`KC-7` rows)
 //   · .../storeroom-constraints/composition-and-states.md §2.6 items 1–3 (the composition's reach, order
@@ -62,8 +63,9 @@ const SIX_STATES = ['OPEN', 'EVALUATING', 'REPAIRING', 'FAILING', 'PASSED', 'CLO
  *  `ref` are read off an OPEN attempt and never off a closed one"* (`attempt-lifecycle.md §2.4` item 1). */
 const OPEN_ONLY = ['open', 'ran', 'appliedRepairs', 'commit', 'ref'];
 
-/** `kernel-surface.md §2.5` item 1: the log entry's SIX members and the four kinds. */
-const LOG_MEMBERS = ['seq', 'kind', 'id', 'message', 'opId', 'state'];
+/** `kernel-surface.md §2.5` item 1, read through `strata/decisions.md` · `D-65` (2026-10-28): the log entry's
+ *  FIVE members — `seq` is ABSENT, the array index is the position — and the four kinds. */
+const LOG_MEMBERS = ['kind', 'id', 'message', 'opId', 'state'];
 const LOG_KINDS = ['constraint-check', 'repair-run', 'commit', 'outcome'];
 
 /** `composition-and-states.md §2.6` item 3: the six-member `RollbackStep`. */
@@ -272,7 +274,7 @@ test('unit · parameter-semantics.md §2.9 (`PAR-C-9`) · THE APPLIED-REPAIR MAR
   assert.notDeepEqual(first.log, second.log, 'the two logs are two records and never one shared list');
 });
 
-test('unit · kernel-surface.md §2.5 item 1 · `LogEntry` CARRIES EXACTLY SIX MEMBERS — `{seq, kind, id, message, opId, state}` — with `seq` strictly increasing from `1`, `kind` one of the four, and `state` `null` on the three non-`outcome` kinds', () => {
+test('unit · kernel-surface.md §2.5 item 1 read through `D-65` · `LogEntry` CARRIES EXACTLY FIVE MEMBERS — `{kind, id, message, opId, state}` — with NO `seq` and the POSITION asserted by the ARRAY INDEX (`log[index] === entry`), `kind` one of the four, and `state` `null` on the three non-`outcome` kinds', () => {
   const store = make();
   store.write(['n'], 'mem', 0);
   store.write(['m'], 'mem', 0);
@@ -289,7 +291,17 @@ test('unit · kernel-surface.md §2.5 item 1 · `LogEntry` CARRIES EXACTLY SIX M
   assert.ok(attemptReport.log.length >= 3);
   attemptReport.log.forEach((entry, index) => {
     assert.deepEqual(Object.keys(entry).sort(), [...LOG_MEMBERS].sort());
-    assert.equal(entry.seq, index + 1, 'the kernel\u2019s own append ordinal, strictly increasing from 1');
+    // ── THE POSITION, RE-DERIVED FROM THE MEMBER TO THE INDEX (`D-65`) ──────────────────────────
+    // **THIS CELL'S PURPOSE WAS *"THE POSITION IS CORRECT"* AND IT READ IT OFF `entry.seq === index + 1`.**
+    // **THE MEMBER IS GONE, SO THE SAME PROPERTY IS ASSERTED WHERE IT NOW LIVES**: the entry standing at
+    // position `index` IS `log[index]`, it stands at no other position, and no member restates the place —
+    // `seq` is ABSENT (its presence would be a second copy of a fact the array already carries).
+    assert.equal(attemptReport.log[index], entry,
+      'the position is the ARRAY INDEX: the entry read at this position IS the list\u2019s element at it');
+    assert.equal(attemptReport.log.indexOf(entry), index,
+      'and it stands at that one position — no duplicate and no second home for the ordinal (`D-65`)');
+    assert.equal(Object.hasOwn(entry, 'seq'), false,
+      'and NO `seq` member is minted to restate it: the member is gone, the index is the position (`D-65`)');
     assert.equal(LOG_KINDS.includes(entry.kind), true);
     assert.equal(typeof entry.message, 'string');
     if (entry.kind === 'outcome') {

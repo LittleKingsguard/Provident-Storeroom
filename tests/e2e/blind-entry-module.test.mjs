@@ -317,26 +317,34 @@ test('entry-module · index.d.ts `StoreStatus` · THE CLOSED SET READS TWENTY LI
   assert.match(DECLARATION, /\| \(string & \{\}\);/);
 });
 
-test('entry-module · index.d.ts `StoreRefusal` and `LogEntry` · the failure form is THREE members and the log entry is SIX — `{seq, kind, id, message, opId, state}` — with `kind` the kernel\'s closed four-member set', () => {
+test('entry-module · index.d.ts `StoreRefusal` and `LogEntry` · the failure form is THREE members and the log entry is FIVE — `{kind, id, message, opId, state}` with `seq` ABSENT (`D-65`: the array index is the position) — with `kind` the kernel\'s closed four-member set', () => {
   assert.deepEqual(
     membersOf('StoreRefusal').map((member) => member.name),
     ['status', 'message', 'log'],
   );
   assert.deepEqual(
     membersOf('LogEntry').map((member) => member.name),
-    ['seq', 'kind', 'id', 'message', 'opId', 'state'],
+    ['kind', 'id', 'message', 'opId', 'state'],
   );
   assert.match(DECLARATION, /readonly kind: 'constraint-check' \| 'repair-run' \| 'commit' \| 'outcome';/);
-  // **⟶ AND THE DECLARATION SAYS WHAT `seq` IS TRUE OF — `DEF-AI`, 2026-10-28.** The row's demand was that the
-  // member's subject be named, because a consumer read `seq` as the STORE's ordinal and measured a refusal's
-  // entry at `1` while the journal's counter read `41`. **THE SENTENCE IS ASSERTED AT THE SHIPPED DECLARATION'S
-  // BYTES** (flattened across the comment's own line wrapping, so the assertion is about the text and not about
-  // where the author broke a line), **so a hand edit that drops it reddens here rather than travelling.**
+  // **⟶ AND THE DECLARATION'S `seq` SENTENCE IS RETIRED — `D-65`, 2026-10-28: THE ARRAY INDEX IS THE
+  // POSITION.** The assertion here read that *"`seq` is the position of the entry in the commit's own message
+  // log; it is not the store's journal ordinal, and the two differ by design"* stood at the shipped bytes.
+  // **THE MEMBER IS GONE, SO THE SENTENCE THAT DECLARED IT IS GONE WITH IT** (`strata/decisions.md` · `D-65`,
+  // the architect: *"Drop it"*), and what this cell now asserts is the RETIREMENT — **at the declaration's own
+  // bytes**, flattened across the comment's wrapping so the assertion is about the text and not about where the
+  // author broke a line — so a hand edit that puts `seq` back into the shape, or drops the note saying why it
+  // is not there, reddens here rather than travelling.
   const declarationText = DECLARATION.replace(/^[ \t]*\*[ \t]?/gm, '').replace(/\s+/g, ' ');
-  assert.ok(declarationText.includes('`seq` is the position of the entry in the commit\'s own message log; it is '
-    + 'not the store\'s journal ordinal, and the two differ by design.'),
-  'the declaration must say what `seq` is true of — the COMMIT\'s message log, not the store\'s journal ordinal — '
-    + 'and that the two differ by design (`DEF-AI`)');
+  assert.equal(declarationText.includes('`seq` is the position of the entry in the commit\'s own message log; '
+    + 'it is not the store\'s journal ordinal, and the two differ by design.'), false,
+  'the RETIRED `seq` sentence must not stand: the member it declares is gone (`D-65`)');
+  assert.ok(declarationText.includes('the member is gone, the position is the array index, and there is no '
+    + 'second copy of it to disagree with the journal\'s ordinal.'),
+  'the declaration must say the member is gone and that the POSITION IS THE ARRAY INDEX — one copy, no second '
+    + 'one to disagree with the journal\'s ordinal (`D-65`)');
+  assert.ok(declarationText.includes('exactly FIVE members — `kind` · `id` · `message` · `opId` · `state`'),
+  'and it must print the shape at FIVE members, `seq` absent (`D-65`, 2026-10-28)');
 });
 
 test('entry-module · index.d.ts `WriteRecord` · `DeleteRecord` · `RollbackRecord` · the three verb records a consumer reads: three members on the write and the reversal, SIX on the delete — its `op` beside the three, its `discarded` witness and its `commit` record — and `undoneOps` is the LIST of the ids the reversal undid', () => {

@@ -187,13 +187,15 @@ export function capture(fn) {
   }
 }
 
-/** `LogEntry` IS EXACTLY SIX MEMBERS (`kernel-surface.md §2.5` item 1). */
+/** `LogEntry` IS EXACTLY FIVE MEMBERS (`kernel-surface.md §2.5` item 1, read through `strata/decisions.md` ·
+ *  `D-65`, 2026-10-28: `seq` is ABSENT and the array index IS the position). */
 export function assertLogEntry(entry, where) {
   assert.equal(typeof entry, 'object', `${where}: a log entry is a record`);
   assert.notEqual(entry, null, `${where}: a log entry is not null`);
-  assert.deepEqual(Object.keys(entry).sort(), ['id', 'kind', 'message', 'opId', 'seq', 'state'],
-    `${where}: LogEntry's member set is exactly the six declared`);
-  assert.equal(typeof entry.seq, 'number', `${where}: LogEntry.seq is a number`);
+  assert.deepEqual(Object.keys(entry).sort(), ['id', 'kind', 'message', 'opId', 'state'],
+    `${where}: LogEntry's member set is exactly the FIVE declared (\`D-65\`)`);
+  assert.equal(Object.hasOwn(entry, 'seq'), false,
+    `${where}: LogEntry carries NO \`seq\` — the member is gone and the position is the array index (\`D-65\`)`);
   assert.equal(typeof entry.kind, 'string', `${where}: LogEntry.kind is a string`);
   assert.ok(['constraint-check', 'repair-run', 'commit', 'outcome'].includes(entry.kind),
     `${where}: LogEntry.kind is one of the four declared kinds (read ${entry.kind})`);
@@ -239,10 +241,19 @@ export function assertLogEntry(entry, where) {
     + '(`fail-surface.md §1.1` item 1 (d))');
 }
 
-/** The `seq` member is the kernel's own append ordinal, strictly increasing from `1`. */
+/** **THE ORDER LAW, RE-DERIVED FROM THE `seq` MEMBER TO THE ARRAY INDEX — `D-65`, 2026-10-28.** The clause here
+ *  read *"The `seq` member is the kernel's own append ordinal, strictly increasing from `1`"* and asserted
+ *  `log[i].seq === i + 1`. **THE MEMBER IS REMOVED** (`strata/decisions.md` · `D-65`: the array index is the
+ *  position), so the property it carried — *each entry stands at its own place in this one list, in order, with
+ *  no gap, no duplicate and no renumbering* — is asserted where the position now lives. **THE ONE THING THAT
+ *  MOVED IS THE MEMBER; THE ORDER THE LAW SPEAKS ABOUT IS UNMOVED.** */
 export function assertSeqIncreasesFromOne(log, where) {
   for (let i = 0; i < log.length; i += 1) {
-    assert.equal(log[i].seq, i + 1, `${where}: seq is the append ordinal, strictly increasing from 1 (index ${i})`);
+    assert.equal(log.indexOf(log[i]), i,
+      `${where}: the entry at index ${i} stands at that ONE position — the array index is the position and no `
+        + `\`seq\` member restates it (\`D-65\`)`);
+    assert.equal(Object.hasOwn(log[i], 'seq'), false,
+      `${where}: no entry carries \`seq\` at index ${i}; read ${JSON.stringify(Object.keys(log[i]))}`);
   }
 }
 

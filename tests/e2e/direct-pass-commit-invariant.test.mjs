@@ -304,9 +304,20 @@ test('D-44 (2) · THE BODY\'S ACTION INSIDE THAT PASS: a constraint body\'s viol
   assert.equal(log.length, 3,
     `the log carries the pass's \`constraint-check\`, its \`commit\`, and the restarted check's ONE entry: `
       + `${JSON.stringify(log.map((entry) => entry.kind))}`);
-  assert.deepEqual(log.map((entry) => entry.seq), [1, 2, 3],
-    `and the entries keep the log's own ordinals, the appended one included (\`kernel-surface.md §2.5\` item 1): `
-      + `${JSON.stringify(log.map((entry) => entry.seq))}`);
+  // **⟶ AND THE POSITION IS RE-DERIVED FROM THE `seq` MEMBER TO THE ARRAY INDEX — `D-65`, 2026-10-28.** This
+  // limb read `log.map((entry) => entry.seq)` against `[1, 2, 3]`. **THE MEMBER IS REMOVED**, so the property —
+  // *the three entries of this one list stand at positions 0, 1 and 2, the appended one included, with no gap,
+  // no duplicate and no renumbering* — is asserted where the position now lives: the entry read at an index IS
+  // the list's element at it and stands at no other, and no member restates the place.
+  for (let position = 0; position < log.length; position += 1) {
+    assert.equal(log.indexOf(log[position]), position,
+      `and the entries stand at the list's own positions, the appended one included — index ${position} is `
+        + `where its entry stands, and no \`seq\` member restates it (\`D-65\`); the drive read `
+        + `${JSON.stringify(log.map((entry) => entry.kind))}`);
+    assert.equal(Object.hasOwn(log[position], 'seq'), false,
+      `\`seq\` is ABSENT from the entry at index ${position}: ${JSON.stringify(Object.keys(log[position]))} `
+        + '(`D-65`)');
+  }
   assert.equal(lastEntry.kind, 'constraint-check',
     `**THE LOG ENTRY** — the refusal's own entry, of the kernel's own kind set: ${JSON.stringify(lastEntry)}`);
   assert.equal(lastEntry.id, 'ra',

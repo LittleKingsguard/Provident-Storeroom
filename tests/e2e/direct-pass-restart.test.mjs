@@ -184,9 +184,20 @@ test('DIRECT-PASS RESTART (1) · a constraint body\'s violating `rollback` INSID
   assert.equal(log.length, 3,
     `the log carries the pass's \`constraint-check\`, its \`commit\`, and the restarted check's ONE entry: `
       + `${JSON.stringify(log.map((entry) => entry.kind))}`);
-  assert.deepEqual(log.map((entry) => entry.seq), [1, 2, 3],
-    `and every entry keeps the log's own ordinal, the appended one included (\`kernel-surface.md §2.5\` item 1): `
-      + `${JSON.stringify(log.map((entry) => entry.seq))}`);
+  // **⟶ AND THE POSITION IS RE-DERIVED FROM THE `seq` MEMBER TO THE ARRAY INDEX — `D-65`, 2026-10-28.** This
+  // limb read `log.map((entry) => entry.seq)` against `[1, 2, 3]`. **THE MEMBER IS REMOVED**, so the property —
+  // *the three entries of this one list stand at positions 0, 1 and 2, the appended one included, with no gap,
+  // no duplicate and no renumbering* — is asserted where the position now lives: the entry read at an index IS
+  // the list's element at it and stands at no other, and no member restates the place.
+  for (let position = 0; position < log.length; position += 1) {
+    assert.equal(log.indexOf(log[position]), position,
+      `and every entry stands at the list's own position, the appended one included — index ${position} is `
+        + `where its entry stands, and no \`seq\` member restates it (\`D-65\`); the drive read `
+        + `${JSON.stringify(log.map((entry) => entry.kind))}`);
+    assert.equal(Object.hasOwn(log[position], 'seq'), false,
+      `\`seq\` is ABSENT from the entry at index ${position}: ${JSON.stringify(Object.keys(log[position]))} `
+        + '(`D-65`)');
+  }
   assert.equal(lastEntry.kind, 'constraint-check',
     `**THE LOG ENTRY** is the refusal's own, of the kernel's own kind set: ${JSON.stringify(lastEntry)}`);
   assert.equal(lastEntry.id, 'restart-direct',
@@ -309,9 +320,19 @@ test('DIRECT-PASS RESTART (3) · THE TERMINAL WRITE ARM IS UNCHANGED by the move
     `with ONE log entry — the refusal's own, not the report's copy: ${JSON.stringify(log)}`);
   assert.equal(log[0].id, 'restart-write',
     `naming the pair: ${JSON.stringify(log[0].id)}`);
-  assert.equal(log[0].seq, 1,
-    `and carrying the \`seq\` of the one-entry list it stands in — the declared ordinal rule, never an ordinal `
-      + `read off a log that is not there (\`D-48\` · \`DEF-AI\`): ${JSON.stringify(log[0])}`);
+  // **⟶ AND THE POSITION IS RE-DERIVED FROM THE MEMBER TO THE INDEX (`D-65`).** This limb read
+  // `log[0].seq === 1` — *"the `seq` of the one-entry list it stands in"*. **THE MEMBER IS GONE**, so the
+  // property is asserted where it now lives: `log[0]` IS the list's element at index `0`, it stands at no other
+  // position, and no member restates the place.
+  assert.equal(log[0], log[log.length - 1],
+    'the entry stands at the list\u2019s first position and is its only entry — the array index is the position '
+      + '(`D-65`)');
+  assert.equal(log.indexOf(log[0]), 0,
+    'and its position is index 0 of the one-entry list it stands in, read off the array and off no member '
+      + `(\`D-65\`): ${JSON.stringify(log)}`);
+  assert.equal(Object.hasOwn(log[0], 'seq'), false,
+    `and \`seq\` is ABSENT — the member is gone and the position is the index: ${JSON.stringify(Object.keys(log[0]))} `
+      + '(`D-65`)');
   assert.deepEqual(asked, [LANDED, THIRD, SEED],
     `the pair is asked at REGISTRATION, by the PASS and by the RESTART — the SAME three asks arm (1)'s direct `
       + `drive made: ${JSON.stringify(asked)}`);

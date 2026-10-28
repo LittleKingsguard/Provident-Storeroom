@@ -1033,8 +1033,9 @@ scenario('FTS-11', 'the join: a repair\'s write is a new entry in the same commi
     // ON THE PASSING ARM — *"the append site, whose own words are 'THE SAVE HAS STOOD … HERE AND ONLY HERE'"* —
     // while *"the failing arm carries the one `outcome` entry and NO `commit` entry at all"* — which is
     // `FTS-04.10` read beside these two cells. The row table's own `commit` row fixes `id` = `null`,
-    // `state` = `null` and `opId` = the attempt's LAST op; the ORDER clause fixes `seq` strictly increasing
-    // from `1`, assigned at the append. A PASSING `file`-tier save is the arm these two cells drive.
+    // `state` = `null` and `opId` = the attempt's LAST op; the ORDER clause fixes the entry's POSITION as the
+    // array index — `seq` was that member until `D-65` removed it (2026-10-28), and the append's position is
+    // the index it lands at. A PASSING `file`-tier save is the arm these two cells drive.
     const armCell = (id, observable, body) => cell(id, 'kernel-surface.md §2.1 item 3 (the LogKind table\'s `commit` row: `id` = null, `opId` = the attempt\'s last op, `state` = null) read with the ORDERING CLAUSE LANDED 2026-10-16 (appended AFTER the save has stood, EXACTLY ONCE AND LAST on the passing arm), composition-and-states.md §2.7 items 5 and 7 (the PASSED arm\'s own sequence) and surface.md §2.11 clause 3 (ii) (no body runs before the save on the passing arm)', observable, body);
     const arm = (() => {
       const dd = tmp(); const PP = path.join(dd, 'passing-arm.json');
@@ -1058,16 +1059,21 @@ scenario('FTS-11', 'the join: a repair\'s write is a new entry in the same commi
           `kinds=${JSON.stringify(kinds)} commit entries=${c} outcome entries=${o} report.outcome=${arm.rep.ok ? JSON.stringify(arm.rep.v.outcome) : describe(arm.rep.v)} image=${imgStr(arm.image)}`);
       });
     armCell('FTS-11.8',
-      'the same entry is LAST of the log\'s kinds and the log\'s own order is the kernel\'s (`seq` strictly increasing from 1): the append is after the save has stood, and the entry\'s own `id`/`state` are `null` with its `opId` the attempt\'s last op',
+      'the same entry is LAST of the log\'s kinds and the log\'s own order is the kernel\'s — each entry standing at its own ARRAY INDEX, with `seq` ABSENT (`D-65`: the index IS the position): the append is after the save has stood, and the entry\'s own `id`/`state` are `null` with its `opId` the attempt\'s last op',
       () => {
         const kinds = arm.entries.map((e) => e.kind);
         const last = arm.entries[arm.entries.length - 1];
-        const seqOk = arm.entries.every((e, i) => e.seq === i + 1);
+        // ── THE POSITION, RE-DERIVED FROM THE `seq` MEMBER TO THE INDEX (`D-65`, 2026-10-28) ──────────────
+        // This arm read `arm.entries.every((e, i) => e.seq === i + 1)`. **THE MEMBER IS GONE**, so the same
+        // property — *the log's entries stand at the kernel's own order, each at its own place, with no gap and
+        // no duplicate* — is asserted where the position now lives: every entry IS the list's element at the
+        // index it is read at, and no entry carries `seq` to restate it.
+        const orderOk = arm.entries.every((e, i) => arm.entries.indexOf(e) === i && !Object.hasOwn(e, 'seq'));
         const ops = arm.rep.ok ? arm.rep.v.ops : [];
         const lastOp = ops.length ? ops[ops.length - 1].opId : null;
-        return C(arm.logOk && arm.entries.length > 0 && last && last.kind === 'commit' && seqOk
+        return C(arm.logOk && arm.entries.length > 0 && last && last.kind === 'commit' && orderOk
           && last.id === null && last.state === null && last.opId === lastOp,
-          `kinds=${JSON.stringify(kinds)} ; last=${JSON.stringify(last && [last.kind, last.id, last.opId, last.state])} ; seq=${JSON.stringify(arm.entries.map((e) => e.seq))} ; the attempt's last op=${JSON.stringify(lastOp)}`);
+          `kinds=${JSON.stringify(kinds)} ; last=${JSON.stringify(last && [last.kind, last.id, last.opId, last.state])} ; positions=${JSON.stringify(arm.entries.map((e) => [arm.entries.indexOf(e), Object.hasOwn(e, 'seq')]))} ; the attempt's last op=${JSON.stringify(lastOp)}`);
       });
     void rec;
   });

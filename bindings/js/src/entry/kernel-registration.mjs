@@ -378,7 +378,8 @@ function registrationRepairContext(store, address, id, commitRecord) {
  * **ITS `address` IS THE PAIR'S OWN**, **`ITS `checkpoint` BEGINS `null`*** — that member's declared `null`
  * arm, because no landing at that address has yet left it valid for THIS attempt — and **its `ref` is a
  * kernel-minted `AttemptRef` unique within the instance**. **Its `log` is a real `LogEntry[]` carrying this
- * kernel's own `seq` ordinal**, and the `constraint-check` and `repair-run` entries arm (b) appends stand in
+ * kernel's own entries — each at its own index, which IS its ordinal since `D-65` removed the member
+ * (2026-10-28)** — and the `constraint-check` and `repair-run` entries arm (b) appends stand in
  * it. **IT IS TERMINAL-AWARE ON BOTH ARMS**: it reaches `PASSED` or `FAILING` and closes, and no
  * registration leaves an open attempt in the registry.
  *

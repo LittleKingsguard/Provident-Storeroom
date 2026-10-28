@@ -51,8 +51,10 @@ import { storeCreate } from '../../bindings/js/index.mjs';
 // source order in `Object.keys` — `status`, `message`, `log`.
 const FORM_KEYS = ['status', 'message', 'log'];
 
-// index.d.ts `LogEntry`; kernel-surface.md §2.5 item 1 (cited from surface.md §2.5 item 3).
-const LOG_ENTRY_KEYS = ['id', 'kind', 'message', 'opId', 'seq', 'state'];
+// index.d.ts `LogEntry`; kernel-surface.md §2.5 item 1 (cited from surface.md §2.5 item 3), read through
+// `strata/decisions.md` · `D-65` (2026-10-28): the shape is FIVE members and `seq` is ABSENT — the array
+// index IS the position.
+const LOG_ENTRY_KEYS = ['id', 'kind', 'message', 'opId', 'state'];
 const LOG_KINDS = ['constraint-check', 'repair-run', 'commit', 'outcome'];
 const KC_TOKENS = ['KC-1', 'KC-2', 'KC-3', 'KC-4', 'KC-5', 'KC-6', 'KC-7', 'KC-8', 'KC-9'];
 
@@ -102,17 +104,25 @@ function assertOnePlainForm(value, where) {
 // 'undefined'" — applied to the one member a reader reads as a sentence.
 function sweepLog(log, where) {
   assert.ok(Array.isArray(log), `${where}: log is an array on every arm (§2.5 item 4)`);
-  let previousSeq = 0;
-  for (const entry of log) {
+  // ── **THE MONOTONICITY ARM, RE-DERIVED FROM THE MEMBER TO THE INDEX — `D-65`, 2026-10-28.** ──────────────
+  // **THIS SWEEP'S PURPOSE WAS *"THE POSITION IS CORRECT"* AND IT READ IT OFF `entry.seq > previousSeq`.** The
+  // member is gone (`D-65`: the array index is the position), so the same property is asserted where it now
+  // lives: the entry standing at position `i` IS `log[i]`, it stands at that one position and nowhere else,
+  // and no member restates the place. **NO `previousSeq` REMAINS AND NOTHING IS COMPARED ACROSS ENTRIES**: a
+  // position is not a value and there is nothing to order but the array the reader is already walking.
+  for (const [index, entry] of log.entries()) {
     assert.ok(entry && typeof entry === 'object', `${where}: a log entry is an object`);
     assert.deepEqual(
       [...Object.keys(entry)].sort(),
       [...LOG_ENTRY_KEYS].sort(),
-      `${where}: the entry's member set is CLOSED at the kernel's six (surface.md §2.5 item 3 citing kernel-surface.md §2.5 item 1)`,
+      `${where}: the entry's member set is CLOSED at the kernel's FIVE (surface.md §2.5 item 3 citing kernel-surface.md §2.5 item 1, read through D-65)`,
     );
-    assert.ok(Number.isInteger(entry.seq) && entry.seq >= 1, `${where}: seq is the kernel's append ordinal from 1`);
-    assert.ok(entry.seq > previousSeq, `${where}: seq strictly increases in array order (surface.md §2.5 item 3)`);
-    previousSeq = entry.seq;
+    assert.equal(log[index], entry,
+      `${where}: the position is the ARRAY INDEX — the entry at this position IS the list's element at it (D-65)`);
+    assert.equal(log.indexOf(entry), index,
+      `${where}: and it stands at that one position, with no seq member beside the index to restate it (D-65)`);
+    assert.equal(Object.hasOwn(entry, 'seq'), false,
+      `${where}: \`seq\` is ABSENT — the member was removed and no second copy of the position stands beside the index (D-65)`);
     assert.ok(LOG_KINDS.includes(entry.kind), `${where}: kind is one of the closed four (${entry.kind})`);
     assert.equal(typeof entry.message, 'string', `${where}: every entry's message is a string`);
     assert.ok(entry.message.length > 0, `${where}: every entry's message is non-empty`);
@@ -629,11 +639,22 @@ test('def_s_a_forged_object_crosses_as_itself_only_where_no_constraint_body_thre
       + `${JSON.stringify(carriedInner.log)}`);
   assert.equal(carriedInner.log.length >= innerAlone.log.length, true,
     `DEF-AK: and the list is AT LEAST the inner refusal's own (${innerAlone.log.length}) — it also carries the `
-      + `outer attempt's entries, the same ONE list — read ${JSON.stringify(carriedInner.log.map((e) => e.seq))}`);
-  assert.deepEqual(carriedInner.log.map((entry) => entry.seq),
-    carriedInner.log.map((_entry, position) => position + 1),
-    'DEF-AK: and the `seq` ordinals are CONTINUOUS across the attempts of this one commit — `1..n` in array '
-      + `order, minted by the kernel\'s own \`append\` — read ${JSON.stringify(carriedInner.log.map((e) => e.seq))}`);
+      + `outer attempt's entries, the same ONE list — read ${JSON.stringify(carriedInner.log.map((e) => e.message))}`);
+  // **⟶ AND `seq`'S CONTINUITY IS RE-DERIVED TO THE INDEX, 2026-10-28 — `D-65`: THE ARRAY INDEX IS THE
+  // POSITION.** This limb read `log.map((e) => e.seq)` against `1..n`, which was the one list's continuity
+  // stated by a member. **THE MEMBER IS REMOVED**, so the property — *"these are ONE list, each entry standing
+  // at its own place in it, with no gap and no renumbering"* — is asserted where it now lives: **every entry
+  // IS the list's element at the index it is read at, and none appears twice.** A merge that renamed, dropped
+  // or duplicated an entry reddens here exactly as it reddened on the ordinals.
+  for (let position = 0; position < carriedInner.log.length; position += 1) {
+    const at = carriedInner.log[position];
+    assert.equal(carriedInner.log.indexOf(at), position,
+      'DEF-AK: and EVERY ENTRY STANDS AT ITS OWN INDEX in this one list — the position is the array index and '
+        + `no member restates it (\`D-65\`); the list reads ${JSON.stringify(carriedInner.log.map((e) => e.kind))}`);
+    assert.equal(Object.hasOwn(at, 'seq'), false,
+      'DEF-AK: and no entry carries `seq` — the member is gone and the index is the only copy of the position '
+        + `(\`D-65\`); read ${JSON.stringify(Object.keys(at))}`);
+  }
   assert.equal(carriedInner.log, bodyCaught.log,
     'DEF-AK: and IT IS THE CROSSED REPORT\'S OWN LIST, not a copy of it — the two are ONE array, which is the '
       + '*"the crossed report IS that list"* of `D-53`');

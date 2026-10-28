@@ -194,7 +194,8 @@ test('D-46 (1) · A REPAIR IS TRACKED INSIDE ITS ATTEMPT: the repair body\'s wri
       + `${JSON.stringify(standing)}`);
   assert.equal(repairedStanding, REPAIRED,
     `and the repair's own op stands at the beside address it wrote: ${JSON.stringify(repairedStanding)}`);
-  // ── (c) AND `seq` IS MONOTONE ACROSS THE COMMIT'S ATTEMPTS — **`DEF-AI`'S MEASUREMENT, 2026-10-28**. ──
+  // ── (c) AND THE ONE LIST'S ORDER IS MONOTONE ACROSS THE COMMIT'S ATTEMPTS — **`DEF-AI`'S MEASUREMENT,
+  // 2026-10-28, READ THROUGH `D-65`**. ──
   // **THE ROW DEMANDS THIS BE CHECKED AGAINST THE MERGE RATHER THAN ASSUMED.** With the log on the COMMIT
   // (`D-53`), one repair write is several attempts — the pass, the repair's own joined write and the re-run —
   // and every one of them appends to the SAME array. **THE ORDINAL MUST BE STRICTLY INCREASING IN ARRAY ORDER
@@ -202,6 +203,11 @@ test('D-46 (1) · A REPAIR IS TRACKED INSIDE ITS ATTEMPT: the repair body\'s wri
   // log"* means; it is printed in the diagnostic below so a reader reads the sequence itself and not this
   // cell's intention. **NO ENTRY IS MINTED FROM THE STORE'S JOURNAL COUNTER** (`DEF-AI`'s prohibition): the
   // numbers below are the kernel's own arithmetic on the commit's one list.
+  // **⟶ AND FROM 2026-10-28 THAT ORDINAL IS THE ARRAY INDEX AND NO MEMBER (`D-65`): THE `seq` MEMBER IS GONE.**
+  // This limb read `direct.log.map((entry) => entry.seq)` against `1, 2, 3 …`. **THE MEMBER IS REMOVED, SO THE
+  // PROPERTY IS ASSERTED WHERE IT NOW LIVES** — every entry IS the list's element at the index it is read at,
+  // stands at no other position, and carries no `seq`: **one list, `0..n-1`, no gap, no renumbering, and no
+  // second copy of the position that could disagree with the first** (`strata/decisions.md` · `D-65`).
   // **⟶ AND FROM 2026-10-28 (`D-58`) THE STORE RETAINS NO MESSAGE LOG, SO THE ONE LIST IS READ WHERE THE
   // HANDOFF PUTS IT.** This drive's caller is the PUBLISHED `write`, which answers `{op, watched, triggered}` on
   // a passing arm and has never carried a log: the list is measured on a DIRECT `K-2`/`K-3` DRIVE of the same
@@ -209,18 +215,18 @@ test('D-46 (1) · A REPAIR IS TRACKED INSIDE ITS ATTEMPT: the repair body\'s wri
   const directRecord = kernelCommit(store, ['a'], 'mem', REFUSED);
   const direct = kernelRunAttempt(store, directRecord);
   assert.equal(direct.outcome, 'passed', 'the direct drive of the same shape passes, as the entry\'s did');
-  const seqs = direct.log.map((entry) => entry.seq);
-  assert.ok(seqs.length >= 2,
-    `the commit must hold at least the pass's and the repair's entries for monotonicity to have a subject: `
-      + `the drive read ${JSON.stringify(seqs)}`);
-  for (let index = 1; index < seqs.length; index += 1) {
-    assert.equal(seqs[index], seqs[index - 1] + 1,
-      `**\`seq\` IS MONOTONE ACROSS THIS COMMIT'S ATTEMPTS — ONE LIST, \`1..n\`, NO RENUMBERING** (\`D-53\`; `
-        + `\`DEF-AI\`): the entries read ${JSON.stringify(seqs)} and the kinds `
-        + `${JSON.stringify(direct.log.map((entry) => entry.kind))}`);
+  assert.ok(direct.log.length >= 2,
+    `the commit must hold at least the pass's and the repair's entries for the order to have a subject: `
+      + `the drive read ${JSON.stringify(direct.log.map((entry) => entry.kind))}`);
+  for (let index = 0; index < direct.log.length; index += 1) {
+    assert.equal(direct.log.indexOf(direct.log[index]), index,
+      `**THE ONE LIST'S POSITIONS ARE ITS INDICES — ONE LIST, NO RENUMBERING, NO DUPLICATE** (\`D-53\`; `
+        + `\`D-65\`): the entries read ${JSON.stringify(direct.log.map((entry) => entry.kind))} and the entry at `
+        + `index ${index} stands at ${JSON.stringify(direct.log.indexOf(direct.log[index]))}`);
+    assert.equal(Object.hasOwn(direct.log[index], 'seq'), false,
+      `and NO entry carries \`seq\` — the member is gone and the index is the only copy of the position `
+        + `(\`D-65\`): index ${index} reads ${JSON.stringify(Object.keys(direct.log[index]))}`);
   }
-  assert.equal(seqs[0], 1,
-    `and the one list starts at \`1\`: ${JSON.stringify(seqs)}`);
   assert.deepEqual(windowOf(store), { open: 0, live: 0 },
     `and the whole call returns at rest: ${JSON.stringify(windowOf(store))}`);
 
@@ -232,10 +238,11 @@ test('D-46 (1) · A REPAIR IS TRACKED INSIDE ITS ATTEMPT: the repair body\'s wri
     + `log (\`D-58\`: the repair-run entry is unobservable through the published write); the pair was asked at `
     + `${JSON.stringify(asked)}; the store stands at `
     + `${JSON.stringify(standing)} and \`['z']\` at ${JSON.stringify(repairedStanding)}, the call returning `
-    + `${JSON.stringify(windowOf(store))}. **AND THE COMMIT'S \`seq\` IS MONOTONE ACROSS ITS ATTEMPTS — `
-    + `\`DEF-AI\`'S MEASUREMENT, read on the DIRECT drive's handoff \`D-58\` leaves as the only list: `
-    + `${JSON.stringify(seqs)} over the kinds ${JSON.stringify(direct.log.map((entry) => entry.kind))}** — one `
-    + `list, \`1..n\`, no renumbering, and no number read off the store's journal counter`);
+    + `${JSON.stringify(windowOf(store))}. **AND THE COMMIT'S ONE LIST IS ORDERED ACROSS ITS ATTEMPTS — `
+    + `\`DEF-AI\`'S MEASUREMENT read through \`D-65\`, on the DIRECT drive's handoff \`D-58\` leaves as the only `
+    + `list: ${JSON.stringify(direct.log.map((entry) => entry.kind))} stand at their own indices 0..`
+    + `${direct.log.length - 1}** — one list, no gap, no renumbering, no \`seq\` member, and no number read off `
+    + `the store's journal counter`);
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════

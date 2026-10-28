@@ -59,9 +59,10 @@ export function commit(store, address, tier, value) {
   // list; a write reached with no such frame standing — a caller's own write, and a LISTENER BODY's write, which
   // the entry invokes at the terminal arm — OPENS a commit and starts a fresh list, because *"the triggering
   // commit already passed constraints"* and what the listener does now is a new question (`D-53`).
-  // **ONE LIST PER COMMIT AND NO MERGE**: the entries a nested write mints are this list's entries, their `seq`
-  // is this list's ordinal, and the crossed report of the enclosing refusal IS this list (`D-52`'s rule 2 is
-  // dissolved rather than answered — there are not two lists to reconcile).
+  // **ONE LIST PER COMMIT AND NO MERGE**: the entries a nested write mints are this list's entries, their
+  // POSITION is this list's index (the array index is the ordinal; `D-65`, 2026-10-28), and the crossed report of
+  // the enclosing refusal IS this list (`D-52`'s rule 2 is dissolved rather than answered — there are not two
+  // lists to reconcile).
   const joined = commitLogInFlight(kernel);
   const commitLog = joined === null ? [] : joined;
   const attempt = {

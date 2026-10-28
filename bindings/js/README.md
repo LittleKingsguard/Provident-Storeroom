@@ -114,8 +114,10 @@ try {
 with an object literal, not `defineProperty`, not a getter, not on a prototype and not behind a `Symbol` — and
 **`Object.keys(caught)` reads exactly its three members in the form's own order, `["status","message","log"]`,
 length `3`, on EVERY arm.** **`[]` is its declared value where the failure's cause has no attempt at all, and
-every failure whose attempt exists carries that attempt's own entries — the kernel's six-member `LogEntry`
-records, with the `outcome` entry's `state` carrying the `KC` token where the constraint pass produced one**
+every failure whose attempt exists carries that attempt's own entries — the kernel's FIVE-member `LogEntry`
+records, with the `outcome` entry's `state` carrying the `KC` token where the constraint pass produced one** **⟶ AND IT IS
+FIVE SINCE `D-65`: `kind` · `id` · `opId` · `message` · `state` — the `seq` member is GONE, because a log entry's position
+IS its array index and a member restating the index was a second copy of a fact the array already carried.**
 (`index.d.ts`, `LogEntry`; `surface.md §2.5` items 3–4). **The `message` is generated from the code and the
 failing trigger's arguments**, never hand-authored at a call site.
 

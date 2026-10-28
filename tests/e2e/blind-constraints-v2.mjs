@@ -216,9 +216,17 @@ function callerMap() {
 const LOG_KINDS = ['constraint-check', 'repair-run', 'commit', 'outcome'];
 const logShape = (l) => {
   if (!Array.isArray(l)) return 'not-an-array';
-  const bad = l.find((e) => keysOf(e) !== 'id,kind,message,opId,seq,state' || !LOG_KINDS.includes(e.kind));
+  const bad = l.find((e) => keysOf(e) !== 'id,kind,message,opId,state' || !LOG_KINDS.includes(e.kind));
   if (bad) return `bad entry ${JSON.stringify(bad)}`;
-  for (let i = 0; i < l.length; i += 1) if (l[i].seq !== i + 1) return `seq[${i}]=${l[i].seq}`;
+  // ── THE POSITION, RE-DERIVED FROM THE `seq` MEMBER TO THE ARRAY INDEX (`D-65`, 2026-10-28) ──────────────
+  // This helper read `l[i].seq !== i + 1`, the one list's order stated by a member. **THE MEMBER IS REMOVED**
+  // (`strata/decisions.md` · `D-65`: the array index is the position), so the same property — *each entry
+  // stands at its own place in this one list, in order, with no gap and no duplicate* — is read off the list:
+  // the entry at index `i` IS `l[i]`, it stands at no other position, and it carries no `seq` to restate it.
+  for (let i = 0; i < l.length; i += 1) {
+    if (l.indexOf(l[i]) !== i) return `position[${i}]=${l.indexOf(l[i])}`;
+    if (Object.hasOwn(l[i], 'seq') === true) return `seq stands at index ${i}`;
+  }
   return 'ok';
 };
 const kinds = (l) => (l ?? []).map((e) => `${e.kind}/${e.id}/${e.state}`).join(' ');
@@ -298,12 +306,12 @@ scenario(() => {
     `${C.ks21} items 2–3; ${C.cs26} item 8 (i)`,
     Array.isArray(r.rollback) && r.rollback.length === 0 && Array.isArray(c.triggered),
     `rollback=${JSON.stringify(r.rollback)} triggered=${c.triggered.length} pending=${c.pending.length}`);
-  cell(6, "the log is one constraint-check (id 'x', opId the write's op, state null) then one commit entry (id null, opId the last op); seq 1,2; six-member entries",
-    `${C.ks25} items 1–3`,
+  cell(6, "the log is one constraint-check (id 'x', opId the write's op, state null) then one commit entry (id null, opId the last op), at positions 0 and 1; five-member entries with `seq` ABSENT (`D-65`)",
+    `${C.ks25} items 1–3; \`D-65\``,
     logShape(r.log) === 'ok' && r.log.length === 2
       && r.log[0].kind === 'constraint-check' && r.log[0].id === 'x' && r.log[0].opId === c.op.opId
       && r.log[0].state === null && r.log[1].kind === 'commit' && r.log[1].id === null,
-    `shape=${logShape(r.log)} kinds=[${kinds(r.log)}]`);
+    `shape=${logShape(r.log)} kinds=[${kinds(r.log)}] positions=${JSON.stringify(r.log.map((e, i) => [i, r.log.indexOf(e)]))}`);
   // ── **⟶ DRIVE RE-DERIVED 2026-10-25: THE CELL READS THE PASS'S OWN CONTEXT, NOT THE REGISTRATION'S.**
   // The body is invoked TWICE: once at `K-1`'s third step — the REGISTRATION-time evaluation (`§7.3` (b) state 1,
   // `A135` (3)), whose context carries `tier: null` and `op: null` because no write stands — and once per pass,
@@ -832,8 +840,8 @@ scenario(() => {
     `${C.ps25} observable; ${C.al24} item 4 arm (c)`,
     rSmall.outcome === 'passed' && !rBig.ok && rBig.err?.status === 'KC-3' && seenVals.join(',') === '1,9',
     `small=${rSmall.outcome} big=${status(rBig)} values=${seenVals}`);
-  cell(7, "the kernel's own order is the log's seq and nothing store-side: seq strictly increasing from 1 in both attempts, no entry carrying a member outside the six",
-    `${C.ks25} item 1 (order); ${C.al24} item 5 (ii)`,
+  cell(7, "the kernel's own order is the log's ARRAY INDEX and nothing store-side: each entry stands at its own position 0..n-1 in both attempts, `seq` ABSENT, no entry carrying a member outside the five (`D-65`)",
+    `${C.ks25} item 1 (order); ${C.al24} item 5 (ii); \`D-65\``,
     logShape(rSmall.log) === 'ok' && logShape(rBig.err?.log) === 'ok',
     `small shape=${logShape(rSmall.log)} big kinds=[${kinds(rBig.err?.log)}]`);
 });
@@ -1215,11 +1223,14 @@ scenario(() => {
   cell(5, "nor does any closed record carry ran/open/checkpoint/ref/commit: the open shape's nine members are read off an OPEN attempt only",
     `${C.al24} item 1`, !('ran' in r1) && !('open' in r1) && !('checkpoint' in r1) && !('ref' in r1),
     `keys=${keysOf(r1)}`);
-  cell(6, "the two attempts' logs are each their own list: the seq ordinals restart at 1 and the witnesses name different opIds",
-    `${C.ks25} item 1 (append-only within one attempt)`,
-    r1.log[0].seq === 1 && r2.log[0].seq === 1 && logShape(r1.log) === 'ok' && logShape(r2.log) === 'ok'
+  cell(6, "the two attempts' logs are each their own list — each list's positions are its own ARRAY INDICES, `seq` ABSENT (`D-65`) — and the witnesses name different opIds",
+    `${C.ks25} item 1 (append-only within one attempt); \`D-65\``,
+    logShape(r1.log) === 'ok' && logShape(r2.log) === 'ok'
+      && Object.hasOwn(r1.log[0], 'seq') === false && Object.hasOwn(r2.log[0], 'seq') === false
+      && r1.log !== r2.log
       && r1.log[0].opId !== r2.log[0].opId,
-    `attempt1=[${kinds(r1.log)}] attempt2=[${kinds(r2.log)}]`);
+    `attempt1=[${kinds(r1.log)}] at positions ${JSON.stringify(r1.log.map((e, i) => [i, r1.log.indexOf(e)]))} · `
+      + `attempt2=[${kinds(r2.log)}] at positions ${JSON.stringify(r2.log.map((e, i) => [i, r2.log.indexOf(e)]))}`);
   cell(7, "K-4 over each closed attempt ANSWERS — the empty retained list on both — while the two attempts' own lists are the ones `K-3` handed off, each its own (`D-58`)",
     `${C.ks21} item 4; \`D-58\``,
     JSON.stringify(log(store, c1.attempt)) === '[]' && JSON.stringify(log(store, c2.attempt)) === '[]'

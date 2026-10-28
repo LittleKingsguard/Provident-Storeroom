@@ -68,25 +68,22 @@ import { openCommits } from '../../bindings/js/src/entry/state.mjs';
 /** `surface.md §2.5` items 3–4: the ONE crossed form's member set, sorted ascending. */
 const REFUSAL_MEMBERS = ['log', 'message', 'status'];
 
-/** `kernel-surface.md §2.5` item 1: the log entry's SIX members and its CLOSED four-kind set. */
-const LOG_MEMBERS = ['seq', 'kind', 'id', 'message', 'opId', 'state'];
+/** `kernel-surface.md §2.5` item 1 read through `strata/decisions.md` · `D-65` (2026-10-28): the log entry's
+ *  FIVE members — `seq` is ABSENT, the array index is the position — and its CLOSED four-kind set. */
+const LOG_MEMBERS = ['kind', 'id', 'message', 'opId', 'state'];
 const LOG_KINDS = ['constraint-check', 'repair-run', 'commit', 'outcome'];
 
 /**
- * **⟶ THE NO-ATTEMPT REVERSAL REFUSAL'S ENTRY CARRIES THE DECLARED SIX, `seq` INCLUDED — RE-DERIVED
- * 2026-10-28 (`strata/decisions.md` · `D-48` · `DEF-AI`).** A 2026-10-27 pass withdrew `seq` `1` from this
- * arm as FABRICATED, reading `seq` as *"the ordinal WITHIN AN ATTEMPT'S OWN LOG"* — true of where the number
- * came from before, **and wrong about the MEMBER**: `seq`'s declared domain is *"the append ordinal, strictly
- * increasing from `1` in array order"* (`docs/specs/storeroom-constraints/kernel-surface.md §2.5` item 1), and
- * the array this entry stands in is this refusal's OWN one-entry list, whose first element's ordinal is `1`
- * BY THAT RULE — the same arithmetic `append` performs on the list it stands in. **The two copies of the very
- * same entry disagreed on the member** (`carryRestartRefusal` re-appends it into the attempt's log through
- * `append`, where it carries `seq` `1`), and `log` is declared `LogEntry[]`
- * (`bindings/js/index.d.ts`), so the crossing handed a consumer `undefined` where `number` is declared.
- * **THE DECLARATION IS NOT WEAKENED TO MATCH THE ENTRY — THE ENTRY NOW CARRIES THE MEMBER**, and this list is
- * the kernel's own declared six.
+ * **⟶ AND THE NO-ATTEMPT REVERSAL REFUSAL'S ENTRY CARRIES THE FIVE, `seq` ABSENT — `D-65`, 2026-10-28: THE
+ * ARRAY INDEX IS THE POSITION.** `RCA-8(g)` ANNOTATE-BESIDE: **the re-derivation below stands as the reading of
+ * its own date and is read THROUGH this one; what it settled (`seq` `1`) is RETIRED with the member.**
+ * **THE RULING, THE ARCHITECT, ONE WORD: *"Drop it"*** (`strata/decisions.md` · `D-65`), on the question why an
+ * entry carries `seq` at all — **`seq: log.length + 1` IS the index**, so the member was a second copy of a fact
+ * the array encodes. The two copies this note's predecessor measured — `carryRestartRefusal` re-appending the
+ * entry through `append` while the crossed list carried none — **can no longer disagree, because neither copy
+ * carries a member at all**: one entry, ONE shape, and the position is `log[0]`'s own index.
  */
-const NO_ATTEMPT_LOG_MEMBERS = ['seq', 'kind', 'id', 'message', 'opId', 'state'];
+const NO_ATTEMPT_LOG_MEMBERS = ['kind', 'id', 'message', 'opId', 'state'];
 
 /** The three values `DEF-M`'s drive must keep apart: the seed, the value the constraint REFUSES, and the value
  *  its repair writes. Three distinct sentinels, so the store's terminal reading names exactly one of them. */
@@ -812,20 +809,24 @@ test('DEF-W · under `D-38` (2026-10-26) a `rollback` whose TERMINAL state a reg
   // ── AND THE `log` NAMES THE CONSTRAINT AND THE STATE IT REFUSED. ─────────────────────────────
   // `kernel-surface.md §2.5` item 1: the entry's CLOSED four-kind set — the same entry shape every other log
   // this surface carries has, so a consumer reads this `log` with the reader it already has — **AND AT THIS
-  // NO-ATTEMPT ARM THE DECLARED SIX, `seq` INCLUDED** (`NO_ATTEMPT_LOG_MEMBERS` above, re-derived 2026-10-28
-  // on `D-48` · `DEF-AI`: the ordinal is the entry's own place in the one-entry list it stands in).
+  // NO-ATTEMPT ARM THE DECLARED FIVE, `seq` ABSENT** (`NO_ATTEMPT_LOG_MEMBERS` above, re-derived on
+  // `D-65` 2026-10-28: the position is the entry's own index in the one-entry list it stands in, and no member
+  // restates it).
   assert.ok(refusedLog.length > 0,
     `the refusal's \`log\` names the constraint and the state it refused, so it is not empty here: the drive `
       + `read ${JSON.stringify(refusedLog)}`);
-  for (const entry of refusedLog) {
+  for (const [index, entry] of refusedLog.entries()) {
     assert.deepEqual(Object.keys(entry).sort(), [...NO_ATTEMPT_LOG_MEMBERS].sort(),
       `the no-attempt refusal's entry carries exactly ${JSON.stringify(NO_ATTEMPT_LOG_MEMBERS)} `
-        + `(\`kernel-surface.md §2.5\` item 1, read through \`D-48\` · \`DEF-AI\`); the drive `
+        + `(\`kernel-surface.md §2.5\` item 1, read through \`D-65\`); the drive `
         + `read ${JSON.stringify(Object.keys(entry))} from ${JSON.stringify(entry)}`);
-    assert.equal(entry.seq, 1,
-      `the entry's \`seq\` is its place in the one-entry list it stands in — \`1\` by the declared ordinal `
-        + `rule, and never a number read off a log that is not there (\`D-48\` · \`DEF-AI\`); the drive read `
-        + `${JSON.stringify(entry.seq)} under a \`seq\` member`);
+    assert.equal(refusedLog[index], entry,
+      `the entry's POSITION is the ARRAY INDEX — it IS the list's element at index ${index}, and no \`seq\` `
+        + `member restates the place (\`D-65\`); the drive read `
+        + `${JSON.stringify(Object.hasOwn(entry, 'seq'))} under a \`seq\` member`);
+    assert.equal(Object.hasOwn(entry, 'seq'), false,
+      `\`seq\` is ABSENT from this entry — the member is gone and the index is the only copy of the position `
+        + `(\`D-65\`); the drive read ${JSON.stringify(Object.keys(entry))}`);
     assert.equal(LOG_KINDS.includes(entry.kind), true,
       `\`kind\` is one of ${JSON.stringify(LOG_KINDS)}; the drive read ${JSON.stringify(entry.kind)}`);
   }
@@ -1337,15 +1338,23 @@ test('DEF-W (3) · the discriminator is the CONJUNCTION: a reversal at a LISTENE
     `the refusal's entry NAMES the pair that refused the state the reversal left: `
       + `${JSON.stringify(controlLog[0])}`);
   assert.deepEqual(Object.keys(controlLog[0]).sort(), NO_ATTEMPT_LOG_MEMBERS.slice().sort(),
-    `the refusal's entry carries ${JSON.stringify(NO_ATTEMPT_LOG_MEMBERS)} and no seventh member — \`seq\` `
-      + `included, its place in this one-entry list (\`D-48\` · \`DEF-AI\`): `
+    `the refusal's entry carries ${JSON.stringify(NO_ATTEMPT_LOG_MEMBERS)} and no sixth member — \`seq\` `
+      + `ABSENT, its place stated by the array index (\`D-65\`): `
       + `${JSON.stringify(Object.keys(controlLog[0]))}`);
-  assert.equal(controlLog[0].seq, 1,
-    `the entry's \`seq\` is the ordinal of the list it stands in (\`kernel-surface.md §2.5\` item 1): `
-      + `${JSON.stringify(controlLog[0].seq)}`);
-  assert.equal(controlLog[0].seq, 1,
-    `and \`seq\` is the entry's own place in the one-entry list it stands in rather than a number read off a log `
-      + `that is not there: the drive read ${JSON.stringify(controlLog[0].seq)} under it`);
+  // **⟶ AND THE POSITION IS RE-DERIVED TO THE INDEX (`D-65`).** These two limbs read
+  // `controlLog[0].seq === 1` twice, which was *"the entry's own place in the one-entry list it stands in"*
+  // stated by the member. **THE MEMBER IS GONE**, so the property — *this entry stands at the list's first
+  // position* — is asserted where the position now lives: **`controlLog[0]` IS the list's element at index
+  // `0`**, it stands at no other position, and no member restates the place.
+  assert.equal(controlLog[0], controlLog[controlLog.length - 1],
+    'the entry stands at the list\u2019s first position and it is the list\u2019s only entry — the index is '
+      + 'the position (`D-65`)');
+  assert.equal(controlLog.indexOf(controlLog[0]), 0,
+    'and its position is index 0 of the one-entry list it stands in, read off the array and off no member '
+      + '(`D-65`)');
+  assert.equal(Object.hasOwn(controlLog[0], 'seq'), false,
+    'and no `seq` member restates that position: the member is gone (`D-65`), so there is no second copy of it '
+      + `to disagree with anything; the drive read ${JSON.stringify(Object.keys(controlLog[0]))}`);
   assert.equal(controlStanding, W_SECOND,
     `the refusal undid the reversal it refused (\`DEF-W\`'s \`(a)\`): the store stands again at `
       + `${JSON.stringify(W_SECOND)} where the drive read ${JSON.stringify(controlStanding)}`);
@@ -1575,7 +1584,7 @@ test('DEF-AB · one address is rendered ONE way: no log entry message spells an 
     }
     // (iii) THE ENTRY'S OWN COLUMNS ARE UNMOVED BY THE RENDERING.
     assert.deepEqual(Object.keys(entry).sort(), LOG_MEMBERS.slice().sort(),
-      `the entry keeps the kernel's declared six members: ${JSON.stringify(Object.keys(entry))}`);
+      `the entry keeps the kernel's declared FIVE members, \`seq\` absent (\`D-65\`): ${JSON.stringify(Object.keys(entry))}`);
   }
   // (iv) THE RENDERING REALLY APPEARS, so this cell is not green on an empty sweep: the pair token the
   // declaration fixes is printed by the repeat arm's sentence, and the address is printed by a sibling's.

@@ -20,8 +20,11 @@
 //     absent again;
 //   * **a judgement that cannot complete FAILS CLOSED**: the reversal is restored and the call refuses with a log
 //     that NAMES THE THROWING PAIR;
-//   * **the refusal's log entry carries NO `seq`**: the kernel's `seq` is the ordinal within an attempt's own log
-//     and no attempt stands at a reversal's judgement, so no `1` is minted (`D-41` item `4`);
+//   * **the refusal's log entry carries NO `seq`** — and from 2026-10-28 that is the KERNEL'S OWN SHAPE at every
+//     arm, not only this one: **`D-65` removed the member and the array index IS the position**
+//     (`strata/decisions.md`), so no `1` is minted here and none stands anywhere. (This item was re-derived to
+//     *"carries `seq` `1`"* on `D-48` · `DEF-AI` in between; that reading is RETIRED with the member, and the
+//     entry's five members — `kind` · `id` · `message` · `opId` · `state` — are what every arm now carries.);
 //   * **a LAWFUL reversal is unchanged, member for member** — `{opId, undoneOps, restoredTo}`, no log, no throw.
 //
 // **D-21.** Every cell prints what it read at its own `t.diagnostic`, including both sides of each arm, so a red
@@ -426,10 +429,16 @@ test('D-41 · the ABSENT cases: an address absent before the reversal is ABSENT 
       + `${JSON.stringify(cannotMessage)}`);
   assert.equal(/NOT undone/i.test(cannotMessage), false,
     `it carries no negative claim beside a restoral that happened: THE DRIVE READ ${JSON.stringify(cannotMessage)}`);
-  assert.equal(cannotLog[0].seq, 1,
-    `the entry carries the \`seq\` of the one-entry list it stands in — the declared ordinal rule, never an `
-      + `ordinal read off a log that is not there (\`D-48\` · \`DEF-AI\`). THE DRIVE READ `
-      + `${JSON.stringify(Object.keys(cannotLog[0]))}`);
+  // **⟶ AND `seq` IS RE-DERIVED AWAY, 2026-10-28 — `D-65`: THE ARRAY INDEX IS THE POSITION.** This limb read
+  // `cannotLog[0].seq === 1`. **THE MEMBER IS REMOVED**, so the property — *this entry stands at the one-entry
+  // list's first position* — is asserted where the position now lives: `cannotLog[0]` IS the list's element at
+  // index `0`, it stands at no other position, and no member restates the place.
+  assert.equal(cannotLog.indexOf(cannotLog[0]), 0,
+    `the entry's POSITION is index 0 of the one-entry list it stands in, read off the array and off no member `
+      + `(\`D-65\`). THE DRIVE READ ${JSON.stringify(Object.keys(cannotLog[0]))}`);
+  assert.equal(Object.hasOwn(cannotLog[0], 'seq'), false,
+    `and \`seq\` is ABSENT — the member is gone, so there is no second copy of the position to disagree with `
+      + `anything (\`D-65\`). THE DRIVE READ ${JSON.stringify(cannotLog[0])}`);
 
   // ── THE READINGS, PRINTED ON EVERY ARM (`D-21`: a cell owes what it read). ───────────────────
   t.diagnostic(`D-41 · ARM A (absent BEFORE the reversal, reached by a structured ancestor write): before `

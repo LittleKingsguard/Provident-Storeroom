@@ -617,7 +617,8 @@ function evaluate(kernel, attempt, landing) {
         // which the kernel-level cells assert as *"NO entry stands for the pair whose body returned nothing"*).
         // **SO THE TERMINAL ENTRY'S SENTENCE CARRIES THE FORM** (`throwableForm`: the string's own text, the
         // object's own `message` member, or the kind of value it was, read off own members only), and the
-        // closed report's list — the list the crossing hands the caller — holds it at that entry's `seq`.
+        // closed report's list — the list the crossing hands the caller — holds it at that entry's position,
+        // the list's own index and no `seq` member (`D-65`, 2026-10-28).
         terminalComposed(kernel, attempt, null, `the constraint ${pair.id} threw; the attempt is closed — the `
           + `value it threw was ${throwableForm(body)}`);
         // **⟶ AND THE VALUE IS MARKED HERE, BY THE FRAME THAT CAUGHT IT FROM THE BODY — `DEF-S`, 2026-10-26,

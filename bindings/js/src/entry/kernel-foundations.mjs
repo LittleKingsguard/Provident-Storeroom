@@ -733,6 +733,10 @@ export function ownMember(value, name) {
 // **THERE WAS NEVER A MERGE TO PERFORM: a constraint body's write is part of the same commit, so its entries
 // ARE this list's entries, the crossed report IS this list, no entry is renumbered and `seq` keeps its
 // declaration because there is ONE list.** `DEF-AK`'s *"one inner refusal, two hosts"* is the measurement of it.
+// **⟶ AND THE CLAUSE'S OWN CONCLUSION OUTLIVED ITS PREMISE, 2026-10-28 — `D-65`.** *"No entry is renumbered
+// because there is ONE list"* is the SAME FACT that removes the member: a position nothing merges into is a
+// position the array index states, so `seq` no longer has a declaration to keep (`strata/decisions.md` ·
+// `D-65`). **THE SUBJECT ABOVE IS UNMOVED** — one list, no merge, no seventh member.
 //
 // **THE KEY IS A `Symbol.for` SPELLING ON THE COMMIT'S OWN RECORD, AND BOTH SIDES SPELL IT** (`A117` (D6)): the
 // entry's terminal arm attaches this list to a failed save's crossing, and it holds the `CommitRecord` and
@@ -765,7 +769,8 @@ export const COMMIT_LOG = Symbol.for('provident-storeroom.commit-log');
 // **IT FREEZES TWO THINGS AND ONLY TWO**: the report's `log` array (where this attempt's scope owns it) and
 // the report itself. **NO MEMBER MOVES, NO MEMBER IS ADDED, AND THE LIST'S IDENTITY IS UNCHANGED** — `D-53`'s
 // *"the crossed report IS that list"* is a statement about WHICH array crosses, and the same array crosses
-// (frozen): `K-5`, `K-4` and every refusal built from it read the same entries at the same `seq` ordinals.
+// (frozen): `K-5`, `K-4` and every refusal built from it read the same entries at the same POSITIONS — the
+// array index is the position (`D-65`, 2026-10-28), and the seal freezes the list so no index moves either.
 // **A PASSING ATTEMPT'S REPORT IS SEALED TOO** — its log is handed off exactly once and drops with the commit.
 export function sealHandoff(report, shared) {
   if (report === null || typeof report !== 'object') return report;
@@ -808,8 +813,20 @@ export function commitLogInFlight(kernel) {
 }
 
 // ---------------------------------------------------------------------------------------------
-// THE MESSAGE LOG (`kernel-surface.md §2.5` item 1; `PAR-C-4`). SIX MEMBERS, `seq` ASCENDING FROM
-// `1`, ONE KIND PER ENTRY: `constraint-check` | `repair-run` | `commit` | `outcome`.
+// THE MESSAGE LOG (`kernel-surface.md §2.5` item 1; `PAR-C-4`). FIVE MEMBERS — `kind` · `id` · `opId` ·
+// `message` · `state` — ONE KIND PER ENTRY: `constraint-check` | `repair-run` | `commit` | `outcome`.
+//
+// **⟶ AND THE ENTRY CARRIES NO `seq`, 2026-10-28 — `D-65`: THE ARRAY INDEX IS THE POSITION.** `RCA-8(g)`
+// ANNOTATE-BESIDE: the clause above read *"SIX MEMBERS, `seq` ASCENDING FROM `1`"* and **every other byte of
+// this file stands as the reading of its own date, read THROUGH this one.** **THE RULING, THE ARCHITECT, ONE
+// WORD: *"Drop it"*** (`strata/decisions.md` · `D-65`), given to the question why a log entry carries `seq` at
+// all — **and the question is the answer**: `seq: attempt.log.length + 1` IS the index of the entry being
+// appended, so the member was a SECOND SOURCE OF TRUTH for a fact the array already encodes, and only one of
+// the two is authoritative. **THE MEMBER IS REMOVED, NOT RE-SPELLED**: `DEF-AI`'s own demand offered both routes
+// (*"mint `seq` from the attempt's counter, **or omit the member**"*) and this is the one that cannot drift —
+// **there is no second copy of the position, so there is nothing left to disagree with the journal's ordinal.**
+// **THE POSITION SURVIVES AS THE INDEX AND AS NOTHING ELSE**: the entry at `log[i]` IS the `i`-th position of
+// the list it stands in, and a reader that wants the ordinal reads the index it already holds.
 //
 // **⟶ AND THE ENTRY IS NAMED BY AN ITERATION AND NOT BY TWO LOOSE IDENTITIES — 2026-10-28, `D-53`'s FIRST
 // RULING: *"Both combined to identify which constraint iteration it is on"*.** **THE ARCHITECT'S ANSWER TO
@@ -828,6 +845,11 @@ export function commitLogInFlight(kernel) {
 //   * `iteration.op` — the journal op the iteration is judged at, or `null` where the kind names none.
 // **`id` IS READ OFF THE PAIR AND `opId` OFF THE OP**: a caller cannot put an id in the op's place, because
 // there is no place for one.
+//
+// **⟶ AND THE ENTRY IS FIVE MEMBERS FROM 2026-10-28 (`D-65`): THE APPEND MINTS NO `seq`.** The position the
+// member used to restate is the position this append GIVES the entry — the length of the list BEFORE the
+// append — so `log[log.length - 1] === entry` and the index is the ordinal, stated by the array and by no
+// member (`strata/decisions.md` · `D-65`; `index.d.ts`'s `LogEntry` carries the five).
 export function append(attempt, kind, iteration, message, state) {
   const held = iteration !== null && typeof iteration === 'object' ? iteration : null;
   const pair = held === null ? undefined : ownMember(held, 'pair');
@@ -835,7 +857,6 @@ export function append(attempt, kind, iteration, message, state) {
   const id = pair === undefined || pair === null || typeof pair.id !== 'string' ? null : pair.id;
   const opId = op === undefined || op === null || typeof op.opId !== 'string' ? null : op.opId;
   appendOwn(attempt.log, {
-    seq: attempt.log.length + 1,
     kind,
     id,
     opId,
@@ -844,12 +865,16 @@ export function append(attempt, kind, iteration, message, state) {
   });
 }
 
-/** A withdrawn entry takes its `seq` with it: the log's ordinals stay `1..n` (`§2.5` item 1). */
+/** **A WITHDRAWN ENTRY TAKES ITS POSITION WITH IT, AND NOTHING NEEDS RENUMBERING — `D-65`, 2026-10-28.** The
+ *  clause here read *"A withdrawn entry takes its `seq` with it: the log's ordinals stay `1..n` (`§2.5` item
+ *  `1`)"* and then rewrote every remaining entry's member. **THERE IS NO MEMBER TO REWRITE**: the array index
+ *  IS the position, so a splice leaves the list's positions `0..n-1` contiguous by construction and the
+ *  renumbering loop had nothing left to do (`strata/decisions.md` · `D-65`). **THE SUBJECT IS UNMOVED** — a
+ *  withdrawn entry is withdrawn, and every entry that remains stands at the index it now holds. */
 export function withdraw(attempt, entry) {
   const at = attempt.log.indexOf(entry);
   if (at === -1) return;
   attempt.log.splice(at, 1);
-  for (let i = 0; i < attempt.log.length; i += 1) attempt.log[i].seq = i + 1;
 }
 
 // ---------------------------------------------------------------------------------------------

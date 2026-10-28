@@ -884,7 +884,8 @@ export function constraintWrite(state, instance, address, tier, value) {
  * **A REFUSAL IS THE ORDINARY REFUSAL** (`constraintCrossing` below): the surface's one plain form
  * `{status, message, log}`, its `status` the set's rank-`20` member `ConstraintPassRefused`, and its `log` the
  * COMMIT'S OWN LIST — `constraint-check` for the pair that refused, then the terminal `outcome` entry whose
- * `state` is the kernel's token — each with its `seq`. **AND THE SAFE STATE IS `D-55` ITEM 5's**: the
+ * `state` is the kernel's token — each at its own index in that one list, the list's position being the array
+ * index and no member (`D-65`, 2026-10-28). **AND THE SAFE STATE IS `D-55` ITEM 5's**: the
  * composition the terminal act runs (`composeRollback`, one floor call per address at that address's first owed
  * op) undoes **the delete and every edit the commit made under it**, so the caller meets a store back at the
  * state the commit opened at. Where the refusal is a RESTARTED check's (`D-42`, a reversal raised by a body
@@ -1450,9 +1451,10 @@ function constraintCrossing(refusal) {
 // MESSAGE IS THE STORE'S OWN GENERATED SENTENCE** (`addon_.errorMessage`, whose `§8.2` clause for this code of
 // 2026-10-26 is *"… was refused by a constraint pass, the state this act would leave is not one the
 // registered constraints admit"*) — `DD-52` forbids a code's message from a second source, so none is
-// authored here — **and the `log` is ONE `constraint-check` entry of the kernel's own six members**
-// (`kernel-surface.md §2.5` item 1: `seq` · `kind` · `id` · `message` · `opId` · `state`) **naming the
-// constraint that refused and the state it refused.** **NO `KC` TOKEN CROSSES** (`A120` (2);
+// authored here — **and the `log` is ONE `constraint-check` entry of the kernel's own FIVE members**
+// (`kernel-surface.md §2.5` item 1: `kind` · `id` · `opId` · `message` · `state`; the shape moved `6 → 5` on
+// `strata/decisions.md` · `D-65`, 2026-10-28, which removed `seq` — the array index is the position) **naming
+// the constraint that refused and the state it refused.** **NO `KC` TOKEN CROSSES** (`A120` (2);
 // `docs/specs/storeroom-js/surface.md §2.12` item 3 item 2): `state` is `null` and the sentence is where the
 // state is named.
 //
@@ -1904,11 +1906,13 @@ export function witnessDiscardedReversal(instance, window) {
 ///     `attempt-lifecycle.md §2.4` item 3's terminal-arm clause): no third value is minted;
 ///   * **THE REFUSAL'S OWN LOG ENTRY IS APPENDED TO THE ATTEMPT'S LOG** — one `constraint-check` entry naming
 ///     the pair that refused the state the action left and saying what the refusal's compensating act did
-///     (`undoSpelling`). **IT ENTERS THROUGH THE KERNEL'S OWN `append`**, so it carries the log's six declared
-///     members and the log's own ordinal: the entry the driver reads in `report.log` is a log entry of the
-///     attempt's log and not a record of another kind. **THE REFUSAL'S OWN LIST KEEPS ITS FIVE MEMBERS AND NO
-///     `seq`** — that list is the judgement's and no attempt log stands at its own instant (`D-41` item `4`) —
-///     so the copy is the report's and the original is the refusal's, each honest in its own record;
+///     (`undoSpelling`). **IT ENTERS THROUGH THE KERNEL'S OWN `append`**, so it carries the log's declared and
+///     its POSITION is the report's own list's index: the entry the driver reads in `report.log` is a log entry
+///     of the attempt's log and not a record of another kind. **AND BOTH LISTS ARE THE FIVE-MEMBER SHAPE FROM
+///     2026-10-28 — `D-65`: THE ARRAY INDEX IS THE POSITION.** The refusal's own list is the judgement's (no
+///     attempt log stands at its own instant, `D-41` item `4`) and the report's copy is appended here; **the two
+///     copies now agree because there is no `seq` member in either of them to disagree** — the disagreement this
+///     clause was re-derived for was a member's, and the member is removed (`strata/decisions.md` · `D-65`);
 ///   * **AND THE REFUSAL ITSELF TRAVELS UNDER `RESTART_REFUSAL`** so that `constraintWrite` re-throws THE VERY
 ///     VALUE the restarted check built — same `status`, same `message`, same `log` — with nothing re-rendered
 ///     and no second spelling of the store's sentence (`DD-52`).
@@ -1924,9 +1928,10 @@ function carryRestartRefusal(report, refusal) {
   const carried = refusal !== null && typeof refusal === 'object' && Array.isArray(refusal.log)
     ? refusal.log
     : [];
-  // THE APPEND IS THE KERNEL'S OWN (`append`): a local holder carrying the report's own list, so the ordinal
-  // is `log.length + 1` exactly as every other entry of this log was minted, and no `Array.prototype.push` is
-  // read on this path (`contract.md §2.1`'s clause of 2026-10-24 on `F8-2`).
+  // THE APPEND IS THE KERNEL'S OWN (`append`): a local holder carrying the report's own list, so the entry lands
+  // at the report's list's next INDEX exactly as every other entry of this log did, and no `Array.prototype.push`
+  // is read on this path (`contract.md §2.1`'s clause of 2026-10-24 on `F8-2`). **THE ORDINAL IS THAT INDEX**
+  // (`D-65`, 2026-10-28): nothing is minted to carry it.
   const log = { log: report.log };
   for (let index = 0; index < carried.length; index += 1) {
     const entry = carried[index];
@@ -1935,8 +1940,9 @@ function carryRestartRefusal(report, refusal) {
     // (`D-52` counted it as rule 1's fourth kind), so the iteration is rebuilt from the two identities the entry
     // itself carries: **the pair stands by its `id`, and the op by the `opId` the judgement's reversal answered —
     // and the pair's own row is not in hand here, which is why the identity alone is spelled.** Nothing is
-    // renumbered and nothing is re-authored: the entry minted here is the report's own, by the report's own
-    // ordinal, and its two identity columns read exactly what the entry it carries read.
+    // renumbered and nothing is re-authored: the entry minted here is the report's own, at the report's own next
+    // index (`D-65`: the index is the position), and its two identity columns read exactly what the entry it
+    // carries read.
     append(log, entry.kind, { pair: { id: entry.id }, op: { opId: entry.opId } }, entry.message, entry.state);
   }
   Object.defineProperty(report, RESTART_REFUSAL, {
@@ -2823,6 +2829,15 @@ function reversalSaid(outcome) {
 /// a reversal's judgement**, so there is no attempt log to carry verbatim (`§2.5` item 3's `log` is *"the
 /// attempt's own message log"*).
 ///
+/// **⟶ AND THIS CLAUSE'S FIVE-MEMBER FORM IS NOW THE KERNEL'S OWN SHAPE, 2026-10-28 — `D-65`: THE ARRAY INDEX
+/// IS THE POSITION.** `RCA-8(g)` ANNOTATE-BESIDE: **every byte above stands BYTE-FOR-BYTE and is read THROUGH
+/// this one**; what moves is the reason, not the entry. **THE 2026-10-28 RE-DERIVATION PUT `seq` `1` BACK** by
+/// reading the ordinal rule as *"the first element of a one-entry list is `1`"*; **`D-65` removes the member the
+/// rule was about** (`strata/decisions.md`, the architect: *"Drop it"*), so **the five-member entry this clause
+/// built is the declared shape and the `1` is gone at every arm, not only here.** **THE POSITION IS THE INDEX**:
+/// this entry is `log[0]` of the one-entry list it stands in, and the ordinal a reader wants is the index it is
+/// already holding. **NO OTHER MEMBER, KIND, STATUS, SENTENCE OR ENTRY COUNT MOVES.**
+///
 /// **⟶ AND THE ENTRY CARRIES FIVE MEMBERS AND NOT SIX, 2026-10-27 — `D-41` ITEM `4`, ANNOTATE-BESIDE.** The
 /// clause above read *"The six members, their `constraint-check` kind and their `seq` ordinal are the kernel's
 /// own shape"* and the entry minted `seq: 1`; **THAT `1` WAS FABRICATED AND HAS NO RECORD BEHIND IT.** The
@@ -2929,22 +2944,17 @@ function reversalRefusal(one, after, said, reversalId, undo, thrown, unsettled =
       + ` — ${undoSpelling(undo)}`;
   }
   const entry = {
-    // **⟶ AND THE `seq` STANDS, 2026-10-28 — `DEF-AI`: THE ENTRY'S DECLARED SHAPE IS THE KERNEL'S CLOSED SIX
-    // AND THIS ONE CARRIED FIVE.** The 2026-10-27 clause below withdrew the `1` as FABRICATED, on the reading
-    // that `seq` is *"the ordinal within an ATTEMPT's own log"* and that no attempt stands at a reversal's
-    // judgement. **THE READING IS RIGHT ABOUT THE ATTEMPT AND WRONG ABOUT THE MEMBER.** `seq`'s DECLARED
-    // DOMAIN is *"the append ordinal, strictly increasing from `1` in array order"*
-    // (`docs/specs/storeroom-constraints/kernel-surface.md §2.5` item 1), and the array this entry stands in is
-    // THIS REFUSAL'S OWN ONE-ENTRY LIST: its first element's ordinal is `1` BY THAT RULE, not by invention —
-    // the same arithmetic the kernel's own `append` performs (`log.length + 1`, read off the list the entry
-    // stands in). **AND THE TWO COPIES OF THIS VERY ENTRY ALREADY DISAGREED**: `carryRestartRefusal` re-appends
-    // it into the attempt's log through `append`, where it carries `seq` `1`, while the list that crosses to
-    // the caller carried none — one entry, two shapes, which is this branch's `DEF-AI` class exactly. **`log`
-    // IS DECLARED `LogEntry[]`** (`bindings/js/index.d.ts`), so a consumer typing it read `undefined` where
-    // `number` is declared. **THE DECLARATION IS NOT WEAKENED TO MATCH THE ENTRY: THE ENTRY CARRIES THE
-    // MEMBER.** No other member, no second entry and no sentence moves.
+    // **⟶ AND THE `seq` IS GONE FROM THIS ENTRY TOO, 2026-10-28 — `D-65`: THE ARRAY INDEX IS THE POSITION.**
+    // `RCA-8(g)` ANNOTATE-BESIDE: the 2026-10-28 clause below stands as the reading of its own date and is read
+    // THROUGH this one; **it is RETIRED in its conclusion, not contradicted in its ground.** Its ground was
+    // RIGHT — the two copies of this entry disagreed while the member existed, and the declaration is not
+    // weakened to match an entry — **and the ruling removes the member that could disagree**: `seq`'s declared
+    // domain was *"the append ordinal, strictly increasing from `1` in array order"*, and **that ordinal IS the
+    // index**, so `1` here was the index of the only element of a one-entry list and never a second fact
+    // (`strata/decisions.md` · `D-65`, the architect: *"Drop it"*). **ONE ENTRY, FIVE MEMBERS, NO `seq`**: the
+    // position is this list's index and there is no copy of it to disagree with the journal's ordinal. No other
+    // member, no second entry and no sentence moves.
     kind: 'constraint-check',
-    seq: 1,
     id: one.entry.id,
     // **⟶ AND THE ENTRY SAYS WHAT THE ACT DID, 2026-10-26 (`DEF-W`'s `(a)`) and 2026-10-27 (`D-41` item `2`)** —
     // the refusal's own record, beside the state it refused, so a consumer that catches it knows whether the

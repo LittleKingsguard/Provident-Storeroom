@@ -216,10 +216,12 @@ test('ck_layer_a_constraints_run_before_other_listeners_at_the_same_address', as
     + 'is the address-scoped one and a caller-made registration has no pair to check off (`A112`; '
     + '`trigger-and-pair.md §3` item 5) — so the check-off is ADDRESS-SCOPED and never a wholesale clear');
 
-  // THE ONE ORDER THE CLAUSE DECLARES, READ OFF `seq` AND OFF THE OUTCOME ENTRY'S OWN `state`.
+  // THE ONE ORDER THE CLAUSE DECLARES, READ OFF THE ARRAY INDEX AND OFF THE OUTCOME ENTRY'S OWN `state`.
+  // **⟶ `D-65`, 2026-10-28: the `seq` member is GONE and the position is the array index.** The readings below
+  // are the entries' own indices; there is no member left to read an ordinal out of.
   const checked = report.log.filter((e) => e.kind === 'constraint-check');
   const outcomes = report.log.filter((e) => e.kind === 'outcome');
-  assertSeqIncreasesFromOne(report.log, 'the order law reads `log`\'s own seq order');
+  assertSeqIncreasesFromOne(report.log, 'the order law reads `log`\'s own index order');
   assert.equal(checked.length >= 1, true, 'the pass appended its own `constraint-check` entries');
   for (const e of checked) assertLogEntry(e, 'a pass\'s own check entry');
   assert.equal(outcomes.length, 0, 'a passing attempt appends no `outcome` entry at all');
@@ -235,18 +237,23 @@ test('ck_layer_a_constraints_run_before_other_listeners_at_the_same_address', as
   //    FAIL ON IT ARE THEREFORE (1) WHICH ENTRY CLOSES THE LOG — a body run in the caller's loop could
   //    only append AFTER the pass closed the attempt — and (2) THAT THE CLOSURE'S OWN ENTRY STANDS
   //    STRICTLY AFTER EVERY CHECK THE PASS APPENDED.
+  //    **⟶ AND FROM 2026-10-28 `D-65` MAKES THAT SECOND OBSERVABLE THE INDEX ONE**: `seq` is removed and the
+  //    array index IS the position, so *"strictly after"* is read as the closure's own INDEX being strictly
+  //    greater than every check entry's — the same property, where the position now lives.
   const lastEntry = report.log[report.log.length - 1];
   assertLogEntry(lastEntry, 'the entry that closes a passing attempt\'s log');
   assert.equal(lastEntry.kind, 'commit',
     'THE `commit` ENTRY CLOSES THE LOG: the pass arm "appends a `commit` log entry; removes the registry '
     + `entry; RETURNS the report" (\`§2.4\` item 4 arms (a)/(g)) — read the kind ${JSON.stringify(lastEntry.kind)}. `
     + 'A log whose last entry is a `constraint-check` would mean a body ran after the closure');
-  const lastCheckSeq = Math.max(...checked.map((e) => e.seq));
-  assert.equal(lastEntry.seq > lastCheckSeq, true,
+  const lastEntryIndex = report.log.indexOf(lastEntry);
+  const lastCheckIndex = Math.max(...checked.map((e) => report.log.indexOf(e)));
+  assert.equal(lastEntryIndex > lastCheckIndex, true,
     `EVERY \`constraint-check\` ENTRY THIS PASS APPENDED STANDS STRICTLY BEFORE THE CLOSURE — read `
-    + `${lastEntry.seq} > ${lastCheckSeq} — so no body the caller's loop runs off \`CommitRecord.pending\` `
-    + 'stands anywhere in this log at all, in `seq` order, with no instant named '
-    + '(`attempt-lifecycle.md §2.4` item 5 (iii); `kernel-surface.md §2.5` item 1)');
+    + `${lastEntryIndex} > ${lastCheckIndex} (both ARRAY INDICES; \`D-65\` removed the \`seq\` member) — so no `
+    + 'body the caller\'s loop runs off `CommitRecord.pending` '
+    + 'stands anywhere in this log at all, in index order, with no instant named '
+    + '(`attempt-lifecycle.md §2.4` item 5 (iii); `kernel-surface.md §2.5` item 1, read through `D-65`)');
 });
 
 

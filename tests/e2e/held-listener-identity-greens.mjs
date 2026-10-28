@@ -678,9 +678,10 @@ const K6 = (store, pair) => kernel.remove(store, pair);
   A('HLI-08.9', '`D-56` (the ruling is ONE-DIRECTIONAL — *"the reverse is reported, not implemented"*); kernel-selection.md §7 `KF-2` (a pair at a DESCENDANT address is not the pass\'s set)',
     "NO `constraint-check` entry names the descendant's id — the unruled direction, still unasked",
     !checks.some((e) => e.id === 'desc'), fmt(checks.map((e) => e.id)));
-  A('HLI-08.10', 'kernel-surface.md §2.5 item 1 (the `constraint-check` entry\'s member set)',
-    "EVERY entry's own six declared members are present — the ancestor's entry and the exact one's alike",
-    checks.length > 0 && checks.every((e) => ownNames(e).sort().join(',') === 'id,kind,message,opId,seq,state'),
+  A('HLI-08.10', 'kernel-surface.md §2.5 item 1 read through `D-65` (2026-10-28: the `seq` member is removed; the array index is the position)',
+    "EVERY entry's own FIVE declared members are present — the ancestor's entry and the exact one's alike — with `seq` ABSENT, each entry standing at its own index in the list",
+    checks.length > 0 && checks.every((e) => ownNames(e).sort().join(',') === 'id,kind,message,opId,state')
+      && checks.every((e) => Object.hasOwn(e, 'seq') === false),
     fmt(checks.map((e) => ownNames(e).sort())));
   // ── the two-address pair, one address an ancestor of the write's and one the write's own: ONE evaluation.
   const j = ns.storeCreate(cfgFor('g08b'));

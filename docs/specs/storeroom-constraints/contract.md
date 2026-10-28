@@ -370,8 +370,10 @@ fresh ruling of the architect recorded as an ACTIVE `docs/decisions.md` row, fol
 of `docs/specs/storeroom-constraints/`, owned by `role_spec_writer`.**
 **THE INLINE DECLARED DEFAULTS THIS DIRECTORY CARRIES, ENUMERATED SO EACH IS FINDABLE:** **(1)** the kernel
 module's own declared name (`kernel-surface.md §1`); **(2)** the kernel's failure form's member set
-(`fail-surface.md §1.1`); **(3)** the message log's entry member set — **six members, the `state` member
-included** (`kernel-surface.md §2.5`); **(4)** the kernel's evaluation order within one pass — **the pass's
+(`fail-surface.md §1.1`); **(3)** the message log's entry member set — **FIVE members — `kind` · `id` · `message` ·
+`opId` · `state` — the `state` member included and `seq` ABSENT** (`kernel-surface.md §2.5`, read through
+`strata/decisions.md` · `D-65`, 2026-10-28: the array index is the position, so the entry carries no member that
+restates it; this row read *"six members"* until that ruling); **(4)** the kernel's evaluation order within one pass — **the pass's
 scope and its sequencing around a repair transition included** (`attempt-lifecycle.md §2.4`); **(5)** the attempt
 record's member set (`attempt-lifecycle.md §2.4`); **(6)** the repair result's member set
 (`kernel-surface.md §2.3` — **its `op` member included since the `A110` pass of 2026-10-13, the shape's `3` members across its two arms being `2 + 1 = 3` ✓, its ONE HOME for the seam being `parameter-semantics.md §2.7` and the member set's own count standing at `kernel-surface.md §1` item 4**); **(7)** the ATTEMPT CONTEXT's member set — the constraint's one argument

@@ -396,7 +396,8 @@ export function log(store, reference) {
     // **⟶ AND A LIVE ATTEMPT HAS NO LOG A CLIENT MAY READ — `D-58`, 2026-10-28. THE ARCHITECT, VERBATIM: *"The
     // client does not need any insight into the current state of a commit/attempt before it completes. Don't
     // expose any of it."*** **`K-5` REFUSED AN OPEN ATTEMPT FROM ITS OWN RULING AND THIS ITEM DID NOT**: a live
-    // attempt's list answers `D-39`'s `seq` sequence PART-WAY THROUGH the pass — the entries appended so far,
+    // attempt's list answers `D-39`'s entry sequence PART-WAY THROUGH the pass — the entries appended so far,
+    // in their own index order (`D-65` removed the `seq` member; the index is the position) —
     // as a consumer read — which is exactly the in-flight insight the ruling forbids. **SO THE LIVE ARM REFUSES
     // WITH THE SAME MEMBER `K-5` USES, in the same shape and the same message family**: `KC-7`
     // (`ConstraintAttemptOpen`), *"the constraint attempt <id> is still open"*, and the refusal's own `log` the

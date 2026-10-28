@@ -46,11 +46,11 @@ import { RESTART_LIMIT } from '../../bindings/js/src/entry/constraints.mjs';
 
 /** `surface.md §2.5` items 3–4: the ONE crossed form's member set, sorted ascending. */
 const REFUSAL_MEMBERS = ['log', 'message', 'status'];
-/** `contract.md §2.6` item 4 as corrected by `D-41` item `4` and RE-DERIVED 2026-10-28 (`D-48` · `DEF-AI`): the
- *  no-attempt refusal's entry carries the kernel's DECLARED SIX, `seq` included — its ordinal is its own place
- *  in the one-entry list it stands in (`kernel-surface.md §2.5` item 1's ordinal rule), never a number read off
- *  a log that is not there. */
-const NO_ATTEMPT_LOG_MEMBERS = ['seq', 'kind', 'id', 'message', 'opId', 'state'];
+/** `contract.md §2.6` item 4, read through `strata/decisions.md` · `D-65` (2026-10-28): the no-attempt refusal's
+ *  entry carries the kernel's DECLARED FIVE and `seq` is ABSENT — the position is the array index of the
+ *  one-entry list it stands in, and no member restates it. (This constant read *"the DECLARED SIX, `seq`
+ *  included"* on `D-48` · `DEF-AI`; that reading is RETIRED with the member.) */
+const NO_ATTEMPT_LOG_MEMBERS = ['kind', 'id', 'message', 'opId', 'state'];
 /** The set's rank-`20` member (`src/error.rs`'s `CODES`, `[&str; 20]`), the ONE status both arms of a
  *  constraint refusal cross with (`DEF-H`; `D-38`). */
 const PASS_REFUSED = 'ConstraintPassRefused';
@@ -143,11 +143,20 @@ test('IN-COMMIT RESTART (1) · a violating `rollback` issued from a LISTENER BOD
   assert.equal(log[0].id, 'r1',
     `the entry NAMES the pair that refused the state the reversal left: ${JSON.stringify(log[0])}`);
   assert.deepEqual(Object.keys(log[0]).sort(), NO_ATTEMPT_LOG_MEMBERS.slice().sort(),
-    `the entry carries the kernel's declared ${JSON.stringify(NO_ATTEMPT_LOG_MEMBERS)}, \`seq\` included `
-      + `(\`D-48\` · \`DEF-AI\`): ${JSON.stringify(Object.keys(log[0]))}`);
-  assert.equal(log[0].seq, 1,
-    `the entry's \`seq\` is the ordinal of the one-entry list it stands in `
-      + `(\`kernel-surface.md §2.5\` item 1): ${JSON.stringify(log[0].seq)}`);
+    `the entry carries the kernel's declared ${JSON.stringify(NO_ATTEMPT_LOG_MEMBERS)}, \`seq\` ABSENT `
+      + `(\`D-65\`): ${JSON.stringify(Object.keys(log[0]))}`);
+  // **⟶ AND THE POSITION IS RE-DERIVED TO THE INDEX (`D-65`).** This limb read `log[0].seq === 1`, which was
+  // *"the ordinal of the one-entry list it stands in"* stated by the member. **THE MEMBER IS GONE**, so the
+  // property is asserted where it now lives: `log[0]` IS the list's element at index `0`, it stands at no other
+  // position, and no member restates the place.
+  assert.equal(log[0], log[log.length - 1],
+    'the entry stands at the list\u2019s first position and is its only entry — the array index is the position '
+      + '(`D-65`)');
+  assert.equal(log.indexOf(log[0]), 0,
+    'and its position is index 0 of the one-entry list it stands in, read off the array and off no member '
+      + '(`D-65`)');
+  assert.equal(Object.hasOwn(log[0], 'seq'), false,
+    `and NO \`seq\` member restates it: ${JSON.stringify(Object.keys(log[0]))} (\`D-65\`)`);
   assert.equal(log[0].opId, target.op.opId,
     `the entry's \`opId\` is the store's own echo of the id the reversal named: `
       + `${JSON.stringify(log[0].opId)} against ${JSON.stringify(target.op.opId)}`);

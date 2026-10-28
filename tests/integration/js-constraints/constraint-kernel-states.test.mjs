@@ -245,15 +245,22 @@ test('ck_states_arm_c_a_violation_with_no_repair_is_KC3_and_the_log_carries_the_
   // kind or the wrong state now fails here and not merely a log carrying two.
   assert.equal(check.length, 1, 'the failing evaluation appended its own entry');
   assertLogEntry(check[0], 'the arm (c) `constraint-check` entry');
-  assert.deepEqual(Object.keys(check[0]).sort(), ['id', 'kind', 'message', 'opId', 'seq', 'state'],
-    'the entry IS a whole six-member `LogEntry` (`kernel-surface.md §2.5` item 1)');
+  assert.deepEqual(Object.keys(check[0]).sort(), ['id', 'kind', 'message', 'opId', 'state'],
+    'the entry IS a whole five-member `LogEntry` (`kernel-surface.md §2.5` item 1, read through `D-65`: `seq` is '
+    + 'absent and the array index is the position)');
   assert.equal(check[0].kind, 'constraint-check',
     'and its `kind` is the pass evaluation\'s own (`§2.4` item 5 (ii): the evaluation appends a '
     + '`constraint-check` entry and no other kind)');
-  assert.equal(check[0].seq, 1,
-    'and it stands FIRST in the log — `seq` 1 — the failing evaluation being the log\'s opening entry '
-    + '(`§2.4` item 5 (ii): its entry is appended before the arm\'s `outcome` entry)');
-  assert.equal(check[0].opId, r.thrown.log.find((e) => e.seq === 1).opId,
+  // **⟶ AND *"IT STANDS FIRST"* IS RE-DERIVED TO THE INDEX (`D-65`).** This limb read `check[0].seq === 1`.
+  // **THE MEMBER IS GONE**, so the property is asserted where the position now lives: the entry at the log's
+  // first position IS `check[0]`, and it is the log's opening entry.
+  assert.equal(r.thrown.log[0], check[0],
+    'and it stands FIRST in the log — index `0` — the failing evaluation being the log\'s opening entry '
+    + '(`§2.4` item 5 (ii): its entry is appended before the arm\'s `outcome` entry; `D-65`: the index is the '
+    + 'position)');
+  assert.equal(r.thrown.log.indexOf(check[0]), 0,
+    'and its position is index 0 of the list it stands in, read off the array and off no member (`D-65`)');
+  assert.equal(check[0].opId, r.thrown.log[0].opId,
     'and it names the op whose evaluation failed — the attempt\'s own first write\'s op, read off the '
     + 'entry\'s `opId` member (`kernel-surface.md §2.5` item 1)');
   assert.equal(check[0].message, 'the caller\'s own violation string',
@@ -2085,11 +2092,13 @@ test('ck_neg_10_both_body_throw_paths_leave_the_closed_log_and_the_thrown_log_th
   // paths mints a member the log's own shape refuses — **and the list is read where the handoff put it
   // (`D-58`): the store retains none of it.**
   for (const [arm, closed, , handed] of runs) {
-    let seq = 1;
-    for (const e of handed) {
-      assertLogEntry(e, `the ${arm} arm's handed-off log at seq ${e.seq}`);
-      assert.equal(e.seq, seq, `the ${arm} arm's log is numbered from one without a gap`);
-      seq += 1;
+    // **⟶ AND THE NUMBERING IS RE-DERIVED TO THE ARRAY INDEX (`D-65`, 2026-10-28).** This loop counted `e.seq`
+    // from one. **THE MEMBER IS GONE**, so *"numbered from one without a gap"* is read as: every entry IS the
+    // list's element at the position it is read at, in order, and no entry carries a `seq` to restate it.
+    for (let position = 0; position < handed.length; position += 1) {
+      assertLogEntry(handed[position], `the ${arm} arm's handed-off log at index ${position}`);
+      assert.equal(handed.indexOf(handed[position]), position,
+        `the ${arm} arm's log stands at its own indices without a gap (\`D-65\`: the index is the position)`);
     }
     assertSeqIncreasesFromOne(handed, `the ${arm} arm's handed-off log`);
   }

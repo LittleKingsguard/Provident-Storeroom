@@ -358,10 +358,10 @@ test('ck_surface_K3_the_happy_path_is_a_two_entry_log_a_one_op_report_and_an_emp
   assert.deepEqual(report.rollback, [], 'rollback is [] on the success arm');
   assert.equal(report.log.length, 2, 'the returned log carries EXACTLY TWO entries');
   assertSeqIncreasesFromOne(report.log, 'E2E-C-1 log');
-  assert.equal(report.log[0].kind, 'constraint-check', 'seq 1 is the pass evaluation\'s entry');
+  assert.equal(report.log[0].kind, 'constraint-check', 'index 0 (the first position) is the pass evaluation\'s entry');
   assert.equal(report.log[0].id, 'x', 'the entry names the constraint\'s own BARE id');
   assert.equal(report.log[0].state, null, 'a pass evaluation\'s entry carries no state token');
-  assert.equal(report.log[1].kind, 'commit', 'seq 2 is the commit entry');
+  assert.equal(report.log[1].kind, 'commit', 'index 1 (the second position) is the commit entry');
   assert.equal(report.log[1].id, null, 'the commit entry names no constraint');
   assert.equal(report.log[1].state, null, 'the commit entry carries no state token');
   for (const e of report.log) assertLogEntry(e, 'E2E-C-1 entry');
@@ -374,7 +374,7 @@ test('ck_surface_K3_the_happy_path_is_a_two_entry_log_a_one_op_report_and_an_emp
   assert.equal(seen[0].op.opId, commitRecord.op.opId, 'AttemptContext.op is the op being evaluated');
 });
 
-test('ck_surface_K3_the_log_entry_is_exactly_six_members_in_seq_order', async () => {
+test('ck_surface_K3_the_log_entry_is_exactly_five_members_and_position_is_the_index', async () => {
   const { register, commit, runAttempt } = await kernel();
   const store = makeStore();
   const address = [tag('k3b')];
@@ -382,8 +382,10 @@ test('ck_surface_K3_the_log_entry_is_exactly_six_members_in_seq_order', async ()
   const report = runAttempt(store, commit(store, address, 'mem', 1));
   assertSeqIncreasesFromOne(report.log, 'log order');
   for (const [i, e] of report.log.entries()) {
-    assert.deepEqual(Object.keys(e).sort(), ['id', 'kind', 'message', 'opId', 'seq', 'state'],
-      `entry ${i}'s member set is exactly the six declared`);
+    assert.deepEqual(Object.keys(e).sort(), ['id', 'kind', 'message', 'opId', 'state'],
+      `entry ${i}'s member set is exactly the FIVE declared — \`seq\` is absent (D-65: the array index is the position)`);
+    assert.equal(report.log.indexOf(e), i,
+      `entry ${i} stands at that one position; the index IS the ordinal and no member restates it (D-65)`);
   }
 });
 
