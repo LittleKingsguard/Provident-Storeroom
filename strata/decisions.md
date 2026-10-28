@@ -3656,3 +3656,45 @@ corrected in the other direction (`1`), the mechanism ruled (`1` = a commit iden
 **AND THE SAME-HEAD QUESTION FROM `D-61` DISSOLVES**: **a commit that identifies itself is distinguishable by IDENTITY, not by where it opened** — **so two commits at one journal head stop being ambiguous the moment the identity crosses.** **No tiebreaker is owed; the identity IS the tiebreaker.**
 
 **TERMS: the model confirmed as the JS state (`3`), the single missing crossing (`1`), the cause of `DEF-AN` (`1` = the store has no commit), the same-head question dissolved (`1`), the unblock list (`5` = read the fourth position, give `delete` one, carry it through `crossing.rs`, add the field to `JournalOp`, let the restore take a commit).**
+
+---
+
+### `D-63` — BUMP THE MARK WHEN A SWEEP ENDS VALID: the restore target is the LAST VALIDATED STATE, not the opening
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, closing `DEF-AN` with a position rule instead of an identity.
+
+**THE RULING, VERBATIM:**
+
+> After the constraint sweep ends in a valid state, bump the restore mark. The passing constraint state marks the new
+> next valid state.
+
+**IT REPLACES `D-62`'S FIVE-ITEM UNBLOCK WITH ONE MOVEMENT OF A MARK.** **`D-62` established that the restore is told a
+POSITION and no commit, and its unblock wanted the commit to cross into the store.** **This ruling needs neither**: **if
+the mark MOVES FORWARD when a sweep validates, then everything that happens AFTER that sweep is beyond it — and a later
+refusal cannot reach it.**
+
+**THE MECHANISM, AND THE PLACEMENT IS THE WHOLE OF IT.**
+
+- **A commit opens** → the mark is the journal's mark at its opening — **the state it inherited.**
+- **A write lands its ops; the sweep runs.** **IF THE SWEEP PASSES, THE STATE IS VALID, AND THE MARK BUMPS TO THAT
+  POSITION** — **the passing state is the new next valid state** — **BEFORE THE DELIVERY RUNS.**
+- **A later refusal in that commit restores to the BUMPED mark**: **everything since the last validated state is undone,
+  and everything before it stands.**
+- **A REPAIR'S WRITE IS *DURING* THE SWEEP** — before the bump — **so a refusal undoes it with the write** ✓ **`D-60`'s
+  atomic half.**
+- **★ A LISTENER'S WRITE IS *AFTER* THE SWEEP, in the delivery** — **so it is beyond the bumped mark, and the outer's
+  restore does not reach it** ✓ **`D-60`'s discrete half.**
+
+**SO `DEF-AN` CLOSES WITHOUT A COMMIT IDENTITY ON THE JOURNAL, AND `D-62`'S FIVE GRANTS ARE MOOT.** **The `D-60` split is
+implemented by WHEN the mark moves, not by WHAT the mark names** — **and the boundary is the delivery, which is exactly
+where the phase changes.**
+
+**AND `DEF-AN`'S OWN CLAUSE IS CORRECTED IN ITS FIRST SENTENCE TOO**: it says *"a refused edit rolls the commit back to
+the state it opened at — every edit the commit made is undone, including writes that succeeded before the refusal."*
+**After this ruling the restore target is THE LAST VALIDATED STATE, not the opening** — **so an edit that succeeded AND
+passed its sweep STANDS, and only what came after the last validation is undone.** **The `1.4.0` clause and `D-59` were
+both wrong; this is the third statement of the same rule, and the first that the machine can keep.**
+
+**TERMS: the bump (`1`), its placement before the delivery (`1`), `D-60`'s two halves achieved by position (`2`), `D-62`'s
+unblock moot (`5` → `0`), `DEF-AN`'s clause corrected (`1`), the cells owed (`3` = a validated edit standing against a
+later refusal, a repair undone, a listener's write surviving).**
