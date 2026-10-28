@@ -251,6 +251,18 @@
    place the error surfaces.** **NO `P-HL` STRATEGY OR FAILURE-LIST ENTRY MOVES, `§5.5`'s DEDUPE AND WINDOW ARE
    UNMOVED, and no member of either list changes.** (`strata/decisions.md` · `D-73` · `D-71` · `D-45`; the guide's
    `§6.5a`–`§6.6` item 5; `docs/specs/storeroom-js/contract.md §2.7`'s item 6 of the same date.)
+   **⟶ AND THE ONE READING OF *"NOTHING IN EITHER LIST REPORTS IT"* THAT `D-76` ITEM 1 WITHDRAWS, 2026-10-29
+   (`DEF-AU`): THAT IS A FACT ABOUT THE LISTS AND NOT A PROHIBITION ON THE CALLER'S KNOWLEDGE.** `RCA-8(g)`
+   ANNOTATE-BESIDE: **this clause adds no member to either list, no count, no order and no bound.** **The
+   architect's *"the caller does not NEED to know about the outcome of the listeners"* is a PERMISSION, and the
+   THROW is the caller learning the outcome — the only place it can, because the listener's act is in the
+   listener's own commit.** **AND ITS SECOND HALF IS THE CONSUMER'S, NOT THIS CONTRACT'S** (`D-76` item 2): **a
+   `ConstraintPassRefused` that arrives from a listener's own refused act is INDISTINGUISHABLE, member for member,
+   from one that refuses the caller's own — the log's `opId` is the only differing byte and the caller cannot key it
+   against anything — so neither list this contract governs can be read to decide whose write landed.** **THE RULE
+   OF USE STANDS AT THE GUIDE'S `§6.5a`: DO NOT RETRY ON THE ANSWER; READ THE ADDRESS YOU WROTE.** **No `P-HL`
+   entry moves and no status is minted: the distinction is `D-38`'s closed set and the architect's call**
+   (`D-76`; `D-73`; `D-38`).
    `[CONTRACT]`
 
 ### §2.6 `HL-6` — THE CONSTRAINT'S IDENTITY LIVES IN THE STORE

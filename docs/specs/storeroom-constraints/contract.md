@@ -674,9 +674,10 @@ follows is the consumer's to keep — bound the chain in their own code — and 
 `D-72`, AND THE CLAUSE ABOVE STANDS BYTE-FOR-BYTE AND IS READ THROUGH THIS ONE.** `RCA-8(g)` ANNOTATE-BESIDE: **it
 adds no guard, spends no budget, moves no bound and mints no token.** **BECAUSE A LISTENER IS INDEPENDENT OF THE
 TRIGGERING CALLER'S COMMIT RECORD (`D-71` — *"The caller does not need to know about the outcome of the
-listeners"*), THE ONLY PROPERTY A CHAIN OF LISTENER WRITES EXPOSES UPWARD IS ITS COST** — depth, and whatever the
-listener does with what its own call returns. **That is why the missing loop guard is the asymmetry that can be
-felt and can be bounded, and nothing else about the chain can be either.** **AND THE COST HAS A SHAPE, DECLARED AT
+listeners"*), THE ONLY PROPERTIES A CHAIN OF LISTENER WRITES EXPOSES UPWARD ARE ITS COST AND ITS THROW** — depth, and
+whatever the listener does with what its own call returns, **and the listener's own throw where its body has one**.
+**That is why the missing loop guard is the asymmetry that can be felt and can be bounded, and nothing else about
+the chain can be either.** **AND THE COST HAS A SHAPE, DECLARED AT
 `D-72`: DELIVERY WINDOWS ARE LIVE AT ONCE AND NESTED** — `outer write → its commit → its pass → its delivery →
 listener A → A's write (a NEW commit) → A's pass → A's delivery → listener B → …` — **every level a synchronous
 call on one thread, so `A`'s whole chain completes before the window that fired it invokes its next listener; DEPTH
@@ -712,6 +713,25 @@ ITS OWN ERRORS AND DECIDES WHETHER TO RETHROW, the caller's write being the one 
 listener's refusal remains the pass's to contain.** **`§5.2`'s budget, `§5.6`'s marker and the per-op floor are
 unmoved, and no code changed with this clause.** (`strata/decisions.md` · `D-73` · `D-71` · `D-72` · `D-45`; the
 guide's `§6.5a`–`§6.6` item 5; `docs/specs/storeroom-js/contract.md §2.7`'s item 6 of the same date.)
+
+**⟶ AND THE ONE THING THAT ASYMMETRY LEAVES THE CALLER UNABLE TO TELL, 2026-10-29 — `D-76` ITEM 2, ON THE
+DOWNSTREAM'S `DEF-AU`, AND THE CLAUSE ABOVE STANDS BYTE-FOR-BYTE AND IS READ THROUGH THIS ONE.** `RCA-8(g)`
+ANNOTATE-BESIDE: **it adds no guard, spends no budget, moves no bound and mints no token — and NO CODE MOVED FOR
+IT, because what it owes is a sentence and a rule of use.** **THE SUBJECT IS A REFUSAL THAT CROSSES FROM A
+LISTENER'S OWN ACT RATHER THAN FROM THE CALLER'S: THE TWO ARE INDISTINGUISHABLE FROM ANY MEMBER THE CALLER CAN
+READ.** **MEASURED ON THIS TREE, THROUGH THE PUBLISHED ENTRY, BOTH ARMS, THE SAME PAIR AND THE SAME MESSAGE:** the
+caller's own refused write answers `{status: 'ConstraintPassRefused', message: 'x must hold one', log: [a
+`constraint-check` entry naming the pair, an `outcome` entry at `KC-3`]}`; the same pair refusing an act made
+INSIDE A LISTENER whose body does not catch it answers **the same status, the same message, the same three own
+members, the same entry count and entries whose `kind` · `id` · `message` · `state` are equal item for item — the
+log's `opId` the ONLY differing byte, and it is a byte the caller can never key anything against, because a
+refused act answers no `op` and the caller therefore never learns its own act's op id.** **AND THE STORE DIFFERS
+WHERE THE ANSWER DOES NOT: the first arm's data never landed, the second arm's did.** **SO THE RULE OF USE, AND IT
+IS THE ONE THING TO DO WHEN ONE OF THESE ARRIVES: DO NOT RETRY ON THE ANSWER — READ THE ADDRESS YOU WROTE** (the
+guide's `§6.5a`, where both arms are printed). **A NEW STATUS OR A NEW MEMBER WOULD SAY WHOSE ACT IT WAS AND NONE
+WAS MINTED: the closed set is `D-38`'s and the distinction is the architect's ruling to make, so it stands `OWED`
+here rather than taken.** (`strata/decisions.md` · `D-76` · `D-73` · `D-38`; the guide's `§6.5a` clause of the same
+date; `docs/specs/storeroom-js/contract.md §2.7` item 1's clause of the same date.)
 
 ### §5.6 `P-SM-6` — the first-repeat rule: an applied repair never runs twice, and a repeat fails the attempt
 

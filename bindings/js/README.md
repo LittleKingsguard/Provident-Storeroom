@@ -225,6 +225,19 @@ token on the `outcome` entry's `state`. **The value is not written
 and a failed attempt leaves the store exactly as it found it**, whether the constraint refused outright or its
 repair failed on the re-run (`D-40`).
 
+**⟶ AND ONE ARM OF THAT STATUS IS NOT YOURS, DECLARED HERE 2026-10-29 — `D-76` ITEMS 1 AND 2, ON THE DOWNSTREAM'S
+`DEF-AU`.** `RCA-8(g)` ANNOTATE-BESIDE: **the paragraph above stands BYTE-FOR-BYTE and is the reading of its own
+date; what it cannot say is whose act the status names.** **`ConstraintPassRefused` ALSO CROSSES WHEN THE REFUSED
+ACT WAS A LISTENER'S AND YOUR OWN WRITE HAD ALREADY LANDED** — **a listener's act is in the listener's own commit,
+and its throw is the channel by which your code logs that violation, because you are the only party positioned to**
+— **and the answer does not tell the two apart: `status`, `message`, the three own members, the log's length and
+every entry's `kind` · `id` · `message` · `state` are EQUAL, the log's `opId` the only differing byte, and that byte
+cannot be keyed against anything, because a refused act answers no `op`.** **SO DO NOT RETRY ON THE STATUS ALONE:
+READ THE ADDRESS YOU WROTE.** **Your value stands ⇒ the refusal was a listener's and your data landed, so a retry
+re-applies it; your value does not stand ⇒ it was your own act's and nothing was written.** **NO STATUS, MEMBER OR
+RANK MOVES FOR THIS: the distinction is a closed set's business (`D-38`) and the architect's call** (the guide's
+`§6.5a` and its `§8.1` row `20` carry both arms measured, and `D-73` carries the throw's rule; `D-76`.)
+
 ## The `file` tier, and what actually persists
 
 **Durability is produced by a successful `file`-TIER WRITE ONLY** (`DD-28`, `D-32`). **So a BARE `file`-tier

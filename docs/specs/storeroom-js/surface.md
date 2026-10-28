@@ -1692,10 +1692,32 @@ no verb, no parameter, no bound and — within a window — no order claim.** **
 (`strata/decisions.md` · `D-71`): *"A listener is independent of the commit record of the triggering caller. The
 caller does not need to know about the outcome of the listeners."* **INDEPENDENCE, IN THREE CLAUSES:** a listener
 body's call runs in its **own commit** (`D-45`) and its outcome — passed or refused — is **that commit's**; the
-triggering caller receives **its own outcome and nothing about the listener's**; and **a listener's refusal does
-not fail the write that fired it**, because a listener is a **side effect for external code** and a side effect's
-failure is the side effect's. **SO THE ONLY PROPERTY A CHAIN OF LISTENER WRITES EXPOSES UPWARD IS ITS COST**, and
-nothing else about the chain can be observed or bounded (`D-70`; `§2.7` item 2's window, unmoved).
+triggering caller's **own record carries no member for what a listener's own commit did**; and **a listener's
+refusal does not fail the write that fired it**, because a listener is a **side effect for external code** and a
+side effect's failure is the side effect's. **SO THE ONLY PROPERTIES A CHAIN OF LISTENER WRITES EXPOSES UPWARD ARE
+ITS COST AND ITS THROW**, and nothing else about the chain can be observed or bounded (`D-70`; `§2.7` item 2's
+window, unmoved).
+**⟶ AND TWO SENTENCES OF THAT PARAGRAPH ARE CORRECTED AT THIS LINE, 2026-10-29 — `D-76` ITEMS 1 AND 2, ON THE
+DOWNSTREAM'S `DEF-AU`.** `RCA-8(g)` ANNOTATE-BESIDE: **the ruling's own bytes, the three clauses and the windows
+stand; what moves is ONE noun and ONE claim.** **(i) THE WITHDRAWN CLAIM: *"the triggering caller receives its own
+outcome and nothing about the listener's"* HARDENED A PERMISSION INTO A PROHIBITION.** **The architect's sentence is
+a PERMISSION** — *"does not need to know"* — **and a caller that need not know is not one that cannot: `D-73` kept
+the throw so the client can log errors cleanly, which is the caller learning the outcome.** **THE TRUE PAIR, AS THE
+RULE OF THIS DIRECTORY: a listener's REFUSAL is CONTAINED** — its own commit's, invisible upward; **a listener's
+THROW is the CHANNEL** — **and the caller is the only party positioned to log the violation, because the listener's
+act is in the listener's own commit.** **The record's member set is UNMOVED by the correction: no member carries a
+listener's commit, and neither `triggered` nor the log gains one.** **(ii) THE WITHDRAWN CLAIM: *"the ONLY property …
+IS ITS COST"* IS FALSE BY ONE, AND THE THROW IS THE ONE.** **(iii) AND THE ONE THING THE ANSWER DOES NOT SAY, STATED
+HERE BECAUSE IT IS A CONSUMER-VISIBLE PROPERTY OF ROW `20` AND NOT A GAP IN THIS ITEM** (`D-76` item `2`):
+**`ConstraintPassRefused` CROSSES FROM A LISTENER'S OWN REFUSED ACT AS WELL AS FROM THE CALLER'S, AND THE TWO ARE
+INDISTINGUISHABLE FROM ANY MEMBER THE CALLER CAN READ** — measured in both arms on this tree, member for member,
+`status` · `message` · the three own members · `log.length` · each entry's `kind` · `id` · `message` · `state` all
+equal, **the log's `opId` the only differing byte and the caller never learning its own act's op id because a
+refused act answers no `op`** — **so a consumer that reads only the answer concludes its write did not happen while
+the store says it did.** **THE RULE OF USE IS THE GUIDE'S AND IS STATED AT ITS `§6.5a`, WHERE BOTH ARMS ARE PRINTED: DO NOT RETRY ON THE
+ANSWER, READ THE ADDRESS YOU WROTE.** **NO STATUS IS MINTED AND NO MEMBER IS ADDED: the distinction is a closed
+set's business (`D-38`) and the architect's call, and it is `OWED` a ruling rather than made here** (`D-76`;
+`D-73`; `D-38`; the guide's `§6.5a` clause of the same date).
 **THE NESTING, IN ONE STACK** (`D-72`): **windows are live at once, NESTED, every level a synchronous call on one
 thread** — `outer write → its commit → its pass → its delivery → listener A → A's write (a NEW commit) → A's pass →
 A's delivery → listener B → …` — **so "interleaving" is NESTED SUSPENSION: `A`'s whole chain completes before the

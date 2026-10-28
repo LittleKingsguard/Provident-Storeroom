@@ -674,16 +674,27 @@ the listeners."* **AND THE CONSEQUENCES, STATED BECAUSE EACH IS SOMETHING YOU WI
 
 1. **A LISTENER RUNS IN ITS OWN COMMIT** (`D-45`), **AND ITS OUTCOME — PASSED OR REFUSED — IS THAT COMMIT'S**, not
    yours.
-2. **THE TRIGGERING CALLER RECEIVES ITS OWN OUTCOME AND NOTHING ABOUT THE LISTENER'S.** **Your record is your
-   write's** — `op`, `watched`, `triggered` (`§6.4`) — **and it carries no member for what a listener's own
-   commit did.**
+2. **YOUR RECORD IS YOUR WRITE'S — `op`, `watched`, `triggered` (`§6.4`) — AND IT CARRIES NO MEMBER FOR WHAT A
+   LISTENER'S OWN COMMIT DID.** **⟶ AND THE SENTENCE THAT STOOD HERE — *"THE TRIGGERING CALLER RECEIVES ITS OWN
+   OUTCOME AND NOTHING ABOUT THE LISTENER'S"* — IS WITHDRAWN AS A PROHIBITION, 2026-10-29, BY `D-76` ITEM 1
+   (`DEF-AU`), BECAUSE IT HARDENED A PERMISSION INTO A CLAIM.** **THE ARCHITECT'S OWN SENTENCE ABOVE IS A
+   PERMISSION** — *"the caller does not NEED to know about the outcome of the listeners"* — **and a caller that
+   does not NEED to know is not a caller that CANNOT: `D-73` kept the throw in the very next ruling precisely so
+   the client can log errors cleanly, which is the caller learning the outcome** (`§6.5a`). **THE TRUE PAIR, AND IT
+   IS THE PAIR TO CARRY AWAY:** **a listener's REFUSAL is CONTAINED** — its own commit's, invisible upward;
+   **a listener's THROW is the CHANNEL** — **and the caller is the only party positioned to log the violation,
+   because the listener's act is in the listener's own commit.** **NOTHING ABOVE IS NARROWED BY THE CORRECTION: the
+   record still carries no member for a listener's commit, and neither `triggered` nor the `log` gains one.**
 3. **A LISTENER'S REFUSAL DOES NOT FAIL THE WRITE THAT FIRED IT.** **A listener is a SIDE EFFECT for external
    code, and a side effect's failure is the side effect's** — your write already passed every constraint and
    already answered before the delivery ran.
-4. **AND BECAUSE OF THAT, THE ONLY THING A CHAIN OF LISTENER WRITES EXPOSES UPWARD IS ITS COST** — depth, and
-   whatever the listener itself does with what its own call returns. **Which is why the missing loop guard is the
-   asymmetry that matters** (`§7.9` item 2): **nothing else about the chain is observable, so nothing else can be
-   bounded.**
+4. **AND BECAUSE OF THAT, THE ONLY THINGS A CHAIN OF LISTENER WRITES EXPOSES UPWARD ARE ITS COST AND ITS THROW** —
+   depth, and whatever the listener itself does with what its own call returns; **and, where a listener body
+   throws, that error crossing every hop of the stack to you** (`§6.5a`). **Which is why the missing loop guard is
+   the asymmetry that matters** (`§7.9` item 2): **nothing else about the chain is observable, so nothing else can
+   be bounded.** **⟶ AND *"THE ONLY THING … IS ITS COST"* IS CORRECTED AT THIS LINE BY `D-76` ITEM 1 (`DEF-AU`),
+   2026-10-29, WITH ONLY THAT NOUN MOVING: the throw is not a window into the chain — it is where the chain STOPS,
+   and it crosses whether or not you wanted it.**
 
 **MEASURED 2026-10-29 ON THIS CHECKOUT, THROUGH THE PUBLISHED ENTRY — AND THE MEASUREMENT IS THE POINT, BECAUSE
 THIS IS A CLAIM ABOUT WHAT CROSSES AND IT MUST BE PRINTED RATHER THAN ASSUMED.** One store: a listener at `['a']`
@@ -760,6 +771,13 @@ there is no record — only the error.** (`D-73`; `D-71`; `D-45`; `docs/specs/st
 of the same date; `§6.6`'s item 5, where a DEPTH-TWO throw's destination is measured.)
 
 **★ AND THE PRACTICAL HAZARD THIS ASYMMETRY MAKES REAL, WRITTEN HERE SO YOU MEET IT IN A TEST RATHER THAN IN PRODUCTION: THE WRITE'S DATA LANDED AND ITS ANSWER DID NOT — SO A BLIND RETRY RE-APPLIES A WRITE THAT ALREADY SUCCEEDED.** `RCA-8(g)` ANNOTATE-BESIDE: **every clause of §6.5a above stands BYTE-FOR-BYTE and is read THROUGH this one; no ruling, no measurement and no member moves — what this clause adds is the one consequence of the measured arm that a caller's ERROR HANDLER will otherwise get wrong.** **IT FOLLOWS FROM THE MEASUREMENT ABOVE AND NEEDS NO NEW ONE:** *"the data had already landed (`read(['a'])` answered `1`), because the commit resolved before its delivery ran; what the throw takes away is the ANSWER, not the write"* — **so `try { store.write(...) } catch { retry() }` runs that write a SECOND time, and the store has no way to tell the two apart: there is no commit identity on your side, no idempotency key and no record, because after a throw there is no record** (`§6.5a`'s closing sentence). **AND THE ERROR IS YOURS AND NOT THE PACKAGE'S SHAPE:** it carries **no depth, no handle, no address** (`§6.6` item 5) — a throw at depth two arrives as the same `Error` object a depth-one throw would — **so a retry policy cannot key on where the chain broke, and a listener body's own `catch` is the only containment arm there is.** **WHAT TO WRITE INSTEAD: catch in the body, decide whether to rethrow, and make the write your retry re-issues one whose landing you can recognise** — an `op` you kept from an earlier answer, a value you wrote, or a read before you write. (`D-73`; `D-71`; the `§6.5a` measurement; `§6.6` item 5; `docs/specs/storeroom-js/contract.md §2.7` item 4.)
+
+**★★ AND ONE THING THE ANSWER DOES NOT TELL YOU, MEASURED IN BOTH ARMS ON THIS CHECKOUT 2026-10-29 AND DECLARED HERE RATHER THAN LEFT FOR YOU TO DISCOVER — `D-76` ITEM 2 (`DEF-AU`, ITS SECOND HALF): A `ConstraintPassRefused` DOES NOT SAY WHOSE ACT IT REFUSED.** `RCA-8(g)` ANNOTATE-BESIDE: **every clause above stands BYTE-FOR-BYTE and is read THROUGH this one; no status is minted, no member is added and the throw's BEHAVIOUR IS UNMOVED — the behaviour is correct, and what was owed is this sentence and the rule at its end.** **THE HAZARD: your listener's own act is refused, the listener body does not catch it, and the refusal crosses to you — you catch `ConstraintPassRefused`, `message` and `log` exactly as you would if YOUR write had been refused, WHILE YOUR WRITE'S DATA IS IN THE STORE.** **THAT IS `D-73`'s RETRY HAZARD IN ITS SHARPEST FORM, BECAUSE THE ANSWER DOES NOT EVEN LOOK DIFFERENT.** **MEASURED, BOTH ARMS, ONE PAIR, ONE MESSAGE:**
+
+- **ARM ONE — YOUR OWN ACT REFUSED.** `write(['x','y'], 'mem', {bad: true})` against a pair at `['x']` whose body answers `{message: 'x must hold one'}`: what crosses is `{status: 'ConstraintPassRefused', message: 'x must hold one', log: [{kind: 'constraint-check', id: 'x-must-hold-one', opId: 'op-2', message: 'x must hold one', state: null}, {kind: 'outcome', id: null, opId: 'op-2', message: 'x must hold one', state: 'KC-3'}]}`, **own members `['status','message','log']`** — **and `['x','y']` still reads the value that stood before.**
+- **ARM TWO — YOUR ACT PASSED AND YOUR LISTENER'S WAS REFUSED.** the same pair, the same refusal built inside a listener body that does not catch it: **the same `status` string, the same `message` string, the same three own members, the same entry count, and entries whose `kind`, `id`, `message` and `state` are equal item for item — the ONLY differing byte anywhere in the answer is the log's `opId` (`op-5` here, `op-2` above).** **AND YOU CAN NEVER COMPARE THAT BYTE: a refused act answers no `op`, so you never learn your own act's op id** (`§6.5a`'s closing sentence: after a throw there is no record). **AND YOUR DATA LANDED: `['x','y']` reads `{ok: true}`.**
+- **THE VERDICT, MEASURED AND NOT ASSUMED: THE TWO ANSWERS ARE INDISTINGUISHABLE FROM ANY MEMBER YOU CAN READ.** `Object.keys` reads the same three; a refusal carries **no `triggered`** and **no `op`**; the pair's `id` and the pair's own `message`, the entry count and the terminal `state` are the same on both arms whenever the pair that refuses your listener's act is one that could equally have refused yours — **and the `opId` is a datum with nothing on your side to key it against.** **A LISTENER's raw THROW is distinguishable and this is not:** an `Error` crosses as itself with `status` `undefined` (`§6.5a`) — **but a listener body's uncatched REFUSAL crosses as a refusal and carries nothing that says whose.** **A NEW STATUS OR A NEW MEMBER WOULD TELL YOU, AND NONE WAS MINTED: the closed set is `D-38`'s business and the distinction is the architect's call, not this guide's** (`D-76` item 2).
+- **★★ SO THE RULE, AND IT IS THE ONE THING TO DO WHEN A `ConstraintPassRefused` ARRIVES: DO NOT RETRY ON THE ANSWER — READ THE ADDRESS YOU WROTE.** **A refusal of YOUR act did not land** — the store stands where the act opened at, or at the last state a pass validated (`D-63`; `§5.4`) — **while a listener's refused act left YOUR value standing.** **So: catch the refusal, `read` the address your act wrote, and let that decide.** **Your value stands ⇒ the refusal was a listener's, your write LANDED, and re-issuing it re-applies it** (`§6.5a`'s hazard, unmoved). **Your value does not stand ⇒ the refusal was your own act's, and the write did not happen.** **AND THE TWO LIMITS OF THAT READ, SAID PLAINLY RATHER THAN LEFT TO A GREEN TEST:** it answers *"did my value land"* and never *"whose act was refused"*, so **it is a check of the outcome and not of the identity**; and **a write whose value equalled what already stood cannot be told apart by it**, so the read is evidence and not proof. **THE REMAINING ARM IS THE ONE `D-73` GAVE YOU: make the throw impossible to mistake by making it yours** — catch in the listener body and decide there whether to let it out (`§6.5a`'s shape to write), **because a body that catches leaves your write ANSWERING ITS OWN RECORD.** (`D-76`; `D-73`; `D-71`; `D-63`; `D-38`; the `§6.5a` measurement driven a second time in this clause's two arms.)
 
 ### §6.6 ★ DELIVERY NESTS — every window is a synchronous call on one thread, and the stack is the only place its order exists
 
@@ -1041,9 +1059,7 @@ store.read(['window','tabs','landingPage']);   // { active: true } — the delet
 ```
 
 **The pair is asked with `context.value` = the AFTER-state (absence), `context.tier` = the delete's tier or `null`,
-and `context.attempt` = the attempt's own identity.** **A pair at an ANCESTOR address is not asked by the delete's
-pass** — the pass keeps the write's exact-address rule and not the trigger set's prefix widening — even though
-such a listener DOES fire for the delete (`§6.4`). **And a delete that removes nothing is not an edit**: `tiers: []`,
+and `context.attempt` = the attempt's own identity.** **⟶ `RCA-8(g)` MOVE-OUT, AUTHORED 2026-10-29 BY `D-76` ITEM 3 (`DEF-AT`): THE SENTENCE THAT STOOD HERE — *"A pair at an ANCESTOR address is not asked by the delete's pass — the pass keeps the write's exact-address rule and not the trigger set's prefix widening — even though such a listener DOES fire for the delete"* — IS NO LONGER AT THIS LINE.** **It is contradicted by the clause two paragraphs below in this same section, by `D-56` and by measurement, and its byte-exact text stands at `docs/guides/backup/D76-2026-10-29-guide-move-out.md §1`, whose head names this source path and its pre-move line range; NO BYTE OF IT IS RE-EMITTED HERE, and the operative rule is `D-56`'s, printed below.** **And a delete that removes nothing is not an edit**: `tiers: []`,
 no pass, no refusal, no delivery (`§5.3`).
 
 **⟶ AND THE SECOND OF THOSE THREE SENTENCES IS CORRECTED, 2026-10-29 — `D-56`: THE PAIR AT AN ANCESTOR IS ASKED, AND
@@ -1401,6 +1417,8 @@ added `ConstraintBodyThrew` and `ConstraintRefusedAtRegistration` at ranks `18` 
 whose union stopped at `17` would mistype both.** **So: do
 not `switch` on these without a `default`, and NEVER treat an unknown `status` as success.** The set is the
 store's to close; **the package mints no member, widens no set and renames none.**
+
+**★ AND ONE ARM OF ROW `20` IS NOT WHOSE IT LOOKS LIKE, DECLARED HERE SO YOU MEET IT BEFORE A TEST DOES — `D-76` ITEM 2 (`DEF-AU`), 2026-10-29.** **`ConstraintPassRefused` ALSO CROSSES WHEN THE REFUSED ACT WAS A LISTENER'S AND NOT YOURS**: **your own write's data then STANDS IN THE STORE**, and the answer carries **no member that says so** — *"so the status alone is not a statement that your write did not happen."* **WHAT TO DO IS `§6.5a`'s rule of use, where both arms are measured and printed side by side: DO NOT RETRY ON THE ANSWER — READ THE ADDRESS YOU WROTE.** **NO RANK MOVES, NO MEMBER IS MINTED AND NO BEHAVIOUR MOVES: the distinction is a closed set's business (`D-38`) and the architect's call, not this guide's** (`D-76`; `D-73`; `§6.5a`).
 
 **⟶ AND AN INNER REFUSAL A CONSTRAINT BODY THREW NOW CROSSES BESIDE THE CROSSED ONE, 2026-10-28 — `DEF-AK`, MEASURED AND DECLARED.** `RCA-8(g)` ANNOTATE-BESIDE: **the paragraph above stands BYTE-FOR-BYTE and is read THROUGH this one; no rank moves and no member is minted.** **WHAT WAS MEASURED: a LISTENER body propagates an inner refusal VERBATIM — same `status`, same `message`, same two-entry `log` — while a CONSTRAINT body making the IDENTICAL write had it REPLACED by a generated `ConstraintBodyThrew` whose single log entry was the OUTER attempt's, with the inner refusal's own literal occurring ZERO TIMES anywhere. WHICH HOST YOU WERE INSIDE DECIDED WHAT YOU WERE TOLD.**
 - **`ConstraintBodyThrew` is still the `status` that crosses** — the body did throw, and rank `18` says so — **but the inner refusal is now REACHABLE from what you catch, under `Symbol.for('provident-storeroom.inner-refusal')`:** a non-enumerable own member carrying the value the body threw, so **its own `status`, its own `message` and its own `log` are all there to read.** `Object.keys(caught)` still reads `["status","message","log"]` — three members in the form's own order — and the form is unmoved.
@@ -1998,12 +2016,62 @@ window throws away**: if it fails and you raise a `rollback`, **the request dies
   overwrites the first, so the witness reports the **last** request a delivery raised, and earlier ones were
   never recorded. **Neither limit is a defect; both are the declared shape.**
 
+**⟶ AND THE WITNESS NOW REPORTS EVERY RAISE, AT ANY COUNT, ON EVERY PATH, 2026-10-29 — `D-75`. READ THIS BEFORE YOU
+READ ANY `discarded` LIST, AND READ THE `D-49` BYTES ABOVE THROUGH IT: NOT ONE OF THEM IS DELETED, AND THE TWO
+CLAUSES BELOW ARE WITHDRAWN BY NAME.**
+
+**THE DEMAND, VERBATIM: *"report every discarded raise at any count, on every path."*** **It was filed because
+the witness was ABSENT MORE OFTEN THAN PRESENT, and the sentence it carries is the thing it could not say.**
+
+- **THE THREE THINGS THAT WERE BROKEN, IN YOUR TERMS.** **(1) TWO RAISES ANSWERED `[]`.** If your listener raised
+  a `rollback` and a second listener raised another in the same delete, the record said nothing had been
+  discarded — because **the machinery keeps ONE request and merges the second raise into it, and the merged
+  request's addresses were never re-measured**. **(2) A RAISE INSIDE A CONSTRAINT BODY WAS INVISIBLE ON BOTH
+  ANSWERS.** A `rollback` your constraint body raised while it was being asked carried no witness on the
+  `rollback`'s own record and none on the write's record. **(3) AND `[]` THEREFORE MEANT TWO THINGS.** *"Nothing
+  was discarded"* and *"I wasn't told"* read the same.
+- **WHAT YOU CAN SEE NOW: THE COUNT IS THE RAISES, NOT THE SLOTS.** `discarded` is **one entry per raise the
+  act's delivery threw away, in raise order, at any count** — each entry `{ opId, addresses }`, `opId` the id
+  THAT raise's reversal answered and `addresses` the addresses THAT raise's reversal moved. **An entry whose
+  `addresses` is `[]` is a raise that moved nothing your pairs watch: it is still COUNTED, and no address is
+  invented for it** (a reversal that moves the register itself reports `addresses: [[]]` — one element, the empty
+  address — so the two are told apart by the lengths `0` and `1`).
+- **AND IT IS PRESENT WHEREVER AN ACT CAN DISCARD, `0` INCLUDED.** **`a.delete`'s receipt** carries it (as it did);
+  **`a.write`'s record carries it too** — a write's window is drained by its own pass, so it reads `[]` and MEANS
+  it — **and `a.rollback`'s own record carries it**, answering the entry where the act's window discarded that
+  raise, and `[]` where a pass's drain consumed and JUDGED it (`D-42`: a raise a pass carries to its terminal
+  judgement was judged, not discarded). **`record.discarded.length === 0` now reads, on every one of them:
+  NOTHING WAS DISCARDED — and the member is present to say so.**
+- **READ THE ROLLBACK'S MEMBER AFTER THE ACT RETURNS.** `a.rollback(...)`'s `discarded` is a **LIVE VIEW**, not a
+  snapshot: the pass that judges a body's raise runs *after* the body returned, so read at that instant it says
+  `[]` — nothing has been discarded YET. **Read it once the act whose window the raise stands in has returned and
+  it is the settled answer.** **A WRITE'S AND A DELETE'S are accessors for the same reason** — a write's delivery
+  runs before its drain.
+- **STILL UNCARRIED, SAID PLAINLY BECAUSE `D-49` ASKED FOR IT TO BE SAID.** **A registration's answer
+  (`addConstraint`) is an opaque identity and carries NO witness.** What has changed is where its raise is
+  ANSWERED: **the store's next at-rest act proves that window has ended, the raise settles as discarded, and the
+  `rollback` record you already hold names it then** — on the raise's own answer, never on the unrelated call.
+- **NOTHING ELSE MOVED.** The `delete`'s four enumerable members, the `write`'s three and the `rollback`'s three
+  are the members `Object.keys` prints; `discarded` is a **NON-ENUMERABLE own member** on all three (an accessor
+  on the write's and the rollback's, an own data property on the delete's), so **a spread or `Object.assign` copy
+  does not carry it — read it off the record itself.** No status is minted, no refusal is added, and the
+  fail-state and both exits are unchanged.
+
+**MEASURED 2026-10-29, ON THIS CHECKOUT, THROUGH THE PUBLISHED ENTRY** (`tests/e2e/discard-witness.mjs`'s `W18`):
+one raise with a pair at the raised address answers **one entry**; **TWO raises with pairs at both answer TWO
+entries — the arm that answered `[]` before** — each naming its own op id and its own moved address; two raises
+with a pair at only the first answer two entries, the second's `addresses` empty; and inside a constraint body, at
+one raise and at two, **the raise's own answer and the triggering write's answer both carry `discarded`**. Every
+one of those five cells is RED under its own `/tmp` revert. (`D-75`; `D-49`; `D-55` item 6 · `DEF-AP`; §8's
+`record.discarded` clause above.)
+
+
 **THE EXITS ARE STILL YOURS AND ARE UNCHANGED: reload the file, or regenerate the store.** What changed is that
 **the `delete` now tells you the discard happened** — *"a fail-state is honest only if the consumer learns it
 happened"* (`D-49`).
 **⟶ AND AN ENTRY IS NEVER SHIPPED WITH AN EMPTY ADDRESS LIST, 2026-10-28 — `D-55` ITEM 2 · `DEF-AH`, MEASURED.** `RCA-8(g)` ANNOTATE-BESIDE: **every bullet above stands BYTE-FOR-BYTE and is read THROUGH this clause; the member's name, its non-enumerability, its `{ opId, addresses }` shape and the two limits stay exactly as they were.** **THE RULING, THE ARCHITECT, VERBATIM: *"A witness address of `[]` corresponds to the register itself. This is not a legal response for any other watched address."*** **SO THE TWO EMPTY THINGS ARE NOT THE SAME THING, AND THE SHIPPED `1.3.0` CONFLATED THEM: an ADDRESS of `[]` is THE REGISTER (the root) and is lawful; an entry whose address LIST is `[]` is never lawful.** **WHAT `1.3.0` DID, MEASURED: a delivery whose reversal moved NOTHING — a nested write, then a reversal of an op the watched address never held — reported `addresses: []`**, a list with no address in it. **WHAT YOU GET NOW:** **`record.discarded` is `[]` where nothing moved** — *if nothing moved there is no discard to report, so the entry is ABSENT and not empty* — **and a reversal that moves the ROOT reports `addresses: [[]]`**: one element, whose segment list is empty. **THE TWO READINGS BESIDE EACH OTHER, so a consumer can tell them apart: `[]` is "nothing was discarded"; `[[]]` is "the register itself is what moved".** **NO OTHER MEMBER MOVES:** `opId` is still the id the reversal named, the list is still `0` or `1` long, and nothing is minted into the status set. (`tests/e2e/discard-witness.mjs`'s `DW-10.1`/`DW-10.2` measure both arms; the empty-list arm is RED under a revert of the one line.)
 
-**⟶ AND YOUR `delete`'S OWN PASS IS STILL A MEASUREMENT AND NOT A BEHAVIOUR, 2026-10-28 — `D-55` ITEM 3 · `DEF-X`.** `RCA-8(g)` ANNOTATE-BESIDE: **every clause of this section and of §12.6 above stands BYTE-FOR-BYTE; this clause answers the question a consumer asked about `1.2.0` by measuring `1.3.0`.** **THE RULING, THE ARCHITECT, VERBATIM: *"A delete is an editing verb and must pass constraints. This includes all of the relevant commit and message logic."*** **SO IT MUST — AND NO SHAPE AT THIS VERSION ADMITS ONE, WHICH IS WHAT THE MEASUREMENT SAYS RATHER THAN WHAT AN INTENTION SAYS.** **A `delete`'s path, verb by verb:** the entry's `delete` opens a commit window of its own (`openCommits` is `1` inside its delivery), calls the addon's `delete` entry, builds the record `{address, tiers, triggered, op}`, delivers the triggering set, reads the witness and closes the window. **IT NEVER CALLS THE KERNEL**: no `K-2` opens an attempt, no `K-3` runs a pass, no message log is minted and no terminal entry is appended — so the pair standing at the deleted address is asked exactly as often as its registration asked it, and NOT ONCE FOR THE DELETE. **AND THE ONE PASS SHAPE THE ARTEFACT HAS CANNOT STAND IN**: `K-2` **LANDS A WRITE OF ITS OWN BEFORE `K-3` JUDGES**, so a pass driven at the deleted address judges a state the delete is not in (measured: the store after it holds the value `K-2` wrote). **WHAT WOULD HAVE TO BE BUILT, SAID PLAINLY AND NOT BUILT HERE:** **a delete would have to be GIVEN a commit and an attempt of its own** — a `K-2`-shaped opening that takes the delete's own op instead of a write's, a commit list minted for it, a pass over the pairs standing at the deleted address against the state the delete leaves, a terminal arm that appends that log's `outcome` entry, and the delivery moved AFTER the pass so its listeners see a judged state — **and the current `delete` verb has none of those.** **A delete performed INSIDE a pass IS judged**, and that is the third case §12.6 above declares — but that is the pass's check, not the delete's. (`tests/e2e/discard-witness.mjs`'s `DW-10.8` prints the path, the counts and the pass shape it drove.)
+**⟶ `RCA-8(g)` MOVE-OUT, AUTHORED 2026-10-29 BY `D-76` ITEM 3 (`DEF-AT`): THE CLAUSE THAT STOOD HERE — the `D-55` item-3 `DEF-X` measurement headed *"AND YOUR `delete`'S OWN PASS IS STILL A MEASUREMENT AND NOT A BEHAVIOUR"*, its *"IT NEVER CALLS THE KERNEL"* and the shape it said would have to be built before a delete could have one — IS NO LONGER AT THIS LINE.** **`§7.8` above and the measurement both falsify it: a `delete` reaches the kernel, opens an attempt of its own kind at its own journal op, runs a pass over the pairs standing at the deleted address AND at every ancestor of it, appends that attempt's `outcome` entry, and delivers AFTER that pass** (`D-55` item `3`; `D-56`; `D-57`; the `1.4.0` section of this package's change list). **Its byte-exact text stands at `docs/guides/backup/D76-2026-10-29-guide-move-out.md §2`, whose head names this source path and its pre-move line range; NO BYTE OF IT IS RE-EMITTED HERE, and the ruling it recorded stays legible at that archive.**
 
 ### §12.7 A skip is not a green, and your own throws are not refusals
 

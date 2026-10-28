@@ -2059,13 +2059,32 @@ know about the outcome of the listeners."* **`D-72` states the shape that indepe
 properties below are its elaboration.**
 
 1. **INDEPENDENCE.** **A listener body's call runs in its OWN commit** (`D-45`; `§2.6`'s clauses of 2026-10-28) —
-   **and its outcome, passed or refused, is THAT commit's.** **THE TRIGGERING CALLER RECEIVES ITS OWN OUTCOME AND
-   NOTHING ABOUT THE LISTENER'S**: this section's record carries `op`, `watched` and `triggered` and **no member
-   for a listener's commit** — **and a listener's refusal does not fail the write that fired it.** **A listener is
-   a SIDE EFFECT for external code, and a side effect's failure is the side effect's.** **SO THE ONLY PROPERTY A
-   CHAIN OF LISTENER WRITES EXPOSES UPWARD IS ITS COST** — depth, and whatever the listener does with what its own
-   call returns — **which is exactly why `D-70`'s missing loop guard is the asymmetry that matters: nothing else
-   about the chain is observable, so nothing else can be bounded.**
+   **and its outcome, passed or refused, is THAT commit's.** **THIS SECTION'S RECORD CARRIES `op`, `watched` AND
+   `triggered` AND NO MEMBER FOR A LISTENER'S COMMIT** — **and a listener's refusal does not fail the write that
+   fired it.** **A listener is a SIDE EFFECT for external code, and a side effect's failure is the side effect's.**
+   **SO THE ONLY PROPERTIES A CHAIN OF LISTENER WRITES EXPOSES UPWARD ARE ITS COST AND ITS THROW** — depth, and
+   whatever the listener does with what its own call returns, **and the listener's own throw, which crosses every
+   hop of the stack to the caller** — **which is exactly why `D-70`'s missing loop guard is the asymmetry that
+   matters: nothing else about the chain is observable, so nothing else can be bounded.**
+   **⟶ AND THE TWO SENTENCES THIS ITEM PRINTED ARE CORRECTED AT THIS LINE, 2026-10-29 — `D-76` ITEMS 1 AND 2, ON THE
+   DOWNSTREAM'S `DEF-AU`.** `RCA-8(g)` ANNOTATE-BESIDE: **the item's structure, its citations and its unmoved
+   member set stand; ONE claim is withdrawn as a claim and ONE noun moves.** **(i) WITHDRAWN: *"THE TRIGGERING CALLER
+   RECEIVES ITS OWN OUTCOME AND NOTHING ABOUT THE LISTENER'S"*, because it HARDENED A PERMISSION INTO A
+   PROHIBITION.** **The architect's sentence is *"the caller does not NEED to know"*, and `D-73` then kept the throw
+   so the client can log errors cleanly — which is the caller learning the outcome.** **THE TRUE PAIR, AS THIS
+   CONTRACT'S RULE: a listener's REFUSAL is CONTAINED** — its own commit's, invisible upward — **and a listener's
+   THROW is the CHANNEL; the caller is the only party positioned to log the violation, because the listener's act
+   is in the listener's own commit.** **Nothing above narrows: the record still carries no member for a listener's
+   commit.** **(ii) WITHDRAWN AND REPLACED: *"THE ONLY PROPERTY … IS ITS COST"* reads *"ITS COST AND ITS THROW"*.**
+   **(iii) AND THE ONE THING THE ANSWER DOES NOT SAY** (`D-76` item `2`): **`ConstraintPassRefused` reaches the caller
+   from a LISTENER's own refused act as well as from the caller's own, and the two answers are INDISTINGUISHABLE
+   member for member — status, message, the three own members, the log's length and each entry's `kind` · `id` ·
+   `message` · `state` — the log's `opId` the only differing byte, and the caller never learning its own act's op
+   id because a refused act answers no `op`** (measured in both arms on this tree). **A CALLER THAT READS ONLY THE
+   ANSWER THEREFORE CONCLUDES ITS WRITE DID NOT HAPPEN WHILE THE STORE SAYS IT DID — `D-73`'s retry hazard in its
+   sharpest form.** **THE RULE OF USE STANDS AT THE GUIDE'S `§6.5a`: DO NOT RETRY ON THE ANSWER; READ THE ADDRESS
+   YOU WROTE.** **NO STATUS IS MINTED, NO MEMBER IS ADDED AND THE THROW'S BEHAVIOUR IS UNMOVED: the distinction is
+   `D-38`'s closed set and the architect's call** (`D-76`; `D-73`; `D-38`).
 2. **THE NESTING.** **Delivery windows are live at once, NESTED, every level a synchronous call on one thread:** an
    outer write → its commit → its pass → its delivery → **listener `A`** → **`A`'s write (a NEW commit)** → **`A`'s
    pass** → **`A`'s delivery** → **listener `B`** → … **"Interleaving" is therefore NESTED SUSPENSION and not
