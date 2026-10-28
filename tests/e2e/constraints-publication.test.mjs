@@ -971,7 +971,7 @@ test('cp_write_path_the_failing_arm_reports_the_declared_three_member_form_and_d
     'DEF-H: and the refusal carries the attempt\'s own entries, with EXACTLY ONE `outcome` entry — the list '
     + `is \`log[].state\`'s home (\`D-38\`), and it is the SAME list the failure crossed with; read `
     + `${JSON.stringify(r.thrown.log.map((entry) => [entry.kind, entry.state]))}`);
-  assert.equal(/^KC-[1-8]$/.test(String(outcomeEntry[0].state)), true,
+  assert.equal(/^KC-[1-9]$/.test(String(outcomeEntry[0].state)), true,
     'DEF-H: the `KC` token rides the `outcome` entry\'s `state` and NOT the thrown `status` — '
     + `"the token continues to ride \`log[].state\` where it already does" (\`D-38\`); read `
     + `${JSON.stringify(outcomeEntry[0].state)}`);

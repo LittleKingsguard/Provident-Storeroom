@@ -1,5 +1,5 @@
 // `D-13` (`docs/L1/kernel-subdivision.md` §1 part `9d`) — the pass: bytes moved from `bindings/js/src/constraint-kernel.mjs`; no logic changed.
-import { KC, KC_TOKENS, SETTLED_ON_THE_PASSING_ARM, SAVE_FAILED_AT_THE_TERMINAL_ARM, TERMINAL_ARM, markBodyThrow, refuse, isKernelRefusal, pairSpelling, addressSpelling, sameAddress, kernelFor, append, appendOwn, ownMember, withdraw, landedOp, landedOpDefect, pairsAtAddress, externalCall } from './kernel-foundations.mjs';
+import { KC, KC_TOKENS, SETTLED_ON_THE_PASSING_ARM, SAVE_FAILED_AT_THE_TERMINAL_ARM, TERMINAL_ARM, markBodyThrow, refuse, isKernelRefusal, pairSpelling, addressSpelling, sameAddress, kernelFor, append, appendOwn, ownMember, withdraw, landedOp, landedOpDefect, pairsAtAddress, enterCommitFrame, leaveCommitFrame } from './kernel-foundations.mjs';
 import { commitAttemptIdOf, terminal, close } from './kernel-terminal.mjs';
 // ---------------------------------------------------------------------------------------------
 // `K-3` `runAttempt(store, commit) -> AttemptReport`
@@ -64,6 +64,28 @@ const EXTERNAL_CALL = Symbol.for('provident-storeroom.external-call');
 /// **THE INVOCATION OF A REPAIR BODY, WITH THE ATTEMPT'S COMMIT NAMED ON ITS ENTRY** — one call, its answer the
 /// body's own, and a throwable crosses unchanged.
 function repairInCommit(store, commit, run) {
+  const channel = store !== null && typeof store === 'object' ? store[EXTERNAL_CALL] : undefined;
+  if (typeof channel === 'function') return channel(run, commit);
+  return run();
+}
+
+/// **⟶ AND THE CONSTRAINT BODY'S INVOCATION NAMES THE ATTEMPT'S COMMIT TOO — `D-53`, 2026-10-28.**
+///
+/// **THE RULING, VERBATIM: *"Constraints/Repairs should always use the same commit"*** (`strata/decisions.md` ·
+/// `D-53`). **THE INVARIANT THIS FRAME NOW KEEPS IS `D-45`'s *"it should be opening a new commit by default of
+/// entering at the surface"* READ THROUGH `D-53`'s LATER AND NARROWER ONE: a call that NAMES a commit JOINS it,
+/// and a call that names none opens one — and the kernel names the attempt's commit at EVERY invocation of
+/// caller code that belongs to the attempt, a constraint body's as well as a repair body's** (`D-46`'s device,
+/// applied to the second kind of body). **SO A CONSTRAINT NEVER OPENS A COMMIT: the check it is invoked for is
+/// already inside one (`D-44`'s scope) and this name is what makes its verb JOIN that window instead of opening
+/// a second.** **THE LOG IS THE SAME FACT SEEN FROM THE OTHER SIDE**: the entries such a verb mints are the
+/// attempt's own commit's entries, which is what `DEF-AK` measures — *"one inner refusal, two hosts"* — and what
+/// `D-53` dissolved `D-52`'s merge question with (*"the crossed report IS that list"*).
+///
+/// **A LISTENER BODY STILL NAMES NOTHING, AND THAT IS THE INVARIANT AND NOT AN OMISSION**: it is invoked by the
+/// ENTRY at the terminal arm, after the triggering commit has passed its constraints, so *"what the listener
+/// does is a NEW QUESTION and must not inherit the old verdict"* — its own commit, its own list.
+function constraintInCommit(store, commit, run) {
   const channel = store !== null && typeof store === 'object' ? store[EXTERNAL_CALL] : undefined;
   if (typeof channel === 'function') return channel(run, commit);
   return run();
@@ -239,7 +261,16 @@ function passInCommitScope(store, commitRecord) {
     // `'ok'`; where the failed save's own rollback took it the store answers `JournalOpUnknown` and the
     // composition's floor reads `KC-8` in the ONE `outcome` entry (item 5 (b); item 6 (a)).
     attempt.checkpoint = null;
-    terminal(kernel, attempt, KC.violated,
+    // **⟶ AND THE ARM'S TOKEN IS THE SET'S NINTH MEMBER, `KC-9` — `D-53`'s THIRD RULING, 2026-10-28: *"Open the
+    // token set"*.** **`D-52` MEASURED THE CONTRADICTION THIS CLOSES**: *"a constraint refusal crosses
+    // `ConstraintPassRefused` with terminal `state: 'KC-3'`; and with an in-body reversal meeting the floor,
+    // `ConstraintPassRefused` with terminal `KC-8`; a save failure crosses `FileCommitFailed` with `log: []`, and
+    // the attempt's own log reads `KC-8` — the same token a passing-pair run carries. **SO `KC-8` CROSSES AS BOTH
+    // STATUSES.**"* **THE SAVE ARM THEREFORE GETS A TOKEN OF ITS OWN**, so that a save failure and a constraint
+    // refusal cross with different statuses AND each is derivable from the log's terminal state — **and
+    // `kernel-terminal.mjs`'s precedence clause is what keeps this token through the floor**, which is otherwise
+    // `KC-8` on both arms and would put the contradiction back.
+    terminal(kernel, attempt, KC.saveFailed,
       typeof saveFailure.message === 'string'
         ? saveFailure.message
         : `the attempt's own save at ${addressSpelling(attempt.address)} failed`);
@@ -257,7 +288,10 @@ function passInCommitScope(store, commitRecord) {
   // stand in one log). **AND NOTHING IS APPENDED TO THIS LOG AFTER IT**: the delivered set's bodies ran
   // before this line and reach this attempt's log by no act (`§2.7` item 6), the record this attempt's
   // report carries being the same list this line closes.
-  append(attempt, 'commit', null, attempt.ops[attempt.ops.length - 1].opId,
+  // **⟶ AND ITS ITERATION IS `{ pair: null, op }` — the `commit` entry names NO PAIR and the attempt's LAST OP**
+  // (`kernel-surface.md §2.1` item 3's `LogKind` table; `D-53`'s first ruling, which is what the iteration position
+  // carries).
+  append(attempt, 'commit', { pair: null, op: attempt.ops[attempt.ops.length - 1] },
     `every constraint registered at ${addressSpelling(attempt.address)} passed; the commit stands`);
   return closed;
 }
@@ -383,19 +417,25 @@ function evaluate(kernel, attempt, landing) {
       // THE ENTRY IS OPENED BEFORE THE BODY RUNS, so a body that reads the record's own log mid-flight
       // reads its own evaluation's entry — and it is WITHDRAWN where the body returns nothing
       // (`kernel-surface.md §2.5` item 1; `PAR-C-6`).
-      append(attempt, 'constraint-check', pair.id, op.opId, `the evaluation of ${pair.id}`);
+      // **⟶ AND IT IS NAMED BY THE ITERATION — the pair AND the op, one identity — `D-53`'s FIRST RULING**
+      // (`kernel-foundations.mjs`'s `append`; `D-52`'s rule 1: *"an entry carries the PAIR identity and the OP
+      // identity together … they are one identity"*).
+      append(attempt, 'constraint-check', { pair, op }, `the evaluation of ${pair.id}`);
       const check = attempt.log[attempt.log.length - 1];
       let outcome;
+      // **⟶ AND THE FRAME: every list the body's own verbs append to between these two lines is THIS commit's
+      // list** (`D-53`'s first invariant). The frame is pushed for exactly the invocation and popped in a
+      // `finally`, so a throwable leaves no frame standing and no later write of this commit inherits a frame it
+      // does not own.
+      enterCommitFrame(kernel, attempt.log);
       try {
-        // **⟶ AND THE BODY IS INVOKED WITH NOTHING NAMED, 2026-10-27 (`D-45`, `D-46` item `1`).** A constraint
-        // body is EXTERNALLY-SUPPLIED FUNCTION code entering the surface, **and it has no commit in hand to
-        // name** — it is handed the five-member `AttemptContext` and no commit at all (`kernel-surface.md §2.3`
-        // item 1) — so **a verb it calls OPENS ITS OWN COMMIT** rather than joining the one this pass runs in:
-        // *"It should be opening a new commit by default of entering at the surface"*. **THE NAME IS AN
-        // INVOCATION'S AND NOTHING ELSE'S**: it is set before the call and restored after it, on the throwing arm
-        // too, and the kernel's own acts of this pass name the pass's commit through `COMMIT_SCOPE` — so an
-        // ordinary write still opens ONE commit and a callback's verb is still an act of its own.
-        outcome = externalCall(attempt.store, () => pair.constraint(context));
+        // **⟶ AND THE BODY IS INVOKED WITH THE ATTEMPT'S COMMIT NAMED, 2026-10-28 (`D-53`).** `D-45` invoked it
+        // with nothing named and `D-46` narrowed that for repairs alone; **`D-53` states the invariant both halves
+        // obey: a CONSTRAINT never opens a commit and a REPAIR never opens one, while a listener's write always
+        // does.** The name is an INVOCATION's and nothing else's: it is set before the call and restored after it,
+        // on the throwing arm too, so an ordinary write still opens ONE commit and a callback's verb is still an
+        // act of its own.
+        outcome = constraintInCommit(attempt.store, attempt.record, () => pair.constraint(context));
       } catch (body) {
         // A body that threw returned nothing, so no `constraint-check` entry stands and the attempt is
         // closed (`PAR-C-6`; `NX-2`; `composition-and-states.md §2.7` item 13).
@@ -409,6 +449,10 @@ function evaluate(kernel, attempt, landing) {
         // `kernel-foundations.mjs`). The throwable's own identity is unmoved at THIS layer: a kernel-level
         // caller still meets the very value the body threw.
         throw markBodyThrow(body, attempt.address, attempt.log);
+      } finally {
+        // THE FRAME GOES WITH THE INVOCATION, ON EVERY ARM (`D-53`): a frame left standing would make the NEXT
+        // write of this store join a commit it is not inside.
+        leaveCommitFrame(kernel);
       }
 
       // THE CONSTRAINT'S OWN OUTCOME — A CLOSED THREE-ARM SET (`PAR-C-5`). A value outside the three
@@ -487,7 +531,7 @@ function evaluate(kernel, attempt, landing) {
       // INSTANT IT IS APPENDED — "THE OP THE REPAIR PRODUCED WHERE IT PRODUCED ONE, ELSE THE OP IT WAS
       // INVOKED FOR" (`kernel-surface.md §2.5` item 1's `repair-run` row) — so on EVERY arm the entry
       // names THE OP THIS EVALUATION CARRIED, and only the arm that produced an op rewrites it below.
-      append(attempt, 'repair-run', pair.id, op.opId, 'the pair\'s repair was attempted');
+      append(attempt, 'repair-run', { pair, op }, 'the pair\'s repair was attempted');
       const entry = attempt.log[attempt.log.length - 1];
       let result;
       const repairContext = {
@@ -529,6 +573,9 @@ function evaluate(kernel, attempt, landing) {
         // so a repair that supplies it at `write`'s fourth position names the same commit by its own hand, and
         // the two spellings cannot disagree: **the entry's position wins where it is supplied, and this name is
         // the fallback where it is not** (`state.mjs`'s `openCommit`).
+        // **⟶ AND THE FRAME STANDS FOR THIS INVOCATION TOO (`D-53`'s first invariant): the repair's own verbs
+        // append to the attempt's list, and the frame is what makes `K-2` join rather than open.**
+        enterCommitFrame(kernel, attempt.log);
         result = repairInCommit(attempt.store, attempt.record, () => repair(repairContext));
       } catch (body) {
         // THE REPAIR-RUN ENTRY IS APPENDED BEFORE THE THROW, and the attempt's outcome entry carries
@@ -586,6 +633,8 @@ function evaluate(kernel, attempt, landing) {
         }
         terminal(kernel, attempt, KC.repairFailed, `the repair ${pair.id} threw; the attempt is closed`);
         throw body;
+      } finally {
+        leaveCommitFrame(kernel);
       }
 
       // THE REPAIR'S OWN RESULT — A CLOSED TWO-ARM SET (`PAR-C-8`), WHOSE SUCCESS ARM'S THIRD MEMBER

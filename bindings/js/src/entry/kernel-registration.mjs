@@ -1,5 +1,5 @@
 // `D-13` (`docs/L1/kernel-subdivision.md` §1 part `9b`) — the registration act, its evaluation, and the registry's removal: bytes moved from `bindings/js/src/constraint-kernel.mjs`; no logic changed.
-import { KC, KERNEL_REFUSAL, markBodyThrow, refuse, inDomainAddress, inDomainId, pairRowAt, sameAddress, kernelFor, append, appendOwn, landedOp, pairsAtAddress, externalCall } from './kernel-foundations.mjs';
+import { KC, KERNEL_REFUSAL, markBodyThrow, refuse, inDomainAddress, inDomainId, pairRowAt, sameAddress, kernelFor, append, appendOwn, landedOp, pairsAtAddress, enterCommitFrame, leaveCommitFrame } from './kernel-foundations.mjs';
 
 /// **⟶ ADDED 2026-10-27 — `D-46`'s NAME ON A REPAIR INVOCATION'S OWN ENTRY, SPELLED HERE AS
 /// `kernel-attempt.mjs` SPELLS IT.** **THE RULING, THE ARCHITECT, VERBATIM: *"A constraint's repair needs to stay
@@ -27,6 +27,19 @@ const EXTERNAL_CALL = Symbol.for('provident-storeroom.external-call');
 /// `kernel-attempt.mjs` DECLARES**, because the two part files share no import and neither may reach the entry
 /// (`kernel-surface.md §1` item 1) or the other's private bytes.
 function repairInCommit(store, commit, run) {
+  const channel = store !== null && typeof store === 'object' ? store[EXTERNAL_CALL] : undefined;
+  if (typeof channel === 'function') return channel(run, commit);
+  return run();
+}
+
+/// **⟶ AND THE CONSTRAINT BODY'S INVOCATION AT THE REGISTRATION INSTANT NAMES THE REGISTRATION'S OWN COMMIT —
+/// `D-53`, 2026-10-28: *"Constraints/Repairs should always use the same commit"*.** `D-46` named the commit for
+/// the repair alone; **`D-53` states the invariant both kinds of caller-authored body obey, and a CONSTRAINT BODY
+/// IS A CHECK: the commit the registering verb opened (`addConstraint`'s bracket, `docs/specs/storeroom-js/
+/// surface.md §4.1`) is the commit it is asked inside, so a verb it calls JOINS that window and never opens a
+/// second.** **A LISTENER BODY STILL NAMES NOTHING**: the entry invokes it at the terminal arm, where *"the
+/// triggering commit already passed constraints"*, so what it does is a new question (`D-53`).
+function constraintInCommit(store, commit, run) {
   const channel = store !== null && typeof store === 'object' ? store[EXTERNAL_CALL] : undefined;
   if (typeof channel === 'function') return channel(run, commit);
   return run();
@@ -247,6 +260,13 @@ function withdrawRegistration(kernel, address, id, fresh, home) {
  * invocation below is NOT wrapped — a throwing body reaches the caller as the very value it threw.
  */
 function registrationEvaluation(kernel, store, address, id, constraint) {
+  // **⟶ THE REGISTRATION'S OWN COMMIT AND ITS OWN ONE LIST — `D-53`, 2026-10-28.** A registration is a commit
+  // (`addConstraint`'s and `constraintOn`'s brackets open one, and `3-bis` (a) already declares *"the
+  // `CommitRecord` of the registration act"*), so the record is built FIRST and the list beside it: **a verb the
+  // body calls is part of this commit, its entries are this list's entries, and the synthetic attempt a repair
+  // needs (state `3`) is an attempt of this same commit** — it appends to this list and mints no second one.
+  const commitRecord = { attempt: null, op: null, triggered: [], pending: [] };
+  const commitLog = [];
   // **⟶ AMENDED 2026-10-26 (`DEF-S`; the architect's ruling, verbatim: *"Expand the returned error set for
   // both S/N"*): THE BODY'S THROW IS MARKED AT THE FRAME THAT CAUGHT IT, and no attempt stands at this
   // instant (`null`), so the mark carries the `[]` its clause declares. **THE THROWABLE'S IDENTITY IS
@@ -255,16 +275,23 @@ function registrationEvaluation(kernel, store, address, id, constraint) {
   // unmarked throw is still the caller's own (`markBodyThrow`, `kernel-foundations.mjs`).
   let outcome;
   const context = registrationContext(store, address, null);
+  // **⟶ AND THE BODY IS INVOKED WITH THE REGISTRATION'S COMMIT NAMED — `D-53`, 2026-10-28.** The clause this
+  // replaces read *"the body is invoked with nothing named … so a verb it calls OPENS ITS OWN COMMIT"*
+  // (`D-45`, `D-46` item `1`), and **`D-53`'s invariant reverses it for constraints: *"Constraints/Repairs should
+  // always use the same commit"*** — a constraint body is asked, and the check it is asked by is this commit.
+  // **THE FRAME IS PUSHED FOR EXACTLY THE INVOCATION AND POPPED IN A `finally`**, so a nested write appends to this
+  // registration's list and a throwable leaves no frame standing.
+  // **THE CONTEXT IS BUILT ABOVE THE INVOCATION** (`kernel-surface.md §2.3` item 1), so the store read the context
+  // owes is this verb's own act and not the body's.
+  enterCommitFrame(kernel, commitLog);
   try {
-    // **⟶ AND THE BODY IS INVOKED WITH NOTHING NAMED, 2026-10-27 (`D-45`, `D-46` item `1`).** A constraint body
-    // is EXTERNALLY-SUPPLIED FUNCTION code entering the surface **and it has no commit in hand to name** — its
-    // five-member context carries none (`kernel-surface.md §2.3` item 1) — so **a verb it calls OPENS ITS OWN
-    // COMMIT** rather than joining the registering verb's (*"It should be opening a new commit by default of
-    // entering at the surface"*). **THE CONTEXT IS BUILT ABOVE THE INVOCATION**, so the store read the context
-    // owes is this verb's own act and not the body's.
-    outcome = externalCall(store, () => constraint(context));
+    outcome = constraintInCommit(store, commitRecord, () => constraint(context));
   } catch (body) {
-    throw markBodyThrow(body, address, null);
+    // **AND THE MARK CARRIES THIS COMMIT'S LIST** (`markBodyThrow`'s second slot): a registration-time body that
+    // threw after its own verbs appended carries those entries to the crossing, where `[]` used to be.
+    throw markBodyThrow(body, address, commitLog);
+  } finally {
+    leaveCommitFrame(kernel);
   }
   // THE OUTCOME IS `PAR-C-5`'S CLOSED THREE-ARM SET, read as the landing pass reads it: `true` is the pass
   // arm; an object carrying `message` is the violation arm (its `repair`, where present, the repair the
@@ -277,9 +304,10 @@ function registrationEvaluation(kernel, store, address, id, constraint) {
     : null;
   // STATE 2 — THE STATE VIOLATES IT AND NO REPAIR IS REGISTERED. Nothing is attempted and no attempt is
   // opened; the refusal carries the store's code and the row's own slots.
-  if (repair === null) return registrationRefusal(address, id, []);
-  // STATE 3 — THE REPAIR IS ATTEMPTED, on the synthetic attempt `3-bis` (a) declares.
-  return registrationAttempt(kernel, store, { address, id, repair });
+  if (repair === null) return registrationRefusal(address, id, commitLog);
+  // STATE 3 — THE REPAIR IS ATTEMPTED, on the synthetic attempt `3-bis` (a) declares — **the attempt of THIS
+  // commit, holding THIS list by reference** (`D-53`).
+  return registrationAttempt(kernel, store, { address, id, repair, log: commitLog, commit: commitRecord });
 }
 
 /// **THE FIVE-MEMBER EVALUATION CONTEXT** (`kernel-surface.md §2.3` item 1's clause of 2026-10-17), built
@@ -392,11 +420,14 @@ function registrationAttempt(kernel, store, pair) {
     tier: null,
     value: undefined,
     // `commit` — THE REGISTRATION ACT'S OWN `CommitRecord` (`3-bis` (a)): this kernel's four members, with
-    // no write's op and no write's triggered set, because a registration lands no `K-2` of its own.
-    commit: { attempt: null, op: null, triggered: [], pending: [] },
+    // no write's op and no write's triggered set, because a registration lands no `K-2` of its own. **⟶ IT IS THE
+    // RECORD THE EVALUATION ALREADY BUILT AND NAMED (`D-53`), not a second one**, so the commit the constraint
+    // body was asked inside and the commit its repair joins are ONE.
+    commit: pair.commit,
     write: null,
     ops: [],
-    log: [],
+    // **AND THE LIST IS THAT COMMIT'S OWN, BY REFERENCE** (`D-53`).
+    log: pair.log,
     ran: [],
     appliedRepairs: [],
     rollback: [],
@@ -411,9 +442,12 @@ function registrationAttempt(kernel, store, pair) {
   // pair is appended to BOTH `ran` and `appliedRepairs` (`3-bis` (b): the pair JOINS both members — of the
   // SYNTHETIC attempt, and of no other). **THE PAIR ENTERS `ran` BEFORE THE REPAIR RUNS**, which is that
   // arm's own ordering and is what makes the repeat arms reachable at the re-run below.
-  append(attempt, 'constraint-check', pair.id, null, `the evaluation of ${pair.id}`);
+  // **⟶ AND THE TWO ENTRIES ARE NAMED BY THE ITERATION — `D-53`'s first ruling.** This arm names no OP (`3-bis`
+  // (a)'s synthetic attempt has landed nothing when these are appended): the pair stands, the op is the declared
+  // `null` absence, and the `repair-run` entry's `opId` is rewritten below where the repair lands one.
+  append(attempt, 'constraint-check', { pair, op: null }, `the evaluation of ${pair.id}`);
   appendOwn(attempt.ran, key);
-  append(attempt, 'repair-run', pair.id, null, 'the pair\'s repair was attempted at registration');
+  append(attempt, 'repair-run', { pair, op: null }, 'the pair\'s repair was attempted at registration');
 
   let result;
   const repairContext = registrationRepairContext(store, address, pair.id, attempt.commit);
@@ -428,6 +462,8 @@ function registrationAttempt(kernel, store, pair) {
     // that context at `write`'s fourth position names the same commit by its own hand, and the two spellings
     // cannot disagree (the entry's position wins where it is supplied, and the invocation's name is the fallback
     // where it is not — `state.mjs`'s `openCommit`).
+    // **AND THE FRAME STANDS FOR THIS INVOCATION TOO (`D-53`)**: the repair's verbs append to this commit's list.
+    enterCommitFrame(kernel, attempt.log);
     result = repairInCommit(store, attempt.commit, () => pair.repair(repairContext));
   } catch (body) {
     // A REPAIR WHOSE BODY THROWS IS A FAILED REPAIR AND THE REGISTRATION IS REFUSED — the caller's act is
@@ -437,6 +473,8 @@ function registrationAttempt(kernel, store, pair) {
     // that expected the body's own value out of `addConstraint` has read a route no clause declares.
     closeRegistrationAttempt(kernel, attempt);
     return registrationRefusal(address, pair.id, attempt.log);
+  } finally {
+    leaveCommitFrame(kernel);
   }
 
   const ok = result !== null && typeof result === 'object' && result.ok === true;
@@ -500,17 +538,20 @@ function registrationRerun(kernel, attempt, produced) {
       attempt: attempt.ref,
       op: produced,
     };
+    // **⟶ AND THE RE-RUN'S BODIES ARE OF THIS COMMIT TOO — `D-53`.** The clause this replaces read *"this body is
+    // invoked with nothing named too … the third of the three that invoke a caller-authored constraint body"*
+    // (`D-45`): **the three frames name the attempt's commit now, and the registration's re-run names the same
+    // one its repair joined.** The context is built ABOVE the invocation.
+    enterCommitFrame(kernel, attempt.log);
     try {
-      // **⟶ AND THIS BODY IS INVOKED WITH NOTHING NAMED TOO, 2026-10-27 (`D-45`, `D-46` item `1`)** — the
-      // re-run's frame is the third of the three that invoke a caller-authored constraint body, and it names no
-      // commit exactly as the registration evaluation and the landing's pass do. The context is built ABOVE the
-      // invocation.
-      outcome = externalCall(attempt.store, () => pair.constraint(context));
+      outcome = constraintInCommit(attempt.store, attempt.commit, () => pair.constraint(context));
     } catch (body) {
       // **⟶ ADDED 2026-10-26 (`DEF-S`, the same ruling): a body thrown at the synthetic attempt's re-run is
       // marked at this frame too — the mark carries the attempt's own log and address, and the entry's
       // crossing converts a marked value only** (`markBodyThrow`, `kernel-foundations.mjs`).
       throw markBodyThrow(body, attempt.address, attempt.log);
+    } finally {
+      leaveCommitFrame(kernel);
     }
     if (outcome === true) continue;
     attempt.terminalArm = attempt.appliedRepairs.includes(key) ? 'KC-5' : 'KC-6';

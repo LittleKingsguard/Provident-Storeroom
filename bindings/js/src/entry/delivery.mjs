@@ -6,7 +6,7 @@ import { arrayClass, classSpelling, hasLoneSurrogate, isPlainObjectValue, target
 import { encodeAddress, encodeOpId, handleWire, inDomainHandle } from './carrier.mjs';
 import { decodeSegments, spellConstraintAddress } from './frame.mjs';
 import { addressSpelling } from './kernel-foundations.mjs';
-import { entryOf, carryRefusal, commitFile, homeAddressKey, externalCall, SETTLED_ON_THE_PASSING_ARM, SAVE_FAILED_AT_THE_TERMINAL_ARM } from './state.mjs';
+import { entryOf, carryRefusal, commitFile, homeAddressKey, externalCall, commitLogOf, SETTLED_ON_THE_PASSING_ARM, SAVE_FAILED_AT_THE_TERMINAL_ARM } from './state.mjs';
 
 /// `PAR-JS-13`: the returned record is `{op, watched, triggered}` — fresh on every call, never a view.
 ///
@@ -555,7 +555,13 @@ export function terminalArm(state, record) {
       // receiver … A listener that is itself a store member is NOT supported"* — the package's own internal
       // paths (this one and `registerOn`'s re-install) address the store they hold, and only a CALLER's call
       // takes its receiver from `this` (`§1`).
-      carryRefusal(() => commitFile(state.receiver, answer.op.opId), [encodeOpId(answer.op.opId)]);
+      // **⟶ AND THE COMMIT'S OWN LIST GOES WITH THE CALL — `D-53`, 2026-10-28.** A save that fails is a constraint
+      // violated at the write's LAST position, so its refusal must cross carrying the COMMIT's entries (the pass's
+      // `constraint-check` entries and, by the time the caller reads it, the kernel's one `outcome` entry with the
+      // save arm's own `KC-9` in `state`). **THE LIST IS READ OFF THE RECORD THE KERNEL BUILT** (`commitLogOf(record)` — `record[COMMIT_LOG]`,
+      // a symbol key on `CommitRecord`'s own identity — no member is added, `A117` (D6)), and a record carrying none
+      // is a record this package did not build, whose failure keeps the declared `[]`.
+      carryRefusal(() => commitFile(state.receiver, answer.op.opId), [encodeOpId(answer.op.opId)], commitLogOf(record));
     } catch (saveFailure) {
       // **THE FAILURE CARRIES THE VERY THROWABLE AND ITS OWN MARK** (`docs/specs/storeroom-js/surface.md §2.11` clause 9): the kernel's catch
       // reads `SAVE_FAILED_AT_THE_TERMINAL_ARM` to tell a failed save from a body of the delivered set that

@@ -87,9 +87,15 @@ const ITEM_NUMBER = {
  *  `report(store, attempt)` and `remove(store, pair)` — four, four, two, two, two, two. */
 const DECLARED_ARITY = { register: 4, commit: 4, runAttempt: 2, log: 2, report: 2, remove: 2 };
 
-/** `fail-surface.md §2`: the set is CLOSED AT EIGHT — `2 + 2 + 2 + 1 + 1 = 8` ✓ — and the `status` member
- *  carries THE TOKEN SPELLING and never a name and never a store code. */
-const KC_TOKENS = ['KC-1', 'KC-2', 'KC-3', 'KC-4', 'KC-5', 'KC-6', 'KC-7', 'KC-8'];
+/** `fail-surface.md §2`: the set is CLOSED AT NINE — `2 + 2 + 2 + 1 + 1 + 1 = 9` ✓ — and the `status` member
+ *  carries THE TOKEN SPELLING and never a name and never a store code.
+ *
+ *  **⟶ MOVED `8 → 9` ON 2026-10-28 BY `D-53`'s THIRD RULING (*"Open the token set"*), AND BY NOTHING ELSE:** the
+ *  appended member is the SAVE ARM's own `KC-9`, so a failed `file`-tier save and a constraint refusal cross with
+ *  different statuses **and each is derivable from the log's terminal state** — `D-52` measured `KC-8` crossing as
+ *  both while the save arm had no token of its own. **NO OTHER READING OF THIS CELL MOVES**: the tokens are still
+ *  the whole declared set, `status` still never carries a name and never a store code. */
+const KC_TOKENS = ['KC-1', 'KC-2', 'KC-3', 'KC-4', 'KC-5', 'KC-6', 'KC-7', 'KC-8', 'KC-9'];
 
 /** Every name the surface's refused sixth and later passes put forward: none of them is an item. */
 const NOT_ITEMS = ['unregister', 'attempts', 'pending', 'createKernel', 'settle', 'constraintLog'];
@@ -251,7 +257,7 @@ test('kernel · §2.1 items 4–5 (*"for `K-4` and `K-5` the argument is NEITHER
   assert.equal(store.read(['a']), 1, 'no reader moved the store\u2019s own state');
 });
 
-test('kernel · fail-surface §1.1 items 1–4 and §2 · THE `KC` SET IS CLOSED AT EIGHT — `2 + 2 + 2 + 1 + 1 = 8` ✓ — AND EVERY `status` THE SURFACE THROWS IS ONE OF THE EIGHT TOKEN SPELLINGS, never a name and never a store code', () => {
+test('kernel · fail-surface §1.1 items 1–4 and §2 · THE `KC` SET IS CLOSED AT NINE — `2 + 2 + 2 + 1 + 1 + 1 = 9` ✓ (`8 → 9` by `D-53`, 2026-10-28) — AND EVERY `status` THE SURFACE THROWS IS ONE OF THE NINE TOKEN SPELLINGS, never a name and never a store code', () => {
   const store = make();
   const observed = new Set();
   const note = (caught) => {
@@ -278,9 +284,9 @@ test('kernel · fail-surface §1.1 items 1–4 and §2 · THE `KC` SET IS CLOSED
   note(catchIt(() => commit(held, ['q'], 'mem', 2))); // KC-7
 
   assert.deepEqual([...observed].sort(), ['KC-1', 'KC-2', 'KC-3', 'KC-4', 'KC-7']);
-  for (const status of observed) assert.equal(KC_TOKENS.includes(status), true, `${status} is a member of the closed eight`);
+  for (const status of observed) assert.equal(KC_TOKENS.includes(status), true, `${status} is a member of the closed nine`);
   for (const status of observed) assert.equal(status.startsWith('KC-'), true, 'the token spelling, never a name and never a store code');
-  assert.equal(KC_TOKENS.length, 8);
+  assert.equal(KC_TOKENS.length, 9);
   assert.equal(2 + 2 + 2 + 1 + 1, 8);
 });
 

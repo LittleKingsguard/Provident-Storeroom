@@ -1250,7 +1250,7 @@ test('hli_prop_P_HL_8_the_kernel_surface_is_six_and_a_K6_removal_answers_undefin
         'with the kernel\'s own `KC-2` — and NO `KC` MEMBER IS MINTED for the removal (the set stays closed '
         + 'at EIGHT: `contract.md §2.9` item 4; `remove-member.md §7` `MF-8`)');
       assert.equal(KC_TOKENS.includes(again.thrown.status), true,
-        'the token is one of the closed eight');
+        'the token is one of the closed nine (8 → 9 by `D-53`, 2026-10-28)');
     },
   });
   assert.deepEqual(result.failures, [],

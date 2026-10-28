@@ -376,7 +376,7 @@ scenario('FTS-04', 'the failing save: rollback first, message second, the pre-im
         const rp = tryCall(() => K.report(s, rec.attempt));
         const entries = lg.ok ? lg.v : [];
         const outcome = entries.filter((e) => e.kind === 'outcome');
-        const kc = /^KC-[1-8]$/;
+        const kc = /^KC-[1-9]$/;
         return C(lg.ok && outcome.length === 1 && kc.test(String(outcome[0].state)) && rp.ok
           && rp.v.outcome === 'failed' && Array.isArray(rp.v.rollback) && rp.v.rollback.length > 0,
           `log=${JSON.stringify(entries.map((e) => [e.kind, e.state, e.message]))} report.outcome=${rp.ok ? rp.v.outcome : describe(rp.v)} report.rollback=${rp.ok ? JSON.stringify(rp.v.rollback) : '-'}`);
@@ -520,7 +520,7 @@ scenario('FTS-05', 'the save\'s arm table is closed and total (bare write, mem t
         K.runAttempt(s, rec);
         const afterFirst = bytes(P);
         const again = tryCall(() => K.runAttempt(s, rec));
-        const kc = /^KC-[1-8]$/;
+        const kc = /^KC-[1-9]$/;
         return C(!again.ok && kc.test(String(again.v && again.v.status)) && bytesEq(bytes(P), afterFirst),
           `re-drive=${describe(again.v)} image after the first save=${imgStr(afterFirst)} image after the re-drive=${imgStr(bytes(P))}`);
       });

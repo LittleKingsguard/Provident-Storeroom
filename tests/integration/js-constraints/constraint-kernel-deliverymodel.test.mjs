@@ -448,7 +448,7 @@ test('ck_dm_on_a_throwing_arm_the_callers_loop_performs_no_invocation_for_a_hand
   });
   assert.equal(outcome.threw, true, 'a failing pair reaches the caller as a THROW and not a return');
   assert.equal(outcome.thrown.status, KC[3],
-    'the token is the constraint-violation token of the closed eight (`fail-surface.md §2`), and NO '
+    'the token is the constraint-violation token of the closed nine (`fail-surface.md §2`; 8 → 9 by `D-53`, 2026-10-28), and NO '
     + '`KC-*` row is moved by this re-spell — that part\'s closing delta is read before this assertion '
     + 'is made');
   for (const e of outcome.thrown.log) assertLogEntry(e, 'the thrown form\'s own log entry');

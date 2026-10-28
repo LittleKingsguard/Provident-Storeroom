@@ -38,12 +38,23 @@
 // ---------------------------------------------------------------------------------------------
 // `fail-surface.md §2` — THE KERNEL'S OWN CLOSED STATE SET, `8` MEMBERS AND NO NINTH.
 // ---------------------------------------------------------------------------------------------
+// **⟶ AND THE SET OPENS TO `9` ON 2026-10-28 — `D-53`'s THIRD RULING, THE ARCHITECT'S WORD: *"Open the token
+// set"*** (`strata/decisions.md` · `D-53`; `D-52`'s rule 3 is its measurement: **`KC-8` CROSSED AS TWO
+// STATUSES** — a constraint refusal whose composition met the floor, and a failed save — **so neither arm was
+// derivable from the log's terminal state**). **THE SENTENCE ABOVE STANDS BYTE-FOR-BYTE AND IS READ THROUGH
+// THIS ONE: `9` MEMBERS AND NO TENTH, ON `14` SITES.** **THE APPENDED MEMBER IS `KC-9`, THE SAVE ARM'S OWN —
+// `ConstraintSaveFailed`** — so a save failure and a constraint refusal cross with DIFFERENT statuses AND each
+// is derivable from the log's terminal state: the save arm's ONE `outcome` entry carries `KC-9` and a constraint
+// refusal's carries `KC-3`/`KC-5`/`KC-6`/`KC-8` (`KC-9`'s own row, `kernel-attempt.mjs`'s save arm, and
+// `kernel-terminal.mjs`'s precedence clause: **the FLOOR DOES NOT OVERWRITE THIS TOKEN, which is what keeps the
+// two arms apart where the save's own composition meets a floor code**).
 // `fail-surface.md §1.1` ITEM 1 (a) — THE ONE SPELLING, AND IT IS THE TOKEN: a refusal's `status` carries
-// `KC-1`…`KC-8` and NOTHING ELSE. The full names (`ConstraintViolated` …) are LABELS: they keep exactly
+// `KC-1`…`KC-9` and NOTHING ELSE. The full names (`ConstraintViolated` …) are LABELS: they keep exactly
 // one declared use — the `name` column of `§2`'s table, and a citation beside a token — and NO clause
 // spells a member's VALUE as a name. `status` and `LogEntry.state` therefore read THE SAME TOKEN STRING,
-// related by IDENTITY (`§1.1` item 1 (c)). THE CENSUS DOES NOT MOVE: `8` members (`2 + 2 + 2 + 1 + 1`)
-// on `13` sites (`1 + 4 + 4 + 3 + 1`).
+// related by IDENTITY (`§1.1` item 1 (c)). THE CENSUS MOVES BY THE RULING AND BY NOTHING ELSE:
+// `8 → 9` members (`2 + 2 + 2 + 1 + 1 + 1`) on `13 → 14` sites (`1 + 4 + 4 + 3 + 1 + 1`, the last being the
+// save arm's own, `kernel-attempt.mjs`).
 export const KC = {
   address: 'KC-1', // ConstraintAddressRefused
   arg: 'KC-2', // ConstraintArgRefused
@@ -53,9 +64,10 @@ export const KC = {
   repeat: 'KC-6', // ConstraintRepeat
   attemptOpen: 'KC-7', // ConstraintAttemptOpen
   rollbackFloor: 'KC-8', // ConstraintRollbackFloor
+  saveFailed: 'KC-9', // ConstraintSaveFailed
 };
 
-/** The eight tokens above, as the ONE list a member's own value is checked against — the kernel's own
+/** The nine tokens above, as the ONE list a member's own value is checked against — the kernel's own
  *  token is NEVER named as a store code (`fail-surface.md §1.1` item 1 (a); `§2`'s `KC-4` row). */
 export const KC_TOKENS = Object.values(KC);
 
@@ -484,6 +496,11 @@ export function kernelFor(store) {
       live: new Map(),
       closed: new Map(),
       attempts: 0,
+      // **⟶ AND THE COMMIT'S FRAME, 2026-10-28 (`D-53`)**: the stack of attempts whose commit the kernel is, at
+      // this instant, invoking caller code inside. `K-2` reads its top and joins that attempt's list; a write
+      // reached with no frame standing OPENS a commit and starts its own list. It is the instance's own, exactly
+      // as `live`/`closed` are (`D-30`), so no two stores share a frame and no module-level stack exists.
+      frames: [],
       store,
     };
     // **THE SLOT IS DEFINED AND THE RECORD IS PUBLISHED IN THE SAME ACT** (`Object.defineProperty`, exactly as
@@ -614,15 +631,90 @@ export function ownMember(value, name) {
 }
 
 // ---------------------------------------------------------------------------------------------
+// **⟶ THE MESSAGE LOG BELONGS TO THE COMMIT, NOT TO THE ATTEMPT — `D-53`, 2026-10-28.**
+//
+// **THE ARCHITECT, VERBATIM: *"If it's part of the same commit, then it uses the same message log. If it opens a
+// new commit, it uses the new commit's message log. Constraints/Repairs should always use the same commit.
+// Listeners should open a new commit, because the triggering commit already passed constraints"***
+// (`strata/decisions.md` · `D-53`). **A COMMIT IS THE UNIT OF WORK AND AN ATTEMPT IS THE CONSTRAINT-JUDGED WRITE
+// INSIDE IT**, so a commit that holds several attempts — a check, its repair, the repair's own write, the re-run
+// — holds ONE list, and every one of those attempts appends to it: **`attempt.log` IS the commit's list, carried
+// by reference, and it is not a copy of anybody's.**
+//
+// **WHAT THAT DISSOLVES, SAID BECAUSE IT WAS ASKED AS A QUESTION.** `D-52`'s rule 2 asked where a nested
+// attempt's report is merged into its host's, and how a merged entry keeps *"its own attempt identity"* when
+// `seq` is *"the ordinal of the list it stands in"* and the six declared members leave no room for a seventh.
+// **THERE WAS NEVER A MERGE TO PERFORM: a constraint body's write is part of the same commit, so its entries
+// ARE this list's entries, the crossed report IS this list, no entry is renumbered and `seq` keeps its
+// declaration because there is ONE list.** `DEF-AK`'s *"one inner refusal, two hosts"* is the measurement of it.
+//
+// **THE KEY IS A `Symbol.for` SPELLING ON THE COMMIT'S OWN RECORD, AND BOTH SIDES SPELL IT** (`A117` (D6)): the
+// entry's terminal arm attaches this list to a failed save's crossing, and it holds the `CommitRecord` and
+// nothing else — so the list travels ON the record under a symbol key that `Object.keys` and
+// `Object.getOwnPropertyNames` read past, and the record keeps its FOUR declared members.
+export const COMMIT_LOG = Symbol.for('provident-storeroom.commit-log');
+
+// **THE COMMIT'S FRAME — THE ONE STRUCTURE THAT MAKES "THE SAME COMMIT" A FACT RATHER THAN A CONVENTION.** It is
+// a per-instance stack on the kernel record (`kernel.frames`, created by `kernelFor`), pushed by the kernel
+// around each invocation IT makes of caller code that belongs to an attempt — a constraint body at a landing,
+// at a registration's evaluation, at its re-run; a repair body — and popped in a `finally`.
+//
+// **`K-2` READS IT AND NOTHING ELSE DECIDES THE LOG**: a write the kernel reaches from inside such an
+// invocation JOINS the innermost frame's list; a write reached from anywhere else — a caller's own top-level
+// write, and A LISTENER BODY'S WRITE, which the ENTRY invokes at the terminal arm with no frame of this
+// kernel's standing — OPENS a commit and therefore starts a list of its own (`D-53`: *"Listeners should open a new
+// commit, because the triggering commit already passed constraints"* — what the listener saw was already
+// approved, so what it does now is a NEW QUESTION and must not inherit the old verdict).
+export function enterCommitFrame(kernel, log) {
+  appendOwn(kernel.frames, { log });
+}
+
+/** The pop, and it is a local index loop for the reason every other list surgery here is (`contract.md §2.1`'s
+ *  clause of 2026-10-24 on `F7-1`): no `Array.prototype.pop` is read on a path a caller's prototype can reach. */
+export function leaveCommitFrame(kernel) {
+  const kept = [];
+  for (let i = 0; i + 1 < kernel.frames.length; i += 1) appendOwn(kept, kernel.frames[i]);
+  kernel.frames = kept;
+}
+
+/** **THE LOG OF THE COMMIT THE KERNEL IS INSIDE, OR `null` WHERE IT IS INSIDE NONE** — the one read `K-2` takes
+ *  to decide whether this write joins a commit or opens one. */
+export function commitLogInFlight(kernel) {
+  return kernel.frames.length === 0 ? null : kernel.frames[kernel.frames.length - 1].log;
+}
+
+// ---------------------------------------------------------------------------------------------
 // THE MESSAGE LOG (`kernel-surface.md §2.5` item 1; `PAR-C-4`). SIX MEMBERS, `seq` ASCENDING FROM
 // `1`, ONE KIND PER ENTRY: `constraint-check` | `repair-run` | `commit` | `outcome`.
-// ---------------------------------------------------------------------------------------------
-export function append(attempt, kind, id, opId, message, state) {
+//
+// **⟶ AND THE ENTRY IS NAMED BY AN ITERATION AND NOT BY TWO LOOSE IDENTITIES — 2026-10-28, `D-53`'s FIRST
+// RULING: *"Both combined to identify which constraint iteration it is on"*.** **THE ARCHITECT'S ANSWER TO
+// `D-52`'s rule 1, read with `D-53`'s own gloss: *"an entry carries the PAIR identity and the OP identity
+// together, and the PAIR identifies WHICH CONSTRAINT of that pair's evaluations is being spoken about … The two
+// columns are not alternatives — they are one identity"*.** **THE SUBJECT OF AN ENTRY IS THE ITERATION, AND AN
+// ITERATION IS A PAIR AT AN OP** — which is why no single acted-upon object could supply both, and why the old
+// `(attempt, kind, id, opId, message, state)` signature (two loose strings in two adjacent positions) could be
+// fed one value where the other belonged.
+//
+// **SO THE SIGNATURE TAKES THE ITERATION AS ONE OBJECT AT ONE POSITION, and reads its two members as its OWN
+// data members** (`D-35`'s read half: `[[GetOwnProperty]]` and never a `[[Get]]` that walks a caller's chain):
+//   * `iteration.pair` — the registry row (`{ addresses, id, constraint }`) the entry speaks about, or `null`
+//     where the kind names none (the `commit` entry names no pair, and the `outcome` entry names one only where
+//     the arm has one);
+//   * `iteration.op` — the journal op the iteration is judged at, or `null` where the kind names none.
+// **`id` IS READ OFF THE PAIR AND `opId` OFF THE OP**: a caller cannot put an id in the op's place, because
+// there is no place for one.
+export function append(attempt, kind, iteration, message, state) {
+  const held = iteration !== null && typeof iteration === 'object' ? iteration : null;
+  const pair = held === null ? undefined : ownMember(held, 'pair');
+  const op = held === null ? undefined : ownMember(held, 'op');
+  const id = pair === undefined || pair === null || typeof pair.id !== 'string' ? null : pair.id;
+  const opId = op === undefined || op === null || typeof op.opId !== 'string' ? null : op.opId;
   appendOwn(attempt.log, {
     seq: attempt.log.length + 1,
     kind,
-    id: id === undefined ? null : id,
-    opId: opId === undefined ? null : opId,
+    id,
+    opId,
     message,
     state: state === undefined ? null : state,
   });

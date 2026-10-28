@@ -48,7 +48,7 @@ export function makeStore(opts = {}) {
 export const KERNEL_ITEMS = ['register', 'commit', 'runAttempt', 'log', 'report'];
 
 /** The eight kernel state tokens, closed (`fail-surface.md §2`) — the SAME token set `LogEntry.state` carries. */
-export const KC_TOKENS = ['KC-1', 'KC-2', 'KC-3', 'KC-4', 'KC-5', 'KC-6', 'KC-7', 'KC-8'];
+export const KC_TOKENS = ['KC-1', 'KC-2', 'KC-3', 'KC-4', 'KC-5', 'KC-6', 'KC-7', 'KC-8', 'KC-9'];
 
 /**
  * THE ONE SPELLING A MEMBER CARRIES, DECLARED ONCE AND READ BY EVERY CELL THAT READS A STATE
@@ -221,7 +221,7 @@ export function assertLogEntry(entry, where) {
   //
   // THE STRICT HALF IS KEPT EXACTLY: on the THREE NON-`outcome` KINDS the member is `null` and nothing
   // else, unconditionally, as both clauses print it. THE `outcome` HALF IS NOW: a `KC` token from the
-  // closed eight, OR `null` on the one body path §2.7 item 13 names. `§1.1` item 1 (d)'s ban on a full
+  // closed nine (8 → 9 by `D-53`, 2026-10-28), OR `null` on the one body path §2.7 item 13 names. `§1.1` item 1 (d)'s ban on a full
   // name standing as a member's value is asserted for both halves, and is NOT relaxed.
   if (entry.kind !== 'outcome') {
     assert.equal(entry.state, null,

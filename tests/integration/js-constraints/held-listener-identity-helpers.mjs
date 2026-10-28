@@ -52,7 +52,7 @@ export const STORE_CODES = [
 ];
 
 /** The eight kernel `KC` tokens — read so a drive can assert a store code is NEVER one of them. */
-export const KC_TOKENS = ['KC-1', 'KC-2', 'KC-3', 'KC-4', 'KC-5', 'KC-6', 'KC-7', 'KC-8'];
+export const KC_TOKENS = ['KC-1', 'KC-2', 'KC-3', 'KC-4', 'KC-5', 'KC-6', 'KC-7', 'KC-8', 'KC-9'];
 
 /**
  * **`identity-and-domain.md §2` ITEM 3'S TEN OUTSIDE VALUES, ROW FOR ROW, EACH WITH THE ROW NUMBER THAT

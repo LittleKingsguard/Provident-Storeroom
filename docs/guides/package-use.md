@@ -441,7 +441,7 @@ guide's constraint story that is not yet observable.
 1. **A reversal INSIDE an open commit is NOT judged.** If you reverse from inside a constraint body, a repair, a listener, or the kernel's own failing-attempt floor call, the state the reversal leaves is not the state that stands (the open window moves it again, and the caller sees nothing yet) — **and judging it would invoke your constraint bodies MID-ATTEMPT and break `D-40`'s promise that a failed attempt leaves the store as it found it.** **The judgement is the AT-REST reversal's: your own `rollback` at the surface, where the state it leaves is the state you then read.**
 2. **A DISABLED pair is NOT judged.** A pair you `constraintOff`'d still appears in `constraints()`, but the judgement asks only pairs that are enabled — **because a disabled pair cannot fire, so nothing it would refuse can have run.** Re-enable it and it is asked again at the next reversal.
 3. **A pair registered STRAIGHT THROUGH THE KERNEL'S `K-1` is NOT judged at a reversal.** The judgement reads the package's own registry, which the package's declared registration routes write — `cfg.constraints` at construction and `addConstraint` after it — while a pair placed by a kernel-direct call is evaluated at writes but is **not** in the state the judgement reads (and `constraints()` does not list it either). **Register through the package's routes and the promise covers you.**
-4. **WHEN IT REFUSES AND NO ATTEMPT STANDS, `log` IS ONE `constraint-check` ENTRY — NOT `[]`.** The `log` member is normally *"the attempt's own message log"*, and `[]` is its value where a failure's cause has no attempt; **a reversal's judgement is one of those causes, and here the refusal AUTHORS ITS OWN RECORD instead of reporting an absence:** `log.length === 1`, `log[0].kind === 'constraint-check'`, `log[0].id` the refusing pair's own id, `log[0].state` `null`, `log[0].opId` the reversal's own op id or `null`. **So do not read an empty array as *"nothing failed"* at this arm, and do not read this one entry as an attempt's history — it is the refusal's.**
+4. **WHEN IT REFUSES AND NO ATTEMPT STANDS, `log` IS ONE `constraint-check` ENTRY — NOT `[]`.** The `log` member is normally *"the attempt's own message log"*, and `[]` is its value where a failure's cause has no attempt; **a reversal's judgement is one of those causes, and here the refusal AUTHORS ITS OWN RECORD instead of reporting an absence:** `log.length === 1`, `log[0].kind === 'constraint-check'`, `log[0].id` the refusing pair's own id, `log[0].state` `null`, `log[0].opId` the reversal's own op id or `null`. **So do not read an empty array as *"nothing failed"* at this arm, and do not read this one entry as an attempt's history — it is the refusal's.** **⟶ AND FROM 2026-10-28 *"the attempt's own message log"* IS READ THROUGH `D-53` AS THE COMMIT'S OWN LIST** (§8.0a above): at this arm no attempt and no commit stands, which is what makes `[]` the wrong value here and one authored entry the right one.
 **AND ONE THING ABOUT A FAILING REPAIR, WHICH IS THE SAME SHAPE AND IS DECLARED RATHER THAN DISCOVERED: THE FLOOR CALL RESTORES THE ADDRESS THE ATTEMPT WROTE; AN ADDRESS A REPAIR LANDED AT BESIDE IT IS NOT RESTORED.** `D-40`'s sentence — *"a failed attempt leaves the store exactly as it found it"* — is measured true of the attempt's own address and false of a beside address: the store's rollback scope is the addressed subtree at or after the named op's own position, so a repair that writes elsewhere leaves THAT value standing after the failed attempt. **If you need the beside address's pre-attempt value, keep it yourself: the store's own floor call does not put it back** (`docs/specs/storeroom-js/contract.md §2.6`'s clause of 2026-10-26, which is where the four narrowings, the `log` arm and this spatial scope are declared; `E2E-C-9` cell 6 in `tests/e2e/blind-constraints-v2.mjs` is the measured reach).
 
 **⟶ AND WHAT THE STORE HOLDS AFTER A REFUSED REVERSAL, DECLARED HERE BECAUSE `1.2.0`'s ONE BEHAVIOUR CHANGE IS THIS AND NO SHIPPED DOCUMENT SAID IT UNTIL NOW.** `RCA-8(g)` ANNOTATE-BESIDE: **every clause of §5.4 above stands BYTE-FOR-BYTE and is read THROUGH this one; this clause adds the declaration the release owed and moves no promise it prints.**
@@ -781,6 +781,51 @@ attempt at all, and every failure whose attempt exists carries that attempt's ow
 `unlisten`, `register` and `removeListener`: every one was an `Object` whose `Object.keys` was
 `["status","message","log"]`, whose `log` was `[]`, and which was not an `Error` instance.**
 
+### §8.0a What the `log` IS: one list per COMMIT — and what that buys you
+
+**⟶ ADDED 2026-10-28. THIS SUBSECTION IS THE ONE THING TO KNOW ABOUT `log`, AND IT CHANGES WHAT YOU WILL SEE
+IN IT.** `RCA-8(g)` ANNOTATE-BESIDE: **the paragraph above stands BYTE-FOR-BYTE and is read THROUGH this
+subsection.** **The architect, verbatim: *"If it's part of the same commit, then it uses the same message log.
+If it opens a new commit, it uses the new commit's message log. Constraints/Repairs should always use the same
+commit. Listeners should open a new commit, because the triggering commit already passed constraints"***
+(`strata/decisions.md` · `D-53`).
+
+**SO THE LIST BELONGS TO THE COMMIT AND NOT TO THE ATTEMPT.** One write is one commit, and everything that
+commit does — the constraint passes that judged its value, a repair's own write, the re-run after that repair,
+and the terminal arm's `outcome` entry — **appends to ONE array**. Consequences you can rely on, each measured
+on this checkout:
+
+- **`seq` runs `1..n` CONTINUOUSLY across those steps**, because it is *the ordinal of the list it stands in*
+  and there is one list. A repair's `commit` entry can stand in the middle of the list, between the refused
+  pass's entries and the re-run's: **it is a real entry of the same commit, not a second log.**
+- **A nested write a CONSTRAINT body makes is part of the same commit**, so **its entries are in YOUR list** —
+  which is why a constraint body that performs a refused write now shows you that refusal's own
+  `constraint-check` and `outcome` entries, verbatim, before the enclosing `outcome` entry. **That is `DEF-AK`'s
+  `constraint` host.** (Its `listener` host is unchanged, and the difference is the next bullet.)
+- **A LISTENER's write OPENS A COMMIT OF ITS OWN**, so **its entries are NOT in the list of the commit that
+  triggered it**: *the triggering commit already passed constraints, so what the listener does is a new
+  question.* If you need to know what the listener's own write decided, catch the refusal the listener body
+  lets out — it carries **its own** `log`, and so does a refusal you throw out of a listener.
+- **A failed `file`-tier SAVE now crosses WITH THE COMMIT'S ENTRIES — its `log` is no longer `[]`.** The save is
+  the write's LAST constraint: when it fails, the one `outcome` entry that ends your list carries **`KC-9`**,
+  and the entries before it are everything the commit did. **So a consumer can tell the two failing arms apart
+  from the log alone: `ConstraintPassRefused` ends at `KC-3`/`KC-5`/`KC-6`/`KC-8`, `FileCommitFailed` ends at
+  `KC-9`.** (See `§8.1`'s token line below — the kernel's set is `KC-1`…`KC-9` from this date, and the store's
+  closed status set has not moved.)
+- **A refusal that names no attempt still carries `[]`** — a `listen` refusal, a construction refusal, a
+  detached member's — and a `TypeError` from a constraint method carries `[]` too. **The list is the COMMIT's
+  and there is no commit there.**
+
+**READ THIS BEFORE YOU LOG-COUNT.** `log.length` is **not** *"how many constraints were evaluated"* and not
+*"how many attempts this write made"*: it is **every entry of the commit**, in append order, from every attempt
+the commit held. Count entries by `kind` and `id` (and by `opId` where you need the iteration) rather than
+assuming a shape, because **a repair or a body's own write legitimately adds entries to the list you caught.**
+
+**AND THE ONE PLACE THE INVARIANT IS NOT REACHED, SAID PLAINLY RATHER THAN LEFT TO A MEASUREMENT: a pair body
+invoked at a REVERSAL's judgement has no commit record standing beside it to name**, so a write such a body
+makes still opens a commit of its own and its entries land in that commit's list and not in the reversal's
+refusal (`js/contract.md §2.6`'s `D-53` clause, item `6`).
+
 **EVERY REFUSAL NAMES ITSELF** — by a `status` from the store's own closed set, and by a **human `message` that
 carries the address, the domain, and what was found instead.** The message is generated from the code and the
 failing trigger's arguments and never hand-authored at a call site
@@ -802,6 +847,17 @@ answers it again**, and the status stops naming a layer that did not fail. The a
 `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 20` ✓. **Every paragraph and every table row below is the reading of its
 own date and is read THROUGH this clause** (the guide's figures move with the set's own membership, which is
 this section's own rule).
+
+**★ AND THE KERNEL'S OWN TOKEN SET — the one that rides `log[].state` — GREW BY ONE ON 2026-10-28, WHILE THIS
+SECTION'S SET DID NOT MOVE AT ALL.** **The architect, verbatim: *"Open the token set"*** (`strata/decisions.md` ·
+`D-53`). **The kernel's states are `KC-1`…`KC-9` from this date; the appended member is the SAVE ARM's own,
+`KC-9`, and `KC-8` keeps its declared meaning (the composition's floor) unmoved.** **WHY IT WAS OWED: a save
+failure and a constraint refusal both ended at `KC-8` on the arm where the failed save's compensation met a
+floor code, so `KC-8` crossed as two statuses and neither arm was derivable from the log's terminal state.** **So
+now: a constraint's refusal ends at `KC-3`/`KC-5`/`KC-6`/`KC-8`, a failed save ends at `KC-9`, and the two are
+told apart by the list you caught.** **NO MEMBER OF THE STORE'S CLOSED STATUS SET MOVES AND NO RANK OF IT
+MOVES**: `KC-9` rides `log[].state` exactly as every other token does, and `status` still never carries a `KC`
+spelling at all — the paragraph above's own law (`A120` (2)), unmoved.
 
 **⟶ RE-DERIVED 2026-10-26 TO THE ARCHITECT'S RULING AND NOT TO THE BYTES** (`DEF-S` and `DEF-N`; the architect,
 verbatim: *"Expand the returned error set for both S/N"*). **`StoreStatus` carries NINETEEN members, plus the open
@@ -845,6 +901,7 @@ store's to close; **the package mints no member, widens no set and renames none.
 - **AND THE CROSSED SENTENCE STOPS CLAIMING MORE THAN IT DELIVERS.** Its own bytes — *"a constraint body's throwable crosses as this refusal"* — now stand followed by **the package's own clause saying the value the body threw does NOT cross as this refusal, naming the inner `status` and quoting the inner `message`, and saying where the inner refusal crosses instead.** A body that threw something that is **not** a refusal (**a `TypeError`, a string**) has **nothing carried beside the crossed form**; there is no inner refusal to name, and the generated sentence names the CODE rather than promising a value.
 - **A FORGED THREE-MEMBER OBJECT IS STILL NOT QUOTED.** The inner refusal is recognised by **a mark this package sets on the forms IT builds** — never by the shape a caller can spell — so a body throwing `{status, message, log}` of its own gets the generated sentence and nothing of its text is repeated back as though the package had found a refusal there (`DEF-A`'s protection, extended one layer in).
 - **THE LISTENER ARM IS UNCHANGED, AND THAT IS THE CONTROL:** nothing marks a listener's throw, so it still crosses **as itself**, by identity — `caught === thrown`, its own `status`, `message` and `log`. **A `rollback` whose judgement a pair's body threw** crosses `ConstraintBodyThrew` at rank `18` and carries any inner refusal the same way (`§5.4`).
+- **⟶ AND THE CONSTRAINT HOST'S LIST IS NOW THE COMMIT'S, WHICH IS THE DEEPER HALF OF THE SAME RULING (2026-10-28, `D-53`).** The inner refusal's own two entries are **IN the crossed report** — the `constraint-check` entry naming the inner pair and the `outcome` entry carrying `KC-3` — on the same array the enclosing attempt appends to, at a continuous `seq`; **`carriedInner.log` and `caught.log` are ONE array, not two.** **READ §8.0a ABOVE BEFORE COUNTING ENTRIES**: the listener's list is still its own, because the listener's write opens its own commit, and that difference between the two hosts is now the difference the ruling draws rather than an asymmetry nobody declared.
 
 **AND `ValueRefusedAtBoundary` IS THE ONE YOU WILL MEET ON THE VALUE ROUTE:** the package's own walk decides a
 value's class **before any store verb is called** and answers this member with the failing target's spelling

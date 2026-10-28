@@ -68,7 +68,7 @@ function repairRunsFor(log, id) {
 }
 
 /** The kernel's own eight tokens, stated locally so the assertions never depend on a helper's spelling. */
-const KC_TOKENS = ['KC-1', 'KC-2', 'KC-3', 'KC-4', 'KC-5', 'KC-6', 'KC-7', 'KC-8'];
+const KC_TOKENS = ['KC-1', 'KC-2', 'KC-3', 'KC-4', 'KC-5', 'KC-6', 'KC-7', 'KC-8', 'KC-9'];
 
 /**
  * **THE RCA'S MISSING SHAPE, ADDED AS ONE HELPER SO NO CELL RE-DECLARES IT** —

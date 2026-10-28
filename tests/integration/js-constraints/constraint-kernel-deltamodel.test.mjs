@@ -834,13 +834,27 @@ test('ck_neg_dm_03_nested_K2_from_a_body_the_pass_reaches_held_address_refused_a
   assert.equal(outerReport.threw ? null : outerReport.value.outcome, 'passed',
     'with the outer hold open throughout the nested acts — read '
     + (outerReport.threw ? JSON.stringify(outerReport.thrown.status) : outerReport.value.outcome));
-  assert.deepEqual(checkIds(outerReport.value.log), ['a'],
-    'and the outer log carries ONE `constraint-check` and it is the pair AT THE OUTER ATTEMPT\'S OWN '
-    + 'ADDRESS: the pass is ADDRESS-SCOPED (`kernel-surface.md §2.3` item 1), so the nested attempt\'s own '
-    + 'evaluation stands in the nested report and in no entry of this one — read '
+  // ── **⟶ AND THESE TWO LIMBS MOVE ON 2026-10-28 — `D-53`'s FIRST INVARIANT, AND THE SENTENCE THEY REPLACED IS
+  // NAMED BY ITS OWN WORDS.** They read *"the outer log carries ONE `constraint-check` and it is the pair AT THE
+  // OUTER ATTEMPT'S OWN ADDRESS: the pass is ADDRESS-SCOPED … so the nested attempt's own evaluation stands in the
+  // nested report and in no entry of this one"*, and *"the pass's own `commit` entry … one"* — true only while
+  // `attempt.log` was the ATTEMPT's. **THE RULING: *"If it's part of the same commit, then it uses the same message
+  // log … Constraints/Repairs should always use the same commit"*** (`strata/decisions.md` · `D-53`). **THE NESTED
+  // WRITE IS PART OF THIS COMMIT — it was made from inside this attempt's body — so its entries ARE this log's
+  // entries, and `K-4`/`K-5` answer THE COMMIT'S log.**
+  // **WHAT IS UNMOVED, AND IT IS THE CELL'S SUBJECT: the pass is ADDRESS-SCOPED.** The pair at the outer address
+  // is the only pair the outer PASS evaluates, and the nested attempt's evaluation is the nested PASS's own — its
+  // `constraint-check` entry names the pair standing at ITS address. **One list, two passes, and each entry still
+  // names the iteration it speaks about** (`D-53`'s first ruling), which is what keeps the two readable apart.
+  assert.deepEqual(checkIds(outerReport.value.log), ['a', 'b'],
+    'and the ONE commit\'s log carries BOTH passes\' `constraint-check` entries, in the order the two attempts '
+    + 'appended them — the outer attempt\'s pair at `a`, then the nested attempt\'s pair at `b` — which is what one '
+    + 'list per commit means (`D-53`); read '
     + JSON.stringify(checkIds(outerReport.value.log)));
-  assert.equal(entries(outerReport.value.log, 'commit').length, 1,
-    'with the pass\'s own `commit` entry closing the log AFTER the nested acts (`§2.4` item 4\'s arm (a))');
+  assert.equal(entries(outerReport.value.log, 'commit').length, 2,
+    'with EACH attempt\'s own `commit` entry in that same list — the nested attempt\'s, appended where its pass '
+    + 'resolved inside the body, then the outer pass\'s own closing the log AFTER the nested acts '
+    + '(`§2.4` item 4\'s arm (a); `D-53`)');
   assert.equal(bodyCalls >= 1, true,
     'AND THE WITHHELD BODIES ARE REACHED ONLY AFTER A PASS\'S TERMINAL ARM — the delivery "FOLLOWS THE '
     + 'PASS, AND ITS INSTANT IS THE PASS\'S TERMINAL ARM" (`surface.md §2.7` item 7; `A116` (D1) (b)) — so '

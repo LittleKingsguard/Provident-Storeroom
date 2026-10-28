@@ -85,6 +85,39 @@ export const SAVE_FAILED_AT_THE_TERMINAL_ARM = Symbol.for('provident-storeroom.s
 /// ACT BRANCHES ON IT** (`PAR-JS-19`'s answer cell, whose subject is the arm's return and not a member's).
 export const TERMINAL_ARM = Symbol.for('provident-storeroom.terminal-arm');
 
+/// **⟶ ADDED 2026-10-28 — THE COMMIT'S OWN MESSAGE LOG, SPELLED HERE AS THE KERNEL SPELLS IT (`D-53`).**
+///
+/// **THE RULING, VERBATIM: *"If it's part of the same commit, then it uses the same message log. If it opens a new
+/// commit, it uses the new commit's message log"*** (`strata/decisions.md` · `D-53`). **SO THE LIST LIVES ON THE
+/// COMMIT AND IT TRAVELS ON THE COMMIT'S OWN RECORD** — `kernel-commit.mjs` defines it on the `CommitRecord` it
+/// builds, under this key, and this module reads it for the ONE site that needs the commit's verdict and not an
+/// attempt's: **a failed `file`-tier save.** The save is the write's LAST constraint and it fails at the terminal
+/// arm, so the crossing this module builds there carries the COMMIT's entries — `D-52`'s sentence *"a save failure
+/// crosses as `FileCommitFailed` with `log: []`, and its verdict stands only in the attempt's log, which the
+/// crossed value does not carry"* is the defect this member closes.
+///
+/// **IT IS A `Symbol.for` KEY ON THE RECORD AND NO MEMBER IS ADDED** (`A117` (D6)): `Object.keys` and
+/// `Object.getOwnPropertyNames` read past it, so `CommitRecord` keeps its FOUR declared members and every census of
+/// them moves by nothing — the device `SETTLED_ON_THE_PASSING_ARM` and `SAVE_FAILED_AT_THE_TERMINAL_ARM` already
+/// stand on. **A RECORD CARRYING NO SUCH KEY** — a caller's own record, and every record the kernel did not build —
+/// answers `undefined`, and the crossing falls back to the declared `[]`.
+export const COMMIT_LOG = Symbol.for('provident-storeroom.commit-log');
+
+/// **⟶ AND THE ONE READ OF IT — a `[[GetOwnProperty]]` and never a `[[Get]]`, `D-35`'s READ HALF.**
+///
+/// The record this reads is handed through `write`'s FOURTH POSITION, which a CALLER may fill: an ordinary member
+/// read would run a getter the caller installed there — user code on a refusal path, before any verdict. **The
+/// descriptor's own `value` is taken only where it IS one, so an accessor answers `undefined` exactly as an absent
+/// key does, and `fail`'s declared `[]` is what crosses.** A record the KERNEL built carries the list as an own
+/// non-enumerable data property (`kernel-commit.mjs` defines it with `Object.defineProperty`), so the lawful arm
+/// reads it and every other arm reads nothing.
+export function commitLogOf(record) {
+  if (record === null || typeof record !== 'object') return undefined;
+  const descriptor = Object.getOwnPropertyDescriptor(record, COMMIT_LOG);
+  if (descriptor === undefined || !Object.hasOwn(descriptor, 'value')) return undefined;
+  return descriptor.value;
+}
+
 /// **⟶ ADDED — `K-6`'s READ-MODEL CHANNEL, under a symbol key for the same reason every symbol above is
 /// one** (`A117` (D6): *"a symbol-keyed own property is invisible to both"* `Object.keys` and
 /// `Object.getOwnPropertyNames`, so the product's declared fourteen own members are UNMOVED by it).
@@ -879,11 +912,16 @@ export function isStoreReceiver(candidate) {
   return state !== undefined && state.receiver === candidate;
 }
 
-export function carryRefusal(call, args) {
+export function carryRefusal(call, args, log) {
   try {
     return call();
   } catch (refusal) {
-    fail(notFoundRendering(refusal, listedSegments(args[0])));
+    // **⟶ AND THE THIRD POSITION IS THE COMMIT'S LIST WHERE THE CALLER HAS ONE (`D-53`).** Every verb that
+    // reaches here with no third position answers exactly what it answered before (`fail`'s declared `[]`); the
+    // FAILED SAVE's call is the one that passes a list, and it passes `commitLogOf(record)` — the commit's own
+    // entries, carried beside the store's two-member form and never re-shaped (`surface.md §2.5` item 10 (ii):
+    // *"nothing is converted, and a member is added"*).
+    fail(notFoundRendering(refusal, listedSegments(args[0])), log);
   }
 }
 
@@ -945,11 +983,16 @@ function listedSegments(arg) {
 /// `[A1 bindings/js/index.mjs:2439 · :2454 · :2429 · :2432; docs/specs/storeroom-json-crossing/contract.md §6
 /// row 4; docs/specs/storeroom-addon-surface/js-unwrap.md §3; docs/specs/storeroom-native/write-and-read.md
 /// §3.4 `F-1` | requirement]`
-export function writeRefusal(refusal, fault) {
+export function writeRefusal(refusal, fault, record) {
   if (fault.found !== null && refusal !== null && typeof refusal === 'object' && refusal.status === 'ValueNotAdmitted') {
     valueReject(fault);
   }
-  fail(refusal);
+  // **⟶ AND THIS IS THE WRITE VERB'S ONE LOG BYPASS, CLOSED — `D-53`, 2026-10-28.** The store's own refusal at the
+  // verb crossed here with `fail`'s declared `[]`, so a write refused inside a commit whose list already carried
+  // entries — a nested write refused by the store from inside a constraint body or a repair — told the caller
+  // NOTHING of the commit's verdict. **THE LIST IS THE COMMIT'S**, handed by the member that holds the record,
+  // and it stays `[]` where no commit stands (a caller's own write, whose commit is the one this verb is opening).
+  fail(refusal, commitLogOf(record));
 }
 
 /// `docs/specs/storeroom-js/contract.md §2.10`: `listen` mints a token, populates the store's home and wraps it for JS — and its `address` is

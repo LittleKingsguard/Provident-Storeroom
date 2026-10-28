@@ -410,7 +410,13 @@ export function storeCreate(cfg) {
         // (`docs/specs/storeroom-js/surface.md §2.4` item 9's adoption-machinery clause; the three architect's rulings of that date), so the store's
         // own refusal crosses back UNCHANGED AND UNCONVERTED and this frame adds nothing to it.
         // **AND THE ONE DECLARED EXCEPTION IS TAKEN HERE** — the `writeCall` arm, moved not dropped.
-        writeRefusal(refusal, fault);
+        // **⟶ AND THE COMMIT'S OWN LOG TRAVELS WITH IT — `D-53`, 2026-10-28.** The record at the method's FOURTH
+        // position is the commit's record when the kernel's own store leg made this call, and the kernel defines
+        // the commit's list on it under a symbol key; **so a store verb refusing this write tells the caller what
+        // the commit's log already carries** instead of the declared `[]`. A caller's own five-position write (or
+        // any record this package did not build) carries no such key and answers `undefined`, which is `fail`'s
+        // declared `[]` arm — unchanged on every one of those paths.
+        writeRefusal(refusal, fault, arguments.length >= 4 ? commit : undefined);
         throw refusal;
       }
       const watched = [];

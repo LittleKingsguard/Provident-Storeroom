@@ -262,14 +262,25 @@ test('D-46 (2) · A CALLER-SUPPLIED COMMIT ID JOINS AND AN ABSENT ONE OPENS: a `
     `the SUPPLIED arm's write must land: it caught ${JSON.stringify(armB.caught)}`);
 
   // ── (a) THE ABSENT POSITION OPENS — AND THE COUNT RISES BESIDE THE ENCLOSING COMMIT'S. ──────
-  assert.equal(armA.openings, 1,
-    `**A \`write\` THAT SUPPLIES NO COMMIT OPENS ONE**: \`attempt-opened\` fired for it although an enclosing `
-      + `commit stood open. THE DRIVE COUNTED ${armA.openings} openings across the absent arm`);
-  assert.deepEqual(armA.during, { open: 2, live: 2 },
-    `**AND THE COUNT ROSE BESIDE THE ENCLOSING COMMIT'S**: the body's own write ran its pass with the count at `
-      + `\`2\` — the outer write's commit and the body's own — with TWO live attempts, the outer write's and the `
-      + `body's own, which is the production nesting at one frame deeper. THE DRIVE READ `
-      + `${JSON.stringify(armA.during)}`);
+  // ── **⟶ AND THIS ARM MOVES ON 2026-10-28, BY `D-53`'S SECOND INVARIANT AND BY NOTHING ELSE.**
+  // `D-46` read the discriminator as THE NAME A CALL SUPPLIES ON ITS OWN ENTRY, so a constraint body's
+  // three-position write — naming nothing, and running one frame inside an open commit — OPENED one, and this arm
+  // recorded `1` opening and the count at `2`. **THE ARCHITECT'S LATER RULING IS UNCONDITIONAL ON THE KIND:**
+  // *"Constraints/Repairs should always use the same commit. Listeners should open a new commit, because the
+  // triggering commit already passed constraints"* (`strata/decisions.md` · `D-53`). **A CONSTRAINT BODY IS A
+  // CHECK, NOT A NEW QUESTION**: the kernel now NAMES the attempt's commit when it invokes it (`kernel-attempt.mjs`'s
+  // `constraintInCommit`), so the body's write JOINS and the whole call opens ONE commit.
+  // **THE ARM'S SUBJECT IS UNMOVED AND IS ASSERTED BELOW**: an ABSENT fourth position is in the domain and the
+  // write LANDS; what moved is which commit it landed in — joining the enclosing one instead of opening a second.
+  // **THE SUPPLIED ARM (`armB`) IS UNMOVED** and still joins, and `nested.length` is still `1`: the body's write ran
+  // its own pass at its own address.
+  assert.equal(armA.openings, 0,
+    `**A \`write\` FROM A CONSTRAINT BODY — ONE OF THE TWO KINDS \`D-53\` NAMES — NEVER OPENS A COMMIT**: `
+      + `\`attempt-opened\` fired ${armA.openings} times across the absent arm, and it must fire zero`);
+  assert.deepEqual(armA.during, { open: 1, live: 2 },
+    `**AND THE COUNT IS THE ENCLOSING COMMIT'S OWN — \`1\` — WHILE TWO ATTEMPTS STAND LIVE**: the outer write's `
+      + `attempt and the body's own, both of the SAME commit, which is what \`D-53\`'s one list means. THE DRIVE `
+      + `READ ${JSON.stringify(armA.during)}`);
 
   // ── (b) THE SUPPLIED POSITION JOINS — NO OPENING, THE COUNT UNCHANGED, AND NO SECOND PASS. ───
   assert.equal(armB.openings, 0,
@@ -286,9 +297,10 @@ test('D-46 (2) · A CALLER-SUPPLIED COMMIT ID JOINS AND AN ABSENT ONE OPENS: a `
     `**AND ONLY THE ABSENT ARM RAN A PASS** — the pair standing at \`['b']\` was asked exactly once, by the `
       + `body's own write, and the supplied arm asked nothing because it entered no pass: the drive recorded `
       + `${JSON.stringify(nested)}`);
-  assert.equal(openings, 2,
-    `**TWO OPENINGS FOR THE WHOLE CALL** — the outer write's own and the absent arm's; the supplied arm opened `
-      + `none. The observer counted ${openings}`);
+  assert.equal(openings, 1,
+    `**ONE OPENING FOR THE WHOLE CALL** — the outer write's own; NEITHER arm opened anything, the absent arm `
+      + `joining by the kernel's name and the supplied arm joining by its own position (\`D-53\`, \`D-46\`). `
+      + `The observer counted ${openings}`);
   assert.equal(standingB, 2,
     `and the absent arm's write landed: ${JSON.stringify(standingB)}`);
   assert.equal(standingC, 3,

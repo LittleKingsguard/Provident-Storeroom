@@ -72,11 +72,16 @@ export function constraintsKernel() {
   return KERNEL;
 }
 
-/// `fail-surface.md §2` / `kernel-surface.md §2.2`'s `KC-1`…`KC-8`, read HERE for their ONE use: to tell a
+/// `fail-surface.md §2` / `kernel-surface.md §2.2`'s `KC-1`…`KC-9`, read HERE for their ONE use: to tell a
 /// refusal the KERNEL raised from one a STORE VERB raised, so that `A120` (2) can be applied to the first
 /// and not to the second. **NO `KC` SPELLING CROSSES THIS SURFACE** (`docs/specs/storeroom-js/surface.md §2.12` item 1's read-through clause:
 /// printed here it would be a second, unowned home for the kernel's own vocabulary).
-const KC_TOKENS = ['KC-1', 'KC-2', 'KC-3', 'KC-4', 'KC-5', 'KC-6', 'KC-7', 'KC-8'];
+///
+/// **⟶ AND THE LIST MOVES `8 → 9` WITH THE SET ITSELF, 2026-10-28 (`D-53`: *"Open the token set"*).** The ninth
+/// member is the SAVE ARM's (`KC-9`, `kernel-foundations.mjs`'s `KC.saveFailed`); **this list must carry it or a
+/// kernel refusal carrying `KC-9` in `state` would be read here as a STORE code** and cross converted, which is the
+/// one thing this predicate exists to prevent.
+const KC_TOKENS = ['KC-1', 'KC-2', 'KC-3', 'KC-4', 'KC-5', 'KC-6', 'KC-7', 'KC-8', 'KC-9'];
 
 /// **⟶ THE PAIR'S OWN KEY IS `(id, address-set)` — `U-STOREROOM-HELD-LISTENER-IDENTITY` (`D-GP-SHLI`).**
 /// **ONE PAIR OVER N ADDRESSES IS ONE PAIR: ONE `id`, N ADDRESSES, ONE row of `constraints()`** (`P:
@@ -1711,7 +1716,14 @@ function carryRestartRefusal(report, refusal) {
   const log = { log: report.log };
   for (let index = 0; index < carried.length; index += 1) {
     const entry = carried[index];
-    append(log, entry.kind, entry.id, entry.opId, entry.message, entry.state);
+    // **⟶ AND THE REPLAY NAMES THE ITERATION AS THE ENTRY IT IS CARRYING NAMES IT — `D-53`'s first ruling.** This is
+    // the ONE `append` site whose two identities come from a CARRIED ENTRY and not from an acted-upon pair and op
+    // (`D-52` counted it as rule 1's fourth kind), so the iteration is rebuilt from the two identities the entry
+    // itself carries: **the pair stands by its `id`, and the op by the `opId` the judgement's reversal answered —
+    // and the pair's own row is not in hand here, which is why the identity alone is spelled.** Nothing is
+    // renumbered and nothing is re-authored: the entry minted here is the report's own, by the report's own
+    // ordinal, and its two identity columns read exactly what the entry it carries read.
+    append(log, entry.kind, { pair: { id: entry.id }, op: { opId: entry.opId } }, entry.message, entry.state);
   }
   Object.defineProperty(report, RESTART_REFUSAL, {
     value: refusal,

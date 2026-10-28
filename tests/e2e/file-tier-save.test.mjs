@@ -1664,8 +1664,15 @@ test('fts_S_CENSUS_no_rank_moves_and_no_second_register', async () => {
 //     the commit stands"* on an attempt whose report reads `failed`.
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
 
-/** THE KERNEL'S OWN CLOSED STATE SET'S SPELLING, READ AS `fail-surface.md §1.1` item 1 spells it. */
-const KC_TOKEN = /^KC-[1-8]$/;
+/** THE KERNEL'S OWN CLOSED STATE SET'S SPELLING, READ AS `fail-surface.md §1.1` item 1 spells it.
+ *
+ *  **⟶ MOVED `8 → 9` ON 2026-10-28 BY `D-53`'S THIRD RULING (*"Open the token set"*), AND BY NOTHING ELSE:** the
+ *  save arm gets a token of its own, `KC-9` (`ConstraintSaveFailed`), so **a save failure and a constraint refusal
+ *  cross with different statuses AND each is derivable from the log's terminal state** — the contradiction `D-52`
+ *  measured when `KC-8` crossed as both statuses. **THE CELLS BELOW ARE UNMOVED IN THEIR SUBJECT**: each still reads
+ *  the failed save's ONE `outcome` entry and still asserts that its `state` is a token of the kernel's own set; only
+ *  the set's own domain moves, and the save's arm is the member the set gained. */
+const KC_TOKEN = /^KC-[1-9]$/;
 
 /** THE ONE ENTRY A THROWN FAILURE'S LOG GAINS ON THE CONSTRAINT-BODY PATH (`kernel-surface.md §2.1` item 3). */
 function outcomeEntryOf(entries) {

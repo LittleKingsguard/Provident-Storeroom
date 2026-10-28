@@ -49,14 +49,27 @@ export function terminal(kernel, attempt, status, message) {
   // THE COMPOSITION'S OWN FLOOR, TAKEN OFF THE MEMBER IT WAS DECIDED ON (`composition-and-states.md
   // §2.6` item 5 (b)): a still-owed op's call meeting either floor code makes the arm `KC-8` WHATEVER
   // the pass's own arm was, and nothing is restored (item 6 (a), (c)).
-  const finalStatus = floor === null ? status : KC.rollbackFloor;
-  const finalMessage = floor === null
-    ? message
-    : `the per-op rollback met the store's own ${floor.code} at ${floor.opId}`;
+  //
+  // **⟶ AND THE SAVE ARM'S OWN TOKEN IS NOT OVERWRITTEN BY IT — `D-53`'s THIRD RULING, 2026-10-28.** **THE FLOOR
+  // BELONGS TO THE COMPOSITION AND `KC-8` KEEPS ITS DECLARED MEANING; what it may not do is make a SAVE FAILURE
+  // and a CONSTRAINT REFUSAL end at the same token**, which is the contradiction `D-52` measured (*"`KC-8` crosses
+  // as both statuses"*). **SO THE PRECEDENCE IS ONE SENTENCE: THE FLOOR GOVERNS EVERY ARM BUT THE SAVE'S, and the
+  // save's arm keeps `KC-9`, its own message, and the floor's own sentence beside it** — so the caller can still
+  // read, from the ONE `outcome` entry, both what failed and what the composition then met.
+  const floorGoverns = floor !== null && status !== KC.saveFailed;
+  const finalStatus = floorGoverns ? KC.rollbackFloor : status;
+  const finalMessage = floorGoverns
+    ? `the per-op rollback met the store's own ${floor.code} at ${floor.opId}`
+    : floor === null
+      ? message
+      : `${message} — the per-op rollback then met the store's own ${floor.code} at ${floor.opId}`;
   // THE `outcome` ENTRY — appended ONCE, and `state` is THE ARM'S ONE TOKEN: the floor is answered IN THIS
   // SAME ENTRY where the attempt would also have had a failure arm, and NO SECOND ENTRY IS APPENDED
   // (`kernel-surface.md §2.5` item 1's kind table; `§2.6` item 6 (a), (b)).
-  append(attempt, 'outcome', null, attempt.ops[attempt.ops.length - 1].opId, finalMessage, finalStatus);
+  // **⟶ AND ITS ITERATION NAMES NO PAIR AND THE ATTEMPT'S LAST OP — `D-53`'s first ruling**, so the two columns
+  // travel as one identity wherever an op exists and read `null` where one does not ("an `outcome` names them
+  // where they exist").
+  append(attempt, 'outcome', { pair: null, op: attempt.ops[attempt.ops.length - 1] }, finalMessage, finalStatus);
   // THE DISCARD RULE, AT ITS ONE OBSERVABLE (`attempt-lifecycle.md §2.4` item 8 (i) (5), read with
   // `kernel-surface.md §2.1` item 2's discarded-set clause; `A: docs/decisions.md` · `A112`): where the
   // attempt's own write FAILED the registered constraints at its landing and could not be repaired, its

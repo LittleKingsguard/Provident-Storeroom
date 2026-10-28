@@ -210,7 +210,7 @@ test('hli_kernel_K6_refuses_a_pair_outside_its_domain_with_KC2_before_any_store_
       'and the code is the kernel\'s own `KC-2` — read ' + JSON.stringify(r.thrown.status)
       + ' (`remove-member.md §4` item 2 (i))');
     assert.equal(KC_TOKENS.includes(r.thrown.status), true,
-      'and the status is one of the closed eight — NO `KC` member is minted for the removal '
+      'and the status is one of the closed nine (8 → 9 by `D-53`, 2026-10-28) — NO `KC` member is minted for the removal '
       + '(`contract.md §2.9` item 4; `remove-member.md §7` `MF-8`)');
   }
 });

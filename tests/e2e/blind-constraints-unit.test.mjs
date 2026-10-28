@@ -284,7 +284,7 @@ test('unit · kernel-surface.md §2.5 item 1 · `LogEntry` CARRIES EXACTLY SIX M
     assert.equal(LOG_KINDS.includes(entry.kind), true);
     assert.equal(typeof entry.message, 'string');
     if (entry.kind === 'outcome') {
-      assert.match(entry.state, /^KC-[1-8]$/);
+      assert.match(entry.state, /^KC-[1-9]$/);
     } else {
       assert.equal(entry.state, null);
     }

@@ -30,7 +30,7 @@ const MERGED_AWAY = ['on', 'off', 'settle'];
 // remove-member.md §7 `MF-6`: the kernel's surface is six items and no seventh name is reachable.
 const KERNEL_ITEMS = ['commit', 'log', 'register', 'remove', 'report', 'runAttempt'];
 // fail-surface.md §2's `KC` set, closed at EIGHT.
-const KC_SET = ['KC-1', 'KC-2', 'KC-3', 'KC-4', 'KC-5', 'KC-6', 'KC-7', 'KC-8'];
+const KC_SET = ['KC-1', 'KC-2', 'KC-3', 'KC-4', 'KC-5', 'KC-6', 'KC-7', 'KC-8', 'KC-9'];
 // surface.md §2.5 item 4 / item 9: the crossed failure form, three members, `log` on every arm.
 const FORM_MEMBERS = 'log,message,status';
 // **⟶ RE-DERIVED 2026-10-26: store contract §8.1's closed set at its canonical rank order, and the figure is
@@ -1031,7 +1031,7 @@ const K6 = (store, pair) => kernel.remove(store, pair);
     && consAfterRefusal.value.length === consBeforeRefusal.value.length,
     `${consBeforeRefusal.threw ? statusOf(consBeforeRefusal) : consBeforeRefusal.value.length} → ${consAfterRefusal.threw ? statusOf(consAfterRefusal) : consAfterRefusal.value.length}`);
   A('HLI-13.13', 'remove-member.md §4 item 3 ("NO `KC` ROW IS MINTED: the set stays closed at EIGHT")',
-    'every `KC` token this scenario observed is a member of the closed eight-member set',
+    'every `KC` token this scenario observed is a member of the closed nine-member set (8 → 9 by `D-53`, 2026-10-28)',
     [r6again, norow].every((r) => !r.threw || KC_SET.includes(r.err.status)),
     fmt([r6again, norow].map((r) => (r.threw ? r.err.status : '<no throw>'))));
   // ── `S-K6-ROUTE`: presence instrumentation on the published member, with the probe's declared LIMIT.

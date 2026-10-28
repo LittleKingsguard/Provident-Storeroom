@@ -54,7 +54,7 @@ const FORM_KEYS = ['status', 'message', 'log'];
 // index.d.ts `LogEntry`; kernel-surface.md §2.5 item 1 (cited from surface.md §2.5 item 3).
 const LOG_ENTRY_KEYS = ['id', 'kind', 'message', 'opId', 'seq', 'state'];
 const LOG_KINDS = ['constraint-check', 'repair-run', 'commit', 'outcome'];
-const KC_TOKENS = ['KC-1', 'KC-2', 'KC-3', 'KC-4', 'KC-5', 'KC-6', 'KC-7', 'KC-8'];
+const KC_TOKENS = ['KC-1', 'KC-2', 'KC-3', 'KC-4', 'KC-5', 'KC-6', 'KC-7', 'KC-8', 'KC-9'];
 
 // native/contract.md §8.2's two appended rows, 2026-10-26, each row's own worked example.
 const RANK_18_SENTENCE =
@@ -124,7 +124,7 @@ function sweepLog(log, where) {
     if (entry.kind === 'outcome') {
       assert.ok(
         entry.state === null || KC_TOKENS.includes(entry.state),
-        `${where}: an outcome entry's state is one of KC-1…KC-8 or null (${entry.state})`,
+        `${where}: an outcome entry's state is one of KC-1…KC-9 or null (${entry.state})`,
       );
     } else {
       assert.equal(entry.state, null, `${where}: state is null on the three non-outcome kinds (${entry.kind})`);
@@ -570,11 +570,34 @@ test('def_s_a_forged_object_crosses_as_itself_only_where_no_constraint_body_thre
     `DEF-AK: the inner refusal's own status is reachable; read ${JSON.stringify(carriedInner.status)}`);
   assert.equal(carriedInner.message, innerAlone.message,
     `DEF-AK: and its own message; read ${JSON.stringify(carriedInner.message)}`);
-  assert.ok(Array.isArray(carriedInner.log) && carriedInner.log.length === innerAlone.log.length,
-    `DEF-AK: and its own log (${innerAlone.log.length} entries); read `
-      + `${JSON.stringify(carriedInner && carriedInner.log)}`);
-  assert.equal(carriedInner.log[0] === undefined ? false : true, true,
-    'DEF-AK: the carried log is a NON-EMPTY list of entries a consumer reads');
+  // ── **⟶ AND THIS LIMB MOVES ON 2026-10-28 — `D-53`'S FIRST INVARIANT, AND IT IS THE ARM'S OWN DEEPEST
+  // CLAIM.** It read *"its own log (2 entries)"* and asserted the carried list's LENGTH against the standalone
+  // refusal's, which was true only while the constraint host's inner write ran in a commit of its own. **THE
+  // RULING: *"If it's part of the same commit, then it uses the same message log … Constraints/Repairs should
+  // always use the same commit"*** — so the inner write's entries and the outer attempt's entries are **ONE
+  // LIST**, the crossed report IS that list, and a length comparison between two lists has no subject where
+  // there is one. **THE SUBJECT SURVIVES AND IS ASSERTED WHERE THE RULING PUTS IT: THE INNER REFUSAL'S OWN
+  // ENTRIES ARE PRESENT, VERBATIM, IN THE CROSSED REPORT** — the `constraint-check` entry naming `inner-guard`
+  // and the `outcome` entry carrying `KC-3`, member for member beside `opId` (two stores number their ops
+  // independently), and the `seq` sequence is CONTINUOUS across the two attempts' entries, which is what one
+  // list means (`D-52`'s rule 2 dissolved: no merge, no renumbering, no seventh member).
+  assert.ok(Array.isArray(carriedInner.log),
+    'DEF-AK: the carried log is a LIST and never a placeholder; read ' + `${JSON.stringify(carriedInner && carriedInner.log)}`);
+  assert.deepEqual(logBones(carriedInner.log).slice(0, innerAlone.log.length),
+    logBones(innerAlone.log),
+    'DEF-AK: THE INNER REFUSAL\'S OWN ENTRIES — every member beside `opId` — ARE IN THE CROSSED REPORT, '
+      + 'because the inner write is part of the SAME commit and appended to the SAME list (`D-53`); read '
+      + `${JSON.stringify(carriedInner.log)}`);
+  assert.equal(carriedInner.log.length >= innerAlone.log.length, true,
+    `DEF-AK: and the list is AT LEAST the inner refusal's own (${innerAlone.log.length}) — it also carries the `
+      + `outer attempt's entries, the same ONE list — read ${JSON.stringify(carriedInner.log.map((e) => e.seq))}`);
+  assert.deepEqual(carriedInner.log.map((entry) => entry.seq),
+    carriedInner.log.map((_entry, position) => position + 1),
+    'DEF-AK: and the `seq` ordinals are CONTINUOUS across the attempts of this one commit — `1..n` in array '
+      + `order, minted by the kernel\'s own \`append\` — read ${JSON.stringify(carriedInner.log.map((e) => e.seq))}`);
+  assert.equal(carriedInner.log, bodyCaught.log,
+    'DEF-AK: and IT IS THE CROSSED REPORT\'S OWN LIST, not a copy of it — the two are ONE array, which is the '
+      + '*"the crossed report IS that list"* of `D-53`');
 
   t.diagnostic('DEF-AK · ONE INNER REFUSAL, TWO HOSTS (2026-10-28): the listener host crossed '
     + `${JSON.stringify(listenerCaught.status)} / ${JSON.stringify(listenerCaught.message)} with `

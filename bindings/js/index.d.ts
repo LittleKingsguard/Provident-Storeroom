@@ -346,6 +346,24 @@ export type StoreStatus =
  *
  * `kind` is the kernel's closed four-member `LogKind` set, and `state` is the kernel's own `KC` token on the
  * one `outcome` entry and `null` on the three non-`outcome` kinds.
+ *
+ * **⟶ AND THE LIST IT STANDS IN IS THE COMMIT'S, NOT THE ATTEMPT'S — 2026-10-28 (`D-53`).** **THE ARCHITECT,
+ * VERBATIM: *"If it's part of the same commit, then it uses the same message log. If it opens a new commit, it
+ * uses the new commit's message log. Constraints/Repairs should always use the same commit. Listeners should open
+ * a new commit, because the triggering commit already passed constraints"*** (`strata/decisions.md` · `D-53`).
+ * **SO ONE COMMIT'S WORK IS ONE LIST**: a write, the constraint passes that judged it, a repair's own write and
+ * the re-run after it all append to the same array, `seq` is *"the ordinal of the list it stands in"* and it runs
+ * `1..n` CONTINUOUSLY across those attempts, and **the `log` a refusal crosses with IS that array** — which is what
+ * `DEF-AK`'s *"one inner refusal, two hosts"* measures and what `D-52`'s merge question dissolved into. **A
+ * LISTENER'S WRITE IS THE ONE THAT STARTS A FRESH LIST**, because the commit that triggered it has already passed
+ * its constraints and what the listener does is a new question.
+ *
+ * **AND `state`'S DOMAIN IS `KC-1`…`KC-9`, NOT `KC-1`…`KC-8`.** **`D-53`'s THIRD RULING — *"Open the token
+ * set"* — gives the SAVE ARM a token of its own (`KC-9`)**, so that a `file`-tier save that fails at the terminal
+ * arm and a constraint that refuses a pass cross with DIFFERENT `status` values (`FileCommitFailed` and
+ * `ConstraintPassRefused`) **each derivable from the log's terminal state** — the contradiction `D-52` measured
+ * when `KC-8` crossed as both. **NO MEMBER OF THIS DECLARATION'S `StoreStatus` MOVES**: `KC-9` rides `state` and
+ * never `status`, exactly as every `KC` token does, so the closed status set keeps its `20` members and its ranks.
  */
 export interface LogEntry {
   readonly seq: number;
@@ -372,6 +390,14 @@ export interface LogEntry {
  * failure's cause has no attempt at all** (item 4: the empty array, never an absent member and never a
  * placeholder entry) — **while every failure whose attempt exists carries that attempt's own entries, taken
  * BEFORE the attempt is disposed of** (item 10 (iii)).
+ *
+ * **⟶ AND FROM 2026-10-28 THOSE ENTRIES ARE THE COMMIT'S (`D-53`).** *"That attempt's own entries"* is read
+ * through **the one list the whole commit appends to**: an attempt holds a REFERENCE to its commit's log, so a
+ * failure crossing from ANY arm of that commit — a pass's refusal, a repair's, a `file`-tier save's at the
+ * terminal arm — carries the same array, and **a save failure's `log` is no longer `[]`**: `D-52`'s measured
+ * sentence (*"a save failure crosses as `FileCommitFailed` with `log: []`, and its verdict stands only in the
+ * attempt's log, which the crossed value does not carry"*) is the defect `D-53` closes, and the save arm's own
+ * `outcome` entry — carrying `KC-9` — is the entry that ends that list.
  */
 export interface StoreRefusal {
   readonly status: StoreStatus;
@@ -918,8 +944,9 @@ export interface StoreInstance {
    * **AND IT MOVES NO OTHER FIGURE**: the module namespace keeps its ONE name `storeCreate` (`§2.9` item 1's
    * `A127` clause, `11 → 1` ✓), the kernel's extent stays FIVE with no `K-6` proposed (`§2.4` item 9 (f),
    * item 8 — the pairs are read from the entry's OWN registry, which is keyed exactly as the kernel's is), the
-   * store's closed `17`-member set is not reached, the kernel's `KC` set stands closed at `8`, and the register
-   * keeps its `8` rows.
+   * store's closed `17`-member set is not reached, the kernel's `KC` set stands closed at `8` (**⟶ MOVED `8 → 9`
+   * on 2026-10-28 by `D-53`'s third ruling — *"Open the token set"* — the appended member being the SAVE ARM's
+   * `KC-9`; see `LogEntry`'s clause above), and the register keeps its `8` rows.
    *
    * **It is NOT a named export of this entry** (`package.md §1.3` item 3): it is reached through
    * `storeCreate`'s own product alone.

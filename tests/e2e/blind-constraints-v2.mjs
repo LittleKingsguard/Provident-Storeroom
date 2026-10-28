@@ -210,7 +210,7 @@ const logShape = (l) => {
 };
 const kinds = (l) => (l ?? []).map((e) => `${e.kind}/${e.id}/${e.state}`).join(' ');
 const stepShape = (st) => keysOf(st) === 'answer,checkpoint,failed,opId,restoredTo,undoneOps';
-const KC = new Set(['KC-1', 'KC-2', 'KC-3', 'KC-4', 'KC-5', 'KC-6', 'KC-7', 'KC-8']);
+const KC = new Set(['KC-1', 'KC-2', 'KC-3', 'KC-4', 'KC-5', 'KC-6', 'KC-7', 'KC-8', 'KC-9']);
 // ITEM 2'S DECLARED CALL LIST (composition-and-states.md §2.6 item 2, read with item 5 (a)'s skip): the
 // attempt's own ops minus every op AT OR BEFORE the `checkpoint` op, minus the op the member names, in
 // DECLARED REVERSE order — the repaired/last op's call first and the attempt's first op's call last. The

@@ -1,5 +1,5 @@
 // `D-13` (`docs/L1/kernel-subdivision.md` §1 part `9c`) — the commit act: bytes moved from `bindings/js/src/constraint-kernel.mjs`; no logic changed.
-import { KC, refuse, inDomainAddress, kernelFor, attemptHeldAt, appendOwn, addressSpelling } from './kernel-foundations.mjs';
+import { KC, refuse, inDomainAddress, kernelFor, attemptHeldAt, appendOwn, addressSpelling, commitLogInFlight, COMMIT_LOG } from './kernel-foundations.mjs';
 // ---------------------------------------------------------------------------------------------
 // `K-2` `commit(store, address, tier, value) -> CommitRecord`
 // ---------------------------------------------------------------------------------------------
@@ -53,6 +53,17 @@ export function commit(store, address, tier, value) {
   // `appendOwn`), and NO ANSWER MOVES: the same segments, the same order, a FRESH array as before.
   const addressCopy = [];
   for (let i = 0; i < address.length; i += 1) appendOwn(addressCopy, address[i]);
+  // **⟶ AND THE ATTEMPT'S LOG IS THE COMMIT'S LOG — `D-53`, 2026-10-28.** A write the kernel reaches from inside
+  // an invocation it made of caller code that BELONGS TO AN ATTEMPT (a constraint body's verb at a landing, a
+  // repair body's write, a registration's body) is part of that attempt's commit, so it JOINS that commit's one
+  // list; a write reached with no such frame standing — a caller's own write, and a LISTENER BODY's write, which
+  // the entry invokes at the terminal arm — OPENS a commit and starts a fresh list, because *"the triggering
+  // commit already passed constraints"* and what the listener does now is a new question (`D-53`).
+  // **ONE LIST PER COMMIT AND NO MERGE**: the entries a nested write mints are this list's entries, their `seq`
+  // is this list's ordinal, and the crossed report of the enclosing refusal IS this list (`D-52`'s rule 2 is
+  // dissolved rather than answered — there are not two lists to reconcile).
+  const joined = commitLogInFlight(kernel);
+  const commitLog = joined === null ? [] : joined;
   const attempt = {
     ref: { id: `attempt-${kernel.attempts}` },
     store,
@@ -65,7 +76,8 @@ export function commit(store, address, tier, value) {
     // reads `triggered` as the store's returned set VERBATIM).
     write: null,
     ops: [],
-    log: [],
+    // THE COMMIT'S OWN LIST, BY REFERENCE (`D-53`): the attempt holds a reference to it and mints no second one.
+    log: commitLog,
     ran: [],
     appliedRepairs: [],
     rollback: [],
@@ -111,6 +123,18 @@ export function commit(store, address, tier, value) {
     pending: [],
   };
   attempt.record = record;
+  // **⟶ AND THE LOG TRAVELS ON THE COMMIT'S OWN RECORD, UNDER A SYMBOL KEY — `D-53`.** The record is the
+  // commit's JS identity: the fourth position names it, the entry adopts it, and the terminal arm holds it when
+  // it must tell a failed save's crossing WHICH LOG the commit's verdict stands in (`delivery.mjs`'s save arm
+  // reads it through `state.mjs`'s `commitLogOf`, which spells the same key). **NO MEMBER IS ADDED**: `Object.keys` and
+  // `Object.getOwnPropertyNames` read past a symbol (`A117` (D6)), so `CommitRecord` keeps its four members and
+  // every census of it moves by nothing.
+  Object.defineProperty(record, COMMIT_LOG, {
+    value: commitLog,
+    enumerable: false,
+    writable: false,
+    configurable: true,
+  });
   // **⟶ INSTANT (a)'S SEAM CALL IS WITHDRAWN, 2026-10-18** (`docs/specs/storeroom-constraints/kernel-surface.md
   // §2.1` item 2's clause of that date: *"the call of `settle(record)` THIS ITEM MAKES AT INSTANT (a) … IS
   // WITHDRAWN"*). **WITH ONE ACTOR THERE IS NOTHING TO WITHHOLD**: the record is built and complete BEFORE the

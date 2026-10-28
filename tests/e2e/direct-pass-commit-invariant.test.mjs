@@ -183,9 +183,16 @@ test('D-44 (1) · THE DIRECT-PASS WINDOW: a pass driven by hand through `K-2`/`K
       + `nested write — so the pass's scope JOINED the write's commit and neither the pass nor the nested write `
       + `opened a second (\`§4.1\`: *"a verb that finds an extant commit JOINS it rather than opening a second, `
       + `which is what keeps the count exact under nesting"*). THE DRIVE READ ${JSON.stringify(nesting)}`);
-  assert.equal(productionOpenings, 2,
-    `and the \`attempt-opened\` channel fired TWICE across the whole production call — THE WRITE'S OWN OPENING `
-      + `AND THE BODY'S NESTED WRITE'S OWN OPENING — while the pass's scope JOINED the write's commit and moved `
+  // **⟶ MOVED `2 → 1` ON 2026-10-28 BY `D-53`'S SECOND INVARIANT, AND THE LIMB IT REPLACES IS NAMED: the
+  // `D-45` reading that made the body's nested write an opening of its own is SUPERSEDED — *"Constraints/Repairs
+  // should always use the same commit"* — so the nested write JOINS the write's commit and the whole production
+  // call opens ONE commit, not two. THE INVARIANT THIS CELL EXISTS FOR IS UNMOVED AND IS NOW STRONGER: the count
+  // during the pass is `1` at both asks (`nesting` above), the pass's scope opens nothing, AND NEITHER DOES A
+  // CONSTRAINT BODY'S VERB.** The superseded sentence follows as the record of the `D-45` instant:
+  assert.equal(productionOpenings, 1,
+    `and the \`attempt-opened\` channel fired ONCE across the whole production call — THE WRITE'S OWN OPENING `
+      + `ALONE, which the pass's scope and the body's nested write BOTH JOINED (\`D-53\`: *"Constraints/Repairs `
+      + `should always use the same commit"*) — while `
       + `nothing. **⟶ RE-DERIVED 2026-10-27 BY \`D-45\`, ONE LIMB AND NO OTHER**: this assertion read \`1\` and its `
       + `sentence read *"the pass's scope and the nested write both joined it"*; strata/decisions.md's D-45 `
       + `rules that *"a call entering the surface from an externally-supplied function OPENS A NEW COMMIT by `

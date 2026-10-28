@@ -576,11 +576,28 @@ test('fts_prop_P_SM_4_S_REFUSAL_rollback_first_message_second_and_no_repair', as
       assert.ok(Array.isArray(caught.log),
         'P-SM-4: `log` is an ARRAY — never absent, never `null`, never a non-array (`surface.md §2.5` '
         + 'item 9; `parameter-semantics.md §2.26`\'s `domain` cell)');
-      assert.deepEqual(caught.log, [],
-        'P-SM-4: and the failed save\'s own attempt reaches this frame with NO APPENDED ENTRY, so the '
-        + 'member\'s DECLARED value is `[]` — the empty array and never a placeholder entry '
-        + '(`surface.md §2.5` item 4; item 10 (iii): the log is taken as it stood when the refusal was '
-        + 'built, and the terminal act that removes the registry entry runs before this frame)');
+      // **⟶ MOVED 2026-10-28 BY `D-53`'S FIRST INVARIANT — *"If it's part of the same commit, then it uses the
+      // same message log"* — AND THIS IS THE LIMB `D-52` MEASURED AS THE WHOLE POINT: *"a save failure crosses
+      // `FileCommitFailed` with `log: []`, and its verdict stands only in the attempt's log, which the crossed
+      // value does not carry"*.** **THE SUBJECT OF THE ASSERTION SURVIVES AND THE EMPTINESS DOES NOT**: the
+      // member is still an ARRAY (asserted above), it still carries NO placeholder entry, and it is still taken
+      // as it stood when the refusal was built — **and the list it carries is now THE COMMIT'S**: this write's
+      // `constraint-check` entry (the pair at the attempt's address evaluated and passed) and the terminal arm's
+      // ONE `outcome` entry, whose `state` is the save arm's own token `KC-9` — so a save failure and a
+      // constraint refusal cross with different statuses AND each is derivable from the log's terminal state
+      // (`D-53`'s third ruling; `kernel-terminal.mjs`'s precedence clause). **THE KERNEL'S OWN `outcome` ENTRY IS
+      // APPENDED AFTER THIS FRAME'S LIST WAS HANDED TO THE THROWABLE, and it is the SAME LIST**: the arrays are
+      // one, which is the invariant and not a coincidence.
+      const saveOutcome = caught.log.filter((entry) => entry.kind === 'outcome');
+      assert.deepEqual(caught.log.map((entry) => entry.kind), ['constraint-check', 'outcome'],
+        'P-SM-4: and the crossed `log` IS THE COMMIT\'S OWN LIST — the attempt\'s `constraint-check` entry '
+        + 'then the terminal arm\'s ONE `outcome` entry, with no entry of another attempt and no placeholder '
+        + `(\`D-53\`; \`surface.md §2.5\` items 4 and 10 (iii)) — read ${JSON.stringify(caught.log.map((e) => e.kind))}`);
+      assert.equal(saveOutcome.length === 1 ? saveOutcome[0].state : null, 'KC-9',
+        'P-SM-4: and its `state` is the SAVE ARM\'S OWN token — the set\'s ninth member, `KC-9` '
+        + '(`D-53`: *"the save arm gets its own state token"*) — never `KC-3` and never the floor\'s `KC-8`, '
+        + 'so the two arms are told apart by the log\'s terminal state — read '
+        + `${JSON.stringify(saveOutcome.map((e) => e.state))}`);
       assert.equal(caught.repair, undefined,
         'P-SM-4: and NO repair member is carried by this answer — the observable `§10.9` row 4 declares '
         + '(*"the absence of any repair return"*), asserted on the shape itself and not inferred');
