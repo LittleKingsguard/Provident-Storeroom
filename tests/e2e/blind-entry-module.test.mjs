@@ -327,6 +327,16 @@ test('entry-module · index.d.ts `StoreRefusal` and `LogEntry` · the failure fo
     ['seq', 'kind', 'id', 'message', 'opId', 'state'],
   );
   assert.match(DECLARATION, /readonly kind: 'constraint-check' \| 'repair-run' \| 'commit' \| 'outcome';/);
+  // **⟶ AND THE DECLARATION SAYS WHAT `seq` IS TRUE OF — `DEF-AI`, 2026-10-28.** The row's demand was that the
+  // member's subject be named, because a consumer read `seq` as the STORE's ordinal and measured a refusal's
+  // entry at `1` while the journal's counter read `41`. **THE SENTENCE IS ASSERTED AT THE SHIPPED DECLARATION'S
+  // BYTES** (flattened across the comment's own line wrapping, so the assertion is about the text and not about
+  // where the author broke a line), **so a hand edit that drops it reddens here rather than travelling.**
+  const declarationText = DECLARATION.replace(/^[ \t]*\*[ \t]?/gm, '').replace(/\s+/g, ' ');
+  assert.ok(declarationText.includes('`seq` is the position of the entry in the commit\'s own message log; it is '
+    + 'not the store\'s journal ordinal, and the two differ by design.'),
+  'the declaration must say what `seq` is true of — the COMMIT\'s message log, not the store\'s journal ordinal — '
+    + 'and that the two differ by design (`DEF-AI`)');
 });
 
 test('entry-module · index.d.ts `WriteRecord` · `DeleteRecord` · `RollbackRecord` · the three verb records a consumer reads: three members on the write and the reversal, FIVE on the delete — its `op` beside the three and its `discarded` witness — and `undoneOps` is the LIST of the ids the reversal undid', () => {

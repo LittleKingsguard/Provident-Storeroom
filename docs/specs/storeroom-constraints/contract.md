@@ -600,6 +600,19 @@ contract.md §2.6` — *"evaluate constraints AFTER a `write` returns"*; `A: doc
 contract.md §6.5` item 5 with `docs/specs/storeroom-native/write-and-read.md §6.5` item 10 (d) — the store
 NEVER invokes anything, it RETURNS the handles — READ WITH `kernel-surface.md §2.2` item 2's SPLIT, WHOSE PARTITION PREDICATE IS **THE WRITE'S AUTHOR AND NOT THE LISTENER'S KIND** — THE KERNEL INVOKES A HANDLE A WRITE THE KERNEL ITSELF MADE RETURNED, AND EVERY HANDLE A CALLER-MADE WRITE RETURNED STANDS IN `CommitRecord.pending`** — **AND THAT MEMBER CARRIES THE WHOLE RETURNED SET OF TRIGGERED CONSTRAINTS, EACH ENTRY LEAVING IT ONLY BY BEING CHECKED OFF AS IT PASSES, SO THE `FOR **THE CALLER'S OWN LOOP** TO RUN, THAT LOOP BEING LAYER (b)'s ONLY INVOKER` SPELLING THAT ONCE STOOD HERE IS WITHDRAWN BY NAME AT THE `A112` DELIVERY-MODEL RE-SPELL PASS OF 2026-10-13 (`A: docs/decisions.md` · `A112`): THE JS SURFACE RUNS THE TRIGGERED CONSTRAINTS FIRST AND, ONCE ALL CONSTRAINTS PASS, THE OTHER LISTENERS, BEFORE RETURNING TO THE CALLING PROCESS, AND THE CALLER'S OWN LOOP IS ONE INVOKER AMONG THOSE LAYERS AND NOT THE ONLY ONE — SIFTING A SUBSET OUT OF THE RETURNED SET BEING UNNECESSARY AND UNLAWFUL (`A107` `D1`; `A108` `D1`/`D2`; `A109` `D2`; `A112`; `kernel-surface.md §2.1` item 2)** — no callback parameter existing on `K-1`–`K-5` and no sixth surface item being declared (`A: docs/decisions.md` · `A107` `D1`; `A108` `D1`/`D2`; `A109` `D2`; `kernel-surface.md §2.1` item 2); `R: §11.5` — `AR-9` | CONTRACT`)
 
+**⟶ AND THE ORDINAL'S SUBJECT IS NAMED AT THIS ROW, 2026-10-28 — `DEF-AI`, MEASURED.** `RCA-8(d)` ANNOTATE-BESIDE:
+**every byte above stands BYTE-FOR-BYTE and is read THROUGH this clause.** **`seq` is the position of the entry in
+the COMMIT's own message log; it is not the store's journal ordinal, and the two differ by design** (`D-53` moves
+the list from the attempt to the commit; the kernel mints `log.length + 1` on that one list). **THE MEASUREMENT THE
+ROW FILED: a refusal's entry carried `seq` `1` while the store's journal counter read `41`**, because the two
+numbers are ordered by two different records — the commit's list and the store's journal — and no clause of this
+directory ever made them one. **AND THE ORDER ACROSS A COMMIT'S ATTEMPTS IS MEASURED AND MONOTONE**: one repair
+write appends `1..5` (`constraint-check` · `repair-run` · `commit` · `constraint-check` · `commit`) across the pass,
+the repair's own joined write and the re-run, strictly increasing in array order (`tests/e2e/
+repair-in-commit.test.mjs`'s `D-46` (1) cell). **A SEVENTH ORDINAL IS NOT MINTED**: a number read off the store's
+journal counter would be a second ordinal with no consumer. (`strata/decisions.md` · `D-53`, `D-48` · `DEF-AI`;
+`P-SM-5`'s `S-LOG-ORDER` strategy id, whose subject is UNMOVED.)
+
 ### §5.6 `P-SM-6` — the first-repeat rule: an applied repair never runs twice, and a repeat fails the attempt
 
 **Property.** **A REPAIR ALREADY RECORDED AS APPLIED IN THIS ATTEMPT MAY NOT RUN AGAIN, AND A SECOND

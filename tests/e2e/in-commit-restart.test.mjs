@@ -103,6 +103,7 @@ test('IN-COMMIT RESTART (1) · a violating `rollback` issued from a LISTENER BOD
       ? { message: 'the state the reversal leaves is not one this pair admits' }
       : true;
   }));
+  const before = store.read(['a']);
   const terminal = attempt(() => store.write(['a'], 'mem', THIRD));
   const standing = store.read(['a']);
   const caught = terminal.ok === false ? terminal.caught : null;
@@ -150,9 +151,24 @@ test('IN-COMMIT RESTART (1) · a violating `rollback` issued from a LISTENER BOD
   assert.equal(log[0].opId, target.op.opId,
     `the entry's \`opId\` is the store's own echo of the id the reversal named: `
       + `${JSON.stringify(log[0].opId)} against ${JSON.stringify(target.op.opId)}`);
-  assert.equal(log.some((entry) => typeof entry.message === 'string' && /undone/i.test(entry.message)), true,
+  // **⟶ RE-DERIVED 2026-10-28 (`DEF-AJ`), BECAUSE THIS LIMB WAS PASSING ON THE FALSE READING.** It read
+  // `/undone/i` against the entry's message, and `"the reversal was NOT undone"` matches that regex — so the arm
+  // was green while the message said the restore FAILED beside a store the store's own act had restored
+  // (`9 → 9`). **THE SENTENCE MUST SAY THE RESTORE SUCCEEDED, AND SAY WHICH BASELINE IT MEASURED**: this arm's
+  // compensation returns the store to the journal mark the WRITE'S COMMIT cached at its opening — `9`, the state
+  // the commit found — and the pre-reversal standing the watch captured was `7`, so the honest arm is the
+  // WHOLE-COMMIT UNDO and never `"NOT undone"`.
+  assert.equal(/NOT undone/i.test(log[0].message), false,
+    `the refusal's entry must NOT claim the store was left unrestored — the store stands at `
+      + `${JSON.stringify(standing)}, the mark the commit cached at its opening, so a *"NOT undone"* sentence is a `
+      + `restore that succeeded reported as a failure (\`DEF-AJ\`): ${JSON.stringify(log[0].message)}`);
+  assert.match(log[0].message, /UNDONE/,
     `the refusal's entry says the reversal was UNDONE, so a consumer knows the store is back where it `
       + `started: ${JSON.stringify(log.map((entry) => entry.message))}`);
+  assert.match(log[0].message, /WHOLE-COMMIT UNDO/,
+    `and it names the restore as a WHOLE-COMMIT UNDO with its baseline said: the commit's own earlier write `
+      + `went with the reversal, so the address stands at the mark's state and not at the pre-reversal standing `
+      + `(\`DEF-AJ\`): ${JSON.stringify(log[0].message)}`);
 
   // ── AND THE RESTART'S OWN EVIDENCE: THE PAIR WAS ASKED AT THE STATE THE REVERSAL LEFT. ─────
   assert.deepEqual(asked, [LANDED, THIRD, SEED],
@@ -174,11 +190,17 @@ test('IN-COMMIT RESTART (1) · a violating `rollback` issued from a LISTENER BOD
       + `landing (${THIRD}). THE DRIVE READ ${JSON.stringify(standing)} where ${JSON.stringify(SEED)} would be the `
       + `violating effect standing and ${JSON.stringify(THIRD)} the refusal's own value`);
 
-  t.diagnostic(`IN-COMMIT RESTART (1) · D-42 (2026-10-27) · LISTENER ARM: window ${JSON.stringify(facts[0])} `
-    + `⇒ the reversal ANSWERED its record ${JSON.stringify(inner.value)} (not judged as a step), the check `
-    + `RESTARTED, the pair was asked at ${JSON.stringify(asked)} and REFUSED ${JSON.stringify(SEED)}; the `
-    + `terminal write refused \`${caught.status}\` with ${log.length} log entry naming '${log[0].id}'; the `
-    + `store stands at ${JSON.stringify(standing)} — the pre-reversal state, restored`);
+  assert.equal(before, LANDED,
+    `the state BEFORE the attempt is ${LANDED} — the value the pair was registered at, and the state the `
+      + `write's commit found: the drive read ${JSON.stringify(before)}`);
+
+  t.diagnostic(`IN-COMMIT RESTART (1) · D-42 (2026-10-27), RE-DERIVED 2026-10-28 (\`DEF-AJ\`) · LISTENER ARM: the `
+    + `window ${JSON.stringify(facts[0])} ⇒ the reversal ANSWERED its record ${JSON.stringify(inner.value)} (not `
+    + `judged as a step), the check RESTARTED, the pair was asked at ${JSON.stringify(asked)} and REFUSED `
+    + `${JSON.stringify(SEED)}; the terminal write refused \`${caught.status}\` with ${log.length} log entry `
+    + `naming '${log[0].id}'. **PRINTED BEFORE → AFTER: ${JSON.stringify(before)} → ${JSON.stringify(standing)}** `
+    + `— the store stands again where the commit's mark found it, and the entry says so: `
+    + `${JSON.stringify(log[0].message)}`);
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════

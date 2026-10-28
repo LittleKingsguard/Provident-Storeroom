@@ -186,6 +186,26 @@ test('D-46 (1) · A REPAIR IS TRACKED INSIDE ITS ATTEMPT: the repair body\'s wri
       + `${JSON.stringify(standing)}`);
   assert.equal(repairedStanding, REPAIRED,
     `and the repair's own op stands at the beside address it wrote: ${JSON.stringify(repairedStanding)}`);
+  // ── (c) AND `seq` IS MONOTONE ACROSS THE COMMIT'S ATTEMPTS — **`DEF-AI`'S MEASUREMENT, 2026-10-28**. ──
+  // **THE ROW DEMANDS THIS BE CHECKED AGAINST THE MERGE RATHER THAN ASSUMED.** With the log on the COMMIT
+  // (`D-53`), one repair write is several attempts — the pass, the repair's own joined write and the re-run —
+  // and every one of them appends to the SAME array. **THE ORDINAL MUST BE STRICTLY INCREASING IN ARRAY ORDER
+  // AND CONTINUOUS FROM `1`**, because that is what *"the position of the entry in the commit's own message
+  // log"* means; it is printed in the diagnostic below so a reader reads the sequence itself and not this
+  // cell's intention. **NO ENTRY IS MINTED FROM THE STORE'S JOURNAL COUNTER** (`DEF-AI`'s prohibition): the
+  // numbers below are the kernel's own arithmetic on the commit's one list.
+  const seqs = report.log.map((entry) => entry.seq);
+  assert.ok(seqs.length >= 2,
+    `the commit must hold at least the pass's and the repair's entries for monotonicity to have a subject: `
+      + `the drive read ${JSON.stringify(seqs)}`);
+  for (let index = 1; index < seqs.length; index += 1) {
+    assert.equal(seqs[index], seqs[index - 1] + 1,
+      `**\`seq\` IS MONOTONE ACROSS THIS COMMIT'S ATTEMPTS — ONE LIST, \`1..n\`, NO RENUMBERING** (\`D-53\`; `
+        + `\`DEF-AI\`): the entries read ${JSON.stringify(seqs)} and the kinds `
+        + `${JSON.stringify(report.log.map((entry) => entry.kind))}`);
+  }
+  assert.equal(seqs[0], 1,
+    `and the one list starts at \`1\`: ${JSON.stringify(seqs)}`);
   assert.deepEqual(windowOf(store), { open: 0, live: 0 },
     `and the whole call returns at rest: ${JSON.stringify(windowOf(store))}`);
 
@@ -196,7 +216,10 @@ test('D-46 (1) · A REPAIR IS TRACKED INSIDE ITS ATTEMPT: the repair body\'s wri
     + `the attempt's \`ops\` are ${JSON.stringify(ops.map((op) => op.opId))} and its \`repair-run\` entry names `
     + `${JSON.stringify(repairEntry[0].opId)}; the pair was asked at ${JSON.stringify(asked)}; the store stands at `
     + `${JSON.stringify(standing)} and \`['z']\` at ${JSON.stringify(repairedStanding)}, the call returning `
-    + `${JSON.stringify(windowOf(store))}`);
+    + `${JSON.stringify(windowOf(store))}. **AND THE COMMIT'S \`seq\` IS MONOTONE ACROSS ITS ATTEMPTS — `
+    + `\`DEF-AI\`'S MEASUREMENT: ${JSON.stringify(seqs)} over the kinds `
+    + `${JSON.stringify(report.log.map((entry) => entry.kind))}** — one list, \`1..n\`, no renumbering, and no `
+    + `number read off the store's journal counter`);
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════

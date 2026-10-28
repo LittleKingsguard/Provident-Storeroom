@@ -21,6 +21,18 @@ WAS DRIVEN AGAINST A PUBLISHED TARBALL:** every behavioural claim below is eithe
 measurement taken on this repository's checkout and named as one. **No `npm install` was run by the pass that
 wrote this file against the registry, so a registry-installed `0.5.0` is described here and not witnessed.**
 
+**⟶ AND THE TWO FIGURES THIS GUIDE CANNOT AFFORD TO HAND-WRITE ARE GENERATED AND ASSERTED FROM 2026-10-28 — `DEF-AC` (b), AND THE ASSERTION IS THE DELIVERABLE.** `RCA-8(g)` ANNOTATE-BESIDE: **the paragraph above stands
+BYTE-FOR-BYTE and is read THROUGH this clause.** **THE DEFECT: the version line and the cut-state sentence below
+were written BY HAND, which is how this guide came to deny the release it travels in** — a figure copied by hand
+goes stale the moment the manifest or the tag set moves, and for eight dated paragraphs nothing reddened. **SO
+`scripts/publish.sh` GENERATES BOTH from `bindings/js/package.json`'s `version` and `git tag --list`, and its
+preflight REFUSES when these two lines do not read what it computed** (`scripts/publish.sh --figures` runs that
+one check, read-only). **THE TWO LINES ARE THIS GUIDE'S OPERATIVE FIGURES; every dated paragraph below is the
+reading of its own date and is read through them.**
+
+PUBLISH-GUIDE-VERSION-LINE: THE VERSION THIS GUIDE DESCRIBES IS `1.2.0`.
+PUBLISH-GUIDE-CUT-STATE: THE TAGS THIS TREE CARRIES ARE `v1.0.0` · `v1.0.1` · `v1.1.0` · `v1.2.0`; `v1.2.0` EXISTS, SO THE RELEASE THIS GUIDE DESCRIBES IS CUT.
+
 **⟶ CORRECTED 2026-10-26 — THE VERSION THIS GUIDE DESCRIBES IS `1.0.0`, NOT `0.5.0`, AND THE SENTENCE ABOVE STANDS
 BYTE-FOR-BYTE AS THE READING OF THE DAY THIS FILE WAS WRITTEN AND IS READ THROUGH THIS CLAUSE** (`RCA-8(g)`
 ANNOTATE-BESIDE; `DEF-2026-10-02`: no whole-file rewrite). **`bindings/js/package.json`'s `version` field read at its
@@ -798,6 +810,19 @@ on this checkout:
 - **`seq` runs `1..n` CONTINUOUSLY across those steps**, because it is *the ordinal of the list it stands in*
   and there is one list. A repair's `commit` entry can stand in the middle of the list, between the refused
   pass's entries and the re-run's: **it is a real entry of the same commit, not a second log.**
+
+**⟶ AND WHAT `seq` IS TRUE OF, SAID PLAINLY, 2026-10-28 — `DEF-AI`, MEASURED.** **`seq` is the position of the
+entry in the commit's own message log; it is not the store's journal ordinal, and the two differ by design.**
+`RCA-8(g)` ANNOTATE-BESIDE: **the bullets above stand BYTE-FOR-BYTE and are read THROUGH this paragraph.** **THE
+MEASUREMENT THAT OWES IT: a refusal's entry carried `seq` `1` while the store's own journal counter read `41`, and a
+consumer read the two as one ordinal.** They are two ordinals with two homes — **`JournalOp.seq`, the store's
+append ordinal that orders the store's record, and this `seq`, the kernel's append ordinal on the COMMIT's one
+list** — and neither equals the other by construction. **AND THE ORDER ACROSS A COMMIT'S ATTEMPTS IS MEASURED, NOT
+CLAIMED: one repair write appends the five entries `constraint-check` `1` · `repair-run` `2` · `commit` `3` ·
+`constraint-check` `4` · `commit` `5` — strictly increasing in array order, continuous from `1`, across the pass,
+the repair's own joined write and the re-run** (`tests/e2e/repair-in-commit.test.mjs`'s `D-46` (1) cell, printed).
+**No entry is ever minted from the store's journal counter**: that would be a second ordinal with no consumer.
+(`D-53`; `D-48` · `DEF-AI`; `index.d.ts`'s `LogEntry` carries the same sentence.)
 - **A nested write a CONSTRAINT body makes is part of the same commit**, so **its entries are in YOUR list** —
   which is why a constraint body that performs a refused write now shows you that refusal's own
   `constraint-check` and `outcome` entries, verbatim, before the enclosing `outcome` entry. **That is `DEF-AK`'s
@@ -1244,6 +1269,8 @@ adds it **only if an e2e/install scenario shows a consumer or a scanner needs th
 a change of licence.**
 
 **⟶ AND FOUR FIGURES OF THIS SECTION ARE RE-READ AT THE SHIPPED TREE, 2026-10-26, EACH AT ITS OWN SITE, SO THE ALLOWLIST IS NOT LEFT AT A COUNT THE MANIFEST NO LONGER CARRIES.** `RCA-8(g)` ANNOTATE-BESIDE: **every table row, every ★ paragraph and every figure above stands BYTE-FOR-BYTE and is read THROUGH this clause; THIS clause re-reads four figures and moves no rule of theirs — the reachability rule, the licence reading's ground and the `engines` floor all stand whole.** **(i) THE `files` ROW READS SIX ROWS, NOT FIVE** — `bindings/js/package.json`'s `files` array, read at its own bytes: `index.mjs` · `README.md` · `README.guide.md` · `index.d.ts` · `src/entry/` · `src/constraint-kernel.mjs` — **`6 = 4 + 2` ✓, the four root files plus the entry directory and the kernel** — and **the sixth row is the consumer guide's landed copy, `README.guide.md`, staged byte-for-byte from `docs/guides/package-use.md` by the release's assembly and imported by nothing** (`scripts/publish.sh`'s guide stage; `distribution.md §4.2` item 3's documented-text class). **THE TWO *"FIVE"* READINGS ABOVE — the table's own *"five rows"* and the ★ paragraph's *"THE FIVE ROWS ABOVE"* — are the reading of their own date and are read THROUGH this clause; and so is the licence paragraph's *"the five allowlist rows"*, whose subject is UNMOVED: NONE of the SIX rows is a `LICENSE` row, and none will be unless `D-8`'s evidence condition is met.** **THE RULE THE COUNT CARRIES IS UNMOVED EITHER WAY: whatever the entry requires by path must ship, and the count is a fact of this tree and not a contract.** **(ii) THE PACKED SET READS NINETEEN MEMBERS BARE AND TWENTY ASSEMBLED** — measured at the shipped packers: **the bare tarball carries `19` files** (`1` `package.json` + `4` root files + `13` entry modules + `1` kernel, `1 + 4 + 13 + 1 = 19` ✓, the guide standing among the four root files), **and the assembled artefact carries `20`, the nineteen plus `LICENSE`, which lands only in the assembled tree** — so a consumer comparing a bare `npm pack` tree with the release's artefact should expect exactly one member's difference and it is the licence. **(iii) AND THE GUIDE ITSELF NOW SHIPS:** **this document's canonical text reaches `node_modules/provident-storeroom/README.guide.md` in an installed package, beside `README.md`** — so a reader of the installed tree holds the document this file is, at that one path, and the landing adds no code, no export and no import. **(iv) THE STATUS SET IS TWENTY** — the figure `§8.1`'s heading and table print, and the one `§8.1`'s own dated clause and `§12.3`'s entry still spell `nineteen`: **each is read through the correction of this date at its own site, and the crate's own `CODES` is `[&str; 20]` at its bytes**, so the declaration of record and the crate agree at twenty.**
+
+**⟶ AND THE CHANGE LIST NOW SHIPS AND THE ALLOWLIST NAMES SEVEN ROWS, 2026-10-28 — `DEF-AC` (a), MEASURED.** `RCA-8(g)` ANNOTATE-BESIDE: **every row and every dated clause above stands BYTE-FOR-BYTE and is read THROUGH this clause; THIS clause re-reads three figures of this section and adds one document, and it moves no rule of theirs.** **(i) THE `files` ROW READS SEVEN ROWS, NOT SIX** — `bindings/js/package.json`'s `files` array, read at its own bytes: `index.mjs` · `README.md` · `README.guide.md` · `RELEASE-NOTES.md` · `index.d.ts` · `src/entry/` · `src/constraint-kernel.mjs` — **`7 = 5 + 2` ✓, the five root files plus the entry directory and the kernel** — and **the seventh row is the CHANGE LIST's landed copy, `RELEASE-NOTES.md`, staged byte-for-byte from the repository root by the release's assembly and imported by nothing**, the same mechanism and the same declared non-code class as `README.guide.md`. **NONE OF THE SEVEN IS A `LICENSE` ROW**, and none will be unless `D-8`'s evidence condition is met. **(ii) THE PACKED SET READS TWENTY MEMBERS BARE AND TWENTY-ONE ASSEMBLED** — **the bare tarball carries `20` files** (`1` `package.json` + `5` root files + `13` entry modules + `1` kernel, `1 + 5 + 13 + 1 = 20` ✓, the guide and the change list standing among the five root files), **and the assembled artefact carries `21`, the twenty plus `LICENSE`** — so a consumer comparing a bare `npm pack` tree with the release's artefact still expects exactly one member's difference and it is still the licence. **(iii) AND THE CHANGE LIST IS ON DISK IN AN INSTALLED PACKAGE**: `node_modules/provident-storeroom/RELEASE-NOTES.md` is **the declaration of `1.2.0`'s one behaviour change** — *"a refused reversal now restores to the commit's opening mark, not the journal's head"* — and **that is the row's own subject: a consumer receives the behaviour change WITH a shipped declaration of it, not a root document it can only reach by reading the repository** (`scripts/publish.sh`'s notes stage; the preflight REFUSES a drifted landing and refuses an allowlist that does not name it). **THE RULE THE COUNT CARRIES IS UNMOVED EITHER WAY: whatever the entry requires by path must ship, and the count is a fact of this tree and not a contract.**
 
 **AND THE `engines` FLOOR IS ONE DECLARATION WITH ONE READER — YOURS.** `>=18.0.0` is what the artefact loads on
 and it is honest rather than provisional: the addon's highest-referenced Node-API class is the `napi_*` pair at

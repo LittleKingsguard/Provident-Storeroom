@@ -358,6 +358,15 @@ export type StoreStatus =
  * LISTENER'S WRITE IS THE ONE THAT STARTS A FRESH LIST**, because the commit that triggered it has already passed
  * its constraints and what the listener does is a new question.
  *
+ * **⟶ AND WHAT `seq` IS TRUE OF IS SAID PLAINLY HERE, 2026-10-28 — `DEF-AI`, MEASURED.** **`seq` is the position
+ * of the entry in the commit's own message log; it is not the store's journal ordinal, and the two differ by
+ * design.** The kernel mints it as `log.length + 1` on the one list its commit appends to
+ * (`bindings/js/src/entry/kernel-foundations.mjs`), so a refusal's entry can carry `seq` `1` while the store's
+ * own journal counter reads `41`. **READ THE TWO AS TWO ORDINALS WITH TWO HOMES**: `JournalOp.seq` is the
+ * STORE's append ordinal and orders the store's record; this `seq` orders the COMMIT's message log and nothing
+ * else. **A consumer that compares them compares two different subjects, and no reading of this declaration
+ * says the first equals the second.**
+ *
  * **AND `state`'S DOMAIN IS `KC-1`…`KC-9`, NOT `KC-1`…`KC-8`.** **`D-53`'s THIRD RULING — *"Open the token
  * set"* — gives the SAVE ARM a token of its own (`KC-9`)**, so that a `file`-tier save that fails at the terminal
  * arm and a constraint that refuses a pass cross with DIFFERENT `status` values (`FileCommitFailed` and

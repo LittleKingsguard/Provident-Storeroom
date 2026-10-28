@@ -500,8 +500,10 @@ export function storeCreate(cfg) {
     /// but is not declarable as a member of `DeleteRecord`, and `D-49` asks for the member to be declared.
     ///
     /// **THE VALUE IS `[]` WHERE NOTHING WAS DISCARDED AND ONE `{ opId, addresses }` ENTRY WHERE A REQUEST WAS**
-    /// — the id the reversal named (the store's own echo) and the addresses the discarded check would have been
-    /// asked at. **NO PASS RUNS, NO BODY IS INVOKED, NO JUDGEMENT IS TAKEN AND THE BEHAVIOUR OF THE WINDOW IS
+    /// — the id the reversal named (the store's own echo) and **the addresses the refused act MOVED**, measured
+    /// at the reversal's own instant (`constraints.mjs`'s `movedStanding`), not the whole watched registry:
+    /// **a witness names what moved, because what did not move was not the act's** (`DEF-AM`, 2026-10-28).
+    /// **NO PASS RUNS, NO BODY IS INVOKED, NO JUDGEMENT IS TAKEN AND THE BEHAVIOUR OF THE WINDOW IS
     /// UNMOVED**: the request is consumed (reported) and its effect still stands.
     delete(address, tier) {
       // **⟶ `§4.1`: `delete` OPENS ONE.**

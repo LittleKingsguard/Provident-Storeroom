@@ -193,6 +193,14 @@ console.log('\n── W3 · THE WITNESS ON THE ACT\'S OWN ANSWER, PRINTED BEFORE
     asked.push(count);
     return count === 1 ? true : { message: `exactly one tab must be active, ${count} stand so` };
   }));
+  // **⟶ AND THE WITNESS'S OWN CONTROL, ADDED 2026-10-28 — `DEF-AM`: TWO PAIRS ARE REGISTERED AND THE REVERSAL
+  // MOVES ONE.** The witness must name the address the refused act MOVED — `['window']`, whose `tabs` loses
+  // `about` — and NOT `['window','settings']`, an address the same registry watches and the reversal never
+  // touches. **A WITNESS THAT NAMES EVERY WATCHED ADDRESS NAMES NOTHING**: it would read the same whether the
+  // act moved one address or all of them.
+  const secondPair = attempt(() => store.addConstraint({ address: ['window', 'settings'], id: 'settings-pair' },
+    () => true));
+  const registry = attempt(() => store.constraints());
   const raised = [];
   const handle = store.listen('tabs-listener', [['window', 'tabs']]);
   store.register(handle, (address) => {
@@ -228,6 +236,23 @@ console.log('\n── W3 · THE WITNESS ON THE ACT\'S OWN ANSWER, PRINTED BEFORE
     receipt.ok && descriptor !== undefined && descriptor.enumerable === false && descriptor.writable === false
       && keyOfAddr(keysOf(receipt.value)) === keyOfAddr(RECEIPT_ENUMERABLE),
     descriptor === undefined ? '<absent>' : `${JSON.stringify(keysOf(receipt.value))} / ${JSON.stringify(descriptor)}`);
+  // **⟶ DW-03.4 — THE TWO-PAIR CONTROL (`DEF-AM`).** Two pairs stand in the registry; the reversal the delivery
+  // raises moves ONE of their addresses (`['window']`, whose `tabs` loses `about`); the witness names that one and
+  // NOT `['window','settings']`. **THE DRIVE'S COHERENCE IS ASSERTED FIRST**, so a registry that never carried two
+  // pairs refuses the arm instead of reporting a verdict on it.
+  const registryAddresses = registry.ok && Array.isArray(registry.value)
+    ? registry.value.map((entry) => keyOfAddr(entry.address))
+    : [];
+  P('the registry the witness could have named (two pairs)', registryAddresses);
+  A('DW-03.4', '`DEF-AM` (2026-10-28: the witness names the addresses the refused act MOVED, not every watched address)',
+    'with TWO pairs registered and ONE address moved, the witness names exactly the moved address — one of the two — and never the untouched one',
+    secondPair.ok && registered.ok && registryAddresses.length === 2
+      && witness !== null && witness.length === 1 && Array.isArray(witness[0].addresses)
+      && witness[0].addresses.length === 1
+      && keyOfAddr(witness[0].addresses[0]) === keyOfAddr(['window'])
+      && keyOfAddr(witness[0].addresses[0]) !== keyOfAddr(['window', 'settings']),
+    `two pairs registered: ${JSON.stringify(registryAddresses)}; the witness named `
+      + `${witness === null ? '<no witness>' : JSON.stringify(witness.map((one) => one.addresses))}`);
 }
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════

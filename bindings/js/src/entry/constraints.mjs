@@ -1618,11 +1618,13 @@ export function drainRestartRequests(instance, report) {
 /// **WHAT THIS FUNCTION IS, AND WHAT IT IS NOT.**
 ///   * **IT RUNS NO PASS, NO BODY AND NO JUDGEMENT.** It reads the instance's own restart record — the record
 ///     `reversalWatch` raised the request in — and answers a fresh copy of the two facts a consumer needs: the
-///     id the reversal named (`reversalId`, the store's own echo) and the addresses the discarded check would
-///     have been asked at (`the watch's addresses`, deduplicated by spelling and copied segment for segment).
-///     **THE STORE IS NOT TOUCHED, NO CODE IS MINTED, NO LOG ENTRY IS APPENDED AND NO MEMBER OF ANY RECORD IS
-///     MOVED** — the `D-49` bar: *"a witness is not a refusal: the act still answers what it answered, the
-///     discard is reported beside it, and nothing new is minted in the closed status set."*
+///     id the reversal named (`reversalId`, the store's own echo) and **the addresses the refused act MOVED**
+///     (`request.moved`, measured by `judgeReversal` at the reversal's own instant and deduplicated by spelling,
+///     segment for segment). **THE WATCH'S FULL ADDRESS LIST IS THE DEBT RECORD AND IS NOT THE WITNESS**: naming
+///     every watched address would say nothing about what the act did (`DEF-AM`, 2026-10-28). **THE STORE IS NOT
+///     TOUCHED, NO CODE IS MINTED, NO LOG ENTRY IS APPENDED AND NO MEMBER OF ANY RECORD IS MOVED** — the `D-49`
+///     bar: *"a witness is not a refusal: the act still answers what it answered, the discard is reported beside
+///     it, and nothing new is minted in the closed status set."*
 ///   * **IT CONSUMES THE REQUEST IT REPORTS.** A request whose window is the caller's has no consumer that could
 ///     ever run it (the window's act ran no pass, and a later pass compares the identity and drops it — the
 ///     drain's own arm), so clearing the slot here moves no behaviour: it is the same clearing the drain would
@@ -1649,10 +1651,16 @@ export function witnessDiscardedReversal(instance, window) {
   // 2026-10-27): a request standing from another window is that window's and is left where it stands.
   if (request.window !== window) return null;
   record.pending = null;
+  // **⟶ AND THE ADDRESSES ARE THE ONES THE REFUSED ACT MOVED, NOT THE WHOLE WATCHED REGISTRY — `DEF-AM`,
+  // 2026-10-28.** The request's `watched` is the DEBT record and names every enabled pair's every address;
+  // `moved` is what `judgeReversal` measured at the reversal's own instant (`movedStanding`) and is the only
+  // answer a witness owes. **A WITNESS THAT NAMES EVERY ADDRESS THE REGISTRY WATCHES NAME NOTHING**: the
+  // discarded check's subject is the state the reversal changed.
+  const subject = Array.isArray(request.moved) ? request.moved : [];
   const addresses = [];
   const spellings = [];
-  for (let index = 0; index < request.watched.length; index += 1) {
-    const address = request.watched[index].address;
+  for (let index = 0; index < subject.length; index += 1) {
+    const address = subject[index].address;
     const spelling = homeAddressKey(address);
     let seen = false;
     for (let known = 0; known < spellings.length; known += 1) {
@@ -1796,6 +1804,9 @@ export function reversalWatch(state, instance) {
     const asking = ASKING.get(instance);
     restartRecord(instance).pending = {
       watched: watchStanding(state, instance),
+      // **AND THE MOVED SET IS MEASURED BY THE JUDGEMENT, NOT BY THE WATCH** (`judgeReversal`'s in-flight arm;
+      // `DEF-AM`): the watch is taken BEFORE the reversal runs, so what moved is not knowable here.
+      moved: null,
       reversalId: null,
       window: currentWindow(instance),
       asked: asking === undefined ? null : asking,
@@ -1878,6 +1889,30 @@ function captureStanding(instance, address) {
   };
 }
 
+/// **THE ADDRESSES THE REVERSAL ACTUALLY MOVED, MEASURED ONCE** — the watch's capture against the standing the
+/// store holds now, with each entry's `after` beside its `before`. **A STANDING THIS REVERSAL DID NOT MOVE IS NOT
+/// A STANDING IT LEFT**, so the pair is not asked at it and cannot refuse the reversal for a state the reversal
+/// found. **IT IS THE JUDGEMENT'S SUBJECT AND THE RESTORE'S DEBT** (`judgeReversal`), and from 2026-10-28 it is
+/// also **THE WITNESS'S SUBJECT** (`DEF-AM`: the discarded request reports the addresses that MOVED, not every
+/// address the registry watches).
+function movedStanding(instance, watched) {
+  const moved = [];
+  for (let index = 0; index < watched.length; index += 1) {
+    const one = watched[index];
+    const after = standingAt(instance, one.address);
+    if (sameStanding(one.before, after) === true) continue;
+    appendOwn(moved, {
+      entry: one.entry,
+      address: one.address,
+      before: one.before,
+      beforeTier: one.beforeTier,
+      beforeTiers: one.beforeTiers,
+      after,
+    });
+  }
+  return moved;
+}
+
 /// **THE JUDGEMENT — THE TERMINAL STATE, ASKED OF EVERY PAIR THE REVERSAL TOUCHED, ONCE.** It answers
 /// `undefined` on the lawful arm (**and the caller's record then crosses unchanged**) and THROWS the surface's
 /// one plain form on the refusing arm. `reversalId` is the store's own echo of the id the reversal named
@@ -1917,6 +1952,13 @@ export function judgeReversal(instance, watched, reversalId) {
     const record = RESTARTS.get(instance);
     if (record !== undefined && record.pending !== null && record.pending.reversalId === null) {
       record.pending.reversalId = typeof reversalId === 'string' ? reversalId : null;
+      // **⟶ AND THE WITNESS NAMES WHAT MOVED, NOT THE WHOLE WATCHED REGISTRY — `DEF-AM`, 2026-10-28.** The
+      // request the watch raised carries every enabled pair's every address as the DEBT record, which is what
+      // the restarted check must ask; the WITNESS is a different question — *"what did the refused act move?"* —
+      // and the moved set is measured here, at the reversal's own instant, by the same `before`/`after`
+      // comparison the at-rest judgement takes. **THE STORE IS READ ONCE PER WATCHED ADDRESS AND NOTHING IS
+      // INVOKED**: this is the same walk `movedStanding` performs for the at-rest arm.
+      record.pending.moved = movedStanding(instance, record.pending.watched);
     }
     return undefined;
   }
@@ -1937,23 +1979,7 @@ export function judgeReversal(instance, watched, reversalId) {
     // THE MOVED SET IS TAKEN FIRST, ONCE: the judgement's subject is the CHANGE the reversal made and nothing
     // wider, and the same list is what a refusal has to put back — with the tier capture the watch took, so a
     // restore knows WHERE each value stood and not merely what it was.
-    const moved = [];
-    for (let index = 0; index < watched.length; index += 1) {
-      const one = watched[index];
-      // THE ADDRESS IS READ AGAIN, AT THE STATE THE REVERSAL LEFT. **A STANDING THIS REVERSAL DID NOT MOVE IS
-      // NOT A STANDING IT LEFT**, so the pair is not asked and cannot refuse the reversal for a state the
-      // reversal found.
-      const after = standingAt(instance, one.address);
-      if (sameStanding(one.before, after) === true) continue;
-      appendOwn(moved, {
-        entry: one.entry,
-        address: one.address,
-        before: one.before,
-        beforeTier: one.beforeTier,
-        beforeTiers: one.beforeTiers,
-        after,
-      });
-    }
+    const moved = movedStanding(instance, watched);
     for (let index = 0; index < moved.length; index += 1) {
       const one = moved[index];
       // **THE BODY'S THROW IS THE JUDGEMENT'S OWN CATCH AND NOT A PROPAGATING VALUE** — `reversalOutcome` converts
@@ -2046,6 +2072,20 @@ export function judgeReversal(instance, watched, reversalId) {
 /// honesty `D-41` item `2` measured at `200` of `200`. **NO WRITE AND NO DELETE IS ISSUED BY THIS FUNCTION ON
 /// ANY ARM**; the store's own verb is the whole act.
 ///
+/// **⟶ AND FROM 2026-10-28 THE BASELINE THE VERDICT MEASURES IS NAMED, AND THE TWO SUCCESSES ARE TOLD APART —
+/// `DEF-AJ`, MEASURED.** **A restore that fully succeeded was reported as one that failed**: the store's act
+/// returns the store to the journal mark its commit cached at its OPENING (the 2026-10-27 ruling above), and in
+/// the restart arm the commit has already landed writes when the reversal is asked for, so **the mark's state is
+/// not the pre-reversal standing the watch captured** — every moved address then failed an `exact` test the act
+/// had already satisfied, and the sentence said *"0 of the 1 address it moved stand again"* beside a store that
+/// stood exactly where the whole commit had opened. **SO THE SENTENCE HAS TWO SUCCESS ARMS AND ONE FAILURE ARM,
+/// AND THE BASELINE OF EACH IS SAID IN IT:** a successful act with every address equal to the pre-reversal
+/// capture is *"UNDONE … (the baseline this verdict measured is the pre-reversal standing, which is the state the
+/// journal mark the commit cached at its opening holds)"*; a successful act with any address PAST the capture is
+/// *"UNDONE — as a WHOLE-COMMIT UNDO"*, and each such address is named with what stands there and what stood
+/// there immediately before the reversal; and a REFUSED mark, a CACHELESS window and a store that did not
+/// restore are *"NOT undone"*, naming every address that does not stand again (the arm unchanged).
+///
 /// **AND WHY IT CANNOT RECURSE INTO THE MEMBER.** `judgeReversal` is reached from `index.mjs`'s `rollback`
 /// member; the restore never calls that member, the addon's `rollback`, or any package member — only the store's
 /// `restoreMark` at its entry — so the judgement's ONE pass over the pairs stays one pass and `D-40`'s floor law
@@ -2099,6 +2139,16 @@ function restoreReversal(instance, moved) {
   const stateRestored = cacheless === false && (refused === null || unsaved !== null);
   let restored = 0;
   const failed = [];
+  // **⟶ AND THE VERDICT'S BASELINE IS NAMED FROM 2026-10-28 — `DEF-AJ`, MEASURED.** A restore that SUCCEEDED
+  // (`stateRestored`) has returned the store to the journal mark the commit cached at its OPENING, and that is a
+  // WHOLE-COMMIT undo: where the commit had already moved an address before the reversal was asked for, the
+  // address stands at the mark's state and NOT at the pre-reversal standing the watch captured. The old count
+  // read every such address as a FAILED restore — a restore that fully succeeded reported as one that did not —
+  // because the baseline it compared against was the pre-reversal capture and never the mark. **SO THE TWO ARE
+  // TOLD APART HERE**: `failed` is the list an UNRESTORED store is reported by (the refused mark, the cacheless
+  // window), and `wholeCommit` is the list of addresses the store's successful act returned PAST the pre-reversal
+  // standing — each named with what stands there now and what stood there immediately before the reversal.
+  const wholeCommit = [];
   // ONE VERIFICATION PER ADDRESS: two pairs over one address (or one pair naming it twice) must not be counted
   // twice, so the addresses already measured are remembered — by a local loop, never by `Array.prototype.includes`
   // on a refusal path (`contract.md §2.1`'s clause on `F8-2` and item `(2b)`'s row `54`).
@@ -2109,9 +2159,27 @@ function restoreReversal(instance, moved) {
     if (hasOwnSpelling(measured, key) === true) continue;
     appendOwn(measured, key);
     // **THE ADDRESS IS READ AGAIN, AGAINST THE CAPTURE** — the cross-tier standing and every tier with its own
-    // value — and it counts as restored ONLY where both equal what the watch took before the reversal.
+    // value — and `exact` says whether it equals what the watch took before the reversal.
     const verdict = standingVerdict(instance, one);
-    if (stateRestored && verdict.exact === true) {
+    if (stateRestored) {
+      // THE STORE'S ACT SUCCEEDED, so every measured address was returned to the mark — that is the claim the
+      // store's own answer supports, and it is counted as restored. Where the mark's state is not the
+      // pre-reversal standing, the address belongs to `wholeCommit`, which the sentence reports as the commit's
+      // own earlier work undone with the reversal rather than as a failed restore.
+      restored += 1;
+      if (verdict.exact !== true) {
+        appendOwn(wholeCommit, {
+          address: one.address,
+          before: one.before,
+          beforeTier: one.beforeTier,
+          beforeTiers: one.beforeTiers,
+          standing: verdict.value,
+          tiers: verdict.tiers,
+        });
+      }
+      continue;
+    }
+    if (verdict.exact === true) {
       restored += 1;
       continue;
     }
@@ -2126,7 +2194,7 @@ function restoreReversal(instance, moved) {
       tiers: verdict.tiers,
     });
   }
-  return { restored, total: measured.length, failed, refused, unsaved, cacheless };
+  return { restored, total: measured.length, failed, wholeCommit, refused, unsaved, cacheless };
 }
 
 /// **WHETHER A LOCAL LIST OF SPELLINGS ALREADY HOLDS ONE** — a local index loop and not `Array.prototype.includes`.
@@ -2165,10 +2233,19 @@ function standingVerdict(instance, one) {
 }
 
 /// **THE SENTENCE THE LOG CARRIES ABOUT THE UNDOING** — the refusal's own record of the compensating act, read
-/// at the ONE site that builds the log entry. **IT MAY CLAIM *"THE REVERSAL WAS UNDONE"* ONLY WHERE EVERY ADDRESS
-/// IT MOVED STANDS AGAIN EXACTLY AS IT STOOD** (`restoreReversal`'s verdict); where it cannot, **it names each
-/// address that could not be restored and says what stands there INSTEAD and what it was owed** (`D-41` item `2`:
-/// *"a message must not claim a restoration that did not happen"*). `DEF-Q`: no column prints `undefined`.
+/// at the ONE site that builds the log entry. **IT MAY CLAIM *"THE REVERSAL WAS UNDONE"* ONLY WHERE THE STORE'S
+/// OWN ACT SUCCEEDED AND EVERY ADDRESS IT MOVED STANDS AGAIN AS THE MARK SAYS** (`restoreReversal`'s verdict);
+/// where it cannot, **it names each address that could not be restored and says what stands there INSTEAD and
+/// what it was owed** (`D-41` item `2`: *"a message must not claim a restoration that did not happen"*).
+/// `DEF-Q`: no column prints `undefined`.
+///
+/// **⟶ AND A SUCCESSFUL RESTORE'S BASELINE IS NAMED, 2026-10-28 — `DEF-AJ`, MEASURED.** The act restores the
+/// journal mark the commit cached at its OPENING; where that mark stands before the reversal (the restart arm),
+/// the addresses the commit had already moved come back to the MET MARK and not to the watch's pre-reversal
+/// capture. **THE SENTENCE THEREFORE SAYS WHICH BASELINE IT MEASURED, AND A WHOLE-COMMIT UNDO IS SPOKEN AS A
+/// SUCCESS** — *"UNDONE — as a WHOLE-COMMIT UNDO"* — with each address that stands at the mark's state named
+/// beside what stood there immediately before the reversal. **ONLY THE ARMS THAT DID NOT RESTORE SAY *"NOT
+/// undone"*: the refused mark, the cacheless window, and any address left standing at what the reversal left.**
 ///
 /// **⟶ AND THE TWO ARMS THE STORE CAN ANSWER WITH ARE NAMED SEPARATELY, 2026-10-27 (THE FILE-SAVE RULING).**
 /// **A REFUSED MARK** means the store holds what it held, and the sentence says exactly that. **A FAILED SAVE
@@ -2209,9 +2286,30 @@ function undoSpelling(undo) {
     refusal = `the store REFUSED the journal mark (${JSON.stringify(typeof status === 'string' ? status : 'a refusal')}`
       + `: ${typeof said === 'string' ? said : ''}) and holds the state it held; `;
   }
-  if (undo.failed.length === 0) {
+  if (undo.failed.length === 0 && undo.wholeCommit.length === 0) {
     return `${refusal}the reversal was UNDONE: every address it moved stands again exactly as it stood before `
-      + 'the reversal — the same value at the same tier, or absent where it was absent';
+      + 'the reversal — the same value at the same tier, or absent where it was absent (the baseline this '
+      + 'verdict measured is the pre-reversal standing, which is the state the journal mark the commit cached '
+      + 'at its opening holds)';
+  }
+  // **⟶ AND A SUCCESSFUL RESTORE WHOSE MARK STANDS BEFORE THE REVERSAL IS NAMED AS WHAT IT IS — `DEF-AJ`.**
+  // The store's act succeeded (`failed` is empty), so nothing here is a failure; what differs from the watch's
+  // capture is the commit's own earlier work, which the same mark undoes. **THE SENTENCE SAYS *UNDONE* AND SAYS
+  // ITS BASELINE**, because a restore that succeeded must say so.
+  if (undo.failed.length === 0) {
+    let named = '';
+    for (let index = 0; index < undo.wholeCommit.length; index += 1) {
+      const one = undo.wholeCommit[index];
+      named += index === 0 ? '' : '; ';
+      named += `${addressSpelling(one.address)} stands ${standingDescription(one.standing, one.tiers)} where it `
+        + `stood ${capturedDescription(one)} immediately before the reversal`;
+    }
+    const movedCount = undo.total === 1 ? 'address' : 'addresses';
+    const stands = undo.restored === 1 ? 'stands' : 'stand';
+    return `${refusal}the store was restored to the journal mark its commit cached at its opening, so the `
+      + `reversal was UNDONE — as a WHOLE-COMMIT UNDO (the baseline this verdict measured is the pre-reversal `
+      + `standing): all ${undo.total} ${movedCount} it moved ${stands} where that mark leaves them, and the `
+      + `difference from the pre-reversal standing is the commit's own earlier work, undone with it — ${named}`;
   }
   let named = '';
   for (let index = 0; index < undo.failed.length; index += 1) {

@@ -1301,6 +1301,23 @@ function greensNonCodeMembers(manifest) {
     const value = manifest && manifest[field];
     if (typeof value === 'string' && value !== '') allowed.add(value.replace(/^\.\//, ''));
   }
+  // **⟶ AND THE FOURTH SOURCE IS A ROOT DOCUMENT THE MANIFEST'S `files` ROW DECLARES, 2026-10-28 — `DEF-AC` (a).**
+  // npm's always-included set stops at `README*`/`LICEN[CS]E*`, so the shipped change list (`RELEASE-NOTES.md`)
+  // could not be admitted by the three sources above and `JSG-12.18` reported it as over-packed. **THE RULE — and
+  // it is a rule, not a list of one name — is that a `files` row naming a ROOT-LEVEL DOCUMENT (a `.md` /
+  // `.markdown` / `.txt` file at the package root, present on disk) is a DECLARED documentation artefact**: it
+  // names no module, imports nothing, and is the same class the consumer guide's own landing was admitted by.
+  // **A code file or a `src/`-shaped row is NOT admissible this way**, so the no-binary and reachability limbs are
+  // untouched. **THIS IS THE SAME RULE THE BATTERY'S `pack-reachability.mjs` CARRIES, ARRIVED AT SEPARATELY AND
+  // IMPLEMENTED SEPARATELY** — a blind instance exists to be an independent reading, not an import.
+  for (const row of Array.isArray(manifest && manifest.files) ? manifest.files : []) {
+    if (typeof row !== 'string') continue;
+    const member = row.replace(/^\.\//, '');
+    if (member === '' || member.includes('/') || member.includes('*') || member.includes('?')) continue;
+    if (!/\.(md|markdown|txt)$/i.test(member)) continue;
+    if (!fs.existsSync(path.join(GREENS_PKG_ROOT, member))) continue;
+    allowed.add(member);
+  }
   return allowed;
 }
 const GREENS_RELATIVE_SPECIFIER = /(?:^|[^\w$.])(from|import|require_?)\s*\(?\s*(['"])(\.\.?\/[^'"\n]+)\2/g;

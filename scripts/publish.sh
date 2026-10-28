@@ -48,14 +48,18 @@
 #
 #    scripts/publish.sh                     # DRY RUN — measures, changes nothing
 #    scripts/publish.sh --check             # the preflight + the guard only
+#    scripts/publish.sh --figures           # THE GUIDE'S TWO GENERATED FIGURES, ASSERTED ALONE, read-only:
+#                                           # generate the version line and the cut-state sentence from the
+#                                           # manifest and the tag set, and REFUSE when the shipped guide's
+#                                           # text disagrees (DEF-AC (b); the same check the preflight runs)
 #    scripts/publish.sh --bump X.Y.Z        # writes the version and prose cells
 #    scripts/publish.sh --tag   X.Y.Z       # commits, tags, pushes the tag
 #    scripts/publish.sh --verify X.Y.Z      # post-publish checks, read-only
 #    scripts/publish.sh --pack  [DEST]      # THE ASSEMBLY'S PACKING PATH — a MEASUREMENT: assemble the main
-#                                           # package (licence copy + consumer guide), pack it into DEST
-#                                           # (default: a fresh temp dir), print the member set, then pack it
-#                                           # AGAIN with no assembly; publishes, tags, pushes and installs
-#                                           # nothing (release.md §4.1)
+#                                           # package (licence copy + consumer guide + change list), pack it
+#                                           # into DEST (default: a fresh temp dir), print the member set, then
+#                                           # pack it AGAIN with no assembly; publishes, tags, pushes and
+#                                           # installs nothing (release.md §4.1)
 #
 #  `--bump`, `--tag`, `--verify` and `--pack` each require `--yes` as well:
 #
@@ -103,6 +107,19 @@ CARRIER_PHRASE='the six manifests move to'
 GUIDE_CANONICAL="docs/guides/package-use.md"
 GUIDE_LANDED="bindings/js/README.guide.md"
 
+# **⟶ AND THE CHANGE LIST LANDS BY THE SAME MECHANISM, 2026-10-28 — `DEF-AC` (a).** `RELEASE-NOTES.md` at the
+# repository root is the ONE authored home; the release's assembly stages it BYTE-FOR-BYTE at the packaging root
+# as `bindings/js/RELEASE-NOTES.md`, exactly as the guide is staged, and the main manifest's `files` row names the
+# landed copy so the tarball carries it. **THE DEFECT IT CLOSES: `1.2.0`'s ONE behaviour change — a refused
+# reversal's restore to the commit's opening mark — was declared in that root file and in no shipped document**,
+# so a consumer installing the release received a behaviour change with no shipped declaration of it. **THE SAME
+# TWO PROBLEMS THE GUIDE'S OWN LANDING SOLVED ARE SOLVED THE SAME WAY**: the landing is a TRACKED, GENERATED file
+# (so a bare `npm pack` carries it with no assembly step having run) and the row names the LANDED copy, never the
+# canonical path (npm packs NOTHING for a `files` row that points outside the package root, and omits it
+# SILENTLY). This script REFUSES when the landed copy differs from the canonical text.
+NOTES_CANONICAL="RELEASE-NOTES.md"
+NOTES_LANDED="bindings/js/RELEASE-NOTES.md"
+
 R='\033[0;31m'; G='\033[0;32m'; Y='\033[0;33m'; B='\033[0;34m'; N='\033[0m'
 say()  { printf "${B}==>${N} %s\n" "$*"; }
 ok()   { printf "${G} ok ${N} %s\n" "$*"; }
@@ -131,10 +148,103 @@ assemble_guide() {
   fi
 }
 
+# THE ASSEMBLY'S CHANGE-LIST STAGE — the guide's stage, one document over (`DEF-AC` (a)). Byte-for-byte from the
+# one authored home at the repository root to the packaging root, IDEMPOTENT for a clean tree, and REFUSED when
+# the two differ rather than silently repaired.
+assemble_release_notes() {
+  [ -f "$NOTES_CANONICAL" ] || {
+    bad "the canonical change list '$NOTES_CANONICAL' is absent — it has one authored home and this is it"
+    return 1
+  }
+  cp -f "$NOTES_CANONICAL" "$NOTES_LANDED" || {
+    bad "the change list could not be staged to '$NOTES_LANDED'"
+    return 1
+  }
+  if cmp -s "$NOTES_CANONICAL" "$NOTES_LANDED"; then
+    ok "the change list staged BYTE-FOR-BYTE: $NOTES_CANONICAL -> $NOTES_LANDED ($(wc -c < "$NOTES_LANDED" | tr -d ' ') bytes)"
+  else
+    bad "the staged change list is not byte-for-byte its canonical text"
+    return 1
+  fi
+}
+
+# ==============================================================================
+# THE GUIDE'S TWO GENERATED FIGURES, AND THE ASSERTION THAT IS THE DELIVERABLE — `DEF-AC` (b), 2026-10-28
+# ==============================================================================
+#
+# **THE DOWNSTREAM'S DEMAND, AND WHY IT IS AN ASSERTION RATHER THAN A PARAGRAPH.** The shipped guide's VERSION
+# LINE and its CUT-STATE SENTENCE were **hand-written**, and that is how the guide came to deny the release it
+# travelled in: a figure copied by hand goes stale the moment the manifest or the tag set moves, and nothing
+# reddened. **SO THIS SCRIPT GENERATES BOTH FROM THE MANIFEST (`bindings/js/package.json`'s `version`) AND THE TAG
+# SET (`git tag --list`) AND REFUSES WHEN THE SHIPPED GUIDE'S TEXT DISAGREES.** The shipped guide is the LANDED
+# copy (`bindings/js/README.guide.md`) — the bytes that ride the tarball — and its two figures stand on marked
+# lines of their own, exactly one each:
+#
+#     PUBLISH-GUIDE-VERSION-LINE: THE VERSION THIS GUIDE DESCRIBES IS `<version>`.
+#     PUBLISH-GUIDE-CUT-STATE: THE TAGS THIS TREE CARRIES ARE `<tag> · …`; `<vX.Y.Z>` EXISTS|DOES NOT EXIST, SO THE
+#     RELEASE THIS GUIDE DESCRIBES IS CUT|NOT CUT.
+#
+# **THE ASSERTION IS THE DELIVERABLE**: a hand-written line that contradicts the manifest fails the PREFLIGHT and
+# cannot travel. `--figures` runs exactly this check, read-only, so it can be driven without the long legs.
+guide_figures_expected() {
+  local v tags joined cut
+  v="$(grep -m1 '"version"' "$MAIN_MANIFEST" | sed 's/.*: *"\(.*\)".*/\1/')"
+  [ -n "$v" ] || { bad "the main manifest carries no readable \`version\`"; return 1; }
+  tags="$(git tag --list | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V || true)"
+  joined="$(printf '%s\n' "$tags" | sed '/^$/d' | sed 's/.*/`&`/' | paste -sd '|' - | sed 's/|/ · /g')"
+  [ -n "$joined" ] || joined="(none)"
+  if git rev-parse -q --verify "refs/tags/v$v" >/dev/null 2>&1; then
+    cut="\`v$v\` EXISTS, SO THE RELEASE THIS GUIDE DESCRIBES IS CUT."
+  else
+    cut="\`v$v\` DOES NOT EXIST, SO THE RELEASE THIS GUIDE DESCRIBES IS NOT CUT."
+  fi
+  printf 'PUBLISH-GUIDE-VERSION-LINE: THE VERSION THIS GUIDE DESCRIBES IS `%s`.\n' "$v"
+  printf 'PUBLISH-GUIDE-CUT-STATE: THE TAGS THIS TREE CARRIES ARE %s; %s\n' "$joined" "$cut"
+}
+
+preflight_guide_figures() {
+  local expected_version expected_cut shipped_version shipped_cut version_count cut_count
+  [ -f "$GUIDE_LANDED" ] || {
+    bad "the shipped guide '$GUIDE_LANDED' is absent — there is no text to assert the figures against"
+    return 1
+  }
+  local generated
+  generated="$(guide_figures_expected)" || return 1
+  expected_version="$(printf '%s\n' "$generated" | grep '^PUBLISH-GUIDE-VERSION-LINE:')"
+  expected_cut="$(printf '%s\n' "$generated" | grep '^PUBLISH-GUIDE-CUT-STATE:')"
+  version_count="$(grep -c '^PUBLISH-GUIDE-VERSION-LINE:' "$GUIDE_LANDED" || true)"
+  cut_count="$(grep -c '^PUBLISH-GUIDE-CUT-STATE:' "$GUIDE_LANDED" || true)"
+  shipped_version="$(grep -m1 '^PUBLISH-GUIDE-VERSION-LINE:' "$GUIDE_LANDED" || true)"
+  shipped_cut="$(grep -m1 '^PUBLISH-GUIDE-CUT-STATE:' "$GUIDE_LANDED" || true)"
+  printf '  generated version line  %s\n' "$expected_version"
+  printf '  shipped   version line  %s\n' "${shipped_version:-<absent>}"
+  printf '  generated cut-state     %s\n' "$expected_cut"
+  printf '  shipped   cut-state     %s\n' "${shipped_cut:-<absent>}"
+  [ "$version_count" = "1" ] || {
+    bad "the shipped guide carries $version_count PUBLISH-GUIDE-VERSION-LINE lines and exactly one is required — the figure is generated, never hand-written in two places"
+    return 1
+  }
+  [ "$cut_count" = "1" ] || {
+    bad "the shipped guide carries $cut_count PUBLISH-GUIDE-CUT-STATE lines and exactly one is required — the figure is generated, never hand-written in two places"
+    return 1
+  }
+  [ "$shipped_version" = "$expected_version" ] || {
+    bad "THE SHIPPED GUIDE'S VERSION LINE DISAGREES WITH THE MANIFEST — the manifest reads a version this line does not, and a hand-written figure that contradicts it must fail this preflight rather than travel"
+    return 1
+  }
+  [ "$shipped_cut" = "$expected_cut" ] || {
+    bad "THE SHIPPED GUIDE'S CUT-STATE SENTENCE DISAGREES WITH THE MANIFEST AND THE TAG SET — the guide denies (or overstates) the release it ships in"
+    return 1
+  }
+  ok "the shipped guide's version line and cut-state sentence are the figures generated from the manifest and the tag set"
+  return 0
+}
+
 DRY=1; MODE="dry-run"; TARGET=""; DEST=""; CONFIRM=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --check)  MODE="check";  DRY=1 ;;
+    --figures) MODE="figures"; DRY=1 ;;
     --bump)   MODE="bump";   DRY=0; TARGET="${2:-}"; shift ;;
     --tag)    MODE="tag";    DRY=0; TARGET="${2:-}"; shift ;;
     --verify) MODE="verify"; DRY=0; TARGET="${2:-}"; shift ;;
@@ -161,6 +271,27 @@ fi
 say "repository: $REPO"
 say "mode: $MODE${TARGET:+  target: $TARGET}${DEST:+  destination: $DEST}"
 [ "$DRY" -eq 1 ] && warn "DRY RUN — nothing below will be written."
+
+# ==============================================================================
+# `--figures` — THE GUIDE'S TWO GENERATED FIGURES, ASSERTED ALONE (`DEF-AC` (b))
+# ==============================================================================
+#
+# Read-only, and it is the SAME check the preflight runs below: this mode exists so the assertion can be driven
+# without the long suite legs, and so a reader can SEE the generated pair beside the shipped pair. **IT WRITES
+# NOTHING AND REFUSES ON A DISAGREEMENT**, which is the whole of what the row asked for.
+if [ "$MODE" = "figures" ]; then
+  echo
+  say "THE SHIPPED GUIDE'S TWO GENERATED FIGURES — the version line and the cut-state sentence"
+  echo "  (generated from $MAIN_MANIFEST's version and the tag set; asserted against $GUIDE_LANDED)"
+  if preflight_guide_figures; then
+    echo
+    ok "the shipped guide's figures AGREE with the manifest and the tag set"
+    exit 0
+  fi
+  echo
+  bad "THE SHIPPED GUIDE'S FIGURES DISAGREE — this is the refusal the preflight takes, and it is the deliverable"
+  exit 1
+fi
 
 # ==============================================================================
 # THE ASSEMBLY'S PACKING PATH — A MEASUREMENT LEG, NOT THE RELEASE ACT
@@ -194,18 +325,27 @@ if [ "$MODE" = "pack" ]; then
   }
   [ -f LICENSE ] || { bad "the repository's LICENSE is absent"; exit 1; }
   [ -f "$GUIDE_CANONICAL" ] || { bad "the canonical consumer guide '$GUIDE_CANONICAL' is absent"; exit 1; }
+  [ -f "$NOTES_CANONICAL" ] || { bad "the canonical change list '$NOTES_CANONICAL' is absent"; exit 1; }
 
   # `if: always()`-shaped: the licence copy never outlives this leg, whatever happens below.
   cleanup_pack() { rm -f bindings/js/LICENSE; }
   trap cleanup_pack EXIT
 
-  say "assembly, stage 1 of 2: the licence copy — byte-for-byte, at the packaging root"
+  say "assembly, stage 1 of 3: the licence copy — byte-for-byte, at the packaging root"
   cp LICENSE bindings/js/LICENSE
   cmp -s LICENSE bindings/js/LICENSE || { bad "the licence copy is not byte-for-byte the repository's LICENSE"; exit 1; }
   ok "licence staged"
 
-  say "assembly, stage 2 of 2: the consumer guide — byte-for-byte, from its one authored home"
+  say "assembly, stage 2 of 3: the consumer guide — byte-for-byte, from its one authored home"
   assemble_guide || exit 1
+
+  # **⟶ AND STAGE 3 IS THE CHANGE LIST — `DEF-AC` (a).** The guide's own stage, one document over: the release's
+  # assembly copies the root `RELEASE-NOTES.md` to the packaging root byte-for-byte, and the manifest's `files` row
+  # ships the landed copy. **THE PACKED SET BELOW MUST LIST IT IN BOTH PACKS**: the landed copy is TRACKED, so a
+  # bare `npm pack` carries it too — which is the second thing the guide's landing solved and the reason a bare
+  # pack still works.
+  say "assembly, stage 3 of 3: the change list — byte-for-byte, from its one authored home"
+  assemble_release_notes || exit 1
 
   # THE READBACK, PRINTED FROM THE ARCHIVE'S OWN REPORT, never re-spelled here.
   readback() {
@@ -215,11 +355,13 @@ const raw = JSON.parse(fs.readFileSync(process.env.PACK_JSON, "utf8"));
 const entry = (Array.isArray(raw) ? raw : Object.values(raw))[0];
 const files = (entry.files || []).map((file) => file.path).sort();
 const guide = (entry.files || []).find((file) => file.path === "README.guide.md");
+const notes = (entry.files || []).find((file) => file.path === "RELEASE-NOTES.md");
 const line = (label, value) => console.log("  " + label.padEnd(22) + " " + value);
 line("reading", process.env.LABEL);
 line("tarball", entry.filename);
 line("members", files.length);
 line("README.guide.md", guide ? "PRESENT, " + guide.size + " bytes, at the package root" : "ABSENT");
+line("RELEASE-NOTES.md", notes ? "PRESENT, " + notes.size + " bytes, at the package root" : "ABSENT");
 line("LICENSE", files.includes("LICENSE") ? "PRESENT (the assembly copy)" : "ABSENT (no assembly)");
 line("member set", JSON.stringify(files));
 '
@@ -249,10 +391,10 @@ line("member set", JSON.stringify(files));
   readback "$BARE_JSON" "BARE PACK"
 
   echo
-  warn "NOTHING WAS PUBLISHED, TAGGED, PUSHED OR INSTALLED. The licence copy is removed on exit; the guide's"
-  warn "landed copy is a TRACKED, generated file and this leg leaves it byte-for-byte the canonical text (the"
-  warn "release preflight REFUSES a drifted landing rather than repairing it). The tarballs and the two"
-  warn "reports stand in: $DEST"
+  warn "NOTHING WAS PUBLISHED, TAGGED, PUSHED OR INSTALLED. The licence copy is removed on exit; the guide's and"
+  warn "the change list's landed copies are TRACKED, generated files and this leg leaves them byte-for-byte the"
+  warn "canonical text (the release preflight REFUSES a drifted landing rather than repairing it). The tarballs"
+  warn "and the two reports stand in: $DEST"
   exit 0
 fi
 
@@ -351,7 +493,17 @@ else
 fi
 
 
-# 4. The suite. A release is cut from a green tree or it is not cut.
+# 4. THE SHIPPED GUIDE'S TWO GENERATED FIGURES — `DEF-AC` (b), 2026-10-28.
+#
+#    **A HAND-WRITTEN LINE THAT CONTRADICTS THE MANIFEST MUST FAIL THIS PREFLIGHT, NOT TRAVEL.** The version line
+#    and the cut-state sentence are generated from `bindings/js/package.json`'s `version` and `git tag --list`
+#    (`preflight_guide_figures`, above) and asserted against the SHIPPED guide's own marked lines. **IT RUNS
+#    BEFORE THE LONG SUITE ON PURPOSE**: a stale figure is a one-second refusal and the suite is the expensive
+#    step, so the cheapest subject that can deny the release is checked first. **`--figures` runs exactly this.**
+say "the shipped guide's generated figures (version line, cut-state sentence)"
+preflight_guide_figures || FAILED=1
+
+# 5. The suite. A release is cut from a green tree or it is not cut.
 if [ "$MODE" != "tag" ]; then
   say "running the suite (this is the long step)"
   if cargo test --offline --no-fail-fast >/tmp/pub-test.log 2>&1; then
@@ -390,7 +542,8 @@ if [ "$MODE" != "tag" ]; then
   else refuse "the node suite FAILED — see /tmp/pub-node.log"; fi
 fi
 
-# 5. THE CONSUMER GUIDE'S LANDING — the assembly's own subject, verified at the tree the release packs.
+# 6. THE CONSUMER GUIDE'S AND THE CHANGE LIST'S LANDINGS — the assembly's own subjects, verified at the tree
+#    the release packs.
 #
 #    **THE GUIDE REACHES THE TARBALL BY THE RELEASE'S ASSEMBLY STEP, AND THESE ARE THE THREE FACTS THAT MAKE
 #    THAT TRUE:** the canonical text is where the guide has its ONE authored home; the landed copy at the
@@ -400,6 +553,10 @@ fi
 #    omitted by npm SILENTLY, so the tarball would publish green with a README that points at a guide it does
 #    not carry — the one hazard the ruling names. **THE STAGE ITSELF IS `assemble_guide`'s, above; this step
 #    VERIFIES rather than repairs, so a drifted tree is caught here instead of being silently overwritten.**
+#    **⟶ AND FROM 2026-10-28 THE CHANGE LIST IS THE SECOND SUBJECT OF THE SAME THREE FACTS — `DEF-AC` (a):** its
+#    one authored home is the repository root, its landed copy is `bindings/js/RELEASE-NOTES.md` at those bytes,
+#    and the manifest's `files` row names it. **THE ROW IS WHAT MAKES THE CHANGE LIST SHIP**, and its absence
+#    would leave `1.2.0`'s one behaviour change declared in no document the tarball carries.
 if [ ! -f "$GUIDE_CANONICAL" ]; then
   refuse "the canonical consumer guide '$GUIDE_CANONICAL' is absent — the guide's one authored home is missing"
 elif [ ! -f "$GUIDE_LANDED" ]; then
@@ -408,8 +565,16 @@ elif ! cmp -s "$GUIDE_CANONICAL" "$GUIDE_LANDED"; then
   refuse "the landed consumer guide '$GUIDE_LANDED' has DRIFTED from '$GUIDE_CANONICAL' — the canonical text is never edited in two places; re-stage it with: scripts/publish.sh --pack --yes"
 elif ! grep -q '"README.guide.md"' "$MAIN_MANIFEST"; then
   refuse "the main manifest's \`files\` allowlist does not name 'README.guide.md' — the landed copy would not ship, and npm omits a missing row SILENTLY"
+elif [ ! -f "$NOTES_CANONICAL" ]; then
+  refuse "the canonical change list '$NOTES_CANONICAL' is absent — it has one authored home and this is it"
+elif [ ! -f "$NOTES_LANDED" ]; then
+  refuse "the landed change list '$NOTES_LANDED' is absent at the packaging root — the tarball would carry no change list at all"
+elif ! cmp -s "$NOTES_CANONICAL" "$NOTES_LANDED"; then
+  refuse "the landed change list '$NOTES_LANDED' has DRIFTED from '$NOTES_CANONICAL' — the canonical text is never edited in two places; re-stage it with: scripts/publish.sh --pack --yes"
+elif ! grep -q '"RELEASE-NOTES.md"' "$MAIN_MANIFEST"; then
+  refuse "the main manifest's \`files\` allowlist does not name 'RELEASE-NOTES.md' — the change list would not ship, and npm omits a missing row SILENTLY (\`DEF-AC\`)"
 else
-  ok "the consumer guide is landed byte-for-byte at the packaging root ('$GUIDE_LANDED') and named by \`files\`"
+  ok "the consumer guide and the change list are landed byte-for-byte at the packaging root and named by \`files\`"
 fi
 
 # 6. The target version, when one is named — READ ON WHICHEVER SIDE OF THE RELEASE ACT THIS RUN STANDS ON.

@@ -174,7 +174,7 @@ test("package · `distribution.md §5` (`PUB-DD-3` · `PUB-DD-21` · `A127`) · 
 // §3 — THE ALLOWLIST AND ITS REACHABILITY
 // ---------------------------------------------------------------------------------------------
 
-test('package · `§2.1` item 1 (as corrected 2026-10-25, read with the 2026-10-26 guide ruling) and `A89`(4) item `2` · the allowlist is SIX entries, every one of them exists in the tracked tree, and NEITHER added entry is a binary — `build/Release` is in `files` at no key', () => {
+test('package · `§2.1` item 1 (as corrected 2026-10-25, read with the 2026-10-26 guide ruling) and `A89`(4) item `2` · the allowlist is SEVEN entries, every one of them exists in the tracked tree, and NONE of the added entries is a binary — `build/Release` is in `files` at no key', () => {
   // THE OPERATIVE FIGURE, with its superseded reading named: "**THE OPERATIVE ALLOWLIST IS FIVE
   // ENTRIES — `index.mjs` · `README.md` · `index.d.ts` · `src/entry/` · `src/constraint-kernel.mjs`**",
   // the superseded one being "`index.mjs` · `README.md` · `index.d.ts` and NOTHING ELSE"; and the
@@ -187,13 +187,20 @@ test('package · `§2.1` item 1 (as corrected 2026-10-25, read with the 2026-10-
   // path still has to exist in the tree (this cell now checks the landed guide the same way it checks the
   // entry), the directory entry is still a directory, and the binary refusals are untouched. The row is
   // admitted as DECLARED NON-CODE by the reachability rule's own class (`README*` at the package root).
+  //
+  // **⟶ AND THE SAME ROW IS ADDED A SECOND TIME FOR THE CHANGE LIST, 2026-10-28 — `DEF-AC` (a).** The
+  // assembly stages the repository root's `RELEASE-NOTES.md` at the packaging root as `RELEASE-NOTES.md`
+  // (byte-for-byte, exactly as the guide is staged) and the allowlist names the landed copy, so the release's
+  // ONE behaviour change is declared in a document the tarball carries. **THE COUNT MOVES `6 → 7` AND NO OTHER
+  // CONJUNCT MOVES**: the row is a DECLARED DOCUMENTATION ROW, imported by nothing and admitted by the same
+  // declared non-code class the guide's row is.
   const files = manifest.files;
   assert.ok(Array.isArray(files));
   assert.deepEqual(
     [...files].sort(),
-    ['README.md', 'README.guide.md', 'index.d.ts', 'index.mjs', 'src/constraint-kernel.mjs', 'src/entry/'].sort(),
+    ['README.md', 'README.guide.md', 'RELEASE-NOTES.md', 'index.d.ts', 'index.mjs', 'src/constraint-kernel.mjs', 'src/entry/'].sort(),
   );
-  assert.equal(files.length, 6);
+  assert.equal(files.length, 7);
 
   // EVERY NAMED PATH EXISTS — a `files` entry naming an absent path packs GREEN and fails at the
   // consumer (`A89`(4) item `2`: "npm omits a missing `files` entry SILENTLY").

@@ -191,12 +191,21 @@ export function packedMembers(packageDir, files) {
 
 /**
  * **THE DECLARED NON-CODE ARTEFACTS — the members that may legitimately be packed while nothing imports them.**
- * Three sources and no fourth: **`package.json`** (npm always packs it), **`README*` / `LICEN[CS]E*` at the
- * root** (npm's own always-included set), and **the paths the manifest's own resolution fields name**
- * (`main` / `types` / `typings`) — a declaration and a readme are artefacts a consumer receives rather than
- * modules the entry imports, so "nothing imports it" is not a defect when it is one of these. **The list is
- * DERIVED from the manifest and never hand-typed**, so a package that declares a second non-code artefact
- * admits it here by declaring it.
+ * Four sources and no fifth: **`package.json`** (npm always packs it), **`README*` / `LICEN[CS]E*` at the
+ * root** (npm's own always-included set), **the paths the manifest's own resolution fields name**
+ * (`main` / `types` / `typings`), and **a ROOT DOCUMENT the manifest's `files` row declares** — a declaration, a
+ * readme and a change list are artefacts a consumer receives rather than modules the entry imports, so "nothing
+ * imports it" is not a defect when it is one of these. **The list is DERIVED from the manifest and never
+ * hand-typed**, so a package that declares a second non-code artefact admits it here by declaring it.
+ *
+ * **⟶ AND THE FOURTH SOURCE IS THE RELEASE NOTES' OWN, 2026-10-28 — `DEF-AC` (a).** `RELEASE-NOTES.md` rides no
+ * tarball while `files` does not name it, and npm's own always-included set stops at `README*`/`LICEN[CS]E*`, so
+ * the change list could not be admitted by the three sources above. **THE DERIVED RULE: a `files` row naming a
+ * ROOT-LEVEL DOCUMENT (a `.md` / `.markdown` / `.txt` file at the package root, present on disk) is a declared
+ * documentation artefact** — it names no module, imports nothing, and is the class the guide's own landing was
+ * admitted by. **IT IS A RULE AND NOT A LIST OF ONE NAME**: a second shipped document is admitted by being
+ * declared, and a `src/`-shaped row or a code file is NOT admissible this way (the wholesale-`src/` control
+ * below still reports its four `.rs` files as over-packed).
  */
 export function declaredNonCodeMembers(packageDir, manifest) {
   const allowed = new Set(['package.json']);
@@ -207,6 +216,15 @@ export function declaredNonCodeMembers(packageDir, manifest) {
   for (const field of ['main', 'types', 'typings']) {
     const value = manifest?.[field];
     if (typeof value === 'string' && value !== '') allowed.add(value.replace(/^\.\//, ''));
+  }
+  // THE ROOT DOCUMENTS A `files` ROW DECLARES — see the fourth source above.
+  for (const row of Array.isArray(manifest?.files) ? manifest.files : []) {
+    if (typeof row !== 'string') continue;
+    const member = row.replace(/^\.\//, '');
+    if (member === '' || member.includes('/') || member.includes('*') || member.includes('?')) continue;
+    if (!/\.(md|markdown|txt)$/i.test(member)) continue;
+    if (!existsSync(join(packageDir, member))) continue;
+    allowed.add(member);
   }
   return allowed;
 }
