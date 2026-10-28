@@ -1725,6 +1725,19 @@ function restartRecord(instance) {
 /// and no call site to be bypassed — the pass that asks the pairs is the frame that consumes what its own
 /// bodies raised, whichever driver called it.
 ///
+/// **⟶ AND A `delete`'s OWN PASS IS ONE OF THOSE DRIVERS, MEASURED 2026-10-29 — `D-42` · `D-54` (b) · `D-55`
+/// ITEM 3.** A `rollback` raised from a constraint body asked by the `delete`'s own pass **IS JUDGED HERE**:
+/// `constraintDelete` runs that pass through the SAME `runAttempt` (`constraints.mjs`'s delete arm takes it
+/// verbatim; **no second pass loop is minted**), inside the `delete`'s own commit window, and the scope JOINS
+/// that window — so the identity `reversalWatch` stamped on the request (`currentWindow`, `open 1`/`live 1` at
+/// the raise) is the identity this drain reads, the request is consumed, and the pairs are asked **at the state
+/// the reversal left**. **NO THIRD WINDOW IS DECLARED AND NONE IS NEEDED**; the only two hosts that reach no
+/// drain on this tree are the two that run **no pass at all** — a registration's own evaluation, and a
+/// `delete`'s listener delivery (`D-43` item 2). **THE CELLS ARE `tests/e2e/discard-witness.mjs`'s `W16`
+/// (`DW-16.1`–`DW-16.4`)**, which drive all seven hosts, print each one's asks and label it, and are RED under
+/// a `/tmp` revert that removes the `delete`'s pass. **THE BUDGET, ITS THREE ASKS, `D-38`'s once-never-per-step,
+/// `D-60`'s atomic/discrete split and `D-63`'s mark are UNMOVED by that measurement.**
+///
 /// **EACH ROUND CONSUMES ONE REQUEST OF THIS WINDOW AND ASKS EVERY ENABLED PAIR THE WATCH CARRIED, IN ORDER,
 /// AT THE STATE THE ACTION LEFT** (`judgeReversal`: the `moved` test, the first-violating-pair rule and the
 /// refusal's restoring compensation are that function's own and are not re-implemented here). **THE ROUND IS

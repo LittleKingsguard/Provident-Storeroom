@@ -2841,6 +2841,380 @@ console.log('\n── W15 · `D-70` · WHICH KIND, AND WHY AN INDEX IS NOT AN AD
 
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════
+// (W16) `D-42`/`D-54` — THE SEVEN HOSTS A `rollback` CAN BE RAISED IN, EACH LABELLED, AND THE TWO OF THEM
+//       THAT RUN NO PASS AT ALL
+//
+// **THE QUESTION THIS SECTION ANSWERS, ASKED OF THIS TREE RATHER THAN OF A VERSION OF IT.** A consumer
+// reported that a raise taken from a CONSTRAINT BODY **during a `delete`'s own constraint pass** was not
+// judged — *"zero judge invocations, the refused `5` still standing"* — and that the shipped guide, which
+// declares exactly TWO windows (a registration's own evaluation and a `delete`'s LISTENER DELIVERY), does not
+// name it. **SO THE RAISE IS DRIVEN IN EVERY HOST THIS TREE HAS, THE SAME WAY EACH TIME**: a pair whose body
+// issues `rollback(target.opId)` refuses the state the reversal leaves (`5`), and the ONE readable evidence
+// that a host is judged is **the pair being ASKED AGAIN AT `5`** and the act refusing
+// `ConstraintPassRefused` with a `constraint-check` entry naming that pair.
+//
+// **THE SEVEN HOSTS, AND WHERE EACH COMES FROM.** `H1` a constraint body during a WRITE's pass and `H2` a
+// repair body during a WRITE's pass (`D-42`, `D-54`); `H3` a listener body in a WRITE's DELIVERY (`D-45`,
+// `D-64`); `H4` a REGISTRATION's own evaluation (`D-43` item 2 — the DECLARED window); `H5` a `delete`'s
+// LISTENER DELIVERY (`D-43` item 2, `D-49` — the DECLARED window); `H6` a constraint body during a `delete`'s
+// OWN pass (`D-55` item 3, `D-54`'s third host); `H7` a reentrant reversal-then-write (`D-54`'s third host,
+// `DW-09.3`).
+//
+// **THE MECHANISM THAT MAKES `H6` JUDGED IS ONE LINE, AND IT IS MEASURED HERE RATHER THAN ARGUED.**
+// `constraints.mjs`'s `constraintDelete` runs the delete's pass through the ONE pass function a write's
+// attempt uses — `kernel-attempt.mjs`'s `runAttempt` — **inside the delete's own commit window**, so the
+// request a body raises is stamped with the window the delete OPENED (`state.mjs`'s `currentWindow`) and the
+// drain at the pass's terminal is stamped with that same identity: **the request is carried to THAT pass's
+// terminal judgement, once, and never per step** (`D-42`; `D-54` (b)). **NO THIRD WINDOW IS NEEDED AND NONE IS
+// DECLARED**: the two passless windows stay the two passless windows.
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+console.log('\n── W16 · `D-42`/`D-54` · THE SEVEN HOSTS OF A RAISE, EACH LABELLED ───────────────────');
+{
+  const SEED = 5;
+  const LANDED = 9;
+  const THIRD = 7;
+  /** The table the run prints and the cells read: `{ id, judged, facts }` per host, in host order. */
+  const table = [];
+  const label = (id, judged, facts) => {
+    table.push({ id, judged, facts });
+    console.log(`        ${id} · ${judged === true ? 'JUDGED' : 'NOT JUDGED'} · ${JSON.stringify(facts)}`);
+  };
+  /** The one ask that proves a judgement happened: the pair handed the state the reversal left. */
+  const askedAtSeed = (asks) => asks.some((value) => Object.is(value, SEED));
+  const answerOf = (result) => (result.ok === true
+    ? 'answered'
+    : (result.caught !== null && typeof result.caught === 'object' ? result.caught.status : String(result.caught)));
+  const storeOf = (result) => (result.ok === true ? result.value : `<${result.caught.status}>`);
+  const logIdsOf = (result) => (result.ok === true || !Array.isArray(result.caught.log)
+    ? []
+    : result.caught.log.map((entry) => entry.id));
+
+  // ── H1 · A CONSTRAINT BODY, DURING A WRITE'S PASS ─────────────────────────────────────────────────
+  {
+    const store = make();
+    store.write(['a'], 'mem', SEED);
+    const target = store.write(['a'], 'mem', LANDED);
+    const asks = [];
+    let reversal = null;
+    store.addConstraint({ address: ['a'], id: 'H1-pair' }, (context) => {
+      asks.push(context.value);
+      if (context.attempt !== null && reversal === null && Object.is(context.value, THIRD)) {
+        reversal = attempt(() => store.rollback(target.op.opId));
+      }
+      return Object.is(context.value, SEED)
+        ? { message: 'H1 refuses the state the reversal left' }
+        : true;
+    });
+    const act = attempt(() => store.write(['a'], 'mem', THIRD));
+    const standing = attempt(() => store.read(['a']));
+    label('H1', askedAtSeed(asks), {
+      asks, act: answerOf(act), log: logIdsOf(act), store: storeOf(standing),
+    });
+  }
+
+  // ── H2 · A REPAIR BODY, DURING A WRITE'S PASS ─────────────────────────────────────────────────────
+  {
+    const store = make();
+    store.write(['a'], 'mem', SEED);
+    const target = store.write(['a'], 'mem', LANDED);
+    const asks = [];
+    let reversal = null;
+    store.addConstraint({ address: ['a'], id: 'H2-pair' }, (context) => {
+      asks.push(context.value);
+      if (context.attempt !== null && Object.is(context.value, THIRD)) {
+        return {
+          message: 'H2 refuses this state and repairs',
+          repair: () => {
+            if (reversal === null) reversal = attempt(() => store.rollback(target.op.opId));
+            return { ok: false, message: 'the repair gave up' };
+          },
+        };
+      }
+      return Object.is(context.value, SEED)
+        ? { message: 'H2 refuses the state the reversal left' }
+        : true;
+    });
+    const act = attempt(() => store.write(['a'], 'mem', THIRD));
+    const standing = attempt(() => store.read(['a']));
+    label('H2', askedAtSeed(asks), {
+      asks, act: answerOf(act), log: logIdsOf(act), store: storeOf(standing),
+    });
+  }
+
+  // ── H3 · A LISTENER BODY, IN A WRITE'S DELIVERY (`D-45`; `D-64`'s one later judgement) ────────────
+  {
+    const store = make();
+    store.write(['a'], 'mem', SEED);
+    const target = store.write(['a'], 'mem', LANDED);
+    store.write(['b'], 'mem', 1);
+    const asks = [];
+    let reversal = null;
+    store.addConstraint({ address: ['a'], id: 'H3-pair' }, (context) => {
+      asks.push(context.value);
+      return Object.is(context.value, SEED)
+        ? { message: 'H3 refuses the state the reversal left' }
+        : true;
+    });
+    const handle = store.listen('H3-listener', [['b']]);
+    store.register(handle, () => {
+      if (reversal === null) reversal = attempt(() => store.rollback(target.op.opId));
+    });
+    const act = attempt(() => store.write(['b'], 'mem', 2));
+    const standing = attempt(() => store.read(['a']));
+    label('H3', askedAtSeed(asks), {
+      asks, act: answerOf(act), log: logIdsOf(act), store: storeOf(standing),
+    });
+  }
+
+  // ── H4 · A REGISTRATION'S OWN EVALUATION — THE FIRST DECLARED WINDOW ──────────────────────────────
+  {
+    const store = make();
+    store.write(['a'], 'mem', SEED);
+    const target = store.write(['a'], 'mem', LANDED);
+    const asks = [];
+    let reversal = null;
+    const registered = attempt(() => store.addConstraint({ address: ['a'], id: 'H4-pair' }, (context) => {
+      asks.push(context.value);
+      if (reversal === null) reversal = attempt(() => store.rollback(target.op.opId));
+      return true;
+    }));
+    // A LATER, UNRELATED ACT — the request must NOT be attributed to it (`D-42` item 3).
+    const later = attempt(() => store.write(['z'], 'mem', 3));
+    const standing = attempt(() => store.read(['a']));
+    label('H4', askedAtSeed(asks), {
+      asks,
+      registration: answerOf(registered),
+      // THE OPAQUE IDENTITY, read as it is: an answer with NO own member, so no witness can ride it.
+      identityMembers: registered.ok === true ? Object.keys(registered.value).length : null,
+      witness: registered.ok === true ? witnessOf(registered.value) : null,
+      later: answerOf(later),
+      store: storeOf(standing),
+    });
+  }
+
+  // ── H5 · A DELETE'S LISTENER DELIVERY — THE SECOND DECLARED WINDOW ────────────────────────────────
+  {
+    const store = make();
+    store.write(['b'], 'mem', SEED);
+    const target = store.write(['b'], 'mem', LANDED);
+    store.write(['a'], 'mem', 1);
+    const asks = [];
+    let reversal = null;
+    store.addConstraint({ address: ['b'], id: 'H5-pair' }, (context) => {
+      asks.push(context.value);
+      return Object.is(context.value, SEED)
+        ? { message: 'H5 refuses the state the reversal left' }
+        : true;
+    });
+    const handle = store.listen('H5-listener', [['a']]);
+    store.register(handle, () => {
+      if (reversal === null) reversal = attempt(() => store.rollback(target.op.opId));
+    });
+    const act = attempt(() => store.delete(['a'], 'mem'));
+    const witness = act.ok === true && Array.isArray(act.value.discarded) ? act.value.discarded : null;
+    const standing = attempt(() => store.read(['b']));
+    label('H5', askedAtSeed(asks), {
+      asks,
+      act: answerOf(act),
+      witness,
+      store: storeOf(standing),
+    });
+    // THE EXIT, DRIVEN: a fresh instance replaying the same writes is a judged state by construction.
+    const regenerated = make();
+    regenerated.write(['b'], 'mem', SEED);
+    regenerated.write(['b'], 'mem', LANDED);
+    const freshAsks = [];
+    regenerated.addConstraint({ address: ['b'], id: 'H5-pair' }, (context) => {
+      freshAsks.push(context.value);
+      return true;
+    });
+    P('DW-16.4 · the exit after a discarded request — a regenerated store\'s pair asks', freshAsks);
+  }
+
+  // ── ★ H6 · A CONSTRAINT BODY, DURING A DELETE'S OWN PASS — THE SUBJECT ────────────────────────────
+  const host6 = { asks: [], window: null, reversal: null, act: null, standing: null, receipt: null };
+  {
+    const store = make();
+    store.write(['a'], 'mem', SEED);
+    const target = store.write(['a'], 'mem', LANDED);
+    store.addConstraint({ address: ['a'], id: 'H6-pair' }, (context) => {
+      host6.asks.push(context.value);
+      if (context.attempt !== null && host6.reversal === null) {
+        // THE WINDOW THE RAISE IS TAKEN IN, read at the instant the body runs.
+        host6.window = windowOf(store);
+        host6.reversal = attempt(() => store.rollback(target.op.opId));
+      }
+      return Object.is(context.value, SEED)
+        ? { message: 'H6 refuses the state the reversal left' }
+        : true;
+    });
+    host6.act = attempt(() => store.delete(['a'], 'mem'));
+    host6.standing = attempt(() => store.read(['a']));
+    host6.receipt = host6.act.ok === true ? host6.act.value : null;
+    label('H6', askedAtSeed(host6.asks), {
+      asks: host6.asks,
+      window: host6.window,
+      reversal: host6.reversal === null ? '<not reached>'
+        : (host6.reversal.ok === true ? host6.reversal.value : String(host6.reversal.caught)),
+      act: answerOf(host6.act),
+      log: logIdsOf(host6.act),
+      store: storeOf(host6.standing),
+    });
+  }
+
+  // ── H7 · A REENTRANT REVERSAL-THEN-WRITE (a listener reverses in the outer window, then writes) ──
+  {
+    const store = make();
+    store.write(['a'], 'mem', SEED);
+    const target = store.write(['a'], 'mem', LANDED);
+    store.write(['b'], 'mem', 1);
+    const asks = [];
+    let reversal = null;
+    let nested = null;
+    store.addConstraint({ address: ['a'], id: 'H7-pair' }, (context) => {
+      asks.push(context.value);
+      return Object.is(context.value, SEED)
+        ? { message: 'H7 refuses the state the reversal left' }
+        : true;
+    });
+    const handle = store.listen('H7-listener', [['b']]);
+    store.register(handle, () => {
+      if (reversal !== null) return;
+      reversal = attempt(() => store.rollback(target.op.opId));
+      nested = attempt(() => store.write(['c'], 'mem', 11));
+    });
+    const act = attempt(() => store.write(['b'], 'mem', 2));
+    const standing = attempt(() => store.read(['a']));
+    label('H7', askedAtSeed(asks), {
+      asks, act: answerOf(act), log: logIdsOf(act), store: storeOf(standing),
+      nested: nested === null ? '<not reached>' : answerOf(nested),
+    });
+  }
+
+  const judged = table.filter((one) => one.judged === true).map((one) => one.id);
+  const notJudged = table.filter((one) => one.judged !== true).map((one) => one.id);
+  P('DW-16 · THE SEVEN-HOST TABLE', table.map((one) => [one.id, one.judged === true ? 'JUDGED' : 'NOT JUDGED']));
+  P('DW-16 · the JUDGED set', judged);
+  P('DW-16 · the NOT-JUDGED set', notJudged);
+
+  // ── DW-16.1 · ★ HOST 6 IS JUDGED ──────────────────────────────────────────────────────────────────
+  P('DW-16.1 · ★ HOST 6 · the pair\'s asks, in order', host6.asks);
+  P('DW-16.1 · ★ HOST 6 · the window the raise was taken in', host6.window);
+  P('DW-16.1 · ★ HOST 6 · the reversal\'s own record', host6.reversal === null ? '<not reached>'
+    : (host6.reversal.ok === true ? host6.reversal.value : String(host6.reversal.caught)));
+  P('DW-16.1 · ★ HOST 6 · the delete\'s answer', host6.act.ok === true ? 'answered' : answerOf(host6.act));
+  P('DW-16.1 · ★ HOST 6 · the ONE log entry', host6.act.ok === true || !Array.isArray(host6.act.caught.log)
+    ? [] : host6.act.caught.log.map((entry) => [entry.kind, entry.id, entry.opId]));
+  P('DW-16.1 · ★ HOST 6 · the store after it', storeOf(host6.standing));
+  A('DW-16.1', '`D-42` (the ruling, verbatim: *"Actions inside of an open commit start the constraint check over again"*) · `D-54` (b) (a raise inside a pass is carried to THAT pass\'s terminal judgement) · `D-55` item 3 (`a delete is an editing verb and must pass constraints`) · `D-54`\'s third host · `D-31`',
+    '★ HOST 6 IS JUDGED: the delete\'s own pass asks the pair at the state the delete left, the body reverses inside the DELETE\'s OWN window (`open 1`, `live 1`), the reversal answers its record, and THE RESTARTED CHECK ASKS THE PAIR AT THE STATE THE REVERSAL LEFT (`5`) — so the delete refuses `ConstraintPassRefused` with ONE `constraint-check` entry naming the pair, and the reversal\'s `5` is nowhere in the store afterwards. The request is therefore NOT a third window: it is carried to that pass\'s terminal judgement, once, and never per step',
+    host6.reversal !== null && host6.reversal.ok === true
+      && host6.window !== null && host6.window.open === 1 && host6.window.live === 1
+      && host6.asks.length === 3
+      && Object.is(host6.asks[0], LANDED) && Object.is(host6.asks[2], SEED)
+      && host6.act.ok === false
+      && host6.act.caught.status === PASS_REFUSED
+      && Array.isArray(host6.act.caught.log) && host6.act.caught.log.length === 1
+      && host6.act.caught.log[0].kind === 'constraint-check'
+      && host6.act.caught.log[0].id === 'H6-pair'
+      && /\bUNDONE\b/.test(host6.act.caught.log[0].message) === true
+      && host6.standing.ok === false,
+    `asks ${JSON.stringify(host6.asks)} · window ${JSON.stringify(host6.window)} · reversal `
+      + `${host6.reversal === null ? '<not reached>' : (host6.reversal.ok === true ? 'answered' : String(host6.reversal.caught))} · `
+      + `delete ${answerOf(host6.act)} · log ${JSON.stringify(logIdsOf(host6.act))} · `
+      + `store ${storeOf(host6.standing)}`);
+
+  // ── DW-16.2 · THE LAWFUL ARM OF HOST 6 — THE RAISE IS JUDGED EVEN WHEN NOTHING REFUSES ────────────
+  // **THE SAME HOST, WITH THE REFUSAL TAKEN OUT, SO THE TWO READINGS CAN BE TOLD APART.** A refused delete
+  // mints no receipt at all (it throws, `D-55` item 3), so the witness is unreachable on the arm above; on THIS
+  // arm the pair ADMITS the state the reversal leaves, the restart asks and passes, **the delete ANSWERS**, and
+  // its own `discarded` witness reads `[]` — **nothing was discarded, because the pass's own drain consumed the
+  // request BEFORE the delivery ran.** So `[]` here is the reading of a JUDGED raise, and the same reading on a
+  // delivery's raise (`H5`) is the reading of an IGNORED one: **the witness is not the judge, and the ask is.**
+  const lawful6 = { asks: [], act: null, witness: null, store: null };
+  {
+    const store = make();
+    store.write(['a'], 'mem', SEED);
+    const target = store.write(['a'], 'mem', LANDED);
+    let reversal = null;
+    store.addConstraint({ address: ['a'], id: 'H6b-pair' }, (context) => {
+      lawful6.asks.push(context.value);
+      if (context.attempt !== null && reversal === null) {
+        reversal = attempt(() => store.rollback(target.op.opId));
+      }
+      return true;
+    });
+    lawful6.act = attempt(() => store.delete(['a'], 'mem'));
+    lawful6.witness = lawful6.act.ok === true && Array.isArray(lawful6.act.value.discarded)
+      ? lawful6.act.value.discarded
+      : null;
+    lawful6.store = attempt(() => store.read(['a']));
+  }
+  P('DW-16.2 · ★ HOST 6 (the lawful arm) · the pair\'s asks, in order', lawful6.asks);
+  P('DW-16.2 · ★ HOST 6 (the lawful arm) · the delete\'s answer and its `discarded` witness', [
+    lawful6.act.ok === true ? 'answered' : answerOf(lawful6.act),
+    lawful6.witness,
+  ]);
+  P('DW-16.2 · ★ HOST 6 (the lawful arm) · the store, which keeps the state the restart approved', storeOf(lawful6.store));
+  A('DW-16.2', '`D-49` (a witness reports the delivery\'s discard; it does not run the check) · `D-42` item 3 (a request belongs to the act that raised it) · `D-54` (b) · `D-63` (a validated sweep\'s state stands against a later refusal)',
+    '★ AND THE WITNESS AGREES RATHER THAN CONTRADICTING: on the arm where the restarted check PASSES, the pair is still ASKED at the state the reversal left (`5`) — the raise was judged — the delete ANSWERS with `discarded: []`, and the store keeps the state the restart approved (`5`). The empty witness is therefore the reading of a JUDGED raise and not of an ignored one: the pass\'s own drain consumed the request before the delivery ran',
+    lawful6.asks.length === 3
+      && Object.is(lawful6.asks[2], SEED)
+      && lawful6.act.ok === true
+      && lawful6.witness !== null && lawful6.witness.length === 0
+      && lawful6.store.ok === true && Object.is(lawful6.store.value, SEED),
+    `asks ${JSON.stringify(lawful6.asks)} · answer ${answerOf(lawful6.act)} · witness `
+      + `${JSON.stringify(lawful6.witness)} · store ${storeOf(lawful6.store)}`);
+
+  // ── DW-16.3 · THE SEVEN-HOST TABLE: FIVE JUDGED, TWO NOT — AND THE TWO ARE THE DECLARED WINDOWS ───
+  A('DW-16.3', '`D-42` · `D-54` (a) and (b) · `D-45`/`D-46` · `D-64` (after the pass nothing re-enters) · `D-43` item 2 (the two declared windows) · `D-31`',
+    '★ THE TABLE, RE-MEASURED ON THIS TREE: `H1` (a constraint body in a write\'s pass), `H2` (a repair body in a write\'s pass), `H3` (a listener body in a write\'s delivery), `H6` (a constraint body in a DELETE\'s own pass) and `H7` (a reentrant reversal-then-write) are all JUDGED — the pair is asked at the state the reversal left — and the ONLY hosts that are not are the TWO DECLARED, PASS-RUNNING-NOWHERE windows: `H4` (a registration\'s own evaluation) and `H5` (a `delete`\'s listener delivery)',
+    table.length === 7
+      && judged.length === 5
+      && notJudged.length === 2
+      && judged.join(',') === 'H1,H2,H3,H6,H7'
+      && notJudged.join(',') === 'H4,H5',
+    `judged ${JSON.stringify(judged)} · not judged ${JSON.stringify(notJudged)}`);
+
+  // ── DW-16.4 · THE TWO DECLARED WINDOWS ARE UNCHANGED — UNJUDGED, AND THEIR EXITS INTACT ───────────
+  // **`H4` IS THE IDENTITY-ONLY ARM** — `addConstraint` answers an opaque identity, so nothing on that answer
+  // could carry a witness without a new surface (`D-49`), and the request the registration raised is taken by
+  // NO later act. **`H5` IS THE WITNESS ARM** — the delete still reports the discard on `discarded`, one entry,
+  // and the reversal's effect still stands. **AND THE EXITS ARE THE SAME TWO**: regenerate the store (`H4`/`H5`
+  // both replayed above), or reload the file — neither window is a defect, and neither is newly opened.
+  P('DW-16.4 · `H4` · the registration\'s answer, its own member count and its witness', [
+    table.find((one) => one.id === 'H4').facts.registration,
+    table.find((one) => one.id === 'H4').facts.identityMembers,
+    table.find((one) => one.id === 'H4').facts.witness,
+  ]);
+  P('DW-16.4 · `H5` · the delete\'s witness and the store it left', [
+    table.find((one) => one.id === 'H5').facts.witness,
+    table.find((one) => one.id === 'H5').facts.store,
+  ]);
+  A('DW-16.4', '`D-43` item 2 (the two known passless windows and their exits) · `D-49` (a witness reports; it does not run the check) · `D-42` item 3 (a request no pass matches dies with its window)',
+    '★ THE TWO DECLARED WINDOWS ARE UNCHANGED: neither is judged — the pair is never asked at the state the reversal left in either one — the registration\'s answer is still an OPAQUE IDENTITY (an object with NO own member, so no witness can ride it), the `delete`\'s delivery still reports what it discarded (ONE entry on `discarded`) and still leaves the reversal\'s effect standing, and both exits stand: a regenerated store is judged by construction',
+    table.find((one) => one.id === 'H4').judged === false
+      && table.find((one) => one.id === 'H4').facts.identityMembers === 0
+      && table.find((one) => one.id === 'H4').facts.witness === null
+      && table.find((one) => one.id === 'H5').judged === false
+      && Array.isArray(table.find((one) => one.id === 'H5').facts.witness)
+      && table.find((one) => one.id === 'H5').facts.witness.length === 1
+      && Object.is(table.find((one) => one.id === 'H5').facts.store, SEED),
+    `H4 judged ${table.find((one) => one.id === 'H4').judged} · `
+      + `H5 judged ${table.find((one) => one.id === 'H5').judged} witness `
+      + `${JSON.stringify(table.find((one) => one.id === 'H5').facts.witness)} · `
+      + `H5 store ${JSON.stringify(table.find((one) => one.id === 'H5').facts.store)}`);
+
+  console.log('');
+  console.log('        THE SENTENCE TO CARRY AWAY: A RAISE TAKEN INSIDE A PASS IS JUDGED BY THAT PASS\'S OWN');
+  console.log('        TERMINAL CHECK — whichever verb opened the pass, a write or a delete — and the ONE readable');
+  console.log('        evidence is that your pair is ASKED AGAIN at the state the reversal left. THE RAISE THAT IS');
+  console.log('        NOT JUDGED IS THE ONE TAKEN WHERE NO PASS RUNS AT ALL: a registration\'s own evaluation, and');
+  console.log('        a `delete`\'s listener delivery. Those two are declared, their effects stand, and their');
+  console.log('        exits are the file reload and a regenerated store.');
+}
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════
 // THE RUN'S OWN REPORT — `D-21`: a cell that did not run may not exit 0
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════
 console.log('');
