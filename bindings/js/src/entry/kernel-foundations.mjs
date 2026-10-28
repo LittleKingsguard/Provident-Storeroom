@@ -1070,6 +1070,17 @@ function opSpelling(value) {
  *     deleted node is ABSENT after the act and was not before, **which is a change to what a read there
  *     returns.**
  *
+ * **⟶ AND THE WRITE'S SET IS NOW SYMMETRIC — THE UNION OF BOTH VALUES' PATH SETS, 2026-10-29.** `RCA-8(g)`
+ * ANNOTATE-BESIDE: **the two bullets above are the reading of their own date and are read THROUGH this clause;
+ * the write bullet's *"exactly the paths its value contains"* is superseded, and the delete bullet is unmoved.**
+ * **A WRITE THAT REPLACES A NODE DROPS THE SUB-PATHS THE OLD VALUE CARRIED**: `{c: 1}` over `{c: {x: 1}}` leaves
+ * `['a','b','c','x']` present-before and absent-after, **and that IS a change, so its pair IS asked** — the
+ * criterion above (*"a pair is asked when the act changes the value at the pair's address"*) already decides it,
+ * because **a path that disappears changed as surely as a path that appears.** **THE SOURCE IS `op.before.value`,
+ * and the place is `touchedAddresses` and nowhere else** — this function's own body does not change by one byte,
+ * so both pass call sites inherit the widened set exactly as they inherited `D-56`'s. **`['a','b','e']` STILL IS
+ * NOT ASKED**, for the reason its bullet gives: `e` stands in neither value, so neither half touches it.
+ *
  * **`D-66` DEFERS TO `D-56` AND TO `CX-12`, AND NOTHING BELOW MOVES FOR IT**: the set is STILL materialised once,
  * frozen at pass start, and STILL ordered by the one `Map` iteration — the touched descendants INTERLEAVE into
  * that one order exactly as the ancestors do, admitted by the same `break`, so a row standing at one address the
@@ -1103,6 +1114,26 @@ export function pairsAtAddress(kernel, address, act) {
 /**
  * **THE ADDRESSES AN ACT TOUCHED BELOW ITS OWN ADDRESS — `D-66`'s OWN COMPUTATION, AND ITS TWO ARMS.**
  *
+ * **⟶ AND A WRITE'S SET IS NOW THE UNION OF THE TWO VALUES' PATH SETS — `D-66` READ SYMMETRICALLY, 2026-10-29.**
+ * `RCA-8(g)` ANNOTATE-BESIDE: **every clause below stands BYTE-FOR-BYTE as the reading of its own date and is read
+ * THROUGH this clause; the one sentence it supersedes is the write arm's *"exactly the paths its value contains"*,
+ * named here rather than overwritten.** **THE RESIDUAL, MEASURED**: **a write that REPLACES a node DROPS the
+ * sub-paths the old value carried** — `{c: 1}` written over `{c: {x: 1}}` leaves `['a','b','c','x']`
+ * **present-before and absent-after**, which IS a change to what a read there returns, **and under the
+ * written-value-only arm its pair was not asked.** **THE CRITERION `D-66` NAMED ALREADY DECIDES IT** — *"a pair is
+ * asked when the act changes the value at the pair's address"* — **and a path that DISAPPEARS changed as surely as
+ * a path that APPEARS.** **SO THE WRITE'S TOUCHED SET IS SYMMETRIC: the paths of the value it WROTE
+ * (`after.value`) TOGETHER WITH the paths of the value it REPLACED (`before.value`) — their union, a path in both
+ * being appended once — and `op.before.value` is the source of the second half.** **THE DELETE ARM IS UNCHANGED**
+ * (the whole subtree of the value it removed, below). **THE ONE PLACE IS THIS FUNCTION**: `pairsAtAddress` calls it
+ * once at pass start and both pass call sites inherit the widened set with no byte of their own moving.
+ *
+ * **A FIRST WRITE AT AN ADDRESS HAS NO BEFORE VALUE, AND THAT IS `present: false`, NOT AN ABSENCE OF THE MEMBER**:
+ * `state_from_captured` answers `Store::absent_state()` where nothing was captured (`src/store.rs`), so
+ * `op.before` is ALWAYS an object carrying `present` and `value` — `present === false` on the first write, and
+ * `absentState` is the arm that touches nothing. **So the union on a first write is the written value's path set
+ * exactly, and no arm of this function throws on it** (measured in `DW-13.6`).
+ *
  * **A WRITE TOUCHES EXACTLY THE PATHS ITS VALUE CONTAINS.** The value is `after.value`, the state the write
  * installs (`JournalOp`'s `after`, `src/records.rs`). **Its path set, stated for each class of value:**
  *   * **a SCALAR** — a string, a number, a boolean or `null` — **contains no path at all**: it has no members, so
@@ -1121,16 +1152,29 @@ export function pairsAtAddress(kernel, address, act) {
  * **A DELETE TOUCHES THE WHOLE SUBTREE AT ITS ADDRESS**, and its path set is read off the SAME computation
  * applied to the state the delete removed: `before.value` (`JournalOp`'s `before`), because a descendant of a
  * deleted node is **absent after the act and was not before**. **THE `after` STATE IS ABANDONED BY THE SAME
- * ARGUMENT**: a delete leaves absence, so `after` has no members to walk.
+ * ARGUMENT**: a delete leaves absence, so `after` has no members to walk. **THIS ARM IS UNCHANGED BY THE UNION
+ * ABOVE, AND IT IS NOW THE WRITE'S `before` ARM THAT IS THE ONE IT SHARES**: the delete's `before` was already
+ * this function's second reader, so the symmetric write arm adds no new state, no new member and no new walk —
+ * it adds the ONE call that the delete arm already made.
  *
  * **AND AN ABSENT STATE TOUCHES NOTHING**: `present !== true` returns the empty set — which is the delete that
- * removed nothing (`D-3`: no op stands at all) and the write whose value carries no members.
+ * removed nothing (`D-3`: no op stands at all), the write whose value carries no members, **and the first write at
+ * an address, whose `before` is absent (`appendStatePaths` is where that guard now stands, once for every state
+ * either arm reads).**
  *
  * **MEASURED BEFORE THIS FUNCTION WAS WRITTEN, AND IT IS REACHABLE**: `op.kind` answers `"write"` or `"delete"`,
  * `op.address` the act's own segments, `op.after.value` the FULL DECODED TREE a write installed
  * (`{c:'foo', d:'bar'}` crosses as exactly that plain object — `frame.mjs`'s `decodeValue`) and `op.before.value`
  * the subtree a delete removed (`{c:{x:1}, d:'bar'}`). **NO `src/**` BYTE AND NO `index.mjs` BYTE HAD TO MOVE**, so
  * the store's op already carried the value JS needs.
+ *
+ * **⟶ AND `op.before` IS PRESENT ON EVERY WRITE THE PASS EVALUATES, MEASURED AGAIN FOR THE SECOND HALF OF THE UNION,
+ * 2026-10-29** (`DW-13.6`): **`JournalOp`'s `before` is a non-`Option` `BaseState`** (`src/records.rs`), so the
+ * crossing carries it unconditionally (`frame.mjs`'s `decodeJournalOp` reads `encoded.before` for every kind), and
+ * a write's `before` is `state_from_captured`, **which answers `Store::absent_state()` — `present: false` — where
+ * nothing was captured and a `present: true` value everywhere else.** **SO THE MEMBER IS NEVER MISSING AND THE
+ * FIRST-WRITE CASE IS A STATE AND NOT AN ERROR**: the union is the written value's path set alone, and the arms
+ * above take it without a throw.
  *
  * **NO METHOD IS TAKEN FROM A MUTABLE PROTOTYPE**: `Array.isArray` is the same intrinsic `decodeValue` uses, the
  * member census is `Object.keys`, each member is read by `ownMember` (`D-35`'s read half), and every append is
@@ -1141,15 +1185,35 @@ export function touchedAddresses(act) {
   if (act === null || typeof act !== 'object') return out;
   const address = ownMember(act, 'address');
   if (!Array.isArray(address)) return out;
-  // **THE KIND CHOOSES THE STATE, AND IT IS THE ACT'S OWN KIND AND NOT A DEFAULT**: a write's `after` and a
-  // delete's `before` are the two states that name what the act MOVED.
-  const state = ownMember(act, ownMember(act, 'kind') === 'delete' ? 'before' : 'after');
-  if (state === null || typeof state !== 'object') return out;
-  if (ownMember(state, 'present') !== true) return out;
   const base = [];
   for (let i = 0; i < address.length; i += 1) appendOwn(base, address[i]);
-  appendValuePaths(out, base, ownMember(state, 'value'));
+  // **THE KIND CHOOSES THE STATES, AND IT IS THE ACT'S OWN KIND AND NOT A DEFAULT**: a delete's `before` is the
+  // one state that names what it MOVED (it leaves absence, so `after` has no members to walk); **a write's `after`
+  // AND ITS `before` are the TWO states that name what it moved** — what it installed and what it displaced.
+  if (ownMember(act, 'kind') === 'delete') {
+    appendStatePaths(out, base, ownMember(act, 'before'));
+    return out;
+  }
+  appendStatePaths(out, base, ownMember(act, 'after'));
+  // **THE REPLACED VALUE'S PATHS JOIN THE WRITTEN VALUE'S — THE UNION, AND THE ONE `sameAddress` RULE THE TWO
+  // HALVES OF THE SET ALREADY COMPARE WITH.** A path BOTH values carried was appended by the line above and is
+  // not appended again, so the returned list is a set and the touched-descendant arm reads one list and no
+  // second. **A FIRST WRITE ADDS NOTHING HERE**: its `before` state is `present: false` and touches nothing.
+  const replaced = [];
+  appendStatePaths(replaced, base, ownMember(act, 'before'));
+  for (let i = 0; i < replaced.length; i += 1) {
+    if (touchesAddress(out, replaced[i]) === false) appendOwn(out, replaced[i]);
+  }
   return out;
+}
+
+/** One state half's path set, appended under `base` — **the guard `touchedAddresses` states once for both arms of
+ *  a write and for the delete's one**: a state that is not an object, or whose `present` is not `true`, has no
+ *  members and touches nothing (`D-3`'s delete that removed nothing; the first write at an address). */
+function appendStatePaths(out, base, state) {
+  if (state === null || typeof state !== 'object') return;
+  if (ownMember(state, 'present') !== true) return;
+  appendValuePaths(out, base, ownMember(state, 'value'));
 }
 
 /** One value's path set, appended under `prefix` — the walk `touchedAddresses` states the rule of. Each member's

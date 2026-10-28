@@ -57,7 +57,9 @@ import { storeCreate } from '../../bindings/js/index.mjs';
 // consumer holds and the pass shape the delete has no verb for are kernel-level facts, and the barrel is the
 // kernel's one checkout home (`kernel-surface.md §1` item 1).
 import * as kernel from '../../bindings/js/src/constraint-kernel.mjs';
-import { kernelFor } from '../../bindings/js/src/entry/kernel-foundations.mjs';
+// **AND `touchedAddresses` ITSELF IS READ BY `DW-13.5`/`DW-13.6`** — the set the union materialises, printed as the
+// function answers it rather than as the drive re-derives it (`D-17`: the one place is `kernel-foundations.mjs`'s).
+import { kernelFor, touchedAddresses } from '../../bindings/js/src/entry/kernel-foundations.mjs';
 import { currentWindow, openCommits, windowMark } from '../../bindings/js/src/entry/state.mjs';
 // **THE STORE'S OWN POSITION, REACHED AT THE ADDON'S ENTRY EXACTLY AS THE PACKAGE REACHES IT** — the instrument
 // `D-63`'s two boundaries are measured with (`state.mjs`'s opening cache IS this answer, and the bump IS its
@@ -2119,12 +2121,29 @@ console.log('\n── W12 · `D-63` — bump the mark when a sweep ends valid �
 // materialisation at pass start, frozen, and ONE registration order across ancestors, the act's own address and
 // the touched descendants — the touched rows interleave into the same `Map` sequence and form no second list.
 //
+// **⟶ AND THE WRITE ARM IS NOW SYMMETRIC, 2026-10-29 — `DW-13.5` and `DW-13.6`, ADDED BESIDE `DW-13.1`–`DW-13.4`
+// AND MOVING NOT ONE BYTE OF THEM.** `RCA-8(g)` ANNOTATE-BESIDE: **the sentence above — *"A WRITE touches exactly
+// the paths its value contains"* — is the reading of its own date and is read THROUGH this clause, which SUPERSEDES
+// it and leaves the delete arm exactly as it stood.** **THE MEASURED RESIDUAL WAS THIS**: a write that REPLACES a
+// node DROPS the sub-paths the old value carried — `{c: 1}` written over `{c: {x: 1}}` leaves `['a','b','c','x']`
+// present-before and absent-after, **which is a change to what a read there returns** — and the written value does
+// not name `x`, so the pair standing there went unasked. **THE CRITERION `D-66` NAMED DECIDES IT WITHOUT A NEW
+// RULE**: *"a pair is asked when the act changes the value at the pair's address"*, **and a path that DISAPPEARS
+// changed as surely as a path that APPEARS.** **SO THE TOUCHED SET IS THE UNION OF BOTH VALUES' PATH SETS FOR A
+// WRITE — the paths of `after.value` together with the paths of `before.value` — and `op.before.value` is the
+// source of the second half.** `['a','b','e']` is STILL NOT ASKED, because `e` stands in neither value.
+//
 // **EVERY CELL BELOW BITES UNDER A `/tmp` REVERT**, one line each:
 //   · `DW-13.1`/`DW-13.2` — restore `pairsAtAddress`'s membership test to `isAddressPrefix` alone (drop the
 //     `|| touchesAddress(...)` term) → RED on the touched arm (the write's `c`/`d` pairs go unasked, and the
 //     nested write's `p`/`p.q`/`p.r` too);
 //   · `DW-13.3` — register the touched rows into a SECOND list appended after the prefix rows, or re-read the
-//     registry inside the loop → RED on the one-order and on the freeze.
+//     registry inside the loop → RED on the one-order and on the freeze;
+//   · `DW-13.5`/`DW-13.6` — restore `touchedAddresses`'s write arm to `after` ALONE (delete the `before` half of
+//     the union) → RED on the residual: the pair at `['a','b','c','x']` goes unasked while `['a','b','c','z']`
+//     stays unasked, which is exactly the asymmetry the union removes;
+//   · `DW-13.6` — drop `before` from what the pass hands the set (or read `op.before.value` without the
+//     `present` guard) → RED on the presence measurement and, on the first write, on a throw.
 console.log('\n── W13 · `D-66` · A PAIR AT A DESCENDANT IS ASKED ONLY WHEN THE ACT TOUCHED IT ────────');
 {
   const statusOf = (caught) => (caught !== null && typeof caught === 'object' && typeof caught.status === 'string'
@@ -2300,38 +2319,141 @@ console.log('\n── W13 · `D-66` · A PAIR AT A DESCENDANT IS ASKED ONLY WHEN
       && tAsks.includes('del-a.b.e') === false,
     `asks ${JSON.stringify(tAsks)} · delete ${tReceipt.ok ? 'ANSWERED' : statusOf(tReceipt.caught)}`);
 
-  // ── AND THE ONE DESCENDANT THE SET STILL MISSES, PRINTED RATHER THAN LEFT TO BE FOUND ────────────
-  // **`D-66` DEFINES A WRITE'S TOUCHED SET AS *"exactly the paths the written value contains"*, AND THAT SET HAS
-  // ONE EDGE THE ACT DID MOVE AND THE VALUE DOES NOT NAME**: a node the write REPLACED loses the sub-paths the
-  // old value carried and the new one does not. Writing `{c: 1}` over `{c:{x:1}}` leaves `['a','b','c','x']`
-  // absent-after and present-before — a change to what a read there returns — but `['a','b','c','x']` is not in
-  // the written value's path set, so the pair standing there is NOT asked. **The `before` state WOULD name it
-  // (`op.before.value` carries the replaced tree, measured reachable), and the ruling does not ask for it**: this
-  // is `D-66`'s own definition read to its edge, printed here and NOT implemented.
+  // ── DW-13.5 · THE RESIDUAL'S OWN ARM: THE PAIR AT THE PATH THE WRITE DROPPED IS ASKED ────────────
+  // **THE DEFECT THIS PASS MEASURED, DRIVEN AGAIN WITH THE UNION IN PLACE.** `D-66`'s write arm read *"exactly the
+  // paths the written value contains"*, **and that set has one edge the act DID move and the written value does
+  // not name**: a node the write REPLACED loses the sub-paths the old value carried. Writing `{c: 1}` over
+  // `{c:{x:1}}` leaves `['a','b','c','x']` **present-before and absent-after** — a change to what a read there
+  // returns — **and `x` stands in the replaced value alone.** **THE CRITERION *"a pair is asked when the act changes
+  // the value at the pair's address"* ASKS IT**, so the touched set is the UNION of the two values' path sets and
+  // `op.before.value` is the source of the second half. **BOTH SIDES ARE PRINTED**: the pair at `['a','b','c','x']`
+  // — a path in the replaced value and not in the written one — **IS ASKED**; the pair at `['a','b','c','z']` — a
+  // path in NEITHER value — **IS NOT ASKED**, and neither is `['a','b','y']`, a sibling neither value carries.
   const gStore = make();
   gStore.write(['a'], 'mem', {});
   gStore.write(['a', 'b'], 'mem', {});
   gStore.write(['a', 'b', 'c'], 'mem', { x: 1 });
   const gAsks = [];
-  gStore.addConstraint({ address: ['a', 'b', 'c', 'x'], id: 'replaced-descendant' }, (context) => {
-    if (context.attempt !== null) gAsks.push('pass');
+  const gBody = (id) => (context) => {
+    if (context.attempt !== null) gAsks.push(id);
     return true;
-  });
+  };
+  // **THE REGISTRATION SEQUENCE IS THE ONE ORDER THE PASS WILL ASK THEM IN**, and every address is a DESCENDANT of
+  // the act's — so nothing here is admitted by `D-56`'s prefix arm and every verdict below is the touched arm's.
+  const gSeeded = [
+    [['a', 'b', 'c', 'x'], 'replaced-descendant'],
+    [['a', 'b', 'c', 'z'], 'untouched-beside-x'],
+    [['a', 'b', 'y'], 'untouched-sibling'],
+  ].map(([address, id]) => ({ address, id, registered: attempt(() => gStore.addConstraint({ address, id }, gBody(id))) }));
   const gRecord = attempt(() => kernel.commit(gStore, ['a', 'b'], 'mem', { c: 1 }));
   const gRun = gRecord.ok ? attempt(() => kernel.runAttempt(gStore, gRecord.value)) : null;
   const gAfter = attempt(() => gStore.read(['a', 'b', 'c', 'x']));
-  P('X7 · THE ONE THE SET STILL MISSES — a write of `{c:1}` over `{c:{x:1}}`, the pair at `[\'a\',\'b\',\'c\',\'x\']`', {
-    askedByThePass: gAsks.includes('pass'),
-    beforeState: gRecord.ok ? (gRecord.value.op.before.present ? gRecord.value.op.before.value : '<absent>') : '<no record>',
-    afterRead: gAfter.ok ? gAfter.value : statusOf(gAfter.caught),
-    writtenPathSet: gRecord.ok ? gRecord.value.op.after.value : '<no record>',
+  const gSet = gRecord.ok ? touchedAddresses(gRecord.value.op) : [];
+  for (const { address, id } of gSeeded) {
+    P(`X7 · residual ${JSON.stringify(address)}`, gAsks.includes(id) ? 'ASKED' : 'NOT ASKED');
+  }
+  P('X7 · residual · the write\'s two states — what it WROTE, and what it REPLACED', {
+    wrote: gRecord.ok ? gRecord.value.op.after.value : '<no record>',
+    replaced: gRecord.ok ? (gRecord.value.op.before.present ? gRecord.value.op.before.value : '<absent>') : '<no record>',
   });
+  P('X7 · residual · the touched set the union materialises (`touchedAddresses(op)`)', gSet);
+  P('X7 · residual · what a read at the dropped path answers AFTER the act', gAfter.ok ? gAfter.value : statusOf(gAfter.caught));
+  A('DW-13.5', '`strata/decisions.md` · `D-66`\'s criterion (*"a pair is asked when the act changes the value at the pair\'s address"*) read SYMMETRICALLY — a path that DISAPPEARS changed as surely as a path that appears — with `op.before.value` (`JournalOp`\'s `before`, `src/records.rs`) as the second half\'s source and `touchedAddresses` (`bindings/js/src/entry/kernel-foundations.mjs`) as its one place',
+    'A WRITE\'S TOUCHED SET IS THE UNION OF BOTH VALUES\' PATH SETS: a write of `{c:1}` over `{c:{x:1}}` at `[\'a\',\'b\']` ASKS the pair at `[\'a\',\'b\',\'c\',\'x\']` — present before the act and absent after it — and does NOT ask the pairs at `[\'a\',\'b\',\'c\',\'z\']` or `[\'a\',\'b\',\'y\']`, which stand in neither value',
+    gSeeded.every((one) => one.registered.ok === true)
+      && gRecord.ok === true && gRun !== null && gRun.ok === true && gRun.value.outcome === 'passed'
+      && keyOfAddr(gSet) === keyOfAddr([['a', 'b', 'c'], ['a', 'b', 'c', 'x']])
+      && keyOfAddr(gAsks) === keyOfAddr(['replaced-descendant'])
+      && gAfter.ok === false,
+    `asks ${JSON.stringify(gAsks)} · the set ${JSON.stringify(gSet)} · `
+      + `read after the act ${gAfter.ok ? JSON.stringify(gAfter.value) : statusOf(gAfter.caught)} · `
+      + `run ${gRun === null ? '<not reached>' : (gRun.ok ? gRun.value.outcome : statusOf(gRun.caught))}`);
+
+  // ── DW-13.6 · `op.before` IS PRESENT ON EVERY WRITE THE PASS EVALUATES, AND THE FIRST WRITE IS ABSENT ──
+  // **THE UNION'S SECOND HALF NEEDS ITS SOURCE ON EVERY WRITE THE PASS SEES, AND THE FIRST WRITE HAS NO VALUE TO
+  // READ.** `D-66` asked for exactly this measurement (*"measure whether the path set is reachable from what the
+  // attempt holds, and say so plainly if it is not"*), and the answer is the store's own record: **`JournalOp`'s
+  // `before` is a non-`Option` `BaseState`** (`src/records.rs`), so the crossing carries it unconditionally, and a
+  // write's `before` is `state_from_captured` — **`Store::absent_state()` where nothing was captured, a
+  // `present: true` value everywhere else** (`src/store.rs`). **SO THE MEMBER IS NEVER MISSING: the first write's
+  // `before` is `present: false` and its union is the written value's path set exactly — not a throw and not an
+  // empty set.** The drive reads the op at EVERY evaluation the pass makes and prints the shape it saw.
+  const fStore = make();
+  const fSeen = [];
+  const fAsks = [];
+  const fBody = (id) => (context) => {
+    if (context.attempt !== null) {
+      fAsks.push(id);
+      const op = context.op;
+      fSeen.push({
+        kind: op === null || typeof op !== 'object' ? '<no op>' : op.kind,
+        hasBefore: op !== null && typeof op === 'object' && Object.hasOwn(op, 'before'),
+        beforeIsObject: op !== null && typeof op === 'object' && op.before !== null && typeof op.before === 'object',
+        beforePresent: op !== null && typeof op === 'object' && op.before !== null && typeof op.before === 'object'
+          ? op.before.present : '<none>',
+        beforePresentIsBoolean: op !== null && typeof op === 'object' && op.before !== null && typeof op.before === 'object'
+          && typeof op.before.present === 'boolean',
+        hasBeforeValue: op !== null && typeof op === 'object' && op.before !== null && typeof op.before === 'object'
+          && Object.hasOwn(op.before, 'value'),
+        valueType: op !== null && typeof op === 'object' && op.before !== null && typeof op.before === 'object'
+          ? typeof op.before.value : '<none>',
+      });
+    }
+    return true;
+  };
+  // **A FIRST WRITE AT `['f']` — NOTHING STOOD THERE** — whose value is `{g:{q:1}}`, with a pair at the written
+  // path `['f','g']`, at the nested path `['f','g','q']` and at `['f','h']`, which neither state carries.
+  const fSeeded = [
+    [['f', 'g'], 'written-path'],
+    [['f', 'g', 'q'], 'written-nested-path'],
+    [['f', 'h'], 'neither-state-carries-it'],
+  ].map(([address, id]) => ({ address, id, registered: attempt(() => fStore.addConstraint({ address, id }, fBody(id))) }));
+  const fRecord = attempt(() => kernel.commit(fStore, ['f'], 'mem', { g: { q: 1 } }));
+  const fRun = fRecord.ok ? attempt(() => kernel.runAttempt(fStore, fRecord.value)) : null;
+  const fSet = fRecord.ok ? touchedAddresses(fRecord.value.op) : [];
+  for (const { address, id } of fSeeded) {
+    P(`X7 · first write ${JSON.stringify(address)}`, fAsks.includes(id) ? 'ASKED' : 'NOT ASKED');
+  }
+  P('X7 · first write · what `op.before` IS where nothing stood', fRecord.ok
+    ? { present: fRecord.value.op.before.present, hasValue: Object.hasOwn(fRecord.value.op.before, 'value'),
+      valueType: typeof fRecord.value.op.before.value }
+    : '<no record>');
+  P('X7 · first write · the touched set the union materialises (`touchedAddresses(op)`)', fSet);
+  P('X7 · first write · `op.before` AS SEEN AT EVERY EVALUATION THE PASS MADE (one row per ask)', fSeen);
+  A('DW-13.6', '`strata/decisions.md` · `D-66` (*"measure whether the path set is reachable from what the attempt holds, and say so plainly if it is not"*) — read with `JournalOp`\'s `before: BaseState` (`src/records.rs`), `Store::absent_state()` (`src/store.rs`) and `frame.mjs`\'s `decodeJournalOp`',
+    '`op.before` IS PRESENT ON EVERY WRITE THE PASS EVALUATES — an object carrying a boolean `present` and an own `value` — and THE FIRST WRITE\'S `before` IS `present: false`, so its union is the written value\'s path set EXACTLY (`[\'f\',\'g\']` and `[\'f\',\'g\',\'q\']` asked, `[\'f\',\'h\']` not) and no arm throws',
+    fSeeded.every((one) => one.registered.ok === true)
+      && fRecord.ok === true && fRun !== null && fRun.ok === true && fRun.value.outcome === 'passed'
+      && fRecord.value.op.before.present === false
+      && fSeen.length === 2
+      && fSeen.every((one) => one.hasBefore === true && one.beforeIsObject === true
+        && one.beforePresentIsBoolean === true && one.hasBeforeValue === true)
+      && fSeen.every((one) => one.beforePresent === false)
+      && keyOfAddr(fSet) === keyOfAddr([['f', 'g'], ['f', 'g', 'q']])
+      && keyOfAddr(fAsks) === keyOfAddr(['written-path', 'written-nested-path'])
+      && fAsks.includes('neither-state-carries-it') === false,
+    `before ${fRecord.ok ? JSON.stringify({ present: fRecord.value.op.before.present }) : '<no record>'} · `
+      + `set ${JSON.stringify(fSet)} · asks ${JSON.stringify(fAsks)} · `
+      + `before-shape ${fSeen.length === 0 ? '<the pass made no evaluation>' : JSON.stringify(fSeen[0])} · `
+      + `run ${fRun === null ? '<not reached>' : (fRun.ok ? fRun.value.outcome : statusOf(fRun.caught))}`);
+
+  // **A REPLACING WRITE'S `before` IS THE STATE IT REPLACED, SEEN THROUGH THE SAME PASS — THE OTHER HALF OF THE
+  // MEASUREMENT, ON THE SAME RECORD `DW-13.5` DRIVES**: the op the pass evaluated carries `present: true` and the
+  // replaced tree. It is printed here and not asserted twice: `DW-13.5`'s assertion is the asked set, and this line
+  // is what the set was computed from.
+  if (gRecord.ok) {
+    P('X7 · replacing write · `op.before` where something DID stand', {
+      present: gRecord.value.op.before.present,
+      carried: gRecord.value.op.before.value,
+    });
+  }
   console.log('');
   console.log('        THE SENTENCE TO CARRY AWAY (`D-66`): A PAIR IS ASKED WHEN THE ACT CHANGES THE VALUE AT ITS');
   console.log('        ADDRESS — the ancestors because a prefix read CONTAINS its subtree (`D-56`), and the');
-  console.log('        descendants THE ACT TOUCHED because a node it created or destroyed has a changed value: a');
-  console.log("        write touches exactly the paths its value contains, a delete the whole subtree it removed. A");
-  console.log('        descendant the act did not touch is NOT asked, and the set is still one snapshot, frozen at');
+  console.log('        descendants THE ACT TOUCHED because a node it created or destroyed has a changed value. A');
+  console.log('        write touches the paths of the value it WROTE and of the value it REPLACED — a path that');
+  console.log('        disappears changed as surely as a path that appears — and a delete the whole subtree it removed.');
+  console.log('        A descendant neither value touched is NOT asked, and the set is still one snapshot, frozen at');
   console.log('        pass start, in one registration order.');
 }
 
