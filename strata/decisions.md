@@ -4055,3 +4055,37 @@ that can must carry it with its count, `0` included.**
 sentence it cannot carry (`1`), the merge that removed the count (`1` = `DEF-AP`), the demand (`1` = every raise, every
 path), the cells owed (`5` = one raise · two raises both paired · two raises one paired · inside a body · the trigger's
 answer).**
+
+---
+
+### `D-76` — `D-71`'S SENTENCE WAS L0'S PARAPHRASE HARDENING A PERMISSION INTO A PROHIBITION; and two stale passages moved instead of leaving
+
+**DATE:** 2026-10-29. **BRANCH:** `main`. **SOURCE:** the Round 15 handoff's `DEF-AU` and `DEF-AT`.
+
+**1 · ★ `DEF-AU`: THE BEHAVIOUR IS CORRECT AND `D-71` IS FALSE AS L0 WROTE IT.** **The architect said**: *"The caller does
+not need to know about the outcome of the listeners."* **L0 wrote**: *"the caller learns NOTHING of its outcome."* **A
+PERMISSION BECAME A PROHIBITION** — **and `D-73` then ruled the throw stays *"so the client can log errors cleanly"*,
+which is the caller learning the outcome, in the very next ruling.** **So L0 wrote a sentence and its counter-example two
+rulings apart, in the same record.**
+
+**THE CORRECTION**: **a listener's REFUSAL is contained** — its own commit's, invisible upward. **A listener's THROW is the
+channel** — **the caller is the only party positioned to log the violation, because the listener's act is in the
+listener's own commit.** **"Does not need to know" is a permission; "learns nothing" was a claim, and a false one.**
+
+**2 · AND NOTHING TELLS THE CALLER ITS OWN ACT STOOD.** **The throw's `status` is `ConstraintPassRefused`, INDISTINGUISHABLE
+FROM A REFUSAL OF THE CALLER'S OWN ACT** — **so a consumer reading only the answer concludes its write did not happen,
+while the store says it did.** **That is `D-73`'s retry hazard in its sharpest form**, and the row asks the rule be stated
+plainly, **and the two be tellable apart.**
+
+**3 · `DEF-AT`: TWO SUPERSEDED PASSAGES MOVED RATHER THAN LEFT.** The guide still prints, at new line numbers:
+- **`README.guide.md:1044-1046`** — *"a pair at an ANCESTOR address is not asked by the delete's pass"* — **contradicted by
+  `:1055` in the same document, by `D-56`, and by measurement**;
+- **`README.guide.md:1979`** — *"the `delete`'s own pass is still a measurement and not a behaviour … IT NEVER CALLS THE
+  KERNEL"* — **falsified by `§7.8` of the same document and by measurement.**
+
+**THE CLASS IS THE ONE THIS BRANCH KEEPS FINDING**: **a correction applied at one site and not at the others** — **the same
+shape as the half-corrected README, the stale `sixteen`, and the `seq` that was struck as fabricated.** **And the row's own
+discipline is right: move the superseded bytes out with a one-line pointer, and leave the standing sentence alone.**
+
+**TERMS: the paraphrase's escalation (`1` = permission to prohibition), the throw's status ambiguity (`1`), the two
+passages (`2`), the class (`1` = corrected at one site, not the others), the migration note owed (`1`).**
