@@ -3621,3 +3621,38 @@ corrected in the other direction (`1`), the mechanism ruled (`1` = a commit iden
 **AND THE DECLARATION WAS CORRECTLY NOT LANDED.** The correction owed — *a listener's write is discrete and atomic, because it runs after all constraints; a repair's write is atomic with the write it repairs* — **would declare behaviour the tree measurably lacks.** **The `1.4.0` clause stands as written until the tree moves, and that is the right order for a declaration.**
 
 **TERMS: the ruling split (`3` = one red, two green), grants owed (`3` = `facade.rs`, `crossing.rs`, `index.mjs`), pinned cells to be ruled (`2` = `restoreMark`'s arity, the export set's fifteen), unruled semantics (`1` = two commits at one journal head), declaration withheld and why (`1`).**
+
+---
+
+### `D-62` — THE MODEL IS ALREADY THE STATE, IN THE JS LAYER; WHAT IS MISSING IS THAT THE COMMIT NEVER CROSSES TO THE STORE
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, asking how `D-60`'s model is not already the tree.
+
+**THE CLARIFICATION, VERBATIM:**
+
+> A constraint should be expected to be passed and subsequently identify the commit that it is part of, specifically so
+> that it is logged and can be reversed if needed. A listener *should not be doing this*. A second action by the client,
+> even if it's from the same function as the original call, should not have any knowledge of the current commit state and
+> should not be able to add to the prior commit, *because the prior commit should no longer exist in the store*
+
+**AND THE ARCHITECT IS RIGHT: ALL THREE ARE ALREADY THE STATE — IN THE JS LAYER.**
+
+- **A constraint identifies its commit**: `D-46`'s mechanism, the kernel naming the attempt's commit at the repair's second position. **It is logged and reversible because the commit's log is the commit's** (`D-53`).
+- **A listener does not**: it passes no commit, so `D-45` makes it open its own.
+- **A second client action cannot join the prior commit**: **the prior commit is DROPPED on resolution** (`D-58`'s no-retention half). **There is nothing to join.**
+
+**SO WHAT IS MISSING IS ONE THING, AND IT IS MEASURED: THE COMMIT NEVER REACHES THE STORE.**
+
+- `facade.rs:655` **declares** `verb_write(…, commit_identity: JsVal<'_>)` — **and `:645` documents in the file's own words: *"CONSUMED HERE AND WAS NEVER READ BY THIS BODY: no read of `commit_identity` stands anywhere in this"***. **The parameter exists and is unread by its own admission.**
+- `index.mjs:413` passes `args`, which carries **three** entries — **so the fourth position is `undefined` on every path.**
+- `crossing.rs`'s `Instance::write` takes **three**; **`delete`'s addon entry declares two and has none.**
+
+**THEREFORE THE STORE HAS NO NOTION OF A COMMIT AT ALL.** **It sees `write(address, tier, value)` and nothing else** — **so the journal's ops carry no commit, `restoreMark` sweeps a JOURNAL RANGE, and a listener's own commit's ops sit INSIDE the outer's range** (its write happened during the outer's delivery, hence after the outer's opening). **The restore then undoes them — not because the listener joined the outer commit (it did not) but because THE STORE CANNOT TELL TWO COMMITS APART.**
+
+**`DEF-AN`'S DEFECT HAS ONE CAUSE AND IT IS NOT THE RESTORE'S LOGIC**: **the restore does exactly what it was told — *undo everything after this mark* — because there is no commit for it to undo instead.** **The JS layer knows the boundary; the store is told only a position.**
+
+**AND THE THIRD SENTENCE IS TRUE IN BOTH LAYERS, WITH A SHARP EDGE**: **a second client action cannot add to the prior commit because the prior is dropped — but THE STORE STILL HOLDS THE PRIOR'S OPS.** **The journal retains them, and a position-restore reaches them.** **So "the prior commit should no longer exist in the store" is satisfied for the COMMIT and not for its OPS** — **and the ops are what the restore measures.**
+
+**AND THE SAME-HEAD QUESTION FROM `D-61` DISSOLVES**: **a commit that identifies itself is distinguishable by IDENTITY, not by where it opened** — **so two commits at one journal head stop being ambiguous the moment the identity crosses.** **No tiebreaker is owed; the identity IS the tiebreaker.**
+
+**TERMS: the model confirmed as the JS state (`3`), the single missing crossing (`1`), the cause of `DEF-AN` (`1` = the store has no commit), the same-head question dissolved (`1`), the unblock list (`5` = read the fourth position, give `delete` one, carry it through `crossing.rs`, add the field to `JournalOp`, let the restore take a commit).**
