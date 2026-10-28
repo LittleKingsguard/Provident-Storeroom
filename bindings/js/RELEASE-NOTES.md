@@ -47,7 +47,7 @@ the value to assert against, not the crate's own `Cargo.toml` version.
 
 ---
 
-## §MAIN · **PREPARED — NOT CUT** — what stands on `main`, nine commits past `v1.2.0`
+## §1.3.0 · **PREPARED — NOT CUT** — what `1.3.0` carries, ten commits past `v1.2.0`
 
 **★ THIS SECTION DESCRIBES A TREE NOTHING CAN INSTALL, AND IT IS MARKED BEFORE IT SAYS ANYTHING ELSE, BECAUSE A MARK
 ADDED AFTERWARDS IS THE DEFECT THIS FILE JUST CORRECTED ONE SECTION DOWN.** **THE PUBLISHED RELEASE IS `1.2.0`**: `git
@@ -59,6 +59,8 @@ eleven sites and no tag names this tree.** **SO THE HONEST READING IS THIS: A CO
 BYTES AND `1.2.0`'S CHANGE LIST (the section below); WHAT THIS SECTION DECLARES IS PREPARED AND NOT CUT, and a prepared
 change is not a shipped one.** **No consumer can install any of it yet, and every figure this section prints is a
 figure of the TREE and not of a tarball.**
+
+**⟶ AND THE VERSION THIS SECTION DECLARES IS `1.3.0` AT ELEVEN SITES, PREPARED AND NOT CUT, 2026-10-28.** `RCA-8(g)` ANNOTATE-BESIDE: **the ★ paragraph above stands BYTE-FOR-BYTE as the reading of its own date and is read THROUGH this clause; the two sentences of it that the bump supersedes are named here rather than overwritten.** **THE MANIFEST AT ITS OWN BYTES THIS DATE: `bindings/js/package.json`'s `version` is `"1.3.0"`, all five `optionalDependencies` pins are `1.3.0` with it, and the five `bindings/js/platforms/*/package.json` `version` fields read `1.3.0` with them — ELEVEN SITES, ONE REBUILD — and the rebuilt artefact is stamped from that manifest, so `version()` answers `1.3.0`.** **SO *"no version bump is in any of those nine commits: the manifest still reads `1.2.0` at eleven sites"* IS THE READING OF ITS OWN DATE, AND THE BUMP IS THIS PREPARATION'S (a working-tree change, not a commit): the tree is `10` commits past `v1.2.0` — `git describe` reads `v1.2.0-10-g14787b5` and `git rev-list --count v1.2.0..HEAD` reads `10` — and the eleven sites read `1.3.0`.** **AND WHAT THIS SECTION IS AND IS NOT, SAID PLAINLY BECAUSE THE EASIER THING TO GET WRONG IS THAT A BUMP IS A RELEASE: `1.3.0` IS THE PREPARED VERSION — at the eleven sites and in the rebuilt artefact — and it is NOT A RELEASE. `git tag --list` answers `v1.0.0` · `v1.0.1` · `v1.1.0` · `v1.2.0` and no `v1.3.0`, the registry carries no `1.3.0`, and no consumer can install any of this until the architect cuts the tag.** **The published release remains `1.2.0`, and the section below remains its change list, unchanged and still marked CUT AND PUBLISHED.** (The shipped guide's two generated figures — `scripts/publish.sh --figures` — agree with this clause: the version line reads `1.3.0` and the cut-state sentence reads *"`v1.3.0` DOES NOT EXIST, SO THE RELEASE THIS GUIDE DESCRIBES IS NOT CUT"*.)
 
 **IT DECLARES TWO BEHAVIOUR CHANGES A CONSUMER WILL FEEL, AND THEN FOUR SMALLER ITEMS. THE TWO COME FIRST BECAUSE THEY
 ARE THE CONTENT.**
@@ -148,6 +150,8 @@ hand-written line that contradicts the manifest can no longer travel.**
 **NOTHING IN THIS SECTION IS CUT, NO TAG NAMES IT, NO VERSION BUMP IS PROPOSED, AND THE ELEVEN VERSION SITES STAY AT
 `1.2.0`.** **The two behaviour changes are declared here because a consumer must be able to read them BEFORE the cut and
 must not be told they are in a tarball that does not carry them** — the same honesty the corrected head above owes.
+
+**⟶ AND WHAT THE PARAGRAPH ABOVE SAYS ABOUT THE FIGURES IS SUPERSEDED BY THIS PREPARATION, 2026-10-28 — WHAT IT SAYS ABOUT THE CUT IS NOT.** `RCA-8(g)` ANNOTATE-BESIDE: **the paragraph above stands BYTE-FOR-BYTE as the reading of its own date and is read THROUGH this clause.** **UNMOVED: *"NOTHING IN THIS SECTION IS CUT, NO TAG NAMES IT"* — `git tag --list` carries no `v1.3.0`, the registry carries no `1.3.0`, and a consumer cannot install any of this.** **SUPERSEDED: *"NO VERSION BUMP IS PROPOSED, AND THE ELEVEN VERSION SITES STAY AT `1.2.0`"* — the bump IS this preparation's, and the eleven sites read `1.3.0`** (the clause at this section's head states the manifest, the pins, the five platform manifests and the rebuilt artefact's `version()`). **The two behaviour changes are unchanged, and they are `1.3.0`'s content: what a consumer installing `1.2.0` gets is `1.2.0`'s bytes, and this section is the change list of the version being prepared, not of a released one.**
 
 ---
 
