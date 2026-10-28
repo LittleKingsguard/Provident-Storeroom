@@ -834,11 +834,34 @@ export function constraintWrite(state, instance, address, tier, value) {
     && report.ops.length > 0
     ? report.ops[report.ops.length - 1]
     : answer.op;
-  return {
+  const recordOut = {
     op: landed,
     watched: answer.watched,
     triggered: answer.triggered,
   };
+  // **⟶ AND THE WRITE'S OWN ANSWER CARRIES THE WITNESS FROM 2026-10-29 — `D-75`: *"on every path … the act's own
+  // answer and the triggering write's"*.** The bytes this member answered with before had **no `discarded`
+  // member at all**, so a raise made inside a constraint body of this pass — a `rollback` a pair body issued
+  // while it was being asked — was invisible on the very answer the caller holds, and the `rollback`'s own answer
+  // carried nothing either: **measured, at one raise and at two, `discarded` was ABSENT on both**.
+  //
+  // **WHAT IT ANSWERS, AND WHY IT IS A LIVE VIEW AND NOT A DATUM.** It is `witnessWindow` over the window THIS
+  // write opened (or joined): every raise stamped with that window that no pass's drain consumed, in raise order,
+  // each `{opId, addresses}` — **and `[]` where the drain consumed them all, because a raise a pass carried to its
+  // terminal judgement was JUDGED and not discarded** (`D-42`; `D-44`). The accessor is the read because the
+  // delivery of a write's residue runs inside the pass's scope and BEFORE the drain (`kernel-attempt.mjs`), so a
+  // listener body's raise is still standing when this record is built and is consumed a frame later: a datum taken
+  // here would answer "discarded" about a raise the same commit then judges.
+  //
+  // **NO DECLARED MEMBER MOVES**: the record's three enumerable members are the ones `index.d.ts` declares and
+  // every deep-equality over a write's answer reads them and nothing else — the member is a NON-ENUMERABLE own
+  // accessor (`defineDiscardWitness`; `A117` (D6)'s device, the one `DeleteRecord.discarded` uses).
+  // THE WINDOW IS READ ONCE, AT THE ANSWER'S OWN INSTANT — the write's frame is what opened it and it does not
+  // move under the answer (`state.mjs`'s `currentWindow` answers the innermost OPEN window, which this call is
+  // inside): a read taken later would name whatever window happened to be open then.
+  const witnessed = currentWindow(instance);
+  defineDiscardWitness(recordOut, () => witnessWindow(instance, witnessed));
+  return recordOut;
 }
 
 /**
@@ -1697,12 +1720,145 @@ export const RESTART_LIMIT = 3;
 
 /// **THE RESTART RECORD, CREATED ON THE FIRST ACTION AND NEVER ON A LAWFUL WRITE'S PATH**: the read is a
 /// `WeakMap.get` and the creation happens only in `reversalWatch`'s in-flight arm.
+///
+/// **⟶ AND THE RECORD CARRIES THE RAISES THEMSELVES FROM 2026-10-29 — `D-75`, `strata/decisions.md`: *"report
+/// every discarded raise at any count, on every path."*** **`pending` IS STILL ONE SLOT AND THE DRAIN STILL
+/// JUDGES ONE MERGED REQUEST** (`D-49`'s slot, `DEF-AP`'s earliest-capture merge — both UNMOVED: they are the
+/// JUDGEMENT's shape, and `D-75` does not re-open a check). **WHAT IS NEW IS A SECOND LIST BESIDE IT, AND IT IS
+/// THE WITNESS'S AND NOT THE CHECK'S**: `raises` holds ONE record per consumer `rollback` member call that
+/// raised a request, in raise order, at ANY count — so the witness can report two raises where the judgement
+/// merges them into one request, and the count the member states is the number of raises and not the number of
+/// slots the check had room for.
+///
+/// **A RAISE RECORD** (`{ window, watched, opId, moved, entry, judged, decided }`):
+///   * `window` — the commit identity the raise was stamped with (`D-42` item `3`: a request belongs to the act
+///     that raised it), so a witness reports its OWN window's raises and nobody else's;
+///   * `watched` — THAT raise's own capture of the standing (`watchStanding`), never the merged one, so the
+///     addresses a witness names are what THIS raise's reversal moved and not what an earlier raise in the
+///     same commit moved (`DEF-AM`'s rule, held per raise);
+///   * `opId` — the store's own echo of the id this raise's reversal named (`judgeReversal`'s in-flight arm);
+///   * `moved` — what this raise's reversal moved, measured at its own instant against its own capture;
+///   * `entry` — the `{opId, addresses}` the answer of the act whose window this is reports, or `null`;
+///   * `judged` — the pass's own drain consumed this raise and judged it (so it was NOT discarded);
+///   * `decided` — a fate has been reached (reported or judged), so the raise's own answer can speak.
+///
+/// **`settled` IS THE SMALL RING A DEAD RAISE RETIRES INTO** (the last `SETTLED_LIMIT` of them), so a live
+/// window's answer can still name a raise that died with an earlier window **without the record growing for
+/// the life of the instance** (`D-58`'s no-retention rule, read for a raise and not for a commit's log), and
+/// `lastRaise` is the raise THIS synchronous `rollback` call made, so the member can be handed the one it is
+/// the answer of.
+const SETTLED_LIMIT = 8;
+
 function restartRecord(instance) {
   let record = RESTARTS.get(instance);
   if (record === undefined) {
-    record = { pending: null };
+    record = { pending: null, raises: [], settled: [], lastRaise: null };
     RESTARTS.set(instance, record);
   }
+  return record;
+}
+
+/// **THE WITNESS'S ONE ENTRY — `{opId, addresses}` AND NOTHING ELSE** (`D-49`'s declared shape, `D-55` item `2`
+/// read through `D-75`): the id the raise's reversal named and the addresses that raise's reversal MOVED, each
+/// a fresh segment list, one address once.
+///
+/// **⟶ AND AN ENTRY MAY NOW CARRY AN EMPTY ADDRESS LIST — `D-75`, 2026-10-29, AND THE SENTENCE IT REPLACES IS
+/// `D-55` ITEM `2`'s.** The bytes that stood here said *"a request whose reversal moved NOTHING has no discard to
+/// report — so the entry is ABSENT (`null`) rather than empty"*, and the reading it bought was `discarded: []`
+/// for a raise that WAS discarded: **a witness that drops a raise to keep an address list tidy counts wrong**.
+/// **THE DISTINCTION THE RULING DRAWS IS KEPT AND IS THE REASON NOTHING IS LOST**: an ADDRESS of `[]` is the
+/// register and ships as ONE ELEMENT (`[[]]`, a list of length `1`), while a LIST of `[]` on an entry says *"this
+/// raise named no address, because its reversal moved nothing the registry watches"* — the two are still
+/// different readings of the same member, and a caller can still tell the root's movement from an inert raise.
+function discardEntryOf(raise) {
+  const subject = Array.isArray(raise.moved) ? raise.moved : [];
+  const addresses = [];
+  const spellings = [];
+  for (let index = 0; index < subject.length; index += 1) {
+    const address = subject[index].address;
+    const spelling = homeAddressKey(address);
+    let seen = false;
+    for (let known = 0; known < spellings.length; known += 1) {
+      if (spellings[known] === spelling) {
+        seen = true;
+        break;
+      }
+    }
+    if (seen) continue;
+    appendOwn(spellings, spelling);
+    const copy = [];
+    for (let segment = 0; segment < address.length; segment += 1) appendOwn(copy, address[segment]);
+    appendOwn(addresses, copy);
+  }
+  return { opId: typeof raise.opId === 'string' ? raise.opId : null, addresses };
+}
+
+/// A FRESH COPY OF ONE ENTRY, so no answer hands out a list the record still holds (`crossing.md §1.1`'s
+/// copy-out discipline).
+function copyDiscardEntry(entry) {
+  const addresses = [];
+  for (let index = 0; index < entry.addresses.length; index += 1) {
+    const one = entry.addresses[index];
+    const copy = [];
+    for (let segment = 0; segment < one.length; segment += 1) appendOwn(copy, one[segment]);
+    appendOwn(addresses, copy);
+  }
+  return { opId: entry.opId, addresses };
+}
+
+/// **THE RAISE'S OWN ANSWER — `witnessRaise`** (`D-75`'s second demand: *"the raise's own answer"* carries the
+/// witness, including a raise made inside a constraint body). **`[]` IS THREE ARMS AND EACH IS TRUE AT ITS OWN
+/// INSTANT**: the call raised no request at all (an at-rest judgement, a compensating composition, a store that
+/// carries no pair); the raise was consumed and JUDGED by a pass's own drain (so nothing was discarded); or the
+/// raise still stands and its window has not ended — **at that instant nothing has been discarded YET, and this
+/// is a live view and not a snapshot**: read it once the act that owns the window has returned and it names the
+/// discard (`D-75`: every raise, every path).
+export function currentRaise(instance) {
+  const record = RESTARTS.get(instance);
+  if (record === undefined) return null;
+  const raise = record.lastRaise;
+  return raise === undefined || raise === null ? null : raise;
+}
+
+export function witnessRaise(raise) {
+  const list = [];
+  if (raise === null || raise === undefined || raise.decided !== true || raise.entry === null) return list;
+  appendOwn(list, copyDiscardEntry(raise.entry));
+  return list;
+}
+
+/// **A WINDOW'S DISCARDED RAISES, AS A LIVE VIEW** — every raise stamped with `window` that no pass's drain
+/// consumed, in raise order, each a fresh entry. It is the one reader the WRITE's own record and the `delete`'s
+/// receipt are both built on, so the two acts cannot disagree about what their window threw away.
+export function witnessWindow(instance, window) {
+  const record = RESTARTS.get(instance);
+  const list = [];
+  if (record === undefined) return list;
+  for (let index = 0; index < record.settled.length; index += 1) {
+    const settled = record.settled[index];
+    if (settled.window !== window) continue;
+    appendOwn(list, copyDiscardEntry(settled.entry));
+  }
+  for (let index = 0; index < record.raises.length; index += 1) {
+    const raise = record.raises[index];
+    if (raise.window !== window) continue;
+    appendOwn(list, copyDiscardEntry(discardEntryOf(raise)));
+  }
+  return list;
+}
+
+/// **THE WITNESS ON A RECORD, DEFINED THE ONE WAY THIS SURFACE ADDS ONE** (`D-49`'s device, `A117` (D6)): a
+/// **NON-ENUMERABLE, NON-WRITABLE own accessor** carrying `read`, so the record's enumerable member set and every
+/// deep-equality over it are unmoved while a caller reads the witness by its name. **IT IS AN ACCESSOR AND NOT A
+/// DATA PROPERTY ON A LIVE VIEW BY NECESSITY**: the answer a `rollback` hands back is built BEFORE the pass that
+/// judges its raise has run (`D-42`), so a datum captured at the call would answer `[]` about a discarding window
+/// forever; the getter answers at the read.
+export function defineDiscardWitness(record, read) {
+  Object.defineProperty(record, 'discarded', {
+    get: read,
+    enumerable: false,
+    configurable: true,
+  });
   return record;
 }
 
@@ -1785,6 +1941,11 @@ export function drainRestartRequests(instance, report) {
     // WHOLE OF HALF (a).**
     if (request.window !== window) return report;
     record.pending = null;
+    // **⟶ AND THE RAISES THIS REQUEST WAS MADE OF WERE JUDGED, NOT DISCARDED — `D-75`, 2026-10-29.** The drain is
+    // the consumer of a pass's own window (`D-44`), so every raise that merged into this request reaches a
+    // verdict here: it is marked, pruned from the standing list, and every reader that asks this window later
+    // answers `[]` and means it.
+    consumeRaisedRaises(record, request.window);
     if (request.watched.length === 0) continue;
     rounds += 1;
     if (rounds > RESTART_LIMIT) {
@@ -1846,66 +2007,51 @@ export function drainRestartRequests(instance, report) {
 ///     consumers, two windows, and neither takes the other's request** (`D-44`: *"every request has a
 ///     consumer"* — for the two passless windows the consumer is the caller's own record).
 ///
-/// **THE BOUND, STATED SO THE WITNESS IS NOT READ AS MORE THAN IT IS.** The restart record holds **ONE** pending
-/// request (a second in-flight action overwrites the first — the record's own declared shape, UNMOVED by this
-/// pass), so the witness reports the LAST request the window raised and no list of earlier ones exists to report.
-/// **The registration window is the other named window and it has no such reader**: its answer is an identity, and
-/// the identity is opaque by declaration, so nothing this function could answer would reach it without a new
-/// surface — `D-49`'s own instruction is to say so rather than to invent one.
+/// **⟶ THE BOUND IS GONE, AND `D-75` IS WHY — 2026-10-29, `strata/decisions.md`.** The bytes here read *"the
+/// restart record holds ONE pending request (a second in-flight action overwrites the first — the record's own
+/// declared shape, UNMOVED by this pass), so the witness reports the LAST request the window raised and no list of
+/// earlier ones exists to report"*, **and the measurement that killed them is this act's own**: two raises in one
+/// delete delivery answered `[]`, and a reader of `[]` could not tell *"nothing was discarded"* from *"I wasn't
+/// told"*. **THE DEMAND, VERBATIM: *"report every discarded raise at any count, on every path."*** **SO THE
+/// WITNESS READS THE RAISE LIST AND NOT THE ONE SLOT**: every raise stamped with this window that no pass
+/// consumed is reported, in raise order, one `{opId, addresses}` entry each (`discardEntryOf`) — **`[]` is then
+/// what the sentence says it is: NO raise of this act's delivery was discarded, and the member is present to say
+/// so.**
+///
+/// **THE REGISTRATION WINDOW STILL HAS NO READER OF ITS OWN, SAID AS IT WAS BEFORE AND NARROWED BY ONE FACT**:
+/// its answer is an opaque identity and no member can ride it (`D-49`'s own instruction is to say so rather than
+/// invent a surface). **WHAT CHANGED IS THAT ITS RAISE NO LONGER REACHES NO ANSWER AT ALL**: the store's next
+/// at-rest act proves the window has ended, the raise is settled as discarded (`settleStandingRaises`), and **the
+/// `rollback` call's OWN answer** — the record that call returned, still held by the caller — names it
+/// (`witnessRaise`, `index.mjs`'s `rollback`).
 export function witnessDiscardedReversal(instance, window) {
   const record = RESTARTS.get(instance);
-  // NO ACTION WAS EVER TAKEN ON THIS INSTANCE, OR THE LAST ONE WAS ALREADY CONSUMED: nothing stands to report.
-  if (record === undefined || record.pending === null) return null;
-  const request = record.pending;
+  const list = [];
+  // NO ACTION WAS EVER TAKEN ON THIS INSTANCE: nothing stands to report.
+  if (record === undefined) return list;
   // **A REQUEST BELONGS TO THE ACT THAT RAISED IT** (`D-42` item 3, measured by the `window` stamp of
   // 2026-10-27): a request standing from another window is that window's and is left where it stands.
-  if (request.window !== window) return null;
-  record.pending = null;
-  // **⟶ AND THE ADDRESSES ARE THE ONES THE REFUSED ACT MOVED, NOT THE WHOLE WATCHED REGISTRY — `DEF-AM`,
-  // 2026-10-28.** The request's `watched` is the DEBT record and names every enabled pair's every address;
-  // `moved` is what `judgeReversal` measured at the reversal's own instant (`movedStanding`) and is the only
-  // answer a witness owes. **A WITNESS THAT NAMES EVERY ADDRESS THE REGISTRY WATCHES NAME NOTHING**: the
-  // discarded check's subject is the state the reversal changed.
-  const subject = Array.isArray(request.moved) ? request.moved : [];
-  const addresses = [];
-  const spellings = [];
-  for (let index = 0; index < subject.length; index += 1) {
-    const address = subject[index].address;
-    const spelling = homeAddressKey(address);
-    let seen = false;
-    for (let known = 0; known < spellings.length; known += 1) {
-      if (spellings[known] === spelling) {
-        seen = true;
-        break;
-      }
+  if (record.pending !== null && record.pending.window === window) record.pending = null;
+  const standing = record.raises;
+  const kept = [];
+  for (let index = 0; index < standing.length; index += 1) {
+    const raise = standing[index];
+    if (raise.window !== window) {
+      appendOwn(kept, raise);
+      continue;
     }
-    // ONE ADDRESS ONCE: two pairs over one address (or one pair naming it twice) are one address the check owed,
-    // and the witness reports the subject and not the walk.
-    if (seen) continue;
-    appendOwn(spellings, spelling);
-    // **A FRESH SEGMENT LIST PER ADDRESS** (`crossing.md §1.1`'s copy-out discipline): the pair's own array is
-    // the registry's and is never handed to a caller.
-    const copy = [];
-    for (let segment = 0; segment < address.length; segment += 1) appendOwn(copy, address[segment]);
-    appendOwn(addresses, copy);
+    // **THE ENTRY IS THE RAISE'S OWN** (`DEF-AM`: the addresses the refused act MOVED, measured at the raise's
+    // own instant against its own capture), and the raise is marked decided so its own answer names the same
+    // discard. A fresh copy is appended, so no answer hands out a list the record still holds
+    // (`crossing.md §1.1`).
+    raise.entry = discardEntryOf(raise);
+    raise.decided = true;
+    appendOwn(record.settled, raise);
+    appendOwn(list, copyDiscardEntry(raise.entry));
   }
-  // THE STORE'S OWN ECHO OF THE ID THE REVERSAL NAMED — `null` where the reversal's call answered no id (the
-  // request stands and the act's answer did not reach the echo, which is a real arm a caller can see).
-  //
-  // **⟶ AND AN ENTRY IS NEVER SHIPPED WITH AN EMPTY ADDRESS LIST — `D-55` ITEM 2, `DEF-AH`, 2026-10-28.**
-  // The architect, verbatim: *"A witness address of [] corresponds to the register itself. This is not a legal
-  // response for any other watched address."* **SO `[]` IS THE REGISTER (THE ROOT) AND IS AN ADDRESS, NEVER A
-  // LIST**: a request whose reversal moved NOTHING has no discard to report — there is no legal response to
-  // give it — so **the entry is ABSENT (`null`) rather than empty**, and the caller reads `discarded: []`
-  // because nothing was discarded *observably*. **AND THE ROOT STAYS DISTINGUISHABLE**: an address that IS
-  // `[]` is one element of `addresses` — `[[]]` — which is length `1` and therefore survives this test; the
-  // distinction the ruling draws is between an ADDRESS of `[]` and a LIST of `[]`, and this is the one line
-  // where it is measured.
-  if (addresses.length === 0) return null;
-  return {
-    opId: typeof request.reversalId === 'string' ? request.reversalId : null,
-    addresses,
-  };
+  record.raises = kept;
+  trimSettled(record);
+  return list;
 }
 
 /// **⟶ THE REFUSAL'S ONE CARRIER TO WHICHEVER DRIVER ASKED — ADDED 2026-10-27.**
@@ -2003,6 +2149,12 @@ installRestartConsumer(drainRestartRequests);
 /// constraint answers exactly what it answered before `DEF-W` landed.
 export function reversalWatch(state, instance) {
   const watched = [];
+  // **AND THE LAST RAISE IS CLEARED ON EVERY ENTRY TO THIS FUNCTION — `D-75`, 2026-10-29**: the member a
+  // `rollback` answers with reads the raise THIS synchronous call made and never the previous call's, and every
+  // arm below that raises nothing (no pair registered, the kernel's own compensation, an at-rest judgement) must
+  // leave it `null` rather than standing a stale one.
+  const stood = RESTARTS.get(instance);
+  if (stood !== undefined) stood.lastRaise = null;
   if (state.constraints.size === 0) return watched;
   // **⟶ AND A REVERSAL INSIDE AN OPEN COMMIT IS NO LONGER LEFT UNJUDGED — `D-42`, 2026-10-27.** The bytes
   // below stood as *"the watch answers `[]` there, so no read is taken and no body is invoked"*, and the
@@ -2058,6 +2210,26 @@ export function reversalWatch(state, instance) {
     // names is never re-spelled.
     const next = watchStanding(state, instance);
     const record = restartRecord(instance);
+    // **⟶ AND THE RAISE IS RECORDED AS ITSELF, AT ANY COUNT — `D-75`, 2026-10-29.** The bytes here read *"the
+    // restart record holds ONE pending request (a second in-flight action overwrites the first — the record's
+    // own declared shape)"*, and `D-75` measures what that cost: **two raises in one commit reached the witness
+    // as ONE request and reported `[]`**, because `DEF-AP`'s merge kept the EARLIEST captures and re-measured
+    // the moved set through a guard `judgeReversal`'s in-flight arm no longer passed. **THE JUDGEMENT'S MERGE IS
+    // UNMOVED** (one request is one check, and `DEF-AP`'s state-at-the-drain rule is why); **what is added is the
+    // raise ITSELF, appended here in raise order with ITS OWN capture**, so the witness counts raises and not
+    // slots. **THE COUNT AND THE CHECK ARE TWO QUESTIONS ABOUT THE SAME COMMIT, AND NEITHER ANSWERS THE OTHER.**
+    const raise = {
+      window,
+      watched: next,
+      opId: null,
+      moved: null,
+      entry: null,
+      judged: false,
+      decided: false,
+    };
+    appendOwn(record.raises, raise);
+    // THE RAISE THIS SYNCHRONOUS CALL MADE, so the member's own answer can be built around it below.
+    record.lastRaise = raise;
     const prior = record.pending;
     if (prior !== null && prior.window === window) {
       const merged = [];
@@ -2074,18 +2246,11 @@ export function reversalWatch(state, instance) {
         appendOwn(merged, earlier === null ? one : earlier);
       }
       prior.watched = merged;
-      // THE MOVED SET IS RE-MEASURED AGAINST THE MERGED CAPTURES (`judgeReversal`'s in-flight arm does it at
-      // the reversal's own instant, one frame below this call) — a set measured against the later watch would
-      // hide the earlier raise's movement, which is the defect this merge closes.
-      prior.moved = null;
       prior.asked = asking === undefined ? prior.asked : asking;
       return watched;
     }
     record.pending = {
       watched: next,
-      // **AND THE MOVED SET IS MEASURED BY THE JUDGEMENT, NOT BY THE WATCH** (`judgeReversal`'s in-flight arm;
-      // `DEF-AM`): the watch is taken BEFORE the reversal runs, so what moved is not knowable here.
-      moved: null,
       reversalId: null,
       window,
       asked: asking === undefined ? null : asking,
@@ -2095,9 +2260,70 @@ export function reversalWatch(state, instance) {
   // **AND AN AT-REST CALL PROVES THE PREVIOUS WINDOW HAS ENDED**: a request still standing there belongs to a
   // window whose check never ran (a `delete`'s delivery is the one the declaration names), and the act that
   // raised it is over — so it dies here rather than being attributed to this reversal.
+  //
+  // **⟶ AND FROM 2026-10-29 THAT DEATH IS RECORDED ON THE RAISE AND NOT SWEPT — `D-75`'s *"on every path"*.** The
+  // bytes here cleared the slot and said nothing, so a raise from a window with no consumer (a registration's own
+  // evaluation is the declared one) reached NO answer with a witness — and the member it should have reached is
+  // its OWN answer's. **THE AT-REST CALL IS THE STORE'S OWN PROOF THAT THE WINDOW HAS ENDED** (`open 0`, `live 0`:
+  // nothing can consume a request of an ended window any more, `D-42` item `3`), so every raise still standing is
+  // DISCARDED at this instant, it is given its entry, and its own answer — read now or later — says so. **THE
+  // UNRELATED CALL STILL RECEIVES NOTHING**: `D-49` forbids reporting it there, and this act reports it nowhere;
+  // it only settles a fate the store can prove.
   const record = RESTARTS.get(instance);
-  if (record !== undefined) record.pending = null;
+  if (record !== undefined) {
+    record.pending = null;
+    settleStandingRaises(record);
+  }
   return watchStanding(state, instance);
+}
+
+/// **THE SETTLEMENT AN ENDED WINDOW OWES ITS RAISES** — every raise still standing is DISCARDED (nothing can
+/// consume it: its window is over and windows are never reused), so it takes its entry, is marked decided, and
+/// retires into the settled ring; `raises` is left empty of it. **NO LIST IS RETURNED AND NOTHING IS INVOKED**:
+/// this act decides no fate that was not already decided by the window's end.
+function settleStandingRaises(record) {
+  const standing = record.raises;
+  if (standing.length === 0) return;
+  for (let index = 0; index < standing.length; index += 1) {
+    const raise = standing[index];
+    raise.entry = discardEntryOf(raise);
+    raise.decided = true;
+    appendOwn(record.settled, raise);
+  }
+  record.raises = [];
+  trimSettled(record);
+}
+
+/// **THE RING IS BOUNDED** (`D-30`: the record is the instance's own and lives as long as the store): the oldest
+/// settlements leave it, and a raise whose answer was already read has long since said what it owes (`D-58`'s
+/// no-retention rule, read for a raise and not for a commit's log — the answer's own getter closes over its raise
+/// and needs nothing from here).
+function trimSettled(record) {
+  const kept = [];
+  const from = record.settled.length > SETTLED_LIMIT ? record.settled.length - SETTLED_LIMIT : 0;
+  for (let index = from; index < record.settled.length; index += 1) appendOwn(kept, record.settled[index]);
+  record.settled = kept;
+}
+
+/// **THE DRAIN'S OWN MARK — A RAISE IT CONSUMED WAS JUDGED AND NOT DISCARDED** (`D-75`: the witness counts what
+/// the act's delivery THREW AWAY, and a request a pass carried to its terminal judgement was not thrown away).
+/// The raise is pruned from the standing list with no entry, so every reader that later asks this window answers
+/// `[]` and means it.
+function consumeRaisedRaises(record, window) {
+  if (record === undefined) return;
+  const standing = record.raises;
+  const kept = [];
+  for (let index = 0; index < standing.length; index += 1) {
+    const raise = standing[index];
+    if (raise.window !== window) {
+      appendOwn(kept, raise);
+      continue;
+    }
+    raise.judged = true;
+    raise.decided = true;
+    raise.entry = null;
+  }
+  record.raises = kept;
 }
 
 /// **THE CHECK'S OWN BEGINNING — THE WATCH'S WALK, TAKEN AS ONE FUNCTION SO THE AT-REST JUDGEMENT AND THE
@@ -2233,15 +2459,23 @@ export function judgeReversal(instance, watched, reversalId) {
   // store whose every pair is disabled) is a judgement over nothing and answers `undefined` as it always did.
   if (watched.length === 0) {
     const record = RESTARTS.get(instance);
-    if (record !== undefined && record.pending !== null && record.pending.reversalId === null) {
-      record.pending.reversalId = typeof reversalId === 'string' ? reversalId : null;
-      // **⟶ AND THE WITNESS NAMES WHAT MOVED, NOT THE WHOLE WATCHED REGISTRY — `DEF-AM`, 2026-10-28.** The
-      // request the watch raised carries every enabled pair's every address as the DEBT record, which is what
-      // the restarted check must ask; the WITNESS is a different question — *"what did the refused act move?"* —
-      // and the moved set is measured here, at the reversal's own instant, by the same `before`/`after`
-      // comparison the at-rest judgement takes. **THE STORE IS READ ONCE PER WATCHED ADDRESS AND NOTHING IS
-      // INVOKED**: this is the same walk `movedStanding` performs for the at-rest arm.
-      record.pending.moved = movedStanding(instance, record.pending.watched);
+    if (record !== undefined) {
+      // **⟶ AND THE MOVED SET IS MEASURED FOR THE RAISE THIS CALL MADE, AT ANY COUNT — `D-75`, 2026-10-29.**
+      // The bytes here guarded on `record.pending.reversalId === null`, so **the SECOND raise in a window
+      // measured nothing**: `DEF-AP`'s merge set the slot's moved set to `null` and its own comment promised a
+      // re-measurement "one frame below", while this frame's guard saw the FIRST raise's id already recorded and
+      // skipped it — **measured: two raises with pairs at both addresses answered `[]`.** **THE GUARD MOVES FROM
+      // THE SLOT TO THE RAISE**: the slot's `reversalId` still stays the first echo it recorded (so a refusal's
+      // entry is never re-spelled), and the raise carries its OWN id and its OWN measurement against its OWN
+      // capture, so a second raise reports the addresses ITS reversal moved and not the first's.
+      const raise = record.lastRaise;
+      if (raise !== null && raise !== undefined && raise.moved === null && raise.decided === false) {
+        raise.moved = movedStanding(instance, raise.watched);
+        raise.opId = typeof reversalId === 'string' ? reversalId : null;
+        if (record.pending !== null && record.pending.reversalId === null) {
+          record.pending.reversalId = raise.opId;
+        }
+      }
     }
     return undefined;
   }

@@ -530,10 +530,19 @@ const K6 = (store, pair) => kernel.remove(store, pair);
   // instant. The first run of this scenario read it AFTER the `delete` below had re-triggered `dh`, and the
   // count it then compared was two writes' — a DRIVING error, with the expectation unmoved.
   const argsAfterWrite = args.slice();
-  A('HLI-07.1', 'contract.md §2.4 item 1; js corpus contract.md §1.3\'s returned-record rows',
-    "the write record's own members are exactly `['op','triggered','watched']`",
-    !w.threw && ownNames(w.value).join(',') === 'op,triggered,watched',
-    w.threw ? fmt(statusOf(w)) : fmt(ownNames(w.value)));
+  // **⟶ AND THE CENSUS IS READ AT ITS TWO LAYERS FROM 2026-10-29 — `D-75`.** The bytes here asserted the write
+  // record's OWN NAME SET at three; **the record now carries the discard's witness beside them** (`D-75`:
+  // *"report every discarded raise at any count, on every path"*; `index.d.ts` `WriteRecord`'s own clause), so the
+  // cell reads the layer its sentence is about: **the ENUMERABLE set is exactly `op`, `triggered`, `watched`, and
+  // `discarded` is an own member whose descriptor is NON-ENUMERABLE** — the same device `HLI-07.6` measures on the
+  // delete receipt.
+  const writeWitness = w.threw ? undefined : Object.getOwnPropertyDescriptor(w.value, 'discarded');
+  A('HLI-07.1', 'contract.md §2.4 item 1; js corpus contract.md §1.3\'s returned-record rows; `D-75` (the witness rides the record unlisted)',
+    "the write record's ENUMERABLE members are exactly `['op','triggered','watched']`, and its witness `discarded` is a NON-ENUMERABLE own accessor",
+    !w.threw && Object.keys(w.value).sort().join(',') === 'op,triggered,watched'
+      && writeWitness !== undefined && writeWitness.enumerable === false
+      && Array.isArray(w.value.discarded),
+    w.threw ? fmt(statusOf(w)) : fmt([Object.keys(w.value).sort().join(','), ownNames(w.value).join(',')]));
   A('HLI-07.2', 'contract.md §2.4 item 1 ("`watched` keeps carrying the watched ADDRESSES")',
     "`watched`'s members are ADDRESSES, not pairs",
     !w.threw && w.value.watched.every(isAddress), w.threw ? fmt(statusOf(w)) : fmt(w.value.watched));

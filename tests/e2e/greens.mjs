@@ -1182,8 +1182,21 @@ const g10 = { all: [] };
   const V11 = { n: 1, s: 'x', arr: [1, 2] };
   const w = thrown(() => i11.write(['j'], 'mem', V11));
   const rec = w.threw ? null : w.value;
-  A('JSG-11.1', '§2.2; store §3.6; DD-35', "the write's returned record has exactly the member set {op, watched, triggered}",
-    !w.threw && rec && membersAre(formOf(rec), 'op,triggered,watched'), rec ? formOf(rec).members.join(',') : `threw ${fmt(w.err)}`);
+  // **⟶ AND THE CENSUS IS READ AT ITS TWO LAYERS FROM 2026-10-29 — `D-75`.** The bytes here asserted
+  // `membersAre(formOf(rec), 'op,triggered,watched')` over `Object.getOwnPropertyNames`, and **the write's record
+  // now carries the discard's witness beside its three declared members** (`strata/decisions.md` · `D-75`:
+  // *"report every discarded raise at any count, on every path"*; `index.d.ts` `WriteRecord`'s own clause).
+  // **THE CELL'S SUBJECT IS UNMOVED — the record a `write` answers has the three declared members and no fourth
+  // DECLARED one — and it is now read where the two layers are told apart**: `Object.keys` is exactly
+  // `{op, watched, triggered}`, and `discarded` is an own member whose descriptor is NON-ENUMERABLE, so a census of
+  // the record's enumerable set reads what it read before.
+  const witnessDescriptor = rec ? Object.getOwnPropertyDescriptor(rec, 'discarded') : undefined;
+  A('JSG-11.1', '§2.2; store §3.6; DD-35; `D-75` (`WriteRecord` carries `discarded` as a NON-ENUMERABLE own accessor)',
+    "the write's returned record's ENUMERABLE member set is exactly {op, watched, triggered}, and its witness `discarded` rides it unlisted",
+    !w.threw && rec && membersAre({ members: Object.keys(rec).sort() }, 'op,triggered,watched')
+      && witnessDescriptor !== undefined && witnessDescriptor.enumerable === false
+      && Array.isArray(rec.discarded),
+    rec ? `${Object.keys(rec).sort().join(',')} / own ${formOf(rec).members.join(',')}` : `threw ${fmt(w.err)}`);
   const op = rec?.op;
   A('JSG-11.2', 'parameter-semantics.md §2.13; store §6.2', "the op has exactly the store's own eight members {address, after, before, compacted, kind, opId, seq, tier}",
     op && membersAre(formOf(op), 'address,after,before,compacted,kind,opId,seq,tier'), op ? formOf(op).members.join(',') : 'no op');
@@ -1197,8 +1210,16 @@ const g10 = { all: [] };
   A('JSG-11.10', 'store §6.2 property 2', 'after.present is true and its value is EQUAL to the written value under §1.5', op?.after?.present === true && rel(op.after.value, V11), fmt(op?.after));
   A('JSG-11.11', 'parameter-semantics.md §2.14; store §3.6', 'watched is an array (possibly empty) and never undefined', Array.isArray(rec?.watched), fmt(rec?.watched));
   const rb = thrown(() => i11.rollback(op.opId));
-  A('JSG-11.12', 'store §6.3', "the rollback's record has exactly the member set {opId, undoneOps, restoredTo}",
-    !rb.threw && membersAre(formOf(rb.value), 'opId,restoredTo,undoneOps'), rb.threw ? `threw ${fmt(rb.err)}` : formOf(rb.value).members.join(','));
+  // **⟶ AND THE SAME TWO LAYERS FOR THE ROLLBACK — `D-75`** (`index.d.ts` `RollbackRecord`'s own clause): the three
+  // declared members are the ENUMERABLE set, and `discarded` — the raise's OWN answer, which until `D-75` carried
+  // nothing — is a non-enumerable own accessor beside them.
+  const rollbackWitness = rb.threw ? undefined : Object.getOwnPropertyDescriptor(rb.value, 'discarded');
+  A('JSG-11.12', 'store §6.3; `D-75` (`RollbackRecord` carries `discarded` as a NON-ENUMERABLE own accessor)',
+    "the rollback's record's ENUMERABLE member set is exactly {opId, undoneOps, restoredTo}, and its witness `discarded` rides it unlisted",
+    !rb.threw && membersAre({ members: Object.keys(rb.value).sort() }, 'opId,restoredTo,undoneOps')
+      && rollbackWitness !== undefined && rollbackWitness.enumerable === false
+      && Array.isArray(rb.value.discarded),
+    rb.threw ? `threw ${fmt(rb.err)}` : `${Object.keys(rb.value).sort().join(',')} / own ${formOf(rb.value).members.join(',')}`);
   A('JSG-11.13', 'store §6.3', 'the id the caller passed is echoed', !rb.threw && rb.value.opId === op.opId, rb.threw ? `threw ${fmt(rb.err)}` : fmt(rb.value?.opId));
   A('JSG-11.14', 'store §6.3; §6.4 M-7 (i)', 'undoneOps contains the id whose reversal the store actually performed', !rb.threw && Array.isArray(rb.value.undoneOps) && rb.value.undoneOps.includes(op.opId), rb.threw ? `threw ${fmt(rb.err)}` : fmt(rb.value?.undoneOps));
   A('JSG-11.15', 'store §6.3; §6.4 M-5/M-8', 'restoredTo reports the state the addressed subtree now stands at: {present: false}', !rb.threw && rb.value.restoredTo?.present === false, rb.threw ? `threw ${fmt(rb.err)}` : fmt(rb.value?.restoredTo));

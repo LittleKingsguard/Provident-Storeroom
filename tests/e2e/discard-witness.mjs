@@ -469,11 +469,20 @@ console.log('\n── W6 · THE REGISTRATION WINDOW: an opaque identity carries 
     'the request the registration evaluation raised is DISCARDED and NOT attributed to the next unrelated write, which answers normally — and the pair that would refuse that state is never asked',
     first.ok && inside === 1 && raised !== null && raised.ok && next.ok,
     `first ${first.ok} · open ${inside} · raised ${raised === null ? '<not reached>' : raised.ok} · next ${next.ok}${next.ok ? '' : ` (${next.caught && next.caught.status})`}`);
-  A('DW-06.3', '`D-49` (the witness is on the ACT\'S OWN ANSWER and never on the next unrelated call)',
-    'and the next write\'s own record carries no witness of the registration\'s discard (a `WriteRecord` has three members and no `discarded`)',
+  // **⟶ AND THE READING MOVES BY ONE FACT ON 2026-10-29 — `D-75`, WHICH GIVES EVERY ACT THAT CAN DISCARD THE
+  // MEMBER: A WRITE\'S ANSWER NOW CARRIES `discarded` TOO.** The bytes this cell asserted read *"the next write\'s
+  // own record carries no witness of the registration\'s discard (a `WriteRecord` has three members and no
+  // `discarded`)"*, and **that reading was the WITNESS\'S ABSENCE, which `D-75` files as the defect**: a consumer
+  // reading `[]` could not tell "nothing was discarded" from "I wasn\'t told". **THE CELL\'S SUBJECT IS UNMOVED —
+  // the registration\'s discard is ATTRIBUTED TO NO LATER ACT — and it is now read where it can be read: the next
+  // write carries the member, it is PRESENT and EMPTY, and the raise the registration discarded is not in it.**
+  const nextWitness = next.ok && Array.isArray(next.value.discarded) ? next.value.discarded : null;
+  A('DW-06.3', '`D-49` (the witness is on the ACT\'S OWN ANSWER and never on the next unrelated call) · `D-75` (an act that can discard carries the member, `0` included)',
+    'the next write\'s own record carries `discarded: []` — PRESENT, EMPTY and TRUE: it reports no raise of the registration\'s window, whose discard belongs to the registration and to the raise\'s own answer',
     next.ok && keyOfAddr(keysOf(next.value)) === keyOfAddr(['op', 'triggered', 'watched'])
-      && !('discarded' in next.value),
-    next.ok ? `${JSON.stringify(keysOf(next.value))} / discarded in record: ${'discarded' in next.value}` : String(next.caught));
+      && nextWitness !== null && nextWitness.length === 0,
+    next.ok ? `${JSON.stringify(keysOf(next.value))} / discarded: ${JSON.stringify(nextWitness)}`
+      : String(next.caught));
 }
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -995,11 +1004,18 @@ console.log('\n── W10 · `D-55` — the five settled rows, measured ──�
     ? caught.status
     : '<no status on the caught value>');
 
-  // ── (AH-1) AN ENTRY WITH AN EMPTY ADDRESS LIST IS NEVER SHIPPED — `DEF-AH` ─────────────────────────
-  // THE MEASUREMENT THE ROW FILES, DRIVEN: a delete's listener makes a NESTED WRITE and then reverses an op
-  // that moved NOTHING the registry watches. The request is raised (the action ran in this window), its
-  // moved set is EMPTY, and `1.3.0` reported `addresses: []` — a LIST, which `D-55` says is not a legal
-  // response for any watched address. **NOTHING MOVED, SO THERE IS NO DISCARD TO REPORT: THE ENTRY IS ABSENT.**
+  // ── (AH-1) A RAISE WHOSE REVERSAL MOVED NOTHING NAMES NO ADDRESS — `DEF-AH` READ THROUGH `D-75` ─────
+  // THE MEASUREMENT THE ROW FILES, DRIVEN: a delete\'s listener makes a NESTED WRITE and then reverses an op
+  // that moved NOTHING the registry watches. The request is raised (the action ran in this window) and its moved
+  // set is EMPTY.
+  //
+  // **⟶ AND THE READING THIS CELL ASSERTED MOVES ON 2026-10-29 — `D-75`.** The bytes it printed read *"a discarded
+  // request whose reversal moved NOTHING ships NO entry — `discarded` is the empty list"*, which made a raise
+  // that WAS discarded indistinguishable from a delivery that raised nothing: **`[]` meant both "nothing was
+  // discarded" and "I wasn\'t told", and `D-75`\'s demand is *"report every discarded raise at any count, on every
+  // path."*** **SO THE ENTRY IS PRESENT AND ITS ADDRESS LIST IS EMPTY**: the raise is COUNTED (its `opId` names the
+  // reversal it was), no address is invented for it, and the root\'s own reading below (`[[]]`, a LIST of length
+  // `1` holding the empty ADDRESS) stays distinguishable from this one (`[]`, a list with no address at all).
   const ahStore = make();
   ahStore.write(['window'], 'mem', tabsSeed());
   const ahPrior = ahStore.write(['elsewhere'], 'mem', 1);
@@ -1019,17 +1035,22 @@ console.log('\n── W10 · `D-55` — the five settled rows, measured ──�
   const ahDiscarded = ahReceipt.ok && Array.isArray(ahReceipt.value.discarded) ? ahReceipt.value.discarded : null;
   const ahEmptyEntries = ahDiscarded === null ? null : ahDiscarded.filter((one) => Array.isArray(one.addresses)
     && one.addresses.length === 0).length;
+  const ahNamedEntries = ahDiscarded === null ? null : ahDiscarded.filter((one) => Array.isArray(one.addresses)
+    && one.addresses.length > 0).length;
   P('DEF-AH · the delete\'s `discarded` (the nested-write arm)', ahDiscarded);
   P('DEF-AH · entries with an EMPTY address list', ahEmptyEntries);
+  P('DEF-AH · entries that name an address', ahNamedEntries);
   P('DEF-AH · the pair\'s asks (registration / pass)', ahAsks);
   P('DEF-AH · the reversal the listener raised', ahRollback === null ? '<not reached>'
     : (ahRollback.ok ? 'answered its record' : String(ahRollback.caught)));
-  A('DW-10.1', '`D-55` item 2 / `DEF-AH` (2026-10-28): *"A witness address of [] corresponds to the register itself. This is not a legal response for any other watched address"* — an empty address LIST is never lawful',
-    'a discarded request whose reversal moved NOTHING ships NO entry — `discarded` is the empty list, and no entry carries an empty `addresses` — because nothing moved and there is no discard to report',
-    ahReceipt.ok === true && ahDiscarded !== null && ahDiscarded.length === 0 && ahEmptyEntries === 0
+  A('DW-10.1', '`D-75` (2026-10-29: *"report every discarded raise at any count, on every path"*) read with `D-55` item 2 / `DEF-AH` (*"A witness address of [] corresponds to the register itself. This is not a legal response for any other watched address"*)',
+    'a raise whose reversal moved NOTHING is REPORTED — ONE entry, its `opId` the id the reversal answered — and NO address is invented for it: the entry\'s `addresses` is the empty LIST, which names no address and is not the empty ADDRESS',
+    ahReceipt.ok === true && ahDiscarded !== null && ahDiscarded.length === 1
+      && ahEmptyEntries === 1 && ahNamedEntries === 0
+      && typeof ahDiscarded[0].opId === 'string'
       && ahRollback !== null && ahRollback.ok === true,
     `receipt ${ahReceipt.ok ? 'answered' : String(ahReceipt.caught)} · discarded ${JSON.stringify(ahDiscarded)} · `
-      + `empty-list entries ${ahEmptyEntries} · asks ${JSON.stringify(ahAsks)}`);
+      + `empty-list entries ${ahEmptyEntries} · named entries ${ahNamedEntries} · asks ${JSON.stringify(ahAsks)}`);
 
   // ── (AH-2) AND THE ROOT STAYS AN ADDRESS — `[[]]`, NOT `[]` ─────────────────────────────────────────
   // The pair stands at the ROOT (`[]` — the register itself), so a reversal that moves the root's assembled
@@ -3430,6 +3451,192 @@ console.log('\n── W17 · `D-74` · THE LOG ENTRY IS BOUNDED AS THE MESSAGE I
   console.log('        LINE. THE FORM THE PACKAGE WRITES IS A SUMMARY — the inner refusal\'s STATUS, its ENTRY COUNT');
   console.log('        and its FIRST MESSAGE, clipped at the length a message has when it has nothing inner to');
   console.log('        quote — and the clip is taken on the TOTAL, so no depth of lawful nesting can grow it.');
+}
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+// (W18) `D-75` — EVERY DISCARDED RAISE, AT ANY COUNT, ON EVERY PATH
+//
+// **THE FINDING** (`strata/decisions.md` · `D-75`, 2026-10-29, filed from the downstream's `DEF-AH` re-filing):
+// **THE WITNESS IS ABSENT MORE OFTEN THAN PRESENT, AND THE SENTENCE IT CARRIES IS THE THING IT CANNOT SAY.**
+// Measured before this pass: one raise with a pair at the raised address → one entry ✓; **TWO raises with pairs at
+// both → `[]`**; two raises with a pair at only the first → `[]`; **inside a constraint body → absent entirely, on
+// the raise's own answer AND on the triggering write's, at one raise and at two.** And `discarded.length === 0` is
+// documented to mean THIS ACT'S DELIVERY DISCARDED NOTHING, so **a consumer reading `[]` could not tell "nothing
+// was discarded" from "I wasn't told."**
+//
+// **THE DEMAND, VERBATIM: *"report every discarded raise at any count, on every path."***
+//
+// **WHAT COLLAPSED THEM, NAMED AND MEASURED HERE.** `D-49`'s ONE SLOT (`RESTARTS`' `record.pending`: a second
+// in-flight action merged into the first) and `DEF-AP`'s EARLIEST-CAPTURE MERGE, whose own comment promised the
+// moved set would be re-measured "one frame below" — **while `judgeReversal`'s in-flight arm measured only
+// `if (record.pending.reversalId === null)`, which the FIRST raise had already falsified.** So the second raise's
+// moved set was never taken, the witness's subject was empty, and the entry was dropped for being empty. **Two
+// collapses, one line apart, both in `bindings/js/src/entry/constraints.mjs`.**
+//
+// **EACH CELL PRINTS ITS READINGS** (`D-21`), and every one of the five is RED under its own `/tmp` revert: the
+// count (two entries where the slot reported one or none), the constraint-body presence (both answers), and the
+// control (`[]`, present and empty, where nothing was discarded).
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+console.log('\n── W18 · `D-75` · EVERY DISCARDED RAISE, AT ANY COUNT, ON EVERY PATH ─────────────────');
+{
+  /** THE STORE THE ARMS SHARE: TWO WRITES THE LISTENER CAN REVERSE, and one delete whose delivery raises them. */
+  const seedTwo = (store) => {
+    store.write(['a'], 'mem', { one: { v: 1, x: 0 }, two: { v: 2 } });
+    return { first: store.write(['a', 'one', 'q'], 'mem', 7), second: store.write(['a', 'two', 'y'], 'mem', 20) };
+  };
+  const witnessOfEntry = (record) => (record !== null && record !== undefined && typeof record === 'object'
+    && Array.isArray(record.discarded) ? record.discarded : null);
+  const opIdsOf = (list) => (list === null ? null : list.map((one) => one.opId));
+  const addressesOf = (list) => (list === null ? null : list.map((one) => (Array.isArray(one.addresses)
+    ? one.addresses.map((address) => keyOfAddr(address)) : null)));
+
+  // ── DW-18.1 · ONE RAISE, A PAIR AT THE RAISED ADDRESS → ONE ENTRY ──────────────────────────────────
+  {
+    const store = make();
+    store.write(['window'], 'mem', tabsSeed());
+    const prior = store.write(['window', 'tabs', 'about'], 'mem', { active: false });
+    attempt(() => store.addConstraint({ address: ['window'], id: 'one-active-tab' }, () => true));
+    let raised = null;
+    store.register(store.listen('w18-one', [['window', 'tabs']]), () => {
+      raised = attempt(() => store.rollback(prior.op.opId));
+    });
+    const receipt = attempt(() => store.delete(['window', 'tabs', 'landingPage']));
+    const witness = receipt.ok ? witnessOfEntry(receipt.value) : null;
+    P('DW-18.1 · the raise\'s own answer — `discarded`', raised !== null && raised.ok
+      ? witnessOfEntry(raised.value) : '<not reached>');
+    P('DW-18.1 · the delete\'s answer — `discarded`', witness);
+    P('DW-18.1 · the entries\' opIds / addresses', [opIdsOf(witness), addressesOf(witness)]);
+    A('DW-18.1', '`D-75` (*"every raise, at any count"*) · `D-49` (the witness is on the act\'s own answer)',
+      'ONE raise with a pair at the raised address answers ONE entry, whose `opId` is the id its reversal named and whose `addresses` names the pair\'s own address',
+      witness !== null && witness.length === 1
+        && witness[0].opId === prior.op.opId
+        && keyOfAddr(addressesOf(witness)[0]) === keyOfAddr([keyOfAddr(['window'])]),
+      `witness ${JSON.stringify(witness)}`);
+  }
+
+  // ── DW-18.2 · ★ TWO RAISES, PAIRS AT BOTH → TWO ENTRIES (THE ARM THAT READ `[]` BEFORE) ────────────
+  {
+    const store = make();
+    const prior = seedTwo(store);
+    attempt(() => store.addConstraint({ address: ['a', 'one'], id: 'pair-one' }, () => true));
+    attempt(() => store.addConstraint({ address: ['a', 'two'], id: 'pair-two' }, () => true));
+    const raised = [];
+    store.register(store.listen('w18-both', [['a']]), () => {
+      raised.push(attempt(() => store.rollback(prior.first.op.opId)));
+      raised.push(attempt(() => store.rollback(prior.second.op.opId)));
+    });
+    const receipt = attempt(() => store.delete(['a', 'one', 'x']));
+    const witness = receipt.ok ? witnessOfEntry(receipt.value) : null;
+    P('DW-18.2 · the two raises\' own answers', raised.map((one) => (one.ok ? witnessOfEntry(one.value) : String(one.caught))));
+    P('DW-18.2 · the delete\'s answer — `discarded`', witness);
+    P('DW-18.2 · ★ the COUNT (was `0` before `D-75`)', witness === null ? '<no witness>' : witness.length);
+    P('DW-18.2 · the entries\' opIds / addresses', [opIdsOf(witness), addressesOf(witness)]);
+    A('DW-18.2', '`D-75` (★ *"report every discarded raise at any count"*: `discarded` is a LIST whose length is the number of raises the act\'s delivery discarded) · `DEF-AP` (the merge is the JUDGEMENT\'s and does not remove the COUNT from the witness)',
+      'TWO raises in one delete delivery answer TWO entries — `discarded.length === 2` where the slot answered `[]` — each naming ITS OWN reversal\'s id and ITS OWN moved address',
+      witness !== null && witness.length === 2
+        && witness[0].opId === prior.first.op.opId && witness[1].opId === prior.second.op.opId
+        && keyOfAddr(addressesOf(witness)[0]) === keyOfAddr([keyOfAddr(['a', 'one'])])
+        && keyOfAddr(addressesOf(witness)[1]) === keyOfAddr([keyOfAddr(['a', 'two'])]),
+      `witness ${JSON.stringify(witness)}`);
+  }
+
+  // ── DW-18.3 · TWO RAISES, A PAIR AT ONLY THE FIRST → THE SECOND REPORTED AND NAMING NOTHING ───────
+  {
+    const store = make();
+    const prior = seedTwo(store);
+    attempt(() => store.addConstraint({ address: ['a', 'one'], id: 'pair-one-only' }, () => true));
+    const raised = [];
+    store.register(store.listen('w18-first', [['a']]), () => {
+      raised.push(attempt(() => store.rollback(prior.first.op.opId)));
+      raised.push(attempt(() => store.rollback(prior.second.op.opId)));
+    });
+    const receipt = attempt(() => store.delete(['a', 'one', 'x']));
+    const witness = receipt.ok ? witnessOfEntry(receipt.value) : null;
+    P('DW-18.3 · the delete\'s answer — `discarded`', witness);
+    P('DW-18.3 · the entries\' opIds / addresses', [opIdsOf(witness), addressesOf(witness)]);
+    A('DW-18.3', '`D-75` (the count is the raises, not the addresses; a raise whose reversal moved nothing the registry watches names no address — `D-55` item 2 as read through `D-75`)',
+      'TWO raises with a pair at only the FIRST answer TWO entries: the first names `[\'a\',\'one\']`, and the second — DISCARDED by the same window, judged by nobody, its reversal moving only an address no pair watches — is REPORTED with an EMPTY `addresses`, so the list counts it and invents no address for it',
+      witness !== null && witness.length === 2
+        && witness[0].opId === prior.first.op.opId && witness[1].opId === prior.second.op.opId
+        && keyOfAddr(addressesOf(witness)[0]) === keyOfAddr([keyOfAddr(['a', 'one'])])
+        && Array.isArray(witness[1].addresses) && witness[1].addresses.length === 0,
+      `witness ${JSON.stringify(witness)}`);
+  }
+
+  // ── DW-18.4 · ★ INSIDE A CONSTRAINT BODY — THE RAISE'S OWN ANSWER AND THE TRIGGERING WRITE'S ──────
+  {
+    const readings = [];
+    for (const count of [1, 2]) {
+      const store = make();
+      const prior = seedTwo(store);
+      attempt(() => store.addConstraint({ address: ['a', 'one'], id: 'body-pair-one' }, () => true));
+      attempt(() => store.addConstraint({ address: ['a', 'two'], id: 'body-pair-two' }, () => true));
+      const raised = [];
+      let first = true;
+      attempt(() => store.addConstraint({ address: ['a', 'one', 'q'], id: 'body-trigger' }, (context) => {
+        // THE RAISES ARE MADE INSIDE THE PASS, WHILE THIS PAIR IS BEING ASKED (`context.attempt` is the pass's own
+        // reference; the registration's evaluation carries `null`), so they are `rollback`s a CONSTRAINT BODY
+        // raised — the path `D-75` measures as having no witness on either answer.
+        if (context.attempt !== null && first === true) {
+          first = false;
+          raised.push(attempt(() => store.rollback(prior.first.op.opId)));
+          if (count === 2) raised.push(attempt(() => store.rollback(prior.second.op.opId)));
+        }
+        return true;
+      }));
+      const written = attempt(() => store.write(['a', 'one', 'q'], 'mem', 8));
+      const raiseWitnesses = raised.map((one) => (one.ok ? witnessOfEntry(one.value) : String(one.caught)));
+      const raiseOwnNames = raised.map((one) => (one.ok ? ownNamesOf(one.value) : null));
+      const writeWitness = written.ok ? witnessOfEntry(written.value) : null;
+      const writeKeys = written.ok ? keysOf(written.value) : null;
+      const descriptor = written.ok ? Object.getOwnPropertyDescriptor(written.value, 'discarded') : undefined;
+      P(`DW-18.4 · ${count} raise(s) inside a body · the raise's own answer — own names / \`discarded\``,
+        [raiseOwnNames, raiseWitnesses]);
+      P(`DW-18.4 · ${count} raise(s) inside a body · the triggering write's answer — \`Object.keys\` / \`discarded\``,
+        [writeKeys, writeWitness]);
+      P(`DW-18.4 · ${count} raise(s) inside a body · the witness member's own descriptor`,
+        descriptor === undefined ? '<absent>' : { enumerable: descriptor.enumerable, configurable: descriptor.configurable });
+      readings.push({ count, raiseWitnesses, raiseOwnNames, writeWitness, writeKeys, descriptor });
+    }
+    P('DW-18.4 · ★ the two arms, printed together', readings);
+    A('DW-18.4', '`D-75` (★ *"on every path … the act\'s own answer AND the triggering write\'s, including a raise made inside a constraint body"*) · `D-42`/`D-44` (a raise a pass\'s drain consumes is JUDGED, not discarded) · `A117` (D6)',
+      'at ONE raise and at TWO: the raise\'s OWN ANSWER carries `discarded` and the TRIGGERING WRITE\'s answer carries it — PRESENT on both, `[]` on both because the pass\'s drain consumed and judged both raises — and the write\'s three enumerable members are unmoved (the member is a non-enumerable own accessor)',
+      readings.length === 2 && readings.every((one) => one.raiseWitnesses.length === one.count
+        && one.raiseWitnesses.every((witness) => witness !== null && witness.length === 0)
+        && one.raiseOwnNames.every((names) => names !== null && names.includes('discarded'))
+        && one.writeWitness !== null && one.writeWitness.length === 0
+        && keyOfAddr(one.writeKeys) === keyOfAddr(['op', 'triggered', 'watched'])
+        && one.descriptor !== undefined && one.descriptor.enumerable === false),
+      JSON.stringify(readings));
+  }
+
+  // ── DW-18.5 · THE CONTROL — AN ACT THAT DISCARDS NOTHING SAYS SO ──────────────────────────────────
+  {
+    const store = make();
+    store.write(['a'], 'mem', { one: { v: 1 } });
+    attempt(() => store.addConstraint({ address: ['a'], id: 'control-pair' }, () => true));
+    const removed = attempt(() => store.delete(['a', 'one']));
+    const written = attempt(() => store.write(['a', 'one'], 'mem', { v: 2 }));
+    const reversed = written.ok ? attempt(() => store.rollback(written.value.op.opId)) : null;
+    const deleteWitness = removed.ok ? witnessOfEntry(removed.value) : null;
+    const writeWitness = written.ok ? witnessOfEntry(written.value) : null;
+    const rollbackWitness = reversed !== null && reversed.ok ? witnessOfEntry(reversed.value) : null;
+    P('DW-18.5 · the control · the delete\'s `discarded`', deleteWitness);
+    P('DW-18.5 · the control · the write\'s `discarded`', writeWitness);
+    P('DW-18.5 · the control · the at-rest rollback\'s `discarded`', rollbackWitness);
+    A('DW-18.5', '`D-75` (*"`discarded.length === 0` means nothing was discarded, and the member is present to say so"*) · `D-49` (a witness beside the answer, no member moved)',
+      'THE CONTROL: an act that discards nothing carries `discarded: []` — PRESENT on the `delete`, on the `write` and on the at-rest `rollback`, EMPTY on all three, and TRUE on all three (no raise was made in any of their windows)',
+      deleteWitness !== null && deleteWitness.length === 0
+        && writeWitness !== null && writeWitness.length === 0
+        && rollbackWitness !== null && rollbackWitness.length === 0,
+      `delete ${JSON.stringify(deleteWitness)} · write ${JSON.stringify(writeWitness)} · rollback ${JSON.stringify(rollbackWitness)}`);
+  }
+
+  console.log('');
+  console.log('        THE SENTENCE TO CARRY AWAY (`D-75`): THE COUNT IS THE RAISES, NOT THE SLOTS.');
+  console.log('        `discarded` is one entry per raise the act\'s delivery threw away, in raise order, and');
+  console.log('        `[]` now means what it says — NOTHING WAS DISCARDED, and the member is present to say so:');
+  console.log('        on the `delete`\'s receipt, on the `write`\'s record and on the `rollback`\'s own answer.');
 }
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════

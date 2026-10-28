@@ -1998,6 +1998,56 @@ window throws away**: if it fails and you raise a `rollback`, **the request dies
   overwrites the first, so the witness reports the **last** request a delivery raised, and earlier ones were
   never recorded. **Neither limit is a defect; both are the declared shape.**
 
+**⟶ AND THE WITNESS NOW REPORTS EVERY RAISE, AT ANY COUNT, ON EVERY PATH, 2026-10-29 — `D-75`. READ THIS BEFORE YOU
+READ ANY `discarded` LIST, AND READ THE `D-49` BYTES ABOVE THROUGH IT: NOT ONE OF THEM IS DELETED, AND THE TWO
+CLAUSES BELOW ARE WITHDRAWN BY NAME.**
+
+**THE DEMAND, VERBATIM: *"report every discarded raise at any count, on every path."*** **It was filed because
+the witness was ABSENT MORE OFTEN THAN PRESENT, and the sentence it carries is the thing it could not say.**
+
+- **THE THREE THINGS THAT WERE BROKEN, IN YOUR TERMS.** **(1) TWO RAISES ANSWERED `[]`.** If your listener raised
+  a `rollback` and a second listener raised another in the same delete, the record said nothing had been
+  discarded — because **the machinery keeps ONE request and merges the second raise into it, and the merged
+  request's addresses were never re-measured**. **(2) A RAISE INSIDE A CONSTRAINT BODY WAS INVISIBLE ON BOTH
+  ANSWERS.** A `rollback` your constraint body raised while it was being asked carried no witness on the
+  `rollback`'s own record and none on the write's record. **(3) AND `[]` THEREFORE MEANT TWO THINGS.** *"Nothing
+  was discarded"* and *"I wasn't told"* read the same.
+- **WHAT YOU CAN SEE NOW: THE COUNT IS THE RAISES, NOT THE SLOTS.** `discarded` is **one entry per raise the
+  act's delivery threw away, in raise order, at any count** — each entry `{ opId, addresses }`, `opId` the id
+  THAT raise's reversal answered and `addresses` the addresses THAT raise's reversal moved. **An entry whose
+  `addresses` is `[]` is a raise that moved nothing your pairs watch: it is still COUNTED, and no address is
+  invented for it** (a reversal that moves the register itself reports `addresses: [[]]` — one element, the empty
+  address — so the two are told apart by the lengths `0` and `1`).
+- **AND IT IS PRESENT WHEREVER AN ACT CAN DISCARD, `0` INCLUDED.** **`a.delete`'s receipt** carries it (as it did);
+  **`a.write`'s record carries it too** — a write's window is drained by its own pass, so it reads `[]` and MEANS
+  it — **and `a.rollback`'s own record carries it**, answering the entry where the act's window discarded that
+  raise, and `[]` where a pass's drain consumed and JUDGED it (`D-42`: a raise a pass carries to its terminal
+  judgement was judged, not discarded). **`record.discarded.length === 0` now reads, on every one of them:
+  NOTHING WAS DISCARDED — and the member is present to say so.**
+- **READ THE ROLLBACK'S MEMBER AFTER THE ACT RETURNS.** `a.rollback(...)`'s `discarded` is a **LIVE VIEW**, not a
+  snapshot: the pass that judges a body's raise runs *after* the body returned, so read at that instant it says
+  `[]` — nothing has been discarded YET. **Read it once the act whose window the raise stands in has returned and
+  it is the settled answer.** **A WRITE'S AND A DELETE'S are accessors for the same reason** — a write's delivery
+  runs before its drain.
+- **STILL UNCARRIED, SAID PLAINLY BECAUSE `D-49` ASKED FOR IT TO BE SAID.** **A registration's answer
+  (`addConstraint`) is an opaque identity and carries NO witness.** What has changed is where its raise is
+  ANSWERED: **the store's next at-rest act proves that window has ended, the raise settles as discarded, and the
+  `rollback` record you already hold names it then** — on the raise's own answer, never on the unrelated call.
+- **NOTHING ELSE MOVED.** The `delete`'s four enumerable members, the `write`'s three and the `rollback`'s three
+  are the members `Object.keys` prints; `discarded` is a **NON-ENUMERABLE own member** on all three (an accessor
+  on the write's and the rollback's, an own data property on the delete's), so **a spread or `Object.assign` copy
+  does not carry it — read it off the record itself.** No status is minted, no refusal is added, and the
+  fail-state and both exits are unchanged.
+
+**MEASURED 2026-10-29, ON THIS CHECKOUT, THROUGH THE PUBLISHED ENTRY** (`tests/e2e/discard-witness.mjs`'s `W18`):
+one raise with a pair at the raised address answers **one entry**; **TWO raises with pairs at both answer TWO
+entries — the arm that answered `[]` before** — each naming its own op id and its own moved address; two raises
+with a pair at only the first answer two entries, the second's `addresses` empty; and inside a constraint body, at
+one raise and at two, **the raise's own answer and the triggering write's answer both carry `discarded`**. Every
+one of those five cells is RED under its own `/tmp` revert. (`D-75`; `D-49`; `D-55` item 6 · `DEF-AP`; §8's
+`record.discarded` clause above.)
+
+
 **THE EXITS ARE STILL YOURS AND ARE UNCHANGED: reload the file, or regenerate the store.** What changed is that
 **the `delete` now tells you the discard happened** — *"a fail-state is honest only if the consumer learns it
 happened"* (`D-49`).

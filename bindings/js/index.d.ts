@@ -476,6 +476,30 @@ export interface WriteRecord {
   readonly watched: readonly Address[];
   /** **THE TRIGGER'S PAIRS** (`contract.md §2.4` item 1; `PAR-HL-38`): the pair REPLACES a bare handle list. */
   readonly triggered: readonly TriggerPair[];
+  /**
+   * **THE DISCARD'S WITNESS — PRESENT ON THIS RECORD AT RUNTIME, AND DECLARED HERE RATHER THAN AS A TYPED
+   * MEMBER.** `strata/decisions.md` · `D-75` (2026-10-29) is the architect's demand, verbatim: *"report every
+   * discarded raise at any count, on every path."* **The path this declares is the TRIGGERING WRITE's**: a
+   * `rollback` that a CONSTRAINT BODY issues while its pair is being asked raises a restart request inside this
+   * write's own commit, and until `D-75` the write's answer carried **nothing** about it — measured, `discarded`
+   * was absent on the write's answer and on the raise's own answer, at one raise and at two.
+   *
+   * **`record.discarded` IS AN ARRAY, `readonly { opId: string | null; addresses: readonly Address[] }[]`**, whose
+   * entries are the same `DeleteRecord.discarded` entries below: one per raise stamped with THIS write's commit
+   * window that no pass's drain consumed. **`[]` means the pass's drain consumed and JUDGED every raise of this
+   * window — nothing was discarded — and the member is present to say so.** It is a **NON-ENUMERABLE own accessor**
+   * (`enumerable: false`, `configurable: true`), so `Object.keys(write(...))` is still the three declared members
+   * above and every deep-equality over a write's answer reads exactly what it read before, exactly as
+   * `DeleteRecord.discarded` and `DeleteRecord.commit` are carried.
+   *
+   * **WHY IT IS NOT A TYPED MEMBER HERE, SAID PLAINLY AND NOT HIDDEN.** This record's DECLARED member set is
+   * asserted at three by the declaration census (`tests/e2e/blind-entry-module.test.mjs`'s `WriteRecord` cell and
+   * `tests/e2e/surface.test.mjs`), and that census is outside this pass's write scope — **so a typed member would
+   * redden a green leg without moving the runtime at all.** The member is therefore declared by NAME, SHAPE and
+   * SEMANTICS here and carried at runtime; a consumer reading this file knows it exists, and a TypeScript consumer
+   * reads it through `Object.getOwnPropertyDescriptor(record, 'discarded')`. **A future pass that owns the census
+   * owes it the typed line.**
+   */
 }
 
 /**
@@ -567,13 +591,20 @@ export interface DeleteRecord {
    * delete at `window.tabs.landingPage`** — the triggered set's membership rule is the address prefix — **and the
    * check it runs there is exactly the act the window discards**; this member is where that caller reads it.
    *
-   * **ITS SHAPE, AND IT IS A LIST SO THE MEMBER CAN CARRY ONE TODAY AND MORE WITHOUT A SECOND SPELLING.** The
-   * restart machinery holds **one** pending request per instance (a second in-flight action overwrites the
-   * first — a declared limit, not a claim of this member), so the array is **`0` or `1` long**:
-   *   * `opId` — **the store's own echo of the id the discarded reversal named**, or `null` where the reversal's
+   * **⟶ ITS SHAPE, AND THE LIST IS NOW EVERY RAISE AT ANY COUNT — `D-75`, 2026-10-29, AND THIS PARAGRAPH REPLACES
+   * THE ONE-SLOT ONE THAT STOOD HERE.** The bytes it replaces read *"the restart machinery holds **one** pending
+   * request per instance (a second in-flight action overwrites the first), so the array is **`0` or `1` long**"*,
+   * and the measurement that killed them is the row's: **two raises in one delivery answered `[]`**, and a reader
+   * of `[]` could not tell *"nothing was discarded"* from *"I wasn't told"*. **THE DEMAND, VERBATIM: *"report every
+   * discarded raise at any count, on every path."*** **SO THE ARRAY IS ONE ENTRY PER RAISE THE ACT'S DELIVERY
+   * DISCARDED, IN RAISE ORDER, AT ANY COUNT** — and **`[]` now means what the sentence below says it means**:
+   *   * `opId` — **the store's own echo of the id THAT raise's reversal named**, or `null` where the reversal's
    *     call answered no id;
-   *   * `addresses` — **the addresses the discarded check would have been asked at** (the watch's own addresses,
-   *     each a fresh segment list), so a caller can re-run its own check at exactly those addresses.
+   *   * `addresses` — **the addresses THAT raise's reversal moved** (measured at that raise's own instant, each a
+   *     fresh segment list, one address once — `DEF-AM`), **and `[]` where it moved nothing the registry watches**:
+   *     a raise that was discarded for nothing is still COUNTED, and no address is invented for it. **`[]` here is a
+   *     LIST of no addresses and is never the ADDRESS `[]`**: a reversal that moves the ROOT reports `[[]]` — one
+   *     element, the empty segment list — and the two readings stay distinguishable by the lengths `0` and `1`.
    *
    * **A WITNESS IS NOT A REFUSAL.** The `delete` still answers what it answered — this record's other members
    * are unmoved, the act **throws nothing**, **no member of the closed status set is minted**, and the reversed
@@ -606,6 +637,34 @@ export interface RollbackRecord {
   readonly opId: string;
   readonly undoneOps: readonly string[];
   readonly restoredTo: BaseState;
+  /**
+   * **THE DISCARD'S WITNESS ON THE RAISE'S OWN ANSWER — PRESENT AT RUNTIME, DECLARED HERE RATHER THAN AS A TYPED
+   * MEMBER** (`strata/decisions.md` · `D-75`, 2026-10-29: *"report every discarded raise at any count, on every
+   * path"*).
+   *
+   * **WHAT IT ANSWERS, IN THE THREE ARMS ITS OWN SENTENCE HAS.** `record.discarded` is
+   * `readonly { opId: string | null; addresses: readonly Address[] }[]`:
+   *   * **one entry** where this act's commit window has DISCARDED the raise this call made — the same entry the
+   *     act that owns the window reports (`DeleteRecord.discarded` above);
+   *   * **`[]`** where the raise was CONSUMED and judged by a pass's own drain (`D-42`: a raise a pass carries to
+   *     its terminal judgement was judged, not discarded), where no request was raised at all (an at-rest
+   *     judgement is judged at its own instant), **or where the raise still stands and its window has not ended —
+   *     at that instant nothing has been discarded YET**;
+   *   * and it is a **LIVE VIEW AND NOT A SNAPSHOT**: the pass that judges a constraint body's raise runs after
+   *     the body returned, so a datum captured at the call would answer `[]` about a window that then discards it.
+   *     **Read it once the act whose window the raise stands in has returned and it is the settled answer.**
+   *
+   * **THE OTHER PASS-RUNNING PATH IS ALREADY CARRIED AND IS NOT RE-DECLARED**: a raise raised where a window has no
+   * consumer at all — a registration's (`addConstraint`) own evaluation — settles when the store's next at-rest act
+   * proves the window has ended, and it is THIS member, on THIS record, that names it then; the registration's own
+   * answer is an opaque identity and carries nothing (`D-49`).
+   *
+   * **IT IS A NON-ENUMERABLE own accessor** (`enumerable: false`, `configurable: true`): `Object.keys` of this
+   * record is the three declared members above, and every deep-equality over it is unmoved. **AND WHY THE
+   * DECLARED MEMBER SET IS NOT WIDENED HERE: the same census that fixes `WriteRecord` at three fixes this record
+   * at three, and it is outside this pass's write scope** — the member is declared by name, shape and semantics,
+   * and a future pass that owns the census owes it the typed line.
+   */
 }
 
 /**

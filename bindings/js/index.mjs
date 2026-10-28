@@ -90,7 +90,7 @@ import { admittedConstraintBatch, constraintAddress, decodeBaseState, decodeJour
 import { addressSpelling } from './src/entry/kernel-foundations.mjs';
 import { FORGET_PAIR, INSTANCES, STORE_INDEX, STORE_RETIREMENT, TERMINAL_ARM, carryRefusal, closeCommit, crossTriggered, currentWindow, entryOf, homeAddressKey, installAttemptSeam, isStoreReceiver, openCommit, writeRefusal } from './src/entry/state.mjs';
 import { commitPositionRefusal, constraintOverwrittenByListen, deliver, installRegistrationSeam, listenerStandingAt, registerOn, terminalArm } from './src/entry/delivery.mjs';
-import { ARGUMENT_POSITION_FIRST, addressSetKey, carryConstraint, constraintDetached, constraintPairKey, constraintRefuse, constraintSite, constraintUncarried, constraintDelete, constraintWrite, constraintsKernel, enumerateConstraints, judgeReversal, registrationCrossing, restoreHeldPair, reversalWatch, unionAddressSets, withEmptyLog, witnessDiscardedReversal, withdrawStanding } from './src/entry/constraints.mjs';
+import { ARGUMENT_POSITION_FIRST, addressSetKey, carryConstraint, constraintDetached, constraintPairKey, constraintRefuse, constraintSite, constraintUncarried, constraintDelete, constraintWrite, constraintsKernel, currentRaise, defineDiscardWitness, enumerateConstraints, judgeReversal, registrationCrossing, restoreHeldPair, reversalWatch, unionAddressSets, withEmptyLog, witnessDiscardedReversal, witnessRaise, withdrawStanding } from './src/entry/constraints.mjs';
 const require_ = createRequire(import.meta.url);
 const ADDON_PATH = join(dirOf(fileURLToPath(import.meta.url)), 'build', 'Release', 'storeroom_js_binding.node');
 
@@ -608,10 +608,19 @@ export function storeCreate(cfg) {
           // runs it has either passed or refused the delete outright.
           // **ONLY A DELETE THAT OPENED ITS OWN WINDOW REPORTS**: a call that joined an enclosing commit has no
           // window of its own to witness, and any request under that identity belongs to the act that opened it
-          // (`witnessDiscardedReversal` clears a request of the window handed in and of no other).
-          const discarded = opened === true ? witnessDiscardedReversal(instance, window) : null;
+          // (`witnessDiscardedReversal` clears a request of the window handed in and of no other). **A JOINED
+          // DELETE THEREFORE ANSWERS `[]` AND MEANS IT ABOUT ITS OWN WINDOW — THE RAISES ITS DELIVERY MADE ARE IN
+          // THE ENCLOSING WINDOW, AND THE ACT THAT OWNS THAT WINDOW IS THE ONE THAT REPORTS THEM** (`D-42` item
+          // `3`; measured by `DW-09.2`).
+          //
+          // **⟶ AND THE LIST IS EVERY RAISE, AT ANY COUNT — `D-75`, 2026-10-29.** The bytes here read
+          // `discarded === null ? [] : [discarded]`, which is the ONE-SLOT shape `D-49` declared and `D-75`
+          // measures the cost of: two raises in one delivery answered `[]`. **`witnessDiscardedReversal` now
+          // answers a LIST** — one entry per raise the delivery discarded, in raise order, each `{opId,
+          // addresses}` — so this member IS that list and the length is the count.
+          const discarded = opened === true ? witnessDiscardedReversal(instance, window) : [];
           Object.defineProperty(receipt, 'discarded', {
-            value: discarded === null ? [] : [discarded],
+            value: discarded,
             enumerable: false,
             writable: false,
             configurable: true,
@@ -657,15 +666,37 @@ export function storeCreate(cfg) {
       // THE WATCH COMES FIRST, ON THIS SIDE OF THE STORE CALL: the standing it takes is the one the reversal
       // is about to move, and it is what makes "the address the reversal touched" MEASURED.
       const watched = reversalWatch(state, instance);
+      // **AND THE RAISE THIS CALL MADE IS TAKEN HERE, BEFORE THE JUDGEMENT CONSUMES ITS MEASUREMENT — `D-75`.**
+      // It is `null` on every arm that raises nothing (an at-rest judgement, the kernel's own compensation, a
+      // store carrying no pair), and on a raise it is the record the witness speaks for: it names the id the
+      // reversal answered, the addresses the reversal MOVED, and — once the window has decided — whether this
+      // raise was DISCARDED or JUDGED.
+      const raise = currentRaise(instance);
       // THE ENTRY IS INVOKED BY `Reflect.apply`, NOT BY A SPREAD — see `read`'s clause of 2026-10-24 above.
       const answer = carryRefusal(() => Reflect.apply(entryOf().rollback, this, args), args);
       // AND THE JUDGEMENT AFTER IT, keyed to the store's own echo of the id the reversal named.
       judgeReversal(instance, watched, answer.opId);
-      return {
+      const record = {
         opId: answer.opId,
         undoneOps: answer.undoneOps,
         restoredTo: decodeBaseState(answer.restoredTo),
       };
+      // **⟶ AND THE RAISE'S OWN ANSWER CARRIES THE WITNESS FROM 2026-10-29 — `D-75`: *"on every path"*.** The bytes
+      // this record answered with had **no `discarded` member**, so a body — a constraint body, a listener body —
+      // that issued this call could not learn what became of it: **measured, absent on the raise's own answer and
+      // absent on the triggering write's, at one raise and at two.** **WHAT IT ANSWERS, IN THE THREE ARMS ITS OWN
+      // SENTENCE HAS**: an entry — `{opId, addresses}` — where this act's window has DISCARDED this raise; and
+      // `[]` where the raise was CONSUMED and judged by a pass's own drain (`D-42`: nothing was discarded), where
+      // no request was raised at all (an at-rest judgement is judged at its own instant), and while the raise still
+      // stands and its window has not ended — at that instant nothing has been discarded YET. **IT IS A LIVE VIEW
+      // AND NOT A SNAPSHOT**: the pass that judges a body's raise runs after the body returned, so a datum captured
+      // here would answer `[]` about a window that then discards it. Read it once the act whose window it stands in
+      // has returned and it is the settled answer.
+      //
+      // **AND THE RECORD'S THREE DECLARED MEMBERS ARE UNMOVED**: `discarded` is a NON-ENUMERABLE own accessor
+      // (`index.d.ts`'s `RollbackRecord` clause; `defineDiscardWitness`), so `Object.keys`, every deep-equality
+      // over the record and every census of its members read the three they read before.
+      return defineDiscardWitness(record, () => witnessRaise(raise));
     },
     /// **⟶ `listen(handle, addresses) -> undefined` — arity `2`, position `1` a caller-spelled string and
     /// position `2` a SET of addresses** (`contract.md §2.2`; `listen-verb.md §1` item 1; `PAR-HL-1`,
