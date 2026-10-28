@@ -3865,3 +3865,41 @@ untouched descendant not asked, a deleted subtree's descendants asked).**
 **WHY THE DELETION AT `K-1` LOOKED RIGHT, AND WAS HALF RIGHT.** **`store.register(home, noopListener)` deserved to go: it made a listener-shaped thing that was not a listener.** **What it should have been replaced with is the pair's own function — and the deletion took the registration instead of the seam.**
 
 **TERMS: the correction (`1` = no third kind), the shape (`1` = handle + body, both already on the pair), the pass as a filter (`1`), the single predicate (`1`), the per-tier residual closed by it (`1`), the deletion's half-rightness (`1` = the seam deserved to go, the registration did not).**
+
+---
+
+### `D-70` — A DERIVED VALUE IS NOT AN ADDRESS, AND THE TWO KINDS HAVE DIFFERENT JOBS
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, closing the `VEC` residual and stating which kind to use.
+
+**THE RULINGS, VERBATIM:**
+
+> A constraint/listener that cares about a derived value like the vec index should listen to the vec, not the contained node
+> Functions that automatically produce changes in the stored data should be written as constraint/repair, not as listeners, because constraint/repair has loop guards while listeners don't
+> The use case for listeners is for updating external code with new data, ex. changing the rendered information on screen
+
+**1 · THE `VEC` RESIDUAL IS NOT A DEFECT, AND THE REASON IS THAT AN INDEX IS NOT AN ADDRESS.** `delete(['v',0])` moves
+`{b:2}` from `['v',1]` to `['v',0]`, and **a listener at `['v',1']` does not hear it** — **correctly**: **`1` is a DERIVED
+value, a position inside a collection, and its meaning changes when a neighbour is removed.** **A registration at a
+DERIVED address is a registration on a value the store never wrote.** **The stable address is the container: a
+constraint/listener that cares about positional membership registers at `['v']` and reads the vec.** **So the seventh
+residual closes by declaration, not by machinery** — **and the `triggered` list is right to be empty, because nothing at
+`['v',1]` was written.**
+
+**2 · AND THE TWO KINDS HAVE DIFFERENT JOBS, WHICH IS THE SENTENCE A CONSUMER NEEDS.**
+
+- **CONSTRAINT / REPAIR: for functions that AUTOMATICALLY PRODUCE CHANGES in the stored data.** **They run inside the
+  pass, they are judged, and THEY HAVE LOOP GUARDS** — the restart budget (`D-42`), the applied-repair marker, the
+  per-op floor. **A function whose job is to change data belongs here, because the machinery that stops a loop exists
+  only here.**
+- **LISTENER: for updating EXTERNAL code with new data** — **changing the rendered information on screen.** **A listener
+  runs AFTER all constraints, it opens its own commit when it writes, and IT HAS NO LOOP GUARD.** **So a listener that
+  writes as a matter of course can drive a chain the machinery does not bound** — **which is why the first sentence
+  matters.**
+
+**SO THE RULE, IN ONE LINE A CONSUMER CAN HOLD: IF YOUR CALLBACK CHANGES THE STORE, IT IS A CONSTRAINT; IF IT TELLS THE
+WORLD, IT IS A LISTENER.** **And a registration at a derived address is a third mistake: register at the container and
+read what you care about (`D-50`).**
+
+**TERMS: the residual closed (`1`), the reason (`1` = an index is derived), the two jobs (`2`), the guards' asymmetry
+(`1` = constraints bounded, listeners not), the derived-address rule (`1`), the guide owed (`1`).**
