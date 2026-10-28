@@ -1474,6 +1474,14 @@ function reversalAtRest(instance) {
 ///     by the enclosing pass's) still belongs to that window and is still consumed.
 const RESTARTS = new WeakMap();
 
+/// **⟶ `D-54` (b)'s ONE FLAG, SPELLED HERE AND IN `kernel-attempt.mjs`** — the `Symbol.for` key the kernel's
+/// terminal act stands on its own record while its compensating composition runs, so `reversalWatch` can tell
+/// the package's own undo from a consumer's `rollback` member call (`D-42`: *"a restart is only ever raised by a
+/// consumer's own `rollback` member call"*). **A SYMBOL ON THE KERNEL RECORD AND NOT A MEMBER OF THE PRODUCT OR
+/// OF ANY RECORD** (`A117` (D6)), no kernel item is minted (`kernel-surface.md §1` item 2), and the flag stands
+/// only for the duration of that one call.
+const COMPENSATING = Symbol.for('provident-storeroom.compensating-rollback');
+
 /// **⟶ THE ASK IN FLIGHT, 2026-10-28 — `DEF-AL`'s ONE NEW READ, AND IT IS A `WeakMap` FOR THE SAME REASONS
 /// THE RESTART RECORD IS ONE** (`D-30`; `D-46`): keyed by the store, so a second store is a second record, the
 /// record dies with its store, and no member is added to the product, to a record or to the kernel.
@@ -1562,18 +1570,19 @@ export function drainRestartRequests(instance, report) {
   for (;;) {
     const request = record.pending;
     if (request === null) return report;
-    // **A REQUEST BELONGS TO THE ACT THAT RAISED IT — MEASURED** (`D-42` item `3`'s closing sentence): a request
-    // standing from a window this pass did not open has no consumer HERE, and it is dropped rather than
-    // attributed to an unrelated check. **IT DIES WITH ITS WINDOW, AND THAT IS THE DECLARED FAIL-STATE**
-    // (`D-43` item `2`: the file reloads or the client regenerates the store). **TWO WINDOWS HOLD A COMMIT AND
-    // RUN NO PASS, AND THEY ARE NAMED RATHER THAN LEFT TO A MEASUREMENT**: a `delete`'s listener delivery (a
-    // delete consults no constraint, `D-1-bis`) and a REGISTRATION's own evaluation (`addConstraint`/
-    // `register`, whose body is asked at an instant no attempt of the pass kind stands at — `context.attempt`
-    // is `null` there). A request raised by a body inside either one has no consumer and dies here.
-    if (request.window !== window) {
-      record.pending = null;
-      return report;
-    }
+    // **A PASS DOES NOT CONSUME A REQUEST IT DID NOT RAISE — `D-54`, 2026-10-28, MEASURED.**
+    // `RCA-8(g)` ANNOTATE-BESIDE: the bytes that stood here read *"a request standing from a window this pass
+    // did not open has no consumer HERE, and it is dropped"*, and **the drop was a CONSUMPTION**: a nested
+    // pass — a listener body's own write, a reentrant write inside an open commit — cleared a request the
+    // ENCLOSING window had raised, so the enclosing pass's own drain found nothing to judge and the reversal's
+    // effect stood. **THE REQUEST IS THEREFORE LEFT WHERE IT STANDS**: this pass asks nothing at it and takes
+    // nothing from it, and the consumer that matches its window is still free to reach it. **A REQUEST NOBODY
+    // CONSUMES STILL DIES WITH ITS WINDOW** (`D-42` item `3`; `D-43` item `2`): windows are never reused, so a
+    // stale stamp can be consumed by no later pass, it is overwritten by the next action's own request, and the
+    // two declared passless windows have their own answers — the `delete`'s witness reports (and clears) its
+    // own, the registration's is read by no surface. **A MISMATCHED REQUEST IS NOT CONSUMED, AND THAT IS THE
+    // WHOLE OF HALF (a).**
+    if (request.window !== window) return report;
     record.pending = null;
     if (request.watched.length === 0) continue;
     rounds += 1;
@@ -1796,6 +1805,18 @@ export function reversalWatch(state, instance) {
   // runs in, so *"a request belongs to the act that raised it"* (`D-42` item `3`) is MEASURED at this line and
   // checked at that one, and the `CHECK_DEPTH` frame that once approximated it is deleted with its clears.
   if (reversalAtRest(instance) === false) {
+    // **⟶ AND THE KERNEL'S OWN COMPENSATING ROLLBACK IS NOT A CONSUMER'S ACTION — `D-54`, 2026-10-28,
+    // MEASURED.** `D-42` declares it: *"A RESTART IS ONLY EVER RAISED BY A CONSUMER'S OWN `rollback` MEMBER
+    // CALL."* **THE KERNEL'S TERMINAL COMPOSITION REACHES THAT MEMBER** (`kernel-terminal.mjs`'s
+    // `composeRollback` calls `attempt.store.rollback`, the app's published member), so with the failing pass's
+    // drain now reached (`D-54` (b)) the composition's own reversal was raising a request in the pass's window
+    // — **A PHANTOM THE DRAIN THEN JUDGED**, asking a pair at the state the compensation had restored to and
+    // re-shaping a refusal no consumer wrote. **THE FLAG IS THE KERNEL'S, TAKEN AROUND ITS OWN TERMINAL ACT**
+    // (`kernel-attempt.mjs`'s `terminalComposed`), **and it is a `Symbol.for` key on the kernel record that both
+    // modules spell** — no member of any record and none of the product moves (`A117` (D6)). With it, the
+    // composition takes no watch, raises no request and judges no step: the request the pass's own bodies
+    // raised is the one the drain carries to the terminal judgement, and no other.
+    if (kernelFor(instance)[COMPENSATING] === true) return watched;
     // **⟶ AND THE REQUEST NAMES THE ASK IT WAS RAISED UNDER, 2026-10-28 (`DEF-AL`).** A body acts INSIDE the
     // one invocation `judgeReversal` wrapped in `ASKING`, so the pair and the address the check was actually
     // asking are in hand at this instant. `null` where no ask stands (an action raised by a body outside a
@@ -1941,6 +1962,10 @@ function movedStanding(instance, watched) {
 /// actually happened: a body threw), while the treatment — restore, one log entry naming the pair, one plain
 /// form — is the violation's.
 export function judgeReversal(instance, watched, reversalId) {
+  // **A COMPENSATING ROLLBACK IS NOT JUDGED AS A STEP EITHER — `D-54` (b)**: the member is reached by the
+  // kernel's own terminal act with the flag standing, and this act must not touch a pending request or ask a
+  // pair. The consumer's own judgement is the drain's, at the pass's terminal state.
+  if (kernelFor(instance)[COMPENSATING] === true) return undefined;
   // **⟶ AND THE IN-FLIGHT ARM IS THE REQUEST'S OTHER HALF, `D-42` (2026-10-27).** `reversalWatch` answers
   // `[]` for an action taken inside an open window — no body is invoked at the reversal's instant and the step
   // is still not judged as a step — **and this frame is where the store's own echo of the id the reversal

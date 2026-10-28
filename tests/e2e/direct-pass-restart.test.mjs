@@ -33,6 +33,14 @@
 //       delivery) NAMES that window, so the next pass's drain DROPS it rather than judging an unrelated act's
 //       state; the following write answers. **That is the one window this pass still leaves, declared with
 //       `D-43` item `2`'s exit.**
+//       **⟶ AND THE WORD *"DROPS"* IS READ THROUGH `D-54`, 2026-10-28 — THE DRAIN NO LONGER TAKES A REQUEST IT
+//       DID NOT RAISE.** `RCA-8(g)` ANNOTATE-BESIDE: the assertions below are UNMOVED and green; what moved is
+//       the mechanism a mismatched request meets. **This window's request is consumed by the `delete`'s OWN
+//       WITNESS before the following pass runs** (`D-49`: `record.discarded`, one entry), so the observable this
+//       cell asserts — the following write ANSWERS and the pair is never asked at the state the stale window
+//       left — stands either way. **A mismatched request the witness did not reach is now LEFT STANDING rather
+//       than cleared** (it can be consumed by no later pass, because windows are never reused), which is
+//       `D-54` (a)'s whole content: *a pass does not consume a request it did not raise.*
 //
 // **D-21.** Every cell prints the readings it took at its own `t.diagnostic`, and asserts the drive's coherence
 // BEFORE its verdict, so a cell that could not reach its arm says so instead of failing on a symptom.
@@ -423,7 +431,8 @@ test('DIRECT-PASS RESTART (5) · THE EPOCH: a request raised in a window whose c
   }));
   // **THE ACTION IS RAISED IN A `delete`'s WINDOW: ONE OPEN COMMIT AND NO PASS.** The delete consults no
   // constraint (`D-1-bis`), so no check exists to restart and the request stands stamped with the delete's own
-  // window identity.
+  // window identity — **and that window's own witness consumes it on the delete's answer** (`D-49`; this cell
+  // still reads *"drops"* at that name and the reading is `D-54` (a)'s: see the header).
   const windows = [];
   let inner = null;
   const handle = store.listen('restart-epoch-listener', [['a']]);

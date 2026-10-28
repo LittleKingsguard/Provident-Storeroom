@@ -54,7 +54,7 @@
 
 import { storeCreate } from '../../bindings/js/index.mjs';
 import { kernelFor } from '../../bindings/js/src/entry/kernel-foundations.mjs';
-import { openCommits } from '../../bindings/js/src/entry/state.mjs';
+import { currentWindow, openCommits } from '../../bindings/js/src/entry/state.mjs';
 
 const LAYER = 'ENVELOPE/PURE';
 const APP_LAYER = 'NONE';
@@ -606,6 +606,290 @@ console.log('\n── W8 · `D-50` — a repair that lands elsewhere, and the re
   console.log('        CHECK — nothing is judged by it: no other constraint is asked on the value it returns, and');
   console.log('        that value is never a verdict. A read is a NON-BRACKETING call, so it opens no commit of its');
   console.log('        own and moves no count; it neither repeats nor replaces the pass the write already ran.');
+}
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════
+// (W9) `D-54` — THE FALSE CLAUSE, AND THE THREE HOSTS THAT REFUTE IT
+//
+// **THE FINDING** (`strata/decisions.md` · `D-54`, 2026-10-28): the shipped guide said *"every pass that DOES run
+// drains its own restart request — so the fail-state is bounded by the two acts that run none"*, and the
+// consumer MEASURED three hosts where BOTH cannot hold — **a repair body**, **a delete's pass** and **a
+// reentrant reversal-then-write** — each RUNS a pass and each left the reversal unjudged with its effect
+// standing (zero judge invocations, the refused `5` still there).
+//
+// **THE TWO HALVES THE FIX LANDS, AND EACH HOST IS DRIVEN AGAINST ITS OWN**:
+//   * **(a) A PASS DOES NOT CONSUME A REQUEST IT DID NOT RAISE.** A nested pass — the `['b']` write inside the
+//     listener body below — used to CLEAR the enclosing window's request at the drain's window comparison, so
+//     the enclosing pass found nothing to judge. It now leaves it standing.
+//   * **(b) A REQUEST RAISED INSIDE A PASS IS CARRIED TO THAT PASS'S OWN TERMINAL STATE** — including a pass
+//     that ends by THROWING. The failing arm's drain runs at the state the pass left, and the kernel's own
+//     compensating rollback is flagged (`Symbol.for('provident-storeroom.compensating-rollback')`) so it raises
+//     and is judged as no consumer's action (`D-42`: *"a restart is only ever raised by a consumer's own
+//     `rollback` member call"*).
+//
+// **EACH HOST PRINTS THE FOUR FACTS `D-54` WAS REFUTED AGAINST**: did a pass run (which pairs, at which
+// values); was a request raised (its window, the op its reversal named); who consumed it (the pass's own drain,
+// evidenced by the restarted ask); and is the reversal judged (the ask at the state it left, the refusal, the
+// store's reading). **THE CONTROL IS THE DECLARED WINDOW**: a delete's listener delivery that OPENS the window
+// still runs NO pass, still reports the discard and still leaves the effect standing.
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+console.log('\n── W9 · `D-54` — three hosts where a pass runs, and the reversal is JUDGED ──────────');
+{
+  const SEED = 5;      // the state the reversal RESTORES — and the state every pair here REFUSES
+  const LANDED = 9;    // the value the reversal's target op landed — the state the pair was registered at
+  const THIRD = 7;     // the terminal write's own value
+  const windowAt = (store) => ({ open: openCommits(store), live: kernelFor(store).live.size, window: currentWindow(store) });
+  const statusOf = (caught) => (caught !== null && typeof caught === 'object' && typeof caught.status === 'string'
+    ? caught.status
+    : null);
+  /** A pair whose law is: admit `LANDED`, refuse every other state — so the state the reversal leaves (`SEED`)
+   *  is the one it refuses, and the value the write landed (`THIRD`) is the one a repair may see. */
+  const refusesTheRest = (asked) => (context) => {
+    asked.push(context.value);
+    if (Object.is(context.value, LANDED)) return true;
+    return { message: 'the state this pair is asked for is not one it admits' };
+  };
+  const restoreSaid = (log) => (log.length === 1 && typeof log[0].message === 'string'
+    && /\bUNDONE\b/.test(log[0].message));
+
+  // ── HOST 1 · A REPAIR BODY ─────────────────────────────────────────────────────────────────────────
+  const repairStore = make();
+  repairStore.write(['a'], 'mem', SEED);
+  const repairTarget = repairStore.write(['a'], 'mem', LANDED);
+  const repairAsks = [];
+  let repairRollback = null;
+  let repairWindow = null;
+  const repairRegistered = attempt(() => repairStore.addConstraint({ address: ['a'], id: 'repair-host' }, (context) => {
+    repairAsks.push(context.value);
+    if (Object.is(context.value, THIRD) && context.attempt !== null) {
+      return {
+        message: 'the repair host refuses this state and reverses',
+        repair: () => {
+          repairWindow = windowAt(repairStore);
+          repairRollback = attempt(() => repairStore.rollback(repairTarget.op.opId));
+          return { ok: false, message: 'the repair gave up' };
+        },
+      };
+    }
+    return Object.is(context.value, SEED)
+      ? { message: 'the state this pair is asked for is not one it admits' }
+      : true;
+  }));
+  const repairTerminal = attempt(() => repairStore.write(['a'], 'mem', THIRD));
+  const repairCaught = repairTerminal.ok === false ? repairTerminal.caught : null;
+  const repairLog = repairCaught !== null && Array.isArray(repairCaught.log) ? repairCaught.log : [];
+  const repairStanding = repairStore.read(['a']);
+
+  P('HOST 1 (repair body) · the pairs asked, in order', repairAsks);
+  P('HOST 1 (repair body) · the window the repair body reversed in (its window)', repairWindow);
+  P('HOST 1 (repair body) · the reversal\'s own record', repairRollback === null ? '<not reached>'
+    : (repairRollback.ok ? repairRollback.value : String(repairRollback.caught)));
+  P('HOST 1 (repair body) · the write\'s answer', repairCaught === null ? '<answered>'
+    : { status: statusOf(repairCaught), log: repairLog.map((entry) => entry.id) });
+  P('HOST 1 (repair body) · the store after it, before → after', [repairStanding]);
+
+  A('DW-09.1', '`D-54` (b) — a repair body\'s reversal is carried to the pass\'s TERMINAL state; `D-38` (the judgement is of the terminal state, once); `D-42` item 3',
+    'THE REPAIR HOST IS JUDGED: the pass ran (the pair asked at `7`), the repair body reversed in the pass\'s own window (`open 1`, `live 1`), the reversal still ANSWERED its record (the step is not judged as a step), and the pass\'s terminal state was JUDGED — the pair asked at `5`, the declared refusal `ConstraintPassRefused` with ONE `constraint-check` entry naming it, and the store restored to `9`',
+    repairRegistered.ok === true
+      && repairWindow !== null && repairWindow.open === 1 && repairWindow.live === 1
+      && repairRollback !== null && repairRollback.ok === true
+      && repairAsks[0] === LANDED && repairAsks[1] === THIRD
+      && repairAsks.filter((value) => Object.is(value, SEED)).length === 1
+      && statusOf(repairCaught) === PASS_REFUSED
+      && repairLog.length === 1 && repairLog[0].kind === 'constraint-check'
+      && repairLog[0].id === 'repair-host' && restoreSaid(repairLog)
+      && repairStanding === LANDED,
+    `registered ${repairRegistered.ok} · window ${JSON.stringify(repairWindow)} · reversal `
+      + `${repairRollback !== null && repairRollback.ok ? 'answered' : '<not reached>'} · asks ${JSON.stringify(repairAsks)} · `
+      + `answer ${repairCaught === null ? 'ANSWERED' : statusOf(repairCaught)} · log ${JSON.stringify(repairLog.map((entry) => [entry.kind, entry.id]))} · `
+      + `store ${JSON.stringify(repairStanding)} (the reversal left ${SEED}, the pair refuses ${SEED}, the commit opened at ${LANDED})`);
+
+  // ── HOST 2 · A DELETE'S PASS ──────────────────────────────────────────────────────────────────────
+  // THE DELETE IS PERFORMED INSIDE A PASS: it joins that pass's commit (`opened === false`), its delivery
+  // fires a listener, and the reversal that listener raises is stamped with the PASS's window. **THE DECLARED
+  // delete window it is NOT**: no pass runs there; here one does.
+  const deleteStore = make();
+  deleteStore.write(['a'], 'mem', SEED);
+  deleteStore.write(['x'], 'mem', 1);
+  const deleteTarget = deleteStore.write(['a'], 'mem', LANDED);
+  const deleteAsks = [];
+  let deleteRollback = null;
+  let deleteWindow = null;
+  let deleteReceipt = null;
+  let deleteActed = false;
+  const deleteListener = deleteStore.listen('delete-pass-listener', [['x']]);
+  deleteStore.register(deleteListener, () => {
+    if (deleteRollback === null) {
+      deleteWindow = windowAt(deleteStore);
+      deleteRollback = attempt(() => deleteStore.rollback(deleteTarget.op.opId));
+    }
+  });
+  const deleteRegistered = attempt(() => deleteStore.addConstraint({ address: ['a'], id: 'delete-pass-host' }, (context) => {
+    deleteAsks.push(context.value);
+    if (context.attempt !== null && deleteActed === false) {
+      deleteActed = true;
+      deleteReceipt = attempt(() => deleteStore.delete(['x'], 'mem'));
+      return { message: 'the delete host refuses the state its delivery left' };
+    }
+    return Object.is(context.value, SEED)
+      ? { message: 'the state this pair is asked for is not one it admits' }
+      : true;
+  }));
+  const deleteTerminal = attempt(() => deleteStore.write(['a'], 'mem', THIRD));
+  const deleteCaught = deleteTerminal.ok === false ? deleteTerminal.caught : null;
+  const deleteLog = deleteCaught !== null && Array.isArray(deleteCaught.log) ? deleteCaught.log : [];
+  const deleteStanding = deleteStore.read(['a']);
+  const deleteDiscarded = deleteReceipt !== null && deleteReceipt.ok
+    && Array.isArray(deleteReceipt.value.discarded) ? deleteReceipt.value.discarded : null;
+
+  P('HOST 2 (delete\'s pass) · the pairs asked, in order', deleteAsks);
+  P('HOST 2 (delete\'s pass) · the window the delete\'s listener reversed in (its window)', deleteWindow);
+  P('HOST 2 (delete\'s pass) · the reversal\'s own record', deleteRollback === null ? '<not reached>'
+    : (deleteRollback.ok ? deleteRollback.value : String(deleteRollback.caught)));
+  P('HOST 2 (delete\'s pass) · the delete\'s own answer', deleteReceipt === null ? '<not reached>'
+    : (deleteReceipt.ok ? { discarded: deleteDiscarded, triggered: deleteReceipt.value.triggered }
+      : String(deleteReceipt.caught)));
+  P('HOST 2 (delete\'s pass) · the write\'s answer', deleteCaught === null ? '<answered>'
+    : { status: statusOf(deleteCaught), log: deleteLog.map((entry) => entry.id) });
+  P('HOST 2 (delete\'s pass) · the store after it', [deleteStanding]);
+
+  A('DW-09.2', '`D-54` (b) — a reversal raised while a delete runs inside a pass is carried to THAT pass\'s terminal state; `D-1-bis` (a delete consults no constraint of its own); `D-43` item 1',
+    'THE DELETE HOST IS JUDGED: the pass ran (the pair asked at `7`), the delete ran inside it and its listener delivered at the PASS\'s window (`open 1`, `live 1` — so the delete opened no window of its own and reports no witness), the reversal ANSWERED its record, and the pass\'s terminal state was JUDGED — the pair asked at `5`, the declared `ConstraintPassRefused` with ONE entry naming it, and the store restored to `9`',
+    deleteRegistered.ok === true && deleteActed === true
+      && deleteWindow !== null && deleteWindow.open === 1 && deleteWindow.live === 1
+      && deleteRollback !== null && deleteRollback.ok === true
+      && deleteReceipt !== null && deleteReceipt.ok === true && deleteDiscarded !== null
+      && deleteReceipt.value.discarded.length === 0
+      && deleteAsks[0] === LANDED && deleteAsks[1] === THIRD
+      && deleteAsks.filter((value) => Object.is(value, SEED)).length === 1
+      && statusOf(deleteCaught) === PASS_REFUSED
+      && deleteLog.length === 1 && deleteLog[0].kind === 'constraint-check'
+      && deleteLog[0].id === 'delete-pass-host' && restoreSaid(deleteLog)
+      && deleteStanding === LANDED,
+    `registered ${deleteRegistered.ok} · acted ${deleteActed} · window ${JSON.stringify(deleteWindow)} · reversal `
+      + `${deleteRollback !== null && deleteRollback.ok ? 'answered' : '<not reached>'} · delete `
+      + `${deleteReceipt === null ? '<not reached>' : (deleteReceipt.ok ? `answered, discarded ${JSON.stringify(deleteDiscarded)}` : String(deleteReceipt.caught))} · `
+      + `asks ${JSON.stringify(deleteAsks)} · answer ${deleteCaught === null ? 'ANSWERED' : statusOf(deleteCaught)} · `
+      + `log ${JSON.stringify(deleteLog.map((entry) => [entry.kind, entry.id]))} · store ${JSON.stringify(deleteStanding)}`);
+
+  // ── HOST 3 · A REENTRANT REVERSAL-THEN-WRITE ───────────────────────────────────────────────────────
+  // THE LISTENER BODY OF THE OUTER WRITE'S DELIVERY reverses at `['a']` and THEN writes at `['b']`. The nested
+  // write is a pass in a window of its own; under the old drain it DROPPED the enclosing window's request at
+  // the window comparison, so the outer write's own drain judged nothing (`D-54` (a)).
+  const reentrantStore = make();
+  reentrantStore.write(['a'], 'mem', SEED);
+  const reentrantTarget = reentrantStore.write(['a'], 'mem', LANDED);
+  const reentrantAsks = [];
+  let reentrantRollback = null;
+  let reentrantWindow = null;
+  let reentrantNested = null;
+  const reentrantListener = reentrantStore.listen('reentrant-listener', [['a']]);
+  reentrantStore.register(reentrantListener, () => {
+    if (reentrantRollback === null) {
+      reentrantWindow = windowAt(reentrantStore);
+      reentrantRollback = attempt(() => reentrantStore.rollback(reentrantTarget.op.opId));
+      reentrantNested = attempt(() => reentrantStore.write(['b'], 'mem', 11));
+    }
+  });
+  // **THE OUTER WRITE MUST PASS** for its terminal delivery to run at all, so this pair admits `THIRD` and
+  // refuses only the state the reversal leaves (`SEED`) — the shape `D-42`'s in-commit arms measure.
+  const reentrantRegistered = attempt(() => reentrantStore.addConstraint({ address: ['a'], id: 'reentrant-host' },
+    (context) => {
+      reentrantAsks.push(context.value);
+      return Object.is(context.value, SEED)
+        ? { message: 'the state the reversal leaves is not one this pair admits' }
+        : true;
+    }));
+  const reentrantTerminal = attempt(() => reentrantStore.write(['a'], 'mem', THIRD));
+  const reentrantCaught = reentrantTerminal.ok === false ? reentrantTerminal.caught : null;
+  const reentrantLog = reentrantCaught !== null && Array.isArray(reentrantCaught.log) ? reentrantCaught.log : [];
+  const reentrantStanding = reentrantStore.read(['a']);
+  const reentrantNestedStanding = attempt(() => reentrantStore.read(['b']));
+
+  P('HOST 3 (reentrant) · the pairs asked, in order', reentrantAsks);
+  P('HOST 3 (reentrant) · the window the listener reversed in (its window)', reentrantWindow);
+  P('HOST 3 (reentrant) · the reversal\'s own record', reentrantRollback === null ? '<not reached>'
+    : (reentrantRollback.ok ? reentrantRollback.value : String(reentrantRollback.caught)));
+  P('HOST 3 (reentrant) · the nested write', reentrantNested === null ? '<not reached>'
+    : (reentrantNested.ok ? 'answered its own record' : String(reentrantNested.caught)));
+  P('HOST 3 (reentrant) · the outer write\'s answer', reentrantCaught === null ? '<answered>'
+    : { status: statusOf(reentrantCaught), log: reentrantLog.map((entry) => entry.id) });
+  P('HOST 3 (reentrant) · the store after it (`[\'a\']`, `[\'b\']`)',
+    [reentrantStanding, reentrantNestedStanding.ok ? reentrantNestedStanding.value : '<threw>']);
+
+  A('DW-09.3', '`D-54` (a) — a pass does not consume a request it did not raise; `D-42` item 3 (a request belongs to the act that raised it); `D-38`',
+    'THE REENTRANT HOST IS JUDGED: the listener reversed in the OUTER write\'s window (`open 1`, `live 0`) and then made a nested write in a window of its own, whose pass LEFT the enclosing request standing — and the outer pass\'s own drain judged it: the pair asked at `5`, the declared `ConstraintPassRefused` with ONE entry naming it, the store restored to `9` (the whole-commit undo, so the nested write\'s own value goes with it),',
+    reentrantRegistered.ok === true
+      && reentrantWindow !== null && reentrantWindow.open === 1 && reentrantWindow.live === 0
+      && reentrantRollback !== null && reentrantRollback.ok === true
+      && reentrantNested !== null && reentrantNested.ok === true
+      && reentrantAsks[0] === LANDED
+      && reentrantAsks.filter((value) => Object.is(value, SEED)).length === 1
+      && statusOf(reentrantCaught) === PASS_REFUSED
+      && reentrantLog.length === 1 && reentrantLog[0].kind === 'constraint-check'
+      && reentrantLog[0].id === 'reentrant-host' && restoreSaid(reentrantLog)
+      && reentrantStanding === LANDED
+      // **THE REFUSAL'S COMPENSATING ACT IS THE WHOLE-COMMIT UNDO** (`DEF-AJ`): `restoreMark` names the mark
+      // the OUTER commit cached at its opening, so the nested write's own value is undone with the reversal —
+      // and the crossed sentence says so.
+      && reentrantNestedStanding.ok === false,
+    `registered ${reentrantRegistered.ok} · window ${JSON.stringify(reentrantWindow)} · reversal `
+      + `${reentrantRollback !== null && reentrantRollback.ok ? 'answered' : '<not reached>'} · nested `
+      + `${reentrantNested !== null && reentrantNested.ok ? 'answered' : '<not reached>'} · asks ${JSON.stringify(reentrantAsks)} · `
+      + `answer ${reentrantCaught === null ? 'ANSWERED' : statusOf(reentrantCaught)} · `
+      + `log ${JSON.stringify(reentrantLog.map((entry) => [entry.kind, entry.id]))} · `
+      + `store a=${JSON.stringify(reentrantStanding)} b=${JSON.stringify(reentrantNestedStanding.ok ? reentrantNestedStanding.value : '<threw>')}`);
+
+  // ── THE CONTROL · THE DECLARED WINDOW, UNCHANGED ──────────────────────────────────────────────────
+  // **A DELETE THAT OPENS ITS OWN WINDOW RUNS NO PASS** (`D-1-bis`; `D-43` item 2): the request a listener
+  // raises there is still reported by the `discarded` witness, is still consumed by nobody, and the reversal's
+  // effect still stands. **THE FIX MOVED NEITHER THE WINDOW NOR ITS EXIT.**
+  const controlStore = make();
+  controlStore.write(['a'], 'mem', 1);
+  controlStore.write(['b'], 'mem', SEED);
+  const controlTarget = controlStore.write(['b'], 'mem', LANDED);
+  const controlAsks = [];
+  const controlRegistered = attempt(() => controlStore.addConstraint({ address: ['b'], id: 'declared-window-pair' },
+    refusesTheRest(controlAsks)));
+  let controlRollback = null;
+  let controlWindow = null;
+  const controlListener = controlStore.listen('declared-window-listener', [['a']]);
+  controlStore.register(controlListener, () => {
+    if (controlRollback === null) {
+      controlWindow = windowAt(controlStore);
+      controlRollback = attempt(() => controlStore.rollback(controlTarget.op.opId));
+    }
+  });
+  const controlDelete = attempt(() => controlStore.delete(['a'], 'mem'));
+  const controlWitness = controlDelete.ok && Array.isArray(controlDelete.value.discarded)
+    ? controlDelete.value.discarded
+    : null;
+  const controlStanding = controlStore.read(['b']);
+  P('CONTROL (declared window) · the pairs asked', controlAsks);
+  P('CONTROL (declared window) · the window the delete\'s listener reversed in', controlWindow);
+  P('CONTROL (declared window) · the delete\'s witness, before → after', controlWitness);
+  P('CONTROL (declared window) · the store after it (the effect STANDS)', controlStanding);
+  A('DW-09.4', '`D-54` (the two declared windows unchanged); `D-43` item 2; `D-49` (a witness reports, it does not run the check)',
+    'THE CONTROL IS UNCHANGED: a delete that OPENS its own window runs NO pass — the pair is asked ONLY at registration, never at the state the reversal left — the request is still reported by `discarded` (ONE entry), and the reversal\'s effect (`5`) still stands',
+    controlRegistered.ok === true
+      && controlWindow !== null && controlWindow.open === 1 && controlWindow.live === 0
+      && controlRollback !== null && controlRollback.ok === true
+      && controlDelete.ok === true
+      && controlWitness !== null && controlWitness.length === 1
+      && controlAsks.length === 1 && controlAsks[0] === LANDED
+      && controlAsks.filter((value) => Object.is(value, SEED)).length === 0
+      && controlStanding === SEED,
+    `registered ${controlRegistered.ok} · window ${JSON.stringify(controlWindow)} · reversal `
+      + `${controlRollback !== null && controlRollback.ok ? 'answered' : '<not reached>'} · delete `
+      + `${controlDelete.ok ? 'answered' : String(controlDelete.caught)} · witness ${JSON.stringify(controlWitness)} · `
+      + `asks ${JSON.stringify(controlAsks)} · store ${JSON.stringify(controlStanding)}`);
+  console.log('');
+  console.log('        THE SENTENCE TO CARRY AWAY (`D-54`): THE FAIL-STATE OF PASS-HOSTED REVERSALS IS EMPTY.');
+  console.log('        Every pass that runs — the passing arm AND the failing arm, a repair body\'s, a delete\'s,');
+  console.log('        a reentrant one\'s — now carries the request its own bodies raised to its terminal state and');
+  console.log('        judges it there; and no pass consumes a request another window raised. The two declared');
+  console.log('        windows that run NO pass stand exactly as they stood: the delete\'s delivery (reported on');
+  console.log('        `discarded`, effect standing) and the registration\'s own evaluation (silent, identity-only).');
 }
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════

@@ -37,6 +37,35 @@ const COMMIT_SCOPE = Symbol.for('provident-storeroom.commit-scope');
 /// (`§1` item 2: `K-1`–`K-5` and no sixth name).
 const RESTART_DRAIN = Symbol.for('provident-storeroom.restart-drain');
 
+/// **`D-54` (b)'s SECOND SPELLING OF THE SAME `Symbol.for` KEY** — the entry writes the restarted check's
+/// refusal onto the report under it (`constraints.mjs`'s `carryRestartRefusal`) and this module reads it back
+/// so the failing arm can answer with the very value the terminal judgement built, exactly as the passing arm
+/// reaches it through `constraintWrite`. **NEITHER SIDE IMPORTS THE OTHER** (`kernel-surface.md §1` item 1's
+/// empty import footprint), the key is invisible to `Object.keys` and to `Object.getOwnPropertyNames`
+/// (`A117` (D6)), and no kernel item is minted (`§1` item 2: `K-1`–`K-6` and no seventh name).
+const RESTART_REFUSAL = Symbol.for('provident-storeroom.restart-refusal');
+
+/// **⟶ `D-54` (b)'s COMPENSATION FLAG — the same `Symbol.for` key `constraints.mjs` spells.** The kernel's
+/// terminal act composes the attempt's rollback THROUGH THE APP'S PUBLISHED `rollback` MEMBER
+/// (`kernel-terminal.mjs`'s `composeRollback`), so that call would otherwise take a restart watch and raise a
+/// request — a phantom the failing pass's drain would then judge, asking pairs at the state the compensation
+/// had just restored to. **`D-42` declares the rule the flag keeps: *"a restart is only ever raised by a
+/// consumer's own `rollback` member call."*** The flag stands on the kernel record for the duration of the one
+/// call, is a symbol key (invisible to `Object.keys`/`Object.getOwnPropertyNames`, `A117` (D6)), and mints no
+/// kernel item (`kernel-surface.md §1` item 2).
+const COMPENSATING = Symbol.for('provident-storeroom.compensating-rollback');
+
+/// **THE KERNEL'S ONE TERMINAL ACT, TAKEN WITH ITS COMPENSATION FLAGGED** — the wrapper every terminal call in
+/// this module uses so the composition inside `terminal` is never mistaken for an action of the caller's.
+function terminalComposed(kernel, attempt, status, message) {
+  kernel[COMPENSATING] = true;
+  try {
+    terminal(kernel, attempt, status, message);
+  } finally {
+    kernel[COMPENSATING] = false;
+  }
+}
+
 /// **⟶ ADDED 2026-10-27 — `D-46`'s NAME ON AN INVOCATION'S OWN ENTRY, AND IT IS THIS PASS'S ONE USE OF THE
 /// SEAM'S SIXTH CHANNEL.** **THE RULING, THE ARCHITECT, VERBATIM: *"A constraint's repair needs to stay as part
 /// of the same commit so that it can be tracked as part of the commit process … The original way of maintaining
@@ -113,10 +142,49 @@ export function runAttempt(store, commitRecord) {
   // open — a direct `K-2`/`K-3` drive, `D-44`'s window. **NO COUNT IS MINTED EITHER WAY**: the channel is
   // `openCommit`/`closeCommit` composed, and the count moves only where this call's own opening is the one that
   // took it.
+  // **⟶ AND A FAILING PASS'S TERMINAL STATE IS STILL A JUDGEMENT — `D-54` (b), 2026-10-28, MEASURED.** The bytes
+  // above reached the drain only where the pass ANSWERED A REPORT, so a pass that ended by throwing — a repair
+  // body that reversed the store had then broken the attempt's own re-run, or a delete's pass whose pair
+  // refused after its delivery's reversal — left the request its bodies raised standing, unjudged, with its
+  // effect in the store. **THE REQUEST IS CARRIED TO THE PASS'S TERMINAL JUDGEMENT**: the terminal act has run
+  // and the attempt is closed, so the state the pass left is the state the restarted check is asked at, and the
+  // drain runs here, inside the same scope, exactly as it does on the passing arm. **THE FAILING PASS'S OWN
+  // ANSWER IS NOT RE-SHAPED**: where the restarted check passes, or where the throwable is not the kernel's own
+  // (a caller body's value, a store refusal — each of which must cross as itself), the pass's throwable crosses
+  // unchanged. Only a KERNEL refusal — the pass's own terminal arm — is superseded by the refusal the restarted
+  // check built at that same terminal state, because that check's verdict is the state the pass left.
   return scope(() => {
-    const report = passInCommitScope(store, commitRecord);
+    let report;
+    try {
+      report = passInCommitScope(store, commitRecord);
+    } catch (thrown) {
+      return drainFailingPass(store, commitRecord, thrown);
+    }
     return drainRestart(store, report);
   }, commitRecord);
+}
+
+/// **THE FAILING PASS'S DRAIN — `D-54` (b)'s ONE NEW CALL SITE.**
+///
+/// **WHY THE REPORT IS READ AND NOT BUILT**: the pass's terminal act (`kernel-terminal.mjs`'s `terminal`) has
+/// already answered the attempt's ONE five-member report and placed it in the kernel's closed map before it
+/// throws, so the log the drain re-appends onto is the attempt's own list and no second report is minted
+/// (`A117` (D6): no member is added to any record). **A THROWABLE THAT STOOD BEFORE ANY TERMINAL ACT — `KC-2`,
+/// a re-entrant `KC-7`, a store refusal at `K-2` — has no closed report and no request of this pass's window
+/// either**, so it crosses unchanged and the drain is not reached: no pass ran.
+///
+/// **THE ONE PRECEDENCE RULE, STATED ONCE**: a restarted check's refusal supersedes the pass's answer only
+/// where that answer is the KERNEL's own (a `KC`-tokened refusal, `isKernelRefusal`). A constraint body's
+/// throwable is the caller's and crosses as itself (`fail-surface.md §1.1` item `5`), a store verb's refusal
+/// crosses verbatim (`§1.2` item `2`), and neither is re-shaped by a later check's verdict — the request is
+/// still judged and the store still restored by that judgement's own compensating act.
+function drainFailingPass(store, commitRecord, thrown) {
+  const closed = kernelFor(store).closed.get(commitAttemptIdOf(commitRecord));
+  if (closed === undefined) throw thrown;
+  const answered = drainRestart(store, closed);
+  const restarted = answered !== null && typeof answered === 'object' ? answered[RESTART_REFUSAL] : undefined;
+  if (restarted !== undefined && isKernelRefusal(thrown) === true) throw restarted;
+  throw thrown;
 }
 
 /// **THE DRAIN, TAKEN INSIDE THE SCOPE THE PASS JUST ENDED IN.** It hands the store **the report the pass
@@ -174,7 +242,7 @@ function passInCommitScope(store, commitRecord) {
   if (terminalArm !== null) {
     // A FAILING LANDING: the arm's own terminal act, its per-op rollback composition, and the throw
     // of `fail-surface.md §1.1`'s form carrying the log.
-    terminal(kernel, attempt, terminalArm.status, terminalArm.message);
+    terminalComposed(kernel, attempt, terminalArm.status, terminalArm.message);
     // **⟶ INSTANT (b) ON THE FAILING ARM, AND IT PRECEDES THE REFUSAL** (`docs/decisions.md` · `A116`
     // (D1); `surface.md §2.4` item 9's table row (b): *"AT THE PASS'S TERMINAL ARM … after the last
     // constraint of the attempt has been evaluated and before `runAttempt` returns to the calling
@@ -270,7 +338,7 @@ function passInCommitScope(store, commitRecord) {
     // refusal cross with different statuses AND each is derivable from the log's terminal state — **and
     // `kernel-terminal.mjs`'s precedence clause is what keeps this token through the floor**, which is otherwise
     // `KC-8` on both arms and would put the contradiction back.
-    terminal(kernel, attempt, KC.saveFailed,
+    terminalComposed(kernel, attempt, KC.saveFailed,
       typeof saveFailure.message === 'string'
         ? saveFailure.message
         : `the attempt's own save at ${addressSpelling(attempt.address)} failed`);
@@ -440,7 +508,7 @@ function evaluate(kernel, attempt, landing) {
         // A body that threw returned nothing, so no `constraint-check` entry stands and the attempt is
         // closed (`PAR-C-6`; `NX-2`; `composition-and-states.md §2.7` item 13).
         withdraw(attempt, check);
-        terminal(kernel, attempt, null, `the constraint ${pair.id} threw; the attempt is closed`);
+        terminalComposed(kernel, attempt, null, `the constraint ${pair.id} threw; the attempt is closed`);
         // **⟶ AND THE VALUE IS MARKED HERE, BY THE FRAME THAT CAUGHT IT FROM THE BODY — `DEF-S`, 2026-10-26,
         // on the architect's ruling *"Expand the returned error set for both S/N"*.** The mark is what the
         // entry's `constraintCrossing` converts on, and an UNMARKED value still crosses as itself
@@ -622,7 +690,7 @@ function evaluate(kernel, attempt, landing) {
         if (storeCode !== null) {
           entry.message = `the repair ${pair.id} was attempted and the store refused its own edit — the `
             + `store's answer is ${storeCode}`;
-          terminal(kernel, attempt, KC.repairFailed, entry.message);
+          terminalComposed(kernel, attempt, KC.repairFailed, entry.message);
           // **⟶ AND THE FORM THAT CROSSES TO THE CALLER IS THE KERNEL'S OWN** (`kernel-surface.md §2.3`
           // item 2 (iii): the attempt *"moves to `FAILING` with `KC-4`"*, and *"the thrown form's `status`
           // is NEVER a store member"*) — **the very form the FAILING arm above throws**, carrying the
@@ -631,7 +699,7 @@ function evaluate(kernel, attempt, landing) {
           // body's own arm and this conversion is the refused-verb's.
           refuse(attempt.throwState, attempt.throwMessage, attempt.log);
         }
-        terminal(kernel, attempt, KC.repairFailed, `the repair ${pair.id} threw; the attempt is closed`);
+        terminalComposed(kernel, attempt, KC.repairFailed, `the repair ${pair.id} threw; the attempt is closed`);
         throw body;
       } finally {
         leaveCommitFrame(kernel);
