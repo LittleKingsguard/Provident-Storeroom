@@ -2697,6 +2697,150 @@ console.log('\n── W14 · `D-67`/`D-69` · THE STORE\'S ANSWER IS THE ONLY AN
 
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════
+// (W15) `D-70` — A DERIVED VALUE IS NOT AN ADDRESS, AND EACH KIND HAS ITS JOB
+//
+// **THE RULINGS** (`strata/decisions.md` · `D-70`, the architect, verbatim):
+//
+//     A constraint/listener that cares about a derived value like the vec index should listen to the vec, not the
+//     contained node
+//     Functions that automatically produce changes in the stored data should be written as constraint/repair, not
+//     as listeners, because constraint/repair has loop guards while listeners don't
+//     The use case for listeners is for updating external code with new data, ex. changing the rendered
+//     information on screen
+//
+// **WHAT THE CELLS DRIVE, ON ONE `VEC`.** `store.write(['v'], 'mem', [{b:1},{b:2},{b:3}])` MINTS the `VEC`
+// (`surface.md §4.2`; `write-and-read.md §3.4`), and `store.delete(['v',0])` REMOVES ONE ANCHOR — so the survivors
+// are RENUMBERED in container order from `0` (`write-and-read.md §4.4`'s renumbering clause; the guide's `§6.4`
+// closing sentence): `{b:2}` moves `['v',1] → ['v',0]` and `{b:3}` moves `['v',2] → ['v',1]`. So an address whose last
+// segment is an index names a POSITION and not a node, and the position it named before the act names a different
+// node after it.
+//
+// **THE THREE ARMS, EACH ITS OWN CELL.**
+//   (DW-15.1) **A LISTENER AT THE CONTAINER `['v']` FIRES for the delete at `['v',0]`**, is handed the ACT's address
+//             `['v',0]`, and **the collection it reads inside its body is the RENUMBERED one** — the value it cares
+//             about, read at the address that is not derived (`D-50`; `D-70` item 1).
+//   (DW-15.2) **A LISTENER AT THE INDEX `['v',1]` DOES NOT FIRE**, and its handle stands nowhere in the record's
+//             `triggered` — **asserted as CORRECT and not as a defect**: nothing was written at that address, the
+//             act's op names `['v',0]`, and the store owes a firing for the address it wrote, not for a renumbering.
+//   (DW-15.3) **A CONSTRAINT AT `['v']` IS ASKED for the same delete** — once by the pass, handed the act's
+//             `address`/`value` — and **the collection it JUDGES is the one its body reads at `['v']`** (`D-50`;
+//             `D-70` item 2: the kind that changes data is the constraint, because the loop guards live in the pass).
+//
+// **EVERY CELL BELOW BITES UNDER A `/tmp` REVERT**, one line each, and the revert is the one `D-70` names — THE
+// CONTAINER REGISTRATION REPLACED BY AN INDEX ONE (`['v']` → `['v',1]`), and its mirror for the second:
+//   · `DW-15.1` — `listen('v-container-listener', [['v']])` → `[['v',1]]` → RED: `0` invocations, no container read;
+//   · `DW-15.2` — `listen('v-index-listener', [['v',1]])` → `[['v']]` → RED: the `0` becomes a `1`;
+//   · `DW-15.3` — `addConstraint({ address: ['v'], … })` → `{ address: ['v',1], … }` → RED: the pass asks it `0` times.
+// **AND `D-31`'s OWN RULE IS RESPECTED BY NONE OF THEM CHANGING**: a listener that DOES fire and a constraint that
+// IS asked are asserted in the same drive, so a machine that fires nothing cannot be read as this section's green.
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════
+console.log('\n── W15 · `D-70` · WHICH KIND, AND WHY AN INDEX IS NOT AN ADDRESS ─────────────────────');
+{
+  const vStore = make();
+  // **THE `VEC` THE RULING'S RESIDUAL NAMES**, three anchors, each carrying a `b`.
+  vStore.write(['v'], 'mem', [{ b: 1 }, { b: 2 }, { b: 3 }]);
+  const vBefore = vStore.read(['v']);
+  // **THE CONTAINER LISTENER AND THE INDEX LISTENER STAND AT THE SAME INSTANT**, so the two cells below measure the
+  // SAME act: one registration at `['v']`, one at the derived `['v',1]`.
+  const vHeard = [];
+  const vHandle = vStore.listen('v-container-listener', [['v']]);
+  vStore.register(vHandle, (address) => { vHeard.push({ address, read: vStore.read(['v']) }); });
+  const vIndexHeard = [];
+  const vIndexHandle = vStore.listen('v-index-listener', [['v', 1]]);
+  vStore.register(vIndexHandle, (address) => { vIndexHeard.push({ address, read: vStore.read(['v']) }); });
+  // **AND THE CONSTRAINT AT THE CONTAINER**, whose body takes the ask it is given and reads the collection it judges
+  // (`D-50`): the registration's own evaluation is the ask with `attempt` `null`, the pass's is the one carrying an
+  // attempt — printed apart, because they hand different things (`§7.6`; `kernel-surface.md §2.3` item 1).
+  const vAsks = [];
+  const vRegistered = attempt(() => vStore.addConstraint({ address: ['v'], id: 'v-container-pair' }, (context) => {
+    vAsks.push({
+      duringAttempt: context.attempt !== null,
+      address: context.address,
+      value: context.value,
+      kind: context.op === null || context.op === undefined ? null : context.op.kind,
+      read: vStore.read(['v']),
+    });
+    return true;
+  }));
+  const vBeforeIndex = attempt(() => vStore.read(['v', 1]));
+  const vRecord = attempt(() => vStore.delete(['v', 0]));
+  const vAfter = attempt(() => vStore.read(['v']));
+  const vAfterIndex = attempt(() => vStore.read(['v', 1]));
+  const vPassAsks = vAsks.filter((one) => one.duringAttempt === true);
+  const vTriggers = vRecord.ok ? vRecord.value.triggered : [];
+
+  P('DW-15.1 · `[v]` before the delete', vBefore);
+  P('DW-15.1 · the container listener at `[v]`: invocations and what it read, per invocation', vHeard);
+  P('DW-15.1 · the delete record\'s `triggered`', vTriggers);
+  P('DW-15.1 · `[v]` AFTER the delete (the renumbered collection)', vAfter.ok ? vAfter.value : String(vAfter.caught));
+  A('DW-15.1', '`strata/decisions.md` · `D-70` (*"A constraint/listener that cares about a derived value like the vec index should listen to the vec, not the contained node"*) read with `D-49`\'s fire rule (an ancestor registration hears a descendant delete) and `D-50` (a body that cares about a location reads it)',
+    '★ THE CONTAINER PATTERN WORKS: the listener bound at `[v]` fires EXACTLY ONCE for a delete at `[v,0]`, is handed the act\'s address `[v,0]`, and the collection it reads inside its body is the RENUMBERED one — `[{b:2},{b:3}]`, where the anchor that was `[v,1]` now stands at index `0` — and the record\'s `triggered` names the handle at the address it was BOUND at, `[v]`',
+    vHeard.length === 1
+      && keyOfAddr(vHeard[0].address) === keyOfAddr(['v', 0])
+      && vHeard[0].read.length === 2 && keyOfAddr(vHeard[0].read[0]) === keyOfAddr({ b: 2 })
+      && vAfter.ok === true && keyOfAddr(vHeard[0].read) === keyOfAddr(vAfter.value)
+      && vTriggers.some((one) => one.handle === 'v-container-listener'
+        && keyOfAddr(one.address) === keyOfAddr(['v'])),
+    `invocations ${vHeard.length} · heard ${JSON.stringify(vHeard)} · after ${vAfter.ok ? JSON.stringify(vAfter.value) : String(vAfter.caught)}`);
+
+  // ── DW-15.2 · ★ THE INDEX LISTENER DOES NOT FIRE — AND THAT IS CORRECT, NOT A DEFECT ─────────────
+  // **`D-70` ITEM 1'S OTHER HALF, ASSERTED AS THE RULING STATES IT**: *"a listener at `['v','1']` does not hear it —
+  // correctly: `1` is a DERIVED value, a position inside a collection, and its meaning changes when a neighbour is
+  // removed. A registration at a DERIVED address is a registration on a value the store never wrote … the
+  // `triggered` list is right to be empty, because nothing at `['v','1']` was written."*
+  // **AND WHAT THE ADDRESS NAMED BEFORE AND AFTER IS PRINTED**, because that is the reason: the node the index
+  // registration named is NOT the node it names after the act, so a firing at that address would be a firing about a
+  // different value — and the store, which writes addresses and not positions, owes none.
+  P('DW-15.2 · the index listener at `[v,1]`: invocations', vIndexHeard.length);
+  P('DW-15.2 · what `[v,1]` named BEFORE the act', vBeforeIndex.ok ? vBeforeIndex.value : String(vBeforeIndex.caught));
+  P('DW-15.2 · what `[v,1]` names AFTER the act', vAfterIndex.ok ? vAfterIndex.value : String(vAfterIndex.caught));
+  P('DW-15.2 · is the index handle in the record\'s `triggered`?', vTriggers.some((one) => one.handle === 'v-index-listener'));
+  A('DW-15.2', '`strata/decisions.md` · `D-70` (the ruling, verbatim: *"a listener at `[\'v\',\'1\']` does not hear it — correctly … A registration at a DERIVED address is a registration on a value the store never wrote … the `triggered` list is right to be empty, because nothing at `[\'v\',\'1\']` was written"*)',
+    '★ THE INDEX PATTERN DOES NOT WORK, AND THE CELL ASSERTS THAT AS **CORRECT**: the listener bound at the derived `[v,1]` is invoked `0` times for the delete at `[v,0]`, its handle stands NOWHERE in the record\'s `triggered`, and `[v,1]` names `{b:2}` before the act and `{b:3}` after it — the renumber moved a DIFFERENT node under the position it registered, which is why nothing was written at that address and why `0` is the right number',
+    vIndexHeard.length === 0
+      && vTriggers.some((one) => one.handle === 'v-index-listener') === false
+      && vBeforeIndex.ok === true && keyOfAddr(vBeforeIndex.value) === keyOfAddr({ b: 2 })
+      && vAfterIndex.ok === true && keyOfAddr(vAfterIndex.value) === keyOfAddr({ b: 3 })
+      && vRecord.ok === true && vRecord.value.tiers.length > 0,
+    `invocations ${vIndexHeard.length} · triggered ${JSON.stringify(vTriggers.map((one) => one.handle))} · `
+      + `[v,1] before ${vBeforeIndex.ok ? JSON.stringify(vBeforeIndex.value) : String(vBeforeIndex.caught)} · `
+      + `after ${vAfterIndex.ok ? JSON.stringify(vAfterIndex.value) : String(vAfterIndex.caught)}`);
+
+  // ── DW-15.3 · ★ THE CONTAINER CONSTRAINT IS ASKED FOR THE SAME DELETE ───────────────────────────
+  // **THE SECOND KIND AT THE CONTAINER, ON THE SAME ACT.** The pair stands at `['v']`, the act is the delete at
+  // `['v',0]`, and **the pass ASKS it** — handing it THE ACT's `address` (`['v',0]`), `tier` and `value` (the value
+  // the delete left AT THE ACT'S ADDRESS, which for this renumbering is the survivor that moved into index `0`,
+  // `{b:2}`, and not the collection). **THE COLLECTION IT JUDGES IT READS** (`D-50`), which is what makes the
+  // container the right address for BOTH kinds: a listener at `['v']` is delivered the act and reads; a constraint
+  // at `['v']` is asked the act and reads.
+  P('DW-15.3 · the pair\'s asks, in order (registration first, the pass\'s second)', vAsks);
+  P('DW-15.3 · the pass\'s asks alone', vPassAsks);
+  A('DW-15.3', '`strata/decisions.md` · `D-70` (the ruling, verbatim: *"Functions that automatically produce changes in the stored data should be written as constraint/repair, not as listeners, because constraint/repair has loop guards while listeners don\'t"*) read with `D-56` (a pair at an ancestor IS asked for the act below it), `D-69` (one `triggered` list carries both kinds) and `D-50` (a body that cares about a location reads it)',
+    '★ THE CONTAINER CONSTRAINT IS ASKED FOR THE SAME DELETE: registered at `[v]`, it is asked EXACTLY ONCE by the pass — handed the act\'s `address` `[v,0]`, `tier` and `value` (the node the renumber left at index `0`, `{b:2}`) with the delete\'s own `op` — and the collection it JUDGES is the one its body reads at `[v]`, the renumbered `[{b:2},{b:3}]`; its `id` stands in the same `triggered` list as the two listener handles, beside them',
+    vRegistered.ok === true
+      && vRecord.ok === true
+      && vPassAsks.length === 1
+      && keyOfAddr(vPassAsks[0].address) === keyOfAddr(['v', 0])
+      && vPassAsks[0].kind === 'delete'
+      && keyOfAddr(vPassAsks[0].value) === keyOfAddr({ b: 2 })
+      && vPassAsks[0].read.length === 2 && keyOfAddr(vPassAsks[0].read[0]) === keyOfAddr({ b: 2 })
+      && vTriggers.some((one) => one.handle === 'v-container-pair' && keyOfAddr(one.address) === keyOfAddr(['v'])),
+    `registered ${vRegistered.ok} · pass asks ${vPassAsks.length} ${JSON.stringify(vPassAsks)} · `
+      + `triggered ${JSON.stringify(vTriggers.map((one) => one.handle))} · `
+      + `registration ask ${JSON.stringify(vAsks.filter((one) => one.duringAttempt !== true))}`);
+
+  console.log('');
+  console.log('        THE SENTENCE TO CARRY AWAY (`D-70`): IF YOUR CALLBACK CHANGES THE STORE, IT IS A CONSTRAINT OR A');
+  console.log('        REPAIR — the pass runs it, judges it, and its loop guards (the restart budget, the applied-repair');
+  console.log('        marker, the per-op floor) bound it. IF IT TELLS THE WORLD, IT IS A LISTENER — it runs after the');
+  console.log('        constraints, opens its own commit when it writes, and NOTHING BOUNDS IT. And an INDEX IS A');
+  console.log('        DERIVED VALUE, NOT AN ADDRESS: a registration at `[v,1]` names a position the store never wrote,');
+  console.log('        so `delete([v,0])` renumbers the survivors and tells it NOTHING — correctly. Register at the');
+  console.log('        CONTAINER `[v]` and read what you care about.');
+}
+
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════
 // THE RUN'S OWN REPORT — `D-21`: a cell that did not run may not exit 0
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════
 console.log('');

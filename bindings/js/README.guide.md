@@ -651,6 +651,12 @@ evaluation** (`surface.md §2.4` rule 1). (`D-69`; `D-66`; `D-67`; `kernel-surfa
 version of an array container RENUMBERS the surviving anchors in container order from `0`, each keeping its tier
 and its node** (`write-and-read.md §4.4`'s renumbering clause).
 
+**★ AND WHICH KIND YOU ARE IS THE QUESTION THIS SURFACE LEAVES YOU, 2026-10-29 — `D-70`: IF YOUR CALLBACK CHANGES
+THE STORE IT IS A CONSTRAINT OR A REPAIR (§7), AND IF IT TELLS THE WORLD IT IS A LISTENER.** **§7.9 states the three
+rules, each with its reason, and they govern what you register and where — because this surface's other kind is one
+section away and the two are NOT interchangeable: a listener at a derived index is a registration on a value the
+store never wrote, and a listener that writes has no loop guard to bound it.** (`D-70`; §7.9.)
+
 ---
 
 ## §7 · Constraining: the pair, the handle, and the two routes
@@ -949,6 +955,70 @@ NAMES: WHAT THE DELETE'S RECEIPT CARRIES AND WHAT FOLLOWS FROM IT.**
 **AND NO KERNEL ITEM IS OWED FOR ANY OF IT: the verb is the surface, the kernel's set stays `K-1`…`K-6`, and a `K-7`
 `commitRemoval` would be owed only if you could drive a delete's attempt directly — you cannot** (`D-57`'s second
 half; `D-3`; `D-44`; `D-53`).
+
+### §7.9 ★ WHICH KIND — two different jobs, and why a derived value is not an address
+
+**★ THIS IS WHERE THE TWO SURFACES MEET, AND IT IS THE SECTION TO READ BEFORE YOU REGISTER ANYTHING.** `§6`'s
+listener and this section's constraint stand over the SAME address domain and are named in the SAME `triggered`
+list (`§6.2`'s `D-69` clause: *an element that is a constraint's `id` is ASKED, a listener's is DELIVERED*), and
+**they are not interchangeable.** **Three rules, each with its reason.**
+
+1. **★ WHICH KIND. IF YOUR CALLBACK CHANGES THE STORE, IT IS A CONSTRAINT OR A REPAIR; IF IT TELLS THE WORLD, IT IS
+   A LISTENER** — **updating external code with new data, changing the rendered information on screen.**
+   **THE REASON, STATED: a constraint runs INSIDE the pass, its answer is JUDGED — a `{message}` is a refusal that
+   rolls the commit back (`§5.4`) — and it HAS LOOP GUARDS**: the restart budget (`RESTART_LIMIT` `3`, `§7.7`), the
+   applied-repair marker (an applied repair never runs twice, `P-SM-6`), and the per-op floor. **A listener runs
+   AFTER every constraint, opens its OWN commit when it writes, and HAS NO LOOP GUARD** — nothing counts its
+   writes, nothing marks its repair, and its write is a unit of its own (`D-53`) — **so a listener that writes as a
+   matter of course drives a chain the machinery does not bound.** **The loop guard exists only inside the pass;
+   that is the whole reason a data-changing callback belongs there.** (`D-70`, the architect, verbatim: *"Functions
+   that automatically produce changes in the stored data should be written as constraint/repair, not as listeners,
+   because constraint/repair has loop guards while listeners don't"* — and *"The use case for listeners is for
+   updating external code with new data, ex. changing the rendered information on screen"*.)
+2. **★ A DERIVED VALUE IS NOT AN ADDRESS. AN INDEX INSIDE A COLLECTION IS DERIVED.** **`delete(['v',0])` RENUMBERS
+   the survivors in container order from `0` (`§6.4`'s closing clause), so `['v',1]` stops meaning what it meant:
+   the node that stood there stands at `['v',0]` afterwards and a DIFFERENT node stands at `['v',1]`.** **So a
+   registration at an index is a registration on a value the store never wrote** — it names a POSITION, and the
+   store writes LOCATIONS. **THE RULE: a constraint or a listener that cares about positional membership REGISTERS
+   AT THE CONTAINER — `['v']` — AND READS WHAT IT CARES ABOUT** (`D-50`'s `read()` rule, `§7.6`; `D-70`, verbatim:
+   *"A constraint/listener that cares about a derived value like the vec index should listen to the vec, not the
+   contained node"*).
+3. **AND THE CONSEQUENCE A CONSUMER WILL OTHERWISE DISCOVER: A REGISTRATION AT AN INDEX WILL NOT FIRE WHEN ITS
+   NEIGHBOURS MOVE — AND THAT IS NOT A DEFECT, BECAUSE NOTHING WAS WRITTEN AT THAT ADDRESS.** **`D-70`, verbatim:
+   *"a listener at `['v','1']` does not hear it — correctly … A registration at a DERIVED address is a
+   registration on a value the store never wrote … the `triggered` list is right to be empty, because nothing at
+   `['v','1']` was written."*** **The act's address was `['v',0]`, the anchor it removed was at `['v',0]`, and no
+   op of the store carries `['v',1]` as its address** — so there is no firing to owe. **The store owes you the
+   CONTAINER's firing; it does not owe you a firing for a renumbering.** **And a registration at an index is not
+   the only way to get this wrong — a listener whose job is to change data is the other half of rule 1.**
+
+**MEASURED 2026-10-29, ON THIS CHECKOUT, THROUGH THE PUBLISHED ENTRY** (`tests/e2e/discard-witness.mjs`'s
+`DW-15.1`/`DW-15.2`/`DW-15.3`; the drive is `store.write(['v'], 'mem', [{b:1}, {b:2}, {b:3}])` and then
+`store.delete(['v',0])`, so `{b:2}` moves from `['v',1]` to `['v',0]` and `{b:3}` from `['v',2]` to `['v',1]`):
+
+- **THE LISTENER AT `['v']` FIRES, ONCE**, is handed the ACT's address `['v',0]`, and **the collection it reads
+  inside its body is the RENUMBERED one** — `[{"b":2},{"b":3}]`, the value it cares about, read at the address that
+  is not derived; **and the record's `triggered` names its handle at `['v']`, the address it was bound at.**
+- **THE LISTENER AT `['v',1]` DOES NOT FIRE** — `0` invocations, its handle nowhere in `triggered` — **and the
+  cell asserts `0` as CORRECT, citing `D-70`, not as a defect**: `['v',1]` named `{"b":2}` before the act and
+  names `{"b":3}` after it, so the renumber moved a DIFFERENT node under the position it registered.
+- **THE CONSTRAINT AT `['v']` IS ASKED FOR THE SAME DELETE** — once by the pass — and it is handed **THE ACT's
+  `address` (`['v',0]`), `tier` and `value`**: the value the delete left AT THE ACT'S ADDRESS, which under a
+  renumbering is **the survivor that moved into index `0`, `{"b":2}`, and NOT the collection.** **The collection it
+  JUDGES is the one its body reads at `['v']`** (`D-50`): the renumbered `[{"b":2},{"b":3}]`. **Its registration's
+  own ask is the one with no attempt, and that ask's `value` IS the collection at `['v']`** — so a container pair
+  is asked at the container and reads at the container, whichever ask it is answering. **Its `id` stands in the
+  same `triggered` list as the two listener handles.**
+
+**EACH CELL BITES UNDER A `/tmp` REVERT, AND THE REVERT IS THE ONE THIS RULE NAMES — THE CONTAINER REGISTRATION
+REPLACED BY AN INDEX ONE:** `['v']` → `['v',1]` at the listener turns `DW-15.1` RED (no firing, no collection read)
+and at the pair turns `DW-15.3` RED (the pass asks it `0` times); the mirror move — the index listener's `['v',1]`
+→ `['v']` — turns `DW-15.2` RED (the `0` becomes a `1`). **So each arm is held by the registration's ADDRESS and by
+nothing else in the drive.**
+
+**AND WHAT `D-70` DOES NOT CHANGE, SAID PLAINLY: no member, status, kernel item or bound moves.** **This section
+declares a rule of USE over a surface that was already measured — the seventh residual closes by DECLARATION, not by
+machinery** (`D-70`'s own terms; `§3.1`'s fourteen members; `§8.1`'s twenty statuses; `§7.7`'s budget).
 
 ---
 
