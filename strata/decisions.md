@@ -3265,3 +3265,41 @@ contract requires.*
 
 **TERMS: shipped declaration owed (`1` = the behaviour change), misattribution owed (`1` = `DEF-AL`), swallowed inner
 refusal owed (`1` = `DEF-AK`), the witness's reach named (`1`), withdrawals counted (`7` = 4 + 3).**
+
+---
+
+### `D-52` — THE THREE ENFORCEMENT RULES ARE REFUTED BY MEASUREMENT; each needs a ruling, and none can be invented
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the pass that measured `D-51`'s enforcement and stopped with nothing changed.
+**This is a STOP, and it is correct: the task it was given was not implementable as written.**
+
+**RULE 3 — "THE CROSSED STATUS IS THE LOG'S VERDICT" — IS CONTRADICTORY AS WRITTEN, AND THE MEASUREMENT IS
+DECISIVE.**
+- **a constraint refusal crosses `ConstraintPassRefused`** with terminal `state: 'KC-3'`; **and with an in-body
+  reversal meeting the floor, `ConstraintPassRefused` with terminal `KC-8`**;
+- **a save failure crosses `FileCommitFailed` with `log: []`**, **and the attempt's own log reads `KC-8`** — **the same
+  token a passing-pair run carries.**
+
+**SO `KC-8` CROSSES AS BOTH STATUSES.** Deriving the status from the terminal state **cannot** hold while the two arms
+must cross differently — **that needs a distinct state token for the save arm, which falsifies `D-38`'s *"the token
+continues to ride `log[].state`"*, `FTS-04.9`'s `^KC-[1-8]$`, the `KC-8` floor row, and the no-new-status guardrail.**
+**A contract redesign, not an enforcement.**
+
+**RULE 1 — "ONE SUBJECT SOURCE FROM ONE ACTED-UPON OBJECT" — NAMES NO RULE FOR TWO OF THE FOUR KINDS.** `append`'s
+signature is `(attempt, kind, id, opId, message, state)` across **7 call sites**; **two kinds carry a PAIR identity and
+an OP identity from two DIFFERENT acted-upon objects**, and the replay site carries a **fourth** (an existing entry).
+**Any choice would have been invented.**
+
+**RULE 2 — THE MERGE BOUNDARY AND THE "ATTEMPT IDENTITY" ARE UNDECIDABLE ON THIS TREE.** **Three functions build a
+nested attempt's report**; **the `CommitRecord` has no `log` member**; **the enclosing attempt is recorded nowhere.**
+**And a merged entry must keep "its own attempt identity", but the declared members are exactly six — `seq · kind · id ·
+opId · message · state` — and `seq` is *"the ordinal of the list it stands in"*:** **a merge either RENUMBERS (losing the
+inner list's identity) or needs a SEVENTH member (forbidden by `DEF-AI`'s own ruling).**
+
+**★ AND THE SENTENCE THE PASS WAS MEANT TO MAKE IMPOSSIBLE IS STILL TRUE, MEASURED:** **a save failure crosses as
+`FileCommitFailed` with `log: []`, and its verdict stands only in the attempt's log, which the crossed value does not
+carry and the fourteen members expose no route to.**
+
+**SO `D-51`'s DIAGNOSIS STANDS AND ITS PRESCRIPTION DOES NOT.** **Six rows, one mechanism — that is right. The three
+rules for making the bypasses unreachable are L0's guess at HOW, and the tree refuted two of them and could not decide
+the third.** **The three questions are the architect's, and they are asked exactly, with the measurements beside them.**
