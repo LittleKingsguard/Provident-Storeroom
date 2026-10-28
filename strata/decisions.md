@@ -3560,3 +3560,40 @@ the first.** **That must be MEASURED rather than assumed**, because it is the gu
 **TERMS: atomicity defined (`1` = client-visible boundary), the callback's write placed INSIDE (`1`), `DEF-AN`'s
 behaviour confirmed correct (`1`), `D-45`/`D-46`'s scope-vs-boundary distinction (`1`), L0's sentence falsified and owed
 (`1`), the client-to-client atomicity to be measured (`1`).**
+
+---
+
+### `D-60` — A LISTENER'S WRITE IS DISCRETE BECAUSE IT RUNS AFTER ALL CONSTRAINTS; A REPAIR'S IS ATOMIC WITH THE WRITE
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, refining `D-59` and reversing its placement of the listener's write.
+
+**THE RULING, VERBATIM:**
+
+> A *listener* write is discrete, because it occurs after all constraints. A *constraint repair* is atomic with the
+> original write.
+
+**IT REVERSES ONE HALF OF `D-59` AND KEEPS THE OTHER, AND THE DISCRIMINATOR IS PHASE, NOT AUTHORSHIP.** `D-59` placed a
+listener's write **inside** the outer commit's extent, on the ground that *the client's flow has not returned* — **that
+fact is true and is not the decisive one.** **The decisive fact is WHEN the callback runs relative to the judgement:**
+
+- **A CONSTRAINT REPAIR RUNS DURING THE PASS** — before the judgement completes — **so it is part of the state being
+  judged, and a refusal undoes it with the write.** **ATOMIC WITH THE ORIGINAL WRITE.**
+- **★ A LISTENER RUNS AFTER THE PASS, IN THE DELIVERY** — **after ALL CONSTRAINTS have been asked and passed** — **so
+  its write is a NEW question against an already-judged state, and `DEF-AN`'s measured behaviour — the outer refusal
+  undoing it — is a DEFECT.** **DISCRETE, and entirely atomic from the write that triggered it.**
+
+**SO MY BOTH RECENT SENTENCES WERE WRONG, IN OPPOSITE DIRECTIONS.** **The `1.4.0` clause said a callback's edit is
+untouched — true of the listener, false of the repair.** **`D-59` put the listener inside — false of the listener, true
+of the repair.** **The correct split is the phase, and it is the split `D-53` already stated for a different reason**
+(**"the triggering commit already passed constraints"**) — **the same sentence, now read for atomicity rather than for
+commit scope.**
+
+**THE MECHANISM THIS REQUIRES, AND IT IS THE ONE `D-59` NAMED AS STRUCTURAL**: **the restore's extent must stop at a
+listener's commit boundary.** **The outer restore goes to the outer OPENING mark, which precedes the listener's ops** —
+**so a restore that sweeps a journal RANGE cannot honour this.** **The journal must know WHICH COMMIT EACH OP BELONGS TO,
+and a restore must undo a commit's ops and no other commit's.** **That is the "commit id on entry" `D-46` already uses for
+joining, applied to the record of what landed.**
+
+**TERMS: the split (`2` = listener discrete, repair atomic), `D-59`'s placement reversed (`1`), the `1.4.0` sentence
+corrected in the other direction (`1`), the mechanism ruled (`1` = a commit identity per journal op), the cells owed
+(`2` = a listener's write surviving an outer refusal, and a repair's write NOT surviving).**
