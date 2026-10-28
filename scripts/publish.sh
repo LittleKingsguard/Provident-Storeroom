@@ -48,10 +48,10 @@
 #
 #    scripts/publish.sh                     # DRY RUN — measures, changes nothing
 #    scripts/publish.sh --check             # the preflight + the guard only
-#    scripts/publish.sh --figures           # THE GUIDE'S TWO GENERATED FIGURES, ASSERTED ALONE, read-only:
-#                                           # generate the version line and the cut-state sentence from the
-#                                           # manifest and the tag set, and REFUSE when the shipped guide's
-#                                           # text disagrees (DEF-AC (b); the same check the preflight runs)
+#    scripts/publish.sh --figures           # THE SHIPPED DOCUMENTS' ONE GENERATED FIGURE, ASSERTED ALONE, read-only:
+#                                           # generate the VERSION LINE from the manifest and REFUSE when any of
+#                                           # the three shipped documents' marked line disagrees (DEF-AC (b);
+#                                           # D-57; the same check the preflight runs)
 #    scripts/publish.sh --bump X.Y.Z        # writes the version and prose cells
 #    scripts/publish.sh --tag   X.Y.Z       # commits, tags, pushes the tag
 #    scripts/publish.sh --verify X.Y.Z      # post-publish checks, read-only
@@ -120,6 +120,27 @@ GUIDE_LANDED="bindings/js/README.guide.md"
 NOTES_CANONICAL="RELEASE-NOTES.md"
 NOTES_LANDED="bindings/js/RELEASE-NOTES.md"
 
+# **⟶ AND THE THIRD SHIPPED DOCUMENT CARRIES THE SAME FIGURE, 2026-10-28 — `DEF-AC`'s third part, and `D-57`'s one
+# surviving figure.** `bindings/js/README.md` is the package's own front page: the main manifest's `files` row names
+# it, npm packs it, and until this act it declared NO VERSION AT ALL — a shipped document a consumer reads first
+# saying nothing about which release it describes. **IT IS A TRACKED, AUTHORED FILE AND NOT A GENERATED LANDING**
+# (there is no canonical text elsewhere to stage from), so the ONE thing asserted at it is the ONE figure a shipped
+# document can be right about: its marked version line, generated from the manifest like the guide's and the change
+# list's. **THREE SHIPPED DOCUMENTS, THREE VERSION LINES, ONE GENERATOR, ONE ASSERTION.**
+README_SHIPPED="bindings/js/README.md"
+
+# THE THREE SUBJECTS OF THE ONE ASSERTION (`D-57`), as `path|marker token|the noun the sentence names`. The marker is
+# the document's own, so a reader knows which document a line belongs to; **THE FIGURE INSIDE IT IS THE MANIFEST'S
+# VERSION AND NOTHING ELSE.** The cut-state sentence is NOT here: **it was dropped from this script in the same act
+# that dropped it from the documents** (`D-57`, verbatim: *"Drop the cut-state"*), because a document is sealed
+# before the tag that would make its cut-state true, so the guard could only ever confirm what the previous release
+# said — measured three times over (`1.2.0` shipped *"NOT CUT"*, `1.3.0` shipped *"`v1.3.0` DOES NOT EXIST"*).
+VERSION_LINE_TARGETS=(
+  "$README_SHIPPED|README|README"
+  "$GUIDE_LANDED|GUIDE|GUIDE"
+  "$NOTES_LANDED|NOTES|CHANGE LIST"
+)
+
 R='\033[0;31m'; G='\033[0;32m'; Y='\033[0;33m'; B='\033[0;34m'; N='\033[0m'
 say()  { printf "${B}==>${N} %s\n" "$*"; }
 ok()   { printf "${G} ok ${N} %s\n" "$*"; }
@@ -169,74 +190,84 @@ assemble_release_notes() {
 }
 
 # ==============================================================================
-# THE GUIDE'S TWO GENERATED FIGURES, AND THE ASSERTION THAT IS THE DELIVERABLE — `DEF-AC` (b), 2026-10-28
+# THE SHIPPED DOCUMENTS' ONE GENERATED FIGURE, AND THE ASSERTION THAT IS THE DELIVERABLE — `DEF-AC` (b), `D-57`
 # ==============================================================================
 #
-# **THE DOWNSTREAM'S DEMAND, AND WHY IT IS AN ASSERTION RATHER THAN A PARAGRAPH.** The shipped guide's VERSION
-# LINE and its CUT-STATE SENTENCE were **hand-written**, and that is how the guide came to deny the release it
-# travelled in: a figure copied by hand goes stale the moment the manifest or the tag set moves, and nothing
-# reddened. **SO THIS SCRIPT GENERATES BOTH FROM THE MANIFEST (`bindings/js/package.json`'s `version`) AND THE TAG
-# SET (`git tag --list`) AND REFUSES WHEN THE SHIPPED GUIDE'S TEXT DISAGREES.** The shipped guide is the LANDED
-# copy (`bindings/js/README.guide.md`) — the bytes that ride the tarball — and its two figures stand on marked
-# lines of their own, exactly one each:
+# **THE DOWNSTREAM'S DEMAND, AND WHY IT IS AN ASSERTION RATHER THAN A PARAGRAPH.** The shipped guide's VERSION LINE
+# and its CUT-STATE SENTENCE were **hand-written**, and that is how the guide came to deny the release it travelled
+# in: a figure copied by hand goes stale the moment the manifest moves and nothing reddened. **SO THIS SCRIPT
+# GENERATES THE VERSION LINE FROM THE MANIFEST (`bindings/js/package.json`'s `version`) AND REFUSES WHEN ANY SHIPPED
+# DOCUMENT'S MARKED LINE DISAGREES.**
 #
-#     PUBLISH-GUIDE-VERSION-LINE: THE VERSION THIS GUIDE DESCRIBES IS `<version>`.
-#     PUBLISH-GUIDE-CUT-STATE: THE TAGS THIS TREE CARRIES ARE `<tag> · …`; `<vX.Y.Z>` EXISTS|DOES NOT EXIST, SO THE
-#     RELEASE THIS GUIDE DESCRIBES IS CUT|NOT CUT.
+# **⟶ AND THE CUT-STATE IS GONE FROM THIS SCRIPT, 2026-10-28 — `D-57`, the architect verbatim: *"Drop the
+# cut-state."*** **A SHIPPED DOCUMENT IS SEALED BEFORE THE TAG THAT MAKES ITS CUT-STATE TRUE**, so every release
+# packed before its tag ships a document denying itself, and a guard running in that release's preflight can only
+# ever confirm *"not cut"* — **measured three times over: `1.2.0` shipped *"NOT CUT"*, `1.3.0` shipped *"`v1.3.0`
+# DOES NOT EXIST"*, and the notes' head was stale within minutes.** **SO THE CUT-STATE GENERATION AND ITS ASSERTION
+# ARE REMOVED ENTIRELY, AND THE VERSION LINE — THE ONLY FIGURE A TARBALL CAN BE RIGHT ABOUT — IS THE WHOLE OF WHAT
+# IS ASSERTED.** **NO TAG LOOKUP REMAINS IN THIS CHECK, AND A TAG THAT MOVES CANNOT REDDEN IT.**
+#
+# **AND THE ONE ASSERTION NOW COVERS THREE SHIPPED DOCUMENTS, AND THE THIRD IS `DEF-AC`'s OWN REMAINING DEMAND**
+# (*"guard the release notes too"*; *"README.md still declares no version at all"*). Each carries its marked version
+# line on a line of its own, exactly one:
+#
+#     bindings/js/README.md          PUBLISH-README-VERSION-LINE: THE VERSION THIS README DESCRIBES IS `<version>`.
+#     bindings/js/README.guide.md    PUBLISH-GUIDE-VERSION-LINE:  THE VERSION THIS GUIDE DESCRIBES IS `<version>`.
+#     bindings/js/RELEASE-NOTES.md   PUBLISH-NOTES-VERSION-LINE:  THE VERSION THIS CHANGE LIST DESCRIBES IS `<version>`.
 #
 # **THE ASSERTION IS THE DELIVERABLE**: a hand-written line that contradicts the manifest fails the PREFLIGHT and
 # cannot travel. `--figures` runs exactly this check, read-only, so it can be driven without the long legs.
-guide_figures_expected() {
-  local v tags joined cut
+manifest_version() {
+  local v
   v="$(grep -m1 '"version"' "$MAIN_MANIFEST" | sed 's/.*: *"\(.*\)".*/\1/')"
   [ -n "$v" ] || { bad "the main manifest carries no readable \`version\`"; return 1; }
-  tags="$(git tag --list | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V || true)"
-  joined="$(printf '%s\n' "$tags" | sed '/^$/d' | sed 's/.*/`&`/' | paste -sd '|' - | sed 's/|/ · /g')"
-  [ -n "$joined" ] || joined="(none)"
-  if git rev-parse -q --verify "refs/tags/v$v" >/dev/null 2>&1; then
-    cut="\`v$v\` EXISTS, SO THE RELEASE THIS GUIDE DESCRIBES IS CUT."
-  else
-    cut="\`v$v\` DOES NOT EXIST, SO THE RELEASE THIS GUIDE DESCRIBES IS NOT CUT."
-  fi
-  printf 'PUBLISH-GUIDE-VERSION-LINE: THE VERSION THIS GUIDE DESCRIBES IS `%s`.\n' "$v"
-  printf 'PUBLISH-GUIDE-CUT-STATE: THE TAGS THIS TREE CARRIES ARE %s; %s\n' "$joined" "$cut"
+  printf '%s\n' "$v"
 }
 
-preflight_guide_figures() {
-  local expected_version expected_cut shipped_version shipped_cut version_count cut_count
-  [ -f "$GUIDE_LANDED" ] || {
-    bad "the shipped guide '$GUIDE_LANDED' is absent — there is no text to assert the figures against"
+# THE ONE GENERATOR. `$1` is the marker's token (`README` · `GUIDE` · `NOTES`) and `$2` the noun the sentence names,
+# so the three documents' lines are three spellings of ONE figure read from ONE place.
+version_line_expected() {
+  local v
+  v="$(manifest_version)" || return 1
+  printf 'PUBLISH-%s-VERSION-LINE: THE VERSION THIS %s DESCRIBES IS `%s`.\n' "$1" "$2" "$v"
+}
+
+# THE ONE ASSERTION, over the three documents `VERSION_LINE_TARGETS` names — each generated line beside the shipped
+# one, and a refusal on absence, on a second marked line, or on any disagreement. **IT DOES NOT REPAIR ANYTHING**: a
+# drifted line is reported at the file that carries it and the run stops.
+preflight_version_lines() {
+  local row path token noun generated shipped count failed
+  [ -f "$MAIN_MANIFEST" ] || {
+    bad "the main manifest '$MAIN_MANIFEST' is absent — there is no figure to generate"
     return 1
   }
-  local generated
-  generated="$(guide_figures_expected)" || return 1
-  expected_version="$(printf '%s\n' "$generated" | grep '^PUBLISH-GUIDE-VERSION-LINE:')"
-  expected_cut="$(printf '%s\n' "$generated" | grep '^PUBLISH-GUIDE-CUT-STATE:')"
-  version_count="$(grep -c '^PUBLISH-GUIDE-VERSION-LINE:' "$GUIDE_LANDED" || true)"
-  cut_count="$(grep -c '^PUBLISH-GUIDE-CUT-STATE:' "$GUIDE_LANDED" || true)"
-  shipped_version="$(grep -m1 '^PUBLISH-GUIDE-VERSION-LINE:' "$GUIDE_LANDED" || true)"
-  shipped_cut="$(grep -m1 '^PUBLISH-GUIDE-CUT-STATE:' "$GUIDE_LANDED" || true)"
-  printf '  generated version line  %s\n' "$expected_version"
-  printf '  shipped   version line  %s\n' "${shipped_version:-<absent>}"
-  printf '  generated cut-state     %s\n' "$expected_cut"
-  printf '  shipped   cut-state     %s\n' "${shipped_cut:-<absent>}"
-  [ "$version_count" = "1" ] || {
-    bad "the shipped guide carries $version_count PUBLISH-GUIDE-VERSION-LINE lines and exactly one is required — the figure is generated, never hand-written in two places"
-    return 1
-  }
-  [ "$cut_count" = "1" ] || {
-    bad "the shipped guide carries $cut_count PUBLISH-GUIDE-CUT-STATE lines and exactly one is required — the figure is generated, never hand-written in two places"
-    return 1
-  }
-  [ "$shipped_version" = "$expected_version" ] || {
-    bad "THE SHIPPED GUIDE'S VERSION LINE DISAGREES WITH THE MANIFEST — the manifest reads a version this line does not, and a hand-written figure that contradicts it must fail this preflight rather than travel"
-    return 1
-  }
-  [ "$shipped_cut" = "$expected_cut" ] || {
-    bad "THE SHIPPED GUIDE'S CUT-STATE SENTENCE DISAGREES WITH THE MANIFEST AND THE TAG SET — the guide denies (or overstates) the release it ships in"
-    return 1
-  }
-  ok "the shipped guide's version line and cut-state sentence are the figures generated from the manifest and the tag set"
+  failed=0
+  for row in "${VERSION_LINE_TARGETS[@]}"; do
+    IFS='|' read -r path token noun <<< "$row"
+    generated="$(version_line_expected "$token" "$noun")" || return 1
+    if [ ! -f "$path" ]; then
+      bad "the shipped document '$path' is absent — there is no text to assert its version line against"
+      failed=1
+      continue
+    fi
+    count="$(grep -c "^PUBLISH-$token-VERSION-LINE:" "$path" || true)"
+    shipped="$(grep -m1 "^PUBLISH-$token-VERSION-LINE:" "$path" || true)"
+    printf '  %s\n' "$path"
+    printf '    generated  %s\n' "$generated"
+    printf '    shipped    %s\n' "${shipped:-<absent>}"
+    if [ "$count" != "1" ]; then
+      bad "'$path' carries $count PUBLISH-$token-VERSION-LINE lines and exactly one is required — the figure is generated, never hand-written in two places"
+      failed=1
+      continue
+    fi
+    if [ "$shipped" != "$generated" ]; then
+      bad "THE SHIPPED DOCUMENT'S VERSION LINE DISAGREES WITH THE MANIFEST — '$path' prints a version the manifest does not read, and a stale figure in a shipped document must fail this preflight rather than travel"
+      failed=1
+      continue
+    fi
+  done
+  [ "$failed" -eq 0 ] || return 1
+  ok "three shipped documents, three version lines, one generator: each reads the version generated from the manifest"
   return 0
 }
 
@@ -273,23 +304,24 @@ say "mode: $MODE${TARGET:+  target: $TARGET}${DEST:+  destination: $DEST}"
 [ "$DRY" -eq 1 ] && warn "DRY RUN — nothing below will be written."
 
 # ==============================================================================
-# `--figures` — THE GUIDE'S TWO GENERATED FIGURES, ASSERTED ALONE (`DEF-AC` (b))
+# `--figures` — THE SHIPPED DOCUMENTS' ONE GENERATED FIGURE, ASSERTED ALONE (`DEF-AC` (b); `D-57`)
 # ==============================================================================
 #
 # Read-only, and it is the SAME check the preflight runs below: this mode exists so the assertion can be driven
-# without the long suite legs, and so a reader can SEE the generated pair beside the shipped pair. **IT WRITES
-# NOTHING AND REFUSES ON A DISAGREEMENT**, which is the whole of what the row asked for.
+# without the long suite legs, and so a reader can SEE the generated line beside the shipped one in EACH of the
+# three documents. **IT WRITES NOTHING AND REFUSES ON A DISAGREEMENT**, which is the whole of what the row asked
+# for. **THE CUT-STATE IS NOT AMONG THE SUBJECTS AND ITS GENERATION IS NOT IN THIS FILE AT ALL** (`D-57`).
 if [ "$MODE" = "figures" ]; then
   echo
-  say "THE SHIPPED GUIDE'S TWO GENERATED FIGURES — the version line and the cut-state sentence"
-  echo "  (generated from $MAIN_MANIFEST's version and the tag set; asserted against $GUIDE_LANDED)"
-  if preflight_guide_figures; then
+  say "THE SHIPPED DOCUMENTS' ONE GENERATED FIGURE — the version line, in each of the three"
+  echo "  (generated from $MAIN_MANIFEST's version; asserted against README.md, README.guide.md and RELEASE-NOTES.md)"
+  if preflight_version_lines; then
     echo
-    ok "the shipped guide's figures AGREE with the manifest and the tag set"
+    ok "all three shipped documents' version lines AGREE with the manifest"
     exit 0
   fi
   echo
-  bad "THE SHIPPED GUIDE'S FIGURES DISAGREE — this is the refusal the preflight takes, and it is the deliverable"
+  bad "A SHIPPED DOCUMENT'S VERSION LINE DISAGREES — this is the refusal the preflight takes, and it is the deliverable"
   exit 1
 fi
 
@@ -493,15 +525,18 @@ else
 fi
 
 
-# 4. THE SHIPPED GUIDE'S TWO GENERATED FIGURES — `DEF-AC` (b), 2026-10-28.
+# 4. THE THREE SHIPPED DOCUMENTS' ONE GENERATED FIGURE — `DEF-AC` (b), `D-57`, 2026-10-28.
 #
 #    **A HAND-WRITTEN LINE THAT CONTRADICTS THE MANIFEST MUST FAIL THIS PREFLIGHT, NOT TRAVEL.** The version line
-#    and the cut-state sentence are generated from `bindings/js/package.json`'s `version` and `git tag --list`
-#    (`preflight_guide_figures`, above) and asserted against the SHIPPED guide's own marked lines. **IT RUNS
-#    BEFORE THE LONG SUITE ON PURPOSE**: a stale figure is a one-second refusal and the suite is the expensive
-#    step, so the cheapest subject that can deny the release is checked first. **`--figures` runs exactly this.**
-say "the shipped guide's generated figures (version line, cut-state sentence)"
-preflight_guide_figures || FAILED=1
+#    is generated from `bindings/js/package.json`'s `version` (`preflight_version_lines`, above) and asserted
+#    against EACH shipped document's own marked line — `bindings/js/README.md`, the landed guide
+#    `bindings/js/README.guide.md` and the landed change list `bindings/js/RELEASE-NOTES.md`. **IT RUNS BEFORE THE
+#    LONG SUITE ON PURPOSE**: a stale figure is a one-second refusal and the suite is the expensive step, so the
+#    cheapest subject that can deny the release is checked first. **`--figures` runs exactly this.** **AND THE
+#    CUT-STATE IS NOT ASSERTED HERE, OR ANYWHERE: a document is sealed before the tag that would make its
+#    cut-state true, so that sentence was dropped by `D-57` and its generation with it.**
+say "the shipped documents' generated figure (the version line, in each of the three)"
+preflight_version_lines || FAILED=1
 
 # 5. The suite. A release is cut from a green tree or it is not cut.
 if [ "$MODE" != "tag" ]; then

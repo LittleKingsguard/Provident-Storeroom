@@ -110,6 +110,21 @@ because three of the four things it declared as *targets* are now the tree:
   **1,071** (966) · `facade.rs` **1,252** (1,105) · `src/lib.rs` **99** (90) · `build.rs` **325** ✓; and
   `bindings/js/index.d.ts` is **1,017** lines.** **Every superseded reading above stays printed and is read
   THROUGH this clause; none is rewritten away.**
+  **⟶ AND EVERY FIGURE OF THAT LIST IS RE-MEASURED AGAIN AT THIS TREE 2026-10-28, BECAUSE THE CLAUSE ABOVE IS ITSELF PAST STATE
+  — `D-57`'s ACT, AND THE SEVEN COMMITS IT READS.** `RCA-8(g)` ANNOTATE-BESIDE: **the clause above stands BYTE-FOR-BYTE and is
+  read THROUGH this one; every figure it printed stays printed, including `index.mjs` 1,565 and `constraints.mjs` 2,362.**
+  **`wc -l` at each file's own last line this date, each beside that reading: `index.mjs` **1,651** (1,565) · `refusal.mjs`
+  **161** ✓ · `artefact.mjs` **376** ✓ · `state.mjs` **1,038** (995) · `class-decision.mjs` **1,214** ✓ · `carrier.mjs`
+  **1,002** ✓ · `frame.mjs` **418** ✓ · `delivery.mjs` **676** (662) · `constraints.mjs` **2,951** (2,362 — still the file
+  that grew most) · `kernel-foundations.mjs` **1,058** (816) · `kernel-registration.mjs` **785** (731) ·
+  `kernel-commit.mjs` **355** (166) · `kernel-attempt.mjs` **920** (762) · `kernel-terminal.mjs` **422** ✓.** **The FILE
+  COUNT is unmoved — `bindings/js/src/entry/` is still THIRTEEN files ✓ — and the barrel `bindings/js/src/constraint-kernel.mjs`
+  is still **4** lines ✓; the five kernel parts read `3,540` together and the thirteen read `11,376`.** **§2.2's crate rows are RE-READ
+  at the same pass and UNMOVED: `crossing.rs` **1,276** ✓ · `codec.rs` **1,071** ✓ · `facade.rs` **1,252** ✓ · `src/lib.rs`
+  **99** ✓ · `build.rs` **325** ✓; and `bindings/js/index.d.ts` is **1,088** lines (1,017) and `bindings/js/index.mjs` **1,651**
+  (1,565).** **Every superseded reading above stays printed and is read THROUGH this clause; none is rewritten away.** (`D-57`; `D-56`;
+  the matching re-reads are `docs/L1/entry-subdivision.md`'s and `docs/L1/kernel-subdivision.md`'s clauses of the same date and
+  `modules.json`'s `sizes_remeasured_2026_10_28_d57` key.)
 - **THE BATTERIES MOVED, AND `D-5`'s PRESENT-STATE PATHS ARE NOW THE PAST.** `bindings/js/test/` (**42** files),
   `bindings/js/greens/` (**11**), `bindings/js/tests/` (**7**) and `tests/`'s **15** Rust files **no longer exist**;
   their content is **83 files** under the preset's three scopes — `tests/e2e/` **44**, `tests/integration/` **33**,

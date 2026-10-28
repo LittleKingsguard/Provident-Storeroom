@@ -709,6 +709,30 @@
         "index_mjs": 1573,
         "index_d_ts": 1053,
         "note": "THE `note` ABOVE IS THE READING OF 2026-10-25 AND IS KEPT BYTE-FOR-BYTE; every part has grown since (constraints 795 -> 2,695 is the largest movement), the directory still holds exactly thirteen files, and `index.mjs` reads 1,573 where that pass read 1,409. The matching clause is docs/L1/entry-subdivision.md's `2026-10-28` re-measure."
+      },
+      "sizes_remeasured_2026_10_28_d57": {
+        "method": "`wc -l` at each file's own last line on this tree, re-measured for `D-57`'s act and the seven commits past `v1.3.0`",
+        "entry_parts": {
+          "refusal.mjs": 161, "artefact.mjs": 376, "state.mjs": 1038, "class-decision.mjs": 1214, "carrier.mjs": 1002,
+          "frame.mjs": 418, "delivery.mjs": 676, "constraints.mjs": 2951
+        },
+        "kernel_parts": {
+          "kernel-foundations.mjs": 1058, "kernel-registration.mjs": 785, "kernel-commit.mjs": 355,
+          "kernel-attempt.mjs": 920, "kernel-terminal.mjs": 422
+        },
+        "kernel_parts_total": 3540,
+        "src_entry_total": 11376,
+        "barrel": 4,
+        "index_mjs": 1651,
+        "index_d_ts": 1088,
+        "superseded": {
+          "entry_parts": {"refusal.mjs": 161, "artefact.mjs": 376, "state.mjs": 1038, "class-decision.mjs": 1214, "carrier.mjs": 1002, "frame.mjs": 418, "delivery.mjs": 668, "constraints.mjs": 2695},
+          "kernel_parts": {"kernel-foundations.mjs": 908, "kernel-registration.mjs": 772, "kernel-commit.mjs": 190, "kernel-attempt.mjs": 879, "kernel-terminal.mjs": 422},
+          "src_entry_total": 10743,
+          "index_mjs": 1573,
+          "index_d_ts": 1053
+        },
+        "note": "THE `sizes_remeasured_2026_10_28` KEY ABOVE IS THE READING OF ITS OWN DATE AND IS KEPT BYTE-FOR-BYTE; this key re-reads every one of its figures and supersedes none of its bytes. MOVED: `delivery.mjs` 668 -> 676, `constraints.mjs` 2,695 -> 2,951, `kernel-foundations.mjs` 908 -> 1,058, `kernel-registration.mjs` 772 -> 785, `kernel-commit.mjs` 190 -> 355 (the delete's `CommitRecord` and its own pass), `kernel-attempt.mjs` 879 -> 920, `index.mjs` 1,573 -> 1,651, `index.d.ts` 1,053 -> 1,088; UNMOVED: the other eight entry parts, `kernel-terminal.mjs` 422, the barrel's 4 lines, and the directory's thirteen files. THE MATCHING CLAUSES ARE docs/L1/entry-subdivision.md's, kernel-subdivision.md's and module-map.md's `2026-10-28` (`D-57`) re-measures."
       }
     },
     "what_moved_and_what_did_not": {
