@@ -267,6 +267,46 @@ IS STILL OWED A WALK THIS PASS DID NOT TAKE**, exactly as the `185`'s and the `1
 29 unowned = 156` is left as the `156`'s own split and is not asserted at `198`. **The module count (19) and the endpoint
 count (61) are unmoved**, and the `scratch/` head is unmoved at `477`.
 
+**⟶ AND THE WALK THAT CLAUSE SAID WAS OWED IS TAKEN AT THIS TREE, 2026-10-29 — THE SPLIT IS ASSERTED AT `198`, AND
+IT IS `127 + 0 + 71 = 198`.** `RCA-8(g)` ANNOTATE-BESIDE: **every figure of the FIGURES block and of both clauses
+above stands BYTE-FOR-BYTE — the `156`, the `198`, the `633`, the twelve-term and thirteen-term by-tree lists, and
+the sentence *"the owned/unowned split at `198` is still owed a walk this pass did not take"* — and this clause is
+that walk's reading, not a correction of theirs.** **THE MEASUREMENT, IN ONE LINE:
+`git ls-files | grep -v '^scratch/'` returns `198`; the nineteen modules' `owns` arrays carry `127` entries and every
+one of them is a present tracked path, no path owned twice, so the owned column is `127` and the co-owned column is
+`0` — both UNMOVED — and the unowned column is `71`, which is `29 + 42` and closes the denominator: `127 + 0 + 71 =
+198` ✓.** **THE THIRTEEN TERMS, RE-COUNTED AND CLOSING AT THE SAME FIGURE: `src/` 7 ✓ · `tests/` 118 ✓ ·
+`bindings/js/` root `9` ✓ · `bindings/js/src/` `18` ✓ · `bindings/js/platforms/` `10` ✓ · `docs/specs/` `9` ✓ ·
+`docs/L1/` `9` ✓ · **`docs/guides/` `1` — the term this walk ADDS** (`package-use.md`, the canonical consumer
+guide, which lands in the package as `README.guide.md`) · `typecheck/` 1 ✓ · `.github/workflows/` 1 ✓ · `scripts/` 3 ✓ ·
+`strata/` 2 ✓ · root 10 ✓ = `198` ✓.** **THE `71` ITEMISED, SO THE COLUMN IS A CENSUS AND NOT THE REMAINDER OF A
+SUBTRACTION: `tests/e2e/`'s **35** paths the battery tree grew by after the 2026-10-25 walk (`44` → `79`) · `docs/specs/`
+`9` · `docs/L1/` `9` · `docs/guides/package-use.md` `1` · `bindings/js/README.guide.md` `1` (the STAGED landing) ·
+`bindings/js/RELEASE-NOTES.md` `1` (the STAGED change list) · `bindings/js/.gitignore` `1` · root's nine
+(`package.json` · `package-lock.json` · `Cargo.lock` · `tsconfig.typecheck.json` · `tsconfig.typecheck.nodenext.json` ·
+`README.md` · `RELEASE-NOTES.md` · `LICENSE` · `.gitignore`) · `typecheck/consumer-fixture.ts` `1` · `strata/` `2` ·
+`scripts/`'s two runners `2` = `71` ✓.** **AND THE ONE READING THAT CHANGES HOW THE `owns` ARRAYS MUST BE READ,
+STATED PLAINLY: the 35 e2e paths the battery tree grew by are owned by NO module, so `owns` is this map's
+OWNERSHIP DECLARATION — 127 of 198 tracked paths — and never a census of the tree.** **THE CRATE ROWS ARE RE-READ
+WITH IT: `src/store.rs` is `3,065` lines (2,876) and the other ten are unmoved** (`crossing.rs` 1,276 ✓ ·
+`codec.rs` 1,071 ✓ · `facade.rs` 1,252 ✓ · `src/lib.rs` 99 ✓ · the store crate's `src/lib.rs` 41 ✓ · `src/error.rs`
+886 ✓ · `src/args.rs` 329 ✓ · `src/value.rs` 330 ✓ · `src/records.rs` 290 ✓ · `src/json.rs` 203 ✓). **THE SET AND THE
+MANIFEST, RE-READ THIS DATE AND UNMOVED: the status set **TWENTY** ✓ · the kernel's token set **NINE** ✓ · the member
+set **FOURTEEN** ✓ · the blind instance count **THIRTEEN** ✓ · the `files` allowlist **SEVEN** ✓ · the packed member
+set **`20` bare / `21` assembled** ✓ — the bare twenty MEASURED this date by `npm pack --dry-run --json`, and the
+twenty-first MEASURED by `INSTALL-11`'s licence carriage · **`version`** **`1.4.0` at ELEVEN cells** ✓ (the manifest's
+`version`, its five exact pins and the five platform manifests) · **and the DENOMINATOR `198`** ✓ with the `477`
+`scratch/` head. **THE LEGS, EACH RUN THIS DATE, `0` failed:** `npm test` **1121 · 1120 pass · `0` fail · 1 skip** ✓ ·
+`cargo test --offline` **669** = `434` + `235` ✓ · `npm run greens` exit `0`, **11** discovered runner(s), every one
+exit `0` ✓ · `npm run test:e2e` exit `0` (`15` declared: `14` PASS · `1` LAYER-LIMIT · `0` FAIL) ✓ · `npm run
+typecheck` exit `0` ✓ · `scripts/publish.sh --figures` PASSES (three documents, three version lines, one generator) ✓.
+**The test population is unmoved:** `tests/e2e/` **79** · `tests/integration/` **33** · `tests/unit/` **5** ·
+`tests/Cargo.toml` **1** `= 118`, the five e2e classes `55 + 12 + 8 + 1 + 3 = 79` ✓, and **`69` `*.test.mjs`** ✓.
+**Every superseded reading above stays printed and is read THROUGH this clause; none is rewritten away.**
+(`D-66`; `D-67`; `D-69`; `D-70`; the matching re-reads are `docs/L1/entry-subdivision.md`'s, `kernel-subdivision.md`'s,
+`test-stratification.md`'s and `surface-deltas.md`'s clauses of the same date, and `modules.json`'s
+`sizes_remeasured_2026_10_29` and `ownership_remeasured_2026_10_29` keys.)
+
 **THE READING THIS BLOCK CARRIED BEFORE THAT MEASUREMENT IS NAMED HERE AND NOT REWRITTEN AWAY: `126` paths,
 `105 owned + 1 co-owned + 20 unowned`, and the `147` the head revision block printed as arithmetic on
 measured deltas.** The `126` was reconciled to `git ls-files` for the tree it was struck against, and the

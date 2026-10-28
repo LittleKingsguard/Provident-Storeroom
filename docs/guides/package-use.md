@@ -594,6 +594,11 @@ BOUND at, never the address the write targeted**, and the two are told apart: **
 the write's address** (`index.d.ts`, `TriggerPair`; `held-listener/contract.md §2.4` items 1 and 7; `PAR-HL-19`–`PAR-HL-21`).
 **There is no parallel `triggeredAddresses` array and none may be added.**
 
+**★ ⟶ AND WHAT THAT ONE ARGUMENT DOES NOT CARRY, STATED BESIDE IT 2026-10-29: it names the ACT's address and
+never what MOVED under it — so a container listener that must know which position moved diffs the collection
+itself** (§7.9's item 4, where the reason is given: the act's address is the store's own datum, and which
+position moved is the caller's question).
+
 - **`write` answers `{op, watched, triggered}`** (`index.d.ts`, `WriteRecord`). **`op` is the store's own journal
   record and not a number** — `{opId, kind, address, tier, before, after, seq, compacted}` — and **the op's
   `opId` is a string** and is the token `rollback` accepts (`index.d.ts`, `JournalOp`). **`watched` carries
@@ -1019,6 +1024,39 @@ nothing else in the drive.**
 **AND WHAT `D-70` DOES NOT CHANGE, SAID PLAINLY: no member, status, kernel item or bound moves.** **This section
 declares a rule of USE over a surface that was already measured — the seventh residual closes by DECLARATION, not by
 machinery** (`D-70`'s own terms; `§3.1`'s fourteen members; `§8.1`'s twenty statuses; `§7.7`'s budget).
+
+**★ AND THE FOUR THINGS THIS SECTION STILL LEFT A CONSUMER TO DISCOVER, WRITTEN DOWN 2026-10-29 — `D-66` READ
+BESIDE `D-70`, AND EVERY SENTENCE ABOVE STANDS BYTE-FOR-BYTE AND IS READ THROUGH THIS CLAUSE.** `RCA-8(g)`
+ANNOTATE-BESIDE: **this clause declares no member, no status, no kernel item and no bound, and it moves no figure
+of `§3.1`, `§8.1` or `§7.7`. Each of the four is a reading this surface leaves you to DERIVE unless it is
+stated — none of them is a rule the surface lacks, and that is exactly why they have to be written.**
+
+1. **★ THE RECONCILIATION, IN ONE CLAUSE: THE REACH IS PER ADDRESS THE STORE WROTE, NOT PER POSITION.** **`D-66`'s
+   sentence — *"a pair is asked when the act changes the value at its address"* — is a criterion over the
+   addresses the act WROTE and the addresses it REPLACED, and `D-70`'s — *"nothing was written at `['v',1]`"* —
+   is that same criterion read at an address the act never wrote.** **The two collide only ON THEIR FACE, and the
+   noun reconciles them: a `VEC` renumber DOES change what a read at an index returns, but AN INDEX'S *MEANING*
+   CHANGING IS NOT THE STORE *WRITING* IT.** **The store wrote `['v',0]` and replaced nothing at `['v',1]`, so it
+   owes you a firing at the one address it wrote and none at the other** — which is rule 3 above, measured at
+   `DW-15.1`/`DW-15.2`.
+2. **★ THE MISSING LOOP GUARD IS AN ABSENCE, AND THIS IS WHAT IT MEANS.** **Nothing observably bounds a chain of
+   listener writes: no budget, no depth, no counter and NO INSTRUMENT YOU CAN READ.** **The constraint side is
+   different for one reason and not for a better one: THE GUARDS ARE THE PASS'S, and a listener does not run in a
+   pass** — the restart budget (`RESTART_LIMIT` `3`), the applied-repair marker and the per-op floor all belong to
+   the pass, and a listener is delivered after it. **SO YOU BOUND YOUR OWN CHAIN, in your own code, with your own
+   count, because the package will not.** **And the practical shape is a sequence rather than a defect: a listener
+   that writes is a listener whose writes OPEN COMMITS, whose commits RUN CONSTRAINTS, whose constraints FIRE
+   LISTENERS — the machine follows that as far as your code takes it and stops only when your code stops.**
+3. **★ A CALLBACK THAT BOTH WRITES AND RENDERS IS NOT REFUSED.** **The two kinds are A RULE OF USE, not an enforced
+   classification.** **The package registers such a function, delivers it as a listener, and lets its write go
+   UNGUARDED — nothing inspects a listener's body for a store call, and no refusal names the mix.** **So a consumer
+   who assumes the package enforces the split will build the chain of item 2 believing it cannot happen.**
+4. **WHAT MOVED IS NOT REPORTED.** **The delivery's one argument is the ACT's address** — `['v',0]`, the address the
+   store wrote — **and not what shifted under it.** **So a container listener that must know which position moved
+   DIFFS THE COLLECTION ITSELF**, inside its own body, at the container (`D-50`'s `read()` rule). **The reason is
+   not an omission: the act's address is THE STORE'S OWN DATUM** — it stands on every op and on every record
+   `§6.4` declares — **whereas WHICH POSITION MOVED IS THE CALLER'S QUESTION, asked against state the caller chose
+   to keep.**
 
 ---
 

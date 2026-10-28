@@ -656,6 +656,20 @@ repair-in-commit.test.mjs`'s `D-46` (1) cell). **A SEVENTH ORDINAL IS NOT MINTED
 journal counter would be a second ordinal with no consumer. (`strata/decisions.md` · `D-53`, `D-48` · `DEF-AI`;
 `P-SM-5`'s `S-LOG-ORDER` strategy id, whose subject is UNMOVED.)
 
+**⟶ AND WHICH SIDE A GUARD STANDS ON IS NAMED HERE, 2026-10-29, BECAUSE THIS SECTION IS THE GUARDS' HOME — `D-70`.**
+`RCA-8(g)` ANNOTATE-BESIDE: **every byte above stands BYTE-FOR-BYTE and is read THROUGH this clause; it adds no
+guard, spends no budget and moves no bound.** **THE THREE GUARDS THIS SECTION DECLARES — the restart budget
+(`RESTART_LIMIT` `3`, `§5.2`), the applied-repair marker (`§5.6`, `P-SM-6`) and the per-op floor — ARE THE PASS's,
+SO THEY BELONG TO A KIND ONLY WHERE THAT KIND RUNS IN THE PASS.** **A LISTENER RUNS AFTER EVERY CONSTRAINT, OPENS
+ITS OWN COMMIT WHEN IT WRITES, AND HAS NO LOOP GUARD: NO BUDGET, NO DEPTH AND NO INSTRUMENT BETWEEN IT AND A
+CHAIN** — *"Functions that automatically produce changes in the stored data should be written as
+constraint/repair, not as listeners, because constraint/repair has loop guards while listeners don't"*
+(`strata/decisions.md` · `D-70`, the architect, verbatim). **SO THE ASYMMETRY IS STRUCTURAL AND NOT AN OMISSION THIS
+DIRECTORY CAN PATCH: a listener that writes opens a commit, that commit runs constraints, and those constraints
+fire listeners, and the machinery follows the chain as far as the caller's code carries it.** **The rule that
+follows is the consumer's to keep — bound the chain in their own code — and it is stated for them at the guide's
+`§7.9` items 2–3, with the reconciliation of this file's touched criterion beside `D-70`'s own sentence at item 1.**
+
 ### §5.6 `P-SM-6` — the first-repeat rule: an applied repair never runs twice, and a repeat fails the attempt
 
 **Property.** **A REPAIR ALREADY RECORDED AS APPLIED IN THIS ATTEMPT MAY NOT RUN AGAIN, AND A SECOND

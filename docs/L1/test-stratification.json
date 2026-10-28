@@ -450,5 +450,39 @@
     "IT DID NOT AMEND THE SPEC CORPUS: PUB-DD-24, acceptance.md section 5.2, implementation-plan.md section 2 and the sibling layer vocabulary stand as text and are read through D-9/D-5/D-8; no role in this workflow owns a contract",
     "IT ADDED NO MODULE AND NO ENDPOINT: 19 modules and 61 endpoints stand, and this pass edits modules.json's delivery allowlist endpoint ONLY to annotate its reading through D-3/D-4/D-8 (count unmoved)",
     "IT DID NOT VERIFY the O3 label's own carrier (declared, not built), the locally packed platform tarball (declared, nowhere driven in this tree), or npm's always-included LICENSE behaviour (general npm behaviour read from the ruling, expressly not measured on this branch)"
-  ]
+  ],
+  "remeasured_2026_10_29": {
+    "method": "one run of each leg plus `find <dir> -type f` and `find tests -name '*.test.mjs'`, on this tree at `git describe` `v1.4.0-21-ga1c65d9` — the twenty-one commits past `v1.4.0`, six of which (`D-66`/`D-67`/`D-69`/`D-70` and their two declaration passes) are the ones this date adds",
+    "denominator": { "figure": 198, "was": 198, "moved": false, "reading": "`git ls-files | grep -v '^scratch/'` — the whole index is `675` and `scratch/` holds `477`, so `675 = 477 + 198` ✓ (the itemised split is `docs/L1/modules.json`'s `ownership_remeasured_2026_10_29` key)" },
+    "present_population": {
+      "tests/e2e/": 79,
+      "tests/integration/": 33,
+      "tests/unit/": 5,
+      "tests/Cargo.toml": 1,
+      "tests_total": 118,
+      "test_mjs_under_tests": 69,
+      "e2e_breakdown": { "test_mjs": 55, "runners": 12, "support_modules": 8, "evidence_json": 1, "documents": 3 },
+      "moved": false,
+      "note": "UNMOVED against the 2026-10-28 readings: 79 + 33 + 5 + 1 = 118 ✓ · 55 + 12 + 8 + 1 + 3 = 79 ✓ · 69 `*.test.mjs` ✓ (55 e2e · 11 integration · 3 unit). The six commits of this date added CELLS to existing files and no path."
+    },
+    "legs": {
+      "npm test": { "tests": 1121, "pass": 1120, "fail": 0, "skip": 1, "exit": 0, "note": "the one skip is the dispatcher-shape cell, as every reading from 2026-10-28 records" },
+      "cargo test --offline": { "total": 669, "storeroom-native": 434, "storeroom-tests": 235, "failed": 0, "exit": 0, "reading": "434 + 235 = 669 ✓" },
+      "cargo test --offline -p storeroom-native": { "passed": 434, "failed": 0 },
+      "cargo test --offline -p storeroom-tests": { "passed": 235, "failed": 0 },
+      "npm run greens": { "exit": 0, "discovered_runners": 11, "reading": "`CHAIN COMPLETE — 11 discovered runner(s), every one exit 0`; AUTHORED 103 · EXECUTED 103 · PASS 103 · FAIL 0; layer `LIVE / ASSEMBLED PACKAGE`, `APP` `NONE`" },
+      "npm run test:e2e": { "exit": 0, "declared": 15, "recorded": 15, "PASS": 14, "LAYER-LIMIT": 1, "FAIL": 0, "note": "`INSTALL-09` is the LAYER-LIMIT, as declared" },
+      "npm run typecheck": { "exit": 0 }
+    },
+    "classification_unmoved": {
+      "O3": 5, "O4": 33, "none_by_design": 37,
+      "note": "the pre-move 75-path census, the route tags and the module/endpoint counts are unmoved: 19 modules and 61 endpoints stand, and no cell of this date changes a scope, a driver, a layer or a route. The route census's subject remains the 75 pre-move artifacts (`denominator` above), which is why the 118 present paths add no route row."
+    },
+    "did_not_decide": [
+      "it decided no route, no scope, no driver and no layer for any cell of this date: the six commits added cells to files whose route was already assigned, and none of them reassigns one",
+      "it asserted no order over any store-returned list, and none of its cells reads a position as a sequence claim",
+      "it changed no member, status, token, kernel item or bound: the figures it re-read (20 statuses · 9 `KC` tokens · 14 own members · 7 allowlist rows · 20/21 packed members · 13 blind instances · 5 `LogEntry` members · 13 `src/entry/` files · denominator 198) are all unmoved",
+      "it edited no test and no source: documentation and declarations only"
+    ]
+  }
 }

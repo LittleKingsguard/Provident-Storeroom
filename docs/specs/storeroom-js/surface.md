@@ -303,6 +303,18 @@ requirement]`)
    and its `constraint` (`D-26`) — **so the trigger list names both kinds, and the KERNEL filters it: an
    element whose handle is a constraint's `id` is ASKED, a listener's is DELIVERED.**
 
+   **⟶ AND THE TWO READINGS THAT COLLIDE ON THEIR FACE ARE RECONCILED AT THIS ITEM, 2026-10-29 — `D-66` READ
+   BESIDE `D-70`, AND EVERY BYTE ABOVE STANDS BYTE-FOR-BYTE.** `RCA-8(g)` ANNOTATE-BESIDE: **this clause adds no
+   rule; it states which noun the membership test is over.** **THE REACH IS PER ADDRESS THE STORE WROTE, NOT PER
+   POSITION: `D-66`'s criterion — *"a pair is asked when the act changes the value at its address"* — is computed
+   over the addresses the act WROTE and the addresses it REPLACED, and a `VEC` renumber changes what a read at an
+   index RETURNS without the store WRITING that index.** **So the two sentences do not collide: `D-70`'s *"nothing
+   was written at `['v','1']`"* is that same criterion read at an address the act never wrote, and AN INDEX'S
+   *MEANING* CHANGING IS NOT THE STORE *WRITING* IT.** **The container is where the store wrote and where the
+   firing is owed; a registration at an index is a registration on a derived value and is owed no firing when its
+   neighbours move** (`D-50`'s `read()` rule; the guide's `§7.9`; measured at `tests/e2e/discard-witness.mjs`'s
+   `DW-15.1`–`DW-15.3`).
+
 **⟶ AND ONE CONSEQUENCE OF THE INHERITED MINT RULE FALLS ON THIS SECTION, STATED HERE SO THE TWO HOMES OF
 `§2.3` AGREE: A REPEAT `listen` AT AN ALREADY-REGISTERED ADDRESS MINTS NOTHING AND RETURNS THE ENTRY'S OWN
 HANDLE.** `RCA-8(d)` ANNOTATE-BESIDE: **items 1–5 above stand byte-for-byte; THIS clause is a PURE INSERTION

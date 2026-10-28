@@ -777,7 +777,110 @@
           "index_d_ts": 1088
         },
         "note": "THE `sizes_remeasured_2026_10_28_d57` KEY ABOVE IS THE READING OF ITS OWN DATE AND IS KEPT BYTE-FOR-BYTE; this key re-reads every one of its figures and supersedes none of its bytes. MOVED: `state.mjs` 1,038 -> 1,125 (`D-58`), `constraints.mjs` 2,951 -> 3,014 (`D-63` and `D-65`), `kernel-foundations.mjs` 1,058 -> 1,083 (`D-65`), `kernel-registration.mjs` 785 -> 793, `kernel-commit.mjs` 355 -> 356, `kernel-attempt.mjs` 920 -> 991 (`D-58` and `D-65`), `kernel-terminal.mjs` 422 -> 468 (`D-58`), `index.d.ts` 1,088 -> 1,089; UNMOVED: the other six entry parts, `index.mjs` 1,651, the barrel's 4 lines, the directory's thirteen files, and every crate row. THE MATCHING CLAUSES ARE docs/L1/entry-subdivision.md's, kernel-subdivision.md's, module-map.md's, surface-deltas.md's and open-items-2026-10-25.md's third `2026-10-28` re-measures, and the set/manifest figures are in this file's `battery_owns_reconciled.present_population_reconfirmed_2026_10_28_at_the_tree_eleven_past_v1_4_0` key."
+      },
+      "sizes_remeasured_2026_10_29": {
+        "method": "`wc -l` at each file's own last line on this tree, re-measured 2026-10-29 for the twenty-one commits past `v1.4.0` (`git describe`: v1.4.0-21-ga1c65d9), the six commits `D-66`/`D-67`/`D-69`/`D-70` and their declarations added over the eleven",
+        "entry_parts": {
+          "refusal.mjs": 161, "artefact.mjs": 376, "state.mjs": 1125, "class-decision.mjs": 1214, "carrier.mjs": 1002,
+          "frame.mjs": 418, "delivery.mjs": 747, "constraints.mjs": 3014
+        },
+        "kernel_parts": {
+          "kernel-foundations.mjs": 1226, "kernel-registration.mjs": 847, "kernel-commit.mjs": 356,
+          "kernel-attempt.mjs": 1020, "kernel-terminal.mjs": 468
+        },
+        "kernel_parts_total": 3917,
+        "src_entry_total": 11974,
+        "barrel": 4,
+        "index_mjs": 1661,
+        "index_d_ts": 1089,
+        "crate_rows": { "codec.rs": 1071, "facade.rs": 1252, "crossing.rs": 1276, "src/lib.rs": 99,
+                        "src/lib.rs (the store crate)": 41, "src/store.rs": 3065, "src/error.rs": 886,
+                        "src/args.rs": 329, "src/value.rs": 330, "src/records.rs": 290, "src/json.rs": 203 },
+        "superseded_by_this_key": {
+          "entry_parts": {"refusal.mjs": 161, "artefact.mjs": 376, "state.mjs": 1125, "class-decision.mjs": 1214, "carrier.mjs": 1002, "frame.mjs": 418, "delivery.mjs": 676, "constraints.mjs": 3014},
+          "kernel_parts": {"kernel-foundations.mjs": 1083, "kernel-registration.mjs": 793, "kernel-commit.mjs": 356, "kernel-attempt.mjs": 991, "kernel-terminal.mjs": 468},
+          "kernel_parts_total": 3691,
+          "src_entry_total": 11677,
+          "index_mjs": 1651,
+          "index_d_ts": 1089,
+          "src_store_rs": 2876
+        },
+        "note": "THE `sizes_remeasured_2026_10_28_eleven_past_v1_4_0` KEY ABOVE IS THE READING OF ITS OWN DATE AND IS KEPT BYTE-FOR-BYTE; this key re-reads every one of its figures and supersedes none of its bytes. MOVED: `delivery.mjs` 676 -> 747, `kernel-foundations.mjs` 1,083 -> 1,226, `kernel-registration.mjs` 793 -> 847, `kernel-attempt.mjs` 991 -> 1,020, `index.mjs` 1,651 -> 1,661, and `src/store.rs` 2,876 -> 3,065; UNMOVED: the other six entry parts, `kernel-commit.mjs` 356, `kernel-terminal.mjs` 468, `index.d.ts` 1,089, the barrel's 4 lines, the directory's thirteen files, and the other ten crate rows. `src_entry_total` 11,677 -> 11,974 closes on its terms: 161 + 376 + 1,125 + 1,214 + 1,002 + 418 + 747 + 3,014 + 1,226 + 847 + 356 + 1,020 + 468 = 11,974, and `kernel_parts_total` 3,691 -> 3,917 on 1,226 + 847 + 356 + 1,020 + 468. THE MATCHING CLAUSES ARE docs/L1/entry-subdivision.md's, kernel-subdivision.md's, module-map.md's and test-stratification.md's fourth `2026-10-29` re-measures; the denominator, the tests, the allowlist, the packed members and the version are this file's `ownership_remeasured_2026_10_29` key."
       }
+    },
+    "ownership_remeasured_2026_10_29": {
+      "method": "`git ls-files | grep -v '^scratch/'` for the denominator, `find <dir> -type f` and `find tests -name '*.test.mjs'` for the population, `wc -l` for the crate rows, `npm pack --dry-run --json` for the bare member set, and one run of each leg — all on this tree 2026-10-29 at `git describe` `v1.4.0-21-ga1c65d9`",
+      "denominator": 198,
+      "denominator_reading": "`git ls-files` returns `675` for the whole index and `477` under `scratch/`, so `675 = 477 + 198` ✓ — UNMOVED from the 2026-10-28 reading: the six commits `D-66`…`D-70` added no tracked path",
+      "owned": 127,
+      "co_owned": 0,
+      "unowned": 71,
+      "total": 198,
+      "owned_terms_by_module_reading": "the nineteen modules' `owns` arrays are UNMOVED at 127 entries, every one a present tracked path, and no path is owned twice — so `127 + 0 + 71 = 198` ✓ CLOSES, which the 2026-10-28 clause left as `127 + 0 + 29 = 156` and did not assert at 198 (`docs/L1/module-map.md`'s clause of that date says so in its own words: *\"the owned/unowned split ... is owed a walk that clause did not take\"*). THIS KEY TAKES THAT WALK.",
+      "by_tree": {
+        "src/": 7,
+        "tests/": 118,
+        "bindings/js/ (root)": 9,
+        "bindings/js/src/": 18,
+        "bindings/js/platforms/": 10,
+        "docs/specs/": 9,
+        "docs/L1/": 9,
+        "docs/guides/": 1,
+        "typecheck/": 1,
+        ".github/workflows/": 1,
+        "scripts/": 3,
+        "strata/": 2,
+        "root": 10,
+        "sum": 198
+      },
+      "by_tree_note": "THIRTEEN TERMS AND NOT TWELVE: `docs/guides/` is the term this walk adds, and it is one path — `package-use.md`, the canonical consumer guide. The twelve terms the 2026-10-25 block printed are unmoved within it (`src/` 7 ✓ · `tests/` 118 ✓ · `bindings/js/` root 9 ✓ · `bindings/js/src/` 18 ✓ · `bindings/js/platforms/` 10 ✓ · `docs/specs/` 9 ✓ · `docs/L1/` 9 ✓ · `typecheck/` 1 ✓ · `.github/workflows/` 1 ✓ · `scripts/` 3 ✓ · `strata/` 2 ✓ · root 10 ✓) and 7 + 118 + 9 + 18 + 10 + 9 + 9 + 1 + 1 + 1 + 3 + 2 + 10 = 198 ✓.",
+      "unowned_terms": {
+        "tests/e2e/ — the 35 paths the battery tree grew by after the 2026-10-25 walk (44 -> 79)": 35,
+        "docs/specs/ — the nine kept contracts": 9,
+        "docs/L1/ — the nine declaration files of this corpus": 9,
+        "docs/guides/package-use.md — the canonical consumer guide, landing in the package as README.guide.md": 1,
+        "bindings/js/README.guide.md — the STAGED landing (generated, byte-for-byte the guide)": 1,
+        "bindings/js/RELEASE-NOTES.md — the staged change list (generated, byte-for-byte the root file)": 1,
+        "bindings/js/.gitignore": 1,
+        "root, unowned — package.json, package-lock.json, Cargo.lock, tsconfig.typecheck.json, tsconfig.typecheck.nodenext.json, README.md, RELEASE-NOTES.md, LICENSE, .gitignore": 9,
+        "typecheck/consumer-fixture.ts": 1,
+        "strata/brief.md and strata/decisions.md": 2,
+        "scripts/greens-chain.mjs and scripts/stage-addon.mjs": 2,
+        "sum": 71
+      },
+      "the_per_module_walk_the_2026_10_28_key_owed": "The `battery_owns_reconciled.present_population_remeasured_2026_10_28` note declares that 'the per-module ownership of the 35 added e2e paths is OWED a walk this pass did not take'. This key takes it and the answer is NOT the one that note assumed: the 35 are owned by NO module, they are the unowned column's growth (29 -> 71 includes them), and the four battery modules' `owns` arrays still reconcile the 83 present paths of 2026-10-25. A reader must therefore read `owns` as the map's OWNERSHIP DECLARATION and not as a census of the tree: 127 of 198 tracked paths are owned and 71 are not.",
+      "test_population": {
+        "tests/e2e/": 79,
+        "tests/integration/": 33,
+        "tests/unit/": 5,
+        "tests/Cargo.toml": 1,
+        "tests_total": 118,
+        "test_mjs_under_tests": 69,
+        "e2e_breakdown": { "test_mjs": 55, "runners": 12, "support_modules": 8, "evidence_json": 1, "documents": 3 },
+        "note": "UNMOVED against every reading from 2026-10-28: 79 + 33 + 5 + 1 = 118 ✓, 55 + 12 + 8 + 1 + 3 = 79 ✓, and 69 `*.test.mjs` ✓ (55 e2e · 11 integration · 3 unit). The six commits `D-66`…`D-70` added CELLS to existing files and no path, which is why the population did not move."
+      },
+      "figures_restated_remeasured": {
+        "status_set": 20,
+        "kc_token_set": 9,
+        "own_members": 14,
+        "files_allowlist": 7,
+        "files_allowlist_rows": ["index.mjs", "README.md", "README.guide.md", "RELEASE-NOTES.md", "index.d.ts", "src/entry/", "src/constraint-kernel.mjs"],
+        "packed_members": { "bare": 20, "assembled": 21 },
+        "blind_instances": 13,
+        "log_entry_members": 5,
+        "src_entry_files": 13,
+        "denominator": 198
+      },
+      "packed_members_reading": "BARE `20`, MEASURED this date by `npm pack --dry-run --json` at `bindings/js/`: `README.guide.md` · `README.md` · `RELEASE-NOTES.md` · `index.d.ts` · `index.mjs` · `package.json` · `src/constraint-kernel.mjs` · the thirteen `src/entry/*.mjs` = 20. ASSEMBLED `21` = that 20 plus the licence copy the assembly stages at the packaging root (`D-8`; `PUB-DD-11`; `PUB-DD-12`), measured by `tests/e2e/installed/`'s `INSTALL-11` on this run: 'the packed manifest's `files` = [7 rows] — `LICENSE` rows among them: 0 :: the tarball carries LICENSE: true'. The `files` ALLOWLIST is SEVEN rows and is a SUBSET of the twenty: five of its seven rows are the top-level documents and the entry, and its two directory rows expand to `src/entry/`'s 13 files and `src/constraint-kernel.mjs`'s 1.",
+      "version_reading": "`1.4.0` at ELEVEN CELLS, re-read this date and unmoved: `bindings/js/package.json`'s `version`, its five exact `optionalDependencies` pins (the five platform names, each `1.4.0`), and the five `bindings/js/platforms/*/package.json` `version` fields — 1 + 5 + 5 = 11. `scripts/publish.sh --figures` PASSES at this tree: the generated line and the shipped line agree in `README.md`, `README.guide.md` and `RELEASE-NOTES.md`. The tag set stays a record of releases, past tense (`v1.0.0` · `v1.0.1` · `v1.1.0` · `v1.2.0` · `v1.3.0` · `v1.4.0`), and `git describe` reads `v1.4.0-21-ga1c65d9`.",
+      "legs_remeasured_2026_10_29": {
+        "npm test": "1121 tests · 1120 pass · 0 fail · 1 skip, exit 0 (the one skip the dispatcher-shape cell)",
+        "cargo test --offline": "669 = 434 (storeroom-native) + 235 (storeroom-tests), 0 failed, exit 0",
+        "npm run greens": "exit 0, `CHAIN COMPLETE — 11 discovered runner(s), every one exit 0`, AUTHORED 103 · EXECUTED 103 · PASS 103 · FAIL 0",
+        "npm run test:e2e": "exit 0, 15 declared / 15 recorded: 14 PASS · 1 LAYER-LIMIT · 0 FAIL",
+        "npm run typecheck": "exit 0"
+      },
+      "note": "THE `ownership_arithmetic_against_156` KEY ABOVE IS THE READING OF ITS OWN DATE AND IS KEPT BYTE-FOR-BYTE; this key re-reads its terms at a tree the four cuts and the battery's growth have moved and asserts the split it left unasserted. WHAT THIS KEY ADDS AND WHAT IT DOES NOT: it adds no module, no endpoint, no `owns` entry and no figure of the 19/61; it re-measures the denominator, the split, the crate rows (in `entry_owns_reconciled.sizes_remeasured_2026_10_29`), the test population, the allowlist, the packed members and the version. THE MATCHING PROSE IS `docs/L1/module-map.md`'s fourth `2026-10-29` clause, whose FIGURES block carries the same thirteen terms and the same 127 + 0 + 71 = 198."
     },
     "what_moved_and_what_did_not": {
       "moved": [
