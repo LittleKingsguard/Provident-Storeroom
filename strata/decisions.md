@@ -3518,3 +3518,45 @@ THE INSTANCE'S LIFETIME AND NOTHING LONGER, and within the instance it is THE OP
 **TERMS: in-flight exposure closed (`1` = `K-4`'s live arm, with `K-5`'s existing `KC-7`), retention dropped (`1` = the
 log and client data on close), the deletion site `DEF-J` lacked (`1`), the handoff made single-copy (`1`), the bound
 `R16` gains (`1`).**
+
+---
+
+### `D-59` — ATOMICITY IS A CLIENT-VISIBLE BOUNDARY; a callback's write is INSIDE the commit that invoked it
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, resolving `DEF-AN`'s collision between `DEF-AN` and `D-45`/`D-46`.
+
+**THE RULING, VERBATIM:**
+
+> The write is a discrete action - the process flow does not return to the client until after the write commits.
+> If the client then makes a second change, that is another discrete action that is its own commit, and that should
+> be *entirely* atomic from the first commit.
+
+**IT SETTLES THE COLLISION, AND NOT IN THE DIRECTION MY `1.4.0` SENTENCE ASSUMED.** **Atomicity is a property of a
+CLIENT-VISIBLE boundary**: **a commit is atomic from another when THE CLIENT'S OWN CALL opened it and returned.** **So:**
+
+- **TWO CLIENT CALLS ARE TWO DISCRETE ACTIONS**, each committing before it returns, **and each entirely atomic from
+  the other.** **That is a stronger guarantee than anything on the tree today and it is the one that matters to a
+  consumer.**
+- **★ AND A LISTENER'S (OR ANY CALLBACK'S) WRITE IS *NOT* A SECOND DISCRETE ACTION** — **the client's flow has not
+  returned when the listener runs**, because the listener runs INSIDE the delivery of the act the client called.
+  **So its write is INSIDE that commit's extent, and `DEF-AN`'s measured behaviour — the outer refusal undoing it — is
+  CORRECT.**
+
+**THEREFORE `D-45`/`D-46` AND `DEF-AN` DO NOT COLLIDE AFTER ALL, AND L0'S SENTENCE WAS THE ONLY THING THAT DID.** **A
+listener's write has its OWN COMMIT SCOPE — its own log (`D-53`), its own constraint pass (`D-44`), its own delivery
+position** — **and it is NOT an ATOMIC BOUNDARY, because no client call returned to open one.** **"Its own commit" was
+read as "an atomic boundary", and it is a SCOPE.**
+
+**WHAT IS OWED, AND IT IS THE DOWNSTREAM'S OWN FIX SHAPE, WHICH IS NOW PROVEN RIGHT:** **correct the sentence that claimed
+a callback's edit is untouched** — **state the restore's real extent: the commit a client call opened, and everything
+that committed inside it, callbacks included** — **and name in the refusal what the restore TOOK: the addresses it
+moved that the refused act did not itself write.** *"A consumer can survive an undo it is told about; it cannot survive
+one it is not."*
+
+**AND ONE THING BECOMES A REAL QUESTION RATHER THAN A BUG**: **if two CLIENT calls must be atomic, is that true today?**
+**A client's second write opens its own commit and its own opening mark** — **so a refusal of the second cannot reach
+the first.** **That must be MEASURED rather than assumed**, because it is the guarantee this ruling actually promises.
+
+**TERMS: atomicity defined (`1` = client-visible boundary), the callback's write placed INSIDE (`1`), `DEF-AN`'s
+behaviour confirmed correct (`1`), `D-45`/`D-46`'s scope-vs-boundary distinction (`1`), L0's sentence falsified and owed
+(`1`), the client-to-client atomicity to be measured (`1`).**
