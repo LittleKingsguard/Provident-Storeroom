@@ -3811,3 +3811,34 @@ untouched descendant not asked, a deleted subtree's descendants asked).**
 - **which resolves the per-tier residual by construction**: **a purge is the store's own act, and the store can name every path it removed.**
 
 **TERMS: the listener's reach measured (`1` = prefix-only, no descendants), the convergence `D-56` recorded broken (`1`), the asymmetry named (`1` = pair asked, listener silent), the purge case worse than a stale path (`1` = never invoked), the unification (`1` = one rule computed where the versions live), the per-tier residual resolved by it (`1`).**
+
+---
+
+### `D-68` — THE PREMISE IS THE DESIGN THE TREE ABANDONED: `K-1`'S `store.register` CALL WAS DELETED, so constraints left the store's trigger map
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, stating that a constraint is mechanically a listener to the store's triggers.
+
+**THE CLARIFICATION, VERBATIM:**
+
+> How is a constraint being fired when a listener is not? The original implementation is that a constraint is
+> mechanically the same as a listener from the perspective of the rust store triggers. The distinction is whether it
+> is registered as a constraint (and thus run in the constraint loop and expecting the constraint signature format) or
+> as a listener (and thus running after constraints and not being confined to the constraint signature)
+
+**AND THE TREE IS NOT THAT DESIGN ANY MORE, MEASURED IN TWO PLACES.**
+
+- **`bindings/js/src/entry/kernel-registration.mjs:134`**: ***"IT MAKES NO SECOND CALL. `store.register(home, noopListener)` IS DELETED, NOT RE-POINTED"*** — **`K-1`'s registration with the store was removed**, and `:681` says why: *"`K-1`'s `store.register` call is DELETED and the inert body has no subject"*, and `:117` calls the old spelling *"a SEAM and not a decision"***.
+- **`src/store.rs:1863`**: *"a listener bound at address `W` is triggered by a successful `write` or `delete` at address `X` iff `W` is a PREFIX of `X`"* — **the store's rule speaks of LISTENERS**, and **`ListenerTrigger { handle: ListenerHandle, address }`** carries a **listener handle**: **the map is the listener map.**
+
+**SO THE ANSWER TO "HOW IS A CONSTRAINT FIRED WHEN A LISTENER IS NOT" IS: BECAUSE THE TWO ARE NO LONGER THE SAME MECHANISM.** **The listener is fired by the store's `triggered`, which the store RETURNS and INVOKES NOTHING** (`A57`). **The constraint is fired by the KERNEL'S OWN WALK over `kernel.pairs` (`HL-8`, `pairsAtAddress`)** — **which is why `D-66` could widen one predicate and leave the other behind.**
+
+**AND `D-66`'S ASYMMETRY IS A SYMPTOM OF THAT SPLIT, NOT A BUG IN EITHER HALF**: **the kernel's predicate gained the touched descendants; the store's stayed `is_prefix`.** **Two rules for one reach.**
+
+**SO THE DECISION IS ONE OF TWO, AND IT IS THE ARCHITECT'S.**
+
+1. **RESTORE THE UNIFICATION** — **`K-1` registers its pair with the store again**, **the store's `triggered` names both kinds** (the element growing a `kind`, or the kernel holding the kind by handle), **and the pass filters `triggered` to the constraints and runs the loop.** **One predicate, in Rust, where the per-tier versions live** — **and `D-67`'s listener reach and `D-66`'s per-tier residual both close by construction.**
+2. **KEEP THE SPLIT AND ALIGN THE PREDICATES** — **`triggered_for` widens to the kernel's predicate**, **which requires the store to compute `touched`** (it can: the purge is its own act), **and the kernel keeps its own walk.** **Two implementations, made to agree.**
+
+**WHAT THE FIRST COSTS, NAMED**: **the deletion at `K-1` had a reason** — **a constraint is not a listener handle, and `store.register(home, noopListener)` minted an inert listener body to make one.** **So restoring it needs the store's registry to admit a THIRD kind** — **a registration that is neither adopted as a listener nor given an inert body, but fired and identified as a constraint** — **which is a `src/**` shape, not a re-point.**
+
+**TERMS: the premise measured false (`1`), the two mechanisms (`2` = the store's `triggered`, the kernel's walk), the abandonment's site and its reason (`2` = the `K-1` deletion, the "seam not a decision" clause), `D-66`'s asymmetry as a symptom (`1`), the two options (`2`), the first's cost (`1` = the store's registry admitting a third kind).**
