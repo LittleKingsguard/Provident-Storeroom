@@ -3698,3 +3698,37 @@ both wrong; this is the third statement of the same rule, and the first that the
 **TERMS: the bump (`1`), its placement before the delivery (`1`), `D-60`'s two halves achieved by position (`2`), `D-62`'s
 unblock moot (`5` → `0`), `DEF-AN`'s clause corrected (`1`), the cells owed (`3` = a validated edit standing against a
 later refusal, a repair undone, a listener's write surviving).**
+
+---
+
+### `D-64` — AFTER THE PASS, NOTHING RE-ENTERS; the only later judgement is a listener's own, and it is not atomic
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, confirming `D-63` and stating the pass's closure boundary.
+
+**THE RULING, VERBATIM:**
+
+> After the constraint pass, there are no further instances of constraint/repair invocations on that work, the
+> constraints do not re-enter except to judge behavior on listeners, which are not atomic with the original write
+
+**IT IS A CONFIRMATION WITH ONE MEASURABLE OBLIGATION, AND IT NAMES THE BOUNDARY `D-63`'S BUMP ALREADY SITS ON.**
+
+- **AFTER THE PASS, NOTHING RE-ENTERS ON THAT WORK.** **A `write`'s constraint sweep runs once** — **repairs and the
+  re-runs they force are INSIDE that pass** (`D-42`'s restart drains *to the pass's own terminal*, `D-54`), **and once the
+  pass ends nothing invokes a constraint or a repair on it again.**
+- **THE ONE LATER JUDGEMENT IS A LISTENER'S OWN**, **and it is a NEW question against a NEW commit** — **not atomic with
+  the write that triggered it** — **which `D-63`'s bump implements by moving the mark past everything the passing sweep
+  approved, so the delivery runs beyond it.**
+- **AND THE CONSTRAINTS DO NOT OTHERWISE RE-ENTER**: **nothing after the pass walks the same work to judge it again.**
+
+**SO THE OBLIGATION IS TO VERIFY THERE IS NO POST-PASS RE-ENTRY ON THE SAME WORK**, and the candidates are the ones this
+branch built:
+- **`D-42`'s restart** — **inside the pass**, draining to that pass's terminal judgement. **Compliant.**
+- **`D-54`'s carry** — a request raised inside a pass reaches *that pass's* terminal state. **Compliant.**
+- **`DEF-AP`'s standing-state drain** — at the drain, before the handoff. **Compliant.**
+- **`D-63`'s `bumpMark`** — a mark movement, **not an invocation**. **Compliant.**
+- **AND THE ONE THAT WOULD VIOLATE IT**: **anything that judges a completed write's work again after its pass ended** —
+  **no such thing is on the tree, and if one is ever added it must be a new commit, not a re-entry.**
+
+**TERMS: the boundary stated (`1`), the pass's internals confirmed inside (`3` = restart, carry, drain), the bump
+confirmed as a movement and not an invocation (`1`), the obligation (`1` = keep post-pass re-entry off the tree), and
+`D-63`'s clause confirmed as the one the machine keeps (`1`).**
