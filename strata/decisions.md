@@ -3348,3 +3348,48 @@ half. **The `KC` set's declared count `^KC-[1-8]$` moves with it, and every cell
 **TERMS: the log moves from the attempt to the commit (`1` = the structural change), the invariants (`4` = same-commit
 log, new-commit log, constraints-and-repairs never open, listeners always open), `D-52`'s questions answered (`2` = rules
 1 and 3) and dissolved (`1` = rule 2), the token set opens (`1`), `D-45`'s REASON superseded while its rule stands (`1`).**
+
+---
+
+### `D-54` — THE BOUND IS FALSE: THREE HOSTS RUN A PASS AND LEAVE THE REVERSAL UNJUDGED
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the downstream's Round 12 follow-up, which named the exact
+sentence and refuted it with three measured hosts.
+
+**THE FALSE CLAUSE, NAMED EXACTLY** — `README.guide.md:1339`, the last sentence of *"Two windows in the constraint
+machinery are known and are NOT defects"*: ***"the fail-state is bounded by the two acts that run none"*** — **and its
+premise immediately before it, *"every pass that DOES run drains its own restart request."***
+
+**IT IS FALSE, AND THE CONSUMER MEASURED THREE HOSTS WHERE BOTH CANNOT HOLD**: **a repair body**, **a delete's
+constraint pass**, and **a reentrant reversal-then-write** — **each RUNS a pass, and each leaves the reversal unjudged
+with its effect standing** — **zero judge invocations, the refused `5` still there.**
+
+**AND THEIR THREE CANDIDATES ARE SETTLED, BY THEM:** **not the restart budget's three** (declared, measured, correct:
+three asks, a fourth raise refused, the store restored) · **not the witness's "carries the discard"** (declared, and
+measured true on the delete path; its defects are the nested write emptying it and its addresses naming the whole
+registry, which are separate rows).
+
+**`DEF-X` IS THREE HOSTS, NOT FIVE — THEY WITHDRAW TWO OF THEIR OWN.** **Hosts 4 (a registration's own evaluation) and 5
+(a delete's listener delivery) are exactly the two windows the guide declares and rules not-defects** — **"a declared
+window with two named exits is a design decision, not a defect"** — **and filing them would repeat the mistake this
+review sequence has withdrawn five times.** **L0's five-count came from the consumer's own earlier count and was never
+re-derived; the consumer's re-derivation stands.**
+
+**AND THE "FOUR TARGET BUILDS" PREMISE IS DEAD**: **all seven hosts were driven on the SINGLE published linux build,
+same machine, same harness — the split is by CALL PATH, not by target.** **So `DEF-X` is not CI's**, and L0's
+*"four target builds this checkout cannot produce"* is refuted.
+
+**THE ASK, AND IT IS SMALL:** **do not let a pass consume a restart request it did not raise, and carry a request raised
+inside a pass through to that pass's terminal judgement.** **The budget, its three asks and `D-42` stay exactly as they
+are. `R8` is untouched and re-verified across four adversarial arms.**
+
+**AND THEIR QUESTION TO THIS ROLE, WHICH IS NOW ANSWERED RATHER THAN DEFERRED:** **a delete runs a constraint pass, and a
+reversal raised inside it is unjudged — covered by the declared delete-listener window, or a THIRD undeclared one?**
+**Their measurement: the pass ran (`triggered` names the pair) and the reversal was not judged.** **The declared window
+is the delete's LISTENER DELIVERY, which runs no pass; a reversal raised during the delete's own CONSTRAINT PASS is a
+different act at a different instant.** **So it is a THIRD case, undeclared — and the fix below covers it, which is why
+the sentence must go rather than be narrowed.**
+
+**TERMS: the clause false and withdrawn (`1`), `DEF-X` re-derived to three (`1`, with two of their own withdrawals),
+the CI premise refuted (`1`), the ask (`2` = do not consume what a pass did not raise; carry what it did), the
+delete-pass question answered as a third case (`1`).**
