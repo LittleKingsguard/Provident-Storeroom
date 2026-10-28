@@ -13,6 +13,19 @@ tarball.** It addresses a consumer deciding whether to move off `1.0.1`, so it m
 install and must cover the six packages at once — the main package and the five platform packages share one
 version and one decision.
 
+**⟶ AND THE PARAGRAPH ABOVE IS SUPERSEDED BY MEASUREMENT, 2026-10-28 — `DEF-AC`, AND THIS FILE NOW SHIPS.** `RCA-8(g)`
+ANNOTATE-BESIDE: **the paragraph above stands BYTE-FOR-BYTE and is the reading of its own date (the `1.1.0` cut, when
+it did ship nowhere); it is read THROUGH this clause.** **THE DEFECT THE DOWNSTREAM FILED: the ONE behaviour change
+`1.2.0` makes — a refused reversal's restore to the commit's OPENING mark — was declared in THIS FILE and in no
+shipped document, so a consumer installing `1.2.0` received a behaviour change with no shipped declaration of it.**
+**SO THE FILE IS LANDED THE WAY THE GUIDE IS LANDED**: `RELEASE-NOTES.md` at the repository root is the ONE authored
+home, the release's assembly stages it **BYTE-FOR-BYTE** at the packaging root as `bindings/js/RELEASE-NOTES.md`,
+and the main manifest's `files` allowlist **names it** — one additive documentation row beside `README.guide.md`,
+staged by the same assembly step and admitted by the reachability rule's own declared non-code class. **A BARE
+`npm pack` STILL WORKS** because the landed copy is a TRACKED, GENERATED file like `README.guide.md`: it is present
+whether or not the assembly has run. **AND WHAT SHIPS IS THE CHANGE LIST, at `node_modules/provident-storeroom/
+RELEASE-NOTES.md`.**
+
 **THE VERSION THIS RELEASE DECLARES IS `1.1.0` AT ELEVEN SITES, MOVING TOGETHER** — the main manifest's
 `version`, its FIVE exact `optionalDependencies` pins, and the FIVE `platforms/*/package.json` versions. **The
 artefact is stamped from the manifest by `bindings/js/build.rs`, so `version()` answers `1.1.0`** and that is
@@ -39,6 +52,20 @@ is not one of them and must not be.** So a `npm install provident-storeroom` put
 disk: a consumer holding only `node_modules` has the package's own bytes and the shipped guide
 (`README.guide.md`), and reaches this file only by reading the repository. **The same was already true of the
 `1.1.0` declaration above and it is true of the `1.2.0` list below.**
+
+**⟶ AND BOTH PARAGRAPHS ABOVE ARE RE-READ, 2026-10-28 — `DEF-AC`: THIS FILE SHIPS, AND IT IS THE CHANGE LIST A
+CONSUMER OF `1.2.0` RECEIVES.** `RCA-8(g)` ANNOTATE-BESIDE: **the two paragraphs stand BYTE-FOR-BYTE as the reading
+of their own date; THIS clause is the operative reading of BOTH the heading and the allowlist.** **(i) THE TAG IS
+CUT:** `git tag --list` answers `v1.0.0` · `v1.0.1` · `v1.1.0` · `v1.2.0`, so **the `1.2.0` section's *"UNRELEASED"*
+heading and its *"no `v1.2.0` tag exists"* sentence are the reading of the date they were written and are read
+THROUGH this clause; the release is CUT, and this text travels in its tarball.** **(ii) THE ALLOWLIST NAMES SEVEN
+ROWS, THIS FILE AMONG THEM:** `index.mjs` · `README.md` · `README.guide.md` · `RELEASE-NOTES.md` · `index.d.ts` ·
+`src/entry/` · `src/constraint-kernel.mjs` — **the landed copy of this document is a TRACKED, GENERATED file at
+`bindings/js/RELEASE-NOTES.md`, staged byte-for-byte from this authored home by the release's assembly, exactly as
+`README.guide.md` is staged from `docs/guides/package-use.md`** (`scripts/publish.sh`'s notes stage; the preflight
+REFUSES a drifted landing). **SO THE SENTENCE *"NO TARBALL CARRIES IT"* IS UNTRUE FROM THIS DATE AND IS READ THROUGH
+THIS CLAUSE: a consumer installing `1.2.0` has this change list at `node_modules/provident-storeroom/
+RELEASE-NOTES.md`.**
 
 **WHAT HAS CHANGED SINCE `1.1.0`, IN FOUR ITEMS — ONE OF THEM A BEHAVIOUR CHANGE AND THREE OF THEM NOT.**
 
