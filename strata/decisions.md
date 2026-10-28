@@ -4018,3 +4018,40 @@ one not, and only the consumer's measurement found the second.**
 **TERMS: the withdrawn half (`1`), the standing half (`1` = a 268 MB entry), the bound's asymmetry (`1` = message
 bounded, entry not), the demand (`1` = summarise, do not re-serialise), the class named (`1` = a datum restating another's
 content), the cells owed (`2` = a summary form at depth, and a bound asserted on every entry).**
+
+---
+
+### `D-75` — THE WITNESS IS ABSENT MORE OFTEN THAN PRESENT: `[]` cannot mean "nothing was discarded" until every discard is reported
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the downstream's `DEF-AH` re-filing.
+
+**THE MEASUREMENTS.** **At rest**: **one raise with a pair at the raised address → `discarded: [{opId, addresses}]`** ✓;
+**TWO RAISES with pairs at both → `[]`**; **two raises with a pair at only the first → `[]`**. **INSIDE A CONSTRAINT BODY**:
+**absent entirely** — **no `discarded` on the raise's own answer, NONE on the triggering write's, at one raise and at
+two.**
+
+**AND THE SENTENCE THE MEMBER CARRIES IS THE THING IT CANNOT SAY.** **`discarded.length === 0` is documented to mean THIS
+ACT'S DELIVERY DISCARDED NOTHING.** **A witness absent more often than present cannot carry that** — **a consumer reading
+`[]` cannot tell "nothing was discarded" from "I wasn't told."** **So the member states a fact it does not have the
+coverage to state.**
+
+**BOTH ARMS ARE ONE DEFECT, AND IT IS WHAT `D-49`'S SINGLE SLOT ALREADY IMPLIED.** **`D-49`'s own return admitted *"only
+the last pending request exists (one slot)"*, and the architect's ruling was *"make discard observable"*.** **Observable
+turned out to mean "reported once, sometimes".** **And `DEF-AP`'s earliest-capture merge collapsed two raises to one
+request — so the merge that fixed the JUDGEMENT removed the COUNT from the witness.**
+
+**THE DEMAND, VERBATIM: *"report every discarded raise at any count, on every path."*** **So:**
+
+- **EVERY raise, at any count** — `discarded` is a LIST, and its length is the number of raises the act's delivery
+  discarded;
+- **ON EVERY PATH** — **the act's own answer and the triggering write's**, **including a raise made inside a constraint
+  body**, where it is presently absent on both;
+- **and `[]` then means what the sentence says**: **nothing was discarded, and the member is present to say so.**
+
+**AND THE SENTENCE MUST BE TRUE OF EVERY ACT THAT CAN DISCARD.** **An act that cannot discard may omit the member; an act
+that can must carry it with its count, `0` included.**
+
+**TERMS: the two arms (`2` = count, and path), the defect (`1` = a witness absent more often than present), the
+sentence it cannot carry (`1`), the merge that removed the count (`1` = `DEF-AP`), the demand (`1` = every raise, every
+path), the cells owed (`5` = one raise · two raises both paired · two raises one paired · inside a body · the trigger's
+answer).**
