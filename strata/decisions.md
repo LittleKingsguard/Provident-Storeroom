@@ -3414,3 +3414,42 @@ delete-pass question answered as a third case (`1`).**
 **AND `DEF-AC` IS THE GUARD'S OWN ROW, ONE RELEASE ON**: **the cut-state guard was right and could not fire before its fact.** **The published `1.3.0` tarball says `v1.3.0 DOES NOT EXIST`** — **and the consumer's demand is the correct one: generate at publish, fail the publish on disagreement, and GUARD THE RELEASE NOTES TOO.** **`README.md` declaring no version is its own small gap.**
 
 **TERMS: settled by clarification (`4` = `DEF-AK`, `DEF-AH`, `DEF-X`, `DEF-AN`), confirmed and extended (`2` = `DEF-AO` from 6, `DEF-AP` from 5+6), structural (`3` = the delete's pass, the log's handoff and immutability, the standing-state drain), the guard's own row open (`1` = `DEF-AC`, with the notes and `README.md`), observations (`2` = `DEF-AD`, `DEF-AM`).**
+
+---
+
+### `D-56` — A CONSTRAINT FIRES WHEN ITS DESCENDANTS CHANGE, BECAUSE THE DESCENDANTS ARE PART OF THE OBJECT READ AT ITS ADDRESS
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, superseding the exact-address rule `HL-8` preserved.
+
+**THE RULING, VERBATIM:**
+
+> A listener/constraint should fire when the descendants of its targeted address node change, because the descendants
+> become part of the object that is read from that address
+
+**IT IS A SEMANTIC ARGUMENT AND IT SETTLES WHAT THREE CLAUSES HAD BEEN DECIDING BY PRECEDENT.** **The value read at a
+prefix CONTAINS its subtree** — so **a change at a descendant CHANGES what a read at the ancestor returns,** and a pair
+standing at the ancestor **judges an object that moved.**
+
+**SO THE EXACT-ADDRESS RULE IS SUPERSEDED, AND WITH IT FOUR THINGS THAT DEFER TO IT:**
+- **`attempt-lifecycle.md §2.4` item 5 (iv)** — the EXACT-ADDRESS rule itself.
+- **`HL-8` item 1's own sentence** — *"rather than widening it to `triggered`'s prefix set"* — **which refused the
+  widening `D-50` then had to route around with a caller-side `read()`.**
+- **`CX-12`'s materialisation** — the pass's set is still fixed at pass start, **but it is materialised from the act's
+  address AND its ancestors, not from the act's address alone.**
+- **`D-50`'s `read()` route** — **no longer NECESSARY for an ancestor's interest in a descendant**, though it remains
+  available for anything else.
+
+**THE SET, STATED ONCE AND PRECISELY: a pair is asked when THE ACT'S ADDRESS IS AT OR BELOW THE PAIR'S ADDRESS** — that
+is, **the pair's address is a prefix of the act's address** (equality included). **A pair at `['tabs']` is asked for a
+delete at `['tabs','landingPage']`; a pair at `['tabs','landingPage']` is asked for that same delete; a pair at
+`['tabs','landingPage','x']` is NOT asked, because the act did not change it.**
+
+**AND ONE DIRECTION IS NOT RULED AND MUST BE MEASURED RATHER THAN ASSUMED**: **an act AT OR ABOVE a pair's address** —
+deleting `['tabs']` removes the node a pair at `['tabs','landingPage']` judges. **The ruling's sentence is
+one-directional (descendants of the pair's node), so the reverse is reported, not implemented.** **The pass must measure
+what that pair's value becomes and say whether the same reason extends to it** — **the object read at a descendant of a
+deleted node is ABSENT, which is a change too.**
+
+**TERMS: the exact-address rule superseded (`1`), the four deferrers (`4` = lifecycle item 5 (iv), `HL-8`'s refusal,
+`CX-12`'s materialisation, `D-50`'s necessity), the set stated (`1`), the unruled direction to be measured (`1`), the
+cells owed (`2` = the ancestor pair asked, and the descendant-pair direction's measurement).**
