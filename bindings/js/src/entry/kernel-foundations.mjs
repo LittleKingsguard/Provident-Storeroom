@@ -257,31 +257,172 @@ export function markBodyThrow(thrown, address, log) {
 /// this frame's own. **NO `undefined` IS EVER PRINTED** (`native/contract.md §8.2` property (c); the `DEF-Q`
 /// sweep reads every entry's message for it): a thrown `void 0` says *"no value at all"* and a missing member
 /// is named as absent rather than spelled.
-export function throwableForm(thrown) {
-  if (thrown === null) return '`null`';
+/// **⟶ ★ `D-74` (`DEF-AR`), 2026-10-28 — THE FORM IS BOUNDED, AND THE BOUND IS THE MESSAGE'S OWN.**
+///
+/// **THE MEASURED DEFECT, BECAUSE A BOUND NOBODY MEASURED IS A CLAIM.** A constraint body that throws an inner
+/// refusal produces ONE `outcome` entry whose sentence is *"the constraint `<id>` threw; the attempt is closed —
+/// the value it threw was `<form>`"*, and `<form>` was `JSON.stringify` of the thrown refusal's **own `message`
+/// member** — i.e. THE WHOLE OF THE INNER REFUSAL RE-SERIALISED. In a chain of inner refusals (each level's body
+/// making the write that the next level's body throws on) that member is itself the previous form quoted once,
+/// so each level added a JSON escaping layer to every byte of every level below it: **the entry's length
+/// DOUBLED AT EVERY LEVEL OF A LAWFUL CHAIN** — measured on this tree at `268,446,544` characters at depth `26`
+/// and `268,446,684`-scale at depth `28`, where the chain stops at the caller's own depth limit and loops not at
+/// all (`strata/decisions.md` · `D-74`, the downstream's `longestLogEntryChars`).
+///
+/// **THE CLASS, NAMED AS `D-74` NAMES IT: two treatments of one datum, one bounded and one not.** The sentence
+/// the package CROSSES for a refused body already summarises the thrown value — it names the code and, where
+/// the value carries a refusal, quotes that refusal's own `status` and `message` and NEVER its log
+/// (`constraints.mjs`'s `bodyThrowRefusal`, `reversalRefusal`) — while the entry beside it carried the value
+/// again, in full. **THE MESSAGE WAS BOUNDED AND THE LOG ENTRY NEVER WAS.**
+///
+/// **THE BOUND, FOUND AND NOT GUESSED: `MESSAGE_CEILING` BELOW.** It is the length a message has when it has
+/// nothing inner to quote — `errorMessage('ConstraintBodyThrew', <subject>)` plus the one clause this package
+/// appends, measured on this tree's spelling at `306` characters (`'g/2' was refused by a constraint body that
+/// threw, … which is where a throwable's own message crosses`) and printed by the downstream at `307`. **THE
+/// ENTRY GETS THAT SAME NUMBER, AT THE SAME SITE, FOR EVERY THROWN VALUE** — so the entry's length is the same
+/// figure at depth `26`, at depth `28` and at the first refusal alike, because the bound is on the entry's TOTAL
+/// and carries no depth term. **A bound applied per level and not to the total is the bug this replaces.**
+///
+/// **AND NO ENTRY MAY BE UNBOUNDED FOR ANY THROWN VALUE, WHICH IS WHY THE CLIP IS ON THE FORM AND NOT ONLY ON
+/// THE REFUSAL ARM:** a thrown `Error`, a thrown string, a number, an object with no `message`, a refusal, and
+/// a refusal whose `log` is itself huge all pass through this frame, and **each answers a form no longer than
+/// the bound** — the string and message excerpts are clipped BEFORE they are quoted, so a quarter-gigabyte value
+/// costs a quarter-gigabyte nowhere.
+export const MESSAGE_CEILING = 307;
+
+/// **THE CLIP, BY A LOCAL INDEX LOOP AND NOT BY A PROTOTYPE METHOD** (`D-35`'s read half; the form is built on a
+/// refusal path, so `slice`/`substring` would be a read off a mutable prototype). A string's own exotic index
+/// property and its own `length` are read, and nothing else (`contract.md`'s clause of 2026-10-24 on the string's
+/// own code units is the same reading one unit over).
+function clipText(text, limit) {
+  if (typeof text !== 'string') return '';
+  if (limit <= 0) return '';
+  if (text.length <= limit) return text;
+  let kept = '';
+  for (let i = 0; i < limit; i += 1) kept += text[i];
+  return kept;
+}
+
+/// **THE FORM'S ONE CLIP ARM** — the text is cut to `limit`, and a cut says so: the last character of every
+/// clipped form is `…` and the sentence names how much was dropped, so a consumer never reads a truncated
+/// literal as the whole of it (`DEF-Q`'s rule read one step on: a message may not print an `undefined`, and it
+/// may not print a half-value as though it were whole either). An unclipped form is byte-identical to what this
+/// frame returned before `D-74`, which is what keeps the lawful arms' forms unchanged.
+function bordered(text, limit) {
+  const budget = limit - 1;
+  if (text.length <= limit) return text;
+  if (budget <= 0) return '…';
+  return `${clipText(text, budget)}…`;
+}
+
+/// **A THROWN VALUE'S FORM, BOUNDED AT `MESSAGE_CEILING` (OR AT THE `room` A CALLER'S OWN PREFIX LEAVES).** The
+/// caller passes `room` where its sentence carries a fixed head and tail, so the ENTRY's total — head, form,
+/// tail — is the bound and not the form alone; a call with no `room` is bounded at `MESSAGE_CEILING`.
+///
+/// **AND THE REFUSAL ARM IS A SUMMARY, WHICH IS THE WHOLE OF `D-74`'s DEMAND: status, entry count, and the first
+/// entry's message — never the serialised refusal.** The value's own members are read (`ownMember`,
+/// `[[GetOwnProperty]]`, `D-35`), the `log` is read for its COUNT and for its FIRST ENTRY's message and for
+/// nothing else, and no member of it is quoted in full — **so a refusal carrying a hundred thousand entries, or
+/// one entry of a hundred megabytes, costs this frame an index read and a clip.** The identification is by the
+/// surface's own three-member shape (`status` a non-empty string, `message` a string, `log` an array) and NOT by
+/// a class: this frame spells a form, it decides nothing about what crosses, and what crosses is decided where
+/// the value was caught (`constraints.mjs`'s marks are the provenance test and stay the only one).
+export function throwableForm(thrown, room) {
+  const limit = room === undefined
+    ? MESSAGE_CEILING
+    : (typeof room === 'number' && room > 1 ? room : 1);
+  if (thrown === null) return bordered('`null`', limit);
   const kind = typeof thrown;
-  if (kind === 'undefined') return 'no value at all (the body threw `void 0`)';
-  if (kind === 'string') return `a string whose text is ${JSON.stringify(thrown)}`;
-  if (kind === 'number') return `a number whose value is ${String(thrown)}`;
-  if (kind === 'boolean') return `a boolean whose value is ${String(thrown)}`;
-  if (kind === 'bigint') return `a bigint whose value is ${String(thrown)}`;
-  if (kind === 'symbol') return 'a symbol, which carries no text a log can print';
-  if (kind === 'function') return 'a function, which carries no message';
+  if (kind === 'undefined') return bordered('no value at all (the body threw `void 0`)', limit);
+  if (kind === 'string') return bordered(`a string whose text is ${quoted(thrown, limit)}`, limit);
+  if (kind === 'number') return bordered(`a number whose value is ${String(thrown)}`, limit);
+  if (kind === 'boolean') return bordered(`a boolean whose value is ${String(thrown)}`, limit);
+  if (kind === 'bigint') return bordered(`a bigint whose value is ${String(thrown)}`, limit);
+  if (kind === 'symbol') return bordered('a symbol, which carries no text a log can print', limit);
+  if (kind === 'function') return bordered('a function, which carries no message', limit);
   let message;
   let name;
+  let log;
+  let status;
   try {
     message = ownMember(thrown, 'message');
     name = ownMember(thrown, 'name');
+    status = ownMember(thrown, 'status');
+    log = ownMember(thrown, 'log');
   } catch {
     // A `Proxy` whose `getOwnPropertyDescriptor` trap throws cannot be read at all: this frame says so and
     // runs nothing further (`D-35`: the refusal path invokes no caller code it was not already handed).
-    return 'an object this frame could not read, so its form is not printed';
+    return bordered('an object this frame could not read, so its form is not printed', limit);
   }
-  const named = typeof name === 'string' && name.length > 0 ? ` named ${JSON.stringify(name)}` : '';
+  // THE REFUSAL ARM — `D-74`'s summary, and it comes BEFORE the object arm so a refusal is never re-serialised.
+  if (typeof status === 'string' && status.length > 0
+      && typeof message === 'string' && message.length > 0
+      && Array.isArray(log) === true) {
+    const count = log.length;
+    const counted = count === 1 ? '1 log entry' : `${count} log entries`;
+    let first = null;
+    if (count > 0) {
+      const head = log[0];
+      if (head !== null && typeof head === 'object') {
+        const said = ownMember(head, 'message');
+        if (typeof said === 'string') first = said;
+      }
+    }
+    const quotedFirst = first === null ? '' : ` — its first message is ${quoted(first, limit)}`;
+    return bordered(`a refusal, ${quoted(status, limit)}, carrying `
+      + `${count === 0 ? 'no log entry' : counted}${quotedFirst}`, limit);
+  }
+  const named = typeof name === 'string' && name.length > 0 ? ` named ${quoted(name, limit)}` : '';
   if (typeof message === 'string') {
-    return `an object${named} whose own \`message\` member is the string ${JSON.stringify(message)}`;
+    return bordered(`an object${named} whose own \`message\` member is the string `
+      + `${quoted(message, limit)}`, limit);
   }
-  return `an object${named} carrying no own string \`message\` member`;
+  return bordered(`an object${named} carrying no own string \`message\` member`, limit);
+}
+
+/// **THE ENTRY'S ONE SENTENCE, AND THE ONE PLACE THE BOUND IS APPLIED TO A TOTAL** — `D-74`'s second demand:
+/// *"a bound that is applied per level but not to the total is the bug you are fixing."* The head and the tail
+/// are this package's own fixed bytes and the detail is the bounded form, so the sentence is the sum and the
+/// sum is what `MESSAGE_CEILING` bounds — **the same number at every depth, because neither head, tail nor the
+/// bound carries a depth term.** A caller that composed its own sentence around a form would be a second site
+/// with a second arithmetic; there is one, and it is here.
+export function boundedEntryMessage(head, detail, tail) {
+  const before = typeof head === 'string' ? head : '';
+  const middle = typeof detail === 'string' ? detail : '';
+  const after = typeof tail === 'string' ? tail : '';
+  return bordered(`${before}${middle}${after}`, MESSAGE_CEILING);
+}
+
+/// **A TEXT QUOTED THE WAY THE MESSAGE QUOTES ONE (`JSON.stringify`), WITH THE CLIP TAKEN FIRST** — so the
+/// quotation this frame builds is bounded whatever the text is, and a value of a hundred megabytes is cut before
+/// it is escaped rather than after (`D-74`'s "a log line that can be 268 MB is not a line").
+function quoted(text, limit) {
+  const room = limit - 2;
+  const kept = clipText(text, room > 1 ? room : 1);
+  try {
+    const spelled = JSON.stringify(kept);
+    return typeof spelled === 'string' ? spelled : 'a value this frame could not quote';
+  } catch {
+    return 'a value this frame could not quote';
+  }
+}
+
+/// **THE SAME BOUND, AT THE MESSAGE'S OWN QUOTATION OF AN INNER REFUSAL** — exported for the two crossing
+/// frames that quote an inner refusal's `message` beside its `status` (`constraints.mjs`'s `bodyThrowRefusal`
+/// and `reversalRefusal`).
+///
+/// **WHY THE MESSAGE NEEDS IT, MEASURED AND NOT ARGUED.** A message that quotes the inner refusal's message in
+/// FULL is quoting a string that already quotes its own inner one, so each level of a lawful chain adds an
+/// escaping layer over every byte below it: **the MESSAGE doubled per level exactly as the entry did** —
+/// `134,229,071` characters at depth `26`, `268,447,241` at `27`, and at `28` the composition passes V8's
+/// maximum string length and the frame dies with `RangeError: Invalid string length`, the very class `1.4.0`
+/// answered with. **SO THE QUOTE IS BOUNDED AT THE SAME `MESSAGE_CEILING`**: the sentence the package appends
+/// already names the inner refusal's `status` and quotes at most one bound's worth of its `message`, and a chain
+/// of any depth costs the same characters as its first level. **A chain of two levels is unaffected** — every
+/// generated sentence measured on this tree is shorter than the bound — so no arm's crossed sentence moves
+/// except where it was already the compounding one.
+export function boundedQuotation(text, limit) {
+  return quoted(text, limit === undefined ? MESSAGE_CEILING : limit);
 }
 
 /// **WHETHER A VALUE IS A REFUSAL THIS KERNEL BUILT** — the entry's crossing and this kernel's own repair

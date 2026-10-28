@@ -19,7 +19,7 @@ import { currentWindow, homeAddressKey, installRestartConsumer, isStoreReceiver,
 // function the pass appends with — rather than pushed here with a member set of its own; the REFUSAL's own
 // list keeps its five members and no `seq`, because no attempt stands at the judgement that built it
 // (`D-41` item 4). Two records, two honest forms, one append.
-import { append, externalCall, kernelFor, throwableForm } from './kernel-foundations.mjs';
+import { append, boundedEntryMessage, boundedQuotation, externalCall, kernelFor, throwableForm } from './kernel-foundations.mjs';
 // **⟶ AND THE TWO KERNEL ACTS THE DELETE'S PATH OWES — `D-55` ITEM 3, 2026-10-29.** The kernel's public
 // barrel (`src/constraint-kernel.mjs`) is untouched and keeps its five names; **these are two PART modules' own
 // acts, reached here the way `append` and `kernelFor` above are** (`kernel-surface.md §1` item 1's empty import
@@ -1278,7 +1278,7 @@ function bodyThrowRefusal(carried, thrown, recorded) {
     const innerStatus = ownDataMember(inner, 'status');
     const innerSaid = ownDataMember(inner, 'message');
     generated = `${generated} — the value the constraint body threw does NOT cross as this refusal: it was `
-      + `ITSELF a refusal, ${JSON.stringify(innerStatus)} with the message ${JSON.stringify(innerSaid)}, and it `
+      + `ITSELF a refusal, ${JSON.stringify(innerStatus)} with the message ${boundedQuotation(innerSaid)}, and it `
       + `crosses BESIDE this one under Symbol.for('provident-storeroom.inner-refusal') with its own log — the `
       + `generated sentence above names the CODE for a body that threw and not the value the body threw`;
   } else {
@@ -2914,7 +2914,7 @@ function reversalRefusal(one, after, said, reversalId, undo, thrown, unsettled =
     const innerStatus = ownDataMember(inner, 'status');
     const innerSaid = ownDataMember(inner, 'message');
     message = `${message} — the value the constraint body threw does NOT cross as this refusal: it was ITSELF a `
-      + `refusal, ${JSON.stringify(innerStatus)} with the message ${JSON.stringify(innerSaid)}, and it crosses `
+      + `refusal, ${JSON.stringify(innerStatus)} with the message ${boundedQuotation(innerSaid)}, and it crosses `
       + `BESIDE this one under Symbol.for('provident-storeroom.inner-refusal') with its own log`;
   }
   // **THE LOG ENTRY'S SENTENCE, AT ITS THREE ARMS** — a pair that refused the state the reversal (or the
@@ -2951,10 +2951,18 @@ function reversalRefusal(one, after, said, reversalId, undo, thrown, unsettled =
     // `4`'s one-entry arm, which the restoration's cell asserts).
     const took = THROWN_FORM.get(thrown);
     const form = typeof took === 'string' ? took : throwableForm(thrown);
-    spelled = `the constraint ${one.entry.id} THREW at the judgement of the state the reversal left at `
-      + `${addressSpelling(one.address)}: the value there is ${standingSpelling(after)}`
-      + ` — the value it threw was ${form}`
-      + ` — ${undoSpelling(undo)}`;
+    // **⟶ AND `D-74` (`DEF-AR`) APPLIES THE MESSAGE'S OWN BOUND TO THIS ENTRY'S TOTAL TOO, 2026-10-28.**
+    // **THE SECOND COMPOSITION SITE**: the sentence is a fixed head, the form and a fixed tail, and the SUM is
+    // what `MESSAGE_CEILING` bounds — the same number this entry answered at any depth, and the same number the
+    // message beside it is bounded by. **NO MEMBER, KIND, ORDINAL OR ENTRY COUNT MOVES**; only the content of
+    // the sentence's one form slot is now a bounded summary rather than a re-serialised value (`D-65`'s five
+    // members, `D-41` item `4`'s one-entry arm and the restoration's cell all stand).
+    spelled = boundedEntryMessage(
+      `the constraint ${one.entry.id} THREW at the judgement of the state the reversal left at `
+        + `${addressSpelling(one.address)}: the value there is ${standingSpelling(after)}`
+        + ` — the value it threw was `,
+      form,
+      ` — ${undoSpelling(undo)}`);
   }
   const entry = {
     // **⟶ AND THE `seq` IS GONE FROM THIS ENTRY TOO, 2026-10-28 — `D-65`: THE ARRAY INDEX IS THE POSITION.**

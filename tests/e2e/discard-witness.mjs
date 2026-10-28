@@ -59,7 +59,7 @@ import { storeCreate } from '../../bindings/js/index.mjs';
 import * as kernel from '../../bindings/js/src/constraint-kernel.mjs';
 // **AND `touchedAddresses` ITSELF IS READ BY `DW-13.5`/`DW-13.6`** — the set the union materialises, printed as the
 // function answers it rather than as the drive re-derives it (`D-17`: the one place is `kernel-foundations.mjs`'s).
-import { kernelFor, touchedAddresses } from '../../bindings/js/src/entry/kernel-foundations.mjs';
+import { kernelFor, touchedAddresses, MESSAGE_CEILING } from '../../bindings/js/src/entry/kernel-foundations.mjs';
 import { currentWindow, openCommits, windowMark } from '../../bindings/js/src/entry/state.mjs';
 // **THE STORE'S OWN POSITION, REACHED AT THE ADDON'S ENTRY EXACTLY AS THE PACKAGE REACHES IT** — the instrument
 // `D-63`'s two boundaries are measured with (`state.mjs`'s opening cache IS this answer, and the bump IS its
@@ -3212,6 +3212,224 @@ console.log('\n── W16 · `D-42`/`D-54` · THE SEVEN HOSTS OF A RAISE, EACH L
   console.log('        NOT JUDGED IS THE ONE TAKEN WHERE NO PASS RUNS AT ALL: a registration\'s own evaluation, and');
   console.log('        a `delete`\'s listener delivery. Those two are declared, their effects stand, and their');
   console.log('        exits are the file reload and a regenerated store.');
+}
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════
+// (W17) `D-74` / `DEF-AR` — THE MESSAGE IS BOUNDED AND THE LOG ENTRY MUST BE BOUNDED BESIDE IT
+//
+// **THE FINDING, AS THE DOWNSTREAM FILED IT AND AS `strata/decisions.md` · `D-74` RECORDS IT:** *"bound the log
+// entry as the message is bounded — compose it from a summary of the inner refusal rather than re-serialising
+// it."* **THE MEASURED STATE IT ANSWERS:** a constraint body that throws an inner refusal writes the form the
+// value took into the ONE `outcome` entry the terminal act appends (`DW-10.3`/`DW-10.4` measure that it is
+// there) — and the form was `JSON.stringify` of THE THROWN REFUSAL'S OWN `message`, i.e. the previous level's
+// whole form quoted again. **A chain of inner refusals therefore DOUBLED THE ENTRY AT EVERY LEVEL**, and the
+// downstream measured `longestLogEntryChars` at `268,446,684` characters at depth `28`.
+//
+// **WHAT THESE CELLS DRIVE, AND THE FOUR SUBJECTS `D-74` OWES CELLS FOR.**
+//   (17.1) ★ **THE DEPTH ARM**: a chain of inner refusals at depth `28` — the refusal still crosses with its
+//          `ConstraintBodyThrew` status, and the entry's length is the BOUND, printed beside the message's.
+//   (17.2) **THE SIX SHAPES**: an `Error`, a string, a number, an object with no `message`, a refusal, and a
+//          refusal whose `log` is itself huge — each entry bounded, each printed.
+//   (17.3) **THE BOUND HOLDS AT EVERY DEPTH AND IS ONE NUMBER**: the entry's total at depth `26` and at depth
+//          `28` is the same figure, because the bound carries no depth term (the bug this replaces was a bound
+//          applied per level and not to the total).
+//   (17.4) **THE LAWFUL ARMS ARE UNCHANGED WHERE THEY FIT**: a plain `Error`, a string and an object with no
+//          `message` answer the very forms `DW-10.3`/`DW-10.4` assert, byte for byte.
+//   (17.5) **AND `LogEntry` DID NOT GAIN A MEMBER**: the bound is on the FORM's content, not a column — five
+//          members, `D-65`'s index-for-`seq` unmoved (`D-74`'s own terms).
+//
+// **D-21.** Every cell reads its own arms and prints the numbers it measured; the run's exit arm counts them.
+// **D-17.** The expectations are literals here; the bound is READ FROM THE MODULE (`MESSAGE_CEILING`) rather than
+// re-transcribed, so a figure that moves moves this cell with it.
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+console.log('\n── W17 · `D-74` · THE LOG ENTRY IS BOUNDED AS THE MESSAGE IS ────────────────────────');
+{
+  /** **THE BOUND, READ AT ITS ONE HOME** (`kernel-foundations.mjs`'s `MESSAGE_CEILING`): the length a message has
+   *  when it has nothing inner to quote — the downstream's `307`, measured `306` on this tree's spelling. */
+  const BOUND = MESSAGE_CEILING;
+  /** The head this package puts before every thrown value's form in the terminal entry (`kernel-attempt.mjs`). */
+  const headOf = (id) => `the constraint ${id} threw; the attempt is closed — the value it threw was `;
+
+  /** **THE DEPTH DRIVE** — `n` pairs' worth of nesting out of ONE pair at the register: the body writes at
+   *  `['g', level]`, that write's own pass asks the same pair at the deeper address, and at the caller's depth
+   *  limit the body THROWS A PLAIN `Error`. **Every level's refusal is an inner refusal to the level above it**,
+   *  which is the shape the downstream measured. The `[]`-addressed pair is the store's own reach: a registration
+   *  at the register is asked for every act below it (`D-56`). */
+  const chain = (depth) => {
+    const store = storeCreate({ journalLength: 1024, listeners: [] });
+    store.write(['g'], 'mem', []);
+    let level = 0;
+    let caught = null;
+    try {
+      store.addConstraint({ address: [], id: 'chain' }, (context) => {
+        if (context.address.length === 0) return true;      // the registration's own judgement
+        level += 1;
+        if (level >= depth) throw new Error('the caller depth limit');
+        store.write(['g', level], 'mem', level);
+        return true;
+      });
+      store.write(['g', 0], 'mem', 0);
+    } catch (thrown) { caught = thrown; }
+    const entries = caught !== null && Array.isArray(caught.log) ? caught.log : [];
+    let longest = 0;
+    let longestAt = -1;
+    for (let at = 0; at < entries.length; at += 1) {
+      if (entries[at].message.length > longest) { longest = entries[at].message.length; longestAt = at; }
+    }
+    return {
+      status: caught === null ? null : caught.status,
+      message: caught === null || typeof caught.message !== 'string' ? '' : caught.message,
+      levels: level,
+      entries,
+      longest,
+      longestAt,
+      offending: longestAt === -1 ? null : entries[longestAt],
+    };
+  };
+
+  // ── DW-17.1 · ★ THE DEPTH ARM — A CHAIN OF INNER REFUSALS AT DEPTH 28 ──────────────────────────────
+  {
+    const deep = chain(28);
+    P('DW-17.1 · depth 28 · the message\'s length', deep.message.length);
+    P('DW-17.1 · depth 28 · the entries\' lengths, in list order', deep.entries.map((entry) => entry.message.length));
+    P('DW-17.1 · depth 28 · the longest entry', { chars: deep.longest, at: deep.longestAt, kind: deep.offending === null ? null : deep.offending.kind });
+    P('DW-17.1 · depth 28 · the offending entry\'s FORM', deep.offending === null ? null : deep.offending.message.slice(headOf('chain').length));
+    P('DW-17.1 · the bound read from its one home', BOUND);
+    A('DW-17.1', '`D-74` (`DEF-AR`) — *"bound the log entry as the message is bounded — compose it from a summary of the inner refusal rather than re-serialising it"* · `D-55` item 1 / `DEF-AK` (the form IS in the entry) · `D-58` (the crossed list is the consumer\'s ONE copy)',
+      '★ A CHAIN OF INNER REFUSALS AT DEPTH 28 CROSSES WITH ITS `ConstraintBodyThrew` STATUS AND THE ENTRY\'S LENGTH IS THE BOUND — every entry of the crossed `log` is no longer than the message\'s own bound, and the entry that carries the thrown value is a SUMMARY of the inner refusal (its status, its entry count and its first message) and not the serialised refusal',
+      deep.status === 'ConstraintBodyThrew'
+        && deep.entries.length === 28
+        && deep.longest > 0
+        && deep.longest <= BOUND
+        && deep.offending !== null && deep.offending.kind === 'outcome'
+        && Object.keys(deep.offending).length === 5
+        && deep.offending.message.includes('a refusal')
+        && deep.offending.message.includes('log entr'),
+      `status ${deep.status} · entries ${deep.entries.length} · longest ${deep.longest} · bound ${BOUND} · `
+        + `form ${deep.offending === null ? '<none>' : JSON.stringify(deep.offending.message.slice(headOf('chain').length))}`);
+  }
+
+  // ── DW-17.2 · THE SIX SHAPES — NO ENTRY IS UNBOUNDED FOR ANY THROWN VALUE ──────────────────────────
+  // **THE HUGE VALUES ARE BUILT IN `O(log n)` DOUBLINGS AND ARE NOT PRINTED**: what is printed is each entry's
+  // length and the form's own first characters, which is what a bound is measured by.
+  {
+    const doubled = (wanted) => { let text = 'x'; while (text.length < wanted) text += text; return text; };
+    const TEXT = doubled(4 * 1024 * 1024);
+    const hugeLog = [];
+    for (let at = 0; at < 50000; at += 1) {
+      hugeLog.push({ kind: 'outcome', id: 'inner', opId: 'op', message: `entry ${at} ${TEXT.slice(0, 120)}`, state: null });
+    }
+    const shapes = [
+      ['an `Error`', new Error('the plain thrown error')],
+      ['a string', 'a thrown string'],
+      ['a number', 7],
+      ['an object with no `message`', { note: 'no message member' }],
+      ['a refusal', { status: 'ConstraintBodyThrew', message: 'an inner refusal sentence', log: [{ kind: 'outcome', id: 'p', opId: 'op', message: 'the first message', state: null }] }],
+      ['a refusal whose `log` is itself huge', { status: 'ConstraintPassRefused', message: `a refusal with ${hugeLog.length} entries`, log: hugeLog }],
+      ['a 4 MiB thrown string', TEXT],
+      ['a 4 MiB thrown `message`', { message: TEXT }],
+    ];
+    const readings = [];
+    for (const [label, thrown] of shapes) {
+      const store = storeCreate({ journalLength: 64, listeners: [] });
+      store.write(['a'], 'mem', 1);
+      let registered = 'ok';
+      try {
+        store.addConstraint({ address: ['a'], id: 'thrower' }, (context) => {
+          if (context.value === 7) throw thrown;
+          return true;
+        });
+      } catch (refused) { registered = refused === null || typeof refused !== 'object' ? String(refused) : refused.status; }
+      let caught = null;
+      try { store.write(['a'], 'mem', 7); } catch (refused) { caught = refused; }
+      const entries = caught !== null && Array.isArray(caught.log) ? caught.log : [];
+      let longest = 0;
+      let form = '';
+      for (let at = 0; at < entries.length; at += 1) {
+        if (entries[at].message.length > longest) { longest = entries[at].message.length; form = entries[at].message; }
+      }
+      readings.push({
+        label,
+        status: caught === null ? null : caught.status,
+        entries: entries.length,
+        chars: longest,
+        bounded: longest > 0 && longest <= BOUND,
+        form: form.length > headOf('thrower').length ? `${form.slice(headOf('thrower').length, headOf('thrower').length + 84)}…` : form,
+      });
+    }
+    P('DW-17.2 · the six shapes (and two over-sized controls), each printed', readings);
+    A('DW-17.2', '`D-74` — *"No entry may be unbounded for any thrown value"*: an `Error`, a string, a number, an object with no `message`, a refusal, and a refusal whose `log` is itself huge · `D-55` item 1 (`DEF-AK`: the form is IN the entry) · `D-21`',
+      'EVERY ONE OF THE SIX SHAPES ANSWERS `ConstraintBodyThrew` AND EVERY ONE OF THEIR ENTRIES IS NO LONGER THAN THE BOUND — including the refusal whose `log` carries fifty thousand entries, and including a thrown value of four mebibytes, whose form is CLIPPED and says so (`…` at the cut)',
+      readings.length === 8
+        && readings.every((one) => one.status === 'ConstraintBodyThrew' && one.entries > 0 && one.bounded)
+        && readings[6].chars === BOUND && readings[7].chars === BOUND
+        && readings[6].form.endsWith('…') && readings[7].form.endsWith('…'),
+      JSON.stringify(readings.map((one) => [one.label, one.status, one.entries, one.chars])));
+  }
+
+  // ── DW-17.3 · THE BOUND IS ONE NUMBER AND IT DOES NOT MOVE WITH DEPTH ─────────────────────────────
+  {
+    const shallow = chain(26);
+    const deep = chain(28);
+    P('DW-17.3 · depth 26 → 28 · the longest entry, in characters', [shallow.longest, deep.longest]);
+    P('DW-17.3 · depth 26 → 28 · the crossed message\'s length (the datum the entry summarises)', [shallow.message.length, deep.message.length]);
+    A('DW-17.3', '`D-74` — *"a bound that is applied per level but not to the total is the bug you are fixing"* · *"print the total entry length at depth 26 and 28 before → after"*',
+      'THE BOUND IS THE SAME NUMBER AT BOTH DEPTHS: the longest entry at depth 26 and the longest at depth 28 are equal, both no greater than the module\'s `MESSAGE_CEILING`, and the crossed message\'s own length is the same figure at both depths too — the bound carries no depth term',
+      shallow.longest === deep.longest
+        && shallow.longest > 0
+        && shallow.longest <= BOUND
+        && deep.longest <= BOUND
+        && shallow.message.length === deep.message.length,
+      `entry ${shallow.longest} → ${deep.longest} · message ${shallow.message.length} → ${deep.message.length} · bound ${BOUND}`);
+  }
+
+  // ── DW-17.4 · THE LAWFUL ARMS ARE UNCHANGED WHERE THEY FIT THE BOUND ───────────────────────────────
+  {
+    const forms = [
+      [new Error('DW-LAWFUL-ERROR'), 'an object whose own `message` member is the string "DW-LAWFUL-ERROR"'],
+      ['DW-LAWFUL-STRING', 'a string whose text is "DW-LAWFUL-STRING"'],
+      [{ note: 'no message member' }, 'an object carrying no own string `message` member'],
+    ];
+    const read = [];
+    for (const [thrown, expected] of forms) {
+      const store = storeCreate({ journalLength: 64, listeners: [] });
+      store.write(['a'], 'mem', 1);
+      store.addConstraint({ address: ['a'], id: 'thrower' }, (context) => {
+        if (context.value === 7) throw thrown;
+        return true;
+      });
+      let caught = null;
+      try { store.write(['a'], 'mem', 7); } catch (refused) { caught = refused; }
+      const entries = caught !== null && Array.isArray(caught.log) ? caught.log : [];
+      const form = entries.length === 0 ? '' : entries[entries.length - 1].message.slice(headOf('thrower').length);
+      read.push({ expected, form, same: form === expected });
+    }
+    P('DW-17.4 · the lawful arms, form for form', read);
+    A('DW-17.4', '`D-74`\'s lawful arms — *"a plain `Error`, a string, an object with no `message` — their forms unchanged where they fit the bound"* · `DW-10.3`/`DW-10.4` (the same three forms, asserted byte for byte before the bound existed)',
+      'THE THREE LAWFUL ARMS STILL ANSWER THEIR OWN FORMS, BYTE FOR BYTE — the bound clips a value that does not fit and touches no value that does, so a consumer who could read *"an object whose own `message` member is the string …"* yesterday reads it today',
+      read.length === 3 && read.every((one) => one.same === true),
+      JSON.stringify(read));
+  }
+
+  // ── DW-17.5 · `LogEntry` DID NOT GAIN A MEMBER, AND THE BOUND IS ON THE FORM'S CONTENT ──────────────
+  {
+    const deep = chain(4);
+    const censuses = deep.entries.map((entry) => Object.keys(entry).sort());
+    const five = ['id', 'kind', 'message', 'opId', 'state'];
+    P('DW-17.5 · every entry\'s own members', censuses);
+    A('DW-17.5', '`D-74`\'s own rule — *"`LogEntry` stays five members — the bound is on the form\'s CONTENT, not a new column"* · `D-65` (the index is the position, `seq` is gone) · `index.d.ts`\'s `LogEntry`',
+      'EVERY ENTRY OF THE CROSSED LOG CARRIES EXACTLY THE FIVE DECLARED MEMBERS — no sixth, no `seq` back, no truncated-form column — and the bound is read off `message` alone',
+      deep.entries.length === 4
+        && censuses.every((one) => one.length === 5 && one.every((name, at) => name === five[at]))
+        && deep.longest <= BOUND,
+      JSON.stringify(censuses));
+  }
+
+  console.log('');
+  console.log('        THE SENTENCE TO CARRY AWAY: AN ENTRY IS A LOG LINE, AND A LINE THAT CAN BE 268 MB IS NOT A');
+  console.log('        LINE. THE FORM THE PACKAGE WRITES IS A SUMMARY — the inner refusal\'s STATUS, its ENTRY COUNT');
+  console.log('        and its FIRST MESSAGE, clipped at the length a message has when it has nothing inner to');
+  console.log('        quote — and the clip is taken on the TOTAL, so no depth of lawful nesting can grow it.');
 }
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════

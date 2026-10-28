@@ -1,5 +1,5 @@
 // `D-13` (`docs/L1/kernel-subdivision.md` §1 part `9d`) — the pass: bytes moved from `bindings/js/src/constraint-kernel.mjs`; no logic changed.
-import { KC, KC_TOKENS, SETTLED_ON_THE_PASSING_ARM, SAVE_FAILED_AT_THE_TERMINAL_ARM, TERMINAL_ARM, markBodyThrow, throwableForm, refuse, isKernelRefusal, pairSpelling, addressSpelling, sameAddress, kernelFor, append, appendOwn, ownMember, withdraw, landedOp, landedOpDefect, pairsTriggered, enterCommitFrame, leaveCommitFrame, commitLogInFlight, sealHandoff } from './kernel-foundations.mjs';
+import { KC, KC_TOKENS, SETTLED_ON_THE_PASSING_ARM, SAVE_FAILED_AT_THE_TERMINAL_ARM, TERMINAL_ARM, markBodyThrow, throwableForm, boundedEntryMessage, refuse, isKernelRefusal, pairSpelling, addressSpelling, sameAddress, kernelFor, append, appendOwn, ownMember, withdraw, landedOp, landedOpDefect, pairsTriggered, enterCommitFrame, leaveCommitFrame, commitLogInFlight, sealHandoff } from './kernel-foundations.mjs';
 import { commitAttemptIdOf, terminal, close, dropHandoff } from './kernel-terminal.mjs';
 
 /// **⟶ ADDED 2026-10-28 — THE BUMP'S CHANNEL, SPELLED ON THIS SIDE TOO (`D-63`).** **THE PASSING SWEEP MOVES THE
@@ -648,8 +648,18 @@ function evaluate(kernel, attempt, landing) {
         // object's own `message` member, or the kind of value it was, read off own members only), and the
         // closed report's list — the list the crossing hands the caller — holds it at that entry's position,
         // the list's own index and no `seq` member (`D-65`, 2026-10-28).
-        terminalComposed(kernel, attempt, null, `the constraint ${pair.id} threw; the attempt is closed — the `
-          + `value it threw was ${throwableForm(body)}`);
+        //
+        // **⟶ AND `D-74` (`DEF-AR`) PUTS THE FORM UNDER THE MESSAGE'S OWN BOUND, 2026-10-28.** **THE SITE: this
+        // one — the sentence below is the ONLY entry the thrown value is written into, and it is composed by
+        // `boundedEntryMessage`, which applies `MESSAGE_CEILING` to the TOTAL and not to a level.** A thrown
+        // REFUSAL is answered by `throwableForm`'s SUMMARY arm (its `status`, its entry count and its first
+        // entry's message) and never by the serialised refusal, so a chain of inner refusals costs this entry
+        // the same number of characters at depth `28` as at depth `1`. **NO MEMBER, KIND, ORDINAL OR ENTRY
+        // COUNT MOVES: `LogEntry` stays five members and the bound is on the form's CONTENT** (`D-65`).
+        terminalComposed(kernel, attempt, null, boundedEntryMessage(
+          `the constraint ${pair.id} threw; the attempt is closed — the value it threw was `,
+          throwableForm(body),
+          ''));
         // **⟶ AND THE VALUE IS MARKED HERE, BY THE FRAME THAT CAUGHT IT FROM THE BODY — `DEF-S`, 2026-10-26,
         // on the architect's ruling *"Expand the returned error set for both S/N"*.** The mark is what the
         // entry's `constraintCrossing` converts on, and an UNMARKED value still crosses as itself
