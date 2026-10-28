@@ -23,10 +23,14 @@ the value to assert against, not the crate's own `Cargo.toml` version.
 ## §1.2.0 · **UNRELEASED** — what the release in preparation adds, derived from the tree
 
 **★ THIS SECTION DESCRIBES A RELEASE THAT HAS NOT BEEN CUT, AND IT IS MARKED SO IT CAN NEVER BE MISTAKEN FOR A
-DECLARATION OF SHIPPED BYTES.** `bindings/js/package.json`'s `version` reads **`1.1.0`** at its own bytes this
-date, all five `optionalDependencies` pins read `1.1.0` with it, and no `v1.2.0` tag exists. **So `1.1.0` is what
-is cut and this section is what is being prepared; everything below was derived from the tree on 2026-10-28, not
-from a released artefact, and no consumer can install any of it yet.**
+DECLARATION OF SHIPPED BYTES.** `bindings/js/package.json`'s `version` reads **`1.2.0`** at its own bytes this
+date, all five `optionalDependencies` pins read `1.2.0` with it, the five platform manifests' `version` fields read
+`1.2.0` with them — **eleven sites, one rebuild, and the artefact the manifest stamps answers `version()` =
+`1.2.0`** — **and no `v1.2.0` tag exists: `git tag --list` answers `v1.0.0` · `v1.0.1` · `v1.1.0` and nothing else.**
+**SO THE HONEST READING IS THIS: THE MANIFEST IS PREPARED AT `1.2.0` AND THE RELEASE IS NOT CUT — a prepared version
+is not a released one, the tag is not cut until the architect cuts it, and no consumer can install any of this
+yet.** **What `1.1.0` describes is still what is cut and published; what this section describes is the preparation,
+derived from the tree on 2026-10-28, and the figure a reader checks against the registry today is still `1.1.0`.**
 
 **AND WHAT SHIPS NOWHERE, SAID FIRST BECAUSE IT IS THE EASIEST THING TO GET WRONG: THIS FILE IS AT THE
 REPOSITORY ROOT AND NO TARBALL CARRIES IT.** The main manifest's `files` allowlist names six rows — `index.mjs` ·
@@ -85,7 +89,8 @@ a change** — the bound, its spend-and-never-reset rule and its fail-closed arm
 
 **NOTHING ELSE IN THIS LIST IS A BREAKING CHANGE, AND NOTHING IN IT IS CUT.** Items `1` and `2` are the two a
 consumer can feel; `3` and `4` are declarations and pins. **When `1.2.0` is cut, this section is the declaration
-it carries — and until then the six figures a reader checks all read `1.1.0`.**
+it carries — and until then the six figures a reader checks are PREPARED at `1.2.0` and the tag is NOT CUT, so what
+is installed today is still `1.1.0`.**
 
 ---
 
@@ -409,3 +414,14 @@ tilde, no range. **A manifest that reads anything else anywhere is the wrong pac
 at the installed package. **No tag was cut, nothing was pushed, nothing was published, and no registry install
 was witnessed** — a registry-installed `1.1.0` is described here from the manifest and from a locally packed,
 installed artefact, and is still not witnessed as a registry download.
+
+**⟶ AND THE TWO PARAGRAPHS ABOVE ARE `1.1.0`'S OWN READING AND ARE READ THROUGH THIS CLAUSE, 2026-10-28: AT THIS
+TREE THE SIX FIGURES READ `1.2.0`, AND `1.2.0` IS PREPARED AND NOT CUT.** `RCA-8(g)` ANNOTATE-BESIDE: **both stand
+BYTE-FOR-BYTE; what each says of `1.1.0` was true of the tree it was read on.** **THE SIX FIGURES, RE-READ AT THEIR
+OWN BYTES THIS DATE: the main manifest's `version` is `"1.2.0"`, its five `optionalDependencies` pins are exact
+`1.2.0` with it, and the five platform manifests' `version` fields are `1.2.0` with them — eleven sites, moving
+together and never singly** (`PUB-DD-10`) — **so the rule the paragraph above teaches is UNMOVED and its figure is
+`1.2.0`: a manifest that reads anything else anywhere is the wrong package.** **THE CUT, AND WHAT THIS FILE STILL
+DOES NOT CLAIM:** `git tag --list` carries `v1.0.0` · `v1.0.1` · `v1.1.0` and no `v1.2.0`, so **`1.2.0` is PREPARED
+at those eleven figures and the tag is not cut until the architect cuts it**; the bytes a registry install yields
+today are `1.1.0`'s, and nothing here says otherwise.
