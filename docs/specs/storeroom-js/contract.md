@@ -2041,6 +2041,55 @@ items 10 (d)–(e) and 11 — the store-side clauses this section reads through;
 docs/specs/storeroom-native/contract.md §6.5 item 5 with `DD-22`; A3 docs/specs/storeroom-js/surface.md §2.7's
 re-homing clause of 2026-10-11 — this document's twin of this clause | requirement]`).
 
+**⟶ ADDED 2026-10-29 — `D-71` AND `D-72`: A LISTENER'S COMMIT IS ITS OWN, AND THE WINDOWS THAT DELIVER IT NEST. A
+PURE INSERTION BESIDE ITEMS 1–4 AND THE `A78` RE-HOMING CLAUSE ABOVE.** `RCA-8(g)` ANNOTATE-BESIDE: **every byte
+above stands BYTE-FOR-BYTE and is read THROUGH this clause; it adds no member, no verb, no parameter, no status, no
+bound, and no order claim over `triggered`.** **THE RULINGS, THE ARCHITECT, VERBATIM** (`strata/decisions.md` ·
+`D-71`): *"A listener is independent of the commit record of the triggering caller. The caller does not need to
+know about the outcome of the listeners."* **`D-72` states the shape that independence takes, and the four
+properties below are its elaboration.**
+
+1. **INDEPENDENCE.** **A listener body's call runs in its OWN commit** (`D-45`; `§2.6`'s clauses of 2026-10-28) —
+   **and its outcome, passed or refused, is THAT commit's.** **THE TRIGGERING CALLER RECEIVES ITS OWN OUTCOME AND
+   NOTHING ABOUT THE LISTENER'S**: this section's record carries `op`, `watched` and `triggered` and **no member
+   for a listener's commit** — **and a listener's refusal does not fail the write that fired it.** **A listener is
+   a SIDE EFFECT for external code, and a side effect's failure is the side effect's.** **SO THE ONLY PROPERTY A
+   CHAIN OF LISTENER WRITES EXPOSES UPWARD IS ITS COST** — depth, and whatever the listener does with what its own
+   call returns — **which is exactly why `D-70`'s missing loop guard is the asymmetry that matters: nothing else
+   about the chain is observable, so nothing else can be bounded.**
+2. **THE NESTING.** **Delivery windows are live at once, NESTED, every level a synchronous call on one thread:** an
+   outer write → its commit → its pass → its delivery → **listener `A`** → **`A`'s write (a NEW commit)** → **`A`'s
+   pass** → **`A`'s delivery** → **listener `B`** → … **"Interleaving" is therefore NESTED SUSPENSION and not
+   concurrency: `A`'s whole chain runs to completion before the window that fired it invokes its next listener.**
+3. **THE FOUR PROPERTIES, EACH UNDECLARED UP THE STACK UNTIL THIS CLAUSE.** **(i) DEPTH IS UNBOUNDED** — no
+   counter, no cap and no instrument. **(ii) THE CROSS-WINDOW ORDER IS REAL AND UNDECLARED**: within one window the
+   order is unspecified and the list is a set (item 3 above; `DD-22`/`DD-37`), **but across windows the nesting
+   imposes one — a nested chain precedes the window's next listener — and the machine provides that guarantee
+   while no clause promises it, so a consumer relying on the opposite relies on nothing.** **(iii) RE-ENTRANCY IS
+   UNAVOIDABLY OPEN**: a listener that writes at the address it was delivered for fires itself again, because the
+   store's trigger set is computed per act; nothing detects it and nothing is meant to. **(iv) NOTHING ABOVE SEES
+   BELOW** (`D-71`): a nested commit's outcome, refusal and record are invisible upward, so a chain that fails at
+   depth three is indistinguishable, to the original caller, from one that never ran.
+4. **MEASURED ON THIS TREE, THROUGH THE PUBLISHED ENTRY, 2026-10-29.** **A listener at `['a']` whose body writes
+   `['b'] = 'bad'`, against a constraint at `['b']` refusing `'bad'`: the caller's `write(['a'], 'mem', 1)`
+   answered normally — `{op: {opId: 'op-1', kind: 'write', address: ['a'], tier: 'mem', before: {present: false},
+   after: {present: true, value: 1}, seq: 1, compacted: false}, watched: [['a']], triggered: [{handle:
+   'watch-a', address: ['a']}]}`, **no status and no `log`** — while **the listener's own write was refused
+   `ConstraintPassRefused` INSIDE the listener**, `['b']` read **ABSENT** afterwards, and **the control arm's
+   direct caller write at `['b'] = 'bad'` WAS refused with the same status and the same message.** **AND THE
+   NESTING'S ORDER WAS PRINTED TOO:** `hA` and `hB` at `['a']` with `hA`'s body writing `['x']`, and `hC` at
+   `['x']`, printed `["A", "C (nested commit)", "A-end", "B"]` — **the nested chain closed before the window
+   invoked `B`, and `A`'s code resumed after it.**
+   **AND THE ONE STATE INDEPENDENCE DOES NOT REACH, MEASURED THE SAME WAY: A LISTENER BODY THAT THROWS IS NOT A
+   REFUSAL, AND THE THROW CROSSES THE NESTED STACK TO THE ORIGINAL CALLER.** With a nested listener at `['x']`
+   throwing `new Error('boom-in-nested-listener')`, **the outer `write(['a'], 'mem', 1)` THREW that `Error`** —
+   item 4 above (*"not caught, not retried and not reported"*) read through the nesting — **so the caller's write
+   was never answered, and the independence this clause states is the COMMIT's and not the exception's.**
+5. **WHAT IT DOES NOT MOVE.** **Items 1–4 above stand as printed; the fourteen own members, the twenty statuses,
+   the kernel's nine tokens and six items, `RESTART_LIMIT` `3`, the per-op floor and `§2.7`'s recipient-set reading
+   are unmoved; no second window and no delivery order is minted.** (`strata/decisions.md` · `D-71` · `D-72` ·
+   `D-45` · `D-70`; `DD-37`; the guide's `§6.5`–`§6.6`.)
+
 ### §2.8 The two file-behaviour readings a JS caller will meet
 
 1. **A `delete` AND A `rollback` PERFORM NO FILE I/O.** **`file`-tier durability is produced by a

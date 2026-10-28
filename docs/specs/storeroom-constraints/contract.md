@@ -670,6 +670,26 @@ fire listeners, and the machinery follows the chain as far as the caller's code 
 follows is the consumer's to keep — bound the chain in their own code — and it is stated for them at the guide's
 `§7.9` items 2–3, with the reconciliation of this file's touched criterion beside `D-70`'s own sentence at item 1.**
 
+**⟶ AND THE HALF THAT MAKES THAT ABSENCE THE ONLY ONE THAT MATTERS IS NAMED BESIDE IT, 2026-10-29 — `D-71` AND
+`D-72`, AND THE CLAUSE ABOVE STANDS BYTE-FOR-BYTE AND IS READ THROUGH THIS ONE.** `RCA-8(g)` ANNOTATE-BESIDE: **it
+adds no guard, spends no budget, moves no bound and mints no token.** **BECAUSE A LISTENER IS INDEPENDENT OF THE
+TRIGGERING CALLER'S COMMIT RECORD (`D-71` — *"The caller does not need to know about the outcome of the
+listeners"*), THE ONLY PROPERTY A CHAIN OF LISTENER WRITES EXPOSES UPWARD IS ITS COST** — depth, and whatever the
+listener does with what its own call returns. **That is why the missing loop guard is the asymmetry that can be
+felt and can be bounded, and nothing else about the chain can be either.** **AND THE COST HAS A SHAPE, DECLARED AT
+`D-72`: DELIVERY WINDOWS ARE LIVE AT ONCE AND NESTED** — `outer write → its commit → its pass → its delivery →
+listener A → A's write (a NEW commit) → A's pass → A's delivery → listener B → …` — **every level a synchronous
+call on one thread, so `A`'s whole chain completes before the window that fired it invokes its next listener; DEPTH
+IS UNBOUNDED; the CROSS-WINDOW ORDER is real and undeclared while the within-window set rule (`DD-37`) is unmoved;
+RE-ENTRANCY IS UNAVOIDABLY OPEN; and NOTHING ABOVE SEES BELOW (`D-71`)** — **with the one exception named: a listener body that THROWS is not a refusal, and the throw crosses the nested stack to the original caller, so the independence here is the COMMIT's and not the exception's.** **MEASURED ON THIS TREE, THROUGH THE
+PUBLISHED ENTRY, 2026-10-29: a listener at `['a']` whose body writes `['b'] = 'bad'` against a pair at `['b']`
+refusing — the caller's write answered normally with no status and no `log`, the listener's own write was refused
+`ConstraintPassRefused` inside the listener, the refusal rolled only that nested commit back, and a direct caller
+write at `['b'] = 'bad'` WAS refused with the same status.** **SO THE GUARD'S HOME IS THE PASS AND THE CHAIN'S
+HOME IS THE CALLER'S CODE, and `§5.2`'s budget, `§5.6`'s marker and the per-op floor are unmoved.**
+(`strata/decisions.md` · `D-71` · `D-72` · `D-70` · `D-45`; `DD-37`; the guide's `§6.5`–`§6.6` and `§7.9` item 2;
+`docs/specs/storeroom-js/contract.md §2.7`'s clause of the same date.)
+
 ### §5.6 `P-SM-6` — the first-repeat rule: an applied repair never runs twice, and a repeat fails the attempt
 
 **Property.** **A REPAIR ALREADY RECORDED AS APPLIED IN THIS ATTEMPT MAY NOT RUN AGAIN, AND A SECOND

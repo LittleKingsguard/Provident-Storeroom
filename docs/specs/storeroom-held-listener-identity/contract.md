@@ -204,6 +204,30 @@
 4. **THE STORE INVOKES NOTHING.** **The pair is DATA the caller or the package's `deliver` acts on, and no invocation moves into Rust** (`P: docs/pending.md · P-7`'s `WHY IT IS NOT A MECHANICAL EDIT` item 5; `A: docs/decisions.md · A57` — *"a handle that it returns to alert the client of the trigger"*). `[CONTRACT]`
 5. **WHAT THIS SECTION DOES NOT DECLARE, AND WHY: THE `deliver` DEDUPE'S ORDER IS NOT A GUARANTEE.** **`DD-37`/`DD-22`'s no-order rule is not relaxed by any pairing this item adds** (`P: docs/pending.md · P-7`, recorded constraint (iv)). **A drive compares `triggered` and `pending` as SETS and never as sequences.** `[NEGATIVE]`
 
+6. **⟶ ADDED 2026-10-29 — `D-71` AND `D-72`: THE DELIVERY'S WINDOW IS THE LISTENER'S OWN COMMIT, AND THE WINDOWS
+   NEST.** `RCA-8(g)` ANNOTATE-BESIDE: **items 1–5 above stand BYTE-FOR-BYTE and are read THROUGH this clause; it
+   adds no member to either list, no count, no order and no bound.** **THE RULING, THE ARCHITECT, VERBATIM**
+   (`strata/decisions.md` · `D-71`): *"A listener is independent of the commit record of the triggering caller.
+   The caller does not need to know about the outcome of the listeners."* **SO THE TWO LISTS THIS CONTRACT GOVERNS
+   KEEP THEIR SHAPES AND LOSE NO MEMBER TO A SECOND WINDOW:** the caller's `triggered` names **its own act's**
+   pairs, and **nothing in it reports what a listener's own commit did**; a listener body's call opens **its own
+   commit** (`D-45`), whose record and whose `triggered` are **that act's**, and whose outcome — passed or refused
+   — is **that commit's**; **a listener's refusal does not fail the write that fired it.** **AND THE WINDOWS NEST
+   (`D-72`)**: `outer write → its commit → its pass → its delivery → listener A → A's write (a NEW commit) → A's
+   pass → A's delivery → listener B → …` — **every level a synchronous call on one thread, so "interleaving" is
+   NESTED SUSPENSION: `A`'s whole chain completes before the window that fired it invokes its next listener.**
+   **DEPTH IS UNBOUNDED; THE CROSS-WINDOW ORDER IS REAL AND UNDECLARED (within a window item 5's set rule stands
+   and no order is asserted, while across windows a nested chain precedes the window's next listener — a guarantee
+   the machine provides and no clause promises); RE-ENTRANCY IS UNAVOIDABLY OPEN; and NOTHING ABOVE SEES BELOW**
+   (`D-71`). **AND THE ONE EXCEPTION IS NAMED RATHER THAN LEFT TO THE READER: A LISTENER BODY THAT THROWS IS NOT A
+   REFUSAL, AND ITS THROW CROSSES THE NESTED STACK TO THE ORIGINAL CALLER** — measured on this tree, the outer
+   write throwing the nested listener's `Error` — **so the independence this item states is the COMMIT's and not the
+   exception's; a caller that wants a listener's failure to stay the listener's catches it in the listener's body.**
+   **NO `P-HL` STRATEGY OR FAILURE-LIST ENTRY MOVES, `§5.5`'s DEDUPE AND WINDOW ARE UNMOVED, and the
+   guide states the same two texts at its `§6.5`–`§6.6`.** (`strata/decisions.md` · `D-71` · `D-72` · `D-45` ·
+   `D-70`; `docs/specs/storeroom-js/contract.md §2.7`'s clause of the same date.)
+   `[CONTRACT]`
+
 ### §2.6 `HL-6` — THE CONSTRAINT'S IDENTITY LIVES IN THE STORE
 
 1. **THE IDENTITY MOVES INTO THE STORE, AND THE JS CACHE STOPS BEING ITS HOME.** **`PAR-JS-25`'s IDENTITY BECOMES A STORE-SIDE FACT, RETURNED WITH THE PAIR, AND NO JS CACHE IS LOAD-BEARING FOR IT** (`P: docs/pending.md · (AA-2)`, verbatim: *"Move the identity into the store"*; `P: docs/pending.md · (Z-2)`'s question, answered). **What this retires, each at its own bytes: `(Y-2)`'s carrier reading — the cache keyed by `JSON.stringify(singleAddress)` (`bindings/js/index.mjs:2944`, `:2950`) is no longer the identity's home, so the set-address key problem `(Z-2)` raised DISSOLVES with the carrier; the single-silent-failure finding — a cache miss is no longer indistinguishable from a removal, because the identity's presence IS a store row's presence; and `(M-3)`'s proposal that `kernel.pairs` key on `id` alone is now the identity's own key, since the store holds one row per pair** (`P: docs/pending.md · (AA-2)`, items (i)–(iii)). `[CONTRACT]`

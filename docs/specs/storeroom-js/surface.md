@@ -1678,6 +1678,37 @@ docs/specs/storeroom-js/parameter-semantics.md §2.12 | declared parameter seman
 
 **8. WHAT IS UNCHANGED — A RECORD WITH NO KERNEL EVALUATION SET, DECLARED AS LAW AND NOT AS A HEDGE.** **⟶ `SUPERSEDED-WHOLE` 2026-10-15 — THIS ITEM IS DEAD TEXT FROM THIS DATE, AND THIS HOME CARRIES THE POINTER: ITS SUBJECT IS REMOVED BY `RCA-9` (`docs/specs/storeroom-native-proposal-review.md §18.1`, ruled `SETTLED` at that record's `§22.1`), BECAUSE EVERY WRITE OPENS OR JOINS A COMMIT AND PROCEEDS THROUGH THE FLOW, SO NO RECORD CARRIES *"NO KERNEL EVALUATION SET"* AND THE HOLE THIS ITEM DECLARES HAS NO SUBJECT; THE OPERATIVE LAW IS `docs/specs/storeroom-js/surface.md §2.11`, AND THIS ITEM'S READERS ARE RE-POINTED THERE ONE BY ONE PER `docs/specs/storeroom-native-proposal-review.md §19.5` `Q7`. THE BYTES THAT FOLLOW STAND AS THE RECORD OF THE CLAUSE THAT WAS, AND NO DRIVE MAY ASSERT THE INSTANT THEY DECLARE.** **THIS IS THE ONE PLACE THE LAW HAS A CONSUMER-VISIBLE EDGE, AND IT IS STATED PLAINLY: where a record carries no kernel evaluation set — a write the caller made through the store's own write verb and no `commit`, so that no `CommitRecord` and no `pending` member exists to read — THE DELIVERY INSTANT IS TODAY'S AND THIS CLAUSE DOES NOT MOVE IT: item 2's window stands, and the package invokes the registered bodies for the returned handles after the store call has completed and the record has been copied out.** **TO WHAT DOES THAT LEAVE A CONSUMER EXPOSED? THE SAME HOLE THE `N7` ROW OPENED, NAMED AS A FAIL-STATE AND NOT CLOSED BY INVENTION: such a caller's listener body runs at that instant, and it runs WHETHER OR NOT a constraint pass is later driven over that write — and where a pass is later driven and FAILS, that delivery has already happened, so item 6's discard reaches no body this unit delivered and the delivery cannot be undone.** **NO CLOSURE IS INVENTED HERE, AND NONE IS AVAILABLE AT THIS CELL: the package CANNOT separate a constraint-handle from a listener-handle at its own boundary, because that knowledge lives in the kernel's own pair registry (`docs/specs/storeroom-constraints/kernel-surface.md §2.2` item 4 — its copy of the pair set, keyed by (`address`, `id`) and not readable through any of the five items)** (`[A3 docs/specs/storeroom-constraints/kernel-surface.md §2.2` item 4 and `§2.1` item 1 — the kernel's pair-keyed registry and its five-item extent; A2 docs/decisions.md · `A115` (D3) — the five-item extent, the instance's `{register, on, off}` and the store's namespace are UNMOVED | state or fail-state declaration]`). **⟶ AND THE ONE HALF OF THIS ITEM'S FINDING THAT THE ORDERING SEAM CLOSES IS NAMED HERE, BECAUSE ITEM 9 IS THE CHANNEL THIS CELL SAID WAS UNAVAILABLE AT THE PACKAGE'S OWN BOUNDARY: the package still cannot separate a constraint-handle from a listener-handle AT ITS OWN BOUNDARY, and item 9 answers that by the KERNEL CALLING A MEMBER THE ENTRY IMPLEMENTS, so the carrier is `settle`'s two instants and never a package-side separation of the two handle kinds; the five-item extent and the set `{register, on, off}` named above are each SUPERSEDED AS FIGURES BY `A116` (D3) and by item 9, the extent staying FIVE and the set reading `{register, on, off, settle}`** (`[A2 docs/decisions.md · `A116` (D1) and (D3); A3 docs/specs/storeroom-js/surface.md §2.4 item 9 | requirement]`). **A caller that needs the ordering on a write it authors DRIVES IT THROUGH `commit` AND `runAttempt` — the route on which item 7's instant and residue reach a caller's own write, and no other route is declared on which the record's `pending` member decides the delivery.** **AND THE ASYMMETRY IS DECLARED RATHER THAN SMOOTHED: the same address, written by the same caller, is ordered when it is driven through `commit` and unordered when it is written bare — and that difference is a property of which record the caller holds, not of the address, the registration or the listener.**
 
+**9. ★ ⟶ ADDED 2026-10-29 — `D-71` AND `D-72`: A LISTENER'S OUTCOME IS ITS OWN, AND THE DELIVERY WINDOWS NEST.**
+`RCA-8(g)` ANNOTATE-BESIDE: **items 1–8 above stand byte-for-byte and are read THROUGH this item; it adds no member,
+no verb, no parameter, no bound and — within a window — no order claim.** **THE RULING, VERBATIM**
+(`strata/decisions.md` · `D-71`): *"A listener is independent of the commit record of the triggering caller. The
+caller does not need to know about the outcome of the listeners."* **INDEPENDENCE, IN THREE CLAUSES:** a listener
+body's call runs in its **own commit** (`D-45`) and its outcome — passed or refused — is **that commit's**; the
+triggering caller receives **its own outcome and nothing about the listener's**; and **a listener's refusal does
+not fail the write that fired it**, because a listener is a **side effect for external code** and a side effect's
+failure is the side effect's. **SO THE ONLY PROPERTY A CHAIN OF LISTENER WRITES EXPOSES UPWARD IS ITS COST**, and
+nothing else about the chain can be observed or bounded (`D-70`; `§2.7` item 2's window, unmoved).
+**THE NESTING, IN ONE STACK** (`D-72`): **windows are live at once, NESTED, every level a synchronous call on one
+thread** — `outer write → its commit → its pass → its delivery → listener A → A's write (a NEW commit) → A's pass →
+A's delivery → listener B → …` — **so "interleaving" is NESTED SUSPENSION: `A`'s whole chain completes before the
+window that fired it invokes its next listener.** **FOUR PROPERTIES ARE REAL AND NONE IS DECLARED UP THE STACK:
+DEPTH IS UNBOUNDED; THE CROSS-WINDOW ORDER IS REAL AND UNDECLARED (within a window the order is unspecified and the
+list is a set — item 3 — while across windows a nested chain precedes the window's next listener, a guarantee the
+machine provides and no clause promises); RE-ENTRANCY IS UNAVOIDABLY OPEN (a listener that writes at the address it
+was delivered for fires itself again); and NOTHING ABOVE SEES BELOW (a chain that fails at depth three is
+indistinguishable, to the original caller, from one that never ran).** **MEASURED ON THIS TREE, THROUGH THE
+PUBLISHED ENTRY, 2026-10-29:** a listener at `['a']` whose body writes `['b'] = 'bad'` against a constraint at
+`['b']` refusing `'bad'` — the caller's `write(['a'], 'mem', 1)` answered normally, with no status and no `log`,
+while the listener's own write was refused `ConstraintPassRefused` INSIDE the listener, `['b']` read ABSENT
+afterwards, and the direct caller write at `['b'] = 'bad'` WAS refused with the same status and message; and the
+nesting printed `["A", "C (nested commit)", "A-end", "B"]` for `hA`/`hB` at `['a']` with `hA` writing `['x']` and
+`hC` at `['x']`. **AND THE BOUNDARY OF INDEPENDENCE IS MEASURED BESIDE IT: a listener body that THROWS is not a
+refusal — item 4's *"not caught, not retried and not reported"* read through the nesting — and with `hN` at `['x']`
+throwing, the outer `write(['a'], 'mem', 1)` THREW that `Error`, so the caller's write was never answered; the
+independence this item declares is the COMMIT's and not the exception's.** **NOTHING ELSE MOVES: the member set, the status set, the kernel's items and the bounds are
+unmoved.** (`strata/decisions.md` · `D-71` · `D-72` · `D-45` · `D-70`; `docs/specs/storeroom-js/contract.md §2.7`'s
+clause of the same date; the guide's `§6.5`–`§6.6`.)
+
 ### §2.8 The two file-behaviour readings a JS caller will meet
 
 1. **A `delete` AND A `rollback` PERFORM NO FILE I/O.** **`file`-tier durability is produced by a

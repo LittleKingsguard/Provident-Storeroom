@@ -662,6 +662,95 @@ rules, each with its reason, and they govern what you register and where — bec
 section away and the two are NOT interchangeable: a listener at a derived index is a registration on a value the
 store never wrote, and a listener that writes has no loop guard to bound it.** (`D-70`; §7.9.)
 
+### §6.5 ★ A LISTENER'S OUTCOME IS NOT YOURS — its own commit, and its refusal cannot fail your write
+
+**★ THE RULING, IN THE ARCHITECT'S OWN SENTENCE** (`strata/decisions.md` · `D-71`, verbatim): *"A listener is
+independent of the commit record of the triggering caller. The caller does not need to know about the outcome of
+the listeners."* **AND THE CONSEQUENCES, STATED BECAUSE EACH IS SOMETHING YOU WILL OTHERWISE GUESS AT:**
+
+1. **A LISTENER RUNS IN ITS OWN COMMIT** (`D-45`), **AND ITS OUTCOME — PASSED OR REFUSED — IS THAT COMMIT'S**, not
+   yours.
+2. **THE TRIGGERING CALLER RECEIVES ITS OWN OUTCOME AND NOTHING ABOUT THE LISTENER'S.** **Your record is your
+   write's** — `op`, `watched`, `triggered` (`§6.4`) — **and it carries no member for what a listener's own
+   commit did.**
+3. **A LISTENER'S REFUSAL DOES NOT FAIL THE WRITE THAT FIRED IT.** **A listener is a SIDE EFFECT for external
+   code, and a side effect's failure is the side effect's** — your write already passed every constraint and
+   already answered before the delivery ran.
+4. **AND BECAUSE OF THAT, THE ONLY THING A CHAIN OF LISTENER WRITES EXPOSES UPWARD IS ITS COST** — depth, and
+   whatever the listener itself does with what its own call returns. **Which is why the missing loop guard is the
+   asymmetry that matters** (`§7.9` item 2): **nothing else about the chain is observable, so nothing else can be
+   bounded.**
+
+**MEASURED 2026-10-29 ON THIS CHECKOUT, THROUGH THE PUBLISHED ENTRY — AND THE MEASUREMENT IS THE POINT, BECAUSE
+THIS IS A CLAIM ABOUT WHAT CROSSES AND IT MUST BE PRINTED RATHER THAN ASSUMED.** One store: a listener at `['a']`
+whose body writes `['b'] = 'bad'`, and a constraint at `['b']` that refuses `'bad'` with
+`{message: 'b may not be bad'}`. **WHAT THE DRIVE PRINTED, RAW:**
+
+- **THE CALLER'S `store.write(['a'], 'mem', 1)` ANSWERED NORMALLY** — `{op: {opId: 'op-1', kind: 'write', address:
+  ['a'], tier: 'mem', before: {present: false}, after: {present: true, value: 1}, seq: 1, compacted: false},
+  watched: [['a']], triggered: [{handle: 'watch-a', address: ['a']}]}` — **no refusal, no status and no `log`
+  member: nothing of the listener's outcome crossed.**
+- **THE LISTENER'S OWN WRITE WAS REFUSED, INSIDE THE LISTENER** — caught there as
+  `status: 'ConstraintPassRefused'`, `message: 'b may not be bad'`, own members `['status', 'message', 'log']`
+  — **and that refusal was the listener's to catch; the call above never saw it.**
+- **THE STORE AFTER THE CALL: `['a']` reads `1`, AND `['b']` READS ABSENT (`AddressNotFound`)** — the listener's
+  own commit restored itself to where it opened (`§5.4`), and the caller's landing stands.
+- **THE CONTROL, WHICH IS WHAT MAKES THE MEASUREMENT MEAN ANYTHING: the same caller writing `['b'] = 'bad'
+  DIRECTLY is REFUSED, same `ConstraintPassRefused`, same message.** **So the constraint was armed throughout,
+  and what differs is only WHAT CROSSES — a caller's own refusal crosses, and a listener's does not.**
+
+**WHAT THAT MEANS FOR YOU, SAID PLAINLY: YOU CANNOT READ A LISTENER'S SUCCESS FROM ANY RETURN VALUE.** **No
+member, no log entry and no status on your record says a listener's own write landed; the only way your code
+learns it is if the listener body tells you out of band.** **That is the design and not a gap, and it is the
+reason the next subsection's chain is bounded by cost alone.** (`D-71`; `D-45`; `§6.4`'s record members; `§7.9`.)
+
+**AND THE ONE THING INDEPENDENCE DOES NOT COVER, MEASURED SO IT IS NOT INFERRED: A LISTENER THAT THROWS IS NOT A
+LISTENER THAT IS REFUSED, AND ITS THROW CROSSES ALL THE WAY UP.** **MEASURED 2026-10-29, on this checkout, through
+the published entry:** with `hA` at `['a']` writing `['x']` and `hN` at `['x']` throwing
+`new Error('boom-in-nested-listener')`, the run printed `["A", "nested throws", "A caught Error"]` **and the OUTER
+`store.write(['a'], 'mem', 1)` THREW that `Error`** — the delivery's own rule that *"a throwing listener body is
+not caught, not retried and not reported"* (`docs/specs/storeroom-js/contract.md §2.7` item 4) **read through the
+nesting's synchronous stack.** **SO THE INDEPENDENCE IS THE COMMIT'S: a refusal is the nested commit's and cannot
+cross, while a raw throw is not a commit outcome and does cross, because the call is on the same stack and nothing
+catches it on the way up — and the caller's write is then never answered at all.** **If you want a listener's
+failure to stay the listener's, catch it in the listener's own body.**
+
+### §6.6 ★ DELIVERY NESTS — every window is a synchronous call on one thread, and the stack is the only place its order exists
+
+**★ THE SHAPE, IN ONE STACK** (`strata/decisions.md` · `D-72`). **A commit resolves and its delivery begins; a
+listener that writes opens a commit of its own (`D-45`), which runs its own pass and then ITS delivery — so
+windows are live at once, NESTED, every level a synchronous call on one thread:**
+
+```text
+outer write → its commit → its pass → its delivery → listener A → A's write (a NEW commit) → A's pass → A's delivery → listener B → …
+```
+
+**SO "INTERLEAVING" IS NOT CONCURRENCY — IT IS NESTED SUSPENSION: `A`'s entire chain runs to completion before the
+window that fired it invokes its next listener.** **The outer loop is suspended, not interleaved.**
+
+**FOUR PROPERTIES ARE REAL, AND NOT ONE OF THEM IS DECLARED ANYWHERE UP THE STACK — so each is stated here:**
+
+1. **DEPTH IS UNBOUNDED** — no counter, no cap and no instrument (`D-70`'s absence; `§7.9` item 2). **The stack
+   grows until your code stops calling.**
+2. **★ THE CROSS-WINDOW ORDER IS REAL AND UNDECLARED.** **Within one window the order is unspecified and the list
+   is a set** (`DD-37`; `§6.4`) — **but across windows the nesting imposes one: a nested chain precedes the
+   window's next listener.** **The machine provides that guarantee and no clause promises it — so a consumer
+   relying on the opposite relies on nothing.** **MEASURED 2026-10-29, on this checkout, through the published
+   entry:** listeners `hA` and `hB` at `['a']` and `hC` at `['x']`, where `hA`'s body writes `['x']`, printed
+   `["A", "C (nested commit)", "A-end", "B"]` — **the whole nested chain ran inside `A`'s own call, before `B` was
+   invoked, and `A`'s code resumed after it.**
+3. **★ RE-ENTRANCY IS UNAVOIDABLY OPEN.** **A listener that writes at the address it was delivered for fires
+   itself again**, because the store's trigger set is computed per act. **Nothing detects it, and nothing is
+   meant to** — that is the loop the missing guard leaves open, and the concrete shape of *"no instrument you can
+   read"* (`D-70`).
+4. **AND NOTHING ABOVE SEES BELOW** (`D-71`; `§6.5`). **A chain that fails at depth three is indistinguishable, to
+   the original caller, from one that never ran:** the original record is its own, and the depth-three refusal is
+   that nested commit's.
+
+**WHAT THAT MEANS FOR YOU, IN ONE SENTENCE: if you write a listener that writes, you have moved the order of your
+own effects out of the record and into the call stack, and the only thing you can still hold is the depth you
+yourself refuse to exceed.** (`D-72`; `D-71`; `D-70`; `D-45`; `DD-37`; `§7.9`.)
+
 ---
 
 ## §7 · Constraining: the pair, the handle, and the two routes

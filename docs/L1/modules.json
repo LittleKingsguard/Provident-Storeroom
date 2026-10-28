@@ -806,6 +806,24 @@
           "src_store_rs": 2876
         },
         "note": "THE `sizes_remeasured_2026_10_28_eleven_past_v1_4_0` KEY ABOVE IS THE READING OF ITS OWN DATE AND IS KEPT BYTE-FOR-BYTE; this key re-reads every one of its figures and supersedes none of its bytes. MOVED: `delivery.mjs` 676 -> 747, `kernel-foundations.mjs` 1,083 -> 1,226, `kernel-registration.mjs` 793 -> 847, `kernel-attempt.mjs` 991 -> 1,020, `index.mjs` 1,651 -> 1,661, and `src/store.rs` 2,876 -> 3,065; UNMOVED: the other six entry parts, `kernel-commit.mjs` 356, `kernel-terminal.mjs` 468, `index.d.ts` 1,089, the barrel's 4 lines, the directory's thirteen files, and the other ten crate rows. `src_entry_total` 11,677 -> 11,974 closes on its terms: 161 + 376 + 1,125 + 1,214 + 1,002 + 418 + 747 + 3,014 + 1,226 + 847 + 356 + 1,020 + 468 = 11,974, and `kernel_parts_total` 3,691 -> 3,917 on 1,226 + 847 + 356 + 1,020 + 468. THE MATCHING CLAUSES ARE docs/L1/entry-subdivision.md's, kernel-subdivision.md's, module-map.md's and test-stratification.md's fourth `2026-10-29` re-measures; the denominator, the tests, the allowlist, the packed members and the version are this file's `ownership_remeasured_2026_10_29` key."
+      },
+      "sizes_remeasured_2026_10_29_twenty_four_past_v1_4_0": {
+        "method": "`wc -l` at each file's own last line on this tree, re-measured 2026-10-29 for the twenty-four commits past `v1.4.0` (`git describe`: v1.4.0-24-g5331993), the three after the 21-commit reading being one declaration pass (`80c2ca7`) and the `D-71`/`D-72` records (`aaedc73`, `5331993`)",
+        "entry_parts": {
+          "refusal.mjs": 161, "artefact.mjs": 376, "state.mjs": 1125, "class-decision.mjs": 1214, "carrier.mjs": 1002,
+          "frame.mjs": 418, "delivery.mjs": 747, "constraints.mjs": 3014
+        },
+        "kernel_parts": {
+          "kernel-foundations.mjs": 1226, "kernel-registration.mjs": 847, "kernel-commit.mjs": 356,
+          "kernel-attempt.mjs": 1020, "kernel-terminal.mjs": 468
+        },
+        "kernel_parts_total": 3917,
+        "src_entry_total": 11974,
+        "barrel": 4,
+        "index_mjs": 1661,
+        "index_d_ts": 1089,
+        "moved": false,
+        "note": "THE `sizes_remeasured_2026_10_29` KEY ABOVE IS THE READING OF ITS OWN DATE AND IS KEPT BYTE-FOR-BYTE; this key re-reads every one of its figures and supersedes none of its bytes. MOVED: NOTHING — all thirteen part sizes, `src_entry_total` 11,974 ✓, `kernel_parts_total` 3,917 ✓, `index.mjs` 1,661 ✓, `index.d.ts` 1,089 ✓ and the barrel's 4 lines ✓ stand as that key printed them — because the three commits since it write `docs/` and `strata/` alone. THE MATCHING CLAUSES ARE docs/L1/entry-subdivision.md's, kernel-subdivision.md's, module-map.md's, test-stratification.md's and surface-deltas.md's fifth `2026-10-29` re-measures; the denominator, the tests, the allowlist, the packed members and the version are this file's `ownership_remeasured_2026_10_29` key."
       }
     },
     "ownership_remeasured_2026_10_29": {

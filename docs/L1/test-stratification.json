@@ -484,5 +484,44 @@
       "it changed no member, status, token, kernel item or bound: the figures it re-read (20 statuses · 9 `KC` tokens · 14 own members · 7 allowlist rows · 20/21 packed members · 13 blind instances · 5 `LogEntry` members · 13 `src/entry/` files · denominator 198) are all unmoved",
       "it edited no test and no source: documentation and declarations only"
     ]
+  },
+  "remeasured_2026_10_29_twenty_four_past_v1_4_0": {
+    "method": "one run of each leg plus `find <dir> -type f` and `find tests -name '*.test.mjs'`, on this tree at `git describe` `v1.4.0-24-g5331993` — the twenty-four commits past `v1.4.0`, the three after the 21-commit reading being one declaration pass and the `D-71`/`D-72` records, which write `docs/` and `strata/` alone",
+    "denominator": {
+      "figure": 198,
+      "was": 198,
+      "moved": false,
+      "reading": "`git ls-files | grep -v '^scratch/'` — the whole index is `675` and `scratch/` holds `477`, so `675 = 477 + 198` ✓ (the itemised split is `docs/L1/modules.json`'s `ownership_remeasured_2026_10_29` key)"
+    },
+    "present_population": {
+      "tests/e2e/": 79,
+      "tests/integration/": 33,
+      "tests/unit/": 5,
+      "tests/Cargo.toml": 1,
+      "tests_total": 118,
+      "test_mjs_under_tests": 69,
+      "e2e_breakdown": { "test_mjs": 55, "runners": 12, "support_modules": 8, "evidence_json": 1, "documents": 3 },
+      "moved": false,
+      "note": "UNMOVED against the `remeasured_2026_10_29` key above: 79 + 33 + 5 + 1 = 118 ✓ · 55 + 12 + 8 + 1 + 3 = 79 ✓ · 69 `*.test.mjs` ✓ (55 e2e · 11 integration · 3 unit). The three commits since that reading add no path under `tests/`."
+    },
+    "legs": {
+      "npm test": { "tests": 1121, "pass": 1120, "fail": 0, "skip": 1, "exit": 0, "note": "the one skip is the dispatcher-shape cell, as every reading from 2026-10-28 records" },
+      "cargo test --offline": { "total": 669, "storeroom-native": 434, "storeroom-tests": 235, "failed": 0, "exit": 0, "reading": "434 + 235 = 669 ✓" },
+      "cargo test --offline -p storeroom-native": { "passed": 434, "failed": 0 },
+      "cargo test --offline -p storeroom-tests": { "passed": 235, "failed": 0 },
+      "npm run greens": { "exit": 0, "discovered_runners": 11, "reading": "`CHAIN COMPLETE — 11 discovered runner(s), every one exit 0`; AUTHORED 103 · EXECUTED 103 · PASS 103 · FAIL 0; layer `LIVE / ASSEMBLED PACKAGE`, `APP` `NONE`" },
+      "npm run test:e2e": { "exit": 0, "declared": 15, "recorded": 15, "PASS": 14, "LAYER-LIMIT": 1, "FAIL": 0, "note": "`INSTALL-09` is the LAYER-LIMIT, as declared" },
+      "npm run typecheck": { "exit": 0 },
+      "scripts/publish.sh --figures": { "exit": 0, "reading": "three shipped documents, three version lines, one generator: README.md · README.guide.md · RELEASE-NOTES.md each read 1.4.0, generated from `bindings/js/package.json`" }
+    },
+    "classification_unmoved": {
+      "O3": 5, "O4": 33, "none_by_design": 37,
+      "note": "the pre-move 75-path census, the route tags and the module/endpoint counts are unmoved: 19 modules and 61 endpoints stand. The route census's subject remains the 75 pre-move artifacts, which is why the 118 present paths add no route row. No cell of this reading changes a scope, a driver, a layer or a route."
+    },
+    "did_not_decide": [
+      "it decided no route, no scope, no driver and no layer for any cell: the three commits added declarations and records, and no cell",
+      "it changed no member, status, token, kernel item or bound: 20 statuses · 9 `KC` tokens · 14 own members · 7 allowlist rows · 20/21 packed members · 5 `LogEntry` members · 13 `src/entry/` files · denominator 198 are all unmoved",
+      "it edited no test, no source and no manifest: documentation and declarations only"
+    ]
   }
 }
