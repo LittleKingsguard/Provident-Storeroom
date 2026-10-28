@@ -11,7 +11,7 @@
 //   §5.1 `P-HL-1` · `S-ID-TYPE` · `S-ID-MONO` · `S-ID-UNIQ`
 //   §5.2 `P-HL-2` · `S-PURGE-ALL` · `S-PURGE-ORDER` · `S-PURGE-SET`
 //   §5.3 `P-HL-3` · `S-PAIR-SHAPE` · `S-PAIR-TOTAL` · `S-PAIR-DISTINCT`
-//   §5.4 `P-HL-4` · `S-SEL-EXACT` · `S-SEL-SNAPSHOT` · `S-SEL-DEDUPE`
+//   §5.4 `P-HL-4` · `S-SEL-PREFIX` (was `S-SEL-EXACT`; `D-56`, 2026-10-29) · `S-SEL-SNAPSHOT` · `S-SEL-DEDUPE`
 //   §5.5 `P-HL-5` · `S-DEDUPE-HANDLE` · `S-DEDUPE-ARG` · `S-DEDUPE-WINDOW`
 //   §5.6 `P-HL-6` · `S-ID-STORE` · `S-ID-DELETE` · `S-ID-SCOPE`
 //   §5.7 `P-HL-7` · `S-MEMBER-COUNT` · `S-REMOVE-WHOLE` · `S-REMOVE-ATOMIC`
@@ -619,21 +619,33 @@ test('hli_prop_P_HL_3_pending_is_a_pair_list_by_identity_with_triggered_at_every
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════
-// §5.4  `P-HL-4` — THE PASS'S EVALUATED SET IS THE PAIRS AT THE TRIGGERING ADDRESS, FIXED AT PASS START
+// §5.4  `P-HL-4` — THE PASS'S EVALUATED SET IS THE PAIRS AT OR ABOVE THE TRIGGERING ADDRESS, FIXED AT PASS
+// START  (`⟶ RE-DERIVED 2026-10-29: `D-56` supersedes the exact-address set; see the annotated cells below)
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════
 
-test('hli_prop_P_HL_4_the_pass_evaluates_the_pairs_at_the_attempts_own_address_and_no_other', async () => {
-  // **PROPERTY: FOR EVERY PASS: THE SET THE KERNEL EVALUATES IS THE PAIRS WHOSE OWN ADDRESS IS THE ATTEMPT'S
-  // ADDRESS — selected by an EXACT-ADDRESS match and never widened to `triggered`'s prefix set — and that set
-  // is MATERIALISED ONCE when the pass begins, each element evaluated at most once.** **`S-SEL-EXACT`**
-  // (a pair at an ANCESTOR and a pair at a DESCENDANT both prefix-match the store's trigger set: NEITHER is
-  // evaluated by the pass at the written address) · **`S-SEL-DEDUPE`** (a pair at two addresses, one an
+test('hli_prop_P_HL_4_the_pass_evaluates_the_pairs_at_or_above_the_attempts_own_address', async () => {
+  // **PROPERTY: FOR EVERY PASS: THE SET THE KERNEL EVALUATES IS THE PAIRS WHOSE OWN ADDRESS IS A PREFIX OF THE
+  // ATTEMPT'S ADDRESS, EQUALITY INCLUDED — and that set is MATERIALISED ONCE when the pass begins, each
+  // element evaluated at most once.** **`S-SEL-PREFIX`** (a pair at an ANCESTOR IS evaluated by the pass at the
+  // written address; a pair at a DESCENDANT is NOT) · **`S-SEL-DEDUPE`** (a pair at two addresses, one an
   // ancestor of the write's and one the write's own: ONE evaluation per pass) (`contract.md §5.4`;
-  // `§2.8` items 1 and 6; `kernel-selection.md §7` `KF-1`, `KF-2`, `KF-3`, `KF-4`).
+  // `§2.8` items 1 and 6; `strata/decisions.md` · `D-56`).
+  //
+  // **⟶ `RCA-8(g)` ANNOTATE-BESIDE, 2026-10-29 — AND THE BYTES HERE ARE THE DECLARATION `D-56` NAMES BY
+  // NUMBER.** **WHAT THIS CELL READ:** *"THE SET THE KERNEL EVALUATES IS THE PAIRS WHOSE OWN ADDRESS IS THE
+  // ATTEMPT'S ADDRESS — selected by an EXACT-ADDRESS match and never widened to `triggered`'s prefix set …
+  // `S-SEL-EXACT` (a pair at an ANCESTOR and a pair at a DESCENDANT both prefix-match the store's trigger set:
+  // NEITHER is evaluated by the pass at the written address)"*, cited as `kernel-selection.md §7`
+  // `KF-1`–`KF-3`. **THE ARCHITECT SUPERSEDED IT**, verbatim: *"A listener/constraint should fire when the
+  // descendants of its targeted address node change, because the descendants become part of the object that is
+  // read from that address"* (`D-56`) — **so the strategy id moves `S-SEL-EXACT` → `S-SEL-PREFIX` and the
+  // property's own sentence moves with it. THE SNAPSHOT TERM IS UNMOVED**: the set is still materialised ONCE
+  // at pass start (`CX-12`, which `D-56` defers to), and the descendant term is still excluded — the unruled
+  // direction.
   const K = await kernel();
   const result = row({
     id: 'P-HL-4',
-    strategies: ['S-SEL-EXACT', 'S-SEL-DEDUPE'],
+    strategies: ['S-SEL-PREFIX', 'S-SEL-DEDUPE'],
     seed: SEEDS['P-HL-4'],
     attempts: ROW_BUDGET,
     body: (rng) => {
@@ -642,7 +654,7 @@ test('hli_prop_P_HL_4_the_pass_evaluates_the_pairs_at_the_attempts_own_address_a
       const written = [...ancestor, tag('w')];
       const descendant = [...written, tag('d')];
       // THE WRITTEN ADDRESS AND ITS PARENT EXIST BEFORE THE COMMIT AND BEFORE ANY PAIR IS REGISTERED — the
-      // attempt's own address is what the pass selects by (`S-SEL-EXACT`), and a write mints its key
+      // attempt's own address is what the pass selects by (`S-SEL-PREFIX`), and a write mints its key
       // inside an existing parent container (`write-and-read.md §3.4` `W-3`/`W-4`; `F-3`;
       // `seedContainers`). The seeds are fixture and add no pair.
       seedContainers(store, written);
@@ -654,10 +666,11 @@ test('hli_prop_P_HL_4_the_pass_evaluates_the_pairs_at_the_attempts_own_address_a
 
       const report = K.runAttempt(store, K.commit(store, written, 'mem', intBetween(rng, 0, 9)));
       const checked = report.log.filter((e) => e.kind === 'constraint-check').map((e) => e.id);
-      assert.deepEqual(checked.sort(), ['own', 'two-address'],
-        'THE PASS EVALUATED THE PAIRS AT ITS OWN ADDRESS AND NEITHER THE ANCESTOR NOR THE DESCENDANT — '
-        + 'read ' + JSON.stringify(checked) + '. The store\'s `triggered` is PREFIX-selected, so following '
-        + 'it would have evaluated the ancestor (`S-SEL-EXACT`; `kernel-selection.md §7` `KF-1`–`KF-3`)');
+      assert.deepEqual(checked.sort(), ['ancestor', 'own', 'two-address'],
+        'THE PASS EVALUATED THE PAIRS AT ITS OWN ADDRESS AND AT ITS ANCESTOR, AND NOT THE DESCENDANT\'S — '
+        + 'read ' + JSON.stringify(checked) + '. The ancestor is a member because the value read at its '
+        + 'address CONTAINS the written one (`S-SEL-PREFIX`; `D-56`); the descendant is not, because the act '
+        + 'did not change it (`D-56`: the reverse direction is reported and not implemented)');
       assert.equal(checked.filter((id) => id === 'two-address').length, 1,
         'AND A TWO-ADDRESS PAIR IS EVALUATED ONCE FOR ONE WRITE — read '
         + checked.filter((id) => id === 'two-address').length + ' (`S-SEL-DEDUPE`; `§2.6` item 5; '
@@ -738,19 +751,25 @@ test('hli_prop_P_HL_4_a_pair_at_the_address_and_at_its_descendant_is_evaluated_o
   //   2. **THE MIRROR** — ONE pair over `[W/D, W]`, the same two addresses in the OTHER member order: a pass
   //      that dedupes on the ADDRESS SEQUENCE rather than on the pair's identity evaluates twice here and
   //      once there, which is why the state is drawn in both orders (`§2.6` item 6's `HL-DD-3`).
-  //   3. **THE CONTROL** — TWO pairs, one wholly at `W` and one wholly at the written `W/D`: the ancestor
-  //      pair is NOT evaluated by the pass at `W/D` (`S-SEL-EXACT`), so this attempt asserts the written
-  //      pair's one check and the ancestor's absence — the state without which case 1's "evaluated twice"
-  //      could not be told from "evaluated once because one address was dropped".
+  //   3. **THE CONTROL** — TWO pairs, one wholly at `W` and one wholly at the written `W/D`: **THE ANCESTOR
+  //      PAIR IS EVALUATED BY THE PASS AT `W/D`** (`S-SEL-PREFIX`, `D-56`, 2026-10-29) **AND ITS OWN
+  //      DESCENDANT'S IS NOT** — so this attempt asserts the written pair's one check AND the ancestor's one
+  //      check, which is the state without which case 1's "evaluated twice" could not be told from "evaluated
+  //      once because one address was dropped". **⟶ `RCA-8(g)` ANNOTATE-BESIDE: the bytes that stood here
+  //      read** *"the ancestor pair is NOT evaluated by the pass at `W/D` (`S-SEL-EXACT`)"* **and are
+  //      superseded by the architect's sentence** — *"A listener/constraint should fire when the descendants
+  //      of its targeted address node change, because the descendants become part of the object that is read
+  //      from that address"* (`strata/decisions.md` · `D-56`).
   //
   // **FAILURE LIST**: the pair evaluated twice in one pass (`§5.4` FAILURE LIST's own row); the pair
   // evaluated ZERO times (a selection that lost one of its addresses); a dedupe keyed on the address
-  // sequence rather than on the pair; a dedupe keyed on `id` alone across two DIFFERENT pairs of one id; an
-  // ancestor pair evaluated by the pass at its descendant.
+  // sequence rather than on the pair; a dedupe keyed on `id` alone across two DIFFERENT pairs of one id; **a
+  // DESCENDANT pair evaluated by the pass at its ancestor — the direction `D-56` leaves unruled and this pass
+  // therefore does not implement.**
   const K = await kernel();
   const result = row({
     id: 'P-HL-4',
-    strategies: ['S-SEL-DEDUPE', 'S-SEL-EXACT'],
+    strategies: ['S-SEL-DEDUPE', 'S-SEL-PREFIX'],
     seed: SEEDS['P-HL-4'] ^ 0x85EBCA6B,
     attempts: ROW_BUDGET,
     body: (rng, i) => {
@@ -771,9 +790,11 @@ test('hli_prop_P_HL_4_a_pair_at_the_address_and_at_its_descendant_is_evaluated_o
         const checked = report.log.filter((e) => e.kind === 'constraint-check').map((e) => e.id);
         assert.equal(checked.filter((id) => id === 'at-written').length, 1,
           'the pair AT the attempt\'s address is evaluated once — read ' + JSON.stringify(checked));
-        assert.equal(checked.filter((id) => id === 'at-ancestor').length, 0,
-          'AND THE PAIR AT THE ANCESTOR IS NOT — the pass selects by EXACT address and never widens to the '
-          + 'store\'s prefix-selected `triggered` (`S-SEL-EXACT`; `kernel-selection.md §7` `KF-1`–`KF-3`)');
+        assert.equal(checked.filter((id) => id === 'at-ancestor').length, 1,
+          'AND THE PAIR AT THE ANCESTOR IS EVALUATED TOO, ONCE — the value read at `W` CONTAINS what the '
+          + 'write at `W/D` moved, so `W`\'s pair judges an object that moved (`S-SEL-PREFIX`; '
+          + '`strata/decisions.md` · `D-56`, 2026-10-29, superseding `S-SEL-EXACT`) — read '
+          + JSON.stringify(checked));
         return;
       }
 
@@ -808,7 +829,7 @@ test('hli_prop_P_HL_4_a_pair_at_the_address_and_at_its_descendant_is_evaluated_o
     },
   });
   assert.deepEqual(result.failures, [],
-    'P-HL-4 address-and-descendant (S-SEL-DEDUPE, S-SEL-EXACT, seed 0x'
+    'P-HL-4 address-and-descendant (S-SEL-DEDUPE, S-SEL-PREFIX, seed 0x'
     + (result.seed >>> 0).toString(16) + ') held over ' + result.attempts + ' attempts');
 });
 
@@ -1624,7 +1645,7 @@ test('hli_prop_the_register_is_eight_rows_and_every_declared_strategy_id_has_a_g
     'S-ID-STORE', 'S-ID-TYPE', 'S-ID-UNIQ', 'S-K6-ANSWER', 'S-K6-EXTENT', 'S-K6-ROUTE',
     'S-MEMBER-COUNT', 'S-PAIR-DISTINCT', 'S-PAIR-SHAPE', 'S-PAIR-TOTAL', 'S-PURGE-ALL',
     'S-PURGE-ORDER', 'S-PURGE-SET', 'S-REMOVE-ATOMIC', 'S-REMOVE-WHOLE', 'S-SEL-DEDUPE',
-    'S-SEL-EXACT', 'S-SEL-SNAPSHOT',
+    'S-SEL-PREFIX', 'S-SEL-SNAPSHOT',
   ];
   assert.equal(declared.length > 0, true,
     'the declared strategy ids are this file\'s own declaration — read ' + JSON.stringify(declared));

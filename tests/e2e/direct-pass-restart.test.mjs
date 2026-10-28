@@ -392,10 +392,18 @@ test('DIRECT-PASS RESTART (4) · TERMINATION from a DIRECT drive: a pair body th
       + `${JSON.stringify(lastEntry.message)}`);
   // **THE BOUND, MEASURED AS A COUNT** — the restarted check asked exactly `RESTART_LIMIT` times inside ONE pass
   // scope, and the request past it is the one the budget spent.
-  assert.equal(restartAsks.length, RESTART_LIMIT,
-    `the restarted check makes EXACTLY ${RESTART_LIMIT} asks inside one pass scope before the budget is spent — `
-      + `it terminates, and the count is the declared bound rather than the body's patience. THE DRIVE COUNTED `
-      + `${restartAsks.length} asks (actions: ${actions.length})`);
+  // **⟶ RE-DERIVED 2026-10-29 (`D-56`) — THE FIRST ASK IS THE PASS'S OWN.** **What stood here** read *"the
+  // restarted check makes EXACTLY `${RESTART_LIMIT}` asks inside one pass scope"* — true while the pass at
+  // `['a']` did not ask the pair standing at the REGISTER `[]`. **`D-56` makes `[]` a PREFIX of `['a']`**, so
+  // the pass asks `restart-bound` itself, exactly as the fixture's own head says it would ("THE FIRST ACTION IS
+  // THE PASS'S OWN … the request the pass records is the one this pass scope must consume"). **THE BOUND IS
+  // UNMOVED**: the restarts the budget counts are still `RESTART_LIMIT`, and the count measured here is the
+  // pass's one ask plus those — `1 + RESTART_LIMIT`.
+  assert.equal(restartAsks.length, RESTART_LIMIT + 1,
+    `the pass's own ask plus EXACTLY ${RESTART_LIMIT} restart asks inside one pass scope before the budget is `
+      + `spent (1 + ${RESTART_LIMIT} = ${RESTART_LIMIT + 1} by \`D-56\`: the pair at the REGISTER \`[]\` is a `
+      + `member of the pass at \`['a']\`) — it terminates, and the count is the declared bound rather than the `
+      + `body's patience. THE DRIVE COUNTED ${restartAsks.length} asks (actions: ${actions.length})`);
   assert.equal(actions.length, RESTART_LIMIT + 1,
     `the actions are the pass's own plus one per restarted round: ${RESTART_LIMIT + 1} in all — the drive `
       + `recorded ${actions.length}`);

@@ -458,13 +458,23 @@ test('IN-COMMIT RESTART (5) · TERMINATION: a pair body that issues a reversal o
     `and the genuine refusal does NOT carry the budget clause: ${JSON.stringify(genuine.message)}`);
   // **THE BOUND, MEASURED AS A COUNT** — the restart asked exactly `RESTART_LIMIT` times, and the fourth
   // request is the one the budget spent.
-  assert.equal(restartAsks.length, RESTART_LIMIT,
-    `the restart makes EXACTLY ${RESTART_LIMIT} asks before the budget is spent — it terminates, and the `
-      + `count is the declared bound rather than the body's patience. THE DRIVE COUNTED `
-      + `${restartAsks.length} restart asks (actions: ${actions.length})`);
-  assert.equal(actions.length, RESTART_LIMIT + 1,
-    `the actions are the listener's own plus one per restart ask: ${RESTART_LIMIT + 1} in all — the drive `
-      + `recorded ${actions.length}`);
+  // **⟶ RE-DERIVED 2026-10-29 (`D-56`) — THE FIRST ASK IS THE PASS'S OWN, AND THE LISTENER'S ACTION STILL
+  // DRIVES THE CHAIN.** **What stood here** read *"the restart makes EXACTLY `${RESTART_LIMIT}` asks before the
+  // budget is spent"* — true while the pass at `['a']` did not ask the pair standing at the REGISTER `[]`.
+  // **`D-56` makes `[]` a PREFIX of `['a']`, so the pass asks `rt` once before the delivery**: `rt` acts there
+  // and PASSES, the pass therefore still passes, the delivery still runs the listener, and the listener's
+  // reversal is still the action that restarts the check — the chain this cell measures is untouched. **THE
+  // BOUND IS UNMOVED**: `RESTART_LIMIT` restarts, and the asks measured are the pass's one plus those —
+  // `1 + RESTART_LIMIT` — while the actions are `1 + 1 + RESTART_LIMIT`: the pass's, the listener's, and one
+  // per restart round.
+  assert.equal(restartAsks.length, RESTART_LIMIT + 1,
+    `the pass's own ask plus EXACTLY ${RESTART_LIMIT} restart asks before the budget is spent (1 + `
+      + `${RESTART_LIMIT} = ${RESTART_LIMIT + 1} by \`D-56\`: the pair at the REGISTER \`[]\` is a member of `
+      + `the pass at \`['a']\`) — it terminates, and the count is the declared bound rather than the body's `
+      + `patience. THE DRIVE COUNTED ${restartAsks.length} restart asks (actions: ${actions.length})`);
+  assert.equal(actions.length, RESTART_LIMIT + 2,
+    `the actions are the pass's own ask's, the listener body's, and one per restart ask: `
+      + `${RESTART_LIMIT + 2} in all (1 + 1 + ${RESTART_LIMIT}) — the drive recorded ${actions.length}`);
   assert.equal(log.some((entry) => typeof entry.message === 'string' && /budget is spent/i.test(entry.message)), true,
     `the entry says the budget was SPENT rather than that a pair refused a state it never judged: `
       + `${JSON.stringify(log.map((entry) => entry.message))}`);

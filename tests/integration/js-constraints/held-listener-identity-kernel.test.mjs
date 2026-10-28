@@ -17,7 +17,7 @@
 // | 5 | `S-15` `K-2`'s record — `triggered` and `pending` carry the SAME element identities, both PAIRS | `§2.4` items 3, 9 | `hli_kernel_the_commit_record_carries_pairs_in_both_lists_by_identity` |
 // | 6 | `S-16` a check-off POPS from `pending`; nothing is carried beside it | `§2.4` item 4 | `hli_kernel_a_check_off_pops_the_entry_from_pending` |
 // | 7 | `S-17` a failed write's discard — that write's set leaves `pending`, another's stands | `§2.4` item 5 | `hli_kernel_a_discard_reaches_a_pair_by_its_handle_and_leaves_another_writes_entries` |
-// | 8 | `P-HL-4`'s `S-SEL-EXACT`: a pair at an ANCESTOR or a DESCENDANT of the write is NOT evaluated | `§2.8` item 1; `§5.4` | `hli_kernel_the_pass_selects_by_the_triggering_address_and_never_by_the_prefix_set` |
+// | 8 | `P-HL-4`'s `S-SEL-PREFIX`: a pair at an ANCESTOR of the write IS evaluated and a pair at a DESCENDANT is NOT (`D-56`, 2026-10-29, superseding `S-SEL-EXACT`) | `§2.8` item 1; `§5.4`; `D-56` | `hli_kernel_the_pass_selects_by_the_triggering_address_and_its_ancestors` |
 // | 9 | `P-HL-4`'s `S-SEL-DEDUPE`: a two-address pair is evaluated ONCE per pass | `§2.6` item 5; `§5.4` | `hli_kernel_a_two_address_pair_is_evaluated_once_per_pass` |
 // |10 | `P-HL-4`'s `S-SEL-SNAPSHOT`: a mid-pass `K-1` enters the NEXT pass and no earlier one | `§2.8` item 6; `§5.4` | `hli_kernel_a_mid_pass_registration_enters_the_next_pass_and_no_earlier` |
 //
@@ -403,13 +403,21 @@ test('hli_kernel_a_discard_reaches_a_pair_by_its_handle_and_leaves_another_write
     'and the earlier write\'s `pending` elements are PAIRS (`contract.md §2.4` item 5; `TF-4`\'s sibling)');
 });
 
-test('hli_kernel_the_pass_selects_by_the_triggering_address_and_never_by_the_prefix_set', async () => {
-  // **`P-HL-4`'s `S-SEL-EXACT`: THE SET THE PASS EVALUATES IS THE PAIRS AT THE TRIGGERING ADDRESS, selected
-  // by an EXACT-ADDRESS match and NEVER widened to `triggered`'s prefix set** (`contract.md §5.4`;
-  // `§2.8` item 1; `kernel-selection.md §7` `KF-1`, `KF-2`, `KF-3`).
-  // **AND THE OBSERVABLE THE PART NAMES: the pass's `constraint-check` entries stand for the pairs at the
-  // attempt's own address, and a pair at an ANCESTOR or a DESCENDANT is ABSENT** (`kernel-selection.md §3`
-  // item 3; `§7` `KF-1`/`KF-2`).
+test('hli_kernel_the_pass_selects_by_the_triggering_address_and_its_ancestors', async () => {
+  // **`P-HL-4`'s `S-SEL-PREFIX`: THE SET THE PASS EVALUATES IS THE PAIRS AT OR ABOVE THE TRIGGERING ADDRESS —
+  // a pair at an ANCESTOR of the write IS evaluated, a pair at a DESCENDANT is NOT** (`strata/decisions.md` ·
+  // `D-56`; `contract.md §5.4`; `§2.8` item 1).
+  //
+  // **⟶ `RCA-8(g)` ANNOTATE-BESIDE, 2026-10-29 — THE CELL'S OBSERVABLE MOVED BECAUSE `D-56` SUPERSEDED THE
+  // RULE IT READ.** **THE BYTES THAT STOOD HERE** read *"`P-HL-4`'s `S-SEL-EXACT`: THE SET THE PASS EVALUATES IS
+  // THE PAIRS AT THE TRIGGERING ADDRESS, selected by an EXACT-ADDRESS match and NEVER widened to `triggered`'s
+  // prefix set … a pair at an ANCESTOR or a DESCENDANT is ABSENT"* (`contract.md §5.4`; `§2.8` item 1;
+  // `kernel-selection.md §7` `KF-1`, `KF-2`, `KF-3`). **AND THE ARCHITECT'S SENTENCE SUPERSEDES IT**, verbatim:
+  // *"A listener/constraint should fire when the descendants of its targeted address node change, because the
+  // descendants become part of the object that is read from that address"* — **so the ancestor is now ASKED and
+  // the descendant is still NOT.** **THE ONE-DIRECTIONALITY IS THIS CELL'S SUBJECT AND IT IS UNMOVED**: the
+  // ruling's sentence names the DESCENDANTS of the pair's node, so the reverse direction stays unruled and
+  // stays unasked (`D-56`'s own terms: *"the reverse is reported, not implemented"*).
   const K = await kernel();
   const inst = makeStore();
   const ancestor = [tag('anc')];
@@ -426,11 +434,15 @@ test('hli_kernel_the_pass_selects_by_the_triggering_address_and_never_by_the_pre
 
   const report = K.runAttempt(inst, K.commit(inst, written, 'mem', 1));
   const checked = checkIds(report.log);
-  assert.deepEqual(checked, ['own-pair'],
-    'THE PASS EVALUATED THE PAIR AT ITS OWN ADDRESS AND NEITHER THE ANCESTOR NOR THE DESCENDANT — read '
-    + JSON.stringify(checked) + ' against {\'own-pair\'}. The store\'s `triggered` set is PREFIX-selected, so '
-    + 'following it would have evaluated the ancestor; the kernel selects by `attempt.address` '
-    + '(`contract.md §5.4`; `§2.8` item 1; `kernel-selection.md §7` `KF-1`, `KF-2`, `KF-3`)');
+  assert.deepEqual(checked, ['ancestor-pair', 'own-pair'],
+    'THE PASS EVALUATED THE PAIR AT ITS OWN ADDRESS AND THE PAIR AT ITS ANCESTOR, AND NOT THE DESCENDANT\'S — '
+    + 'read ' + JSON.stringify(checked) + ' against {\'ancestor-pair\',\'own-pair\'}. **THE ANCESTOR IS ASKED '
+    + 'BECAUSE THE VALUE READ AT ITS ADDRESS CONTAINS THIS WRITE\'S TARGET** (`D-56`: *a listener/constraint '
+    + 'should fire when the descendants of its targeted address node change, because the descendants become '
+    + 'part of the object that is read from that address*); **THE DESCENDANT IS NOT, BECAUSE THE ACT DID NOT '
+    + 'CHANGE IT** (`contract.md §5.4`; `D-56`\'s one-directional set); **AND THE ORDER IS THE REGISTRATION\'S '
+    + 'ONE SEQUENCE** (`HL-8` item 6; `D-39`) — `ancestor-pair` registered FIRST and is asked FIRST, so the '
+    + 'ancestors INTERLEAVE into the one order rather than forming a second');
 });
 
 test('hli_kernel_a_two_address_pair_is_evaluated_once_per_pass', async () => {

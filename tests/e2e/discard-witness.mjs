@@ -114,6 +114,30 @@ const statusesIn = (v) => (v === null || typeof v !== 'object' ? [] : Object.key
 /** THE USE CASE'S TREE, AT ONE ADDRESS: `window.tabs` reads as an object with exactly one ACTIVE tab. */
 const tabsSeed = () => ({ tabs: { landingPage: { active: true }, settings: { active: false } } });
 
+/**
+ * **⟶ THE PAIR'S OWN-DEPTH SHIELD, ADDED 2026-10-29 (`D-56`) — A PAIR AT AN ANCESTOR IS NOW ASKED FOR THE ACTS
+ * BELOW IT.**
+ *
+ * The architect, verbatim: *"A listener/constraint should fire when the descendants of its targeted address node
+ * change, because the descendants become part of the object that is read from that address"*
+ * (`strata/decisions.md` · `D-56`). So the pair standing at `['window']` in this file's drives is asked by a
+ * `delete` at `['window','tabs','landingPage']` — and **the pass's context carries THE ACT's address, tier and
+ * value** (`kernel-surface.md §2.3` item 1), not the object at the pair's own address.
+ *
+ * **WHAT THIS HELPER DOES, AND WHAT IT DOES NOT DO.** It answers `true` for the asks an act BELOW the pair's own
+ * address makes of it, and hands every ask for an act AT its own depth to the body that judges — **so the pair's
+ * ask is TAKEN, COUNTED and ENTERED in the log (the widening, measured), while the drives' own subjects — the
+ * witness on the delete's answer, the registration window's silence — are not displaced by a refusal from a pair
+ * that was never the subject.** A pair that judges another location reads it (`D-50`), which is what W8 drives.
+ * **NO CELL OF THIS FILE ASSERTS THAT AN ANCESTOR GOES UNASKED**; the two cells that read the direction
+ * (`DW-10.13`, `DW-10.15`) assert the opposite and print the measurement.
+ */
+const atOwnDepth = (depth, judge) => (context) => {
+  if (context === null || typeof context !== 'object' || !Array.isArray(context.address)) return true;
+  if (context.address.length !== depth) return true; // a DESCENDANT act's ask (`D-56`)
+  return judge(context);
+};
+
 /** THE WINDOW A CALL SEES, read off the discriminator's OWN two sources (`§4.1`/`§4.2`): the open-commit count
  *  and the kernel record's live-attempt count. */
 const windowOf = (store) => ({ open: openCommits(store), live: kernelFor(store).live.size });
@@ -192,11 +216,16 @@ console.log('\n── W3 · THE WITNESS ON THE ACT\'S OWN ANSWER, PRINTED BEFORE
   store.write(['window'], 'mem', tabsSeed());
   const prior = store.write(['window', 'tabs', 'about'], 'mem', { active: false });
   const asked = [];
-  const registered = attempt(() => store.addConstraint({ address: ['window'], id: 'one-active-tab' }, (context) => {
-    const count = activeCount(context.value.tabs);
-    asked.push(count);
-    return count === 1 ? true : { message: `exactly one tab must be active, ${count} stand so` };
-  }));
+  // **`D-56` (2026-10-29): this pair is asked for the delete at `['window','tabs','landingPage']` too, and the
+  // context carries THAT act's value (`undefined` for a delete). `atOwnDepth` lets the ancestor ask pass, so the
+  // act's own answer — this cell's subject — is what the drive reads.** The ask is still taken and the count is
+  // still printed.
+  const registered = attempt(() => store.addConstraint({ address: ['window'], id: 'one-active-tab' },
+    atOwnDepth(1, (context) => {
+      const count = activeCount(context.value.tabs);
+      asked.push(count);
+      return count === 1 ? true : { message: `exactly one tab must be active, ${count} stand so` };
+    })));
   // **⟶ AND THE WITNESS'S OWN CONTROL, ADDED 2026-10-28 — `DEF-AM`: TWO PAIRS ARE REGISTERED AND THE REVERSAL
   // MOVES ONE.** The witness must name the address the refused act MOVED — `['window']`, whose `tabs` loses
   // `about` — and NOT `['window','settings']`, an address the same registry watches and the reversal never
@@ -345,10 +374,13 @@ console.log('\n── W5 · THE CONTROL — the same reversal ONE FRAME OUT is j
   store.write(['window'], 'mem', tabsSeed());
   const prior = store.write(['window', 'tabs', 'about'], 'mem', { active: false });
   const checks = [];
-  attempt(() => store.addConstraint({ address: ['window'], id: 'one-active-tab' }, (context) => {
-    const count = activeCount(context.value.tabs);
-    return count === 1 ? true : { message: `exactly one tab must be active, ${count} stand so` };
-  }));
+  // **`D-56`: the pair is asked for the delete below it as well as by the at-rest judgement; the shield answers
+  // the ancestor ask and the judgement — this cell's subject — is judged.**
+  attempt(() => store.addConstraint({ address: ['window'], id: 'one-active-tab' },
+    atOwnDepth(1, (context) => {
+      const count = activeCount(context.value.tabs);
+      return count === 1 ? true : { message: `exactly one tab must be active, ${count} stand so` };
+    })));
   const handle = store.listen('tabs-listener', [['window', 'tabs']]);
   store.register(handle, () => { checks.push(activeCount(store.read(['window', 'tabs']))); });
   const receipt = attempt(() => store.delete(['window', 'tabs', 'landingPage']));
@@ -381,12 +413,22 @@ console.log('\n── W6 · THE REGISTRATION WINDOW: an opaque identity carries 
   const store = make();
   store.write(['window'], 'mem', { tabs: { settings: { active: false } } });
   const prior = store.write(['window', 'tabs', 'landingPage'], 'mem', { active: true });
-  const first = attempt(() => store.addConstraint({ address: ['window'], id: 'landing-page-stands' }, (context) => {
-    const tabs = context.value.tabs;
-    return Object.hasOwn(tabs, 'landingPage')
-      ? true
-      : { message: 'the window must keep a landing page; none stands' };
-  }));
+  // **⟶ `D-56` READS ONTO THIS PAIR IN TWO PLACES, 2026-10-29.** (1) The pair stands at `['window']` and the
+  // registration below is at `['window','tabs','settings']`, so the registration's own pass ASKS it — the ask is
+  // taken and answered `true` here (`atOwnDepth`), because this cell's subject is the registration's own window
+  // and not this pair's refusal. (2) **AND THE NEXT WRITE MOVED, FOR THE RULING'S OWN REASON**: it used to land at
+  // `['window','tabs','settings']` — a DESCENDANT of the address this pair watches — and `D-56` makes such an act
+  // an ask of this pair, so it is no longer "unrelated": it lands at `['elsewhere']` instead, and the cell's
+  // subject — that a registration's discarded request is attributed to NO later act — is read where it can be
+  // read. **THE SHIELD IS NOT AN OVERRIDE OF `D-56`**: an ancestor ask is taken, and the pair still refuses the
+  // state after the reversal when it is asked for an act at its own depth (W5 drives exactly that refusal).
+  const first = attempt(() => store.addConstraint({ address: ['window'], id: 'landing-page-stands' },
+    atOwnDepth(1, (context) => {
+      const tabs = context.value.tabs;
+      return Object.hasOwn(tabs, 'landingPage')
+        ? true
+        : { message: 'the window must keep a landing page; none stands' };
+    })));
   let inside = null;
   let raised = null;
   const registration = attempt(() => store.addConstraint({ address: ['window', 'tabs', 'settings'], id: 'registration-window' },
@@ -400,7 +442,7 @@ console.log('\n── W6 · THE REGISTRATION WINDOW: an opaque identity carries 
       return true;
     }));
   const identity = registration.ok ? registration.value : null;
-  const next = attempt(() => store.write(['window', 'tabs', 'settings'], 'mem', { active: 'AFTER' }));
+  const next = attempt(() => store.write(['elsewhere'], 'mem', { active: 'AFTER' }));
   P('the first pair registered against the seed', first.ok);
   P('the prior op (id, seq, compacted)', [prior.op.opId, prior.op.seq, prior.op.compacted]);
   P('the registration body ran with open commits', inside);
@@ -432,8 +474,21 @@ console.log('\n── W7 · BEHAVIOUR UNCHANGED — no pass runs in either windo
   store.write(['window'], 'mem', tabsSeed());
   const prior = store.write(['window', 'tabs', 'about'], 'mem', { active: false });
   const asks = [];
+  // **⟶ RE-DERIVED 2026-10-29 (`D-56`) — THE PAIR IS ASKED BY THE DELETE'S OWN PASS, AND THAT IS THE POINT.**
+  // **What stood here** recorded `activeCount(context.value.tabs)` per ask and the cell read *"the pair is asked
+  // exactly as often as the registration asked it — once — and not once by the delivery"*, on the sentence *"this
+  // pair stands at an ANCESTOR of the deleted address, which that pass does not ask (the exact-address rule)"*.
+  // **`D-56` supersedes that rule**: *"A listener/constraint should fire when the descendants of its targeted
+  // address node change, because the descendants become part of the object that is read from that address"* — so
+  // the DELETE's pass asks this pair, and the count reads TWO (the registration's and the pass's). **WHAT IS
+  // UNMOVED IS THE DELIVERY**: no pass runs in the listener's own window, so the reversal the listener raised is
+  // still discarded and still witnessed (`DW-07.2`, `DW-07.3`). The ask records `'ancestor-ask'` where the act is
+  // not at the pair's own depth, which is the shape `D-56` gives it.
   attempt(() => store.addConstraint({ address: ['window'], id: 'one-active-tab' }, (context) => {
-    asks.push(activeCount(context.value.tabs));
+    // THE ASK IS RECORDED WHOEVER MAKES IT: its own depth's value where the act lands there, and the act's depth
+    // where `D-56` sends a descendant act's ask. The pair answers `true` both ways — its own refusal is W5's.
+    const depth = Array.isArray(context.address) ? context.address.length : null;
+    asks.push(depth === 1 ? activeCount(context.value.tabs) : `ancestor-ask@${depth}`);
     return true;
   }));
   const afterRegistration = asks.length;
@@ -444,15 +499,15 @@ console.log('\n── W7 · BEHAVIOUR UNCHANGED — no pass runs in either windo
   P('the pair\'s asks: at registration · after the delete', [afterRegistration, afterDelete]);
   P('the delete\'s witness (a report, not a check)', receipt.ok ? receipt.value.discarded : '<no receipt>');
   P('`window` after the delete (the effect stands)', receipt.ok ? store.read(['window']) : '<no receipt>');
-  // **⟶ AND THE WINDOW THIS CELL MEASURES IS NOW DEFINED BY THE DELIVERY AND NOT BY THE VERB — `D-55` ITEM `3`,
-  // 2026-10-29.** `D-1-bis` (*a delete consults no constraint*) is **superseded for the delete's OWN act**: the verb
-  // runs a pass of its own kind, and this cell's pair stands at an ANCESTOR of the deleted address, which that
-  // pass does not ask (the exact-address rule — `X6`/`DW-10.13`). **THE OBSERVABLE IS THEREFORE UNMOVED AND ITS
-  // GROUND HAS NARROWED TO THE DELIVERY, which still runs no pass**, so the cell keeps its predicate and its
-  // sentence and is read through the dated clause.
-  A('DW-07.1', '`D-43` item 2 (`D-1-bis`: a delete consults no constraint — READ THROUGH `D-55` item 3 of 2026-10-29: the DELETE runs a pass; THIS DELIVERY runs none, and this pair stands at an ancestor the pass does not ask); `D-49` (`the behaviour unchanged` — no pass runs in this delivery)',
-    'the delete\'s DELIVERY passes NO CONSTRAINT: the pair is asked exactly as often as the registration asked it — once — and not once by the delivery',
-    receipt.ok && afterRegistration === 1 && afterDelete === 1,
+  // **⟶ AND THE WINDOW THIS CELL MEASURES IS THE DELIVERY — `D-55` ITEM `3` AND `D-56`, 2026-10-29.** `D-1-bis`
+  // (*a delete consults no constraint*) is **superseded for the delete's OWN act**: the verb runs a pass of its
+  // own kind, and from `D-56` that pass asks the pair standing at an ANCESTOR of the deleted address too. **SO THE
+  // COUNT MOVES FROM ONE TO TWO** — the registration's ask and the delete's pass's — **AND WHAT THE CELL IS ABOUT
+  // IS UNMOVED: THE DELIVERY ADDS NO ASK.** The predicate therefore reads the count the pass's own widening
+  // gives, plus the fact that the pass asked it exactly once (no third ask at the delivery).
+  A('DW-07.1', '`D-43` item 2 (`D-1-bis`: a delete consults no constraint — READ THROUGH `D-55` item 3 of 2026-10-29: the DELETE runs a pass, and `D-56` makes an ancestor pair a member of it; THIS DELIVERY still runs none); `D-49` (`the behaviour unchanged` — no pass runs in this delivery)',
+    'the pair is asked TWICE — once by its registration and once by the delete\'s own pass (`D-56`) — and NOT a third time by the DELIVERY, which passes no constraint at all',
+    receipt.ok && afterRegistration === 1 && afterDelete === 2,
     `asks ${JSON.stringify(asks)}`);
   A('DW-07.2', '`D-49` (a witness reports a discard; it does not run the check it names)',
     'the delete produced NO refusal, NO restored state and NO judgement: the reversal\'s effect still stands at the end',
@@ -460,8 +515,8 @@ console.log('\n── W7 · BEHAVIOUR UNCHANGED — no pass runs in either windo
     receipt.ok ? JSON.stringify(store.read(['window'])) : String(receipt.caught));
   const w7Witness = witnessOf(receipt.ok ? receipt.value : null);
   A('DW-07.3', '`D-49` (what a request still does NOT do, said rather than implied)',
-    'the record reports the discard while the pair stands unasked at the state the action left — the witness is the whole of what the act now says',
-    w7Witness !== null && w7Witness.length === 1 && afterDelete === 1,
+    'the record reports the discard while the pair stands unasked BY THE DELIVERY at the state the action left — the witness is the whole of what the act now says (its last ask is the pass\'s, the second of two)',
+    w7Witness !== null && w7Witness.length === 1 && afterDelete === 2,
     receipt.ok ? JSON.stringify({ discarded: w7Witness, asks }) : String(receipt.caught));
   console.log('');
   console.log('        WHAT A REQUEST STILL DOES NOT DO, IN ONE PARAGRAPH: a `rollback` raised inside either passless');
@@ -1399,28 +1454,205 @@ console.log('\n── W10 · `D-55` — the five settled rows, measured ──�
       + ` · outer ${oCaught === null ? 'ANSWERED' : statusOf(oCaught)} · list `
       + `${JSON.stringify(oLog.map((entry) => [entry.seq, entry.kind, entry.id || null, entry.opId || null]))}`);
 
-  // ── (X6) THE ANCESTOR PAIR IS STILL NOT ASKED — THE EXACT-ADDRESS RULE, UNMOVED ─────────────────────
-  // **THE PASS IS THE WRITE'S: its evaluated set is the pairs whose own address IS the attempt's**
-  // (`pairsAtAddress`; `contract.md §2.8` item 1's exact-address rule, NOT `triggered`'s prefix set). So the
-  // pair at `['a']` in the drive below is asked at its registration and by no pass of a delete at `['a','b']` —
-  // which is why the earlier `W7` window's readings are unmoved.
-  const eStore = make();
-  eStore.write(['a'], 'mem', { b: 1 });
-  const eAsks = [];
-  const ePair = attempt(() => eStore.addConstraint({ address: ['a'], id: 'ancestor-pair' }, (context) => {
-    eAsks.push(context.attempt === null ? 'registration' : 'pass');
+  // ═════════════════════════════════════════════════════════════════════════════════════════════════════
+  // (X6) `D-56` — THE PASS'S SET WIDENS FROM EXACT ADDRESS TO PREFIX, AND THE DIRECTION IT DOES NOT RULE
+  //
+  // **THE RULING** (`strata/decisions.md` · `D-56`, 2026-10-29, the architect, verbatim):
+  //
+  //     A listener/constraint should fire when the descendants of its targeted address node change, because the
+  //     descendants become part of the object that is read from that address
+  //
+  // **THE GROUND IS SEMANTIC AND NOT A PREFERENCE**: the value read at a prefix CONTAINS its subtree, so a change
+  // at a descendant changes what a read at the ancestor returns, and a pair standing at the ancestor **judges an
+  // object that moved**. **THE SET, STATED ONCE: a pair is asked when THE ACT'S ADDRESS IS AT OR BELOW THE PAIR'S
+  // ADDRESS** — the pair's address is a prefix of the act's, equality included. **THE UNRULED DIRECTION — an act
+  // AT OR ABOVE a pair's address — is MEASURED here and NOT implemented**: the ruling's sentence names the
+  // DESCENDANTS of the pair's node, and the reverse is reported.
+  //
+  // **⟶ `RCA-8(g)` ANNOTATE-BESIDE — THE CELL THAT STOOD HERE.** `DW-10.13` read *"the delete's pass asks the
+  // pairs standing at THE DELETE'S OWN ADDRESS and no pair at an ancestor — the exact-address rule the write's
+  // pass keeps, so an ancestor pair's ask count is unmoved by a descendant delete"* and asserted **one** ask (the
+  // registration's) for the pair at `['a']` in a delete at `['a','b']`, on `contract.md §2.8` item 1 and the
+  // pass's own scan. **`D-56` supersedes that rule by number** (`HL-8` item 1's sentence and
+  // `attempt-lifecycle.md §2.4` item 5 (iv) are the other two deferrers), **so the cell is re-derived to the
+  // measurement the ruling asks for and keeps its id**: the ancestor IS asked, its refusal CROSSES, and the
+  // commit ROLLS BACK (`D-55` item 5's safe state).
+  // ═════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  // ── (X6a) `DW-10.13` — THE ANCESTOR PAIR IS ASKED, ITS REFUSAL CROSSES, THE COMMIT ROLLS BACK ──────
+  // **THIS IS THE SCENARIO THE EXACT-ADDRESS PASS STOPPED ON.** The pair stands at `['window','tabs']` — the use
+  // case's own address, *"when window.tabs.landingPage is removed … check that exactly one tab is active"* — and
+  // the act is a DELETE at its descendant `['window','tabs','landingPage']`. **THE PAIR JUDGES THE OBJECT AT ITS
+  // OWN ADDRESS AND READS IT** (`D-50`'s route, which `D-56` leaves standing): it is handed the ACT's address and
+  // value, and the object it is responsible for is the one at its own address.
+  const aStore = make();
+  aStore.write(['window'], 'mem', tabsSeed());
+  const aAsks = [];
+  const aPair = attempt(() => aStore.addConstraint({ address: ['window', 'tabs'], id: 'one-active-tab' },
+    (context) => {
+      const atRegistration = context.attempt === null;
+      const tabsAtRegister = atRegistration ? context.value : aStore.read(['window', 'tabs']);
+      aAsks.push({ at: atRegistration ? 'registration' : 'pass', askAddress: context.address.slice(), active: activeCount(tabsAtRegister) });
+      if (atRegistration) return true;
+      const count = activeCount(tabsAtRegister);
+      return count === 1 ? true : { message: `exactly one tab must be active, ${count} stand so` };
+    }));
+  // A LISTENER STANDS AT THE ANCESTOR AND A PAIR AT THE DESCENDANT: a listener and a constraint never share one
+  // address (`D-25`), so the two subjects are kept apart by the tree — and a REFUSED delete delivers NOTHING.
+  const aDelivered = [];
+  const aHandle = aStore.listen('window-listener', [['window']]);
+  aStore.register(aHandle, (address) => { aDelivered.push(address); });
+  const tabsBefore = aStore.read(['window', 'tabs']);
+  const aReceipt = attempt(() => aStore.delete(['window', 'tabs', 'landingPage']));
+  const tabsAfter = attempt(() => aStore.read(['window', 'tabs']));
+  const aCaught = aReceipt.ok ? null : aReceipt.caught;
+  const aLog = aCaught !== null && Array.isArray(aCaught.log) ? aCaught.log : [];
+  P('X6a · BEFORE — `window.tabs` (the pair\'s own address) at the delete\'s opening', tabsBefore);
+  P('X6a · the pair\'s asks, in order — {at, askAddress, active}', aAsks);
+  P('X6a · AFTER — the delete\'s answer', aReceipt.ok ? 'ANSWERED (no refusal)' : `${statusOf(aCaught)} · ${JSON.stringify(aCaught.message)}`);
+  P('X6a · the crossed log (the commit\'s ONE list)', aLog.map((entry) => ({ seq: entry.seq, kind: entry.kind, id: entry.id, state: entry.state })));
+  P('X6a · AFTER — `window.tabs` once the refusal has taken its rollback', tabsAfter.ok ? tabsAfter.value : `<refused: ${statusOf(tabsAfter.caught)}>`);
+  P('X6a · the listener the refused delete delivered to', aDelivered.length);
+  A('DW-10.13', '`strata/decisions.md` · `D-56` (a pair is asked when the act\'s address is at or below its own — the pair\'s address is a prefix of the act\'s, equality included); `D-55` item 5 (a refused edit rolls back to the safe state); `D-50` (a body that cares about a location reads it)',
+    'THE ANCESTOR PAIR IS ASKED FOR A DELETE AT ITS DESCENDANT: `[\'window\',\'tabs\']` is in the pass at `[\'window\',\'tabs\',\'landingPage\']`, its refusal CROSSES as `ConstraintPassRefused` naming it in the commit\'s log, and the commit ROLLS BACK — `window.tabs.landingPage` stands again and nothing is delivered',
+    aPair.ok === true
+      && aAsks.length === 2 && aAsks[1].at === 'pass'
+      && keyOfAddr(aAsks[1].askAddress) === keyOfAddr(['window', 'tabs', 'landingPage'])
+      && aAsks[1].active === 0
+      && aReceipt.ok === false && statusOf(aCaught) === PASS_REFUSED
+      && aLog.some((entry) => entry.kind === 'constraint-check' && entry.id === 'one-active-tab')
+      && aLog.some((entry) => entry.kind === 'outcome' && typeof entry.state === 'string')
+      && tabsAfter.ok === true && Object.hasOwn(tabsAfter.value, 'landingPage')
+      && aDelivered.length === 0,
+    `asks ${JSON.stringify(aAsks)} · delete ${aReceipt.ok ? 'ANSWERED' : statusOf(aCaught)} · `
+      + `tabs after ${JSON.stringify(tabsAfter.ok ? tabsAfter.value : '<refused>')} · delivered ${aDelivered.length}`);
+
+  // ── (X6b) `DW-10.15` — THE EQUAL-ADDRESS ARM, UNCHANGED: a pair at the ACT'S OWN address is asked ──
+  // **THE OTHER HALF OF THE SAME PREDICATE, AND IT DID NOT MOVE**: *"a pair at `['tabs','landingPage']` is asked
+  // for that same delete"* (`D-56`). The pair at the act's own address is a prefix of itself, so the predicate
+  // admits it by the same test that admits the ancestor — one rule, two depths.
+  const bStore = make();
+  bStore.write(['window'], 'mem', tabsSeed());
+  const bAsks = [];
+  const bPair = attempt(() => bStore.addConstraint({ address: ['window', 'tabs', 'landingPage'], id: 'own-address-pair' },
+    (context) => {
+      bAsks.push({ at: context.attempt === null ? 'registration' : 'pass', value: context.value === undefined ? '<absent>' : context.value });
+      return true;
+    }));
+  // THE LISTENER STANDS AT THE ANCESTOR, so the delivery is measured as well as the pass (`D-25`).
+  const bDelivered = [];
+  const bHandle = bStore.listen('ancestor-listener', [['window', 'tabs']]);
+  bStore.register(bHandle, (address) => { bDelivered.push(address); });
+  const bReceipt = attempt(() => bStore.delete(['window', 'tabs', 'landingPage']));
+  P('X6b · the pair at the ACT\'S OWN address: its asks', bAsks);
+  P('X6b · the delete\'s answer and its delivery', bReceipt.ok
+    ? `ANSWERED · delivered ${bDelivered.length} to ${JSON.stringify(bDelivered[0])}`
+    : `${statusOf(bReceipt.caught)}`);
+  A('DW-10.15', '`strata/decisions.md` · `D-56` ("a pair at `[tabs,landingPage]` is asked for that same delete" — equality is a prefix)',
+    'THE EQUAL-ADDRESS ARM IS UNCHANGED: a pair standing AT the delete\'s own address is asked ONCE by the pass (its second ask; the first is its registration), and the delete ANSWERS because this pair passes',
+    bPair.ok === true && bAsks.length === 2 && bAsks[1].at === 'pass'
+      && bReceipt.ok === true && bDelivered.length === 1,
+    `asks ${JSON.stringify(bAsks)} · delete ${bReceipt.ok ? 'ANSWERED' : statusOf(bReceipt.caught)} · `
+      + `delivered ${JSON.stringify(bDelivered)}`);
+
+  // ── (X6c) `DW-10.16` — THE UNRULED DIRECTION, MEASURED: a DESCENDANT pair is NOT asked, and its value ──
+  // **`D-56`'s SENTENCE IS ONE-DIRECTIONAL** — *"the descendants of its targeted address node"* — **so an act AT
+  // OR ABOVE a pair's address is REPORTED AND NOT IMPLEMENTED.** Deleting `['window','tabs']` removes the node a
+  // pair at `['window','tabs','settings']` judges; the pass does NOT ask it, and the cell prints **what that
+  // pair's value becomes** and **whether the ruling's reason extends to it**.
+  const pStore = make();
+  pStore.write(['window'], 'mem', tabsSeed());
+  const pAsks = [];
+  const pValues = [];
+  const pPair = attempt(() => pStore.addConstraint({ address: ['window', 'tabs', 'settings'], id: 'descendant-pair' },
+    (context) => {
+      pAsks.push(context.attempt === null ? 'registration' : 'pass');
+      pValues.push(context.value);
+      return true;
+    }));
+  const pHandle = pStore.listen('tabs-listener-c', [['window', 'tabs']]);
+  pStore.register(pHandle, () => {});
+  const pReceipt = attempt(() => pStore.delete(['window', 'tabs']));
+  const pAfter = attempt(() => pStore.read(['window', 'tabs', 'settings']));
+  P('X6c · the DESCENDANT pair\'s asks for a delete at its ANCESTOR (`[\'window\',\'tabs\']`)', pAsks);
+  P('X6c · the value the pass handed it (its own registration\'s, and nothing from the pass)', pValues.map((v) => (v === undefined ? '<absent>' : v)));
+  P('X6c · WHAT ITS VALUE BECOMES — the store\'s own read of its address after the delete', pAfter.ok ? pAfter.value : `<refused: ${statusOf(pAfter.caught)}>`);
+  P('X6c · the value a pass WOULD have handed it had `D-56` reached this direction (`op.after.value` at the act\'s address)', pReceipt.ok ? (pReceipt.value.op.after.present === false ? '<absent>' : pReceipt.value.op.after.value) : '<no receipt>');
+  A('DW-10.16', '`strata/decisions.md` · `D-56` (the ruling is one-directional: *"the reverse is reported, not implemented"*; *"a pair at `[tabs,landingPage,x]` is NOT asked, because the act did not change it"*)',
+    'THE DESCENDANT PAIR IS NOT ASKED: a delete at `[\'window\',\'tabs\']` produces ONE ask for the pair at `[\'window\',\'tabs\',\'settings\']` — its registration\'s — and the pass asks it ZERO times; the delete ANSWERS',
+    pPair.ok === true && pAsks.length === 1 && pAsks[0] === 'registration' && pReceipt.ok === true,
+    `asks ${JSON.stringify(pAsks)} · delete ${pReceipt.ok ? 'ANSWERED' : statusOf(pReceipt.caught)}`);
+
+  // ── (X6d) `DW-10.17` — THE SNAPSHOT: MATERIALISED ONCE, FROZEN, ORDERED BY REGISTRATION ────────────
+  // **`CX-12` STILL HOLDS AND `D-56` DOES NOT MOVE IT**: the pass's set is FIXED WHEN THE PASS BEGINS, and it is
+  // now materialised from the act's address AND ITS ANCESTORS. **`HL-8` ITEM 6's ORDER RULE SURVIVES**: the list
+  // is ordered by FIRST-REGISTRATION ORDER (`D-39`), and **the ancestors interleave into that ONE order** — the
+  // one `Map` sequence every row stands in — rather than forming a second.
+  //
+  // The drive: FOUR pairs, registered in this order — `['window']` (a deep ancestor), `['window','tabs']` (the
+  // act's parent), `['window','tabs','landingPage']` (the act's own address), and a mid-pass registrar that
+  // registers `['window']`-second DURING the pass. **The pass must ask exactly the first three, in that order,
+  // and the fourth not at all** (it enters the NEXT pass's set), and the printed `seq` must be `1..3` with the
+  // `commit` entry after them — one materialisation, frozen at the pass's start.
+  const dStore = make();
+  dStore.write(['window'], 'mem', tabsSeed());
+  const dOrder = [];
+  const dMidPassId = 'registered-during-the-pass';
+  let dMidPassRegistered = false;
+  const dRegisterMidPass = (id) => {
+    if (dMidPassRegistered) return;
+    dMidPassRegistered = true;
+    // **AND THE NEW PAIR RECORDS ITS OWN ASKS TOO**, so the NEXT pass's list is read off the same list this
+    // drive's other three write to: an entry for the registration it was created by, and one for every pass
+    // that reaches it afterwards.
+    dStore.addConstraint({ address: ['window'], id }, (context) => {
+      dOrder.push({ id, at: context.attempt === null ? 'registration' : 'pass', askAddress: context.address.slice() });
+      return true;
+    });
+  };
+  const dPairs = [];
+  const dRegister = (address, id, registerASecond) => dPairs.push(attempt(() => dStore.addConstraint({ address, id }, (context) => {
+    const atRegistration = context.attempt === null;
+    dOrder.push({ id, at: atRegistration ? 'registration' : 'pass', askAddress: context.address.slice() });
+    if (!atRegistration && registerASecond) dRegisterMidPass(dMidPassId);
     return true;
-  }));
-  // THE LISTENER STANDS AT THE DELETE'S OWN ADDRESS AND THE PAIR AT ITS ANCESTOR — a listener and a
-  // constraint never share one address (`D-25`), so the two subjects are kept apart by the tree itself.
-  const eHandle = eStore.listen('e-listener', [['a', 'b']]);
-  eStore.register(eHandle, () => {});
-  const eReceipt = attempt(() => eStore.delete(['a', 'b']));
-  P('X6 · an ANCESTOR pair\'s asks for a delete at its descendant', eAsks);
-  A('DW-10.13', '`contract.md §2.8` item 1 (the pass selects the pairs whose address IS the triggering address; the trigger set\'s prefix widening is NOT the pass\'s rule)',
-    'the delete\'s pass asks the pairs standing at THE DELETE\'S OWN ADDRESS and no pair at an ancestor — the exact-address rule the write\'s pass keeps, so an ancestor pair\'s ask count is unmoved by a descendant delete',
-    ePair.ok === true && eReceipt.ok === true && eAsks.length === 1 && eAsks[0] === 'registration',
-    `asks ${JSON.stringify(eAsks)} · delete ${eReceipt.ok ? 'answered' : statusOf(eReceipt.caught)}`);
+  })));
+  dRegister(['window'], 'ancestor-deep', true);              // 1st — the mid-pass registrar
+  dRegister(['window', 'tabs'], 'ancestor-parent', false);   // 2nd
+  dRegister(['window', 'tabs', 'landingPage'], 'at-the-address', false); // 3rd
+  const dReceipt = attempt(() => dStore.delete(['window', 'tabs', 'landingPage']));
+  const dPassAsks = dOrder.filter((one) => one.at === 'pass').map((one) => one.id);
+  // THE LOG ON BOTH ARMS: the refusal's own `log` where the delete refused, and the closed attempt's log through
+  // `K-4` where it passed (the receipt carries the `CommitRecord` at its non-enumerable `commit`, `D-49`'s device).
+  const dClosed = dReceipt.ok && dReceipt.value.commit !== null && dReceipt.value.commit !== undefined
+    ? attempt(() => kernel.log(dStore, dReceipt.value.commit.attempt))
+    : null;
+  const dLog = dReceipt.ok
+    ? (dClosed !== null && dClosed.ok && Array.isArray(dClosed.value) ? dClosed.value : [])
+    : (Array.isArray(dReceipt.caught.log) ? dReceipt.caught.log : []);
+  const dCheckedSeq = dLog.filter((entry) => entry.kind === 'constraint-check').map((entry) => [entry.seq, entry.id]);
+  P('X6d · the pass\'s asks, IN ORDER (registration order across ancestors and the act\'s own)', dPassAsks);
+  P('X6d · the `constraint-check` entries with their `seq`', dCheckedSeq);
+  P('X6d · the mid-pass registration and where it was asked', {
+    registered: dMidPassRegistered,
+    inThisPass: dPassAsks.includes(dMidPassId),
+    asksInOrder: dOrder.length,
+  });
+  // THE NEXT PASS IS THE PROOF OF THE FREEZE: a fresh act at the same address asks the FOURTH pair and not a
+  // fifth — the registry grew by one row and the set grew by one, and only now.
+  const dOrderBefore = dOrder.length;
+  const dSecond = attempt(() => dStore.write(['window', 'tabs', 'landingPage'], 'mem', 2));
+  const dSecondAsks = dOrder.slice(dOrderBefore).filter((one) => one.at === 'pass').map((one) => one.id);
+  P('X6d · the NEXT pass\'s asks (the mid-pass registration has entered the set)', dSecondAsks);
+  A('DW-10.17', '`CX-12` (the pass\'s evaluated set is FIXED WHEN THE PASS BEGINS); `HL-8` item 6 (`D-39`\'s first-registration order, ancestors interleaved into that ONE order); `D-56` (the set is materialised from the act\'s address AND its ancestors)',
+    'THE SNAPSHOT: the pass asks EXACTLY the three pairs registered before it began — in the ONE registration order across the deep ancestor, the parent and the act\'s own address — and NOT the pair registered during it; the fourth enters the NEXT pass; and the `seq` order of the `constraint-check` entries is that same order',
+    dPairs.every((one) => one.ok === true)
+      && keyOfAddr(dPassAsks) === keyOfAddr(['ancestor-deep', 'ancestor-parent', 'at-the-address'])
+      && dMidPassRegistered === true
+      && dReceipt.ok === true
+      && keyOfAddr(dSecondAsks) === keyOfAddr(['ancestor-deep', 'ancestor-parent', 'at-the-address', dMidPassId]),
+    `pass asks ${JSON.stringify(dPassAsks)} · checked ${JSON.stringify(dCheckedSeq)} · mid-pass `
+      + `${dMidPassRegistered} in this pass ${dPassAsks.includes(dMidPassId)} · next pass ${JSON.stringify(dSecondAsks)}`);
   console.log('');
   console.log('        THE SENTENCE TO CARRY AWAY (`D-55`): A WITNESS ENTRY NEVER SHIPS AN EMPTY ADDRESS LIST while');
   console.log('        the ROOT still stands as `[[]]`; a thrown message stands in the commit\'s log and the crossed');

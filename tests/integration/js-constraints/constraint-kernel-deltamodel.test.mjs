@@ -685,9 +685,16 @@ test('ck_neg_dm_03_nested_K2_from_a_body_the_pass_reaches_held_address_refused_a
   // cell's subject"* OFF `pairRuns`, AND THE REGISTRATION IS AN EVALUATION THE CELL DID NOT DRIVE — so
   // unshielded it would consume run 1, the nested `commit` this body issues would never execute, and the
   // asymmetry the cell reads would be measured at the registration. The shield answers the registration
-  // `true` (state 1) and lets every LANDING reach this body, so `pairRuns === 1` is the pass's own first.
-  register(store, outerAddress, 'a', atLandingOnly(() => {
+  // `true` (state 1) and lets every LANDING reach this body, so run 1 is the OUTER pass's own first (run 2 is
+  // the nested attempt's pass at the descendant, `D-56` — see the asks asserted below).
+  // **⟶ AND THE ASKS THIS PAIR RECEIVES ARE RECORDED BY THE ADDRESS EACH ONE WAS HANDED, 2026-10-29 (`D-56`).**
+  // The pass at the outer address asks it, AND the NESTED attempt's own pass at the DESCENDANT asks it too —
+  // the ancestor is at or above that act's address — so the list below is the cell's own measurement of the
+  // widening rather than an assumption about it.
+  const pairAsks = [];
+  register(store, outerAddress, 'a', atLandingOnly((context) => {
     pairRuns += 1;
+    pairAsks.push(context.address.slice());
     // THE GUARD IS THE FIXTURE'S AND NOT THE CLAUSE'S: a later evaluation of this pair is not this
     // cell's subject, and the drive reads the FIRST pass's own acts alone.
     if (pairRuns > 1) return true;
@@ -739,10 +746,26 @@ test('ck_neg_dm_03_nested_K2_from_a_body_the_pass_reaches_held_address_refused_a
 
   // ── THE PASS RUNS THE NESTED ACTS: THE BODY THE SURFACE DOES REACH, WHILE THE HOLD IS OPEN ───────
   const outerReport = capture(() => runAttempt(store, outer.value));
-  assert.equal(pairRuns, 1,
-    'THE PASS INVOKED THE PAIR\'S OWN BODY — ONCE, in the pass ("ONE DELIVERY PER EVALUATED PAIR, EACH '
-    + 'CARRYING THAT PAIR\'S OWN FUNCTION", `§2.1` item 2) — SO THE TWO NESTED CALLS THIS CELL READS WERE '
-    + 'ISSUED FROM A BODY THE SURFACE REACHES, INSIDE THE ATTEMPT\'S OWN WINDOW AND WHILE ITS ADDRESS WAS '
+  // **⟶ RE-DERIVED 2026-10-29 — THE COUNT IS TWO AND THE TWO ARE NAMED BY THEIR OWN ADDRESSES (`D-56`).**
+  // **WHAT STOOD HERE** read *"THE PASS INVOKED THE PAIR'S OWN BODY — ONCE, in the pass … read `pairRuns` pass
+  // invocation"* — and it was TRUE while the pass's set was the pairs at the attempt's address ALONE. **THE
+  // ARCHITECT SUPERSEDED THAT SET**: *"A listener/constraint should fire when the descendants of its targeted
+  // address node change, because the descendants become part of the object that is read from that address"*,
+  // so the pair at `outerAddress` is asked by BOTH passes this drive owns: **the outer pass at `outerAddress`
+  // (the pair's own address) AND the NESTED attempt's pass at `descendantAddress`, whose act stands BELOW
+  // it.** **THE CELL'S SUBJECT IS UNMOVED**: the first invocation — the one whose body issues the two nested
+  // calls — is the OUTER pass's, and the assertions below still read the acts taken there. Nothing was
+  // weakened; the count is the widening.
+  assert.deepEqual(pairAsks.map((one) => one.join('/')), [outerAddress.join('/'), descendantAddress.join('/')],
+    'THE PAIR AT THE OUTER ADDRESS IS ASKED BY THE OUTER PASS AND BY THE NESTED PASS AT ITS DESCENDANT, in '
+    + 'that order and by no third ask — read ' + JSON.stringify(pairAsks) + '. The first is the pass at the '
+    + 'pair\'s OWN address (equality is a prefix); the second is the ancestor arm `D-56` adds; the descendant '
+    + 'pair `b` is asked only by the nested pass, its own attempt\'s address');
+  assert.equal(pairRuns, 2,
+    'THE PASS INVOKED THE PAIR\'S OWN BODY TWICE FOR TWO ATTEMPTS — once for the outer pass ("ONE DELIVERY '
+    + 'PER EVALUATED PAIR, EACH CARRYING THAT PAIR\'S OWN FUNCTION", `§2.1` item 2) and once for the nested '
+    + 'attempt\'s own pass at the descendant (`D-56`) — and the FIRST of the two is the invocation the two '
+    + 'nested calls in this cell are ISSUED FROM, INSIDE THE ATTEMPT\'S OWN WINDOW AND WHILE ITS ADDRESS WAS '
     + 'HELD (`attempt-lifecycle.md §2.4` item 8 (ii) (e)/(g); `kernel-surface.md §2.3` item 1) — read '
     + `${pairRuns} pass invocation${pairRuns === 1 ? '' : 's'}`);
 
@@ -842,15 +865,23 @@ test('ck_neg_dm_03_nested_K2_from_a_body_the_pass_reaches_held_address_refused_a
   // log … Constraints/Repairs should always use the same commit"*** (`strata/decisions.md` · `D-53`). **THE NESTED
   // WRITE IS PART OF THIS COMMIT — it was made from inside this attempt's body — so its entries ARE this log's
   // entries, and `K-4`/`K-5` answer THE COMMIT'S log.**
-  // **WHAT IS UNMOVED, AND IT IS THE CELL'S SUBJECT: the pass is ADDRESS-SCOPED.** The pair at the outer address
-  // is the only pair the outer PASS evaluates, and the nested attempt's evaluation is the nested PASS's own — its
-  // `constraint-check` entry names the pair standing at ITS address. **One list, two passes, and each entry still
-  // names the iteration it speaks about** (`D-53`'s first ruling), which is what keeps the two readable apart.
-  assert.deepEqual(checkIds(outerReport.value.log), ['a', 'b'],
+  // **WHAT IS UNMOVED, AND IT IS THE CELL'S SUBJECT: each pass's `constraint-check` entries name the pairs THAT
+  // PASS asked, and each entry still names the iteration it speaks about** (`D-53`'s first ruling), **which is
+  // what keeps the two readable apart.**
+  //
+  // **⟶ AND THE SET EACH PASS ASKS IS NOW A PREFIX SET — `D-56`, 2026-10-29, WHICH SUPERSEDES THE
+  // ADDRESS-SCOPED SENTENCE ABOVE.** **The architect, verbatim:** *"A listener/constraint should fire when the
+  // descendants of its targeted address node change, because the descendants become part of the object that is
+  // read from that address"*. **SO THE NESTED PASS AT `descendantAddress` ASKS THE PAIR AT `outerAddress` — an
+  // ANCESTOR of its own attempt's address — as well as the pair AT its own**, and the one list carries THREE
+  // `constraint-check` entries: the outer pass's `a`, then the nested pass's `a`, then the nested pass's `b`.
+  // **THE ANCESTOR ASK IS THE ONE `D-56` ADDS AND IT IS THE SECOND ENTRY; THE FIRST IS THE OUTER PASS'S OWN AND
+  // THE THIRD IS THE NESTED PASS'S OWN ADDRESS — equalities are members too.**
+  assert.deepEqual(checkIds(outerReport.value.log), ['a', 'a', 'b'],
     'and the ONE commit\'s log carries BOTH passes\' `constraint-check` entries, in the order the two attempts '
-    + 'appended them — the outer attempt\'s pair at `a`, then the nested attempt\'s pair at `b` — which is what one '
-    + 'list per commit means (`D-53`); read '
-    + JSON.stringify(checkIds(outerReport.value.log)));
+    + 'appended them — the outer attempt\'s pair at `a`, then the nested attempt\'s TWO (the same pair at the '
+    + 'ancestor `a` by `D-56`, and the pair at its own address `b`) — which is what one list per commit means '
+    + '(`D-53`); read ' + JSON.stringify(checkIds(outerReport.value.log)));
   assert.equal(entries(outerReport.value.log, 'commit').length, 2,
     'with EACH attempt\'s own `commit` entry in that same list — the nested attempt\'s, appended where its pass '
     + 'resolved inside the body, then the outer pass\'s own closing the log AFTER the nested acts '

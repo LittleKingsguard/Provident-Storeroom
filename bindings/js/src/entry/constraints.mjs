@@ -863,12 +863,23 @@ export function constraintWrite(state, instance, address, tier, value) {
  *                                  on the passing arm, and on a refusal the composition that undoes the
  *                                  delete (`D-55` item 5's safe state)
  * ```
- * **THE PASS IS THE WRITE'S PASS, MEMBER FOR MEMBER** — `runAttempt`, the same evaluated set (the pairs whose
- * own address IS the attempt's, `pairsAtAddress`'s exact-address rule and never the trigger set's prefix
- * widening), the same `D-39` registration order, the same repair and re-run arms, the same restart drain — and
- * **the ONLY difference is the landing it judges**: a delete's journal op, whose `after` is absence, instead of
- * a write's op whose `after` is the value it landed. **NO SECOND PASS LOOP IS MINTED**, and a repair landed
- * under a delete's pass re-runs the same evaluation against ITS op (`D-53`: repairs use the same commit).
+ * **THE PASS IS THE WRITE'S PASS, MEMBER FOR MEMBER** — `runAttempt`, the same evaluated set, the same `D-39`
+ * registration order, the same repair and re-run arms, the same restart drain — and **the ONLY difference is the
+ * landing it judges**: a delete's journal op, whose `after` is absence, instead of a write's op whose `after` is
+ * the value it landed. **NO SECOND PASS LOOP IS MINTED**, and a repair landed under a delete's pass re-runs the
+ * same evaluation against ITS op (`D-53`: repairs use the same commit).
+ *
+ * **⟶ AND "THE SAME EVALUATED SET" IS NOW A PREFIX SET, 2026-10-29 — `D-56`, WHICH SUPERSEDES THE CLAUSE THIS
+ * PARAGRAPH PRINTED.** `RCA-8(g)` ANNOTATE-BESIDE: **the bytes that stood here read** *"the same evaluated set
+ * (the pairs whose own address IS the attempt's, `pairsAtAddress`'s exact-address rule and never the trigger set's
+ * prefix widening)"*, **and they are read THROUGH the architect's sentence**: *"A listener/constraint should fire
+ * when the descendants of its targeted address node change, because the descendants become part of the object
+ * that is read from that address"*. **SO THE DELETE'S PASS ASKS THE PAIRS AT OR ABOVE THE DELETE'S ADDRESS** —
+ * the pairs whose own address is a PREFIX of it — **and a pair at `['tabs']` is asked for a delete at
+ * `['tabs','landingPage']`** (`strata/decisions.md` · `D-56`). **THE SET IS STILL `pairsAtAddress`'s ONE
+ * FUNCTION AND STILL ONE SNAPSHOT** (`CX-12`): `D-56` moves WHICH rows are members and nothing about WHEN the
+ * list is materialised, HOW it is ordered (`HL-8` item 6: first-registration order, ancestors interleaved into
+ * that one order) or how many times a row is asked.
  *
  * **A REFUSAL IS THE ORDINARY REFUSAL** (`constraintCrossing` below): the surface's one plain form
  * `{status, message, log}`, its `status` the set's rank-`20` member `ConstraintPassRefused`, and its `log` the

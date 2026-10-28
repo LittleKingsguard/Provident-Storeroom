@@ -455,13 +455,23 @@ function evaluate(kernel, attempt, landing) {
   // alike — and NOT the union of the store's prefix-selected addresses"), WHILE THE OP EVERY EVALUATION
   // CARRIES IS THE LANDING'S OWN — the repair's op where a repair's edit landed, and the attempt's first
   // write where the pass is the commit's own landing.
-  // THE PASS'S OWN EVALUATED SET IS FIXED WHEN THE PASS BEGINS — a SNAPSHOT of the registry's rows for
+  // **⟶ AND THE SET THAT ADDRESS MATERIALISES IS NOW A PREFIX SET, 2026-10-29 (`D-56`).** `RCA-8(g)`
+  // ANNOTATE-BESIDE: **the quotation above stands BYTE-FOR-BYTE as `attempt-lifecycle.md §2.4` item 5 (iv)'s
+  // EXACT-ADDRESS rule — the clause `D-56` names by number and SUPERSEDES**; the architect's own sentence is
+  // *"A listener/constraint should fire when the descendants of its targeted address node change, because the
+  // descendants become part of the object that is read from that address"*, and what it changes here is the
+  // PREDICATE `pairsAtAddress` applies — **the pairs whose own address is a PREFIX of the attempt's, equality
+  // included.** **NO OTHER LINE OF THIS FRAME MOVES**: the address is still the attempt's, the landing's op is
+  // still what every evaluation carries, and the set is still ONE SNAPSHOT taken at this instant.
+  // THE PASS'S OWN EVALUATED SET IS FIXED WHEN THE PASS BEGINS — a SNAPSHOT of the registry's rows AT OR ABOVE
   // the attempt's address AT THAT INSTANT, and never a live view of the registry this pass reads again:
   // "a PASS's evaluated set is FIXED WHEN THE PASS BEGINS — it is every pair registered at the attempt's
   // address AT THAT INSTANT, each evaluated once in clause (ii)'s order", so "A `K-1` THAT RETURNS
   // DURING A PASS APPENDS A PAIR TO THE REGISTRY WITHOUT APPENDING ANY ENTRY TO THAT PASS AND WITHOUT
   // BEING EVALUATED BY IT: the new pair enters the NEXT pass's set" (`attempt-lifecycle.md §2.4` item 5
-  // (iv); `CX-12`). The snapshot is ALSO the set the layer (a) delivery of this run is read over.
+  // (iv); `CX-12`, which `D-56` defers to and does NOT move). **THE SNAPSHOT IS MATERIALISED ONCE PER RUN AND
+  // READ BY THE WHOLE RUN** — the loop below, the repair arm's `list` and `releasePending`'s check-off all read
+  // THIS ONE array — **and it is ALSO the set the layer (a) delivery of this run is read over.**
   const list = pairsAtAddress(kernel, attempt.address);
   // **⟶ AND THE COMMIT THE INVOCATIONS OF THIS RUN NAME — `D-55` ITEM 3's DELETE-SHAPED ATTEMPT, 2026-10-29.**
   // **A WRITE'S ATTEMPT NAMES ITS `CommitRecord`** (`attempt.record`, the object `K-2` built and adopted), and

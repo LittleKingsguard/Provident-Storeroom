@@ -616,9 +616,17 @@ const K6 = (store, pair) => kernel.remove(store, pair);
 }
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
-// HLI-08 — THE KERNEL'S EXACT-ADDRESS SELECTION, ON THE STORE'S OWN TRIGGERING ADDRESS
+// HLI-08 — THE KERNEL'S PREFIX SELECTION, ON THE STORE'S OWN TRIGGERING ADDRESS
 // kernel-selection.md §1 items 1–4, §3 items 1–3, §4 item 2, §7 `KF-1`/`KF-2`/`KF-3`/`KF-7`/`KF-11` ·
-// contract.md §2.8 items 1/6/7, §5.4 `S-SEL-EXACT`/`S-SEL-SNAPSHOT`/`S-SEL-DEDUPE` · §2.9.
+// contract.md §2.8 items 1/6/7, §5.4 `S-SEL-PREFIX`/`S-SEL-SNAPSHOT`/`S-SEL-DEDUPE` · §2.9.
+//
+// **⟶ `RCA-8(g)` ANNOTATE-BESIDE, 2026-10-29 — `D-56` SUPERSEDES THE EXACT-ADDRESS RULE THIS RUNNER'S
+// `HLI-08` BLOCK WAS FILED ON.** The architect, verbatim: *"A listener/constraint should fire when the
+// descendants of its targeted address node change, because the descendants become part of the object that is
+// read from that address"* (`strata/decisions.md` · `D-56`). **SO THE PASS'S SET IS THE PAIRS WHOSE OWN ADDRESS
+// IS A PREFIX OF THE ACT'S — equality included — AND AN ANCESTOR PAIR IS NOW EVALUATED.** The cells below were
+// re-derived to that measurement and keep their ids; `HLI-08.8`'s subject is INVERTED and `HLI-08.6`'s count
+// moves `1 → 2`, and both print what they read.
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 {
   const i = ns.storeCreate(cfgFor('g08'));
@@ -652,22 +660,23 @@ const K6 = (store, pair) => kernel.remove(store, pair);
   A('HLI-08.5', 'attempt-lifecycle.md §2.4 (the `PASSED` state: `every constraint passed`)',
     "`K-3`'s report carries the passing arm",
     !run.threw && run.value.outcome === 'passed', run.threw ? fmt(statusOf(run)) : fmt(run.value?.outcome));
-  A('HLI-08.6', 'contract.md §5.4 `S-SEL-EXACT`; kernel-selection.md §7 `KF-1`/`KF-2`/`KF-11`',
-    "the pass's `constraint-check` entries number EXACTLY ONE — the pairs at the ancestor and the descendant addresses are NOT evaluated",
-    checks.length === 1, fmt(checks.map((e) => ({ kind: e.kind, id: e.id }))));
-  A('HLI-08.7', 'kernel-selection.md §1 item 1 (the pass selects the rows whose address IS the triggering address)',
-    "that one entry names the EXACT address's pair",
-    checks.length === 1 && checks[0].id === 'exact', fmt(checks.map((e) => e.id)));
-  A('HLI-08.8', 'kernel-selection.md §7 `KF-1` (a pair at an ANCESTOR address is not the pass\'s set)',
-    "no `constraint-check` entry names the ancestor's id",
-    !checks.some((e) => e.id === 'anc'), fmt(checks.map((e) => e.id)));
-  A('HLI-08.9', 'kernel-selection.md §7 `KF-2` (a pair at a DESCENDANT address is not the pass\'s set)',
-    "no `constraint-check` entry names the descendant's id",
+  A('HLI-08.6', 'contract.md §5.4 `S-SEL-PREFIX`; `D-56` (the pair\'s address is a prefix of the act\'s, equality included)',
+    "the pass's `constraint-check` entries number EXACTLY TWO — the pair at the ANCESTOR address and the pair at the EXACT address are evaluated, and the DESCENDANT's is not",
+    checks.length === 2 && checks.some((e) => e.id === 'anc') && checks.some((e) => e.id === 'exact'),
+    fmt(checks.map((e) => ({ kind: e.kind, id: e.id }))));
+  A('HLI-08.7', 'kernel-selection.md §1 item 1 (the pass selects the rows whose address is a PREFIX of the triggering address)',
+    "one of those entries names the EXACT address's pair — and it is the SECOND, the ancestor having been registered first (`HL-8` item 6: one registration order)",
+    checks.length === 2 && checks[1].id === 'exact' && checks[0].id === 'anc', fmt(checks.map((e) => e.id)));
+  A('HLI-08.8', '`D-56` (a pair at an ANCESTOR address IS the pass\'s set — the ruling\'s own direction)',
+    "a `constraint-check` entry NAMES the ancestor's id",
+    checks.some((e) => e.id === 'anc'), fmt(checks.map((e) => e.id)));
+  A('HLI-08.9', '`D-56` (the ruling is ONE-DIRECTIONAL — *"the reverse is reported, not implemented"*); kernel-selection.md §7 `KF-2` (a pair at a DESCENDANT address is not the pass\'s set)',
+    "NO `constraint-check` entry names the descendant's id — the unruled direction, still unasked",
     !checks.some((e) => e.id === 'desc'), fmt(checks.map((e) => e.id)));
   A('HLI-08.10', 'kernel-surface.md §2.5 item 1 (the `constraint-check` entry\'s member set)',
-    "the entry's own six declared members are present",
-    checks.length === 1 && ownNames(checks[0]).sort().join(',') === 'id,kind,message,opId,seq,state',
-    fmt(checks.length === 1 ? ownNames(checks[0]).sort() : checks.map((e) => ownNames(e))));
+    "EVERY entry's own six declared members are present — the ancestor's entry and the exact one's alike",
+    checks.length > 0 && checks.every((e) => ownNames(e).sort().join(',') === 'id,kind,message,opId,seq,state'),
+    fmt(checks.map((e) => ownNames(e).sort())));
   // ── the two-address pair, one address an ancestor of the write's and one the write's own: ONE evaluation.
   const j = ns.storeCreate(cfgFor('g08b'));
   j.write(['p'], 'temp', {});
@@ -780,13 +789,22 @@ const K6 = (store, pair) => kernel.remove(store, pair);
     "after the pass the checked-off identity is GONE from `pending`",
     !passRun.threw && !com.value.pending.some((p) => keyOfAddr(p.address) === keyOfAddr(['a', 'b', 'c'])),
     fmt(com.value.pending));
-  A('HLI-10.5', 'trigger-and-pair.md §4 item 1 (i) (the pair-aware filter compares `entry.handle`, never `entry`)',
-    'the entry the pass did NOT evaluate (the ancestor\'s) STANDS in `pending` — a filter comparing a pair to a handle would have removed nothing',
-    !passRun.threw && com.value.pending.length === pendingBefore - 1,
+  // **⟶ RE-DERIVED 2026-10-29 (`D-56`) — THE PASS'S SET AND THE STORE'S RETURNED SET NOW COINCIDE, SO THE
+  // CHECK-OFF EMPTIES `pending` WHERE BOTH PAIRS PASS.** **What these two cells read** was *"the entry the pass
+  // did NOT evaluate (the ancestor's) STANDS in `pending`"* and *"`pending`'s size after the pass is the
+  // STILL-PENDING count"*, on the exact-address rule: the pass asked `['a','b','c']` and the store's returned set
+  // carried `['a']` as well, so one entry survived. **`D-56` makes the ancestor a member of the pass too**, and
+  // the two sets are now the SAME set — the store's trigger selection is prefix and the pass's selection is
+  // prefix — so **the check-off consumes both entries and `pending` reaches `0`**. **THE CELLS' SUBJECT IS
+  // UNMOVED**: the removal is BY THE PAIR'S OWN HANDLE (`entry.handle`, never `entry`), which is why the count
+  // moves by EXACTLY the number of pairs the pass evaluated and by no other.
+  A('HLI-10.5', 'trigger-and-pair.md §4 item 1 (i) (the pair-aware filter compares `entry.handle`, never `entry`); `D-56` (the pass asks the pairs at or above the act\'s address, so both returned entries are evaluated)',
+    'the removal is BY THE IDENTITY THE PASS EVALUATED AND BY NOTHING ELSE: `pending` shrinks by EXACTLY the TWO pairs the pass asked — the ancestor\'s and the exact one\'s — and reaches `0`',
+    !passRun.threw && com.value.pending.length === pendingBefore - 2 && com.value.pending.length === 0,
     `${pendingBefore} → ${com.value.pending.length}`);
   A('HLI-10.6', 'trigger-and-pair.md §8 `TF-8` (the PRE-POP reading is the failure)',
-    "`pending`'s size after the pass is the STILL-PENDING count and NOT the returned set's size",
-    !passRun.threw && com.value.pending.length === triggeredBefore - 1,
+    "`pending`'s size after the pass is the STILL-PENDING count — now `0`, because `D-56`'s pass set IS the store's returned set — and never the returned set's size",
+    !passRun.threw && com.value.pending.length === triggeredBefore - 2,
     `triggered ${triggeredBefore} · pending ${com.value.pending.length}`);
   A('HLI-10.7', 'trigger-and-pair.md §3 item 4 ("nothing is carried beside `pending`")',
     "`triggered` is UNMOVED by the pass: the store's returned set stands exactly as returned",

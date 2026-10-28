@@ -272,18 +272,35 @@ function driveE2EC16() {
 test('ck_layer_b_the_uninvoked_caller_returned_handle_stands_in_pending_and_in_no_other_member', async () => {
   const { register, commit, runAttempt } = await kernel();
   const { store, parentAddress, ancestorAddress } = driveE2EC16();
-  const cA = () => ({ repair: () => {
-    // THE REPAIR-OP SEAM (`parameter-semantics.md §2.7`; `A: docs/decisions.md` · `A110`): `op` IS THE OP
-    // THIS REPAIR'S OWN EDIT LANDED, read off the store's own `write` return in the repair's own body.
-    const landed = store.write(ancestorAddress, 'mem', 'nested').op;
-    return { ok: true, message: 'cA was repaired at the ancestor address', op: landed };
-  }, message: 'a is bad' });
+  // **⟶ AND THE PAIR'S REFUSAL ARM IS READ AT ITS OWN ADDRESS ALONE, 2026-10-29 (`D-56`).** **The widening
+  // makes `cA` a member of the pass at the PARENT address too** — its address is a prefix of the act's — **and a
+  // refusal there would run its repair, whose `store.write` at the ancestor is itself a full write whose own pass
+  // asks `cA` again: a lawful recursion that would displace this cell's subject (the RECORD's shape and its
+  // check-off) with a `KC-4`.** So the body refuses where it is asked for an act AT ITS OWN ADDRESS and passes
+  // every ask a DESCENDANT act makes of it — **the ask itself is still taken, counted and entered in the log**,
+  // which is the widening; the refusal is driven by the cells whose subject it is.
+  const cA = (context) => {
+    if (context.address.length !== ancestorAddress.length) return true; // a DESCENDANT act's ask (`D-56`)
+    return { repair: () => {
+      // THE REPAIR-OP SEAM (`parameter-semantics.md §2.7`; `A: docs/decisions.md` · `A110`): `op` IS THE OP
+      // THIS REPAIR'S OWN EDIT LANDED, read off the store's own `write` return in the repair's own body.
+      const landed = store.write(ancestorAddress, 'mem', 'nested').op;
+      return { ok: true, message: 'cA was repaired at the ancestor address', op: landed };
+    }, message: 'a is bad' };
+  };
   // ⟶ `A135` (3) / `§7.3` (b) state 1 — AND `3-bis` MAKES THE SHIELD MANDATORY FOR `cA`: it carries a
   // `repair`, so an unshielded registration ATTEMPTS it and lands an op at the ancestor with the synthetic
   // attempt's log (the `ConstraintListInvalid` bytes this cell was reading). `cL` and `cB` pass every context.
   register(store, ancestorAddress, 'cL', () => true);
   register(store, ancestorAddress, 'cA', atLandingOnly(cA));
   register(store, parentAddress, 'cB', () => true);
+  // **NOTE THE DRIVE'S OWN SHAPE, AND IT IS THE ONE `D-56` CHANGES**: `cL` and `cA` stand at the ANCESTOR and
+  // `cB` at the attempt's address, so from 2026-10-29 the pass at the parent asks ALL THREE (see the
+  // `constraint-check` assertion at the end of this cell). `cA`'s repair writes at `cL`'s own address, so an
+  // UNSHIELDED failing ancestor would drive a nested pass into `cA` again and the cell's subject — the
+  // record's shape and its check-off — would be displaced by a `KC-4`. **THE SHIELD ANSWERS `true` WHERE THE
+  // ASK IS ONE THE CELL DOES NOT OWN** (`atLandingOnly` excludes the registration only), which is why the
+  // drive below re-reads the ancestor pair's own landing and not the registration's.
   const record = commit(store, parentAddress, 'mem', 'v1');
   // THE MEMBER'S OWN HOME, READ THERE AND NOT OFF THE STORE'S RECORD (`kernel-surface.md §2.1` item 2's
   // return-shape block: `CommitRecord { attempt, op, triggered, pending }`, the FOURTH "added at the
@@ -327,18 +344,23 @@ test('ck_layer_b_the_uninvoked_caller_returned_handle_stands_in_pending_and_in_n
   const report = runAttempt(store, record);
   assertAttemptReport(report, 'layer (b) record');
   // RE-DERIVED AT THE RED-SET RE-DERIVATION PASS TO READING 2 (`attempt-lifecycle.md §2.4` item 5 (iv)):
-  // a pass's evaluated pair set is THE ATTEMPT'S OWN `address` ONLY — never an ancestor's, never a
-  // descendant's: the ancestor pair's handle is layer (b)'s and no pass of THIS attempt runs it. The
-  // attempt's own address carries ONE pair, so the pass appends ONE `cB` `constraint-check`;
-  // the cell's subject is the RECORD's shape, and the pair count is the scope's own observable.
-  assert.deepEqual(checkIds(report.log), ['cB'],
-    'the pass at the attempt\'s own address evaluates its OWN pair — ONE entry — and never an '
-    + 'ancestor\'s pair, whose handle is layer (b)\'s and which no pass of this attempt runs '
-    + '(`attempt-lifecycle.md §2.4` item 5 (iv); `kernel-surface.md §2.3` item 1)');
-  assert.equal(checkIds(report.log).includes('cL'), false,
-    'the ancestor pair is evaluated by NO pass of this attempt');
-  assert.equal(checkIds(report.log).includes('cA'), false,
-    'and neither is the ancestor pair whose repair the write would have driven');
+  // **⟶ RE-DERIVED 2026-10-29 (`D-56`) — THE PASS'S SET IS A PREFIX SET, SO THE ANCESTOR PAIRS ARE ASKED.**
+  // **WHAT STOOD HERE** read *"a pass's evaluated pair set is THE ATTEMPT'S OWN `address` ONLY — never an
+  // ancestor's, never a descendant's: the ancestor pair's handle is layer (b)'s and no pass of THIS attempt
+  // runs it … the ancestor pair is evaluated by NO pass of this attempt"* (`attempt-lifecycle.md §2.4` item 5
+  // (iv); `kernel-surface.md §2.3` item 1). **THE ARCHITECT SUPERSEDED IT**: *"A listener/constraint should
+  // fire when the descendants of its targeted address node change, because the descendants become part of the
+  // object that is read from that address"* — **so the pass at `['<tag>','c']` asks `cL` and `cA` at the
+  // ancestor `['<tag>']` as well as `cB` at its own address, IN THE ONE REGISTRATION ORDER (`HL-8` item 6:
+  // `cL`, `cA`, then `cB`, the order they were registered in), and the cell's subject — the RECORD's shape and
+  // its check-off — is unmoved.**
+  assert.deepEqual(checkIds(report.log), ['cL', 'cA', 'cB'],
+    'THE PASS ASKS THE TWO PAIRS AT THE ANCESTOR AND THE PAIR AT ITS OWN ADDRESS, in the ONE '
+    + 'first-registration order — `cL`, `cA`, `cB` (`D-56`; `HL-8` item 6; `D-39`). The ancestors do not form '
+    + 'a second order and are not sorted to either end: they are interleaved by the one sequence both they and '
+    + 'the act\'s own pair stand in');
+  assert.equal(checkIds(report.log).includes('cA'), true,
+    'and the ancestor pair whose own landing the drive reads IS evaluated — once, the widening\'s own entry');
 });
 
 /**
@@ -533,10 +555,20 @@ test('ck_layer_b_a_caller_made_writes_uninvoked_handle_stands_in_pending_and_is_
     + 'one standing in `pending` and the kernel\'s own window having run it zero times');
   const report = runAttempt(store, record);
   assertAttemptReport(report, 'the uninvoked handle\'s own cell');
-  assert.equal(plain.seen.length, 0,
-    'and across the whole drive the caller-made write\'s body ran ZERO times: NO pass of this attempt '
-    + 'evaluates a pair at the ancestor address, and the kernel invokes nothing of its own (`§2.3` '
-    + 'item 1; `§2.2` item 2: "THE STORE RETURNS THE HANDLES AND INVOKES NOTHING")');
+  // **⟶ RE-DERIVED 2026-10-29 (`D-56`) — THE PASS NOW ASKS THE PAIR AT THE ANCESTOR, ONCE.** **What stood
+  // here** read *"across the whole drive the caller-made write's body ran ZERO times: NO pass of this attempt
+  // evaluates a pair at the ancestor address"* (`§2.3` item 1; `§2.2` item 2). **The architect superseded that
+  // set** — *"A listener/constraint should fire when the descendants of its targeted address node change,
+  // because the descendants become part of the object that is read from that address"* — **so the pass at the
+  // parent asks `cL` once, and the ZERO the cell reads is the WRITE WINDOW's**: nothing was invoked before the
+  // verb returned (asserted above, unmoved), and what runs after it is a PASS's own layer (a) delivery of a
+  // pair — never the caller's loop, which still runs it zero times.
+  assert.equal(plain.seen.length, 1,
+    'AND ACROSS THE WHOLE DRIVE THE PAIR AT THE ANCESTOR IS ASKED EXACTLY ONCE — by the pass at the '
+    + 'descendant, which is `D-56`\'s widening — read ' + plain.seen.length + '. THE KERNEL\'S OWN WRITE WINDOW '
+    + 'invoked NOTHING: the ZERO above, read at `K-2`\'s return, is the instant `§2.2` item 2 fixes ("THE '
+    + 'STORE RETURNS THE HANDLES AND INVOKES NOTHING"), and it is unmoved. What the ONE is, is layer (a)\': the '
+    + 'pair is a member of the pass\'s prefix set and the pass invokes the pairs it evaluates (`§2.3` item 1)');
 });
 
 /**

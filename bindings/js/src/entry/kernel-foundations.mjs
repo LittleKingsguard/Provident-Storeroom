@@ -452,6 +452,37 @@ export function sameAddress(left, right) {
   return true;
 }
 
+/**
+ * **⟶ ADDED 2026-10-29 — `isAddressPrefix`: THE PASS'S OWN MEMBERSHIP TEST, AND IT IS `D-56`'S SENTENCE IN
+ * ONE FUNCTION.** The architect, verbatim: *"A listener/constraint should fire when the descendants of its
+ * targeted address node change, because the descendants become part of the object that is read from that
+ * address"* (`strata/decisions.md` · `D-56`). **THE GROUND IS SEMANTIC AND NOT A PREFERENCE: the value read at
+ * a prefix CONTAINS its subtree, so a change at a descendant CHANGES what a read at the ancestor returns** —
+ * and a pair standing at the ancestor therefore **judges an object that moved.**
+ *
+ * **THE SET, STATED ONCE: a pair is asked when THE ACT'S ADDRESS IS AT OR BELOW THE PAIR'S ADDRESS** — *"the
+ * pair's address is a prefix of the act's address (equality included)"* (`D-56`). **So `isAddressPrefix(standing,
+ * act)` is `true` exactly where the pair stands AT the act's address OR AT ONE OF ITS ANCESTORS**, and `false`
+ * for a pair standing at a DESCENDANT — the unruled direction, which `D-56` requires to be MEASURED rather than
+ * implemented, and which this predicate therefore does not reach.
+ *
+ * **IT IS STRUCTURAL AND SEGMENT-WISE, WITH `string` AND `number` DISTINGUISHED, EXACTLY AS `sameAddress` IS**
+ * (`P: docs/pending.md · (M-3)` item (iv)): a pair at `['a', 0]` is NOT asked by an act at `['a', '0']`, so the
+ * widening changes WHICH DEPTHS are members and NOT how a segment is compared. **A SEGMENT COUNT OF ZERO IS A
+ * PREFIX OF EVERY ADDRESS** — the root pair's own reading, and the same one the trigger set's prefix rule gives.
+ */
+export function isAddressPrefix(prefix, address) {
+  if (!Array.isArray(prefix) || !Array.isArray(address)) return false;
+  if (prefix.length > address.length) return false;
+  for (let i = 0; i < prefix.length; i += 1) {
+    const a = prefix[i];
+    const b = address[i];
+    if (typeof a !== typeof b) return false;
+    if (a !== b) return false;
+  }
+  return true;
+}
+
 // ---------------------------------------------------------------------------------------------
 // THE KERNEL'S OWN CALLER-SIDE STATE — **THE INSTANCE OWNS IT, IN A SLOT ON THE INSTANCE ITSELF**, so
 // two stores never share a registry, this module retains no store of its own, and NOTHING STANDS AT
@@ -944,31 +975,57 @@ function opSpelling(value) {
  * replacement for `byAddress`'s index, declared at `contract.md §2.8` item 6 (`HL-DD-6`) and
  * `kernel-selection.md §3` item 1.
  *
- * **THE SET IS THE PAIRS WHOSE OWN ADDRESS IS THE ATTEMPT'S — selected by an EXACT-ADDRESS match and NEVER
- * widened to `triggered`'s prefix set** (`P: docs/pending.md · (AA-1)`, verbatim: *"the pass selects the rows
+ * **⟶ THE PREDICATE IS WIDENED FROM EXACT ADDRESS TO PREFIX, 2026-10-29 — `D-56`, AND THE CLAUSE BELOW STANDS
+ * BYTE-FOR-BYTE AS THE RULE THIS ONE SUPERSEDES.** `RCA-8(g)` ANNOTATE-BESIDE: **the paragraph that stood here
+ * read** *"THE SET IS THE PAIRS WHOSE OWN ADDRESS IS THE ATTEMPT'S — selected by an EXACT-ADDRESS match and NEVER
+ * widened to `triggered`'s prefix set"* (`P: docs/pending.md · (AA-1)`, verbatim: *"the pass selects the rows
  * whose address IS the triggering address, which PRESERVES the EXACT-ADDRESS RULE rather than widening it to
- * `triggered`'s prefix set"*; `contract.md §2.8` item 1).
+ * `triggered`'s prefix set"*; `contract.md §2.8` item 1), **and the architect has superseded it**, verbatim:
+ * *"A listener/constraint should fire when the descendants of its targeted address node change, because the
+ * descendants become part of the object that is read from that address"* (`strata/decisions.md` · `D-56`).
+ * **THE TWO CLAUSES `D-56` NAMES BY NUMBER ARE `HL-8` ITEM 1'S OWN SENTENCE AND
+ * `attempt-lifecycle.md §2.4` ITEM 5 (iv)'s EXACT-ADDRESS RULE — both superseded, both annotated in place, and
+ * neither rewritten.**
  *
- * **IT IS A SCAN, AND THE COST IS PRICED AND ACCEPTED** (`P: docs/pending.md · (AA-1)`, verbatim: *"selecting
- * rows by address is a scan over `kernel.pairs` … THAT GROUND WAS WRONG AND IS WITHDRAWN: the store names the
- * ADDRESS, and the kernel selects"*).
+ * **THE SET IS NOW THE PAIRS WHOSE OWN ADDRESS IS A PREFIX OF THE ATTEMPT'S — equality included — WHICH IS
+ * `isAddressPrefix(standing, address)` AND IS `D-56`'s ONE SENTENCE**: a pair at `['tabs']` IS asked for a
+ * delete at `['tabs','landingPage']`, a pair at `['tabs','landingPage']` IS asked for that same delete, and a
+ * pair at `['tabs','landingPage','x']` is NOT asked because the act did not change it (**the unruled direction,
+ * measured and not implemented** — `D-56`'s own terms). **THE REASON IS THE READ:** the value read at a prefix
+ * contains its subtree, so a descendant's change changes what the ancestor's read returns, and the ancestor pair
+ * **judges an object that moved.**
  *
- * **AND THE RESULT IS MATERIALISED ONCE, WHICH IS WHAT IMPLEMENTS `CX-12`'s *"the pass's evaluated set is
- * FIXED WHEN THE PASS BEGINS"*** (`P: docs/pending.md · R-B3`'s snapshot clause; `contract.md §2.8` item 6):
- * the returned list is a fresh array, so a `K-1` that returns DURING the pass enters the NEXT pass's set and
- * no earlier one, and a pair PURGED mid-pass is still evaluated by the pass that began with it
- * (`kernel-selection.md §3` item 5).
+ * **IT IS STILL A SCAN, AND THE COST IS STILL PRICED AND ACCEPTED** (`P: docs/pending.md · (AA-1)`, verbatim:
+ * *"selecting rows by address is a scan over `kernel.pairs` … THAT GROUND WAS WRONG AND IS WITHDRAWN: the store
+ * names the ADDRESS, and the kernel selects"*) — **and `D-56` re-prices it not at all**: the scan reads one
+ * prefix test per standing address instead of one equality test per standing address, on the same rows.
  *
- * **THE ORDER IS THE PAIR'S FIRST-REGISTRATION ORDER AT THE ADDRESS** — `attempt-lifecycle.md:193`'s *"clause
- * (ii)'s first-registration order"* — **and `kernel.pairs`' own `Map` iteration supplies it**, which is the
- * order the ruling says is preserved *"by the store's own returned order, not by an index's append order"*
- * (`P: docs/pending.md · M-3`, its closing sentence; `contract.md §2.8` item 6's `HL-DD-6`).
+ * **AND THE RESULT IS STILL MATERIALISED ONCE, WHICH IS WHAT IMPLEMENTS `CX-12`'s *"the pass's evaluated set is
+ * FIXED WHEN THE PASS BEGINS"*** (`P: docs/pending.md · R-B3`'s snapshot clause; `contract.md §2.8` item 6;
+ * `D-56`'s third deferrer, which changes WHAT is materialised and not WHEN): the returned list is a fresh array,
+ * so a `K-1` that returns DURING the pass enters the NEXT pass's set and no earlier one, and a pair PURGED
+ * mid-pass is still evaluated by the pass that began with it (`kernel-selection.md §3` item 5). **THE PASS READS
+ * THIS LIST AND NEVER THE REGISTRY**, and **`D-56` says nothing that moves that**: the ancestors are members of
+ * the SAME one snapshot, taken at the SAME instant.
+ *
+ * **THE ORDER IS STILL THE PAIR'S FIRST-REGISTRATION ORDER — `HL-8` ITEM 6's RULE SURVIVES `D-56` — AND THE
+ * ANCESTORS INTERLEAVE INTO THAT ONE ORDER RATHER THAN FORMING A SECOND.** `attempt-lifecycle.md:193`'s *"clause
+ * (ii)'s first-registration order"* **is supplied by `kernel.pairs`' own `Map` iteration**, which is the order
+ * the ruling says is preserved *"by the store's own returned order, not by an index's append order"*
+ * (`P: docs/pending.md · M-3`, its closing sentence; `contract.md §2.8` item 6's `HL-DD-6`). **THE WIDENING ADDS
+ * NO ITERATION AND NO SORT**: `D-39`'s registration sequence is the `Map`'s insertion order over the pair rows,
+ * the one loop below walks it once, and **a row is admitted or not by its own `addresses` member** — so an
+ * ancestor registered FIRST is asked FIRST, an ancestor registered THIRD is asked THIRD, **interleaved with the
+ * act's own pairs by the one sequence both stand in.** There is no "ancestors first", no "ancestors last", and
+ * no second list: **one order, one list, one snapshot.** **EACH ELEMENT IS EVALUATED AT MOST ONCE** — the `break`
+ * below is that rule, so a pair standing at N addresses of which two are prefixes of the act is reached once
+ * (`contract.md §2.6` item 5).
  */
 export function pairsAtAddress(kernel, address) {
   const out = [];
   for (const [key, pair] of kernel.pairs) {
     for (const standing of pair.addresses) {
-      if (sameAddress(standing, address)) {
+      if (isAddressPrefix(standing, address)) {
         appendOwn(out, key);
         break;
       }

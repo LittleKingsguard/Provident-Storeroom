@@ -1562,7 +1562,14 @@ test('ck_neg_2_the_call_list_reaches_beside_addresses_and_the_one_call_is_the_li
   // ⟶ `A135` (3) / `§7.3` (b) state 1 — and `3-bis` makes the shield mandatory here: unshielded, the
   // registration ATTEMPTS this repair and spends `nx === 1` there, so the call list this cell walks is never
   // built by the attempt the cell drives.
-  register(store, address, 'x', passAtRegistration(() => {
+  // **⟶ AND THIS PAIR ANSWERS A DESCENDANT ACT'S ASK `true`, 2026-10-29 (`D-56`).** **The repair below writes
+  // at `beside`, a DESCENDANT of this pair's own address, and that write is a full write whose own pass asks
+  // this pair** — its address is a prefix of `beside`. **A refusal there would refuse the repair's own edit and
+  // the call list this cell walks would never be built.** So the pair refuses ONLY where it is asked for an act
+  // at its OWN address (the arm this cell reads) and passes the descendant ask it now receives — **the ask is
+  // still taken and still entered in a log; only the drive's subject is protected from a second refusal.**
+  register(store, address, 'x', passAtRegistration((context) => {
+    if (context.address.length !== address.length) return true; // a DESCENDANT act's ask (`D-56`)
     nx += 1;
     if (nx === 1) {
       return { repair: () => { const landed = store.write(beside, 'mem', 'child-fixed').op; return { ok: true, message: 'x was repaired at the address beside the attempt\'s own', op: landed }; }, message: 'x is invalid at the attempt\'s own address' };
@@ -1858,7 +1865,15 @@ test('ck_neg_5_a_closed_failure_never_refuses_a_later_commit_and_its_record_is_r
   const store = makeStore({ journalLength: 16 });
   const root = tag('neg5');
   const address = [root];
-  register(store, address, 'x', passAtRegistration(() => ({ message: 'x fails and registers no repair' })));
+  // **⟶ AND THIS PAIR ANSWERS A DESCENDANT ACT'S ASK `true`, 2026-10-29 (`D-56`).** Steps (3)–(5) below drive
+  // attempts at `[root,'a']` and `[root,'a','child']`, so this pair at `[root]` is now a member of THEIR passes
+  // too: **a refusal there would make step (3)'s branch attempt fail and this cell would be reading the wrong
+  // arm.** The pair refuses where it is asked for an act at ITS OWN address — which is step (1)'s attempt, the
+  // one whose closed failure this cell retains — and passes every descendant ask, which is the widening.
+  register(store, address, 'x', passAtRegistration((context) => {
+    if (context.address.length !== address.length) return true; // a DESCENDANT act's ask (`D-56`)
+    return { message: 'x fails and registers no repair' };
+  }));
   const first = commit(store, address, 'mem', 'v');
   const r = capture(() => runAttempt(store, first));
   assert.equal(r.threw, true, 'the attempt fails');

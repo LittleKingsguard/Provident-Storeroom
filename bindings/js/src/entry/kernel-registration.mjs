@@ -521,11 +521,18 @@ function registrationRerun(kernel, attempt, produced) {
   // **THE ADDRESS IS IN HAND ONE FRAME ABOVE the `byAddress.get` call that stood here**, and the store→kernel
   // channel is `record` alone (`A117` (D6) forbids a fifth member).
   //
-  // **AND THE SELECTION IS AN EXACT-ADDRESS MATCH, NEVER A PREFIX ONE**: the pass's set is the pairs WHOSE OWN
-  // ADDRESS IS THE ATTEMPT'S, which preserves `attempt-lifecycle.md §2.4` item 5 (iv)'s exact-address rule
-  // rather than widening it to the store's prefix-selected `triggered` (`P: docs/pending.md · (AA-1)`;
-  // `contract.md §2.8` item 1). **EACH ELEMENT IS EVALUATED AT MOST ONCE**, so a pair standing at N addresses
-  // whose two addresses both match is reached once (`contract.md §2.6` item 5).
+  // **AND THE SELECTION IS A PREFIX MATCH ON A PAIR'S OWN ADDRESS, AS OF 2026-10-29 (`D-56`).** `RCA-8(g)`
+  // ANNOTATE-BESIDE: **the sentence that stood here read** *"the pass's set is the pairs WHOSE OWN ADDRESS IS THE
+  // ATTEMPT'S, which preserves `attempt-lifecycle.md §2.4` item 5 (iv)'s exact-address rule rather than widening
+  // it to the store's prefix-selected `triggered`"* (`P: docs/pending.md · (AA-1)`; `contract.md §2.8` item 1) —
+  // **and `D-56` supersedes that rule**: *"A listener/constraint should fire when the descendants of its targeted
+  // address node change, because the descendants become part of the object that is read from that address"*.
+  // **SO THE SET HERE IS `pairsAtAddress`'s AND MOVES WITH IT** — the pairs whose own address is a PREFIX of the
+  // attempt's, equality included — because a registration's re-run is not a second kind of pass and mints no
+  // second membership rule. **THE WIDENING IS THE FUNCTION'S AND NOT THIS MODULE'S**: the call below is byte-for-
+  // byte what it was, and the registration instant inherits `D-56` by CALLING the one selection function.
+  // **EACH ELEMENT IS EVALUATED AT MOST ONCE**, so a pair standing at N addresses whose two addresses are both
+  // prefixes of the act is reached once (`contract.md §2.6` item 5).
   const list = pairsAtAddress(kernel, attempt.address);
   for (const key of list) {
     const pair = kernel.pairs.get(key);
