@@ -3789,3 +3789,25 @@ holds, and say so plainly if it is not.**
 **TERMS: the direction ruled (`1`), the criterion named (`1` = touched, not descendant), the two act kinds (`2` = write's
 paths, delete's subtree), the path set's reachability to be measured (`1`), the cells owed (`3` = a written path asked, an
 untouched descendant not asked, a deleted subtree's descendants asked).**
+
+---
+
+### `D-67` — THE LISTENER DOES NOT FIRE, AND THAT IS THE PROBLEM; `triggered` IS PREFIX-ONLY WHILE THE PASS IS NOT
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, redirecting the residual from the before/after display to the listener's reach.
+
+**THE QUESTION, VERBATIM:** *"Does the listener get fired when the value is purged by a higher-persistence write that doesn't include it? Because that's the actual problem, not whether the before/after displays by tier"*
+
+**MEASURED, AND THE ANSWER IS NO.** **`src/store.rs:1873`'s `triggered_for(address)` filters by `is_prefix(&listener.address, address)`** — and **`:1885` says it in the file's own words: *"AND THE PREFIX RULE IS UNMOVED: the filter is still `is_prefix(&listener.address, address)`"`.** **So a listener fires when ITS ADDRESS IS AN ANCESTOR OF THE ACT'S — and never when the act reached below it.**
+
+**SO THE LISTENER AT A PURGED PATH HEARS NOTHING**, **and the display-by-tier question was a symptom**: **`D-66` widened the PASS to the touched descendants, and `triggered` did not move.** **The convergence `D-56` recorded — *"the pass's set now equals the store's `triggered` set"* — is BROKEN, and broken in the worse direction: A CONSTRAINT AT A TOUCHED DESCENDANT IS ASKED; A LISTENER AT THE SAME ADDRESS IS NEVER TOLD.**
+
+**AND THE PURGE CASE IS WORSE THAN THE MISSING PATH**: **a higher-persistence write that does not include a value REMOVES it, and the store's rule does not reach the address at all** — **so a listener registered on the removed node is not merely given a stale path, it is not invoked.**
+
+**THE FIX, AND IT IS A UNIFICATION RATHER THAN A SECOND RULE.** **`triggered` and the pass compute THE SAME THING — the reach of an act** — **one in Rust, one in JS**, **and only one of them can see the per-tier versions.** **So:**
+
+- **`triggered_for` widens to the same predicate the pass uses**: **the listener's address is a prefix of the act's, OR the act touched the listener's address**;
+- **AND THE STORE COMPUTES `touched`, because it alone knows the versions it purged** — **the JS's `touchedAddresses` becomes the reader of that answer rather than a second implementer of the rule**;
+- **which resolves the per-tier residual by construction**: **a purge is the store's own act, and the store can name every path it removed.**
+
+**TERMS: the listener's reach measured (`1` = prefix-only, no descendants), the convergence `D-56` recorded broken (`1`), the asymmetry named (`1` = pair asked, listener silent), the purge case worse than a stale path (`1` = never invoked), the unification (`1` = one rule computed where the versions live), the per-tier residual resolved by it (`1`).**
