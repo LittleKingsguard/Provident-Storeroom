@@ -542,7 +542,18 @@ function evaluate(kernel, attempt, landing) {
   // (iv); `CX-12`, which `D-56` defers to and does NOT move). **THE SNAPSHOT IS MATERIALISED ONCE PER RUN AND
   // READ BY THE WHOLE RUN** — the loop below, the repair arm's `list` and `releasePending`'s check-off all read
   // THIS ONE array — **and it is ALSO the set the layer (a) delivery of this run is read over.**
-  const list = pairsAtAddress(kernel, attempt.address);
+  //
+  // **⟶ AND THE SET IS HANDED THE ACT THIS RUN EVALUATES — `D-66`, 2026-10-29.** `D-56`'s widening was a property of
+  // the ADDRESS alone, so this call needed nothing but `attempt.address`. **`D-66`'s criterion is TOUCHED, WHICH IS
+  // A PROPERTY OF THE ACT'S KIND AND THE VALUE IT CARRIED**, so the one selection function is handed the one op
+  // every evaluation of this run carries — `landing` (`attempt-lifecycle.md §2.4` item 5 (iv): *"THE OP EVERY
+  // EVALUATION CARRIES IS THE LANDING'S OWN"*), whose `address`/`after`/`before` are the store's own journal op's
+  // (`D-53`'s record). **AND NOT ONE PROPERTY OF THE SNAPSHOT MOVES** (`CX-12`; `HL-8` item 6): it is materialised
+  // once at this instant, it is read by the whole run — the loop below, the repair arm's `list` and
+  // `releasePending`'s check-off — and the touched descendants INTERLEAVE into the one registration order the
+  // ancestors already stand in rather than forming a second. **NO SECOND MEMBERSHIP TEST IS MINTED HERE**: the
+  // predicate is `pairsAtAddress`'s, and this line only hands it the act.
+  const list = pairsAtAddress(kernel, attempt.address, landing);
   // **⟶ AND THE COMMIT THE INVOCATIONS OF THIS RUN NAME — `D-55` ITEM 3's DELETE-SHAPED ATTEMPT, 2026-10-29.**
   // **A WRITE'S ATTEMPT NAMES ITS `CommitRecord`** (`attempt.record`, the object `K-2` built and adopted), and
   // every verb a body calls under it JOINS that commit (`D-46`). **A DELETE'S ATTEMPT HAS NO `CommitRecord`** —

@@ -1045,18 +1045,147 @@ function opSpelling(value) {
  * no second list: **one order, one list, one snapshot.** **EACH ELEMENT IS EVALUATED AT MOST ONCE** — the `break`
  * below is that rule, so a pair standing at N addresses of which two are prefixes of the act is reached once
  * (`contract.md §2.6` item 5).
+ *
+ * **⟶ AND THE PREDICATE IS WIDENED AGAIN, FROM PREFIX-ONLY TO PREFIX-OR-TOUCHED-DESCENDANT, 2026-10-29 —
+ * `D-66`, AND THE PARAGRAPH ABOVE STANDS BYTE-FOR-BYTE AS THE RULE THIS ONE COMPLETES.** `RCA-8(g)`
+ * ANNOTATE-BESIDE. **`D-56` RULED ONE DIRECTION AND LEFT THE OTHER MEASURED-AND-NOT-IMPLEMENTED; `D-66` RULES
+ * THE OTHER, AND THE CRITERION IT NAMES IS NOT "DESCENDANT":**
+ *
+ *     A pair at a descendant should only be asked if the change also affects that descendant, ex.
+ *     write(['a', 'b'], {'c': "foo", 'd': "bar"} should trigger at ['a'], ['a', 'b'], ['a', 'b', 'c'],
+ *     and ['a', 'b', 'd'], but not ['a', 'b', 'e']
+ *
+ * **SO A PAIR IS ASKED WHEN THE ACT CHANGES THE VALUE AT THE PAIR'S ADDRESS, WHICH IS `D-56`'s ONE SENTENCE
+ * APPLIED TO BOTH DIRECTIONS**: the value at a prefix CONTAINS its subtree, so a change anywhere below it
+ * changes it (the ancestor arm, `D-56`, unmoved); and a node the act CREATED OR DESTROYED has a value that
+ * changed, so its own pair is asked (the descendant arm, `D-66`). **`['a','b','e']` IS NOT ASKED BECAUSE THE
+ * WRITE DID NOT TOUCH `e`** — it exists neither before nor after the act, so its value did not change.
+ *
+ * **THE TOUCHED SET IS COMPUTED FROM THE ACT'S KIND AND WHAT IT CARRIED** (`touchedAddresses` below, whose own
+ * clause states the two arms and what a value's path set is):
+ *   * **a WRITE touches exactly the paths its value contains** — `{c, d}` touches `['a','b','c']` and
+ *     `['a','b','d']` and nothing else, and a nested object touches its own sub-paths by the same rule one level
+ *     down;
+ *   * **a DELETE touches the WHOLE SUBTREE at its address**, because it removes all of it — a descendant of a
+ *     deleted node is ABSENT after the act and was not before, **which is a change to what a read there
+ *     returns.**
+ *
+ * **`D-66` DEFERS TO `D-56` AND TO `CX-12`, AND NOTHING BELOW MOVES FOR IT**: the set is STILL materialised once,
+ * frozen at pass start, and STILL ordered by the one `Map` iteration — the touched descendants INTERLEAVE into
+ * that one order exactly as the ancestors do, admitted by the same `break`, so a row standing at one address the
+ * act touched and one it merely stands above is reached ONCE. **THE WIDENING ADDS NO ITERATION AND NO SORT AND NO
+ * SECOND LIST**: the loop below still walks `kernel.pairs` once, and the only thing it reads that `D-56` did not
+ * is the act's own value.
+ *
+ * **AND THE ACT IS REACHED THROUGH THE ATTEMPT, WHICH IS WHERE `D-53` PUT IT** (`D-66`'s own measurement
+ * instruction): `attempt.ops` carries `JournalOp`s, and a `JournalOp` carries `address` and `after`/`before`. **The
+ * two pass call sites hand the op each of them is evaluating** — the landing, on `K-3`'s run and each re-run
+ * (`kernel-attempt.mjs`), and the repair's own op on a registration's re-run (`kernel-registration.mjs`) — so the
+ * predicate stays in THIS ONE PLACE and neither site mints a second membership rule. **A call that hands no act
+ * gets `D-56`'s set exactly**, which is the arm this function had before this date.
  */
-export function pairsAtAddress(kernel, address) {
+export function pairsAtAddress(kernel, address, act) {
+  // **THE TOUCHED SET IS MATERIALISED ONCE, HERE, AT PASS START** — the same instant the row list is, so the two
+  // halves of the set are fixed together and neither is re-read while the pass runs (`CX-12`).
+  const touched = touchedAddresses(act);
   const out = [];
   for (const [key, pair] of kernel.pairs) {
     for (const standing of pair.addresses) {
-      if (isAddressPrefix(standing, address)) {
+      if (isAddressPrefix(standing, address) || touchesAddress(touched, standing)) {
         appendOwn(out, key);
         break;
       }
     }
   }
   return out;
+}
+
+/**
+ * **THE ADDRESSES AN ACT TOUCHED BELOW ITS OWN ADDRESS — `D-66`'s OWN COMPUTATION, AND ITS TWO ARMS.**
+ *
+ * **A WRITE TOUCHES EXACTLY THE PATHS ITS VALUE CONTAINS.** The value is `after.value`, the state the write
+ * installs (`JournalOp`'s `after`, `src/records.rs`). **Its path set, stated for each class of value:**
+ *   * **a SCALAR** — a string, a number, a boolean or `null` — **contains no path at all**: it has no members, so
+ *     the write touches nothing below its own address. A pair at `['a','b','c']` is asked for a write of `"foo"`
+ *     at `['a','b']` only because it was asked by `D-56`'s arm (its address is not below the act's) — it is not
+ *     asked at all, and that is the truth: `['a','b','c']` stands neither before nor after the act;
+ *   * **an ARRAY** contributes **its own indices, as `number` segments and never as strings** (`contract.md §1`'s
+ *     segment law: an index key is a non-negative integer, so `[7, 8]` written at `['a','b']` touches
+ *     `['a','b',0]` and `['a','b',1]` and NOT `['a','b','0']`), each recursed into by the same rule one level
+ *     down;
+ *   * **a NESTED OBJECT** contributes **one path per own member name, as a `string` segment**, each recursed into
+ *     by the same rule one level down — so `{p:{q:1}}` written at `['n','o']` touches `['n','o','p']` AND
+ *     `['n','o','p','q']`, which is `D-66`'s *"a nested object touches its own sub-paths, by the same rule one
+ *     level down"*.
+ *
+ * **A DELETE TOUCHES THE WHOLE SUBTREE AT ITS ADDRESS**, and its path set is read off the SAME computation
+ * applied to the state the delete removed: `before.value` (`JournalOp`'s `before`), because a descendant of a
+ * deleted node is **absent after the act and was not before**. **THE `after` STATE IS ABANDONED BY THE SAME
+ * ARGUMENT**: a delete leaves absence, so `after` has no members to walk.
+ *
+ * **AND AN ABSENT STATE TOUCHES NOTHING**: `present !== true` returns the empty set — which is the delete that
+ * removed nothing (`D-3`: no op stands at all) and the write whose value carries no members.
+ *
+ * **MEASURED BEFORE THIS FUNCTION WAS WRITTEN, AND IT IS REACHABLE**: `op.kind` answers `"write"` or `"delete"`,
+ * `op.address` the act's own segments, `op.after.value` the FULL DECODED TREE a write installed
+ * (`{c:'foo', d:'bar'}` crosses as exactly that plain object — `frame.mjs`'s `decodeValue`) and `op.before.value`
+ * the subtree a delete removed (`{c:{x:1}, d:'bar'}`). **NO `src/**` BYTE AND NO `index.mjs` BYTE HAD TO MOVE**, so
+ * the store's op already carried the value JS needs.
+ *
+ * **NO METHOD IS TAKEN FROM A MUTABLE PROTOTYPE**: `Array.isArray` is the same intrinsic `decodeValue` uses, the
+ * member census is `Object.keys`, each member is read by `ownMember` (`D-35`'s read half), and every append is
+ * `appendOwn`.
+ */
+export function touchedAddresses(act) {
+  const out = [];
+  if (act === null || typeof act !== 'object') return out;
+  const address = ownMember(act, 'address');
+  if (!Array.isArray(address)) return out;
+  // **THE KIND CHOOSES THE STATE, AND IT IS THE ACT'S OWN KIND AND NOT A DEFAULT**: a write's `after` and a
+  // delete's `before` are the two states that name what the act MOVED.
+  const state = ownMember(act, ownMember(act, 'kind') === 'delete' ? 'before' : 'after');
+  if (state === null || typeof state !== 'object') return out;
+  if (ownMember(state, 'present') !== true) return out;
+  const base = [];
+  for (let i = 0; i < address.length; i += 1) appendOwn(base, address[i]);
+  appendValuePaths(out, base, ownMember(state, 'value'));
+  return out;
+}
+
+/** One value's path set, appended under `prefix` — the walk `touchedAddresses` states the rule of. Each member's
+ *  address is built FRESH (a copy of `prefix` plus the one segment), so no address on the returned list is an
+ *  alias of another and none is a view into the act's own value. */
+function appendValuePaths(out, prefix, value) {
+  if (Array.isArray(value)) {
+    for (let i = 0; i < value.length; i += 1) {
+      const address = [];
+      for (let j = 0; j < prefix.length; j += 1) appendOwn(address, prefix[j]);
+      appendOwn(address, i);
+      appendOwn(out, address);
+      appendValuePaths(out, address, value[i]);
+    }
+    return;
+  }
+  if (value === null || typeof value !== 'object') return;
+  const names = Object.keys(value);
+  for (let i = 0; i < names.length; i += 1) {
+    const name = names[i];
+    const address = [];
+    for (let j = 0; j < prefix.length; j += 1) appendOwn(address, prefix[j]);
+    appendOwn(address, name);
+    appendOwn(out, address);
+    appendValuePaths(out, address, ownMember(value, name));
+  }
+}
+
+/** **WHETHER ONE PAIR'S STANDING ADDRESS IS ONE THE ACT TOUCHED** — `D-66`'s second admission, beside
+ *  `isAddressPrefix`'s first. The comparison is `sameAddress`, so a pair at `['a', 0]` is not admitted by a
+ *  touched `['a', '0']` and the two arms of the set compare segments by ONE rule. */
+function touchesAddress(touched, standing) {
+  for (let i = 0; i < touched.length; i += 1) {
+    if (sameAddress(touched[i], standing)) return true;
+  }
+  return false;
 }
 
 /**

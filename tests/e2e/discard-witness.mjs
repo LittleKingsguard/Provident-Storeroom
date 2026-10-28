@@ -1569,18 +1569,25 @@ console.log('\n── W10 · `D-55` — the five settled rows, measured ──�
     `asks ${JSON.stringify(bAsks)} · delete ${bReceipt.ok ? 'ANSWERED' : statusOf(bReceipt.caught)} · `
       + `delivered ${JSON.stringify(bDelivered)}`);
 
-  // ── (X6c) `DW-10.16` — THE UNRULED DIRECTION, MEASURED: a DESCENDANT pair is NOT asked, and its value ──
-  // **`D-56`'s SENTENCE IS ONE-DIRECTIONAL** — *"the descendants of its targeted address node"* — **so an act AT
-  // OR ABOVE a pair's address is REPORTED AND NOT IMPLEMENTED.** Deleting `['window','tabs']` removes the node a
-  // pair at `['window','tabs','settings']` judges; the pass does NOT ask it, and the cell prints **what that
-  // pair's value becomes** and **whether the ruling's reason extends to it**.
+  // ── (X6c) `DW-10.16` — RE-DERIVED 2026-10-29 (`D-66`): THE DESCENDANT THE DELETE REMOVED IS ASKED ──
+  // **`D-56`'s SENTENCE WAS ONE-DIRECTIONAL AND THIS CELL MEASURED THE REVERSE AS *"NOT ASKED"*.** The architect
+  // has since ruled it, verbatim (`strata/decisions.md` · `D-66`): *"A pair at a descendant should only be asked if
+  // the change also affects that descendant"* — **and the criterion is TOUCHED, not descendant.** *"For a DELETE,
+  // the WHOLE SUBTREE at the act's address, because the act removes all of it — a descendant of a deleted node is
+  // ABSENT after the act and was not before, which is a change to what a read there returns."* **So the pair at
+  // `['window','tabs','settings']` IS asked for a delete at its parent, and the cell keeps its id and reads the
+  // newer ruling's measurement**: the pass's ask is printed beside the address it was asked at and the value the
+  // pass handed it, and the store's own read of the removed address after the act is printed beside them.
+  // **THE CELL'S SECOND READING IS UNMOVED AND STILL THE POINT**: the delete ANSWERS, because this pair passes.
   const pStore = make();
   pStore.write(['window'], 'mem', tabsSeed());
   const pAsks = [];
   const pValues = [];
+  const pAskAddresses = [];
   const pPair = attempt(() => pStore.addConstraint({ address: ['window', 'tabs', 'settings'], id: 'descendant-pair' },
     (context) => {
       pAsks.push(context.attempt === null ? 'registration' : 'pass');
+      pAskAddresses.push(context.address.slice());
       pValues.push(context.value);
       return true;
     }));
@@ -1589,13 +1596,28 @@ console.log('\n── W10 · `D-55` — the five settled rows, measured ──�
   const pReceipt = attempt(() => pStore.delete(['window', 'tabs']));
   const pAfter = attempt(() => pStore.read(['window', 'tabs', 'settings']));
   P('X6c · the DESCENDANT pair\'s asks for a delete at its ANCESTOR (`[\'window\',\'tabs\']`)', pAsks);
-  P('X6c · the value the pass handed it (its own registration\'s, and nothing from the pass)', pValues.map((v) => (v === undefined ? '<absent>' : v)));
+  P('X6c · the ADDRESS each ask was made at', pAskAddresses);
+  P('X6c · the value the pass handed it (a delete\'s `after` is absence)', pValues.map((v) => (v === undefined ? '<absent>' : v)));
   P('X6c · WHAT ITS VALUE BECOMES — the store\'s own read of its address after the delete', pAfter.ok ? pAfter.value : `<refused: ${statusOf(pAfter.caught)}>`);
-  P('X6c · the value a pass WOULD have handed it had `D-56` reached this direction (`op.after.value` at the act\'s address)', pReceipt.ok ? (pReceipt.value.op.after.present === false ? '<absent>' : pReceipt.value.op.after.value) : '<no receipt>');
-  A('DW-10.16', '`strata/decisions.md` · `D-56` (the ruling is one-directional: *"the reverse is reported, not implemented"*; *"a pair at `[tabs,landingPage,x]` is NOT asked, because the act did not change it"*)',
-    'THE DESCENDANT PAIR IS NOT ASKED: a delete at `[\'window\',\'tabs\']` produces ONE ask for the pair at `[\'window\',\'tabs\',\'settings\']` — its registration\'s — and the pass asks it ZERO times; the delete ANSWERS',
-    pPair.ok === true && pAsks.length === 1 && pAsks[0] === 'registration' && pReceipt.ok === true,
-    `asks ${JSON.stringify(pAsks)} · delete ${pReceipt.ok ? 'ANSWERED' : statusOf(pReceipt.caught)}`);
+  P('X6c · the delete\'s op: what the act removed, read off the store\'s own journal op', pReceipt.ok
+    ? { kind: pReceipt.value.op.kind, address: pReceipt.value.op.address, beforePresent: pReceipt.value.op.before.present,
+      beforeValue: pReceipt.value.op.before.present ? pReceipt.value.op.before.value : '<absent>',
+      afterPresent: pReceipt.value.op.after.present }
+    : '<no receipt>');
+  A('DW-10.16', '`strata/decisions.md` · `D-66` (the criterion is TOUCHED: *"for a DELETE, the WHOLE SUBTREE at the act\'s address, because the act removes all of it"*) — read beside `D-56` (a pair at an ANCESTOR is asked, unmoved) and `D-50` (a body that cares about a location reads it)',
+    'THE DESCENDANT THE DELETE REMOVED IS ASKED: a delete at `[\'window\',\'tabs\']` produces TWO asks for the pair at `[\'window\',\'tabs\',\'settings\']` — its registration\'s and the pass\'s — the pass\'s ask naming the ACT\'s address `[\'window\',\'tabs\']` and carrying NO value, because a delete\'s after-state is absence; and the delete ANSWERS, the removed address now reading `AddressNotFound`',
+    pPair.ok === true && pAsks.length === 2 && pAsks[1] === 'pass'
+      && keyOfAddr(pAskAddresses[1]) === keyOfAddr(['window', 'tabs'])
+      && pValues[1] === undefined
+      && pReceipt.ok === true
+      && pReceipt.value.op.kind === 'delete'
+      && keyOfAddr(pReceipt.value.op.address) === keyOfAddr(['window', 'tabs'])
+      && pReceipt.value.op.before.present === true
+      && pAfter.ok === false,
+    `asks ${JSON.stringify(pAsks)} · ask addresses ${JSON.stringify(pAskAddresses)} · `
+      + `values ${JSON.stringify(pValues.map((v) => (v === undefined ? '<absent>' : v)))} · `
+      + `delete ${pReceipt.ok ? 'ANSWERED' : statusOf(pReceipt.caught)} · after `
+      + `${pAfter.ok ? JSON.stringify(pAfter.value) : statusOf(pAfter.caught)}`);
 
   // ── (X6d) `DW-10.17` — THE SNAPSHOT: MATERIALISED ONCE, FROZEN, ORDERED BY REGISTRATION ────────────
   // **`CX-12` STILL HOLDS AND `D-56` DOES NOT MOVE IT**: the pass's set is FIXED WHEN THE PASS BEGINS, and it is
@@ -2071,6 +2093,246 @@ console.log('\n── W12 · `D-63` — bump the mark when a sweep ends valid �
   console.log("        a listener's write (in the delivery) is beyond the mark and survives, and a commit that never");
   console.log('        passes a sweep keeps its opening mark and restores to it — which is why `DEF-AN` closes with no');
   console.log('        commit identity on the journal at all.');
+}
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════
+// (W13) `D-66` — A PAIR AT A DESCENDANT IS ASKED ONLY WHEN THE ACT TOUCHED IT
+//
+// **THE RULING** (`strata/decisions.md` · `D-66`, 2026-10-28, the architect, verbatim):
+//
+//     A pair at a descendant should only be asked if the change also affects that descendant, ex. write(['a',
+//     'b'], {'c': "foo", 'd': "bar"} should trigger at ['a'], ['a', 'b'], ['a', 'b', 'c'], and ['a', 'b', 'd'],
+//     but not ['a', 'b', 'e']
+//
+// **`D-56` RULED THE ANCESTOR DIRECTION AND LEFT THE DESCENDANT ONE MEASURED AND NOT IMPLEMENTED; `D-66` RULES THE
+// DESCENDANT ONE AND THE CRITERION IT NAMES IS TOUCHED, NOT DESCENDANT.** **A pair is asked when THE ACT CHANGES
+// THE VALUE AT THE PAIR'S ADDRESS**: an ancestor's read contains the subtree (`D-56`, unmoved), and a node the act
+// CREATED OR DESTROYED has a value that changed (**`D-66`**). **`['a','b','e']` IS NOT ASKED BECAUSE THE WRITE DID
+// NOT TOUCH `e`.**
+//
+// **WHAT THE SET IS COMPUTED FROM, AND WHERE**: `pairsAtAddress` (`bindings/js/src/entry/kernel-foundations.mjs`)
+// asks `touchedAddresses` for the act's path set — **the act being the `JournalOp` the run evaluates against**,
+// whose `address` and `after`/`before` the store's own journal carries. **A WRITE touches exactly the paths its
+// value contains** (a scalar contains none; an array contributes its own `number` indices; a nested object its own
+// member names, recursed one level down), **a DELETE touches the whole subtree at its address**, read off the
+// `before` state it removed. **THE SNAPSHOT'S THREE PROPERTIES SURVIVE `D-66`** (`CX-12`; `HL-8` item 6): one
+// materialisation at pass start, frozen, and ONE registration order across ancestors, the act's own address and
+// the touched descendants — the touched rows interleave into the same `Map` sequence and form no second list.
+//
+// **EVERY CELL BELOW BITES UNDER A `/tmp` REVERT**, one line each:
+//   · `DW-13.1`/`DW-13.2` — restore `pairsAtAddress`'s membership test to `isAddressPrefix` alone (drop the
+//     `|| touchesAddress(...)` term) → RED on the touched arm (the write's `c`/`d` pairs go unasked, and the
+//     nested write's `p`/`p.q`/`p.r` too);
+//   · `DW-13.3` — register the touched rows into a SECOND list appended after the prefix rows, or re-read the
+//     registry inside the loop → RED on the one-order and on the freeze.
+console.log('\n── W13 · `D-66` · A PAIR AT A DESCENDANT IS ASKED ONLY WHEN THE ACT TOUCHED IT ────────');
+{
+  const statusOf = (caught) => (caught !== null && typeof caught === 'object' && typeof caught.status === 'string'
+    ? caught.status
+    : '<no status on the caught value>');
+  // ── DW-13.1 · THE RULING'S OWN EXAMPLE, ALL FIVE ASKS PRINTED ─────────────────────────────────────
+  // **THE ARCHITECT'S OWN DRIVE, VERBATIM**: a write of `{c:'foo', d:'bar'}` at `['a','b']`, with a pair standing
+  // at each of the five addresses the ruling names. **FOUR ARE ASKED AND THE FIFTH IS NOT**, and the cell prints
+  // every one of the five with its own verdict so the absence of `['a','b','e']` is read and not inferred.
+  const rStore = make();
+  rStore.write(['a'], 'mem', {});
+  const rAsks = [];
+  const rBody = (id) => (context) => {
+    if (context.attempt !== null) {
+      rAsks.push({ id, askAddress: context.address.slice(), kind: context.op === null ? null : context.op.kind,
+        opAddress: context.op === null ? null : context.op.address });
+    }
+    return true;
+  };
+  const rSeeded = [
+    [['a'], 'at-a'],
+    [['a', 'b'], 'at-a.b'],
+    [['a', 'b', 'c'], 'at-a.b.c'],
+    [['a', 'b', 'd'], 'at-a.b.d'],
+    [['a', 'b', 'e'], 'at-a.b.e'],
+  ].map(([address, id]) => ({ address, id, registered: attempt(() => rStore.addConstraint({ address, id }, rBody(id))) }));
+  const rRecord = attempt(() => kernel.commit(rStore, ['a', 'b'], 'mem', { c: 'foo', d: 'bar' }));
+  const rRun = rRecord.ok ? attempt(() => kernel.runAttempt(rStore, rRecord.value)) : null;
+  const rAsked = rAsks.map((one) => one.id);
+  // **THE FIVE, ONE LINE EACH** — the ruling's own sentence, read against this run.
+  for (const { address, id } of rSeeded) {
+    P(`X7 · ${JSON.stringify(address)}`, rAsked.includes(id) ? 'ASKED' : 'NOT ASKED');
+  }
+  P('X7 · the pass\'s asks, IN ORDER', rAsks);
+  P('X7 · the write\'s own op (kind · address · value)', rRecord.ok
+    ? { kind: rRecord.value.op.kind, address: rRecord.value.op.address, value: rRecord.value.op.after.value }
+    : '<no record>');
+  A('DW-13.1', '`strata/decisions.md` · `D-66` (the ruling\'s own example, verbatim: *"write([\'a\', \'b\'], {\'c\': \\"foo\\", \'d\': \\"bar\\"} should trigger at [\'a\'], [\'a\', \'b\'], [\'a\', \'b\', \'c\'], and [\'a\', \'b\', \'d\'], but not [\'a\', \'b\', \'e\']"*) — read with `D-56` (the ancestor arm) and `D-66`\'s criterion (*"a pair is asked when the act changes the value at the pair\'s address"*)',
+    'THE RULING\'S OWN EXAMPLE, ALL FIVE: a write of `{c:\'foo\', d:\'bar\'}` at `[\'a\',\'b\']` asks `[\'a\']`, `[\'a\',\'b\']`, `[\'a\',\'b\',\'c\']` and `[\'a\',\'b\',\'d\']` — IN THAT ONE REGISTRATION ORDER — and does NOT ask `[\'a\',\'b\',\'e\']`, because the write did not touch `e`',
+    rSeeded.every((one) => one.registered.ok === true)
+      && rRecord.ok === true && rRun !== null && rRun.ok === true && rRun.value.outcome === 'passed'
+      && keyOfAddr(rAsked) === keyOfAddr(['at-a', 'at-a.b', 'at-a.b.c', 'at-a.b.d'])
+      && rAsked.includes('at-a.b.e') === false,
+    `asked ${JSON.stringify(rAsked)} · run ${rRun === null ? '<not reached>' : (rRun.ok ? rRun.value.outcome : statusOf(rRun.caught))} · `
+      + `the five ${JSON.stringify(rSeeded.map(({ address, id }) => [keyOfAddr(address), rAsked.includes(id) ? 'ASKED' : 'NOT ASKED']))}`);
+
+  // ── DW-13.2 · THE NESTED WRITE: A VALUE'S PATH SET IS ITS OWN SUB-PATHS, ONE LEVEL DOWN ──────────
+  // **`D-66`: *"a nested object touches its own sub-paths, by the same rule one level down"*.** The value written
+  // at `['n','o']` is `{p:{q:1, r:[7,8]}}`, so its path set is `['n','o','p']`, `['n','o','p','q']`,
+  // `['n','o','p','r']`, `['n','o','p','r',0]` and `['n','o','p','r',1]` — **the array's indices as `number`
+  // segments** — and the pair at `['n','o','p','z']` is NOT asked, because nothing of the value stands at `z`.
+  const nStore = make();
+  nStore.write(['n'], 'mem', {});
+  const nAsks = [];
+  const nBody = (id) => (context) => {
+    if (context.attempt !== null) nAsks.push(id);
+    return true;
+  };
+  const nSeeded = [
+    [['n', 'o', 'p'], 'at-p'],
+    [['n', 'o', 'p', 'q'], 'at-p.q'],
+    [['n', 'o', 'p', 'r'], 'at-p.r'],
+    [['n', 'o', 'p', 'r', 0], 'at-p.r[0]'],
+    [['n', 'o', 'p', 'z'], 'at-p.z'],
+  ].map(([address, id]) => ({ address, id, registered: attempt(() => nStore.addConstraint({ address, id }, nBody(id))) }));
+  const nRecord = attempt(() => kernel.commit(nStore, ['n', 'o'], 'mem', { p: { q: 1, r: [7, 8] } }));
+  const nRun = nRecord.ok ? attempt(() => kernel.runAttempt(nStore, nRecord.value)) : null;
+  for (const { address, id } of nSeeded) {
+    P(`X7 · nested ${JSON.stringify(address)}`, nAsks.includes(id) ? 'ASKED' : 'NOT ASKED');
+  }
+  P('X7 · the nested pass\'s asks, IN ORDER', nAsks);
+  A('DW-13.2', '`strata/decisions.md` · `D-66` (*"a nested object touches its own sub-paths, by the same rule one level below"*) — read with `contract.md §1`\'s segment law (an array index is a non-negative integer, never a string)',
+    'THE NESTED WRITE TOUCHES ITS OWN SUB-PATHS: a write of `{p:{q:1, r:[7,8]}}` at `[\'n\',\'o\']` asks the pairs at `[\'n\',\'o\',\'p\']`, `[\'n\',\'o\',\'p\',\'q\']`, `[\'n\',\'o\',\'p\',\'r\']` and `[\'n\',\'o\',\'p\',\'r\',0]` — the array\'s index spelled as a `number` — and NOT the pair at `[\'n\',\'o\',\'p\',\'z\']`',
+    nSeeded.every((one) => one.registered.ok === true)
+      && nRecord.ok === true && nRun !== null && nRun.ok === true && nRun.value.outcome === 'passed'
+      && nAsks.includes('at-p') && nAsks.includes('at-p.q') && nAsks.includes('at-p.r')
+      && nAsks.includes('at-p.r[0]') && nAsks.includes('at-p.z') === false,
+    `asks ${JSON.stringify(nAsks)} · run ${nRun === null ? '<not reached>' : (nRun.ok ? nRun.value.outcome : statusOf(nRun.caught))}`);
+
+  // ── DW-13.3 · THE SNAPSHOT, WITH THE TOUCHED ROWS IN IT: ONCE, FROZEN, ONE ORDER ─────────────────
+  // **`D-66` DEFERS TO `CX-12` AND TO `HL-8` ITEM 6 AND MOVES NEITHER.** The drive registers FOUR pairs in one
+  // sequence — the deep ancestor `['window']`, the act's own address `['window','tabs']`, the touched descendant
+  // `['window','tabs','settings']` and the UNTOUCHED descendant `['window','tabs','about']` — and a fifth from
+  // INSIDE the pass. **The pass asks the first three in that one order, and none of the last two**; the fifth
+  // enters the NEXT pass's set and no earlier one.
+  const sStore = make();
+  sStore.write(['window'], 'mem', tabsSeed());
+  const sOrder = [];
+  const sMidPassId = 'registered-during-the-pass';
+  let sMidPassRegistered = false;
+  const sRegisterMidPass = () => {
+    if (sMidPassRegistered) return;
+    sMidPassRegistered = true;
+    sStore.addConstraint({ address: ['window', 'tabs', 'settings', 'active'], id: sMidPassId }, (context) => {
+      sOrder.push({ id: sMidPassId, at: context.attempt === null ? 'registration' : 'pass' });
+      return true;
+    });
+  };
+  // **THE REGISTRATION SEQUENCE IS DELIBERATELY NOT THE PREFIX-THEN-TOUCHED ONE**: the TOUCHED descendant is
+  // registered FIRST and the deep ancestor SECOND, **so a listing that put the touched rows into a SECOND list
+  // after the prefix rows would print `[ancestor-deep, at-the-address, touched-descendant]` and this cell would be
+  // red** — the one order is the registration order, and this is the drive that can tell it from a second one.
+  const sSeeded = [
+    [['window', 'tabs', 'settings'], 'touched-descendant', false],
+    [['window'], 'ancestor-deep', true],
+    [['window', 'tabs'], 'at-the-address', false],
+    [['window', 'tabs', 'about'], 'untouched-descendant', false],
+  ].map(([address, id, registers]) => ({ id, registered: attempt(() => sStore.addConstraint({ address, id }, (context) => {
+    const atRegistration = context.attempt === null;
+    sOrder.push({ id, at: atRegistration ? 'registration' : 'pass' });
+    if (atRegistration === false && registers) sRegisterMidPass();
+    return true;
+  })) }));
+  // **THE ACT WRITES THE TAB OBJECT ITSELF, NOT THE SEED'S WRAPPER**: the value's path set is what `D-66` reads,
+  // so the write at `['window','tabs']` carries `{landingPage, settings}` and touches those two names and theirs.
+  const sTabs = () => ({ landingPage: { active: true }, settings: { active: false } });
+  const sRecord = attempt(() => kernel.commit(sStore, ['window', 'tabs'], 'mem', sTabs()));
+  const sRun = sRecord.ok ? attempt(() => kernel.runAttempt(sStore, sRecord.value)) : null;
+  const sPassAsks = sOrder.filter((one) => one.at === 'pass').map((one) => one.id);
+  const sOrderBefore = sOrder.length;
+  const sSecond = attempt(() => sStore.write(['window', 'tabs'], 'mem', sTabs()));
+  const sSecondAsks = sOrder.slice(sOrderBefore).filter((one) => one.at === 'pass').map((one) => one.id);
+  P('X7 · the pass\'s asks, IN ORDER — ancestor · the act\'s own address · the TOUCHED descendant', sPassAsks);
+  P('X7 · the untouched descendant and the mid-pass registration, in THIS pass', {
+    untouchedAsked: sPassAsks.includes('untouched-descendant'),
+    midPassAsked: sPassAsks.includes(sMidPassId),
+    midPassRegistered: sMidPassRegistered,
+  });
+  P('X7 · the NEXT pass\'s asks (the mid-pass registration has entered the set)', sSecondAsks);
+  A('DW-13.3', '`CX-12` (the pass\'s evaluated set is FIXED WHEN THE PASS BEGINS); `HL-8` item 6 (`D-39`\'s first-registration order); `D-56` and `D-66` (the set is materialised from the act\'s address, its ancestors AND the descendants it touched)',
+    'THE SNAPSHOT SURVIVES THE WIDENING: the pass asks EXACTLY the three rows — the TOUCHED descendant, the deep ancestor and the act\'s own address — in the ONE registration order they stand in (the touched row FIRST, because it was registered first, and never in a second list after the prefix rows), and neither the UNTOUCHED descendant nor the pair registered during the pass; that pair enters the NEXT pass and no earlier one',
+    sSeeded.every((one) => one.registered.ok === true)
+      && sRecord.ok === true && sRun !== null && sRun.ok === true && sRun.value.outcome === 'passed'
+      && keyOfAddr(sPassAsks) === keyOfAddr(['touched-descendant', 'ancestor-deep', 'at-the-address'])
+      && sMidPassRegistered === true
+      && sSecond.ok === true
+      && keyOfAddr(sSecondAsks) === keyOfAddr(['touched-descendant', 'ancestor-deep', 'at-the-address', sMidPassId]),
+    `pass asks ${JSON.stringify(sPassAsks)} · untouched asked ${sPassAsks.includes('untouched-descendant')} · `
+      + `mid-pass ${sMidPassRegistered}/${sPassAsks.includes(sMidPassId)} · next pass ${JSON.stringify(sSecondAsks)}`);
+
+  // ── DW-13.4 · A DELETE'S SUBTREE, AT THE RULING'S OWN ADDRESSES: `['a','b']` ASKS `['a','b','c']` ──
+  // **`D-66`: *"for a DELETE, the WHOLE SUBTREE at the act's address, because the act removes all of it"*.** The
+  // same two addresses the ruling's write example uses, driven with the OTHER verb: a delete at `['a','b']` removes
+  // `['a','b','c']` (and whatever stands under it), so the pair there IS asked — and the pair at `['a','b','e']`,
+  // which stood nowhere before the act and stands nowhere after it, is NOT.
+  const tStore = make();
+  tStore.write(['a'], 'mem', {});
+  tStore.write(['a', 'b'], 'mem', { c: { x: 1 }, d: 'bar' });
+  const tAsks = [];
+  const tBody = (id) => (context) => {
+    if (context.attempt !== null) tAsks.push(id);
+    return true;
+  };
+  const tSeeded = [
+    [['a'], 'del-a'],
+    [['a', 'b'], 'del-a.b'],
+    [['a', 'b', 'c'], 'del-a.b.c'],
+    [['a', 'b', 'e'], 'del-a.b.e'],
+  ].map(([address, id]) => ({ address, id, registered: attempt(() => tStore.addConstraint({ address, id }, tBody(id))) }));
+  const tReceipt = attempt(() => tStore.delete(['a', 'b']));
+  for (const { address, id } of tSeeded) {
+    P(`X7 · delete ${JSON.stringify(address)}`, tAsks.includes(id) ? 'ASKED' : 'NOT ASKED');
+  }
+  P('X7 · the delete\'s op — what it removed (the subtree it touched)', tReceipt.ok
+    ? { kind: tReceipt.value.op.kind, address: tReceipt.value.op.address,
+      removed: tReceipt.value.op.before.present ? tReceipt.value.op.before.value : '<absent>' }
+    : '<no receipt>');
+  A('DW-13.4', '`strata/decisions.md` · `D-66` (*"for a DELETE, the WHOLE SUBTREE at the act\'s address"*) — read with `D-56` (the ancestors, unmoved) and `D-66`\'s sentence *"a descendant of a deleted node is ABSENT after and not before"*',
+    'A DELETE TOUCHES THE WHOLE SUBTREE IT REMOVED: a delete at `[\'a\',\'b\']` asks `[\'a\']`, `[\'a\',\'b\']` and `[\'a\',\'b\',\'c\']` — the descendant is GONE, which is a change — and does NOT ask `[\'a\',\'b\',\'e\']`, which stood nowhere before the act',
+    tSeeded.every((one) => one.registered.ok === true)
+      && tReceipt.ok === true
+      && keyOfAddr(tAsks) === keyOfAddr(['del-a', 'del-a.b', 'del-a.b.c'])
+      && tAsks.includes('del-a.b.e') === false,
+    `asks ${JSON.stringify(tAsks)} · delete ${tReceipt.ok ? 'ANSWERED' : statusOf(tReceipt.caught)}`);
+
+  // ── AND THE ONE DESCENDANT THE SET STILL MISSES, PRINTED RATHER THAN LEFT TO BE FOUND ────────────
+  // **`D-66` DEFINES A WRITE'S TOUCHED SET AS *"exactly the paths the written value contains"*, AND THAT SET HAS
+  // ONE EDGE THE ACT DID MOVE AND THE VALUE DOES NOT NAME**: a node the write REPLACED loses the sub-paths the
+  // old value carried and the new one does not. Writing `{c: 1}` over `{c:{x:1}}` leaves `['a','b','c','x']`
+  // absent-after and present-before — a change to what a read there returns — but `['a','b','c','x']` is not in
+  // the written value's path set, so the pair standing there is NOT asked. **The `before` state WOULD name it
+  // (`op.before.value` carries the replaced tree, measured reachable), and the ruling does not ask for it**: this
+  // is `D-66`'s own definition read to its edge, printed here and NOT implemented.
+  const gStore = make();
+  gStore.write(['a'], 'mem', {});
+  gStore.write(['a', 'b'], 'mem', {});
+  gStore.write(['a', 'b', 'c'], 'mem', { x: 1 });
+  const gAsks = [];
+  gStore.addConstraint({ address: ['a', 'b', 'c', 'x'], id: 'replaced-descendant' }, (context) => {
+    if (context.attempt !== null) gAsks.push('pass');
+    return true;
+  });
+  const gRecord = attempt(() => kernel.commit(gStore, ['a', 'b'], 'mem', { c: 1 }));
+  const gRun = gRecord.ok ? attempt(() => kernel.runAttempt(gStore, gRecord.value)) : null;
+  const gAfter = attempt(() => gStore.read(['a', 'b', 'c', 'x']));
+  P('X7 · THE ONE THE SET STILL MISSES — a write of `{c:1}` over `{c:{x:1}}`, the pair at `[\'a\',\'b\',\'c\',\'x\']`', {
+    askedByThePass: gAsks.includes('pass'),
+    beforeState: gRecord.ok ? (gRecord.value.op.before.present ? gRecord.value.op.before.value : '<absent>') : '<no record>',
+    afterRead: gAfter.ok ? gAfter.value : statusOf(gAfter.caught),
+    writtenPathSet: gRecord.ok ? gRecord.value.op.after.value : '<no record>',
+  });
+  console.log('');
+  console.log('        THE SENTENCE TO CARRY AWAY (`D-66`): A PAIR IS ASKED WHEN THE ACT CHANGES THE VALUE AT ITS');
+  console.log('        ADDRESS — the ancestors because a prefix read CONTAINS its subtree (`D-56`), and the');
+  console.log('        descendants THE ACT TOUCHED because a node it created or destroyed has a changed value: a');
+  console.log("        write touches exactly the paths its value contains, a delete the whole subtree it removed. A");
+  console.log('        descendant the act did not touch is NOT asked, and the set is still one snapshot, frozen at');
+  console.log('        pass start, in one registration order.');
 }
 
 

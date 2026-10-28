@@ -496,7 +496,11 @@ export function storeCreate(cfg) {
     /// *"A delete is an editing verb and must pass constraints. This includes all of the relevant commit and
     /// message logic."*** **THE BYTES THIS PARAGRAPH REPLACES READ *"`delete` IS THE ONE ACT WHOSE DELIVERY RUNS
     /// NO PASS"*, AND THEY WERE TRUE OF `1.3.0` AND FALSE OF THIS TREE**: a delete opens its own commit, and
-    /// **the delete-shaped attempt `constraints.mjs`'s `constraintDelete` builds asks every pair standing at the
+    /// **⟶ AND THE SET IT ASKS IS NOW THREE-PART, `D-66` (2026-10-28): every ANCESTOR of the delete's address (`D-56`), the
+    /// address itself, and EVERY DESCENDANT THE DELETE TOUCHED — for a delete, the whole subtree, because removing it
+    /// changes what a read there returns (absent where it stood). A pair at an address the act did NOT touch is still
+    /// not asked, which is the criterion: TOUCHED, not descendant.** **the delete-shaped attempt
+    /// `constraints.mjs`'s `constraintDelete` builds asks every pair standing at the
     /// delete's own address **⟶ AND AT EVERY ANCESTOR OF IT, `D-56` (2026-10-28): THE PAIR'S ADDRESS BEING A PREFIX OF
     /// THE ACT'S IS THE MEMBERSHIP TEST NOW, because the value read at a prefix CONTAINS its subtree and a change at a
     /// descendant changes what that read returns** — against THE STATE THE DELETE LEFT**, appends the attempt's terminal entry to the

@@ -535,7 +535,18 @@ function registrationRerun(kernel, attempt, produced) {
   // byte what it was, and the registration instant inherits `D-56` by CALLING the one selection function.
   // **EACH ELEMENT IS EVALUATED AT MOST ONCE**, so a pair standing at N addresses whose two addresses are both
   // prefixes of the act is reached once (`contract.md §2.6` item 5).
-  const list = pairsAtAddress(kernel, attempt.address);
+  //
+  // **⟶ AND THE SET HERE IS HANDED THE REPAIR'S OWN OP — `D-66`, 2026-10-29.** **`D-56` COULD SAY THE CALL BELOW WAS
+  // BYTE-FOR-BYTE WHAT IT WAS BECAUSE ITS WIDENING WAS A PROPERTY OF THE ADDRESS ALONE** (*"the registration
+  // instant inherits `D-56` by CALLING the one selection function"*, the sentence above). **`D-66`'s criterion is
+  // TOUCHED, which is a property of THE ACT'S KIND AND THE VALUE IT CARRIED**, and the act whose change this
+  // re-run judges is **the repair's** — `produced`, the op the repair's own edit landed and which every context
+  // below already carries as `op`. **SO ONE ARGUMENT IS ADDED AND NOT ONE RULE**: the membership test is still
+  // `pairsAtAddress`'s alone, the registration's re-run still mints no second kind of pass, and a repair that
+  // wrote `{c, d}` at the attempt's address now asks the pairs standing at `['…','c']` and `['…','d']` as `D-66`
+  // requires. **THE SNAPSHOT'S OWN PROPERTIES ARE UNMOVED** (`CX-12`; `HL-8` item 6): one materialisation, frozen
+  // here, one registration order.
+  const list = pairsAtAddress(kernel, attempt.address, produced);
   for (const key of list) {
     const pair = kernel.pairs.get(key);
     if (pair === undefined) continue;
