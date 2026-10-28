@@ -429,10 +429,14 @@ test('DIRECT-PASS RESTART (5) · THE EPOCH: a request raised in a window whose c
       ? { message: 'the state the reversal leaves is not one this pair admits' }
       : true;
   }));
-  // **THE ACTION IS RAISED IN A `delete`'s WINDOW: ONE OPEN COMMIT AND NO PASS.** The delete consults no
-  // constraint (`D-1-bis`), so no check exists to restart and the request stands stamped with the delete's own
-  // window identity — **and that window's own witness consumes it on the delete's answer** (`D-49`; this cell
-  // still reads *"drops"* at that name and the reading is `D-54` (a)'s: see the header).
+  // **THE ACTION IS RAISED IN A `delete`'s DELIVERY: ONE OPEN COMMIT AND NO PASS.** `D-1-bis` (*a delete
+  // consults no constraint*) is **READ THROUGH `D-55` item `3` OF 2026-10-29**: the delete now runs a pass of its
+  // own kind, at ITS OWN address, and THIS delivery still runs none — `D-54`'s declared passless window is the
+  // DELIVERY and not the verb — so no check exists to restart and the request stands stamped with the delete's
+  // own window identity, **and that window's own witness consumes it on the delete's answer** (`D-49`; this cell
+  // still reads *"drops"* at that name and the reading is `D-54` (a)'s: see the header). **THE PAIR HERE STANDS
+  // AT `['b']` AND THE DELETE AT `['a']`, so the delete's own pass asks nothing and this arm's readings are
+  // unmoved.**
   const windows = [];
   let inner = null;
   const handle = store.listen('restart-epoch-listener', [['a']]);
@@ -466,7 +470,8 @@ test('DIRECT-PASS RESTART (5) · THE EPOCH: a request raised in a window whose c
     `**THE REVERSAL MOVED THE PAIR'S OWN ADDRESS** — \`['b']\` stands at ${JSON.stringify(SEED)} once the step is `
       + `done — so a check asked there would REFUSE it: the drive read ${JSON.stringify(standingB)}`);
   assert.deepEqual(afterDelete, [LANDED],
-    `**NO CHECK RAN IN THAT WINDOW** — the delete consults no constraint, so the pair was never asked at `
+    "**NO CHECK RAN IN THAT WINDOW** — the delivery runs no pass (`D-54`'s declared window; `D-55` item 3 gives "
+      + "the DELETE a pass at its own address and this pair does not stand there), so the pair was never asked at "
       + `${JSON.stringify(SEED)} there: ${JSON.stringify(afterDelete)}`);
   assert.equal(following.ok, true,
     `**AND THE STALE REQUEST DOES NOT REACH THE NEXT PASS** (\`D-42\` item \`3\`: *"a request belongs to the act `

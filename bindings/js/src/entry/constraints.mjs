@@ -20,6 +20,14 @@ import { currentWindow, homeAddressKey, installRestartConsumer, isStoreReceiver,
 // list keeps its five members and no `seq`, because no attempt stands at the judgement that built it
 // (`D-41` item 4). Two records, two honest forms, one append.
 import { append, externalCall, kernelFor, throwableForm } from './kernel-foundations.mjs';
+// **⟶ AND THE TWO KERNEL ACTS THE DELETE'S PATH OWES — `D-55` ITEM 3, 2026-10-29.** The kernel's public
+// barrel (`src/constraint-kernel.mjs`) is untouched and keeps its five names; **these are two PART modules' own
+// acts, reached here the way `append` and `kernelFor` above are** (`kernel-surface.md §1` item 1's empty import
+// footprint is the kernel's side of this edge and it is unmoved: neither module imports this file or any entry
+// module). `commitRemoval` is the commit part's remove-shaped act — a delete-shaped attempt that lands no write
+// — and `runAttempt` is the ONE pass, taken verbatim so no second pass loop is minted for a delete.
+import { commitRemoval } from './kernel-commit.mjs';
+import { runAttempt } from './kernel-attempt.mjs';
 // **⟶ AND THE CARRIERS, ADDED 2026-10-26 FOR THE REFUSAL'S OWN UNDOING (`DEF-W`'s `(a)`).** The
 // compensating act below reaches the store's own verb at its entry, with the SAME carrier forms every member
 // hands it (`carrier.mjs` is the boundary's one encoder for the three positions and imports nothing of this
@@ -831,6 +839,93 @@ export function constraintWrite(state, instance, address, tier, value) {
     watched: answer.watched,
     triggered: answer.triggered,
   };
+}
+
+/**
+ * **⟶ ADDED 2026-10-29 — THE DELETE'S OWN KERNEL-DRIVEN PATH: A DELETE-SHAPED ATTEMPT, A PASS, AND THE
+ * TERMINAL ENTRY. `D-55` ITEM 3, `DEF-X`, THE ARCHITECT, VERBATIM: *"A delete is an editing verb and must pass
+ * constraints. This includes all of the relevant commit and message logic."***
+ *
+ * **WHAT WAS MEASURED AT `1.3.0`, AND IT IS WHY THIS FUNCTION EXISTS.** `delete` opened its own commit window
+ * and called the addon's `delete` directly: **no `K-2`, no `K-3`, no log, no terminal entry** — so a delete
+ * consulted no constraint at all, and **the only pass shape the artefact had LANDS A WRITE FIRST** (`K-2`'s
+ * store leg called `write`, so the pass it ran judged a state the delete was not in; measured `storeAfter =
+ * {"c":2}`). **A delete therefore needed an attempt of its OWN KIND rather than a re-used `K-2`.**
+ *
+ * **THE THREE STAGES, IN THE ONE ORDER `constraintWrite` TAKES ITS OWN** (`surface.md §2.12` item 1):
+ * ```
+ *   1. the delete-shaped attempt   `kernel.commitRemoval` — the hold, the commit's log, the delete's op
+ *                                  named as the attempt's landing; NO WRITE IS LANDED
+ *   2. the store's own leg        the thunk the entry hands: the addon's `delete`, crossed by `index.mjs`
+ *   3. the pass                   `kernel.runAttempt` — every pair standing at THE DELETE'S OWN ADDRESS is
+ *                                  asked against THE STATE THE DELETE LEFT (its after-state is absence)
+ *   4. the terminal act           the attempt's ONE `outcome` entry on the refusing arm, its `commit` entry
+ *                                  on the passing arm, and on a refusal the composition that undoes the
+ *                                  delete (`D-55` item 5's safe state)
+ * ```
+ * **THE PASS IS THE WRITE'S PASS, MEMBER FOR MEMBER** — `runAttempt`, the same evaluated set (the pairs whose
+ * own address IS the attempt's, `pairsAtAddress`'s exact-address rule and never the trigger set's prefix
+ * widening), the same `D-39` registration order, the same repair and re-run arms, the same restart drain — and
+ * **the ONLY difference is the landing it judges**: a delete's journal op, whose `after` is absence, instead of
+ * a write's op whose `after` is the value it landed. **NO SECOND PASS LOOP IS MINTED**, and a repair landed
+ * under a delete's pass re-runs the same evaluation against ITS op (`D-53`: repairs use the same commit).
+ *
+ * **A REFUSAL IS THE ORDINARY REFUSAL** (`constraintCrossing` below): the surface's one plain form
+ * `{status, message, log}`, its `status` the set's rank-`20` member `ConstraintPassRefused`, and its `log` the
+ * COMMIT'S OWN LIST — `constraint-check` for the pair that refused, then the terminal `outcome` entry whose
+ * `state` is the kernel's token — each with its `seq`. **AND THE SAFE STATE IS `D-55` ITEM 5's**: the
+ * composition the terminal act runs (`composeRollback`, one floor call per address at that address's first owed
+ * op) undoes **the delete and every edit the commit made under it**, so the caller meets a store back at the
+ * state the commit opened at. Where the refusal is a RESTARTED check's (`D-42`, a reversal raised by a body
+ * inside this pass), the compensation is the reversal's own and it restores the journal mark the commit cached
+ * at ITS OPENING (`state.mjs`'s `windowMark`) — the same safe state by the other route.
+ *
+ * **`D-3`'S NO-OP ARM IS NOT AN EDIT**: where the delete removed nothing there is no journal op, so
+ * `commitRemoval` answers `null`, **no attempt is opened, no pass runs and no entry is appended** — there is no
+ * state for a pair to refuse and nothing for the safe-state rule to undo. The record crosses as it always did.
+ *
+ * **THE DELIVERY IS NOT THIS FUNCTION'S** and it is not the kernel's: `index.mjs`'s member performs it AFTER
+ * this call returns, so a listener fired by a delete sees the JUDGED state (`D-55` item 3's third demand) and a
+ * refused delete delivers nothing, its commit having been undone.
+ */
+export function constraintDelete(instance, address, tier, remove) {
+  // THE DELETE-SHAPED ATTEMPT, OPENED AROUND THE STORE'S OWN LEG: `remove` is the addon's `delete`, already
+  // crossed by the entry, and it is invoked with the hold taken and the commit's list in hand. `null` is the
+  // `D-3` arm (nothing removed) — the receipt the thunk answered stands and nothing is judged.
+  let receipt = null;
+  let attempt;
+  try {
+    attempt = commitRemoval(instance, address, tier, () => {
+      receipt = remove();
+      return receipt;
+    });
+  } catch (refusal) {
+    // THE KERNEL'S OWN `KC-7` (a held address, before the store is reached) or the store's own refusal: the
+    // ONE crossing every kernel-driven path takes, so a nested delete at a live attempt's address answers the
+    // same rank-`20` form a write does and a store refusal crosses verbatim (`§2.5` item 10 (ii)).
+    constraintCrossing(refusal);
+  }
+  if (attempt === null) return receipt;
+  // THE PASS, INSIDE THE COMMIT THE MEMBER OPENED (`D-44`): `runAttempt` names the commit this attempt carries
+  // (`attempt.name`), so its scope JOINS — the delete's window is the pass's window, and the pairs standing at
+  // THIS address are asked against the delete's own op. A failing pass throws the kernel's own refusal with
+  // its log and its compensating act already taken.
+  let report;
+  try {
+    report = runAttempt(instance, attempt.name);
+  } catch (refusal) {
+    constraintCrossing(refusal);
+  }
+  // **AND THE RESTART'S REFUSAL, WHERE THE PASS ITSELF PASSED** (`D-42`; `D-54` (b)): a reversal raised by a
+  // body inside this pass is drained at the pass's terminal state, and where the restarted check refused, the
+  // refusal the report carries is the one that crosses — the delete is refused with the store already restored
+  // to the mark the commit cached at its opening. THE PASSING DELETE FINDS NO CARRIED REFUSAL AND RETURNS ITS
+  // RECEIPT UNCHANGED.
+  const restarted = report !== null && typeof report === 'object' ? report[RESTART_REFUSAL] : undefined;
+  if (restarted !== undefined) {
+    constraintCrossing(restarted);
+  }
+  return receipt;
 }
 
 /// **THE FAIL ARM'S CROSSING — `A120` (2): THE ENTRY CARRIES THE KERNEL'S TOKEN, THE THROW KEEPS THE

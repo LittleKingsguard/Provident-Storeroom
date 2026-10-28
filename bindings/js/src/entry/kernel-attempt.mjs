@@ -463,6 +463,17 @@ function evaluate(kernel, attempt, landing) {
   // BEING EVALUATED BY IT: the new pair enters the NEXT pass's set" (`attempt-lifecycle.md §2.4` item 5
   // (iv); `CX-12`). The snapshot is ALSO the set the layer (a) delivery of this run is read over.
   const list = pairsAtAddress(kernel, attempt.address);
+  // **⟶ AND THE COMMIT THE INVOCATIONS OF THIS RUN NAME — `D-55` ITEM 3's DELETE-SHAPED ATTEMPT, 2026-10-29.**
+  // **A WRITE'S ATTEMPT NAMES ITS `CommitRecord`** (`attempt.record`, the object `K-2` built and adopted), and
+  // every verb a body calls under it JOINS that commit (`D-46`). **A DELETE'S ATTEMPT HAS NO `CommitRecord`** —
+  // it lands no write, so there is no adoption, no residue and no save — **and it still owes the same
+  // invariant**: `D-53`'s *"Constraints/Repairs should always use the same commit"* is not a rule about records
+  // but about the COMMIT, and a body's write under a delete's pass that named nothing would OPEN a second commit
+  // and start a second list. **SO THE ATTEMPT CARRIES ITS COMMIT'S NAME** (`kernel-commit.mjs`'s
+  // `commitRemoval` sets `attempt.name` to the one member `commitAttemptIdOf` reads) **and this frame hands THE
+  // NAME where a record exists and THE RECORD where it does** — one expression, and on the write path it is the
+  // very object it always was, so no byte of the write's own invocation moves.
+  const commitName = attempt.record === undefined ? attempt.name : attempt.record;
   // THE ATOMIC LANDING EVALUATION'S OWN ARM-TAKING IS `attempt-lifecycle.md §2.4` item 4's arms, read
   // over THE PAIR THAT FAILED AT THAT OP (`kernel-surface.md §2.3` item 1; `§2.4`: `KC-3` where that pair
   // is NOT in `ran` before this run and no repair is registered for it; `KC-6` where it IS in `ran` and
@@ -513,7 +524,7 @@ function evaluate(kernel, attempt, landing) {
         // does.** The name is an INVOCATION's and nothing else's: it is set before the call and restored after it,
         // on the throwing arm too, so an ordinary write still opens ONE commit and a callback's verb is still an
         // act of its own.
-        outcome = constraintInCommit(attempt.store, attempt.record, () => pair.constraint(context));
+        outcome = constraintInCommit(attempt.store, commitName, () => pair.constraint(context));
       } catch (body) {
         // A body that threw returned nothing, so no `constraint-check` entry stands and the attempt is
         // closed (`PAR-C-6`; `NX-2`; `composition-and-states.md §2.7` item 13).
@@ -664,7 +675,7 @@ function evaluate(kernel, attempt, landing) {
         // **⟶ AND THE FRAME STANDS FOR THIS INVOCATION TOO (`D-53`'s first invariant): the repair's own verbs
         // append to the attempt's list, and the frame is what makes `K-2` join rather than open.**
         enterCommitFrame(kernel, attempt.log);
-        result = repairInCommit(attempt.store, attempt.record, () => repair(repairContext));
+        result = repairInCommit(attempt.store, commitName, () => repair(repairContext));
       } catch (body) {
         // THE REPAIR-RUN ENTRY IS APPENDED BEFORE THE THROW, and the attempt's outcome entry carries
         // `KC-4` (`ck_states_a_repair_body_that_throws_reaches_the_caller_unconverted`).

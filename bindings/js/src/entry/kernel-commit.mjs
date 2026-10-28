@@ -188,3 +188,123 @@ export function commit(store, address, tier, value) {
   return record;
 }
 
+// ---------------------------------------------------------------------------------------------
+// **⟶ ADDED 2026-10-29 — `commitRemoval`: THE DELETE-SHAPED COMMIT ACT. `D-55` ITEM 3, `DEF-X`.**
+//
+// **THE RULING, THE ARCHITECT, VERBATIM: *"A delete is an editing verb and must pass constraints. This includes
+// all of the relevant commit and message logic."*** (`strata/decisions.md` · `D-55` item `3`). **THE MEASURED
+// OBSTACLE IT ANSWERS WAS PRINTED, NOT ASSUMED**: a `delete` opens its own commit window and reaches the
+// addon's `delete` directly — **no `K-2`, no `K-3`, no log and no terminal entry** — and **the only pass shape
+// the artefact had (`K-2` then `K-3`) LANDS A WRITE FIRST** (`storeAfter = {"c":2}`), so any pass driven
+// through it judges a state the delete is not in. **SO THE DELETE GETS AN ATTEMPT OF ITS OWN KIND, AND THIS IS
+// IT** — the commit act's remove-shaped sibling, and NOT a re-used `K-2`.
+//
+// **IT OPENS LIKE ANY OTHER, AND THE TWO THINGS IT SHARES WITH `K-2` ARE THE TWO THAT MATTER:**
+//   * **`D-44` IS KEPT BY THE CALLER AND RE-CHECKED HERE**: the attempt is opened inside the delete's own
+//     commit window (the member opens it before this act is reached, `index.mjs`'s `delete`), so no check this
+//     pass runs stands outside one — and a store this package did not build carries no commit scope at all, so
+//     `runAttempt` fails closed exactly as it does for a write.
+//   * **`D-53` IS KEPT BY THE SAME READ `K-2` TAKES**: `commitLogInFlight` answers the enclosing invocation's
+//     list where this delete was called from caller code that BELONGS TO an attempt (a constraint body's
+//     `delete`, a repair's), and `null` at a consumer's own call. **ONE LIST PER COMMIT, AND A DELETE'S ENTRIES
+//     JOIN IT** — there is no second list and no merge.
+//
+// **WHAT IT DOES NOT DO IS LAND A WRITE.** `K-2` mints a `CommitRecord`, adopts it and calls the store's
+// `write`. **This act mints an `AttemptRecord` of kind `delete` and calls THE STORE'S OWN LEG THE CALLER HANDS
+// IT** — the addon's `delete`, already crossed by the entry — so **the state the attempt is judged at is the
+// state the delete LEFT and never a state a probe wrote.** The act's own answer (`removal`) is the delete's
+// declared receipt: its `op` is the DELETE's journal op and so THE ATTEMPT'S ONE LANDING (`attempt.ops`), which
+// is what the pass's context carries and what the failing arm's composition rolls back; its `triggered` set is
+// the store's own returned set, kept on `attempt.write` for the terminal act's discard rule exactly as a
+// failed write's is.
+//
+// **THE `D-3` ARM IS KEPT AND A HELD ADDRESS IS JOINED RATHER THAN REFUSED** (the ground is printed at the act
+// itself and it is a measurement, not a preference: a repair has no fourth position to name its commit at, so
+// a `KC-7` here would make a lawful repair's `delete` unlawful):
+//   * **A REFUSED STORE VERB LEAVES NO ATTEMPT** (`D-3`'s neighbour): the addon's own refusal crosses back
+//     unchanged, and because the attempt is placed in `kernel.live` only AFTER the act answered an op, a
+//     refused delete holds nothing and closes nothing — `K-2`'s own rule, reached by the same structure.
+//   * **AND AN ACT THAT REMOVED NOTHING IS `D-3`'S SUCCESS WITH `tiers: []`**: no journal entry was appended,
+//     so there is no op, no landing to judge and no edit to undo — **this act answers `null`, the entry mints
+//     no pass, and nothing is added to any log.** A delete that changed nothing cannot be refused by a
+//     constraint, because it is not an edit. **NO `KC` TOKEN IS MINTED FOR IT AND NO TENTH TOKEN EXISTS.**
+//
+// **WHAT IT ANSWERS.** The attempt record, open and live, for the pass the caller runs next (`entry`'s
+// `constraintDelete`), or `null` on the `D-3` arm. **NO KERNEL ITEM IS MINTED**: `kernel-surface.md §1` item
+// `2` closes the kernel's EXPORT SET at the five `K-1`–`K-5` items and that barrel
+// (`src/constraint-kernel.mjs`) is untouched — this function is a part module's own act, reached by the entry
+// the way every other kernel part is, and it is named by no `K-` number.
+export function commitRemoval(store, address, tier, remove) {
+  const kernel = kernelFor(store);
+  // **NO `KC-7` REFUSAL IS TAKEN AT THIS OPENING, AND THE ASYMMETRY WITH `K-2` IS NAMED BECAUSE IT IS
+  // MEASURED.** `K-2` refuses a second attempt at a HELD address, and a REPAIR at that address is admitted only
+  // because it NAMES the enclosing commit at `write`'s fourth position (`D-46`). **A delete has no such
+  // position** — the member's arity is the declared `delete(address, tier)` and this pass changes no
+  // declaration — so a repair that edits by `delete` at the attempt's own address (the shape
+  // `tests/integration/js-constraints/constraint-kernel-negatives.test.mjs`'s `P-NEG-22` drives, and
+  // `parameter-semantics.md §2.7` blesses) would be refused by a hold it had no way to name its way out of,
+  // and a lawful repair would stop being lawful. **SO THIS ACT REFUSES NOTHING ON THAT GROUND**: it joins the
+  // address as a second attempt record and places itself in `kernel.live` below, which keeps the hold the
+  // enclosing attempt already has (`attemptHeldAt` stays true there for every nested `K-2`, unchanged) and
+  // takes the hold itself where the address was free. **THE COUNT `reversalAtRest` READS IS UNMOVED IN
+  // MEANING**: an open delete attempt IS an open attempt, so a reversal raised inside its pass is a step.
+  kernel.attempts += 1;
+  // THE ATTEMPT'S ADDRESS IS A LOCAL INDEX COPY of the caller's array, never `address.slice()` (`D-35`'s read
+  // half; the same form `commit` above takes and for the same measured reason).
+  const addressCopy = [];
+  for (let i = 0; i < address.length; i += 1) appendOwn(addressCopy, address[i]);
+  // THE COMMIT'S ONE LIST, BY REFERENCE, OR A FRESH ONE WHERE THIS DELETE OPENED THE COMMIT (`D-53`).
+  const joined = commitLogInFlight(kernel);
+  const ref = { id: `attempt-${kernel.attempts}` };
+  const attempt = {
+    // **THE KIND — the discriminator the write's attempt never needed**: an attempt that landed no write is
+    // judged against the DELETE's op and owes no `CommitRecord`, no adoption, no delivery residue and no save
+    // of its own (the delete's own file save is the store's own act).
+    kind: 'delete',
+    ref,
+    // **THE NAME THE BODIES THIS PASS INVOKES JOIN** (`D-46`/`D-53`). A `CommitRecord` is the write's and this
+    // act has none, so the commit is named by the one member `commitAttemptIdOf` reads (`{ attempt }`), and
+    // `kernel-attempt.mjs`'s `evaluate` hands THIS object to the invocation channel in place of a record. A
+    // body's write therefore JOINS the delete's commit instead of opening a second one — what `D-53`'s
+    // *"Constraints/Repairs should always use the same commit"* requires — and the pass's own scope names the
+    // same object (`runAttempt`).
+    name: { attempt: ref },
+    store,
+    address: addressCopy,
+    tier,
+    // THE SUBJECT IS WHAT THE DELETE REMOVES, NOT A VALUE: the after-state is absence, and the op carries what
+    // stood before it (its `before`) per tier (`D-55` item `3`'s *"the addresses and the tiers"*).
+    value: undefined,
+    commit: undefined,
+    // The store's own returned set, kept whole for the terminal act's discard rule (`terminal`).
+    write: null,
+    // THE DELETE'S JOURNAL OP IS THE ATTEMPT'S ONE LANDING — empty until the act answers one.
+    ops: [],
+    log: joined === null ? [] : joined,
+    ran: [],
+    appliedRepairs: [],
+    rollback: [],
+    checkpoint: null,
+    checkedOff: [],
+    status: 'open',
+    report: null,
+  };
+  // **THE STORE'S OWN LEG, AND IT IS THE CALLER'S** (`kernel-surface.md §1` item 1's empty import footprint:
+  // this module reaches no entry and no addon of its own; the thunk is the entry's own addon call).
+  const removal = remove();
+  // `D-3`: nothing was removed — no entry was appended, so there is no op to name and no state to judge.
+  if (removal === null || typeof removal !== 'object' || removal.op === null || removal.op === undefined) {
+    return null;
+  }
+  attempt.write = removal;
+  attempt.ops = [removal.op];
+  // THE ATTEMPT IS PLACED LIVE HERE, BEFORE THE FIRST BODY OF THE PASS RUNS: the store's own `delete` invokes
+  // nothing, so there is no window between the act and this line in which a caller's code could interleave —
+  // and the address is held from this instant through the pass and its terminal act, exactly as `K-2` holds
+  // it. **THE MAP IS ALSO THE COUNT OF OPEN ATTEMPTS** the restart's at-rest discriminator reads
+  // (`constraints.mjs`'s `reversalAtRest`), so a reversal raised inside this pass is a step and not a
+  // judgement.
+  kernel.live.set(ref.id, attempt);
+  return attempt;
+}
+

@@ -444,8 +444,14 @@ console.log('\n── W7 · BEHAVIOUR UNCHANGED — no pass runs in either windo
   P('the pair\'s asks: at registration · after the delete', [afterRegistration, afterDelete]);
   P('the delete\'s witness (a report, not a check)', receipt.ok ? receipt.value.discarded : '<no receipt>');
   P('`window` after the delete (the effect stands)', receipt.ok ? store.read(['window']) : '<no receipt>');
-  A('DW-07.1', '`D-43` item 2 (`D-1-bis`: a delete consults no constraint); `D-49` (`the behaviour unchanged` — no pass runs)',
-    'the delete\'s delivery passes NO CONSTRAINT: the pair is asked exactly as often as the registration asked it — once — and not once for the delete',
+  // **⟶ AND THE WINDOW THIS CELL MEASURES IS NOW DEFINED BY THE DELIVERY AND NOT BY THE VERB — `D-55` ITEM `3`,
+  // 2026-10-29.** `D-1-bis` (*a delete consults no constraint*) is **superseded for the delete's OWN act**: the verb
+  // runs a pass of its own kind, and this cell's pair stands at an ANCESTOR of the deleted address, which that
+  // pass does not ask (the exact-address rule — `X6`/`DW-10.13`). **THE OBSERVABLE IS THEREFORE UNMOVED AND ITS
+  // GROUND HAS NARROWED TO THE DELIVERY, which still runs no pass**, so the cell keeps its predicate and its
+  // sentence and is read through the dated clause.
+  A('DW-07.1', '`D-43` item 2 (`D-1-bis`: a delete consults no constraint — READ THROUGH `D-55` item 3 of 2026-10-29: the DELETE runs a pass; THIS DELIVERY runs none, and this pair stands at an ancestor the pass does not ask); `D-49` (`the behaviour unchanged` — no pass runs in this delivery)',
+    'the delete\'s DELIVERY passes NO CONSTRAINT: the pair is asked exactly as often as the registration asked it — once — and not once by the delivery',
     receipt.ok && afterRegistration === 1 && afterDelete === 1,
     `asks ${JSON.stringify(asks)}`);
   A('DW-07.2', '`D-49` (a witness reports a discard; it does not run the check it names)',
@@ -459,8 +465,10 @@ console.log('\n── W7 · BEHAVIOUR UNCHANGED — no pass runs in either windo
     receipt.ok ? JSON.stringify({ discarded: w7Witness, asks }) : String(receipt.caught));
   console.log('');
   console.log('        WHAT A REQUEST STILL DOES NOT DO, IN ONE PARAGRAPH: a `rollback` raised inside either passless');
-  console.log('        window is still NOT judged — no body is asked at the state it left, no refusal is produced, and');
-  console.log('        nothing is restored. In the delete\'s window it is now REPORTED on the act\'s own record');
+  console.log('        DELIVERY window is still NOT judged — no body is asked at the state it left, no refusal is');
+  console.log('        produced, and nothing is restored. (A `delete` itself runs a pass from 2026-10-29 — `D-55` item');
+  console.log('        3 — but its DELIVERY is still the passless instant, and it sits AFTER that pass.) In the');
+  console.log('        delete\'s delivery it is now REPORTED on the act\'s own record');
   console.log('        (`record.discarded`); in a registration\'s window it is still silent, because its answer is an');
   console.log('        opaque identity with no member a witness could stand on. The recovery is unchanged and is still');
   console.log('        the consumer\'s: reload the file, or regenerate the store (`D-43` item 2, both exits).');
@@ -711,7 +719,9 @@ console.log('\n── W9 · `D-54` — three hosts where a pass runs, and the re
   // ── HOST 2 · A DELETE'S PASS ──────────────────────────────────────────────────────────────────────
   // THE DELETE IS PERFORMED INSIDE A PASS: it joins that pass's commit (`opened === false`), its delivery
   // fires a listener, and the reversal that listener raises is stamped with the PASS's window. **THE DECLARED
-  // delete window it is NOT**: no pass runs there; here one does.
+  // delete window it is NOT**: the DECLARED one is the delete's passless DELIVERY. **⟶ AND FROM 2026-10-29 THE
+  // DELETE'S OWN ACT RUNS A PASS OF ITS OWN KIND TOO (`D-55` item 3, `X`/`DW-10.8`) — at `['x']`, where this
+  // drive registers no pair, so it asks nothing and this host's readings are unmoved.**
   const deleteStore = make();
   deleteStore.write(['a'], 'mem', SEED);
   deleteStore.write(['x'], 'mem', 1);
@@ -757,7 +767,7 @@ console.log('\n── W9 · `D-54` — three hosts where a pass runs, and the re
     : { status: statusOf(deleteCaught), log: deleteLog.map((entry) => entry.id) });
   P('HOST 2 (delete\'s pass) · the store after it', [deleteStanding]);
 
-  A('DW-09.2', '`D-54` (b) — a reversal raised while a delete runs inside a pass is carried to THAT pass\'s terminal state; `D-1-bis` (a delete consults no constraint of its own); `D-43` item 1',
+  A('DW-09.2', '`D-54` (b) — a reversal raised while a delete runs inside a pass is carried to THAT pass\'s terminal state; `D-43` item 1 (`D-1-bis` — *a delete consults no constraint* — is READ THROUGH `D-55` item 3 of 2026-10-29: the delete now runs a pass of its own kind, at its own address, and this host registers no pair there)',
     'THE DELETE HOST IS JUDGED: the pass ran (the pair asked at `7`), the delete ran inside it and its listener delivered at the PASS\'s window (`open 1`, `live 1` — so the delete opened no window of its own and reports no witness), the reversal ANSWERED its record, and the pass\'s terminal state was JUDGED — the pair asked at `5`, the declared `ConstraintPassRefused` with ONE entry naming it, and the store restored to `9`',
     deleteRegistered.ok === true && deleteActed === true
       && deleteWindow !== null && deleteWindow.open === 1 && deleteWindow.live === 1
@@ -1149,55 +1159,276 @@ console.log('\n── W10 · `D-55` — the five settled rows, measured ──�
     `answer ${apWrite.ok ? 'ANSWERED' : statusOf(apWrite.caught)} · asks b=${JSON.stringify(apAsksB)} `
       + `a=${JSON.stringify(apAsksA)} · opened ${JSON.stringify(apOpenedAt)} · after ${JSON.stringify(apAfter)}`);
 
-  // ── (X) THE DELETE'S PATH — A MEASUREMENT, NOT A BUILD (`DEF-X`) ────────────────────────────────────
-  // THE CLARIFICATION, VERBATIM: *"A delete is an editing verb and must pass constraints."* **THE QUESTION THIS
-  // CELL ANSWERS IS THE CONSUMER'S OWN DOUBT: can ANY shape at `1.3.0` make a delete open a commit and run a
-  // pass?** The delete's path is printed act by act — the entry's `delete`, the addon's `delete` entry, its
-  // own commit window, its delivery, its record's `op` — and then the ONE pass shape the artefact has (`K-2`
-  // then `K-3`) is driven at the same address to show what it costs: `K-2` **LANDS A WRITE**, so the pass it
-  // runs judges a state the delete is not in. **NO SHAPE RUNS A PASS ON A DELETE'S BEHALF, AND THIS PASS DOES
-  // NOT BUILD ONE.**
+  // ── (X) THE DELETE'S PATH — `D-55` ITEM 3, `DEF-X`: THE BUILD ────────────────────────────────────────
+  // THE CLARIFICATION, VERBATIM: *"A delete is an editing verb and must pass constraints. This includes all of
+  // the relevant commit and message logic."* **THE PREVIOUS PASS MEASURED THE ABSENCE AND PRINTED IT; THIS ONE
+  // BUILT THE THING IT NAMED.** The measurement that scoped the build, kept here as the BEFORE side of every
+  // printed arm: a delete opened its own commit window, called the addon's `delete` directly, ran **no** pass
+  // (`the pair's asks [1,1]`), and the ONE pass shape the artefact had (`K-2` + `K-3`) **landed a write of its
+  // own first** (`storeAfter {"c":2}`), so it judged a state a delete is never in. **THE BUILD IS `index.mjs`'s
+  // `delete` → `constraints.mjs`'s `constraintDelete` → the kernel's `commitRemoval` (a delete-shaped attempt
+  // that lands no write) → `runAttempt` (the ONE pass, at the delete's own op) → the terminal entry → and the
+  // delivery, MOVED to after the pass.**
+  // (`statusOf` is the drive's own, declared where the earlier section reads it.)
+
+  // ── (X1) THE DELETE-SHAPED ATTEMPT AND ITS PASS ────────────────────────────────────────────────────
   const xStore = make();
-  xStore.write(['a'], 'mem', { b: 1 });
+  xStore.write(['a'], 'mem', { b: 1, keep: { z: 0 } });
   const xAsks = [];
-  const xPair = attempt(() => xStore.addConstraint({ address: ['a'], id: 'a-pair' }, (context) => {
-    xAsks.push({ at: context.attempt === null ? 'registration' : 'pass', value: context.value });
+  let xPassWindow = null;
+  const xPair = attempt(() => xStore.addConstraint({ address: ['a', 'b'], id: 'ab-pair' }, (context) => {
+    xAsks.push({
+      at: context.attempt === null ? 'registration' : 'pass',
+      op: context.op === null ? null : context.op.kind,
+      tier: context.tier,
+      value: context.value,
+      attempt: context.attempt === null ? null : 'an AttemptRef',
+    });
+    // THE ATTEMPT'S OWN WINDOW, TAKEN INSIDE THE ONE INVOCATION THE PASS MAKES: the delete-shaped attempt is
+    // LIVE (the kernel's `live` map holds it) and the commit the member opened is OPEN — `D-44`'s invariant,
+    // measured at the pass and nowhere else.
+    if (context.attempt !== null) xPassWindow = windowOf(xStore);
     return true;
   }));
-  const xAsksBefore = xAsks.length;
-  let xOpenInsideDelivery = null;
-  const xHandle = xStore.listen('x-listener', [['a', 'b']]);
-  xStore.register(xHandle, () => { xOpenInsideDelivery = openCommits(xStore); });
+  let xDelivery = null;
+  const xHandle = xStore.listen('x-listener', [['a']]);
+  xStore.register(xHandle, () => {
+    // **THE DELIVERY'S POSITION, READ BY THE LISTENER ITSELF**: how many PASS asks had happened when it fired —
+    // `0` at `1.3.0` (the delivery preceded every judgement), `1` now (the delivery follows the pass) — and the
+    // state it is handed.
+    const seen = attempt(() => xStore.read(['a', 'b']));
+    xDelivery = {
+      passAsksWhenItFired: xAsks.filter((one) => one.at === 'pass').length,
+      openCommitsInside: openCommits(xStore),
+      storeAtFire: seen.ok ? seen.value : statusOf(seen.caught),
+    };
+  });
   const xReceipt = attempt(() => xStore.delete(['a', 'b']));
-  const xAsksAfter = xAsks.length;
-  // THE ONLY PASS SHAPE THE ARTEFACT HAS, DRIVEN AT THE SAME ADDRESS — and it lands a write of its own.
-  const xKernelRecord = kernel.commit(xStore, ['a'], 'mem', { c: 2 });
-  const xKernelRun = attempt(() => kernel.runAttempt(xStore, xKernelRecord));
-  const xAfterKernel = xStore.read(['a']);
-  P('DEF-X · the delete\'s path — its record', xReceipt.ok
-    ? { address: xReceipt.value.address, tiers: xReceipt.value.tiers, op: xReceipt.value.op === null ? null : xReceipt.value.op.kind }
-    : String(xReceipt.caught));
-  P('DEF-X · the commit count inside the delete\'s own delivery', xOpenInsideDelivery);
-  P('DEF-X · the pair\'s asks — before the delete · after it', [xAsksBefore, xAsksAfter]);
-  P('DEF-X · the ONE pass shape (`K-2`+`K-3`), driven at the same address', xKernelRun.ok
-    ? { pairAsked: xAsks.length > xAsksAfter, storeAfter: xAfterKernel } : String(xKernelRun.caught));
-  A('DW-10.8', '`D-55` item 3 / `DEF-X` (2026-10-28): *"A delete is an editing verb and must pass constraints"* — and no shape at `1.3.0` admits one',
-    'the delete opens a commit window of its own and runs NO pass: the pair is asked exactly as often as its registration asked it, and the only pass shape the artefact has (`K-2`+`K-3`) LANDS A WRITE of its own before it judges — so a delete would have to be GIVEN a commit and an attempt of its own, which the current verb does not have',
-    xPair.ok === true && xReceipt.ok === true && xOpenInsideDelivery === 1
-      && xAsksBefore === 1 && xAsksAfter === 1
-      && xKernelRun.ok === true && xAsks.length === xAsksAfter + 1
-      && JSON.stringify(xAfterKernel) === JSON.stringify({ c: 2 }),
-    `pair ${xPair.ok} · delete ${xReceipt.ok} · open inside delivery ${xOpenInsideDelivery} · asks `
-      + `${JSON.stringify([xAsksBefore, xAsksAfter])} · kernel pass ${xKernelRun.ok} · store after the kernel `
-      + `pass ${JSON.stringify(xAfterKernel)}`);
+  P('X1 · the delete\'s path — its record', xReceipt.ok
+    ? { address: xReceipt.value.address, tiers: xReceipt.value.tiers, op: xReceipt.value.op && xReceipt.value.op.kind,
+      opSeq: xReceipt.value.op && xReceipt.value.op.seq, discarded: xReceipt.value.discarded }
+    : statusOf(xReceipt.caught));
+  P('X1 · the pair\'s asks — registration first (BEFORE the change this list was ONE entry)', xAsks);
+  P('X1 · the window inside the pass — open · live (BEFORE the change: [null, null] — no pass ran)', xPassWindow);
+  P('X1 · the delivery — what the listener saw WHEN IT FIRED', xDelivery);
+  A('DW-10.8', '`D-55` item 3 / `DEF-X` (2026-10-29): *"A delete is an editing verb and must pass constraints"*',
+    'the delete runs a DELETE-SHAPED attempt of its own: the pair standing AT THE DELETE\'S OWN ADDRESS is asked TWICE — its registration and the delete\'s pass — and the pass\'s context carries THE DELETE\'s op, `tier: null`, the AFTER-state (absence) as `value` and an `AttemptRef`; the attempt is LIVE and the commit OPEN at that ask; and the listener fired AFTER the pass, seeing that judged state',
+    xPair.ok === true && xReceipt.ok === true
+      && xAsks.length === 2
+      && xAsks[0].at === 'registration' && xAsks[1].at === 'pass'
+      && xAsks[1].op === 'delete' && xAsks[1].tier === null
+      && xAsks[1].value === undefined && xAsks[1].attempt === 'an AttemptRef'
+      && xPassWindow !== null && xPassWindow.open === 1 && xPassWindow.live === 1
+      && xDelivery !== null && xDelivery.passAsksWhenItFired === 1
+      && xDelivery.openCommitsInside === 1 && xDelivery.storeAtFire === 'AddressNotFound',
+    `pair ${xPair.ok} · delete ${xReceipt.ok} · asks ${JSON.stringify(xAsks)} · window in the pass `
+      + `${JSON.stringify(xPassWindow)} · delivery ${JSON.stringify(xDelivery)}`);
+
+  // ── (X2) A DELETE REFUSED BY A CONSTRAINT — THE CROSSED FORM, THE LOG, THE ROLLED-BACK STORE ────────
+  const rStore = make();
+  rStore.write(['r'], 'mem', { c: 1 });
+  rStore.write(['keep'], 'mem', 'seeded');
+  let rAsks = 0;
+  const rPair = attempt(() => rStore.addConstraint({ address: ['r'], id: 'refusing-pair' }, (context) => {
+    rAsks += 1;
+    // THE PAIR ADMITS ITS REGISTRATION'S STATE AND REFUSES THE PASS'S — so the arm is the delete's own.
+    return rAsks === 1 ? true : { message: 'a delete here is not a state this pair admits' };
+  }));
+  const rOpenedAt = attempt(() => rStore.read(['r']));
+  const rDelete = attempt(() => rStore.delete(['r']));
+  const rAfter = attempt(() => rStore.read(['r']));
+  const rOther = attempt(() => rStore.read(['keep']));
+  const rCaught = rDelete.ok ? null : rDelete.caught;
+  P('X2 · the delete — answered, or refused?', rDelete.ok ? 'ANSWERED (no pass judged it)' : 'REFUSED');
+  P('X2 · the crossed form — own keys · status', rCaught === null ? '<none>' : [ownNamesOf(rCaught), statusOf(rCaught)]);
+  P('X2 · the message', rCaught === null ? '<none>' : rCaught.message);
+  P('X2 · the log — each entry\'s `seq` sequence', rCaught === null || !Array.isArray(rCaught.log)
+    ? '<none>' : rCaught.log.map((entry) => ({ seq: entry.seq, kind: entry.kind, id: entry.id, state: entry.state })));
+  P('X2 · the store the commit opened at → after the refusal', [rOpenedAt.ok ? rOpenedAt.value : statusOf(rOpenedAt.caught),
+    rAfter.ok ? rAfter.value : statusOf(rAfter.caught)]);
+  A('DW-10.9', '`D-55` item 3 (a delete passes constraints) and item 5 (a refused edit rolls back to the safe state); `D-38` (ONE status for a constraint refusal; the token rides `log[].state`); `surface.md §2.5` (the one crossed form)',
+    'a delete whose pass a pair refuses throws the ONE three-member form with `status` `ConstraintPassRefused`, its `log` naming the pair, and the store is put BACK at the state the commit opened at — while a control delete the pair admits is unchanged',
+    rPair.ok === true && rDelete.ok === false
+      && keyOfAddr(ownNamesOf(rCaught)) === keyOfAddr(REFUSAL_MEMBERS)
+      && statusOf(rCaught) === PASS_REFUSED
+      && Array.isArray(rCaught.log) && rCaught.log.length === 2
+      && rCaught.log[0].id === 'refusing-pair' && rCaught.log[0].kind === 'constraint-check'
+      && rCaught.log[1].kind === 'outcome' && typeof rCaught.log[1].state === 'string'
+      && JSON.stringify(rAfter.ok ? rAfter.value : statusOf(rAfter.caught)) === JSON.stringify(rOpenedAt.value)
+      && rOther.ok && rOther.value === 'seeded',
+    `pair ${rPair.ok} · delete ${rDelete.ok ? 'ANSWERED' : statusOf(rCaught)} · keys `
+      + `${rCaught === null ? '<none>' : JSON.stringify(ownNamesOf(rCaught))} · log `
+      + `${rCaught === null ? '<none>' : JSON.stringify(rCaught.log)} · opened → after `
+      + `${JSON.stringify(rOpenedAt.value)} → ${JSON.stringify(rAfter.ok ? rAfter.value : statusOf(rAfter.caught))}`
+      + ` · other address ${JSON.stringify(rOther.ok ? rOther.value : statusOf(rOther.caught))}`);
+  // THE CONTROL, ON THE SAME ADDRESS AND THE SAME PAIR SHAPE: a delete the pair admits answers its record.
+  const cStore = make();
+  cStore.write(['c'], 'mem', { c: 1 });
+  const cPair = attempt(() => cStore.addConstraint({ address: ['c'], id: 'admitting-pair' }, () => true));
+  const cDelete = attempt(() => cStore.delete(['c']));
+  const cAfter = attempt(() => cStore.read(['c']));
+  P('X2 · THE CONTROL — a delete the pair admits', cDelete.ok
+    ? { address: cDelete.value.address, tiers: cDelete.value.tiers, opKind: cDelete.value.op && cDelete.value.op.kind }
+    : statusOf(cDelete.caught));
+  P('X2 · THE CONTROL — the address after it', cAfter.ok ? cAfter.value : statusOf(cAfter.caught));
+
+  // ── (X3) THE DELIVERY'S POSITION, PRINTED ON BOTH SIDES OF THE CHANGE ──────────────────────────────
+  // **THE BEFORE FIGURES ARE NOT ASSERTED FROM MEMORY**: the same probe was run against the pre-change tree
+  // (the four bytes restored from `HEAD` in `/tmp`) and printed `passAsksWhenItFired: 0`,
+  // `storeAtFire: "AddressNotFound"`, `openCommitsInside: 1`, asks `[1,1]`. **THE CHANGE MOVES THE DELIVERY
+  // FROM BEFORE THE PASS TO AFTER IT**, and the reading above (`X1 · the delivery`) is the after side.
+  P('X3 · the delivery — BEFORE the change · AFTER it', {
+    before: { passAsksWhenItFired: 0, storeAtFire: 'AddressNotFound', openCommitsInside: 1 },
+    after: xDelivery,
+  });
+  A('DW-10.10', '`D-55` item 3 (*a listener fired by a delete must see a judged state*); `surface.md §2.7` item 6 (constraints first, the other listeners once every constraint has passed)',
+    'the delivery sits AFTER the pass: the listener fires with the pass\'s ask already taken (`passAsksWhenItFired` `1`, where the pre-change tree read `0`), inside the delete\'s own commit window, and sees the after-state the pass approved',
+    xDelivery !== null && xDelivery.passAsksWhenItFired === 1 && xDelivery.openCommitsInside === 1
+      && xDelivery.storeAtFire === 'AddressNotFound',
+    `delivery ${JSON.stringify(xDelivery)}`);
+
+  // ── (X4) THE LOG: THE DELETE'S ENTRIES IN THE COMMIT'S ONE LIST, WITH THE `seq` SEQUENCE ────────────
+  const log = rCaught !== null && Array.isArray(rCaught.log) ? rCaught.log : [];
+  P('X4 · the commit\'s one list — entry by entry', log.map((entry) => ({
+    seq: entry.seq, kind: entry.kind, id: entry.id, opId: entry.opId, state: entry.state, message: entry.message,
+  })));
+  const seqs = log.map((entry) => entry.seq);
+  A('DW-10.11', '`D-53` (one list per commit; `seq` the ordinal of the list it stands in); `kernel-surface.md §2.5` item 1 (the entry\'s six members; `seq` ascending from `1`)',
+    'the delete\'s log IS the commit\'s one list: `seq` ascends `1..n` with no gap and no renumbering, the `constraint-check` entry names the pair AND the delete\'s op (`D-53`\'s combined identity), the terminal `outcome` entry names the same op with the kernel\'s token in `state`, and every entry carries exactly the six declared members',
+    seqs.length === 2 && seqs[0] === 1 && seqs[1] === 2
+      && log[0].kind === 'constraint-check' && log[0].id === 'refusing-pair'
+      && typeof log[0].opId === 'string' && log[0].opId === log[1].opId
+      && log[1].kind === 'outcome' && log[1].state === 'KC-3'
+      && log.every((entry) => keyOfAddr(ownNamesOf(entry)) === keyOfAddr(['id', 'kind', 'message', 'opId', 'seq', 'state'])),
+    `seq ${JSON.stringify(seqs)} · kinds ${JSON.stringify(log.map((entry) => entry.kind))} · opIds `
+      + `${JSON.stringify(log.map((entry) => entry.opId))} · entries `
+      + `${JSON.stringify(log.map((entry) => ownNamesOf(entry)))}`);
+
+  // ── (X5) `rollback`'S DISPOSITION — WHAT IT ALREADY CARRIES AND WHAT IT STILL LACKS ─────────────────
+  // `D-55` item 4: *"A reverse is an editing verb and must be treated as above."* **`D-38` ALREADY JUDGES A
+  // REVERSAL AT ITS TERMINAL STATE, SO THIS CELL BUILDS NOTHING — IT MEASURES THE DISPOSITION AND NAMES THE
+  // GAP.** The reversal's judgement is driven into its refusing arm (a pair that admits its registration and
+  // refuses the state the reversal leaves) and every member it carries is printed.
+  const vStore = make();
+  vStore.write(['v'], 'mem', { tabs: { landing: { active: true } } });
+  const vPrior = vStore.write(['v', 'tabs', 'legal'], 'mem', { active: false });
+  let vAsks = 0;
+  const vJudged = [];
+  const vPair = attempt(() => vStore.addConstraint({ address: ['v'], id: 'refuses-the-reversal' }, (context) => {
+    vAsks += 1;
+    vJudged.push({
+      attempt: context.attempt === null ? null : 'an AttemptRef',
+      op: context.op === null ? null : 'an op',
+      tier: context.tier,
+    });
+    return vAsks === 1 ? true : { message: 'the reversal left a state this pair refuses' };
+  }));
+  const vAttemptsBefore = kernelFor(vStore).attempts;
+  const vReversal = attempt(() => vStore.rollback(vPrior.op.opId));
+  const vCaught = vReversal.ok ? null : vReversal.caught;
+  const vLog = vCaught !== null && Array.isArray(vCaught.log) ? vCaught.log : [];
+  P('X5 · the reversal at rest — answered, or refused?', vReversal.ok ? 'answered its record' : 'REFUSED');
+  P('X5 · the crossed form · status · the judgement\'s log', {
+    keys: vCaught === null ? '<none>' : ownNamesOf(vCaught),
+    status: vCaught === null ? '<none>' : statusOf(vCaught),
+    entries: vLog.map((entry) => ({ keys: ownNamesOf(entry), kind: entry.kind, id: entry.id, state: entry.state })),
+  });
+  P('X5 · the judgement\'s ask — its identity members', vJudged.slice(-1));
+  P('X5 · the attempt counter · live · openCommits around the reversal', {
+    attemptsBefore: vAttemptsBefore, attemptsAfter: kernelFor(vStore).attempts,
+    live: kernelFor(vStore).live.size, open: openCommits(vStore),
+  });
+  P('X5 · what it still lacks', vCaught === null ? '<not reached>' : {
+    anAttemptRecord: kernelFor(vStore).attempts === vAttemptsBefore ? 'NONE (no attempt was minted)' : 'one',
+    attemptIdentityInTheContext: vJudged.length === 0 ? '<not asked>' : vJudged[vJudged.length - 1].attempt,
+    opIdentityInTheContext: vJudged.length === 0 ? '<not asked>' : vJudged[vJudged.length - 1].op,
+    aTerminalOutcomeEntry: vLog.some((entry) => entry.kind === 'outcome') ? 'present' : 'ABSENT',
+    aCommitEntryOnThePassingArm: vLog.some((entry) => entry.kind === 'commit') ? 'present' : 'ABSENT',
+    aKcTokenInTheLogsState: vLog.some((entry) => typeof entry.state === 'string') ? 'present' : 'ABSENT',
+  });
+  A('DW-10.12', '`D-55` item 4 (*"A reverse is an editing verb and must be treated as above"*); `D-38` (a reversal is judged at its terminal state); `D-53` (the log belongs to the commit)',
+    'the reversal CARRIES the judgement it always carried — an open commit, the pairs asked at the state it left, the one crossed form with a log naming the pair, and the restore to the commit\'s cached mark — and STILL LACKS the delete-shaped attempt\'s machinery: no attempt record, no attempt or op identity in the context, no terminal `outcome` entry with a `KC` token, and no `commit` entry on a passing arm',
+    vPair.ok === true && vReversal.ok === false
+      && keyOfAddr(ownNamesOf(vCaught)) === keyOfAddr(REFUSAL_MEMBERS)
+      && statusOf(vCaught) === PASS_REFUSED
+      && vLog.length === 1 && vLog[0].id === 'refuses-the-reversal'
+      && vJudged.length > 0 && vJudged[vJudged.length - 1].attempt === null
+      && vJudged[vJudged.length - 1].op === null
+      && kernelFor(vStore).attempts === vAttemptsBefore
+      && !vLog.some((entry) => entry.kind === 'outcome') && !vLog.some((entry) => entry.kind === 'commit')
+      && !vLog.some((entry) => typeof entry.state === 'string'),
+    `reversal ${vReversal.ok ? 'answered' : statusOf(vCaught)} · form `
+      + `${vCaught === null ? '<none>' : JSON.stringify(ownNamesOf(vCaught))} · log `
+      + `${JSON.stringify(vLog.map((entry) => ({ keys: ownNamesOf(entry), kind: entry.kind, state: entry.state })))}`
+      + ` · ask ${JSON.stringify(vJudged.slice(-1))} · attempts `
+      + `${vAttemptsBefore} → ${kernelFor(vStore).attempts}`);
+
+  // ── (X5b) ONE LIST PER COMMIT — A NESTED DELETE'S ENTRIES JOIN THE ENCLOSING COMMIT'S LIST (`D-53`) ─────────
+  // **`D-53`'s FIRST INVARIANT: *"If it's part of the same commit, then it uses the same message log."*** A
+  // delete performed INSIDE a constraint body is part of that body's commit, so its entries are THAT list's
+  // entries — no second list, no merge and no renumbering — and the enclosing refusal's `log` is where both
+  // attempts' entries stand, in one `seq` sequence.
+  const oStore = make();
+  oStore.write(['o'], 'mem', 1);
+  oStore.write(['p'], 'mem', 2);
+  let oInner = null;
+  const oPair = attempt(() => oStore.addConstraint({ address: ['o'], id: 'outer-pair' }, (context) => {
+    if (context.attempt === null) return true;
+    oInner = attempt(() => oStore.delete(['p']));
+    return { message: 'the outer pair refuses after the inner delete' };
+  }));
+  const oWrite = attempt(() => oStore.write(['o'], 'mem', 3));
+  const oCaught = oWrite.ok ? null : oWrite.caught;
+  const oLog = oCaught !== null && Array.isArray(oCaught.log) ? oCaught.log : [];
+  P('X5b · the inner delete and the outer refusal', {
+    inner: oInner === null ? '<not reached>' : (oInner.ok ? `answered ${oInner.value.op && oInner.value.op.opId}` : statusOf(oInner.caught)),
+    outer: oCaught === null ? 'ANSWERED' : statusOf(oCaught),
+  });
+  P('X5b · the commit\'s ONE list — both attempts\' entries, in `seq` order', oLog.map((entry) => ({
+    seq: entry.seq, kind: entry.kind, id: entry.id, opId: entry.opId, state: entry.state,
+  })));
+  A('DW-10.14', '`D-53` (one list per commit; `seq` the ordinal of the list it stands in); `D-55` item 3',
+    'a delete inside a constraint body JOINS the enclosing commit\'s list: the enclosing pass\'s `constraint-check`, the delete\'s own terminal `commit` entry and the enclosing attempt\'s terminal `outcome` stand in ONE list with `seq` `1..3`, no second list and no renumbering',
+    oPair.ok === true && oInner !== null && oInner.ok === true
+      && oCaught !== null && statusOf(oCaught) === PASS_REFUSED
+      && oLog.length === 3
+      && oLog[0].seq === 1 && oLog[0].kind === 'constraint-check' && oLog[0].id === 'outer-pair'
+      && oLog[1].seq === 2 && oLog[1].kind === 'commit'
+      && oLog[2].seq === 3 && oLog[2].kind === 'outcome' && typeof oLog[2].state === 'string',
+    `inner ${oInner === null ? '<not reached>' : JSON.stringify(oInner.ok ? 'answered' : statusOf(oInner.caught))}`
+      + ` · outer ${oCaught === null ? 'ANSWERED' : statusOf(oCaught)} · list `
+      + `${JSON.stringify(oLog.map((entry) => [entry.seq, entry.kind, entry.id || null, entry.opId || null]))}`);
+
+  // ── (X6) THE ANCESTOR PAIR IS STILL NOT ASKED — THE EXACT-ADDRESS RULE, UNMOVED ─────────────────────
+  // **THE PASS IS THE WRITE'S: its evaluated set is the pairs whose own address IS the attempt's**
+  // (`pairsAtAddress`; `contract.md §2.8` item 1's exact-address rule, NOT `triggered`'s prefix set). So the
+  // pair at `['a']` in the drive below is asked at its registration and by no pass of a delete at `['a','b']` —
+  // which is why the earlier `W7` window's readings are unmoved.
+  const eStore = make();
+  eStore.write(['a'], 'mem', { b: 1 });
+  const eAsks = [];
+  const ePair = attempt(() => eStore.addConstraint({ address: ['a'], id: 'ancestor-pair' }, (context) => {
+    eAsks.push(context.attempt === null ? 'registration' : 'pass');
+    return true;
+  }));
+  // THE LISTENER STANDS AT THE DELETE'S OWN ADDRESS AND THE PAIR AT ITS ANCESTOR — a listener and a
+  // constraint never share one address (`D-25`), so the two subjects are kept apart by the tree itself.
+  const eHandle = eStore.listen('e-listener', [['a', 'b']]);
+  eStore.register(eHandle, () => {});
+  const eReceipt = attempt(() => eStore.delete(['a', 'b']));
+  P('X6 · an ANCESTOR pair\'s asks for a delete at its descendant', eAsks);
+  A('DW-10.13', '`contract.md §2.8` item 1 (the pass selects the pairs whose address IS the triggering address; the trigger set\'s prefix widening is NOT the pass\'s rule)',
+    'the delete\'s pass asks the pairs standing at THE DELETE\'S OWN ADDRESS and no pair at an ancestor — the exact-address rule the write\'s pass keeps, so an ancestor pair\'s ask count is unmoved by a descendant delete',
+    ePair.ok === true && eReceipt.ok === true && eAsks.length === 1 && eAsks[0] === 'registration',
+    `asks ${JSON.stringify(eAsks)} · delete ${eReceipt.ok ? 'answered' : statusOf(eReceipt.caught)}`);
   console.log('');
   console.log('        THE SENTENCE TO CARRY AWAY (`D-55`): A WITNESS ENTRY NEVER SHIPS AN EMPTY ADDRESS LIST while');
   console.log('        the ROOT still stands as `[[]]`; a thrown message stands in the commit\'s log and the crossed');
   console.log('        sentence no longer claims the value crosses; a refused edit undoes the WHOLE commit to the');
   console.log('        mark its OUTERMOST opening cached; the handed-off report and log are FROZEN; and the drain');
   console.log('        judges the STATE THE COMMIT STANDS AT, so two raises in one commit are both judged.');
-  console.log('        AND `DEF-X` IS STILL A MEASUREMENT: the delete runs no pass, and no shape at this version');
-  console.log('        can make it run one without being given a commit and an attempt of its own.');
+  console.log('        AND `DEF-X` IS NO LONGER A MEASUREMENT: the delete runs a pass of its own kind, its delivery');
+  console.log('        follows it, and `rollback` is named as the arm that still lacks the same attempt machinery.');
 }
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════

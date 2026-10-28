@@ -417,7 +417,8 @@ is a set-position class refusal, not a tier.**
 leaves every other tier's version at that key untouched** (`write-and-read.md §4.4`, arm `D-1`). **A `delete` with
 no tier removes every version at the target and all downstream of each; a delete of the empty address empties the
 register; and a delete that removes nothing is a SUCCESS — it answers `tiers: []` rather than throwing**
-(`write-and-read.md §4.3`, `§4.4` arms `D-2`, `D-3` and `D-5`).
+(`write-and-read.md §4.3`, `§4.4` arms `D-2`, `D-3` and `D-5`). **⟶ AND A `delete` THAT REMOVES SOMETHING NOW PASSES CONSTRAINTS** — see §7.8; a delete that removes
+nothing is not an edit and runs no pass.
 
 ### §5.4 Undo is bounded by the journal, and `rollback` is not a single-op undo
 
@@ -769,6 +770,59 @@ body.**
 **WHAT DOES NOT SPEND THE BUDGET**, so a lawful in-commit action costs at most one round and no more: **a request whose watch shows no moved address is consumed and asks nothing** — it can neither loop nor exhaust the budget — and **the count belongs to the PASS's own scope**, so a nested pass (a listener body's own write) has a scope and a budget of its own, exactly as it has its own commit (`js/contract.md §2.6`'s clause of 2026-10-27, item `4`).
 
 **⟶ AND WHEN TWO OF YOUR LISTENERS EACH REVERSE IN ONE COMMIT, THE CHECK JUDGES THE STATE THE COMMIT STANDS AT — BOTH RAISES, NOT THE LAST ONE, 2026-10-28 — `D-55` ITEM 6 · `DEF-AP`, MEASURED.** `RCA-8(g)` ANNOTATE-BESIDE: **every clause of §7.7 above stands BYTE-FOR-BYTE and is read THROUGH this one; the bound, the budget's own arm and `D-42`'s window rule do not move.** **WHAT WAS MEASURED ON `1.3.0`:** two listeners each reversing inside ONE commit left **only the LAST raise judged** — the earlier listener's violation was asked **zero** times, **registration order decided which raise was lost**, and when the survivor's judgement passed **the write returned normally with the violation standing**. **THE ROW'S OWN ESCAPE — declare that an overwritten raise may leave a violation unjudged — IS UNAVAILABLE**, because §5.4's safe-state rule is the promise. **WHAT THE PACKAGE DOES: the request's watch is MERGED to the EARLIEST reading of each address** — the state the commit opened at — **so the restarted check sees every address the WHOLE commit moved, whichever raise named it, and asks the pairs at the state the commit STANDS at.** **A raise is therefore never lost to a later one in the same commit**, and the write that used to answer normally now refuses. (`tests/e2e/discard-witness.mjs`'s `DW-10.7`: both pairs are asked at the drain, the write refuses `ConstraintPassRefused`, the whole commit is undone; under a revert of the merge the earlier pair is asked ZERO times and the write ANSWERS.)
+
+### §7.8 ★ A `delete` IS AN EDITING VERB — it passes constraints, and its listeners run AFTER them
+
+**★ FROM 2026-10-29 A `delete` RUNS A CONSTRAINT PASS OF ITS OWN** (`D-55` item `3`, verbatim: *"A delete is an
+editing verb and must pass constraints. This includes all of the relevant commit and message logic."*). **`D-38`
+said the same for `rollback`** (item `4`: *"A reverse is an editing verb and must be treated as above"*). **So the
+three editing verbs — `write`, `delete`, `rollback` — all ask the pairs, and only a `read` does not (§7.5).**
+
+**What you see, in order, when you call `store.delete(addr, tier?)`:**
+
+1. **the delete lands** — the versions are removed exactly as they always were (`§5.3`);
+2. **the pairs standing AT THE DELETED ADDRESS are asked against THE STATE THE DELETE LEFT** — the address's
+   absence, with the delete's own journal op handed to the pair as `context.op`, so a constraint can tell a
+   delete from a write and refuse one;
+3. **every one of them passes ⇒ you get the record** — `{ address, tiers, triggered, op }` (`§3.3`), unchanged;
+   **one refuses ⇒ you get the ordinary refusal**: the same `{status, message, log}` every constraint refusal
+   throws (§8), `status: 'ConstraintPassRefused'`, its `log` naming the pair and carrying the kernel's token in
+   the terminal entry's `state`, **and the delete is UNDONE together with every edit the delete's own attempt made** (a repair's write included)
+   — the store stands at the state the commit opened at;
+4. **and the listeners fire AFTER step 2** — so a listener fired by a delete observes a JUDGED state, never one a
+   constraint is about to refuse. **A refused delete fires no listener at all.**
+
+```js
+store.write(['window','tabs'], 'mem', { landingPage: { active: true } });
+store.addConstraint({ address: ['window','tabs','landingPage'], id: 'landing-page-must-stand' },
+  (ctx) => (ctx.op !== null && ctx.op.kind === 'delete'
+    ? { message: 'the landing page is not removable' }
+    : true));
+
+store.delete(['window','tabs','landingPage']);
+// throws { status: 'ConstraintPassRefused', message: 'the landing page is not removable', log: [ … ] }
+// log[0] = { seq: 1, kind: 'constraint-check', id: 'landing-page-must-stand', opId: 'op-3', state: null, … }
+// log[1] = { seq: 2, kind: 'outcome',         id: null,                 opId: 'op-3', state: 'KC-3', … }
+store.read(['window','tabs','landingPage']);   // { active: true } — the delete was undone
+```
+
+**The pair is asked with `context.value` = the AFTER-state (absence), `context.tier` = the delete's tier or `null`,
+and `context.attempt` = the attempt's own identity.** **A pair at an ANCESTOR address is not asked by the delete's
+pass** — the pass keeps the write's exact-address rule and not the trigger set's prefix widening — even though
+such a listener DOES fire for the delete (`§6.4`). **And a delete that removes nothing is not an edit**: `tiers: []`,
+no pass, no refusal, no delivery (`§5.3`).
+
+**Why you care: a delete cannot be used to slip a state past a constraint you registered, and a listener you write
+for the use case in `§6.4` — "exactly one tab is active" — now runs on a state the pass has already approved.**
+**WHAT THE WITNESS STILL SPEAKS FOR** (§8's `record.discarded`): a `rollback` your listener raises inside the
+DELIVERY is still after every check, so it is reported and its effect stands — but a `rollback` a PAIR BODY raises
+inside the delete's own pass is now drained and judged at the state the delete left (`§7.7`).
+
+**MEASURED, ON THIS CHECKOUT, THROUGH THE PUBLISHED ENTRY:** a pair at the deleted address is asked **twice** —
+its registration and the delete's pass — where before this clause it was asked **once**; a listener fired by a
+delete reads the pass's ask already taken (`1`, where it read `0`) and the after-state the pass approved; a
+refused delete leaves the store at the state it opened at; and the delete's log is the commit's ONE list with
+`seq` `1..2` (`tests/e2e/discard-witness.mjs`'s `DW-10.8`–`DW-10.13`).
 
 ---
 
@@ -1446,7 +1500,7 @@ tree sharing no mutable member with the store or with another crossing**, which 
 
 **Two windows in the constraint machinery are known and are NOT defects. Each is a state you can leave.**
 
-1. **A `delete`'s listener delivery.** A listener invoked by a delete's delivery runs **no constraint pass** — there is no attempt for a pass to run over. **A `rollback` issued from inside it is unjudged, and its effect stands.**
+1. **A `delete`'s listener delivery** — **AND FROM 2026-10-29 THE DELETE ITSELF RUNS ONE, WHICH IS WHY THIS WINDOW IS DEFINED BY THE DELIVERY AND NOT BY THE VERB (§7.8: the delivery sits AFTER the pass, so a listener fired by a delete sees a JUDGED state).** A listener invoked by a delete's delivery runs **no constraint pass** — there is no attempt for a pass to run over. **A `rollback` issued from inside it is unjudged, and its effect stands.**
 2. **A registration's own evaluation.** `addConstraint`'s and `constraintRegister`'s evaluation of a supplied body runs **no pass** for the same reason — **an action raised there is unjudged and its effect stands.**
 
 **THE FIRST EXIT — RELOAD THE FILE.** Since `1.1.0`, **a restore that moved a version standing at the `file` tier SAVES the restored image**, so **the file records the state the store was restored to, and a fresh boot over that path returns to judged bytes.**
@@ -1466,7 +1520,7 @@ tree sharing no mutable member with the store or with another crossing**, which 
 
 **SO THE FAIL-STATE OF PASS-HOSTED REVERSALS IS EMPTY, AND WHAT GUARANTEES IT IS ONE CONSUMER: the drain in the pass's own commit scope, reached on BOTH arms, matching the window that raised the request, and judging at the pass's terminal state.** The exits below are now owed to the two passless windows alone.
 
-**YOUR `delete` QUESTION, ANSWERED HERE, AND IT IS A THIRD CASE AND NOT THE DECLARED ONE.** A `delete` runs **no constraint pass of its own** (`D-1-bis`); the window declared above is its LISTENER DELIVERY, which runs no pass and is UNCHANGED — the `discarded` witness still reports the discard and the reversal's effect still stands. **Where a `delete` is performed INSIDE a pass — the case the consumer measured — the delete's window IS that pass's window**, and a reversal raised by the listener its delivery fires is a DIFFERENT ACT AT A DIFFERENT INSTANT from the declared window: **a THIRD case, and it is now judged** — the request lands in the pass's window and that pass's terminal check asks the pairs at the state the reversal left. **A registration's own evaluation remains the second passless window, silent and identity-only** (`D-49`), and both exits below still leave it honestly.
+**YOUR `delete` QUESTION, ANSWERED HERE, AND IT IS A THIRD CASE AND NOT THE DECLARED ONE.** **⟶ AND ITS FIRST CLAUSE IS SUPERSEDED FROM 2026-10-29 — `D-55` ITEM `3` BUILT THE PASS THIS SENTENCE SAID DID NOT EXIST: a `delete` now runs a constraint pass of its own kind, at the delete's own journal op, with the delivery after it (§7.8 below); the sentence is kept so the ruling it recorded is legible.** `RCA-8(g)` ANNOTATE-BESIDE: **every other byte of this paragraph stands — the declared window is still the LISTENER DELIVERY, which still runs no pass, the `discarded` witness still reports what that delivery discarded and the reversal's effect still stands, and the third case the consumer measured (a `delete` performed INSIDE a pass) is still judged by that pass.** **WHAT MOVED IS ONLY THE PREMISE: `D-1-bis` (`a delete consults no constraint`) is superseded by `D-55` item `3` (`A delete is an editing verb and must pass constraints`) for the delete's OWN act; it remains the ground of the DELIVERY window, which runs after that act's pass has closed.** The original bytes read: A `delete` runs **no constraint pass of its own** (`D-1-bis`); the window declared above is its LISTENER DELIVERY, which runs no pass and is UNCHANGED — the `discarded` witness still reports the discard and the reversal's effect still stands. **Where a `delete` is performed INSIDE a pass — the case the consumer measured — the delete's window IS that pass's window**, and a reversal raised by the listener its delivery fires is a DIFFERENT ACT AT A DIFFERENT INSTANT from the declared window: **a THIRD case, and it is now judged** — the request lands in the pass's window and that pass's terminal check asks the pairs at the state the reversal left. **A registration's own evaluation remains the second passless window, silent and identity-only** (`D-49`), and both exits below still leave it honestly.
 
 **⟶ ADDED 2026-10-28 — `D-49`: THE DISCARD IS NOW OBSERVABLE ON THE `delete`'S OWN ANSWER, AND THE OTHER
 WINDOW STILL CARRIES NOTHING. READ THIS BEFORE YOU RELY ON EITHER FAIL-STATE.**
