@@ -1,5 +1,6 @@
 // `D-13` (`docs/L1/kernel-subdivision.md` §1 part `9b`) — the registration act, its evaluation, and the registry's removal: bytes moved from `bindings/js/src/constraint-kernel.mjs`; no logic changed.
 import { KC, KERNEL_REFUSAL, markBodyThrow, refuse, inDomainAddress, inDomainId, pairRowAt, sameAddress, kernelFor, append, appendOwn, landedOp, pairsAtAddress, enterCommitFrame, leaveCommitFrame } from './kernel-foundations.mjs';
+import { dropHandoff } from './kernel-terminal.mjs';
 
 /// **⟶ ADDED 2026-10-27 — `D-46`'s NAME ON A REPAIR INVOCATION'S OWN ENTRY, SPELLED HERE AS
 /// `kernel-attempt.mjs` SPELLS IT.** **THE RULING, THE ARCHITECT, VERBATIM: *"A constraint's repair needs to stay
@@ -642,6 +643,12 @@ function closeRegistrationAttempt(kernel, attempt, outcome = 'failed') {
   // synthetic attempt was opened against, and its kernel is IN HAND ONE FRAME ABOVE, so no second position
   // and no second lookup is taken.
   kernel.closed.set(attempt.ref.id, report);
+  // **⟶ AND THE REGISTRATION'S COMMIT DROPS ITS LOG ON CLOSE TOO — `D-58`, 2026-10-28.** The synthetic attempt
+  // resolves or rejects here, and the list was handed off on the refusing arm by the refusal the caller builds
+  // from `attempt.log` (the attempt object, not this record). **What the store retains is the outcome, the ops
+  // and the reversal's record; what the client was handed it lets go**, exactly as the landing pass's own arm
+  // does (`kernel-attempt.mjs`'s handoff).
+  dropHandoff(kernel, report);
   kernel.live.delete(attempt.ref.id);
   return report;
 }

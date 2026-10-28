@@ -165,6 +165,19 @@ function tryCall(fn) {
 }
 const keysOf = (o) => (o && typeof o === 'object' ? Object.keys(o).sort().join(',') : `<${typeof o}>`);
 const status = (t) => (t.ok ? `returned(${JSON.stringify(t.value?.outcome ?? t.value)})` : t.err?.status);
+/** **THE LIST A HANDOFF PUT IN THE DRIVE'S HAND — `D-58` (2026-10-28).** The store retains no message log once an
+ *  attempt resolves or rejects, so a cell reads the entries off the value that crossed: a kernel refusal's own
+ *  `log`, or a caller body's throwable under the kernel's `Symbol.for` mark. An arm whose handoff carries none
+ *  answers the empty list, and a cell that reads it says so rather than reporting a verdict from it. */
+const handedLogOf = (r) => {
+  if (r === null || typeof r !== 'object') return [];
+  const thrown = r.ok ? null : r.err;
+  if (thrown === null || typeof thrown !== 'object') return [];
+  if (Array.isArray(thrown.log)) return thrown.log;
+  const carried = thrown[Symbol.for('provident-storeroom.constraint-body-threw')];
+  if (carried !== null && typeof carried === 'object' && Array.isArray(carried.log)) return carried.log;
+  return [];
+};
 
 // **⟶ THE PAIR'S OWN READERS, RE-DERIVED 2026-10-25 (`trigger-and-pair.md §3` items 3–5; `contract.md §2.4`
 // item 6): THE ELEMENT OF `triggered` AND OF `pending` IS THE PAIR `{handle, address}`, NEVER A BARE HANDLE.**
@@ -306,11 +319,13 @@ scenario(() => {
       && JSON.stringify(ctx7.address) === '["a"]' && ctx7.tier === 'mem' && ctx7.value === 1
       && ctx7.attempt?.id === c.attempt.id && ctx7.op?.opId === c.op.opId,
     `landing contexts=${landings.length} of ${seen.length} invocation(s); ctx=${JSON.stringify(ctx7, (k, v) => (k === 'op' ? v?.opId : v))}`);
-  cell(8, "K-4 returns the closed attempt's final log and K-5 its final report — the SAME list and the same five-member report",
-    `${C.ks21} items 4–5; ${C.ps25} observable`,
-    JSON.stringify(log(store, c.attempt)) === JSON.stringify(r.log)
-      && JSON.stringify(report(store, c.attempt)) === JSON.stringify(r),
-    `log-equal=${JSON.stringify(log(store, c.attempt)) === JSON.stringify(r.log)} report-equal=${JSON.stringify(report(store, c.attempt)) === JSON.stringify(r)}`);
+  cell(8, "K-4 and K-5 over the CLOSED attempt answer the record the store STILL NEEDS — `D-58`: the outcome, the ops and the reversal, NO log — while the FIVE-member report and its list are the ones `K-3` handed off",
+    `${C.ks21} items 4–5; ${C.ps25} observable; \`strata/decisions.md\` · \`D-58\` (2026-10-28)`,
+    JSON.stringify(log(store, c.attempt)) === '[]'
+      && keysOf(report(store, c.attempt)) === 'attempt,ops,outcome,rollback'
+      && report(store, c.attempt).outcome === r.outcome
+      && Array.isArray(r.log) && r.log.length >= 2,
+    `K-4 over the closed attempt=${JSON.stringify(log(store, c.attempt))} · K-5 keys=${keysOf(report(store, c.attempt))} · the handed-off list=${r.log.length} entries`);
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -581,7 +596,8 @@ scenario(() => {
     `repairRuns=${repairRuns} ops=${report(store, c.attempt).ops.length}`);
   cell(5, 'the closed record K-5 returns carries that same final log and the failed outcome',
     `${C.ks21} items 3,5`,
-    (() => { const rr = report(store, c.attempt); return rr.outcome === 'failed' && JSON.stringify(rr.log) === JSON.stringify(f.log); })(),
+    // **⟶ `D-58`: THE LIST IS THE THROWN FORM'S (`f.log`); the store retains none of it.**
+    (() => { const rr = report(store, c.attempt); return rr.outcome === 'failed' && !('log' in rr) && Array.isArray(f.log); })(),
     `report outcome=${report(store, c.attempt).outcome}`);
   cell(6, "a thrown form's status is never a store member and the log's outcome state is the SAME token",
     `${C.fs11} item 1 (a),(c)`, KC.has(f.status) && outcomeOf(f.log)?.state === f.status,
@@ -742,12 +758,13 @@ scenario(() => {
       && freshK2.value.attempt.id !== c1.attempt.id
       && staleK3.ok === false && staleK3.err?.status === 'KC-2',
     `second K-2 while the attempt stood OPEN = ${status(heldK2)}; second K-2 after the terminal arm = ${freshK2.ok ? `returned a fresh record (attempt ${freshK2.value.attempt.id} against ${c1.attempt.id})` : `threw ${freshK2.err?.status}`}; its own K-3 = ${freshRun ? status(freshRun) : 'not issued'}; stale K-3 = ${status(staleK3)}`);
-  cell(4, "the stale record the caller still holds after a terminal arm is answered with KC-2 by K-3 and NEVER with KC-7, and no state moves: K-4 and K-5 over that same reference still return the closed record's log and report",
-    `${C.ks21} item 2 (RD-9, read whole); ${C.ps215}`,
+  cell(4, "the stale record the caller still holds after a terminal arm is answered with KC-2 by K-3 and NEVER with KC-7, and no state moves: K-4 and K-5 over that same reference still ANSWER — the empty retained list and the retained record (`D-58`: the list was handed off with `K-3`'s return)",
+    `${C.ks21} item 2 (RD-9, read whole); ${C.ps215}; \`D-58\``,
     !staleK3.ok && staleK3.err?.status === 'KC-2'
-      && JSON.stringify(log(store, c1.attempt)) === JSON.stringify(r1.log)
-      && JSON.stringify(report(store, c1.attempt).log) === JSON.stringify(r1.log),
-    `second K-3 = ${status(staleK3)}; K-4 and K-5 over the same reference returned the attempt's own final log`);
+      && JSON.stringify(log(store, c1.attempt)) === '[]'
+      && !('log' in report(store, c1.attempt)) && r1.log.length >= 2,
+    `second K-3 = ${status(staleK3)}; K-4 answers ${JSON.stringify(log(store, c1.attempt))} and K-5 the `
+      + `retained record (${keysOf(report(store, c1.attempt))}) over the same reference`);
 
   const store2 = newStore();
   const ctxR = [], ctxA2 = [];
@@ -783,7 +800,8 @@ scenario(() => {
   register(store, ['a'], 'a2', (ctx) => { cA2.push(ctx); return true; });
   register(store, ['a', 'b'], 'b1', () => true);
   const c = commit(store, ['a'], 'mem', { n: 1 });
-  const openLenAtCommit = log(store, c.attempt).length;
+  // **⟶ `D-58`: `K-4`'S LIVE ARM REFUSES `KC-7` — an in-flight list is not a consumer read.**
+  const openRead = tryCall(() => log(store, c.attempt));
   const r = runAttempt(store, c);
 
   cell(1, "the pass over ['a'] evaluates exactly the pairs at the attempt's OWN address: the two at ['a'] and NOT the pair at ['a','b']",
@@ -799,9 +817,9 @@ scenario(() => {
     `${C.ks25} item 1 (the constraint-check row)`,
     r.log.every((e) => e.kind !== 'constraint-check' || (e.opId === c.op.opId && e.state === null)),
     `kinds=[${kinds(r.log)}]`);
-  cell(5, "K-4 over the OPEN attempt returns the open record's own log — read before K-3, it is empty and it is a LIST",
-    `${C.ks21} item 4; ${C.ks23} item 1`, openLenAtCommit === 0,
-    `open log length at commit time = ${openLenAtCommit}`);
+  cell(5, "K-4 over the OPEN attempt REFUSES `KC-7` — the member `K-5` already answers (`D-58`, 2026-10-28): an in-flight `seq` list is no longer a consumer read",
+    `${C.ks21} item 4; ${C.ks23} item 1; \`D-58\``, openRead.ok === false && openRead.err?.status === 'KC-7',
+    `K-4 at commit time = ${openRead.ok ? 'ANSWERED' : openRead.err?.status}`);
 
   const store2 = newStore();
   const seenVals = [];
@@ -1120,12 +1138,11 @@ scenario(() => {
     `alpha outcome=${report(sA, cA.attempt).outcome} ops=${JSON.stringify(report(sA, cA.attempt).ops.map((o) => o.kind))} | beta outcome=${rBProbe.value?.outcome} ops=${JSON.stringify((rBProbe.value?.ops ?? []).map((o) => o.kind))}`);
   cell(3, 'log of equal length with equal kind/id/state sequences',
     `e2e-scenarios-b.md E2E-C-10 step (5) (iii); ${C.ks25} item 1`,
-    (() => {
-      const a = report(sA, cA.attempt), b = rBProbe.value;
-      return Array.isArray(b?.log) && a.log.length === b.log.length
-        && a.log.every((e, i) => e.kind === b.log[i].kind && e.id === b.log[i].id && e.state === b.log[i].state);
-    })(),
-    `alpha=[${kinds(report(sA, cA.attempt).log)}] beta=[${kinds(rBProbe.value?.log)}]`);
+    // **⟶ `D-58`: the two windows' lists are the ones their own THROWN forms carry — the store retains none.**
+    Array.isArray(fA?.log) && Array.isArray(fB?.log) && fA.log.length === fB.log.length
+      && fA.log.every((e, i) => e.kind === fB.log[i].kind && e.id === fB.log[i].id && e.state === fB.log[i].state),
+    `alpha=[${kinds(fA?.log)}] beta=[${kinds(fB?.log)}] · the retained records carry no log `
+      + `(${!('log' in report(sA, cA.attempt))} / ${!('log' in (rBProbe.value ?? {}))})`);
   // ── **⟶ RE-DERIVED 2026-10-25: THE `undoneOps` MEMBERSHIPS ARE COMPARED WITHIN EACH WINDOW, NOT ACROSS THEM.**
   // The doc's step (5) says the step readings are compared and then EXCLUDES the `opId`s BY NAME — *"THE `opId`
   // MEMBERS ARE EACH WINDOW'S OWN AND ARE NOT COMPARED FOR EQUALITY ACROSS THE TWO WINDOWS: each window's
@@ -1146,10 +1163,10 @@ scenario(() => {
           && (b.rollback[i].undoneOps ?? []).every((id) => own(b).has(id)));
     })(),
     `alpha rollback=${JSON.stringify(report(sA, cA.attempt).rollback.map((s) => [s.answer, s.failed, s.undoneOps.length]))} beta rollback=${JSON.stringify((rBProbe.value?.rollback ?? []).map((s) => [s.answer, s.failed, s.undoneOps.length]))} — the step COUNT and the answer/failed readings are compared; each window's undoneOps is read against its OWN ops`);
-  cell(5, "the instrument each window read is NAMED: both are the kernel's own five-member record read through K-5, not a store structure",
-    `${C.ks21} item 5; ${C.fs12} item 4`,
-    keysOf(report(sA, cA.attempt)) === 'attempt,log,ops,outcome,rollback'
-      && keysOf(rBProbe.value) === 'attempt,log,ops,outcome,rollback',
+  cell(5, "the instrument each window read is NAMED: both are the kernel's own record read through K-5 over an attempt CLOSED by its own terminal act — and after `D-58` that record is the retained four-member one, the log having been handed off with the refusal",
+    `${C.ks21} item 5; ${C.fs12} item 4; \`D-58\``,
+    keysOf(report(sA, cA.attempt)) === 'attempt,ops,outcome,rollback'
+      && keysOf(rBProbe.value) === 'attempt,ops,outcome,rollback',
     `alpha keys=${keysOf(report(sA, cA.attempt))} beta keys=${keysOf(rBProbe.value)} — both read through K-5 over an attempt CLOSED by its own terminal act`);
   cell(6, "message strings may differ where the kernel's own text names the trigger's arguments — and both are non-empty kernel sentences",
     `e2e-scenarios.md E2E-C-8 cell 5; ${C.fs11} item 2 (i)`,
@@ -1203,12 +1220,12 @@ scenario(() => {
     r1.log[0].seq === 1 && r2.log[0].seq === 1 && logShape(r1.log) === 'ok' && logShape(r2.log) === 'ok'
       && r1.log[0].opId !== r2.log[0].opId,
     `attempt1=[${kinds(r1.log)}] attempt2=[${kinds(r2.log)}]`);
-  cell(7, "K-4 over each closed attempt returns that attempt's own log — two distinct lists, each equal to its own report's",
-    `${C.ks21} item 4`,
-    JSON.stringify(log(store, c1.attempt)) === JSON.stringify(r1.log)
-      && JSON.stringify(log(store, c2.attempt)) === JSON.stringify(r2.log)
-      && JSON.stringify(log(store, c1.attempt)) !== JSON.stringify(log(store, c2.attempt)),
-    'both closed logs read back by K-4');
+  cell(7, "K-4 over each closed attempt ANSWERS — the empty retained list on both — while the two attempts' own lists are the ones `K-3` handed off, each its own (`D-58`)",
+    `${C.ks21} item 4; \`D-58\``,
+    JSON.stringify(log(store, c1.attempt)) === '[]' && JSON.stringify(log(store, c2.attempt)) === '[]'
+      && r1.log.length > 0 && r2.log.length > 0 && r1.log !== r2.log && r1.log[0].opId !== r2.log[0].opId,
+    `K-4 over each closed attempt answers ${JSON.stringify([log(store, c1.attempt), log(store, c2.attempt)])} · `
+      + `the handed-off lists ${r1.log.length}/${r2.log.length} entries`);
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -1327,20 +1344,21 @@ scenario(() => {
     `the object the body caught is the store's own (status=${caught?.status}, keys=${keysOf(caught)}); the object K-3 threw back is the kernel's (status=${f?.status}, keys=${keysOf(f)}); identity between them=${f === caught}; the kernel's sentence=${JSON.stringify(f?.message)}`);
   cell(5, "the attempt is closed as failed and its own outcome entry carries KC-4's token — the kernel's own state for a repair that threw, on the kernel's own channel",
     `${C.fs11} item 3; ${C.cs27} item 13; ${C.fs2}'s KC-4 row (the carrier named: where the repair body throws before it returns, the carrier IS the attempt's own message log — its ONE outcome entry, read off the log the caller holds after the throw)`,
-    outcomeOf(rr.log)?.state === 'KC-4' && rr.outcome === 'failed'
-      && rr.log.filter((e) => e.kind === 'outcome').length === 1,
-    `report outcome=${rr.outcome} report log=[${kinds(rr.log)}]`);
+    // **⟶ `D-58`: the log is the THROWN FORM's (`f.log`), which the kernel's own channel carries.**
+    outcomeOf(f.log)?.state === 'KC-4' && rr.outcome === 'failed'
+      && f.log.filter((e) => e.kind === 'outcome').length === 1 && !('log' in rr),
+    `report outcome=${rr.outcome} retained keys=${keysOf(rr)} thrown log=[${kinds(f.log)}]`);
   cell(6, "the store's code is NAMED inside the repair-run entry's message as the store's own answer, and the entry's state stays null",
     `${C.ks25} item 1 (the message table); ${C.fs12} item 3 (the asymmetry's own carrier clause: the store's code is NAMED INSIDE the repair-run entry's message)`,
-    (() => { const e = (rr.log ?? []).find((x) => x.kind === 'repair-run'); return !!e && e.state === null && typeof e.message === 'string' && e.message.includes('WriteParentNotLink'); })(),
-    `repair-run=${JSON.stringify((rr.log ?? []).find((e) => e.kind === 'repair-run'))} — the store's own code the repair's verb call threw (${caught?.status}) IS named inside this entry's message (the message table's own carrier clause, kernel-surface.md §2.5 item 1) and the entry's state stays null`);
+    (() => { const e = (f.log ?? []).find((x) => x.kind === 'repair-run'); return !!e && e.state === null && typeof e.message === 'string' && e.message.includes('WriteParentNotLink'); })(),
+    `repair-run=${JSON.stringify((f.log ?? []).find((e) => e.kind === 'repair-run'))} — the store's own code the repair's verb call threw (${caught?.status}) IS named inside this entry's message (the message table's own carrier clause, kernel-surface.md §2.5 item 1) and the entry's state stays null`);
   cell(7, "the two channels are not converted into one another: the store's code reached the repair body UNCHANGED at its own verb call (same status, same members), no store code is ever a kernel state, the thrown form's `status` is the kernel's own token, and the repair ran once",
     `${C.fs12} item 1 (no conversion), items 2 and 4; ${C.fs11} item 1 (a) (a thrown form's status IS a kernel token)`,
     caught !== null && caught.status === 'WriteParentNotLink' && keysOf(caught) === 'log,message,status'
-      && f?.status === 'KC-4' && KC.has(f.status) && KC.has(outcomeOf(rr.log)?.state)
+      && f?.status === 'KC-4' && KC.has(f.status) && KC.has(outcomeOf(f.log)?.state)
       && repairCalls === 1 && heldByCaller === f
-      && (rr.log ?? []).every((e) => !String(e.state ?? '').includes('WriteParentNotLink')),
-    `store code at K-2=${status(tierRefusal)}; store code at the repair's own verb call=${caught?.status} (the body held the store's own object unchanged=${bodyThrow.err === caught}); the caller holds the kernel's form (status=${f?.status}); kernel state=${outcomeOf(rr.log)?.state}; repair calls=${repairCalls}`);
+      && (f.log ?? []).every((e) => !String(e.state ?? '').includes('WriteParentNotLink')),
+    `store code at K-2=${status(tierRefusal)}; store code at the repair's own verb call=${caught?.status} (the body held the store's own object unchanged=${bodyThrow.err === caught}); the caller holds the kernel's form (status=${f?.status}); kernel state=${outcomeOf(f.log)?.state}; repair calls=${repairCalls}`);
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -1361,8 +1379,9 @@ scenario(() => {
   const k3Again = tryCall(() => runAttempt(store, c));
   const after = log(store, c.attempt);
 
-  cell(1, 'K-5 over a CLOSED attempt returns the final report, and K-4 its final log',
-    `${C.ks21} items 4–5`, rr.outcome === 'passed' && ll.length === 2, `report=${rr.outcome} log=${ll.length}`);
+  cell(1, 'K-5 over a CLOSED attempt returns the retained record and K-4 ANSWERS the empty retained list — the log was handed off with `K-3`\'s return (`D-58`)',
+    `${C.ks21} items 4–5; \`D-58\``, rr.outcome === 'passed' && ll.length === 0 && r.log.length === 2,
+    `report=${rr.outcome} retained keys=${keysOf(rr)} K-4=${JSON.stringify(ll)} handed-off log=${r.log.length}`);
   cell(2, 'K-4 and K-5 accept the bare id string as the SAME argument (the AttemptRef or its id, nothing else)',
     `${C.ps215} domain`,
     byBareId.ok && JSON.stringify(byBareId.value) === JSON.stringify(rr),
@@ -1570,24 +1589,26 @@ scenario(() => {
     !!secondRec?.attempt?.id && secondRec.attempt.id !== c.attempt.id
       && keysOf(secondRec) === 'attempt,op,pending,triggered' && secondErr === null,
     `second attempt=${secondRec?.attempt?.id} (the first attempt's is ${c.attempt.id}); its K-2 returned keys=${keysOf(secondRec)}; secondErr=${secondErr?.status}`);
-  cell(5, "the K-1 pair's own pass ran — the first attempt's own log carries its `constraint-check` entry and its one `outcome` entry reads KC-3 — and NO entry the caller's own loop produced carries the constraint kind (a constraint is the kernel's to invoke, never the caller's loop's)",
-    `${C.ks21} item 2 (the loop's call shape, both kinds); ${C.ks25} item 1; ${C.ps216}`,
-    rr.log.some((e) => e.kind === 'constraint-check' && e.id === 'cA')
-      && outcomeOf(rr.log)?.state === 'KC-3'
+  cell(5, "the K-1 pair's own pass ran — the first attempt's own list (the one its refusal handed off, `D-58`) carries its `constraint-check` entry and its one `outcome` entry reads KC-3 — and NO entry the caller's own loop produced carries the constraint kind (a constraint is the kernel's to invoke, never the caller's loop's)",
+    `${C.ks21} item 2 (the loop's call shape, both kinds); ${C.ks25} item 1; ${C.ps216}; \`D-58\``,
+    handedLogOf(outerRun).some((e) => e.kind === 'constraint-check' && e.id === 'cA')
+      && outcomeOf(handedLogOf(outerRun))?.state === 'KC-3'
       && loop.filter((x) => x.kind === 'constraint').length === 0
       && loop.filter((x) => !x.unresolved).length === 1
       && loop.filter((x) => !x.unresolved)[0].kind === 'plain',
-    `first attempt final=${outcomeOf(rr.log)?.state} log=[${kinds(rr.log)}]; loop entries of kind constraint=${loop.filter((x) => x.kind === 'constraint').length}; the loop RESOLVED ${loop.filter((x) => !x.unresolved).length} entry and left ${loop.filter((x) => x.unresolved).length} unresolved (the pair's own handle, for which the caller holds no function)`);
+    `first attempt final=${outcomeOf(handedLogOf(outerRun))?.state} log=[${kinds(handedLogOf(outerRun))}]; the retained record keys=${keysOf(rr)}; loop entries of kind constraint=${loop.filter((x) => x.kind === 'constraint').length}; the loop RESOLVED ${loop.filter((x) => !x.unresolved).length} entry and left ${loop.filter((x) => x.unresolved).length} unresolved (the pair's own handle, for which the caller holds no function)`);
   cell(6, "the SECOND top-level processing is driven to ITS OWN terminal arm, fails on its OWN address's pair, and its own `outcome` entry carries the token — its report is the same five-member shape and mints no ninth member",
     `${C.al24} item 4; ${C.fs11} item 1 (c); ${C.fs2} (the KC-3 row: no repair registered for the pair)`,
     (() => {
       const r2 = secondRec ? report(store, secondRec.attempt) : null;
+      const secondList = handedLogOf(secondRun);
       return !!secondRun && !secondRun.ok && secondRun.err?.status === 'KC-3'
-        && r2?.outcome === 'failed' && keysOf(r2) === 'attempt,log,ops,outcome,rollback'
-        && (r2?.log ?? []).some((e) => e.kind === 'constraint-check' && e.id === 'cB')
-        && outcomeOf(r2?.log)?.state === 'KC-3';
+        && r2?.outcome === 'failed' && keysOf(r2) === 'attempt,ops,outcome,rollback'
+        && secondList.some((e) => e.kind === 'constraint-check' && e.id === 'cB')
+        && outcomeOf(secondList)?.state === 'KC-3';
     })(),
-    `the second processing's K-3 = ${secondRun?.ok ? secondRun.value?.outcome : secondRun?.err?.status}; its report log=[${kinds(secondRec ? report(store, secondRec.attempt).log : [])}] keys=${secondRec ? keysOf(report(store, secondRec.attempt)) : '-'}`);
+    `the second processing's K-3 = ${secondRun?.ok ? secondRun.value?.outcome : secondRun?.err?.status}; its `
+      + `handed-off log=[${kinds(handedLogOf(secondRun))}] keys=${secondRec ? keysOf(report(store, secondRec.attempt)) : '-'}`);
   cell(7, "the FIRST TERMINAL ACTOR is the SECOND top-level processing: its own K-2 return and its `K-3` both precede the first processing's `K-3` return — the order the docs' steps (5)–(8) declare — and the two processes are two attempts, never one",
     `${C.al24} item 8 (ii) head and items 1-5; contract.md §5.7 (A106 Q1/Q3)`,
     secondTerminalAt !== null && !!outerRun && secondRec.attempt.id !== c.attempt.id
@@ -1627,7 +1648,9 @@ scenario(() => {
       const s = newStore();
       const h = register(s, ['a'], 'x', () => true);
       const c = commit(s, ['a'], 'mem', 1);
-      return h !== null && runAttempt(s, c).outcome === 'passed' && log(s, c.attempt).length === 2;
+      const r = runAttempt(s, c);
+      // `D-58`: the list is the handoff's (`K-3`'s return), and the closed record retains none.
+      return h !== null && r.outcome === 'passed' && r.log.length === 2 && log(s, c.attempt).length === 0;
     })(),
     'instance constructed through the declared construction call');
 });

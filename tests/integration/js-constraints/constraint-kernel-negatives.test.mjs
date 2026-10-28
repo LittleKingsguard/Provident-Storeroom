@@ -50,7 +50,8 @@ import {
   assertKernelForm, assertAttemptReport, assertSeqIncreasesFromOne,
   capture, entries, checkIds, countingListener, noop,
   passAtRegistration, atLandingOnly,
-  listenAndRegister, carriesHandle, setHandles, setAddresses, } from './constraint-kernel-helpers.mjs';
+  listenAndRegister, carriesHandle, setHandles, setAddresses,
+  handedLog, assertRetainedRecord, } from './constraint-kernel-helpers.mjs';
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════
 // `P-NEG-14` — THE DISCARD'S DISCRIMINATOR IS THE SET A HANDLE CAME BACK IN, NEVER THE ANCESTRY
@@ -189,13 +190,14 @@ test('ck_p_neg_14_the_discard_reaches_a_handle_by_the_set_it_came_back_in_and_no
     const closed = report(store, record.attempt);
     assert.equal(landed !== null && typeof landed.opId === 'string', true,
       'the repair\'s own edit landed an op through the caller\'s own verb');
-    const atTheLanding = entries(closed.log, 'constraint-check').filter((e) => e.opId === landed.opId);
+    // **⟶ `D-58`: THE LIST IS THE HANDED-OFF ONE — the record `K-3` returned on this passing arm.**
+    const atTheLanding = entries(done.log, 'constraint-check').filter((e) => e.opId === landed.opId);
     assert.equal(atTheLanding.length, 1,
       'THE CHECKPOINT IS NON-NULL, AND THIS IS ITS OWN DECLARED EVIDENCE: the landing at the repair\'s op '
       + 'ran ONE pass over the ONE pair registered at the attempt\'s address, and its `constraint-check` '
       + 'entry stands in the log at that op (`composition-and-states.md §2.6` item 8 (ii) (2): "the '
       + `attempt's log carries a PASS \`constraint-check\` entry for every pair of that scope at that op")`);
-    assert.equal(entries(closed.log, 'outcome').length, 0,
+    assert.equal(entries(done.log, 'outcome').length, 0,
       'and no evaluation of that op returned a violation, so the landing left every registered pair at '
       + 'the attempt\'s address passing and the member is pinned at that op and NOT at `null` '
       + '(`composition-and-states.md §2.6` item 8 (iii))');
@@ -542,15 +544,27 @@ test('ck_p_neg_17_the_repair_run_entry_names_the_op_it_was_invoked_for_on_both_a
       'arm 2: THE BODY\'S OWN THROWABLE reaches the caller UNCHANGED and UNCONVERTED — no kernel form is '
       + 'minted for a body that threw (`composition-and-states.md §2.7` item 13; `PAR-C-6`)');
     const closed = report(store, record.attempt);
-    assertAttemptReport(closed, 'P-NEG-17 arm 2 closed record');
-    assert.equal(entries(closed.log, 'outcome')[0].state, KC[4],
-      'and the closed record\'s ONE `outcome` entry carries `KC-4`\'s token — the repair-body path\'s own '
-      + 'declared member (`§2.7` item 13) — read '
-      + JSON.stringify(entries(closed.log, 'outcome')[0].state));
-    arms.push({ arm: 'the throwing repair body', record, log: closed.log, carried: null });
+    assertRetainedRecord(closed, 'P-NEG-17 arm 2 retained record');
+    // **⟶ AND `D-58` TAKES THE LIST OUT OF BOTH HANDS ON THIS ARM**: the store retains none after the
+    // handoff and the throwable is the BODY'S own — so the `KC-4` token its outcome entry names is the
+    // unreadable half, and this cell says so instead of reporting it from an empty list.
+    assert.equal('log' in closed, false, 'the retained record answers no log (`D-58`)');
+    assert.equal(closed.outcome, 'failed', 'the retained record answers the ARM');
+    assert.deepEqual(handedLog(r.thrown), [], 'and the body\'s throwable carries no list');
+    arms.push({ arm: 'the throwing repair body', record, log: null, carried: null });
   }
 
   for (const { arm, record, log, carried } of arms) {
+    // **⟶ `D-58`: THE THROWING-REPAIR ARM'S LIST IS HANDED TO NOBODY — the store keeps none and the body's
+    // throwable carries none. THE CELL MEASURES WHAT REMAINS: the pair's own arm below, and the two arms'
+    // `repair-run` arithmetic on the arm whose list crosses.**
+    if (log === null) {
+      // THE ARM WHOSE LIST IS HANDED TO NOBODY: the store retains none (`D-58`) and the throwable is the
+      // body's own — so the cell says the `repair-run` arithmetic is unobservable HERE rather than reading
+      // its absence from an empty list. The sibling arm measures it, and this arm's own retained record is
+      // asserted above.
+      continue;
+    }
     const runs = entries(log, 'repair-run');
     assert.equal(runs.length, 1,
       `${arm}: the pair's repair ran once and its \`repair-run\` entry IS appended on arm (d) `
@@ -643,7 +657,7 @@ test('ck_p_neg_18_a_repair_naming_a_pre_attempt_op_credits_nothing_and_is_KC4', 
     'and the kernel\'s own generated sentence NAMES the unlanded op it refused — read '
     + JSON.stringify(r.thrown.message) + ` for ${JSON.stringify(before.opId)}`);
   const closed = report(store, record.attempt);
-  assertAttemptReport(closed, 'P-NEG-18 closed record');
+  assertRetainedRecord(closed, 'P-NEG-18 retained record');
   assert.equal(closed.ops.length, 1,
     'AND NO FOREIGN LANDING IS CREDITED: `ops` carries the ONE op the attempt itself created — read '
     + `\`ops.length\` = ${closed.ops.length}; the arm-(d) proof must exclude a landing this attempt never `
@@ -654,9 +668,10 @@ test('ck_p_neg_18_a_repair_naming_a_pre_attempt_op_credits_nothing_and_is_KC4', 
     + JSON.stringify(closed.ops[0].opId) + ' against ' + JSON.stringify(record.op.opId));
   assert.equal(closed.ops.some((o) => o.opId === before.opId), false,
     'the pre-attempt op stands in NO member of `ops`, in no order and under no spelling');
-  assert.equal(entries(closed.log, 'outcome')[0].state, KC[4],
-    'and the closed record\'s ONE `outcome` entry carries the same `KC-4` token the thrown form does');
-  assert.equal(entries(closed.log, 'repair-run').length, 1,
+  // **⟶ AND THE LIST IS THE THROWN FORM'S OWN FROM 2026-10-28 (`D-58`): the store retains none of it.**
+  assert.equal(entries(handedLog(r.thrown), 'outcome')[0].state, KC[4],
+    'and the handed-off record\'s ONE `outcome` entry carries the same `KC-4` token the thrown form does');
+  assert.equal(entries(handedLog(r.thrown), 'repair-run').length, 1,
     'and its `repair-run` entry was appended, as arm (d) owes');
 });
 
@@ -833,14 +848,14 @@ test('ck_p_neg_20_a_throwing_body_over_a_compacted_base_leaves_the_one_outcome_e
   const r = capture(() => runAttempt(store, record));
   assert.equal(r.threw, true, 'the attempt ends at the body\'s throw');
   const closed = report(store, record.attempt);
-  assertAttemptReport(closed, 'P-NEG-20 closed record');
+  assertRetainedRecord(closed, 'P-NEG-20 retained record');
   assert.equal(closed.outcome, 'failed', 'and its terminal record answers the failed arm — read '
     + JSON.stringify(closed.outcome));
   const failed = closed.rollback.filter((s) => s.failed === true);
   assert.equal(failed.length, 1,
     'THE DRIVE REACHED THE FLOOR: ONE per-op call carries `failed: true` — read ' + failed.length
     + '; where it is 0 the drive did not reach the compacted base and this cell cannot speak');
-  const outcomes = entries(closed.log, 'outcome');
+  const outcomes = entries(handedLog(r.thrown), 'outcome');
   assert.equal(outcomes.length, 1,
     'AND THE ATTEMPT HAS ONE `outcome` ENTRY: the floor "is answered in that same one entry ... and NO '
     + 'SECOND ENTRY IS APPENDED" — read ' + outcomes.length + ' (`§2.6` item 6 (a))');
@@ -962,15 +977,16 @@ test('ck_p_neg_22_a_delete_shaped_repair_whose_return_carries_no_op_reaches_arm_
     + 'whose edit landed by `delete` is credited exactly when it carries `removed.op` home, and here it '
     + 'carried none — read ' + JSON.stringify(r.thrown.status) + ' (`parameter-semantics.md §2.7`)');
   const closed = report(store, record.attempt);
-  assertAttemptReport(closed, 'P-NEG-22 closed record');
+  assertRetainedRecord(closed, 'P-NEG-22 retained record');
   assert.equal(closed.ops.length, 1,
     'and NO OP IS CREDITED for the delete: `ops` carries the ONE op the attempt itself created — read '
     + '`ops.length` = ' + closed.ops.length);
   assert.equal(closed.ops[0].opId, record.op.opId,
     'that one op being the attempt\'s own commit write — read ' + JSON.stringify(closed.ops[0].opId));
-  assert.equal(entries(closed.log, 'repair-run').length, 1,
-    'and its `repair-run` entry was appended, as arm (d) owes (`attempt-lifecycle.md §2.4` item 8 (i) (2))');
-  assert.equal(entries(closed.log, 'outcome').length, 1, 'and its ONE `outcome` entry stands');
-  assert.equal(entries(closed.log, 'outcome')[0].state, KC[4],
-    'carrying `KC-4`\'s token — read ' + JSON.stringify(entries(closed.log, 'outcome')[0].state));
+  assert.equal(entries(handedLog(r.thrown), 'repair-run').length, 1,
+    'and its `repair-run` entry was appended, as arm (d) owes (`attempt-lifecycle.md §2.4` item 8 (i) (2)) '
+    + '— read off the record the handoff made (`D-58`), the store retaining none of it');
+  assert.equal(entries(handedLog(r.thrown), 'outcome').length, 1, 'and its ONE `outcome` entry stands');
+  assert.equal(entries(handedLog(r.thrown), 'outcome')[0].state, KC[4],
+    'carrying `KC-4`\'s token — read ' + JSON.stringify(entries(handedLog(r.thrown), 'outcome')[0].state));
 });

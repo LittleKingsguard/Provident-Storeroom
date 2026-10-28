@@ -60,7 +60,7 @@ import {
   assertKernelForm, assertLogEntry, assertSeqIncreasesFromOne, assertAttemptReport,
   assertRollbackStep, capture, entries, checkIds,
   passAtRegistration,
-} from './constraint-kernel-helpers.mjs';
+  handedLog, assertRetainedRecord, } from './constraint-kernel-helpers.mjs';
 
 /** Every `repair-run` entry whose `id` is the pair's own bare id. */
 function repairRunsFor(log, id) {
@@ -381,7 +381,6 @@ test('ck_states_a_repair_body_that_throws_reaches_the_caller_unconverted', async
   const store = makeStore();
   const address = [tag('rd3')];
   const body = new RangeError('the repair\'s own throwable');
-  const report = { attempt: null };
   // ⟶ `A135` (3) / `§7.3` (b) state 1: without the shield the registration itself reaches state `3-bis`, runs
   // this repair, and the body's throw surfaces AT THE REGISTRATION — a different call from the one this cell
   // drives (`runAttempt`). The shield moves no assertion: the throw still travels to `runAttempt`'s caller.
@@ -394,12 +393,17 @@ test('ck_states_a_repair_body_that_throws_reaches_the_caller_unconverted', async
   assert.equal(KC_TOKENS.includes(r.thrown.status), false,
     'so the thrown value carries no kernel state token at all');
   // AND THE RECORD IS STILL PLACED: the attempt's terminal record is reachable, its outcome is failed
+  // **⟶ AND FROM 2026-10-28 (`D-58`) THE STORE RETAINS NO LOG AFTER THE HANDOFF, SO `K-4` NO LONGER ANSWERS
+  // THESE ENTRIES — AND THIS ARM HANDS THE CALLER THE BODY'S OWN THROWABLE, WHICH CARRIES NO LOG EITHER. THE
+  // ENTRIES ARE DROPPED, AND THIS CELL SAYS SO RATHER THAN READING AN EMPTY LIST AS THE ATTEMPT'S LOG.**
   const back = log(store, commitRecord.attempt);
-  assert.ok(Array.isArray(back), 'the attempt\'s record is closed and reachable');
-  const out = outcomeEntry(back);
-  assert.equal(out.state, 'KC-4', 'the attempt\'s own outcome entry carries KC-4 on the repair-body path');
-  assert.equal(repairRunsFor(back, 'x').length, 1, 'and the repair-run entry was appended before the throw');
-  report.attempt = commitRecord.attempt;
+  assert.deepEqual(back, [], 'the store retains no entry after the handoff (`D-58`)');
+  assert.equal(handedLog(r.thrown).length, 0,
+    'and a repair body\'s own throwable carries none: the handoff on THIS arm is the throwable, and the '
+    + 'commit\'s list is not among what it carries — the one arm the ruling leaves no copy of the log on');
+  assert.equal(log(store, commitRecord.attempt).length, 0,
+    'and the retained record still answers the empty list');
+  assert.equal(typeof commitRecord.attempt.id, 'string', 'the attempt identity is the record\'s own');
 });
 
 test('ck_states_a_constraint_body_that_throws_reaches_the_caller_unconverted', async () => {
@@ -415,7 +419,9 @@ test('ck_states_a_constraint_body_that_throws_reaches_the_caller_unconverted', a
   const r = capture(() => runAttempt(store, commitRecord));
   assert.equal(r.threw, true, 'the constraint body\'s throw travels to the caller');
   assert.equal(r.thrown, body, 'the body\'s own throwable, UNCHANGED AND UNCONVERTED');
-  const back = log(store, commitRecord.attempt);
+  // **THE LIST IS THE HANDOFF'S OWN (`D-58`): the store retains none, and the body's throwable carries it
+  // under the kernel's `Symbol.for` mark (`markBodyThrow`, taken before the attempt was disposed of).**
+  const back = handedLog(r.thrown);
   const out = outcomeEntry(back);
   assert.equal(out.state, null,
     'on the CONSTRAINT-body path the outcome entry\'s state is null — no KC token stands there');
@@ -941,7 +947,7 @@ test('ck_states_the_composition_is_one_call_over_the_attempts_first_op_and_sweep
   assert.equal(checkIds(r.thrown.log).filter((id) => id === 'y').length, ny,
     'and y\'s is the number of ITS entries, by the same reading');
   const closed = report(store, commitRecord.attempt);
-  assertAttemptReport(closed, 'the closed attempt\'s report');
+  assertRetainedRecord(closed, 'the closed attempt\'s retained record');
   assert.ok(closed.rollback.length >= 1, 'the composition ran at least once');
   for (const s of closed.rollback) assertRollbackStep(s, 'RollbackStep');
   const opIds = closed.ops.map((o) => o.opId);
@@ -1080,7 +1086,7 @@ test('ck_states_every_step_carries_the_six_declared_members_and_the_arm_s_own_ch
   assert.equal(outcomeEntry(r.thrown.log).state, 'KC-5',
     'and the outcome entry carries the same token as the thrown form\'s status');
   const closed = report(store, commitRecord.attempt);
-  assertAttemptReport(closed, 'the closed attempt\'s report');
+  assertRetainedRecord(closed, 'the closed attempt\'s retained record');
   assert.equal(closed.ops.length, 3,
     'the attempt owed THREE ops — the first write and the two the repairs landed — so the list below is '
     + `non-degenerate — read ${closed.ops.length}`);
@@ -1271,7 +1277,7 @@ test('ck_states_a_throwing_per_op_call_leaves_the_attempt_s_own_registry_entry_s
   const r = capture(() => runAttempt(store, commitRecord));
   assert.equal(r.threw, true, 'the attempt fails and its refusal carries its own log');
   const closed = report(store, commitRecord.attempt);
-  assertAttemptReport(closed, 'the closed attempt of the failed rollback');
+  assertRetainedRecord(closed, 'the closed attempt of the failed rollback');
   assert.equal(closed.rollback.length, 1,
     'THE COMPOSITION IS ONE CALL — `D-40` (2026-10-26), and it is the call whose temporally bounded '
     + `candidate set holds the compacted residue — read ${closed.rollback.length}: `
@@ -1339,7 +1345,8 @@ test('ck_states_a_reentrant_run_attempt_and_a_reentrant_commit_are_KC7_and_chang
     try { record = commit(store, address, 'mem', 'second'); } catch (e) { observed.commit = e; }
     try { runAttempt(store, record ?? { attempt: ctx.attempt, op: ctx.op, triggered: [], pending: [] }); }
     catch (e) { observed.runAttempt = e; }
-    observed.openLogLength = log(store, ctx.attempt).length;
+    // **`D-58`: `K-4`'S LIVE ARM REFUSES `KC-7` — the re-entrant window is also the in-flight one.**
+    try { log(store, ctx.attempt); observed.openLog = true; } catch (e) { observed.openLog = e; }
     return true;
   }));
   const commitRecord = commit(store, address, 'mem', 1);
@@ -1348,8 +1355,9 @@ test('ck_states_a_reentrant_run_attempt_and_a_reentrant_commit_are_KC7_and_chang
   assert.equal(observed.runAttempt.status, 'KC-7', 'and a re-entrant runAttempt is refused by the SAME member');
   assert.equal(report.outcome, 'passed', 'neither refusal changed the attempt\'s own course');
   assert.deepEqual(checkIds(report.log), ['x'], 'no second attempt ran and no extra entry was appended');
-  assert.equal(observed.openLogLength, 1,
-    'K-4 over an OPEN attempt answers the record\'s own log — reachable, per §2.1 item 4');
+  assert.equal(observed.openLog.status, 'KC-7',
+    'K-4 over an OPEN attempt is `KC-7`, the same member `K-5` answers (`D-58`, 2026-10-28): the in-flight '
+    + 'list is no longer a consumer read, and the closed record this cell reads above still answers');
 });
 
 test('ck_states_K5_over_an_attempt_that_is_still_open_is_KC7', async () => {
@@ -1366,11 +1374,15 @@ test('ck_states_K5_over_an_attempt_that_is_still_open_is_KC7', async () => {
   const done = runAttempt(store, commitRecord);
   assert.equal(observed.open.status, 'KC-7',
     'K-5 over an attempt that is still open is KC-7 — which is how a drive reads that the attempt IS live');
-  assert.equal(observed.openLog, true, 'while K-4 reaches the open record\'s log');
+  assert.equal(observed.openLog.status, 'KC-7',
+    'and K-4 over the same open attempt is KC-7 too (`D-58`) — ONE member, one shape, one message family');
   assertKernelForm(observed.open, 'KC-7 at K-5');
-  // THE CLOSED ATTEMPT'S K-5 RETURNS A REPORT WHOSE MEMBERS EQUAL K-3's RETURN, MEMBER FOR MEMBER
+  // THE CLOSED ATTEMPT'S K-5 ANSWERS THE RETAINED RECORD — the arm, the ops and the reversal; the log was
+  // handed off with `K-3`'s return and is not retained (`D-58`).
   const after = report(store, done.attempt);
-  assert.deepEqual(after, done, 'the closed attempt\'s report equals the K-3 return');
+  assertRetainedRecord(after, 'K-5 over the closed attempt');
+  assert.equal(after.outcome, done.outcome, 'and its arm is the arm `K-3` answered');
+  assert.deepEqual(after.ops, done.ops, 'and the ops are the same ops');
 });
 
 test('ck_states_K3_and_K5_refusals_carry_no_store_member', async () => {
@@ -1798,7 +1810,7 @@ test('ck_neg_4_every_step_carries_its_own_answer_and_a_two_member_restored_to_on
     runs.push(['floor', report(store, record.attempt)]);
   }
   for (const [arm, closed] of runs) {
-    assertAttemptReport(closed, `the ${arm} arm's closed report`);
+    assertRetainedRecord(closed, `the ${arm} arm's retained record`);
     assert.ok(closed.rollback.length >= 1, `the ${arm} arm made its call`);
     for (const step of closed.rollback) {
       assertRollbackStep(step, `the ${arm} arm's RollbackStep`);
@@ -1878,10 +1890,12 @@ test('ck_neg_5_a_closed_failure_never_refuses_a_later_commit_and_its_record_is_r
   const r = capture(() => runAttempt(store, first));
   assert.equal(r.threw, true, 'the attempt fails');
   assert.equal(r.thrown.status, 'KC-3', 'at the violation arm');
+  // **⟶ `D-58`: THE STORE RETAINS NO LOG AFTER THE HANDOFF, SO THE RETAINED RECORD IS THE OUTCOME, THE OPS
+  // AND THE REVERSAL — reached, and read.** The entries the refusal carries are the caller's own copy.
   const kept = log(store, first.attempt);
-  assert.ok(Array.isArray(kept) && kept.length >= 2,
-    'the closed attempt\'s FINAL LOG is retained and `K-4` answers it (`contract.md §5.2`: `K-4` is '
-    + '"the only reader of a closed attempt\'s final log")');
+  assert.deepEqual(kept, [], 'the store retains no entry — and `K-4` over the closed attempt ANSWERS the empty list');
+  assert.ok(Array.isArray(r.thrown.log) && r.thrown.log.length >= 2,
+    'while the refusal the caller caught carries the entries the handoff made');
   const keptReport = report(store, first.attempt);
   assert.equal(keptReport.outcome, 'failed', 'and `K-5` answers its report');
   // (2) THE SAME ADDRESS — the value is an OBJECT so the address is left a `branch` for step (3)'s
@@ -1953,11 +1967,13 @@ test('ck_neg_6_an_open_attempt_is_KC7_at_K5_while_a_commit_record_is_never_an_at
     'KC-7 at its `K-5` site — read '
     + `${JSON.stringify(openReport.thrown.status)}; fail-surface.md §2, the KC-7 row`);
   // (2) K-4 OVER THE SAME OPEN ATTEMPT.
+  // **⟶ `D-58`, 2026-10-28: `K-4`'S LIVE ARM IS A REFUSAL NOW**, and it is `K-5`'s own member `KC-7` — so the
+  // row's declared sites gain this one and the in-flight list stops being a consumer read.
   const openLog = capture(() => log(store, record.attempt));
-  assert.equal(openLog.threw, false,
-    'K-4 ANSWERS THE OPEN ATTEMPT\'S OWN LOG — the row names THREE sites and this is none of them, so a '
-    + 'refusal here reads a site the row does not declare');
-  assert.deepEqual(openLog.value, [],
+  assert.equal(openLog.threw, true,
+    'K-4 OVER AN OPEN ATTEMPT REFUSES — the in-flight list is not a consumer read (`D-58`)');
+  assert.equal(openLog.thrown.status, 'KC-7', 'with the member `K-5` already answers');
+  assert.deepEqual(openLog.thrown.log, [],
     'and nothing has been appended yet: the attempt is open and its log is still EMPTY');
   // (3)/(4) THE `CommitRecord` ITSELF, RATHER THAN ITS `attempt` MEMBER.
   const asRecordLog = capture(() => log(store, record));
@@ -2005,7 +2021,7 @@ test('ck_neg_10_both_body_throw_paths_leave_the_closed_log_and_the_thrown_log_th
     assert.equal(r.thrown, mine,
       'UNCHANGED AND UNCONVERTED: the caller receives THE BODY\'S OWN ERRORABLE, identically, with no '
       + 'envelope around it (`PAR-C-6`; `fail-surface.md §1.1` item 5)');
-    runs.push(['constraint-throw', report(store, record.attempt), null]);
+    runs.push(['constraint-throw', report(store, record.attempt), null, handedLog(r.thrown)]);
   }
   // ARM 2 — THE REPAIR BODY THROWS.
   {
@@ -2022,41 +2038,60 @@ test('ck_neg_10_both_body_throw_paths_leave_the_closed_log_and_the_thrown_log_th
     const r = capture(() => runAttempt(store, record));
     assert.equal(r.threw, true, 'the repair\'s throw reaches the caller');
     assert.equal(r.thrown, mine, 'the repair body\'s own errorable, unchanged');
-    runs.push(['repair-throw', report(store, record.attempt), 'KC-4']);
+    runs.push(['repair-throw', report(store, record.attempt), 'KC-4', handedLog(r.thrown)]);
   }
-  for (const [arm, closed, state] of runs) {
-    assertAttemptReport(closed, `the ${arm} arm's closed report`);
+  for (const [arm, closed, state, handed] of runs) {
+    assertRetainedRecord(closed, `the ${arm} arm's retained record`);
     assert.equal(closed.outcome, 'failed', `the ${arm} arm closes the attempt`);
-    const outcome = outcomeEntry(closed.log);
-    assert.equal(outcome.state, state,
-      arm === 'constraint-throw'
-        ? 'a body that threw returned nothing, so the attempt is closed on the CONSTRAINT-body path, '
-          + 'whose outcome entry carries no kernel state (read ' + JSON.stringify(outcome.state) + ') — '
-          + '`fail-surface.md §1.1` item 1 (b), `composition-and-states.md §2.7` item 13'
-        : 'while a throwing REPAIR is `KC-4`, read off the row it belongs to (`fail-surface.md §2`\'s '
-          + '`KC-4` row) — read ' + JSON.stringify(outcome.state));
-    assert.equal(closed.log.filter((e) => e.kind === 'constraint-check').length,
-      arm === 'constraint-throw' ? 0 : 1,
-      arm === 'constraint-throw'
-        ? 'and NO `constraint-check` entry stands for the pair whose body returned nothing '
-          + '(`fail-surface.md §1.1` item 1 (b): the entry is WITHDRAWN)'
-        : 'and the `constraint-check` entry of the pair that DID return stands');
+    assert.equal('log' in closed, false,
+      `the ${arm} arm: the store retains no log after the handoff (\`D-58\`)`);
+    if (arm === 'constraint-throw') {
+      const outcome = outcomeEntry(handed);
+      assert.equal(outcome.state, state,
+        'a body that threw returned nothing, so the attempt is closed on the CONSTRAINT-body path, whose '
+        + 'outcome entry carries no kernel state (read ' + JSON.stringify(outcome.state) + ') — '
+        + '`fail-surface.md §1.1` item 1 (b), `composition-and-states.md §2.7` item 13');
+    } else {
+      // **⟶ AND ON THE REPAIR-BODY ARM `D-58` LEAVES NO COPY OF THE LIST: the throwable is the BODY'S own and
+      // carries no mark, so the `KC-4` the outcome entry names is no longer readable after the handoff. THE
+      // CELL SAYS SO — an attempt with no observable list is not an attempt whose list is empty.**
+      assert.deepEqual(handed, [],
+        'the repair body\'s own throwable carries no list, and the store retains none (`D-58`) — the entries '
+        + 'of this arm are handed to nobody');
+      assert.equal(closed.outcome, 'failed',
+        'what the retained record still answers is the ARM: the attempt is on the failed one, and the '
+        + '`KC-4` its outcome entry names is the unreadable half this ruling costs');
+    }
+    if (arm === 'constraint-throw') {
+      assert.equal(handed.filter((e) => e.kind === 'constraint-check').length, 0,
+        'and NO `constraint-check` entry stands for the pair whose body returned nothing '
+        + '(`fail-surface.md §1.1` item 1 (b): the entry is WITHDRAWN)');
+    } else {
+      // THE REPAIR-BODY ARM's list has no handed-off copy (`D-58`), so the withdrawn/standing reading it
+      // carried is measured on the constraint-body arm above and declared unobservable here rather than
+      // reported from an empty list.
+      assert.deepEqual(handed, [], 'the repair-body arm\'s list is handed to nobody');
+    }
     if (arm === 'repair-throw') {
-      assert.equal(entries(closed.log, 'repair-run').length, 1,
-        'the `repair-run` entry stands where a repair body threw — the entry is appended BEFORE the '
-        + 'call (`PAR-C-6`)');
+      // **`D-58`: THAT ENTRY IS APPENDED BEFORE THE CALL AND IS RETAINED BY NOBODY AFTER THE HANDOFF** — the
+      // `repair-run`-before-the-call rule is measured where a list crosses (`ck_states`'s throwing-repair
+      // sibling reads it off the store's retained record before the drop's own date), and on this arm the
+      // cell says the entry is unobservable rather than reading its absence from an empty list.
+      assert.deepEqual(handed, [],
+        'the `repair-run` entry the arm appends is in no handed-off list (`D-58`), and the store keeps none');
     }
   }
-  // BOTH ARMS: EVERY CLOSED LOG PASSES THE TWO SHAPE ASSERTIONS THE FILES SHARE, so no arm of these
-  // paths mints a member the log's own shape refuses.
-  for (const [arm, closed] of runs) {
+  // BOTH ARMS: EVERY HANDED-OFF LOG PASSES THE TWO SHAPE ASSERTIONS THE FILES SHARE, so no arm of these
+  // paths mints a member the log's own shape refuses — **and the list is read where the handoff put it
+  // (`D-58`): the store retains none of it.**
+  for (const [arm, closed, , handed] of runs) {
     let seq = 1;
-    for (const e of closed.log) {
-      assertLogEntry(e, `the ${arm} arm's closed log at seq ${e.seq}`);
+    for (const e of handed) {
+      assertLogEntry(e, `the ${arm} arm's handed-off log at seq ${e.seq}`);
       assert.equal(e.seq, seq, `the ${arm} arm's log is numbered from one without a gap`);
       seq += 1;
     }
-    assertSeqIncreasesFromOne(closed.log, `the ${arm} arm's closed log`);
+    assertSeqIncreasesFromOne(handed, `the ${arm} arm's handed-off log`);
   }
 });
 

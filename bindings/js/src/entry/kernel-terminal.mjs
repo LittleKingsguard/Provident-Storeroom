@@ -383,7 +383,7 @@ function baseState(store, address) {
 }
 
 // ---------------------------------------------------------------------------------------------
-// `K-4` `log(store, attempt) -> LogEntry[]` — the attempt's own log, OPEN or CLOSED alike.
+// `K-4` `log(store, attempt) -> LogEntry[]` — the attempt's own log, REFUSED while it runs.
 // ---------------------------------------------------------------------------------------------
 export function log(store, reference) {
   // **THE READS ARE THE INSTANCE'S OWN** (`D-30`): the reference names an attempt the kernel instance the
@@ -392,10 +392,55 @@ export function log(store, reference) {
   const kernel = kernelFor(store);
   const id = attemptIdOf(reference);
   const live = kernel.live.get(id);
-  if (live !== undefined) return live.log;
+  if (live !== undefined) {
+    // **⟶ AND A LIVE ATTEMPT HAS NO LOG A CLIENT MAY READ — `D-58`, 2026-10-28. THE ARCHITECT, VERBATIM: *"The
+    // client does not need any insight into the current state of a commit/attempt before it completes. Don't
+    // expose any of it."*** **`K-5` REFUSED AN OPEN ATTEMPT FROM ITS OWN RULING AND THIS ITEM DID NOT**: a live
+    // attempt's list answers `D-39`'s `seq` sequence PART-WAY THROUGH the pass — the entries appended so far,
+    // as a consumer read — which is exactly the in-flight insight the ruling forbids. **SO THE LIVE ARM REFUSES
+    // WITH THE SAME MEMBER `K-5` USES, in the same shape and the same message family**: `KC-7`
+    // (`ConstraintAttemptOpen`), *"the constraint attempt <id> is still open"*, and the refusal's own `log` the
+    // empty list every kernel refusal carries (`fail-surface.md §1.1` item 4).
+    refuse(KC.attemptOpen, `the constraint attempt ${id} is still open`, []);
+  }
   const closed = kernel.closed.get(id);
-  if (closed !== undefined) return closed.log;
+  // **AND A CLOSED ATTEMPT ANSWERS — WITH THE ENTRIES THE STORE STILL HOLDS, WHICH AFTER THE HANDOFF IS NONE**
+  // (`D-58`'s second demand): the log was handed to the client with the report and dropped here, so the answer
+  // is the empty list and it reads *"the store retains nothing"*, never *"the attempt logged nothing"* — the
+  // record the client was handed is the one that carries the entries.
+  if (closed !== undefined) return Array.isArray(closed.log) ? closed.log : [];
   refuse(KC.arg, `no constraint attempt answers to ${id}`, []);
+}
+
+/**
+ * **⟶ THE DELETION SITE — `D-58`'S SECOND DEMAND, AND THE ONE `DEF-J` FILED AS *"NO DELETION SITE"*.** The
+ * architect, verbatim: *"After a commit/attempt resolves/rejects, the store does not need to retain the message
+ * log or other client-returned data. Don't retain it."*
+ *
+ * **WHAT IS DROPPED, AND WHY IT IS THE LOG.** `D-55` item 6 made the commit's log *"handed off to the client and
+ * dropped after closing out"*, and only the SEAL was built (`sealHandoff` freezes the record the client
+ * received). **The DROP was not**: the closed attempt's report stood in `kernel.closed` carrying `log` — the
+ * commit's one list, entries and all — for the life of the instance, which is the retention `D-39` could not
+ * bound and `DEF-J` filed. **SO ONCE THE COMMIT HAS RESOLVED OR REJECTED, THE STORE KEEPS WHAT IT STILL NEEDS AND
+ * LETS GO OF WHAT THE CLIENT WAS HANDED**: the outcome (which is `K-5`'s answer), the ops (the journal holds
+ * them), and the reversal's record — **and NOT the message log, nor the entries' client-returned data.**
+ *
+ * **THE HANDED-OFF RECORD IS UNTOUCHED, AND THAT IS THE SINGLE-COPY PROPERTY**: the record the driver received
+ * from `K-3` (or the refusal it caught) is the object this act leaves alone — sealed, frozen, its list
+ * populated — and the store simply stops naming it. **A retained copy would be a second source of truth that
+ * can disagree with the one the consumer holds, which is why the drop and the seal are the same act's two
+ * halves** (`D-55` item 6's ground, read forward).
+ */
+export function dropHandoff(kernel, report) {
+  if (report === null || typeof report !== 'object') return;
+  const attempt = report.attempt;
+  if (attempt === null || typeof attempt !== 'object' || typeof attempt.id !== 'string') return;
+  kernel.closed.set(attempt.id, {
+    attempt,
+    outcome: report.outcome,
+    ops: report.ops,
+    rollback: report.rollback,
+  });
 }
 
 // ---------------------------------------------------------------------------------------------

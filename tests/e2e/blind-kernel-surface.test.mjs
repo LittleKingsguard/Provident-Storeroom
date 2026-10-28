@@ -214,7 +214,7 @@ test('kernel · §2.1 item 3 · `K-3` ANSWERS THE FIVE-MEMBER `AttemptReport`: `
   assert.equal(attemptReport.attempt.id, issued.attempt.id);
 });
 
-test('kernel · §2.1 items 4–5 and parameter-semantics §2.15 (*"the `AttemptRef` record or its `id` string and NOTHING ELSE"*) · `K-4` AND `K-5` ACCEPT EITHER SPELLING AND ANSWER THE SAME VALUE; `null`, `undefined`, a number, an empty-id ref and an unknown id are each `KC-2`', () => {
+test('kernel · §2.1 items 4–5 and parameter-semantics §2.15 (*"the `AttemptRef` record or its `id` string and NOTHING ELSE"*) · `K-4` AND `K-5` ACCEPT EITHER SPELLING AND ANSWER THE SAME VALUE — and after `D-58` that value is the RETAINED record: no log, while the handed-off record keeps its list; `null`, `undefined`, a number, an empty-id ref and an unknown id are each `KC-2`', () => {
   const store = make();
   const issued = commit(store, ['a'], 'mem', 1);
   const attemptReport = runAttempt(store, issued);
@@ -222,38 +222,51 @@ test('kernel · §2.1 items 4–5 and parameter-semantics §2.15 (*"the `Attempt
   const fromString = log(store, issued.attempt.id);
   assert.deepEqual(fromString, fromRecord, 'the reference and its own id are the SAME argument');
   assert.deepEqual(report(store, issued.attempt.id), report(store, issued.attempt));
-  assert.deepEqual(report(store, issued.attempt).log, attemptReport.log);
+  assert.deepEqual(fromRecord, [], 'the store retains no message log after the handoff (`D-58`)');
+  assert.equal('log' in report(store, issued.attempt), false,
+    'and `K-5` answers the retained record: there is no `log` member to answer, while `K-4` answers the empty list');
+  assert.equal(attemptReport.log.length > 0, true, 'the record `K-3` handed off carries the entries');
   for (const outside of [null, undefined, 7, true, {}, { id: '' }, { id: 'no-such-attempt' }, 'no-such-attempt']) {
     assert.equal(catchIt(() => log(store, outside)).status, 'KC-2', `the reference ${JSON.stringify(outside)} names no attempt`);
     assert.equal(catchIt(() => report(store, outside)).status, 'KC-2');
   }
 });
 
-test('kernel · §2.1 items 4–5 · THE TWO READERS\' LIFETIME: over an OPEN attempt `K-4` returns the open record\'s own log and `K-5` throws `KC-7`; over the CLOSED attempt both answer the final record, and the log `K-4` reads is the report\'s own list', () => {
+test('kernel · §2.1 items 4–5 · THE TWO READERS\' LIFETIME: over an OPEN attempt BOTH refuse `KC-7` and neither answers the in-flight list; over the CLOSED attempt `K-4` answers the retained (empty) list and `K-5` the retained record — the log is the handed-off record\'s', () => {
   const store = make();
   const issued = commit(store, ['a'], 'mem', 1);
-  assert.deepEqual(log(store, issued.attempt), [], 'the open record has appended nothing yet');
-  assert.equal(catchIt(() => report(store, issued.attempt)).status, 'KC-7', 'an OPEN attempt has no final record');
+  // **⟶ `D-58`, 2026-10-28: `K-4`'s LIVE ARM REFUSES WITH `K-5`'S OWN MEMBER.** The architect, verbatim: *"The
+  // client does not need any insight into the current state of a commit/attempt before it completes. Don't
+  // expose any of it."* — so the open record's `seq` list, part-way through, is no longer a consumer read.
+  const liveLog = catchIt(() => log(store, issued.attempt));
+  const liveReport = catchIt(() => report(store, issued.attempt));
+  assert.equal(liveLog.status, 'KC-7', '`K-4` over an OPEN attempt is `KC-7`');
+  assert.equal(liveReport.status, 'KC-7', 'and `K-5` is `KC-7` — THE SAME MEMBER, THE SAME SHAPE, THE SAME FAMILY');
+  assert.deepEqual(Object.keys(liveLog).sort(), Object.keys(liveReport).sort(), 'one refusal form, three members');
+  assert.equal(liveLog.message, liveReport.message, 'one message family: `the constraint attempt <id> is still open`');
+  assert.deepEqual(liveLog.log, [], 'and the refusal carries the empty list every kernel refusal carries');
   const attemptReport = runAttempt(store, issued);
-  assert.deepEqual(log(store, issued.attempt), attemptReport.log);
-  assert.deepEqual(report(store, issued.attempt), attemptReport);
+  assert.deepEqual(log(store, issued.attempt), [], 'the closed attempt answers — and retains no entry');
+  assert.deepEqual(report(store, issued.attempt).outcome, attemptReport.outcome);
+  assert.deepEqual(report(store, issued.attempt).log, undefined, 'the log is not retained');
 });
 
 test('kernel · §2.1 items 4–5 (*"for `K-4` and `K-5` the argument is NEITHER VALIDATED NOR READ"*, read with *"a drive passes the caller\'s own instance there and asserts NOTHING about it"*) · THE TWO READERS TAKE THE CALLER\'S OWN STORE IN POSITION ONE AND REACH IT NEVER: repeated calls append no entry, move no value, and answer the same log and the same report', () => {
   const store = make();
   const issued = commit(store, ['a'], 'mem', 1);
   const attemptReport = runAttempt(store, issued);
-  const closedLength = attemptReport.log.length;
+  const handedLength = attemptReport.log.length;
   // The position IS the store position (`§1` item 5 binds every item's first position to the caller's own
   // instance) and the item ANSWERS the caller — while its own declared sentence says the two readers reach
   // the store NEVER, so the only lawful observable is that NOTHING MOVES across them.
   const firstRead = log(store, issued.attempt);
   const secondRead = log(store, issued.attempt);
   assert.deepEqual(secondRead, firstRead);
-  assert.equal(log(store, issued.attempt).length, closedLength, 'a reader appends no entry');
+  assert.equal(log(store, issued.attempt).length, 0, 'a reader appends no entry, and none is retained');
   const firstReport = report(store, issued.attempt);
   assert.deepEqual(report(store, issued.attempt), firstReport);
-  assert.deepEqual(firstReport.log, firstRead, 'the two readers answer ONE list');
+  assert.deepEqual(firstReport.log, undefined, 'the two readers agree: no log is retained');
+  assert.equal(attemptReport.log.length, handedLength, 'the handed-off list is untouched by any reader');
   assert.equal(store.read(['a']), 1, 'no reader moved the store\u2019s own state');
 });
 
@@ -296,7 +309,10 @@ test('kernel · §2.1 item 3 (`RD-9`) · A `K-3` WHOSE `CommitRecord.attempt` NA
   const attemptReport = runAttempt(store, issued);
   const before = attemptReport.log.length;
   assert.equal(catchIt(() => runAttempt(store, issued)).status, 'KC-2');
-  assert.equal(log(store, issued.attempt).length, before, 'the closed record\u2019s log is untouched');
+  // ⟶ `D-58`: the closed record retains no log, so the refusal appends nothing anywhere and the handed-off
+  // list is the only one that stands — unmoved.
+  assert.equal(log(store, issued.attempt).length, 0, 'the closed record retains no log, and the refusal appends nothing');
+  assert.equal(attemptReport.log.length, before, 'the handed-off list is untouched by the refused `K-3`');
 });
 
 test('kernel · held-listener contract §2.9 item 3 (*"`K-6 remove(store, pair) -> undefined`"*) · THE SIXTH ITEM ANSWERS `undefined` FOR A PAIR IT HOLDS AND `KC-2` FOR A PAIR IT HOLDS NO ROW FOR, with both structures unmoved by the refusal', () => {

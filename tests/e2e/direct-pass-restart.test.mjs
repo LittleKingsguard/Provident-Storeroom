@@ -176,8 +176,11 @@ test('DIRECT-PASS RESTART (1) · a constraint body\'s violating `rollback` INSID
   assert.deepEqual(Object.keys(report).sort(), REPORT_MEMBERS,
     `and the report keeps its five declared members — the refusal travels beside them, not among them: the `
       + `drive read ${JSON.stringify(Object.keys(report))}`);
-  assert.equal(restated.value === report, true,
-    `and \`K-5\` answers THE SAME REPORT OBJECT, so a driver reading the record afterwards learns the same arm`);
+  assert.equal(restated.value.outcome, 'failed',
+    `and \`K-5\` answers the RETAINED record — THE SAME ARM — so a driver reading it afterwards learns the same `
+      + `answer, while the record \`K-3\` handed off is the one that holds the entries (\`D-58\`)`);
+  assert.equal('log' in restated.value, false,
+    '`D-58`: the store retains no message log after the handoff, so `K-5` answers none');
   assert.equal(log.length, 3,
     `the log carries the pass's \`constraint-check\`, its \`commit\`, and the restarted check's ONE entry: `
       + `${JSON.stringify(log.map((entry) => entry.kind))}`);

@@ -54,7 +54,7 @@ import {
   kernel, makeStore, tag, KC, assertKernelForm, assertRollbackStep, assertAttemptReport,
   capture, entries, assertLogEntry,
   passAtRegistration, atLandingOnly,
-} from './constraint-kernel-helpers.mjs';
+  handedLog, assertRetainedRecord, } from './constraint-kernel-helpers.mjs';
 
 /** The kernel module's ONE checkout home (`kernel-surface.md §1` item 1) and this directory. */
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -166,7 +166,7 @@ function assertArmD(drive, why) {
   assert.equal(entries(thrown.log, 'constraint-check').filter((e) => e.id === id).length, 1,
     `${why}: the pair's own first evaluation appended its entry and NO re-run followed — the arm is `
     + 'terminal (`(d)`: `FAILING` → `CLOSED`)');
-  assertAttemptReport(closed, `${why}: the closed record`);
+  assertRetainedRecord(closed, `${why}: the retained record`);
   assert.equal(closed.ops.length, 1,
     `${why}: THE KERNEL CREDITS NO OP — \`attempt.ops\` carries the attempt's own first write and nothing `
     + 'the malformed return named (`§2.7`: *"the kernel credits NO op"*)');

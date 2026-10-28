@@ -245,11 +245,14 @@ scenario('FTS-02', 'a constraint\'s refusal prevents the save and discards the w
     cell('FTS-02.6', 'surface.md §2.1 item 3 (THROWS — the log gains the outcome entry)',
       'the thrown failure\'s log carries the outcome entry whose state is the token the form\'s status carries',
       () => {
+        // **⟶ `D-58` (2026-10-28): the store retains no log after the handoff — the refusal carries it.**
         const lg = tryCall(() => K.log(s, rec.attempt));
-        const entries = lg.ok ? lg.v : [];
+        const entries = out.ok === false && Array.isArray(out.v && out.v.log) ? out.v.log : [];
         const outcome = entries.filter((e) => e.kind === 'outcome');
-        return C(lg.ok && outcome.length === 1 && outcome[0].state === 'KC-3',
-          `log=${JSON.stringify(entries.map((e) => [e.kind, e.state]))}`);
+        return C(outcome.length === 1 && outcome[0].state === 'KC-3'
+          && lg.ok && Array.isArray(lg.v) && lg.v.length === 0,
+          `log=${JSON.stringify(entries.map((e) => [e.kind, e.state]))} · K-4 over the closed attempt=`
+            + `${lg.ok ? JSON.stringify(lg.v) : describe(lg.v)}`);
       });
     void hPre;
   });
@@ -372,14 +375,17 @@ scenario('FTS-04', 'the failing save: rollback first, message second, the pre-im
     cell('FTS-04.9', 'surface.md §2.11 clause 5 (the entry is a KC token of the kernel\'s own set; the pass reports the failure as it reports any other); kernel-surface.md §2.1 items 3-5 (the closed record\'s final log and report)',
       'the attempt\'s own record reports the save\'s failure: the log gains the outcome entry carrying a KC token, the report reads the FAILURE arm (outcome "failed" with a non-empty rollback), and it does not claim the passing arm',
       () => {
+        // **⟶ `D-58` (2026-10-28): the entries are the refusal's; the retained record is the outcome, the ops
+        // and the reversal — no log.**
         const lg = tryCall(() => K.log(s, rec.attempt));
         const rp = tryCall(() => K.report(s, rec.attempt));
-        const entries = lg.ok ? lg.v : [];
+        const entries = Array.isArray(caught && caught.log) ? caught.log : [];
         const outcome = entries.filter((e) => e.kind === 'outcome');
         const kc = /^KC-[1-9]$/;
-        return C(lg.ok && outcome.length === 1 && kc.test(String(outcome[0].state)) && rp.ok
-          && rp.v.outcome === 'failed' && Array.isArray(rp.v.rollback) && rp.v.rollback.length > 0,
-          `log=${JSON.stringify(entries.map((e) => [e.kind, e.state, e.message]))} report.outcome=${rp.ok ? rp.v.outcome : describe(rp.v)} report.rollback=${rp.ok ? JSON.stringify(rp.v.rollback) : '-'}`);
+        return C(outcome.length === 1 && kc.test(String(outcome[0].state)) && rp.ok
+          && rp.v.outcome === 'failed' && Array.isArray(rp.v.rollback) && rp.v.rollback.length > 0
+          && !('log' in rp.v) && lg.ok && lg.v.length === 0,
+          `log=${JSON.stringify(entries.map((e) => [e.kind, e.state, e.message]))} report.outcome=${rp.ok ? rp.v.outcome : describe(rp.v)} report.rollback=${rp.ok ? JSON.stringify(rp.v.rollback) : '-'} retained keys=${rp.ok ? Object.keys(rp.v).sort().join(',') : '-'}`);
       });
     // ⟶ RE-EXECUTED AND RE-RECORDED 2026-10-16 (THE SECOND RE-MEASURE OF THE DAY, this pass; the tree whose
     // kernel bytes stand at `21:08:24`): THE `FAIL` THIS CELL FILED AT `20:49:40` IS CLOSED BY LATER BYTES AND
@@ -403,10 +409,11 @@ scenario('FTS-04', 'the failing save: rollback first, message second, the pre-im
     cell('FTS-04.10', 'kernel-surface.md §2.1 item 3 (the LogKind table: `commit` = the attempt\'s SUCCESS arm, appended once; `outcome` = the attempt\'s FAILURE arm, appended once) read with composition-and-states.md §2.7 items 5 and 7 (the PASSED arm\'s own entry sequence) and surface.md §2.11 clause 5 (the save is the LAST constraint, so a save that fails is a violation)',
       'a save that did not stand leaves the attempt\'s log carrying the FAILURE arm\'s entry alone: NO `commit` entry stands in the log of an attempt whose own report reads outcome "failed"',
       () => {
+        // **⟶ `D-58`: the list is the refusal's.**
         const lg = tryCall(() => K.log(s, rec.attempt));
-        const entries = lg.ok ? lg.v : [];
+        const entries = Array.isArray(caught && caught.log) ? caught.log : [];
         const commitEntries = entries.filter((e) => e.kind === 'commit');
-        return C(lg.ok && commitEntries.length === 0,
+        return C(entries.length > 0 && commitEntries.length === 0,
           `log=${JSON.stringify(entries.map((e) => [e.kind, e.state, e.message]))} — ${commitEntries.length === 0
             ? 'NO commit entry stands on the attempt whose report reads outcome "failed": the log carries the FAILURE arm\'s own entry alone (the residue filed at 20:49:40 is closed by later bytes, `DEF-2026-10-16-B` FIXED)'
             : 'a COMMIT entry stands on an attempt whose report reads outcome "failed" and whose save was refused at the file, and that entry\'s own declared text is "the attempt\'s SUCCESS arm, appended once"'}`);
@@ -429,11 +436,10 @@ scenario('FTS-04', 'the failing save: rollback first, message second, the pre-im
         K.register(st, ['c'], 'c1', () => true);
         const r = K.commit(st, ['c'], 'file', 7);
         const rep = tryCall(() => K.runAttempt(st, r));
-        const lg = tryCall(() => K.log(st, r.attempt));
-        const passKinds = lg.ok ? lg.v.map((e) => e.kind) : [];
-        const failLog = tryCall(() => K.log(s, rec.attempt));
-        const failKinds = failLog.ok ? failLog.v.map((e) => e.kind) : [];
-        return C(lg.ok && rep.ok && rep.v.outcome === 'passed'
+        // **⟶ `D-58`: the passing arm's list is `K-3`'s return; the failing arm's is the refusal's.**
+        const passKinds = rep.ok && Array.isArray(rep.v.log) ? rep.v.log.map((e) => e.kind) : [];
+        const failKinds = Array.isArray(caught && caught.log) ? caught.log.map((e) => e.kind) : [];
+        return C(rep.ok && rep.v.outcome === 'passed'
           && passKinds.filter((k) => k === 'commit').length === 1
           && passKinds[passKinds.length - 1] === 'commit'
           && failKinds.filter((k) => k === 'commit').length === 0
@@ -1036,8 +1042,11 @@ scenario('FTS-11', 'the join: a repair\'s write is a new entry in the same commi
       K.register(st, ['c'], 'c1', () => true);
       const r = K.commit(st, ['c'], 'file', 42);
       const rep = tryCall(() => K.runAttempt(st, r));
+      // **⟶ `D-58` (2026-10-28): the store retains no log after the handoff — the passing arm's list is the
+      // one `K-3`'s return hands off.**
       const lg = tryCall(() => K.log(st, r.attempt));
-      return { store: st, rec: r, rep, entries: lg.ok ? lg.v : [], logOk: lg.ok, image: bytes(PP) };
+      return { store: st, rec: r, rep, entries: rep.ok && Array.isArray(rep.v.log) ? rep.v.log : [],
+        logOk: rep.ok && Array.isArray(rep.v.log) && lg.ok && lg.v.length === 0, image: bytes(PP) };
     })();
     armCell('FTS-11.7',
       'the passing `file`-tier save: the log carries the `commit` entry EXACTLY ONCE, and no `outcome` entry stands beside it — the two one-shot arms never standing in one log',

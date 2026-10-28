@@ -1,6 +1,6 @@
 // `D-13` (`docs/L1/kernel-subdivision.md` §1 part `9d`) — the pass: bytes moved from `bindings/js/src/constraint-kernel.mjs`; no logic changed.
 import { KC, KC_TOKENS, SETTLED_ON_THE_PASSING_ARM, SAVE_FAILED_AT_THE_TERMINAL_ARM, TERMINAL_ARM, markBodyThrow, throwableForm, refuse, isKernelRefusal, pairSpelling, addressSpelling, sameAddress, kernelFor, append, appendOwn, ownMember, withdraw, landedOp, landedOpDefect, pairsAtAddress, enterCommitFrame, leaveCommitFrame, commitLogInFlight, sealHandoff } from './kernel-foundations.mjs';
-import { commitAttemptIdOf, terminal, close } from './kernel-terminal.mjs';
+import { commitAttemptIdOf, terminal, close, dropHandoff } from './kernel-terminal.mjs';
 // ---------------------------------------------------------------------------------------------
 // `K-3` `runAttempt(store, commit) -> AttemptReport`
 // ---------------------------------------------------------------------------------------------
@@ -165,7 +165,14 @@ export function runAttempt(store, commitRecord) {
     // report's list BEFORE this line), so what the seal freezes is the record the driver receives and no record
     // in flight: `report.log` and the report are `Object.freeze`d, and a later act can neither append to the
     // commit's list nor re-member the report. **A PASSING ARM IS SEALED TOO** — its list is handed off once.
-    return sealHandoff(drainRestart(store, report), commitLogInFlight(kernelFor(store)) !== null);
+    // **⟶ AND THE DROP FOLLOWS THE SEAL — `D-58`'S SECOND DEMAND, 2026-10-28.** The seal is the handoff: the
+    // record the driver receives is frozen here and is ITS record from this instant. **The store then lets go of
+    // what it handed over** (`dropHandoff`): the closed map keeps the outcome, the ops and the reversal's record,
+    // and the message log — the commit's one list — stops being retained. **The handed-off record is untouched by
+    // it, which is what makes the handoff single-copy.**
+    const sealed = sealHandoff(drainRestart(store, report), commitLogInFlight(kernelFor(store)) !== null);
+    dropHandoff(kernelFor(store), sealed);
+    return sealed;
   }, commitRecord);
 }
 
@@ -192,7 +199,12 @@ function drainFailingPass(store, commitRecord, thrown) {
   // the restarted refusal and the pass's own throwable both carry the SAME frozen list (`D-53`), and neither
   // can be appended to after this line.
   sealHandoff(answered, commitLogInFlight(kernelFor(store)) !== null);
+  // **AND THE FAILING ARM'S DROP IS THE SAME ACT — `D-58`.** The refusal about to cross carries the list the
+  // client was handed (`D-54` (b)); what the store retains stops holding it. **THE REFUSAL IS READ OFF THE
+  // SEALED RECORD FIRST** (`RESTART_REFUSAL` below), because the dropped record is the store's and the refusal is
+  // the client's.
   const restarted = answered !== null && typeof answered === 'object' ? answered[RESTART_REFUSAL] : undefined;
+  dropHandoff(kernelFor(store), answered);
   if (restarted !== undefined && isKernelRefusal(thrown) === true) throw restarted;
   throw thrown;
 }

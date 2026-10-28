@@ -182,7 +182,7 @@ import {
   assertKernelForm, assertAttemptReport, assertRollbackStep, assertStoreRefusal,
   capture, entries,
   passAtRegistration,
-} from './constraint-kernel-helpers.mjs';
+  handedLog, assertRetainedRecord, } from './constraint-kernel-helpers.mjs';
 
 /** The store's own read, captured without conflating "returned" with "refused" (`§6.4`). */
 function readAt(store, address) {
@@ -340,7 +340,7 @@ test('ck_constraint_null_arm_the_call_is_the_attempts_first_op_and_the_store_rep
   assert.equal(floorState.thrown.status, 'AddressNotFound',
     'and the store names that absence with its own code, the same one the pre-attempt read answered — read '
     + JSON.stringify(floorState.thrown.status));
-  assertAttemptReport(closed, 'the closed attempt of the two-op window');
+  assertRetainedRecord(closed, 'the retained record of the two-op window');
   const created = closed.ops.map((o) => o.opId);
   assert.equal(created.length, 2,
     'THE DRIVE PRODUCED THE TWO OPS THE CLAUSE\'S OWN WINDOW CARRIES: the attempt\'s first write and the '
@@ -452,7 +452,7 @@ test('ck_constraint_null_arm_holds_at_a_fresh_address_where_the_pre_state_is_abs
     'the attempt fails at its OWN arm — limb (f), `x` IN `ran` and OUT of `appliedRepairs` — and not at the '
     + 'floor\'s (`D-40`, 2026-10-26), read ' + JSON.stringify(r.thrown.status));
   const closed = report(store, record.attempt);
-  assertAttemptReport(closed, 'the closed attempt');
+  assertRetainedRecord(closed, 'the retained record');
   const created = closed.ops.map((o) => o.opId);
   assert.equal(created.length, 2, 'the same two-op window, at an address that held nothing before it');
   assert.equal(created[0], record.op.opId, 'and `ops[0]` is the attempt\'s first write\'s op');
@@ -601,7 +601,7 @@ test('ck_constraint_a_failed_attempt_at_an_address_the_caller_already_wrote_leav
     + 'composition\'s one floor call performed the reversal (`D-40`, 2026-10-26): read '
     + JSON.stringify(r.thrown.status));
   const closed = report(store, record.attempt);
-  assertAttemptReport(closed, 'the closed attempt of this window');
+  assertRetainedRecord(closed, 'the retained record of this window');
   const created = closed.ops.map((o) => o.opId);
   assert.equal(created.length, 2,
     'the attempt created TWO ops — its commit\'s write and the op its repair landed — in that order, read '
@@ -777,7 +777,9 @@ test('ck_constraint_a_later_commit_at_a_failed_attempts_address_returns_a_fresh_
   assert.equal(firstRun.thrown.status, KC[3],
     'at the violation arm, the pair carrying no repair; fail-surface.md §1.1\'s thrown form carries the token');
   assertKernelForm(firstRun.thrown, 'the first attempt\'s refusal');
-  assert.ok(log(store, first.attempt).length >= 2, 'and its closed record is retained (K-4 answers it)');
+  // **⟶ `D-58`: THE CLOSED RECORD IS RETAINED — and its message log is not.** `K-4` answers the empty
+  // retained list; the entries the refusal carries are `firstRun.thrown.log`.
+  assert.deepEqual(log(store, first.attempt), [], 'and its closed record is retained, retaining no log (`D-58`)');
 
   // (3) THE LATER `K-2` AT THE SAME ADDRESS, after that attempt's terminal arm.
   const second = capture(() => commit(store, address, 'mem', 3));
@@ -901,9 +903,9 @@ test('ck_constraint_a_second_attempt_at_a_failed_attempts_address_leaves_the_old
   const firstRun = capture(() => runAttempt(store, first));
   assert.equal(firstRun.threw, true, 'the first attempt fails');
   assert.equal(firstRun.thrown.status, KC[3], 'at the violation arm; its own composition sweeps its op');
-  assert.ok(log(store, first.attempt).length >= 2, 'and its closed record is retained');
+  assert.deepEqual(log(store, first.attempt), [], 'and its closed record is retained, retaining no log (`D-58`)');
   const firstClosed = report(store, first.attempt);
-  assertAttemptReport(firstClosed, 'the closed first attempt');
+  assertRetainedRecord(firstClosed, 'the retained first attempt');
   const firstOps = firstClosed.ops.map((o) => o.opId);
   assert.equal(firstOps.length, 1, 'the first attempt created ONE op — its commit\'s own write');
   const firstSwept = firstClosed.rollback.flatMap((s) => s.undoneOps);
@@ -945,13 +947,14 @@ test('ck_constraint_a_second_attempt_at_a_failed_attempts_address_leaves_the_old
     + JSON.stringify(secondRun.thrown.status));
 
   const secondClosed = report(store, second.value.attempt);
-  assertAttemptReport(secondClosed, 'the closed second attempt');
+  assertRetainedRecord(secondClosed, 'the retained second attempt');
   const secondOps = secondClosed.ops.map((o) => o.opId);
   assert.equal(secondOps.length, 1, 'the second attempt created ONE op of its own');
 
   // (5) THE ATTEMPT'S OWN ANSWER: ONE `outcome` entry carrying the arm its own membership decides, and a
   // composition that PERFORMED — the residue's absence from the step making the call a SUCCESS.
-  const outcomes = entries(secondClosed.log, 'outcome');
+  // **⟶ AND THE LIST IS THE REFUSAL'S OWN FROM 2026-10-28 (`D-58`): the store retains none of it.**
+  const outcomes = entries(handedLog(secondRun.thrown), 'outcome');
   assert.equal(outcomes.length, 1,
     'THE ATTEMPT\'S LOG CARRIES ITS SINGLE `outcome` ENTRY — appended ONCE and never twice '
     + `(\`§2.6\` item 4's arms append the entry, item 6 (a) forbids a second) — read ${outcomes.length}`);
@@ -1074,9 +1077,10 @@ test('ck_constraint_a_store_refused_repair_has_its_own_token_named_in_the_repair
   assert.equal(r.threw, true, 'the attempt terminates');
   assert.equal(reached, true, 'the repair body WAS invoked (arm (b)\'s own transition)');
   const closed = report(store, record.attempt);
-  assertAttemptReport(closed, 'the closed attempt of the repair-refused window');
+  assertRetainedRecord(closed, 'the retained record of the repair-refused window');
   assert.equal(closed.outcome, 'failed', 'and it closes on the failed arm');
-  const runs = entries(closed.log, 'repair-run');
+  // **THE LIST IS THE REFUSAL'S OWN (`D-58`): `K-3` threw here, so the handoff's list is what it caught.**
+  const runs = entries(handedLog(r.thrown), 'repair-run');
   assert.equal(runs.length, 1,
     'ONE `repair-run` entry stands for the refused repair — read ' + runs.length);
   assert.equal(runs[0].id, 'x', 'under the pair\'s own BARE id (`attempt-lifecycle.md §2.4` item 2)');
@@ -1091,7 +1095,7 @@ test('ck_constraint_a_store_refused_repair_has_its_own_token_named_in_the_repair
       'and the entry\'s message carries NO kernel token — it is not the carrier of a state — read '
       + token);
   }
-  const outcomes = entries(closed.log, 'outcome');
+  const outcomes = entries(handedLog(r.thrown), 'outcome');
   assert.equal(outcomes.length, 1,
     'the attempt has ONE `outcome` entry and no second is appended for the refused repair');
   assert.equal(outcomes[0].state, KC[4],

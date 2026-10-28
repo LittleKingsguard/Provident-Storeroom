@@ -1728,14 +1728,20 @@ test('fts_FTS_04_9_the_failed_saves_own_log_carries_the_outcome_entry_and_the_re
   //    CLOSED-attempt arm. The failed save IS a constraint, EVALUATED LAST, so the pass reports it as it
   //    reports any other: the closed record's final log carries the `outcome` entry, and that entry's
   //    `state` is a `KC` token of the kernel's own set — the SAME token the thrown form's `status` carries.
-  const entries = log(f.store, record.attempt);
+  // **⟶ AND THE LIST IS READ OFF THE RECORD THE CALLER WAS HANDED, 2026-10-28 — `D-58`.** The architect,
+  // verbatim: *"After a commit/attempt resolves/rejects, the store does not need to retain the message log …
+  // Don't retain it."* **SO `K-4` OVER THE CLOSED ATTEMPT ANSWERS THE RETAINED (EMPTY) LIST AND `K-5` ANSWERS
+  // NO `log` MEMBER**, and the entries are read where the handoff put them: in the refusal this drive caught.
+  const entries = caught.log;
   const outcome = outcomeEntryOf(entries);
   const kinds = entries.map((e) => [e.kind, e.state]);
   assert.equal(outcome.length, 1,
-    'FTS-04.9: the closed attempt\'s FINAL log carries EXACTLY ONE `outcome` entry — `K-4` returns, for a '
-    + 'CLOSED attempt, the closed record\'s final log, which is the same list the failure\'s thrown form '
-    + 'carries (`kernel-surface.md §2.1` item 4), and a thrown failure\'s log carries exactly one entry the '
-    + `open record did not: the \`outcome\` entry (item 3) — read ${JSON.stringify(kinds)}`);
+    'FTS-04.9: the handed-off record\'s FINAL log carries EXACTLY ONE `outcome` entry — the same list the '
+    + 'failure\'s thrown form carries (`kernel-surface.md §2.1` item 4), and a thrown failure\'s log carries '
+    + 'exactly one entry the open record did not: the `outcome` entry (item 3) — read ${JSON.stringify(kinds)}');
+  assert.deepEqual(log(f.store, record.attempt), [],
+    'FTS-04.9: AND THE STORE RETAINS NO ENTRY AFTER THE HANDOFF — `K-4` over the closed attempt answers the '
+    + 'empty list (`D-58`), where before this ruling it answered the list above');
   assert.ok(KC_TOKEN.test(String(outcome.length === 1 ? outcome[0].state : '')),
     'FTS-04.9: and that entry\'s `state` member carries a `KC` token of the kernel\'s own set — the save is a '
     + 'constraint EVALUATED LAST, so its failure is a constraint violation whose entry is a `KC` token, and '
@@ -1802,7 +1808,7 @@ test('fts_FTS_04_9_the_same_failure_by_the_second_route_the_parents_access_withd
     'FTS-04.9 (route 2): the withdrawn access produced the failing save and the caller met #15 — read '
     + `${caught && caught.status}`);
 
-  const entries = log(f.store, record.attempt);
+  const entries = caught.log;
   const outcome = outcomeEntryOf(entries);
   assert.equal(outcome.length, 1,
     'FTS-04.9 (route 2): the closed attempt\'s final log carries the `outcome` entry on THIS route too — the '
@@ -1837,9 +1843,12 @@ test('fts_FTS_04_9_THE_DISCRIMINATE_a_succeeding_save_still_reports_passed_with_
     'FTS-04.9: THE DISCRIMINATE — the terminal answer over the same closed attempt is the same record and '
     + 'still the passing arm (`kernel-surface.md §2.1` item 5)');
   assert.deepEqual(final.rollback, [], 'FTS-04.9: THE DISCRIMINATE — with the empty rollback');
-  assert.equal(outcomeEntryOf(log(f.store, record.attempt)).length, 0,
+  assert.equal(outcomeEntryOf(ran.log).length, 0,
     'FTS-04.9: THE DISCRIMINATE — a log that gained an `outcome` entry on the PASSING arm would be a '
-    + 'failure too: the entry is the thrown arm\'s alone (`kernel-surface.md §2.1` item 3)');
+    + 'failure too: the entry is the thrown arm\'s alone (`kernel-surface.md §2.1` item 3) — read off the '
+    + 'record `K-3` handed off, the store retaining none (`D-58`)');
+  assert.deepEqual(log(f.store, record.attempt), [],
+    'FTS-04.9: THE DISCRIMINATE — and the closed record answers the empty retained list on this arm too');
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -1888,7 +1897,9 @@ test('fts_FTS_04_10_a_failing_saves_log_carries_the_outcome_entry_and_no_commit_
     + `${caught && caught.status}`);
 
   // ── THE PIN: an attempt whose save did NOT stand appends the FAILURE arm's entry and NO `commit` entry.
-  const entries = log(f.store, record.attempt);
+  // **THE LIST IS THE HANDED-OFF ONE (`D-58`): the refusal this drive caught carries it, and the store
+  // retains none of it after the handoff.**
+  const entries = caught.log;
   assert.equal(commitEntryOf(entries).length, 0,
     'FTS-04.10: NO `commit` ENTRY STANDS IN THE LOG OF AN ATTEMPT WHOSE SAVE DID NOT STAND — the `LogKind` '
     + 'table declares `commit` the attempt\'s SUCCESS arm, appended once, and `outcome` the attempt\'s FAILURE '
@@ -1924,10 +1935,11 @@ test('fts_FTS_04_10_a_failing_saves_log_carries_the_outcome_entry_and_no_commit_
     'FTS-04.10: and its `rollback` is the rollback the composition PERFORMED — `[]` is the success arm\'s '
     + 'alone (`kernel-surface.md §2.1` item 3\'s `rollback` clause; `composition-and-states.md §2.6` item 3) — '
     + `read rollback=${JSON.stringify(final.rollback)}`);
-  assert.equal(commitEntryOf(final.log).length, 0,
-    'FTS-04.10: and the report\'s OWN `log` member is that same list — `K-5` returns the closed record whose '
-    + '`log` member is the one `K-4` returns for a closed attempt (`kernel-surface.md §2.1` items 4 and 5) — '
-    + 'read ' + JSON.stringify(final.log.map((e) => [e.kind, e.state])));
+  assert.equal('log' in final, false,
+    'FTS-04.10: and the retained record `K-5` answers carries NO `log` member at all — the log was handed '
+    + 'off with the refusal and is not retained (`D-58`), so nothing here could claim the passing arm');
+  assert.equal(commitEntryOf(entries).length, 0,
+    'FTS-04.10: while the handed-off list — the one the caller holds — carries no `commit` entry either');
 });
 
 test('fts_FTS_04_10_THE_SECOND_ROUTE_the_withdrawn_access_leaves_no_commit_entry_either', async (t) => {
@@ -1971,7 +1983,7 @@ test('fts_FTS_04_10_THE_SECOND_ROUTE_the_withdrawn_access_leaves_no_commit_entry
     'FTS-04.10 (route 2): the withdrawn access produced the failing save and the caller met #15 — read '
     + `${caught && caught.status}`);
 
-  const entries = log(f.store, record.attempt);
+  const entries = caught.log;
   assert.equal(commitEntryOf(entries).length, 0,
     'FTS-04.10 (route 2): NO `commit` ENTRY STANDS ON THIS ROUTE EITHER — the residue is not an artefact of '
     + 'the removed-parent fixture, and the `LogKind` table binds every arm that reaches the failing save '
@@ -1999,7 +2011,8 @@ test('fts_FTS_04_10_THE_DISCRIMINATE_a_succeeding_saves_log_carries_the_commit_e
   const record = commit(f.store, [key], 'file', 7);
   const ran = runAttempt(f.store, record);
   const final = report(f.store, record.attempt);
-  const entries = log(f.store, record.attempt);
+  // **THE LIST IS THE ONE `K-3` HANDED OFF (`D-58`, 2026-10-28); the store retains none of it.**
+  const entries = ran.log;
   const commits = commitEntryOf(entries);
 
   assert.equal(commits.length, 1,
@@ -2558,7 +2571,9 @@ test('fts_S_UNREPAIRABLE_a_repair_registered_for_the_writes_own_set_is_never_del
 
   // ── THE TWO ARMS THE DATED CLAUSE NAMES BESIDE THAT COUNT ("the attempt ends at the failure arm with its
   //    `outcome` entry, the report reads `failed`").
-  const entries = log(h.f.store, h.record.attempt);
+  // **THE LIST IS THE HANDED-OFF ONE (`D-58`): `K-3` did not return here, so the refusal the fixture caught is
+  // the record that carries the entries; the store retains none of them.**
+  const entries = h.caught.log;
   const outcome = outcomeEntryOf(entries);
   assert.equal(outcome.length, 1,
     'S-UNREPAIRABLE: the attempt ends at the failure arm with ITS ONE `outcome` entry — the save is a '
@@ -2574,6 +2589,9 @@ test('fts_S_UNREPAIRABLE_a_repair_registered_for_the_writes_own_set_is_never_del
     'S-UNREPAIRABLE: and the report reads the failure and never the passing arm — `K-5` returns the attempt\'s '
     + 'FINAL record, the closed record of the arm that actually TERMINATED the attempt (`kernel-surface.md '
     + '§2.1` item 5) — read ' + JSON.stringify(final.outcome));
+  assert.deepEqual(log(h.f.store, h.record.attempt), [],
+    'S-UNREPAIRABLE: and the closed record the store still answers retains NO entry (`D-58`) — the log is the '
+    + 'handed-off refusal\'s');
   assert.deepEqual(entries.filter((e) => e.kind === 'repair-run').length, 1,
     'S-UNREPAIRABLE: THE LOG CARRIES THE SAME ARITHMETIC — exactly ONE `repair-run` entry, and it is the '
     + 'PASS\'s own (`kernel-surface.md §2.5` item 1\'s `repair-run` row; `attempt-lifecycle.md §2.4` item 4\'s '

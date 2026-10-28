@@ -655,8 +655,13 @@ const K6 = (store, pair) => kernel.remove(store, pair);
     && com.value.triggered.some((e) => keyOfAddr(e.address) === keyOfAddr(['a', 'b', 'c'])),
     com.threw ? fmt(statusOf(com)) : fmt(com.value.triggered.map((e) => e.address)));
   const run = thrown(() => K3(i, com.value));
-  const log = thrown(() => K4(i, com.value.attempt));
-  const checks = (!log.threw ? log.value.filter((e) => e.kind === 'constraint-check') : []);
+  // **⟶ AND THE LIST IS THE HANDOFF'S FROM 2026-10-28 — `D-58`.** *"After a commit/attempt resolves/rejects, the
+  // store does not need to retain the message log or other client-returned data. Don't retain it."* **SO `K-4`
+  // over the CLOSED attempt answers the empty retained list, and the entries are read off `K-3`'s return**, which
+  // is the record the seal froze and the consumer's own copy.
+  const closedRead = thrown(() => K4(i, com.value.attempt));
+  const log = (!run.threw ? { threw: false, value: run.value.log } : closedRead);
+  const checks = (!log.threw && Array.isArray(log.value) ? log.value.filter((e) => e.kind === 'constraint-check') : []);
   A('HLI-08.5', 'attempt-lifecycle.md §2.4 (the `PASSED` state: `every constraint passed`)',
     "`K-3`'s report carries the passing arm",
     !run.threw && run.value.outcome === 'passed', run.threw ? fmt(statusOf(run)) : fmt(run.value?.outcome));
@@ -683,8 +688,10 @@ const K6 = (store, pair) => kernel.remove(store, pair);
   const dupId = thrown(() => j.addConstraint({ address: [['p'], ['p', 'q']], id: 'dup' }, () => true));
   const com2 = thrown(() => K2(j, ['p', 'q'], 'temp', 1));
   const run2 = thrown(() => K3(j, com2.value));
-  const lg2 = thrown(() => K4(j, com2.value.attempt));
-  const dupChecks = (!lg2.threw ? lg2.value.filter((e) => e.kind === 'constraint-check' && e.id === 'dup') : []);
+  // **⟶ `D-58`: the list is `K-3`'s return; the store retains none of it.**
+  const lg2 = (!run2.threw ? { threw: false, value: run2.value.log } : thrown(() => K4(j, com2.value.attempt)));
+  const dupChecks = (!lg2.threw && Array.isArray(lg2.value)
+    ? lg2.value.filter((e) => e.kind === 'constraint-check' && e.id === 'dup') : []);
   A('HLI-08.11', 'contract.md §5.4 `S-SEL-DEDUPE`; constraint-identity.md §4 item 5; §8 `IF-9`',
     'a pair standing at two addresses, one an ANCESTOR of the write\'s and one the write\'s own, is evaluated ONCE in one pass',
     !dupId.threw && !com2.threw && !run2.threw && dupChecks.length === 1,

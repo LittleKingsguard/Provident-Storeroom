@@ -88,10 +88,12 @@ const repairElsewhere = (store, address, violatingValue, repairAddress) => () =>
 
 test('unit · attempt-lifecycle.md §2.4 item 3 · THE ATTEMPT\'S SIX STATES ARE `OPEN` · `EVALUATING` · `REPAIRING` · `FAILING` · `PASSED` · `CLOSED`, AND ONLY THE TWO TERMINAL ARMS REACH `CLOSED`', () => {
   assert.equal(SIX_STATES.length, 6);
-  // `OPEN`: the record stands in the registry, nothing has been evaluated, and its log is empty.
+  // `OPEN`: the record stands in the registry and nothing has been evaluated — **AND ITS LIST IS NO LONGER A
+  // CONSUMER READ FROM 2026-10-28 (`D-58`)**: `K-4` over a live attempt refuses `KC-7`, so an open log is read
+  // through the record the closing act hands off and never through the store.
   const store = make();
   const issued = commit(store, ['a'], 'mem', 1);
-  assert.deepEqual(log(store, issued.attempt), []);
+  assert.equal(catchIt(() => log(store, issued.attempt)).status, 'KC-7');
   // `PASSED` → `CLOSED`: the report is the five-member closed form and the address is released, so a fresh
   // `K-2` there is LAWFUL (`KC-7` is refused only while the attempt is genuinely live).
   const attemptReport = runAttempt(store, issued);
@@ -108,12 +110,19 @@ test('unit · fail-surface.md §2 (`KC-7` and `KC-2` rows) · THE SAME POSITION,
   const open = commit(live, ['q'], 'mem', 1);
   assert.equal(catchIt(() => commit(live, ['q'], 'mem', 2)).status, 'KC-7');
   assert.equal(catchIt(() => report(live, open.attempt)).status, 'KC-7');
+  // ⟶ AND `K-4`'s LIVE ARM IS THE SAME `KC-7` FROM 2026-10-28 — `D-58`, the architect, verbatim: *"The client
+  // does not need any insight into the current state of a commit/attempt before it completes. Don't expose any
+  // of it."* **The two readers refuse a live attempt with ONE member, one shape and one message family.**
+  assert.equal(catchIt(() => log(live, open.attempt)).status, 'KC-7');
 
   const closed = make();
   const issued = commit(closed, ['b'], 'mem', 1);
   runAttempt(closed, issued);
-  // The CLOSED state ANSWERS: `K-5` over a closed attempt returns the final record and throws nothing.
+  // The CLOSED state ANSWERS: `K-5` over a closed attempt returns the retained record and throws nothing —
+  // `D-58` keeps the outcome and lets the message log go.
   assert.equal(report(closed, issued.attempt).outcome, 'passed');
+  assert.equal('log' in report(closed, issued.attempt), false, 'and the retained record carries no log');
+  assert.deepEqual(log(closed, issued.attempt), [], 'while `K-4` answers the empty retained list');
   const unknown = 'attempt-that-never-was';
   assert.equal(catchIt(() => log(closed, unknown)).status, 'KC-2');
   assert.equal(catchIt(() => report(closed, unknown)).status, 'KC-2');
@@ -317,17 +326,25 @@ test('unit · kernel-surface.md §2.5 item 1\'s kind table · WHAT THE LOG CARRI
   assert.equal(/^KC-/.test(runAttempt(passing, commit(passing, ['b'], 'mem', 1)).log.at(-1).state ?? ''), false);
 });
 
-test('unit · fail-surface.md §1.1 item 3 · A FAILURE\'S `log` IS THE ATTEMPT\'S OWN LIST, CARRIED AND NOT COPIED: the thrown form\'s log IS the closed record\'s final log, and the record `K-4`/`K-5` read afterwards', () => {
+test('unit · fail-surface.md §1.1 item 3 · A FAILURE\'S `log` IS THE ATTEMPT\'S OWN LIST, CARRIED AND NOT COPIED — and from 2026-10-28 (`D-58`) the list the refusal carries is THE HANDED-OFF RECORD\'s, which the store no longer retains', () => {
   const store = make();
   store.write(['n'], 'mem', 0);
   register(store, ['n'], 'c1', () => (store.read(['n']) === 1 ? { message: 'violated' } : true));
   const issued = commit(store, ['n'], 'mem', 1);
-  const openLength = log(store, issued.attempt).length;
+  // THE OPEN LIST IS NOT A CONSUMER READ (`D-58`): the live arm is `KC-7`, so the list before the pass is the
+  // empty one BY CONSTRUCTION, and the entries below are the two the closing out appended.
+  assert.equal(catchIt(() => log(store, issued.attempt)).status, 'KC-7');
   const caught = catchIt(() => runAttempt(store, issued));
   assert.equal(caught.status, 'KC-3');
-  assert.deepEqual(caught.log, log(store, issued.attempt), 'the same list member for member');
-  assert.deepEqual(caught.log, report(store, issued.attempt).log);
-  assert.equal(caught.log.length, openLength + 2, 'a constraint-check entry and the ONE outcome entry were appended');
+  assert.equal(caught.log.length, 0 + 2, 'a constraint-check entry and the ONE outcome entry were appended');
+  assert.deepEqual(caught.log.map((entry) => entry.kind), ['constraint-check', 'outcome'],
+    'and the list the refusal carries is the commit\'s ONE list, entry for entry');
+  // THE STORE RETAINS NO LOG AFTER THE HANDOFF (`D-58`): the record it still answers keeps the arm and lets the
+  // entries go — the refusal the caller caught is the one holding them.
+  const retained = report(store, issued.attempt);
+  assert.equal(retained.outcome, 'failed');
+  assert.equal('log' in retained, false, 'the retained record answers no log');
+  assert.deepEqual(log(store, issued.attempt), [], 'and `K-4` answers the empty retained list');
 });
 
 test('unit · attempt-lifecycle.md §2.4 item 4 arm `(c)` · `FAILING` APPENDS THE FAILING ENTRY AND THE `outcome` ENTRY, COMPOSES THE PER-OP ROLLBACK, AND ONLY THEN THROWS — the report reached afterwards carries one six-member `RollbackStep` per PERFORMED call', () => {

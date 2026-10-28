@@ -41,7 +41,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import { storeCreate } from '../../bindings/js/index.mjs';
-import { commit as kernelCommit, report as kernelReport } from '../../bindings/js/src/constraint-kernel.mjs';
+import { commit as kernelCommit, report as kernelReport, runAttempt as kernelRunAttempt } from '../../bindings/js/src/constraint-kernel.mjs';
 import { kernelFor } from '../../bindings/js/src/entry/kernel-foundations.mjs';
 import { openCommits } from '../../bindings/js/src/entry/state.mjs';
 
@@ -122,6 +122,10 @@ test('D-46 (1) · A REPAIR IS TRACKED INSIDE ITS ATTEMPT: the repair body\'s wri
   const reported = attemptRef === null ? null : attempt(() => kernelReport(store, attemptRef));
   const report = reported !== null && reported.ok === true ? reported.value : null;
   const ops = report !== null && Array.isArray(report.ops) ? report.ops : [];
+  // **⟶ AND `D-58` TAKES THE STORE'S COPY AND LEAVES NONE: the public `write` hands the caller its
+  // three-member record and the passing attempt's report is not handed off, so this arm keeps no list at all
+  // — the cell reads the retained record and says the entry is unobservable rather than reporting an empty
+  // list as "no repair ran".**
   const repairEntry = report !== null && Array.isArray(report.log)
     ? report.log.filter((entry) => entry.kind === 'repair-run')
     : [];
@@ -172,11 +176,15 @@ test('D-46 (1) · A REPAIR IS TRACKED INSIDE ITS ATTEMPT: the repair body\'s wri
   assert.equal(ops[ops.length - 1].opId, repairOpId,
     `and it is the attempt's LAST op — the landing that left the state the commit stands at: `
       + `${JSON.stringify(ops.map((op) => op.opId))}`);
-  assert.equal(repairEntry.length, 1,
-    `ONE \`repair-run\` entry and never two: ${JSON.stringify(repairEntry)}`);
-  assert.equal(repairEntry[0].opId, repairOpId,
-    `and THE LOG ENTRY NAMES THE OP THE REPAIR LANDED (\`kernel-surface.md §2.5\` item 1's \`repair-run\` row): `
-      + `${JSON.stringify(repairEntry[0])}`);
+  assert.equal('log' in report, false,
+    '`D-58`: the store retains no message log after the handoff, so `K-5` answers no `log` member');
+  assert.deepEqual(repairEntry, [],
+    'and this arm keeps no list at all: the passing write hands the caller `{op, watched, triggered}` and '
+    + 'the attempt\'s own report is not among what crosses — the `repair-run` arithmetic is unobservable '
+    + 'HERE, and the drive that holds a refusal measures it (`ck_p_neg_17`, `ck_states`)');
+  assert.equal(repairedRecord.op.opId, repairOpId,
+    'what the retained record and the store both answer is the LANDING: the repair\'s op, read off the '
+    + 'record the repair\'s own write returned');
   assert.deepEqual(asked, [SEED, REFUSED, REPAIRED],
     `and the pair is asked at REGISTRATION, by the PASS and — from the repair — by the RE-RUN at the repaired `
       + `state: ${JSON.stringify(asked)}`);
@@ -194,7 +202,14 @@ test('D-46 (1) · A REPAIR IS TRACKED INSIDE ITS ATTEMPT: the repair body\'s wri
   // log"* means; it is printed in the diagnostic below so a reader reads the sequence itself and not this
   // cell's intention. **NO ENTRY IS MINTED FROM THE STORE'S JOURNAL COUNTER** (`DEF-AI`'s prohibition): the
   // numbers below are the kernel's own arithmetic on the commit's one list.
-  const seqs = report.log.map((entry) => entry.seq);
+  // **⟶ AND FROM 2026-10-28 (`D-58`) THE STORE RETAINS NO MESSAGE LOG, SO THE ONE LIST IS READ WHERE THE
+  // HANDOFF PUTS IT.** This drive's caller is the PUBLISHED `write`, which answers `{op, watched, triggered}` on
+  // a passing arm and has never carried a log: the list is measured on a DIRECT `K-2`/`K-3` DRIVE of the same
+  // shape, whose `K-3` return is a handoff and whose `.log` is therefore the commit's one list.
+  const directRecord = kernelCommit(store, ['a'], 'mem', REFUSED);
+  const direct = kernelRunAttempt(store, directRecord);
+  assert.equal(direct.outcome, 'passed', 'the direct drive of the same shape passes, as the entry\'s did');
+  const seqs = direct.log.map((entry) => entry.seq);
   assert.ok(seqs.length >= 2,
     `the commit must hold at least the pass's and the repair's entries for monotonicity to have a subject: `
       + `the drive read ${JSON.stringify(seqs)}`);
@@ -202,7 +217,7 @@ test('D-46 (1) · A REPAIR IS TRACKED INSIDE ITS ATTEMPT: the repair body\'s wri
     assert.equal(seqs[index], seqs[index - 1] + 1,
       `**\`seq\` IS MONOTONE ACROSS THIS COMMIT'S ATTEMPTS — ONE LIST, \`1..n\`, NO RENUMBERING** (\`D-53\`; `
         + `\`DEF-AI\`): the entries read ${JSON.stringify(seqs)} and the kinds `
-        + `${JSON.stringify(report.log.map((entry) => entry.kind))}`);
+        + `${JSON.stringify(direct.log.map((entry) => entry.kind))}`);
   }
   assert.equal(seqs[0], 1,
     `and the one list starts at \`1\`: ${JSON.stringify(seqs)}`);
@@ -213,13 +228,14 @@ test('D-46 (1) · A REPAIR IS TRACKED INSIDE ITS ATTEMPT: the repair body\'s wri
     + `${JSON.stringify(facts[0])} and returned with the count at ${JSON.stringify(facts[1])} — \`attempt-opened\` `
     + `fired ${openings} time for the whole write, so the repair OPENED NOTHING. The commit's own record answered `
     + `\`op\` ${JSON.stringify(written.value.op.opId)} (the repair's), landed ${JSON.stringify(written.value.op.after.value)}; `
-    + `the attempt's \`ops\` are ${JSON.stringify(ops.map((op) => op.opId))} and its \`repair-run\` entry names `
-    + `${JSON.stringify(repairEntry[0].opId)}; the pair was asked at ${JSON.stringify(asked)}; the store stands at `
+    + `the attempt's \`ops\` are ${JSON.stringify(ops.map((op) => op.opId))} and its retained record carries no `
+    + `log (\`D-58\`: the repair-run entry is unobservable through the published write); the pair was asked at `
+    + `${JSON.stringify(asked)}; the store stands at `
     + `${JSON.stringify(standing)} and \`['z']\` at ${JSON.stringify(repairedStanding)}, the call returning `
     + `${JSON.stringify(windowOf(store))}. **AND THE COMMIT'S \`seq\` IS MONOTONE ACROSS ITS ATTEMPTS — `
-    + `\`DEF-AI\`'S MEASUREMENT: ${JSON.stringify(seqs)} over the kinds `
-    + `${JSON.stringify(report.log.map((entry) => entry.kind))}** — one list, \`1..n\`, no renumbering, and no `
-    + `number read off the store's journal counter`);
+    + `\`DEF-AI\`'S MEASUREMENT, read on the DIRECT drive's handoff \`D-58\` leaves as the only list: `
+    + `${JSON.stringify(seqs)} over the kinds ${JSON.stringify(direct.log.map((entry) => entry.kind))}** — one `
+    + `list, \`1..n\`, no renumbering, and no number read off the store's journal counter`);
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════

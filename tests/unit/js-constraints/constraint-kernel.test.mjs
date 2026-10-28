@@ -434,30 +434,44 @@ test('ck_surface_K3_an_unknown_attempt_reference_is_refused_with_KC2', async () 
 // §4  `K-4` `log` AND `K-5` `report` — THE CLOSED RECORD'S TWO READERS
 // ═══════════════════════════════════════════════════════════════════════════════════════════════
 
-test('ck_surface_K4_the_closed_attempt_s_log_is_reachable_and_is_the_report_s_own_list', async () => {
+test('ck_surface_K4_the_closed_attempt_s_log_is_NO_LONGER_RETAINED_and_the_record_the_driver_was_HANDED_is_the_one_that_carries_it', async () => {
   const { register, commit, runAttempt, log } = await kernel();
   const store = makeStore();
   const address = [tag('k4a')];
   register(store, address, 'x', () => true);
   const commitRecord = commit(store, address, 'mem', 1);
   const report = runAttempt(store, commitRecord);
-  // A CLOSED attempt's record K-4 CAN reach — the failure list names the opposite as a defect
+  // ⟶ `D-58`, 2026-10-28 (the architect, verbatim: *"… the store does not need to retain the message log …
+  // Don't retain it."*): the HANDOFF is the record `K-3` answered, and the store retains no message log after
+  // it. **K-4 ON A CLOSED ATTEMPT STILL ANSWERS — IT ANSWERS THAT NOTHING IS RETAINED**, and it is no longer
+  // the report's own list: the list is the driver's, and it is frozen (§`D-55` item 6).
   const entriesBack = log(store, report.attempt);
-  assert.ok(Array.isArray(entriesBack), 'K-4 returns LogEntry[]');
-  assert.deepEqual(entriesBack, report.log, 'the same list the report carries, member for member');
-  for (const e of entriesBack) assertLogEntry(e, 'K-4 entry');
+  assert.ok(Array.isArray(entriesBack), 'K-4 returns LogEntry[], and it ANSWERS rather than refusing');
+  assert.deepEqual(entriesBack, [], 'the store retains no entry after the handoff (`D-58`)');
+  assert.equal(report.log.length > 0, true, 'and the record the driver holds still carries the entries');
+  for (const e of report.log) assertLogEntry(e, 'the handed-off record\'s entry');
 });
 
-test('ck_surface_K5_the_report_is_the_five_member_shape_and_equals_the_K3_return', async () => {
+test('ck_surface_K5_the_report_answers_the_RETAINED_record_the_drop_left_and_is_no_longer_the_K3_return', async () => {
   const { register, commit, runAttempt, report } = await kernel();
   const store = makeStore();
   const address = [tag('k5a')];
   register(store, address, 'x', () => true);
   const commitRecord = commit(store, address, 'mem', 1);
   const fromRun = runAttempt(store, commitRecord);
+  // THE HANDOFF IS THE FIVE-MEMBER SHAPE, and it is the driver's from this instant.
+  assertAttemptReport(fromRun, 'the `K-3` return');
   const fromReport = report(store, fromRun.attempt);
-  assertAttemptReport(fromReport, 'K-5 over a closed attempt');
-  assert.deepEqual(fromReport, fromRun, 'the two returns are the ONE five-member shape, member for member');
+  // **⟶ AND `K-5` AFTER THE DROP ANSWERS WHAT THE STORE STILL NEEDS — `D-58`'s second demand.** The outcome,
+  // the ops the journal holds and the reversal's record; the message log was handed off with the record and
+  // is not retained, so it is not answered either.
+  assert.deepEqual(Object.keys(fromReport).sort(), ['attempt', 'ops', 'outcome', 'rollback'],
+    'K-5 answers the retained record: outcome, ops and rollback — no log');
+  assert.deepEqual(fromReport.attempt, fromRun.attempt, 'the identity is the same identity');
+  assert.equal(fromReport.outcome, fromRun.outcome, 'and the arm is the arm the pass answered');
+  assert.deepEqual(fromReport.ops, fromRun.ops);
+  assert.deepEqual(fromReport.rollback, fromRun.rollback);
+  assert.deepEqual(fromReport.log, undefined, 'the log is NOT retained and NOT answered (`D-58`)');
 });
 
 test('ck_surface_K5_an_unknown_attempt_reference_is_KC2_and_never_KC7', async () => {
@@ -490,13 +504,15 @@ test('ck_surface_K4_the_readers_answer_from_the_record_and_not_from_the_store_in
   const address = [tag('k4b')];
   register(store, address, 'x', () => true);
   const report = runAttempt(store, commit(store, address, 'mem', 1));
-  // (a) THE SURVIVING HALF: the reader answers the closed record inside the instance that closed it.
+  // (a) THE SURVIVING HALF: the readers answer the closed record inside the instance that closed it — and after
+  // `D-58` what they answer is the record the store still NEEDS (the outcome, the ops, the reversal), with the
+  // message log let go: the driver's record is the one that carries the entries.
   const sameInstance = log(store, report.attempt);
-  assert.deepEqual(sameInstance, report.log,
-    'the closed attempt\'s record is the kernel\'s own caller-side shape and carries its own log, and the '
-    + 'reader answers it from the RECORD and not from the store (`kernel-surface.md §2.1` item 4)');
-  assert.deepEqual(reportOf(store, report.attempt), report,
-    'and `K-5` answers the same FINAL record — the two readers are one record, read twice');
+  assert.deepEqual(sameInstance, [],
+    'the closed record is still REACHABLE inside the instance that closed it, and it retains no log (`D-58`)');
+  assert.deepEqual(reportOf(store, report.attempt).outcome, report.outcome,
+    'and `K-5` answers the same FINAL arm — the two readers read the one retained record');
+  assert.equal(report.log.length > 0, true, 'while the record the driver was handed keeps its list');
   // (b) THE MOVED HALF: a reference minted by instance A does not resolve on a fresh instance B (`D-30`).
   const foreign = capture(() => log(other, report.attempt));
   assert.equal(foreign.threw, true,

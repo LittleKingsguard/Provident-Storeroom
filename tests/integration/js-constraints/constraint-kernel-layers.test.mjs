@@ -69,7 +69,8 @@ import {
   assertAttemptReport, assertLogEntry, assertSeqIncreasesFromOne,
   capture, entries, checkIds, countingListener, noop,
   passAtRegistration, atLandingOnly,
-  listenAndRegister, carriesHandle, setHandles, setAddresses, } from './constraint-kernel-helpers.mjs';
+  listenAndRegister, carriesHandle, setHandles, setAddresses,
+  handedLog, assertRetainedRecord, } from './constraint-kernel-helpers.mjs';
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════
 // §1  LAYER (a) — ONE DELIVERY PER EVALUATED PAIR, EACH WITH THAT PAIR'S OWN FUNCTION
@@ -485,7 +486,11 @@ test('ck_layer_b_the_order_law_every_layer_a_delivery_completes_before_any_layer
   assert.equal(carriesHandle(record.pending, handlePlain), true,
     'and that handle is the caller\'s own value for its address, carried as the pair\'s `handle` member '
     + '(`trigger-and-pair.md §3` item 3: the element type is the pair, with no union)');
-  const beforeTheLoop = log(store, record.attempt).length;
+  // **⟶ `D-58`: AN OPEN ATTEMPT'S LIST IS NOT A CONSUMER READ, SO THE "NOTHING APPENDED" READING IS TAKEN
+  // AFTER THE PASS, ON THE HANDED-OFF RECORD.** The live arm is `KC-7`.
+  const beforeTheLoop = capture(() => log(store, record.attempt));
+  assert.equal(beforeTheLoop.threw, true, 'K-4 over the open attempt refuses (`D-58`)');
+  assert.equal(beforeTheLoop.thrown.status, 'KC-7', 'with `K-5`\'s own member');
   let loopRuns = 0;
   for (const handle of record.pending) {
     // THE BODY THE CALLER'S OWN LOOP RUNS — ONE INVOKER AMONG THE JS SURFACE'S ORDERED LAYERS AND
@@ -497,8 +502,8 @@ test('ck_layer_b_the_order_law_every_layer_a_delivery_completes_before_any_layer
   assert.equal(loopRuns, record.pending.length, 'the caller\'s loop reads its work off that member alone');
   const report = runAttempt(store, record);
   assertAttemptReport(report, 'order law');
-  assert.equal(log(store, record.attempt).length >= beforeTheLoop, true,
-    'the attempt\'s own log is ONE list, and the caller\'s loop appended nothing to it');
+  assert.deepEqual(log(store, record.attempt), [],
+    'the closed attempt retains no log (`D-58`), and the entries are read off `K-3`\'s return below');
   assert.deepEqual(checkIds(report.log), passIds,
     'the pass evaluated the pairs at the attempt\'s OWN address, in first-registration order');
   assert.equal(entries(report.log, 'constraint-check').length, passIds.length,

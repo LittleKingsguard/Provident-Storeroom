@@ -468,7 +468,30 @@ store verb takes or returns any part of the record: the write's returned shape i
 failure throws the log, success returns the report) · **`S-REC-RETAIN`** (the closed attempt's record: `K-4`
 returns its final log and `K-5` its report, while a fresh `K-2` at that address does not throw `KC-7` because
 the registry entry is gone).
-**FAILURE LIST.** a store verb that accepts an attempt record; a store record that holds a message-log
+**⟶ AND THE RETENTION IS NARROWED FROM 2026-10-28 — `D-58`, AND `RC-3` IS ANSWERED BY IT.** `RCA-8(g)`
+ANNOTATE-BESIDE: **the paragraph above and the two strategy lines `S-REC-RETAIN` and `S-REC-DISPOSE` stand
+BYTE-FOR-BYTE and are read THROUGH this clause; the two-place life, the per-arm table and the marker
+prohibition do not move.** **The ruling is `strata/decisions.md` · `D-58`, the architect, verbatim: *"The client
+does not need any insight into the current state of a commit/attempt before it completes. Don't expose any of
+it. After a commit/attempt resolves/rejects, the store does not need to retain the message log or other
+client-returned data. Don't retain it."***
+- **`K-4`'s LIVE ARM REFUSES `KC-7`** — the member `K-5` already answers — so **no in-flight `seq` list is a
+  consumer read**, and the two readers refuse an open attempt with ONE three-member form, ONE message family
+  and ONE empty `log` (`bindings/js/src/entry/kernel-terminal.mjs`; `DW-11.1`, `DW-11.2`).
+- **ONCE THE ATTEMPT RESOLVES OR REJECTS THE STORE RETAINS THE OUTCOME, THE OPS AND THE REVERSAL'S RECORD AND
+  NO LOG**: the closed record `K-5` answers is `{attempt, outcome, ops, rollback}`, and **`K-4` over a closed
+  attempt still answers — the empty retained list** (`bindings/js/src/entry/kernel-terminal.mjs`'s
+  `dropHandoff`; `DW-11.3`). **The list is the HANDOFF's**: `K-3`'s return or the refusal a caller caught, sealed
+  and the consumer's only copy (`DW-11.4`).
+- **WHAT THAT COSTS, NAMED RATHER THAN PAPERED OVER**: on an arm whose handoff carries no list — a repair
+  body's own throwable, and a PASSING call through the published `write` (whose record is
+  `{op, watched, triggered}` and has never carried a log) — **the entries are no longer observable anywhere
+  after the close**, and the cells that measured them there now say so (`ck_states`'s repair-throw arm,
+  `ck_p_neg_17`'s arm 2, `repair-in-commit`'s `seq` reading, which moves to a direct `K-2`/`K-3` handoff).
+- **AND THE CLOSED RECORD NO LONGER EQUALS THE `K-3` RETURN**, which is the seal's own consequence: the record
+  the client holds is frozen and final, and the store's is the reduced one.
+**FAILURE LIST (READ THROUGH THE CLAUSE ABOVE).** **a closed record that RETAINS a `log` member, or an entry
+of one; an open attempt whose list `K-4` answers**; a store verb that accepts an attempt record; a store record that holds a message-log
 entry; **a registry entry that survives its attempt**; a success that leaves its registry entry standing; a
 failure that leaves its registry entry standing; a log returned to the caller that omits an entry the
 attempt made; **a closed attempt whose record `K-4` or `K-5` cannot reach; a closed attempt whose record is read for an `appliedRepairs` member — a member no closed record carries, so the "retained read-only history" reading is WITHDRAWN BY NAME and a later attempt's decision cannot be drawn from one (`NX-1`; `RD-4`)**.

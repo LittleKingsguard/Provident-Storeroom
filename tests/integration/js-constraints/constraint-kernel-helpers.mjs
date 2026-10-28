@@ -291,6 +291,55 @@ export function assertAttemptReport(report, where) {
 }
 
 /**
+ * **THE LOG A HANDOFF PUT IN THE CALLER'S HAND — `D-58` (2026-10-28), AND THE ONE INSTRUMENT A DRIVE HAS LEFT.**
+ *
+ * After `D-58` the store retains no message log once a commit resolves or rejects, so a drive reads the
+ * attempt's entries where they were handed over: **a kernel refusal carries them at its own `log` member**
+ * (`fail-surface.md §1.1` item 2), and **a caller body's own throwable carries them under the kernel's
+ * `Symbol.for` mark** (`kernel-foundations.mjs`'s `markBodyThrow` — the frame that caught the body holds the
+ * attempt's list at the instant of the throw, and `D-55` item 1 made that list travel). **A THROWN FORM CARRYING
+ * NEITHER ANSWERS THE EMPTY LIST**, and a drive that got the empty one says so rather than reporting a verdict
+ * from a list no handoff made.
+ */
+export function handedLog(thrown) {
+  if (thrown === null || typeof thrown !== 'object') return [];
+  if (Array.isArray(thrown.log)) return thrown.log;
+  const carried = thrown[Symbol.for('provident-storeroom.constraint-body-threw')];
+  if (carried !== null && typeof carried === 'object' && Array.isArray(carried.log)) return carried.log;
+  const inner = thrown.value;
+  if (inner !== null && typeof inner === 'object') {
+    const innerCarried = inner[Symbol.for('provident-storeroom.constraint-body-threw')];
+    if (innerCarried !== null && typeof innerCarried === 'object' && Array.isArray(innerCarried.log)) {
+      return innerCarried.log;
+    }
+  }
+  return [];
+}
+
+/**
+ * **THE RETAINED RECORD — `K-5`'S ANSWER AFTER `D-58` (2026-10-28), FOUR MEMBERS AND NOT FIVE.**
+ *
+ * **THE RULING, THE ARCHITECT, VERBATIM: *"After a commit/attempt resolves/rejects, the store does not need to
+ * retain the message log or other client-returned data. Don't retain it."*** **SO THE HANDOFF IS THE FIVE-MEMBER
+ * `AttemptReport` (asserted by `assertAttemptReport` above, on the value `K-3` RETURNS or the refusal a caller
+ * CATCHES), WHILE THE RECORD THE STORE GOES ON HOLDING — the one `K-5` answers — is the outcome, the ops the
+ * journal holds and the reversal's record. THE MESSAGE LOG IS NOT AMONG THEM: it was handed off and dropped.**
+ */
+export function assertRetainedRecord(record, where) {
+  assert.equal(typeof record, 'object', `${where}: the retained record is a record`);
+  assert.notEqual(record, null, `${where}: the retained record is not null`);
+  assert.deepEqual(Object.keys(record).sort(), ['attempt', 'ops', 'outcome', 'rollback'],
+    `${where}: the retained record is the outcome, the ops and the reversal's record — no log (\`D-58\`)`);
+  assertAttemptRef(record.attempt, `${where}.attempt`);
+  assert.equal(typeof record.outcome, 'string', `${where}: outcome is the arm the pass answered`);
+  assert.ok(Array.isArray(record.ops), `${where}: ops is the list of the ops the attempt created`);
+  assert.ok(Array.isArray(record.rollback), `${where}: rollback is a list of RollbackStep`);
+  for (const s of record.rollback) assertRollbackStep(s, `${where}.rollback`);
+  assert.equal('log' in record, false, `${where}: NO log member is retained or answered (\`D-58\`)`);
+  assert.equal('appliedRepairs' in record, false, `${where}: and no closed record carries appliedRepairs`);
+}
+
+/**
  * A PLAIN STORE LISTENER THAT COUNTS ITS OWN INVOCATIONS — a caller body reached through a store verb
  * call the kernel is running (`attempt-lifecycle.md §2.4` item 8 (ii) (e)).
  */

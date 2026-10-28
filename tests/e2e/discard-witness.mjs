@@ -1141,7 +1141,10 @@ console.log('\n── W10 · `D-55` — the five settled rows, measured ──�
   const aoReport = kernel.report(aoStore, aoRecord.attempt);
   const aoCrossedLog = !aoThrown.ok && aoThrown.caught !== null && typeof aoThrown.caught === 'object'
     && Array.isArray(aoThrown.caught.log) ? aoThrown.caught.log : null;
-  const aoBefore = aoReport === undefined || aoReport === null ? null : JSON.stringify(aoReport.log);
+  // **⟶ AND FROM 2026-10-28 (`D-58`) THE STORE KEEPS NO LOG AFTER THE HANDOFF**, so the seal's own subject —
+  // the handed-off record — is measured where the handoff put it: the CROSSED REFUSAL. `K-5` answers the
+  // retained record, which carries no log at all.
+  const aoBefore = aoCrossedLog === null ? null : JSON.stringify(aoCrossedLog);
   const aoBeforeOutcome = aoReport === undefined || aoReport === null ? null : aoReport.outcome;
   // DRIVE MORE: a passing write, a refused write, a reversal, a delete — the commit this record belongs to is
   // closed and dropped, so none of them may move it.
@@ -1150,24 +1153,23 @@ console.log('\n── W10 · `D-55` — the five settled rows, measured ──�
   const aoLater = attempt(() => aoStore.write(['a'], 'mem', 8));
   if (aoLater.ok) attempt(() => aoStore.rollback(aoLater.value.op.opId));
   attempt(() => aoStore.delete(['b']));
-  const aoAfter = aoReport === undefined || aoReport === null ? null : JSON.stringify(aoReport.log);
+  const aoAfter = aoCrossedLog === null ? null : JSON.stringify(aoCrossedLog);
   P('DEF-AO · the crossed refusal\'s status / log', aoThrown.ok ? '<no throw>' : [statusOf(aoThrown.caught),
     aoCrossedLog === null ? '<no log>' : aoCrossedLog.length]);
-  P('DEF-AO · the closed report (`K-5`) — outcome · one list? · frozen?', aoReport === undefined || aoReport === null
-    ? '<none>' : [aoBeforeOutcome, aoReport.log === aoCrossedLog, Object.isFrozen(aoReport)]);
-  P('DEF-AO · `report.log` frozen? · the CROSSED log is that same list?', aoReport === undefined || aoReport === null
-    ? '<none>' : [Object.isFrozen(aoReport.log), aoReport.log === aoCrossedLog]);
+  P('DEF-AO · the retained record (`K-5`, after `D-58`) — outcome · carries a log?', aoReport === undefined || aoReport === null
+    ? '<none>' : [aoBeforeOutcome, 'log' in aoReport]);
+  P('DEF-AO · the CROSSED log frozen? · the handed-off record is the one that holds it?', aoCrossedLog === null
+    ? '<none>' : [Object.isFrozen(aoCrossedLog), aoReport !== null && aoReport !== undefined && !('log' in aoReport)]);
   P('DEF-AO · the held log BEFORE → AFTER the further drives', [aoBefore, aoAfter]);
-  A('DW-10.6', '`D-55` item 6 / `DEF-AO` (2026-10-28): *"a consumer holding a refusal is holding the record, and a record that changes after the handoff is not a record"*',
-    'the closed attempt\'s report AND its log are FROZEN at the handoff, the crossed refusal\'s log is that same list, and further drives leave the held record byte-for-byte unchanged',
-    aoThrown.ok === false && aoReport !== undefined && aoReport !== null
+  A('DW-10.6', '`D-55` item 6 / `DEF-AO` (2026-10-28): *"a consumer holding a refusal is holding the record, and a record that changes after the handoff is not a record"* — read with `D-58`, which lets the store\'s copy of the list go',
+    'the handed-off record\'s LOG is FROZEN at the handoff and further drives leave it byte-for-byte unchanged; the store retains no list after the handoff and `K-5` answers none, so the record the consumer holds is the ONLY one',
+    aoThrown.ok === false && aoCrossedLog !== null
       && aoBefore !== null && aoBefore === aoAfter
-      && Object.isFrozen(aoReport) === true && Object.isFrozen(aoReport.log) === true
-      && aoReport.log === aoCrossedLog,
-    `report ${aoReport === undefined || aoReport === null ? '<none>' : 'held'} · frozen report `
-      + `${aoReport === undefined || aoReport === null ? '<none>' : Object.isFrozen(aoReport)} · frozen log `
-      + `${aoReport === undefined || aoReport === null ? '<none>' : Object.isFrozen(aoReport.log)} · `
-      + `same list ${aoReport === undefined || aoReport === null ? '<none>' : aoReport.log === aoCrossedLog} · `
+      && Object.isFrozen(aoCrossedLog) === true
+      && aoReport !== undefined && aoReport !== null && !('log' in aoReport),
+    `report ${aoReport === undefined || aoReport === null ? '<none>' : 'held'} · frozen handed log `
+      + `${aoCrossedLog === null ? '<none>' : Object.isFrozen(aoCrossedLog)} · store log `
+      + `${aoReport === undefined || aoReport === null ? '<none>' : ('log' in aoReport ? '<retained>' : '<let go>')} · `
       + `unchanged ${aoBefore === aoAfter}`);
 
   // ── (AP) THE DRAIN JUDGES THE STATE THE COMMIT STANDS AT — `D-55` item 6 / `DEF-AP` ──────────────────
@@ -1662,6 +1664,135 @@ console.log('\n── W10 · `D-55` — the five settled rows, measured ──�
   console.log('        AND `DEF-X` IS NO LONGER A MEASUREMENT: the delete runs a pass of its own kind, its delivery');
   console.log('        follows it, and `rollback` is named as the arm that still lacks the same attempt machinery.');
 }
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+// (W11) `D-58` — NO IN-FLIGHT INSIGHT, AND NO RETENTION AFTER THE HANDOFF
+//
+// **THE RULING** (`strata/decisions.md` · `D-58`, 2026-10-28, the architect, verbatim):
+//
+//     The client does not need any insight into the current state of a commit/attempt before it completes.
+//     Don't expose any of it. After a commit/attempt resolves/rejects, the store does not need to retain the
+//     message log or other client-returned data. Don't retain it.
+//
+// **TWO DEMANDS, EACH DRIVEN AND PRINTED.** (1) **NOTHING ABOUT A RUNNING COMMIT IS READABLE**: `K-4`'s live arm
+// used to answer the in-flight list — `D-39`'s `seq` sequence PART-WAY THROUGH the pass, as a consumer read —
+// and it refuses `KC-7` now, **the same member `K-5` already used**, so the two readers refuse with ONE shape,
+// ONE message family and ONE empty `log`. (2) **NOTHING IS RETAINED AFTER THE HANDOFF**: `K-5` answers the record
+// the store still NEEDS — the outcome, the ops the journal holds, the reversal's record — and **not the message
+// log**, which was handed off with `K-3`'s return (or with the refusal a caller caught) and is the consumer's
+// from that instant.
+//
+// **EVERY CELL BELOW BITES UNDER A `/tmp` REVERT**, one line each:
+//   · `DW-11.1`/`DW-11.2` — restore `if (live !== undefined) return live.log;` in `kernel-terminal.mjs` → RED;
+//   · `DW-11.3`/`DW-11.4` — remove the `dropHandoff(...)` call from `kernel-attempt.mjs` → RED on the retained
+//     shape, on `K-5`'s answer and on the single-copy proof.
+console.log('\n── W11 · `D-58` · NO IN-FLIGHT INSIGHT, AND NO RETENTION AFTER THE HANDOFF ─────────────');
+{
+  const store = make();
+  store.write(['w11'], 'mem', 0);
+  const seen = [];
+  const registered = attempt(() => store.addConstraint({ address: ['w11'], id: 'w11-pair' }, (context) => {
+    // THE RUNNING COMMIT, READ FROM INSIDE: every route a caller has to it is taken HERE, at the pass's own
+    // instant, and the answers are the measurement.
+    if (context.attempt !== null) {
+      seen.push({
+        log: attempt(() => kernel.log(store, context.attempt)),
+        report: attempt(() => kernel.report(store, context.attempt)),
+        constraints: attempt(() => Object.keys(store.constraints()[0] ?? {}).sort()),
+        record: context.commit,
+      });
+    }
+    return context.value === 9 ? { message: 'w11 refuses 9' } : true;
+  }));
+  A('DW-11.0', 'the drive is coherent or the cell says so: the pair registers and the open attempt is minted',
+    'the registration lands and `K-2` answers its `CommitRecord`',
+    registered.ok === true, registered.ok ? 'registered' : JSON.stringify(registered.caught && registered.caught.status));
+  // (a) THE OPEN ATTEMPT: `K-4` AND `K-5` ANSWER THE ONE REFUSAL.
+  const open = attempt(() => kernel.commit(store, ['w11'], 'mem', 9));
+  const liveLog = attempt(() => kernel.log(store, open.value.attempt));
+  const liveReport = attempt(() => kernel.report(store, open.value.attempt));
+  P('D-58 · `K-4` over an OPEN attempt', [liveLog.ok ? 'ANSWERED' : liveLog.caught.status,
+    liveLog.ok ? null : liveLog.caught.message, liveLog.ok ? null : liveLog.caught.log]);
+  P('D-58 · `K-5` over the same OPEN attempt', [liveReport.ok ? 'ANSWERED' : liveReport.caught.status,
+    liveReport.ok ? null : liveReport.caught.message, liveReport.ok ? null : liveReport.caught.log]);
+  P("D-58 · the readers' refusal forms", [keysOf(liveLog.caught), keysOf(liveReport.caught)]);
+  A('DW-11.1', '`D-58` (2026-10-28) — *"The client does not need any insight into the current state of a commit/attempt before it completes. Don\'t expose any of it."* — read with `kernel-surface.md §2.1` item 5\'s `KC-7` row',
+    '`K-4` OVER A LIVE ATTEMPT REFUSES `KC-7` — the member `K-5` uses — in the same three-member form, the same empty `log` and the same message family; and it no longer answers the in-flight `seq` list',
+    liveLog.ok === false && liveLog.caught.status === 'KC-7'
+      && liveReport.ok === false && liveReport.caught.status === 'KC-7'
+      && keysOf(liveLog.caught).join(',') === keysOf(liveReport.caught).join(',')
+      && JSON.stringify(liveLog.caught.log) === '[]'
+      && liveLog.caught.message === liveReport.caught.message
+      && liveLog.caught.message.includes(open.value.attempt.id),
+    `K-4 ${liveLog.ok ? 'ANSWERED' : liveLog.caught.status} · K-5 `
+      + `${liveReport.ok ? 'ANSWERED' : liveReport.caught.status} · forms `
+      + `${JSON.stringify([keysOf(liveLog.caught), keysOf(liveReport.caught)])} · messages equal `
+      + `${liveLog.ok === false && liveReport.ok === false && liveLog.caught.message === liveReport.caught.message}`);
+  // (b) AND NOTHING OF THE RUNNING COMMIT IS REACHABLE FROM INSIDE IT: the pass's own instant, taken by the
+  // pair's body at its landing and READ HERE (the run is driven below, before this cell is evaluated).
+  // (c) THE COMMIT RESOLVES: the one record the consumer is handed, and the store's copy after the handoff.
+  const run = attempt(() => kernel.runAttempt(store, open.value));
+  const crossed = run.ok === false ? run.caught : null;
+  const handed = crossed !== null && Array.isArray(crossed.log) ? crossed.log : null;
+  const inFlight = seen[0] ?? null;
+  P('D-58 · inside the pass — `K-4` / `K-5`', inFlight === null ? '<not entered>' : [
+    inFlight.log.ok ? 'ANSWERED' : inFlight.log.caught.status,
+    inFlight.report.ok ? 'ANSWERED' : inFlight.report.caught.status,
+  ]);
+  P("D-58 · inside the pass — `constraints()` members, the context's commit", inFlight === null ? '<not entered>'
+    : [inFlight.constraints.ok ? inFlight.constraints.value : null, inFlight.record]);
+  A('DW-11.2', '`D-58` — *"Don\'t expose any of it"* — read with `surface.md §2.2`\'s `constraints()` row (a pair is `{address, id}` and nothing else) and `D-44`\'s `context` (five members, no commit)',
+    'WHILE THE COMMIT RUNS NO ROUTE HANDS A CLIENT ITS STATE: both readers refuse `KC-7` at the pass\'s own instant, `constraints()` answers `{address, id}` pairs, and the pass\'s context carries NO commit member',
+    inFlight !== null && inFlight.log.ok === false && inFlight.log.caught.status === 'KC-7'
+      && inFlight.report.ok === false && inFlight.report.caught.status === 'KC-7'
+      && JSON.stringify(inFlight.constraints.value) === JSON.stringify(['address', 'id'])
+      && inFlight.record === undefined,
+    inFlight === null ? '<not entered>' : JSON.stringify([inFlight.log.caught.status, inFlight.report.caught.status,
+      inFlight.constraints.value, inFlight.record]));
+
+  const retained = attempt(() => kernel.report(store, open.value.attempt));
+  const closedLog = attempt(() => kernel.log(store, open.value.attempt));
+  const before = ['attempt', 'log', 'ops', 'outcome', 'rollback'];
+  const after = retained.ok ? keysOf(retained.value) : [];
+  P("D-58 · the closed attempt's retained shape BEFORE → AFTER", [before, after]);
+  P('D-58 · `K-5` AFTER the drop', retained.ok ? {
+    attempt: retained.value.attempt,
+    outcome: retained.value.outcome,
+    ops: retained.value.ops.length,
+    rollback: retained.value.rollback.length,
+    log: 'log' in retained.value ? '<RETAINED: a finding>' : '<let go>',
+  } : retained.caught.status);
+  P('D-58 · `K-4` AFTER the drop', closedLog.ok ? closedLog.value : closedLog.caught.status);
+  A('DW-11.3', '`D-58` — *"After a commit/attempt resolves/rejects, the store does not need to retain the message log or other client-returned data. Don\'t retain it."* — and its own bound: *"it may still hold outcomes, but it must not hold logs"*',
+    'once the commit has RESOLVED OR REJECTED the retained record is the outcome, the ops and the reversal — the `log` member LET GO — and `K-4` over the closed attempt STILL ANSWERS (the empty retained list) while `K-5` still answers the record',
+    crossed !== null
+      && keysOf(retained.value).join(',') === 'attempt,ops,outcome,rollback'
+      && 'log' in retained.value === false
+      && retained.value.outcome === 'failed'
+      && JSON.stringify(closedLog.value) === '[]',
+    `shapes ${JSON.stringify([before, after])} · K-4 `
+      + `${closedLog.ok ? JSON.stringify(closedLog.value) : closedLog.caught.status} · K-5 outcome `
+      + `${retained.ok ? retained.value.outcome : retained.caught.status}`);
+  // (d) THE SINGLE-COPY PROOF: the consumer's record keeps the list; the store's copy is not that object.
+  P("D-58 · the crossed refusal's log · the store's closed record", [handed === null ? '<none>' : handed.length,
+    'log' in retained.value ? '<retained>' : '<let go>']);
+  P("D-58 · ONE OBJECT? (`K-5`'s answer === the handed record?)", retained.value === crossed);
+  A('DW-11.4', '`D-58` — the handoff made SINGLE-COPY: *"a retained copy is a second source of truth that can disagree with the one the consumer holds"* (`D-55` item 6\'s ground, read forward)',
+    'THE CONSUMER STILL HOLDS ITS RECORD AFTER THE STORE DROPPED ITS OWN: the crossed refusal\'s list is populated and frozen, `K-5`\'s answer is NOT that object, and the store\'s record carries no list at all',
+    crossed !== null && handed !== null && handed.length > 0
+      && Object.isFrozen(handed) === true
+      && retained.value !== crossed
+      && 'log' in retained.value === false,
+    `handed ${handed === null ? '<none>' : handed.length} · frozen ${handed !== null && Object.isFrozen(handed)}`
+      + ` · same object ${retained.value === crossed} · store log `
+      + `${'log' in retained.value ? '<retained>' : '<let go>'}`);
+  console.log('');
+  console.log('        THE SENTENCE TO CARRY AWAY (`D-58`): A RUNNING COMMIT HANDS A CLIENT NOTHING — both readers');
+  console.log('        refuse `KC-7`, and the pass\'s own context carries no commit — and once the commit RESOLVES OR');
+  console.log('        REJECTS the store keeps the OUTCOME, the OPS and the REVERSAL and lets the MESSAGE LOG go: the');
+  console.log('        record the consumer holds is the only copy of it, which is what the seal was for.');
+}
+
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════
 // THE RUN'S OWN REPORT — `D-21`: a cell that did not run may not exit 0

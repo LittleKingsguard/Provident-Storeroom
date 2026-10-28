@@ -61,7 +61,8 @@ import {
   assertKernelForm, assertLogEntry, assertSeqIncreasesFromOne, assertAttemptReport,
   assertRollbackStep, assertAttemptRef, capture, entries, checkIds, repairRunsFor, noop,
   passAtRegistration, recordsAfterRegistration,
-  listenAndRegister, carriesHandle, setHandles, setAddresses, } from './constraint-kernel-helpers.mjs';
+  listenAndRegister, carriesHandle, setHandles, setAddresses,
+  handedLog, assertRetainedRecord, } from './constraint-kernel-helpers.mjs';
 
 // ── THE DETERMINISTIC PINNED SEEDS ───────────────────────────────────────────────────────────────
 //
@@ -360,15 +361,21 @@ test('ck_prop_P_IM_2_no_attempt_record_member_crosses_the_store_s_surface', asyn
       assert.deepEqual(Object.keys(record).sort(), ['attempt', 'op', 'pending', 'triggered'],
         'the commit record carries exactly the four declared members and never a store write result');
       const r = capture(() => runAttempt(store, record));
-      const closed = r.threw ? log(store, record.attempt) : r.value.log;
-      assert.ok(Array.isArray(closed) || closed === undefined, 'the closed record is reachable from K-4');
+      // **⟶ `D-58`: THE HANDOFF IS THE DRIVE'S, AND THE STORE RETAINS NO LOG AFTER IT.** `K-4` over a
+      // closed attempt ANSWERS the empty retained list, `K-5` answers the retained record, and the entries
+      // are read where the handoff put them — on the refusal this drive caught, or on `K-3`'s return.
+      const closed = r.threw ? handedLog(r.thrown) : r.value.log;
       if (r.threw) {
         assertKernelForm(r.thrown, 'P-IM-2 failure');
         assertAttemptRef(record.attempt, 'the attempt reference');
+        assert.deepEqual(log(store, record.attempt), [], 'the store retains no log (`D-58`)');
+        assert.equal(report(store, record.attempt).outcome, 'failed', 'and K-5 answers the failed arm');
       } else {
         assertAttemptReport(r.value, 'P-IM-2 pass');
-        assert.deepEqual(report(store, record.attempt), r.value, 'K-5 reaches the same closed record');
+        assertRetainedRecord(report(store, record.attempt), 'P-IM-2 retained record');
+        assert.deepEqual(report(store, record.attempt).ops, r.value.ops, 'the retained ops are the same ops');
       }
+      assert.ok(Array.isArray(closed), 'the handed-off list is a list on both arms');
     }),
   });
   assert.deepEqual(result.failures, [],
@@ -478,7 +485,7 @@ test('ck_prop_P_IM_3_no_drive_of_this_unit_produces_a_store_member_as_a_constrai
 // ═══════════════════════════════════════════════════════════════════════════════════════════════
 
 test('ck_prop_P_SM_4_every_attempt_reaches_exactly_one_declared_terminal_answer', async () => {
-  const { register, commit, runAttempt, report } = await kernel();
+  const { register, commit, runAttempt, report, log } = await kernel();
   const result = row({
     id: 'P-SM-4',
     strategies: ['S-ATT-ARM', 'S-ATT-SHAPE'],
@@ -1151,7 +1158,7 @@ test('ck_prop_P_IM_1_the_handle_check_is_the_store_s_on_both_arms', async () => 
  * closure written outside the carried list).
  */
 test('ck_prop_P_IM_2_the_two_disposal_arms_and_the_log_they_carry', async () => {
-  const { register, commit, runAttempt, report } = await kernel();
+  const { register, commit, runAttempt, report, log } = await kernel();
   const result = row({
     id: 'P-IM-2',
     strategies: ['S-REC-DISPOSE'],
@@ -1169,15 +1176,16 @@ test('ck_prop_P_IM_2_the_two_disposal_arms_and_the_log_they_carry', async () => 
         + 'arm is the other');
       if (r.threw) {
         assertKernelForm(r.thrown, 'S-REC-DISPOSE failure');
-        assert.deepEqual(r.thrown.log, closed.log,
-          'the thrown log IS the closed record\'s log, member for member — the failure carries the '
-          + 'attempt\'s own list and copies it nowhere (`fail-surface.md §1.1` item 3)');
         assert.equal(closed.outcome, 'failed', 'and the record it disposes to answers the failed arm');
+        assert.equal('log' in closed, false,
+          'the store retains no log after the handoff (`D-58`); the refusal carries it, at its own `log`');
+        assert.ok(Array.isArray(r.thrown.log), 'the failure\'s own list is a list (`fail-surface.md §1.1` item 3)');
+        assert.deepEqual(log(store, record.attempt), [], 'and K-4 answers the empty retained list');
       } else {
         assertAttemptReport(r.value, 'S-REC-DISPOSE success');
         assert.equal(r.value.outcome, 'passed', 'a passed attempt is RETURNED and never thrown away');
-        assert.deepEqual(r.value, closed,
-          'and `K-5` over the closed attempt answers the very report `K-3` returned');
+        assertRetainedRecord(closed, 'S-REC-DISPOSE retained record');
+        assert.equal(closed.outcome, r.value.outcome, 'and `K-5` answers the same arm the return did');
       }
     }),
   });
@@ -1684,8 +1692,9 @@ test('ck_prop_P_TP_8_the_marker_writes_no_store_entry_no_journal_entry_and_no_cl
       assert.equal('appliedRepairs' in closed, false,
         'THE CLOSED FORM CARRIES THE MARKER NOWHERE — the five-member `AttemptReport` is its shape and '
         + '`appliedRepairs` is not one of the five (`§5.8`, `S-MARK-NO-HOME`)');
-      assert.equal(entries(closed.log, 'repair-run').length, 1,
-        'while the marker\'s own consequence IS observable in the log: the pair\'s repair ran once');
+      // **⟶ `D-58`: THE LIST IS THE ONE `K-3` HANDED OFF — the store retains none of it.**
+      assert.equal(entries(done.log, 'repair-run').length, 1,
+        'while the marker\'s own consequence IS observable in the handed-off log: the pair\'s repair ran once');
       assert.equal(closed.ops.length, 2,
         'and `ops` carries the two ops the two write VERBS returned and no third op of the marker\'s '
         + 'own (`§5.2`, `P-IM-2`: `ops` is the ops THIS ATTEMPT CREATED)');
