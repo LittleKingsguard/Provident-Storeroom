@@ -321,7 +321,7 @@ test('def_s_a_constraint_bodys_throw_at_registration_crosses_as_the_one_plain_fo
 // UNMARKED, and a LISTENER body's throw (`docs/specs/storeroom-js/surface.md §2.7` item 4: "NOT CAUGHT, NOT
 // RETRIED AND NOT REPORTED"). The pair together is the protection: a cell that kept only the converted arm
 // would launder a forgery, and a cell that kept only the identity arm would deny the conversion.
-test('def_s_a_forged_object_crosses_as_itself_only_where_no_constraint_body_threw_it', () => {
+test('def_s_a_forged_object_crosses_as_itself_only_where_no_constraint_body_threw_it', (t) => {
   // THE FOUR OBSERVATIONS ARE ALL TAKEN FIRST AND ASSERTED LAST, so a cell that reddens still reports every
   // arm it drove (`D-21`: a cell that did not run says so). EACH ARM THROWS ITS OWN OBJECT: the kernel's mark
   // is an own member OF THE THROWN VALUE, so a value reused across arms would arrive at the second arm
@@ -466,6 +466,125 @@ test('def_s_a_forged_object_crosses_as_itself_only_where_no_constraint_body_thre
     "DEF-A / control: surface.md §2.7 item 4 — a listener body's throw is NOT CAUGHT, NOT RETRIED AND NOT REPORTED, so nothing marks it and it crosses AS ITSELF; observed " +
       JSON.stringify(seenFromListener && { status: seenFromListener.status, message: seenFromListener.message }),
   );
+
+  // ─────────────────────────────────────────────────────────────────────────────────────────
+  // DEF-AK — ONE INNER REFUSAL, TWO HOSTS, TWO ANSWERS (ADDED 2026-10-28, `D-51` item 3).
+  //
+  // THE MEASUREMENT THE ARM CLOSES: a LISTENER body propagates an inner refusal VERBATIM — same
+  // `status`, same `message`, same `log` — while a CONSTRAINT body making the IDENTICAL write had it
+  // REPLACED by a generated `ConstraintBodyThrew` whose single log entry was the OUTER attempt's, and
+  // in which the inner refusal's distinctive literal occurred ZERO TIMES.
+  //
+  // THE DECLARATION THIS ARM READS: `ConstraintBodyThrew` may be the status that crosses (the body did
+  // throw), but THE INNER REFUSAL — its `status`, its `message` and its `log` — MUST BE REACHABLE from
+  // what the caller receives, and the inner refusal's own literal must appear. And the crossed
+  // sentence, whose own bytes are "a constraint body's throwable crosses as this refusal", must stop
+  // claiming more than it delivers: it now says the throwable does NOT cross as the crossed refusal and
+  // names where the inner refusal crosses instead.
+  // ─────────────────────────────────────────────────────────────────────────────────────────
+  const INNER_LITERAL = 'inner-only-literal';
+  const INNER_REFUSAL = Symbol.for('provident-storeroom.inner-refusal');
+  // THE INNER REFUSAL THE TWO HOSTS MAKE: a write at an address whose own pair refuses the value the
+  // body writes. The refusal's sentence carries the literal, which is the string the swallowed arm lost.
+  const makeInnerHost = () => {
+    const host = storeCreate({ journalLength: 64, listeners: [] });
+    host.write([INNER_LITERAL], 'mem', 1);
+    host.addConstraint({ address: [INNER_LITERAL], id: 'inner-guard' }, (context) => (context.value === 2
+      ? { message: `the inner guard refuses the value 2 at ${INNER_LITERAL}` }
+      : true));
+    return host;
+  };
+  const innerWrite = (host) => host.write([INNER_LITERAL], 'mem', 2);
+  // THE INNER REFUSAL ALONE, so the cells below are read against the refusal the hosts reproduce.
+  const innerAlone = refusalOf(() => innerWrite(makeInnerHost()),
+    'the inner refusal, driven alone (the same write the two hosts make)');
+
+  // HOST A — a LISTENER body making the identical write. NOTHING MARKS A LISTENER'S THROW.
+  const listenerHost = makeInnerHost();
+  let listenerInner = null;
+  listenerHost.listen('h-ak', [['a']]);
+  listenerHost.register('h-ak', () => {
+    try {
+      innerWrite(listenerHost);
+    } catch (inner) {
+      listenerInner = inner;
+      throw inner;
+    }
+  });
+  const listenerCaught = refusalOf(() => listenerHost.write(['a'], 'mem', 7),
+    'a write whose listener body makes the refused inner write');
+
+  // HOST B — a CONSTRAINT body making the IDENTICAL write, which the kernel marks and this surface
+  // converts. The crossed status is the body-throw member; the inner refusal must cross BESIDE it.
+  const constraintHost = makeInnerHost();
+  constraintHost.addConstraint({ address: ['a'], id: 'outer-pair' }, (context) => {
+    if (context.value !== 7) return true;
+    innerWrite(constraintHost);
+    return true;
+  });
+  const bodyCaught = refusalOf(() => constraintHost.write(['a'], 'mem', 7),
+    'a write whose constraint body makes the refused inner write');
+  const carriedInner = bodyCaught[INNER_REFUSAL];
+
+  // ── HOST A, STILL VERBATIM: the listener arm must not have moved ──────────────────────────────
+  assert.notEqual(listenerInner, null,
+    'DEF-AK: the listener host must have CAUGHT AND RETHROWN the inner refusal, or the identity arm reads '
+      + 'a value the drive never made');
+  assert.equal(listenerCaught, listenerInner,
+    'DEF-AK / control: surface.md §2.7 item 4 — a listener body is NOT CAUGHT and its throwable crosses '
+      + `AS ITSELF, so the caller meets the VERY inner refusal object (identity); the drive caught `
+      + `${JSON.stringify(listenerCaught && listenerCaught.status)}`);
+  assert.equal(listenerCaught.status, 'ConstraintPassRefused',
+    `DEF-AK / control: the listener host crosses the INNER refusal's status, verbatim; read `
+      + `${JSON.stringify(listenerCaught && listenerCaught.status)}`);
+  assert.equal(listenerCaught.message, innerAlone.message,
+    `DEF-AK / control: and its message, verbatim; read ${JSON.stringify(listenerCaught && listenerCaught.message)}`);
+  // THE LOG IS VERBATIM MEMBER FOR MEMBER BESIDE THE ONE MEMBER THAT CANNOT BE: `opId` is the store's own
+  // id for the op the host made, and two stores number their ops independently — the arm compares the
+  // entries' OWN bytes on every other member, so a lost or re-authored entry still reddens it.
+  const logBones = (log) => log.map((entry) => [entry.kind, entry.id, entry.message, entry.state]);
+  assert.equal(listenerCaught.log.length, innerAlone.log.length,
+    `DEF-AK / control: the listener host carries the inner refusal's log VERBATIM — same count `
+      + `(${innerAlone.log.length}); read ${JSON.stringify(listenerCaught && listenerCaught.log)}`);
+  assert.deepEqual(logBones(listenerCaught.log), logBones(innerAlone.log),
+    `DEF-AK / control: and the same entries, member for member beside \`opId\`; read `
+      + `${JSON.stringify(listenerCaught && listenerCaught.log)}`);
+
+  // ── HOST B, NOW HOLDING THE INNER REFUSAL BESIDE THE CROSSED ONE ───────────────────────────────
+  assertOnePlainForm(bodyCaught, 'DEF-AK the constraint-body host');
+  assert.equal(bodyCaught.status, 'ConstraintBodyThrew',
+    'DEF-AK: `ConstraintBodyThrew` MAY be the status that crosses — the body did throw — and it is; read '
+      + `${JSON.stringify(bodyCaught.status)}`);
+  assert.notEqual(bodyCaught, listenerInner,
+    'DEF-AK: the constraint host does NOT answer with the inner refusal as itself — the conversion stands');
+  assert.equal(bodyCaught.message.includes(INNER_LITERAL), true,
+    `DEF-AK: THE INNER REFUSAL'S OWN LITERAL MUST APPEAR — the swallowed arm lost it (zero occurrences); `
+      + `read ${JSON.stringify(bodyCaught.message)}`);
+  assert.equal(/does NOT cross as this refusal/.test(bodyCaught.message), true,
+    'DEF-AK: and the crossed sentence stops claiming more than it delivers: it says in its own words that '
+      + `the throwable does NOT cross as the crossed refusal; read ${JSON.stringify(bodyCaught.message)}`);
+  assert.equal(carriedInner !== undefined, true,
+    'DEF-AK: THE INNER REFUSAL MUST BE REACHABLE from what the caller receives — under '
+      + `Symbol.for('provident-storeroom.inner-refusal'); read ${JSON.stringify(Object.keys(bodyCaught))}`);
+  assert.equal(carriedInner.status, 'ConstraintPassRefused',
+    `DEF-AK: the inner refusal's own status is reachable; read ${JSON.stringify(carriedInner.status)}`);
+  assert.equal(carriedInner.message, innerAlone.message,
+    `DEF-AK: and its own message; read ${JSON.stringify(carriedInner.message)}`);
+  assert.ok(Array.isArray(carriedInner.log) && carriedInner.log.length === innerAlone.log.length,
+    `DEF-AK: and its own log (${innerAlone.log.length} entries); read `
+      + `${JSON.stringify(carriedInner && carriedInner.log)}`);
+  assert.equal(carriedInner.log[0] === undefined ? false : true, true,
+    'DEF-AK: the carried log is a NON-EMPTY list of entries a consumer reads');
+
+  t.diagnostic('DEF-AK · ONE INNER REFUSAL, TWO HOSTS (2026-10-28): the listener host crossed '
+    + `${JSON.stringify(listenerCaught.status)} / ${JSON.stringify(listenerCaught.message)} with `
+    + `${listenerCaught.log.length} log entries — VERBATIM and by identity; the constraint host crossed `
+    + `${JSON.stringify(bodyCaught.status)} / ${JSON.stringify(bodyCaught.message)} and carries the inner `
+    + `refusal beside it under Symbol.for('provident-storeroom.inner-refusal') — status `
+    + `${JSON.stringify(carriedInner.status)}, message ${JSON.stringify(carriedInner.message)}, `
+    + `${carriedInner.log.length} log entries — so the literal ${JSON.stringify(INNER_LITERAL)} occurs `
+    + `${String(bodyCaught.message).split(INNER_LITERAL).length - 1} time(s) in the message and `
+    + `${String(carriedInner.message).split(INNER_LITERAL).length - 1} time(s) in the carried refusal`);
 });
 
 // ─────────────────────────────────────────────────────────────────────────────────────────

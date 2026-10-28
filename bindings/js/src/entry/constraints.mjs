@@ -484,7 +484,7 @@ export function registrationCrossing(refusal) {
   // is the caller's own value and is answered as it was thrown.
   const carried = bodyThrowCarried(refusal);
   if (carried !== null) {
-    const converted = bodyThrowRefusal(carried);
+    const converted = bodyThrowRefusal(carried, refusal);
     if (converted !== null) throw converted;
   }
   if (isKernelBuiltRefusal(refusal) === false) throw refusal;
@@ -505,11 +505,11 @@ export function registrationCrossing(refusal) {
   // keeps its own trigger and its own sentence) — the `message` the STORE'S OWN GENERATED SENTENCE, and the
   // `log` the synthetic attempt's log where a repair was attempted and `[]` where none was. **NO `KC` TOKEN CROSSES** (`A120` (2); `docs/specs/storeroom-js/surface.md §2.12` item 3 item 2): the synthetic attempt's
   // terminal token stays in the kernel and reaches no caller.
-  throw {
+  throw packageRefusal({
     status: refusal.status,
     message: generated,
     log: refusalLog(refusal.log),
-  };
+  });
 }
 
 /// **THE DISABLED PAIR'S STANDING ELEMENT** — a function that PASSES (`kernel-surface.md §2.3` item 1:
@@ -1013,6 +1013,91 @@ function bodyThrowCarried(value) {
   return carried;
 }
 
+/// **⟶ ADDED 2026-10-28 — `DEF-AK`: THE INNER REFUSAL A CONSTRAINT BODY SWALLOWED AND THE CARRIER THAT PUTS
+/// IT BESIDE THE CROSSED ONE.**
+///
+/// **THE MEASUREMENT, STATED AS MEASURED.** A LISTENER body propagates an inner refusal VERBATIM — same
+/// `status`, same `message`, same two-entry `log`, same op — because no kernel frame catches a listener's body
+/// and nothing marks it. **A CONSTRAINT body making the IDENTICAL write had it REPLACED by the generated
+/// `ConstraintBodyThrew` form** (the set's rank `18`), whose single log entry was the OUTER attempt's and in
+/// which **the inner refusal's distinctive literal occurred ZERO TIMES**. **So the host you were inside decided
+/// what you were told**, and the crossed sentence's own *"a constraint body's throwable crosses as this
+/// refusal"* promised a carriage the crossing did not make.
+///
+/// **WHAT MOVES, AND WHAT DOES NOT.** `ConstraintBodyThrew` STAYS THE STATUS THAT CROSSES (the body did
+/// throw, and `DEF-S`'s ruling is unmoved); **the inner refusal — its `status`, its `message` and its own `log`
+/// — is carried BESIDE the crossed one** under this `Symbol.for` key, which both sides can spell and which
+/// `Object.keys` and `Object.getOwnPropertyNames` do not see. **The crossed `message` names the inner status,
+/// quotes the inner message and says in its own words that the value the body threw does NOT cross as the
+/// crossed refusal** — so the crossed sentence no longer claims more than it delivers, and the literal is in
+/// the text a consumer reads first. **NO MEMBER OF THE CROSSED FORM MOVES** (`{status, message, log}`, three
+/// own enumerable members), **the rank-`18` member is not renamed, no status is minted** (`DD-40`) and **an
+/// UNMARKED value still crosses as itself** (`DEF-A`'s protection, unmoved).
+const INNER_REFUSAL = Symbol.for('provident-storeroom.inner-refusal');
+
+/// **⟶ AND THE PROVENANCE MARK THAT MAKES AN INNER REFUSAL AN INNER REFUSAL, 2026-10-28 — `DEF-AK`, AND IT IS
+/// THE WHOLE REASON A SHAPE TEST CANNOT DO.**
+///
+/// **A CALLER'S BODY IS THE CALLER'S CODE, so a value it throws may carry `{status, message, log}` and be a
+/// FORGERY.** `DEF-A`'s protection — a forged refusal must never be answered as the package's own — has a
+/// second consequence here: **a forged shape must not have its text quoted back inside the package's crossed
+/// sentence either.** Measured on this pass's first cut: a constraint body throwing
+/// `{status: 'ValueNotAdmitted', message: 'the caller forged this refusal', log: []}` had the forged text
+/// printed in the crossed message as though the package had found a refusal there, which is the same
+/// laundering `DEF-A` closed one layer out.
+///
+/// **SO AN INNER REFUSAL IS IDENTIFIED BY A MARK THIS PACKAGE SETS ON THE FORMS IT BUILDS**, spelled here
+/// under a `Symbol.for` key exactly as `KERNEL_REFUSAL` and `CONSTRAINT_BODY_THREW_ENTRY` are, and never by a
+/// member a caller can spell. The kernel's own refusals (`isKernelBuiltRefusal`) count too: both are the
+/// store's forms, and a caller's value is neither.
+const PACKAGE_REFUSAL = Symbol.for('provident-storeroom.package-refusal');
+
+/// **THE ONE PLACE THIS FILE'S OWN REFUSAL FORMS ARE MARKED** — the three crossing arms and the judgement's
+/// own form reach it, so a refusal built here and then caught from a body is recognisable as the store's and
+/// never as a caller's. **NO MEMBER MOVES**: the mark is a symbol-keyed, non-enumerable own data member, so
+/// `Object.keys` still reads `["log","message","status"]` and no census of the three sees it.
+function packageRefusal(form) {
+  Object.defineProperty(form, PACKAGE_REFUSAL, {
+    value: true,
+    writable: false,
+    enumerable: false,
+    configurable: true,
+  });
+  return form;
+}
+
+/// **THE INNER REFUSAL A BODY'S THROWABLE CARRIES, OR `null`** — asked of the value the frame that CAUGHT it
+/// from the body has in hand, so the identity question is already answered: this reads the value's OWN data
+/// members (`D-35`'s read half) and answers the value only where it carries the surface's own refusal form —
+/// a non-empty `status` string, a `message` string and a `log` array. **A BODY THAT THREW SOMETHING ELSE IS
+/// `null`** (a `TypeError`, a string, a bare object with no `log`), and the crossed sentence then stands as
+/// the generated one: the throwable is not a refusal, there is no inner refusal to carry beside the crossed
+/// one, and nothing is invented for it.
+function innerRefusalThrown(thrown) {
+  if (thrown === null || typeof thrown !== 'object') return null;
+  // **THE PROVENANCE TEST COMES FIRST AND IS THE MARK, NOT THE SHAPE** (`PACKAGE_REFUSAL` above): a refusal
+  // this package built, or one the kernel built, is the store's; anything else — including a caller's forged
+  // three-member object — is not, and the crossed sentence never quotes a value it cannot attribute.
+  if (thrown[PACKAGE_REFUSAL] !== true && isKernelBuiltRefusal(thrown) === false) return null;
+  const status = ownDataMember(thrown, 'status');
+  const message = ownDataMember(thrown, 'message');
+  const log = ownDataMember(thrown, 'log');
+  if (typeof status !== 'string' || status.length === 0) return null;
+  if (typeof message !== 'string' || message.length === 0) return null;
+  if (Array.isArray(log) === false) return null;
+  return thrown;
+}
+
+/// **THE INNER REFUSAL A CROSSED REFUSAL CARRIES BESIDE IT, OR `null`** — the mark's read half, taken off
+/// the value this package BUILT and never off a caller's shape: the fact travels under the `Symbol.for` key
+/// above, so no member a caller can spell decides it.
+function innerRefusalCarried(value) {
+  if (value === null || typeof value !== 'object') return null;
+  const carried = value[INNER_REFUSAL];
+  if (carried === null || typeof carried !== 'object') return null;
+  return carried;
+}
+
 /// **THE ONE FAILURE FORM FOR A BODY'S THROW** — `{status, message, log}`, `§2.5` items 3–4's form at this arm
 /// too: the `status` the set's rank-`18` member, the `message` the STORE'S OWN GENERATED sentence (reached
 /// through the generator this package already holds, `addon_.errorMessage` — `DD-52` forbids a second source),
@@ -1021,17 +1106,43 @@ function bodyThrowCarried(value) {
 /// **A TREE THAT CARRIES NO USABLE GENERATOR ANSWERS `null`**, and both crossings then re-throw the marked
 /// value AS ITSELF — the same safe direction `registrationCrossing` takes for a kernel refusal, and no
 /// sentence is authored here.
-function bodyThrowRefusal(carried) {
+function bodyThrowRefusal(carried, thrown) {
   const addon_ = withAddon();
   if (typeof addon_.errorMessage !== 'function') return null;
   const subject = typeof carried.address === 'string' ? carried.address : '';
-  const generated = addon_.errorMessage(BODY_THREW_STATUS, subject);
+  let generated = addon_.errorMessage(BODY_THREW_STATUS, subject);
   if (typeof generated !== 'string' || generated.length === 0) return null;
-  return {
+  // **⟶ `DEF-AK`, 2026-10-28: THE INNER REFUSAL IS CARRIED BESIDE THE CROSSED ONE AND THE SENTENCE SAYS SO.**
+  // The value this frame was handed is the very value the body threw (the frame above caught it and marked it),
+  // so the inner refusal is in hand: where it carries the surface's own form, the generated sentence — whose
+  // own words are *"a constraint body's throwable crosses as this refusal"* — is followed by the clause that
+  // stops it claiming more than the crossing delivers, and the value itself travels under `INNER_REFUSAL`.
+  const inner = innerRefusalThrown(thrown);
+  if (inner !== null) {
+    const innerStatus = ownDataMember(inner, 'status');
+    const innerSaid = ownDataMember(inner, 'message');
+    generated = `${generated} — the value the constraint body threw does NOT cross as this refusal: it was `
+      + `ITSELF a refusal, ${JSON.stringify(innerStatus)} with the message ${JSON.stringify(innerSaid)}, and it `
+      + `crosses BESIDE this one under Symbol.for('provident-storeroom.inner-refusal') with its own log — the `
+      + `generated sentence above names the CODE for a body that threw and not the value the body threw`;
+  }
+  const crossed = {
     status: BODY_THREW_STATUS,
     message: generated,
     log: refusalLog(carried.log),
   };
+  packageRefusal(crossed);
+  if (inner !== null) {
+    // A SYMBOL-KEYED, NON-ENUMERABLE OWN MEMBER: `Object.keys` and `Object.getOwnPropertyNames` read the
+    // crossed form's three members exactly as they did, and the inner refusal is reachable by its name.
+    Object.defineProperty(crossed, INNER_REFUSAL, {
+      value: inner,
+      writable: false,
+      enumerable: false,
+      configurable: true,
+    });
+  }
+  return crossed;
 }
 
 function constraintCrossing(refusal) {
@@ -1043,7 +1154,7 @@ function constraintCrossing(refusal) {
   // `{status, message}` AND NO MARK STILL CROSSES AS ITSELF, BELOW.**
   const carried = bodyThrowCarried(refusal);
   if (carried !== null) {
-    const converted = bodyThrowRefusal(carried);
+    const converted = bodyThrowRefusal(carried, refusal);
     if (converted !== null) throw converted;
   }
   const isObject = refusal !== null && typeof refusal === 'object';
@@ -1076,11 +1187,11 @@ function constraintCrossing(refusal) {
     }
   }
   if (typeof status !== 'string' || kernelToken === false) {
-    throw {
+    throw packageRefusal({
       status: refusal.status,
       message: refusal.message,
       log: refusalLog(log),
-    };
+    });
   }
   // **THE KERNEL'S OWN `KC` REFUSAL.** Its `{status, message, log}` is the KERNEL'S OWN three-member form
   // (`docs/specs/storeroom-constraints/fail-surface.md §1.1`), and **⟶ FROM 2026-10-26 IT CROSSES WITH THE
@@ -1089,13 +1200,13 @@ function constraintCrossing(refusal) {
   // **THE TOKEN STILL DOES NOT ENTER `status`** — it is on the attempt's own `outcome` entry's `state` in the
   // `log`, which is `D-38`'s reading — **AND `FileCommitFailed` IS NOW THE SAVE'S CODE ALONE, minted by save
   // failures only.** The message is the kernel's own, UNMOVED; the `log` is the attempt's, VERBATIM.
-  throw {
+  throw packageRefusal({
     status: CONSTRAINT_PASS_REFUSED,
     message: typeof refusal.message === 'string'
       ? refusal.message
       : 'the write was refused by a constraint of this attempt',
     log: refusalLog(log),
-  };
+  });
 }
 
 
@@ -1336,10 +1447,16 @@ function reversalAtRest(instance) {
 /// the store object, so a second store is a second record, the record dies with its store, and **NO MEMBER IS
 /// ADDED TO THE PRODUCT, TO A RECORD OR TO THE KERNEL** (`A117` (D6)'s four-member guardrail is untouched).
 ///
-/// **`pending` IS THE REQUEST** — `{ watched, reversalId, window }`:
+/// **`pending` IS THE REQUEST** — `{ watched, reversalId, window, asked }`:
 ///   * `watched` the check's own beginning captured BEFORE the action ran (`reversalWatch`);
 ///   * `reversalId` the store's own echo of the id the reversal named (attached by `judgeReversal` in the same
 ///     frame, one line after the action);
+///   * **⟶ `asked` THE PAIR THAT WAS BEING ASKED WHEN THE ACTION WAS RAISED, OR `null`, ADDED 2026-10-28 —
+///     `DEF-AL`, THE MISATTRIBUTION.** The budget's refusal used to name `watched[0]` — the FIRST WATCHED
+///     ADDRESS — so **registration order decided the accusation**: measured, the pair it named had answered
+///     `true` on every ask it received. **The ask in flight is known at the instant the request is raised**
+///     (`ASKING` below, set by `judgeReversal` around the one body invocation and read here), so the request
+///     records the pair and the address the check was actually at, and the arm past the budget names THOSE.
 ///   * **⟶ `window` the IDENTITY OF THE COMMIT THE ACTION WAS TAKEN IN** (`state.mjs`'s `currentWindow`, minted
 ///     with the opening and answered by every joining call), **ADDED 2026-10-27 — AND IT IS WHAT RETIRES THE
 ///     COUNTING FRAME.** `D-42`'s own sentence is *"a request belongs to the act that raised it"*; while the
@@ -1351,6 +1468,18 @@ function reversalAtRest(instance) {
 ///     a request raised earlier in the SAME window (a listener body's, consumed by a nested write's own drain or
 ///     by the enclosing pass's) still belongs to that window and is still consumed.
 const RESTARTS = new WeakMap();
+
+/// **⟶ THE ASK IN FLIGHT, 2026-10-28 — `DEF-AL`'s ONE NEW READ, AND IT IS A `WeakMap` FOR THE SAME REASONS
+/// THE RESTART RECORD IS ONE** (`D-30`; `D-46`): keyed by the store, so a second store is a second record, the
+/// record dies with its store, and no member is added to the product, to a record or to the kernel.
+///
+/// **WHAT IT CARRIES, AND WHY IT CANNOT LIVE ON THE REQUEST ALONE.** `{ entry, address }` — the pair
+/// `judgeReversal` is asking and the address it is asking at — set immediately BEFORE the one body invocation
+/// and cleared immediately after it, on every arm including the throwing one. **A body that raises a reversal
+/// does it INSIDE that invocation**, so `reversalWatch`'s in-flight arm reads the entry standing here and
+/// stamps it on the request it raises. Without it the arm past the budget has nothing to name but the watch's
+/// first address, which is a fact about registration order and not about the check.
+const ASKING = new WeakMap();
 
 /// **HOW MANY RESTARTS ONE PASS'S COMMIT SCOPE MAY TAKE** — the bound `drainRestartRequests` spends. Three is
 /// the declared figure: two fewer than any arm of this package's own batteries drives, and enough that a lawful
@@ -1446,11 +1575,19 @@ export function drainRestartRequests(instance, report) {
     if (rounds > RESTART_LIMIT) {
       // THE CHECK DID NOT SETTLE: THE SAME FORM, THE SAME STATUS, THE SAME COMPENSATION (`D-41` item `4`'s
       // direction), and the log entry says the budget was spent rather than that a pair refused.
-      const one = request.watched[0];
+      //
+      // **⟶ AND IT NAMES THE ADDRESS THE BUDGET WAS SPENT AT AND THE PAIR THAT WAS BEING ASKED, 2026-10-28 —
+      // `DEF-AL`, MEASURED.** This arm named `request.watched[0]` — the FIRST WATCHED ADDRESS — so
+      // REGISTRATION ORDER DECIDED THE ACCUSATION, and the pair it named had answered `true` on every ask it
+      // received: `log[0]` named the true cause while naming a passing pair by id. **THE REQUEST'S OWN
+      // `asked` IS THAT PAIR** (`reversalWatch`'s clause above), and it is the one the check was at when it
+      // ran out. Where no ask stood, the entry says so and names no pair it cannot know.
+      const asked = request.asked !== null && request.asked !== undefined ? request.asked : null;
+      const one = asked === null ? request.watched[0] : { entry: asked.entry, address: asked.address };
       const after = standingAt(instance, one.address);
       const undo = restoreReversal(instance, request.watched);
       return carryRestartRefusal(report,
-        reversalRefusal(one, after, null, request.reversalId, undo, null, true));
+        reversalRefusal(one, after, null, request.reversalId, undo, null, true, asked !== null));
     }
     try {
       judgeReversal(instance, request.watched, request.reversalId);
@@ -1639,10 +1776,17 @@ export function reversalWatch(state, instance) {
   // runs in, so *"a request belongs to the act that raised it"* (`D-42` item `3`) is MEASURED at this line and
   // checked at that one, and the `CHECK_DEPTH` frame that once approximated it is deleted with its clears.
   if (reversalAtRest(instance) === false) {
+    // **⟶ AND THE REQUEST NAMES THE ASK IT WAS RAISED UNDER, 2026-10-28 (`DEF-AL`).** A body acts INSIDE the
+    // one invocation `judgeReversal` wrapped in `ASKING`, so the pair and the address the check was actually
+    // asking are in hand at this instant. `null` where no ask stands (an action raised by a body outside a
+    // judgement — a listener's own window is the measured arm), and the arm past the budget then says so
+    // rather than naming a pair it cannot know.
+    const asking = ASKING.get(instance);
     restartRecord(instance).pending = {
       watched: watchStanding(state, instance),
       reversalId: null,
       window: currentWindow(instance),
+      asked: asking === undefined ? null : asking,
     };
     return watched;
   }
@@ -1804,11 +1948,18 @@ export function judgeReversal(instance, watched, reversalId) {
       // a body's throwable to the surface's rank-`18` form and re-throws anything unmarked as itself, and BOTH
       // arrive here: the reversal has run, so a judgement that cannot complete restores and refuses (below).
       let outcome;
+      // **⟶ AND THE ASK IS NAMED BEFORE THE BODY RUNS, 2026-10-28 (`DEF-AL`).** A body that acts does it
+      // inside this one invocation, and the request it raises must name the pair the check was ASKING — not
+      // the watch's first address. The mark is cleared on every arm, the throwing one included, so no later
+      // act inherits an ask that has ended.
+      ASKING.set(instance, { entry: one.entry, address: one.address });
       try {
         outcome = reversalOutcome(instance, one.entry, one.address, one.after);
       } catch (thrown) {
         const undo = restoreReversal(instance, moved);
         throw reversalRefusal(one, one.after, null, reversalId, undo, thrown);
+      } finally {
+        ASKING.delete(instance);
       }
       if (outcome === true) continue;
       // **THE FIRST VIOLATING PAIR DECIDES AND THE SECOND IS NOT EVALUATED** (`attempt-lifecycle.md §2.4` item 5
@@ -2209,7 +2360,10 @@ function reversalOutcome(instance, entry, address, value) {
     // attempt stands at a reversal's judgement.
     carried.address = addressSpelling(address);
     carried.log = [];
-    const converted = bodyThrowRefusal(carried);
+    // **⟶ AND THE BODY'S OWN VALUE IS HANDED IN, 2026-10-28 (`DEF-AK`)**: `bodyThrowRefusal` carries an inner
+    // refusal beside the crossed one and names it in the crossed sentence, and the value the body threw is
+    // the only place that refusal stands.
+    const converted = bodyThrowRefusal(carried, body);
     throw converted === null ? body : converted;
   }
 }
@@ -2254,7 +2408,7 @@ function reversalSaid(outcome) {
 /// **WHERE THE THROWN VALUE IS NOT THE KERNEL'S MARKED FORM** (a body's raw throwable on a tree with no usable
 /// generator), the same rank-`18` refusal is built here — the restoration and the pair's name cross regardless
 /// of the body's own value's class, which is the difference between a compensating act and a conversion.
-function reversalRefusal(one, after, said, reversalId, undo, thrown, unsettled = false) {
+function reversalRefusal(one, after, said, reversalId, undo, thrown, unsettled = false, spentAtAsked = true) {
   const addon_ = withAddon();
   // **THE `<SEGMENT>` SLOT IS THE ADDRESS SPELLING THE KERNEL'S OWN REGISTRATION REFUSAL HANDS THE SAME
   // GENERATOR** (`kernel-registration.mjs`'s `registrationRefusal`: the segments joined by `/`, BARE — the
@@ -2278,15 +2432,48 @@ function reversalRefusal(one, after, said, reversalId, undo, thrown, unsettled =
         + 'constraints admit'
       : 'the reversal was refused by a constraint body that threw, the state it would leave could not be judged';
   }
+  // **⟶ AND A SPENT BUDGET IS NOT A PAIR REFUSING, IN ITS OWN WORDS — 2026-10-28, `DEF-AL`, MEASURED.** The
+  // budget's crossed `message` used to be BYTE-IDENTICAL to a genuine refusal's (the same rank-`20` member and
+  // the same generated sentence at the same subject), so a consumer reading only the message could not tell a
+  // real refusal from an exhausted budget. **The store's generated sentence still stands first (`DD-52`: one
+  // source for the code), and this arm appends the fact the code cannot carry** — the check did not settle and
+  // NO PAIR REFUSED ANYTHING; a pair body acted at every restart. A genuine refusal's message never carries
+  // this clause, which is what makes the two distinguishable.
+  if (unsettled === true) {
+    message = `${message} — this refusal is a RESTART BUDGET EXHAUSTION and NOT a constraint pair refusing a `
+      + `state: no pair refused the state the check was asking it for, a pair body acted inside the check at `
+      + `every restart, the budget of ${RESTART_LIMIT} restarts is spent and the check could not settle`;
+  }
+  // **⟶ AND AN INNER REFUSAL THE BODY THREW IS CARRIED BESIDE THE CROSSED ONE, 2026-10-28 (`DEF-AK`).** The
+  // body that threw at this judgement threw through `reversalOutcome`, whose conversion is `bodyThrowRefusal`'s
+  // — so the converted form carries the inner refusal under the same symbol, and it travels on from here.
+  const inner = thrown === null ? null : innerRefusalCarried(thrown);
+  if (inner !== null) {
+    const innerStatus = ownDataMember(inner, 'status');
+    const innerSaid = ownDataMember(inner, 'message');
+    message = `${message} — the value the constraint body threw does NOT cross as this refusal: it was ITSELF a `
+      + `refusal, ${JSON.stringify(innerStatus)} with the message ${JSON.stringify(innerSaid)}, and it crosses `
+      + `BESIDE this one under Symbol.for('provident-storeroom.inner-refusal') with its own log`;
+  }
   // **THE LOG ENTRY'S SENTENCE, AT ITS THREE ARMS** — a pair that refused the state the reversal (or the
   // in-commit action) left, a body that threw at the judgement of it, and — from `D-42` — **the restart's own
   // budget spent**. The third arm is the one the restart's exhaustion reaches and it names no refusing pair.
   let spelled;
   if (unsettled === true) {
-    spelled = `the constraint ${one.entry.id} could not be asked a state that would settle at `
-      + `${addressSpelling(one.address)}: the value there is ${standingSpelling(after)} — the check was `
-      + `restarted ${RESTART_LIMIT} times and a pair body acted inside the check at every restart, so the `
-      + `restart budget is spent and the check does not pass — ${undoSpelling(undo)}`;
+    // **⟶ AND THE ENTRY NAMES THE PAIR THE CHECK WAS ASKING AND THE ADDRESS IT WAS ASKING AT, 2026-10-28
+    // (`DEF-AL`).** It used to name the FIRST WATCHED pair — a passing one, by id — because registration order
+    // decided it. The `spentAtAsked` arm says plainly WHEN THE BUDGET RAN OUT WITH NO ASK IN FLIGHT, so the
+    // entry never claims to name a pair it cannot know.
+    spelled = spentAtAsked === true
+      ? `the constraint ${one.entry.id} could not be asked a state that would settle at `
+        + `${addressSpelling(one.address)}: the value there is ${standingSpelling(after)} — this pair was being `
+        + `asked when the restart budget ran out, it did not refuse anything, a pair body acted inside the `
+        + `check at every restart, the check was restarted ${RESTART_LIMIT} times and the budget is spent, so `
+        + `the check does not pass — ${undoSpelling(undo)}`
+      : `no pair was being asked when the restart budget ran out at ${addressSpelling(one.address)}: the value `
+        + `there is ${standingSpelling(after)} — a pair body acted inside the check without an ask in flight, `
+        + `the check was restarted ${RESTART_LIMIT} times and the budget is spent, so the check does not pass `
+        + `— ${undoSpelling(undo)}`;
   } else if (thrown === null) {
     spelled = `the constraint ${one.entry.id} refused the state the reversal left at `
       + `${addressSpelling(one.address)}: the value there is ${standingSpelling(after)}`
@@ -2331,7 +2518,18 @@ function reversalRefusal(one, after, said, reversalId, undo, thrown, unsettled =
   // **THE CROSSED `status` IS THE ARM'S OWN AND IS NEVER MINTED** (`DD-40`): rank `20` where a pair refused the
   // state the reversal left, rank `18` where a pair's body threw at the judgement of it (`D-41` item `4`). The
   // sentence beside it was generated for that same code — one source for each (`DD-52`).
-  return { status, message, log: refusalLog(log) };
+  const crossed = packageRefusal({ status, message, log: refusalLog(log) });
+  if (inner !== null) {
+    // THE INNER REFUSAL TRAVELS ON THE REFUSAL THE CALLER CATCHES, under the same symbol and the same
+    // non-enumerable discipline `bodyThrowRefusal` uses: the crossed form's three members are unmoved.
+    Object.defineProperty(crossed, INNER_REFUSAL, {
+      value: inner,
+      writable: false,
+      enumerable: false,
+      configurable: true,
+    });
+  }
+  return crossed;
 }
 
 /// **THE ADDRESS'S OWN `<SEGMENT>` SPELLING, JOINED BY `/` AND BARE** — the kernel's own

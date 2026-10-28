@@ -351,6 +351,11 @@ test('IN-COMMIT RESTART (5) · TERMINATION: a pair body that issues a reversal o
   let next = 1;
   const restartAsks = [];
   const actions = [];
+  // **⟶ AND A PASSING PAIR IS REGISTERED FIRST, 2026-10-28 — `DEF-AL`, THE MISATTRIBUTION THIS CELL NOW
+  // MEASURES.** The budget's refusal used to name `watched[0]` — the FIRST WATCHED ADDRESS — so REGISTRATION
+  // ORDER DECIDED THE ACCUSATION. This pair is watched first, sits at an address no reversal below moves, and
+  // answers `true` on every ask it receives: **it is the innocent the entry must not name.**
+  const registeredDecoy = attempt(() => store.addConstraint({ address: ['t5'], id: 'passing-pair' }, () => true));
   const registered = attempt(() => store.addConstraint({ address: [], id: 'rt' }, () => {
     if (armed === false) return true;
     restartAsks.push(restartAsks.length + 1);
@@ -370,6 +375,9 @@ test('IN-COMMIT RESTART (5) · TERMINATION: a pair body that issues a reversal o
   const caught = terminal.ok === false ? terminal.caught : null;
   const log = logOf(caught);
 
+  assert.equal(registeredDecoy.ok, true,
+    `the PASSING pair registered first must REGISTER, or the misattribution arm has no innocent to name: `
+      + `the call caught ${JSON.stringify(registeredDecoy.caught)}`);
   assert.equal(registered.ok, true,
     `the register's pair must REGISTER (it passes at the state standing then): the call caught `
       + `${JSON.stringify(registered.caught)}`);
@@ -385,7 +393,47 @@ test('IN-COMMIT RESTART (5) · TERMINATION: a pair body that issues a reversal o
     `and the SAME form (${JSON.stringify(REFUSAL_MEMBERS)}): ${JSON.stringify(Object.keys(caught))}`);
   assert.equal(log.length, 1, `ONE log entry: ${JSON.stringify(log)}`);
   assert.equal(log[0].id, 'rt',
-    `the entry NAMES the pair the restart could not settle: ${JSON.stringify(log[0])}`);
+    `the entry NAMES THE PAIR THAT WAS BEING ASKED WHEN THE BUDGET RAN OUT — not the first watched one, `
+      + `which is 'passing-pair' and answered true on every ask: ${JSON.stringify(log[0])}`);
+  // **⟶ `DEF-AL`, 2026-10-28: THE ACCUSATION IS THE ASK'S, AND THE SENTENCE SAYS WHAT THIS ARM IS.** The
+  // entry must not name the passing pair, must say which pair was being asked, and the crossed message must
+  // say in its own words that this is a budget exhaustion and not a pair refusing — while a GENUINE refusal
+  // still reads as one (the control below).
+  assert.equal(/passing-pair/.test(log[0].message), false,
+    `the entry does NOT accuse the passing pair the watch listed first: ${JSON.stringify(log[0].message)}`);
+  assert.equal(/being asked when the restart budget ran out/.test(log[0].message), true,
+    `and it says the named pair was the one BEING ASKED when the budget ran out: `
+      + `${JSON.stringify(log[0].message)}`);
+  assert.equal(/it did not refuse anything/.test(log[0].message), true,
+    `and that the named pair refused nothing: ${JSON.stringify(log[0].message)}`);
+  assert.equal(/RESTART BUDGET EXHAUSTION and NOT a constraint pair refusing/.test(caught.message), true,
+    `AND THE CROSSED MESSAGE IS NOT BYTE-IDENTICAL TO A GENUINE REFUSAL'S: it says in its own words that `
+      + `this is a budget exhaustion and not a pair refusing: ${JSON.stringify(caught.message)}`);
+  // THE CONTROL: the SAME status, the SAME form, and a message that is a pair's refusal and carries no
+  // budget clause — so the two are distinguishable to a consumer reading only the message.
+  const control = storeCreate({ journalLength: 16, listeners: [] });
+  let controlArmed = false;
+  control.addConstraint({ address: ['a'], id: 'genuine-refuser' }, () =>
+    (controlArmed === false ? true : { message: 'the genuine refuser refuses this state' }));
+  controlArmed = true;
+  let genuine = null;
+  try {
+    control.write(['a'], 'mem', 1);
+  } catch (refused) {
+    genuine = refused;
+  }
+  assert.equal(genuine === null ? null : genuine.status, PASS_REFUSED,
+    `the control's genuine refusal crosses the same status (${JSON.stringify(PASS_REFUSED)}): read `
+      + `${JSON.stringify(genuine && genuine.status)}`);
+  assert.equal(genuine.message, 'the genuine refuser refuses this state',
+    `and the control's message is the REFUSING PAIR'S own sentence, not the store's pass sentence: read `
+      + `${JSON.stringify(genuine && genuine.message)}`);
+  assert.notEqual(genuine.message, caught.message,
+    `SO THE TWO ARE DISTINGUISHABLE BY THE MESSAGE ALONE — the budget arm and the genuine refusal do not `
+      + `share a byte-for-byte sentence (${JSON.stringify(genuine.message)} against `
+      + `${JSON.stringify(caught.message)})`);
+  assert.equal(/RESTART BUDGET EXHAUSTION/.test(genuine.message), false,
+    `and the genuine refusal does NOT carry the budget clause: ${JSON.stringify(genuine.message)}`);
   // **THE BOUND, MEASURED AS A COUNT** — the restart asked exactly `RESTART_LIMIT` times, and the fourth
   // request is the one the budget spent.
   assert.equal(restartAsks.length, RESTART_LIMIT,
