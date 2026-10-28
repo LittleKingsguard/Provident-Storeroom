@@ -1042,18 +1042,21 @@ test('DEF-W (2) · a reversal performed INSIDE an open attempt is a STEP and is 
   assert.deepEqual(asked, [REFUSED, W_STEP_THIRD, SEED],
     `the pair is asked at REGISTRATION (${REFUSED}), by the PASS (${W_STEP_THIRD}) and — from \`D-42\` — by the `
       + `RESTART at the state the reversal left (${SEED}). THE DRIVE WAS ASKED AT ${JSON.stringify(asked)}`);
-  // **⟶ RE-DERIVED 2026-10-27 (`DEF-AE`'s FIX; THE ARCHITECT'S RULING: *"Cache the restoreMark when opening a
-  // commit, based on the last valid state/op of the journal."*).** **THE ASSERTION ABOVE READ `${W_STEP_THIRD}` —
-  // THE WRITE'S OWN LANDING — AND THAT WAS THE DEFECT THIS ROW IS FILED ABOUT.** The compensation used to name
-  // the journal's HEAD, and in this arm the enclosing write's own op stood at the head when the body's reversal
-  // ran; **the mark the restore owes is the one its commit cached at its opening**, taken before the value
-  // landed — so the store stands where the ATTEMPT FOUND IT, `${REFUSED}`. `RCA-8(g)` ANNOTATE-BESIDE: the
-  // cell's subject (the step is not judged, the terminal write refuses, the refusal restores) is unchanged; only
-  // the state restored to moves.
-  assert.equal(stepStanding, REFUSED,
-    `**THE STORE STANDS WHERE THE ATTEMPT FOUND IT** (${REFUSED}) — the mark the write's commit cached at its `
-      + `opening, and NOT the journal's head (${W_STEP_THIRD}, the write's own landing): the drive read `
-      + `${JSON.stringify(stepStanding)} where ${JSON.stringify(SEED)} would be the violating effect standing`);
+  // **⟶ RE-DERIVED 2026-10-27 (`DEF-AE`'s FIX: *"Cache the restoreMark when opening a commit, based on the last valid
+  // state/op of the journal."*) AND RE-DERIVED AGAIN 2026-10-28 — `D-63`, THE ARCHITECT, VERBATIM: *"After the
+  // constraint sweep ends in a valid state, bump the restore mark. The passing constraint state marks the new next
+  // valid state."*** **THE THREE READINGS, IN ORDER:** the journal's HEAD put the store at `${W_STEP_THIRD}` (the
+  // defect this row was filed on — the head *happened* to be the write's landing); the commit's OPENING mark put it
+  // at `${REFUSED}` (the state the attempt found); **and the LAST VALIDATED MARK puts it back at `${W_STEP_THIRD}`
+  // for a DIFFERENT REASON — the write's sweep PASSED, so the state it left is the state the sweep approved, and a
+  // validated edit STANDS against a later refusal.** The violating state the reversal left (`${SEED}`) is in
+  // neither reading. `RCA-8(g)` ANNOTATE-BESIDE: this cell's subject — the step is not judged, the terminal write
+  // refuses, the refusal restores — is unchanged; only the state restored to moves, and its reason with it.
+  assert.equal(stepStanding, W_STEP_THIRD,
+    `**A VALIDATED EDIT STANDS AGAINST A LATER REFUSAL** — the LAST VALIDATED MARK the commit holds `
+      + `(${W_STEP_THIRD}, the state the passing sweep approved), and NOT the state the commit opened at `
+      + `(${REFUSED}) and never the violating state the reversal left (${SEED}): the drive read `
+      + `${JSON.stringify(stepStanding)}`);
 
   // ── AND THE CONTROL'S SHAPE: THE REFUSAL UNDOES THE REVERSAL IT REFUSED (`DEF-W`'s `(a)`, discharged
   // 2026-10-26): the pre-reversal standing is back, and the log says so.
@@ -1077,7 +1080,7 @@ test('DEF-W (2) · a reversal performed INSIDE an open attempt is a STEP and is 
     + `${JSON.stringify(inner[0].value)} — not judged as a step; the pair was asked at `
     + `${JSON.stringify(asked)} (the third ask is the RESTART's, at ${JSON.stringify(SEED)}); the TERMINAL WRITE `
     + `refused ${JSON.stringify(stepWrite.caught.status)} with log ${JSON.stringify(stepWriteLog)}; the store `
-    + `stands at ${JSON.stringify(stepStanding)} — the pre-reversal standing, restored`);
+    + `stands at ${JSON.stringify(stepStanding)} — the validated landing standing, the reversal's effect gone`);
   t.diagnostic(`DEF-W (2) · D-38 (2026-10-26) · AT-REST control: the SAME reversal at the surface was REFUSED `
     + `with status ${JSON.stringify(restRollback.caught.status)}, log ${JSON.stringify(restLog)}; the store `
     + `stands at ${JSON.stringify(restStanding)} — the PRE-REVERSAL standing, restored by the refusal — so the `

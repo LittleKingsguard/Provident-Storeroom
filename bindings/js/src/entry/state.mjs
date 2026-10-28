@@ -251,6 +251,24 @@ const COMMIT_SCOPE = Symbol.for('provident-storeroom.commit-scope');
 /// itself, which it could not while the consumer was a frame outside the scope.
 const RESTART_DRAIN = Symbol.for('provident-storeroom.restart-drain');
 
+/// **⟶ ADDED 2026-10-28 — THE SEAM'S SEVENTH CHANNEL: THE PASSING SWEEP MOVES THE MARK, AND THE KERNEL MUST BE ABLE
+/// TO SAY SO WITHOUT IMPORTING THIS FILE** (`D-63`; `docs/specs/storeroom-js/contract.md §2.6`'s clause of this date).
+///
+/// **THE PROBLEM IT SOLVES IS AN IMPORT ONE, AND IT IS THE SAME ONE EVERY SYMBOL ON THIS SEAM SOLVES.**
+/// `kernel-attempt.mjs` is the frame that REACHES the passing verdict (`close(kernel, attempt, 'passed')`) and the
+/// frame where the DELIVERY begins (`settleArm`), so the bump stands between them **in that file** — **and that
+/// file's import footprint is EMPTY** (`kernel-surface.md §1` item 1: it may not import this one and this one may
+/// not import it). **SO THE KERNEL SPELLS THE KEY AND THIS MODULE ANSWERS IT**, exactly as `COMMIT_SCOPE`,
+/// `RESTART_DRAIN`, `EXTERNAL_CALL` and `TERMINAL_ARM` already cross.
+///
+/// **IT TAKES NO ARGUMENT AND IT MINTS NOTHING**: the position is the STORE'S own answer, read here by the store's
+/// own `journalMark` entry (`bumpWindowMark` above), so **no caller and no kernel composes a position**, **no arity
+/// moves** and **no journal field is added** (`D-62`'s five-item unblock is MOOT). **A KERNEL-SIDE GUARD KEEPS A
+/// STORE THAT CARRIES NO SUCH CHANNEL — or one whose key a caller has overwritten — from turning a passing write
+/// into a host error**: a channel that is absent or that throws bumps nothing, and the commit keeps its opening
+/// mark, which is the behaviour every failing arm has.
+const BUMP_MARK = Symbol.for('provident-storeroom.bump-mark');
+
 /// **THE RESTART'S ONE IMPLEMENTATION, INJECTED BY THE FILE THAT OWNS IT** — `constraints.mjs` calls
 /// `installRestartConsumer(drainRestartRequests)` at its own module scope. **A NULL SLOT IS A STORE WITH NO
 /// RESTART MACHINERY AND ITS PASS ANSWERS ITS REPORT UNCHANGED** — a request can only be raised by a pair, a
@@ -421,6 +439,60 @@ export function windowMark(store) {
   const index = attemptIndex(store);
   if (index.windows.length === 0) return undefined;
   return index.marks[index.marks.length - 1];
+}
+
+/// **⟶ ADDED 2026-10-28 — THE MARK MOVES FORWARD WHEN A SWEEP VALIDATES: THE RESTORE TARGET IS THE LAST VALIDATED
+/// STATE, NOT THE COMMIT'S OPENING.** **THE RULING, `D-63`, THE ARCHITECT, VERBATIM:** *"After the constraint
+/// sweep ends in a valid state, bump the restore mark. The passing constraint state marks the new next valid
+/// state."*
+///
+/// **WHAT MOVES, AND IT IS THE WHOLE OF IT.** The cache above is taken once per commit that OPENS and, until this
+/// function, it never moved — so a later refusal restored the commit's OPENING and undid every edit the commit had
+/// made, a validated one included (`DEF-AN`). **NOW: WHEN THE CONSTRAINT SWEEP ENDS IN A VALID STATE, THE POSITION
+/// THE STORE HOLDS AT THAT INSTANT BECOMES THE CACHE.** **THE INSTANT IS THE KERNEL'S PASSING VERDICT** — the line
+/// `kernel-attempt.mjs` reaches as `close(kernel, attempt, 'passed')` — **and the bump stands BETWEEN that verdict
+/// and the DELIVERY** (`settleArm` → the entry's terminal arm → `deliver`): **the state the passing sweep validated
+/// is the new next valid state, and everything the delivery does comes after it.**
+///
+/// **AND THAT GAP IS WHERE A REPAIR AND A LISTENER ARE ON DIFFERENT SIDES — `D-60`'s TWO HALVES, BY POSITION AND NOT
+/// BY IDENTITY:**
+///   * **A REPAIR'S WRITE IS *DURING* THE SWEEP** — the pass loop's own re-run reads it — **so a sweep that refuses
+///     it never bumps, and the refusal restores to the opening with the write** (`D-60`'s atomic half).
+///   * **A LISTENER'S WRITE IS *AFTER* THE SWEEP, IN THE DELIVERY** — **so the position it leaves is already the
+///     validated one when the delivery begins, the next validation carries the mark past it, and the outer's
+///     restore does not reach it** (`D-60`'s discrete half).
+/// **IT NEEDS NO COMMIT IDENTITY, NO NEW PARAMETER, NO NEW JOURNAL FIELD AND NO ARITY CHANGE** (`D-62`'s five-item
+/// unblock is MOOT): **the store is told a POSITION and the ruling moves the position.**
+///
+/// **EVERY WINDOW IN FLIGHT CARRIES THE POSITION, AND THAT IS ONE FACT AND NOT A LOOP OF FACTS.** The mark is the
+/// STORE's last validated position — `journalMark`'s own declaration, *"the op id of the last entry the journal
+/// holds"* — so a sweep that validates anywhere while windows are in flight moves every cached slot to it: **the
+/// window the validated state belongs to and every window that encloses it hold the same position, because there is
+/// only one position of the record that is valid.** The slots stay in lockstep with `windows` (`closeCommit` still
+/// releases one per window), and a caller's own nested commit's validation is therefore not lost to the commit that
+/// invoked it — **which is exactly what keeps a listener's write standing under the enclosing refusal it is
+/// discrete from.**
+///
+/// **A COMMIT WHOSE SWEEP NEVER PASSES KEEPS ITS OPENING MARK — NOTHING BUMPS.** No line of the kernel reaches this
+/// function on a failing arm, so a refusal there restores to the state the commit found, which is the behaviour
+/// every earlier clause declared and it STANDS for that case.
+///
+/// **A READ THAT THROWS BUMPS NOTHING** — the same arm `journalMarkAtOpening` states: the cache the window already
+/// holds stands, so a store whose journal read cannot answer keeps today's target rather than losing one. **THE
+/// MARK IS STILL OPAQUE HERE**: the value that is written back is the store's own carrier, read by the store's own
+/// entry, and this module composes no position of its own.
+export function bumpWindowMark(store) {
+  const index = attemptIndex(store);
+  if (index.marks.length === 0) return undefined;
+  const mark = journalMarkAtOpening(store);
+  if (mark === undefined) return undefined;
+  // **THE SLOTS ARE REBUILT BY A LOCAL INDEX LOOP**, the form `closeCommit` takes for the same stack
+  // (`contract.md §2.1`'s clause of 2026-10-24 on `F7-1`/`F8-2`): no `Array.prototype` write, no spread and no
+  // iterator, so an own accessor at `Array.prototype`'s index reaches no byte of this path.
+  const bumped = [];
+  for (let i = 0; i < index.marks.length; i += 1) appendOwn(bumped, mark);
+  index.marks = bumped;
+  return mark;
 }
 
 /// **THE MARK THE OPENING TAKES** — the store's own read, once per commit that OPENS and never per join. **IT IS
@@ -637,6 +709,21 @@ export function installAttemptSeam(instance) {
       value: (report) => (typeof RESTART_CONSUMER === 'function'
         ? RESTART_CONSUMER(instance, report)
         : report),
+      writable: true,
+      enumerable: false,
+      configurable: true,
+    });
+  }
+  // **⟶ AND THE BUMP'S OWN CHANNEL, INSTALLED ONCE BY THE SAME ONE-INSTALLATION RULE, 2026-10-28 — `D-63`.**
+  // `kernel-attempt.mjs` takes it at the ONE instant this mechanism has: **the passing verdict, before the
+  // delivery** (`close(kernel, attempt, 'passed')` and then `settleArm`), and **the act it performs is this
+  // module's own** (`bumpWindowMark`): the store's `journalMark` read again, stood over every slot in flight.
+  // **IT MINTS NO STATE OF ITS OWN** — no index, no window, no count and no entry — and **a store this seam was
+  // never installed on carries no channel**, which is the absent arm the kernel's guard answers by bumping
+  // nothing.
+  if (typeof instance[BUMP_MARK] !== 'function') {
+    Object.defineProperty(instance, BUMP_MARK, {
+      value: () => bumpWindowMark(instance),
       writable: true,
       enumerable: false,
       configurable: true,

@@ -154,10 +154,21 @@ test('IN-COMMIT RESTART (1) · a violating `rollback` issued from a LISTENER BOD
   // **⟶ RE-DERIVED 2026-10-28 (`DEF-AJ`), BECAUSE THIS LIMB WAS PASSING ON THE FALSE READING.** It read
   // `/undone/i` against the entry's message, and `"the reversal was NOT undone"` matches that regex — so the arm
   // was green while the message said the restore FAILED beside a store the store's own act had restored
-  // (`9 → 9`). **THE SENTENCE MUST SAY THE RESTORE SUCCEEDED, AND SAY WHICH BASELINE IT MEASURED**: this arm's
-  // compensation returns the store to the journal mark the WRITE'S COMMIT cached at its opening — `9`, the state
-  // the commit found — and the pre-reversal standing the watch captured was `7`, so the honest arm is the
-  // WHOLE-COMMIT UNDO and never `"NOT undone"`.
+  // (`9 → 9`). **THE SENTENCE MUST SAY THE RESTORE SUCCEEDED, AND SAY WHICH BASELINE IT MEASURED.**
+  //
+  // **⟶ AND RE-DERIVED AGAIN 2026-10-28 — `D-63`: THE RESTORE NAMES THE LAST VALIDATED MARK, SO THIS ARM IS THE
+  // PRE-REVERSAL-STANDING SUCCESS AND NOT THE WHOLE-COMMIT UNDO.** **THE RULING, THE ARCHITECT, VERBATIM:** *"After
+  // the constraint sweep ends in a valid state, bump the restore mark. The passing constraint state marks the new
+  // next valid state."* **BEFORE → AFTER, NAMED:** the mark the write's commit cached was read at its OPENING
+  // (`9`) and the restore therefore undid the write's own validated landing — the reading this cell published as
+  // `9 → 9` with a WHOLE-COMMIT UNDO sentence; **from this date the same commit's mark moves forward when its
+  // sweep passes (`7`, the state the passing sweep VALIDATED), so the restore undoes exactly the reversal and the
+  // validated write STANDS: `9 → 7`.** **THE SUBJECT OF THIS CELL IS UNMOVED** — the reversal is not judged as a
+  // step, the terminal write refuses, in the one form, with one entry naming the pair, and the reversal's effect
+  // does not stand — **and its success arm is still the one that says the restore succeeded**: the pre-reversal
+  // standing is the validated one here, so the `wholeCommit` list is empty and the sentence says
+  // *"the baseline this verdict measured is the pre-reversal standing, which is the state the LAST VALIDATED MARK
+  // holds"*.
   assert.equal(/NOT undone/i.test(log[0].message), false,
     `the refusal's entry must NOT claim the store was left unrestored — the store stands at `
       + `${JSON.stringify(standing)}, the mark the commit cached at its opening, so a *"NOT undone"* sentence is a `
@@ -165,30 +176,36 @@ test('IN-COMMIT RESTART (1) · a violating `rollback` issued from a LISTENER BOD
   assert.match(log[0].message, /UNDONE/,
     `the refusal's entry says the reversal was UNDONE, so a consumer knows the store is back where it `
       + `started: ${JSON.stringify(log.map((entry) => entry.message))}`);
-  assert.match(log[0].message, /WHOLE-COMMIT UNDO/,
-    `and it names the restore as a WHOLE-COMMIT UNDO with its baseline said: the commit's own earlier write `
-      + `went with the reversal, so the address stands at the mark's state and not at the pre-reversal standing `
-      + `(\`DEF-AJ\`): ${JSON.stringify(log[0].message)}`);
+  assert.match(log[0].message, /LAST VALIDATED MARK/,
+    `and it names WHICH mark it restored, because that mark now MOVES — the position the commit's opening cached, `
+      + `carried forward by every constraint sweep that passed since (\`D-63\`): `
+      + `${JSON.stringify(log[0].message)}`);
+  assert.match(log[0].message, /pre-reversal standing/,
+    `and it says its baseline: every address the reversal moved stands again exactly as it stood before it, so `
+      + `the success arm is the pre-reversal one and NOT a whole-commit undo (\`DEF-AJ\`): `
+      + `${JSON.stringify(log[0].message)}`);
 
   // ── AND THE RESTART'S OWN EVIDENCE: THE PAIR WAS ASKED AT THE STATE THE REVERSAL LEFT. ─────
   assert.deepEqual(asked, [LANDED, THIRD, SEED],
     `the pair is asked at REGISTRATION (${LANDED}), by the write's PASS (${THIRD}) and — from \`D-42\` — by `
       + `the RESTART, at the state the reversal left (${SEED}). THE DRIVE WAS ASKED AT `
       + `${JSON.stringify(asked)}`);
-  // **⟶ RE-DERIVED 2026-10-27 (`DEF-AE`'s FIX; THE ARCHITECT'S RULING: *"Cache the restoreMark when opening a
-  // commit, based on the last valid state/op of the journal."*).** **THE ASSERTION ABOVE READ `${THIRD}` — THE
-  // WRITE'S OWN LANDING — AND THAT WAS THE DEFECT, NOT THE EXPECTATION.** The compensation used to name the
-  // journal's HEAD on the reasoning that *"a reversal appends no journal entry"*; **in THIS arm the enclosing
-  // write's own op stood at the head when the listener's reversal ran**, so the head described the write's
-  // LANDING. **THE MARK THE RESTORE OWES IS THE ONE ITS COMMIT CACHED AT ITS OPENING — taken before anything the
-  // commit lands — so the store stands where the ATTEMPT FOUND IT: `${LANDED}`, the value the pair was registered
-  // at, and never `${THIRD}`, the refusal's own value.** `RCA-8(g)` ANNOTATE-BESIDE: this cell's subject is
-  // unchanged (the refusal refuses AND restores) and only the state it restores TO moves.
-  assert.equal(standing, LANDED,
-    `**THE STORE STANDS WHERE THE ATTEMPT FOUND IT** — the refusal's own compensation restores the mark the `
-      + `write's commit cached at its OPENING (${LANDED}), and NOT the journal's head, which is the write's own `
-      + `landing (${THIRD}). THE DRIVE READ ${JSON.stringify(standing)} where ${JSON.stringify(SEED)} would be the `
-      + `violating effect standing and ${JSON.stringify(THIRD)} the refusal's own value`);
+  // **⟶ RE-DERIVED 2026-10-27 (`DEF-AE`'s FIX: *"Cache the restoreMark when opening a commit, based on the last
+  // valid state/op of the journal."*) AND RE-DERIVED AGAIN 2026-10-28 (`D-63`: *"After the constraint sweep ends in
+  // a valid state, bump the restore mark. The passing constraint state marks the new next valid state."*).**
+  // **THE THREE READINGS, IN ORDER, SO THE MOVE IS LEGIBLE:** under the journal's HEAD the store stood at
+  // `${THIRD}` *because that was the head* — the defect `DEF-AE` was filed on; under the commit's OPENING mark it
+  // stood at `${LANDED}` — the state the attempt found, which is what the `1.4.0`/`D-55`/`DEF-AN` clauses declared;
+  // **from this date it stands at the mark the commit's LAST VALIDATED POSITION names — and in this arm that
+  // position is the write's own landing `${THIRD}`, because the write's sweep PASSED before the listener ran.**
+  // **SO A VALIDATED EDIT STANDS AGAINST A LATER REFUSAL**, which is `D-63`'s own ★ arm; **the refusal still
+  // refuses, the log still names the pair, and what the restore undoes is exactly the reversal** (`9 → 7`, and the
+  // violating `${SEED}` — the state the reversal left — is nowhere in the store).
+  assert.equal(standing, THIRD,
+    `**A VALIDATED EDIT STANDS AGAINST A LATER REFUSAL** — the refusal's own compensation restores the LAST `
+      + `VALIDATED MARK (${THIRD}, the state the passing sweep approved), and NOT the state the commit opened at `
+      + `(${LANDED}) and never the violating state the reversal left (${SEED}). THE DRIVE READ `
+      + `${JSON.stringify(standing)}`);
 
   assert.equal(before, LANDED,
     `the state BEFORE the attempt is ${LANDED} — the value the pair was registered at, and the state the `
@@ -199,7 +216,7 @@ test('IN-COMMIT RESTART (1) · a violating `rollback` issued from a LISTENER BOD
     + `judged as a step), the check RESTARTED, the pair was asked at ${JSON.stringify(asked)} and REFUSED `
     + `${JSON.stringify(SEED)}; the terminal write refused \`${caught.status}\` with ${log.length} log entry `
     + `naming '${log[0].id}'. **PRINTED BEFORE → AFTER: ${JSON.stringify(before)} → ${JSON.stringify(standing)}** `
-    + `— the store stands again where the commit's mark found it, and the entry says so: `
+    + `— the validated landing stands, the reversal's effect does not, and the entry says which mark it measured: `
     + `${JSON.stringify(log[0].message)}`);
 });
 
@@ -251,12 +268,15 @@ test('IN-COMMIT RESTART (2) · a violating `rollback` issued from a CONSTRAINT B
   assert.deepEqual(asked, [LANDED, THIRD, SEED],
     `the pair is asked at REGISTRATION, by the PASS and — from \`D-42\` — by the RESTART at the state the `
       + `reversal left. THE DRIVE WAS ASKED AT ${JSON.stringify(asked)}`);
-  // **⟶ RE-DERIVED 2026-10-27 BY THE SAME RULING AS ARM (1)** (`DEF-AE`'s fix): the mark is the one the commit
-  // cached at its opening, so the body arm stands at the pre-attempt state `${LANDED}` and never at the write's
-  // own landing `${THIRD}`.
-  assert.equal(standing, LANDED,
-    `**THE STORE STANDS WHERE THE ATTEMPT FOUND IT** (${LANDED}) — the mark the commit cached at its opening, not `
-      + `the journal's head (${THIRD}, the write's landing): the drive read ${JSON.stringify(standing)}`);
+  // **⟶ RE-DERIVED 2026-10-27 BY THE SAME RULING AS ARM (1), AND RE-DERIVED AGAIN 2026-10-28 BY `D-63`.** The body
+  // arm raises the reversal DURING the sweep and the sweep still ENDS VALID (this pair returns `true` on the
+  // landing's own ask), so the mark moves forward at the same instant arm (1)'s does and the body arm stands at the
+  // write's validated landing `${THIRD}` — **a validated edit stands against a later refusal** — and never at the
+  // state the commit opened at (`${LANDED}`) or at the violating state the reversal left (`${SEED}`).
+  assert.equal(standing, THIRD,
+    `**A VALIDATED EDIT STANDS AGAINST A LATER REFUSAL** (${THIRD}, the state the passing sweep approved) — NOT the `
+      + `state the commit opened at (${LANDED}) and not the violating state the reversal left (${SEED}): the drive `
+      + `read ${JSON.stringify(standing)}`);
 
   t.diagnostic(`IN-COMMIT RESTART (2) · D-42 (2026-10-27) · BODY ARM: window ${JSON.stringify(facts[0])} ⇒ `
     + `the reversal ANSWERED ${JSON.stringify(inner.value)}; the pair was asked at ${JSON.stringify(asked)} `

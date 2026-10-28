@@ -1,6 +1,21 @@
 // `D-13` (`docs/L1/kernel-subdivision.md` §1 part `9d`) — the pass: bytes moved from `bindings/js/src/constraint-kernel.mjs`; no logic changed.
 import { KC, KC_TOKENS, SETTLED_ON_THE_PASSING_ARM, SAVE_FAILED_AT_THE_TERMINAL_ARM, TERMINAL_ARM, markBodyThrow, throwableForm, refuse, isKernelRefusal, pairSpelling, addressSpelling, sameAddress, kernelFor, append, appendOwn, ownMember, withdraw, landedOp, landedOpDefect, pairsAtAddress, enterCommitFrame, leaveCommitFrame, commitLogInFlight, sealHandoff } from './kernel-foundations.mjs';
 import { commitAttemptIdOf, terminal, close, dropHandoff } from './kernel-terminal.mjs';
+
+/// **⟶ ADDED 2026-10-28 — THE BUMP'S CHANNEL, SPELLED ON THIS SIDE TOO (`D-63`).** **THE PASSING SWEEP MOVES THE
+/// RESTORE MARK, AND THIS IS THE ONE FRAME THAT KNOWS WHERE THE PASSING VERDICT LANDS.** The key is a
+/// `Symbol.for` spelling, declared here and in `state.mjs` independently, **because this module's import footprint
+/// is EMPTY** (`kernel-surface.md §1` item 1: it imports no entry and is imported by none) — **the same device
+/// `TERMINAL_ARM`, `COMMIT_SCOPE`, `RESTART_DRAIN` and `EXTERNAL_CALL` cross by.** **NO KERNEL ITEM IS MINTED**
+/// (`kernel-surface.md §1` item 2: the extent stays FIVE), **NO EXPORT IS ADDED** (this binding is local) and
+/// **NO MEMBER IS ADDED** to the product (a symbol-keyed own property is invisible to `Object.keys` and to
+/// `Object.getOwnPropertyNames`; `A117` (D6)).
+///
+/// **THE RULING IT CARRIES, `D-63`, THE ARCHITECT, VERBATIM:** *"After the constraint sweep ends in a valid state,
+/// bump the restore mark. The passing constraint state marks the new next valid state."* **THE PLACEMENT IS THE
+/// WHOLE OF IT**, and the two boundaries are named at the call site below: **the passing verdict lands at
+/// `close(kernel, attempt, 'passed')`, the delivery begins at `settleArm`, and the bump stands between them.**
+const BUMP_MARK = Symbol.for('provident-storeroom.bump-mark');
 // ---------------------------------------------------------------------------------------------
 // `K-3` `runAttempt(store, commit) -> AttemptReport`
 // ---------------------------------------------------------------------------------------------
@@ -290,6 +305,27 @@ function passInCommitScope(store, commitRecord) {
   // appends (`§2.1` item 4 (ii)). **THE APPEND THEREFORE FOLLOWS THE SAVE'S OWN SUCCESS**, below: it stands
   // on the passing arm alone, appended once, and it closes that arm's log.
   const closed = close(kernel, attempt, 'passed');
+  // **⟶ AND THE SWEEP'S PASSING VERDICT MOVES THE RESTORE MARK — `D-63`, 2026-10-28, AND THIS LINE IS THE WHOLE OF
+  // IT.** **THE RULING, THE ARCHITECT, VERBATIM:** *"After the constraint sweep ends in a valid state, bump the
+  // restore mark. The passing constraint state marks the new next valid state."*
+  //
+  // **THE TWO BOUNDARIES, MEASURED SO THE PLACEMENT IS A READING AND NOT A CHOICE.** **THE SWEEP'S PASSING VERDICT
+  // LANDS ON THE LINE ABOVE** — `close(kernel, attempt, 'passed')`: every constraint of the attempt has been
+  // evaluated, the pass returned its success arm, and the state the store holds at this instant is the state the
+  // sweep VALIDATED. **THE DELIVERY BEGINS AT `settleArm` BELOW** — the entry's terminal arm and, inside it, the
+  // `file`-tier save and then `deliver`, which is the FIRST frame that invokes a listener body. **THIS CALL STANDS
+  // BETWEEN THEM, AND THE GAP IS WHERE A REPAIR AND A LISTENER ARE ON DIFFERENT SIDES** (`D-60`'s two halves by
+  // position): **a repair's write is *during* the sweep, so a sweep that refuses it never reaches this line and a
+  // refusal undoes it with the write; a listener's write is *after* it, in the delivery, so it is beyond the
+  // validated position and the outer's restore does not reach it.**
+  //
+  // **A COMMIT THAT NEVER PASSES A SWEEP REACHES NO LINE OF THIS ARM** — the failing terminal arm returned above —
+  // **so its mark stays the one its opening cached, and its refusal restores to the state the commit FOUND**, which
+  // is today's behaviour and stays for that case. **THE POSITION IS THE STORE'S OWN ANSWER AND NOTHING IS COMPOSED
+  // HERE**: the channel takes no argument, `state.mjs` re-reads the store's `journalMark` at THIS instant, and a
+  // store carrying no such channel (or one whose key a caller overwrote) bumps nothing — so no passing write is
+  // turned into a host error by this line and no kernel item, export or member is minted.
+  bumpMark(store);
   // **⟶ INSTANT (b) ON THE PASSING ARM — THE ORDERING LAW'S WHOLE POINT** (`docs/decisions.md` · `A116`
   // (D1); `surface.md §2.7` item 6): *"for a write, the surface runs the write's TRIGGERED CONSTRAINTS
   // FIRST, and THE OTHER LISTENERS ARE REACHED ONLY ONCE EVERY CONSTRAINT HAS PASSED"*. Every constraint
@@ -384,6 +420,28 @@ function passInCommitScope(store, commitRecord) {
   append(attempt, 'commit', { pair: null, op: attempt.ops[attempt.ops.length - 1] },
     `every constraint registered at ${addressSpelling(attempt.address)} passed; the commit stands`);
   return closed;
+}
+
+/**
+ * **THE BUMP'S ONE CALL, GUARDED (`D-63`).** It reaches the entry's own channel on the store object —
+ * `state.mjs`'s `installAttemptSeam` installs it beside `COMMIT_SCOPE`, `TERMINAL_ARM` and `RESTART_DRAIN` — and
+ * it hands it **NO ARGUMENT**, because the position is the STORE'S own answer and nothing is composed on this
+ * side.
+ *
+ * **A STORE THAT CARRIES NO SUCH CHANNEL BUMPS NOTHING**, and so does a channel whose call throws (a key a
+ * caller overwrote, a store this package never installed the seam on): the commit then keeps the mark its
+ * opening cached, which is the behaviour every failing arm has and never worse than today's. **THE PASSING ARM
+ * IS NOT TURNED INTO A HOST ERROR BY A BOOKKEEPING ACT** — `D-35`'s read half read for a write, and the same
+ * conservative side `state.mjs`'s `journalMarkAtOpening` answers on its own throwing arm.
+ */
+function bumpMark(store) {
+  const bump = store !== null && typeof store === 'object' ? store[BUMP_MARK] : undefined;
+  if (typeof bump !== 'function') return undefined;
+  try {
+    return Reflect.apply(bump, store, []);
+  } catch (unanswered) {
+    return undefined;
+  }
 }
 
 /**

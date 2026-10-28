@@ -888,8 +888,12 @@ export function constraintWrite(state, instance, address, tier, value) {
  * composition the terminal act runs (`composeRollback`, one floor call per address at that address's first owed
  * op) undoes **the delete and every edit the commit made under it**, so the caller meets a store back at the
  * state the commit opened at. Where the refusal is a RESTARTED check's (`D-42`, a reversal raised by a body
- * inside this pass), the compensation is the reversal's own and it restores the journal mark the commit cached
- * at ITS OPENING (`state.mjs`'s `windowMark`) — the same safe state by the other route.
+ * inside this pass), the compensation is the reversal's own and it restores the journal mark the commit holds
+ * at its LAST VALIDATED position (`state.mjs`'s `windowMark`; `D-63`, 2026-10-28) — the same safe state by the
+ * other route. **⟶ AND FROM 2026-10-28 THAT MARK MOVES (`D-63`): it is the position the commit's opening cached,
+ * bumped forward at every constraint sweep that ENDS VALID (`kernel-attempt.mjs`'s passing arm, between the
+ * verdict and the delivery), so the restore target is THE LAST VALIDATED STATE and a delete's own validated
+ * landing STANDS against a later refusal in the same commit.**
  *
  * **`D-3`'S NO-OP ARM IS NOT AN EDIT**: where the delete removed nothing there is no journal op, so
  * `commitRemoval` answers `null`, **no attempt is opened, no pass runs and no entry is appended** — there is no
@@ -2234,6 +2238,19 @@ export function judgeReversal(instance, watched, reversalId) {
   // own scope, `kernel-attempt.mjs`) and re-caches nothing, so the mark in flight stays the OUTERMOST opening's:
   // the position the attempt found. **THE `finally` RELEASES THE WINDOW ON EVERY ARM, INCLUDING THE THROWING ONE**,
   // because a refusal that leaves a commit standing is the count this package's own cells measure.
+  //
+  // **⟶ AND FROM 2026-10-28 THE MARK IN FLIGHT IS THE LAST VALIDATED POSITION AND NOT THE OPENING — `D-63`.**
+  // `RCA-8(g)` ANNOTATE-BESIDE: **every byte above stands**, and the one sentence it states about the restart arm
+  // — *"the mark in flight stays the OUTERMOST opening's: the position the attempt found"* — is read THROUGH this
+  // clause: **the position the attempt found is where the cache STARTS and it is not where it stays.** **The
+  // architect, verbatim: *"After the constraint sweep ends in a valid state, bump the restore mark. The passing
+  // constraint state marks the new next valid state."*** **So on the restart arm — the drain runs INSIDE the pass's
+  // own scope, hence AFTER the passing arm bumped (`kernel-attempt.mjs`) — `windowMark` answers the state the
+  // passing sweep VALIDATED**, the listener's or a repair's own work being on the side of it `D-60` places it: a
+  // repair's write is during the sweep and goes with the write, a listener's write is in the delivery and stands.
+  // **THE AT-REST ARM IS UNMOVED AND THE REASON IS MEASURED**: that judgement runs in a window whose own cache is
+  // taken at its opening, **no sweep has passed inside it**, and a reversal appends no entry — so the mark still
+  // names the PRE-REVERSAL state and the at-rest control restores exactly what it restored before.
   const opened = openCommit(instance);
   try {
     // THE MOVED SET IS TAKEN FIRST, ONCE: the judgement's subject is the CHANGE the reversal made and nothing
@@ -2346,6 +2363,25 @@ export function judgeReversal(instance, watched, reversalId) {
 /// there immediately before the reversal; and a REFUSED mark, a CACHELESS window and a store that did not
 /// restore are *"NOT undone"*, naming every address that does not stand again (the arm unchanged).
 ///
+/// **⟶ AND FROM 2026-10-28 THE MARK THIS ACT NAMES MOVES — `D-63`: THE RESTORE TARGET IS THE LAST VALIDATED STATE,
+/// AND THIS IS WHERE THE RESTORE READS IT.** `RCA-8(g)` ANNOTATE-BESIDE: **every byte above stands BYTE-FOR-BYTE
+/// and is read THROUGH this clause; the two phrases *"the journal mark its commit cached at its OPENING"* and
+/// *"the 2026-10-27 ruling above"* are the OPENING'S position and the clause that fixed it, and neither is the
+/// whole of what this act names from this date.** **THE RULING, THE ARCHITECT, VERBATIM:** *"After the constraint
+/// sweep ends in a valid state, bump the restore mark. The passing constraint state marks the new next valid
+/// state."* **SO `windowMark` ANSWERS THE LAST VALIDATED POSITION**: `state.mjs`'s `openCommit` still caches the
+/// store's own `journalMark` where the commit OPENS, and `state.mjs`'s `bumpWindowMark` moves that cache to the
+/// store's own position at every constraint sweep that ends VALID — **called from `kernel-attempt.mjs`'s passing
+/// arm, between the sweep's verdict and the delivery**. **THE TWO HALVES `D-60` SPLITS ARE THEREFORE PLACED BY
+/// POSITION AND NOT BY IDENTITY:** a repair's write is DURING the sweep, so a sweep that refuses it never bumps
+/// and the refusal undoes it with the write; a listener's write is AFTER the sweep, in the delivery, so the mark
+/// the outer refusal names is already carried past it and the outer's restore does not reach it. **A COMMIT WHOSE
+/// SWEEP NEVER PASSES KEEPS ITS OPENING MARK** — nothing bumps, and a refusal restores to the opening, which is
+/// the behaviour the paragraphs above declare and it STANDS for that case. **NO BYTE OF THE VERDICT BELOW MOVES**:
+/// the watch is still what was owed, the two success arms and the failure arm are still read from the addresses'
+/// standings — what changes is which state a successful act is EXPECTED to leave, and `undoSpelling` says which
+/// mark it measured.
+///
 /// **AND WHY IT CANNOT RECURSE INTO THE MEMBER.** `judgeReversal` is reached from `index.mjs`'s `rollback`
 /// member; the restore never calls that member, the addon's `rollback`, or any package member — only the store's
 /// `restoreMark` at its entry — so the judgement's ONE pass over the pairs stays one pass and `D-40`'s floor law
@@ -2367,11 +2403,15 @@ export function judgeReversal(instance, watched, reversalId) {
 /// NO SECOND SAVE IS ATTEMPTED** — the store's answer is the whole report.
 function restoreReversal(instance, moved) {
   const addon_ = withAddon();
-  // **THE ONE ACT: THE STORE RETURNS ITS OWN STATE TO THE MARK ITS COMMIT CACHED AT ITS OPENING** (`windowMark`,
-  // `state.mjs`) — NOT to the journal's head, which is the write's own landing on the restart arm. **THE CARRIER
-  // IS THE STORE'S OWN ANSWER, HANDED BACK VERBATIM**: `{k:'s', v:<op id>}` names an entry and `{k:'F'}` names the
-  // FLOOR (the state the store was born with, where the journal held no entry when the commit opened). **NOTHING
-  // IS COMPOSED HERE**, so the mark has one spelling and it lives at the store's edge.
+  // **THE ONE ACT: THE STORE RETURNS ITS OWN STATE TO THE MARK ITS COMMIT HOLDS — THE LAST VALIDATED POSITION
+  // (`windowMark`, `state.mjs`)**, and NOT to the journal's head, which is the write's own landing on the restart
+  // arm. **THE MARK STARTS AS THE COMMIT'S OPENING POSITION AND MOVES FORWARD AT EVERY PASSING SWEEP — `D-63`,
+  // 2026-10-28** (`state.mjs`'s `bumpWindowMark`, called from `kernel-attempt.mjs`'s passing arm between the verdict
+  // and the delivery), **so what this act restores is THE LAST VALIDATED STATE**: a validated edit STANDS against a
+  // later refusal in the same commit, and a commit whose sweep never passed still restores to its opening.
+  // **THE CARRIER IS THE STORE'S OWN ANSWER, HANDED BACK VERBATIM**: `{k:'s', v:<op id>}` names an entry and
+  // `{k:'F'}` names the FLOOR (the state the store was born with, where the journal held no entry when the commit
+  // opened). **NOTHING IS COMPOSED HERE**, so the mark has one spelling and it lives at the store's edge.
   let refused = null;
   let cacheless = false;
   const mark = windowMark(instance);
@@ -2547,10 +2587,17 @@ function undoSpelling(undo) {
       + `: ${typeof said === 'string' ? said : ''}) and holds the state it held; `;
   }
   if (undo.failed.length === 0 && undo.wholeCommit.length === 0) {
+    // **⟶ AND THE PARENTHETICAL NAMES THE MARK THE RESTORE ACTUALLY NAMED — `D-63`, 2026-10-28.** It read *"…
+    // which is the state the journal mark the commit cached at its opening holds"*, and **that sentence stopped
+    // being true of this arm the moment the mark began to MOVE**: the position the restore names is the LAST
+    // VALIDATED ONE (`state.mjs`'s `bumpWindowMark`), so where no address moved past the pre-reversal standing it
+    // is the state the LAST PASSING SWEEP left — and that is precisely why a reversal's own effect is what this
+    // arm undid and nothing else.
     return `${refusal}the reversal was UNDONE: every address it moved stands again exactly as it stood before `
       + 'the reversal — the same value at the same tier, or absent where it was absent (the baseline this '
-      + 'verdict measured is the pre-reversal standing, which is the state the journal mark the commit cached '
-      + 'at its opening holds)';
+      + 'verdict measured is the pre-reversal standing, which is the state the LAST VALIDATED MARK holds: the '
+      + 'position the commit cached at its opening, moved forward by every constraint sweep that has passed '
+      + 'since)';
   }
   // **⟶ AND A SUCCESSFUL RESTORE WHOSE MARK STANDS BEFORE THE REVERSAL IS NAMED AS WHAT IT IS — `DEF-AJ`.**
   // The store's act succeeded (`failed` is empty), so nothing here is a failure; what differs from the watch's
@@ -2566,10 +2613,16 @@ function undoSpelling(undo) {
     }
     const movedCount = undo.total === 1 ? 'address' : 'addresses';
     const stands = undo.restored === 1 ? 'stands' : 'stand';
-    return `${refusal}the store was restored to the journal mark its commit cached at its opening, so the `
-      + `reversal was UNDONE — as a WHOLE-COMMIT UNDO (the baseline this verdict measured is the pre-reversal `
+    // **⟶ AND THE MARK THIS SENTENCE NAMES IS THE LAST VALIDATED ONE — `D-63`, 2026-10-28.** *"the journal mark
+    // its commit cached at its opening"* is now the OPENING alone: the position moves forward at every passing
+    // sweep (`state.mjs`'s `bumpWindowMark`), so an address standing past the pre-reversal standing is one the
+    // commit's own work after its LAST VALIDATION left — and the sentence says which mark it measured.
+    return `${refusal}the store was restored to the LAST VALIDATED MARK its commit holds (the position its `
+      + `opening cached, moved forward by every constraint sweep that has passed since), so the reversal was `
+      + `UNDONE — as a WHOLE-COMMIT UNDO (the baseline this verdict measured is the pre-reversal `
       + `standing): all ${undo.total} ${movedCount} it moved ${stands} where that mark leaves them, and the `
-      + `difference from the pre-reversal standing is the commit's own earlier work, undone with it — ${named}`;
+      + `difference from the pre-reversal standing is the commit's own work since that validation, undone with `
+      + `it — ${named}`;
   }
   let named = '';
   for (let index = 0; index < undo.failed.length; index += 1) {

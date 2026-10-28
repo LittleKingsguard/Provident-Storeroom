@@ -315,21 +315,27 @@ test('DIRECT-PASS RESTART (3) · THE TERMINAL WRITE ARM IS UNCHANGED by the move
   assert.deepEqual(asked, [LANDED, THIRD, SEED],
     `the pair is asked at REGISTRATION, by the PASS and by the RESTART — the SAME three asks arm (1)'s direct `
       + `drive made: ${JSON.stringify(asked)}`);
-  // **⟶ RE-DERIVED 2026-10-27 (`DEF-AE`'s FIX; THE ARCHITECT'S RULING: *"Cache the restoreMark when opening a
-  // commit, based on the last valid state/op of the journal."*).** **THE ASSERTION ABOVE READ `${THIRD}` — THE
-  // WRITE'S OWN LANDING — AND THAT WAS THE DEFECT.** This arm reaches the write through the PRODUCT's member, so
-  // its commit opens at the member's first act (before the value lands) and the mark it caches is the state the
-  // attempt FOUND: `${LANDED}`. `RCA-8(g)` ANNOTATE-BESIDE: the cell's subject — the terminal write refuses AND
-  // restores, in ONE form and ONE log entry — is unchanged; only the state restored to moves.
-  assert.equal(standing, LANDED,
-    `**THE STORE STANDS WHERE THE ATTEMPT FOUND IT** — the mark the write's commit cached at its opening `
-      + `(${LANDED}), and not the journal's head, which is the write's own landing (${THIRD}): the drive read `
-      + `${JSON.stringify(standing)}`);
+  // **⟶ RE-DERIVED 2026-10-27 (`DEF-AE`'s FIX: *"Cache the restoreMark when opening a commit, based on the last
+  // valid state/op of the journal."*) AND RE-DERIVED AGAIN 2026-10-28 — `D-63`: *"After the constraint sweep ends in
+  // a valid state, bump the restore mark. The passing constraint state marks the new next valid state."***
+  // **THE ASSERTION HERE READ `${THIRD}` (the journal's head), THEN `${LANDED}` (the commit's opening), AND IT READS
+  // `${THIRD}` AGAIN — A THIRD READING OF THE SAME VALUE AND A DIFFERENT ONE OF THE SAME RULE:** the head was wrong
+  // because nothing named the position; the opening was right while nothing MOVED it; **and from this date the
+  // position MOVES FORWARD AT EVERY PASSING SWEEP, so the value the restore names here is the state the write's own
+  // sweep VALIDATED.** **THE TWO READINGS ARE TOLD APART BY THEIR REASON AND NOT BY THE NUMBER**: under the head it
+  // stood there because the head was all there was, and under `D-63` it stands there because THE PASS APPROVED IT —
+  // a validated edit stands against a later refusal, while the reversal's own effect (the violating `${SEED}`) is
+  // gone. `RCA-8(g)` ANNOTATE-BESIDE: the cell's subject — the terminal write refuses AND restores, in ONE form and
+  // ONE log entry — is unchanged. It stands beside arm (1)'s own re-derivation in `tests/e2e/in-commit-restart.test.mjs`.
+  assert.equal(standing, THIRD,
+    `**A VALIDATED EDIT STANDS AGAINST A LATER REFUSAL** — the LAST VALIDATED MARK the write's commit holds `
+      + `(${THIRD}, the state its passing sweep approved), and neither the state the commit opened at (${LANDED}) `
+      + `nor the violating state the reversal left (${SEED}): the drive read ${JSON.stringify(standing)}`);
 
   t.diagnostic(`DIRECT-PASS RESTART (3) · 2026-10-27 · THE TERMINAL WRITE ARM: pair asked at `
     + `${JSON.stringify(asked)}; the write refused \`${caught.status}\` with ${log.length} log entry naming `
-    + `'${log[0].id}' and no \`seq\`; the store stands at ${JSON.stringify(standing)} — refused AND restored, `
-    + `exactly as \`D-42\`'s arms declare`);
+    + `'${log[0].id}' and no \`seq\`; the store stands at ${JSON.stringify(standing)} — the validated landing `
+    + `standing, the reversal's effect gone, exactly as \`D-42\`\'s arms and \`D-63\`\'s mark declare`);
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════

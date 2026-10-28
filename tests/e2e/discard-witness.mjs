@@ -58,7 +58,11 @@ import { storeCreate } from '../../bindings/js/index.mjs';
 // kernel's one checkout home (`kernel-surface.md §1` item 1).
 import * as kernel from '../../bindings/js/src/constraint-kernel.mjs';
 import { kernelFor } from '../../bindings/js/src/entry/kernel-foundations.mjs';
-import { currentWindow, openCommits } from '../../bindings/js/src/entry/state.mjs';
+import { currentWindow, openCommits, windowMark } from '../../bindings/js/src/entry/state.mjs';
+// **THE STORE'S OWN POSITION, REACHED AT THE ADDON'S ENTRY EXACTLY AS THE PACKAGE REACHES IT** — the instrument
+// `D-63`'s two boundaries are measured with (`state.mjs`'s opening cache IS this answer, and the bump IS its
+// re-read). A cell that measured the gap from anywhere else would be measuring its own arithmetic.
+import { withAddon } from '../../bindings/js/src/entry/artefact.mjs';
 
 const LAYER = 'ENVELOPE/PURE';
 const APP_LAYER = 'NONE';
@@ -823,7 +827,7 @@ console.log('\n── W9 · `D-54` — three hosts where a pass runs, and the re
   P('HOST 2 (delete\'s pass) · the store after it', [deleteStanding]);
 
   A('DW-09.2', '`D-54` (b) — a reversal raised while a delete runs inside a pass is carried to THAT pass\'s terminal state; `D-43` item 1 (`D-1-bis` — *a delete consults no constraint* — is READ THROUGH `D-55` item 3 of 2026-10-29: the delete now runs a pass of its own kind, at its own address, and this host registers no pair there)',
-    'THE DELETE HOST IS JUDGED: the pass ran (the pair asked at `7`), the delete ran inside it and its listener delivered at the PASS\'s window (`open 1`, `live 1` — so the delete opened no window of its own and reports no witness), the reversal ANSWERED its record, and the pass\'s terminal state was JUDGED — the pair asked at `5`, the declared `ConstraintPassRefused` with ONE entry naming it, and the store restored to `9`',
+    'THE DELETE HOST IS JUDGED: the pass ran (the pair asked at `7`), the delete ran inside it and its listener delivered at the PASS\'s window (`open 1`, `live 1` — so the delete opened no window of its own and reports no witness), the reversal ANSWERED its record, and the pass\'s terminal state was JUDGED — the pair asked at `5`, the declared `ConstraintPassRefused` with ONE entry naming it, and the store restored to the LAST VALIDATED MARK `7` (`D-63`: the write\'s own approved landing stands, and the state the reversal left does not)',
     deleteRegistered.ok === true && deleteActed === true
       && deleteWindow !== null && deleteWindow.open === 1 && deleteWindow.live === 1
       && deleteRollback !== null && deleteRollback.ok === true
@@ -834,7 +838,7 @@ console.log('\n── W9 · `D-54` — three hosts where a pass runs, and the re
       && statusOf(deleteCaught) === PASS_REFUSED
       && deleteLog.length === 1 && deleteLog[0].kind === 'constraint-check'
       && deleteLog[0].id === 'delete-pass-host' && restoreSaid(deleteLog)
-      && deleteStanding === LANDED,
+      && deleteStanding === THIRD,
     `registered ${deleteRegistered.ok} · acted ${deleteActed} · window ${JSON.stringify(deleteWindow)} · reversal `
       + `${deleteRollback !== null && deleteRollback.ok ? 'answered' : '<not reached>'} · delete `
       + `${deleteReceipt === null ? '<not reached>' : (deleteReceipt.ok ? `answered, discarded ${JSON.stringify(deleteDiscarded)}` : String(deleteReceipt.caught))} · `
@@ -887,7 +891,7 @@ console.log('\n── W9 · `D-54` — three hosts where a pass runs, and the re
     [reentrantStanding, reentrantNestedStanding.ok ? reentrantNestedStanding.value : '<threw>']);
 
   A('DW-09.3', '`D-54` (a) — a pass does not consume a request it did not raise; `D-42` item 3 (a request belongs to the act that raised it); `D-38`',
-    'THE REENTRANT HOST IS JUDGED: the listener reversed in the OUTER write\'s window (`open 1`, `live 0`) and then made a nested write in a window of its own, whose pass LEFT the enclosing request standing — and the outer pass\'s own drain judged it: the pair asked at `5`, the declared `ConstraintPassRefused` with ONE entry naming it, the store restored to `9` (the whole-commit undo, so the nested write\'s own value goes with it),',
+    'THE REENTRANT HOST IS JUDGED: the listener reversed in the OUTER write\'s window (`open 1`, `live 0`) and then made a nested write in a window of its own, whose pass LEFT the enclosing request standing — and the outer pass\'s own drain judged it: the pair asked at `5`, the declared `ConstraintPassRefused` with ONE entry naming it, the store restored to the LAST VALIDATED MARK `7` (`D-63`), and the listener\'s own nested write `b = 11` STANDING — it is beyond the mark, because a listener\'s write is discrete from the write that triggered it (`D-60`)',
     reentrantRegistered.ok === true
       && reentrantWindow !== null && reentrantWindow.open === 1 && reentrantWindow.live === 0
       && reentrantRollback !== null && reentrantRollback.ok === true
@@ -897,11 +901,14 @@ console.log('\n── W9 · `D-54` — three hosts where a pass runs, and the re
       && statusOf(reentrantCaught) === PASS_REFUSED
       && reentrantLog.length === 1 && reentrantLog[0].kind === 'constraint-check'
       && reentrantLog[0].id === 'reentrant-host' && restoreSaid(reentrantLog)
-      && reentrantStanding === LANDED
-      // **THE REFUSAL'S COMPENSATING ACT IS THE WHOLE-COMMIT UNDO** (`DEF-AJ`): `restoreMark` names the mark
-      // the OUTER commit cached at its opening, so the nested write's own value is undone with the reversal —
-      // and the crossed sentence says so.
-      && reentrantNestedStanding.ok === false,
+      && reentrantStanding === THIRD
+      // **⟶ AND THE NESTED WRITE'S OWN VALUE NOW STANDS — `D-63`, 2026-10-28, RE-DERIVED.** This limb read
+      // `reentrantNestedStanding.ok === false` because the restore named the mark the OUTER commit cached at its
+      // OPENING, which precedes the nested write's op; **from this date the mark moves forward at every passing
+      // sweep — the listener's own nested write is one — so the outer's restore does not reach it** (`D-60`'s
+      // discrete half, by position). **THE SUBJECT OF THIS CELL IS UNMOVED**: the outer pass's own drain judges the
+      // request its window raised, refuses in the declared form with ONE entry, and restores.
+      && reentrantNestedStanding.ok === true && reentrantNestedStanding.value === 11,
     `registered ${reentrantRegistered.ok} · window ${JSON.stringify(reentrantWindow)} · reversal `
       + `${reentrantRollback !== null && reentrantRollback.ok ? 'answered' : '<not reached>'} · nested `
       + `${reentrantNested !== null && reentrantNested.ok ? 'answered' : '<not reached>'} · asks ${JSON.stringify(reentrantAsks)} · `
@@ -1791,6 +1798,269 @@ console.log('\n── W11 · `D-58` · NO IN-FLIGHT INSIGHT, AND NO RETENTION AF
   console.log('        refuse `KC-7`, and the pass\'s own context carries no commit — and once the commit RESOLVES OR');
   console.log('        REJECTS the store keeps the OUTCOME, the OPS and the REVERSAL and lets the MESSAGE LOG go: the');
   console.log('        record the consumer holds is the only copy of it, which is what the seal was for.');
+}
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+// (W12) `D-63` — THE MARK MOVES FORWARD WHEN A SWEEP VALIDATES: the restore target is the LAST VALIDATED STATE
+//
+// **THE RULING** (`strata/decisions.md` · `D-63`, 2026-10-28, the architect, verbatim): *"After the constraint
+// sweep ends in a valid state, bump the restore mark. The passing constraint state marks the new next valid
+// state."* **IT NEEDS NO COMMIT IDENTITY, NO NEW PARAMETER, NO NEW JOURNAL FIELD AND NO ARITY CHANGE** — **the
+// restore is told a POSITION, and the ruling moves the position.**
+//
+// **THE FOUR ARMS, AND `D-60`'s TWO HALVES ARE THE REASON EACH ONE IS WHERE IT IS:**
+//   * **★ a VALIDATED EDIT STANDS against a later refusal** — write A, its sweep PASSES, a later refusal in the
+//     same commit crosses, and `read A` answers what A wrote. **This is the arm `DEF-AN` measured as undone.**
+//   * **a REPAIR'S WRITE IS UNDONE WITH THE WRITE** — it lands DURING the sweep, so a sweep that refuses it never
+//     bumps and the refusal restores to the opening. Unchanged, printed (`D-60`'s atomic half).
+//   * **a LISTENER'S WRITE SURVIVES** — it lands AFTER the sweep, in the delivery, so it is beyond the validated
+//     position and the outer's restore does not reach it. **`DEF-AN`'s row's own arm, measured RED at `D-61`.**
+//   * **a COMMIT WHOSE SWEEP NEVER PASSES RESTORES TO ITS OPENING** — nothing bumps, and that is today's behaviour
+//     and stays for that case.
+//
+// **THE PLACEMENT IS MEASURED, NOT ASSERTED**: the sweep's passing verdict lands in `kernel-attempt.mjs` at
+// `close(kernel, attempt, 'passed')` and the delivery begins at `settleArm`; **the bump stands between them**, so
+// the position the opening cached (readable at the pass's own ask) and the position the delivery sees (readable
+// inside a listener body) are two DIFFERENT readings — the gap in which a repair and a listener are on different
+// sides.
+//
+// **D-21.** Every cell prints the readings it took before it asserts; **D-17**: the expectations are literals here
+// and the citations are comments — no `docs/**` path is opened at runtime.
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+console.log('\n── W12 · `D-63` — bump the mark when a sweep ends valid ─────────────────────────────');
+{
+  /** THE CROSSED STATUS OF A CAUGHT VALUE, or `<answered>` — a local spelling. */
+  const statusOf = (caught) => (caught !== null && typeof caught === 'object' && typeof caught.status === 'string'
+    ? caught.status
+    : '<no status on the caught value>');
+  /** THE STORE'S OWN POSITION, at the addon's entry and never composed here. */
+  const journalMarkOf = (store) => {
+    try {
+      return Reflect.apply(withAddon().journalMark, store, []);
+    } catch (unanswered) {
+      return undefined;
+    }
+  };
+  /** **THE `DEF-Q` RULE APPLIES TO A CELL'S OWN PRINT**: no column prints `undefined`. */
+  const markSpelling = (mark) => {
+    if (mark === undefined) return 'NO CACHE';
+    if (mark === null || typeof mark !== 'object') return `a mark of class ${typeof mark}`;
+    if (mark.k === 's' && typeof mark.v === 'string') return mark.v;
+    if (mark.k === 'F') return 'Absent';
+    return `a mark of kind ${JSON.stringify(mark.k)}`;
+  };
+
+  // ── * DW-12.1 · A VALIDATED EDIT STANDS AGAINST A LATER REFUSAL ─────────────────────────────────
+  // **THE DRIVE, IN THE ORDER THE RULING NAMES IT.** `['a']` opens at `5` and is written to `6` (an earlier op the
+  // listener will reverse). The write under test lands `7`, its sweep PASSES — the pair approves everything but
+  // `5` — and then the DELIVERY's listener reverses the `6` op, so `['a']` stands at `5`, which the restarted check
+  // REFUSES. **BEFORE `D-63` the restore named the commit's OPENING (`6`) and A's own approved value was undone;
+  // AFTER IT the restore names the mark the passing sweep validated (`7`), and A's value stands.**
+  const starStore = make();
+  starStore.write(['a'], 'mem', 5);
+  const starPrior = starStore.write(['a'], 'mem', 6);
+  const starOpening = markSpelling(journalMarkOf(starStore));
+  const starVerdict = [];
+  const starDelivery = [];
+  let starDeliveryStore = 'NO CACHE';
+  let starReversal = null;
+  const starAsks = [];
+  const starListener = starStore.listen('star-listener', [['a']]);
+  starStore.register(starListener, () => {
+    starDelivery.push(markSpelling(windowMark(starStore)));
+    starDeliveryStore = markSpelling(journalMarkOf(starStore));
+    if (starReversal === null) starReversal = attempt(() => starStore.rollback(starPrior.op.opId));
+  });
+  const starRegistered = attempt(() => starStore.addConstraint({ address: ['a'], id: 'star-pair' }, (context) => {
+    starAsks.push(context.value);
+    if (context.attempt !== null && starVerdict.length === 0) starVerdict.push(markSpelling(windowMark(starStore)));
+    return Object.is(context.value, 5)
+      ? { message: 'the state the reversal leaves is not one this pair admits' }
+      : true;
+  }));
+  const starBefore = starStore.read(['a']);
+  const starTerminal = attempt(() => starStore.write(['a'], 'mem', 7));
+  const starAfter = starStore.read(['a']);
+
+  P("D-63 · the OPENING's cache (measured at rest, before the call)", starOpening);
+  P("D-63 · the cache in flight as the SWEEP passes (the verdict's boundary)", starVerdict);
+  P("D-63 · the cache in flight when the DELIVERY runs (the mark the restore names)", starDelivery);
+  P("D-63 · the store's own `journalMark` at that same instant", starDeliveryStore);
+  P('D-63 · the pairs asked, in order', starAsks);
+  P("D-63 · the reversal's own record", starReversal === null ? '<not reached>'
+    : (starReversal.ok ? 'answered' : statusOf(starReversal.caught)));
+  P("D-63 · the write's answer", starTerminal.ok ? 'ANSWERED' : statusOf(starTerminal.caught));
+  P("D-63 · the store BEFORE → AFTER (what A wrote)", [starBefore, starAfter]);
+
+  A('DW-12.1', '`D-63` (2026-10-28) — *"After the constraint sweep ends in a valid state, bump the restore mark. The passing constraint state marks the new next valid state."* · `D-60`\'s discrete half by position',
+    'A VALIDATED EDIT STANDS AGAINST A LATER REFUSAL: write A\'s sweep passes, the listener\'s reversal makes the restarted check refuse, the write crosses `ConstraintPassRefused` — and `read [\'a\']` answers what A wrote (`7`), because the restore names the LAST VALIDATED MARK and the state the reversal left is what it undid',
+    starRegistered.ok === true
+      && starTerminal.ok === false && statusOf(starTerminal.caught) === PASS_REFUSED
+      && JSON.stringify(starAsks) === JSON.stringify([6, 7, 5])
+      && starVerdict.length === 1 && starVerdict[0] === starOpening
+      && starDelivery.length === 1 && starDelivery[0] === starDeliveryStore && starDelivery[0] !== starOpening
+      && starBefore === 6 && starAfter === 7,
+    `registered ${starRegistered.ok} · asks ${JSON.stringify(starAsks)} · answer `
+      + `${starTerminal.ok ? 'ANSWERED' : statusOf(starTerminal.caught)} · opening ${JSON.stringify(starOpening)} · `
+      + `verdict ${JSON.stringify(starVerdict)} · delivery ${JSON.stringify(starDelivery)} · store before → after `
+      + `${JSON.stringify([starBefore, starAfter])}`);
+
+  // ── DW-12.2 · A REPAIR'S WRITE IS UNDONE WITH THE WRITE (unchanged, printed) ──────────────────────
+  // **`D-60`'s ATOMIC HALF, BY POSITION**: the repair lands an op DURING the sweep, the re-run refuses it, **no sweep
+  // ever passed, so nothing bumped** — and the refusal restores the state the commit found.
+  const repairStore = make();
+  repairStore.write(['a'], 'mem', 5);
+  const repairAsks = [];
+  const repairRegistered = attempt(() => repairStore.addConstraint({ address: ['a'], id: 'repair-pair' }, (context) => {
+    repairAsks.push(context.value);
+    if (Object.is(context.value, 5)) return true;
+    return {
+      message: 'the repair landing is not a state this pair admits',
+      repair: (repairContext) => {
+        const written = repairStore.write(repairContext.address, repairContext.tier, 6, repairContext);
+        return { ok: true, message: 'repaired to 6', op: written.op };
+      },
+    };
+  }));
+  const repairTerminal = attempt(() => repairStore.write(['a'], 'mem', 9));
+  const repairAfter = repairStore.read(['a']);
+
+  P("D-63 · the repair's pairs asked, in order (5 · the write's 9 · the repair's own 6)", repairAsks);
+  P("D-63 · the write's answer", repairTerminal.ok ? 'ANSWERED' : statusOf(repairTerminal.caught));
+  P("D-63 · the store AFTER (the repair's landing gone with the write)", repairAfter);
+
+  A('DW-12.2', '`D-60`\'s atomic half read through `D-63`\'s placement — *"A constraint repair is atomic with the original write"*',
+    'A REPAIR\'S WRITE IS UNDONE WITH THE WRITE: the repair lands, the re-run refuses it, NO sweep passed so nothing bumped, and `read [\'a\']` answers the state the commit found (`5`) — the repair\'s `6` and the write\'s `9` are both gone',
+    repairRegistered.ok === true
+      && repairTerminal.ok === false && statusOf(repairTerminal.caught) === PASS_REFUSED
+      && JSON.stringify(repairAsks) === JSON.stringify([5, 9, 6])
+      && repairAfter === 5,
+    `registered ${repairRegistered.ok} · asks ${JSON.stringify(repairAsks)} · answer `
+      + `${repairTerminal.ok ? 'ANSWERED' : statusOf(repairTerminal.caught)} · store after ${JSON.stringify(repairAfter)}`);
+
+  // ── DW-12.3 · A LISTENER'S WRITE SURVIVES THE OUTER REFUSAL — `DEF-AN`'s row's own arm ─────────────
+  // **THE ARM `D-61` MEASURED RED ON THE SHIPPED ARTEFACT**: *"The listener's `write(['g'],'mem',1)` returned; the
+  // outer write crossed `ConstraintPassRefused`; `read(['g'])` throws `AddressNotFound`."* **THE OUTER WRITE'S
+  // REFUSAL IS THE RESTARTED CHECK'S, SO IT IS TAKEN AFTER THE LISTENER'S WRITE** — and the listener's own commit's
+  // sweep passes, so the mark moves past `g`'s op and the outer's restore cannot reach it.
+  const surviveStore = make();
+  surviveStore.write(['a'], 'mem', 5);
+  const survivePrior = surviveStore.write(['a'], 'mem', 6);
+  const surviveMarks = [];
+  let surviveNested = null;
+  let surviveReversal = null;
+  const surviveListener = surviveStore.listen('survive-listener', [['a']]);
+  surviveStore.register(surviveListener, () => {
+    surviveNested = attempt(() => surviveStore.write(['g'], 'mem', 1));
+    surviveMarks.push(markSpelling(windowMark(surviveStore)));
+    if (surviveReversal === null) surviveReversal = attempt(() => surviveStore.rollback(survivePrior.op.opId));
+  });
+  const surviveRegistered = attempt(() => surviveStore.addConstraint({ address: ['a'], id: 'survive-pair' },
+    (context) => (Object.is(context.value, 5)
+      ? { message: 'the state the reversal leaves is not one this pair admits' }
+      : true)));
+  const surviveTerminal = attempt(() => surviveStore.write(['a'], 'mem', 7));
+  const surviveA = surviveStore.read(['a']);
+  const surviveG = attempt(() => surviveStore.read(['g']));
+
+  P("D-63 · the listener's own write", surviveNested === null ? '<not reached>'
+    : (surviveNested.ok ? 'answered its own record' : statusOf(surviveNested.caught)));
+  P("D-63 · the cache in flight AFTER the listener's write (the mark carried past it)", surviveMarks);
+  P("D-63 · the outer write's answer", surviveTerminal.ok ? 'ANSWERED' : statusOf(surviveTerminal.caught));
+  P("D-63 · the store AFTER: ['a'] · ['g']", [surviveA, surviveG.ok ? surviveG.value : statusOf(surviveG.caught)]);
+
+  A('DW-12.3', '`D-60`\'s discrete half by position — *"A listener write is discrete, because it occurs after all constraints"* — and `DEF-AN`\'s row, measured RED at `D-61`',
+    'A LISTENER\'S WRITE SURVIVES THE OUTER REFUSAL: the outer write crosses `ConstraintPassRefused`, and the listener\'s `write([\'g\'],\'mem\',1)` answers `1` — it is beyond the bumped mark, so the outer\'s restore does not reach it — while the outer write\'s own validated landing (`7`) stands',
+    surviveRegistered.ok === true
+      && surviveNested !== null && surviveNested.ok === true
+      && surviveReversal !== null && surviveReversal.ok === true
+      && surviveTerminal.ok === false && statusOf(surviveTerminal.caught) === PASS_REFUSED
+      && surviveA === 7
+      && surviveG.ok === true && surviveG.value === 1,
+    `registered ${surviveRegistered.ok} · nested ${surviveNested === null ? '<not reached>' : (surviveNested.ok ? 'answered' : statusOf(surviveNested.caught))} · `
+      + `reversal ${surviveReversal === null ? '<not reached>' : (surviveReversal.ok ? 'answered' : statusOf(surviveReversal.caught))} · `
+      + `answer ${surviveTerminal.ok ? 'ANSWERED' : statusOf(surviveTerminal.caught)} · marks ${JSON.stringify(surviveMarks)} · `
+      + `store a=${JSON.stringify(surviveA)} g=${JSON.stringify(surviveG.ok ? surviveG.value : statusOf(surviveG.caught))}`);
+
+  // ── DW-12.4 · A COMMIT WHOSE SWEEP NEVER PASSES RESTORES TO ITS OPENING (unchanged, printed) ─────
+  // **THE ARM THE RULING LEAVES WHERE IT WAS, DRIVEN ON BOTH ROUTES A REFUSAL CAN TAKE.** **(a) THE PLAIN ONE**: the
+  // pair refuses the write's own value on the FIRST sweep, so the passing arm is never reached, no line of it runs,
+  // and the terminal composition's own floor calls restore the address. **(b) THE REVERSAL'S — AND THIS IS THE ONE
+  // THAT BITES**: a pair body reverses the attempt's own landing *during* the sweep and the pass then ends FAILING,
+  // so the restarted check judges at the state the reversal left and the compensation is `restoreReversal`, whose
+  // target is the cache in flight — **the opening's, because nothing bumped.** A mark bumped anywhere on a failing
+  // sweep would restore the write's own landing here instead of the born state, which is what this arm pins.
+  const neverStore = make();
+  neverStore.write(['a'], 'mem', 5);
+  const neverOpening = markSpelling(journalMarkOf(neverStore));
+  const neverRegistered = attempt(() => neverStore.addConstraint({ address: ['a'], id: 'never-pair' },
+    (context) => (Object.is(context.value, 5) ? true : { message: 'a must stand at 5' })));
+  const neverTerminal = attempt(() => neverStore.write(['a'], 'mem', 7));
+  const neverAfter = neverStore.read(['a']);
+
+  const neverReversalStore = make();
+  const neverOpeningReversal = markSpelling(journalMarkOf(neverReversalStore));
+  const neverReversalAsks = [];
+  let neverReversed = false;
+  let neverInner = null;
+  const neverReversalRegistered = attempt(() => neverReversalStore.addConstraint(
+    { address: ['a'], id: 'never-reversal-pair' },
+    (context) => {
+      neverReversalAsks.push(context.value);
+      if (context.attempt !== null && neverReversed === false) {
+        neverReversed = true;
+        neverInner = attempt(() => neverReversalStore.rollback(context.op.opId));
+      }
+      if (neverReversed === true && context.value === 7) {
+        return { message: 'the pair refuses the landing it has just reversed' };
+      }
+      if (neverReversalAsks.length > 2 && context.value === undefined) {
+        return { message: 'the reversal leaves the address absent, which this pair does not admit' };
+      }
+      return true;
+    },
+  ));
+  const neverReversalTerminal = attempt(() => neverReversalStore.write(['a'], 'mem', 7));
+  // **AN ABSENT ADDRESS THROWS `AddressNotFound` AND IS PRINTED AS NOTHING** (`DEF-Q`: a cell may print absence) —
+  // so the standing is read through the caught arm and not through `ok`.
+  const neverReversalRead = attempt(() => neverReversalStore.read(['a']));
+  const neverReversalStanding = neverReversalRead.ok ? neverReversalRead.value : undefined;
+
+  P("D-63 · (a) the OPENING's cache · the store AFTER", [neverOpening, neverAfter]);
+  P("D-63 · (a) the write's answer", neverTerminal.ok ? 'ANSWERED' : statusOf(neverTerminal.caught));
+  P("D-63 · (b) the OPENING's cache · the reversal's asks · the store AFTER",
+    [neverOpeningReversal, neverReversalAsks,
+      neverReversalStanding === undefined ? 'NOTHING (absent)' : neverReversalStanding]);
+  P("D-63 · (b) the write's answer", neverReversalTerminal.ok ? 'ANSWERED'
+    : statusOf(neverReversalTerminal.caught));
+
+  A('DW-12.4', '`D-63` read for its own limit — *"the passing constraint state marks the new next valid state"*: where no sweep passes, no state is marked',
+    'A COMMIT WHOSE SWEEP NEVER PASSES RESTORES TO ITS OPENING: (a) the pair refuses the write\'s own value on the FIRST sweep and the store answers the state the commit found (`5`); and (b) a pair body\'s reversal inside a sweep that then FAILS is undone against the cache in flight — the OPENING\'s, the FLOOR — so the address stands at NOTHING, the state the store was born with. Nothing bumped on either route, and that is today\'s behaviour and it stays for that case',
+    neverRegistered.ok === true
+      && neverTerminal.ok === false && statusOf(neverTerminal.caught) === PASS_REFUSED
+      && neverAfter === 5
+      && neverReversalRegistered.ok === true
+      && neverReversed === true
+      && neverInner !== null && neverInner.ok === true
+      && neverReversalTerminal.ok === false
+      && statusOf(neverReversalTerminal.caught) === PASS_REFUSED
+      && neverReversalRead.ok === false
+      && neverReversalStanding === undefined,
+    `(a) registered ${neverRegistered.ok} · answer `
+      + `${neverTerminal.ok ? 'ANSWERED' : statusOf(neverTerminal.caught)} · store after ${JSON.stringify(neverAfter)} `
+      + `|| (b) registered ${neverReversalRegistered.ok} · reversed ${neverReversed} · asks `
+      + `${JSON.stringify(neverReversalAsks)} · answer `
+      + `${neverReversalTerminal.ok ? 'ANSWERED' : statusOf(neverReversalTerminal.caught)} · store after `
+      + `${JSON.stringify(neverReversalStanding === undefined ? 'NOTHING (absent)' : neverReversalStanding)}`);
+
+  console.log('');
+  console.log('        THE SENTENCE TO CARRY AWAY (`D-63`): A REFUSED EDIT ROLLS BACK TO THE LAST VALIDATED STATE,');
+  console.log('        NOT TO THE STATE THE COMMIT OPENED AT. The restore is told a POSITION and the position MOVES');
+  console.log('        FORWARD at every constraint sweep that ends valid, so an edit the sweep APPROVED stands against');
+  console.log("        a later refusal in the same commit, a repair's write (during the sweep) goes with the write,");
+  console.log("        a listener's write (in the delivery) is beyond the mark and survives, and a commit that never");
+  console.log('        passes a sweep keeps its opening mark and restores to it — which is why `DEF-AN` closes with no');
+  console.log('        commit identity on the journal at all.');
 }
 
 

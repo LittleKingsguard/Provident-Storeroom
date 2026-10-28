@@ -93,7 +93,18 @@ function standingAt(store, address) {
 // (1) `DEF-AE` ITSELF — the restart arm, and it must be the PRE-ATTEMPT state
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 
-test('DEF-AE (1) · A LISTENER BODY REVERSES AN IN-COMMIT OP, THE CHECK RESTARTS, A PAIR REFUSES THE STATE THE REVERSAL LEAVES, AND THE WRITE THROWS — the store stands where the ATTEMPT found it: `9 → 9`, not `9 → 7`', (t) => {
+// **⟶ THE CELL IS RE-DERIVED 2026-10-28 — `D-63`: THE RESTORE NAMES THE LAST VALIDATED MARK, SO THE READINGS ARE
+// `9 → 7*` (the write's OWN VALIDATED LANDING) AND NOT `9 → 9` (the state the attempt found), AND NOT `9 → 7`
+// BECAUSE THE HEAD HAPPENED TO BE THERE.** **THE RULING, THE ARCHITECT, VERBATIM:** *"After the constraint sweep
+// ends in a valid state, bump the restore mark. The passing constraint state marks the new next valid state."*
+// **THE THREE READINGS OF THE SAME DRIVE, IN ORDER, SO NO ONE READS THE NUMBER WITHOUT ITS REASON:** the journal's
+// HEAD put the store at `7` *because the head was all there was* (`DEF-AE`'s defect); the commit's OPENING mark put
+// it at `9`, the state the attempt found (`DEF-AE`'s fix); and from this date the mark MOVES FORWARD AT THE PASSING
+// SWEEP, so the store stands at `7` *because the sweep APPROVED it* — **a validated edit stands against a later
+// refusal, and the reversal's effect (the state `5` the pair refuses) is what the restore undid.** **THE CELL'S
+// SUBJECT IS UNMOVED**: a listener body's reversal inside an open commit is not judged as a step, the check
+// restarts, a pair refuses the state the reversal left, and the write throws in the one declared form.
+test('DEF-AE (1) · A LISTENER BODY REVERSES AN IN-COMMIT OP, THE CHECK RESTARTS, A PAIR REFUSES THE STATE THE REVERSAL LEAVES, AND THE WRITE THROWS — the store stands where the LAST VALIDATED MARK names it: `9 → 7` because the sweep APPROVED it', (t) => {
   const store = make();
   store.write(['a'], 'mem', SEED);
   const target = attempt(() => store.write(['a'], 'mem', LANDED));
@@ -104,12 +115,16 @@ test('DEF-AE (1) · A LISTENER BODY REVERSES AN IN-COMMIT OP, THE CHECK RESTARTS
   // in flight is the OUTERMOST opening's mark. **THIS IS THE INSTRUMENT, NOT AN INFERENCE**: it is the value
   // `restoreReversal` will hand to the store.
   const cached = [];
+  // **AND THE STORE'S OWN POSITION AT THE SAME INSTANT** (`journalMark` at the delivery's boundary), so the cache
+  // is measured against the store's answer and not against a second spelling of this cell's own making.
+  let lastMark = undefined;
   let inner = null;
   const asked = [];
   const handle = store.listen('def-ae-listener', [['a']]);
   store.register(handle, () => {
     if (inner === null) {
       cached.push(windowMark(store));
+      lastMark = storeMark(store);
       inner = attempt(() => store.rollback(target.value.op.opId));
     }
   });
@@ -150,35 +165,48 @@ test('DEF-AE (1) · A LISTENER BODY REVERSES AN IN-COMMIT OP, THE CHECK RESTARTS
   assert.deepEqual(asked, [LANDED, THIRD, SEED],
     `the pair is asked at REGISTRATION (${LANDED}), by the write's PASS (${THIRD}) and by the RESTART at the `
       + `state the reversal left (${SEED}): THE DRIVE WAS ASKED AT ${JSON.stringify(asked)}`);
-  // **THE CELL'S WHOLE POINT, PRINTED BEFORE AND AFTER: it was `${LANDED} → ${THIRD}` UNDER THE HEAD MARK, AND IT
-  // IS `${LANDED} → ${LANDED}` UNDER THE CACHED ONE.** `${THIRD}` is the write's own landing — the refusal's own
-  // value standing, which is `DEF-AE` — and `${SEED}` would be the violating effect standing.
+  // **THE CELL'S WHOLE POINT, PRINTED BEFORE AND AFTER, WITH EACH READING'S REASON ATTACHED: it was
+  // `${LANDED} → ${THIRD}` UNDER THE HEAD MARK (right value, no reason — the head happened to be there), it was
+  // `${LANDED} → ${LANDED}` UNDER THE OPENING'S CACHE, and it is `${LANDED} → ${THIRD}` FROM 2026-10-28 BECAUSE THE
+  // SWEEP APPROVED THAT STATE (`D-63`).** `${SEED}` — the state the reversal leaves — is the violating effect and
+  // it stands in none of the three readings.
   assert.equal(before, LANDED,
     `the state BEFORE the attempt is ${LANDED} (the value the pair was registered at): the drive read `
       + `${JSON.stringify(before)}`);
-  assert.equal(after, LANDED,
-    `**THE STORE STANDS WHERE THE ATTEMPT FOUND IT — ${LANDED} → ${LANDED}.** The old reading was `
-      + `${LANDED} → ${THIRD} (the journal's head, which is the write's own op), and ${SEED} would be the `
-      + `violating effect standing. THE DRIVE READ ${JSON.stringify(after)}`);
+  assert.equal(after, THIRD,
+    `**A VALIDATED EDIT STANDS AGAINST A LATER REFUSAL — ${LANDED} → ${THIRD}.** The write's own landing is `
+      + `the LAST VALIDATED MARK the restore names, and ${SEED} (the state the reversal left) is nowhere in the `
+      + `store. THE DRIVE READ ${JSON.stringify(after)}`);
 
-  // ── AND THE MARK IT NAMES, MEASURED TWICE AND EQUAL. ────────────────────────────────────────
-  assert.equal(markSpelling(cached[0]), target.value.op.opId,
-    `**THE WINDOW CACHED THE OP BEFORE THE ATTEMPT'S FIRST** — the mark the restore hands back names the op the `
-      + `reversal targeted (${JSON.stringify(target.value.op.opId)}), not the write's own op. THE CACHE READ `
-      + `${JSON.stringify(cached[0])} and the store's own read at rest before the call was `
-      + `${JSON.stringify(markBeforeTheCall)}`);
+  // ── AND THE MARK IT NAMES, MEASURED AT BOTH BOUNDARIES AND AGAINST THE STORE'S OWN ANSWER. ──
+  // **THE OPENING'S CACHE IS THE STATE THE ATTEMPT FOUND** — the store's own `journalMark` read at rest
+  // immediately before the call, which is what the opening takes and nothing that the commit lands stands
+  // between the two.
   assert.equal(markSpelling(markBeforeTheCall), target.value.op.opId,
-    `and the store's own \`journalMark\` — read at rest immediately before the call — names the SAME entry, so `
-      + `the cache is the store's answer and not a second spelling: ${JSON.stringify(markBeforeTheCall)}`);
+    `the store's own \`journalMark\` — read at rest immediately before the call — names the op the reversal `
+      + `targeted (${JSON.stringify(target.value.op.opId)}), which is the position the commit's opening caches: `
+      + `${JSON.stringify(markSpelling(markBeforeTheCall))}`);
+  // **AND THE CACHE IN FLIGHT AT THE DELIVERY IS THE BUMPED ONE**: the store's own position at that instant —
+  // taken inside the listener body, where the write's commit is in flight and no later op has landed — and NOT
+  // the opening's. **THIS IS THE INSTRUMENT, NOT AN INFERENCE**: it is the very value `restoreReversal` will hand
+  // the store (`constraints.mjs`'s `windowMark`).
+  assert.equal(markSpelling(cached[0]), markSpelling(lastMark),
+    `**THE MARK MOVED FORWARD AT THE PASSING SWEEP** — the cache in flight when the delivery runs names the `
+      + `store's own position there (${JSON.stringify(markSpelling(lastMark))}), and NOT the opening's `
+      + `(${JSON.stringify(markSpelling(markBeforeTheCall))}): the cache read ${JSON.stringify(markSpelling(cached[0]))}`);
+  assert.equal(markSpelling(cached[0]) !== markSpelling(markBeforeTheCall), true,
+    `and the two boundaries are TOLD APART, which is the whole of \`D-63\`: the opening's cache was `
+      + `${JSON.stringify(markSpelling(markBeforeTheCall))} and the delivery's is `
+      + `${JSON.stringify(markSpelling(cached[0]))}`);
 
-  t.diagnostic(`DEF-AE (1) · 2026-10-27 · THE RESTART ARM, PRINTED BEFORE → AFTER: before the attempt the store `
-    + `stood at ${JSON.stringify(before)}, the write landed ${JSON.stringify(THIRD)} and then threw `
-    + `${JSON.stringify(caught.status)}; AFTER the refusal the store stands at ${JSON.stringify(after)}. `
-    + `It was ${JSON.stringify(before)} → ${JSON.stringify(THIRD)} under the head mark; it is `
-    + `${JSON.stringify(before)} → ${JSON.stringify(after)} under the cached one. THE MARK THE WINDOW CACHED `
-    + `NAMES ${JSON.stringify(markSpelling(cached[0]))} — the entry the store's own \`journalMark\` answered at `
-    + `rest (${JSON.stringify(markSpelling(markBeforeTheCall))}), and the pair's asks were `
-    + `${JSON.stringify(asked)}`);
+  t.diagnostic(`DEF-AE (1) · RE-DERIVED 2026-10-28 (\`D-63\`) · THE RESTART ARM, PRINTED BEFORE → AFTER: before `
+    + `the attempt the store stood at ${JSON.stringify(before)}, the write landed ${JSON.stringify(THIRD)} and then `
+    + `threw ${JSON.stringify(caught.status)}; AFTER the refusal the store stands at ${JSON.stringify(after)}. `
+    + `THE TWO BOUNDARIES, MEASURED: the opening's cache names `
+    + `${JSON.stringify(markSpelling(markBeforeTheCall))} (the position the commit found) and the cache in flight `
+    + `when the DELIVERY runs names ${JSON.stringify(markSpelling(cached[0]))} — the store's own `
+    + `\`journalMark\` at that instant (${JSON.stringify(markSpelling(lastMark))}), i.e. the state the passing sweep `
+    + `VALIDATED. The pair's asks were ${JSON.stringify(asked)}`);
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -393,31 +421,47 @@ test('DEF-AE (3) · THE LAWFUL SIDE IS UNCHANGED: a lawful reversal still answer
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
-// (4) THE MARK'S FLOOR — a commit that opened on an EMPTY journal restores the state the store was BORN with
+// (4) THE MARK'S FLOOR — the position an EMPTY-journal commit caches, and the one case in which it is the target
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 //
 // **WHY THIS ARM IS ITS OWN CELL AND NOT A FOOTNOTE.** The journal's read answers `Absent` where it holds no
 // entry, and **`restoreMark`'s ABSENT arm names the HEAD** — so once the attempt's own op is in the journal, no
 // op id names the state that stood before it. **The mark therefore has a FLOOR row of its own** — the carrier's
 // `F` tag, `crossing.rs`'s `JsOpIdArg::Floor`, which `codec.rs`'s `op_id_of` reads — and this cell drives it end
-// to end: the store's first write ever lands,
-// a listener reverses that very op, a pair refuses the state it leaves, and the refused write must leave the
-// store with the address ABSENT — exactly where the attempt found it.
+// to end.
+//
+// **⟶ AND THE CELL IS RE-DERIVED 2026-10-28 — `D-63`: THE MARK MOVES FORWARD WHEN A SWEEP VALIDATES, SO THE FLOOR
+// IS THE OPENING'S CACHE AND NOT THE TARGET OF A COMMIT THAT PASSED.** *"After the constraint sweep ends in a
+// valid state, bump the restore mark. The passing constraint state marks the new next valid state."* **WHAT THE
+// OLD READING ASSERTED, AND WHY IT IS NOW WRONG, NAMED:** it read the cache INSIDE the listener and found the
+// FLOOR there, because nothing moved the cache between the opening and the delivery; **from this date the delivery
+// runs AFTER the bump, so the cache in flight there is the store's own position (the write's landing) and the
+// refusal restores THAT.** **THE FLOOR IS STILL A TARGET, AND THE CELL STILL DRIVES IT AS ONE**: a commit whose
+// sweep NEVER PASSES bumps nothing, so a refusal inside such a commit restores the opening's cache — the born
+// state — and that is arm (b) below. **BOTH BOUNDARIES ARE MEASURED IN ARM (a)**: the cache the OPENING takes (read
+// at the pass's own ask, before the bump) is the FLOOR, and the cache the DELIVERY sees (read in the listener body,
+// after it) is the store's own `journalMark` at that instant.
 
-test('DEF-AE (4) · THE MARK\'S FLOOR: a commit that opened on an EMPTY journal caches the FLOOR, and the refused reversal restores the state the store was BORN with — the address absent — which no op id could name', (t) => {
+test('DEF-AE (4) · THE MARK\'S FLOOR IS THE OPENING\'S CACHE AND THE BUMP CARRIES IT FORWARD: a commit that opened on an EMPTY journal caches the FLOOR at its opening, its passing sweep moves the cache to its own landing (so the refused reversal restores that landing), and a commit whose sweep NEVER PASSES still restores the born state — the address absent — which no op id could name', (t) => {
+  // ── (a) THE OPENING'S FLOOR, AND THE BUMP'S TWO BOUNDARIES. ──────────────────────────────────
   const store = make();
   // THE JOURNAL IS EMPTY AT THIS INSTANT, and the store's own read says so.
   const markBeforeTheCall = storeMark(store);
-  const cached = [];
+  // THE OPENING'S CACHE, read INSIDE the pass's own ask — the sweep is in flight and the bump has not happened yet,
+  // so this is exactly the position the opening cached.
+  const opening = [];
+  // AND THE CACHE IN FLIGHT AT THE DELIVERY, read inside the callback — after the bump — beside the store's own
+  // position at that same instant, so the cache is measured against the store's answer and not a second spelling.
+  const delivery = [];
+  let deliveryMark = undefined;
   let inner = null;
   let inCommitOp = null;
   const asked = [];
   const handle = store.listen('def-ae-floor-listener', [['a']]);
   store.register(handle, () => {
     if (inner === null) {
-      // **THE WINDOW'S OWN CACHE, READ INSIDE THE CALLBACK** — the write's commit is in flight and the cache in
-      // flight is the OUTERMOST opening's mark, so this is the value `restoreReversal` will hand to the store.
-      cached.push(windowMark(store));
+      delivery.push(windowMark(store));
+      deliveryMark = storeMark(store);
       // AND THE IN-COMMIT OP IS NAMED BY THE STORE'S OWN READ AT THIS INSTANT: the enclosing write's op is the
       // journal's head here, which is precisely the position the OLD restore mis-took for the pre-attempt state.
       inCommitOp = markSpelling(storeMark(store));
@@ -429,6 +473,7 @@ test('DEF-AE (4) · THE MARK\'S FLOOR: a commit that opened on an EMPTY journal 
   // ordinal, so the arm is the restart's and not a registration refusal.
   const registered = attempt(() => store.addConstraint({ address: ['a'], id: 'def-ae-floor' }, (context) => {
     asked.push(context.value);
+    if (context.attempt !== null && opening.length === 0) opening.push(windowMark(store));
     if (asked.length > 1 && context.value === undefined) {
       return { message: 'the reversal leaves the address absent, which this pair does not admit' };
     }
@@ -447,14 +492,24 @@ test('DEF-AE (4) · THE MARK\'S FLOOR: a commit that opened on an EMPTY journal 
   assert.equal(registered.ok, true,
     `the pair must REGISTER at the state standing then (nothing): the call caught `
       + `${JSON.stringify(registered.caught)}`);
-  assert.equal(cached.length, 1,
-    `the listener body must have run once inside the write's commit: the drive took ${cached.length}`);
-  assert.equal(markSpelling(cached[0]), 'Absent',
-    `**THE WINDOW CACHED THE FLOOR** — the journal held no entry when the commit opened, so the mark is the `
-      + `state the store was born with, and it is printed as Absent: ${JSON.stringify(cached[0])}`);
-  assert.equal(cached[0].k, 'F',
+  assert.equal(opening.length, 1,
+    `the pass's own ask must have been taken inside the write's commit, where the window's cache is readable: the `
+      + `drive took ${opening.length}`);
+  assert.equal(markSpelling(opening[0]), 'Absent',
+    `**THE CACHE THE OPENING TOOK IS THE FLOOR** — the journal held no entry when the commit opened, so the `
+      + `position is the state the store was born with, printed as Absent: ${JSON.stringify(opening[0])}`);
+  assert.equal(opening[0].k, 'F',
     `and its carrier is the mark's FLOOR row, which is a POSITION and not an op id: `
-      + `${JSON.stringify(cached[0])}`);
+      + `${JSON.stringify(opening[0])}`);
+  assert.equal(delivery.length, 1,
+    `the listener body must have run once inside the write's commit: the drive took ${delivery.length}`);
+  assert.equal(markSpelling(delivery[0]), markSpelling(deliveryMark),
+    `**AND THE CACHE IN FLIGHT AT THE DELIVERY IS THE STORE'S OWN POSITION THERE — THE BUMP, MEASURED**: it read `
+      + `${JSON.stringify(markSpelling(delivery[0]))} against the store's `
+      + `${JSON.stringify(markSpelling(deliveryMark))}`);
+  assert.equal(markSpelling(delivery[0]) !== markSpelling(opening[0]), true,
+    `so the TWO BOUNDARIES ARE TOLD APART — the opening's ${JSON.stringify(markSpelling(opening[0]))} and the `
+      + `delivery's ${JSON.stringify(markSpelling(delivery[0]))} — which is the whole of \`D-63\``);
   assert.equal(inCommitOp !== null, true,
     `the enclosing write's op must be nameable at the callback's instant — it is the HEAD there, which is the `
       + `position the old restore mis-took for the pre-attempt state`);
@@ -469,17 +524,65 @@ test('DEF-AE (4) · THE MARK\'S FLOOR: a commit that opened on an EMPTY journal 
     `the refusal names the pair: ${JSON.stringify(log)}`);
   assert.equal(before, undefined,
     `the address stood at nothing BEFORE the attempt: the drive read ${JSON.stringify(before)}`);
-  assert.equal(after, undefined,
-    `**AND IT STANDS AT NOTHING AFTER THE REFUSAL** — the floor, and not ${JSON.stringify(LANDED)} (the write's `
-      + `landing, which the head would have restored). THE DRIVE READ ${JSON.stringify(after)}`);
-  assert.deepEqual(asked, [undefined, LANDED, undefined],
-    `the pair is asked at registration (nothing), by the write's pass (${LANDED}) and by the restart at the `
-      + `absent state the reversal left: THE DRIVE WAS ASKED AT ${JSON.stringify(asked)}`);
+  assert.equal(after, LANDED,
+    `**A VALIDATED EDIT STANDS — the address holds ${JSON.stringify(LANDED)}, the state the passing sweep `
+      + `approved** — and neither the born state the opening's cache names nor the absent state the reversal `
+      + `leaves: THE DRIVE READ ${JSON.stringify(after)}`);
 
-  t.diagnostic(`DEF-AE (4) · 2026-10-27 · THE FLOOR: the store's own read on the empty journal was `
-    + `${JSON.stringify(markSpelling(markBeforeTheCall))} and the window cached `
-    + `${JSON.stringify(markSpelling(cached[0]))}; the write landed ${JSON.stringify(LANDED)}, the callback `
+  // ── (b) THE FLOOR AS THE TARGET: A COMMIT WHOSE SWEEP NEVER PASSES BUMPS NOTHING. ─────────────
+  // **THE OTHER SIDE OF `D-63`'s PLACEMENT, DRIVEN SO THE FLOOR IS MEASURED AND NOT MERELY ASSERTED.** A pair body
+  // reverses the attempt's OWN landing inside the pass and the pass then ends FAILING — no sweep passed, so
+  // nothing bumped — and the restarted check refuses the absent state the reversal leaves. The compensation is the
+  // reversal's own and it names the cache in flight: THE FLOOR. The store must stand at the state it was BORN with.
+  const floorStore = make();
+  const floorAsks = [];
+  let reversedOnce = false;
+  let floorInner = null;
+  const floorRegistered = attempt(() => floorStore.addConstraint({ address: ['a'], id: 'def-ae-floor-2' }, (context) => {
+    floorAsks.push(context.value);
+    if (context.attempt !== null && reversedOnce === false) {
+      reversedOnce = true;
+      floorInner = attempt(() => floorStore.rollback(context.op.opId));
+    }
+    if (reversedOnce === true && context.value === LANDED) {
+      return { message: 'the pair refuses the landing it has just reversed' };
+    }
+    if (floorAsks.length > 2 && context.value === undefined) {
+      return { message: 'the reversal leaves the address absent, which this pair does not admit' };
+    }
+    return true;
+  }));
+  const floorTerminal = attempt(() => floorStore.write(['a'], 'mem', LANDED));
+  const floorAfter = standingAt(floorStore, ['a']);
+  const floorCaught = floorTerminal.ok === false ? floorTerminal.caught : null;
+
+  assert.equal(floorRegistered.ok, true,
+    `arm (b)'s pair must REGISTER at the absent state: the call caught `
+      + `${JSON.stringify(floorRegistered.caught)}`);
+  assert.equal(reversedOnce, true,
+    `arm (b)'s body must have reversed the attempt's own landing inside the pass: the asks were `
+      + `${JSON.stringify(floorAsks)}`);
+  assert.equal(floorInner !== null && floorInner.ok === true, true,
+    `and that reversal must have ANSWERED its record (a step inside an open attempt is not judged as a step): `
+      + `${JSON.stringify(floorInner && floorInner.caught)}`);
+  assert.equal(floorTerminal.ok, false,
+    `arm (b)'s write must REFUSE — the sweep ends failing and the restarted check refuses the state the reversal `
+      + `leaves; the drive answered ok (the store stands at ${JSON.stringify(floorAfter)})`);
+  assert.equal(floorCaught.status, PASS_REFUSED,
+    `and it crosses in the set's rank-\`20\` member: ${JSON.stringify(floorCaught.status)}`);
+  assert.equal(floorAfter, undefined,
+    `**NOTHING BUMPED, SO THE REFUSAL RESTORES THE OPENING'S CACHE — THE FLOOR — AND THE ADDRESS STANDS AT `
+      + `NOTHING**, the state the store was born with, which no op id could name: THE DRIVE READ `
+      + `${JSON.stringify(floorAfter)}`);
+
+  t.diagnostic(`DEF-AE (4) · RE-DERIVED 2026-10-28 (\`D-63\`) · THE FLOOR AND THE BUMP: the store's own read on the `
+    + `empty journal was ${JSON.stringify(markSpelling(markBeforeTheCall))}; the cache the OPENING took was `
+    + `${JSON.stringify(markSpelling(opening[0]))} and the cache in flight when the DELIVERY ran was `
+    + `${JSON.stringify(markSpelling(delivery[0]))}, the store's own position there `
+    + `(${JSON.stringify(markSpelling(deliveryMark))}). The write landed ${JSON.stringify(LANDED)}, the callback `
     + `reversed that very op (${JSON.stringify(inCommitOp)}), the write threw `
-    + `${JSON.stringify(caught.status)}, and the address stands at `
-    + `${after === undefined ? 'NOTHING (absent)' : JSON.stringify(after)} — the born state, restored`);
+    + `${JSON.stringify(caught.status)}, and the address stands at ${JSON.stringify(after)} — the VALIDATED `
+    + `LANDING. ARM (b), WHERE NO SWEEP PASSED: asks ${JSON.stringify(floorAsks)}, the write threw `
+    + `${JSON.stringify(floorCaught.status)} and the address stands at `
+    + `${floorAfter === undefined ? 'NOTHING (absent) — the born state, restored' : JSON.stringify(floorAfter)}`);
 });
