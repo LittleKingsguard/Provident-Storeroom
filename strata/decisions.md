@@ -3903,3 +3903,27 @@ read what you care about (`D-50`).**
 
 **TERMS: the residual closed (`1`), the reason (`1` = an index is derived), the two jobs (`2`), the guards' asymmetry
 (`1` = constraints bounded, listeners not), the derived-address rule (`1`), the guide owed (`1`).**
+
+---
+
+### `D-71` — A LISTENER IS INDEPENDENT OF THE CALLER'S COMMIT: the caller learns nothing of its outcome, and that is the design
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, closing `D-70`'s first residual.
+
+**THE RULING, VERBATIM:**
+
+> A listener is independent of the commit record of the triggering caller. The caller does not need to know about the
+> outcome of the listeners.
+
+**SO `D-70`'S FIRST LEFTOVER IS NOT A GAP; IT IS THE ANSWER.** **A listener runs in its own commit (`D-45`), and its
+outcome — passed or refused — is THAT commit's.** **The triggering caller receives its own outcome and nothing about the
+listener's**, **and a listener's refusal does not fail the write that fired it.** **A listener is a SIDE EFFECT for
+external code; a side effect's failure is the side effect's.**
+
+**AND IT MAKES `D-70`'S ABSENCE THE ONLY OBSERVABLE ONE.** **Since a caller cannot see a listener's outcome, the only
+thing a chain of listener writes exposes is ITS COST — depth, and whatever the listener itself does with what its own
+call returns.** **Which is exactly why the missing loop guard matters**: **nothing else about the chain is observable,
+so nothing else can be bounded.**
+
+**TERMS: the residual closed as the design (`1`), the independence stated (`1`), the caller's blindness to a listener's
+outcome (`1`), the consequence for observability (`1` = cost is the only exposed property).**
