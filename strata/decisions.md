@@ -3453,3 +3453,30 @@ deleted node is ABSENT, which is a change too.**
 **TERMS: the exact-address rule superseded (`1`), the four deferrers (`4` = lifecycle item 5 (iv), `HL-8`'s refusal,
 `CX-12`'s materialisation, `D-50`'s necessity), the set stated (`1`), the unruled direction to be measured (`1`), the
 cells owed (`2` = the ancestor pair asked, and the descendant-pair direction's measurement).**
+
+---
+
+### `D-57` — DROP THE CUT-STATE; and the delete's commit is a SCOPE AND A RECORD, not a kernel item
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, answering `D-56`'s open item and the delete's `CommitRecord` question.
+
+**THE RULINGS, VERBATIM:**
+
+> Drop the cut-state
+> What is a delete doing with a commit if it mints no kernel item?
+
+**1 · THE CUT-STATE GOES, AND IT IS THE ONLY ANSWER THAT CANNOT RECUR.** **A shipped document is sealed BEFORE the tag that makes its cut-state true** — so **every release packed before its tag ships a doc that denies itself**, and the guard, running in the preflight, can only ever confirm *"not cut"*. **Three iterations have now proved it: `1.2.0` shipped *"NOT CUT"*, `1.3.0` shipped *"v1.3.0 DOES NOT EXIST"*, and the notes' head was stale again five minutes ago.** **So the cut-state sentence is REMOVED from the shipped guide and from the notes as a claim; the VERSION LINE stays**, because **the manifest knows it and travels beside it.** **The tag set stays in the notes as a RECORD OF RELEASES — past tense, a list — never as a claim about the current one.** **The assertion narrows to the version line, which is the only figure a tarball can be right about.**
+
+**2 · AND THE QUESTION IS THE RIGHT ONE: A DELETE'S COMMIT MINTS NO KERNEL ITEM, AND IT STILL DOES FIVE THINGS.** **A kernel ITEM is a FUNCTION on the kernel's surface — `K-1`…`K-6`, the constraint machinery's API, whose caller drives it directly. A delete's caller drives `delete`, not the kernel.** **So the commit the delete opens is not an export; it is:**
+
+- **THE SCOPE** — `D-44`'s boundary (*no check without an open commit*), satisfied by the delete's own window;
+- **THE LOG'S HOME** — `D-53`'s one list, which is what the crossed report carries;
+- **THE SAFE-STATE UNIT** — `DEF-AN`'s rollback extent: **a refused edit undoes the COMMIT, and the commit is what the delete opened**;
+- **THE RECORD A CONSUMER HOLDS** — the `CommitRecord` on the receipt, with its `pending` residue and its `op`;
+- **AND THE THING `K-4`/`K-5` CAN ANSWER BY REF** — which they now do, because **the kernel's records are keyed by the COMMIT, not by the item that opened it.**
+
+**SO THE SHAPE IS COHERENT AND IT IS NEW: A COMMIT CAN BE OPENED BY A VERB RATHER THAN BY `K-2`.** **`D-53` put the log on the commit; `D-44` made the commit the check's precondition; `DEF-AN` made it the rollback's unit — all three are satisfied by a verb-opened commit, and none of them requires a kernel item.** **What a kernel item would add is a PUBLIC ENTRY — and a delete already has one: its own verb.** **So no `K-7` is owed, and the honest statement is that the kernel's six items are the WRITE's surface, not the constraint machinery's whole surface.**
+
+**AND THE ONE THING THAT WOULD CHANGE THE ANSWER, NAMED SO IT IS NOT DISCOVERED**: **if a consumer must drive a delete's attempt DIRECTLY** — without going through the verb — **then it needs an item, and `K-7` `commitRemoval` becomes owed.** **No consumer can: the kernel is not a subpath, and the verb is the surface.**
+
+**TERMS: the cut-state dropped (`1`), the version line kept (`1`), the assertion narrowed (`1`), the tag set demoted to a record (`1`), the delete's commit's five jobs (`5`), the kernel item not owed and the condition that would owe it (`1`).**
