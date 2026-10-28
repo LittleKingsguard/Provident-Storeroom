@@ -20,6 +20,75 @@ the value to assert against, not the crate's own `Cargo.toml` version.
 
 ---
 
+## §1.2.0 · **UNRELEASED** — what the release in preparation adds, derived from the tree
+
+**★ THIS SECTION DESCRIBES A RELEASE THAT HAS NOT BEEN CUT, AND IT IS MARKED SO IT CAN NEVER BE MISTAKEN FOR A
+DECLARATION OF SHIPPED BYTES.** `bindings/js/package.json`'s `version` reads **`1.1.0`** at its own bytes this
+date, all five `optionalDependencies` pins read `1.1.0` with it, and no `v1.2.0` tag exists. **So `1.1.0` is what
+is cut and this section is what is being prepared; everything below was derived from the tree on 2026-10-28, not
+from a released artefact, and no consumer can install any of it yet.**
+
+**AND WHAT SHIPS NOWHERE, SAID FIRST BECAUSE IT IS THE EASIEST THING TO GET WRONG: THIS FILE IS AT THE
+REPOSITORY ROOT AND NO TARBALL CARRIES IT.** The main manifest's `files` allowlist names six rows — `index.mjs` ·
+`README.md` · `README.guide.md` · `index.d.ts` · `src/entry/` · `src/constraint-kernel.mjs` — **and this document
+is not one of them and must not be.** So a `npm install provident-storeroom` puts **no `RELEASE-NOTES.md`** on
+disk: a consumer holding only `node_modules` has the package's own bytes and the shipped guide
+(`README.guide.md`), and reaches this file only by reading the repository. **The same was already true of the
+`1.1.0` declaration above and it is true of the `1.2.0` list below.**
+
+**WHAT HAS CHANGED SINCE `1.1.0`, IN FOUR ITEMS — ONE OF THEM A BEHAVIOUR CHANGE AND THREE OF THEM NOT.**
+
+1. **`DeleteRecord` GAINED `discarded` (ADDITIVE).** A delete's record carries a fifth own member beside
+   `address`, `op`, `tiers` and `triggered`: **`discarded`**, a list `0` or `1` long of `{ opId, addresses }` —
+   the reversal a delivery raised and the engine threw away, with the addresses the discarded check owed.
+   `discarded.length === 0` means the delivery discarded nothing. **It is a WITNESS and not a repair:** the
+   delete still answers everything it answered, throws nothing, mints no status, and the reversal's effect still
+   stands. **AND ITS ENUMERABILITY CONSEQUENCE IS PART OF THE DECLARATION, NOT A FOOTNOTE: `discarded` is
+   DECLARED as a member in `index.d.ts` and is NON-ENUMERABLE at runtime.** Measured on this checkout
+   2026-10-28: a delete's record answers `Object.keys` as `['address','op','tiers','triggered']` — **four** —
+   while `Object.getOwnPropertyNames` answers **five**, `discarded`'s own descriptor being
+   `{enumerable: false, configurable: true, writable: false}`. **So `Object.keys` never shows it, and a spread or
+   `Object.assign` copy of a receipt LOSES it:** both were driven and neither copy carried the member. **Read the
+   witness off the record itself** — a consumer that copies a receipt loses the witness, and nothing throws when
+   it does.
+
+2. **THE ONE BEHAVIOUR CHANGE: A REFUSED REVERSAL NOW RESTORES TO THE COMMIT'S OPENING MARK, NOT THE JOURNAL'S
+   HEAD.** `restoreReversal` used to restore the journal's head, on the reasoning that *"a reversal appends no
+   journal entry, so that head describes the state that stood BEFORE the action"*. **That reasoning fails on the
+   restart arm**: the enclosing write's own op stands at the head when a listener's reversal runs, so the
+   compensation restored the write's LANDING and **a write that reported a refusal had left its own value
+   standing** (`DEF-AE`: `9` stayed `9` where the refused write should have restored `7`). **Now the opening
+   caches its mark — the journal's last valid op id, or the floor where the journal holds no entry — and the
+   restore hands that cached mark back.** Measured: the refusing arm leaves the store where the ATTEMPT found it
+   (`tests/e2e/def-ae-restore-mark.test.mjs`, cells `1`–`2`, and the seven refusing arms swept around them).
+   **A lawful reversal is unchanged**, and a lawful write still answers its record with its value standing.
+
+3. **`context.value`'S RESPONSIBILITY IS NOW DECLARED (NO BEHAVIOUR CHANGE).** `D-50`, the architect, verbatim:
+   *"If a constraint needs to look for the data at a given location, it can read()"*. **`context.value` is the
+   value the write verb returned** — a repair that lands elsewhere hands your body the value that op landed — **so
+   a constraint that cares about any other location reads it itself.** Nothing about the machinery moved; the
+   guide's `§7.6` now says it, and the same section now names the exact-address consequence beside it: **a pass
+   judges the pairs standing at the address it writes, so a pair at another address is not asked** (measured: a
+   pair at `['b']` asked `0` times by a write at `['a']`).
+
+4. **THE PASS'S STATE MACHINE IS PINNED BY CELLS (NO BEHAVIOUR CHANGE).** The architect's state machine — one
+   action, the checks in order, **a repair restarting the checks from `#1` because a repair can break a check
+   already passed**, and termination being structural rather than counted — is now measured property by property
+   through the entry (`tests/e2e/repair-restart-state-machine.test.mjs`, whose cells also print that a pass
+   evaluates exactly the pairs at the attempt's own address). **The behaviour is the behaviour `1.1.0` already
+   ships; what is new is that it is pinned, so a later move meets a red instead of a reader.**
+
+**AND ONE NUMBER A CONSUMER MIGHT WANT, WITH ITS WARNING: THE RESTART BUDGET IS `3` AND IT NOW SAYS SO IN THE
+GUIDE.** `RESTART_LIMIT = 3` at `bindings/js/src/entry/constraints.mjs:1366` has been the behaviour since
+`1.1.0`; the shipped guide declared it nowhere, and the guide's `§7.7` now does. **This is a DECLARATION and not
+a change** — the bound, its spend-and-never-reset rule and its fail-closed arm stand exactly as they shipped.
+
+**NOTHING ELSE IN THIS LIST IS A BREAKING CHANGE, AND NOTHING IN IT IS CUT.** Items `1` and `2` are the two a
+consumer can feel; `3` and `4` are declarations and pins. **When `1.2.0` is cut, this section is the declaration
+it carries — and until then the six figures a reader checks all read `1.1.0`.**
+
+---
+
 ## §0 · What to do if you are on `1.0.1`
 
 1. **Re-read your refusal mapper.** Read §2 items `B-1`, `B-2` and `B-5` before you upgrade. **A status you

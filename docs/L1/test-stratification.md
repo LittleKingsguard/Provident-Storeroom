@@ -69,7 +69,7 @@ top level are EMPTY OR GONE** — measured on this tree, a glob of each returns 
 
 | what the tables call it | what is on disk today |
 |---|---|
-| `tests/e2e/` | **44 files** — the 33 assignments of §2.1, plus the installed battery's three (`installed/live-install.mjs`, `installed/install-support.mjs`, `installed/license-row-evidence.json`), the cut's three helpers (`staged-install/staged-install-support.mjs`, `module-set.mjs`, `pack-reachability.mjs`), and `REVIEW-2026-10-24.md` |
+| `tests/e2e/` | **44 files** — the 33 assignments of §2.1, plus the installed battery's three (`installed/live-install.mjs`, `installed/install-support.mjs`, `installed/license-row-evidence.json`), the cut's three helpers (`staged-install/staged-install-support.mjs`, `module-set.mjs`, `pack-reachability.mjs`), and `REVIEW-2026-10-24.md` — **⟶ RE-MEASURED 2026-10-28: `79` files** (`find tests/e2e -type f`), re-counted in the five classes this section's own rows use: **`55` `*.test.mjs` · `12` runners · `8` support modules · `1` evidence JSON · `3` documents** (`REMEASURE-2026-10-18.md`, `REVIEW-2026-10-24.md`, `file-tier-save/file-tier-save-greens.md`); **`55 + 12 + 8 + 1 + 3 = 79` ✓** |
 | `tests/integration/` | **33 files** — the 29 assignments of §2.2, the two helpers of §2.5 (`constraint-kernel-helpers.mjs`, `held-listener-identity-helpers.mjs`) and `support/mod.rs` (the store crate's) and `binding-crossing/support/mod.rs` (the binding crate's) |
 | `tests/unit/` | **5 files**, exactly §2.3's five |
 | `tests/Cargo.toml` | **1 file** — the manifest of the third workspace member (`storeroom-tests`) that hosts the Rust targets; it was not in the 75 because it did not exist |
@@ -145,7 +145,7 @@ tags are unmoved — 33 e2e rows, `O3` 5 · `O4` 28.**
 ### §2.1 `tests/e2e/` — 33 files
 
 **⟶ MOVED, 2026-10-25: every `present path` cell below is a path that no longer exists and every `target` cell is
-a file on disk.** The 33 rows are read by their `target` column; the `tests/e2e/` directory itself carries **44**
+a file on disk.** The 33 rows are read by their `target` column; the `tests/e2e/` directory itself carries **44** — **⟶ RE-MEASURED 2026-10-28: `79`** (the `44` is the reading of 2026-10-25 and is read THROUGH this clause; the thirty-three rows below are still the assignments and the directory's growth is in the same five classes the table at §2 counts) —
 files, the extra eleven being the installed battery's three, the cut's three staging/measurement helpers,
 `REVIEW-2026-10-24.md`, and the four files §2.7/§2.8 declare. **No row's scope, driver, layer or route changed with
 its path.**

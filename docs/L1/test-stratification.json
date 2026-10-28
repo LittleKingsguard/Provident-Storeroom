@@ -30,6 +30,18 @@
       "tests/unit/": 5,
       "tests/Cargo.toml": 1,
       "tests_total": 83,
+      "tests_total_remeasured_2026_10_28": 118,
+      "present_population_remeasured_2026_10_28": {
+        "measured": "2026-10-28",
+        "method": "counted with `find <dir> -type f`, one directory at a time, at the tree this file describes",
+        "tests/e2e/": 79,
+        "tests/integration/": 33,
+        "tests/unit/": 5,
+        "tests/Cargo.toml": 1,
+        "tests_total": 118,
+        "e2e_breakdown": { "test_mjs": 55, "runners": 12, "support_modules": 8, "evidence_json": 1, "documents": 3 },
+        "note": "the readings above (`present_population_verified_2026-10-25`, 44 / 33 / 5 / 1 = 83) are KEPT AS THEY STAND and are read through this key: tests/e2e/ has grown 44 -> 79, three classes of growth (32 more *.test.mjs, 1 more runner and 2 more documents), while integration, unit and the manifest are unmoved; the 79 closes as 55 + 12 + 8 + 1 + 3"
+      },
       "of_the_75": 75,
       "created_by_the_migration_not_in_the_75": 8,
       "the_eight": [

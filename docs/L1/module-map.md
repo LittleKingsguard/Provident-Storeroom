@@ -98,6 +98,18 @@ because three of the four things it declared as *targets* are now the tree:
   — six names in four re-export specifiers — where the map prints **2,203** and the re-issue measured **2,213**.
   **The five parts and the barrel are thirteen of the thirteen files above; there is no separate kernel file
   left to own.**
+  **⟶ AND EVERY FIGURE OF THAT LIST IS RE-MEASURED AT THE TREE 2026-10-28 (`wc -l` at each file's own last
+  line), BECAUSE THE LIST ABOVE IS ITSELF PAST STATE: `index.mjs` **1,565** (was 1,509) · `refusal.mjs` **161** ✓ ·
+  `artefact.mjs` **376** ✓ · `state.mjs` **995** (623) · `class-decision.mjs` **1,214** ✓ · `carrier.mjs`
+  **1,002** ✓ · `frame.mjs` **418** (417) · `delivery.mjs` **662** (647) · `constraints.mjs` **2,362** (1,530 —
+  **the file that grew most, and the printed `1,530` is `832` lines and 35% short of it**) ·
+  `kernel-foundations.mjs` **816** (725) · `kernel-registration.mjs` **731** (677) · `kernel-commit.mjs` **166** ✓ ·
+  `kernel-attempt.mjs` **762** (627) · `kernel-terminal.mjs` **409** ✓. **The FILE COUNT is unmoved — `bindings/js/src/entry/`
+  is still THIRTEEN files ✓ — and the barrel `bindings/js/src/constraint-kernel.mjs` is still **4** lines ✓.**
+  **§2.2's crate rows move with them, re-measured at the same read: `crossing.rs` **1,276** (1,178) · `codec.rs`
+  **1,071** (966) · `facade.rs` **1,252** (1,105) · `src/lib.rs` **99** (90) · `build.rs` **325** ✓; and
+  `bindings/js/index.d.ts` is **1,017** lines.** **Every superseded reading above stays printed and is read
+  THROUGH this clause; none is rewritten away.**
 - **THE BATTERIES MOVED, AND `D-5`'s PRESENT-STATE PATHS ARE NOW THE PAST.** `bindings/js/test/` (**42** files),
   `bindings/js/greens/` (**11**), `bindings/js/tests/` (**7**) and `tests/`'s **15** Rust files **no longer exist**;
   their content is **83 files** under the preset's three scopes — `tests/e2e/` **44**, `tests/integration/` **33**,
@@ -107,6 +119,17 @@ because three of the four things it declared as *targets* are now the tree:
   declared** (`installed/install-support.mjs`, `installed/live-install.mjs`,
   `installed/license-row-evidence.json`, `staged-install/staged-install-support.mjs`, `module-set.mjs`,
   `pack-reachability.mjs`, `REVIEW-2026-10-24.md`, `tests/Cargo.toml`).
+  **⟶ AND THE BATTERY'S FILE COUNTS ARE RE-MEASURED AT THE TREE 2026-10-28, AND THE `83` IS NOW `118`**
+  (`find <dir> -type f`, counted this date, one directory at a time): **`tests/e2e/` 79** (was 44) ·
+  **`tests/integration/` 33** ✓ · **`tests/unit/` 5** ✓ · **`tests/Cargo.toml` 1** ✓ — **and `find tests -type f`
+  counts the same 118.** **The `e2e/` breakdown, re-counted in the stratification's own five classes: 55
+  `*.test.mjs` · 12 runners · 8 support modules** (the eight are the non-test `*.mjs` declaring a top-level
+  `export`: `addon-adoption-support.mjs` · `addon-surface-support.mjs` ·
+  `constraint-address-extension-support.mjs` · `installed/install-support.mjs` · `module-set.mjs` ·
+  `pack-reachability.mjs` · `staged-install/staged-install-support.mjs` · `status-census-support.mjs`) ·
+  **1 evidence JSON** (`installed/license-row-evidence.json`) · **3 documents** (`REMEASURE-2026-10-18.md` ·
+  `REVIEW-2026-10-24.md` · `file-tier-save/file-tier-save-greens.md`) — **`55 + 12 + 8 + 1 + 3 = 79` ✓.**
+  **Every superseded count above stays printed and is read THROUGH this clause.**
 - **`bindings/js/Cargo.lock` IS DELETED AND `bindings/js/.gitignore` NO LONGER CARRIES A `/Cargo.lock` LINE.**
   The map's prose below cites that line twice (§"MEASUREMENT LIMIT", §5.2) and both citations are superseded here
   rather than rewritten there: a workspace member has no lock of its own (`D-34`), and the one lock at
@@ -191,6 +214,25 @@ figure in twelve terms, no path counted twice:** `src/` 7 · `tests/` 83 · `bin
 `.github/workflows/` 1 · `scripts/` 1 · `strata/` 2 · root 9 = **156**. The 477 tracked files under
 `scratch/` are outside this denominator by convention, not by rule (§5.4), and `git ls-files` measures the whole
 index at **633**, so **633 = 477 + 156** is a measurement and not arithmetic.
+
+**⟶ AND THE WHOLE DENOMINATOR IS RE-MEASURED 2026-10-28, AT THE INDEX, AND IT IS `197` AND NOT `185`.** `RCA-8(g)`
+ANNOTATE-BESIDE: **every figure of the FIGURES block above stands BYTE-FOR-BYTE — the `156`, its twelve terms, the
+`633`, the `185` and its own partial terms — and each is read THROUGH this clause as the reading of its own date.**
+**MEASURED THIS DATE, BY `git ls-files | grep -v '^scratch/'`, WHICH RETURNS `197`; THE WHOLE INDEX IS `674`, SO
+`674 = 477 + 197` ✓** — the `scratch/` head is unmoved at **477** and the twelve-term by-tree list closes at the
+same figure, no path counted twice: **`src/` 7 · `tests/` 118 · `bindings/js/` root 8 · `bindings/js/src/` 18 ·
+`bindings/js/platforms/` 10 · `docs/specs/` 9 · `docs/L1/` 9 · `docs/guides/` 1 · `typecheck/` 1 ·
+`.github/workflows/` 1 · `scripts/` 3 · `strata/` 2 · root 10 = `197` ✓.** **What moved against the `185` reading,
+term by term, so the movement is shown and not absorbed: `tests/` **118** where that reading measured 107 ·
+`scripts/` **3** where this block prints 1 (`greens-chain.mjs`, `publish.sh`, `stage-addon.mjs`) · and
+**`docs/guides/` `1` is a NEW TERM — `docs/guides/package-use.md`, the guide's authored home, is tracked and the
+`185` reading did not carry it**; `bindings/js/src/` **18** ✓, `docs/L1/` **9** ✓, `bindings/js/platforms/` **10** ✓,
+`src/` **7** ✓, `strata/` **2** ✓, the root's **10** ✓. **THE OWNED/UNOWNED SPLIT OF THE `197` IS OWED A WALK THIS
+PASS DID NOT TAKE**, exactly as the `185`'s was: this pass measured the DENOMINATOR and its by-tree terms and did
+not re-derive which module owns each path, so `127 owned + 0 co-owned + 29 unowned = 156` is left as the `156`'s
+own split and is not asserted at `197`. **The module count (19) and the endpoint count (61) are unmoved by all of
+it** — a file that is tracked is not a module — **and a reader who needs the split re-derives it rather than
+reading it here.**
 
 **THE READING THIS BLOCK CARRIED BEFORE THAT MEASUREMENT IS NAMED HERE AND NOT REWRITTEN AWAY: `126` paths,
 `105 owned + 1 co-owned + 20 unowned`, and the `147` the head revision block printed as arithmetic on
@@ -766,6 +808,9 @@ have: `test:store` (`cargo test --offline -p storeroom-native`, 415), `test:batt
 storeroom-tests`, 235), `test:both` (plain `cargo test`, 650) and `test:e2e`
 (`node tests/e2e/installed/live-install.mjs`). Nothing here is a consumer
 entry point; it is how the batteries in §2.4 are driven.
+**⟶ AND THE THREE LEGS' COUNTS ARE RE-MEASURED 2026-10-28, EACH RUN IN THIS TREE, `0` failed: `test:store`
+**434** (was 415) · `test:battery` **235** ✓ · `test:both` **669** (`434 + 235 = 669` ✓, was 650).** **The superseded
+`415` and `650` above stand and are read THROUGH this clause.**
 
 ### E6 · The kernel's loop — inside the module, no longer a package surface
 
