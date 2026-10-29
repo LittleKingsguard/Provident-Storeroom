@@ -711,5 +711,90 @@
     },
     "moved": false,
     "note": "THE `remeasured_2026_10_29_twenty_six_past_v1_4_0` KEY ABOVE IS THE READING OF ITS OWN DATE AND IS KEPT BYTE-FOR-BYTE; this key re-reads every one of its figures and supersedes none of its bytes. NOT ONE COUNT MOVED, and the reason is measured rather than assumed: the twenty-seven commits past `v1.4.0` add no path under `tests/`, and the `1.5.0` preparation edits eleven manifests, the rebuilt artefact, the guide, the change list and six `docs/L1` records and creates nothing. THE MATCHING CLAUSE IS docs/L1/test-stratification.md's seventh `2026-10-29` re-measure."
+  },
+  "remeasured_2026_10_30_documentation_release": {
+    "method": "one run of each leg plus `find <dir> -type f` and `find tests -name '*.test.mjs'`, on this tree 2026-10-30 at `git describe` `v1.6.0-4-g674b79e` \u2014 the four commits past `v1.6.0`, which are the rulings `D-79`, `D-80`, `D-81` and `D-82`, each writing `strata/decisions.md` and no other path, and the documentation release `1.6.1` this pass prepares on the working tree",
+    "denominator": {
+      "figure": 199,
+      "was": 199,
+      "moved": false,
+      "reading": "`git ls-files` returns `676` for the whole index and `477` under `scratch/`, so `676 = 477 + 199` \u2713 \u2014 UNMOVED. **THE ONE PATH THIS PASS CREATES IS UNTRACKED AND IS NAMED SO THE NEXT KEY CAN COUNT IT:** `docs/guides/backup/D81-2026-10-29-notes-move-out.md` (the `D-81` item 1 move-out home and, from `D-82`, the catalogue whose \u00a74 is the cut-claim ratchet's baseline) stands on the working tree and in no index reading; the pass that commits it makes this figure `200`."
+    },
+    "present_population": {
+      "tests/e2e/": 79,
+      "tests/integration/": 33,
+      "tests/unit/": 5,
+      "tests/Cargo.toml": 1,
+      "tests_total": 118,
+      "test_mjs_under_tests": 69,
+      "e2e_breakdown": {
+        "test_mjs": 55,
+        "runners": 12,
+        "support_modules": 8,
+        "evidence_json": 1,
+        "documents": 3
+      },
+      "moved": false,
+      "note": "UNMOVED against the key above: 79 + 33 + 5 + 1 = 118 \u2713 \u00b7 55 + 12 + 8 + 1 + 3 = 79 \u2713 \u00b7 69 `*.test.mjs` \u2713 (55 e2e \u00b7 11 integration \u00b7 3 unit). The four commits past `v1.6.0` write `strata/decisions.md` alone, and this pass writes documents, eleven manifests and ONE script (`scripts/publish.sh`) \u2014 no test path and no cell."
+    },
+    "legs": {
+      "npm test": {
+        "tests": 1121,
+        "pass": 1120,
+        "fail": 0,
+        "skip": 1,
+        "exit": 0,
+        "note": "the one skip is the dispatcher-shape cell, as every reading from 2026-10-28 records"
+      },
+      "cargo test --offline": {
+        "total": 669,
+        "storeroom-native": 434,
+        "storeroom-tests": 235,
+        "failed": 0,
+        "exit": 0,
+        "reading": "434 + 235 = 669 \u2713"
+      },
+      "cargo test --offline -p storeroom-native": {
+        "passed": 434,
+        "failed": 0
+      },
+      "cargo test --offline -p storeroom-tests": {
+        "passed": 235,
+        "failed": 0
+      },
+      "npm run greens": {
+        "exit": 0,
+        "discovered_runners": 11,
+        "reading": "`CHAIN COMPLETE \u2014 11 discovered runner(s), every one exit 0`; AUTHORED 103 \u00b7 EXECUTED 103 \u00b7 PASS 103 \u00b7 FAIL 0; layer `LIVE / ASSEMBLED PACKAGE`, `APP` `NONE`"
+      },
+      "npm run test:e2e": {
+        "exit": 0,
+        "declared": 15,
+        "recorded": 15,
+        "PASS": 14,
+        "LAYER-LIMIT": 1,
+        "FAIL": 0,
+        "reading": "`provident-storeroom-1.6.1.tgz`, 21 members; installed into a clean directory whose ancestry names no repository; `version()` = 1.6.1 at the loaded platform artefact; the guide and the change list present in the installed tree"
+      },
+      "npm run typecheck": {
+        "exit": 0
+      },
+      "scripts/publish.sh --figures": {
+        "exit": 0,
+        "documents": 3,
+        "version_lines": "1.6.1"
+      },
+      "scripts/publish.sh --cut-claims": {
+        "exit": 0,
+        "entries": 83,
+        "refused": 0,
+        "stale": 0,
+        "reading": "the ratchet is green at this tree and reddens on all four drives a pass must show: a new claim at an uncatalogued site, a `/tmp` revert restoring Passage A, a `/tmp` copy with a catalogued site removed (a STALE ENTRY), and a `/tmp` baseline with one entry removed (an unlisted hit)"
+      },
+      "scripts/publish.sh --check": {
+        "exit": 1,
+        "reading": "REFUSED on TWO lines only, and both are this pass's own prohibitions rather than defects: `the working tree is dirty \u2014 13 path(s). Commit or stash first` and `HEAD differs from origin/main \u2014 push or pull first`. Every other line of the preflight is green: the three generated version lines agree (1.6.1), the cut-claim ratchet is green, `cargo test --offline` reads 669 pass / 0 fail, `npm test` reads 1120 pass / 0 fail, and the guide and the change list are landed byte-for-byte at the packaging root and named by `files`."
+      }
+    }
   }
 }

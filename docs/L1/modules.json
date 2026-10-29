@@ -991,6 +991,116 @@
         "note": "each read at its own bytes this date and SIX OF THEM UNMOVED against the key above: `D-77` adds a member to the REFUSAL'S form and no status, no token, no instance member, no allowlist row and no log-entry member \u2014 which is why `LogEntry` stays FIVE and the refusal is FOUR and neither is the other. THE VERSION IS THIS PASS's: `1.6.0` at eleven cells (the main `version`, its five exact pins, the five platform manifests), with `npm run build` stamping the artefact so `version()` answers `1.6.0` at the built artefact AND at a package installed into a `/tmp` consumer, and `scripts/publish.sh --figures` agreeing in three shipped documents."
       }
     },
+    "ownership_remeasured_2026_10_30_documentation_release": {
+      "method": "`git ls-files | grep -v '^scratch/'` for the denominator, `find <dir> -type f` and `find tests -name '*.test.mjs'` for the population, `npm pack` for the member set, `scripts/publish.sh --figures`, `--cut-claims`, `--cut-baseline` and `--pack` for the three guards, and one run of each leg \u2014 all on this tree 2026-10-30 at `git describe` `v1.6.0-4-g674b79e`, which is the documentation release `1.6.1`",
+      "denominator": 199,
+      "denominator_reading": "`git ls-files` returns `676` for the whole index and `477` under `scratch/`, so `676 = 477 + 199` \u2713 \u2014 UNMOVED from the key above: the four commits past `v1.6.0` write `strata/decisions.md` alone and this pass creates no tracked path. **AND THE ONE PATH IT DOES CREATE IS NAMED RATHER THAN ABSORBED: `docs/guides/backup/D81-2026-10-29-notes-move-out.md` is UNTRACKED at this date, so it is in no index reading \u2014 the pass that commits it makes the denominator `200` and this key's successor must say so.**",
+      "owned": 127,
+      "co_owned": 0,
+      "unowned": 72,
+      "total": 199,
+      "owned_terms_by_module_reading": "the nineteen modules' `owns` arrays are UNMOVED at 127 entries and the co-owned count at `0`, carried from the key above and re-checked rather than re-copied: the module list's own `module_count` did not move this pass (no module was added, retired or re-bounded), and a term count is a fact about those arrays and not about the documents this pass edits. `127 + 0 + 72 = 199` \u2713",
+      "by_tree": {
+        "src/": 7,
+        "tests/": 118,
+        "bindings/js/ (root)": 9,
+        "bindings/js/src/": 18,
+        "bindings/js/platforms/": 10,
+        "docs/specs/": 9,
+        "docs/L1/": 9,
+        "docs/guides/": 2,
+        "typecheck/": 1,
+        ".github/workflows/": 1,
+        "scripts/": 3,
+        "strata/": 2,
+        "root": 10,
+        "sum": 199
+      },
+      "by_tree_note": "the thirteen terms close `7 + 118 + 9 + 18 + 10 + 9 + 9 + 2 + 1 + 1 + 3 + 2 + 10 = 199` \u2713, RE-MEASURED this date and unmoved from the key above term for term.",
+      "test_population": {
+        "tests/e2e/": 79,
+        "tests/integration/": 33,
+        "tests/unit/": 5,
+        "tests/Cargo.toml": 1,
+        "tests_total": 118,
+        "test_mjs_under_tests": 69,
+        "note": "UNMOVED: 79 + 33 + 5 + 1 = 118 \u2713 \u00b7 69 `*.test.mjs` \u2713 (55 e2e \u00b7 11 integration \u00b7 3 unit). The four commits past `v1.6.0` and this pass add NO file under `tests/` \u2014 a cell is not a file, and this pass adds no cell: it adds a guard's baseline, a change list's section and a version literal."
+      },
+      "legs_remeasured_2026_10_30": {
+        "npm_test": {
+          "tests": 1121,
+          "pass": 1120,
+          "fail": 0,
+          "skip": 1,
+          "exit": 0
+        },
+        "cargo_test_offline": {
+          "total": 669,
+          "native": 434,
+          "battery": 235,
+          "failed": 0,
+          "exit": 0
+        },
+        "npm_run_greens": {
+          "exit": 0,
+          "runners": 11,
+          "authored": 103,
+          "executed": 103,
+          "pass": 103,
+          "fail": 0
+        },
+        "npm_run_test_e2e": {
+          "exit": 0,
+          "declared": 15,
+          "recorded": 15,
+          "PASS": 14,
+          "LAYER_LIMIT": 1,
+          "FAIL": 0,
+          "packed_members": 21,
+          "packed_version": "1.6.1"
+        },
+        "npm_run_typecheck": {
+          "exit": 0
+        },
+        "publish_sh_figures": {
+          "exit": 0,
+          "documents": 3,
+          "version_lines": "1.6.1"
+        },
+        "publish_sh_cut_claims": {
+          "exit": 0,
+          "baseline_entries": 83,
+          "accepted_archived": 1,
+          "accepted_baseline": 83,
+          "refused": 0,
+          "ignored": 226,
+          "stale": 0,
+          "files": 4,
+          "note": "`D-82`'s ratchet, measured: 46 distinct sites / 83 scanned lines, keyed by `<path>` + the line's own `sha256`. The four drives and the one control are recorded in the change list's `\u00a71.6.1` and in the catalogue's `\u00a74`."
+        },
+        "publish_sh_pack": {
+          "assembled_members": 21,
+          "bare_members": 20,
+          "assembled_bytes": 530600,
+          "bare_tarball": "provident-storeroom-1.6.1.tgz",
+          "platform_tarballs": 5
+        }
+      },
+      "figures_restated_remeasured_2026_10_30": {
+        "statuses": 20,
+        "kc_tokens": 9,
+        "own_members": 14,
+        "allowlist_rows": 7,
+        "packed_members_bare": 20,
+        "packed_members_assembled": 21,
+        "log_entry_members": 5,
+        "depth_ceiling": 126,
+        "node_ceiling": 1000000,
+        "version": "1.6.1",
+        "version_cells": 11,
+        "note": "each read at its own bytes this date and ALL NINE UNMOVED against the key above: this pass edits no line of `bindings/js/src/`, `index.mjs`, `index.d.ts` or `src/**`, so the twenty-status set, the nine `KC` tokens, the fourteen own members, the seven `files` rows, the `20`/`21` member counts, `LogEntry`'s five members and the two ceilings hold exactly \u2014 and `D-77`'s fourth member stays on the FAILURE FORM, not on a log entry. THE VERSION IS THIS PASS'S: `1.6.1` at eleven cells with `npm run build` stamping the artefact, so `version()` answers `1.6.1` at the built artefact AND at a package installed into a `/tmp` consumer, and `scripts/publish.sh --figures` agreeing in three shipped documents."
+      }
+    },
     "ownership_remeasured_2026_10_29_twenty_seven_past_v1_4_0":     {
       "method": "`git ls-files | grep -v '^scratch/'` for the denominator, `find <dir> -type f` and `find tests -name '*.test.mjs'` for the population, `wc -l` for the crate rows, `npm pack --dry-run --json` for the member set, and one run of each leg \u2014 all on this tree 2026-10-29 at `git describe` `v1.4.0-27-ga3312b7`, the `1.5.0` preparation",
       "denominator": 198,

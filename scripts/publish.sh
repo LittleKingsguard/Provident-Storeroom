@@ -52,6 +52,18 @@
 #                                           # generate the VERSION LINE from the manifest and REFUSE when any of
 #                                           # the three shipped documents' marked line disagrees (DEF-AC (b);
 #                                           # D-57; the same check the preflight runs)
+#    scripts/publish.sh --cut-claims [FILE…] [--tree DIR] [--baseline FILE]
+#                                           # THE CUT-CLAIM RATCHET (D-82), read-only, NOT section-scoped: print the
+#                                           # nine phrase spellings with their conditions, the two acceptances (an
+#                                           # archived pointer; a BASELINE site keyed by path + the line's own
+#                                           # sha256), the stale policy and every hit, and FAIL on any line refused
+#                                           # or any baseline entry whose site carries no hit. `--tree DIR` reads the
+#                                           # four documents at their relative paths under DIR and keys them the same
+#                                           # way; `--baseline FILE` reads the exemption set from FILE — the way a
+#                                           # /tmp revert, a /tmp new claim and a /tmp STALE probe are driven
+#    scripts/publish.sh --cut-baseline [FILE…] [--tree DIR]
+#                                           # print the baseline block the catalogue's §4 carries, measured on this
+#                                           # tree: the SHRINK operation, read-only, never a grant (D-82)
 #    scripts/publish.sh --bump X.Y.Z        # writes the version and prose cells
 #    scripts/publish.sh --tag   X.Y.Z       # commits, tags, pushes the tag
 #    scripts/publish.sh --verify X.Y.Z      # post-publish checks, read-only
@@ -271,17 +283,407 @@ preflight_version_lines() {
   return 0
 }
 
+# ==============================================================================
+# ==============================================================================
+# THE CUT-CLAIM RATCHET — `D-82`: the catalogue is the exemption set, and the set turns ONE WAY
+# ==============================================================================
+#
+# **THE CLASS, AND THE THREE DESIGNS THAT FAILED TO MEASURE IT.** `D-79` widened this preflight to *"no version
+# literal outside a dated section may differ from the manifest"*; `D-80` measured that rule UNSOUND — the one site
+# it was built for (`RELEASE-NOTES.md:265`) sits INSIDE the dated span it exempts, and the rule reddens `355` lawful
+# historical literals — and the marker-shaped and figure-shaped directions failed the same way. **`D-81` changes the
+# SUBJECT: the class is not *"a version literal is wrong"*; it is *"a paragraph asserts a CUT-STATE in the present
+# tense"*, and the tree's vocabulary for that is small and closed.**
+#
+# **SO THIS SCANNER IS NOT SECTION-SCOPED, AND THAT IS THE WHOLE OF THE RULING.** `RELEASE-NOTES.md:165` declares
+# `§1.3.0`'s body to stand *"BYTE-FOR-BYTE as the reading of its own date"* — a section-scoped rule greens `:265`
+# THROUGH that declaration, which is exactly how the marker rule came to ACCEPT Passage B. **Every line of every
+# shipped document is scanned; a line is exempt ONLY when its own text is a move-out pointer naming the archive, or
+# when the line itself is a CATALOGUED BASELINE SITE (`D-82`, below).**
+#
+# **AN ARCHIVED POINTER LINE IS THE FIRST ACCEPTANCE, AND IT IS DEFINED MECHANICALLY** (`cut_claim_pointer`, below):
+# a line is accepted when it carries ALL THREE of — the tree's `⟶` annotate-beside marker, the token `MOVE-OUT`, and
+# a path under this tree's move-out archive home `docs/guides/backup/`. **That is the shape `D-76` item 3 left in the
+# guide and the shape `D-81` item 1 left in the change list**, and nothing else is accepted by it: **not a dated
+# section, not a `⟶ … <date>` marker on its own, and not a quotation.** `D-80` measured why: **the marker marks
+# AUTHORSHIP and not TENSE, so one marker can affirm a stale claim as easily as retire one.**
+#
+# **AND `D-82` TURNS THE CATALOGUE INTO THE EXEMPTION SET, BECAUSE `D-81`'s PREMISE WAS FALSE.** `D-81` states that
+# after the two moved-out passages leave, the three documents hold no other such phrase. **MEASURED: `56` refused
+# lines across `31` distinct sites still carry one — `25` in the change list at EACH of its two homes and `6` in the
+# landed guide — every one of them a dated reading this tree's law protects byte-for-byte.** So the guard becomes a
+# RATCHET instead of a clean sweep: **the sites `docs/guides/backup/D81-2026-10-29-notes-move-out.md` §3.2 and §3.3
+# enumerate are the BASELINE, a hit at one of them is ACCEPTED, a hit anywhere else is REFUSED, and the baseline may
+# only ever SHRINK.**
+#
+# **THE BASELINE'S KEY IS THE LINE'S OWN TEXT DIGEST, AND NOT ITS LINE NUMBER — AND THE CHOICE IS PRINTED BECAUSE
+# IT IS THE ONE THING THAT MAKES THE RATCHET SURVIVE AN EDIT ABOVE IT.** An entry is `<path> <sha256 of the line's
+# own bytes> <the line number at measure> <the phrases it matched>`. **A line number is a POSITION and positions
+# drift: one paragraph inserted above a catalogued site renames every entry below it, and a guard keyed on numbers
+# would then either refuse lawful history or accept a stranger standing where a catalogued line used to be.** **A
+# digest of the line's own text is a statement about the LINE: inserting, deleting or moving lines above it changes
+# its number and not its content, so the key still names the same reading — and a line whose own bytes DO change is a
+# line nobody catalogued, which is exactly the fact the ratchet must notice.** (The alternative `D-82` allows — an
+# explicit marker added beside each catalogued line — was REJECTED here for a measured reason: it edits the `31`
+# sites' own bytes, and this tree may not edit a protected historical reading to make a guard green.)
+#
+# **AND THE STALE ENTRY IS REFUSED, NOT WARNED ABOUT — THE POLICY IS CHOSEN HERE AND PRINTED WITH EVERY RUN.** **A
+# baseline entry whose site no longer carries a hit is a STALE ENTRY: the claim it exempted has gone, so the
+# exemption is now an unused hole in the guard.** *Warn loudly* was the alternative; **REFUSED** is chosen because a
+# warning inside a preflight that still exits `0` is the shape `D-79` named — *"a green light wearing the word
+# check"* — and because refusing is what makes the list SHRINKABLE: the pass that removes a claim must remove its
+# entry in the SAME act, or the next run reddens. **THE RATCHET'S TWO HALVES ARE THEREFORE: a hit at a site the
+# baseline does not list is REFUSED (so the list can never grow silently), and an entry whose site carries no hit is
+# REFUSED (so the list can never rot open). THE LIST MAY ONLY SHRINK, AND ONLY A PASS THAT SAYS SO MAY SHRINK IT.**
+#
+# **AND THE FOUR BLIND SPELLINGS `D-82` NAMED NOW STAND IN THE SET — EACH WITH ITS OWN CONDITION, AND THE CONDITION
+# IS THE POINT.** Three of the four are the same defect in a different coat as `IS CUT`/`IS NOT CUT`, and the fourth
+# is a PAST-TENSE heading that is lawful exactly when its tag exists:
+#
+#     [6] PREPARED             — a hit ONLY when the line also carries a version `X.Y.Z` whose tag `vX.Y.Z` EXISTS.
+#                                (An untagged version's preparation state is not a claim about a release, and it is
+#                                the state a change list is entitled to describe; a PREPARED paragraph over a version
+#                                the tag set already carries is `DEF-AC`'s fifth iteration.)
+#     [7] UNRELEASED           — unconditional. A version the registry carries cannot be called unreleased.
+#     [8] CUT AND PUBLISHED    — a hit ONLY when the tag the line names does NOT exist, or when it names no tag at
+#                                all. A past-tense heading over an existing tag is a RECORD OF A RELEASE, which is
+#                                the spelling this file's own `§1.4.0`/`§1.5.0` headings use and must keep using.
+#     [9] DOES NOT EXIST       — unconditional (the spelling `1.3.0` shipped: *"`v1.3.0` DOES NOT EXIST"*).
+#     [9] NO CONSUMER CAN INSTALL — unconditional, the same blind spelling's other half.
+#
+# **AND THE FIFTH PHRASE IS REDUNDANT, WHICH THE DEFINITION PRINTS RATHER THAN HIDES.** `NOTHING … IS CUT` is
+# subsumed by `IS CUT` on every line that carries both; implemented literally as the bare substring `NOTHING` it
+# also matches ordinary English (`"throws nothing"`, `"nothing was discarded"`) on `235` lines of the four scanned
+# files, **so its verdict adds no cut-claim reading to the scan** — and a line whose ONLY match is that bare
+# `NOTHING` is counted as IGNORED rather than refused, with the count printed. **It is not that the phrase is
+# dropped: a line carrying `NOTHING` beside any operative phrase is refused on the operative phrase, and a line
+# carrying `NOTHING … IS CUT` is refused on `IS CUT`.**
+#
+# **NO PASS MAY EDIT ONE OF THE CATALOGUED SITES' BYTES TO MAKE THIS SCAN GREEN**: an instrument made to report what
+# it did not measure is the defect it exists to catch (`D-31`; `D-35`; `D-80`). **THE SHRINK IS A SEPARATE, NAMED
+# ACT**: a pass that removes a claim removes its entry, and the next run prints the smaller baseline.
+CUT_CLAIM_PHRASES=(
+  'IS CUT'
+  'IS NOT CUT'
+  'NOTHING'
+  'NO TAG NAMES IT'
+  'SITES STAY AT'
+)
+# The four documents scanned — the three shipped, with the change list read at BOTH of its homes (the canonical text
+# and its landed copy), because `D-79`'s contradiction was measured in the canonical file and a landing can drift.
+CUT_CLAIM_TARGETS=(
+  "$README_SHIPPED"
+  "$GUIDE_LANDED"
+  "$NOTES_LANDED"
+  "$NOTES_CANONICAL"
+)
+CUT_CLAIM_PATHS=()
+# The move-out archive home the acceptance rule names, and the one archive this act fills.
+CUT_CLAIM_ARCHIVE_HOME="docs/guides/backup/"
+# **THE CATALOGUE IS THE BASELINE** (`D-82`): §3.2 and §3.3 are the human site list, and §4 carries the same set in
+# the form this script reads — `<path> <sha256> <line at measure> <phrases>`, between two marker lines. The default
+# baseline file is the catalogue; `--baseline FILE` points the same scan at another copy, which is how a `/tmp`
+# probe drives the ratchet's stale arm without a write to the tree.
+CUT_CLAIM_CATALOGUE="docs/guides/backup/D81-2026-10-29-notes-move-out.md"
+CUT_CLAIM_BASELINE=""
+# **A read-only ROOT for the four documents, so a `/tmp` copy can be scanned at the SAME relative paths the baseline
+# keys on** — the path a baseline entry names is the path this script reports, so a probe that copies the documents
+# into `/tmp/tree/<same-relative-path>` is measured against the same exemption set and not against a stranger's.
+CUT_CLAIM_TREE=""
+CUT_CLAIM_BASELINE_BEGIN='# CUT-CLAIM-BASELINE-BEGIN'
+CUT_CLAIM_BASELINE_END='# CUT-CLAIM-BASELINE-END'
+declare -A CUT_CLAIM_TAG_CACHE=()
+declare -A CUT_CLAIM_BASELINE_KEY=()
+declare -A CUT_CLAIM_USED=()
+declare -A CUT_CLAIM_SCANNED=()
+CUT_CLAIM_BASELINE_ORDER=()
+
+# THE FIRST ACCEPTANCE RULE, MECHANICAL AND PRINTED: all three facts on ONE line, or the line is not accepted by it.
+cut_claim_pointer() {
+  case "$1" in *"$CUT_CLAIM_ARCHIVE_HOME"*) ;; *) return 1 ;; esac
+  case "$1" in *MOVE-OUT*) ;; *) return 1 ;; esac
+  case "$1" in *'⟶'*) return 0 ;; esac
+  return 1
+}
+
+# THE BASELINE'S KEY: a digest of the line's OWN BYTES. This is the choice, and `cut_claim_definition` prints the
+# reason with every run: a digest is a fact about the line, a line number is a fact about the file's current layout.
+cut_claim_digest() {
+  printf '%s' "$1" | sha256sum | cut -d' ' -f1
+}
+
+# A tag's existence, asked ONCE per version (`D-21`: an ask that failed is not an answer — `rev-parse` exits non-zero
+# for both "absent" and "unreadable", so the refusal it feeds is on the SAFE side: a version whose tag cannot be read
+# is treated as TAGGED for `PREPARED` and as absent for `CUT AND PUBLISHED`, which refuses rather than accepts).
+cut_claim_tag_exists() {
+  local v="$1"
+  if [ -z "${CUT_CLAIM_TAG_CACHE[$v]:-}" ]; then
+    if git rev-parse -q --verify "refs/tags/v$v" >/dev/null 2>&1; then
+      CUT_CLAIM_TAG_CACHE[$v]=yes
+    else
+      CUT_CLAIM_TAG_CACHE[$v]=no
+    fi
+  fi
+  [ "${CUT_CLAIM_TAG_CACHE[$v]}" = yes ]
+}
+
+# THE DEFINITION, PRINTED WITH EVERY RUN so a reader can check the verdict against the rule it claims to apply.
+cut_claim_definition() {
+  printf '  phrase set (literal, case-insensitive substrings — the tree\x27s own vocabulary, D-81 + D-82):\n'
+  printf '    [1] IS CUT\n'
+  printf '    [2] IS NOT CUT\n'
+  printf '    [3] NOTHING            (REDUNDANT with [1]; a line whose ONLY match is bare NOTHING is IGNORED, not refused)\n'
+  printf '    [4] NO TAG NAMES IT\n'
+  printf '    [5] SITES STAY AT\n'
+  printf '  the four blind spellings (D-82), each with its condition printed:\n'
+  printf '    [6] PREPARED             hit ONLY when the line names a version X.Y.Z whose tag vX.Y.Z EXISTS\n'
+  printf '    [7] UNRELEASED           unconditional\n'
+  printf '    [8] CUT AND PUBLISHED    hit ONLY when the tag it names does NOT exist, or when it names no tag at all\n'
+  printf '    [9] DOES NOT EXIST       unconditional\n'
+  printf '    [9] NO CONSUMER CAN INSTALL  unconditional\n'
+  printf '  acceptance (a) — an archived pointer: a line carrying ALL THREE of `⟶` · `MOVE-OUT` · a path under `%s`\n' "$CUT_CLAIM_ARCHIVE_HOME"
+  printf '    (a dated section is NOT an exemption; a `⟶ … <date>` marker on its own is NOT an exemption; a quotation is NOT one)\n'
+  printf '  acceptance (b) — a BASELINE site: <path> + the sha256 of the line\x27s OWN BYTES, listed between\n'
+  printf '    `%s` and `%s` in %s\n' "$CUT_CLAIM_BASELINE_BEGIN" "$CUT_CLAIM_BASELINE_END" "$(cut_claim_baseline_file)"
+  printf '    WHY THE DIGEST AND NOT THE LINE NUMBER: line numbers drift, so a number-keyed set breaks the moment a paragraph\n'
+  printf '    is inserted above a catalogued site — the digest is a fact about the line\x27s own text and is unmoved by any edit\n'
+  printf '    above it, while an edit to the line itself is a line nobody catalogued.\n'
+  printf '  everything else is REFUSED. A STALE ENTRY — a baseline entry whose site no longer carries a hit — is REFUSED\n'
+  printf '    too: the policy is REFUSE (not warn), because a warning in a preflight that still exits 0 is the shape D-79\n'
+  printf '    named, and because refusing is what makes the list shrinkable. THE LIST MAY ONLY SHRINK.\n'
+}
+
+# THE BASELINE FILE IN FORCE — `--baseline` when given, the catalogue otherwise.
+cut_claim_baseline_file() {
+  if [ -n "$CUT_CLAIM_BASELINE" ]; then printf '%s\n' "$CUT_CLAIM_BASELINE"; else printf '%s\n' "$CUT_CLAIM_CATALOGUE"; fi
+}
+
+# READ THE BASELINE. The marker lines must BOTH be present — an absent baseline is refused rather than read as "no
+# sites", because an empty exemption set under a strict refusal is a tree with 56 reds, not a clean one.
+cut_claim_load_baseline() {
+  local file block bpath bdigest bline brest
+  file="$(cut_claim_baseline_file)"
+  CUT_CLAIM_BASELINE_KEY=(); CUT_CLAIM_BASELINE_ORDER=(); CUT_CLAIM_USED=(); CUT_CLAIM_SCANNED=()
+  if [ ! -f "$file" ]; then
+    bad "the cut-claim baseline '$file' is absent — the catalogue IS the exemption set (D-82), and an absent set is not an empty one"
+    return 1
+  fi
+  if ! block="$(awk -v b="$CUT_CLAIM_BASELINE_BEGIN" -v e="$CUT_CLAIM_BASELINE_END" '
+      $0 == b { inside = 1; seenb = 1; next }
+      $0 == e { inside = 0; seene = 1; next }
+      inside  { print }
+      END     { if (!seenb || !seene) exit 3 }
+    ' "$file")"; then
+    bad "'$file' carries no complete baseline block — both '$CUT_CLAIM_BASELINE_BEGIN' and '$CUT_CLAIM_BASELINE_END' are required, and a baseline that cannot be read is not an empty one"
+    return 1
+  fi
+  while IFS=' ' read -r bpath bdigest bline brest; do
+    case "$bpath" in ''|'#'*) continue ;; esac
+    [ -n "$bdigest" ] || continue
+    CUT_CLAIM_BASELINE_KEY["$bpath|$bdigest"]="$bline"
+    CUT_CLAIM_BASELINE_ORDER+=("$bpath|$bdigest")
+  done <<< "$block"
+  printf '  baseline in force: %s — %d entries keyed by path + the line\x27s own sha256\n' "$file" "${#CUT_CLAIM_BASELINE_ORDER[@]}"
+  return 0
+}
+
+# THE LINE'S MATCHES, with every condition resolved. Sets `CC_MATCHES` (the phrase list this line matched, with the
+# condition printed) and `CC_OPERATIVE` (1 when at least one match is a cut CLAIM, 0 when the only match is the
+# redundant bare `NOTHING`).
+cut_claim_line_matches() {
+  local line="$1" low phrase phrase_low v vs out="" had_claim=0
+  low="$(printf '%s' "$line" | tr '[:upper:]' '[:lower:]')"
+  for phrase in "${CUT_CLAIM_PHRASES[@]}"; do
+    phrase_low="$(printf '%s' "$phrase" | tr '[:upper:]' '[:lower:]')"
+    case "$low" in
+      *"$phrase_low"*)
+        case "$phrase" in
+          NOTHING) out="${out}${out:+ · }NOTHING" ;;
+          *)       had_claim=1; out="${out}${out:+ · }$phrase" ;;
+        esac ;;
+    esac
+  done
+  # [6] PREPARED — only over a version the tag set already carries.
+  case "$low" in
+    *prepared*)
+      for v in $(printf '%s' "$line" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | sort -u || true); do
+        if cut_claim_tag_exists "$v"; then
+          had_claim=1
+          out="${out}${out:+ · }PREPARED over tagged v$v"
+        fi
+      done ;;
+  esac
+  # [7] UNRELEASED — unconditional.
+  case "$low" in *unreleased*) had_claim=1; out="${out}${out:+ · }UNRELEASED" ;; esac
+  # [8] CUT AND PUBLISHED — a past-tense record, refused ONLY when the tag it names is absent (or unnamed).
+  case "$low" in
+    *"cut and published"*)
+      vs="$(printf '%s' "$line" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | sort -u || true)"
+      if [ -z "$vs" ]; then
+        had_claim=1
+        out="${out}${out:+ · }CUT AND PUBLISHED (names no tag)"
+      else
+        for v in $vs; do
+          if ! cut_claim_tag_exists "$v"; then
+            had_claim=1
+            out="${out}${out:+ · }CUT AND PUBLISHED over absent v$v"
+          fi
+        done
+      fi ;;
+  esac
+  # [9] DOES NOT EXIST / NO CONSUMER CAN INSTALL — unconditional.
+  case "$low" in *"does not exist"*) had_claim=1; out="${out}${out:+ · }DOES NOT EXIST" ;; esac
+  case "$low" in *"no consumer can install"*) had_claim=1; out="${out}${out:+ · }NO CONSUMER CAN INSTALL" ;; esac
+  CC_MATCHES="$out"
+  CC_OPERATIVE="$had_claim"
+}
+
+# THE SCAN. `$@` = the files to read. Every hit is printed with its file, line and phrase list, and classified:
+# ACCEPTED (archived pointer) · ACCEPTED (baseline) · IGNORED (bare NOTHING only) · REFUSED. Then every baseline entry
+# whose file was scanned and whose site carried no hit is printed as a STALE ENTRY. Returns 1 if ANY line is refused
+# or ANY entry is stale.
+scan_cut_claims() {
+  local path key line n digest failed file_count entry epath
+  local accepted_archived=0 accepted_baseline=0 refused=0 ignored=0 stale=0
+  failed=0; file_count=0
+  cut_claim_definition
+  cut_claim_load_baseline || return 1
+  for path in "$@"; do
+    if [ ! -f "$path" ]; then
+      bad "the cut-claim scanner has no file at '$path' — an absent subject is not a clean one"
+      failed=1
+      continue
+    fi
+    file_count=$((file_count + 1))
+    key="$path"
+    if [ -n "$CUT_CLAIM_TREE" ]; then key="${path#"$CUT_CLAIM_TREE"/}"; fi
+    CUT_CLAIM_SCANNED["$key"]=1
+    printf '  %s\n' "$key"
+    n=0
+    while IFS= read -r line || [ -n "$line" ]; do
+      n=$((n + 1))
+      cut_claim_line_matches "$line"
+      [ -n "$CC_MATCHES" ] || continue
+      if cut_claim_pointer "$line"; then
+        accepted_archived=$((accepted_archived + 1))
+        printf '    %s:%d  ACCEPTED (archived pointer)  %s\n' "$key" "$n" "$CC_MATCHES"
+        continue
+      fi
+      if [ "$CC_OPERATIVE" -eq 0 ]; then
+        ignored=$((ignored + 1))
+        printf '    %s:%d  IGNORED (bare NOTHING only)  %s\n' "$key" "$n" "$CC_MATCHES"
+        continue
+      fi
+      digest="$(cut_claim_digest "$line")"
+      if [ -n "${CUT_CLAIM_BASELINE_KEY["$key|$digest"]:-}" ]; then
+        accepted_baseline=$((accepted_baseline + 1))
+        CUT_CLAIM_USED["$key|$digest"]=1
+        printf '    %s:%d  ACCEPTED (baseline, line %s at measure)  %s  [sha256 %s]\n' \
+          "$key" "$n" "${CUT_CLAIM_BASELINE_KEY["$key|$digest"]}" "$CC_MATCHES" "$digest"
+        continue
+      fi
+      refused=$((refused + 1))
+      printf '    %s:%d  REFUSED  %s  [sha256 %s]\n' "$key" "$n" "$CC_MATCHES" "$digest"
+      failed=1
+    done < "$path"
+  done
+  if [ "$file_count" -eq 0 ]; then
+    bad "the cut-claim scanner was given no readable file — nothing was measured"
+    return 1
+  fi
+  for entry in "${CUT_CLAIM_BASELINE_ORDER[@]}"; do
+    epath="${entry%%|*}"
+    [ -n "${CUT_CLAIM_SCANNED["$epath"]:-}" ] || continue
+    [ -n "${CUT_CLAIM_USED["$entry"]:-}" ] && continue
+    stale=$((stale + 1))
+    printf '    %s  STALE ENTRY (line %s at measure, sha256 %s) — no line of this file carries this digest any more\n' \
+      "$epath" "${CUT_CLAIM_BASELINE_KEY["$entry"]}" "${entry##*|}"
+    failed=1
+  done
+  printf '  counts: accepted(archived) %d · accepted(baseline) %d · refused %d · ignored %d · stale %d · baseline entries %d · files %d\n' \
+    "$accepted_archived" "$accepted_baseline" "$refused" "$ignored" "$stale" "${#CUT_CLAIM_BASELINE_ORDER[@]}" "$file_count"
+  if [ "$refused" -ne 0 ]; then
+    bad "A CUT-CLAIM PHRASE STANDS AT A SITE THE BASELINE DOES NOT LIST — a cut-state is the tag set's to answer and not a paragraph's to assert or deny, and D-82 makes a NEW site a refusal by construction"
+  fi
+  if [ "$stale" -ne 0 ]; then
+    bad "THE BASELINE CARRIES A STALE ENTRY — the claim it exempted has gone, and an unused exemption is a hole in the guard; the pass that removed the claim must remove the entry in the same act (D-82: the list may only shrink)"
+  fi
+  [ "$failed" -eq 0 ] || return 1
+  ok "the cut claims are exactly the baseline's: every hit is an archived pointer or a catalogued site, and every catalogued site still carries its hit ($file_count file(s) read)"
+  return 0
+}
+
+# THE BASELINE'S OWN GENERATOR — read-only, and the block it prints is the SHRINK OPERATION and never a grant: a pass
+# that removes a claim regenerates this block with that entry gone, and the guard's refusal of a NEW site is what
+# stops the regeneration from being used to bless one.
+emit_cut_claim_baseline() {
+  local path key line n digest count=0
+  printf '%s\n' "$CUT_CLAIM_BASELINE_BEGIN"
+  for path in "$@"; do
+    [ -f "$path" ] || { bad "no file at '$path'"; return 1; }
+    key="$path"
+    if [ -n "$CUT_CLAIM_TREE" ]; then key="${path#"$CUT_CLAIM_TREE"/}"; fi
+    n=0
+    while IFS= read -r line || [ -n "$line" ]; do
+      n=$((n + 1))
+      cut_claim_line_matches "$line"
+      [ -n "$CC_MATCHES" ] || continue
+      [ "$CC_OPERATIVE" -eq 1 ] || continue
+      cut_claim_pointer "$line" && continue
+      digest="$(cut_claim_digest "$line")"
+      printf '%s %s %06d %s\n' "$key" "$digest" "$n" "$CC_MATCHES"
+      count=$((count + 1))
+    done < "$path"
+  done
+  printf '%s\n' "$CUT_CLAIM_BASELINE_END"
+  printf '  %d site(s) measured\n' "$count" >&2
+  return 0
+}
+
+# THE PREFLIGHT'S CALL — beside `preflight_version_lines`, at the same step, and NOT section-scoped.
+preflight_cut_claims() {
+  say "the shipped documents' cut claims (D-82's ratchet: four documents, nine phrase spellings, two acceptances, one STALE refusal)"
+  scan_cut_claims "${CUT_CLAIM_TARGETS[@]}"
+}
+
 DRY=1; MODE="dry-run"; TARGET=""; DEST=""; CONFIRM=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --check)  MODE="check";  DRY=1 ;;
     --figures) MODE="figures"; DRY=1 ;;
+    --cut-claims)
+      # READ-ONLY, and it takes optional paths and two optional flags: with no path it scans the four documents;
+      # with paths it scans exactly those; `--tree DIR` reads the four under DIR and keys them at their relative
+      # paths (so a `/tmp` copy is measured against the same baseline); `--baseline FILE` reads the exemption set
+      # from FILE. That is how a `/tmp` revert, a `/tmp` new claim and a `/tmp` STALE probe are driven without a
+      # write to the tree.
+      MODE="cut-claims"; DRY=1; shift
+      while [ $# -gt 0 ]; do
+        case "$1" in
+          --baseline) CUT_CLAIM_BASELINE="${2:-}"; shift 2 ;;
+          --tree)     CUT_CLAIM_TREE="${2:-}";     shift 2 ;;
+          -*)         break ;;
+          *)          CUT_CLAIM_PATHS+=("$1"); shift ;;
+        esac
+      done
+      continue ;;
+    --cut-baseline)
+      # READ-ONLY, and it prints the block §4 of the catalogue carries — the SHRINK OPERATION, never a grant.
+      MODE="cut-baseline"; DRY=1; shift
+      while [ $# -gt 0 ]; do
+        case "$1" in
+          --tree) CUT_CLAIM_TREE="${2:-}"; shift 2 ;;
+          -*)     break ;;
+          *)      CUT_CLAIM_PATHS+=("$1"); shift ;;
+        esac
+      done
+      continue ;;
     --bump)   MODE="bump";   DRY=0; TARGET="${2:-}"; shift ;;
     --tag)    MODE="tag";    DRY=0; TARGET="${2:-}"; shift ;;
     --verify) MODE="verify"; DRY=0; TARGET="${2:-}"; shift ;;
     --pack)   MODE="pack";   DRY=0; DEST="${2:-}"; shift ;;
     --yes)    CONFIRM=1 ;;
-    -h|--help) sed -n '30,66p' "$0"; exit 0 ;;
+    -h|--help) sed -n '30,78p' "$0"; exit 0 ;;
     *) bad "unknown argument: $1"; exit 2 ;;
   esac
   shift
@@ -323,6 +725,56 @@ if [ "$MODE" = "figures" ]; then
   echo
   bad "A SHIPPED DOCUMENT'S VERSION LINE DISAGREES — this is the refusal the preflight takes, and it is the deliverable"
   exit 1
+fi
+
+# ==============================================================================
+# `--cut-claims` — THE CUT-CLAIM RATCHET, DRIVEN ALONE (`D-82`; the same check the preflight takes)
+# ==============================================================================
+#
+# Read-only, and it is the SAME call the preflight makes below: this mode exists so the ratchet can be driven over
+# the four shipped documents — or over paths named on its command line, or over a `/tmp` tree at their relative
+# paths — without the long suite legs, and so a reader can SEE the phrase set, the two acceptances, the stale policy
+# and every hit. **IT WRITES NOTHING, AND ITS RED IS THE DELIVERABLE**: a scanner that cannot redden is a green light
+# wearing the word "check" (`D-79` item 4).
+cut_claim_scan_list() {
+  local p
+  CUT_CLAIM_SCAN_LIST=()
+  if [ "${#CUT_CLAIM_PATHS[@]}" -gt 0 ]; then
+    CUT_CLAIM_SCAN_LIST=("${CUT_CLAIM_PATHS[@]}")
+    return 0
+  fi
+  for p in "${CUT_CLAIM_TARGETS[@]}"; do
+    if [ -n "$CUT_CLAIM_TREE" ]; then CUT_CLAIM_SCAN_LIST+=("$CUT_CLAIM_TREE/$p"); else CUT_CLAIM_SCAN_LIST+=("$p"); fi
+  done
+}
+CUT_CLAIM_SCAN_LIST=()
+
+if [ "$MODE" = "cut-claims" ]; then
+  echo
+  say "THE CUT-CLAIM RATCHET — D-82: the catalogue is the exemption set, and the set may only shrink"
+  cut_claim_scan_list
+  if scan_cut_claims "${CUT_CLAIM_SCAN_LIST[@]}"; then exit 0; fi
+  echo
+  bad "THE RATCHET REFUSES — a cut-claim phrase stands at a site the baseline does not list, or the baseline carries a stale entry, and this is the refusal the preflight takes"
+  exit 1
+fi
+
+# ==============================================================================
+# `--cut-baseline` — THE BASELINE BLOCK, MEASURED AND PRINTED (`D-82`)
+# ==============================================================================
+#
+# Read-only. It prints the `<path> <sha256> <line at measure> <phrases>` block that `§4` of the catalogue carries, so
+# the exemption set is a MEASUREMENT and never a hand-transcribed census — the shape this project has rotted on
+# three times. **AND WHAT IT IS NOT: A GRANT.** It regenerates the block for the tree it is run on; the SHRINK is a
+# pass removing an entry whose site it removed, and the ratchet's refusal of any site the block does not name is what
+# stops a regeneration from blessing a new claim — a reader checks the block's entry count against this pass's
+# arithmetic, and a count that GREW is a claim someone added.
+if [ "$MODE" = "cut-baseline" ]; then
+  echo
+  say "THE BASELINE BLOCK, AS THIS TREE MEASURES IT (D-82) — the shrink operation, never a grant"
+  cut_claim_scan_list
+  emit_cut_claim_baseline "${CUT_CLAIM_SCAN_LIST[@]}" || exit 1
+  exit 0
 fi
 
 # ==============================================================================
@@ -537,6 +989,15 @@ fi
 #    cut-state true, so that sentence was dropped by `D-57` and its generation with it.**
 say "the shipped documents' generated figure (the version line, in each of the three)"
 preflight_version_lines || FAILED=1
+
+# 4b. THE CUT-CLAIM SCANNER — `D-81`, 2026-10-29.
+#
+#    **THE SUBJECT IS A CLAIM, NOT A LITERAL, AND THE SCAN IS NOT SECTION-SCOPED** (`scan_cut_claims`, above): the
+#    three shipped documents — `bindings/js/README.md`, the landed guide and the change list at BOTH of its homes —
+#    may contain NO cut-claim phrase outside a line whose own text is a move-out pointer naming
+#    `docs/guides/backup/`. **IT RUNS BESIDE THE FIGURE CHECK AND BEFORE THE SUITE**, for the figure check's reason:
+#    a paragraph asserting a cut-state is a one-second refusal and the suite is the expensive step.
+preflight_cut_claims || FAILED=1
 
 # 5. The suite. A release is cut from a green tree or it is not cut.
 if [ "$MODE" != "tag" ]; then
