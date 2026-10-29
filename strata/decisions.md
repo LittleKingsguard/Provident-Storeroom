@@ -4224,3 +4224,39 @@ a NEW unmarked prose claim.**
 **TERMS: L0's guard unsound (`1`), the span it was blind to (`1`), the 355 literals it would have reddened (`1`), the
 tightening that fails harder (`1`), the real distinction (`1` = tense, not shape), the ruling (`1` = B), why B
 (`1` = the unmarked claim reddens and the marked readings stand).**
+
+---
+
+### `D-81` — THE GUARD IS A CUT-CLAIM SCANNER, NOT A VERSION SCANNER: the marker is not a tense proxy
+
+**DATE:** 2026-10-29. **BRANCH:** `main`. **SOURCE:** the second pass that stopped, having measured rule (B) to be undecidable.
+
+**THREE DIRECTIONS MEASURED, AND ALL THREE FAIL.**
+- **Rule (B), the marker rule**: **`:265` IS among the reds** ✓ — **but after archiving A and B the reds are still `158`
+  occurrences on `108` lines in the change list and `32` on `24` in the guide — 70 unmarked paragraphs, every one a lawful
+  reading.** **AFTER is not green and cannot be without editing bytes the tree forbids.**
+- **Section-scoped coverage — the generous direction**: **`RELEASE-NOTES.md:165` declares the section's body *"stands
+  BYTE-FOR-BYTE as the reading of its own date"*** — **so `:265` is inside a marker's covered bytes and turns GREEN.** **And
+  `:269`, PASSAGE B ITSELF, carries a `⟶ … 2026-10-28` marker — so rule (B) ACCEPTS the clause that preserves the stale cut
+  claim.** ***"A guard that accepts B and refuses A is not the definitive half; the marker is not a tense proxy."***
+- **Figure-vocabulary direction**: **reds `46` lines in the change list and `8` in the guide — every one a marked-as-read past
+  claim.**
+
+**AND THE REAL FINDING, WHICH IS THE TREE'S OWN CONVENTION GIVING OUT.** **The `⟶ … <date>` marker means THIS CLAUSE
+SUPERSEDES WHAT STANDS BESIDE IT** — **and `:269` is such a clause whose CONTENT is *"what it says about the cut is NOT
+superseded."*** **So the marker marks AUTHORSHIP, not TENSE, and one marker can affirm a stale claim as easily as retire
+one.** **No literal-shaped and no marker-shaped rule can separate the two — `D-80` said it, and this pass measured it.**
+
+**SO THE GUARD CHANGES SUBJECT: A CUT-CLAIM SCANNER, NOT A VERSION SCANNER.** **The class is not "a version literal is
+wrong" — it is "a paragraph asserts a CUT-STATE in the present tense."** **The tree's vocabulary for that is small and
+closed: `IS CUT`, `IS NOT CUT`, `NOTHING … IS CUT`, `NO TAG NAMES IT`, `THE … SITES STAY AT`.** **So:**
+
+- **the three shipped documents may contain NO cut-claim phrase at all, outside a line whose pointer marks it archived** —
+  **and that is measurable, small, and exactly the class;**
+- **it is NOT section-scoped**, because a section-scoped rule greens `:265` through `:165`'s byte-for-byte clause;
+- **and after Passage A and B are archived out it is GREEN** — **because they are the only such phrases in the three
+  documents** — **which is the property the whole plan needed and three earlier designs could not deliver.**
+
+**TERMS: three directions measured (`3`), each failing with its measurement (`3`), the marker's real meaning (`1` = authorship,
+not tense), the subject changed (`1`), the vocabulary named (`5` phrases), not section-scoped (`1`), green only after the
+archive (`1`).**
