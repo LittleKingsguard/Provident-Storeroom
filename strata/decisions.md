@@ -4190,3 +4190,37 @@ explicitly preserves the cut claim** — *"what it says about the cut is not"* s
 **TERMS: the contradiction measured (`1`), the archive-out (`2` = the paragraph and its affirmation), the tag set as the
 authority (`1`), the guard widened (`1` = any literal outside a dated section), the guard proven (`1` = a revert that
 reddens), the class's seventh instance (`1`).**
+
+---
+
+### `D-80` — L0'S GUARD WAS UNSOUND: the finding lives inside the dated span the rule exempts, and ONLY TENSE separates a citation from a claim
+
+**DATE:** 2026-10-29. **BRANCH:** `main`. **SOURCE:** the pass that stopped rather than force `D-79`'s step 3 green.
+
+**THE MEASUREMENT, AND IT IS A NEGATIVE RESULT ABOUT L0'S OWN PLAN.**
+- **`RELEASE-NOTES.md:265–267` and `:269` SIT INSIDE THE `§1.3.0` DATED SPAN** (`:163` → `:273`) — **which step 3 exempted
+  wholesale. So "the definitive half" would be BLIND TO THE ONE SITE `D-79` NAMES.**
+- **And it would be RED ON 355 HISTORICAL LITERALS** — `README.guide.md` 259 (0 dated spans), `RELEASE-NOTES.md` 107
+  outside spans — **140 lines carrying a literal that differs from the manifest, every one of them a lawful historical
+  reading this tree's law protects byte-for-byte.**
+- **Tightening it — "in-span literals must equal the span's version" — FAILS HARDER**: **the change lists cite ancestors
+  throughout** (`§1.6.0`'s own span carries `1.5.0`), **and `:265`'s `1.2.0` IS a lawful ancestor of `1.3.0`.**
+
+**AND THE PASS NAMED THE REAL DISTINCTION IN ONE SENTENCE, WHICH IS THE WHOLE OF IT**: ***"No literal-shaped rule separates
+"ten commits past `v1.2.0`" from "the eleven version sites stay at `1.2.0`"; only the claim's TENSE distinguishes them —
+step 2's job, not a scanner's."***
+
+**SO L0 INVENTED A GUARD THAT A SCANNER CANNOT IMPLEMENT, AND THE PASS REFUSED TO FORCE IT GREEN.** **That is the
+correct behaviour and it is the same one `D-35`'s scope and `D-31`'s red limb asked for**: **do not make an instrument
+report what it did not measure.**
+
+**THE RULING THAT UNBLOCKS IT — (B), EXEMPT DATED READINGS BY ONE DECLARED MARKER.** **A literal is accepted when the line
+carries the tree's own annotate-beside marker (`⟶ … <date>`) or stands inside a dated reading; EVERY OTHER PRESENT-TENSE
+CLAIM MUST AGREE WITH THE MANIFEST.** **It is coherent with the convention the tree already runs, it leaves the historical
+readings byte-for-byte, and — the reason it is the one chosen — `:265`'s paragraph CARRIES NO MARKER, so under (B) IT
+REDDENS, and archiving it out is what makes it green.** **So the guard bites exactly where the eighth instance would live:
+a NEW unmarked prose claim.**
+
+**TERMS: L0's guard unsound (`1`), the span it was blind to (`1`), the 355 literals it would have reddened (`1`), the
+tightening that fails harder (`1`), the real distinction (`1` = tense, not shape), the ruling (`1` = B), why B
+(`1` = the unmarked claim reddens and the marked readings stand).**
