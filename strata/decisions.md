@@ -4120,3 +4120,44 @@ everywhere.**
 
 **TERMS: the member (`1`), the form three to four (`1`), the breaking change declared (`1`), every census to move (`1`),
 the absences forbidden (`1`), the retry hazard made decidable (`1`).**
+
+---
+
+### `D-78` — `DEF-X` IS RETRACTED BY ITS OWN FILER, WITH THE CONFOUND NAMED; and `DEF-AH` downgrades to ONE clause
+
+**DATE:** 2026-10-29. **BRANCH:** `main`. **SOURCE:** the downstream's own correction, which is the most precise thing in this
+whole sequence.
+
+**1 · `DEF-X` DOES NOT REPRODUCE, AND THE PACKAGE AGENT WAS RIGHT.** **Their probe registered the raising pair with an
+UNCONDITIONALLY ARMED body** — **so the raise fired during REGISTRATION'S EVALUATION, host 4, a declared unjudged
+window** — and **was applied there.** **When the delete's pass asked the pair again the second attempt answered
+`RollbackCompacted`, nothing remained to judge, and their counter honestly read `0`.** **The count was right; the
+reading was wrong.** **And their corrected reproduction prints the delete's pass and a write's pass LINE FOR LINE
+IDENTICAL** — **judged `YES`, the pair asked with a judgement instant, the raise undone, the refusal crossing.**
+
+**AND THEY MADE THE SAME ERROR TWICE**: **the "generalizes to a plain write host" claim came from a two-raises probe
+with the identical confound.** **Both filings fall.**
+
+**2 · AND THEIR PROCESS NOTES ARE THE MOST USEFUL SENTENCES ANY REVIEWER HAS SENT THIS BRANCH.**
+- ***"A broken probe is indistinguishable from a confirmation. I nearly read it as one."*** — **the first clean attempt
+  armed its flag from inside the only function that checks it, so the raise never fired and BOTH hosts reported `0`.**
+  **That is this branch's own lesson from the other side**: **a green battery validated by its own author.**
+- **A mis-anchored edit deleted 63 lines of `docs/defects.md`** — restored from HEAD. **Same failure mode as L0's
+  `--assume-unchanged` masking**: **an edit whose scope it does not see.**
+
+**3 · `DEF-AH` DOWNGRADES TO ONE DEMAND, AND THE DEMAND IS RIGHT.** **`.discarded` is ABSENT on every path they can
+build** — a raise at rest, a raise inside a constraint body, a listener raising 1, 2 and 3 times — **and no arm produced
+a false or clearing answer.** **So the AH.4/AH.5 contrast reflects DIFFERENT OUTCOMES (something discarded vs nothing
+discarded) and NOT count-dependent silence.**
+
+**THE SURVIVING DEMAND, VERBATIM: *"say when the member is present, and that `undefined` is not `[]`."*** **And that is
+the correct axis**: **an ABSENT member and an EMPTY list are different claims** — **`undefined` means "this act cannot
+discard", `[]` means "it can, and nothing was discarded"** — **and a consumer reading `undefined` cannot tell "not
+reported" from "nothing to report".**
+
+**AND `D-75`'S FIX ALREADY PUTS IT ON THE RIGHT AXIS**: **the member is present on `delete`, `write` and `rollback` —
+the three acts that can discard — and `[]` where nothing was.** **What is owed is the CLAUSE**, not the machinery.
+
+**TERMS: the retraction (`1`), the confound (`1` = the registration-time raise), the doubled error (`1`), the process
+notes (`2` = the broken probe, the mis-anchored edit), `DEF-AH`'s downgrade (`1`), the surviving clause (`1` = `undefined`
+is not `[]`), machinery already correct (`1`).**
