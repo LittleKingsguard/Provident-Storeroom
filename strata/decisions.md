@@ -4260,3 +4260,38 @@ closed: `IS CUT`, `IS NOT CUT`, `NOTHING … IS CUT`, `NO TAG NAMES IT`, `THE �
 **TERMS: three directions measured (`3`), each failing with its measurement (`3`), the marker's real meaning (`1` = authorship,
 not tense), the subject changed (`1`), the vocabulary named (`5` phrases), not section-scoped (`1`), green only after the
 archive (`1`).**
+
+---
+
+### `D-82` — THE SCANNER IS RIGHT AND THE TREE IS NOT CLEAN: 56 sites, and the guard becomes a RATCHET
+
+**DATE:** 2026-10-29. **BRANCH:** `main`. **SOURCE:** the pass that stopped at step 4 having falsified `D-81`'s premise.
+
+**`D-81` SAID THE TWO PASSAGES WERE ***"the only such phrases in the three documents."*** **THEY ARE NOT.** **Measured: 31
+distinct sites / 56 refused lines still carry an operative cut phrase** — **25 in the change list (both homes), 6 in the
+guide**, with samples `RELEASE-NOTES.md:288 IS NOT CUT` and `README.guide.md:68 IS CUT · IS NOT CUT`. **So AFTER is not green,
+and the pass stopped instead of editing historical bytes to make it so.**
+
+**AND THE NUMBER IS THE MOST USEFUL THING THIS SEQUENCE HAS PRODUCED**: **the class `DEF-AC` filed five times is FIFTY-SIX
+SITES WIDE, and it was invisible because nobody had ever scanned for it.** **One row, filed five times, each time at the
+site that happened to be read — and the scanner found the other fifty-one in one run.**
+
+**AND THE PHRASE SET IS BLIND TO FOUR SPELLINGS STANDING TODAY** — each of them the same defect in a different coat:
+**`§1.6.0`'s `**PREPARED**` over the tagged `v1.6.0`** (**the fifth `DEF-AC` iteration, found while implementing its own
+fix**), **`§1.3.0`'s historical `UNRELEASED`**, **the past-tense `CUT AND PUBLISHED — tag vX` headings**, and **`DOES NOT
+EXIST` / `no consumer can install`.**
+
+**SO THE RULING: A RATCHET, NOT A CLEAN SWEEP.** **The 56 catalogued sites are the BASELINE** — **`docs/guides/backup/
+D81-2026-10-29-notes-move-out.md §3.2/§3.3` already enumerates them** — **and the scanner refuses any cut-claim phrase
+outside (a) an archived pointer and (b) a catalogued baseline site.** **So:**
+
+- **green is reachable today, without editing one historical byte**;
+- **and the EIGHTH instance — a NEW claim — cannot land**, because it is by definition not in the baseline;
+- **and the catalogue is the exemption set**, which is what `D-81` step 6 asked for and what `D-82` now makes load-bearing.
+
+**AND THE CLEANUP IS A NAMED BACKLOG RATHER THAN A HIDDEN ONE**: **the baseline may only ever SHRINK** — **a commit that
+removes a catalogued site must remove its entry**, **and a commit that adds one is refused** — **so the ratchet turns one
+way, which is the only direction a ratchet may turn.**
+
+**TERMS: the premise falsified (`1`), the measured scope (`56` sites), the blind spellings (`4`), the ratchet (`1`), the
+catalogue as its exemption set (`1`), one-way (`1`), the cleanup named as a backlog (`1`).**
