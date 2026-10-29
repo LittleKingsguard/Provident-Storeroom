@@ -77,7 +77,14 @@ the value to assert against, not the crate's own `Cargo.toml` version.
 
 ---
 
-## §1.6.1 · **PREPARED** — a DOCUMENTATION release: what `1.6.1` carries, and the arithmetic that says how many commits
+## §1.6.1 · **CUT AND PUBLISHED — tag `v1.6.1`** — a DOCUMENTATION release: what `1.6.1` carries, and the arithmetic that says how many commits
+
+**⟶ AND THIS HEADING CARRIED THE PRE-RELEASE MARKER UNTIL THE TAG WAS CUT, 2026-10-30 — `D-83`.** `RCA-8(g)`
+ANNOTATE-BESIDE: **the withdrawn heading's bytes stand in the withdrawn record and are read THROUGH this clause; this
+sentence deliberately does not quote them, because a quotation of a claim reads as a claim and the scan cannot tell
+them apart — which is `D-80`'s own finding.** **A cut-state is the tag set's to answer: the tag exists, so this section
+names a past act and not a present claim — and it is the one new cut-claim `D-82`'s ratchet could not admit until
+`D-83` gave it the arm.**
 
 **⟶ THIS SECTION IS NEW, 2026-10-30, AND IT STATES THE VERSION AND NOT THE CUT-STATE.** `RCA-8(g)` ANNOTATE-BESIDE: **no byte of the sections below moves; this section is added above `§1.6.0`, and that section's heading is corrected at its own line in the same act.** **AND THIS SECTION DOES NOT STATE WHETHER `1.6.1` HAS BEEN CUT: the cut-state is the tag set's to carry and not a document's to state** (`D-57`; the head clause of 2026-10-28 above, which governs every sentence here).
 

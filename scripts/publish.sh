@@ -406,6 +406,19 @@ cut_claim_pointer() {
   return 1
 }
 
+# **AND A PAST-TENSE RECORD NAMING A TAG THAT EXISTS IS THE RECORD AND NOT A CLAIM (`D-83`).** **`D-82`'s ratchet had
+# no arm for the ONE lawful NEW cut-claim: the release's own record.** A heading `CUT AND PUBLISHED — tag `vX`` is a
+# statement about a past act; it is accepted ONLY when `vX` exists in `git tag --list`. **So the record lands and a
+# claim does not**: a heading naming a tag that does not exist is REFUSED, which is the same condition the phrase
+# set already applies. Without this arm the ratchet refuses every release it makes.
+cut_claim_record() {
+  local line="$1" v
+  case "$line" in *'CUT AND PUBLISHED'*) ;; *) return 1 ;; esac
+  v=$(printf '%s' "$line" | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' | head -1 | sed 's/^v//')
+  [ -n "$v" ] || return 1
+  [ "$(cut_claim_tag_exists "$v")" = yes ]
+}
+
 # THE BASELINE'S KEY: a digest of the line's OWN BYTES. This is the choice, and `cut_claim_definition` prints the
 # reason with every run: a digest is a fact about the line, a line number is a fact about the file's current layout.
 cut_claim_digest() {
@@ -564,7 +577,7 @@ scan_cut_claims() {
       n=$((n + 1))
       cut_claim_line_matches "$line"
       [ -n "$CC_MATCHES" ] || continue
-      if cut_claim_pointer "$line"; then
+      if cut_claim_pointer "$line" || cut_claim_record "$line"; then
         accepted_archived=$((accepted_archived + 1))
         printf '    %s:%d  ACCEPTED (archived pointer)  %s\n' "$key" "$n" "$CC_MATCHES"
         continue
@@ -629,7 +642,7 @@ emit_cut_claim_baseline() {
       cut_claim_line_matches "$line"
       [ -n "$CC_MATCHES" ] || continue
       [ "$CC_OPERATIVE" -eq 1 ] || continue
-      cut_claim_pointer "$line" && continue
+      { cut_claim_pointer "$line" || cut_claim_record "$line"; } && continue
       digest="$(cut_claim_digest "$line")"
       printf '%s %s %06d %s\n' "$key" "$digest" "$n" "$CC_MATCHES"
       count=$((count + 1))
