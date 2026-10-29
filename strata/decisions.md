@@ -4161,3 +4161,32 @@ the three acts that can discard — and `[]` where nothing was.** **What is owed
 **TERMS: the retraction (`1`), the confound (`1` = the registration-time raise), the doubled error (`1`), the process
 notes (`2` = the broken probe, the mis-anchored edit), `DEF-AH`'s downgrade (`1`), the surviving clause (`1` = `undefined`
 is not `[]`), machinery already correct (`1`).**
+
+---
+
+### `D-79` — THE TAG SET IS THE RECORD, AND THE GUARD IS WIDENED: no version literal outside a dated section may differ from the manifest
+
+**DATE:** 2026-10-29. **BRANCH:** `main`. **SOURCE:** the downstream's `DEF-AC` re-filing, and the architect's instruction to fix it definitively.
+
+**THE CONTRADICTION, MEASURED IN ONE FILE.** `RELEASE-NOTES.md:19` says **THE VERSION THIS CHANGE LIST DESCRIBES IS `1.6.0`**;
+**`:265` says NOTHING IN THIS SECTION IS CUT, NO TAG NAMES IT … AND THE ELEVEN VERSION SITES STAY AT `1.2.0`**; **and `:269`
+explicitly preserves the cut claim** — *"what it says about the cut is not"* superseded. **So one document asserts both
+`1.6.0` and `1.2.0` as the version it describes, while `v1.6.0` is tagged and published.** **The sentence MOVED (`:212` →
+`:265`) because the file grew; it did not LEAVE** — **seventh instance of the class.**
+
+**THE FIX, IN FOUR PARTS.**
+1. **ARCHIVE IT OUT** — both the paragraph and its affirming clause, byte-exact, with hashes, **a one-line pointer where each
+   stood**.
+2. **THE TAG SET IS THE RECORD** — `git tag --list` is the cut-state's authority, **and no prose paragraph may assert or
+   deny it in the present tense.**
+3. **★ THE GUARD WIDENED, AND THIS IS THE DEFINITIVE HALF.** The preflight asserted **only the generated line** — `:264`'s
+   own claim that *"a hand-written line that contradicts the manifest can no longer travel"* **was false**, because the
+   `1.2.0` paragraph is not in the generated line's shape. **So: OUTSIDE A DATED SECTION (`## §x.y.z` to the next `##`), EVERY
+   VERSION LITERAL IN A SHIPPED DOCUMENT MUST EQUAL THE MANIFEST'S.** **A dated section may name its own version — that is
+   what a change list is — and nothing else may name a different one.**
+4. **AND THE GUARD MUST BE SHOWN TO BITE** — a `/tmp` revert re-introducing a `1.2.0` literal outside a section **must fail
+   the preflight**, or the guard is a green light wearing the word "check."
+
+**TERMS: the contradiction measured (`1`), the archive-out (`2` = the paragraph and its affirmation), the tag set as the
+authority (`1`), the guard widened (`1` = any literal outside a dated section), the guard proven (`1` = a revert that
+reddens), the class's seventh instance (`1`).**
