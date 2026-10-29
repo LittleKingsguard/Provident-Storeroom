@@ -81,6 +81,21 @@ receipt itself.** **No member is added to the FOURTEEN and no enumerable shape m
 `index.d.ts`'s `DeleteRecord.commit`; the long-form reading — the adoption, the `pending` residue, the `file`-tier
 save and `K-4`/`K-5` by reference — is the shipped guide's `§7.8`, which is where those four follow-ons are stated.)
 
+**★ AND `discarded` IS PRESENT OR ABSENT BY A RULE, NOT BY LUCK — `undefined` IS NOT `[]`** (`D-78`, 2026-10-29).
+**`discarded` is carried by the three acts that can discard a raise — `delete`'s receipt, `write`'s record and
+`rollback`'s own record — and by nothing else.** **On all three it is PRESENT on every return, `0` included:**
+**`[]` means this act's delivery discarded nothing — present, empty and true.** **A member that is `undefined` means
+this act CANNOT discard a raise, so the question does not arise** — a `read` or a `readLiteral` answers a value and
+carries no such member — **and absence must not be read as "nothing was discarded": it is "not reported, because
+this act cannot have that outcome."** **So `if (record.discarded === undefined)` and
+`if (record.discarded.length === 0)` are DIFFERENT QUESTIONS — "can this act discard?" and "did it, this run?" — and
+`record.discarded?.length` tested for truthiness answers both with one falsy reading, which is the collapse this
+rule exists to prevent.** **CHECK PRESENCE FIRST, THEN LENGTH;** and because the member is non-enumerable, **a spread
+or `Object.assign` copy of a receipt does not carry it and reads `undefined` whatever the original said** — read it
+off the record itself. **Measured on this checkout through the published entry: `delete`, `write` and `rollback` each
+answer `1` entry where a raise was discarded and `[]` where none was, and `read`'s answer carries the member
+nowhere.** (`D-78`; `D-75`; `D-49`; the long-form section is the shipped guide's `§12.6b`.)
+
 **THE RECEIVER IS THE STORE, SO NO CALL CARRIES AN `instance` POSITION** (`surface.md §2.1` (e) item 3):
 `store.write(address, tier, value)` is the shape every method takes, and a leading `instance` is a SUPERSEDED
 SPELLING — wrong, not redundant. **AND NO OWN MEMBER IS A DATA MEMBER:** there is no `store.data`, no `state`

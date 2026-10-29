@@ -2067,6 +2067,49 @@ one raise and at two, **the raise's own answer and the triggering write's answer
 one of those five cells is RED under its own `/tmp` revert. (`D-75`; `D-49`; `D-55` item 6 · `DEF-AP`; §8's
 `record.discarded` clause above.)
 
+**⟶ AND THE MEMBER'S PRESENCE IS ITSELF A CLAIM, 2026-10-29 — `D-78`: `undefined` IS NOT `[]`, AND THESE ARE THE
+TWO LINES YOU WILL COMPARE WITHOUT THINKING.** **THE DOWNSTREAM'S DEMAND, VERBATIM: *"say when the member is
+present, and that `undefined` is not `[]`."*** **AN ABSENT MEMBER AND AN EMPTY LIST ARE DIFFERENT CLAIMS:** **one is
+about an act that cannot have this outcome at all, and the other is a statement about an act that can — so a
+consumer reading absence cannot tell *"not reported"* from *"nothing to report."***
+
+- **WHICH ANSWERS CARRY IT — THREE, AND THEY ARE EXACTLY THE THREE THAT CAN DISCARD A RAISE: `a.delete`'s receipt,
+  `a.write`'s record, and `a.rollback`'s own record.** **On all three the member is PRESENT on every return, `0`
+  included** — it is not a member that appears when something went wrong, and nothing in your drive has to happen
+  for it to be there.
+- **`[]` MEANS: THIS ACT'S DELIVERY DISCARDED NOTHING.** **Present, empty, and TRUE.** The act *can* discard a
+  raise, you were told, and this time there was nothing in its window to throw away. **`record.discarded.length ===
+  0` is that sentence and no other.**
+- **`undefined` MEANS: THIS ACT CANNOT DISCARD A RAISE, SO THE QUESTION DOES NOT ARISE.** **A `read` — and
+  `readLiteral`, and every member that hands you a VALUE rather than a record of an act — carries no such member at
+  all** (`store.read(['a'])` answers your tree, and `answer.discarded` is `undefined` — no such member stands on
+  it). **DO NOT READ ABSENCE AS
+  "NOTHING WAS DISCARDED":** it says this act was never in the position to discard, **and a consumer that treats the
+  two alike has answered a question about an act whose outcome cannot be that one.**
+- **THE TRAP, NAMED: THE TWO LINES ASK DIFFERENT QUESTIONS.** **`if (record.discarded === undefined)` asks *"can
+  this act discard at all?"*** — it is a question about the ACT. **`if (record.discarded.length === 0)` asks *"did
+  it, this time?"*** — it is a question about YOUR run. **Neither line is a spelling of the other, and on a `read`
+  the second one throws.**
+- **AND A COPY LOSES THE MEMBER ENTIRELY.** `discarded` is a **NON-ENUMERABLE** own member on all three (an
+  accessor on the `write`'s and the `rollback`'s, an own data property on the `delete`'s), so **`{...receipt}` and
+  `Object.assign({}, receipt)` carry the enumerable members and NOT the witness** — **the copy's `record.discarded`
+  is `undefined` whatever the original said**, which is how a consumer ends up asking the "cannot discard" question
+  about an act that can (`D-49`'s non-enumerability, and `D-55` item 2's root). **Read it off the record itself.**
+- **WHAT TO DO: CHECK PRESENCE FIRST, THEN LENGTH.** `if ('discarded' in record)` distinguishes *"this act cannot
+  discard"* from *"it can"*; only then does `record.discarded.length === 0` mean *"nothing was discarded."* **AND DO
+  NOT WRITE `record.discarded?.length` (OR TEST IT FOR TRUTHINESS) AND CALL IT DONE:** `undefined` and `0` are both
+  falsy and one test then answers both questions — **that collapse is exactly what this clause exists to
+  prevent.** If you need one expression, name which question you are asking: `record.discarded === undefined` for
+  the act, `record.discarded.length === 0` for the run.
+- **MEASURED 2026-10-29, ON THIS CHECKOUT, THROUGH THE PUBLISHED ENTRY — SIX ARMS AND A SEVENTH.** **`delete`: a
+  listener in its delivery raises a `rollback` → `discarded: [{opId, addresses}]` (`1` entry); the same delete whose
+  delivery raises nothing → `discarded: []`.** **`write`: a raise its own drain never reached → `1` entry; a raise
+  its own pass's drain consumed and JUDGED → `[]`.** **`rollback`: raised in a delete's delivery → `1` entry; an
+  at-rest reversal → `[]`.** **AND ONE ACT THAT CANNOT DISCARD — `read`: the member is ABSENT on its answer
+  (`record.discarded === undefined`, `Array.isArray(record.discarded) === false`), and that is not `[]`.** **So no
+  act that can discard was missing it and no act that cannot discard carried it.** (`D-78`; `D-75`; `D-49`; `D-55`
+  item 2.)
+
 
 **THE EXITS ARE STILL YOURS AND ARE UNCHANGED: reload the file, or regenerate the store.** What changed is that
 **the `delete` now tells you the discard happened** — *"a fail-state is honest only if the consumer learns it
