@@ -15,6 +15,8 @@ the only four staging sites of their kind in the battery** — a grep for `makeS
 of `index.mjs` returns these files and no others.
 
 **⟶ AND THE FOUR PATHS IN THE PARAGRAPH ABOVE ARE SUPERSEDED, MEASURED 2026-10-25: THE DRIVES STAND AT THE PRESET'S
+
+**⟶ AND THE FOUR DRIVES' STAGING SITES ARE RE-MEASURED AN EIGHTH TIME AT THIS TREE, 2026-10-29 — THE ELEVEN COMMITS PAST `v1.5.0` (`git describe`: `v1.5.0-11-g8f5454f`), WHICH IS THE `1.6.0` PREPARATION, AND THIS TIME SIX OF THEM MOVE.** `RCA-8(g)` ANNOTATE-BESIDE: **the clause above stands BYTE-FOR-BYTE and is read THROUGH this one; every figure it printed stays printed, and the ones that moved are named with both readings.** **THE FOUR DRIVES STILL STAND AT THE PRESET'S SCOPE UNDER `tests/e2e/`, AND EACH IS RE-READ THIS DATE: `tests/e2e/staged-install/publish.test.mjs` (`makeScratch` `:783`) · `tests/e2e/staged-install/publish-generators.test.mjs` · `tests/e2e/staged-install/version-stamp.test.mjs` (`makeEnv`) · `tests/e2e/negative-generators.test.mjs`** — **a `makeScratch`/`makeEnv` grep over `tests/e2e/` returns exactly these four files and no others, so the count of FOUR DRIVES is UNMOVED ✓**; **and `D-14`'s glob-plus-explicit-kernel-path shape is untouched by this release, which changes no staging site at all.** (`D-14`; `D-76`; the four files named, grepped this date.)
 SCOPE UNDER `tests/e2e/`, AND THEIR STAGING CODE IS A CALL TO `stageModuleTree` RATHER THAN A LITERAL COPY OF
 `index.mjs`.** Present paths and present sites: **`tests/e2e/staged-install/publish.test.mjs`** (`makeScratch` `:774`,
 the staging call `:776`); **`tests/e2e/staged-install/publish-generators.test.mjs`** (`makeScratch` `:438`, the staging

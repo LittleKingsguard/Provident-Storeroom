@@ -31,7 +31,7 @@ an edit belongs.
 
 **⟶ AND THE ONE FIGURE THIS PAGE CAN BE RIGHT ABOUT IS GENERATED AND ASSERTED, 2026-10-28 — `DEF-AC`'s third part, and `D-57`'s one surviving figure.** `RCA-8(g)` ANNOTATE-BESIDE: **every clause above stands BYTE-FOR-BYTE and is read THROUGH this one; nothing above moves.** **THE DEFECT THIS CLOSES: THIS PAGE DECLARED NO VERSION AT ALL** — a shipped document a consumer reads first, saying nothing about which release it describes — **so `scripts/publish.sh --figures` now GENERATES the line below from `bindings/js/package.json`'s `version` and REFUSES when it disagrees, exactly as it does at the guide's and the change list's own marked lines: three shipped documents, three version lines, one generator, one assertion.** **AND THE CUT-STATE IS NOT STATED HERE, OR ANYWHERE ELSE IN THIS PACKAGE'S DOCUMENTS** (`D-57`, the architect verbatim: *"Drop the cut-state"*): a document is sealed before the tag that would make its cut-state true, so **the cut-state is not a document's to state**; the record of what has been cut is the change list's, and it is past tense. **EVERY OTHER CLAIM OF THIS PAGE STANDS EXACTLY AS IT STOOD.**
 
-PUBLISH-README-VERSION-LINE: THE VERSION THIS README DESCRIBES IS `1.5.0`.
+PUBLISH-README-VERSION-LINE: THE VERSION THIS README DESCRIBES IS `1.6.0`.
 
 ## The one entry
 
@@ -256,6 +256,8 @@ READ THE ADDRESS YOU WROTE.** **Your value stands ⇒ the refusal was a listener
 re-applies it; your value does not stand ⇒ it was your own act's and nothing was written.** **NO STATUS, MEMBER OR
 RANK MOVES FOR THIS: the distinction is a closed set's business (`D-38`) and the architect's call** (the guide's
 `§6.5a` and its `§8.1` row `20` carry both arms measured, and `D-73` carries the throw's rule; `D-76`.)
+
+**⟶ AND THE MEMBER THAT PARAGRAPH SAID WOULD NOT MOVE HAS MOVED, 2026-10-29 — `D-77` MINTS `address`, SO THE TWO ARMS IT MEASURED ARE TOLD APART BY THE FORM ITSELF.** `RCA-8(g)` ANNOTATE-BESIDE: **the paragraph above stands BYTE-FOR-BYTE as the reading of its own date and is read THROUGH this clause; its RULE — *"do not retry on the status alone: read the address you wrote"* — STANDS, and the two sentences this clause supersedes are named rather than overwritten: *"the three own members"* and *"NO STATUS, MEMBER OR RANK MOVES FOR THIS"*.** **WHAT A CONSUMER GETS: the fourth member, `address` — the ADDRESS the refusal is about, a segment array in your own domain or `null` where nothing is nameable — present on EVERY arm, `Object.keys` reading `["status","message","log","address"]` at length `4`** (the clause below prints the same form, and it is this page's one shipped sentence about it). **SO THE COMPARISON IS THE ANSWER: `address` equal to the address you wrote ⇒ YOUR OWN act was refused and your write did not happen; different ⇒ a LISTENER's act was and your write STANDS, so a retry would apply it twice.** **THE CLOSED STATUS SET IS NOT REACHED — twenty stays twenty — and no rank moves.** (`D-77`; `bfe844a`; the form's own clause below, and the guide's `§6.5a` and `§8`.)
 
 ## The `file` tier, and what actually persists
 

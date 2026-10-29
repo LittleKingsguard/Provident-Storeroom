@@ -825,6 +825,34 @@
         "moved": false,
         "note": "THE `sizes_remeasured_2026_10_29` KEY ABOVE IS THE READING OF ITS OWN DATE AND IS KEPT BYTE-FOR-BYTE; this key re-reads every one of its figures and supersedes none of its bytes. MOVED: NOTHING — all thirteen part sizes, `src_entry_total` 11,974 ✓, `kernel_parts_total` 3,917 ✓, `index.mjs` 1,661 ✓, `index.d.ts` 1,089 ✓ and the barrel's 4 lines ✓ stand as that key printed them — because the three commits since it write `docs/` and `strata/` alone. THE MATCHING CLAUSES ARE docs/L1/entry-subdivision.md's, kernel-subdivision.md's, module-map.md's, test-stratification.md's and surface-deltas.md's fifth `2026-10-29` re-measures; the denominator, the tests, the allowlist, the packed members and the version are this file's `ownership_remeasured_2026_10_29` key."
       },
+      "sizes_remeasured_2026_10_29_eleven_past_v1_5_0": {
+        "method": "`wc -l` at each file's own last line on this tree, re-measured 2026-10-29 for the ELEVEN commits past `v1.5.0` (`git describe`: v1.5.0-11-g8f5454f) \u2014 the `1.6.0` preparation, whose first eight commits carry `D-74`, `D-75`, `D-76`, `D-77` and `D-78` and whose last three are records, documents and this pass",
+        "entry_parts": {
+          "refusal.mjs": 216,
+          "artefact.mjs": 376,
+          "state.mjs": 1138,
+          "class-decision.mjs": 1214,
+          "carrier.mjs": 1002,
+          "frame.mjs": 418,
+          "delivery.mjs": 751,
+          "constraints.mjs": 3291
+        },
+        "kernel_parts": {
+          "kernel-foundations.mjs": 1395,
+          "kernel-registration.mjs": 847,
+          "kernel-commit.mjs": 356,
+          "kernel-attempt.mjs": 1030,
+          "kernel-terminal.mjs": 468
+        },
+        "kernel_parts_total": 4096,
+        "src_entry_total": 12502,
+        "barrel": 4,
+        "index_mjs": 1708,
+        "index_d_ts": 1185,
+        "file_count": 13,
+        "moved": true,
+        "note": "THE `sizes_remeasured_2026_10_29_twenty_seven_past_v1_4_0` KEY ABOVE IS THE READING OF ITS OWN DATE AND IS KEPT BYTE-FOR-BYTE; this key re-reads every one of its figures and supersedes none of its bytes. **THIS TIME SIX OF THE THIRTEEN MOVED AND SEVEN DID NOT, AND THE MOVEMENT IS `D-74`'s, `D-75`'s AND `D-77`'s**: `refusal.mjs` 161 -> 216, `state.mjs` 1,125 -> 1,138, `delivery.mjs` 747 -> 751, `constraints.mjs` 3,014 -> 3,291, `kernel-foundations.mjs` 1,226 -> 1,395 and `kernel-attempt.mjs` 1,020 -> 1,030 \u2014 the fourth member is written where every refusal is built, the bound is written into the entry-summary arm, and the witness is written where the delivery discards. UNMOVED: `artefact.mjs` 376, `class-decision.mjs` 1,214, `carrier.mjs` 1,002, `frame.mjs` 418, `kernel-registration.mjs` 847, `kernel-commit.mjs` 356, `kernel-terminal.mjs` 468, the barrel's 4 lines and the file count THIRTEEN. **THE TOTALS MOVED WITH THEM: `src_entry_total` 11,974 -> 12,502, `kernel_parts_total` 3,917 -> 4,096, `index.mjs` 1,661 -> 1,708 and `index.d.ts` 1,089 -> 1,185.** THE MATCHING CLAUSES ARE docs/L1/entry-subdivision.md's, kernel-subdivision.md's, module-map.md's, test-stratification.md's and surface-deltas.md's EIGHTH `2026-10-29` re-measures; the denominator, the tests, the allowlist, the packed members and the version are this file's `ownership_remeasured_2026_10_29_eleven_past_v1_5_0` key."
+      },
       "sizes_remeasured_2026_10_29_twenty_seven_past_v1_4_0":       {
         "method": "`wc -l` at each file's own last line on this tree, re-measured 2026-10-29 for the twenty-seven commits past `v1.4.0` (`git describe`: v1.4.0-27-ga3312b7) \u2014 the `1.5.0` preparation, whose one commit since the 26-commit reading (`a3312b7`) writes the guide, this tree's declarations and four sibling records",
         "entry_parts": {
@@ -869,6 +897,98 @@
         "index_d_ts": 1089,
         "moved": false,
         "note": "THE `sizes_remeasured_2026_10_29_twenty_four_past_v1_4_0` KEY ABOVE IS THE READING OF ITS OWN DATE AND IS KEPT BYTE-FOR-BYTE; this key re-reads every one of its figures and supersedes none of its bytes. MOVED: NOTHING — all thirteen part sizes, `src_entry_total` 11,974 ✓, `kernel_parts_total` 3,917 ✓, `index.mjs` 1,661 ✓, `index.d.ts` 1,089 ✓ and the barrel's 4 lines ✓ stand as that key printed them — because the two commits since it write `docs/` and `strata/` alone: `D-73` keeps the listener's throw and declares its propagation, and a declaration moves no source line. THE MATCHING CLAUSES ARE docs/L1/entry-subdivision.md's, kernel-subdivision.md's, module-map.md's, test-stratification.md's and surface-deltas.md's sixth `2026-10-29` re-measures; the denominator, the tests, the allowlist, the packed members and the version are this file's `ownership_remeasured_2026_10_29` key."
+      }
+    },
+    "ownership_remeasured_2026_10_29_eleven_past_v1_5_0": {
+      "method": "`git ls-files | grep -v '^scratch/'` for the denominator, `find <dir> -type f` and `find tests -name '*.test.mjs'` for the population, `wc -l` for the crate rows, `npm pack --dry-run --json` for the member set, and one run of each leg \u2014 all on this tree 2026-10-29 at `git describe` `v1.5.0-11-g8f5454f`, the `1.6.0` preparation",
+      "denominator": 199,
+      "denominator_reading": "`git ls-files` returns `676` for the whole index and `477` under `scratch/`, so `676 = 477 + 199` \u2713 \u2014 MOVED BY ONE against the key above's 198, and the one is named rather than absorbed: `docs/guides/backup/D76-2026-10-29-guide-move-out.md` is a NEW TRACKED PATH, the archive `D-76` item 3 moved the guide's two superseded passages into byte-exactly.",
+      "owned": 127,
+      "co_owned": 0,
+      "unowned": 72,
+      "total": 199,
+      "owned_terms_by_module_reading": "the nineteen modules' `owns` arrays are UNMOVED at 127 entries, every one a present tracked path, and no path is owned twice \u2014 walked this date, 127 of 127 present and 0 absent \u2014 so `127 + 0 + 72 = 199` \u2713 CLOSES, and the one new path is UNOWNED: no module's `owns` array names an archive under `docs/guides/backup/`, which is the honest reading and not an omission.",
+      "by_tree": {
+        "src/": 7,
+        "tests/": 118,
+        "bindings/js/ (root)": 9,
+        "bindings/js/src/": 18,
+        "bindings/js/platforms/": 10,
+        "docs/specs/": 9,
+        "docs/L1/": 9,
+        "docs/guides/": 2,
+        "typecheck/": 1,
+        ".github/workflows/": 1,
+        "scripts/": 3,
+        "strata/": 2,
+        "root": 10,
+        "sum": 199
+      },
+      "by_tree_note": "the thirteen terms close `7 + 118 + 9 + 18 + 10 + 9 + 9 + 2 + 1 + 1 + 3 + 2 + 10 = 199` \u2713 and exactly ONE term moved against `ownership_remeasured_2026_10_29_twenty_seven_past_v1_4_0`: `docs/guides/` 1 -> 2, the `D-76` archive.",
+      "test_population": {
+        "tests/e2e/": 79,
+        "tests/integration/": 33,
+        "tests/unit/": 5,
+        "tests/Cargo.toml": 1,
+        "tests_total": 118,
+        "test_mjs_under_tests": 69,
+        "note": "55 e2e + 11 integration + 3 unit = 69 `*.test.mjs` \u2713, and 79 + 33 + 5 + 1 = 118 \u2713 \u2014 UNMOVED, and the e2e breakdown is still 55 `*.test.mjs` + 12 runners + 8 support modules + 1 evidence JSON + 3 documents = 79 \u2713"
+      },
+      "legs_remeasured_2026_10_29_eleven_past_v1_5_0": {
+        "npm_test": {
+          "tests": 1121,
+          "pass": 1120,
+          "fail": 0,
+          "skip": 1,
+          "exit": 0
+        },
+        "cargo_test_offline": {
+          "total": 669,
+          "native": 434,
+          "battery": 235,
+          "failed": 0,
+          "exit": 0
+        },
+        "npm_run_greens": {
+          "exit": 0,
+          "runners": 11,
+          "authored": 103,
+          "executed": 103,
+          "pass": 103,
+          "fail": 0
+        },
+        "npm_run_test_e2e": {
+          "exit": 0,
+          "declared": 15,
+          "recorded": 15,
+          "PASS": 14,
+          "LAYER_LIMIT": 1,
+          "FAIL": 0,
+          "packed_members": 21,
+          "packed_version": "1.6.0"
+        },
+        "npm_run_typecheck": {
+          "exit": 0
+        },
+        "publish_sh_figures": {
+          "exit": 0,
+          "documents": 3,
+          "version_lines": "1.6.0"
+        }
+      },
+      "figures_restated_remeasured_2026_10_29_eleven_past_v1_5_0": {
+        "statuses": 20,
+        "kc_tokens": 9,
+        "own_members": 14,
+        "allowlist_rows": 7,
+        "packed_members_bare": 20,
+        "packed_members_assembled": 21,
+        "log_entry_members": 5,
+        "depth_ceiling": 126,
+        "node_ceiling": 1000000,
+        "version": "1.6.0",
+        "version_cells": 11,
+        "note": "each read at its own bytes this date and SIX OF THEM UNMOVED against the key above: `D-77` adds a member to the REFUSAL'S form and no status, no token, no instance member, no allowlist row and no log-entry member \u2014 which is why `LogEntry` stays FIVE and the refusal is FOUR and neither is the other. THE VERSION IS THIS PASS's: `1.6.0` at eleven cells (the main `version`, its five exact pins, the five platform manifests), with `npm run build` stamping the artefact so `version()` answers `1.6.0` at the built artefact AND at a package installed into a `/tmp` consumer, and `scripts/publish.sh --figures` agreeing in three shipped documents."
       }
     },
     "ownership_remeasured_2026_10_29_twenty_seven_past_v1_4_0":     {

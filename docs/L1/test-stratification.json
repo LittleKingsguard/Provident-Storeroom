@@ -563,6 +563,80 @@
       "it edited no test, no source and no manifest: documentation and declarations only"
     ]
   },
+  "remeasured_2026_10_29_eleven_past_v1_5_0": {
+    "method": "one run of each leg plus `find <dir> -type f` and `find tests -name '*.test.mjs'`, on this tree at `git describe` `v1.5.0-11-g8f5454f` \u2014 the ELEVEN commits past `v1.5.0`, which is the `1.6.0` preparation; four of them reach `bindings/js/` source (three change what the package does and one is a doc block), five write `strata/decisions.md` alone, and two write documents",
+    "denominator": {
+      "figure": 199,
+      "was": 198,
+      "moved": true,
+      "reading": "`git ls-files | grep -v '^scratch/'` \u2014 the whole index is `676` and `scratch/` holds `477`, so `676 = 477 + 199` \u2713 (the itemised split is `docs/L1/modules.json`'s `ownership_remeasured_2026_10_29_eleven_past_v1_5_0` key). THE ONE NEW PATH IS NAMED RATHER THAN ABSORBED: `docs/guides/backup/D76-2026-10-29-guide-move-out.md`, the archive `D-76` item 3 moved the guide's two superseded passages into."
+    },
+    "present_population": {
+      "tests/e2e/": 79,
+      "tests/integration/": 33,
+      "tests/unit/": 5,
+      "tests/Cargo.toml": 1,
+      "tests_total": 118,
+      "test_mjs_under_tests": 69,
+      "e2e_breakdown": {
+        "test_mjs": 55,
+        "runners": 12,
+        "support_modules": 8,
+        "evidence_json": 1,
+        "documents": 3
+      },
+      "moved": false,
+      "note": "UNMOVED against the key above: 79 + 33 + 5 + 1 = 118 \u2713 \u00b7 55 + 12 + 8 + 1 + 3 = 79 \u2713 \u00b7 69 `*.test.mjs` \u2713 (55 e2e \u00b7 11 integration \u00b7 3 unit). The eleven commits add NO file under `tests/`: `D-74`'s, `D-75`'s and `D-77`'s cells are added INSIDE existing files (`tests/e2e/discard-witness.mjs`'s `DW-17`, `W18` and `DW-19`, and the census re-derivations across 46 files), and a cell is not a file."
+    },
+    "legs": {
+      "npm test": {
+        "tests": 1121,
+        "pass": 1120,
+        "fail": 0,
+        "skip": 1,
+        "exit": 0,
+        "note": "the one skip is the dispatcher-shape cell, as every reading from 2026-10-28 records"
+      },
+      "cargo test --offline": {
+        "total": 669,
+        "storeroom-native": 434,
+        "storeroom-tests": 235,
+        "failed": 0,
+        "exit": 0,
+        "reading": "434 + 235 = 669 \u2713"
+      },
+      "cargo test --offline -p storeroom-native": {
+        "passed": 434,
+        "failed": 0
+      },
+      "cargo test --offline -p storeroom-tests": {
+        "passed": 235,
+        "failed": 0
+      },
+      "npm run greens": {
+        "exit": 0,
+        "discovered_runners": 11,
+        "reading": "`CHAIN COMPLETE \u2014 11 discovered runner(s), every one exit 0`; AUTHORED 103 \u00b7 EXECUTED 103 \u00b7 PASS 103 \u00b7 FAIL 0; layer `LIVE / ASSEMBLED PACKAGE`, `APP` `NONE`"
+      },
+      "npm run test:e2e": {
+        "exit": 0,
+        "declared": 15,
+        "recorded": 15,
+        "PASS": 14,
+        "LAYER-LIMIT": 1,
+        "FAIL": 0,
+        "note": "`INSTALL-09` is the LAYER-LIMIT, as declared; `INSTALL-01` reads the packed tarball at `members=21`, version `1.6.0`"
+      },
+      "npm run typecheck": {
+        "exit": 0
+      },
+      "scripts/publish.sh --figures": {
+        "exit": 0,
+        "documents": 3,
+        "note": "three shipped documents, three version lines, one generator \u2014 all three read `1.6.0`, generated from `bindings/js/package.json`'s `version`"
+      }
+    }
+  },
   "remeasured_2026_10_29_twenty_seven_past_v1_4_0":   {
     "method": "one run of each leg plus `find <dir> -type f` and `find tests -name '*.test.mjs'`, on this tree at `git describe` `v1.4.0-27-ga3312b7` \u2014 the twenty-seven commits past `v1.4.0`, and this reading is the `1.5.0` preparation, whose one commit since the 26-commit reading (`a3312b7`) writes the guide and five declarations and reaches no path under `tests/`",
     "denominator": {
