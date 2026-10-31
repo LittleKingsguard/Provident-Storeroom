@@ -4295,3 +4295,76 @@ way, which is the only direction a ratchet may turn.**
 
 **TERMS: the premise falsified (`1`), the measured scope (`56` sites), the blind spellings (`4`), the ratchet (`1`), the
 catalogue as its exemption set (`1`), one-way (`1`), the cleanup named as a backlog (`1`).**
+
+---
+
+### `D-85` — THE THREE CORPUS QUESTIONS ARE ANSWERED: a closure MAY be re-derived, an archived part is NOT citable and its cited section is REGENERATED, and the registration instant gets its own cell
+
+**DATE:** 2026-10-30. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering the three open-semantics rows of
+`docs/specs/storeroom-constraint-outcome-proposal-review.md` `§5` — **VERBATIM, IN ORDER:** *"1. Yes"* ·
+*"2. No, if it needs to be cited regenerate the cited section"* · *"3. Yes"*.
+
+**THE QUESTIONS AS ASKED, ONE SENTENCE EACH — the record's `§6` is their home and their wording is not re-derived here:**
+**1. `CLOSURE-SET`** — *"May a pass re-derive a closure predicate over a file set of which one file exists, or does that
+re-derivation need the ruling — and does the registration instant's read get its own instrument, or may a corpus cell
+record the two instants' two answers as divergent without naming a repair?"* · **2. `CIT-FORM`** — *"Is a part that
+survives only inside the gitignored archive citable at all, and if so in which single form, corpus-wide?"* ·
+**3. `DIVERGENCE-HOME`** — *"Does the registration instant's read get an `OWED` cell in this corpus, or does
+`docs/specs/storeroom-native/contract.md §7.3 (b)` already own that instant and its answer?"*
+
+**WHAT IT SETTLES.**
+
+1. **A PASS MAY RE-DERIVE A CLOSURE PREDICATE over a file set of which one file exists — no separate ruling gates the
+   re-derivation — AND a corpus cell MAY record the two instants' two answers as DIVERGENT without naming a repair**
+   (question 1, both halves answered `Yes`).
+2. **AN ARCHIVED PART IS NOT CITABLE. WHERE A CITATION MUST RESOLVE, THE CITED SECTION IS REGENERATED** — brought back
+   into the live tree and cited there (question 2, answered `No` plus its own remedy). **The identifier-only form this
+   tree has used since the archive move (`strata/brief.md:377-379`) is RETIRED AS A CITATION REMEDY: it stays the form
+   for the corpus's OWN record — `D-3`'s log and the archived tracker set — and it is not a way to cite a section.**
+3. **THE REGISTRATION INSTANT'S READ GETS ITS OWN `OWED` CELL** in `docs/specs/storeroom-constraints/contract.md`'s own
+   `OWED` enumeration, with its owner and its positive revisit condition (question 3, answered `Yes`); **it is NOT owned
+   by `docs/specs/storeroom-native/contract.md §7.3 (b)`.**
+
+**WHAT IT DOES NOT REOPEN, EACH NAMED SO THE ENTRY IS NOT READ WIDER THAN IT IS.** **`D-3`** — the corpus stays unowned:
+this entry ANSWERS QUESTIONS, it takes no ownership of the nine kept contracts and grants no role scope inside them ·
+**`D-35`/`D-36`** — the parameter-access class stays CLOSED, and the registration site remains a REGRESSION against that
+closure: an `OWED` cell RECORDS the divergence and does not cure it · **the `131,072` B per-path line** — what answer `2`
+asks for is a regenerated SECTION, never a whole restored part carrying `137,457` B · **`RCA-8(g)`** — append-only: the
+regeneration ADDS a live section and moves no existing clause · **`D-84`** — untouched, uncommitted, and this entry
+asserts nothing about `inventory`.
+
+**WHAT MOVES, AND WHERE IT IS DISCHARGED — RECORDED HERE, PERFORMED BY NO CLAUSE OF THIS ENTRY.** **`U-STOREROOM-CONSTRAINT-OUTCOME`
+is no longer blocked**: its surviving cell is permitted by item 3 and its closure re-derivation by item 1 ·
+**`U-STOREROOM-CORPUS-CITATION-INTEGRITY` now has its instrument** from item 2 — regenerate each cited section, then
+re-derive each closure predicate under item 1 — and it stays UNSTARTED by this entry · **the shipped clause
+`bindings/js/index.d.ts` will carry cites NO archived path and states its rule in its own words**, so its repair is NOT a
+re-point and waits on a regenerated section only where a citation is retained.
+
+**TERMS: the questions answered (`3`), the answers that are `Yes` (`2`), the answer that is `No` plus a remedy (`1`), the
+ruling rows minted (`1` = this one), the corpus clauses edited here (`0`), the sections regenerated here (`0`), the units
+unblocked (`1`), the units instrumented (`1`), the clauses reopened (`0`), the measurements claimed here (`0`).**
+
+---
+
+### `D-86` — `D-85` ITEMS 1 AND 3 ARE THE SCOPE GRANT: the one `OWED` cell of `U-STOREROOM-CONSTRAINT-OUTCOME` may be appended, and the reading is the architect's own
+
+**DATE:** 2026-10-30. **BRANCH:** `main`. **SOURCE:** the architect, in session, on being asked which of three routes granted scope for the cell —
+**VERBATIM:** *"1"*, being the route the supervisor printed as *"your answers already are the grant — read `D-85` items 1+3 as scope and let the cell go to gate 2"*.
+
+**WHAT IT SETTLES.** **`D-85` items 1 and 3 ARE READ AS THE GRANT OF SCOPE, not as a statement of content only.** A pass MAY
+append ONE cell to `docs/specs/storeroom-constraints/contract.md`'s own `OWED` enumeration, recording that the registration
+instant's read of the constraint outcome is DIVERGENT from the landing instant's, with an owner and a positive revisit
+condition, and MAY re-derive a closure predicate over a file set of which one file exists where that cell's landing needs it.
+
+**WHAT IT NARROWS, AND ONLY THIS.** `D-85`'s *"grants no role scope inside them"* clause is NARROWED to its original scope:
+**items 1 and 3 carry the grant for THIS one cell, in THIS one document, for THIS one subject; nothing else in the nine kept
+contracts is opened, and no second cell, no second document and no second subject follows from this entry.**
+
+**WHAT IT DOES NOT REOPEN, each standing exactly as `D-85` left it.** The divergence is RECORDED and NOT CURED — no repair is
+named by the cell · **`D-35`/`D-36` stay closed and the site stays a REGRESSION against them** · the registration instant is
+NOT assigned to `docs/specs/storeroom-native/contract.md §7.3 (b)` · **`CIT-FORM` (`D-85` item 2) is untouched: no archived
+part is citable and `U-STOREROOM-CORPUS-CITATION-INTEGRITY` stays UNSTARTED** · `RCA-8(g)` append-only · `D-84` untouched.
+
+**TERMS: the routes offered (`3`), the route taken (`1` = the reading of `D-85` items 1+3), the scope narrowed (`1` clause of
+`D-85`), the cells this entry authorises (`1`), the documents this entry opens beyond that cell (`0`), the subjects (`1`), the
+rulings minted (`1` = this one), the measurements claimed here (`0`).**

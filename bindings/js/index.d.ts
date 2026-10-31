@@ -1173,6 +1173,75 @@ export interface ConstraintPair {
  * item 1: `true` is the only pass value). **Every non-function is outside the position AT EVERY ONE OF THE
  * THREE METHODS**, and a non-function at the toggle's position is refused on the ARGUMENT's ground and
  * never on the pair's.
+ *
+ * **⟶ AND THE TWO RETURNS THIS POSITION ADMITS ARE DECLARED HERE, ADDED 2026-10-30 — WHAT YOUR
+ * CONSTRAINT MAY RETURN, AND WHAT ITS REPAIR MAY RETURN.** **EVERY SENTENCE OF THIS CLAUSE — THE ONE THIS MARK
+ * OPENS, ADDED 2026-10-30 — HOLDS AT THE WRITE'S OWN EVALUATION, THE INSTANT THE KERNEL EVALUATES THE VALUE
+ * YOUR FUNCTION RETURNED, AND AT THAT INSTANT ONLY, EXCEPT WHERE A SENTENCE NAMES ITS OWN INSTANT IN ITS OWN
+ * WORDS.** **AND A SENTENCE STANDING ABOVE THIS CLAUSE IS OUTSIDE THIS FRAME AND IS READ AT ITS OWN INSTANTS
+ * BY ITS OWN WORDS — this clause moves none of it.** The clause above prints the answer's PASS value;
+ * this one declares the rest of the closed set IN ITS OWN WORDS, so a reader holding this package reads the
+ * rule and needs no second document for it.
+ *
+ * **THE OUTCOME IS A CLOSED THREE-ARM SET, READ IN THIS ORDER: `true` — THE ONLY PASS VALUE;
+ * `{ message, repair }` — A REPAIRABLE VIOLATION; `{ message }` — AN UNREPAIRABLE VIOLATION, ITS `message`
+ * THE REFUSAL'S OWN SENTENCE. A VALUE OUTSIDE THE THREE IS READ AS THE `{ message }` ARM AND NEVER AS A
+ * FOURTH ARM OF ITS OWN**, so a return you invent beyond them declares an outcome this kernel does not
+ * distinguish.
+ *
+ * **AND `message` IS REQUIRED ON THE REPAIR ARM AND IS READ FIRST**: the gate is the `message` member,
+ * read before any `repair` is looked for, and a `repair` is looked for only inside that branch — **so a
+ * return carrying only `repair` is the arm outside the three and ITS REPAIR IS NEVER SEEN**, and **AT THE
+ * WRITE'S OWN EVALUATION a `message` that is not a NON-EMPTY STRING keeps the repair readable while the
+ * refusal answers the kernel's own unrecognized sentence** (the closed set, its order and this read stand at
+ * `bindings/js/src/entry/kernel-attempt.mjs:686-699`).
+ *
+ * **THE ATTACH: the `repair` your function returns IS A FUNCTION TAKING ONE ARGUMENT — ITS OWN RECORD,
+ * WHICH IS NOT YOUR CONSTRAINT'S AND IS NOT INTERCHANGEABLE WITH IT.** **The two records stand apart at
+ * THREE PLACES: by COUNT, SIX against FIVE; by `id`, which the repair's record carries where the
+ * constraint's carries `attempt`; and by `pending`, which rides the repair's record ALONE**
+ * (`bindings/js/src/entry/kernel-attempt.mjs:607-613`, `:756-782`; the kernel's own words at
+ * `bindings/js/src/entry/kernel-registration.mjs:373-374`). **No member census of either record is
+ * printed here.**
+ *
+ * **AT THE WRITE'S OWN EVALUATION — AT THAT INSTANT AND NO OTHER — THE KERNEL READS `message` AND
+ * `repair` AS OWN MEMBERS OF THE OBJECT YOUR FUNCTION RETURNED: a pair carried on a prototype is NOT SEEN
+ * there, and such a return answers the kernel's unrecognized sentence instead**
+ * (`bindings/js/src/entry/kernel-attempt.mjs:690-696`). **THIS IS THE ONLY SENTENCE IN THIS FILE THAT
+ * STATES THAT RULE, AND IT IS THE LANDING INSTANT'S**: the registration act reads the same
+ * closed outcome at `bindings/js/src/entry/kernel-registration.mjs:330-332`, where an inherited `repair`
+ * IS seen and invoked — **ONE RETURNED SHAPE ANSWERING TWO DIFFERENT THINGS AT THE TWO INSTANTS, a repair
+ * at registration and no repair at a write — and that divergence is OWED to a code-bearing unit and is
+ * CONTRADICTED BY NO SENTENCE HERE** (`strata/decisions.md` · `D-35`, whose parameter-access rule the
+ * registration read does not yet hold).
+ *
+ * **THE REPAIR'S OWN RETURN IS A CLOSED TWO-ARM SET: `{ ok: true, op }` — the repairable arm, `op`
+ * REQUIRED and BEING THE OPERATION RECORD THE STORE'S OWN VERB RETURNED (`WriteRecord.op`, or
+ * `DeleteRecord.op` where that member is non-`null` — a `delete` that removed nothing answers `null` and
+ * credits nothing) — and `{ ok: false, message }` — the failed arm. WHERE `ok` IS FALSE THE RETURNED
+ * OBJECT'S MEMBERS ARE `ok` AND `message`, AND `op` IS ABSENT AND NEVER `null`, BECAUSE AN `op` THERE IS
+ * READ BY NOTHING. **AT THE WRITE'S OWN EVALUATION A RETURN CARRYING ANY OTHER IDENTITY FAILS `KC-4`**
+ * (`KC-4`'s token and the repair-body path print at `docs/specs/storeroom-constraints/contract.md:552`,
+ * and the two arms print at `:558`). **That one sentence covers every outside form of that return, and
+ * this file enumerates none of them.**
+ *
+ * **AND THE OP MUST BE ONE THE ATTEMPT CAN BE SHOWN TO HAVE LANDED: that ground is the kernel's own credit
+ * check, and it is POINTED AT here and never re-spelled** —
+ * `bindings/js/src/entry/kernel-foundations.mjs:1105-1131` — **and NO ORDINAL GROUND IS CLAIMED AT THE
+ * REGISTRATION INSTANT, whose credit check runs with no invoked-for op**
+ * (`bindings/js/src/entry/kernel-registration.mjs:510-517`).
+ *
+ * **AND THE COMMIT YOUR REPAIR IS PART OF RIDES THAT ONE ARGUMENT: supply it at `write`'s DECLARED FOURTH
+ * POSITION and the write your repair makes JOINS the commit it is part of**
+ * (`bindings/js/index.d.ts:862`) — **the record the repair is handed carries that commit at its `pending`
+ * member, the `CommitRecord.pending` this file declares at `bindings/js/index.d.ts:772`, POINTED AT here
+ * and re-declared nowhere.** **That position's own class test is not restated.**
+ *
+ * **AND NOTHING HERE MINTS A TYPE, A SYMBOL, AN ALIAS, A SEAM, A RECORD MEMBER OR AN EXPORT**: this clause
+ * DOCUMENTS the pair your function returns and a two-arm result the kernel already reads, and DECLARES
+ * nothing — `Constraint` below is unmoved, one `unknown` in and one `unknown` out. **Nor does it name an
+ * archived part as the place its rule is to be read: the rule IS the sentences above, and every point they
+ * cite is a live print of the kept contract or a live source range on this branch.**
  */
 export type Constraint = (context: unknown) => unknown;
 
