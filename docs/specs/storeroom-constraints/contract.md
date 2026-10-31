@@ -358,6 +358,51 @@
    and the member's identity are declared at `kernel-surface.md §2.1` items 2–3, the kernel's five-item
    extent stands, `CommitRecord`'s `4` members stand, the register's `8` rows stand and no cell of the
    battery depends on this arm.** **NO CLAUSE OF THIS DIRECTORY MAY BE READ AS SETTLING IT.**
+   **(viii) THE CONSTRAINT OUTCOME'S TWO INSTANTS ANSWER THE SAME SHAPE DIFFERENTLY — ADDED 2026-10-30 BY THE
+   GATE-3 APPEND PASS OF THIS UNIT, ON THE ONE SCOPE GRANT THAT ADMITS THIS ONE CELL AND NO SECOND ONE: the
+   architect's `D-86`, which reads `D-85` items 1 and 3 as the grant and opens no second cell, document or
+   subject (`[A: strata/decisions.md · D-86]`; `[A: strata/decisions.md · D-85]`).** **THE SUBJECT, STATED BY
+   ITS TWO INSTANTS AND NOT BY TWO CODE SITES: ONE RETURNED SHAPE — the object a caller's constraint returns —
+   ANSWERS TWO DIFFERENT THINGS at the registration instant and at the write's own evaluation, and the two
+   answers are what this cell records and what it does not reconcile.** **THE LANDING INSTANT'S READ, AT ITS
+   LIVE RANGE: at the write's evaluation the returned object's `message` and `repair` members are read by
+   own-property forms — `Object.hasOwn` for the gate and `ownMember` for each value — so an INHERITED member is
+   ABSENT there and the arm answers the kernel's own `unrecognized` sentence
+   (`bindings/js/src/entry/kernel-attempt.mjs:690-696`).** **THE REGISTRATION INSTANT'S READ, AT ITS LIVE
+   RANGE: at `addConstraint`'s registration the same two members are read THROUGH THE PROTOTYPE CHAIN —
+   `'message' in outcome`, `'repair' in outcome` and `typeof outcome.repair === 'function'` — beside the
+   comment one paragraph above them that states the outcome is *"read as the landing pass reads it"*, a
+   symmetry its own condition falsifies
+   (`bindings/js/src/entry/kernel-registration.mjs:325-332`).** **THE TWO MEASURED DIVERGENCES: the first,
+   that an INHERITED `message` is ABSENT at the landing instant, where the arm answers `unrecognized`, and
+   PRESENT at the registration instant, where the inherited string is the violation's own sentence; the
+   second, that an INHERITED `repair` is ABSENT at the landing instant, where no `repair` is read, and
+   PRESENT at the registration instant, where the pair is registered with it — so ONE SHAPE registers a
+   `repair` and is then read as carrying none.** **⟶ ANNOTATED BESIDE, 2026-10-30, `RCA-8(g)`: THE FIRST DIVERGENCE ABOVE IS READ AS MEMBERSHIP-ONLY — the two instants disagreeing about whether the `message` member is PRESENT ON THE VALUE, an OWN read at the landing instant (`bindings/js/src/entry/kernel-attempt.mjs:690-694`) against a CHAIN read at the registration instant (`bindings/js/src/entry/kernel-registration.mjs:330-333`) — and the words of that first divergence that give the registration instant the inherited string as the violation's own sentence are WITHDRAWN, that instant taking the member as the discriminator its read branches on and taking NO SENTENCE FROM IT, its refusal message being the registration's own, composed at `bindings/js/src/entry/kernel-registration.mjs:670-679` and rendered by the surface, while `MEASURED` in the same sentence marks the LANDING measurement ALONE, whose site is `bindings/js/src/entry/kernel-foundations.mjs:876`, and the SECOND divergence with its terms, the classification with its `REGRESSION`, the owner-by-shape sentence, the revisit event, the `D-86` grant sentence and the bounds above all stand BYTE-FOR-BYTE and are read THROUGH this mark.** **AND THE VALUE THE REGISTRATION SITE READS IS
+   CALLER-SUPPLIED — the `outcome` is the caller's own constraint return
+   (`bindings/js/src/entry/kernel-attempt.mjs:680`) — so its provenance is the caller's and not the crate's.**
+   **THE CLASSIFICATION, WHICH IS THE POINT: this site CONTRADICTS A CLOSURE and is no unruled gap — `D-35`
+   declares the defence to be parameter access, and `D-36` closes that parameter-access class AS IMPLEMENTED
+   on a PROVENANCE distinction that exempts the crate-minted reads alone (`[A: strata/decisions.md · D-35]`;
+   `[A: strata/decisions.md · D-36]`).** **SO WHAT THIS CELL RECORDS IS A REGRESSION.** **OWNER: a CODE-BEARING
+   UNIT NAMED BY ITS SHAPE AND BY NO UNIT NUMBER — the pass whose subject is a shipped byte at
+   `addConstraint`'s outcome read, no such unit standing in this repository's records and none invented here.**
+   **POSITIVE REVISIT CONDITION: THE FIRST PASSING CODE-BEARING UNIT THAT TOUCHES `addConstraint`'S OUTCOME
+   READ LANDING — an event that will occur and is checkable at that unit's landing, and never an occasion, a
+   preference or a convenience.** **IT DOES NOT BLOCK THIS UNIT: the divergence is RECORDED and NOT CURED, the
+   site stays a REGRESSION that a code-bearing unit closes, and no figure, register row, fail state, scenario
+   or battery cell of this directory rests on the two reads answering alike.** **AND ITS OWN BOUNDS, DECLARED
+   SO NO CLAUSE OF IT IS READ WIDER THAN IT IS: it names NO ARM of the closed outcome set, printing none and
+   counting none; it closes NO other citation of this corpus, that work being the successor unit's whole scope
+   and UNSTARTED; it RE-DERIVES NO closure predicate; and it names no act, no change, no patch and no
+   correction that would close the divergence.** **AND THE INSTANT IS NOT A NEIGHBOURING DOCUMENT'S: the
+   registration instant is NOT owned by `docs/specs/storeroom-native/contract.md §7.3` clause (b), which is
+   named here as NOT this instant's owner, and no clause of this cell places the instant there.** **AND THE
+   ENUMERATION'S OWN STATE SENTENCE AT (vi) ABOVE IS READ THROUGH THIS CELL AND NOT THROUGH ITS BYTES, WHICH
+   STAND UNMOVED: that sentence counts (v)'s four and (vii), and this cell stands beside them as the
+   enumeration's next sub-item, owner-named and carrying its own positive revisit condition, so the count of
+   bare `OWED` cells that sentence declares empty stays empty and no figure of the enumeration is reprinted
+   here.** **NO CLAUSE OF THIS DIRECTORY MAY BE READ AS SETTLING IT.**
 
 ### §0.2 The design-default rows this contract carries, each reversible with its alternative priced
 
