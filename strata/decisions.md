@@ -4368,3 +4368,35 @@ part is citable and `U-STOREROOM-CORPUS-CITATION-INTEGRITY` stays UNSTARTED** ·
 **TERMS: the routes offered (`3`), the route taken (`1` = the reading of `D-85` items 1+3), the scope narrowed (`1` clause of
 `D-85`), the cells this entry authorises (`1`), the documents this entry opens beyond that cell (`0`), the subjects (`1`), the
 rulings minted (`1` = this one), the measurements claimed here (`0`).**
+
+---
+
+### `D-87` — **the five corpus-citation answers, all five taken at their recommended default**
+
+**DATE:** 2026-10-30. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering the five questions
+`docs/specs/storeroom-corpus-citation-integrity-proposal-review.md §7` put once, with the word **"Take recommended"** —
+i.e. he ruled the DEFAULT of each question, and this row records those defaults as the ruling so no later pass reads
+any of them as a pass's own assumption. **STATUS: `ACTIVE`.**
+
+**WHAT IT PINS.** **(1) NO SCOPE INSIDE THE NINE KEPT CONTRACTS.** No admission is granted for edits there — not in a
+`D-86`-shaped row and not in a unit's own contract — so `U-STOREROOM-CORPUS-CITATION-INTEGRITY` writes nothing, files
+its census and its dossier, and **stays `UNSTARTED`**; the census (`§2`, `968` dangling-target lines) and the dossier
+(`docs/specs/storeroom-corpus-citation-integrity-adoption-dossier.md`) are the whole of its durable output.
+**(2) THE SHIPPED FACE IS OUT.** The docs-only wall stands, `bindings/js/index.d.ts` is outside it, and neither of its
+two dead cites is this unit's — the shipped face's remedy is `D-85`'s own (state the rule in the reader's own words,
+cite no archived path) and reaching for it needs its own unit. **(3) A NON-`CLOSED` RE-DERIVATION HALTS THE PASS.**
+The first predicate that does not re-derive `CLOSED` stops the pass, is printed as a **dated divergence beside** the
+standing token, and is escalated — never absorbed into narration, never printed as a new `CLOSED`, never `0 = 0` in the
+document's own voice. **(4) THE `R: docs/decisions.md · A<n>` IDENTIFIER CLASS IS OUT**, read as inside `D-85:4447-4448`'s
+carve-out for the corpus's own record form; those lines are cited and left alone, so the authority log is never folded
+into a contract. **(5) THE `archive/spec-history/**` PROVENANCE POINTERS ARE OUT**: they stand as written, because their
+bytes were moved out under a volume remedy and re-adding them would cross the line that remedy defended; their repair is
+parked with a revisit condition.
+
+**WHAT IT DOES NOT REOPEN.** `D-85`'s three answers and `D-86`'s one-cell grant stand untouched; `D-83`'s absent row
+stays the log's to file; `docs/L1/modules.json` is a live path with a stale figure and belongs to the `docs/L1` twin's
+re-measure pass; `D-35`/`D-36` stay closed and the two registration-instant reads stay `REGRESSION`s. **No ruling here
+cures a defect, moves a byte, or opens a spec gate.**
+
+**TERMS: the questions answered (`5`), the defaults ruled (`5`), the scope admissions granted (`0`), the shipped bytes
+this row moves (`0`), the units left `UNSTARTED` by it (`1`).**
