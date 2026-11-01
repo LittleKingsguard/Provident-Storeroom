@@ -4524,3 +4524,49 @@ docs-and-code question this row does not open.
 **TERMS: the sentences ruled (`3`), the instants the rule reaches (`5` named: construction · boot · `addConstraint` ·
 re-arm · the pass), the rulings superseded (`1` = the boot's list-wide refusal), the readings derived and marked
 load-bearing (`1` = *"yet"*), the behaviour bytes this row moves (`0`), the units opened or queued (`0`).**
+
+---
+
+### `D-91` — **the registration instant gets a LAWFUL write route: the timing stands, and the five-member evaluation context must be re-derived to admit a write**
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering
+`docs/specs/storeroom-constraint-registration-instant-proposal-review.md §6`'s choice between the two lawful arms, in
+these words: ***"Give the registration instant a lawful write route."*** **STATUS: `ACTIVE`.**
+
+**WHAT IT PINS.**
+
+1. **THE ARM IS THE WRITE ROUTE, AND THE TIMING DOES NOT MOVE.** The batch's evaluation stays where it is — at
+   construction, and at a boot over an existing `filePath`. **The DEFERRAL arm is not taken**: a rank-`19` refusal keeps
+   surfacing from `storeCreate` and from the boot, and no clause of this row moves it to the caller's first call.
+2. **WHAT THE ROUTE MUST BE GOOD FOR, STATED AS REQUIREMENTS AND NOT AS A SHAPE.** A body or a repair invoked at a
+   registration instant **must be able to write**, and that write **must join the registration's own commit** (`D-53`'s
+   invariant, *"Constraints/Repairs should always use the same commit"*), **must land**, and **must be creditable by the
+   same rule every repair's return is** — the op the write landed, returned as the repair's answer, so the re-run over that
+   op is the pass (`D-88` (3), `PIN-2` (v)). **A route that writes outside the registration's commit, or whose op cannot
+   be credited, does not satisfy this row.**
+3. **IT CONTRADICTS A DECLARED SHAPE AND SAYS SO RATHER THAN ABSORBING IT.** The registration instant's evaluation context
+   is declared as **five members** — `address` · `tier` · `op` · `value` · `attempt` (`kernel-surface.md §2.3` item 1;
+   operative bytes at `bindings/js/src/entry/kernel-registration.mjs:345`-`:356`) — and **a write route reachable from that
+   context is a member it does not carry.** **So the contract at gate 2 must re-derive that clause as part of this
+   mechanism, and may not present the route as a member the clause already admitted.** **This row mints no member, no name
+   and no spelling; the contract decides which context carries the route** — the body's five-member evaluation context,
+   the repair's six-member `RepairContext`, or a third carrier it declares.
+4. **THE ROUTE IS READ AT EVERY REGISTRATION INSTANT, NOT AT CONSTRUCTION ALONE** — construction, a boot over an existing
+   `filePath`, `addConstraint`, and a re-arm — because `D-90`'s skip rule and this row's reach are both global. **A pair
+   `D-90` skips is never asked, so the route is not reached for it; a pair `D-90` applies is asked, and therefore has the
+   route.**
+5. **NOTHING ELSE MOVES.** No store semantic, no verb, no status, no config key and no record shape is changed by this row;
+   the closed three-arm outcome set for a body stands; `D-53`, `D-71`, `D-72` and `D-67` are read and not amended.
+
+**WHAT IT DOES NOT SETTLE.** **(i) THE CARRIER AND THE SPELLING** — which context carries the route and what it is called,
+which is the contract's to declare (`PIN`-shaped) and not this row's. **(ii) WHETHER A BODY, AS WELL AS A REPAIR, MAY
+WRITE AT THAT INSTANT** — the row requires the route to exist at the instant and does not rule on which of the two may use
+it. **(iii) THE `value` MEMBER'S MEANING AT A REGISTRATION** — a route that writes changes what `value` could hold after
+the write; whether the context's `value` is re-read, left as the pre-write absence, or declared to be the value at the
+instant the body was asked is a contract question and is not answered here. **(iv) THE INTERACTION WITH `D-90`'s SKIP FOR
+A PAIR WHOSE PARENT IS CREATED BY ITS OWN REPAIR** — a pair skipped because its parent is absent is not asked, so nothing
+runs to create the parent; that consequence is `D-90`'s and is recorded there, not repaired here.
+
+**TERMS: the arm chosen (`1` = the write route), the arms not taken (`1` = the deferral), the clauses to be re-derived by
+the contract (`1` = the five-member evaluation context), the carriers priced and unchosen (`2` + a third the contract may
+declare), the members minted (`0`), the behaviour bytes this row moves (`0`), the units opened (`0`).**
