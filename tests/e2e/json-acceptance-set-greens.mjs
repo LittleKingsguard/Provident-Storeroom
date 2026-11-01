@@ -584,26 +584,94 @@ scenario('JAS-08', 'the answer for a file the loader refuses, arm (a): the whole
 
 // =============================================================== JAS-09 =====
 // THE ANSWER FOR A FILE THE LOADER REFUSES — ARM (b): A SUPPLIED CONSTRAINT
-// LIST.  THE CONSTRUCTION ANSWERS `ConstraintListInvalid` AND NO INSTANCE IS
-// RETURNED.
-scenario('JAS-09', 'the answer for a file the loader refuses, arm (b): a supplied constraint list answers ConstraintListInvalid and no instance is returned',
-  'seams-and-lifecycle.md §7.2 item 7 (f) (the refused-file answer, arm (b)); A143 (2); contract.md §8.1 #16; surface.md §2.1 (the `cfg` block — the FOURTH declared key `constraints`); parameter-semantics.md §2.21 (PAR-JS-21)', () => {
-    const C9 = 'seams-and-lifecycle.md §7.2 item 7 (f) (arm (b)); A143 (2); contract.md §8.1 #16 (`ConstraintListInvalid`)';
+// LIST.  RE-DERIVED 2026-11-02: THE INSTANCE IS RETURNED, THE PAIRS ARE CARRIED
+// AND SKIPPED, AND WHAT REMAINS OF `ConstraintListInvalid` IS THE MALFORMED LIST.
+//
+// **THE CLAUSE THIS SCENARIO STOOD ON IS SUPERSEDED, AND IT IS NAMED SO NO LATER PASS CHASES IT.** The scenario
+// read *"the construction answers `ConstraintListInvalid` and no instance is returned"* over a file the loader
+// refuses plus a supplied list. **`strata/decisions.md` · `D-90` (5) DELETES the boot's list-wide refusal** —
+// *"under this rule an unresolvable parent SKIPS the pair and no list-wide refusal stands for it"* — and the
+// unit's `PIN-5` (i) names the deleted bytes and (ii) names what remains: *"the malformed LIST and nothing
+// else"*. **`D-90` (1)–(3)** decide which pairs are asked (the discriminator is the pair's PARENT; a skipped pair
+// is CARRIED); **`D-96` (1)** keeps the skip threshold at ABSENCE alone; and **`PIN-4` (i)/(iii)** carry the two
+// consequences measured below. **`CONSTRAINTLISTINVALID` KEEPS ITS RANK, ITS SENTENCE AND ITS OWN TRIGGERS**
+// (`PIN-5` (iii)) — the cell below keeps that arm alive on a MALFORMED element.
+//
+// **REPORTED AND NOT FIXED HERE (a `D-85` item 2 class finding, for the pass that owns the corpus):** this
+// scenario's cited clause names `seams-and-lifecycle.md §7.2 item 7 (f)` — and `git ls-files | grep -i seams`
+// answers NOTHING: `docs/specs/storeroom-native/` holds `contract.md` alone on the tracked tree, and the only
+// copies of `seams-and-lifecycle.md` stand under the two GITIGNORED trees (`archive/pre-strata-docs-2026-10-24/`
+// at `.gitignore:180` and `.reflow-backup/` at `.gitignore:185`). **`D-85` item 2: an archived part is NOT
+// citable; where a citation must resolve, the cited section is REGENERATED.** The citation is left byte-unmoved
+// here on purpose — this pass is not authorised to edit `docs/**` — and is reported in the envelope instead.
+scenario('JAS-09', 'the answer for a file the loader refuses, arm (b): a supplied constraint list is CARRIED and SKIPPED — the instance is returned, the pair whose parent is absent is not asked, and `ConstraintListInvalid` answers the malformed element alone',
+  'seams-and-lifecycle.md §7.2 item 7 (f) (the refused-file answer, arm (b)) — **the live tree carries no such path: see the `D-85` item 2 note above**; A143 (2); strata/decisions.md `D-90` (1)–(5) and `D-96` (1); the unit\'s `PIN-4` (i)/(iii) and `PIN-5` (i)–(iii); contract.md §8.1 #16; surface.md §2.1 (the `cfg` block — the FOURTH declared key `constraints`); parameter-semantics.md §2.21 (PAR-JS-21)', () => {
+    const C9 = 'seams-and-lifecycle.md §7.2 item 7 (f) (arm (b)); A143 (2); strata/decisions.md `D-90` (5) and the unit\'s `PIN-5` (i)/(ii) (`ConstraintListInvalid` answers the MALFORMED list alone); contract.md §8.1 #16 (`ConstraintListInvalid`)';
     const REFUSED = `{"a":"x${RAW_LF}y","b":7}`;
 
     cell('JAS-09.1', C9,
-      'over a file the loader REFUSES, with a supplied constraint list that NAMES AT LEAST ONE ADDRESS, the construction answers `ConstraintListInvalid` and NO INSTANCE IS RETURNED',
+      'over a file the loader REFUSES, a supplied constraint list is CARRIED AND SKIPPED: the instance IS returned, both pairs are named by `constraints()`, the pair whose PARENT does not resolve is asked ZERO times while the CONTROL pair at `[\'x\']` — whose parent is the register that always resolves — is asked once, the register reads empty, and the file\'s bytes are UNMOVED; AND the shape arm is alive: a MALFORMED element still answers `ConstraintListInvalid` with its verbatim sentence and `log: []`',
       () => {
-        // ⟶ 2026-10-25 (`D-26`): the element is THREE-member and its function is REQUIRED — a functionless
-        // element is refused `ConstraintListInvalid` BEFORE ANY FILESYSTEM ACT (`B-1`), which would make this
-        // cell pass on the package's list check instead of on the load-side answer it has for its subject.
-        const b = boot(REFUSED, { constraints: [{ address: ['x'], id: 'c1', constraint: () => true }] });
-        if (b.r.ok) return C(false, `the construction returned an INSTANCE (register=${show(registerOf(b.store))}) where the clause answers ${'ConstraintListInvalid'}`);
-        const st = b.r.v && b.r.v.status;
-        return C(st === 'ConstraintListInvalid', `thrown=${describe(b.r.v)}`);
+        // ⟶ RE-DERIVED 2026-11-02 (`D-90` (1)–(5), `D-96` (1), the unit's `PIN-4` (i)/(iii), `PIN-5` (i)).
+        // **WHAT THE CELL USED TO ASSERT IS THE SUPERSEDED CLAUSE**: *"a supplied constraint list that NAMES AT
+        // LEAST ONE ADDRESS … answers `ConstraintListInvalid` and NO INSTANCE IS RETURNED"* — the boot's LIST-WIDE
+        // REFUSAL, which `D-90` (5) deletes and `PIN-5` (i) names as deleted rather than narrowed. **MEASURED
+        // TODAY ON THIS TREE**: the construction returns an INSTANCE with an EMPTY register, and every supplied
+        // pair's address then fails to resolve — exactly the walk `PIN-5` deleted.
+        // **THE DISCRIMINATOR IS THE PAIR'S PARENT, SO THE DRIVE SUPPLIES ONE PAIR OF EACH ARM.** `['x','deep']`
+        // has an ABSENT parent `['x']` in an empty register ⇒ **SKIPPED** (`D-90` (1), the ruling's own first
+        // example) ⇒ asked ZERO times and CARRIED (`PIN-4` (i)). `['x']` has the EMPTY REGISTER for a parent,
+        // which always resolves ⇒ **APPLIED**, *"with the absence of its own key as the state it judges"*
+        // (`D-90` (1), the ruling's own second example) ⇒ asked once. **THE SECOND IS THE CONTROL THAT MAKES THE
+        // ZERO A MEASUREMENT**: without it a dead counter and a skip would read the same.
+        const asks = [];
+        const pair = (address, id) => ({
+          address,
+          id,
+          constraint: (context) => {
+            asks.push({ id, at: context.attempt === null ? 'registration' : 'pass' });
+            return true;
+          },
+        });
+        const b = boot(REFUSED, { constraints: [pair(['x', 'deep'], 'skipped-pair'), pair(['x'], 'control-pair')] });
+        if (!b.r.ok) return C(false, `the construction THREW ${describe(b.r.v)} where the ruling RETURNS AN INSTANCE`);
+        const reg = registerOf(b.store);
+        const carried = tryCall(() => b.store.constraints().map((one) => one.id));
+        const skippedAsks = asks.filter((one) => one.id === 'skipped-pair');
+        const controlAsks = asks.filter((one) => one.id === 'control-pair');
+        const deep = tryCall(() => b.store.read(['x', 'deep']));
+        const bytes = bytesOf(b.P);
+        const unmoved = bytes !== null && bytes.equals(Buffer.from(REFUSED, 'utf8'));
+        // **AND THE SHAPE ARM, KEPT ALIVE ON ITS OWN ELEMENT** — a malformed one (its `address` is not a segment
+        // array), which `PIN-5` (ii) leaves as `ConstraintListInvalid`'s only surviving trigger here. Its
+        // sentence is asserted VERBATIM and its log's emptiness is the construction's own (`PIN-5` (iii): the
+        // status keeps its rank and its sentence).
+        const SHAPE_SENTENCE = `'a' is not a valid constraint entry in 'constraints', a constraint entry is an address and an id, and the address is a segment array`;
+        const shape = boot(REFUSED, { constraints: [{ address: 'a', id: 'c2', constraint: () => true }] });
+        const shapeStatus = shape.r.ok ? '<INSTANCE>' : (shape.r.v && shape.r.v.status);
+        const shapeMessage = shape.r.ok ? '<no refusal>' : String(shape.r.v && shape.r.v.message);
+        const shapeLog = shape.r.ok ? null : (shape.r.v && shape.r.v.log);
+        const shapeOk = shape.r.ok === false
+          && shapeStatus === 'ConstraintListInvalid'
+          && shapeMessage === SHAPE_SENTENCE
+          && Array.isArray(shapeLog) && shapeLog.length === 0;
+        const ok = reg !== null && same(reg, {})
+          && carried.ok && Array.isArray(carried.v)
+          && carried.v.includes('skipped-pair') && carried.v.includes('control-pair')
+          && skippedAsks.length === 0
+          && controlAsks.length === 1 && controlAsks[0].at === 'registration'
+          && deep.ok === false && deep.v && deep.v.status === 'AddressNotFound'
+          && unmoved
+          && shapeOk;
+        return C(ok,
+          `construction=INSTANCE · register=${show(reg)} · constraints()=${show(carried.ok ? carried.v : describe(carried.v))} · `
+          + `skipped-pair asked ${skippedAsks.length} time(s) · control-pair asked ${JSON.stringify(controlAsks)} · `
+          + `read(x.deep)=${deep.ok ? JSON.stringify(deep.v) : `threw ${describe(deep.v)}`} · `
+          + `bytes unmoved=${unmoved} (${imgStr(bytes)}) · `
+          + `SHAPE ARM: threw=${shapeStatus} message=${JSON.stringify(shapeMessage)} log=${show(shapeLog)} verbatim=${shapeMessage === SHAPE_SENTENCE}`);
       });
     cell('JAS-09.2', C9,
-      'CONTROL: over the SAME refused file with an EMPTY constraint list the instance IS RETURNED (an empty list has nothing to fail, so the answer stays in arm (a))',
+      'CONTROL: over the SAME refused file with an EMPTY constraint list the instance IS RETURNED (an empty list has nothing to skip and nothing to refuse, so the answer stays in arm (a))',
       () => {
         const b = boot(REFUSED, { constraints: [] });
         if (!b.r.ok) return C(false, `the construction threw: ${describe(b.r.v)}`);
@@ -611,7 +679,7 @@ scenario('JAS-09', 'the answer for a file the loader refuses, arm (b): a supplie
         return C(reg !== null && same(reg, {}), `construction=INSTANCE register=${show(reg)}`);
       });
     cell('JAS-09.3', `${C9}; contract.md §7.2 item 1 ("THE LOADED STATE 'SATISFIES' THE SUPPLIED LIST IFF EVERY SUPPLIED PAIR'S OWN 'address' RESOLVES IN THE LOADED STATE")`,
-      'CONTROL: the SAME supplied list over a PARSEABLE image that DOES carry the named address yields an INSTANCE — so the pair is a well-formed entry and the refusal at JAS-09.1 is the LOAD-SIDE validation over the empty register, not a refusal of the list\'s own shape',
+      'CONTROL: the SAME supplied list over a PARSEABLE image that DOES carry the named address yields an INSTANCE — so the pair is a well-formed entry, its asking at `JAS-09.1`\'s control is the REGISTER-PARENT arm of `D-90` (1) and not a refusal of the list\'s own shape, and the loaded state it stands over is the state it judges',
       () => {
         const b = boot('{"x":1}', { constraints: [{ address: ['x'], id: 'c1', constraint: () => true }] });
         if (!b.r.ok) return C(false, `the construction threw: ${describe(b.r.v)}`);

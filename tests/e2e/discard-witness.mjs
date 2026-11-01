@@ -1597,16 +1597,30 @@ console.log('\n── W10 · `D-55` — the five settled rows, measured ──�
     `asks ${JSON.stringify(bAsks)} · delete ${bReceipt.ok ? 'ANSWERED' : statusOf(bReceipt.caught)} · `
       + `delivered ${JSON.stringify(bDelivered)}`);
 
-  // ── (X6c) `DW-10.16` — RE-DERIVED 2026-10-29 (`D-66`): THE DESCENDANT THE DELETE REMOVED IS ASKED ──
-  // **`D-56`'s SENTENCE WAS ONE-DIRECTIONAL AND THIS CELL MEASURED THE REVERSE AS *"NOT ASKED"*.** The architect
-  // has since ruled it, verbatim (`strata/decisions.md` · `D-66`): *"A pair at a descendant should only be asked if
-  // the change also affects that descendant"* — **and the criterion is TOUCHED, not descendant.** *"For a DELETE,
-  // the WHOLE SUBTREE at the act's address, because the act removes all of it — a descendant of a deleted node is
-  // ABSENT after the act and was not before, which is a change to what a read there returns."* **So the pair at
-  // `['window','tabs','settings']` IS asked for a delete at its parent, and the cell keeps its id and reads the
-  // newer ruling's measurement**: the pass's ask is printed beside the address it was asked at and the value the
-  // pass handed it, and the store's own read of the removed address after the act is printed beside them.
-  // **THE CELL'S SECOND READING IS UNMOVED AND STILL THE POINT**: the delete ANSWERS, because this pair passes.
+  // ── (X6c) `DW-10.16` — RE-DERIVED 2026-11-02 (`D-90` (1)/(4), `D-96` (1), `PIN-4` (iii)): THE DESCENDANT THE
+  //    DELETE REMOVED IS **SKIPPED, NOT ASKED** ──
+  // **THE CLAUSE THAT STOOD HERE IS SUPERSEDED, AND IT IS NAMED SO NO LATER PASS CHASES IT.** This cell read
+  // `D-66`'s write-side reach (`D-56`'s touched arm) as if it were the pass's ASKING rule — *"a delete at
+  // `['window','tabs']` produces TWO asks for the pair at `['window','tabs','settings']` — its registration's and
+  // the pass's"* — **and the pass's ask is GONE.**
+  // **THE RULINGS.** `strata/decisions.md` · **`D-90` (1)**: *the discriminator is the address's PARENT, not the
+  // address* — a pair is APPLICABLE exactly when its parent RESOLVES and SKIPPED exactly when it does not.
+  // **`D-90` (4)**: *the rule is global*, and the pass over a `write`, a `delete` or a `rollback` reads it.
+  // **`D-96` (1)**: *the skip threshold is ABSENCE and only absence* (a LEAF parent applies its pair) — this arm
+  // is the ABSENT one, which `D-96` leaves exactly as `D-90` records it. **And the unit's `PIN-4` (iii)**, this
+  // pass's own consequence, verbatim: *"a `delete` of `['window']` reaches the pair's home entry — the delete's own
+  // subtree contains it — so the pair is IN the act's `triggered` set and, under this pin, is skipped there rather
+  // than asked; the delete therefore SUCCEEDS on a state the pair would have refused."*
+  // **SO THE REACH IS UNMOVED AND THE ASKING IS NOT**: the pair is still named in the act's own `triggered` (a
+  // reading taken below), and the pass asks it ZERO times — its registration ask stands as the only reading.
+  // **THE ZERO IS A MEASUREMENT AND NOT A DEAD COUNTER: A CONTROL PAIR AT A WALKABLE ADDRESS IS ASKED BY THE SAME
+  // DELETE.** A pair at `['window']` — its parent is the EMPTY register, which always resolves (`D-90` (1)'s own
+  // second example: *"a constraint that can be walked to but doesn't exist … should be applied"*) — is carried
+  // beside it, and the same act's pass ask is read off it.
+  // **WHAT WOULD MAKE THIS CELL RED NOW, stated so the red side survives the re-derivation**: a LOST SKIP (the
+  // removed pair asked by the pass — its body REFUSES there, so the delete would answer `ConstraintPassRefused`
+  // instead of succeeding); a pair NOT CARRIED after the delete; a control that is NOT asked (the instrument is
+  // dead and the zero proves nothing); or a MOVED IMAGE (the removed address still readable afterwards).
   const pStore = make();
   pStore.write(['window'], 'mem', tabsSeed());
   const pAsks = [];
@@ -1614,36 +1628,66 @@ console.log('\n── W10 · `D-55` — the five settled rows, measured ──�
   const pAskAddresses = [];
   const pPair = attempt(() => pStore.addConstraint({ address: ['window', 'tabs', 'settings'], id: 'descendant-pair' },
     (context) => {
-      pAsks.push(context.attempt === null ? 'registration' : 'pass');
+      const atRegistration = context.attempt === null;
+      pAsks.push(atRegistration ? 'registration' : 'pass');
       pAskAddresses.push(context.address.slice());
       pValues.push(context.value);
+      // **THE BODY REFUSES AT THE PASS AND PASSES AT ITS REGISTRATION** — so the cell's zero is the ruling's own,
+      // and the delete's answer carries the second proof: a pass ask would refuse the delete (`PIN-4` (iii)'s *"a
+      // state the pair would have refused"*).
+      return atRegistration ? true : { message: 'this pair must not be asked: the act removed its parent' };
+    }));
+  // THE CONTROL: the same delete, a pair whose parent resolves (the register itself, `D-90` (1)).
+  const pControlAsks = [];
+  const pControlAddresses = [];
+  const pControl = attempt(() => pStore.addConstraint({ address: ['window'], id: 'control-at-window' },
+    (context) => {
+      pControlAsks.push(context.attempt === null ? 'registration' : 'pass');
+      pControlAddresses.push(context.address.slice());
       return true;
     }));
   const pHandle = pStore.listen('tabs-listener-c', [['window', 'tabs']]);
   pStore.register(pHandle, () => {});
   const pReceipt = attempt(() => pStore.delete(['window', 'tabs']));
   const pAfter = attempt(() => pStore.read(['window', 'tabs', 'settings']));
+  const pTriggered = pReceipt.ok && Array.isArray(pReceipt.value.triggered)
+    ? pReceipt.value.triggered.map((one) => one.handle)
+    : [];
+  const pCarried = attempt(() => pStore.constraints().map((one) => one.id));
   P('X6c · the DESCENDANT pair\'s asks for a delete at its ANCESTOR (`[\'window\',\'tabs\']`)', pAsks);
   P('X6c · the ADDRESS each ask was made at', pAskAddresses);
-  P('X6c · the value the pass handed it (a delete\'s `after` is absence)', pValues.map((v) => (v === undefined ? '<absent>' : v)));
+  P('X6c · the value its REGISTRATION handed it (the state it stood at; it is asked at no other instant)', pValues.map((v) => (v === undefined ? '<absent>' : v)));
+  P('X6c · THE CONTROL\'S asks — a pair at `[\'window\']`, whose parent is the register that always resolves', pControlAsks);
+  P('X6c · THE CONTROL\'S ask addresses', pControlAddresses);
+  P('X6c · the delete\'s `triggered` (the act\'s REACH — the skipped pair is named here and asked nowhere)', pTriggered);
   P('X6c · WHAT ITS VALUE BECOMES — the store\'s own read of its address after the delete', pAfter.ok ? pAfter.value : `<refused: ${statusOf(pAfter.caught)}>`);
   P('X6c · the delete\'s op: what the act removed, read off the store\'s own journal op', pReceipt.ok
     ? { kind: pReceipt.value.op.kind, address: pReceipt.value.op.address, beforePresent: pReceipt.value.op.before.present,
       beforeValue: pReceipt.value.op.before.present ? pReceipt.value.op.before.value : '<absent>',
       afterPresent: pReceipt.value.op.after.present }
     : '<no receipt>');
-  A('DW-10.16', '`strata/decisions.md` · `D-66` (the criterion is TOUCHED: *"for a DELETE, the WHOLE SUBTREE at the act\'s address, because the act removes all of it"*) — read beside `D-56` (a pair at an ANCESTOR is asked, unmoved) and `D-50` (a body that cares about a location reads it)',
-    'THE DESCENDANT THE DELETE REMOVED IS ASKED: a delete at `[\'window\',\'tabs\']` produces TWO asks for the pair at `[\'window\',\'tabs\',\'settings\']` — its registration\'s and the pass\'s — the pass\'s ask naming the ACT\'s address `[\'window\',\'tabs\']` and carrying NO value, because a delete\'s after-state is absence; and the delete ANSWERS, the removed address now reading `AddressNotFound`',
-    pPair.ok === true && pAsks.length === 2 && pAsks[1] === 'pass'
-      && keyOfAddr(pAskAddresses[1]) === keyOfAddr(['window', 'tabs'])
-      && pValues[1] === undefined
+  P('X6c · THE PAIRS STILL CARRIED after the delete (`constraints()` ids)', pCarried.ok ? pCarried.value : `<refused: ${statusOf(pCarried.caught)}>`);
+  A('DW-10.16', '`strata/decisions.md` · `D-90` (1) (the discriminator is the address\'s PARENT) and (4) (the rule is GLOBAL — the pass over a `delete` reads it); `D-96` (1) (the skip is ABSENCE alone, and this is the absent arm); the unit\'s `PIN-4` (iii) (a pair whose parent the act removed is SKIPPED at the pass and stays CARRIED, and the delete therefore succeeds on a state the pair would have refused) — **the ask this cell used to assert was the SUPERSEDED clause**',
+    'THE DESCENDANT THE DELETE REMOVED IS SKIPPED, NOT ASKED: a delete at `[\'window\',\'tabs\']` asks the pair at `[\'window\',\'tabs\',\'settings\']` ZERO times in its pass — its REGISTRATION ask stands as the only reading — while a CONTROL pair at `[\'window\']`, whose parent is the register that always resolves, IS asked by the SAME delete (so the zero is a measurement and not a dead counter); the removed pair is still named in the act\'s own `triggered` (the reach is unmoved) and stays CARRIED, and the delete ANSWERS, the removed address now reading `AddressNotFound`',
+    pPair.ok === true && pControl.ok === true
+      && pAsks.length === 1 && pAsks[0] === 'registration'
+      && pAskAddresses.length === 1
+      && keyOfAddr(pAskAddresses[0]) === keyOfAddr(['window', 'tabs', 'settings'])
+      && pValues[0] !== undefined && pValues[0].active === false
+      && pControlAsks.length === 2 && pControlAsks[1] === 'pass'
+      && keyOfAddr(pControlAddresses[1]) === keyOfAddr(['window', 'tabs'])
+      && pTriggered.includes('descendant-pair')
       && pReceipt.ok === true
       && pReceipt.value.op.kind === 'delete'
       && keyOfAddr(pReceipt.value.op.address) === keyOfAddr(['window', 'tabs'])
       && pReceipt.value.op.before.present === true
-      && pAfter.ok === false,
+      && pAfter.ok === false
+      && pCarried.ok === true
+      && pCarried.value.includes('descendant-pair') && pCarried.value.includes('control-at-window'),
     `asks ${JSON.stringify(pAsks)} · ask addresses ${JSON.stringify(pAskAddresses)} · `
       + `values ${JSON.stringify(pValues.map((v) => (v === undefined ? '<absent>' : v)))} · `
+      + `control asks ${JSON.stringify(pControlAsks)} at ${JSON.stringify(pControlAddresses)} · `
+      + `triggered ${JSON.stringify(pTriggered)} · carried ${JSON.stringify(pCarried.ok ? pCarried.value : '<refused>')} · `
       + `delete ${pReceipt.ok ? 'ANSWERED' : statusOf(pReceipt.caught)} · after `
       + `${pAfter.ok ? JSON.stringify(pAfter.value) : statusOf(pAfter.caught)}`);
 
@@ -2310,40 +2354,77 @@ console.log('\n── W13 · `D-66` · A PAIR AT A DESCENDANT IS ASKED ONLY WHEN
     `pass asks ${JSON.stringify(sPassAsks)} · untouched asked ${sPassAsks.includes('untouched-descendant')} · `
       + `mid-pass ${sMidPassRegistered}/${sPassAsks.includes(sMidPassId)} · next pass ${JSON.stringify(sSecondAsks)}`);
 
-  // ── DW-13.4 · A DELETE'S SUBTREE, AT THE RULING'S OWN ADDRESSES: `['a','b']` ASKS `['a','b','c']` ──
-  // **`D-66`: *"for a DELETE, the WHOLE SUBTREE at the act's address, because the act removes all of it"*.** The
-  // same two addresses the ruling's write example uses, driven with the OTHER verb: a delete at `['a','b']` removes
-  // `['a','b','c']` (and whatever stands under it), so the pair there IS asked — and the pair at `['a','b','e']`,
-  // which stood nowhere before the act and stands nowhere after it, is NOT.
+  // ── DW-13.4 · RE-DERIVED 2026-11-02 (`D-90` (1)/(4), `D-96` (1), `PIN-4` (iii)): A DELETE'S SUBTREE IS IN THE
+  //    REACH AND THE REMOVED DESCENDANT IS **SKIPPED** — the same arm at `['a','b']` / `['a','b','c']` ──
+  // **THE CLAUSE THAT STOOD HERE IS SUPERSEDED**: *"a delete at `['a','b']` asks `['a']`, `['a','b']` and
+  // `['a','b','c']` — the descendant is GONE, which is a change"*. **`D-66` decided the REACH** (*"for a DELETE,
+  // the WHOLE SUBTREE at the act's address"*), **and it never decided the ASKING**: `strata/decisions.md` ·
+  // **`D-90` (1)** rules the discriminator to be the pair's PARENT and **`D-90` (4)** makes that rule global —
+  // *"the pass over a `write`, a `delete` or a `rollback`"* — while **`D-96` (1)** keeps the skip threshold at
+  // ABSENCE alone (a LEAF parent applies its pair; an ABSENT one skips it). **`PIN-4` (iii)**, this pass's own
+  // consequence: the removed descendant is *"IN the act's `triggered` set and … is skipped there rather than
+  // asked; the delete therefore SUCCEEDS on a state the pair would have refused."*
+  // **THE CONTROLS ARE THE TWO PAIRS WHOSE PARENTS STAND, AND THE SAME DELETE ASKS THEM**: `['a']` (parent = the
+  // register, always a container) and `['a','b']` (parent `['a']` stands as a container) — so the zero at
+  // `['a','b','c']` is a measurement and not a dead counter. **`['a','b','e']` is the untouched arm from before:
+  // it stood nowhere, so the reach never names it, which is a different fact from the skip and is kept apart.**
+  // **WHAT WOULD MAKE THIS CELL RED NOW**: a LOST SKIP (the removed descendant asked — its body REFUSES at the
+  // pass, so the delete would answer `ConstraintPassRefused` instead of ANSWERING); a pair NOT CARRIED; a
+  // control that is not asked; or a read of the removed descendant that still resolves.
   const tStore = make();
   tStore.write(['a'], 'mem', {});
   tStore.write(['a', 'b'], 'mem', { c: { x: 1 }, d: 'bar' });
   const tAsks = [];
-  const tBody = (id) => (context) => {
-    if (context.attempt !== null) tAsks.push(id);
-    return true;
+  const tBody = (id, refusesAtPass) => (context) => {
+    const atRegistration = context.attempt === null;
+    if (atRegistration === false) tAsks.push(id);
+    // THE REMOVED DESCENDANT'S BODY WOULD REFUSE IF IT WERE EVER ASKED — the red side, carried by the drive.
+    return atRegistration || refusesAtPass === false
+      ? true
+      : { message: 'this pair must not be asked: the act removed its parent' };
   };
   const tSeeded = [
-    [['a'], 'del-a'],
-    [['a', 'b'], 'del-a.b'],
-    [['a', 'b', 'c'], 'del-a.b.c'],
-    [['a', 'b', 'e'], 'del-a.b.e'],
-  ].map(([address, id]) => ({ address, id, registered: attempt(() => tStore.addConstraint({ address, id }, tBody(id))) }));
+    [['a'], 'del-a', false],
+    [['a', 'b'], 'del-a.b', false],
+    [['a', 'b', 'c'], 'del-a.b.c', true],
+    [['a', 'b', 'e'], 'del-a.b.e', false],
+  ].map(([address, id, refusesAtPass]) => ({ address, id, registered: attempt(() => tStore.addConstraint({ address, id }, tBody(id, refusesAtPass))) }));
   const tReceipt = attempt(() => tStore.delete(['a', 'b']));
+  const tAfter = attempt(() => tStore.read(['a', 'b', 'c']));
+  const tTriggered = tReceipt.ok && Array.isArray(tReceipt.value.triggered)
+    ? tReceipt.value.triggered.map((one) => one.handle)
+    : [];
+  const tCarried = attempt(() => tStore.constraints().map((one) => one.id));
   for (const { address, id } of tSeeded) {
     P(`X7 · delete ${JSON.stringify(address)}`, tAsks.includes(id) ? 'ASKED' : 'NOT ASKED');
   }
+  P('X7 · the pass\'s asks, ONCE, in order — the two controls whose parents STAND, and nothing else', tAsks);
+  P('X7 · the delete\'s `triggered` (the act\'s REACH — the skipped descendant is named here)', tTriggered);
+  P('X7 · the pairs still CARRIED after the delete (`constraints()` ids)', tCarried.ok ? tCarried.value : `<refused: ${statusOf(tCarried.caught)}>`);
   P('X7 · the delete\'s op — what it removed (the subtree it touched)', tReceipt.ok
     ? { kind: tReceipt.value.op.kind, address: tReceipt.value.op.address,
       removed: tReceipt.value.op.before.present ? tReceipt.value.op.before.value : '<absent>' }
     : '<no receipt>');
-  A('DW-13.4', '`strata/decisions.md` · `D-66` (*"for a DELETE, the WHOLE SUBTREE at the act\'s address"*) — read with `D-56` (the ancestors, unmoved) and `D-66`\'s sentence *"a descendant of a deleted node is ABSENT after and not before"*',
-    'A DELETE TOUCHES THE WHOLE SUBTREE IT REMOVED: a delete at `[\'a\',\'b\']` asks `[\'a\']`, `[\'a\',\'b\']` and `[\'a\',\'b\',\'c\']` — the descendant is GONE, which is a change — and does NOT ask `[\'a\',\'b\',\'e\']`, which stood nowhere before the act',
+  A('DW-13.4', '`strata/decisions.md` · `D-90` (1) (the discriminator is the address\'s PARENT) and (4) (the rule is GLOBAL — the pass over a `delete` reads it); `D-96` (1) (the skip is ABSENCE alone); the unit\'s `PIN-4` (iii) (a pair whose parent the act removed is SKIPPED at the pass and stays CARRIED, and the delete succeeds on a state the pair would have refused) — **the ask of `[\'a\',\'b\',\'c\']` this cell used to assert was the SUPERSEDED clause**',
+    'A DELETE\'S SUBTREE IS IN THE REACH AND THE REMOVED DESCENDANT IS NOT ASKED: a delete at `[\'a\',\'b\']` ASKS `[\'a\']` and `[\'a\',\'b\']` — the two CONTROLS, whose parents stand — and asks `[\'a\',\'b\',\'c\']` ZERO times, because the act removed ITS PARENT (`[\'a\',\'b\']`) and the pair is skipped there rather than asked; `[\'a\',\'b\',\'c\']` is still named in the act\'s own `triggered`, both skipped pairs stay CARRIED, `[\'a\',\'b\',\'e\']` — which stood nowhere — is named by neither, and the delete ANSWERS with the descendant now reading `AddressNotFound`',
     tSeeded.every((one) => one.registered.ok === true)
       && tReceipt.ok === true
-      && keyOfAddr(tAsks) === keyOfAddr(['del-a', 'del-a.b', 'del-a.b.c'])
-      && tAsks.includes('del-a.b.e') === false,
-    `asks ${JSON.stringify(tAsks)} · delete ${tReceipt.ok ? 'ANSWERED' : statusOf(tReceipt.caught)}`);
+      && tReceipt.value.op.kind === 'delete'
+      && keyOfAddr(tReceipt.value.op.address) === keyOfAddr(['a', 'b'])
+      && tReceipt.value.op.before.present === true
+      && keyOfAddr(tAsks) === keyOfAddr(['del-a', 'del-a.b'])
+      && tAsks.includes('del-a') === true && tAsks.includes('del-a.b') === true
+      && tAsks.includes('del-a.b.c') === false
+      && tAsks.includes('del-a.b.e') === false
+      && tTriggered.includes('del-a.b.c')
+      && tTriggered.includes('del-a.b.e') === false
+      && tAfter.ok === false
+      && tCarried.ok === true
+      && ['del-a', 'del-a.b', 'del-a.b.c', 'del-a.b.e'].every((id) => tCarried.value.includes(id)),
+    `asks ${JSON.stringify(tAsks)} · triggered ${JSON.stringify(tTriggered)} · `
+      + `carried ${JSON.stringify(tCarried.ok ? tCarried.value : '<refused>')} · `
+      + `delete ${tReceipt.ok ? 'ANSWERED' : statusOf(tReceipt.caught)} · after `
+      + `${tAfter.ok ? JSON.stringify(tAfter.value) : statusOf(tAfter.caught)}`);
 
   // ── DW-13.5 · THE RESIDUAL'S OWN ARM: THE PAIR AT THE PATH THE WRITE DROPPED IS ASKED ────────────
   // **THE DEFECT THIS PASS MEASURED, DRIVEN AGAIN WITH THE UNION IN PLACE.** `D-66`'s write arm read *"exactly the
