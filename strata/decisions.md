@@ -4400,3 +4400,36 @@ cures a defect, moves a byte, or opens a spec gate.**
 
 **TERMS: the questions answered (`5`), the defaults ruled (`5`), the scope admissions granted (`0`), the shipped bytes
 this row moves (`0`), the units left `UNSTARTED` by it (`1`).**
+
+---
+
+### `D-88` — **the repair failure path is a teaching unit; the refusal sentence's text is a recorded defect only**
+
+**DATE:** 2026-11-01. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering the three questions
+`docs/specs/storeroom-repair-failure-path-proposal-review.md §6` put on the downstream request `ST-F2` — the word
+**"Proceed"** taken as approval of the fraction and of each question's recorded default. **STATUS: `ACTIVE`.**
+
+**WHAT IT PINS.** **(1) THE FRACTION IS APPROVED AS MINTED** — `U-STOREROOM-REPAIR-FAILURE-PATH`, DOCS-ONLY: **one dated
+clause in `docs/guides/package-use.md §7.6`** (after `:1033`, before `:1035`) and **one sentence inside `§8.0a`'s
+existing `:1376`–`:1379` paragraph**, plus the unit's own contract directory. It states what no shipped sentence says:
+the crossed refusal, the sentence a refusing attempt carries, that the crossed log is the COMMIT's list and may hold
+entries saying a pair passed, **which entry is the verdict**, and what the store holds after a repair's answer is not
+credited. **No code byte, no type, no test, and no second example.** **(2) THE REFUSAL SENTENCE'S ADDRESS IS A RECORDED
+DEFECT AND NOT A UNIT.** *"the repair `<id>` produced no op at `<address>`"* names the **caller's** address, and on that
+arm the kernel holds neither the repair's op nor its address — so the row is filed in the live open-items ledger
+(`docs/L1/open-items-2026-10-25.md §6` row `5`) as **OPEN, recorded, not repaired**, and **no successor unit is
+queued**; a change to that text would be a behaviour byte needing its own ruling and its own version, and naming the
+repair's address at that instant would need a store reach `D-67` forbids. **(3) THE STORE-STATE FACT MAY BE STATED AS A
+CONSEQUENCE.** The unit may say, in its own words, that **an uncredited write's address is not restored and therefore
+stands**, as the declared consequence of the credit rule — **read THROUGH the guide's `§7.8:1091`** (a refusal undoes
+every edit the attempt made, the repair's write included) and `§5.4`, **neither of which is edited**; the clause carries
+a read-through mark, never a contradiction.
+
+**WHAT IT DOES NOT REOPEN.** The prior unit's clause in `§7.6` is not re-spelled — the new clause POINTS at it and at
+`index.d.ts`'s two result arms, and mints no second enumeration of the return, the crossed form, the `LogEntry` members,
+the `KC` tokens or the entry sequence. The sibling's `PIN-3` ban on naming the outside return forms stands and needs no
+amendment: the failure path is described by its refusal and its store state, never by spelling what a repair returned.
+`D-85`, `D-86` and `D-87` stand. **No ruling here moves a code byte, and none is a fix.**
+
+**TERMS: the questions answered (`3`), the unit approved (`1`), the successor units queued (`0`), the defect rows filed
+(`1`), the behaviour bytes this row moves (`0`), the shipped sites granted (`2`).**

@@ -361,3 +361,23 @@ the seven legs cannot have moved and did not.
 | §2 the five `OWED`s | **CLOSED — four ANSWERED** (the escape arm; symbols; the reload message; the receipt's array identity) and **one ANSWERED WITH A NAMED RESIDUE** (`removeConstraint`'s form = `TypeError`, `status` absent; the `log` member on it is a declaration question with an owner) |
 | §3 the four disagreements | **CLOSED — three (the documents moved) · OPEN — one (`KC-4`/`KC-8`, the code)** |
 | §4 the stale records | **CLOSED for `:1233` (the exact comment edit printed; this pass has no source scope) and CLOSED for `brief.md`'s measurement — but `brief.md` is OUTSIDE this pass's write scope and needs its owner's hand: 10 line-count figures, the `tests/` total and the `e2e/` breakdown** |
+
+---
+
+## §6 · 2026-11-01 — one item a downstream consumer filed, RECORDED and NOT REPAIRED
+
+**A second pass appended this section; it is not part of the 2026-10-25 record's own account, and it repairs nothing.**
+The item was filed by the Provident-Electron app against the installed `provident-storeroom@1.6.1` and reached this
+repository as `ST-F2`; its gate-1 record is `docs/specs/storeroom-repair-failure-path-proposal-review.md`, whose `§1`
+part 3 carries the measurement.
+
+| # | clause | what the clause says | what the build does | which side moved | state |
+|---|---|---|---|---|---|
+| **5** | the `no op` refusal's sentence — `bindings/js/src/entry/kernel-attempt.mjs:883` | *"the repair `<id>` produced no op at `<address>`"* | `<address>` is `addressSpelling(attempt.address)` — the **caller's** address, in an arm where the repair may have written legally at a different one; and on that arm the kernel holds **no repair op and no repair address at all**, because the return is the op's one carrier (decision `A110`, `strata/decisions.md:2612-2619`) | **THE CODE** — ⟶ CORRECTED BY THE SUPERVISOR, 2026-11-01: the sentence never moved; the CODE gained the ability for a repair to write inside the commit (`docs/guides/package-use.md:1020`–`:1021`, `:1028`, and its own landed clause), so an arm that once always held no op can now hold one the sentence denies. **`NEITHER` was wrong by this cell's own question** (`docs/specs/storeroom-repair-failure-path/sites.md §3` carries the re-derived answer) | **OPEN — recorded, not repaired. No unit is queued**: the architect ruled the text a **defect row only** (`D-88`) |
+
+**WHAT WOULD SETTLE IT, AND WHY IT IS NOT SETTLED HERE.** Two lawful outcomes and no third: either the sentence's
+**text** changes — a **behaviour byte** in a shipped refusal message, needing its own ruling and its own version — or
+the text **stands** and the guide teaches what the refusal means and what the store holds. **The second is what
+`U-STOREROOM-REPAIR-FAILURE-PATH` does**, and it is why this row is a record and not a cell of that unit: this pass
+writes no code byte, and changing this sentence's address would require a store reach the kernel's own decision
+forbids (`D-67`).
