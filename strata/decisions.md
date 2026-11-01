@@ -4694,3 +4694,39 @@ selection.
 properties pinned (`2` = unconditional · the rule read inside it), the refusals withdrawn (`1` = the arm where a skipped
 pair would have refused), the behaviour bytes this row moves (`0`), the hazards recorded (`1` = an inert pair), the units
 opened (`0`).**
+
+---
+
+### `D-95` — **`Q2` is answered at its DEFAULT: a registration record's `value` is the value at the instant the record was built, and a write does not refresh it**
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, on
+`docs/specs/storeroom-constraint-registration-instant/contract.md §8`'s `Q2` — *"what does `value` mean at a registration
+once a write is possible there?"* — in these words: ***"Take default on Q2 and proceed."*** **The default was printed at
+`§8` and this row records it as the ruling rather than as a pass's assumption** (the same form `D-87` took when the
+architect answered five questions with *"take recommended"*). **STATUS: `ACTIVE`.**
+
+**WHAT IT PINS.**
+
+1. **THE READING IS TAKEN: the record's `value` is the value read at the instant the record was BUILT — read once, before
+   the invocation, and NOT re-read after any write the registration's route lands.** The operative bytes stand as they
+   are (`kernel-registration.mjs:306`, `:352`, `:393`, whose read is `readCurrent` at `:360`-`:366`): **no code byte moves
+   for this row**, and the route's write does not move a member of a record already handed out.
+2. **THE TWO READINGS NOT TAKEN, NAMED SO THEY ARE NOT RE-PROPOSED SILENTLY.** **(a) A RE-READ AFTER THE WRITE** — refused
+   because it would make a record's member a moving value, would make two reads of one record disagree, and would put a
+   live view behind a member the corpus declares as a datum. **(b) THE NARROWER *"the pre-write absence, declared as
+   such"*** — **not refused but NOT THIS ROW'S**: it is reading (1) plus one sentence, and the guide's `§7.2` correction may
+   carry that sentence later without moving a code byte.
+3. **WHAT IT KEEPS INTACT.** `D-50`'s declared answer — *"a constraint that needs another location READS IT"* — is
+   untouched and is now the whole of how a body or a repair learns a state its own record does not carry: **the record is a
+   datum, not a window.**
+4. **AND THE CONSEQUENCE, STATED WHERE THE UNIT WILL MEET IT:** on the arm where a repair lands and the re-run then judges
+   the pair (`D-94`), **the re-run's context is where the pair meets the repair's state** — its `value` is
+   `produced.after.value` (`kernel-registration.mjs:597`-`:603`) — **and the in-flight record's `value` stays the value the
+   pair was asked against.** A reader who expects the in-flight record to show the repair's result has read the record as a
+   window.
+
+**WHAT IT DOES NOT SETTLE.** It settles `§8`'s `Q2` **and nothing else**; `Q1`, `Q3` and `Q4` stand as `D-92`, `D-94` and
+`D-93` recorded them, and no other contract question is opened or re-opened by this row.
+
+**TERMS: the questions answered (`1` = `Q2`, at its default), the readings not taken (`1` refused, `1` not this row's),
+the behaviour bytes this row moves (`0`), the guide sentences owed (`0`, one permitted later), the units opened (`0`).**
