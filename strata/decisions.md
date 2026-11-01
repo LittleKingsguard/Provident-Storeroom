@@ -4730,3 +4730,52 @@ architect answered five questions with *"take recommended"*). **STATUS: `ACTIVE`
 
 **TERMS: the questions answered (`1` = `Q2`, at its default), the readings not taken (`1` refused, `1` not this row's),
 the behaviour bytes this row moves (`0`), the guide sentences owed (`0`, one permitted later), the units opened (`0`).**
+
+---
+
+### `D-96` — **the skip is ABSENCE and not "not a container": a LEAF parent APPLIES its pair, because the pair's presence implies the node must be a container**
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, rejecting two of the supervisor's six
+enumerated behaviour changes and giving the ground for both — on the leaf-parent arm, verbatim: ***"Reject this, the
+constraint being there implicitly expects 'x' to be a container"***, and on the registration re-run's arm, ***"See
+above"***. **The other four changes were confirmed as correct.** **STATUS: `ACTIVE`.**
+
+**WHAT IT PINS.**
+
+1. **THE THRESHOLD IS ABSENCE, AND ONLY ABSENCE.** A pair is **SKIPPED exactly when its PARENT DOES NOT RESOLVE** — the
+   walk fails with `AddressNotFound` — and **a parent that RESOLVES applies the pair, whether it resolves as a CONTAINER or
+   as a LEAF.** `D-90` (1)'s phrase *"the parent resolves to a container"* is **read THROUGH this row**: the container is
+   what the pair's own presence expects, not a condition of the skip.
+2. **AND THE REASON IS THE ARCHITECT'S, CARRIED VERBATIM: *"the constraint being there implicitly expects `'x'` to be a
+   container"*.** A pair registered at `['x','deep']` **declares** that `['x']` is a container; **a leaf standing at
+   `['x']` is therefore the state the pair is there to judge, not a state to look away from.** Its address cannot be read,
+   so the registration instant hands the body `context.value === undefined` (`readCurrent` swallows the read's refusal) and
+   **the body may refuse** — and a repair may replace the leaf with a container, which is the arm a repair exists for.
+3. **SO THE PREDICATE'S THIRD ARM INVERTS, AND ONLY IT.** `readLiteral(parent)` with the tier argument omitted answers three
+   things and now reads: **`ReadTargetIsBranch` ⇒ the parent is a container ⇒ APPLICABLE · `AddressNotFound` ⇒ the parent
+   does not resolve ⇒ SKIPPED · ANY VALUE ANSWERED ⇒ the parent is a LEAF ⇒ APPLICABLE** (not skipped). **The skip keeps its
+   two properties whole — it is not a refusal, and the pair stays CARRIED (`D-90` (2)–(3)).**
+4. **THE REGISTRATION'S RE-RUN IS READ THE SAME WAY, WHICH IS WHAT *"See above"* SECURES.** A repair that writes a leaf
+   over its own pair's parent **does NOT skip its pair at the re-run**: the re-run asks it, the body meets
+   `undefined`-as-its-own-address's-state, and **a body that refuses refuses the registration** — rank `19`
+   `ConstraintRefusedAtRegistration`, `KC-5` where the refusing pair is the repaired one. **`D-94`'s unconditional re-run
+   is unmoved.**
+5. **AND `D-94` (4)'S HAZARD NARROWS TO WHAT REMAINS TRUE.** The *"inert pair"* consequence **no longer arises from a
+   flattened parent**; it arises only where a repair **DELETES** the parent (or otherwise leaves it unresolvable), because
+   that is the only arm that skips — a pair whose parent was deleted is carried and skipped until the parent stands again,
+   and the registration that was meant to enforce it completes with it inert. **`D-94` (4) is read THROUGH this row and
+   survives at exactly that arm.**
+6. **WHAT IT WITHDRAWS, NAMED SO NO PASS CHASES THEM.** The supervisor's recorded reading of `D-90` (1) that made "not a
+   container" a skip; **`PIN-2` (iii)'s third arm** in the unit's contract; **cell `G3-08`'s leaf arm** and **cell
+   `G3-13`'s skip arm**, which must now assert the APPLY and the refusal respectively; and **`P-HL-8` mode 2's red**, which
+   this row makes green again by its own ground (its fixture writes a leaf at the pair's parent, and the pair is now asked
+   and refuses).
+
+**WHAT IT DOES NOT SETTLE.** **Nothing about the absent-parent skip** — that arm stands exactly as `D-90` (1)–(3) and
+`D-90` (5) record it, and it is the only arm a skip survives on. **It mints no status**, moves no member, and opens no
+unit: the cells' re-derivation and the predicate's one-arm inversion are the implementer's and the test writer's, at gate 3.
+
+**TERMS: the arms ruled (`3` = branch · absent · leaf, the third inverted), the behaviour changes confirmed (`4`), the
+behaviour changes rejected (`2`), the readings withdrawn (`1` = the leaf-as-skip reading of `D-90` (1)), the artifacts to be
+re-derived (`2` cells) and to be restored to green (`1` = `P-HL-8` mode 2), the statuses minted (`0`), the behaviour bytes
+this row moves (`0`).**
