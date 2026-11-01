@@ -4570,3 +4570,49 @@ runs to create the parent; that consequence is `D-90`'s and is recorded there, n
 **TERMS: the arm chosen (`1` = the write route), the arms not taken (`1` = the deferral), the clauses to be re-derived by
 the contract (`1` = the five-member evaluation context), the carriers priced and unchosen (`2` + a third the contract may
 declare), the members minted (`0`), the behaviour bytes this row moves (`0`), the units opened (`0`).**
+
+---
+
+### `D-92` — **a constraint body does NOT write: the route is the repair's alone, and a body's direct write is UNSUPPORTED**
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering
+`docs/specs/storeroom-constraint-registration-instant/contract.md §8`'s `Q1` — *"may a body, as well as a repair, write at
+a registration instant?"* — in these words: ***"Q1 - a constraint should not be making writes directly, that is
+unsupported. Any changes should be handled by a repair."*** **STATUS: `ACTIVE`.**
+
+**WHAT IT PINS.**
+
+1. **`Q1` IS ANSWERED `NO`, AND THE ANSWER IS THE CONTRACT'S RULING RATHER THAN ITS DEFAULT.** The registration instant's
+   write route (`D-91`) is carried by **the repair's own record** and by nothing else; **the constraint body's five-member
+   evaluation context gains no member, at any instant**, and **no clause of any unit may extend the route to a body**.
+2. **AND THE RULING IS WIDER THAN THE ROUTE: A BODY'S DIRECT WRITE IS UNSUPPORTED, AT EVERY INSTANT AND NOT AT A
+   REGISTRATION ALONE.** *"Any changes should be handled by a repair"* is the mechanism's stated division of labour: **a
+   constraint body's job is to be ASKED and to ANSWER**, and **a change is a repair's**. No clause of any unit may be read
+   as declaring a body's direct write supported, guaranteed, or part of the surface.
+3. **"UNSUPPORTED" IS A DECLARATION AND NOT (YET) A REFUSAL — AND THIS ROW DOES NOT TURN IT INTO ONE.** **MEASURED
+   2026-11-02 on this checkout, through the published entry:** a body that calls `store.write(['beside'], 'mem',
+   'from-body')` while judging a write at `['a']` **LANDS**, with `opId` `op-3` and `seq` `3`, and `read(['beside'])`
+   afterwards answers `"from-body"` — so the act **works today and is driven by committed cells**
+   (`tests/e2e/blind-defect-cases.test.mjs`, `external-commit.test.mjs`, `file-tier-save.test.mjs`,
+   `tests/integration/js-constraints/constraint-kernel-states.test.mjs` all drive a constraint body that writes). **This row
+   mints no status, refuses nothing, opens no attempt and moves no byte: what it withdraws is the CLAIM, not the
+   capability.** **WHETHER THE ACT IS LATER REFUSED IS A SEPARATE QUESTION, put to the architect and not answered here.**
+4. **THE DIVERGENCE IT CREATES IS NAMED AND FILED, NOT ABSORBED.** `docs/guides/package-use.md:1371`-`:1372` prints, as
+   supported behaviour, *"**A nested write a CONSTRAINT body makes is part of the same commit**, so **its entries are in
+   YOUR list** — which is why a constraint body that performs a refused write now shows you that refusal's own…"* — **from
+   this date that sentence describes an UNSUPPORTED act.** It is filed as the live ledger's `§7` row `14`, with its owner
+   and its revisit condition, and **no pass may read it as support.**
+
+**WHAT IT DOES NOT SETTLE.** **(i) WHETHER THE ENGINE REFUSES A BODY'S WRITE** — the row withdraws support and rules no
+behaviour; a refusal would need its own row, its own status question and its own version. **(ii) WHICH UNIT CORRECTS
+`docs/guides/package-use.md:1371`-`:1372`** — the site is inside `§8.0a`, which
+`U-STOREROOM-CONSTRAINT-REGISTRATION-INSTANT` already touches for ledger row `11`, but its `PIN-1` (ii) declares exactly
+two guide locations and this would be a third; put to the architect as that contract's `Q4`. **(iii) THE CELLS THAT DRIVE
+A BODY'S WRITE** — they are measuring a capability, not declaring support, and this row does not retract them; a unit that
+refuses the act would have to retire them in the same pass. **(iv) `D-53`'s READING** — *"constraints/repairs should always
+use the same commit"* — is about **which commit a write joins** and is not amended; this row says a body should not be
+writing at all.
+
+**TERMS: the questions answered (`1` = `Q1`, NO), the declarations made (`1` = a body's write is unsupported), the
+refusals minted (`0`), the statuses minted (`0`), the behaviour bytes this row moves (`0`), the divergences filed (`1` =
+guide `:1371`-`:1372`, ledger row `14`), the cells retracted (`0`), the questions opened (`2` = refusal, ownership).**
