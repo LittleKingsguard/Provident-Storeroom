@@ -4649,3 +4649,48 @@ corrects §8.0a:1371"*** **for the ownership question.** **STATUS: `ACTIVE`.**
 **TERMS: the questions answered (`2`), the refusals minted (`0`), the behaviour bytes this row moves (`0`), the cells
 retracted (`0`), the guide positions granted (`2` = the unit's own, no third), the docs units queued (`0`), the contract
 questions left on their defaults (`2` = `Q2`, `Q3`).**
+
+---
+
+### `D-94` — **the re-run after a repair is UNCONDITIONAL, and the pair-application rule is read inside it**
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering
+`docs/specs/storeroom-constraint-registration-instant/contract.md §8`'s `Q3` — *"is the registration's own re-run an
+instant the rule reaches?"* — in these words: ***"Always rerun after a repair."*** **STATUS: `ACTIVE`.**
+
+**WHAT IT PINS.**
+
+1. **THE RE-RUN ALWAYS HAPPENS AFTER A REPAIR — IT IS NEVER OMITTED, DEFERRED, CONDITIONAL OR SHORT-CIRCUITED.** Where a
+   registration-instant repair is **credited**, the kernel re-runs the evaluated set over the repair's landed op on every
+   arm, **including the arm where the rule has emptied that set**: `registrationRerun` is called and its result consulted;
+   **`0` pairs asked is not the same as no re-run**, and no implementation may skip the call because its set is empty.
+2. **AND THE RULE IS READ INSIDE IT, WHICH IS `Q3`'S `(i) YES`.** The re-run is an instant that would apply a pair, and
+   `D-90` is global (`D-90` (4)), so **a pair whose PARENT is not a container is SKIPPED at the re-run** exactly as at the
+   other instants — **it is not asked, crosses nothing, and cannot refuse the registration.** **The one reachable arm is a
+   repair that makes its own pair's parent cease to be a container** (it writes a leaf over it, or deletes it): the pair is
+   skipped at the re-run, **the registration STANDS on the repair's landing**, and the pair is CARRIED (`D-90` (3)) for the
+   first later instant its parent stands.
+3. **THE TWO RULINGS DO NOT COLLIDE, AND THIS IS WHY THEY ARE ONE ROW:** *"always rerun"* decides **whether the re-run
+   happens** (always); `D-90` decides **which pairs are asked within it** (those whose parent is a container). **A caller
+   sees the difference only on the arm above:** the registration succeeds rather than refusing at rank `19`, and **the arm
+   where the pair itself refuses again is untouched** — that is still `KC-5` where the refusing pair is the repaired one
+   and `KC-6` otherwise, and still rank `19`.
+4. **THE CONSEQUENCE THIS RULING LICENSES IS RECORDED RATHER THAN LEFT TO BE DISCOVERED:** **a repair that flattens its own
+   pair's parent to a leaf permanently disables that pair** — it is skipped at every instant thereafter until something
+   makes the parent a container again — **and the registration that was meant to enforce the pair completes with the pair
+   inert.** **This is `D-90`'s skip applied at the last instant that could have caught it, and it is the reading the
+   architect has taken; a consumer who meets it should be answered with this row and not with a repair to the rule.**
+   **REVISIT CONDITION: the first consumer drive that reports a registration completing over an inert pair, or any pass
+   that would give the re-run its own refusal arm.**
+
+**WHAT IT DOES NOT SETTLE.** **(i) NOTHING ABOUT THE LANDING PASS'S RESTART.** `RESTART_LIMIT` and the write's own
+restart loop (`KC-5`/`KC-6` at a landing) are read and not amended: **this row's subject is the REGISTRATION's re-run**,
+which is one evaluation per pair and not a restart budget. **(ii) NOTHING ABOUT `Q2`.** The re-run's context `value` is
+`produced.after.value` by the existing code and is not moved by this row. **(iii) NOTHING ABOUT THE RE-RUN'S SET** —
+`pairsAtAddress` and `D-56`'s prefix rule stand; the rule filters which of those pairs is asked and does not change the
+selection.
+
+**TERMS: the questions answered (`1` = `Q3`, `(i) YES`), the instants ruled (`1` = the registration's re-run), the
+properties pinned (`2` = unconditional · the rule read inside it), the refusals withdrawn (`1` = the arm where a skipped
+pair would have refused), the behaviour bytes this row moves (`0`), the hazards recorded (`1` = an inert pair), the units
+opened (`0`).**
