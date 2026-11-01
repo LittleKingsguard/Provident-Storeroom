@@ -4433,3 +4433,37 @@ amendment: the failure path is described by its refusal and its store state, nev
 
 **TERMS: the questions answered (`3`), the unit approved (`1`), the successor units queued (`0`), the defect rows filed
 (`1`), the behaviour bytes this row moves (`0`), the shipped sites granted (`2`).**
+
+---
+
+### `D-89` — **`D-88` (3)'s example sentence is withdrawn by name; the address geometry stands in its place**
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, on the supervisor's report that the
+gate-4 correction delta of 2026-11-02 falsifies one sentence inside `D-88` (3) — the word being **"correct only the
+example"**. **STATUS: `ACTIVE`.**
+
+**WHAT IT PINS.** **THE SENTENCE *"an uncredited write's address is not restored and therefore stands"* IS WITHDRAWN BY
+NAME AND IS NO LONGER THIS UNIT'S READING.** It made **credit** the test of whether a repair's write survives a refusal;
+the operative axis is **THE ADDRESS'S MEMBERSHIP IN THE ATTEMPT'S OWN OPS** — a repair's write **at or under** an address
+one of `attempt.ops` named **is swept with the attempt, credited or not**, and a write at an address **no attempt op
+named STANDS** (`PIN-2` (v), re-derived 2026-11-02; `bindings/js/src/entry/kernel-terminal.mjs:255`-`:256`, `:288`-`:343`;
+`src/store.rs:2617`, `:2622`, `:2628`). **Credit is the mechanism and never the test**: the refused op never joins
+`attempt.ops` (`bindings/js/src/entry/kernel-attempt.mjs:885`-`:892`), which is *why* an uncredited write **can** stand —
+and it can equally be swept. **The withdrawn sentence is replaced by that geometry and by nothing else.**
+
+**AND NOTHING ELSE OF `D-88` (3) MOVES.** The permission stands — the unit **may** state the store-state fact in its own
+words as a **declared consequence**, read through the guide's `§7.8` step 3 and **both** `§5.4` lines, **neither of which
+is edited** — and the two lines are read **by line**: `§5.4:469` (the floor call restores the attempt's address, and an
+address a repair landed at beside it is **not** restored) and `§5.4:476`(2) (*"a repair's write goes with the write"*,
+**unscoped by credit**), with **the address as the discriminator between them**.
+
+**WHAT IT DOES NOT REOPEN.** `D-88` (1) and (2) stand whole — the docs-only fraction, and the refusal sentence's text and
+address a **recorded defect row and not a unit**, with **no successor queued**. The sibling's `PIN-3` ban on naming a
+repair's outside return forms stands and needs no amendment. **The read-through MARK `D-88` (3) also required is neither
+confirmed nor amended here: its retirement is the consolidation delta's own record** (`PIN-7` (v); `clause-7-6.md §1A`),
+and the landed clause cites both sections instead of carrying a mark. **No shipped byte moves by this row** — the landed
+clause already states the geometry and never printed the withdrawn sentence — and **no unit is opened, queued or
+versioned** by it.
+
+**TERMS: the sentences withdrawn (`1`), the rulings otherwise amended (`0`), the behaviour bytes this row moves (`0`), the
+units queued (`0`), the shipped sites granted (`0`).**
