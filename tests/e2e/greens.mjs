@@ -248,6 +248,20 @@ function carriesHandle(set, handle) {
 }
 const distinctHandles = (set) => [...new Set((Array.isArray(set) ? set : [])
   .map((e) => (e !== null && typeof e === 'object' ? e.handle : e)))];
+// ── ⟶ ADDED 2026-11-02 (THE `D-90` (5) / `PIN-5` RE-DERIVATION, `JSG-02.18`): A CARRIED PAIR, READ OFF
+// `constraints()` AS ITS `id` BESIDE ITS ADDRESS-SET — the member `PIN-4` (i) declares the observable (*"`store
+// .constraints()` names the pair"*) and the one no cell of this driver read before. `index.d.ts`'s
+// `ConstraintPair.address` is `Address | readonly Address[]`, so BOTH encodings are read and the SET of
+// slash-joined spellings is what the cell asserts, sorted — the same reading
+// `tests/e2e/pair-application-rule.test.mjs` takes of the member (`addressSet`). No cell reads it as a SEQUENCE.
+function pairNames(rows) {
+  return (Array.isArray(rows) ? rows : []).map((row) => {
+    const address = row !== null && typeof row === 'object' ? row.address : undefined;
+    const members = Array.isArray(address) && Array.isArray(address[0]) ? address : [address];
+    const spelled = members.map((member) => (Array.isArray(member) ? member.join('/') : String(member))).sort().join('+');
+    return `${row !== null && typeof row === 'object' ? row.id : '?'}@${spelled}`;
+  }).sort().join(',');
+}
 
 // ── the scratch area (OUTSIDE the repository's tracked tree) ─────────────────────────────────────────────
 const ROOT = fs.mkdtempSync(path.join(os.tmpdir(), 'sr-js-greens-'));
@@ -528,20 +542,76 @@ function kernelSaveFile(store, address, value) {
     'a ZERO-BYTE file boots an INSTANCE under a supplied NON-EMPTY list — the exemption keys on the FILE\'s bytes — and its register reads ZERO keys, the file standing at 0 bytes after the boot',
     !zb.threw && zeroBytes === 0 && fs.statSync(zeroCfg.c.filePath).size === 0 && !!zbRead && !zbRead.threw && Object.keys(zbRead.value ?? {}).length === 0,
     `image is ${zeroBytes} bytes ; boot -> ${zb.threw ? fmt(zb.err) : 'INSTANCE'} ; read([]) -> ${zbRead ? (zbRead.threw ? fmt(zbRead.err) : fmt(zbRead.value)) : '-'}`);
+  // ── **⟶ RE-DERIVED 2026-11-02 (`D-90` (5) · `D-96` (1) · `PIN-5` (i)–(iii)): THE LOAD-SIDE LIST-WIDE REFUSAL
+  // THIS CELL ASSERTED IS THE SUPERSEDED CLAUSE.** `D-90` (5) names the site it supersedes — `src/store.rs:783`-
+  // `:789`, the boot's walk that walked each pair's ADDRESS against the loaded state and REFUSED THE WHOLE LIST
+  // `ConstraintListInvalid` when one did not resolve — and `PIN-5` (i) **DELETES it rather than narrowing it**:
+  // *"a well-formed pair whose parent does not resolve neither refuses the list nor reaches the shape arm; it
+  // registers and is skipped"*. **THE LOAD-SIDE REFUSAL IS THEREFORE GONE, AND WHAT REMAINS OF
+  // `ConstraintListInvalid` AT THIS INSTANT IS THE MALFORMED LIST ALONE** (`PIN-5` (ii)).
+  // **IT WAS A SIX-CELL ARM, AND THAT IS THE CLAUSE THAT IS SUPERSEDED**: `JSG-02.18` here, `FTS-09.2`, `FTS-09.6`
+  // and `FTS-09.8` in `tests/e2e/file-tier-save/scenarios.mjs`, and `JAS-09.1` at both routes
+  // (`tests/e2e/json-acceptance-set-greens.mjs` and its live twin) — six cells asserting that a boot over an
+  // existing `filePath` refuses the list when the loaded state does not carry a supplied pair. **FOUR OF THE SIX
+  // ARE RE-DERIVED BY THIS PASS; the two `JAS-09.1` cells are not this pass's** (the greens-side one is RED and
+  // reported, not silently repaired: it is `tests/e2e/json-acceptance-set-greens.mjs:594`, outside this pass's
+  // write set).
+  // **THE CELL'S SUBJECT IS KEPT WHOLE — a PRESENT two-byte `{}` image, whose loaded state carries NOTHING the
+  // supplied list names — and its EXPECTATION moves onto the rule's own two arms, BOTH DRIVEN AT THE ONE IMAGE:**
+  //   · `['rt']` — parent `[]`, THE REGISTER, which ALWAYS resolves to a container (`PIN-2` (i); *"the register is
+  //     always a MAP"*) ⇒ **APPLICABLE ⇒ the body is ASKED, ONCE, with `value === undefined`** (`D-90` (1) and
+  //     `PIN-2` (iv): *"with the absence of its own key as the state it judges"*). **THIS PAIR IS THE POSITIVE
+  //     CONTROL, AND IT IS WHY THE `0` BELOW IS A MEASUREMENT**: the same counter family records `1` here, so the
+  //     adjacent `0` reads as a SKIP and not as a dead instrument.
+  //   · `['rt','deep']` — parent `['rt']` does not resolve ⇒ **SKIPPED ⇒ the body is asked ZERO times**, and the
+  //     pair is **CARRIED and NAMED by `constraints()` anyway** (`D-90` (2)–(3); `PIN-4` (i): *"registration does
+  //     not fail for it"*). Its body REFUSES on purpose, so a lost skip breaks TWO limbs at once.
+  // **AND THE SHAPE ARM IS KEPT ALIVE IN THIS SAME CELL** (`PIN-5` (ii)–(iii)): a MALFORMED element over the same
+  // `filePath` still refuses with `ConstraintListInvalid`, its generated sentence **VERBATIM** and `log: []` — the
+  // arm the ruling leaves standing, asserted here so the deletion cannot be mistaken for the arm's retirement.
+  // **WHAT MAKES THIS CELL RED NOW, NAMED SO IT IS NOT A "no throw" CELL**: an instance WITHHELD (the superseded
+  // list-wide refusal restored, or the refusing skipped body reached); a carried pair MISSING from
+  // `constraints()`; `['rt','deep']`'s body asked `>= 1` (the skip lost); `['rt']`'s body asked `0` (the rule read
+  // BACKWARDS — the leaf-or-register arm skipped, which is exactly what `D-96` (1) INVERTS and withdrew); the
+  // loaded state not reading what it held (`read([])` non-empty, or `['rt']` not absent after a registration);
+  // THE IMAGE MOVED; the malformed element NOT refused; the sentence not byte-verbatim; a non-empty `log` on it.
   const shortCfg = cfgFor('g02short');
   const shortPath = shortCfg.c.filePath;
   fs.writeFileSync(shortPath, '{}'); // a PRESENT two-byte image: the state is empty, the FILE is not
-  const sh = thrown(() => ns.storeCreate({ ...shortCfg.c, constraints: [{ address: ['rt'], id: 'c1', constraint: () => true }] }));
-  A('JSG-02.18', 'A: docs/decisions.md · A119 (2026-10-16); store §7.1 step 4-bis; §8.1 #16; §7.2 item 6 as amended 2026-10-15',
-    'a PRESENT short image whose loaded state satisfies no supplied pair is VALIDATED and refused with ConstraintListInvalid, no instance returned, the image byte-identical',
-    sh.threw && sh.err && sh.err.status === 'ConstraintListInvalid' && fs.readFileSync(shortPath, 'utf8') === '{}',
-    `${sh.threw ? `${fmt(sh.err.status)} :: ${fmt(sh.err.message)}` : 'AN INSTANCE WAS RETURNED'} ; image=${fmt(fs.readFileSync(shortPath, 'utf8'))}`);
+  const shortAsks = { applied: 0, skipped: 0 };
+  let shortAppliedValue = 'the body was never asked';
+  const sh = thrown(() => ns.storeCreate({ ...shortCfg.c, constraints: [
+    { address: ['rt'], id: 'c1', constraint: (context) => { shortAsks.applied += 1; shortAppliedValue = context.value; return true; } },
+    { address: ['rt', 'deep'], id: 'c2', constraint: () => { shortAsks.skipped += 1; return { message: 'the pair at `rt/deep` refuses' }; } },
+  ] }));
+  const shRows = sh.threw ? { threw: true, err: sh.err } : thrown(() => sh.value.constraints());
+  const shReg = sh.threw ? { threw: true, err: sh.err } : thrown(() => sh.value.read([]));
+  const shRt = sh.threw ? { threw: true, err: sh.err } : thrown(() => sh.value.read(['rt']));
+  const shImage = fs.readFileSync(shortPath, 'utf8');
+  // the SHAPE arm at the same image and the same `filePath` — the arm `PIN-5` (ii) leaves standing, VERBATIM.
+  const shMal = thrown(() => ns.storeCreate({ ...shortCfg.c, constraints: [{}] }));
+  const SHORT_SENTENCE = "the constraint entry at position 0 is not a valid constraint entry in 'constraints', a constraint entry is an address and an id, and the address is a segment array";
+  const shPairs = shRows.threw ? '<no rows>' : pairNames(shRows.value);
+  const shMalSentence = shMal.threw && shMal.err && typeof shMal.err.message === 'string' ? shMal.err.message : '<no refusal>';
+  A('JSG-02.18', '`strata/decisions.md` · `D-90` (5) (*"It supersedes the boot\'s list-wide refusal"*; *"What remains of `ConstraintListInvalid` at those instants is the malformed list and nothing else"*) and `D-96` (1) (the skip is ABSENCE alone: a parent that RESOLVES applies the pair whether it resolves as a container or a leaf) · `U-STOREROOM-CONSTRAINT-REGISTRATION-INSTANT`\'s `PIN-5` (i)–(iii) and `PIN-4` (i); the load-side law still true: store §7.1 step 4-bis (the list\'s own shape validation) + `docs/decisions.md` · A119 (the exemption is the FILE\'s emptiness, never the loaded state\'s smallness)',
+    'a PRESENT two-byte `{}` image whose loaded state carries nothing the supplied list names BOOTS AN INSTANCE: the pair at `[\'rt\']` — parent the REGISTER — is CARRIED and ASKED ONCE with `value === undefined`, the pair at `[\'rt\',\'deep\']` — parent absent — is CARRIED and SKIPPED (asked 0 times), `constraints()` names BOTH, the loaded state reads what it held (`read([])` empty and `[\'rt\']` still `AddressNotFound`), the image stands byte-identical, and a MALFORMED element over the same `filePath` is the arm that remains: `ConstraintListInvalid` with its verbatim sentence and `log: []`, no instance',
+    !sh.threw
+      && !shRows.threw && shPairs === 'c1@rt,c2@rt/deep'
+      && shortAsks.applied === 1 && shortAppliedValue === undefined
+      && shortAsks.skipped === 0
+      && !shReg.threw && Object.keys(shReg.value ?? {}).length === 0
+      && shRt.threw && shRt.err && shRt.err.status === 'AddressNotFound'
+      && shImage === '{}' && fs.readFileSync(shortPath, 'utf8') === '{}'
+      && shMal.threw && shMal.err && shMal.err.status === 'ConstraintListInvalid'
+      && shMalSentence === SHORT_SENTENCE && logIsEmpty(shMal.err.log)
+      && fs.readFileSync(shortPath, 'utf8') === '{}',
+    `${sh.threw ? `${fmt(sh.err.status)} :: ${fmt(sh.err.message)}` : 'INSTANCE'} ; constraints()=${fmt(shPairs)} ; asks applied=${shortAsks.applied} skipped=${shortAsks.skipped} ; the applied pair's value=${fmt(shortAppliedValue)} ; read([])=${shReg.threw ? fmt(shReg.err) : fmt(shReg.value)} ; read(['rt'])=${shRt.threw ? `${fmt(shRt.err.status)}` : 'A VALUE'} ; image=${fmt(fs.readFileSync(shortPath, 'utf8'))} ; the MALFORMED element -> ${shMal.threw ? `${fmt(shMal.err.status)} :: ${fmt(shMalSentence)} :: log=${fmt(shMal.err.log)}` : 'AN INSTANCE WAS RETURNED — the shape arm is LOST'}`);
   REDERIVED.push(`JSG-02.10 :: terminal-arm save ${wSave.threw ? `FAILED ${fmt(wSave.err)}` : 'landed'} ; boot read -> ${rb && !rb.threw ? fmt(rb.value) : fmt(rb && rb.err)}`);
   REDERIVED.push(`JSG-02.11 :: booted member set=[${kb.join(',')}]`);
   REDERIVED.push(`JSG-02.14/.15 :: booted 'neg-file' -> ${rFile && !rFile.threw ? fmt(rFile.value) : fmt(rFile && rFile.err)} ; Object.is(v,-0)=${rFile && !rFile.threw ? !Object.is(rFile.value, -0) : 'n/a'}`);
   REDERIVED.push(`JSG-02.16 :: booted 'rt' EQUAL to V under §1.5 = ${rC && !rC.threw ? rel(rC.value, V) : fmt(rC && rC.err)}`);
   REDERIVED.push(`JSG-02.17 :: zero-byte image ${zeroBytes} bytes -> ${zb.threw ? fmt(zb.err) : 'INSTANCE'} ; read([]) -> ${zbRead ? (zbRead.threw ? fmt(zbRead.err) : fmt(zbRead.value)) : '-'}`);
-  REDERIVED.push(`JSG-02.18 :: present two-byte {} image -> ${sh.threw ? `${fmt(sh.err.status)} :: ${fmt(sh.err.message)}` : 'AN INSTANCE WAS RETURNED'} ; image=${fmt(fs.readFileSync(shortPath, 'utf8'))}`);
+  REDERIVED.push(`JSG-02.18 :: present two-byte {} image -> ${sh.threw ? `${fmt(sh.err.status)} :: ${fmt(sh.err.message)}` : 'INSTANCE'} ; constraints()=[${shPairs}] ; asks applied=${shortAsks.applied}/skipped=${shortAsks.skipped} ; the applied pair's value=${fmt(shortAppliedValue)} ; read([])=${shReg.threw ? fmt(shReg.err) : fmt(shReg.value)} ; image=${fmt(fs.readFileSync(shortPath, 'utf8'))} ; the MALFORMED element, the arm \`D-90\` (5) leaves standing -> ${shMal.threw ? `${fmt(shMal.err.status)} :: log=${fmt(shMal.err.log)}` : 'AN INSTANCE'}`);
 }
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════

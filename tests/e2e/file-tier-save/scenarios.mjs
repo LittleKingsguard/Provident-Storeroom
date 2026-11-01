@@ -89,6 +89,18 @@ const tryCall = (fn) => { try { return { ok: true, v: fn() }; } catch (e) { retu
 const bytes = (p) => { try { return fs.readFileSync(p); } catch (e) { return null; } };
 const bytesEq = (a, b) => (a === null || b === null ? a === b : a.equals(b));
 const imgStr = (b) => (b === null ? 'NO FILE' : JSON.stringify(b.toString('utf8')));
+/// **ADDED 2026-11-02 (THE `D-90` (5) / `PIN-5` RE-DERIVATION OF `FTS-09.2`, `.6` AND `.8`): A CARRIED PAIR, READ
+/// OFF `constraints()` AS ITS `id` BESIDE ITS ADDRESS-SET.** `PIN-4` (i) declares the observable (*"`store
+/// .constraints()` names the pair"*) and no cell of this set read that member before. `index.d.ts`'s
+/// `ConstraintPair.address` is `Address | readonly Address[]`, so BOTH encodings are read and the SET of
+/// slash-joined spellings is what a cell asserts, sorted — the reading `tests/e2e/pair-application-rule.test.mjs`
+/// takes of the same member (`addressSet`), never a sequence.
+const pairNames = (rows) => (Array.isArray(rows) ? rows : []).map((row) => {
+  const address = row !== null && typeof row === 'object' ? row.address : undefined;
+  const members = Array.isArray(address) && Array.isArray(address[0]) ? address : [address];
+  const spelled = members.map((member) => (Array.isArray(member) ? member.join('/') : String(member))).sort().join('+');
+  return `${row !== null && typeof row === 'object' ? row.id : '?'}@${spelled}`;
+}).sort().join(',');
 const PLACEHOLDER = /<[A-Za-z_ ]+>/;
 const dirs = [];
 function tmp() { const d = fs.mkdtempSync(path.join(os.tmpdir(), 'fts-green-')); dirs.push(d); return d; }
@@ -787,11 +799,56 @@ scenario('FTS-09', 'the loaded state validated against the supplied list at load
         const reg = tryCall(() => r.v.read([]));
         return C(reg.ok && reg.v.a === 5 && reg.v.b === 6, `register=${reg.ok ? JSON.stringify(reg.v) : describe(reg.v)}`);
       });
-    cell('FTS-09.2', 'contract.md §8.1 #16 (the load-side trigger: "the loaded state no longer satisfies the supplied list")',
-      'the same image with a supplied pair naming an address the loaded state does not carry answers #16 and returns no instance',
+    // ── **⟶ RE-DERIVED 2026-11-02 (`D-90` (5) · `D-96` (1) · `PIN-5` (i)–(iii)): THE LOAD-SIDE LIST-WIDE
+    // REFUSAL THIS CELL ASSERTED IS THE SUPERSEDED CLAUSE.** `D-90` (5) supersedes the boot's walk
+    // (`src/store.rs:783`-`:789`) that refused the WHOLE list `ConstraintListInvalid` when one supplied pair's
+    // address did not resolve in the loaded state, and `PIN-5` (i) **DELETES it**: *"a well-formed pair whose
+    // parent does not resolve neither refuses the list nor reaches the shape arm; it registers and is skipped"*.
+    // **THE LOAD-SIDE REFUSAL IS GONE; `ConstraintListInvalid` IS THE MALFORMED LIST'S ALONE** (`PIN-5` (ii)) —
+    // which `FTS-09.3` (the same image, a malformed element) still drives two cells below.
+    // **IT WAS A SIX-CELL ARM, AND THAT IS THE CLAUSE `D-90` (5) SUPERSEDES**: `FTS-09.2`, `FTS-09.6` and `FTS-09.8`
+    // in this file, `JSG-02.18` in `tests/e2e/greens.mjs`, and `JAS-09.1` at both routes
+    // (`tests/e2e/json-acceptance-set-greens.mjs` and its live twin) — six cells asserting that a boot over an
+    // existing `filePath` refuses the list when the loaded state does not carry a supplied pair. **FOUR OF THE SIX
+    // ARE RE-DERIVED BY THIS PASS; the two `JAS-09.1` cells are not this pass's** (the greens-side one is RED and
+    // reported, not silently repaired: `tests/e2e/json-acceptance-set-greens.mjs:594`).
+    // **THE CELL'S SUBJECT IS KEPT — this image, and a supplied pair naming an address its loaded state does not
+    // carry — AND THE EXPECTATION MOVES ONTO THE RULE'S THREE ARMS, ONE PAIR EACH, AT THAT ONE IMAGE:**
+    //   · `['a']` — the state carries it ⇒ **ASKED ONCE, `value` 5** (the RESOLVING control);
+    //   · `['zz']` — absent, parent `[]` THE REGISTER ⇒ **APPLICABLE ⇒ ASKED ONCE with `value === undefined`**
+    //     (`D-90` (1) and `PIN-2` (iv): *"with the absence of its own key as the state it judges"*);
+    //   · `['zz','deep']` — absent, parent `['zz']` does NOT resolve ⇒ **SKIPPED ⇒ ASKED ZERO TIMES**, and the pair
+    //     is **CARRIED and NAMED** by `constraints()` anyway (`D-90` (2)–(3); `PIN-4` (i)).
+    // **THE TWO CONTROLS ARE WHY THE `0` IS A MEASUREMENT AND NOT A DEAD COUNTER** — the same three counters record
+    // `1` and `1` beside it, so the skip is observable as a DIFFERENCE. **AND `D-96` (1) IS WHAT KEEPS `['zz']` IN
+    // THE CELL**: the skip is ABSENCE alone, so a pair whose parent resolves as a LEAF or as the register applies.
+    // **WHAT MAKES THIS CELL RED NOW**: an instance WITHHELD (the superseded refusal restored); a carried pair
+    // MISSING from `constraints()`; `['zz','deep']` asked `>= 1` (the skip lost — its body REFUSES, so a lost skip
+    // also refuses the whole boot at rank `19`, measured); `['zz']` asked `0` (the rule read BACKWARDS, the arm
+    // `D-96` (1) inverts and withdrew); `['a']` asked `0` (the counters dead); the register not reading `{a:5,b:6}`;
+    // THE IMAGE MOVED.
+    cell('FTS-09.2', '`strata/decisions.md` · `D-90` (5) (*"It supersedes the boot\'s list-wide refusal"*; *"What remains of `ConstraintListInvalid` at those instants is the malformed list and nothing else"*) and `D-96` (1) (the skip is ABSENCE alone — a parent that RESOLVES, as a container OR a leaf OR the register, applies its pair) · `U-STOREROOM-CONSTRAINT-REGISTRATION-INSTANT`\'s `PIN-5` (i)–(iii), `PIN-4` (i) and `PIN-2` (iv); the load-side law that still stands: `contract.md §7.2` item 1 (`A119`\'s reach: the exemption is the FILE\'s bytes), §8.1 #16 read through `PIN-5` (ii)',
+      'the same image with supplied pairs naming addresses the loaded state does not carry BOOTS AN INSTANCE: `[\'a\']` is asked once, `[\'zz\']` (parent the REGISTER) is carried and asked once with `value === undefined`, `[\'zz\',\'deep\']` (parent absent) is CARRIED and SKIPPED — asked 0 times — `constraints()` names all three, the register reads `{a:5,b:6}` and the image stands byte-identical',
       () => {
-        const r = tryCall(() => PKG.storeCreate({ filePath: P, journalLength: 8, listeners: [], constraints: [{ address: ['a'], id: 'c1', constraint: () => true }, { address: ['zz'], id: 'c2', constraint: () => true }] }));
-        return C(!r.ok && r.v.status === 'ConstraintListInvalid', `${r.ok ? 'AN INSTANCE WAS RETURNED' : describe(r.v)}`);
+        const asks = { resolved: 0, applied: 0, skipped: 0 };
+        let appliedValue = 'the body was never asked';
+        const r = tryCall(() => PKG.storeCreate({ filePath: P, journalLength: 8, listeners: [], constraints: [
+          { address: ['a'], id: 'c1', constraint: () => { asks.resolved += 1; return true; } },
+          { address: ['zz'], id: 'c2', constraint: (context) => { asks.applied += 1; appliedValue = context.value; return true; } },
+          { address: ['zz', 'deep'], id: 'c3', constraint: () => { asks.skipped += 1; return { message: 'the pair at zz/deep refuses' }; } },
+        ] }));
+        if (!r.ok) return C(false, `THREW ${describe(r.v)} — a WELL-FORMED pair whose parent does not resolve must not refuse the list (\`D-90\` (5); \`PIN-5\` (i): it *"registers and is skipped"*)`);
+        const rows = tryCall(() => r.v.constraints());
+        const reg = tryCall(() => r.v.read([]));
+        const after = bytes(P);
+        const names = pairNames(rows.ok ? rows.v : []);
+        return C(rows.ok && names === 'c1@a,c2@zz,c3@zz/deep'
+          && asks.resolved === 1 && asks.applied === 1 && appliedValue === undefined && asks.skipped === 0
+          && reg.ok && reg.v.a === 5 && reg.v.b === 6 && bytesEq(after, image),
+          `INSTANCE ; constraints()=[${names}] ; asks a=${asks.resolved} zz=${asks.applied} zz/deep=${asks.skipped} ; `
+            + `the register-parent pair's value=${JSON.stringify(appliedValue === undefined ? '<undefined>' : appliedValue)} ; `
+            + `register=${reg.ok ? JSON.stringify(reg.v) : describe(reg.v)} ; image byte-identical=${bytesEq(after, image)} `
+            + `(before=${imgStr(image)} after=${imgStr(after)}) — the pair at \`zz/deep\` is CARRIED and NOT ASKED, which is the arm the deleted walk refused`);
       });
     cell('FTS-09.3', 'contract.md §7.1 step 4-bis (the list itself is validated at load too)',
       'the same image with a malformed element answers #16 and returns no instance',
@@ -820,13 +877,50 @@ scenario('FTS-09', 'the loaded state validated against the supplied list at load
         return C(r.ok && size === 0 && fs.statSync(PP).size === 0 && reg && reg.ok && Object.keys(reg.v).length === 0,
           `image is ${size} bytes ; the run answers: ${r.ok ? `INSTANCE — read([]) -> ${reg && reg.ok ? JSON.stringify(reg.v) : describe(reg && reg.v)}` : `THREW ${describe(r.v)}`}`);
       });
-    cell('FTS-09.6', 'contract.md §7.2 item 6 as amended (the discriminator: the exemption is keyed on the FILE, not on the state)',
-      'a NON-zero-length image carrying an empty state (`{}`) against the same supplied list is validated and answers #16',
+    // ── **⟶ RE-DERIVED 2026-11-02 (`D-90` (5) · `D-96` (1) · `PIN-5` (i)–(iii)): THE LOAD-SIDE LIST-WIDE
+    // REFUSAL THIS CELL ASSERTED IS THE SUPERSEDED CLAUSE**, and the discriminator it was built to state MOVES WITH
+    // IT. What the cell proved was that the exemption is keyed on the FILE and not on the state — a two-byte `{}`
+    // image is a state and is measured, a zero-byte file is not (`FTS-09.5`, `.9`). That half still holds, in the
+    // only form the ruling leaves it: **a PRESENT `{}` image LOADS — the boot returns AN INSTANCE and its register
+    // reads the empty state it held — and no supplied pair draws `ConstraintListInvalid` for the state's smallness**
+    // (`PIN-5` (ii): what remains of the code is the MALFORMED list alone; `FTS-09.3` drives that arm at this very
+    // image). **IT WAS A SIX-CELL ARM — `FTS-09.2`, `.6`, `.8`, `JSG-02.18` and `JAS-09.1` at both routes — and
+    // that six-cell load-side refusal is the clause `D-90` (5) supersedes.** **THE DISCRIMINATOR THIS CELL NOW
+    // CARRIES IS THE RULE'S OWN, DRIVEN AT THE SAME IMAGE:**
+    //   · `['a']` — absent, parent `[]` THE REGISTER ⇒ **APPLICABLE ⇒ ASKED ONCE with `value === undefined`**
+    //     (`D-90` (1); `PIN-2` (iv)); **the positive control that proves the counter family is live**;
+    //   · `['a','deep']` — absent, parent `['a']` does NOT resolve ⇒ **SKIPPED ⇒ ASKED ZERO TIMES**, and CARRIED and
+    //     NAMED by `constraints()` anyway (`D-90` (2)–(3); `PIN-4` (i)).
+    // **WHAT MAKES THIS CELL RED NOW**: an instance WITHHELD; the register not reading the empty state it held;
+    // `['a']` asked `0` (the arm `D-96` (1) inverts and withdrew — the rule read BACKWARDS); `['a','deep']` asked
+    // `>= 1` (the skip lost — its body REFUSES, so a lost skip also refuses the boot at rank `19`); a carried pair
+    // MISSING from `constraints()`; THE IMAGE MOVED (the boot is a read).
+    cell('FTS-09.6', '`strata/decisions.md` · `D-90` (5) and `D-96` (1) · `U-STOREROOM-CONSTRAINT-REGISTRATION-INSTANT`\'s `PIN-5` (i)–(iii), `PIN-4` (i) and `PIN-2` (iv); read with `contract.md §7.2` item 6 as amended and item 1 part 3 (`A119`: the exemption is keyed on the FILE\'s bytes and not on the loaded state\'s size)',
+      'a NON-zero-length image carrying an empty state (`{}`) against the same supplied list BOOTS AN INSTANCE and reads the empty state it held: `[\'a\']` (parent the REGISTER) is carried and asked ONCE with `value === undefined`, `[\'a\',\'deep\']` (parent absent) is CARRIED and SKIPPED — asked 0 times — `constraints()` names both, and the image stands BYTE-IDENTICAL',
       () => {
         const dd = tmp(); const PP = path.join(dd, 'zero-state.json');
         fs.writeFileSync(PP, '{}');
-        const r = tryCall(() => PKG.storeCreate({ filePath: PP, journalLength: 8, listeners: [], constraints: [{ address: ['a'], id: 'c1', constraint: () => true }] }));
-        return C(!r.ok && r.v.status === 'ConstraintListInvalid', `${r.ok ? 'AN INSTANCE WAS RETURNED' : describe(r.v)}`);
+        const before = bytes(PP);
+        const asks = { applied: 0, skipped: 0 };
+        let appliedValue = 'the body was never asked';
+        const r = tryCall(() => PKG.storeCreate({ filePath: PP, journalLength: 8, listeners: [], constraints: [
+          { address: ['a'], id: 'c1', constraint: (context) => { asks.applied += 1; appliedValue = context.value; return true; } },
+          { address: ['a', 'deep'], id: 'c2', constraint: () => { asks.skipped += 1; return { message: 'the pair at a/deep refuses' }; } },
+        ] }));
+        if (!r.ok) return C(false, `THREW ${describe(r.v)} — a PRESENT image whose state is empty is a STATE and the boot is measured against it; \`PIN-5\` (i) leaves no list-wide refusal for a well-formed pair`);
+        const rows = tryCall(() => r.v.constraints());
+        const reg = tryCall(() => r.v.read([]));
+        const at = tryCall(() => r.v.read(['a']));
+        const after = bytes(PP);
+        const names = pairNames(rows.ok ? rows.v : []);
+        return C(rows.ok && names === 'c1@a,c2@a/deep'
+          && asks.applied === 1 && appliedValue === undefined && asks.skipped === 0
+          && reg.ok && Object.keys(reg.v).length === 0 && !at.ok && at.v.status === 'AddressNotFound'
+          && bytesEq(after, before),
+          `INSTANCE ; constraints()=[${names}] ; asks a=${asks.applied} a/deep=${asks.skipped} ; `
+            + `the register-parent pair's value=${JSON.stringify(appliedValue === undefined ? '<undefined>' : appliedValue)} ; `
+            + `read([])=${reg.ok ? JSON.stringify(reg.v) : describe(reg.v)} ; read(['a'])=${at.ok ? JSON.stringify(at.v) : `${at.v.status} (a registration is not a write)`} ; `
+            + `image ${before === null ? 'ABSENT' : `${before.length} bytes`} byte-identical=${bytesEq(after, before)} before=${imgStr(before)} after=${imgStr(after)}`);
       });
     // ⟶ THE PARK THIS CELL CARRIED IS LIFTED 2026-10-16 (THIS PASS, `role_blind_test_writer`) — ON THE CLAUSE
     // AND NOT ON THIS AUTHOR'S READING. The cell read `NOT DRIVABLE BLIND` on the words *"'satisfies' is still
@@ -857,15 +951,52 @@ scenario('FTS-09', 'the loaded state validated against the supplied list at load
     // side effect — the clause's own discriminator: *"the exemption is the ZERO-LENGTH FILE'S and NOT the EMPTY
     // STATE'S."* `{}` is written as the file's own two bytes; the zero-byte file is the one a construction's own
     // exclusive create leaves (`§7.1` step 4-bis), and its length is read with `statSync`.
-    cell('FTS-09.8', 'contract.md §7.2 item 1 part 3, ADDED 2026-10-16 ("a NON-ZERO-LENGTH image carrying the empty object — a two-byte `{}` — IS a loaded state of 0 keys and IS validated, AND IS REFUSED WITH #16 where the supplied list names any pair; the exemption is the ZERO-LENGTH FILE\'S and NOT the EMPTY STATE\'S") read with §8.1 #16 and docs/decisions.md · A119',
-      'a file whose own bytes are the two-byte image `{}` is VALIDATED even though its loaded state carries 0 keys: against a list naming one pair it is REFUSED with `ConstraintListInvalid` (#16), no instance is returned, and the image stands BYTE-IDENTICAL (the boot is a read)',
+    // ── **⟶ RE-DERIVED 2026-11-02 (`D-90` (5) · `D-96` (1) · `PIN-5` (i)–(iii)): THE LOAD-SIDE LIST-WIDE
+    // REFUSAL THIS CELL ASSERTED IS THE SUPERSEDED CLAUSE — AND ITS REMAINING SUBJECT IS THE FILE'S OWN BYTES.**
+    // The cell was `§7.2` item 1 part 3's discrimination — *"the exemption is the ZERO-LENGTH FILE'S and NOT the
+    // EMPTY STATE'S"* — and the half that SURVIVES is the half the boot's deletion cannot move: **a two-byte `{}`
+    // image IS a state, so the boot LOADS it and comes back AN INSTANCE, the register reading 0 keys and THE IMAGE
+    // STANDING BYTE-IDENTICAL because a boot is a read.** What DOES NOT survive is the refusal: under `D-90` (5)
+    // and `PIN-5` (i) *"a well-formed pair whose parent does not resolve neither refuses the list nor reaches the
+    // shape arm"*, so no supplied pair draws `ConstraintListInvalid` for this state's smallness — **what remains of
+    // that code is the MALFORMED list, which `FTS-09.3` already drives at this scenario's image** (`PIN-5` (ii)).
+    // **IT WAS A SIX-CELL ARM — `FTS-09.2`, `.6`, `.8`, `JSG-02.18` and `JAS-09.1` at both routes — and that
+    // six-cell load-side refusal is the clause `D-90` (5) supersedes.**
+    // **AND THE RULE'S OWN DISCRIMINATOR IS DRIVEN HERE, ON THIS FILE'S BYTES:**
+    //   · `['a']` — absent, parent `[]` THE REGISTER ⇒ **APPLICABLE ⇒ ASKED ONCE with `value === undefined`** (`D-90`
+    //     (1); `PIN-2` (iv)) — the positive control that keeps the counter live;
+    //   · `['a','deep']` — absent, parent `['a']` does NOT resolve ⇒ **SKIPPED ⇒ ASKED ZERO TIMES** and CARRIED and
+    //     NAMED by `constraints()` (`D-90` (2)–(3); `PIN-4` (i)).
+    // **WHAT MAKES THIS CELL RED NOW**: the image MOVED (the boot stopped being a read — the cell's oldest limb, kept
+    // whole); an instance WITHHELD; the register not reading 0 keys; `['a']` asked `0` (the arm `D-96` (1) inverts
+    // and withdrew); `['a','deep']` asked `>= 1` (the skip lost — its body REFUSES, so a lost skip also refuses the
+    // boot at rank `19`); a carried pair MISSING from `constraints()`.
+    cell('FTS-09.8', '`strata/decisions.md` · `D-90` (5) (*"What remains of `ConstraintListInvalid` at those instants is the malformed list and nothing else"*) and `D-96` (1) · `U-STOREROOM-CONSTRAINT-REGISTRATION-INSTANT`\'s `PIN-5` (i)–(iii), `PIN-4` (i) and `PIN-2` (iv); read with `contract.md §7.2` item 1 part 3 (`A119`, ADDED 2026-10-16: *"the exemption is the ZERO-LENGTH FILE\'S and NOT the EMPTY STATE\'S"* — the FILE half, which the ruling does not move) and `§7.2` item 2 (the boot is a read)',
+      'a file whose own bytes are the two-byte image `{}` is a STATE the boot LOADS even though it carries 0 keys: AN INSTANCE is returned, its register reads 0 keys, `[\'a\']` (parent the REGISTER) is carried and asked ONCE with `value === undefined`, `[\'a\',\'deep\']` (parent absent) is CARRIED and SKIPPED — asked 0 times — `constraints()` names both, and the image stands BYTE-IDENTICAL',
       () => {
         const dd = tmp(); const PP = path.join(dd, 'present-empty-state.json');
         fs.writeFileSync(PP, '{}');
         const before = bytes(PP);
-        const r = tryCall(() => PKG.storeCreate({ filePath: PP, journalLength: 8, listeners: [], constraints: [{ address: ['a'], id: 'c1', constraint: () => true }] }));
-        return C(!r.ok && r.v.status === 'ConstraintListInvalid' && bytesEq(bytes(PP), before),
-          `image is ${before.length} bytes (a PRESENT image, so no zero-length exemption is available to it) ; ${r.ok ? 'AN INSTANCE WAS RETURNED — the empty STATE was exempted, which §7.2 item 1 part 3 refuses' : `THREW ${describe(r.v)}`} ; image after=${imgStr(bytes(PP))} byte-identical=${bytesEq(bytes(PP), before)}`);
+        const asks = { applied: 0, skipped: 0 };
+        let appliedValue = 'the body was never asked';
+        const r = tryCall(() => PKG.storeCreate({ filePath: PP, journalLength: 8, listeners: [], constraints: [
+          { address: ['a'], id: 'c1', constraint: (context) => { asks.applied += 1; appliedValue = context.value; return true; } },
+          { address: ['a', 'deep'], id: 'c2', constraint: () => { asks.skipped += 1; return { message: 'the pair at a/deep refuses' }; } },
+        ] }));
+        if (!r.ok) return C(false, `THREW ${describe(r.v)} — a PRESENT image of two bytes is a state (\`A119\`), so the boot is measured against it and a well-formed pair cannot refuse the list (\`PIN-5\` (i))`);
+        const rows = tryCall(() => r.v.constraints());
+        const reg = tryCall(() => r.v.read([]));
+        const after = bytes(PP);
+        const names = pairNames(rows.ok ? rows.v : []);
+        return C(rows.ok && names === 'c1@a,c2@a/deep'
+          && asks.applied === 1 && appliedValue === undefined && asks.skipped === 0
+          && reg.ok && Object.keys(reg.v).length === 0
+          && bytesEq(after, before),
+          `image is ${before === null ? 'ABSENT' : `${before.length} bytes`} (a PRESENT image, so no zero-length exemption is available to it) ; `
+            + `INSTANCE ; constraints()=[${names}] ; asks a=${asks.applied} a/deep=${asks.skipped} ; `
+            + `the register-parent pair's value=${JSON.stringify(appliedValue === undefined ? '<undefined>' : appliedValue)} ; `
+            + `read([])=${reg.ok ? JSON.stringify(reg.v) : describe(reg.v)} ; `
+            + `image after=${imgStr(after)} byte-identical=${bytesEq(after, before)}`);
       });
     cell('FTS-09.9', 'contract.md §7.2 item 1 part 3 read with item 6\'s zero-length sentence ("the content is the empty text, `0` register keys load … and NO code is produced") and §7.1 step 4-bis (the construction\'s own exclusive create leaves that zero-length file), and docs/decisions.md · A119',
       'a ZERO-BYTE file at cfg.filePath lies outside the predicate\'s reach: under a supplied non-empty list it boots AN INSTANCE carrying ZERO register keys, NO code is produced (#16 is not produced for it), and the file is left at 0 bytes',
