@@ -4616,3 +4616,36 @@ writing at all.
 **TERMS: the questions answered (`1` = `Q1`, NO), the declarations made (`1` = a body's write is unsupported), the
 refusals minted (`0`), the statuses minted (`0`), the behaviour bytes this row moves (`0`), the divergences filed (`1` =
 guide `:1371`-`:1372`, ledger row `14`), the cells retracted (`0`), the questions opened (`2` = refusal, ownership).**
+
+---
+
+### `D-93` — **the two questions `D-92` left open are answered: a body's write stays working, and the guide's sentence is another unit's**
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, taking one option from each of the two
+questions the supervisor put on `D-92`'s and the contract's foot — **the options he took, quoted as they were presented:**
+***"Leave the capability, declare it unsupported only"*** **for the refusal question, and** ***"A separate docs unit
+corrects §8.0a:1371"*** **for the ownership question.** **STATUS: `ACTIVE`.**
+
+**WHAT IT PINS.**
+
+1. **`D-92` (i) IS ANSWERED, AND THE ANSWER IS `NO REFUSAL`.** **A constraint body's direct write stays CAPABLE and
+   WORKING**; `D-92`'s declaration stands as **the withdrawal of support and nothing else**. **No status is minted, no
+   behaviour byte moves, and the four committed batteries that drive the act stand** (`tests/e2e/blind-defect-cases`,
+   `external-commit`, `file-tier-save`, `tests/integration/js-constraints/constraint-kernel-states`). **A later row that
+   would refuse the act must name the status question and retire those cells in the same pass; nothing here does either.**
+2. **`D-92` (ii) IS ANSWERED, AND THE ANSWER IS `NOT THIS UNIT`.** **`docs/guides/package-use.md:1371`-`:1372` is corrected
+   by a SEPARATE DOCS UNIT**, so **`U-STOREROOM-CONSTRAINT-REGISTRATION-INSTANT`'s write set stays `PIN-1` (ii)'s TWO guide
+   positions** and its contract's `Q4` takes its recorded default `(ii)`. **The docs unit is NOT QUEUED BY THIS ROW** — no
+   unit id is minted and no tracker row is opened by it (`D-88` (2)'s convention) — **and the sentence stays filed at
+   `docs/L1/open-items-2026-10-25.md §7` row `14` with its owner named and its revisit condition unchanged.**
+3. **THE GUIDE IS NOT THEREFORE SILENT ABOUT IT IN THE MEANTIME, AND THAT IS SAID PLAINLY RATHER THAN LEFT:** from
+   `D-92`'s date the sentence at `:1371`-`:1372` **describes an unsupported act**, and **a reader who meets it before the
+   docs unit runs meets the reading `D-92` withdraws** — the exposure is filed, not hidden, and **no clause of any unit may
+   present a body's write as supported while it stands.**
+4. **`Q2` AND `Q3` OF THE CONTRACT ARE UNMOVED.** This row answers the refusal question and the ownership question **and
+   nothing else**: the contract's `Q2` (`value` at a registration, default *the value when the record was built*) and `Q3`
+   (the re-run instant, default *the rule reaches it*) **stand on their recorded defaults**, and neither is re-opened here.
+
+**TERMS: the questions answered (`2`), the refusals minted (`0`), the behaviour bytes this row moves (`0`), the cells
+retracted (`0`), the guide positions granted (`2` = the unit's own, no third), the docs units queued (`0`), the contract
+questions left on their defaults (`2` = `Q2`, `Q3`).**
