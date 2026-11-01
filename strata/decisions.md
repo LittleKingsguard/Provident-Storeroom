@@ -4467,3 +4467,60 @@ versioned** by it.
 
 **TERMS: the sentences withdrawn (`1`), the rulings otherwise amended (`0`), the behaviour bytes this row moves (`0`), the
 units queued (`0`), the shipped sites granted (`0`).**
+
+---
+
+### `D-90` — **a pair is SKIPPED when its address cannot be walked to, and APPLIED when only its own key is absent; a global rule at every instant**
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, on the supervisor's report of the
+arming-instant defect (`docs/L1/open-items-2026-10-25.md §7` rows `6`, `7`, `9`, `11`) and of the gate-1 record's open
+question, *"whether an absent address should be armable at a boot at all"*. **STATUS: `ACTIVE`.**
+
+**THE ARCHITECT'S WORDS, VERBATIM — the whole of the ruling, unaltered:**
+
+> Constraints that would be applied to an address that can't be walked to yet should be skipped (ex. ['window', 'tabs'],
+> where 'window' does not yet exist)
+> A constraint that can be walked to but doesn't exist (ex. ['window'], where 'window' doesn't exist) should be applied.
+> This is a global rule, not a batch-only one
+
+**WHAT IT PINS.**
+
+1. **THE DISCRIMINATOR IS THE ADDRESS'S PARENT, NOT THE ADDRESS.** A pair's key is its address's **last segment** and its
+   parent is **the address minus that segment**; the empty parent **is the register**, which always resolves to a
+   container. **So a pair is APPLICABLE exactly when its parent resolves to a container, and SKIPPED exactly when it does
+   not.** The two examples are the two arms: `['window','tabs']` with no `window` has an unresolvable parent and is
+   **skipped**; `['window']` with no `window` has the register for a parent and is **applied**, with the absence of its
+   own key as the state it judges.
+2. **A SKIPPED PAIR IS SKIPPED AT EVERY INSTANT, AND ITS BEING SKIPPED IS NOT A REFUSAL.** It is not asked, not refused
+   for, not repaired for and not counted as a judgement; nothing in this row makes a skip cross as a status, open an
+   attempt, or answer the caller anything. **`SKIP` is not a fourth outcome arm:** the closed three-arm set for a body
+   (`true` · `{message, repair}` · `{message}`) is untouched, because a skipped pair's body never runs.
+3. **"YET" IS LOAD-BEARING: A SKIP IS NOT A REFUSAL OF THE PAIR.** A pair whose parent is absent is **carried anyway** —
+   registration does not fail for it — and it **becomes applicable at the instant its parent exists**, because the rule
+   is read afresh at every instant. **A design that reads `yet` as *"never applicable"* has read the row backwards.**
+4. **THE RULE IS GLOBAL AND THE BATCH-ONLY READING IS WITHDRAWN.** Every instant that would apply a pair reads it: **the
+   batch at construction**, **the list at a boot over an existing `filePath`**, **`addConstraint`**, **the toggles that
+   re-arm a held pair**, and **the pass over a write, a `delete` or a `rollback`** — the last of which is what makes a
+   pair at `['window','tabs']` skip after a `delete` of `['window']` and apply again when it stands.
+5. **IT SUPERSEDES THE BOOT'S LIST-WIDE REFUSAL.** Today a boot walks each pair's address and **refuses the whole list**
+   `ConstraintListInvalid` when one does not resolve (`src/store.rs:783`-`:786`; stated at
+   `docs/guides/package-use.md §7.2:889`-`:890`). **Under this rule an unresolvable parent SKIPS the pair and no list-wide
+   refusal stands for it**: *"its parent does not exist yet"* is no longer a defect in the list, and the shape arm is no
+   longer reached by a well-formed pair for that reason. **What remains of `ConstraintListInvalid` at those instants is the
+   malformed list and nothing else** — the contract's own division (`docs/specs/storeroom-native/contract.md §8.1` item 3)
+   is thereby made true rather than amended.
+6. **THE RULE CHANGES NO STORE SEMANTIC.** Nothing here touches the walk, the tiers, the journal, the pass's prefix rule
+   (`D-56`/`D-66`) or the address model: it decides **which pairs are put to the pass and when**, and it adds no verb, no
+   member, no status, no config key and no record shape.
+
+**WHAT IT DOES NOT SETTLE.** **(i) THE ARMING INSTANT'S FIX SHAPE** — `U-STOREROOM-CONSTRAINT-REGISTRATION-INSTANT`'s
+question between deferring the batch's evaluation and giving the registration instant a write route stands, and this row
+changes neither arm. **(ii) WHETHER THE TWO SUBJECTS ARE ONE UNIT** — the supervisor's split; the ruling settles the rule
+and not the decomposition. **(iii) THE MESSAGE** — with the list-wide refusal gone for this cause, the fixed phrase
+`"'<address>' is not a valid constraint entry in 'constraints', a constraint entry is an address and an id, and the
+address is a segment array"` no longer has this arm to answer on, and what it says on the arms that survive is a
+docs-and-code question this row does not open.
+
+**TERMS: the sentences ruled (`3`), the instants the rule reaches (`5` named: construction · boot · `addConstraint` ·
+re-arm · the pass), the rulings superseded (`1` = the boot's list-wide refusal), the readings derived and marked
+load-bearing (`1` = *"yet"*), the behaviour bytes this row moves (`0`), the units opened or queued (`0`).**
