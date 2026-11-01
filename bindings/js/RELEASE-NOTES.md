@@ -55,6 +55,35 @@ the value to assert against, not the crate's own `Cargo.toml` version.
 
 ---
 
+## §1.6.2 · **PREPARED — the release this tree is being cut as** — a BEHAVIOUR release: what the thirty-four commits past the previous tag carry, the one additive member, the workaround it retires, and the four things it does not fix
+
+**THE VERSION: `1.6.2`, AT ELEVEN CELLS THAT MOVE TOGETHER AND NEVER SINGLY** — the main manifest's `version`, its **five** exact `optionalDependencies` pins, and the **five** `platforms/*/package.json` versions — **plus the three shipped documents' one generated version line each.** **The artefact is stamped from the manifest by `bindings/js/build.rs`, so `version()` answers the release figure** and that is the value the coupling rule is asserted against, not the crate's own `Cargo.toml` version.
+
+**THE ARITHMETIC, MEASURED AT THIS TREE: `git rev-list --count v1.6.1..HEAD` READS `34`.** The release's own work is `U-STOREROOM-CONSTRAINT-REGISTRATION-INSTANT` — the constraint registration instant — and the guide and corpus corrections it carried.
+
+**WHAT A CONSUMER SEES CHANGE, EACH A RULING OF 2026-11-02 AND EACH IN THE SHIPPED GUIDE:**
+
+1. **A pair whose PARENT address does not resolve is SKIPPED, not asked** (`D-90`). Before, it was asked with `undefined` and could refuse a construction; now the pair is **carried**, the registration stands, and it is applied at the first instant its parent resolves.
+2. **A pair whose parent RESOLVES is applied — including where the parent holds a LEAF** (`D-96`). **The pair's presence declares that parent a container**, so a leaf standing there is the state the pair judges: the body is asked, and a body that refuses refuses the registration at rank `19`.
+3. **A boot no longer refuses a constraint list for an unresolvable address** (`D-90` (5)). The list-wide walk is gone; `ConstraintListInvalid` now answers **the malformed list alone**, and a well-formed pair is never answered by the shape arm.
+4. **A repair invoked at a registration instant can WRITE** (`D-91`). The repair's own record carries a `write` function taking exactly the store write's first three positions; it joins the registration's own commit, and the repair is credited by returning the op it landed.
+5. **The re-run after a repair always runs, and reads the pair-application rule** (`D-94`).
+6. **`value` on a registration record is read once, and a write does not refresh it** (`D-95`).
+7. **A `rollback`'s own judgement reads the same rule** (`D-97`).
+
+**AND ONE MEMBER IS ADDED, WHICH IS WHY THIS IS A PATCH AND NOT A FEATURE** — **the package's own policy, `PUB-DD-9`: a PATCH is *"a fix inside the declared surface"*.** `write` exists **on the repair's record at a REGISTRATION instant only**: the landing instant's record still has six members, the constraint body's context still has five, **no status, verb, config key, `KC` token or other member moves**, and the closed status set stays twenty ranked `1`…`20`. A consumer that enumerates the registration repair record sees seven; one that enumerates either of the other two sees what it saw before.
+
+**THE WORKAROUND THIS RELEASE RETIRES, MEASURED ON THIS TREE.** Until now a "must exist, with a repair" pair could not travel in `cfg.constraints`, and this project's own register told a consumer to add it after construction instead. **That is no longer true:** with a `cfg.constraints` element whose body refuses on `ctx.value === undefined` and whose repair writes through the route, the construction **stands**, the body is asked **twice**, the repair's record carries `write` as a function, the object lands, and the pair stands. **The `addConstraint`-after-construction advice is withdrawn by this release.**
+
+**TWO CHANGES WITH A MIGRATION COST, SAID PLAINLY RATHER THAN LEFT TO A BUG REPORT:**
+
+- **A pair registered at a deep address no longer guards its ancestor's removal.** A `delete` of `['window']` reaches a pair at `['window','tabs']` and **skips it**, so the delete lands. **To guard a container, register the pair AT the container** — its parent is the register, which always resolves.
+- **A construction that refused for a well-formed pair whose parent was absent now stands.** A consumer who relied on that refusal to catch a stale list gets an instance with the pairs carried instead.
+
+**WHAT THIS RELEASE DOES NOT FIX**, recorded with owners in the unit's tracker entry and the live ledger: the refusal sentence's address at `kernel-attempt.mjs` (a recorded defect row, no successor queued); `§5.4`'s beside-write sentence, a named adjacent tension read through and edited by no pass; a body's direct write, now **declared unsupported** while the capability stays (`D-92`/`D-93`); and four corpus residuals — two property rows' wording, a `KC` token that no registration refusal prints, and a re-run arm unreachable through this route.
+
+---
+
 ## §1.4.0 · **CUT AND PUBLISHED — tag `v1.4.0`** — what that release carries: the seven commits on `main` past `v1.3.0`, and the one figure this section states
 
 **⟶ THE HEADING THAT STOOD HERE WAS *"`## §1.4.0 · **PREPARED** — what `1.4.0` carries: the seven commits on `main` past `v1.3.0`, and the one figure this section states`"*, AND IT IS CORRECTED AT ITS OWN LINE, 2026-10-28.** `RCA-8(g)` ANNOTATE-BESIDE: **the withdrawn bytes are quoted above, every paragraph of this section below stands BYTE-FOR-BYTE as the reading of its own date, and nothing is deleted.** **THE DEFECT IS THE `DEF-AC` CLASS AT ITS THIRD ITERATION AND AT ITS SHARPEST: A HEADING THAT DENIED THE RELEASE ITS OWN TAG NAMES.** The tag set at this date reads `v1.0.0` · `v1.0.1` · `v1.1.0` · `v1.2.0` · `v1.3.0` · `v1.4.0`; **the tag `v1.4.0` names a tree whose `bindings/js/package.json` reads `"version": "1.4.0"` at its own bytes**, its five `optionalDependencies` pins read `1.4.0` with it, and the five platform manifests' `version` fields read `1.4.0` with them; and **a reader opening this file met *"PREPARED"* over a version the registry carries.** **SO THE HEADING NOW READS `CUT AND PUBLISHED — tag `v1.4.0``, which is a PAST-TENSE RECORD OF A RELEASE AND NOT A CLAIM ABOUT THE TREE YOU ARE READING** — the tag set is the record of what has been cut, and the state of the current tree's version is not a document's to state (`D-57`, and the head clause of this file, which stands). **AND WHAT THE SECTION BELOW DECLARES IS UNMOVED BY THE CORRECTION: the ancestor set (`D-56`), the `delete`'s own attempt and its `CommitRecord` (`D-57`), the five smaller items of `D-55`, and the one shipped sentence that all of it falsified — those are `1.4.0`'s content, they travelled in its tarball, and a consumer who installed `1.4.0` has them.** (`D-57`; the head clause of 2026-10-28 above; `git tag --list` and `bindings/js/package.json` read at their own bytes this date.)

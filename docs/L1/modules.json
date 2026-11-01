@@ -1057,7 +1057,7 @@
           "LAYER_LIMIT": 1,
           "FAIL": 0,
           "packed_members": 21,
-          "packed_version": "1.6.1"
+          "packed_version": "1.6.2"
         },
         "npm_run_typecheck": {
           "exit": 0
@@ -1065,7 +1065,7 @@
         "publish_sh_figures": {
           "exit": 0,
           "documents": 3,
-          "version_lines": "1.6.1"
+          "version_lines": "1.6.2"
         },
         "publish_sh_cut_claims": {
           "exit": 0,

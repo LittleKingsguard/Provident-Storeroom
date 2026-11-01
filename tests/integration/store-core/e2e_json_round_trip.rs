@@ -3014,7 +3014,7 @@ fn e2e_loader_drops_one_non_admitted_member_and_loads_the_rest() {
 // construction-side shape check: the list is ADMITTED at `§7.1` step 4-bis in both, and the two
 // constructions differ ONLY in whether the loaded state satisfies the list.
 #[test]
-fn e2e_loader_refused_file_with_a_constraint_list_answers_constraint_list_invalid_and_returns_no_instance() {
+fn e2e_loader_refused_file_with_a_constraint_list_carries_the_pair_and_returns_an_instance() {
     let path = fresh_path("loader-refused-with-constraints");
     // THE REFUSED FILE — ITS TEXT IS WRITTEN BY HAND AT A REAL PATH: a number spelling JSON does not admit.
     std::fs::write(&path, br#"{"root":01}"#).unwrap_or_else(|e| {
@@ -3039,18 +3039,38 @@ fn e2e_loader_refused_file_with_a_constraint_list_answers_constraint_list_invali
         address: key(&["root"]),
         id: "c1".to_string(),
     }]);
-    match storeCreateWithConstraints(&cfg_at(&path, 8), &constraints) {
+    // **⟶ RE-DERIVED 2026-11-02 ON `D-90` (5) AND `PIN-5`.** The arm this cell asserted — a WELL-FORMED
+    // pair whose `address` resolves in no register refusing the construction — is the clause the ruling
+    // SUPERSEDED, and the walk that made it is DELETED. **The pair is now CARRIED and SKIPPED: the
+    // construction RETURNS AN INSTANCE over the refused file, and the register still begins EMPTY.**
+    let carried = ok(
+        storeCreateWithConstraints(&cfg_at(&path, 8), &constraints),
+        "D-90 (5) / PIN-5 (i): a well-formed pair whose parent does not resolve is CARRIED and SKIPPED, so \
+         the construction over the refused file RETURNS AN INSTANCE — `ConstraintListInvalid` is not \
+         reached for it",
+    );
+    assert_eq!(
+        read_at(&carried, &empty_address()),
+        v_obj(&[]),
+        "D-90 (5) / PIN-5 (i): the register STILL BEGINS EMPTY — the refused file loaded nothing, and a \
+         carried pair is not a write"
+    );
+
+    // **ARM (2-BIS) — AND THE SHAPE ARM IS STILL REACHED, WHICH IS THIS CELL'S SURVIVING RED SIDE**
+    // (`PIN-5` (ii)): a MALFORMED element over the SAME refused file is refused, so `ConstraintListInvalid`
+    // answers the malformed list alone.
+    match storeCreateWithConstraints(
+        &cfg_at(&path, 8),
+        &ConstraintsArg::List(vec![ConstraintEntry::Invalid("'a'".to_string())]),
+    ) {
         Ok(_) => panic!(
-            "§7.1 step 4-bis + contract.md §7.2 item 1: the construction that SUPPLIES a constraint list over \
-             a file the loader REFUSES answers `ConstraintListInvalid` and returns NO INSTANCE — the refused \
-             file's boot answers `Some(0)`, the register is EMPTY, the supplied pair's `address` resolves in \
-             NO register, and the construction FAILS. An instance was returned."
+            "PIN-5 (ii): `ConstraintListInvalid` answers the MALFORMED list — an element whose `address` is \
+             not a segment array must still be refused at the construction. An instance was returned."
         ),
         Err(e) => assert_code(
             &e,
             "ConstraintListInvalid",
-            "§7.1 step 4-bis + contract.md §8.1 #16 + contract.md §7.2 item 1 — the load-side validation \
-             failure answers the store's own SIXTEENTH MEMBER `ConstraintListInvalid`",
+            "PIN-5 (ii) — the malformed list's own member, still reached at the construction",
         ),
     }
 
