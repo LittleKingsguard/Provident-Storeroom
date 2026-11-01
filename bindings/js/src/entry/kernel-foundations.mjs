@@ -1164,6 +1164,87 @@ function opSpelling(value) {
   return `a ${typeof value} (which is no op)`;
 }
 
+// ---------------------------------------------------------------------------------------------
+// **⟶ THE PAIR-APPLICATION PREDICATE — ADDED 2026-11-02, `D-90` AND `PIN-2`, AND IT IS ONE PREDICATE AT ONE
+// HOME.**
+//
+// **THE RULING, THE ARCHITECT, VERBATIM:** *"Constraints that would be applied to an address that can't be
+// walked to yet should be skipped (ex. ['window', 'tabs'], where 'window' does not yet exist). A constraint that
+// can be walked to but doesn't exist (ex. ['window'], where 'window' doesn't exist) should be applied. This is a
+// global rule, not a batch-only one"* (`strata/decisions.md` · `D-90`).
+//
+// **THE DISCRIMINATOR IS THE ADDRESS'S PARENT, AND THE PARENT MUST RESOLVE TO A CONTAINER.** A pair's ADDRESS
+// is the array it was registered at, its KEY is that array's LAST segment, and its PARENT is the array MINUS
+// that segment; **the EMPTY PARENT IS THE REGISTER, WHICH ALWAYS RESOLVES TO A CONTAINER.** So a pair is
+// **APPLICABLE** exactly when its PARENT resolves to a container and **SKIPPED** exactly when it does not.
+//
+// **THE WALK IS THE STORE'S OWN `readLiteral(parent)` WITH THE TIER ARGUMENT OMITTED, AND ITS THREE ANSWERS ARE
+// THE THREE ARMS**: `ReadTargetIsBranch` ⇒ the parent is a BRANCH ⇒ APPLICABLE · `AddressNotFound` ⇒ the parent
+// does not resolve ⇒ SKIPPED · A VALUE ANSWERED ⇒ the parent is a LEAF ⇒ SKIPPED. **The tier argument is
+// omitted because the zero-tier call selects every tier**, and the omission is the whole of the call's shape:
+// this predicate asks the store nothing else and reads no value class of its own.
+//
+// **THE LEAF ARM IS THE STORE'S OWN FACT AND NOT A GUESS ABOUT HOW VALUES LOOK.** The write the pair's own
+// repair would owe under a leaf parent answers `WriteParentNotLink` and installs nothing, so a pair under a leaf
+// parent is as unwalkable-to as a pair under an absent one. **And the line between the two arms is drawn by the
+// NODE**: an EMPTY OBJECT written at a parent mints a `Kind::Map` BRANCH — so a pair under it is APPLICABLE —
+// while a PRIMITIVE written there makes a `Node::Leaf`, and a leaf never holds a structured value.
+//
+// **THE VERDICT IS AN INSTANT'S FACT AND IS STORED NOWHERE** (`PIN-2` (v)): every caller asks at the instant it
+// would apply the pair. **A SKIP IS NOT A REFUSAL** (`PIN-3`): it crosses nothing, opens no attempt, appends no
+// entry and removes no pair — the pair stays CARRIED and applies at the first instant its parent is a container
+// (`PIN-4`). **NO STATUS IS MINTED AND NO VERB IS ADDED**: the three answers are two EXISTING members of the
+// store's closed set and one existing value.
+// ---------------------------------------------------------------------------------------------
+
+/** **APPLICABLE** — the pair's parent resolves to a CONTAINER, so the pair is APPLIED at this instant. */
+export const PAIR_APPLICABLE = 'applicable';
+/** **SKIPPED, ABSENT** — the pair's parent does not resolve, so the pair is SKIPPED at this instant. */
+const PAIR_SKIPPED_ABSENT = 'absent';
+/** **SKIPPED, LEAF** — the pair's parent resolves to a LEAF, so the pair is SKIPPED at this instant. */
+const PAIR_SKIPPED_LEAF = 'leaf';
+
+/**
+ * **THE PAIR-APPLICATION PREDICATE** — one answer per call, at the one instant it is asked:
+ * `PAIR_APPLICABLE`, `PAIR_SKIPPED_ABSENT` or `PAIR_SKIPPED_LEAF`.
+ *
+ * `store` IS THE CALLER'S INTERFACE AND IT IS ASKED ONE THING: `readLiteral(address's PARENT)` with the tier
+ * argument omitted. **NOTHING IS CAUGHT BUT THE STORE'S OWN ANSWER**, and a refusal that names any other status
+ * is read as the absence arm — an in-domain address's parent can answer only the three answers the clause names,
+ * so a fourth cannot arise and is not invented here.
+ */
+export function pairApplication(store, address) {
+  const parent = address.slice(0, address.length - 1);
+  try {
+    // THE ONE CALL: the tier argument is OMITTED, so the walk selects every tier.
+    store.readLiteral(parent);
+  } catch (refused) {
+    const status = refused !== null && typeof refused === 'object' ? ownMember(refused, 'status') : undefined;
+    return status === 'ReadTargetIsBranch' ? PAIR_APPLICABLE : PAIR_SKIPPED_ABSENT;
+  }
+  // A VALUE ANSWERED: the parent is a LEAF, and a pair under a leaf parent is SKIPPED.
+  return PAIR_SKIPPED_LEAF;
+}
+
+/**
+ * **THE SAME ONE PREDICATE, READ OVER THE ADDRESSES A REGISTRY ROW STANDS AT** — the form the pass and the
+ * registration's re-run need, and the ONLY place the row's address set is walked.
+ *
+ * **ONE PAIR IS ONE BODY AND IS ASKED ONCE**, so a pair registered over more than one address cannot be asked
+ * at one address and skipped at another: **it is APPLICABLE at an instant where ANY of its own addresses has a
+ * container parent**, and SKIPPED only where none does. **THE PREDICATE IS NOT RE-STATED HERE** — this loop asks
+ * `pairApplication` of each address in the registry's own order and answers the first APPLICABLE one; a row
+ * carrying no address at all is SKIPPED, which is the absent arm's own answer.
+ */
+export function pairAppliesAt(store, pair) {
+  const addresses = pair !== null && typeof pair === 'object' ? pair.addresses : undefined;
+  if (!Array.isArray(addresses)) return false;
+  for (let i = 0; i < addresses.length; i += 1) {
+    if (pairApplication(store, addresses[i]) === PAIR_APPLICABLE) return true;
+  }
+  return false;
+}
+
 /**
  * **THE PASS'S EVALUATED SET — A FILTER OVER THE STORE'S OWN `triggered`, AND NO SECOND REACH.**
  *

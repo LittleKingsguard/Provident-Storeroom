@@ -714,7 +714,7 @@ pub fn storeCreateWithConstraints(
     // outside forms of the LIST ITSELF and the element that is not an `{ address, id }` pair answer the
     // store's own sixteenth member and never `§8.1` #1 (`§7.1`: ABSENCE answers #12, PRESENCE with a value
     // outside the domain answers the key's own member).
-    let pairs = construction_constraints(constraints)?;
+    let _pairs = construction_constraints(constraints)?;
     // Step 4b — THE CONSTRUCTION'S EXCLUSIVE CREATE, THE LAST ACT OF THE CONSTRUCTION'S ARGUMENT
     // VALIDATION (`§7.1` step 4b; `contract.md §10.4` parts 1–5; `DD-45`'s amended clause). **ARM (b): WHERE
     // `filePath` IS PROVIDED AND ITS FILE IS ABSENT, THE STORE CREATES ITS OWN FILE AT THAT PATH —
@@ -758,7 +758,7 @@ pub fn storeCreateWithConstraints(
     // Step 7 — `§7.2` item 6: the `file` tier's content at `cfg.filePath` is loaded if the file exists; `mem`
     // and `temp` begin EMPTY, the journal begins with 0 entries, and the home is NOT re-populated from the
     // file, so a fresh instance over an equal path loads NO registration (`DD-38`).
-    let loaded = store.boot_load();
+    let _loaded = store.boot_load();
     // **⟶ STEP 7'S OWN SECOND HALF, ADDED 2026-10-15 (`§7.1` step 7 as amended; `parameter-semantics.md
     // §2.21`): THE LOAD INSTANT VALIDATES THE SUPPLIED LIST AGAINST THE STATE IT JUST LOADED** — *"the
     // list's validation at the construction and its validation at the load"* (*"that is what detects a
@@ -780,13 +780,34 @@ pub fn storeCreateWithConstraints(
     // non-zero-length image is a state, and the clause's exemption names *"absent or zero-length"* and NOT
     // *"empty"*. `boot_load` therefore answers WHETHER AN IMAGE STOOD THERE AT ALL and not how many members
     // it admitted, and the count it returns is no longer what the guard reads.**
-    if loaded.is_some() {
-        for pair in &pairs {
-            if store.walk(&pair.0, &TierSel::All).is_err() {
-                return Err(constraint_list_invalid(slashed_address(&pair.0)));
-            }
-        }
-    }
+    //
+    // **⟶ AND THE WALK ITSELF IS DELETED 2026-11-02 — `D-90` (5), CARRIED AS `PIN-5` (i) AND NOT NARROWED.**
+    // `RCA-8(g)` ANNOTATE-BESIDE: **every byte above stands BYTE-FOR-BYTE as the reading of its own dates and is
+    // read THROUGH this clause; what goes is the `if loaded.is_some() { for pair in &pairs { … } }` block that
+    // stood here, and this frame now proceeds to the replay's floor below unchanged.**
+    //
+    // **THE RULING, THE ARCHITECT, VERBATIM: *"Constraints that would be applied to an address that can't be
+    // walked to yet should be skipped … A constraint that can be walked to but doesn't exist … should be applied.
+    // This is a global rule, not a batch-only one"*** (`strata/decisions.md` · `D-90`), and its `(5)` names THIS
+    // site: **an unresolvable parent SKIPS its pair and no list-wide refusal stands for it**, so *"its parent
+    // does not exist yet"* is no longer a defect in the list. **THE WALK WAS DELETED RATHER THAN NARROWED**
+    // because the arm it answered is a cause the rule now SKIPS: after it, a WELL-FORMED pair whose parent does
+    // not resolve neither refuses the list nor reaches the shape arm — it registers and is skipped, at the
+    // registration instant's own evaluation, where the pair-application rule is read (`D-90` (3): *"registration
+    // does not fail for it"*).
+    //
+    // **WHAT REMAINS OF `ConstraintListInvalid` AT THIS INSTANT IS THE MALFORMED LIST ALONE** (`PIN-5` (ii)):
+    // `construction_constraints` below — the out-of-domain segment, the empty `id`, the list's own outside forms
+    // and the element that is not a pair — **so `docs/specs/storeroom-native/contract.md §8.1` item 3's own
+    // sentence, *"a well-formed pair is never answered by the shape arm"*, is made TRUE by this deletion rather
+    // than amended.** **`ConstraintListInvalid` KEEPS ITS RANK, ITS SENTENCE AND ITS OWN TRIGGERS** (`PIN-5`
+    // (iii); `src/error.rs` is out of this unit's write set and moves no byte), and what it says on the arms that
+    // survive is a later unit's question (`D-90` (6)-iii).
+    //
+    // **THE TWO BINDINGS THIS DELETION LEAVES WITHOUT A READER ARE NAMED FOR WHAT THEY ARE AND NEITHER ACT MOVES**:
+    // `_loaded` still PERFORMS the load — `boot_load` is the load, and its answer is what the deleted walk
+    // consumed — and `_pairs` still PERFORMS the list's own shape validation, which is the arm that survives.
+    // No store semantic moves (`D-90` (6)): the walk, the tiers, the journal and the address model are untouched.
     // **THE REPLAY'S FLOOR, TAKEN HERE BECAUSE THIS IS THE ONE INSTANT IT IS DEFINED** (`§6.6`): the state the
     // store holds before any operation it will journal — the booted image where one was loaded, the empty
     // register where none was. A `file`-tier boot journals nothing (`§7.2` item 6), so nothing else records it.

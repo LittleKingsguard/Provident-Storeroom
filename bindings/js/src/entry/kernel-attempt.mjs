@@ -1,5 +1,5 @@
 // `D-13` (`docs/L1/kernel-subdivision.md` §1 part `9d`) — the pass: bytes moved from `bindings/js/src/constraint-kernel.mjs`; no logic changed.
-import { KC, KC_TOKENS, SETTLED_ON_THE_PASSING_ARM, SAVE_FAILED_AT_THE_TERMINAL_ARM, TERMINAL_ARM, markBodyThrow, throwableForm, boundedEntryMessage, refuse, isKernelRefusal, pairSpelling, addressSpelling, sameAddress, kernelFor, append, appendOwn, ownMember, withdraw, landedOp, landedOpDefect, pairsTriggered, enterCommitFrame, leaveCommitFrame, commitLogInFlight, sealHandoff } from './kernel-foundations.mjs';
+import { KC, KC_TOKENS, SETTLED_ON_THE_PASSING_ARM, SAVE_FAILED_AT_THE_TERMINAL_ARM, TERMINAL_ARM, markBodyThrow, throwableForm, boundedEntryMessage, refuse, isKernelRefusal, pairSpelling, addressSpelling, sameAddress, kernelFor, append, appendOwn, ownMember, withdraw, landedOp, landedOpDefect, pairsTriggered, pairAppliesAt, enterCommitFrame, leaveCommitFrame, commitLogInFlight, sealHandoff } from './kernel-foundations.mjs';
 import { commitAttemptIdOf, terminal, close, dropHandoff } from './kernel-terminal.mjs';
 
 /// **⟶ ADDED 2026-10-28 — THE BUMP'S CHANNEL, SPELLED ON THIS SIDE TOO (`D-63`).** **THE PASSING SWEEP MOVES THE
@@ -601,6 +601,28 @@ function evaluate(kernel, attempt, landing) {
     for (const key of list) {
       const pair = kernel.pairs.get(key);
       if (pair === undefined) continue;
+      // ═══════════════════════════════════════════════════════════════════════════════════════════════
+      // **⟶ THE PAIR-APPLICATION RULE IS READ AT THE LOOP'S HEAD, BEFORE THE CONTEXT IS BUILT — `D-90`,
+      // `PIN-2` (v), `PIN-3`, `PIN-4` (iv).**
+      // ═══════════════════════════════════════════════════════════════════════════════════════════════
+      //
+      // **A PAIR WHOSE PARENT IS NOT A CONTAINER IS SKIPPED AT EVERY INSTANT THAT WOULD APPLY IT**, and the pass
+      // over a `write`, a `delete` or a `rollback` is the fifth of those instants (`D-90` (4)). **The rule is
+      // read HERE and not at the store: the store still computes the reach** (`D-56`/`D-66`/`D-69`, untouched —
+      // the membership filter above is byte-unmoved), and what this clause decides is only **which of the pairs
+      // that reach names is actually ASKED**. **THE ADDRESS IT IS ASKED AT IS THE PAIR'S OWN** — the array it
+      // was registered at, and never the act's — because the rule's discriminator is *"the address's parent"*: a
+      // pair at `['window','tabs']` is SKIPPED after a `delete` of `['window']` however the act is addressed.
+      // **A pair standing over more than one address is applicable where ANY of them has a container parent**:
+      // one body is asked once, and the pair is not killed for a second address's sake.
+      //
+      // **A SKIP IS NOT A REFUSAL** (`PIN-3`): the pair is not asked, it joins neither `ran` nor
+      // `appliedRepairs`, it appends no `constraint-check` entry, it opens no repair and it cannot reach a
+      // terminal arm — **so an act the pair would have refused LANDS.** It is not counted as a judgement.
+      // **AND IT IS NOT REMOVED**: the pair stays CARRIED and is asked at the first later instant its parent
+      // stands and an act's own touched set reaches it (`PIN-4` (i)–(ii)). **The `pending`/`triggered`
+      // machinery moves no byte**: `releasePending` reads the run's snapshot and never the pairs that were asked.
+      if (!pairAppliesAt(attempt.store, pair)) continue;
       // `kernel-surface.md §2.3` item 1 — THE OP WHOSE LANDING LEFT THE STATE THIS EVALUATION RUNS AT,
       // VERBATIM, and the value that write returned, VERBATIM: "the data the constraint confirms".
       const op = landing;

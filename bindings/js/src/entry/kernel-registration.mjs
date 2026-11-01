@@ -1,5 +1,5 @@
 // `D-13` (`docs/L1/kernel-subdivision.md` §1 part `9b`) — the registration act, its evaluation, and the registry's removal: bytes moved from `bindings/js/src/constraint-kernel.mjs`; no logic changed.
-import { KC, KERNEL_REFUSAL, markBodyThrow, refuse, inDomainAddress, inDomainId, pairRowAt, sameAddress, kernelFor, append, appendOwn, landedOp, pairsTriggered, enterCommitFrame, leaveCommitFrame } from './kernel-foundations.mjs';
+import { KC, KERNEL_REFUSAL, markBodyThrow, refuse, inDomainAddress, inDomainId, pairRowAt, sameAddress, kernelFor, append, appendOwn, landedOp, pairsTriggered, enterCommitFrame, leaveCommitFrame, pairApplication, PAIR_APPLICABLE } from './kernel-foundations.mjs';
 import { dropHandoff } from './kernel-terminal.mjs';
 
 /// **⟶ ADDED 2026-10-27 — `D-46`'s NAME ON A REPAIR INVOCATION'S OWN ENTRY, SPELLED HERE AS
@@ -289,6 +289,25 @@ function withdrawRegistration(kernel, address, id, fresh, home) {
  * invocation below is NOT wrapped — a throwing body reaches the caller as the very value it threw.
  */
 function registrationEvaluation(kernel, store, address, id, constraint) {
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════
+  // **⟶ THE PAIR-APPLICATION RULE IS READ HERE, FIRST — `D-90`, `PIN-2` (v), `PIN-3`, `PIN-4` (iv).**
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════
+  //
+  // **A PAIR WHOSE PARENT IS NOT A CONTAINER IS SKIPPED AT EVERY REGISTRATION INSTANT** — construction, a boot
+  // over an existing `filePath`, `addConstraint` and a re-arm alike, because the rule is GLOBAL and not
+  // batch-only (`D-90` (4)). **THE PREDICATE IS ASKED BEFORE THE CONTEXT IS BUILT AND BEFORE THE COMMIT FRAME IS
+  // ENTERED**, so a skipped pair builds no context, appends no `constraint-check` or `repair-run` entry, enters
+  // no frame and opens no attempt; **it returns state 1's answer (`null`) and the registry row the caller's
+  // `K-1` already wrote stands UNMOVED** — the pair is CARRIED and `constraints()` names it (`PIN-4` (i)).
+  //
+  // **A SKIP IS NOT A REFUSAL AND IT IS NOT A REFUSAL OF THE PAIR** (`PIN-3`, `D-90` (3)): the body is not
+  // asked, so nothing runs, nothing is refused for it, and no `status`, `message` or `log` entry crosses. **THE
+  // ONE THING THIS EARLY RETURN MUST NOT DO IS WITHDRAW THE ROW** — `withdrawRegistration` runs only on the
+  // refusing arm, one frame above, and a skip never reaches it.
+  //
+  // **THE REGISTRY WRITE AND THE STORE'S `listen` HAVE ALREADY HAPPENED** above this function, so a skipped pair
+  // is carried BY CONSTRUCTION and not by a second act: this function is the third step and no step moves.
+  if (pairApplication(store, address) !== PAIR_APPLICABLE) return null;
   // **⟶ THE REGISTRATION'S OWN COMMIT AND ITS OWN ONE LIST — `D-53`, 2026-10-28.** A registration is a commit
   // (`addConstraint`'s and `constraintOn`'s brackets open one, and `3-bis` (a) already declares *"the
   // `CommitRecord` of the registration act"*), so the record is built FIRST and the list beside it: **a verb the
@@ -383,6 +402,19 @@ function readCurrent(store, address) {
  * `RollbackStep.checkpoint` precedent already fixes — while `value` is the store's CURRENT value at the
  * pair's address, read and not landed (its (3)). **`id` IS THE PAIR'S OWN**, which the constraint's context
  * does not carry at all, the repair's shape declaring it.
+ *
+ * **⟶ AND THE RECORD GAINS ITS SEVENTH MEMBER AT THIS INSTANT AND AT NO OTHER — `write`, 2026-11-02.** `D-91`,
+ * the architect, verbatim: ***"Give the registration instant a lawful write route."*** **THE CARRIER IS THIS
+ * RECORD AND NOTHING ELSE** (`PIN-6` (i)): the constraint body's five-member context is UNMOVED and gains
+ * nothing at any instant (`D-92` (1): the route *"is the repair's own record and by nothing else"*), and a
+ * third carrier would have to be a second argument to a ONE-argument invocation. **THE MEMBER IS
+ * INSTANT-SCOPED** (`PIN-8` (iii) (c)): the LANDING instant's six-member record at `kernel-attempt.mjs` is
+ * byte-unmoved and gains no route, so *"six"* and *"seven"* are one census each, never one census across the
+ * two instants.
+ *
+ * **THE MEMBER'S VALUE IS A FUNCTION OF THE STORE'S OWN THREE POSITIONS — `(address, tier, value)` — AND NO
+ * FOURTH.** It is built by `registrationRoute` below, which names THE REGISTRATION'S OWN `CommitRecord` and
+ * refuses a supplied fourth position BEFORE any store act.
  */
 function registrationRepairContext(store, address, id, commitRecord) {
   return {
@@ -394,6 +426,51 @@ function registrationRepairContext(store, address, id, commitRecord) {
     op: null,
     // THE COMMIT THE REPAIR IS PART OF — a FRESH LIST, never the record's own member (`§2.3` item 2).
     pending: Array.isArray(commitRecord.pending) ? commitRecord.pending.slice() : [],
+    // THE SEVENTH MEMBER, AT THIS INSTANT ALONE (`PIN-6` (ii)): the route the repair may take.
+    write: registrationRoute(store, commitRecord),
+  };
+}
+
+/**
+ * **THE WRITE ROUTE A REPAIR MAY TAKE AT A REGISTRATION INSTANT — `D-91` (ii), `PIN-6`, `PIN-7`.**
+ *
+ * **THREE POSITIONS, EXACTLY THE STORE'S `write`'S FIRST THREE — `(address, tier, value)` — AND THE COMMIT IS
+ * NOT A POSITION.** The route NAMES the registration's own `CommitRecord` — the record `registrationEvaluation`
+ * built and this record's `pending` copy-carries — **and the caller cannot name another, which is what the
+ * arity refusal below secures.** **WHERE A COMMIT WINDOW STANDS (`addConstraint`, the re-arm) THE WRITE JOINS IT
+ * AND OPENS NOTHING; WHERE NONE STANDS FOR THE CALLER (construction, a boot) THE CALL OPENS THE WINDOW ITS OWN
+ * WRITE NEEDS AND RELEASES IT ON EVERY ARM** (`state.mjs`'s `openCommit`: *"A JOIN CAN ONLY BE A JOIN OF A
+ * COMMIT THAT IS OPEN"*). Both arms are the entry's own, reached by handing the record to `write`'s FOURTH
+ * position — the position `D-46` declares for a commit — and no second mechanism is minted here.
+ *
+ * **A SUPPLIED FOURTH POSITION IS REFUSED BEFORE ANY STORE ACT, WHATEVER ITS CLASS — A LAWFUL `CommitRecord`
+ * INCLUDED — AND THE TEST IS THIS UNIT'S OWN AND NOT THE COMMIT POSITION'S.** The position's own test ACCEPTS
+ * any object carrying an own present `pending` (`delivery.mjs`), **which is exactly the record a repair holds**,
+ * so re-using it would admit the very call this clause forbids. **The refusal's form is the entry's class
+ * refusal: ONE `TypeError` whose `status` member is ABSENT, which carries NO `log` member, and which is thrown
+ * unwrapped** — the form the commit position's own refusal takes. **NO STATUS IS MINTED** (`PIN-10`): this is
+ * the package's class refusal and not a store code.
+ *
+ * **WHAT IT ANSWERS AND WHAT IT DOES NOT DO.** It answers THE STORE'S OWN `WriteRecord` — `{op, watched,
+ * triggered}`, the very record `write` answers — and a refusal CROSSES UNCONVERTED AND UNCAUGHT, in the store's
+ * own form (`WriteParentNotLink`, `AddressNotFound`, `AddressMalformed`, `ContainerKindConflict`, and the
+ * boundary's own `ValueRefusedAtBoundary` where the value is one the crossing refuses): **the route converts
+ * nothing, catches nothing and mints no code** (`PIN-6` (iv)). **IT RUNS NO PASS OF ITS OWN** (`PIN-6` (v)): it
+ * appends no `constraint-check` entry, no `outcome` entry and no terminal act, delivers no listener, and opens
+ * no attempt — **the pair is judged by the registration's own re-run over the op it landed** (`PIN-7` (iii)).
+ * **AND IT IS NOT A COPY OF THE STORE**: it is the route the kernel binds to the instance the registration is
+ * constructing, so it answers this store and no other.
+ */
+function registrationRoute(store, commitRecord) {
+  return function write(address, tier, value) {
+    // THE ARITY TEST IS THIS UNIT'S OWN AND IT STANDS BEFORE ANY STORE ACT (`PIN-6` (iii)).
+    if (arguments.length > 3) {
+      throw new TypeError(
+        'the registration write route takes three positions — (address, tier, value) — and no fourth: the '
+        + 'commit is the registration\'s own and cannot be named',
+      );
+    }
+    return store.write(address, tier, value, commitRecord);
   };
 }
 
@@ -593,6 +670,22 @@ function registrationRerun(kernel, attempt, produced, key) {
   for (const evaluated of list) {
     const pair = kernel.pairs.get(evaluated);
     if (pair === undefined) continue;
+    // ═══════════════════════════════════════════════════════════════════════════════════════════════
+    // **⟶ THE RE-RUN IS AN INSTANT THAT WOULD APPLY A PAIR, AND IT READS THE RULE — `D-94`, `PIN-4` (iv).**
+    // ═══════════════════════════════════════════════════════════════════════════════════════════════
+    //
+    // **`D-90`'s RULE IS GLOBAL, SO NO ARM OF IT MAY BE CARVED OUT SILENTLY**: the re-run's one reachable
+    // instance is a repair that removes the pair's OWN parent during the registration — it writes a leaf over
+    // it, or deletes it — **and on that arm the parent is no longer a container at the instant the re-run would
+    // apply the pair.** **THE PAIR IS SKIPPED THERE AND THE REGISTRATION STANDS ON THE REPAIR'S LANDING**, and
+    // the pair is CARRIED for the first later instant its parent stands (`PIN-4` (i)). **It is not asked, it
+    // crosses nothing, and it cannot refuse the registration** (`PIN-3`).
+    //
+    // **AND THE RE-RUN ITSELF IS UNCONDITIONAL (`D-94` (1), the architect verbatim: *"Always rerun after a
+    // repair"*).** This clause skips a PAIR inside the re-run and never the re-run: `registrationAttempt` calls
+    // it after every credited repair, `0`-PAIRS-ASKED INCLUDED, and this frame still returns the run's own
+    // answer. **A SKIPPED PAIR LEAVES THE RE-RUN PASSING VACUOUSLY.**
+    if (pairApplication(attempt.store, attempt.address) !== PAIR_APPLICABLE) continue;
     let outcome;
     const context = {
       address: attempt.address.slice(),
