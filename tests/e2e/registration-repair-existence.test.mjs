@@ -34,12 +34,21 @@
 // instants read one shape alike and no cell here rests on either read's prototype rule.)*
 //
 // **3 · WITH A REPAIR PRESENT THE KERNEL RUNS IT ON THE SYNTHETIC ATTEMPT OF THE SAME COMMIT, AND HANDS IT THE
-// SIX-MEMBER `RepairContext`.** `kernel-registration.mjs:430-483` mints the synthetic attempt, appends the
+// ⟶ SEVEN-MEMBER `RepairContext` — SIX MEMBERS PLUS THE REGISTRATION INSTANT'S LAWFUL WRITE ROUTE, `write`.**
+// **⟶ AMENDED 2026-11-02 (`D-91`, `PIN-6` (i)–(ii)): THE SIX-MEMBER PRINT THIS CLAUSE CARRIED IS THE SUPERSEDED
+// DECLARATION.** The architect, verbatim: *"Give the registration instant a lawful write route."* — and the carrier
+// is THIS record, which gains ONE member at this instant and at no other: **`write`, a FUNCTION of the store's own
+// three positions `(address, tier, value)`** (`PIN-6` (ii)–(iii)). **THE BYTES STILL STAND FOR SIX AT A LANDING**
+// (`PIN-8` (iii) (c)), so the census is read WITH ITS INSTANT: `kernel-registration.mjs:430-483` mints the synthetic
+// attempt, appends the
 // `constraint-check` and `repair-run` entries (`:478`, `:480`), and calls
-// `registrationRepairContext(store, address, pair.id, attempt.commit)` (`:483`) — whose record is EXACTLY SIX
-// members (`:387-398`): `address` (the pair's own, `:389`), `id` (the pair's `id`, `:390`), `tier: null` (`:392`),
-// `value` (the store's current value at the pair's address, read and not landed, `:393`), `op: null` (`:394`) and
-// **`pending` — the commit the repair is part of, handed as a fresh list (`:396`)**. **THE INVOCATION NAMES THAT
+// `registrationRepairContext(store, address, pair.id, attempt.commit)` (`:483`) — whose record is EXACTLY SEVEN
+// at a registration (`:387-398` plus `PIN-6`'s member): `address` (the pair's own, `:389`), `id` (the pair's `id`,
+// `:390`), `tier: null` (`:392`),
+// `value` (the store's current value at the pair's address, read and not landed, `:393`), `op: null` (`:394`),
+// **`pending` — the commit the repair is part of, handed as a fresh list (`:396`)** and **`write` — the route,
+// built by `registrationRoute`, which names that same commit and refuses a supplied fourth position**. **THE
+// INVOCATION NAMES THAT
 // COMMIT** (`:497`, `repairInCommit`, `:38-42`): `D-53`, verbatim — *"Constraints/Repairs should always use the
 // same commit"* — so the write a repair makes with that record at `write`'s FOURTH position JOINS the registration's
 // commit and opens none of its own (`D-46` item 2's position: an object carrying an own present `pending`).
@@ -149,10 +158,19 @@ const VIOLATION = 'the top-level register address must exist';
 /** **THE FIVE-MEMBER EVALUATION CONTEXT, SORTED** (`kernel-registration.mjs:345-356`; a SIXTH member is refused
  *  by name at `kernel-surface.md §2.3` item 1's (6), which is why the census is asserted on EVERY reading). */
 const CONTEXT_MEMBERS = ['address', 'attempt', 'op', 'tier', 'value'];
-/** **THE SIX-MEMBER `RepairContext`, SORTED** (`kernel-registration.mjs:387-398`) — the constraint's record plus
- *  `id` and `pending`, and NOT the constraint's record (`:373-374`: *"THE REPAIR'S CONTEXT IS NOT THE CONSTRAINT'S
- *  CONTEXT, AND THE TWO ARE NOT INTERCHANGEABLE"*). */
-const REPAIR_CONTEXT_MEMBERS = ['address', 'id', 'op', 'pending', 'tier', 'value'];
+/** **⟶ THE SEVEN-MEMBER REGISTRATION-INSTANT `RepairContext`, SORTED — RE-DERIVED 2026-11-02 ON `D-91` (3) AND
+ *  `PIN-6` (ii), AND THE SIX-MEMBER PRINT THIS CONSTANT HELD WAS THE SUPERSEDED DECLARATION.**
+ *  `D-91`, the architect, verbatim: *"Give the registration instant a lawful write route."* — and `PIN-6` (ii)
+ *  names the carrier and the spelling: **the repair's record gains ONE member at a REGISTRATION instant and at no
+ *  other, named `write`, whose value is a FUNCTION** (`PIN-6` (i): *"the constraint body's five-member evaluation
+ *  context is UNMOVED and gains nothing"*). **THE SIX-MEMBER CENSUS IS NOT WRONG — IT IS INSTANT-SCOPED**
+ *  (`PIN-8` (iii) (c): *"the landing instant's six stands byte-unmoved"*), which is why cell (1) reads BOTH: seven
+ *  here and six on a landing drive, each at its own instant, never one census across the two. */
+const REPAIR_CONTEXT_MEMBERS = ['address', 'id', 'op', 'pending', 'tier', 'value', 'write'];
+/** **THE LANDING INSTANT'S SIX-MEMBER `RepairContext`, SORTED** (`kernel-attempt.mjs`'s record; `PIN-8` (iii) (c),
+ *  `V-3`: *"the landing instant's repair record is anything but six"* is the failure) — **the same six members
+ *  WITHOUT `write`, because the route exists at a registration and nowhere else.** */
+const LANDING_REPAIR_CONTEXT_MEMBERS = ['address', 'id', 'op', 'pending', 'tier', 'value'];
 /** `PAR-JS-13`: the write's returned record is `{op, watched, triggered}` — fresh on every call, never a view. */
 const WRITE_RECORD_MEMBERS = ['op', 'triggered', 'watched'];
 /** `constraints()`'s declared two members (`index.d.ts:1118-1126`), sorted. */
@@ -205,6 +223,7 @@ test('registration-repair (1) · THE REPAIR CREATES THE OBJECT DURING THE ADD: a
   const repairReadings = [];
   let repairs = 0;
   let landedRecord = null;
+  let routeType = null;
   // **THE CALL IS MADE DIRECTLY: a refusal from the registration ESCAPES and fails this cell loudly** — the
   // scenario's whole claim is that this call passes, and a `try`/`catch` here would be the finding.
   const identity = store.addConstraint({ address: ['window'], id: ID }, (context) => (context.value === undefined
@@ -221,6 +240,10 @@ test('registration-repair (1) · THE REPAIR CREATES THE OBJECT DURING THE ADD: a
             tier: repairContext.tier,
             value: repairContext.value,
           });
+          // **⟶ AND THE RECORD'S SEVENTH MEMBER IS READ WHERE IT IS HANDED OUT — `D-91`, `PIN-6` (ii).** It is the
+          // registration instant's lawful WRITE ROUTE, a FUNCTION of the store's own three positions; this cell
+          // reads its CLASS and nothing else (`G3-20`…`G3-27` drive it).
+          routeType = typeof repairContext.write;
           // **THE REPAIR MAKES ITS OWN WRITE, NAMING THAT CONTEXT'S OWN RECORD AT THE WRITE'S FOURTH POSITION**
           // (`kernel-registration.mjs:396`; `D-46` item 2's accepted spelling), and answers the STORE'S OWN
           // record of the write it just made (`landedOp`, `kernel-foundations.mjs:1105-1131`).
@@ -258,9 +281,22 @@ test('registration-repair (1) · THE REPAIR CREATES THE OBJECT DURING THE ADD: a
     `**THE PAIR'S REPAIR IS THE ACT THAT MAKES THIS ADD PASS, AND IT RUNS ONCE** `
       + `(\`kernel-registration.mjs:430-497\`): the drive entered it ${repairs} time(s)`);
   assert.deepEqual(repairReadings[0].members, REPAIR_CONTEXT_MEMBERS,
-    `**AND IT IS HANDED THE SIX-MEMBER \`RepairContext\` — \`address\` · \`id\` · \`tier\` · \`value\` · \`op\` · `
-      + `\`pending\`** (\`kernel-registration.mjs:387-398\`), which is NOT the constraint's five-member record: the `
-      + `drive read ${JSON.stringify(repairReadings[0].members)}`);
+    `**AND IT IS HANDED THE SEVEN-MEMBER REGISTRATION-INSTANT \`RepairContext\` — \`address\` · \`id\` · \`tier\` · `
+      + `\`value\` · \`op\` · \`pending\` · \`write\`** (\`D-91\` (3), the architect verbatim: *"Give the registration `
+      + `instant a lawful write route"*; \`PIN-6\` (i)–(ii)), which is NOT the constraint's five-member record and `
+      + `NOT the landing's six: the drive read ${JSON.stringify(repairReadings[0].members)}. **THE SIX-MEMBER `
+      + `PRINT THAT STOOD HERE WAS THE SUPERSEDED DECLARATION** (the archived five-plus-\`pending\` census, `
+      + `\`PIN-8\` (i)), and the limb is not lighter for the change — it is the same census at the census \`V-3\` `
+      + `declares, and it would go red on a seventh member of any other name, on a dropped member, or on \`write\` `
+      + `appearing at the LANDING instant read below`);
+  assert.equal(repairReadings[0].members.length, 7,
+    `**AND THE COUNT IS SEVEN AT A REGISTRATION** (\`PIN-8\` (iii) (a)/(b): *"five for the body's record and seven `
+      + `for the repair's at a registration instant, six at a landing"*): the drive read `
+      + `${JSON.stringify(repairReadings[0].members.length)} members`);
+  assert.equal(routeType, 'function',
+    `**AND \`write\` IS A FUNCTION — THE ROUTE IS THE MEMBER AND NOT A PLACEHOLDER** (\`PIN-6\` (ii): *"the `
+      + `record's seventh member at a registration instant is named \`write\`, and its value is a FUNCTION"*): the `
+      + `drive read ${JSON.stringify(routeType)}`);
   assert.deepEqual(repairReadings[0].address, ADDRESS,
     `the record's \`address\` is the pair's own: ${JSON.stringify(repairReadings[0].address)}`);
   assert.equal(repairReadings[0].id, ID,
@@ -312,17 +348,75 @@ test('registration-repair (1) · THE REPAIR CREATES THE OBJECT DURING THE ADD: a
     `and the call returns at rest — the synthetic attempt closed and no attempt stands open `
       + `(\`kernel-registration.mjs:411-412\`): the kernel record's \`live\` holds ${rest}`);
 
+  // ── (e) **THE LANDING INSTANT'S RECORD IS STILL SIX, AND CARRIES NO \`write\`** — `PIN-8` (iii) (c), `V-3`. ──
+  // **⟶ ADDED 2026-11-02 ON `D-91`/`PIN-6`/`PIN-8`: THE MEMBER IS INSTANT-SCOPED, SO THE OTHER INSTANT IS READ
+  // HERE RATHER THAN ASSUMED.** The route exists at a REGISTRATION and at no other instant, and the landing pass's
+  // own six-member `RepairContext` is byte-unmoved: *"the landing instant's six stands byte-unmoved"* (`PIN-8`
+  // (iii) (c)). **THE DRIVE IS ONE SMALL PASS AND IT IS THE SAME PAIR SHAPE ONE INSTANT OVER** — a pair at
+  // `['gate']` admits `1`, a write lands `2`, the pass asks the pair, it refuses WITH a repair, and that repair
+  // reads the record it is handed and writes with the FOURTH POSITION that record already carries (`D-46` item 2,
+  // which is the landing instant's own route and not the registration's seventh member).
+  const landing = make();
+  landing.write(['gate'], 'mem', 1);
+  let landingMembers = null;
+  let landingHasWrite = null;
+  let landingRoute = 'not read';
+  let landingRepairs = 0;
+  landing.addConstraint({ address: ['gate'], id: 'gate-must-hold-one' }, (context) => (context.value === 1
+    ? true
+    : {
+        message: 'the register must hold one at `gate`',
+        repair: (repairContext) => {
+          landingRepairs += 1;
+          landingMembers = Object.keys(repairContext).sort();
+          landingHasWrite = Object.hasOwn(repairContext, 'write');
+          landingRoute = typeof repairContext.write;
+          const landed = landing.write(['gate'], 'mem', 1, repairContext);
+          return { ok: true, op: landed.op };
+        },
+      }));
+  const violated = attempt(() => landing.write(['gate'], 'mem', 2));
+  const landingStanding = landing.read(['gate']);
+
+  assert.equal(landingRepairs, 1,
+    `**THE LANDING ARM MUST HAVE REACHED ITS REPAIR** or the census below is a census of nothing: the drive `
+      + `entered it ${landingRepairs} time(s)`);
+  assert.equal(violated.ok, true,
+    `and the pass's repair must have landed, returning the write's own record: the drive `
+      + `${JSON.stringify(violated.ok === true ? Object.keys(violated.value).sort() : shapeOf(violated.caught))}`);
+  assert.deepEqual(landingMembers, LANDING_REPAIR_CONTEXT_MEMBERS,
+    `**AND THE LANDING-INSTANT RECORD IS SIX MEMBERS — THE REGISTRATION'S SEVEN MINUS THE ROUTE** (\`PIN-8\` (iii) `
+      + `(c): *"the landing instant's six stands byte-unmoved, and a shipped sentence that states either record's `
+      + `member set leads with its instant"*): the drive read ${JSON.stringify(landingMembers)}`);
+  assert.equal(landingMembers.length, 6,
+    `**AND \`write\` IS NOT ONE OF THEM — THE INVARIANT THAT MAKES THE SEVENTH INSTANT-SCOPED AND NOT A SECOND `
+      + `CENSUS**: the drive read ${JSON.stringify(landingMembers.length)} members`);
+  assert.equal(landingHasWrite, false,
+    `**AND THE MEMBER IS ABSENT BY ITS OWN NAME AND NOT MERELY \`undefined\`** (\`PIN-8\` (iii) (c); \`V-3\`: *"or a `
+      + `\`write\` member on the landing instant's record"* is a failure): \`Object.hasOwn(record, 'write')\` read `
+      + `${JSON.stringify(landingHasWrite)}`);
+  assert.equal(landingRoute, 'undefined',
+    `and its value class is \`undefined\` where it is read as a member: ${JSON.stringify(landingRoute)}`);
+  assert.equal(landingStanding, 1,
+    `and the repaired landing stands \`1\` at \`['gate']\`: ${JSON.stringify(landingStanding)}`);
+
   t.diagnostic(`registration-repair (1) · THE ADD RECONSTRUCTED WHAT IT GUARDS: \`read(['window'])\` refused `
     + `${JSON.stringify(absentShape.status)} (\"${absentShape.message}\") BEFORE the add; the repair ran `
     + `${repairs}× with the record ${JSON.stringify(repairReadings[0].members)} \`{address `
     + `${JSON.stringify(repairReadings[0].address)}, id ${JSON.stringify(repairReadings[0].id)}, tier `
     + `${JSON.stringify(repairReadings[0].tier)}, value ${JSON.stringify(repairReadings[0].value)}, op `
-    + `${JSON.stringify(repairReadings[0].op)}, pending ${JSON.stringify(repairReadings[0].pending)}}\`, wrote `
+    + `${JSON.stringify(repairReadings[0].op)}, pending ${JSON.stringify(repairReadings[0].pending)}, write `
+    + `a ${JSON.stringify(routeType)}}\`, wrote `
     + `${JSON.stringify(landedRecord.op.opId ?? null)} at ${JSON.stringify(landedRecord.op.address)} and `
     + `answered \`{ok: true, op}\`; \`addConstraint\` answered an identity (${typeof identity}) and did not throw; `
     + `\`read(['window'])\` now answers ${JSON.stringify(standing)}; the store's reach named `
     + `${JSON.stringify(landedRecord.triggered.map((element) => element.handle))} and the kernel's \`live\` is `
-    + `${rest}`);
+    + `${rest}. **THE LANDING INSTANT OVER IT — \`PIN-8\` (iii) (c)**: a second pair at \`['gate']\` met a landing `
+    + `repair ${landingRepairs}× whose record is ${JSON.stringify(landingMembers)} with \`write\` `
+    + `${JSON.stringify(landingHasWrite)} (\`${JSON.stringify(landingRoute)}\`), the repaired write `
+    + `${JSON.stringify(violated.ok === true ? 'landed' : shapeOf(violated.caught).status)} and \`['gate']\` stands `
+    + `${JSON.stringify(landingStanding)} — **SEVEN AT A REGISTRATION AND SIX AT A LANDING, TWO CENSUSES AND ONE `
+    + `INSTANT EACH**`);
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════

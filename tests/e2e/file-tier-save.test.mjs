@@ -1080,17 +1080,27 @@ test('fts_S_CONSTRAINTS_KEY_the_load_side_validates_the_persisted_list_and_a_val
     'S-CONSTRAINTS-KEY: "the register\'s own keys after a boot" — the observable `§10.9` row 6 pins');
 });
 
-test('fts_S_CONSTRAINTS_KEY_the_load_side_failure_answers_ConstraintListInvalid_and_no_instance', async () => {
-  // **⟶ THE `F1` SKIP IS REPLACED BY THIS DRIVE, 2026-10-15 (`D-GP-SVM-4`; `DEF-2026-10-15-AA`).** The
-  // as-filed ground — *"the persisted form of `cfg.constraints` is undeclared, so no file whose list fails
-  // validation can be constructed"* — **is SUPERSEDED AND WAS NEVER THE CLAUSE'S SUBJECT:**
-  // `contract.md §7.2` item 5 (added 2026-10-15) rules, on the architect's own words, *"The list is not
-  // persisted, the importing application will provide the constraints on startup from its own
-  // information"* — so **`cfg.constraints` is a CONSTRUCTION-TIME PARAMETER, the store writes no byte of
-  // it, and the LOAD instant validates the LOADED STATE AGAINST THE SUPPLIED LIST** (`§7.2` item 5;
-  // `parameter-semantics.md §2.21`'s `evaluator` and `observable` cells; `surface.md §2.1`'s dated clause).
-  // **THE FIXTURE IS THEREFORE THE PASS-ARM CELL'S OWN** (immediately above), **differing in ONE
-  // coordinate: the supplied list names an address the loaded register does not hold.**
+test('fts_S_CONSTRAINTS_KEY_the_load_side_carries_a_well_formed_pair_it_cannot_walk_to_and_answers_ConstraintListInvalid_for_the_MALFORMED_list_alone', async () => {
+  // **⟶ RE-DERIVED 2026-11-02 ON `D-90` (5) AND `PIN-5`: THE LOAD-SIDE LIST-WIDE REFUSAL IS DELETED, AND THE
+  // SHAPE ARM IS WHAT REMAINS.** The architect, verbatim (`strata/decisions.md` · `D-90`, item (5)): *"Under this
+  // rule an unresolvable parent SKIPS the pair and no list-wide refusal stands for it: 'its parent does not exist
+  // yet' is no longer a defect in the list"* — and `PIN-5` (i)–(ii) applies it: the boot's walk that refused the
+  // whole list `ConstraintListInvalid` is **DELETED, NOT NARROWED**, and **what remains of `ConstraintListInvalid`
+  // at those instants is the malformed list and nothing else**.
+  //
+  // **WHAT THIS CELL PINNED BEFORE THE RE-DERIVATION, NAMED SO THE WITHDRAWAL IS VISIBLE AND NOT SILENT**, and why
+  // it was the superseded arm rather than a finding: *"an EXISTING FILE whose loaded state no longer satisfies the
+  // SUPPLIED list answers `ConstraintListInvalid` and returns NO instance"* — the list-wide refusal `D-90` (5)
+  // supersedes by name (`src/store.rs:783`-`:789`; `docs/guides/package-use.md §7.2`'s sentence is `PIN-11` (b)'s
+  // to correct). **THE CELL IS NOT LIGHTER FOR THE CHANGE**: the withdrawn arm is replaced by FOUR readings the
+  // deleted-walk reading cannot satisfy — an INSTANCE, `constraints()` NAMING the pair, an ASK-COUNT of `0`, and
+  // the image unmoved — **and the `ConstraintListInvalid` half is KEPT ALIVE against a MALFORMED ELEMENT in the
+  // same cell**, so the shape arm still has its own drive and the file is still a boot that can refuse.
+  //
+  // **`§7.2` ITEM 5 STILL GOVERNS THE LIST'S PROVENANCE** (added 2026-10-15, on the architect's words: *"The list
+  // is not persisted, the importing application will provide the constraints on startup from its own information"*)
+  // — `cfg.constraints` is a CONSTRUCTION-TIME PARAMETER and the store writes no byte of it. **WHAT `D-90` (5)
+  // DELETES IS THE LOADED STATE'S VALIDATION AGAINST THE PAIR'S RESOLVABILITY, AND NOTHING ELSE.**
   const { commit, runAttempt } = await kernel();
   const key = tag('ck-load-fail');
   const d = freshDir();
@@ -1101,21 +1111,58 @@ test('fts_S_CONSTRAINTS_KEY_the_load_side_failure_answers_ConstraintListInvalid_
   assert.ok(String(image).includes('booted'), 'S-CONSTRAINTS-KEY: the fixture stands on a durable image');
   assert.ok(String(image).includes(key), 'S-CONSTRAINTS-KEY: and the loaded register holds the key the list names');
 
-  // THE LOAD INSTANT'S FAIL ARM: a well-formed SUPPLIED list is not itself invalid — its SECOND member
-  // names an address this file's loaded state does not satisfy — and the answer is the store's own
-  // sixteenth member with NO INSTANCE RETURNED.
+  // ── (1) THE WELL-FORMED PAIR THE LOADED FILE CANNOT WALK TO IS CARRIED AND SKIPPED, AND THE BOOT RETURNS. ────
+  // **THE PARENT IS WHAT IS ABSENT, NOT THE ADDRESS** (`D-96` (1), `PIN-2` (i)): the pair is registered at
+  // `[absent, 'sub']`, its PARENT `[absent]` does not resolve, so the pair is SKIPPED — **the one arm a skip
+  // survives on** (`D-96`'s own foot: *"Nothing about the absent-parent skip — that arm stands exactly as `D-90`
+  // (1)–(3) record it"*). A single-segment address would be APPLIED here (its parent is the register), which is why
+  // the fixture is two segments deep: **the ask-count of `0` is the reading that proves the SKIP.**
   const absent = tag('ck-load-absent');
+  let absentAsks = 0;
+  const boot = storeCreate({
+    filePath, journalLength: 8, listeners: [], constraints: [
+      { address: [key], id: 'load-1', constraint: () => true },
+      { address: [absent, 'sub'], id: 'load-2', constraint: () => { absentAsks += 1; return true; } },
+    ],
+  });
+  assert.equal(typeof boot, 'object',
+    'S-CONSTRAINTS-KEY: a WELL-FORMED pair whose parent does not resolve NO LONGER REFUSES THE BOOT — the '
+    + 'list-wide walk is deleted, not narrowed (`D-90` (5); `PIN-5` (i)): WHERE THIS FAILS, THE SUPERSEDED ARM '
+    + 'IS LIVE AGAIN and the boot answered a code for a cause the rule now skips');
+  const bootRows = boot.constraints();
+  assert.equal(bootRows.length, 2,
+    `S-CONSTRAINTS-KEY: AND \`constraints()\` NAMES BOTH PAIRS — the carried one included (\`PIN-4\` (i): *"the `
+    + `entry's read model carries it, \`constraints()\` names it"\`): the boot answers `
+    + `${JSON.stringify(bootRows.map((row) => ({ address: row.address, id: row.id })))}`);
+  assert.equal(bootRows.some((row) => row.id === 'load-2'), true,
+    'S-CONSTRAINTS-KEY: and the SKIPPED pair is the one carried — not merely the pair the file already held: '
+    + `${JSON.stringify(bootRows.map((row) => row.id))}`);
+  assert.equal(absentAsks, 0,
+    `S-CONSTRAINTS-KEY: **AND ITS BODY IS ASKED ZERO TIMES AT THE BOOT** (\`PIN-3\`: a skipped pair is *"not `
+    + `asked, not refused for, not repaired for and not counted as a judgement"\`): the body was entered `
+    + `${absentAsks} time(s). WHERE THIS FAILS, EITHER THE LIST-WIDE WALK IS BACK (and the pair refuses) OR THE `
+    + `RULE IS NO LONGER READ AT A BOOT (\`D-90\` (4) names the boot among the five instants)`);
+  assert.equal(boot.read([key], 'file'), 'booted',
+    'S-CONSTRAINTS-KEY: and the boot still LOADED the state — "the register\'s own keys after a boot", the '
+    + 'observable `§10.9` row 6 pins');
+  assert.equal(bytesOf(filePath), image,
+    'S-CONSTRAINTS-KEY: and the boot is a read: it writes no byte at `cfg.filePath`');
+
+  // ── (2) THE `ConstraintListInvalid` ARM IS KEPT ALIVE AGAINST A **MALFORMED** ELEMENT. ─────────────────────
+  // **`PIN-5` (ii), NAMED: *"the malformed LIST and nothing else"*** — an element whose address is not a segment
+  // array is outside the key's domain (`src/store.rs:801`-`:814`), and the SAME FILE that just booted under (1)
+  // refuses it. **THE PAIR'S RESOLVABILITY IS NO LONGER A GROUND; THE ELEMENT'S SHAPE STILL IS.**
   const expected = `'${absent}' is not a valid constraint entry in 'constraints', a constraint entry is an `
     + 'address and an id, and the address is a segment array';
   assert.throws(() => storeCreate({
     filePath, journalLength: 8, listeners: [], constraints: [
       { address: [key], id: 'load-1', constraint: () => true },
-      { address: [absent], id: 'load-2', constraint: () => true },
+      { address: absent, id: 'load-2', constraint: () => true },
     ],
   }), (err) => {
-    // **RE-DERIVED TO THE THREE-MEMBER FORM 2026-10-16**: the LOAD-side refusal is likewise a
-    // construction `cfg`-side refusal — `surface.md §2.5` item 4's own enumerated `log: []` arm — so the
-    // set is three members and the empty array is the DECLARED value, not an absence.
+    // **RE-DERIVED TO THE FOUR-MEMBER FORM 2026-10-16**: the LOAD-side refusal is a construction `cfg`-side
+    // refusal — `surface.md §2.5` item 4's own enumerated `log: []` arm — so the set is three members plus
+    // `address` and the empty array is the DECLARED value, not an absence.
     assert.deepEqual(Object.keys(err).sort(), ['address', 'log', 'message', 'status'],
       'S-CONSTRAINTS-KEY: the load-side answer is the surface\'s THREE-member form, FLAT across arms '
       + '(`surface.md §2.5` item 4), sorted ascending with length `3` (item 9)');
@@ -1129,19 +1176,18 @@ test('fts_S_CONSTRAINTS_KEY_the_load_side_failure_answers_ConstraintListInvalid_
       'S-CONSTRAINTS-KEY: and no attempt is live at a boot that returns no instance, so the DECLARED value '
       + 'is `[]` — never a placeholder entry (`surface.md §2.5` item 4)');
     assert.equal(err.status, 'ConstraintListInvalid',
-      'S-CONSTRAINTS-KEY: the LOAD-side instant answers the set\'s sixteenth member and no other code '
-      + '(`contract.md §8.1` #16; `§7.2` item 5; the FAIL-STATE "a load-side failure answered with a '
-      + 'different code" — `§10.9` row 6)');
+      'S-CONSTRAINTS-KEY: the MALFORMED element still answers the set\'s sixteenth member and no other code '
+      + '(`PIN-5` (ii)–(iii): it *"keeps its rank, its sentence and its own triggers"*; `contract.md §8.1` #16; '
+      + 'the FAIL-STATE "a load-side failure answered with a different code" — `§10.9` row 6)');
     assert.equal(err.message, expected,
       'S-CONSTRAINTS-KEY: and its message is `§8.2`\'s own row for the member, VERBATIM — the failing '
       + 'ENTRY\'s address spelling in the `<SEGMENT>` slot, the list\'s own key `constraints` in the '
       + '`<CONTAINER>` slot at the degenerate arm, and no unsubstituted placeholder');
     return true;
-  }, 'S-CONSTRAINTS-KEY: an EXISTING FILE whose loaded state no longer satisfies the SUPPLIED list '
-    + 'answers `ConstraintListInvalid` and returns NO instance');
+  }, 'S-CONSTRAINTS-KEY: a MALFORMED element in the supplied list still answers `ConstraintListInvalid` with '
+    + 'NO instance — `D-90` (5) removes the resolvability ground and NOTHING ELSE (`PIN-5` (ii))');
 
-  // THE IMAGE IS UNMOVED BY THE REFUSED CONSTRUCTION, and the SAME file boots once the supplied list
-  // names what the register actually holds — the discriminator that makes the arm single-valued.
+  // ── (3) AND THE IMAGE IS STILL UNMOVED BY A REFUSED BOOT, AND THE SAME FILE STILL BOOTS. ────────────────────
   assert.equal(bytesOf(filePath), image,
     'S-CONSTRAINTS-KEY: the refused LOAD construction writes no byte at `cfg.filePath`');
   const third = storeCreate({ filePath, journalLength: 8, listeners: [], constraints: [{ address: [key], id: 'load-1', constraint: () => true }] });
@@ -2131,24 +2177,25 @@ test('fts_FTS_11_5_a_repairs_write_carries_the_commit_it_is_part_of_at_the_fifth
     + 'act and no second commit was opened (`surface.md §2.11` clause 6)');
 });
 
-test('fts_FTS_09_zero_byte_file_boots_an_instance_while_a_two_byte_empty_image_is_validated_and_refused', async () => {
+test('fts_FTS_09_zero_byte_file_boots_an_instance_and_a_two_byte_empty_image_CARRIES_the_well_formed_pair_it_cannot_walk_to_while_the_MALFORMED_list_is_still_refused', async () => {
   // THE TWO HALVES, EACH CITED. HALF ONE: `seams-and-lifecycle.md §7.2` item 6's zero-length clause — *"a
   // `storeCreate` over a PROVIDED, ABSENT path now REACHES THIS ITEM WITH A FILE THAT EXISTS AND CARRIES `0`
   // BYTES — so item 6's "loaded if the file exists" is read on a ZERO-LENGTH FILE: the content is the empty
   // text, `0` register keys load, `0` registrations load, and NO code is produced"* (`contract.md §7.1` step
-  // `4`-bis/`4`b; `contract.md §10.4` part 3; `DD-28`'s amended cell). HALF TWO (the DISCRIMINATOR): the
-  // exemption is keyed on the FILE's BYTES and not on the loaded state — a `2`-byte `{}` image against the
-  // SAME supplied list IS validated and answers `ConstraintListInvalid`, the closed set's sixteenth member,
-  // with NO instance and the image untouched (`parameter-semantics.md §2.21`'s load-side observable;
-  // `contract.md §7.2` item 6 as amended; `§8.1` #`16`).
+  // `4`-bis/`4`b; `contract.md §10.4` part 3; `DD-28`'s amended cell).
   //
-  // THE TWO CLAUSES ARE STILL IN CONFLICT ON HALF ONE'S INPUT CLASS AT THE BYTES THIS PASS READ — §7.2 item
-  // 6's zero-length clause exempts the zero-length file, while §2.21's load-side observable, whose trigger
-  // `§8.1` #16 repeats as the validation "of the LOADED STATE against that supplied list at load", declares
-  // that such a boot answers `ConstraintListInvalid` and returns NO instance — and NEITHER TEXT CARRIES A
-  // RECONCILIATION OF THE ZERO-BYTE CASE. THIS DRIVE THEREFORE PINS BOTH HALVES AT THEIR BYTES AND REPORTS THE
-  // CONTRADICTION AS A `D-GP-SVM-4` BUBBLE; the reconciliation is the specification's to land, and no clause
-  // of either part may be read as settling it here.
+  // **⟶ HALF TWO WAS RE-DERIVED 2026-11-02 ON `D-90` (5) AND `PIN-5`, AND WHAT IT PINNED BEFORE IS NAMED SO THE
+  // WITHDRAWAL IS VISIBLE AND NOT SILENT.** It asserted the DISCRIMINATOR *"the exemption is keyed on the FILE's
+  // bytes and not on the loaded state"*: a `2`-byte `{}` image against the SAME supplied list *"IS validated and
+  // answers `ConstraintListInvalid` … with NO instance"*. **THAT IS THE LIST-WIDE REFUSAL `D-90` (5) SUPERSEDES BY
+  // NAME** (*"an unresolvable parent SKIPS the pair and no list-wide refusal stands for it: 'its parent does not
+  // exist yet' is no longer a defect in the list"*; `PIN-5` (i): the boot's walk is *"DELETED, NOT NARROWED"*).
+  // **THE CELL IS NOT LIGHTER FOR IT: the withdrawn assertion is replaced by FOUR (an instance, `constraints()`
+  // naming the pair, an ask-count of `0`, the image unmoved) AND THE SHAPE ARM IS KEPT ALIVE IN BOTH FILE STATES —
+  // a MALFORMED element answers `ConstraintListInvalid` on the `2`-byte image AND on the `0`-byte one** (`PIN-5`
+  // (ii): *"the malformed LIST and nothing else"*). **WHAT REMAINS OF HALF TWO'S DISCRIMINATOR IS THAT ONE**: the
+  // file's emptiness exempts nothing from the SHAPE arm, while the pair's resolvability is now nobody's refusal at
+  // either file state.
   const { report } = await kernel();
   const key = tag('fts09-list');
   // **⟶ AMENDED 2026-10-24 (`D-26` item 1: *"The batch in cfg.constraints must supply functions"*): the
@@ -2178,12 +2225,10 @@ test('fts_FTS_09_zero_byte_file_boots_an_instance_while_a_two_byte_empty_image_i
     'FTS-09.5: HALF ONE — a boot over the ZERO-LENGTH file answers NO CODE: "the content is the empty text, '
     + '`0` register keys load, `0` registrations load, and NO code is produced", an instance state-identical '
     + 'to the one a construction over an absent file produced (`seams-and-lifecycle.md §7.2` item 6\'s '
-    + 'zero-length clause; `contract.md §7.1` step `4`b; `DD-38`). WHERE THIS FAILS, THE OTHER LIVE CLAUSE '
-    + 'GOVERNS AND THE TWO READ APART: `parameter-semantics.md §2.21`\'s load-side observable, whose trigger '
-    + '`contract.md §8.1` #`16` repeats, declares that a boot over an EXISTING `cfg.filePath` whose loaded '
-    + 'state no longer satisfies the SUPPLIED list answers `ConstraintListInvalid` and returns NO instance — '
-    + 'and the zero-byte file\'s loaded state satisfies no non-empty list. NO CLAUSE RECONCILES THE TWO, so '
-    + 'this cell is a `D-GP-SVM-4` bubble and not a drive against the package — read '
+    + 'zero-length clause; `contract.md §7.1` step `4`b; `DD-38`). **THE ONE-ELEMENT LIST NAMES A SINGLE-SEGMENT '
+    + 'ADDRESS, WHOSE PARENT IS THE REGISTER — so that pair is APPLICABLE here (`D-96` (1)) and the boot asks it '
+    + 'exactly once; the SKIP arm of this cell is half two\'s, and neither half can draw a refusal for '
+    + 'resolvability any more (`PIN-5`)** — read '
     + `${secondRefused && secondRefused.status} :: ${secondRefused && secondRefused.message}`);
   assert.equal(typeof second, 'object', 'FTS-09.5: HALF ONE — the instance is returned');
   assert.deepEqual(second.read([], 'file'), {},
@@ -2191,44 +2236,87 @@ test('fts_FTS_09_zero_byte_file_boots_an_instance_while_a_two_byte_empty_image_i
   assert.equal(bytesOf(zeroPath), '',
     'FTS-09.5: HALF ONE — the boot is a read: the zero-byte file is still zero bytes');
 
-  // HALF TWO, THE DISCRIMINATOR: the SAME supplied list against a NON-zero-length image carrying an empty
-  // state (`{}`) — `2` bytes — IS validated and refused, so the exemption cannot be read as "an empty state
-  // is exempt".
+  // HALF TWO, RE-DERIVED: the SAME file state but `2` bytes carrying an empty state (`{}`) — a NON-zero-length
+  // image whose loaded state carries NO key at all — and a WELL-FORMED pair whose PARENT the image cannot walk to.
+  // **THE PAIR IS TWO SEGMENTS DEEP FOR THE REASON `D-96` (1) FIXES**: `[key, 'x']` has `[key]` for a parent, and
+  // `[key]` does not resolve in a `{}` image — so the pair is SKIPPED, and the ask-count of `0` is the reading that
+  // proves it. **A SINGLE-SEGMENT ADDRESS WOULD BE APPLIED** (its parent is the register) and would measure the
+  // other arm.
   const d2 = freshDir();
   const twoPath = join(d2, 'two.json');
   writeFileSync(twoPath, '{}');
   assert.equal(statSync(twoPath).size, 2, 'FTS-09.6: the discriminator\'s image is `2` bytes and not zero');
-  let refused = null;
-  let instance = null;
+  let twoAsks = 0;
+  let twoRefused = null;
+  let carried = null;
   try {
-    instance = storeCreate({ filePath: twoPath, journalLength: 8, listeners: [], constraints: supplied });
+    carried = storeCreate({
+      filePath: twoPath, journalLength: 8, listeners: [], constraints: [
+        { address: [key, 'x'], id: 'fts09-child', constraint: () => { twoAsks += 1; return true; } },
+      ],
+    });
   } catch (err) {
-    refused = err;
+    twoRefused = err;
   }
-  assert.equal(instance, null, 'FTS-09.6: no instance is returned for the `{}` image');
-  assert.equal(refused && refused.status, 'ConstraintListInvalid',
-    'FTS-09.6: the `2`-byte `{}` image against the same supplied list IS validated and answers the closed '
-    + 'set\'s sixteenth member (`contract.md §8.1` #`16`; `parameter-semantics.md §2.21`; `§7.2` item 6 as '
-    + `amended) — read ${refused && refused.status}`);
-  // **RE-DERIVED TO THE THREE-MEMBER FORM 2026-10-16** — the discriminated `{}`-image refusal is the same
-  // `cfg`-side class of construction refusal, so `surface.md §2.5` item 4's own `log: []` enumeration
-  // governs it. **THE CELL'S OTHER LIMB IS UNMOVED**: no package-side code and no package-side message is
-  // minted for this arm, which is asserted by the code and message limbs around this one.
-  assert.deepEqual(Object.keys(refused || {}).sort(), ['address', 'log', 'message', 'status'],
-    'FTS-09.6: in the surface\'s THREE-member form — FLAT across arms, sorted ascending (surface.md §2.5 '
-    + 'item 4; item 9) — and never a package-side code or message '
-    + '(`surface.md §2.5`; `parameter-semantics.md §2.21`\'s declared-answer cell)');
-  assert.equal(Object.keys(refused || {}).length, 4,
-    'FTS-09.6: and the member set\'s length is `3` on this refused boot as on every arm '
-    + '(`surface.md §2.5` item 9)');
-  assert.ok(Array.isArray(refused && refused.log),
-    'FTS-09.6: `log` is an ARRAY on the load-side refusal too — never absent, never `null`, never a '
-    + 'non-array (`surface.md §2.5` item 9; `parameter-semantics.md §2.26`\'s `domain` cell)');
-  assert.deepEqual(refused && refused.log, [],
-    'FTS-09.6: and the refused boot returns NO instance and opens NO attempt, so the DECLARED value is '
-    + '`[]` — never a placeholder entry (`surface.md §2.5` item 4)');
+  assert.equal(twoRefused, null,
+    'FTS-09.6: **A `2`-BYTE `{}` IMAGE NO LONGER REFUSES THE BOOT FOR ITS LOADED STATE\'S RESOLVABILITY** '
+    + '(`D-90` (5), verbatim: *"no list-wide refusal stands for it"*; `PIN-5` (i): the walk is *"DELETED, NOT '
+    + 'narrowed"*). WHERE THIS FAILS, THE SUPERSEDED ARM IS LIVE AGAIN and the boot answered a code for a cause '
+    + 'the rule now skips — read ' + `${twoRefused && twoRefused.status} :: ${twoRefused && twoRefused.message}`);
+  assert.equal(typeof carried, 'object', 'FTS-09.6: the instance is returned');
+  const carriedRows = carried.constraints();
+  assert.equal(carriedRows.length, 1,
+    `FTS-09.6: AND \`constraints()\` NAMES THE PAIR THE IMAGE CANNOT WALK TO (\`PIN-4\` (i)): the boot answers `
+    + `${JSON.stringify(carriedRows.map((row) => ({ address: row.address, id: row.id })))}`);
+  assert.equal(carriedRows[0].id, 'fts09-child',
+    `FTS-09.6: and it is the pair the supplied list named: ${JSON.stringify(carriedRows.map((row) => row.id))}`);
+  assert.equal(twoAsks, 0,
+    `FTS-09.6: **AND ITS BODY IS ASKED ZERO TIMES** — the parent \`[key]\` does not resolve in the empty image, `
+    + `so the pair is SKIPPED and not judged (\`D-90\` (1)–(2), \`PIN-3\`): the body was entered ${twoAsks} `
+    + `time(s). WHERE THIS FAILS, EITHER THE PAIR IS REFUSED FOR THE LIST'S SAKE (the deleted walk returning) OR `
+    + `THE SKIP IS NO LONGER READ AT THE BOOT (\`D-90\` (4))`);
   assert.equal(bytesOf(twoPath), '{}',
-    'FTS-09.6: and the refused boot is a read — the image is BYTE-IDENTICAL (`contract.md §7.2` item 2)');
+    'FTS-09.6: and the boot is a read — the image is BYTE-IDENTICAL (`contract.md §7.2` item 2)');
+
+  // ── AND THE `ConstraintListInvalid` ARM, KEPT ALIVE IN BOTH FILE STATES — `PIN-5` (ii). ────────────────────
+  // **`D-90` (5)'s SECOND SENTENCE IS THE ONE THIS LIMB EXISTS FOR**: *"What remains of `ConstraintListInvalid` at
+  // those instants is the malformed list and nothing else"* — so the SAME `2`-byte image refuses a MALFORMED
+  // element (`PIN-5` (ii): an address outside the segment array, refused at `src/store.rs:801`-`:814`), and so does
+  // the `0`-byte file. **THE FILE'S EMPTINESS EXEMPTS NOTHING FROM THE SHAPE ARM.**
+  const malformedExpected = `'${key}' is not a valid constraint entry in 'constraints', a constraint entry is an `
+    + 'address and an id, and the address is a segment array';
+  for (const [label, path] of [['the 2-byte `{}` image', twoPath], ['the 0-byte file', zeroPath]]) {
+    let malformedRefused = null;
+    try {
+      storeCreate({ filePath: path, journalLength: 8, listeners: [], constraints: [{ address: key, id: 'fts09-bad', constraint: () => true }] });
+    } catch (err) {
+      malformedRefused = err;
+    }
+    assert.notEqual(malformedRefused, null,
+      `FTS-09.6: a MALFORMED element (a bare string where a segment array belongs) is refused on ${label} — `
+      + `the shape arm \`D-90\` (5) LEAVES STANDING and the only arm left to it (\`PIN-5\` (ii))`);
+    assert.equal(malformedRefused.status, 'ConstraintListInvalid',
+      `FTS-09.6: and it answers the closed set's sixteenth member on ${label} (\`contract.md §8.1\` #\`16\`; `
+      + `\`PIN-5\` (iii): the member *"keeps its rank, its sentence and its own triggers"*): read `
+      + `${malformedRefused.status}`);
+    assert.deepEqual(Object.keys(malformedRefused).sort(), ['address', 'log', 'message', 'status'],
+      `FTS-09.6: in the surface's THREE-member form — FLAT across arms, sorted ascending on ${label} `
+      + '(`surface.md §2.5` item 4; item 9) — and never a package-side code or message');
+    assert.equal(Object.keys(malformedRefused).length, 4,
+      `FTS-09.6: and the member set's length is \`3\` on this refused boot as on every arm on ${label} `
+      + '(`surface.md §2.5` item 9)');
+    assert.ok(Array.isArray(malformedRefused.log),
+      `FTS-09.6: \`log\` is an ARRAY on the load-side refusal too — never absent, never \`null\`, never a `
+      + `non-array on ${label} (\`surface.md §2.5\` item 9; \`parameter-semantics.md §2.26\`'s \`domain\` cell)`);
+    assert.deepEqual(malformedRefused.log, [],
+      `FTS-09.6: and the refused boot returns NO instance and opens NO attempt, so the DECLARED value is `
+      + `\`[]\` — never a placeholder entry on ${label} (\`surface.md §2.5\` item 4)`);
+    assert.equal(malformedRefused.message, malformedExpected,
+      `FTS-09.6: and its message is §8.2's own row, VERBATIM — the failing ENTRY's address spelling in the `
+      + `<SEGMENT> slot on ${label}: ${JSON.stringify(malformedRefused.message)}`);
+  }
+  assert.equal(bytesOf(twoPath), '{}', 'FTS-09.6: and the refused boots are reads — the image is BYTE-IDENTICAL');
+  assert.equal(bytesOf(zeroPath), '', 'FTS-09.6: and the zero-byte file is still `0` bytes');
   assert.equal(typeof report, 'function', 'FTS-09.6: the kernel\'s fifth item is untouched by this cell');
 });
 

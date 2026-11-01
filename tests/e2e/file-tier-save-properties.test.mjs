@@ -787,13 +787,16 @@ test('fts_prop_P_TP_6_S_CONSTRAINTS_KEY_instance_iff_the_list_lies_inside_its_do
       }
 
       // ── THE LOAD-SIDE INSTANT, WHICH THE AS-FILED CELL NEVER REACHED (`DEF-2026-10-15-Z`: *"no
-      // load-side attempt at all"*) ──────────────────────────────────────────────────────────────────
-      // **`§7.2` ITEM 5 (ADDED 2026-10-15): *"at construction / startup the SUPPLIED list is validated;
-      // over an EXISTING FILE at load THE LOADED STATE IS VALIDATED AGAINST THE SUPPLIED LIST — WHICH IS
-      // WHAT DETECTS A CORRUPT OR OBSOLETE FILE, one whose state no longer satisfies the constraints the
-      // application now supplies"*.** The fixture is built the ONE way the clause leaves open: the list is
-      // NEVER written into the file, so the file is produced by a first construction whose own list is
-      // satisfied, and the second construction is handed a DIFFERENT list.
+      // load-side attempt at all"*) — **⟶ RE-DERIVED 2026-11-02 ON `D-90` (5) AND `PIN-5`** ─────────────────
+      // **`§7.2` ITEM 5 (ADDED 2026-10-15) STILL GOVERNS THE LIST'S PROVENANCE** — the list is not persisted and the
+      // importing application supplies it at startup — **but the READ it drew from that clause is WITHDRAWN BY
+      // `D-90` (5)**: *"an unresolvable parent SKIPS the pair and no list-wide refusal stands for it: 'its parent
+      // does not exist yet' is no longer a defect in the list"*, and `PIN-5` (i) DELETES the boot's walk that
+      // answered `ConstraintListInvalid` for it. **So the load-side instant this property drives is the SKIP and the
+      // CARRY** (`PIN-4` (i)), **and the shape arm it keeps alive is the MALFORMED LIST** (`PIN-5` (ii): *"the
+      // malformed LIST and nothing else"*). **THE PROPERTY IS STILL "AN INSTANCE IFF THE LIST IS LEGAL" — the
+      // ILLEGALITY MOVES FROM THE LOADED STATE'S RESOLVABILITY TO THE ELEMENT'S SHAPE, WHICH IS THE ONLY ILLEGALITY
+      // `D-90` (5) LEAVES STANDING AT A LOAD.**
       const loadDir = mkdtempSync(join(tmpdir(), 'fts-prop-ck-'));
       const loadPath = join(loadDir, 'store.json');
       const held = tag(`prop-ck-held-${i}`);
@@ -806,52 +809,118 @@ test('fts_prop_P_TP_6_S_CONSTRAINTS_KEY_instance_iff_the_list_lies_inside_its_do
       assert.equal(image, `{"${held}":"L${i}"}`,
         'P-TP-6: the file stands as the first construction\'s own `file`-tier write left it — and it '
         + 'carries NO list, because the list is not persisted (`§7.2` item 5, added 2026-10-15)');
+      // (1) **THE WELL-FORMED PAIR THE LOADED FILE CANNOT WALK TO — CARRIED, SKIPPED, AND THE BOOT RETURNS.**
+      // The pair is two segments deep ON PURPOSE (`D-96` (1)): `[absent, 'x']`'s PARENT `[absent]` does not resolve
+      // in the loaded state, so the pair is SKIPPED and its ask-count of `0` is the reading that proves it. A
+      // single-segment address would APPLY (its parent is the register) and would measure the other arm.
       const absent = tag(`prop-ck-absent-${i}`);
+      let absentAsks = 0;
+      let unrefused = null;
+      let boot = null;
+      try {
+        boot = storeCreate({
+          filePath: loadPath,
+          journalLength: 8,
+          listeners: [],
+          constraints: [
+            { address: [held], id: 'c', constraint: () => true },
+            { address: [absent, 'x'], id: 'd', constraint: () => { absentAsks += 1; return true; } },
+          ],
+        });
+      } catch (err) {
+        unrefused = err;
+      }
+      assert.equal(unrefused, null,
+        'P-TP-6: **AN EXISTING FILE WHOSE LOADED STATE CANNOT WALK TO A SUPPLIED WELL-FORMED PAIR NO LONGER '
+        + 'REFUSES THE BOOT** — the list-wide walk is DELETED, not narrowed (`D-90` (5); `PIN-5` (i)): read '
+        + `${unrefused && unrefused.status} :: ${unrefused && unrefused.message}. WHERE THIS FAILS, THE `
+        + `COUNTEREXAMPLE THIS ROW USED TO ADMIT IS LIVE AGAIN`);
+      assert.equal(typeof boot, 'object', 'P-TP-6: and the load returned its INSTANCE');
+      const bootRows = boot.constraints();
+      assert.equal(bootRows.length, 2,
+        `P-TP-6: and \`constraints()\` names BOTH pairs — the carried one included (\`PIN-4\` (i)): `
+        + `${JSON.stringify(bootRows.map((bootRow) => ({ address: bootRow.address, id: bootRow.id })))}`);
+      assert.equal(bootRows.some((bootRow) => bootRow.id === 'd'), true,
+        `P-TP-6: and the SKIPPED pair is the one carried: ${JSON.stringify(bootRows.map((bootRow) => bootRow.id))}`);
+      assert.equal(absentAsks, 0,
+        `P-TP-6: **AND ITS BODY IS ASKED ZERO TIMES AT THE BOOT** (\`PIN-3\`: a skipped pair is *"not asked, not `
+        + `refused for"*): the body was entered ${absentAsks} time(s)`);
+      assert.equal(bytesOf(loadPath), image,
+        'P-TP-6: and the boot is a read — it writes no byte at `cfg.filePath`');
+      // (2) **THE SHAPE ARM, KEPT ALIVE AGAINST A MALFORMED ELEMENT** (`PIN-5` (ii)): the SAME file refuses an
+      // element whose address is not a segment array, so this property still has its illegal arm at the load.
       assert.throws(() => storeCreate({
         filePath: loadPath,
         journalLength: 8,
         listeners: [],
         constraints: [
           { address: [held], id: 'c', constraint: () => true },
-          { address: [absent], id: 'd', constraint: () => true },
+          { address: absent, id: 'bad', constraint: () => true },
         ],
       }), (err) => {
         assert.equal(err.status, 'ConstraintListInvalid',
-          'P-TP-6: an EXISTING FILE whose loaded state does not satisfy the SUPPLIED list answers the '
-          + 'store\'s own sixteenth member — the counterexample the row\'s own cell admits');
+          'P-TP-6: a MALFORMED element in the supplied list answers the store\'s own sixteenth member at the '
+          + 'load as at the construction — `D-90` (5) leaves the shape arm and nothing else (`PIN-5` (ii)–(iii))');
         return true;
-      }, 'P-TP-6: the LOAD-side instant is validated and NO instance is returned');
+      }, 'P-TP-6: the MALFORMED list is refused at the load, and NO instance is returned');
       assert.equal(bytesOf(loadPath), image,
         'P-TP-6: and the refused LOAD construction writes no byte at `cfg.filePath`');
-      const boot = storeCreate({ filePath: loadPath, journalLength: 8, listeners: [], constraints: [{ address: [held], id: 'c', constraint: () => true }] });
+      boot = storeCreate({ filePath: loadPath, journalLength: 8, listeners: [], constraints: [{ address: [held], id: 'c', constraint: () => true }] });
       assert.equal(boot.read([held], 'file'), `L${i}`,
         'P-TP-6: while the SAME file boots under a list its loaded state satisfies — the discriminator that '
         + 'makes the load-side arm single-valued');
       rmSync(loadDir, { recursive: true, force: true });
 
-      // **AND THE ONE FILE STATE THE PASS FLAGGED AS UNVALIDATED (`DEF-2026-10-15-Z`): a NON-ZERO-LENGTH
-      // `{}` IMAGE.** The clause's exemption names *"an ABSENT or ZERO-LENGTH file"* and no more, and `{}`
-      // is NEITHER: its loaded MEMBER COUNT is `0` and its loaded state satisfies no supplied pair, so the
-      // load instant of `§7.2` item 5 is owed here — while the implementation's `loaded > 0` guard
-      // (`src/store.rs`, the boot's own count) exempts it and validates nothing.
+      // **AND THE ONE FILE STATE THE PASS FLAGGED AS UNVALIDATED (`DEF-2026-10-15-Z`): a NON-ZERO-LENGTH `{}`
+      // IMAGE — read under `D-90` (5) and no longer as a refusal.** The clause's exemption names *"an ABSENT or
+      // ZERO-LENGTH file"*; `{}` is NEITHER, and under the deleted walk its loaded state "satisfied no supplied
+      // pair" and answered the sixteenth member. **`PIN-5` (i) DELETES THAT ANSWER FOR RESOLVABILITY**, so the
+      // `{}` image boots, CARRIES the pair it cannot walk to, and asks it `0` times — while a MALFORMED element on
+      // the same image is still refused.
       const emptyDir = mkdtempSync(join(tmpdir(), 'fts-prop-ck-empty-'));
       const emptyPath = join(emptyDir, 'store.json');
       writeFileSync(emptyPath, '{}');
       assert.ok(readFileSync(emptyPath, 'utf8').length > 0,
         ': the fixture is a NON-ZERO-LENGTH image and not the zero-length file the clause exempts');
       const unreachable = tag(`prop-ck-unreachable-${i}`);
+      let emptyAsks = 0;
+      let emptyRefused = null;
+      let emptyBoot = null;
+      try {
+        emptyBoot = storeCreate({
+          filePath: emptyPath,
+          journalLength: 8,
+          listeners: [],
+          constraints: [{ address: [unreachable, 'x'], id: 'c', constraint: () => { emptyAsks += 1; return true; } }],
+        });
+      } catch (err) {
+        emptyRefused = err;
+      }
+      assert.equal(emptyRefused, null,
+        'P-TP-6: **A `{}` IMAGE IS AN EXISTING FILE WHOSE LOADED STATE CANNOT WALK TO THE SUPPLIED PAIR, AND IT '
+        + 'NOW BOOTS** — `D-90` (5): *"no list-wide refusal stands for it"*; `PIN-5` (i). WHERE THIS FAILS, THE '
+        + 'DELETED WALK IS LIVE: read ' + `${emptyRefused && emptyRefused.status} :: ${emptyRefused && emptyRefused.message}`);
+      assert.equal(typeof emptyBoot, 'object', 'P-TP-6: the `{}` image returns its instance');
+      assert.equal(emptyBoot.constraints().length, 1,
+        `P-TP-6: and the pair is CARRIED (\`PIN-4\` (i)): \`constraints()\` answers `
+        + `${JSON.stringify(emptyBoot.constraints().map((bootRow) => bootRow.id))}`);
+      assert.equal(emptyAsks, 0,
+        `P-TP-6: and the pair the image cannot walk to is ASKED ZERO TIMES (\`D-90\` (1)–(2), \`PIN-3\`): the body `
+        + `was entered ${emptyAsks} time(s)`);
+      assert.equal(bytesOf(emptyPath), '{}', 'P-TP-6: and the boot is a read — the image is BYTE-IDENTICAL');
       assert.throws(() => storeCreate({
         filePath: emptyPath,
         journalLength: 8,
         listeners: [],
-        constraints: [{ address: [unreachable], id: 'c', constraint: () => true }],
+        constraints: [{ address: unreachable, id: 'c', constraint: () => true }],
       }), (err) => {
         assert.equal(err.status, 'ConstraintListInvalid',
-          'P-TP-6: a `{}` image is an EXISTING FILE whose loaded state satisfies no supplied pair, and it '
-          + 'answers the store\'s own sixteenth member — the file itself is blocked from saving an invalid '
-          + 'state (`§7.2` item 5, added 2026-10-15)');
+          'P-TP-6: while a MALFORMED element on the SAME `{}` image is still refused with the store\'s own '
+          + 'sixteenth member — the shape arm `D-90` (5) leaves standing, and the only one left at a load '
+          + '(`PIN-5` (ii))');
         return true;
-      }, 'P-TP-6: the loaded state of a `{}` image is validated against the supplied list');
+      }, 'P-TP-6: the shape arm is alive on a `{}` image — the loaded state\'s resolvability is not');
+      assert.equal(bytesOf(emptyPath), '{}', 'P-TP-6: and that refusal writes no byte either');
       rmSync(emptyDir, { recursive: true, force: true });
     }),
   });

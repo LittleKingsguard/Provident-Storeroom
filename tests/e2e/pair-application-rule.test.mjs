@@ -12,26 +12,35 @@
 //     should be applied."*
 //   * *"This is a global rule, not a batch-only one."*
 //
+// **⟶ AND `D-96` (2026-11-02) READS THAT ROW'S FIRST SENTENCE THROUGH ITS OWN THRESHOLD — ABSENCE, AND NOT *"NOT A
+// CONTAINER"***: *"Reject this, the constraint being there implicitly expects `'x'` to be a container"*, and on the
+// re-run, *"See above"*. **A LEAF parent APPLIES its pair** (`D-96` (1)–(4)), so the skip survives on the ABSENT
+// parent alone; **the cells this row moves are THIS FILE'S `G3-08`'s leaf half and `G3-13`'s skip half**, and each
+// was re-derived to the APPLY and the refusal respectively (`D-96` (6)).
+//
 // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
 // THE RULE, AS THE PINS STATE IT — the five facts every cell below rests on
 // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
 //
-// **1 · THE DISCRIMINATOR IS THE ADDRESS'S PARENT, AND THE PARENT MUST BE A CONTAINER** (`PIN-2` (i)–(iii)).
-// A pair's ADDRESS is the array it was registered at, its KEY is that array's LAST segment, its PARENT is the
-// array MINUS that segment. A pair is **APPLICABLE** exactly when its PARENT RESOLVES TO A CONTAINER and
-// **SKIPPED** exactly when it does not; **THE EMPTY PARENT IS THE REGISTER, WHICH ALWAYS RESOLVES TO A
-// CONTAINER**, so `['window']` on a store with no `window` is APPLIED and `['window','tabs']` on the same
-// store is SKIPPED. **A PAIR WHOSE PARENT RESOLVES TO A LEAF IS SKIPPED TOO** (`PIN-2` (iii)): the write the
-// pair's own repair would owe answers `WriteParentNotLink` there, so the pair is as unwalkable-to as one under
-// an absent parent. **AND THE LINE IS DRAWN BY THE NODE AND NOT BY THE VALUE'S CLASS**: an EMPTY OBJECT
-// written at the parent makes it a BRANCH (a pair under it is APPLICABLE); a PRIMITIVE written there makes a
-// LEAF (a pair under it is SKIPPED). `G3-08` drives both arms, on two stores, because the line is two
-// different acts.
+// **1 · THE DISCRIMINATOR IS THE ADDRESS'S PARENT, AND THE SKIP'S THRESHOLD IS ABSENCE ALONE** (`PIN-2`
+// (i)–(iii) AS RE-DERIVED BY `D-96`, 2026-11-02). A pair's ADDRESS is the array it was registered at, its KEY is
+// that array's LAST segment, its PARENT is the array MINUS that segment. A pair is **SKIPPED** exactly when its
+// PARENT DOES NOT RESOLVE and **APPLICABLE** exactly when the walk reaches it at all; **THE EMPTY PARENT IS THE
+// REGISTER, WHICH ALWAYS RESOLVES**, so `['window']` on a store with no `window` is APPLIED and
+// `['window','tabs']` on the same store is SKIPPED. **⟶ A PAIR WHOSE PARENT RESOLVES TO A LEAF IS APPLIED TOO,
+// AND THE SENTENCE THAT STOOD HERE — *"a pair whose parent resolves to a leaf is SKIPPED"* — IS WITHDRAWN**
+// (`D-96` (1)–(3), the architect verbatim: *"Reject this, the constraint being there implicitly expects `'x'` to
+// be a container"*): the pair's own presence declares its parent a container, so a leaf there is the state the
+// pair JUDGES — its body is asked with `context.value === undefined` and a refusing body refuses the registration
+// at rank `19`. **AND THE LINE IS DRAWN BY THE NODE AND NOT BY THE VALUE'S CLASS**: an EMPTY OBJECT written at the
+// parent makes it a BRANCH and a PRIMITIVE written there makes a LEAF — **both APPLY the pair** (`D-96` (3)).
+// `G3-08` drives both arms, on two stores, because the line is two different acts.
 //
 // **2 · THE RULE IS READ AT EVERY INSTANT THAT WOULD APPLY A PAIR, AND NOWHERE IS IT A REGISTRATION'S
 // PROPERTY** (`PIN-2` (v), `PIN-4` (iv)): CONSTRUCTION · A BOOT OVER AN EXISTING `filePath` · `addConstraint` ·
 // A RE-ARM (`constraintOn`) · THE PASS over a `write`, a `delete` or a `rollback` — and the registration's own
-// RE-RUN is an instant that reads it too (`D-94`, `G3-13`). Each cell below names the instant it drives.
+// RE-RUN is an instant that reads it too (`D-94`, `D-96` (4), `G3-13`). Each cell below names the instant it
+// drives.
 //
 // **3 · A SKIP IS NOT A REFUSAL** (`PIN-3`): a skipped pair is not asked, not refused for, not repaired for,
 // not counted as a judgement, and **NOTHING CROSSES FOR IT** — no `status`, no `message`, no `log` entry, no
@@ -73,10 +82,10 @@
 // **THE ARMS ARE THE ONES `sites.md §3` MEASURED, EACH AT ITS OWN ROW**: the `mem` store with no `['window']`
 // (the LEAF-ABSENT arm, which must be APPLIED, rows `1`/`12` and `§3.1` items 1 and 3) · `['window','tabs']`
 // with no `window` (the PARENT-ABSENT arm, which must be SKIPPED, row `12`) · `['x','deep']` with `'x'` a LEAF
-// (skipped, `PIN-2` (iii), `§3.1` item 6) · the empty parent, the register, always applicable · a BOOT over a
-// real `filePath` seeded by a `file`-tier write (rows `5`, `10`, `11`, `§3.1` item 4) · an ancestor `delete`
-// (`PIN-4` (iii)) · a `rollback` whose reversal removes the parent (`PIN-4` (iv)) · and `D-94`'s re-run arm
-// (`G3-13`).
+// (APPLIED and refusing — `D-96` (1)–(3) inverts the arm this row `§3.1` item 6 measured) · the empty parent, the
+// register, always applicable · a BOOT over a real `filePath` seeded by a `file`-tier write (rows `5`, `10`, `11`,
+// `§3.1` item 4) · an ancestor `delete` (`PIN-4` (iii)) · a `rollback` whose reversal removes the parent
+// (`PIN-4` (iv)) · and `D-94`'s re-run arm, read through `D-96` (4) (`G3-13`).
 //
 // **D-21.** Every cell prints the readings it took at its own `t.diagnostic`, **and asserts its own drive's
 // coherence BEFORE it reports a verdict**: where an act the contract says must pass refuses, the cell fails at
@@ -610,34 +619,74 @@ test('G3-07 · THE LEAF-ABSENT ARM AT `addConstraint`: `[\'window\']` on a store
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
-// `G3-08` · THE PARENT-IS-A-LEAF ARM IS SKIPPED, AND THE LINE IS DRAWN BY THE NODE AND NOT BY THE VALUE
+// `G3-08` · THE PARENT-IS-A-LEAF ARM IS **APPLIED**, AND THE LINE IS DRAWN BY THE NODE AND NOT BY THE VALUE
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+//
+// **⟶ RE-DERIVED 2026-11-02 ON `D-96` (1)–(3), (6), AND THE GROUND IS THE ARCHITECT'S, VERBATIM: *"Reject this,
+// the constraint being there implicitly expects `'x'` to be a container"*** (`strata/decisions.md` · `D-96`).
+// Under `D-96` (1) **the skip threshold is ABSENCE ALONE** — a pair is skipped exactly when its PARENT DOES NOT
+// RESOLVE — and **a parent that RESOLVES AS A LEAF APPLIES its pair**, because a pair registered at
+// `['x','deep']` DECLARES that `['x']` is a container: *"a leaf standing at `['x']` is therefore the state the
+// pair is there to judge, not a state to look away from"* (`D-96` (2)). `D-90` (1)'s phrase *"the parent resolves
+// to a container"* is READ THROUGH that row, and `D-96` (6) names this very cell's leaf half among the artifacts
+// the withdrawal moves: **"cell `G3-08`'s leaf arm … must now assert the APPLY and the refusal"**.
+//
+// **WHAT THIS CELL PINNED BEFORE THE RE-DERIVATION, NAMED SO THE WITHDRAWAL IS VISIBLE AND NOT SILENT:** the leaf
+// half asserted the PRE-`D-96` reading — the pair CARRIED, the ask-delta `0`, `constraints()` naming it — i.e. the
+// *"not a container ⇒ skip"* reading `D-96` (6) withdraws by name. **THE CELL IS NOT LIGHTER FOR IT**: the
+// skipped-registration limb is replaced by FOUR limbs the old reading cannot satisfy — the rank-`19` refusal, the
+// ask with `context.value === undefined`, the PASSING registration that STANDS (so the arm is an APPLY and not a
+// refusal-only curiosity), and the store's own `WriteParentNotLink` where the leaf's own key is written, which is
+// the state the body judged. **WHAT MAKES IT RED NOW:** any return of the leaf-as-skip reading (the call
+// answering an identity with an ask-delta of `0`), a body handed a resolved `value`, a rank other than `19`, a
+// `log` that is no longer `[]` on the repairless refusal, a `constraints()` row left behind by a refused
+// registration, or a `['x','deep']` write that LANDS under a leaf parent. **THE BRANCH HALF (ii) IS UNCHANGED IN
+// SUBSTANCE**: an EMPTY OBJECT mints a `Kind::Map` branch, so the same pair is APPLICABLE there — the NODE, and
+// never the value's class, is what decides (`D-96` (3)).
 
-test('G3-08 · THE LINE IS THE NODE AND NOT THE VALUE — TWO STORES, BECAUSE THE LINE IS TWO DIFFERENT ACTS: (i) a PRIMITIVE at `[\'x\']` makes a LEAF and the pair at `[\'x\',\'deep\']` is CARRIED with an ask-delta of `0` while `readLiteral([\'x\'])` answers `5`; (ii) an EMPTY OBJECT at `[\'window\']` makes a BRANCH, `readLiteral` answers `ReadTargetIsBranch`, and the SAME pair is APPLICABLE there — the `addConstraint` ITSELF asks it (`+1`), and a following write at the pair asks it once more (`+1`)', (t) => {
-  // **`PIN-2` (iii) IS THE WHOLE SUBJECT**: *"a pair whose parent resolves to a leaf is SKIPPED"* — because the
-  // write the pair's own repair would owe answers `WriteParentNotLink` there — **and the line the ruling does not
-  // draw is drawn here**: *"an EMPTY OBJECT written at the parent makes the parent a BRANCH and not a leaf … so
-  // a pair under it is APPLICABLE; a PRIMITIVE written there makes a leaf and the pair is SKIPPED"*. **THE TWO
-  // STORES ARE TWO ACTS**: a value-class guess about `{}` gets the first store right and the second wrong.
-  // **AND EVERY ASK-COUNT IS READ AS A PER-ACT DELTA**, so no figure here is the sum of two instants.
+test('G3-08 · THE LINE IS THE NODE AND NOT THE VALUE — TWO STORES, BECAUSE THE LINE IS TWO DIFFERENT ACTS: (i) a PRIMITIVE at `[\'x\']` makes a LEAF and the pair at `[\'x\',\'deep\']` is APPLIED there — the constraint\'s presence implies `[\'x\']` is a container, so the body is asked with `context.value === undefined` and a REFUSING body refuses the registration at rank `19` (`ConstraintRefusedAtRegistration`), while a PASSING body\'s registration STANDS and `readLiteral([\'x\'])` answers `5`; (ii) an EMPTY OBJECT at `[\'window\']` makes a BRANCH, `readLiteral` answers `ReadTargetIsBranch`, and the SAME pair is APPLICABLE there — the `addConstraint` ITSELF asks it (`+1`), and a following write at the pair asks it once more (`+1`)', (t) => {
+  // **`D-96` (1)–(3) IS THE WHOLE SUBJECT OF THE LEAF HALF, AND THE ARCHITECT'S SENTENCE IS ITS GROUND**: *"the
+  // constraint being there implicitly expects `'x'` to be a container"* — so a leaf under it is the state the pair
+  // JUDGES and not a reason to skip it. **THE LINE `D-96` (3) DRAWS IS THE NODE'S**: *"an EMPTY OBJECT written at
+  // the parent makes the parent a BRANCH … so a pair under it is APPLICABLE; a PRIMITIVE written there makes a
+  // LEAF and the pair is APPLICABLE TOO"* — the two stores are two different ACTS, and a value-class guess about
+  // `{}` gets them wrong in opposite directions. **EVERY ASK-COUNT IS READ AS A PER-ACT DELTA**, so no figure here
+  // is the sum of two instants.
 
   // ══ (i) THE LEAF ARM — a PRIMITIVE at `['x']`. ═══════════════════════════════════════════════════════════
   const leaf = make();
-  const leafAsks = [];
   const primitive = attempt(() => leaf.write(['x'], 'mem', 5));
   const literalUnderPrimitive = attempt(() => leaf.readLiteral(['x']));
-  const leafAdd = attempt(() => leaf.addConstraint({ address: ['x', 'deep'], id: 'leaf-pair' }, (context) => {
-    leafAsks.push({ members: Object.keys(context).sort(), value: context.value });
-    return { message: 'the pair under a LEAF parent refuses' };
+  // (i-a) **A REFUSING BODY**: the pair is ASKED — the arm `D-96` (4) reads the same way at every instant — and
+  // its refusal is the registration's, rank `19` (`D-96` (2): *"the body may refuse"*).
+  const leafRefusalReadings = [];
+  const leafRefuse = attempt(() => leaf.addConstraint({ address: ['x', 'deep'], id: 'leaf-refuses' }, (context) => {
+    leafRefusalReadings.push({ members: Object.keys(context).sort(), value: context.value });
+    return { message: 'the pair under a LEAF parent refuses the state its own presence declares a container' };
   }));
-  const leafAddShape = shapeOf(leafAdd.ok === true ? null : leafAdd.caught);
-  const leafDeltaAtAdd = leafAsks.length;
-  // **AND THE PASS DOES NOT ASK IT EITHER**: a later write at the parent keeps it a leaf, so the pair stays
-  // SKIPPED — the delta is read around that act alone.
-  const leafBefore = leafAsks.length;
-  const rewrite = attempt(() => leaf.write(['x'], 'mem', 7));
-  const leafDeltaAtPass = leafAsks.length - leafBefore;
+  const leafRefuseShape = shapeOf(leafRefuse.ok === true ? null : leafRefuse.caught);
+  const leafRefuseAsks = leafRefusalReadings.length;
+  const leafAfterRefusal = leaf.constraints();
+  // (i-b) **A PASSING BODY AT THE SAME ADDRESS — THE ARM THAT PROVES AN APPLY AND NOT ONLY A REFUSAL**: a body
+  // that admits the absence the leaf produces leaves the registration STANDING.
+  const leafPassAsks = [];
+  const leafPass = attempt(() => leaf.addConstraint({ address: ['x', 'deep'], id: 'leaf-passes' }, (context) => {
+    leafPassAsks.push({ members: Object.keys(context).sort(), value: context.value });
+    return context.value === undefined ? true : { message: 'this pair admits the leaf parent\'s absence alone' };
+  }));
+  const leafPassShape = shapeOf(leafPass.ok === true ? null : leafPass.caught);
   const leafRows = leaf.constraints();
+  // **AND THE STORE'S OWN ANSWER WHERE THE LEAF'S KEY IS WRITTEN**: a leaf never holds a structured value, so the
+  // write the pair's address names answers `WriteParentNotLink` and lands nothing — the very fact the body judged
+  // as `undefined` (`D-96` (2)).
+  const leafKeyWrite = attempt(() => leaf.write(['x', 'deep'], 'mem', 1));
+  const leafDeltaAtKeyWrite = leafPassAsks.length - 1;
+  // **AND THE PASS'S REACH IS UNCHANGED AND IS NOT THE GROUND HERE** (`D-56`/`D-66`): a write AT the leaf parent
+  // names no address the pair stands at or beneath, so the delta around it is `0` — **not because the pair is
+  // skipped** (`D-96` (1) retired that reason) but because the act's `triggered` set never names it.
+  const leafBefore = leafPassAsks.length;
+  const rewrite = attempt(() => leaf.write(['x'], 'mem', 7));
+  const leafDeltaAtPass = leafPassAsks.length - leafBefore;
 
   // ══ (ii) THE BRANCH ARM — an EMPTY OBJECT at `['window']`, on a SECOND store. ════════════════════════════
   const branch = make();
@@ -665,30 +714,71 @@ test('G3-08 · THE LINE IS THE NODE AND NOT THE VALUE — TWO STORES, BECAUSE TH
   const touchedDelta = branchAsks.length - carriedDelta - emptyDelta - appliedDelta;
   const appliedReadings = branchAsks.slice(carriedDelta + emptyDelta);
 
-  // ── (a) THE LEAF ARM: THE PAIR IS CARRIED AND THE DELTA IS `0`. ────────────────────────────────────────
+  // ── (a) THE LEAF ARM: THE PAIR IS **APPLIED**, AND ITS REFUSAL IS THE REGISTRATION'S. ──────────────────
   assert.equal(primitive.ok, true,
     `**THE DRIVE MUST BE ABLE TO PUT A PRIMITIVE AT \`['x']\`** or it does not reach the leaf arm: the write `
       + `answered ${JSON.stringify(shapeOf(primitive.ok === true ? null : primitive.caught))}`);
   assert.equal(literalUnderPrimitive.ok, true,
-    `**AND \`readLiteral(['x'])\` ANSWERS THE VALUE — the third of the predicate's three answers** `
-      + `(\`PIN-2\` (ii): *"A VALUE ANSWERED ⇒ THE PARENT IS A LEAF ⇒ SKIPPED"*): the drive caught `
+    `**AND \`readLiteral(['x'])\` ANSWERS THE VALUE — the third of the predicate's three answers, AND UNDER `
+      + `\`D-96\` (3) THAT ANSWER IS \`APPLICABLE\`** (*"ANY VALUE ANSWERED ⇒ the parent is a LEAF ⇒ APPLICABLE"*; `
+      + `the pre-\`D-96\` reading made it \`SKIPPED\` and is withdrawn): the drive caught `
       + `${JSON.stringify(shapeOf(literalUnderPrimitive.ok === true ? null : literalUnderPrimitive.caught))}`);
   assert.equal(literalUnderPrimitive.value, 5,
     `and the value it answers is the primitive written: ${JSON.stringify(literalUnderPrimitive.value)}`);
-  assert.equal(leafAdd.ok, true,
-    `**A PAIR UNDER A LEAF PARENT IS CARRIED, NOT REFUSED** (\`PIN-2\` (iii) + \`PIN-4\` (i)): the call `
-      + `answered ${JSON.stringify(leafAddShape.status)} with message ${JSON.stringify(leafAddShape.message)}`);
-  assert.equal(leafDeltaAtAdd, 0,
-    `**AND IT IS SKIPPED AT THE REGISTRATION: THE CALL'S OWN ASK-DELTA IS \`0\`** (\`PIN-3\`: *"not asked"*): `
-      + `the body was entered ${leafDeltaAtAdd} time(s): ${JSON.stringify(leafAsks)}`);
+  assert.equal(leafRefuse.ok, false,
+    `**A REFUSING BODY UNDER A LEAF PARENT REFUSES THE REGISTRATION — THE ARM \`D-96\` (2) INVERTS**: *"the `
+      + `constraint being there implicitly expects \`'x'\` to be a container"*, so the leaf is the state the pair `
+      + `judges and its refusal is the registration's. **THE CALL RETURNED AN IDENTITY, WHICH IS THE PRE-\`D-96\` `
+      + `SKIP READING RETURNING** (\`D-96\` (6): *"cell \`G3-08\`'s leaf arm … must now assert the APPLY and the `
+      + `refusal"*): the drive answered ${JSON.stringify(leafRefuse.ok === true ? typeof leafRefuse.value : null)}`);
+  assert.equal(leafRefuseShape.status, REGISTRATION_REFUSED,
+    `and it refuses at rank \`19\`, the registration instant's own member — NOT the shape arm, which \`D-90\` (5) `
+      + `reserves for the MALFORMED list: the drive caught ${JSON.stringify(leafRefuseShape.status)} with message `
+      + `${JSON.stringify(leafRefuseShape.message)}`);
+  assert.equal(leafRefuseAsks, 1,
+    `**AND THE BODY WAS ASKED EXACTLY ONCE — THE READING THAT SEPARATES AN APPLY FROM A SKIP** (\`D-96\` (1): `
+      + `*"a parent that RESOLVES applies the pair"*; \`PIN-3\`'s skip is absence alone): the body was entered `
+      + `${leafRefuseAsks} time(s): ${JSON.stringify(leafRefusalReadings)}`);
+  assert.deepEqual(leafRefusalReadings[0].members, CONTEXT_MEMBERS,
+    `and it was handed the body's FIVE-member evaluation context, UNMOVED (\`PIN-8\` (iii) (a); \`D-92\` (1)): `
+      + `${JSON.stringify(leafRefusalReadings[0].members)}`);
+  assert.equal(leafRefusalReadings[0].value, undefined,
+    `**AND \`context.value\` IS \`undefined\` — \`D-96\` (2) VERBATIM: *"its address cannot be read, so the `
+      + `registration instant hands the body \`context.value === undefined\`"*** (the read of \`['x','deep']\` `
+      + `cannot walk through a leaf): ${JSON.stringify(leafRefusalReadings[0].value)}`);
+  assert.deepEqual(logKinds(leafRefuse.caught), [],
+    `**AND THE REFUSAL CARRIES \`log: []\` — NO REPAIR WAS REGISTERED FOR THIS PAIR**, so nothing was attempted `
+      + `and nothing crossed (\`D-90\` (2): a skip is not a refusal; the converse — an applied pair's refusal IS the `
+      + `registration's — is what this arm reads): ${JSON.stringify(logKinds(leafRefuse.caught))}`);
+  assert.deepEqual(leafAfterRefusal, [],
+    `**AND THE REFUSED REGISTRATION LEAVES NO ROW BEHIND** — the pair is CARRIED only where the registration `
+      + `COMPLETES (\`PIN-4\` (i)), and this one refused: \`constraints()\` answers `
+      + `${JSON.stringify(leafAfterRefusal)}`);
+  assert.equal(leafPass.ok, true,
+    `**AND THE SAME PAIR UNDER THE SAME LEAF PARENT IS AN APPLY FOR A PASSING BODY TOO — THE LIMB THAT MAKES THIS `
+      + `ARM AN APPLY AND NOT A REFUSAL-ONLY CURIOSITY** (\`D-96\` (1)–(2)): the call answered `
+      + `${JSON.stringify(leafPassShape.status)} with message ${JSON.stringify(leafPassShape.message)}`);
+  assert.equal(leafPassAsks.length, 1,
+    `and that registration asked the body once: ${JSON.stringify(leafPassAsks)}`);
   assert.deepEqual(addressSet(leafRows[0].address), ['x/deep'],
-    `and \`constraints()\` names it (\`PIN-4\` (i)): ${JSON.stringify(leafRows.map((row) => addressSet(row.address)))}`);
+    `and \`constraints()\` now names it (\`PIN-4\` (i)): ${JSON.stringify(leafRows.map((row) => addressSet(row.address)))}`);
+  assert.equal(leafKeyWrite.ok, false,
+    `**AND THE STORE'S OWN ANSWER WHERE THE LEAF'S KEY IS WRITTEN IS \`WriteParentNotLink\`** — a leaf never holds `
+      + `a structured value, which is the state the body judged as \`undefined\` (\`D-96\` (2)): the write answered `
+      + `${JSON.stringify(leafKeyWrite.ok === true ? leafKeyWrite.value : null)}`);
+  assert.equal(shapeOf(leafKeyWrite.caught).status, 'WriteParentNotLink',
+    `with the store's own code and no minted one (\`PIN-10\`; \`D-92\` (3): no status is minted): `
+      + `${JSON.stringify(shapeOf(leafKeyWrite.caught).status)}`);
+  assert.equal(leafDeltaAtKeyWrite, 0,
+    `and a write that CANNOT LAND asks nothing — the pair is not reached by an act it refuses at the walk: the `
+      + `delta around \`write(['x','deep'],'mem',1)\` is ${leafDeltaAtKeyWrite}`);
   assert.equal(rewrite.ok, true,
     `and the later write at the parent lands: ${JSON.stringify(shapeOf(rewrite.ok === true ? null : rewrite.caught))}`);
   assert.equal(leafDeltaAtPass, 0,
-    `**AND THE PASS DOES NOT ASK IT EITHER — the parent is STILL A LEAF after the write, so the pair is still `
-      + `SKIPPED** (\`PIN-2\` (v): the rule is re-read at every instant): the delta around `
-      + `\`write(['x'],'mem',7)\` is ${leafDeltaAtPass}`);
+    `**AND THAT DELTA IS \`0\` FOR THE PASS'S OWN REASON AND NOT FOR THE WITHDRAWN ONE**: \`D-56\`/\`D-66\`'s reach `
+      + `is what is read — a write AT the leaf parent names no address the pair stands at or beneath — **the skip `
+      + `is no longer the ground, and \`D-96\` (1) retired it**: the delta around \`write(['x'],'mem',7)\` is `
+      + `${leafDeltaAtPass}`);
 
   // ── (b) THE BRANCH ARM: THE SAME PAIR IS APPLICABLE THERE. ─────────────────────────────────────────────
   assert.equal(carried.ok, true,
@@ -727,13 +817,20 @@ test('G3-08 · THE LINE IS THE NODE AND NOT THE VALUE — TWO STORES, BECAUSE TH
       + `reach, unchanged): the delta around \`write(['window','tabs'],'mem',1)\` is ${touchedDelta}`);
 
   t.diagnostic(`G3-08 · THE LINE IS THE NODE: LEAF ARM — \`write(['x'],'mem',5)\` → \`readLiteral(['x'])\` `
-    + `${JSON.stringify(literalUnderPrimitive.value)}; \`addConstraint(['x','deep'])\` answered `
-    + `${JSON.stringify(leafAddShape.status)} at an ask-delta of ${leafDeltaAtAdd}, and the later write's was `
-    + `${leafDeltaAtPass}. BRANCH ARM — \`write(['window'],'mem',{})\` → \`readLiteral(['window'])\` `
+    + `${JSON.stringify(literalUnderPrimitive.value)}; the REFUSING \`addConstraint(['x','deep'])\` answered `
+    + `${JSON.stringify(leafRefuseShape.status)} with \`log\` ${JSON.stringify(logKinds(leafRefuse.caught))} at an `
+    + `ask of ${leafRefuseAsks} with \`value\` ${JSON.stringify(leafRefusalReadings[0] === undefined ? null : leafRefusalReadings[0].value)}`
+    + ` and left ${JSON.stringify(leafAfterRefusal)}; the PASSING \`addConstraint\` at the same pair answered `
+    + `${JSON.stringify(leafPassShape.status)} at an ask of ${leafPassAsks.length} and \`constraints()\` names `
+    + `${JSON.stringify(leafRows.map((row) => ({ address: addressSet(row.address), id: row.id })))}; `
+    + `\`write(['x','deep'],'mem',1)\` threw ${JSON.stringify(shapeOf(leafKeyWrite.caught).status)} at a delta of `
+    + `${leafDeltaAtKeyWrite}, and the later write at the parent's was ${leafDeltaAtPass}. BRANCH ARM — `
+    + `\`write(['window'],'mem',{})\` → \`readLiteral(['window'])\` `
     + `${JSON.stringify(shapeOf(literalUnderEmptyObject.caught).status)}; the carried pair's delta was `
     + `${carriedDelta}, the empty-object write's ${emptyDelta}, the re-registration's ${appliedDelta} and the `
-    + `write at the pair's address ${touchedDelta}. **\`{}\` IS A BRANCH AND \`5\` IS A LEAF, AND THE PREDICATE `
-    + `FOLLOWS THE NODE**`);
+    + `write at the pair's address ${touchedDelta}. **\`{}\` IS A BRANCH AND \`5\` IS A LEAF, AND A LEAF PARENT `
+    + `APPLIES TOO — THE PAIR'S PRESENCE DECLARES ITS PARENT A CONTAINER (\`D-96\`) AND THE PREDICATE FOLLOWS THE `
+    + `NODE**`);
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -1036,41 +1133,58 @@ test('G3-12 · NO READ DISTINGUISHES THE TWO EXAMPLES, AND THE WALK DOES: `read(
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
-// `G3-13` · THE RE-RUN IS AN INSTANT THAT READS THE RULE (the `D-94` arm)
+// `G3-13` · THE RE-RUN IS AN INSTANT THAT READS THE RULE — AND UNDER `D-96` (4) IT ASKS THE PAIR
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+//
+// **⟶ RE-DERIVED 2026-11-02 ON `D-96` (4), WHOSE GROUND IS THE ARCHITECT'S *"See above"* — the re-run is read the
+// same way as the LEAF arm**: *"A repair that writes a leaf over its own pair's parent does NOT skip its pair at
+// the re-run: the re-run asks it, the body meets `undefined`-as-its-own-address's-state, and a body that refuses
+// refuses the registration — rank `19` `ConstraintRefusedAtRegistration`, `KC-5` where the refusing pair is the
+// repaired one."* **`D-94`'s UNCONDITIONAL RE-RUN IS UNMOVED** (`D-96` (4)'s last sentence): this cell reads WHO
+// the re-run asks, and it reads it through `D-94` (2)'s own instant.
+//
+// **WHAT THIS CELL PINNED BEFORE THE RE-DERIVATION, NAMED SO THE WITHDRAWAL IS VISIBLE AND NOT SILENT:** the call
+// STANDING on the repair's landing because *"the pair is skipped at the re-run"* — i.e. the `D-94` (2) reading
+// that `D-96` (6) withdraws by name (*"cell `G3-13`'s skip arm … must now assert the APPLY and the refusal
+// respectively"*). **`D-96` (5) NARROWS `D-94` (4)'s INERT-PAIR HAZARD TO THE DELETED PARENT AND TO NOTHING ELSE**,
+// so a repair that FLATTENS its own pair's parent no longer completes over an inert pair: it meets a pair that
+// refuses. **WHAT MAKES IT RED NOW:** the call answering an identity (the withdrawn skip returning), a body that is
+// not asked a second time, a rank other than `19`, a `log` census other than the two entries the repaired
+// refusal carries (or a \`repair-run\` entry whose `opId` is not the op the repair landed — the membership that
+// selects `KC-5` over `KC-6`), the repair's landing rolled back, or a `constraints()` row left by a refused
+// registration.
+//
+// **THE WRITE THIS CELL DRIVES IS THE VEHICLE `sites.md §3.1` ITEM 8 MEASURED** — the registration record carried
+// at the store's `write` FOURTH POSITION — **and not the route's seventh member**: this cell's subject is the
+// RE-RUN's rule, the route is `G3-20`…`G3-27`'s, and the two land ONE op by the kernel's own name (`PIN-7` (i):
+// *"The write the route performs NAMES the REGISTRATION'S OWN \`CommitRecord\`"* — which is what the fourth
+// position does and all it does). **A CELL THAT DROVE THE ROUTE HERE WOULD GO RED FOR THE ROUTE'S ABSENCE AND
+// WOULD SAY NOTHING ABOUT THE RE-RUN.**
 
-test('G3-13 · THE RE-RUN IS AN INSTANT THAT READS THE RULE: a pair at `[\'window\',\'tabs\']` APPLIED while `window` is a branch, whose body refuses and whose repair writes a LEAF at `[\'window\']` and returns `{ok: true, op: <the op it landed>}` — the re-run finds the parent a LEAF, SKIPS the pair, and the registration STANDS on the repair\'s landing', (t) => {
-  // **`PIN-4` (iv)'s LAST SENTENCE AND `D-94`'s `(i) YES`**: *"the registration's own re-run is an instant that
-  // would apply a pair and therefore reads the rule too"* — *"the one reachable arm is a repair that removes the
-  // pair's own parent during the registration, on which the pair is SKIPPED and the registration STANDS on the
-  // repair's landing"*. **`D-94` (1) ADDS THAT THE RE-RUN IS UNCONDITIONAL**, and **`D-94` (4) RECORDS THE
-  // HAZARD**: *"a repair that flattens its own pair's parent to a leaf permanently disables that pair … and the
-  // registration that was meant to enforce the pair completes with the pair inert"*. **THIS CELL PINS THE
-  // REGISTRATION'S OUTCOME AND NOT THE HAZARD'S REPAIR: a consumer who meets the hazard is answered with
-  // `D-94` (4) and not with a repair to the rule.**
-  //
-  // **THE WRITE THIS CELL DRIVES IS THE VEHICLE `sites.md §3.1` ITEM 8 MEASURED** — the registration record
-  // carried at the store's `write` FOURTH POSITION — **and not the route's seventh member**: this cell's subject
-  // is the RE-RUN's rule, the route is `G3-20`…`G3-27`'s, and the two land ONE op by the kernel's own name
-  // (`PIN-7` (i): *"The write the route performs NAMES THE REGISTRATION'S OWN \`CommitRecord\`"* — which is what
-  // the fourth position does and all it does). **A CELL THAT DROVE THE ROUTE HERE WOULD GO RED FOR THE ROUTE'S
-  // ABSENCE AND WOULD SAY NOTHING ABOUT THE RE-RUN.**
+test('G3-13 · THE RE-RUN IS AN INSTANT THAT READS THE RULE, AND UNDER `D-96` (4) IT **ASKS**: a pair at `[\'window\',\'tabs\']` APPLIED while `window` is a branch, whose body refuses and whose repair writes a LEAF at `[\'window\']` and returns `{ok: true, op: <the op it landed>}` — the re-run finds the parent a LEAF and, because a pair\'s presence implicitly expects `[\'window\']` to be a container, ASKS the pair again and its refusal REFUSES the registration at rank `19` (`ConstraintRefusedAtRegistration`) on the `KC-5` terminal arm, the refusing pair being the REPAIRED one', (t) => {
+  // **`PIN-4` (iv)'s LAST SENTENCE AND `D-94` (i) YES READ THROUGH `D-96` (4)**: *"the registration\'s own re-run
+  // is an instant that would apply a pair and therefore reads the rule too"* — and **`D-96` (4)'s *"See above"*
+  // fixes what that reading ANSWERS here**: a leaf parent is the state the pair declares and judges, so the pair is
+  // ASKED and its refusal is the registration\'s. **`D-94` (1) STANDS UNMOVED: THE RE-RUN IS UNCONDITIONAL**, and
+  // this cell\'s second ask is the re-run happening rather than being short-circuited.
   const store = make();
   const seeded = attempt(() => store.write(['window'], 'mem', { tabs: 1 }));
   const asks = [];
   let repairs = 0;
   let landedOpId = null;
+  let landedAfter = null;
   const add = attempt(() => store.addConstraint({ address: ['window', 'tabs'], id: 'w' }, (context) => {
-    asks.push({ members: Object.keys(context).sort(), value: context.value });
+    asks.push({ members: Object.keys(context).sort(), op: context.op === null ? null : context.op.opId, value: context.value });
     if (context.value === undefined) return true;
     return {
       message: 'the pair refuses, and its repair flattens its own parent',
       repair: (repairContext) => {
         repairs += 1;
-        // **THE LEAF**: a PRIMITIVE at the parent, which is `PIN-2` (iii)'s SKIPPED arm at the instant that
-        // follows (`sites.md §3.1` item 6: a finite number is a `Kind::Leaf`).
+        // **THE LEAF**: a PRIMITIVE at the parent — `D-96` (4)'s own arm, *"a repair that writes a leaf over its
+        // own pair's parent"* (`sites.md §3.1` item 6: a finite number is a `Kind::Leaf`).
         const landed = store.write(['window'], 'mem', 5, repairContext);
         landedOpId = landed.op.opId;
+        landedAfter = landed.op.after;
         return { ok: true, op: landed.op };
       },
     };
@@ -1079,10 +1193,14 @@ test('G3-13 · THE RE-RUN IS AN INSTANT THAT READS THE RULE: a pair at `[\'windo
   const literalAfter = attempt(() => store.readLiteral(['window']));
   const standing = attempt(() => store.read(['window']));
   const rows = store.constraints();
+  const log = Array.isArray(add.caught !== null && typeof add.caught === 'object' ? add.caught.log : null)
+    ? add.caught.log
+    : null;
+  const repairRun = log === null ? null : log.find((entry) => entry.kind === 'repair-run');
 
   // ── (a) THE DRIVE REACHED ITS ARM: THE PARENT STOOD AND THE PAIR WAS APPLIED. ─────────────────────────
   assert.equal(seeded.ok, true,
-    `**\`window\` MUST STAND AS A BRANCH FOR THE PAIR TO BE APPLIED** (\`PIN-2\` (ii)'s first arm): the seed `
+    `**\`window\` MUST STAND AS A BRANCH FOR THE PAIR TO BE APPLIED** (\`D-96\` (3)'s first arm): the seed `
       + `answered ${JSON.stringify(shapeOf(seeded.ok === true ? null : seeded.caught))}`);
   assert.equal(asks.length >= 1, true,
     `and the pair must have been asked at the registration: ${JSON.stringify(asks.map((reading) => reading.value))}`);
@@ -1092,38 +1210,76 @@ test('G3-13 · THE RE-RUN IS AN INSTANT THAT READS THE RULE: a pair at `[\'windo
     `**AND THE REPAIR MUST HAVE RUN ONCE — otherwise no op was landed and there is no re-run to judge** `
       + `(\`PIN-7\` (iii)): the drive entered it ${repairs} time(s)`);
 
-  // ── (b) THE REGISTRATION STANDS — the arm `D-94` declares and today's tree refuses at rank `19`. ──────
-  assert.equal(add.ok, true,
-    `**THE REGISTRATION MUST STAND ON THE REPAIR'S LANDING** (\`D-94\` (2), verbatim: *"the pair is skipped at `
-      + `the re-run, the registration STANDS on the repair's landing, and the pair is CARRIED"*; `
-      + `\`PIN-4\` (iv)'s last sentence): the call answered ${JSON.stringify(addShape.status)} with log `
-      + `${JSON.stringify(logKinds(add.caught))} and message ${JSON.stringify(addShape.message)}. **A RANK-\`19\` `
-      + `REFUSAL HERE IS TODAY'S ANSWER — the re-run asks the pair a second time instead of reading the rule**`);
+  // ── (b) THE RE-RUN ASKED IT — TWO ASKS, AND THE SECOND IS THE REPAIR'S OWN INSTANT. ──────────────────
+  assert.equal(asks.length, 2,
+    `**THE PAIR IS ASKED TWICE — THE REGISTRATION\'S EVALUATION AND THE RE-RUN — BECAUSE A LEAF PARENT APPLIES `
+      + `(\`D-96\` (4), verbatim: *"the re-run asks it"*; the withdrawn arm asked it once)**: the drive recorded `
+      + `${asks.length} ask(s), ${JSON.stringify(asks.map((reading) => reading.value))}`);
+  assert.deepEqual(asks[1].value, 5,
+    `**AND THE RE-RUN\'S \`value\` IS THE OP\'S OWN LANDED VALUE — \`D-95\` (4)**: *"the re-run\'s context is where `
+      + `the pair meets the repair\'s state — its \`value\` is \`produced.after.value\`"*: the drive read `
+      + `${JSON.stringify(asks[1].value)} against the repair\'s landing ${JSON.stringify(landedAfter)}`);
+  assert.deepEqual(asks[1].members, CONTEXT_MEMBERS,
+    `and the re-run is handed the SAME five-member body context, UNMOVED (\`PIN-8\` (iii) (a); \`D-92\` (1)): `
+      + `${JSON.stringify(asks[1].members)}`);
 
-  // ── (c) THE RE-RUN SKIPPED IT: ONE ASK, NOT TWO, AND THE PARENT IS A LEAF. ────────────────────────────
-  assert.equal(asks.length, 1,
-    `**THE PAIR IS ASKED ONCE AND ONLY ONCE — the re-run SKIPS it because its parent is now a LEAF** `
-      + `(\`PIN-2\` (iii); \`D-94\` (2)): the drive recorded ${asks.length} ask(s), `
-      + `${JSON.stringify(asks.map((reading) => reading.value))}`);
+  // ── (c) THE REFUSAL — RANK `19`, AND THE TERMINAL ARM `KC-5`. ───────────────────────────────────────
+  assert.equal(add.ok, false,
+    `**A REFUSING PAIR AT THE RE-RUN REFUSES THE REGISTRATION** (\`D-96\` (4): *"a body that refuses refuses the `
+      + `registration — rank \`19\` \`ConstraintRefusedAtRegistration\`, \`KC-5\` where the refusing pair is the `
+      + `repaired one"*). **THE CALL ANSWERED AN IDENTITY, WHICH IS THE WITHDRAWN SKIP READING RETURNING** `
+      + `(\`D-96\` (6): *"cell \`G3-13\`\'s skip arm … must now assert the APPLY and the refusal"*): `
+      + `${JSON.stringify(add.ok === true ? typeof add.value : null)}`);
+  assert.equal(addShape.status, REGISTRATION_REFUSED,
+    `and the code is the registration instant\'s own rank-\`19\` member — not the pass\'s (\`20\`) and not the shape `
+      + `arm\'s (\`16\`, which \`D-90\` (5) reserves for the MALFORMED list): the drive caught `
+      + `${JSON.stringify(addShape.status)} with message ${JSON.stringify(addShape.message)}`);
+  assert.deepEqual(logKinds(add.caught), ['constraint-check', 'repair-run'],
+    `**AND THE REFUSAL CARRIES THE TWO ENTRIES THE REPAIRED ARM APPENDS, IN ORDER — THE CENSUS THAT MAKES THE `
+      + `TERMINAL ARM \`KC-5\` RATHER THAN A REPAIRLESS REFUSAL (whose \`log\` is \`[]\`, \`G3-02\`'s arm)**: the `
+      + `drive read ${JSON.stringify(logKinds(add.caught))}`);
+  assert.equal(log.length, 2,
+    `and exactly two — no third entry for the judgement that refused: ${JSON.stringify(log)}`);
+  assert.equal(repairRun === null ? null : repairRun.opId, landedOpId,
+    `**AND THE \`repair-run\` ENTRY NAMES THE OP THE REPAIR LANDED — THE CREDIT \`landedOp\` GAVE IT, WHICH IS WHAT `
+      + `PUTS THE PAIR IN \`appliedRepairs\` AND SELECTS \`KC-5\` OVER \`KC-6\`** (\`D-96\` (4); `
+      + `\`kernel-attempt.mjs\`\'s item-4 arms (e)/(f)): the entry reads `
+      + `${JSON.stringify(repairRun === null ? null : repairRun.opId)} against ${JSON.stringify(landedOpId)}`);
+  assert.equal(log[0].id, 'w',
+    `and the \`constraint-check\` entry names THE PAIR THAT REFUSED — the repaired one: `
+      + `${JSON.stringify(log[0].id)}`);
+  // **`KC-5` ITSELF IS NOT A MEMBER OF ANYTHING THE CALLER IS HANDED**: \`kernel-registration.mjs\`\'s own clause
+  // reads *"the synthetic attempt\'s `KC-4`/`KC-5`/`KC-6` stays inside this module and reaches no caller"*, so the
+  // cell pins the RECORD THAT SELECTS the arm — the two entries above, the credited op among them — and declares
+  // that it cannot pin the token\'s spelling. **A PASS THAT MOVED THE TOKEN ALONE WOULD BE INVISIBLE HERE, AND THAT
+  // IS SAID RATHER THAN IMPLIED.**
+
+  // ── (d) AND THE STORE STANDS WHERE THE REPAIR\'S WRITE LEFT IT (`PIN-7` (iv)). ───────────────────────
   assert.equal(literalAfter.ok, true,
-    `and \`readLiteral(['window'])\` answers the VALUE the repair wrote — the parent IS a leaf: it threw `
+    `and \`readLiteral([\'window\'])\` answers the VALUE the repair wrote — the parent IS a leaf: it threw `
       + `${JSON.stringify(shapeOf(literalAfter.caught))}`);
   assert.equal(literalAfter.value, 5,
-    `with the repair's own value: ${JSON.stringify(literalAfter.value)}`);
+    `with the repair\'s own value: ${JSON.stringify(literalAfter.value)}`);
   assert.equal(standing.ok, true,
-    `and \`read(['window'])\` answers it too: ${JSON.stringify(standing.value)}`);
+    `and \`read([\'window\'])\` answers it too: ${JSON.stringify(standing.value)}`);
   assert.notEqual(landedOpId, null,
     `and the repair landed an op, which is what the credit rule judged (\`landedOp\`): `
       + `${JSON.stringify(landedOpId)}`);
-  assert.equal(rows.length, 1,
-    `**AND THE PAIR IS CARRIED** (\`D-94\` (2): *"the pair is CARRIED (\`D-90\` (3)) for the first later instant `
-      + `its parent stands"*): \`constraints()\` answers ${JSON.stringify(rows)}`);
+  assert.deepEqual(rows, [],
+    `**AND THE PAIR IS NOT CARRIED — THE REGISTRATION REFUSED, SO NO ROW STANDS** (the withdrawn arm asserted a `
+      + `carried pair here, which only a STANDING registration can leave; \`PIN-4\` (i)'s \`carried\` applies to a `
+      + `SKIP and never to a refusal): \`constraints()\` answers ${JSON.stringify(rows)}`);
 
-  t.diagnostic(`G3-13 · THE RE-RUN READS THE RULE: the pair was asked ${asks.length}× at `
-    + `${JSON.stringify(asks.map((reading) => reading.value))}, the repair ran ${repairs}× and landed `
-    + `${JSON.stringify(landedOpId)} writing a LEAF \`5\` at \`['window']\`; the registration answered `
-    + `${JSON.stringify(addShape.status)}; \`readLiteral(['window'])\` → `
+  t.diagnostic(`G3-13 · THE RE-RUN ASKS THE PAIR (\`D-96\` (4)): the pair was asked ${asks.length}× at `
+    + `${JSON.stringify(asks.map((reading) => reading.value))} (the second with \`op\` `
+    + `${JSON.stringify(asks[1].op === undefined ? null : asks[1].op)}), the repair ran ${repairs}× and landed `
+    + `${JSON.stringify(landedOpId)} writing a LEAF \`5\` at \`[\'window\']\`; the registration answered `
+    + `${JSON.stringify(addShape.status)} with \`log\` ${JSON.stringify(logKinds(add.caught))} (the `
+    + `\`repair-run\` entry\'s \`opId\` ${JSON.stringify(repairRun === null ? null : repairRun.opId)}); `
+    + `\`readLiteral([\'window\'])\` → `
     + `${JSON.stringify(literalAfter.ok === true ? literalAfter.value : shapeOf(literalAfter.caught))}; `
-    + `\`read(['window'])\` → ${JSON.stringify(standing.value)}; \`constraints()\` = `
-    + `${JSON.stringify(rows.map((row) => ({ address: addressSet(row.address), id: row.id })))}`);
+    + `\`read([\'window\'])\` → ${JSON.stringify(standing.value)}; \`constraints()\` = `
+    + `${JSON.stringify(rows.map((row) => ({ address: addressSet(row.address), id: row.id })))} — **THE TERMINAL `
+    + `ARM IS \`KC-5\`: the pair was IN \`ran\` (the \`constraint-check\` entry) AND IN \`appliedRepairs\` (the `
+    + `credited op the \`repair-run\` entry names), and it refused again**`);
 });

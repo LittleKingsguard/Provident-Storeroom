@@ -301,7 +301,7 @@ test('D-41 · a refused reversal restores a `file`-tier value AT THE `file` TIER
 // the address, says what stands there instead and what it was owed, and does not say `UNDONE`.**
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 
-test('D-41 · the ABSENT cases: an address absent before the reversal is ABSENT AGAIN after the refusal, an address the reversal leaves ABSENT is restored to its pre-reversal value at its tier, and an address whose PARENT the reversal took away stands again with it', (t) => {
+test('D-41 · the ABSENT cases: an address absent before the reversal is ABSENT AGAIN after the refusal, an address the reversal leaves ABSENT is restored to its pre-reversal value at its tier, and a pair whose PARENT the reversal takes away is SKIPPED at the judgement — so that reversal LANDS and the store stands as the reversal left it', (t) => {
   // ── ARM (A): ABSENT BEFORE THE REVERSAL, REACHED THROUGH A STRUCTURED ANCESTOR WRITE. ────────
   const absentBefore = storeCreate({ journalLength: 16, listeners: [] });
   absentBefore.write(['a'], 'mem', { b: 1 });
@@ -330,33 +330,62 @@ test('D-41 · the ABSENT cases: an address absent before the reversal is ABSENT 
     ? terminalRollback.caught.log
     : [];
 
-  // ── ARM (C): THE ADDRESS WHOSE PARENT THE REVERSAL REMOVES. **THIS ARM USED TO PIN A RESTORE THAT COULD NOT
-  // BE TAKEN** — the reversal took `['a']` away with `['a','b']`, and the compensating WRITE had nowhere to land,
-  // so the refusal said so and named the address. **THE STORE'S JOURNAL REPLAY RE-STATES THE PARENT TOO**, so the
-  // arm now pins the RESTORAL: the address stands again at the value and the tier it stood at, and the log says
-  // the reversal was UNDONE — truthfully, because every address the reversal moved stands again. (The supersession
-  // is stated at this file's head; the honest limb lives at `undoSpelling`'s store-refusal branch.)
+  // ── ARM (C): THE ADDRESS WHOSE PARENT THE REVERSAL REMOVES — **⟶ RE-DERIVED 2026-11-02 ON `D-90` (1)–(4) AND
+  // `D-96`: THE PAIR IS SKIPPED AT THE JUDGEMENT, SO THE REVERSAL **LANDS**.**
+  //
+  // **WHAT THIS ARM PINNED BEFORE THE RE-DERIVATION, NAMED SO THE WITHDRAWAL IS VISIBLE AND NOT SILENT:** *"the
+  // reversal must still be REFUSED — the absence is the state the pair refuses"*, and then the `D-41` restore of the
+  // parent the reversal took away. **THE RULE THAT MOVED IT IS `D-90` (4) — THE RULE IS GLOBAL AND THE REVERSAL'S
+  // JUDGEMENT IS ONE OF ITS INSTANTS — READ THROUGH `D-96` (1)**: the reversal removes `['a']`, so the pair's PARENT
+  // **DOES NOT RESOLVE**, and *"a pair is SKIPPED exactly when its parent does not resolve"*. **`D-96`'s foot says
+  // the absent-parent skip is the ONE arm a skip survives on** — *"it stands exactly as `D-90` (1)–(3) and `D-90` (5)
+  // record it"* — so this arm is not in doubt anywhere: **the pair is not asked, crosses nothing, cannot refuse the
+  // reversal, and the reversal LANDS with its own record** (the same confirmed consequence the architect accepted
+  // for a `delete` of an ancestor at `G3-09` and `G3-11` pins for a `rollback`). **WHAT MAKES THIS ARM RED NOW:** the
+  // call refusing (`ConstraintPassRefused` — the withdrawn arm), a non-zero ask-delta at the judgement, a record
+  // that does not name the op the reversal undid, a `['a']` left standing (the restore running for a reversal that
+  // was never refused), or the pair being REMOVED from `constraints()` — a skip is not a removal (`PIN-4` (i), and
+  // `D-90` (2): a skip *"removes no pair"*).
   const cannot = storeCreate({ journalLength: 16, listeners: [] });
   const branchOp = cannot.write(['a'], 'mem', { b: 1 });
+  const cannotAsks = [];
   const bPair = attempt(() => cannot.addConstraint({ address: ['a', 'b'], id: 'admits-numbers' },
-    (context) => (typeof context.value === 'number' ? true : { message: 'this pair admits numbers alone' })));
+    (context) => {
+      cannotAsks.push(context.value === undefined ? '<absent>' : context.value);
+      return typeof context.value === 'number' ? true : { message: 'this pair admits numbers alone' };
+    }));
   const cannotBeforeStanding = standing(cannot, ['a', 'b']);
+  const cannotAsksBefore = cannotAsks.length;
   const cannotRollback = attempt(() => cannot.rollback(branchOp.op.opId));
+  const cannotAskDelta = cannotAsks.length - cannotAsksBefore;
   const cannotAfterStanding = standing(cannot, ['a', 'b']);
   const cannotParentStanding = standing(cannot, ['a']);
-  const cannotLog = cannotRollback.ok === false && cannotRollback.caught !== null
-    && typeof cannotRollback.caught === 'object' && Array.isArray(cannotRollback.caught.log)
-    ? cannotRollback.caught.log
-    : [];
+  const cannotRows = cannot.constraints();
+  const cannotRecord = cannotRollback.ok === true && cannotRollback.value !== null
+    && typeof cannotRollback.value === 'object' ? cannotRollback.value : null;
 
   // ── THE DRIVE IS COHERENT, OR THE CELL SAYS SO INSTEAD OF REPORTING A VERDICT. ──────────────
   assert.deepEqual([absentPair.ok, numbersPair.ok, bPair.ok], [true, true, true],
     `all three pairs must REGISTER — each passes against the state standing at registration, which is the `
       + `ABSENT state in arm (A), 9 in arm (B) and 1 in arm (C): absent=${JSON.stringify(absentPair.caught)} `
       + `numbers=${JSON.stringify(numbersPair.caught)} b=${JSON.stringify(bPair.caught)}`);
-  assert.deepEqual([absentRollback.ok, terminalRollback.ok, cannotRollback.ok], [false, false, false],
-    `all three reversals must be REFUSED, or the restores below are never taken: absent ok=${absentRollback.ok} `
-      + `terminal ok=${terminalRollback.ok} cannot ok=${cannotRollback.ok}`);
+  // **⟶ AND THE THIRD ARM'S OUTCOME MOVED, 2026-11-02 (`D-90` (4) THROUGH `D-96` (1)): the first TWO reversals must
+  // be REFUSED — their pairs ARE applicable, because the state the reversal leaves at each pair's PARENT still
+  // resolves (arm (A) leaves `['a']` a branch; arm (B)'s parent is the REGISTER) — and the THIRD must LAND, because
+  // its pair's parent is the one the reversal took away.** That pair of facts is the whole cell: **the same
+  // judgement, two outcomes, decided by the pair's parent and by nothing else** (`D-96` (1)).
+  assert.deepEqual([absentRollback.ok, terminalRollback.ok], [false, false],
+    `**THE TWO APPLICABLE ARMS MUST STILL REFUSE** — they are the arms that exercise the \`D-41\` restore, so a `
+      + `landing here would take the restore away from this cell: absent ok=${absentRollback.ok} `
+      + `terminal ok=${terminalRollback.ok} (their statuses read `
+      + `${JSON.stringify([absentRollback.ok === false ? absentRollback.caught.status : null, terminalRollback.ok === false ? terminalRollback.caught.status : null])})`);
+  assert.equal(cannotRollback.ok, true,
+    `**AND THE THIRD MUST LAND — THE PAIR WHOSE PARENT THE REVERSAL TAKES AWAY IS SKIPPED AT THE JUDGEMENT** `
+      + `(\`D-90\` (4) names the pass over a \`rollback\` among the five instants; \`D-96\` (1) fixes the threshold as `
+      + `ABSENCE, and its foot keeps that arm whole): the call answered `
+      + `${JSON.stringify(cannotRollback.ok === false ? cannotRollback.caught.status : null)} `
+      + `${JSON.stringify(cannotRollback.ok === false ? cannotRollback.caught.message : null)}. **A `
+      + `\`ConstraintPassRefused\` HERE IS THE WITHDRAWN ARM — the judgement asking a pair the rule skips**`);
 
   // ── ARM (A): THE CAPTURE WAS ABSENT, AND THE ADDRESS IS ABSENT AGAIN. ───────────────────────
   assert.equal(absentBeforeStanding.cross.present, false,
@@ -400,46 +429,54 @@ test('D-41 · the ABSENT cases: an address absent before the reversal is ABSENT 
   assert.equal(typeof terminalLog[0]?.message === 'string' && /undone/i.test(terminalLog[0].message), true,
     `and the log says UNDONE, which is now true: THE DRIVE READ ${JSON.stringify(terminalLog)}`);
 
-  // ── ARM (C): THE STORE RE-STATES THE PARENT, SO THE ADDRESS STANDS AGAIN. ───────────────────
+  // ── ARM (C): THE REVERSAL LANDS, AND THE STORE STANDS AS THE REVERSAL LEFT IT. ──────────────
   assert.deepEqual(stoodTiers(cannotBeforeStanding), [{ tier: 'mem', value: 1 }],
-    `the drive must stand the value before the reversal, or the restoral below measures nothing: THE DRIVE READ `
+    `the drive must stand the value before the reversal, or the landing below measures nothing: THE DRIVE READ `
       + `${describe(cannotBeforeStanding)}`);
-  assert.equal(cannotRollback.caught.status, 'ConstraintPassRefused',
-    `the reversal must still be REFUSED — the absence is the state the pair refuses: THE DRIVE READ `
+  assert.equal(cannotRollback.ok, true,
+    `**THE REVERSAL LANDS** — the state it leaves takes the pair's PARENT away, so the pair is SKIPPED at the `
+      + `judgement and cannot refuse it (\`D-90\` (4); \`D-96\` (1); \`D-96\`'s foot keeps the absent-parent skip `
+      + `whole): the call answered `
       + `${JSON.stringify(cannotRollback.ok === false ? cannotRollback.caught.status : null)}`);
-  assert.deepEqual(cannotAfterStanding, cannotBeforeStanding,
-    `THE AMENDED ARM: the store's journal replay re-states the PARENT the reversal removed, so the address `
-      + `stands again exactly as it stood — the same value at the same tier, and the same refusals at the tiers `
-      + `it never held. Under the compensating WRITE the address stood ABSENT here (the write had nowhere to `
-      + `land). THE DRIVE READ before ${describe(cannotBeforeStanding)} and after `
+  assert.deepEqual(cannotRecord === null ? null : Object.keys(cannotRecord).sort(),
+    ['opId', 'restoredTo', 'undoneOps'],
+    `**AND IT ANSWERS ITS OWN RECORD — \`{opId, undoneOps, restoredTo}\` AND NO OTHER MEMBER** (\`D-41\`'s lawful `
+      + `reversal is *"unchanged, member for member"*, and this is that arm): THE DRIVE READ `
+      + `${JSON.stringify(cannotRecord === null ? null : Object.keys(cannotRecord))}`);
+  assert.equal(cannotRecord === null ? null : cannotRecord.opId, branchOp.op.opId,
+    `and the record's \`opId\` is the op the reversal undid: THE DRIVE READ `
+      + `${JSON.stringify(cannotRecord === null ? null : cannotRecord.opId)} against `
+      + `${JSON.stringify(branchOp.op.opId)}`);
+  assert.deepEqual(cannotRecord === null ? null : cannotRecord.undoneOps, [branchOp.op.opId],
+    `**AND \`undoneOps\` NAMES THE OPS THE REVERSAL UNDID** — the one write that made the parent stand: THE DRIVE `
+      + `READ ${JSON.stringify(cannotRecord === null ? null : cannotRecord.undoneOps)}`);
+  assert.deepEqual(cannotRecord === null ? null : cannotRecord.restoredTo, { present: false, value: undefined },
+    `and \`restoredTo\` reports the absence it restored the register to: THE DRIVE READ `
+      + `${JSON.stringify(cannotRecord === null ? null : cannotRecord.restoredTo)}`);
+  assert.equal(cannotAskDelta, 0,
+    `**AND THE PAIR WAS NOT ASKED AT THE JUDGEMENT — THE READING THAT SEPARATES A SKIP FROM A JUDGEMENT** `
+      + `(\`D-90\` (2): a skipped pair is *"not asked, not refused for, not repaired for and not counted as a `
+      + `judgement"*): the body was entered ${cannotAskDelta} time(s) across the reversal. **THE SUPERSEDED ARM `
+      + `ASKED IT ONCE AND REFUSED THE REVERSAL ON THAT ANSWER**`);
+  assert.equal(cannotAfterStanding.cross.present, false,
+    `**AND THE STORE STANDS AS THE REVERSAL LEFT IT** — there is no refusal and therefore no \`D-41\` restore to `
+      + `take: the address is ABSENT, exactly as the reversal of the write that created its parent leaves it. THE `
+      + `DRIVE READ ${describe(cannotAfterStanding)}`);
+  assert.equal(cannotAfterStanding.cross.refused, 'AddressNotFound',
+    `with the store's own absence and no other answer, at the address AND at its parent: THE DRIVE READ `
       + `${describe(cannotAfterStanding)}`);
-  assert.deepEqual(cannotParentStanding, { cross: { present: true, value: { b: 1 } },
-    perTier: { file: { present: false, refused: 'TierNotFound' }, mem: { present: true, value: { b: 1 } },
-      temp: { present: false, refused: 'TierNotFound' } } },
-  `and the PARENT stands again with it — the address was absent only because its container was gone: THE DRIVE `
-    + `READ ${describe(cannotParentStanding)}`);
-  assert.equal(cannotLog.length, 1,
-    `the refusal still carries ONE \`constraint-check\` entry naming the pair: THE DRIVE READ `
-      + `${JSON.stringify(cannotLog)}`);
-  assert.equal(cannotLog[0].id, 'admits-numbers',
-    `and it names the pair that refused: THE DRIVE READ ${JSON.stringify(cannotLog[0])}`);
-  const cannotMessage = typeof cannotLog[0].message === 'string' ? cannotLog[0].message : '';
-  assert.equal(/undone/i.test(cannotMessage), true,
-    `AND THE SENTENCE IS TRUE HERE, because every address the reversal moved stands again: THE DRIVE READ `
-      + `${JSON.stringify(cannotMessage)}`);
-  assert.equal(/NOT undone/i.test(cannotMessage), false,
-    `it carries no negative claim beside a restoral that happened: THE DRIVE READ ${JSON.stringify(cannotMessage)}`);
-  // **⟶ AND `seq` IS RE-DERIVED AWAY, 2026-10-28 — `D-65`: THE ARRAY INDEX IS THE POSITION.** This limb read
-  // `cannotLog[0].seq === 1`. **THE MEMBER IS REMOVED**, so the property — *this entry stands at the one-entry
-  // list's first position* — is asserted where the position now lives: `cannotLog[0]` IS the list's element at
-  // index `0`, it stands at no other position, and no member restates the place.
-  assert.equal(cannotLog.indexOf(cannotLog[0]), 0,
-    `the entry's POSITION is index 0 of the one-entry list it stands in, read off the array and off no member `
-      + `(\`D-65\`). THE DRIVE READ ${JSON.stringify(Object.keys(cannotLog[0]))}`);
-  assert.equal(Object.hasOwn(cannotLog[0], 'seq'), false,
-    `and \`seq\` is ABSENT — the member is gone, so there is no second copy of the position to disagree with `
-      + `anything (\`D-65\`). THE DRIVE READ ${JSON.stringify(cannotLog[0])}`);
-
+  assert.equal(cannotParentStanding.cross.present, false,
+    `and the PARENT is gone with it — the reversal removed `+"`['a']`"+`, which is the very fact that makes the `
+      + `pair inapplicable (\`D-90\` (1)): THE DRIVE READ ${describe(cannotParentStanding)}`);
+  assert.deepEqual(stoodTiers(cannotAfterStanding), [],
+    `at no tier either: the reversal's own state, read at each of the three: THE DRIVE READ `
+      + `${describe(cannotAfterStanding)}`);
+  assert.equal(cannotRows.length, 1,
+    `**AND THE PAIR IS STILL CARRIED — A SKIP REMOVES NOTHING** (\`D-90\` (2): *"removes no pair"*; \`PIN-4\` (i): `
+      + `the pair *"becomes applicable at the instant its parent exists"*): \`constraints()\` answers `
+      + `${JSON.stringify(cannotRows)}`);
+  assert.equal(cannotRows[0].id, 'admits-numbers',
+    `and it is the same pair, named by the same \`id\`: ${JSON.stringify(cannotRows.map((row) => row.id))}`);
   // ── THE READINGS, PRINTED ON EVERY ARM (`D-21`: a cell owes what it read). ───────────────────
   t.diagnostic(`D-41 · ARM A (absent BEFORE the reversal, reached by a structured ancestor write): before `
     + `${describe(absentBeforeStanding)}; the reversal of op ${JSON.stringify(replaced.op.opId)} re-minted `
@@ -450,10 +487,12 @@ test('D-41 · the ABSENT cases: an address absent before the reversal is ABSENT 
     + `the address absent (refused ${JSON.stringify(terminalRollback.caught.status)}); after the refusal `
     + `${describe(terminalAfterStanding)} — the pre-reversal value is back at its own tier; log `
     + `${JSON.stringify(terminalLog)} (the second write's op was ${JSON.stringify(laterOp.op.opId)})`);
-  t.diagnostic(`D-41 · ARM C (the reversal removes the address's PARENT): before `
-    + `${describe(cannotBeforeStanding)}; the reversal of op ${JSON.stringify(branchOp.op.opId)} took \`['a']\` `
-    + `away; after the refusal ${describe(cannotAfterStanding)} (the PARENT stands again as `
-    + `${describe(cannotParentStanding)}); the refusal's entry reads ${JSON.stringify(cannotMessage)}`);
+  t.diagnostic(`D-41 · ARM C (the reversal removes the address's PARENT — RE-DERIVED ON \`D-90\` (4) AND `
+    + `\`D-96\` (1): the pair is SKIPPED at the judgement and the reversal LANDS): before `
+    + `${describe(cannotBeforeStanding)}; the reversal of op ${JSON.stringify(branchOp.op.opId)} took `
+    + `\`['a']\` away and answered ${JSON.stringify(cannotRecord)} with an ask-delta of ${cannotAskDelta}; after `
+    + `it ${describe(cannotAfterStanding)} and its PARENT ${describe(cannotParentStanding)} — the store STANDS AS `
+    + `THE REVERSAL LEFT IT, and the pair is still carried as ${JSON.stringify(cannotRows)}`);
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -553,7 +592,7 @@ test('D-41 · a constraint body that THROWS at the judgement of a reversal fails
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
-// CELL 4 — THE MIXED-DEPTH SHADOW, WHICH THE CAPTURE COULD NOT REACH
+// CELL 4 — THE MIXED-DEPTH SHADOW: TWO ARMS, BECAUSE THE PAIR'S PARENT DECIDES WHICH ONE THE REVERSAL TAKES
 //
 // **THE SHAPE.** A subtree whose nodes stand at DIFFERENT TIERS at DIFFERENT DEPTHS: `a` and `a.b` at `mem`,
 // and `a.b.c` at `mem` BESIDE `temp` — one level BELOW the pair that watches the branch. **THE WATCH CAPTURES
@@ -564,6 +603,19 @@ test('D-41 · a constraint body that THROWS at the judgement of a reversal fails
 // `Entry::after`), so the mark restore re-states it exactly, and this cell reads that at the DEEP address and
 // at every tier.
 //
+// **⟶ RE-DERIVED 2026-11-02: THE CELL NOW DRIVES BOTH OUTCOMES OF ONE JUDGEMENT, AND THE DIFFERENCE IS THE
+// PAIR'S PARENT** (`D-90` (1)–(4) read through `D-96` (1)). **ARM ONE — the drive this cell carried — watches
+// `['a','b']`, and the reversal of the ROOT write removes `['a']`: the pair's PARENT does not resolve, so the pair
+// is SKIPPED at the judgement and the REVERSAL LANDS** (`D-90` (4) names the pass over a `rollback` among the five
+// instants; `D-96`'s foot keeps the absent-parent skip whole). **THE ARM THAT ASSERTED A REFUSAL HERE IS THE
+// WITHDRAWN ONE**, and what replaces it is the record, the ask-count of `0` and the store standing as the reversal
+// left it. **ARM TWO is added so the `D-41` RESTORE PATH IS STILL EXERCISED AND STILL HAS A RED SIDE**: a pair one
+// level DEEP — `['a','b','c']`, whose PARENT `['a','b']` the reversal of the DEEP write LEAVES STANDING — is
+// APPLICABLE, refuses the state the reversal restores (the `mem` version `1` beside the `temp` version `5`), and
+// the refusal runs the store's mark restore, which this cell then reads at every address and every tier.
+// **NEITHER ARM RESTATES THE OTHER'S RULE**: arm one is the skip (`D-90`/`D-96`), arm two is the restoration
+// (`D-41` item `2`), and the same mixed-depth shadow is the fixture of both.
+//
 // **THE READINGS THAT PROVE THE MIX, AND WHY THEY ARE THE ONES PRINTED.** A TIER-NARROWED READ NARROWS EVERY
 // SEGMENT OF THE WALK, so at a deep address it answers only where the whole path stands at that tier: `mem` is
 // the one narrowing that reaches `a.b.c`. **The pair (`mem`-narrowed = 1, cross-tier = 5) is the proof that the
@@ -571,39 +623,41 @@ test('D-41 · a constraint body that THROWS at the judgement of a reversal fails
 // differ ONLY if a `temp` version is standing beside the `mem` one.
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 
-test('D-41 · a MIXED-DEPTH SHADOW — a subtree standing at different tiers at different depths — is restored EXACTLY by the store\'s own journal, at every address and every tier', (t) => {
+test('D-41 · a MIXED-DEPTH SHADOW has TWO outcomes by ONE rule: a pair whose PARENT the reversal takes away is SKIPPED (the reversal LANDS and the store stands as it left it), and a pair at a walkable address REFUSES it — and then the D-41 restore re-states the shadow at every address and every tier', (t) => {
+  // ══ ARM ONE — THE SKIP: the pair at `['a','b']`, the reversal of the ROOT write, and a LANDING. ═══════════
   const store = storeCreate({ journalLength: 16, listeners: [] });
   // ── THE DRIVE: a branch at `mem`, and a version one level BENEATH it at a lower tier.
   const root = store.write(['a'], 'mem', { b: { c: 1 } });
   const deep = store.write(['a', 'b', 'c'], 'temp', 5);
   // The pair watches `['a','b']` — the level ABOVE the mixed version — and admits the standing it finds there
-  // (the cross-tier read at `['a','b']` is `{c:5}`) while refusing the ABSENCE the reversal leaves.
+  // (the cross-tier read at `['a','b']` is `{c:5}`) while refusing the ABSENCE the reversal leaves. **UNDER
+  // `D-90` (1) THAT ABSENCE IS A SKIP AND NOT A JUDGEMENT**, which is what arm one now asserts.
+  const asks = [];
   const pair = attempt(() => store.addConstraint({ address: ['a', 'b'], id: 'admits-the-standing' },
-    (context) => (context.value === undefined
-      ? { message: 'this pair admits the standing and refuses the absence' }
-      : true)));
+    (context) => {
+      asks.push(context.value === undefined ? '<absent>' : context.value);
+      return (context.value === undefined
+        ? { message: 'this pair admits the standing and refuses the absence' }
+        : true);
+    }));
   // THE PRE-REVERSAL STANDING, PER ADDRESS AND PER TIER.
   const before = { a: standing(store, ['a']), b: standing(store, ['a', 'b']), c: standing(store, ['a', 'b', 'c']) };
+  const asksBefore = asks.length;
   const rollback = attempt(() => store.rollback(root.op.opId));
-  const afterReversal = { c: standing(store, ['a', 'b', 'c']) };
+  const askDelta = asks.length - asksBefore;
   const after = { a: standing(store, ['a']), b: standing(store, ['a', 'b']), c: standing(store, ['a', 'b', 'c']) };
-  const log = rollback.ok === false && rollback.caught !== null && typeof rollback.caught === 'object'
-    && Array.isArray(rollback.caught.log) ? rollback.caught.log : [];
+  const record = rollback.ok === true && rollback.value !== null && typeof rollback.value === 'object'
+    ? rollback.value
+    : null;
+  const rows = store.constraints();
 
-  // ── THE DRIVE IS COHERENT, OR THE CELL SAYS SO INSTEAD OF REPORTING A VERDICT. ──────────────
+  // ── THE DRIVE IS COHERENT, OR THE CELL SAYS SO INSTEAD OF REPORTING A VERDICT. ──────────────────────────
   assert.equal(pair.ok, true,
-    `the pair must REGISTER against the standing at \`['a','b']\` ({c:5}), or the refusal below is the `
-      + `registration's: THE DRIVE CAUGHT ${JSON.stringify(pair.caught)}`);
-  assert.equal(root.ok, undefined === root.ok ? root.ok : root.ok,
-    'the root write must land');
+    `the pair must REGISTER against the standing at \`['a','b']\` ({c:5}), or the arm below reads the `
+      + `registration's refusal and not the reversal's: THE DRIVE CAUGHT ${JSON.stringify(pair.caught)}`);
   assert.equal(typeof deep === 'object' && deep !== null && typeof deep.op === 'object', true,
     `the deep \`temp\` write must land and answer its record, or the mix is not the mix this cell claims: THE `
       + `DRIVE CAUGHT ${JSON.stringify(deep)}`);
-  assert.equal(rollback.ok, false,
-    `the reversal must be REFUSED — it removes the subtree, and the pair refuses the absence: the call answered `
-      + `${JSON.stringify(rollback.value)}`);
-
-  // ── THE DRIVE STANDS THE MIX, AND THESE TWO READINGS ARE WHAT SAY SO. ───────────────────────
   assert.deepEqual(stoodTiers(before.b), [{ tier: 'mem', value: { c: 1 } }],
     `\`['a','b']\` stands at ONE tier, and its \`mem\`-NARROWED value is 1 — a narrowed read narrows EVERY segment `
       + `of the walk AND the assembly beneath it, so the pair's own level shows the \`mem\` version while the `
@@ -617,47 +671,146 @@ test('D-41 · a MIXED-DEPTH SHADOW — a subtree standing at different tiers at 
   assert.equal(before.c.perTier.mem.value, 1,
     `and it answers the \`mem\` VERSION (1) while the cross-tier read answers 5 — which can only be a \`temp\` `
       + `version standing BESIDE it: THE DRIVE READ ${describe(before.c)}`);
-  // **THE STATE BETWEEN THE TWO ACTS IS NOT READABLE — the restore runs inside the refusal — so what is read
-  // here is that the reversal MOVED the watched address to a state the pair refused** (the absence the pair
-  // names), which is the only ground this cell needs for "the reversal moved it".
-  assert.equal(rollback.caught.status, 'ConstraintPassRefused',
-    `the reversal's terminal state is the ABSENCE the pair refuses, which is what proves the root write's `
-      + `reversal took the whole subtree away: THE DRIVE READ ${JSON.stringify(rollback.caught.status)}`);
-  assert.deepEqual(afterReversal.c, before.c,
-    `AND THE READING TAKEN IMMEDIATELY AFTER THE CALL IS THE RESTORED ONE — the refusal's own act has already `
-      + `run, so the deep address stands again with both versions: THE DRIVE READ ${describe(afterReversal.c)}`);
 
-  // ── THE FINDING: EVERY ADDRESS, EVERY TIER, IDENTICAL. ──────────────────────────────────────
-  assert.deepEqual(after.c, before.c,
-    `THE FINDING — THE MIXED-DEPTH SHADOW IS RESTORED VERSION BY VERSION: the deep address stands again with `
+  // ── ARM ONE'S FINDING: THE REVERSAL LANDS, AND THE PAIR WAS NEVER ASKED. ───────────────────────────────
+  assert.equal(rollback.ok, true,
+    `**THE REVERSAL MUST LAND — THE PAIR'S PARENT IS THE ADDRESS THE REVERSAL REMOVES, SO THE PAIR IS SKIPPED AT `
+      + `THE JUDGEMENT** (\`D-90\` (4): the pass over a \`rollback\` reads the rule; \`D-96\` (1): the skip's `
+      + `threshold is ABSENCE, and \`D-96\`'s foot keeps that arm whole): the call answered `
+      + `${JSON.stringify(rollback.ok === false ? rollback.caught.status : null)}. **A \`ConstraintPassRefused\` `
+      + `HERE IS THE WITHDRAWN ARM** — the judgement asking a pair the rule skips`);
+  assert.deepEqual(record === null ? null : Object.keys(record).sort(), ['opId', 'restoredTo', 'undoneOps'],
+    `**AND IT ANSWERS ITS OWN RECORD** — \`{opId, undoneOps, restoredTo}\` and no other member (\`D-41\`'s lawful `
+      + `reversal, *"unchanged, member for member"*): THE DRIVE READ `
+      + `${JSON.stringify(record === null ? null : Object.keys(record))}`);
+  assert.equal(record === null ? null : record.opId, root.op.opId,
+    `and its \`opId\` is the op the reversal was asked for: THE DRIVE READ `
+      + `${JSON.stringify(record === null ? null : record.opId)} against ${JSON.stringify(root.op.opId)}`);
+  assert.deepEqual(record === null ? null : (record.undoneOps ?? []).slice().sort(),
+    [root.op.opId, deep.op.opId].sort(),
+    `**AND \`undoneOps\` NAMES EVERY OP IT UNDID — the root write AND the deep \`temp\` write beneath it** (the `
+      + `reversal takes the subtree with it, which is the whole reason the pair's parent goes): THE DRIVE READ `
+      + `${JSON.stringify(record === null ? null : record.undoneOps)} against `
+      + `${JSON.stringify([root.op.opId, deep.op.opId])}`);
+  assert.equal(record === null ? null : record.undoneOps.includes(deep.op.opId), true,
+    `and the DEEP op is among them — read on its own, so a record naming the root alone is caught: THE DRIVE `
+      + `READ ${JSON.stringify(record === null ? null : record.undoneOps)}`);
+  assert.equal(askDelta, 0,
+    `**AND THE PAIR WAS NOT ASKED AT THE JUDGEMENT** (\`D-90\` (2): *"not asked, not refused for, not repaired `
+      + `for and not counted as a judgement"*): the body was entered ${askDelta} time(s) across the reversal. **THE `
+      + `SUPERSEDED ARM ASKED IT ONCE AND REFUSED THE REVERSAL ON THAT ANSWER**`);
+  assert.equal(after.c.cross.present, false,
+    `**AND THE STORE STANDS AS THE REVERSAL LEFT IT — THERE IS NO REFUSAL, SO NO \`D-41\` RESTORE IS TAKEN** and `
+      + `the deep address is GONE with the subtree the reversal took: THE DRIVE READ ${describe(after.c)}`);
+  assert.equal(after.b.cross.present, false,
+    `and the pair's own level is gone with it: THE DRIVE READ ${describe(after.b)}`);
+  assert.equal(after.a.cross.present, false,
+    `and the branch above them both: THE DRIVE READ ${describe(after.a)}`);
+  assert.deepEqual([stoodTiers(after.a), stoodTiers(after.b), stoodTiers(after.c)], [[], [], []],
+    `at NO tier at ANY of the three addresses: THE DRIVE READ a=${describe(after.a)} b=${describe(after.b)} `
+      + `c=${describe(after.c)}`);
+  assert.equal(rows.length, 1,
+    `**AND THE PAIR IS STILL CARRIED — A SKIP REMOVES NOTHING** (\`D-90\` (2), \`PIN-4\` (i)): \`constraints()\` `
+      + `answers ${JSON.stringify(rows)}`);
+
+  // ══ ARM TWO — THE REFUSAL: a pair the reversal's state still resolves refuses it, AND THE SHADOW IS RESTORED. ══
+  // **THE PARENT IS WHAT DECIDES** (`D-96` (1)): this pair stands at the DEEP address, and the reversal of the
+  // DEEP WRITE restores `a.b.c` to the `mem` version `1` **while `['a','b']` stays a branch** — so the pair is
+  // APPLICABLE, it refuses the restored state, the reversal is REFUSED, and the `D-41` restore runs.
+  const shadow = storeCreate({ journalLength: 16, listeners: [] });
+  const shadowRoot = shadow.write(['a'], 'mem', { b: { c: 1 } });
+  const shadowDeep = shadow.write(['a', 'b', 'c'], 'temp', 5);
+  const shadowAsks = [];
+  const deepPair = attempt(() => shadow.addConstraint({ address: ['a', 'b', 'c'], id: 'admits-five' },
+    (context) => {
+      shadowAsks.push(context.value === undefined ? '<absent>' : context.value);
+      return (context.value === 5 ? true : { message: 'this pair admits five alone' });
+    }));
+  const shadowBefore = {
+    a: standing(shadow, ['a']), b: standing(shadow, ['a', 'b']), c: standing(shadow, ['a', 'b', 'c']),
+  };
+  const shadowAsksBefore = shadowAsks.length;
+  const shadowRollback = attempt(() => shadow.rollback(shadowDeep.op.opId));
+  const shadowAskDelta = shadowAsks.length - shadowAsksBefore;
+  const shadowAfter = {
+    a: standing(shadow, ['a']), b: standing(shadow, ['a', 'b']), c: standing(shadow, ['a', 'b', 'c']),
+  };
+  const shadowLog = shadowRollback.ok === false && shadowRollback.caught !== null
+    && typeof shadowRollback.caught === 'object' && Array.isArray(shadowRollback.caught.log)
+    ? shadowRollback.caught.log : [];
+
+  assert.equal(deepPair.ok, true,
+    `ARM TWO's pair must REGISTER — it admits 5, which is what the deep address reads across the tiers: THE `
+      + `DRIVE CAUGHT ${JSON.stringify(deepPair.caught)}`);
+  assert.equal(typeof shadowDeep === 'object' && shadowDeep !== null && typeof shadowDeep.op === 'object', true,
+    `and the deep \`temp\` write must land and answer its record, or the mix is not the mix: THE DRIVE CAUGHT `
+      + `${JSON.stringify(shadowDeep)}`);
+  assert.equal(shadowBefore.c.cross.value, 5,
+    `ARM TWO must stand the same MIX arm one did — the deep address reads 5 across the tiers and 1 at \`mem\`: `
+      + `THE DRIVE READ ${describe(shadowBefore.c)}`);
+  assert.equal(shadowBefore.c.perTier.mem.value, 1,
+    `with the \`mem\` version beside the \`temp\` one: THE DRIVE READ ${describe(shadowBefore.c)}`);
+  assert.equal(shadowRollback.ok, false,
+    `**THE REVERSAL IS REFUSED HERE — AND THE DIFFERENCE FROM ARM ONE IS THE PAIR'S PARENT AND NOTHING ELSE** `
+      + `(\`D-90\` (1): *"a parent that RESOLVES applies the pair"*; \`D-96\` (1)): the call answered `
+      + `${JSON.stringify(shadowRollback.ok === true ? shadowRollback.value : null)}`);
+  assert.equal(shadowRollback.ok === false ? shadowRollback.caught.status : null, 'ConstraintPassRefused',
+    `with the set's rank-\`20\` member: THE DRIVE READ `
+      + `${JSON.stringify(shadowRollback.ok === false ? shadowRollback.caught.status : null)}`);
+  assert.equal(shadowAskDelta, 1,
+    `**AND THE JUDGEMENT ASKED IT ONCE — THE READING ARM ONE READS AS \`0\`** (\`D-90\` (2) read at both `
+      + `instants): the body was entered ${shadowAskDelta} time(s) across the reversal, on `
+      + `${JSON.stringify(shadowAsks)}`);
+  assert.equal(shadowLog.length, 1,
+    `the refusal carries ONE \`constraint-check\` entry: THE DRIVE READ ${JSON.stringify(shadowLog)}`);
+  assert.equal(shadowLog[0].kind, 'constraint-check',
+    `and the entry is a \`constraint-check\` — the kernel's own closed kind set: THE DRIVE READ `
+      + `${JSON.stringify(shadowLog[0].kind)}`);
+  assert.equal(shadowLog[0].id, 'admits-five',
+    `and it names the pair that refused, one level below the branch: THE DRIVE READ `
+      + `${JSON.stringify(shadowLog[0].id)}`);
+  assert.equal(typeof shadowLog[0].message === 'string' && /undone/i.test(shadowLog[0].message), true,
+    `**AND IT SAYS THE REVERSAL WAS UNDONE — TRUE, BECAUSE EVERY ADDRESS IT MOVED STANDS AGAIN** (\`D-41\` item `
+      + `\`2\`: *"a message must not claim a restoration that did not happen"*): THE DRIVE READ `
+      + `${JSON.stringify(shadowLog[0].message)}`);
+
+  // ── ARM TWO'S FINDING: EVERY ADDRESS, EVERY TIER, IDENTICAL. ────────────────────────────────────────────
+  assert.deepEqual(shadowAfter.c, shadowBefore.c,
+    `**THE FINDING — THE MIXED-DEPTH SHADOW IS RESTORED VERSION BY VERSION: the deep address stands again with `
       + `the \`mem\` version (1) and the \`temp\` version (5) that the compensating write could not put back, `
       + `because it wrote the pair's ASSEMBLED value at the pair's own tier and moved the deep tier with it. THE `
-      + `DRIVE READ before ${describe(before.c)} and after ${describe(after.c)}`);
-  assert.equal(after.c.perTier.mem.value, 1,
+      + `DRIVE READ before ${describe(shadowBefore.c)} and after ${describe(shadowAfter.c)}`);
+  assert.equal(shadowAfter.c.perTier.mem.value, 1,
     `and the \`mem\` version is the PRE-REVERSAL one (1), not the assembled value written back at \`mem\` (5): THE `
-      + `DRIVE READ ${describe(after.c)}`);
-  assert.equal(after.c.cross.value, 5,
+      + `DRIVE READ ${describe(shadowAfter.c)}`);
+  assert.equal(shadowAfter.c.cross.value, 5,
     `and the cross-tier read answers 5 again — so the \`temp\` version stands beside the \`mem\` one: THE DRIVE `
-      + `READ ${describe(after.c)}`);
-  assert.deepEqual(after.b, before.b,
-    `the pair's own level stands again too, at the tier it stood at: THE DRIVE READ before `
-      + `${describe(before.b)} and after ${describe(after.b)}`);
-  assert.deepEqual(after.a, before.a,
-    `and so does the branch above the mixed version: THE DRIVE READ before ${describe(before.a)} and after `
-      + `${describe(after.a)}`);
-  assert.equal(log.length, 1,
-    `the refusal carries ONE \`constraint-check\` entry: THE DRIVE READ ${JSON.stringify(log)}`);
-  assert.equal(typeof log[0].message === 'string' && /undone/i.test(log[0].message), true,
-    `and it says the reversal was UNDONE — TRUE, because every address it moved stands again: THE DRIVE READ `
-      + `${JSON.stringify(log[0].message)}`);
+      + `READ ${describe(shadowAfter.c)}`);
+  assert.deepEqual(shadowAfter.b, shadowBefore.b,
+    `the level above the mixed version stands again too, at the tier it stood at — a PARENT the reversal left `
+      + `a branch, which is why this arm's pair was applicable at all: THE DRIVE READ before `
+      + `${describe(shadowBefore.b)} and after ${describe(shadowAfter.b)}`);
+  assert.deepEqual(shadowAfter.a, shadowBefore.a,
+    `and so does the branch above it: THE DRIVE READ before ${describe(shadowBefore.a)} and after `
+      + `${describe(shadowAfter.a)}`);
+  assert.equal(shadow.constraints().length, 1,
+    `and the pair still stands registered — a REFUSED reversal removes nothing: \`constraints()\` answers `
+      + `${JSON.stringify(shadow.constraints())}`);
 
-  // ── THE READINGS, PRINTED PER ADDRESS AND PER TIER (`D-21`). ────────────────────────────────
-  t.diagnostic(`D-41 · MIXED-DEPTH SHADOW: the drive stood a=\`mem\`, a.b=\`mem\` and a.b.c=\`mem\` 1 BESIDE `
-    + `\`temp\` 5 (write ${JSON.stringify(deep.op.opId)}); the reversal of ${JSON.stringify(root.op.opId)} took `
-    + `the subtree away (deep address: ${describe(afterReversal.c)}); after the refusal — before `
-    + `a=${describe(before.a)} b=${describe(before.b)} c=${describe(before.c)} / after `
-    + `a=${describe(after.a)} b=${describe(after.b)} c=${describe(after.c)} — restored EXACTLY, the \`mem\` `
-    + `version 1 and the \`temp\` version 5 both standing; log ${JSON.stringify(log[0]?.message)}`);
+  // ── THE READINGS, PRINTED PER ADDRESS AND PER TIER (`D-21`). ────────────────────────────────────────────
+  t.diagnostic(`D-41 · MIXED-DEPTH SHADOW — TWO ARMS, ONE RULE. ARM ONE (SKIP, \`D-90\` (4) + \`D-96\` (1)): the `
+    + `drive stood a=\`mem\`, a.b=\`mem\` and a.b.c=\`mem\` 1 BESIDE \`temp\` 5 (write `
+    + `${JSON.stringify(deep.op.opId)}); the reversal of ${JSON.stringify(root.op.opId)} answered `
+    + `${JSON.stringify(record)} at an ask-delta of ${askDelta} — the store STANDS AS THE REVERSAL LEFT IT: before `
+    + `a=${describe(before.a)} b=${describe(before.b)} c=${describe(before.c)} / after ${describe(after.a)} `
+    + `${describe(after.b)} ${describe(after.c)}; the pair is carried as ${JSON.stringify(rows)}. ARM TWO `
+    + `(REFUSAL, \`D-41\` item \`2\`): a pair at the DEEP address refused the state the reversal of `
+    + `${JSON.stringify(shadowDeep.op.opId)} left (status `
+    + `${JSON.stringify(shadowRollback.ok === false ? shadowRollback.caught.status : null)}, ask-delta `
+    + `${shadowAskDelta}), and the store's mark restore re-stated the shadow EXACTLY: before `
+    + `a=${describe(shadowBefore.a)} b=${describe(shadowBefore.b)} c=${describe(shadowBefore.c)} / after `
+    + `a=${describe(shadowAfter.a)} b=${describe(shadowAfter.b)} c=${describe(shadowAfter.c)} — the \`mem\` `
+    + `version 1 and the \`temp\` version 5 both standing; log ${JSON.stringify(shadowLog[0]?.message)}`);
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════

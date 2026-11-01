@@ -19,7 +19,7 @@ import { currentWindow, homeAddressKey, installRestartConsumer, isStoreReceiver,
 // function the pass appends with — rather than pushed here with a member set of its own; the REFUSAL's own
 // list keeps its five members and no `seq`, because no attempt stands at the judgement that built it
 // (`D-41` item 4). Two records, two honest forms, one append.
-import { append, boundedEntryMessage, boundedQuotation, externalCall, kernelFor, throwableForm } from './kernel-foundations.mjs';
+import { append, boundedEntryMessage, boundedQuotation, externalCall, kernelFor, pairAppliesAt, throwableForm } from './kernel-foundations.mjs';
 // **⟶ AND THE TWO KERNEL ACTS THE DELETE'S PATH OWES — `D-55` ITEM 3, 2026-10-29.** The kernel's public
 // barrel (`src/constraint-kernel.mjs`) is untouched and keeps its five names; **these are two PART modules' own
 // acts, reached here the way `append` and `kernelFor` above are** (`kernel-surface.md §1` item 1's empty import
@@ -2529,6 +2529,20 @@ export function judgeReversal(instance, watched, reversalId) {
     const moved = movedStanding(instance, watched);
     for (let index = 0; index < moved.length; index += 1) {
       const one = moved[index];
+      // ═══════════════════════════════════════════════════════════════════════════════════════════════
+      // **⟶ THE PAIR-APPLICATION RULE IS READ AT THE REVERSAL'S JUDGEMENT — `D-96`, `PIN-2` (v), `PIN-3`,
+      // `PIN-4` (iv).**
+      // ═══════════════════════════════════════════════════════════════════════════════════════════════
+      //
+      // **A `rollback` APPENDS NO JOURNAL ENTRY, so no pass reaches it** (`kernel-attempt.mjs`'s loop runs on a
+      // landed act): **the reversal's judgement is this walk, and the rule reaches it because the rule is
+      // GLOBAL** — a reversal over a state that leaves a pair's parent unresolvable is the fifth instant's own
+      // case (`D-90` (4)). **ONE GUARD, THE PASS'S OWN PREDICATE** (`pairAppliesAt`, asked of the pair's own
+      // registry row and never minted again here): **a pair the rule skips is NOT ASKED here either** — it is
+      // not refused for, it appends no `constraint-check` entry, and it cannot refuse the reversal, so the
+      // reversal LANDS. **IT IS NOT REMOVED**: the pair stays CARRIED (`PIN-4` (i)) and is asked at the first
+      // later instant its parent stands.
+      if (pairAppliesAt(instance, one.entry) === false) continue;
       // **THE BODY'S THROW IS THE JUDGEMENT'S OWN CATCH AND NOT A PROPAGATING VALUE** — `reversalOutcome` converts
       // a body's throwable to the surface's rank-`18` form and re-throws anything unmarked as itself, and BOTH
       // arrive here: the reversal has run, so a judgement that cannot complete restores and refuses (below).
