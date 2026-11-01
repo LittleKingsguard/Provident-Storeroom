@@ -4779,3 +4779,35 @@ unit: the cells' re-derivation and the predicate's one-arm inversion are the imp
 behaviour changes rejected (`2`), the readings withdrawn (`1` = the leaf-as-skip reading of `D-90` (1)), the artifacts to be
 re-derived (`2` cells) and to be restored to green (`1` = `P-HL-8` mode 2), the statuses minted (`0`), the behaviour bytes
 this row moves (`0`).**
+
+---
+
+### `D-97` — **the write set is widened by ONE guard: the reversal's own judgement reads the pair-application rule**
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering the supervisor's question on
+`G3-11` — the rollback instant lies in `bindings/js/src/entry/constraints.mjs`, which `PIN-1` (i) forbade — by taking the
+option presented as ***"Widen the write set by one guard in constraints.mjs"***. **STATUS: `ACTIVE`.**
+
+**WHAT IT PINS.**
+
+1. **THE BYTE IS GRANTED, AND IT IS ONE GUARD.** `bindings/js/src/entry/constraints.mjs`'s reversal judgement — the loop in
+   `judgeReversal` that asks the pairs a reversal moves, at its own head, before `ASKING.set` / `reversalOutcome` — **is in
+   the unit's write set at that position and at no other.** **Every other byte of that file stays forbidden**: not
+   `carryConstraint`, not `restoreHeldPair`, not `reversalRefusal`, not the `constraint-check` entry a refusal appends, not
+   the import list's other names.
+2. **AND THE REASON IS STRUCTURAL, NOT CONVENIENT: a `rollback` appends no journal entry, so no pass reaches it.** The
+   fifth instant `D-90` (4) names is judged **there or nowhere**; `kernel-attempt.mjs`'s pass loop is never entered for a
+   reversal. **`PIN-1` (i)'s position list and `PIN-4` (iv)'s fifth-instant citation were therefore WRONG, not merely
+   narrow, and are corrected to name this site** — the reviewer's finding is accepted in terms.
+3. **THE GUARD IS THE SAME PREDICATE, READ, AND NOT A SECOND RULE.** It calls the one function the pass calls
+   (`pairAppliesAt`) — no copy, no status, no attempt, no entry, and the skip it produces is inert exactly as `D-90` (2)
+   requires.
+4. **NO OTHER WIDENING IS GRANTED BY THIS ROW.** The re-derived cells' files and the register are a different question
+   (the pins must name them or the landing must not touch them) and are not covered here.
+
+**WHAT IT DOES NOT SETTLE.** The cells' placement in the write set, and the register rows a ruling supersedes, are the
+contract's to name; this row grants one code byte and nothing else.
+
+**TERMS: the questions answered (`1`), the positions granted (`1` = the reversal's judgement), the bytes granted (`1`
+guard + its call), the other bytes of that file (`0`), the rules minted (`0`), the behaviour bytes this row moves (`0` —
+the landing already moved it).**
