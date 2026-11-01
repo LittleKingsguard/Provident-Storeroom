@@ -50,7 +50,18 @@ export const require_ = createRequire(import.meta.url);
 // SUPPLIES** (`§4`) — they are the verb's declared positions and no instance position among them.
 export const STANDING_FOUR = [
   { name: 'version', arity: 0, clause: 'export-set-and-dispatch.md §1 — "the artefact\'s own version string"' },
-  { name: 'errorMessage', arity: 2, arityMax: 3, clause: 'export-set-and-dispatch.md §1 — the arity `2`–`3`' },
+  // **⟶ RE-DERIVED 2026-11-01 (`D-98` item 4; `C-7`, `C-12`; `docs/L1/cross-kind-handle-only.md` §3.7 and
+  // §5.2's row for this cell) — THE FIGURE MOVES `3 → 4` AND THE CITATION IS RE-POINTED OFF AN ARCHIVED PART.**
+  // `errorMessage` gains ONE OPTIONAL fourth position (the closed arm token — `'handle'` is the one value this
+  // correction uses), so the declared arity is **`2`–`4`**. **AND THE CITED PART IS NOT IN THE LIVE TREE**: the
+  // figure stood as `export-set-and-dispatch.md §1`'s `2`–`3` row, and that part survives only under
+  // `archive/pre-strata-docs-2026-10-24/` — **an archived part is not citable** (`D-85`), and a cell citing one
+  // is a defect at a census field (`cross-kind-handle-only.md` §4.16). **So the clause field names the LIVE home
+  // of what the JS route may fill: `docs/specs/storeroom-js/surface.md`'s `CF-3` clause, whose dated insertion of
+  // 2026-11-01 names the third slot.** The live addon-surface index (`docs/specs/storeroom-addon-surface/
+  // contract.md`) fixes only the export SET and no standing export's arity, so this figure's home is `surface.md`'s
+  // `CF-3` and no row of the live contract moves.
+  { name: 'errorMessage', arity: 2, arityMax: 4, clause: 'surface.md\'s `CF-3` clause of 2026-11-01 — the arity `2`–`4`' },
   { name: 'storeCreate', arity: 1, clause: 'export-set-and-dispatch.md §1 — "the construction"' },
   { name: 'register', arity: 2, clause: 'export-set-and-dispatch.md §1 — "the listener-registration site"' },
 ];

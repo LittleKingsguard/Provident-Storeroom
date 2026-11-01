@@ -378,7 +378,7 @@ test('G3-21 · THE ROUTE\'S WRITE JOINS THE REGISTRATION\'S COMMIT: at `addConst
 // `G3-22` · THE CONSTRUCTION INSTANT NEEDS NO WINDOW OF ITS OWN: IT RUNS NO PASS AND DELIVERS NO LISTENER
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 
-test('G3-22 · THE ROUTE RUNS NO PASS OF ITS OWN AND DELIVERS NO LISTENER: with a WATCHER pair at `[\'b\']` carried first and a LIVE listener bound at the register, a repair that ROUTE-WRITES at `[\'b\']` makes the watcher\'s ask-count rise by ZERO, opens ZERO commits, fires the listener ZERO times, and the refused-registration variant\'s `log` carries EXACTLY TWO entries — `constraint-check` and `repair-run`', (t) => {
+test('G3-22 · THE ROUTE RUNS NO PASS OF ITS OWN AND DELIVERS NO LISTENER: with a WATCHER pair at `[\'b\']` carried first and a LIVE listener bound AT `[\'b\']` — the exact address — a repair that ROUTE-WRITES at `[\'b\']` makes the watcher\'s ask-count rise by ZERO, opens ZERO commits, fires the listener ZERO times, and the refused-registration variant\'s `log` carries EXACTLY TWO entries — `constraint-check` and `repair-run`', (t) => {
   // **`PIN-6` (v), VERBATIM**: *"The write the route performs APPENDS NO `constraint-check` ENTRY, NO `outcome`
   // ENTRY AND NO TERMINAL ACT, delivers no listener, and is judged by the registration's own re-run over the op
   // it landed … **Observable: the census of the `log` a refusal crosses with is unchanged by the route's
@@ -387,13 +387,30 @@ test('G3-22 · THE ROUTE RUNS NO PASS OF ITS OWN AND DELIVERS NO LISTENER: with 
   // the pair is APPLIED, so that construction would refuse before the assertion"* — **so the WATCHER is registered
   // first and the REFUSING pair is added afterwards, through `addConstraint`, on the same store.**
   //
-  // **AND THE LISTENER'S ADDRESS IS THE REGISTER AND NOT `['b']`** — **a finding this cell records rather than
-  // hides**: the store REFUSES to install a listener at an address where a constraint pair stands
-  // (`AddressMalformed`: *"the listener cannot be installed at `b`: the constraint `b` stands there, and a
-  // listener and a constraint do not share one"*), so *"no listener bound at `['b']` fires"* is not a drive the
-  // tree admits at that spelling. **A listener bound at the REGISTER is delivered for every act at `['b']`
-  // (measured: an ordinary `write(['b'], 'mem', 7)` fires it once), so it is the strongest available witness and
-  // the control write at the end of this cell proves it live.**
+  // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // **⟶ RE-DERIVED 2026-11-01 (`D-98`; `docs/L1/cross-kind-handle-only.md` §5.1's row for this cell) — THE
+  // FINDING THE SENTENCES BELOW RECORD IS WITHDRAWN BY NAME, AND THE LISTENER RE-SEATS AT THE EXACT ADDRESS.**
+  //
+  // **WHAT STOOD HERE, QUOTED SO ITS ABSENCE IS LEGIBLE:** *"the store REFUSES to install a listener at an
+  // address where a constraint pair stands (`AddressMalformed`: 'the listener cannot be installed at `b`: the
+  // constraint `b` stands there, and a listener and a constraint do not share one'), so 'no listener bound at
+  // `['b']` fires' is not a drive the tree admits at that spelling"* — **and THAT REFUSAL WAS THE DEFECT AND NOT
+  // A LIMITATION OF THE TREE** (`D-98` item 3 withdraws the address dimension, whose printed ground — the purge —
+  // is FALSE at this build, because the purge is BY HANDLE). `D-98` clause (i), verbatim: *"A constraint and a
+  // listener can share an address, as can multiple constraints/listeners. The restriction is that a listener and
+  // a constraint cannot have the same handle."* **So the workaround is withdrawn with the finding it worked
+  // around: the listener binds at `['b']`, the EXACT address, under its own handle — which is lawful and is the
+  // STRONGER witness for this cell's own subject (*"the route delivers no listener"*), because the delivery the
+  // route must not make is now a delivery at the very address the route writes.** **A cell's recorded finding is
+  // closed BY NAME when it is repaired** (the `walkthrough.md` §3 Q12 posture): the paragraph below stands as the
+  // record of what the 2026-10-18 pass read, and it is read THROUGH this clause.
+  //
+  // **AND THE CELL'S SUBJECT IS UNMOVED AND NOT WEAKENED:** the route's write must not run a pass (the watcher's
+  // delta is `0`), must not open a commit (`attempt-opened` is `0`), must not deliver (the listener's delta is
+  // `0`) and must land (the read answers `99`); the refusal's `log` census is still exactly two entries; and the
+  // control write at the end still proves BOTH instruments live — a live binding at `['b']` AND a live watcher
+  // pair at `['b']`, two kinds at ONE address, which is the state the ruling declares lawful.
+  // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
   const store = make();
   let watcherAsks = 0;
   const watcher = store.addConstraint({ address: ['b'], id: 'b-watch' }, (context) => {
@@ -403,7 +420,10 @@ test('G3-22 · THE ROUTE RUNS NO PASS OF ITS OWN AND DELIVERS NO LISTENER: with 
     return context.value === 'never-this' ? { message: 'the watcher refuses only a sentinel' } : true;
   });
   let listenerFires = 0;
-  const listener = store.listen('witness', [[]]);
+  // **THE BINDING IS AT `['b']` — THE PAIR'S OWN ADDRESS AND THE ROUTE'S OWN WRITE ADDRESS** (`D-98` clause (i));
+  // the registration is keyed on the value the act ANSWERED (`D-22`), never on a spelling this cell supplies
+  // twice.
+  const listener = store.listen('witness', [['b']]);
   store.register(listener, () => { listenerFires += 1; });
 
   const watcherBefore = watcherAsks;

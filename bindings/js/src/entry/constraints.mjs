@@ -414,10 +414,24 @@ export function carryConstraint(state, instance, addresses, id, constraint) {
   // removal clears all N"*). **THE KERNEL'S OWN REGISTRY KEEPS ITS `(address, id)` KEY SHAPE** — one pair over
   // N addresses IS N `(address, id)` rows sharing one id (`P: docs/pending.md · P-7`'s keying ruling, item (v);
   // `AB-6`) — so N registrations stand behind the ONE element this entry carries.
-  // **⟶ `B-6`'S ONE EXEMPTION, DECLARED HERE AT ITS PRODUCER:** while this loop runs, `listen` is being
-  // called by the KERNEL for the pair whose `id` is `id`, so the act is a CONSTRAINT's own registration and
-  // the cross-kind test has no subject. It is cleared on every arm, so a caller's later `listen` at a
-  // constraint's address is tested with no marker standing.
+  // **⟶ AND THE `B-6` EXEMPTION THIS COMMENT DECLARED IS DELETED, NOT MOVED — 2026-11-01 (`D-99`'s ANSWERED
+  // clause; `C-18`, §9.3).** The clause that stood here read *"`B-6`'s ONE EXEMPTION, DECLARED HERE AT ITS
+  // PRODUCER: while this loop runs, `listen` is being called by the KERNEL for the pair whose `id` is `id`, so
+  // the act is a CONSTRAINT's own registration and the cross-kind test has no subject. It is cleared on every
+  // arm, so a caller's later `listen` at a constraint's address is tested with no marker standing."* **THE
+  // EXEMPTION HAS NO SUBJECT, NO PURPOSE AND NO INSTRUMENT LEFT, AND THAT IS NOT A REVERSAL OF THE RULE ABOVE IT
+  // — IT IS THE `D-99` ROUTE READING ARRIVING AT ITS OWN SITE.** The kernel's registration **does not pass the
+  // cross-kind test at all** any more: `K-1` reaches the store through its own route (`LISTEN_ROUTE`,
+  // `delivery.mjs`'s `listenOn`), so the test lives on the CALLER's members `listen` and `register` and on
+  // nothing else — **there is nothing here to exempt, and no marker to set, clear or clear "on every arm"**. The
+  // sentence *"it is cleared on every arm"* is withdrawn with the `finally` it described, and `Q-1`'s residual (a
+  // constraint body borrowing the bracket) disappears with the marker it borrowed. **THE KERNEL'S FOUR
+  // RE-LISTINGS ARE LAWFUL BECAUSE THEY ARE NOT TESTED, NOT BECAUSE AN INSTRUMENT ADMITTED THEM** — which is what
+  // `XK-6` measures: the construction's arming walk, a held-pair extension, a disable→enable cycle and
+  // `restoreHeldPair`'s wake, each at N = 1 and N = 3, and a caller's `listen('<pair id>', …)` refused at both.
+  // **AND THE LATENT DEFECT THE MARKER WAS ORDERED TO CLOSE IS CLOSED BY THE ROUTE AND NOT BY A BRACKET**:
+  // `restoreHeldPair`'s wake runs with the pair's own polarity, and no number of addresses and no polarity can
+  // produce that refusal any more because the wake's registration passes no test.
   // **⟶ AND THE PAIR'S N REGISTRATIONS ARE A LOCAL INDEX LOOP, NOT `for … of` — 2026-10-24**
   // (`contract.md §2.1`'s clause of that date on `F8-2`, items `(2a)`–`(2c)`, arm `(xix)`, cell `JC-TC-65`;
   // `F8-8`'s items `(2a)`/`(2e)`, which count a GOVERNED site's take of `Array.prototype[Symbol.iterator]` as
@@ -427,19 +441,14 @@ export function carryConstraint(state, instance, addresses, id, constraint) {
   // performs.** **IT IS THE SAME PRECEDENT `encodeConstraints` ALREADY FOLLOWS** (the fourth key's own walk:
   // *"a LOCAL INDEX LOOP, NOT `Array.prototype.map`"*, arm `(xix)`), and it is the same shape `storeCreate`'s own
   // batch-arming walk takes. **ONE MEMBER PER ITERATION, IN THE SET'S OWN ORDER, AND NOTHING ELSE MOVES**: the
-  // three-state act, the one refusal crossing per arm, and the `B-6` marker's bracket are unchanged.
-  const outerEstablishing = state.establishing;
-  state.establishing = id;
-  try {
-    for (let position = 0; position < addresses.length; position += 1) {
-      try {
-        constraintsKernel().register(instance, addresses[position], id, constraint);
-      } catch (refusal) {
-        registrationCrossing(refusal, addresses[position]);
-      }
+  // three-state act, the one refusal crossing per arm, and the `B-6` marker's bracket is DELETED; the act is the
+  // kernel's own route.
+  for (let position = 0; position < addresses.length; position += 1) {
+    try {
+      constraintsKernel().register(instance, addresses[position], id, constraint);
+    } catch (refusal) {
+      registrationCrossing(refusal, addresses[position]);
     }
-  } finally {
-    state.establishing = outerEstablishing;
   }
   // **THE STORE'S PAIR RECORD CARRIES THE IDENTITY, AND `addConstraint` AT A HELD PAIR ANSWERS THE STORE'S
   // IDENTITY FOR THAT PAIR** (`P: docs/pending.md · (AA-2)`, its own obligation; `contract.md §2.6` item 2;

@@ -844,9 +844,24 @@ test('hli_surface_the_constraint_listener_conflict_throws_the_one_plain_form_nam
   // constraint pair occupies, so the as-filed order (pair first, then `listen`) is no longer reachable. **The
   // other order is**: the pair is added over a standing listener, which `B-4` allows because the pair's `id`
   // is not the listener's handle.
+  // **⟶ AND THE FIRST SENTENCE ABOVE IS WITHDRAWN 2026-11-01 (`D-98` clause (i); `docs/L1/cross-kind-handle-only.md`
+  // §5.1's row for this cell): `B-6` NO LONGER REJECTS A `listen` AT AN ADDRESS A STANDING PAIR OCCUPIES** — it
+  // rejects only a HANDLE equal to a carried pair's `id` — so **the two orders are BOTH lawful and this drive's
+  // order is kept for what it is** (the cell's own arrangement, not a constraint of the surface). **The
+  // superseded bytes stand above and are read THROUGH this clause** (`walkthrough.md` §4's annotate-beside
+  // spelling); the cell's added lawful arm at (a) below drives the order this sentence declared unreachable.
   const h = newHandle('conflict-caller');
   inst.listen(h, [address]);
   inst.addConstraint(pair, passing);
+  // **AND THE ORDER THAT SENTENCE DECLARED UNREACHABLE IS DRIVEN HERE, ONCE, SO THE PREDICTION IS CLOSED RATHER
+  // THAN CORRECTED IN PROSE ALONE** — the pair stands first, and a `listen` at its address under a fresh handle
+  // is LAWFUL (`D-98` clause (i)).
+  const pairFirst = capture(() => inst.listen(newHandle('conflict-pair-first'), [address]));
+  assert.equal(pairFirst.threw, false,
+    '**THE PAIR-FIRST ORDER IS LAWFUL** — a `listen` at an address a STANDING constraint pair occupies does not '
+    + 'throw, because the restriction is the HANDLE (`D-98` clause (i); §5.1\'s row for this cell): '
+    + `${pairFirst.threw ? 'THREW ' + JSON.stringify(String(pairFirst.thrown.status)) : 'returned '
+      + JSON.stringify(pairFirst.value)}`);
 
   // **THE PREAMBLE'S ONE RULING, PRINTED BECAUSE THIS CELL ONCE CARRIED IT BACKWARDS: A HANDLE `listen`
   // NEVER WROTE IS *NOT* "ADMITTED AND REFUSED BY NOTHING" — IT IS THE CONTRACT'S OWN **REFUSAL**.**
@@ -904,30 +919,74 @@ test('hli_surface_the_constraint_listener_conflict_throws_the_one_plain_form_nam
   //     is installed FIRST and the pair is added over it** — which `B-4` allows because the pair's `id` is not
   //     the listener's handle — and the registration is then refused at `register`, the ONE direction this cell
   //     has always driven.
+  // **⟶ RE-DERIVED AGAIN 2026-11-01 (`D-98`; `docs/L1/cross-kind-handle-only.md` §5.1's row for this cell) —
+  // THE SECOND BULLET'S PREMISE IS WITHDRAWN AND ITS ORDER STANDS AS THE ORDINARY LAWFUL ONE.**
+  // **`D-98` clause (i), verbatim: *"A constraint and a listener can share an address, as can multiple
+  // constraints/listeners. The restriction is that a listener and a constraint cannot have the same
+  // **handle**."*** So *"`listen` may not be installed at a constraint's address any more"* is **FALSE at this
+  // build** — `B-6` refuses only a handle equal to a carried pair's `id` — and the listener-first order is kept
+  // for what it is (this cell's own drive order), no longer because the other order is unreachable.
+  // **THE CELL'S SUBJECT — the cross-kind refusal's FORM and its message naming both sides — IS UNMOVED AND
+  // MOVES TO THE ARM THAT ANSWERS IT: the HANDLE.** A `register` at the pair's ADDRESS under a handle that is
+  // NOT the pair's `id` is now LAWFUL and is asserted as the ruling's own arm beside the refusal; a `register`
+  // under the pair's own `id` is the surviving `B-5` arm and carries the form, the `status` and the census this
+  // cell has always asserted. **Nothing is relaxed and nothing is retired**: the lawful arm GAINS a delivery
+  // assertion, and the refusal arm keeps every one of its own.
   assert.equal(inst.constraints().length, 1,
     'the pair stands at the address the listener already stands at: two handles, two kinds, ONE address');
-  const conflict = capture(() => inst.register(h, function callerOwnedListener() {}));
+  // ── (a) THE LAWFUL ARM — `D-98` clause (i). ──────────────────────────────────────────────────────────
+  const coLocatedFired = [];
+  const lawful = capture(() => inst.register(h, function callerOwnedListener() { coLocatedFired.push('called'); }));
+  assert.equal(lawful.threw, false,
+    'A CALLER\'S REGISTRATION AT THE ADDRESS THE CALLER\'S OWN CONSTRAINT PAIR STANDS AT IS LAWFUL — two '
+    + 'handles, two kinds, one address (`D-98` clauses (i) and (iii); `docs/L1/cross-kind-handle-only.md` '
+    + '§5.1)');
+  const coLocatedWrite = capture(() => inst.write(address, 'mem', 'a value a passing pair accepts'));
+  assert.equal(coLocatedWrite.threw, false,
+    'and THE WRITE THERE PASSES: the pair answers `true` and the co-located registration is reached');
+  assert.deepEqual(coLocatedFired, ['called'],
+    'and the listener under the caller\'s own handle is invoked EXACTLY ONCE at that write — the delivery a '
+    + 'co-located registration owes (`§2.4` items 6–7: one invocation, the written address as its argument)');
+  assert.equal(inst.constraints().length, 1,
+    'and the pair still enumerates: the lawful registration moved nothing of it');
+  // ── (b) THE REFUSAL ARM — the HANDLE, and it is the pair's own `id`. ─────────────────────────────────
+  const conflict = capture(() => inst.register(pair.id, function callerOwnedListener() {}));
   assert.equal(conflict.threw, true,
-    'A CALLER\'S FUNCTION AT A CALLER\'S CONSTRAINT-PAIR ADDRESS IS REFUSED — the conflict fires at '
-    + '`register`, in ONE direction (`contract.md §2.3` item 8; `§4` `F-9`; `constraint-sites.md §7` `CF-7`)');
+    'A CALLER\'S REGISTRATION UNDER THE CONSTRAINT PAIR\'S OWN `id` IS REFUSED — the HANDLE arm, the one '
+    + 'cross-kind restriction the ruling keeps (`D-98` clause (iii); `contract.md §2.3` item 8; `§4` `F-9`; '
+    + '`constraint-sites.md §7` `CF-7`)');
   assertRuleOne(conflict.thrown, 'the constraint/listener conflict');
   assert.equal(conflict.thrown.status, 'AddressMalformed',
     'and its `status` IS the store\'s `AddressMalformed` in the surface\'s one thrown form (`D-25`; '
     + '`docs/L1/surface-deltas.md` §2.5: the `TypeError` the arm carried *"is neither the one plain '
     + '{status, message} form the surface declares for every refusal nor a bare TypeError"*)');
   assert.deepEqual(Object.keys(conflict.thrown).sort(), ['address', 'log', 'message', 'status'],
-    'and the refusal carries exactly the three declared members, `log` present and EMPTY — the census '
-    + '`index.d.ts` fixes for every arm (`surface.md §2.5` item 9)');
+    'and the refusal carries exactly the three declared members plus `address`, `log` present and EMPTY — the '
+    + 'census `index.d.ts` fixes for every arm (`surface.md §2.5` item 9)');
+  assert.deepEqual(conflict.thrown.log, [],
+    'and `log` is `[]`: the refusal precedes the registry write and the re-install `listen`, so no attempt was '
+    + 'opened (`surface.md §2.5` item 4; `D-98`: NO STATE MOVES)');
+  assert.equal(conflict.thrown.address, null,
+    'and its `address` member stays `null` BY CONSTRUCTION: the refusal\'s subject is a STRING IN THE HANDLE '
+    + 'NAMESPACE and the address is the relation `D-98` declares lawful, so no address of the pair\'s N is '
+    + 'named (`docs/L1/cross-kind-handle-only.md` §3.4)');
   assert.ok(conflict.thrown.message.length > 0,
     'and the message is the package\'s own text (`contract.md §2.3` item 9: "the message is the '
     + 'package\'s own text, authored BY THE PACKAGE")');
   // THE MESSAGE NAMES BOTH SIDES — a prose obligation, asserted on the only channel it is carried on.
   assert.equal(typeof conflict.thrown.message, 'string',
-    'and it NAMES BOTH SIDES — the listener\'s address and the constraint that stands there '
-    + '(`contract.md §2.3` item 9 item (iii); `constraint-sites.md §5` item 5 (ii))');
+    'and it NAMES BOTH SIDES — the handle the caller tried to register and the constraint pair that keeps it, '
+    + 'with the rule\'s re-spelt sentence and no address: read '
+    + JSON.stringify(String(conflict.thrown.message).slice(0, 160)));
+  assert.ok(conflict.thrown.message.includes('a listener and a constraint do not share one handle'),
+    'and it carries the rule sentence in the corrected spelling — ONE WORD MORE than the address reading it '
+    + 'used to carry (`D-98` §3.4, anchored on `bindings/js/README.md:233`)');
+  assert.ok(conflict.thrown.message.includes(`'${pair.id}'`),
+    'and it names the pair\'s own `id` — the side that keeps the handle — so BOTH SIDES are named: read '
+    + JSON.stringify(String(conflict.thrown.message).slice(0, 160)));
 });
 
-test('hli_surface_listen_at_a_constraint_pairs_address_is_rejected_and_overwriting_a_listener_stays_lawful', () => {
+test('hli_surface_listen_at_a_constraint_pairs_address_is_lawful_and_the_handle_arm_stays_refused', () => {
   // `LF-8` — **`listen` GAINS NO CONFLICT TEST AT ALL, AND ITS PURGE REACH STAYS UNCONDITIONAL: a `listen`
   // at a kernel-held pair's address PURGES AND SUCCEEDS and NOTHING throws** (`listen-verb.md §7` item 1;
   // `§8` `LF-8`; `contract.md §2.2` item 7; `P: docs/pending.md · (C-1)`/`(C-2)` item (iv)).
@@ -936,15 +995,24 @@ test('hli_surface_listen_at_a_constraint_pairs_address_is_rejected_and_overwriti
   // delivery resolves to nothing silently** (`contract.md §2.2` item 7; `§2.8` item 5; `listen-verb.md §5`
   // item 2). **AND WHAT A DRIVE ASSERTS IS (a) the write is REFUSED and (b) NO BODY IS INVOKED**
   // (`listen-verb.md §5` item 3).
+  //
+  // **⟶ AND THE TEST NAME ABOVE RE-DERIVES 2026-11-01** (`D-98`; `docs/L1/cross-kind-handle-only.md` §5.1's row
+  // for this cell): it read `…_is_rejected_and_overwriting_a_listener_stays_lawful`, which is the arm the ruling
+  // withdraws. **A CELL'S NAME ASSERTS, so a name that asserts a withdrawn arm is a superseded cell and not a
+  // stable identifier** — the superseded spelling is recorded here, once, and the cell keeps its position, its
+  // drive and its subject (what `listen` does at a pair's address, in which form, moving what). No other cell's
+  // name moves in this pass and no `XK` name is reused.
   const inst = makeStore();
   const address = [tag('purged')];
   const pair = { address: [address], id: 'p' };
-  // A pair whose body refuses the value this drive will write, and whose registration instant passes.
+  // A pair whose body refuses ONE sentinel value, and whose registration instant passes. **THE SENTINEL IS
+  // SPELLED ONCE** (`VIOLATING` below), so the enforcement arm and the lawful arm can never drift apart.
   const refusal = () => ({ message: 'the pair refuses this value' });
+  const VIOLATING = 'a violating value';
   inst.addConstraint(pair, (context) => (
     context !== null && typeof context === 'object' && context.tier === null && context.op === null
       ? true
-      : refusal()
+      : (context.value === VIOLATING ? refusal() : true)
   ));
 
   // **⟶ RE-DERIVED 2026-10-24 (`strata/decisions.md` `D-29`, verbatim: *"Listen cannot overwrite constraint,
@@ -965,28 +1033,74 @@ test('hli_surface_listen_at_a_constraint_pairs_address_is_rejected_and_overwriti
   //
   // **AND WHAT THE SAME-KIND HALF STILL LAWFULLY DOES IS ASSERTED BESIDE IT**: overwriting a LISTENER with a
   // listener stays lawful — `D-24`'s same-kind rule — which is the half `§2.2` item 7 keeps.
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
+  // **⟶ RE-DERIVED 2026-11-01 (`D-98`; `docs/L1/cross-kind-handle-only.md` §5.1's row for this cell) — THE CELL'S
+  // SUBJECT INVERTS BACK AND THE REFUSAL MOVES TO THE HANDLE.** The paragraphs above stand as the 2026-10-24
+  // reading and are read THROUGH this clause. **`D-98` clause (i), verbatim: *"A constraint and a listener can
+  // share an address, as can multiple constraints/listeners. The restriction is that a listener and a
+  // constraint cannot have the same **handle**."*** So `listen(h, [address])` at an address a standing pair
+  // occupies — under a handle that is NOT the pair's `id` — is **LAWFUL**, and the assertion above is the
+  // defect's own sign. **What the cell asserts now, and nothing is weakened:**
+  //   * **THE LAWFUL ARM GAINS THREE ASSERTIONS**: the act answers its handle (`D-22`), the pair still
+  //     enumerates, and the listener standing at that address is DELIVERED exactly once at a lawful write.
+  //   * **THE PAIR IS STILL ENFORCED**, on the same fixture and the same instant (a sentinel value is refused
+  //     by the pair's own body, so `D-29`'s *"the act must not destroy what it may not overwrite"* keeps a live
+  //     witness).
+  //   * **THE REFUSAL KEEPS ITS WHOLE FORM, ITS MEMBER, ITS CENSUS AND ITS NO-STATE-MOVES ASSERTION — AT THE
+  //     HANDLE**: `listen('<pair id>', …)` is the surviving `B-6` arm (`D-98` clause (iii)).
+  //   * **AND THE SAME-KIND HALF STANDS UNTOUCHED** (`D-24`).
+  // **A NOTE ON THE FIXTURE, SAID RATHER THAN HIDDEN:** the pair's body refuses only the SENTINEL value, so a
+  // lawful write can prove the co-located delivery. The enforcement arm is asserted with the sentinel, exactly
+  // as it was asserted with *"a violating value"* before — the body's subject (this pair refuses ITS value) is
+  // unmoved; only the value that names it is spelled once, so the two arms cannot drift apart.
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
   const h = newHandle('purger');
-  const refused = capture(() => inst.listen(h, [address]));
+  const delivered = [];
+  assertListenAnswer(inst.listen(h, [address]), 'a listener at the address a standing pair occupies', h);
+  inst.register(h, (written) => { delivered.push(written); });
+  assert.equal(inst.constraints().length, 1,
+    'and the pair still enumerates — the lawful `listen` moved nothing of it (`D-98` clause (i))');
+  const lawfulWrite = capture(() => inst.write(address, 'mem', 'a value the pair passes'));
+  assert.equal(lawfulWrite.threw, false,
+    'and a write at that ONE address PASSES on the same store: one address, two kinds, both reached');
+  assert.deepEqual(delivered, [address],
+    '**AND THE LISTENER STANDING AT THE PAIR\'S ADDRESS IS DELIVERED EXACTLY ONCE**, with the written address '
+    + 'as its single argument (`§2.4` items 6–7) — the co-location the ruling declares lawful is one that '
+    + 'DELIVERS, and not one the tree merely permits');
+  const write = capture(() => inst.write(address, 'mem', VIOLATING));
+  assert.equal(write.threw, true,
+    '**THE PAIR STILL EVALUATES** — a write it refuses is REFUSED, so the constraint is ENFORCED at the same '
+    + 'address the listener stands at (`contract.md §2.8` item 5; `D-29`: *"the act must not destroy what it '
+    + 'may not overwrite"*)');
+  // ── THE REFUSAL'S ARM, RE-AIMED AT THE HANDLE — `listen('<pair id>', …)`. ─────────────────────────────
+  const refused = capture(() => inst.listen(pair.id, [address]));
   assert.equal(refused.threw, true,
-    'a `listen` at an address a STANDING CONSTRAINT pair occupies is REJECTED — `D-29`\'s sixth arm, `B-6` '
-    + '(`D-29`: *"Listen cannot overwrite constraint, only other listeners"*; `docs/L1/surface-deltas.md` '
-    + '§2.9)');
-  assertRuleOne(refused.thrown, 'listen over a standing constraint pair');
+    'a `listen` UNDER THE PAIR\'S OWN `id` is REJECTED — the surviving `B-6` arm, the HANDLE, and the one '
+    + 'cross-kind restriction the ruling keeps (`D-98` clause (iii); `docs/L1/cross-kind-handle-only.md` §1)');
+  assertRuleOne(refused.thrown, 'listen under a standing constraint pair\'s own id');
   assert.equal(refused.thrown.status, 'AddressMalformed',
     'and its member follows the act\'s own subject: `listen` is a SINGLE REGISTRATION, so it takes the '
     + 'handle domain\'s `AddressMalformed`, exactly as `B-5` (`register`) does (`docs/L1/surface-deltas.md` '
-    + '§2.9; `D-29`)');
+    + '§2.9; `D-98`)');
   assert.deepEqual(Object.keys(refused.thrown).sort(), ['address', 'log', 'message', 'status'],
     'and it is the surface\'s ONE thrown form with `log: []` — no attempt was opened (`surface.md §2.5` '
     + 'item 4)');
+  assert.deepEqual(refused.thrown.log, [], 'and `log` is `[]` — the refusal precedes the encode and the purge');
+  assert.equal(refused.thrown.address, null,
+    'and `address` is `null`: the refusal\'s subject is the HANDLE and the address is lawful, so no address of '
+    + 'the pair\'s set is named (`docs/L1/cross-kind-handle-only.md` §3.4)');
+  assert.ok(refused.thrown.message.includes('a listener and a constraint do not share one handle'),
+    'and the message carries the rule sentence in the corrected spelling — ONE WORD MORE than the address '
+    + 'reading (`D-98` §3.4): read ' + JSON.stringify(String(refused.thrown.message).slice(0, 160)));
   // NO STATE MOVED: the pair is still enumerated, still enforced, and the refused handle names nothing.
   assert.equal(inst.constraints().length, 1,
-    'and NO STATE MOVED — the refusal precedes the purge, so the pair still enumerates (`D-29`: *"the act must '
-    + 'not destroy what it may not overwrite"*)');
-  const write = capture(() => inst.write(address, 'mem', 'a violating value'));
-  assert.equal(write.threw, true,
-    'THE PAIR STILL EVALUATES — the write is REFUSED, so the constraint is ENFORCED and the refused `listen` '
-    + 'left it untouched (`contract.md §2.8` item 5)');
+    'and NO STATE MOVED — the refusal precedes the encode and the purge, so the pair still enumerates (`D-29`: '
+    + '*"the act must not destroy what it may not overwrite"*)');
+  assert.equal(capture(() => inst.write(address, 'mem', VIOLATING)).threw, true,
+    'and it is still ENFORCED after the refused `listen` (`contract.md §2.8` item 5)');
+  assert.equal(capture(() => inst.write(address, 'mem', 'a value the pair passes')).threw, false,
+    'and the listener\'s own lawful write still passes — the refused act took nothing of it');
   // THE KEPT HALF OF THE CLAUSE: a listener DOES overwrite another listener.
   const first = newHandle('purger-a');
   const second = newHandle('purger-b');

@@ -241,6 +241,27 @@ export interface StoreConfig {
    * in the surface's one thrown form `{status, message, log}`, under the store's existing
    * `ConstraintListInvalid` — **the package mints no code**.
    *
+   * **⟶ AND THE CROSS-KIND ARM'S DIMENSION IS THE HANDLE, AND ITS MESSAGE NAMES THREE THINGS — ADDED 2026-11-01
+   * (`D-98` item 4; `docs/L1/cross-kind-handle-only.md` §2, §3.4, §3.6).** **THE ARM IS `adoptedHandles[n] ===
+   * element.id`: a HANDLE, never an address** — so a batch pair and an adopted listener MAY stand at one address,
+   * which is the ruling's clause (i) — and it is compared over the handles `cfg.listeners` adopts, which are the
+   * same set a successful construction adopts (`docs/L1/surface-deltas.md` §3.2). **ITS MESSAGE NAMES:**
+   *   * **THE POSITION**, because two elements may carry one address and the position is what identifies the
+   *     offending element;
+   *   * **THE HANDLE** — the shared string, which is the refusal's SUBJECT and the generated half's first word;
+   *   * **THE ADOPTED LISTENER'S ONE ADDRESS**, which an adopted `cfg.listeners` element carries exactly one of
+   *     (`frame.mjs`), so naming it asserts no order and is exact.
+   *
+   * **AND THE GENERATED HALF IS THE STORE'S OWN QUALIFIED `ConstraintListInvalid` ARM** — *"'<handle>' is already
+   * a handle this instance carries, a batch element's id is its pair's handle and it may not be one this
+   * construction adopts as a listener's"* — which **prints no `<CONTAINER>` slot**: the list's name `constraints`
+   * is named on the package's clause side and never in the generated half, where it would read as the place the
+   * mismatch was found. **The package still mints no code**, the status is still `ConstraintListInvalid`, and the
+   * instant is still before any filesystem act. **AND THE SUBJECT MOVES FROM AN ADDRESS TO THE HANDLE, which
+   * incidentally repairs a second rendering defect**: the address spelling quotes its string segments and the
+   * facade quotes the whole subject again, so the bytes read `''ck''`; **a bare handle renders `'shared-handle'`
+   * and the doubling has no subject at this arm.**
+   *
    * **AND THE NAME'S OTHER TWO READERS NEED NOTHING** (`D-24` items 2–3, both recorded so no pass adds a
    * member): `constraints()` already returns the bare `id`, so its four exclusions stand exactly as written;
    * and `LogEntry` already carries `id`, so **the name's logging role moves no member-set** and no undeclared
@@ -974,10 +995,21 @@ export interface StoreInstance {
    * TRUE AND UNAFFECTED and is now read **SCOPED BY KIND**: a repeated handle of the SAME kind at this act is
    * an overwrite (`D-24`), while **a pair whose `id` equals a LIVE LISTENER'S HANDLE is REJECTED** — it does
    * not overwrite the listener and it does not throw nothing. **The rejection is the surface's one thrown
-   * form `{status, message, log}` with the store's `AddressMalformed`**, its `message` naming BOTH SIDES and
-   * carrying the shared rule sentence *"a listener and a constraint do not share one"*, and it is taken
-   * **after the two positions' class tests and before the held-pair purge and before any store call**, so
-   * **no state moves**. `register`'s own direction of the same rule stands at that member (§its own clause).
+   * form `{status, message, log}` with the store's `AddressMalformed`**, its `message` naming BOTH SIDES, and
+   * it is taken **after the two positions' class tests and before the held-pair purge and before any store
+   * call**, so **no state moves**. `register`'s own direction of the same rule stands at that member (§its own
+   * clause).
+   *
+   * **⟶ AND THE RULE SENTENCE RE-DERIVES BY ONE WORD, 2026-11-01 (`D-98`; `docs/L1/cross-kind-handle-only.md`
+   * §3.4): *"a listener and a constraint do not share one"* READS *"a listener and a constraint do not share one
+   * HANDLE"*.** **THE CONDITION, THE STATUS AND THE INSTANT ARE UNMOVED** — a live listener is
+   * `off === false` **and** a function **and** `kind !== 'constraint'`, so a reserved `listen` with no
+   * `register` is NOT one and a pair may take its handle; and the member is still `AddressMalformed` after the
+   * two class tests and before the held-pair branch. **What moves is the sentence, because the OLD SPELLING READ
+   * THE ADDRESS and `D-98` declares the address LAWFUL.** The missing word is added from the project's own
+   * anchor (`bindings/js/README.md`: *"a listener and a constraint do not share one handle"*), and the
+   * refusal's `address` member is `null`: the subject is the identity, and naming one of a listener's N mirror
+   * addresses would assert a membership no clause supports.
    */
   addConstraint(pair: ConstraintPair, constraint: Constraint): ConstraintIdentity;
   /** **THE ENABLE HALF** (`§2.12` item 2 (a) and item 3's `constraintOn` row): `undefined`. **The
@@ -993,14 +1025,36 @@ export interface StoreInstance {
   constraintOff(pair: ConstraintPair, constraint: Constraint): void;
   /** Register `listener` under the opaque `handle`, and answer `undefined` (`surface.md §2.4` item 5 (b)).
    *
-   *  **⟶ AND IT REFUSES WHERE A CONSTRAINT'S `id` STANDS AT THE ADDRESS** (`D-25`'s *"vice versa"*; `D-29`):
-   *  the cross-kind rule's register-side direction, in the surface's **own** thrown form
-   *  `{status, message, log}` with the store's `AddressMalformed` — **not** the `TypeError` this member's
-   *  conflict arm carried while a reserved `constraint@` prefix existed to be exempted — taken after the
-   *  handle's domain and registry tests and **before the registry write and before the re-install `listen`**,
-   *  so **no state moves**. **The exemption for kernel-prefixed handles is DELETED, not moved**: under `D-22`
-   *  the kernel's handle is no longer a reserved spelling and under `D-25` **the kernel registers nothing**, so
-   *  nothing needs to get past the test. */
+   *  **⟶ AND IT REFUSES WHERE THE HANDLE EQUALS A CARRIED CONSTRAINT PAIR'S `id`** (`D-25`'s *"vice versa"*;
+   *  `D-29`; **⟶ RE-DERIVED 2026-11-01 BY `D-98`'s HANDLE RULE, WHICH IS THE WHOLE OF IT**: *"A constraint and a
+   *  listener can share an address, as can multiple constraints/listeners. The restriction is that a listener
+   *  and a constraint cannot have the same **handle**."*). **THE CLAUSE THAT STOOD HERE READ *"it refuses where a
+   *  constraint's `id` STANDS AT THE ADDRESS"* AND THAT CONDITION IS WITHDRAWN**: an ADDRESS is not a collision
+   *  at all — a pair and a listener MAY stand at one address — so what the member tests is the **HANDLE, and
+   *  nothing else**: a carried pair whose `id` is that string, **disabled pair included** (`D-98` (iii)'s rule is
+   *  unconditional in both directions, and the loss a skipped disabled pair would permit lands at the next
+   *  `constraintOn` with no observable at the instant of the loss).
+   *
+   *  **THE REFUSAL IS THE SURFACE'S OWN THROWN FORM** `{status, message, log}` with the store's
+   *  `AddressMalformed` — **not** the `TypeError` this member's conflict arm carried while a reserved
+   *  `constraint@` prefix existed to be exempted — taken after the handle's domain and registry tests and
+   *  **before the registry write and before the re-install `listen`**, so **no state moves**: no store act, no
+   *  mirror row, no registry entry.
+   *
+   *  **ITS MESSAGE IS TWO PARTS AND BOTH ARE NAMED HERE** (`D-98` item 4; `docs/L1/cross-kind-handle-only.md`
+   *  §3.6's `B-5` text): **the generated half is the STORE'S OWN** — the qualified `AddressMalformed` arm, *"'<id>'
+   *  is already a handle this instance carries, a listener's handle and a constraint's id are one string and one
+   *  string only"*, which **names no address, no segment and no placeholder container** — and **the clause half is
+   *  the package's**, naming the pair that keeps the handle and carrying the shared rule sentence *"a listener and
+   *  a constraint do not share one handle"*. **The refusal's `address` member is `null`**, and that is now correct
+   *  rather than incidental: the subject is a string in the handle namespace and the address is lawful.
+   *
+   *  **The exemption for kernel-prefixed handles is DELETED, not moved**: under `D-22` the kernel's handle is no
+   *  longer a reserved spelling. **⟶ AND THE SENTENCE THAT FOLLOWED IT — *"under `D-25` the kernel registers
+   *  nothing, so nothing needs to get past the test"* — IS RE-DERIVED BY `D-99`'s ANSWERED CLAUSE AND NOT ABSORBED:**
+   *  the kernel **does** register, and it reaches the store through its **own internal route** rather than through
+   *  this member, so **this test is a CALLER's test and the kernel's act never meets it** — which is why there is
+   *  still nothing to get past it. */
   register(handle: Handle, listener: Listener): void;
   /** **`removeListener(handle) -> undefined`** — the entry removed WHOLE and its store entries withdrawn; every arm that is not a real removal THROWS (`contract.md §2.7` item 2; `PAR-HL-14`, `PAR-HL-15`). */
   removeListener(handle: Handle): void;

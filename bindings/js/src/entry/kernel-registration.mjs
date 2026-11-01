@@ -31,6 +31,15 @@ const EXTERNAL_CALL = Symbol.for('provident-storeroom.external-call');
 /// seventh name, `§1` item 2), no member on any record, no store act.
 const REGISTER_BODY = Symbol.for('provident-storeroom.register-body');
 
+/// **⟶ AND `D-99`'S INTERNAL LISTEN ROUTE, SPELLED ON THIS SIDE TOO — 2026-11-01 (`C-17`, §9.2).**
+/// `delivery.mjs`'s `installListenRoute` installs it and this module reaches it, **and neither side imports the
+/// other**: the same `Symbol.for` device `EXTERNAL_CALL`, `REGISTER_BODY`, `TERMINAL_ARM`, `COMMIT_SCOPE` and
+/// `FORGET_PAIR` already cross by (`kernel-surface.md §1` item 1's empty import footprint; `A110`). **IT TAKES
+/// THE HANDLE AND THE PAIR'S ADDRESS SET AND ANSWERS THE ADOPTED HANDLE** — the caller's `listen` member's
+/// post-test body, and not the member. **IT MINTS NOTHING**: no kernel item (`K-1`…`K-6` and no seventh name,
+/// `§1` item 2), no member on any record, no store verb, no store act of its own.
+const LISTEN_ROUTE = Symbol.for('provident-storeroom.listen-route');
+
 /// **THE INVOCATION OF A REPAIR BODY, WITH THE SYNTHETIC ATTEMPT'S COMMIT NAMED ON ITS ENTRY** — one call, its
 /// answer the body's own, and a throwable crosses unchanged. **THE SECOND COPY OF THE FIVE-LINE FORM
 /// `kernel-attempt.mjs` DECLARES**, because the two part files share no import and neither may reach the entry
@@ -83,12 +92,18 @@ export function register(store, address, id, constraint) {
   // route read (`write-and-read.md §6.5` item 12 (c)): a repeat at an address the home already holds mints
   // nothing and answers the entry's own handle.
   //
-  // **⟶ AND THE CALLER-SPELLED HANDLE IS A STRING THE KERNEL ITSELF SPELLS**, because the kernel IS a caller
-  // of the app's own verbs (`contract.md §2.9` item 2's route: *"the kernel already reaches a store verb … so
-  // `K-6` withdraws through the same route rather than inventing a second one"*). **ONE ADDRESS HOLDS ONE
-  // KERNEL-OWNED REGISTRATION**, and the address's own spelling is the handle's own spelling — so two pairs at
-  // ONE address share ONE store entry, which is the declared consequence `(Y-1)` carries (`contract.md §2.2`
-  // item 7; `listen-verb.md §5` item 4).
+  // **⟶ AND THE CALLER-SPELLED HANDLE IS A STRING THE KERNEL ITSELF SPELLS**, because the kernel reaches **the
+  // app's own ROUTE** (`contract.md §2.9` item 2's route: *"the kernel already reaches a store verb … so
+  // `K-6` withdraws through the same route rather than inventing a second one"*). **⟶ RE-DERIVED 2026-11-01
+  // (`D-99`'s ANSWERED clause, *"Route reading — the kernel's act is its own"*): THE SENTENCE READ *"the kernel IS
+  // a caller of the app's own VERBS"*, AND THE VERBS ARE NOW THE ROUTE.** The kernel reaches no published member:
+  // it reaches `LISTEN_ROUTE`'s one function (`delivery.mjs`'s `listenOn`), which is the `listen` member's
+  // POST-TEST body — the same address encode, the same `entryOf().listen` act, the same mirror and the same
+  // registry reservation — so **the caller-facing cross-kind test (`B-6`) is skipped BY BEING SOMEWHERE ELSE**,
+  // not by an exemption. **THE STORE'S ONE VERB IS UNMOVED AND IS REACHED ONCE** (`D-99` item 1). **ONE ADDRESS
+  // HOLDS ONE KERNEL-OWNED REGISTRATION**, and the address's own spelling is the handle's own spelling — so two
+  // pairs at ONE address share ONE store entry, which is the declared consequence `(Y-1)` carries
+  // (`contract.md §2.2` item 7; `listen-verb.md §5` item 4).
   // **⟶ `listen` ANSWERS `undefined` AND THE KERNEL ALREADY KNOWS THE HANDLE IT SPELLED** — the caller
   // supplied it, so there is nothing to return (`contract.md §2.2` item 10; `PAR-HL-3`). **SO THE KERNEL SPELLS
   // THE HANDLE ONCE AND USES IT AT BOTH VERBS**, which is exactly the *"handle replaces token in all cases"*
@@ -129,7 +144,15 @@ export function register(store, address, id, constraint) {
   // accepted-but-never-delivered registration** (`Q2`'s hazard).
   //
   // **WHAT STANDS NOW, IN FOUR DECLARED PROPERTIES:**
-  //   1. **WHAT IT CALLS: `store.listen(id, set)` — the published member, two positions, the handle first.**
+  //   1. **WHAT IT CALLS: `store[LISTEN_ROUTE](id, set)` — the app's own ROUTE, two positions, the handle
+  //      first.** **⟶ RE-DERIVED 2026-11-01 (`D-99`'s ANSWERED clause; `C-17`, §9.2): THIS PROPERTY READ
+  //      *"`store.listen(id, set)` — the published member, two positions, the handle first"*, AND THE MEMBER IS
+  //      NOW THE ROUTE.** `LISTEN_ROUTE` is `Symbol.for('provident-storeroom.listen-route')`, installed once per
+  //      instance by `storeCreate` before the batch walk, and its one function is `listenOn` — **the `listen`
+  //      member's POST-TEST body and not the member**, so no caller-facing test stands between this call and the
+  //      store's one verb. **THE STORE'S ONE VERB IS UNMOVED AND IS REACHED ONCE**, and what the route skips is
+  //      the CALLER's tests over the CALLER's arguments, which this function has already taken at its own
+  //      channel (i) (`inDomainAddress`, `inDomainId`, `typeof constraint === 'function'`).
   //      **THE CALLER'S OWN `id` IS THE HANDLE** (`D-23`: *"Setting a constraint should expect a handle name to
   //      be used for handle and process/error logging purposes"*; `D-24`: *"The handle becomes the id"*), so the
   //      kernel neither mints a spelling nor derives one from the address: **no kernel-authored identity is
@@ -164,7 +187,7 @@ export function register(store, address, id, constraint) {
   // CARRIES NO SUCH CHANNEL ANSWERS NOTHING AND NOTHING IS TOLD** (the device's own absent arm, `state.mjs`'s
   // fallback read at `externalCall`/`bumpMark`): such a store is not this package's product, and its kernel is not
   // this kernel's pass.
-  const adopted = store.listen(id, set);
+  const adopted = store[LISTEN_ROUTE](id, set);
   const install = store[REGISTER_BODY];
   if (typeof install === 'function') install.call(store, id, constraint, 'constraint');
   // **THE PAIR'S OWN IDEMPOTENCE: a second registration under the SAME pair keeps the replaced registration's

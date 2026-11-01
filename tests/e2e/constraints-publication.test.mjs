@@ -840,21 +840,65 @@ test('cp_write_path_a_four_position_write_enters_the_kernel_and_the_passing_arm_
   //     surface-deltas.md` §2.5 — *"one member function cannot print two failure forms"*). **So the
   //     `err instanceof TypeError && !('status' in err)` predicate has lost its subject and the declared form
   //     is asserted instead.**
+  // **⟶ RE-DERIVED AGAIN 2026-11-01 — THE FIRST OF THOSE TWO MOVES IS WITHDRAWN AT ITS PREMISE, AND THE
+  // SECOND STANDS.** `D-98` (verbatim: *"A constraint and a listener can share an address, as can multiple
+  // constraints/listeners. The restriction is that a listener and a constraint cannot have the same
+  // **handle**."*) **withdraws the ORDER bullet's premise**: `B-6` no longer refuses a `listen` at an address a
+  // standing pair occupies (`docs/L1/cross-kind-handle-only.md` §1's `B-6` row, §5.1's row for this probe), so
+  // the *"as-filed order is unreachable"* sentence — and the paragraph above it that reads the refusal as
+  // *"the conflict's own refusal"* — are FALSE at this build and are read through this clause. **The order
+  // the bullet describes is kept, and it is no longer forced: listener first, pair over it is now the ORDINARY
+  // lawful order and this probe's shape — the two kinds at ONE address with different handles (`D-98` clause
+  // (i)). THE FORM bullet STANDS UNMOVED** (the one plain thrown object with the store's `AddressMalformed`),
+  // and only the HANDLE it is asserted at has moved (the `register('pp')` arm below). **AND THE
+  // *"THE LISTENER CANNOT STAND AT THE PAIR'S OWN ADDRESS"* PREMISE OF THE 2026-10-18 PARAGRAPH ABOVE GOES WITH
+  // IT**: a listener MAY stand at a pair's address; what the paragraphs above record is the reading of their
+  // own date, kept byte-for-byte and read through this clause.
   const conflictProbe = makeStore();
   const probePair = pair('cp-write-pass-probe', 'pp');
   assert.equal(conflictProbe.listen('a-callers-own-listener', [probePair.address]), 'a-callers-own-listener',
     'the caller\'s entry is created at the address the pair will stand at (`listen-verb.md §4` state `1`; '
     + '`D-22` for the answer)');
   conflictProbe.addConstraint(probePair, passing(counter()));
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
+  // **⟶ RE-DERIVED 2026-11-01 (`D-98`; `docs/L1/cross-kind-handle-only.md` §5.1's row for this probe).** The
+  // arms below stood as ONE and it drove the ADDRESS: the caller's registration at the pair's address was
+  // REFUSED, because `B-5` tested ADDRESS-SET MEMBERSHIP. **`D-98` clause (i) declares that state LAWFUL** —
+  // *"A constraint and a listener can share an address, as can multiple constraints/listeners"* — and clause
+  // (iii) keeps exactly ONE restriction: the **HANDLE**. **So the probe keeps its store shape and asserts the
+  // TWO arms the ruling gives it, and it keeps a refusal to assert:**
+  //   (i) the caller's registration under a handle that is NOT the pair's `id` is **LAWFUL**, and **the write
+  //       that follows PASSES** — the arm the old expectation refused, now driven as the ruling's own;
+  //   (ii) the declared refusal is re-aimed at the **HANDLE** — `register('pp')`, the pair's own `id` — so the
+  //       cell keeps asserting the cross-kind refusal in the surface's ONE plain thrown form with the store's
+  //       `AddressMalformed`, at the arm that actually answers it.
+  // **THE MESSAGE'S TEXT IS NOT ASSERTED HERE**: the four exact texts are `XK-5`'s subject
+  // (`tests/e2e/cross-kind-handle-only.test.mjs`), each asserted WHOLE at its own arm (`D-98` item 4; §3.6).
+  // **A FIGURE CARRIED FROM THE OLD ARM IS NOT A MEASUREMENT** (`walkthrough.md` §3 Q6): both arms are re-taken
+  // at this probe's own store shape and neither is read off the 2026-10-24 narrative.
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
+  assert.equal(conflictProbe.register('a-callers-own-listener', () => {}), undefined,
+    'AND A CALLER\'s REGISTRATION AT THE PAIR\'S OWN ADDRESS IS LAWFUL — two handles, two kinds, ONE address — '
+    + 'and the act answers `undefined`, `register`\'s own declared answer (`D-98` clause (i); '
+    + '`docs/L1/cross-kind-handle-only.md` §5.1)');
+  const lawfulWrite = capture(() => conflictProbe.write(probePair.address, 'mem', { probe: true }));
+  assert.equal(lawfulWrite.threw, false,
+    'and THE WRITE THAT FOLLOWS PASSES: the pair answers `true` and the co-located listener is delivered — '
+    + 'the state the ruling declares lawful is one that evaluates and one that delivers');
   assert.throws(
-    () => conflictProbe.register('a-callers-own-listener', () => {}),
+    () => conflictProbe.register('pp', () => {}),
     (err) => err.status === 'AddressMalformed' && !(err instanceof TypeError)
       && JSON.stringify(Object.keys(err).sort()) === '["address","log","message","status"]',
-    'AND A CALLER\'s LISTENER AT THE PAIR\'S OWN ADDRESS IS REFUSED in the surface\'s ONE plain thrown form '
-    + 'with the store\'s `AddressMalformed` — never the `TypeError` this arm carried while a reserved '
-    + '`constraint@` prefix existed to be exempted (`D-25`; `docs/L1/surface-deltas.md` §2.5)');
+    'AND A CALLER\'s REGISTRATION UNDER THE PAIR\'S OWN `id` IS REFUSED — the HANDLE arm, the one cross-kind '
+    + 'restriction the ruling keeps — in the surface\'s ONE plain thrown form with the store\'s '
+    + '`AddressMalformed`, never the `TypeError` this arm carried while a reserved `constraint@` prefix existed '
+    + 'to be exempted (`D-98` clause (iii); `D-25`; `docs/L1/surface-deltas.md` §2.5)');
   assert.equal(conflictProbe.removeListener('a-callers-own-listener'), undefined,
-    'and the refusal left the registry untouched, so the entry is removable at its own act');
+    'and THE HANDLE REFUSAL MOVED NOTHING: the caller\'s own lawful entry stands untouched after it, so it is '
+    + 'removable at its own act (`D-98`: NO STATE MOVES at the cross-kind arm — asserted on the entry\'s '
+    + 'survival and not on a registry census the refusal does not own)');
+  assert.equal(conflictProbe.constraints().length, 1,
+    'and the pair still stands: the refusal precedes the purge and no purge runs');
   // `§2.12` item 1, STAGE 1: *"A `write` CALLED WITH FOUR POSITIONS — `write(instance, address, tier, value)`
   // — ENTERS THE KERNEL'S `K-2`"*, and stage 3: the kernel evaluates the constraint set against the store's
   // own result. **THE EVALUATION IS INSIDE THE CALL** — the superseded sentence *"evaluate constraints AFTER
@@ -933,21 +977,65 @@ test('cp_write_path_the_failing_arm_reports_the_declared_three_member_form_and_d
   //     surface-deltas.md` §2.5 — *"one member function cannot print two failure forms"*). **So the
   //     `err instanceof TypeError && !('status' in err)` predicate has lost its subject and the declared form
   //     is asserted instead.**
+  // **⟶ RE-DERIVED AGAIN 2026-11-01 — THE FIRST OF THOSE TWO MOVES IS WITHDRAWN AT ITS PREMISE, AND THE
+  // SECOND STANDS.** `D-98` (verbatim: *"A constraint and a listener can share an address, as can multiple
+  // constraints/listeners. The restriction is that a listener and a constraint cannot have the same
+  // **handle**."*) **withdraws the ORDER bullet's premise**: `B-6` no longer refuses a `listen` at an address a
+  // standing pair occupies (`docs/L1/cross-kind-handle-only.md` §1's `B-6` row, §5.1's row for this probe), so
+  // the *"as-filed order is unreachable"* sentence — and the paragraph above it that reads the refusal as
+  // *"the conflict's own refusal"* — are FALSE at this build and are read through this clause. **The order
+  // the bullet describes is kept, and it is no longer forced: listener first, pair over it is now the ORDINARY
+  // lawful order and this probe's shape — the two kinds at ONE address with different handles (`D-98` clause
+  // (i)). THE FORM bullet STANDS UNMOVED** (the one plain thrown object with the store's `AddressMalformed`),
+  // and only the HANDLE it is asserted at has moved (the `register('pp')` arm below). **AND THE
+  // *"THE LISTENER CANNOT STAND AT THE PAIR'S OWN ADDRESS"* PREMISE OF THE 2026-10-18 PARAGRAPH ABOVE GOES WITH
+  // IT**: a listener MAY stand at a pair's address; what the paragraphs above record is the reading of their
+  // own date, kept byte-for-byte and read through this clause.
   const conflictProbe = makeStore();
   const probePair = pair('cp-write-pass-probe', 'pp');
   assert.equal(conflictProbe.listen('a-callers-own-listener', [probePair.address]), 'a-callers-own-listener',
     'the caller\'s entry is created at the address the pair will stand at (`listen-verb.md §4` state `1`; '
     + '`D-22` for the answer)');
   conflictProbe.addConstraint(probePair, passing(counter()));
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
+  // **⟶ RE-DERIVED 2026-11-01 (`D-98`; `docs/L1/cross-kind-handle-only.md` §5.1's row for this probe).** The
+  // arms below stood as ONE and it drove the ADDRESS: the caller's registration at the pair's address was
+  // REFUSED, because `B-5` tested ADDRESS-SET MEMBERSHIP. **`D-98` clause (i) declares that state LAWFUL** —
+  // *"A constraint and a listener can share an address, as can multiple constraints/listeners"* — and clause
+  // (iii) keeps exactly ONE restriction: the **HANDLE**. **So the probe keeps its store shape and asserts the
+  // TWO arms the ruling gives it, and it keeps a refusal to assert:**
+  //   (i) the caller's registration under a handle that is NOT the pair's `id` is **LAWFUL**, and **the write
+  //       that follows PASSES** — the arm the old expectation refused, now driven as the ruling's own;
+  //   (ii) the declared refusal is re-aimed at the **HANDLE** — `register('pp')`, the pair's own `id` — so the
+  //       cell keeps asserting the cross-kind refusal in the surface's ONE plain thrown form with the store's
+  //       `AddressMalformed`, at the arm that actually answers it.
+  // **THE MESSAGE'S TEXT IS NOT ASSERTED HERE**: the four exact texts are `XK-5`'s subject
+  // (`tests/e2e/cross-kind-handle-only.test.mjs`), each asserted WHOLE at its own arm (`D-98` item 4; §3.6).
+  // **A FIGURE CARRIED FROM THE OLD ARM IS NOT A MEASUREMENT** (`walkthrough.md` §3 Q6): both arms are re-taken
+  // at this probe's own store shape and neither is read off the 2026-10-24 narrative.
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
+  assert.equal(conflictProbe.register('a-callers-own-listener', () => {}), undefined,
+    'AND A CALLER\'s REGISTRATION AT THE PAIR\'S OWN ADDRESS IS LAWFUL — two handles, two kinds, ONE address — '
+    + 'and the act answers `undefined`, `register`\'s own declared answer (`D-98` clause (i); '
+    + '`docs/L1/cross-kind-handle-only.md` §5.1)');
+  const lawfulWrite = capture(() => conflictProbe.write(probePair.address, 'mem', { probe: true }));
+  assert.equal(lawfulWrite.threw, false,
+    'and THE WRITE THAT FOLLOWS PASSES: the pair answers `true` and the co-located listener is delivered — '
+    + 'the state the ruling declares lawful is one that evaluates and one that delivers');
   assert.throws(
-    () => conflictProbe.register('a-callers-own-listener', () => {}),
+    () => conflictProbe.register('pp', () => {}),
     (err) => err.status === 'AddressMalformed' && !(err instanceof TypeError)
       && JSON.stringify(Object.keys(err).sort()) === '["address","log","message","status"]',
-    'AND A CALLER\'s LISTENER AT THE PAIR\'S OWN ADDRESS IS REFUSED in the surface\'s ONE plain thrown form '
-    + 'with the store\'s `AddressMalformed` — never the `TypeError` this arm carried while a reserved '
-    + '`constraint@` prefix existed to be exempted (`D-25`; `docs/L1/surface-deltas.md` §2.5)');
+    'AND A CALLER\'s REGISTRATION UNDER THE PAIR\'S OWN `id` IS REFUSED — the HANDLE arm, the one cross-kind '
+    + 'restriction the ruling keeps — in the surface\'s ONE plain thrown form with the store\'s '
+    + '`AddressMalformed`, never the `TypeError` this arm carried while a reserved `constraint@` prefix existed '
+    + 'to be exempted (`D-98` clause (iii); `D-25`; `docs/L1/surface-deltas.md` §2.5)');
   assert.equal(conflictProbe.removeListener('a-callers-own-listener'), undefined,
-    'and the refusal left the registry untouched, so the entry is removable at its own act');
+    'and THE HANDLE REFUSAL MOVED NOTHING: the caller\'s own lawful entry stands untouched after it, so it is '
+    + 'removable at its own act (`D-98`: NO STATE MOVES at the cross-kind arm — asserted on the entry\'s '
+    + 'survival and not on a registry census the refusal does not own)');
+  assert.equal(conflictProbe.constraints().length, 1,
+    'and the pair still stands: the refusal precedes the purge and no purge runs');
   const r = capture(() => inst.write(thePair.address, 'mem', 7));
   assert.equal(body.runs >= 1, true, 'PREMISE: the element was evaluated inside the call and refused');
   assert.equal(r.threw, true,

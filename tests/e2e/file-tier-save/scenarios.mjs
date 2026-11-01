@@ -168,6 +168,21 @@ scenario('FTS-01', 'the terminal arm: constraint first, save second, listener th
     // carries and the one the review's own re-derivation names (*"the app arms its own handle"*). **NO CELL IS
     // WEAKENED AND NONE IS RETIRED**: each keeps its subject (the ordinal order, the save's instant between the two
     // bodies, and the single invocation), and the drive now stands on a handler the surface LAWFULLY makes.
+    //
+    // ⟶ **RE-DERIVED 2026-11-01 (`D-98`; `docs/L1/cross-kind-handle-only.md` §5.1's row for this drive comment).**
+    // **THE FIRST CLAUSE ABOVE IS THE RULING AND IS KEPT, IN THE CORRECTION'S SPELLING:** *"a listener and a
+    // constraint do not share one **handle**"* — `D-98` clause (iii), and the sentence's missing word is the one
+    // that made it read the address (`bindings/js/README.md:233` is the anchor). **THE SECOND CLAUSE IS THE
+    // DEFECT AND IS STRUCK:** *"a `listen` at that pair's address under an app handle is REFUSED before the
+    // purge (`B-6`)"* is **FALSE at this build** — `D-98` clause (i): *"A constraint and a listener can share an
+    // address"* — so `B-6` refuses ONLY a handle equal to a carried pair's `id`. **THE DRIVE BELOW ALREADY DRIVES
+    // THE LAWFUL ARM AND NOTHING IN IT WEAKENS:** `s.listen(APP_H, [['c']])` at `:172` stands at the address the
+    // kernel-registered pair `c1` occupies, under a DIFFERENT handle, which is lawful and is what the sentence
+    // above used to deny. **AND ONE FACT THE CORRECTION RECORDS RATHER THAN HIDES** (§5.1's own note): this drive
+    // reaches the kernel DIRECTLY (`K.register` at `:158`), so the package's `state.constraints` is empty and the
+    // old address test could never have fired here. **The drive's green named the route that made it green, and
+    // that route is the kernel's, not a caller's** — the public route's lawful arms are driven at
+    // `tests/e2e/cross-kind-handle-only.test.mjs`'s `XK-1`…`XK-4`.
     const APP_H = 'app-c-fts01';
     s.listen(APP_H, [['c']]);
     s.register(APP_H, (addr) => { ord.push(['listener', imageAt()]); seen.push(addr); });
@@ -1268,12 +1283,33 @@ scenario('FTS-12', 'the censuses clause 7 leaves unmoved',
     // the PAIR'S OWN `id` at the pair's own address — `D-29`'s lawful re-listing, and the exact act the kernel
     // performs — because a listener's handle at a pair's address is now REFUSED (`B-6`). **A cell that asserted
     // nothing now asserts D-22's adoption observable**, which is a strengthening and not a weakening.
-    cell('FTS-12.4', 'surface.md §2.1 item 1 read THROUGH `D-22` (`strata/decisions.md`, 2026-10-24: *"the return is the adoption point"*) and `bindings/js/index.d.ts:616`; `D-24`/`D-29` (the handle IS the `id`); `kernel-surface.md §2.1` item 1',
-      'the ADOPTION OBSERVABLE: `K-1` returns the value `store.listen(id, set)` answered, so the package\'s own `listen` under the pair\'s `id` at the pair\'s address answers EXACTLY the identity `kernel.register` returned (`===`)',
+    //
+    // ⟶ **RE-DERIVED 2026-11-01 (`D-98`, `D-99`'s `ANSWERED` clause; `docs/L1/cross-kind-handle-only.md` §5.1's own
+    // note on this runner and §9.2).** **TWO SENTENCES ABOVE ARE FALSE AT THIS BUILD AND THE DRIVE IS GREEN ANYWAY —
+    // WHICH IS WHY IT IS RE-DERIVED RATHER THAN LEFT.** *(i)* *"a listener's handle at a pair's address is now
+    // REFUSED (`B-6`)"* is **withdrawn by `D-98` clause (i)**: a listener and a pair MAY share an address, and `B-6`
+    // refuses only a HANDLE equal to a carried pair's `id` — which is the OTHER half of this drive. *(ii)* *"`K-1`
+    // ADOPTS that answer (`adopted = store.listen(id, set)`)"* is re-derived by the route reading: `K-1` reaches the
+    // store through the kernel's own route (`LISTEN_ROUTE`, §9.2), not through the published member.
+    // **AND THE GREEN'S OWN ROUTE IS NAMED, WHICH IS THE POINT** (`walkthrough.md` §3 Q1 — a verdict records WHAT IT
+    // READ): this drive reaches the kernel DIRECTLY (`K.register`), so the package carries NO pair, the caller's
+    // `listen('cx', …)` is lawful for that reason alone, and `B-6` never had a subject here. **So the cell now
+    // asserts BOTH readings of the one fact** — the adoption observable, and the CARRIED arm's refusal at the same
+    // spelling, on a store where the pair is the package's own — and neither is inferred from the other.
+    cell('FTS-12.4', 'surface.md §2.1 item 1 read THROUGH `D-22` (`strata/decisions.md`, 2026-10-24: *"the return is the adoption point"*) and `bindings/js/index.d.ts:616`; `D-24`/`D-29` (the handle IS the `id`); `kernel-surface.md §2.1` item 1; `D-98` clause (iii) and §9.2 (the route reading) for the carried arm this cell now drives beside it',
+      'the ADOPTION OBSERVABLE: `K-1` returns the value its own store-side act answered, so the package\'s own `listen` under the same handle answers EXACTLY the identity `kernel.register` returned (`===`) — AND, on a store where the pair is the PACKAGE\'s, the same spelling (`listen` under a carried pair\'s `id`) is REFUSED `AddressMalformed`, which is the arm `D-98` keeps',
       () => {
         const h1 = K.register(s, ['x'], 'cx', () => true);
-        const h2 = s.listen('cx', [['x']]);   // the pair's own id over the pair's own address: D-29's lawful re-listing
-        return C(typeof h1 === 'string' && h1 === h2, `kernel.register === PKG.listen ? ${h1 === h2} (kernel ${JSON.stringify(h1)}, listen ${JSON.stringify(h2)})`);
+        const h2 = s.listen('cx', [['x']]);   // green because the kernel was reached DIRECTLY: the package carries no pair
+        // **THE CARRIED ARM, BESIDE IT** — the same spelling on a store whose pair the PACKAGE carries, which is the
+        // state `D-98` clause (iii) refuses and the state this drive's own premise used to mis-state.
+        const carried = PKG.storeCreate({ journalLength: 8, listeners: [] });
+        carried.addConstraint({ address: ['cx'], id: 'cx' }, () => true);
+        let carriedRefusal = null;
+        try { carried.listen('cx', [['cx']]); } catch (e) { carriedRefusal = e; }
+        return C(typeof h1 === 'string' && h1 === h2 && carriedRefusal !== null
+          && carriedRefusal.status === 'AddressMalformed',
+        `kernel.register === PKG.listen ? ${h1 === h2} (kernel ${JSON.stringify(h1)}, listen ${JSON.stringify(h2)}); the CARRIED arm (a pair the package holds, same spelling): ${carriedRefusal === null ? 'ADMITTED' : JSON.stringify(carriedRefusal.status)}`);
       });
   });
 

@@ -4298,6 +4298,131 @@ catalogue as its exemption set (`1`), one-way (`1`), the cleanup named as a back
 
 ---
 
+### `D-84` — **SPECULATIVE — PARKED**: a top-level `inventory` container a tree node may point to in place of its own value/descendant map
+
+**DATE:** 2026-10-29. **BRANCH:** `main`. **SOURCE:** the architect, in session, adding a feature to the record and
+marking its status himself. **STATUS: `SPECULATIVE — PARKED. NOTHING BUILT, NOTHING PROMISED.`** — the status line is
+this tree's OWN existing convention for a speculative ask
+(`archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-graph-assembly-proposal-review.md:88`, its `STATUS` field),
+adopted here rather than re-spelled, so a reader meets one spelling of "parked" and not two.
+
+**THE NUMBER IS `D-84` AND NOT `D-83`, MEASURED 2026-10-29, AND THE REASON IS PRINTED BECAUSE A NUMBERED SEQUENCE WITH AN
+UNEXPLAINED HOLE INVITES A READER TO FILL IT.** **`D-83` IS ALREADY SPOKEN FOR BY THE TREE'S OWN SHIPPED RECORD**:
+`RELEASE-NOTES.md` and `bindings/js/RELEASE-NOTES.md` each cite it twice — *"**`D-83`** gave it the arm"* (`:87`) and
+*"the one new cut-claim `D-82`'s ratchet could not admit until **`D-83`** gave it the arm"* (`:82`) — while **NO ENTRY
+UNDER THAT NUMBER STANDS IN THIS FILE**, and no commit ever added one (`git log --all -S"D-83" -- strata/decisions.md`
+answers nothing; `abdcbd7`, the commit that gave the ratchet that arm, touched only the two notes files and
+`scripts/publish.sh`). **So `D-83` is a ruling the release record leans on and this file does not carry.** **THIS ENTRY
+NEITHER FILLS THAT GAP NOR GUESSES AT ITS CONTENT: what `D-83` rules must not be inferred from those citations, and the
+gap is the architect's to close or to leave.**
+
+**THE ARCHITECT'S WORDS, VERBATIM — the whole of the ask, unaltered, its spelling included:**
+
+> Add as a speculative future feature
+> A top-level 'inventory' container that a storeroom tree node can point to as its value/descendant map instead of
+> having its own.
+> Use cases:
+> - storing large single elements that aren't expected to change frequently (ex. images) but have parents that can be
+>   overwritten frequently
+> - storing objects or other data that must be frequently moved byte-identically between tree locations
+> - storing objects or other data that should be addressible in more than one place
+
+**WHAT THIS ENTRY IS.** The record that the feature is **NAMED, PARKED AND NOT AVAILABLE**. **It is not a ruling and it
+grants nothing**: it prices nothing, schedules nothing, opens no unit, admits no gate, mints no identifier, amends no
+contract and revises no module map. **An entry in this file normally settles something; this one settles the record and
+nothing else, and it says so at its head rather than at its foot so no reader has to reach the end to learn that.**
+
+**WHAT IT SETTLES.**
+
+1. **The feature is on the record by that name, with those three use cases as its own ground, and it is parked.** No
+   layer below me is owed it, no unit carries it, no tracker row is opened by it, and no pass may report it as pending
+   work.
+2. **NO LAYER MAY BUILD IT — AND THAT IS NOT THIS ENTRY'S JUDGEMENT BUT FOUR DECLARED CLAUSES READ TOGETHER.** They
+   are printed here, because the collision is the whole finding:
+
+   - **`docs/specs/storeroom-native/contract.md` `§1.1`, the `leaf` row**: a leaf's `anchor` is *"the one `AnchorRef`
+     that points to it"*, and the row's REFUSES column carries **"more than one anchor"**.
+   - **the same section's `branch` row**: a branch's members are `anchor` · `container` (*"exactly one `Link`"*, `MAP`
+     or `VEC`) · `address` (*"the path from the register by which it is reachable"*), and its REFUSES column carries
+     **"a readable value of its own"** and **"more than one container"**.
+   - **`§1.5` item 5**: *"**A single address reaches exactly one node.** Every minted node is reachable by exactly one
+     address path (`DD-6`), and no two distinct addresses resolve to one node."*
+   - **`§5.5`'s `P-IM-3`** — the property, its `S-STRUCT` **uniqueness pass** (*"no path resolves to a node another
+     path also resolves to"*) and its FAILS list (*"two distinct addresses resolving to one node"*), closing the
+     store's data structures at **five**.
+
+   **SO EVERY READING OF THE ASK COLLIDES WITH AT LEAST ONE OF THEM, AND THE THIRD USE CASE SAYS SO IN ITS OWN WORDS**:
+   a thing *"addressible in more than one place"* is, for a node, **"a node shared by two anchors"** — which is exactly
+   the alternative `DD-6`'s own row prices and refuses (*"priced: the read's per-key assembly (one value per key) would
+   have two sources and would stop being a function"*). **And the collision is not confined to containers: the `leaf`
+   row refuses a second anchor as flatly as the `branch` row refuses a second container**, so a large-element reading
+   of use cases one and two is not automatically the cheaper reading it looks like.
+3. **THE ONE ROUTE THAT COULD EVER OPEN IT IS NAMED, AND THIS ENTRY DOES NOT TAKE IT:** a fresh **ACTIVE** ruling in
+   this file superseding the reading above, followed by a **bounded amendment** of the native contract — `DD-6`'s
+   instrument column names that amendment as the instrument, and no other is declared. **Neither exists. Nothing here
+   is either.**
+4. **The clauses above STAND BYTE-FOR-BYTE.** `DD-6`, `P-IM-3`, `§1.1`, `§1.5` and `§1.7` are not softened,
+   superseded or annotated by this entry, and no clause anywhere may be read as having anticipated it.
+
+**WHAT IT DOES NOT SETTLE — AND NO LAYER MAY CHOOSE, PRINT OR PLAN FOR ANY OF THESE.**
+
+- **(i) WHICH MECHANISM THE WORDS MEAN.** *"a tree node can point to … as its value/descendant map instead of having
+  its own"* fits at least **three** mechanical readings and this entry picks none of them: **(1) a container SHARED
+  behind N parent anchors** — the node keeps its anchor, and its one `Link` is a structure other nodes' anchors also
+  reach; **(2) a REFERENCE in place of a container** — the node carries a pointer, mints no container of its own, and
+  the pointed-at structure is one; **(3) a SECOND TOP-LEVEL STRUCTURE with `inventory` as its own root**, a top-level
+  key whose value is a pointer into it. **The one structural observation that may be printed without choosing:
+  reading (1) is the one `DD-6` already prices and refuses BY NAME, and readings (2) and (3) meet `§1.7`'s
+  five-component closure and `P-IM-3`'s *"no address answers a sixth structure"* instead.** No reading is free, and
+  which price is paid is the architect's.
+- **(ii) ANY SPELLING.** No identifier, no member, no config key, no verb, no status and no record shape is minted
+  here. **`inventory` is the architect's word for the idea and is NOT a declared identifier.**
+- **(iii) THE TIER QUESTION.** The tier is *"carried BY ANCHORS"* (`contract.md` `§1.2`'s `ChildAnchor` row, `P: §14 ·
+  A27`; that row is read through `store-model.md §1.2`'s dated clause of 2026-10-21, which leaves the set `tier` ·
+  `node` · `register_marker`), the uniqueness key is the pair **`(key, tier)`**
+  (`P: §15 · A34`), the monotonic clause is `rank(child.tier) ≤ rank(parent.tier)`, and a write at a tier **purges the
+  versions it outranks** (brief §4 `UC-5`). **One set of child anchors under N parent anchors has N parents' worth of
+  rank reasoning over one structure, and nothing declares whose rank bounds whose, nor what a write through one
+  address purges at another.** Unsettled.
+- **(iv) JOURNAL AND ROLLBACK SCOPE.** `rollback`'s scope is *"every operation touching the same subtree"*, reported
+  newest first (brief §4 `UC-7`; `write-and-read.md §6.1`–`§6.4`). **With N addresses over one structure, "the same
+  subtree" is not answerable from one address**, and no clause here decides which op set a rollback naming an op
+  inside an inventory would reverse.
+- **(v) DELIVERY.** `triggered` membership is *"decided by address prefix and by nothing else"* (brief §4 `UC-8`), and
+  `D-56` / `D-66` / `D-67` gave the constraint pass and the store's trigger map one reach over a tree in which every
+  node has **one** path. **A write inside a structure reachable under two prefixes stands inside both; whose listeners
+  fire, once or twice, and with which argument, is undecided — and is NOT to be inferred from any existing clause,
+  because every one of them was written over the one-path model.**
+- **(vi) DELETION AND OWNERSHIP.** What a `delete` at one address does when another address still reaches the
+  structure; whether the structure goes when the last pointer does; whether a count exists at all. **No reference
+  count, no ownership rule and no garbage rule is declared, implied or owed by this entry.**
+- **(vii) WHAT THE USE CASES WOULD ACTUALLY SAVE, WHICH IS UNMEASURED.** All three rest on a cost the model pays
+  today: **the crossing is a deep copy in both directions** and *"if it cannot cross IPC it cannot be stored"*
+  (brief §5 item 2), so a large element costs a full copy in and a full copy out, and a "move" is a read plus a write
+  that re-admits the whole value through the walk's ceilings (`126` deep, `1,000,000` nodes). **The saving is the
+  feature's own premise and no measurement of it exists on this tree. This entry claims none, and no layer may report
+  one on its strength.**
+- **(viii) WHETHER THE FEATURE IS WORTH ITS PRICE AT ALL** — that question is the architect's and is not asked of any
+  layer below me.
+
+**THE THREE USE CASES, EACH NAMED FOR THE COST IT ASKS THE MODEL TO STOP PAYING — the ask's own words, and no design:**
+
+| # | the ask, in its own words | the cost it is aimed at |
+|---|---|---|
+| (a) | *"storing large single elements that aren't expected to change frequently (ex. images) but have parents that can be overwritten frequently"* | the **parent** is the volatile part and the **element** the stable one: a structured write at a key *"mints the branch tree beneath it in one call"* (brief §4 `UC-4`), so an element standing under a frequently re-written parent pays the parent's churn |
+| (b) | *"storing objects or other data that must be frequently moved byte-identically between tree locations"* | a move is read-then-write, so the bytes cross twice and the second write re-admits the value whole (item (vii) above) |
+| (c) | *"storing objects or other data that should be addressible in more than one place"* | **the strongest of the three and the only one that cannot be had under any reading without shared reachability** — the collision in item 2, and the use case that states the collision itself |
+
+**WHAT CHANGED BELOW ME: nothing but the record.** No module map, no contract, no battery, no manifest, no drive and no
+figure. **No role is delegated by this entry and none is owed it.**
+
+**TERMS: the status (`1` = speculative, parked), the status line's source convention (`1` = the tree's own), the
+readings of the ask (`3`, none chosen), the clauses that forbid it today (`4`), the instrument named and NOT taken
+(`1` = an ACTIVE ruling plus a bounded amendment, `DD-6`'s own), the unsettled questions (`8`), the phantom number
+carried and NOT filled (`1` = `D-83`), the measurements claimed (`0`), the units opened (`0`).**
+
+---
+
 ### `D-85` — THE THREE CORPUS QUESTIONS ARE ANSWERED: a closure MAY be re-derived, an archived part is NOT citable and its cited section is REGENERATED, and the registration instant gets its own cell
 
 **DATE:** 2026-10-30. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering the three open-semantics rows of
@@ -4811,3 +4936,255 @@ contract's to name; this row grants one code byte and nothing else.
 **TERMS: the questions answered (`1`), the positions granted (`1` = the reversal's judgement), the bytes granted (`1`
 guard + its call), the other bytes of that file (`0`), the rules minted (`0`), the behaviour bytes this row moves (`0` —
 the landing already moved it).**
+
+---
+
+### `D-98` — a constraint and a listener MAY share one address; the cross-kind restriction is the HANDLE — and the ADDRESS dimension the `1.6.2` build enforces is a DEFECT
+
+**DATE:** 2026-11-01. **BRANCH:** `main`. **SOURCE:** the architect, in session, on the downstream report of the app
+`Provident-Electron`'s `src/main/tabs-record/index.ts` (the failing record at `bd2b119`, the app's fix at `664d9dd`, and
+`62a30de` the documentation-only commit after it; the package it drives is `provident-storeroom` `1.6.2`), **verbatim:**
+
+> Constraints and listeners can share the same address, but not handle
+
+**and, restated when the report's own premise was put to him:**
+
+> A constraint and a listener can share an address, as can multiple constraints/listeners. The restriction is that a
+> listener and a constraint cannot have the same *handle*.
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE INTENDED FUNCTION, IN THREE CLAUSES.** **(i)** **A constraint pair and a listener MAY stand at ONE ADDRESS** —
+   different handles, one address, both reached by the act (the pair ASKED by the pass, the listener DELIVERED after
+   it: `D-68`'s one trigger set, filtered by kind). **(ii)** **MULTIPLE CONSTRAINTS at one address, and MULTIPLE
+   LISTENERS at one address, are LAWFUL** — the record already carries both (`D-24`'s same-kind overwrite; `DD-39`'s
+   construction duplicate), and this row confirms them as the intended shape and not as tolerated states. **(iii)**
+   **THE ONLY CROSS-KIND RESTRICTION IS THE HANDLE**: a listener's handle EQUAL to a constraint pair's `id` — or the
+   reverse, a pair whose `id` equals a live listener's handle — is REFUSED, **in both directions**. That is `D-25`'s
+   *"overwrite"* at its own subject, and `D-29`'s *"the handle becomes the internal ID"* is what makes the subject the
+   handle and not the address.
+
+2. **THE BUILD DOES NOT IMPLEMENT IT, MEASURED — AND THE DRIVE IS THIS ROW'S GROUND.** On the installed `1.6.2`, whose
+   `bindings/js/index.mjs` is **byte-identical to this checkout's** (`sha256
+   d3790c75b582ff4334a872da696abd1adbeab9bef3b92d7f9af5ee17aefd7a38`, both), one pair `{address: ['tabs'], id:
+   'tabs-must-stand'}` and a fresh instance per arm, **`29` arms were driven — `19` lawful, `10` refused, and `5` of
+   the `10` are this row's defect**:
+
+   - **`listen('h', [['tabs']])` — DIFFERENT handles, ONE address — THROWS** `AddressMalformed`, `log: []`, `address:
+     null`: `"'tabs' is not a legal address segment in '', segments are strings or non-negative integers, the listener
+     'h' cannot be installed at tabs: the constraint 'tabs-must-stand' stands there, and a listener and a constraint do
+     not share one"`. **DEFECT per (i).** The app's own arm (`listen('tabs-record', [['tabs']])`, the record at
+     `bd2b119`) is this one, byte for byte.
+   - **THE CONSTRUCTION'S ADOPTED LISTENERS ARE THE SAME ARM**: `listeners: [{address: ['tabs'], handle: 'L'}]` beside
+     a batch pair `P` at `['tabs']` **refuses the construction** — the construction applies `cfg.listeners` through
+     `listen` AFTER the batch has armed the pairs, so the pair stands when the listener is installed. **DEFECT per
+     (i).**
+   - **A MIXED SET REFUSES WHOLE**: `listen('h', [['tabs'], ['tabs','order']])` throws and installs nothing; there is
+     no partial install. **DEFECT per (i)**, and the `log: []`/`address: null` tell the caller nothing about which
+     member offended (item 4).
+   - **THE IDENTITY ARMS REFUSE, AND ARE INTENDED TO**: `listen('tabs-must-stand', [['tabs','order']])` (same handle,
+     DIFFERENT address) throws; `listen('tabs-must-stand', [['x','y']])` throws; `register('tabs-must-stand')` throws;
+     `addConstraint({address: ['q'], id: 'hx'})` where a live listener `hx` stands throws; and the batch's
+     `id`-equal-to-an-adopted-handle arm throws. **All five are (iii) and unmoved.**
+   - **AND THE MECHANISM ALREADY SUPPORTS CO-LOCATION, WHICH IS WHY THE DEFECT IS A GUARD AND NOT A MODEL**: with the
+     listener standing FIRST and the pair added AFTER at the same address, `listen`, `register` and `addConstraint` all
+     succeed and a write triggers BOTH — the listener delivered once, the pair asked — `triggered` reading
+     `[{handle:'r1', address:['k']}, {handle:'P', address:['k']}]`. **Two listeners at one address, five pairs at one
+     address, `constraintOff` then `listen`, and `constraintOn` over a listener already standing, are all lawful.**
+     The app's post-fix shape answers the same way: `triggered` carries the five pair ids AND the listener's handle,
+     and the subscriber's handler is called exactly once.
+
+3. **THE ADDRESS DIMENSION IS A DEFECT, AND `D-29`'s GROUND FOR IT IS FALSE AT THE BUILD.** `D-29` wrote *"the address
+   dimension is NECESSARY, because §2.2 item 7's purge is address-reaching"*; **THE PURGE IS BY HANDLE, AND THE BUILD
+   SAYS SO AT THREE PLACES:** `src/store.rs`'s `listen` runs `self.home.purge(handle)` and its docblock reads *"the
+   purge is BY HANDLE and it is UNCONDITIONAL"*; `Home::purge` (`src/store.rs:476`) is `bucket.retain(|listener|
+   listener.handle.to_string() != token)` (`:484`); and the package's own mirror purge is `state.home =
+   state.home.filter((row) => row.handle !== handle)` (`bindings/js/index.mjs:821`). **So a listener's act cannot reach
+   a pair's home rows — the handles differ — and the destruction the address dimension guarded against does not
+   exist.** The one state where a purge WOULD reach a pair's rows is a SHARED handle, which (iii) refuses already; the
+   kernel's own re-listing exemption (`handle === entry.id` and the set covering the pair's addresses) carries the
+   kernel's act and is untouched by this row. **THE SITES THAT ENCODE THE DEFECT, NAMED:** `bindings/js/index.mjs`'s
+   `B-6` (`:797`'s `constraintOverwrittenByListen(state, handle, addresses)` call, the `boundaryReject` at `:799`–
+   `:806`) and `bindings/js/src/entry/delivery.mjs`'s `B-5` (`:369`'s `constraintAtAnyAddress(state, handle)` call,
+   the helper at `:450` and its docblock; the sibling helper `constraintOverwrittenByListen` at `:518`) — **both test
+   ADDRESS-SET MEMBERSHIP where (i)–(iii) test the HANDLE.** The identity arms stand and are unmoved:
+   `bindings/js/index.mjs`'s `addConstraint` arm (`:987`'s `listenerStandingAt(state, site.id)`, the `boundaryReject`
+   at `:989`–`:995`) and `bindings/js/src/entry/frame.mjs`'s batch arm (`B-3`, the `boundaryReject` at `:309`–`:315`).
+
+4. **AND THE MESSAGE IS A SECOND, INDEPENDENT DEFECT — CONFIRMED AT ALL FOUR ARMS.** `boundaryReject`
+   (`bindings/js/src/entry/artefact.mjs:360`) composes `` `${generated}, ${clause}` ``, where `generated` is
+   `addon.errorMessage(status, subject[, container])`; for a cross-kind refusal the **generated half is the store's
+   `AddressMalformed` SEGMENT template** (`src/error.rs`'s malformed-segment sentence) **rendered with the default
+   container `''`** — so each of the four arms prints a FIRST SENTENCE THAT IS FALSE (the segment is legal; the
+   container is a placeholder) and then a hand-authored second sentence that is true: `"…cannot be installed at …"`
+   (`listen`), `"…cannot be registered at …"` (`register`), `"…cannot share its handle with …"` (`addConstraint`),
+   `"…adopts a listener under that handle at …"` (the batch). **THE STATUS MEMBER IS UNMOVED BY THIS ROW** — the three
+   single-registration arms carry `AddressMalformed` (rank `1`; `D-29`'s member-follows-the-act's-subject) and the batch
+   carries `ConstraintListInvalid` (rank `16`; `D-27`) — **and the false half cannot stay**: what replaces it is a
+   declaration and not this row's (the first of "what it does not settle").
+
+5. **THE RECORD'S READING, AND WHAT MOVES UNDER IT.** `D-25` STANDS, and `D-29`'s operative clause (*"Listen cannot
+   overwrite constraint, only other listeners"*) STANDS read at the HANDLE; **`D-29`'s *"the address dimension is
+   NECESSARY"* sentence is WITHDRAWN at this row** (its ground is false, item 3), and **`docs/L1/surface-deltas.md`'s
+   `B-5` row condition — *"`register` where a constraint's `id` stands"* (`:271`) — is the HANDLE condition the build's
+   address test widened past.** READ THROUGH THIS ROW, EACH OWING ITS OWN CORRECTION WHEN IT IS TOUCHED NEXT:
+   `docs/guides/package-use.md`'s `§7.3` (`:920`–`:932`, **whose 2026-10-26 measured paragraph at `:927` is the
+   measurement OF THE DEFECT and not of the rule**) and `§7.2`'s batch paragraph (`:916`–`:918`);
+   `docs/specs/storeroom-held-listener-identity/contract.md`'s `§2.3` item 9 and `§4`'s `F-9` (its condition —
+   *"`register` at an address a CALLER's constraint pair stands at"* — becomes a HANDLE condition, and its form cell's
+   message obligation loses the false half); `bindings/js/index.d.ts`'s `register`, `addConstraint` and
+   `StoreConfig.constraints` clauses; `docs/specs/storeroom-js/surface.md`'s `§2.4` (iii); the entry's `B-5`/`B-6`
+   comments and `constraintAtAnyAddress`'s docblock; `src/entry/kernel-registration.mjs`'s prefix-exemption comment
+   (`:127`); and **the cells that assert the address-based refusal** — `tests/e2e/registration-write-route.test.mjs`'s
+   `G3-22` already RECORDS the refusal as a finding and binds its listener at the register to work around it (`:380`–
+   `:400`); `tests/e2e/held-listener-identity-greens.mjs`'s `HLI-11.3`/`.3.a` assert it as greens;
+   `tests/e2e/file-tier-save/scenarios.mjs:164` reads it as *"a listener and a constraint do not share one handle"* (the
+   HANDLE reading, and the sentence the build then contradicts); and the cells at
+   `tests/e2e/blind-listener-surface.test.mjs` (`:280`, `:303`), `blind-defect-cases.test.mjs`'s `DEF-N` (`:68`,
+   `:794`–`:802`), `blind-constraints-surface.test.mjs`'s batch arm (`:133`),
+   `registration-instant-properties.test.mjs` (`:323`) and `constraints-publication.test.mjs` (`:838`, `:931`) assert the
+   arms this row KEEPS — **their MESSAGES, not their existence, is what item 4 moves.**
+   **⟶ CORRECTED 2026-11-01 BY THE CORRECTION'S OWN DECLARATION (`docs/L1/cross-kind-handle-only.md` §5.1), and the
+   correction is owed because this item grouped two cells that do NOT assert the kept arms:**
+   `constraints-publication.test.mjs`'s probes at `:843`–`:855` and `:936`–`:950` listen under
+   `'a-callers-own-listener'` — **a handle that is NOT the pair's `id`** — and refuse it at `register`, so they drive
+   the **ADDRESS** arm and their assertions move with the defect; the two figures this item named (`:838`, `:931`) are
+   the COMMENT lines that explain them. **The item's grouping of the other four files stands as written.**
+
+6. **AND THE APP'S OWN ACT IS A WORKAROUND, NOT THE RULE — SAID SO THAT REPOSITORY IS NOT MISLED BY THE SHIPPED
+   GUIDE.** The downstream's relocation of `subscribe` to `['tabs','order']`, its `register` call, its per-subscription
+   handle and its contained throw are ALL LAWFUL and its measured readings stand (one notification per committed
+   change; none for a write touching none of the record); **it is not required by the intended function once this row
+   lands** — a listener at `['tabs']` is lawful, and the app may reclaim it (that repository's call, not this one's).
+   **The report is RIGHT about the failing record** (two independent faults; `handler` occurs exactly twice in
+   `bd2b119`'s file; the fix is `664d9dd`, not `62a30de`) **and RIGHT that the refusal's REPORTING is defective; it is
+   wrong only where it took the shipped refusal for the intended rule** — its *"the operative clause is 'a listener and
+   a constraint do not share one'"* reads the ADDRESS, and this row reads the HANDLE.
+
+**WHAT IT DOES NOT SETTLE — L1's.**
+
+- **(i) THE MESSAGE'S FORM AND ITS GENERATION.** The identity arms may not print a segment-legality sentence about a
+  legal segment. Which generator row, which clause, which container spelling (none?), and whether the status moves are
+  a declaration; the one-form rule (`surface.md §2.5`) and `strata/brief.md`'s UC-10 are its constraints.
+- **(ii) THE DISABLED-PAIR ARM.** `constraintOverwrittenByListen` SKIPS pairs whose `entry.enabled !== true`, while
+  `constraintAtAnyAddress` does NOT filter on `enabled` at all — **measured: a disabled pair frees the address for
+  `listen`, and that same pair's handle is still tested by `register`.** Whether a DISABLED pair's handle blocks a
+  listener's claim of it (and what `constraintOn` then does with a listener standing under the pair's own id) is a
+  declaration; the asymmetry is recorded here as an open question and not as a rule.
+  **⟶ CORRECTED 2026-11-01 BY THE DECLARATION'S AMENDMENT (`docs/L1/cross-kind-handle-only.md` §9.4 (`C-19`)), WHICH
+  PRINTS THE MEASUREMENT AND OWES IT TO THIS ITEM:** **the second half of the sentence above is FALSE at the bytes** —
+  `constraintAtAnyAddress` answers `null` when the handle stands no mirror rows (`delivery.mjs:452`–`:453`), and a
+  disable purges them, **so at a disabled pair BOTH arms admit today and `register` is not the arm this item took it
+  for**; **and the destruction the skip permits is FORWARD, not instant** — a disabled pair stands no store rows, so the
+  loss lands at the **next `constraintOn`**, where the enable re-lists the pair at the same handle (`index.mjs:1186`),
+  `K-1`'s store act purges **by handle** (`src/store.rs:2594`), and `installRegistrationSeam` overwrites the entry's
+  function, `off` and `kind` (`delivery.mjs:277`–`:279`) — the listener stops being delivered with **no observable at
+  the instant of the loss**. **The reading this item's ruling relies on is unchanged** (`D-24`'s *"the handle needs to
+  be unique regardless"*; `D-25`'s *"or vice versa"*, unconditional); **and the arm itself is ANSWERED BY THE
+  DECLARATION, not by this correction**: `C-19` decides that **a disabled pair's handle blocks both arms**, reading
+  membership off the package's carried pairs (`state.constraints`), because the kernel's own rows are emptied by `K-6`
+  and are not reachable from the entry anyway. **The asymmetry this item printed is therefore WITHDRAWN, and the open
+  question with it.**
+- **(iii) THE CORRECTION'S WRITE SET, ITS CELLS AND ITS LADDER** — what re-derives, what is re-planned, and which gates
+  the correction passes.
+- **(iv) THE CONSTRUCTION'S ORDER.** Arming the batch before applying `cfg.listeners` is lawful either way under (i); no
+  clause decides the order and this row does not.
+
+**TERMS: the clauses settled (`3` = address co-location · multiplicity · handle-only), the rulings unmoved (`2` =
+`D-25`, `D-29`'s operative clause), the sentences withdrawn (`1` = `D-29`'s address-necessity), the drives measured (`29`
+arms: `19` lawful, `10` refused of which `5` are this row's defect and `5` are the intended handle arms), the record
+sites named (code `5` · documents `10` · cells `8` files), the codes minted (`0`), the units opened (`0`), the questions
+left to L1 (`4`).**
+
+---
+
+### `D-99` — the store tracks HANDLES and no kinds; the kind is JS-side, read off the KERNEL's rows; and the kernel's own registration needs NO exemption
+
+**DATE:** 2026-11-01. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering `Q-1` — the L1 declaration's
+`docs/L1/cross-kind-handle-only.md` §7 residual (its `C-2` exemption, a per-act marker a constraint body could borrow) —
+**verbatim:**
+
+> The store treating a constraint as a special case of listener is why they can't share a handle, this doesn't need an
+> exception. The store can only track the handle, the js-side determines whether the handle corresponds to a constraint
+> or a listener by checking if it exists in the kernel
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE STORE'S VIEW IS ONE NAMESPACE AND NO KINDS.** A constraint is mechanically a listener to the store (`D-68`,
+   `D-69`); the home map keys on the HANDLE and nothing else (`src/store.rs`'s `Home`); and **that unified view is the
+   GROUND of the handle rule** — *a listener and a constraint cannot have the same handle* is the store's own
+   one-handle-one-entry fact, **not a store-side kind test**. **No store change is owed and no store-side cross-kind
+   test may be introduced.**
+2. **KIND IS A JS-SIDE FACT AND ITS INSTRUMENT IS KERNEL MEMBERSHIP.** A handle is a constraint's iff it exists in the
+   **kernel's pair rows** (`D-29`'s *"the handle becomes the internal ID"*, read through `D-68`). **The package's
+   determination must read membership — not a spelling, not a set's shape, and not an act marker.**
+3. **AND THE KERNEL'S OWN REGISTRATION NEEDS NO EXCEPTION.** The declaration's `C-2` — the `state.establishing` marker,
+   bracketed at four kernel re-listing sites, the coverage half deleted — **is not the instrument the architect wants**,
+   and `Q-1`'s residual (a constraint body borrowing the bracket) **is to disappear with the marker rather than be
+   accepted or tightened**. `C-3` (the disabled-pair skip deleted) is **re-derived under this row**, because its printed
+   ground was that `C-2` made it safe.
+
+**WHAT IT DOES NOT SETTLE — put back rather than invented.** **The mechanism by which the KERNEL'S OWN store-side
+re-listing avoids a test phrased on the caller's listener act.** Measured at the bytes: `K-1` reaches the store through
+the package's `listen` member (`kernel-registration.mjs`'s `store.listen(id, set)`), and the enable arm re-lists a
+CARRIED pair **one address per call** (`index.mjs:1182`–`:1187`), so at that call's instant the handle **is** in the
+kernel. **Two readings remain and they are different mechanisms:** **(i)** the kernel's registrations do not pass
+through the caller-facing test at all — its store-side act is the kernel's own (no marker, no exception, and the four
+brackets and `Q-1`'s residual go with it); **(ii)** the test itself carries an origin the package can read (the marker),
+which is what the declaration built and this row's *"doesn't need an exception"* refuses. **Which reading is meant is
+the architect's; no pass may take it for him.** **The disabled-pair arm's fate follows from the same fork**: a disabled
+pair stays carried (`state.constraints` holds it; `constraints()` names it), so *"exists in the kernel"* still blocks
+its handle unless membership is read off the KERNEL's rows and not the package's CARRIED PAIRS.
+
+**TERMS: the clauses settled (`3`), the instruments refused (`2` = the declaration's `C-2` marker and `C-3`'s printed
+ground), the store bytes this row moves (`0`), the statuses or members minted (`0`), the mechanism readings left to the
+architect (`2`), the cells this row re-points (`2` = `XK-6`'s shape and `XK-8`'s residual), the questions closed
+(`0`).**
+
+**⟶ ANSWERED 2026-11-01, THE SAME SESSION — the fork this row printed is SETTLED, and the settling is named: THE
+ARCHITECT CHOSE THE ROUTE READING.** Verbatim, on the two readings this row put: ***"Route reading — the kernel's act
+is its own (Recommended)"***. **WHAT IT RESOLVES, IN THIS ROW'S OWN TERMS:** **the kernel's own store-side registration
+does not pass through the caller-facing test at all** — the test lives on the caller's members (`listen`, `register`),
+and the kernel's registrations are its own act — **so the marker, the four `state.establishing` brackets, `Q-1`'s
+residual and `C-2`'s instrument are DELETED** (`docs/L1/cross-kind-handle-only.md` §1.2's bytes are read THROUGH this
+clause, and `C-3`'s printed ground — *"the two decisions are one decision"* — is re-derived under it); **and
+`restoreHeldPair`'s latent refusal is repaired by the act being the kernel's own, not by a bracket.** **WHAT IT STILL
+OWES L1 — item 2 of "what it does not settle" is thereby NARROWED and not closed:** **(a) THE INTERNAL ROUTE, SPELLED**
+— which store act and which mirror/registry writes the kernel's registration performs, and why that is not *"a second
+route installs a store entry"* (`D-69`, `surface.md §2.4`), since the store's ONE verb is unmoved and only the
+caller-facing wrapper's tests are skipped; **(b) THE MEMBERSHIP'S SOURCE, DECIDED AT THE BYTES** — `kernel.pairs` and
+`kernel.handles` are BOTH emptied when a pair is disabled (`K-6`'s `FORGET_PAIR`, `kernel-registration.mjs:928`), so a
+disabled pair "does not exist in the kernel" while it is still carried by the package (`constraints()` names it);
+**whether a disabled pair's handle blocks a caller's listener is therefore a declaration L1 makes or sends up, and not
+an assumption this row may make**; **(c) `XK-6`/`XK-8` RE-SHAPED** — the kernel's four re-listings remain driven at
+`N = 1` and `N = 3` (they now pass through the internal route), and the residual cell becomes the pair of acts at ONE
+handle: a caller's `listen('<pair id>', …)` REFUSED, the kernel's own re-listing at the same handle STANDING.
+**THE MESSAGE DECISIONS (§3), THE STATUSES, THE REVERSE ARMS (§2) AND THE RELEASE (`D-100`) ARE UNMOVED BY THIS
+ANSWER.**
+
+---
+
+### `D-100` — the cross-kind correction ships as a MINOR, `1.7.0`
+
+**DATE:** 2026-11-01. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering the L1 declaration's `Q-2` —
+*"the four refusal messages change text on a published `1.6.2`. Is a release cut, and at which version?"* — **verbatim:
+*"Minor — 1.7.0"***. **STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.** **The correction lands as a MINOR release, `1.7.0`, and as no patch:** **(i)** four refusal
+MESSAGES change their text on a published surface — `AddressMalformed` at the three single-registration arms and
+`ConstraintListInvalid` at the batch (`docs/L1/cross-kind-handle-only.md` §3.6); **(ii)** the closed set, every member,
+every type and every consumer-visible arity are **UNMOVED**, and no status is minted; **(iii)** the addon's INTERNAL
+generator gains an optional position (§3.7) — an artefact-internal widening that is not a consumer API
+(§3.8). **The version line, the change list and the release notes are the release pass's; this row fixes the number and
+the class.**
+
+**WHAT IT DOES NOT SETTLE.** Whether the cut happens at the correction's landing or batched with other work, and its
+date. **It mints nothing, moves no member, and decides no cell.**
+
+**TERMS: the decisions the answer fixes (`2` = the class `minor` and the number `1.7.0`), the members, types and arities
+it moves (`0`), the statuses it mints (`0`), the release documents it owes the release pass (`3` = the version line, the
+change list, the notes), the questions closed (`1`).**

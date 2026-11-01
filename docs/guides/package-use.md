@@ -917,6 +917,20 @@ adopts — a cross-KIND collision, rejected regardless of kind** (`D-27`, verbat
 batch - regardless of listener/constraint type"*; `index.d.ts`, `StoreConfig.constraints`). **Both are refused
 before any filesystem act, under `ConstraintListInvalid`; the package mints no code.**
 
+**⟶ READ THROUGH THIS CLAUSE FROM 2026-11-01 — THE BATCH'S CROSS-KIND COLLISION IS THE HANDLE, AND THE ADDRESS IS NOT A
+COLLISION AT ALL (`D-98`, `ACTIVE`, 2026-11-01).** `RCA-8(g)` ANNOTATE-BESIDE: **the two construction refusals above stand
+BYTE-FOR-BYTE and are read THROUGH this clause; nothing above is deleted, and this clause is one dated correction and not
+a second site.** **IT IS THE HANDLE RULE AND IT ALWAYS WAS** — `D-27`, verbatim: *"Reject duplicate handles in batch -
+regardless of listener/constraint type"* — **and its sentence is spelled now as the rest of this corpus spells it: *a
+listener and a constraint do not share one handle*** (`bindings/js/README.md:232`–`:233`, the hand-authored page that
+already read this way and that this correction makes the others agree with rather than the file it edits). **AND ONE
+SENTENCE THIS PARAGRAPH OWED ITS READER, THE SHARED ADDRESS BEING THE WHOLE OF WHAT THE RULING MAKES LAWFUL: an element's
+`address` coinciding with an adopted listener's `address` is NOT a collision at all** — a constraint pair and a listener
+MAY stand at ONE address, so the construction refuses the shared HANDLE and admits the shared address (`D-98` clauses
+(i)–(iii); `docs/L1/cross-kind-handle-only.md` §3.4, §4.2). **Its member, its instant and its no-state-moves sentence are
+unmoved**: `ConstraintListInvalid`, in the pre-create walk, before any filesystem act (`docs/L1/surface-deltas.md` §2's
+`B-3` row).
+
 ### §7.3 A cross-kind duplicate is REJECTED, in both directions
 
 **A duplicate handle of the SAME kind is an overwrite. A duplicate handle ACROSS KINDS — a listener where a
@@ -924,12 +938,30 @@ constraint stands, or a constraint where a listener stands — is REJECTED** (`D
 overwrite a listener with a constraint or vice versa is rejected"*; `D-29`: *"Listen cannot overwrite constraint,
 only other listeners"*).
 
-**Measured 2026-10-26, from the constraint-then-listener direction:** with `c1` armed at `['a']`,
-`store.listen('h1', [['a']])` threw the **one plain form** — `Object.keys` `["status","message","log","address"]`, `status`
-`'AddressMalformed'`, `log` `[]` — whose message names BOTH sides and carries the shared rule sentence **"a
-listener and a constraint do not share one"**. **The form is the surface's one thrown form and NOT a `TypeError`**
-(`index.d.ts`, `addConstraint`'s and `register`'s cross-kind clauses). **No state moves: the rejection is taken
-after the positions' class tests and before any store call.**
+**⟶ RE-DERIVED 2026-11-01 — THE RULE SENTENCE READS THE HANDLE, AND THE ADDRESS IT USED TO READ IS LAWFUL (`D-98`,
+`ACTIVE`, 2026-11-01).** `RCA-8(g)` ANNOTATE-BESIDE: **`§7.3`'s heading and its first paragraph stand BYTE-FOR-BYTE and
+are read THROUGH this clause; the paragraph that stood below them measured the DEFECT and has MOVED OUT, and its one
+pointer stands where it stood.** **THE LAW, IN THREE CLAUSES** — `D-98` item 1, the architect, verbatim: *"A constraint and
+a listener can share an address, as can multiple constraints/listeners. The restriction is that a listener and a
+constraint cannot have the same **handle**."* **(i) A CONSTRAINT PAIR AND A LISTENER MAY STAND AT ONE ADDRESS** — different
+handles, one address, both reached by the act: the pair ASKED by the pass, the listener DELIVERED after it. **(ii) MULTIPLE
+CONSTRAINTS at one address, and MULTIPLE LISTENERS at one address, are LAWFUL.** **(iii) THE ONLY CROSS-KIND RESTRICTION IS
+THE HANDLE** — a listener's handle equal to a constraint pair's `id`, and a pair whose `id` equals a live listener's
+handle, are REFUSED, **in both directions**. **AND A `listen` AT A PAIR'S ADDRESS STANDS**: the act is lawful, it answers
+its handle (`D-22`), it purges none of the pair's rows and installs the listener beside it — so an application that moved
+a subscription off a constrained address to work around a refusal may reclaim that address, and whether it does is that
+application's decision and not this guide's.
+
+**THE RULE SENTENCE, RE-DERIVED IN PLACE: *a listener and a constraint do not share one handle*** — one word more than the
+address reading, its spelling `bindings/js/README.md:232`–`:233`'s, and it is the clause half of all four refusal
+messages (`docs/L1/cross-kind-handle-only.md` §3.4, §3.6). **WHAT DOES NOT MOVE:** a duplicate handle of the SAME kind is
+still an OVERWRITE (`D-24`); the cross-kind refusal is still the surface's ONE thrown form `{status, message, log,
+address}` — `status` `'AddressMalformed'` at the three single-registration arms and `'ConstraintListInvalid'` at the batch,
+`log` `[]`, and `address` `null` because the subject is a string in the handle namespace and not a place — and **no state
+moves**: each refusal is taken after the positions' class tests and above every store act and every purge (`index.d.ts`,
+the `register`/`addConstraint`/`StoreConfig.constraints` clauses; `docs/L1/surface-deltas.md` §2).
+
+**⟶ THE 2026-10-26 MEASURED PARAGRAPH THAT STOOD HERE HAS MOVED OUT BYTE-EXACTLY (`RCA-8(g)`, `D-98` item 5).** **the measurement that stood here measured the address refusal this guide's rule no longer makes; its bytes are at `docs/guides/backup/D98-2026-11-01-guide-move-out.md §1`.**
 
 ### §7.4 The toggles, and the read
 

@@ -298,6 +298,21 @@ export function admittedConstraintBatch(cfg) {
       );
     }
     // ── `B-3` — A BATCH `id` EQUAL TO AN ADOPTED LISTENER'S `handle`: THE CROSS-KIND COLLISION ───────────
+    // **⟶ RE-DERIVED 2026-11-01 (`D-98` item 4; `C-9`, `C-11`; §2, §3.4, §3.6), AND THE DIMENSION IS UNMOVED.**
+    // The arm compares a listener's **HANDLE** to a pair's **`id`** — the only cross-kind restriction `D-98`
+    // keeps, in the direction the ruling names second — so **its condition, its status (`ConstraintListInvalid`,
+    // `D-27`) and its instant are exactly what they were.** **TWO THINGS RE-DERIVE, AND BOTH ARE THE MESSAGE'S:**
+    //   * **THE SUBJECT IS THE HANDLE AND NOT THE ADDRESS.** It was `spellConstraintAddress(element.address.s)` —
+    //     an address whose string segments are ALREADY single-quoted here, and which the facade quotes again, so
+    //     the rendered bytes read `''ck''` (`research.md` §5.3). **A BARE HANDLE RENDERS `'shared-handle'` and
+    //     that doubling has no subject at this arm** (`B-1`/`B-2` keep it, and that residual is `Q-3`).
+    //   * **ITS CLAUSE NAMES THE POSITION AND THE ADOPTED LISTENER'S ONE ADDRESS** (§3.4): an adopted
+    //     `cfg.listeners` element carries exactly ONE `address`, so naming it asserts no order and is exact —
+    //     where the POSITION names the element, whose address could not (two elements may carry one address).
+    // **AND THE CONTAINER IS `undefined` ON PURPOSE**: the generated half is the store's own QUALIFIED
+    // `ConstraintListInvalid` arm under the appended `'handle'` token, and **that arm prints NO `<CONTAINER>`
+    // slot at all** — the list's name `constraints` is named on the clause's side and not in the generated half,
+    // where it would read as the place the mismatch was found (§3.3).
     let adoptedAt = -1;
     for (let n = 0; n < adoptedHandles.length; n += 1) {
       if (adoptedHandles[n] === element.id) {
@@ -308,11 +323,11 @@ export function admittedConstraintBatch(cfg) {
     if (adoptedAt !== -1) {
       boundaryReject(
         'ConstraintListInvalid',
-        segment,
-        `the batch element at position ${position} names the handle '${element.id}', and this construction `
-          + `adopts a listener under that handle at ${addressSpelling(adoptedAddresses[adoptedAt])}: a listener `
-          + 'and a constraint do not share one',
-        ['constraints'],
+        element.id,
+        `the batch element at position ${position} names that handle, and this construction adopts a `
+          + `listener under it at ${addressSpelling(adoptedAddresses[adoptedAt])}`,
+        undefined,
+        'handle',
       );
     }
     appendOwn(namedHandles, element.id);

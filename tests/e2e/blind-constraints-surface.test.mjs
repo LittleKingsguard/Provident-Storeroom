@@ -134,6 +134,18 @@ test("constraints · index.d.ts `StoreConfig.constraints` (ruling `D-27`) · an 
   // DECLARED: "no element's `id` may equal a `handle` this construction's `listeners` adopts — a
   // cross-KIND collision, rejected regardless of kind … The second is not an overwrite and the first is
   // not a second registration" (index.d.ts, `StoreConfig.constraints`).
+  //
+  // **⟶ AND THE MESSAGE IS ASSERTED 2026-11-01 — ONE ASSERTION ADDED, NONE MOVED** (`D-98` item 4; `C-9`,
+  // `C-11`; `docs/L1/cross-kind-handle-only.md` §3.6 and §5.2's row for this cell). **The arm, the status, the
+  // instant and the direction are UNMOVED** — `D-98` keeps `B-3` whole, because it compares a listener's HANDLE
+  // to a pair's `id` and its subject was never an address (§2 of the declaration) — and **what the correction
+  // moves is the TEXT**: the generated half is the store's own qualified `ConstraintListInvalid` arm selected by
+  // the closed `'handle'` token, the subject is the HANDLE (the address-shaped subject's doubled quoting goes
+  // with it), and the clause names the position and the adopted listener's ONE address. **The whole text is
+  // asserted, so a fragment cannot drift out of it again.**
+  const B3_TEXT = "'shared-handle' is already a handle this instance carries, a batch element's id is its "
+    + "pair's handle and it may not be one this construction adopts as a listener's, the batch element at "
+    + 'position 0 names that handle, and this construction adopts a listener under it at lk';
   const caught = catchIt(() =>
     storeCreate({
       journalLength: 8,
@@ -142,6 +154,10 @@ test("constraints · index.d.ts `StoreConfig.constraints` (ruling `D-27`) · an 
     }),
   );
   assert.equal(caught.status, 'ConstraintListInvalid');
+  assert.equal(caught.message, B3_TEXT,
+    'and the message is EXACTLY the declaration\'s `B-3` text, whole — the store\'s qualified generated half, '
+    + 'the position of the offending element and the ONE address the adopted listener stands at; read '
+    + JSON.stringify(caught.message));
 });
 
 // ---------------------------------------------------------------------------------------------

@@ -87,9 +87,11 @@ import { withAddon, boundaryReject, adoptModuleContext } from './src/entry/artef
 import { VALUE_ARGUMENT_POSITION, accessorOrSymbolArm, arrayClass, classSpelling, extendedPath, hasLoneSurrogate, inDomainAddress, isAdmittedArray, isLawfulListenerElement, isPlainObjectValue, protoClass, shapeArmClass, targetSpelling, valueReject, valueTargetSpelling } from './src/entry/class-decision.mjs';
 import { encodeAddress, encodeFilePath, encodeJournalLength, encodeOpId, encodeTier, encodeValue, handleWire, inDomainHandle } from './src/entry/carrier.mjs';
 import { admittedConstraintBatch, constraintAddress, decodeBaseState, decodeJournalOp, decodeSegments, decodeValue, encodeConfig, spellConstraintAddress } from './src/entry/frame.mjs';
-import { addressSpelling } from './src/entry/kernel-foundations.mjs';
-import { FORGET_PAIR, INSTANCES, STORE_INDEX, STORE_RETIREMENT, TERMINAL_ARM, carryRefusal, closeCommit, crossTriggered, currentWindow, entryOf, homeAddressKey, installAttemptSeam, isStoreReceiver, openCommit, writeRefusal } from './src/entry/state.mjs';
-import { commitPositionRefusal, constraintOverwrittenByListen, deliver, installRegistrationSeam, listenerStandingAt, registerOn, terminalArm } from './src/entry/delivery.mjs';
+// ⟶ `addressSpelling`'s import is DELETED 2026-11-01 with its last two readers (`B-6`'s and `B-4`'s messages,
+// which now name no address at all — `D-98` §3.4). The function keeps its home and its other readers in the
+// entry's other parts.
+import { FORGET_PAIR, INSTANCES, STORE_INDEX, STORE_RETIREMENT, TERMINAL_ARM, carryRefusal, closeCommit, crossTriggered, currentWindow, entryOf, installAttemptSeam, isStoreReceiver, openCommit, writeRefusal } from './src/entry/state.mjs';
+import { commitPositionRefusal, constraintOverwrittenByListen, deliver, installListenRoute, installRegistrationSeam, listenerStandingAt, listenOn, registerOn, terminalArm } from './src/entry/delivery.mjs';
 import { ARGUMENT_POSITION_FIRST, addressSetKey, carryConstraint, constraintDetached, constraintPairKey, constraintRefuse, constraintSite, constraintUncarried, constraintDelete, constraintWrite, constraintsKernel, currentRaise, defineDiscardWitness, enumerateConstraints, judgeReversal, registrationCrossing, restoreHeldPair, reversalWatch, unionAddressSets, withEmptyLog, witnessDiscardedReversal, witnessRaise, withdrawStanding } from './src/entry/constraints.mjs';
 const require_ = createRequire(import.meta.url);
 const ADDON_PATH = join(dirOf(fileURLToPath(import.meta.url)), 'build', 'Release', 'storeroom_js_binding.node');
@@ -97,22 +99,14 @@ const ADDON_PATH = join(dirOf(fileURLToPath(import.meta.url)), 'build', 'Release
 adoptModuleContext(import.meta.url, require_, ADDON_PATH);
 
 // ---------------------------------------------------------------------------------------------
-// **THE ONE COPY OF A CALLER-SUPPLIED ADDRESS'S SEGMENTS — `D-35`'s READ HALF, CLOSED 2026-10-26.**
-// `listen(handle, addresses)` hands the SET, and each member of it is THE CALLER'S OWN ARRAY, so the two
-// `addresses[i].slice()` sites below took `Array.prototype.slice` OFF A MUTABLE PROTOTYPE at the moment of
-// the call: a caller who deleted `slice` turned a LAWFUL `listen` into the raw host `TypeError`
-// *"addresses[i].slice is not a function"* — a raw host object out of a lawful call, which `surface.md §2.5`
-// item 5 (e) files as a FINDING — and one who forged it made the package's own home mirror record an address
-// the store never received, MEASURED as a wrong value out of a lawful `addConstraint` + `constraints()`.
-// **THE FORM IS THE CONTRACT'S OWN** (`docs/specs/storeroom-json-crossing/contract.md §2.1` item `(1c)(i)` and
-// item `(1)`(c)): a local index loop over the array's own exotic `length` and its own indices, appending by
-// `appendOwn` — the same helper every other append on this file's paths already takes. **NO ANSWER MOVES**: the
-// same segments in the same order, in a FRESH array, exactly as the `slice` produced.
-function copySegments(address) {
-  const copy = [];
-  for (let i = 0; i < address.length; i += 1) appendOwn(copy, address[i]);
-  return copy;
-}
+// **⟶ `copySegments` MOVED WITH ITS ONLY READER, 2026-11-01 (`D-99`'s ANSWERED clause; `C-17`, §9.2).**
+// `D-35`'s READ HALF — the one copy of a caller-supplied address's segments, which replaced the two
+// `addresses[i].slice()` sites a mutable prototype could answer — lived here because `listen`'s body lived
+// here. **THE BODY IS `delivery.mjs`'s `listenOn` NOW, AND THE HELPER MOVED WITH IT, BYTE-FOR-BYTE, INTO THE
+// SAME FILE**: one copy, one home, and no second implementation of one reach. **NOTHING IT DOES MOVES** — the
+// same local index loop over the caller's own exotic `length` and its own indices, appending by `appendOwn`,
+// answering a FRESH segment list — and no member of this module's namespace was ever this function.
+// ---------------------------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------------------------
 // THE SURFACE — `surface.md §2.9` item 1: the EIGHT verbs, and NOTHING else. `findAddress` is NOT exposed
@@ -232,15 +226,19 @@ export function storeCreate(cfg) {
   // else. There is no `token` property"*). **`state.home` SURVIVES AS THE MIRROR** — its column is now the
   // CALLER'S OWN HANDLE and not a token (`identity-and-domain.md §1` item 2 (ii)) — **and `state.constraints`
   // stays the read model.**
-  // **⟶ AND `establishing` IS ADDED 2026-10-24 (`D-29`) — THE `id` OF THE PAIR THE KERNEL IS RIGHT NOW
-  // REGISTERING, AND NOTHING ELSE.** `K-1` calls `store.listen(id, set)` BEFORE `carryConstraint` has written
-  // the read-model row, so at that instant the handle names no pair the instance yet carries; **this marker is
-  // how `B-6`'s cross-kind test still knows the act is a CONSTRAINT's own registration and not a listener's**
-  // (`D-25` rejects a CROSS-KIND overwrite, and a constraint registering itself is same-kind). It holds one
-  // `id` at a time because a construction and every add are sequential, is cleared in a `finally`, and is not
-  // a member of the product.
+  // **⟶ AND `establishing` IS DELETED 2026-11-01 (`D-99`'s ANSWERED clause; `C-18`, §9.3), SO THIS MEMBER'S
+  // OWN SEVEN-OCCURRENCE CENSUS CLOSES AT ZERO.** The clause that stood here declared a marker — *"the `id` of
+  // the pair the kernel is right now registering, and nothing else"* — and named its purpose as *"how `B-6`'s
+  // cross-kind test still knows the act is a CONSTRAINT's own registration and not a listener's"*. **BOTH
+  // SENTENCES ARE WITHDRAWN, AND THEY STAND AS TEXT READ THROUGH THIS ONE:** the act that needed the exemption
+  // **does not pass the test at all** any more, because the kernel's registration reaches the store through its
+  // OWN ROUTE (`LISTEN_ROUTE`, `delivery.mjs`'s `listenOn`) and the cross-kind test lives on the CALLER's
+  // members and nowhere else. **SO: NO MARKER LANDS, NO BRACKET LANDS AT ANY OF THE FOUR SITES, AND `Q-1`'S
+  // RESIDUAL (`docs/L1/cross-kind-handle-only.md` §7) DISAPPEARS WITH THE MARKER RATHER THAN BEING ACCEPTED OR
+  // TIGHTENED** — a constraint body that calls `listen('<its own pair id>', …)` during its own registration is
+  // now refused at `B-6` exactly as any caller's act is.
   const state = {
-    home: [], registry: new Map(), constraints: new Map(), leg: null, receiver: null, establishing: null,
+    home: [], registry: new Map(), constraints: new Map(), leg: null, receiver: null,
     // **⟶ AND THE RESIDUE'S DELIVERER, ADDED 2026-10-29 — A PRIVATE FACT ABOUT WHICH ACT OWNS A LEG'S
     // DELIVERY.** The terminal arm performs `surface.md §2.7` item 7's delivery for a kernel-driven WRITE
     // (`delivery.mjs`'s `terminalArm`), and it is the delete's OWN member that performs it (`D-49` declared that
@@ -775,92 +773,50 @@ export function storeCreate(cfg) {
           );
         }
       }
-      // ── `B-6` — THE CROSS-KIND REJECTION, AND ITS INSTANT IS THE ONE THAT MATTERS ─────────────────────────
-      // **⟶ THE SIXTH REFUSAL ARM, ADDED 2026-10-24 (`D-29`, verbatim: *"Listen cannot overwrite constraint,
-      // only other listeners"*).** Its instant is declared and load-bearing: **AFTER the handle's class test
-      // and the set's domain test, and BEFORE the purge — the act must not destroy what it may not
-      // overwrite.** **Its member follows the principle `docs/L1/surface-deltas.md` already declared — the
-      // member follows the ACT'S SUBJECT: `listen` is a SINGLE REGISTRATION, so it takes the handle domain's
-      // member `AddressMalformed`, exactly as `B-5` (`register`) does.** **NO STATE MOVES**: no store act, no
-      // mirror row, no registry write, and the entries the purge would have reached all still stand.
+      // ── `B-6` — THE CROSS-KIND REJECTION: THE HANDLE, AND NOTHING ELSE (`D-98`) ──────────────────────────
+      // **⟶ RE-DERIVED 2026-11-01 (`D-98`, verbatim: *"A constraint and a listener can share an address … The
+      // restriction is that a listener and a constraint cannot have the same *handle*"*).** **THE ADDRESS-SET
+      // DIMENSION IS DELETED**: its ground — `D-29`'s *"the address dimension is NECESSARY, because the purge is
+      // address-reaching"* — is FALSE at this build and `D-98` item 3 withdraws it: the purge is BY HANDLE
+      // (`src/store.rs:476`–`:494`, `:2594`) and the mirror's is too (this file's own purge, in
+      // `delivery.mjs`'s `listenOn`), so an act under a different handle cannot reach a pair's rows. **What the
+      // dimension admitted was the defect.**
+      // **THE HANDLE DIMENSION IS THE WHOLE TEST**, and it is the SAME read `B-5` takes — one helper, one rule
+      // (§1.1). **NO STATE MOVES**: no store act, no mirror row, no registry write.
       //
-      // **BOTH DIMENSIONS ARE TESTED** (`D-29`'s stated reading: *"both, because under `D-29` the handle and
-      // the `id` are one string and an identity collision names the same entry an address collision does"*):
-      // **the handle equalling a standing constraint's `id`**, and **the set naming an address a standing
-      // constraint's home entry occupies**. **AND THE ONE ACT BOTH DIMENSIONS MUST ALLOW IS THE KERNEL'S OWN
-      // RE-LISTING OF A PAIR** — `K-1` calls `store.listen(id, set)` with exactly that pair's own `id` and its
-      // own accumulated set, and `constraintOn`'s enable arm and `restoreHeldPair`'s wake re-list a pair whose
-      // registration stood a moment earlier. That act **destroys nothing**: the set covers every address the
-      // pair stands at and the handle IS the pair's own, so it is a same-kind re-assignment and not a
-      // cross-kind overwrite. The exemption is therefore the PURGE's own test — *would this act destroy an
-      // entry it may not overwrite?* — and not a reserved namespace.
-      const overwritten = constraintOverwrittenByListen(state, handle, addresses);
+      // **AND THE ONE ACT THE OLD TEST ALLOWED WENT WITH ITS INSTRUMENT** (`D-99`'s ANSWERED clause, `C-18`):
+      // the kernel's own re-listing is not exempted here — **it does not pass this test at all**, because `K-1`
+      // reaches the store through its own route (`LISTEN_ROUTE`, `delivery.mjs`'s `listenOn`) and this member is
+      // a CALLER's door. **THERE IS NO MARKER, NO BRACKET AND NO `state.establishing` LEFT TO READ**; a
+      // constraint body that calls `listen('<its own pair id>', …)` during its own registration is refused here
+      // exactly as any caller's act is.
+      //
+      // **AND THE MESSAGE'S GENERATED HALF IS THE STORE'S OWN QUALIFIED ARM, NOT THE SEGMENT TEMPLATE**
+      // (`D-98` item 4; `C-7`–`C-11`, §3.3 and §3.6): the `'handle'` arm token is supplied at
+      // `boundaryReject`'s appended FIFTH position and reaches the generator's fourth — so the sentence reads
+      // *"'<id>' is already a handle this instance carries, a listener's handle and a constraint's id are one
+      // string and one string only"* and **names no address and no placeholder container at all** (the
+      // fourth position is `undefined` ON PURPOSE: this arm passes NO container, §3.4).
+      const overwritten = constraintOverwrittenByListen(state, handle);
       if (overwritten !== null) {
         boundaryReject(
           'AddressMalformed',
-          addressSpelling(overwritten.address),
-          `the listener '${handle}' cannot be installed at ${addressSpelling(overwritten.address)}: the constraint `
-            + `'${overwritten.id}' stands there, and a listener and a constraint do not share one`,
+          overwritten.id,
+          `listen refuses: the constraint pair '${overwritten.id}' keeps that handle, and a listener and a `
+            + 'constraint do not share one handle',
+          undefined,
+          'handle',
         );
       }
-      // ── THE ONE STORE ACT: PURGE, THEN INSTALL, INSIDE THE STORE'S OWN VERB ───────────────────────────────
-      // The set crosses AS ENCODED ADDRESSES, one per member, in the caller's own order (`PAR-HL-2`'s referent:
-      // the whole set and never a delta).
-      const encoded = [];
-      for (let i = 0; i < addresses.length; i += 1) {
-        appendOwn(encoded, encodeAddress(addresses[i], 'second argument', 'second argument'));
-      }
-      carryRefusal(() => entryOf().listen.call(this, handleWire(handle), encoded), [handleWire(handle)]);
-      // ── THE PACKAGE'S OWN HOME MIRROR ────────────────────────────────────────────────────────────────────
-      // **THE MIRROR'S COLUMN IS THE CALLER'S OWN HANDLE AND NOT A TOKEN** (`identity-and-domain.md §1` item 2
-      // (ii)), and **THE PURGE REACHES IT**: every row the handle named is dropped before the set's own rows are
-      // recorded, which is the same wholesale assignment the store performed (`listen-verb.md §3` item 1's four
-      // structures). **THE `some(key)` GUARD IS GONE WITH `first_at`** (`P: docs/pending.md · R-B1`, deletion
-      // part (b)): with the idempotence deleted the mirror records one row per address in the act's own set, so
-      // N addresses answer N rows for ONE handle (`listen-verb.md §6` item 4 (iv)).
-      state.home = state.home.filter((row) => row.handle !== handle);
-      for (let i = 0; i < addresses.length; i += 1) {
-        // **⟶ AND THE MIRROR'S COPY IS `copySegments`, NOT `addresses[i].slice()`** (`D-35`'s read half,
-        // 2026-10-26 — see the function's own clause above; the caller's array is the receiver either way and
-        // the answer is the same fresh segment list).
-        appendOwn(state.home, { key: homeAddressKey(addresses[i]), address: copySegments(addresses[i]), handle });
-      }
-      // ── THE ENTRY'S FIRST STATE: RESERVED ────────────────────────────────────────────────────────────────
-      // ***"`listen` WRITES THE ENTRY WITH `off` SET — the reservation"*** (`P: docs/pending.md · P-5`, the
-      // entry-shape ruling; `contract.md §2.2` item 5 (a); `identity-and-domain.md §2` item 5). **AN ENTRY WITH
-      // NO FUNCTION IS NOT A LAWFUL VALUE, so the state `listen` creates is an entry that EXISTS AND IS OFF** —
-      // which is exactly what the ruling provides. **AND A REPEATED `listen` RE-RESERVES THE ENTRY**: it is a
-      // purge then a fresh reservation, never a fast path (`P: docs/pending.md · (R1)`, its own closing
-      // sentence; `contract.md §2.2` item 3).
-      // **⟶ AND THE SET'S COPY IS A LOCAL INDEX LOOP, NOT `Array.prototype.map` — 2026-10-24 (`contract.md §2.1`'s
-      // clause of that date on `F8-2`, items `(2a)`–`(2c)`, arm `(xix)`, cell `JC-TC-65`).** This position is the
-      // one `store.listen(id, set)` reaches from `carryConstraint`'s arming walk, so the `.map` that stood here
-      // threw `TypeError: addresses.map is not a function` OUT OF A LAWFUL `storeCreate` under a caller's
-      // `delete Array.prototype.map` — a raw host object crossing the boundary, which `§2.5` item `5 (e)` files as
-      // a FINDING. **IT IS THE SAME PRECEDENT `encodeConstraints` ALREADY FOLLOWS** (the fourth key's own walk:
-      // *"a LOCAL INDEX LOOP, NOT `Array.prototype.map`"*), and the bytes, the order and the fresh-array-per-member
-      // copy are unmoved. **THE `slice` IS THE ELEMENT'S AND NOT THE SET'S**: it copies one ADDRESS's segments, so
-      // the registry row's set is the fresh list this loop builds.
-      const standingSet = [];
-      for (let i = 0; i < addresses.length; i += 1) {
-        // **⟶ THE REGISTRY ROW'S SET TAKES THE SAME `copySegments`** (`D-35`'s read half, 2026-10-26): the
-        // element is the caller's address array, so its `slice` was a mutable prototype's member.
-        appendOwn(standingSet, copySegments(addresses[i]));
-      }
-      state.registry.set(handle, {
-        fn: undefined,
-        off: true,
-        // **THE SET THE LAST `listen` GAVE THE HANDLE** — the referent `PAR-HL-2` names (*"the set of addresses the
-        // handle stands at after this act — the whole set, never a delta"*), and the one datum `register` reads to
-        // re-install a reserved entry's store side.
-        addresses: standingSet,
-      });
-      // **⟶ AND IT ANSWERS THE HANDLE IT WATCHES UNDER — `D-22`'s `void → Handle`, 2026-10-24.** *"Listen should
-      // return the handle on success, or error message on fail."* **A SUCCESS SIGNAL THAT CARRIES THE
-      // IDENTITY, AND NOT AN ECHO TO BE SUPPRESSED**: the value the caller spelled is the identity the store
-      // holds for that entry, and it is what `K-1` ADOPTS (`const adopted = store.listen(id, set)`), which is
-      // what `kernel-surface.md` declared all along — *"adopted, never minted by the kernel"*.
-      return handle;
+      // ── THE POST-TEST BODY, EXTRACTED BY NAME — `D-99`'S ANSWERED CLAUSE, 2026-11-01 ──────────────────────
+      // **⟶ THE BYTES ABOVE ARE A CALL NOW** (`C-17`, §9.2): the address encode, the ONE store act, the home
+      // mirror's purge-and-install, the entry's registry reservation and the returned handle all moved
+      // BYTE-FOR-BYTE into `delivery.mjs`'s `listenOn`, which the kernel's own registration calls too. **THE
+      // MEMBER KEEPS WHAT IS THE MEMBER'S**: the commit bracket (`openCommit`/`closeCommit`), the two position
+      // class tests and `B-6` above — **so `listen` is a CALLER's door and the kernel's act is the kernel's own**,
+      // which is the whole of `D-99`'s route reading. **NO ANSWER MOVES**: the same handle, the same store act,
+      // the same mirror rows and the same registry entry, because it is the same function.
+      return listenOn(this, state, handle, addresses);
       } finally {
         closeCommit(instance, opened);
       }
@@ -984,13 +940,26 @@ export function storeCreate(cfg) {
       // listener is outside this instance's handle domain for a constraint.** It is also the status the
       // register-side sibling answers for the adjacent fact, **so one namespace question does not print two
       // codes.** **NO STATE MOVES.**
+      //
+      // **⟶ AND ITS MESSAGE RE-DERIVES 2026-11-01 (`D-98` item 4; `C-9`, `C-11`; §3.4, §3.6), WHILE ITS
+      // CONDITION, ITS STATUS AND ITS INSTANT ARE UNMOVED.** **`listenerStandingAt` ANSWERS `true`/`false` NOW**
+      // (its address loop existed for the message alone and the message names no address — §2's one deletion),
+      // and the refusal's subject is the HANDLE: the generated half is the store's own QUALIFIED
+      // `AddressMalformed` arm under the appended `'handle'` token, and the clause names the listener and the
+      // rule's re-spelt sentence. **NO ADDRESS APPEARS ANYWHERE IN IT** — the pair's own address belongs to the
+      // caller, and a listener's mirror address asserted which of its N rows "kept" the identity (§3.4) — so the
+      // refusal's `address` member stays `null` by construction. **The rule's sentence moves by ONE WORD, and its
+      // spelling is the anchor `bindings/js/README.md:233` already carries: *"a listener and a constraint do not
+      // share one HANDLE"*.**
       const collided = listenerStandingAt(site.state, site.id);
-      if (collided !== null) {
+      if (collided === true) {
         boundaryReject(
           'AddressMalformed',
-          addressSpelling(collided.address),
-          `the listener '${site.id}' cannot share its handle with the constraint '${site.id}' at `
-            + `${addressSpelling(collided.address)}: a listener and a constraint do not share one`,
+          site.id,
+          `addConstraint refuses: the listener '${site.id}' keeps that handle, and a listener and a `
+            + 'constraint do not share one handle',
+          undefined,
+          'handle',
         );
       }
       const held = site.state.constraints.get(constraintPairKey(site.addresses, site.id));
@@ -1565,6 +1534,24 @@ export function storeCreate(cfg) {
   STORE_RETIREMENT.register(instance, () => {
     INSTANCES.delete(instance);
   });
+  // ═════════════════════════════════════════════════════════════════════════════════════════════════════
+  // **⟶ AND `D-99`'S INTERNAL ROUTE, INSTALLED HERE AND NOT WITH THE OTHER TWO CHANNELS — 2026-11-01
+  // (`C-17` (iv), §9.2).** **THE INSTALL SITE IS `state.receiver = instance`'S NEIGHBOURHOOD AND NOT `:1693`'S,
+  // AND THE REASON IS A BYTE: THE CONSTRUCTION'S BATCH ARMING WALK BELOW REACHES `K-1` BEFORE
+  // `installRegistrationSeam` RUNS**, so a channel installed there would leave the construction's own arming walk
+  // as **the one kernel registration still passing through the caller's wrapper** — i.e. still through `B-6`,
+  // which is the test `D-99`'s ANSWERED clause says the kernel's act does not pass at all.
+  //
+  // **THE LATER SITE'S PRINTED REASON DOES NOT REACH THIS CHANNEL**: `installAttemptSeam` is installed after the
+  // batch *"so a `listen` the construction itself performs is not counted as a commit the caller opened"* — **a
+  // fact about the ATTEMPT COUNT, and this route opens no commit** (`C-17` (v)).
+  //
+  // **IT CHANGES NO ORDER OF ACTS**: the batch still arms `cfg.constraints` first and `cfg.listeners` are still
+  // applied afterwards through `listen` (`C-15`, unmoved), because installing a channel is not an act. **AND THE
+  // CHANNEL ADDS NO MEMBER** — `Symbol.for`-keyed and `enumerable: false`, so the product's declared FOURTEEN own
+  // members are unmoved (`A117` (D6)), exactly as the six channels beside it.
+  // ═════════════════════════════════════════════════════════════════════════════════════════════════════
+  installListenRoute(instance, state);
   // **⟶ `docs/specs/storeroom-js/surface.md §2.12` ITEM 1 CLAUSE (b): `storeCreate` REGISTERS EACH OF `cfg.constraints`' ELEMENTS THAT CARRIES
   // ITS OWN FUNCTION AT `K-1`, AT THE INSTANCE IT IS CONSTRUCTING** — the SAME call the ADD route makes, so
   // a batch-populated pair is a pair the entry carries on the same footing (`docs/specs/storeroom-js/surface.md §2.12` item 3's preamble clause

@@ -333,7 +333,23 @@ test("listener · the cross-kind refusal's FORM · index.d.ts (rulings `D-25`/`D
   assert.equal(typeof caught.message, 'string');
   assert.deepEqual(caught.log, []);
   // AND THE MESSAGE NAMES BOTH SIDES AND CARRIES THE SHARED RULE SENTENCE.
-  assert.equal(caught.message.includes('a listener and a constraint do not share one'), true);
+  // **⟶ RE-DERIVED 2026-11-01 (`D-98` item 4; `C-9`, `C-11`; `docs/L1/cross-kind-handle-only.md` §3.6 and
+  // §5.1's row for this cell).** The assertion below stood as an `includes` of the FRAGMENT *"a listener and a
+  // constraint do not share one"*. **`D-98` withdraws the false generated half and moves the rule's sentence by
+  // ONE WORD** — *"a listener and a constraint do not share one **handle**"* — so the fragment no longer occurs
+  // in the message at all, and a fragment assertion on a message that has moved is exactly how the sentence that
+  // read the ADDRESS survived four arms. **THE CELL'S SUBJECT IS UNMOVED** (*"the message names both sides and
+  // carries the shared rule sentence"*) **and the sentence is asserted as THE EXACT TEXT the declaration prints
+  // for this arm, WHOLE** (`B-5`, with this drive's own pair id): the store's own qualified `AddressMalformed`
+  // arm in the generated half, and the package's clause naming the pair's `id` and the rule's re-spelt sentence
+  // in the second. **The four-member census above is unmoved** (`§3.5` item 3's census duty).
+  const B5_TEXT = "'cross-form-id' is already a handle this instance carries, a listener's handle and a "
+    + "constraint's id are one string and one string only, register refuses: the constraint pair "
+    + "'cross-form-id' keeps that handle, and a listener and a constraint do not share one handle";
+  assert.equal(caught.message, B5_TEXT,
+    'the message is EXACTLY the declaration\'s `B-5` text, whole — the store\'s generated half and the '
+    + 'package\'s clause, with no address, no placeholder container and no fragment left to drift: read '
+    + JSON.stringify(caught.message));
 });
 
 // ---------------------------------------------------------------------------------------------

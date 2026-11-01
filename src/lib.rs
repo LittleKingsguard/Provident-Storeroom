@@ -32,7 +32,7 @@ pub use args::{
     address_segments, AddressArg, ConstraintEntry, ConstraintsArg, FilePathArg, JournalLengthArg,
     ListenerEntry, ListenersArg, OpIdArg, StoreConfig, TierArg, TierSetItem,
 };
-pub use error::{storeErrorMessage, MessageArgs, StoreError, CODES};
+pub use error::{storeErrorMessage, ArmToken, MessageArgs, StoreError, CODES};
 pub use records::{
     tier_token, BaseState, ChildAnchor, DeleteReceipt, JournalOp, JournalOpKind, Listener,
     ListenerHandle, ListenerTrigger, NodeRef, RollbackResult, Tier, WriteResult,

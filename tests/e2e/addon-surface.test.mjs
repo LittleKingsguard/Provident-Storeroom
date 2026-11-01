@@ -276,7 +276,7 @@ function declaredArgumentsFor(name) {
  *  is read against the row's own declared optionality and never against a blanket expectation.** */
 const DECLARED_OPTIONAL_TAIL = new Set(['read', 'readLiteral', 'write', 'delete', 'rollback', 'restoreMark', 'unlisten', 'removeListener', 'commitFile']);
 
-/** **AND ONE STANDING ENTRY DECLARES A RANGE RATHER THAN A POINT — `errorMessage`'s `2`–`3`**
+/** **AND ONE STANDING ENTRY DECLARES A RANGE RATHER THAN A POINT — `errorMessage`'s `2`–`4`**
  *  (`export-set-and-dispatch.md §1`: *"`errorMessage` | `2`–`3` | the one message renderer the package
  *  calls"*). **BOTH OF THAT ROW'S NEIGHBOURS ARE DECLARED POSITIONS**, so `S-ARITY`'s *"the others refuse"*
  *  has NO SUBJECT on either side of it: calling it at `1` and at `3` are both DECLARED calls of the range,
@@ -289,13 +289,27 @@ const DECLARED_OPTIONAL_TAIL = new Set(['read', 'readLiteral', 'write', 'delete'
  *  is the declared call plus an argument a zero-arity entry never declared, which the artefact simply
  *  ignores (measured: `version(undefined)` answers `'0.5.0'` exactly as `version()` does). **This is the
  *  very bound the file states at its `-1` limb: "THE LIMB RUNS ONLY WHERE SHRINKING THE ARGUMENT LIST
- *  REALLY DROPS A POSITION."** A zero-position entry has no position to drop and none to add. */
-const DECLARED_ARITY_RANGE = Object.freeze({ errorMessage: Object.freeze([2, 3]) });
+ *  REALLY DROPS A POSITION."** A zero-position entry has no position to drop and none to add.
+ *
+ *  **⟶ RE-DERIVED 2026-11-01 (`D-98` item 4; `C-7`, `C-12`; `docs/L1/cross-kind-handle-only.md` §3.7 and §5.2's
+ *  row for this cell) — THE RANGE MOVES `2`–`3 → 2`–`4`, AND ITS CITATION MOVES OFF AN ARCHIVED PART.** The
+ *  addon's internal message generator gains ONE OPTIONAL fourth position — the closed ARM TOKEN, whose one
+ *  constructed value is `'handle'` — so its declared range is **`2`–`4`**; **the three-position call is
+ *  byte-identical to today's** (`..Default::default()`'s device), and the middle position stays UNCONSTRAINED
+ *  (the same `fn.length` bound this file prints at `:255`: a Node-API entry reports `0`, so the instrument is
+ *  the CALL and never the length). **The citation re-derives too**: the `2`–`3` row lived in
+ *  `export-set-and-dispatch.md` §1, **a part that is NOT in the live tree** (it survives only under
+ *  `archive/pre-strata-docs-2026-10-24/`), so it is not citable (`D-85`) — **the range's live home is
+ *  `docs/specs/storeroom-js/surface.md`'s `CF-3` clause and its dated insertion of 2026-11-01**, and this
+ *  figure's clause field names it. **No consumer-visible arity moves**: the addon's export set is internal
+ *  (`§3.8`), and the correction's consumer-facing change is the TEXT of four refusals. */
+const DECLARED_ARITY_RANGE = Object.freeze({ errorMessage: Object.freeze([2, 4]) });
 const DECLARED_ARITY_ZERO = Object.freeze(['version', 'journalMark']);
 /** `Object.freeze` on a plain literal, deliberately: the file's own `OWED-2` scan forbids a cell naming a
  *  TABLE TYPE (`OWED_STRUCTURE_TOKENS`), and a `Map`/`Set` would be read as one. **THE DECLARATION THESE
- *  CARRY IS A SPEC FIGURE AND NOT A STRUCTURE** — `export-set-and-dispatch.md §1`'s `2`–`3` row and its
- *  `0`-arity row — so a plain frozen literal states it without tripping that guard. */
+ *  CARRY IS A SPEC FIGURE AND NOT A STRUCTURE** — `surface.md`'s `CF-3` clause's `2`–`4` range (the archived
+ *  `2`–`3` row is its superseded home) and the `0`-arity row — so a plain frozen literal states it without
+ *  tripping that guard. */
 
 test('sas_d2_s_arity_every_entry_exists_and_is_callable_at_its_declared_arity', () => {
   const addon = require_(ADDON_ARTEFACT);
@@ -363,14 +377,15 @@ test('sas_d2_s_arity_the_declared_arity_is_the_one_that_answers_and_each_neighbo
     // surface.md §2.2`'s `DD-46` clause: *"THE PACKAGE PERFORMS NO ARITY CHECK, NO DEFAULTING AND NO
     // VALIDATION OF ITS OWN (`DD-46`): **a missing, an extra or a wrong-shaped argument reaches the store's
     // own carrier value and answers the store's own code.**"* **MEASURED AT THIS PASS, IN BOTH DIRECTIONS:**
-    // `errorMessage('a-code')` ANSWERS (one fewer than its declared `2`–`3`), `storeCreate(cfg, undefined)`
+    // `errorMessage('a-code')` ANSWERS (one fewer than its declared `2`–`3` — **NOW `2`–`4`**, `D-98`; `docs/L1/cross-kind-handle-only.md` §3.7), `storeCreate(cfg, undefined)`
     // ANSWERS (one more than its declared `1`), and `version(undefined)` answers exactly as `version()` does
     // (arity `0` declares no position for an extra to land in). **A cell demanding refusals there would pin
     // a behaviour no clause of this unit declares, and would be red on a correct landing** — the failure mode
     // `failure-form.md §3` warns about.
     //
     // **THE COVERAGE IS NOT WEAKENED:** the declared-arity call still runs over all THIRTEEN above, the
-    // `errorMessage` RANGE (`2`–`3`) is driven at BOTH its ends below, and every one of the nine per-verb
+    // `errorMessage` RANGE (`2`–`3`, **NOW `2`–`4`** — `D-98`; §5.2's row) is driven at BOTH its ends below,
+    // and every one of the nine per-verb
     // entries — the entries this unit actually mints — is still driven at `±1` exactly as `S-ARITY` states.
     if (STANDING_FOUR.some((row) => row.name === entry.name)) continue;
     // ONE FEWER. On a row whose trailing position is declared OPTIONAL this shape is IN DOMAIN
@@ -400,7 +415,8 @@ test('sas_d2_s_arity_the_declared_arity_is_the_one_that_answers_and_each_neighbo
     // `+1` is explicitly NOT refused by arity and is not counted here**; every other row's `+1` is the
     // failure list's *"a wrong arity answering"*.
     //
-    // **AND `errorMessage`'s `+1` IS A DECLARED POSITION — THE HIGH END OF ITS `2`–`3` RANGE** (`§1`), so
+    // **AND `errorMessage`'s `+1` IS A DECLARED POSITION — THE HIGH END OF ITS `2`–`3` RANGE** (`§1`; **NOW `2`–`4`,
+    // `D-98**; §3.7), so
     // the limb has no subject there and the range is asserted directly below instead. **`version`'s arity
     // `0` likewise has no `+1`**: the declared call plus an argument is not a wrong arity on an entry that
     // declares no positions at all (see `DECLARED_ARITY_ZERO`).
@@ -415,18 +431,26 @@ test('sas_d2_s_arity_the_declared_arity_is_the_one_that_answers_and_each_neighbo
   // declares `2`–`3` (`export-set-and-dispatch.md §1`), so BOTH ends must answer — a landing that answered
   // only one of them would be a real arity defect and this limb catches it, where the neighbour limbs had no
   // subject at all.
+  // **⟶ RE-DERIVED 2026-11-01 (`D-98` item 4; `docs/L1/cross-kind-handle-only.md` §3.7 and §5.2's row): THE
+  // RANGE IS `2`–`4`, BOTH ENDS ARE STILL DRIVEN, AND THE MIDDLE STAYS UNCONSTRAINED.** The fourth position is
+  // the closed ARM TOKEN (`'handle'` the one value this correction uses); **the three-position call in the
+  // middle is a DECLARED call and its bytes are today's**, so no assertion is made there — the same bound this
+  // file states at its `±1` limbs, where a declared position gets no neighbour expectation. **The citation is
+  // `surface.md`'s `CF-3` clause** (the live home of what the JS route may fill; the archived
+  // `export-set-and-dispatch.md §1` row it stood on is not citable, `D-85`).
   for (const [name, [low, high]] of Object.entries(DECLARED_ARITY_RANGE)) {
     const fn = addon[name].bind(addon);
     const base = ['a-code', 'a-subject'];
     const atLow = callAndClassify(fn, base);
-    const atHigh = callAndClassify(fn, [...base, { k: 's', v: 'extra' }]);
+    const atHigh = callAndClassify(fn, [...base, { k: 's', v: 'extra' }, 'handle']);
     assert.equal(atLow.refused, false,
-      `\`${name}\` declares the RANGE ${low}–${high} (\`export-set-and-dispatch.md §1\`), so its LOW end is a `
-      + 'declared call and must answer — the range is driven directly because neither neighbour limb has a '
-      + `subject on this row. Refused at ${low}: ${JSON.stringify(Object.keys(atLow.thrown || {}))}`);
+      `\`${name}\` declares the RANGE ${low}–${high} (\`surface.md\`'s \`CF-3\` clause of 2026-11-01), so its `
+      + 'LOW end is a declared call and must answer — the range is driven directly because neither neighbour '
+      + `limb has a subject on this row. Refused at ${low}: ${JSON.stringify(Object.keys(atLow.thrown || {}))}`);
     assert.equal(atHigh.refused, false,
-      `and the HIGH end of \`${name}\`'s declared ${low}–${high} range answers too — both ends are `
-      + `\`§1\`'s declared positions. Refused at ${high}: ${JSON.stringify(Object.keys(atHigh.thrown || {}))}`);
+      `and the HIGH end of \`${name}\`'s declared ${low}–${high} range answers too — the fourth position is the `
+      + 'closed ARM TOKEN, a declared position of the generator the kernel reaches and one no consumer sees '
+      + `(\`§3.8\`). Refused at ${high}: ${JSON.stringify(Object.keys(atHigh.thrown || {}))}`);
   }
   assert.deepEqual(wrongArity, [],
     'P-SAS-2\'s failure list — "a wrong arity answering". `contract.md §5`\'s `S-ARITY`: "call each entry at '
@@ -1410,12 +1434,14 @@ test('sas_d8_s_fault_arm_the_render_is_the_composite_and_the_store_generators_ow
   // item 6 (d); read at the boundary and cited rather than restated). **THE GENERATOR IS REACHED THROUGH THE
   // ARTEFACT'S OWN STANDING `errorMessage` ENTRY** — `export-set-and-dispatch.md §1`'s row: *"the one message
   // renderer the package calls"* — so the expected bytes are the generator's answer at the failing target's
+  // **(and the row's arity is `2`–`4` now, `D-98`; §3.7)**
   // own spelling and are composed HERE rather than typed.
   const refused = { value: 1n, spelling: '1n' };
   const partOne = generated('ValueRefusedAtBoundary', refused.spelling);
   assert.equal(typeof partOne, 'string',
     'the generator answers a string for the code the walk\'s record carries — `errorMessage` is a standing '
-    + 'entry of arity `2`–`3` (`export-set-and-dispatch.md §1`) and this is its `2`-position call');
+    + 'entry of arity `2`–`4` (`surface.md`\'s `CF-3` clause of 2026-11-01, `D-98`; the archived `2`–`3` row '
+    + 'is its superseded home) and this is its `2`-position call');
   assert.ok(partOne.length > 0, 'and never an empty one');
 
   const refusal = thrown(() => layout.write(['fault-b'], 'mem', refused.value));

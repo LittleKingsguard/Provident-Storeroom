@@ -357,7 +357,23 @@ function spellDottedContainer(container) {
   return spelled;
 }
 
-export function boundaryReject(status, subject, clause, container) {
+/// **⟶ AND ONE APPENDED FIFTH PARAMETER IS THE ARM TOKEN, ADDED 2026-11-01 (`D-98` item 4; `C-7`/`C-12`;
+/// §3.2, §3.7).** `boundaryReject(status, subject, clause, container, token)` — **POSITIONS 1–4 ARE UNMOVED, so
+/// every one of the `27` existing call sites is BYTE-IDENTICAL**, and the token is supplied by the four
+/// cross-kind arms alone.
+///
+/// **WHAT IT IS, EXACTLY: A CLOSED ARM TOKEN AND NEVER TEXT.** The one token this correction requires is
+/// `'handle'`. It is **not** a message, a clause, a spelling or a member name the store will print: the store
+/// renders ITS OWN WORDS from the flag the token sets (`src/error.rs`'s two qualified branches, §3.3), and **an
+/// unknown token leaves the slot absent, so the ordinary rendering stands — which is the two-argument call's
+/// bytes.** **NO CALLER-SUPPLIED TEXT CAN ENTER A GENERATED SENTENCE** (`surface.md §2.5` item 2, `DD-52`).
+///
+/// **WHY A TOKEN AND NOT A BETTER CONTAINER** (§3.2 (e)–(f), refused there on two measured grounds): no container
+/// repairs a DOMAIN claim, `Some('')` is already occupied by genuine register-level refusals, and a sentinel
+/// spelling would be **an identity carried by a spelling** — exactly the seam `D-22` deleted by name. **The
+/// qualified arm prints NO `<CONTAINER>` slot at all**, which is why the fourth position is passed `undefined`
+/// ON PURPOSE at those four sites: it is a DECLARATION and not an omission (§3.4).
+export function boundaryReject(status, subject, clause, container, token) {
   const addon_ = withAddon();
   if (typeof addon_.errorMessage !== 'function') {
     // An artefact that LOADED but does not carry the generator is not the declared artefact: the state is
@@ -368,9 +384,13 @@ export function boundaryReject(status, subject, clause, container) {
   // `dotted_address`: a key bare, an index bare, joined by `.`) — the same reading the store's own
   // `malformed_segment` triggers take, where the container is the segment the mismatch was found in.
   const where = container === undefined ? undefined : spellDottedContainer(container);
-  const generated = where === undefined
-    ? addon_.errorMessage(status, subject)
-    : addon_.errorMessage(status, subject, where);
+  // **THE TOKEN REACHES THE GENERATOR'S APPENDED FOURTH POSITION, AND THE THREE-POSITION AND TWO-POSITION CALLS
+  // ARE THE BYTES THEY WERE**: a call that supplies no token takes the branch it always took, so **not one byte
+  // of the generator's output moves where no token is supplied** (`facade.rs`'s own `..Default::default()`
+  // device, reused at this site).
+  const generated = token === undefined
+    ? (where === undefined ? addon_.errorMessage(status, subject) : addon_.errorMessage(status, subject, where))
+    : addon_.errorMessage(status, subject, where, token);
   fail({ status, message: `${generated}, ${clause}` });
 }
 

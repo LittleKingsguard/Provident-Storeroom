@@ -1157,15 +1157,38 @@ pub fn version(_env: Env) -> String {
 /// EXACTLY: a caller that supplies a container gets the generator's own rendering AT THAT SLOT —
 /// `the number 1.5 is not a legal address segment in 'a'` — where it previously got the default `''`; and
 /// nothing else about this function's answer moves.**
-/// **THE ENTRY IS ANNOTATED AND ITS THREE-POSITION ARITY IS UNMOVED** (`contract.md §2` item 3): the
-/// annotation's own edit-time argument list IS the arity the runtime reads, so the hand-written
-/// `napi_get_cb_info` walk that used to unpack this call is GONE with the shim that carried it.
+/// **⟶ AND ONE OPTIONAL FOURTH POSITION IS ADDED 2026-11-01: THE CLOSED ARM TOKEN** (`D-98` item 4; `C-7`,
+/// `C-12`; §3.2, §3.7). **THE DEFECT IT CLOSES IS A FALSE GENERATED HALF, STATED AT ITS BYTES:** the package's
+/// four cross-kind arms reach this entry for their generated half, and the `AddressMalformed` SEGMENT template
+/// they got renders *&quot;'tabs' is not a legal address segment in '', segments are strings or non-negative
+/// integers&quot;* — **false twice at once**, because the segment IS legal and `''` is the DEFAULT container and
+/// not a container the mismatch was found in. **NO MEMBER OF THE CLOSED SET CAN PRINT A TRUE FIRST SENTENCE FOR
+/// THAT FACT** (`C-6`), so the row the status already names gains a QUALIFIED ARM, selected by this token.
+///
+/// **THE ONE TOKEN THIS CORRECTION REQUIRES IS `'handle'`**, parsed into [`storeroom_native::ArmToken`]'s only
+/// constructed value and carried on `MessageArgs`' new `arm` member. **NO CALLER-SUPPLIED TEXT ENTERS A GENERATED
+/// SENTENCE**: the token is matched against a closed literal and the store renders ITS OWN WORDS from the flag;
+/// **an unknown token, or an absent one, leaves the slot `None` and the ordinary rendering stands — the
+/// two-argument call's bytes — which is the `..Default::default()` device this call already uses for `keys`,
+/// `path` and the rest.**
+///
+/// **AND THIS IS AN ARTEFACT-INTERNAL WIDENING, NOT A CONSUMER SURFACE MOVE** (`C-13`, §3.8): the addon's export
+/// set is not a published API (no named export of any module namespace or subpath), so **the consumer-facing
+/// change is the TEXT of four refusals** — a behaviour change `D-100` declares as the `1.7.0` MINOR. **The closed
+/// set, every member and every consumer-visible arity are UNMOVED.**
+/// **⟶ AND THE SENTENCE THAT STOOD HERE — *"THE ENTRY IS ANNOTATED AND ITS THREE-POSITION ARITY IS UNMOVED"* —
+/// IS RE-DERIVED AT ITS OWN SITE AND NOT ABSORBED:** the annotation's own edit-time argument list IS the arity the
+/// runtime reads, so **the arity figure becomes FOUR POSITIONS** while the clause's POINT stands exactly as
+/// filed — the arity is the annotation's, and no hand-written `napi_get_cb_info` walk exists to be moved.
+/// **THE FIRST THREE POSITIONS ARE BYTE-UNMOVED** (`code`, `subject`, `container`) and **an omitted fourth
+/// reproduces the current bytes exactly.**
 #[napi]
 pub fn errorMessage(
     env: Env,
     code: String,
     subject: JsVal<'_>,
     container: Option<JsVal<'_>>,
+    token: Option<JsVal<'_>>,
 ) -> String {
     // **THE SUBJECT REACHES THE GENERATOR THROUGH THE SENTINEL READ AND NOT THROUGH THE LIBRARY'S OWN
     // `String` CONVERSION, AND THE REASON IS A MEASURED BEHAVIOUR THIS ENTRY ALREADY HAD.** `read_string` —
@@ -1211,6 +1234,17 @@ pub fn errorMessage(
     // a call that supplies NEITHER a third NOR a fourth argument leaves the container `None`, so its bytes
     // are byte-for-byte what the two-argument call has always produced** (`16` codes × `14` subjects
     // re-verified on the rebuilt artefact).
+    // **⟶ AND THE FOURTH SLOT IS THE ARM TOKEN, READ ONLY WHERE THE CALLER SUPPLIED ONE AND MATCHED AGAINST A
+    // CLOSED LITERAL — 2026-11-01 (`C-7`, `C-12`; §3.7).** **AN OMITTED POSITION LEAVES THE SLOT `None` AND THE
+    // ORDINARY RENDERING STANDS**, exactly as the third position's own clause declares for the container; **an
+    // UNKNOWN TOKEN ALSO LEAVES IT `None`**, which is the same arm and not an error — the store's words never
+    // depend on a string this layer cannot read, and no caller can author a sentence by spelling a token. **THERE
+    // IS NO FIFTH POSITION AND NO FREE-TEXT SLOT**: the token names a KIND COLLISION, and the package's own clause
+    // half (authored at `boundaryReject`) names the other side and the rule.
+    let arm = token.and_then(|value| match arg_string(&env, &value).as_str() {
+        "handle" => Some(storeroom_native::ArmToken::HandleClaim),
+        _ => None,
+    });
     let derived_container_segment = container.as_deref().and_then(|c| {
         c.rsplit('.')
             .next()
@@ -1224,6 +1258,7 @@ pub fn errorMessage(
             container,
             keys: derived_container_segment.into_iter().collect(),
             path: Some(subject),
+            arm,
             ..Default::default()
         },
     );

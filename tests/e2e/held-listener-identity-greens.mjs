@@ -882,18 +882,43 @@ const K6 = (store, pair) => kernel.remove(store, pair);
   // subject of every one of them (does the register-side cross-kind refusal stand, in which form, naming what,
   // moving nothing) is unchanged.
   // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // **⟶ RE-DERIVED 2026-11-01 (`D-98`, verbatim: *"Constraints and listeners can share the same address, but
+  // not handle"*; *"The restriction is that a listener and a constraint cannot have the same **handle**"* —
+  // `docs/L1/cross-kind-handle-only.md` §5.1's rows for `HLI-11.3`/`.3.a`).** **THE PARAGRAPH ABOVE AND THE TWO
+  // CELLS IT EXPLAINS STOOD ON `D-29`'s NARROWING AND ARE READ THROUGH THIS CLAUSE**: `D-98` **WITHDRAWS the
+  // address dimension** (`D-29`'s *"the address dimension is NECESSARY"* sentence is withdrawn at that row,
+  // because the purge is BY HANDLE and an act under a different handle cannot reach a pair's rows), so
+  // **`listen('appH', [['c']])` beside the caller's pairs `k1`/`k2` at `['c']` is LAWFUL** — two kinds, one
+  // address, different handles. **WHAT THE TWO CELLS ASSERT MOVES WITH THE RULING AND NOTHING IS WEAKENED:**
+  // `.3` asserts the act's RETURN and its lawfulness, `.3.a` asserts that the lawful act moved nothing of the
+  // pair **and** that the listener STANDS AT THE ADDRESS — witnessed by the store's own `triggered` set at a
+  // write there. **The arm's FORM and NO-STATE-MOVES assertions keep their subject at the HANDLE arm**, which
+  // `.4`–`.8` and `.10`/`.11` drive at `register` (a `register` under the pair's own `id` is the surviving
+  // `B-5` arm), so no assertion of this pair is retired — only its arm.
+  // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
   const l = thrown(() => i.listen('appH', [['c']]));
-  A('HLI-11.3', 'held-listener contract §2.2 item 7 AS NARROWED BY `D-29` (`strata/decisions.md`, 2026-10-24: *"Listen cannot overwrite constraint, only other listeners"*); `B-6` in `docs/L1/surface-deltas.md` §2',
-    '`listen` at a pair\'s address under an APP handle is REFUSED — AddressMalformed, in the one thrown form, BEFORE the purge, so nothing is destroyed — and the pair still stands',
-    l.threw && statusOf(l) === 'AddressMalformed', l.threw ? fmt(`${statusOf(l)} / ${String(msgOf(l)).slice(0, 90)}`) : 'returned (the pre-ruling reading)');
+  A('HLI-11.3', '`D-98` clause (i) (`strata/decisions.md`, 2026-11-01: *"A constraint and a listener can share an address, as can multiple constraints/listeners. The restriction is that a listener and a constraint cannot have the same handle"*) read with `D-22` (the answer) and `docs/L1/cross-kind-handle-only.md` §5.1',
+    '`listen` at a pair\'s address under an APP handle is LAWFUL — the act RETURNS the handle it watches under and NOTHING is refused, because the only cross-kind restriction is a SHARED HANDLE and this handle is not the pair\'s `id`',
+    !l.threw && l.value === 'appH', l.threw ? fmt(`${statusOf(l)} / ${String(msgOf(l)).slice(0, 90)}`) : fmt(l.value));
   const consAfterListen = thrown(() => i.constraints());
-  A('HLI-11.3.a', 'held-listener contract §2.2 item 3 (a refused `listen` changes nothing) read with `D-29`',
-    'NOTHING MOVED by that refusal: the pair is still carried by the enumeration, at both of its addresses',
-    !consAfterListen.threw && consAfterListen.value.length === 2,
-    consAfterListen.threw ? statusOf(consAfterListen) : fmt(consAfterListen.value));
+  const coLocated = thrown(() => i.write(['c'], 'mem', 1));
+  A('HLI-11.3.a', '`D-98` clause (i) read with held-listener contract §2.2 item 3 (the act is the one the surface declares) and `contract.md §2.4` item 1 (the `triggered` set is the store\'s own `{handle, address}` record)',
+    'THE LAWFUL ACT MOVED NOTHING OF THE PAIR AND THE LISTENER STANDS AT THE ADDRESS: both pairs still appear in `constraints()`, and the store\'s own `triggered` set at a write there carries `appH` AT `[\'c\']`',
+    !consAfterListen.threw && consAfterListen.value.length === 2
+      && !coLocated.threw && Array.isArray(coLocated.value.triggered)
+      && coLocated.value.triggered.some((pair) => isPair(pair) && pair.handle === 'appH'
+        && keyOfAddr(pair.address) === JSON.stringify(['c'])),
+    fmt({
+      pairs: consAfterListen.threw ? statusOf(consAfterListen) : consAfterListen.value.length,
+      triggered: coLocated.threw ? statusOf(coLocated) : coLocated.value?.triggered,
+    }));
   const reg = thrown(() => i.register('k1', () => { }));
-  A('HLI-11.4', 'constraint-sites.md §5 item 2, §7 `CF-7`; contract.md §4 `F-9`',
-    'a CALLER\'s registration at an address a CALLER\'s constraint pair stands at is REFUSED',
+  // **⟶ AND THE REASON THIS REFUSAL FIRES RE-DERIVES 2026-11-01 (`D-98`; `B-5` in `docs/L1/cross-kind-handle-only.md`
+  // §1): THE HANDLE AND NOT THE ADDRESS.** `register('k1', …)` is refused because `'k1'` IS the pair's own `id`
+  // — the one cross-kind restriction the ruling keeps — and not because the pair stands at that address. **The
+  // cell's assertion, its drive and its form are UNMOVED** (§5.2's row); only the stated ground moves.
+  A('HLI-11.4', 'constraint-sites.md §5 item 2, §7 `CF-7`; contract.md §4 `F-9` read with `D-98` clause (iii) (the HANDLE is the restriction)',
+    'a CALLER\'s registration under a CALLER\'s constraint pair\'s own `id` is REFUSED — the surviving `B-5` arm, which is the HANDLE and not the address',
     reg.threw, reg.threw ? 'threw' : 'the registration was admitted');
   // ── **⟶ `.5` AND `.6` RE-DERIVED 2026-10-25: THE FORM MOVED FROM `TypeError` TO THE SURFACE'S ONE PLAIN
   // OBJECT.** The as-filed pair asserted the registration site's conflict arm as *"a `TypeError` with NO `status`
@@ -929,10 +954,24 @@ const K6 = (store, pair) => kernel.remove(store, pair);
   // `'c'` while the clause printed `["c"]`. **The cell's subject — *"the message names BOTH SIDES"* — is
   // UNMOVED and the clause is unmoved; what moves is WHICH rendering satisfies it**, and the JSON-array
   // spelling is now asserted ABSENT so the divergence cannot come back at this site.
-  A('HLI-11.9', 'constraint-sites.md §5 item 5 (iii) ("the message names BOTH SIDES") read with `docs/L1/surface-deltas.md` §2.5 item 2 and `D-48` · `DEF-AB` (one address, one rendering)',
-    "the message names both sides — the handle the caller tried to register and the constraint (its `id` AND its address, in the kernel's ONE rendering, the segments joined by `/`) — and never a JSON-array spelling",
-    typeof m === 'string' && m.includes('k1') && m.includes(' at c:') && m.includes('["c"]') === false,
-    fmt(String(m).slice(0, 160)));
+  // ⟶ **RE-DERIVED AGAIN 2026-11-01 (`D-98` item 4; `C-9`, `C-11`; `docs/L1/cross-kind-handle-only.md` §3.6 and
+  // §5.1's row for this cell): THE ADDRESS OBLIGATION IS WITHDRAWN — NOT RELAXED — AND THE WHOLE TEXT IS
+  // ASSERTED.** The two paragraphs above stand and are read THROUGH this clause. `D-48` made the address ONE
+  // rendering; **the corrected clause names NO ADDRESS AT ALL**, and that is a decision and not an omission
+  // (§3.4): a pair stands at N addresses, so naming one of them would assert an order and a membership the
+  // corpus forbids (`DD-22`/`DD-37`), and the refusal's subject is the HANDLE — the string the caller claimed
+  // that the pair's `id` already carries. **So `m.includes(' at c:')` and `m.includes('["c"]') === false` lose
+  // their subject and are DELETED**, and the cell keeps its own subject — *"the message names BOTH SIDES"* —
+  // by asserting **the EXACT TEXT the declaration prints, whole**: the generated half is the store's own
+  // QUALIFIED `AddressMalformed` arm (`'handle'`) and the clause names the pair's `id` and the rule's re-spelt
+  // sentence. **A fragment assertion is what let the false generated half survive four arms; this cell does
+  // not repeat it.**
+  const B5_TEXT = "'k1' is already a handle this instance carries, a listener's handle and a constraint's id "
+    + "are one string and one string only, register refuses: the constraint pair 'k1' keeps that handle, and a "
+    + 'listener and a constraint do not share one handle';
+  A('HLI-11.9', 'constraint-sites.md §5 item 5 (iii) ("the message names BOTH SIDES") read with `D-98` item 4 and `docs/L1/cross-kind-handle-only.md` §3.6 (`B-5`\'s exact text) and §3.4 (no address is named)',
+    "the message names both sides and is EXACTLY the declaration's `B-5` text — the store's qualified generated half and the package's clause naming the pair's `id` and the rule's sentence, `a listener and a constraint do not share one handle` — with NO address and NO placeholder container anywhere in it",
+    typeof m === 'string' && m === B5_TEXT, fmt(String(m).slice(0, 220)));
   const cons = thrown(() => i.constraints());
   A('HLI-11.10', 'constraint-sites.md §5 item 1 (the seat is BEFORE `state.registry.set`, so "a refusal leaves the registry untouched")',
     "the refusal changed nothing: the pair is still carried by the enumeration",

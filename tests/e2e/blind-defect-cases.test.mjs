@@ -64,8 +64,19 @@ const RANK_18_SENTENCE =
 const RANK_19_SENTENCE =
   "'a' was refused by its own constraint at registration in 'constraints', a registered constraint must answer true for the state its pair is registered at";
 
-// index.d.ts `addConstraint`'s cross-kind clause: the shared rule sentence the message carries.
-const CROSS_KIND_SENTENCE = 'a listener and a constraint do not share one';
+// index.d.ts `addConstraint`'s cross-kind clause: the message the arm carries, as the EXACT text `D-98` declares.
+// **⟶ RE-DERIVED 2026-11-01 (`D-98` item 4; `C-9`, `C-11`; `docs/L1/cross-kind-handle-only.md` §3.6 and §5.1's
+// row for `DEF-N`) — THE FRAGMENT BECOMES THE DECLARATION'S `B-4` TEXT, ASSERTED WHOLE.** The constant stood as
+// *"a listener and a constraint do not share one"*, which is the ADDRESS reading `D-98` withdraws: the rule's
+// sentence moves by one word (*"do not share one **handle**"*) and the generated half is the store's own
+// qualified `AddressMalformed` arm selected by the closed `'handle'` token (§3.3). **A FRAGMENT CANNOT SEE A
+// MESSAGE MOVE — that is how a false generated half survived four arms — so the declaration's two-part text is
+// spelled ONCE here, parameterised by the shared handle the drive itself spells, and the cell asserts equality
+// with it.** **The cell's arm, its `status` and its no-state-moves assertion are unmoved.**
+const crossKindB4Text = (handle) =>
+  `'${handle}' is already a handle this instance carries, a listener's handle and a constraint's id are one `
+  + `string and one string only, addConstraint refuses: the listener '${handle}' keeps that handle, and a `
+  + 'listener and a constraint do not share one handle';
 
 // ─────────────────────────────────────────────────────────────────────────────────────────
 // Helpers. None of them reads a declaration; each asserts one.
@@ -797,9 +808,14 @@ test('def_n_the_cross_kind_listener_handle_arm_refuses_as_address_malformed', ()
     'AddressMalformed',
     `DEF-N: surface.md §2.12 item 3 (C)(iii) and \`D-25\` ("Attempting to overwrite a listener with a constraint or vice versa is rejected") — the cross-kind duplicate answers AddressMalformed; status read ${JSON.stringify(caught.status)}`,
   );
-  assert.ok(
-    caught.message.includes(CROSS_KIND_SENTENCE),
-    `DEF-N: index.d.ts \`addConstraint\`'s amendment of 2026-10-24 — the message names both sides and carries the shared rule sentence "a listener and a constraint do not share one"; message read ${JSON.stringify(caught.message)}`,
+  assert.equal(
+    caught.message,
+    crossKindB4Text(handle),
+    `DEF-N: index.d.ts \`addConstraint\`'s cross-kind clause read with \`D-98\` item 4 and `
+    + '`docs/L1/cross-kind-handle-only.md` §3.6 — the message names both sides and is EXACTLY the '
+    + "declaration's `B-4` text, WHOLE: the store's qualified generated half and the package's clause naming "
+    + 'the live listener\'s handle and the rule\'s re-spelt sentence; message read '
+    + `${JSON.stringify(caught.message)}`,
   );
   assert.deepEqual(store.constraints(), [], 'DEF-N: (C)(iii) — the rejection is taken before any purge and before K-1, so no state moves');
 });

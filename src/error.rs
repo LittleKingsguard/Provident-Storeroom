@@ -133,7 +133,44 @@ pub const CODES: [&str; 20] = [
     "ConstraintPassRefused",
 ];
 
-/// `§8.2`: the generator's `args` record — five OPTIONAL members, each present only when the trigger
+/// **⟶ THE CLOSED ARM TOKEN — ONE MEMBER, MINTED 2026-11-01 (`D-98` item 4; `C-7`, §3.2, §3.7).**
+///
+/// **THE DEFECT IT ANSWERS, AT ITS BYTES.** The package's four cross-kind arms compose
+/// `` `${generated}, ${clause}` `` from this generator, and the generated half they reached was the
+/// `AddressMalformed` SEGMENT template rendered with the default container `''` —
+/// *&quot;'tabs' is not a legal address segment in '', segments are strings or non-negative integers&quot;* — **a
+/// FIRST SENTENCE THAT IS FALSE twice at once**: the segment IS legal (in this store's segment domain every
+/// string is), and the container `''` is not a container the mismatch was found in but the default a
+/// two-argument call renders.
+///
+/// **NO MEMBER THE CLOSED SET CARRIES CAN PRINT A TRUE FIRST SENTENCE FOR THAT FACT** (`C-6`, §3.1's twenty-row
+/// search): every row says what is wrong with **a segment, a value, a place, a tier, a file, a body or a pass**,
+/// and this fact is that **two kinds share one NAME**. **So the false half cannot be repaired by a container, a
+/// subject or a status move — it is repaired by a SENTENCE, and a sentence is a row's, which is what this member
+/// selects.**
+///
+/// **THE ONE TOKEN THIS CORRECTION REQUIRES IS `'handle'`, ITS ONLY CONSTRUCTED VALUE IS
+/// [`ArmToken::HandleClaim`], AND NOTHING ELSE IS EVER BUILT HERE**: the store renders ITS OWN WORDS from the
+/// flag — **no caller-supplied text can enter a generated sentence** — and an unknown token leaves the slot
+/// absent, where the ordinary rendering stands (which is the two-argument call's bytes, exactly). **The selector
+/// is a `Option` whose absence is the pre-existing behaviour**, so `MessageArgs::default()` and every
+/// `..Default::default()` literal in this workspace take `None` and **no existing message can move by
+/// accident** — the device [`Msg`]'s own `construction` member already uses below.
+///
+/// **AND `CODES` IS UNMOVED** (`:113`–`:134`, rank `1` and rank `16` keep their places): this member selects a
+/// QUALIFIED ARM of two rows the set already carries, and **no code and no member is minted** (`D-98` item 4,
+/// `DD-40`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ArmToken {
+    /// **THE HANDLE-CLAIM ARM** — *"a listener's handle and a constraint's id are one string and one string
+    /// only"*. It qualifies `AddressMalformed` (the three single-registration arms) and
+    /// `ConstraintListInvalid` (the batch), and **neither qualified arm prints a `<CONTAINER>` slot at all**:
+    /// the arm's sentence names no place, because the mismatch's subject is a NAME and not an address
+    /// (`C-8`, §3.3).
+    HandleClaim,
+}
+
+/// `§8.2`: the generator's `args` record — six OPTIONAL members, each present only when the trigger
 /// supplies it.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct MessageArgs {
@@ -148,6 +185,10 @@ pub struct MessageArgs {
     pub tiers: Vec<Tier>,
     /// The `file` tier's path, where the trigger is a `file`-tier commit.
     pub path: Option<String>,
+    /// **⟶ THE ARM TOKEN, ADDED 2026-11-01 ([`ArmToken`]'s own clause states the defect, the closed token and
+    /// why no member of the set could print a true sentence): `None` everywhere a caller supplies no token,
+    /// which is every pre-existing call site, so no message moves by accident.**
+    pub arm: Option<ArmToken>,
 }
 
 /// `§8.2`'s generator: `storeErrorMessage(code, args) → string`. Deterministic, complete over the set, and
@@ -176,6 +217,7 @@ pub fn storeErrorMessage(code: &str, args: &MessageArgs) -> String {
         path: args.path.clone(),
         kind: Kind::Map,
         argument: None,
+        arm: args.arm,
     ..Default::default()
     })
 }
@@ -204,6 +246,12 @@ pub(crate) struct Msg {
     /// where the act that supplies the missing key IS the construction; FALSE everywhere else — `write`'s
     /// required tier and `rollback`'s `opId` included — so their whole messages stay byte-for-byte.**
     pub construction: bool,
+    /// **⟶ THE ARM TOKEN, ADDED 2026-11-01, BESIDE `construction` AND ON THE SAME DEVICE ([`ArmToken`]'s own
+    /// clause): DEFAULTED to `None`, so every pre-existing `Msg` literal in this file takes the default through
+    /// `..Default::default()` and NONE of their messages can move by accident.** It is read by exactly two
+    /// branches — `AddressMalformed`'s and `ConstraintListInvalid`'s — and each reads it **before** its existing
+    /// branches and **on this member alone**.
+    pub arm: Option<ArmToken>,
 }
 
 impl Default for Msg {
@@ -221,6 +269,7 @@ impl Default for Msg {
             kind: Kind::Map,
             argument: None,
             construction: false,
+            arm: None,
         }
     }
 }
@@ -236,6 +285,26 @@ pub(crate) fn build(m: &Msg) -> String {
         .collect::<Vec<_>>()
         .join(", ");
     match m.code {
+        // **⟶ AND THIS ROW'S ONE QUALIFIED ARM, ADDED 2026-11-01 (`D-98` item 4; `C-7`, `C-8`; §3.3, §3.7).**
+        // **IT IS SELECTED ON THE NEW MEMBER ALONE AND IT STANDS BEFORE THE ROW'S EXISTING BRANCHES**, so an
+        // arm-tokened call never reaches the segment template, the absent-argument arm or the
+        // construction-aware arm — none of which could ever be true of the fact it states.
+        //
+        // **THE ROW'S DECLARED QUALIFIED ARM** (`docs/specs/storeroom-native/contract.md §8.2`, the amendment
+        // this correction owes — §4.13): `<mismatch clause>` = *"is already a handle this instance carries"*,
+        // `<available clause>` = *"a listener's handle and a constraint's id are one string and one string
+        // only"*, and **`<CONTAINER>`: NONE — THE ARM PRINTS NO CONTAINER SLOT AT ALL**, which is why the
+        // false placeholder disappears BY CONSTRUCTION rather than by a better container (§3.2 (e)).
+        //
+        // **AND THE SENTENCE CARRIES NEITHER THE WORD `address` NOR THE WORD `segment` NOR `''`** — the three
+        // false things the defect printed (`C-11` property 3). **THE SUBJECT IS THE SHARED HANDLE, ALREADY
+        // SPELLED BY THE CALLER** (`facade.rs` wraps it once), so the rendering is exactly
+        // `'<handle>' is already a handle this instance carries, a listener's handle and a constraint's id are
+        // one string and one string only`.
+        "AddressMalformed" if m.arm == Some(ArmToken::HandleClaim) => format!(
+            "{} is already a handle this instance carries, a listener's handle and a constraint's id are one string and one string only",
+            m.subject
+        ),
         "AddressMalformed" => match &m.argument {
             // **⟶ AND THIS ARM IS CONSTRUCTION-AWARE, ADDED 2026-10-17 (`DEF-2026-10-17-A`'s second shape).
             // `docs/specs/storeroom-native/contract.md` §8.2's `AddressMalformed` row PRINTS THE QUALIFIER
@@ -342,6 +411,21 @@ pub(crate) fn build(m: &Msg) -> String {
         // listeners: [], constraints: [{ address: ['a'], id: 'c1' }, { address: 'a', id: 'c2' }] })`
         // answers `'a' is not a valid constraint entry in 'constraints', a constraint entry is an address
         // and an id, and the address is a segment array`.**
+        // **⟶ AND THIS ROW'S ONE QUALIFIED ARM, ADDED 2026-11-01, ON THE SAME MEMBER AND BEFORE THE BRANCH
+        // BELOW (`C-8`, §3.3).** The batch's cross-kind collision IS a handle collision — the element's shape is
+        // fine — so the row's shape-shaped sentence is FALSE there and is made true **by amendment, not by
+        // substitution** (§3.1's last row).
+        //
+        // **THE ROW'S DECLARED QUALIFIED ARM** (`§8.2`, §4.13): `<mismatch clause>` = *"is already a handle this
+        // instance carries"*, `<available clause>` = *"a batch element's id is its pair's handle and it may not
+        // be one this construction adopts as a listener's"*, and **`<CONTAINER>`: NONE** — the list's name
+        // `constraints` is named on the package's clause side and not in the generated half, where it would read
+        // as the place the mismatch was found (§3.3). **The sentence names no `address`, no `segment` and no
+        // `''`.**
+        "ConstraintListInvalid" if m.arm == Some(ArmToken::HandleClaim) => format!(
+            "{} is already a handle this instance carries, a batch element's id is its pair's handle and it may not be one this construction adopts as a listener's",
+            m.subject
+        ),
         "ConstraintListInvalid" => format!(
             "{} is not a valid constraint entry in '{container}', a constraint entry is an address and an id, and the address is a segment array",
             m.subject
