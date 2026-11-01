@@ -293,9 +293,14 @@ function registrationEvaluation(kernel, store, address, id, constraint) {
   // **⟶ THE PAIR-APPLICATION RULE IS READ HERE, FIRST — `D-90`, `PIN-2` (v), `PIN-3`, `PIN-4` (iv).**
   // ═══════════════════════════════════════════════════════════════════════════════════════════════
   //
-  // **A PAIR WHOSE PARENT IS NOT A CONTAINER IS SKIPPED AT EVERY REGISTRATION INSTANT** — construction, a boot
+  // **A PAIR WHOSE PARENT DOES NOT RESOLVE IS SKIPPED AT EVERY REGISTRATION INSTANT** — construction, a boot
   // over an existing `filePath`, `addConstraint` and a re-arm alike, because the rule is GLOBAL and not
-  // batch-only (`D-90` (4)). **THE PREDICATE IS ASKED BEFORE THE CONTEXT IS BUILT AND BEFORE THE COMMIT FRAME IS
+  // batch-only (`D-90` (4)). **⟶ CORRECTED 2026-11-02 ON `D-96` (1)–(2): THIS CLAUSE READ *"A PAIR WHOSE PARENT
+  // IS NOT A CONTAINER IS SKIPPED"* AND THE SKIP'S THRESHOLD IS ABSENCE ALONE** — the architect, verbatim: *"Reject
+  // this, the constraint being there implicitly expects `'x'` to be a container"* — **so a parent that RESOLVES
+  // applies its pair, as a CONTAINER, as a LEAF or as the REGISTER, and only `AddressNotFound` at the parent skips
+  // it: a leaf standing at the pair's parent is the state the pair is asked to judge, not one to look away from.**
+  // **THE PREDICATE IS ASKED BEFORE THE CONTEXT IS BUILT AND BEFORE THE COMMIT FRAME IS
   // ENTERED**, so a skipped pair builds no context, appends no `constraint-check` or `repair-run` entry, enters
   // no frame and opens no attempt; **it returns state 1's answer (`null`) and the registry row the caller's
   // `K-1` already wrote stands UNMOVED** — the pair is CARRIED and `constraints()` names it (`PIN-4` (i)).
@@ -675,11 +680,21 @@ function registrationRerun(kernel, attempt, produced, key) {
     // ═══════════════════════════════════════════════════════════════════════════════════════════════
     //
     // **`D-90`'s RULE IS GLOBAL, SO NO ARM OF IT MAY BE CARVED OUT SILENTLY**: the re-run's one reachable
-    // instance is a repair that removes the pair's OWN parent during the registration — it writes a leaf over
-    // it, or deletes it — **and on that arm the parent is no longer a container at the instant the re-run would
-    // apply the pair.** **THE PAIR IS SKIPPED THERE AND THE REGISTRATION STANDS ON THE REPAIR'S LANDING**, and
-    // the pair is CARRIED for the first later instant its parent stands (`PIN-4` (i)). **It is not asked, it
-    // crosses nothing, and it cannot refuse the registration** (`PIN-3`).
+    // instance is a repair that leaves the pair's OWN parent UNRESOLVABLE during the registration — it DELETES
+    // it — **and on that arm the parent does not resolve at the instant the re-run would apply the pair.**
+    // **THE PAIR IS SKIPPED THERE AND THE REGISTRATION STANDS ON THE REPAIR'S LANDING**, and the pair is CARRIED
+    // for the first later instant its parent stands (`PIN-4` (i)). **It is not asked, it crosses nothing, and it
+    // cannot refuse the registration** (`PIN-3`).
+    //
+    // **⟶ AND THAT CLAUSE'S FIRST READING IS RE-DERIVED HERE, 2026-11-02 — `D-96` (1)–(5), the architect on this
+    // arm verbatim: *"See above"*.** It read *"a repair that removes the pair's OWN parent … it writes a leaf over
+    // it, or deletes it … THE PAIR IS SKIPPED THERE AND THE REGISTRATION STANDS ON THE REPAIR'S LANDING"*, **and
+    // a LEAF does not skip its pair**: a pair's presence declares its parent a container, so **a repair that
+    // WRITES A LEAF over that parent makes the pair ASKED at the re-run** — the body meets `undefined` as its own
+    // address's state — **and a body that REFUSES refuses the REGISTRATION at rank `19`
+    // `ConstraintRefusedAtRegistration`, on the `KC-5` arm**: the pair is the repaired one. **The inert-pair
+    // hazard survives at the DELETE arm ALONE** (`D-96` (5)): that is the arm that skips, and the pair it skips
+    // is carried until its parent stands again.
     //
     // **AND THE RE-RUN ITSELF IS UNCONDITIONAL (`D-94` (1), the architect verbatim: *"Always rerun after a
     // repair"*).** This clause skips a PAIR inside the re-run and never the re-run: `registrationAttempt` calls

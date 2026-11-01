@@ -606,15 +606,21 @@ function evaluate(kernel, attempt, landing) {
       // `PIN-2` (v), `PIN-3`, `PIN-4` (iv).**
       // ═══════════════════════════════════════════════════════════════════════════════════════════════
       //
-      // **A PAIR WHOSE PARENT IS NOT A CONTAINER IS SKIPPED AT EVERY INSTANT THAT WOULD APPLY IT**, and the pass
-      // over a `write`, a `delete` or a `rollback` is the fifth of those instants (`D-90` (4)). **The rule is
-      // read HERE and not at the store: the store still computes the reach** (`D-56`/`D-66`/`D-69`, untouched —
-      // the membership filter above is byte-unmoved), and what this clause decides is only **which of the pairs
-      // that reach names is actually ASKED**. **THE ADDRESS IT IS ASKED AT IS THE PAIR'S OWN** — the array it
-      // was registered at, and never the act's — because the rule's discriminator is *"the address's parent"*: a
-      // pair at `['window','tabs']` is SKIPPED after a `delete` of `['window']` however the act is addressed.
-      // **A pair standing over more than one address is applicable where ANY of them has a container parent**:
-      // one body is asked once, and the pair is not killed for a second address's sake.
+      // **A PAIR WHOSE PARENT DOES NOT RESOLVE IS SKIPPED AT EVERY INSTANT THAT WOULD APPLY IT**, and the pass
+      // over a `write`, a `delete` or a `rollback` is the fifth of those instants (`D-90` (4)). **⟶ CORRECTED
+      // 2026-11-02 ON `D-96` (1)–(3): THIS SENTENCE READ *"A PAIR WHOSE PARENT IS NOT A CONTAINER"*, AND THE
+      // THRESHOLD IS ABSENCE ALONE** — the architect, verbatim: *"Reject this, the constraint being there
+      // implicitly expects `'x'` to be a container"* — **so the answers that APPLY a pair are the BRANCH parent
+      // and the LEAF parent, and the one answer that SKIPS it is `AddressNotFound` at the parent.**
+      // **The rule is read HERE and not at the store: the store still computes the reach** (`D-56`/`D-66`/`D-69`,
+      // untouched — the membership filter above is byte-unmoved), and what this clause decides is only **which of
+      // the pairs that reach names is actually ASKED**. **THE ADDRESS IT IS ASKED AT IS THE PAIR'S OWN** — the
+      // array it was registered at, and never the act's — because the rule's discriminator is *"the address's
+      // parent"*: a pair at `['window','tabs']` is SKIPPED after a `delete` of `['window']` however the act is
+      // addressed.
+      // **A pair standing over more than one address is applicable where ANY of them RESOLVES at its parent — as a
+      // container, as a leaf, or as the register**: one body is asked once, and the pair is not killed for a
+      // second address's sake.
       //
       // **A SKIP IS NOT A REFUSAL** (`PIN-3`): the pair is not asked, it joins neither `ran` nor
       // `appliedRepairs`, it appends no `constraint-check` entry, it opens no repair and it cannot reach a
