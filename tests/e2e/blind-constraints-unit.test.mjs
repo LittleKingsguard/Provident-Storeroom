@@ -135,7 +135,18 @@ test('unit · fail-surface.md §2 (`KC-7` and `KC-2` rows) · THE SAME POSITION,
   );
 });
 
-test('unit · parameter-semantics.md §2.8 (`PAR-C-8`) · THE REPAIR\'S RETURN IS A CLOSED TWO-ARM SET OF THREE MEMBERS — `{ok: true, op}` and `{ok: false, message}` — and the `op` is the op the repair LANDED, read off that return and nowhere else', () => {
+test('unit · parameter-semantics.md §2.8 (`PAR-C-8`) · THE REPAIR\'S RETURN IS A CLOSED TWO-ARM SET OF THREE MEMBERS — `{ok: true, op}` and `{ok: false, message}` — and the `op` is the op the repair LANDED, read off that return and nowhere else', (t) => {
+  // **⟶ RE-DERIVED 2026-11-01 BY `D-105` — AND THE CELL\'S NAME IS ITS FILED IDENTITY, KEPT SO A READER CAN
+  // TRACE IT FROM THE DECLARATION\'S RED SET** (`docs/L1/op-free-repair-credit.md` §7.4's Class `B`; the ruling at
+  // `strata/decisions.md` · `D-105`). **THE FIGURE THAT MOVED, PRINTED BESIDE THE ONE IT REPLACES:** this drive\'s
+  // repair writes **THREE positions** (`store.write(['m'], 'mem', 2)`, `:148`), so it names no commit and opens a
+  // commit of its own (`D-103`\'s unsupported route); the enclosing attempt can therefore pin no op of it and
+  // lands on `(d2)`. **THE OLD READING WAS `outcome === 'passed'`, `ops.length === 2` and `ops[1].opId ===
+  // landedOps[0]` — "the repaired op IS the op the repair\'s own return carried"; the RULING\'S READINGS are the
+  // residual `KC-4`, the template naming the ATTEMPT\'s address, and the repair\'s own edit standing where it
+  // landed because no enclosing attempt op named that address (`D-89`).** **AND THE Q-2 CONSEQUENCE IS MARKED
+  // HERE RATHER THAN ABSORBED: the caller\'s own write now goes from a receipt to a `ConstraintPassRefused`, and
+  // only the architect may rule that in (`D-103`\'s reservation; the declaration\'s `Q-2`).**
   const store = make();
   store.write(['n'], 'mem', 0);
   store.write(['m'], 'mem', 0);
@@ -152,12 +163,37 @@ test('unit · parameter-semantics.md §2.8 (`PAR-C-8`) · THE REPAIR\'S RETURN I
     };
   });
   const issued = commit(store, ['n'], 'mem', 1);
-  const attemptReport = runAttempt(store, issued);
-  // The repair's edit resolved the violation, so arm `(g)` is reached and the repair's op joined `ops`.
-  assert.equal(attemptReport.outcome, 'passed');
-  assert.equal(attemptReport.ops.length, 2, 'the attempt created TWO ops: the write\u2019s and the repair\u2019s');
-  assert.equal(attemptReport.ops[0].opId, issued.op.opId, 'the write\u2019s op stands FIRST, in creation order');
-  assert.equal(attemptReport.ops[1].opId, landedOps[0], 'the repaired op IS the op the repair\u2019s own return carried');
+  const caught = catchIt(() => runAttempt(store, issued));
+  assert.equal(caught.status, 'KC-4',
+    '**THE ENCLOSING ATTEMPT LANDS ON `(d2)`** — the repair\'s write named no commit, so the attempt can pin no '
+    + `op of it: read ${JSON.stringify(caught.status)} (§1.1 CT-2 step 5)`);
+  assert.equal(caught.message, 'the repair c1 produced no op at n',
+    '**AND THE SENTENCE IS THE RESIDUAL TEMPLATE BYTE-FOR-BYTE, NAMING THE ATTEMPT\'S ADDRESS** (`§5.1`, kept '
+    + `unedited): read ${JSON.stringify(caught.message)}`);
+  assert.equal(landedOps.length, 1,
+    'the repair itself RAN and its own edit LANDED — the defect the arm is about is the enclosing attempt\'s '
+    + `reach, not the repair\'s — read ${JSON.stringify(landedOps)}`);
+  assert.equal(store.read(['m']), 2,
+    '**AND THE REPAIR\'S EDIT STANDS AT ITS OWN ADDRESS** — the address lies at no address an enclosing '
+    + `attempt op named, so \`D-89\`'s geometry leaves it standing: read ${JSON.stringify(store.read(['m']))}`);
+  assert.equal(store.read(['n']), 0,
+    'while the attempt\'s own address is restored to the state it stood at before the attempt — read '
+    + `${JSON.stringify(store.read(['n']))}`);
+  assert.equal(ofKind(caught.log, 'repair-run').length, 1,
+    'and the `repair-run` entry stands once, carrying the residual sentence');
+  assert.equal(ofKind(caught.log, 'outcome').length, 1,
+    'with ONE `outcome` entry, the failing arm\'s own');
+  assert.equal(ofKind(caught.log, 'outcome')[0].state, 'KC-4',
+    'carrying the same token the thrown form\'s `status` does');
+  assert.equal(ofKind(caught.log, 'commit').length, 1,
+    '**AND THE REPAIR\'S OWN COMMIT STANDS IN THE LOG AS ITS OWN `commit` ENTRY** — the nested attempt\'s '
+    + 'terminal act, which is the whole shape of the unsupported route: read '
+    + JSON.stringify(caught.log.map((entry) => entry.kind)));
+  t.diagnostic('PAR-C-8 · 2026-11-01 · re-derived by `D-105`: the three-position repair\'s edit landed '
+    + `(${JSON.stringify(landedOps)}) and stands at ['m'] = ${JSON.stringify(store.read(['m']))}, while the`
+    + 'enclosing attempt refused ' + JSON.stringify(caught.status) + ' · ' + JSON.stringify(caught.message)
+    + ' and left its own address at ' + JSON.stringify(store.read(['n'])) + '. **Q-2: the unnamed route\'s '
+    + 'repair is credited by nothing and its enclosing write now refuses.**');
 });
 
 test('unit · parameter-semantics.md §2.8 (`PAR-C-8`) outside forms · A REPAIR THAT CARRIES NO OP — a bare `true`, a bare `false`, `undefined`, `{ok: true}` with no `op`, `{ok: false}` with no message, or any other object — IS READ AS THE `{ok: false, message}` ARM, and the kernel\'s own sentence names the unrecognized result', () => {
@@ -234,14 +270,36 @@ test('unit · parameter-semantics.md §2.5 (`PAR-C-5`) · THE CONSTRAINT\'S OUTC
   }
 });
 
-test('unit · attempt-lifecycle.md §2.4 item 4 arms `(e)`/`(f)` · A REPEAT VIOLATION IS `KC-5` WHERE THE PAIR\'S REPAIR IS RECORDED AS APPLIED AND `KC-6` WHERE IT IS NOT — the repair\'s own edit broken by another repair, versus a repair the attempt never applied', () => {
+test('unit · attempt-lifecycle.md §2.4 item 4 arms `(e)`/`(f)` · A REPEAT VIOLATION IS `KC-5` WHERE THE PAIR\'S REPAIR IS RECORDED AS APPLIED AND `KC-6` WHERE IT IS NOT — the repair\'s own edit broken by another repair, versus a repair the attempt never applied', (t) => {
+  // **⟶ RE-DERIVED 2026-11-01 BY `D-105` — AND THE MOVEMENT IS THE FIXTURE\'S ROUTE, NOT THE LIMBS\' RULE.**
+  // Both repairs below are `repairElsewhere`\'s: **THREE positions, naming no commit** (`:76`–`:85`), which is
+  // `D-103`\'s unsupported route — so under `D-105` each enclosing attempt lands on `(d2)`/`KC-4` **before any
+  // re-run**, and the repeat limbs `(e)`/`(f)` are never REACHED through this fixture. **THE OLD FIGURES WERE
+  // `KC-5` AND `KC-6` WITH A SECOND `constraint-check` ENTRY FOR `A`; THE RULING\'S FIGURES ARE `KC-4` ON BOTH
+  // DRIVES, the residual template naming each attempt\'s address, and the repair\'s edit STANDING at the beside
+  // address it chose (`D-89`).** **THE LIMBS THEMSELVES ARE UNMOVED AND ARE MEASURED ELSEWHERE ON THE SUPPORTED
+  // ROUTE** — `ck_prop_P_SM_4_one_drive_per_arm_of_the_repeat_pair_and_the_owed_op`\'s limb `(e)` drives its
+  // repair at `write`\'s FOURTH position and `ck_prop_P_SM_6_the_two_repeat_limbs_are_distinguishable_by_the_pair_s_own_state`
+  // reads the two limbs off the pair\'s own state; both are green on this tree. **★ AND THE `Q-2` CONSEQUENCE IS
+  // MARKED, NOT ABSORBED: `D-103` reserved whether the unnamed route may be refused, and this is the caller-visible
+  // consequence — its write now fails instead of answering a receipt.**
+  //
   // `(e)`: the repair runs, its op lands, and the pair violates AGAIN with the repair already recorded.
   const applied = make();
   applied.write(['n'], 'mem', 0);
   register(applied, ['n'], 'R', repairElsewhere(applied, ['n'], 1, ['z']));
   const caughtApplied = catchIt(() => runAttempt(applied, commit(applied, ['n'], 'mem', 1)));
-  assert.equal(caughtApplied.status, 'KC-5');
-  assert.equal(ofKind(caughtApplied.log, 'repair-run').length, 1, 'the arm\u2019s own repair-run count is 1 and never 0');
+  assert.equal(caughtApplied.status, 'KC-4',
+    '**LIMB `(e)`\'S FIXTURE NOW ANSWERS `(d2)`** — the repair\'s three-position write opened a commit of its '
+    + `own, so the enclosing attempt pinned no op and never re-ran: read ${JSON.stringify(caughtApplied.status)}`);
+  assert.equal(caughtApplied.message, 'the repair R produced no op at n',
+    'and the sentence is the residual template naming the enclosing attempt\'s address — read '
+    + JSON.stringify(caughtApplied.message));
+  assert.equal(ofKind(caughtApplied.log, 'repair-run').length, 1,
+    'the arm\u2019s own repair-run count is still 1 and never 0 — the REPAIR RAN, and only the credit is gone');
+  assert.equal(applied.read(['z']), 9,
+    '**AND ITS EDIT STANDS AT THE BESIDE ADDRESS IT CHOSE** — no enclosing attempt op named `[\'z\']` (`D-89`) — '
+    + `read ${JSON.stringify(applied.read(['z']))}`);
 
   // `(f)`: a pair that RAN and passed is broken by ANOTHER pair's repair, and its own repair never ran.
   const never = make();
@@ -257,21 +315,75 @@ test('unit · attempt-lifecycle.md §2.4 item 4 arms `(e)`/`(f)` · A REPEAT VIO
       : true,
   );
   const caughtNever = catchIt(() => runAttempt(never, commit(never, ['a'], 'mem', 1)));
-  assert.equal(caughtNever.status, 'KC-6');
-  assert.equal(ofKind(caughtNever.log, 'constraint-check').filter((entry) => entry.id === 'A').length, 2);
+  assert.equal(caughtNever.status, 'KC-4',
+    '**LIMB `(f)`\'S FIXTURE ANSWERS `(d2)` TOO**, for the same reason — read '
+    + `${JSON.stringify(caughtNever.status)}`);
+  assert.equal(caughtNever.message, 'the repair B produced no op at a',
+    'with the residual template naming ITS attempt\'s address — read ' + JSON.stringify(caughtNever.message));
+  assert.equal(ofKind(caughtNever.log, 'constraint-check').filter((entry) => entry.id === 'A').length, 1,
+    '**AND THE SECOND EVALUATION THE LIMB ONCE ASSERTED NEVER HAPPENS** — the old figure was `2`; the attempt '
+    + 'ends at the credit, so `A` is asked once and the re-run never runs: read '
+    + JSON.stringify(ofKind(caughtNever.log, 'constraint-check').map((entry) => entry.id)));
+  assert.equal(never.read(['c']), 9,
+    'and `B`\'s repair edit stands at `[\'c\']`, its own commit\'s landing — read '
+    + JSON.stringify(never.read(['c'])));
+  t.diagnostic('PAR-C-8 arms (e)/(f) · 2026-11-01 · re-derived by `D-105`: limb (e)\u2019s fixture answers '
+    + `${JSON.stringify(caughtApplied.status)} · ${JSON.stringify(caughtApplied.message)} with its repair\'s edit `
+    + `standing at ['z'] = ${JSON.stringify(applied.read(['z']))}; limb (f)\'s answers `
+    + `${JSON.stringify(caughtNever.status)} · ${JSON.stringify(caughtNever.message)} with A asked `
+    + `${ofKind(caughtNever.log, 'constraint-check').filter((entry) => entry.id === 'A').length} time(s) and `
+    + `['c'] = ${JSON.stringify(never.read(['c']))}. **The two LIMBS are unmoved and are measured on the supported `
+    + 'route by `ck_prop_P_SM_4_one_drive_per_arm_of_the_repeat_pair_and_the_owed_op` and '
+    + '`ck_prop_P_SM_6_the_two_repeat_limbs_are_distinguishable_by_the_pair_s_own_state`. **Q-2: the unnamed '
+    + 'route\'s repair is credited by nothing and its enclosing write now refuses.**');
 });
 
-test('unit · parameter-semantics.md §2.9 (`PAR-C-9`) · THE APPLIED-REPAIR MARKER IS PER ATTEMPT AND FOR NO OTHER: a second, SEPARATE attempt at the same address runs the SAME repair AGAIN, with its OWN `repair-run` entry', () => {
+test('unit · parameter-semantics.md §2.9 (`PAR-C-9`) · THE APPLIED-REPAIR MARKER IS PER ATTEMPT AND FOR NO OTHER: a second, SEPARATE attempt at the same address runs the SAME repair AGAIN, with its OWN `repair-run` entry', (t) => {
+  // **⟶ RE-DERIVED 2026-11-01 BY `D-105`.** The fixture is `repairElsewhere`\'s — **THREE positions, naming no
+  // commit** — so each attempt lands on `(d2)`/`KC-4` instead of the `KC-5` the marker once selected. **THE OLD
+  // FIGURE, PRINTED: `first.status === 'KC-5' && second.status === 'KC-5'`, i.e. the marker was read by the REPEAT
+  // LIMB; THE RULING\'S FIGURE: both attempts answer `KC-4` with the residual template, and the marker\'s SUBJECT —
+  // that nothing carries from one attempt to the next — is read at the observables that survive: the repair RUNS
+  // AGAIN in the second attempt (one `repair-run` entry each, one fresh landing each) and the two logs are two
+  // records and never one shared list. ★ **AND THE `Q-2` CONSEQUENCE IS MARKED: on this route the marker is no
+  // longer OBSERVABLE through the repeat limb at all, which is the caller-visible regression `D-103` reserved and
+  // only the architect may rule in.**
   const store = make();
   store.write(['n'], 'mem', 0);
   register(store, ['n'], 'R', repairElsewhere(store, ['n'], 1, ['z']));
   const first = catchIt(() => runAttempt(store, commit(store, ['n'], 'mem', 1)));
   const second = catchIt(() => runAttempt(store, commit(store, ['n'], 'mem', 1)));
-  assert.equal(first.status, 'KC-5');
-  assert.equal(second.status, 'KC-5');
-  assert.equal(ofKind(first.log, 'repair-run').length, 1);
-  assert.equal(ofKind(second.log, 'repair-run').length, 1, 'the second attempt\u2019s marker started EMPTY');
+  assert.equal(first.status, 'KC-4',
+    'the first attempt answers the residual arm — read ' + JSON.stringify(first.status));
+  assert.equal(second.status, 'KC-4',
+    '**AND THE SECOND ANSWERS IT TOO — THE MARKER CARRIED NOTHING FORWARD**: a marker left standing from the '
+    + 'first attempt would have had to change this drive\'s arm, and no member of it did — read '
+    + JSON.stringify(second.status));
+  assert.equal(first.message, 'the repair R produced no op at n',
+    'the first attempt\'s sentence is the residual template at its own address — read '
+    + JSON.stringify(first.message));
+  assert.equal(second.message, first.message,
+    'and the second\'s is the same sentence, which is the shape a PER-ATTEMPT state leaves: two attempts, two '
+    + 'identical arms, nothing inherited');
+  assert.equal(ofKind(first.log, 'repair-run').length, 1,
+    'the first attempt carries ONE `repair-run` entry — the repair ran there');
+  assert.equal(ofKind(second.log, 'repair-run').length, 1,
+    '**AND THE SECOND CARRIES ITS OWN ONE — THE SECOND ATTEMPT\'S MARKER STARTED EMPTY** (`PAR-C-9`\'s own '
+    + 'sentence, read at the count that still discriminates): a marker that survived the first attempt\'s '
+    + 'failure would have suppressed this repair and left the count at `0`');
+  assert.equal(ofKind(first.log, 'repair-run')[0].opId === ofKind(second.log, 'repair-run')[0].opId, false,
+    '**AND THE TWO ENTRIES NAME TWO DIFFERENT OPS** — each repair landed its own edit at `[\'z\']`, so the '
+    + 'second run is a run and not a replayed reading: read '
+    + JSON.stringify([ofKind(first.log, 'repair-run')[0].opId, ofKind(second.log, 'repair-run')[0].opId]));
   assert.notDeepEqual(first.log, second.log, 'the two logs are two records and never one shared list');
+  assert.notEqual(first.log, second.log,
+    'and they are two OBJECTS, not two equal readings of one list — the identity, not the shape');
+  t.diagnostic('PAR-C-9 · 2026-11-01 · re-derived by `D-105`: both attempts answered '
+    + `${JSON.stringify(first.status)} · ${JSON.stringify(first.message)}; the repair ran once in each (`
+    + `${ofKind(first.log, 'repair-run').length} / ${ofKind(second.log, 'repair-run').length}) and landed `
+    + `${JSON.stringify([ofKind(first.log, 'repair-run')[0].opId, ofKind(second.log, 'repair-run')[0].opId])}; `
+    + 'the two logs are two objects. **The `KC-5` reading the marker once selected is unobservable on this '
+    + 'route — the Q-2 consequence.**');
 });
 
 test('unit · kernel-surface.md §2.5 item 1 read through `D-65` · `LogEntry` CARRIES EXACTLY FIVE MEMBERS — `{kind, id, message, opId, state}` — with NO `seq` and the POSITION asserted by the ARRAY INDEX (`log[index] === entry`), `kind` one of the four, and `state` `null` on the three non-`outcome` kinds', () => {
@@ -287,7 +399,23 @@ test('unit · kernel-surface.md §2.5 item 1 read through `D-65` · `LogEntry` C
       : true,
   );
   register(store, ['m'], 'c2', () => true);
-  const attemptReport = runAttempt(store, commit(store, ['n'], 'mem', 1));
+  // **⟶ RE-DERIVED 2026-11-01 BY `D-105`: THE RUN NO LONGER RETURNS A REPORT.** This drive\'s repair writes
+  // **THREE positions** (`store.write(['m'], 'mem', 2)`, `:285`), so the enclosing attempt lands on `(d2)` and
+  // `runAttempt` THROWS — the old bytes read `attemptReport.log` off a RETURNED report. **THE CENSUS IS UNMOVED
+  // AND ITS SUBJECT IS THE SAME LIST**: a refusal carries the attempt\'s own log at its `log` member
+  // (`fail-surface.md §1.1` item 2, and `D-58`\'s handoff), so every assertion below reads the SAME five-member
+  // entries, the same array-index positions and the same kind/state rule — only the route to the list moved.
+  const attemptReport = (() => {
+    try {
+      return runAttempt(store, commit(store, ['n'], 'mem', 1));
+    } catch (thrown) {
+      assert.equal(thrown.status, 'KC-4',
+        'the drive\'s own coherence: the enclosing attempt answers `(d2)` and carries its log — read '
+        + JSON.stringify(thrown.status));
+      return thrown;
+    }
+  })();
+  assert.ok(Array.isArray(attemptReport.log), 'the list is the same member the closed report carried');
   assert.ok(attemptReport.log.length >= 3);
   attemptReport.log.forEach((entry, index) => {
     assert.deepEqual(Object.keys(entry).sort(), [...LOG_MEMBERS].sort());

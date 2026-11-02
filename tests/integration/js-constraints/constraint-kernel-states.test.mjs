@@ -1550,34 +1550,58 @@ test('ck_neg_1_the_first_violating_pair_decides_and_the_second_pair_is_never_eva
  * THE STATE THE NAMED OP'S OWN SUBTREE STOOD AT, read through the store's own `read` — which is the
  * ADDRESS'S ACTUAL post-failure state and not an absence.
  *
- * WHAT THIS CELL NOW ASSERTS, EACH TERM OFF A CLAUSE:
- *   (i)   `closed.ops.length === 2` and the second op's address is the DESCENDANT — `§2.6` item 1
- *         ("the composition's candidate set is therefore exactly `AttemptRecord.ops`") and item 8 (iii)
- *         ("nothing is undone merely because it lies outside the attempt's `address`");
- *   (ii)  `closed.rollback.length === 2`, the repaired op first and the first write last, the first call
- *         RETURNED (`failed: false`) and the last call THREW (`failed: true`) — `§2.6` item 2's order and
- *         item 5 (a) (i): "the list's size IS the number of steps, and every member of the list gets its
- *         own call and its own `RollbackStep`, including the LAST one";
- *   (iii) every step's `checkpoint` is `null` — item 8 (iii)'s ADDRESS-WIDE rule, no step reading a
- *         landing at a BESIDE address;
- *   (iv)  every step's `restoredTo` is the store's own TWO-member `BaseState` (`store-model.md §6.2`),
- *         and the THROWING step's arm is read against the store's own `read` OF THE ATTEMPT'S ADDRESS
- *         (`§2.6` item 3; `F-5`-style floor arms carry no returned `RollbackResult`).
+ * WHAT THIS CELL NOW ASSERTS, EACH TERM OFF A CLAUSE — **⟶ RE-DERIVED AGAIN 2026-11-01 BY `D-105`, AND THE CLAUSE
+ * THAT MOVED IS THE THIRD-POSITION ROUTE'S: THE REPAIR'S WRITE NAMES NO COMMIT, SO THE ENCLOSING ATTEMPT CANNOT
+ * OWN ITS OP AND THE ATTEMPT LANDS ON `(d2)`** (`strata/decisions.md` · `D-105` items `1` and `3`;
+ * `docs/L1/op-free-repair-credit.md` §1.1 `CT-2` step 5, §4 `RB-5`, §7.4's Class `B`). **THE OLD FIGURE AND THE
+ * NEW ONE, PRINTED BESIDE EACH OTHER SO NO READER RECONSTRUCTS THE MOVEMENT:**
+ *   · **THE ARM** — `KC-5` (the pair IN `ran` and IN `appliedRepairs`, limb `(e)`) → **`KC-4`**, the residual
+ *     *"the repair `x` produced no op at `<the attempt's address>`"* (§5.1's template, byte-for-byte): the
+ *     repair's write opened a commit of its own (`D-103`'s unsupported route), so its op is in NO member of the
+ *     enclosing attempt and the invocation landed nothing the attempt can pin;
+ *   · **THE CANDIDATE SET** — `closed.ops.length === 2` with the descendant op second → **`1`**, the attempt's
+ *     own first write alone (`§4 RB-5`: on `(d2)` nothing is pinned);
+ *   · **AND THE DESCENDANT IS STILL SWEPT** — this is the term that did NOT move, and it did not move because
+ *     the axis is the ADDRESS GEOMETRY and never the credit (`D-89`: *"a repair's write **at or under** an
+ *     address one of `attempt.ops` named **is swept with the attempt, credited or not**"*): the one floor call is
+ *     the attempt's own op at `[root,'a']`, and the child's op lies IN that op's subtree. **THE PRICE, PRINTED:
+ *     the op is swept while standing in no candidate set — a fact the pre-ruling cell could not show, because
+ *     there the op was a candidate.**
+ * **★ AND THAT CONSEQUENCE IS `Q-2`, THE QUESTION `D-103` RESERVED AND ONLY THE ARCHITECT MAY ANSWER:** the
+ * unnamed route's repair is promised nothing (`D-103` item `1`'s five non-promises) and its enclosing write now
+ * goes from a receipt to a `ConstraintPassRefused`. **This cell asserts the behaviour the tree HAS and marks the
+ * consequence here rather than absorbing it.**
  *
- * FAIL STATES: a `checkpoint` READ OFF A CALL'S OWN LANDING rather than off the attempt's own address
- * (a non-`null` member here, where no landing at that address left it valid); a call list that omits an
- * op because it lies OUTSIDE the attempt's `address`; a composition that stops before its LAST call, so
- * the attempt's own first write is never called; a `KC-5`/`KC-3` arm where the last call met the store's
- * own floor code; a `restoredTo` that is `null`, that is not a two-member `BaseState`, or whose `present`
- * arm is asserted rather than read through the store's own `read`.
+ * WHAT THIS CELL ASSERTS, EACH TERM OFF A CLAUSE:
+ *   (i)   `closed.ops.length === 1` and that one op is the ATTEMPT'S OWN — `§2.6` item 1
+ *         ("the composition's candidate set is therefore exactly `AttemptRecord.ops`") read with `§4 RB-5`
+ *         ("on a failing arm nothing is pinned");
+ *   (ii)  `closed.rollback.length === 1`: the ONE call is the attempt's own op — `§2.6` item 2's LAST member and
+ *         `D-40`'s only one — it RETURNED (`failed: false`) and its `undoneOps` carry the attempt's own op AND
+ *         the descendant the attempt never pinned (`D-89`'s at-or-under reach);
+ *   (iii) the step's `checkpoint` is `null` — item 8 (iii)'s ADDRESS-WIDE rule, no step reading a landing at a
+ *         BESIDE address;
+ *   (iv)  the step's `restoredTo` is the store's own TWO-member `BaseState` (`store-model.md §6.2`), read at the
+ *         store's own verb rather than asserted as an absence.
+ *
+ * FAIL STATES, RE-DERIVED: an attempt that CREDITS a repair whose write named no commit (the pre-ruling
+ * behaviour, which would show `closed.ops.length === 2` and a `passed`/`KC-5` arm); a descendant op that STANDS
+ * because it was in no candidate set (the address rule read as a credit rule — the axis `D-89` withdrew); a
+ * `checkpoint` READ OFF A CALL'S OWN LANDING rather than off the attempt's own address; a composition that stops
+ * before its LAST call; a `restoredTo` that is `null` or is not a two-member `BaseState`; and a floor arm whose
+ * `undoneOps` omit the descendant that the at-or-under reach took.
  */
-test('ck_neg_2_the_call_list_reaches_beside_addresses_and_the_one_call_is_the_lists_last_member', async () => {
+test('ck_neg_2_the_call_list_reaches_beside_addresses_and_the_one_call_is_the_lists_last_member', async (t) => {
   const { register, commit, runAttempt, report } = await kernel();
   const store = makeStore({ journalLength: 16 });
   const root = tag('neg2'); // ONE tag, read once: `tag()` mints a fresh label on every call
   const address = [root, 'a'];
   const beside = [root, 'a', 'child'];
   let nx = 0;
+  // **THE OP THE REPAIR'S WRITE LANDS AT THE DESCENDANT** — captured because under `D-105` it stands in NO
+  // member of the enclosing attempt's `ops`, and the cell must still be able to name it when it asserts the
+  // address reach that swept it.
+  let descendantOp = null;
   // ⟶ `A135` (3) / `§7.3` (b) state 1 — and `3-bis` makes the shield mandatory here: unshielded, the
   // registration ATTEMPTS this repair and spends `nx === 1` there, so the call list this cell walks is never
   // built by the attempt the cell drives.
@@ -1591,7 +1615,9 @@ test('ck_neg_2_the_call_list_reaches_beside_addresses_and_the_one_call_is_the_li
     if (context.address.length !== address.length) return true; // a DESCENDANT act's ask (`D-56`)
     nx += 1;
     if (nx === 1) {
-      return { repair: () => { const landed = store.write(beside, 'mem', 'child-fixed').op; return { ok: true, message: 'x was repaired at the address beside the attempt\'s own', op: landed }; }, message: 'x is invalid at the attempt\'s own address' };
+      // **THREE POSITIONS AND NO COMMIT NAMED** — `D-103`'s unsupported route, and the state this cell drives:
+      // the repair's own write opens a commit of its own, so its op belongs to THAT attempt and never to this one.
+      return { repair: () => { const landed = store.write(beside, 'mem', 'child-fixed').op; descendantOp = landed; return { ok: true, message: 'x was repaired at the address beside the attempt\'s own', op: landed }; }, message: 'x is invalid at the attempt\'s own address' };
     }
     return { message: 'x is broken again at the op its own repair landed beside it' };
   }));
@@ -1608,19 +1634,38 @@ test('ck_neg_2_the_call_list_reaches_beside_addresses_and_the_one_call_is_the_li
   // met the floor), and `KC-8` → `KC-5` here, because `D-40`'s composition is ONE call over the attempt's
   // FIRST op — that op stands at the attempt's OWN address, its subtree carries the op the repair landed
   // BESIDE it, and the store sweeps both in one act.**
-  assert.equal(r.thrown.status, 'KC-5',
-    'the attempt fails at ITS OWN arm — `x` IN `ran` AND IN `appliedRepairs`, limb (e) — and the '
-    + 'composition\'s one floor call performed the reversal of BOTH ops (`D-40`, 2026-10-26) — read '
+  // ── **⟶ RE-DERIVED AGAIN 2026-11-01 BY `D-105` — THE ARM MOVES `KC-5` → `KC-4`, AND THE MOVEMENT IS THE
+  // THIRD-POSITION ROUTE'S OWN.** The repair's write names no commit (`D-103`), so it opens a commit of its own
+  // and its op stands in NO member of this attempt: the invocation landed nothing the enclosing attempt can pin,
+  // and `§1.1 CT-2` step 5's residual answers. **THE TWO EARLIER READINGS ARE NAMED RATHER THAN DELETED**
+  // (`RCA-8(g)` ANNOTATE-BESIDE): *"`KC-5` → `KC-8` on 2026-10-16 … and `KC-8` → `KC-5` here, because `D-40`'s
+  // composition is ONE call over the attempt's FIRST op"* — **and the third reading is this one: the attempt
+  // never reaches limb `(e)` at all, because the pair's repair is never CREDITED (`attempt.appliedRepairs` stays
+  // empty on `(d2)`).**
+  assert.equal(r.thrown.status, 'KC-4',
+    '**THE ATTEMPT LANDS ON `(d2)` — THE RESIDUAL `KC-4`** (`strata/decisions.md` · `D-105`; '
+    + '`docs/L1/op-free-repair-credit.md` §1.1 `CT-2` step 5): the repair\'s write named no commit, so the '
+    + 'enclosing attempt can pin no op of it and the attempt fails with the residual sentence — read '
     + JSON.stringify(r.thrown.status));
+  assert.equal(r.thrown.message, `the repair x produced no op at ${address.join('/')}`,
+    '**AND THE SENTENCE IS THE RESIDUAL TEMPLATE, BYTE-FOR-BYTE, NAMING THE ATTEMPT\'S ADDRESS** (`§5.1`, kept '
+    + 'unedited) — read ' + JSON.stringify(r.thrown.message));
   const closed = report(store, commitRecord.attempt);
-  assert.equal(closed.ops.length, 2,
-    'the attempt owes the first write at its own address AND the op the repair landed BESIDE it '
-    + '(`§2.6` item 3: reach is exactly `AttemptRecord.ops`, and the ops the repairs landed are in it)');
-  assert.equal(closed.ops[1].address.join('/'), beside.join('/'),
-    'read the second op\'s own address off the record: it is the descendant, BESIDE the attempt\'s own');
+  assert.equal(descendantOp !== null && typeof descendantOp.opId === 'string', true,
+    'the repair\'s own write really did land its op at the descendant — read '
+    + JSON.stringify(descendantOp && descendantOp.opId));
+  assert.equal(closed.ops.length, 1,
+    '**AND NOTHING IS PINNED: THE CANDIDATE SET IS THE ATTEMPT\'S OWN ONE OP** (`§4 RB-5`: on a failing arm '
+    + 'nothing is appended to `attempt.ops`) — read ' + `\`ops.length\` = ${closed.ops.length}`);
+  assert.equal(closed.ops[0].opId, commitRecord.op.opId,
+    'and that one op is the op the caller\'s own `K-2` answered with — read '
+    + JSON.stringify(closed.ops[0].opId));
+  assert.equal(closed.ops.some((op) => op.opId === descendantOp.opId), false,
+    '**SO THE DESCENDANT\'S OP STANDS IN NO CANDIDATE SET AT ALL — AND IT IS STILL SWEPT BELOW:** the axis is '
+    + 'the ADDRESS GEOMETRY and never the credit (`D-89`)');
   // ── **AND THE CALL LIST'S LAST MEMBER IS NOW ITS ONLY ONE**: `D-40` makes the attempt's first op the ONE
-  // call, and **NOTHING IS UNDONE MERELY BECAUSE IT LIES OUTSIDE THE ATTEMPT'S `address`** — the beside op
-  // stands inside that call's own subtree (`§2.6` item 8 (iii)).
+  // call, and **NOTHING IS UNDONE MERELY BECAUSE IT LIES OUTSIDE THE ATTEMPT'S `address`** — the descendant's
+  // op stands inside that call's own subtree (`§2.6` item 8 (iii); `D-89`'s at-or-under reach).
   assert.equal(closed.rollback.length, 1,
     'THE COMPOSITION ISSUES ONE CALL — `D-40` (2026-10-26) — and it is the call item 2 puts LAST, the '
     + 'attempt\'s own first op: a walk that stopped at a call that RETURNED and never named the attempt\'s '
@@ -1635,10 +1680,14 @@ test('ck_neg_2_the_call_list_reaches_beside_addresses_and_the_one_call_is_the_li
   assert.equal(step.answer, 'ok',
     'and its `answer` is THE LITERAL `\'ok\'` (`§2.6` item 3: "the store\'s own code where it threw") — read '
     + JSON.stringify(step.answer));
-  assert.equal(step.undoneOps.includes(closed.ops[1].opId), true,
-    'AND THE BESIDE OP IS SWEPT BY IT — "nothing is undone merely because it lies outside the attempt\'s '
-    + `\`address\`" (\`§2.6\` item 8 (iii)), read ${JSON.stringify(step.undoneOps)} against `
-    + `${JSON.stringify(closed.ops.map((o) => o.opId))}`);
+  assert.equal(step.undoneOps.includes(descendantOp.opId), true,
+    '**AND THE DESCENDANT OP IS SWEPT BY IT** — the op the enclosing attempt never pinned, taken by the ONE '
+    + 'call because it lies AT OR UNDER an address that call\'s op named (`D-89`: *"a repair\'s write at or '
+    + 'under an address one of `attempt.ops` named is swept with the attempt, credited or not"*; `§2.6` item 8 '
+    + `(iii)) — read ${JSON.stringify(step.undoneOps)} against ${JSON.stringify(descendantOp.opId)}`);
+  assert.equal(step.undoneOps.includes(descendantOp.opId) && closed.ops.some((op) => op.opId === descendantOp.opId),
+    false, '**AND THAT IS THE CELL\'S SHARPEST READING: AN OP SWEPT WHILE STANDING IN NO CANDIDATE SET** — a '
+    + 'rule read as a CREDIT would have left this write standing, and `D-89` withdrew exactly that axis');
   assert.equal(step.undoneOps.includes(closed.ops[0].opId), true,
     'and the attempt\'s own first write with it: the whole attempt in one act (`D-40`, 2026-10-26)');
   assert.equal(step.checkpoint, null,
@@ -1654,8 +1703,9 @@ test('ck_neg_2_the_call_list_reaches_beside_addresses_and_the_one_call_is_the_li
     + 'reversed and no caller write stands under this root — read ' + JSON.stringify(step.restoredTo));
   assert.equal(entries(r.thrown.log, 'outcome').length, 1,
     'and the attempt has ONE `outcome` entry — "NO SECOND ENTRY IS APPENDED" (`§2.6` item 6 (a))');
-  assert.equal(entries(r.thrown.log, 'outcome')[0].state, 'KC-5',
-    'carrying the same token the thrown form\'s `status` does (`fail-surface.md §1.1` item 1 (c))');
+  assert.equal(entries(r.thrown.log, 'outcome')[0].state, 'KC-4',
+    'carrying the same token the thrown form\'s `status` does (`fail-surface.md §1.1` item 1 (c)) — `KC-4`, '
+    + 'the residual arm\'s token');
   // **AND THE FLOOR STATE THE RULING IS ABOUT**: the attempt leaves its own address exactly as it found it.
   let besideFloor;
   try {
@@ -1669,6 +1719,26 @@ test('ck_neg_2_the_call_list_reaches_beside_addresses_and_the_one_call_is_the_li
     + JSON.stringify(besideFloor));
   assert.equal(besideFloor.code, 'AddressNotFound',
     'and names it with its own code, read through its own verb — read ' + JSON.stringify(besideFloor.code));
+  // **AND THE DESCENDANT DOES NOT STAND EITHER — the second limb the address reach owes, read on the store.**
+  const descendantFloor = capture(() => store.read(beside));
+  assert.equal(descendantFloor.threw, true,
+    '**THE REPAIR\'S EDIT AT THE DESCENDANT IS GONE WITH THE ATTEMPT** — the one floor call at the attempt\'s '
+    + 'own op reached it (`D-89`\'s at-or-under conjunct) — read '
+    + JSON.stringify(descendantFloor.threw ? descendantFloor.thrown.status : descendantFloor.value));
+  assert.equal(descendantFloor.thrown.status, 'AddressNotFound',
+    'and the store answers its own code there too — read ' + JSON.stringify(descendantFloor.thrown.status));
+  const rootStands = capture(() => store.read([root]));
+  assert.equal(rootStands.threw, false,
+    '**WHILE THE CALLER\'S OWN WRITE ABOVE THE ATTEMPT STANDS** — it is not the attempt\'s and no attempt op '
+    + 'named it — read ' + JSON.stringify(rootStands.threw ? rootStands.thrown.status : rootStands.value));
+  t.diagnostic(`ck_neg_2 · 2026-11-01 · \`D-105\`: the enclosing attempt took \`${r.thrown.status}\` · `
+    + `${JSON.stringify(r.thrown.message)}; the candidate set is `
+    + `${JSON.stringify(closed.ops.map((op) => op.opId))} and the repair\'s own op `
+    + `${JSON.stringify(descendantOp && descendantOp.opId)} stands in none of it — while the one floor call\'s `
+    + `\`undoneOps\` read ${JSON.stringify(closed.rollback[0].undoneOps)}; the store answers `
+    + `${JSON.stringify(descendantFloor.thrown && descendantFloor.thrown.status)} at the descendant and `
+    + `${JSON.stringify(besideFloor.code)} at the attempt\'s address. **THE \`Q-2\` CONSEQUENCE: the unnamed `
+    + `route\'s repair is credited by nothing and its enclosing write now refuses.@@**`);
 });
 
 /**

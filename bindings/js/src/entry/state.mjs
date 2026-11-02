@@ -388,8 +388,8 @@ let REPAIR_LEGS_OPEN = [];
 let REPAIR_LEGS_LAST = [];
 
 /// **THE APPEND — TAKEN AT THE `write` MEMBER'S OWN LEG SEAT AND NOWHERE ELSE** (`bindings/js/index.mjs`, the one
-/// line beside `state.leg = record`, inside the `n >= 4` arm only): the record's `triggered` elements are taken
-/// into the innermost OPEN invocation's list, and with no bracket standing nothing is taken at all.
+/// line beside `state.leg = record`, inside the `n >= 4` arm only): ONE LEG IS MINTED PER WRITE the invocation
+/// made, into the innermost OPEN invocation's list, and with no bracket standing nothing is taken at all.
 ///
 /// **THE ELEMENT IS MINTED FRESH, WITH A FRESH SEGMENT LIST** (`crossing.md §1.1`'s copy discipline read at this
 /// crossing): the record's own element stands on a record the REPAIR BODY itself was handed back, and the
@@ -400,23 +400,73 @@ let REPAIR_LEGS_LAST = [];
 /// **NOTHING IS FILTERED HERE, AND A PAIR'S HANDLE IS NOT REMOVED** (`D-69`): this is the store's returned set
 /// VERBATIM, and the KERNEL's predicate is what excludes a carried pair's own handle at the merge — one
 /// membership test, in the frame that holds the registry.
+///
+/// **⟶ WIDENED 2026-11-01 — THE LEG CARRIES THE WRITE'S OWN JOURNAL OP TOO** (`docs/L1/op-free-repair-credit.md`
+/// §2.2; `strata/decisions.md` · `D-105` item `2`: *"the rollback point is determined independently"*, and item
+/// `3`: *"the only supported route for repairs is with the commit id so that its triggers can be joined to the
+/// commit"*). **THE SUBJECT OF THE CHANNEL IS STILL ONE FACT — the invocations that closed last — and it is now
+/// ONE ELEMENT PER WRITE: `{ op, triggered }`, carrying THAT WRITE'S OWN JOURNAL `op` and its returned elements.**
+/// **THE OP IS COPIED AT ITS OWN MEMBERS** — `opId` · `kind` · `address`'s segment list · `tier` · `before` ·
+/// `after` · `seq` · `compacted` (`frame.mjs`'s `decodeJournalOp`, `:421`–`:431`; `index.mjs:445` stands that very
+/// record) — by the same copy discipline the elements below already take, **so a body that mutates the op it was
+/// handed back can move nothing the kernel reads**: the re-run's `context.value` is this op's `after.value` and
+/// the floor call's candidates are this op's `address` and `opId`. **THE BRACKET, THE STACK, THE CLEAR AND THE
+/// CHANNEL ARE UNMOVED** (`:761`–`:795`, `:834`–`:845`): the read is still taken synchronously after the
+/// invocation returned and the answer is still cleared in the same read.
+///
+/// **THE `triggered` MEMBER IS THE ELEMENT LIST THIS FUNCTION ALWAYS MINTED** — one `{ handle, address }` per
+/// returned element, fresh and segment-copied. A record whose set is not an array carries NO element (the
+/// absent arm this function has always answered) **and still carries its op**: the credit is the WRITE's, and
+/// a write that landed is a write whatever its returned set held.
 export function appendRepairLeg(record) {
   const open = REPAIR_LEGS_OPEN;
   if (open.length === 0) return;
   if (record === null || typeof record !== 'object') return;
-  const triggered = record.triggered;
-  if (!Array.isArray(triggered)) return;
   const list = open[open.length - 1];
-  for (let i = 0; i < triggered.length; i += 1) {
-    const element = triggered[i];
-    if (element === null || typeof element !== 'object') continue;
+  const triggered = record.triggered;
+  const elements = [];
+  if (Array.isArray(triggered)) {
+    for (let i = 0; i < triggered.length; i += 1) {
+      const element = triggered[i];
+      if (element === null || typeof element !== 'object') continue;
+      const address = [];
+      const segments = element.address;
+      if (Array.isArray(segments)) {
+        for (let s = 0; s < segments.length; s += 1) appendOwn(address, segments[s]);
+      }
+      appendOwn(elements, { handle: element.handle, address });
+    }
+  }
+  // THE WRITE'S OWN JOURNAL OP, COPIED MEMBER BY MEMBER — `before` and `after` included, each as its own
+  // `{present, value}` (`decodeBaseState`, `frame.mjs:417`–`:419`), so the op the kernel reads stands on no
+  // object the caller's body was handed back. A record carrying no op object carries `null` here, which is the
+  // kernel's own absent arm (`repairLegs`' landing test).
+  const held = record.op;
+  let op = null;
+  if (held !== null && typeof held === 'object') {
     const address = [];
-    const segments = element.address;
+    const segments = held.address;
     if (Array.isArray(segments)) {
       for (let s = 0; s < segments.length; s += 1) appendOwn(address, segments[s]);
     }
-    appendOwn(list, { handle: element.handle, address });
+    const before = held.before;
+    const after = held.after;
+    op = {
+      opId: held.opId,
+      kind: held.kind,
+      address,
+      tier: held.tier,
+      before: before !== null && typeof before === 'object'
+        ? { present: before.present, value: before.value }
+        : before,
+      after: after !== null && typeof after === 'object'
+        ? { present: after.present, value: after.value }
+        : after,
+      seq: held.seq,
+      compacted: held.compacted,
+    };
   }
+  appendOwn(list, { op, triggered: elements });
 }
 
 /** The per-store index: `{ open, observers, windows, marks, windowSeq }`, keyed by the store instance and by

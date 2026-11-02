@@ -5334,3 +5334,46 @@ release pass's, once the fix is landed.
 **TERMS: the defect classified (`1` = behaviour), the behaviour the fix declares (`2` = the delivery in the commit's batch ·
 the one-invocation rule), the mechanisms priced (`2`), the statuses, members, arities and types this row moves (`0`), the
 release it rides (`1` = the post-`1.8.0` patch), the questions left (`1` = the mechanism's declaration).**
+
+---
+
+### `D-105` — the returned op is NOT the credit's carrier: the failing pairs are tracked, the rollback is independent, and the repair's route is the commit whose triggers join it
+
+**DATE:** 2026-11-01. **BRANCH:** `main`. **SOURCE:** the architect, in session, on the returned-op question — `ST-F2`'s surviving limb — **verbatim:**
+
+> You don't need the ops, the rollback point is determined independently. Track the failing constraints for the
+> duplicate repairs. The only supported route for repairs is with the commit id so that its triggers can be joined to
+> the commit and the constraint battery run again.
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE RETURN'S OP IS NOT THE CREDIT'S CARRIER.** **A repair that does its write and returns `undefined` — the natural
+   shape of `repair: () => { … }` — is NOT refused.** The credit is the **FAILING PAIR's** mark (`attempt.appliedRepairs`,
+   keyed by the pair), and **the returned `op` is neither required nor read for it.** `ST-F2`'s remaining limb is thereby
+   the record's to fix and not its to decline: the `KC-4` arm that answered an op-less return, and the sentence *"the
+   repair `<id>` produced no op at `<address>`"* with it, are **superseded by this row**, and `D-88` (2)'s "recorded,
+   not repaired" disposition is read **THROUGH** it.
+2. **THE ROLLBACK IS INDEPENDENT of the returned op.** The rollback point is the **restore mark** (`D-63` — the last
+   validated state), and the returned op is not its instrument; the floor call's candidates are re-derived from the
+   commit's own record, not from the repair's return.
+3. **THE ONLY SUPPORTED REPAIR ROUTE IS THE COMMIT ID** (`D-103`), **and through it the repair's write's TRIGGERS ARE
+   JOINED TO THE COMMIT so the constraint battery runs again over them**: the PAIRS the repair's edit reaches join the
+   commit's evaluated set (the listener half is the `1.8.1` delivery's — `D-104`), so **the pairs a repair's edit fires
+   are asked by the commit's next battery** and not by nothing (the declaration's `Q-5`).
+4. **WHAT DOES NOT MOVE.** A repair returning the **failed arm** `{ok: false, message}` still fails the attempt (that is
+   the failure's own arm, and its `message` is the caller's words); **no status is minted** — the `KC-4` token's subject
+   is re-derived by L1, not the closed set; and the **one-invocation-per-distinct-handle** rule (`surface.md §2.4`
+   rule 3) stands.
+
+**WHAT IT DOES NOT SETTLE — L1's.** The credited arm's exact shape (`{ok: true}` with `op` optional/informational, or
+no member), what refusal (if any) the `KC-4` arm retains, the floor call's candidates, the re-run's own value carrier
+(the `1.8.1` `REPAIR_LEG` channel already hands the kernel the repair's write's record — is THAT the value's source
+now?), the TYPES (`RepairOutcome` / `ConstraintOutcome` re-derived), the cells, the write set, the SENTENCE's fate (its
+wrong address is moot once the kernel holds the repair's leg — withdrawn, or re-derived), and the release class.
+
+**TERMS: the carriers this row removes (`1` = the returned op as the credit's), the carriers it names (`2` = the failing
+pair's mark · the commit's leg), the behaviours it changes (`2` = an op-less return is credited · the repair's triggers
+join the battery), the statuses, members and codes it mints (`0`), the releases it will need (`1` = a cut, class L1's),
+the questions left (`1` = the declaration).**

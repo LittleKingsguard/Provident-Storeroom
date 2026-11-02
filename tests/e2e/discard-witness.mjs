@@ -598,8 +598,18 @@ console.log('\n── W8 · `D-50` — a repair that lands elsewhere, and the re
         asks.push({ kind: 'refuse', attempt: context.attempt === null ? null : context.attempt.id, value: context.value });
         return {
           message: 'c1 refuses 2 at its own address',
-          repair: () => {
-            const landed = store.write(['b'], 'mem', REPAIR);
+          // **⟶ RE-DERIVED 2026-11-01 BY `D-105` (with `D-103`): THE REPAIR NAMES THE COMMIT AT `write`'s
+          // FOURTH POSITION.** **THE OLD BYTES READ `store.write(['b'], 'mem', REPAIR)` — THREE positions,
+          // naming nothing — and that spelling is now the UNSUPPORTED route: the repair's write opens a commit of
+          // its own, the enclosing attempt pins no op of it, and the enclosing write fails at `(d2)`/`KC-4`
+          // BEFORE the re-run this cell exists to measure** (the pre-re-derivation reading, printed: *"read arm:
+          // … re-run context <not reached> … write ConstraintPassRefused · standings a=5 b=11"*). **THE CELL'S
+          // SUBJECT — `D-50`'s *"a repair that lands elsewhere is seen by a read and only by a read"* — is
+          // UNMOVED, so the drive takes the route the ruling supports; the `read` runs at the re-run, exactly as
+          // `D-50` declared, and `Q-2`'s consequence for the unnamed route is recorded at the cell's own
+          // diagnostic rather than here.**
+          repair: (rctx) => {
+            const landed = store.write(['b'], 'mem', REPAIR, rctx);
             return { ok: true, op: landed.op };
           },
         };
@@ -686,6 +696,13 @@ console.log('\n── W8 · `D-50` — a repair that lands elsewhere, and the re
       + `standings a=${readArm.standingA.ok ? readArm.standingA.value : '<threw>'} b=${readArm.standingB.ok ? readArm.standingB.value : '<threw>'} · openings ${readArm.openings} || `
       + `control: re-run context ${controlRan === null ? '<not reached>' : controlRan.value} · write ${control.written.ok ? 'ANSWERED' : control.written.caught.status} · `
       + `standings a=${control.standingA.ok ? control.standingA.value : '<threw>'} b=${control.standingB.ok ? control.standingB.value : '<threw>'} · openings ${control.openings}`);
+  console.log('');
+  console.log("        \u27f6 RE-DERIVATION NOTE (`D-105`, 2026-11-01): both arms name the commit at `write`'s FOURTH");
+  console.log("        POSITION. WITH THE THREE-POSITION SPELLING THIS CELL ONCE DROVE, the repair's write opens a");
+  console.log("        commit of its own, the enclosing attempt pins no op of it, and BOTH arms fail at `(d2)`/`KC-4`");
+  console.log("        with *\"the repair `c1` produced no op at `a`\"* — the re-run is never reached and this cell's");
+  console.log("        subject is unobservable. That regression of the unnamed route is `D-103`'s reserved question");
+  console.log("        (`Q-2` of `docs/L1/op-free-repair-credit.md`), measured on this instrument and not absorbed.");
   console.log('');
   console.log('        THE SENTENCE TO CARRY AWAY (`D-50`): `context.value` IS THE VALUE THE WRITE VERB RETURNED;');
   console.log('        A CONSTRAINT THAT CARES ABOUT ANOTHER LOCATION READS IT. And the consequence a reader gets');

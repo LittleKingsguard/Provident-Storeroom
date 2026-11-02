@@ -1101,6 +1101,21 @@ export function withdraw(attempt, entry) {
  * that landed at or before the invocation is. **WHERE THE FLOOR IS NOT KNOWN** (`invokedFor` `null`,
  * which is the registration instant's own call) **and WHERE THE INVOKED-FOR OP ITSELF CARRIES NO
  * ORDINAL, the ground is not applied and the membership ground stands alone, exactly as it did.**
+ *
+ * **⟶ RE-DERIVED 2026-11-01 — `D-105`: THIS FUNCTION'S WRITE-PATH CALLER IS GONE, AND EVERY SENTENCE ABOVE
+ * STANDS AS THE REGISTRATION INSTANT'S READING OF ITS OWN DATE.** (`docs/L1/op-free-repair-credit.md` §5.2;
+ * `strata/decisions.md` · `D-105` item `1`, verbatim: *"The credit is the **FAILING PAIR's** mark
+ * (`attempt.appliedRepairs`, keyed by the pair), and **the returned `op` is neither required nor read for
+ * it**."*) **ITS ONE REMAINING CALLER IS THE REGISTRATION INSTANT** (`kernel-registration.mjs:616`), **whose two
+ * grounds stand unmoved** (the declaration's `Q-1`). **ON THE WRITE PATH — `kernel-attempt.mjs`'s repair arm — THE
+ * RETURNED `op` IS READ BY NOTHING**: the credit is the pair's own mark and the op the attempt pins is the `1.8.1`
+ * leg's, so **the ORDINAL GROUND RETIRES THERE ALTOGETHER** — a leg's op IS an op this invocation landed, so
+ * there is no floor to compare it against and nothing to prove — **and the MEMBERSHIP GROUND SURVIVES ONLY AS THE
+ * APPEND'S DE-DUPLICATION** (`kernel-attempt.mjs`'s credit: a leg's op whose `opId` already stands in
+ * `attempt.ops` is not appended again), **which is the same test read forward instead of in reverse.** **NO BYTE
+ * OF THIS FUNCTION MOVES**: the alias it answers is the registration's, and `landedOpDefect`/`opSpelling` — the
+ * two write-path sentences this file minted beside it — are **DELETED**, because their subject was the RETURNED
+ * op's identity and the write path reads no returned op at all.
  */
 export function landedOp(attempt, returned, invokedFor) {
   // **⟶ AND EVERY MEMBER BELOW IS READ AS THE RETURN'S OWN — `D-35`'s READ HALF, CLOSED 2026-10-26.**
@@ -1128,40 +1143,6 @@ export function landedOp(attempt, returned, invokedFor) {
   const candidateSeq = ownMember(candidate, 'seq');
   if (floor !== null && (typeof candidateSeq !== 'number' || candidateSeq <= floor)) return null;
   return candidate;
-}
-
-/**
- * THE KERNEL'S OWN GENERATED SENTENCE FOR THAT ARM: *"the kernel's own generated sentence names the
- * unrecognized or unlanded `op`"* (`§2.7`'s home, verbatim). It names the identity the malformed
- * return carried — the `opId` where the member carried one, the member's own value where it did not
- * — and never the attempt's address alone.
- */
-export function landedOpDefect(attempt, pair, returned) {
-  const where = addressSpelling(attempt.address);
-  // **⟶ THE MEMBER IS READ AS THE RETURN'S OWN HERE TOO** (`D-35`'s read half): the arm that names *"carried no
-  // op"* and the arm that spells the op must agree with `landedOp`'s own answer, and a chain read would let a
-  // prototype decide which of the two sentences the caller is handed.
-  const member = ownMember(returned, 'op');
-  if (member === undefined) {
-    return `the repair ${pair.id} returned \`ok: true\` and carried no op at ${where}`;
-  }
-  return `the repair ${pair.id} returned \`ok: true\` and named the unrecognized or unlanded op `
-    + `${opSpelling(member)} at ${where}`;
-}
-
-/** One returned `op` member's identity, spelled for the kernel's own sentence: an `opId` where the
- *  member carried one, and the member's own class where it carried no op at all. */
-function opSpelling(value) {
-  // **⟶ `opId` IS THE CALLER'S RETURN'S OWN MEMBER** (`D-35`'s read half, 2026-10-26): this spelling is the
-  // one place the sentence's identity is taken, so it is taken own-only — an inherited `opId` is no identity
-  // this kernel read, and it must not become one in the message either.
-  const opId = ownMember(value, 'opId');
-  if (value !== null && typeof value === 'object' && typeof opId === 'string') {
-    return JSON.stringify(opId);
-  }
-  if (typeof value === 'string') return JSON.stringify(value);
-  if (value === null) return 'null';
-  return `a ${typeof value} (which is no op)`;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1268,21 +1249,25 @@ export function pairAppliesAt(store, pair) {
  * own members by `ownMember` (`D-35`'s read half). **A LIST THAT IS NOT AN ARRAY HAS NO MEMBER AND ANSWERS THE
  * EMPTY SET**: a drive that hands one is not a pass this kernel opened, and the pass over no pair is the pass
  * arm (`contract.md §2.8` item 1).
+ *
+ * **⟶ AND THE COMMIT'S SET IS WIDENED BY THE JOINED PAIRS — `D-105`, 2026-11-01.** (`docs/L1/op-free-repair-credit.md`
+ * §3.3 `JN-2`; `strata/decisions.md` · `D-105` item `3`.) **ONE CALL WIDENED BY ONE ARGUMENT, AND NOT A SECOND
+ * SELECTION FUNCTION**: `joined` is `attempt.repairPaired` — the pairs a CREDITED repair's write triggered, joined
+ * at the merge seat (`kernel-attempt.mjs`) — **and it only widens MEMBERSHIP.** **THE ORDER STAYS THE REGISTRY'S**
+ * (the walk below is `D-39`'s registration sequence), **each pair is still EVALUATED AT MOST ONCE per pass** (one
+ * append per row, the `||` short-circuiting), **and the set is still materialised ONCE per run at the same instant**
+ * (`CX-12`; `HL-8` item 6) — so a pair joined by a repair enters the snapshot of the run that follows it and no
+ * other. **THE MEMBERSHIP IS THE SAME ONE TEST** (`triggeredNames`, below), read over two lists: the commit's own
+ * returned set and the joined list. **A RECORD'S `triggered` IS UNMOVED** — it is the store's own returned set for
+ * the commit's write, and a second act's handles written into it would forge a store result (`A113` (D1); §3.2).
  */
-export function pairsTriggered(kernel, triggered) {
+export function pairsTriggered(kernel, triggered, joined) {
   const out = [];
   if (!Array.isArray(triggered)) return out;
   for (const [key, pair] of kernel.pairs) {
-    for (let i = 0; i < triggered.length; i += 1) {
-      const element = triggered[i];
-      if (element === null || typeof element !== 'object') continue;
-      // **THE PAIR'S `id` IS ITS HANDLE — `D-29`, verbatim: *"Handle becomes the internal ID"* — so the store's
-      // element names the pair by the very string the registry is keyed by.**
-      if (ownMember(element, 'handle') === pair.id) {
-        appendOwn(out, key);
-        break;
-      }
-    }
+    // **THE PAIR'S `id` IS ITS HANDLE — `D-29`, verbatim: *"Handle becomes the internal ID"* — so the store's
+    // element names the pair by the very string the registry is keyed by.**
+    if (triggeredNames(triggered, pair.id) || triggeredNames(joined, pair.id)) appendOwn(out, key);
   }
   return out;
 }

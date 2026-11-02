@@ -83,7 +83,15 @@ const shapeOf = (caught) => ({
 // (1) A REPAIR IS TRACKED INSIDE ITS ATTEMPT — its op is the attempt's op, and no second commit opens for it
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 
-test('D-46 (1) · A REPAIR IS TRACKED INSIDE ITS ATTEMPT: the repair body\'s write — THREE positions, naming nothing — JOINS the attempt\'s commit because the kernel names it, so the commit\'s own record carries the repair\'s op, the attempt\'s `ops` carry it, and `attempt-opened` fires ONCE for the whole write', (t) => {
+test('D-46 (1) · A REPAIR IS TRACKED INSIDE ITS ATTEMPT: the repair body\'s write JOINS the attempt\'s commit — the kernel names it and the body passes the same context at the fourth position — so the commit\'s own record carries the repair\'s op, the attempt\'s `ops` carry it, and `attempt-opened` fires ONCE for the whole write', (t) => {
+  // **⟶ RE-DERIVED 2026-11-01 BY `D-105` AND `D-103`. THE FIGURE THAT MOVED, PRINTED: this drive's write was
+  // *"THREE positions, naming nothing"* and the enclosing write ANSWERED ITS RECORD; under the ruling the same
+  // three-position spelling fails the enclosing write at `(d2)` (`KC-4`, *"the repair rep produced no op at a"*,
+  // measured on this tree), because a leg is minted only where the write NAMES its commit (`state.mjs`'s leg seat,
+  // `n >= 4`). **THE SUBJECT IS D-46's AND IS UNMOVED — the repair is tracked inside its attempt, no second commit
+  // opens, the commit's record carries the repair's op and `attempt-opened` fires once — so the drive takes the
+  // route the ruling supports (the fourth position, naming the context the kernel handed the body), and the
+  // three-position consequence is asserted separately at the foot of this cell.**
   const store = make();
   store.write(['a'], 'mem', SEED);
   // **THE PAIR REFUSES THE LANDED VALUE AND OFFERS A REPAIR THAT WRITES AT A BESIDE ADDRESS** — the shape
@@ -101,9 +109,18 @@ test('D-46 (1) · A REPAIR IS TRACKED INSIDE ITS ATTEMPT: the repair body\'s wri
           // **THE REPAIR NAMES NOTHING AT ITS OWN ENTRY** — three positions, which is every repair body's
           // spelling that does not pass its context through (`docs/specs/storeroom-js/surface.md §2.11`
           // clause 6). **IT JOINS BY THE KERNEL'S NAME AND NOT BY ITS OWN**, which is the half `D-46` adds.
-          repair: () => {
+          // **⟶ RE-DERIVED 2026-11-01 BY `D-105` — THE REPAIR NAMES THE COMMIT AT `write`'s FOURTH POSITION.**
+          // **THE OLD BYTES READ `store.write(['z'], 'mem', REPAIRED)` — THREE positions, naming nothing — AND THE
+          // RULING MAKES THAT SPELLING `D-103`'s UNSUPPORTED ROUTE: the invocation lands its op in a commit of its
+          // OWN, the enclosing attempt can pin none of it, and the enclosing write now fails at `(d2)`/`KC-4`
+          // (`docs/L1/op-free-repair-credit.md` §1.1 `CT-2` step 5; `Q-2`).** **THE CELL'S SUBJECT IS D-46's AND IS
+          // KEPT — *"a repair needs to stay as part of the same commit so that it can be tracked as part of the
+          // commit process"* — so the drive moves to the route the ruling SUPPORTS: the same context the kernel
+          // handed the body, at the position the context's `pending` member admits.** **AND THE THREE-POSITION
+          // SPELLING'S CONSEQUENCE IS NOT DROPPED: it is asserted at the foot of this cell (`Q-2`'s measurement).**
+          repair: (rctx) => {
             facts.push(windowOf(store));
-            const landed = attempt(() => store.write(['z'], 'mem', REPAIRED));
+            const landed = attempt(() => store.write(['z'], 'mem', REPAIRED, rctx));
             assert.equal(landed.ok, true,
               `the repair's own write must land: it caught ${JSON.stringify(shapeOf(landed.caught))}`);
             repairedRecord = landed.value;
@@ -230,6 +247,45 @@ test('D-46 (1) · A REPAIR IS TRACKED INSIDE ITS ATTEMPT: the repair body\'s wri
   assert.deepEqual(windowOf(store), { open: 0, live: 0 },
     `and the whole call returns at rest: ${JSON.stringify(windowOf(store))}`);
 
+  // ── (d) ★ **THE THREE-POSITION SPELLING'S CONSEQUENCE — `D-105`/`D-103`'s `Q-2`, MEASURED, NOT DROPPED.** ──
+  // **THIS IS THE ARM THE CELL DROVE BEFORE THE RULING, AND ITS FIGURE IS PRINTED HERE RATHER THAN LEFT AS
+  // HISTORY:** the same body with `store.write(['z'], 'mem', REPAIRED)` — three positions, naming nothing — lands
+  // its edit in a commit of its OWN, so the enclosing attempt can pin no op of it and the caller's own write goes
+  // from a receipt to a `ConstraintPassRefused`. **The five non-promises `D-103` item `1` printed are what this
+  // limb measures, and the question whether that refusal is the one `D-103` reserved is the architect's (`Q-2`).**
+  const three = storeCreate({ journalLength: 256, listeners: [] });
+  three.write(['a'], 'mem', SEED);
+  let threeRepairs = 0;
+  let threeLanded = null;
+  three.addConstraint({ address: ['a'], id: 'rep3' }, (context) => (context.value === REFUSED ? {
+    message: 'the landed value is not one this pair admits',
+    repair: () => {
+      threeRepairs += 1;
+      const landed = attempt(() => three.write(['z'], 'mem', REPAIRED)); // THREE positions, naming NOTHING
+      threeLanded = landed.ok ? landed.value.op : null;
+      return { ok: true, op: threeLanded };
+    },
+  } : true));
+  const threeWritten = attempt(() => three.write(['a'], 'mem', REFUSED));
+  assert.equal(threeRepairs, 1, `the three-position repair still RUNS — read ${threeRepairs}`);
+  assert.equal(threeLanded === null ? null : typeof threeLanded.opId, 'string',
+    '**AND ITS OWN WRITE STILL LANDS AN OP** — inside a commit it opened for itself — '
+    + `read ${JSON.stringify(threeLanded && threeLanded.opId)}`);
+  assert.equal(threeWritten.ok, false,
+    '**AND THE ENCLOSING WRITE NO LONGER ANSWERS A RECORD: it REFUSES** — read '
+    + JSON.stringify(threeWritten.ok ? Object.keys(threeWritten.value) : threeWritten.caught.status));
+  assert.equal(threeWritten.caught.status, 'ConstraintPassRefused',
+    'with the store set\'s refusal code (`fail-surface.md`\'s rank 20; `§5.4`\'s `ConstraintPassRefused`)');
+  assert.equal(threeWritten.caught.message, 'the repair rep3 produced no op at a',
+    '**AND THE RESIDUAL TEMPLATE, BYTE-FOR-BYTE, NAMING THE ENCLOSING ATTEMPT\'S ADDRESS** '
+    + `(\`docs/L1/op-free-repair-credit.md\` §5.1): read ${JSON.stringify(threeWritten.caught.message)}`);
+  assert.equal(three.read(['a']), SEED,
+    'and the enclosing attempt\'s address is restored to the state it found — read '
+    + JSON.stringify(three.read(['a'])));
+  assert.equal(three.read(['z']), REPAIRED,
+    '**WHILE THE REPAIR\'S OWN EDIT STANDS** at the beside address its own commit landed it — the axis is the '
+    + 'address geometry and never the credit (`D-89`) — read ' + JSON.stringify(three.read(['z'])));
+
   t.diagnostic(`D-46 (1) · 2026-10-27 · A REPAIR IS TRACKED INSIDE ITS ATTEMPT: the repair body was entered at `
     + `${JSON.stringify(facts[0])} and returned with the count at ${JSON.stringify(facts[1])} — \`attempt-opened\` `
     + `fired ${openings} time for the whole write, so the repair OPENED NOTHING. The commit's own record answered `
@@ -353,6 +409,45 @@ test('D-46 (2) · A CALLER-SUPPLIED COMMIT ID JOINS AND AN ABSENT ONE OPENS: a `
     `and so did the supplied arm's, although no pass judged it: ${JSON.stringify(standingC)}`);
   assert.deepEqual(windowOf(store), { open: 0, live: 0 },
     `and the whole call returns at rest: ${JSON.stringify(windowOf(store))}`);
+
+  // ── (d) ★ **THE THREE-POSITION SPELLING'S CONSEQUENCE — `D-105`/`D-103`'s `Q-2`, MEASURED, NOT DROPPED.** ──
+  // **THIS IS THE ARM THE CELL DROVE BEFORE THE RULING, AND ITS FIGURE IS PRINTED HERE RATHER THAN LEFT AS
+  // HISTORY:** the same body with `store.write(['z'], 'mem', REPAIRED)` — three positions, naming nothing — lands
+  // its edit in a commit of its OWN, so the enclosing attempt can pin no op of it and the caller's own write goes
+  // from a receipt to a `ConstraintPassRefused`. **The five non-promises `D-103` item `1` printed are what this
+  // limb measures, and the question whether that refusal is the one `D-103` reserved is the architect's (`Q-2`).**
+  const three = storeCreate({ journalLength: 256, listeners: [] });
+  three.write(['a'], 'mem', SEED);
+  let threeRepairs = 0;
+  let threeLanded = null;
+  three.addConstraint({ address: ['a'], id: 'rep3' }, (context) => (context.value === REFUSED ? {
+    message: 'the landed value is not one this pair admits',
+    repair: () => {
+      threeRepairs += 1;
+      const landed = attempt(() => three.write(['z'], 'mem', REPAIRED)); // THREE positions, naming NOTHING
+      threeLanded = landed.ok ? landed.value.op : null;
+      return { ok: true, op: threeLanded };
+    },
+  } : true));
+  const threeWritten = attempt(() => three.write(['a'], 'mem', REFUSED));
+  assert.equal(threeRepairs, 1, `the three-position repair still RUNS — read ${threeRepairs}`);
+  assert.equal(threeLanded === null ? null : typeof threeLanded.opId, 'string',
+    '**AND ITS OWN WRITE STILL LANDS AN OP** — inside a commit it opened for itself — '
+    + `read ${JSON.stringify(threeLanded && threeLanded.opId)}`);
+  assert.equal(threeWritten.ok, false,
+    '**AND THE ENCLOSING WRITE NO LONGER ANSWERS A RECORD: it REFUSES** — read '
+    + JSON.stringify(threeWritten.ok ? Object.keys(threeWritten.value) : threeWritten.caught.status));
+  assert.equal(threeWritten.caught.status, 'ConstraintPassRefused',
+    'with the store set\'s refusal code (`fail-surface.md`\'s rank 20; `§5.4`\'s `ConstraintPassRefused`)');
+  assert.equal(threeWritten.caught.message, 'the repair rep3 produced no op at a',
+    '**AND THE RESIDUAL TEMPLATE, BYTE-FOR-BYTE, NAMING THE ENCLOSING ATTEMPT\'S ADDRESS** '
+    + `(\`docs/L1/op-free-repair-credit.md\` §5.1): read ${JSON.stringify(threeWritten.caught.message)}`);
+  assert.equal(three.read(['a']), SEED,
+    'and the enclosing attempt\'s address is restored to the state it found — read '
+    + JSON.stringify(three.read(['a'])));
+  assert.equal(three.read(['z']), REPAIRED,
+    '**WHILE THE REPAIR\'S OWN EDIT STANDS** at the beside address its own commit landed it — the axis is the '
+    + 'address geometry and never the credit (`D-89`) — read ' + JSON.stringify(three.read(['z'])));
 
   t.diagnostic(`D-46 (2) · 2026-10-27 · THE FOURTH POSITION DECIDES: the ABSENT arm opened `
     + `${armA.openings} commit and its pass read the count at ${JSON.stringify(armA.during)}; the SUPPLIED arm `

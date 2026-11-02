@@ -1497,25 +1497,49 @@ export type ConstraintOutcome =
   | { readonly message: string };
 
 /**
- * **WHAT A REPAIR ANSWERS — THE CLOSED TWO-ARM SET**, read at `bindings/js/src/entry/kernel-attempt.mjs:899`-`:914`
- * and declared at `docs/L1/repair-outcome-types.md` §1.5 of 2026-11-01. **`op` IS REQUIRED ON THE CREDITED ARM, THE
- * ARM IS CLOSED, AND `undefined` IS NOT ONE OF THE TWO** — so a repair answering `undefined` or a bare `{ ok: true }`
- * is a COMPILE ERROR instead of a `ConstraintPassRefused` (`ST-F2`'s measured defect, `strata/research.md` §10).
+ * **WHAT A REPAIR ANSWERS — THE CREDITED ARM, THE FAILED ARM, AND `void`**, read at
+ * `bindings/js/src/entry/kernel-attempt.mjs`'s repair arm and **RE-DERIVED 2026-11-01 by `D-105`**
+ * (`strata/decisions.md` · `D-105` item `1`; `docs/L1/op-free-repair-credit.md` §6.1). **THE SENTENCES THIS CLAUSE
+ * SUPERSEDES ARE NAMED RATHER THAN OVERWRITTEN** (`RCA-8(g)` ANNOTATE-BESIDE): *"`op` IS REQUIRED ON THE CREDITED
+ * ARM, THE ARM IS CLOSED, AND `undefined` IS NOT ONE OF THE TWO — so a repair answering `undefined` or a bare
+ * `{ ok: true }` is a COMPILE ERROR instead of a `ConstraintPassRefused`"* (`docs/L1/repair-outcome-types.md` §1.5
+ * of 2026-11-01). **THE RULING, VERBATIM: *"A repair that does its write and returns `undefined` — the natural
+ * shape of `repair: () => { … }` — is NOT refused"***, **so the credited arm is `undefined` · `{ ok: true }` ·
+ * `{ ok: true, op }` — three spellings of ONE arm — and `void` is what the body answers when it has no opinion.**
+ * **`ST-F2`'s measured defect is CLOSED BY CARRIER and not by text.**
  *
- * **THE CREDITED ARM: `{ ok: true, op }`, `op` BEING THE OPERATION RECORD THE STORE'S OWN VERB RETURNED** — the
- * store's own journal record, reached by INDEXED ACCESS (`WriteRecord['op']`) so **NO SECOND CARRIER IS MINTED**, and
- * `op.opId` (`string`) and `op.seq` (`number`) are reached by naming that record. **`DeleteRecord['op']`'s declared
- * `null` arm is REFUSED here**: a `delete` that removed nothing answers `null` and credits nothing, so a repair
- * passing `removed.op` narrows first. **THE FAILED ARM: `{ ok: false, message }` — `op` ABSENT AND NEVER `null`**,
- * because an `op` there is read by nothing.
+ * **THE CREDITED ARM: `{ ok: true, op? }`, `op` OPTIONAL AND INFORMATIONAL** — the store's own journal record
+ * where a body cares to hand it back, reached by INDEXED ACCESS (`WriteRecord['op']`) so **NO SECOND CARRIER IS
+ * MINTED**. **NO READER IN THE KERNEL READS IT**: the credit is the FAILING PAIR's mark (`attempt.appliedRepairs`),
+ * the op the attempt pins is the repair's write's OWN LEG (`D-105` item `2`), and the re-run's value is that leg's
+ * `op.after.value` — the returned `op` sets no pin, joins no list, becomes no landing and is named by no sentence.
+ * **`op` ADMITS `null`** because the member is informational: `DeleteRecord['op']`'s declared `null` arm — a
+ * `delete` that removed nothing — costs a consumer nothing, and nothing is refused for it.
+ * **THE FAILED ARM IS UNMOVED: `{ ok: false, message }` — `op` ABSENT AND NEVER `null`** — and it is the ONLY
+ * return that fails the attempt (`D-105` item `4`: *"The failed arm still fails (`{ok: false, message}` — the
+ * caller's words)"*, `bindings/js/src/entry/kernel-attempt.mjs`'s `(d1)`).
  *
- * **THE TYPE NAMES THE CARRIER; THE GROUND IS PROSE AND IS POINTED AT, NEVER RE-SPELLED HERE**
- * (`bindings/js/src/entry/kernel-foundations.mjs:1105`-`:1131`), **and NO ORDINAL GROUND IS CLAIMED AT THE REGISTRATION
- * INSTANT** (`kernel-registration.mjs:615`-`:616`). **A green compile is not evidence of a credit**, and `op` is read
- * as an OWN member at BOTH instants — a distinction structural typing cannot make.
+ * **THE TYPE STAYS NARROWER THAN THE RUNTIME, ON PURPOSE, AND THE GAP IS DECLARED RATHER THAN CLOSED.** The runtime
+ * CREDITS `true`, `false`, `7`, `'done'`, `{ ok: 'yes' }`, `{ ok: false }` WITHOUT A MESSAGE and
+ * `{ ok: true, op: <a whole WriteRecord> }`; **this alias admits none of them** — it declares the shape a consumer
+ * SHOULD return, and the runtime declines to judge what a consumer DOES return. **`{ ok: false }` with no message
+ * is named on both sides deliberately**: the runtime credits it (the declared failed arm needs a non-empty
+ * `message`) and the type refuses it. **THE MIRROR IMAGE OF `CommitCarrier`'s PRINTED LIMIT BELOW**: there an
+ * inherited `pending` and a `Proxy` pass the type and the run-time refusal keeps the position's domain; **here the
+ * RUNTIME IS THE WIDER SIDE — THE TYPE DECLINES, THE RUNTIME CREDITS, AND NOTHING HERE PROMISES THAT A GREEN
+ * COMPILE IS A CREDIT OR THAT A REFUSED COMPILE IS A REFUSAL.** `exactOptionalPropertyTypes` is not set in either
+ * `tsconfig` head, so `{ ok: true, op: undefined }` type-checks as written — a property of the config heads and
+ * not of this alias.
+ *
+ * **THE GROUND IS PROSE AND IS POINTED AT, NEVER RE-SPELLED HERE** (`bindings/js/src/entry/kernel-foundations.mjs`'s
+ * `landedOp`, whose ONE remaining caller is the registration instant — `kernel-registration.mjs:616` — and whose
+ * ordinal ground RETIRES on the write path, `docs/L1/op-free-repair-credit.md` §4 `RB-4`).
+ * **A green compile is not evidence of a credit**, and a returned `op` is read as an OWN member — a distinction
+ * structural typing cannot make. **NO NAME IS MINTED: this declaration adds `0` types.**
  */
 export type RepairOutcome =
-  | { readonly ok: true; readonly op: WriteRecord['op'] }
+  | void
+  | { readonly ok: true; readonly op?: WriteRecord['op'] | null }
   | { readonly ok: false; readonly message: string };
 
 /**

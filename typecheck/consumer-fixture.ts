@@ -398,13 +398,29 @@ const identityFromBody: ConstraintIdentity = store.addConstraint(
   (ctx) => (ctx.value === 2 ? true : { message: 'refused' }),
 );
 
-// ---- (ii) THE TWO-ARM REPAIR, ASSIGNABLE AS DECLARED --------------------
-// `op` is REQUIRED on the credited arm and ABSENT on the failed one, and `undefined` is not one of the two — so a
+// ---- (ii) THE REPAIR'S ANSWER, ASSIGNABLE AS DECLARED --------------------
+// **⟶ RE-DERIVED 2026-11-01 — `ORC-T1`/`ORC-T2`: `op` IS OPTIONAL ON THE CREDITED ARM, `null` IS ADMITTED, AND
+// `void` IS A MEMBER OF THE UNION** (`strata/decisions.md` · `D-105` item `1`; `docs/L1/op-free-repair-credit.md`
+// §6.1). **THE SENTENCES THIS CLAUSE SUPERSEDES ARE NAMED RATHER THAN OVERWRITTEN** (`RCA-8(g)` ANNOTATE-BESIDE):
+// *"`op` is REQUIRED on the credited arm and ABSENT on the failed one, and `undefined` is not one of the two — so a
 // repair answering nothing, or a bare `{ ok: true }`, is a compile error instead of a `ConstraintPassRefused`
-// (`ST-F2`'s measured defect). THE CARRIER IS THE STORE'S OWN RECORD, reached by indexed access, so no second op
-// carrier exists to disagree with it.
+// (`ST-F2`'s measured defect)"* — **and after the ruling the two shapes it refused are the two the type must
+// ADMIT, because the runtime CREDITS them: `ST-F2` is closed BY CARRIER and not by text.** THE CARRIER, where a
+// body does return one, IS STILL THE STORE'S OWN RECORD, reached by indexed access, so no second op carrier
+// exists to disagree with it — **and no reader in the kernel reads that `op` at all** (§6.1's printed limit: the
+// type declares the shape a consumer SHOULD return and the runtime declines to judge what a consumer DOES return).
 const credited: RepairOutcome = { ok: true, op: written.op };
 const failed: RepairOutcome = { ok: false, message: 'the write was refused' };
+// **`ORC-T1`, CELL ONE — THE BARE `{ ok: true }`: LAWFUL, AND ITS DIRECTIVE RETIRED.** It states `ST-F2`'s defect
+// from the type's own side: a body with an opinion and no op is a repair whose edit the kernel credits anyway.
+const creditedNoOp: RepairOutcome = { ok: true };
+// **`ORC-T1`, CELL TWO — `undefined`: LAWFUL.** This is the natural shape of `repair: () => { … }`, which the
+// ruling's own words make the FIRST case (*"A repair that does its write and returns `undefined` … is NOT
+// refused"*), and without the union's `void` member it is a compile error.
+const creditedNothing: RepairOutcome = undefined;
+// **AND `op: null` IS ADMITTED BY THE SAME CLAUSE** (§6.1: the member is INFORMATIONAL, so `DeleteRecord['op']`'s
+// declared `null` arm — a `delete` that removed nothing — costs a consumer nothing).
+const creditedNullOp: RepairOutcome = { ok: true, op: null };
 
 // ---- (ii-bis) ONE END-TO-END BODY THAT COMPILES -------------------------
 // **⟶ RE-DERIVED BY THE `Q-1` CLAUSE, 2026-11-01** (`docs/L1/repair-outcome-types.md` §8's `⟶ ANSWERED`): `write`'s
@@ -427,12 +443,16 @@ const endToEnd: Constraint = (context: AttemptContext): ConstraintOutcome => {
 // The declaration's §5.2 (iii) table, row for row, with the code its probe measured. An UNUSED directive is
 // itself a compile error, so each cell below is a live assertion: the type really does refuse it. (The table's
 // EIGHTH row — `op` as a `number` — already stands at section 4, `const opAsNumber`, and stays used there.)
-// @ts-expect-error — `TS2322`: `op` is REQUIRED on the credited arm; this is `ST-F2`'s exact shape
-const refusedNoOp: RepairOutcome = { ok: true };
+//
+// **⟶ AND THE TWO DIRECTIVES THAT STOOD HERE ARE RETIRED BY `ORC-T1`, 2026-11-01** (`D-105`;
+// `docs/L1/op-free-repair-credit.md` §6.1): `refusedNoOp` (`{ ok: true }`) and `refusedUndefined` (`undefined`)
+// were **LAWFUL ASSIGNMENTS** from the ruling's own date — the credit is the failing pair's mark and the returned
+// `op` is read by nothing — so each became a `TS2578` (an UNUSED directive) and each is now the positive cell
+// `creditedNoOp`/`creditedNothing` above. **THE LOSS IS NAMED: the alias no longer refuses the one shape `ST-F2`
+// was about, and that is the point of the ruling rather than a regression** (§6.1's *"the type stops refusing the
+// one shape `ST-F2` was about. That is the point of the ruling and not a loss"*).
 // @ts-expect-error — `TS2740`: THE BARE RECEIPT IS NOT THE OP — a `WriteRecord` is not a `WriteRecord['op']`
 const refusedReceiptAsOp: RepairOutcome = { ok: true, op: written };
-// @ts-expect-error — `TS2322`: a repair answering nothing is refused `ConstraintPassRefused` (`kernel-attempt.mjs:911`)
-const refusedUndefined: RepairOutcome = undefined;
 // @ts-expect-error — `TS2322`: no `message`, so the repair is NEVER SEEN — a REAL refusal and not a mere excess-property one: it holds THROUGH A VARIABLE too (§5.2 (iii) row `d`)
 const refusedRepairOnly: ConstraintOutcome = { repair: () => credited };
 // @ts-expect-error — `TS2322`: the closed set has no string arm, and an outside value is read as `{ message }`
@@ -445,12 +465,26 @@ const refusedExcessOp: RepairOutcome = { ok: false, message: 'x', op: written.op
 // ---- (iv) THE `op`'s OWN MEMBERS, THROUGH THE CREDITED ARM --------------
 // The declaration's §3: the alias expresses `opId` and `seq` by NAMING the store's record, and a consumer holds
 // that only where a compiler can. The credited arm is narrowed by its `ok` discriminant.
-if (credited.ok) {
+//
+// **⟶ AND `ORC-T2`, 2026-11-01: THE `op` IS OPTIONAL AND ADMITS `null`, SO A CONSUMER READS IT ONLY AFTER
+// NARROWING IT** (`docs/L1/op-free-repair-credit.md` §6.1's second table row: *"a consumer who annotated a value
+// as `RepairOutcome` and reads `.op` must now narrow — the declared break, and the reason the release class is
+// `MINOR`"*). **THE BYTES THIS CLAUSE RE-DERIVES READ `credited.op.opId` DIRECTLY AND ARE NOW `TS18049`** — two
+// errors at `:449`/`:450` on the pre-fix head — so the narrowing is a member test on the value itself and the
+// reading stands behind it. The declaration's §3's own subject (the alias EXPRESSES `opId` and `seq` by naming
+// the store's record, so no second op carrier is minted) is unmoved: what moved is only the gate a consumer's
+// own read must pass.
+if (credited.ok && credited.op !== undefined && credited.op !== null) {
   const creditedOpId: string = credited.op.opId;
   const creditedSeq: number = credited.op.seq;
   void creditedOpId;
   void creditedSeq;
 }
+// **AND THE GATE HAS A NEGATIVE SIDE, ASSERTED SO THE NARROWING IS NOT A TAUTOLOGY**: read WITHOUT it, the
+// credited arm's `op` is `WriteRecord['op'] | null | undefined`, so the direct member read the pre-fix head
+// carried is exactly the `TS18049` this clause exists for.
+// @ts-expect-error — `TS18049`: `op` is possibly `null` or `undefined` until the gate above narrows it
+const creditedOpIdUngated: string = credited.ok ? credited.op.opId : '';
 
 // ---- (iv-a) `AttemptContext` — FIVE MEMBERS, AND NO SIXTH AT ANY INSTANT -
 declare const ctx: AttemptContext;
@@ -584,7 +618,14 @@ void [
   readExport, writeExport,
   passArm, repairableArm, unrepairableArm, identityFromBody,
   credited, failed, endToEnd,
-  refusedNoOp, refusedReceiptAsOp, refusedUndefined, refusedRepairOnly,
+  // **⟶ RE-DERIVED 2026-11-01 — `ORC-T1`/`ORC-T2`** (`D-105`; `docs/L1/op-free-repair-credit.md` §6.1): the two
+  // retired directives' variables are GONE and the three POSITIVE cells that replaced them are consumed here —
+  // `creditedNoOp` (`{ok: true}`), `creditedNothing` (`undefined`) and `creditedNullOp` (`op: null`) — beside the
+  // narrowed `op` reading (consumed at its own `void`s inside the gate) and its negative side
+  // (`creditedOpIdUngated`), so no
+  // binding of this section can pass for want of a reader.
+  creditedNoOp, creditedNothing, creditedNullOp, creditedOpIdUngated,
+  refusedReceiptAsOp, refusedRepairOnly,
   refusedString, refusedWidenedBoolean, refusedExcessOp,
   ctxAddress, ctxAttempt, ctxOp, ctxTier, ctxValue, ctxPending, ctxWrite,
   rcAddress, rcId, rcOp, rcTier, rcValue, rcPending, rcWrite,

@@ -98,6 +98,16 @@ export function commit(store, address, tier, value) {
     // removal is the union of the failed write's own returned set and these sets, so a merged listener that the
     // failed write never returned loses its entry there too.
     repairTriggered: [],
+    // **⟶ ADDED 2026-11-01 — `D-105`: THE PAIR HANDLES THIS ATTEMPT'S REPAIRS' WRITES TRIGGERED, AND NOTHING
+    // ELSE** (`docs/L1/op-free-repair-credit.md` §3.3 `JN-1`; `strata/decisions.md` · `D-105` item `3`: *"the only
+    // supported route for repairs is with the commit id so that its triggers can be joined to the commit and the
+    // constraint battery run again over them"*). **IT IS THE ATTEMPT'S OWN AND NEVER THE RECORD'S** (`A117` (D6)):
+    // one internal member beside `repairTriggered`, **`record.triggered` UNMOVED**, and no member added to the
+    // record or to the product. **IT IS MINTED EMPTY AT THIS MINT AND AT `commitRemoval`'s**, filled at the merge
+    // seat (`kernel-attempt.mjs`) by `D-69`'s one membership test — a CARRIED PAIR's `id` joins here and never
+    // `pending` — **and read by the pass's own snapshot** (`pairsTriggered`'s second argument), so **the pairs a
+    // repair's edit fires are asked by the commit's next battery**.
+    repairPaired: [],
     status: 'open',
     report: null,
   };
@@ -318,6 +328,10 @@ export function commitRemoval(store, address, tier, remove) {
     // attempt kinds share, so a repair during a DELETE's pass is delivered by the delete's own delivery and its
     // sets are discarded by the same widened filter. **NO RECORD MEMBER IS ADDED** (`A117` (D6)).
     repairTriggered: [],
+    // **⟶ AND ITS OWN `repairPaired` AT THIS MINT TOO — `D-105`, §3.3 `JN-1`** (`docs/L1/op-free-repair-credit.md`):
+    // the merge seat is the pass's repair arm, which both attempt kinds share, and the snapshot the re-run
+    // materialises reads this member on either kind. **NO RECORD MEMBER IS ADDED** (`A117` (D6)).
+    repairPaired: [],
     status: 'open',
     report: null,
   };

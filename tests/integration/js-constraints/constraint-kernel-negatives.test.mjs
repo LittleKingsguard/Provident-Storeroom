@@ -52,6 +52,10 @@ import {
   passAtRegistration, atLandingOnly,
   listenAndRegister, carriesHandle, setHandles, setAddresses,
   handedLog, assertRetainedRecord, } from './constraint-kernel-helpers.mjs';
+// **⟶ ADDED 2026-11-01 — `D-105` (`P-NEG-18`'s re-derivation): THE ATTEMPT'S OWN LIVE RECORD**, the one
+// instrument that can read `appliedRepairs` and `ran` — `kernelFor(store).live` is the kernel record's map of
+// OPEN attempts, entered at `K-2` and left at the terminal arm, and the run mutates the record in place.
+import { kernelFor } from '../../../bindings/js/src/entry/kernel-foundations.mjs';
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════
 // `P-NEG-14` — THE DISCARD'S DISCRIMINATOR IS THE SET A HANDLE CAME BACK IN, NEVER THE ANCESTRY
@@ -618,30 +622,41 @@ test('ck_p_neg_17_the_repair_run_entry_names_the_op_it_was_invoked_for_on_both_a
   }
 });
 
-// ═══════════════════════════════════════════════════════════════════════════════════════════════
-// `P-NEG-18` — A REPAIR NAMING AN OP LANDED BEFORE THE ATTEMPT CREDITS NOTHING AND IS `KC-4`
-// ═══════════════════════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════
+// `P-NEG-18` — A REPAIR NAMING AN OP LANDED BEFORE THE ATTEMPT IS **CREDITED**, AND THE NAMED OP IS READ
+// BY NOTHING — **RE-DERIVED 2026-11-01 TO `strata/decisions.md` · `D-105`**
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════════
 
 /**
- * THE CLAUSE (`parameter-semantics.md §2.7`, the seam's ONE home): **`op` IS THE OP THE REPAIR'S OWN
- * EDIT LANDED — the store's own `write` return's value, the ONE channel the kernel reads it off — and
- * "AN `ok === true` RETURN WHOSE `op` IS ABSENT, `undefined`, OR NOT THE OP THE REPAIR ACTUALLY LANDED
- * IS THE APP'S OWN DEFECT AND NOT A KERNEL STATE OF ITS OWN: THE KERNEL CREDITS NO OP, THE ATTEMPT TAKES
- * ARM `(d)` AND FAILS `KC-4`, its `repair-run` entry is appended, and the kernel's own generated
- * sentence NAMES THE UNRECOGNIZED OR UNLANDED `op`"** (`attempt-lifecycle.md §2.4` item 4's arm `(d)`).
+ * **THE CLAUSE THIS CELL IS FILED UNDER, AND THE RULING THAT RE-DERIVED IT.** The clause, at its own bytes
+ * (`parameter-semantics.md §2.7`, the seam's ONE home): *"`op` IS THE OP THE REPAIR'S OWN EDIT LANDED … and
+ * 'AN `ok === true` RETURN WHOSE `op` IS ABSENT, `undefined`, OR NOT THE OP THE REPAIR ACTUALLY LANDED IS THE
+ * APP'S OWN DEFECT AND NOT A KERNEL STATE OF ITS OWN: THE KERNEL CREDITS NO OP, THE ATTEMPT TAKES ARM `(d)` AND
+ * FAILS `KC-4`, its `repair-run` entry is appended, and the kernel's own generated sentence NAMES THE
+ * UNRECOGNIZED OR UNLANDED `op`'"* (`attempt-lifecycle.md §2.4` item 4's arm `(d)`).
+ * **⟶ AND `D-105` SUPERSEDES THAT ARM ON THE WRITE PATH** (`strata/decisions.md` · `D-105` item `1`, the
+ * architect, verbatim: *"The credit is the **FAILING PAIR's** mark (`attempt.appliedRepairs`, keyed by the
+ * pair), and **the returned `op` is neither required nor read for it**"*; declared at
+ * `docs/L1/op-free-repair-credit.md` §1.1 `CT-3`, §1.2, §5.2). **THE SENTENCES THIS CELL WAS FILED UNDER ARE
+ * NAMED RATHER THAN OVERWRITTEN** (`RCA-8(g)` ANNOTATE-BESIDE) — they are quoted whole above — **and the cell's
+ * SUBJECT IS UNMOVED**: a repair whose return names an op that landed BEFORE the attempt, at the attempt's own
+ * address, so the identity is a REAL op of the store and the only thing that makes it foreign is that THE
+ * ATTEMPT DID NOT CREATE IT. **WHAT MOVES IS ITS FIGURE, AND NOTHING IS WEAKENED:**
+ *   · **THE OLD ARM** — `KC-4`, `closed.ops.length === 1` ("THE KERNEL CREDITS NO OP"), and a sentence naming
+ *     the unlanded `opId`;
+ *   · **THE RULING'S ARM** — the attempt PASSES, `closed.ops` is TWO ops (`[the commit's, the LEG's]`), the
+ *     pair's mark is taken (`attempt.appliedRepairs` and `attempt.ran`), the `repair-run` entry names THE
+ *     LANDING, and **NO ENTRY, NO THROWN FORM AND NO MEMBER SPELLS THE FOREIGN `opId` AT ALL** — `landedOp`
+ *     and its two sentences are gone from this path (§5.2's deletions).
  *
- * THE DRIVE'S OWN STATE: an op that landed BEFORE the attempt — a caller-made write at the attempt's own
- * address, so the identity the repair names is a REAL op of the store and of the same address, and the
- * ONLY thing that makes it unlanded is that THE ATTEMPT DID NOT CREATE IT.
- *
- * STATES ENUMERATED FIRST: (1) the pre-attempt write's op, standing in no member of the attempt's `ops`;
+ * THE DRIVE'S OWN STATE, UNMOVED: (1) the pre-attempt write's op, standing in no member of the attempt's `ops`;
  * (2) the repair's own edit, landing ITS OWN op — which the repair does NOT name; (3) the repair's return,
- * naming the PRE-ATTEMPT op; (4) the arm — `(d)`, `KC-4`, the kernel's sentence naming that id;
- * (5) the report's `ops` — the attempt's own first write, and NOT the named op.
+ * naming the PRE-ATTEMPT op; (4) **the CREDIT**; (5) the report's `ops` — the attempt's own first write AND the
+ * op the repair landed, and still NOT the named op.
  *
- * FAIL STATES: an attempt that CREDITS the foreign op (the defect this cell exists for — `ops` growing to
- * two, the pair entering `appliedRepairs` and the attempt re-evaluating at a landing it never made); an
- * arm other than `(d)`; a kernel sentence that names nothing of the return it refused.
+ * FAIL STATES, RE-DERIVED: an attempt REFUSED `KC-4` for this return (the pre-ruling arm, which is now the
+ * defect); a credit that appends the NAMED op instead of the leg's; a sentence that names the foreign identity;
+ * an attempt whose pair is not marked applied, or whose re-run was not judged at the leg's op.
  */
 test('ck_p_neg_18_a_repair_naming_a_pre_attempt_op_credits_nothing_and_is_KC4', async () => {
   const { register, commit, runAttempt, report } = await kernel();
@@ -650,6 +665,7 @@ test('ck_p_neg_18_a_repair_naming_a_pre_attempt_op_credits_nothing_and_is_KC4', 
   // (1) THE FOREIGN OP: a write that landed BEFORE the attempt, at the attempt's own address.
   const before = store.write(address, 'mem', 'before').op;
   let repairedOp = null;
+  let returnedOpNamed = null; // the identity the RETURN names — the pre-attempt op, read back off the return
   let evaluations = 0;
   // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1 — AND `3-bis` MAKES IT MANDATORY: this body carries a
   // `repair`, so an unshielded registration ATTEMPTS it and `repairedOp` is set by a call the drive has not
@@ -661,7 +677,8 @@ test('ck_p_neg_18_a_repair_naming_a_pre_attempt_op_credits_nothing_and_is_KC4', 
         repair: (rctx) => {
           // (2) THE REPAIR'S OWN EDIT LANDS — and its own op is NOT the one it names below.
           repairedOp = store.write(address, 'mem', 'fixed', rctx).op;
-          // (3) THE IDENTITY IT NAMES IS THE PRE-ATTEMPT OP.
+          // (3) THE IDENTITY IT NAMES IS THE PRE-ATTEMPT OP — AND UNDER `D-105` THE KERNEL READS IT NOWHERE.
+          returnedOpNamed = before;
           return { ok: true, message: 'x was repaired', op: before };
         },
         message: 'x is invalid on the committed value',
@@ -671,7 +688,11 @@ test('ck_p_neg_18_a_repair_naming_a_pre_attempt_op_credits_nothing_and_is_KC4', 
   }));
   const record = commit(store, address, 'mem', 'broken');
   assert.equal(repairedOp, null, 'the drive has run no repair yet');
+  // THE ATTEMPT'S OWN RECORD, TAKEN WHILE IT IS LIVE — the instrument `appliedRepairs` and `ran` are read
+  // through (`D-58` keeps neither on a closed record).
+  const attemptRecord = kernelFor(store).live.get(record.attempt.id);
   const r = capture(() => runAttempt(store, record));
+  const closed = report(store, record.attempt);
   assert.equal(repairedOp !== null && repairedOp.opId !== before.opId, true,
     'the drive\'s own two identities are TWO: the op this repair landed and the op it named are '
     + `different ops — read ${JSON.stringify(repairedOp && repairedOp.opId)} against `
@@ -679,33 +700,65 @@ test('ck_p_neg_18_a_repair_naming_a_pre_attempt_op_credits_nothing_and_is_KC4', 
   assert.equal(record.op.opId !== before.opId, true,
     'and the commit\'s own write is a SECOND op at that address, distinct from the pre-attempt op the '
     + 'repair will name — the two identities of this drive are two ops of one store');
-  assert.equal(r.threw, true,
-    'the repair named an op it did not land — an op the attempt never created — so the attempt fails');
-  assertKernelForm(r.thrown, 'P-NEG-18');
-  assert.equal(r.thrown.status, KC[4],
-    'AND THE ARM IS `(d)`: a return naming an op the repair did not land "is the app\'s own defect ... '
-    + 'the kernel credits no op, the attempt takes arm (d) and fails KC-4" — read '
-    + JSON.stringify(r.thrown.status) + ' (`parameter-semantics.md §2.7`, its `observable` cell)');
-  assert.equal(r.thrown.message.includes(before.opId), true,
-    'and the kernel\'s own generated sentence NAMES the unlanded op it refused — read '
-    + JSON.stringify(r.thrown.message) + ` for ${JSON.stringify(before.opId)}`);
-  const closed = report(store, record.attempt);
+  // ── THE FIGURE THAT MOVED. ───────────────────────────────────────────────────────────────────────────
+  assert.equal(r.threw, false,
+    '**THE ATTEMPT RESOLVES: THE REPAIR IS CREDITED** — the invocation landed an op, so `D-105`\'s landing '
+    + 'test credits the pair and the op the return NAMED is read by nothing (`§1.1` `CT-2` step 4, `§1.2`); '
+    + 'the run threw ' + JSON.stringify(r.threw ? r.thrown.status : null));
+  assertAttemptReport(r.value, 'P-NEG-18: the attempt\'s report');
+  assert.equal(r.value.outcome, 'passed',
+    'and its outcome is the pass arm — read ' + JSON.stringify(r.value.outcome));
+  assert.deepEqual([...attemptRecord.appliedRepairs], ['x'],
+    '**THE CREDIT IS THE PAIR\'S MARK** (`CT-1`) — its own registry key stands in `attempt.appliedRepairs`: '
+    + 'read ' + JSON.stringify([...attemptRecord.appliedRepairs]));
+  assert.deepEqual([...attemptRecord.ran], ['x'],
+    'and in `attempt.ran`, the identity the repeat limbs discriminate on: read '
+    + JSON.stringify([...attemptRecord.ran]));
   assertRetainedRecord(closed, 'P-NEG-18 retained record');
-  assert.equal(closed.ops.length, 1,
-    'AND NO FOREIGN LANDING IS CREDITED: `ops` carries the ONE op the attempt itself created — read '
-    + `\`ops.length\` = ${closed.ops.length}; the arm-(d) proof must exclude a landing this attempt never `
-    + 'made, and a credit is what would move the pair into `appliedRepairs` and the attempt into a '
-    + 're-evaluation at an op of the attempt\'s own past');
+  assert.equal(closed.ops.length, 2,
+    '**AND THE CREDIT APPENDS THE OP THE REPAIR LANDED — AND NOTHING ELSE**: `ops` carries the commit\'s '
+    + 'own op and the repair\'s landing — read ' + `\`ops.length\` = ${closed.ops.length}`);
   assert.equal(closed.ops[0].opId, record.op.opId,
-    'and that one op is the op the commit record carries — read '
+    'the first is the op the commit record carries — read '
     + JSON.stringify(closed.ops[0].opId) + ' against ' + JSON.stringify(record.op.opId));
+  assert.equal(closed.ops[1].opId, repairedOp.opId,
+    '**AND THE SECOND IS THE OP THE REPAIR LANDED — THE LEG\'S, NOT THE RETURN\'S** (`§4 RB-3`, '
+    + '`§2.3 PN-2`) — read ' + JSON.stringify(closed.ops[1].opId) + ' against '
+    + JSON.stringify(repairedOp.opId));
+  assert.notEqual(closed.ops[1].opId, returnedOpNamed, 'the member is NOT the identity the return named');
   assert.equal(closed.ops.some((o) => o.opId === before.opId), false,
-    'the pre-attempt op stands in NO member of `ops`, in no order and under no spelling');
-  // **⟶ AND THE LIST IS THE THROWN FORM'S OWN FROM 2026-10-28 (`D-58`): the store retains none of it.**
-  assert.equal(entries(handedLog(r.thrown), 'outcome')[0].state, KC[4],
-    'and the handed-off record\'s ONE `outcome` entry carries the same `KC-4` token the thrown form does');
-  assert.equal(entries(handedLog(r.thrown), 'repair-run').length, 1,
-    'and its `repair-run` entry was appended, as arm (d) owes');
+    'and the pre-attempt op stands in NO member of `ops`, in no order and under no spelling — the credit is '
+    + 'the LEG\'s and a foreign identity can never enter the list (`§4 RB-4`)');
+  // ── AND THE SENTENCE THAT NAMED IT IS GONE (`§5.2`'s deletions, `§1.2`'s "not read" list). ─────────
+  const runs = entries(attemptRecord.log, 'repair-run');
+  assert.equal(runs.length, 1,
+    'the `repair-run` entry is appended once — the repair DID run, on both rules');
+  assert.equal(runs[0].opId, repairedOp.opId,
+    'and it names THE LANDING ("the op the repair produced where it produced one", '
+    + '`kernel-surface.md §2.5` item 1): read ' + JSON.stringify(runs[0].opId));
+  assert.equal(runs[0].message.includes(before.opId), false,
+    '**AND NO SENTENCE NAMES THE OP THE RETURN CARRIED** — `landedOpDefect`\'s generated sentence is '
+    + 'withdrawn from the write path (`§5.2`): read ' + JSON.stringify(runs[0].message) + ' for '
+    + JSON.stringify(before.opId));
+  assert.equal(attemptRecord.log.map((entry) => entry.message).join(' | ').includes(before.opId), false,
+    'and no entry of the whole log names it either — the returned `op` reaches no sentence at all '
+    + '(`§1.2`)');
+  // **AND THE TERMINAL ENTRY IS THE PASSING ARM'S OWN — `commit`, NOT `outcome`.** The retired arm's figure was
+  // *"ONE `outcome` entry carrying `KC-4`"*; the pass's terminal act appends the `commit` entry and no `outcome`
+  // entry at all, so a cell that looked for the failing arm's entry here would be reporting the old arm.
+  assert.equal(entries(attemptRecord.log, 'outcome').length, 0,
+    '**NO `outcome` ENTRY STANDS ON A PASSING ATTEMPT** — that entry is the FAILING arm\'s '
+    + '(`fail-surface.md §1.1` item 1 (b)), and this attempt did not fail: read '
+    + JSON.stringify(attemptRecord.log.map((entry) => entry.kind)));
+  assert.equal(entries(attemptRecord.log, 'commit').length, 1,
+    'and the terminal entry the pass appends is the `commit` kind, exactly once: read '
+    + JSON.stringify(attemptRecord.log.map((entry) => entry.kind)));
+  // ── THE STORE: the repair's edit stands, and the reported `ops` are the live attempt's, by identity. ──
+  assert.equal(capture(() => store.read(address)).value, 'fixed',
+    'and the repair\'s edit stands at the attempt\'s own address — read '
+    + JSON.stringify(capture(() => store.read(address)).value));
+  assert.deepEqual(closed.ops.map((o) => o.opId), attemptRecord.ops.map((o) => o.opId),
+    '`K-5` answers the attempt\'s own two ops, by identity and in the same order');
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════
