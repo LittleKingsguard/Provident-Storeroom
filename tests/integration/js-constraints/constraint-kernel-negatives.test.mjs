@@ -151,6 +151,11 @@ test('ck_p_neg_14_the_discard_reaches_a_handle_by_the_set_it_came_back_in_and_no
     const handlePlain = listenAndRegister(store, ancestor, plain);
     let landed = null;
     let evaluations = 0;
+    // **⟶ AND THE REPAIR'S WRITE'S RETURNED SET IS RECORDED, 2026-11-01 (`D-104`) — THE ONE TERM THE PASSING
+    // ARM'S EQUALITY GAINS BELOW** (`docs/L1/repair-listener-delivery.md` §4; §7.3's SECOND CLAIM). It is read off
+    // the record the repair's own `write` answered, in the repair's own body, and it is the ONLY set a merged
+    // element could come from: the merge appends handles **THE REPAIR'S WRITE** returned.
+    let repairedHandles = [];
     // ⟶ `A135` (3) / `contract.md §7.3` (b) state 1 — AND `3-bis` MAKES IT MANDATORY: this body carries a
     // `repair`, so an unshielded registration ATTEMPTS it and consumes `evaluations === 1`, which is the
     // checkpoint evidence this cell reads at the attempt's SECOND op.
@@ -161,7 +166,9 @@ test('ck_p_neg_14_the_discard_reaches_a_handle_by_the_set_it_came_back_in_and_no
           // **⟶ THE FIFTH POSITION, 2026-10-18** (`docs/specs/storeroom-js/surface.md §2.11` clause 6; `PAR-C-7`):
           // the repair's own write JOINS the commit it is part of — `rctx` IS that record.
           repair: (rctx) => {
-            landed = store.write(address, 'mem', 'fixed', rctx).op;
+            const written = store.write(address, 'mem', 'fixed', rctx);
+            landed = written.op;
+            repairedHandles = setHandles(written.triggered);
             return { ok: true, message: 'x was repaired at the attempt\'s own address', op: landed };
           },
           message: 'x is invalid on the committed value',
@@ -220,8 +227,22 @@ test('ck_p_neg_14_the_discard_reaches_a_handle_by_the_set_it_came_back_in_and_no
     // (`trigger-and-pair.md §4` item 1: *"they compare `entry.handle`, never `entry`"*). The as-filed
     // `record.triggered.filter((h) => h !== handleX)` compared a PAIR to a HANDLE and could subtract
     // nothing — `TF-3`/`TF-4` read from the reader's side. **THE CLAIM IS UNMOVED.**
+    //
+    // **⟶ AND IT IS RE-DERIVED AGAIN 2026-11-01 — `D-104`: THE EQUALITY GAINS A THIRD TERM AND THAT TERM IS
+    // MEASURED EMPTY HERE** (`docs/L1/repair-listener-delivery.md` §4, §7.3's SECOND CLAIM; `strata/decisions.md` ·
+    // `D-104` item 2). **WHAT STOOD HERE, QUOTED SO ITS NARROWING IS LEGIBLE:** `setHandles(pending)` equals
+    // `setHandles(triggered)` MINUS the checked-off id, on the passing arm. **FROM THIS DATE A PASSING REPAIRED
+    // WRITE'S MEMBER ALSO CARRIES THE LISTENERS THE REPAIR'S OWN WRITE FIRED** — handles the commit's write never
+    // returned, `triggered` being the store's own returned set for THAT write, VERBATIM (`§2` `B-6`) — **so the
+    // claim becomes `pending = triggered MINUS the checked-off entries PLUS the elements a repair's write
+    // merged`, with the merge ALSO de-duplicated by `handle` against the member's current handles (`§3.4`).**
+    // **ON THIS FIXTURE THE THIRD TERM IS EMPTY, MEASURED AND NOT ASSUMED**: the repair's returned set is
+    // `{handlePlain, handleX}` — the ancestor listener, ALREADY in `triggered`, and the pair's own id, which
+    // `§3.3`'s predicate never merges — so nothing is appended and every reading the cell took before is the
+    // reading it takes now. **NOTHING IS WEAKENED: a member carrying an entry from neither set still reds here.**
+    const mergedByRepair = repairedHandles.filter((h) => h !== handleX && !setHandles(record.triggered).includes(h));
     assert.deepEqual(setHandles(record.pending).slice().sort(),
-      setHandles(record.triggered).filter((h) => h !== handleX).slice().sort(),
+      [...setHandles(record.triggered).filter((h) => h !== handleX), ...mergedByRepair].slice().sort(),
       'AND THE ARM RULES THE TWO ENTRIES APART BY WHAT REACHED EACH, AND BY NOTHING ELSE: the member after '
       + 'a passing arm is "`triggered` MINUS the evaluated pairs\' checked-off entries" '
       + '(`attempt-lifecycle.md §3` item 8) — the attempt-address pair\'s own handle leaves BY ITS OWN '
@@ -231,7 +252,19 @@ test('ck_p_neg_14_the_discard_reaches_a_handle_by_the_set_it_came_back_in_and_no
       + 'FAIL-STATE DISTINGUISHED: a passing arm that subtracted an entry no pass evaluated — the `SIFT` '
       + '`kernel-surface.md §2.1` item 2 declares UNLAWFUL — read `pending` '
       + JSON.stringify(record.pending.map(String)) + ' of `triggered` '
-      + JSON.stringify(record.triggered.map(String)));
+      + JSON.stringify(record.triggered.map(String)) + ', with the repair\'s returned set '
+      + JSON.stringify(repairedHandles) + ' contributing ' + JSON.stringify(mergedByRepair));
+    // **AND THE THIRD TERM IS EMPTY ON THIS FIXTURE — THE RE-DERIVATION'S OWN MEASUREMENT** (`§7.3`'s row for
+    // this cell: *"the repair's returned set is `{the pair's id, the ancestor listener's handle}` — both already
+    // in `pending`, and the id excluded by §3.3"*), so the equality above is the filed one for the filed reason.
+    assert.deepEqual(mergedByRepair, [],
+      'NO ELEMENT OF THE REPAIR\'S RETURNED SET MERGES ON THIS FIXTURE: the pair\'s id is a CARRIED PAIR\'s '
+      + 'handle (`D-69`; §3.3 — asked and never delivered, and never merged either) and the ancestor listener '
+      + 'already stands in the member from the commit\'s own write (`§3.4`\'s de-duplication) — read '
+      + JSON.stringify(repairedHandles));
+    assert.deepEqual([...repairedHandles].sort(), [handlePlain, handleX].sort(),
+      'and the repair\'s returned set IS the two declared handles — the premise the emptiness above rests on, '
+      + `read OFF THE REPAIR'S OWN WRITE and not assumed: ${JSON.stringify(repairedHandles)}`);
     assert.equal(carriesHandle(record.triggered, handleX), true,
       'and `triggered` STANDS UNMOVED ON THIS ARM TOO: the check-off reaches the MEMBER and never the '
       + 'store\'s own returned set (`kernel-surface.md §2.1` item 2; `attempt-lifecycle.md §2.4` item 8 (i) '

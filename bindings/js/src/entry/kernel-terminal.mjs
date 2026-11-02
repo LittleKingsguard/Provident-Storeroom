@@ -93,7 +93,20 @@ export function terminal(kernel, attempt, status, message) {
     // A HANDLE AND WOULD SILENTLY STOP REMOVING ANYTHING** (`TF-4`). **THE FAILED WRITE'S OWN RETURNED SET IS
     // READ OFF THE WRITE ITSELF, VERBATIM** (`A112`).
     const returnedSet = attempt.write.triggered.map((element) => element.handle);
-    attempt.record.pending = attempt.record.pending.filter((entry) => !returnedSet.includes(entry.handle));
+    // **⟶ AND THE REMOVAL IS WIDENED TO THE UNION OF THE FAILED WRITE'S OWN RETURNED SET AND THIS ATTEMPT'S
+    // REPAIRS' SETS — `D-104`, 2026-11-01** (`docs/L1/repair-listener-delivery.md` §5; `strata/decisions.md` ·
+    // `D-104` item `2`'s failing-arm half). **THE ELEMENTS THE REPAIR ARM MERGED ARE NOT IN `attempt.write`'s SET**
+    // — that member is the COMMIT's own write's record, not a repair's — **so without this widening a merged
+    // listener would survive the discard and be delivered by an arm the law declares EMPTY**
+    // (`surface.md §2.7` item 6). **ONE REMOVAL, BY THE SET EACH ENTRY CAME BACK IN, AND NO SECOND RULE**: an entry
+    // leaves iff the failed write returned its handle or one of this attempt's repairs' writes did, and the
+    // whole-member clear stays WITHDRAWN BY NAME (`A113` (D1) — *"the SECOND, UNLAWFUL REMOVAL"*).
+    // **`attempt.repairTriggered` IS THE ATTEMPT'S OWN MEMBER AND NOT A RECORD'S** (`A117` (D6)): it is minted
+    // empty at both attempt mints (`kernel-commit.mjs`), appended beside the merge, and read here and nowhere else
+    // — so an attempt that ran no repair answers with an empty hand-over and this arm removes exactly what it
+    // removed before.
+    const repairSet = Array.isArray(attempt.repairTriggered) ? attempt.repairTriggered : [];
+    attempt.record.pending = attempt.record.pending.filter((entry) => !returnedSet.includes(entry.handle) && !repairSet.includes(entry.handle));
   }
   attempt.status = 'closed';
   attempt.throwState = finalStatus;

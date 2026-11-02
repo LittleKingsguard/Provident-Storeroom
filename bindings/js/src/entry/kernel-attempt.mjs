@@ -107,9 +107,19 @@ const EXTERNAL_CALL = Symbol.for('provident-storeroom.external-call');
 
 /// **THE INVOCATION OF A REPAIR BODY, WITH THE ATTEMPT'S COMMIT NAMED ON ITS ENTRY** — one call, its answer the
 /// body's own, and a throwable crosses unchanged.
-function repairInCommit(store, commit, run) {
+///
+/// **⟶ AND THE FRAME THAT READS THE CHANNEL IS THE FRAME THAT KNOWS THE BRACKET STOOD, 2026-11-01 — `D-104`'s
+/// FIRST GUARD** (`docs/L1/repair-listener-delivery.md` §3.2). The channel is `writable`/`configurable` by
+/// declaration (`state.mjs`) and a caller can read `EXTERNAL_CALL` away: then this frame takes its `run()`
+/// fallback with NO bracket, nothing is appended to any leg list — **and a bare read of the leg channel would
+/// answer a PREVIOUS invocation's legs.** **SO THE FACT IS CARRIED OUT OF THIS FRAME ON THE CALLER'S OWN
+/// `invocation` OBJECT (`bracketed`), and the arm reads the channel only where it is `true`.**
+function repairInCommit(store, commit, run, invocation) {
   const channel = store !== null && typeof store === 'object' ? store[EXTERNAL_CALL] : undefined;
-  if (typeof channel === 'function') return channel(run, commit);
+  if (typeof channel === 'function') {
+    invocation.bracketed = true;
+    return channel(run, commit);
+  }
   return run();
 }
 
@@ -133,6 +143,54 @@ function constraintInCommit(store, commit, run) {
   const channel = store !== null && typeof store === 'object' ? store[EXTERNAL_CALL] : undefined;
   if (typeof channel === 'function') return channel(run, commit);
   return run();
+}
+
+/// **⟶ ADDED 2026-11-01 — `D-104`'s CARRIER, SPELLED ON THIS SIDE TOO: THE LEGS OF THE INVOCATION THAT CLOSED
+/// LAST** (`docs/L1/repair-listener-delivery.md` §3.2; `strata/decisions.md` · `D-104` item `3`'s mechanism
+/// `(a)`). `state.mjs`'s `installAttemptSeam` installs it on the instance and this module reads it, **and neither
+/// side imports the other**: the key is a `Symbol.for` spelling, the same device `COMMIT_SCOPE`, `RESTART_DRAIN`,
+/// `EXTERNAL_CALL` and `BUMP_MARK` above cross by (`kernel-surface.md §1` item 1: this module imports no entry and
+/// is imported by none). **NO KERNEL ITEM IS MINTED** (`§1` item 2's extent stands), **NO EXPORT IS ADDED** (this
+/// binding is local) and **NO MEMBER IS ADDED** to the product or to any record (`A117` (D6)).
+///
+/// **THE SUBJECT IS ONE FACT: the elements a repair's write returned, for the invocation that closed last** — the
+/// entry appends them at `write`'s leg seat and the channel ANSWERS AND CLEARS them, so the read below can only
+/// ever answer the invocation this arm just made. **A STORE THAT CARRIES NO SUCH CHANNEL ANSWERS NOTHING** (the
+/// family's conservative absent arm, the one `bumpMark` takes).
+const REPAIR_LEG = Symbol.for('provident-storeroom.repair-leg');
+
+/// **THE TWO GUARDS AND THE READ — ONE FUNCTION, BECAUSE ALL THREE FACTS ARE ABOUT THE ONE INVOCATION**
+/// (`docs/L1/repair-listener-delivery.md` §3.2's invocation guard and §3.4a's nested-attempt guard).
+///
+/// **GUARD (i) — THE READ IS TAKEN ONLY WHERE THE INVOCATION'S OWN BRACKET STOOD** (`invocation.bracketed`,
+/// set by `repairInCommit` above and by nothing else): with no bracket the append went nowhere, so the channel
+/// would answer an EARLIER invocation's legs and they would be merged into this commit's member.
+///
+/// **GUARD (ii) — THE LIST IS DROPPED WHERE A NESTED ATTEMPT WAS OPENED ACROSS THIS INVOCATION.** A repair body's
+/// **unnamed** write (`D-103`'s unsupported route) and a **constraint body's** write both take the three-position
+/// route to `constraintWrite` → a SECOND `K-2` — so **that nested commit's handles append to THIS invocation's
+/// list while its own attempt's terminal arm delivers them**, and merging them here would invoke a caller's body
+/// **twice**. **THE COUNTER IS THE KERNEL'S OWN** (`kernel.attempts`, one increment per `K-2` and per
+/// `commitRemoval`), read before the body is invoked and after it returned: **where it has moved, the list is
+/// DROPPED and the nested attempt's own delivery stands as the whole of that act's delivery.** **AND THE GUARD IS
+/// EXACT, NOT CONSERVATIVE, ON THE SUPPORTED ROUTE**: a repair that names its commit (`D-46`, `D-103`) makes a
+/// FOUR-position call that JOINS, opens no attempt and leaves the count unmoved — so every supported repair's legs
+/// reach the merge.
+///
+/// **A CHANNEL THAT THROWS ANSWERS NOTHING** — `D-35`'s read half read for a hand-over, and the same conservative
+/// side `bumpMark` answers on its own throwing arm: the commit then merges no repair element and delivers exactly
+/// what it delivered before the fix.
+function repairLegs(store, kernel, invocation, attemptsBefore) {
+  if (invocation.bracketed !== true) return [];
+  if (kernel.attempts !== attemptsBefore) return [];
+  const channel = store !== null && typeof store === 'object' ? store[REPAIR_LEG] : undefined;
+  if (typeof channel !== 'function') return [];
+  try {
+    const legs = Reflect.apply(channel, store, []);
+    return Array.isArray(legs) ? legs : [];
+  } catch (unanswered) {
+    return [];
+  }
 }
 
 export function runAttempt(store, commitRecord) {
@@ -808,6 +866,14 @@ function evaluate(kernel, attempt, landing) {
           // prints them, and the commit is carried beside them.
           pending: attempt.record === undefined ? [] : attempt.record.pending.slice(),
       };
+      // **⟶ ADDED 2026-11-01 — `D-104`'s TWO GUARDS, BOTH READ ACROSS THE ONE INVOCATION BELOW**
+      // (`docs/L1/repair-listener-delivery.md` §3.2, §3.4a): the frame records WHETHER THE INVOCATION'S OWN BRACKET
+      // STOOD (`repairInCommit` sets it — the frame that reads the channel is the frame that knows), and the
+      // attempt counter is read BEFORE the body is invoked so that a nested attempt opened inside it can be seen
+      // afterwards. **BOTH ARE THIS FRAME'S OWN AND NEITHER IS A MEMBER**: no record, no attempt and no product
+      // gains a byte (`A117` (D6)).
+      const invocation = { bracketed: false };
+      const attemptsBefore = kernel.attempts;
       try {
         // **⟶ RE-DERIVED 2026-10-27 — THE REPAIR BODY NAMES THE ATTEMPT'S COMMIT AND IS NO LONGER MARKED AS AN
         // OWNER OF ITS OWN (`D-46` item `2`).** `D-45` invoked it through the entry's `externalCall`, so the
@@ -823,7 +889,7 @@ function evaluate(kernel, attempt, landing) {
         // **⟶ AND THE FRAME STANDS FOR THIS INVOCATION TOO (`D-53`'s first invariant): the repair's own verbs
         // append to the attempt's list, and the frame is what makes `K-2` join rather than open.**
         enterCommitFrame(kernel, attempt.log);
-        result = repairInCommit(attempt.store, commitName, () => repair(repairContext));
+        result = repairInCommit(attempt.store, commitName, () => repair(repairContext), invocation);
       } catch (body) {
         // THE REPAIR-RUN ENTRY IS APPENDED BEFORE THE THROW, and the attempt's outcome entry carries
         // `KC-4` (`ck_states_a_repair_body_that_throws_reaches_the_caller_unconverted`).
@@ -919,6 +985,29 @@ function evaluate(kernel, attempt, landing) {
       entry.message = `the repair ${pair.id} landed ${produced.opId}`;
       appendOwn(attempt.ops, produced);
       appendOwn(attempt.appliedRepairs, key);
+      // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
+      // **⟶ ADDED 2026-11-01 — `D-104`'s MERGE, AT ITS SEAT: AFTER THE CREDIT, BEFORE THE RE-RUN, BEFORE THE
+      // CHECK-OFF** (`docs/L1/repair-listener-delivery.md` §3.4; `strata/decisions.md` · `D-104` item `2`;
+      // `A112`'s *"EVERY listener is `pending` on EVERY write"* applied to the act the record had left out).
+      //
+      // **THE THREE REASONS THE SEAT IS THIS ONE, EACH CHECKED AT THE BYTES AROUND IT:**
+      //   1. **AFTER THE CREDIT** — the lines above: a repair whose return carries no op the attempt can be shown to
+      //      have landed took arm (d) and RETURNED `KC-4` before reaching this seat, so **a store-refused repair
+      //      merges NOTHING** and the member is never dishonest for the instant between;
+      //   2. **BEFORE THE RE-RUN** — the next iteration's evaluated set is `attempt.record.triggered` and never
+      //      `pending`, so **this merge cannot make the pass ask a pair it would not have asked, and cannot make it
+      //      skip one** (`CX-12`'s fixed-set rule, `D-56`'s reach, `D-66`'s touched set and `D-69`'s filter are
+      //      byte-unmoved);
+      //   3. **BEFORE `releasePending` BELOW** — the run's evaluated pairs are checked off immediately after, and
+      //      **the merged elements carry no pair handle at all** (§3.3's predicate), so the check-off can never
+      //      remove them.
+      //
+      // **AND THE ORDER OF THE TWO GUARDS IS THE ONE §3.2 AND §3.4a DECLARE**: the read is taken only where this
+      // invocation's own bracket stood, and the list is DROPPED where a nested attempt was opened inside it — the
+      // nested attempt's own terminal arm delivers that act, so merging its handles here would invoke a caller's
+      // body TWICE.
+      // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
+      mergeRepairListeners(kernel, attempt, repairLegs(attempt.store, kernel, invocation, attemptsBefore));
       // THE LAYER (a) DELIVERY OF THIS RUN'S OWN HANDLES, ONE PER EVALUATED PAIR (`kernel-surface.md
       // §2.1` item 2; `§2.2` item 2): every handle this attempt's write returned that stands for a pair
       // THIS RUN evaluated has now been checked off as it passed — it was invoked in the kernel's own
@@ -926,6 +1015,15 @@ function evaluate(kernel, attempt, landing) {
       // off, THAT LOOP BEING ONE INVOKER AMONG THE JS SURFACE'S ORDERED LAYERS AND NEVER THE ONLY ONE
       // (`A: docs/decisions.md` · `A112`). A handle whose pair this run did NOT evaluate STANDS IN THE
       // MEMBER for that caller's own loop, and is never delivered twice.
+      //
+      // **⟶ RE-DERIVED 2026-11-01 — `D-104`: THE MEMBER THIS LINE FILTERS MAY NOW CARRY A REPAIR'S LISTENER**
+      // (`docs/L1/repair-listener-delivery.md` §4): the sentence above stands byte-for-byte and is read THROUGH
+      // this clause — a handle the commit's own write never returned may stand in the member from the merge above,
+      // it is no pair's handle, and the check-off below cannot reach it (the filter compares the pair's own
+      // `kernel.handles` value). **`RepairContext.pending`'s provenance clause is unmoved** (`§2.3` item 2: *"read
+      // VERBATIM AND HANDED AS A FRESH LIST"*), so in a commit with more than one repair a LATER repair is handed a
+      // member carrying an EARLIER repair's listener elements — declared, and refused to be repaired into
+      // disagreement with the record it stands for.
       releasePending(kernel, attempt, list);
       return { terminal: null, rerun: true };
     }
@@ -996,6 +1094,79 @@ function releasePending(kernel, attempt, keys) {
     // (`AA-7`'s own reading; `contract.md §2.4` item 5).
     record.pending = record.pending.filter((entry) => entry.handle !== handle);
   }
+}
+
+/**
+ * **⟶ ADDED 2026-11-01 — `D-104`'s MERGE, AT ITS SEAT: A REPAIR'S WRITE'S TRIGGERED LISTENERS JOIN THE COMMIT'S
+ * ONE MEMBER** (`docs/L1/repair-listener-delivery.md` §3.3, §3.4; `strata/decisions.md` · `D-104` item `2`;
+ * `A112`'s own row — *"because NO listener runs until the constraints pass, EVERY listener is `pending` on EVERY
+ * write"* — applied to the act the record had left out).
+ *
+ * **THE PREDICATE IS `D-69`'s OWN RULE READ AT THE MERGE** (§3.3): an element merges iff its `handle` is not one
+ * the kernel's registry names as a CARRIED PAIR's (`kernel.handles`' adopted values — the equality
+ * `pairsTriggered` reads in the other direction). **A PAIR IS NEVER IN THE DELIVERED SET** — *"an element whose
+ * handle is a constraint's `id` is asked; a listener's is delivered"* — **and its handle is not merged into
+ * `pending` either**, so the member never carries an id the pass will not evaluate. **ITS LOAD-BEARING CASE IS A
+ * MULTI-REPAIR COMMIT**: a run's check-off stands AFTER that run's repair arm, so the pair just evaluated is
+ * still in the member at this seat and the de-duplication below would exclude it on its own — but a SECOND
+ * repair's write re-triggers a pair an EARLIER run already checked off, and that id is no longer there
+ * (`P-SM-5`'s chain). **Without the predicate the merge would put it BACK.**
+ *
+ * **THE MEMBER'S DE-DUPLICATION IS ITS OWN SECOND RULE, BY `handle` AGAINST `pending`'S CURRENT HANDLES** (§3.4):
+ * `pending` is also THE CALLER'S OWN WORK LIST (`A112`), and a member carrying one handle twice would let that
+ * caller's own loop run a body twice — a rule `deliver`'s rule 3 cannot supply, because it de-duplicates the
+ * array IT is handed and not the member a caller reads.
+ *
+ * **AND THE WHOLE RETURNED SET — NOT MERELY THE MERGED ELEMENTS — IS RECORDED ON THE ATTEMPT** (`repairTriggered`,
+ * §3.5): the failing arm's discard is widened to the union of the failed write's set and these, so an entry the
+ * repair's write returned loses the member there too. **NO RECORD MEMBER IS ADDED** (`A117` (D6)).
+ *
+ * **A HANDLE THE ENTRY'S REGISTRY HOLDS NO FUNCTION FOR MERGES AND FIRES NOTHING, SILENTLY** (`delivery.mjs`'s
+ * reserved-entry arm) — so the second gate is generous by declaration, and **the kernel grows no listener
+ * registry** (`D-69`, `D-98`): it asks its own pair registry and nothing else.
+ */
+function mergeRepairListeners(kernel, attempt, legs) {
+  const record = attempt.record;
+  // **A REGISTRATION'S SYNTHETIC ATTEMPT CARRIES NO `record`** (`kernel-registration.mjs`): there is no member to
+  // write, which is why the registration instant's delivery stays `0` STRUCTURALLY and not by a gate.
+  if (record === undefined) return;
+  const pending = record.pending;
+  if (!Array.isArray(pending)) return;
+  const repairTriggered = attempt.repairTriggered;
+  for (let i = 0; i < legs.length; i += 1) {
+    const element = legs[i];
+    if (element === null || typeof element !== 'object') continue;
+    const handle = ownMember(element, 'handle');
+    if (handle === undefined) continue;
+    // THE DISCARDS' OWN SET, RECORDED BESIDE THE MERGE AND READ BY `terminal`'s FILTER ALONE.
+    if (Array.isArray(repairTriggered)) appendOwn(repairTriggered, handle);
+    // §3.3 — A CARRIED PAIR'S HANDLE IS ASKED AND NEVER DELIVERED.
+    if (carriedPairHandle(kernel, handle)) continue;
+    // §3.4 — THE MEMBER'S OWN DE-DUPLICATION, BY `handle` AGAINST THE HANDLES THAT STAND IN IT NOW.
+    if (pendingNames(pending, handle)) continue;
+    appendOwn(pending, { handle, address: ownMember(element, 'address') });
+  }
+}
+
+/// **WHETHER A HANDLE IS ONE THE REGISTRY NAMES A CARRIED PAIR'S** — `kernel.handles`' adopted values, compared by
+/// equality and never by reach (`D-69`'s one membership test, read at the merge).
+function carriedPairHandle(kernel, handle) {
+  const adopted = kernel.handles;
+  for (const value of adopted.values()) {
+    if (value === handle) return true;
+  }
+  return false;
+}
+
+/// **WHETHER A HANDLE ALREADY STANDS IN `pending`** — the member's de-duplication, `entry.handle` against
+/// `handle`, a local index loop and never `Array.prototype.some` (`contract.md §2.1` item `(1c)(vi)`).
+function pendingNames(pending, handle) {
+  for (let i = 0; i < pending.length; i += 1) {
+    const entry = pending[i];
+    if (entry === null || typeof entry !== 'object') continue;
+    if (entry.handle === handle) return true;
+  }
+  return false;
 }
 
 /**

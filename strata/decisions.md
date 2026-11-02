@@ -5294,3 +5294,43 @@ its own version — is not ruled here; the record says **unsupported** and the c
 bytes this row moves (`0`), the types it moves (`0`), the code bytes it moves (`0`), the refusal it does NOT take (`1`),
 the sites re-derived under it (`2` = the guide's sentence and the declaration's note), the questions left open (`1` =
 whether to refuse the unnamed route).**
+
+---
+
+### `D-104` — a repair's write's listeners are a BEHAVIOUR DEFECT: they ARE delivered, and the fix lands in the patch
+
+**DATE:** 2026-11-01. **BRANCH:** `main`. **SOURCE:** the architect, in session, on the confirmation of the delivery batch
+(`strata/research.md` §12 — *"a repair's write's triggered listeners are read by nothing"*) — **verbatim: *"This is a
+behavior defect, wrap into the fix patch"***. **STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE DEFECT, AND IT IS A BEHAVIOUR DEFECT AND NOT A DOCUMENTATION GAP.** A repair's write's `triggered` listeners are
+   carried on the REPAIR'S OWN WRITE RECORD (`index.mjs`'s `{op, watched, triggered}`), and **no delivery site reads
+   them**: the commit's terminal arm delivers the COMMIT's `pending` residue (`delivery.mjs`'s `terminalArm`), the repair's
+   write's own delivery is WITHHELD (*"this frame is the leg … its silence is total"*), and a listener the repair's edit
+   fired is therefore invoked by nothing. **The record is silent on it in both directions** — no clause delivers those
+   listeners and none says they are dropped — and that silence is the defect, not the resolution.
+2. **THE INTENDED BEHAVIOUR.** **The repair's write's listeners ARE delivered — in the COMMIT's delivery**, after the
+   pass, with the other listeners: the architect's own flow, *"any new non-constraint listeners are bookmarked to be run
+   after commit"*. **ONE INVOCATION PER DISTINCT HANDLE** stands (`surface.md §2.4` rule 3) — a listener fired by both the
+   original write and the repair's edit is invoked once — and **the failing arm keeps its declared empty delivery**: a
+   repair's listeners are discarded with the rest when the attempt fails (`§2.7` item 6), and the witness (`discarded`)
+   reads them as it reads any other discarded raise.
+3. **THE MECHANISM IS L1's, PRICED.** Two routes and no third: **(a)** the repair's write's triggered listeners are MERGED
+   into the commit's `pending` at the repair arm, so the terminal arm delivers them with the residue; or **(b)** the
+   terminal arm's delivered set becomes the commit's `pending` PLUS the leg's `triggered` listeners (de-duplicated by
+   identity). **Either way `D-56`'s reading of `pending` is re-read rather than contradicted** — `pending` is "the handles
+   the pass did not evaluate", and a listener is never the pass's — and the cells that assert the member's contents are
+   re-derived with it.
+4. **THE FIX LANDS IN THE PATCH.** The post-`1.8.0` patch carries this behaviour fix **together with the docs corrections
+   already committed** (`24f5b94` — the guide anchor and `D-103`'s unsupported-commit clause — and `90cd8a7` — the
+   re-staged landing). **Its version line is the release pass's**; `D-100`'s `1.7.0` and `D-102`'s `1.8.0` are not
+   reopened, and no status, member, arity or type moves for this fix.
+
+**WHAT IT DOES NOT SETTLE.** The mechanism (L1's, item 3), the cells, the write set, and the patch's own number — the
+release pass's, once the fix is landed.
+
+**TERMS: the defect classified (`1` = behaviour), the behaviour the fix declares (`2` = the delivery in the commit's batch ·
+the one-invocation rule), the mechanisms priced (`2`), the statuses, members, arities and types this row moves (`0`), the
+release it rides (`1` = the post-`1.8.0` patch), the questions left (`1` = the mechanism's declaration).**

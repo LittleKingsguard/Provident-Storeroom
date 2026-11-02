@@ -341,6 +341,84 @@ export function externalCall(store, run) {
   return run();
 }
 
+/// **⟶ ADDED 2026-11-01 — `D-104`'s CARRIER: THE LEGS OF THE INVOCATION THAT CLOSED LAST, ONE `Symbol.for`
+/// CHANNEL BESIDE THE ONE ABOVE AND NO OTHER CROSSING** (`docs/L1/repair-listener-delivery.md` §3.2 and §8's
+/// `js-registry-delivery` row; `strata/decisions.md` · `D-104` item `3`'s mechanism `(a)`).
+///
+/// **THE FACT IT CARRIES, AND WHY IT HAS TO CROSS AT ALL.** A repair's write is this package's own `write`
+/// member, so the store's returned set for that write is decoded into a record this file stands in `state.leg`
+/// (`bindings/js/index.mjs`'s `n >= 4` arm) — **and the KERNEL cannot read that slot**: `kernel-attempt.mjs`
+/// *"imports no entry and is imported by none"* (`kernel-surface.md §1` item 1), and the repair's own return
+/// carries `op` alone (`guide §7.6`). **SO THE ENTRY HANDS THE REPAIR'S WRITE'S RETURNED ELEMENTS OVER ON THIS
+/// CHANNEL, AND THE KERNEL'S REPAIR ARM IS ITS ONE READER** (`kernel-attempt.mjs`'s `REPAIR_LEG`, spelled there
+/// independently — the same device `TERMINAL_ARM`, `COMMIT_SCOPE`, `RESTART_DRAIN`, `BUMP_MARK` and
+/// `EXTERNAL_CALL` cross by).
+///
+/// **THE SUBJECT IS ONE FACT AND IT IS THE INVOCATION'S: the legs of the invocation that CLOSED LAST.** The
+/// bracket is `EXTERNAL_CALL`'s own (`installAttemptSeam` below), which already holds the commit the invocation
+/// names — so the SAME bracket opens a leg list beside that name and closes it in the SAME `finally`, and the
+/// `write` member's `n >= 4` arm appends its record's `triggered` elements to the list of the bracket that
+/// stands (`appendRepairLeg` below).
+///
+/// **AND ITS ABSENT ARMS ARE TOTAL**, the conservative side every channel of this family answers on: **no bracket
+/// standing at a write ⇒ the append goes nowhere** (a caller's own write, a direct `K-2` drive's store leg); **no
+/// invocation closed ⇒ the channel answers `[]`** (the clear below); **a store this package did not build carries
+/// no channel ⇒ the kernel's own `typeof` guard answers `[]`.** **A CALLER THAT READ THIS PROPERTY AWAY** loses
+/// the merge and nothing else: no status, no member, no arity moves.
+///
+/// **THE KEY IS A `Symbol.for` SPELLING ON PURPOSE** (`A117` (D6)): **NO MEMBER IS ADDED** — the product's
+/// declared own named members and every census of them are unmoved, a symbol-keyed own property being invisible
+/// to `Object.keys` and to `Object.getOwnPropertyNames`.
+export const REPAIR_LEG = Symbol.for('provident-storeroom.repair-leg');
+
+/// **THE INVOCATIONS IN FLIGHT, ONE LEG LIST PER OPEN BRACKET — AND THE INNERMOST IS THE ONE AN APPEND
+/// REACHES.** It is a STACK because an invocation can be made INSIDE another (a repair body's `register`, a
+/// constraint body's verb): the nested bracket closes FIRST, so it is the nested list that is handed over at that
+/// instant, and the outer bracket's list still stands where the outer invocation's own writes append.
+///
+/// **IT IS MODULE-LEVEL FOR THE REASON `EXTERNAL_COMMIT` AND `EXTERNAL_DEPTH` ABOVE ARE**: the invocation bracket
+/// is one process-wide fact of the seam and no store carries it. **IT IS NOT A COUNT, NOT A WINDOW AND NOT A
+/// SECOND INDEX** — it adds nothing to `attemptIndex` and moves no mark.
+let REPAIR_LEGS_OPEN = [];
+
+/// **THE LEGS OF THE INVOCATION THAT CLOSED LAST — ANSWERED ONCE AND CLEARED IN THE SAME READ.** A "last
+/// invocation" slot cannot be confused with another's because its one reader takes it SYNCHRONOUSLY after its
+/// own invocation returned and before any other code runs; the clear is what keeps a LATER invocation that wrote
+/// nothing from answering an EARLIER one's legs.
+let REPAIR_LEGS_LAST = [];
+
+/// **THE APPEND — TAKEN AT THE `write` MEMBER'S OWN LEG SEAT AND NOWHERE ELSE** (`bindings/js/index.mjs`, the one
+/// line beside `state.leg = record`, inside the `n >= 4` arm only): the record's `triggered` elements are taken
+/// into the innermost OPEN invocation's list, and with no bracket standing nothing is taken at all.
+///
+/// **THE ELEMENT IS MINTED FRESH, WITH A FRESH SEGMENT LIST** (`crossing.md §1.1`'s copy discipline read at this
+/// crossing): the record's own element stands on a record the REPAIR BODY itself was handed back, and the
+/// commit's member must not alias it — so a repair that mutated its own returned record's element can never move
+/// the caller's `pending`. **THE ELEMENT TYPE IS THE MEMBER'S OWN**, `{ handle, address }` (`TF-1`,
+/// `contract.md §2.5` item 2).
+///
+/// **NOTHING IS FILTERED HERE, AND A PAIR'S HANDLE IS NOT REMOVED** (`D-69`): this is the store's returned set
+/// VERBATIM, and the KERNEL's predicate is what excludes a carried pair's own handle at the merge — one
+/// membership test, in the frame that holds the registry.
+export function appendRepairLeg(record) {
+  const open = REPAIR_LEGS_OPEN;
+  if (open.length === 0) return;
+  if (record === null || typeof record !== 'object') return;
+  const triggered = record.triggered;
+  if (!Array.isArray(triggered)) return;
+  const list = open[open.length - 1];
+  for (let i = 0; i < triggered.length; i += 1) {
+    const element = triggered[i];
+    if (element === null || typeof element !== 'object') continue;
+    const address = [];
+    const segments = element.address;
+    if (Array.isArray(segments)) {
+      for (let s = 0; s < segments.length; s += 1) appendOwn(address, segments[s]);
+    }
+    appendOwn(list, { handle: element.handle, address });
+  }
+}
+
 /** The per-store index: `{ open, observers, windows, marks, windowSeq }`, keyed by the store instance and by
  *  nothing else. **`windows` IS THE STACK OF OPEN WINDOW IDENTITIES** — one number per commit this store opened, the
  *  top being the window in flight — and it exists so a restart request can name the window that raised it
@@ -684,11 +762,28 @@ export function installAttemptSeam(instance) {
     Object.defineProperty(instance, EXTERNAL_CALL, {
       value: (run, commit) => {
         const standing = EXTERNAL_COMMIT;
+        // **⟶ AND THE INVOCATION'S OWN LEG LIST IS OPENED HERE AND CLOSED IN THE SAME `finally` — `D-104`,
+        // 2026-11-01.** The bracket already holds the commit this invocation names, so **the SAME bracket is what
+        // opens the list beside it**: every `write` this invocation makes at `write`'s `n >= 4` arm appends its
+        // record's returned elements here (`appendRepairLeg` above), and **a nested invocation pushes its OWN list
+        // and closes it first**, so the inner act's legs are never taken for the outer's.
+        const legs = [];
         EXTERNAL_COMMIT = commit;
         EXTERNAL_DEPTH += 1;
+        appendOwn(REPAIR_LEGS_OPEN, legs);
         try {
           return run();
         } finally {
+          // **THE LIST LEAVES THE STACK BY A LOCAL INDEX LOOP** (`contract.md §2.1` item `(1c)(i)`'s form, the
+          // same one `closeCommit` takes for its own stack): no `Array.prototype` write and no iterator, so an own
+          // accessor at `Array.prototype`'s index reaches no byte of this path.
+          const kept = [];
+          for (let i = 0; i + 1 < REPAIR_LEGS_OPEN.length; i += 1) appendOwn(kept, REPAIR_LEGS_OPEN[i]);
+          REPAIR_LEGS_OPEN = kept;
+          // **AND THE LEGS OF THE INVOCATION THAT JUST CLOSED ARE THE ONES THE CHANNEL ANSWERS NEXT** — set on the
+          // throwing arm too, so an invocation whose body threw leaves the list it accumulated for its own arm's
+          // judgement rather than a stale one.
+          REPAIR_LEGS_LAST = legs;
           EXTERNAL_DEPTH -= 1;
           EXTERNAL_COMMIT = standing;
         }
@@ -724,6 +819,25 @@ export function installAttemptSeam(instance) {
   if (typeof instance[BUMP_MARK] !== 'function') {
     Object.defineProperty(instance, BUMP_MARK, {
       value: () => bumpWindowMark(instance),
+      writable: true,
+      enumerable: false,
+      configurable: true,
+    });
+  }
+  // **⟶ AND THE REPAIR'S OWN LEGS, INSTALLED ONCE BY THE SAME ONE-INSTALLATION RULE, 2026-11-01 — `D-104`.**
+  // **IT ANSWERS THE LEGS OF THE INVOCATION THAT CLOSED LAST AND CLEARS THEM IN THE SAME READ** (`REPAIR_LEG`
+  // above): the kernel's repair arm is its one reader and it reads SYNCHRONOUSLY after its own invocation
+  // returned, so the answer can only ever be that invocation's. **IT MINTS NO STATE OF ITS OWN** — no index, no
+  // window, no count and no entry; the list it answers is the bracket's own — and **a store this seam was never
+  // installed on carries no channel**, which is the absent arm the kernel's `typeof` guard answers with an empty
+  // hand-over.
+  if (typeof instance[REPAIR_LEG] !== 'function') {
+    Object.defineProperty(instance, REPAIR_LEG, {
+      value: () => {
+        const legs = REPAIR_LEGS_LAST;
+        REPAIR_LEGS_LAST = [];
+        return legs;
+      },
       writable: true,
       enumerable: false,
       configurable: true,

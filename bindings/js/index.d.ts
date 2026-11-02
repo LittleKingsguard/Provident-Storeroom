@@ -810,6 +810,19 @@ export interface CommitRecord {
    * **ITS ELEMENT TYPE IS TOTAL — NO BARE HANDLE STANDS IN IT** (`contract.md §2.5` item 2): the bare-handle
    * union the check-off and the discard once carried has no subject under POP, because the checked-off entry
    * is REMOVED rather than carried beside.
+   *
+   * **⟶ RE-DERIVED 2026-11-01 — `D-104`: THE SEED ABOVE IS NOT THE MEMBER'S WHOLE POPULATION ON A REPAIRED
+   * WRITE, AND NO TYPE, MEMBER OR ARITY MOVES WITH THIS CLAUSE** (`docs/L1/repair-listener-delivery.md` §4, §8;
+   * `strata/decisions.md` · `D-104` item `2`, whose item `4` fixes *"no status, no member, no arity, no type may
+   * move"*). The clause above stands BYTE-FOR-BYTE and is read THROUGH this one: `pending` is still seeded as a
+   * clone of `triggered` and still holds *"the whole returned set of triggered constraints"* **as its seed**, and
+   * from this date **A REPAIR'S WRITE'S TRIGGERED LISTENERS ARE MERGED INTO IT** — in the commit's one delivery,
+   * after the pass, one invocation per distinct handle — so **an entry may also be a listener a REPAIR's edit
+   * fired and the commit's own write never returned**. **`triggered` is unmoved**: it stays the store's own
+   * returned set for the commit's write, VERBATIM, so `pending` is no longer a subset of it on a repaired write.
+   * **THE ELEMENT SHAPE IS THE ONE ABOVE, UNCHANGED** (`{ handle, address }` — `contract.md §2.5` item 2's
+   * totality stands), and **a pair is never merged**: a carried pair's handle stays out of the member exactly as
+   * it is never delivered (`D-69`).
    */
   readonly pending: readonly TriggerPair[];
 }

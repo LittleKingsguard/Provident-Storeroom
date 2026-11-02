@@ -380,3 +380,40 @@ items and the architect's to queue — this note decides nothing.**
 
 **FILES READ.** `strata/decisions.md` (`D-88`, `D-101` items 2 and 4, `D-102`); `bindings/js/index.d.ts`; the tag set
 (`v1.7.0` → `v1.8.0`); `bindings/js/src/entry/kernel-attempt.mjs`; the `git diff --stat` instruments above.
+
+---
+
+## §12 · The fourth confirmation — a repair's write's own listeners, and the delivery batch
+
+**THE QUESTION.** *"Confirm that the listeners returned by a repair are evaluated in the same batch as the listeners from
+the original write."*
+
+**THE ANSWER, AT THE BYTES: NO — and they are in neither batch.** The chain, each link read:
+
+1. **THE DELIVERY'S SET IS THE COMMIT'S `pending` RESIDUE.** `delivery.mjs`'s `terminalArm` takes the record the
+   kernel's channel is handed (`attempt.record` — the COMMIT's record), reads `record.pending.slice()`, and calls
+   `deliver` with it (`:828`). `pending` was seeded once at the commit's act — `kernel-commit.mjs:169`'s
+   `record.pending = written.triggered.slice()` — the ORIGINAL write's returned set — and the pass checks its own
+   evaluated pairs off it (`releasePending`).
+2. **A REPAIR'S WRITE IS A DIFFERENT RECORD.** It is the `write` member's own `{op, watched, triggered}`
+   (`index.mjs:443`–`:448`), returned to the repair body — and its `triggered` listeners are carried THERE, never merged
+   into the commit's `pending`.
+3. **ITS OWN DELIVERY IS WITHHELD.** A call that names the commit (`n ≥ 4`) is "the leg", and the member's own comment is
+   explicit: *"THIS FRAME IS THE LEG AND ITS DELIVERY IS WITHHELD … its silence is total"* — the delivery is deferred to
+   the kernel's terminal arm.
+4. **AND THE TERMINAL ARM DELIVERS THE COMMIT'S SET, NOT THE LEG'S.** So the repair's write's `triggered` listeners are
+   read by nothing: not the residue (they are not in `pending`), not the leg (the leg is never delivered), not the delete's
+   member (that is the delete's), and not a listener's write (that opens its own commit).
+
+**WHAT THAT MEANS.** **A repair's edit can fire a listener that nothing invokes.** The record is SILENT on it: no clause
+says the repair's write's listeners are delivered, and none says they are dropped — which is precisely the finding, and it
+is the one the architect's own step 8 was written against (*"any new non-constraint listeners are bookmarked to be run
+after commit"*). **The intended design and the build disagree at this seam, and the build is the side that moves nothing.**
+**A same-batch design needs one of two changes, both behaviour bytes**: the terminal arm's set becomes the commit's
+`pending` PLUS the leg's `triggered` listeners (de-duplicated by identity, `§2.4` rule 3), or the repair's write's
+`triggered` listeners are merged into the commit's `pending` at the repair arm. **Neither is declared; no ruling is taken
+here; the item is filed for the architect.**
+
+**FILES READ.** `bindings/js/index.mjs` (the `write` member, `:312`–`:497`); `bindings/js/src/entry/delivery.mjs`
+(`terminalArm`, `:730`–`:828`); `bindings/js/src/entry/kernel-commit.mjs` (`:169`); `bindings/js/src/entry/kernel-attempt.mjs`
+(`releasePending`, the repair arm); `docs/guides/package-use.md` §6.4, §7.6.

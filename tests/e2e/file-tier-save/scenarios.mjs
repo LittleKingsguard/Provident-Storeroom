@@ -1169,8 +1169,20 @@ scenario('FTS-11', 'the join: a repair\'s write is a new entry in the same commi
       'the RepairContext the kernel hands a repair is itself a LAWFUL value at the fifth position: the repair\'s own write carrying it at that position is ACCEPTED (no refusal), so clause 6\'s route is reachable',
       () => C(carryRoute.startsWith('ACCEPTED'),
         `the context the kernel handed the repair: members=${JSON.stringify(rcMembers)} rc.pending is ${carryAttempt} ; carrying it at the fifth position: ${carryRoute}`));
-    observed('FTS-11.6', 'surface.md §2.7 item 7 (a) (the checked-off identity\'s firing, resolved through the registry)',
-      'the number of times the delivered body ran on the repair-join arm', () => `listener invocations=${fired}`);
+    // **⟶ PROMOTED 2026-11-01 (`D-104`) — `OBSERVED` → `PASS`, WITH ITS FIGURE UNMOVED** (`strata/decisions.md` ·
+    // `D-104` item 2; `docs/L1/repair-listener-delivery.md` §7.3's own sentence: *"one `observed` cell becomes
+    // discriminating without moving: `FTS-11.6` … Its figure stays `1` … but from the fix's date it is the one
+    // printed figure that would move if the merge over-reached, so the landing pass promotes it to an `A` cell
+    // with the same value"*). **WHY IT IS DISCRIMINATING FROM THIS DATE AND WAS NOT BEFORE:** the repair's own
+    // write at `['c']` returns the very handle the commit's write returned — and it writes at the attempt's own
+    // address, where the pair stands — so `1` is the figure the RESIDUE alone produces. **A merge that appended
+    // the repair's set a second time (the failure the member's own de-duplication `§3.4` and `deliver`'s rule 3
+    // both refuse) would make this body run TWICE; a merge that let a carried pair's id through (`§3.3`) would
+    // hand `deliver` a constraint registration to resolve as a listener's.** **THE OBSERVABLE, ITS CLAUSE AND ITS
+    // FIGURE ARE THE CELL'S OWN: ONLY THE VERDICT MOVES, AND NOTHING THE CELL READS MOVES WITH IT.**
+    cell('FTS-11.6', 'surface.md §2.7 item 7 (a) (the checked-off identity\'s firing, resolved through the registry) read through docs/L1/repair-listener-delivery.md §7.3 and §2 B-2 (a repair\'s write\'s listeners are delivered in the COMMIT\'s one delivery, ONE INVOCATION PER DISTINCT HANDLE)',
+      'the number of times the delivered body ran on the repair-join arm is EXACTLY 1 — the figure this cell printed as OBSERVED, now asserted',
+      () => C(fired === 1, `listener invocations=${fired}`));
     // ⟶ THE PASSING-ARM HALF OF THE ONE-SHOT ARMS, OWED HERE AND ASSERTED HERE FROM 2026-10-16 (this pass).
     // THE GAP WAS NAMED BY THE WITNESS: the set asserted the `commit` entry's ABSENCE on the failing arm
     // (`FTS-04.10`) and never its PRESENCE on the passing arm, so the discriminate ran one direction only.

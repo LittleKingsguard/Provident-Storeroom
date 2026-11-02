@@ -287,13 +287,22 @@ test('ck_layer_b_the_uninvoked_caller_returned_handle_stands_in_pending_and_in_n
   // check-off) with a `KC-4`.** So the body refuses where it is asked for an act AT ITS OWN ADDRESS and passes
   // every ask a DESCENDANT act makes of it — **the ask itself is still taken, counted and entered in the log**,
   // which is the widening; the refusal is driven by the cells whose subject it is.
+  // **⟶ AND THE REPAIR'S WRITE'S RETURNED SET IS RECORDED BESIDE ITS OP, 2026-11-01 (`D-104`): the ONE term the
+  // claim at the end of this cell gains** (`docs/L1/repair-listener-delivery.md` §4; §7.3's FIRST CLAIM). On this
+  // fixture the repair NEVER RUNS (the body passes every ask a descendant act makes, and the attempt's own address
+  // is that descendant), so the term stays empty and the claim's substance is unmoved — **but the reading is
+  // taken rather than assumed, so a fixture that later lands this repair cannot silently falsify the loop**.
+  let repairReturnedHandles = [];
   const cA = (context) => {
     if (context.address.length !== ancestorAddress.length) return true; // a DESCENDANT act's ask (`D-56`)
     return { repair: () => {
       // THE REPAIR-OP SEAM (`parameter-semantics.md §2.7`; `A: docs/decisions.md` · `A110`): `op` IS THE OP
       // THIS REPAIR'S OWN EDIT LANDED, read off the store's own `write` return in the repair's own body.
-      const landed = store.write(ancestorAddress, 'mem', 'nested').op;
-      return { ok: true, message: 'cA was repaired at the ancestor address', op: landed };
+      const written = store.write(ancestorAddress, 'mem', 'nested');
+      repairReturnedHandles = written.triggered.map((element) => (
+        element !== null && typeof element === 'object' ? element.handle : element
+      ));
+      return { ok: true, message: 'cA was repaired at the ancestor address', op: written.op };
     }, message: 'a is bad' };
   };
   // ⟶ `A135` (3) / `§7.3` (b) state 1 — AND `3-bis` MAKES THE SHIELD MANDATORY FOR `cA`: it carries a
@@ -346,9 +355,43 @@ test('ck_layer_b_the_uninvoked_caller_returned_handle_stands_in_pending_and_in_n
       '`trigger-and-pair.md §1`: every `pending` element carries EXACTLY the pair\'s two members — `TF-1`');
     assert.equal(typeof entry.handle, 'string',
       'and the `handle` member is the caller-spelled identity (`contract.md §2.1` item 1; `(AA-5)`)');
-    assert.equal(carriesHandle(commitRecord.triggered, entry.handle), true,
-      'and a layer (b) handle is a handle THIS call\'s write returned');
+    // **⟶ RE-DERIVED 2026-11-01 — `D-104`: THE CLAIM BELOW BECOMES NON-TOTAL, AND THIS IS THE CLAUSE THAT
+    // READS IT** (`docs/L1/repair-listener-delivery.md` §4, §7.3's FIRST CLAIM; `strata/decisions.md` · `D-104`
+    // item 2). **WHAT STOOD HERE, QUOTED SO ITS NARROWING IS LEGIBLE:** `carriesHandle(commitRecord.triggered,
+    // entry.handle) === true` for every element, i.e. *"a layer (b) handle is a handle THIS call's write
+    // returned"*. **THAT IS TRUE OF A MEMBER SEEDED FROM ONE WRITE AND FALSE FROM THIS DATE OF A MERGED ELEMENT**:
+    // a repair's write's triggered listeners stand in `pending` and are handles **THE REPAIR'S WRITE** returned —
+    // `triggered` stays the store's own returned set for the COMMIT's write, VERBATIM (`§2` `B-6`), so `pending`
+    // is no longer a subset of it after a repair. **THE CLAIM IS THEREFORE RE-DERIVED AS THE DISJUNCTION THE
+    // FIX DECLARES, and its SECOND TERM IS MEASURED EMPTY ON THIS FIXTURE** (asserted immediately below), so
+    // every reading this cell took before is the reading it takes now. **NOTHING IS WEAKENED: a handle from
+    // NEITHER set still reds here**, which is the failure `TF-1`'s family names.
+    assert.equal(
+      carriesHandle(commitRecord.triggered, entry.handle) || repairReturnedHandles.includes(entry.handle),
+      true,
+      'and a layer (b) handle is a handle THIS call\'s write returned, OR one a REPAIR\'s write returned '
+      + '(`D-104`\'s second source: `§4`, *"a residue entry may also be a listener a repair\'s edit fired"*) '
+      + `— read ${JSON.stringify(entry.handle)} of triggered `
+      + `${JSON.stringify(commitRecord.triggered.map((e) => (e !== null && typeof e === 'object' ? e.handle : e)))} `
+      + `and of the repair's returned set ${JSON.stringify(repairReturnedHandles)}`,
+    );
   }
+  // **AND THE SECOND TERM IS EMPTY ON THIS FIXTURE — THE RE-DERIVATION'S OWN MEASUREMENT** (`§7.3`: *"their
+  // repairs land at an address whose store reach does not reach a listener the commit's write did not return"*).
+  // No listener is bound at the address this fixture's repair writes to, and the repair never runs at all, so
+  // the member carries no merged element and the claim above holds of every entry for the reason it always did.
+  assert.deepEqual(
+    commitRecord.pending.filter((entry) => carriesHandle(commitRecord.triggered, entry.handle) === false),
+    [],
+    'NO ELEMENT OF `pending` ON THIS FIXTURE NEEDS THE RE-DERIVED SECOND TERM: the member\'s every handle is one '
+      + 'THIS call\'s write returned — the fixture lands no repair that fires a listener outside it, which is the '
+      + `reason §7.3 gives for its being green under \`D-104\` — read repair-returned `
+      + `${JSON.stringify(repairReturnedHandles)}`,
+  );
+  assert.deepEqual(repairReturnedHandles, [],
+    'and the repair\'s returned set is EMPTY because THE REPAIR NEVER RUNS here — the body passes every ask a '
+      + 'descendant act makes of it and the attempt\'s own address is that descendant (§7.3\'s own row for this '
+      + `fixture) — read ${JSON.stringify(repairReturnedHandles)}`);
   const report = runAttempt(store, record);
   assertAttemptReport(report, 'layer (b) record');
   // RE-DERIVED AT THE RED-SET RE-DERIVATION PASS TO READING 2 (`attempt-lifecycle.md §2.4` item 5 (iv)):

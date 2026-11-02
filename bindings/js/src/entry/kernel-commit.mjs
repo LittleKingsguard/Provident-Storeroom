@@ -89,6 +89,15 @@ export function commit(store, address, tier, value) {
     // at that identity's address still owes (`CHECKED_OFF` above). It is the ATTEMPT'S OWN and never the
     // record's: no `CommitRecord` member is added (`A117` (D6)).
     checkedOff: [],
+    // **⟶ ADDED 2026-11-01 — `D-104`: THE HANDLES THIS ATTEMPT'S REPAIRS' WRITES RETURNED, AND NOTHING
+    // ELSE** (`docs/L1/repair-listener-delivery.md` §3.5, §5, §8's `js-constraints` row for this file). **IT IS
+    // THE ATTEMPT'S OWN AND NEVER THE RECORD'S** (`A117` (D6)): no `CommitRecord` member is added, the record keeps
+    // its four members and every census of it moves by nothing, and this object is not a record a consumer holds.
+    // **IT IS MINTED EMPTY AT THIS MINT AND AT `commitRemoval`'s**, appended by the repair arm beside its merge
+    // (`kernel-attempt.mjs`), **read by `terminal`'s discard filter and by nothing else**: the failing arm's
+    // removal is the union of the failed write's own returned set and these sets, so a merged listener that the
+    // failed write never returned loses its entry there too.
+    repairTriggered: [],
     status: 'open',
     report: null,
   };
@@ -304,6 +313,11 @@ export function commitRemoval(store, address, tier, remove) {
     rollback: [],
     checkpoint: null,
     checkedOff: [],
+    // **⟶ AND THE SAME ONE INTERNAL MEMBER AT THE DELETE-SHAPED MINT — `D-104`, 2026-11-01**
+    // (`docs/L1/repair-listener-delivery.md` §2 `B-5`, §3.5): the merge sits on the pass's repair arm, which both
+    // attempt kinds share, so a repair during a DELETE's pass is delivered by the delete's own delivery and its
+    // sets are discarded by the same widened filter. **NO RECORD MEMBER IS ADDED** (`A117` (D6)).
+    repairTriggered: [],
     status: 'open',
     report: null,
   };

@@ -90,7 +90,7 @@ import { admittedConstraintBatch, constraintAddress, decodeBaseState, decodeJour
 // ⟶ `addressSpelling`'s import is DELETED 2026-11-01 with its last two readers (`B-6`'s and `B-4`'s messages,
 // which now name no address at all — `D-98` §3.4). The function keeps its home and its other readers in the
 // entry's other parts.
-import { FORGET_PAIR, INSTANCES, STORE_INDEX, STORE_RETIREMENT, TERMINAL_ARM, carryRefusal, closeCommit, crossTriggered, currentWindow, entryOf, installAttemptSeam, isStoreReceiver, openCommit, writeRefusal } from './src/entry/state.mjs';
+import { FORGET_PAIR, INSTANCES, STORE_INDEX, STORE_RETIREMENT, TERMINAL_ARM, appendRepairLeg, carryRefusal, closeCommit, crossTriggered, currentWindow, entryOf, installAttemptSeam, isStoreReceiver, openCommit, writeRefusal } from './src/entry/state.mjs';
 import { commitPositionRefusal, constraintOverwrittenByListen, deliver, installListenRoute, installRegistrationSeam, listenerStandingAt, listenOn, registerOn, terminalArm } from './src/entry/delivery.mjs';
 import { ARGUMENT_POSITION_FIRST, addressSetKey, carryConstraint, constraintDetached, constraintPairKey, constraintRefuse, constraintSite, constraintUncarried, constraintDelete, constraintWrite, constraintsKernel, currentRaise, defineDiscardWitness, enumerateConstraints, judgeReversal, registrationCrossing, restoreHeldPair, reversalWatch, unionAddressSets, withEmptyLog, witnessDiscardedReversal, witnessRaise, withdrawStanding } from './src/entry/constraints.mjs';
 const require_ = createRequire(import.meta.url);
@@ -450,6 +450,17 @@ export function storeCreate(cfg) {
       // stage 2): a kernel-driven write takes the record THIS VERY WRITE returned and not a copy of it, and the
       // slot is read before the pass that may write again, so a repair's own write can never be mistaken for it.
       state.leg = record;
+      // **⟶ AND THE SAME RECORD'S RETURNED ELEMENTS ARE HANDED TO THE INVOCATION'S OWN LEG LIST — `D-104`,
+      // 2026-11-01** (`docs/L1/repair-listener-delivery.md` §3.2, §8's `js-surface` row;
+      // `strata/decisions.md` · `D-104` item `3`'s mechanism `(a)`). **THE LEG SLOT IS UNTOUCHED**: its four
+      // readers — `delivery.mjs`'s `answer`, the save's gate and the triggering address, and `constraints.mjs`'s
+      // `answer` — take no byte, and this line adds no fifth. **AND THE HAND-OVER IS TAKEN AT THIS SEAT ONLY,
+      // INSIDE THE `n >= 4` ARM AND NEVER AT THE `n <= 3` ROUTE**: the kernel's store leg is this arm, so a
+      // repair's write and a CONSTRAINT body's write are told apart by the KERNEL and not here (§3.1 fact 3) —
+      // each appends to the leg list of the invocation it was made inside, and the kernel's repair arm is what
+      // reads the latter and not the former. **WITH NO INVOCATION BRACKET STANDING THE APPEND GOES NOWHERE**
+      // (`state.mjs`'s `appendRepairLeg`), which is a caller's own write and a direct `K-2` drive's store leg.
+      appendRepairLeg(record);
       // **THE INVOCATION WINDOW** (`docs/specs/storeroom-js/surface.md §2.7` item 2, `DD-22`): the record above is COMPLETE before the window
       // opens, the invocation is SYNCHRONOUS, it happens AFTER the addon's call returned, and **its ONE
       // argument is the TRIGGERING ADDRESS** (`PAR-JS-12`).
@@ -467,6 +478,16 @@ export function storeCreate(cfg) {
       // it follows the pass"*. **THE LEG THEREFORE INVOKES NOTHING, AND `terminalArm` PERFORMS THE ONE DELIVERY
       // THE KERNEL TRIGGERS** — `record.pending`'s residue plus the checked-off identities — where the pass has
       // completed and the discard and the check-off have already decided what the set holds.
+      //
+      // **⟶ RE-DERIVED 2026-11-01 — `D-104`: THAT RESIDUE GAINS A THIRD SOURCE, AND THIS SENTENCE ABOVE STANDS
+      // BYTE-FOR-BYTE AND IS READ THROUGH THIS CLAUSE** (`docs/L1/repair-listener-delivery.md` §4, §8's
+      // `js-surface` row; `strata/decisions.md` · `D-104` item `2`). The sentence above names the residue and the
+      // checked-off identities; **from this date a handle the commit's own write never returned may also stand in
+      // `record.pending`** — one that a REPAIR's write returned — because the kernel's repair arm MERGES a
+      // repair's write's triggered listeners into that member at its own seat, after the credit and before the
+      // re-run (`kernel-attempt.mjs`), de-duplicated by `handle` and never a pair's. **`triggered` IS UNMOVED**
+      // (it stays the store's own returned set for THIS write, VERBATIM) and **this frame moves no byte**: the one
+      // delivery, its one recipient snapshot and its one address are what they were.
       //
       // **AND A WRITE WHOSE `commit` THE KERNEL DID NOT SUPPLY IS STILL DELIVERED HERE, AT ITS OWN POST-VERB
       // INSTANT** (`docs/specs/storeroom-js/surface.md §2.7` item 2): that is the `n <= 3` caller path never reaching this frame at all, so THIS
