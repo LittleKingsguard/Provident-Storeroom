@@ -281,3 +281,39 @@ with it, the guide §7.3 reading as it stands and the `F-9` condition as written
 `registration-write-route.test.mjs`, `held-listener-identity-greens.mjs`, `registration-instant-properties.test.mjs`,
 `constraints-publication.test.mjs`, `file-tier-save/scenarios.mjs`; the app's `src/main/tabs-record/index.ts` at
 `bd2b119`/`664d9dd`; the app's installed `provident-storeroom` `1.6.2`.
+
+---
+
+## §9 · The second downstream report — the `addConstraint` arm measured against a RESERVATION
+
+**THE REPORT.** The downstream measured, on the published artefact: `listen('dup', [['q']])` → `"dup"`, then
+`addConstraint({address: ['q'], id: 'dup'}, …)` → **ANSWERED**; while `register('pair1', fn)` at a carried pair's id
+threw `B-5`, and a colliding handle at a distinct address threw too — so, the report reads, the handle test "works
+everywhere except `addConstraint`", declared two-directional and implemented one-directional.
+
+**VERIFIED — AND THE FINDING IS REFUTED AS A PACKAGE DEFECT.** Drives on this checkout's `1.7.0` build, one fresh
+instance per arm:
+
+| arm | the drive | measured |
+|---|---|---|
+| `a2` | the report's exact drive: `listen('dup', [['q']])` **with no `register`**, then `addConstraint({address: ['q'], id: 'dup'})` | **ANSWERED** — the entry `listen` wrote is a **RESERVATION** (`off: true`, no function), and that is the **declared lawful arm** |
+| `b3` | `listen('dup', [['q']])`, **`register('dup', fn)`**, then `addConstraint({…, id: 'dup'})` | **THROWS** `AddressMalformed`, `B-4`'s §3.6 text |
+| `c3` | a LIVE listener at `['x']`, the pair at `['q']` — one handle, two addresses | **THROWS** the same — the arm reads the HANDLE, not the address |
+| `d1` | a listener claiming a carried pair's id — the other direction | **THROWS** `B-5` |
+
+**So the arm fires in both directions, for a LIVE listener, at any address.** `D-25`'s own words carry the subject —
+*"a pair whose `id` equals a **LIVE** LISTENER's handle is REJECTED"* — `listenerStandingAt` reads exactly
+`off === false` **and** a function **and** `kind !== 'constraint'` (`delivery.mjs`), and
+`docs/L1/cross-kind-handle-only.md` §9.4's closing paragraph declares the reserved case lawful: a pair may take a
+reservation's handle, because that is `D-24`'s same-kind overwrite of an entry that **fires nothing and carries no
+kind**. The report's drive omitted the `register`, and its conclusion is the reservation arm, not a missing test.
+
+**THE GAP IT DOES FIND, AND IT IS OWED — A DOCUMENTATION GAP.** The guide's `§7.3` states the rule without its
+subject: *"a listener and a constraint do not share one handle"* reads as **unconditional**, and a reader who
+listens without registering is told the handle is taken where the declared law says a reservation does not block a
+pair's `id`. **The fix is one dated clause at the guide's `§7.3` naming the LIVE listener and pointing at `§6.2`'s
+reservation** — a documents act, not a behaviour change. **The app is unaffected**: its `subscribe` registers.
+
+**FILES READ.** `docs/guides/package-use.md` (`§7.3`); `docs/L1/cross-kind-handle-only.md` (`§9.4`); `strata/decisions.md`
+(`D-25`); `bindings/js/src/entry/delivery.mjs`'s `listenerStandingAt`; and the drives above, run against
+`bindings/js/index.mjs` at this tree.

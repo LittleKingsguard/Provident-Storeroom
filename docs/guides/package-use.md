@@ -952,6 +952,23 @@ its handle (`D-22`), it purges none of the pair's rows and installs the listener
 a subscription off a constrained address to work around a refusal may reclaim that address, and whether it does is that
 application's decision and not this guide's.
 
+**⟶ AND (iii)'s *"live listener"* IS `§6.2`'s TWO ACTS, 2026-11-01 — A `listen` WITH NO `register` IS A RESERVATION, AND A
+PAIR MAY TAKE ITS HANDLE.** `RCA-8(g)` ANNOTATE-BESIDE: **(iii) stands BYTE-FOR-BYTE and is read THROUGH this clause; the
+sentence is not re-spelled, and nothing else in `§7.3` moves.** **THE ANCHOR, IN ONE SENTENCE: an entry `listen` wrote
+that `register` has not filled is a RESERVATION — it fires nothing and carries no kind — and a pair may take its handle
+(`D-24`'s same-kind overwrite); the refusal above is read for a listener a `register` has made live.** **So *live* names
+the SECOND of the two acts and not the entry's existence: `listen` writes the entry and `register` fills it (`§6.2`;
+`§6.3` rule 1 — an unregistered handle fires nothing, silently), and a live listener is `off === false` AND a function AND
+`kind !== 'constraint'`** (`bindings/js/index.d.ts`'s `addConstraint` clause of this date; the `listenerStandingAt`
+predicate at `bindings/js/src/entry/delivery.mjs`; `docs/L1/cross-kind-handle-only.md` §9.4). **MEASURED 2026-11-01 ON
+THIS CHECKOUT'S `1.7.0` BUILD, ONE FRESH INSTANCE PER ARM — THE ARM FIRES FOR A LIVE LISTENER AT ANY ADDRESS AND IN BOTH
+DIRECTIONS, AND THE RESERVED CASE IS THE DECLARED LAWFUL ARM:** `listen('dup', [['q']])` with no `register` leaves a
+reservation, and the `addConstraint({address: ['q'], id: 'dup'})` after it is **ANSWERED**; with `register('dup', fn)`
+before it, the same `addConstraint` **THROWS** `AddressMalformed`; a live listener at `['x']` and the pair at `['q']`
+**THROWS** too — **the arm reads the HANDLE and not the address** — and a listener claiming a carried pair's `id`
+**THROWS** in the other direction (`B-5`) (`strata/research.md` §9's drives; `§7.3`'s first paragraph;
+`bindings/js/index.d.ts`'s `addConstraint` clause).
+
 **THE RULE SENTENCE, RE-DERIVED IN PLACE: *a listener and a constraint do not share one handle*** — one word more than the
 address reading, its spelling `bindings/js/README.md:232`–`:233`'s, and it is the clause half of all four refusal
 messages (`docs/L1/cross-kind-handle-only.md` §3.4, §3.6). **WHAT DOES NOT MOVE:** a duplicate handle of the SAME kind is
