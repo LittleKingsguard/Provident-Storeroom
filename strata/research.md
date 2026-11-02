@@ -317,3 +317,39 @@ reservation** — a documents act, not a behaviour change. **The app is unaffect
 **FILES READ.** `docs/guides/package-use.md` (`§7.3`); `docs/L1/cross-kind-handle-only.md` (`§9.4`); `strata/decisions.md`
 (`D-25`); `bindings/js/src/entry/delivery.mjs`'s `listenerStandingAt`; and the drives above, run against
 `bindings/js/index.mjs` at this tree.
+
+---
+
+## §10 · The third downstream report — `ST-F2`, the repair-credit contract and the misleading sentence
+
+**THE REPORT.** A downstream project filed `ST-F2`: a repair that does its correction and returns `undefined` is refused
+`ConstraintPassRefused` — *"the repair `<id>` produced no op at `<address>`"* — with a landed, legal state and a log
+whose `constraint-check` entry says the pair PASSED; the credit requires the repair to return the store's own
+`WriteRecord.op`; nothing a consumer reads says so; the sentence names the CALLER's address where the repair may have
+written elsewhere; and the return type is untyped. The report's own discharge table: (i) a worked example delivered in
+`1.6.2`; (ii) the shape documented in `index.d.ts`, the TYPE not — `Constraint` is still `(context: unknown) => unknown`
+and no `RepairContext`/`RepairOutcome` alias exists; (iii) the sentence's address not delivered.
+
+**VERIFIED AT THE BYTES.** The credit path is `landedOp` (`bindings/js/src/entry/kernel-foundations.mjs:1105`): the
+return's OWN `op` (`ownMember`, `[[GetOwnProperty]]`), an `opId` that is a non-empty string, absent from `attempt.ops`,
+and — where the invoked-for op carries a `seq` — a strictly greater one. The fall-through sentence is
+`bindings/js/src/entry/kernel-attempt.mjs:911`, interpolating `addressSpelling(attempt.address)`; the sibling arm
+(`landedOpDefect`) composes the same address. `Constraint` is `(context: unknown) => unknown` (`index.d.ts:1300`), and
+the docblock ABOVE it declares the omission in so many words: *"NOTHING HERE MINTS A TYPE, A SYMBOL, AN ALIAS … `Constraint`
+below is unmoved, one `unknown` in and one `unknown` out."* The guide's `§7.6` carries the two-arm set, the worked example
+(`{ok: true, op: landed.op}`), the per-instant divergence, the sentence copied verbatim WITH its caveat — *"the address in
+that sentence is the ATTEMPT's, and it is no claim about where the repair wrote … this clause claims no correction and no
+fix of it"* — and the verdict rule.
+
+**THE RECORD HAS ALREADY DISPOSED OF IT.** `D-88` (2) (`strata/decisions.md:4531`) rules the sentence's address a
+**recorded defect and not a unit**: it is filed at `docs/L1/open-items-2026-10-25.md §6` row `5` as **OPEN, recorded, not
+repaired**, **no successor unit queued**; two lawful outcomes and no third — the text changes (a behaviour byte needing
+its own ruling and its own version) or the text stands and the guide teaches it; and naming the repair's address at that
+instant would need a store reach `D-67` forbids, because the return is the op's only carrier. **So the report's
+factual claims stand and are already on the record; its asks are answered by the record's own dispositions — (i)
+delivered, (ii) declared-unminted by the docblock, (iii) a recorded defect row.** **The one decision the record leaves
+open is the architect's: mint the types, move the sentence's text, or leave the record as it stands.**
+
+**FILES READ.** `bindings/js/src/entry/kernel-foundations.mjs` (`landedOp`, `landedOpDefect`); `bindings/js/src/entry/
+kernel-attempt.mjs` (`:878`–`:912`); `bindings/js/index.d.ts` (`:1270`–`:1300`); `docs/guides/package-use.md` (`§7.6`,
+`:1040`–`:1105`); `strata/decisions.md` (`D-88`); `docs/L1/open-items-2026-10-25.md` (`§6` row `5`).

@@ -32,6 +32,19 @@
   //  `types` field — the routing the package actually declares — so it is the
   //  mode that checks the shipped bytes today.
   //
+  //  ⟶ RE-DERIVED 2026-11-01 — `Q-3` IS TAKEN (`docs/L1/repair-outcome-types.md` §8's `Q-3`, its §5.4's last
+  //  paragraph being the measurement; settled by the supervisor the same date: YES, the pass that re-derives
+  //  the cells corrects these two heads). **THE PARAGRAPH ABOVE IS THE READING OF ITS OWN DATE AND IS NOW
+  //  FALSE IN FACT; ITS BYTES STAND AND ARE READ THROUGH THIS CLAUSE** (`RCA-8(g)`: annotate beside, never
+  //  rewrite). **`bindings/js/package.json`'s `exports` map NOW CARRIES a `types` condition** —
+  //  `"." : { "types": "./index.d.ts", "import": "./index.mjs" }` — so a `nodenext` (and a `bundler`) consumer
+  //  DOES resolve the shipped declaration through the map, and the `TS7016` reachability failure this head and
+  //  its sibling described NO LONGER OCCURS on this tree. **MEASURED, NOT INFERRED: `npm run typecheck`'s BOTH
+  //  legs resolve `provident-storeroom` to `index.d.ts` and exit `0`.** What stands now: **`node10` is the
+  //  CLASSIC RESOLVER's leg — the routing the package's top-level `types` field declares, kept for a classic
+  //  consumer — and `tsconfig.typecheck.nodenext.json` is the `exports`-map leg; the two are ONE instrument
+  //  with TWO routings, and neither is a green run beside an unreachable subject.**
+  //
   //  WHAT A GREEN RUN PROVES, AND WHAT IT DOES NOT
   //  -------------------------------------------------------------------------
   //  GREEN PROVES: the declaration is INTERNALLY CONSISTENT (it compiles); a
@@ -40,6 +53,26 @@
   //  optional fourth-position commit, the declared return shapes — would
   //  COMPILE; and the calls the declaration must REFUSE are refused (the
   //  `@ts-expect-error` cells).
+  //
+  //  ⟶ RE-DERIVED 2026-11-01 — THE "TWELVE own members" FIGURE ABOVE IS SUPERSEDED, AND THE OPERATIVE FIGURE IS
+  //  FOURTEEN. `RCA-8(g)` ANNOTATE-BESIDE: the paragraph above stands BYTE-FOR-BYTE and is read THROUGH this
+  //  clause, and the figure is RE-DERIVED AT ITS OWN BYTES: `bindings/js/index.d.ts`'s `StoreInstance` (`:853`;
+  //  `docs/specs/storeroom-held-listener-identity/contract.md §2.7` item 9) declares, at that interface's own
+  //  member lines, `read` · `readLiteral` · `write` · `delete` · `rollback` · `listen` · `unlisten` ·
+  //  `addConstraint` · `constraintOn` · `constraintOff` (the TEN methods) + `register` + `constraints()` +
+  //  `removeListener` · `removeConstraint` = `10 + 1 + 1 + 2 = 14` ✓, and the declaration prints the same fourteen
+  //  at its header's member-set clause and at `StoreInstance`'s own docblock. **SO A GREEN RUN NOW PROVES A
+  //  CONSUMER'S CALLS AGAINST FOURTEEN OWN MEMBERS WOULD COMPILE** — the ten methods, `register`, `constraints()`
+  //  and the two remove members — and a declaration still reading twelve (or thirteen) is a FINDING by the
+  //  declaration's own rule. **NO SETTING, NO `include`, NO CELL AND NO OTHER FIGURE OF THIS FILE MOVES: this
+  //  clause corrects one figure in this file's prose and nothing else.** **AND IT IS NOT ONE OF `Q-3`'s TWO
+  //  HEADS** — those are the two resolution paragraphs, each already re-derived on this date above and in
+  //  `tsconfig.typecheck.nodenext.json` (`docs/L1/repair-outcome-types.md` §8's `Q-3`) — **the paragraph corrected
+  //  here is the stale figure the cells layer recorded as owed.** **AND ONE NEIGHBOURING OCCURRENCE OF THE SAME
+  //  SUPERSEDED FIGURE IS NAMED AND NOT TOUCHED, because this clause's wall is this paragraph: the paragraph
+  //  below's *"the twelve-own-member COUNT"* (`:83`) prints twelve at a second site and is owed to the
+  //  declaration's header, whose own unenforceable-claims clause NOW READS FOURTEEN (`bindings/js/index.d.ts:153`-`:160`).**
+  //
   //  GREEN DOES **NOT** PROVE THE DECLARATION MATCHES THE RUNTIME. A `.d.ts`
   //  that said `read` takes a `number` where the implementation takes an array
   //  would type-check green all day: `tsc` never loads `index.mjs`, never loads
@@ -65,9 +98,11 @@
     // NO EMIT: this is a check, never a build. A fixture that wrote a `.js`
     // beside itself would be an artefact of an instrument, not a deliverable.
     "noEmit": true,
-    // The mode that reads `bindings/js/package.json`'s `types` field — see the
-    // measured note above for why `nodenext`/`bundler` cannot reach the
-    // declaration at all.
+    // The CLASSIC RESOLVER's routing: the mode that reads `bindings/js/package.json`'s
+    // top-level `types` field. The measured note above is the reading of 2026-10-16;
+    // since 2026-11-01 the `exports` map carries a `types` condition as well, so this
+    // leg is the classic half of ONE instrument and no longer the only mode that can
+    // reach the shipped declaration.
     "module": "esnext",
     "moduleResolution": "node10",
     "target": "es2022",

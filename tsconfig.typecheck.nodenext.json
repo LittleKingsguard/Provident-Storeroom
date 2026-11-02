@@ -18,11 +18,19 @@
   //  import (`from 'provident-storeroom'`), the SAME strict/noEmit/`types: []`
   //  settings — with ONE setting moved: `moduleResolution: "nodenext"` (and
   //  `module: "nodenext"`, which TypeScript requires to accompany it). The
-  //  fixture's 28 `@ts-expect-error` refusals are untouched: they are re-checked
-  //  here exactly as they are on the first leg, because an unused
-  //  `@ts-expect-error` is itself a compile error. A run of this leg therefore
-  //  proves TWO things at once — the declaration RESOLVES through the `exports`
-  //  map, and every call the declaration must refuse is still refused.
+  //  fixture's `@ts-expect-error` refusals are untouched: they are re-checked here
+  //  exactly as they are on the first leg, because an unused `@ts-expect-error` is
+  //  itself a compile error. A run of this leg therefore proves TWO things at once —
+  //  the declaration RESOLVES through the `exports` map, and every call the
+  //  declaration must refuse is still refused.
+  //
+  //  ⟶ THE REFUSAL COUNT IS RE-TAKEN, 2026-11-01 (`Q-3`; `docs/L1/repair-outcome-types.md` §5.3). **THIS
+  //  HEAD PRINTED `28` AND WAS WRONG BY TWO: read at the fixture's own `^\s*// @ts-expect-error` lines the
+  //  directives stood at `26` before the repair-outcome cells landed.** **THEY STAND AT `43` NOW** — the pass
+  //  that added §5.2's cells re-took the figure with them (§5.1's two re-derived cells, §5.2 (i)–(iv)'s
+  //  assignability, refusal, census, narrowing and arity cells, and the `Q-1` clause's `CommitCarrier`
+  //  cells). The reading is a plain count of that pattern in `typecheck/consumer-fixture.ts`, so it is
+  //  falsifiable rather than trusted.
   //
   //  THE FAILURE MODE THIS LEG CATCHES, NAMED SO IT IS RECOGNISED RATHER THAN
   //  RE-DISCOVERED — `TS7016`: *"Could not find a declaration file for module
@@ -31,6 +39,17 @@
   //  but this result could not be resolved when respecting package.json
   //  exports."* The instrument that found this was the FIRST leg; it could not
   //  have, because `node10` never reads the `exports` map.
+  //
+  //  ⟶ RE-DERIVED 2026-11-01 — `Q-3` IS TAKEN (§8's `Q-3`; settled by the supervisor the same date: YES, the
+  //  pass that re-derives the cells corrects these two heads). **THE `TS7016` PARAGRAPH ABOVE IS THE READING OF
+  //  ITS OWN DATE: the failure it names is the one a manifest with NO `types` CONDITION INSIDE ITS `exports` MAP
+  //  produces, and that manifest is no longer this package's.** `bindings/js/package.json`'s `exports` map now
+  //  carries `"types": "./index.d.ts"` beside `"import": "./index.mjs"`, so **THIS LEG'S SUBJECT HAS CHANGED FROM
+  //  "CAN A MODERN CONSUMER REACH THE DECLARATION AT ALL?" TO "DOES THE `exports`-MAP ROUTING RESOLVE THE SAME
+  //  DECLARATION THE CLASSIC ROUTING DOES, WITH EVERY REFUSAL STILL LIVE?"** — which is what a green here now
+  //  proves, both halves, and the `TS7016` message stands above as the class of failure the leg still CATCHES if
+  //  the `types` condition is ever removed from the map. **MEASURED, NOT INFERRED: the leg resolves
+  //  `provident-storeroom` to `index.d.ts` and exits `0` on this tree, and so does the `node10` leg.**
   //
   //  THE TWO LEGS ARE ONE INSTRUMENT AND NEITHER REPLACES THE OTHER: `node10`
   //  is the routing the package also declares (its top-level `types` field, kept

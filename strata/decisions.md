@@ -5188,3 +5188,52 @@ date. **It mints nothing, moves no member, and decides no cell.**
 **TERMS: the decisions the answer fixes (`2` = the class `minor` and the number `1.7.0`), the members, types and arities
 it moves (`0`), the statuses it mints (`0`), the release documents it owes the release pass (`3` = the version line, the
 change list, the notes), the questions closed (`1`).**
+
+---
+
+### `D-101` — the repair-outcome types are MINTED: five named types, `Constraint` typed, and NO behaviour moves
+
+**DATE:** 2026-11-01. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering the supervisor's fork on the
+downstream `ST-F2` report (`strata/research.md` §10) — *"The defect is real and recorded; the only open piece is the
+typing (and optionally the sentence). Do I open a pass for the types, rule a text change, or leave it as recorded?"* —
+**verbatim: *"Mint the types"***, its own option text reading *"a docs/typing pass: `ConstraintContext`/`RepairContext`
+and a `RepairOutcome` alias for the two-arm return … No behaviour change, no refusal text moved."* **STATUS:
+`ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE TYPES ARE MINTED, AND THE DECLARATION IS `docs/L1/repair-outcome-types.md`.** Five names — `AttemptContext`,
+   `RepairContext`, `RegistrationRepairContext`, `ConstraintOutcome`, `RepairOutcome` — and **`Constraint` becomes
+   `(context: AttemptContext) => ConstraintOutcome`**. **THE SUGGESTED `ConstraintContext` IS REFUSED BY NAME**: the
+   kernel and the declaration's own prose already call that record `AttemptContext`, and its subject member is `attempt`.
+   **No member is minted**: every member of every alias is read at the build site the declaration cites.
+2. **NO BEHAVIOUR MOVES.** Zero code bytes outside `bindings/js/index.d.ts`; the closed status set at `20`, every member,
+   every arity, the `KC` token set, and the fourteen own members stand.
+3. **THE DOCBLOCK'S OWN SENTENCE IS RE-DERIVED BY NAME.** `index.d.ts:1294`–`:1296`'s *"NOTHING HERE MINTS A TYPE, A
+   SYMBOL, AN ALIAS … one `unknown` in and one `unknown` out"* stands byte-for-byte as the 2026-10-30 reading and is read
+   THROUGH a dated clause of this date inside the same block.
+4. **THE REFUSAL SENTENCE'S TEXT IS UNMOVED.** `D-88` (2)'s recorded defect — the `produced no op` sentence's address —
+   stands and is **not reopened** by this row; `ST-F2`'s (iii) is answered by that disposition and not by this one.
+5. **THE RELEASE CLASS IS ITS OWN.** A type addition with no behaviour change takes its own version line; **`D-100`'s
+   `1.7.0` is not reopened**, and the release notes owe the row when that cut is made.
+
+**WHAT IT DOES NOT SETTLE — put back to the architect, not taken.** **`Q-1`** — `write`'s commit position: the guide's
+worked example (`docs/guides/package-use.md:1075`–`:1088`) passes the repair's own record as the fourth argument and
+**does not type-check today (`TS2345`, measured)**; the kernel and the package's own `repair-in-commit` drive accept it,
+so the declared `commit?: CommitRecord` is the outlier. **`Q-2`** — whether the publish/spec corpus owes its amendment
+before the types land, and whose. **`Q-3`** — whether the two stale `tsconfig` heads may be corrected by the pass that
+adds the typecheck cells.
+
+**TERMS: the types minted (`5`), the members minted (`0` — every member read at a build site), the aliases refused by
+name (`1` = `ConstraintContext`), the behaviour bytes this row moves (`0`), the statuses, members, arities and tokens it
+moves (`0`), the sentences withdrawn (`1` = the docblock's no-types sentence, read through a dated clause), the questions
+left to the architect (`3`), the units opened (`0`).**
+
+**⟶ ANSWERED 2026-11-01, THE SAME SESSION — `Q-1` IS TAKEN: `write`'S COMMIT POSITION IS WIDENED TO ITS OWN CLASS TEST.**
+Verbatim: ***"Widen the position to its class test"***. **WHAT IT RESOLVES.** The fourth position's declared type stops
+being `CommitRecord` alone and becomes **the class test's own class**: an object carrying an OWN `pending` member that
+is not `undefined` (`bindings/js/src/entry/delivery.mjs`'s `commitPositionRefusal` — a non-null, non-Proxy, non-array
+object with an own, defined `pending`) — **so the guide's worked example, which passes the repair's OWN record as the
+fourth argument, and the package's own `repair-in-commit` drive type-check AS WRITTEN.** **The type follows the
+behaviour; no byte of the behaviour and no byte of the guide moves.** **THE AMENDMENT'S HOME IS THE DECLARATION**
+(`docs/L1/repair-outcome-types.md`, a dated clause at its `Q-1`), **and `Q-2` and `Q-3` stand as it lists them.**

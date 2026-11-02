@@ -1,7 +1,7 @@
 // tests/e2e/blind-entry-module.test.mjs
 //
 // BLIND INSTRUMENT — THE ENTRY'S OWN MODULE SURFACE: the ONE module name, the ONE value-level export
-// (`storeCreate`) against the twenty-one TYPE names the declaration carries, the four `StoreConfig` keys
+// (`storeCreate`) against the twenty-seven TYPE names the declaration carries, the four `StoreConfig` keys
 // and which of them are optional, the absence of every non-export (no kernel item, no `version`, no
 // `errorMessage`, no addon `register`/`call`), the declaration's own type surface as a consumer reads it,
 // and the ONE `exports` arm's consequence — what a consumer can and cannot reach BY SPECIFIER.
@@ -11,7 +11,9 @@
 //     (three declared things and nothing else; ONE named export; FOURTEEN own members; the three-member
 //     failure form), `Address`, `Tier`, `TierSet`, `StoreConfig`, `StoreStatus`, `LogEntry`, `StoreRefusal`,
 //     `Handle`, `Listener`, `BaseState`, `JournalOp`, `WriteRecord`, `DeleteRecord`, `RollbackRecord`,
-//     `AttemptRef`, `CommitRecord`, `StoreInstance`, `ConstraintPair`, `Constraint`, `ConstraintIdentity`
+//     `AttemptRef`, `CommitRecord`, `StoreInstance`, `ConstraintPair`, `Constraint`, `ConstraintIdentity`;
+//     ⟶ AND, FROM 2026-11-01 (`D-101` (1) and the declaration's `Q-1` clause), `AttemptContext`,
+//     `RepairContext`, `RegistrationRepairContext`, `ConstraintOutcome`, `RepairOutcome`, `CommitCarrier`
 //   · `docs/specs/storeroom-publish/contract.md` §2.4 (the authored declaration, its `types` carriage and
 //     the allowlist) · §2.1 (the allowlist) · §1.1 (the resolution) · `PUB-DD-3`, `PUB-DD-21`
 //   · `archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-js/package.md` §1.3 items 1–4 (the ONE
@@ -57,7 +59,16 @@ const DECLARATION = readFileSync(join(PACKAGE_DIR, 'index.d.ts'), 'utf8');
 const ONE_VALUE_EXPORT = 'storeCreate';
 
 /** Every `export type`/`export interface` the declaration carries, as a consumer imports them. Nothing
- *  here is a value: `index.d.ts`'s head declares the argument and answer SHAPES beside the one name. */
+ *  here is a value: `index.d.ts`'s head declares the argument and answer SHAPES beside the one name.
+ *
+ *  **⟶ THE CENSUS GAINS SIX NAMES, 2026-11-01** (`docs/L1/repair-outcome-types.md` §5.5 and its `Q-1`
+ *  clause; `strata/decisions.md` · `D-101` (1) and that entry's `⟶ ANSWERED` clause). The declaration mints
+ *  the FIVE repair-outcome names — `AttemptContext`, `RepairContext`, `RegistrationRepairContext`,
+ *  `ConstraintOutcome`, `RepairOutcome` — and then the SIXTH, `CommitCarrier`, which is `write`'s commit
+ *  position's own class test. **THE SUBJECT OF THIS LIST IS UNMOVED**: it is still the declaration's own
+ *  type census, read by the same `^export (?:type|interface)` line rule below; only the FIGURE moved,
+ *  `21 → 27` (`13 + 4 = 17` interfaces and `8 + 2 = 10` aliases), and a list kept at twenty-one would assert
+ *  a superseded surface. */
 const DECLARED_TYPE_NAMES = [
   'Address',
   'Tier',
@@ -80,6 +91,13 @@ const DECLARED_TYPE_NAMES = [
   'ConstraintPair',
   'Constraint',
   'ConstraintIdentity',
+  // ⟶ APPENDED 2026-11-01 (`D-101` (1); the declaration's §4's five and its `Q-1` clause's sixth — `21 → 27`).
+  'AttemptContext',
+  'RepairContext',
+  'RegistrationRepairContext',
+  'ConstraintOutcome',
+  'RepairOutcome',
+  'CommitCarrier',
 ];
 
 /** `kernel-surface.md §1` item 2's amended extent: SIX items, `5 + 1 = 6` ✓ — `K-1` `register` · `K-2`
@@ -239,11 +257,11 @@ test('entry-module · package.md §1.3 item 3 and §1.3 item 4 · THE VALUE-LEVE
   assert.deepEqual(
     [...typeExports()].sort(),
     [...DECLARED_TYPE_NAMES].sort(),
-    'the declaration declares twenty-one argument/answer shapes beside its one name',
+    'the declaration declares twenty-seven argument/answer shapes beside its one name',
   );
 });
 
-test('entry-module · package.md §1.3 item 3 · THE RUNTIME NAMESPACE CARRIES EXACTLY ONE OWN NAME — and the twenty-one declared type names are ERASED, because a type is not a value', () => {
+test('entry-module · package.md §1.3 item 3 · THE RUNTIME NAMESPACE CARRIES EXACTLY ONE OWN NAME — and the twenty-seven declared type names are ERASED, because a type is not a value', () => {
   assert.deepEqual(Object.keys(entry), [ONE_VALUE_EXPORT]);
   for (const name of DECLARED_TYPE_NAMES) {
     assert.equal(entry[name], undefined, `${name} is a TYPE and must not be a runtime value`);

@@ -108,6 +108,18 @@
 // UNIT** (`kernel-surface.md §1` item 4's closed record enumeration; its `§2.1` item 2 for the record's
 // four members; `attempt-lifecycle.md §2.4` item 1 for the one-member `AttemptRef`) — so the record position
 // carries its own `pending` member and this file MINTS NO RECORD TYPE OF ITS OWN to carry it.
+// **⟶ RE-DERIVED BY NAME, 2026-11-01 — THE SENTENCE ABOVE IS SUPERSEDED IN FACT AND STANDS AS THE READING OF ITS
+// OWN DATE, READ THROUGH THIS CLAUSE** (`RCA-8(g)` ANNOTATE-BESIDE; `strata/decisions.md` · `D-101`, whose
+// `⟶ ANSWERED` clause is the architect's word of that date, verbatim: *"Widen the position to its class test"*).
+// **THE COMMIT POSITION'S DECLARED TYPE IS `CommitCarrier` — THE CLASS TEST'S OWN CLASS, ONE member, `pending`,
+// spelled exactly as `CommitRecord.pending` spells it — declared and exported at this file's end, and `write`'s
+// fourth position names it** (`bindings/js/src/entry/delivery.mjs:27`-`:54`, the predicate at `:39`; the position's
+// own docblock already wrote the class test, and the type now agrees with it). **SO THE PASS DOES MINT ONE RECORD
+// TYPE, AND THE SENTENCE'S *"this file MINTS NO RECORD TYPE OF ITS OWN to carry it"* IS WITHDRAWN BY NAME —
+// withdrawn as a READING, while its bytes stand above byte-for-byte.** **`CommitRecord` KEEPS EVERY BYTE, ITS FOUR
+// MEMBERS AND ITS EXPORT**: what it loses is being the position's SOLE declared type — it is ONE CARRIER of the
+// class and never the position's only type — **and a `pending`-shaped name now stands in a file that said it
+// minted none.**
 // **`AttemptRef` and `CommitRecord` are therefore not STORE types either, and not store records**: they
 // are kernel-side shapes, cited from their own unit's declaration.
 // **⟶ AND THE POSITION THEY ARE CITED FOR MOVED WITH `settle`'s REMOVAL, 2026-10-18**: `settle`'s own
@@ -752,6 +764,15 @@ export interface AttemptRef {
  * a record with exactly FOUR members, the FOURTH added at the `A108` landing pass of 2026-10-13"*; its
  * `§1` item 4 counts it among the kernel's own named shapes).
  *
+ * **⟶ RE-DERIVED BY NAME, 2026-11-01 — THE HEAD ABOVE IS THE READING OF ITS OWN DATE AND IS READ THROUGH THIS
+ * CLAUSE** (`RCA-8(g)` ANNOTATE-BESIDE; `strata/decisions.md` · `D-101`, verbatim: *"Widen the position to its
+ * class test"*). **THE POSITION IS NOW THE CLASS TEST'S OWN CLASS, `CommitCarrier`** — a non-null, non-Proxy,
+ * non-array object carrying an OWN `pending` member present and not `undefined`
+ * (`bindings/js/src/entry/delivery.mjs:27`-`:54`, the predicate at `:39`) — one member, spelled exactly as this
+ * record's own `pending` is spelled below, declared and exported at this file's end. **SO THIS RECORD IS ONE
+ * CARRIER OF THE POSITION'S CLASS AND NOT THE POSITION'S ONLY TYPE**: it keeps every byte, its four members, its
+ * export and its own clauses below, and what it no longer is, is the position's sole declared type.
+ *
  * **THE RECORD THE KERNEL PASSES IS THIS ONE AND THE STORE'S IS NOT.** **The kernel passes the `CommitRecord`
  * `commit` built and the pass's terminal arm reads again — one identity, at both instants** (`surface.md`
  * `§2.4` item 9 (a)–(b)'s table: *"the record identity (the `CommitRecord` `commit` is building)"* then
@@ -880,7 +901,7 @@ export interface StoreInstance {
    * **AND A SUPPLIED `undefined` AT THE `tier` POSITION IS PRESENT HERE TOO** (`parameter-semantics.md
    * §2.6`; `PAR-JS-6`): it is not the absent tier and the store answers `AddressMalformed` for it.
    */
-  write(address: Address, tier: Tier, value: unknown, commit?: CommitRecord): WriteRecord;
+  write(address: Address, tier: Tier, value: unknown, commit?: CommitCarrier): WriteRecord;
   /**
    * Remove the versions the address names, and answer the operation's record.
    *
@@ -1249,6 +1270,12 @@ export interface ConstraintPair {
  * WRITE'S OWN EVALUATION a `message` that is not a NON-EMPTY STRING keeps the repair readable while the
  * refusal answers the kernel's own unrecognized sentence** (the closed set, its order and this read stand at
  * `bindings/js/src/entry/kernel-attempt.mjs:686-699`).
+ * **⟶ RE-ANCHORED, 2026-11-01, `RCA-8(g)`: THE CITATION ABOVE NO LONGER RESOLVES TO ITS SUBJECTS AND IS READ
+ * THROUGH THIS MARK.** **`bindings/js/src/entry/kernel-attempt.mjs:686-699` stands today as the body-throw arm's
+ * terminal entry and its mark — `:687`-`:698` — and the two subjects this sentence cites it FOR stand at
+ * `:705`-`:727` (the closed three-arm read) and `:718`-`:724` (the own-member read of `message` and `repair`).**
+ * **The citation's bytes stand and are unmoved; its RANGE is the reading of the date it was written at, and
+ * `D-90` · `D-91` · `D-94` are the landings that moved it** (`docs/L1/repair-outcome-types.md` §7.2 row `1`).
  *
  * **THE ATTACH: the `repair` your function returns IS A FUNCTION TAKING ONE ARGUMENT — ITS OWN RECORD,
  * WHICH IS NOT YOUR CONSTRAINT'S AND IS NOT INTERCHANGEABLE WITH IT.** **The two records stand apart at
@@ -1257,6 +1284,18 @@ export interface ConstraintPair {
  * (`bindings/js/src/entry/kernel-attempt.mjs:607-613`, `:756-782`; the kernel's own words at
  * `bindings/js/src/entry/kernel-registration.mjs:373-374`). **No member census of either record is
  * printed here.**
+ * **⟶ RE-ANCHORED, 2026-11-01, `RCA-8(g)`: THE CITATION ABOVE — `bindings/js/src/entry/kernel-attempt.mjs:607-613`,
+ * cited for the CONSTRAINT's record — stands today on the pair-application guard's clause (`:631`), and the
+ * constraint's record build stands at `:635`-`:641`.** **The citation's bytes stand and are read through this
+ * mark** (§7.2 row `5`).
+ * **⟶ RE-ANCHORED, 2026-11-01, `RCA-8(g)`: THE CITATION ABOVE — `bindings/js/src/entry/kernel-attempt.mjs:756-782`,
+ * cited for the REPAIR's record — stands today on the repeat arms' returns, and the repair's record build stands
+ * at `:784`-`:810`.** **The citation's bytes stand and are read through this mark** (§7.2 row `6`).
+ * **⟶ RE-ANCHORED, 2026-11-01, `RCA-8(g)`: THE CITATION ABOVE —
+ * `bindings/js/src/entry/kernel-registration.mjs:373-374`, cited as *"the kernel's own words"* on the two records
+ * — stands today on the `{message}` sentence of the registration instant's outcome read, and the kernel's own
+ * statement of the two records stands at `:420`-`:424`.** **The citation's bytes stand and are read through this
+ * mark** (§7.2 row `4`).
  *
  * **AT THE WRITE'S OWN EVALUATION — AT THAT INSTANT AND NO OTHER — THE KERNEL READS `message` AND
  * `repair` AS OWN MEMBERS OF THE OBJECT YOUR FUNCTION RETURNED: a pair carried on a prototype is NOT SEEN
@@ -1268,6 +1307,14 @@ export interface ConstraintPair {
  * at registration and no repair at a write — and that divergence is OWED to a code-bearing unit and is
  * CONTRADICTED BY NO SENTENCE HERE** (`strata/decisions.md` · `D-35`, whose parameter-access rule the
  * registration read does not yet hold).
+ * **⟶ RE-ANCHORED, 2026-11-01, `RCA-8(g)`: THE CITATION ABOVE — `bindings/js/src/entry/kernel-attempt.mjs:690-696`
+ * — stands today INSIDE the same body-throw arm's mark clause (`:691`-`:698`), and the rule it is cited for — the
+ * own-member read of `message` and `repair` — stands at `:718`-`:724`.** **The citation's bytes stand and are read
+ * through this mark** (§7.2 row `2`).
+ * **⟶ RE-ANCHORED, 2026-11-01, `RCA-8(g)`: THE CITATION ABOVE —
+ * `bindings/js/src/entry/kernel-registration.mjs:330-332` — stands today on the skip-is-not-a-refusal clause, and
+ * the registration instant's outcome read — the one that reads the same closed outcome through the prototype
+ * chain — stands at `:377`-`:380`.** **The citation's bytes stand and are read through this mark** (§7.2 row `3`).
  *
  * **THE REPAIR'S OWN RETURN IS A CLOSED TWO-ARM SET: `{ ok: true, op }` — the repairable arm, `op`
  * REQUIRED and BEING THE OPERATION RECORD THE STORE'S OWN VERB RETURNED (`WriteRecord.op`, or
@@ -1284,20 +1331,48 @@ export interface ConstraintPair {
  * `bindings/js/src/entry/kernel-foundations.mjs:1105-1131` — **and NO ORDINAL GROUND IS CLAIMED AT THE
  * REGISTRATION INSTANT, whose credit check runs with no invoked-for op**
  * (`bindings/js/src/entry/kernel-registration.mjs:510-517`).
+ * **⟶ RE-ANCHORED, 2026-11-01, `RCA-8(g)`: THE CITATION ABOVE — `bindings/js/src/entry/kernel-registration.mjs:510-517`
+ * — stands today on the synthetic attempt's nine-member docblock, and the credit call this sentence is about — the
+ * one that runs with NO invoked-for op — stands at `:615`-`:616`.** **The citation's bytes stand and are read
+ * through this mark** (`docs/L1/repair-outcome-types.md` §7.2 row `7`).
  *
  * **AND THE COMMIT YOUR REPAIR IS PART OF RIDES THAT ONE ARGUMENT: supply it at `write`'s DECLARED FOURTH
  * POSITION and the write your repair makes JOINS the commit it is part of**
  * (`bindings/js/index.d.ts:862`) — **the record the repair is handed carries that commit at its `pending`
  * member, the `CommitRecord.pending` this file declares at `bindings/js/index.d.ts:772`, POINTED AT here
  * and re-declared nowhere.** **That position's own class test is not restated.**
+ * **⟶ RE-ANCHORED, 2026-11-01, `RCA-8(g)`: THE CITATION ABOVE PRINTS THIS FILE'S `:772`, WHICH WAS THE LINE AT THE
+ * DATE IT WAS WRITTEN AND IS NOW MOVED TWICE OVER.** **At this date's bytes the `CommitRecord` docblock's `op`
+ * sentence — the line `:772` stood on — stands at `:793`, and the `pending` member that sentence names is declared
+ * at `:814` (`readonly pending: readonly TriggerPair[]`).** **THE TWO MOVES ARE DISTINCT AND NEITHER REWRITES THE
+ * CITATION: the first is that block's own growth, which is why the figure was stale before this pass; the second is
+ * THIS DATE'S MARKS — the head's and this record's block's — which stand above both lines.** **The citation's bytes
+ * stand and are read through this mark; the typing pass's six names sit BELOW this block and moved no line above it
+ * (`1,308 → 1,466` is that pass's own count), and the eight marks of this date are the only bytes this docs pass
+ * adds inside the block** (§7.2 row `8`).
+ * **AND THE SAME PARAGRAPH'S OTHER SELF-CITATION — `bindings/js/index.d.ts:862`, which is NOT one of §7.2's eight
+ * rows and is therefore not one of this date's subjects — is moved by these marks nevertheless: the admitted forms
+ * and the class test of that position stand at `:883`, and the position's own signature — with `commit?` typed as
+ * `CommitCarrier` — at `:904`.**
  *
  * **AND NOTHING HERE MINTS A TYPE, A SYMBOL, AN ALIAS, A SEAM, A RECORD MEMBER OR AN EXPORT**: this clause
  * DOCUMENTS the pair your function returns and a two-arm result the kernel already reads, and DECLARES
  * nothing — `Constraint` below is unmoved, one `unknown` in and one `unknown` out. **Nor does it name an
  * archived part as the place its rule is to be read: the rule IS the sentences above, and every point they
  * cite is a live print of the kept contract or a live source range on this branch.**
+ *
+ * **⟶ RE-DERIVED BY NAME, 2026-11-01: THE SENTENCE ABOVE NO LONGER GOVERNS, AND IT IS NOT DELETED — IT IS READ THROUGH THIS
+ * CLAUSE AS THE READING OF ITS OWN DATE.** The architect has approved minting the types that sentence declined, so what stands
+ * now is: **FIVE NAMES ARE DECLARED BELOW THIS LINE — `AttemptContext` · `RepairContext` · `RegistrationRepairContext` ·
+ * `ConstraintOutcome` · `RepairOutcome` — and `Constraint` below is TYPED rather than unmoved.** **EVERY MEMBER THEY CARRY IS ONE
+ * THE KERNEL ALREADY BUILDS, AND NOTHING IS MINTED BUT THE NAMES**: no member, no symbol, no seam, no export, no route and no
+ * arity moves, the module namespace keeps its ONE value name, and the closed sets these names carry are the ones this clause
+ * already declares. **AND THE CENSUS SENTENCE ABOVE — *"No member census of either record is printed here"* — IS TRUE OF THIS
+ * CLAUSE AND IS READ THROUGH THIS ONE: the census is DECLARED at the aliases below, in the only place a consumer's compiler can
+ * hold it, and this clause still prints none.** **NO BEHAVIOUR BYTE MOVES: the aliases are erased at run time and the kernel
+ * reads the same values it read on 2026-10-30.**
  */
-export type Constraint = (context: unknown) => unknown;
+export type Constraint = (context: AttemptContext) => ConstraintOutcome;
 
 /**
  * **THE CONSTRAINT IDENTITY — `parameter-semantics.md §2.25` (`PAR-JS-25`)**: ONE OPAQUE VALUE THE PACKAGE
@@ -1306,3 +1381,150 @@ export type Constraint = (context: unknown) => unknown;
  * accessor reaches a member of it, and a consumer compares identities and never contents.**
  */
 export type ConstraintIdentity = object;
+
+/**
+ * **THE ATTEMPT'S OWN CONTEXT — THE ONE ARGUMENT A CONSTRAINT BODY IS INVOKED WITH** (`PAR-C-16`; the record this
+ * file's `Constraint` docblock calls *"the attempt's own context"*), declared at
+ * `docs/L1/repair-outcome-types.md` §1.1 of 2026-11-01. **THE NAME IS THE TREE'S OWN**: the kernel calls this
+ * record `AttemptContext` (`bindings/js/src/entry/kernel-registration.mjs:421`, `:428`;
+ * `kernel-attempt.mjs:483`) and so does this file at `:450`.
+ *
+ * **FIVE MEMBERS AND NO SIXTH: `address` · `attempt` · `op` · `tier` · `value`, and no other.** **THIS RECORD GAINS
+ * NOTHING AT ANY INSTANT** — no `id`, no `pending` and no `write` (`strata/decisions.md` · `D-92` (1)) — **and its
+ * census is printed HERE, because this is the only place a consumer's compiler can hold it** (the `Constraint`
+ * docblock above prints none, and says so).
+ *
+ * **ONE MEMBER SET ACROSS THE THREE SITES THAT BUILD IT, AND THE SITE — NOT THE INSTANT — DECIDES THE VALUE.**
+ * Built at the write's own evaluation (`kernel-attempt.mjs:635`-`:641`), at a registration's FIRST ask
+ * (`kernel-registration.mjs:392`-`:403`) and at a registration's RE-RUN (`:728`-`:734`); only three members' VALUES
+ * move, and the nullable arms are the FIRST ask's — `attempt`, `op` and `tier` are the LANDING's at the other two.
+ * **SO A CONSUMER NARROWS `op` BEFORE READING IT**: at a landing and at a re-run `op` is never `null`, and that
+ * narrowing is the declared price of one member set, printed rather than discovered (§1.1; §2's alternative `D`).
+ */
+export interface AttemptContext {
+  readonly address: Address;
+  readonly attempt: AttemptRef | null;
+  readonly op: JournalOp | null;
+  readonly tier: Tier | null;
+  readonly value: unknown;
+}
+
+/**
+ * **THE REPAIR'S OWN RECORD — THE SIX-MEMBER `RepairContext`, THE ONE ARGUMENT THE KERNEL INVOKES A REPAIR WITH**,
+ * built at the write's own evaluation (`bindings/js/src/entry/kernel-attempt.mjs:784`-`:810`) and declared at
+ * `docs/L1/repair-outcome-types.md` §1.2 of 2026-11-01. **THE NAME IS THE KERNEL'S OWN** — *"the six-member
+ * `RepairContext`"* (`kernel-registration.mjs:416`, `:421`) — and this alias IS that shape.
+ *
+ * **SIX MEMBERS: `address` · `id` · `op` · `tier` · `value` · `pending`. THE TWO RECORDS STAND APART AT THREE
+ * PLACES** (the `Constraint` docblock above; `docs/guides/package-use.md §7.6`): **by COUNT, SIX against
+ * `AttemptContext`'s FIVE; by `id`, which this record carries where the constraint's carries `attempt`; and by
+ * `pending`, which rides this record ALONE.**
+ *
+ * **`op`'s `| null` ARM IS THE REGISTRATION'S, DECLARED ONCE BECAUSE THE SHAPE IS ONE SHAPE**: at this instant `op`
+ * is the op the evaluation carried and is never `null`. **`pending` IS A FRESH LIST AND NEVER THE RECORD'S OWN
+ * MEMBER** (`kernel-attempt.mjs:806`-`:809`); **`id`'s NON-EMPTINESS IS `PAR-JS-24`'s PROSE RULE and no type carries
+ * it** (the same class of limit as `Handle`); **and the commit a repair is inside rides that `pending`, so the write
+ * a repair makes JOINS the commit it is part of** — supplied at `write`'s DECLARED FOURTH POSITION (`D-46`).
+ */
+export interface RepairContext {
+  readonly address: Address;
+  readonly id: string;
+  readonly op: JournalOp | null;
+  readonly tier: Tier | null;
+  readonly value: unknown;
+  readonly pending: readonly TriggerPair[];
+}
+
+/**
+ * **THE REPAIR'S RECORD AT A REGISTRATION INSTANT — THE SAME SIX AND THE ROUTE THE REGISTRATION ADDS: SEVEN.**
+ * Built at `bindings/js/src/entry/kernel-registration.mjs:447`-`:460`, with the route at `:492`-`:503`, and declared
+ * at `docs/L1/repair-outcome-types.md` §1.3 of 2026-11-01. **`extends` puts each of the six members at ONE home, so no
+ * member of the shared shape can drift between the two instants.**
+ *
+ * **`write` IS EXACTLY THE STORE'S FIRST THREE POSITIONS — `(address, tier, value) => WriteRecord` — AND THE COMMIT
+ * IS NOT A POSITION OF IT**: the write joins the registration's own commit (`D-91` (2)), and a supplied fourth is
+ * REFUSED BEFORE ANY STORE ACT (`kernel-registration.mjs:492`-`:503`). **So the instance's
+ * `write(address, tier, value, commit?)` and this route's three positions are TWO positions and never one spelling.**
+ *
+ * **THE CONSTRAINT'S RECORD GAINS NOTHING AT ANY INSTANT** (`D-92` (1)): `AttemptContext` carries neither `write` nor
+ * `pending`, and **the seventh member's PRESENCE is the discriminator the kernel itself uses, so `'write' in rc` is
+ * the narrowing a repair has**. **AND A BODY ANNOTATED WITH THIS SEVEN-MEMBER ALIAS IS REFUSED** — the position's
+ * parameter is `RepairContext | RegistrationRepairContext` — **so the lawful spellings are `RepairContext`, that
+ * union narrowed with `'write' in`, or no annotation at all.**
+ */
+export interface RegistrationRepairContext extends RepairContext {
+  readonly write: (address: Address, tier: Tier, value: unknown) => WriteRecord;
+}
+
+/**
+ * **WHAT A CONSTRAINT BODY ANSWERS — THE CLOSED THREE-ARM SET**, read in this order at the write's own evaluation
+ * (`bindings/js/src/entry/kernel-attempt.mjs:705`-`:727`) and declared at `docs/L1/repair-outcome-types.md` §1.4 of
+ * 2026-11-01: **`true` — THE ONLY PASS VALUE**; **`{ message, repair }` — A REPAIRABLE VIOLATION**; **`{ message }` —
+ * AN UNREPAIRABLE VIOLATION**, its `message` the refusal's own sentence.
+ *
+ * **A VALUE OUTSIDE THE THREE IS READ AS THE `{ message }` ARM AND NEVER AS A FOURTH ARM**, so a return invented
+ * beyond them declares an outcome this kernel does not distinguish — **and a return carrying only `repair` is that
+ * outside value, whose repair IS NEVER SEEN** (`kernel-attempt.mjs:718`-`:724`).
+ *
+ * **`message` IS REQUIRED ON THE REPAIR ARM BECAUSE THE KERNEL READS IT FIRST**, and the repair is looked for only
+ * inside that branch. **THE TYPE DECLARES THE SHAPE AND NEVER THE READ**: at the write's own evaluation `message` and
+ * `repair` are read as OWN members, while at a registration instant the same closed outcome is read through the
+ * prototype chain (`kernel-registration.mjs:377`-`:380`) — **ONE RETURNED SHAPE ANSWERING TWO DIFFERENT THINGS AT THE
+ * TWO INSTANTS, which is `D-35`'s recorded defect and is OWED to a code-bearing unit**, and nothing here is read as
+ * symmetric. **Nor does the type carry `message`'s NON-EMPTINESS or the repair's invocability beyond `function`.**
+ */
+export type ConstraintOutcome =
+  | true
+  | {
+      readonly message: string;
+      readonly repair: (
+        context: RepairContext | RegistrationRepairContext,
+      ) => RepairOutcome;
+    }
+  | { readonly message: string };
+
+/**
+ * **WHAT A REPAIR ANSWERS — THE CLOSED TWO-ARM SET**, read at `bindings/js/src/entry/kernel-attempt.mjs:899`-`:914`
+ * and declared at `docs/L1/repair-outcome-types.md` §1.5 of 2026-11-01. **`op` IS REQUIRED ON THE CREDITED ARM, THE
+ * ARM IS CLOSED, AND `undefined` IS NOT ONE OF THE TWO** — so a repair answering `undefined` or a bare `{ ok: true }`
+ * is a COMPILE ERROR instead of a `ConstraintPassRefused` (`ST-F2`'s measured defect, `strata/research.md` §10).
+ *
+ * **THE CREDITED ARM: `{ ok: true, op }`, `op` BEING THE OPERATION RECORD THE STORE'S OWN VERB RETURNED** — the
+ * store's own journal record, reached by INDEXED ACCESS (`WriteRecord['op']`) so **NO SECOND CARRIER IS MINTED**, and
+ * `op.opId` (`string`) and `op.seq` (`number`) are reached by naming that record. **`DeleteRecord['op']`'s declared
+ * `null` arm is REFUSED here**: a `delete` that removed nothing answers `null` and credits nothing, so a repair
+ * passing `removed.op` narrows first. **THE FAILED ARM: `{ ok: false, message }` — `op` ABSENT AND NEVER `null`**,
+ * because an `op` there is read by nothing.
+ *
+ * **THE TYPE NAMES THE CARRIER; THE GROUND IS PROSE AND IS POINTED AT, NEVER RE-SPELLED HERE**
+ * (`bindings/js/src/entry/kernel-foundations.mjs:1105`-`:1131`), **and NO ORDINAL GROUND IS CLAIMED AT THE REGISTRATION
+ * INSTANT** (`kernel-registration.mjs:615`-`:616`). **A green compile is not evidence of a credit**, and `op` is read
+ * as an OWN member at BOTH instants — a distinction structural typing cannot make.
+ */
+export type RepairOutcome =
+  | { readonly ok: true; readonly op: WriteRecord['op'] }
+  | { readonly ok: false; readonly message: string };
+
+/**
+ * **THE WRITE'S COMMIT POSITION AND ITS CLASS TEST — ONE MEMBER, `pending`, SPELLED EXACTLY AS `CommitRecord.pending`
+ * SPELLS IT** (`:793`), so **no second TYPE is minted: what is minted is the NAME the class test's class never had**.
+ * Declared at `docs/L1/repair-outcome-types.md` §8's `Q-1` clause of 2026-11-01 (`strata/decisions.md` · `D-101`,
+ * verbatim: *"Widen the position to its class test"*), and **exported because a position's type no consumer can
+ * annotate is the `ST-F2` gap in a new place**: the carrier is the one value a consumer CONSTRUCTS at a position
+ * rather than receives.
+ *
+ * **THE KERNEL READS A MEMBER'S PRESENCE AND NEVER ITS MEMBER COUNT** — an OWN, defined `pending` on a non-null,
+ * non-Proxy, non-array object (`bindings/js/src/entry/delivery.mjs:27`-`:54`, the predicate at `:39`) — **so
+ * `CommitRecord` is ONE CARRIER of this class and not the position's only type; it keeps every byte, its four
+ * members and its export.** **A REPAIR'S OWN `RepairContext` IS A CARRIER TOO**, which is why the guide's
+ * four-position spelling type-checks as written (`D-46`; `docs/guides/package-use.md §7.6`).
+ *
+ * **WHAT NO GREEN HERE PROVES, PRINTED BECAUSE THE CLASS TEST IS THE DOMAIN'S KEEPER**: an INHERITED `pending`
+ * (`Object.hasOwn` refuses it at run time) and a `Proxy` (`types.isProxy` refuses it before any member read) are both
+ * admitted by the type, and **`commit?` admits a SUPPLIED `undefined`, which the class test refuses** — the
+ * `?`-cannot-separate limit this file already declares for `read`'s `tier?` (`:131`-`:135`). **THE RUNTIME REFUSAL IS
+ * WHAT KEEPS THE POSITION'S DOMAIN.**
+ */
+export interface CommitCarrier {
+  readonly pending: readonly TriggerPair[];
+}

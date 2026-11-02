@@ -16,7 +16,13 @@
 //  · the instance's FOURTEEN own members, each CALLED at its declared arity and
 //    in its declared argument order, with the address / handle / `opId` / pair
 //    FIRST;
-//  · `write`'s OPTIONAL FOURTH-POSITION `commit`;
+//  · `write`'s OPTIONAL FOURTH-POSITION `commit`, whose DECLARED type is the CLASS TEST's own class
+//    (`CommitCarrier`, ONE member) since the `Q-1` clause of 2026-11-01;
+//  · the REPAIR-OUTCOME TYPES of `docs/L1/repair-outcome-types.md` §5.2 (`D-101`), used as declared and refused
+//    where they refuse: the three-arm `ConstraintOutcome`, the two-arm `RepairOutcome` and one end-to-end body,
+//    the two contexts' censuses (`AttemptContext`'s five, `RepairContext`'s six,
+//    `RegistrationRepairContext`'s seven), the union's `'write' in` narrowing, the registration route's
+//    three-position arity driven against a supplied fourth, and the commit position's carrier — section 5 below;
 //  · the DECLARED RETURN SHAPES, member by member — `WriteRecord.op` is the
 //    store's `JournalOp` record (not a number), `RollbackRecord.opId` is a
 //    string and `undoneOps` an ARRAY of ids (not counts), `restoredTo` a
@@ -76,16 +82,22 @@
 import { storeCreate } from 'provident-storeroom';
 import type {
   Address,
+  AttemptContext,
   AttemptRef,
   BaseState,
+  CommitCarrier,
   CommitRecord,
   Constraint,
   ConstraintIdentity,
+  ConstraintOutcome,
   ConstraintPair,
   DeleteRecord,
   Handle,
   JournalOp,
   Listener,
+  RegistrationRepairContext,
+  RepairContext,
+  RepairOutcome,
   RollbackRecord,
   StoreConfig,
   StoreInstance,
@@ -112,7 +124,15 @@ const config: StoreConfig = {
     {
       address: ['k'],
       id: 'c1',
-      constraint: (context: unknown): unknown => context !== undefined,
+      // **⟶ RE-DERIVED 2026-11-01** (`docs/L1/repair-outcome-types.md` §5.1; `strata/decisions.md` · `D-101`
+      // (1)): the member is `Constraint`, so the ANSWER is `ConstraintOutcome` and this body returns one of the
+      // closed set's arms — `true` (the only pass value) or a `{ message }` arm — never a widened `boolean`.
+      // **The PARAMETER keeps this fixture's own spelling `context: unknown`, which stays LAWFUL**: a
+      // parameter accepting `unknown` accepts an `AttemptContext`, and the body's own narrowing is its business.
+      constraint: (context: unknown): ConstraintOutcome => {
+        if (context === undefined) return { message: 'the constraint was handed no context' };
+        return true;
+      },
     },
   ],
 };
@@ -189,7 +209,15 @@ const withdrawn: void = store.unlisten(handle);
 
 // ---- the constraint triple: pair first, constraint second ---------------
 const pair: ConstraintPair = { address: ['k'], id: 'c1' };
-const constraint: Constraint = (context: unknown): unknown => context !== undefined;
+// **⟶ RE-DERIVED 2026-11-01** (`docs/L1/repair-outcome-types.md` §5.1; `D-101` (1)): THIS is the cell that
+// asserts the `Constraint` line itself. The shipped line is `(context: AttemptContext) => ConstraintOutcome`,
+// so the body answers an arm of the CLOSED THREE-ARM SET — `true` or a `{ message }` arm — and a body handing
+// back a widened `boolean` (the shape this cell used to spell) is now `TS2322`. The parameter's spelling is
+// this fixture's own and stays lawful; the ANSWER is the pass's whole point.
+const constraint: Constraint = (context: unknown): ConstraintOutcome => {
+  if (context === undefined) return { message: 'the constraint was handed no context' };
+  return true;
+};
 const identity: ConstraintIdentity = store.addConstraint(pair, constraint);
 const enabled: void = store.constraintOn(pair, constraint);
 const disabled: void = store.constraintOff(pair, constraint);
@@ -334,7 +362,180 @@ const refusalMessage: string = refusal.message;
 const refusalThird: unknown = refusal.cause;
 
 // ===========================================================================
-// 5 · WHAT THIS FILE DELIBERATELY DOES NOT DO
+// 5 · THE REPAIR-OUTCOME TYPES, USED AS DECLARED
+// ===========================================================================
+// `docs/L1/repair-outcome-types.md` §5.2 (2026-11-01; `strata/decisions.md` · `D-101` (1)) — and, for the commit
+// position, the declaration's `⟶ ANSWERED` `Q-1` clause of the same date. SIX NAMES ARE DECLARED and this section
+// USES EACH ONE: `AttemptContext` · `RepairContext` · `RegistrationRepairContext` · `ConstraintOutcome` ·
+// `RepairOutcome` · and the `Q-1` clause's `CommitCarrier`. A name no cell can instantiate is an omission printed
+// as a type; every cell below is one a consumer writes.
+//
+// AND THE LIMITS, SAID HERE SO NO GREEN BELOW IS READ AS THEIR EVIDENCE (the declaration's §5.4): structural typing
+// cannot tell an OWN member from an inherited one (so `Object.assign(Object.create({ ok: true }), { op })` is
+// admitted here and refused by the kernel's `ownMember` read); it cannot express `message`'s or `id`'s or `opId`'s
+// NON-EMPTINESS (`string` admits `''`); it refuses an excess `op` on the failed arm only as a FRESH object literal
+// (through a variable the wider shape is admitted); and it carries nothing of the credit ground's four conditions.
+// The type names the CARRIER; the credit is prose and a runtime act.
+
+// ---- (i) THE THREE-ARM ANSWER, ASSIGNABLE AS DECLARED -------------------
+// `true` is the ONLY pass value; the repairable arm REQUIRES `message` because the kernel reads it first; and the
+// unrepairable arm is the `message`-only one. A FOURTH arm is a compile error (below), which is the whole point:
+// at run time a value outside the three is read as `{ message }` and never as a fourth thing.
+const passArm: ConstraintOutcome = true;
+const repairableArm: ConstraintOutcome = {
+  message: 'the parent is not a link',
+  repair: (context: RepairContext | RegistrationRepairContext): RepairOutcome => {
+    void context;
+    return { ok: false, message: 'the repair did not land' };
+  },
+};
+const unrepairableArm: ConstraintOutcome = { message: 'the tier is out of domain' };
+// THE SAME ANSWER THROUGH THE POSITION (`addConstraint`'s second position IS a `Constraint`): a body written
+// inline is contextually typed, so `ctx` is an `AttemptContext` and `ctx.value` the `unknown` that member
+// declares — and the answer is still the closed set, never a widened `boolean`.
+const identityFromBody: ConstraintIdentity = store.addConstraint(
+  pair,
+  (ctx) => (ctx.value === 2 ? true : { message: 'refused' }),
+);
+
+// ---- (ii) THE TWO-ARM REPAIR, ASSIGNABLE AS DECLARED --------------------
+// `op` is REQUIRED on the credited arm and ABSENT on the failed one, and `undefined` is not one of the two — so a
+// repair answering nothing, or a bare `{ ok: true }`, is a compile error instead of a `ConstraintPassRefused`
+// (`ST-F2`'s measured defect). THE CARRIER IS THE STORE'S OWN RECORD, reached by indexed access, so no second op
+// carrier exists to disagree with it.
+const credited: RepairOutcome = { ok: true, op: written.op };
+const failed: RepairOutcome = { ok: false, message: 'the write was refused' };
+
+// ---- (ii-bis) ONE END-TO-END BODY THAT COMPILES -------------------------
+// **⟶ RE-DERIVED BY THE `Q-1` CLAUSE, 2026-11-01** (`docs/L1/repair-outcome-types.md` §8's `⟶ ANSWERED`): `write`'s
+// commit position is now the class test's own class, `CommitCarrier`, so this cell is THE GUIDE'S OWN
+// FOUR-POSITION SPELLING (`docs/guides/package-use.md:1072`–`:1090`) and not the three-position form the
+// declaration's §5.2 (ii) measured while the position demanded a `CommitRecord`. A repair passes the record it
+// was invoked with; the kernel's class test reads that record's PRESENT, defined `pending` and admits it.
+const endToEnd: Constraint = (context: AttemptContext): ConstraintOutcome => {
+  if (context.op !== null) return true;
+  return {
+    message: 'the leaf below the parent must be repaired',
+    repair: (rc: RepairContext | RegistrationRepairContext): RepairOutcome => {
+      const landed: WriteRecord = store.write(['b'], 'mem', 11, rc);
+      return { ok: true, op: landed.op };
+    },
+  };
+};
+
+// ---- (iii) WHAT MUST NOT BE ASSIGNABLE, EACH UNDER `@ts-expect-error` ---
+// The declaration's §5.2 (iii) table, row for row, with the code its probe measured. An UNUSED directive is
+// itself a compile error, so each cell below is a live assertion: the type really does refuse it. (The table's
+// EIGHTH row — `op` as a `number` — already stands at section 4, `const opAsNumber`, and stays used there.)
+// @ts-expect-error — `TS2322`: `op` is REQUIRED on the credited arm; this is `ST-F2`'s exact shape
+const refusedNoOp: RepairOutcome = { ok: true };
+// @ts-expect-error — `TS2740`: THE BARE RECEIPT IS NOT THE OP — a `WriteRecord` is not a `WriteRecord['op']`
+const refusedReceiptAsOp: RepairOutcome = { ok: true, op: written };
+// @ts-expect-error — `TS2322`: a repair answering nothing is refused `ConstraintPassRefused` (`kernel-attempt.mjs:911`)
+const refusedUndefined: RepairOutcome = undefined;
+// @ts-expect-error — `TS2322`: no `message`, so the repair is NEVER SEEN — a REAL refusal and not a mere excess-property one: it holds THROUGH A VARIABLE too (§5.2 (iii) row `d`)
+const refusedRepairOnly: ConstraintOutcome = { repair: () => credited };
+// @ts-expect-error — `TS2322`: the closed set has no string arm, and an outside value is read as `{ message }`
+const refusedString: ConstraintOutcome = 'pass';
+// @ts-expect-error — `TS2322`: THE WIDENED `boolean` — the shape a consumer's existing body hands back
+const refusedWidenedBoolean: ConstraintOutcome = true as boolean;
+// @ts-expect-error — `TS2353`: `op` is ABSENT on the failed arm; and this refusal is the EXCESS-PROPERTY check, FRESH-LITERAL ONLY — a variable carrying `op` is ADMITTED, which the type cannot prevent (§5.4 item 4)
+const refusedExcessOp: RepairOutcome = { ok: false, message: 'x', op: written.op };
+
+// ---- (iv) THE `op`'s OWN MEMBERS, THROUGH THE CREDITED ARM --------------
+// The declaration's §3: the alias expresses `opId` and `seq` by NAMING the store's record, and a consumer holds
+// that only where a compiler can. The credited arm is narrowed by its `ok` discriminant.
+if (credited.ok) {
+  const creditedOpId: string = credited.op.opId;
+  const creditedSeq: number = credited.op.seq;
+  void creditedOpId;
+  void creditedSeq;
+}
+
+// ---- (iv-a) `AttemptContext` — FIVE MEMBERS, AND NO SIXTH AT ANY INSTANT -
+declare const ctx: AttemptContext;
+const ctxAddress: Address = ctx.address;
+const ctxAttempt: AttemptRef | null = ctx.attempt;
+const ctxOp: JournalOp | null = ctx.op;
+const ctxTier: Tier | null = ctx.tier;
+const ctxValue: unknown = ctx.value;
+// @ts-expect-error — the constraint's record gains NO member at any instant: no `pending` (`D-92` (1))
+const ctxPending: unknown = ctx.pending;
+// @ts-expect-error — and no `write` route: the seventh member is the registration's, on the repair's record
+const ctxWrite: unknown = ctx.write;
+
+// ---- (iv-b) `RepairContext` — SIX MEMBERS, AND `write` IS NOT ONE OF THEM -
+declare const rc: RepairContext;
+const rcAddress: Address = rc.address;
+const rcId: string = rc.id;
+const rcOp: JournalOp | null = rc.op;
+const rcTier: Tier | null = rc.tier;
+const rcValue: unknown = rc.value;
+const rcPending: readonly TriggerPair[] = rc.pending;
+// @ts-expect-error — `write` is the REGISTRATION's seventh member: without narrowing, the six carry no route
+const rcWrite: unknown = rc.write(address, 'mem', 1);
+
+// ---- (iv-c) THE UNION'S ONE DISCRIMINATOR IS `'write' in` ---------------
+// `typeof u.write === 'function'` is NOT a guard a consumer can write: the member read is `TS2339` BEFORE the test,
+// so the `in` operator is the only discriminator the two-instant union offers (both spellings measured).
+declare const atEitherInstant: RepairContext | RegistrationRepairContext;
+// @ts-expect-error — the member cannot be READ to be tested, so no `typeof` guard exists for this union
+const unionTypeofTest: unknown = typeof atEitherInstant.write;
+if ('write' in atEitherInstant) {
+  const routeThroughNarrowing: WriteRecord = atEitherInstant.write(address, 'mem', 1);
+  void routeThroughNarrowing;
+}
+
+// ---- (iv-d) `RegistrationRepairContext` — SEVEN, AND THE ROUTE IS THREE -
+// A `declare const`, and NOT an annotated repair body: see the finding below the route's two cells.
+declare const registrationRecord: RegistrationRepairContext;
+const routeLanded: WriteRecord = registrationRecord.write(address, 'mem', 1);
+void routeLanded;
+// @ts-expect-error — a SUPPLIED FOURTH is refused BEFORE any store act (`kernel-registration.mjs:494`–`:500`; `D-91` (2)): `TS2554`, the runtime's own arity refusal as a compile error
+const routeRefusesFourth: unknown = registrationRecord.write(address, 'mem', 1, commit);
+// THE FINDING THIS PAIR CARRIES, PRINTED RATHER THAN DISCOVERED: a repair body ANNOTATED with the SEVEN-member alias
+// is REFUSED (`TS2322`) — the position's parameter is the UNION `RepairContext | RegistrationRepairContext` and
+// the seven-member alias is the narrower one — so the lawful spellings are the six-member alias, the union
+// narrowed with `'write' in`, or no annotation at all. It is a price of the declaration's §2 choice `C`.
+const sevenMemberAnnotation: ConstraintOutcome = {
+  message: 'the seven-member alias is not a body annotation',
+  // @ts-expect-error — `TS2322`: the union is not assignable to the SEVEN-member parameter
+  repair: (narrow: RegistrationRepairContext): RepairOutcome => ({ ok: false, message: narrow.id }),
+};
+
+// ---- (iv-e) THE SEVENTH MEMBER IS NOT OPTIONAL WHERE THE ALIAS IS NAMED -
+// @ts-expect-error — `TS2741`: the six without the route are NOT a `RegistrationRepairContext`
+const sixOnly: RegistrationRepairContext = {
+  address,
+  id: 'c1',
+  op,
+  tier: 'mem',
+  value: 1,
+  pending: writtenTriggered,
+};
+
+// ---- AND THE COMMIT POSITION'S OWN CLASS TEST (`Q-1`, 2026-11-01) --------
+// `write`'s fourth position is `commit?: CommitCarrier`: ONE member, `pending`, spelled exactly as
+// `CommitRecord.pending` spells it. THE KERNEL READS A MEMBER'S PRESENCE AND NEVER ITS MEMBER COUNT, so a FRESH
+// carrier, the store's own record AND the repair's own record are all carriers — which is why the guide's
+// four-position spelling now type-checks. What the type cannot see (an INHERITED `pending`, a `Proxy`, a supplied
+// `undefined` at the optional position) is the class test's, at run time, and stays prose.
+const carrier: CommitCarrier = { pending: writtenTriggered };
+const withCarrier: WriteRecord = store.write(address, 'file', 1, carrier);
+const withFreshCarrier: WriteRecord = store.write(address, 'file', 1, { pending: [] });
+const withRepairRecord: WriteRecord = store.write(address, 'file', 1, rc);
+void withCarrier;
+void withFreshCarrier;
+void withRepairRecord;
+// @ts-expect-error — `null` is outside the class test's domain (`delivery.mjs:28` refuses it before any read)
+const carrierNull: WriteRecord = store.write(address, 'file', 1, null);
+// @ts-expect-error — a supplied `pending: undefined` is not a `readonly TriggerPair[]` (`delivery.mjs:39` refuses it)
+const carrierUndefinedPending: WriteRecord = store.write(address, 'file', 1, { pending: undefined });
+// @ts-expect-error — a fresh carrier carrying NO `pending` is refused: `pending` is this class's whole member set
+const carrierWithoutPending: WriteRecord = store.write(address, 'file', 1, { attempt: null });
+
+// ===========================================================================
+// 6 · WHAT THIS FILE DELIBERATELY DOES NOT DO
 // ===========================================================================
 // NOT ASSERTED, BECAUSE THE TYPE SYSTEM CANNOT: the three claims listed in the
 // header above. Concretely, and intentionally, this file does NOT write:
@@ -360,6 +561,10 @@ void widenedAddressFraction;
 // refuses the three names `A127` merged away and the removed `settle`; a
 // fifteenth own member on the real product still satisfies `StoreInstance` and
 // is caught by the RUNTIME suite (`a127-surface.test.mjs`), not here.
+//
+// AND THE REPAIR-OUTCOME TYPES' FIVE UNENFORCEABLE CLAIMS ARE LISTED AT SECTION 5'S OWN HEAD, not here: the
+// own-member reads, `message`'s and `id`'s non-emptiness, the excess-`op` arm a VARIABLE admits, and the credit
+// ground's four conditions (`docs/L1/repair-outcome-types.md` §5.4). No cell below demands any of them.
 
 // ---------------------------------------------------------------------------
 // Everything bound above is consumed here so that `noUnusedLocals`-style
@@ -377,4 +582,13 @@ void [
   undoneAsCount, opAsNumber, opIdAsNumber,
   refusalStatus, refusalMessage, refusalThird,
   readExport, writeExport,
+  passArm, repairableArm, unrepairableArm, identityFromBody,
+  credited, failed, endToEnd,
+  refusedNoOp, refusedReceiptAsOp, refusedUndefined, refusedRepairOnly,
+  refusedString, refusedWidenedBoolean, refusedExcessOp,
+  ctxAddress, ctxAttempt, ctxOp, ctxTier, ctxValue, ctxPending, ctxWrite,
+  rcAddress, rcId, rcOp, rcTier, rcValue, rcPending, rcWrite,
+  unionTypeofTest, routeLanded, routeRefusesFourth, sevenMemberAnnotation, sixOnly,
+  carrier, withCarrier, withFreshCarrier, withRepairRecord,
+  carrierNull, carrierUndefinedPending, carrierWithoutPending,
 ];
