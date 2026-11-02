@@ -5237,3 +5237,26 @@ object with an own, defined `pending`) — **so the guide's worked example, whic
 fourth argument, and the package's own `repair-in-commit` drive type-check AS WRITTEN.** **The type follows the
 behaviour; no byte of the behaviour and no byte of the guide moves.** **THE AMENDMENT'S HOME IS THE DECLARATION**
 (`docs/L1/repair-outcome-types.md`, a dated clause at its `Q-1`), **and `Q-2` and `Q-3` stand as it lists them.**
+
+---
+
+### `D-102` — the typing cut is a MINOR, `1.8.0`
+
+**DATE:** 2026-11-01. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering the release-class fork on the
+typing pass — *"Which version line does the typing cut take …?"* — **verbatim: *"Minor — 1.8.0"***. **STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.** **The typing pass (`9afb411`) and the guide anchor (`06189fa`) — the two commits past the released
+`v1.7.0` — ship as a MINOR release, `1.8.0`.** **(i)** The declaration gains six named types — `AttemptContext`,
+`RepairContext`, `RegistrationRepairContext`, `ConstraintOutcome`, `RepairOutcome`, `CommitCarrier` — an ADDITIVE type
+surface. **(ii)** And `Constraint` is NARROWED: `(context: unknown) => unknown` no longer assigns to it, so the release
+is consumer-visible at the declaration even though nothing a call *does* moves — the same class `D-100` gave the four
+refusal texts. **(iii)** NO behaviour byte moves: the closed set, every member, every arity, the fourteen own members
+and every refusal text are unmoved, and `D-88` (2)'s sentence stays a recorded defect. **The version cells, the three
+version lines and the `§1.8.0` notes row are the release pass's.**
+
+**WHAT IT DOES NOT SETTLE.** The push and the tag — the architect's own act (`docs/specs/storeroom-publish/release.md`
+§4.1). **No member, status, arity or code byte moves; no cell is re-derived by this row.**
+
+**TERMS: the class and the number (`2` = `minor` · `1.8.0`), the types it adds (`6`), the declaration narrowing (`1`),
+the behaviour bytes it moves (`0`), the release documents it owes (`4` = the `§1.8.0` section, the eleven version
+cells, the three version lines, the notes row), the questions closed (`1` = the release class).**
