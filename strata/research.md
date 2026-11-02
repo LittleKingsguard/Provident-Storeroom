@@ -353,3 +353,30 @@ open is the architect's: mint the types, move the sentence's text, or leave the 
 **FILES READ.** `bindings/js/src/entry/kernel-foundations.mjs` (`landedOp`, `landedOpDefect`); `bindings/js/src/entry/
 kernel-attempt.mjs` (`:878`–`:912`); `bindings/js/index.d.ts` (`:1270`–`:1300`); `docs/guides/package-use.md` (`§7.6`,
 `:1040`–`:1105`); `strata/decisions.md` (`D-88`); `docs/L1/open-items-2026-10-25.md` (`§6` row `5`).
+
+---
+
+## §11 · The published `1.8.0` — the downstream's verification of the shipped artefact
+
+**THE PUBLICATION.** `v1.8.0` is tagged at `fd34789` and the release is live in the registry (the downstream reads it as
+`latest`). **The release is a TYPE SURFACE, and the downstream's own instrument says so:** `git diff --stat
+v1.7.0..v1.8.0 -- bindings/js/src src` is **EMPTY** at this tree — no line under `bindings/js/src` and none under `src`.
+
+**THE DOWNSTREAM'S VERIFICATION, EACH CLAIM CHECKED AT ITS BYTES HERE:**
+
+| claim | verdict |
+|---|---|
+| `Constraint` is typed, the six names exist, `RepairOutcome` is the closed two-arm set, `write`'s fourth position is `CommitCarrier`, and `grep -c 'repair:' index.d.ts` moved `0 → 1` | **VERIFIED** — `Constraint = (context: AttemptContext) => ConstraintOutcome`; the six names; `CommitCarrier` on `write`; the count reads `1` |
+| `Constraint` NARROWS: a `(context: unknown) => unknown` body no longer assigns (`TS2322`) | **VERIFIED** — the fixture's two cells were re-derived for exactly that reason, and the release declares it (`D-102` (ii)) |
+| (iii) — the sentence's address — is **NOT** fixed and is byte-identical | **VERIFIED** — `bindings/js/src/entry/kernel-attempt.mjs:911` still interpolates `addressSpelling(attempt.address)`; the drive's shape (pair at `['a']`, the repair landing at `['b']`, both standing) is the arm the sentence names wrongly |
+| the two instants — landing 6 members, registration 7, `write`'s fourth position ACCEPTED at the landing and REFUSED at the registration — are unchanged in fact and now NAMED in the types (`RegistrationRepairContext extends RepairContext`, narrowed by `'write' in`) | **VERIFIED** — the records are built at the sites the declaration cites; the type names them; the behaviour is unmoved (`D-35`'s own read) |
+
+**SO THE PUBLISHED RELEASE DOES EXACTLY WHAT IT DECLARED — TWO OF THE THREE LIMBS.** **The third is a RECORDED
+DISPOSITION and not an omission**: `D-88` (2) rules the sentence a recorded defect with two lawful outcomes (change the
+text on its own ruling and version, or teach it), `D-101` item 4 says `ST-F2`'s (iii) is answered by that disposition,
+and the release's own "what does not move" list names it. **The inherited-repair divergence is `D-35`'s recorded defect,
+declared inside `index.d.ts` as OWED to a code-bearing unit.** **The two remaining limbs are therefore the record's open
+items and the architect's to queue — this note decides nothing.**
+
+**FILES READ.** `strata/decisions.md` (`D-88`, `D-101` items 2 and 4, `D-102`); `bindings/js/index.d.ts`; the tag set
+(`v1.7.0` → `v1.8.0`); `bindings/js/src/entry/kernel-attempt.mjs`; the `git diff --stat` instruments above.

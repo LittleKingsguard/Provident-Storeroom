@@ -595,6 +595,44 @@ ban, and its measurement stands) — **but the one worked example the package ow
   names nothing in the fourth place also joins, by the kernel's own name"*). **Cost: the guide's four-position spelling stays
   unmatched by the type, and §5.2 (ii)'s end-to-end cell must use the three-position form.**
 
+**⟶ AND ALTERNATIVE `(b)` IS WITHDRAWN, 2026-11-01 — `D-103` RULES THE OMISSION UNSUPPORTED, SO THE SPELLING IT
+PRICES IS NOT ONE THIS DECLARATION MAY DOCUMENT.** `RCA-8(g)` ANNOTATE-BESIDE: **the two remedies above stand
+BYTE-FOR-BYTE and are read THROUGH this clause; what it withdraws is `(b)`'s standing as an OPTION, and it moves no
+other byte of §7.1's finding.** **THE ARCHITECT, VERBATIM** (`strata/decisions.md` · `D-103`, 2026-11-01):
+***"Writing a repair function that does not pass the commit in is unsupported"***. **SO `(b)`'s SECOND SPELLING —
+*"omits the fourth position and takes the kernel's own fallback"* (`kernel-attempt.mjs:820`–`:822`; the guide
+`:1061`'s last sentence) — IS REFUSED RATHER THAN PRICED: the package declares NOTHING about a repair that omits
+the commit, and the five things `D-103` item `1` lists — the op in `attempt.ops`, the entries in the commit's log,
+the `pending` delivery, the rollback's scope, and a `file`-tier save riding the commit's terminal act — are not
+promised for it.** **THE FALLBACK IS A MECHANISM OF THE CODE WHOSE BYTES STAND AND NOT A ROUTE** (`D-103` item `2`,
+which names the frame's own name and keeps it; `D-46`, which makes the supplied commit id the discriminator) — **so
+the guide `:1061` is read THROUGH `D-103` as a description of that mechanism and may not be cited as leave to take
+`(b)`.**
+
+**AND `(b)`'s FIRST HALF IS SUPERSEDED IN FACT TOO: *"the guide's four-position spelling stays unmatched by the
+type"* was this finding's reading of its own date, and `(a)` is the remedy TAKEN** (`D-101`; this file's `Q-1`
+`⟶ ANSWERED` clause below, whose measurement is the guide's block GREEN as written at four positions) — **so the
+guide's spelling is MATCHED and there is nothing left for `(b)` to reach.**
+
+**AND WHAT THE CELL DOES, IT ALREADY DOES: `§5.2 (ii)`'s end-to-end cell KEEPS THE FOUR-POSITION SPELLING** — the
+spelling `Q-1`'s answered clause FREED as a cell already owed (`:781`–`:783`) — **so this clause re-derives no
+cell, reds no cell and asks no ninth cell; its one subject is the option it withdraws.** **NOTHING ELSE MOVES: no
+type, no member, no figure of §7.1's finding and no behaviour byte** (`D-103`'s own `TERMS`: the types it moves
+`0`, the code bytes it moves `0`, the sites re-derived under it `2` — the guide's sentence and this note).
+
+**AND THE ONE RE-ANCHOR THIS CLAUSE OWES, PRINTED RATHER THAN DISCOVERED, BECAUSE ITS OWN PLACEMENT IN THE GUIDE
+MOVES LINES THIS FILE CITES:** the clause stands inside the guide's `§7.6`, on the sentence's own site, and adds
+**SIX** lines there, **so every `docs/guides/package-use.md` line this file cites at or below `:1063` stands SIX
+lines lower from 2026-11-01** — the four-ways list `:1063`–`:1068` now `:1069`–`:1074`; the worked example
+`:1072`–`:1090` now `:1078`–`:1096`; the guide's own arm at `:1082` now `:1088`; its reading `:1092` now `:1098`;
+the measurement `:1094` now `:1100`; the arm's messages `:1096`–`:1103` now `:1102`–`:1109`; and the copied
+sentence `:1100` now `:1106`. **The four figures ABOVE the insertion are unmoved — `:1055`, `:1057`, `:1059` and
+`:1061`, the last being the sentence the clause reads through** — and every superseded range stands as the reading
+of its own date (`RCA-8(g)`); **`§7.2`'s eight-row obligation is not discharged by this note, and it now extends by
+the guide figures this clause prints.** **AND ONE CITATION IS OUTSIDE THIS PASS'S WRITE SET, NAMED SO ITS OWNER
+READS IT: `typecheck/consumer-fixture.ts:412` cites the same example at `:1072`–`:1090` and now needs
+`:1078`–`:1096`.**
+
 **OWNER: whoever next owns `bindings/js/index.d.ts`'s `write` member and whoever owns `docs/specs/storeroom-publish/`'s class
 amendment. REVISIT CONDITION: it re-opens at the first pass that types or re-types the commit position, and at the latest at any
 pass that adds a TypeScript cell transcribing the guide's example.**

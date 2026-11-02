@@ -5260,3 +5260,37 @@ version lines and the `§1.8.0` notes row are the release pass's.**
 **TERMS: the class and the number (`2` = `minor` · `1.8.0`), the types it adds (`6`), the declaration narrowing (`1`),
 the behaviour bytes it moves (`0`), the release documents it owes (`4` = the `§1.8.0` section, the eleven version
 cells, the three version lines, the notes row), the questions closed (`1` = the release class).**
+
+---
+
+### `D-103` — a repair that does not pass the commit in is UNSUPPORTED: the fourth position is not optional IN USE
+
+**DATE:** 2026-11-01. **BRANCH:** `main`. **SOURCE:** the architect, in session, on the repair's commit position — verbatim:
+***"Writing a repair function that does not pass the commit in is unsupported"***. **STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE SUPPORTED ROUTE, IN ONE SENTENCE.** **Every repair passes the commit at `write`'s DECLARED FOURTH POSITION** — the
+   object carrying `pending` (`CommitCarrier`; `D-46`; the repair's own record carries that commit at its `pending` member).
+   **A repair that does NOT pass it is UNSUPPORTED**: the package declares nothing about it, and the tracking that `D-46`
+   exists for — the op in `attempt.ops`, the entries in the commit's log, the `pending` delivery, the rollback's scope, a
+   `file`-tier save riding the commit's terminal act — is not promised for it.
+2. **WHAT DOES NOT MOVE: THE MECHANISM.** The frame's own name at `state.mjs`'s `openCommit` (*"the entry's position wins
+   where it is supplied, and this name is the fallback where it is not"*, `kernel-attempt.mjs:820`–`:822`) is the CODE's and
+   it STAYS — **what falls is its standing as a DOCUMENTED ROUTE.** **The guide's sentence *"A repair that names nothing in
+   the fourth place also joins, by the kernel's own name; the fourth position is how YOU name it"*
+   (`docs/guides/package-use.md:1061`) is READ THROUGH this row**: it describes a mechanism that is **NOT SUPPORTED**, not a
+   second lawful route, and the clause that replaces it says so at its own site.
+3. **AND THE TYPE STAYS `Optional`, ON PURPOSE.** `write`'s `commit?: CommitCarrier` remains optional because a CALLER's own
+   write must not name a commit (its write IS its own commit); making the member required would break that route. **The
+   obligation is on the REPAIR and is declared in the guide and the declaration, not enforced by the type.** **No type
+   moves, no code byte moves, and an unsupported use is NOT a refusal** — the corpus's own standing for an unsupported
+   route (the same class `strata/brief.md` gives the register-one-thing-as-both anti-pattern).
+
+**WHAT IT DOES NOT SETTLE.** Whether the unnamed route should be **REFUSED** — a behaviour byte, needing its own ruling and
+its own version — is not ruled here; the record says **unsupported** and the code's fallback is unchanged.
+
+**TERMS: the route settled (`1` = the named commit), the route declared unsupported (`1` = the unnamed), the mechanism
+bytes this row moves (`0`), the types it moves (`0`), the code bytes it moves (`0`), the refusal it does NOT take (`1`),
+the sites re-derived under it (`2` = the guide's sentence and the declaration's note), the questions left open (`1` =
+whether to refuse the unnamed route).**
