@@ -1099,6 +1099,23 @@
         "version": "1.6.1",
         "version_cells": 11,
         "note": "each read at its own bytes this date and ALL NINE UNMOVED against the key above: this pass edits no line of `bindings/js/src/`, `index.mjs`, `index.d.ts` or `src/**`, so the twenty-status set, the nine `KC` tokens, the fourteen own members, the seven `files` rows, the `20`/`21` member counts, `LogEntry`'s five members and the two ceilings hold exactly \u2014 and `D-77`'s fourth member stays on the FAILURE FORM, not on a log entry. THE VERSION IS THIS PASS'S: `1.6.1` at eleven cells with `npm run build` stamping the artefact, so `version()` answers `1.6.1` at the built artefact AND at a package installed into a `/tmp` consumer, and `scripts/publish.sh --figures` agreeing in three shipped documents."
+      },
+      "release_1_7_0_2026_11_01": {
+        "method": "one run of each leg on this working tree at 2026-11-01: `npm test` (the root manifest's own `node --test 'tests/**/*.test.mjs'`), `npm run greens`, `npm run typecheck`, `scripts/publish.sh --figures`, `--cut-claims`, `--pack`, and the addon's own `version()` read at `bindings/js/build/Release/storeroom_js_binding.node` after a rebuild from the bumped manifest",
+        "version": "1.7.0",
+        "version_cells": 11,
+        "version_cells_note": "eleven cells, one version, moved TOGETHER in one act: `bindings/js/package.json`'s `version`, its five exact `optionalDependencies` pins, and the five `bindings/js/platforms/*/package.json` `version` fields. AND THE FIGURE `build.rs` STAMPS AGREES: the rebuilt artefact answers `version()` = `1.7.0`, which is the value the coupling cells read, and the pre-rebuild artefact answered `1.6.2` — the stale stamp is named here because it is the one red the bump's own warning list predicts and the one a rebuild retires.",
+        "class": "minor",
+        "class_ruling": "`D-100` — the architect's ruling of 2026-11-01, verbatim: 'Minor — 1.7.0'.",
+        "commits_past_v1_6_2": 1,
+        "commits_past_v1_6_2_note": "`git rev-list --count v1.6.2..HEAD` read `1` on the tree this pass opened: `e024195`, whose `git show --stat` reads 33 files changed, 4506 insertions and 355 deletions. The release's own landing is this pass's working tree and is not a commit count, so the two figures are not summed.",
+        "npm_test": { "tests": 1173, "pass": 1172, "fail": 0, "skipped": 1, "exit": 0 },
+        "npm_run_greens": { "runners": 11, "authored": 103, "executed": 103, "pass": 103, "fail": 0, "exit": 0 },
+        "npm_run_typecheck": { "exit": 0 },
+        "publish_sh_figures": { "exit": 0, "documents": 3, "version_lines": "1.7.0" },
+        "publish_sh_cut_claims": { "exit": 0, "baseline_entries": 83, "accepted_archived": 1, "accepted_baseline": 83, "refused": 0, "ignored": 239, "stale": 0, "files": 4, "note": "THE BASELINE'S ENTRY COUNT IS UNMOVED AT `83`: this pass adds no entry, because `D-82` makes the exemption set a set that may only shrink, and the `§1.6.2` heading's repair is accepted by the past-tense arm rather than by an exemption. The two refusals this pass opened with — `RELEASE-NOTES.md:58` and `bindings/js/RELEASE-NOTES.md:58`, both `PREPARED over tagged v1.6.2` — are gone, and the withdrawn heading's bytes stand at `docs/guides/backup/D81-2026-10-29-notes-move-out.md` `§6`." },
+        "publish_sh_pack": { "assembled_members": 21, "bare_members": 20, "tarball": "provident-storeroom-1.7.0.tgz", "guide_bytes": 304935, "notes_bytes": 138665, "assembled_minus_bare": "`LICENSE` alone — the assembly's transient copy — and both landings ship in both packs" },
+        "figures_restated": { "statuses": 20, "kc_tokens": 9, "own_members": 14, "allowlist_rows": 7, "packed_members_bare": 20, "packed_members_assembled": 21, "log_entry_members": 5, "depth_ceiling": 126, "node_ceiling": 1000000, "modules": 19, "endpoints": 61, "note": "all UNMOVED against the key above: the correction changes four refusal MESSAGES and one artefact-internal generator position, and mints no status, no member, no type and no consumer-visible arity (`D-100` items (ii)-(iii))." }
       }
     },
     "ownership_remeasured_2026_10_29_twenty_seven_past_v1_4_0":     {
