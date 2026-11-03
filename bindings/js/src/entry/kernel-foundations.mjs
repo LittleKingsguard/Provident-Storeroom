@@ -913,6 +913,27 @@ export function ownMember(value, name) {
 // `Object.getOwnPropertyNames` read past, and the record keeps its FOUR declared members.
 export const COMMIT_LOG = Symbol.for('provident-storeroom.commit-log');
 
+/** **⟶ ADDED 2026-11-02 — `D-119`: THE ONE FACT THE SEAL ALREADY COMPUTES, KEPT WHERE IT COMPUTES IT.**
+ * `sealHandoff`'s second position already answers *"does this call OWN the commit's list"* (`shared`, read off
+ * `commitLogInFlight`), and until this date that answer was used and discarded. **IT IS KEPT**: one
+ * `Object.defineProperty(report, COMMIT_LOG_SHARED, …)` placed BEFORE the freeze, carrying `shared === true` —
+ * **a NON-ENUMERABLE, NON-WRITABLE, `configurable` own `data` property, invisible to `Object.keys` AND to
+ * `Object.getOwnPropertyNames`, so it moves no census anywhere** (`A117` (D6)), **under the tree's own
+ * cross-side `Symbol.for` spelling, the device `COMMIT_LOG` above already uses.**
+ *
+ * **WHY IT IS A FACT AND NOT AN INFERENCE.** `Object.isFrozen(report.log)` would answer the same question
+ * today (the seal freezes the list only where the attempt owns it), **and it is REFUSED as a discriminator**:
+ * it reads a property's CONSEQUENCE rather than the fact, so a later pass that froze a shared list would
+ * invert every answer silently. **The fact is computed at the crossing, so it is placed at the crossing.**
+ *
+ * **WHAT IT IS FOR, AND WHAT IT IS NOT.** The entry reads it to decide what a PASSING answer's `log` carries
+ * (`D-119`; `constraints.mjs`'s `defineResolutionLog`): the commit's own sealed list where this call owns its
+ * commit, and the frozen empty list where it joined an enclosing one whose list has not crossed (`D-53`).
+ * **IT IS A BOOLEAN AND NOT A LIST, AND IT RETAINS NOTHING** (`D-58`): one bit on a report the answer already
+ * holds, released with the answer and by nothing else.
+ */
+export const COMMIT_LOG_SHARED = Symbol.for('provident-storeroom.commit-log-shared');
+
 // ---------------------------------------------------------------------------------------------
 // **⟶ THE HANDOFF'S OWN SEAL — `D-55` ITEM 6, `DEF-AO`, ADDED 2026-10-28.** The architect, verbatim:
 // *"Attempts don't log. This is what the commits are for. The commits have their log handed off to the client
@@ -948,6 +969,19 @@ export function sealHandoff(report, shared) {
   // `refusalLog`'s own rule (`surface.md §2.5` item 4) is that a `log` is a list on every arm.
   const log = report.log;
   if (shared !== true && Array.isArray(log) === true) Object.freeze(log);
+  // **⟶ AND THE OWNERSHIP FACT IS PLACED BEFORE THE FREEZE — `D-119`** (`COMMIT_LOG_SHARED` above): one
+  // non-enumerable own `data` property carrying `shared === true`, read by the entry when it decides what a
+  // PASSING answer's `log` carries. **IT MOVES NO CENSUS OF THE REPORT** (`Object.keys` reads five members
+  // before and after; so does `Object.getOwnPropertyNames`, which no symbol ever enters), and it is defined
+  // only where the report can still take it — a report this frame has already sealed is already sealed.
+  if (Object.isExtensible(report) === true) {
+    Object.defineProperty(report, COMMIT_LOG_SHARED, {
+      value: shared === true,
+      writable: false,
+      enumerable: false,
+      configurable: true,
+    });
+  }
   Object.freeze(report);
   return report;
 }

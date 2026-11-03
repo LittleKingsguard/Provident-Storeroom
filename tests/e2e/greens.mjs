@@ -62,6 +62,20 @@
 // `const LAYER` AND `const APP_LAYER` ABOVE, THE HEAD COMMENT AND THE PRINT ARE BYTE-IDENTICAL: a cell of
 // `bindings/js/test/register.test.mjs` reads them, and a change there would manufacture a false green.
 // THE SET IS NOW `256` AUTHORED · `256` EXECUTED OVER `16` SCENARIOS, `256` PASS · `0` FAIL.
+//
+// ⟶ RE-DERIVED 2026-11-02 — THE `D-118` PASS (`role_l1_test_writer`). THE SUITE STOOD AT `254`/`4`, AND ALL FOUR
+// REDS WERE ONE SUBJECT: `JSG-10.12` AND THE THREE AGGREGATES THAT CENSUS IT (`.18`, `.19`, `.20`). `D-109` had
+// narrowed `RollbackCompacted` to the corrupt-image arm and this driver's `JSG-10.12` drove exactly that arm;
+// **`strata/decisions.md` · `D-118` item 1 REPLACES THE ANSWER** — a present, non-empty `filePath` image the
+// store's own loader cannot read as an object is TREATED AS NO IMAGE AT ALL, so the regeneration rebuilds from the
+// CREATION STATE and RETURNS, and the save that follows writes a readable image — **and item 2 leaves the token
+// with NO PRODUCER, `DECLARED, NO PRODUCER`, its place in the store's twenty unmoved.** `JSG-10.12` is re-derived
+// to that clause at four observables (a returned record, a rebuilt creation state, the save, no token) over seven
+// image states, and the three aggregates census the sixteen drives that FAIL — a returning arm is no failure.
+// `const LAYER`, `const APP_LAYER`, THE HEAD COMMENT ABOVE AND THE PRINT BELOW ARE BYTE-IDENTICAL IN THEIR LABEL
+// HOMES: a cell of `bindings/js/test/register.test.mjs` reads them by path, and a change there would manufacture a
+// false green. THE SET IS `254` AUTHORED · `254` EXECUTED OVER `16` SCENARIOS, `254` PASS · `0` FAIL, and no id is
+// re-used or retired.
 
 import fs from 'node:fs';
 import os from 'node:os';
@@ -1157,48 +1171,97 @@ const g10 = { all: [] };
   thrown(() => i10.write(['wp'], 'temp', 1));
   one('JSG-10.10', 'store §8.1 #9 (F-5)', 'a write whose resolved PARENT is a leaf', 'WriteParentNotLink', () => i10.write(['wp', 'down'], 'temp', 2));
   one('JSG-10.11', 'store §8.1 #10 (M-11)', 'rollback with a well-shaped but unknown op id', 'JournalOpUnknown', () => i10.rollback('no-such-op'));
-  // ⟶ **RE-DERIVED 2026-11-02 — `JSG-10.12` IS NARROWED WITH THE STATUS IT DRIVES, AND IT IS NOT RETIRED:
-  // `strata/decisions.md` · `D-108` AND `D-109`, `docs/specs/storeroom-file-save-coverage/sites.md §4.2` ITEM 12.**
-  // **THE CELL'S BLINDNESS IS NOW IMPOSSIBLE, AND THAT IS SAID HERE RATHER THAN LEFT TO THE READER:** it was
-  // authored from the documents of its date and predicted *"a rollback whose candidate set includes the entry the
-  // append compressed answers `RollbackCompacted`"* — the all-or-nothing floor's answer. **`D-108` replaces that
-  // answer with the REGENERATION**: the same reversal now RETURNS a `RollbackRecord` and rebuilds the last valid
-  // state from the durable ground truth, so the as-filed drive answers `<no throw>` and this row went RED — the
-  // battery turning, not a defect added. **`D-109` NARROWS THE TOKEN AND DOES NOT RETIRE IT**: its one surviving
-  // subject is *a temporally bounded candidate set holding a compacted entry AND a `filePath` whose image cannot be
-  // read as an object*, and the fail set stays at twenty. **SO THE DRIVE KEEPS ITS SUBJECT — the status's own
-  // reachability, at the same fixture, the same window and the same journal `journalLength: 1` gives it — and moves
-  // to the ONE STATE that still produces it: the image at this store's own `filePath` is replaced, after the two
-  // appends and before the act, by bytes the store's loader cannot read as an object.** **NO LIMB IS RELAXED AND NO
-  // FIGURE MOVES**: this is still the closed set's own reachability cell, its `status` is still the store's, and the
-  // three arms it now reads are reported beside it in `REDERIVED` below — **the ABSENT image and the INTACT image
-  // both RETURN**, which is what makes the narrowing a narrowing and not a retirement.
+  // ⟶ **RE-DERIVED 2026-11-02 (SECOND PASS) — `JSG-10.12` MOVES TO `strata/decisions.md` · `D-118`'s CLAUSE, AND
+  // ITS SUBJECT IS NOW THE TOKEN'S UNREACHABILITY. THE ROW IS NOT RETIRED AND ITS FIXTURE, ITS WINDOW AND ITS
+  // JOURNAL (`journalLength: 1`) ARE UNMOVED; WHAT MOVED IS THE ANSWER THE TREE GIVES, AND THEREFORE WHAT THE
+  // ROW ASSERTS.** The first 2026-11-02 pass narrowed the token (`D-109` item 1) to *a temporally bounded candidate
+  // set holding a compacted entry AND a `filePath` whose image cannot be read as an object*, and this row asserted
+  // that state answers `RollbackCompacted`. **`D-118` ITEM 1 REPLACES THAT ANSWER: a PRESENT, NON-EMPTY image the
+  // store's own loader cannot read as an object is TREATED AS NO IMAGE AT ALL** — the same floor where no `filePath`,
+  // no file or a zero-length file stands (`Store::born`) — **so the regeneration never refuses on a corrupt image:
+  // it REBUILDS FROM THE CREATION STATE AND RETURNS, and the save that follows writes a readable image over the
+  // corrupt file, which is the durable state the memory holds.** **`D-118` ITEM 2: THE TOKEN HAS NO PRODUCER LEFT.**
+  // Its SET MEMBERSHIP is the store's and is NOT decided by this row (`CLOSED_SET` below keeps it, and `.19`'s
+  // declared column prints it) — **so what this row now asserts is `DECLARED, NO PRODUCER`, at its four
+  // observables, over the whole class of image states rather than over one member:**
+  //   (a) **a RETURNED `RollbackRecord`** — the id echoed, `undoneOps` an ARRAY naming the op the store undid,
+  //       `restoredTo` the state the addressed subtree now stands at (`store §6.3`);
+  //   (b) **a REBUILT CREATION STATE** — the compacted entry's own address no longer resolves, while the append
+  //       that followed the compressed one still stands (the rebuild is the creation floor and NOT a wholesale
+  //       wipe);
+  //   (c) **THE SAVE** — the bytes at the path are no longer the corrupt text, they PARSE, they read the creation
+  //       state's own empty register (this fixture wrote nothing at the `file` tier), and a FRESH boot over that
+  //       image constructs and reads the same floor;
+  //   (d) **NO TOKEN** — the call did not throw, and every image state the loader can meet, the readable ones
+  //       included and the zero-length file beside them, RETURNS a record rather than answering
+  //       `RollbackCompacted` (`P-FSC-4` (ii) drives the same class at the e2e scope this row shares).
+  // **AND IT IS NOT PUSHED INTO `g10.all`**: that list is the DRIVEN FAILURES the `.18`/`.19`/`.20` aggregates
+  // census, and a returning arm is no failure of any kind (`D-108` item 1: *"the answer is not undo nothing and
+  // stand where you are"*) — the same ground the neighbour arms below already carry. **ONE CELL AND ONE FIGURE**:
+  // `254` AUTHORED · `254` EXECUTED, and the three aggregates now census the SIXTEEN drives that FAIL.
   const cfgJ = mk('g10j');
   const iJ = ns.storeCreate({ ...cfgJ, journalLength: 1 });
   const jw1 = thrown(() => iJ.write(['rc1'], 'temp', 1));
   thrown(() => iJ.write(['rc2'], 'temp', 1));
-  // THE ONE PRODUCER `D-109` LEFT: present, NON-EMPTY, and NOT an object (`PIN-11` (iv)'s table; `D-110` item 1's
-  // *"an absent or unreadable file"* is the OTHER class and it is NOT this one).
-  fs.writeFileSync(cfgJ.filePath, 'not this store\'s image');
+  // THE SUBJECT `D-118` ITEM 1 NAMES: PRESENT, NON-EMPTY, AND NOT READABLE AS THIS STORE'S IMAGE.
+  const CORRUPT = 'not this store\'s image';
+  fs.writeFileSync(cfgJ.filePath, CORRUPT);
   const j10Before = thrown(() => iJ.read(['rc1']));
-  one('JSG-10.12', 'store §8.1 #11; §6.1 item 5; §6.4 M-6 as corrected 2026-11-02 by `strata/decisions.md` · `D-108` item 4 — READ THROUGH `D-109` item 1 (the narrowed subject: a `filePath` image the loader cannot read as an object); `docs/specs/storeroom-file-save-coverage/contract.md` `PIN-11` (iv)', 'a rollback whose candidate set includes the entry the append compressed, on a store whose filePath image cannot be read as an object', 'RollbackCompacted', () => iJ.rollback(jw1.value.op.opId));
-  // **THE TWO ARMS THAT RETURN, DRIVEN AT THE SAME FIXTURE AND MEASURED AT THEIR BYTES** — and NOT pushed into
-  // `g10.all`, because that list is the DRIVEN FAILURES the `.18`/`.19`/`.20` aggregates census and a returning arm
-  // is no failure of any kind (`D-108` item 1: *"the answer is not undo nothing and stand where you are"*).
+  const j10Call = thrown(() => iJ.rollback(jw1.value.op.opId));
   const j10After = thrown(() => iJ.read(['rc1']));
-  const armAt = (image) => {
-    const cfg = mk(`g10j-${image === '' ? 'empty' : image === '{"z":7}' ? 'intact' : 'x'}`);
+  const j10Beside = thrown(() => iJ.read(['rc2']));
+  const j10Bytes = (() => { try { return fs.readFileSync(cfgJ.filePath, 'utf8'); } catch { return null; } })();
+  const j10Image = (() => { try { return { parsed: true, value: JSON.parse(j10Bytes) }; } catch { return { parsed: false, value: null }; } })();
+  const j10Boot = thrown(() => ns.storeCreate({ filePath: cfgJ.filePath, journalLength: 1, listeners: [] }));
+  const j10BootRoot = j10Boot.threw ? null : thrown(() => j10Boot.value.read([]));
+  const j10Record = j10Call.threw ? null : j10Call.value;
+  // **THE CLASS, ONE FIXTURE EACH** — the seven states of the path a loader can meet: the five that are not
+  // readable as this store's image, the zero-length file beside them (`D-118` item 1's own equality: *"exactly as
+  // where no `filePath`, no file, or a zero-length file stands"*), and the one INTACT image as the control.
+  const IMAGE_CLASS = [
+    ['corrupt', CORRUPT], ['null', 'null'], ['five', '5'], ['array', '[]'], ['true', 'true'],
+    ['empty', ''], ['intact', '{"z":7}'],
+  ];
+  const armAt = (name, image) => {
+    const cfg = mk(`g10j-${name}`);
     const s = ns.storeCreate({ ...cfg, journalLength: 1 });
     const w1 = thrown(() => s.write(['rc1'], 'temp', 1));
     thrown(() => s.write(['rc2'], 'temp', 1));
     fs.writeFileSync(cfg.filePath, image);
     const before = thrown(() => s.read(['z']));
-    const call = thrown(() => s.rollback(w1.value.op.opId));
+    const call = thrown(() => s.rollback(w1.threw ? null : w1.value.op.opId));
     const after = thrown(() => s.read(['z']));
-    return { cfg, call, before, after, undone: call.threw ? null : call.value?.undoneOps ?? null };
+    return { name, image, id: w1.threw ? null : w1.value.op.opId, cfg, call, before, after,
+      undone: call.threw ? null : call.value?.undoneOps ?? null,
+      returned: !call.threw && call.value !== null && typeof call.value === 'object' };
   };
-  const j10Absent = armAt('');
-  const j10Intact = armAt('{"z":7}');
+  const j10Class = IMAGE_CLASS.map(([name, image]) => armAt(name, image));
+  const j10Absent = j10Class.find((a) => a.name === 'empty');
+  const j10Intact = j10Class.find((a) => a.name === 'intact');
+  const j10Returned = j10Record !== null;
+  const j10Shape = j10Returned
+    && membersAre({ members: Object.keys(j10Record).sort() }, 'opId,restoredTo,undoneOps')
+    && j10Record.opId === jw1.value.op.opId
+    && Array.isArray(j10Record.undoneOps) && j10Record.undoneOps.includes(jw1.value.op.opId)
+    && j10Record.restoredTo !== null && typeof j10Record.restoredTo === 'object'
+    && j10Record.restoredTo.present === false;
+  const j10Rebuilt = statusOf(j10After) === 'AddressNotFound'
+    && !j10Beside.threw && rel(j10Beside.value, 1);
+  const j10Saved = j10Bytes !== null && j10Bytes !== CORRUPT
+    && j10Image.parsed === true && j10Image.value !== null && typeof j10Image.value === 'object'
+    && rel(j10Image.value, {})
+    && j10Boot.threw === false && j10BootRoot !== null && j10BootRoot.threw === false
+    && rel(j10BootRoot.value, {});
+  const j10NoToken = j10Call.threw === false
+    && j10Class.every((a) => a.returned && a.id !== null
+      && a.call.value.opId === a.id && Array.isArray(a.call.value.undoneOps));
+  A('JSG-10.12', 'store §8.1 #11; §6.1 item 5; §6.4 M-6 as corrected 2026-11-02 by `strata/decisions.md` · `D-108` item 4, THEN REPLACED 2026-11-02 BY `D-118` ITEMS 1–2 (`D-109` item 1\'s narrowed subject is the arm `D-118` item 1 removes: a `filePath` image the loader cannot read as an object is NO IMAGE AT ALL, and `RollbackCompacted` keeps its place in the twenty as `DECLARED, NO PRODUCER`); `docs/specs/storeroom-file-save-coverage/contract.md` `PIN-11` (iv)',
+    'a rollback whose candidate set includes the entry the append compressed, on a store whose filePath image cannot be read as an object, REBUILDS FROM THE CREATION STATE AND RETURNS — a `RollbackRecord` echoing the id with an `undoneOps` array and a `restoredTo`, the compacted entry\'s address no longer resolving while the append after it stands, the save that follows leaving a READABLE creation-state image at the path — and NO state of that path answers `RollbackCompacted`',
+    j10Returned && j10Shape && j10Rebuilt && j10Saved && j10NoToken,
+    `${statusOf(j10Call)} ; record ${j10Record === null ? 'none' : `{${Object.keys(j10Record).sort().join(',')}} opId=${fmt(j10Record.opId)} undoneOps=${fmt(j10Record.undoneOps)} restoredTo=${fmt(j10Record.restoredTo)}`} ; ['rc1'] before ${j10Before.threw ? fmt(j10Before.err?.status) : fmt(j10Before.value)} / after ${statusOf(j10After)} ; ['rc2'] after ${statusOf(j10Beside)}${j10Beside.threw ? '' : ` ${fmt(j10Beside.value)}`} ; the path after the save reads ${fmt(j10Bytes)} (parses: ${j10Image.parsed}) and a FRESH boot over it reads ${j10BootRoot === null ? 'no instance' : j10BootRoot.threw ? fmt(j10BootRoot.err?.status) : fmt(j10BootRoot.value)} ; THE CLASS, ${j10Class.length} IMAGE STATES -> ${j10Class.map((a) => `${a.name}:${a.call.threw ? fmt(a.call.err?.status) : `RETURNED undoneOps=${fmt(a.undone)}`}`).join(' ')}`);
+  // **AND THE TWO NEIGHBOUR ARMS — the zero-length file and the one INTACT image — ARE MEASURED INSIDE THAT CELL'S
+  // OWN CLASS** (`armAt` above), and NOT pushed into `g10.all` either: that list is the DRIVEN FAILURES the
+  // `.18`/`.19`/`.20` aggregates census, and a returning arm is no failure of any kind.
   one('JSG-10.13', 'store §8.1 #12; §7.1', 'storeCreate with an ABSENT journalLength', 'ConstructionArgumentMissing', () => ns.storeCreate({ filePath: mk('g10b').filePath, listeners: [] }));
   one('JSG-10.14', 'store §8.1 #13; §7.1; §1.3 FilePathArg row 4', 'storeCreate with a provided path whose parent directory does not exist', 'FilePathUnreachable', () => ns.storeCreate({ filePath: path.join(ROOT, 'no-such-dir-xyz', 'state.json'), journalLength: 1, listeners: [] }));
   // ⟶ RE-DERIVED 2026-10-25 — the boundary's member is rank `17`'s (`ValueRefusedAtBoundary`), not rank `14`'s.
@@ -1230,6 +1293,16 @@ const g10 = { all: [] };
 
   const thrownSet = g10.all.filter((x) => !x.r.threw);
   const forms = g10.all.map((x) => formOf(x.r.err));
+  // ⟶ **RE-DERIVED 2026-11-02 (SECOND PASS) — `D-118` MOVED WHAT THIS CENSUS MAY CONTAIN, AND MOVED NO LIMB OF
+  // IT.** `JSG-10.12`'s drive now RETURNS (`D-118` item 1), so it is **not a driven failure** and is not pushed
+  // into `g10.all`: the list is the DRIVEN FAILURES these three aggregates census, and keeping a returning arm in
+  // it would make `.18` assert a FORM, `.19` a STATUS and `.20` a MESSAGE about an answer that is none of those —
+  // the row would be asserting that a lawful return is a failure. **THE CENSUS IS `17 → 16` DRIVES AND EVERY LIMB
+  // STANDS**: `thrownSet.length === 0` (every censused drive arrives as a THROWN value — a regression that made any
+  // one of them return is caught HERE), the plain-object class and the `Object.prototype` prototype, the three
+  // member names, `log`'s array-ness, every code a member of the store's nineteen (which still NAMES
+  // `RollbackCompacted`, `DECLARED, NO PRODUCER` — set membership is the store's and `D-118` decides no rank), and
+  // every message non-empty and free of a placeholder. **NO CELL IS RETIRED AND NO ID IS RE-USED.**
   // ⟶ RE-DERIVED 2026-10-17 (THE FAILURE-FORM OVERRIDE RE-DERIVATION PASS, `role_test_writer`). THIS CELL'S
   // AUTHORITY WAS `DD-12` AND THE `Refusal` STRUCT, WHICH DECLARED *"EXACTLY two members, no third"* — AND THE
   // ARCHITECT HAS OVERRIDDEN BOTH (*"Override the failure form limit"*, read with *"Bubble the message log to the
@@ -1250,16 +1323,16 @@ const g10 = { all: [] };
   // answers may fall outside the store's closed set, and the package mints none* — and the census it reads moves
   // `16 → 17` with rank `17`'s member (`CLOSED_SET`, widened above). The figure was `index.d.ts`'s defect while the
   // declaration named sixteen; the `D-26` wave closed it, so the array and the declaration now agree.
-  A('JSG-10.19', "§2.5 item 1; DD-40; store §8.1's 2026-10-23 amendment (`A148` Q3: the operative set is `17` members ranked `1`…`17`, `ValueRefusedAtBoundary` at rank `17`) READ THROUGH the 2026-10-26 ruling on `DEF-S`/`DEF-N` (which appends `ConstraintBodyThrew` at rank `18` and `ConstraintRefusedAtRegistration` at rank `19`), read with `bindings/js/index.d.ts`'s `StoreStatus` as amended 2026-10-26 — CENSUS WIDENED 2026-10-16, 2026-10-25 and 2026-10-26", "every status is a member of the store's closed 19-member set — no code outside the set and none minted by the package",
+  A('JSG-10.19', "§2.5 item 1; DD-40; store §8.1's 2026-10-23 amendment (`A148` Q3: the operative set is `17` members ranked `1`…`17`, `ValueRefusedAtBoundary` at rank `17`) READ THROUGH the 2026-10-26 ruling on `DEF-S`/`DEF-N` (which appends `ConstraintBodyThrew` at rank `18` and `ConstraintRefusedAtRegistration` at rank `19`), read with `bindings/js/index.d.ts`'s `StoreStatus` as amended 2026-10-26 — CENSUS WIDENED 2026-10-16, 2026-10-25 and 2026-10-26; and read with `D-118` item 2, which leaves `RollbackCompacted` IN the store's set with NO PRODUCER LEFT, so the declared column below keeps it and this census decides MEMBERSHIP and mints nothing", "every status is a member of the store's closed 19-member set — no code outside the set and none minted by the package",
     outside.length === 0, `outside=[${outside.join(',')}] observed=[${codes.join(',')}] declared=[${CLOSED_SET.join(',')}]`);
   const msgs10 = g10.all.map((x) => msgOf(x.r));
   const withPlaceholder = msgs10.filter((m) => typeof m !== 'string' || m.length === 0 || PLACEHOLDER_TOKENS.some((t) => m.includes(t)));
   A('JSG-10.20', 'store §8.2 property (c)', 'every message is non-empty and carries no unsubstituted placeholder token of the generator\'s own form',
     withPlaceholder.length === 0, fmt(withPlaceholder));
-  REDERIVED.push(`JSG-10.12 :: the narrowed token's ONE state — the image at the path is NOT an object -> ${statusOf(thrown(() => iJ.rollback(jw1.value.op.opId)))} ; the address it left stands where the call found it (['rc1'] before ${j10Before.threw ? fmt(j10Before.err?.status) : fmt(j10Before.value)} / after ${j10After.threw ? fmt(j10After.err?.status) : fmt(j10After.value)}) ; the SAME drive over an ABSENT image -> ${j10Absent.call.threw ? fmt(j10Absent.call.err?.status) : `RETURNED undoneOps=${fmt(j10Absent.undone)}`} and over an INTACT image {"z":7} -> ${j10Intact.call.threw ? fmt(j10Intact.call.err?.status) : `RETURNED undoneOps=${fmt(j10Intact.undone)}, ['z'] before ${j10Intact.before.threw ? fmt(j10Intact.before.err?.status) : fmt(j10Intact.before.value)} / after ${j10Intact.after.threw ? fmt(j10Intact.after.err?.status) : fmt(j10Intact.after.value)}`} — \`D-108\` regenerates, \`D-109\` narrows`);
+  REDERIVED.push(`JSG-10.12 :: \`D-118\` item 1 READ AT ITS FOUR OBSERVABLES — (a) the RETURNED record ${j10Record === null ? `NONE (threw ${fmt(j10Call.err?.status)})` : `{${Object.keys(j10Record).sort().join(',')}} opId=${fmt(j10Record.opId)} undoneOps=${fmt(j10Record.undoneOps)} restoredTo=${fmt(j10Record.restoredTo)}`} ; (b) the REBUILT CREATION STATE, ['rc1'] before ${j10Before.threw ? fmt(j10Before.err?.status) : fmt(j10Before.value)} / after ${statusOf(j10After)}, with the append after the compressed one standing (['rc2'] = ${j10Beside.threw ? fmt(j10Beside.err?.status) : fmt(j10Beside.value)}) ; (c) the SAVE — the path held ${fmt(CORRUPT)} before the act and ${fmt(j10Bytes)} after it, which PARSES (${j10Image.parsed}) to ${fmt(j10Image.value)}, and a FRESH boot over it reads ${j10BootRoot === null ? 'no instance' : j10BootRoot.threw ? fmt(j10BootRoot.err?.status) : fmt(j10BootRoot.value)} ; (d) NO TOKEN — the class of ${j10Class.length} image states (${j10Class.map((a) => a.name).join(' ')}) EVERY ONE of which ${j10Class.every((a) => a.returned) ? 'RETURNED' : 'did NOT all return'}, the ABSENT arm answering undoneOps=${fmt(j10Absent?.undone)} and the INTACT arm {"z":7} answering undoneOps=${fmt(j10Intact?.undone)} with ['z'] before ${j10Intact?.before.threw ? fmt(j10Intact?.before.err?.status) : fmt(j10Intact?.before.value)} / after ${j10Intact?.after.threw ? fmt(j10Intact?.after.err?.status) : fmt(j10Intact?.after.value)} — \`D-109\` narrowed it, \`D-118\` retired its last producer: DECLARED, NO PRODUCER`);
   REDERIVED.push(`JSG-10.16 :: the terminal arm's save, at the failing path -> ${statusOf(wFC)} :: ${fmt(msgOf(wFC))}`);
   REDERIVED.push(`JSG-10.17 :: read(['fc']) after that failure -> ${statusOf(rFC)}`);
-  REDERIVED.push(`JSG-10.18/.19/.20 :: ${g10.all.length} driven failures ; did-not-throw=${thrownSet.length} ; outside-the-19=[${outside.join(',') || 'none'}] ; empty-or-placeholder messages=${withPlaceholder.length}`);
+  REDERIVED.push(`JSG-10.18/.19/.20 :: ${g10.all.length} driven failures censused (the \`D-118\` returning arm of \`JSG-10.12\` stands OUTSIDE this census, as its two neighbour arms do — a returning arm is no failure) ; did-not-throw=${thrownSet.length} ; outside-the-19=[${outside.join(',') || 'none'}] ; empty-or-placeholder messages=${withPlaceholder.length}`);
   const i21 = ns.storeCreate(mk('g10w21'));
   thrown(() => i21.write(['window'], 'mem', {}));
   const r21 = thrown(() => i21.read(['window', 'empty']));
@@ -2054,7 +2127,7 @@ console.log('');
 console.log('── THE TEN CELLS RE-DERIVED ON 2026-10-16 (`DEF-2026-10-16-A`), PLUS THE TWO THIS PASS ADDS, WITH THE VALUES THEY PRODUCED ──');
 console.log('  `JSG-02.10`/`.11`/`.14`/`.15`/`.16` — RE-POINTED to the `settle` seam\'s terminal arm: `surface.md §2.11` clause 2 moved the file-tier save off the verb, and `A119` ruled the load side.');
 console.log('  `JSG-10.16`–`.20` — RE-POINTED to the same route (class (ii)); `.19`\'s census WIDENED to the sixteen of `store §8.1`\'s dated clause of 2026-10-15; `.18`/`.19`/`.20` are the aggregates over that re-pointed set.');
-console.log('  `JSG-10.12` — NARROWED 2026-11-02 WITH THE STATUS IT DRIVES AND NOT RETIRED (`D-108`/`D-109`, `sites.md §4.2` item 12): the drive is the same fixture and the same window, and the one state that still answers `RollbackCompacted` is a `filePath` image the loader cannot read as an object; the ABSENT and INTACT arms RETURN, and both are printed below at their own bytes. THE FIGURES ARE UNMOVED: `254` AUTHORED · `254` EXECUTED · `254` PASS · `0` FAIL, over the same `16` scenarios, and no id is re-used or retired.');
+console.log('  `JSG-10.12` — RE-DERIVED 2026-11-02 (SECOND PASS) TO `D-118`\'S CLAUSE AND NOT RETIRED (`strata/decisions.md` · `D-118` items 1–2, `sites.md §4.2` item 12): a PRESENT, NON-EMPTY `filePath` image the store\'s own loader cannot read as an object is treated AS NO IMAGE AT ALL, so the regeneration REBUILDS FROM THE CREATION STATE AND RETURNS, the save that follows writes a readable image over the corrupt file, and `RollbackCompacted` keeps its place in the store\'s twenty as DECLARED, NO PRODUCER. The row is driven at the same fixture, window and journal, it reads the same four observables on SEVEN image states (every one of which RETURNS), and it is NOT censused as a failure by `.18`/`.19`/`.20` — a returning arm is no failure of any kind. THE FIGURES ARE UNMOVED: `254` AUTHORED · `254` EXECUTED · `254` PASS · `0` FAIL, over the same `16` scenarios, and no id is re-used or retired.');
 for (const line of REDERIVED) console.log(`  ${line}`);
 console.log('');
 console.log('── THE RETIREMENTS (`DISCARD`, executed 2026-10-25) — each id kept out of the census, no id re-used ──');

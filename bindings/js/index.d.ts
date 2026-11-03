@@ -570,6 +570,42 @@ export interface WriteRecord {
    * reads it through `Object.getOwnPropertyDescriptor(record, 'discarded')`. **A future pass that owns the census
    * owes it the typed line.**
    */
+  /**
+   * **⟶ ADDED 2026-11-02 — THE RESOLUTION LOG: A PASSING WRITE ANSWERS WITH THE COMMIT'S OWN LIST**
+   * (`strata/decisions.md` · `D-119`, the architect, verbatim: *"Cache the log and pass to the surface on
+   * resolution, same as on failure. This is needed so that manual data changes can check what additional data
+   * changed downstream of their request"*).
+   *
+   * **`record.log` IS A `readonly LogEntry[]` AT RUNTIME — THE ENTRIES THIS COMMIT APPENDED, IN APPEND ORDER**:
+   * the `constraint-check` entry for each pair the pass asked, the `repair-run` entry for every repair that
+   * landed an edit (each naming the op it landed at `opId`, so the address a repair moved to is readable rather
+   * than inferable), and the `commit` entry that closes the arm — **the same list, the same objects and the same
+   * positions a refusal about this commit carries**, because it IS that array and not a copy of it (`D-53`; `D-119`
+   * item 4). **A passing write over a store carrying NO pair answers ONE entry, `kind === 'commit'`** — that entry
+   * is appended unconditionally — so `[]` is never that arm's answer.
+   *
+   * **IT IS A NON-ENUMERABLE OWN ACCESSOR AT THE NAME THE FAILURE FORM USES** (`StoreRefusal.log`),
+   * `enumerable: false`, `configurable: true`, exactly as `discarded` above is carried — so `Object.keys(record)`
+   * is still the THREE declared members and every deep-equality over a write's answer reads exactly what it read
+   * before. **A spread or `Object.assign` copy loses it, as it loses `discarded`.** `Object.getOwnPropertyNames`
+   * is the one census that gains the name, which is declared rather than discovered.
+   *
+   * **THE READ ANSWERS ONE CACHED REFERENCE**: the array the commit's handoff froze, stable after it (`D-119`
+   * item 4: *"the list is cached at the crossing and stable after it"*) — a write to it throws under strict mode.
+   * **It is NOT a live view, and that is where it differs from `discarded` above**, whose accessor must read at
+   * the read: a log is complete only once every act that can append to it has finished, which the crossing is.
+   *
+   * **`[]` ARISES IN ONE SHAPE HERE AND IT IS HONEST**: a call that JOINED an enclosing commit — a constraint
+   * body's or a repair body's nested `write` — answers `[]`, because that commit's list has not crossed and this
+   * call owns none of it; **the act that owns that commit reports the entries, the nested call's own included.**
+   * A frozen prefix copy is refused: it would hold fewer entries than the enclosing answer and the two would
+   * disagree, which is the one thing `D-119` item 4 forbids.
+   *
+   * **AND WHY IT IS A DOCBLOCK AND NOT A TYPED LINE — the same sentence `discarded` above carries, for the same
+   * reason:** the census that fixes this record at three is outside this pass's write scope, so a typed member
+   * would redden a green leg without moving the runtime at all. **A future pass that owns the census owes it the
+   * typed line.**
+   */
 }
 
 /**
@@ -696,6 +732,32 @@ export interface DeleteRecord {
     readonly opId: string | null;
     readonly addresses: readonly Address[];
   }[];
+  /**
+   * **⟶ ADDED 2026-11-02 — THE RESOLUTION LOG ON A DELETE'S RECEIPT: THE COMMIT'S OWN LIST, AT THE NAME THE
+   * FAILURE FORM USES** (`strata/decisions.md` · `D-119`).
+   *
+   * **`receipt.log` IS A `readonly LogEntry[]` AT RUNTIME** — the entries this delete's commit appended, in
+   * append order: the `constraint-check` entry for each pair the delete's own pass asked, the `repair-run` entry
+   * for every repair that landed an edit, and the `commit` entry that closes the arm. **IT IS THE SAME ARRAY AS
+   * THE RECORD THIS RECEIPT'S `commit` MEMBER NAMES** — one list, two names on it, and `log` is the one the
+   * refusal uses and the one to read — **so a pass and a later refusal about that commit can never disagree**
+   * (`D-53`; `D-119` item 4).
+   *
+   * **`[]` IS THE `D-3` ARM'S ANSWER AND IT MEANS WHAT IT SAYS**: a delete that removed nothing opened no
+   * attempt, no pass ran and no entry was appended. **THE MEMBER IS PRESENT ON EVERY PASSING RECEIPT, `[]`
+   * included** — it is never absent and never `undefined` (`D-78`'s rule, read for a third member beside
+   * `discarded` above and `commit`).
+   *
+   * **IT IS A NON-ENUMERABLE OWN ACCESSOR** (`enumerable: false`, `configurable: true`), the device `discarded`
+   * above declares: `Object.keys(receipt)` is still the four enumerable members, every deep-equality over a
+   * receipt is unmoved, and a spread or `Object.assign` copy loses it. `Object.getOwnPropertyNames(receipt)` is
+   * the one census that gains the name, declared rather than discovered. **THE READ ANSWERS ONE CACHED
+   * REFERENCE** — the array the commit's handoff froze — and derives nothing.
+   *
+   * **A DOCBLOCK AND NOT A TYPED LINE, for the reason `discarded` above states**: the census that fixes this
+   * record's member set is outside this pass's write scope. **A future pass that owns the census owes it the
+   * typed line.**
+   */
 }
 
 /**
@@ -738,6 +800,34 @@ export interface RollbackRecord {
    * DECLARED MEMBER SET IS NOT WIDENED HERE: the same census that fixes `WriteRecord` at three fixes this record
    * at three, and it is outside this pass's write scope** — the member is declared by name, shape and semantics,
    * and a future pass that owns the census owes it the typed line.
+   */
+  /**
+   * **⟶ ADDED 2026-11-02 — THE RESOLUTION LOG ON A REVERSAL'S RECORD: THE JUDGEMENT'S OWN LIST**
+   * (`strata/decisions.md` · `D-119`, with `D-113` item 3 and `D-117` item 1).
+   *
+   * **`record.log` IS A `readonly LogEntry[]` AT RUNTIME — the list the reversal's JUDGEMENT appended to.** **THIS
+   * IS THE ARM THE RULING'S GROUND APPLIES TO MOST SHARPLY**: a judgement runs your pairs' repairs and delivers
+   * the listeners those repairs' writes fire, so **a `rollback` can land an edit you did not ask for, and that
+   * edit's `repair-run` entry is what this member carries** — the downstream change, readable rather than
+   * inferred. **The list is the judgement's own array, frozen in place at that frame's end** and not a copy:
+   * the `repair-run` entries and the entries the repairs' own writes minted, in append order. **A reversal mints
+   * no attempt, so no `commit` entry exists here and none is invented.**
+   *
+   * **`[]` MEANS *THIS ACT APPENDED NOTHING IT CAN REPORT*, NEVER *"nothing happened"*, and its shapes are
+   * four**: a `rollback` raised inside an open window (the judgement is that window's own drain), an at-rest
+   * judgement over an empty watch, a judgement that ran and appended nothing, and the kernel's own compensating
+   * reversal of a failing attempt. **THE MEMBER IS PRESENT ON EVERY PASSING RECORD, `[]` included.**
+   *
+   * **AND ITS REFUSAL DOES NOT AGREE WITH IT BY CONTENT**: a refusing reversal crosses its OWN one-entry
+   * `constraint-check` list (`D-41`), so a pass and a refusal on this verb are different lists — that is
+   * `D-41`'s form, unmoved by `D-119`, and it is why the identity rule (*"a pass and a later refusal on one
+   * commit can never disagree"*) is stated for `write` and `delete` alone.
+   *
+   * **IT IS A NON-ENUMERABLE OWN ACCESSOR** (`enumerable: false`, `configurable: true`), the device `discarded`
+   * above declares: `Object.keys(record)` is still the three declared members. **The read answers one cached
+   * reference** where `discarded` above must read live — the same shape, a different reason. **A DOCBLOCK AND
+   * NOT A TYPED LINE** for the reason `discarded` states; a future pass that owns the census owes it the typed
+   * line.
    */
 }
 

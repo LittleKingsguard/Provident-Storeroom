@@ -25,7 +25,9 @@
 //     (`strata/decisions.md`), so no `1` is minted here and none stands anywhere. (This item was re-derived to
 //     *"carries `seq` `1`"* on `D-48` · `DEF-AI` in between; that reading is RETIRED with the member, and the
 //     entry's five members — `kind` · `id` · `message` · `opId` · `state` — are what every arm now carries.);
-//   * **a LAWFUL reversal is unchanged, member for member** — `{opId, undoneOps, restoredTo}`, no log, no throw.
+//   * **a LAWFUL reversal is unchanged, member for member** — `{opId, undoneOps, restoredTo}`, no throw — **and from
+//     2026-11-02 it CARRIES its judgement's list at `record.log`** (`D-119`; the header bullet's *"no log"* is
+//     WITHDRAWN BY NAME at the cell's own clause below, and the record's three DECLARED members are unmoved).
 //
 // **D-21.** Every cell prints what it read at its own `t.diagnostic`, including both sides of each arm, so a red
 // reports the readings and not a verdict. **D-35/D-36.** No cell here is a client-scope hardening cell: the
@@ -159,7 +161,8 @@ test('D-41 · a refused reversal restores a `file`-tier value AT THE `file` TIER
     : [];
 
   // ── (3) THE LAWFUL ARM. The same shape with a pair that admits everything this reversal can leave: the record
-  // is the declared one, no throw, no log, no new member.
+  // is the declared one, no throw, and **its `log` is PRESENT and `[]`** — re-derived 2026-11-02 (`D-119`): the
+  // judgement appended nothing, and `[]` is that arm's honest value rather than the member being absent.
   const lawful = makeFileStore();
   lawful.write(['a'], 'file', 5);
   const lawfulSecond = lawful.write(['a'], 'file', 9);
@@ -252,8 +255,23 @@ test('D-41 · a refused reversal restores a `file`-tier value AT THE `file` TIER
   assert.deepEqual(lawfulRollback.value.restoredTo, { present: true, value: 5 },
     `\`restoredTo\` is the base state the address now stands at: THE DRIVE READ `
       + `${JSON.stringify(lawfulRollback.value.restoredTo)}`);
-  assert.equal(Object.hasOwn(lawfulRollback.value, 'log'), false,
-    `a lawful reversal carries NO log: the judgement adds nothing to a record it did not refuse`);
+  // **⟶ RE-DERIVED 2026-11-02 — `D-119`: A LAWFUL REVERSAL *DOES* CARRY A `log`, AND THIS CELL'S OLD SENTENCE IS
+  // THE ONE THE RULING REVERSES.** The header bullet above read *"a LAWFUL reversal is unchanged, member for
+  // member — `{opId, undoneOps, restoredTo}`, no log, no throw"*, and this assertion read
+  // `Object.hasOwn(lawfulRollback.value, 'log') === false`. **`D-38`'s *"a lawful reversal is unchanged"* is the
+  // ground the assertion stood on, and `D-119` changes it FOR ONE MEMBER**: every RESOLUTION answers with the
+  // commit's list exactly as a refusal does, by a NON-ENUMERABLE own accessor at the name the failure form uses.
+  // **So the re-derived cell asserts `D-77`'s and `D-78`'s rule instead — the member is PRESENT on the passing
+  // arm, and `[]` is its honest value there** — and the record's three DECLARED members, asserted immediately
+  // above by `Object.keys`, stay green because the member is non-enumerable (`A117` (D6)). **NO NEIGHBOUR MOVES**:
+  // the refusal's one-entry form (`D-41`) is untouched, and this arm appended nothing for a judgement to report.
+  assert.equal(Object.hasOwn(lawfulRollback.value, 'log'), true,
+    `a lawful reversal CARRIES its judgement's list at \`log\` — the member is PRESENT on the passing arm `
+      + `(\`D-119\`, 2026-11-02; \`D-77\`/\`D-78\`: present on EVERY passing answer, \`[]\` included)`);
+  assert.deepEqual([...lawfulRollback.value.log], [],
+    `and its honest value on THIS arm is \`[]\`: no pair refused, no repair ran and nothing was appended, so the `
+      + `judgement's list is empty and \`[]\` means *"this act appended nothing it can report"*. THE DRIVE READ `
+      + `${JSON.stringify(lawfulRollback.value.log)}`);
   assert.deepEqual(lawfulAfterTiers, [{ tier: 'file', value: 5 }],
     `and the lawful reversal's own tier is what stands: nothing restored and nothing changed: THE DRIVE READ `
       + `${describe(lawfulAfter)}`);
@@ -269,7 +287,9 @@ test('D-41 · a refused reversal restores a `file`-tier value AT THE `file` TIER
     + `value is restored AT THE TIER IT STOOD, not at \`mem\`; status `
     + `${JSON.stringify(fileRollback.caught.status)}; log ${JSON.stringify(fileLog)}`);
   t.diagnostic(`D-41 · LAWFUL arm: record ${JSON.stringify(lawfulRollback.value)} with keys `
-    + `${JSON.stringify(Object.keys(lawfulRollback.value))}; store stands ${describe(lawfulAfter)}`);
+    + `${JSON.stringify(Object.keys(lawfulRollback.value))} and own names `
+    + `${JSON.stringify(Object.getOwnPropertyNames(lawfulRollback.value))} — its \`log\` (\`D-119\`) is `
+    + `${JSON.stringify(lawfulRollback.value.log)}; store stands ${describe(lawfulAfter)}`);
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════

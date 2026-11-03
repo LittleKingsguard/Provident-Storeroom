@@ -19,7 +19,7 @@ import { INSTANCES, carryRefusal, commitFile, currentWindow, homeAddressKey, ins
 // function the pass appends with — rather than pushed here with a member set of its own; the REFUSAL's own
 // list keeps its five members and no `seq`, because no attempt stands at the judgement that built it
 // (`D-41` item 4). Two records, two honest forms, one append.
-import { append, boundedEntryMessage, boundedQuotation, enterCommitFrame, externalCall, kernelFor, leaveCommitFrame, pairAppliesAt, pairsTriggered, throwableForm } from './kernel-foundations.mjs';
+import { append, boundedEntryMessage, boundedQuotation, COMMIT_LOG_SHARED, enterCommitFrame, externalCall, kernelFor, leaveCommitFrame, pairAppliesAt, pairsTriggered, throwableForm } from './kernel-foundations.mjs';
 // **⟶ AND THE TWO KERNEL ACTS THE DELETE'S PATH OWES — `D-55` ITEM 3, 2026-10-29.** The kernel's public
 // barrel (`src/constraint-kernel.mjs`) is untouched and keeps its five names; **these are two PART modules' own
 // acts, reached here the way `append` and `kernelFor` above are** (`kernel-surface.md §1` item 1's empty import
@@ -883,6 +883,16 @@ export function constraintWrite(state, instance, address, tier, value) {
   // inside): a read taken later would name whatever window happened to be open then.
   const witnessed = currentWindow(instance);
   defineDiscardWitness(recordOut, () => witnessWindow(instance, witnessed));
+  // **⟶ AND THE PASSING ANSWER CARRIES THE COMMIT'S OWN LIST FROM 2026-11-02 — `D-119`.** **THE CACHE IS THE
+  // SEALED REPORT THIS FRAME ALREADY HOLDS**: `sealHandoff` froze the commit's list and the ownership fact
+  // together before `dropHandoff` stripped the closed map's copy, so the entries a passing call appended —
+  // its `constraint-check` entries, every `repair-run` a repair landed, and the `commit` entry that closes the
+  // arm — answer at `record.log`, in append order, as the SAME objects and the SAME array a refusal about this
+  // commit crosses with (`D-53`; `D-119` item 4). **WHERE THIS CALL JOINED AN ENCLOSING COMMIT THE MEMBER IS
+  // `[]` AND MEANS IT** — the list it joined has not crossed, and the act that owns that window reports the
+  // entries (`resolution-log.md` §4.2). **NO DECLARED MEMBER MOVES**: the record keeps the three `index.d.ts`
+  // declares, and `Object.keys` reads them and nothing else (`A117` (D6)).
+  defineResolutionLog(recordOut, resolutionLogOf(report));
   return recordOut;
 }
 
@@ -980,6 +990,11 @@ export function constraintDelete(instance, address, tier, remove) {
   // absent (`D-21`: a member whose act did not run says so).
   if (attempt === null) {
     exposeCommit(receipt, null);
+    // **AND THE `D-3` ARM'S `log` IS `[]` AND IS PRESENT — `D-119`, `resolution-log.md` §4.3's second shape.**
+    // Nothing was removed, no attempt was opened and no pass ran, so no entry was appended: the frozen empty
+    // list is this arm's honest answer, and the member is defined HERE rather than left absent, because
+    // `D-77`/`D-78`'s rule is presence on every arm.
+    defineResolutionLog(receipt, null);
     return receipt;
   }
   // THE PASS, INSIDE THE COMMIT THE MEMBER OPENED (`D-44`): `runAttempt` names THE RECORD `commitRemoval`
@@ -1004,6 +1019,14 @@ export function constraintDelete(instance, address, tier, remove) {
     constraintCrossing(restarted, address);
   }
   exposeCommit(receipt, attempt.record);
+  // **⟶ AND THE PASSING RECEIPT CARRIES THE COMMIT'S OWN LIST FROM 2026-11-02 — `D-119`**, installed beside the
+  // two non-enumerable members that were already here (`exposeCommit`'s `commit` above, `index.mjs`'s
+  // `discarded`). **`receipt.log` AND `receipt.commit[COMMIT_LOG]` ARE THE SAME ARRAY BY IDENTITY** on this arm —
+  // one list, two names on it, and the `log` name is the one the refusal uses and the one a consumer should
+  // read — **and the member is present on the `D-3` arm below, `[]` included** (`D-77`/`D-78`'s rule read for a
+  // third member: `[]` is never absent and never `undefined`). Nothing in `index.mjs`'s `delete` member moves:
+  // the sealed report and the ownership fact are both this frame's.
+  defineResolutionLog(receipt, resolutionLogOf(report));
   return receipt;
 }
 
@@ -1907,6 +1930,69 @@ export function defineDiscardWitness(record, read) {
   return record;
 }
 
+/// **⟶ AND THE PASSING RESOLUTION'S OWN LIST, 2026-11-02 — `D-119`: THE LOG CROSSES ON RESOLUTION TOO.**
+///
+/// **THE RULING, THE ARCHITECT, VERBATIM: *"Cache the log and pass to the surface on resolution, same as on
+/// failure. This is needed so that manual data changes can check what additional data changed downstream of
+/// their request."*** **`defineDiscardWitness` above is the DEVICE and this is its SECOND USE, not a new kind of
+/// member**: a **NON-ENUMERABLE, `configurable` own ACCESSOR at the name `log`** — **the very name the failure
+/// form uses** (`StoreRefusal.log`, its third declared member) — so a consumer that catches a refusal and a
+/// consumer that holds a passing answer read ONE name. **`Object.keys`, every deep-equality a consumer writes,
+/// the instance's FOURTEEN and the kernel's barrel move by nothing**; **`Object.getOwnPropertyNames` gains the
+/// name, which is the one census a STRING-keyed member cannot hide from, and it is declared rather than
+/// discovered** (`docs/specs/storeroom-file-save-coverage/resolution-log.md` §1.1, the two cells).
+///
+/// **IT ANSWERS ONE CACHED REFERENCE AND DERIVES NOTHING AT THE READ — AND THAT IS THE ONE PLACE THIS MEMBER
+/// DIFFERS FROM `discarded`, WHOSE ACCESSOR IS A LIVE READ BY NECESSITY.** `discarded` is built BEFORE the pass
+/// that judges its raise (`D-42`); **a log is built AFTER every act that can append to it** (`D-119` item 4: *"the
+/// list is cached at the crossing and stable after it"*), so the list is frozen where it crosses and the getter
+/// hands back the same array at every read. **THE SHAPE IS THE SAME AND THE REASON IS NOT: a later pass must not
+/// carry `discarded`'s justification across.** **THE GETTER IS STILL AN ACCESSOR** because the record's declared
+/// census counts MEMBERS and not accessors, and because `D-77`/`D-78`'s rule — the member is PRESENT on every
+/// passing answer, `[]` included, never absent and never `undefined` — is the rule this serves.
+///
+/// **THE EMPTY LIST IS ONE MODULE-LEVEL FROZEN CONSTANT AND NOT A FRESH `[]` PER CALL.** `[]` here means *"this
+/// act appended nothing it can report"*: the JOINED arm (a body's nested call inside a commit whose list has not
+/// crossed), a `D-3` delete, a reversal's non-judging arms, and a judgement that ran and appended nothing
+/// (§4.3). **It carries no client data at all, so a shared constant is a VALUE and not a cache** — the bound
+/// `D-58` sets is a retained LIST, and there is none here.
+const RESOLUTION_LOG_EMPTY = Object.freeze([]);
+
+export function defineResolutionLog(record, list) {
+  // **A RECEIPT THAT IS NOT AN OBJECT CANNOT CARRY A MEMBER** — `exposeCommit`'s own guard, read for this
+  // member: the member never depends on the arm for its PRESENCE (`D-78`), and a non-object answer has no
+  // census to move.
+  if (record === null || typeof record !== 'object') return record;
+  // **ONE CAPTURED REFERENCE** — the array this read answers is the array the crossing froze (`sealHandoff`'s
+  // freeze for a `write` or a `delete`, the judgement frame's own end for a `rollback`), or the frozen constant
+  // where the act owns no list of its own. **No derivation, no copy-out, no second list.**
+  const held = Array.isArray(list) === true ? list : RESOLUTION_LOG_EMPTY;
+  Object.defineProperty(record, 'log', {
+    get: () => held,
+    enumerable: false,
+    configurable: true,
+  });
+  return record;
+}
+
+/// **THE ONE READ OF THE SEALED REPORT'S CACHE — `D-119`.** The sealed report is the cache: `sealHandoff` froze
+/// the commit's list and the ownership fact together BEFORE `dropHandoff` stripped the closed map's copy, and
+/// the entry's frame holds that report from the attempt's return until it builds the answer. **So the list is
+/// read off the report and from nowhere else** — no `WeakMap`, no instance slot and no module map is minted, and
+/// the list outlives the drop by the order the seal already runs in.
+///
+/// **THE JOINED ARM ANSWERS `undefined` AND THAT IS ITS HONEST `[]`.** `COMMIT_LOG_SHARED` is the seal's own
+/// fact: where it reads `true`, this call joined an enclosing commit (`D-53`) whose list has not crossed, so
+/// this answer owns no list to hand over — and a frozen PREFIX COPY is refused, because a copy taken at the
+/// nested crossing necessarily holds fewer entries than the enclosing commit's later answer and the two would
+/// disagree, which is the one thing `D-119` item 4 forbids. **One list, one crossing, one answer: the act that
+/// owns that commit reports the entries, the nested call's own included** (`DW-09.2`'s sentence, read for the
+/// log; `resolution-log.md` §4.2).
+function resolutionLogOf(report) {
+  if (report === null || typeof report !== 'object') return undefined;
+  return report[COMMIT_LOG_SHARED] === true ? undefined : report.log;
+}
+
 /// **⟶ THE RESTART ITSELF, MOVED 2026-10-27 TO WHERE THE COMMIT SCOPE IS OWNED — `runAttempt`'s drain.**
 ///
 /// **WHAT IT WAS, AND THE FINDING THAT MOVED IT.** It was `restartInvalidatedCheck(instance)`, called by
@@ -2521,6 +2607,14 @@ function movedStanding(instance, watched) {
 /// never returns to the delivery, and **a compensation returns at the first byte of this function and reaches
 /// neither the judgement nor the save** (`D-112` item 3). **NOTHING DECLARED MOVES**: no member, no status, no
 /// rank, no entry, no arity and no barrel name (`§1` (iii)).
+///
+/// **⟶ AND FROM 2026-11-02 THIS FRAME ANSWERS THE LIST IT APPENDED TO — `D-119`.** **A JUDGING ARM ANSWERS THE
+/// JUDGEMENT'S OWN `judgementLog`, FROZEN IN PLACE AT THIS FRAME'S `finally`** — the very array the frame
+/// appended to, the `repair-run` entries included, and not a copy of it — so a PASSING `rollback` can hand a
+/// caller what its judgement moved downstream (`resolution-log.md` §3.3; `index.mjs`'s `rollback` installs it).
+/// **EVERY ARM THAT RETURNS ABOVE THE WALK STILL ANSWERS `undefined`** — the compensating arm, the deferred arm
+/// and the at-rest judgement over an empty watch own no list of their own — **and the ANSWER IS NOT A REFUSAL'S
+/// SUBJECT**: a refusing judgement crosses `reversalRefusal`'s own one-entry list (`D-41`), unmoved by this row.
 export function judgeReversal(instance, watched, reversalId, state) {
   // **A COMPENSATING ROLLBACK IS NOT JUDGED AS A STEP EITHER — `D-54` (b)**: the member is reached by the
   // kernel's own terminal act with the flag standing, and this act must not touch a pending request or ask a
@@ -2635,6 +2729,10 @@ export function judgeReversal(instance, watched, reversalId, state) {
   // second list.** **THE ID IT CARRIES IS NEVER READ** (nothing closes a judgement by name) **and no attempt,
   // record, count or `kernel.live` entry is minted with it**: this object is a NAME and not a record.
   const judgementName = { attempt: { id: 'reversal-judgement' } };
+  // **⟶ WHETHER THIS FRAME ANSWERS ITS OWN LIST — ONE FRAME LOCAL, AND NO MEMBER MINTED** (`D-119`; `PIN-3`
+  // (ii)(a)). It is `false` on every arm that returns above this point and on every throwing arm, so the freeze
+  // the `finally` takes applies to the array this frame HANDS OVER and to no refusal's list.
+  let judgedList = false;
   enterCommitFrame(kernel, judgementLog);
   try {
     // THE MOVED SET IS TAKEN FIRST, ONCE: the judgement's subject is the CHANGE the reversal made and nothing
@@ -2938,8 +3036,33 @@ export function judgeReversal(instance, watched, reversalId, state) {
         : ownDataMember(legOp, 'address');
       deliver(state, owed, triggeringAddress);
     }
-    return undefined;
+    // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
+    // **⟶ AND THE JUDGEMENT'S OWN LIST CROSSES FROM 2026-11-02 — `D-119`, `resolution-log.md` §3.3.** **THE
+    // REVERSAL IS THE ARM `D-119`'s GROUND APPLIES TO MOST SHARPLY: `D-113` item 3 makes a judgement run your
+    // pairs' repairs and `D-117` item 1 delivers the listeners those repairs' writes fire — so a `rollback` can
+    // land an edit you did not ask for, which is exactly the downstream change the ruling exists to make
+    // readable.** **THE LIST ANSWERED IS THIS FRAME'S OWN `judgementLog`, IN PLACE AND NOT COPIED**, so the answer
+    // holds the very array this frame appended to — the `repair-run` entries and the entries the repairs' own
+    // writes minted in this window, in append order (`D-65`'s ordinal, the array index).
+    //
+    // **IT IS FROZEN AT THIS FRAME'S END, BESIDE THE TWO CALLS THE `finally` OWES** — a freeze IN PLACE, on the
+    // same array and not on a copy of it, exactly as `sealHandoff`'s freeze gives a `write` or a `delete` its
+    // stable list. **AND THE FREEZE IS THE ANSWERING ARM'S ALONE** (`judgedList` below): a REFUSING judgement
+    // crosses its OWN one-entry list (`reversalRefusal`), and no refusal byte is this row's to move (`D-41`).
+    //
+    // **A PASSING REVERSAL APPENDS NO `commit` ENTRY AND NONE IS INVENTED** (§4.1): a judgement mints no attempt,
+    // so no passing arm of an attempt runs for it. **ITS `[]` ARMS ARE FOUR AND EACH IS TRUE** — the deferred
+    // arm, the at-rest judgement over an empty watch, a compensating composition, and a judgement that ran and
+    // appended nothing: the first three return above this frame's list and the last answers an empty list, which
+    // the member's own helper hands on as the frozen constant.
+    // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
+    judgedList = true;
+    return judgementLog;
   } finally {
+    // **THE FREEZE IS IN PLACE AND AT THE FRAME'S END — `D-119`.** It runs before the frame's two releasing
+    // calls and applies to the array the `return` above already named, so the answer is stable from the instant
+    // it exists: no act of this package can append to it afterwards (`resolution-log.md` §5.1).
+    if (judgedList === true) Object.freeze(judgementLog);
     leaveCommitFrame(kernel);
     closeCommit(instance, opened);
   }

@@ -92,7 +92,7 @@ import { admittedConstraintBatch, constraintAddress, decodeBaseState, decodeJour
 // entry's other parts.
 import { FORGET_PAIR, INSTANCES, STORE_INDEX, STORE_RETIREMENT, TERMINAL_ARM, appendRepairLeg, carryRefusal, closeCommit, crossTriggered, currentWindow, entryOf, installAttemptSeam, isStoreReceiver, openCommit, writeRefusal } from './src/entry/state.mjs';
 import { commitPositionRefusal, constraintOverwrittenByListen, deliver, installListenRoute, installRegistrationSave, installRegistrationSeam, listenerStandingAt, listenOn, registerOn, terminalArm } from './src/entry/delivery.mjs';
-import { ARGUMENT_POSITION_FIRST, addressSetKey, carryConstraint, constraintDetached, constraintPairKey, constraintRefuse, constraintSite, constraintUncarried, constraintDelete, constraintWrite, constraintsKernel, currentRaise, defineDiscardWitness, enumerateConstraints, judgeReversal, registrationCrossing, restoreHeldPair, reversalWatch, unionAddressSets, withEmptyLog, witnessDiscardedReversal, witnessRaise, withdrawStanding } from './src/entry/constraints.mjs';
+import { ARGUMENT_POSITION_FIRST, addressSetKey, carryConstraint, constraintDetached, constraintPairKey, constraintRefuse, constraintSite, constraintUncarried, constraintDelete, constraintWrite, constraintsKernel, currentRaise, defineDiscardWitness, defineResolutionLog, enumerateConstraints, judgeReversal, registrationCrossing, restoreHeldPair, reversalWatch, unionAddressSets, withEmptyLog, witnessDiscardedReversal, witnessRaise, withdrawStanding } from './src/entry/constraints.mjs';
 const require_ = createRequire(import.meta.url);
 const ADDON_PATH = join(dirOf(fileURLToPath(import.meta.url)), 'build', 'Release', 'storeroom_js_binding.node');
 
@@ -703,7 +703,17 @@ export function storeCreate(cfg) {
       // `surface.md §2.4` loop, so it takes the state that holds both (`§2.7` (iii) (a)). **NOTHING ELSE IN THIS
       // MEMBER MOVES** — not its record (`:702`–`:706`), not `carryRefusal`, not the witness — **and the
       // position is a private frame's fourth, not a member, an arity or a declared surface.**
-      judgeReversal(instance, watched, answer.opId, state);
+      //
+      // **⟶ AND FROM 2026-11-02 IT ANSWERS THE JUDGEMENT'S OWN LIST — `D-119`.** `judgeReversal` answers the
+      // array its judgement appended to, frozen in place at that frame's end (`constraints.mjs`'s
+      // `defineResolutionLog` clause), **and that list is what this record carries at `record.log`, installed at
+      // the record's return below**: a reversal's judgement runs your pairs' repairs (`D-113` item 3) and
+      // delivers the listeners those repairs fire (`D-117` item 1), so the `repair-run` entry a repair left is
+      // the downstream edit this ruling exists to make readable. **EVERY ARM THAT ANSWERS `undefined` EARNS THE
+      // FROZEN EMPTY LIST** — the compensating composition, the deferred arm and the at-rest judgement over an
+      // empty watch own no list of their own — and `[]` means *this act appended nothing it can report*
+      // (`resolution-log.md` §3.3, §4.3).
+      const judgedLog = judgeReversal(instance, watched, answer.opId, state);
       const record = {
         opId: answer.opId,
         undoneOps: answer.undoneOps,
@@ -724,7 +734,14 @@ export function storeCreate(cfg) {
       // **AND THE RECORD'S THREE DECLARED MEMBERS ARE UNMOVED**: `discarded` is a NON-ENUMERABLE own accessor
       // (`index.d.ts`'s `RollbackRecord` clause; `defineDiscardWitness`), so `Object.keys`, every deep-equality
       // over the record and every census of its members read the three they read before.
-      return defineDiscardWitness(record, () => witnessRaise(raise));
+      //
+      // **⟶ AND `record.log` IS THE JUDGEMENT'S LIST, INSTALLED THE SAME WAY AND BESIDE IT — `D-119`.** The same
+      // device, the same name the failure form uses, `enumerable: false`, `configurable: true`, and **the read
+      // answers one captured reference** — the array the judgement's frame froze — where `discarded` beside it
+      // is a live read by necessity (§5.4's own note: the two members share a SHAPE and not a REASON). **THE
+      // FROZEN EMPTY LIST IS THE ANSWER ON EVERY ARM THE JUDGEMENT DID NOT JUDGE**, and the member is present on
+      // every passing answer, `[]` included.
+      return defineResolutionLog(defineDiscardWitness(record, () => witnessRaise(raise)), judgedLog);
     },
     /// **⟶ `listen(handle, addresses) -> undefined` — arity `2`, position `1` a caller-spelled string and
     /// position `2` a SET of addresses** (`contract.md §2.2`; `listen-verb.md §1` item 1; `PAR-HL-1`,

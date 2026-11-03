@@ -579,9 +579,19 @@ const K6 = (store, pair) => kernel.remove(store, pair);
   // deep-equality over a receipt still read the FOUR enumerable members. **THE ROW'S SUBJECT IS UNMOVED**: the
   // receipt's own member set is the declared one, and it gained this one member on that build. **A DELETE THAT
   // REMOVED NOTHING CARRIES `commit: null`** (`D-21`: the member is present and says the act opened no attempt).
-  A('HLI-07.6', 'contract.md §2.4 item 1 (`DeleteReceipt.triggered` moves with it); `D-43` item 3 (`op` joins the record); `D-49` (`discarded` joins it); §2.6\'s 2026-10-29 clause (`commit` joins it)',
-    "the delete receipt's own members are exactly `['address','commit','discarded','op','tiers','triggered']` (as `ownNames` sorts them)",
-    !d.threw && ownNames(d.value).join(',') === 'address,commit,discarded,op,tiers,triggered',
+  // ⟶ **AND `log` JOINS IT ON 2026-11-02** (`D-119`; `strata/decisions.md`, the architect, verbatim: *"Cache the log
+  // and pass to the surface on resolution, same as on failure. This is needed so that manual data changes can
+  // check what additional data changed downstream of their request"*). **THE MEMBER IS A NON-ENUMERABLE OWN
+  // ACCESSOR AT THE NAME THE FAILURE FORM USES** (`StoreRefusal.log`), the device `discarded` already uses, and it
+  // is PRESENT on every passing answer — `[]` included. **`ownNames` — which reads
+  // `Object.getOwnPropertyNames` and sees non-enumerable string keys — therefore reads SEVEN names while
+  // `Object.keys` and every deep-equality over a receipt still read the FOUR enumerable members.** **THE ROW'S
+  // SUBJECT IS UNMOVED**: the receipt's own member set is the declared one, and it gained this one member on that
+  // ruling. **THIS IS THE ROW'S FOURTH DATED RE-DERIVATION** (`op` 2026-10-27, `discarded` 2026-10-28, `commit`
+  // 2026-10-29 preceded it) and not a red cell left behind; the name sorts between `discarded` and `op`.
+  A('HLI-07.6', 'contract.md §2.4 item 1 (`DeleteReceipt.triggered` moves with it); `D-43` item 3 (`op` joins the record); `D-49` (`discarded` joins it); §2.6\'s 2026-10-29 clause (`commit` joins it); `D-119` (`log` joins it)',
+    "the delete receipt's own members are exactly `['address','commit','discarded','log','op','tiers','triggered']` (as `ownNames` sorts them)",
+    !d.threw && ownNames(d.value).join(',') === 'address,commit,discarded,log,op,tiers,triggered',
     d.threw ? fmt(statusOf(d)) : fmt(ownNames(d.value)));
   A('HLI-07.7', 'contract.md §2.4 item 1; trigger-and-pair.md §2 item 1',
     "the delete receipt's `triggered` is a pair list too",

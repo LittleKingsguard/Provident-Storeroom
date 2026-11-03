@@ -96,6 +96,21 @@ off the record itself. **Measured on this checkout through the published entry: 
 answer `1` entry where a raise was discarded and `[]` where none was, and `read`'s answer carries the member
 nowhere.** (`D-78`; `D-75`; `D-49`; the long-form section is the shipped guide's `§12.6b`.)
 
+**★ AND `log` IS CARRIED BY THE THREE RECORDS A PASSING CALL ANSWERS — `D-119`, 2026-11-02, AND IT IS THE RULE
+ABOVE READ FOR A THIRD MEMBER.** **`log` is carried by `write`'s record, by `delete`'s receipt and by `rollback`'s
+record, NON-ENUMERABLY and PRESENT ON EVERY PASSING ANSWER** — the commit's own entries, in the order the commit
+appended them: the `constraint-check` entry for each pair the pass asked, the `repair-run` entry for every repair
+that landed an edit, and the `commit` entry that closes the arm. **`[]` means this act appended nothing it can
+report and never "nothing happened"**: a nested call inside a constraint or repair body answers `[]` because the
+commit it joined has not crossed**, and the act that owns that commit reports the entries. **A passing write over
+a store carrying no pair answers ONE entry, `kind === 'commit'`.** **A spread or `Object.assign` copy loses `log`
+exactly as it loses `discarded`** — read it off the record itself. **The FOURTEEN and the enumerable shapes are
+unmoved**, and what you gain is the audit `D-119` exists for: on a `write` or a `delete` it is **the same list, the
+same entries and the same positions a refusal about that commit carries**, so a pass and a later refusal on one
+commit cannot disagree — while a `rollback`'s list is its JUDGEMENT's, where a repair it ran leaves its entry.
+(`D-119`; `D-53`; `D-58`; the long-form section is the shipped guide's `§9.2`, and the `[]` arms are `§8.0a`'s
+clause of this date.)
+
 **THE RECEIVER IS THE STORE, SO NO CALL CARRIES AN `instance` POSITION** (`surface.md §2.1` (e) item 3):
 `store.write(address, tier, value)` is the shape every method takes, and a leading `instance` is a SUPERSEDED
 SPELLING — wrong, not redundant. **AND NO OWN MEMBER IS A DATA MEMBER:** there is no `store.data`, no `state`

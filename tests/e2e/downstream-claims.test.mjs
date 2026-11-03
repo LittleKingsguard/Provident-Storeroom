@@ -515,10 +515,14 @@ test('DEF-N · a WELL-FORMED pair whose body answers non-`true` is refused with 
 // §2.5 item 1 closes the entry's SIX members (`seq` · `kind` · `id` · `message` · `opId` · `state`). **So, for
 // EVERY entry the attempt can produce: a message may not print `undefined` for a column the entry itself
 // carries, and where the entry carries an `address` member that is SET, the message must render it.** The sweep
-// runs over every kind the drive reaches — `constraint-check`, `repair-run`, `outcome`. (`commit` is not
-// reachable: a SUCCESSFUL write's returned record carries `op`, `watched` and `triggered` and NO `log` member,
-// so the success arm's `commit` entry is reached by no client call — recorded here so the omission is a finding
-// and not a gap.)
+// runs over every kind the drive reaches — `constraint-check`, `repair-run`, `outcome`, AND `commit`.
+// **⟶ RE-DERIVED 2026-11-02 — `D-119`: THE `commit` KIND IS REACHABLE NOW, AND THE OMISSION THIS PARAGRAPH
+// RECORDED IS CLOSED BY A THIRD ARM.** The paragraph read *"(`commit` is not reachable: a SUCCESSFUL write's
+// returned record carries `op`, `watched` and `triggered` and NO `log` member, so the success arm's `commit` entry
+// is reached by no client call — recorded here so the omission is a finding and not a gap.)"*. **Under `D-119` a
+// PASSING call answers with its commit's list, so the success arm's `commit` entry IS reached by a client call**;
+// the arm below sweeps it, and the cell's own subject — no entry's message prints `undefined` for a column the
+// entry carries — is unmoved and widens by one kind rather than narrowing.
 //
 // **AND THE CLAIM'S OWN PREMISE IS CORRECTED AT THE OBSERVATION, NOT ADOPTED:** the declared entry carries NO
 // `address` member at all. The column the message loses is the ADDRESS SLOT of the sentence the kernel composes
@@ -545,9 +549,10 @@ test('DEF-Q · no log entry\'s message prints `undefined` for a column the entry
   sweep('an unrecognized answer (KC-3)', unrecognizedFailure.caught.log);
 
   // (2) A `constraint-check` PASSING entry and a `repair-run` entry, plus a second `outcome`: the repair lands
-  // and resolves, so the write passes and NO log crosses (the success record carries none) — then the same
-  // attempt's entries are read off a refusal that DOES cross, by making the repaired value violate a second
-  // pair. This reaches the three kinds in one refusal.
+  // and resolves, and **⟶ FROM 2026-11-02 (`D-119`) the passing write's own answer carries that list too** — so
+  // this arm sweeps the PASSING answer, and the same attempt's entries are also read off a refusal that crosses,
+  // by making the repaired value violate a second pair. **THAT REACHES ALL FOUR KINDS**: the passing answer's
+  // `constraint-check` and `commit`, and the refusal's `outcome` and `repair-run`.
   const repaired = make();
   repaired.write(['a'], 'mem', SEED);
   repaired.addConstraint({ address: ['a'], id: 'c1' }, (context) => (context.value === REFUSED
@@ -565,12 +570,26 @@ test('DEF-Q · no log entry\'s message prints `undefined` for a column the entry
   assert.equal(repairedFailure.ok, false, 'the second pair must fail the repaired write');
   sweep('a landed repair whose re-run fails', repairedFailure.caught.log);
 
-  // The sweep must have reached all three kinds, or it is not the sweep this cell claims.
+  // (3) **THE SUCCESS ARM — THE `commit` KIND, WHICH `D-119` MAKES REACHABLE, 2026-11-02.** A store carrying ONE
+  // pair that admits what it is asked answers a PASSING write, and **that answer's own `log` ends with the
+  // `commit` entry the passing arm appends unconditionally** — so the fourth kind of `kernel-surface.md §2.5`
+  // item 1's CLOSED set is no longer reached by no client call, and this sweep takes it.
+  const passing = make();
+  passing.write(['a'], 'mem', SEED);
+  passing.addConstraint({ address: ['a'], id: 'c1' }, () => true);
+  const passingWrite = attempt(() => passing.write(['a'], 'mem', REFUSED));
+  assert.equal(passingWrite.ok, true,
+    `the success arm must PASS — a pair that admits everything refuses nothing: the drive caught `
+      + `${JSON.stringify(shapeOf(passingWrite.caught))}`);
+  sweep('a passing write (\`D-119\`)', passingWrite.value.log);
+
+  // The sweep must have reached all four kinds, or it is not the sweep this cell claims.
   const kinds = [...new Set(entries.map(({ entry }) => entry.kind))].sort();
-  assert.deepEqual(kinds, ['constraint-check', 'outcome', 'repair-run'],
-    `the sweep must reach every kind a client call can produce — \`constraint-check\`, \`repair-run\`, `
-      + `\`outcome\`, the three of \`kernel-surface.md §2.5\` item 1's CLOSED four minus the unreachable `
-      + `\`commit\`. THE DRIVE REACHED ${JSON.stringify(kinds)}.`);
+  assert.deepEqual(kinds, ['commit', 'constraint-check', 'outcome', 'repair-run'],
+    `the sweep must reach every kind a client call can produce — the CLOSED four of `
+      + `\`kernel-surface.md §2.5\` item 1: \`constraint-check\`, \`repair-run\`, \`commit\`, \`outcome\`. **The `
+      + `\`commit\` kind was the one this cell used to report as UNREACHABLE, and \`D-119\` (2026-11-02) makes it `
+      + `reachable through a passing write's own \`log\`.** THE DRIVE REACHED ${JSON.stringify(kinds)}.`);
 
   const offenders = [];
   for (const { refusal, entry } of entries) {
@@ -845,7 +864,8 @@ test('DEF-W · under `D-38` (2026-10-26) a `rollback` whose TERMINAL state a reg
     `the refusal's \`message\` is the store's generated sentence and renders the pair's own \`<SEGMENT>\` slot `
       + `(\`§8.2\`; \`DD-52\`). THE DRIVE READ ${JSON.stringify(refused.caught.message)}`);
 
-  // ── THE LAWFUL SIDE: THE RECORD IS UNCHANGED, MEMBER FOR MEMBER, AND CARRIES NO `log`. ───────
+  // ── THE LAWFUL SIDE: THE RECORD'S DECLARED MEMBERS ARE UNCHANGED, AND ITS `log` IS PRESENT AND EMPTY. ──────
+  // (`D-119`, 2026-11-02: the member the old arm read as ABSENT is now present on every passing answer.)
   assert.deepEqual(lawfulKeys, ['opId', 'restoredTo', 'undoneOps'],
     `a LAWFUL reversal answers its declared record and NO new member (\`PAR-JS-9\`: \`{opId, undoneOps, `
       + `restoredTo}\`; \`D-38\`: *"a lawful reversal is unchanged"*). THE DRIVE READ ${JSON.stringify(lawfulKeys)}`);
@@ -858,8 +878,21 @@ test('DEF-W · under `D-38` (2026-10-26) a `rollback` whose TERMINAL state a reg
   assert.deepEqual(lawful.value.restoredTo, { present: true, value: W_FIRST },
     `\`restoredTo\` is the base state the address now stands at — the seed the reversal restored: `
       + `${JSON.stringify(lawful.value.restoredTo)}`);
-  assert.equal(Object.hasOwn(lawful.value, 'log'), false,
-    'a lawful reversal carries NO log: the judgement adds nothing to a record it did not refuse');
+  // **⟶ RE-DERIVED 2026-11-02 — `D-119`: A LAWFUL REVERSAL *DOES* CARRY A `log`, AND `D-119` REVERSES THE SENTENCE
+  // THIS ROW STOOD ON.** The old assertion read `Object.hasOwn(lawful.value, 'log') === false` — *"a lawful reversal
+  // carries NO log: the judgement adds nothing to a record it did not refuse"* — and the ruling gives every
+  // RESOLUTION the commit's list exactly as a refusal does, by a NON-ENUMERABLE own accessor at the name the
+  // failure form uses (`StoreRefusal.log`). **`D-38`'s *"a lawful reversal is unchanged"* is the ground the
+  // assertion stood on, and `D-119` changes it FOR ONE MEMBER**: the member is PRESENT on the passing arm and
+  // `[]` is its honest value where the judgement appended nothing (`D-77`/`D-78`). **AND THE `Object.keys` CENSUS
+  // ASSERTED ABOVE (`:848`–`:851`) STAYS GREEN AND IS NOT WEAKENED** — the member is non-enumerable, so the
+  // record's three DECLARED members are the three a consumer reads (`A117` (D6)).
+  assert.equal(Object.hasOwn(lawful.value, 'log'), true,
+    'a lawful reversal CARRIES its judgement\'s list at `log`: the member is PRESENT on every passing answer '
+      + '(`D-119`, 2026-11-02; `D-77`/`D-78`)');
+  assert.deepEqual([...lawful.value.log], [],
+    'and on THIS arm the judgement appended nothing, so `[]` is its honest value — *"this act appended nothing it '
+      + `can report"* and never *"nothing happened"*. THE DRIVE READ ${JSON.stringify(lawful.value.log)}`);
   assert.equal(lawfulStanding, W_FIRST,
     `and the store stands where the lawful reversal left it; the drive read ${JSON.stringify(lawfulStanding)}`);
 

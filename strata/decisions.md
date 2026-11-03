@@ -6081,3 +6081,59 @@ questions left (`2` = the delivery set's provenance · the reversal's own `trigg
 **WHAT IT CHANGES BELOW ME: the unit's last refusal on the file's own corruption is gone, and with it the only exception `D-107` item 1 ever had.**
 
 **TERMS: the arms this row removes (`1` = the corrupt-image refusal), the ground truths it names (`2` = the creation state · the file image where readable), the findings it closes (`1` = the register's β), the statuses it retires (`0` decided; `1` put to him), the declared surfaces it moves (`0`), the questions left (`1` = the token's membership).**
+
+---
+
+### `D-119` — ★ THE LOG CROSSES ON RESOLUTION TOO: cached by the package and handed to the surface, so a manual data change can see what it moved downstream
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, on the package's answer to a passing call. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> Cache the log and pass to the surface on resolution, same as on failure. This is needed so that manual data
+> changes can check what additional data changed downstream of their request
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **★ THE MESSAGE LOG IS A RESULT, NOT ONLY A FAILURE REPORT.** `D-53` gave the commit's one list to every **refusal**;
+   **this row gives the same list to every RESOLUTION** — **a call that PASSES answers with the entries the commit
+   appended, exactly as a refusal does.** **The architect's ground is the consumer's: a manual data change may fire
+   constraints whose REPAIRS land edits downstream of the request, and the caller must be able to see what its own act
+   moved beyond what it asked for.** **A caller that cannot read the passing log cannot audit its own write.**
+2. **AND THE CARRIER IS ALREADY NAMED IN THE TREE: the PACKAGE caches the log, because the STORE does not keep it.**
+   `D-58`'s rule stands whole — *"After a commit/attempt resolves/rejects, the store does not need to retain the message
+   log … Don't retain it"* — **so the store still drops it at the handoff (`dropHandoff`) and no store retention
+   returns.** **What changes is the PACKAGE's side: the kernel holds the commit's list until the answer crosses, and the
+   surface hands it over with the record.** **A pass that re-opens store retention has left this row; a pass that lets the
+   entry drop the list before the answer crosses has failed it.**
+3. **"SAME AS ON FAILURE" IS THE FORM'S OWN SENTENCE, AND ITS CONSEQUENCES ARE L1's TO PRICE.** A refusal carries `log` as
+   **one of its four declared members** (`{status, message, log, address}`); **a passing answer's record is a CLOSED set
+   whose members a census counts** (`write`'s three, `delete`'s, `rollback`'s three, the registration's identity), **and
+   `A117` (D6)'s device — a `Symbol.for`-keyed, non-enumerable own accessor, the one `discarded` already uses — is the
+   precedent for attaching a datum without moving a census.** **Whether the passing log rides that way or becomes a
+   declared member is a DECLARATION and not a detail**: the first moves no census (the fourteen members, the record
+   shapes, every deep-equality a consumer writes), the second moves a record's declared members and every type that
+   reads it.
+4. **WHAT IT IS *NOT*.** It is not a second log: the entries are the commit's own, one list, the same objects a refusal
+   crosses with — **so a call that passes and a later refusal on the same commit can never disagree.** It is not a live
+   view: the list is **cached at the crossing and stable after it**, the store having let go of its own copy. And it does
+   not touch the delivery: a listener body's view and the caller's view are the same list, but the delivery's set is
+   still `pending`'s.
+5. **THE RELEASE CARRIES IT.** The release is committed at `5325526` and **not yet pushed or tagged**, so `1.9.1` still
+   absorbs this row; **the note's five lines become six**, and the sixth says a passing call answers with the commit's
+   log so a caller can see what its act moved downstream.
+
+**WHAT IT DOES NOT SETTLE — L1's.** **The form** (item 3's two choices, priced against `A117`'s census and every
+consumer deep-equality); **where the cache lives and when it is released** (the kernel's `closed` map keeps the report
+today and `dropHandoff` strips the log — the cache must outlive that strip at least until the answer crosses); **which
+answers carry it** (a write, a delete, a reversal, a registration's identity, and a re-arm); **the cells** (a passing
+call's log carrying a repair's entry; a passing call whose log is empty; a caller's deep-equality over the record
+unaffected); **the prose**; and whether `D-77`'s `address` lesson — *"equal means the caller's own act, different means a
+listener's"* — needs a parallel sentence for the log.
+
+**WHAT IT CHANGES BELOW ME: the last asymmetry between a passing call and a refusing one.** A consumer's audit trail
+stops depending on the call having failed.
+
+**TERMS: the arms this row gives the log (`2` = resolution · failure), the cache it requires (`1` = the package's, the
+store's retention untouched), the forms it prices (`2` = a non-enumerable accessor · a declared member), the surfaces it
+moves (`0` decided by this row), the statuses it mints (`0`), the questions left (`1` = the form).**

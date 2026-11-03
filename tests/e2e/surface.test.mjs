@@ -759,10 +759,22 @@ test('file_readings_a_file_tier_delete_saves_its_own_op_and_a_rollback_performs_
     // existed: the delete's own journal op was never named to the save, so nothing persisted its removal. **With
     // the record minted and the delete's own returned receipt adopted into the leg slot, a `file`-tier delete's
     // op IS the op the arm saves** — the same act, at the same instant, that a `file`-tier write's op gets.
+    // **⟶ RE-DERIVED 2026-11-02 — `D-119`: THE PASSING ANSWER'S `log` JOINS THE RECEIPT'S OWN NAMES, AND IT JOINS
+    // THEM IN THE POSITION THE ENTRY INSTALLS IT.** `strata/decisions.md` · `D-119` gives every RESOLUTION the
+    // commit's message log, by the device `discarded` already uses: a NON-ENUMERABLE own accessor at the name the
+    // failure form uses (`StoreRefusal.log`). **`Object.keys` and every deep-equality over the receipt are
+    // unmoved** — the member is non-enumerable — and the ONE census that sees it is
+    // `Object.getOwnPropertyNames`, which this assertion IS. **The name is INSERTED BETWEEN `commit` AND
+    // `discarded` and not appended at the end**: `constraintDelete` defines `commit` (`exposeCommit`) and then
+    // `log` (`defineResolutionLog`) inside its own frame, and `index.mjs`'s `delete` member installs `discarded`
+    // afterwards on the record it returns — so the insertion order is `commit`, `log`, `discarded` and a cell
+    // that read `log` last would assert a position the tree does not produce. **THE ROW'S SUBJECT IS UNMOVED**:
+    // the receipt carries the record the act minted, under the non-enumerable members `index.d.ts` declares.
     assert.deepEqual(
       Object.getOwnPropertyNames(removed),
-      ['address', 'tiers', 'triggered', 'op', 'commit', 'discarded'],
-      'the receipt carries the record the act minted, under the non-enumerable member `index.d.ts` declares',
+      ['address', 'tiers', 'triggered', 'op', 'commit', 'log', 'discarded'],
+      'the receipt carries the record the act minted, under the non-enumerable members `index.d.ts` declares — '
+        + '`commit`, then the passing `log` (`D-119`), then `discarded`, which is the order the entry installs them',
     );
     assert.equal(removed.commit.op.opId, removed.op.opId, 'and the record names the op the delete landed');
     const fresh = storeCreate({ filePath: path, journalLength: 8, listeners: [] });

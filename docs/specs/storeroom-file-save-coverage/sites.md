@@ -186,3 +186,14 @@
 2. **AND THE FORBIDDEN SET `§2` NAMES GAINS FOUR ENTRIES, EACH WITH ITS GROUND, SO A LANDING PASS CANNOT READ SILENCE AS PERMISSION:** **`registrationRerun`'s own mark and re-throw** (`:769`–`:779`; `PIN-15` (v) — the arm is a catch ONE FRAME OUT, not a rewrite of that frame); **`kernel-attempt.mjs`'s body-throw arm** (`:757`–`:790`; it already calls `terminalComposed` and `PIN-15` (v) says so); **`src/store.rs`'s `regenerate`, `save_state`, `durable_projection` and `read_file_image`** (`PIN-16` (v): `β` changes no regeneration byte); and **`src/error.rs`, `src/records.rs`, `bindings/js/src/facade.rs` and `bindings/js/index.mjs`** — unchanged from `§2` and re-named because `γ` widens a store predicate and a package gate and **no member, arity or entry**.
 
 **AND THE ONE BLOCK OF THIS DIRECTORY'S OWN CELLS THAT TURNS IS NAMED AT `verification.md §2.4`**, because a site ledger that reported the write set and not the cells that must go red would be reporting half of it.
+
+---
+
+## §8 · THE RESOLUTION LOG'S POSITIONS — A POINTER, NOT A SECOND HOME (added 2026-11-02)
+
+**`strata/decisions.md` · `D-119` adds a sixth behaviour to this unit — the commit's log crosses on a RESOLUTION and not only on a refusal — and ITS WRITE SET IS APPLIED AT `resolution-log.md §9` AND NOT HERE**, for `§7`'s reason: two lists of one write set is a second home, and a later pass that re-cut one would leave the other lying. **What this part owes that declaration is the two things only a site ledger can state:**
+
+1. **NO FILE ENTERS OR LEAVES THE WRITE SET.** **All five code positions (`resolution-log.md §9.1`'s `D-1`–`D-5`) are inside the files `§1.1`, `§1.2`, `§1.3` and `§1.5` already carry** — `kernel-foundations.mjs`'s `sealHandoff`, `constraints.mjs`'s answer-building frames and its `defineDiscardWitness` neighbourhood, and `index.mjs`'s `rollback` member — **so `§1`'s six files stay six, `docs/L1/modules.json` is unmoved, and no endpoint is minted.**
+2. **AND THE FORBIDDEN SET `§2` GAINS ONE RE-AFFIRMATION AND NO ENTRY:** **`src/store.rs` gains NO byte** — the message log is JS-side (`D-53`) and a store-side carrier would re-open `D-58` in another spelling — **and so do `delivery.mjs` (the gate's `SETTLED_ON_THE_PASSING_ARM` test is untouched), `kernel-commit.mjs`'s two record mints, and `kernel-attempt.mjs`'s seal-and-drop order**, all four named by `§2` already.
+
+**AND THE FOUR EXISTING CELLS THAT TURN ARE NAMED AT `resolution-log.md §6.2`** — `HLI-07.6` and `surface.test.mjs`'s delete-receipt census (own names, six to seven), and `refused-reversal-restore`'s and `downstream-claims`' *"a lawful reversal carries NO log"* — because this part prints cells only where this part owns them.
