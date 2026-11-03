@@ -937,20 +937,33 @@ fn p_im_2_a_failed_write_leaves_zero_residue() {
         // AFTER the failed write so it reads the sibling's state at the same moment the residue comparison
         // does — and it is the TRIGGER's outcome and not residue, because the compaction happened at the
         // SECOND SUCCESSFUL APPEND, before any failed write was attempted.
+        // **⟶ RE-DERIVED 2026-11-02 — `D-108` ITEM 1 AND `D-109`, AND THE MOVEMENT IS RECORDED.** The two
+        // checks below read `M-6`'s all-or-nothing floor: the compacted prior entry refused the rollback and
+        // the sibling instance's registry stayed where it was. **`M-6` IS CORRECTED IN THIS UNIT** (`D-108`
+        // item 4): a last-valid-state reversal that meets a compacted entry REGENERATES from the durable
+        // ground truth (the `file` tier's image where one stands, the creation state where none does) and
+        // RETURNS its record; `D-109` narrows `RollbackCompacted` to a candidate set holding a compacted entry
+        // **AND** a `filePath` whose image cannot be read as an object. **So this drive's call RETURNS, and the
+        // sibling's registry is the state the regeneration describes — the durable ground truth plus every
+        // entry the surviving journal still reaches** (`PIN-12` (iii)), which is why it is no longer compared
+        // against the PRE-call snapshot.
+        let prior_rollback = s.rollback(OpIdArg::Id(prior.op.opId.clone()));
         drive.check(
-            matches!(
-                s.rollback(OpIdArg::Id(prior.op.opId.clone())),
-                Err(ref e) if e.status == "RollbackCompacted"
+            prior_rollback.is_ok(),
+            &format!(
+                "§6.4 M-6 as corrected (`D-108` item 1): at journalLength = 1 the prior entry is COMPACTED, \
+                 and the arm that met it REGENERATES and RETURNS its record — the sibling answered {:?}",
+                prior_rollback.as_ref().err().map(|e| e.status.clone())
             ),
-            "§6.4 M-6/§6.1 item 5: at journalLength = 1 the prior entry is COMPACTED — the second successful \
-             append compressed it and the rollback's floor refuses it. **The mark is read through the floor \
-             because `§6.2`'s returned record does not carry it back**, and the refusal PRECEDES the failed \
-             write entirely, so this is the declared trigger and not a failed write's residue",
         );
-        // The first store's own snapshot is unchanged too — the loop's own comparison, at the `file` tier.
         drive.check(
-            structurally_equal(&read_at(&s, &empty_address()), &registry_before),
-            "§5.3 P-IM-2: the sibling instance's registry is untouched",
+            versions_at(&s, &key(&["purgeme"])) == vec![Tier::Temp],
+            &format!(
+                "§5.3 P-IM-2/P-FSC-4: the sibling's OUT-OF-SCOPE, UN-MARKED `temp` version survives the \
+                 regeneration (`PIN-12` (ii)'s filter), and nothing of the reverted `keep` entry is replayed — \
+                 got {:?}",
+                versions_at(&s, &key(&["purgeme"]))
+            ),
         );
         drive.check(
             versions_at(&s, &key(&["purgeme"])) == versions_before,
@@ -3097,36 +3110,19 @@ fn p_tp_9_the_fail_set_is_closed_and_every_message_is_generated() {
              op a write returned"
                 .to_string(),
         ),
-        {
-            // `§6.4` `M-6`: the scope includes the FIRST append, which `DD-16`'s bound has marked COMPACTED,
-            // so the floor answers `RollbackCompacted` for THE ID THE CALLER REACHED FOR. **The id is captured
-            // from the probe's OWN store and not pre-derived**, because `§6.2`'s op ids are minted from a
-            // PROCESS-WIDE counter (`§6.1` item 3) and this suite runs cells in parallel — a pre-derived id
-            // would be a flaky expectation.
-            let first_id: std::rc::Rc<std::cell::RefCell<String>> =
-                std::rc::Rc::new(std::cell::RefCell::new(String::new()));
-            let captured = first_id.clone();
-            (
-                "RollbackCompacted",
-                "a compacted scope",
-                Box::new(move || {
-                    let mut s = new_store_with_journal(1);
-                    let first = s.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0));
-                    let _ = s.write(AddressArg::List(key(&["a"])), w_mem(), v_num(2.0));
-                    match first {
-                        Ok(w) => {
-                            *captured.borrow_mut() = w.op.opId.clone();
-                            s.rollback(OpIdArg::Id(w.op.opId)).map(|_| ())
-                        }
-                        Err(e) => Err(e),
-                    }
-                }),
-                // §8.2's `RollbackCompacted` row: the caller's own opId in the `<SEGMENT>` slot and the row's
-                // fixed `<available clause>`.
-                "'<OPID>' is out of scope because it is compacted, compacted operations are out of scope"
-                    .to_string(),
-            )
-        },
+        // **⟶ `RollbackCompacted` IS NOT IN THIS TABLE FROM 2026-11-02, AND ITS ABSENCE IS DRIVEN BELOW RATHER
+        // THAN LEFT AS A GAP (`D-118` item 2).** It was re-derived twice: `D-108` item 1 made the compacted scope
+        // alone REGENERATE, and `D-109` item 1 narrowed the token to *"a temporally-bounded candidate set holding a
+        // compacted entry AND a `filePath` whose image cannot be read as an object"*, which a probe here then drove
+        // by taking the plain walk first, corrupting the path, and asking again. **`D-118` ITEM 1 REMOVES THAT ARM**
+        // — the architect, verbatim, *"In the corrupt file case, then it restores from the store creation image"*:
+        // the unreadable image is TREATED AS NO IMAGE AT ALL, the regeneration takes `Store::born` and RETURNS, and
+        // the save that follows writes a readable image over it. **So no act of this tree produces the member and a
+        // `Result`-producing probe for it cannot exist.** **The row's subject — *"every message is GENERATED from its
+        // code"* — is NOT weakened**: the member's WHOLE TEXT is driven through `§8.2`'s own generator
+        // (`storeErrorMessage`) in the block after this loop, and the negative drive beside it asserts that the two
+        // arms which used to reach the code both RETURN. **No member is dropped from `§8.1`'s twenty and no rank
+        // moves** (`D-118` item 2: *"the closed set is the store's"*).
         (
             "ConstructionArgumentMissing",
             "a missing cfg.journalLength — the member's ONE remaining trigger (A49/DD-17)",
@@ -3229,11 +3225,12 @@ fn p_tp_9_the_fail_set_is_closed_and_every_message_is_generated() {
             Ok(()) => drive.check(false, &format!("§8.1: {what} must produce {expected}")),
             Err(e) => {
                 reached.push(e.status.clone());
-                // **ONE MEMBER'S WHOLE TEXT IS A FUNCTION OF AN IDENTITY ONLY ITS OWN RUN KNOWS** —
-                // `RollbackCompacted` prints the opId the caller reached for, and `§6.2`'s ordinals are
-                // minted from a PROCESS-WIDE counter (`§6.1` item 3), so this suite's parallel cells make any
-                // pre-derived id flaky. `<OPID>` is compared against the id THE ERROR ITSELF REPORTS, which
-                // is the same id the cell's own `what` names, and every other member's text is pinned whole.
+                // Every member of the set still prints its WHOLE generated text; the `<OPID>` substitution below is
+                // kept because `§6.2`'s ordinals are minted from a PROCESS-WIDE counter (`§6.1` item 3) and this
+                // suite's cells run in parallel, so a pre-derived id would be flaky wherever one is needed. **FROM
+                // 2026-11-02 NO PROBE IN THIS TABLE NAMES AN ID IT DID NOT ITSELF CAPTURE** (`RollbackCompacted`'s
+                // own probe is withdrawn with its producer, `D-118` item 2), and the substitution stays as the
+                // table's declared rule rather than as a live arm.
                 let rendered = if whole.contains("<OPID>") {
                     let reported = e
                         .message
@@ -3251,10 +3248,125 @@ fn p_tp_9_the_fail_set_is_closed_and_every_message_is_generated() {
         }
     }
 
+    // ── **`RollbackCompacted` — DECLARED, NO PRODUCER: ITS WHOLE TEXT IS DRIVEN THROUGH THE GENERATOR AND ITS
+    // LOST PRODUCER IS DRIVEN NEGATIVELY (`D-118` items 1–2).** ──────────────────────────────────────────────
+    //
+    // **`§5.9`'s subject IS THE GENERATED TEXT AND NOT A TRIGGER**: *"whose `message` is the exact string `§8.2`'s
+    // generator produces for that code and that trigger"*. `D-118` item 1 removes the code's last trigger, so the
+    // text is driven where `§8.2` puts it — **through `storeErrorMessage`, the generator itself** — and the arm
+    // that used to reach the code is driven BESIDE it as the negative that `D-118` item 2 states.
+    drive.attempt();
+    {
+        // (a) **THE WHOLE GENERATED TEXT, from the code and its own argument.** The caller's opId is the
+        // `<SEGMENT>` slot and the row's `<available clause>` is fixed (`§8.2`'s `RollbackCompacted` row).
+        let op_id = "op-out-of-scope";
+        let generated = storeErrorMessage(
+            "RollbackCompacted",
+            &MessageArgs {
+                segment: Some(op_id.to_string()),
+                ..Default::default()
+            },
+        );
+        let whole = format!(
+            "'{op_id}' is out of scope because it is compacted, compacted operations are out of scope"
+        );
+        drive.check(
+            generated == whole,
+            &format!(
+                "§5.9/§8.2: the generated text for `RollbackCompacted` and its own argument is the exact string \
+                 `§8.2`'s row produces — *\"a hand-authored or TRUNCATED message (the generator's text is exact)\"* \
+                 fails here; got {generated}"
+            ),
+        );
+        // …and the cross-code half of the same reading: the text carries its OWN row's `<mismatch clause>` and no
+        // other member's (`AM-7`; `§8.2`'s table, which still carries the row).
+        let (_, own_clause) = MISMATCH_CLAUSES
+            .iter()
+            .find(|(code, _)| *code == "RollbackCompacted")
+            .expect("§8.1: the closed set carries `RollbackCompacted` at rank 11");
+        drive.check(
+            generated.contains(own_clause),
+            &format!(
+                "§8.2: the generated text carries its OWN row's `<mismatch clause>` (`{own_clause}`); got {generated}"
+            ),
+        );
+        for (other, clause) in MISMATCH_CLAUSES.iter() {
+            if *other == "RollbackCompacted" {
+                continue;
+            }
+            drive.check(
+                !generated.contains(clause),
+                &format!(
+                    "§8.2: and NO other member's `<mismatch clause>` — `{other}`'s `{clause}` appears in \
+                     {generated}"
+                ),
+            );
+        }
+        // (b) **AND THE MEMBER IS STILL IN THE SET** — its place in the twenty is the store's and does not move
+        // (`D-118` item 2).
+        drive.check(
+            CLOSED_CODES.contains(&"RollbackCompacted"),
+            "§8.1: `RollbackCompacted` keeps its rank-11 place in the closed set — the token is DECLARED and the \
+             set does not lose a member because an act stopped reaching it (`D-118` item 2)",
+        );
+        // (c) **THE NEGATIVE: THE TWO ARMS THAT USED TO REACH IT BOTH RETURN.** The compaction alone (`D-108` item
+        // 1) and the compaction over an image the loader cannot read (`D-118` item 1) — the second is the one
+        // `D-109` item 1 narrowed the token to and `D-118` removes.
+        let path = fresh_path("failset-unreachable");
+        let mut s = ok(
+            storeCreate(&cfg_at(&path, 2)),
+            "§7.1: a two-entry journal at a real path",
+        );
+        ok(
+            s.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
+            "§3.4 W-3",
+        );
+        let second = ok(
+            s.write(AddressArg::List(key(&["a"])), w_mem(), v_num(2.0)),
+            "§3.4 W-1",
+        );
+        ok(
+            s.write(AddressArg::List(key(&["x"])), w_mem(), v_num(9.0)),
+            "§3.4 W-3: the third append triggers the compression",
+        );
+        ok(
+            s.rollback(OpIdArg::Id(second.op.opId.clone())),
+            "D-108 item 1: the plain walk marks its candidates",
+        );
+        let compaction_alone = s.rollback(OpIdArg::Id(second.op.opId.clone()));
+        drive.check(
+            compaction_alone.is_ok(),
+            &format!(
+                "§8.1 #11 read through `D-108` item 1: the compaction alone REGENERATES and returns; got {:?}",
+                compaction_alone.err().map(|e| e.status)
+            ),
+        );
+        let fixture = b"this is not the store's image";
+        std::fs::write(&path, fixture).expect("the fixture may write the path");
+        let over_an_unreadable_image = s.rollback(OpIdArg::Id(second.op.opId.clone()));
+        drive.check(
+            over_an_unreadable_image.is_ok(),
+            &format!(
+                "§8.1 #11 read through `D-118` item 1: an image the loader cannot read is TREATED AS NO IMAGE AT \
+                 ALL and the reversal returns — the token's last producer is gone (`D-118` item 2); got {:?}",
+                over_an_unreadable_image.err().map(|e| e.status)
+            ),
+        );
+        drive.check(
+            std::fs::read(&path).expect("the path is readable") == fixture.to_vec(),
+            "`D-112` item 2: the store's own reversal performs no write — the fixture bytes still stand at the \
+             path, and the save that makes the image readable is the package's",
+        );
+    }
+
     // No member is unreachable — the closure drive's second half. `§5.9`: "Conversely, for every code in the
-    // set there EXISTS a drive that produces it" — **the amended set closes at all `15` members, and BOTH
-    // construction members are carried** (`§8.1` #12 through `journalLength`'s absence and #13 through the
-    // reachability arm; `§5.9`'s interaction map).
+    // set there EXISTS a drive that produces it" — **read FROM 2026-11-02 WITH `D-118` ITEM 2's ONE EXCEPTION, and
+    // the exception is named here rather than left to the reader.** The set closes at twenty and every member of
+    // it is driven in this cell: `RollbackCompacted` has NO PRODUCER LEFT (its arm is withdrawn above and driven
+    // negatively, and its whole text through `§8.2`'s generator), and the members whose producers stand ABOVE this
+    // crate are driven at their own boundary — the package's `ValueRefusedAtBoundary`, `ConstraintBodyThrew`,
+    // `ConstraintRefusedAtRegistration` and `ConstraintPassRefused`. **The three arms below are the ones this
+    // table's own probes produce, and none of them is weakened.**
     drive.check(
         reached.iter().any(|c| c == "ParentAnchorMonotonicityViolation"),
         "§5.9: for every code there EXISTS a drive that produces it — `F-6` through §3.2's tier-agnostic parent search",

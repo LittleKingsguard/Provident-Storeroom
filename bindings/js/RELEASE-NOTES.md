@@ -16,7 +16,7 @@ claims to be installable.**
 
 **⟶ AND THE CUT-STATE IS DROPPED FROM THIS FILE, 2026-10-28 — `D-57`, THE ARCHITECT VERBATIM: *"Drop the cut-state."*** `RCA-8(g)` ANNOTATE-BESIDE: **the title line and every dated paragraph of this file stand BYTE-FOR-BYTE as the reading of their own date, THIS clause is the one that reads them, and not one byte is deleted.** **THE REASON IS STRUCTURAL AND IT WAS MEASURED THREE TIMES: A SHIPPED DOCUMENT IS SEALED BEFORE THE TAG THAT MAKES ITS CUT-STATE TRUE**, so every release packed before its tag ships a document denying itself, and a guard running in that release's own preflight can only ever confirm *"not cut"* — `1.2.0` shipped *"NOT CUT"*, `1.3.0` shipped *"`v1.3.0` DOES NOT EXIST"*, and this file's own head was stale within minutes of the tag that falsified it. **SO EVERY SENTENCE BELOW THAT CLAIMS WHETHER SOME VERSION IS OR IS NOT CUT — *"PREPARED — NOT CUT"*, *"no `v1.3.0`"*, *"nothing in this section is cut"*, *"the release is not cut"*, *"what is installed today is still `1.1.0`"*, and each reading printed beside them — IS READ THROUGH THIS CLAUSE: the cut-state is not a document's to state.** **WHAT SURVIVES IS THE ONE FIGURE A SHIPPED DOCUMENT CAN BE RIGHT ABOUT, AND IT IS GENERATED FROM THE MANIFEST AND ASSERTED BY THE PREFLIGHT:**
 
-PUBLISH-NOTES-VERSION-LINE: THE VERSION THIS CHANGE LIST DESCRIBES IS `1.9.0`.
+PUBLISH-NOTES-VERSION-LINE: THE VERSION THIS CHANGE LIST DESCRIBES IS `1.9.1`.
 
 **AND THE TAG SET SURVIVES AS A RECORD OF RELEASES — PAST TENSE, A LIST OF WHAT HAS BEEN CUT, NEVER A CLAIM ABOUT THE CURRENT ONE** (the record stands in `§1.4.0` below — the section this file's head called `§main` until it was re-cut to name the version it prepares, 2026-10-28 — beside the section for the tree this file describes). (`D-57`; `DEF-AC` (b) — `scripts/publish.sh --figures` generates that line from `bindings/js/package.json`'s `version` and refuses on any disagreement, in this file, in `bindings/js/README.md` and in the shipped guide: three documents, three version lines, one generator, one assertion.)
 
@@ -52,6 +52,18 @@ RELEASE-NOTES.md`.**
 `version`, its FIVE exact `optionalDependencies` pins, and the FIVE `platforms/*/package.json` versions. **The
 artefact is stamped from the manifest by `bindings/js/build.rs`, so `version()` answers `1.1.0`** and that is
 the value to assert against, not the crate's own `Cargo.toml` version.
+
+---
+
+## §1.9.1 · a PATCH — the reversal's save, its delivery, its judgement's repair arm, the refusing registration's rollback, and the corrupt image's rebuild: five behaviours a consumer can observe
+
+**THE VERSION IS `1.9.1` AND ITS CLASS IS A PATCH, AND WHAT IT CARRIES IS FIVE BEHAVIOURS, ONE LINE EACH, EACH A THING A CONSUMER CAN DRIVE RATHER THAN A SENTENCE TO TRUST** (`docs/specs/storeroom-file-save-coverage/carrier.md` §7.1; `D-117` item 5; `D-118`).
+
+1. **A REVERSAL'S SAVE — THE FILE HOLDS THE STATE THE REVERSAL RESTORED, WRITTEN AFTER THE JUDGEMENT THAT JUDGED IT.** Where the store carries a `filePath`, a `rollback` that passes leaves the file holding the state it restored, saved after that judgement and before the member answers — so a re-opened store boots the reversal's state, and a body the judgement refused cannot have been saved.
+2. **A REVERSAL'S DELIVERY — A LISTENER A REVERSAL'S REPAIR FIRES IS INVOKED ONCE, WITH THE TRIGGERING ADDRESS, BEFORE `rollback` RETURNS.** A reversal's judgement can run your pairs' repairs (`D-113` item 3), and the listeners those repairs' writes fire are now delivered: after that save and before the member returns its record, once per distinct handle, with the triggering address as the single argument. **A judgement that refuses invokes none of them** (`D-117` items 1–3).
+3. **A REVERSAL'S JUDGEMENT RUNS YOUR REPAIRS, AND THE CREDIT IS THE FAILING PAIR'S.** The pair whose repair landed is marked applied — **not the op the repair returned** — and the re-run judges the landing the repair actually made, so a repair answering `undefined` or `{ ok: true }` is credited and only the declared failed arm `{ ok: false, message }` refuses (`D-105`).
+4. **A REFUSING REGISTRATION NOW ROLLS BACK — NO LANDED EDIT SURVIVES A REFUSAL, WITHOUT EXCEPTION.** Every edit a registration landed is restored before the refusal answers; there is no arm of this tree on which a refusal leaves its landing standing (`D-107` item 1, now unconditional).
+5. **A `filePath` WHOSE BYTES ARE NOT THE STORE'S IMAGE NO LONGER REFUSES — A REVERSAL REBUILDS FROM THE CREATION STATE AND THE NEXT SAVE WRITES A READABLE IMAGE.** A present image the store's own loader cannot read is treated as no image at all, exactly as where no file stands: the regeneration rebuilds from the store's creation state and the reversal proceeds, and the save that follows puts a readable image back over the bytes that were never readable as this store's state. **`RollbackCompacted` keeps its place in the twenty statuses and is `DECLARED, NO PRODUCER`** — this release retires no token and mints none (`D-118` items 1–2).
 
 ---
 

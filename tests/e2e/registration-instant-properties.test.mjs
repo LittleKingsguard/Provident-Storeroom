@@ -212,6 +212,12 @@ function parentAnswer(store, parent) {
 /** The `id`s an instance carries, in registration sequence (`D-39`; `guide §7.4`). */
 const namedIds = (store) => store.constraints().map((pair) => pair.id);
 
+/** What the store answers at one address, with the store's own code where the read refuses. */
+const standingOf = (store, address) => {
+  const read = attempt(() => store.read(address));
+  return read.threw ? { present: false, refused: read.value.status } : { present: true, value: read.value };
+};
+
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
 // `P-SCRI-1` — THE PARENT DECIDES, NOT THE ADDRESS, AND IT DECIDES BY RESOLVING
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -572,9 +578,16 @@ test('scri_prop_P_SCR3_the_credit_at_a_registration_is_the_membership_ground_alo
         }
       }
 
-      // ── AND A FAILED REGISTRATION LEAVES THE ROUTE'S LANDING STANDING.
-      assert.deepEqual(store.read(['q']), landedValue,
-        `P-SCRI-3 ${JSON.stringify(draw)}: a write the route landed before a refusal STANDS — the registration composes no rollback (PIN-7 (iv))`);
+      // ── AND A REFUSAL ROLLS BACK OVER THE ROUTE'S LANDING — RE-DERIVED 2026-11-02, `D-107` ITEM 1, AND THE
+      // MOVEMENT IS RECORDED: the property this limb was filed with read *"a write the route landed before a
+      // refusal STANDS — the registration composes no rollback (`PIN-7` (iv))"*, and `PIN-7` (iv) is WITHDRAWN
+      // by the architect's *"Any refusal should be rolling back. Any exceptions are a defect"*. A PASSING
+      // registration's landing is durable (its close's one save names it); a REFUSING one is undone.
+      assert.deepEqual(standingOf(store, ['q']), caught === null
+        ? { present: true, value: landedValue }
+        : { present: false, refused: 'AddressNotFound' },
+        `P-SCRI-3 ${JSON.stringify(draw)}: the route's landing stands on the PASSING arm and is rolled back on `
+          + `the REFUSING one (\`D-107\` item 1); the drive read ${JSON.stringify(standingOf(store, ['q']))}`);
       assert.deepEqual(namedIds(store), caught === null ? ['p3-' + i] : [],
         `P-SCRI-3 ${JSON.stringify(draw)}: a refused registration leaves the entry as it stood (index.d.ts, constraints())`);
       tally(arms, `${shape}/${verdict}`);

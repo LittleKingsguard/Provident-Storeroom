@@ -325,23 +325,126 @@ fn s8_1_10_journal_op_unknown_fires_on_an_unknown_id() {
     assert_code(&e, "JournalOpUnknown", "§8.1 #10");
 }
 
-// §8.1 #11 — RollbackCompacted: a rollback whose scope includes at least one `compacted` entry.
+// **⟶ RE-DERIVED 2026-11-02 — `D-118` ITEM 2: `RollbackCompacted` IS `DECLARED, NO PRODUCER`, AND THIS CELL'S
+// OWN NAME ASSERTED A REACHABILITY THAT IS GONE, SO THE NAME IS RE-WORDED AND THE RE-WORD IS SAID HERE.** The
+// cell was `s8_1_11_rollback_compacted_fires_on_a_compacted_scope_over_an_unreadable_image`; it was re-derived
+// twice before — from `§8.1` #11's as-filed trigger (*"a rollback whose scope includes at least one `compacted`
+// entry"*) by `D-108` item 1 (that arm REGENERATES), and then by `D-109` item 1 to the ONE state it narrowed the
+// token to (a compacted candidate set **AND** a `filePath` whose image cannot be read as an object). **`D-118`
+// item 1 REMOVES THAT LAST ARM**: the architect, verbatim, *"In the corrupt file case, then it restores from the
+// store creation image"* — a present, non-empty image the loader cannot read is **TREATED AS NO IMAGE AT ALL**,
+// the regeneration takes `Store::born`, the reversal proceeds, and **the save that follows writes a readable image
+// over the corrupt file**. **SO NO ACT OF THIS TREE PRODUCES THE TOKEN (`D-118` item 2), and this cell now drives
+// the two arms it used to separate and asserts that BOTH RETURN** — the compaction alone (the control below, whose
+// subject is unmoved) and the compaction over an unreadable image (here). **Nothing is deleted and no rank moves:
+// the code keeps its place in `§8.1`'s twenty members, its rank `11` spelling and its generated message, and no
+// byte of `src/error.rs` moves for it (`D-118` item 2; `PIN-14` (v)); the set's own census cell below still counts
+// twenty.** **The store-side reading `M-10`'s atomicity loses is replaced by the fact this arm still owes: the
+// reversal writes no byte** (`D-112` item 2) — the corrupt fixture STANDS at the path after the call, and the
+// state the store rebuilt from its creation image is the memory's and the next save's.
 #[test]
-fn s8_1_11_rollback_compacted_fires_on_a_compacted_scope() {
-    let mut store = new_store_with_journal(1);
+fn s8_1_11_rollback_compacted_is_declared_and_unreachable_on_a_compacted_scope_over_an_unreadable_image() {
+    let path = fresh_path("s8-1-11");
+    let mut store = ok(
+        storeCreate(&cfg_at(&path, 2)),
+        "§7.1: a two-entry journal at a real path",
+    );
     let first = ok(
         store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
         "§3.4 W-3",
     );
-    ok(
+    let second = ok(
         store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(2.0)),
-        "§3.4 W-1: the oldest is compressed",
+        "§3.4 W-1",
     );
-    let e = failure(
-        store.rollback(OpIdArg::Id(first.op.opId.clone())),
-        "§6.4 M-6",
+    ok(
+        store.write(AddressArg::List(key(&["x"])), w_mem(), v_num(9.0)),
+        "§3.4 W-3: the third append triggers the compression",
     );
-    assert_code(&e, "RollbackCompacted", "§8.1 #11");
+    // THE PLAIN WALK, WHOSE MARKS MAKE THE NEXT CALL'S CANDIDATE SET HOLD A COMPACTED ENTRY.
+    ok(
+        store.rollback(OpIdArg::Id(second.op.opId.clone())),
+        "D-108 item 1: the first reversal walks and returns",
+    );
+    // AND THE ARM `D-109` NARROWED THE TOKEN TO AND `D-118` REMOVES: AN IMAGE THE LOADER CANNOT READ.
+    let fixture = b"this is not the store's image";
+    std::fs::write(&path, fixture).expect("the fixture may write the path");
+    let performed = ok(
+        store.rollback(OpIdArg::Id(second.op.opId.clone())),
+        "§8.1 #11 read through D-118 item 1: the creation-state rebuild RETURNS and the token is not answered",
+    );
+    // (1) **THE CALL RETURNED, AND IT RETURNED THE WALK'S OWN RECORD** — the reversal is performed and no
+    // candidate is skipped (`M-6`/`M-9` unmoved, `D-108` item 1).
+    assert!(
+        performed.undoneOps.contains(&second.op.opId),
+        "D-118 item 1: the reversal is PERFORMED over its whole bounded candidate set and reports it; got {:?}",
+        performed.undoneOps
+    );
+    assert_eq!(
+        performed.restoredTo.present, true,
+        "D-118 item 1: and it answers the reversed op's own pre-state"
+    );
+    // (2) **THE BASE WAS THE CREATION STATE, SO THE SURVIVING JOURNAL ALONE SPEAKS** — `['x']`'s entry is
+    // out-of-scope and un-marked, and it is replayed over the empty creation image (`D-108` item 3).
+    assert_eq!(
+        read_at(&store, &key(&["a"])),
+        v_num(1.0),
+        "D-118 item 1: the addressed subtree answers the walk's restored state"
+    );
+    assert_eq!(
+        read_at(&store, &key(&["x"])),
+        v_num(9.0),
+        "D-118 item 1: and the version outside the reversal's scope stands, rebuilt from the journal entry the \
+         window left un-marked"
+    );
+    // (3) **AND THE STORE'S REVERSAL WRITES NO BYTE** (`D-112` item 2): the corrupt fixture still stands at the
+    // path. The save that makes the image readable is the PACKAGE's, after its judgement — this frame's subject is
+    // the reversal and not the save, which is why this cell asserts the bytes UNMOVED where the package-level
+    // cells assert them rewritten.
+    assert_eq!(
+        std::fs::read(&path).expect("the path is readable"),
+        fixture.to_vec(),
+        "D-112 item 2: `Store::rollback` performs the reversal and no save — the fixture bytes stand"
+    );
+    let _ = first;
+}
+
+// AND THE CONTROL THAT KEEPS THE TOKEN'S LOST PRODUCER FROM BEING READ AS A RETIREMENT OF THE SET: the SAME window
+// with its image intact REGENERATES and RETURNS (`D-108` item 1), and the arm beside it — the compaction over an
+// unreadable image — returns too (`D-118` item 1), so the code is reached by NEITHER and keeps its place in the
+// twenty while no act produces it (`D-118` item 2).
+#[test]
+fn s8_1_11_rollback_compacted_does_not_fire_on_a_compacted_scope_alone() {
+    let path = fresh_path("s8-1-11-control");
+    let mut store = ok(
+        storeCreate(&cfg_at(&path, 2)),
+        "§7.1: a two-entry journal at a real path",
+    );
+    ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    let second = ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(2.0)),
+        "§3.4 W-1",
+    );
+    ok(
+        store.write(AddressArg::List(key(&["x"])), w_mem(), v_num(9.0)),
+        "§3.4 W-3",
+    );
+    ok(
+        store.rollback(OpIdArg::Id(second.op.opId.clone())),
+        "D-108 item 1: the first reversal walks and returns",
+    );
+    let performed = ok(
+        store.rollback(OpIdArg::Id(second.op.opId.clone())),
+        "D-108 item 2: the second call meets the mark and REGENERATES — it does not refuse",
+    );
+    assert!(
+        performed.undoneOps.contains(&second.op.opId),
+        "D-108 item 1: the regenerating reversal is performed and reported; got {:?}",
+        performed.undoneOps
+    );
 }
 
 // §8.1 #12 — ConstructionArgumentMissing: **⟶ AMENDED 2026-10-11: the member's trigger is NARROWED, not

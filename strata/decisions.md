@@ -5377,3 +5377,707 @@ wrong address is moot once the kernel holds the repair's leg — withdrawn, or r
 pair's mark · the commit's leg), the behaviours it changes (`2` = an op-less return is credited · the repair's triggers
 join the battery), the statuses, members and codes it mints (`0`), the releases it will need (`1` = a cut, class L1's),
 the questions left (`1` = the declaration).**
+
+---
+
+### `D-106` — the file must save after ANY action that changes the file-tier data: three measured arms, one rule, and the text that hid it
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, forwarding a downstream report and ruling
+on it — **verbatim:**
+
+> Feedback from downstream claiming that the store doesn't save after a repair writes at the file tier during constraint
+> registration or store creation. If this is correct, it is a defect, the file must save after any action that changes
+> the file-tier data, without exception
+
+**AND THE TWO QUESTIONS L0 PUT TO HIM, ANSWERED BY SELECTION** (`strata/research.md` §13 carries the measurements they
+were asked on): **scope — *"All three arms"***, that is the registration-instant repair's file-tier write, the
+**whole-target `delete`** and the **successful `rollback`**, all three in one unit; **and the text limb — *"Carry the text
+correction in this unit"***, so the guide's `§9.2`/`§9.3` sentences and the `D-32`-derived spelling **move as a documents
+act inside the unit** rather than standing and being read through a ruling — **the project's usual ANNOTATE-BESIDE
+convention is NOT what he ordered here, and no layer may substitute it.**
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE REPORT IS CORRECT, MEASURED — and its own citation of the instant, and not of the producer, is why it is correct.**
+   A repair invoked at a **registration instant** — `addConstraint`, `constraintOn`'s re-arm, a `storeCreate` carrying
+   `cfg.constraints`, and a **boot** over an existing `filePath` carrying them — **can write at the `file` tier through the
+   route `D-91` gave it**, and the registration then **passes**, and **the file is not written**. Measured on this tree at
+   `1a0d252` (`strata/research.md` §13's drives, verbatim): `addConstraint` answers an identity, the in-memory read is the
+   repaired value, and the bytes at `filePath` are **byte-identical to the state before the call**; a construction whose
+   repair lands `99` leaves a **zero-length** file and a second instance over that path answers **`AddressNotFound`** for
+   the repaired address *and for everything else*; and **an unrelated later caller's save carries the repair's value into
+   the file**, which is the whole of the defect's shape — *the record is durable when some other caller happens to save*.
+2. **THE RULE, AND IT IS THE AUTHORITY FOR EVERY LATER PASS.** **The file must save after ANY action that changes the
+   file-tier data, without exception.** **`DD-28`'s *"durability is produced by a successful `file`-tier `write` ONLY"* is
+   read as a statement about the ACTS THAT OWE A SAVE and no longer as a closed list of them**: a `file`-tier write is
+   still the paradigm, **and an act that changes file-tier data without being a `file`-tier write is under the same
+   duty.** **No design, patch or later ruling may introduce an act that moves file-tier data and leaves the bytes alone**;
+   where such an act exists today it is a defect until it is closed.
+3. **THE THREE ARMS, EACH A DEFECT AND EACH IN THIS UNIT** — the first reported, the other two measured here because the
+   rule reaches them and L0 put them to him rather than deciding them:
+   * **ARM 1 — a repair's `file`-tier write at a registration instant.** Package-side, and it has a lawful carrier today:
+     the repair's write **is a `file`-tier journal op** and `commit_file` accepts exactly that. The registration's
+     synthetic attempt closes **without reaching the terminal arm** (`kernel-registration.mjs`'s `closeRegistrationAttempt`,
+     whose own clause says it *"reaches neither the per-op rollback composition nor the delivery seam"*), and **the save
+     lives at that arm alone** (`delivery.mjs`'s `terminalArm` → `commitFile`, gated on
+     `record[SETTLED_ON_THE_PASSING_ARM]`), so nothing names the repair's op to the store's writer.
+   * **ARM 2 — a WHOLE-TARGET `delete`** (no tier named). Measured: the version leaves the store in memory, **the file
+     still holds it**, and a second instance reads it back. Its op carries **no tier** (`index.d.ts:631`), and the store's
+     `commit_file` answers early on exactly that (`if self.journal[index].op.tier != Some(Tier::File) { return Ok(()) }`),
+     so **this arm needs a NATIVE-side decision** — a tier-less op that may save, or an eligibility rule the store states.
+   * **ARM 3 — a SUCCESSFUL `rollback`** that restores `file`-tier versions. Measured: the restored value stands in memory,
+     **the file still holds the reversed one**, and a second instance reads the reversed one back. **A rollback appends no
+     journal entry at all** — *"a save is an effect and not an op"* — so it has **no op to name to `commit_file`**, and
+     this arm needs a **NATIVE-side carrier decision** (an op-less save) as well.
+4. **WHAT IS ALREADY CONFORMING, SO THE FIX IS NOT TAKEN WIDER THAN THE DEFECT** — each measured here, not carried: a plain
+   caller's `file`-tier write **saves**; a repair's `file`-tier write at the **landing** instant **saves** (the terminal arm
+   names its op, and the writer re-serializes the whole image, so the bytes carry the repaired value); a **tier-named**
+   `file` delete **saves** (the 2026-10-29 clause); and a **refused** `rollback`'s compensating restore **saves** (the
+   2026-10-27 clause). **No arm of those four moves.**
+5. **THE TEXT IS THE UNIT'S, AND IT IS THE HALF THAT LET THIS HIDE.** The downstream's finding is confirmed at the bytes
+   and is filed (`strata/research.md` §13): **guide `§9.2` and `D-32` both say a `file`-tier write commits *"with no kernel
+   attempt and no terminal arm in the path"*, and that sentence is false of the package's own surface** — every
+   `store.write` reaches the kernel's `K-2`/`K-3` (`index.mjs:396`–`:397` → `constraints.mjs`'s `constraintWrite` →
+   `kernel.commit` + `kernel.runAttempt`) and is saved **by the terminal arm**; **the addon's write verb writes no byte on
+   any arm** (`src/store.rs`'s own closing clause: *"THE `file` TIER'S DURABLE COMMIT IS NO LONGER A VERB'S ARM AT ALL"*).
+   **So the sentence names the wrong mechanism AND no instant**, and the instant is what the registration route lacks.
+   **The correction of those bytes is part of this unit's write set** (item 3 of the put questions, answered above).
+6. **NO STATUS, MEMBER, ARITY OR TYPE MOVES FOR THE RULE ITSELF.** A save that cannot land is still `FileCommitFailed`
+   with the store's journal rollback first (`§9.4`); the closed set is unmoved; and the registration instant's record
+   census (`PIN-6`'s seventh member `write`) is unmoved by this row.
+
+**WHAT IT DOES NOT SETTLE — L1's, and no layer below may read this row as having decided them.** **Each arm's carrier**
+(item 3's two native-side arms are the live design questions, and the store's `commit_file` is the only writer — whether it
+grows an op-less arm, whether a tier-less op becomes eligible, or whether the eligibility rule moves to the caller, is
+declared by the unit's contract and not here); **the save's ONCE-PER-RECORD law is untouched and constrains the answer**
+(`storeroom-js/contract.md`'s per-record marker: *"a save performed twice for one record"* is a named FAILS-IT state, so a
+fix may not re-drive an already-saved op, and **any new save must be keyed to an op, or to a state, the store knows it has
+not saved**); **the guide's and the declaration's exact new sentences**; **the cells, the write set, the layer statement,
+and the release class**; and **whether a `storeCreate`'s construction write (the exclusive create that leaves the file
+zero-length) is itself in scope** — it changes no file-tier data and is out by that ground.
+
+**WHAT IT CHANGES BELOW ME: an intake note, a unit, and a rule that outlives the unit.** `strata/research.md` §13 carries
+the measurements and the package finding; `U-STOREROOM-FILE-SAVE-COVERAGE` is the unit (L1's declaration, the four gates
+that follow it, and the release pass's number); and item 2's rule binds every later design even where this unit's arms are
+closed.
+
+**TERMS: the acts the rule reaches (`3` = the registration-instant repair's write · the whole-target `delete` · the
+successful `rollback`), the acts it confirms as already conforming (`4`), the carriers it removes (`1` = `DD-28`'s
+closed-list reading · and, with the text limb, `D-32`'s and guide `§9.2`'s *"no attempt, no terminal arm"* mechanism
+sentence), the mechanisms it leaves to L1 (`2` = a tier-less op's eligibility · an op-less save), the statuses, members,
+arities and types it mints (`0`), the releases it will need (`1` = a cut, class L1's), the questions left (`1` = the
+carriers).**
+
+---
+
+### `D-107` — a REFUSAL ROLLS BACK, without exception: the registration's refused arm is a defect, `§9.4` is not widened, and the native contract's mechanism byte moves in this unit
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering the three questions
+`U-STOREROOM-FILE-SAVE-COVERAGE`'s gate-2 declaration put to him (`docs/specs/storeroom-file-save-coverage/`, and
+`strata/research.md` §13.5 item 3 for the first one's discovery). **THE THREE ANSWERS, VERBATIM:**
+
+> **(Q1 — does a registration whose repair lands and whose re-run then refuses OWE A SAVE?)** *"Any refusal should be
+> rolling back. Any exceptions are a defect"*
+>
+> **(Q2 — what form does a reversal's failed save take, when there is no journal entry to roll back?)** *"Rollback should
+> still revert to the last valid state"*
+>
+> **(Q3 — is `docs/specs/storeroom-native/contract.md` `§7.2` item 2's mechanism sentence read through `D-106`, or
+> corrected?)** ***"Correct that byte too, in this unit"***
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **★ `Q1` IS NOT A SAVE-DUTY ANSWER AND MUST NOT BE CARRIED AS ONE: IT IS A BEHAVIOUR DEFECT IN THE REFUSED ARM.** **A
+   REFUSAL ROLLS BACK** — the architect's words are unconditional and the defect is the standing edit, not the unsaved
+   one. **So the shipped sentence that declares the opposite is FALSE BY RULING and is replaced**: guide `§7.2` (4)'s
+   *"a write the route lands before a refusal STANDS, because a registration composes no rollback"* — and
+   `docs/guides/package-use.md`'s copy of it at `:914` — **states a behaviour the architect has now ruled a defect**, and
+   the registration's refusing arm **composes a rollback over everything it landed**, leaving the store where it found it,
+   exactly as a failing attempt does today (`kernel-terminal.mjs`'s `composeRollback`, `D-40`'s one-call-per-address floor
+   plan). **A refused registration that leaves its landed edits standing is a defect wherever it is found.**
+2. **AND THE BYTES OF A REFUSED REGISTRATION FOLLOW FROM (1) AND FROM `D-106`, NOT FROM A SECOND RULE.** A refusal that
+   rolls back leaves the `file`-tier data where the call found it, **so the file and the memory agree and no `D-106` save is
+   owed on that arm** — **and the rollback it composes is itself an act that may move `file`-tier data, so `D-106`'s ARM 3
+   is what makes the bytes right**: the registration's refused arm needs **no save of its own** and **inherits arm 3's**.
+   **A pass that adds a save to the refusing arm as well has given the act two saves of one image and has left this row.**
+3. **`Q2` KEEPS THE REVERSAL'S SEMANTIC AND NOT ITS TEXT.** **A `rollback` still reverts to the LAST VALID STATE** —
+   `D-63`'s restore mark, unmoved — **and the save `D-106` adds is an effect that FOLLOWS the reversion and is never a
+   condition on it.** **A save that cannot land therefore leaves the memory AT the last valid state and the bytes NOT
+   updated, and the refusal says both** (the refused-reversal restore's declared form, `README.guide.md:1729`–`:1742`) —
+   **and `§9.4` IS NOT WIDENED**: it stays narrow, naming `FileCommitFailed` for a `file`-tier write's save, and is not a
+   false sentence for being narrow.
+4. **`Q3` EXTENDS THE TEXT LIMB ONE STEP FURTHER THAN `D-106` ITEM 5.** **`docs/storeroom-native/contract.md` `§7.2` item
+   2's mechanism sentence is CORRECTED IN THIS UNIT** — the kept contracts are no longer read through `D-106` on this one
+   sentence; **its bytes move, and the unit's write set carries them.** **This is the architect's second departure from the
+   project's usual ANNOTATE-BESIDE convention in one unit, and both are his** (`D-106` item 5 and this item).
+5. **NO STATUS, MEMBER OR ARITY IS MINTED BY (1) ITSELF.** The refusal a registration answers keeps its rank `19`
+   `ConstraintRefusedAtRegistration` and its `§8.2`-generated message; **what a rollback floor met at that arm does is L1's
+   to declare** (whether the floor's `KC-8` can reach a registration refusal at all is the live question) — **and no
+   sentence of this row may be read as minting a token.**
+
+**WHAT IT DOES NOT SETTLE — L1's.** **The registration's rollback composition**: which ops it covers (the synthetic
+attempt's `ops`), which floor call it issues and over which addresses (`D-40`'s plan is the landing's; whether it is the
+same plan here is a declaration), **what the refusal answers when the composition meets a compacted floor** (an
+all-or-nothing floor that undoes nothing leaves exactly the standing edit this row declares a defect, so this is not a
+detail), and **whether the refused arm's rollback is visible in the caller's `log`**; **the exact replacement sentences**
+for `§7.2` (4) and for the native contract's `§7.2` item 2; **the cells, the write set, the layer statement and the release
+class**.
+
+**WHAT IT CHANGES BELOW ME: the unit's gate 2 re-runs.** `docs/specs/storeroom-file-save-coverage/` was declared `CLOSED` on
+an answer this row removes — its `(4-B)` draft saves an edit that now must be undone — so its contract, its clauses' `§1`,
+its claims' row for the refused arm, its `sites.md` and its `verification.md` are **owed a re-derivation by the gate that
+failed**, and the gate that corrects is not the gate that certifies (`strata/walkthrough.md` §1).
+
+**TERMS: the behaviours this row declares (`2` = a refusal rolls back · a reversal reverts before it saves), the shipped
+bytes it moves (`3` = guide `§7.2` (4)'s *"STANDS"* sentence · the native contract's `§7.2` item 2 mechanism sentence · and
+`(4-B)`'s withdrawal from the spec it was drafted into), the text it refuses to widen (`1` = `§9.4`), the statuses, members
+and arities it mints (`0`), the gates it voids (`1` = the unit's gate-2 verdict), the questions left (`2` = the
+composition's floor arm · the composition's log).**
+
+---
+
+### `D-108` — a rollback that meets COMPACTION REGENERATES from the file/creation data: the all-or-nothing floor is not the strand, and this is the unit's fourth arm
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering `U-STOREROOM-FILE-SAVE-COVERAGE`'s
+gate-2 correction pass's one architect-bound question — *when a rollback's composition meets a compacted journal entry, the
+store's floor is all-or-nothing and undoes nothing, so the landed edit `D-107` calls a defect would stand; what does that arm
+do?* **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> The default behavior for a last-valid-state rollback encountering the compaction should already be to regenerate from
+> file/creation data
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE COMPACTION ARM DOES NOT STRAND THE STATE — IT REGENERATES IT.** When a last-valid-state reversal meets a compacted
+   entry and the journal can no longer replay backward, **the answer is not *"undo nothing and stand where you are"*: the
+   store REBUILDS the last valid state from the durable ground truth** — the `file` tier's image, and the creation state where
+   no image stands (`DD-38`'s `0`-registration boot, the construction's own base). **The architect's *"should already be"*
+   is taken as what it says**: this is the behaviour the store **owes**, so its absence is **a defect of the same class as
+   `D-106`'s arms** — **the compaction arm is this unit's FOURTH ARM, and it is a store-side one.**
+2. **NO LANDED EDIT SURVIVES A REFUSAL, ON ANY ARM, AND THAT IS NOW UNCONDITIONAL.** `D-107` item 1's rule — *a refusal rolls
+   back, any exception is a defect* — **has no exception left on this arm**: the registration's composition inherits the
+   regeneration, so the arm that could not undo now rebuilds. **A pass that keeps the all-or-nothing strand as the arm's
+   final answer has left this row.**
+3. **THE GROUND TRUTH IS NAMED**: the **file image** where one stands, and the **creation state** where none does. **What a
+   regeneration does with versions that were never durable** — a `mem`- or `temp`-tier version the compaction swallowed, which
+   no file image carries — **is NOT settled here**, and it is the arm's own semantic question: a regeneration from the file
+   cannot restore what the file never held, so either the last valid state is the DURABLE state (and a memory-only version
+   is lost, which is a statement about what a rollback promises) or some part of the in-memory register survives the
+   rebuild. **L1 declares which, and if the answer contradicts a kept clause it is the architect's again.**
+4. **THE TEXT THIS FALSIFIES IS IN THE SHIPPED GUIDE, AND IT IS THE TEXT LIMB'S, NOT A NEW LIMB.** `§6.1`–`§6.4`'s and
+   `§9.3`'s *"a rollback whose candidate set includes one compacted entry fails `RollbackCompacted` and undoes nothing — the
+   floor is all-or-nothing"*, and `M-5`/`M-6`'s spelling of that floor as the arm's **answer**, are **read through this
+   row**; **the guide's bytes are replaced in place by the same unit's text limb** (`D-106` item 5, `D-107` item 4), and the
+   native contract's floor clauses follow `D-107` item 4's precedent.
+5. **NO STATUS IS MINTED HERE, AND WHETHER ONE IS RETIRED IS NOT THIS ROW'S.** If the regeneration replaces the arm,
+   **`RollbackCompacted`'s subject may be gone** — **and the closed set is the store's, so that is the architect's question
+   and it is put below rather than decided.** **Nothing in this row may be read as having retired, renamed or widened a
+   status.**
+
+**WHAT IT DOES NOT SETTLE — L1's, with the one that is his stated.** **Whether `RollbackCompacted` survives with a narrowed
+subject, or retires** (his: the set is closed by the store); **what the regeneration reports** (`undoneOps`, `restoredTo`,
+and whether the report's `rollback` member carries a regeneration step at all); **whether the journal resets after a
+regeneration** (the `seq` arm, `M-9`, and `DD-30`'s compaction law); **how the registration's composition is told a
+regeneration happened vs a replay**; **the exact replacement sentences**; **the cells, the write set, the layer statement
+and the release class**.
+
+**WHAT IT CHANGES BELOW ME: the unit's part map and its gate 2, again.** A fourth arm with a store-side mechanism, a possible
+status retirement and its own text sites is not an amendment to a declared contract — **it is a re-derivation**, and the
+gate-2 verdict the correction pass issued is voided with it (`strata/walkthrough.md` §1).
+
+**TERMS: the arms this row adds (`1` = the rollback's compaction arm), the ground truths it names (`2` = the file image · the
+creation state), the defects it declares (`2` = a stranded state on that arm · `D-106`'s own three), the statuses it retires
+(`0` = none decided; `1` = `RollbackCompacted`'s subject, put to him), the questions left (`2` = the memory-only versions ·
+the journal's `seq` after a regeneration).**
+
+---
+
+### `D-109` — `RollbackCompacted` is NARROWED, not retired: the twenty stand, the unit proceeds to its landing, and one bookkeeping operation is bookmarked
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, accepting the one question
+`U-STOREROOM-FILE-SAVE-COVERAGE`'s third gate-2 derivation left open. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> Accept the narrowing. Proceed and bookmark the bookkeeping operation for after implementation
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **`RollbackCompacted` SURVIVES, AND ITS SUBJECT NARROWS TO ONE STATE.** With `D-108`'s regeneration doing the work the
+   all-or-nothing floor used to refuse, the token's remaining subject is **a temporally-bounded candidate set holding a
+   compacted entry AND a `filePath` whose image cannot be read as an object** — **the only producer left**, and one an
+   externally corrupted file is required to reach. **THE FAIL SET STAYS TWENTY: no member retires, none is renumbered, and no
+   status byte in a kept contract moves** (that is the price the alternative carried and this row refuses).
+2. **THE SPEC'S RECOMMENDATION IS THE RULING, SO THE GATE-2 VERDICT STANDS AS ISSUED.** The unit's contract directory
+   declared both branches and priced the narrowing; the architect took the declared branch, **so no fourth derivation is
+   owed** — the directory is usable as it stands, and **`sites.md §4.2`'s items 15–18, which could be edited in neither
+   direction while the question stood, are edited in the narrowing's direction.**
+3. **THE UNIT PROCEEDS TO GATE 3 — THE LANDING** (`strata/walkthrough.md` §2's gate 3: the bytes at their sites, the
+   generated copy restored, and the records the unit owes).
+4. **ONE BOOKKEEPING OPERATION IS BOOKMARKED FOR AFTER IMPLEMENTATION** — `strata/research.md` §14 `BK-1`, with its owner
+   and its revisit condition: the dirty-tree boundary set is **two rows in one file** (`S-1` and `REG-EXEC`), not the
+   four-in-three and six-in-four that earlier reports repeated. **AND THE BOOKMARK CARRIES A CORRECTION TO THE REPORT'S OWN
+   CITATION, FOUND BY RE-READING IT RATHER THAN REPEATING IT: the report says *"the brief's own §6 says the same — 'one
+   trivial no-op edit reads 2 failed'"*, and `strata/brief.md` §6 CARRIES NO SUCH SENTENCE** (`grep`, this date: no `2
+   failed`, no `no-op edit`, and no dirty-tree figure anywhere in the file). **So the figure is the report's own
+   re-measurement and its citation does not resolve** — the correction is owed, and so is a re-measurement that stands on
+   its own instrument. **It is `RESERVED`, not started, and no byte of this unit's landing carries it.**
+
+**WHAT IT DOES NOT SETTLE.** The cell that re-derives `s8_1_11` against a corrupt-file fixture (the test layer's, and the
+narrowed subject's only producer); the exact guide and contract sentences the narrowing needs (`clauses.md`'s text limb,
+already declared); the release's number (the release pass's); and the bookmark's own performance, which waits on the
+landing.
+
+**WHAT IT CHANGES BELOW ME: nothing but a scope sentence and a queue entry.** The narrowing's mechanism was declared and
+priced by the spec's own recommendation; **the landing takes it as written, and the bookmark is recorded rather than
+worked** — the two halves of the architect's sentence are exactly that, and a pass that starts the bookkeeping before the
+implementation lands has left this row.
+
+**TERMS: the statuses this row retires (`0`), the status it narrows (`1` = `RollbackCompacted`), the set's size it keeps
+(`20`), the derivations it voids (`0` = the declared branch was taken), the gates it opens (`1` = gate 3), the operations it
+bookmarks (`1` = `BK-1`).**
+
+---
+
+### `D-110` — the regeneration's base is the store's own EXISTING file-or-construction fallback, not a second reader
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, on gate 4's `F1` and the correction that
+answered it. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> The regeneration should be an already existing fallback that uses the file, if available, and the construction image if
+> not.
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **`F1`'S CORRECTION IS RIGHT ABOUT THE BASE AND WRONG ABOUT THE MEANS.** The correction pass gave the regeneration a
+   fresh base — the `file`'s own image where one stands, `Store::born` where none does — which is `D-108` item 1's two
+   grounds, and it drove the durable-loss finding closed. **But it minted a SECOND READER to do it**
+   (`Store::durable_base`, its own three "none" arms and its own `json::decode`), **duplicating a fallback the store already
+   has**: `Store::boot_load` (`src/store.rs:1498`) reads the file, answers `None` for exactly the three classes that owe
+   the construction image (no `filePath`, an absent or unreadable file, a zero-length file), and mints every admitted
+   member at `Tier::File` — **the existing fallback is `boot_load` for "the file, if available" and `Store::born`
+   (`:646`, set at `:814`) for "the construction image if not".**
+2. **THE STORE KEEPS ONE READER, AND THAT IS THE RULING AND NOT A STYLE NOTE.** A second reader is a second decode of the
+   same bytes by the same format, and this project has already paid for one duplicated mechanism drifting from its
+   sibling (`D-1-ter`'s four pins on one file, `D-69`'s second reach). **`durable_base` is DELETED as a reader**; the
+   regeneration reaches its base through the existing fallback, and any fact the fallback's current answer does not carry
+   **is carried out of the one place the decode already happens** rather than re-derived beside it.
+3. **`D-109`'S PRODUCER SURVIVES THE SIMPLIFICATION, AND THAT IS THE HARD PART, SO IT IS SAID PLAINLY.** The narrowed
+   `RollbackCompacted` fires on *an image that stands and that the store's own loader refuses*, and `boot_load`'s declared
+   answer (`Option<usize>`) cannot tell that state from an empty-but-decoded `{}` — **both read `Some(0)`**. **So the
+   shared reader's answer carries the third class once, where the decode happens, and `boot_load` keeps its declared
+   `Option<usize>` answer unchanged for the boot path** — **a design that widens `boot_load`'s declared answer, or that
+   re-reads the file a second time to recover the missing class, has left this row.**
+4. **NOTHING ELSE MOVES.** The `file` tier's minting, the replay of what the journal still reaches, the absent journal
+   entry, the unstepped `last_seq`, the untouched marks, the single serialization, and `D-108` item 3's answer on
+   memory-only versions all stand as the correction pass left them. **The twenty statuses, the fourteen members and the
+   barrel stay unmoved.**
+
+**WHAT IT DOES NOT SETTLE.** The reader's own name and shape (the store's, and L1's if a pin names it); whether the third
+class travels as an `Option<Result<…>>`, an enum or a private struct; and the prose that names the mechanism — **a guide
+sentence that names `boot_load` must name the fallback and not a helper that no longer exists.**
+
+**WHAT IT CHANGES BELOW ME: one file and one deletion, and a rule that outlives the unit.** `src/store.rs` loses
+`durable_base` and gains the reuse; **and every later mechanism in this tree that needs "the durable state, else the
+construction state" reaches the existing fallback rather than copying it.**
+
+**TERMS: the readers this row leaves (`1` = the store's own), the readers it deletes (`1` = the correction's second), the
+grounds it names (`2` = the file · the construction image), the declared answers it forbids widening (`1` =
+`boot_load`'s), the statuses, members and arities it mints (`0`), the questions left (`1` = the reader's shape).**
+
+---
+
+### `D-111` — a COMPENSATING rollback does not save: the failing attempt's own reversal is compensation and not an act, and `D-38`'s rank-20 judgement is not preempted
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering the one question gate 4's second
+verdict left open. **THE QUESTION, AND THE ANSWER BY SELECTION (the option's own words are the record's):**
+
+> **(Q — the reversal's save sits inside `Store::rollback`, so it runs before the package judges the attempt. A reversal
+> composed by a FAILING attempt now saves, so a refused `file`-tier write's bytes move (measured: zero-length → `{}`)
+> although the unit's own shipped sentence says *"a failing pass performs no save at all"*; and when that save fails the
+> caller gets `FileCommitFailed` with an empty log instead of `D-38`'s rank-20 `ConstraintPassRefused`, which no ruling has
+> amended. Who owns the save on a compensating rollback?)**
+>
+> ***"The failing attempt's rollback does not save"***
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **A REVERSAL THE KERNEL COMPOSES TO UNDO A FAILING ATTEMPT IS COMPENSATION, NOT AN ACT, AND IT OWES NO SAVE.** It returns
+   the store to the state the call found, **so it changes nothing durable and there is nothing to save** — and because the
+   failing write's own save never happened, the `file`-tier projection is what it was. **`D-106`'s rule is not narrowed by
+   this row: it is applied correctly for the first time on that arm**, and the arm that violated it was the correction's
+   placement, not the rule.
+2. **A CALLER'S OWN `rollback` STILL SAVES** — that reversal is the caller's act and not compensation, so `D-106`'s ARM 3
+   stands whole (measured before the corrections: two `file`-tier writes, one reversal, the bytes holding the restored
+   value and a fresh boot reading it).
+3. **`D-38`'S RANK-20 JUDGEMENT IS NOT PREEMPTED AND `FileCommitFailed` DOES NOT TAKE ITS PLACE.** A reversal's save cannot
+   run before the pass's arm is decided, **so a `FileCommitFailed` can never answer where the declared arm is
+   `ConstraintPassRefused`** — **and the shipped sentence *"a failing pass performs no save at all"* is TRUE and stands**
+   (`clauses.md`'s final `§9.2` text, already landed; `docs/specs/storeroom-native/contract.md:3997`'s *"a write that did not
+   reach the pass's passing arm performs no commit"* with it).
+4. **THE MEASURED DEFECTS THIS CLOSES, EACH A CORRECTION'S AND NOT THE RULE'S**: the failing arm's bytes moving
+   (`J1`/`J2`: a refused `file`-tier write taking the path from zero-length to `{}`, and the inode moving on a standing
+   image), and the wrong token with an empty log (`K1`/`K3`: `FileCommitFailed`, `log: []`, where
+   `bindings/js/index.mjs:669`–`:672` and `docs/specs/storeroom-js/contract.md §2.6` declare `ConstraintPassRefused`).
+
+**WHAT IT DOES NOT SETTLE — L1's.** **How the store is TOLD that a rollback is compensation** — a second entry point, a
+position on the existing one, or a package-side decision reached before the store is called — with its price, and
+**whether the distinction needs a name in the corpus at all**; **the cells** that drive the two arms apart; and **the
+prose**, which must not leave a sentence implying that a caller's reversal and a compensation are one act.
+
+**WHAT IT CHANGES BELOW ME: one mechanism and one exemption, and it is the last blocker gate 4 named.** The unit's other
+open findings — the kept contract's remaining live survivor, the write set's six-against-two, the spec's own arithmetic,
+and the sixteen cells' re-derivation — are **not** answered here and are queued.
+
+**TERMS: the arms this row separates (`2` = a caller's reversal that saves · a compensation's that does not), the
+judgement it protects (`1` = `D-38`'s rank 20), the sentence it confirms (`1` = *"a failing pass performs no save at
+all"*), the defects it closes (`2`), the statuses, members and arities it mints (`0`), the questions left (`1` = the
+mechanism's carrier).**
+
+---
+
+### `D-112` — the reversal's save is AFTER the constraint judgement: the store's `rollback` does not save, and `judgeReversal` is the boundary the save stands behind
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, correcting L0's own account of the landing's
+placement. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> The save *does* happen after the constraint judgement
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE ORDER IS THE ARCHITECTURE'S AND IT IS ONE ORDER EVERYWHERE.** A write's save is its **terminal arm's, after the
+   pass**; a `delete`'s is its **terminal arm's, after the pass**; **and a reversal's is after ITS judgement** — the package's
+   `judgeReversal` (`bindings/js/src/entry/constraints.mjs:2474`, called from `index.mjs`'s `rollback` member at `:701`),
+   which asks the state the reversal left and throws `D-38`'s rank-20 `ConstraintPassRefused` where a touched pair refuses
+   it. **A SAVE THAT RUNS BEFORE THAT JUDGEMENT HAS SAVED A STATE THE JUDGEMENT MAY REFUSE** — which is exactly what the
+   shipped bytes did and what L0 miscounted as *"a narrow residual"* when it reported pass three.
+2. **SO `Store::rollback` DOES NOT SAVE, AND THE STORE'S `save_file_delta` CALL IS NOT THE REVERSAL'S CARRIER.** The reversal
+   performs the reversal — the replay, the regeneration, the report — **and no write to the path**; the save is the
+   package's act at the instant the judgement has passed. **`D-106`'s ARM 3 IS THEREFORE A PACKAGE-SIDE ARM AND NO LONGER A
+   STORE-SIDE ONE**, and `D-110`'s one-reader rule is what the carrier must respect.
+3. **THE COMPENSATING ARM IS UNCHANGED AND IS NOW STRUCTURALLY RIGHT FOR FREE.** The kernel's own compensation is
+   `COMPENSATING` and `judgeReversal` returns on it before any ask (`constraints.mjs:2478`), so a compensation is never
+   judged **and, standing behind the judgement, is never saved either** — `D-111` item 1 is discharged by the ordering
+   rather than by a predicate, and the equality test the third correction pass invented is no longer the mechanism.
+4. **AND THE DEFECT THE LANDING'S PLACEMENT PRODUCED IS CLOSED BY CONSTRUCTION, NOT BY A SPECIAL CASE**: a failed save can no
+   longer answer where `D-38`'s rank 20 is the declared arm, because the save is reached only after that arm has passed.
+
+**WHAT IT DOES NOT SETTLE — L1's, and one of them is a declared-surface act.** **The carrier the post-judgement save uses**: a
+reversal appends no journal entry (*"a save is an effect and not an op"*, `M-9`, unmoved), so an op-keyed `commitFile` cannot
+name it, and **the addon's entry count and the instance's member set are declared surfaces** — whether the carrier is a
+tenth addon entry, a position on the existing one, or a package act that reaches the store's own writer through a channel
+the corpus already declares, **is a declaration and not an implementer's choice**. **Also L1's:** the cells that drive the
+two arms apart, and the prose that must stop implying a caller's reversal and a compensation are one act.
+
+**WHAT IT CHANGES BELOW ME: the last mechanism of the unit moves out of the store and behind the judgement.** The three
+correction passes' store-side saves are **withdrawn as carriers** — the equality test, the pre-act projections and the
+`save_file_delta` call in `rollback` go with them — while the regeneration (`D-108`), the one reader (`D-110`), the
+registration's close (`D-106` arm 1, `D-107`) and the eligibility by what an act moved (`D-106` arm 2) stand as they were.
+
+**TERMS: the instants this row orders (`2` = the reversal · its judgement), the carriers it removes (`1` = the store's
+`rollback` save), the arms it makes structural (`1` = the compensation), the declared surfaces it hands to L1 (`2` = the
+addon's entry count · the instance's members), the statuses it mints (`0`), the questions left (`1` = the carrier).**
+
+---
+
+### `D-113` — the reversal's save names an OP: the most recent repair's, else the reversal's own — and the reversal's judgement RUNS REPAIRS
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering L1's question about the save
+command's format. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> The reversal is already pointing to an op and should be checking constraints and running repairs, if any are needed. Use
+> the most recently generated repair op or the original reversal op if no repairs were needed.
+
+**AND, ON THE FAILED SAVE'S LOG, ANSWERED BY SELECTION AND CONFIRMED IN THE SAME SESSION:** ***"It carries the judgement's
+entries"*** — the refusal carries the entries the judgement appended in its own window, and `§9.4` stays untouched.
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **★ NO NEW ADDON ENTRY IS OWED, AND THE COUNT STAYS `15`.** `D-112` left the carrier open and L1 proposed a twelfth
+   per-verb entry keyed to a state (`saveFile()`, zero positions). **The architect's answer makes that unnecessary: the save
+   command is the one the store already has — `commitFile(opId)`, ONE POSITION, AN OP ID** — **because a reversal is already
+   pointing at an op and the judgement may mint more.** **So the addon's export set does not move, the instance's fourteen
+   stand, and the contract's census byte owes nothing.**
+2. **THE OP THE SAVE NAMES, IN TWO ARMS AND NO THIRD.** **The MOST RECENTLY GENERATED REPAIR OP where the judgement ran a
+   repair, and THE REVERSAL'S OWN OP where no repair was needed** — that is, the `opId` the caller's `rollback(opId)` named.
+   **A save is keyed to an op the journal holds, and to nothing else**: no state-keyed command, no argument-free entry, no
+   second form of `commitFile`'s position.
+3. **★ THE REVERSAL'S JUDGEMENT IS A PASS, NOT A VETO: IT CHECKS CONSTRAINTS AND RUNS REPAIRS WHERE ONE IS NEEDED.** Today
+   `judgeReversal` (`bindings/js/src/entry/constraints.mjs:2474`) asks the touched pairs and **throws rank `20` where one
+   refuses, with no repair arm at all** — **the architect now says the reversal should be doing what a write's pass does:
+   ask, and let a pair's registered repair land its edit.** **A repair landed at a reversal's judgement generates an op,
+   that op is what the save names, and the re-run over it is the ordinary one** (`D-53`'s invariant: the repair joins the
+   same commit).
+4. **THE ONCE-PER-RECORD LAW IS NOT RE-SPELLED BUT ITS GUARD IS NAMED, AND THIS IS THE POINT OF THE TWO ARMS.** A reversal's
+   save at the reversal's own op is a save of a record the journal may already mark `saved`, **and the reason the law exists
+   is a record's save no longer describing the register** — **so the guard on this arm is that the store writes only where
+   the image the path holds is not the state the store stands at** (`D-108`'s *"a state the store knows it has not saved"*),
+   **which is also what makes a second identical reversal write nothing.** **`storeroom-js/contract.md:684`'s FAILS-IT state
+   — *"a save performed twice for one record"* — keeps its subject: a second save of the same record with nothing moved is
+   still refused; a save of the same record after the register moved is the save the rule owes.**
+5. **A FAILED SAVE ON THIS ARM CARRIES THE JUDGEMENT'S ENTRIES** (the confirmed answer): the refusal is the store's
+   `FileCommitFailed` with the entries the judgement appended, **and the reversal stands in memory while the bytes were not
+   updated** (`D-107` item 3, untouched), **and `§9.4` is not widened.**
+
+**WHAT IT DOES NOT SETTLE — L1's.** **How the repair arm reaches the reversal's judgement** (the same `judgeReversal` frame,
+or a pass shaped like the delete's attempt — `D-55` item 3's precedent is the nearest), **which commit the reversal's
+judgement stands in** (`D-44`: no constraint check without an open commit — the frame opens one today at `:2533`), **what a
+reversal whose repair itself refuses answers** (rank `20` is the current arm; whether a repair's failure on this instant has
+its own token is a declaration), **the cells**, and **the prose**.
+
+**WHAT IT CHANGES BELOW ME: the carrier question closes, and it closes by removing the thing it was going to add.** The
+declaration L1 wrote for a state-keyed entry is **withdrawn as unwritten** — nothing was landed from it — and the unit's
+remaining work is the reversal's repair arm plus the op-keyed save behind the judgement, with the addon's surface, the
+instance's members and the fail set all unmoved.
+
+**TERMS: the carriers this row removes (`1` = a state-keyed addon entry, never landed), the carriers it names (`1` =
+`commitFile`'s op position), the arms of the naming (`2` = the last repair op · the reversal's own op), the behaviours it
+declares (`1` = the reversal's judgement runs repairs), the declared surfaces it moves (`0` = the addon's `15`, the
+fourteen members, the twenty statuses), the questions left (`2` = the repair arm's frame · the open-commit rule at that
+instant).**
+
+---
+
+### `D-114` — CORRECTION to `D-113` item 2: the save names the op PRIOR to the reversed op, not the reversed op
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, correcting `D-113`'s second naming arm. **THE
+ARCHITECT'S WORDS, VERBATIM:**
+
+> Correction: Use the op prior to the reversed op
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT CORRECTS, BY NAME.** `D-113` item 2 read *"the MOST RECENTLY GENERATED REPAIR OP where the judgement ran a repair,
+and THE REVERSAL'S OWN OP where no repair was needed"*. **THE SECOND ARM IS WITHDRAWN AND REPLACED**: where no repair was
+needed, **the save names THE OP PRIOR TO THE REVERSED OP** — **and the reason is the reversal's own semantics, not a
+preference: a reversal undoes the named op AND EVERYTHING AFTER IT** (`§6.1`–`§6.4`; the store's scope is the addressed
+subtree at or after the named op's `seq`), **so the state it restores is the state the store stood at before the reversed op
+landed — which is exactly the state the PRIOR op left.** **A save named at the reversed op would name the state the reversal
+has just undone.** **`D-113` item 2's FIRST arm stands whole** (the most recently generated repair op where the judgement ran
+a repair), and so do items 1, 3, 4 and 5.
+
+**WHAT IT SETTLES.**
+
+1. **THE NAMING RULE, ONE SENTENCE**: **the most recently generated repair op where the judgement ran a repair; otherwise the
+   op prior to the reversed op.** Every save this unit adds at a reversal is keyed to an op the journal holds, and to a
+   record whose state is the state the store stands at.
+2. **AND THE GUARD `D-113` ITEM 4 NAMED NOW READS AS THE SAME FACT FROM THE OTHER SIDE.** The prior op's entry may already
+   carry the per-record mark (its own save happened when it was written), **and the store still writes, because the image the
+   path holds is the state the reversal removed and not the state the store stands at** — **so the guard is not a licence to
+   re-drive; it is the statement that THIS save has not been performed.** **A second identical reversal finds the image
+   equal and writes nothing** (`D-113` item 4's property, unmoved).
+3. **NO DECLARED SURFACE MOVES AGAIN**: the addon's `15`, the instance's fourteen, the twenty statuses — `D-113` item 1's
+   consequence stands, and this correction does not reopen it.
+
+**WHAT IT DOES NOT SETTLE, AND ONE EDGE IS NOW VISIBLE BECAUSE THIS CORRECTION CREATED IT.** **THE REVERSED OP THAT IS THE
+STORE'S FIRST OP HAS NO PRIOR OP** — an empty journal before it, or a born/creation state and nothing else — **so the second
+arm has nothing to name and the restored state has no record to name it by.** **That edge is put to the architect below rather
+than decided here**, and the rest — the repair arm's frame, the open-commit rule at the reversal's judgement, the cells, the
+prose — remain L1's.
+
+**WHAT IT CHANGES BELOW ME: one arm of one naming rule, and an edge this row exposes.** The unit's carrier question stays
+closed (no new addon entry), the `D-108` regeneration and `D-110`'s single reader stay, and the store-side save the third
+correction pass put inside `Store::rollback` is still owed its withdrawal — **now with a naming rule that has to be able to
+name the first-op case.**
+
+**TERMS: the arms this row corrects (`1` = the no-repair naming), the arms it keeps (`1` = the last repair op), the reason it
+states (`1` = a reversal undoes its op and everything after), the edges it exposes (`1` = the first op), the declared surfaces
+it moves (`0`), the questions left (`1` = the first-op arm).**
+
+---
+
+### `D-115` — the THIRD naming arm: the reversed op names its own save when it is the journal's first, and the guard is what makes it lawful
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering the edge `D-114` exposed — a
+reversal of the journal's first op has no prior op to name. **THE ANSWER BY SELECTION (the option's own words are the
+record's):**
+
+> ***"Name the reversed op when it is the first"***
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE NAMING RULE IS NOW COMPLETE, IN THREE ARMS AND NO FOURTH: the most recently generated REPAIR op where the judgement
+   ran a repair · the op PRIOR to the reversed op where one stands · and THE REVERSED OP ITSELF where it is the journal's
+   first.** `D-113` item 2 and `D-114` stand as they were read through this one; **no fourth arm exists and no arm may be
+   invented for a case this rule covers.**
+2. **THE GUARD `D-113` ITEM 4 NAMED IS WHAT MAKES THE THIRD ARM LAWFUL, AND THAT IS THE WHOLE ARGUMENT.** The reversed op's
+   record may carry the per-record mark, **but the store writes because the image the path holds is the state the reversal
+   REMOVED and not the state the store stands at** — **so this save has not been performed**, and the guard is the statement
+   of that fact rather than a licence to re-drive. **A second identical reversal finds the image equal and writes nothing.**
+3. **THE MEASURED EDGE THIS CLOSES — and it was live, not hypothetical.** A store on a fresh `filePath`, one `file`-tier
+   write at `['a']` (`{"a":1}`), then `rollback(op-1)`: the memory goes empty, **and under the ruled two-arm naming there is
+   no op to name, so the bytes would keep `{"a":1}` while the memory holds nothing** — the defect class this unit exists for,
+   on the one arm the rule could not reach. **With this third arm the save is named, and the arm answers as the rule
+   requires: bytes `{}`, a fresh boot reading `AddressNotFound`.** (`Measured 2026-11-02 at `1a0d252`+landing, the checkout's
+   own addon; the driver is outside the repository.)
+4. **NO DECLARED SURFACE MOVES**: the addon's `15`, the instance's fourteen members, the twenty statuses, the four-line /
+   six-name barrel — `D-113` item 1's consequence stands and this row does not reopen it. **No new entry, no state-keyed
+   command, no second form of `commitFile`'s position.**
+
+**WHAT IT DOES NOT SETTLE — L1's.** **Where the save stands relative to the judgement** (`D-112`: after it, and the store's
+`rollback`-internal save is withdrawn); **how the reversal's judgement reaches its repair arm** (`D-113` item 3); **the cells
+and the prose**; and **the ordering rule the three arms imply** — a repair op outranks a prior op outranks the reversed op, and
+**a pass must say which arm it took where more than one is available** (a repair that lands AND a prior op that stands is the
+first arm; the rule is stated so that precedence is not left to a scan order).
+
+**WHAT IT CHANGES BELOW ME: the naming rule is closed.** The unit's remaining work is mechanical against it — the withdrawal
+of the store-internal save, the save placed behind `judgeReversal`, the judgement's repair arm, and the cells — and **the
+carrier question that has run through `D-112`–`D-115` is answered without a single byte moving on any declared surface.**
+
+**TERMS: the arms the rule holds (`3` = the last repair op · the prior op · the reversed op where it is first), the guard it
+leans on (`1` = the image the path holds), the defects it closes (`1`), the declared surfaces it moves (`0`), the questions
+left (`0` = the naming's; L1's four remain as `D-113`/`D-114` stated them).**
+
+---
+
+### `D-116` — the reversal's save is the STATE-KEYED write the store already performs: no op, no naming rule, no new entry
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering the question L0 put after re-reading
+the addon's own census — *is the op-based save the only save command?* **THE ANSWER BY SELECTION (the option's own words are
+the record's):**
+
+> ***"The state-keyed save the restore already performs"***
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **★ `D-113`–`D-115`'s NAMING RULE IS WITHDRAWN WHOLE, AND WITH IT THE QUESTION THAT BROKE IT.** Those three rows named an
+   **op** for the reversal's save — the last repair op, else the op prior to the reversed op, else the reversed op where it
+   is first — and **the third arm existed only because the second could not reach the journal's beginning, while the second
+   existed because a save named by the reversed op would name a state the reversal had undone.** **The architect's answer
+   removes the premise: the reversal's save is keyed to a STATE, not to a record, so there is nothing to name and no order to
+   resolve.** **No prior-op lookup is owed, no instrument is owed, and the count does not move.**
+2. **THE SAVE IS THE STORE'S EXISTING STATE-KEYED WRITE — the one its own RESTORE path performs** (`src/store.rs`'s
+   `restoreMark` chain: it takes the `file` tier's projection before the replay and again after it, and writes the restored
+   image **only where the two differ**, through the same `write_file` every save uses). **That is the fallback the tree already
+   has and it is the reason a refused reversal's compensating restore leaves the bytes agreeing with the memory.** **The store
+   keeps ONE writer and now exactly TWO keys: an op (`commitFile`, for a write's and a delete's and a registration's close) and
+   a state (the reversal's).** — **and the state-keyed reading is reached through `commitFile`'s ONE POSITION in its own ABSENT
+   CARRIER** (`OpIdArg`'s absent form, the one `restoreMark` already uses: *"an op id, or the ABSENT carrier"*), **so no
+   twelfth entry is minted, no arity moves, and the addon's set stays `15`.**
+3. **THE GUARD IS THE COMPARISON, AND THAT IS WHY A SECOND IDENTICAL REVERSAL WRITES NOTHING** (`D-113` item 4's property,
+   unmoved): the store writes where the image the path holds is not the state it stands at — **which is the same fact as "this
+   save has not been performed", and is why `storeroom-js/contract.md:684`'s FAILS-IT state keeps its subject.**
+4. **`D-112` STANDS WHOLE AND IS NOW THE ONLY CONSTRAINT ON THE INSTANT**: the save is the package's act **after** the
+   judgement, the store's `rollback` performs no write, and **the compensation is unreachable because `judgeReversal` returns
+   on `COMPENSATING` before any ask** — so it reaches neither the judgement nor the save. **`D-113` item 3's repair arm
+   stands** (the judgement asks and lets a pair's repair land), **`D-113` item 5's failed-save log stands** (the refusal
+   carries the judgement's entries), and **`D-107` item 3's `§9.4` stays untouched.**
+5. **WHAT THIS COSTS, SAID SO IT IS NOT DISCOVERED LATER**: the op-keyed save's **per-record marker** does not apply to this
+   arm (there is no record), **so the only thing that stops a redundant write is the projection comparison** — **which is
+   exactly the guard that the once-per-record law's *ground* names**; and a save that fails on this arm still refuses with
+   `FileCommitFailed` carrying the judgement's entries, **the reversal standing in memory and the bytes not updated.**
+
+**WHAT IT DOES NOT SETTLE — L1's.** **The absent carrier's declared reading** (it must be stated once as a form of
+`commitFile`'s position, with what `OpIdArg`'s domain owes — if the corpus's arity row must change, that is a declared surface
+and a numbered question, not a declaration); **the repair arm's frame** (`D-113` item 3's open question, unchanged); **whether a
+repair's own failure at this judgement owes its own token** (the status question, still his); **the cells and the prose**.
+
+**WHAT IT CHANGES BELOW ME: the unit's last mechanism, and it is the smallest one named so far.** The three naming arms go
+unwritten; the `saveFile()` declaration stays withdrawn; the store-side save inside `rollback` is still owed its withdrawal
+(`D-112`), with `D-108`'s regeneration and `D-110`'s single reader untouched; and the reversal's save becomes the second
+reading of a position that already exists.
+
+**TERMS: the mechanisms this row removes (`2` = the op-naming rule · the state-keyed entry), the keys the store keeps (`2` = an
+op · a state), the named surfaces it moves (`0` = the addon's `15`, the fourteen members, the twenty statuses, the barrel), the
+properties it keeps (`2` = a second identical reversal writes nothing · the once-per-record law's ground), the questions left
+(`2` = the absent carrier's form · the repair arm's frame).**
+
+---
+
+### `D-117` — ★ THE REVERSAL DELIVERS: the batch a reversal's judgement produces is delivered, and two smaller questions are answered with it
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering the three questions the third
+carrier derivation left open. **THE ARCHITECT'S WORDS, VERBATIM, IN FULL:**
+
+> Reversal needs to deliver
+>
+> Keep the other recommended answers
+
+**AND THE TWO ANSWERS THAT ARE "KEPT", READ FROM THE QUESTIONS THEY ANSWERED:** the absent carriage's two per-entry readings
+**are re-derived in this unit** (the corpus sentence, not the row's arithmetic), and **a repair that itself fails at the
+reversal's judgement answers rank `20` `ConstraintPassRefused` — no twenty-first status**.
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **★ A REVERSAL'S JUDGEMENT DELIVERS ITS BATCH — the reversal is not a check and its silence is REFUSED BY NAME.** `D-104`
+   gave a repair's write's `triggered` listeners their delivery **at a write's commit**; **a reversal's judgement can run a
+   repair too (`D-113` item 3), and the listeners that repair's write fires have a recipient — the caller's registry — and now
+   an instant.** So the reversal performs a delivery: **after its judgement has passed and after its save**, before the
+   member returns its record.
+2. **THE ORDER IS THE WRITE'S TERMINAL ARM'S, INSTANT FOR INSTANT**: **ask → repairs land → re-run → SAVE → DELIVER → the
+   member's record.** **The save precedes every delivered body** (`§2.11` clause 2's rule, applied at this instant), **and the
+   delivery's set is de-duplicated by handle and invoked once per distinct handle with the TRIGGERING ADDRESS as its single
+   argument** (`surface.md §2.4` rule 3; `PAR-JS-12`) — **the same three rules the write's arm obeys, read at the reversal's
+   own instant.** **No delivery occurs on the throwing arm, on the failing arm, or where nothing was fired** — a reversal that
+   fired no listener delivers nothing, and an empty batch is a no-op and not a failure (`§2.7` item 7 (c)).
+3. **AND THE FAILING ARM'S SET IS THE DISCARD'S, NOT A LEFTOVER** (`A113` (D1)'s second, unlawful removal stays withdrawn): a
+   judgement that refuses discards **the handles ITS repairs' writes returned** and nothing else, by each write's own
+   returned set, exactly as the landing's failing arm does (`kernel-terminal.mjs`'s discard filter, `D-104` item 2's failing
+   half).
+4. **THE OTHER TWO, KEPT**: **(a)** `OpIdArg`'s absent row bears two per-entry readings — *the journal's head* at
+   `restoreMark` and *the state, saved* at `commitFile` — **and the corpus sentence that glossed it as one is re-derived in
+   this unit**, on the same ground `D-107` item 4 used for the native contract's byte, **without moving the row's
+   arithmetic**. **(b)** **A repair that itself fails at this judgement answers rank `20` `ConstraintPassRefused`,
+   restore-first, and NO STATUS IS MINTED** — the closed set stays twenty.
+5. **WHAT THIS COSTS, NAMED SO IT IS NOT DISCOVERED**: a reversal gains a **delivery instant** it did not have, **and the
+   delivery is the package's act over the caller's registry** — so the reversal's own record is unchanged (`{opId, undoneOps,
+   restoredTo}`), **no member is added**, **and a listener a reversal fires now runs before the member returns** — which is a
+   behaviour a consumer can observe and therefore a release note, not a silent fix.
+
+**WHAT IT DOES NOT SETTLE — L1's.** **Where the reversal's delivery set is collected** (the repair's write's returned
+`triggered`, read off the repair's own record — `D-104`'s mechanism at the pass, at this instant), **whether the reversal's own
+act carries a `triggered` set at all** (a reversal appends no journal entry, so the store returns none — **a declaration, and
+if the answer needs a store-side change it comes back**), **the cells** (a fired listener on the passing arm, none on the
+failing arm, the discard on the refusing arm), **the prose**, and **the version line** this delivery owes.
+
+**WHAT IT CHANGES BELOW ME: the unit's fifth behaviour, and the first a consumer can observe from outside the store.** The
+carrier work (`D-112`–`D-116`) is untouched by it — the save still stands behind the judgement, still keyed to a state, still
+`commitFile`'s absent carriage — and **the delivery is the act that follows it.**
+
+**TERMS: the instants this row orders (`4` = ask · repair · save · deliver), the rules it reads at the new instant (`2` = the
+save before any body · the one-invocation-per-handle), the arms it leaves silent (`3` = throwing · failing · empty), the
+statuses it mints (`0`), the declared surfaces it moves (`0` = the fifteen, the fourteen, the twenty, the barrel), the
+questions left (`2` = the delivery set's provenance · the reversal's own `triggered`).**
+
+---
+
+### `D-118` — a CORRUPT image is not a refusal: the regeneration falls back to the store's CREATION image, and `RollbackCompacted` loses its last producer
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering the question `D-117`'s property register left open — whether the last surviving producer of the narrowed token should be retired or kept as a declared exception. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> In the corrupt file case, then it restores from the store creation image
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **A PRESENT IMAGE THE STORE'S OWN LOADER CANNOT READ IS TREATED AS NO IMAGE AT ALL, AND THE REGENERATION FALLS BACK TO THE CREATION STATE** — `Store::born`, the boot's own floor (`D-108` item 1's second ground), **exactly as where no `filePath`, no file, or a zero-length file stands.** **So the regeneration never refuses on a corrupt image: it rebuilds from the creation state and the reversal proceeds** — **and the reversal's own save then writes that image over the corrupt file**, which is the durable state the memory holds.
+2. **★ `RollbackCompacted` THEREFORE HAS NO PRODUCER LEFT.** `D-109` narrowed it to the corrupt-image arm; **this row removes that arm**. **The token's SET MEMBERSHIP IS NOT DECIDED HERE** — the closed set is the store's — **but no act of this tree can reach it any more, and L1 must declare it `DECLARED, NO PRODUCER` or put its retirement as a numbered question.** **`D-107` ITEM 1 IS NOW UNCONDITIONAL, AND THE RELEASE NOTE MAY SAY SO** (the prohibition `D-117`'s declaration put on the note is discharged).
+3. **WHAT THIS CLOSES, BY NAME**: finding (β) of the property register — **a refusing registration whose composition met `RollbackCompacted` left its landing standing** — **cannot arise**: the composition regenerates from the creation state instead of refusing, so no landed edit survives a refusal on that arm either.
+4. **WHAT IT COSTS**: a store whose file was replaced by something that is not its image **loses whatever the file held and rebuilds from its creation state** when a reversal or a refused composition regenerates — **the bytes at that path were never readable as this store's state, so nothing the store could have read is lost**, and the save that follows puts a readable image back. **Nothing else moves** — the reader (`D-110`), the two ground truths, the once-per-record guard, the twenty statuses' membership, the fifteen/fourteen/barrel.
+
+**WHAT IT DOES NOT SETTLE — L1's, one of them his.** **Whether `RollbackCompacted` retires from the closed set** (his: the set is the store's) — the only point put to him; **the cells** (the corrupt-image arm now asserting the CREATION-state rebuild and the save that follows, replacing the token's cell); **and the prose** that names the token.
+
+**WHAT IT CHANGES BELOW ME: the unit's last refusal on the file's own corruption is gone, and with it the only exception `D-107` item 1 ever had.**
+
+**TERMS: the arms this row removes (`1` = the corrupt-image refusal), the ground truths it names (`2` = the creation state · the file image where readable), the findings it closes (`1` = the register's β), the statuses it retires (`0` decided; `1` put to him), the declared surfaces it moves (`0`), the questions left (`1` = the token's membership).**

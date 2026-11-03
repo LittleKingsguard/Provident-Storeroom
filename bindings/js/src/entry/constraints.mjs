@@ -4,7 +4,7 @@ import { appendOwn, fail, refusalAddress, refusalLog } from './refusal.mjs';
 import { withAddon, require_ } from './artefact.mjs';
 import { classSpelling, isAdmittedArray, isPlainObjectValue } from './class-decision.mjs';
 import { constraintAddress } from './frame.mjs';
-import { currentWindow, homeAddressKey, installRestartConsumer, isStoreReceiver, openCommits, closeCommit, openCommit, windowMark } from './state.mjs';
+import { INSTANCES, carryRefusal, commitFile, currentWindow, homeAddressKey, installRestartConsumer, isStoreReceiver, openCommits, closeCommit, openCommit, windowMark } from './state.mjs';
 // **THE KERNEL'S OWN RECORD, FOR ONE FIELD AND ONE ONLY** (`D-46`/`D-30`): `kernelFor(store)` answers the
 // instance's kernel record — the same accessor every kernel act takes the instance through — and
 // `reversalAtRest` below reads that record's own `live` map for the count of OPEN ATTEMPTS. `kernel-foundations`
@@ -19,7 +19,7 @@ import { currentWindow, homeAddressKey, installRestartConsumer, isStoreReceiver,
 // function the pass appends with — rather than pushed here with a member set of its own; the REFUSAL's own
 // list keeps its five members and no `seq`, because no attempt stands at the judgement that built it
 // (`D-41` item 4). Two records, two honest forms, one append.
-import { append, boundedEntryMessage, boundedQuotation, externalCall, kernelFor, pairAppliesAt, throwableForm } from './kernel-foundations.mjs';
+import { append, boundedEntryMessage, boundedQuotation, enterCommitFrame, externalCall, kernelFor, leaveCommitFrame, pairAppliesAt, pairsTriggered, throwableForm } from './kernel-foundations.mjs';
 // **⟶ AND THE TWO KERNEL ACTS THE DELETE'S PATH OWES — `D-55` ITEM 3, 2026-10-29.** The kernel's public
 // barrel (`src/constraint-kernel.mjs`) is untouched and keeps its five names; **these are two PART modules' own
 // acts, reached here the way `append` and `kernelFor` above are** (`kernel-surface.md §1` item 1's empty import
@@ -27,7 +27,14 @@ import { append, boundedEntryMessage, boundedQuotation, externalCall, kernelFor,
 // module). `commitRemoval` is the commit part's remove-shaped act — a delete-shaped attempt that lands no write
 // — and `runAttempt` is the ONE pass, taken verbatim so no second pass loop is minted for a delete.
 import { commitRemoval } from './kernel-commit.mjs';
-import { runAttempt } from './kernel-attempt.mjs';
+import { repairInCommit, repairLegs, runAttempt } from './kernel-attempt.mjs';
+// **⟶ AND ONE NAME FROM THE DELIVERY'S OWN MODULE, 2026-11-02 — `D-117` ITEM 1: THE REVERSAL DELIVERS.**
+// `deliver` is THE one loop `surface.md §2.4` rules 1–3 declare, handed the state that holds this instance's
+// registry and receiver; **this file imports it and mints no second delivery** (`§2.7` (iii) (a)–(c)). **THE EDGE
+// IS ACYCLIC AND MEASURED**: `delivery.mjs` imports `state.mjs`, `kernel-foundations.mjs`, `carrier.mjs`,
+// `frame.mjs`, `refusal.mjs`, `artefact.mjs` and `class-decision.mjs`, **and imports neither this file nor
+// `kernel-attempt.mjs`**, so this reach adds no cycle and no second conversion rule.
+import { deliver } from './delivery.mjs';
 // **⟶ AND THE CARRIERS, ADDED 2026-10-26 FOR THE REFUSAL'S OWN UNDOING (`DEF-W`'s `(a)`).** The
 // compensating act below reaches the store's own verb at its entry, with the SAME carrier forms every member
 // hands it (`carrier.mjs` is the boundary's one encoder for the three positions and imports nothing of this
@@ -506,10 +513,12 @@ export function registrationCrossing(refusal, address) {
   // is the caller's own value and is answered as it was thrown.
   const carried = bodyThrowCarried(refusal);
   if (carried !== null) {
-    // **`false` — THE REGISTRATION INSTANT RECORDS NOTHING, AND THE CLAUSE SAYS SO.** No attempt stands at
-    // this evaluation, so the crossing's `log` is `surface.md §2.5` item 4's declared `[]` (`DEF-S`'s own cell
-    // reads it) and no terminal entry exists to carry the throwable's form: the crossed sentence must not
-    // point at a log that does not hold it (`DEF-AK`, 2026-10-28).
+    // **`false` — NEITHER REGISTRATION ARM RECORDS THE THROWABLE'S FORM, AND THE CLAUSE SAYS SO.** At the FIRST
+    // evaluation no attempt stands and the crossing's `log` is `surface.md §2.5` item 4's declared `[]`; at the
+    // RE-RUN an attempt DOES stand and the list it carries is that attempt's own — the `constraint-check` entry,
+    // the rewritten `repair-run` entry and, where the rollback met a store code, ONE `outcome` entry (`PIN-15`
+    // (ii), `D-118` read with `PIN-10` (iv)) — **and still no entry of it records the throwable's form** (`DEF-AK`'s
+    // recorded arm is the landing's), so the crossed sentence points at no log that does not hold what it says.
     const converted = bodyThrowRefusal(carried, refusal, false);
     if (converted !== null) throw converted;
   }
@@ -1327,11 +1336,21 @@ function bodyThrowRefusal(carried, thrown, recorded) {
     // FACT, SAID BY THE CROSSING THAT CALLED THIS FRAME** (`constraintCrossing` reads the arm that records it;
     // `registrationCrossing` and the judgement do not), **so no arm points at a `log` that does not carry it**:
     // where the arm records nothing the clause says so and names the declared `[]` (`surface.md §2.5` item 4).
+    // **⟶ AND THE `recorded === false` SENTENCE IS RE-DERIVED, 2026-11-02 — `PIN-15` (ii), `arms.md §A.4`:
+    // `recorded` STAYS `false` AND WHAT IT SAYS IS NOW TRUE ON EVERY ARM THAT REACHES IT.** The sentence that
+    // stood here read *"`log` is the declared empty list where no attempt stands"*, and at the registration's
+    // RE-RUN'S body-throw arm an attempt DOES stand and its list is NOT empty — it holds `constraint-check`, the
+    // rewritten `repair-run`, and, where a rollback met a store code, ONE `outcome` entry. **What is still true,
+    // and is the fact this sentence owes, is that NO ENTRY OF IT RECORDS THE THROWABLE'S FORM**: `DEF-AK`'s
+    // recorded arm is the LANDING's terminal act, and the re-run appends none (`kernel-registration.mjs`'s
+    // `registrationRerun`). **So the replacement names the list it crosses with rather than claiming the list is
+    // empty, and no arm points at a `log` that does not carry what the sentence claims.**
     const where = recorded === true
       ? `the form the throwable took stands in the \`outcome\` entry of this refusal's \`log\`, which is where `
         + `a throwable's own message crosses`
-      : `no entry of this failure's \`log\` records it — \`log\` is the declared empty list where no attempt `
-        + `stands (surface.md §2.5 item 4) — so nothing of the value crosses`;
+      : `no entry of this failure's \`log\` records the form the throwable took, so nothing of the value crosses: `
+        + `the list this refusal carries is the one the attempt that caught the throwable held, and a throwing `
+        + `RE-RUN appends no entry of it`;
     generated = `${generated} — the value the constraint body threw does NOT cross as this refusal: ${where}`;
   }
   const crossed = {
@@ -1992,7 +2011,13 @@ export function drainRestartRequests(instance, report) {
         reversalRefusal(one, after, null, request.reversalId, undo, null, true, asked !== null));
     }
     try {
-      judgeReversal(instance, request.watched, request.reversalId);
+      // **⟶ AND THE RESTARTED CHECK'S OWN JUDGEMENT IS HANDED THIS INSTANCE'S STATE TOO, 2026-11-02 — `§2` FACT
+      // 2's OTHER HALF.** This is the DEFERRED arm's judgement proper, and it is the call that takes the asking
+      // arm's save and delivery (inside this pass's commit and before that commit's terminal act). **THE STATE IS
+      // THE ONE THE PACKAGE KEYED ON THIS INSTANCE** (`state.mjs`'s `INSTANCES`, the map every member's closure
+      // state stands in) — reached here because this frame is the seam's own consumer and holds no `state`
+      // parameter; **nothing is minted and no second store of the package's state is made.**
+      judgeReversal(instance, request.watched, request.reversalId, INSTANCES.get(instance));
     } catch (refused) {
       // THE REFUSAL IS THE OUTCOME: the store was restored by its own compensation inside `judgeReversal`, and
       // a request raised by the refusal's own bodies stands for nobody — the restarted check is over, so the
@@ -2471,7 +2496,32 @@ function movedStanding(instance, watched) {
 /// gets. The crossed code stays the body's own rank-`18` member (`ConstraintBodyThrew`, the code that says what
 /// actually happened: a body threw), while the treatment — restore, one log entry naming the pair, one plain
 /// form — is the violation's.
-export function judgeReversal(instance, watched, reversalId) {
+///
+/// **⟶ AND FROM 2026-11-02 THE JUDGEMENT IS A PASS AND NOT A VETO — `D-113` ITEM 3, `D-116` ITEM 2, `D-117` ITEM 1.**
+/// `RCA-8(d)`'s ANNOTATE-BESIDE convention, applied once: **every byte above stands as the reading of its own
+/// date and is read THROUGH this clause, which re-decides no term of it.** The architect, verbatim: *"The
+/// reversal is already pointing to an op and should be checking constraints and running repairs, if any are
+/// needed."* **WHAT THIS FRAME GAINS, EACH AT ITS OWN SEAT IN THE BODY BELOW:**
+///   * **A REPAIR ARM** (`D-113` item 3): a pair that refuses may carry a repair on its own answer, the repair
+///     lands in THIS commit through `repairInCommit` with this judgement's commit named, it is credited by the
+///     failing pair's own key (`D-105` item 1), and **the ordinary re-run asks again over the judgement's subject
+///     widened by the pairs that write's returned set names** (`§3` (iii) 2–4). **NO SECOND PASS LOOP AND NO
+///     THIRD ATTEMPT KIND**: the walk is this one, re-entered;
+///   * **THE SAVE, after the last ask and before the window closes** (`D-112` item 2): the store's existing
+///     state-keyed write, reached through the entry's one position **supplied with nothing** — `commitFile`'s
+///     absent carrier, which is exactly the call this frame makes with `state.receiver` and no second position.
+///     **THE STORE'S `rollback` PERFORMS NO WRITE** from this date, so this is the reversal's only save, and the
+///     equality guard inside it — not a mark, not a record and not a flag — is what makes a second identical
+///     reversal write nothing;
+///   * **THE DELIVERY, after the save and before this frame returns** (`D-117` item 1): one `deliver` call per leg
+///     the repair's invocation answered, in creation order, each carrying that leg's own `op.address`, with the
+///     handle list held ACROSS the legs so an identity two legs returned is invoked once (`§2.7` (iii)).
+/// **AND THE THREE SILENT ARMS ARE THE ORDER'S AND NOT A PREDICATE'S**: the throwing arm and the failing arm
+/// throw before either act is reached, a reversal that fired nothing delivers an empty batch, a failed save
+/// never returns to the delivery, and **a compensation returns at the first byte of this function and reaches
+/// neither the judgement nor the save** (`D-112` item 3). **NOTHING DECLARED MOVES**: no member, no status, no
+/// rank, no entry, no arity and no barrel name (`§1` (iii)).
+export function judgeReversal(instance, watched, reversalId, state) {
   // **A COMPENSATING ROLLBACK IS NOT JUDGED AS A STEP EITHER — `D-54` (b)**: the member is reached by the
   // kernel's own terminal act with the flag standing, and this act must not touch a pending request or ask a
   // pair. The consumer's own judgement is the drain's, at the pass's terminal state.
@@ -2502,7 +2552,27 @@ export function judgeReversal(instance, watched, reversalId) {
           record.pending.reversalId = raise.opId;
         }
       }
+      // ═══════════════════════════════════════════════════════════════════════════════════════════════════
+      // **⟶ AND THE DEFERRED ARM RETURNS HERE, AND IT TAKES NO SAVE — `D-112` ITEM 2, `§2` FACT 2.** The
+      // reversal was raised inside an open window, so the judgement proper is that window's own drain
+      // (`drainRestartRequests`), and THAT call takes the asking arm's save — inside the pass's commit and
+      // before that commit's terminal act. **A SAVE AT THIS RETURN WOULD SAVE A STATE THE LATER JUDGEMENT MAY
+      // REFUSE**, so this arm saves nothing, performs no delivery — the delivery stands below this return,
+      // behind the asking arm's walk, exactly as the save does — and answers the shape it always answered.
+      // ═══════════════════════════════════════════════════════════════════════════════════════════════════
+      return undefined;
     }
+    // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
+    // **⟶ AND A JUDGEMENT OVER NOTHING STILL OWES THE SAVE, 2026-11-02 — `D-112` ITEM 2, `§2` FACT 2.** **THIS IS
+    // THE AT-REST EMPTY-WATCH ARM, AND IT IS REACHED BEHIND THE DEFERRED ARM'S OWN RETURN** — `record ===
+    // undefined` means every pair is disabled or none is carried, so the judgement is a judgement over nothing
+    // — **and a reversal that moved `file`-tier data still owes the bytes that describe where it left the store**,
+    // which is the arm `D-106` arm 3 was measured on. **THE DEFERRED ARM SAVED NOTHING AND RETURNED ABOVE**, so
+    // the save below is reached on this arm alone and no byte may move at an in-flight return. **THE LIST IS
+    // EMPTY HERE** (no commit window stands and no repair ran) **and the address is `[]`**: this arm's save
+    // names the register and carries no judgement entry, because there is no judgement list at this instant.
+    // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
+    carryRefusal(() => commitFile(state.receiver), [], [], []);
     return undefined;
   }
   // **⟶ AND THE AT-REST JUDGEMENT RUNS INSIDE A COMMIT, 2026-10-27 — `D-44`'s INVARIANT AND `DEF-AE`'S CACHE.**
@@ -2531,53 +2601,346 @@ export function judgeReversal(instance, watched, reversalId) {
   // taken at its opening, **no sweep has passed inside it**, and a reversal appends no entry — so the mark still
   // names the PRE-REVERSAL state and the at-rest control restores exactly what it restored before.
   const opened = openCommit(instance);
+  // ═════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // **⟶ AND THE JUDGEMENT'S FRAME GAINS FOUR THINGS FROM 2026-11-02 — `D-113` ITEM 3's REPAIR ARM, `D-116`'s
+  // STATE-KEYED SAVE AND `D-117` ITEM 1's DELIVERY — AND NONE OF THEM IS A MEMBER OF ANYTHING.** Its ONE LIST,
+  // its commit FRAME, and the frame-local sets the pass's own arms are taken by: **no record, attempt, kernel
+  // item, product member or census moves** (`A117` (D6); `PIN-3` (ii)(a)'s *"one frame local, no member
+  // minted"*), and every one of them is read inside this frame alone.
+  // ═════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  const kernel = kernelFor(instance);
+  // **THE ONE LIST** (`D-53`: the log is the COMMIT's and not the attempt's — a judgement mints no
+  // `CommitRecord` and no attempt, so its list is created HERE and read by nothing outside this frame). **THE
+  // ENTRIES A REPAIR'S WRITE MINTS IN THIS WINDOW LAND IN IT** (`K-2` appends a joined write's entries to the
+  // innermost frame's list, `kernel-commit.mjs`), **and so do this frame's own `repair-run` entries** — which is
+  // what makes `D-113` item 5's *"the judgement's entries"* a referent rather than a phrase: **a failed save
+  // crosses with THIS list** (`§2` fact 4). **ITS ENTRIES CARRY NO `seq`** (`D-65`: the array index is the
+  // position), and its kinds are the kernel's own vocabulary.
+  const judgementLog = [];
+  // **THE DELIVERY'S SET, TAKEN ONCE AND HELD FRAME-LOCALLY** (`§2.7` (i)): the legs the repair's invocation
+  // answered, carried to the delivery's instant beside the list. **THE READ MUST BE THE ONE READ** — the
+  // `REPAIR_LEG` channel ANSWERS AND CLEARS in the same call, so a second read at the delivery would answer
+  // `[]` and the delivery would be silent on every arm.
+  const held = [];
+  // **THE PASS'S OWN TWO SETS, READ AS FACTS** (`kernel-attempt.mjs`'s `attempt.ran` and
+  // `attempt.appliedRepairs`; `D-105` item 1): the pair's registry membership together with these two lists is
+  // THE one discriminator, so the pass's repeat arms are taken at this instant as facts — and no repair
+  // function is invoked a second time (`P-SM-6`).
+  const ran = [];
+  const credited = [];
+  // **THE COMMIT'S NAME, SPELLED THE WAY A DELETE-SHAPED ACT SPELLS ONE** (`kernel-attempt.mjs`'s
+  // `name: { attempt: ref }` — *"the one member `commitAttemptIdOf` reads"*): a repair's write that names its
+  // commit names THIS and JOINS, so `D-53`'s *"Constraints/Repairs should always use the same commit"* holds at
+  // the reversal's instant too — **and a write whose commit is NOT named would open a second one and start a
+  // second list.** **THE ID IT CARRIES IS NEVER READ** (nothing closes a judgement by name) **and no attempt,
+  // record, count or `kernel.live` entry is minted with it**: this object is a NAME and not a record.
+  const judgementName = { attempt: { id: 'reversal-judgement' } };
+  enterCommitFrame(kernel, judgementLog);
   try {
     // THE MOVED SET IS TAKEN FIRST, ONCE: the judgement's subject is the CHANGE the reversal made and nothing
     // wider, and the same list is what a refusal has to put back — with the tier capture the watch took, so a
     // restore knows WHERE each value stood and not merely what it was.
     const moved = movedStanding(instance, watched);
+    // **THE JUDGEMENT'S SUBJECT IS A LIST OF `{ entry, address }` AND NOT `moved` ITSELF**, because a repair's
+    // write WIDENS it (`§3` (iii) 4) while `moved` stays exactly what a refusal owes back to the watch.
+    const subject = [];
     for (let index = 0; index < moved.length; index += 1) {
-      const one = moved[index];
-      // ═══════════════════════════════════════════════════════════════════════════════════════════════
-      // **⟶ THE PAIR-APPLICATION RULE IS READ AT THE REVERSAL'S JUDGEMENT — `D-96`, `PIN-2` (v), `PIN-3`,
-      // `PIN-4` (iv).**
-      // ═══════════════════════════════════════════════════════════════════════════════════════════════
-      //
-      // **A `rollback` APPENDS NO JOURNAL ENTRY, so no pass reaches it** (`kernel-attempt.mjs`'s loop runs on a
-      // landed act): **the reversal's judgement is this walk, and the rule reaches it because the rule is
-      // GLOBAL** — a reversal over a state that leaves a pair's parent unresolvable is the fifth instant's own
-      // case (`D-90` (4)). **ONE GUARD, THE PASS'S OWN PREDICATE** (`pairAppliesAt`, asked of the pair's own
-      // registry row and never minted again here): **a pair the rule skips is NOT ASKED here either** — it is
-      // not refused for, it appends no `constraint-check` entry, and it cannot refuse the reversal, so the
-      // reversal LANDS. **IT IS NOT REMOVED**: the pair stays CARRIED (`PIN-4` (i)) and is asked at the first
-      // later instant its parent stands.
-      if (pairAppliesAt(instance, one.entry) === false) continue;
-      // **THE BODY'S THROW IS THE JUDGEMENT'S OWN CATCH AND NOT A PROPAGATING VALUE** — `reversalOutcome` converts
-      // a body's throwable to the surface's rank-`18` form and re-throws anything unmarked as itself, and BOTH
-      // arrive here: the reversal has run, so a judgement that cannot complete restores and refuses (below).
-      let outcome;
-      // **⟶ AND THE ASK IS NAMED BEFORE THE BODY RUNS, 2026-10-28 (`DEF-AL`).** A body that acts does it
-      // inside this one invocation, and the request it raises must name the pair the check was ASKING — not
-      // the watch's first address. The mark is cleared on every arm, the throwing one included, so no later
-      // act inherits an ask that has ended.
-      ASKING.set(instance, { entry: one.entry, address: one.address });
-      try {
-        outcome = reversalOutcome(instance, one.entry, one.address, one.after);
-      } catch (thrown) {
-        const undo = restoreReversal(instance, moved);
-        throw reversalRefusal(one, one.after, null, reversalId, undo, thrown);
-      } finally {
-        ASKING.delete(instance);
+      appendOwn(subject, { entry: moved[index].entry, address: moved[index].address });
+    }
+    // **THE WALK, AND THE PASS'S OWN `rerun` ARM AS ITS CONTINUATION** (`kernel-attempt.mjs`'s
+    // `{ terminal: null, rerun: true }`, `attempt-lifecycle.md §2.4` item 5 (i), (iv)): a repair that landed
+    // widens the subject and the judgement asks again over it. **NO SECOND PASS LOOP IS MINTED** — it is the
+    // same walk, re-entered — and it terminates because every round credits at least one pair and no pair is
+    // ever invited to repair twice.
+    for (;;) {
+      let repaired = false;
+      for (let index = 0; index < subject.length; index += 1) {
+        const one = subject[index];
+        // ═══════════════════════════════════════════════════════════════════════════════════════════════════
+        // **⟶ THE PAIR-APPLICATION RULE IS READ AT THE REVERSAL'S JUDGEMENT — `D-96`, `PIN-2` (v), `PIN-3`,
+        // `PIN-4` (iv).**
+        // ═══════════════════════════════════════════════════════════════════════════════════════════════════
+        //
+        // **A `rollback` APPENDS NO JOURNAL ENTRY, so no pass reaches it** (`kernel-attempt.mjs`'s loop runs on a
+        // landed act): **the reversal's judgement is this walk, and the rule reaches it because the rule is
+        // GLOBAL** — a reversal over a state that leaves a pair's parent unresolvable is the fifth instant's own
+        // case (`D-90` (4)). **ONE GUARD, THE PASS'S OWN PREDICATE** (`pairAppliesAt`, asked of the pair's own
+        // registry row and never minted again here): **a pair the rule skips is NOT ASKED here either** — it is
+        // not refused for, it appends no `constraint-check` entry, and it cannot refuse the reversal, so the
+        // reversal LANDS. **IT IS NOT REMOVED**: the pair stays CARRIED (`PIN-4` (i)) and is asked at the first
+        // later instant its parent stands.
+        if (pairAppliesAt(instance, one.entry) === false) continue;
+        // **THE FIRST-VISIT FACT — THE PASS'S `ran`, READ AS A FACT** (`kernel-attempt.mjs`'s
+        // `const attempt.ran.includes(key)` at its own head): a pair already asked at this judgement is a
+        // REPEAT, and a repeat takes the pass's own arm below rather than a second repair (`P-SM-6`).
+        const key = one.entry.id;
+        let askedBefore = false;
+        for (let seen = 0; seen < ran.length; seen += 1) {
+          if (ran[seen] === key) {
+            askedBefore = true;
+            break;
+          }
+        }
+        if (askedBefore === false) appendOwn(ran, key);
+        // **THE VALUE IS READ FRESH AT THIS INSTANT AND NOT OFF ANY OP A LEG CARRIES** (`§3` (iii) 4, `§3` (iv)):
+        // the pair is asked against the state the store STANDS AT, and the same reading is what a refusal prints
+        // and what the repair's context carries. **THE FIRST ROUND'S READING IS `movedStanding`'S OWN** — nothing
+        // has moved between that capture and this ask — **and a re-run's is the state the repair left.**
+        const after = standingAt(instance, one.address);
+        // **THE BODY'S THROW IS THE JUDGEMENT'S OWN CATCH AND NOT A PROPAGATING VALUE** — `reversalOutcome`
+        // converts a body's throwable to the surface's rank-`18` form and re-throws anything unmarked as itself,
+        // and BOTH arrive here: the reversal has run, so a judgement that cannot complete restores and refuses.
+        let outcome;
+        // **⟶ AND THE ASK IS NAMED BEFORE THE BODY RUNS, 2026-10-28 (`DEF-AL`).** A body that acts does it
+        // inside this one invocation, and the request it raises must name the pair the check was ASKING — not
+        // the watch's first address. The mark is cleared on every arm, the throwing one included, so no later
+        // act inherits an ask that has ended.
+        ASKING.set(instance, { entry: one.entry, address: one.address });
+        try {
+          outcome = reversalOutcome(instance, one.entry, one.address, after);
+        } catch (thrown) {
+          const undo = restoreReversal(instance, moved);
+          throw reversalRefusal(one, after, null, reversalId, undo, thrown);
+        } finally {
+          ASKING.delete(instance);
+        }
+        if (outcome === true) continue;
+        // **THE REPAIR COMES OFF THE PAIR'S OWN ANSWER, WHICH THIS FRAME ALREADY HOLDS** (`§3` (iii) 1): a repair
+        // is not a registry entry — the pass reads it off the refusing evaluation's `{message}` arm and this
+        // frame takes the same read, minting no second invitation.
+        let repair = null;
+        if (outcome !== null && typeof outcome === 'object' && Object.hasOwn(outcome, 'message')) {
+          const offered = ownDataMember(outcome, 'repair');
+          if (typeof offered === 'function') repair = offered;
+        }
+        // **THE PASS'S OWN DISCRIMINATOR, TAKEN AS A FACT** (`kernel-attempt.mjs`'s arms (c), (e) and (f)): a pair
+        // with no repair, a pair already asked, and a pair whose repair has already been applied all answer the
+        // SAME arm at this instant — **restore, then the surface's one plain form at rank `20`**, with no repair
+        // function invoked a second time. **THE ENTRY THAT SPELLS THE ARM IS `reversalRefusal`'S OWN**, unmoved
+        // (`D-41` item 4).
+        let applied = false;
+        for (let seen = 0; seen < credited.length; seen += 1) {
+          if (credited[seen] === key) {
+            applied = true;
+            break;
+          }
+        }
+        if (repair === null || askedBefore === true || applied === true) {
+          // **THE FIRST VIOLATING PAIR DECIDES AND THE SECOND IS NOT EVALUATED** (`attempt-lifecycle.md §2.4`
+          // item 5 (ii)–(iii), at the reversal's own instant) — and BEFORE the refusal is built, EVERY address the
+          // reversal moved is put back, so the store the consumer meets holds no state this refusal refused.
+          const undo = restoreReversal(instance, moved);
+          throw reversalRefusal(one, after, reversalSaid(outcome), reversalId, undo, null);
+        }
+        // ═══════════════════════════════════════════════════════════════════════════════════════════════════
+        // **⟶ THE REPAIR ARM — `D-113` ITEM 3, `§3` (iii) 2–4: ONE INVITATION, THE PASS'S CREDIT, THE PASS'S OWN
+        // RE-RUN.** The architect, verbatim: *"The reversal is already pointing to an op and should be checking
+        // constraints and running repairs, if any are needed."* **THE BODY RUNS UNDER THE INVOCATION BRACKET
+        // WITH THIS JUDGEMENT'S COMMIT NAMED** (`repairInCommit`, `state.mjs`'s channel at its second position),
+        // so a verb the repair calls without a name JOINS this commit instead of opening a second one — and the
+        // bracket is also what opens the leg list the credit and the re-run are read from.
+        // ═══════════════════════════════════════════════════════════════════════════════════════════════════
+        //
+        // **THE CONTEXT'S OTHER FIVE MEMBERS ARE THE CONSTRAINT CONTEXT'S OWN** (`reversalOutcome`'s
+        // `address` · `tier` · `value` · `attempt` · `op`), **AND ITS `pending` MEMBER IS THE HONEST `[]`**: the
+        // pass hands `attempt.record.pending.slice()` so that a repair naming its commit at `write`'s fourth
+        // position names the same commit by its own hand (`D-103`'s supported route), **and at a reversal there is
+        // no residue to copy and nothing pending to deliver, so the member is an empty list — a statement of fact
+        // and not a placeholder.**
+        const repairContext = {
+          address: one.address.slice(),
+          tier: null,
+          value: after,
+          attempt: null,
+          op: null,
+          pending: [],
+        };
+        const invocation = { bracketed: false };
+        const attemptsBefore = kernel.attempts;
+        // **THE `repair-run` ENTRY IS APPENDED BEFORE THE BODY RUNS**, exactly as the pass appends it — so a
+        // repair that throws or refuses still leaves its own record in the judgement's one list, which is the
+        // list a failed save crosses with.
+        appendOwn(judgementLog, {
+          kind: 'repair-run',
+          id: key,
+          opId: null,
+          message: `the repair ${key} was attempted`,
+          state: null,
+        });
+        const attemptEntry = judgementLog[judgementLog.length - 1];
+        let result;
+        try {
+          result = repairInCommit(instance, judgementName, () => repair(repairContext), invocation);
+        } catch (body) {
+          // **A REPAIR BODY THAT THROWS IS A CHECK THAT DID NOT PASS — `§3` (v), AND NO TOKEN IS MINTED FOR IT**
+          // (`D-117` item 4 (b)): the repair's own failure crosses in the MESSAGE, the status stays the set's
+          // rank `20`, and the store is put back before the throw.
+          const failure = 'the pair\'s repair threw, so the check does not pass';
+          attemptEntry.message = `${failure}: the value it threw was ${throwableForm(body)}`;
+          const undo = restoreReversal(instance, moved);
+          throw reversalRefusal(one, after, failure, reversalId, undo, null);
+        }
+        // **THE LEGS ARE READ ONCE — `D-104`'s TWO GUARDS, WHICH ARE THE PASS'S AND ARE CARRIED UNCHANGED.** The
+        // invocation's own bracket (`invocation.bracketed`) and whether any nested attempt opened across it
+        // (`kernel.attempts`) are both `repairLegs`' and neither is re-implemented here; **under either guard's
+        // absent arm the list is `[]`** — the family's conservative side, the same one the pass takes. **THE
+        // LIST IS ALSO WHAT THE DELIVERY DELIVERS, SO IT IS HELD FRAME-LOCALLY AND NEVER RE-READ** (`§2.7` (i)).
+        const legs = repairLegs(instance, kernel, invocation, attemptsBefore);
+        for (let leg = 0; leg < legs.length; leg += 1) appendOwn(held, legs[leg]);
+        // **THE LANDING TEST — THE ARM READS `op` FOR IT AND `triggered` FOR THE RE-RUN'S WIDENING, AND NOTHING
+        // ELSE** (`§3` (iv)): the invocation landed at least one op iff some leg carries a journal op. **THE
+        // SAVE NO LONGER NAMES AN OP** (`D-116` removed the op from the save's route), so the op's only office
+        // here is this test and the entry it names.
+        let landedOpId = null;
+        for (let leg = 0; leg < legs.length; leg += 1) {
+          const one_ = legs[leg];
+          if (one_ === null || typeof one_ !== 'object') continue;
+          const legOp = ownDataMember(one_, 'op');
+          if (legOp === null || typeof legOp !== 'object') continue;
+          const legOpId = ownDataMember(legOp, 'opId');
+          if (typeof legOpId === 'string' && legOpId.length > 0) landedOpId = legOpId;
+        }
+        if (landedOpId === null) {
+          // **THE PASS'S RESIDUAL ARM AND THE JUDGEMENT'S OWN `repair-run` ENTRY SAYING SO** (`§3` (v)): a repair
+          // that landed no op is a check that did not pass, restore-first and rank `20`.
+          const failure = `the repair ${key} produced no op at ${addressSpelling(one.address)}`;
+          attemptEntry.message = failure;
+          const undo = restoreReversal(instance, moved);
+          throw reversalRefusal(one, after, `${failure}, so the check does not pass`, reversalId, undo, null);
+        }
+        // **THE CREDIT IS `D-105`'S AND IT IS THE FAILING PAIR'S MARK**: the pair's own key joined to the
+        // judgement's applied set — **and the returned op is neither required nor read**
+        // (`kernel-attempt.mjs`'s `appendOwn(attempt.appliedRepairs, key)` is the pass's form of the same act).
+        attemptEntry.opId = landedOpId;
+        attemptEntry.message = `the repair ${key} landed ${landedOpId}`;
+        appendOwn(credited, key);
+        // **THE RE-RUN'S WIDENING — THE PASS'S OWN ONE-CALL SELECTION, ONE SELECTION FUNCTION AND TWO CALLERS**
+        // (`§3` (iii) 4): the pairs the repair's write's returned set names, read through `pairsTriggered` —
+        // whose membership test is `triggeredNames` and whose `joined` argument is `D-105` item 3's — **and each
+        // is asked AT THE ADDRESS ITS ELEMENT NAMES, because that is the address the write touched.** The pair's
+        // own body comes from this package's registry row (`state.constraints`, the read model the judgement's
+        // walk already reads) **and never from a second membership rule**.
+        for (let leg = 0; leg < legs.length; leg += 1) {
+          const one_ = legs[leg];
+          if (one_ === null || typeof one_ !== 'object') continue;
+          const elements = ownDataMember(one_, 'triggered');
+          if (!Array.isArray(elements)) continue;
+          const named = pairsTriggered(kernel, elements, []);
+          for (let position = 0; position < named.length; position += 1) {
+            const pair = kernel.pairs.get(named[position]);
+            if (pair === undefined) continue;
+            for (let element = 0; element < elements.length; element += 1) {
+              const carried = elements[element];
+              if (carried === null || typeof carried !== 'object') continue;
+              if (ownDataMember(carried, 'handle') !== pair.id) continue;
+              const address = ownDataMember(carried, 'address');
+              if (!Array.isArray(address)) continue;
+              let stands = false;
+              for (let seen = 0; seen < subject.length; seen += 1) {
+                if (subject[seen].entry.id !== pair.id) continue;
+                if (homeAddressKey(subject[seen].address) === homeAddressKey(address)) {
+                  stands = true;
+                  break;
+                }
+              }
+              if (stands === true) continue;
+              // **THE ROW THE JUDGEMENT ASKS THROUGH** — the pair's own registry row at that address where one
+              // stands, and the first row carrying the id where none does (a pair over N addresses is N rows
+              // and one identity, `contract.md §2.6` item 4).
+              let row = null;
+              for (const candidate of state.constraints.values()) {
+                if (candidate.id !== pair.id) continue;
+                let holds = false;
+                for (let watched_ = 0; watched_ < candidate.addresses.length; watched_ += 1) {
+                  if (homeAddressKey(candidate.addresses[watched_]) === homeAddressKey(address)) {
+                    holds = true;
+                    break;
+                  }
+                }
+                if (row === null) row = candidate;
+                if (holds === true) {
+                  row = candidate;
+                  break;
+                }
+              }
+              if (row === null) continue;
+              appendOwn(subject, { entry: row, address });
+            }
+          }
+        }
+        repaired = true;
+        // **THE PASS ANSWERS `rerun: true` HERE AND THE WALK RESTARTS OVER THE WIDENED SUBJECT**, which is the
+        // selection the re-run is run over and not a second pass loop.
+        break;
       }
-      if (outcome === true) continue;
-      // **THE FIRST VIOLATING PAIR DECIDES AND THE SECOND IS NOT EVALUATED** (`attempt-lifecycle.md §2.4` item 5
-      // (ii)–(iii), at the reversal's own instant) — and BEFORE the refusal is built, EVERY address the reversal
-      // moved is put back, so the store the consumer meets holds no state this refusal refused.
-      const undo = restoreReversal(instance, moved);
-      throw reversalRefusal(one, one.after, reversalSaid(outcome), reversalId, undo, null);
+      if (repaired === false) break;
+    }
+    // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
+    // **⟶ THE SAVE — `D-112` ITEM 2's INSTANT, AND THE LAST ACT BEFORE THE DELIVERY.** It stands between the
+    // last ask and the window's close, inside this `try`, **so the ordering discharges both of `D-112`'s
+    // exclusions structurally**: the compensation returned above the walk (`:2478`) and never reaches this line,
+    // and a judgement that refuses never reaches it either. **THE SAVE IS THE STORE'S EXISTING STATE-KEYED
+    // WRITE, reached through the entry's ONE POSITION IN ITS OWN ABSENT CARRIER** — `commitFile(state.receiver)`
+    // supplies no position, so the codec answers `JsOpIdArg::Absent` and the addon's absent arm performs
+    // `save_state` (`state.mjs`'s `commitFile` frame; `src/facade.rs`'s absent arm). **THE LIST IT CARRIES IS
+    // THIS JUDGEMENT'S** (`D-113` item 5): a failed save crosses as the surface's one plain form with the
+    // entries this window appended, and `[]` as its `address` — **the reversal stands in memory and the bytes
+    // are not updated** (`D-107` item 3), and no journal entry is removed, no pre-state restored and no `seq`
+    // stepped, because this route never reaches `commit_file`'s failing arm. **`§9.4` IS NOT WIDENED.**
+    // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
+    carryRefusal(() => commitFile(state.receiver), [], judgementLog, []);
+    // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
+    // **⟶ AND THE DELIVERY — `D-117` ITEM 1: THE REVERSAL DELIVERS.** The order is the write's terminal arm's,
+    // instant for instant — **ASK → REPAIRS LAND → RE-RUN → SAVE → DELIVER → THE MEMBER'S RECORD** (`D-117` item
+    // 2) — and this seat is the DELIVER's: after the save, behind the passing arm alone, and inside this `try`,
+    // so a failed save never returns to it. **ONE `deliver` CALL PER LEG, IN CREATION ORDER, EACH CARRYING THAT
+    // LEG'S OWN `op.address`** — the address whose triggering produced the event (`surface.md §2.7` item 5;
+    // `PAR-JS-12`) — **and a leg whose `op` is `null` delivers at the absent address**, which is `deliver`'s own
+    // `[]` arm read at this one and not a second rule.
+    //
+    // **THE DE-DUPLICATION IS HELD ACROSS THE LEGS AND NOT ONLY INSIDE ONE OF THEM** (`§2.7` (iii) (a);
+    // `surface.md §2.4` rule 3): the running handle list is `deliver`'s own spelled once more and not a second
+    // mechanism — a handle an earlier leg already returned is handed to no later call, so an identity two legs
+    // returned is invoked ONCE, at the FIRST leg that returned it. **A CARRIED PAIR's `id` IS ASKED AND NEVER
+    // DELIVERED** (`D-69`) and the exclusion is `deliver`'s own kind test, **and each call takes `deliver`'s own
+    // recipient snapshot at its own opening** (`C-2`; `CF-DUP-3`), so a registration made inside an earlier leg's
+    // body takes effect at the NEXT leg and at no element of the one in flight. **NO ORDER IS ASSERTED ACROSS THE
+    // BODIES OR ACROSS THE LEGS** (`DD-22`): a drive compares sets and counts. **AN EMPTY BATCH IS A NO-OP AND
+    // NOT A FAILURE** (`surface.md §2.7` item 7 (c)), and a reversal that fired nothing delivers nothing.
+    // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
+    const delivered = [];
+    for (let leg = 0; leg < held.length; leg += 1) {
+      const one_ = held[leg];
+      if (one_ === null || typeof one_ !== 'object') continue;
+      const elements = ownDataMember(one_, 'triggered');
+      const owed = [];
+      if (Array.isArray(elements)) {
+        for (let element = 0; element < elements.length; element += 1) {
+          const carried = elements[element];
+          if (carried === null || typeof carried !== 'object') continue;
+          const handle = ownDataMember(carried, 'handle');
+          if (handle === undefined) continue;
+          let seen = false;
+          for (let matched = 0; matched < delivered.length; matched += 1) {
+            if (delivered[matched] === handle) {
+              seen = true;
+              break;
+            }
+          }
+          if (seen === true) continue;
+          appendOwn(delivered, handle);
+          appendOwn(owed, carried);
+        }
+      }
+      const legOp = ownDataMember(one_, 'op');
+      const triggeringAddress = legOp === null || typeof legOp !== 'object'
+        ? undefined
+        : ownDataMember(legOp, 'address');
+      deliver(state, owed, triggeringAddress);
     }
     return undefined;
   } finally {
+    leaveCommitFrame(kernel);
     closeCommit(instance, opened);
   }
 }

@@ -699,20 +699,66 @@ pub fn fail_code_drive(code: &'static str) -> bool {
             ) == Some("JournalOpUnknown".to_string())
         }
         "RollbackCompacted" => {
-            // `DD-42`-class compaction: a one-entry journal rolls the earliest op out of the journal, so its
-            // id is well shaped and no longer resolvable.
-            let cfg = JsConfig {
-                file_path: None,
-                journal_length: Some(JsJournalLengthArg::Count(1)),
-                listeners: Some(JsListenersArg::List(vec![])),
-                fourth_key: None,
+            // **⟶ RE-DERIVED 2026-11-02 — `D-118` ITEM 2: THE MEMBER IS `DECLARED, NO PRODUCER`, AND THIS ARM IS
+            // THE NEGATIVE ONE. THE MOVEMENT IS RECORDED BECAUSE IT IS THE THIRD DIRECTION THIS DRIVE HAS TAKEN.**
+            // It began as `DD-42`-class compaction alone (a one-entry journal rolled the earliest op out and
+            // `rollback` answered the code); **`D-108` item 1 made that arm REGENERATE**; **`D-109` item 1 narrowed
+            // the subject to a temporally-bounded candidate set holding a compacted entry AND a `filePath` whose
+            // image cannot be read as an object** ("the only producer left, and one an externally corrupted file is
+            // required to reach"); **and `D-118` item 1 REMOVES THAT ARM** — the architect, verbatim, *"In the
+            // corrupt file case, then it restores from the store creation image"*: the unreadable image is TREATED
+            // AS NO IMAGE AT ALL, the regeneration takes `Store::born`, the reversal proceeds and the save that
+            // follows writes a readable image over the corrupt bytes.
+            //
+            // **SO THIS ARM'S VERDICT INVERTS AND ITS SUBJECT DOES NOT**: it returns `true` exactly when the code
+            // the contract places here is the one the crossing does NOT produce — the shape the three
+            // package-owned arms below already have (a NEGATIVE drive that fails the moment this crate mints a code
+            // it does not own). **Both arms are driven, because the second is the one `D-118` removes and a drive
+            // that dropped it could not tell an unreachable token from an untested one.** The path is PID-keyed AND
+            // the calls of one binary run on parallel threads, so the fixture is this drive's own and the file is
+            // re-written by it alone.
+            let path = std::env::temp_dir().join(format!(
+                "storeroom-js-fsc-unreachable-{}.json",
+                std::process::id()
+            ));
+            let path_str = path.to_str().expect("a temp path is UTF-8").to_string();
+            let Ok(mut inst) = create(&cfg_at(&path_str, 2)) else {
+                return false;
             };
-            let mut inst = create(&cfg).expect("a one-entry journal");
-            let first = write_at(&mut inst, &[key("a")], &JsValue::Num(1.0)).expect("first op");
-            write_at(&mut inst, &[key("b")], &JsValue::Num(2.0)).expect("second op");
-            write_at(&mut inst, &[key("c")], &JsValue::Num(3.0)).expect("third op");
-            produced(inst.rollback(&JsOpIdArg::Str(first.op.opId.clone())).map(|_| ()))
+            let Ok(_) = write_at(&mut inst, &[key("a")], &JsValue::Num(1.0)) else {
+                return false;
+            };
+            let Ok(second) = write_at(&mut inst, &[key("a")], &JsValue::Num(2.0)) else {
+                return false;
+            };
+            if write_at(&mut inst, &[key("x")], &JsValue::Num(9.0)).is_err() {
+                return false;
+            }
+            // (a) THE PLAIN WALK: it returns a record and marks its candidates (`M-9` is unmoved).
+            if inst
+                .rollback(&JsOpIdArg::Str(second.op.opId.clone()))
+                .is_err()
+            {
+                return false;
+            }
+            // (b) THE COMPACTION ALONE — `D-108` item 1: it REGENERATES and returns.
+            if produced(inst.rollback(&JsOpIdArg::Str(second.op.opId.clone())).map(|_| ()))
                 == Some("RollbackCompacted".to_string())
+            {
+                return false;
+            }
+            // (c) THE COMPACTION OVER AN IMAGE THE LOADER CANNOT READ — `D-118` item 1: the same, and the fixture
+            // stands at the path afterwards because the store's own reversal writes no byte (`D-112` item 2).
+            if std::fs::write(&path, b"this is not the store's image").is_err() {
+                return false;
+            }
+            let produced_here = produced(inst.rollback(&JsOpIdArg::Str(second.op.opId.clone())).map(|_| ()))
+                == Some("RollbackCompacted".to_string());
+            let fixture_stands = std::fs::read(&path)
+                .map(|bytes| bytes == b"this is not the store's image".to_vec())
+                .unwrap_or(false);
+            let _ = std::fs::remove_file(&path);
+            !produced_here && fixture_stands
         }
         "ConstructionArgumentMissing" => {
             let cfg = JsConfig {
@@ -920,6 +966,15 @@ pub fn all_fail_codes() -> Vec<&'static str> {
 /// (rank `20`) joins the three members whose producer stands ABOVE this addon — the constraint pass is the
 /// package's kernel's and its crossing selects this member — **so `16` of `20` are reached here and the four
 /// above the boundary are each driven at their own. NOTHING IS DROPPED AND NOTHING IS COUNTED TWICE.**
+///
+/// **⟶ AND RE-DERIVED AGAIN 2026-11-02 (`D-118` item 2): THE FILTER CARRIES A FIFTH SPELL AND THE REACHABLE COUNT
+/// MOVES FROM `16` TO `15`.** `RollbackCompacted` leaves this list for a reason that is NOT the other fours': the
+/// four are members whose producer stands ABOVE this addon and is driven at that boundary, while **this one has no
+/// producer at ALL** — `D-118` item 1 removed the last arm that reached it, so `fail_code_drive` answers it with
+/// the NEGATIVE drive and [`declared_unreachable_fail_codes`] is where the census names it. **THE `20` IS UNMOVED
+/// AND THE ARITHMETIC IS NOW `15 + 4 + 1 = 20`**: `15` reached through this crate's own surface, `4` owned by the
+/// package above it, and `1` declared with no producer. **NOTHING IS DROPPED, NOTHING IS COUNTED TWICE, and the
+/// `15` that remain are each driven through a real trigger exactly as they were.**
 pub fn crossing_reachable_fail_codes() -> Vec<&'static str> {
     all_fail_codes()
         .into_iter()
@@ -928,8 +983,30 @@ pub fn crossing_reachable_fail_codes() -> Vec<&'static str> {
                 && *code != "ConstraintBodyThrew"
                 && *code != "ConstraintRefusedAtRegistration"
                 && *code != "ConstraintPassRefused"
+                && *code != "RollbackCompacted"
         })
         .collect()
+}
+
+/// **THE MEMBERS OF THE CLOSED SET THAT ARE `DECLARED, NO PRODUCER`** — a THIRD class beside "reached through this
+/// crate's surface" and "produced above this addon", and it exists from 2026-11-02 because the three-way split the
+/// census states could not otherwise be printed without a figure moving.
+///
+/// **`RollbackCompacted` IS ITS ONLY MEMBER** (`D-118` item 2). `D-109` item 1 had narrowed the token to a
+/// present, non-empty `filePath` image the store's loader cannot read, over a candidate set holding a compacted
+/// entry; **`D-118` item 1 READS THAT IMAGE AS NO IMAGE AT ALL** — the architect, verbatim, *"In the corrupt file
+/// case, then it restores from the store creation image"* — so the regeneration takes `Store::born`, the reversal
+/// proceeds, and the save that follows writes a readable image over the corrupt file. **NO ACT OF THIS TREE
+/// PRODUCES THE TOKEN.** It is NOT retired and its rank does not move: *"the closed set is the store's"* (`D-118`
+/// item 2), and no byte of `src/error.rs` moves for it (`PIN-14` (v)).
+///
+/// **ITS DRIVE IS THE NEGATIVE ONE AND IT IS NOT A PLACEHOLDER** (`fail_code_drive`'s own arm): the two arms that
+/// used to reach the code — the compaction alone (`D-108` item 1) and the compaction over an unreadable image
+/// (`D-118` item 1) — are BOTH driven and BOTH must RETURN, and the store's own reversal must write no byte of the
+/// corrupt fixture (`D-112` item 2). **Were this crate to answer the token anywhere, that drive returns `false` and
+/// the `S-FAILSET` line and the census cell both go red.**
+pub fn declared_unreachable_fail_codes() -> Vec<&'static str> {
+    vec!["RollbackCompacted"]
 }
 
 #[cfg(test)]

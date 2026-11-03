@@ -84,12 +84,18 @@
 #![allow(dead_code, non_snake_case)]
 
 pub use storeroom_native::{
-    storeCreate, storeCreateWithConstraints, tier_token, AddressArg, BaseState, ChildAnchor,
-    ConstraintEntry, ConstraintsArg, DeleteReceipt, FilePathArg, JournalLengthArg, JournalOp,
-    JournalOpKind, Listener, ListenerEntry, ListenerHandle, ListenerTrigger, ListenersArg, NodeRef,
-    OpIdArg, RollbackResult, Segment, Store, StoreConfig, StoreError, StoreValue, Tier, TierArg,
-    TierSetItem, WriteResult,
+    storeCreate, storeCreateWithConstraints, storeErrorMessage, tier_token, AddressArg, BaseState,
+    ChildAnchor, ConstraintEntry, ConstraintsArg, DeleteReceipt, FilePathArg, JournalLengthArg,
+    JournalOp, JournalOpKind, Listener, ListenerEntry, ListenerHandle, ListenerTrigger, ListenersArg,
+    MessageArgs, NodeRef, OpIdArg, RollbackResult, Segment, Store, StoreConfig, StoreError, StoreValue,
+    Tier, TierArg, TierSetItem, WriteResult,
 };
+
+// **⟶ `storeErrorMessage` AND `MessageArgs` JOIN THIS MODULE'S ONE `pub use` 2026-11-02 (`D-118` item 2).**
+// `§5.9`'s subject is the GENERATED TEXT and not a trigger, so the generator is a DECLARED SURFACE ITEM the red
+// set reaches the moment one of the set's members loses its producer: `RollbackCompacted` is exactly that member,
+// its whole text is driven through `storeErrorMessage` in `properties.rs`'s `p_tp_9`, and the name is reached HERE
+// rather than imported across a scope, which is this module's own declared rule (`§0.4`'s closing clause).
 
 use std::collections::BTreeMap;
 

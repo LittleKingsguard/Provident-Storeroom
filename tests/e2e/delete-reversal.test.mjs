@@ -156,7 +156,20 @@ test('d43_3_the_identity_the_record_carries_is_the_one_a_reversal_accepts_for_a_
   }, 'and the member only the `file` version held is back at `file` alone');
 });
 
-test('d43_3_a_reversed_delete_is_refused_on_a_second_reversal_exactly_as_any_compacted_op_is', () => {
+// **⟶ RE-DERIVED 2026-11-02 — `D-108` ITEM 1 AND `D-109`, AND THE MOVEMENT IS RECORDED SO IT IS NOT SILENT.**
+// The measurement this file's header carries — *"a second reversal already answered `RollbackCompacted`"* —
+// is TRUE OF ITS OWN DATE and FALSE FROM THIS ONE: `strata/decisions.md` · `D-108` makes a last-valid-state
+// reversal that meets a compacted entry REGENERATE from the durable ground truth instead of refusing, and
+// `D-109` NARROWED `RollbackCompacted` to a candidate set holding a compacted entry **AND** a `filePath` whose
+// image cannot be read as an object. **⟶ AND `D-118` ITEM 1 REMOVED THAT LAST ARM TOO** — an image the loader
+// cannot read is treated as NO image at all and the regeneration takes the creation state — **so the token has NO
+// PRODUCER LEFT (`D-118` item 2) and no cell of this file may name one.** **So the second reversal RETURNS a record
+// on this drive**, and the corrupt-image fixture's own cell is
+// `tests/e2e/file-save-coverage.test.mjs`'s `FSC-FLOOR-UNREACHABLE` — re-worded from `FSC-FLOOR-NARROWED` when
+// `D-118` took its subject. **The delete's op is still a name and no licence to reverse twice** — a second
+// reversal still does not re-instate what the first one undid (`D-113` item 4's property, kept by `D-116`
+// item 3), which is the fact this cell now pins.
+test('d43_3_a_reversed_delete_answers_a_rollback_record_on_a_second_reversal_and_does_not_re_instate_what_it_undid', () => {
   const instance = withPath();
   instance.write(['once'], 'file', 'kept');
   const receipt = instance.delete(['once']);
@@ -165,20 +178,24 @@ test('d43_3_a_reversed_delete_is_refused_on_a_second_reversal_exactly_as_any_com
 
   const second = (() => {
     try {
-      instance.rollback(receipt.op.opId);
-      return null;
+      return { value: instance.rollback(receipt.op.opId) };
     } catch (thrown) {
-      return thrown;
+      return { caught: thrown };
     }
   })();
-  assert.notEqual(second, null, 'the second reversal returned; the declared surface says it THROWS');
-  console.log(`  D-43 item 3 · second reversal of ${receipt.op.opId} = ${second.status}`);
-  assert.equal(second.status, 'RollbackCompacted',
-    '§6.3 `M-6` / §8.1: the SAME rule a write\'s reversed op answers — a delete\'s op is a name, not a '
-    + 'licence to reverse twice');
-  // AND THE REFUSAL CHANGED NOTHING: the floor undoes nothing.
+  assert.equal(second.caught, undefined,
+    `**THE SECOND REVERSAL RETURNS AND DOES NOT THROW** — \`D-108\` item 1's fourth arm: it threw `
+      + `${JSON.stringify(second.caught?.status)}`);
+  assert.deepEqual(Object.keys(second.value).sort(), ['opId', 'restoredTo', 'undoneOps'],
+    'and it answers the three declared members — the regeneration mints no fourth (`PIN-13` (iv))');
+  assert.deepEqual(second.value.undoneOps, [receipt.op.opId],
+    'naming the reversed delete\'s op');
+  console.log(`  D-43 item 3 · second reversal of ${receipt.op.opId} = RETURNED `
+    + `${JSON.stringify(second.value.undoneOps)}`);
+  // **AND THE STATE IS THE FIRST REVERSAL'S OR OLDER, NEVER THE PRE-FIRST-REVERSAL ONE** — a regeneration
+  // whose replay re-instated a prior reversal's marked entries would answer `AddressNotFound` here.
   assert.equal(instance.read(['once'], 'file'), 'kept',
-    'the refused walk left the restored state standing');
+    'the regenerating reversal does not undo a reversal: the restored value still stands (`D-113` item 4)');
 });
 
 test('d43_3_a_delete_that_removed_nothing_names_no_op_and_that_is_the_declared_null_arm', () => {

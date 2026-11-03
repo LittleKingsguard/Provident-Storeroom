@@ -1199,8 +1199,22 @@ export function carryRefusal(call, args, log, address) {
 /// §1`; `export-set-and-dispatch.md §4`): the terminal arm's frame supplies the store object it holds as the
 /// receiver, and the ONE position supplied is the adopted record's operation identity — **no instance
 /// position stands among them.**
+///
+/// **⟶ AND THE POSITION IS SUPPLIED ONLY WHERE ONE WAS SUPPLIED, 2026-11-02 — THE ENTRY'S ABSENT CARRIER IS THE
+/// REVERSAL'S SAVE** (`strata/decisions.md` · `D-116` item 2, carried by `D-112` items 1–2; the second reading of
+/// the one position is stated at `src/facade.rs`'s own doc block). **THE FRAME SPELLS THE CARRIER UNCONDITIONALLY
+/// TODAY, AND `encodeOpId(undefined)` ANSWERS THE `Undefined` ROW AND NOT THE ABSENT ONE** (`carrier.mjs`'s
+/// `undefined → 'U'` fold) — so a save that names no op would have been REFUSED rather than reaching the
+/// state-keyed arm. **THE FORM IS THE ONE THE `rollback` MEMBER ALREADY USES FOR ITS OWN OP-ID POSITION**: the
+/// absent-versus-`undefined` distinction is the CALLER's `arguments.length` test and is taken nowhere else
+/// (`crossing.md §1.3`; `PAR-JS-6`). **SO `commitFile(receiver, opId)` keeps today's reading byte for byte**
+/// (the terminal arm's record-keyed save), **an explicit `undefined` still reaches the `Undefined` row and is
+/// refused exactly as it always was, and the NO-POSITION CALL reaches the absent row — which is the state-keyed
+/// save the reversal's judgement makes.** **NO ENTRY, ARITY OR MEMBER MOVES**: the absent carrier is a declared
+/// value of the one position, and `commitFile`(1) counts one.
 export function commitFile(receiver, opId) {
-  return entryOf().commitFile.call(receiver, encodeOpId(opId));
+  const args = arguments.length >= 2 ? [encodeOpId(opId)] : [];
+  return Reflect.apply(entryOf().commitFile, receiver, args);
 }
 
 /// The segments an already-encoded address argument carries — the declared list shape's own member, and

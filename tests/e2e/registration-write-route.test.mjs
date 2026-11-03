@@ -498,12 +498,18 @@ test('G3-22 · THE ROUTE RUNS NO PASS OF ITS OWN AND DELIVERS NO LISTENER: with 
     `and no commit opened across it: the \`attempt-opened\` observer counted ${openingsAcrossTheRoute}`);
   assert.notEqual(routeOpId, null,
     `and the route landed an op: ${JSON.stringify(routeOpId)}`);
-  assert.equal(landed.ok, true,
-    `**AND THE LANDING STANDS EVEN THOUGH THE REGISTRATION REFUSED** (\`PIN-7\` (iv): *"a write the route landed `
-      + `before a refusal STANDS"*): \`read(['b'])\` threw `
-      + `${JSON.stringify(shapeOf(landed.ok === true ? null : landed.caught))}`);
-  assert.equal(landed.value, 99,
-    `answering ${JSON.stringify(landed.value)}`);
+  // **⟶ RE-DERIVED 2026-11-02 — `D-107` ITEM 1, AND THE MOVEMENT IS RECORDED SO IT IS NOT SILENT.** This limb
+  // was filed on `PIN-7` (iv) — *"a write the route landed before a refusal STANDS"* — which the architect
+  // has ruled a DEFECT: *"Any refusal should be rolling back. Any exceptions are a defect"*
+  // (`strata/decisions.md` · `D-107`). **So the refusal composes a rollback over every op its route landed
+  // (`PIN-10` (ii)) and the landing is GONE.** The three ZEROs above are unmoved: the route still runs no pass
+  // of its own, opens no commit and delivers no listener, and the refusal's `log` still carries exactly its two
+  // entries — a composed rollback appends no entry (`PIN-10` (iv)).
+  assert.equal(landed.ok, false,
+    `**AND THE LANDING IS UNDONE BY THE REFUSAL** (\`D-107\` item 1): \`read(['b'])\` answered `
+      + `${JSON.stringify(shapeOf(landed.ok === true ? null : landed.caught))}, which is the state the call found`);
+  assert.equal(shapeOf(landed.caught).status, 'AddressNotFound',
+    `the route's \`['b']\` landing does not survive the refusal — its status is ${JSON.stringify(shapeOf(landed.caught).status)}`);
 
   // ── (d) THE CONTROL — THE TWO ZEROS ARE LIVE ZEROS. ───────────────────────────────────────────────────
   assert.equal(control.ok, true,
@@ -612,8 +618,13 @@ test('G3-23 · THE CREDIT IS THE EXISTING RULE AND NO NEW ONE: four repairs, ONE
     assert.equal(row.constraints.length, 0,
       `and no pair is carried on a refusal (\`sites.md §3.1\` item 3: *"the pair is NOT carried on a `
         + `refusal"*): the ${row.arm.label} arm's \`constraints()\` = ${JSON.stringify(row.constraints)}`);
-    assert.equal(row.standing, 11,
-      `**AND THE ROUTE'S LANDING STANDS ANYWAY** (\`PIN-7\` (iv)): the ${row.arm.label} arm's `
+    // **⟶ RE-DERIVED 2026-11-02 — `D-107` ITEM 1.** This limb was filed on `PIN-7` (iv) — *"a write the route
+    // landed before a refusal STANDS"* — ruled a DEFECT by the architect: *"Any refusal should be rolling
+    // back. Any exceptions are a defect"* (`strata/decisions.md` · `D-107`). **The refusal composes a rollback
+    // over the route's landing, so the landing is GONE.** The credit arm above is unmoved: a PASSING
+    // registration's landing is durable and `read(['a'])` reads `11` there.
+    assert.equal(row.standing, 'AddressNotFound',
+      `**AND THE ROUTE'S LANDING IS UNDONE BY THE REFUSAL** (\`D-107\` item 1): the ${row.arm.label} arm's `
         + `\`read(['a'])\` = ${JSON.stringify(row.standing)}`);
   }
 
@@ -912,7 +923,7 @@ test('G3-25 · THE TWO RECORDS, AT THE TWO INSTANTS: the BODY\'s context is FIVE
 // `G3-26` · A REFUSED REGISTRATION LEAVES THE ROUTE'S LANDINGS STANDING
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 
-test('G3-26 · A REFUSED REGISTRATION LEAVES THE ROUTE\'S LANDINGS STANDING: a repair that ROUTE-WRITES at `[\'b\']` and then returns `{ok: false, message}` makes the registration refuse rank `19`, and `read([\'b\'])` STILL ANSWERS THE REPAIR\'S VALUE', (t) => {
+test('G3-26 · A REFUSED REGISTRATION LEAVES NO ROUTE LANDING STANDING (re-derived 2026-11-02 to `D-107` item 1, whose sentence this cell\'s title used to invert): a repair that ROUTE-WRITES at `[\'b\']` and then returns `{ok: false, message}` makes the registration refuse rank `19`, and `read([\'b\'])` ANSWERS `AddressNotFound`', (t) => {
   // **`PIN-7` (iv), QUOTED WHOLE**: *"WHAT A FAILED REGISTRATION DOES TO THE ROUTE'S LANDINGS IS DECLARED AND
   // LEFT ALONE: THE REGISTRATION INSTANT COMPOSES NO ROLLBACK, SO A WRITE THE ROUTE LANDED BEFORE A REFUSAL
   // STANDS … `PIN-7` moves no byte of that arm and forbids gate 3 from adding one."*
@@ -959,14 +970,19 @@ test('G3-26 · A REFUSED REGISTRATION LEAVES THE ROUTE\'S LANDINGS STANDING: a r
     `and no pair is carried on a refusal: \`constraints()\` = ${JSON.stringify(rows)}`);
 
   // ── (b) AND THE LANDING IS STILL THERE — THE REGISTRATION COMPOSES NO ROLLBACK. ───────────────────────
-  assert.equal(landed.ok, true,
-    `**THE ROUTE'S LANDING MUST STAND THROUGH THE REFUSAL** (\`PIN-7\` (iv): *"a write the route landed before `
-      + `a refusal STANDS"*; \`kernel-registration.mjs:681\`-\`:686\`: *"the registration instant opens no `
-      + `\`K-2\`, delivers no listener and composes no rollback"*): \`read(['b'])\` threw `
-      + `${JSON.stringify(shapeOf(landed.ok === true ? null : landed.caught))}. **A MISSING VALUE HERE WOULD BE `
-      + `A ROLLBACK THIS UNIT IS FORBIDDEN TO ADD**`);
-  assert.equal(landed.value, 99,
-    `answering exactly what the repair wrote: ${JSON.stringify(landed.value)}`);
+  // **⟶ RE-DERIVED 2026-11-02 — `D-107` ITEM 1, AND THE TITLE ABOVE IS WITHDRAWN WITH THE SENTENCE IT QUOTED.**
+  // The limb was filed on `PIN-7` (iv) — *"a write the route landed before a refusal STANDS"* — and on
+  // `kernel-registration.mjs:681`-`:686`'s *"the registration instant … composes no rollback"*. **Both are false
+  // by ruling**: the architect's *"Any refusal should be rolling back. Any exceptions are a defect"*
+  // (`strata/decisions.md` · `D-107`) makes the composition the refusing arm's, and
+  // `kernel-registration.mjs`'s own close clause re-spells that sentence in this unit. **So the store is where
+  // the call found it**, and the finding a MISSING value here would once have been is now a STANDING value.
+  assert.equal(landed.ok, false,
+    `**THE REFUSAL ROLLS BACK OVER THE ROUTE'S LANDING** (\`D-107\` item 1): \`read(['b'])\` answered `
+      + `${JSON.stringify(shapeOf(landed.ok === true ? null : landed.caught))}. **A STANDING VALUE HERE WOULD BE `
+      + `THE DEFECT THIS RULING CLOSES**`);
+  assert.equal(shapeOf(landed.caught).status, 'AddressNotFound',
+    `the route's \`['b']\` landing is gone: ${JSON.stringify(shapeOf(landed.caught).status)}`);
 
   t.diagnostic(`G3-26 · A REFUSED REGISTRATION LEAVES ITS LANDINGS: typeof \`repairContext.write\` is `
     + `${JSON.stringify(routeMemberType)}; the route landed ${JSON.stringify(routeOpId)}; the registration `

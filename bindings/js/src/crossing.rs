@@ -1100,6 +1100,17 @@ impl Instance {
         self.store.commit_file(op_id).map_err(refusal)
     }
 
+    /// **⟶ ADDED 2026-11-02 — THE STATE-KEYED SAVE, AND IT IS THE SECOND READING OF THE ENTRY'S ONE POSITION
+    /// (`D-116` ITEM 2).** `commitFile`'s ABSENT arm reaches this delegate (`bindings/js/src/facade.rs`) and no
+    /// other site does; **the act is the store's own `Store::save_state`, whose whole body is
+    /// `save_file_delta(&[])`** — the instrument `replayMark` already saves through, so nothing is factored twice
+    /// and no second serialization is minted. **ONE LINE AND NO DECLARED SURFACE**: no entry, no arity, no member
+    /// and no status moves; it is the same delegate shape [`Instance::commit_file`] above already is, and the
+    /// store keeps its ONE writer with TWO keys — an op and a state.
+    pub fn save_state(&self) -> Result<(), Refusal> {
+        self.store.save_state().map_err(refusal)
+    }
+
     /// `§2.2` / `PAR-JS-16`: `delete` — the receipt's `address` VERBATIM and its `tiers` canonical.
     pub fn delete(
         &mut self,

@@ -91,7 +91,7 @@ import { admittedConstraintBatch, constraintAddress, decodeBaseState, decodeJour
 // which now name no address at all — `D-98` §3.4). The function keeps its home and its other readers in the
 // entry's other parts.
 import { FORGET_PAIR, INSTANCES, STORE_INDEX, STORE_RETIREMENT, TERMINAL_ARM, appendRepairLeg, carryRefusal, closeCommit, crossTriggered, currentWindow, entryOf, installAttemptSeam, isStoreReceiver, openCommit, writeRefusal } from './src/entry/state.mjs';
-import { commitPositionRefusal, constraintOverwrittenByListen, deliver, installListenRoute, installRegistrationSeam, listenerStandingAt, listenOn, registerOn, terminalArm } from './src/entry/delivery.mjs';
+import { commitPositionRefusal, constraintOverwrittenByListen, deliver, installListenRoute, installRegistrationSave, installRegistrationSeam, listenerStandingAt, listenOn, registerOn, terminalArm } from './src/entry/delivery.mjs';
 import { ARGUMENT_POSITION_FIRST, addressSetKey, carryConstraint, constraintDetached, constraintPairKey, constraintRefuse, constraintSite, constraintUncarried, constraintDelete, constraintWrite, constraintsKernel, currentRaise, defineDiscardWitness, enumerateConstraints, judgeReversal, registrationCrossing, restoreHeldPair, reversalWatch, unionAddressSets, withEmptyLog, witnessDiscardedReversal, witnessRaise, withdrawStanding } from './src/entry/constraints.mjs';
 const require_ = createRequire(import.meta.url);
 const ADDON_PATH = join(dirOf(fileURLToPath(import.meta.url)), 'build', 'Release', 'storeroom_js_binding.node');
@@ -698,7 +698,12 @@ export function storeCreate(cfg) {
       // THE ENTRY IS INVOKED BY `Reflect.apply`, NOT BY A SPREAD — see `read`'s clause of 2026-10-24 above.
       const answer = carryRefusal(() => Reflect.apply(entryOf().rollback, this, args), args);
       // AND THE JUDGEMENT AFTER IT, keyed to the store's own echo of the id the reversal named.
-      judgeReversal(instance, watched, answer.opId);
+      // **⟶ AND IT IS HANDED THIS INSTANCE'S OWN STATE FROM 2026-11-02 — `D-117` ITEM 2's DELIVERY**, whose one
+      // recipient set is the caller's registry and whose receiver is this member's own: `deliver` is the
+      // `surface.md §2.4` loop, so it takes the state that holds both (`§2.7` (iii) (a)). **NOTHING ELSE IN THIS
+      // MEMBER MOVES** — not its record (`:702`–`:706`), not `carryRefusal`, not the witness — **and the
+      // position is a private frame's fourth, not a member, an arity or a declared surface.**
+      judgeReversal(instance, watched, answer.opId, state);
       const record = {
         opId: answer.opId,
         undoneOps: answer.undoneOps,
@@ -1570,9 +1575,23 @@ export function storeCreate(cfg) {
   // **IT CHANGES NO ORDER OF ACTS**: the batch still arms `cfg.constraints` first and `cfg.listeners` are still
   // applied afterwards through `listen` (`C-15`, unmoved), because installing a channel is not an act. **AND THE
   // CHANNEL ADDS NO MEMBER** — `Symbol.for`-keyed and `enumerable: false`, so the product's declared FOURTEEN own
-  // members are unmoved (`A117` (D6)), exactly as the six channels beside it.
+  // members are unmoved (`A117` (D6)), exactly as the channels beside it.
   // ═════════════════════════════════════════════════════════════════════════════════════════════════════
   installListenRoute(instance, state);
+  // ═════════════════════════════════════════════════════════════════════════════════════════════════════
+  // **⟶ AND THE REGISTRATION'S OWN SAVE CHANNEL, INSTALLED HERE FOR THE SAME MEASURED REASON — `D-106` ARM 1,
+  // 2026-11-02.** **THE REGISTRATION'S CLOSE OWES A SAVE THE TERMINAL ARM NEVER PERFORMS**, and this is the
+  // channel it names the last `file`-tier op its route landed to (`delivery.mjs`'s `installRegistrationSave`,
+  // whose body is the SAME `commitFile` frame the terminal arm calls — one save path, two callers).
+  //
+  // **THE INSTALL SITE IS THIS NEIGHBOURHOOD AND NOT `:1709`/`:1715`'S, AND THE REASON IS THE SAME BYTE THE CLAUSE
+  // ABOVE PRINTS**: the construction's batch arming walk below reaches `K-1` BEFORE either of those two seams
+  // runs, so a save channel installed there would leave a `storeCreate` carrying `cfg.constraints` — and a boot
+  // carrying them — with no route to the save at all. **IT CHANGES NO ORDER OF ACTS AND ADDS NO MEMBER**:
+  // `Symbol.for`-keyed and `enumerable: false`, so the product's declared FOURTEEN own members are unmoved
+  // (`A117` (D6)).
+  // ═════════════════════════════════════════════════════════════════════════════════════════════════════
+  installRegistrationSave(instance, state);
   // **⟶ `docs/specs/storeroom-js/surface.md §2.12` ITEM 1 CLAUSE (b): `storeCreate` REGISTERS EACH OF `cfg.constraints`' ELEMENTS THAT CARRIES
   // ITS OWN FUNCTION AT `K-1`, AT THE INSTANCE IT IS CONSTRUCTING** — the SAME call the ADD route makes, so
   // a batch-populated pair is a pair the entry carries on the same footing (`docs/specs/storeroom-js/surface.md §2.12` item 3's preamble clause

@@ -1249,7 +1249,7 @@ test('ck_states_a_successful_rollback_clears_the_registry_and_a_later_commit_is_
  * RETURNS ITS OWN RECORD rather than answering `KC-7`, whose own row is the RE-ENTRANT site (`§2.4` item
  * 5 (iii); `fail-surface.md §2`'s `KC-7` row).
  */
-test('ck_states_a_throwing_per_op_call_leaves_the_attempt_s_own_registry_entry_standing', async () => {
+test('ck_states_a_throwing_per_op_call_regenerates_and_leaves_the_attempt_s_own_registry_entry_standing', async () => {
   const { register, commit, runAttempt, log, report } = await kernel();
   // ── THE WINDOW, RE-DERIVED 2026-10-16: TWO OPS AT ONE ADDRESS, the second call's candidate set holding
   // the FIRST call's own compacted residue. `x` PASSES on the committed value and is VIOLATED by the value
@@ -1289,39 +1289,60 @@ test('ck_states_a_throwing_per_op_call_leaves_the_attempt_s_own_registry_entry_s
     'THE COMPOSITION IS ONE CALL — `D-40` (2026-10-26), and it is the call whose temporally bounded '
     + `candidate set holds the compacted residue — read ${closed.rollback.length}: `
     + JSON.stringify(closed.rollback.map((s) => [s.opId, s.failed, s.answer])));
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
+  // **⟶ RE-DERIVED 2026-11-02 — `D-108` ITEM 1, `D-109` AND `contract.md PIN-13` (vi)/`PIN-14` (ii).** The cell
+  // was filed on `write-and-read.md §6.4 item 2 (M-6)` — *"a rollback whose candidate set includes at least one
+  // compacted entry fails `RollbackCompacted` and undoes nothing"* — read at `§2.6` item 5 (a). **`M-6` IS
+  // CORRECTED IN THIS UNIT** (`D-108` item 4): the arm REGENERATES from the durable ground truth, and `D-109`
+  // narrows the token to a candidate set holding a compacted entry AND a `filePath` whose image cannot be read
+  // as an object. **So the compaction arm no longer reaches the kernel's floor: the step carries
+  // `failed: false` and the store's own `RollbackResult`, its undo list is non-empty, and the attempt's token is
+  // the arm its PAIR stands on — the repeat violation's `KC-6` — never a floor token** (`PIN-14` (ii)).
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
   const failedSteps = closed.rollback.filter((s) => s.failed === true);
-  assert.equal(failedSteps.length, 1,
-    '§2.6 item 5 (a): `failed` is THAT CALL\'S OWN ANSWER, and this call\'s answer is `true` — the '
-    + 'reversal could not be performed because its temporally bounded candidate set holds a compacted '
-    + `entry (\`M-6\`) — read ${failedSteps.length} over `
-    + JSON.stringify(closed.rollback.map((s) => [s.opId, s.failed, s.answer])));
-  assert.equal(failedSteps[0].answer, 'RollbackCompacted',
-    'and the step\'s `answer` carries the STORE\'S OWN code, never a kernel token (`§2.6` item 3) — read '
-    + JSON.stringify(failedSteps[0].answer));
-  assert.deepEqual(failedSteps[0].undoneOps, [],
-    'AND THE FLOOR IS ALL-OR-NOTHING AND NEVER PARTIAL: the failing call undid NOTHING (`M-6`) — read '
-    + JSON.stringify(failedSteps[0].undoneOps));
-  assert.equal(failedSteps[0].checkpoint, null,
+  assert.equal(failedSteps.length, 0,
+    '**THE COMPACTION ARM NO LONGER PRODUCES A FAILING STEP** (`D-108`; `PIN-13` (vi)): the call RETURNS the '
+    + 'store\'s own `RollbackResult` — read ' + failedSteps.length + ' failing step(s) over '
+    + JSON.stringify(closed.rollback.map((s) => [s.opId, s.failed, typeof s.answer === 'object' ? 'RESULT' : s.answer])));
+  assert.equal(closed.rollback.length, 1,
+    'and the composition is still ONE call — `D-40` (2026-10-26) is unmoved — read ' + closed.rollback.length);
+  assert.equal(closed.rollback[0].failed, false,
+    'the step\'s `failed` member is the CALL\'S OWN ANSWER and this call answered (`§2.6` item 5 (a), narrowed)');
+  assert.notEqual(closed.rollback[0].answer, 'RollbackCompacted',
+    '**AND THE STEP\'S `answer` IS NOT THE STORE\'S CODE** — the arm that answered it is the arm that now '
+    + 'regenerates (`D-108` item 2) — read ' + JSON.stringify(closed.rollback[0].answer));
+  assert.deepEqual(closed.rollback[0].undoneOps.slice().sort(), closed.ops.map((op) => op.opId).sort(),
+    'and the regenerating reversal UNDOES the attempt\'s ops — a floor that undid nothing is what `D-108` '
+    + 'forbids — read ' + JSON.stringify(closed.rollback[0].undoneOps));
+  assert.equal(closed.rollback[0].checkpoint, null,
     'and the step carries the arm\'s own checkpoint, `null` where no landing left a valid state');
-  assert.equal(failedSteps[0].opId, closed.ops[0].opId,
-    'AND THE CALL IS ADDRESSED AT THE ATTEMPT\'S FIRST OP, which is the one call `D-40`\'s composition '
-    + 'issues (`§2.6` item 2 puts that op LAST in its list and `D-40` makes it the only call) — read '
-    + `${JSON.stringify(failedSteps[0].opId)} against ${JSON.stringify(closed.ops[0].opId)}`);
-  // **AND THE FLOOR STATE IS THE FLOOR'S OWN**: `M-6` is all-or-nothing and restores NOTHING, so the address
-  // stands where the caller's own reversal of the repair's landing left it — the value the attempt's own
-  // commit landed.
+  assert.equal(closed.rollback[0].opId, closed.ops[0].opId,
+    'AND THE CALL IS ADDRESSED AT THE ATTEMPT\'S FIRST OP, the one call `D-40`\'s composition issues — read '
+    + `${JSON.stringify(closed.rollback[0].opId)} against ${JSON.stringify(closed.ops[0].opId)}`);
+  assert.equal(r.thrown.status, 'KC-6',
+    '**THE ATTEMPT\'S TOKEN IS THE PAIR\'S `KC-6`, NOT THE FLOOR\'S `KC-8`** (`PIN-14` (ii): the floor branch '
+    + 'fires on `JournalOpUnknown` alone) — read ' + JSON.stringify(r.thrown.status));
+  const outcomes1203 = entries(r.thrown.log, 'outcome');
+  assert.equal(outcomes1203.length, 1,
+    'and the closure writes ONE outcome entry (`§2.6` item 6 (a)) — read ' + outcomes1203.length);
+  assert.equal(outcomes1203[0].state, 'KC-6',
+    'which carries the same token as the thrown form\'s status — read ' + JSON.stringify(outcomes1203[0].state));
+  assert.equal(String(outcomes1203[0].message).includes('RollbackCompacted'), false,
+    '**AND IT DOES NOT NAME THE STORE\'S `RollbackCompacted`** — the store never answered it here '
+    + '(`PIN-14` (ii)) — read ' + JSON.stringify(outcomes1203[0].message));
+  assert.equal(closed.outcome, 'failed', 'and the closed record answers the failed arm');
   let floorState1203;
   try {
     floorState1203 = { present: true, value: store.read(address) };
   } catch (refused) {
     floorState1203 = { present: false, code: refused.status };
   }
-  assert.equal(floorState1203.present, true,
-    'AND THE STORE ANSWERS WHAT THE FLOOR LEFT, NOT A RESTORED STATE — `M-6` undoes NOTHING where it is met '
-    + '(`§2.6` item 6 (c): "NOTHING IS RESTORED") — read ' + JSON.stringify(floorState1203));
-  assert.equal(floorState1203.value, 'committed',
-    'the value the attempt\'s own commit landed, which the caller\'s reversal of the repair\'s landing '
-    + 'restored and the floor then left standing — read ' + JSON.stringify(floorState1203.value));
+  assert.equal(floorState1203.present, false,
+    '**AND THE ADDRESS STANDS EMPTY** — measured: the regenerating composition undid BOTH of the attempt\'s '
+    + 'ops (`D-108` item 2: no landed edit survives) — read ' + JSON.stringify(floorState1203));
+  assert.equal(floorState1203.code, 'AddressNotFound',
+    'the state the durable ground truth plus the surviving journal describe — read '
+    + JSON.stringify(floorState1203.code));
   const held = capture(() => commit(store, address, 'mem', 2));
   assert.equal(held.threw, false,
     'A STANDING REMAINDER IS NOT A REFUSAL: WHATEVER A FAILED CALL LEFT BEHIND, A FRESH `K-2` AT THAT '
@@ -1774,7 +1795,7 @@ test('ck_neg_2_the_call_list_reaches_beside_addresses_and_the_one_call_is_the_li
  * a call issued over an op an earlier call already reported undone; a floor arm that reports a rollback it
  * did not perform (`M-6`, all-or-nothing, never partial).
  */
-test('ck_neg_3_a_still_owed_call_meeting_a_compacted_base_is_KC8_with_one_outcome_entry', async () => {
+test('ck_neg_3_a_still_owed_call_meeting_a_compacted_base_regenerates_with_no_failing_step_and_no_KC8_entry', async () => {
   const { register, commit, runAttempt, report } = await kernel();
   const store = makeStore({ journalLength: 64 });
   const address = [tag('neg3')];
@@ -1805,50 +1826,51 @@ test('ck_neg_3_a_still_owed_call_meeting_a_compacted_base_is_KC8_with_one_outcom
   const r = capture(() => runAttempt(store, commitRecord));
   assert.equal(r.threw, true, 'the attempt fails');
   const closed = report(store, commitRecord.attempt);
+  // **⟶ RE-DERIVED 2026-11-02 — `D-108` ITEM 1, `D-109`, `PIN-13` (vi), `PIN-14` (ii).** `M-6`'s
+  // all-or-nothing floor is CORRECTED in this unit (`D-108` item 4): a still-owed call meeting a compacted
+  // candidate set REGENERATES and returns the store's `RollbackResult`, so the step is `failed: false`, its
+  // undo list is non-empty, and the attempt's token is the pair's own `KC-6` — the floor's `KC-8` is produced
+  // by `JournalOpUnknown` alone (`PIN-14` (ii)) and the narrowed `RollbackCompacted` needs a corrupt image
+  // (`D-109` item 1), which this drive does not stand.
   const failedSteps = closed.rollback.filter((s) => s.failed === true);
-  assert.equal(failedSteps.length, 1,
-    'the drive reached the floor: ONE call carrying `failed: true` — read the count '
-    + `${failedSteps.length}; where it is 0 the drive did not reach a compacted entry INSIDE ITS OWN '
-    + 'temporally bounded candidate set and this cell cannot speak `
-    + '(write-and-read.md §6.4 item 1\'s `M-5` (a) (ii): only an entry with `E.seq` ≥ the call\'s own named '
-    + 'op\'s `seq` can fail it)');
-  assert.equal(r.thrown.status, 'KC-8',
-    'A REMAINDER A FAILED CALL ON A STILL-OWED OP LEAVES IS `KC-8` — read '
-    + `${JSON.stringify(r.thrown.status)}; composition-and-states.md §2.6 item 5 (b) reads "a still owed `
-    + 'op whose call meets either floor code is KC-8"; the arm that answers the VIOLATION instead is '
-    + '`KC-3`, and that is the arm this cell exists to separate from the floor\'s');
-  assert.equal(failedSteps[0].answer, 'RollbackCompacted',
-    'and the failing step\'s `answer` carries the STORE\'S OWN code, never the kernel\'s token '
-    + '(`§2.6` item 3; `RD-8`) — read ' + JSON.stringify(failedSteps[0].answer));
-  assert.deepEqual(failedSteps[0].undoneOps, [],
-    'AND THE FLOOR UNDOES NOTHING — all-or-nothing and never partial (`M-6`) — read '
-    + JSON.stringify(failedSteps[0].undoneOps));
-  const outcomes = entries(r.thrown.log, 'outcome');
-  assert.equal(outcomes.length, 1,
-    'and the closure writes ONE outcome entry — the floor is answered in the failure\'s own entry and '
-    + 'no second entry is appended (`§2.6` item 6 (a))');
-  assert.equal(outcomes[0].state, 'KC-8', 'which carries the same token as the thrown form\'s status');
-  assert.equal(outcomes[0].message.includes('RollbackCompacted'), true,
-    'and its `message` NAMES the store\'s own code as the store\'s answer (`§2.6` item 6 (a)) — read '
-    + JSON.stringify(outcomes[0].message));
+  assert.equal(failedSteps.length, 0,
+    '**THE COMPACTION ARM NO LONGER PRODUCES A FAILING STEP** (`D-108`; `PIN-13` (vi)) — read '
+    + failedSteps.length + ' failing step(s) over '
+    + JSON.stringify(closed.rollback.map((s) => [s.opId, s.failed, typeof s.answer === 'object' ? 'RESULT' : s.answer])));
+  assert.equal(closed.rollback[0].failed, false,
+    '`failed` is THAT CALL\'S OWN ANSWER and this call answered (`§2.6` item 5 (a), narrowed by `D-108`)');
+  assert.notEqual(closed.rollback[0].answer, 'RollbackCompacted',
+    '**AND THE STEP\'S `answer` IS NOT THE STORE\'S FLOOR CODE** — read ' + JSON.stringify(closed.rollback[0].answer));
+  assert.equal(closed.rollback[0].undoneOps.length > 0, true,
+    'and the regenerating reversal reports what it undid (`M-7` (i)) — read '
+    + JSON.stringify(closed.rollback[0].undoneOps));
+  assert.equal(r.thrown.status, 'KC-6',
+    '**THE ATTEMPT\'S TOKEN IS THE PAIR\'S `KC-6`, NOT THE FLOOR\'S `KC-8`** (`PIN-14` (ii)) — read '
+    + JSON.stringify(r.thrown.status));
+  const outcomesNeg3 = entries(r.thrown.log, 'outcome');
+  assert.equal(outcomesNeg3.length, 1,
+    'and the closure writes ONE outcome entry (`§2.6` item 6 (a)) — read ' + outcomesNeg3.length);
+  assert.equal(outcomesNeg3[0].state, 'KC-6',
+    'which carries the same token as the thrown form\'s status — read ' + JSON.stringify(outcomesNeg3[0].state));
+  assert.equal(String(outcomesNeg3[0].message).includes('RollbackCompacted'), false,
+    '**AND NOTHING IN IT NAMES THE STORE\'S `RollbackCompacted`** (`PIN-14` (ii)) — read '
+    + JSON.stringify(outcomesNeg3[0].message));
   assert.equal(closed.outcome, 'failed', 'and the closed record answers the failed arm');
-  assert.equal(failedSteps[0].opId, closed.ops[0].opId,
+  assert.equal(closed.rollback[0].opId, closed.ops[0].opId,
     'AND THE CALL IS ADDRESSED AT THE ATTEMPT\'S FIRST OP — the ONE call `D-40`\'s composition issues — read '
-    + `${JSON.stringify(failedSteps[0].opId)} against ${JSON.stringify(closed.ops[0].opId)}`);
-  // **AND THE FLOOR STATE BESIDE THE TOKEN**: `M-6` restores NOTHING where it is met, so the store answers
-  // what the caller's own reversal left standing — the value the attempt's own commit landed.
+    + `${JSON.stringify(closed.rollback[0].opId)} against ${JSON.stringify(closed.ops[0].opId)}`);
   let floorStateNeg3;
   try {
     floorStateNeg3 = { present: true, value: store.read(address) };
   } catch (refused) {
     floorStateNeg3 = { present: false, code: refused.status };
   }
-  assert.equal(floorStateNeg3.present, true,
-    'AND THE STORE ANSWERS WHAT THE FLOOR LEFT AND NOT A RESTORED STATE (`§2.6` item 6 (c): "NOTHING IS '
-    + 'RESTORED") — read ' + JSON.stringify(floorStateNeg3));
-  assert.equal(floorStateNeg3.value, 'committed',
-    'the value the attempt\'s own commit landed, which the caller\'s own reversal restored and the floor '
-    + 'then left standing — read ' + JSON.stringify(floorStateNeg3.value));
+  assert.equal(floorStateNeg3.present, false,
+    '**AND NOTHING OF THE ATTEMPT SURVIVES AT THE ADDRESS** — measured: the regenerating reversal undid both '
+    + 'of its ops (`D-108` item 2) — read ' + JSON.stringify(floorStateNeg3));
+  assert.equal(floorStateNeg3.code, 'AddressNotFound',
+    'the state the durable ground truth plus the surviving journal describe — read '
+    + JSON.stringify(floorStateNeg3.code));
 });
 
 /**

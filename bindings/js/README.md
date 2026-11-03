@@ -31,7 +31,7 @@ an edit belongs.
 
 **⟶ AND THE ONE FIGURE THIS PAGE CAN BE RIGHT ABOUT IS GENERATED AND ASSERTED, 2026-10-28 — `DEF-AC`'s third part, and `D-57`'s one surviving figure.** `RCA-8(g)` ANNOTATE-BESIDE: **every clause above stands BYTE-FOR-BYTE and is read THROUGH this one; nothing above moves.** **THE DEFECT THIS CLOSES: THIS PAGE DECLARED NO VERSION AT ALL** — a shipped document a consumer reads first, saying nothing about which release it describes — **so `scripts/publish.sh --figures` now GENERATES the line below from `bindings/js/package.json`'s `version` and REFUSES when it disagrees, exactly as it does at the guide's and the change list's own marked lines: three shipped documents, three version lines, one generator, one assertion.** **AND THE CUT-STATE IS NOT STATED HERE, OR ANYWHERE ELSE IN THIS PACKAGE'S DOCUMENTS** (`D-57`, the architect verbatim: *"Drop the cut-state"*): a document is sealed before the tag that would make its cut-state true, so **the cut-state is not a document's to state**; the record of what has been cut is the change list's, and it is past tense. **EVERY OTHER CLAIM OF THIS PAGE STANDS EXACTLY AS IT STOOD.**
 
-PUBLISH-README-VERSION-LINE: THE VERSION THIS README DESCRIBES IS `1.9.0`.
+PUBLISH-README-VERSION-LINE: THE VERSION THIS README DESCRIBES IS `1.9.1`.
 
 ## The one entry
 
@@ -261,23 +261,9 @@ RANK MOVES FOR THIS: the distinction is a closed set's business (`D-38`) and the
 
 ## The `file` tier, and what actually persists
 
-**Durability is produced by a successful `file`-TIER WRITE ONLY** (`DD-28`, `D-32`). **So a BARE `file`-tier
-write persists**: `store.write(['k'], 'file', 1)` commits with no kernel attempt in the path, and a fresh
-`storeCreate` over the same `filePath` resolves the address. **⟶ A `DELETE` NOW SAVES AND A `ROLLBACK` STILL DOES NOT, 2026-10-28.** The sentence this replaces said **both**
-performed no file I/O at any tier scope — **and that was measured false for a `delete` once it became an editing
-verb with its own attempt**: a `file`-tier delete's save is the terminal arm's at the record's own op, so
-**`delete(['k'], 'file')` followed by a fresh `storeCreate` over the same `filePath` answers `AddressNotFound`
-rather than the version it removed** (measured `{"a":1}` → `{}`, boot `1` → absent). **A `ROLLBACK` still performs no
-file I/O at any tier scope** — **a reversal appends no journal op (`M-9`), so its terminal arm has no op of its own
-to save at** — **and a durable version a reversal removed in memory therefore stands again after a re-boot, which is
-the store's declared boot and not a defect.**
+**Durability is a SAVE's, and the file saves after ANY action that changes the `file`-tier data** (`strata/decisions.md` · `D-106`, which reads `DD-28`'s *"`file`-tier durability is produced by a successful `file`-tier write ONLY"* as a statement about the acts that OWE a save and no longer as a closed list of them). **So a bare `file`-tier write persists**: `store.write(['k'], 'file', 1)` is saved by the **write's terminal arm on its passing arm** — the package routes a three-position write through the kernel's commit and its attempt, and the addon's `write` verb performs no file I/O on any arm — and a fresh `storeCreate` over the same `filePath` resolves the address. **AND THREE MORE INSTANTS SAVE, EACH FROM 2026-11-02:** **a `delete`'s terminal arm**, at any tier scope — `delete(['k'], 'file')` and `delete(['k'])` both leave the removal standing after a fresh boot, the whole-target one because the act removed a version standing at the `file` tier; **the CLOSE of a registration on its PASSING arm** — a `file`-tier write a repair lands through the registration's own route is saved when the registration's attempt closes, whether it came from `cfg.constraints`, from a boot, from `addConstraint` or from a re-arm, **and a registration that REFUSES saves nothing at the close because it ROLLS BACK what it landed on any of its refusing arms — a constraint body that throws at the re-run included — and leaves the store where the call found it**; and **a reversal** — a `rollback` that puts a `file`-tier version back is saved by the PACKAGE at the end of its constraint JUDGEMENT, on the state the reversal left (`strata/decisions.md` · `D-112` item 2: **the store's own `rollback` performs no write**), so a version a reversal restored does **NOT** stand again after a re-boot. **A `mem`- or `temp`-tier act that leaves every `file`-tier version standing saves nothing, because it moves no byte of the file — which a SCALAR write does at an address it shadows and a CONTAINER write does only where no durable version stood there to be replaced; a container write that REPLACES a `file`-tier version owes its save like any other.**
 
-**A kernel-driven write's `file`-tier save is a DIFFERENT save of a different scope**: it is the package's
-terminal arm, performed on the passing arm alone, before any delivered listener body runs, keyed by the
-record's `op` — and the same bytes may lawfully be committed by both acts. **AND A FAILING SAVE ANSWERS
-`FileCommitFailed` AFTER the store's own journal rollback has already run**, so the caller receives the
-failure and never the half-applied state; the package compensates for nothing. **A rollback whose candidate
-set includes a compacted entry fails `RollbackCompacted` and undoes nothing** — the floor is all-or-nothing.
+**A SAVE THAT FAILS ANSWERS `FileCommitFailed` AFTER the store's own journal rollback has already run**, so the caller receives the failure and never the half-applied state; the package compensates for nothing. **At a reversal's own save there is no journal entry to roll back — a reversal appends none — so the refusal tells you two things and both are true at once: the reversal stands in memory, and the bytes were not updated; the reversion is never a condition on the save.** **AND A ROLLBACK THAT MEETS A COMPACTED ENTRY NO LONGER FAILS AND UNDOES NOTHING: from 2026-11-02 it regenerates the last valid state from the `file` tier's own image — and from the state the store was created with where no image stands, an image its own loader cannot read being no image at all (`D-118`) — and then saves it** (`strata/decisions.md` · `D-108`, `D-118`), **so a refused registration leaves the store where the call found it on every arm, and the only version a regeneration cannot put back is one the compaction had already swallowed, whose sole record no file image carries.** **⟶ AND ONE SENTENCE THIS PAGE CARRIED IS WITHDRAWN, 2026-11-02: a kernel-driven write's save is NOT *"a different save of a different scope"* from a bare write's, and the same bytes are not *"lawfully committed by both acts"* — there is ONE save, at the terminal arm or at the reversal, and a reader who counted two was counting one act twice.**
 
 ## The value domain
 

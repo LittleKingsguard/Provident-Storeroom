@@ -469,22 +469,42 @@ test('verbs · js contract.md §2.8 read through its 2026-10-29 clause · a `fil
   // … AND THE REMOVAL STANDS AFTER THE RE-BOOT, because the save wrote the image the delete left.
   assert.equal(catchIt(() => make({ filePath }).read(['keep'], 'file')).status, 'AddressNotFound',
     'a fresh boot reads the image the DELETE\'s save wrote — the version does not stand again');
-  // **AND THE WHOLE-TARGET ARM NAMES NO TIER AND THEREFORE SAVES NOTHING** (the store's own `commit_file`
-  // answers a tier-less op with no write at all): `DD-28`'s reading survives for THAT arm, and the gate is the
-  // op's own `tier` member rather than a choice of this build's.
+  // **AND THE WHOLE-TARGET ARM NAMES NO TIER AND SAVES ANYWAY — RE-DERIVED 2026-11-02, AND THE MOVEMENT IS
+  // RECORDED SO IT IS NOT SILENT.** The reading this cell was filed with is *"a WHOLE-TARGET delete (no tier)
+  // names an op standing at no tier, so the store's own `commit_file` serializes nothing and the version
+  // STANDS AGAIN"*. **IT IS WITHDRAWN**: `strata/decisions.md` · `D-106` item 3's ARM 2 rules the whole-target
+  // delete one of the three arms the rule reaches, and `contract.md PIN-4` (i) gives the store an eligibility
+  // ground it can read off its own record — *"an op is eligible exactly when the act it names moved at least
+  // one version standing at `Tier::File`"* (`Entry.captured`'s `Captured.tier`) — while the package's gate
+  // widens to *"the op's tier is `file`, OR the op names no tier"* (`PIN-4` (ii)). **So the version does NOT
+  // stand again, and a second instance over the same path answers `AddressNotFound`.** The op's own `tier`
+  // member still reads `null` and the store's record still says so (`D-106` item 3's price, `PIN-4` (iv): the
+  // op is not given a tier it did not name).
   const whole = instance.write(['other'], 'file', 'kept');
   assert.equal(whole.op.tier, 'file');
-  instance.delete(['other']);
-  assert.equal(make({ filePath }).read(['other'], 'file'), 'kept',
-    'a WHOLE-TARGET delete (no tier) names an op standing at no tier, so the store\'s own `commit_file` '
-      + 'serializes nothing and the version STANDS AGAIN — `DD-28`\'s reading survives for that arm');
+  const wholeDelete = instance.delete(['other']);
+  assert.equal(wholeDelete.op.tier, null,
+    'a WHOLE-TARGET delete names an op standing at NO tier — the receipt still reports the scope the caller '
+      + 'named (`PIN-4` (iv): no tier is minted for it)');
+  assert.equal(catchIt(() => make({ filePath }).read(['other'], 'file')).status, 'AddressNotFound',
+    '**AND ITS REMOVAL IS DURABLE** — `D-106` arm 2: the file saves after ANY action that changes the '
+      + 'file-tier data, and the store adjudicates the eligibility on what the act\'s own record says it moved');
 });
 
-test('verbs · native contract.md `DD-28` and §6.4 item 5 (`M-9`) · a ROLLBACK performs NO FILE I/O either, and it appends NO journal entry — so the re-boot reads the LAST COMMITTED `file` write, not the reversed one', () => {
-  // DECLARED: `DD-28`'s second half — "a … `rollback` performs NO file I/O"; and `M-9`: "**a rollback
-  // ITSELF appends NO journal entry** — the journal records store changes (`write`/`delete`), and a
-  // rollback is not one of the two tracked verbs"; its observable "(iv) the next write's `seq`
-  // continues as though the rollback had not happened".
+// **⟶ RE-DERIVED 2026-11-02, AND THE MOVEMENT IS RECORDED RATHER THAN MADE SILENTLY.** The cell was filed on
+// `DD-28`'s second half — *"a … `rollback` performs NO file I/O"* — and that half is TRUE OF ITS OWN DATE and
+// FALSE FROM THIS ONE: `strata/decisions.md` · `D-106` item 3's ARM 3 rules a successful reversal that restores
+// `file`-tier versions one of the three arms the rule reaches, `D-112` item 2 moves the save out of the store's
+// `rollback` and behind the package's judgement, and `D-116` item 2 makes it the store's EXISTING STATE-KEYED
+// write. **So a caller's reversal DOES write, and the re-boot reads the RESTORED value.** **`M-9` IS UNMOVED
+// AND ITS HALF OF THIS CELL IS DRIVEN UNCHANGED**: a rollback still appends no journal entry, and the next
+// write's `seq` still continues as though the reversal had not happened. `DD-28` itself is read THROUGH
+// `D-106` item 2 as *"a statement about the ACTS THAT OWE A SAVE and no longer a closed list of them"*.
+test('verbs · native contract.md §6.4 item 5 (`M-9`) read through `D-106` arm 3 and `D-116` · a ROLLBACK saves the state it restored (so the re-boot reads the RESTORED value) and STILL appends NO journal entry', () => {
+  // DECLARED: `M-9`'s "**a rollback ITSELF appends NO journal entry** — the journal records store changes
+  // (`write`/`delete`), and a rollback is not one of the two tracked verbs", its observable "(iv) the next
+  // write's `seq` continues as though the rollback had not happened"; and `D-106` item 3's ARM 3 with
+  // `D-112`/`D-116` for the save.
   const directory = mkdtempSync(join(tmpdir(), 'sr-blind-rbio-'));
   const filePath = join(directory, 'store.json');
 
@@ -497,8 +517,11 @@ test('verbs · native contract.md `DD-28` and §6.4 item 5 (`M-9`) · a ROLLBACK
   assert.ok(result.undoneOps.includes(second.op.opId));
   assert.equal(instance.read(['rf'], 'file'), 'one'); // the in-memory state IS reversed
 
-  // THE FILE IS UNTOUCHED BY THE ROLLBACK: a fresh boot reads the last committed write.
-  assert.equal(make({ filePath }).read(['rf'], 'file'), 'two');
+  // **THE RE-BOOT READS THE RESTORED VALUE — THE ARM'S OWN SAVE** (`D-106` arm 3; `D-112` item 2; `D-116`
+  // item 2's state-keyed write). The reading this assertion replaced was *"THE FILE IS UNTOUCHED BY THE
+  // ROLLBACK: a fresh boot reads the last committed write"* — true of the tree before this unit.
+  assert.equal(make({ filePath }).read(['rf'], 'file'), 'one',
+    'a caller\'s reversal saves the state it restored, and a fresh boot reads it');
 
   // AND `M-9`'s OWN OBSERVABLE, "(iv) the next write's `seq` continues as though the rollback had
   // not happened" — read against `JournalOp.seq`'s own declaration: "the entry's APPEND ORDINAL,

@@ -706,14 +706,32 @@ test('screg_blind_10_the_credit_is_the_existing_rule_pointed_at_and_the_re_run_i
     'the `{ok: false, message}` arm is NOT credited, so the pair is not re-run and the registration refuses (`PIN-7` (ii); `guide §7.6`\'s closed two-arm set)');
   assert.deepEqual({ asked: noop.asked, status: noop.status }, { asked: 1, status: 'ConstraintRefusedAtRegistration' },
     'and a `{ok: true}` return with NO `op` is an identity the credit check does not admit, so it too is not re-run (`guide §7.6`)');
+  // **⟶ RE-DERIVED 2026-11-02 — `D-107` ITEM 1, AND THE MOVEMENT IS RECORDED SO IT IS NOT SILENT.** The
+  // reading this loop was filed with is *"a write the route landed before a refusal STANDS (…) — a
+  // registration composes no rollback (`PIN-7` (iv))"*. **`PIN-7` (iv) IS WITHDRAWN BY RULING**: the
+  // architect's words are *"Any refusal should be rolling back. Any exceptions are a defect"*
+  // (`strata/decisions.md` · `D-107`), so a registration that refuses puts the store back where the call found
+  // it — every op its route landed, swept by one store `rollback` call per distinct address (`PIN-10` (ii)).
+  // **SO THE LANDING STANDS ON THE ARMS THAT STAND AND IS GONE ON THE ARMS THAT REFUSE**, and the two sets are
+  // read apart rather than asserted together.
   for (const reading of readings) {
-    assert.deepEqual(reading.landed, 7, `a write the route landed before a refusal STANDS (${reading.arm}) — a registration composes no rollback (PIN-7 (iv))`);
-    assert.equal(reading.named, reading.status === 'stood' ? 1 : 0, `a refused registration leaves the entry as it stood (${reading.arm}) (index.d.ts, constraints())`);
+    if (reading.status === 'stood') {
+      assert.deepEqual(reading.landed, 7,
+        `a PASSING registration's route-write is durable (${reading.arm}) — the close's one save names it `
+          + '(`D-106` arm 1; `PIN-3` (iii))');
+      assert.equal(reading.named, 1, `and the pair is carried (${reading.arm}) (index.d.ts, constraints())`);
+    } else {
+      assert.deepEqual(reading.landed, { status: 'AddressNotFound' },
+        `**A REFUSAL ROLLS BACK, WITHOUT EXCEPTION** (${reading.arm}) — \`D-107\` item 1: the route's landing `
+          + `does not survive the refusal, and \`read(['q'])\` answered ${JSON.stringify(reading.landed)}`);
+      assert.equal(reading.named, 0, `and no pair is carried (${reading.arm}) (index.d.ts, constraints())`);
+    }
   }
 
   t.diagnostic(`SCREG-10 · THE CREDIT: ${JSON.stringify(readings.map((r) => ({ arm: r.arm, asked: r.asked, status: r.status, landed: r.landed })))}. `
     + `A credited repair is re-run and an uncredited one is not; the identity's provenance is not the test at a registration, `
-    + `because the attempt holds nothing before the repair (PIN-7 (ii); D-94 (1)). The route's landing stands on every arm (PIN-7 (iv)). `
+    + `because the attempt holds nothing before the repair (PIN-7 (ii); D-94 (1)). The route's landing stands on the PASSING arms `
+    + `only: a refusal rolls back over everything the route landed (D-107 item 1, re-derived 2026-11-02). `
     + `FINDING, REPORTED AND NOT ENCODED: verification.md §2.2 G3-23 prints the forged-op arm as REFUSING rank 19 and so `
     + `attributes the verdict to the identity; PIN-7 (ii) credits it and leaves the verdict to the re-run, as both forged arms here read.`);
 });
@@ -881,8 +899,13 @@ test('screg_blind_14_the_re_run_reads_the_rule_and_a_flattened_parent_asks_the_p
   // `PIN-4` (iv)'s last sentence). **THE ONE REACHABLE ARM IS A REPAIR THAT MAKES ITS OWN PAIR'S PARENT CEASE
   // TO BE A CONTAINER**: under `D-96` (4) a LEAF written over that parent does NOT skip the pair — the pair's
   // presence declares that parent a container, so the re-run ASKS it, the body meets a state it does not admit
-  // at its own address, and **a refusing body REFUSES THE REGISTRATION at rank `19`**; **and the repair's
-  // landing STANDS afterwards, because a registration composes no rollback** (`PIN-7` (iv)).
+  // at its own address, and **a refusing body REFUSES THE REGISTRATION at rank `19`**;   // **THE ONE REACHABLE ARM IS A REPAIR THAT MAKES ITS OWN PAIR'S PARENT CEASE
+  // TO BE A CONTAINER**: under `D-96` (4) a LEAF written over that parent does NOT skip the pair — the pair's
+  // presence declares that parent a container, so the re-run ASKS it, the body meets a state it does not admit
+  // at its own address, and **a refusing body REFUSES THE REGISTRATION at rank `19`**; **and from 2026-11-02
+  // the refusal UNDOES the repair's landing** — `strata/decisions.md` · `D-107` item 1: *"Any refusal should be
+  // rolling back. Any exceptions are a defect"*; the reading this cell was filed with (*"the repair's landing
+  // STANDS afterwards, because a registration composes no rollback"*, `PIN-7` (iv)) is WITHDRAWN BY RULING.**
   //
   // **THE READING THAT WOULD MAKE THIS FAIL:** a registration that STANDS because the pair was SKIPPED at the
   // re-run — the arm `D-96` (4) withdrew — which shows as one ask instead of two and no refusal; a repair's
@@ -917,12 +940,14 @@ test('screg_blind_14_the_re_run_reads_the_rule_and_a_flattened_parent_asks_the_p
   assert.equal(asked, 2, 'THE RE-RUN RAN AND ASKED THE PAIR: a credited repair is re-run, and the rule is read INSIDE it (`D-94` (1)(2); `PIN-7` (iii))');
   assert.equal(asks[1].opIsNull, false, 'the re-run\'s context is the evalution over the op the repair returned (`PIN-7` (iii); `D-95` (4))');
   assert.equal(asks[1].ownAddress, 'LeafHasNoDownstream', 'the parent the repair landed is a LEAF, so the pair\'s own address cannot be read (`PIN-2` (ii), third arm)');
-  assert.deepEqual(store.read(['window']), 'flattened', 'A WRITE THE ROUTE LANDED BEFORE A REFUSAL STANDS — a registration composes no rollback (`PIN-7` (iv))');
+  assert.deepEqual(store.read(['window']), { tabs: { active: true } },
+    '**THE REFUSAL ROLLED THE ROUTE\'S LANDING BACK** — `D-107` item 1, re-derived 2026-11-02: the parent the '
+      + 'repair flattened is the container it was before the call, not the string the repair wrote');
   assert.deepEqual(named(store), [], 'and the refused registration leaves the entry exactly as it stood (`index.d.ts`, `constraints()`)');
 
   t.diagnostic(`SCREG-14 · THE RE-RUN: the pair was asked ${asked} time(s) (${JSON.stringify(asks)}), the parent the repair landed reads `
     + `as a leaf, the registration REFUSED ${caught.status}, and read(["window"]) = ${JSON.stringify(store.read(['window']))} afterwards. `
-    + `The rule is read inside the re-run and the refusal does not undo the landing (D-94 (1)-(2); D-96 (4); PIN-7 (iv)). `
+    + `The rule is read inside the re-run and the refusal UNDOES the landing (D-94 (1)-(2); D-96 (4); D-107 item 1). `
     + `NOTE, REPORTED AND NOT ASSERTED: the "0 pairs asked" arm D-94 (1) names is unreachable through this route, because the `
     + `record carries no \`delete\` (PIN-6 (vi)) and a write cannot leave a node unresolvable — so the arm that empties the set is the `
     + `delete-parent arm, which no repair at a registration instant can perform.`);

@@ -459,6 +459,15 @@ fn register_layer_the_five_rust_side_rows_are_executed_with_ids_and_verdicts() {
             // `16`"***, so the seventeenth member's own drive is its declared one (the crossing answers the
             // STORE's `ValueNotAdmitted` where the package would have minted `ValueRefusedAtBoundary`;
             // `support::fail_code_drive`).
+            //
+            // **⟶ AND ONE DRAWN MEMBER'S VERDICT INVERTS 2026-11-02 WITHOUT THE ROW LOSING A DRIVE (`D-118` item
+            // 2).** The array is the store's twenty (the `17` above is that clause's own date's figure);
+            // `RollbackCompacted` is drawn like any other member and `fail_code_drive` answers it with the NEGATIVE
+            // drive — *"neither of the two arms that used to reach the token produces it"* — because `D-118` item 1
+            // removed its last producer. **The verdict this strategy asks for is the same one it has always asked
+            // for: that the member's DECLARED trigger stands where the contract places it, and for this member the
+            // contract's place is `DECLARED, NO PRODUCER`.** No draw is skipped, no member is exempted, and the
+            // strategy's own verdict can still go red — on the day this crate answers the token.
             let rng = &mut Rng::for_attempt(attempt);
             let codes = all_fail_codes();
             let code = codes[rng.below(codes.len())];

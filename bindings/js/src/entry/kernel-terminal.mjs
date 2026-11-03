@@ -45,7 +45,10 @@ export function commitAttemptIdOf(commitRecord) {
  * attempt that IS live.
  */
 export function terminal(kernel, attempt, status, message) {
-  const floor = composeRollback(kernel, attempt);
+  // **THE COMPOSITION'S SCOPE IS HANDED IN AND IS THE LANDING'S `attempt.ops`** (2026-11-02): the third
+  // position is the op list, so the landing's call passes `attempt.ops` and its behaviour is byte-equivalent
+  // while the REGISTRATION's close passes the ops its own route landed (`kernel-registration.mjs`'s frame local).
+  const floor = composeRollback(kernel, attempt, attempt.ops);
   // THE COMPOSITION'S OWN FLOOR, TAKEN OFF THE MEMBER IT WAS DECIDED ON (`composition-and-states.md
   // §2.6` item 5 (b)): a still-owed op's call meeting either floor code makes the arm `KC-8` WHATEVER
   // the pass's own arm was, and nothing is restored (item 6 (a), (c)).
@@ -164,19 +167,26 @@ export function close(kernel, attempt, outcome) {
  * **⟶ ONE CALL OVER THE ATTEMPT'S FIRST OP, AND THE WALK IS GONE — `D-40` (2026-10-26), `strata/decisions.md`
  * · *"A failing repair triggers a rollback like a constraint rejection."* AND ITS IMPLEMENTATION FINDING'S
  * FLOOR LAW IS THE REASON THE WALK COULD NOT STAND.** **The store's own scope is TEMPORALLY FLOORED at the
- * named op's `seq` and ALL-OR-NOTHING at the compacted mark** (`src/store.rs`'s `rollback`: a candidate set of
- * every entry in the addressed subtree at or after the named op's `seq`, then *"the floor is all-or-nothing
- * and undoes NOTHING"* where ANY candidate is compacted — `M-5` item 1's amendment (a) (ii); `M-6`). **SO A
- * NEWEST-FIRST WALK CAN NEVER REACH THE FLOOR ONCE A REPAIR OP EXISTS:** the first call over the repair's op
- * reverses it AND MARKS IT COMPACTED, and the second call — over the write's op, whose candidate set now
- * CONTAINS that compacted entry — is answered `RollbackCompacted` and **undoes nothing**. The measured arm:
- * seed `5`, refused `9`, repair `1`, and the store left holding `9`, the value the constraint REFUSED.
+ * named op's `seq`** (`src/store.rs`'s `rollback`: a candidate set of every entry in the addressed subtree at
+ * or after the named op's `seq` — `M-5` item 1's amendment (a) (ii)) **and a candidate set that holds a
+ * compacted entry is NOT ANSWERED `RollbackCompacted` ANY MORE: the store REVERTS TO THE LAST VALID STATE BY
+ * REGENERATING IT FROM THE DURABLE GROUND TRUTH** — the `file` tier's own image where one stands, and the
+ * creation state where none does — **and then replays what its journal still reaches** (`M-6`;
+ * `strata/decisions.md` · `D-108`), **so that arm RETURNS a `RollbackResult` and the floor branch below fires
+ * on `JournalOpUnknown` ALONE — the single surviving producer on this path** (`D-109`: `RollbackCompacted`
+ * keeps ONE subject, a `filePath` whose image cannot be read as an object, and no order this composition can
+ * produce reaches it). **SO A NEWEST-FIRST WALK NOW REACHES THE FLOOR — BY REGENERATING IT AND NOT BY
+ * REVERSING IT:** the first call over the repair's op reverses it AND MARKS IT COMPACTED, and the second call
+ * — over the write's op, whose candidate set now CONTAINS that compacted entry — REBUILDS the whole state
+ * from the durable ground truth before it walks. **THE REDUCTION IS `D-40`'S AND THIS PARAGRAPH DOES NOT
+ * RE-OPEN IT**: one call over the attempt's first op reaches that same state in one store act and pays no
+ * rebuild for it, which is why the walk is gone and the call below is the only one issued.
  * **THE ONE CALL OVER THE ATTEMPT'S FIRST OP SWEEPS THE WHOLE ATTEMPT IN ONE STORE ACT** — every op of the
  * attempt stands at or after that op's `seq` — so the attempt's floor is reached, exactly as a plain
  * constraint rejection reaches it with its own single-op composition. **THIS IS ALSO ITEM 2'S OWN LAST CALL**
  * (the repaired ops in reverse of their creation, *"and the attempt's first write's op LAST"*): the walk's
- * last entry is the call that is now the only one, and the calls before it were the ones the floor law had
- * already made unsound. **NO ARM'S OUTCOME IS RE-SHAPED BY THE REDUCTION:** a plain rejection still leaves
+ * last entry is the call that is now the only one, and the calls before it are the ones a newest-first walk
+ * would have paid a regeneration for. **NO ARM'S OUTCOME IS RE-SHAPED BY THE REDUCTION:** a plain rejection still leaves
  * the pre-attempt state, a repair answering `{ok: false}` still leaves it, and a PASSING repaired write still
  * lands its repaired value and composes nothing.
  *
@@ -218,14 +228,32 @@ export function close(kernel, attempt, outcome) {
  * `KC-8` row). **THE ARM IS UNMOVED AND IS NO LONGER A CONSEQUENCE OF ANY ORDER — it is the store's answer to
  * the attempt's own floor call — and where several calls are issued the FIRST floor met is the arm's, the steps
  * before it standing in the report beside it** (the composition reports what it PERFORMED; `§2.6` item 3).
+ *
+ * **⟶ AND THE INSTRUMENT HAS TWO CALLERS FROM 2026-11-02, AND IT IS ONE INSTRUMENT** (`D-107` item 1, `D-108` item
+ * 2): the landing's failing arm (`terminal` above, handing its own `attempt.ops`) **and the registration's
+ * REFUSING arm** (`kernel-registration.mjs`'s `closeRegistrationAttempt`, handing the ops its route landed) — so
+ * `composeRollback` is EXPORTED and its op list is a POSITION. **THE PART'S EXPORT LIST GAINS ONE NAME AND THE
+ * KERNEL'S BARREL DOES NOT RE-EXPORT IT** (`src/constraint-kernel.mjs` stays four lines and six names). **AND
+ * THE FLOOR BRANCH BELOW NOW FIRES ON `JournalOpUnknown` ALONE**: from the same date the store's compaction arm
+ * REGENERATES instead of answering `RollbackCompacted` (`D-108`), so the two-element table is unmoved and one of
+ * its members is no longer produced. **A regeneration is told from a replay by the call RETURNING and by nothing
+ * else**: the step's shape and members are unchanged and carry no flag, and `failed` is `false` on both arms.
  */
-function composeRollback(kernel, attempt) {
+export function composeRollback(kernel, attempt, ops) {
   // An attempt with no op at all owes no call, and nor does one whose `checkpoint` op IS its first op — item 1's
   // filter leaves that list empty and the composition records no step for it.
-  if (attempt.ops.length === 0) return null;
-  const first = attempt.ops[0];
+  // **⟶ AND THE LIST IS THE CALLER'S, FROM 2026-11-02: `ops` IS THE SCOPE THE COMPOSITION COVERS, AND IT IS A
+  // POSITION OF THIS FUNCTION SO THE TWO CALLERS CAN NAME DIFFERENT ONES.** The landing's failing arm passes its
+  // `attempt.ops` — the list of the ops a write's pass credited — and its behaviour is byte-equivalent to the
+  // two-position form that stood here. **THE REGISTRATION'S REFUSING ARM PASSES THE FRAME'S OWN LIST OF THE OPS
+  // ITS ROUTE LANDED** (`kernel-registration.mjs`'s `registrationAttempt`), **because `attempt.ops` holds only a
+  // repair's CREDITED op and `landedOp` REFUSES to grow it** — so the ordinary refusing case (a repair that
+  // route-writes and then declines) leaves `attempt.ops` EMPTY, and a composition over it would undo nothing
+  // while the edit stood (`D-107` item 1's defect reproduced by its own fix).
+  if (ops.length === 0) return null;
+  const first = ops[0];
   if (attempt.checkpoint !== null && first.opId === attempt.checkpoint) return null;
-  const plan = floorCallPlan(attempt);
+  const plan = floorCallPlan(attempt, ops);
   let floor = null;
   for (let index = 0; index < plan.length; index += 1) {
     const call = plan[index];
@@ -277,14 +305,15 @@ function composeRollback(kernel, attempt) {
  * **A CANDIDATE IS SKIPPED IN TWO CASES, AND EACH IS THE STORE'S OWN LAW RATHER THAN A PREFERENCE:**
  *   * **COVERED** — an issued address is a prefix of it AND that call's floor stands at or before its own first
  *     owed op: every entry it has was already swept, so a second call could only meet the store's COMPACTED
- *     MARK and the floor is all-or-nothing (undoing nothing).
+ *     MARK — and that arm REVERTS TO THE LAST VALID STATE BY REGENERATING IT FROM THE DURABLE GROUND TRUTH
+ *     (`M-6`; `strata/decisions.md` · `D-108`) rather than undoing nothing.
  *   * **UNREACHABLE** — an issued address is a prefix of it and that call's floor stands AFTER its own first
  *     owed op, while this address still has an owed op at or after that floor. **The two calls cannot both be
  *     issued**: the outer one has already compacted the later entries, so the inner one's scope would contain a
- *     compacted entry and undo nothing. **THE OUTER ADDRESS IS KEPT AND THE INNER ADDRESS'S EARLIER ENTRIES
- *     STAND** — the one residual this plan cannot remove, named here rather than left to a measurement (it
- *     needs an attempt whose repair order writes at a DESCENDANT and then at its ANCESTOR, with a later
- *     descendant write still owed).
+ *     compacted entry and its call would REGENERATE THE WHOLE STATE instead of walking it (`D-108`). **THE
+ *     OUTER ADDRESS IS KEPT AND THE INNER ADDRESS'S EARLIER ENTRIES STAND** — the one residual this plan
+ *     cannot remove, named here rather than left to a measurement (it needs an attempt whose repair order
+ *     writes at a DESCENDANT and then at its ANCESTOR, with a later descendant write still owed).
  * **THE ISSUED CALLS' CANDIDATE SETS ARE THEREFORE PAIRWISE DISJOINT, AND THAT IS THE PROPERTY THE ORDERING
  * BUYS**: a call issued now is either disjoint from every call already issued (its address is unrelated, or it
  * is nested but stands wholly BELOW the outer call's floor) or it is skipped — so no call can see an entry an
@@ -298,10 +327,10 @@ function composeRollback(kernel, attempt) {
  * issues the call (the container is back and the descendant is readable again), and the value beneath it is the
  * STORE's restore limit and not this composition's ordering.
  */
-function floorCallPlan(attempt) {
+function floorCallPlan(attempt, ops) {
   const candidates = [];
-  for (let index = 0; index < attempt.ops.length; index += 1) {
-    const op = attempt.ops[index];
+  for (let index = 0; index < ops.length; index += 1) {
+    const op = ops[index];
     let known = false;
     for (let seen = 0; seen < candidates.length; seen += 1) {
       if (sameSegments(candidates[seen].address, op.address)) {
@@ -339,8 +368,8 @@ function floorCallPlan(attempt) {
       // THE OUTER CALL'S FLOOR STANDS AFTER THIS ADDRESS'S FIRST OWED OP: a call issued now would meet an entry
       // the outer call compacted. IT IS UNREACHABLE ONLY WHERE SUCH AN ENTRY EXISTS — a candidate whose every
       // entry stands BELOW the outer floor is disjoint from the outer scope and is issued after it safely.
-      for (let scan = one.floor; scan < attempt.ops.length; scan += 1) {
-        if (addressBelow(candidate.address, attempt.ops[scan].address)) {
+      for (let scan = one.floor; scan < ops.length; scan += 1) {
+        if (addressBelow(candidate.address, ops[scan].address)) {
           unreachable = true;
           break;
         }
@@ -348,7 +377,7 @@ function floorCallPlan(attempt) {
       if (unreachable) break;
     }
     if (covered || unreachable) continue;
-    const floorOp = attempt.ops[candidate.order];
+    const floorOp = ops[candidate.order];
     appendOwn(issued, { address: candidate.address, floor: candidate.order });
     appendOwn(plan, { address: candidate.address, opId: floorOp.opId });
   }

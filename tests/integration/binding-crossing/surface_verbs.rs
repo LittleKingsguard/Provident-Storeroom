@@ -896,7 +896,32 @@ fail_code_cell!(fail_code_7_container_kind_conflict_is_reachable, "ContainerKind
 fail_code_cell!(fail_code_8_read_target_is_branch_is_reachable, "ReadTargetIsBranch");
 fail_code_cell!(fail_code_9_write_parent_not_link_is_reachable, "WriteParentNotLink");
 fail_code_cell!(fail_code_10_journal_op_unknown_is_reachable, "JournalOpUnknown");
-fail_code_cell!(fail_code_11_rollback_compacted_is_reachable, "RollbackCompacted");
+// **⟶ `fail_code_11_rollback_compacted_is_reachable` IS RE-WORDED 2026-11-02 (`D-118` item 2), AND THE RE-WORD IS
+// SAID HERE BECAUSE THE OLD NAME ASSERTED A REACHABILITY THAT IS GONE.** The cell was one line of the
+// `fail_code_cell!` macro, whose verdict is *"the declared code is produced by a real trigger"*. **`D-118` item 1
+// removed the member's LAST trigger** — a present, non-empty `filePath` image the store's loader cannot read is
+// TREATED AS NO IMAGE AT ALL and the regeneration takes `Store::born` (*"In the corrupt file case, then it restores
+// from the store creation image"*, the architect, verbatim) — **so the token is `DECLARED, NO PRODUCER` and its
+// drive is the NEGATIVE one** (`support::fail_code_drive`'s arm drives both arms and requires both to RETURN).
+// **The status is NOT retired and its rank does not move**: it keeps its place in `§8.1`'s twenty, whose census the
+// cell below still counts (`D-118` item 2: *"the closed set is the store's"*). **The drive is not weakened and not
+// dropped: it asserts MORE than the macro's one line did** — two arms instead of one, the fixture's survival at
+// the path (`D-112` item 2), and the member's continued membership.
+#[test]
+fn fail_code_11_rollback_compacted_is_declared_and_unreachable() {
+    assert!(
+        all_fail_codes().contains(&"RollbackCompacted"),
+        "`§8.1` #11: the member KEEPS its rank-`11` place in the closed set — `D-118` item 2 removes its last \
+         producer and does not retire it (the set is the store's)"
+    );
+    assert!(
+        fail_code_drive("RollbackCompacted"),
+        "`RollbackCompacted` is DECLARED and UNREACHABLE (`D-118` item 2): neither the compaction alone \
+         (`D-108` item 1) nor the compaction over an image the store's loader cannot read (`D-118` item 1) \
+         answers the token, and the store's own reversal writes no byte of the corrupt fixture (`D-112` item 2) \
+         — were this crate to produce the code on either arm, this drive returns `false` and the cell fails"
+    );
+}
 fail_code_cell!(
     fail_code_12_construction_argument_missing_is_reachable,
     "ConstructionArgumentMissing"
@@ -953,20 +978,61 @@ fail_code_cell!(
 // package-owned arms are four.** The cell is still the SAME read and **NO ASSERTION IS WEAKENED**: every
 // reachable member is still driven through a real trigger, and each package-owned member still has its
 // negative drive.
+//
+// **⟶ AND RE-DERIVED AGAIN 2026-11-02, TITLE AND FIGURE TOGETHER (`D-118` item 2), AND THE RE-WORD IS SAID HERE
+// BECAUSE THE OLD TITLE ASSERTED A REACHABILITY THAT IS GONE.** The cell was
+// `fail_set_is_closed_at_twenty_and_sixteen_of_them_are_reached_from_the_crossing`. **`D-118` item 1 removed
+// `RollbackCompacted`'s last producer** — an image the store's loader cannot read is TREATED AS NO IMAGE AT ALL
+// (*"In the corrupt file case, then it restores from the store creation image"*, the architect, verbatim) — **so
+// the closed set now splits THREE ways and the figures are `20 = 15 + 4 + 1`**:
+//
+//   · **`15` REACHED** through this crate's own surface (`support::crossing_reachable_fail_codes`), each driven
+//     through a real trigger exactly as before;
+//   · **`4` PRODUCED ABOVE THIS ADDON** — `ValueRefusedAtBoundary`, `ConstraintBodyThrew`,
+//     `ConstraintRefusedAtRegistration` and `ConstraintPassRefused` — each driven at its own boundary by its own
+//     negative drive;
+//   · **`1` DECLARED, NO PRODUCER** — `RollbackCompacted` (`support::declared_unreachable_fail_codes`), driven by the
+//     negative that its two former arms both RETURN.
+//
+// **THE `20` MEMBER FIGURE DOES NOT MOVE** (`D-118` item 2: *"the closed set is the store's"*, and no byte of
+// `src/error.rs` moves, `PIN-14` (v)); **what moved is one member's population and the title that named it.** **NO
+// ASSERTION IS WEAKENED AND NO MEMBER IS DROPPED: every one of the twenty is driven in this cell, and the three
+// figures are asserted to sum to the set's own length so a fourth class cannot appear silently.**
 #[test]
-fn fail_set_is_closed_at_twenty_and_sixteen_of_them_are_reached_from_the_crossing() {
+fn fail_set_is_closed_at_twenty_and_fifteen_of_them_are_reached_from_the_crossing() {
     assert_eq!(all_fail_codes().len(), 20, "the store's own array is the census (A148 Q3, read through \
          the 2026-10-26 rulings: *Expand the returned error set for both S/N* and *Expand the returned \
-         fail-state list to include the refusal*)");
+         fail-state list to include the refusal*), and `D-118` item 2 does not move it: the token keeps its \
+         place because *the closed set is the store's*");
     assert_eq!(
         crossing_reachable_fail_codes().len(),
-        16,
+        15,
         "the four members the package owns (`ValueRefusedAtBoundary`, `ConstraintBodyThrew`, \
          `ConstraintRefusedAtRegistration` and `ConstraintPassRefused`) are each declared at their own \
-         boundary"
+         boundary, and `RollbackCompacted` is `DECLARED, NO PRODUCER` (`D-118` item 2) — `20 - 4 - 1 = 15`"
+    );
+    assert_eq!(
+        declared_unreachable_fail_codes(),
+        vec!["RollbackCompacted"],
+        "the third class is the one member whose producer `D-118` item 1 removed, and it is named here rather \
+         than folded into either of the other two"
+    );
+    assert_eq!(
+        crossing_reachable_fail_codes().len() + 4 + declared_unreachable_fail_codes().len(),
+        all_fail_codes().len(),
+        "the three figures are the set's own length: `15` reached + `4` produced above this addon + `1` declared \
+         with no producer = `20`, so no member is counted twice and none is dropped"
     );
     for code in crossing_reachable_fail_codes() {
         assert!(fail_code_drive(code), "`{code}` is a member with a reachable trigger");
+    }
+    for code in declared_unreachable_fail_codes() {
+        assert!(
+            fail_code_drive(code),
+            "`{code}` is DECLARED and UNREACHABLE (`D-118` item 2): its drive is the negative one — the two arms \
+             that used to reach it must both RETURN, and the store's own reversal must write no byte of the \
+             corrupt fixture (`D-112` item 2)"
+        );
     }
     assert!(
         fail_code_drive("ValueRefusedAtBoundary"),

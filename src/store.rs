@@ -15,7 +15,7 @@ use crate::error::{
     address_not_found, constraint_list_invalid, container_kind_conflict,
     container_kind_conflict_for_key, file_commit_failed, file_path_unreachable, journal_op_unknown,
     leaf_has_no_downstream, malformed_named, malformed_segment, missing_argument,
-    monotonicity_violation, read_target_is_branch, rollback_compacted, slashed_address,
+    monotonicity_violation, read_target_is_branch, slashed_address,
     tier_not_found, value_not_admitted, write_parent_not_link, StoreError,
 };
 use crate::json;
@@ -913,6 +913,27 @@ fn path_is_reachable(path: &str) -> bool {
     }
 }
 
+/// **THE STORE'S ONE ANSWER ABOUT THE BYTES AT `file_path`, AND ITS ONE DECODE — `D-110` ITEM 2.**
+/// **THE THREE CLASSES `boot_load` ANSWERS `None` FOR** — **no `filePath` at all, an ABSENT (or unreadable)
+/// file, and a ZERO-LENGTH file**, the last being what the construction's own exclusive create leaves — are
+/// [`FileImage::NoImage`]; **the IMAGE THAT STANDS and that the store's loader ADMITS as its own** is
+/// [`FileImage::Members`], its admitted members carried out of the decode in the file's own order; **and the
+/// IMAGE THAT STANDS and that the loader REFUSES** is [`FileImage::Refused`] (**`D-109`'s narrowed subject AND,
+/// FROM 2026-11-02, NO REFUSAL OF ITS OWN: `strata/decisions.md` · `D-118` item 1 reads it as NO IMAGE AT ALL, so
+/// the regeneration takes the creation state where the boot still answers that an image stood there**).
+/// **The third class is spelled ONCE, HERE, WHERE THE DECODE HAPPENS**, because it is a fact of the same read
+/// that neither the boot's declared answer nor the construction image can carry — **and the two callers map
+/// this one answer onto their own declared forms rather than reading the path a second time** (`D-110` item 3).
+enum FileImage {
+    /// No image stood there for a load to measure: no `filePath`, an absent or unreadable file, or a
+    /// zero-length file.
+    NoImage,
+    /// A present, non-empty image the loader ADMITS: its admitted members, in the file's own order.
+    Members(Vec<(String, StoreValue)>),
+    /// A present, non-empty image the loader REFUSES — bytes that are not this store's image.
+    Refused,
+}
+
 impl Store {
     /// **THE EMPTY REGISTER'S THREE ARENAS, IN ONE PLACE** — the graph a store begins with and the graph a
     /// mark restore's replay begins from (`§6.6`: the replay starts at the state the journal's record stands
@@ -1370,9 +1391,11 @@ impl Store {
     /// AND ANSWERS SECOND (`surface.md §2.11` clause 5).**
     fn write_file(&self, address: &[Segment]) -> Result<(), StoreError> {
         let text = json::encode(&self.file_snapshot());
-        // THE LOADER'S OWN ACCEPTANCE, APPLIED TO THE IMAGE BEFORE IT IS WRITTEN: the boot arm's
-        // `if let Ok(StoreValue::Object(members)) = json::decode(&text)` IS THE LOADER, so this is the
-        // loader's own arm, asked of the image the commit is about to rename over the path.
+        // THE LOADER'S OWN ACCEPTANCE, APPLIED TO THE IMAGE BEFORE IT IS WRITTEN: the store's one read of the
+        // path (`Store::read_file_image`) IS THE LOADER, and its `Ok(StoreValue::Object(_))` arm is the
+        // acceptance every load rests on, so this asks that same acceptance of the image the commit is about
+        // to rename over the path. It reads the text it is about to write and never the standing bytes, so it
+        // is the commit's own verification (`A144`) and not a second reader of the durable state (`D-110`).
         if !matches!(json::decode(&text), Ok(StoreValue::Object(_))) {
             return Err(file_commit_failed(address, &self.file_path));
         }
@@ -1392,7 +1415,28 @@ impl Store {
     /// (`surface.md §2.11` clauses 2–3). **Its subject is the SETTLED RECORD'S OWN `op`** — *"the record the
     /// kernel settled carries the journal op that write returned, and that op is the key this act reads"*:
     /// the entry this op id names is looked up in the journal, and the act is the `file` tier's and no other
-    /// (`§7.2` item 2: *"a record whose own `op` is not a `file`-tier write's performs none"*).
+    /// (`§7.2` item 2, whose eligibility ground is **WHAT THE ACT MOVED** and not the op's own tier word —
+    /// `strata/decisions.md` · `D-106` arm 2, and the clause is cited and no longer quoted here because
+    /// `D-107` item 4 corrected the sentence that stood at this position). **⟶ AND THE ITEM'S REVERSAL HALF IS
+    /// NOT THIS ACT'S FROM 2026-11-02**: the reversal commits on the STATE it left, through the entry's own
+    /// absent arm ([`Store::save_state`]) and after the package's judgement — so this verb's subject is a record
+    /// and no reversal's (`strata/decisions.md` · `D-112` items 1–2, `D-116` item 2).
+    ///
+    /// **⟶ AND THE ELIGIBILITY GROUND IS TWO DISJUNCTS WITH ONE MEANING, 2026-11-02 (`D-106` arm 2): AN OP IS
+    /// ELIGIBLE EXACTLY WHEN THE ACT IT NAMES MOVED AT LEAST ONE VERSION STANDING AT `Tier::File`.** The first
+    /// disjunct is the op's own tier word (`op.tier == Some(Tier::File)`: a `file`-tier write and a tier-named
+    /// `file` delete, both already conforming); **the second is the WHOLE-TARGET `delete`, whose `op.tier` is
+    /// `None` and whose own entry records the versions it removed WITH THEIR TIERS** (`Entry::captured`,
+    /// `Captured::tier`) — so the predicate is read off the store's own record and needs no new member, no new
+    /// op and no caller's hint. **AND ITS NEGATIVE ARM IS THE OTHER HALF: a whole-target delete whose removed
+    /// set held NO `file`-tier version moved no `file`-tier data and SAVES NOTHING** — the ground reads
+    /// `captured`, never the act's scope.
+    /// **⟶ AND FROM 2026-11-02 THE SECOND DISJUNCT IS READ AS A DEPARTURE AND ITS POPULATION IS EVERY OTHER OP
+    /// (`strata/decisions.md` · `D-106` item 2, `PIN-17`)**: a `mem`- or `temp`-tier WRITE of a CONTAINER value
+    /// that PURGES a `file`-tier version — the re-mint arm above pushes a leaf standing at a higher rank into
+    /// `doomed` — **moved `file`-tier data and is eligible like any other**, while a SCALAR at the same address
+    /// SHADOWS the durable version and owes nothing. **The reading is [`Store::save_owed`]'s own and is spelled
+    /// there rather than re-derived here.**
     ///
     /// **ON THE FAILURE ARM THE STORE ROLLS THE WRITE BACK FIRST AND ANSWERS `FileCommitFailed` SECOND**
     /// (`§8.1` #15; `surface.md §2.11` clause 5): the entry is removed from the journal, the pre-state the
@@ -1419,7 +1463,7 @@ impl Store {
         else {
             return Ok(());
         };
-        if self.journal[index].op.tier != Some(Tier::File) {
+        if !self.save_owed(index) {
             return Ok(());
         }
         if self.journal[index].saved {
@@ -1443,6 +1487,73 @@ impl Store {
         }
     }
 
+    /// **⟶ ADDED 2026-11-02 — THE STATE-KEYED SAVE: THE SECOND READING OF `OpIdArg`'S ABSENT CARRIER, AND THE
+    /// SECOND KEY ON THE STORE'S ONE WRITER** (`strata/decisions.md` · `D-116` item 2; `D-112` items 1–2). **The
+    /// store writes on TWO keys and no third: an OP, for a write's and a delete's and a registration's close
+    /// ([`Store::commit_file`], unmoved); and a STATE, here, for the reversal's save** — which the package makes
+    /// after its constraint judgement has passed, through the addon entry `commitFile`'s ONE position supplied
+    /// with nothing (`bindings/js/src/facade.rs`'s absent arm).
+    ///
+    /// **IT IS NOT A SECOND INSTRUMENT**: the whole body is [`Store::save_file_delta`] at the register's own
+    /// subject (`&[]`, `D-55` item 2's spelling of the root), which is the instrument `replayMark` already saves
+    /// through — so **the comparison is still the guard and the serialization is still `write_file`'s**, and a
+    /// second identical reversal writes no byte because the standing image already holds the state it stands at
+    /// (`D-116` items 3 and 5).
+    ///
+    /// **THE SUBJECT IS THE REGISTER AND NOT THE REVERSED OP'S ADDRESS**: the image any save writes is the whole
+    /// register's (`§7.2` `M-12`), so a subject is a failure's NAME and never a write target — **and no record
+    /// stands for a reversal to be named by** (*"a save is an effect and not an op"*, `§6.4` `M-9`). **So a save
+    /// that cannot land answers `FileCommitFailed` naming the register, not an op that was already undone** — and
+    /// it removes no entry, restores no pre-state and steps no `seq` (`D-107` item 3), because it reaches
+    /// `write_file` and never this file's own failing arm at [`Store::commit_file`].
+    ///
+    /// **AND `Store::rollback` NO LONGER CALLS THIS INSTRUMENT**: the reversal's save left the store with
+    /// `D-112` item 2, and the arm that owes it is the judgement's. [`Store::save_file_delta`] keeps its bytes and
+    /// gains this caller while `replayMark` keeps its own.
+    pub fn save_state(&self) -> Result<(), StoreError> {
+        self.save_file_delta(&[])
+    }
+
+    /// **THE ELIGIBILITY GROUND OF ONE STANDING ENTRY — `D-106` ARM 2, SPELLED ONCE AND READ BY
+    /// `commit_file` ALONE.** **TRUE EXACTLY WHEN THE ACT THE ENTRY NAMES MOVED AT LEAST ONE VERSION STANDING
+    /// AT `Tier::File`.** The op's own tier word answers the first two classes (a `file`-tier write and a
+    /// tier-named `file` delete); **every other op is answered by THE DEPARTURE ITS TWO RECORDS SHOW**, and
+    /// no longer by a count of what its pre-state held.
+    ///
+    /// **⟶ AND THE SECOND DISJUNCT IS READ AS A DEPARTURE AND NOT AS A CARDINALITY, 2026-11-02
+    /// (`strata/decisions.md` · `D-106` item 2, `PIN-17`).** **An op is eligible exactly when at least one
+    /// version standing at `Tier::File` LEFT THE REGISTER DURING THE ACT — wrote over, replaced at its own
+    /// tier, or PURGED** — and the store reads *"left"* off the two records it already holds on the entry:
+    /// [`Entry::captured`], the pair's pre-state taken at the act, and the entry's own post-state, both
+    /// `Vec<Captured>` carrying [`Captured::tier`]. **A `file`-tier `Captured` in the pre-state with NO
+    /// COUNTERPART in the post-state left the register during the act**, and nothing else did.
+    /// **THE GROUND THIS REPLACES WAS A COUNT** — *"its `captured` set holds a version at `Tier::File`"* —
+    /// **and it was right by accident on the whole-target `delete`** (everything it captured leaves) **and
+    /// wrong in both directions elsewhere**: a `mem`- or `temp`-tier write of a CONTAINER value PURGES the
+    /// `file`-tier version standing as a leaf above it (`§1.1`'s re-mint arm, above) and its `captured` holds
+    /// that version, so the purge WAS owed a save the count refused; **and a `mem`- or `temp`-tier SCALAR at
+    /// the same address SHADOWS the durable version, leaves it standing, and its `captured` holds it too** —
+    /// so the count would have made every shadowing write eligible and written a byte for a datum nothing
+    /// durable moved. **The departure test answers `true` for the first and `false` for the second, which is
+    /// the rule's own meaning and not a second rule.** **NO MEMBER IS MINTED FOR IT**: `Entry` gains nothing,
+    /// `Captured` gains nothing and `JournalOp::tier`'s domain is unmoved.
+    ///
+    /// **The mark is the entry's own and the act is performed once per record**: this predicate answers WHERE
+    /// a save is owed and never WHETHER one has run — that is `Entry::saved`'s question, below.
+    fn save_owed(&self, index: usize) -> bool {
+        let entry = &self.journal[index];
+        if entry.op.tier == Some(Tier::File) {
+            return true;
+        }
+        entry.captured.iter().any(|before| {
+            before.tier == Tier::File
+                && !entry
+                    .after
+                    .iter()
+                    .any(|now| now.tier == before.tier && now.path == before.path)
+        })
+    }
+
     /// `§7.2` item 6: the boot loads the `file` tier's content if the file exists — **step 7 of `§7.1`'s
     /// amended sequence, which produces `0` registrations (`DD-38`).** A path-less instance (`filePath`
     /// ABSENT) has no `file` tier at all, so nothing is loaded and the register keeps its `mem` tier.
@@ -1461,27 +1572,63 @@ impl Store {
     /// validation runs over it** — **which is the reading `§7.2` item 5's own reason gives: *"WHICH IS WHAT
     /// DETECTS A CORRUPT OR OBSOLETE FILE, one whose state no longer satisfies the constraints the
     /// application now supplies"*.**
+    /// **⟶ AND ITS BODY IS THE STORE'S ONE READ OF THE PATH FROM 2026-11-02 (`D-110` item 2): the load reads
+    /// nothing itself any more, it MAPS [`Store::read_file_image`]'s one answer onto this declared
+    /// `Option<usize>` — `None` for the three classes item `DEF-2026-10-15-Z` exempts and `Some(loaded)` for a
+    /// present, non-zero-length image, whose members it mints through [`Store::install_file_image`] at
+    /// `Tier::File`. `D-110` item 3 forbids widening this answer and this signature stands unmoved.**
     fn boot_load(&mut self) -> Option<usize> {
+        let image = self.read_file_image();
+        match image {
+            FileImage::NoImage => None,
+            // **A PRESENT, NON-ZERO-LENGTH IMAGE IS A STATE WHETHER OR NOT IT DECODES**: the loader refuses
+            // these bytes, and the boot still answers that an image STOOD there — `Some(0)` members admitted.
+            FileImage::Refused => Some(0),
+            FileImage::Members(members) => Some(self.install_file_image(&members)),
+        }
+    }
+
+    /// **THE ONE PLACE THE BYTES AT `file_path` ARE READ AND DECODED, AND THE ONE PLACE THE THREE CLASSES ARE
+    /// SPELLED — `D-110` ITEM 2.** The boot ([`Store::boot_load`]) and the regeneration ([`Store::regenerate`])
+    /// both reach the file through this answer and neither reads the path beside it; **a fact the answer does
+    /// not carry would be carried out of this frame rather than re-derived next to it.** **IT IS A PURE READ:**
+    /// no node is minted, no anchor is installed, nothing is mutated, so a caller may refuse on this answer and
+    /// leave the store exactly where it found it.
+    fn read_file_image(&self) -> FileImage {
         if self.file_path.is_empty() {
-            return None;
+            return FileImage::NoImage;
         }
         let Ok(text) = std::fs::read_to_string(&self.file_path) else {
-            return None;
+            return FileImage::NoImage;
         };
         if text.is_empty() {
-            return None;
+            return FileImage::NoImage;
         }
+        match json::decode(&text) {
+            Ok(StoreValue::Object(members)) => FileImage::Members(
+                members
+                    .into_iter()
+                    .filter(|(_, value)| value.is_admitted())
+                    .collect(),
+            ),
+            _ => FileImage::Refused,
+        }
+    }
+
+    /// **THE LOAD'S INSTALL, FACTORED OUT SO THE BOOT AND THE REGENERATION INSTALL AN IMAGE BY ONE ACT —
+    /// `D-110` items 2 and 4.** Every member the reader admitted is minted at `Tier::File`, which is the tier
+    /// the boot gives every member it loads, and the answer is the number it minted (the boot's `Some(loaded)`).
+    /// **It is the `mint` every `file`-tier write performs** (`Tier::File`, the same-pair replacement the
+    /// write's own arms carry), so the graph a regeneration's base leaves is the graph a boot over the same
+    /// bytes would stand at.
+    fn install_file_image(&mut self, members: &[(String, StoreValue)]) -> usize {
         let mut loaded = 0;
-        if let Ok(StoreValue::Object(members)) = json::decode(&text) {
-            for (name, value) in members {
-                if value.is_admitted() {
-                    let link = self.register;
-                    self.mint(link, Segment::Key(name), Tier::File, &value);
-                    loaded += 1;
-                }
-            }
+        for (name, value) in members {
+            let link = self.register;
+            self.mint(link, Segment::Key(name.clone()), Tier::File, value);
+            loaded += 1;
         }
-        Some(loaded)
+        loaded
     }
 
     // -----------------------------------------------------------------------------------------------
@@ -2629,6 +2776,29 @@ impl Store {
     }
     /// `§6.3`/`§6.4`: `rollback(opId)` — the journal's only consumer, addressed by op id, TOTAL over its
     /// scope and ALL-OR-NOTHING at its floor.
+    ///
+    /// **⟶ AND ITS FLOOR IS A BOUND AND NOT A STRAND, 2026-11-02 (`strata/decisions.md` · `D-108`).** **A
+    /// candidate set that is temporally in scope and holds a compacted entry no longer refuses: the store
+    /// REBUILDS the last valid state from the durable ground truth and then runs the same backward walk**
+    /// ([`Store::regenerate`]) — so no candidate of the bounded set is left standing. **⟶ AND THE REGENERATION
+    /// REFUSES ON NO STATE OF THE PATH, FROM 2026-11-02 (`strata/decisions.md` · `D-118` item 1, correcting
+    /// `D-109`'s narrowing at its own subject): a candidate set holding a compacted entry over a `filePath` whose
+    /// image cannot be read as an object is no longer a refusal — the unreadable image is treated as NO image at
+    /// all and the base is the CREATION STATE, so that arm reverts too and the bytes are made readable by the
+    /// save that follows.** **So no act of this tree produces `RollbackCompacted`; the token keeps its rank, its
+    /// code and its generated message, and its retirement from the closed set is the architect's and not this
+    /// unit's** (`arms.md §B.3`, `D-118` item 2).
+    ///
+    /// **⟶ AND THIS FRAME PERFORMS THE REVERSAL AND NO WRITE, 2026-11-02 — `D-112` ITEM 2.** The reversal's save
+    /// is **the PACKAGE's** act and stands **behind the constraint judgement**: `D-106`'s arm 3 is a package-side
+    /// arm from this date and no longer a store-side one, so `rollback` takes **no projection of any kind** and
+    /// writes no byte of the state it leaves. **A SAVE THAT RAN HERE WOULD HAVE SAVED A STATE THE JUDGEMENT MAY
+    /// REFUSE**, and — being reached by the kernel's own compensation — would have needed a predicate to tell a
+    /// compensation from a caller's reversal, which `D-111` item 1 forbids. **THE ORDERING DISCHARGES IT INSTEAD**:
+    /// `judgeReversal` returns on `COMPENSATING` before any ask, so a compensation reaches neither the judgement
+    /// nor the save. **THE STORE'S ONE WRITER KEEPS TWO KEYS**: an op, for a write's and a delete's and a
+    /// registration's close ([`Store::commit_file`], byte-unmoved), and a state, for the reversal's — the second
+    /// reached only after the judgement ([`Store::save_state`], [`Store::save_file_delta`]).
     pub fn rollback(&mut self, op: OpIdArg) -> Result<RollbackResult, StoreError> {
         let op_id = op_id(&op)?;
         let Some(index) = self.journal.iter().position(|entry| entry.op.opId == op_id) else {
@@ -2653,8 +2823,12 @@ impl Store {
             .iter()
             .any(|candidate| self.journal[*candidate].op.compacted)
         {
-            // `M-6`: the floor is all-or-nothing and undoes NOTHING.
-            return Err(rollback_compacted(&op_id));
+            // `M-6` AS CORRECTED 2026-11-02 (`D-108`): **THE COMPACTION ARM DOES NOT STRAND THE STATE — IT
+            // REGENERATES IT.** The predicate above this call moves no byte; what moved is the `return` that
+            // used to stand here, which refused. **The reversal then runs its own backward walk over the same
+            // bounded set, unchanged**, so `undoneOps`, `restoredTo` and the marks are the walk's and the arm
+            // differs in its BASE and in nothing it records.
+            self.regenerate(&scope)?;
         }
         let mut undone = Vec::new();
         for candidate in scope.iter().rev() {
@@ -2704,6 +2878,15 @@ impl Store {
                 undone.push(entry_id);
             }
         }
+        // **⟶ AND THE REVERSAL WRITES NO BYTE, 2026-11-02 — `D-112` ITEM 2: THE SAVE IS THE PACKAGE'S ACT, AT
+        // THE INSTANT THE JUDGEMENT HAS PASSED.** The `save_file_delta` call that stood here, its paragraph and
+        // the two-arm argument it carried are WITHDRAWN WHOLE, and none of them survives beside this line: a
+        // save taken here would run BEFORE the judgement and would therefore save a state the judgement may
+        // refuse — **and it would be reached by the kernel's own compensation, which the ordering now excludes
+        // from the save without needing a predicate to tell it from a caller's reversal** (`D-111` item 1 is
+        // discharged by the ORDERING, `D-112` item 3). **What this frame does is the reversal — the replay, the
+        // regeneration and the report — and nothing else**; the save is `Store::save_state`'s, made after the
+        // judgement, and the compensating restore's own save is `replayMark`'s, unmoved (`D-106` item 4).
         Ok(RollbackResult {
             opId: op_id,
             undoneOps: undone,
@@ -2764,6 +2947,15 @@ impl Store {
     /// state that stood BEFORE the reversal, which is exactly the state a refused reversal owes back. An op
     /// id names the state that stood **immediately after that operation landed**.
     ///
+    /// **⟶ AND THE ABSENT CARRIER HAS TWO READERS FROM 2026-11-02, EACH NAMED AT ITS OWN ENTRY — `D-117` ITEM
+    /// 4 (a), RE-DERIVED IN THIS UNIT.** The row is `OpIdArg`'s absent form and its ARITHMETIC DOES NOT MOVE (two
+    /// entries read it, the domain keeps its six rows, and no second position is minted): **at THIS entry it is
+    /// the journal's HEAD**, exactly as the sentence above declares; **and at the terminal arm's `commitFile`
+    /// entry it is the STATE — SAVED** ([`Store::save_state`]), the reversal's own key, which names no mark, no op
+    /// and no record. **So the gloss *"the journal's head"* is this entry's reading of the row and not the row's
+    /// whole meaning**, and the corpus sentence that glossed it as one at `docs/specs/storeroom-native/
+    /// contract.md` `§6.6` item 1 carries both readings.
+    ///
     /// **⟶ AND THE SENTENCE ABOVE IS READ THROUGH ITS MARK, 2026-10-27 (`RCA-8(g)` ANNOTATE-BESIDE: the bytes
     /// above stand and this clause is the operative statement of what a refused reversal restores). THE
     /// REASONING *"a reversal appends no journal entry, so the head describes the state that stood before the
@@ -2811,15 +3003,18 @@ impl Store {
     /// REASON WAS THE DEFECT.** A restore that re-states a `file`-tier version moves the state the file
     /// describes; with no save the bytes at `cfg.filePath` kept describing the PRE-restore state, **and a
     /// re-boot READS THEM** — so the state a refusal had just declared restored was lost at the next
-    /// instance (`§7.2` item 6's boot). **The act now saves EXACTLY WHERE A `file`-TIER NODE MOVED, and not
-    /// otherwise**: the detection is not a guess about which op ran, it is the store's own `file_snapshot` —
-    /// every register key's version standing at `Tier::File`, assembled at that tier, which is precisely the
-    /// image `write_file` encodes and the boot loads — taken BEFORE the replay and again after it. **EQUAL
-    /// SNAPSHOTS MEAN NO `file`-TIER VERSION MOVED, so no byte is touched and a restore that changes nothing
-    /// file-tier keeps the no-file-I/O property.** **THE SAVE IS THE STORE'S OWN AND NOT A SECOND
-    /// IMPLEMENTATION**: it is `write_file`, the one serialization-and-atomic-rename a `file`-tier write's
-    /// save performs (`commit_file` is the RECORD-KEYED wrapper around it — entry lookup, tier test, `saved`
-    /// marker, `§7.2` item 3's rollback — and the restore appends no record for that wrapper to key on).
+    /// instance (`§7.2` item 6's boot). **The act now saves EXACTLY WHERE THE STANDING IMAGE DOES NOT ALREADY HOLD
+    /// THE RESTORED STATE, and not otherwise**: the reading is not a guess about which op ran, it is the store's
+    /// own `file_snapshot` — every register key's version standing at `Tier::File`, assembled at that tier, which
+    /// is precisely the image `write_file` encodes and the boot loads — compared after the replay with the
+    /// projection of the DURABLE state ([`Store::durable_projection`], 2026-11-02, `strata/decisions.md` ·
+    /// `D-111` item 1). **AN EQUALITY MEANS THE BYTES ALREADY SAY WHAT THE STORE NOW HOLDS, so no byte is touched
+    /// and a restore that returns the store to the state the file holds keeps the no-file-I/O property** — which
+    /// is the failing attempt's compensating restore, and the reason its reversal owes no save. **THE SAVE IS THE
+    /// STORE'S OWN AND NOT A SECOND IMPLEMENTATION**: it is `write_file`, the one serialization-and-atomic-rename a
+    /// `file`-tier write's save performs (`commit_file` is the RECORD-KEYED wrapper around it — entry lookup, tier
+    /// test, `saved` marker, `§7.2` item 3's rollback — and the restore appends no record for that wrapper to key
+    /// on).
     ///
     /// **AND A FAILED SAVE IS REPORTED, NOT SWALLOWED, AFTER THE STATE IS RESTORED.** The replay has already
     /// happened when the save is attempted, and it is NOT rolled back: the caller learns that the in-memory
@@ -2864,20 +3059,113 @@ impl Store {
         self.replayMark(None)
     }
 
+    /// **⟶ ADDED 2026-11-02 — `D-108`'S FOURTH ARM: THE REGENERATION A LAST-VALID-STATE REVERSAL RUNS WHEN
+    /// ITS CANDIDATE SET MEETS A COMPACTED ENTRY.** The architect, verbatim: *"The default behavior for a
+    /// last-valid-state rollback encountering the compaction should already be to regenerate from
+    /// file/creation data"*. **It changes the BASE a reversal reverts onto and nothing else: it writes no
+    /// journal entry, removes none, re-orders none, steps no `seq`, advances no compression and clears no mark**
+    /// (`M-9`, `DD-30`). **Its only effect on the journal is the loop's own mark on each candidate it re-states,
+    /// set by the caller.**
+    ///
+    /// **THE BASE IS THE STORE'S OWN EXISTING FILE-OR-CONSTRUCTION FALLBACK, AND NOT A READER BESIDE IT —
+    /// 2026-11-02, `D-110`.** The architect, verbatim: *"The regeneration should be an already existing
+    /// fallback that uses the file, if available, and the construction image if not"*. **THE FILE'S IMAGE WHERE
+    /// ONE STANDS, AND THE CONSTRUCTION IMAGE IN THE THREE CLASSES THAT OWE IT** — the classes `boot_load` *"the
+    /// store's own loader … answers `None` for"* (`D-110` item 1): no `filePath`, an absent or unreadable file, a
+    /// zero-length file. **Both grounds are reached through the read and the install the BOOT performs**
+    /// ([`Store::read_file_image`], the one place the path is read and decoded; [`Store::install_file_image`],
+    /// every admitted member minted at `Tier::File`) — **one decode, two mappings, and no second reach of the
+    /// path.** **AND THE CONSTRUCTION IMAGE IS NOT OVERLAID ON THE FILE'S:** where an image stands, the base is
+    /// THAT image over the graph a boot begins from — which is what `boot_load` itself leaves at the
+    /// construction — **because `born` is a one-instant capture, so an overlay would PUT BACK a version the
+    /// durable file has since REMOVED: a durable removal would come back, the state this section's own text
+    /// refuses (*"a deletion is durable at any scope and a durable removal does not come back"*), and the
+    /// reversal's own save would write the stale version into the file.** **The state that separates the two
+    /// compositions, and the reason this frame is spelled the second way: a boot over `{"x":1}`, a tier-named
+    /// `file` delete of `x`, then a `rollback` over a compacted entry — an overlay answers `x` and writes it
+    /// back, while this frame leaves `x` absent and the bytes at what the delete saved.**
+    /// **AND `born` IS NOT THE DURABLE STATE EITHER**: after ANY later successful save the bytes at the path
+    /// have moved past it, so a base taken from `born` where a file image stands would DROP every version whose
+    /// only journal record the compaction has taken **even where the file carries it** — and the reversal's own
+    /// save would then write that loss into the file (`D-108` item 1's first ground; gate 4's `F1`).
+    /// **⟶ AND AN IMAGE THE LOADER REFUSES IS NOT A REFUSAL HERE, FROM 2026-11-02 (`strata/decisions.md` ·
+    /// `D-118` item 1, correcting `D-109`'s narrowing at its own subject).** A present, non-empty `filePath`
+    /// whose bytes cannot be read as this store's state is **TREATED AS NO IMAGE AT ALL**, exactly as where no
+    /// path, no file or a zero-length file stands: the base is the CREATION STATE the store was born with, the
+    /// reversal proceeds, and the save that follows writes a readable image over those bytes. **So this frame
+    /// refuses on NO state of the path**, and the token `RollbackCompacted` — which keeps its rank, its code and
+    /// its generated message — is produced by no act of this tree (`arms.md §B.3`; and no byte of `src/error.rs`
+    /// moves for it, `PIN-14` (v)). **THE READ IS NOT A HAZARD TO THE WALK, AND THE WALK IS WHY: an in-scope
+    /// entry is filtered out of the replay below and the caller's own backward walk then re-states its captured
+    /// pre-state over whatever the base put back, so a durable version the reversal must remove is removed by
+    /// the reversal and never by the base's choice.**
+    ///
+    /// **THE INCREMENTS AND THE FILTER, ONE PREDICATE ON ONE MARK.** Every journal entry is applied in appended
+    /// order **iff (a) it is OUTSIDE the reversal's candidate scope — its address is not under the named
+    /// address or its `seq` is below the floor — AND (b) its `op.compacted` mark does NOT stand.** An in-scope
+    /// entry is not replayed because it is what the reversal is undoing and the caller's walk re-states its
+    /// pre-state next; **an out-of-scope entry whose mark stands IS NOT replayed, because a mark means the entry
+    /// is SPENT** — it fell out of the undo window, or a prior reversal already reverted it — and neither is a
+    /// state this arm may re-instate. **The `compacted` mark has TWO grounds and no member distinguishes them,
+    /// and this arm is lawfully indifferent to which one set it** (`M-9`'s one-predicate clause, read whole).
+    /// **SO THE LAST VALID STATE IS THE DURABLE STATE *PLUS* EVERYTHING THE SURVIVING JOURNAL STILL REACHES: a
+    /// `mem`- or `temp`-tier version whose creating entry is un-marked SURVIVES, because the entry's own `after`
+    /// carries every version at every tier and this replay re-mints each at its own tier; and a version whose
+    /// ONLY record is a compacted entry IS LOST, because the entry is not replayed and no file image carries
+    /// it.** That is `D-108` item 3's answer and it is the undo window's own edge rather than a failure.
+    ///
+    /// **IT IS NOT A SECOND REVERSAL, NOT A JOURNAL RESET, NOT A `restoreMark` CALL AND NOT A SAVE.** It is not
+    /// `restoreMark`: that replays to a POSITION and drops every entry above it, while this replay keeps every
+    /// out-of-scope entry and drops none of them. **It is not a save either, and from 2026-11-02 the save it is not
+    /// is not even this verb's caller's**: `rollback` writes no byte (`D-112` item 2), and the state-keyed write is
+    /// [`Store::save_state`]'s, made by the package after the reversal's judgement and compared against the
+    /// durable state — never against a position this frame took before it moved the base. And it delivers no
+    /// trigger, reads no constraint and opens no `K-2` — the same three negatives the two restore frames carry.
+    fn regenerate(&mut self, scope: &[usize]) -> Result<(), StoreError> {
+        // **THE FALLBACK'S ONE ANSWER, TAKEN BEFORE ANYTHING MOVES — `D-110` item 3.** **⟶ AND AN IMAGE THE
+        // STORE'S OWN LOADER CANNOT READ IS TREATED AS NO IMAGE AT ALL, 2026-11-02 (`strata/decisions.md` ·
+        // `D-118`):** it is NOT a refusal and it is not a state this arm refuses to reach — the three classes
+        // `boot_load` answers `None` for and this fourth one take the same base. **THE ARCHITECT'S OWN WORDS,
+        // VERBATIM: *"In the corrupt file case, then it restores from the store creation image"*.** **SO THE
+        // REGENERATION NEVER REFUSES ON THE IMAGE, THE REVERSAL PROCEEDS, AND THE SAVE THAT FOLLOWS WRITES A
+        // READABLE IMAGE OVER THE CORRUPT FILE — which is the durable state the memory holds.** **WHAT THAT
+        // COSTS IS NAMED AND IT IS NOT A LOSS THE STORE COULD HAVE AVOIDED: the bytes at that path were never
+        // readable as this store's state, so nothing the store could have read is dropped.** **AND NO BYTE OF
+        // `src/error.rs` MOVES FOR IT** (`PIN-14` (v)): `rollback_compacted` keeps its rank, its code and its
+        // generated message and simply has no caller left in this frame — the token's subject is the closed
+        // set's and its retirement is not this unit's act (`arms.md §B.3`, `D-118` item 2).
+        let image = self.read_file_image();
+        match image {
+            // **THE FILE'S IMAGE WHERE ONE STANDS** — installed over the graph a boot begins from, which is the
+            // act `boot_load` itself performs at the construction (`reset_register` then `install_file_image`).
+            FileImage::Members(members) => {
+                self.reset_register();
+                self.install_file_image(&members);
+            }
+            // **AND THE CONSTRUCTION IMAGE IN THE FOUR CLASSES THAT OWE IT** — the three `boot_load` answers its
+            // `None` for, and an image the loader REFUSES, which `D-118` reads as no image at all.
+            FileImage::NoImage | FileImage::Refused => {
+                let born = self.born.clone();
+                self.apply_register(&born);
+            }
+        }
+        for index in 0..self.journal.len() {
+            if scope.contains(&index) {
+                continue;
+            }
+            if self.journal[index].op.compacted {
+                continue;
+            }
+            self.replay_entry(index)?;
+        }
+        Ok(())
+    }
+
     /// **THE REPLAY ITSELF, AT ONE POSITION, AND IT IS THE ONE BODY `restoreMark` AND `restoreFloor` SHARE** —
     /// so the mark's two spellings (an op id, and the floor) cannot drift apart on the replay, the save or the
     /// answers. `up_to = Some(index)` applies the journal's entries `0..=index`; `up_to = None` applies NONE of
     /// them and answers the born state.
     fn replayMark(&mut self, up_to: Option<usize>) -> Result<(), StoreError> {
-        // **THE `file` TIER'S PROJECTION BEFORE THE REPLAY** — the detection's first half, read off the versions
-        // themselves and not off a guess about which operation ran. A path-less instance has no `file` tier at
-        // all (`§1.6`: the register's tier is fixed at `mem`), so there is nothing to compare and nothing to
-        // save. `None` therefore means "this store cannot own a file-tier node", never "unknown".
-        let file_before = if self.file_path.is_empty() {
-            None
-        } else {
-            Some(self.file_snapshot())
-        };
         // THE REPLAY, FROM THE STATE THE RECORD STANDS BEFORE ITS FIRST ENTRY — the booted image where the store
         // loaded one and the empty register where it did not (`Store::born`), never the empty register on
         // assumption. Each entry's address then names the pair it set, and an operation at the EMPTY address is
@@ -2886,44 +3174,132 @@ impl Store {
         self.apply_register(&born);
         if let Some(up_to) = up_to {
             for index in 0..=up_to {
-                let address = self.journal[index].op.address.clone();
-                let after = self.journal[index].after.clone();
-                if address.is_empty() {
-                    self.apply_register(&after);
-                    continue;
-                }
-                let home = self.home_of_address(&address).ok_or_else(|| {
-                    // A journal whose own entries cannot be resolved is not a state this primitive may
-                    // guess at: it refuses in the store's own address form and stops.
-                    debug_assert!(false, "a journaled address does not resolve during its own replay");
-                    address_not_found(&address[address.len() - 1], &address[..address.len() - 1], &[], false)
-                })?;
-                self.restore(&home, &after);
-                // **AND THE ENTRY'S OWN HOME IS RE-RECORDED** (`PairHome` is an ARENA INDEX and the replay has
-                // just rebuilt the arena), so the one job the recorded home still has — an address whose parent
-                // no longer resolves — keeps naming the pair this replay actually wrote.
-                self.journal[index].home = Some(home);
+                self.replay_entry(index)?;
             }
         }
-        // **THE SAVE, AND ONLY WHERE A `file`-TIER NODE ACTUALLY MOVED — THE RULING OF 2026-10-27.** The two
-        // snapshots are the same reading taken at the two ends of one replay, so their equality is the exact
-        // statement "the image the file carries is the image the restore leaves": no version at `Tier::File`
-        // was added, removed or re-valued, and touching the path would be file I/O the act does not owe.
-        if let Some(before) = file_before {
-            if self.file_snapshot() != before {
-                // **THE SUBJECT IS THE MARK'S OWN ADDRESS** — the operation whose state this mark names — the
-                // same convention `commit_file` takes from the record it saves; the image written is the whole
-                // register (`§7.2` `M-12`), so the address is the failure's subject and not a write target.
-                let subject = up_to
-                    .map(|index| self.journal[index].op.address.clone())
-                    .unwrap_or_default();
-                // **THE STORE'S ONE SAVE PATH**, not a second one: `write_file` is what a `file`-tier write's
-                // save performs. **A FAILURE IS PROPAGATED AND THE RESTORED STATE STANDS** — the replay is not
-                // undone, so the caller is told that the memory was restored and the bytes were not.
-                self.write_file(&subject)?;
-            }
+        // **THE SAVE, AND ONLY WHERE THE STANDING IMAGE DOES NOT ALREADY HOLD THE RESTORED STATE — THE RULING OF
+        // 2026-10-27, RE-DERIVED BY `D-111` ITEM 1.** The projection of the state that stands and the projection
+        // of the durable state (`Store::durable_projection`: the file's image where one stands, the construction
+        // image where none does) are the same reading of the same law taken at the two ends it is about — "the
+        // image the file carries IS the image the store holds" — so where they are equal no version at `Tier::File`
+        // stands unrepresented at the path and touching it would be file I/O the act does not owe. **A RESTORE THAT
+        // RETURNS THE STORE TO WHERE ITS CALL FOUND IT THEREFORE WRITES NOTHING**, which is the compensating
+        // restore's own case where the durable image is already that state; **and a restore that moves a `file`-tier
+        // version off the durable image — a refused reversal's compensating restore among them — writes.** **The
+        // four steps are ONE instrument from 2026-11-02** (`save_file_delta`), shared with the entry's state-keyed
+        // save ([`Store::save_state`]) and with nothing else: `rollback` writes no byte of its own (`D-112` item 2).
+        // **THE SUBJECT IS THE MARK'S OWN ADDRESS** — the operation whose state this mark names — the same
+        // convention `commit_file` takes from the record it saves; the image written is the whole register
+        // (`§7.2` `M-12`), so the address is the failure's subject and not a write target.
+        let subject = up_to
+            .map(|index| self.journal[index].op.address.clone())
+            .unwrap_or_default();
+        // **THE STORE'S ONE SAVE PATH**, not a second one: `write_file` is what a `file`-tier write's save
+        // performs. **A FAILURE IS PROPAGATED AND THE RESTORED STATE STANDS** — the replay is not undone, so
+        // the caller is told that the memory was restored and the bytes were not.
+        self.save_file_delta(&subject)
+    }
+
+    /// **THE PER-ENTRY ACT OF EVERY REPLAY IN THIS STORE, SPELLED ONCE — `replayMark`'s loop body and the
+    /// regeneration's increments are the same act and must not drift apart.** An operation at the EMPTY address
+    /// is applied at the register's own root; every other entry's address then names the pair it set, the home
+    /// **re-derived against the graph as it stands at that instant** (`home_of_address`), never the link recorded
+    /// when the entry was appended. **AND THE ENTRY'S OWN HOME IS RE-RECORDED AT THE END** (`PairHome` is an ARENA
+    /// INDEX and the replay has just rebuilt the arena), so the one job the recorded home still has — an address
+    /// whose parent no longer resolves — keeps naming the pair this replay actually wrote.
+    fn replay_entry(&mut self, index: usize) -> Result<(), StoreError> {
+        let address = self.journal[index].op.address.clone();
+        let after = self.journal[index].after.clone();
+        if address.is_empty() {
+            self.apply_register(&after);
+            return Ok(());
         }
+        let home = self.home_of_address(&address).ok_or_else(|| {
+            // A journal whose own entries cannot be resolved is not a state this primitive may
+            // guess at: it refuses in the store's own address form and stops.
+            debug_assert!(false, "a journaled address does not resolve during its own replay");
+            address_not_found(&address[address.len() - 1], &address[..address.len() - 1], &[], false)
+        })?;
+        self.restore(&home, &after);
+        self.journal[index].home = Some(home);
         Ok(())
+    }
+
+    /// **⟶ ADDED 2026-11-02 — THE STATE-KEYED SAVE, FACTORED OUT SO THERE IS ONE INSTRUMENT AND NOT THREE**
+    /// (`D-106` arm 3, `D-108`'s fourth arm, `D-116` item 2). **THE ACT RUNS FIRST AND THIS HELPER ASKS ONE
+    /// QUESTION AFTER IT: does the standing image at the path already hold the state the act has left?** It
+    /// takes the `file` tier's projection of the state THAT STANDS and the projection of the DURABLE state, and
+    /// writes the store's one serializer (`write_file`) only where the two DIFFER. **⟶ AND THE SECOND PROJECTION
+    /// IS THE DURABLE STATE AND NOT A SECOND READING OF IT, 2026-11-02 (`strata/decisions.md` · `D-111` item 1
+    /// AND item 2): the correction pass compared the state across the act, which made a reversal that returns
+    /// the store to where the call found it write a byte for a delta nothing durable had moved.** The state the
+    /// file holds is [`Store::durable_projection`] — the file's own image where one stands and the construction
+    /// image where none does, which are `D-108` item 1's two grounds read through the store's one reader
+    /// (`D-110` item 2).
+    ///
+    /// **AND THE QUESTION THIS HELPER ASKS IS *"HAS THIS SAVE BEEN PERFORMED"* AND NOT *"WHICH ARM IS THIS"* —
+    /// 2026-11-02, `D-112` ITEM 3.** **THE TWO ARMS `D-111` SEPARATES ARE NOT SEPARATED HERE AND ARE NOT
+    /// DISTINGUISHED BY ANY BYTE OF THIS STORE**: a compensation is excluded from the save by the ORDERING the
+    /// package keeps — `judgeReversal` returns on `COMPENSATING` before any ask, so a compensation reaches
+    /// neither the judgement nor the save — and the equality test as their discriminator is WITHDRAWN WHOLE
+    /// WITH ITS SUBJECT. **WHAT THIS COMPARISON IS, INSTEAD, IS ONE BIT OF INFORMATION ABOUT ONE IMAGE**: the
+    /// state the register stands at, against the state the path already holds. **Where they are equal there is
+    /// nothing to write, and that is the WHOLE of what stops a redundant byte** — no record, no mark and no flag
+    /// is consulted (`D-116` items 3 and 5).
+    ///
+    /// **A PATH-LESS INSTANCE CANNOT OWN A `file`-TIER NODE** (`§1.6`), so no byte is touched and nothing is owed.
+    /// **AND THE EQUALITY GUARD IS WHAT KEEPS THIS LAWFUL UNDER THE ONCE-PER-RECORD LAW: the guard is an IMAGE and
+    /// not a record**, so a second identical reversal (or a second identical restore) reads equal and writes
+    /// nothing, and the same image is never serialized twice for one delta. **A FAILURE IS PROPAGATED AND THE
+    /// STATE STANDS** — the caller's reversion is not undone, so the caller learns that the memory stands at the
+    /// last valid state **and** that the bytes were not updated (`restoreMark`'s declared two-fact form, which is
+    /// the reversal's as well).
+    fn save_file_delta(&self, subject: &[Segment]) -> Result<(), StoreError> {
+        if self.file_path.is_empty() {
+            return Ok(());
+        }
+        let standing = self.file_snapshot();
+        // **AN IMAGE THE LOADER REFUSES IS NOT A DURABLE STATE THIS STORE CAN COMPARE AGAINST** (`D-109`'s
+        // narrowed subject): nothing is assumed about it, so the state that stands is written over it, exactly
+        // as the act did before this comparison existed.
+        if let Some(durable) = self.durable_projection() {
+            if standing == durable {
+                return Ok(());
+            }
+        }
+        self.write_file(subject)
+    }
+
+    /// **THE DURABLE STATE, READ THROUGH THE STORE'S ONE READER — `D-110` item 2, AND `D-108` ITEM 1'S TWO
+    /// GROUNDS.** The `file` tier's image where one stands ([`Store::read_file_image`], the one place the path is
+    /// read and decoded), and the construction image where none does — the state the store was born with
+    /// ([`Store::born`]), which is the same ground truth [`Store::regenerate`] rebuilds onto and the same class of
+    /// `None` [`Store::boot_load`] exempts (no `filePath`, an absent or unreadable file, a zero-length file).
+    ///
+    /// **`None` MEANS THE STANDING IMAGE CANNOT BE READ AS THIS STORE'S STATE** — [`FileImage::Refused`] — so
+    /// nothing is claimed about it and the caller writes.
+    fn durable_projection(&self) -> Option<StoreValue> {
+        match self.read_file_image() {
+            FileImage::Members(members) => Some(StoreValue::Object(members.into_iter().collect())),
+            FileImage::NoImage => Some(self.born_projection()),
+            FileImage::Refused => None,
+        }
+    }
+
+    /// **THE CONSTRUCTION IMAGE'S `file`-TIER PROJECTION** — every member `born` carries AT `Tier::File` at the
+    /// register's own top level, assembled at that tier: what a boot over no image stands at, spelled the way
+    /// [`Store::file_snapshot`] spells the state that stands now, so the two are comparable by equality alone.
+    fn born_projection(&self) -> StoreValue {
+        let mut members = BTreeMap::new();
+        for entry in &self.born {
+            if entry.path.len() != 1 || entry.tier != Tier::File {
+                continue;
+            }
+            if let Segment::Key(name) = &entry.path[0] {
+                members.insert(name.clone(), entry.value.clone());
+            }
+        }
+        StoreValue::Object(members)
     }
 
     /// **THE GRAPH THE REPLAY BEGINS FROM** — `Store::empty`'s three arenas and nothing else: the register's

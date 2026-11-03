@@ -114,7 +114,17 @@ const EXTERNAL_CALL = Symbol.for('provident-storeroom.external-call');
 /// fallback with NO bracket, nothing is appended to any leg list — **and a bare read of the leg channel would
 /// answer a PREVIOUS invocation's legs.** **SO THE FACT IS CARRIED OUT OF THIS FRAME ON THE CALLER'S OWN
 /// `invocation` OBJECT (`bracketed`), and the arm reads the channel only where it is `true`.**
-function repairInCommit(store, commit, run, invocation) {
+///
+/// **⟶ AND IT IS EXPORTED FROM 2026-11-02, FOR ITS SECOND CALLER — `D-113` ITEM 3's REPAIR ARM AT THE REVERSAL'S
+/// JUDGEMENT** (`bindings/js/src/entry/constraints.mjs`'s `judgeReversal`). **ONE KEYWORD, ON THE PRECEDENT
+/// `sites.md §1.5` set for `composeRollback`** (*"it is EXPORTED for its second caller — the part's export list
+/// gains one name and the barrel that publishes the kernel's six does not re-export it"*): `bindings/js/src/
+/// constraint-kernel.mjs` keeps its four lines and its six names, no kernel item is minted (`kernel-surface.md
+/// §1` item 2's `K-1`–`K-6` stand), and no member, arity or entry moves. **THE BODY MOVES NO BYTE**, and the
+/// commit it names at that second caller is the judgement's own (`state.mjs`'s `openCommit` joins where the count
+/// already stands, so a repair's write joins the judgement's commit instead of opening a second one — `D-46`,
+/// `D-53`).
+export function repairInCommit(store, commit, run, invocation) {
   const channel = store !== null && typeof store === 'object' ? store[EXTERNAL_CALL] : undefined;
   if (typeof channel === 'function') {
     invocation.bracketed = true;
@@ -186,7 +196,15 @@ const REPAIR_LEG = Symbol.for('provident-storeroom.repair-leg');
 /// **A CHANNEL THAT THROWS ANSWERS NOTHING** — `D-35`'s read half read for a hand-over, and the same conservative
 /// side `bumpMark` answers on its own throwing arm: the commit then merges no repair element and delivers exactly
 /// what it delivered before the fix.
-function repairLegs(store, kernel, invocation, attemptsBefore) {
+///
+/// **⟶ AND IT IS EXPORTED FROM 2026-11-02, FOR THE SAME SECOND CALLER — `D-113` ITEM 3, `D-104`'s TWO GUARDS READ
+/// AT THE JUDGEMENT'S REPAIR ARM** (the carrier's `§3` (iii) 3 and `§3` (iv): *"the legs are read through `D-104`'s
+/// two guards, which are the pass's, and are carried unchanged"*). **THE ALTERNATIVE IS REFUSED AND PRICED**:
+/// reading the `REPAIR_LEG` channel from `constraints.mjs` would re-implement `invocation.bracketed` and
+/// `kernel.attempts` there — **two guards, a second copy, and the drifting-mechanism hazard `D-110` item 2
+/// forbids**. **ONE KEYWORD AND NO OTHER BYTE**: the barrel keeps its four lines and six names, and the element
+/// shape, the guards, the read and the clear are exactly what they were.
+export function repairLegs(store, kernel, invocation, attemptsBefore) {
   if (invocation.bracketed !== true) return [];
   if (kernel.attempts !== attemptsBefore) return [];
   const channel = store !== null && typeof store === 'object' ? store[REPAIR_LEG] : undefined;

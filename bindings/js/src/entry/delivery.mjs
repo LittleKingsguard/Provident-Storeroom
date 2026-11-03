@@ -306,6 +306,16 @@ export function installRegistrationSeam(instance, state) {
 
 const LISTEN_ROUTE = Symbol.for('provident-storeroom.listen-route');
 
+/// **⟶ AND THE REGISTRATION'S OWN SAVE CHANNEL, 2026-11-02 — `D-106` ITEM 3'S FIRST ARM.**
+/// **THE REGISTRATION'S CLOSE OWES A SAVE THAT THE TERMINAL ARM'S GATE NEVER REACHES** (`kernel-registration.mjs`
+/// passes neither the terminal arm nor `deliver`), so the close names the last `file`-tier op its route landed to
+/// this channel **and the channel performs THE SAME `commitFile` FRAME THE TERMINAL ARM PERFORMS** — one save
+/// path in the tree, two callers of it. **A `Symbol.for`-keyed own property, `enumerable: false`, invisible to
+/// `Object.keys` and to `Object.getOwnPropertyNames`**, so the product's declared FOURTEEN own members are
+/// unmoved (`A117` (D6)) — the device `REGISTER_BODY` and `LISTEN_ROUTE` above already use, and neither the
+/// kernel nor this file imports the other.
+const REGISTRATION_SAVE = Symbol.for('provident-storeroom.registration-save');
+
 /// **THE ONE COPY OF A CALLER-SUPPLIED ADDRESS'S SEGMENTS — `D-35`'s READ HALF, MOVED HERE 2026-11-01 WITH THE
 /// BODY THAT IS ITS ONLY READER.** `listen(handle, addresses)` hands the SET, and each member of it is THE
 /// CALLER'S OWN ARRAY, so the two `addresses[i].slice()` sites the extracted body carries took
@@ -435,6 +445,35 @@ export function installListenRoute(instance, state) {
     writable: true,
     enumerable: false,
     configurable: true,
+  });
+}
+
+/// **THE REGISTRATION'S SAVE, INSTALLED ONCE BY `storeCreate` — `D-106` ARM 1, 2026-11-02.** **IT TAKES ONE
+/// POSITION, THE OP ID THE CLOSE NAMES, AND IT MINTS NOTHING**: no member of the product, no kernel item, no
+/// record member, no op, no verb — `Object.defineProperty` at `enumerable: false` is invisible to `Object.keys`
+/// and to `Object.getOwnPropertyNames` (`A117` (D6)), exactly as the channels beside it.
+///
+/// **ITS BODY IS THE STORE'S ONE SAVE FRAME AND NOTHING ELSE** — `commitFile(state.receiver, opId)`, the frame
+/// `delivery.mjs:826` already calls for a write's save (`state.mjs`'s `commitFile`, which the tree's own reason
+/// for existing is that there is ONE save path and not two). **IT ANSWERS `undefined` ON EVERY ARM**: a call
+/// with no position, or with a position that is not a non-empty string, does nothing and throws nothing, and a
+/// store's own refusal crosses from `commitFile` unconverted.
+///
+/// **WHERE IT IS INSTALLED IS `index.mjs`'s `installListenRoute` NEIGHBOURHOOD AND NOT THE TWO LATER SEAMS**
+/// (`PIN-3` (ii)(d)): the construction's batch arming walk runs BEFORE both of them, so a channel installed
+/// there would leave a `storeCreate` carrying `cfg.constraints` — and a boot carrying them — with no route to
+/// the save.
+export function installRegistrationSave(instance, state) {
+  if (typeof instance[REGISTRATION_SAVE] === 'function') return;
+  Object.defineProperty(instance, REGISTRATION_SAVE, {
+    value: (opId) => {
+      if (typeof opId !== 'string' || opId.length === 0) return undefined;
+      commitFile(state.receiver, opId);
+      return undefined;
+    },
+    writable: false,
+    enumerable: false,
+    configurable: false,
   });
 }
 
@@ -733,9 +772,11 @@ export function terminalArm(state, record) {
   if (record === null || typeof record !== 'object' || types.isProxy(record) || record.pending === undefined) {
     return undefined;
   }
-  // ── `docs/specs/storeroom-js/surface.md §2.11` CLAUSE 2: THE TERMINAL ARM'S FIRST ACT, ON THE PASSING ARM AND THE `file` TIER ALONE ─────────
-  // **THE ARM IS READ OFF THE KERNEL'S MARK AND OFF NOTHING ELSE**: a `file`-tier write whose pass FAILED
+  // ── `docs/specs/storeroom-js/surface.md §2.11` CLAUSE 2: THE TERMINAL ARM'S FIRST ACT, ON THE PASSING ARM ────
+  // **THE ARM IS READ OFF THE KERNEL'S MARK AND OFF NOTHING ELSE**: a write's or a delete's pass that FAILED
   // arrives here with its record in hand and drives NO save and NO store call of its own (`docs/specs/storeroom-js/surface.md §2.11` clause 1).
+  // **AND THE OP'S OWN TIER WORD IS NOT READ AT THIS GATE FROM 2026-11-02**: the eligibility question is the
+  // store's (`PIN-4` (i)), and the conjunct that pre-answered it here is below, withdrawn with its reason.
   const answer = state.leg;
   if (
     record[SETTLED_ON_THE_PASSING_ARM] === true
@@ -743,7 +784,18 @@ export function terminalArm(state, record) {
     && answer !== undefined
     && answer.op !== null
     && answer.op !== undefined
-    && answer.op.tier === 'file'
+    // **⟶ AND THE TIER CONJUNCT LEAVES THE GATE WHOLE, 2026-11-02 — `D-106` item 2, `arms.md §C.3`, `PIN-17`.**
+    // **THE PRE-FILTER'S LAST CLASS IS GONE AND WHAT REMAINS IS NOT A PREDICATE BUT THE GROUND ITSELF, ASKED
+    // DIRECTLY.** The conjunct that stood here read *"the op's tier is `'file'`, or the op names no tier"* and
+    // its own clause justified the exclusion with *"a `mem`- or `temp`-tier op cannot have moved a `file`-tier
+    // version"* — **WHICH IS FALSE: a lower-persistence write of a CONTAINER value PURGES the `file`-tier
+    // version standing above it as a leaf (`src/store.rs`'s re-mint arm), and that purge owes a save.** So the
+    // gate asks the store, whose `commit_file` answers with its one eligibility ground — what the act moved —
+    // and returns `Ok(())` before `write_file` where the act moved nothing at `Tier::File`. **THE COST IS ONE
+    // ADDON CALL PER PASSING WRITE'S AND DELETE'S OP THE OLD GATE WOULD HAVE SKIPPED, AND IT IS A CALL AND NOT A
+    // BYTE**: `save_owed` is a predicate over the entry's own two records and the store performs no I/O until
+    // it answers `true`. **NOTHING ELSE ON THIS GATE MOVES** — the arm test above it, the two presence tests,
+    // and the carry and the catch below.
   ) {
     try {
       // **THE FILE-TIER SAVE'S OWN ENTRY, REACHED BY ITS OWN NAME** (`js-unwrap.md §5`: *"EACH MEMBER CALLS

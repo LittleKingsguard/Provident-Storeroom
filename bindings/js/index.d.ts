@@ -625,11 +625,15 @@ export interface DeleteRecord {
    *   * **`pending` IS THE DELETE'S RESIDUE** — the store's returned set, WHOLE at the landing, minus the
    *     handles this delete's own pass checked off as it passed. **IT IS THE SET THE DELIVERY FIRES**: this
    *     act delivers `pending`, not the whole `triggered` list, exactly as a write does;
-   *   * **A `file`-TIER DELETE SAVES ITS OWN OP** — the terminal arm names `op.opId` to the store's
-   *     `commit_file` on the act's PASSING arm, so the bytes describe the state the delete left (`§2.11`
-   *     clause 2, the same act a `file`-tier write gets). **THE STORE'S `delete` VERB STILL COMMITS NOTHING**
-   *     (`DD-28`; `native contract.md §7.2` item 5): the save is the ARM's, at the record's own op, and a
-   *     WHOLE-TARGET delete's op stands at no tier, so that arm serializes nothing;
+   *   * **A `file`-TIER DELETE SAVES ITS OWN OP — AND A WHOLE-TARGET DELETE SAVES ITS OWN OP TOO, FROM 2026-11-02** —
+   *     the terminal arm names `op.opId` to the store's `commit_file` on the act's PASSING arm, so the bytes
+   *     describe the state the delete left (`§2.11` clause 2, the same act a `file`-tier write gets). **THE SAVE
+   *     IS KEYED TO WHAT THE ACT MOVED AND NOT TO THE OP'S OWN TIER WORD**: a whole-target delete's `op.tier`
+   *     is `null`, and the store still saves it where the act removed at least one version standing at the `file`
+   *     tier — **and a `mem`- or `temp`-tier WRITE that PURGED such a version is saved the same way, while a
+   *     scalar at the same address SHADOWS it and serializes nothing** — and it serializes nothing where the
+   *     act moved none (`strata/decisions.md` · `D-106`). **THE STORE'S `delete` VERB STILL COMMITS NOTHING**
+   *     (`DD-28`; `native contract.md §7.2` item 5): the save is the ARM's, at the record's own op;
    *   * **THE LOG AND THE REPORT ARE ANSWERABLE BY REF** — `K.log(store, record.attempt)` and
    *     `K.report(store, record.attempt)` answer the delete's own attempt after it passed, not only from a
    *     refusal's `log` (`attempt-lifecycle.md §2.4` item 1: those items take an `AttemptRef` or its `id`);
@@ -951,6 +955,16 @@ export interface StoreInstance {
    * (`D-38`, `D-40`, `D-41`). **A TypeScript signature has no `throws` clause, so this is the honest place to say
    * it**: *the return type describes what a call returns when it returns, and the throw is part of the contract.*
    * **A lawful reversal is unchanged** — same record, same members, no `log`. **Callers on `1.0.1` must handle it.**
+   *
+   * **⟶ AND A LAWFUL REVERSAL'S INVOCATION OF YOUR REGISTERED LISTENERS IS NOT A MEMBER AND NOT A THROW — THE
+   * BODIES RUN BEFORE THE RECORD IS RETURNED** (`strata/decisions.md` · `D-117` item 1, which rules a repair's
+   * write's `triggered` listeners delivered at this instant exactly as at a write's commit). **A pair that
+   * refuses the state the reversal leaves may carry a REPAIR, that repair lands in the judgement's own commit,
+   * and the listeners the repair's write fires are invoked ONCE PER DISTINCT HANDLE with the TRIGGERING ADDRESS
+   * as their single argument, AFTER the reversal's save and BEFORE this member returns** (`surface.md §2.4`
+   * rule 3; `PAR-JS-12`). **THE RECORD IS UNMOVED** — `{opId, undoneOps, restoredTo}`, no member added and no
+   * status minted — **and a judgement that refuses, a pair body that throws, and a reversal that fired nothing
+   * all invoke NOTHING.**
    */
   /**
    * Begin watching the addresses the caller names under the caller's own handle.

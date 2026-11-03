@@ -398,6 +398,15 @@ pub fn storeCreate(env: Env, cfg: JsVal<'_>) -> NapiRet<'static> {
 // `journalMark`'s ZERO positions are the whole of it** — it reads the store's own record and names the mark that
 // position takes, so there is nothing for a caller to supply.
 //
+// **⟶ AND THE ABSENT CARRIER'S ROW HAS TWO READERS FROM 2026-11-02, EACH NAMED AT ITS OWN ENTRY — `D-117` ITEM
+// 4 (a), RE-DERIVED IN THIS UNIT, AND ITS ARITHMETIC DOES NOT MOVE.** At `restoreMark` the absent row is the
+// journal's HEAD, as the sentence above declares; **at `commitFile` it is the STATE — SAVED** — the reversal's
+// own key, reached by the call that supplies no position and refused by no row of the entry's own. **So the gloss
+// *"the ABSENT carrier for the journal's head"* is `restoreMark`'s reading of the row and not the row's whole
+// meaning**, and the corpus sentence that glossed it as one (`docs/specs/storeroom-native/contract.md` `§6.6` item
+// 1) carries both readings. **NO DECLARED ROW MOVES**: `commitFile`(1) counts one, the six rows of the position's
+// domain stand, and the census above stays `9 + 2 = 11` / `4 + 11 = 15`.
+//
 // **`commit` IS NOT AN ENTRY AND NEVER WAS AN ARM**: it is `write`'s FOURTH POSITION, whose class test the
 // package takes before this frame is entered (`§2`; `commitPositionRefusal`). **`constraints` IS NOT AN
 // ADDON ENTRY EITHER** — the addon is never reached for it (`§2`).
@@ -959,6 +968,18 @@ fn verb_remove_listener(env: Env, receiver: This<Object<'_>>, handle_pos: JsVal<
 /// keyed by the settled record's own `op` identity. **IT IS NOT ONE OF THE CROSSING'S EIGHT VERBS**: the
 /// store's declared namespace stays at `8` and no member of either census moves (`§2.11` clause 7;
 /// `implementation-plan.md §10.9` row 8). Its one argument is an op id and its answer is `undefined`.
+///
+/// **⟶ AND IT HAS TWO READINGS FROM 2026-11-02 — `D-116` ITEM 2, CARRIED BY `D-112`: THE SAME ENTRY IS ALSO THE
+/// REVERSAL'S SAVE, THROUGH ITS ONE POSITION IN ITS OWN ABSENT CARRIER.** The op-keyed reading is today's, byte
+/// for byte: a `JsOpIdArg::Str` token is the settled record's op identity and reaches [`Store::commit_file`],
+/// with every malformed row refused `JournalOpUnknown` exactly as before. **THE ABSENT ROW — the one
+/// `restoreMark` already uses, decoded here by the same `codec.op_id` — instead reaches the store's STATE-KEYED
+/// write** ([`Store::save_state`]), which is what the package makes after a reversal's constraint judgement has
+/// passed (`bindings/js/src/entry/constraints.mjs`'s `judgeReversal`). **NO POSITION IS MINTED AND NO ARITY
+/// MOVES**: the absent carrier is one of the six DECLARED VALUES of the one position this entry has, so
+/// `commitFile`(1) counts one before and one after, the census stays `9 + 2 = 11` and `4 + 11 = 15`, and
+/// `crossing.md §1.3`'s table needs no row (`D-117` item 4 (a): the row bears two per-entry readings and its
+/// ARITHMETIC does not move — *the journal's head* at `restoreMark`, *the state, saved* here).
 #[napi(js_name = "commitFile")]
 fn verb_commit_file(env: Env, receiver: This<Object<'_>>, op_id_pos: JsVal<'_>) -> NapiRet<'static> {
     // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** (`export-set-and-dispatch.md §1`'s declared
@@ -983,15 +1004,23 @@ fn verb_commit_file(env: Env, receiver: This<Object<'_>>, op_id_pos: JsVal<'_>) 
         let mut instances = instances.borrow_mut();
         let store = instances.get_mut(store_index).ok_or(no_instance_at(store_index))?;
         let op_id = codec.op_id(&op_id_pos);
-        let JsOpIdArg::Str(token) = &op_id else {
-            return Err(Refusal {
-                status: "JournalOpUnknown".to_string(),
-                message: "'the terminal arm's act' is keyed by the settled record's own op \
-                          identity, and this argument is not one"
-                    .to_string(),
-            });
-        };
-        store.commit_file(token)?;
+        // **THE TWO READINGS OF THE ONE POSITION** (the doc block above): the `Str` row is the terminal arm's
+        // record-keyed act and the `Absent` row is the reversal's state-keyed one — **supplied by the call that
+        // supplies nothing at all** (`bindings/js/src/entry/state.mjs`'s `commitFile` frame folds on
+        // `arguments.length`; `crossing.md §1.3`, `PAR-JS-6`). **EVERY OTHER ROW IS REFUSED EXACTLY AS BEFORE**,
+        // with the same status and the same sentence, so no malformed position's answer moves.
+        match &op_id {
+            JsOpIdArg::Str(token) => store.commit_file(token)?,
+            JsOpIdArg::Absent => store.save_state()?,
+            _ => {
+                return Err(Refusal {
+                    status: "JournalOpUnknown".to_string(),
+                    message: "'the terminal arm's act' is keyed by the settled record's own op \
+                              identity, and this argument is not one"
+                        .to_string(),
+                });
+            }
+        }
         Ok(codec.undefined_value())
     });
     answer_or_throw(env, answer)

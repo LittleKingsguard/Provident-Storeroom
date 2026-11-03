@@ -1,6 +1,6 @@
 // `D-13` (`docs/L1/kernel-subdivision.md` §1 part `9b`) — the registration act, its evaluation, and the registry's removal: bytes moved from `bindings/js/src/constraint-kernel.mjs`; no logic changed.
 import { KC, KERNEL_REFUSAL, markBodyThrow, refuse, inDomainAddress, inDomainId, pairRowAt, sameAddress, kernelFor, append, appendOwn, landedOp, pairsTriggered, enterCommitFrame, leaveCommitFrame, pairApplication, PAIR_APPLICABLE } from './kernel-foundations.mjs';
-import { dropHandoff } from './kernel-terminal.mjs';
+import { composeRollback, dropHandoff } from './kernel-terminal.mjs';
 
 /// **⟶ ADDED 2026-10-27 — `D-46`'s NAME ON A REPAIR INVOCATION'S OWN ENTRY, SPELLED HERE AS
 /// `kernel-attempt.mjs` SPELLS IT.** **THE RULING, THE ARCHITECT, VERBATIM: *"A constraint's repair needs to stay
@@ -39,6 +39,16 @@ const REGISTER_BODY = Symbol.for('provident-storeroom.register-body');
 /// post-test body, and not the member. **IT MINTS NOTHING**: no kernel item (`K-1`…`K-6` and no seventh name,
 /// `§1` item 2), no member on any record, no store verb, no store act of its own.
 const LISTEN_ROUTE = Symbol.for('provident-storeroom.listen-route');
+
+/// **⟶ AND THE REGISTRATION'S OWN SAVE CHANNEL, SPELLED ON THIS SIDE TOO — `D-106` ARM 1, 2026-11-02.**
+/// `delivery.mjs`'s `installRegistrationSave` installs it and this module reaches it, **and neither side imports
+/// the other**: the same `Symbol.for` device `EXTERNAL_CALL`, `REGISTER_BODY`, `LISTEN_ROUTE`, `TERMINAL_ARM`,
+/// `COMMIT_SCOPE` and `FORGET_PAIR` already cross by (`kernel-surface.md §1` item 1's empty import footprint;
+/// `A110`). **IT TAKES ONE POSITION — THE OP ID THE CLOSE NAMES — AND MINTS NOTHING**: no kernel item (`K-1`…`K-6`
+/// and no seventh name), no member on any record, no record, no op and no store verb. **The act it performs is the
+/// entry's own `commitFile`, the ONE save frame the terminal arm already calls** — so the tree still has one save
+/// path and two callers of it, which is the fact `D-106`'s root cause turns on.
+const REGISTRATION_SAVE = Symbol.for('provident-storeroom.registration-save');
 
 /// **THE INVOCATION OF A REPAIR BODY, WITH THE SYNTHETIC ATTEMPT'S COMMIT NAMED ON ITS ENTRY** — one call, its
 /// answer the body's own, and a throwable crosses unchanged. **THE SECOND COPY OF THE FIVE-LINE FORM
@@ -233,7 +243,19 @@ export function register(store, address, id, constraint) {
   // refusal it throws carries `status` (the STORE's member, `A120` (2)) and the `§8.2` row's own slot
   // VALUES, and the surface renders the text through the generator it already holds. **NO `KC` TOKEN IS
   // MINTED:** the synthetic attempt's own terminal token stays inside this module (`registrationRefusal`).
-  const refused = registrationEvaluation(kernel, store, address, id, constraint);
+  // **⟶ AND THE THROWABLE THE EVALUATION MAY CARRY IS CAUGHT HERE FROM 2026-11-02 — `PIN-15` (ii), `PIN-15`
+  // (iv).** **THIS FRAME ALREADY STATES THE RULE FOR A REFUSAL THAT COMES BACK** (*"a refused registration leaves
+  // the registry exactly as it stood"*, below); **the throwing arm reaches the same conclusion by the same act
+  // and had never come back through it**, so it is taken here: the pair row this call wrote is withdrawn with
+  // its handle and its place in the address's order list, **and the caught value is re-thrown UNCONVERTED and by
+  // identity** (`caught === thrown`), which is `D-35`'s read half and `fail-surface.md §1.1` item 5's rule.
+  let refused;
+  try {
+    refused = registrationEvaluation(kernel, store, address, id, constraint);
+  } catch (thrown) {
+    withdrawRegistration(kernel, address, id, standing === undefined, adopted);
+    throw thrown;
+  }
   if (refused !== null) {
     // **A REFUSED REGISTRATION LEAVES THE REGISTRY EXACTLY AS IT STOOD** (`§2.1` item 1's sentence, whose
     // regulatory force reaches this third refusing act — `§7.3` (b) state 2's own reading of it): the pair
@@ -444,7 +466,7 @@ function readCurrent(store, address) {
  * FOURTH.** It is built by `registrationRoute` below, which names THE REGISTRATION'S OWN `CommitRecord` and
  * refuses a supplied fourth position BEFORE any store act.
  */
-function registrationRepairContext(store, address, id, commitRecord) {
+function registrationRepairContext(store, address, id, commitRecord, landed, purged) {
   return {
     address: address.slice(),
     id,
@@ -454,8 +476,10 @@ function registrationRepairContext(store, address, id, commitRecord) {
     op: null,
     // THE COMMIT THE REPAIR IS PART OF — a FRESH LIST, never the record's own member (`§2.3` item 2).
     pending: Array.isArray(commitRecord.pending) ? commitRecord.pending.slice() : [],
-    // THE SEVENTH MEMBER, AT THIS INSTANT ALONE (`PIN-6` (ii)): the route the repair may take.
-    write: registrationRoute(store, commitRecord),
+    // THE SEVENTH MEMBER, AT THIS INSTANT ALONE (`PIN-6` (ii)): the route the repair may take — and it is
+    // handed THE FRAME'S OWN LIST of the ops it lands (`D-106` arm 1), which no record carries — **and the
+    // SECOND frame local beside it, the one `PIN-17` (iv) declares** (`purged`, below).
+    write: registrationRoute(store, commitRecord, landed, purged),
   };
 }
 
@@ -489,7 +513,7 @@ function registrationRepairContext(store, address, id, commitRecord) {
  * **AND IT IS NOT A COPY OF THE STORE**: it is the route the kernel binds to the instance the registration is
  * constructing, so it answers this store and no other.
  */
-function registrationRoute(store, commitRecord) {
+function registrationRoute(store, commitRecord, landed, purged) {
   return function write(address, tier, value) {
     // THE ARITY TEST IS THIS UNIT'S OWN AND IT STANDS BEFORE ANY STORE ACT (`PIN-6` (iii)).
     if (arguments.length > 3) {
@@ -498,7 +522,33 @@ function registrationRoute(store, commitRecord) {
         + 'commit is the registration\'s own and cannot be named',
       );
     }
-    return store.write(address, tier, value, commitRecord);
+    const answered = store.write(address, tier, value, commitRecord);
+    // **THE ROUTE RECORDS WHAT IT LANDS — `D-106` ARM 1, 2026-11-02.** The store answers a FRESH op per call, so
+    // the op is appended BY IDENTITY, with no copy and no dedup, **to the list the FRAME owns** — not to
+    // `attempt.ops`, which holds only a repair's CREDITED op and which `landedOp` REFUSES to grow
+    // (`kernel-foundations.mjs`), so the ordinary refusing case would leave `attempt.ops` empty.
+    // **THE ROUTE STILL CONVERTS NOTHING, CATCHES NOTHING AND MINTS NO CODE**: this is one append of the value the
+    // store already answered, and the answer itself crosses unchanged.
+    if (answered !== null && typeof answered === 'object' && answered.op !== null && answered.op !== undefined) {
+      appendOwn(landed, answered.op);
+      // **⟶ AND THE ONE KIND THE CLOSE CANNOT SEE FOR ITSELF IS RECORDED HERE, BESIDE THE LANDED OP — `PIN-17`
+      // (iv), `strata/decisions.md` · `D-106` item 2, 2026-11-02.** **A WRITE AT A TIER BELOW `file` WHOSE
+      // CARRIED VALUE WAS A CONTAINER IS THE ONE CLASS THAT CAN PURGE A `file`-TIER VERSION** — the store's
+      // re-mint arm pushes a LEAF standing above the write's tier into `doomed`, so the durable version leaves
+      // the register and the bytes must follow it — **and a SCALAR at the same address SHADOWS that version
+      // instead and purges nothing.** The route has the value in hand and the op in hand, so the fact is taken
+      // here, at the act, and `lastFileLanding` reads it below. **IT IS A SECOND FRAME LOCAL AND NOT A MEMBER**:
+      // `PIN-3` (ii)(a)'s device — no member is minted on the attempt, on the op, on any record or on the
+      // instance — **and it is a CANDIDATE SELECTION and not an eligibility decision**: the store's own
+      // `save_owed` still decides whether a byte moves, and a container write over a CONTAINER target purges
+      // nothing and is answered `Ok(())` with no byte written.
+      const carried = value !== null && typeof value === 'object';
+      const below = answered.op.tier !== 'file';
+      if (carried === true && below === true && Array.isArray(purged)) {
+        appendOwn(purged, answered.op.opId);
+      }
+    }
+    return answered;
   };
 }
 
@@ -584,8 +634,19 @@ function registrationAttempt(kernel, store, pair) {
   appendOwn(attempt.ran, key);
   append(attempt, 'repair-run', { pair, op: null }, 'the pair\'s repair was attempted at registration');
 
+  // **⟶ AND THE FRAME KEEPS ITS OWN LIST OF EVERY OP ITS ROUTE LANDED, IN CREATION ORDER — `D-106` ARM 1,
+  // 2026-11-02.** **NO MEMBER IS MINTED ON THE ATTEMPT, ON ANY RECORD OR ON THE INSTANCE**: the attempt's
+  // nine-member record stands byte for byte, and this list is a LOCAL handed to `registrationRoute` and to the
+  // close. **IT IS THE SAVE'S KEY AND THE REFUSING ARM'S SCOPE, AND IT IS NOT `attempt.ops`** — see the route's
+  // own clause above and `landedOp`'s refusal to grow that member.
+  const landed = [];
+  // **AND THE SECOND FRAME LOCAL, BESIDE IT — `PIN-17` (iv).** The op ids of the route's landings whose carried
+  // value was a CONTAINER at a tier below `file`: the only class that can PURGE a `file`-tier version, and
+  // therefore the one disjunct `lastFileLanding` cannot read off the op itself. **No member carries it** — not on
+  // the attempt, not on the op, not on any record and not on the instance (`PIN-3` (ii)(a)).
+  const purged = [];
   let result;
-  const repairContext = registrationRepairContext(store, address, pair.id, attempt.commit);
+  const repairContext = registrationRepairContext(store, address, pair.id, attempt.commit, landed, purged);
   try {
     // **⟶ RE-DERIVED 2026-10-27 — STATE `3`'S REPAIR NAMES THE SYNTHETIC ATTEMPT'S COMMIT AND IS NO LONGER
     // MARKED AS AN OWNER OF ITS OWN (`D-46` item `2`).** `D-45` invoked it through the entry's `externalCall`,
@@ -606,7 +667,7 @@ function registrationAttempt(kernel, store, pair) {
     // **THE BODY'S THROWABLE IS NOT CONVERTED INTO A STORE FORM AND IS NOT REACHED BY THE CALLER HERE**: it
     // is caught so the attempt can close and the registration can be refused in the declared form; a drive
     // that expected the body's own value out of `addConstraint` has read a route no clause declares.
-    closeRegistrationAttempt(kernel, attempt);
+    closeRegistrationAttempt(kernel, attempt, landed);
     return registrationRefusal(address, pair.id, attempt.log);
   } finally {
     leaveCommitFrame(kernel);
@@ -617,7 +678,7 @@ function registrationAttempt(kernel, store, pair) {
   if (produced === null) {
     // ARM (d) — THE REPAIR PRODUCED NO OP: `{ok: false, message}`, an outside-form return, or an
     // `ok === true` return whose `op` is absent, `undefined` or not the one it landed.
-    closeRegistrationAttempt(kernel, attempt);
+    closeRegistrationAttempt(kernel, attempt, landed);
     return registrationRefusal(address, pair.id, attempt.log);
   }
 
@@ -630,14 +691,29 @@ function registrationAttempt(kernel, store, pair) {
   // THE RE-RUN — `3-bis` (d)'s arms (e)/(f) and `3-bis` (e)'s ordinary landing rules: the repair's op
   // LANDED, so the pairs registered at ITS OWN landing's address are evaluated by the ordinary pass
   // (`kernel-surface.md §2.3` item 1), in first-registration order, against THAT op.
-  const failed = registrationRerun(kernel, attempt, produced, key);
+  // **⟶ AND THE CALL IS INSIDE A `catch` FROM 2026-11-02 — `PIN-15` (ii), `strata/decisions.md` · `D-107`
+  // item 1.** **A CONSTRAINT BODY THAT THROWS AT ITS OWN RE-RUN COMPOSES THE REGISTRATION'S ROLLBACK AND CLOSES
+  // ITS ATTEMPT HERE, BEFORE THE THROWABLE CROSSES.** The re-run marks and re-throws (`registrationRerun`'s own
+  // arm, byte-unmoved), so without this frame the throwable left `registrationAttempt` at the line below, the
+  // route's landed edit stood in memory and unsaved, and the attempt was left `'open'` in `kernel.live` with no
+  // report. **THE FRAME COMPOSES AND CLOSES AND THEN RE-THROWS THE VERY VALUE IT RECEIVED** — `caught ===
+  // thrown`, never re-marked, never wrapped and never re-classed (`PIN-15` (iv)): the crossing at the entry is
+  // still the only converter, and the arm's `'failed'` report in `kernel.closed` is a record of an ATTEMPT and
+  // not of the refusal the caller receives (`arms.md §A.5`).
+  let failed;
+  try {
+    failed = registrationRerun(kernel, attempt, produced, key);
+  } catch (body) {
+    closeRegistrationAttempt(kernel, attempt, landed);
+    throw body;
+  }
   if (failed !== null) {
-    closeRegistrationAttempt(kernel, attempt);
+    closeRegistrationAttempt(kernel, attempt, landed);
     return registrationRefusal(address, pair.id, attempt.log);
   }
   // THE PASSING ARM: `PASSED` → `CLOSED` and the registration STANDS. **NO LOG CROSSES**, and the repair's
   // edit STANDS in the store — the side effect the architect's trust clause licenses (`3-bis` (f)).
-  closeRegistrationAttempt(kernel, attempt, 'passed');
+  closeRegistrationAttempt(kernel, attempt, landed, 'passed', purged);
   return null;
 }
 
@@ -810,19 +886,92 @@ function registrationRefusal(address, id, log) {
 }
 
 /// **THE SYNTHETIC ATTEMPT'S TERMINAL ACT — `PASSED` OR `FAILING`, AND `CLOSED` FROM THOSE TWO AND FROM
-/// NOWHERE ELSE** (`attempt-lifecycle.md §2.4` item 3). It reaches neither the per-op rollback composition
-/// nor the delivery seam: **the registration instant opens no `K-2`, delivers no listener and composes no
-/// rollback** — the repair's edit STANDS on the passing arm (`3-bis` (f)), and a failed repair's own state
-/// is left where the store's own verb left it (`3-bis` (d): the store's state is left where the composition
-/// restored it, which for an attempt with no rollback composed is the state the verb produced).
-function closeRegistrationAttempt(kernel, attempt, outcome = 'failed') {
+/// NOWHERE ELSE** (`attempt-lifecycle.md §2.4` item 3). **IT STILL OPENS NO `K-2` AND STILL DELIVERS NO
+/// LISTENER — and it REACHES the per-op rollback composition on its FOUR REFUSING arms and the SAVE on its
+/// passing one, both from 2026-11-02** (`strata/decisions.md` · `D-106` item 3's first arm and `D-107` item 1)
+/// **— the fourth being the re-run's own body-throw arm, which reaches this close through `registrationAttempt`'s
+/// `catch` (`PIN-15` (ii)) and not through a returning refusal.**
+///
+/// **A REFUSAL ROLLS BACK, WITHOUT EXCEPTION.** **When a registration refuses — because the repair's body threw,
+/// because the repair credited no op, because the re-run refused the repair's own landing, or because a
+/// CONSTRAINT BODY THREW AT THE RE-RUN — this close composes a rollback over EVERY OP ITS ROUTE LANDED and the
+/// store is left where the registration found it.**
+/// **THE COMPOSITION IS THE SAME INSTRUMENT A FAILING WRITE'S PASS COMPOSES WITH** (`kernel-terminal.mjs`'s
+/// `composeRollback`, handed the frame's own list, `D-40`'s floor plan): one store `rollback` call per distinct
+/// address the landings touched, at that address's earliest such op, shallowest address first. **AND THE ARM
+/// OWES NO SAVE OF ITS OWN** (`D-107` item 2): the reversal's own state-keyed save is what makes the bytes right,
+/// and a second save here would write one image twice.
+///
+/// **AND THE PASSING ARM'S SAVE IS THIS CLOSE'S — `D-106` item 3.** A `file`-tier write the route lands is saved
+/// WHEN THIS ATTEMPT CLOSES ON ITS PASSING ARM, by naming the LAST `file`-tier op the route landed to the
+/// instance's own save channel (the entry's one `commitFile` frame, the same one the terminal arm calls). **ONE
+/// SAVE PER REGISTRATION, WHATEVER ITS REPAIRS**: the image a save writes is the whole register's, so several
+/// `file`-tier repairs ride in one serialization and every earlier entry's `saved: false` is INERT — nothing in
+/// the tree names an op to `commit_file` except the terminal arm, this close and the re-drive the store's own
+/// marker refuses. **AND A REGISTRATION THAT MOVED NO `file`-TIER DATA SAVES NOTHING AND IS ATTEMPTED ONCE FOR
+/// NOTHING.**
+///
+/// **⟶ AND THE CANDIDATE FILTER WIDENS BY ONE DISJUNCT, 2026-11-02 — `PIN-17` (iv), `arms.md §C.4`.** The close
+/// cannot take the terminal arm's cure verbatim: it must name ONE op — `commitFile`'s one position — and the
+/// store's answer does not say whether it wrote. **SO IT KEEPS A CANDIDATE FILTER AND WIDENS IT BY THE ONE CLASS
+/// THE PACKAGE CAN SEE: the last landing whose op is `file`-tier, OR tier-less, OR A WRITE AT A TIER BELOW `file`
+/// WHOSE CARRIED VALUE WAS A CONTAINER** — the only class that can PURGE a `file`-tier version, because the purge
+/// is the container's own re-minting and a scalar only shadows. **IT IS A CANDIDATE SELECTION AND NOT AN
+/// ELIGIBILITY DECISION**: the store's `save_owed` is still the only ground, and a container write over a
+/// CONTAINER target purges nothing and is answered `Ok(())` with no byte written (`lastFileLanding`, below).
+///
+/// **A SAVE THAT CANNOT LAND TURNS THE PASSING ARM INTO A REFUSING ONE**: the store answers its own
+/// `FileCommitFailed` after its journal rollback, **the record that failed is already out of the journal so the
+/// composition names the route's REMAINING ops and not that one**, the report is published and the attempt closed
+/// — **and only then does the store's own two-member form cross**, so no registration ever leaves an open attempt
+/// in the registry (`kernel.closed.set`/`kernel.live.delete` below).
+function closeRegistrationAttempt(kernel, attempt, landed, outcome = 'failed', purged = null) {
+  // ── THE PASSING ARM'S SAVE, FIRST, BEFORE THE REPORT IS PUBLISHED AND BEFORE THE ATTEMPT IS MARKED CLOSED ──
+  let saveFailure = null;
+  let composedOver = landed;
+  if (outcome === 'passed') {
+    const opId = lastFileLanding(landed, purged);
+    if (opId !== null) {
+      const seam = attempt.store !== null && typeof attempt.store === 'object'
+        ? attempt.store[REGISTRATION_SAVE]
+        : undefined;
+      if (typeof seam === 'function') {
+        try {
+          seam(opId);
+        } catch (thrown) {
+          // `PIN-10` (vi)'s sequel, in its declared order: the save fails → the store rolls that op back → the
+          // arm becomes a refusing arm → the composition runs over the rest → `FileCommitFailed` crosses.
+          saveFailure = thrown;
+          outcome = 'failed';
+          composedOver = landingsOtherThan(landed, opId);
+        }
+      }
+    }
+  }
+  // ── THE REFUSING ARMS COMPOSE OVER WHAT THE ROUTE LANDED (AND THE PASSING ARM SAVES, NEVER COMPOSES) ─────
+  if (outcome !== 'passed') {
+    const floor = composeRollback(kernel, attempt, composedOver);
+    // **WHERE A CALL IS ANSWERED BY A CODE, ONE `outcome` ENTRY IS APPENDED AND NOWHERE ELSE** (`PIN-10` (iv)):
+    // an ordinary refusing arm — every issued call returned a `RollbackResult` — appends NOTHING, and the steps
+    // live in the closed report's `rollback`. **`state` IS `null` AND NOT `KC-8` BECAUSE THE THROWN FORM'S
+    // `status` AND THE ENTRY'S `state` ARE ONE TOKEN AND THIS REFUSAL'S STATUS IS RANK `19` ON EVERY ARM**
+    // (`D-107` item 5). **AND FROM THIS PASS THE ONE CODE THAT CAN REACH HERE IS `JournalOpUnknown`**: the
+    // compaction arm regenerates instead of answering a code (`D-108`), **and `D-118` reads an image the store's
+    // own loader cannot read as NO image at all, so the narrowed `RollbackCompacted` has no producer left.**
+    if (floor !== null) {
+      append(attempt, 'outcome', { pair: null, op: null },
+        `the registration's rollback met the store's own ${floor.code} at ${floor.opId}`, null);
+    }
+  }
   attempt.status = 'closed';
   const report = {
     attempt: attempt.ref,
     outcome,
     ops: attempt.ops.slice(),
     log: attempt.log,
-    rollback: [],
+    // **THE COMPOSITION'S STEPS, IN THE REPORT'S EXISTING `rollback` MEMBER** — `[]` on the passing arm, because
+    // nothing is composed there and no member is minted on the report (`PIN-10` (iii)).
+    rollback: attempt.rollback.slice(),
   };
   attempt.report = report;
   // **THE TWO RECORDS ARE THE ATTEMPT'S OWN INSTANCE'S** (`D-30`): the caller's `store` is the one this
@@ -836,7 +985,59 @@ function closeRegistrationAttempt(kernel, attempt, outcome = 'failed') {
   // does (`kernel-attempt.mjs`'s handoff).
   dropHandoff(kernel, report);
   kernel.live.delete(attempt.ref.id);
+  // **THE STORE'S OWN FORM CROSSES LAST, AFTER THE ATTEMPT IS CLOSED AND THE REPORT PUBLISHED** (`PIN-3` (v)):
+  // a caller of `addConstraint` or the re-arm receives the store's two-member form, and a caller of `storeCreate`
+  // receives it INSTEAD OF an instance.
+  if (saveFailure !== null) throw saveFailure;
   return report;
+}
+
+/// **THE LAST LANDING THE CLOSE MAY NAME, OR `null` WHERE THE ROUTE LANDED NONE — `D-106` ARM 1'S KEY, WIDENED BY
+/// ONE DISJUNCT 2026-11-02 (`PIN-17` (iv)).**
+/// **THE LIST IS THE ROUTE'S WHOLE LIST AND NOT THE CREDITED OP**: a repair that writes a `file`-tier record and
+/// then credits a `mem`-tier one it also wrote leaves a `file`-tier landing that `attempt.ops` alone would miss.
+/// **AND THE THREE DISJUNCTS THIS FILTER ADMITS ARE THE ONLY CLASSES THAT CAN HAVE MOVED A `file`-TIER VERSION:**
+/// an op at the `file` tier (a `file`-tier write); an op that names NO tier (the whole-target `delete`'s own
+/// spelling, which the route cannot mint today and which the store adjudicates where it stands); **and a WRITE AT
+/// A TIER BELOW `file` WHOSE CARRIED VALUE WAS A CONTAINER** — the purge, recorded beside the landed op by
+/// `registrationRoute` because the op alone cannot say what value its act carried.
+/// **AND WHERE THE ROUTE LANDED NONE OF THE THREE — a repair that wrote a SCALAR at `mem` or `temp`, which shadows
+/// the durable version and moves no byte of the file, or a registration whose repair landed nothing — NO SAVE IS
+/// OWED AND NONE IS ATTEMPTED**: the store's own `save_owed` would answer `false` for it, and the close does not
+/// name it.
+function lastFileLanding(landed, purged) {
+  const purging = Array.isArray(purged) ? purged : [];
+  for (let index = landed.length - 1; index >= 0; index -= 1) {
+    const op = landed[index];
+    if (op === null || typeof op !== 'object') continue;
+    if (typeof op.opId !== 'string' || op.opId.length === 0) continue;
+    const tierless = op.tier === null || op.tier === undefined;
+    // THE PURGE IS A MEMBERSHIP TEST ON THE FRAME'S SECOND LIST AND NOT A SECOND PREDICATE (`PIN-17` (iv)).
+    let purges = false;
+    for (let at = 0; at < purging.length; at += 1) {
+      if (purging[at] === op.opId) {
+        purges = true;
+        break;
+      }
+    }
+    if (op.tier !== 'file' && tierless === false && purges === false) continue;
+    return op.opId;
+  }
+  return null;
+}
+
+/// **THE ROUTE'S LIST MINUS ONE OP ID** — the list the composition is handed after a save failed and the store
+/// removed that record from its journal. **A local index loop, and the list is a FRESH array**: naming an entry
+/// the store has removed would meet `JournalOpUnknown` and floor the composition for a reason that is not a
+/// floor.
+function landingsOtherThan(landed, opId) {
+  const rest = [];
+  for (let index = 0; index < landed.length; index += 1) {
+    const op = landed[index];
+    if (op !== null && typeof op === 'object' && op.opId === opId) continue;
+    appendOwn(rest, op);
+  }
+  return rest;
 }
 
 

@@ -139,10 +139,17 @@ test('the ruling · after a refused reversal that moved `file`-tier nodes, a FRE
       + `standing: the call answered ${JSON.stringify(rollback.value)}`);
   assert.equal(rollback.caught.status, 'ConstraintPassRefused',
     `the refusal is the judgement's own rank-20 member: THE DRIVE READ ${JSON.stringify(rollback.caught.status)}`);
+  // **⟶ RE-DERIVED 2026-11-02 — AND THE MOVEMENT IS RECORDED RATHER THAN MADE SILENTLY.** The reading this
+  // assertion was filed with is *"the PRE-restore bytes … both committed writes, with the delete in memory
+  // only (`DD-28`)"*, i.e. `{"a":1,"b":1}`. **IT IS WITHDRAWN**: `strata/decisions.md` · `D-106` item 3's
+  // ARM 2 makes a WHOLE-TARGET `delete` (this drive's `delete(['a'])` names no tier) an act that changes
+  // `file`-tier data and owes a save (`contract.md PIN-4`), so the delete's own removal is durable and the
+  // bytes stand at `{"b":1}`. **THE RESTORE'S OWN SUBJECT IS UNMOVED** — the restore still saves, and the
+  // fresh boot below still reads the state the first instance holds.
   assert.equal(bytesBeforeReversal === null ? null : bytesBeforeReversal.toString('utf8'),
-    '{"a":1,"b":1}',
-    'the drive must stand the PRE-restore bytes the ruling is about — both committed writes, with the delete '
-      + 'in memory only (DD-28): THE DRIVE READ '
+    '{"b":1}',
+    'the drive must stand the PRE-restore bytes the ruling is about: the `b` write is committed, and the '
+      + 'whole-target delete of `a` now saves its own removal (`D-106` arm 2). THE DRIVE READ '
       + `${bytesBeforeReversal === null ? 'NO FILE' : JSON.stringify(bytesBeforeReversal.toString('utf8'))}`);
 
   // ── (1) THE FIRST INSTANCE HOLDS THE RESTORED STATE. ────────────────────────────────────────
@@ -180,13 +187,19 @@ test('the ruling · after a refused reversal that moved `file`-tier nodes, a FRE
     `the control's two writes and its reversal must land: ${JSON.stringify([first.caught, second.caught, reverted.caught])}`);
   assert.deepEqual(controlMemory, { present: true, value: 1 },
     `the reversal restored the pre-write value in memory: THE CONTROL READ ${describe(controlMemory)}`);
-  assert.deepEqual(controlAfter, controlBefore,
-    '`rollback` performs NO file I/O — the bytes are the ones the last committed write left '
-      + `(DD-28): before=${controlBefore === null ? 'NO FILE' : JSON.stringify(controlBefore.toString('utf8'))} `
-      + `after=${controlAfter === null ? 'NO FILE' : JSON.stringify(controlAfter.toString('utf8'))}`);
-  assert.deepEqual(controlBoot, { present: true, value: 2 },
-    `MEASURED: a reversal's effect is NOT persisted by the reversal — a fresh store over the same path reads `
-      + `the last committed write's value, not the restored one. THE FRESH CONTROL INSTANCE READ ${describe(controlBoot)}`);
+  // **⟶ RE-DERIVED 2026-11-02 — `D-106` ARM 3, `D-112` ITEM 2, `D-116` ITEM 2.** The control was filed on
+  // *"`rollback` performs NO file I/O"*; from this unit a CALLER'S reversal is the act that owes the save, and
+  // the save is the store's existing STATE-KEYED write behind the judgement. **So the bytes DO move and the
+  // fresh boot reads the RESTORED value.** The refused arm above is unmoved: the restore's own save is a
+  // different save and it is today's.
+  assert.equal(controlAfter === null ? null : controlAfter.toString('utf8'),
+    '{"a":1}',
+    '**A CALLER\'S REVERSAL SAVES THE STATE IT RESTORED** (`D-106` arm 3; `D-116` item 2): before='
+      + `${controlBefore === null ? 'NO FILE' : JSON.stringify(controlBefore.toString('utf8'))} after=`
+      + `${controlAfter === null ? 'NO FILE' : JSON.stringify(controlAfter.toString('utf8'))}`);
+  assert.deepEqual(controlBoot, { present: true, value: 1 },
+    `MEASURED: a reversal's effect IS persisted by the reversal — a fresh store over the same path reads the `
+      + `restored value. THE FRESH CONTROL INSTANCE READ ${describe(controlBoot)}`);
 
   // ── THE READINGS, PRINTED (`D-21`). ─────────────────────────────────────────────────────────
   t.diagnostic(`THE RE-BOOT CELL: before the reversal the bytes were `
