@@ -629,3 +629,310 @@ while it is in flight, because a dirty tree is the unit's own red set.
 **WHAT `BK-1` IS NOT.** It is not a finding about `Provident-Storeroom`'s code, not a status, not a version, and not a
 reason to reopen `D-85`'s or `CD-10`'s re-derivation — **those are the downstream's own and their correction is theirs to
 land.**3.3.
+
+---
+
+## §15 · The sixth downstream report — `ST-F1`, the inherited-repair divergence re-filed as a fix request
+
+**WHAT THIS SECTION IS.** The intake note for one downstream report, filed under the intake rule that a note goes to
+`role_l0_research`. **IT RECORDS WHAT WAS VERIFIED, WHAT THE PRIOR RECORD ALREADY DISPOSES OF, AND WHAT REMAINS THE
+ARCHITECT'S — it designs nothing, cures nothing, ranks nothing, opens no unit, mints no ruling and assigns no version.**
+Its companion dispositions are the prior record's and are named at `§15.5`, not invented here.
+
+**⟶ CHANNEL FAILURE, RECORDED AGAIN AND FOR THE THIRD TIME.** The `role_l0_research` delegation was attempted on this
+intake and FAILED AT STARTUP, deterministically, before reading a byte: `tools.restrict() names unknown global tools
+"web_search", "web_fetch"` — the same failure `§1` records, still unrepaired. **So this note is filed by L0 directly, in its
+intake capacity, as the least-bad route rather than as the channel's own work; when the role's tool set is repaired a
+research pass should re-derive it.** Nothing here depends on the reporter's hands being L0's.
+
+**DATE:** 2026-11-03. **BRANCH:** `main` at `f3b35ea`, whose `bindings/js/package.json` reads `"version": "1.9.2"` at its
+own bytes. **THE PACKAGE MEASURED:** this checkout's own entry `bindings/js/index.mjs` through its addon
+`bindings/js/build/Release/storeroom_js_binding.node`, under Node `v24.20.0`; **every drive below ran from `/tmp`, wrote
+no repository byte, and is O4-shaped** (path entry, `D-6`).
+
+---
+
+### §15.1 · THE REPORT (condensed, faithful, and it is the DOWNSTREAM'S words restated rather than judged)
+
+**THE FINDING.** One returned shape answers two different things at the two evaluation instants, because the two instants
+read the same caller-supplied object by different rules: **the registration instant (`storeCreate`'s batch, `addConstraint`)
+reads `'repair' in outcome` — a `[[HasProperty]]` walk of the prototype chain — while the write's evaluation reads
+`Object.hasOwn(outcome, 'message')` and then `ownMember(outcome, 'repair')` — `[[GetOwnProperty]]`, own members only.**
+So a constraint whose `message`/`repair` are **inherited** registers cleanly, its repair is invoked once at registration,
+and the first write that trips the arm refuses with no repair at all.
+
+**WHAT A CONSUMER SEES, in the report's own condensed form:** `const outcome = Object.create({ message, repair })` with
+`constraints: [{ address, id, constraint: () => outcome }]` — the construction stands and the inherited repair has already
+run once; `store.write(…)` then throws `{ status: 'ConstraintPassRefused', message: '… returned a value outside the three
+declared outcome arms' }`. **The author's code is shaped plausibly and their repair worked at registration; it fails on the
+first real write, and the sentence does not name the cause.**
+
+**WHY THE REPORT CALLS IT A DEFECT RATHER THAN A STYLE NOTE, in the report's three grounds:** it is silent at the moment of
+authorship (registration is the permissive arm); it is silent until traffic; and — the report's own strongest sentence —
+**"the narrowing created it: 1.9.0 moved the write-time arm to `Object.hasOwn` and never moved the registration-time arm
+with it."** *(That provenance sentence is REFUTED below, `C-6`; the defect it describes is not.)*
+
+**THE PROPOSED FIX, verbatim from the report:** *"One word, at the other arm: read `Object.hasOwn(outcome, 'repair')` at the
+registration instant too. Then an inherited repair is refused where it is authored, and the two instants agree. Documentation
+and typing need nothing — `ConstraintOutcome` already declares the members as own."*
+
+**THE REPORT'S OWN DISCHARGE TABLE:** filed 2026-10-30 against 1.6.1; re-read against every release since; 1.6.2 gave the
+arm an example and a docblock, 1.8.0 typed it, and 1.9.0–1.9.2 changed nothing — so the divergence is documented upstream
+and unfixed upstream. **The report's own app is immune by construction** (all thirteen declarations build refusals as object
+literals; its `VA-14`/`VA-15` cells pin that and measure the divergence rather than quote it). **So the report asks only for
+the package fix, and it does not patch downstream** (that project's own `D-5`).
+
+---
+
+### §15.2 · THE CLAIMS LEDGER
+
+**Method.** Each claim was re-measured by this pass at the bytes or by a drive in `§15.3`; **the report's own framing was
+not trusted as a finding and its release-history sentence is corrected where the tree answers otherwise.** Arms are `K-…`
+for the drives.
+
+| # | the claim, one line | verdict | evidence |
+|---|---|---|---|
+| `C-1` | **The registration instant's outcome read is a prototype-chain read: `'message' in outcome && 'repair' in outcome && typeof outcome.repair === 'function'`** | **VERIFIED** | `bindings/js/src/entry/kernel-registration.mjs:399`-`:401` (`[[HasProperty]]` twice and a `[[Get]]` at `:401`'s `? outcome.repair`), inside `registrationEvaluation`; the comment above it (`:394`-`:397`) states the outcome is *"read as the landing pass reads it"*, the symmetry its own code falsifies. **The report's `'repair' in outcome` half is exact; the test also chain-reads `message`.** |
+| `C-2` | **The write's evaluation reads own members only: `Object.hasOwn(outcome, 'message')`, then `ownMember(outcome, 'repair')`** | **VERIFIED** | `bindings/js/src/entry/kernel-attempt.mjs:810`-`:818`; `ownMember` is the descriptor form at `bindings/js/src/entry/kernel-foundations.mjs:882`-`:886`. **The report's cited range `:810-818` resolves EXACTLY at this date** — a citation that did not need re-anchoring. |
+| `C-3` | **The second divergence of the same class: the repair's own RESULT `ok` is chain-read at registration and own-read at the write** | **VERIFIED** | registration: `const ok = result !== null && typeof result === 'object' && result.ok === true;` at `bindings/js/src/entry/kernel-registration.mjs:676`; write: `ownMember(result, 'ok')` at `bindings/js/src/entry/kernel-attempt.mjs:1028`. **The report does not name this arm; the record does** (`repair-arm-surface §4` item 4). |
+| `C-4` | **An inherited `repair` registers and is invoked once at registration, and the same shape is read as carrying NO repair at the next write, which refuses `ConstraintPassRefused` with the `unrecognized` sentence** | **VERIFIED — DRIVE `K-1` AND `K-2`** | `K-1` (`addConstraint`): registration `"stood"`, the write threw `{"status":"ConstraintPassRefused","message":"the constraint p returned a value outside the three declared outcome arms at a"}`, `runs = 1`. `K-2` (`storeCreate`'s batch): construction `"stood"`, the pair `constraints()` names `[{"address":[["a"]],"id":"p"}]`, the first write threw the same status and sentence, `runs = 1`. |
+| `C-5` | **The report's exact snippet — batch, `repair: (rc) => rc.write(['a'], 'mem', 1)` — "returns normally; the batch is adopted; the repair has already run once"** | **CORRECTED — DRIVE `K-3`** | The snippet **is refused at the construction**: `{"status":"ConstraintRefusedAtRegistration","message":"'a' was refused by its own constraint at registration in 'constraints', a registered constraint must answer true for the state its pair is registered at"}` — because the registration's credit wants `{ok: true, op}` (`kernel-registration.mjs:676`-`:679`) and the snippet's repair returns the store's `WriteRecord` (no `ok`). **The divergence is not reached by that snippet; it is reached with a CREDITED repair, which is `K-1`/`K-2`.** The report's symptom is real and the record already demonstrates it — its minimal reproduction is imprecise, and the imprecision is the registration's own credit rule and not the divergence. |
+| `C-6` | **"1.9.0 moved the write-time arm to `Object.hasOwn` and never moved the registration-time arm with it"** | **REFUTED** | The write's own-member outcome read landed at `2770a61`, *"Address the known debts: the read half of the prototype class, and three records"* (`2026-10-26`, the `D-35` read half), which the code's own comment records at `bindings/js/src/entry/kernel-attempt.mjs:799`-`:804` and `kernel-foundations.mjs:876`-`:877` (*"measured: an inherited `message` became the refusal's message…"*). **`git show 1a0d252` (`1.9.0`, `D-105`) changed the RESULT read (`ownMember(result,'ok')`) and did not touch the outcome read at all** — measured: the commit's diff over `kernel-attempt.mjs` has no `Object.hasOwn(outcome,` or `ownMember(outcome,` line. **So the asymmetry was created on 2026-10-26, not in 1.9.0 — it is older than the report's provenance sentence says.** The report's CONCLUSION (a half-landed change, not a design) survives; its DATE does not. |
+| `C-7` | **The package's own notes name it as a measured divergence rather than a bug** | **VERIFIED** | `docs/specs/storeroom-repair-arm-surface/contract.md` `§4` items 3 and 4 (RECORDED, FIXED NOWHERE, OWED to a code-bearing unit); `docs/specs/storeroom-constraint-registration-instant/contract.md` `§4` item 3 and `claims.md` `C-37` (NOT that unit's); `docs/specs/storeroom-constraint-outcome-proposal-review.md` `§9` (the property a future code-bearing unit should own); the landed corpus cell `docs/specs/storeroom-constraints/contract.md:361`-`:405` (sub-item `(viii)`, OWED). **All five carry the same two facts and none claims the reads agree.** |
+| `C-8` | **The write's sentence does not name the cause** | **VERIFIED** | the sentence is the kernel's own `unrecognized` template, `bindings/js/src/entry/kernel-attempt.mjs:1384`-`:1387`, verbatim *"the constraint `<id>` returned a value outside the three declared outcome arms at `<address>`"* — it names neither the instant nor the membership rule. **This is the same class `D-88` (2) records as a sentence-text defect and disposes of as a recorded row rather than a unit.** |
+| `C-9` | **The report's release-history sentence ("1.6.2 gave the arm an example and a docblock; 1.8.0 typed it; 1.9.0–1.9.2 changed nothing")** | **CARRIED, half-verified** | the typing half is VERIFIED: `9afb411` mints the six repair-outcome types and `fd34789` cuts `1.8.0` (`D-102`); the docblock/example half is **CARRIED** — the guide's `§7.6` clause of 2026-10-30 is at `docs/guides/package-use.md:1088`-`:1096` and its worked example is a later clause of the same section; **this pass did not re-derive which commit first landed each.** No claim below rests on it. |
+| `C-10` | **`VA-14`/`VA-15` hold the downstream app's immunity, and the app is immune by construction** | **UNVERIFIABLE HERE** | those cells live in the downstream repository (`Provident-Electron`), which this checkout does not carry; **this pass read the claim and re-derived nothing of it.** What IS verifiable here is that the record's own reproductions match the report's symptom (`C-4`). |
+| `C-11` | **"Typing needs nothing — `ConstraintOutcome` already declares the members as own"** | **VERIFIED** | `bindings/js/index.d.ts` declares the closed three-arm `ConstraintOutcome` and its members, and states *"THE TYPE DECLARES THE SHAPE AND NEVER THE READ"* at `:1587`-`:1589` — **so a fix moves no type byte; what would move is the shipped PROSE that scopes the rule to one instant** (`§15.6` `Q-4`). |
+
+**TERMS: the claims (`11`), VERIFIED (`7`), CORRECTED (`1` = `C-5`), REFUTED (`1` = `C-6`), CARRIED (`1` = `C-9`), UNVERIFIABLE HERE (`1` = `C-10`).**
+
+---
+
+### §15.3 · THE DRIVES, VERBATIM
+
+**Harness.** The checkout's own entry by path; no harness, no harness directory, no repository byte written. Each arm on a
+fresh store; `mem` tier except `K-3` (which is the report's snippet and refuses at the construction). **`K-1`, `K-2` and
+`K-4` are the divergence; `K-3` is the report's imprecise reproduction; `K-5`/`K-5a` are the credit control; `K-6` is the
+inherited-message-only arm.**
+
+```
+K-1 addConstraint, inherited message/repair, repair credited at ['b'] (the contract's own reproduction):
+A registration "stood"
+A write threw {"status":"ConstraintPassRefused","message":"the constraint p returned a value outside the three declared outcome arms at a"}
+A runs 1
+
+K-2 storeCreate's batch, same shape, repair credited through rc.write at ['b']:
+B construction "stood"
+B write at a threw {"status":"ConstraintPassRefused","message":"the constraint p returned a value outside the three declared outcome arms at a"}
+B runs 1
+B carried pairs [{"address":[["a"]],"id":"p"}]
+
+K-3 the report's exact snippet (repair returns the store's WriteRecord, not {ok:true, op}):
+C construction threw {"status":"ConstraintRefusedAtRegistration","message":"'a' was refused by its own constraint at registration in 'constraints', a registered constraint must answer true for the state its pair is registered at"}
+
+K-4 the second divergence — an inherited `ok` on the repair's return:
+D registration "stood"
+D write threw {"status":"ConstraintPassRefused","message":"the repair p produced no op at a"}
+
+K-5 the same shape with the repair's write UNSUPPORTED (no commit at the fourth position — `D-103`'s refused route), as a control:
+E registration "stood"
+E write threw {"status":"ConstraintPassRefused","message":"the repair p produced no op at a"}
+E runs 2
+
+K-5a the credit control — every member OWN and the repair's write on the supported route (the context at the fourth position):
+E2 registration "stood"
+E2 write "stood"
+E2 runs 2
+
+K-6 an inherited `message` alone, no repair — the registration refuses and the pair is withdrawn:
+F registration threw {"status":"ConstraintRefusedAtRegistration","message":"'a' was refused by its own constraint at registration in 'constraints', a registered constraint must answer true for the state its pair is registered at"}
+F write after the refusal "stood"
+F carried pairs []
+```
+
+**WHAT THE DRIVES ESTABLISH, EACH READ OFF ITS OWN LINE.** **`K-1` and `K-2` reproduce the report's symptom at BOTH
+registration routes**: the inherited repair runs once at registration, and the first write reads the same shape as carrying
+no repair and refuses `ConstraintPassRefused` with the `unrecognized` sentence. **`K-3` shows the report's exact snippet
+never reaches that symptom** and is refused by the registration's own credit rule — so the report's minimal reproduction
+names a shape it has not itself driven to the claimed arm; the record's reproduction (`K-1`) is the one that exhibits it.
+**`K-4` exhibits the second divergence of the same class on the repair's own `ok`.** **`K-5` and `K-5a` are a pair and they
+prove the credit route is the SUPPORTED one at the write (`D-103`): an own-member outcome with the repair's write on the
+fourth-position route stands at both instants (`K-5a`), and the same shape with a three-position repair's write refuses
+"produced no op" (`K-5`)** — so `K-1`'s write refusal is the divergence and not an unsupported repair route, because `K-1`'s
+refusal happens BEFORE the repair is invoked (the arm reads no repair at all). **`K-6` shows an inherited `message` alone is
+refused at registration, after which the pair is withdrawn and a later write asks nothing.**
+
+---
+
+### §15.4 · THE SITE INVENTORY — FOUR READS, A THIRD INSTANT, AND THE HELPERS
+
+**THE DIVERGENT SITES (registration).**
+
+| site at `HEAD` | the read | rule | standing |
+|---|---|---|---|
+| `bindings/js/src/entry/kernel-registration.mjs:399`-`:401` | `'message' in outcome` · `'repair' in outcome` · `typeof outcome.repair === 'function'` | `[[HasProperty]]` ×2 + `[[Get]]` — **the chain** | **DIVERGENT** — the report's subject and the corpus cell's subject |
+| `bindings/js/src/entry/kernel-registration.mjs:676` | `result.ok === true` (then `landedOp`'s own `op` read, `kernel-foundations.mjs:1105`-`:1131`) | `[[Get]]` on `ok` — **the chain**; `op` was already own-only | **DIVERGENT** — the same class; the report's filing does not name it, the record does (`repair-arm-surface §4` item 4) |
+
+**THE CONFORMING SITES (the write's evaluation and a third instant).**
+
+| site at `HEAD` | the read | rule | standing |
+|---|---|---|---|
+| `bindings/js/src/entry/kernel-attempt.mjs:810`-`:818` | `Object.hasOwn(outcome, 'message')`, `ownMember(outcome, 'message')`, `ownMember(outcome, 'repair')` | `[[GetOwnProperty]]` | conforming; the report's own target of comparison |
+| `bindings/js/src/entry/kernel-attempt.mjs:1028`-`:1033` | `ownMember(result, 'ok')`, `ownMember(result, 'message')` | `[[GetOwnProperty]]` | conforming — the second divergence's own fixed half (`D-35` read half, 2026-10-26) |
+| `bindings/js/src/entry/constraints.mjs:2810`-`:2814` | `Object.hasOwn(outcome, 'message')`, `ownDataMember(outcome, 'repair')` | `[[GetOwnProperty]]` | **conforming — and it is a THIRD instant**: the reversal's judgement (`rollback`'s pass) reads the same closed outcome by the own-member rule, so **two of the three instants that read a caller's outcome already agree with each other and the registration instant is the lone outlier** |
+
+**THE HELPERS, EACH READ AT ITS OWN BYTES.** `ownMember` (`bindings/js/src/entry/kernel-foundations.mjs:882`-`:886`) is
+`Object.getOwnPropertyDescriptor` with the descriptor's `value` taken only where it is one — an accessor answers `undefined`.
+**Its docblock carries the MEASUREMENT the divergence is:** *"measured: an inherited `message` became the refusal's message,
+an inherited `{ok, op}` was CREDITED as the repair's landed op, and an inherited `status` was read as a store code"*
+(`:876`-`:877`). **So the divergence was known when the helper was written, and only the write-side instants were converted.**
+
+**NO OTHER CHAIN READ OF A CALLER-SUPPLIED OUTCOME OR REPAIR RESULT STANDS** in `bindings/js/src/entry/`, `bindings/js/index.mjs`
+or `bindings/js/index.d.ts` — a grep for `'repair' in`, `'message' in`, `result.ok ===`, `Object.hasOwn(outcome` and
+`ownMember(result` returns exactly the five sites above. **The two divergent reads are the whole population.**
+
+---
+
+### §15.5 · THE PRIOR RECORD'S DISPOSITIONS, EACH QUOTED AT ITS BYTES
+
+**`docs/specs/storeroom-repair-arm-surface/contract.md` `§4` item 3** — *"DEFECT, RECORDED HERE AND FIXED NOWHERE —
+`PAR-C-5`'s CLOSED OUTCOME IS READ TWO WAYS BY THE TWO INSTANTS, AND THE REGISTRATION READ IS THE PROTOTYPE'S"* — with
+SYMPTOM, a 19-line REPRODUCTION, SUSPECTED ROOT CAUSE and a PROPOSED FIX SHAPE whose `(2)` reads: *"the registration
+instant's test becomes the landing instant's own-member discipline — one shared own-member reader, `Object.hasOwn(outcome,
+'message')` with `ownMember(outcome, 'repair')` read only inside that branch — so one returned shape answers ONE thing at
+both instants. That edit is a behaviour byte; it belongs to a code-bearing unit, and only after it lands may a shipped
+clause state the rule symmetrically."* **THE FIX IS OWED TO A CODE-BEARING UNIT — owner: that unit's pass; revisit
+condition: the defect re-opens at the first passing code unit that touches `addConstraint`'s outcome read.**
+
+**`docs/specs/storeroom-repair-arm-surface/contract.md` `§4` item 4** — *"DEFECT, RECORDED HERE AND FIXED NOWHERE —
+`PAR-C-8`'S RESULT IS READ TWO WAYS ON ITS `ok` MEMBER… THE SECOND DIVERGENCE OF ITEM 3'S CLASS, ONE CLASS AND NOT ONE
+INCIDENT"* — the same standing and the same owed owner, its fix shape `(2)`: *"one shared own-member read —
+`ownMember(result,'ok')`"*.
+
+**`docs/specs/storeroom-constraint-registration-instant/contract.md` `§4` item 3** — *"THE `D-35`/`D-36` REGRESSION THE
+SIBLING RECORDS IS NOT THIS UNIT'S AND IS NOT CURED BY IT"* — *"It is a REGRESSION against `D-36` and is OWED TO A
+CODE-BEARING UNIT; THIS UNIT TOUCHES THE SAME MODULE BUT NOT THAT READ"* (its `PIN-1` (i) omits the read from its write set
+by name). **So the unit that owns the registration module was built, tested and landed, and it did not take this read — a
+scope decision, recorded rather than absorbed.**
+
+**THE LANDED CORPUS CELL — `docs/specs/storeroom-constraints/contract.md:361`-`:405`, sub-item `(viii)`** (appended
+2026-10-30 on `D-85` items 1 and 3 read as the grant, `D-86`): *"THE CONSTRAINT OUTCOME'S TWO INSTANTS ANSWER THE SAME SHAPE
+DIFFERENTLY"*, the two reads at their then-live ranges, **the classification — *"this site CONTRADICTS A CLOSURE and is no
+unruled gap — `D-35` declares the defence to be parameter access, and `D-36` closes that parameter-access class AS
+IMPLEMENTED on a PROVENANCE distinction"* — so what it records IS A REGRESSION**; **OWNER: *"a CODE-BEARING UNIT NAMED BY ITS
+SHAPE AND BY NO UNIT NUMBER"*; POSITIVE REVISIT CONDITION: *"THE FIRST PASSING CODE-BEARING UNIT THAT TOUCHES
+`addConstraint`'S OUTCOME READ LANDING"***; and its bounds — it names no repair, asserts nothing harmless, assigns the instant
+nowhere, and *"NO CLAUSE OF THIS DIRECTORY MAY BE READ AS SETTLING IT."*
+
+**`strata/decisions.md` · `D-35` (`:2517`) and `D-36` (`:2647`)** — the class and its closure: `D-35` classes *"a non-own
+read of a CALLER-SUPPLIED value"* as the parameter-access hole (*"a caller gets a status outside the closed set and a
+caller-authored message, not because they broke anything but because the package read a supplied object through a chain it
+should not consult"*), and `D-36` declares that class **CLOSED AS IMPLEMENTED** on a provenance distinction — **a value the
+caller supplied is read by own-property forms; a value the package minted is read with the realm's prototype methods.**
+**The registration reads are of a CALLER-SUPPLIED value, so they sit inside the closed class — no new ruling is needed to
+classify them, and none may be read as authorising the chain read.**
+
+**THE SHIPPED PROSE THAT SCOPES THE RULE TO ONE INSTANT, AND WHICH A FIX WOULD MOVE (each at its `HEAD` bytes).**
+`docs/guides/package-use.md:1094` — *"AT THE WRITE'S OWN EVALUATION — AT THAT INSTANT AND NO OTHER — THE KERNEL READS
+`message` AND `repair` AS OWN MEMBERS … THIS IS THE ONLY SENTENCE IN THIS GUIDE THAT STATES THAT RULE, AND IT IS THE LANDING
+INSTANT'S: the registration act reads the same closed outcome at `bindings/js/src/entry/kernel-registration.mjs:330-332`,
+where an inherited `repair` IS seen and invoked … that divergence is OWED to a code-bearing unit and is contradicted by no
+sentence here"*. `bindings/js/index.d.ts:1587`-`:1589` — *"THE TYPE DECLARES THE SHAPE AND NEVER THE READ: at the write's own
+evaluation `message` and `repair` are read as OWN members, while at a registration instant the same closed outcome is read
+through the prototype chain … which is `D-35`'s recorded defect and is OWED to a code-bearing unit"*. **Both clauses are
+TRUE of `HEAD` and would become FALSE the moment the registration reads were converted — which is why the record says a
+shipped clause may state the rule symmetrically only AFTER the fix lands.**
+
+---
+
+### §15.6 · WHAT THE RECORD DOES NOT ANSWER — THE QUESTIONS FOR THE ARCHITECT
+
+**Each carries the default the record implies; none is decided here.** **`Q-1` is the one that decides the unit's size.**
+
+**`Q-1` · SCOPE — the `repair` read alone, the outcome's two members, or the whole class (both reads at the registration
+instant)?** **The downstream asks for one word: `Object.hasOwn(outcome, 'repair')`.** **The record's fix shape is wider:
+the landing instant's discipline for `message` AND `repair` (`repair-arm-surface §4` item 3 (2)), and item 4's `ok` is the
+same class and the same owed standing.** **Three readings, each with what it leaves standing:** (i) **repair only** — an
+inherited `repair` is refused at registration, and `'message' in outcome` stays a chain read, so an inherited `message`
+STILL answers two things at the two instants and the corpus cell's first divergence survives; (ii) **the outcome's two
+members, own-read** — both divergences of the corpus cell close, the guide's `:1094` and `index.d.ts:1587` clauses can be
+re-stated symmetrically, and item 4 (`ok`) remains; (iii) **the whole class — the outcome's two members AND the result's
+`ok`** — every read of a caller-supplied outcome or repair return at every instant is own-member, and the property
+`constraint-outcome §9` names has something to measure. **DEFAULT IMPLIED BY THE RECORD: (iii)** — the record's fix shapes
+name both arms, the `K-4` drive exhibits item 4, and a unit that fixes one arm of a recorded class leaves the other owed
+with the same owner. **But it is the architect's, and (i) is the report's own ask.**
+
+**`Q-2` · THE VERSION — does the unit land as a cut (PATCH `1.9.3`) with release notes, or code + tests only?**
+**The record's own precedents:** `D-104` wrapped a behaviour fix into a PATCH (*"This is a behavior defect, wrap into the
+fix patch"*), `D-102`/`D-100` moved MINOR numbers for surface changes, and a fix here moves NO type, NO member, NO status
+and NO message — it changes what a malformed-by-inheritance outcome is REFUSED at, at one instant. **DEFAULT IMPLIED:
+PATCH `1.9.3`, eleven cells moving together**, on `PUB-DD-9`'s *"a fix inside the declared surface"* row. **What the record
+does NOT decide is whether the unit cuts at all or lands unversioned** (several units here land code without cutting).
+
+**`Q-3` · THE CORPUS CELL — does the code-bearing unit also dispose of the landed `(viii)` cell (a dated mark recording the
+cure), or does that wait for a pass with scope inside the kept contracts?** **The cell's own revisit event is *"the first
+passing code-bearing unit that touches `addConstraint`'s outcome read LANDING"* — so the event is this unit's, and the cell
+becomes a record of a CURED regression whose successor state is unstated.** **`D-87` (1) grants no scope inside the nine kept
+contracts; `D-85`/`D-86` granted exactly one cell, append-only.** **DEFAULT IMPLIED: the unit lands its code and its tests and
+leaves the cell's disposal to a pass that asks for the grant** — the cell's rule is that it is *"RECORDED and NOT CURED"*,
+and a marked cure needs its own admission; **the cost of the default is a corpus byte that describes a state the code no
+longer holds.**
+
+**`Q-4` · THE PROSE — which shipped sites move, and may they?** **`docs/guides/package-use.md:1094` and
+`bindings/js/index.d.ts:1587`-`:1589` both assert the one-instant scope and both would be FALSE after a fix; the guide's
+sentence *"this divergence is OWED … and is contradicted by no sentence here"* would also be stale.** **The record says only
+AFTER the fix may a shipped clause state the rule symmetrically** — it does not say the fixing unit owns those edits.
+**DEFAULT IMPLIED: the unit appends dated `RCA-8(g)` marks at both sites (append-only, no sentence deleted), and the guide's
+generated landing `bindings/js/README.guide.md` is re-staged from its authored home** — that is what every prior prose
+correction here has done. **What it does NOT decide is whether the marks say *"the rule is symmetric"* or *"the rule is the
+landing instant's and the registration was converted by `D-nn`"` — the second is the append-only form the project prefers.**
+
+**`Q-5` · ACCEPTANCE — what red set and what blind cell does the unit owe?** **The unit is `CODE-BEARING` with a behaviour
+change, so by the precedent of `U-STOREROOM-CONSTRAINT-REGISTRATION-INSTANT` it owes: a real `tests/e2e/` red set (committed
+cells), a blind instance where the battery can turn, and a property row over generated shapes.** **The record's property is
+already named in words at `constraint-outcome §9`: *"at BOTH evaluation instants the same returned outcome answers the same
+membership question … so a generated inherited-member shape can neither register a repair that the write then refuses to
+read, nor carry a sentence at one instant that the other answers with `unrecognized`."*** **DEFAULT IMPLIED: a `tests/e2e/`
+cell family driving the report's shape at both registration routes and both arms, plus one blind cell pinning the
+membership symmetry, plus that property row** — the report's `VA-14`/`VA-15` are the downstream's cells and are not the
+package's to copy.
+
+**`Q-6` — ADJACENT AND NOT THIS UNIT'S, NAMED SO IT IS NOT DISCOVERED AS A MISS: the registration instant's CREDIT RULE is
+op-based (`{ok: true, op}` required, `kernel-registration.mjs:676`-`:679`) while the write's credit is op-FREE since `D-105`
+(`appliedRepairs`, `kernel-attempt.mjs:1048`-`:1052`) — the guide's own clause records this as open question `Q-1` of
+`docs/L1/op-free-repair-credit.md §8.3` (*"the registration instant is a second credit site and keeps its own rule"*).**
+**A unit touching the registration's result read will meet that rule and MUST NOT change it** unless a ruling says so — `K-3`
+is the drive that exhibits its cost (a plausible repair refused at registration), and it is a separate subject from the
+membership divergence.
+
+---
+
+### §15.7 · SUMMARY ENVELOPE
+
+**VERIFIED.** The two divergent reads at their `HEAD` bytes (`kernel-registration.mjs:399`-`:401` and `:676`), the two
+conforming write-side reads (`kernel-attempt.mjs:810`-`:818` and `:1028`-`:1033`), the third conforming instant
+(`constraints.mjs:2810`-`:2814`), the symptom at both registration routes (`K-1`, `K-2`), the second divergence (`K-4`),
+the credit controls (`K-5`, `K-5a`), the five prior records that name the defect and fix it nowhere, `D-35`/`D-36`'s class
+and its closure, and the two shipped clauses that scope the rule to one instant.
+
+**CORRECTED.** The report's provenance sentence (`C-6`: the asymmetry is `2770a61`, 2026-10-26, not 1.9.0 — 1.9.0 moved the
+RESULT read); the report's minimal reproduction (`C-5`: it refuses at the construction on the credit rule and never reaches
+the claimed write arm; `K-1` is the reproduction that does).
+
+**REFUTED.** None of the report's substantive claims. The defect it describes is real, is recorded, and is a REGRESSION
+against a declared closure.
+
+**OPEN.** The five questions of `§15.6` (scope · version · the corpus cell · the prose · acceptance), each with its default,
+and the adjacent credit-rule question `Q-6` which is not this unit's.
+
+**FILES READ.** `strata/brief.md`, `strata/decisions.md` (`D-35`, `D-36`, `D-85`, `D-86`, `D-87`, and `D-88` by its
+disposition), `strata/walkthrough.md`; `docs/specs/storeroom-repair-arm-surface/contract.md`, `docs/specs/
+storeroom-repair-arm-surface-proposal-review.md`; `docs/specs/storeroom-constraint-registration-instant/contract.md`,
+`claims.md`; `docs/specs/storeroom-constraint-outcome/contract.md`, `docs/specs/storeroom-constraint-outcome-proposal-
+review.md`; `docs/specs/storeroom-constraints/contract.md` (`§0.1` item 5 `(viii)`); `bindings/js/src/entry/kernel-registration.mjs` (`:399`-`:401`,
+`:676`-`:710`, `:320`-`:400`); `bindings/js/src/entry/kernel-attempt.mjs` (`:780`-`:830`, `:860`-`:915`,
+`:1024`-`:1034`, `:1384`-`:1387`); `bindings/js/src/entry/constraints.mjs` (`:2790`-`:2830`); `bindings/js/src/entry/
+kernel-foundations.mjs` (`:876`-`:886`, `:1105`-`:1131`); `bindings/js/index.d.ts` (`:1390`-`:1435`, `:1586`-`:1590`);
+`docs/guides/package-use.md` (`§7.6`, `:1088`-`:1135`); `bindings/js/RELEASE-NOTES.md` (`§1.6.2`, `§1.7.0`, `§1.8.0`,
+`§1.8.1` heads); the git objects `2770a61`, `1a0d252`, `21a3db2`, `9afb411`, `fd34789`, `f3b35ea`; and the seven drives of
+`§15.3`, run from `/tmp` against this checkout's entry and addon.

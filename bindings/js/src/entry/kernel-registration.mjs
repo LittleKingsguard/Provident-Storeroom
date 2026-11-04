@@ -1,5 +1,5 @@
 // `D-13` (`docs/L1/kernel-subdivision.md` §1 part `9b`) — the registration act, its evaluation, and the registry's removal: bytes moved from `bindings/js/src/constraint-kernel.mjs`; no logic changed.
-import { KC, KERNEL_REFUSAL, markBodyThrow, refuse, inDomainAddress, inDomainId, pairRowAt, sameAddress, kernelFor, append, appendOwn, landedOp, pairsTriggered, enterCommitFrame, leaveCommitFrame, pairApplication, PAIR_APPLICABLE } from './kernel-foundations.mjs';
+import { KC, KERNEL_REFUSAL, markBodyThrow, refuse, inDomainAddress, inDomainId, pairRowAt, sameAddress, kernelFor, append, appendOwn, ownMember, landedOp, pairsTriggered, enterCommitFrame, leaveCommitFrame, pairApplication, PAIR_APPLICABLE } from './kernel-foundations.mjs';
 import { composeRollback, dropHandoff } from './kernel-terminal.mjs';
 
 /// **⟶ ADDED 2026-10-27 — `D-46`'s NAME ON A REPAIR INVOCATION'S OWN ENTRY, SPELLED HERE AS
@@ -396,10 +396,10 @@ function registrationEvaluation(kernel, store, address, id, constraint) {
   // caller registered); a value outside the three arms is READ AS the `{message}` arm (`VA-11`) and never as
   // an arm of its own. **A REPAIR THE OUTCOME DOES NOT CARRY IS NO REPAIR REGISTERED FOR THE PAIR.**
   if (outcome === true) return null;
-  const repair = outcome !== null && typeof outcome === 'object' && 'message' in outcome
-    && 'repair' in outcome && typeof outcome.repair === 'function'
-    ? outcome.repair
-    : null;
+  const outcomeRepair = outcome !== null && typeof outcome === 'object' && Object.hasOwn(outcome, 'message')
+    ? ownMember(outcome, 'repair')
+    : undefined;
+  const repair = typeof outcomeRepair === 'function' ? outcomeRepair : null;
   // STATE 2 — THE STATE VIOLATES IT AND NO REPAIR IS REGISTERED. Nothing is attempted and no attempt is
   // opened; the refusal carries the store's code and the row's own slots.
   if (repair === null) return registrationRefusal(address, id, commitLog);
@@ -673,7 +673,7 @@ function registrationAttempt(kernel, store, pair) {
     leaveCommitFrame(kernel);
   }
 
-  const ok = result !== null && typeof result === 'object' && result.ok === true;
+  const ok = result !== null && typeof result === 'object' && ownMember(result, 'ok') === true;
   const produced = ok ? landedOp(attempt, result, null) : null;
   if (produced === null) {
     // ARM (d) — THE REPAIR PRODUCED NO OP: `{ok: false, message}`, an outside-form return, or an

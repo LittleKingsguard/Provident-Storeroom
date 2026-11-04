@@ -403,6 +403,7 @@
    enumeration's next sub-item, owner-named and carrying its own positive revisit condition, so the count of
    bare `OWED` cells that sentence declares empty stays empty and no figure of the enumeration is reprinted
    here.** **NO CLAUSE OF THIS DIRECTORY MAY BE READ AS SETTLING IT.**
+   **⟶ AND THE SUBJECT OF THIS CELL IS CURED, 2026-11-04 — `U-STOREROOM-REGISTRATION-OWN-MEMBERS` (`D-GP-SROM`), ON THE ARCHITECT'S `D-120` ITEM 4 GRANT.** `RCA-8(g)` ANNOTATE-BESIDE: **every standing sentence of this cell is read THROUGH this mark and stands BYTE-FOR-BYTE — none is deleted, none is re-spelled, and none of this cell's citations is corrected or re-pointed.** **THIS UNIT'S LANDING CONVERTED BOTH REGISTRATION-INSTANT READS TO THE OWN-MEMBER RULE — the closed outcome's `message`/`repair` AND the repair's return `ok` — so the divergence this cell records is CURED rather than standing, the state this cell's own positive revisit condition named as its successor being the state this landing is.** **AND THIS CELL'S CLASSIFICATION, ITS OWNER-BY-SHAPE SENTENCE, ITS REVISIT EVENT AND ITS OWN BOUNDS STAND BYTE-FOR-BYTE AND ARE READ THROUGH THIS MARK.**
 
 ### §0.2 The design-default rows this contract carries, each reversible with its alternative priced
 

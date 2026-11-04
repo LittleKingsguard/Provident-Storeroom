@@ -1589,6 +1589,15 @@ export interface RegistrationRepairContext extends RepairContext {
  * prototype chain (`kernel-registration.mjs:377`-`:380`) — **ONE RETURNED SHAPE ANSWERING TWO DIFFERENT THINGS AT THE
  * TWO INSTANTS, which is `D-35`'s recorded defect and is OWED to a code-bearing unit**, and nothing here is read as
  * symmetric. **Nor does the type carry `message`'s NON-EMPTINESS or the repair's invocability beyond `function`.**
+ *
+ * **⟶ AND THE CLAUSE ABOVE IS CURED, 2026-11-04 — `U-STOREROOM-REGISTRATION-OWN-MEMBERS`, ON `D-120`.** `RCA-8(g)`
+ * ANNOTATE-BESIDE: **the clause above stands BYTE-FOR-BYTE and is read THROUGH this mark, and neither of its own
+ * citations is corrected or re-pointed.** **The registration instant's read of the same closed outcome was converted
+ * to the own-member rule at this unit's landing**, so its *"ONE RETURNED SHAPE ANSWERING TWO DIFFERENT THINGS"*
+ * reading is **CURED rather than owed**. **THE TYPE STILL DECLARES THE SHAPE AND NEVER THE READ** — the conversion
+ * confirms that thesis rather than amending it. **THE MEMBERS' CLASSES ARE UNMOVED**: `message` is still not
+ * declared non-empty, and `repair` is still declared no further than `function`, so this mark is neither a
+ * narrowing nor a widening of what is declared here.
  */
 export type ConstraintOutcome =
   | true
