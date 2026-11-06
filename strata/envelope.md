@@ -5,6 +5,50 @@
 
 ---
 
+## ⟶ THE PUBLISH PROCESS STARTED, DATED `2026-11-06` — UP TO THE ARCHITECT'S FINAL ACT
+
+**WHAT THE SUPERVISOR DID, ON THE ARCHITECT'S WORD *"Start publish process"*, AND WHAT HE DID NOT DO.**
+
+1. **COMMITTED** `a5182cd` — *"Land the tier readout (`U-STOREROOM-TIER-READOUT`, `D-121`..`D-122`), and cut 1.10.0"* —
+   **`65` paths: `54` modified and `11` added** (the whole unit; verified path by path before staging, and **nothing from
+   `target/`, `scratch/`, `node_modules/` or the backup directories is in it**). Working tree clean afterwards.
+2. **PUSHED** `origin/main`: `2c2b882..a5182cd`, and `HEAD` is level with `origin/main`.
+3. **RAN THE PREFLIGHT ON THE CLEAN PUSHED TREE: `exit 0`.** Its refusals on the first run was exactly one — *"HEAD differs
+   from `origin/main` — push or pull first"* — and the push cleared it; **everything else was green on both runs**: the version
+   lines, the cut claims (`refused 0 · stale 0`), `cargo test 675 pass / 0 fail`, `cargo build clean`, the lock/manifest set,
+   *"JS artefact built and staged"*, **`npm test pass 1286 · fail 0`**, and *"the consumer guide and the change list are landed
+   byte-for-byte at the packaging root"*.
+4. **RAN THE TAG LEG — `--tag 1.10.0 --yes` exit `0` — WHICH PRINTS THE ACT AND CREATES NO TAG** (`§4.1`: *"no pass tags"*).
+   **`git tag --list` carries `16` tags, the newest `v1.9.3`; `v1.10.0` was NOT created.**
+
+**ITS TWO WARNINGS, EACH RESOLVED RATHER THAN PASSED ON.**
+
+- **`! phrase not found — the helper's anchor has moved`**: `$CARRIER` is `docs/specs/storeroom-publish-proposal.md`, **absent
+  from this tree** (it is archived), so the check is a no-op with its warning. **Pre-existing, declared by the previous gate-3
+  envelope, and it reddens no cell** (the suite is green). **Owner: nobody until that file returns; the warning is the honest
+  state.**
+- **`! existing tag(s) that will redden the coupling cell: v1.0.0 … v1.9.3`** — **THIS WARNING IS STALE, AND THE CELL ITSELF SAYS
+  SO.** The tag-coupling cell (`tests/e2e/staged-install/publish-generators.test.mjs`'s `assertTagCoupling`) was **RE-DERIVED
+  2026-10-27** because the as-filed rule — *"every tag the repository carries equals the CURRENT manifest's version"* — **"NO
+  REPOSITORY CAN SATISFY AFTER ITS SECOND RELEASE"**. The operative rule is **the coupling read AT EACH TAG** (the manifest at a
+  tag declares that tag's own version) plus **the current version's tag read in whichever arm the tree stands in: PRESENT ⇒ its
+  manifest agrees and its commit is on this branch's history; ABSENT ⇒ the lawful PRE-release state.** **So tagging `v1.10.0` at
+  `a5182cd` moves the cell from the ABSENT arm to the PRESENT arm and SATISFIES it** (the manifest at that commit reads `1.10.0`
+  and the commit is on `HEAD`'s history). **The script's comment at `:36` and its `--tag` warning still assert the
+  pre-2026-10-27 semantics the cell re-derived away — a stale-comment defect in the instrument, worth a `PATCH`-class fix, and
+  NOT a blocker.**
+
+**ONE DECISION STANDS BETWEEN THIS TREE AND A CORRECT `--verify`, AND IT IS THE ARCHITECT'S** (carried from the readiness
+section, item 4): **the manifest publishes `provident-storeroom` while `--verify` prints
+`npm view @auspicion/provident-storeroom-js@$TARGET`.** The workflow's main job publishes with `npm stage publish` from
+`bindings/js`, i.e. **under the manifest's name** — so the release will publish `provident-storeroom`, and the post-release
+verification as printed would query a different package. **No pass took that decision.**
+
+**WHAT REMAINS IS THE ARCHITECT'S ACT AND NOTHING ELSE:** the annotated tag, its push (which fires
+`.github/workflows/publish.yml`), `gh run watch`, and then `scripts/publish.sh --verify 1.10.0 --yes`.
+
+---
+
 ## ⟶ RELEASE READINESS FOR `1.10.0`, DATED `2026-11-06` — `READY-FOR-THE-ARCHITECT'S-ACT`
 
 **THE VERDICT THE READINESS PASS RETURNED: `READY-FOR-THE-ARCHITECT'S-ACT`, with no blocker owned by any pass below. THE RELEASE
