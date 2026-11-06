@@ -216,8 +216,15 @@ answers `ContainerKindConflict` rather than converting.**
 **UC-5 · Tiers decide which version a read lands on.** The order is `file` > `mem` > `temp`, and **it is not a
 layered stack**: a write at a tier purges the versions it outranks, so one version is left holding the key. A
 read narrowed to a tier the key no longer holds refuses `TierNotFound` **and names the tiers that are
-present**. The one state with two versions at one key is a **shadow**, where the key holds a *more* persistent
-version than the write's — the shadow wins the unqualified read. The tier argument's arity differs by verb:
+present**. The one state with two versions at one key is a **shadow**, and **the SHADOW — the LOWER-persistence of the two — wins
+the unqualified read**: an unqualified read selects the lowest-persistence version present (`temp` before `mem` before `file`), and
+a read narrowed by the tier argument selects within the passed set by the same rule. **⟶ CORRECTED `2026-11-06` (`D-122`): this
+sentence read *"a shadow, where the key holds a more persistent version than the write's — the shadow wins the unqualified read"*,
+which named the MORE persistent version as the shadow and so inverted the rule by its own definition. The store's selection is the
+lowest-rank one (`src/store.rs`'s `select_member` → `lowest`, `min_by_key(rank)`), the operative contract states it eight times and
+lists *"a read that answers the higher-persistence version"* among its DECLARED FAILURES (`docs/specs/storeroom-native/contract.md:2588`),
+and the consumer guide's own §5.1 was corrected to match on the architect's word (`docs/guides/package-use.md`).** The tier
+argument's arity differs by verb:
 readers take absent, one token or an any-match array; writers and deletes take **exactly one**.
 `write-and-read.md §3.1.1`, `§3.4` (`W-1`, `W-5`, `W-6`), `§4.2` (`R-4`).
 

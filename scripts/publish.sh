@@ -691,10 +691,10 @@ while [ $# -gt 0 ]; do
         esac
       done
       continue ;;
-    --bump)   MODE="bump";   DRY=0; TARGET="${2:-}"; shift ;;
-    --tag)    MODE="tag";    DRY=0; TARGET="${2:-}"; shift ;;
-    --verify) MODE="verify"; DRY=0; TARGET="${2:-}"; shift ;;
-    --pack)   MODE="pack";   DRY=0; DEST="${2:-}"; shift ;;
+    --bump)   MODE="bump";   DRY=0; if [ $# -gt 1 ] && [ -n "${2:-}" ] && [ "${2#-}" = "$2" ]; then TARGET="$2"; shift; else bad "mode '--bump' requires an operand (X.Y.Z) — '${2:-<no argument>}' is not one, and this mode has no default target."; exit 2; fi ;;
+    --tag)    MODE="tag";    DRY=0; if [ $# -gt 1 ] && [ -n "${2:-}" ] && [ "${2#-}" = "$2" ]; then TARGET="$2"; shift; else bad "mode '--tag' requires an operand (X.Y.Z) — '${2:-<no argument>}' is not one, and this mode has no default target."; exit 2; fi ;;
+    --verify) MODE="verify"; DRY=0; if [ $# -gt 1 ] && [ -n "${2:-}" ] && [ "${2#-}" = "$2" ]; then TARGET="$2"; shift; else bad "mode '--verify' requires an operand (X.Y.Z) — '${2:-<no argument>}' is not one, and this mode has no default target."; exit 2; fi ;;
+    --pack)   MODE="pack";   DRY=0; DEST=""; if [ $# -gt 1 ] && [ -n "${2:-}" ] && [ "${2#-}" = "$2" ]; then DEST="$2"; shift; fi ;;
     --yes)    CONFIRM=1 ;;
     -h|--help) sed -n '30,78p' "$0"; exit 0 ;;
     *) bad "unknown argument: $1"; exit 2 ;;

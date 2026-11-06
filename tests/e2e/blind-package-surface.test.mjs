@@ -295,7 +295,7 @@ test('package · `§1.1` (the three rungs, in order) and `PUB-DD-20` · RUNG ONE
 
   // AND THE LOAD PATH'S OUTCOME IS `SUCCESS` — not the absent form and not the failure arm.
   const instance = storeCreate({ journalLength: 8, listeners: [] });
-  assert.equal(Object.getOwnPropertyNames(instance).length, 14);
+  assert.equal(Object.getOwnPropertyNames(instance).length, 15);
 });
 
 test("package · `§1.4` items 1, 2 and 6 (`PUB-DD-17`) · THE ONE DECLARED ABSENT-ADDON REFUSAL CARRIES THE STORE'S OWN `FilePathUnreachable` VERBATIM, with the generator's message rendered at its declared subject — the subject QUOTED and the two clauses separated by a comma", () => {

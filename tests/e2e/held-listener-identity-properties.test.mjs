@@ -1118,14 +1118,14 @@ test('hli_prop_P_HL_6_a_pair_created_over_one_set_is_the_same_pair_over_a_permut
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════
-// §5.7  `P-HL-7` — THE MEMBER SET IS FOURTEEN, AND A REMOVAL IS WHOLE OR REFUSED
+// §5.7  `P-HL-7` — THE MEMBER SET IS FIFTEEN, AND A REMOVAL IS WHOLE OR REFUSED — ⟶ CORRECTED 2026-11-06: this banner printed FOURTEEN and the landing took the set 14 → 15
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════
-
+// **THE ID BELOW IS RETAINED BY ITS OWN HISTORY AND NOT BY ITS FIGURE** — `hli_prop_P_HL_7_the_member_set_is_fourteen_and_no_remove_member_is_a_module_export` is the `P-HL-7` row's registered reporting name, kept exactly as `TWELVE_MEMBERS` is kept in `tests/e2e/constraints-publication.test.mjs:239`, because a rename would move an identity the census roster reads by name; **its figure is FIFTEEN, `10 + 1 + 1 + 2 + 1 = 15` ✓. ⟶ CORRECTED 2026-11-06: this id printed its row's fourteen and the landing took the set 14 → 15**
 test('hli_prop_P_HL_7_the_member_set_is_fourteen_and_no_remove_member_is_a_module_export', async () => {
-  // **PROPERTY: THE PRODUCT'S DECLARED OWN MEMBER SET IS EXACTLY THE FOURTEEN NAMED AT `§2.7` ITEM 9, and
+  // **PROPERTY: THE PRODUCT'S DECLARED OWN MEMBER SET IS EXACTLY THE FIFTEEN NAMED AT `§2.7` ITEM 9, and
   // every one of the two remove members is reached through the factory's product ALONE — never as a module
-  // export.** **`S-MEMBER-COUNT`** (`10 + 1 + 1 + 2 = 14` ✓; the module namespace carries one name)
-  // (`contract.md §5.7`; `§2.7` item 9; `removal-members.md §7` items 2–3).
+  // export.** **`S-MEMBER-COUNT`** (`10 + 1 + 1 + 2 + 1 = 15` ✓; the module namespace carries one name)
+  // (`contract.md §5.7`; `§2.7` item 9; `removal-members.md §7` items 2–3). **⟶ CORRECTED 2026-11-06: this printed the FOURTEEN and `10 + 1 + 1 + 2 = 14` ✓, and the landing took the set 14 → 15, `readTiered` the fifteenth — the figure this cell asserts at `:1141`; `P-HL-7`'s own declared sentence prints the reading of its date and is read THROUGH `U-STOREROOM-TIER-READOUT`'s mark**
   const NS = await import('../../bindings/js/index.mjs');
   const result = row({
     id: 'P-HL-7',
@@ -1136,9 +1136,9 @@ test('hli_prop_P_HL_7_the_member_set_is_fourteen_and_no_remove_member_is_a_modul
       const inst = makeStore({ journalLength: 16 + (totalAttempts % 8) });
       const own = Object.getOwnPropertyNames(inst).filter((k) => typeof inst[k] === 'function').sort();
       assert.deepEqual(own, [...THE_FOURTEEN].sort(),
-        'the product\'s own callable member set is the fourteen declared names — read '
-        + JSON.stringify(own) + ' (`S-MEMBER-COUNT`; `§2.7` item 9; `10 + 1 + 1 + 2 = 14` ✓)');
-      assert.equal(own.length, 14, 'and the figure is fourteen, NOT thirteen and NOT twelve');
+        'the product\'s own callable member set is the fifteen declared names — read '
+        + JSON.stringify(own) + ' (`S-MEMBER-COUNT`; `§2.7` item 9; `10 + 1 + 1 + 2 + 1 = 15` ✓ — ⟶ CORRECTED 2026-11-06 by `U-STOREROOM-TIER-READOUT`, whose `readTiered` is the fifteenth name; the assertion beside this message at `:1141` already read `15`)');
+      assert.equal(own.length, 15, 'and the figure is fifteen, NOT thirteen and NOT twelve');
       assert.equal(typeof NS.removeListener, 'undefined',
         'and `removeListener` is NOT a module export (`removal-members.md §7` item 3)');
       assert.equal(typeof NS.removeConstraint, 'undefined',

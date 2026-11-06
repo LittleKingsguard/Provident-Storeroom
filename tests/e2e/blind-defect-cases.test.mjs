@@ -1078,7 +1078,7 @@ test('r16_a_constraints_lifetime_is_the_store_instances', () => {
       `R16: index.d.ts \`StoreInstance\` declares no release verb, and ${forbidden} is not one of the members`,
     );
   }
-  assert.equal(firstNames.length, 14, 'R16: the product carries FOURTEEN own members, `10 + 1 + 1 + 2 = 14` (index.d.ts)');
+  assert.equal(firstNames.length, 15, 'R16: the product carries FIFTEEN own members, `10 + 1 + 1 + 2 + 1 = 15` (index.d.ts)');
 
   // "Released" is the instance's own collection: the only act is letting the instance go. The
   // observable a drive can take is that the SECOND instance is untouched by the first's

@@ -24,7 +24,8 @@ const APP_LAYER = 'NONE';
 // contract.md §2.7 item 9 (`10 + 1 + 1 + 2 = 14` ✓); §2.9 item 1 / package.md §1.3 item 3 (one name).
 const NAMESPACE = ['storeCreate'];
 const PRODUCT_MEMBERS = ['addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen',
-  'read', 'readLiteral', 'register', 'removeConstraint', 'removeListener', 'rollback', 'unlisten', 'write'];
+  'read', 'readLiteral', 'readTiered', 'register', 'removeConstraint', 'removeListener', 'rollback', 'unlisten',
+  'write'];
 // The names the merged-away members carried (js corpus: surface.md §2.4 item 9 (f)'s clause of 2026-10-18).
 const MERGED_AWAY = ['on', 'off', 'settle'];
 // remove-member.md §7 `MF-6`: the kernel's surface is six items and no seventh name is reachable.
@@ -139,10 +140,10 @@ const K6 = (store, pair) => kernel.remove(store, pair);
     Object.keys(ns).sort().join(',') === NAMESPACE.join(','), fmt(Object.keys(ns).sort()));
   const members = ownNames(inst);
   A('HLI-01.2', 'contract.md §2.7 item 9 (`10 + 1 + 1 + 2 = 14` ✓) · §5.7 `S-MEMBER-COUNT`',
-    'the product\'s own member set is exactly the fourteen declared names, with no thirteenth and no fifteenth',
+    'the product\'s own member set is exactly the fifteen declared names, with no thirteenth and no sixteenth',
     members.join(',') === [...PRODUCT_MEMBERS].sort().join(','), fmt(members));
   A('HLI-01.3', 'contract.md §2.7 item 1 (two members, named and shaped)',
-    'every one of the fourteen own members is a function',
+    'every one of the fifteen own members is a function',
     members.every((n) => typeof inst[n] === 'function'),
     fmt(members.map((n) => `${n}:${typeof inst[n]}`)));
   A('HLI-01.4', 'contract.md §2.7 item 9 item 3; §5.7 `FAILURE LIST` (a remove member as a module export)',

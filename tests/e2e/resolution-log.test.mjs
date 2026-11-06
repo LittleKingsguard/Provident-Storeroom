@@ -808,7 +808,7 @@ test('RSL-8 · THE STABILITY RULE: `record.log === record.log`, frozen, a `push`
 // `RSL-9` · THE NON-CARRIAGE ARMS — DECLARED WITHOUT A CARRIER, AND ASSERTED SO
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 
-test('RSL-9 · THE THREE ANSWERS THAT CARRY NOTHING: `\'log\' in addConstraint(…)` is `false` with the identity\'s own names unmoved, `constraintOn` answers `undefined` (no object exists to carry a member), and a `storeCreate` carrying `cfg.constraints` answers an instance whose own names still read FOURTEEN', (t) => {
+test('RSL-9 · THE THREE ANSWERS THAT CARRY NOTHING: `\'log\' in addConstraint(…)` is `false` with the identity\'s own names unmoved, `constraintOn` answers `undefined` (no object exists to carry a member), and a `storeCreate` carrying `cfg.constraints` answers an instance whose own names still read FIFTEEN', (t) => {
   // ── (a) THE IDENTITY IS NOT A RECORD (`§3.4` items 1–2). ────────────────────────────────────
   const store = make();
   store.write(['rsl9-a'], 'mem', SEED);
@@ -839,8 +839,8 @@ test('RSL-9 · THE THREE ANSWERS THAT CARRY NOTHING: `\'log\' in addConstraint(�
   assert.equal(batch.ok, true,
     `the batch must REGISTER, or this arm measures nothing: it caught ${JSON.stringify(shapeOf(batch.caught))}`);
   const names = Object.getOwnPropertyNames(batch.value);
-  assert.equal(names.length, 14,
-    `**THE INSTANCE'S OWN MEMBERS ARE THE FOURTEEN** and the ruling moves none of them (\`A117\` (D6); \`§3.5\`). THE `
+  assert.equal(names.length, 15,
+    `**THE INSTANCE'S OWN MEMBERS ARE THE FIFTEEN** and the ruling moves none of them (\`A117\` (D6); \`§3.5\`). THE `
       + `DRIVE READ ${names.length}: ${JSON.stringify(names)}`);
   assert.equal('log' in batch.value, false,
     `and no \`log\` channel stands on the instance — a batch log cached there would be a CLOSED commit's log `

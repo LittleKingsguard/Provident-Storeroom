@@ -233,13 +233,14 @@ const TEN_METHODS = ['addConstraint', 'constraintOff', 'constraintOn', 'delete',
  * (`docs/specs/storeroom-held-listener-identity/contract.md §2.7` item 9; `removal-members.md §2`;
  * `remove-member.md §2`). **The constant's own NAME is kept so no citing cell is renamed by a figure** —
  * exactly as it was kept when the set moved `12 → 13` on 2026-10-17 and `7 → 12` before that — **and its
- * MEMBERSHIP is what moves: every citing cell below now asserts FOURTEEN names.** The superseded
+ * MEMBERSHIP is what moves: every citing cell below now asserts FIFTEEN names.** The superseded
  * `10 + 1 + 1 + 1 = 13` reading stands at `§2.4` item 9 (f)'s `constraints` clause of 2026-10-17 and the
  * superseded `10 + 1 + 1 = 12` reading at that same item's clause of 2026-10-18, both read THROUGH the
- * fourteen-member clause that supersedes them.
+ * fifteen-member clause that supersedes them. **⟶ CORRECTED 2026-11-06 (`U-STOREROOM-TIER-READOUT`): the sentence above printed `FOURTEEN`, the landing takes the set `14 → 15` and `readTiered` is the fifteenth name this list carries; AND `TWELVE_MEMBERS`' OWN NAME HAS NEVER MATCHED ITS LENGTH — it says `TWELVE`, the list has carried `14` since 2026-10-18 and carries `15` at this print, and that mismatch is this file's PRE-EXISTING condition and is not this pass's to repair, a rename moving a citation for a count. The name is kept; the membership and every figure beside it are what move.**
  */
 const TWELVE_MEMBERS = ['addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen',
-  'read', 'readLiteral', 'register', 'removeConstraint', 'removeListener', 'rollback', 'unlisten', 'write'];
+  'read', 'readLiteral', 'readTiered', 'register', 'removeConstraint', 'removeListener', 'rollback', 'unlisten',
+  'write'];
 /** The ONE name the namespace leaves, read beside the ten methods it no longer carries. */
 const EIGHT = ['storeCreate'];
 /**

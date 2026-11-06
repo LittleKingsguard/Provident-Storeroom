@@ -36,6 +36,7 @@ const { storeCreate } = entry;
 const FOURTEEN = [
   'read',
   'readLiteral',
+  'readTiered',
   'write',
   'delete',
   'rollback',
@@ -133,7 +134,7 @@ test('entry · contract.md §2.4 item 9 (the fourteen) · the instance carries E
   const instance = make();
   const own = Object.getOwnPropertyNames(instance).sort();
   assert.deepEqual(own, [...FOURTEEN].sort());
-  assert.equal(FOURTEEN.length, 14); // 10 + 1 + 1 + 2 = 14 ✓
+  assert.equal(FOURTEEN.length, 15); // 10 + 1 + 1 + 2 + 1 = 15 ✓
 });
 
 test('entry · surface.md §2.1 (e) item 2 · NOT ONE of the fourteen is a name of the module namespace, and `storeCreate` is not a member of its own product', () => {
@@ -204,7 +205,7 @@ test('entry · surface.md §2.1 (cfg block, amended 2026-10-15) · the config ca
   //
   // THE OBSERVABLE: a call spelling the two required keys and NEITHER optional key CONSTRUCTS.
   const bare = storeCreate({ journalLength: 8, listeners: [] });
-  assert.equal(Object.getOwnPropertyNames(bare).length, 14);
+  assert.equal(Object.getOwnPropertyNames(bare).length, 15);
 
   // AND the two optional keys are each admitted when SUPPLIED — `filePath`'s domain is a path the
   // process may write (`native contract.md §7.1`'s reachability arm), so the directory is a fresh one.
@@ -445,7 +446,7 @@ test('entry · surface.md §2.1 (e) item 1 · the product\'s OWN PROPERTY SET IS
   // with no data member".
   const instance = make();
   const names = Object.getOwnPropertyNames(instance);
-  assert.equal(names.length, 14);
+  assert.equal(names.length, 15);
   for (const name of names) {
     const descriptor = Object.getOwnPropertyDescriptor(instance, name);
     assert.equal(typeof descriptor.value, 'function', `${name} is an own member and is not a method`);

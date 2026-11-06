@@ -96,7 +96,7 @@ const THE_TEN = [
 // namespace stays at ONE name, `11 → 1` ✓ (`contract.md §2.7` item 9 item 3). **THE EARLIER `12 → 13` FIGURE IS
 // WITHDRAWN BY NAME** (`§2.7` item 1). **The constant's NAME is kept so no citing cell is renamed by a figure; the
 // LIST and the COUNT move** — as they moved `13 → 12` for `settle` and `12 → 13` before that.
-const THE_FOURTEEN = [...THE_TEN, 'register', 'constraints', 'removeListener', 'removeConstraint'];
+const THE_FOURTEEN = [...THE_TEN, 'readTiered', 'register', 'constraints', 'removeListener', 'removeConstraint'];
 // The store's closed set. **⟶ RE-DERIVED 2026-10-26 (`DEF-S`/`DEF-N`; the architect, verbatim: *"Expand the
 // returned error set for both S/N"*): NINETEEN members ranked `1`…`19`, `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 = 19` ✓,
 // the two appended terms being `ConstraintBodyThrew` at `18` and `ConstraintRefusedAtRegistration` at `19`.**
@@ -213,8 +213,8 @@ test('a127_the_ten_store_reaching_names_are_not_module_exports', () => {
 test('a127_the_products_own_member_set_is_exactly_fourteen', () => {
   const a = mem();
   const own = Object.keys(a).sort();
-  assert.equal(own.length, 14,
-    'the product carries FOURTEEN own members — `10 + 1 + 1 + 2 = 14` ✓ (`contract.md §2.7` item 9; '
+  assert.equal(own.length, 15,
+    'the product carries FIFTEEN own members — `10 + 1 + 1 + 2 + 1 = 15` ✓ (`contract.md §2.7` item 9; '
     + '`P: docs/pending.md · (AA-5)`, the `12 → 13` figure withdrawn by name)');
   assert.deepEqual(own, [...THE_FOURTEEN].sort(),
     'and they are the ten methods, `register`, `constraints` and the TWO NEW members `removeListener` and '

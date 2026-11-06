@@ -16,7 +16,7 @@ claims to be installable.**
 
 **⟶ AND THE CUT-STATE IS DROPPED FROM THIS FILE, 2026-10-28 — `D-57`, THE ARCHITECT VERBATIM: *"Drop the cut-state."*** `RCA-8(g)` ANNOTATE-BESIDE: **the title line and every dated paragraph of this file stand BYTE-FOR-BYTE as the reading of their own date, THIS clause is the one that reads them, and not one byte is deleted.** **THE REASON IS STRUCTURAL AND IT WAS MEASURED THREE TIMES: A SHIPPED DOCUMENT IS SEALED BEFORE THE TAG THAT MAKES ITS CUT-STATE TRUE**, so every release packed before its tag ships a document denying itself, and a guard running in that release's own preflight can only ever confirm *"not cut"* — `1.2.0` shipped *"NOT CUT"*, `1.3.0` shipped *"`v1.3.0` DOES NOT EXIST"*, and this file's own head was stale within minutes of the tag that falsified it. **SO EVERY SENTENCE BELOW THAT CLAIMS WHETHER SOME VERSION IS OR IS NOT CUT — *"PREPARED — NOT CUT"*, *"no `v1.3.0`"*, *"nothing in this section is cut"*, *"the release is not cut"*, *"what is installed today is still `1.1.0`"*, and each reading printed beside them — IS READ THROUGH THIS CLAUSE: the cut-state is not a document's to state.** **WHAT SURVIVES IS THE ONE FIGURE A SHIPPED DOCUMENT CAN BE RIGHT ABOUT, AND IT IS GENERATED FROM THE MANIFEST AND ASSERTED BY THE PREFLIGHT:**
 
-PUBLISH-NOTES-VERSION-LINE: THE VERSION THIS CHANGE LIST DESCRIBES IS `1.9.3`.
+PUBLISH-NOTES-VERSION-LINE: THE VERSION THIS CHANGE LIST DESCRIBES IS `1.10.0`.
 
 **AND THE TAG SET SURVIVES AS A RECORD OF RELEASES — PAST TENSE, A LIST OF WHAT HAS BEEN CUT, NEVER A CLAIM ABOUT THE CURRENT ONE** (the record stands in `§1.4.0` below — the section this file's head called `§main` until it was re-cut to name the version it prepares, 2026-10-28 — beside the section for the tree this file describes). (`D-57`; `DEF-AC` (b) — `scripts/publish.sh --figures` generates that line from `bindings/js/package.json`'s `version` and refuses on any disagreement, in this file, in `bindings/js/README.md` and in the shipped guide: three documents, three version lines, one generator, one assertion.)
 
@@ -52,6 +52,21 @@ RELEASE-NOTES.md`.**
 `version`, its FIVE exact `optionalDependencies` pins, and the FIVE `platforms/*/package.json` versions. **The
 artefact is stamped from the manifest by `bindings/js/build.rs`, so `version()` answers `1.1.0`** and that is
 the value to assert against, not the crate's own `Cargo.toml` version.
+
+---
+
+## §1.10.0 · a MINOR — the tier readout: a third read verb that answers the durability tier of every node it returns
+
+**THE VERSION IS `1.10.0` AND ITS CLASS IS A MINOR, AND WHAT IT ADDS IS ONE INSTANCE MEMBER — a read that tells you, at every node it answers with, WHICH VERSION WON and the tier that version stands at, without a second call** (`D-121`; `D-121-ter`; `docs/specs/storeroom-tier-readout/contract.md`).
+
+1. **`readTiered(address, tier?)`** — the third read verb — is an instance member (never a module export) and takes `read`'s two positions, the address and the optional tier, with `read`'s own walk and `read`'s own refusal set.
+2. **WHAT THE ANSWER LOOKS LIKE AT EACH KIND**: an OBJECT node answers `{ _tier, …members }` — its own members inline beside the tier — an ARRAY node answers `{ _tier, value: [ … ] }`, and a LEAF node answers `{ _tier, value: <the literal> }`; **so every node of the answer is an object**, and each `_tier` is that node's own tier (`'mem'`, `'file'` or `'temp'`), never a set.
+3. **`read` AND `readLiteral` ARE UNCHANGED** — no argument, no default, no arm, and their answers byte for byte; this verb is an addition beside them and not a rewrite of either.
+4. **A CALLER'S OWN STORED `_tier` IS NOT DELIVERED BY THIS VERB, AND `read` STILL ANSWERS IT** — the minted field wins on the node that carries it, which is this verb's one lossy name; nothing is destroyed and the truth stays reachable.
+5. **A `readTiered` ANSWER HANDED BACK TO `write` IS STORED AS ORDINARY DATA** — the `_tier` members and the `value` wrappers become your own stored members, because the write stores the object you hand it. **That is a consequence and not a rule: no clause forbids it, no clause blesses it, and nothing refuses or strips it.**
+6. **WHAT DOES NOT MOVE, LISTED AND CLOSED**: every stored value · every record · the closed status set · the kernel's export set · the module namespace's one name (`storeCreate`) · `read`'s and `readLiteral`'s answers.
+
+**AND THIS SECTION DESCRIBES `1.10.0` AND CLAIMS NO TAG**: the cut-state is not a document's to state (`D-57`).
 
 ---
 

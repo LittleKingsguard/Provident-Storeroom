@@ -1052,9 +1052,10 @@ test('fts_prop_P_TP_8_S_CENSUS_the_set_the_keys_and_the_rows_are_single_valued',
       // is unmoved.**
       assert.deepEqual(Object.getOwnPropertyNames(store).sort(),
         ['addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen', 'read',
-          'readLiteral', 'register', 'removeConstraint', 'removeListener', 'rollback', 'unlisten', 'write'],
+          'readLiteral', 'readTiered', 'register', 'removeConstraint', 'removeListener', 'rollback', 'unlisten',
+          'write'],
         'P-TP-8: the TEN store-reaching methods plus `register`, `constraints`, `removeListener` and '
-        + '`removeConstraint` — FOURTEEN own members, `10 + 1 + 1 + 2 = 14` ✓, and nothing else '
+        + '`removeConstraint` — FIFTEEN own members, `10 + 1 + 1 + 2 + 1 = 15` ✓, and nothing else '
         + '(`docs/specs/storeroom-held-listener-identity/contract.md` §2.7 item 9)');
       assert.equal(register !== undefined && commit !== undefined && typeof runAttempt === 'function', true,
         'P-TP-8: the kernel\'s extent stays FIVE and no second register exists');

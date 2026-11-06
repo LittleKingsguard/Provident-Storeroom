@@ -1592,9 +1592,10 @@ test('fts_S_CENSUS_no_rank_moves_and_no_second_register', async () => {
   // METHODS ONLY — is unmoved and `settle` is still absent.**
   assert.deepEqual(Object.getOwnPropertyNames(f.store).sort(),
     ['addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen', 'read',
-      'readLiteral', 'register', 'removeConstraint', 'removeListener', 'rollback', 'unlisten', 'write'],
+      'readLiteral', 'readTiered', 'register', 'removeConstraint', 'removeListener', 'rollback', 'unlisten',
+      'write'],
     'S-CENSUS: the instance\'s member set is the TEN store-reaching methods plus `register`, `constraints`, '
-    + '`removeListener` and `removeConstraint` — FOURTEEN own members, `10 + 1 + 1 + 2 = 14` ✓, and '
+    + '`removeListener` and `removeConstraint` — FIFTEEN own members, `10 + 1 + 1 + 2 + 1 = 15` ✓, and '
     + 'nothing else (`docs/specs/storeroom-held-listener-identity/contract.md` §2.7 item 9); `settle` '
     + 'leaves the set at `§2.4` item 9\'s `REMOVED-WHOLE` pointer and no other member moves with it');
   for (const merged of ['on', 'off']) {

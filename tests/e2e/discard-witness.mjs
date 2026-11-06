@@ -2796,11 +2796,11 @@ console.log('\n── W14 · `D-67`/`D-69` · THE STORE\'S ANSWER IS THE ONLY AN
   P('census · the product\'s own members, after a registration', members);
   P('census · the kernel barrel\'s own items, after a registration', kernelItems);
   A('DW-14.5', '`surface.md §2.4` item 9 (f)\'s clause (`10 + 1 + 1 + 2 = 14`), `docs/specs/storeroom-js/surface.md §1`\'s kernel extent (`commit · log · register · remove · report · runAttempt`) and `D-57` (no kernel item is owed to the constraint machinery)',
-    '`K-1` REGISTERING THE PAIR WITH THE STORE MINTS NOTHING: the product still carries EXACTLY its fourteen own members and the kernel barrel EXACTLY its six items, so no seventh kernel item and no fifteenth product member came with the registration',
+    '`K-1` REGISTERING THE PAIR WITH THE STORE MINTS NOTHING: the product still carries EXACTLY its fifteen own members and the kernel barrel EXACTLY its six items, so no seventh kernel item and no sixteenth product member came with the registration',
     censusRegistered.ok === true
       && keyOfAddr(members) === keyOfAddr(['addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete',
-        'listen', 'read', 'readLiteral', 'register', 'removeConstraint', 'removeListener', 'rollback', 'unlisten',
-        'write'])
+        'listen', 'read', 'readLiteral', 'readTiered', 'register', 'removeConstraint', 'removeListener', 'rollback',
+        'unlisten', 'write'])
       && keyOfAddr(kernelItems) === keyOfAddr(['commit', 'log', 'register', 'remove', 'report', 'runAttempt']),
     `members ${members.length} ${JSON.stringify(members)} · kernel items ${kernelItems.length} ${JSON.stringify(kernelItems)}`);
 

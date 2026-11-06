@@ -20,7 +20,7 @@ use crate::error::{
 };
 use crate::json;
 use crate::records::{
-    BaseState, ChildAnchor, DeleteReceipt, JournalOp, JournalOpKind, Kind, Listener,
+    tier_token, BaseState, ChildAnchor, DeleteReceipt, JournalOp, JournalOpKind, Kind, Listener,
     ListenerHandle, ListenerTrigger, NodeRef, RollbackResult, Tier, WriteResult,
 };
 use crate::value::{Segment, StoreValue};
@@ -1292,6 +1292,101 @@ impl Store {
         }
     }
 
+    /// **`§4.1`'s THIRD READ VERB — THE READ'S ANSWER, COMPILED** (`U-STOREROOM-TIER-READOUT`,
+    /// `D-121-ter` item 1; the mechanism is candidate (a) of `contract.md` `PIN-10` as `D-121-quinquies`
+    /// item 1 decided it). **It is the read-shaped SIBLING of [`Store::assemble`] and not a sixth arm of
+    /// it:** the same recursion, the same [`Store::select_member`] at every key, the same two container
+    /// arms, and the same omitted-member rule (`§4.2` (b), `DD-31`). What it adds is ONE member per node,
+    /// `_tier`, carrying **THAT NODE'S OWN anchor tier** as the ordinary string [`tier_token`] gives
+    /// (`§5.1`).
+    ///
+    /// **THE SHAPE IS A TOTAL FUNCTION OF NODE KIND** (`D-121-ter` item 1, verbatim): an OBJECT node
+    /// answers `{ _tier, …members }` with its members **INLINE**, an ARRAY node answers
+    /// `{ _tier, value: [ … ] }` and a LEAF node answers `{ _tier, value: <the literal> }`. **Every node
+    /// of the answer is therefore an object and no node is a primitive**, which is exactly what lets the
+    /// compilation be an ordinary [`StoreValue`]: the tiers cross the boundary as ORDINARY STRINGS inside
+    /// an ordinary tree, so no byte of the codec moves, no value kind is minted and there is no second
+    /// assembly (`D-121-quinquies` item 1).
+    ///
+    /// **`_tier` IS THE NODE'S OWN TIER AND IS NEVER A SET** (`D-121-ter` item 2): it is the anchor tier of
+    /// the reference this step selected — the walk's own selection at the addressed node (`§2.3`, `A28`'s
+    /// lowest-persistence rule inside the passed set) and [`Store::select_member`]'s at every descendant —
+    /// so a tree whose child stands at a less persistent tier than its parent answers TWO different tokens,
+    /// and a child never inherits its parent's.
+    ///
+    /// **THE ONE COLLISION IS DECLARED AND NOT LEFT TO A MAP'S INSERTION ORDER** (`D-121-ter` item 3): at a
+    /// `MAP` node the compiled member set is the store's own key set with `_tier` **REMOVED** and the
+    /// minted `_tier` **ADDED**, so a caller's stored member at that name is NOT DELIVERED in this answer
+    /// at all — while the default [`Store::read`] still answers it, so nothing is destroyed. `value` is
+    /// never shadowed: it is this compilation's wrapper key at the ARRAY and LEAF kinds alone.
+    ///
+    /// **ITS FAIL SET IS EMPTY, WHICH IS WHY IT ANSWERS NO `Result`**: an omitted member produces no code
+    /// (`§4.2`'s arithmetic), and the compilation mints no arm that can fail. The address, the tier
+    /// argument and the walk's refusals belong to [`Store::read_tiered`], and they are `read`'s five.
+    fn compile_tiered(&self, reference: usize, sel: &TierSel) -> StoreValue {
+        // `PIN-4` (i): the referent, at every node, from the anchor the read's own selection chose.
+        let minted = StoreValue::Str(tier_token(self.tier_of(reference)).to_string());
+        match self.node(reference) {
+            // `R-1`: a leaf's literal, verbatim — and **NEVER ITSELF COMPILED**, because no lawful write
+            // mints an object or an array as a leaf (`PIN-3` (iii)).
+            Node::Leaf(value) => {
+                let mut members = BTreeMap::new();
+                members.insert("_tier".to_string(), minted);
+                members.insert("value".to_string(), value.clone());
+                StoreValue::Object(members)
+            }
+            Node::Branch(link) => {
+                let link = *link;
+                match self.links[link].kind() {
+                    // `R-2`: one member per key, INLINE beside the minted `_tier`, each compiled by this
+                    // same rule.
+                    Kind::Map => {
+                        let mut members = BTreeMap::new();
+                        for key in self.keys_at(link) {
+                            // `PIN-5` (i): the store's own key set WITH `_tier` REMOVED — the minted field
+                            // wins on this node and the caller's stored value at that name is not
+                            // delivered here at all.
+                            if matches!(&key, Segment::Key(name) if name == "_tier") {
+                                continue;
+                            }
+                            let name = match &key {
+                                Segment::Key(name) => name.clone(),
+                                other => other.spelling(),
+                            };
+                            let child = match self.select_member(link, &key, sel) {
+                                Some(child) => child,
+                                // `§4.2` (b) / `DD-31` / `PIN-9` (ii): no passed version is selectable
+                                // at this key, so the member is OMITTED — no name, no node, and NO
+                                // `_tier` to stamp, because there is nothing to stamp it on.
+                                None => continue,
+                            };
+                            members.insert(name, self.compile_tiered(child, sel));
+                        }
+                        members.insert("_tier".to_string(), minted);
+                        StoreValue::Object(members)
+                    }
+                    // `R-3`: the dense array of the same compilation, in index order, under the one wrapper
+                    // key — `D-121-ter` item 1's *"Wrap arrays too"*.
+                    Kind::Vec => {
+                        let mut items = Vec::new();
+                        for index in 0..self.links[link].children.len() {
+                            let key = Segment::Index(index as u64);
+                            let child = match self.select_member(link, &key, sel) {
+                                Some(child) => child,
+                                None => continue,
+                            };
+                            items.push(self.compile_tiered(child, sel));
+                        }
+                        let mut members = BTreeMap::new();
+                        members.insert("_tier".to_string(), minted);
+                        members.insert("value".to_string(), StoreValue::Array(items));
+                        StoreValue::Object(members)
+                    }
+                }
+            }
+        }
+    }
+
     /// The infallible assembly the journal's state halves and the `file` snapshot use (`§2.3`'s zero-tier
     /// arm cannot miss: every key it visits holds at least one anchor).
     fn assemble_all(&self, reference: usize) -> StoreValue {
@@ -2292,6 +2387,36 @@ impl Store {
             Node::Leaf(value) => Ok(value.clone()),
             Node::Branch(_) => Err(read_target_is_branch(&segments)),
         }
+    }
+
+    /// **`§4.1`'s THIRD READ VERB — `readTiered(address, tier?)`** (`D-121-ter` item 5, verbatim: *"THE NAME
+    /// IS `readTiered`, WITH `read`'s OWN ARITY AND `read`'s OWN DECLARED WALK AND REFUSAL SET —
+    /// `readTiered(address: Address, tier?: TierSet)`"*).
+    ///
+    /// **IT IS [`Store::read`] WITH THE ANSWER COMPILED AND NOTHING ELSE MOVED**: the same
+    /// [`read_tier_sel`] over the same `TierArg` (so a SUPPLIED `undefined`/`null` is `AddressMalformed` and
+    /// an out-of-domain token is `OutOfDomainTier`, the domain checked BEFORE the empty address is taken),
+    /// the same [`address_segments`], the same [`Store::register_ref_for`] at `L-0` and the same
+    /// [`Store::walk`] — **so `TierNotFound` fires at every walk step, pass-through and addressed alike,
+    /// and no sixth code is reachable** (`§2.2`'s fail-closure). **A `readTiered` at a BRANCH ANSWERS**: it
+    /// is not `readLiteral`, so `ReadTargetIsBranch` is never reachable here.
+    ///
+    /// **THE REGISTER'S `_tier` IS THE REGISTER'S OWN CREATION-FIXED TIER AND NEVER THE ARGUMENT'S**
+    /// (`§1.6` item 4 (d); `A42`, `A49`, `A50`): [`Store::register_ref_for`] ignores the selection and
+    /// [`Store::compile_tiered`] stamps the reference's own anchor, so `readTiered([], 'temp')` answers the
+    /// tier the CONSTRUCTION fixed — **while the argument still NARROWS the register's members exactly as
+    /// it narrows `read`'s**, because the assembly's omission rule is the read's own and this verb inherits
+    /// it unchanged (`§4.2` (b), `DD-31`).
+    pub fn read_tiered(&self, address: AddressArg, tier: TierArg) -> Result<StoreValue, StoreError> {
+        let sel = read_tier_sel(&tier)?;
+        let segments = address_segments(&address)?;
+        // `R-5` falls out of `R-2` here exactly as it does in `read`: the register is always a `MAP`.
+        let reference = if segments.is_empty() {
+            self.register_ref_for(&sel)
+        } else {
+            self.walk(&segments, &sel)?.0
+        };
+        Ok(self.compile_tiered(reference, &sel))
     }
 
     /// `§3.1`: `write(address, tier, value) → WriteResult`, with `§3.2`'s two-stage resolution and

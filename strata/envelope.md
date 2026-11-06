@@ -1,3 +1,234 @@
+# Envelope — `U-STOREROOM-TIER-READOUT` · gate 2 `CLOSED` after FIVE gate-4 reads · `2026-11-06`
+
+**THE ENVELOPES BELOW STAND UNCHANGED AND ARE READ AS THEIR OWN DATES. THIS ONE IS NEW, AND IT IS THE SUPERVISOR'S, BECAUSE
+`strata/**` IS OUTSIDE EVERY DELEGATE'S WRITE SET.**
+
+---
+
+## ⟶ RELEASE READINESS FOR `1.10.0`, DATED `2026-11-06` — `READY-FOR-THE-ARCHITECT'S-ACT`
+
+**THE VERDICT THE READINESS PASS RETURNED: `READY-FOR-THE-ARCHITECT'S-ACT`, with no blocker owned by any pass below. THE RELEASE
+ACT ITSELF — commit, push, tag, publish — was NOT taken and is the architect's (`§4.1`: *"NO PASS PUBLISHES"*).**
+
+### The instrument was broken and is fixed
+
+**`scripts/publish.sh`'s operand parser took each mode's operand from `$2` unconditionally**, so **`--pack --yes` consumed `--yes` as
+the DESTINATION**, the confirm flag never set `CONFIRM`, and the script's own suggested remedy (`--pack --yes --yes`) would have
+`mkdir -p "--yes"` at the repository root. **FOUR LINES MOVED and nothing else in the file:** the operand is taken only when it is
+present, non-empty and does not begin with `-`; `--pack` keeps its optional destination, and `--bump`/`--tag`/`--verify` gain a
+missing-operand refusal (exit `2`) **because a blank `TARGET` would have reached the bump leg's `perl` writes and its own post-bump
+check would have compared `"" = ""` and PASSED — the silent corruption of all eleven cells on a clean tree.** Verified four ways:
+`--pack --yes` reaches the packing path with the default temp destination and creates no `--yes` directory · `--pack --yes --yes`
+still works · `--bump --yes` now refuses *"requires an operand (X.Y.Z)"* · `-h` still prints; `bash -n` exit `0`.
+
+### The five readiness legs, each with its exit and its reading in the script's own words
+
+| leg | exit | the reading |
+|---|---|---|
+| `--figures` | **`0`** | *"three shipped documents, three version lines, one generator: each reads the version generated from the manifest"* — all three read `1.10.0`; *"all three shipped documents' version lines AGREE with the manifest"* |
+| `--cut-claims` | **`0`** | *"the cut claims are exactly the baseline's … every catalogued site still carries its hit"* — `accepted(archived) 1 · accepted(baseline) 83 · refused 0 · ignored 282 · stale 0 · baseline entries 83 · files 4` |
+| `--check` | **`1`** | **ONE refusal and it is the dirty tree** — *"the working tree is dirty — 59 path(s). Commit or stash first."* Everything else green: the version lines, the cut claims, **`cargo test --offline: 675 pass / 0 fail`**, `cargo build --offline clean`, the lock/manifest set, *"JS artefact built and staged"*, **`npm test: pass 1286 · fail 0`**, and *"the consumer guide and the change list are landed byte-for-byte at the packaging root"* |
+| `--pack /tmp/rel-1.10.0 --yes` | **`0`** | **`21` members assembled / `20` bare**; `README.guide.md` PRESENT `352840` bytes · `RELEASE-NOTES.md` PRESENT `184863` bytes · `LICENSE` PRESENT; ends *"NOTHING WAS PUBLISHED, TAGGED, PUSHED OR INSTALLED."* |
+| `--bump 1.10.0 --yes` | **`1`** | **ONE refusal, the dirty tree**; beside it *"the manifest's `1.10.0` is untagged"* and *"`v1.10.0` is unclaimed locally and remotely"* |
+
+### The tarball at its bytes
+
+`tar tzf` **`21` members**, `sha256` `d578b14732445027b3a213994cb7f2337cb5aacea96608f8d7f4ffeacb55a939`: the seven `files` rows
+(`index.mjs`, `README.md`, `index.d.ts`, `README.guide.md`, `RELEASE-NOTES.md`, `src/entry/`'s eleven parts,
+`src/constraint-kernel.mjs`) · `LICENSE` **`cmp` clean against `LICENSE`** · **both staged documents byte-identical to their
+canonical homes** — so **`D-122`'s guide correction travels in the artefact** — · the five platform pins all `1.10.0` · **the three
+prohibitions CLEAN: no `*.node`, no `build/Release`, no `postinstall`** (the packed manifest carries **no `scripts` key at all**).
+
+### What stands between this tree and the release act — each with its owner
+
+1. **THE UNCOMMITTED TREE — `59` porcelain paths.** The only refusal the preflight prints; by design. **Owner: the architect.** The
+   commit is the release act's own first step.
+2. **`HEAD` MUST EQUAL `origin/main` AT PREFLIGHT TIME.** It is level now (`2c2b882`); the architect's commit puts it ahead, and
+   preflight `#2` then refuses until the push lands. **Owner: the architect — the sequence is commit → push → tag.**
+3. **`npm pack` ON THIS HOST FAILS `EACCES` on a root-owned `~/.npm/_cacache`** — reproduced with no script in the path, and cleared
+   by `npm_config_cache=/tmp/npm-cache-rel`. **Owner: the host, or the release runner's own cache.** Every pack reading above was
+   taken under that override and **no script byte was changed for it.**
+4. **★ ONE DECISION, AND IT IS THE ARCHITECT'S: THE MAIN PACKAGE'S `name` AND THE `--verify` LEG DISAGREE.** The manifest publishes
+   **`provident-storeroom`** (`bindings/js/package.json:2`), while `scripts/publish.sh`'s header names *"the package
+   `@auspicion/provident-storeroom-js`"* (`:4`) and its post-release leg prints
+   `npm view @auspicion/provident-storeroom-js@$TARGET version` (`:1287`). **The five platform packages ARE
+   `@auspicion/provident-storeroom-js-<label>` (verified), so the scoped spelling is the family's own scheme and the unscoped
+   manifest is the odd one — but `strata/brief.md` records the delivery as "the `provident-storeroom` package plus five per-platform
+   binary packages", so the two halves of the corpus disagree.** **A `--verify` run would query a package this tarball does not
+   publish.** **Owner: the architect — one word names the main package; then either the manifest's name cell or the script's two
+   sites moves, and it is a `PATCH`-class byte either way. NO PASS TOOK IT.**
+5. **THE CUT IS ALREADY IN THE TREE**, so `--bump 1.10.0` is a no-op re-write; **the operative next act after 1–2 is
+   `scripts/publish.sh --tag 1.10.0 --yes`**, which prints (and never runs) the commit, the annotated tag and the push. **Owner: the
+   architect.**
+6. **CLOSED BY THE SUPERVISOR IN THIS PASS: the directory's residual pre-landing `1.9.3` readings** — four positions
+   (`contract.md:5`, `claims.md:111`, `claims.md:117`, `clause-context.md:42`) recast as the gate-2 pass's dated reading with
+   `1.10.0` printed as the landed content; **every surviving `1.9.3` in the seven files is now either that pair or `PIN-11`'s cut
+   identity (`1.9.3 → 1.10.0`).**
+
+---
+
+## ⟶ THE LANDING AND THE CLOSING GATES, DATED `2026-11-06` — `DONE`, AND THIS IS ITS ENTRY
+
+**THE SECTIONS BELOW ARE THE GATE-2 READING OF THIS DAY AND ARE READ THROUGH THIS ONE. What changed after them: gate 3 was
+authorised by the architect ("Proceed"), landed, and was certified; gates 7, 8, 11 and 12 were discharged; gates 9 and 10 are
+measured below; and `§4`'s figures and `§5`/`§6`'s standing obligations are superseded by what follows.**
+
+**THE UNIT IS `DONE`.** `readTiered(address, tier?)` ships as the product's fifteenth own member at **`1.10.0`**, and `read`'s and
+`readLiteral`'s answers are byte-identical to `HEAD`.
+
+### A · THE ELEVEN PASSES AFTER GATE 2
+
+| # | role | what it did | the reading it returned |
+|---|---|---|---|
+| 11 | `role_l1_test_writer` | gate 3's cells, red first, plus the census roster re-derived `14 → 15` | `1287 / 1233 pass / 53 fail / 1 skip`, exit `1` — **16 of its own cells red for the right reason, 37 census-turned, 0 for any other reason** |
+| 12 | `role_l4_implementer` | the store side — **and it BLOCKED on the declaration**: the facade reaches the store only through `crossing.rs`'s private delegate (`E0599`/`E0616` measured both ways), a **fifth** code position `PIN-1` forbade | **`BLOCKED: NOT LANDED`** — it refused every workaround as `PIN-10` candidate (c), and reported that one 7-line delegate made the whole landing green |
+| 13 | `role_l1_architect` | the bounded amendment: `PIN-1` to **five** positions with `crossing.rs` opened for that one delegate and nothing else; the census sites `2 → 3`; `PIN-8` (iii)'s false "same answer" reconciled to the store's own narrowing; roster row 24 reclassified `20 + 3 + 1 + 1`; the two carried minors | `AMENDMENT ENVELOPE`, five amendments, every count re-taken |
+| 14 | `role_l4_implementer` | the landing: four remaining code positions, the declaration and its re-stage, the fixture, the addon census, **the three granted marks**, the `1.10.0` cut | **`LANDED-WITH-CONDITIONS`** — 1 condition, 4 census survivors outside its set |
+| 15 | `role_l1_test_writer` | the four survivors re-derived at their HOME (`addon-surface-support.mjs`'s constant, 15 → 16) + the `§4.3` addon-export roster | **`npm test` `1287 / 1286 / 0 / 1, exit 0`** |
+| 16 | `role_l1_examiner` | **gate 4 on the LANDED BYTES** — nine checks, every drive re-run, the reach compared against a stashed `HEAD` build over 42 calls | **`SHIP-WITH-CONDITIONS`, 0 blocking, 4 minor** — all citation drift; **42/42 calls identical**, five refusals and no sixth, the shape total over every kind |
+| 17 | `role_l1_architect` | the re-spell: **573 citations** (172 distinct pairs), the seven stale file lengths + an eighth, the mis-carried refs, and **one bounded prose byte** at `index.mjs`'s member-set docblock | `RE-SPELL ENVELOPE`, 0 tokens beyond EOF, 0 unresolvable |
+| 18 | `role_l1_examiner` | **gates 7 and 8** — the `V` ladder rung by rung, the docblock and the note section against their content lists, the three marks against each other, the closure, and six stale `FTS-12.1` sentences | **both `PASS-WITH-CONDITIONS`**; the conditions were the docblock grant and prose figures outside the gate's write set |
+| 19 | `role_l1_architect` | the grant recorded at `PIN-1` and `sites.md:18`; six stale prose figures corrected; **`register.md` (gate 11)** and **`layer-statement.md` (gate 12)** created | `CLOSING ENVELOPE`; `(A)` re-derived `7 − 1 = 6 = 6` ✓ |
+| 20 | `role_l1_test_writer` | the last six stale figures and two retained test ids in the two held-listener-identity files | both files `56 / 56`, suite unmoved |
+
+### B · THE TRIO, MEASURED WITH ITS INVOCATION (gate 9)
+
+| leg | the invocation | the reading |
+|---|---|---|
+| `test` | `npm test` = `node --test "tests/**/*.test.mjs"` | **`1287 tests · 1286 pass · 0 fail · 1 skip`, exit `0`** (baseline before the unit `1268 / 1267 / 0 / 1`) |
+| `typecheck` | `npm run typecheck` (`typecheck:stage` + two `tsc` projects) | **exit `0`**, both legs, no diagnostic; the staged pair `cmp`-clean |
+| `build` | `CARGO_HOME=<abs>/.cargo-home npm run build` | **exit `0`**; addon exports **16**; `addon.version()` → **`1.10.0`** |
+| the crate's own | `CARGO_HOME=<abs>/.cargo-home cargo test --offline -p storeroom-native` | **440 / 0**, unmoved |
+| the five greens runners | `node tests/e2e/{greens,held-listener-identity-greens,file-tier-save/scenarios,live-drive,discard-witness}.mjs` | `254/254` · `175/175` · `92 pass / 0 fail` · `102 pass / 1 fail` · `82 pass / 3 fail` — **the four reds are PRE-EXISTING at `HEAD` and were proven so by running a stashed `HEAD` tree** |
+
+**`CARGO_HOME` IS AN ENVIRONMENT FACT AND NOT A GREEN** (`strata/walkthrough.md:72`–`:73`): the bare `npm run build` exits `101`
+for a missing registry, and the `CARGO_HOME` above is what makes the build leg runnable here.
+
+### C · `DONE`, WITH WHAT THE UNIT DOES **NOT** REPAIR (gate 10's residuals, each with its owner and its revisit condition)
+
+1. **`APP` IS `NONE`** — no store has been loaded inside an Electron app and nothing was installed from a registry. **Owner: a
+   later `APP` unit. Revisit condition: the first packaged-app run.** No cell and no landing of this unit claims an `APP`-green.
+2. **~~THE GUIDE'S SIDE-B SENTENCE IS STILL WRONG AND STILL FILED~~ — ⟶ DISCHARGED `2026-11-06` BY `D-122`, THE ARCHITECT'S
+   WORD *"Correct guide"*.** The sentence at `docs/guides/package-use.md:386`–`:387` now states the store's own rule (an unqualified
+   read selects the LOWEST-persistence version present — the shadowing one), the landing `bindings/js/README.guide.md` was
+   re-staged from it by the publish script's own assembly (`cmp` clean, one `sha256`, `2332` lines / `352840` bytes each), and
+   `strata/brief.md`'s definitional inversion was corrected at its own bytes. **The paragraph below is the reading of the moment
+   before that word; the residual is CLOSED and no revisiting is owed.**
+2. **THE GUIDE'S SIDE-B SENTENCE IS STILL WRONG AND STILL FILED** — `docs/guides/package-use.md:387` says the *more* persistent
+   version wins an unqualified read, against the contract's own selection (`strata/research.md §17`). **Owner: the architect's
+   word, then a prose pass over the canonical guide and its re-staged landing. Revisit condition: the ruling on `§17`.**
+3. **THE WRITE-BACK IS A DECLARED CONSEQUENCE WITH NO RULE** — `D-121-quater` item 2 declined both a refusal and a strip. **Owner:
+   a fresh ruling if one is ever wanted. Revisit condition: the first consumer that loses data to it.**
+4. **THE DECLARATION'S STAGED COPY AND BOTH LANDINGS MUST BE RE-STAGED AT EVERY CUT** — `typecheck/node_modules/
+   provident-storeroom/{index.d.ts,package.json}`, `bindings/js/README.guide.md` and `bindings/js/RELEASE-NOTES.md`. **Owner: every
+   future cut. Revisit condition: the next version bump, whose publish preflight re-stages them or refuses.**
+5. **`scripts/publish.sh --bump` CANNOT RUN OVER A TREE WITH PRE-EXISTING REDS** — it refused on the suite and on landing drift, so
+   the eleven cells were written with the script's own `§2.5`(2) `perl` commands and the landings staged by its own assembly
+   (verified by `sha256`, four pairs). **Owner: whoever next wants a one-command cut. Revisit condition: the four pre-existing
+   greens reds (`LIVE-12.7`, `DW-09.1`, `DW-09.2`, `DW-16.3`) being closed.**
+6. **TWO DOCUMENTED PROSE RESIDUES INSIDE SHIPPED TESTS** — five `twelve`/`fourteen` figures in *other* docblocks of
+   `bindings/js/index.mjs` (`:1495`, `:1506`, `:1562`, `:1622`, `:1750`) and two in `typecheck/consumer-fixture.ts` (`:60`, `:67`),
+   all pre-existing at `HEAD`. **Owner: a prose pass. Revisit condition: the next documentation review of either file.**
+
+### D · THE WRITE SET OF THE WHOLE UNIT (`git status --short`, 52 modified + 7 untracked at this date)
+
+**Code, five positions** — `src/store.rs` · `bindings/js/src/crossing.rs` · `bindings/js/src/facade.rs` · `bindings/js/index.mjs` ·
+`bindings/js/index.d.ts`. **The declaration's staged copy and the fixture** — `typecheck/node_modules/provident-storeroom/**`
+(gitignored, re-staged) · `typecheck/consumer-fixture.ts`. **The cells and the census** — three new `tests/e2e/tier-readout*` files
+and the 29 census files re-derived to fifteen. **Three granted corpus marks** — `storeroom-publish/contract.md` (+2),
+`storeroom-held-listener-identity/contract.md` (+1), `storeroom-native/contract.md` (+2); **no fourth**. **The cut** — eleven
+version cells, three generated version lines, root `RELEASE-NOTES.md §1.10.0`, both landings re-staged. **The records** — this
+envelope, `strata/decisions.md` (four rulings), `strata/proposals.md` (new), `strata/research.md` (`§16`, `§17`), and the
+contract directory now seven files / 768 lines.
+
+**No byte of `bindings/js/src/entry/**`, `src/error.rs`, the codec, `docs/guides/**` (except the two re-staged landings),
+`docs/L1/**` or `strata/**` by any delegate was moved.**
+
+---
+
+## 1 · VERDICT
+
+**`DESIGN CLOSED`** — gate 3 **MAY OPEN** on the fifth gate-4 read's word (`SHIP-WITH-CONDITIONS`, **minor residue only**). **NO CODE, NO TEST, NO DECLARATION, NO GUIDE AND NO KEPT-CONTRACT BYTE WAS MOVED BY ANY PASS BELOW** — the unit exists as a
+ruling, an intake, an audit and a contract directory, and nothing else. **⟶ SUPERSEDED BY SECTION `A` ABOVE, WHICH CARRIES THE
+LANDING: the gate-2 verdict above is the reading of the moment before gate 3 was authorised, and the unit is now `DONE`.**
+
+## 2 · THE EIGHT PASSES, IN ORDER
+
+| # | role | what it did | verdict |
+|---|---|---|---|
+| 1 | `role_l0_research` | audited the record for the architect's question — is a returned datum's tier carried anywhere? | **`NEVER SPECIFIED`** (`strata/research.md §16`) |
+| 2 | `role_l0_research` | the adjacent contradiction: which version an unqualified read answers with | **Side A** at the crate's bytes, **`NONE`** of the rulings deciding it (`§17`) |
+| 3 | `role_l0_validity` | gate 1 on the architect's request | **`BLOCKED-ON-SEMANTICS`** (10 questions, 6 priced shapes) → `strata/proposals.md` `P-1` |
+| 4 | `role_l0_critique` | attacked the gate-1 pass | token stands, ground replaced; **3 claims refuted, 8 things missed, 4 questions added** |
+| 5 | `role_l1_architect` | gate 2 — the contract directory | **`CLOSED`** `4 = 4 ✓`, `4 + 5 + 2 = 11 = 11 ✓` |
+| 6 · 7 · 8 | `role_l1_examiner` + 2 corrections | gate 4 read 1 → correction → read 2/3 (`DO-NOT-SHIP`: a pin reopening the grant) → corrections | **`SHIP-WITH-CONDITIONS`, minor residue only** |
+| 9 · 10 | `role_l1_architect` ×2 | correction #4 — the two architect answers applied, the three cosmetic pointers closed; read 5 | **`SHIP-WITH-CONDITIONS`**, gate 3 **may open** |
+
+## 3 · THE LAW, AND ITS FOUR ROWS
+
+`strata/decisions.md`: **`D-121`** (`:6174`, the shape in the architect's words) · **`D-121-ter`** (`:6201`, the four gaps closed and
+the carrier named — a THIRD VERB `readTiered(address, tier?)`) · **`D-121-quater`** (`:6232`, three dated append-only corpus marks
+granted, no fourth; the write-back a docblock only) · **`D-121-quinquies`** (`:6252`, `Q-1` = the store compiles on candidate (a)
+with the codec unmoved; `Q-2` = the declared `TieredNode` union; the third mark live; the typecheck fixture in) · **`D-122`**
+(the last row: the architect's *"Correct guide"*, which corrects the consumer guide's shadow sentence and re-stages its landing;
+**no contract clause, no code byte and no cell moves with it**). **The file prints `128` `D-` headings at this date.**
+
+## 4 · THE DECLARATION
+
+**⟶ CORRECTED AT THIS LINE, `2026-11-06`, AFTER THE LANDING AND THE TWO CLOSING GATES — THE FIGURES BELOW WERE THE GATE-2
+READING AND THE DIRECTORY HAS GROWN A PART.** **IT NOW HOLDS SEVEN FILES, `768` LINES: `contract.md` `149` · `sites.md` `158` ·
+`claims.md` `117` · `verification.md` `148` · `clause-context.md` `78` · `register.md` `65` (gate 11) · `layer-statement.md`
+`53` (gate 12)** — **the part map is SIX PARTS IN SEVEN ROWS, and closure `(A)` therefore re-derives `7 − 1 = 6 = 6` ✓ while
+`(B)` stands unmoved at `4 + 5 + 2 = 11 = 11` ✓.** **The compiled shape is as printed below, and it is now DRIVEN rather than
+declared:** `readTiered(['o'])` over `{a:1,b:[2,3]}` answers
+`{"_tier":"mem","a":{"_tier":"mem","value":1},"b":{"_tier":"mem","value":[{"_tier":"mem","value":2},{"_tier":"mem","value":3}]}}`.
+
+`docs/specs/storeroom-tier-readout/` — `contract.md` 145 · `sites.md` 155 · `claims.md` 116 · `verification.md` 148 ·
+`clause-context.md` 78: **eleven pins**, a four-part map, five recorded omissions, closure `(A) 4 = 4 ✓` and
+`(B) 4 + 5 + 2 = 11 = 11 ✓`, and four questions all answered. **The compiled shape: `{ _tier, …members }` at an object node,
+`{ _tier, value: [ … ] }` at an array node, `{ _tier, value: <literal> }` at a leaf node — `_tier` being THAT NODE'S OWN tier.**
+
+## 5 · WHAT IS CARRIED, NAMED, INTO GATE 3 (the fifth read's two minors — neither blocks a landing)
+
+**⟶ BOTH ARE DISCHARGED, `2026-11-06`:** the three bare refs carry their path (`strata/decisions.md:6261`–`:6263`) and the `D-`
+heading census reads `127` at all three sites. **The paragraph below is the reading of the moment they were carried.**
+
+1. **Three bare `:line` refs at `contract.md:135` and `:137`** resolve past EOF under the directory's own same-line carry rule;
+   the intended target is `strata/decisions.md:6261`/`:6262`/`:6263`. **Gate 3's pass re-spells them with the path.**
+2. **The `D-` heading census prints `126` at `claims.md:112`, `contract.md:59` and `sites.md:150`; the file prints `127`** — the
+   fourth row being `D-121-quinquies`. **Gate 3's pass re-takes it.** **This is the class the walkthrough warns about
+   (`strata/walkthrough.md:88`–`:92`): the figure was true when measured and was falsified by the ruling that made it true.**
+
+## 6 · WHAT GATE 3 OWES
+
+**⟶ EVERY ITEM BELOW WAS DISCHARGED, `2026-11-06` — see section `A` above for the passes and section `C` for what remains
+unrepaired on purpose. ONE ITEM IS CORRECTED BY NAME: the code positions are FIVE, not four, the fifth being `crossing.rs`'s one
+forwarding delegate, granted by the `PIN-1` amendment after the implementer measured that the facade cannot reach the store
+without it. THE PARAGRAPH BELOW IS THE READING OF THE MOMENT BEFORE THAT AMENDMENT.**
+
+`PIN-1`'s four code positions (a read-shaped store sibling of `assemble` stamping `anchor.tier`; one `#[napi(js_name = "readTiered")]`
+entry beside the eleven plus the two census sentences; one instance member beside `read`; one member line, its docblock and the
+`TieredNode` alias in `index.d.ts`) · the staged declaration copy **re-staged, never hand-edited** · `typecheck/consumer-fixture.ts`
+positive cells · **the `12 + 2 + 1 = 15` cells** and **`3` property rows**, the blind `TRO-B1` written **before** the verb exists ·
+**the member-set census roster — `25` files, of which `tests/e2e/file-tier-save/scenarios.mjs`'s `FTS-12.1` TURNS** · **the three
+dated append-only grant marks, and no fourth** · the cut: **`11` version cells (`1 + 5 + 5`), `3` generated lines, root
+`RELEASE-NOTES.md §1.10.0`, `1.9.3 → 1.10.0`**.
+
+## 7 · THE LAYER STATEMENT, AND WHAT NO PASS MEASURED
+
+**⟶ SUPERSEDED BY `docs/specs/storeroom-tier-readout/layer-statement.md` AND BY SECTION `B` ABOVE, `2026-11-06`: the trio HAS
+now been run, four times, and every figure of it is a run transcript with its invocation printed. THE UNIT'S LAYER IS STILL
+`ENVELOPE` AND `APP` IS STILL `NONE` — what changed is that the `ENVELOPE` claims are now measured rather than read. The
+paragraph below is the gate-2 reading.**
+
+**Every layer this unit has reached is `ENVELOPE`; `APP` is `NONE`; not one cell has been written and no leg of the trio has been
+run.** **No pass took a drive:** every figure in `strata/research.md` `§16`–`§17` and in the contract directory is a **static
+reading or a delegated read-only search whose command and scope are printed beside it**, and **no red/green statement anywhere in
+this unit is a run transcript.** **The one instrument no pass held is a shell at gate 2 — and the gate-4 reads that did hold one
+re-took every figure they certified, which is why the corrections are dated readings and not carried numbers.**
+
+---
+
 # Envelope — Gate 3 · `U-STOREROOM-REGISTRATION-OWN-MEMBERS` LANDED · 2026-11-04
 
 **⟶ CORRECTED BESIDE 2026-11-04, ON THE FINAL GATE-4 READ (`F-1`, `F-2`): THE FIGURES BELOW ARE THE PRE-CORRECTION ONES AND THE LANDED TREE READS DIFFERENTLY.** **The certified reading after the two correction rounds — `SROM-09`/`SROM-10` and the corrected cells — is `npm test` exit `0` at 1268 tests · 1267 pass · 0 fail · 1 skip; the three new files `14/14` (10 + 1 + 3); the red set is `SROM-01`–`SROM-10` plus `SROM-B1` plus `P-SROM-1`/`P-SROM-3`.** **The gate-4 verdict on the corrected landing is `SHIP-WITH-CONDITIONS`, its only surviving condition being these envelope figures themselves (`F-1`, `F-2`), now corrected; the behaviour findings of both reads were CLOSED by the correction passes and the residuals were certified closed by the final read (R1–R4, each with its evidence).** **THE ROWS BELOW STAND BYTE-FOR-BYTE AS THE GATE-3 RECORD AND ARE READ THROUGH THIS MARK.**

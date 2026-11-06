@@ -65,6 +65,7 @@ import { runInNewContext } from 'node:vm';
 import { storeCreate } from '../../bindings/js/index.mjs';
 import {
   DECLARED_SURFACE, DECLARED_SURFACE_NAMES_SORTED, STANDING_FOUR, PER_VERB_NINE, PER_VERB_TENTH, PER_VERB_ELEVENTH,
+  PER_VERB_TWELFTH,
   THE_THREE_THAT_ARE_NOT_ENTRIES, THE_FROZEN_FIVE, OPEN_OWED,
   ADDON_ARTEFACT, PACKAGE_ENTRY, PKG_DIR, DELETED_WRAPPER_NAMES,
   OWED_STRUCTURE_TOKENS, OWED1_TOKEN_ASSERTION_SHAPES,
@@ -127,9 +128,16 @@ test('sas_d1_s_export_set_the_artefacts_own_keyset_is_exactly_the_thirteen_decla
   // mark, read at the commit opening and cached on the window. **IT IS NEITHER ONE OF THE NINE NOR THE TENTH,
   // IT IS NOT ONE OF THE PRODUCT'S FOURTEEN, AND EVERY ONE OF THE FOURTEEN KEEPS ITS NAME AND ITS ARITY.**
   assert.equal(PER_VERB_ELEVENTH.length, 1, 'the journal mark read, declared beside the nine and the tenth');
-  assert.equal(STANDING_FOUR.length + PER_VERB_NINE.length + PER_VERB_TENTH.length + PER_VERB_ELEVENTH.length, 15,
-    '`4 + 9 + 1 + 1 = 15 ✓` (§1\'s own `[CENSUS]`, read with the tenth and eleventh rows)');
-  assert.equal(DECLARED_SURFACE.length, 15, 'and the tables are one set of fifteen, each name accounted for');
+  // **⟶ AND A TWELFTH STANDS BESIDE THE ELEVENTH, 2026-11-06** (`PER_VERB_TWELFTH`): the TIER READOUT's third
+  // read verb, which is `read`'s own two declared positions with the answer compiled. **IT IS THE TENTH OF THE
+  // PER-VERB GROUP THE NINE NAMES AND IT IS NOT A THIRTEENTH NAME BESIDE THE PRODUCT'S OWN SURFACE**: it is one
+  // of the product's fifteen members, reached at the boundary's own entry exactly as `read` is, and every one of
+  // the entries already declared keeps its name and its arity.
+  assert.equal(PER_VERB_TWELFTH.length, 1, 'the tier readout\'s compiled read, declared beside the nine and the two');
+  assert.equal(STANDING_FOUR.length + PER_VERB_NINE.length + PER_VERB_TENTH.length + PER_VERB_ELEVENTH.length
+    + PER_VERB_TWELFTH.length, 16,
+    '`4 + 9 + 1 + 1 + 1 = 16 ✓` (§1\'s own `[CENSUS]`, read with the tenth, eleventh and twelfth rows)');
+  assert.equal(DECLARED_SURFACE.length, 16, 'and the tables are one set of sixteen, each name accounted for');
 });
 
 test('sas_d1_s_export_set_call_is_absent_because_the_split_is_precisely_its_replacement', () => {
@@ -226,6 +234,11 @@ function declaredArgumentsFor(name) {
     case 'register': return ['a-handle', () => {}];
     case 'read': return [[['a']], 'mem', undefined];
     case 'readLiteral': return [[['a']], 'mem', undefined];
+    // **⟶ AND THE THIRD READ VERB, ADDED 2026-11-06 (`PER_VERB_TWELFTH`): `read`'s OWN TWO POSITIONS.** The
+    // address and the tier, with the package's absent-carrier slot filled by the runtime's own `undefined` —
+    // the same three the two reads above are driven with, because `readTiered(address, tier?)` declares the
+    // same pair and differs from `read` only in what it ANSWERS (`contract.md` `PIN-3`: the compiled form).
+    case 'readTiered': return [[['a']], 'mem', undefined];
     case 'write': return [[['a']], 'mem', 1, undefined, undefined];
     case 'delete': return [[['a']], 'mem', undefined];
     case 'rollback': return ['an-op-id', undefined];
@@ -274,7 +287,7 @@ function declaredArgumentsFor(name) {
  *  **A LIST SHORTER THAN THE DECLARED ARITY IS NOT NECESSARILY WRONG** — a declared OPTIONAL trailing
  *  position may simply be absent (`surface.md §2.2` clause 4's `write` worked example) — **so the `-1` limb
  *  is read against the row's own declared optionality and never against a blanket expectation.** */
-const DECLARED_OPTIONAL_TAIL = new Set(['read', 'readLiteral', 'write', 'delete', 'rollback', 'restoreMark', 'unlisten', 'removeListener', 'commitFile']);
+const DECLARED_OPTIONAL_TAIL = new Set(['read', 'readTiered', 'readLiteral', 'write', 'delete', 'rollback', 'restoreMark', 'unlisten', 'removeListener', 'commitFile']);
 
 /** **AND ONE STANDING ENTRY DECLARES A RANGE RATHER THAN A POINT — `errorMessage`'s `2`–`4`**
  *  (`export-set-and-dispatch.md §1`: *"`errorMessage` | `2`–`3` | the one message renderer the package

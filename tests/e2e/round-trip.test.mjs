@@ -172,12 +172,13 @@ test('round_trip_the_module_carries_one_name_and_the_product_the_fourteen_member
   // INSTANCE, FOR ANY ARGUMENT"*), and `12 → 13` on that item's `constraints` clause of 2026-10-17.
   // **The cell's subject — every own member is an own callable and the property set is METHODS ONLY — is
   // unmoved.**
-  assert.equal(members.length, 14,
-    'the product carries FOURTEEN own members — `10 + 1 + 1 + 2 = 14` ✓');
+  assert.equal(members.length, 15,
+    'the product carries FIFTEEN own members — `10 + 1 + 1 + 2 + 1 = 15` ✓');
   assert.deepEqual(members, [
     'addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen', 'read',
-    'readLiteral', 'register', 'removeConstraint', 'removeListener', 'rollback', 'unlisten', 'write',
-  ], 'the fourteen NAMES and not merely their count: `10 + 1 + 1 + 2 = 14` ✓');
+    'readLiteral', 'readTiered', 'register', 'removeConstraint', 'removeListener', 'rollback', 'unlisten',
+    'write',
+  ], 'the fifteen NAMES and not merely their count: `10 + 1 + 1 + 2 + 1 = 15` ✓');
   for (const member of members) {
     assert.equal(typeof inst[member], 'function', `"${member}" is an own callable`);
   }

@@ -1073,6 +1073,24 @@ impl Instance {
             .map_err(refusal)
     }
 
+    /// **`§4.1`'s THIRD READ VERB — `readTiered`'s FORWARDING DELEGATE** (`U-STOREROOM-TIER-READOUT`,
+    /// `D-121-ter` item 5; `contract.md` `PIN-1` (i)'s FIFTH code position, added 2026-11-06). **It is the
+    /// same two calls `read_literal` above makes and nothing else**: the store's own compiled read
+    /// ([`Store::read_tiered`]), through the EXISTING codec ([`from_store_value`]) and the EXISTING refusal
+    /// shape ([`refusal`]). **IT MINTS NO VALUE KIND, MINTS NO REFUSAL, MOVES NO DISPATCH, AND CHANGES NO
+    /// EXISTING LINE OF THIS FILE** — the tiers cross the boundary as ORDINARY STRINGS inside an ordinary
+    /// tree, which is why the codec gains no byte (`D-121-quinquies` item 1).
+    pub fn read_tiered(
+        &self,
+        address: &JsAddressArg,
+        tier: &JsTierArg,
+    ) -> Result<JsValue, Refusal> {
+        self.store
+            .read_tiered(to_address_arg(address), to_tier_arg(tier))
+            .map(|v| from_store_value(&v))
+            .map_err(refusal)
+    }
+
     /// `§2.2`: `write` — the value crosses IN first (`§1.1` clause 1) and the record crosses OUT.
     pub fn write(
         &mut self,

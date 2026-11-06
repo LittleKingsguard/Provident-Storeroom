@@ -1059,11 +1059,17 @@ scenario('FTS-10', 'the sixteenth member\'s own clause and its template row; the
     // member of the product's fourteen**, it adds no name the fourteen carry, and `restoreMark` — the tenth —
     // is beside it and unmoved. The cell's subject (the addon's own export set IS the declared one, by SET
     // EQUALITY) is kept whole and the drive is unchanged.
-    cell('FTS-10.2', 'the built artefact\'s own export set (`bindings/js/build/Release/storeroom_js_binding.node`, read live), superseding `package.md §1.3` item 4\'s five-name figure — the review\'s §3.2 row 19, re-read 2026-10-27',
-      'the addon\'s own exports are the fifteen the artefact carries — `commitFile`, `delete`, `errorMessage`, `journalMark`, `listen`, `read`, `readLiteral`, `register`, `removeListener`, `restoreMark`, `rollback`, `storeCreate`, `unlisten`, `version`, `write` — by SET EQUALITY, `errorMessage` among them',
+    // **⟶ AND THE SET MOVES AGAIN 2026-11-06 — SIXTEEN, FOR THE TIER READOUT'S THIRD READ VERB
+    // (`U-STOREROOM-TIER-READOUT`, `D-121-ter` item 5; `contract.md` `PIN-1` (i) and `verification.md §4.3`,
+    // whose population this cell is).** `readTiered` is the PRODUCT's third read verb and the TENTH of the
+    // addon's per-verb group, so the artefact's census moves `15 → 16` and the message sentence moves with it —
+    // **the cell's subject (the addon's own export set IS the declared one, by SET EQUALITY) is kept whole and
+    // the drive is unchanged.**
+    cell('FTS-10.2', 'the built artefact\'s own export set (`bindings/js/build/Release/storeroom_js_binding.node`, read live), superseding `package.md §1.3` item 4\'s five-name figure — the review\'s §3.2 row 19, re-read 2026-10-27 and again 2026-11-06',
+      'the addon\'s own exports are the sixteen the artefact carries — `commitFile`, `delete`, `errorMessage`, `journalMark`, `listen`, `read`, `readLiteral`, `readTiered`, `register`, `removeListener`, `restoreMark`, `rollback`, `storeCreate`, `unlisten`, `version`, `write` — by SET EQUALITY, `errorMessage` among them',
       () => {
         const keys = Object.keys(ADDON).sort();
-        return C(JSON.stringify(keys) === JSON.stringify(['commitFile', 'delete', 'errorMessage', 'journalMark', 'listen', 'read', 'readLiteral', 'register', 'removeListener', 'restoreMark', 'rollback', 'storeCreate', 'unlisten', 'version', 'write']), `addon exports=${JSON.stringify(keys)}`);
+        return C(JSON.stringify(keys) === JSON.stringify(['commitFile', 'delete', 'errorMessage', 'journalMark', 'listen', 'read', 'readLiteral', 'readTiered', 'register', 'removeListener', 'restoreMark', 'rollback', 'storeCreate', 'unlisten', 'version', 'write']), `addon exports=${JSON.stringify(keys)}`);
       });
     // **⟶ RE-DERIVED 2026-10-26 WITH THE SET (title and figure together): TWENTY codes, not sixteen** — and the
     // appended rank-`20` row is driven here by the same loop, so `§8.2`'s completeness is asserted over the set the
@@ -1259,11 +1265,12 @@ scenario('FTS-12', 'the censuses clause 7 leaves unmoved',
     // `StoreInstance`). The cell's subject and its EXACT SET-EQUALITY form are kept whole, so `on`, `off` and the
     // removed `settle` remain excluded BY that equality rather than by a weakened predicate.
     cell('FTS-12.1', 'surface.md §2.11 clause 7 READ THROUGH ITS 2026-10-19 MARK; the operative figure is §2.4 item 9 (f)\'s clause (`10 + 1 + 1 + 2 = 14`, whose `+ 2` are `removeListener`/`removeConstraint`) read with `bindings/js/index.d.ts`\'s `StoreInstance`',
-      'the instance exposes exactly the FOURTEEN declared members and no fifteenth — `on`, `off` and the removed `settle` among the absent',
+      'the instance exposes exactly the FIFTEEN declared members and no sixteenth — `on`, `off` and the removed `settle` among the absent',
       () => {
         const members = Object.getOwnPropertyNames(s).sort();
         const want = ['addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen', 'read',
-          'readLiteral', 'register', 'removeConstraint', 'removeListener', 'rollback', 'unlisten', 'write'];
+          'readLiteral', 'readTiered', 'register', 'removeConstraint', 'removeListener', 'rollback', 'unlisten',
+          'write'];
         return C(JSON.stringify(members) === JSON.stringify(want), `members=${JSON.stringify(members)}`);
       });
     cell('FTS-12.2', 'surface.md §2.11 clause 7 READ THROUGH ITS 2026-10-16 MARK; the operative figure is §2.9 item 1\'s `A127` clause (`11 → 1`)',

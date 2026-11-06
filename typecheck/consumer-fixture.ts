@@ -104,6 +104,7 @@ import type {
   StoreRefusal,
   StoreStatus,
   Tier,
+  TieredNode,
   TierSet,
   TriggerPair,
   WriteRecord,
@@ -169,6 +170,21 @@ const readOneTier: unknown = store.read(address, 'temp');
 const readTierSet: unknown = store.read(address, tierSet);
 
 const literal: unknown = store.readLiteral(address, 'file');
+
+// ---- the THIRD read verb, and the ONE member whose answer is TYPED ------
+// **`readTiered(address, tier?)` — `read`'s own two positions, and its answer declared as the `TieredNode`
+// union** (`PIN-2` (v); the architect's `Q-2` answer: the alias IS the return type, so a typed consumer reads
+// `_tier` off the answer instead of casting it). These are the POSITIVE cells that answer's declaration owes:
+// the four arities `read` admits, the node's own `_tier` as a `Tier`, and an object node's inline member.
+const tieredWhole: TieredNode = store.readTiered([]);
+const tieredAt: TieredNode = store.readTiered(address);
+const tieredOneTier: TieredNode = store.readTiered(address, 'temp');
+const tieredTierSet: TieredNode = store.readTiered(address, tierSet);
+const tieredNodeTier: Tier = tieredAt._tier;
+// an OBJECT node's members stand INLINE beside `_tier`, and they are readable once the union is narrowed to
+// that kind — the narrowing a consumer already makes before it walks a node's keys.
+const tieredInlineMember: TieredNode | Tier =
+  (tieredAt as { readonly [member: string]: TieredNode | Tier })['name'];
 
 const written: WriteRecord = store.write(address, tiers, { name: 'Ada' });
 const op: JournalOp = written.op;
@@ -264,8 +280,19 @@ const withoutCommit: WriteRecord = store.write(address, 'file', 1);
 // ---- the argument ORDER: the address is FIRST, never second -------------
 // @ts-expect-error — `read`'s first position is the ADDRESS, not the tier
 store.read('mem', address);
+// @ts-expect-error — `readTiered` is `read`'s arity, so its first position is the ADDRESS too
+store.readTiered('mem', address);
+// @ts-expect-error — and it takes `read`'s TWO positions; a third is not declared
+store.readTiered(address, 'mem', 'extra');
 // @ts-expect-error — a (tier, address) pair is not the declared order
 store.write('mem', address, 1);
+
+// ---- `_tier` IS ONE TOKEN AND NEVER A SET, AND AN OBJECT NODE CARRIES NO
+//      `value` WRAPPER: the declared union is what refuses both readings ---
+// @ts-expect-error — a node's `_tier` is a `Tier`, never a `TierSet`
+const tieredTierReadAsSet: readonly Tier[] = tieredAt._tier;
+// @ts-expect-error — an OBJECT node's answer carries its members INLINE and has no `value` wrapper
+const tieredValueOffObjectNode: unknown = (tieredAt as { readonly _tier: Tier }).value;
 
 // ---- `write`'s tier is EXACTLY ONE token: the array spelling is the
 //      reader's arity, and `write` must refuse it ------------------------
@@ -591,10 +618,10 @@ const widenedAddressFraction: Address = ['k', 1.5];
 void widenedAddressSegment;
 void widenedAddressFraction;
 //
-// NOR does it assert the fourteen-member COUNT. It names the fourteen (above),
-// refuses the three names `A127` merged away and the removed `settle`; a
-// fifteenth own member on the real product still satisfies `StoreInstance` and
-// is caught by the RUNTIME suite (`a127-surface.test.mjs`), not here.
+// NOR does it assert the fifteen-member COUNT. It names the fifteen's names one call at a time
+// (above) — `constraints` is the one own member no call below drives — and refuses the three names
+// `A127` merged away and the removed `settle`; a sixteenth own member on the real product still
+// satisfies `StoreInstance` and is caught by the RUNTIME suite (`a127-surface.test.mjs`), not here. ⟶ CORRECTED 2026-11-06 (`U-STOREROOM-TIER-READOUT`): the FIGURES only — the count `14 → 15` and the excess member `15 → 16`; the sentence's SUBJECT (this instrument asserts no count) does not move, and the section head at `:60`–`:67` above still prints the pre-landing FOURTEEN/FIFTEENTH pair.
 //
 // AND THE REPAIR-OUTCOME TYPES' FIVE UNENFORCEABLE CLAIMS ARE LISTED AT SECTION 5'S OWN HEAD, not here: the
 // own-member reads, `message`'s and `id`'s non-emptiness, the excess-`op` arm a VARIABLE admits, and the credit
@@ -607,6 +634,12 @@ void widenedAddressFraction;
 // ---------------------------------------------------------------------------
 void [
   readWhole, readAt, readOneTier, readTierSet, literal,
+  // **⟶ ADDED 2026-11-06 (`U-STOREROOM-TIER-READOUT`, `PIN-1` (vii)): the third read verb's cells** — the four
+  // positive bindings, the two readings of the declared `TieredNode` union (`_tier`, an inline member) and the
+  // two `@ts-expect-error` bindings §4 adds. **NO COUNT IS ASSERTED HERE**, before or after: a sixteenth own
+  // member on the real product would still satisfy `StoreInstance` (`:594`–`:597`'s clause, unmoved).
+  tieredWhole, tieredAt, tieredOneTier, tieredTierSet, tieredNodeTier, tieredInlineMember,
+  tieredTierReadAsSet, tieredValueOffObjectNode,
   opKind, opAddress, opTier, opBefore, opAfter, opSeq, opCompacted,
   watched, writtenTriggered, removedAddress, removedTiers, removedTriggered,
   rolledBackOpId, restoredPresent, restoredValue, listened, withdrawn,

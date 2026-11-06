@@ -257,8 +257,8 @@ export function storeCreate(cfg) {
   // CHANNEL:** the addon's per-verb entries read the store from position `0` of the call array, and position
   // `0` is this object. **NO ENTRY CARRIES A LEADING INSTANCE POSITION** (`export-set-and-dispatch.md §4`).
   const instance = {
-    /// **`surface.md §2.4` item 9 (f)'s clause of 2026-10-18 — THE PRODUCT'S DECLARED MEMBER SET IS TWELVE
-    /// OWN MEMBERS, `10 + 1 + 1 = 12` ✓: THE TEN METHODS, `register` AND `constraints`.** **`settle` IS
+    /// **`surface.md §2.4` item 9 (f)'s clause of 2026-10-18 — THE PRODUCT'S DECLARED MEMBER SET IS FIFTEEN
+    /// OWN MEMBERS, `10 + 1 + 1 + 2 + 1 = 15` ✓: THE TEN METHODS, `register`, `constraints`, THE TWO REMOVAL MEMBERS AND `readTiered`.** **`settle` IS
     /// REMOVED WHOLE** (`REMOVED-WHOLE`, item 9's pointer of that date): the member set moved `13 → 12`, and
     /// **THE TWO REMAINING SINGLES ARE NAMED** because *"a lone `+1` would not compute"* — the first `1` is
     /// `register` and the second is `constraints`, the registered-constraint read. Each is reached through
@@ -268,7 +268,7 @@ export function storeCreate(cfg) {
     /// store-reaching names have no second spelling at any layer.
     /// **THE STATE STAYS PRIVATE** (`docs/specs/storeroom-js/surface.md §2.1` (e) item 1): `state` below is this factory's own closure and is
     /// keyed in `INSTANCES` — NO own member is store data, a record, a Map, a Set, a tier, an address, a
-    /// handle or a commit, and the twelve members above are the whole of what a caller sees.
+    /// handle or a commit, and the fifteen members above are the whole of what a caller sees. **⟶ CORRECTED 2026-11-06: this clause printed `twelve`, `10 + 1 + 1 = 12`, and was stale twice over at that print — the held-listener-identity unit's `12 → 14` move of 2026-10-19 added `removeListener` and `removeConstraint`, and `U-STOREROOM-TIER-READOUT`'s `readTiered` takes the set `14 → 15`; the operative figures are `index.d.ts`'s `StoreInstance` and `surface.md §2.4` item 9 (f), and NO CODE LINE MOVES WITH THIS CORRECTION.**
     /// **`on` AND `off` ARE MERGED AWAY AND ARE NOT MEMBERS** (`A127`): the listener registration route is
     /// `listen` + `register` and its withdrawal is `unlisten`, exactly as the seven store-reaching methods
     /// and `register` below spell them.
@@ -308,6 +308,20 @@ export function storeCreate(cfg) {
       appendOwn(args, encodeTier(tier, arguments.length >= 2, false, 'first argument'));
       // THE ENTRY IS INVOKED BY `Reflect.apply`, NOT BY A SPREAD — see `read`'s clause of 2026-10-24 above.
       return decodeValue(carryRefusal(() => Reflect.apply(entryOf().readLiteral, this, args), args));
+    },
+    /** **`D-121-ter` item 5: `readTiered` — `read`'s OWN ARITY AND DECLARED WALK AND REFUSAL SET, WITH THE ANSWER COMPILED** (`U-STOREROOM-TIER-READOUT`, 2026-11-06; `contract.md`'s `PIN-2`). A MEMBER and NEVER a module export: the namespace stays ONE name, `storeCreate` (`PIN-2` (iv)). Its three devices are `read`'s own — the address encoded at the first position, the tier appended by `appendOwn` on the caller's own `arguments.length`, and the entry invoked by `Reflect.apply` — and no byte of `read` or `readLiteral` moves. */
+    readTiered(address, tier) {
+      // The FIRST device is `read`'s, verb for verb: a position the call supplied no value for is handed as
+      // the runtime's own `undefined` — NEVER an absent array slot — and a SUPPLIED `undefined` at the tier
+      // position is PRESENT and takes the row's own `AddressMalformed` (`crossing.md §1.3`; `PAR-JS-6`).
+      const args = arguments.length >= 1 ? [encodeAddress(address, undefined, 'first argument')] : [];
+      // The SECOND device is `read`'s too: the append is an own-property define and not an index write, so a
+      // caller's getter on `Array.prototype` cannot turn the append into a raw host `TypeError` (`appendOwn`;
+      // `F8-2`'s write vector).
+      appendOwn(args, encodeTier(tier, arguments.length >= 2, false, 'first argument'));
+      // THE THIRD DEVICE: the entry is invoked by `Reflect.apply`, never by an argument spread, so a forged
+      // iterator cannot hand the entry a different list (`F8-1`/`F8-2`; see `read`'s clause).
+      return decodeValue(carryRefusal(() => Reflect.apply(entryOf().readTiered, this, args), args));
     },
     write(address, tier, value, commit) {
       // **⟶ THE RECEIVER IS CHECKED HERE, BEFORE EITHER ROUTE IS CHOSEN — `write` IS THE ONE MEMBER WITH TWO

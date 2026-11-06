@@ -106,7 +106,8 @@ const NAMESPACE = ['storeCreate'];
 // constant has no reader — it is the DECLARED SET printed at the head of the driver, and it is corrected here so
 // the declaration it states is not stale beside `JSG-01.9`, `LIVE-1.3` and `FTS-12.1`, which assert it.
 const PRODUCT_MEMBERS = ['addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen',
-  'read', 'readLiteral', 'register', 'removeConstraint', 'removeListener', 'rollback', 'unlisten', 'write'];
+  'read', 'readLiteral', 'readTiered', 'register', 'removeConstraint', 'removeListener', 'rollback', 'unlisten',
+  'write'];
 const CLOSED_SET = [
   'AddressMalformed', 'AddressNotFound', 'LeafHasNoDownstream', 'TierNotFound', 'OutOfDomainTier',
   'ParentAnchorMonotonicityViolation', 'ContainerKindConflict', 'ReadTargetIsBranch', 'WriteParentNotLink',
@@ -406,7 +407,7 @@ function kernelSaveFile(store, address, value) {
   // product's exact own member set, by set equality and nothing else — and the expected value alone is
   // re-derived, exactly as this cell's own `7 → 12` and `13 → 12` clauses did before it. This is the review's
   // §3.2 row 2, the first of the two stale subjects that produced the pre-ruling 40 reds.
-  A('JSG-01.9', '§2.4 item 9 (f)\'s clause of 2026-10-19 (the fourteen, `10 + 1 + 1 + 2 = 14`, whose two singles are `register` and `constraints` and whose `+ 2` are `removeListener`/`removeConstraint`), read with §2.12 item 2-bis, §2.1\'s `A127` clause and `bindings/js/index.d.ts`\'s `StoreInstance`', "the store's own member set is exactly the FOURTEEN declared members ['addConstraint','constraintOff','constraintOn','constraints','delete','listen','read','readLiteral','register','removeConstraint','removeListener','rollback','unlisten','write'] — `10 + 1 + 1 + 2 = 14`, and NOTHING ELSE (the superseded readings were four, five, seven, twelve and thirteen own members)", membersAre(formOf(i1), 'addConstraint,constraintOff,constraintOn,constraints,delete,listen,read,readLiteral,register,removeConstraint,removeListener,rollback,unlisten,write'), formOf(i1).members.join(','));
+  A('JSG-01.9', '§2.4 item 9 (f)\'s clause of 2026-10-19 (the fourteen, `10 + 1 + 1 + 2 = 14`, whose two singles are `register` and `constraints` and whose `+ 2` are `removeListener`/`removeConstraint`), read with §2.12 item 2-bis, §2.1\'s `A127` clause and `bindings/js/index.d.ts`\'s `StoreInstance`', "the store's own member set is exactly the FIFTEEN declared members ['addConstraint','constraintOff','constraintOn','constraints','delete','listen','read','readLiteral','readTiered','register','removeConstraint','removeListener','rollback','unlisten','write'] — `10 + 1 + 1 + 2 + 1 = 15`, and NOTHING ELSE (the superseded readings were four, five, seven, twelve and thirteen own members)", membersAre(formOf(i1), 'addConstraint,constraintOff,constraintOn,constraints,delete,listen,read,readLiteral,readTiered,register,removeConstraint,removeListener,rollback,unlisten,write'), formOf(i1).members.join(','));
   A('JSG-01.10', '§2.4 item 5', 'the one member is a function', typeof i1.register === 'function', typeof i1.register);
   // ⟶ RE-DERIVED 2026-10-17 (THE GATE-5 BLIND-GREENS PASS, `role_blind_test_writer`): **STALE GREENS DOC**,
   // `RCA-8(g)`. The `8 → 1` figure is the `Q1` pass's; `docs/specs/storeroom-js/surface.md §2.9` item 1's

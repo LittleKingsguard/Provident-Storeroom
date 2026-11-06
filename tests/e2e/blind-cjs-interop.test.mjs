@@ -160,7 +160,7 @@ test('cjs · package.md §1.2 items 1–3 and `DD-4` · THE INTERNAL REACH IS NO
         "console.log('REACHED ' + Object.getOwnPropertyNames(instance).length);",
       ].join('\n'),
     );
-    assert.equal(printed, 'REACHED 14', 'the one claimed entry reaches the addon internally and returns the product');
+    assert.equal(printed, 'REACHED 15', 'the one claimed entry reaches the addon internally and returns the product');
   });
 });
 

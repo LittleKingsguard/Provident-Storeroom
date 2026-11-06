@@ -1188,8 +1188,8 @@ test('the_removal_validates_first_and_any_throw_leaves_both_entries_exactly_as_t
 // THE CELL'S NAME CARRIES TWO FIGURES (`SEVEN` and `ELEVEN`) BOTH OF WHICH ARE SUPERSEDED-AND-MARKED AT THEIR
 // OWN CLAUSES, AND THE CELL IS RE-DERIVED IN PLACE, NOT DELETED.** The as-filed name is kept in the comment
 // above rather than in the identifier, because a test name that spells a withdrawn figure is a FINDING under
-// `RCA-8(g)`'s mark-at-itself rule.
-test('the_instance_member_set_is_the_fourteen_declared_members_and_the_namespace_is_at_the_one_name', async () => {
+// `RCA-8(g)`'s mark-at-itself rule. **⟶ RE-DERIVED 2026-11-06 (`U-STOREROOM-TIER-READOUT`): the name's figure was `FOURTEEN` and the product's member set has moved `14 → 15` on `readTiered`'s landing, so the identifier now spells FIFTEEN — a `test(...)` name is text, the runner registers it from this argument, and no expected id depends on it (`package.json:7`'s `node --test "tests/**/*.test.mjs"` keys on no name); the name is therefore moved WITH its subject and no dated comment is left standing in its place.**
+test('the_instance_member_set_is_the_fifteen_declared_members_and_the_namespace_is_at_the_one_name', async () => {
   const inst = mem();
 
   // --- (a) THE INSTANCE'S OWN MEMBER SET: `{ register, on, off, settle, addConstraint, constraintOn,
@@ -1224,9 +1224,10 @@ test('the_instance_member_set_is_the_fourteen_declared_members_and_the_namespace
   assert.deepEqual(
     memberSet(inst),
     ['addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen', 'read',
-      'readLiteral', 'register', 'removeConstraint', 'removeListener', 'rollback', 'unlisten', 'write'],
+      'readLiteral', 'readTiered', 'register', 'removeConstraint', 'removeListener', 'rollback', 'unlisten',
+      'write'],
     'the member set is the TEN store-reaching methods plus `register`, `constraints`, `removeListener` and '
-    + '`removeConstraint` — FOURTEEN own members, `10 + 1 + 1 + 2 = 14` ✓, and NOTHING ELSE',
+    + '`removeConstraint` — FIFTEEN own members, `10 + 1 + 1 + 2 + 1 = 15` ✓, and NOTHING ELSE',
   );
   for (const merged of ['on', 'off']) {
     assert.equal(memberSet(inst).includes(merged), false,

@@ -4738,9 +4738,10 @@ cell('GUARD', 'the real entry still resolves IN PLACE at rung two', async () => 
   // — is unmoved; the figure moves by two and the entry stays at its ONE name.**
   assert.deepEqual(r.members,
     ['addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen', 'read',
-      'readLiteral', 'register', 'removeConstraint', 'removeListener', 'rollback', 'unlisten', 'write'],
+      'readLiteral', 'readTiered', 'register', 'removeConstraint', 'removeListener', 'rollback', 'unlisten',
+      'write'],
     'the instance\'s own member set: the TEN store-reaching methods plus `register`, `constraints`, '
-    + '`removeListener` and `removeConstraint` — FOURTEEN own members, `10 + 1 + 1 + 2 = 14` ✓');
+    + '`removeListener` and `removeConstraint` — FIFTEEN own members, `10 + 1 + 1 + 2 + 1 = 15` ✓');
   for (const displaced of ['manageConstraints', 'on', 'off']) {
     assert.equal(r.members.includes(displaced), false,
       `and the displaced name \`${displaced}\` is NOT a member of that product (\`surface.md §2.9\` item 1's `
@@ -4792,9 +4793,10 @@ cell('GUARD', 'the in-place loop still resolves and works at rung two', async ()
   // §2.7` item 9; `removal-members.md §2`; `remove-member.md §2`).
   assert.deepEqual(Object.keys(store).sort(),
     ['addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen', 'read',
-      'readLiteral', 'register', 'removeConstraint', 'removeListener', 'rollback', 'unlisten', 'write'],
+      'readLiteral', 'readTiered', 'register', 'removeConstraint', 'removeListener', 'rollback', 'unlisten',
+      'write'],
     'the instance\'s own member set — the TEN store-reaching methods plus `register`, `constraints`, '
-    + '`removeListener` and `removeConstraint`, FOURTEEN own members, `10 + 1 + 1 + 2 = 14` ✓ — the same set '
+    + '`removeListener` and `removeConstraint`, FIFTEEN own members, `10 + 1 + 1 + 2 + 1 = 15` ✓ — the same set '
     + 'the in-place entry\'s own product carries, read at the self-reference this cell resolves through');
   store.write(['k'], 'mem', 'v');
   assert.equal(store.read(['k']), 'v', 'the store works in place at rung two');

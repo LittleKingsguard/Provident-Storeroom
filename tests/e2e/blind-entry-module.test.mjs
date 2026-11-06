@@ -1,7 +1,7 @@
 // tests/e2e/blind-entry-module.test.mjs
 //
 // BLIND INSTRUMENT — THE ENTRY'S OWN MODULE SURFACE: the ONE module name, the ONE value-level export
-// (`storeCreate`) against the twenty-seven TYPE names the declaration carries, the four `StoreConfig` keys
+// (`storeCreate`) against the twenty-eight TYPE names the declaration carries, the four `StoreConfig` keys
 // and which of them are optional, the absence of every non-export (no kernel item, no `version`, no
 // `errorMessage`, no addon `register`/`call`), the declaration's own type surface as a consumer reads it,
 // and the ONE `exports` arm's consequence — what a consumer can and cannot reach BY SPECIFIER.
@@ -68,11 +68,24 @@ const ONE_VALUE_EXPORT = 'storeCreate';
  *  position's own class test. **THE SUBJECT OF THIS LIST IS UNMOVED**: it is still the declaration's own
  *  type census, read by the same `^export (?:type|interface)` line rule below; only the FIGURE moved,
  *  `21 → 27` (`13 + 4 = 17` interfaces and `8 + 2 = 10` aliases), and a list kept at twenty-one would assert
- *  a superseded surface. */
+ *  a superseded surface.
+ *
+ *  **⟶ AND IT GAINS ONE MORE NAME, 2026-11-06** (`U-STOREROOM-TIER-READOUT`; `strata/decisions.md` ·
+ *  `D-121-quinquies` item 3, whose `Q-2` answer is *"the declared `TieredNode` union"*). The declaration mints
+ *  the ONE alias the third read verb's return position needs, `readTiered(address: Address, tier?: TierSet):
+ *  TieredNode` (`bindings/js/index.d.ts:201`), so the census moves `27 → 28` (`13 + 4 = 17` interfaces and
+ *  `10 + 1 = 11` aliases) and the cell's message moves with it. **THE SUBJECT OF THIS LIST IS UNMOVED**: it is
+ *  still the declaration's own type census, read by the same `^export (?:type|interface)` line rule below. */
 const DECLARED_TYPE_NAMES = [
   'Address',
   'Tier',
   'TierSet',
+  // ⟶ APPENDED 2026-11-06 (`U-STOREROOM-TIER-READOUT`, `D-121-quinquies` item 3 and its `Q-2` answer: *"the
+  // declared `TieredNode` union"*; `27 → 28`). **THE ALIAS IS THE THIRD READ VERB'S DECLARED RETURN POSITION** —
+  // `readTiered(address: Address, tier?: TierSet): TieredNode` — and it stands where the declaration puts it,
+  // beside the three address shapes and ahead of `StoreConfig`. It is a TYPE: the runtime namespace does not
+  // carry it, and the cell below asserts exactly that.
+  'TieredNode',
   'StoreConfig',
   'StoreStatus',
   'LogEntry',
@@ -114,6 +127,7 @@ const ADDON_NAMES = ['version', 'errorMessage', 'storeCreate', 'call', 'register
 const FOURTEEN = [
   'read',
   'readLiteral',
+  'readTiered',
   'write',
   'delete',
   'rollback',
@@ -257,11 +271,11 @@ test('entry-module · package.md §1.3 item 3 and §1.3 item 4 · THE VALUE-LEVE
   assert.deepEqual(
     [...typeExports()].sort(),
     [...DECLARED_TYPE_NAMES].sort(),
-    'the declaration declares twenty-seven argument/answer shapes beside its one name',
+    'the declaration declares twenty-eight argument/answer shapes beside its one name',
   );
 });
 
-test('entry-module · package.md §1.3 item 3 · THE RUNTIME NAMESPACE CARRIES EXACTLY ONE OWN NAME — and the twenty-seven declared type names are ERASED, because a type is not a value', () => {
+test('entry-module · package.md §1.3 item 3 · THE RUNTIME NAMESPACE CARRIES EXACTLY ONE OWN NAME — and the twenty-eight declared type names are ERASED, because a type is not a value', () => {
   assert.deepEqual(Object.keys(entry), [ONE_VALUE_EXPORT]);
   for (const name of DECLARED_TYPE_NAMES) {
     assert.equal(entry[name], undefined, `${name} is a TYPE and must not be a runtime value`);
@@ -412,9 +426,9 @@ test('entry-module · index.d.ts `CommitRecord` · `AttemptRef` · `JournalOp` �
 
 test('entry-module · index.d.ts `StoreInstance` (held-listener contract.md §2.7 item 9) · THE INSTANCE DECLARES EXACTLY FOURTEEN OWN MEMBERS, and NOT ONE of them is a name of the module namespace', () => {
   const declared = membersOf('StoreInstance').map((m) => m.name);
-  assert.equal(declared.length, 14);
+  assert.equal(declared.length, 15);
   assert.deepEqual([...declared].sort(), [...FOURTEEN].sort());
-  assert.equal(FOURTEEN.length, 14);
+  assert.equal(FOURTEEN.length, 15);
   const namespace = new Set(Object.keys(entry));
   for (const member of FOURTEEN) {
     assert.equal(namespace.has(member), false, `${member} is a member of the product and not a namespace name`);

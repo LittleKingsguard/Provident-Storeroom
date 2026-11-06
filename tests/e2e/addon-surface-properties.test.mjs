@@ -232,6 +232,11 @@ function declaredArgumentsFor(name) {
     case 'register': return ['a-handle', () => {}];
     case 'read': return [[['a']], 'mem', undefined];
     case 'readLiteral': return [[['a']], 'mem', undefined];
+    // **⟶ AND THE THIRD READ VERB, ADDED 2026-11-06 (`U-STOREROOM-TIER-READOUT`, `D-121-ter` item 5): `read`'s
+    // OWN TWO POSITIONS.** The address and the tier, with the package's absent-carrier slot filled by the
+    // runtime's own `undefined` — the same three the two reads above are driven with, because
+    // `readTiered(address, tier?)` declares the same pair and differs from `read` only in what it ANSWERS.
+    case 'readTiered': return [[['a']], 'mem', undefined];
     case 'write': return [[['a']], 'mem', 1, undefined, undefined];
     case 'delete': return [[['a']], 'mem', undefined];
     case 'rollback': return ['an-op-id', undefined];
@@ -277,8 +282,9 @@ test('sas_prop_P_SAS_1_S_EXPORT_SET_the_keyset_is_exactly_the_thirteen_and_call_
       assert.deepEqual([...addonKeySet()].sort(), DECLARED_SURFACE_NAMES_SORTED,
         `attempt ${i}: P-SAS-1 — the addon's export set is exactly the declared names, and `
         + '`export-set-and-dispatch.md §1` is the set: `4` STANDING plus `9` PER-VERB plus the journal mark '
-        + 'restore and the journal mark read that stand beside them, `4 + 9 + 1 + 1 = 15 ✓` (amended '
-        + '2026-10-27 and again 2026-10-27, annotate-beside)');
+        + 'restore and the journal mark read that stand beside them, plus 2026-11-06\'s third read verb '
+        + '`readTiered`, `4 + 9 + 1 + 1 + 1 = 16 ✓` (amended 2026-10-27 and again 2026-10-27, annotate-beside; '
+        + 'and again 2026-11-06 for `U-STOREROOM-TIER-READOUT`, `D-121-ter` item 5)');
       // (b) EACH DECLARED NAME, DRAWN FROM THE SEED, IS PRESENT.
       const declared = choose(DECLARED_SURFACE_NAMES_SORTED);
       assert.equal(addonKeySet().includes(declared), true,

@@ -962,8 +962,8 @@ test('installed · contract.md §4.3 item 1 + §1.4 item 1 (the `present-right-v
   // declared verbs (`surface.md §2.2`'s `write`/`read`), and the member set is the declared FOURTEEN own
   // members as the surface's own clause enumerates them (`index.d.ts`'s `StoreInstance` head).
   assert.equal(report.readBack, 7);
-  assert.equal(report.ownMembers.length, 14, `the product carries ${report.ownMembers.length} own members and the declaration names 14`);
-  for (const name of ['read', 'readLiteral', 'write', 'delete', 'rollback', 'listen', 'unlisten', 'addConstraint', 'constraintOn', 'constraintOff', 'constraints', 'removeListener', 'removeConstraint', 'register']) {
+  assert.equal(report.ownMembers.length, 15, `the product carries ${report.ownMembers.length} own members and the declaration names 15`);
+  for (const name of ['read', 'readLiteral', 'readTiered', 'write', 'delete', 'rollback', 'listen', 'unlisten', 'addConstraint', 'constraintOn', 'constraintOff', 'constraints', 'removeListener', 'removeConstraint', 'register']) {
     assert.ok(report.ownMembers.includes(name), 'the product carries no ' + name);
   }
   // AND NO MEMBER OF THE PRODUCT IS A NAME OF THE NAMESPACE (`surface.md §2.1` (e) item 2).

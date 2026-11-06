@@ -187,6 +187,24 @@ export type Tier = 'mem' | 'file' | 'temp';
 export type TierSet = Tier | readonly Tier[];
 
 /**
+ * **THE TIERED READOUT'S ANSWER — AND THIS ALIAS IS `readTiered`'s RETURN TYPE** (`PIN-3`'s three node
+ * forms; the architect's `Q-2` answer, *"the declared `TieredNode` union"*). **IT IS THE RETURN POSITION'S OWN
+ * DECLARATION AND NOT A TYPE LINE BESIDE IT**, and a `TieredNode` used anywhere else is forbidden.
+ *
+ * **THE SHAPE IS A TOTAL FUNCTION OF NODE KIND**: an OBJECT node is `{ _tier, …members }` with its members
+ * INLINE; an ARRAY node is `{ _tier, value: [ … ] }`; a LEAF node is `{ _tier, value: <the literal> }`. So
+ * every node of the answer is an OBJECT and no node's answer is a primitive or a bare array.
+ *
+ * **`_tier` IS THAT NODE'S OWN TIER — never a set**: `TierSet` is the ARGUMENT's type, and this answer
+ * carries one of `Tier`'s three tokens at each node and nothing else.
+ */
+export type TieredNode =
+  | { readonly _tier: Tier; readonly [member: string]: TieredNode | Tier }
+  | { readonly _tier: Tier; readonly value: readonly TieredNode[] }
+  | { readonly _tier: Tier; readonly value: number | string | boolean };
+
+
+/**
  * The configuration a store is constructed from — **the store's FOUR declared keys and no FIFTH**
  * (`filePath` · `journalLength` · `listeners` · `constraints`), each passed through WITHOUT a default, a
  * rename or a key of this package's own.
@@ -975,6 +993,44 @@ export interface StoreInstance {
   read(address: Address, tier?: TierSet): unknown;
   /** The same read, narrowed to a leaf — a branch answers `ReadTargetIsBranch`; `tier` is `TierSet`, with the same SUPPLIED-`undefined` reading as `read`. */
   readLiteral(address: Address, tier?: TierSet): unknown;
+  /**
+   * **Read a node's durability tier beside its value** — the third read verb, with `read`'s own arity
+   * (`address`, then the optional `tier`), `read`'s own declared walk and `read`'s own refusal set, and with
+   * the ANSWER COMPILED.
+   *
+   * **THE SHAPE IS A TOTAL FUNCTION OF NODE KIND** (`TieredNode`): an OBJECT node answers `{ _tier, …members }`
+   * with its members INLINE, and it carries no `value` wrapper; an ARRAY node answers `{ _tier, value: [ … ] }`
+   * with `value` dense and in index order; a LEAF node answers `{ _tier, value: <the literal> }`, `value` being
+   * the literal itself, exactly as written. **Every node of the answer is therefore an OBJECT, and no node's
+   * answer is a primitive or a bare array.**
+   *
+   * **EACH `_tier` IS THAT NODE'S OWN TIER**: an object's and an array's is its own anchor tier, a leaf's is
+   * the tier of the version the read selected — so the answer's fields are the persistence ladder the read
+   * walked, never one tier repeated and never a child inheriting its parent's. **It is ONE of `Tier`'s three
+   * tokens and NEVER an array, a map or a count**: `TierSet` is the ARGUMENT's type, and the answer never
+   * carries a set.
+   *
+   * **THE ONE COLLISION, DECLARED RATHER THAN LEFT TO BE DISCOVERED: a member you stored at the name `_tier`
+   * is NOT DELIVERED by this verb** — the minted field wins on the node that carries it — **while the default
+   * `read` at the same address and tier still answers your stored value**, so nothing is destroyed and the
+   * truth is reachable. **That is the one lossy field, in this one verb**; every other stored name, `value`
+   * among them, is delivered untouched.
+   *
+   * **AND A `readTiered` ANSWER HANDED BACK TO `write` IS STORED AS ORDINARY DATA**: the `_tier` members and
+   * the `value` wrappers become your own stored members, exactly as the write stores any other object you
+   * hand it. **This is a DECLARED CONSEQUENCE AND NOT A RULE — no clause forbids that write-back and no
+   * clause blesses it, nothing is refused for it and nothing is stripped out of it.** **Nor is this answer a
+   * stored value: it is the read's answer compiled, and it does not round-trip.**
+   *
+   * **AND IT IS NOT A VERSION-SET READOUT**: it reports WHICH version won and never which versions stand, so
+   * a key holding a `file` version and a `mem` version answers the same shape as a key holding only the
+   * winner. **The surface's one tier-SET answer remains `delete`'s `receipt.tiers`.**
+   *
+   * **AND `undefined` AT THE `tier` POSITION IS NOT THE SAME CALL AS NO POSITION AT ALL** (`PAR-JS-6`,
+   * exactly as at `read`): a SUPPLIED `undefined` is PRESENT and the store answers `AddressMalformed` for it,
+   * while only the call that spells no tier reads the whole set.
+   */
+  readTiered(address: Address, tier?: TierSet): TieredNode;
   /**
    * Write `value` at `address` on `tier` — EXACTLY ONE token, never an array (`PAR-JS-7`).
    *

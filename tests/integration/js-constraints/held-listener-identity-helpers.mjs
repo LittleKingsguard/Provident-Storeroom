@@ -334,9 +334,9 @@ export function legacyListenSignature(store) {
   return typeof store.listen === 'function' && store.listen.length === 1;
 }
 
-/** The product's declared fourteen own members — `10 + 1 + 1 + 2 = 14` ✓ (contract.md §2.7 item 9). */
+/** The product's declared FIFTEEN own members — `10 + 1 + 1 + 2 + 1 = 15` ✓ (contract.md §2.7 item 9, with the fifteenth `readTiered` added by `U-STOREROOM-TIER-READOUT`). THE NAME `THE_FOURTEEN` IS RETAINED BY ITS OWN HISTORY AND NOT BY ITS FIGURE: it was minted when the set was fourteen, rows 7 and 8 of `verification.md §4.1` consume the name, and a rename would move a citation for a count. ⟶ CORRECTED 2026-11-06: the FIGURE and the ARITHMETIC only — the docblock printed `fourteen` / `10 + 1 + 1 + 2 = 14` while the list had carried fifteen names since `readTiered` landed, and the assertions beside it at `tests/e2e/held-listener-identity-surface.test.mjs:96` and `tests/e2e/held-listener-identity-properties.test.mjs:1141` already read `15`. */
 export const THE_FOURTEEN = [
-  'read', 'readLiteral', 'write', 'delete', 'rollback',
+  'read', 'readLiteral', 'readTiered', 'write', 'delete', 'rollback',
   'listen', 'unlisten',
   'addConstraint', 'constraintOn', 'constraintOff',
   'register', 'constraints',

@@ -64,7 +64,7 @@ import { storeCreate } from '../../bindings/js/index.mjs';
 // not driven here** — it is invisible to `Object.keys` and to `Object.getOwnPropertyNames` both
 // (`§2.11` clause 9; `A117` (D6)).
 const MEMBERS = [
-  'read', 'readLiteral', 'write', 'delete', 'rollback', 'listen', 'unlisten',
+  'read', 'readLiteral', 'readTiered', 'write', 'delete', 'rollback', 'listen', 'unlisten',
   'addConstraint', 'constraintOn', 'constraintOff', 'removeConstraint',
   'constraints', 'register', 'removeListener',
 ];
@@ -164,6 +164,7 @@ function detachedSweep(store, counted) {
     // ── THE SEVEN STORE-REACHING VERBS ───────────────────────────────────────────────────────────────
     if (member === 'read') { const { read } = store; return read(['detached-seed'], 'mem'); }
     if (member === 'readLiteral') { const { readLiteral } = store; return readLiteral(['detached-seed'], 'mem'); }
+    if (member === 'readTiered') { const { readTiered } = store; return readTiered(['detached-seed'], 'mem'); }
     if (member === 'write') { const { write } = store; return write(['detached-seed'], 'mem', 3); }
     // `delete` is a reserved word; the member is destructured under a lawful binding and called detached.
     if (member === 'delete') { const { delete: remove } = store; return remove(['detached-seed'], 'mem'); }
@@ -234,14 +235,14 @@ test('receiver_detachment_every_member_refuses_a_detached_call_in_the_one_plain_
   const { store, counted } = seededStore();
   const outcomes = detachedSweep(store, counted);
   assert.equal(outcomes.size, MEMBERS.length,
-    `the sweep drove all fourteen declared members (${MEMBERS.length}) — a sweep that skipped one would `
+    `the sweep drove all fifteen declared members (${MEMBERS.length}) — a sweep that skipped one would `
     + 'report a refusal set it never took');
 
   // ── THE TWELVE THAT CARRY THE RECEIVER ARM ───────────────────────────────────────────────────────────
   // The seven store-reaching verbs, the four constraint members, and `removeListener` — whose own domain
   // tests pass for a HELD handle and which therefore reaches its own entry and takes the addon's arm.
   const carryTheReceiverArm = [
-    'read', 'readLiteral', 'write', 'delete', 'rollback', 'listen', 'unlisten',
+    'read', 'readLiteral', 'readTiered', 'write', 'delete', 'rollback', 'listen', 'unlisten',
     'addConstraint', 'constraintOn', 'constraintOff', 'removeConstraint', 'removeListener',
   ];
   for (const member of carryTheReceiverArm) {

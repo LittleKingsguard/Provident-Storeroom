@@ -350,8 +350,8 @@ test('D-45 (3) · PRODUCTION NESTING RE-MEASURED: an ordinary write still opens 
 
   // ── AND THE MARK IS A SYMBOL-KEYED CHANNEL: NO MEMBER IS ADDED TO THE PRODUCT. ────────────────────────
   const ownNames = Object.getOwnPropertyNames(store);
-  assert.equal(ownNames.length, 14,
-    `the product's declared own member set is FOURTEEN and is UNMOVED — \`D-45\`'s marker is a \`Symbol.for\` `
+  assert.equal(ownNames.length, 15,
+    `the product's declared own member set is FIFTEEN and is UNMOVED — \`D-45\`'s marker is a \`Symbol.for\` `
       + `channel, invisible to \`Object.getOwnPropertyNames\` (\`A117\` (D6)): the drive read `
       + `${JSON.stringify(ownNames)}`);
   assert.equal(Object.getOwnPropertySymbols(store).includes(Symbol.for('provident-storeroom.external-call')), true,

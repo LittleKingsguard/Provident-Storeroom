@@ -936,3 +936,297 @@ kernel-foundations.mjs` (`:876`-`:886`, `:1105`-`:1131`); `bindings/js/index.d.t
 `docs/guides/package-use.md` (`§7.6`, `:1088`-`:1135`); `bindings/js/RELEASE-NOTES.md` (`§1.6.2`, `§1.7.0`, `§1.8.0`,
 `§1.8.1` heads); the git objects `2770a61`, `1a0d252`, `21a3db2`, `9afb411`, `fd34789`, `f3b35ea`; and the seven drives of
 `§15.3`, run from `/tmp` against this checkout's entry and addon.
+
+---
+
+## §16 · The intake question — is the durability tier carried on RETURNED data? (`2026-11-06` · `2c2b882`)
+
+**THE QUESTION, AS PUT BY THE ARCHITECT — VERBATIM:** *"The returned json passed to read requests, listeners, constraints,
+etc. should include the durability tier of the data object (`'file'`, `'mem'`, or `'temp'`) as a data property (ex. `_tier` or
+similar). Does it currently do this or did this get dropped from the spec?"*
+
+**THE ANSWER, AND ITS TOKEN: `NEVER SPECIFIED`.** No contract clause, no `D-` ruling, no research note, no pending item, no
+defect row and no release note of this repository declares that a returned datum carries the tier of the version it came from
+— **so nothing was dropped, because there was never an original clause.** If the requirement came from a conversation this
+corpus does not hold, **that is why it is absent here: `strata/decisions.md` is the only authority for intent and it carries
+no row on this subject** (its `D-` headings enumerated whole this date: `123`, none naming a returned tier).
+
+### §16.1 · What the surface declares TODAY, verb by verb (all `OPERATIVE`, read at the bytes)
+
+| what the caller gets | the declared shape | the site |
+|---|---|---|
+| `read` · `readLiteral` | **a BARE VALUE — no wrapper, no envelope** — `read(address: Address, tier?: TierSet): unknown` | `bindings/js/index.d.ts:975`, `:977`; `docs/specs/storeroom-native/contract.md:2166`, `:2188`–`:2192` (*"the same absence of any wrapper"*), the arm table `R-1`…`R-5` at `:2226`–`:2232` (`R-1`: *"its value, verbatim"*) |
+| a **listener body** | **ONE argument, the TRIGGERING ADDRESS, and nothing else** | `bindings/js/index.d.ts:500`–`:501`; `docs/specs/storeroom-js/surface.md:1695`–`:1706` (*"NO OTHER ARGUMENT IS DECLARED AND NO RETURN VALUE IS READ"*) |
+| a **constraint body** | `AttemptContext` — five members, **and `tier` IS one of them** | `bindings/js/index.d.ts:1492`, `:1521`–`:1527` |
+| `write`'s record | `{ op, watched, triggered }` + non-enumerable `discarded`/`log`; **the tier rides `op.tier`** | `bindings/js/index.d.ts:530`, `:544`–`:548` |
+| `delete`'s receipt | `{ address, tiers, triggered, op }` — **the only ANSWER carrying a tier SET, and it reports what the delete REMOVED** | `bindings/js/index.d.ts:629`–`:653`; `src/records.rs:199`–`:214` |
+| `rollback`'s record | `{ opId, undoneOps, restoredTo }` — **no tier anywhere; `restoredTo` is a `BaseState` of `{present, value}`** | `bindings/js/index.d.ts:509`–`:512`, `:772`–`:775` |
+
+**AND THE CONSTRAINT'S `tier` IS NOT THE ANSWER TO THIS QUESTION, WHICH THE ARCHIVED CLAUSE STATES IN ITS OWN WORDS:**
+*"`tier` ANSWERS 'which tier did THIS ATTEMPT'S landing write at' … SO `tier` IS NOT INFERRED FROM THE `value`'s OWN
+SELECTION — the tier the `read` happened to select is NOT the tier the attempt landed at"*
+(`archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-constraints/kernel-surface.md:476`, `ARCHIVED`; the live shape it
+describes is `docs/L1/repair-outcome-types.md:86`, `:114`, and `tier` is `null` at a registration's FIRST ask while `value`
+there is a real read).
+
+### §16.2 · The searches, stated as what they searched and what they returned
+
+`_tier` as a data property: **`0`** occurrences repo-wide in `*.md` — the single `_tier` hit anywhere in this tree is the
+identifier `assemble_at_tier` at `docs/specs/storeroom-native/contract.md:761`; `tierOf`/`tier_of` in `*.md`: **`0`**; the
+`{value, tier}` envelope form in `*.md`: **`0`**; `provenance` (`98` hits) and `envelope` (`122` hits): **none on a data
+object's tier**; `durabilit\w*` (`30` hits): **all about which ACT owes a save** (`DD-28`, `D-106`); `strata/walkthrough.md`
+and `strata/envelope.md`: **`0`** hits on `tier`; `strata/research.md`: `20` hits, **all the fifth report's file-tier-save
+arms**; `scratch/**`: `16` hits, **all test-name lines** (`SCRATCH`; one reads `delivery_listen_carries_no_tier_qualifier`).
+Corpora swept whole: `docs/specs/**`, `docs/guides/`, `docs/L1/`, `archive/pre-strata-docs-2026-10-24/docs/**`,
+`.reflow-backup/docs/**`, `bindings/js/**`, `src/**`, `tests/**`, the three root notes.
+
+### §16.3 · What the corpus does say, and it says the opposite — TWO REFUSALS, NOT AN OMISSION
+
+1. **A read's answer carries no accompanying member, and that is a DECLARED line** — *"a `read` or a `readLiteral` answers a
+   VALUE and carries no such member"*, stated where `discarded`'s presence is declared (`docs/specs/storeroom-js/contract.md:1298`).
+2. **The crossing forbids exactly the shape a `_tier` member would be** — a copy-out object *"carries exactly the stored OWN
+   ENUMERABLE STRING-KEYED member set, with no tag, class token or envelope in any member"*
+   (`docs/specs/storeroom-json-crossing/contract.md:836`; and `:826`, `:48`). **AND A REGISTER KEY IS ANY STRING**, so `_tier`
+   is a legal key a caller may store: a member the package adds and a member the caller wrote would be the same member, and
+   no clause of this corpus distinguishes them.
+3. **The standing remedy for "I need more than I was handed" is a READ, ruled by the architect** — *"If a constraint needs to
+   look for the data at a given location, it can read()"* (`strata/decisions.md` `D-50`, `:3182`; *"the machinery owes the
+   constraint one value and the constraint owes itself the rest"*, `:3190`–`:3192`).
+
+### §16.4 · Every route by which a caller can learn a version's tier TODAY
+
+**ON THE SHIPPED JS SURFACE:** **(1)** a tier-narrowed `read`/`readLiteral` answering vs refusing `TierNotFound` — one call
+per tier, a probe and not a readout (`index.d.ts:975`; `L-TIER` at `docs/specs/storeroom-native/contract.md:1715`);
+**(2)** `TierNotFound`'s message, **which names the tiers that are present** — `src/error.rs:345`–`:349`:
+*"`{} is not a version of '{container}', versions are at {tierlist}`"*, fed by `present.to_vec()` at `:724`–`:744`, and
+reaching JS only as the refusal's generated `message`; **(3)** `record.op.tier` on a `write`; **(4)** `receipt.tiers` on a
+`delete` (destructively); **(5)** `context.tier` inside a constraint/repair body (the ACT's tier, §16.1); **(6)** the boot
+differential over an equal `cfg.filePath` (`DD-28`), by inference and for `file` alone.
+
+**NATIVE-ONLY, NOT REACHABLE FROM JS:** `Store::findAddress(address, tier?) -> &NodeRef`, whose `NodeRef.anchor.tier` is a
+`Tier` (`src/store.rs:2231`–`:2245`; `src/records.rs:84`, `:127`–`:133`) — **`findAddress` does not cross**: *"`findAddress` IS
+AN INTERNAL TOOL AND THIS UNIT DOES NOT EXPOSE IT"* (`docs/specs/storeroom-js/contract.md:2195`, `:2200`, `:2207`, `:3368`;
+and the addon's `#[napi]` export set at `bindings/js/src/facade.rs:570`–`:983` carries no such call).
+**CARRIER-INTERNAL AND DECLARED CLOSED:** the journal's per-version capture — *"each with its tier … no member of it crosses
+any verb, no read or `findAddress` surfaces it"* (`docs/specs/storeroom-native/contract.md:718`, `DD-50`).
+
+### §16.5 · The adjacent finding this question exposes — a CONTRADICTION on which version an unqualified read lands on
+
+**THE OPERATIVE CLAUSE:** **a zero-tier read selects the LOWEST-persistence anchor** —
+`docs/specs/storeroom-native/contract.md:1789`–`:1794` (*"`temp` (rank 0) is selected before `mem` … before `file`"*),
+restated at `:3302`–`:3306` (*"the lower-persistence anchor IS the shadowing one, and an unqualified read selects it"*) and at
+arm `R-4` (`:2231`), and **measured**: `tests/integration/store-core/properties.rs:469`–`:472` asserts the unqualified answer
+is the `mem` version over a standing `file` one and `:482`–`:485` that *"the landing is the LOWEST-persistence anchor"*, the
+sharpest carrier being `tests/integration/store-core/walk_and_resolver.rs:316`–`:343` (`s2_3_zero_tiers_select_the_lowest_
+persistence_anchor`: one key at `file` `1`, `mem` `2`, `temp` `3`, the unqualified read answering `3`) — with
+`docs/specs/storeroom-file-save-coverage/arms.md:246`–`:250` recording that an earlier draft had it backwards and an
+examiner's read corrected it.
+
+**THE CONTRADICTING TEXT, WHICH CONTRADICTS ITSELF INSIDE ONE FILE:** `docs/guides/package-use.md:386`–`:387` — *"the newer
+version is added alongside and the MORE persistent one wins the unqualified read"* — where the same file's table at `:403`
+says `read`/`readLiteral` with `tier` absent is *"legal — the lowest persistence present"*; **and the page SHIPS**: its
+generated landing `bindings/js/README.guide.md:387` carries the same bytes.
+
+**⟶ CORRECTED AT THIS LINE, 2026-11-06, BY `§17`'s PASS — THE CLAUSE ABOVE READ *"`strata/brief.md:219`–`:220` carries the
+guide's version of that sentence"* AND THAT READING IS WITHDRAWN.** `strata/brief.md:219`–`:220` carries the **contract's
+predicate** (*"the shadow wins the unqualified read"*) while defining `shadow` as *"the key holds a **more** persistent
+version than the write's"* — **the guide's DEFINITION on the contract's PREDICATE, which is the seam the contradiction grows
+from**: the contract names the **lower**-persistence anchor *"the shadowing one"* (`docs/specs/storeroom-native/contract.md:3304`),
+so the brief's sentence reads Side B under its own definition and Side A under the contract's use of the word. `§17` carries
+the census and the discriminating cells; **the subject is filed there in full and the question stays the architect's.**
+**AND IT IS STILL LOAD-BEARING FOR §16's OWN SUBJECT**: whether a caller can tell which version it received is a different
+question from whether the store can name it.
+
+### §16.6 · SUMMARY ENVELOPE
+
+**VERDICT.** `NEVER SPECIFIED` — the corpus states no such requirement and dropped none.
+
+**NOT VERIFIED.** That any consumer has ever needed it: **no clause of `docs/guides/` and no report in `strata/research.md`
+asks for it.**
+
+**ANSWERED BY THE ARCHITECT, 2026-11-06 — the intake he chose:** the request goes **as a proposal**, through
+`role_l0_validity` with `role_l0_critique`, and its record is `strata/proposals.md` (`P-1`), whose verdict is
+**`BLOCKED-ON-SEMANTICS`**; the adjacent contradiction goes **as its own intake**, which is `§17` here.
+
+**ADJACENT, FILED.** §16.5's contradiction, carried in full at `§17` (the crate implements the least-persistent
+selection; `NONE` of `strata/decisions.md`'s `123` `D-` rows decides it; the two Side-B carriers are the guide and its
+generated landing).
+
+**FILES READ.** `bindings/js/index.d.ts`; `src/{store,records,error,value,args}.rs`;
+`bindings/js/src/{facade,crossing}.rs`; `docs/specs/storeroom-native/contract.md`; `docs/specs/storeroom-js/{contract,surface}.md`;
+`docs/specs/storeroom-json-crossing/contract.md`; `docs/specs/storeroom-file-save-coverage/arms.md`; `docs/guides/package-use.md`;
+`docs/L1/repair-outcome-types.md`; `strata/{brief,decisions,research,walkthrough,envelope}.md`;
+`archive/pre-strata-docs-2026-10-24/docs/**`; `tests/integration/store-core/properties.rs` (`:474`, `:483`).
+
+---
+
+## §17 · The unqualified read's selection — the guide against the contract, FILED (`2026-11-06` · `2c2b882`)
+
+**FILED ON THE ARCHITECT'S OWN INSTRUCTION of this date**, when `§16`'s adjacent finding was put to him with the choice to file
+it as its own intake or leave it recorded: **he chose to file it.** So this section is a **separate intake** and not a
+continuation of `§16`, and it resolves nothing — it establishes the law at the crate's bytes, the documents on each side, the
+rulings that do and do not decide it, and the cells that discriminate the two readings.
+
+### §17.1 · The law at the crate's own bytes — SIDE A, and there is no reading of the code that gives Side B
+
+| the step | the bytes | what it settles |
+|---|---|---|
+| the tier argument's zero arm | `src/args.rs:197`–`:199` — `TierArg::Absent => Ok(TierSel::All)`; and `:210`–`:215` — *"An array of 0 tokens is read as the ZERO-TIER arm"* → also `TierSel::All`; `:172`–`:177` — `TierSel::All => true` matches **every** anchor | **an absent tier does not narrow the set**; it admits all anchors |
+| the selection | `src/store.rs:1146`–`:1152` — `fn lowest`: `min_by_key(|reference| self.refs[**reference].anchor.tier.rank())`, with `Tier::rank` = `file 2 > mem 1 > temp 0` (`src/records.rs:27`–`:33`) | **the LOWEST-rank version answers** — `temp` before `mem` before `file` |
+| the walk | `src/store.rs:2265`–`:2276` (`read`), `:2279`–`:2295` (`readLiteral`) — the same `read_tier_sel` → `walk` → selection | **`read` and `readLiteral` select alike**; `readLiteral` narrows only to leaf-ness |
+| a branch's assembly | `src/store.rs:1214`–`:1228` `select_member`, `Some(self.lowest(&matched))`, whose own comment at `:1211`–`:1213` reads *"The zero-tier arm (`TierSel::All`) matches every anchor, so `A28`'s lowest-persistence selection runs at every address and nothing is omitted"* | **the rule is PER CHILD**: one object, each key's own rank-lowest version |
+| not a counter-example | `assemble_at_tier` (`src/store.rs:1306`–`:1356`) reads `pair_at(link, &key, tier)` — the one anchor `A34` bounds to `0 or 1` at a fixed pair — and is the `file` snapshot path (`:1359`–`:1369`), **not a selection** | the snapshot path is not the read's rule |
+
+**AND TWO SHIPPED, NON-SPEC BYTES SAY THE SAME THING INDEPENDENTLY:** `bindings/js/src/entry/constraints.mjs:2269` — *"the
+zero-tier `read` answers the LOWEST-tier version present at each key (`src/store.rs`'s `select_member`)"* — and `write`'s own
+parent resolution reuses the same arm (`src/store.rs:2335`, `self.walk(&parents, &TierSel::All)`).
+
+### §17.2 · The operative contract states Side A eight times, and makes Side B a DECLARED FAILURE
+
+`docs/specs/storeroom-native/contract.md`: **`:1789`–`:1794`** (*"ZERO tiers passed … the walk selects the LOWEST-PERSISTENCE
+anchor … `temp` (rank 0) is selected before `mem` … before `file`"*); **`:3304`** (*"the lower-persistence anchor IS the
+shadowing one, and an unqualified read selects it"*); **`:2231`** (arm `R-4`, *"only the node of the lowest-persistence anchor is
+translated"*); **`:2006`** (arm `W-5`, *"the shadow wins the unqualified read"*); **`:1863`** (the `read` row's absent-tier cell,
+*"legal — lowest persistence"*); **`:470`** (`DD-12`, the lowest-persistence fall-through *"reserved to the zero-tier arm"*);
+**`:1736`–`:1767`** (the assembly, per address); and — decisively — **`:2586`–`:2588`, where the failable property names the
+OTHER reading as a failure:** *"a shadow that does not win the unqualified read … **a read that answers the higher-persistence
+version**"*. **SO SIDE B IS NOT AN ALTERNATIVE READING OF THIS CONTRACT: IT IS ON THE CONTRACT'S OWN FAILURE LIST.**
+
+### §17.3 · No ruling decides it — `NONE`
+
+`strata/decisions.md`'s `123` `D-` headings were searched whole for `lowest|shadow|unqualified|zero-tier|persistence` (`3`
+hits, none on read selection: `:978` a helper constant that *"shadows"*, `:3799`/`:3805` a listener/purge row) and for
+`select|A34|A28|landing|which version` (`32` hits, none deciding it; the one `R-4` heading at `:1366` is a **namesake** about
+the `register`/`listen` asymmetry). **`A28`, `A11` and `A24` are not in `strata/decisions.md` at all** — they live in the
+ARCHIVED set (`archive/pre-strata-docs-2026-10-24/docs/decisions.md:104`, `:114`, and `:567`, where `A24`'s own row records
+that it *"does **not** restate the ZERO-tier arm's selection rule"*). **So the law here is the CONTRACT's and the CRATE's, and
+no architect's ruling touches it.**
+
+**⟶ CORRECTED AT THIS LINE, `2026-11-06`, BECAUSE THE FIGURE OUTLIVED ITS BYTES — AND THE MARK GOVERNS EVERY PRINT OF `123`
+IN `§§16`–`§17` (`:952`, `:1052`, `:1166`).** **THE `123` IS TRUE OF THE FILE AS IT STOOD WHEN EACH SEARCH RAN AND IS NOT TRUE OF
+THE FILE NOW: `strata/decisions.md` prints `126` `D-` headings at this date** (`grep -c '^### ' + a `D-` prefix match; the
+instrument is printed so the figure can be re-taken),
+**the three new rows being `D-121` (`:6174`), `D-121-ter` (`:6201`) and `D-121-quater` (`:6232`) — all three landed AFTER `§16`
+and `§17` were written, and none of them decides which version an unqualified read lands on.** **THE SEARCH'S CONCLUSION IS
+UNMOVED AND IS NOW STRONGER RATHER THAN WEAKER:** `D-121-ter:6215` names **`src/store.rs:1143`–`:1152`'s lowest-rank selection**
+as *"the tier of the version the read selected"* — **that is Side A, quoted as the crate's own rule, and it arrives from the
+architect's hand rather than from a ruling on the contradiction.** **SO THE SUBJECT OF `§17` STANDS EXACTLY AS FILED: no ruling
+decides which side the GUIDE states (`docs/guides/package-use.md:387` and its landing), and the operative law is still the
+contract's and the crate's.** **AND THE LESSON IS THE WALKTHROUGH'S OWN (`strata/walkthrough.md:88`–`:92`): a figure that
+describes a pass is the first casualty of the next pass, so every count in this record is read with its date or re-measured.**
+
+### §17.4 · The census — Side A everywhere; Side B is ONE authored text and its generated landing
+
+**SIDE A (`20` carrier groups):** the operative contract's eight sites above · `docs/specs/storeroom-file-save-coverage/arms.md:246`–`:250` · the crate (`src/store.rs:1143`–`:1152`, `:1214`–`:1228`; `src/args.rs:197`–`:215`) · a shipped entry comment
+(`constraints.mjs:2269`) · the guide's own **parameter table** (`docs/guides/package-use.md:403`, *"legal — the lowest
+persistence present"*) **and the copy of that table in its landing** (`bindings/js/README.guide.md:403`) · and the measured
+battery (`§17.5`).
+
+**SIDE B (`2` carriers, and they are ONE text):** `docs/guides/package-use.md:386`–`:387` — *"When the key holds a version at a
+tier MORE persistent than the write's, the newer version is added alongside and **the more persistent one wins the unqualified
+read**"* — and its **generated, shipped** landing `bindings/js/README.guide.md:387`, **byte-identical**: `cmp` clean this date
+and one `sha256` for both, `5e9cc292dcbab477ef2056dc29fcb832eba3c29f93f7cc9edd048fa18c713e23`, `2332` lines each. **The landing is
+GENERATED — the canonical home is `docs/guides/package-use.md`, the assembly copies it, and `scripts/publish.sh:108`–`:120`
+REFUSES when the two differ** (*"`README.guide.md` is a GENERATED landing: an edit belongs in the canonical file, and this script
+REFUSES when the two differ"*). **Nothing in `docs/specs/**`, `docs/L1/**`, `README.md` or either archive carries Side B.**
+
+**AND THE GUIDE CONTRADICTS ITSELF INSIDE ONE FILE:** its `:387` says the more persistent version wins; its `:403` says the
+absent tier is *"the lowest persistence present"*. **Sixteen lines apart, in the document that ships to every consumer.**
+
+**AND `strata/brief.md:219`–`:220` IS NOT A THIRD SIDE-B CARRIER — CORRECTED AT `§16.5`, WHOSE SENTENCE IS WITHDRAWN THERE:** the
+brief carries the **contract's predicate** (*"the shadow wins the unqualified read"*) on the **guide's DEFINITION** (*"the key
+holds a **more** persistent version than the write's"*). **The contract calls the LOWER-persistence anchor *"the shadowing one"*
+(`:3304`), so the brief's sentence reads Side B under its own definition and Side A under the contract's use of the word** —
+which is exactly the seam the guide's `:387` grew from, and it is why two halves of the corpus were never seen to disagree.
+
+### §17.5 · The discriminating cells — the battery is Side A's, and it is not marginal
+
+**The sharpest drive: `tests/integration/store-core/walk_and_resolver.rs:316`–`:343`**
+(`s2_3_zero_tiers_select_the_lowest_persistence_anchor`) — writes `file` `1`, `mem` `2`, `temp` `3` at ONE key and asserts the
+unqualified read answers `3` (*"§2.3: rank ascending — temp first"*) and that the **0-token set** answers `3` too. **Side B
+answers `1` and turns both assertions.**
+
+**The record's own cell: `tests/integration/store-core/properties.rs:469`–`:485`** — `:469`–`:472` the unqualified read answers
+`"trial"` over a standing `"durable"`; `:473`–`:477` the qualified `file` probe answers `"durable"`; `:482`–`:485`
+`landing_tier(...) == Tier::Mem`, *"the landing is the LOWEST-persistence anchor at the key"*.
+
+**And the population, each re-read as a source text this date:** `properties.rs:1291`–`:1294` (`P-SM-4`'s three ordered pairs,
+each asserting *"an unqualified read answers the LOWER rank"*); `read_and_delete.rs:85`–`:89`; `tiers_and_purge.rs:154`–`:158`;
+`write_arms.rs:345`; `e2e_listener_firing.rs:1009`–`:1010` (*"§3.4 W-5 + A11: 'the shadow wins the unqualified read'"*);
+`e2e_json_round_trip.rs:829`, `:844`; `store-args/gate4_red_set_fix.rs:1082`, `:1182`; across the boundary `tests/e2e/greens.mjs:908`
+(`JSG-07.2`, *"after a LESS persistent write the unqualified read selects the SHADOW: 1"*),
+`tests/e2e/file-save-coverage-properties.test.mjs:504`–`:505`, `tests/e2e/live-drive.mjs:359`; plus ~`30` assertions that read
+their expected tier from the zero-tier helper `landing_tier` (`tests/integration/support/mod.rs:576`–`:586`).
+
+### §17.6 · What this does and does not decide
+
+**IT DECIDES NOTHING, AND IT CHANGES NO CODE.** The crate implements Side A and the operative contract declares Side A eight
+times and Side B a failure — **so the defect, if it is one, is in TWO DOCUMENT BYTES: a consumer guide's sentence (`:387`) and
+its generated landing.** **Whether that is a defect row, a prose-correction unit, or a fresh ruling is the architect's call and
+is not decided here** — and it is put to him with `P-1`'s questions rather than beside them, because `§16`'s subject and this
+one meet at the same question: **what a caller is entitled to know about the version it received.**
+
+**WHAT NO PASS HAS ESTABLISHED, STATED PLAINLY.** *When* `:387` acquired *"the more persistent one wins"* is **not** answered by
+this pass — no `git blame`/`git log` was run, so the sentence is dated by nothing here; the ARCHIVED guide
+(`archive/pre-strata-docs-2026-10-24/docs/guides/package-use.md:471`) shows an earlier form pairing *"the more persistent one
+survives"* with *"the shadow wins the unqualified read"*, which is where the collapse plausibly happened, **and a plausible
+seam is not a provenance.** **No test was executed in this pass:** every red/green statement above is derived from the
+assertions' source text and the selection code, not from a run.
+
+### §17.7 · SUMMARY ENVELOPE
+
+**VERIFIED.** The crate's selection (Side A, `§17.1`); the contract's eight Side-A sites and its failure list (`§17.2`); `NONE`
+of `strata/decisions.md`'s `123` `D-` rows deciding it (`§17.3`); the census — Side A at `20` carrier groups, Side B at exactly
+two carriers that are one authored text and its generated landing (`§17.4`); the guide/landing byte-identity by `cmp` and one
+`sha256` (`2332` lines each); the guide's own self-contradiction at `:387` against `:403`; and the discriminating cells.
+
+**CORRECTED.** `§16.5`'s *"the brief carries the guide's version of that sentence"* — **withdrawn at that line**, the corrected
+reading being the definition/predicate seam of `§17.4`.
+
+**OPEN, AND THE ARCHITECT'S.** What to do about the two Side-B bytes, and who owns it; and `§16`'s own ten questions in
+`strata/proposals.md` `P-1`.
+
+**NOT VERIFIED, BY INSTRUMENT.** When `:387` was rewritten and by whom (no `git log`/`git blame` run); and every red/green
+statement (no harness executed — source text and code only).
+
+**FILES READ.** `src/{store,args,records}.rs`; `bindings/js/src/entry/constraints.mjs`; `bindings/js/index.d.ts`;
+`docs/specs/storeroom-native/contract.md` (`§2.2`–`§2.3`, `§4.1`–`§4.2`, `§5.1`–`§5.4`, `DD-12`, `DD-27`);
+`docs/specs/storeroom-file-save-coverage/arms.md`; `docs/guides/package-use.md`; `bindings/js/README.guide.md`;
+`scripts/publish.sh`; `strata/{brief,decisions,research}.md`; `archive/pre-strata-docs-2026-10-24/docs/{decisions.md,guides/package-use.md}`;
+`tests/integration/store-core/{walk_and_resolver,properties,read_and_delete,tiers_and_purge,write_arms,e2e_listener_firing,e2e_json_round_trip}.rs`;
+`tests/integration/{support/mod.rs,store-args/gate4_red_set_fix.rs}`; `tests/e2e/{greens.mjs,live-drive.mjs,file-save-coverage-properties.test.mjs}`.
+
+
+---
+
+## §18 · POSTSCRIPT — THE AUDITS' OWN CITATIONS AFTER THE LANDING (`2026-11-06`)
+
+**THIS SECTION EXISTS FOR ONE REASON: `§16` AND `§17` CITE CODE LINES, AND `U-STOREROOM-TIER-READOUT`'S LANDING MOVED THEM.** The store
+gained `compile_tiered`/`read_tiered` above `write`, the addon gained one entry, the declaration gained a member and a union, and the
+facade gained one entry and a docblock — **so every code citation in the two sections above is a PRE-LANDING reading taken at `HEAD`
+`2c2b882`, and it must be read as its own date, not as the tree.** **The audits' citations into `strata/decisions.md` are NOT stale**
+— that file was appended and its `§16`/`§17` line references were re-taken when the four rulings landed (`D-121` `:6174` ·
+`D-121-ter` `:6201` · `D-121-quater` `:6232` · `D-121-quinquies` `:6252`; the file prints `127` `D-` headings and `6267` lines).
+
+**THE MOVES, STATED SO A READER CAN RE-FIND ANY OF THEM WITHOUT RE-DERIVING THE WHOLE MAP:** `src/store.rs` — **every cited line from
+`:1301` on shifts `+95`, and from `:2297` on `+125`** (`read` `:2265`→`:2360` · `register_ref_for` `:2260`→`:2355` · `findAddress`
+`:2231`→`:2326` · the leaf mint `:1699`→`:1794` · the two container arms `:1685`/`:1692`→`:1780`/`:1787` · `select_member`'s
+`Some(self.lowest(…))` `:1143`·`:1147`–`:1152` **UNMOVED**). `bindings/js/index.d.ts` — `StoreInstance` `:960`→`:978`, `read`
+`:975`→`:993`, `readLiteral` `:977`→`:995`, `file ends` `:1680`→`:1736`, and the new `TieredNode` at `:201` with `readTiered` at
+`:1033`. `bindings/js/src/facade.rs` — `read` `:570`→`:581`, the census sentences `:375`/`:408`/`:980`→`:375`/`:419`/`:1030`, the
+arity table `:394`–`:397`→`:403`–`:408`. `bindings/js/index.mjs` — `read` `:276`–`:304` unmoved in bytes, the new member at `:313`.
+`docs/specs/storeroom-native/contract.md` — **`+2` from `:2198`** (the third granted mark), so `R-1`…`R-5` read `:2228`–`:2234` and
+the register's reference clause reads `:2349`–`:2357`.
+
+**THE DISCHARGE OF THIS POSTSCRIPT.** The audit's subject does not move: **`§16`'s `NEVER SPECIFIED` and `§17`'s Side-B
+contradiction are both still true of the corpus as audited**, and the landing decided neither.
+
+**⟶ AND THE ARCHITECT SETTLED IT, `2026-11-06`, IN THREE WORDS — *"Correct guide"*, recorded as `D-122`. THE SENTENCE ABOVE IS THE
+READING OF ITS OWN MOMENT AND IS READ THROUGH THIS MARK.** `docs/guides/package-use.md:386`–`:387` now states the store's own rule —
+an unqualified read selects the **LOWEST**-persistence version present, the shadowing one — with the contract's `§2.3` selection and
+`readTiered` cited beside it; **its generated landing was re-staged by the publish script's own assembly** (`cmp` clean, one
+`sha256`, `2332` lines / `352840` bytes each, never hand-edited); **and `strata/brief.md`'s definitional inversion was corrected at
+its own bytes.** **`NO` contract clause, cell, status or code byte moved — the fix was in the two documents that were wrong, which is
+what `§17.4`'s census measured them to be (Side A at `20` carrier groups, Side B at exactly two carriers that are one authored text
+and its generated landing).** **SO `§16`'s `NEVER SPECIFIED`, `§17`'s Side-A finding and this postscript's re-map all stand, and the
+one thing `§17` left to the architect is CLOSED.**

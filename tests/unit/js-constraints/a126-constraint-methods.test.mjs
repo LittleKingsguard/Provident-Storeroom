@@ -65,7 +65,7 @@ function mem(extra = {}) {
 // refusal is driven" — so the premise moves by two and each cell's own subject is untouched.
 const FOURTEEN_MEMBERS = [
   'addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen', 'read',
-  'readLiteral', 'register', 'removeConstraint', 'removeListener', 'rollback', 'unlisten', 'write',
+  'readLiteral', 'readTiered', 'register', 'removeConstraint', 'removeListener', 'rollback', 'unlisten', 'write',
 ];
 const THREE = ['addConstraint', 'constraintOn', 'constraintOff'];
 

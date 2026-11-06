@@ -278,8 +278,8 @@ console.log(`layer          LIVE / ASSEMBLED PACKAGE (real artifact, real proces
   // The figure was stale through two rulings because the batteries were never re-derived against the surface;
   // this is the review's §3.2 row 11 and `FTS-12.1`'s, `LIVE-13.19`'s and `LIVE-13.23`'s same figure.
   A(`${sc}.3`, '§2.4 item 9 (f)\'s clause of 2026-10-19 (FOURTEEN own members, `10 + 1 + 1 + 2 = 14`, whose two singles are `register` and `constraints` and whose `+ 2` are `removeListener`/`removeConstraint`) read with `bindings/js/index.d.ts`\'s `StoreInstance`',
-    "the store's own member set is exactly the FOURTEEN declared members ['addConstraint','constraintOff','constraintOn','constraints','delete','listen','read','readLiteral','register','removeConstraint','removeListener','rollback','unlisten','write'] — and NOTHING ELSE (the superseded readings were three, four, five, seven, twelve and thirteen)",
-    inst !== null && Object.getOwnPropertyNames(inst).sort().join(',') === 'addConstraint,constraintOff,constraintOn,constraints,delete,listen,read,readLiteral,register,removeConstraint,removeListener,rollback,unlisten,write',
+    "the store's own member set is exactly the FIFTEEN declared members ['addConstraint','constraintOff','constraintOn','constraints','delete','listen','read','readLiteral','readTiered','register','removeConstraint','removeListener','rollback','unlisten','write'] — and NOTHING ELSE (the superseded readings were three, four, five, seven, twelve and thirteen)",
+    inst !== null && Object.getOwnPropertyNames(inst).sort().join(',') === 'addConstraint,constraintOff,constraintOn,constraints,delete,listen,read,readLiteral,readTiered,register,removeConstraint,removeListener,rollback,unlisten,write',
     inst ? Object.getOwnPropertyNames(inst).sort().join(',') : 'no instance');
   A(`${sc}.4`, '§1.3 FilePathArg row 1', "the caller's filePath is a REAL path: its parent directory exists on disk",
     fs.existsSync(path.dirname(filePath)) && fs.statSync(path.dirname(filePath)).isDirectory(), path.dirname(filePath));
@@ -1436,9 +1436,9 @@ function registerSnapshot(inst) { return Object.assign({}, inst.read([])); }
   // (`contract.md §2.7` item 9, `12 → 14`; `bindings/js/index.d.ts`'s `StoreInstance` names all fourteen). The
   // same stale figure `LIVE-1.3`, `LIVE-13.19` and `FTS-12.1` carried.
   A(`${sc}.23`, 'crossing.md §1.3 ListenersArg row 1 (`[]` is "the ordinary no-listener store") read with parameter-semantics.md §2.4 PAR-JS-4 (the empty array is IN the domain); surface.md §2.1 (e) 1 and §2.4 item 9 (f)\'s clause of 2026-10-19 for the product\'s FOURTEEN own members (`10 + 1 + 1 + 2 = 14`)',
-    'the VALID form `listeners: []` returns an INSTANCE and does NOT throw, and that instance carries exactly the FOURTEEN own members the contract declares — so the refusal half above cannot be passing by refusing the lawful form too',
-    !validListeners.threw && Object.getOwnPropertyNames(validListeners.value).length === 14
-      && /^addConstraint,constraintOff,constraintOn,constraints,delete,listen,read,readLiteral,register,removeConstraint,removeListener,rollback,unlisten,write$/.test(validMemberSet),
+    'the VALID form `listeners: []` returns an INSTANCE and does NOT throw, and that instance carries exactly the FIFTEEN own members the contract declares — so the refusal half above cannot be passing by refusing the lawful form too',
+    !validListeners.threw && Object.getOwnPropertyNames(validListeners.value).length === 15
+      && /^addConstraint,constraintOff,constraintOn,constraints,delete,listen,read,readLiteral,readTiered,register,removeConstraint,removeListener,rollback,unlisten,write$/.test(validMemberSet),
     validListeners.threw ? `threw ${statusOf(validListeners)}` : `${Object.getOwnPropertyNames(validListeners.value).length} own members: ${validMemberSet}`);
 
   // ── ⟶ AND THE TWO RESIDUES THE FIX LEFT ON PURPOSE, ASSERTED AS THEY ACTUALLY STAND (`LIVE-13.24`) ────
@@ -1566,8 +1566,8 @@ function registerSnapshot(inst) { return Object.assign({}, inst.read([])); }
     // **⟶ AND RE-DERIVED AGAIN 2026-10-25 (`D-20`'s execution pass): the set is FOURTEEN, `10 + 1 + 1 + 2 = 14`**
     // (the `+ 2` being `removeListener`/`removeConstraint`, `contract.md §2.7` item 9; `index.d.ts`'s
     // `StoreInstance`). The figure is the same stale one `LIVE-1.3`/`.13.23` and `FTS-12.1` carried.
-    "THE HOME IS EMPTY IN THE NEW INSTANCE — the registrations are INSTANCE-SCOPED: the new instance's own member set is the declared FOURTEEN (`§2.4` item 9 (f)'s clause of 2026-10-19, `10 + 1 + 1 + 2 = 14`), its write under the address the OLD instance registered carries NO triggered member and fires nothing there",
-    Object.getOwnPropertyNames(B).sort().join(',') === 'addConstraint,constraintOff,constraintOn,constraints,delete,listen,read,readLiteral,register,removeConstraint,removeListener,rollback,unlisten,write' && w7.triggered.length === 0,
+    "THE HOME IS EMPTY IN THE NEW INSTANCE — the registrations are INSTANCE-SCOPED: the new instance's own member set is the declared FIFTEEN (`§2.4` item 9 (f)'s clause of 2026-10-19, `10 + 1 + 1 + 2 = 14`), its write under the address the OLD instance registered carries NO triggered member and fires nothing there",
+    Object.getOwnPropertyNames(B).sort().join(',') === 'addConstraint,constraintOff,constraintOn,constraints,delete,listen,read,readLiteral,readTiered,register,removeConstraint,removeListener,rollback,unlisten,write' && w7.triggered.length === 0,
     `members ${Object.getOwnPropertyNames(B).sort().join(',')}; triggered ${w7.triggered.length} member(s)`);
 
   end(sc, `on returned ${onHandleForm} at ['ev'] and the write ran the function 1× with the address ["ev","child"]; a second on at the held address answered the SAME handle and replaced the function (first 1×, second 2×); a non-function listener and the malformed address 'ev.bad' each answered AddressMalformed in the single verbose form and left the register unchanged; off(${JSON.stringify(h)}) answered undefined and the address fired ${w4.triggered.length} member(s) afterwards; unlisten withdrew the store-side entry only, with the re-listen minting a DIFFERENT handle and the old function never firing; the file-tier save on the terminal arm at ${filePath2} stands and the FRESH instance read 'DURABLE-13' back with an EMPTY home`);

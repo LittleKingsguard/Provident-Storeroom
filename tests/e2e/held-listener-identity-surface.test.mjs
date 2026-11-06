@@ -9,7 +9,7 @@
 //
 // | # | The state | Its pin | Its cell |
 // | --- | --- | --- | --- |
-// | 1 | the product's OWN MEMBER SET is exactly fourteen, `10 + 1 + 1 + 2 = 14` | `§2.7` item 9 | `hli_surface_the_member_set_is_exactly_the_fourteen_declared_names` |
+// | 1 | the product's OWN MEMBER SET is exactly fifteen, `10 + 1 + 1 + 2 + 1 = 15` | `§2.7` item 9 | `hli_surface_the_member_set_is_exactly_the_fourteen_declared_names` (a retained id, noted over its cell) — **⟶ CORRECTED 2026-11-06: this row printed fourteen and `10 + 1 + 1 + 2 = 14`; the landing took the set 14 → 15, `readTiered` the fifteenth** |
 // | 2 | BOTH remove members are reached through the FACTORY'S PRODUCT and neither is a module export | `§2.7` item 9 item 3 | `hli_surface_the_two_remove_members_are_members_and_no_module_exports` |
 // | 3 | `S-1` a fresh store, empty `listeners`, no constraint | `§3` `S-1` | `hli_surface_a_fresh_store_is_the_declared_empty_state` |
 // | 4 | `S-2` `listen(h,[A])` writes the entry OFF; `register` clears it; the body fires at a write at `A` | `§2.2` item 5 (a)–(b) | `hli_surface_listen_then_register_arms_the_handle_and_it_fires_once` |
@@ -79,22 +79,22 @@ function counting() {
 const passing = () => true;
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════
-// §2.7 item 9 — THE MEMBER SET IS EXACTLY FOURTEEN
+// §2.7 item 9 — THE MEMBER SET IS EXACTLY FIFTEEN — ⟶ CORRECTED 2026-11-06: this banner printed FOURTEEN and the landing took the set 14 → 15
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════
-
+// **THE ID BELOW IS RETAINED BY ITS OWN HISTORY AND NOT BY ITS FIGURE** — `hli_surface_the_member_set_is_exactly_the_fourteen_declared_names` is this row's registered reporting name, exactly as `THE_FOURTEEN` is kept in `tests/integration/js-constraints/held-listener-identity-helpers.mjs:337`, and a rename would move an identity a census reads by name; **its figure is FIFTEEN, `10 + 1 + 1 + 2 + 1 = 15` ✓. ⟶ CORRECTED 2026-11-06: this id printed its row's fourteen and the landing took the set 14 → 15**
 test('hli_surface_the_member_set_is_exactly_the_fourteen_declared_names', () => {
-  // **THE FIGURE, PRINTED WITH ITS TERMS IN THE CLAUSE ITSELF: `10 + 1 + 1 + 2 = 14` ✓** — the `10` being
+  // **THE FIGURE, PRINTED WITH ITS TERMS IN THE CLAUSE ITSELF: `10 + 1 + 1 + 2 + 1 = 15` ✓** — the `10` being
   // the ten methods `A127` moved off the module namespace, the first `1` `register`, the second `1`
-  // `constraints`, and the `2` the two NEW members (`contract.md §2.7` item 9; `removal-members.md §7`
-  // item 2; `P: docs/pending.md · (AA-5)`: *"the member set is 14 and the `12 → 13` figure is withdrawn by
-  // name"*). **A THIRTEEN OR A TWELVE HERE IS `RF-8`** (`removal-members.md §8`).
+  // `constraints`, the `2` the two NEW members, and the last `1` the fifteenth, `readTiered` (`contract.md §2.7`
+  // item 9; `removal-members.md §7` item 2; `P: docs/pending.md · (AA-5)`, whose `14` is the reading of its own
+  // date). **A THIRTEEN OR A TWELVE HERE IS `RF-8`** (`removal-members.md §8`). **⟶ CORRECTED 2026-11-06: this printed `10 + 1 + 1 + 2 = 14` and the landing took the set 14 → 15**
   const inst = makeStore();
   const own = Object.getOwnPropertyNames(inst).filter((k) => typeof inst[k] === 'function').sort();
   assert.deepEqual(own, [...THE_FOURTEEN].sort(),
-    'the product\'s own callable member set is EXACTLY the fourteen declared names — read '
-    + JSON.stringify(own) + ' (`contract.md §2.7` item 9; `removal-members.md §8` `RF-8`)');
-  assert.equal(own.length, 14,
-    'and the count is `14`, `10 + 1 + 1 + 2 = 14` — NOT thirteen and NOT twelve '
+    'the product\'s own callable member set is EXACTLY the fifteen declared names — read '
+    + JSON.stringify(own) + ' (`contract.md §2.7` item 9; `removal-members.md §8` `RF-8`) — ⟶ CORRECTED 2026-11-06 by `U-STOREROOM-TIER-READOUT`: this message printed `fourteen` while the assertion beside it at `:96` read `15`, its own subject having moved when `readTiered` landed');
+  assert.equal(own.length, 15,
+    'and the count is `15`, `10 + 1 + 1 + 2 + 1 = 15` — NOT thirteen and NOT twelve '
     + '(`contract.md §2.7` item 1: "THE MEMBER SET MOVES `12 → 14`, NOT THIRTEEN")');
 });
 

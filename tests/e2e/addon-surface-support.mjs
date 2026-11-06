@@ -5,7 +5,9 @@
 // `addon-surface-properties.test.mjs` must READ RATHER THAN RESTATE — so that a figure lives in ONE place
 // per file-set and a reader can check it against the clause it cites:
 //
-//   1. **`DECLARED_SURFACE`** — the thirteen entries and their arities, `export-set-and-dispatch.md §1`.
+//   1. **`DECLARED_SURFACE`** — the sixteen entries and their arities, `export-set-and-dispatch.md §1`'s four
+//      standing and nine per-verb, read with the three rows that arrived after the split (`restoreMark`,
+//      `journalMark`, and 2026-11-06's `readTiered`).
 //   2. **`THE_THREE_THAT_ARE_NOT_ENTRIES`** — `call` · `commit` · `constraints`, `§2`.
 //   3. **`OPEN_OWED`** — the two `OWED` items `contract.md §7` carries, with the SHAPE each one decides and
 //      the STRUCTURE each one does not. **A cell reads this list and asserts the shape; no cell anywhere in
@@ -116,12 +118,37 @@ export const PER_VERB_ELEVENTH = [
   { name: 'journalMark', arity: 0, clause: 'src/store.rs §6.6 — the journal\'s last valid mark, read at the commit opening' },
 ];
 
-/** **THE FIFTEEN, AS ONE SET** — `4 + 9 + 1 + 1 = 15 ✓` (`§1`'s own `[CENSUS]`, read with `PER_VERB_TENTH` and
- *  `PER_VERB_ELEVENTH`). **THE PRODUCT'S FOURTEEN ARE UNMOVED**: every one of the fourteen keeps its name and
- *  its arity, and the fifteenth is an ADDON entry the product never carries. */
-export const DECLARED_SURFACE = [...STANDING_FOUR, ...PER_VERB_NINE, ...PER_VERB_TENTH, ...PER_VERB_ELEVENTH];
+/**
+ * **⟶ THE TWELFTH PER-VERB ENTRY, ADDED 2026-11-06 (`U-STOREROOM-TIER-READOUT`, `D-121-ter` item 5) — AND IT
+ * JOINS THE NINE RATHER THAN STANDING BESIDE THEM.**
+ *
+ * `readTiered` is the PRODUCT's third read verb: `read`'s own two declared positions (the address and the
+ * tier), `read`'s own declared walk and refusal set, with the answer compiled — `{ _tier, …members }` at an
+ * object node, `{ _tier, value: [ … ] }` at an array node, `{ _tier, value: <literal> }` at a leaf node
+ * (`bindings/js/src/facade.rs`'s entry, `bindings/js/src/crossing.rs`'s delegate). **So it is the TENTH of
+ * the per-verb group the NINE names**, not a second entry beside the two the journal added, and the two
+ * beside them (`restoreMark`, `journalMark`) keep their own two. **IT ADDS NO MEMBER TO THE PRODUCT'S
+ * FIFTEEN** — it IS one of them, at the boundary's own entry, and `bindings/js/index.mjs` reaches it exactly
+ * as it reaches `read`. **SO THE SET IS `4` STANDING + `9` PER-VERB + `1` BESIDE THEM + `1` MORE BESIDE THEM
+ * + `1` OF THE PER-VERB GROUP = `16`.**
+ *
+ * **ITS ARITY IS `3` AND THE POSITIONS ARE `read`'s** — the address, the tier, and the absent-carrier slot the
+ * package fills: `readTiered(address, tier?)`. **THE ARITY IS `read`'s OWN `3` IN THIS FILE'S COUNTING** (`§4`:
+ * the arguments a caller supplies, the two declared positions plus the package's own absent carrier), so the
+ * row is driven at its declared arity and at ±1 exactly as `read`'s is.
+ */
+export const PER_VERB_TWELFTH = [
+  { name: 'readTiered', arity: 3, clause: 'facade.rs\'s `readTiered` entry, 2026-11-06 — "the compiled read, `read`\'s own two positions with the answer compiled"' },
+];
 
-/** The thirteen NAMES, sorted — the form `S-EXPORT-SET` asserts against, *"assert equality with the declared
+/** **THE SIXTEEN, AS ONE SET** — `4 + 9 + 1 + 1 + 1 = 16 ✓` (`§1`'s own `[CENSUS]`, read with
+ *  `PER_VERB_TENTH`, `PER_VERB_ELEVENTH` and `PER_VERB_TWELFTH`). **THE PRODUCT'S FIFTEEN ARE UNMOVED**: every
+ *  one of them keeps its name and its arity, and the sixteenth is the ADDON entry the product's own member set
+ *  reaches at this same moment — `readTiered`, the tenth of the per-verb group. */
+export const DECLARED_SURFACE = [...STANDING_FOUR, ...PER_VERB_NINE, ...PER_VERB_TENTH, ...PER_VERB_ELEVENTH,
+  ...PER_VERB_TWELFTH];
+
+/** The sixteen NAMES, sorted — the form `S-EXPORT-SET` asserts against, *"assert equality with the declared
  *  set, sorted"* (`contract.md §5`, `P-SAS-1`). */
 export const DECLARED_SURFACE_NAMES_SORTED = DECLARED_SURFACE.map((e) => e.name).sort();
 

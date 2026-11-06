@@ -6168,3 +6168,141 @@ moves (`0` decided by this row), the statuses it mints (`0`), the questions left
 **THE UNIT, MINTED BY THE SUPERVISOR ON THIS WORD.** **Unit id: `U-STOREROOM-REGISTRATION-OWN-MEMBERS`** — the subject is the instant and the rule, and the id names both. **Its contract directory, at gate 2: `docs/specs/storeroom-registration-own-members/`.** **Prefix `D-GP-SROM` — PROPOSED BY THE SUPERVISOR AND FILED BY THE ARCHITECT** (`D-GP-SCRI`'s precedent: a prefix is the architect's to file). **The intake record this unit derives from is `strata/research.md` `§15`; the defect rows it closes are `docs/specs/storeroom-repair-arm-surface/contract.md` `§4` items 3 and 4; the corpus cell it cures is `docs/specs/storeroom-constraints/contract.md:361`-`:405`; and the ruling the reads regress against is `D-35` as closed by `D-36`.**
 
 **TERMS: the questions answered (`4`), the answers that take the recommended option (`4`), the read sites this row puts in the unit's subject (`2`), the reads it declares unmoved (`3`), the version it names (`1` = `1.9.3`, PATCH), the acceptance limbs it requires (`3`), the corpus cells it opens (`1`), the cells it opens beyond that one (`0`), the statuses it mints (`0`), the types it moves (`0`), the code bytes this row moves (`0`), the units it mints (`1`).**
+
+---
+
+### `D-121` — ★ **A READ CARRIES THE TIER WHEN THE CALLER ASKS: an OPT-IN read option that, compiling to JSON, stamps `_tier` on objects and replaces leaf literals with `{ _tier, value }`**
+
+**DATE:** 2026-11-06. **BRANCH:** `main`. **HEAD:** `2c2b882`. **SOURCE:** the architect, in session, answering the supervisor's gate-1 record `strata/proposals.md` `P-1` (which carried verdict `BLOCKED-ON-SEMANTICS`, ten questions and six priced alternatives) with **a shape rather than a per-question answer**. **STATUS: `ACTIVE`.** **THE RULING, VERBATIM:**
+
+> "Add an additional read option that, when compiling to JSON, adds a `_tier` field to objects and replaces the literals on leaf nodes with objects with a `_tier` and `value` keyset"
+
+**WHAT IT SETTLES.**
+
+1. **THE CARRIER IS AN OPT-IN OPTION ON THE READ — AND IT IS THE FIRST OF `P-1`'s SIX SHAPES TO BE CHOSEN.** It is **not** an envelope replacing `read`'s answer (alternative `a`), **not** a default member on every answer (alternative `b`), **not** a second verb (alternative `c`), **not** documentation alone (alternative `d`), and **not** a hidden symbol channel (alternative `e`). **A caller who does not ask receives today's answer, byte for byte** — so the default arm is unmoved, and with it `P-SR-1`'s member-set relation (`docs/specs/storeroom-js/contract.md:1150`), the `67` `assert.deepEqual` sites over a `read(…)` answer measured in `11` files, and the two shipped measured prose sentences (`RELEASE-NOTES.md:361` and its landing, *"`store.read(['v'])` answers its value and the object's own names are `["v"]`"*).
+
+2. **THE COMPILATION INSTANT IS THE JSON ENCODING, AND NOT THE STORED DATA.** The words are *"when compiling to JSON"*, with *"the literals on leaf nodes"* and *"objects"* — **so the transformation belongs to the answer's ENCODING and never to what the store holds.** **THE STORE'S OWN ANSWER IS NOT RE-DECLARED:** arm `R-1`'s *"its value, verbatim"* (`docs/specs/storeroom-native/contract.md:2228`), `R-2`'s *"one member per key"* (`:2229`), `R-5` (`:2232`) and `readLiteral`'s *"the same absence of any wrapper"* (`:2190`) **stand as the DEFAULT arm's law, and the option is a second arm beside them.** **NO BYTE OF ANY STORED VALUE MOVES, and no member is minted into the caller's data** — which is what keeps `docs/specs/storeroom-json-crossing/contract.md:836`'s exact-member-set rule and `P-SR-1` intact: what the option changes is the **shape of the answer the caller asked to be compiled**, not the shape of the tree.
+
+3. **THE TWO NODE FORMS, AND `Q-6` IS ANSWERED BY THE WRAPPER RATHER THAN BY AN EXEMPTION.** **An OBJECT node gains a `_tier` field. A LEAF node is REPLACED by an object with a `_tier` key and a `value` key.** So **the primitive-leaf obstacle that made `P-1` `BLOCKED-ON-SEMANTICS` is discharged by the ruling's own shape**: nothing is asked of a JS primitive, because in this arm a leaf is no longer delivered as one. **`readLiteral`'s declared indistinguishability at a leaf (`docs/specs/storeroom-native/contract.md:2191`-`:2192`) is a fact of the DEFAULT arm and is not narrowed here** — the two forms differ only in what they refuse, and the option is an argument, not a verb.
+
+4. **`_tier` AND `value` ARE THE NAMES, GIVEN AS WORDS.** They are the architect's, not a layer's to rename — **a design pass may not silently re-spell either**, and a collision with a caller's own stored key is a consequence **this row leaves open** (below), not a licence to rename.
+
+**WHAT IT DOES NOT SETTLE, EACH PUT BACK TO THE ARCHITECT IN THE SAME SESSION AND ANSWERED NOWHERE YET.**
+
+- **THE ARRAYS.** **A JSON array cannot carry a `_tier` field.** The ruling names *"objects"* and *"leaf nodes"*; **an array node is neither**, and the three readings (a bare array of compiled elements; `{ _tier, value: [...] }` on arrays too; a bare array whose elements are compiled) are **not** the same contract and **not** the same crossing. **This is the one gap that blocks scoping a unit**: it decides whether the answer's shape is a total function of node kind.
+- **THE TIER ON A NODE WHOSE MEMBERS STAND AT DIFFERENT TIERS.** `(key, tier)` is the composite key (`docs/specs/storeroom-native/contract.md:3302`) and the monotonic clause holds a child at the same or a **less** persistent tier than its parent, **so a node's own anchor tier is well defined and is the most persistent in its subtree** — but *"adds a `_tier` field to objects"* does not say whether the field reports **that node's own tier** or something else. **`P-1`'s `Q-1` and `Q-2` are not answered by the shape**, which settles the carrier and not the referent.
+- **A CALLER'S OWN STORED `_tier` KEY.** Any string is a legal register key, and in this arm the compiled object would carry **both** the caller's stored `_tier` and the minted one. **`P-1`'s `Q-4`'s collision is MADE, not avoided, by the ruling's own spelling** — the ruling gives the name and leaves the collision's disposition unnamed.
+- **THE OPTION'S REACH AND THE WRITE-BACK.** Whether the option reaches `read`/`readLiteral` alone (its words say *"read option"*) **or also the constraint's and repair's `context.value`, which is itself a zero-tier read** (`bindings/js/src/entry/kernel-registration.mjs:427`); and what a caller who hands a compiled answer back to `write` is storing — **the copy-in walk reads `Object.keys` (`bindings/js/src/entry/carrier.mjs:364`), so a compiled answer written back stores `_tier` and the wrappers as the caller's data.** **No clause of this corpus says what that must do.**
+
+**NO UNIT IS MINTED BY THIS ROW.** `P-1`'s verdict was `BLOCKED-ON-SEMANTICS` and **the block is partly discharged and partly not**: the carrier is decided, the leaf obstacle is discharged, and **four gaps above are undecided — the first of them (arrays) is enough on its own to make a contract directory unscopeable**, because it fixes the answer's shape. **The unit is minted on the architect's next word, not on this one**; when it is, its intake is `strata/proposals.md` `P-1` and this row, and its contract directory is `docs/specs/storeroom-tier-readout/` (a name the supervisor proposes and the architect files, `D-GP-SCRI`'s precedent).
+
+**TERMS: the shapes this row chooses (`1` = the option, of `P-1`'s `6`), the shapes it refuses by choosing (`5`), the node forms it names (`2` = object gains a field, leaf becomes `{ _tier, value }`), the names it fixes (`2` = `_tier`, `value`), the default-arm bytes it moves (`0`), the stored-data bytes it moves (`0`), the cells it turns on the default arm (`0`), the questions it answers from `P-1`'s ten (`1` = `Q-6`, by the wrapper), the gaps it leaves to the architect (`4`), the units it mints (`0`).**
+
+### `D-121-ter` — the four gaps CLOSE, and the carrier is a THIRD READ VERB: `readTiered(address, tier?)`
+
+**DATE:** 2026-11-06. **BRANCH:** `main`. **HEAD:** `2c2b882`. **SOURCE:** the architect, in session, answering the four gaps `D-121` left and then naming the verb, each answer given as the supervisor's offered option or in his own words. **STATUS: `ACTIVE`.** **THE ANSWERS, VERBATIM AS PUT:**
+
+> 1. Arrays: "Wrap arrays too: {_tier, value: [...]}"
+> 2. The tier's referent: "Each node's own tier, recursively"
+> 3. Collision: "Minted `_tier` wins; declared, default read still shows the truth"
+> 4. Reach: **"third read verb only"** — HIS OWN WORDS, not an offered option
+> 5. The name: "readTiered(address, tier?)"
+
+**WHAT IT SETTLES — AND THE FOURTH ANSWER MOVES THE CARRIER THIS TIME, NOT THE ENCODING.**
+
+1. **THE ARRAYS ARE WRAPPED: an array node answers `{ _tier, value: [...] }`.** **SO EVERY NODE IN `readTiered`'s ANSWER IS AN OBJECT** — an object node carries its members inline beside the minted `_tier`, and an array node and a leaf node each carry `value` — **and the compiled shape is a TOTAL function of node kind: `object → { _tier, …members }`, `array → { _tier, value }`, `leaf → { _tier, value }`.**
+
+2. **EVERY NODE REPORTS ITS OWN TIER, RECURSIVELY** — an object's `_tier` is that node's own anchor tier, an array's is that node's own anchor tier, and a **leaf's is the tier of the version the read selected** (`src/store.rs:1143`–`:1152`'s lowest-rank selection). **`P-1`'s `Q-1` AND `Q-2` ARE THEREFORE ANSWERED: the referent is the node's own version's tier and never a set** — and by the monotonic clause (`rank(child.tier) ≤ rank(parent.tier)`) a node's tier is the **most** persistent in its own subtree, so an answer's shape carries the persistence ladder in its `_tier` fields.
+
+3. **ON A COLLISION THE MINTED `_tier` WINS, AND THE CONSEQUENCE IS DECLARED RATHER THAN SILENT:** **a stored `_tier` member is NOT DELIVERED by `readTiered`** — the compiled field is the store's — **while the DEFAULT `read` still answers the caller's stored value**, so nothing is destroyed and the truth is reachable. **This is the one place a read answer is LOSSY, and it is lossy in one field of one verb only.**
+
+4. **THE REACH IS A THIRD READ VERB AND NOTHING ELSE — `D-121`'s *"read option"* LANDED AS `P-1`'s ALTERNATIVE `(c)`, NOT AS AN ARGUMENT ON THE EXISTING TWO.** **`read` and `readLiteral` gain NO position, no default and no arm**; the constraint's and repair's `context.value` is **untouched** (`kernel-registration.mjs:427`'s zero-tier read stays as it is); the listener's one-argument invocation is **untouched**. **So the default arm is doubly unmoved: it is unmoved by the encoding AND unreached by the verb.**
+
+5. **THE NAME IS `readTiered`, WITH `read`'s OWN ARITY AND `read`'s OWN DECLARED WALK AND REFUSAL SET** — `readTiered(address: Address, tier?: TierSet)` — **its tier argument read exactly as `read`'s is** (absent, one token, or an any-match array; a supplied `undefined` refused), **its walk the same `L-1`/`L-3`/`L-TIER`/`L-4` set** (`docs/specs/storeroom-native/contract.md:1715`–`:1768`), **and its only difference the compilation of the answer.** **`readLiteral` has NO tiered twin**: the compiled form is node-kind-driven, so there is nothing for a literal-only narrowing to add.
+
+**THE UNIT, MINTED BY THIS WORD.** **Unit id: `U-STOREROOM-TIER-READOUT`**; **contract directory `docs/specs/storeroom-tier-readout/`**; **prefix `D-GP-TRO`** — proposed by the supervisor, fileable by the architect (`D-GP-SCRI`'s precedent). **Its intake is `strata/proposals.md` `P-1`; its ruling is `D-121` as completed here; its published class is `MINOR` on `PUB-DD-9`'s own words** (*"a member ADDED to the declared surface"*, `docs/specs/storeroom-publish/contract.md:117`) — **the instance moves `14 → 15` members, the addon's export census moves `11 → 12` (`bindings/js/src/facade.rs:375`), and the declaration lands in TWO files** (`bindings/js/index.d.ts` and its `typecheck/node_modules/provident-storeroom/index.d.ts` copy).
+
+**WHAT IT DOES NOT SETTLE, EACH LEFT TO A LAYER BELOW.**
+- **The cells, the property rows and the cut's arithmetic** — the test and delivery layers'.
+- **THE WRITE-BACK, DECLARED HERE AS A CONSEQUENCE AND NOT RULED:** a caller who hands a `readTiered` answer to `write` is storing `_tier` and `value` **as ordinary data** (`bindings/js/src/entry/carrier.mjs:364`'s `Object.keys` walk), **no clause forbids it and no clause blesses it.** **If it needs a rule it needs a fresh word; until then a docblock must SAY SO rather than leave it discovered.**
+- **Whether `readTiered`'s answer is the same `StoreValue` tree the crossing admits at all** — it is not a stored value and does not round-trip, **so the crossing's `P-SR-1` relation is not this verb's** and the gate-2 record owes that statement rather than a silent assumption.
+
+**TERMS: the gaps answered (`4`), the answers given in the architect's own words rather than an option (`1` = the reach), the names he filed (`3` = `_tier`, `value`, `readTiered`), the node kinds the answer's shape closes over (`3`), the positions the two existing read verbs gain (`0`), the arms of the default read that move (`0`), the instance's member set (`14 → 15`), the addon's export census (`11 → 12`), the type cells the cut moves (`11`), the published class (`1` = `MINOR`), the units minted (`1`).**
+
+### `D-121-quater` — the `MINOR`'s corpus marks are GRANTED, and the write-back stays a DOCBLOCK
+
+**DATE:** 2026-11-06. **BRANCH:** `main`. **HEAD:** `2c2b882`. **SOURCE:** the architect, in session, answering the two questions the supervisor put after the gate-4 re-read (`role_l1_examiner`, `SHIP-WITH-CONDITIONS`) showed that both were live and neither was a layer's to close. **STATUS: `ACTIVE`.** **THE ANSWERS, VERBATIM AS PUT:**
+
+> 1. The grant: "Grant it, in this unit, as dated marks"
+> 2. The write-back: "Docblock only"
+
+**WHAT IT SETTLES.**
+
+1. **THE GRANT IS TAKEN IN THIS UNIT — THREE DATED MARKS, APPEND-ONLY, AND `D-87` (1)'s SCOPE IS WIDENED TO EXACTLY THEM.** A fifteenth member falsifies three kept clauses and `D-87` (1) grants no scope inside them; **this row grants it, bounded:**
+   - **`docs/specs/storeroom-publish/contract.md:117`** — `PUB-DD-9`'s own words make a `MINOR` *"a BOUNDED AMENDMENT of this contract"*, so the amendment is **the contract's own requirement and not an exception to it.**
+   - **`docs/specs/storeroom-held-listener-identity/contract.md:508`–`:510`** — `P-HL-7`'s FOURTEEN is falsified by the fifteenth member, and its `12 → 14` figure at `:299` reads through it.
+   - **`docs/specs/storeroom-native/contract.md §4.1`'s verb family** — **ONLY if `Q-1` answers YES and the compilation is store-side**, in which case the new read-side verb needs its family clause.
+   **EACH MARK APPENDS, DELETES NOTHING, MOVES NO STANDING BYTE, MINTS NO SECOND CELL AND OPENS NO OTHER SUBJECT** (`RCA-8(g)` annotate-beside), and **no fourth clause is in the grant.**
+2. **THE WRITE-BACK STAYS A DECLARED CONSEQUENCE — NO RULE, NO REFUSAL, NO STRIP.** A caller who hands a `readTiered` answer to `write` stores `_tier` and `value` **as ordinary data** (`bindings/js/src/entry/carrier.mjs:364`'s `Object.keys` walk), **and the ONE obligation is that the member's docblock SAYS SO** — nothing is forbidden and nothing is blessed. **A refusal and a strip are both DECLINED** — a refusal would need a marker that distinguishes a minted `_tier` from one the caller meant and this ruling has given none, and a strip would move the crossing's write path for every value.
+
+**WHAT IT DOES NOT SETTLE.** **`Q-1` (may the compilation be store-side), `Q-2` (the `TieredNode` return type or `unknown`) and the seven gate-4 conditions** — the first two are the layer below's with defaults marked, the third is the correction pass's and must re-run gate 4 when it lands. **And it grants no amendment beyond the three clauses named in item 1.**
+
+**TERMS: the questions answered (`2`), the marks granted (`3`, the third conditional on `Q-1`), the clauses the grant opens (`3`), the clauses it opens beyond them (`0`), the rules the write-back gains (`0`), the refusals declined (`1`), the strips declined (`1`), the obligations the docblock carries (`1`), the gate-4 conditions this row closes (`0`), the units it mints (`0`).**
+
+### `D-121-quinquies` — `Q-1` and `Q-2` ANSWERED, on the defaults: the store compiles, and the return type is the declared `TieredNode` union
+
+**DATE:** 2026-11-06. **BRANCH:** `main`. **HEAD:** `2c2b882`. **SOURCE:** the architect, in session, in his own words: **"Accept default on questions"** — the two questions the gate-2 directory left open at its `§8`, which `D-121-quater` had already declared to be the layer below's with defaults marked. **STATUS: `ACTIVE`.** **THE ANSWERS, TAKEN AS THE DEFAULTS THE DIRECTORY PRINTED:**
+
+> 1. **`Q-1` — WHERE THE COMPILATION LIVES: the DEFAULT, which is YES.** A **STORE-SIDE** read whose answer is an **ordinary `StoreValue`** — candidate (a) of `PIN-10`'s price table.
+> 2. **`Q-2` — THE DECLARED RETURN TYPE: the DEFAULT, which is THE DECLARED `TieredNode` UNION** rather than `unknown` like its two siblings.
+
+**WHAT IT SETTLES.**
+
+1. **THE MECHANISM IS DECIDED AND `PIN-10`'s `OPEN` MARK CLOSES ON CANDIDATE (a).** The compilation is a **new read-shaped store function beside `assemble`** that stamps each selected node's `anchor.tier` (public at `src/records.rs:84`) into the object it mints, reached through **one new `#[napi]` entry** and **one new instance member**. **THE PRICE (a) WAS PRICED AT IS NOW THE LAW OF THE LANDING:** the tiers cross **as ordinary strings inside an ordinary tree**, so `to_js_value`/`decodeValue` are **unmoved** — **no new crossing form, no new value kind, no second assembly, and the codec gains no byte.** **Candidate (b)** (an intermediate tier-carrying structure compiled at the facade) is **not taken**, and **candidate (c)** (a JS-side re-walk over a per-node native probe) stays **refused** on `A63` (`docs/specs/storeroom-js/contract.md:2207`–`:2209`) — **this row does not license it, and a pass that builds it has left the unit.**
+2. **THE THIRD GRANT MARK IS LIVE AND OWED — IT IS NO LONGER CONTINGENT.** `D-121-quater` item 1's third mark (`docs/specs/storeroom-native/contract.md §4.1`'s verb family) was made conditional on `Q-1` answering YES; **`Q-1` has now answered YES, so the third mark is OWED BY THIS UNIT'S LANDING** and the grant stands at **three taken, none contingent, and no fourth.**
+3. **THE TYPECHECK FIXTURE STAYS IN THE WRITE SET — ITS CONDITION IS NOW MET.** `PIN-1` (vii) made `typecheck/consumer-fixture.ts` conditional on `Q-2`'s default; **`Q-2` has answered with that default, so the fixture is IN the write set** and owes positive cells for the new verb. **The alias IS the return type**, exactly as `PIN-1`'s reconciliation states (`readTiered(…): TieredNode`), so the union is the return type's own declaration and not a type line beside it. **A `TieredNode` used anywhere else remains forbidden.**
+
+**WHAT IT DOES NOT SETTLE.** **The landing itself** — the code, the cells, the prose, the three marks and the `1.10.0` cut are gate 3's, and this row orders no byte moved. **And the two cosmetic gate-4 conditions** (`PIN-3` (iv) and `PIN-9` (vii) pointer labels; `claims.md`'s `§17.4` range) remain the correction pass's, and gate 4 must re-run on them when they land.
+
+**TERMS: the questions answered (`2`), the answers taken from the directory's own defaults (`2`), the candidates refused (`1` = (c), on `A63`), the candidate not taken (`1` = (b)), the grant marks made live (`3`), the grant marks still contingent (`0`), the codec bytes this row moves (`0`), the instances of `readTiered` this row writes (`0`), the units it mints (`0`).**
+
+### `D-122` — ★ THE GUIDE IS CORRECTED, not the contract: Side A is the reading, and the shadow sentence is a defect
+
+**DATE:** 2026-11-06. **BRANCH:** `main`. **HEAD:** `2c2b882`. **SOURCE:** the architect, in session, on the question
+`strata/research.md §17` filed — *"which side is the guide supposed to be on: the docs correct it, or you rule the contract
+wrong"* — answered in his own words: **"Correct guide"**. **STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE CONTRACT AND THE CRATE ARE RIGHT AND THE GUIDE IS WRONG.** `docs/guides/package-use.md`'s `§5.1` sentence —
+   *"the newer version is added alongside and **the more persistent one wins the unqualified read**"* (`:386`–`:387`) — **is a
+   DEFECT and is corrected to the store's own rule:** an unqualified read selects the **LOWEST-persistence** version
+   (`temp` before `mem` before `file`), which is the **shadowing** one. **The ground is the crate's own selection**
+   (`src/store.rs`'s `select_member` → `lowest`, `min_by_key(rank)`), **the operative contract's eight statements of it**
+   (`docs/specs/storeroom-native/contract.md:1789`–`:1794`, `:3304`, arm `R-4` at `:2233`, arm `W-5` at `:2006`, the `read` row
+   at `:1863`, `DD-12` at `:470`, the assembly clause, and **the failure list at `:2588` — *"a read that answers the
+   higher-persistence version"* is a DECLARED FAILURE**), **the measured battery**
+   (`tests/integration/store-core/walk_and_resolver.rs:316`–`:343`, `properties.rs:469`–`:485`), **and `D-121-ter:6215`, which
+   quotes the lowest-rank selection as the read's own rule.** **`docs/specs/storeroom-native/contract.md`'s selection is NOT
+   re-ruled and no clause of it moves.**
+2. **THE CORRECTION IS PROSE AND IT SHIPS.** The canonical home is `docs/guides/package-use.md`; **the landing
+   `bindings/js/README.guide.md` is GENERATED and is re-staged from it by the publish script's own assembly, never hand-edited**
+   (`scripts/publish.sh:108`–`:120`; the landing ships in the package's `files`). **NO CODE, NO STATUS, NO MEMBER, NO CELL AND NO
+   CONTRACT CLAUSE MOVES — the unit's own `readTiered` and the whole `1.10.0` landing stand exactly as certified.**
+3. **THE SAME FALSE CLAIM IS CORRECTED WHEREVER ELSE IT STANDS.** `strata/brief.md:219`–`:220` carries the guide's
+   **definition** of `shadow` (*"the key holds a **more** persistent version than the write's"*) on the contract's
+   **predicate** (*"the shadow wins the unqualified read"*), so its sentence reads the wrong way by its own definition —
+   **it is corrected at the brief too.** **`strata/research.md §17`'s finding is thereby DISCHARGED, and its `§17.4` census
+   stands as the record of what the carriers said at its date.**
+4. **THE RELEASE.** The `1.10.0` cut is **unreleased at this date** (no tag is claimed), so **the correction RIDES it: no version
+   cell moves, no fourth generated version line appears, and the `1.10.0` note's own subject — the tier readout — is unchanged.**
+   **A published tag's guide may not be corrected in place**; were `1.10.0` already published, this word would owe a `PATCH`.
+
+**WHAT IT DOES NOT SETTLE.** **Whether the guide's `§5.1` should carry an ADDITIONAL sentence telling a consumer how to pin a
+version** — the tier argument already does it (`read(address, 'file')`), and the corrected sentence now says which one answers
+without one. **No new prose beyond the correction is ordered by this row**, and no clause of `docs/guides/**` other than the
+false claim moves.
+
+**TERMS: the side chosen (`1` = Side A), the sides refused (`1` = Side B), the guide sentences corrected (`1`), the landing
+re-staged (`1`), the brief sentences corrected (`1`), the contract clauses re-ruled (`0`), the code bytes moved (`0`), the cells
+turned (`0`), the version cells moved (`0`), the units it mints (`0`).**

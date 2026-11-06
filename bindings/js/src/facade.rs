@@ -372,8 +372,17 @@ pub fn storeCreate(env: Env, cfg: JsVal<'_>) -> NapiRet<'static> {
 // store's own journal read — the last VALID mark of the record (`src/store.rs`'s `journalMark`) — and its one
 // caller is the package's own commit opening (`state.mjs`'s `openCommit`), which caches the mark on the window
 // it opens so a later compensating act restores the position the commit found. **THE SET THIS FILE DECLARES IS
-// THEREFORE `9 + 2 = 11` PER-VERB AND `4 + 11 = 15` IN ALL**, and **NO NAME THE NINE OR THE TENTH CARRY MOVES**:
+// THEREFORE `10 + 2 = 12` PER-VERB AND `4 + 12 = 16` IN ALL**, and **NO NAME THE NINE OR THE TENTH CARRY MOVES**:
 // every one of the fourteen keeps its name and its arity, and the eleventh is declared in its own group.
+//
+// **⟶ AND A TWELFTH STANDS BESIDE THE ELEVEN, ADDED 2026-11-06 (`readTiered`, `U-STOREROOM-TIER-READOUT`,
+// `D-121-ter` item 5), AND IT JOINS THE NINE RATHER THAN STANDING BESIDE THEM**: it is the PRODUCT's third read
+// verb — `read`'s own two positions, `read`'s own declared walk and refusal set, with the answer compiled — so
+// it is the TENTH of the per-verb group the NINE names, the two beside them (`restoreMark`, `journalMark`)
+// keeping their two. **THE CENSUS ABOVE READS THROUGH THIS CLAUSE**: `10 + 2 = 12` PER-VERB and `4 + 12 = 16`
+// IN ALL, the figure that the 2026-10-27 clause above carried having moved with it, and **NO
+// NAME ANY OF THE ELEVEN CARRIES MOVES** — the fourteen keep their names and their arities, and the twelfth is
+// the new one alone.
 //
 // **THE DISPATCHER'S STRING INDIRECTION GOES** (`contract.md §2` item 2; `§3`): `call(instance, verb, args)`
 // matched the verb as a JS string across nine arms and showed as its own frame with the verb as DATA. **THE
@@ -391,9 +400,11 @@ pub fn storeCreate(env: Env, cfg: JsVal<'_>) -> NapiRet<'static> {
 // **THE ARITIES ARE THE CLAUSE'S OWN TABLE, COUNTED FROM THE VERB'S OWN POSITIONS** (`§1`; `§4`), and they
 // were corrected here: the five- and three-position readings this cell carried were the PRE-REMOVAL ones and
 // included the instance position, which is gone. The live table is
-// `read`(2) · `readLiteral`(2) · `write`(4) · `delete`(2) · `rollback`(1) · `restoreMark`(1) · `journalMark`(0) ·
-// `listen`(2) · `unlisten`(1) · `removeListener`(1) · `commitFile`(1) — and each equals its entry's declared
-// `#[napi]` parameter count below, the receiver excluded because it is not a declared parameter. **`restoreMark`'s
+// `read`(2) · `readLiteral`(2) · `readTiered`(2) · `write`(4) · `delete`(2) · `rollback`(1) · `restoreMark`(1) ·
+// `journalMark`(0) · `listen`(2) · `unlisten`(1) · `removeListener`(1) · `commitFile`(1) — its TWELVE rows, the
+// `readTiered`(2) row added 2026-11-06 beside the two read verbs it is the third of, and each row equals its
+// entry's declared `#[napi]` parameter count below, the receiver excluded because it is not a declared
+// parameter. **`restoreMark`'s
 // one position is the journal MARK** (`OpIdArg`: an op id, or the ABSENT carrier for the journal's head), **and
 // `journalMark`'s ZERO positions are the whole of it** — it reads the store's own record and names the mark that
 // position takes, so there is nothing for a caller to supply.
@@ -405,7 +416,7 @@ pub fn storeCreate(env: Env, cfg: JsVal<'_>) -> NapiRet<'static> {
 // *"the ABSENT carrier for the journal's head"* is `restoreMark`'s reading of the row and not the row's whole
 // meaning**, and the corpus sentence that glossed it as one (`docs/specs/storeroom-native/contract.md` `§6.6` item
 // 1) carries both readings. **NO DECLARED ROW MOVES**: `commitFile`(1) counts one, the six rows of the position's
-// domain stand, and the census above stays `9 + 2 = 11` / `4 + 11 = 15`.
+// domain stand, and the census above stays `10 + 2 = 12` / `4 + 12 = 16`.
 //
 // **`commit` IS NOT AN ENTRY AND NEVER WAS AN ARM**: it is `write`'s FOURTH POSITION, whose class test the
 // package takes before this frame is entered (`§2`; `commitPositionRefusal`). **`constraints` IS NOT AN
@@ -640,6 +651,45 @@ fn verb_read_literal(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_
         let address = codec.address(&address_pos);
         let tier = codec.tier(&tier_pos);
         let value = store.read_literal(&address, &tier)?;
+        Ok(codec.to_js_value(&value))
+    });
+    answer_or_throw(env, answer)
+}
+
+/// **`readTiered` — THE TWELFTH ENTRY, THE THIRD READ VERB AND THE TENTH OF THE PRODUCT'S PER-VERB GROUP**
+/// (`U-STOREROOM-TIER-READOUT`, `D-121-ter` item 5). **ITS TWO DECLARED POSITIONS ARE `read`'s** — the
+/// address and the tier — and its body is `verb_read`'s with the store's own compiled read behind it
+/// (`crossing::Instance::read_tiered`, whose body is `read_literal`'s two calls), so **the receiver, the
+/// codec's `address`/`tier` reads and `codec.to_js_value` are the same three devices and no fourth stands
+/// here**: the answer is an ORDINARY tree whose tiers are ordinary strings, which is why the codec gains no
+/// byte (`D-121-quinquies` item 1).
+///
+/// **THE ARITY TABLE AT THE NINE'S HEAD GAINS ITS TWELFTH ROW FROM THIS ENTRY** — `readTiered`(2) — and the
+/// census sentences follow it: `10 + 2 = 12` PER-VERB and `4 + 12 = 16` IN ALL.
+#[napi(js_name = "readTiered")]
+fn verb_read_tiered(env: Env, receiver: This<Object<'_>>, address_pos: JsVal<'_>, tier_pos: JsVal<'_>) -> NapiRet<'static> {
+    // **THE VERB'S OWN POSITIONS, POSITION FOR POSITION** — `read`'s own two, with the same absent-versus-
+    // supplied-`undefined` rule drawn by `index.mjs`'s `arguments.length` test before this frame is entered
+    // (`crossing.md §1.3`; `PAR-JS-6`): a supplied `undefined` at the tier position is a VALUE and the store
+    // answers `AddressMalformed` for it, while only the call that supplies nothing folds to the absent row.
+    let store_index = match store_index_of(&env, &receiver) {
+        Ok(store_index) => store_index,
+        Err(refusal) => {
+            throw_refusal(&env, &refusal);
+            return Ok(make_undefined(&env));
+        }
+    };
+    let codec = Codec { env, _marker: std::marker::PhantomData };
+    // **THE EXCLUSIVE BORROW IS TAKEN HERE UNIFORMLY, EXACTLY AS `verb_read` TAKES IT**: the delegate itself
+    // takes `&self`, the distinction is not readable off the verb's name, and the borrow is confined to this
+    // closure — released before anything else runs — so a per-entry judgement would buy nothing and could be
+    // mis-classified silently.
+    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|instances| {
+        let mut instances = instances.borrow_mut();
+        let store = instances.get_mut(store_index).ok_or(no_instance_at(store_index))?;
+        let address = codec.address(&address_pos);
+        let tier = codec.tier(&tier_pos);
+        let value = store.read_tiered(&address, &tier)?;
         Ok(codec.to_js_value(&value))
     });
     answer_or_throw(env, answer)
@@ -977,7 +1027,8 @@ fn verb_remove_listener(env: Env, receiver: This<Object<'_>>, handle_pos: JsVal<
 /// write** ([`Store::save_state`]), which is what the package makes after a reversal's constraint judgement has
 /// passed (`bindings/js/src/entry/constraints.mjs`'s `judgeReversal`). **NO POSITION IS MINTED AND NO ARITY
 /// MOVES**: the absent carrier is one of the six DECLARED VALUES of the one position this entry has, so
-/// `commitFile`(1) counts one before and one after, the census stays `9 + 2 = 11` and `4 + 11 = 15`, and
+/// `commitFile`(1) counts one before and one after, the census stays `10 + 2 = 12` and `4 + 12 = 16` (the
+/// 2026-11-06 clause at the nine's head having moved it for `readTiered` and for nothing here), and
 /// `crossing.md §1.3`'s table needs no row (`D-117` item 4 (a): the row bears two per-entry readings and its
 /// ARITHMETIC does not move — *the journal's head* at `restoreMark`, *the state, saved* here).
 #[napi(js_name = "commitFile")]

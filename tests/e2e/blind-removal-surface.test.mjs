@@ -331,7 +331,7 @@ test('removal · surface.md §2.1 (e) item 1 (`A74`) and index.d.ts\'s `StoreIns
 
   // THE PRODUCT'S OWN PROPERTY SET IS UNCHANGED BY THE REMOVALS.
   assert.deepEqual(Object.getOwnPropertyNames(instance).sort(), before);
-  assert.equal(before.length, 14);
+  assert.equal(before.length, 15);
 
   // AND THE INSTANCE IS STILL WHOLE: every verb still answers.
   assert.doesNotThrow(() => instance.write(['live', 'after'], 'mem', 1));
