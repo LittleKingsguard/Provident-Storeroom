@@ -568,13 +568,26 @@ test('JC-TC-47 no fifth dependency entry is admitted', () => {
 // a CONSTRAINT REFUSAL answers with (a write's attempt, and a reversal whose terminal state a registered
 // constraint refuses) — and **NO RANK OF `1`…`19` MOVES**, `FileCommitFailed` keeping rank `15` as the SAVE's
 // code alone. **THE CELL IS STILL THE SAME READ** and only the figure and one named member move.
-test('JC-TC-48 the store set is 20 with ValueRefusedAtBoundary at rank 17, ConstraintBodyThrew at 18, ConstraintRefusedAtRegistration at 19 and ConstraintPassRefused at 20', () => {
+// **⟶ AND RE-DERIVED AGAIN 2026-11-06 (`D-124` item 2; `PIN-10`; the architect, verbatim: *"The closed fail set
+// moves `20 → 21`"*): THE SET IS TWENTY-ONE, AND THE TITLE MOVES WITH IT AGAIN.** The minted term is
+// `ListenerBodyThrew` at rank `21` — a creation-fired listener body that throws refuses the construction with it —
+// and **NO RANK OF `1`…`20` MOVES**, `ConstraintPassRefused` keeping rank `20`. **THE CELL IS STILL THE SAME READ**
+// and only the figure and one named member move.
+// **⟶ AND RE-DERIVED AGAIN 2026-11-06 (`D-126` item 2; `PIN-11`; the architect, verbatim: *"Mint/revive a code: a
+// corrupt image refuses the construction"*): THE SET IS TWENTY-TWO, AND THE TITLE MOVES WITH IT AGAIN.** The
+// minted term is `FileImageRefused` at rank `22` — a present, non-empty image the loader refuses refuses the
+// construction with it, and the store mints that member itself — and **NO RANK OF `1`…`21` MOVES**,
+// `ListenerBodyThrew` keeping rank `21`. **THE CELL IS STILL THE SAME READ** and only the figure and one named
+// member move.
+test('JC-TC-48 the store set is 22 with ValueRefusedAtBoundary at rank 17, ConstraintBodyThrew at 18, ConstraintRefusedAtRegistration at 19, ConstraintPassRefused at 20, ListenerBodyThrew at 21 and FileImageRefused at 22', () => {
   const text = readFileSync(new URL('../../src/error.rs', import.meta.url), 'utf8');
-  assert.match(text, /CODES:\s*\[&str;\s*20\]/);
+  assert.match(text, /CODES:\s*\[&str;\s*22\]/);
   assert.ok(text.includes('ValueRefusedAtBoundary'));
   assert.ok(text.includes('ConstraintBodyThrew'));
   assert.ok(text.includes('ConstraintRefusedAtRegistration'));
   assert.ok(text.includes('ConstraintPassRefused'));
+  assert.ok(text.includes('ListenerBodyThrew'));
+  assert.ok(text.includes('FileImageRefused'));
 });
 
 // ── THE SEVENTEENTH CLASS ─────────────────────────────────────────────────────────────────────────────
@@ -4375,7 +4388,7 @@ test('JC-TC-64 the record copy and the delivery are the governed copy path\'s, s
   // THE FIXTURE — a listener-bearing construction whose registered handle stands ONE SEGMENT ABOVE the driven
   // address, and a COUNTING listener registered through the package's own member.
   const fixture = () => {
-    const store = storeCreate({ journalLength: 8, listeners: [{ handle: 'h', address: ['a'] }] });
+    const store = storeCreate({ journalLength: 8, listeners: [{ handle: 'h', address: ['a'], listener: () => {} }] });
     store.write(['a'], 'mem', {});
     const fired = [];
     store.register('h', function countingListener(address) {
@@ -4648,7 +4661,7 @@ test('JC-TC-65 the construction\'s arguments and its own seeding are not decided
   // NO-OP `push` — and that state is `U-STOREROOM-JS-SURFACE`'s, is NOT asserted by this cell, and is NOT this
   // cell's to green** (item `(7c)`).
   const EMPTY_CFG = { journalLength: 8, listeners: [] };
-  const LISTENERS_CFG = { journalLength: 8, listeners: [{ handle: 'h', address: ['a'] }] };
+  const LISTENERS_CFG = { journalLength: 8, listeners: [{ handle: 'h', address: ['a'], listener: () => {} }] };
   // **⟶ `D-26`: the element carries its own function, because the element is THREE members.**
   //
   // **★ AND THAT MAKES THIS CELL RED ON TWO COUNTS THAT ARE THE CODE'S AND NOT THE CELL'S — REPORTED, NOT
@@ -5040,7 +5053,7 @@ test('JC-TC-66 an admitted crossing crosses byte-identically under a forged arra
   // THE FIXTURE — one listener-bearing construction per drive, with the counting listener registered BEFORE the
   // frame, so the reply's record is non-empty and the cell is REACHED at all.
   const fixture = () => {
-    const store = storeCreate({ journalLength: 8, listeners: [{ handle: 'h', address: ['a'] }] });
+    const store = storeCreate({ journalLength: 8, listeners: [{ handle: 'h', address: ['a'], listener: () => {} }] });
     const fired = [];
     store.register('h', function countingListener(address) {
       fired[fired.length] = address;

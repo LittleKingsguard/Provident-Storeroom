@@ -142,9 +142,10 @@ const FOURTEEN = [
   'removeConstraint',
 ];
 
-/** The store's closed set as the declaration enumerates it: TWENTY literals ranked `1`…`20`, with
+/** The store's closed set as the declaration enumerates it: TWENTY-TWO literals ranked `1`…`22`, with
  *  `ValueRefusedAtBoundary` at `17`, `ConstraintBodyThrew` at `18`, `ConstraintRefusedAtRegistration` at
- *  `19` and `ConstraintPassRefused` at `20` appended last, and the `(string & {})` escape arm after them.
+ *  `19`, `ConstraintPassRefused` at `20`, `ListenerBodyThrew` at `21` and `FileImageRefused` at `22` appended
+ *  last, and the `(string & {})` escape arm after them.
  *
  *  **⟶ RE-DERIVED 2026-10-26 (`DEF-S`/`DEF-N`; the architect, verbatim: *"Expand the returned error set for
  *  both S/N"*).** The array's name, its figure and the cell's title move together, because a blind census
@@ -156,8 +157,19 @@ const FOURTEEN = [
  *  figure and the title move together again, for the same reason: the appended term is `ConstraintPassRefused`
  *  at rank `20` — the ONE member a CONSTRAINT REFUSAL answers with, at the write's attempt (`DEF-H`) and at a
  *  reversal whose terminal state a registered constraint refuses (`DEF-W`) — **no rank of `1`…`19` moves, and
- *  `FileCommitFailed` keeps rank `15` as the SAVE's code.** */
-const TWENTY = [
+ *  `FileCommitFailed` keeps rank `15` as the SAVE's code.**
+ *
+ *  **⟶ AND RE-DERIVED AGAIN 2026-11-06 (`D-124` item 2; `PIN-10`).** The name, the figure and the title move
+ *  together a third time, for the same reason: the minted term is `ListenerBodyThrew` at rank `21` — a
+ *  creation-fired listener body that throws refuses the construction with it — **`no rank of `1`…`20` moves`,
+ *  and the set's own arithmetic is `20 → 21`.`
+ *
+ *  **⟶ AND RE-DERIVED AGAIN 2026-11-06 (`D-126` item 2; `PIN-11`).** The name, the figure and the title move
+ *  together a fourth time, for the same reason: the minted term is `FileImageRefused` at rank `22` — a present,
+ *  non-empty image the loader REFUSES refuses the construction with it, and THE STORE MINTS that member itself
+ *  at `src/store.rs`'s step 7 — **`no rank of `1`…`21` moves`, and the set's own arithmetic is `21 → 22`.**
+ */
+const TWENTY_TWO = [
   'AddressMalformed',
   'AddressNotFound',
   'LeafHasNoDownstream',
@@ -180,6 +192,11 @@ const TWENTY = [
   'ConstraintRefusedAtRegistration',
   // ⟶ APPENDED 2026-10-26 (`DEF-H`, `DEF-W`; the ruling on the refusal and on the reversal).
   'ConstraintPassRefused',
+  // ⟶ APPENDED 2026-11-06 (`D-124` item 2; `PIN-10`; the architect: *"The closed fail set moves `20 → 21`"*).
+  'ListenerBodyThrew',
+  // ⟶ APPENDED 2026-11-06 (`D-126` item 2; `PIN-11`; the architect: *"Mint/revive a code: a corrupt image refuses
+  // the construction"*).
+  'FileImageRefused',
 ];
 
 // ---------------------------------------------------------------------------------------------
@@ -342,10 +359,11 @@ test('entry-module · index.d.ts `Handle` and `Listener` · the handle is a `str
 // **⟶ THE TITLE MOVES WITH THE COUNT, 2026-10-26** (`DEF-S`/`DEF-N`; *"Expand the returned error set for both
 // S/N"*): the set the declaration publishes is `19`; the cells below are the same reads and their
 // expectations are the ruling's. **AND IT MOVES AGAIN WITH THE NEXT COUNT** (`DEF-H`/`DEF-W`; *"Expand the
-// returned fail-state list to include the refusal"*): the declaration publishes `20`.
-test('entry-module · index.d.ts `StoreStatus` · THE CLOSED SET READS TWENTY LITERALS RANKED `1`…`20`, the last three being `ConstraintBodyThrew`, `ConstraintRefusedAtRegistration` and `ConstraintPassRefused`, and the `(string & {})` ESCAPE ARM STANDS AFTER THEM', () => {
-  assert.deepEqual(statusLiterals(), TWENTY);
-  assert.equal(TWENTY.length, 20);
+// returned fail-state list to include the refusal"*): the declaration publishes `20`; then `21` (`D-124` item 2)
+// and `22` (`D-126` item 2, the corrupt image's refusal).
+test('entry-module · index.d.ts `StoreStatus` · THE CLOSED SET READS TWENTY-TWO LITERALS RANKED `1`…`22`, the last five being `ConstraintBodyThrew`, `ConstraintRefusedAtRegistration`, `ConstraintPassRefused`, `ListenerBodyThrew` and `FileImageRefused`, and the `(string & {})` ESCAPE ARM STANDS AFTER THEM', () => {
+  assert.deepEqual(statusLiterals(), TWENTY_TWO);
+  assert.equal(TWENTY_TWO.length, 22);
   assert.match(DECLARATION, /\| \(string & \{\}\);/);
 });
 

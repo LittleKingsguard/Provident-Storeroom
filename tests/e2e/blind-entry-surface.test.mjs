@@ -54,6 +54,24 @@ const FOURTEEN = [
 // `index.d.ts`'s `StoreStatus` union, in the order it writes its literals — which is the store
 // contract's own rank order: "the operative set is `17` members ranked `1`…`17`" and "NO RANK `1`…`16`
 // MOVES" (`docs/specs/storeroom-native/contract.md §8.1`'s 2026-10-23 amendment).
+//
+// **⟶ AND THE FIGURES ABOVE ARE THE FIGURES OF THEIR OWN DATE: THE OPERATIVE SET IS TWENTY-TWO, RANKED
+// `1`…`22`, WITH `ListenerBodyThrew` APPENDED AT RANK `21` AND `FileImageRefused` AT RANK `22`**
+// (`strata/decisions.md` · `D-124` item `2`, the architect, verbatim: *"The closed fail set moves `20 → 21`"*,
+// and `D-126` item `2`, verbatim: *"Mint/revive a code: a corrupt image refuses the construction"*, its member
+// pinned at rank `22` by `docs/L1/creation-sweep.md §3` `PIN-11`). **NO RANK OF `1`…`21` MOVES.**
+//
+// **THIS ARRAY IS A HAND COPY AND IT IS LITERAL ON PURPOSE — IT IS THE ONE CENSUS OF THIS PASS THAT CANNOT
+// BE DERIVED, AND THE REASON IS THIS FILE'S OWN PROVENANCE.** A blind instrument authors its expectations
+// from the DECLARED SURFACE alone and opens no document and no source byte at runtime (`D-17`; this file's
+// head). So the list below is a COPY, and it can drift from the TWO HOMES IT COPIES:
+//   · **`src/error.rs`'s `pub const CODES`** — the store's own array, the members and their order, whose
+//     declared arity (`[&str; 22]`) is the compiler's own statement of the same count;
+//   · **`bindings/js/index.d.ts`'s `StoreStatus`** — the published declaration of record, the union whose
+//     literals ARE this rank order and whose `(string & {})` escape arm stands once, after them.
+// **A copy that disagrees with either home is a finding at the home and not a licence to move this array
+// quietly**: the cells that read the homes live where reading a source byte is lawful
+// (`tests/e2e/file-tier-save.test.mjs`'s parsed `CODES` census, `tests/integration/store-fail-set/fail_codes.rs`).
 const STATUS_RANK_ORDER = [
   'AddressMalformed', // 1
   'AddressNotFound', // 2
@@ -86,6 +104,20 @@ const STATUS_RANK_ORDER = [
   // constraint refuses. **This blind file's copy of the DECLARED set moves with the ruling; it is not a copy of
   // whatever the declaration now happens to print.**
   'ConstraintPassRefused', // 20
+  // ⟶ **APPENDED 2026-11-06 (`D-124` item `2`; the architect, verbatim: *"A CREATION-FIRED BODY THAT THROWS
+  // REFUSES AT A MINTED RANK `21` `ListenerBodyThrew`"*, *"The closed fail set moves `20 → 21`"* and *"The
+  // subject is the LISTENER BODY and not the constraint body"*): RANK `21` — the member a fired listener
+  // body's throw crosses as at the four REGISTRATION INSTANTS (`D-125` item `1`), and at those four only.
+  // `ConstraintBodyThrew` KEEPS rank `18` and is NOT widened. This blind file's copy of the DECLARED set
+  // moves with the ruling; it is not a copy of whatever the declaration now happens to print.**
+  'ListenerBodyThrew', // 21
+  // ⟶ **APPENDED 2026-11-06 (`D-126` item `2`; the architect, verbatim: *"Mint/revive a code: a corrupt image
+  // refuses the construction"*, its member pinned at `§3` `PIN-11`): RANK `22`** — the member a CORRUPT IMAGE
+  // crosses as at the CONSTRUCTION and at no other instant, MINTED BY THE STORE ITSELF at `src/store.rs`'s
+  // step `7`; `ConstraintListInvalid` KEEPS rank `16` with its own malformed-list trigger and is NOT revived (the
+  // subject of a corrupt image is the image and not the constraint list). **This blind file's copy of the
+  // DECLARED set moves with the ruling; it is not a copy of whatever the declaration now happens to print.**
+  'FileImageRefused', // 22
 ];
 
 // The store's four declared `cfg` keys, and the two of them the declaration marks OPTIONAL.
@@ -246,7 +278,7 @@ test('entry · native contract.md §8.1 #12 (and its 2026-10-11 reconciliation c
 });
 
 // ---------------------------------------------------------------------------------------------
-// §4 — THE STATUS SET: NINETEEN LITERALS, THE RANK ORDER, AND THE OPEN ESCAPE ARM
+// §4 — THE STATUS SET: TWENTY-TWO LITERALS, THE RANK ORDER, AND THE OPEN ESCAPE ARM
 // ---------------------------------------------------------------------------------------------
 
 // **⟶ THE TITLE MOVES WITH THE COUNT, 2026-10-26 (`DEF-S`/`DEF-N`; *"Expand the returned error set for both
@@ -256,7 +288,17 @@ test('entry · native contract.md §8.1 #12 (and its 2026-10-11 reconciliation c
 // the returned fail-state list to include the refusal"* and *"Assert the constraints on rollback"*): the
 // declared set is TWENTY, ranked `1`…`20`, with `ConstraintPassRefused` appended last and NO RANK OF `1`…`19`
 // MOVING. The same rule governs this re-derivation: a RULING moved the set and no assertion is weakened.**
-test("entry · native contract.md §8.1 (its 2026-10-23 amendment, `A148` Q3, its 2026-10-25 correction clause at the heading, and its two 2026-10-26 amendments) · the closed set reads TWENTY members ranked `1`…`20`, and the declaration's literal list agrees with the rank table member for member", () => {
+// **⟶ AND IT MOVES ONCE MORE WITH THE LAST COUNT, 2026-11-06 (`D-124` item `2`; `PIN-10`; the architect,
+// verbatim: *"A CREATION-FIRED BODY THAT THROWS REFUSES AT A MINTED RANK `21` `ListenerBodyThrew`"*, *"The
+// closed fail set moves `20 → 21`"*): the declared set is TWENTY-ONE, ranked `1`…`21`, with
+// `ListenerBodyThrew` appended last and NO RANK OF `1`…`20` MOVING — and the arithmetic the homes print is
+// `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 21` ✓.** The same rule governs it: a RULING moved the set.
+// **⟶ AND IT MOVES ONCE MORE WITH THE LAST COUNT, 2026-11-06 (`D-126` item `2`; `§3` `PIN-11` redrawn; the
+// architect, verbatim: *"Mint/revive a code: a corrupt image refuses the construction"*): the declared set is
+// TWENTY-TWO, ranked `1`…`22`, with `FileImageRefused` appended last and NO RANK OF `1`…`21` MOVING — and the
+// arithmetic the homes print is `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 22` ✓.** The same rule governs
+// this re-derivation, and the NAME, THE FIGURE AND THE TITLE move together with it.
+test("entry · native contract.md §8.1 (its 2026-10-23 amendment, `A148` Q3, its 2026-10-25 correction clause at the heading, its two 2026-10-26 amendments and its two 2026-11-06 amendments) · the closed set reads TWENTY-TWO members ranked `1`…`22`, and the declaration's literal list agrees with the rank table member for member", () => {
   // THE TWO READINGS, BOTH ON FILE, RECORDED BESIDE ONE ANOTHER AND NEITHER CHOSEN SILENTLY:
   //  (a) §8.1's HEADING: "THE CLOSED CODE SET — `16` members, each with its trigger", which "stands
   //      byte-for-byte as the pre-amendment heading";
@@ -274,8 +316,8 @@ test("entry · native contract.md §8.1 (its 2026-10-23 amendment, `A148` Q3, it
   // disagreement this cell first recorded (the heading's `16` against the amendment's `17`) is resolved by the
   // DOCUMENT moving, not by the expectation — and the same rule governs this re-derivation: the figures move
   // because a RULING moved the set, and no assertion below is weakened.
-  assert.equal(STATUS_RANK_ORDER.length, 20);
-  assert.equal(new Set(STATUS_RANK_ORDER).size, 20, 'the twenty literals are distinct');
+  assert.equal(STATUS_RANK_ORDER.length, 22);
+  assert.equal(new Set(STATUS_RANK_ORDER).size, 22, 'the twenty-two literals are distinct');
   // The two ends of the rank order, which are the two the declaration singles out by name: rank `1` is
   // the construction's own argument code and rank `17` is the crossing's boundary code.
   assert.equal(STATUS_RANK_ORDER[0], 'AddressMalformed');
@@ -284,6 +326,14 @@ test("entry · native contract.md §8.1 (its 2026-10-23 amendment, `A148` Q3, it
   assert.equal(STATUS_RANK_ORDER[17], 'ConstraintBodyThrew'); // rank 18
   assert.equal(STATUS_RANK_ORDER[18], 'ConstraintRefusedAtRegistration'); // rank 19
   assert.equal(STATUS_RANK_ORDER[19], 'ConstraintPassRefused'); // rank 20 — the refusal's one member
+  // ⟶ **AND THE LAST END IS RANK `21`, MINTED 2026-11-06** (`D-124` item `2`): the listener body's throw at
+  // the four registration instants and at those four only — **appended after rank `20` and taking no
+  // existing rank**, `ConstraintBodyThrew` keeping `18` and `FileCommitFailed` keeping `15`.
+  assert.equal(STATUS_RANK_ORDER[20], 'ListenerBodyThrew'); // rank 21
+  // ⟶ **AND THE LAST END IS RANK `22`, MINTED 2026-11-06** (`D-126` item `2`): the corrupt image's refusal at
+  // the construction, minted by the STORE — **appended after rank `21` and taking no existing rank**,
+  // `ConstraintListInvalid` keeping `16`.
+  assert.equal(STATUS_RANK_ORDER[21], 'FileImageRefused'); // rank 22
   // `ValueNotAdmitted` KEEPS rank 14 and is not a rename of rank 17 — "a pass that reads rank `17` as a
   // RENAME of rank `14` has destroyed a member".
   assert.equal(STATUS_RANK_ORDER[13], 'ValueNotAdmitted');

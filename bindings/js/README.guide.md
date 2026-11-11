@@ -494,9 +494,26 @@ guide's constraint story that is not yet observable.
 
 ## §6 · Watching for changes: the listener surface
 
-**Listeners fire on `write` and `delete`, and never on a read.** A read is not a change, and a store that fired on
-reads would fire on every render; **nor does a boot or any read-driven traversal fire a listener**
-(`archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-native/write-and-read.md §6.5`).
+**Listeners fire on `write` and `delete`, on a `rollback`'s judgement, and at the four REGISTRATION instants —
+and never on a read.** A read is not a change, and a store that fired on reads would fire on every render; **nor
+does any read-driven traversal fire a listener** (`archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-native/write-and-read.md §6.5`).
+
+**⟶ AND THE LIST IS CORRECTED IN PLACE, 2026-11-06 — `PIN-13`, `D-125` item `2` (iii).** The shipped sentence read
+*"Listeners fire on `write` and `delete`, and never on a read … **nor does a boot or any read-driven traversal
+fire a listener**"* — **a closed list of TWO firing acts, and a claim about the boot that is FALSE from this
+date.** **THE CORRECTED LIST IS THREE ACTS, AND THE FOURTH TERM IS AN INSTANT AND NOT A VERB:** **a `write`** and
+**a `delete`** (the acts this section was written for), **a `rollback` whose judgement runs your pairs' repairs**
+(`D-117` item `1`: the reversal delivers, after its save), **and the four REGISTRATION instants** — `storeCreate`,
+**a boot over an existing `filePath`**, `addConstraint` and a re-arm (**`D-125` item `1`**, verbatim: *"Widen:
+`addConstraint`, a re-arm, the boot and the creation ALL deliver after their repairs"*). **THE RULE IS THE
+REPAIR'S WRITE AND NOT THE ACT'S KIND**: wherever a repair runs, the listeners its write fires are delivered —
+after the constraints pass, after the save, with **no delivery on a refusing arm** — so **a boot DOES fire a
+listener where a repair's write triggers one, and its set at that instant is your adopted listeners whose watched
+address exists.** **A READ STILL FIRES NOTHING, and `listen`/`register` themselves still fire nothing**: those two
+are the listener surface and not a repair's write. **AND A LISTENER BODY THAT THROWS IS ANSWERED AS ITSELF —
+`caught === thrown` — at a `write`, at a `delete` and inside a `rollback`'s judgement; at the four REGISTRATION
+instants it refuses the act at rank `21` `ListenerBodyThrew` instead** (`§8.1`'s set, one member wider below;
+`docs/specs/storeroom-js/surface.md §2.7` item 4's carve).
 
 ```js
 const handle = store.listen('greeting-watch', [['greeting']]);   // YOU spell the handle; the addresses are a SET
@@ -512,6 +529,42 @@ store.unlisten(handle);                                          // withdraw the
 **Measured 2026-10-26: `store.listen('h1', [['b']])` answered the string `'h1'`, and `store.register('h1', () =>
 {})` answered `undefined`.** **Each address in the set is itself an array of segments — `[['b']]` is a set of one
 address — and `[]` (the empty set) is in the domain.**
+
+**★ AND THE ELEMENT SHAPE OF `cfg.listeners[]` — THE ONE FORM OF THIS KEY THE GUIDE NEVER STATED, ADDED HERE
+2026-11-11 AT GATE 4's FINDING (`role_l4_implementer`).** **THE CONSTRUCTION'S `listeners` KEY TAKES AN ARRAY OF
+`{ address, handle, listener }` ELEMENTS, AND ALL THREE MEMBERS ARE REQUIRED** (`D-123` item `2`, the architect,
+verbatim: *"Refuse listeners that don't carry functions, and fire all ones with an existing address after
+constraints pass. Why would a listener that doesn't have a function to fire on the listened address be accepted?"*;
+`PIN-8`):
+
+```js
+const store = storeCreate({
+  journalLength: 256,
+  listeners: [
+    { address: ['greeting'], handle: 'greeting-watch', listener: (address) => console.log('changed at', address) },
+  ],
+});
+```
+
+- **`address`** is a JS array of segments — ONE address, in the same form `listen`'s set holds inside itself.
+- **`handle`** is the handle you spell: a plain non-empty `string`, exactly the `listen` handle — **so a `cfg`
+  listener and a later `listen(handle, …)` name the same channel.**
+- **`listener`** is the JS function the adopted handle fires, and it takes the ONE argument every listener body
+  takes: the address the act landed at. **IT IS REQUIRED AND IT IS CHECKED BEFORE ANY FILESYSTEM ACT**: a
+  two-member element, or an element whose `listener` is not a function, refuses the construction at its step 2 in
+  the package's one thrown form with `status: 'AddressMalformed'` and the container `'listeners'` — **no code is
+  minted for either and no file is created** (`PIN-9`).
+- **AND THE FUNCTION NEVER CROSSES: only `{ address, handle }` reaches the store**, which is why the store's own
+  listener records stay two-membered. **THE PACKAGE ARMS THE SUBSTANCE** on the instance it returns, so a `cfg`
+  handle is registered and firing from the instant the instance exists — the same two acts a caller performs with
+  `listen` + `register`, done for you (`D-123` item `2`; `PIN-8`).
+- **THE ARRAY IS `REQUIRED` AND MAY BE EMPTY** — `listeners: []` is the ordinary no-listener store — **and
+  DUPLICATES ARE KEPT**: two elements at one address are two store entries, and two elements naming one handle
+  leave the LAST body standing (§2.4 rule 2, one handle one function).
+
+**AND THE FOUR REGISTRATION INSTANTS ARE WHERE THESE ELEMENTS FIRE:** a `cfg.listeners[]` element runs at the
+creation, at a boot over an existing `filePath`, at `addConstraint` and at a re-arm — **and the throw carve is
+`§6.5a`'s** (`PIN-6` (i); `D-125` item `1`).
 
 ### §6.1 `listen` takes an address SET and answers the handle
 
@@ -805,6 +858,32 @@ inside the listener** (`§6.5`'s closing sentence) **— and let it out to hand 
 it.** **There is no middle arm: nothing in your record reports a listener's throw afterwards, because after a throw
 there is no record — only the error.** (`D-73`; `D-71`; `D-45`; `docs/specs/storeroom-js/contract.md §2.7`'s clause
 of the same date; `§6.6`'s item 5, where a DEPTH-TWO throw's destination is measured.)
+
+**★★ AND THE ASYMMETRY HAS A CARVE, AT ITS OWN TWO SENTENCES — THE FOUR REGISTRATION INSTANTS ARE NOT A `write` —
+CORRECTED 2026-11-11 AT GATE 4's FINDING (`role_l4_implementer`; ANNOTATE-BESIDE).** **EVERY CLAUSE ABOVE STANDS
+BYTE-FOR-BYTE AND IS READ THROUGH THIS ONE; `caught === thrown` is UNMOVED at a `write`, at a `delete` and inside a
+`rollback`'s judgement, and no measurement above is re-run or withdrawn.** **THE TWO SENTENCES IT NARROWS ARE NAMED
+AND STAND BYTE-FOR-BYTE ABOVE: *"★ A LISTENER'S THROW PROPAGATES TO YOU. YOUR write throws the listener's error"*
+and *"★ AND THE CONSEQUENCE, STATED SO IT IS NOT A SURPRISE: A LISTENER THAT THROWS LEAVES YOUR WRITE
+UNANSWERED."*** **THEY ARE TRUE OF AN ACT THAT HAS AN ANSWER TO LOSE, AND A REGISTRATION IS NOT ONE: AT THE FOUR
+REGISTRATION INSTANTS — `storeCreate`, a boot over an existing `filePath`, `addConstraint` and a re-arm — a fired
+listener body's throw is CONVERTED AND REFUSES THE ACT.** **RANK `21` `ListenerBodyThrew`** — a member of the
+closed status set from 2026-11-06 (`D-124` item `2`, verbatim: *"A CREATION-FIRED BODY THAT THROWS REFUSES AT A
+MINTED RANK `21` `ListenerBodyThrew`"*, *"The closed fail set moves `20 → 21`"*; `D-125` item `2`: *"a fired body's
+throw at those instants is `D-124` item `2`'s rank `21` `ListenerBodyThrew` by the same reading"*) — **so you
+receive the package's ONE THROWN REFUSAL FORM `{status, message, log, address}` and NOT the listener's own value**,
+and the sentence *"catch in the body, decide whether to rethrow"* above becomes **mandatory rather than
+advisory** at those four instants: **a rethrown body refuses the construction (no instance is returned) or the
+registration (the call is refused).** **TWO THINGS ARE UNMOVED AND BOTH MATTER TO YOUR ERROR HANDLER:** the
+delivery sits **after** the registration's saves (`PIN-2`'s ASK → REPAIRS LAND → RE-RUN → SAVE → DELIVER → THE
+ANSWER), so **no rollback composes and the bytes an earlier repair's save wrote stand** (`PIN-10`, `PIN-12`); and
+**at a registration that has already answered an identity the throw PRE-EMPTS the answer while the pair stands
+registered** — the caller receives the refusal and never the identity, and no withdrawal arm is declared
+(`D-125` residual `3`'s default, `PIN-10`). **THE SETS EACH INSTANT DELIVERS ARE `§6`'s, NOT THIS CLAUSE'S:** at a
+`storeCreate` and at a boot it is the adopted listeners whose watched address exists (`PIN-6` (i)); at
+`addConstraint` and a re-arm it is the repair's write's own `triggered` set (`PIN-6` (ii)). (`D-124` item `2`;
+`D-125` items `1`–`2`; `PIN-2`, `PIN-6`, `PIN-10`; `docs/specs/storeroom-js/surface.md §2.7` item `4`'s carve;
+`docs/L1/creation-sweep.md`'s `§3`.)
 
 **★ AND THE PRACTICAL HAZARD THIS ASYMMETRY MAKES REAL, WRITTEN HERE SO YOU MEET IT IN A TEST RATHER THAN IN PRODUCTION: THE WRITE'S DATA LANDED AND ITS ANSWER DID NOT — SO A BLIND RETRY RE-APPLIES A WRITE THAT ALREADY SUCCEEDED.** `RCA-8(g)` ANNOTATE-BESIDE: **every clause of §6.5a above stands BYTE-FOR-BYTE and is read THROUGH this one; no ruling, no measurement and no member moves — what this clause adds is the one consequence of the measured arm that a caller's ERROR HANDLER will otherwise get wrong.** **IT FOLLOWS FROM THE MEASUREMENT ABOVE AND NEEDS NO NEW ONE:** *"the data had already landed (`read(['a'])` answered `1`), because the commit resolved before its delivery ran; what the throw takes away is the ANSWER, not the write"* — **so `try { store.write(...) } catch { retry() }` runs that write a SECOND time, and the store has no way to tell the two apart: there is no commit identity on your side, no idempotency key and no record, because after a throw there is no record** (`§6.5a`'s closing sentence). **AND THE ERROR IS YOURS AND NOT THE PACKAGE'S SHAPE:** it carries **no depth, no handle, no address** (`§6.6` item 5) — a throw at depth two arrives as the same `Error` object a depth-one throw would — **so a retry policy cannot key on where the chain broke, and a listener body's own `catch` is the only containment arm there is.** **WHAT TO WRITE INSTEAD: catch in the body, decide whether to rethrow, and make the write your retry re-issues one whose landing you can recognise** — an `op` you kept from an earlier answer, a value you wrote, or a read before you write. (`D-73`; `D-71`; the `§6.5a` measurement; `§6.6` item 5; `docs/specs/storeroom-js/contract.md §2.7` item 4.)
 
@@ -1546,7 +1625,34 @@ failing trigger's arguments and never hand-authored at a call site
 (`archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-native/seams-and-lifecycle.md §8.2`, archived);
 **`index.d.ts` carries both, verbatim from the store.**
 
-### §8.1 The set is TWENTY and open by design
+### §8.1 The set is TWENTY-ONE and open by design
+
+**⟶ RE-DERIVED AGAIN 2026-11-06 — THE SET IS TWENTY-TWO, ON THE ARCHITECT'S RULING `D-126` ITEM `2`, VERBATIM:
+*"Mint/revive a code: a corrupt image refuses the construction"*, whose member L1 pins at `docs/L1/creation-sweep.md`
+`§3` `PIN-11` as rank `22` `FileImageRefused`.** **`StoreStatus` carries TWENTY-TWO members, plus the open escape
+arm `(string & {})`** — ranks `1`…`21` stand exactly as the clauses below print them, and **the appended term is
+`FileImageRefused` at rank `22`: THE ONE STATUS A CORRUPT IMAGE ANSWERS WITH**, at the CONSTRUCTION and at no other
+instant. **`storeCreate` throwing it returns NO INSTANCE**: the store reads `cfg.filePath` before the package asks
+anything, so no image is installed and no listener is delivered, **and the corrupt file STANDS — un-written-to,
+un-truncated and un-repaired**, which is the evidence you keep. **Its subject is the store's own image and not the
+constraint list** — your `cfg.constraints` may be absent and innocent when those bytes are read, so rank `16`
+`ConstraintListInvalid` is never the answer here — **and a ZERO-LENGTH file and an ABSENT file are still no image at
+all**: both still construct, both load nothing and both cross no code. The algebra reads
+`11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 22` ✓. **Every paragraph, table row and title below is the reading of
+its own date and is read THROUGH this clause** (the guide's figures move with the set's own membership, which is
+this section's own rule); **the heading's `TWENTY-ONE`, and the `TWENTY` the clauses below print, are the figures of
+their own dates and are read through this clause too.**
+
+**⟶ RE-DERIVED AGAIN 2026-11-06 — THE SET IS TWENTY-ONE, ON THE ARCHITECT'S RULING `D-124` ITEM `2`, VERBATIM:
+*"A CREATION-FIRED BODY THAT THROWS REFUSES AT A MINTED RANK `21` `ListenerBodyThrew`"*, *"The closed fail set
+moves `20 → 21`"*.** **`StoreStatus` carries TWENTY-ONE members, plus the open escape arm `(string & {})`** —
+ranks `1`…`20` stand exactly as the clauses below print them, and **the appended term is `ListenerBodyThrew` at
+rank `21`: THE ONE STATUS A REGISTRATION-FIRED LISTENER BODY'S THROW ANSWERS WITH**, at `storeCreate` (a
+construction and a boot over an existing `filePath`), at `addConstraint` and at a re-arm, and at those four
+instants only. **`ConstraintBodyThrew` KEEPS rank `18` and IS NOT WIDENED** — its subject is the CONSTRAINT body, and the minting clause's rule is that a code names the subject and the one thing wrong with it — **and at every OTHER instant the identity promise stands byte-unmoved: `caught === thrown`.** The algebra reads
+`11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 21` ✓. **Every paragraph, table row and title below is the reading of its
+own date and is read THROUGH this clause** (the guide's figures move with the set's own membership, which is this
+section's own rule); **the heading's `TWENTY` is the figure of its own date and is read through this clause too.**
 
 **⟶ RE-DERIVED AGAIN 2026-10-26 — THE SET IS TWENTY, ON THE ARCHITECT'S TWO RULINGS, VERBATIM: *"Expand the
 returned fail-state list to include the refusal"* and *"Assert the constraints on rollback"*.** **`StoreStatus`
@@ -1706,6 +1812,51 @@ store's file is safe, and it is not a reset** (`native/contract.md §10.4` parts
 **AND EVERY CONSTRUCTION ARGUMENT IS VALIDATED BEFORE ANY FILESYSTEM ACT**, so a refused construction leaves
 **no instance, no file, no directory and no byte** — which holds for the later-argument failures too, and is what
 the ordering buys (`native/contract.md §10.4` part 4; `§8.1` #1 and #12).
+
+**⟶ AND THAT GUARANTEE IS THE ORDERING'S AND NOT THE CONSTRUCTION'S WHOLE — CORRECTED AT ITS OWN SENTENCE,
+2026-11-11, AT GATE 4's FINDING (`role_l4_implementer`; ANNOTATE-BESIDE).** **THE SENTENCE ABOVE STANDS
+BYTE-FOR-BYTE AND IS READ THROUGH THIS CLAUSE; no argument-validation order moves and no byte of the store's own
+`§10.4` guarantee is withdrawn.** **WHAT IT DOES NOT COVER: A CONSTRUCTION THAT REFUSES *AFTER* THE EXCLUSIVE
+CREATE.** The creation validates its arguments first — that is what the sentence buys — and then it **creates the
+store and, over it, performs the constraint SWEEP**: `storeCreate` sweeps the whole register, refuses an
+inconsistent result at rank `20` `ConstraintPassRefused` (a cycle, or a register a carried pair still violates
+after the rounds end) and refuses a fired listener body's throw at rank `21` `ListenerBodyThrew` (`D-123` item
+`1`, `D-124` items `1`–`2`, `D-125` items `2`–`4`). **AT THOSE ARMS THE EXCLUSIVE CREATE HAS ALREADY RUN, AND
+`PIN-12` DECLARES THAT THE FILE IT CREATED STANDS** — `PIN-12`, verbatim: *"A refused creation leaves the store's
+own created file and every earlier sibling registration's already-saved `file` landing standing, and no removal arm
+is declared"* — **and an earlier `cfg.constraints` element's repair that reached a `file`-tier save has left its
+bytes too.** **SO THE ARM-BY-ARM RULE FOR YOU: a construction refused for an OUTSIDE ARGUMENT leaves nothing
+(asserted above and unchanged); a construction refused by the SWEEP, or by a fired listener body's throw, leaves
+the zero-length file the store created and any bytes an earlier repair's save wrote, and no instance.** **NO
+ROLLBACK COMPOSES AND NO REMOVAL ARM EXISTS** (`D-107`'s composition is per route and the delivery sits after every
+save, `PIN-10`, `PIN-12`), **so a retry that expects an absent `filePath` must unlink it itself.** (`D-123` item
+`4`'s diagnosis requirement; `strata/decisions.md` · `D-124` · `D-125`; `docs/L1/creation-sweep.md`'s `PIN-12`.)
+
+**⟶ AND THE ARM-BY-ARM RULE ABOVE GAINS ITS THIRD ARM FROM 2026-11-06 — A CONSTRUCTION REFUSED ON A CORRUPT
+IMAGE — CORRECTED AT THE SAME SENTENCE (`role_l4_implementer`; ANNOTATE-BESIDE).** **THE SENTENCE
+*"AND EVERY CONSTRUCTION ARGUMENT IS VALIDATED BEFORE ANY FILESYSTEM ACT … so a refused construction leaves no
+instance, no file, no directory and no byte"* AND THE CARVE'S OWN ARM LIST ABOVE
+STAND BYTE-FOR-BYTE AND ARE READ THROUGH THIS CLAUSE; no argument order, no reachability form, no save instant and
+no `PIN-12` byte moves.** **WHAT THEY DO NOT COVER, AND IT IS THE ONE REFUSAL WHOSE SUBJECT IS THE PATH'S OWN
+CONTENT: a `filePath` that EXISTS, is REACHABLE and is NOT EMPTY, and whose bytes are not this store's image.**
+**`storeCreate` READS THAT FILE BEFORE THE PACKAGE ASKS ANYTHING AND REFUSES THE CONSTRUCTION AT RANK `22`
+`FileImageRefused`** — `D-126` item `2`, verbatim: *"Mint/revive a code: a corrupt image refuses the construction"*
+(`strata/decisions.md` · `D-126` item `2`; the member L1 pins at `docs/L1/creation-sweep.md` `§3` `PIN-11`) — **so
+no instance is returned, and the file is left EXACTLY AS IT WAS FOUND: un-written-to, un-truncated, un-repaired
+and NOT REMOVED.** **"LEAVES NOTHING" THERE MEANS THE CONSTRUCTION DID NOTHING, NOT THAT THE PATH IS EMPTY:** the
+bytes were already at the path, no arm of the construction wrote one, and the refusal precedes every save, **so no
+rollback composes and no removal arm exists — and that is the point: the evidence survives, so you can tell a
+corrupt image from an empty path and repair or move the file yourself rather than have the next save write a
+readable image over it** (`D-118` item 1). **AND THE THREE CLASSES ARE TOLD APART HERE SO YOU DO NOT APPLY ONE TO
+ANOTHER:** an **ABSENT** `filePath` and a **ZERO-LENGTH** one are still **no image at all** — both still construct,
+both load nothing and both cross no code (`native/contract.md §10.4` part 3; `DD-38`); a present, non-empty image
+the store **READS** loads normally; and a present, non-empty image it **REFUSES** refuses the construction at rank
+`22` and at no other instant. **YOUR ERROR HANDLER THEREFORE HAS TWO CONSTRUCTION REFUSALS ABOUT THE PATH ITSELF** —
+`FilePathUnreachable` (the path cannot be used, `§8.1`) and `FileImageRefused` (the path holds something that is
+not this store's) — **and nothing at all for the two silent classes**, **and the second is the one to catch
+separately, because it is the only one after which a file you must not touch is still sitting at your `filePath`.**
+(`D-126` item `2`; `docs/L1/creation-sweep.md`'s `PIN-11`; `native/contract.md §8.1`'s row `22` and this guide's
+`§8.1` clause of 2026-11-06 above.)
 
 **THE FILE IS THE STORE'S, NOT YOURS.** Do not read, edit, parse or migrate it by hand; its shape is the store's
 own and a hand-migration is a corruption waiting to happen. **If you need a migration, read the old value through

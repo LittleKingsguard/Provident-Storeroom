@@ -1,3 +1,147 @@
+# Envelope — `U-STOREROOM-CREATION-SWEEP` · gate 2 `OPEN — DECLARED, READY-FOR-GATE-3` · `2026-11-06`
+
+**THE ENVELOPES BELOW STAND UNCHANGED AND ARE READ AS THEIR OWN DATES. THIS ONE IS NEW, AND IT IS THE SUPERVISOR'S, BECAUSE
+`strata/**` IS OUTSIDE EVERY DELEGATE'S WRITE SET. It supersedes nothing.**
+
+**WHAT THIS UNIT IS, IN ONE LINE.** The architect's ruling `D-123` — creation is an editing action — declared as a unit:
+`role_l1_architect`, `2026-11-06`, `HEAD` `3f24248`, declaration at `docs/L1/creation-sweep.md` (257 lines), landed here as
+its gate-2 envelope. **`D-123` is carried through `strata/proposals.md` `P-2 §8`; the audit is `strata/research.md §19`.**
+
+---
+
+## 1 · VERDICT
+
+**`READY-FOR-GATE-3`** (`role_l1_architect`). All five settled items of `D-123` are pinnable at named bytes; **the sweep
+lands on the EXISTING registration route with no new kernel mechanism**; six residuals are pinned with a default and two are
+carried with a default; **none blocks gate 3.**
+
+**AND ONE CORRECTION TO THE RULING, TAKEN BY THE SUPERVISOR BEFORE ANY PIN WAS READ AS LAW** (`F-1`): **the closed fail set
+is TWENTY, ranked `1`…`20`, not the seventeen `D-123` item 5 printed** — `contract.md:4305`–`:4311`, `:1022`,
+`src/error.rs:113`, `bindings/js/index.d.ts:376`, verified at those bytes this date. **`D-123` is corrected at its own
+sentence; the unit's arithmetic is `20 → 21`.**
+
+## 2 · THE PINS, ONE LINE EACH
+
+`PIN-1` write set as `§2 A`/`§2 B`, complement frozen · `PIN-2` `D-117`'s order instant for instant — ask → repairs land →
+re-run → SAVE → DELIVER, **no delivery on a refusing arm**, and `D-123`'s *"sixth instant"* read as a sixth SCOPE IN TIME,
+not a sixth membership set (`F-3`: `DD-38` loads `0` registrations, so at a construction the register **is** the admitted
+batch) · `PIN-3` the sweep's membership is the register · `PIN-4` carry all, then rounds until a round lands no repair, each
+pair once per round, **capped at three** (`D-42`'s number), fail closed, **no attempt, no restart budget, no marker and no
+`AttemptRef` minted** · `PIN-5` an inconsistent result refuses at rank `20` `ConstraintPassRefused`, trigger widened, thrown
+instead of an instance · `PIN-6` firing set = adopted ∩ **existing** address, after the constraints pass, once per distinct
+handle, through the reversal's one-call-per-address device · `PIN-7` a non-resolving address is SILENT and is not a refusal ·
+`PIN-8` the element's third member `listener: Listener`, **required**, stripped at the crossing (`frame.mjs:41`) — `D-26`'s
+move one key over · `PIN-9` a function-less entry is **refused at step 2, before any filesystem act**, in the encoder's
+existing `AddressMalformed`/`listeners` form, no code minted · `PIN-10` a creation-fired throw refuses at a declared member
+and **no rollback composes at it** · `PIN-11` the diagnosis is the code's presence and subject; rank `16`'s load arm stays
+`DECLARED, NO PRODUCER` · `PIN-12` a refused creation leaves the created file and every already-saved sibling landing
+standing, no removal arm · `PIN-13` the prose is corrected **in-unit, not annotated beside** — `package-use.md:497`–`:499` in
+place, `strata/research.md:471`'s `C-12` by the supervisor · `PIN-14` nothing else moves; six arms frozen by name (`D-90`'s
+skip, `delivery.mjs:880`, `D-104`, `D-106`, `D-107`, `D-117`) · `PIN-15` two release classes, named separately, none
+inferred.
+
+## 3 · THE GATE-3 CELLS (statement list)
+
+`CSW-01` convergence (the `C-13` defect closed) · `CSW-02` the bound, refused after three rounds · `CSW-03` the inconsistent
+result throws instead of an instance · `CSW-04` the function-less entry refused before the create, no file left · `CSW-05`
+the third member admitted and not crossed · `CSW-06` the existing-address firing, after the constraints, `argCount === 1` ·
+`CSW-07` the absent-address silence, not a refusal · `CSW-08` one invocation per distinct handle · `CSW-09` no delivery on a
+refusing arm · `CSW-10` the throw's code, the saved bytes standing · `CSW-11` the diagnosis · `CSW-12` the order — a body
+sees the saved bytes and the attempt count returns `0` · `CSW-13` `D-90`'s skip stays · `CSW-14` the three arms that must not
+move · `CSW-15` frozen store/record/export shapes · `CSW-B1` blind · `P-CSW-1/2/3` (the consistent-register invariant · the
+delivered-set containment and its emptiness on refusals · no instrument minted).
+
+## 4 · THE QUESTIONS FOR THE ARCHITECT (none blocks gate 3; each carries the default the build takes)
+
+| `#` | question | default |
+|---|---|---|
+| `Q-1` | does the sweep reach `addConstraint`/re-arm/boot, or the construction alone? | **construction alone** — create and boot are one act at one byte |
+| `Q-4` | which member carries a creation-fired body's throw? | **mint rank `21` `ListenerBodyThrew`**; widening rank `18` `ConstraintBodyThrew` is the byte-cheap alternative (no Rust byte) |
+| `Q-5` | does *"no function, refused"* reach the runtime `listen` + `register` door? | **no** — the words name the entry; `§2.3`/`§2.4` and the RESERVATION sentence stand |
+| `Q-6` | what bounds a sweep that must converge? | **`PIN-4`: three rounds by `D-42`'s number, fail closed, nothing minted** |
+| `Q-8` | each move's release class? | **`MINOR` (element) and `MAJOR` (fail set), separately; no version cell moves until he names them** |
+| `Q-3` | what address does a creation-fired listener receive? | **its own watched address**; `[]` costs one clause |
+| `Q-2` | which code answers a load-side/sweep-side inconsistency? | **rank `20` widened**; rank `16` stays producerless |
+| `Q-7` | what does a refused creation leave? | **created file and earlier saved landing both stand** |
+| `Q-9` | may the third member be spelled `listener`? | **yes** (`D-26`'s mirror of its own type) |
+| `Q-10` | may corpus marks land at `§10.4` part 5 and `§2.7` item 7? | **no mark** — `D-123` grants none |
+
+**THREE `P-2` QUESTIONS `D-123` DID NOT NAME ARE PINNED TO THE SHIPPED DEFAULT, reversible in one word**: the batch's
+short-circuit stands; a construction stays N registration acts; the sweep's subject is the register alone.
+
+## 5 · WHAT GATE 3 MUST HOLD
+
+Cells red first and red for the named reason; `npm test` (`1287` pass / `1286` baseline delta `0` / `1` new), `typecheck`
+exit `0`, `build` exit `0`, `cargo test` `440`/`0` and the five greens runners with their **four pre-existing reds re-proven
+against a stashed tree**; the fail-set census re-derived `20 → 21` at all seven sites; **the two declaration copies
+`cmp`-clean** (`F-2`: `1736` lines each, not the `1680` the brief carries); every `path:line` re-read at the landing date; and
+no `APP` claim, no corpus mark outside `§2 B`, no `strata/**` byte, and **no release class until `Q-8`**.
+
+**WHAT THE SUPERVISOR OWES AND HAS NOT DONE: nothing on this unit's code, cells or contracts — gate 3 is not opened by this
+envelope.** The one act taken here beyond landing the envelope is `D-123` item 5's arithmetic, corrected above and at its own
+sentence.
+
+**⟶ AMENDED `2026-11-06` BY `D-124` — FOUR OF `§4`'S QUESTIONS ARE ANSWERED AND TWO PINS ARE SUPERSEDED, SO THIS ENVELOPE IS
+READ THROUGH THE ROW.** **`Q-4` is ANSWERED: rank `21` `ListenerBodyThrew` is MINTED** (`20 → 21`). **`Q-8` is ANSWERED: no
+class is claimed until the landing is measured** (`PIN-15` deferred, not refused). **`Q-6` is ANSWERED AND `PIN-4`'s *"capped
+at three"* IS RETIRED: the terminator is CYCLE DETECTION — a pair may land at most one repair, so the repairs number at most
+the admitted pairs and a round that lands none ends the sweep; no cap, no budget, no attempt and no `AttemptRef` minted.**
+**`Q-1`'s answer is RECORDED BUT NOT SETTLED**: the architect's *"Add constraint should already … fire any listeners triggered
+by repairs, because the repairs use the write/delete surface"* contains a premise the tree contradicts — the registration
+instant delivers nothing (`PIN-6` (v), `C-12`) — so **the question of whether the delivery reaches `addConstraint`, a re-arm
+and the boot is put back to him and is OPEN.** **This envelope's `§2` pins and its `§5` acceptance standard therefore stand
+only as amended: `PIN-4` is L1's to redraw, and gate 3 may not open on the superseded text.**
+
+---
+
+**⟶ GATE 3 `CLOSED`, DATED `2026-11-06` — THE UNIT IS IMPLEMENTED AND ITS CELLS ARE GREEN.** **THE COUNTS, MEASURED BY THE
+SUPERVISOR ON THIS TREE AFTER THE LAST LANDING: `npm test` `1318` tests · `1317` pass · **`0` fail** · `1` skip (exit `0`);
+`cargo test -p storeroom-native` `440 / 0`; `cargo test -p storeroom-tests` `235 / 0`, recovered from `233 / 2`.** **The suite
+grew `1286 → 1317` and no existing arm was weakened, skipped or deleted.** **WHAT LANDED:** the listener element's required
+third member, stripped at the crossing · the function-less entry refused **before any filesystem act** · the sweep with
+cycle detection (a pair lands at most one repair; a second attempt is rank `20`; a re-ask that passes is not a cycle) · the
+delivery at **four** instants in `D-117`'s order · rank `21` `ListenerBodyThrew` minted with the census re-derived
+`20 → 21` at all seven sites · the guide's `§6` corrected in place · both declaration copies `cmp`-clean at `1786` lines.
+**WHAT THE SUPERVISOR OWED AND HAS NOW DONE (`PIN-13`): `strata/research.md`'s `C-12` re-derived** — its delivery half
+superseded by `D-125` item 1 by name, its stale range and already-false second half recorded — **and `D-94` item 3's
+*"only"* corrected at its own sentence** so a standing registration's third observable is declared. **WHAT REMAINS BEFORE A
+CUT, NAMED AND UNMOVED:** `docs/L1/repair-listener-delivery.md`'s four sentences, `RELEASE-NOTES.md`'s *"the registration
+instant unmoved"* (and its `bindings/js/` copy), the stale file head at `tests/e2e/repair-listener-delivery.test.mjs:25`–`:26`,
+**`PIN-9`'s false first sentence** in the refusal form (form right, sentence wrong — priced out of the unit, owed a one-word
+grant), and **the release class, still held by `D-124` item 3 until the landing is measured — which it now has been.**
+
+---
+
+**⟶ GATE 4 `CLOSED`, DATED `2026-11-06` — FIVE READS, ONE REAL DEFECT, AND THE TREE NOW HOLDS.** **THE READS**
+(`role_l1_examiner` pins-vs-code · `role_l2_examiner` rulings-vs-behaviour · `role_l3_examiner` test-tree integrity ·
+`role_l0_critique` adversarial · `role_l0_validity` consumer-and-release): **four of the five returned `NOT-READY` or
+findings, and one finding was a defect no green cell could see.** **THE DEFECT: the sweep's suppression wrapper stayed
+installed as the pair's registered body after the construction answered, so a pair that repaired at a creation could
+never repair again for that instance's life — silently** (`index.mjs:1952`'s wrapper stored by `carryConstraint` and kept
+by the kernel). **Fixed** by a construction-scoped flag (`sweep.live`, read at `:202`, disarmed at `:2039`), with
+`PIN-16` — *construct with a pair that repairs, then an ordinary `write` that makes it refuse again; its repair RUNS* —
+and `CSW-27` red-first. **THE SECOND DEFECT, same guard: it fabricated an own `message`**, so `VA-11`'s outside-form
+`{repair}` arm — whose repair the corpus says is *never seen* — repaired at a creation; fixed and pinned `PIN-17`/`CSW-28`.
+**ALSO CLOSED FROM THE READS:** five fail-set censuses that were green by counting a hand copy of themselves (four now
+derive from `src/error.rs`/`index.d.ts`), a shipped `bindings/js/README.guide.md` that still told a consumer a boot fires
+nothing, the corpus's three unmarked `{address, handle}` sites, the two deleted assertions in `file-save-coverage`, the
+stale cell head, and `G3-23`'s restored arms. **THE LAST PIN LANDED ON `D-126` ITEM 2: rank `22` `FileImageRefused`** — a
+corrupt image refuses the construction, the corrupt bytes stand, no rollback composes — and its thirteen newly-red cells
+were turned to their ruled reading, with `CSW-31` written as the control that keeps absent and zero-length silent.
+**THE FINAL COUNTS, MEASURED BY THE SUPERVISOR ON THIS TREE: `npm test` `1323` tests · `1322` pass · `0` fail · `1` skip;
+`cargo test -p storeroom-native` `440/0`; `cargo test -p storeroom-tests` `235/0`; `npm run typecheck` exit `0`; the
+greens runners `254/254` with the four PRE-EXISTING reds (`LIVE-12.7`, `DW-09.1/.2`, `DW-16.3`) unchanged.** **The shipped
+guide is re-staged and `cmp`-clean.** **42 tracked files changed, `3320` insertions, `395` deletions.**
+**WHAT REMAINS AND IS NOT A PASS'S:** the `RELEASE-NOTES.md` `§1.11.0` section (**three classes printed, one number** —
+`D-126` item 3) and its `bindings/js/` copy, whose two surviving sentences (`:122`, `:177`) still print *"the registration
+instant unmoved"*; **`D-126` residual 3, whether rank `21` carries the throwable** (unruled — gate 4's `G4-C-5`); the
+version bump, the commit, the tag and the publish (**no pass publishes**); **and one flag worth the architect's eye: the
+load clause `§7.2` item 7 (`f`) now has NO reachable home** — its carrier `seams-and-lifecycle.md` was archived 2026-10-24,
+so the amended answer was carried into `contract.md` beside the pointer, and re-landing the rest of (`f`) is a separate
+order.
+
+---
+
 # Envelope — `U-STOREROOM-TIER-READOUT` · gate 2 `CLOSED` after FIVE gate-4 reads · `2026-11-06`
 
 **THE ENVELOPES BELOW STAND UNCHANGED AND ARE READ AS THEIR OWN DATES. THIS ONE IS NEW, AND IT IS THE SUPERVISOR'S, BECAUSE

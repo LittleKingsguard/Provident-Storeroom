@@ -22,8 +22,18 @@
 //   · the FAILING arm still delivers NOTHING (`surface.md §2.7` item 6): the discard's filter is widened to the
 //     union of the failed write's returned set and THIS attempt's repairs' sets (`kernel-terminal.mjs`), so a
 //     merged listener leaves the member too, and the invocation count stays `0`;
-//   · the REGISTRATION INSTANT is UNMOVED — a repair at a registration's evaluation delivers nothing
-//     (`G3-22`'s two zeros, re-asserted here at `RLD-6` so the carrier cannot grow a path to that instant);
+//   · **the REGISTRATION INSTANT DELIVERS TOO — `D-125` ITEM 1, AS CORRECTED BY GATE 4's SECOND READ
+//     (`F-L2-1`).** Wherever a repair runs, the listeners its write fires are delivered — `storeCreate`, a boot
+//     over an existing `filePath`, `addConstraint`, and a re-arm — after the constraints pass, after the save, in
+//     `D-117`'s order, with no delivery on a refusing arm; **so `G3-22`'s second zero is a ONE at
+//     `addConstraint` (`RLD-6`) and at a re-arm (`CSW-17`, `tests/e2e/creation-sweep-instants.test.mjs`), and the
+//     guard against a quiet widening is the COUNT rather than an absence.**
+//     **AND THE CORRECTED CLAUSE IS ONE ORDER AND TWO SETS**: at `storeCreate`
+//     and at a boot the delivered set is **`adopted ∩ resolving`** — every adopted listener whose watched
+//     address EXISTS — while at `addConstraint` and a re-arm it is **the repair's write's `triggered` set**
+//     (`PIN-6` (i), (ii): no adopted list is in play there). The superseded heading sentence — *"the
+//     REGISTRATION INSTANT is UNMOVED … a repair at a registration's evaluation delivers nothing"* — is
+//     replaced by this bullet, not annotated beside it;
 //   · a store-refused repair merges nothing (arm `(d)`, `KC-4`) and a NESTED (three-position) write inside a
 //     repair merges nothing (the `kernel.attempts` guard). **Those two guards are driven at the KERNEL's own
 //     surface — `RLD-I4`/`RLD-I5` — in
@@ -565,14 +575,16 @@ test('RLD-5 · `pending`\'S RE-DERIVATION — every element is the pair `{handle
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
-// `RLD-6` · THE REGISTRATION INSTANT IS UNMOVED — `G3-22`'s TWO ZEROS, RE-ASSERTED HERE
+// `RLD-6` · THE REGISTRATION INSTANT DELIVERS TOO — `D-125` ITEM 1 MOVES `G3-22`'s SECOND ZERO TO A ONE
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
 
-test('RLD-6 · THE REGISTRATION INSTANT IS UNMOVED — a repair at `addConstraint`\'s evaluation delivers NOTHING: the watcher pair\'s ask-count and the listener\'s invocation-count both rise by ZERO, beside a live control', (t) => {
-  // THE DECLARATION'S OWN DRIVE (`§7.1`): *"a repair at `addConstraint`'s evaluation delivers **nothing**
-  // (`G3-22`'s zero, re-asserted in this file so the fix cannot widen quietly)"* — and `§3.6` cost 4 gives the
-  // STRUCTURAL reason: **a registration's synthetic attempt carries no `record` member**, so the merge has no
-  // member to write. THE FAILURE IT CATCHES: **a carrier that fires outside a commit's arm**.
+test('RLD-6 · THE REGISTRATION INSTANT DELIVERS TOO — a repair at `addConstraint`\'s evaluation fires the bound listener ONCE across its route-write (`D-125` item 1), while the watcher pair at that address is asked ZERO times, beside a live control', (t) => {
+  // THE DRIVE (`§7.1`), READ THROUGH `D-125` ITEM 1 — THE RULING THAT SUPERSEDES THE DECLARATION'S SENTENCE AT
+  // THIS INSTANT: *"Wherever a repair runs, the listeners its write fires are delivered — `storeCreate`, a boot
+  // over an existing `filePath`, `addConstraint`, and a re-arm — after the constraints pass, after the save … with
+  // no delivery on a refusing arm."* THE FAILURE IT CATCHES: **a carrier that fires outside a commit's arm at
+  // this instant** (the listener's count below rising by ZERO here), **or one that fires this write's listener
+  // TWICE**.
   const store = make();
   const watchedAddress = ['rld6-b'];
   store.write(watchedAddress, 'mem', 1);
@@ -623,18 +635,19 @@ test('RLD-6 · THE REGISTRATION INSTANT IS UNMOVED — a repair at `addConstrain
     '**AND THAT WRITE RETURNED THE BOUND LISTENER\'S OWN HANDLE — so a set the delivery COULD have fired '
       + `EXISTED at this instant**: read ${JSON.stringify(routeReturned)}`);
 
-  // ── (b) THE TWO ZEROS, RE-ASSERTED. ───────────────────────────────────────────────────────────────────
+  // ── (b) THE WATCHER PAIR'S STANDING ZERO, AND THE LISTENER'S ONE. ─────────────────────────────────────
   assert.equal(watcherDelta, 0,
     '**THE WATCHER PAIR AT THE REPAIR\'S OWN ADDRESS IS ASKED ZERO TIMES ACROSS THE ROUTE-WRITE** — the route '
       + 'runs no pass of its own (`PIN-6` (v); `D-53`\'s join): the watcher\'s count rose by '
       + `${watcherDelta}, from ${watcherBefore} to ${watcherAsks}`);
-  assert.equal(listenerDelta, 0,
-    '**AND NO LISTENER FIRES ACROSS IT** (`PIN-6` (v): *"delivers no listener"*): the witness bound at the '
-      + `register fired ${listenerDelta} time(s) across the repair's route-write — this is \`G3-22\`'s second `
-      + 'zero, re-asserted because it is THE MECHANISM\'S STRUCTURAL CONSTRAINT: a registration\'s synthetic '
-      + 'attempt carries no `record`, so the merge has no member to write (`§3.6` cost 4)');
+  assert.equal(listenerDelta, 1,
+    '**AND THE REPAIR\'S ROUTE-WRITE DELIVERS THE BOUND LISTENER ONCE AT THIS INSTANT** (`D-125` item 1: '
+      + '*"Wherever a repair runs, the listeners its write fires are delivered — `storeCreate`, a boot over an '
+      + 'existing `filePath`, `addConstraint`, and a re-arm"*, one invocation per distinct handle, `surface.md '
+      + '§2.4` rule 3) — the reading that superseded the declaration\'s *"delivers nothing"* here: the witness '
+      + `bound at the register fired ${listenerDelta} time(s) across the repair's route-write`);
 
-  // ── (c) THE CONTROL — THE TWO ZEROS ARE LIVE ZEROS. ───────────────────────────────────────────────────
+  // ── (c) THE CONTROL — THE STANDING ZERO IS A LIVE ZERO. ──────────────────────────────────────────────
   const controlListenerBefore = listener.seen.length;
   const controlWatcherBefore = watcherAsks;
   const control = captured(() => store.write(watchedAddress, 'mem', 7));
@@ -642,14 +655,15 @@ test('RLD-6 · THE REGISTRATION INSTANT IS UNMOVED — a repair at `addConstrain
     '**THE CONTROL WRITE MUST LAND**, or the instruments above were never armed: '
       + `${JSON.stringify(control.threw ? control.thrown.status : null)}`);
   assert.equal(listener.seen.length - controlListenerBefore >= 1, true,
-    '**AND AN ORDINARY WRITE AT THAT ADDRESS DOES FIRE THE LISTENER** — so the zero above is the route\'s '
-      + `absence of a delivery and not a dead binding: the control fired it `
+    '**AND AN ORDINARY WRITE AT THAT ADDRESS DOES FIRE THE LISTENER** — so the invocation above is the route\'s '
+      + `own delivery and not a dead binding: the control fired it `
       + `${listener.seen.length - controlListenerBefore} time(s)`);
   assert.equal(watcherAsks - controlWatcherBefore >= 1, true,
-    '**AND IT DOES ASK THE WATCHER PAIR** — so the other zero is a live zero too: the control raised the '
+    '**AND IT DOES ASK THE WATCHER PAIR** — so the zero above is a live zero too: the control raised the '
       + `watcher's count by ${watcherAsks - controlWatcherBefore}`);
 
-  t.diagnostic(`RLD-6 · THE REGISTRATION INSTANT (G3-22's two zeros re-asserted): the repair's route-write at `
+  t.diagnostic(`RLD-6 · THE REGISTRATION INSTANT (\`D-125\` item 1: the repair's route-write's listener delivered `
+    + `once, the watcher pair unmoved): the repair's route-write at `
     + `${JSON.stringify(watchedAddress)} landed ${JSON.stringify(routeOp)} and returned `
     + `${JSON.stringify(routeReturned)}; the watcher moved by ${watcherDelta} and the listener by `
     + `${listenerDelta}; the control write moved them by `

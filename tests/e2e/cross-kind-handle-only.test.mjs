@@ -200,7 +200,7 @@ test('XK-2 · THE CONSTRUCTION STANDS: `cfg.constraints` ONE element at `[\'tabs
   // which is exactly what this cell puts to the test rather than assumes.**
   const built = capture(() => storeCreate({
     journalLength: 256,
-    listeners: [{ address: ['tabs'], handle: 'L' }],
+    listeners: [{ address: ['tabs'], handle: 'L', listener: () => {} }],
     constraints: [{ address: ['tabs'], id: 'P', constraint: passing }],
   }));
   assert.equal(built.threw, false,

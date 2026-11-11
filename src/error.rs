@@ -110,7 +110,65 @@ pub struct StoreError {
 /// statement of it, and [`storeErrorMessage`] still resolves its clause by lookup in it (`§8.2`): the appended
 /// member carries its own clause in the generator below, so `errorMessage('ConstraintPassRefused', …)` answers
 /// a declared sentence and never the outside-the-set sentence.
-pub const CODES: [&str; 20] = [
+///
+/// **⟶ AND AMENDED 2026-11-06 BY THE ARCHITECT'S RULING `D-124` ITEM `2` (`strata/decisions.md:6459`–`:6464`),
+/// VERBATIM: *"A CREATION-FIRED BODY THAT THROWS REFUSES AT A MINTED RANK `21` `ListenerBodyThrew`"*, *"The
+/// closed fail set moves `20 → 21`"* and *"The subject is the LISTENER BODY and not the constraint body"*.**
+/// **THE OPERATIVE CENSUS IS `21`, RANKED `1`…`21`, AND THE APPENDED TERM IS `ListenerBodyThrew` AT RANK
+/// `21`.** **THE CLAUSES ABOVE STAND BYTE-FOR-BYTE AND ARE READ THROUGH THIS ONE:** their `20`s are the
+/// figures of their own dates. **THE OPERATIVE ARITHMETIC IS `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 21` ✓
+/// — the nine terms those clauses sum stand exactly as filed and the appended term stands last — NO RANK OF
+/// `1`…`20` MOVES**, and the array on the `pub const` below is `[&str; 21]`.
+///
+/// **THE NAMING FOLLOWS THE SAME DECLARED CONVENTION** (`§8.1`'s minting clause of 2026-10-15, item 2: *the
+/// UPPER-camel `code` column names the SUBJECT AND THE ONE THING WRONG WITH IT*): rank `21`'s subject is the
+/// LISTENER BODY and its defect is that it THREW — the family rank `18` `ConstraintBodyThrew` already spells,
+/// **and rank `18` is NOT widened** (`D-124` item `2`: the subject there is the CONSTRAINT body).
+///
+/// **THE STORE NEVER MINTS IT AND THE PACKAGE'S ENTRY CARRIES IT**, exactly as rank `20`'s member arrives on
+/// the JavaScript route: `src/store.rs` has no trigger for it, the delivery the four registration instants owe
+/// (`D-125` item `1`) is the PACKAGE's (`bindings/js/index.mjs`'s creation seat and `bindings/js/src/entry/
+/// delivery.mjs`'s registration-delivery channel), and the package selects this member for it — the status is
+/// a member of THIS set and is CARRIED, never minted, by the package (`DD-40`), while its sentence is rendered
+/// by the generator below like every other member's. **AND NO DRIVE THAT COUNTS THIS ARRAY MAY ASSERT `15`,
+/// `16`, `17`, `18`, `19` OR `20`.** The array remains the set's own census and not a second statement of it,
+/// and [`storeErrorMessage`] still resolves its clause by lookup in it (`§8.2`): the appended member carries
+/// its own clause in the generator below, so `errorMessage('ListenerBodyThrew', …)` answers a declared
+/// sentence and never the outside-the-set sentence.
+///
+/// **⟶ AND AMENDED 2026-11-06 BY THE ARCHITECT'S RULING `D-126` ITEM `2` (`strata/decisions.md:6612`–`:6619`),
+/// VERBATIM: *"Mint/revive a code: a corrupt image refuses the construction"*.** **THE OPERATIVE CENSUS IS
+/// `22`, RANKED `1`…`22`, AND THE APPENDED TERM IS `FileImageRefused` AT RANK `22`.** **THE CLAUSES ABOVE
+/// STAND BYTE-FOR-BYTE AND ARE READ THROUGH THIS ONE:** their `21`s are the figures of their own dates.
+/// **THE OPERATIVE ARITHMETIC IS `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 22` ✓ — the ten terms those
+/// clauses sum stand exactly as filed and the appended term stands last — NO RANK OF `1`…`21` MOVES**, and
+/// the array on the `pub const` below is `[&str; 22]`. **THE MINT IS L1'S AND NOT THIS FILE'S:** `D-126` item
+/// `2` orders a code and says *"which member is not chosen here … L1 pins it"*, and `docs/L1/creation-sweep.md`
+/// `§3` `PIN-11` pins the MINTED rank `22`, **not the revival of rank `16`** — whose load arm stays
+/// `DECLARED, NO PRODUCER` (`src/store.rs`'s construction, step `7`: *"WHAT REMAINS OF
+/// `ConstraintListInvalid` AT THIS INSTANT IS THE MALFORMED LIST ALONE"*).
+///
+/// **THE NAMING FOLLOWS THE SAME DECLARED CONVENTION** (`§8.1`'s minting clause of 2026-10-15, item 2: *the
+/// UPPER-camel `code` column names the SUBJECT AND THE ONE THING WRONG WITH IT*): **rank `22`'s subject is the
+/// STORE'S OWN IMAGE and not the constraint list** — `cfg.constraints` may be absent and innocent when a
+/// corrupt file is read, so rank `16` `ConstraintListInvalid` has the wrong subject at this instant — **and its
+/// defect is its past participle `Refused`, the family `FileCommitFailed` already carries.** **THE SPELLING IS
+/// READ OFF THE STORE'S OWN THIRD CLASS AND NOT INVENTED** (`src/store.rs`'s `FileImage::Refused`, *"a present,
+/// non-empty image the loader REFUSES"*).
+///
+/// **THE STORE MINTS THIS ONE** — unlike rank `20` and rank `21` it is not carried — **at the construction's
+/// step `7`, through [`crate::store::Store`]'s one read of the path, BEFORE the package's first ask**, so no
+/// image is installed, no pair is carried and no instance exists; **and the package moves zero bytes** for it
+/// (the refusal crosses the construction's own `fail(refusal)` with `address: null`, because a corrupt image is
+/// not an act at an address). **THE CORRUPT FILE STANDS, UN-WRITTEN-TO AND UN-REPAIRED**: nothing was written
+/// to it and the refusal precedes every save, so no rollback composes and no removal arm is declared. **AND A
+/// ZERO-LENGTH FILE AND AN ABSENT FILE ARE STILL `NoImage`** and still load nothing, crossing no code at all
+/// (`§10.4` part 3; `DD-38`). **AND NO DRIVE THAT COUNTS THIS ARRAY MAY ASSERT `15`, `16`, `17`, `18`, `19`,
+/// `20` OR `21`.** The array remains the set's own census and not a second statement of it, and
+/// [`storeErrorMessage`] still resolves its clause by lookup in it (`§8.2`): the appended member carries its
+/// own clause in the generator below, so `errorMessage('FileImageRefused', …)` answers a declared sentence and
+/// never the outside-the-set sentence.
+pub const CODES: [&str; 22] = [
     "AddressMalformed",
     "AddressNotFound",
     "LeafHasNoDownstream",
@@ -131,6 +189,10 @@ pub const CODES: [&str; 20] = [
     "ConstraintBodyThrew",
     "ConstraintRefusedAtRegistration",
     "ConstraintPassRefused",
+    // ⟶ APPENDED 2026-11-06 (`D-124` item `2`: the creation-fired listener body's throw).
+    "ListenerBodyThrew",
+    // ⟶ APPENDED 2026-11-06 (`D-126` item `2`; `§3` `PIN-11`: a corrupt image refuses the construction).
+    "FileImageRefused",
 ];
 
 /// **⟶ THE CLOSED ARM TOKEN — ONE MEMBER, MINTED 2026-11-01 (`D-98` item 4; `C-7`, §3.2, §3.7).**
@@ -471,6 +533,33 @@ pub(crate) fn build(m: &Msg) -> String {
             "{} was refused by a constraint pass, the state this act would leave is not one the registered constraints admit",
             m.subject
         ),
+        // `§8.1` #21 and `§8.2`'s row of 2026-11-06 — **`D-124` item `2`, verbatim: *"A CREATION-FIRED BODY THAT
+        // THROWS REFUSES AT A MINTED RANK `21` `ListenerBodyThrew`"***. The subject is the LISTENER BODY and the
+        // defect is that it threw, at the four registration instants `D-125` item `1` reaches and at no other.
+        // **RANK `18` IS NOT WIDENED** (`D-124` item `2`: its subject is the CONSTRAINT body). **THE SENTENCE
+        // DECLARES WHAT CROSSED AND NOT WHAT THE BODY THREW**: the body's own throwable is the caller's and is
+        // never rendered as though this package had authored it (`ConstraintBodyThrew`'s own clause, read at the
+        // listener). **`<SEGMENT>` IS THE WATCHED ADDRESS'S SPELLING** — the address whose triggering fired the
+        // body — and no `<CONTAINER>` slot is printed, because the act's subject is a delivery and not a place.
+        "ListenerBodyThrew" => format!(
+            "{} was refused by a listener body that threw at a registration instant, a fired listener body's throwable refuses the act that fired it",
+            m.subject
+        ),
+        // `§8.1` #22 and `§8.2`'s row of 2026-11-06 — **`D-126` item `2`, verbatim: *"Mint/revive a code: a
+        // corrupt image refuses the construction"***, whose member L1 mints at `§3` `PIN-11` of
+        // `docs/L1/creation-sweep.md`. **THE SUBJECT IS THE STORE'S OWN IMAGE AND NOT THE CONSTRAINT LIST**
+        // (`cfg.constraints` may be absent and innocent when a corrupt file is read, so rank `16`
+        // `ConstraintListInvalid` has the wrong subject at this instant), and the naming is the store's own
+        // third class — `src/store.rs`'s `FileImage::Refused`, *"a present, non-empty image the loader
+        // REFUSES"* — with the past participle the family `FileCommitFailed` already carries. **THE `<SEGMENT>`
+        // SLOT IS THE `filePath`'S OWN SPELLING** (the `FilePathUnreachable` precedent at `§8.2`'s earlier row,
+        // quoted by the caller), and no `<CONTAINER>` slot is printed: the act is the load of a file and not a
+        // place in the register. **THE STORE MINTS THIS ONE** (the construction's step `7`), so the sentence
+        // states the two admissions the path has left — this store's image, or no image at all.
+        "FileImageRefused" => format!(
+            "{} is not an image this store reads, the file at this path must hold this store's image or be empty",
+            m.subject
+        ),
         other => format!("{} is a failure of the code {other}, no clause is declared here", m.subject),
     }
 }
@@ -657,6 +746,28 @@ pub(crate) fn file_path_unreachable(path: &str) -> StoreError {
         "FilePathUnreachable",
         build(&Msg {
             code: "FilePathUnreachable",
+            subject: format!("'{path}'"),
+            container: Some(String::new()),
+            container_segment: None,
+            keys: Vec::new(),
+            tiers: Vec::new(),
+            path: Some(path.to_string()),
+            kind: Kind::Map,
+            argument: None,
+            ..Default::default()
+        }),
+    )
+}
+
+/// `§8.1` #22 (`D-126` item `2`; `§3` `PIN-11`): **a PRESENT, NON-EMPTY `filePath` image the loader REFUSES,
+/// reached at the CONSTRUCTION's step `7` and nowhere else** — the store's own mintage, whose subject is the
+/// path's own spelling after the [`file_path_unreachable`] precedent. **Its message carries `MessageArgs.path`
+/// and the `§8.2` row's two clauses**, and it moves no rank of `1`…`21`.
+pub(crate) fn file_image_refused(path: &str) -> StoreError {
+    error(
+        "FileImageRefused",
+        build(&Msg {
+            code: "FileImageRefused",
             subject: format!("'{path}'"),
             container: Some(String::new()),
             container_segment: None,

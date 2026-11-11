@@ -384,38 +384,67 @@ fn s7_1_a_provided_but_unreachable_path_fails_file_path_unreachable() {
 // `file` before any write.** **THE PARENT DIRECTORY'S ENTRY COUNT MOVED BY EXACTLY ONE IS NOT ASSERTED
 // HERE**, because this cell's path stands in the SHARED temp directory whose count every sibling cell's own
 // file moves: that observable is driven where the count is the cell's own
-// (`tests/construction_access_probe.rs`'s `acp_a_provided_absent_path_...` cell). **AND THE ARM (a) HALF IS
-// UNMOVED** — an EXISTING path's bytes are byte-identical after the construction, which is `§10.4` part 6's
-// `AlreadyExists` fall-through and NOT the probe's dry run alone.
-// Drives: §7.1 (amended), §10.4 parts 2, 3 and 6, §7.1 step 4b (A)/(B), §1.6 item 4 (d), A49, A50, A52, A55
+// (`tests/construction_access_probe.rs`'s `acp_a_provided_absent_path_...` cell).
+//
+// **⟶ AND THE ARM (a) HALF MOVED, 2026-11-06 (`D-126` item 2; `docs/L1/creation-sweep.md §3` `PIN-11`
+// redrawn): A PROVIDED, EXISTING `filePath` WHOSE BYTES ARE NOT THIS STORE'S IMAGE NOW REFUSES AT THE MINTED
+// RANK `22` `FileImageRefused` AND NO INSTANCE IS RETURNED.** The clause this paragraph read as *"the ARM (a)
+// HALF IS UNMOVED — an EXISTING path's bytes are byte-identical after the construction, which is `§10.4` part
+// 6's `AlreadyExists` fall-through"* is TRUE ONLY OF A PATH THAT HOLDS THIS STORE'S IMAGE, which is the arm
+// `tests/construction_access_probe.rs`'s `acp_a_construction_over_an_existing_file_never_truncates_it` drives
+// with committed bytes. **A foreign-bytes path is the IMAGE'S refusal and not a fall-through**, and the one
+// observable that survives from this arm is `A55`'s own, strengthened: **the probe writes nothing and the
+// refusal writes nothing — the bytes stand byte-for-byte** (`PIN-11`: *"THE CORRUPT FILE STANDS,
+// UN-WRITTEN-TO AND UN-REPAIRED"*). **THE DRIVE IS UNMOVED; THE READING IS THE RULED ONE.**
+//
+// Drives: §7.1 (amended), §10.4 parts 2, 3 and 6, §7.1 step 4b (A)/(B), §1.6 item 4 (d), `§8.1` #22
+// (`D-126` item 2), A49, A50, A52, A55
 #[test]
-fn s7_1_the_two_arms_of_the_reachability_test_each_create_a_file_register_by_a_dry_run() {
-    // Arm (a): the file EXISTS — its bytes are the probe's own untouched input.
+fn s7_1_the_two_arms_of_the_reachability_test_a_foreign_bytes_file_refuses_and_an_absent_one_creates_a_file_register() {
+    // Arm (a): the file EXISTS — and its bytes are NOT this store's image.
     let existing = fresh_path("exists");
     std::fs::write(&existing, b"prior bytes").expect("the path holds a file");
-    let mut a = ok(
+    // **⟶ RE-DERIVED 2026-11-06 (`D-126` item 2; `docs/L1/creation-sweep.md §3` `PIN-11` redrawn): ARM (a)'s
+    // EXPECTED READING MOVED AND ITS DRIVE DID NOT.** A present, non-empty image the loader cannot read is the
+    // store's THIRD image class (`FileImage::Refused`), and the construction REFUSES at the minted rank `22`
+    // `FileImageRefused` — so `A52` (a)'s *"the file exists, so the path is reachable"* is still the arm's
+    // ground (the refusal is the IMAGE's and not the probe's `FilePathUnreachable`), and `A55`'s surviving
+    // half is asserted beside it, STRENGTHENED: the probe truncates and rewrites nothing, and **the refusal
+    // writes nothing either** — *"a refusal leaves standing what it found"* (`PIN-11`: *"THE CORRUPT FILE
+    // STANDS, UN-WRITTEN-TO AND UN-REPAIRED"*). **The instance-borne halves of this arm (the `file` register
+    // it used to fix and the write it used to land) are RETIRED BY THE RULING and not by this pass** — no
+    // instance exists over a refused image — **and the file register this cell drives is asserted at arm (b)
+    // below, whose observations are unmoved.**
+    let prior = std::fs::read(&existing).expect("the file is still there");
+    let refused = failure(
         storeCreate(&cfg_at(&existing, 4)),
-        "A52 (a): the file exists, so the path is reachable",
+        "A52 (a) AS RE-DERIVED (`D-126` item 2): an existing path whose bytes are NOT this store's image — \
+         the path is REACHABLE, and the construction REFUSES at the image member and returns NO INSTANCE",
     );
-    assert_eq!(
-        landing_tier(&a, &empty_address()),
-        Tier::File,
-        "A49/A50: a provided path that passes fixes the register's tier at `file`"
+    assert_code(
+        &refused,
+        "FileImageRefused",
+        "§8.1 #22 (`D-126` item 2; `PIN-11`) — the member whose subject is the STORE'S OWN IMAGE, and NOT \
+         the probe's `FilePathUnreachable`",
     );
     assert_eq!(
         std::fs::read(&existing).expect("the file is still there"),
         b"prior bytes".to_vec(),
-        "A55: the probe is a DRY RUN — it writes nothing, not even an empty registry"
-    );
-    ok(
-        a.write(AddressArg::List(key(&["r"])), w_file(), v_num(1.0)),
-        "§5.6: with a `file` register all three tiers stand at a register key",
+        "A55: the probe is a DRY RUN AND THE REFUSAL WRITES NOTHING — it writes nothing, not even an empty \
+         registry, and it leaves the bytes it found standing"
     );
     assert_eq!(
-        landing_tier(&a, &empty_address()),
-        Tier::File,
-        "store-model.md §1.6 item 4 (d) (i): `findAddress([], mem).anchor.tier` IS the register's own tier — \
-         `file` here, the caller's `t` selecting nothing"
+        prior,
+        b"prior bytes".to_vec(),
+        "A55: the PRE-STATE the refusal was driven against — the bytes were the drive's own input"
+    );
+    assert_eq!(
+        std::fs::metadata(&existing)
+            .expect("the file is still there")
+            .len(),
+        11,
+        "A55 / `PIN-11`: the file is neither truncated nor rewritten — `\"prior bytes\"` is `11` bytes \
+         before the call and `11` after it"
     );
 
     // Arm (b): the application CAN WRITE IT — a fresh path in an existent writable directory.

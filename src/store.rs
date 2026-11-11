@@ -13,8 +13,8 @@ use crate::args::{
 use std::cell::RefCell;
 use crate::error::{
     address_not_found, constraint_list_invalid, container_kind_conflict,
-    container_kind_conflict_for_key, file_commit_failed, file_path_unreachable, journal_op_unknown,
-    leaf_has_no_downstream, malformed_named, malformed_segment, missing_argument,
+    container_kind_conflict_for_key, file_commit_failed, file_image_refused, file_path_unreachable,
+    journal_op_unknown, leaf_has_no_downstream, malformed_named, malformed_segment, missing_argument,
     monotonicity_violation, read_target_is_branch, slashed_address,
     tier_not_found, value_not_admitted, write_parent_not_link, StoreError,
 };
@@ -758,6 +758,34 @@ pub fn storeCreateWithConstraints(
     // Step 7 — `§7.2` item 6: the `file` tier's content at `cfg.filePath` is loaded if the file exists; `mem`
     // and `temp` begin EMPTY, the journal begins with 0 entries, and the home is NOT re-populated from the
     // file, so a fresh instance over an equal path loads NO registration (`DD-38`).
+    //
+    // **⟶ STEP 7'S FIRST ARM, ADDED 2026-11-06 — A CORRUPT IMAGE REFUSES THE CONSTRUCTION** (`D-126` item `2`,
+    // verbatim: *"Mint/revive a code: a corrupt image refuses the construction"*; `§3` `PIN-11`; `§8.1` #22).
+    // **THE CLASS IS READ THROUGH THE STORE'S ONE READ OF THE PATH** — [`Store::read_file_image`], *"THE ONE
+    // PLACE THE BYTES AT `file_path` ARE READ AND DECODED"* (`D-110` item 2) — **and its THIRD class,
+    // `FileImage::Refused` (*"a present, non-empty image the loader REFUSES"*), is the member's whole trigger.**
+    // **THE SEAT IS HERE AND NOWHERE ELSE**: this is before `born` is taken below and therefore before the
+    // package's first ask, so **no image is installed, no pair is carried and no instance exists**, and the
+    // construction answers the minted rank `22` `FileImageRefused` whose subject is the `filePath`'s own
+    // spelling (`FilePathUnreachable`'s precedent).
+    // **THE ROUTE TAKEN IS A DISTINCT CONSTRUCTION-SIDE READ, AND `boot_load`'S ANSWER STAYS FROZEN**: the read
+    // is PURE (*"no node is minted, no anchor is installed, nothing is mutated, so a caller may refuse on this
+    // answer and leave the store exactly where it found it"*), so refusing on it moves no byte of
+    // `boot_load`, whose `Option<usize>` answer neither widens for the class nor is asked (`D-110` item 3
+    // forbids widening it), and its `Refused => Some(0)` arm simply stops being the CONSTRUCTION's reading of
+    // that class — the construction never reaches it, because this arm refuses first.
+    // **WHAT IT LEAVES: THE CORRUPT FILE STANDS, UN-WRITTEN-TO AND UN-REPAIRED.** The exclusive create above
+    // never touches an existing file (on `AlreadyExists` it falls through *"and a construction over an
+    // EXISTING file NEVER TRUNCATES"*), nothing was written to it and this refusal precedes every save, **so
+    // there is no rollback to compose and no arm to undo** (`D-126` residual `1` answered NO ARM, residual `2`
+    // answered the BYTES STAND) — no removal arm is declared.
+    // **AND WHAT IT DOES NOT TOUCH: A ZERO-LENGTH FILE AND AN ABSENT FILE ARE STILL `FileImage::NoImage`** —
+    // the reader answers `NoImage` for both, so a construction over either loads nothing and crosses NO code
+    // (`§10.4` part 3; `DD-38`), **and `Members`, the install, `regenerate`'s reading of the third class and
+    // `standing_image`'s `None` are unmoved.**
+    if let FileImage::Refused = store.read_file_image() {
+        return Err(file_image_refused(&store.file_path));
+    }
     let _loaded = store.boot_load();
     // **⟶ STEP 7'S OWN SECOND HALF, ADDED 2026-10-15 (`§7.1` step 7 as amended; `parameter-semantics.md
     // §2.21`): THE LOAD INSTANT VALIDATES THE SUPPLIED LIST AGAINST THE STATE IT JUST LOADED** — *"the

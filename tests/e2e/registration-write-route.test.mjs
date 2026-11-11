@@ -91,6 +91,10 @@ import { openCommits } from '../../bindings/js/src/entry/state.mjs';
  *  refusal, rank `2` the walk's absence, `AddressMalformed` (rank `1`) the tier/address position's and
  *  `WriteParentNotLink` (rank `5`) the leaf parent's. **`PIN-10`: no status is minted by this unit.** */
 const REGISTRATION_REFUSED = 'ConstraintRefusedAtRegistration';
+/** **`D-125` item `4`'s rank `20`** — the CYCLE's member: *"a cycle is an inconsistent result"*, and at a
+ *  single-pair route it refuses the REGISTRATION. It is not in the set above because no cell of this file read
+ *  it until `G3-23`'s foreign-op arm turned (`D-124` item `1`; `F-9`); no member is minted by this file. */
+const PASS_REFUSED = 'ConstraintPassRefused';
 const ADDRESS_NOT_FOUND = 'AddressNotFound';
 const ADDRESS_MALFORMED = 'AddressMalformed';
 const WRITE_PARENT_NOT_LINK = 'WriteParentNotLink';
@@ -154,7 +158,7 @@ const addressSet = (address) => {
 // `G3-20` · THE DOWNSTREAM'S OWN CASE, END TO END
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 
-test('G3-20 · THE DOWNSTREAM\'S OWN CASE, END TO END: a `cfg.constraints` element at `[\'window\']` whose body refuses on `undefined` and whose repair WRITES `[\'window\']` THROUGH THE ROUTE and returns `{ok: true, op: <the op it landed>}` — the construction RETURNS AN INSTANCE, `read([\'window\'])` is the repair\'s value, `constraints()` names the pair, and the body is asked TWICE: at the registration with `value === undefined` and at the re-run with the landed value', (t) => {
+test('G3-20 · THE DOWNSTREAM\'S OWN CASE, END TO END: a `cfg.constraints` element at `[\'window\']` whose body refuses on `undefined` and whose repair WRITES `[\'window\']` THROUGH THE ROUTE and returns `{ok: true, op: <the op it landed>}` — the construction RETURNS AN INSTANCE, `read([\'window\'])` is the repair\'s value, `constraints()` names the pair, and the body is asked THREE TIMES: at the registration with `value === undefined`, at the re-run with the landed value, and at the NEXT ROUND\'s pass over the same register, where it PASSES (`PIN-4` (iii), (iv); `F-8`) — the count is the sweep\'s and no round is printed', (t) => {
   // **THE SCENARIO THE UNIT WAS OPENED ON, IN THE ARCHITECT'S OWN TERMS** (`docs/specs/storeroom-constraint-
   // registration-instant-proposal-review.md`'s downstream report): *"User wants to enforce a constraint that a
   // given top-level register address must exist, with a repair that reconstructs it if missing … the repair
@@ -175,7 +179,7 @@ test('G3-20 · THE DOWNSTREAM\'S OWN CASE, END TO END: a `cfg.constraints` eleme
       address: ['window'],
       id: 'window-must-exist',
       constraint: (context) => {
-        asks.push({ members: Object.keys(context).sort(), value: context.value });
+        asks.push({ members: Object.keys(context).sort(), value: context.value, op: context.op === null ? null : context.op.opId, tier: context.tier });
         if (context.value !== undefined) return true;
         return {
           message: ABSENT,
@@ -230,11 +234,14 @@ test('G3-20 · THE DOWNSTREAM\'S OWN CASE, END TO END: a `cfg.constraints` eleme
   assert.deepEqual(standing.value, WINDOW,
     `byte for byte what the repair wrote, subtree and all: ${JSON.stringify(standing.value)}`);
 
-  // ── (d) TWO EVALUATIONS, NAMED — `D-95`'s consequence and `PIN-7` (iii)'s re-run. ──────────────────────
-  assert.equal(asks.length, 2,
-    `**THE BODY IS ASKED TWICE**: at the REGISTRATION, with \`value === undefined\`, and at the RE-RUN over the `
-      + `op the route landed (\`PIN-7\` (iii); \`D-94\` (1): the re-run is unconditional): the drive recorded `
-      + `${asks.length} ask(s): ${JSON.stringify(asks.map((ask) => ask.value))}`);
+  // ── (d) THREE EVALUATIONS, NAMED — `D-95`'s consequence, `PIN-7` (iii)'s re-run, and the ROUND that
+  //       re-carries the pair while the previous one landed a repair (`PIN-4` (iii), (iv)). ───────────────
+  assert.equal(asks.length, 3,
+    `**THE BODY IS ASKED THREE TIMES**: at the REGISTRATION, with \`value === undefined\`; at the RE-RUN over the `
+      + `op the route landed (\`PIN-7\` (iii); \`D-94\` (1): the re-run is unconditional); and at the NEXT `
+      + `ROUND'S pass, because the round before it landed a repair and the sweep re-carries EVERY admitted pair `
+      + `while the previous round landed one (\`PIN-4\` (iii), (iv); \`index.mjs:1942\`-\`:1975\`): the drive `
+      + `recorded ${asks.length} ask(s): ${JSON.stringify(asks.map((ask) => ask.value))}`);
   assert.equal(asks[0].value, undefined,
     `**THE FIRST READING IS ABSENCE** — the value read at the instant the record was BUILT, and \`D-95\` (1) `
       + `keeps it there: *"read once, before the invocation, and NOT re-read after any write"*: it read `
@@ -242,9 +249,16 @@ test('G3-20 · THE DOWNSTREAM\'S OWN CASE, END TO END: a `cfg.constraints` eleme
   assert.deepEqual(asks[1].value, WINDOW,
     `**AND THE SECOND IS THE RE-RUN'S, CARRYING THE STATE THE REPAIR LANDED** (\`D-95\` (4): *"the re-run's `
       + `context is where the pair meets the repair's state"*): it read ${JSON.stringify(asks[1].value)}`);
+  assert.deepEqual(asks[2].value, WINDOW,
+    `**AND THE THIRD IS THE NEXT ROUND'S PASS, READING THE SAME REGISTER THE REPAIR MADE ADMISSIBLE — AND IT `
+      + `PASSES, WHICH IS WHAT KEEPS A SECOND ASK FROM BEING A CYCLE** (\`D-125\` item 4: *"asking is not `
+      + `repairing"*; \`PIN-4\` (iii)): the round's pass read ${JSON.stringify(asks[2].value)} with \`op\` `
+      + `${JSON.stringify(asks[2].op === undefined ? null : asks[2].op)} and \`tier\` `
+      + `${JSON.stringify(asks[2].tier === undefined ? null : asks[2].tier)} — a FRESH registration ask over the `
+      + `pair's own address and not a second re-run`);
   for (const [index, ask] of asks.entries()) {
     assert.deepEqual(ask.members, CONTEXT_MEMBERS,
-      `**AND THE BODY'S RECORD IS FIVE MEMBERS AT BOTH INSTANTS — UNMOVED, AND CARRYING NO \`write\`** `
+      `**AND THE BODY'S RECORD IS FIVE MEMBERS AT ALL THREE INSTANTS — UNMOVED, AND CARRYING NO \`write\`** `
         + `(\`PIN-8\` (iii) (a); \`D-92\` (1)): reading ${index} carried ${JSON.stringify(ask.members)}`);
   }
   assert.equal(rows.length, 1,
@@ -536,12 +550,20 @@ test('G3-22 · THE ROUTE RUNS NO PASS OF ITS OWN AND DELIVERS NO LISTENER: with 
 // `G3-23` · THE CREDIT IS THE EXISTING RULE AND NO NEW ONE
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 
-test('G3-23 · THE CREDIT IS THE EXISTING RULE AND NO NEW ONE: four repairs, ONE DRIVE EACH, at the same address — returning `{ok: true, op: <the route\'s own op>}` STANDS; returning `{ok: true, op: {opId: \'not-the-op-it-landed\'}}` REFUSES rank `19`; returning `{ok: false, message}` REFUSES rank `19`; returning `{ok: true}` with no `op` REFUSES rank `19`', (t) => {
+test('G3-23 · THE CREDIT IS THE EXISTING RULE AND NO NEW ONE: four repairs, ONE DRIVE EACH, at the same address — returning `{ok: true, op: <the route\'s own op>}` STANDS; returning `{ok: true, op: {opId: \'not-the-op-it-landed\'}}` REFUSES at rank `20` `ConstraintPassRefused` (it IS credited, and its re-run offers a repair a second time — the cycle, `D-124` item 1); returning `{ok: false, message}` REFUSES rank `19`; returning `{ok: true}` with no `op` REFUSES rank `19`', (t) => {
   // **`PIN-7` (ii)**: *"A repair's route-write is credited **iff** the repair RETURNS `{ ok: true, op: <the
   // record's own op> }` and that op is not already held by the attempt — `landedOp(attempt, result, null)` …
   // so the ORDINAL GROUND IS NOT APPLIED AND THE MEMBERSHIP GROUND STANDS ALONE."* **NO NEW RULE IS MINTED AND
   // NO ARM IS ADDED**: the four returns below are `PAR-C-5`'s and the credit rule's, unchanged, and the cell's
   // job is to show that the route's op is credited by the SAME rule and that every other return is not.
+  // **⟶ AND ONE ARM'S RANK MOVED `19` → `20` ON `D-124` ITEM `1`** (`F-9`, the fourth licensed reason): the
+  // FOREIGN-OP return **IS CREDITED at a registration** — the ordinal ground is unknown there and *"the
+  // membership ground stands alone"* (`kernel-foundations.mjs:1170`–`:1178`) — **and that op carries no `after`,
+  // so the re-run's `value` is `undefined` (`kernel-registration.mjs:888`), the body offers its repair a second
+  // time, and the cycle is reached.** **THE THREE ARMS THAT PRODUCE NO OP KEEP RANK `19` BYTE FOR BYTE**
+  // (`kernel-registration.mjs:716`–`:722`): they never reach a second ask at all. **AND THE FOUR ROWS BELOW ARE
+  // THEIR PRE-UNIT BYTES**: the turn is not read off a member added to the rows (`rank:` stood here and gate 4
+  // named it), so the one arm that moved is singled out by its own label in limb `(c)` and by nothing else.
   const arms = [
     { label: 'the route\'s own op', expect: 'stands', answer: (landed) => ({ ok: true, op: landed.op }) },
     { label: 'a foreign op identity', expect: 'refuses', answer: () => ({ ok: true, op: { opId: 'not-the-op-it-landed' } }) },
@@ -612,9 +634,20 @@ test('G3-23 · THE CREDIT IS THE EXISTING RULE AND NO NEW ONE: four repairs, ONE
       `**A RETURN THAT IS NOT THE ROUTE'S OWN OP IS NOT CREDITED** (\`PIN-7\` (ii), \`landedOp\`'s membership `
         + `ground: the op is *"not already held by the attempt"* and nothing else is admitted): the `
         + `${row.arm.label} arm RETURNED ${JSON.stringify(row.okay === true ? 'an instance' : null)}`);
-    assert.equal(row.shape.status, REGISTRATION_REFUSED,
-      `and it refuses at rank \`19\`: the ${row.arm.label} arm answered ${JSON.stringify(row.shape.status)} with `
-        + `message ${JSON.stringify(row.shape.message)}`);
+    // **⟶ THE ONE TURNED ARM IS READ HERE, BY ITS OWN LABEL, AND THE RESTORED LIMB BELOW IS NOT RE-SPELLED.**
+    // The foreign-op return is CREDITED and its re-run offers its repair a second time, so it refuses at rank
+    // `20` (`D-124` item 1; `F-9`); the three arms that produce no op keep rank `19` **byte for byte**, their
+    // assertion left exactly as it stood.
+    if (row.arm.label === 'a foreign op identity') {
+      assert.equal(row.shape.status, PASS_REFUSED,
+        `**AND THAT ONE ARM REFUSES AT RANK \`20\` \`ConstraintPassRefused\` — THE CYCLE** (\`D-124\` item 1: *"a `
+          + `pair's second repair attempt is an inconsistent result"*): the ${row.arm.label} arm answered `
+          + `${JSON.stringify(row.shape.status)} with message ${JSON.stringify(row.shape.message)}`);
+    } else {
+      assert.equal(row.shape.status, REGISTRATION_REFUSED,
+        `and it refuses at rank \`19\`: the ${row.arm.label} arm answered ${JSON.stringify(row.shape.status)} with `
+          + `message ${JSON.stringify(row.shape.message)}`);
+    }
     assert.equal(row.constraints.length, 0,
       `and no pair is carried on a refusal (\`sites.md §3.1\` item 3: *"the pair is NOT carried on a `
         + `refusal"*): the ${row.arm.label} arm's \`constraints()\` = ${JSON.stringify(row.constraints)}`);
@@ -635,8 +668,9 @@ test('G3-23 · THE CREDIT IS THE EXISTING RULE AND NO NEW ONE: four repairs, ONE
       constraints: row.constraints.length,
       standing: row.standing,
       route: row.routeOpId,
-    })))} — ONLY the op the route landed is credited, and the three other returns refuse at rank `
-    + `\`19\` leaving the landing standing`);
+    })))} — ONLY the op the route landed is credited; the THREE returns that produce no op refuse at rank `
+    + `\`19\` leaving the landing standing, and the foreign-op return — which IS credited, and whose re-run `
+    + `offers its repair a second time — refuses at rank \`20\` (\`D-124\` item 1)`);
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════

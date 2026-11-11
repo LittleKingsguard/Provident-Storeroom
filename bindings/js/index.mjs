@@ -86,12 +86,12 @@ import { appendOwn, fail } from './src/entry/refusal.mjs';
 import { withAddon, boundaryReject, adoptModuleContext } from './src/entry/artefact.mjs';
 import { VALUE_ARGUMENT_POSITION, accessorOrSymbolArm, arrayClass, classSpelling, extendedPath, hasLoneSurrogate, inDomainAddress, isAdmittedArray, isLawfulListenerElement, isPlainObjectValue, protoClass, shapeArmClass, targetSpelling, valueReject, valueTargetSpelling } from './src/entry/class-decision.mjs';
 import { encodeAddress, encodeFilePath, encodeJournalLength, encodeOpId, encodeTier, encodeValue, handleWire, inDomainHandle } from './src/entry/carrier.mjs';
-import { admittedConstraintBatch, constraintAddress, decodeBaseState, decodeJournalOp, decodeSegments, decodeValue, encodeConfig, spellConstraintAddress } from './src/entry/frame.mjs';
+import { admittedConstraintBatch, admittedListenerBatch, constraintAddress, decodeBaseState, decodeJournalOp, decodeSegments, decodeValue, encodeConfig, spellConstraintAddress } from './src/entry/frame.mjs';
 // ⟶ `addressSpelling`'s import is DELETED 2026-11-01 with its last two readers (`B-6`'s and `B-4`'s messages,
 // which now name no address at all — `D-98` §3.4). The function keeps its home and its other readers in the
 // entry's other parts.
 import { FORGET_PAIR, INSTANCES, STORE_INDEX, STORE_RETIREMENT, TERMINAL_ARM, appendRepairLeg, carryRefusal, closeCommit, crossTriggered, currentWindow, entryOf, installAttemptSeam, isStoreReceiver, openCommit, writeRefusal } from './src/entry/state.mjs';
-import { commitPositionRefusal, constraintOverwrittenByListen, deliver, installListenRoute, installRegistrationSave, installRegistrationSeam, listenerStandingAt, listenOn, registerOn, terminalArm } from './src/entry/delivery.mjs';
+import { commitPositionRefusal, constraintOverwrittenByListen, deliver, installListenRoute, installRegistrationDelivery, installRegistrationSave, installRegistrationSeam, listenerStandingAt, listenOn, registerOn, terminalArm } from './src/entry/delivery.mjs';
 import { ARGUMENT_POSITION_FIRST, addressSetKey, carryConstraint, constraintDetached, constraintPairKey, constraintRefuse, constraintSite, constraintUncarried, constraintDelete, constraintWrite, constraintsKernel, currentRaise, defineDiscardWitness, defineResolutionLog, enumerateConstraints, judgeReversal, registrationCrossing, restoreHeldPair, reversalWatch, unionAddressSets, withEmptyLog, witnessDiscardedReversal, witnessRaise, withdrawStanding } from './src/entry/constraints.mjs';
 const require_ = createRequire(import.meta.url);
 const ADDON_PATH = join(dirOf(fileURLToPath(import.meta.url)), 'build', 'Release', 'storeroom_js_binding.node');
@@ -112,6 +112,224 @@ adoptModuleContext(import.meta.url, require_, ADDON_PATH);
 // THE SURFACE — `surface.md §2.9` item 1: the EIGHT verbs, and NOTHING else. `findAddress` is NOT exposed
 // (`A63`), no `exists` verb exists (`docs/specs/storeroom-js/surface.md §2.9` item 3) and no release verb is declared (`A74`).
 // ---------------------------------------------------------------------------------------------
+
+/// **ONE MEMBER OF A HANDED VALUE, READ AS AN OWN DATA PROPERTY OR NOT AT ALL** — `[[GetOwnProperty]]`'s answer,
+/// which consults no prototype chain (`D-35`'s read half, the reading `refusal.mjs` and the kernel take). Used by
+/// the sweep's guard and by its refusal conversion, where the values read are a caller's own returned outcome and
+/// a refusal this package threw.
+function ownValue(value, name) {
+  if (value === null || typeof value !== 'object') return undefined;
+  const descriptor = Object.getOwnPropertyDescriptor(value, name);
+  if (descriptor === undefined || !Object.hasOwn(descriptor, 'value')) return undefined;
+  return descriptor.value;
+}
+
+/// **THE ACT'S CONVERSION OF A FIRED BODY'S THROWABLE — `PIN-10`, `Q-13`, AND IT IS TAKEN BEFORE THE ANSWER.**
+/// **THE DELIVER PRECEDES THE ANSWER AT THIS INSTANT** (`PIN-2`: SAVE → DELIVER → THE ANSWER), so a body that
+/// threw PRE-EMPTS it: the caller receives rank `21` `ListenerBodyThrew` and never the identity or the
+/// `undefined` it would have had. **NOTHING IS UNDONE** (`Q-13`: *"the pair stands registered, its save stands,
+/// and no withdrawal arm is declared"*) and **no rollback composes** — the composition was this registration's
+/// own and it was spent before the delivery ran.
+///
+/// **THE SLOT IS CONSUMED HERE AND ITS ABSENCE IS THE ORDINARY ARM**: the act reads it once, at its own answer,
+/// and nothing else in the package can see it — a value of the package's own state, exactly as `legDelivery` is.
+function raiseListenerFailure(state) {
+  const failure = state.listenerFailure;
+  state.listenerFailure = null;
+  if (failure === null || typeof failure !== 'object') return undefined;
+  const at = ownValue(failure, 'address');
+  listenerBodyRefused(Array.isArray(at) ? at : []);
+  return undefined;
+}
+
+/// **THE SWEEP'S GUARD — ONE APPLIED-REPAIR BIT, CONSULTED AT THE ASK AND SET AT THE REPAIR — AND ITS SCOPE IS
+/// THE SWEEP'S AND NOTHING ELSE'S** (`PIN-4` (i), (ii); `D-124` item 1; `D-125` item 4). It wraps a carried
+/// pair's own body and answers EXACTLY what that body answered, except in one state:
+///
+///   * **THE SWEEP IS NOT THE ACT IN HAND** (`sweep.live !== true`) — **THE WRAPPER IS INERT**: the body is
+///     invoked, its answer is handed back AS THE BODY MADE IT, and **no bit is read, no member is read and no
+///     object is rebuilt.** **⟶ AND THIS IS THE STATE A PAIR IS LEFT IN WHEN THE CONSTRUCTION ANSWERS — THE
+///     GATE 4 DEFECT THIS CLAUSE CLOSES.** The wrapper the sweep installs is registered with the kernel and
+///     stored as the entry's element (`constraints.mjs`'s `carryConstraint`, `entry.fn = constraint`;
+///     `kernel-attempt.mjs`'s `pair.constraint`), so **it outlives the sweep by construction and cannot be
+///     un-installed by this frame**: re-registering the original body would ASK THE BODY AGAIN (and could land a
+///     second repair), which is a second act and not a restoration. **SO THE SCOPE IS THE DEVICE**: `sweep` is
+///     one object local to the construction, it is cleared the instant its last round ends, and from that byte on
+///     the wrapper is a transparent identity over the caller's body — **the pair's every later refusal keeps its
+///     `repair` and runs it**, which is what *"local to this construction and gone when it answers"* has to mean
+///     where the body it wraps cannot be swapped back.
+///
+///   * **THE BIT IS UNSET** — the outcome crosses as the body made it, with its `repair` member wrapped by the one
+///     wrapper that SETS the bit when the kernel invokes it. **The bit is set at the INVOCATION and not at the
+///     credit**, which is the rule the act needs: a repair that ran and was then refused refuses the act, so no
+///     later instant can read the bit as a repair that stood.
+///   * **THE BIT IS SET AND THIS ASK IS A LATER ROUND'S (`suppress`)** — the pair would repair a SECOND time, and
+///     **the repair is NOT handed over**: the outcome crosses with its message and without its `repair`, so the
+///     kernel sees a violation with no repair registered, refuses the registration, and **no write of the second
+///     repair is ever performed** (`PIN-4` (i): *"A pair may land AT MOST ONE REPAIR in a construction"*). The
+///     `cycled` mark records that the refusal was a CYCLE, and the sweep converts it to rank `20`.
+///   * **THE BIT IS SET AND THIS ASK IS INSIDE THE SAME REGISTRATION CALL** (`suppress` false, which is the
+///     carry's own round) — the outcome crosses whole: **the re-run's cycle arm is the KERNEL's**
+///     (`kernel-registration.mjs`'s `CYCLE_ARM`), so the within-call cycle refuses at rank `20` from the frame
+///     that owns the attempt, and the shipped `KC` reading of every other refusing arm is unmoved.
+///
+/// **AND A PAIR ASKED AGAIN THAT PASSES IS NOT A CYCLE** (`D-125` item 4: *"asking is not repairing"*): an outcome
+/// that is `true` carries no `repair` and crosses untouched, which is what makes an inconsistent result
+/// decidable at all.
+///
+/// **⟶ AND THE TRANSFORM IS TAKEN ONLY WHERE THE KERNEL READS THE OUTCOME AS ITS MESSAGE ARM — THE GATE 4 DEFECT
+/// THIS CLAUSE CLOSES.** The kernel takes an outcome's `repair` ONLY where `message` is an OWN member
+/// (`kernel-registration.mjs`'s `Object.hasOwn(outcome, 'message')` guard; `kernel-attempt.mjs`'s three-arm read),
+/// and **every other object is the corpus's own `VA-11` arm — a value outside the three declared arms, read as the
+/// `{message}` arm and never as one of its own** (`PAR-C-5`). So a body that answers `{ repair }` and no `message`
+/// registers NO repair at any instant the shipped tree asks it. **THE REBUILT OUTCOME INVENTED THAT MEMBER**: it
+/// handed the kernel `{ message: undefined, repair }`, which is an OWN-message outcome carrying a repair, so **one
+/// body's one outcome read one way at a creation and the other way at `addConstraint` — the pair repaired at the
+/// creation and ran nothing at the registration, on the same bytes.** **THE FIX IS THE TEST THE KERNEL MAKES**: the
+/// own `message` is read FIRST, and where it is absent the outcome crosses UNTOUCHED — **no member the body did not
+/// return is added, no marker is set (a repair that is never handed over is never invoked), and the suppression
+/// below is reachable only on an outcome that carries a repair the kernel would actually run.** That is what makes
+/// the guard's own claim — *it answers EXACTLY what that body answered* — true at every instant.
+///
+/// **NO MEMBER IS MINTED AND NO STATE IS MINTED BEYOND THE BIT**: the marker is a local row, the scope object is
+/// the construction's own, and **the outcome crossing the transforming arm carries EXACTLY the body's own `message`
+/// and its wrapped `repair` — the two members the kernel reads, and never a third it would have to ignore.**
+function sweepGuarded(body, marker, sweep, suppress) {
+  return function sweepGuardedBody(context) {
+    const outcome = body(context);
+    // **THE SCOPE IS THE SWEEP'S: ONCE IT ANSWERS, THE CALLER'S BODY HAS THE INSTANT TO ITSELF** (the defect
+    // closed at the head of this block).
+    if (sweep.live !== true) return outcome;
+    if (outcome === null || typeof outcome !== 'object') return outcome;
+    // **THE KERNEL'S OWN ARM TEST, TAKEN HERE SO THE GUARD CANNOT WIDEN IT** (`VA-11`; see the clause above).
+    if (Object.hasOwn(outcome, 'message') !== true) return outcome;
+    const repair = ownValue(outcome, 'repair');
+    if (typeof repair !== 'function') return outcome;
+    if (suppress === true) {
+      marker.cycled = true;
+      return { message: ownValue(outcome, 'message') };
+    }
+    return {
+      message: ownValue(outcome, 'message'),
+      repair: function guardedRepair(record) {
+        marker.applied = true;
+        return repair(record);
+      },
+    };
+  };
+}
+
+/// **WHETHER TWO ADDRESSES ARE THE SAME ADDRESS** — segment for segment, by value, with no join and no spelling.
+/// The creation's delivery groups the adopted elements BY ADDRESS (`PIN-6` (i)), so the grouping's equality is
+/// taken here once rather than re-derived per comparison.
+function sameSegments(first, second) {
+  if (!Array.isArray(first) || !Array.isArray(second)) return false;
+  if (first.length !== second.length) return false;
+  for (let i = 0; i < first.length; i += 1) {
+    if (first[i] !== second[i]) return false;
+  }
+  return true;
+}
+
+/// **AN ADDRESS'S OWN BARE SPELLING — segments joined by `/`, no quoting** — the `<SEGMENT>` slot the store's
+/// generator takes (`§8.2`, and `kernel-registration.mjs`'s `registrationRefusal` spells the same way). The
+/// generator quotes the subject it is handed, so a quoted spelling here would render `''a''`.
+function spellAddressBare(address) {
+  let spelled = '';
+  for (let i = 0; i < address.length; i += 1) {
+    spelled += i === 0 ? String(address[i]) : `/${String(address[i])}`;
+  }
+  return spelled;
+}
+
+/// **WHETHER AN ADDRESS RESOLVES IN THE REGISTER** — `PIN-7`'s qualifier, read at the store's own `read`.
+///
+/// **`AddressNotFound` IS THE ONE ABSENT ANSWER** (`PIN-7`: *"a listener whose watched address does not resolve
+/// is not fired, and that is not a refusal"*): every OTHER answer counts as present — a value, and the store's own
+/// `ReadTargetIsBranch` for an address a CONTAINER stands at, which is present and is exactly what `PIN-7`
+/// distinguishes from absent. **NOTHING IS MINTED, NO LOG ENTRY IS APPENDED AND NOTHING IS THROWN**; the read is
+/// the construction's own act and opens no commit.
+function registerHolds(state, address) {
+  try {
+    state.receiver.read(address);
+    return true;
+  } catch (refused) {
+    return ownValue(refused, 'status') !== 'AddressNotFound';
+  }
+}
+
+/// **A LISTENER BODY'S THROW AT A REGISTRATION INSTANT, REFUSED AT RANK `21` `ListenerBodyThrew`** (`PIN-10`;
+/// `D-124` item 2, the minted member). **THE SENTENCE IS THE STORE'S GENERATOR'S** (`§8.2`'s row for the member)
+/// **AND THE CLAUSE IS THIS PACKAGE'S**, appended as every boundary refusal appends one: **the body's own
+/// throwable is the caller's and is never rendered as this package's text.** **NO ROLLBACK COMPOSES AND NOTHING
+/// IS WITHDRAWN** (`PIN-10`: the delivery sits after the saves), and the member this refusal crosses with is the
+/// store's own closed set's — the package carries it and mints nothing (`DD-40`).
+function listenerBodyRefused(address) {
+  boundaryReject(
+    'ListenerBodyThrew',
+    spellAddressBare(address),
+    'the listener body threw at the registration instant, and the throwable it raised is its own and refuses the act instead of crossing as itself',
+    'listeners',
+  );
+}
+
+/// **THE CREATION'S AND THE BOOT'S DELIVER — THE ADOPTED SET ∩ THE ADDRESSES THAT RESOLVE** (`PIN-6` (i), (iii),
+/// (iv); `PIN-2`; `D-123` item 2; `D-125` item 1).
+///
+/// **ONE `deliver` CALL PER ADDRESS, IN CREATION ORDER, WITH THE RUNNING HANDLE LIST HELD ACROSS THE CALLS** — the
+/// reversal's own mechanism, spelled here as it stands at `constraints.mjs:3009`–`:3037` — so **an identity two
+/// addresses would fire fires ONCE, at the first address that names it** (`PIN-6` (iii); `surface.md §2.4` rule
+/// 3), and `deliver`'s own snapshot, dedupe and one-invocation rules are unmoved.
+///
+/// **THE ONE ARGUMENT IS THE LISTENER'S OWN WATCHED ADDRESS** (`PIN-6` (iv); `Q-3`'s default) — the address the
+/// call is made for — and **an address that does not resolve is SILENT** (`PIN-7`): no invocation, no code, no log
+/// entry and no throw, with the construction returning its instance.
+///
+/// **A FIRED BODY'S THROWABLE REFUSES THE CONSTRUCTION AT RANK `21`** (`PIN-10`; `D-124` item 2): the instance
+/// does not exist, **no rollback composes** (the saves the registrations' own closes made already stand —
+/// `PIN-12`), and the refusal crosses through `listenerBodyRefused` above. **AN EMPTY SET IS A COUNT OF ZERO AND
+/// NOT SILENCE** (`PIN-6` (v)): a construction that adopted nothing, or whose adopted addresses all fail to
+/// resolve, delivers nothing and answers its instance.
+function deliverAtTheCreation(state, adopted) {
+  const delivered = [];
+  for (let position = 0; position < adopted.length; position += 1) {
+    const watched = adopted[position].address;
+    let named = false;
+    for (let earlier = 0; earlier < position; earlier += 1) {
+      if (sameSegments(adopted[earlier].address, watched)) {
+        named = true;
+        break;
+      }
+    }
+    // ONE CALL PER ADDRESS: the FIRST adopted element that watches it is the call's own position.
+    if (named === true) continue;
+    if (registerHolds(state, watched) !== true) continue;
+    const owed = [];
+    for (let each = position; each < adopted.length; each += 1) {
+      if (sameSegments(adopted[each].address, watched) !== true) continue;
+      const handle = adopted[each].handle;
+      let seen = false;
+      for (let matched = 0; matched < delivered.length; matched += 1) {
+        if (delivered[matched] === handle) {
+          seen = true;
+          break;
+        }
+      }
+      if (seen === true) continue;
+      appendOwn(delivered, handle);
+      // **THE ELEMENT `deliver` READS**: the identity it resolves and the watched address it is handed, and no
+      // address of the store's own — a bare `{address, handle}` record, which is the store's own set's shape.
+      appendOwn(owed, { address: watched, handle });
+    }
+    if (owed.length === 0) continue;
+    try {
+      deliver(state, owed, watched);
+    } catch (thrown) {
+      listenerBodyRefused(watched);
+    }
+  }
+  return undefined;
+}
 
 /// `docs/specs/storeroom-js/surface.md §2.1`: `storeCreate(cfg)` takes ONE plain object carrying the store's FOUR declared keys, passes them
 /// through WITHOUT adding a default, a rename or a fifth key (`DD-36`) — **the as-filed *"THREE declared
@@ -181,6 +399,15 @@ export function storeCreate(cfg) {
   // FORWARDED `constraint` MEMBER — AND IT IS WHAT STEP 5 ARMS.** `D-26` item 3: *"the boundary carries the
   // PAIR and the package arms the SUBSTANCE"*; `D-27` item 1: *"Functions are armed"*.
   const batch = admittedConstraintBatch(cfg);
+  // **⟶ AND STEP `2`'S SECOND WALK, BESIDE IT AND FOR THE SAME REASON — `PIN-8`, `PIN-9`, `D-123` item `2`,
+  // 2026-11-06.** **A `cfg.listeners[]` ENTRY THAT CARRIES NO FUNCTION IS REFUSED HERE, BEFORE ANY FILESYSTEM
+  // ACT** — so no file is ever created for it (`contract.md §10.4` part `5`) — in the form this position already
+  // answers with (`AddressMalformed` naming `listeners`, `frame.mjs`'s own `boundaryReject`, and NO CODE IS
+  // MINTED FOR IT). **THE VALUE IT ANSWERS IS THE ADOPTED LIST — ONE ENTRY PER ELEMENT THE STORE WOULD ADMIT,
+  // CARRYING THE FORWARDED `listener` MEMBER — AND IT IS WHAT THE ARMING WALK BELOW ARMS**: the element's third
+  // member never crosses (`frame.mjs`'s projection strips it) and **THE PACKAGE ARMS THE SUBSTANCE**, so the
+  // adopted handle holds a body from the instant the instance exists.
+  const adopted = admittedListenerBatch(cfg);
   let id;
   try {
     id = addon_.storeCreate(encoded);
@@ -247,6 +474,18 @@ export function storeCreate(cfg) {
     // and a Map are never own members of the product): `'arm'` on every path that does not say otherwise, and
     // `'member'` for the instant a `delete` stands in, restored in the same `finally` as the leg itself.
     legDelivery: 'arm',
+    // **⟶ AND THE TWO VALUES THE REGISTRATION INSTANTS' DELIVERY OWES — `D-125` ITEM `1`, 2026-11-06.**
+    // **`registrationDelivery` SAYS WHICH SET THE INSTANT IN HAND DELIVERS**: `'adopted'` for the construction
+    // and a boot — `PIN-6` (i)'s adopted ∩ existing, delivered by `storeCreate`'s own seat below — and
+    // `'triggered'` for `addConstraint` and a re-arm, where `PIN-6` (ii) makes the set *"THE STORE'S OWN
+    // `triggered`"* and `delivery.mjs`'s registration-delivery channel delivers it from the registration's own
+    // passing close. **A VALUE OF THE PACKAGE'S OWN STATE AND NOT A MEMBER OF ANY RECORD**, exactly as
+    // `legDelivery` above is.
+    registrationDelivery: 'adopted',
+    // **AND THE SLOT A FIRED BODY'S THROWABLE WAITS IN** (`PIN-10`, `Q-13`): the channel catches it rather than
+    // raising it through the kernel's frames, and the ACT that called the registration converts it into rank
+    // `21` `ListenerBodyThrew` before it answers. `null` on every arm that delivered cleanly.
+    listenerFailure: null,
   };
   // **⟶ THE RECEIVER IS THE STORE OBJECT ITSELF, AND THE INTEGER THE PACKAGE USED TO HAND ACROSS IS NOT
   // HANDED AT ALL** (`receiver-and-refusal.md §1`; `js-unwrap.md §4`). The addon resolves its store from the
@@ -979,6 +1218,15 @@ export function storeCreate(cfg) {
       // no `openCommit`, no `constraintSite`, no registry read, no `K-1`, no store act.**
       // ═════════════════════════════════════════════════════════════════════════════════════════════════
       constraintDetached(this);
+      // **⟶ AND THE DELIVERY'S SET AT THIS INSTANT IS THE REPAIR'S OWN `triggered` — `PIN-6` (ii), `D-125`
+      // item `1`.** The registration's passing close hands `delivery.mjs`'s channel the watched sets its repair's
+      // writes fired, and the channel reads this value to know which instant is speaking: **the creation's and the
+      // boot's set is `PIN-6` (i)'s and `storeCreate` delivers it at its own seat**, so the channel is silent
+      // there and speaks here. **IT IS A VALUE OF THE PACKAGE'S STATE AND NOT A MEMBER** (`A117` (D6)), restored
+      // on every arm by the `finally` below, and no code, record or attempt is minted with it.
+      const priorDelivery = state.registrationDelivery;
+      state.registrationDelivery = 'triggered';
+      state.listenerFailure = null;
       // **⟶ `§4.1`: `addConstraint` OPENS ONE.**
       const opened = openCommit(instance);
       try {
@@ -1021,7 +1269,11 @@ export function storeCreate(cfg) {
       }
       const held = site.state.constraints.get(constraintPairKey(site.addresses, site.id));
       if (held === undefined) {
-        return carryConstraint(site.state, instance, site.addresses, site.id, constraint).identity;
+        const carried = carryConstraint(site.state, instance, site.addresses, site.id, constraint);
+        // **DELIVER → THE ANSWER** (`PIN-2`): the registration's own passing close has already delivered, so a
+        // fired body's throwable refuses the act here and the identity is never returned (`PIN-10`; `Q-13`).
+        raiseListenerFailure(site.state);
+        return carried.identity;
       }
       // ═══════════════════════════════════════════════════════════════════════════════════════════════════
       // **⟶ THE HELD-PAIR ARM IS `CHECK → PURGE → ADD`, AND IT IS THE ONE ORDER THE RULING GIVES**
@@ -1121,8 +1373,12 @@ export function storeCreate(cfg) {
       // identity after it, by VALUE, and the enumeration is unmoved (`contract.md §2.6` items 2–3;
       // `constraint-identity.md §5` `IF-1`).
       site.state.constraints.set(constraintPairKey(held.addresses, held.id), held);
+      // **DELIVER → THE ANSWER** (`PIN-2`): the overwrite arm's re-registration delivered at its own passing
+      // close, so a fired body's throwable refuses the act here (`PIN-10`; `Q-13`).
+      raiseListenerFailure(site.state);
       return held.identity;
       } finally {
+        state.registrationDelivery = priorDelivery;
         closeCommit(instance, opened);
       }
     },
@@ -1149,6 +1405,14 @@ export function storeCreate(cfg) {
       // neither the surface's one form nor a store code; it now refuses in the seven's one plain form and
       // moves nothing — no `openCommit`, no pair read, no `K-1`.
       constraintDetached(this);
+      // **⟶ AND THE DELIVERY'S SET AT THE RE-ARM IS THE REPAIR'S OWN `triggered` TOO — `PIN-6` (ii), `D-125`
+      // item `1`.** The re-registration's `K-1` reaches the same registration route and the same passing close, so
+      // the channel speaks here for the same reason and reads the same value; **the set is `PIN-6` (ii)'s
+      // *"THE STORE'S OWN `triggered`"***, one invocation per distinct handle, after the save and before this
+      // act's `undefined`.
+      const priorDelivery = state.registrationDelivery;
+      state.registrationDelivery = 'triggered';
+      state.listenerFailure = null;
       // **⟶ `§4.1`: `constraintOn` OPENS ONE — ENABLING.**
       const opened = openCommit(instance);
       try {
@@ -1228,8 +1492,13 @@ export function storeCreate(cfg) {
         // *"equal to itself"* asks for at a re-enable, and the enumeration it feeds is unmoved either way.
         site.state.constraints.set(constraintPairKey(entry.addresses, entry.id), entry);
       }
+      // **DELIVER → THE ANSWER** (`PIN-2`): the re-registration's `K-1` delivered at its own passing close, so a
+      // fired body's throwable refuses the TOGGLE here and this act never answers (`PIN-10`; `Q-13`; `Q-15`'s
+      // *"the toggle refuses; the instance and every other pair stand"*).
+      raiseListenerFailure(site.state);
       return undefined;
       } finally {
+        state.registrationDelivery = priorDelivery;
         closeCommit(instance, opened);
       }
     },
@@ -1623,6 +1892,14 @@ export function storeCreate(cfg) {
   // (`A117` (D6)).
   // ═════════════════════════════════════════════════════════════════════════════════════════════════════
   installRegistrationSave(instance, state);
+  // **⟶ AND THE REGISTRATION INSTANT'S DELIVERY CHANNEL, INSTALLED HERE FOR THE SAME MEASURED REASON —
+  // `D-125` item `1`, `PIN-2`, 2026-11-06.** It is the channel the registration's PASSING close reaches with the
+  // watched sets its repair's writes fired (`delivery.mjs`'s `installRegistrationDelivery`, whose loop is
+  // `deliver`'s own); **it is silent while the construction is the act in hand** — the creation and the boot
+  // deliver `PIN-6` (i)'s own set at their own seat below — and it speaks at `addConstraint` and at a re-arm.
+  // **IT CHANGES NO ORDER OF ACTS AND ADDS NO MEMBER**: `Symbol.for`-keyed and `enumerable: false`, so the
+  // product's own members are unmoved (`A117` (D6)), exactly as the three channels beside it.
+  installRegistrationDelivery(instance, state);
   // **⟶ `docs/specs/storeroom-js/surface.md §2.12` ITEM 1 CLAUSE (b): `storeCreate` REGISTERS EACH OF `cfg.constraints`' ELEMENTS THAT CARRIES
   // ITS OWN FUNCTION AT `K-1`, AT THE INSTANCE IT IS CONSTRUCTING** — the SAME call the ADD route makes, so
   // a batch-populated pair is a pair the entry carries on the same footing (`docs/specs/storeroom-js/surface.md §2.12` item 3's preamble clause
@@ -1651,14 +1928,115 @@ export function storeCreate(cfg) {
   // CARRIER IS READ BACK TO ITS SEGMENTS HERE** (`batch`'s `addresses` is already that list) and no new
   // position, no new code and no new failure form is minted: the pair is its ONE-member set
   // (`constraint-identity.md §6`'s pair table — a single address at the REGISTRATION act).
-  for (let i = 0; i < batch.length; i += 1) {
-    try {
-      carryConstraint(state, instance, batch[i].addresses, batch[i].id, batch[i].constraint);
-    } catch (refusal) {
-      // **`D-77`: the batch element's own address — the construction's registration act is at it.**
-      registrationCrossing(refusal, batch[i].addresses[0]);
+  // ═════════════════════════════════════════════════════════════════════════════════════════════════════
+  // **⟶ THE SWEEP — `D-123` ITEM `1`, `D-124` ITEM `1`, `D-125` ITEMS `3`–`4`; `PIN-3`, `PIN-4`, `PIN-5`.**
+  // ═════════════════════════════════════════════════════════════════════════════════════════════════════
+  //
+  // **THE CARRY, THEN THE ROUNDS: EVERY ADMITTED PAIR IS CARRIED ONCE AND THEN ASKED AGAIN, ROUND BY ROUND,
+  // UNTIL A ROUND LANDS NO REPAIR** (`PIN-4` (i)–(iv)). **A round asks every admitted pair AT MOST ONCE**, and it
+  // asks it **through the registration route's own `carryConstraint`** — the same act the carry takes, at the same
+  // address, with the pair's own body — so **no attempt, no budget member and no `AttemptRef` is minted**: a
+  // construction has no attempt to count restarts in (`D-124` item `1`: *"THE SWEEP INHERITS THE MARKER AND NOT
+  // THE BUDGET"*).
+  //
+  // **THE SWEEP'S WHOLE NEW STATE IS ONE APPLIED-REPAIR BIT PER ADMITTED PAIR, AND IT IS THESE `markers` ROWS**
+  // (`PIN-4`: *"the applied-repair bit per admitted pair is the sweep's whole new state"*; `PIN-14` (i)). It is
+  // **NOT a member**: nothing is minted on the instance, on a record, on an op or on the kernel, and the bits are
+  // local to this construction and gone when it answers.
+  //
+  // **⟶ AND `sweep` IS THE ONE OBJECT THAT MAKES *"GONE WHEN IT ANSWERS"* TRUE OF THE GUARD ITSELF — GATE 4's
+  // DEFECT 1, CLOSED.** `sweepGuarded` installs a wrapper as the pair's element AND as the body the kernel's pass
+  // asks (`carryConstraint`'s `entry.fn`, `kernel-attempt.mjs`'s `pair.constraint`), so **the wrapper cannot be
+  // un-installed when the sweep ends**: re-registering the original body would ASK the body again at the state the
+  // sweep left, which can land a second repair and is therefore a second act and not a restoration. **THE SCOPE IS
+  // THEREFORE THE DEVICE**: this object is local to the construction, the wrapper consults it before it reads
+  // anything of the outcome, and it is cleared the instant the sweep's last round ends (below) — so **from that
+  // byte on the wrapper is a transparent identity over the caller's own body, and a pair that repaired inside the
+  // construction keeps its `repair` on every later refusal for the life of the instance.** **NO MEMBER IS MINTED**:
+  // it is a local row, exactly as the bits are.
+  const sweep = { live: true };
+  //
+  // **THE TERMINATOR IS ARITHMETIC AND NOT BUDGETARY** (`D-124` item `1`): every round that continues the sweep
+  // lands at least one repair, no pair repairs twice, so the repairs number at most the admitted pairs and the
+  // first round that lands none ends the sweep. **NO ROUND CAP IS MINTED AND NO COUNT IS COUNTED** — `PIN-4`'s
+  // `THREE` and `D-42`'s restart budget are RETIRED for this act, and no cell of this unit prints a round.
+  //
+  // **AND THE THREE REFUSING ARMS, EACH AT ITS OWN MEMBER:**
+  //   * **THE CYCLE** (`D-125` item `4`; `PIN-4` (ii)) — a pair asked again that WOULD REPAIR AGAIN. Inside one
+  //     registration call it is the re-run's own arm (`kernel-registration.mjs`'s `CYCLE_ARM`, rank `20`); across
+  //     rounds it is `sweepGuarded`'s suppression below, whose rank `19` verdict this frame converts, because
+  //     **`a pair's second repair attempt is an inconsistent result and refuses at rank `20`*** — the pair's
+  //     repair is NOT performed a second time and no save reaches the bytes.
+  //   * **THE POST-ROUND INCONSISTENCY** (`PIN-5`) — a pair that refuses in a round AFTER the first: the rounds
+  //     have ended on a register that still violates a carried pair, and *"the construction **throws instead of
+  //     returning an instance**"*. It crosses rank `20` `ConstraintPassRefused` and **no member is minted for
+  //     it** (its trigger is arm-neutral by its own row, `contract.md:4652`).
+  //   * **THE PAIR'S OWN FIRST VERDICT** — a refusal in the CARRY, or in the first round, is the registration
+  //     instant's own and keeps rank `19` `ConstraintRefusedAtRegistration` (`PIN-11`: both ranks carry a
+  //     constraints subject, and the shipped arm does not move).
+  //
+  // **A SKIPPED PAIR IS STILL SKIPPED** (`D-90`'s rule read THROUGH `D-123` item 1): `pairApplication` is asked
+  // before the body at every one of these asks, so a pair whose parent does not resolve is passed over in the
+  // carry and in every round, is not a refusal, and is still named by `constraints()` (`PIN-14` (ii) freezes
+  // `kernel-registration.mjs`'s skip by name).
+  //
+  // **THE SWEEP IS THE CREATION'S AND THE BOOT'S ALONE** (`D-125` item 3): `addConstraint` and a re-arm keep the
+  // registration instant's own single-pair scope, so no round runs at either of them.
+  const markers = [];
+  for (let i = 0; i < batch.length; i += 1) appendOwn(markers, { applied: false, cycled: false });
+  let roundIndex = 0;
+  let landedInRound = 0;
+  do {
+    landedInRound = 0;
+    for (let i = 0; i < batch.length; i += 1) {
+      const marker = markers[i];
+      const appliedBefore = marker.applied;
+      // **A PAIR THAT ALREADY LANDED ITS ONE REPAIR IS ASKED AGAIN AND ITS SECOND REPAIR IS NOT ATTEMPTED**
+      // (`PIN-4` (i), (ii)): the guard suppresses it, the registration refuses without repairing, and the
+      // conversion below makes that rank `20` — *"a cycle is an inconsistent result"* (`D-125` item 4).
+      // **IN THE CARRY ITSELF THE GUARD NEVER SUPPRESSES** (`roundIndex` `0`), so the re-run's own cycle arm is
+      // the kernel's and the shipped `KC` reading of every other refusing arm is unmoved.
+      const guarded = sweepGuarded(batch[i].constraint, marker, sweep, roundIndex > 0 && appliedBefore === true);
+      try {
+        carryConstraint(state, instance, batch[i].addresses, batch[i].id, guarded);
+      } catch (refusal) {
+        // **A LATER ROUND'S RANK-`19` VERDICT IS THE SWEEP'S POST-ROUND INCONSISTENCY AND CROSSES AT RANK `20`**
+        // (`PIN-5`); every other refusal — the carry's own, a body that threw (rank `18`), a store code — keeps
+        // its own member and its own form.
+        if (roundIndex > 0 && ownValue(refusal, 'status') === 'ConstraintRefusedAtRegistration') {
+          boundaryReject(
+            'ConstraintPassRefused',
+            spellAddressBare(batch[i].addresses[0]),
+            marker.cycled === true
+              ? 'the pair had already landed its one repair and would repair a second time, and a pair may land AT MOST ONE REPAIR in a construction'
+              : 'the sweep ended on a register that still violates a carried pair, and the construction may not return an instance whose register still violates one of them',
+            'constraints',
+          );
+        }
+        // **`D-77`: the batch element's own address — the construction's registration act is at it.**
+        registrationCrossing(refusal, batch[i].addresses[0]);
+      }
+      if (marker.applied === true && appliedBefore === false) landedInRound += 1;
     }
-  }
+    roundIndex += 1;
+  } while (landedInRound > 0);
+  // ═════════════════════════════════════════════════════════════════════════════════════════════════════
+  // **⟶ AND THE SWEEP'S SCOPE ENDS HERE — ITS LAST ROUND HAS ANSWERED AND THE GUARD BECOMES THE CALLER'S
+  // BODY — GATE 4's DEFECT 1, CLOSED AT ITS OWN BYTE.**
+  // ═════════════════════════════════════════════════════════════════════════════════════════════════════
+  //
+  // **WHY THIS LINE IS THE FIX AND NOT A TIDY-UP.** The wrapper this loop installed stands in the entry
+  // (`entry.fn`) and in the kernel's pair row, so it is the body EVERY later instant asks — the pass over a
+  // caller's `write`, a `delete`, a `rollback`'s judgement and a re-arm. **A wrapper left suppressing would strip
+  // the `repair` from that pair's every later refusal, silently, for the life of the instance, and only a
+  // re-`addConstraint` would restore it** — measured: a construction whose pair repaired, then an ordinary
+  // `write` at its address, refused at rank `20` with the repair never run. **THE MARKER IS CONSTRUCTION-SCOPED
+  // AND THIS IS WHERE THE CONSTRUCTION'S PART OF IT ENDS**: `sweep.live` is cleared the instant the sweep has
+  // nothing left to ask — before the listeners are applied, before the delivery and before the answer — so the
+  // suppression is consulted ONLY while the sweep is the act in hand, and the pair's every later refusal runs its
+  // repair as its own body made it. **NO MEMBER MOVES AND NO ARM MOVES**: the bits, the three refusing arms and
+  // every rank above are the bytes they were.
+  sweep.live = false;
   // **⟶ AND THE CONSTRUCTION'S OWN ADOPTION ENTERS THE PACKAGE'S HOME MIRROR** (`docs/specs/storeroom-js/surface.md §2.4` item 7 (b)'s dated
   // narrowing reads TWO lawful duplicate states, and the ONE-ADDRESS one is `DD-39`'s CONSTRUCTION duplicate;
   // `src/store.rs`'s own `adopt` keeps BOTH entries under one address and pushes the token's index entry for
@@ -1716,11 +2094,21 @@ export function storeCreate(cfg) {
     // mirror was empty, and a no-op `get`/`set`/`push` did the same with a success report.** The order is the one
     // the comment above declares and no clause asserts: the handles in the order `listeners[]` first names them,
     // and each handle's addresses in the order the array names them.
+    //
+    // **⟶ AND THE LIST IT WALKS IS `adopted` — STEP `2`'S OWN ANSWER — AND THE BODY IS ARMED BESIDE THE ADDRESSES,
+    // `PIN-8`, 2026-11-06.** The bytes this replaced re-read `cfg.listeners` and re-took `isLawfulListenerElement`
+    // per element; **the walk is now the one step 2 already took**, so no element is read off the caller's array
+    // twice and no second admission decides a second time (the shape `admittedConstraintBatch`'s own arming walk
+    // takes). **`listen` WRITES THE STORE-SIDE ENTRY AND THE RESERVATION, AND `register` ARMS THE FUNCTION INTO
+    // THIS INSTANCE'S REGISTRY** — `docs/specs/storeroom-js/surface.md §2.4` rule 2's replacement rule, so an
+    // element a later one supersedes under the same handle leaves the LAST body standing — **and it is the same
+    // two acts a caller performs at the boot ruling's own command (*"Boot goes through listen()"*), in the same
+    // order.** **NO MEMBER IS MINTED AND THE MIRROR'S ROWS ARE THE SAME ROWS**: `register` sets `off` false and
+    // the function, and adds no row.
     const handles = [];
     const addressSets = [];
-    for (let i = 0; i < cfg.listeners.length; i += 1) {
-      const entry = cfg.listeners[i];
-      if (!isLawfulListenerElement(entry)) continue;
+    for (let i = 0; i < adopted.length; i += 1) {
+      const entry = adopted[i];
       let at = -1;
       for (let h = 0; h < handles.length; h += 1) {
         if (handles[h] === entry.handle) {
@@ -1738,7 +2126,45 @@ export function storeCreate(cfg) {
     for (let h = 0; h < handles.length; h += 1) {
       instance.listen(handles[h], addressSets[h]);
     }
+    // **THE SUBSTANCE, ARMED FROM THE INSTANT THE INSTANCE EXISTS** (`PIN-8`; `D-123` item `2`: *"THE PACKAGE
+    // ARMS THE SUBSTANCE"*). **ONE `register` PER ADOPTED HANDLE, AFTER ITS `listen`** — so the entry it replaces
+    // is the reservation that `listen` just wrote, exactly as a caller's own two acts do. **WHERE ONE HANDLE IS
+    // ADOPTED BY SEVERAL ELEMENTS THE LAST BODY WINS**, which is `register`'s own replacement rule (`§2.4` rule
+    // 2: *"one handle, one function — the previous entry is REPLACED"*), and the walk that finds it is a local
+    // index loop like every other read of this list.
+    for (let h = 0; h < handles.length; h += 1) {
+      let body;
+      for (let i = 0; i < adopted.length; i += 1) {
+        if (adopted[i].handle === handles[h]) body = adopted[i].listener;
+      }
+      if (typeof body === 'function') instance.register(handles[h], body);
+    }
   }
+  // ═════════════════════════════════════════════════════════════════════════════════════════════════════
+  // **⟶ AND THE CREATION'S DELIVER — `PIN-2`, `PIN-6` (i), (iii), (iv); `D-123` item `2`, `D-125` item `1`.**
+  // ═════════════════════════════════════════════════════════════════════════════════════════════════════
+  //
+  // **THE SEAT IS AFTER EVERY REGISTRATION'S PASSING CLOSE — and therefore after their saves — AFTER THE
+  // LISTENERS ARE ARMED, AND BEFORE THE ANSWER** (`PIN-2`'s redrawn order: ASK → REPAIRS LAND → RE-RUN → SAVE →
+  // DELIVER → THE ANSWER). **IT IS REACHED ONLY WHERE THE SWEEP RETURNED AN INSTANCE**: a construction that
+  // refused left this frame above, so *"no delivery on a refusing arm"* is structural here and not a test.
+  //
+  // **THE SET IS `PIN-6` (i)'S: THE ADOPTED SET ∩ THE ADDRESSES THAT RESOLVE IN THE REGISTER**, delivered *"by the
+  // mechanism above"* — **one `deliver` call per address, in creation order, with the running handle list held
+  // ACROSS the calls** (`constraints.mjs:3009`–`:3037`), so an identity adopted at two existing addresses fires
+  // ONCE, at the first address that names it (`PIN-6` (iii)). **THE ONE ARGUMENT IS THAT ADDRESS** (`PIN-6` (iv);
+  // `Q-3`'s default: the listener's own watched address at this instant).
+  //
+  // **AN ADDRESS THAT DOES NOT RESOLVE IS SILENT AND IS NOT A REFUSAL** (`PIN-7`; `D-123` item 3): no invocation,
+  // no code, no log entry and no throw. **AND A FIRED BODY'S THROWABLE REFUSES THE CONSTRUCTION AT RANK `21`
+  // `ListenerBodyThrew`** (`PIN-10`; `D-124` item 2) — **the instance does not exist, no rollback composes (the
+  // saves above already stand, `PIN-12`), and the throwable itself is not rendered as a sentence of this
+  // package's.**
+  deliverAtTheCreation(state, adopted);
+  // **⟶ AND THE CONSTRUCTION'S OWN DELIVERY IS THE `'adopted'` SET AND NOT THE REPAIR'S** — the flag the channel
+  // reads is stated here as well as at the state's own declaration, because the two are one fact and this is the
+  // seat that owns it.
+  state.registrationDelivery = 'adopted';
   // **⟶ THE SEAM IS INSTALLED ON THE OBJECT THIS FACTORY RETURNS, ONCE** (`finalizer-and-teardown.md
   // `§4.2` item 4). **IT IS INSTALLED AFTER THE BATCH ROUTES ABOVE**, so a `listen` the construction itself
   // performs is not counted as a commit the caller opened and leaves the count at `0` on the return.

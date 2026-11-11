@@ -2443,9 +2443,14 @@ fn e2e_num_the_literal_2_pow_53_plus_1_through_the_f64_carrier_is_in_bounds() {
 //   TOKEN SEPARATOR IS REFUSED — EXACTLY FOUR SEPARATORS ARE ADMITTED (space, tab, `LF`, `CR`), AND
 //   `U+00A0` IS NOT ONE OF THEM. (4) A NESTING DEPTH OF `128` OR MORE IS REFUSED … AND ONE WIDENING CLASS
 //   STANDS BESIDE THE FOUR: THE LOADER ACCEPTS AN ESCAPED SURROGATE PAIR (`\uD83D\uDE00`), WHICH THE
-//   PRE-SWAP CODEC REFUSED OUTRIGHT."* **AND THE ANSWER FOR A FILE THE LOADER REFUSES: *"THE WHOLE FILE
-//   DOES NOT LOAD: THE BOOT FALLS THROUGH, THE STORE'S REGISTER BEGINS EMPTY, AND NO ERROR REACHES THE
-//   CALLER — `storeCreate` STILL RETURNS AN INSTANCE."***
+//   PRE-SWAP CODEC REFUSED OUTRIGHT."* **AND THE ANSWER FOR A FILE THE LOADER REFUSES IS NOW A REFUSAL OF
+//   THE WHOLE ACT — ⟶ RE-DERIVED 2026-11-06 (`D-126` item 2; `docs/L1/creation-sweep.md §3` `PIN-11`,
+//   redrawn): the clause this line used to quote — *"THE WHOLE FILE DOES NOT LOAD: THE BOOT FALLS THROUGH,
+//   THE STORE'S REGISTER BEGINS EMPTY, AND NO ERROR REACHES THE CALLER — `storeCreate` STILL RETURNS AN
+//   INSTANCE"* — is the SILENCE THE RULING RETIRES, and it stands here as the retired reading: **a present,
+//   non-empty image the loader cannot read crosses the minted rank `22` `FileImageRefused`, and NO INSTANCE
+//   is returned.** What does NOT move is `NoImage`: a ZERO-LENGTH file and an ABSENT path still load nothing
+//   and cross no code (`§10.4` part 3; `DD-38`).**
 // * **`§7.2` item 2's 2026-10-21 clause — "THE COMMIT VERIFIES THE IMAGE IT IS ABOUT TO WRITE: IT
 //   RE-DECODES IT AND REFUSES, WITH THE EXISTING `FileCommitFailed`, WHEN IT DOES NOT LOAD."** *"THE COMMIT
 //   RE-DECODES THE IMAGE IT IS ABOUT TO RENAME OVER THE PATH AND REFUSES IF IT DOES NOT LOAD — the answer
@@ -2473,10 +2478,12 @@ fn e2e_num_the_literal_2_pow_53_plus_1_through_the_f64_carrier_is_in_bounds() {
 //   8. **THE COMMIT'S OWN VERIFICATION** — a value of walk-depth `126` COMMITS and survives a boot, and a
 //      value of walk-depth `127` is REFUSED with the EXISTING `FileCommitFailed`, the prior bytes stand and
 //      the refused value never persists;
-//   9. **THE CONSTRAINED ARM OF THE REFUSED FILE'S ANSWER** — the refused file's answer has TWO arms and
-//      BOTH are declared: **the PLAIN construction (no constraint list) returns an instance whose register
-//      is EMPTY and reaches the caller with NO error** (the cell above), **and a construction that SUPPLIES
-//      a constraint list answers `ConstraintListInvalid` and returns NO INSTANCE**;
+//   9. **THE REFUSED FILE'S ANSWER WHEN A CONSTRAINT LIST IS SUPPLIED** — the cell drives the same file
+//      with and without a list, and **BOTH arms answer the minted rank `22` `FileImageRefused` and return NO
+//      INSTANCE** (`D-126` item 2; `PIN-11` redrawn — the image is refused BEFORE the registration sweep, so
+//      no pair is carried and the list's load-side arm is never reached), **while a MALFORMED list over the
+//      same file still answers `ConstraintListInvalid`** (`PIN-5` (ii)) and the SAME list over a file the
+//      loader ACCEPTS still returns an instance (the control);
 //  10. **THE NUMBER SWEEP — the number class's own NEGATIVE GENERATOR** — `01`, `+1`, `.5`, `1.`, `1e`,
 //      `Infinity`, `NaN`, `0x1`, `1_0`, `--1`, `1.2.3` and the OVERFLOWING `1e309` are each REFUSED, and
 //      the UNDERFLOWING `1e-400` and `1e-324` are ACCEPTED and read back as the number `0`;
@@ -2510,51 +2517,68 @@ fn e2e_num_the_literal_2_pow_53_plus_1_through_the_f64_carrier_is_in_bounds() {
 // walk-depth `127` cell is the REFUSAL case.
 // ===================================================================================================
 
-/// **THE LOADER'S ANSWER FOR A FILE IT REFUSES — THE WHOLE FILE DOES NOT LOAD** (`§7.2` item 7 (f)):
-/// the boot falls through, the store's register begins EMPTY, and NO ERROR REACHES THE CALLER — the
-/// construction still returns an instance.
+/// **THE LOADER'S ANSWER FOR A FILE IT REFUSES — THE CONSTRUCTION REFUSES AT THE MINTED RANK `22`
+/// `FileImageRefused`** (`D-126` item 2; `docs/L1/creation-sweep.md §3` `PIN-11`, redrawn `2026-11-06`): a
+/// present, non-empty image the loader cannot read is the STORE'S THIRD IMAGE CLASS (`FileImage::Refused`),
+/// and the construction refuses at it — **BEFORE the registration sweep** — rather than falling through to an
+/// empty register, because *"an application that must check if file data is corrupt … cannot while corruption
+/// returns an instance indistinguishable from an empty path"* and *"the next save would then write a readable
+/// image over the corrupt bytes, which destroys the only evidence"*.
 ///
-/// The file's TEXT is written BY HAND at a real path, the instance is booted at that path, and the
-/// DECLARED ANSWER is asserted in its three parts: **(1)** the instance IS returned; **(2)** the register
-/// begins EMPTY; **(3)** the key the refused file carried resolves to NOTHING — the store's own
-/// `AddressNotFound` (`§2.2`'s `L-3`).
+/// **THE SILENCE THIS DRIVE ONCE PINNED IS RETIRED, AND WHAT THE RULING MOVED IS THE EXPECTED READING AND
+/// NOT THE DRIVE**: the file's TEXT is still written BY HAND at a real path and the store is still
+/// constructed at that path. The DECLARED ANSWER is asserted in its three parts, each re-pointed at the
+/// ruling's own consequence: **(1)** the construction REFUSES at rank `22` `FileImageRefused` and returns **no
+/// instance**; **(2)** NOTHING LOADS AND NOTHING WAS REPAIRED — a second construction over the same path
+/// answers the same member, so the refused file was neither truncated nor rewritten nor normalised; **(3)**
+/// the file STANDS BYTE-FOR-BYTE, which is what the refusal leaves standing (`PIN-11`: *"THE CORRUPT FILE
+/// STANDS, UN-WRITTEN-TO AND UN-REPAIRED"*).
 fn loader_refuses_the_whole_file(tag: &str, text: &str, label: &str, clause: &str) {
     let path = fresh_path(tag);
     std::fs::write(&path, text.as_bytes())
         .unwrap_or_else(|e| panic!("case `{label}`: the file's TEXT is written BY HAND at a real path; got {e}"));
 
-    // (1) NO ERROR REACHES THE CALLER — `storeCreate` STILL RETURNS AN INSTANCE.
-    let booted = ok(
+    // (1) THE CONSTRUCTION REFUSES AT THE MINTED RANK `22` — AND NO INSTANCE IS RETURNED.
+    let refused = failure(
         storeCreate(&cfg_at(&path, 8)),
         &format!(
-            "case `{label}`: §7.2 item 7 (f) — the boot FALLS THROUGH and NO ERROR REACHES THE CALLER: \
-             `storeCreate` STILL RETURNS AN INSTANCE [{clause}]"
-        ),
-    );
-
-    // (2) THE STORE'S REGISTER BEGINS EMPTY.
-    assert_eq!(
-        read_at(&booted, &empty_address()),
-        v_obj(&[]),
-        "case `{label}`: §7.2 item 7 (f) — THE WHOLE FILE DOES NOT LOAD: the boot falls through and the \
-         store's register begins EMPTY [{clause}]"
-    );
-
-    // (3) THE KEY THE REFUSED FILE CARRIED RESOLVES TO NOTHING.
-    let absent = failure(
-        booted.read(AddressArg::List(key(&["root"])), TierArg::Absent),
-        &format!(
-            "case `{label}`: §7.2 item 7 (f) — the key the refused file carried is NOT in the register, so \
-             the address resolves to nothing"
+            "case `{label}`: `D-126` item 2 — A CORRUPT IMAGE REFUSES THE CONSTRUCTION: the call answers the \
+             minted rank `22` `FileImageRefused` and returns NO INSTANCE [{clause}]"
         ),
     );
     assert_code(
-        &absent,
-        "AddressNotFound",
+        &refused,
+        "FileImageRefused",
         &format!(
-            "case `{label}`: §2.2 L-3 / §8.1 #2 — the register holds no key, so the read answers the \
-             store's own `AddressNotFound` [{clause}]"
+            "case `{label}`: §8.1 #22 (`D-126` item 2; `PIN-11`) — a present, non-empty image the loader \
+             refuses crosses the member whose SUBJECT IS THE STORE'S OWN IMAGE [{clause}]"
         ),
+    );
+
+    // (2) NOTHING LOADED AND NOTHING WAS REPAIRED — THE SAME PATH, THE SAME TEXT, THE SAME MEMBER.
+    let again = failure(
+        storeCreate(&cfg_at(&path, 8)),
+        &format!(
+            "case `{label}`: `PIN-11` — the refusal precedes the sweep and WRITES NOTHING: a SECOND \
+             construction over the same path refuses again, because no register was installed and the file \
+             was not repaired into one [{clause}]"
+        ),
+    );
+    assert_code(
+        &again,
+        "FileImageRefused",
+        &format!(
+            "case `{label}`: `PIN-11` — the refused file STANDS UN-WRITTEN-TO AND UN-REPAIRED, so the second \
+             construction answers the same image member and never an instance [{clause}]"
+        ),
+    );
+
+    // (3) THE FILE STANDS BYTE-FOR-BYTE — *"a refusal leaves standing what it found"*.
+    assert_eq!(
+        std::fs::read(&path).expect("the refused file is still there"),
+        text.as_bytes().to_vec(),
+        "case `{label}`: `PIN-11` — THE CORRUPT FILE STANDS, UN-WRITTEN-TO AND UN-REPAIRED: the bytes at \
+         `cfg.filePath` are byte-identical to the text this drive wrote [{clause}]"
     );
 }
 
@@ -2982,39 +3006,40 @@ fn e2e_loader_drops_one_non_admitted_member_and_loads_the_rest() {
     );
 }
 
-// **THE CONSTRAINED ARM OF THE REFUSED FILE'S ANSWER — A CONSTRUCTION THAT SUPPLIES A CONSTRAINT LIST
-// ANSWERS `ConstraintListInvalid` AND RETURNS NO INSTANCE.** **THE REFUSED FILE'S ANSWER HAS TWO ARMS AND
-// BOTH ARE DECLARED, AND THIS CELL DRIVES THE PAIR BESIDE EACH OTHER OVER THE SAME FILE:**
+// **THE REFUSED FILE'S ANSWER WHEN A CONSTRAINT LIST IS SUPPLIED — THE IMAGE MEMBER IS ANSWERED FIRST.**
+// **⟶ RE-DERIVED 2026-11-06 (`D-126` item 2; `§3` `PIN-11` redrawn). THE TWO ARMS ARE STILL DRIVEN BESIDE
+// EACH OTHER OVER THE SAME FILE, AND BOTH NOW REFUSE:**
 //
-// * **THE PLAIN ARM (NO CONSTRAINT LIST SUPPLIED) — THE INSTANCE IS RETURNED, THE REGISTER IS EMPTY AND NO
-//   ERROR REACHES THE CALLER** (`§7.2` item 7 (f)'s own answer for a file the loader refuses; the cells
-//   above pin it, and it is driven here once more so the two arms stand in one place);
-// * **THE CONSTRAINED ARM (A CONSTRAINT LIST SUPPLIED) — THE CONSTRUCTION ANSWERS `ConstraintListInvalid`
-//   AND RETURNS NO INSTANCE** (`docs/specs/storeroom-native/seams-and-lifecycle.md §7.1` step 4-bis:
-//   *"PRESENT, EVERY ELEMENT IS CHECKED AND THE VALIDATION IS ALL-OR-NOTHING … answers THE SIXTEENTH MEMBER
-//   `ConstraintListInvalid` (`§8.1` #16), and NO INSTANCE IS RETURNED"*; the load-side half, `contract.md
-//   §7.2` item 1: *"THE LOADED STATE 'SATISFIES' THE SUPPLIED LIST IFF EVERY SUPPLIED PAIR'S OWN `address`
-//   RESOLVES IN THE LOADED STATE"*).
+// * **THE PLAIN ARM (NO CONSTRAINT LIST SUPPLIED) — THE CONSTRUCTION REFUSES AT THE MINTED RANK `22`
+//   `FileImageRefused` AND RETURNS NO INSTANCE.** The superseded reading — *"THE INSTANCE IS RETURNED, THE
+//   REGISTER IS EMPTY AND NO ERROR REACHES THE CALLER"* — is the silence `D-126` item 2 RETIRES, and the
+//   cells above now pin the refusal;
+// * **THE CONSTRAINED ARM (A LEGAL CONSTRAINT LIST SUPPLIED) — THE SAME MEMBER ANSWERS, AND IT ANSWERS
+//   BEFORE THE LIST'S LOAD-SIDE ARM IS REACHED.** `docs/specs/storeroom-native/seams-and-lifecycle.md §7.1`
+//   step 4-bis (*"PRESENT, EVERY ELEMENT IS CHECKED AND THE VALIDATION IS ALL-OR-NOTHING"*, the load-side
+//   half at `contract.md §7.2` item 1 — *"THE LOADED STATE 'SATISFIES' THE SUPPLIED LIST IFF EVERY SUPPLIED
+//   PAIR'S OWN `address` RESOLVES IN THE LOADED STATE"*) is an arm of a state that LOADED; a corrupt image
+//   never reaches it, because the image is read at the construction's step `7` and refused there (`PIN-11`:
+//   *"BEFORE THE REGISTRATION SWEEP … no image is installed, no pair is carried"*).
 //
-// **THE MEASURED GROUND, STATED SO THE CELL IS NOT READ AS A GUESS:** **A FILE THE LOADER REFUSES ANSWERS
-// THE BOOT WITH `Some(0)` — THE BOOT FELL THROUGH AND THE REGISTER IS EMPTY — SO THE LOAD-SIDE VALIDATION
-// RUNS OVER THE EMPTY REGISTER, EVERY SUPPLIED PAIR FAILS TO RESOLVE, AND THE CONSTRUCTION FAILS.** **THE
+// **THE MEASURED GROUND, STATED SO THE CELL IS NOT READ AS A GUESS:** a file the loader REFUSES is the
+// store's `FileImage::Refused` and not its `NoImage`, so the construction refuses the whole act at rank `22`
+// **before** any state is installed — no register, no carried pair, no repair and no delivery. **THE
 // CONSTRAINT LIST SUPPLIED HERE IS A LEGAL ONE** — ONE `{ address, id }` pair whose `address` lies inside
 // `store-model.md §1.5`'s segment array and whose `id` is a NON-EMPTY string (`docs/specs/storeroom-js/
-// parameter-semantics.md §2.21`'s `domain` cell — *"an ARRAY of PAIRS, each pair carrying an `address` that
-// lies inside `§1.5`'s segment array and an `id`"*; `contract.md`'s 2026-10-16 clause (a) — the `id` is a
-// NON-EMPTY string) — **SO THE REFUSAL BELOW IS THE LOAD-SIDE ARM AND NOT THE CONSTRUCTION-SIDE SHAPE
-// CHECK**, which is the arm the list's own shape would have failed.
+// parameter-semantics.md §2.21`'s `domain` cell; `contract.md`'s 2026-10-16 clause (a)) — **SO THE REFUSAL
+// BELOW IS THE IMAGE'S AND NOT THE LIST'S SHAPE CHECK**, which is the arm the malformed element drives at
+// arm (2-bis).
 //
 // **THE PAIR'S ADDRESS IS THE REFUSED FILE'S OWN KEY AND IT RESOLVES IN NO REGISTER** — the refused file
-// loaded NOTHING, so there is no `root` to resolve.
+// loaded NOTHING, and no pair is carried beside a refusal.
 //
 // **AND THE CONTROL ARM — THE SAME LEGAL LIST OVER A FILE THE LOADER ACCEPTS, WHOSE REGISTER DOES CARRY
-// THE PAIR'S ADDRESS, ANSWERS AN INSTANCE** — so the refusal above is THE LOAD-SIDE ARM and not the
-// construction-side shape check: the list is ADMITTED at `§7.1` step 4-bis in both, and the two
-// constructions differ ONLY in whether the loaded state satisfies the list.
+// THE PAIR'S ADDRESS, ANSWERS AN INSTANCE** — so the refusals above are the IMAGE's and not the list's: the
+// list is ADMITTED at `§7.1` step 4-bis in both, and the two constructions differ ONLY in whether the file
+// holds this store's image.
 #[test]
-fn e2e_loader_refused_file_with_a_constraint_list_carries_the_pair_and_returns_an_instance() {
+fn e2e_loader_refused_file_with_a_constraint_list_refuses_at_the_image_member_first() {
     let path = fresh_path("loader-refused-with-constraints");
     // THE REFUSED FILE — ITS TEXT IS WRITTEN BY HAND AT A REAL PATH: a number spelling JSON does not admit.
     std::fs::write(&path, br#"{"root":01}"#).unwrap_or_else(|e| {
@@ -3022,38 +3047,40 @@ fn e2e_loader_refused_file_with_a_constraint_list_carries_the_pair_and_returns_a
     });
 
     // **ARM (1) — THE PLAIN CONSTRUCTION: NO CONSTRAINT LIST SUPPLIED.**
-    let plain = ok(
+    // **⟶ RE-DERIVED 2026-11-06 (`D-126` item 2): the boot no longer FALLS THROUGH — it REFUSES at rank `22`.**
+    let refused = failure(
         storeCreate(&cfg_at(&path, 8)),
-        "§7.2 item 7 (f) — the boot FALLS THROUGH and NO ERROR REACHES THE CALLER: `storeCreate` STILL \
-         RETURNS AN INSTANCE",
+        "`D-126` item 2 — a corrupt image REFUSES the construction at rank `22` `FileImageRefused` and NO \
+         INSTANCE is returned (`PIN-11`: *\"a corrupt image refuses the construction\"*)",
     );
-    assert_eq!(
-        read_at(&plain, &empty_address()),
-        v_obj(&[]),
-        "§7.2 item 7 (f) — THE WHOLE FILE DOES NOT LOAD: the boot falls through and the store's register \
-         begins EMPTY"
+    assert_code(
+        &refused,
+        "FileImageRefused",
+        "§8.1 #22 — the member whose SUBJECT IS THE STORE'S OWN IMAGE, answered before the registration \
+         sweep",
     );
 
-    // **ARM (2) — THE CONSTRUCTION THAT SUPPLIES A CONSTRAINT LIST.**
+    // **ARM (2) — THE CONSTRUCTION THAT SUPPLIES A LEGAL CONSTRAINT LIST.**
     let constraints = ConstraintsArg::List(vec![ConstraintEntry::Pair {
         address: key(&["root"]),
         id: "c1".to_string(),
     }]);
-    // **⟶ RE-DERIVED 2026-11-02 ON `D-90` (5) AND `PIN-5`.** The arm this cell asserted — a WELL-FORMED
-    // pair whose `address` resolves in no register refusing the construction — is the clause the ruling
-    // SUPERSEDED, and the walk that made it is DELETED. **The pair is now CARRIED and SKIPPED: the
-    // construction RETURNS AN INSTANCE over the refused file, and the register still begins EMPTY.**
-    let carried = ok(
+    // **⟶ RE-DERIVED 2026-11-06 (`D-126` item 2; `PIN-11`).** The two readings this arm carried before —
+    // `D-90` (5)'s *"a well-formed pair whose parent does not resolve is CARRIED and SKIPPED, so the
+    // construction RETURNS AN INSTANCE"* — is superseded by the image refusal: **no pair is carried, because
+    // no sweep runs, because no image was installed.** The list is legal and it is ADMITTED; what refuses is
+    // the file.
+    let constrained = failure(
         storeCreateWithConstraints(&cfg_at(&path, 8), &constraints),
-        "D-90 (5) / PIN-5 (i): a well-formed pair whose parent does not resolve is CARRIED and SKIPPED, so \
-         the construction over the refused file RETURNS AN INSTANCE — `ConstraintListInvalid` is not \
-         reached for it",
+        "`D-126` item 2 / `PIN-11` — THE IMAGE IS ANSWERED BEFORE THE LIST'S LOAD-SIDE ARM: a legal list \
+         over a corrupt image refuses at the image's own member and carries NO pair",
     );
-    assert_eq!(
-        read_at(&carried, &empty_address()),
-        v_obj(&[]),
-        "D-90 (5) / PIN-5 (i): the register STILL BEGINS EMPTY — the refused file loaded nothing, and a \
-         carried pair is not a write"
+    assert_code(
+        &constrained,
+        "FileImageRefused",
+        "§8.1 #22 + `PIN-11` (*\"BEFORE THE REGISTRATION SWEEP … no pair is carried\"*) — the constrained \
+         construction answers the SAME member the plain one does, which is what makes the two diagnoses \
+         distinct (`D-123` item 4)",
     );
 
     // **ARM (2-BIS) — AND THE SHAPE ARM IS STILL REACHED, WHICH IS THIS CELL'S SURVIVING RED SIDE**

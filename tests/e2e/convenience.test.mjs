@@ -389,7 +389,7 @@ test('validation_first_and_atomicity_a_non_function_listener_and_a_malformed_add
   // items 1 and 2; `A81` verbatim *"always validate"*): a NON-FUNCTION `listener` at `on`'s position `2` of
   // `2` — an ABSENT second argument included — and an `address` outside `AddressArg`'s domain at position
   // `1` of `2`. **EACH ANSWERS `AddressMalformed` IN `§2.5`'s SINGLE FORM, AND NOTHING REACHES THE STORE.**
-  const inst = mem([{ address: ['held'], handle: 'l1' }]);
+  const inst = mem([{ address: ['held'], handle: 'l1', listener: () => {} }]);
   // The store's home already holds ONE home entry, so the "nothing left behind" half has a STANDING entry
   // to protect AND the "a fresh entry was NOT created" half has an empty address to watch.
   const heldBefore = triggerSet(inst, ['held'], 'mem', 1);
@@ -876,7 +876,7 @@ test('held_address_arm_a_repeat_listen_is_a_re_reservation_and_register_is_a_rep
   // re-reserves it and `register` REPLACES the function; (ii) an address whose entry came from the
   // construction's `listeners[]`; (iii) an address whose entry came from `register` directly, which `DD-52`
   // settles as a REPLACEMENT and not a refusal.
-  const inst = mem([{ address: ['adopted'], handle: 'l-adopted' }]);
+  const inst = mem([{ address: ['adopted'], handle: 'l-adopted', listener: () => {} }]);
   // **THE PRECONDITION THIS FILE ASSERTS FIRST, SO THE RED IT REPORTS IS THE CONTRACT'S OWN CLAIM AND NOT AN
   // OPAQUE STACK TRACE: the three members the sequence is reached at.**
   assert.equal(typeof inst.listen, 'function', '`listen(handle, addresses)` is a member of the instance');
@@ -1460,8 +1460,8 @@ test('boot_accumulates_one_handle_at_n_addresses_into_one_entry_and_the_withdraw
   // item 2 (i); `contract.md §3` `S-6`).
   const shared = 'l-c7-boot'; // THE CALLER'S OWN HANDLE — `contract.md §2.1` item 1: it is never minted
   const inst = mem([
-    { address: ['a'], handle: shared },
-    { address: ['b'], handle: shared },
+    { address: ['a'], handle: shared, listener: () => {} },
+    { address: ['b'], handle: shared, listener: () => {} },
   ]);
   assert.equal(typeof inst.listen, 'function', '`listen(handle, addresses)` is a member of the instance');
   assert.equal(typeof inst.register, 'function', 'and `register(handle, listener)` places a function at a handle');

@@ -468,7 +468,7 @@ was written**; the drivers live outside the repository and their verbatim output
 | `C-9` | a **whole-target** `delete` changes file-tier data and **does not save** | **VERIFIED** | memory `AddressNotFound`, file still `{"k":1}`, second instance reads `1` |
 | `C-10` | a **successful** `rollback` restoring a `file`-tier version **does not save** | **VERIFIED** | memory `1`, file still `{"l":2}`, second instance reads `2` |
 | `C-11` | the save is reached only from `terminalArm`, gated on `SETTLED_ON_THE_PASSING_ARM` and `answer.op.tier === 'file'` | **VERIFIED at the bytes** | `delivery.mjs:736`–`:788`; `state.mjs`'s `commitFile` (`:1202`) |
-| `C-12` | a registration reaches no terminal arm and no delivery seam | **VERIFIED at the bytes** | `kernel-registration.mjs`'s `closeRegistrationAttempt` (`:812`–`:840`), its own clause; the synthetic attempt's close performs no store act |
+| `C-12` | a registration reaches no terminal arm and no delivery seam | **VERIFIED at the bytes ON ITS DATE — AND FALSE FROM `2026-11-06` BY RULING (`D-125` item 1), NOT BY DRIFT** | `kernel-registration.mjs`'s `closeRegistrationAttempt` (`:812`–`:840`), its own clause; the synthetic attempt's close performs no store act. **⟶ RE-DERIVED `2026-11-06` BY THE SUPERVISOR AS `PIN-13` ASSIGNS: the claim's first half is gone and its second half was already false.** **(a) THE DELIVERY SEAM IS REACHED FROM TO-DAY**: `U-STOREROOM-CREATION-SWEEP` gives `closeRegistrationAttempt` a delivery on its passing arm, behind the save, and `D-125` item 1 widens it to **four instants** — `storeCreate`, a boot over an existing `filePath`, `addConstraint` and a re-arm — so *"no delivery seam"* is superseded by name and the code's own sentence *"IT STILL OPENS NO `K-2` AND STILL DELIVERS NO LISTENER"* is re-derived in the same unit. **(b) THIS ROW'S RANGE WAS STALE AND ITS SECOND CLAIM WAS ALREADY UNTRUE**: the close stands at `:928`, not `:812`–`:840`, and *"the synthetic attempt's close performs no store act"* was falsified by `D-106` arm 1 (the save) and `D-107` item 1 (the rollback composition) **before** this unit. **What survives, and is why the row is corrected rather than retired: on its own date it was true, it was the measurement `D-123`'s block rested on, and the fact it established is the fact the ruling reverses.** |
 | `C-13` | the addon's `write` verb performs **no file I/O on any arm** | **VERIFIED at the bytes — AND THE RANGE CORRECTED 2026-11-02 by the L1 spec pass, which read it and was right**: this row printed `:2352`–`:2356`, which is the write's `touched` computation; **the clause stands at `:2358`–`:2363`** (the all-caps line at `:2360`) and **the verb ends at `:2369`** | `src/store.rs:2358`–`:2363`: *"THE `file` TIER'S DURABLE COMMIT IS NO LONGER A VERB'S ARM AT ALL"*; `write_file` is reached from `commit_file` alone |
 | `C-14` | guide `§9.2`'s *"`store.write(addr,'file',value)` COMMITS, with no kernel attempt and no terminal arm in the path"* is **false of the package surface** | **VERIFIED — the sentence names the wrong mechanism** | `index.mjs:396`–`:397` routes a three-position write to `constraints.mjs`'s `constraintWrite` (`:788`), which calls `kernel.commit` then `kernel.runAttempt`; the save is the terminal arm's (`C-11`). **The clause is true only as an EFFECT ("it commits") and false as a PATH** |
 | `C-15` | `§9.3`'s *"a successful `rollback` performs no file I/O"* is true | **VERIFIED** | `C-10`'s arm; the guide's own words, unmoved |
@@ -1230,3 +1230,299 @@ its own bytes.** **`NO` contract clause, cell, status or code byte moved — the
 what `§17.4`'s census measured them to be (Side A at `20` carrier groups, Side B at exactly two carriers that are one authored text
 and its generated landing).** **SO `§16`'s `NEVER SPECIFIED`, `§17`'s Side-A finding and this postscript's re-map all stand, and the
 one thing `§17` left to the architect is CLOSED.**
+
+
+## §19 · The creation as an editing action — the constraint check, the repair flow, and the listener that has no recipient (`2026-11-06` · `3f24248`)
+
+**THE REQUEST, VERBATIM FROM THE PRODUCT'S OWNER, `2026-11-06`:**
+
+> "The store creation should be treated as an editing action because it changes the existing data state, and therefore should check all relevant constraints (and subsequent repair flows) and fire listeners"
+
+**WHAT THIS SECTION IS.** The intake audit for that request, filed under the intake rule that a note goes to `role_l0_research`. **IT DESIGNS NOTHING, RANKS NOTHING, DECIDES NOTHING AND OPENS NO UNIT.** Its companion gate-1 record is `strata/proposals.md` · `P-2`. Its `HEAD` is **`3f24248`**, and every citation below was read at that tree.
+
+**CHANNEL LIMIT, RECORDED BECAUSE IT IS PART OF THE PROVENANCE.** This pass held **no shell**: it could read files and nothing else. **So no driver was re-driven, and every behavioural figure in §19.4 is the SUPERVISOR's transcript, read against the drivers' own source** (`scratch/l0-probe/probe.mjs`, `scratch/l0-probe/probe2.mjs`). Every other figure in this section is a byte citation and is printed with its `path:line`.
+
+---
+
+### §19.1 · What the corpus says today, at the bytes
+
+**THE SUBJECT SPLITS INTO THREE VERBS, AND THE CORPUS ANSWERS THEM DIFFERENTLY.** *"changes the existing data state"*; *"should check all relevant constraints (and subsequent repair flows)"*; *"and fire listeners"*. **The first two are shipped behaviour at one of the construction's arms; the third has no recipient at the instant it names and no delivery seam at any instant the construction reaches.**
+
+#### (i) THE CONSTRUCTION'S OWN NUMBERED STEPS — `src/store.rs`'s `storeCreateWithConstraints`
+
+**The sequence is declared at `src/store.rs:649`–`:655` and implemented in the order it prints**, from `:671`:
+
+| step | the byte | what it does |
+|---|---|---|
+| 2 | `src/store.rs:675`–`:686` | `journalLength` — the one argument whose absence is still an error |
+| 3 | `:687`–`:702` | the `filePath` DRY RUN, `path_is_reachable`; the register's tier fixed |
+| **3-bis** | `:703`–`:709` | **`construction_listeners(&cfg.listeners)?`** — every `listeners[]` entry validated *before* the create, *"a rejected array admits NOTHING"* |
+| **4-bis** | `:710`–`:717` | **`construction_constraints(constraints)?`** — the list's own shape validation at the store's own code |
+| **4b** | `:718`–`:747` | **the exclusive create** (`create_new`), which *"LEAVES IT ZERO-LENGTH: AN EMPTY FILE AND NO BYTE"* |
+| **5** | `:748`–`:754` | **the HOME MAP POPULATED FROM `listeners[]`** — `home.adopt(address, handle)` **and nothing else: no function is stored, because the record has no place to put one** |
+| 6 | `:757` | `Store::empty(file_path, journal_length, register_tier, home)` — the registry generated over the already-populated home |
+| **7** | `:758`–`:761` | **the boot:** `let _loaded = store.boot_load();` — with the clause *"the home is NOT re-populated from the file, so a fresh instance over an equal path loads NO registration (`DD-38`)"* |
+| — | `:811`–`:815` | the replay's floor (`store.born = store.capture_register()`), then `Ok(store)` |
+
+**AND THE STEPS ARE STEPS OF A CONSTRUCTION THAT PERFORMS NO CONSTRAINT ACT AT ALL.** The list is validated at 4-bis and **evaluated nowhere in this function**: `let _pairs = construction_constraints(constraints)?;` yields a Vec that **no later line of `storeCreateWithConstraints` reads** (`:717` binds it as `_pairs`; the function ends at `:815`). **The store cannot evaluate a constraint, and says so — `src/lib.rs:12`–`:17`: *"The listener's ORDER, its CALLBACK INVOCATION and a throwing body are still not this unit's: **the store RETURNS the triggered listeners' handles and INVOKES NOTHING**"*.**
+
+#### (ii) WHERE THE CONSTRAINT ACT ACTUALLY HAPPENS — the package's act order in `bindings/js/index.mjs`'s `storeCreate`
+
+**The construction's constraint checking is the PACKAGE's act, performed AFTER the addon call returns** — and therefore **after the boot**, which is the fact the request's first premise turns on:
+
+1. `bindings/js/index.mjs:183` — `const batch = admittedConstraintBatch(cfg);` (step 2's member checks; `B-1`/`B-2`/`B-3`, `frame.mjs:245`–`:342`).
+2. `bindings/js/index.mjs:186` — `id = addon_.storeCreate(encoded);` — **the whole Rust construction, boot included.**
+3. `bindings/js/index.mjs:1625` — `installRegistrationSave(instance, state);` — *"the construction's batch arming walk below reaches `K-1` BEFORE either of those two seams runs"*.
+4. `bindings/js/index.mjs:1654`–`:1661` — **the batch walk:** `for (let i = 0; i < batch.length; i += 1) { try { carryConstraint(state, instance, batch[i].addresses, batch[i].id, batch[i].constraint); } catch (refusal) { registrationCrossing(refusal, batch[i].addresses[0]); } }`.
+5. `bindings/js/index.mjs:1695`– — **`cfg.listeners` applied afterwards through the store's own `listen`**, and the mirror written with `{key, handle}` and no function.
+
+**SO THE STATE A BATCH BODY IS ASKED AGAINST IS THE BOOTED STATE.** The batched evaluation runs at `:1654`, after `:186`'s construction has loaded the file's admitted keys at `Tier::File` — which is why `§19.4`'s `C2` reads `[seed]` as `"stand"` and `[i]` as `"repaired"` at the same instant, and why the request's *"it changes the existing data state"* describes a state the check already sees.
+
+**AND THE BATCH IS NOT ONE ACT:** each element reaches `carryConstraint` in its own `try` (`:1654`–`:1661`), each registration opens its own synthetic attempt and its own close, and each close owes **one save per registration** and a rollback **over everything its own route landed** (`kernel-registration.mjs:905`–`:912`, `:952`–`:965`). **There is no "the creation's commit" in the tree.**
+
+#### (iii) THE REGISTRATION INSTANT — `bindings/js/src/entry/kernel-registration.mjs`
+
+- **the scope, at its own words** (`:229`–`:232`): *"the kernel EVALUATES THAT ONE CONSTRAINT AGAINST THE STORE'S CURRENT STATE, ONCE, BEFORE THE HANDLE IS RETURNED.** The scope is THAT ONE PAIR and no other: no pass is opened over the registry and no other registered pair is re-evaluated."*
+- **the pair-application rule is read first** (`:360`): `if (pairApplication(store, address) !== PAIR_APPLICABLE) return null;` — with `:341`–`:342`: *"**A PAIR WHOSE PARENT DOES NOT RESOLVE IS SKIPPED AT EVERY REGISTRATION INSTANT** — construction, a boot over an existing `filePath`, `addConstraint` and a re-arm alike"*.
+- **the body is invoked at the registration's own commit** (`:366`, `:384`–`:393`), and **the repair flow follows** (`:398`–`:408`): a non-`true` outcome carrying a `repair` reaches `registrationAttempt`, *"on the synthetic attempt `3-bis` (a) declares — **the attempt of THIS commit, holding THIS list by reference** (`D-53`)"*.
+- **the close** is `closeRegistrationAttempt(kernel, attempt, landed, outcome = 'failed', purged = null)` at **`:928`**; its passing arm names the last `file`-tier landing to the instance's save channel (`:930`–`:950`), its refusing arms compose a rollback (`:951`–`:965`), and it then publishes the report and drops the handoff (`:966`–`:992`).
+
+#### (iv) **THE NO-DELIVERY CLAUSE — `PIN-6` (v)**, `bindings/js/src/entry/kernel-registration.mjs:510`–`:512`
+
+> **"IT RUNS NO PASS OF ITS OWN** (`PIN-6` (v)): it appends no `constraint-check` entry, no `outcome` entry and no terminal act, **delivers no listener**, and opens no attempt — **the pair is judged by the registration's own re-run over the op it landed** (`PIN-7` (iii))."
+
+**AND THE CLOSE'S OWN DOCBLOCK SAYS THE SAME AT THE SIBLING SITE** (`:888`–`:893`): *"**IT STILL OPENS NO `K-2` AND STILL DELIVERS NO LISTENER** — and it REACHES the per-op rollback composition on its FOUR REFUSING arms and the SAVE on its passing one, both from 2026-11-02"*.
+
+**THE BYTE THAT MAKES THE CLAUSE A FACT RATHER THAN A DECLARATION:** the whole module contains **no `deliver` call**. A search for `\bdeliver\s*\(` over `bindings/js/src/entry/` returns exactly three sites — `delivery.mjs:105` (the definition, `export function deliver(state, triggered, triggeringAddress)`), `delivery.mjs:880` (the terminal arm's own call), and `constraints.mjs:3037` (the reversal's judgement's call, `D-117`). **`kernel-registration.mjs` reaches neither.**
+
+#### (v) `strata/research.md §13.2`'s row `C-12`, unchanged in its claim
+
+`strata/research.md:471`:
+
+> | `C-12` | a registration reaches no terminal arm and no delivery seam | **VERIFIED at the bytes** | `kernel-registration.mjs`'s `closeRegistrationAttempt` (`:812`–`:840`), its own clause; the synthetic attempt's close performs no store act |
+
+**THE RANGE IS STALE** (the close stands at `:928`; see `A-6`), **and the evidence column's SECOND half — *"the synthetic attempt's close performs no store act"* — is now FALSE, because `D-106`/`D-107` gave that close the save and the rollback composition** (`:930`–`:965`). **The claim's FIRST half — no terminal arm, no delivery seam — is UNMOVED and is re-verified at (iv) above.**
+
+#### (vi) **`DD-38` — the zero-registration boot**, `docs/specs/storeroom-native/contract.md:563`
+
+> **"THE HOME IS INSTANCE-SCOPED AND SESSION-SCOPED AND IS OUT OF THE `file` BYTES AND OUT OF THE JOURNAL**: a registration is **not** a `write` and **is not** a `delete`, so it appends no entry (`§6.1`'s two tracked verbs stand); **the home is not serialized into `cfg.filePath`**, so a fresh `storeCreate` over an equal path **loads no registration** and the boot's shipped answer — *"nothing is watched"* — **stands for the listener surface too**; **a registration is dropped at PROCESS EXIT with `mem`**"
+
+**AND ITS BOOT CLAUSE IS RESTATED AT THE ITEM THAT READS THE FILE** — `contract.md:4072`: *"item 6's *"loaded if the file exists"* is read on a ZERO-LENGTH FILE: the content is the empty text, `0` register keys load, **`0` registrations load**, and NO code is produced."*
+
+#### (vii) **`Store::boot_load`, and the load-instant walk that was DELETED `2026-11-02`** — `D-90` (5), carried as `PIN-5` (i)
+
+`src/store.rs:1675`–`:1684`:
+
+```rust
+fn boot_load(&mut self) -> Option<usize> {
+    let image = self.read_file_image();
+    match image {
+        FileImage::NoImage => None,
+        FileImage::Refused => Some(0),
+        FileImage::Members(members) => Some(self.install_file_image(&members)),
+    }
+}
+```
+
+**The function performs the load and nothing else.** It mints each admitted member at `Tier::File` (`install_file_image`, `:1719`–`:1727`) and **populates no home, asks no pair and evaluates no constraint.** `:1652`–`:1654`: *"the boot loads the `file` tier's content if the file exists — **step 7 of `§7.1`'s amended sequence, which produces `0` registrations (`DD-38`)**."*
+
+**THE WALK THAT ONCE STOOD AT THE LOAD INSTANT IS GONE, AND ITS DELETION IS PRINTED AT ITS OWN SITE** — `src/store.rs:784`–`:787`:
+
+> **"⟶ AND THE WALK ITSELF IS DELETED 2026-11-02 — `D-90` (5), CARRIED AS `PIN-5` (i) AND NOT NARROWED.** `RCA-8(g)` ANNOTATE-BESIDE: **every byte above stands BYTE-FOR-BYTE as the reading of its own dates and is read THROUGH this clause; what goes is the `if loaded.is_some() { for pair in &pairs { … } }` block that stood here, and this frame now proceeds to the replay's floor below unchanged.**"
+
+with the ruling's own words beside it (`:789`–`:797`): *"Constraints that would be applied to an address that can't be walked to yet should be skipped … A constraint that can be walked to but doesn't exist … should be applied. This is a global rule, not a batch-only one"* — **so an unresolvable parent SKIPS its pair and no list-wide refusal stands for it** (`D-90`, `strata/decisions.md:4598`; its item 5 at `:4630`–`:4636`).
+
+**SO THE TWO BINDINGS THE DELETION LEFT WITHOUT A READER ARE NAMED FOR WHAT THEY ARE** (`:807`–`:810`): *"`_loaded` still PERFORMS the load … and `_pairs` still PERFORMS the list's own shape validation, which is the arm that survives."*
+
+#### (viii) **THE GUIDE'S `§6` SENTENCE ABOUT A BOOT** — `docs/guides/package-use.md:495`–`:499`
+
+> "**Listeners fire on `write` and `delete`, and never on a read.** A read is not a change, and a store that fired on reads would fire on every render; **nor does a boot or any read-driven traversal fire a listener** (`archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-native/write-and-read.md §6.5`)."
+
+**THIS IS THE CORPUS'S ONLY SENTENCE THAT NAMES THE BOOT AND A FIRING IN ONE CLAUSE, AND IT IS A CLOSED LIST OF TWO FIRING ACTS.** The request reverses it rather than filling a silence.
+
+#### (ix) WHERE THE LISTENER STANDS AT THE INSTANT THE REQUEST NAMES
+
+| the fact | the byte |
+|---|---|
+| the store's listener record closes at two members, and one of them is a token | `src/records.rs:253`–`:260`: *"the listener RECORD, CLOSED at `{ address, handle }`"*; `docs/specs/storeroom-native/contract.md:910` |
+| the construction admits `{ address, handle }` and nothing else | `src/args.rs:302` — `ListenerEntry::Entry { address, handle } => {` — the arm reads the two fields and has no third |
+| **the refusing byte for a third key** | `bindings/js/src/entry/frame.mjs:31`–`:32` — `const keys = Object.keys(entry); if (keys.length !== 2 \|\| !Object.hasOwn(entry, 'address') \|\| !Object.hasOwn(entry, 'handle')) {` |
+| the function arrives only later, through `register` | `docs/specs/storeroom-js/surface.md:417`–`:424`, `:437`–`:444`; its answer is `undefined` (`:440`) |
+| a construction answers an INSTANCE and no record, so it has no `triggered` member to deliver | `docs/specs/storeroom-native/contract.md:2799`–`:2803`; `surface.md:1650`–`:1651`: *"`triggered` CROSSES AS A JS ARRAY OF THE PACKAGE'S OWN HANDLES … in the two records the store's own contract declares (`WriteResult` and `DeleteReceipt`)"* |
+
+**THE CONSEQUENCE, STATED AS A FACT ABOUT THE INSTANT AND NOT AS A RULING:** at the moment `storeCreate` asks a batch body and runs a repair, **every handle a `cfg.listeners[]` element named stands in the home with no body behind it.** *"fire listeners"* therefore names, at best, **an owed firing to a body that cannot exist yet** — the caller registers only after the instance is returned.
+
+---
+
+### §19.2 · The claims ledger
+
+**Method.** Every arm below was read at the bytes of this tree at `HEAD` `3f24248`; the behavioural arms that cite `§19.4` are the **supervisor's** drives, carried as his. **Nothing in the tree was written by this pass.**
+
+| # | claim | verdict | evidence |
+|---|---|---|---|
+| `A-1` | **a `storeCreate` carrying `cfg.constraints` ASKS each admitted element's body once, at that element's own address, before it returns** — the checking verb is shipped | **VERIFIED at the bytes** | `bindings/js/index.mjs:1654`–`:1661` (each element in its own `try` → `carryConstraint`); `kernel-registration.mjs:336`–`:389` (the pair-application predicate, then the context, then the invocation); the scope at `:229`–`:232`; `docs/specs/storeroom-native/contract.md §7.3` (a)(ii) at `:4235` |
+| `A-2` | **the repair flow follows at the create** — a non-`true` outcome carrying a `repair` IS attempted, on a synthetic attempt of the registration's own commit, and its edit STANDS | **VERIFIED at the bytes, and MEASURED (`§19.4` `B1`, `C2`)** | `kernel-registration.mjs:398`–`:408`; the close `:928`; `contract.md §7.3` (b) `3-bis` at `:4250`–`:4258`, whose `(f)` reads *"AND DOES THE REPAIR'S OP LAND — YES. REGISTRATION IS A MUTATING ACT ON STATE 3"* |
+| `A-3` | **the create's registration DELIVERS to no listener — the module contains no `deliver` call at all** | **VERIFIED for the delivery seam; `OPEN` for what the batch repair's own write record carried** | `PIN-6` (v) at `kernel-registration.mjs:510`–`:512`; the close's clause at `:888`–`:893`; the `deliver(` census — `delivery.mjs:105`, `:880`, `constraints.mjs:3037`, and no fourth site. **`OPEN`: neither driver reads the batch repair's write record's `triggered` member, so whether that set named the adopted handle is UNMEASURED here** |
+| `A-4` | **a `cfg.listeners[]` element adopted at the create carries NO BODY, and no create-time firing is replayed into a later `register`** | **VERIFIED at the bytes, and MEASURED (`§19.4` `A3`, `B3`, `C5`)** | `src/records.rs:253`–`:260`; `src/args.rs:302`; `frame.mjs:31`–`:32`; `index.mjs:1695`– (the mirror takes `{key, handle}` and no function); `surface.md:437`–`:444`; the drives' three zeroes |
+| `A-5` | **the refusing byte for a third key on a `listeners[]` element is the ENCODER, not `isLawfulListenerElement`** | **VERIFIED — CORRECTED ROW** | **the refusing byte is `bindings/js/src/entry/frame.mjs:31`–`:32`** (`keys.length !== 2` → `appendOwn(encoded, { bad: 'entry' })`, answered `AddressMalformed` on `listeners`), with `src/args.rs:302` as its Rust-side admission. **`bindings/js/src/entry/class-decision.mjs:1209`–`:1213` would ADMIT a third member**: it tests `isPlainObjectValue`, `Object.hasOwn` for the two members, a non-blank string handle and `inDomainAddress(entry.address)` — **and reads no key count at all** |
+| `A-6` | **`strata/research.md §13.2`'s `C-12` is sound in its claim and STALE in its cited range, and its evidence column's second half is now false** | **VERIFIED — RANGE CORRECTED** | the close is `closeRegistrationAttempt` at **`kernel-registration.mjs:928`** (the row cites `:812`–`:840`, which is the re-run's body-throw arm); *"the synthetic attempt's close performs no store act"* is falsified by `:930`–`:950` (the save) and `:952`–`:965` (the composition). **The claim — no terminal arm, no delivery seam — is re-verified at §19.1 (iv)** |
+| `A-7` | **`D-106`'s ARM 1 is at work at the create: the passing close saves the last `file`-tier landing, so a `file`-tier repair at the create is durable while a `mem`-tier one leaves the file as the exclusive create left it** | **VERIFIED at the bytes, and MEASURED (`§19.4` `B2` vs `C3`/`C4`)** | `kernel-registration.mjs:930`–`:950`, `lastFileLanding` `:1008`–`:1027` (*"A REGISTRATION THAT MOVED NO `file`-TIER DATA SAVES NOTHING AND IS ATTEMPTED ONCE FOR NOTHING"*, `:911`–`:912`); the exclusive create at `src/store.rs:718`–`:747`; `contract.md §10.4` part 3 at `:4830` |
+| `A-8` | **the boot arm loads the file's admitted keys and NO registration, and the load-instant walk that once validated the supplied list is deleted** | **VERIFIED at the bytes, and MEASURED (`§19.4` `A2`, `C1`–`C2`)** | `src/store.rs:758`–`:761`, `boot_load` `:1675`–`:1684`; `D-90` (5) at `strata/decisions.md:4630`–`:4636` and the deletion clause `src/store.rs:784`–`:798`; `DD-38` at `contract.md:563`; `§7.2` item 6 at `:4072`; `C4`'s durability read |
+
+**THE TWO CORRECTIONS THE GATE-1 PASS LANDED, AND THIS PASS RE-READ, ARE `A-5` AND `A-6`.** Both were verified by the supervisor at their bytes before that record was written, and both are re-verified here: **the carrier of the two-member rule is the encoder and not the JS predicate** (`A-5`), and **`C-12`'s range had outlived its bytes while its claim had not** (`A-6`).
+
+---
+
+### §19.3 · The collision census
+
+**WHAT THIS TABLE IS.** Every decision row, contract clause, spec clause and guide sentence that **would stop being true** if the request were honoured as written — each with its site and its exact sentence. **A row whose verdict reads `STANDS` is carried because it constrains the request rather than because it collides with it, and the difference is printed rather than left to a reader.**
+
+| # | the site | the sentence, verbatim | its verdict under the request |
+|---|---|---|---|
+| `X-1` | `strata/decisions.md:2730` · **`D-38`** | `DEF-W`: *"**A reversal must now be judged** — **at the state it leaves, never per unwinding step** (a per-step check is unsound: an unwinding composition passes through intermediate states no constraint would approve…). **A reversal whose terminal state violates a registered constraint FAILS and says so**"* (`:2747`–`:2752`) | **STANDS — and it is the corpus's one precedent for the shape the request reaches for**: a non-`write` act judged at the state it leaves. **`D-38` says nothing about a creation and names no delivery.** |
+| `X-2` | `docs/specs/storeroom-native/contract.md:563` · **`DD-38`** | *"a registration is **not** a `write` and **is not** a `delete`, so it appends no entry (`§6.1`'s two tracked verbs stand)"*; and *"a fresh `storeCreate` over an equal path **loads no registration** and the boot's shipped answer — *"nothing is watched"* — **stands for the listener surface too**"* | **PARTLY STOPS.** The first sentence stops being true if *"creation as an editing action"* makes the create itself an act of that class (a journaled edit). **The second stands at the create** and would stop only if the BOOT were the creation being ruled on. **Two homes share the identifier and only this one bears on the subject — `D-38` is `X-1`.** |
+| `X-3` | `strata/decisions.md:4598` · **`D-90`** | item 4: *"**THE RULE IS GLOBAL AND THE BATCH-ONLY READING IS WITHDRAWN.** Every instant that would apply a pair reads it: **the batch at construction**, **the list at a boot over an existing `filePath`**, **`addConstraint`**, **the toggles that re-arm a held pair**, and **the pass over a write, a `delete` or a `rollback`**"* (`:4626`–`:4629`) | **STOPS if *"all relevant"* means a sweep; STANDS if it means each supplied pair.** The five instants are a closed list and **a sixth is a new row's to open.** Its item 5 (`:4630`) already superseded the boot's list-wide refusal, and the deletion is at `src/store.rs:784`–`:798`. |
+| `X-4` | `strata/decisions.md:4655` · **`D-91`** | item 1: *"**THE ARM IS THE WRITE ROUTE, AND THE TIMING DOES NOT MOVE.** The batch's evaluation stays where it is — at construction, and at a boot over an existing `filePath`. **The DEFERRAL arm is not taken**"* (`:4663`–`:4665`); item 4: *"**THE ROUTE IS READ AT EVERY REGISTRATION INSTANT, NOT AT CONSTRUCTION ALONE** — construction, a boot over an existing `filePath`, `addConstraint`, and a re-arm"* (`:4679`–`:4680`) | **STANDS, and it is a SUPPORT**: construction is already a registration instant, and the batch already runs after the boot (§19.1 (ii)). **What it does not name — and no clause anywhere names — is a DELIVERY at that instant.** |
+| `X-5` | `strata/decisions.md:4780` · **`D-94`** | item 3: *"**A caller sees the difference only on the arm above:** the registration succeeds rather than refusing at rank `19`, and **the arm where the pair itself refuses again is untouched**"* (`:4798`–`:4802`) | **STOPS.** A delivery at the create is a **second** caller-observable difference on the registration arm, and this sentence declares the caller's view to be **only** the success-vs-rank-19 difference. |
+| `X-6` | `strata/decisions.md:4861` · **`D-96`** | item 1: *"A pair is **SKIPPED exactly when its PARENT DOES NOT RESOLVE** … and **a parent that RESOLVES applies the pair, whether it resolves as a CONTAINER or as a LEAF**"* (`:4870`–`:4873`); item 4: *"a body that refuses refuses the registration — rank `19` `ConstraintRefusedAtRegistration`, `KC-5` where the refusing pair is the repaired one"* (`:4883`–`:4887`) | **PARTLY STOPS.** Item 1 **STANDS and constrains any *"all relevant"* reading** — a skipped pair's body never runs, so nothing of it can fire. Item 4 stops being the whole of that arm's answer if a delivery follows a refusal, because the row's only declared observable there is the refusal. |
+| `X-7` | `strata/decisions.md:5300` · **`D-104`** | item 2: *"**The repair's write's listeners ARE delivered — in the COMMIT's delivery**, after the pass, with the other listeners"* (`:5314`–`:5316`) | **STOPS.** The row fixes **one** carrier — the commit's delivery — and the request asks for a second. **This is the row the request is closest to: it is the corpus's declaration that a repair's write's listeners are a real recipient set, reached at an instant the row did not name.** |
+| `X-8` | `strata/decisions.md:5383` · **`D-106`** | item 3, arm 1: *"The registration's synthetic attempt closes **without reaching the terminal arm** (`kernel-registration.mjs`'s `closeRegistrationAttempt`, whose own clause says it *"reaches neither the per-op rollback composition nor the delivery seam"*)"* (`:5420`–`:5425`) | **STANDS for the delivery half and is STALE for the rollback half** — `D-107` item 1 gave the refusing arms a composition, and the build has it at `:952`–`:965`; the close is at `:928`, not where that row's clause stood. **The delivered half is the byte that says a creation fires nothing.** |
+| `X-9` | `strata/decisions.md:5475` · **`D-107`** | item 1: *"**A REFUSAL ROLLS BACK** — the architect's words are unconditional and the defect is the standing edit, not the unsaved one"* (`:5494`–`:5501`) | **STANDS, and it is a SUPPORT**: an editing creation already undoes what it landed, per registration. **What it does not answer is what a fired listener observed before the rollback.** |
+| `X-10` | `strata/decisions.md:5698` · **`D-111`** | item 3: *"the shipped sentence *"a failing pass performs no save at all"* is TRUE and stands"* (`:5723`–`:5727`) | **STANDS**: a compensating reversal is not an act and owes no save. **A create-time delivery would not move it.** |
+| `X-11` | `strata/decisions.md:5749` · **`D-112`** | item 2: *"**SO `Store::rollback` DOES NOT SAVE, AND THE STORE'S `save_file_delta` CALL IS NOT THE REVERSAL'S CARRIER**"* (`:5766`–`:5769`) | **STANDS, and it is the ordering the request would inherit**: a save that ran before its judgement would have saved a state the judgement may refuse. |
+| `X-12` | `strata/decisions.md:6005` · **`D-117`** | item 1: *"**A REVERSAL'S JUDGEMENT DELIVERS ITS BATCH — the reversal is not a check and its silence is REFUSED BY NAME**"* (`:6022`–`:6026`); item 2: *"**THE ORDER IS THE WRITE'S TERMINAL ARM'S, INSTANT FOR INSTANT**: **ask → repairs land → re-run → SAVE → DELIVER → the member's record**"* (`:6027`–`:6032`) | **STANDS, and it is the corpus's ONLY delivery outside a caller's write.** A creation's delivery would be the **second** such instant and would owe **the same order, instant for instant** — including *"**No delivery occurs on the throwing arm, on the failing arm, or where nothing was fired**"* (`:6031`–`:6032`). |
+| `X-13` | `strata/research.md:471` · **`C-12`** | *"a registration reaches no terminal arm and no delivery seam \| **VERIFIED at the bytes** \| … `closeRegistrationAttempt` (`:812`–`:840`) … the synthetic attempt's close performs no store act"* | **STOPS for its first half** (the request asks for a delivery seam there); **its range is stale and its second half is already false** — see `A-6`. |
+| `X-14` | `docs/specs/storeroom-native/contract.md:3959` · **`§7.1`** | the `cfg` block closes at `filePath` · `journalLength` (`:3961`–`:3967`); *"**any third key on `cfg`** \| **ignored**"* (`:3977`); *"**`cfg`'s member set is CLOSED at exactly the two declared keys** … so in a typed crate a third key is UNREPRESENTABLE"* (`:3987`–`:3989`) | **STANDS and CONSTRAINS**: *"treat creation as editing"* has **no config key to ride** at this contract. `surface.md:105`–`:109` says the same one layer up (*"the package still adds no default, no rename and no FIFTH key (`DD-36`)"*). |
+| `X-15` | `docs/specs/storeroom-native/contract.md:4001` · **`§7.2`** | item 6: *"`0` register keys load, **`0` registrations load**, and NO code is produced"* (`:4072`); item 2: *"after every constraint of that write's triggered set has passed, and before ANY listener body of the delivered set runs, the surface performs the commit"* (`:4005`) | **STANDS for item 2's order and STOPS for item 6's zero if the boot becomes the ruled creation** (`DD-38`'s own sentence is the same fact at its own row). |
+| `X-16` | `docs/specs/storeroom-native/contract.md:4349` · **`§8.1` item 16** | *"**A CONSTRAINTS VALIDATION FAILURE AT EITHER INSTANT — AT CONSTRUCTION / STARTUP, OR AT LOAD OF THE LOADED STATE AGAINST THE SUPPLIED LIST — ANSWERS THIS CODE AND THE INSTANCE IS NOT RETURNED**"* | **STANDS, and it exposes a GAP the request opens**: the closed set has **no member for a listener body's throw at a creation** — rank `18` `ConstraintBodyThrew` reaches the caller only where **the kernel marked** the value (`surface.md:2070`), and no delivery site exists at that instant to set a mark. |
+| `X-17` | `docs/specs/storeroom-native/contract.md:4830` · **`§10.4` part 3** | *"**A successful exclusive create produces AN EMPTY FILE AND NO BYTE — the file's length is `0` and NO register key, NO journal entry and NO registration is committed**"* | **STANDS** for the create arm, and it is why `§19.4`'s `B2` reads `<zero-length>`. **It stops being the whole story on the arm where a batch repair lands** — `C3` measures bytes after the construction. |
+| `X-18` | `docs/specs/storeroom-native/contract.md:4831` · **`§10.4` part 4** | *"**THE CONSTRUCTION'S ARGUMENT ORDER IS FIXED AS PART OF THIS AMENDMENT: EVERY ARGUMENT IS VALIDATED BEFORE THE CREATE** … the create is performed as the LAST act of the construction's ARGUMENT VALIDATION … **THE SEVEN-STEP ORDER IS NOT RENUMBERED**"* | **STANDS and CONSTRAINS**: nothing new may be validated after the create. **A constraint pass is not an ARGUMENT validation and already runs after it** (§19.1 (ii)) — so the request's *"check"* is on the legal side of this byte; its *"fire"* is not reached by it. |
+| `X-19` | `docs/specs/storeroom-native/contract.md:4832` · **`§10.4` part 5** | *"**AND BECAUSE NO ARGUMENT IS VALIDATED AFTER THE CREATE (part 4), EVERY CONSTRUCTION THAT FAILS LEAVES NOTHING BEHIND: no file, no directory and no byte**"* | **STOPS as a guarantee over the whole act** if a fired body's throw can fail a `storeCreate` after the store exists — **the construction's own file and the saved repair's bytes would then stand behind a throwing `storeCreate`** (`C3`). |
+| `X-20` | `docs/specs/storeroom-js/surface.md:23` · **`§2.1`** | *"**`cfg` carries the store's FOUR declared keys — `filePath` · `journalLength` · `listeners` · `constraints` — and the package passes each through WITHOUT adding a default, a rename or a fourth key**"* (`:25`–`:27`); `(d)`: *"the package still adds no default, no rename and no FIFTH key (`DD-36`)"* (`:105`–`:109`) | **STANDS**: no key exists for a creation-time firing switch, and the key set's closure is declared twice on this page. |
+| `X-21` | `docs/specs/storeroom-js/surface.md:273` · **`§2.3`** | item 5: *"**so the trigger list names both kinds, and the KERNEL filters it: an element whose handle is a constraint's `id` is ASKED, a listener's is DELIVERED**"* (`:314`–`:315`) | **STANDS and is the mechanism a creation-delivery would have to reuse** — **and it requires a TRIGGER LIST, which a construction does not produce** (`contract.md:2799`–`:2803`; `surface.md:1650`–`:1651`). |
+| `X-22` | `docs/specs/storeroom-js/surface.md:1648` · **`§2.7` item 7** | *"**WHERE THE WRITE WAS ISSUED THROUGH `commit` AND ITS ATTEMPT'S PASS IS RUN BY `runAttempt`, THE PACKAGE'S DELIVERY OF THE TRIGGERED HANDLES DOES **NOT** OCCUR INSIDE THE STORE VERB'S WINDOW: IT FOLLOWS THE PASS, AND ITS INSTANT IS THE PASS'S TERMINAL ARM**"* (`:1714`); item 2: *"**THE INVOCATION IS THE CALLER'S, AND THE PACKAGE PERFORMS IT AFTER THE VERB HAS RETURNED**"* (`:1652`–`:1653`) | **STOPS as a closed list of instants**: a create-time delivery would be a **third** instant, and item 7's is the terminal arm's. |
+| `X-23` | `docs/specs/storeroom-js/surface.md:1908` · **`§2.12`** | `(iii)`: *"the BATCH is a CONSTRUCTION-TIME input — read at the store's two validation instants and NOT persisted — while the ADD route is a POST-CREATION act over the entry's own set"* (`:2042`); item 3: *"The state VIOLATES it and a repair DOES stand registered for the pair → THE SAME THROW AS (ii), **because the repair does NOT run at registration**"* (`:2064`) | **STANDS for `(iii)`'s construction-time character, and STOPS for the delivery question it does not face.** **`OPEN`: `:2064` is contradicted by `D-91` and `D-106` and by the supervisor's own `B1`/`C2` — the repair DOES run at registration on the add route and at the create.** Whether that sentence still governs any arm is **not resolved by this pass and is not this request's subject**; it is recorded so no later pass reads it as a live declaration. |
+| `X-24` | `docs/guides/package-use.md:495` · **`§6`** | *"**Listeners fire on `write` and `delete`, and never on a read.** … **nor does a boot or any read-driven traversal fire a listener**"* (`:497`–`:499`) | **STOPS.** This is the one shipped consumer sentence the request reverses, and it names the **boot** explicitly. |
+
+---
+
+### §19.4 · The measurements
+
+**WHAT THIS SUBSECTION IS, AND WHOSE THE WORK IS.** The drives are **the supervisor's**; their output is carried below **verbatim and unedited**, labelled as his. This pass could not run, re-run or extend one line of them (`§19.5`, item 1). **Everything this pass added is the reading of those outputs against the drivers' own source and against the bytes of §19.1.**
+
+**THE DRIVERS.** `scratch/l0-probe/probe.mjs` (arm `A`, the boot over an existing file; arm `B`, a `mem`-tier repair at a create) and `scratch/l0-probe/probe2.mjs` (arm `C`, a `file`-tier repair at a create, written through the store's own `closeRegistrationAttempt` save), each constructing its stores through `storeCreate` from `bindings/js/index.mjs`, each under its own `fs.mkdtempSync` directory, and each reading the file **as bytes** (`fs.readFileSync`).
+
+**THE OUTPUT, VERBATIM — THE SUPERVISOR'S:**
+
+```
+--- A: file to load -------------------------------------------
+A1 file after a caller file write: {"a":1}
+A2 boot read of [a]: 1 | listener fired during create: 0
+A3 fired after register (still create-time history): 0
+A4 fired after a caller write that reaches L: 1
+--- B: constraint repairing nonexistent data ------------------
+B1 create returned an instance; repair landed [b] = 7 | listener fired during create: 0
+B2 file bytes after construction: <zero-length>
+B3 fired after register: 0
+B4 fired after a caller write that reaches LB: 1
+--- C: file-tier repair at construction -----------------------
+C1 file before the boot-with-constraints: {"seed":"stand"}
+C2 in-memory [i] and [seed]: "repaired" "stand" | fired during create: 0
+C3 file bytes after the construction: {"i":"repaired","seed":"stand"}
+C4 a fresh instance over that path reads [i]: "repaired"
+C5 fired after register: 0
+C6 fired after a caller write that reaches LI: 1
+```
+
+**WHAT EACH ARM IS, AT ITS SOURCE — so the output's labels are not trusted as descriptions:**
+
+| the line | the driver's bytes | what it did |
+|---|---|---|
+| `A1` | `probe.mjs:12`–`:14` | a first instance writes `['a']` at `file`; the bytes are read |
+| `A2` | `probe.mjs:16`–`:23` | **the BOOT arm:** a second `storeCreate` over the same path, with `listeners: [{ address: ['a'], handle: 'L' }]` and `constraints: []`; the read answers the booted value; the counter `firedA` is printed |
+| `A3` | `probe.mjs:24`–`:25` | `s2.register('L', …)` **after** the call, then the same counter — **it stays `0`: no create-time history is replayed into a body that arrives later** |
+| `A4` | `probe.mjs:26`–`:27` | a caller's own `s2.write(['a'], 'mem', 2)` — the body fires, once |
+| `B1` | `probe.mjs:31`–`:43` | **a batch constraint at `['b']`** whose body, on `undefined`, returns a repair writing `['b']` at **`mem`**; the create returns an instance and the repair's value stands in memory |
+| `B2` | `probe.mjs:44`–`:45` | the file's bytes after the construction — **`<zero-length>`, which is the exclusive create's own image and NOT a lost save** (`§10.4` part 3): the repair moved no `file`-tier data, so `D-106`'s arm owes it nothing (`kernel-registration.mjs:911`–`:912`) |
+| `B3` / `B4` | `probe.mjs:46`–`:49` | `register` after the create fires nothing; a later caller write that reaches `LB` fires once |
+| `C1` | `probe2.mjs:11`–`:13` | a first instance seeds `['seed']` at `file` — *"so the file carries an image"* |
+| `C2` | `probe2.mjs:15`–`:28` | **the boot-with-constraints:** a second `storeCreate` over that path carrying a pair at `['i']` whose repair writes **at `file`**; **the booted key `[seed]` and the repaired `[i]` stand at the same instant** — the check saw the loaded state |
+| `C3` | `probe2.mjs` `:29` | the file's bytes after the construction — **`{"i":"repaired","seed":"stand"}`: the repair's `file`-tier landing was SAVED by the registration's passing close** (`D-106` arm 1) |
+| `C4` | `probe2.mjs:31`–`:32` | **the durability check:** a fresh instance over the same path reads `"repaired"` |
+| `C5` / `C6` | `probe2.mjs:34`–`:37` | `register` after the create fires nothing; a later caller write fires once |
+
+**THE FOUR THINGS THE DRIVES MEASURE BESIDE THE REQUEST.** **(1)** A create carrying a batch **does check and does repair** — `B1` and `C2` are the two arms of the request's first two verbs, and neither needed a byte. **(2)** A repair's edit is durable **exactly when it moves `file`-tier data or a container** — `C3`/`C4` against `B2`, which is `D-106` arm 1 at the create and not a new rule. **(3)** The check runs against the **booted** state — `C2`'s `[seed]` stands while `[i]` is repaired. **(4)** Nothing is delivered anywhere near the creation — `A2`, `B1`, `C2`'s `fired during create: 0`.
+
+**AND THE ONE READING THIS PASS REFUSES TO TAKE FROM THEM — `"listener fired during create: 0"` IS AN ABSENCE OF A BODY AND NOT AN INVOCATION COUNT.** **The counter the three lines print is a variable no function can increment at that instant:** `probe.mjs:16` declares `let firedA = 0` and `:24` is the only site that ever writes it; `probe.mjs:30`/`:46` and `probe2.mjs:15`/`:34` are the same for `firedB` and `fired`. **So the `0` is arithmetically forced whether or not a delivery was attempted, and a `0` from this driver cannot distinguish *"the delivery seam ran and found no body"* from *"no delivery seam was reached"*.** **A count of invocations would require a body registered BEFORE the create, and no lawful route puts one there** — the construction adopts handles (`src/args.rs:302`) and the function arrives only through `register` (`surface.md:437`–`:444`). **The `C-12`-class claim is therefore established at the BYTES (§19.1 (iv)) and NOT by these three zeroes.** The `A3`/`B3`/`C5` zeroes are a different and real measurement — **a create-time firing is not replayed into a later `register`** — because there the body does exist and the counter is live.
+
+**WHAT COULD NOT BE MEASURED, AND WHY — EACH NAMED SO IT IS NOT READ AS MEASURED:**
+
+1. **No arm was re-driven.** This pass held no shell. Every figure above is the supervisor's transcript, dated by his run and not by this note.
+2. **`A-3`'s `OPEN` half — what the batch repair's own write record carried in `triggered`.** Neither driver reads the record `r.write(…)` returned inside a repair body. **So whether a create-time repair's write named the adopted handle in its own fired set is UNMEASURED.** It is the single fact that would separate *"a set existed and nothing delivered it"* from *"no set was ever computed"*, and **nothing in this note asserts which it is.**
+3. **A refused registration at the create was not driven.** `D-107`'s rollback composition (`kernel-registration.mjs:952`–`:965`) and `D-118`'s creation-state regeneration run on that arm, and **no output above reaches it** — `B1`/`C2` are both passing arms.
+4. **The `listeners[]` third-key refusal was not driven.** `A-5` is a byte reading of `frame.mjs:31`–`:32` and `src/args.rs:302`; **no drive in `scratch/l0-probe/` supplies a three-keyed element.**
+5. **Multi-pair creates were not driven.** Both drivers construct **one** pair; the N-registrations-N-closes shape (`§19.1` (ii)) is a bytes reading only.
+6. **`temp`-tier repairs and a `delete` inside a repair body at the create were not driven**; `lastFileLanding`'s third disjunct (`kernel-registration.mjs:1014`–`:1023`) is a bytes reading only.
+7. **A fired body's throw at a creation has no arm to drive**, because no delivery site exists at that instant (§19.3 `X-16`).
+8. **No `APP`-layer statement is made anywhere above**: nothing here was read from inside an Electron app or from a registry install.
+
+---
+
+### §19.5 · OPEN QUESTIONS — the record does not answer these, and this note supplies no default
+
+**Each is put as the question the corpus leaves, with the bytes that make it a question and no answer. `P-2` holds a second, gate-1 list with defaults; THAT LIST IS THE GATE'S AND NOT THIS NOTE'S — nothing here carries a default, a recommendation or a preference.**
+
+1. **THE SCOPE OF *"all relevant"*.** Does the phrase mean **each supplied pair asked once at its own address** (which is shipped, `A-1`), **a sweep over every registered pair**, or **also the pairs a repair's own write reached** (`D-104`/`D-105`'s landing mechanism)? The instant declares its own scope at `kernel-registration.mjs:229`–`:232` (*"THAT ONE PAIR and no other"*), and `D-90` (4) names five instants and no sixth (`strata/decisions.md:4626`–`:4629`). **The words do not choose, and the corpus does not.**
+2. **WHICH ARM OF THE CONSTRUCTION IS *"the creation"*.** The exclusive-create arm changes no datum (`contract.md:4830`; `D-106`'s closing item: *"it changes no file-tier data and is out by that ground"*, `strata/decisions.md:5458`–`:5459`); the boot arm replaces state by a **load** (`src/store.rs:1675`; `§7.2` item 6); the batch arm edits by a **repair** (`A-2`). **The request says *"it changes the existing data state"* — of which arm, and does a boot count as a creation at all?**
+3. **WHAT *"fire listeners"* MEANS WHEN NO BODY EXISTS.** At the instant named, every adopted handle stands with no function (`src/records.rs:253`–`:260`; `src/args.rs:302`; `surface.md:437`–`:444`). **Is the firing (i) deferred to the first `register` that fills a body, (ii) carried by a callable on the `listeners[]` element, (iii) declared to fire at the first later act that reaches the address, or (iv) not owed at all?** **Each answer moves a different declared surface, and the corpus declares none.**
+4. **THE INSTANT, IF THERE IS ONE.** `D-117` fixed one order for a delivery outside a caller's write — *"ask → repairs land → re-run → SAVE → DELIVER"* (`strata/decisions.md:6027`–`:6032`) — and `§2.7` item 7 fixed the write's instant to the pass's terminal arm (`surface.md:1714`). **A creation's order is named nowhere**, and **`D-94` item 3 declares the caller's view of a registration to be the success-vs-rank-19 difference ALONE** (`:4798`–`:4802`). **Where in the create's order may a body run, if anywhere?**
+5. **THE CALLABLE'S PROVENANCE, IF ONE IS ADMITTED.** The store's listener record is closed at two members and the encoder refuses a third key (`A-5`). **Is the function carried on the element (which moves the encoder, the element's declared shape and the arming point), on the store's record (which moves `src/records.rs` and `src/args.rs`), or nowhere?** **`D-26`/`D-27` moved exactly one key in this direction and the record says so at `frame.mjs:70`–`:74`; the request names none.**
+6. **THE SEAT, IF ANYTHING IS HELD.** A deferred set must live somewhere until a `register` fills a body. **`D-58` item 2 bounds client-returned data to *"THE INSTANCE'S LIFETIME AND NOTHING LONGER, and within the instance it is THE OPEN COMMIT'S — not the closed one's"*** (`strata/decisions.md:3514`–`:3515`), and the registration's commit is **closed** at `closeRegistrationAttempt` (`:966`–`:992`, with `dropHandoff` at `:986`). **May a set survive the close at all?**
+7. **WHAT A FIRED BODY'S THROW DOES TO A `storeCreate` THAT HAS NOT YET RETURNED.** `§10.4` part 5's *"EVERY CONSTRUCTION THAT FAILS LEAVES NOTHING BEHIND"* (`contract.md:4832`) is a guarantee about the file; **a body that throws after the store exists and after a `file`-tier repair was saved (`C3`) would leave both.** **Which value does the caller receive, and does the instance exist?** **No clause of this corpus states it for any non-write delivery instant** — `D-117` item 5 records only that a listener a reversal fires *"now runs before the member returns"* (`strata/decisions.md:6042`–`:6045`).
+8. **IS THE BATCH ONE ACT OR N?** Each element gets its own registration, its own close, its own save and its own rollback route (`§19.1` (ii)). **A *"creation's"* rollback scope, save count and delivery set do not exist as objects in this tree.** **Does *"the creation"* name one act, or N?**
+9. **WHETHER A REFUSED REGISTRATION FIRES ANYTHING.** `D-107` item 1 makes a refusal roll back; `D-117` item 2 leaves the throwing arm, the failing arm and the empty batch silent. **A create whose pair N−1 passed and whose pair N refuses has, on any reading, already run pair N−1's repair and saved its `file` bytes (`C3`). Does anything fire for it?**
+10. **WHETHER THE GUIDE'S SENTENCE IS TO BE REVERSED OR THE REQUEST NARROWED.** `docs/guides/package-use.md:497`–`:499` is a **closed list of two firing acts naming the boot**. **A ruling here reverses a shipped consumer sentence; a narrowing here leaves the sentence intact.** **The two are not the same act and the record does not choose between them.**
+
+**AND ONE FACT NO ANSWER REMOVES.** *"fire listeners"* names a recipient that **cannot exist** at the instant the request names: the handle arrives at the construction, the body arrives at `register`, and `register` answers `undefined` (`surface.md:440`). **So every shape of the third verb is either a deferred firing or a firing at a later act — never an invocation during the call.** **That is not a clause and not a ruling; it is the order of two acts.**
+
+**FILES READ.** `src/{store,args,records,lib}.rs`; `bindings/js/index.mjs` (`storeCreate` `:130`–`:1766`'s construction region, the batch walk `:1654`–`:1661`, the listeners' `listen` pass `:1695`–); `bindings/js/src/entry/{kernel-registration,frame,class-decision,delivery,constraints}.mjs`; `bindings/js/src/{facade,crossing}.rs`; `docs/specs/storeroom-native/contract.md` (`§0.2` `DD-38`–`DD-40`, `§7.1`, `§7.2`, `§7.3`, `§8.1` #16, `§10.4` parts 1–7); `docs/specs/storeroom-js/surface.md` (`§2.1`, `§2.3`, `§2.4` items 5 and 9, `§2.7`, `§2.12`); `docs/guides/package-use.md` (`§6`, `§7.2`); `strata/decisions.md` (`D-38`, `D-58`, `D-90`, `D-91`, `D-94`, `D-96`, `D-104`, `D-106`, `D-107`, `D-111`, `D-112`, `D-117`); `strata/research.md` (`§13.2`, `§16`, `§17`); `strata/proposals.md` (`P-2`); `scratch/l0-probe/{probe,probe2}.mjs`; `scratch/l0-intake/creation-as-edit/proposal-section.md`.
+
+---
+
+### §19.6 · 1 · VERDICT
+
+**`ESTABLISHED` — AND THE SUBJECT IS THREE-VALUED AT THE BYTES.** **The request's first two verbs — *"should check all relevant constraints (and subsequent repair flows)"* — ARE SHIPPED BEHAVIOUR AT THE CREATE, at one element per supplied pair and per registration, with the check made against the booted state (`A-1`, `A-2`, `C2`).** **The third — *"and fire listeners"* — has NO RECIPIENT at the instant it names and NO DELIVERY SEAM at any instant the construction reaches** (`A-3`, `A-4`, `PIN-6` (v), `C-12`). **`strata/decisions.md` holds NO ROW on the subject**: no row treats a creation as an editing act, and `D-106`'s rule reaches the create only because the batch's repair writes there. **The note decides nothing, and the request's third verb reverses one shipped guide sentence whatever shape it is given (`X-24`).**
+
+### §19.6 · 2 · WRITE SET
+
+**`strata/research.md` — this section, and no other byte of the repository.** **No code, no test, no declaration, no guide, no contract, no `strata/decisions.md` byte and no `strata/proposals.md` byte.** **This pass WROTE NOTHING: it held no shell and no write channel, and this section was returned to the supervisor as text.** **`scratch/l0-probe/{probe,probe2}.mjs` are the supervisor's and are not this note's to move.**
+
+### §19.6 · 3 · FINDINGS (one line each)
+
+- **`F-1`** The construction's numbered steps are `store.rs:675`–`:815`, and **no step of them evaluates a constraint** — the list is validated at 4-bis (`:710`–`:717`) and bound as `_pairs`, read by no later line.
+- **`F-2`** The constraint act is the **package's**, at `index.mjs:1654`–`:1661`, i.e. **after** `index.mjs:186`'s `addon_.storeCreate` — **so a batch body is asked against the BOOTED state** (`C2`).
+- **`F-3`** The repair flow follows at the create through `D-91`'s route, on a synthetic attempt of the registration's own commit (`kernel-registration.mjs:398`–`:408`), and it **lands** (`B1`, `C2`).
+- **`F-4`** The registration instant **delivers nothing**, and carries a clause that says so in those words — `PIN-6` (v), `kernel-registration.mjs:510`–`:512`.
+- **`F-5`** The whole of `kernel-registration.mjs` contains **no `deliver` call**; the three `deliver(` sites in the entry are `delivery.mjs:105`, `:880` and `constraints.mjs:3037`.
+- **`F-6`** At the create every adopted handle **has no body**: the store's record closes at `{address, handle}` (`src/records.rs:253`–`:260`), the construction admits those two fields (`src/args.rs:302`), and the function arrives at `register` (`surface.md:437`–`:444`).
+- **`F-7`** The create leaves the file **zero-length** on the exclusive-create arm (`contract.md:4830`; `B2`) and **saves a `file`-tier repair's image on the registration's passing close** (`kernel-registration.mjs:930`–`:950`; `C3`, `C4`).
+- **`F-8`** A create-time firing is **not replayed** into a later `register` — `A3`, `B3`, `C5` all read `0` **with a live body already registered**, which is a real measurement and unlike the `fired during create: 0` lines.
+- **`F-9`** **`"listener fired during create: 0"` is an ABSENCE OF A BODY and not an invocation count** — the counter has no writing site at that instant, so the zero is arithmetically forced.
+- **`F-10`** The refusing byte for a third key on a `listeners[]` element is **`frame.mjs:31`–`:32`** (`keys.length !== 2`), **not `isLawfulListenerElement`** (`class-decision.mjs:1209`–`:1213`), which would admit a third member; `src/args.rs:302` is its Rust-side admission.
+- **`F-11`** `strata/research.md:471`'s `C-12` cites `kernel-registration.mjs:812`–`:840`; **the close stands at `:928`** — and that row's evidence column's second half (*"the synthetic attempt's close performs no store act"*) **is already false** (`:930`–`:965`).
+- **`F-12`** The guide declares **two** firing acts and names the boot in a non-firing clause — `docs/guides/package-use.md:497`–`:499`; **the request reverses a shipped sentence.**
+- **`F-13`** The delivery the request reaches for **does not exist at any instant the create reaches**, and the corpus's only delivery outside a caller's write is `D-117`'s reversal, which fixed an order the create does not have.
+- **`F-14`** `surface.md:2064` declares *"the repair does NOT run at registration"*, and **`D-91`, `D-106` and the drives contradict it** — recorded `OPEN` at `X-23` and resolved by nothing here.
+- **`F-15`** `D-106` item 3's quoted clause *"reaches neither the per-op rollback composition nor the delivery seam"* **is half stale**: the composition is at `kernel-registration.mjs:952`–`:965` and the delivery half still stands.
+
+### §19.6 · 4 · THE QUESTIONS FOR THE ARCHITECT
+
+**Ten, `Q-1`…`Q-10` at §19.5, none carrying a default, none a recommendation, and none answered here.** **Their load-bearing four, in the order the corpus puts them:** **`Q-1` the scope of *"all relevant"*** (five named instants and no sixth, `D-90` (4)) · **`Q-2` which arm is *"the creation"*** (an empty file, a load, and a batch repair are three different acts at three different bytes) · **`Q-3` what a firing is when no body exists** (the fact no answer removes) · **`Q-7` what a fired body's throw does to a `storeCreate` that has not yet returned** (a value that would leave a created file and a saved repair's bytes behind a throwing call).
+
+### §19.6 · 5 · WHAT THE NEXT GATE MUST HOLD
+
+**On the bytes, before anything is scoped:** **the two corrections at `A-5` and `A-6`, re-read at `frame.mjs:31`–`:32` and at `kernel-registration.mjs:928`** · **`C-12`'s evidence column re-derived** (`F-11`) · **`X-23`'s `:2064` disposed of by name rather than read as live** · **and `D-106` item 3's half-stale parenthetical marked at its own cell** (`F-15`). **On the request:** **an answer to `Q-1` and `Q-2` before any shape is priced**, because the first moves which instants exist and the second moves whether there is an act at all. **On the instruments:** **a drive that reads the batch repair's write record's `triggered` member** (the one unmeasured fact behind `A-3`, and the fact that separates *"a set was computed and dropped"* from *"no set was ever computed"*); **a drive of a refused registration at the create** (`D-107`'s composition, never driven here); **a drive of a three-keyed `listeners[]` element**; **and a multi-pair create**. **On the prose:** **`docs/guides/package-use.md:497`–`:499` moves in the same pass as any ruling, whatever the ruling is**, and **`D-106` item 5 and `D-107` item 4 are the architect's two ordered departures from ANNOTATE-BESIDE — no layer may substitute the convention here.**
+
+---
+
+**SOURCE STATUS — NAMING THIS PASS'S CHANNEL LIMIT: `role_l0_research` held READ-ONLY FILE ACCESS AND NO SHELL, so NO DRIVER WAS RE-DRIVEN by this pass and every behavioural figure in §19.4 is either (a) a byte citation at `HEAD` `3f24248`, or (b) the SUPERVISOR'S transcript read against the drivers' own source (`scratch/l0-probe/probe.mjs`, `scratch/l0-probe/probe2.mjs`). Every one of §19.5's eight unmeasured items is unmeasured because this channel could not run a driver, and each is named so it is not read as measured.**

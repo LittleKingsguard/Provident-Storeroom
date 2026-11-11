@@ -330,8 +330,8 @@ test('gate4_H4_a_duplicated_token_is_withdrawn_entry_by_entry_and_the_store_agre
   const a = [tag('h4-dup')];
   const store = makeStore({
     listeners: [
-      { address: a, handle: 'h4-dup' },
-      { address: a, handle: 'h4-dup' },
+      { address: a, handle: 'h4-dup', listener: () => {} },
+      { address: a, handle: 'h4-dup', listener: () => {} },
     ],
   });
   store.register('h4-dup', () => {});

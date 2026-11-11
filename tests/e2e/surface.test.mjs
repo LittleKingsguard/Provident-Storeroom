@@ -166,8 +166,8 @@ test('construction_an_empty_listeners_array_is_the_ordinary_no_listener_store', 
 
 test('construction_a_duplicate_address_is_kept_with_both_handles', () => {
   const inst = mem([
-    { address: ['a'], handle: 'l1' },
-    { address: ['a'], handle: 'l2' },
+    { address: ['a'], handle: 'l1', listener: () => {} },
+    { address: ['a'], handle: 'l2', listener: () => {} },
   ]);
   const record = inst.write(['a'], 'mem', 1);
   assert.equal(record.triggered.length, 2, 'both entries are KEPT, each with its OWN handle');

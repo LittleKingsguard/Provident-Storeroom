@@ -22,14 +22,31 @@ function encodeListeners(listeners) {
   for (let position = 0; position < listeners.length; position += 1) {
     const entry = listeners[position];
     if (!isPlainObjectValue(entry)) {
+      // **⟶ AND THE SENTENCE NAMES THE SHAPE THIS UNIT ACTUALLY ADMITS — GATE 4's FINDING, 2026-11-11.** The
+      // message read *"an entry is a plain `{ address, handle }` record"* and told a consumer the very shape the
+      // projection at the foot of this loop REFUSES (two own keys where three are required) — `PIN-8`'s third
+      // member is REQUIRED, so the non-object arm now spells the shape it is asking for. **NO CODE, NO SUBJECT
+      // AND NO FORM MOVES**: still `AddressMalformed`, still the container `listeners`, still the two-position
+      // `boundaryReject` arm this position already took (`PIN-9`'s amendment owns the arm-token repair and is
+      // not read here).
       boundaryReject(
         'AddressMalformed',
         'listeners',
-        `the listeners entry at position ${position} is ${classSpelling(entry)}, and an entry is a plain { address, handle } record`,
+        `the listeners entry at position ${position} is ${classSpelling(entry)}, and an entry is a plain { address, handle, listener } record`,
       );
     }
     const keys = Object.keys(entry); // the OWN enumerable string keys, and nothing inherited
-    if (keys.length !== 2 || !Object.hasOwn(entry, 'address') || !Object.hasOwn(entry, 'handle')) {
+    // **⟶ THE ELEMENT'S THIRD MEMBER IS ADMITTED HERE AND STRIPPED AT THE CROSSING — `PIN-8`, `D-123` item `2`,
+    // 2026-11-06.** The element type is `{ address, handle, listener }` — `listener` REQUIRED — and the shape
+    // this test reads is that shape alone: two or three own keys, `address` and `handle` present, and where a
+    // third stands it is `listener`. **A JAVASCRIPT FUNCTION CANNOT CROSS INTO RUST AT ANY DEPTH**, so the
+    // projection below carries `{ address, handle }` and nothing else — which is `D-26`'s move one key over
+    // (`encodeConstraints`' own strip, `:70`–`:77`), and **`ListenerEntry`, `src/args.rs` and `src/records.rs`
+    // do not move**. **THE FUNCTION'S PRESENCE IS NOT TESTED HERE**: a missing or non-function `listener` is
+    // step 2's refusal (`admittedListenerBatch` below), decided one layer up in the construction's own walk, in
+    // the form this position already answers, and before any filesystem act (`PIN-9`).
+    if (keys.length < 2 || keys.length > 3 || !Object.hasOwn(entry, 'address') || !Object.hasOwn(entry, 'handle')
+      || (keys.length === 3 && !Object.hasOwn(entry, 'listener'))) {
       appendOwn(encoded, { bad: 'entry' });
       continue;
     }
@@ -38,6 +55,8 @@ function encodeListeners(listeners) {
       appendOwn(encoded, { bad: 'handle' });
       continue;
     }
+    // **THE ELEMENT'S THIRD MEMBER IS DROPPED HERE AND ONLY HERE … THE PACKAGE ARMS THE SUBSTANCE**
+    // (`frame.mjs:70`–`:74`, `D-26` item 3, read one key over).
     appendOwn(encoded, { address: encodeAddress(entry.address), handle });
   }
   return encoded;
@@ -337,6 +356,58 @@ export function admittedConstraintBatch(cfg) {
       id: element.id,
       constraint: element.constraint,
     });
+  }
+  return admitted;
+}
+
+// ---------------------------------------------------------------------------------------------
+// **⟶ ADDED 2026-11-06 — STEP `2`'s SECOND WALK: THE ADOPTED LISTENERS' FUNCTIONS (`PIN-8`, `PIN-9`,
+// `D-123` item `2`), TAKEN BEFORE ANY FILESYSTEM ACT BESIDE `admittedConstraintBatch`.**
+// ---------------------------------------------------------------------------------------------
+/// **AN ENTRY THAT CARRIES NO FUNCTION IS REFUSED AT STEP `2`, BEFORE ANY FILESYSTEM ACT, IN THE FORM THE
+/// ENCODER ALREADY ANSWERS THAT POSITION WITH — AND NO CODE IS MINTED FOR IT (`PIN-9`).**
+///
+/// **THE ARCHITECT'S GROUND, WHICH IS THE RULING'S** (`D-123` item `2`, verbatim): *"Why would a listener that
+/// doesn't have a function to fire on the listened address be accepted?"* — and the RESERVATION reading is
+/// WITHDRAWN at this entry point: a `cfg.listeners[]` element is no longer a handle with a body owed later; it
+/// is a listener or it is refused. **SO THE THIRD MEMBER IS REQUIRED, AND THIS WALK IS WHAT MAKES IT SO.**
+///
+/// **THE POSITION IS LOAD-BEARING AND IT IS `index.mjs`'s STEP `2`'s**: every check here **precedes the
+/// construction's FIRST filesystem act**, which is inside `addon_.storeCreate(encoded)` — so a functionless
+/// entry refuses the construction **with no file left behind** (`contract.md §10.4` part `5`), which a check
+/// placed in the arming loop could not do: that loop runs after the exclusive create has already left the
+/// store's own zero-length file on disk.
+///
+/// **THE FORM IS THE ENCODER'S OWN** (`frame.mjs:25`'s `boundaryReject('AddressMalformed', 'listeners', …)`):
+/// the same member and the same subject the entry's own outside forms already answer with, and **no code is
+/// minted for this fault** (`PIN-9`) — the status is a member of the store's closed set and is carried, never
+/// minted, by the package (`DD-40`).
+///
+/// **WHAT IT ANSWERS IS THE ADOPTED LIST — ONE ENTRY PER ELEMENT THE STORE WOULD ADMIT, CARRYING THE
+/// FORWARDED `listener` MEMBER** — and it is what the construction's arming walk arms through `register`
+/// (`PIN-8`: *"THE PACKAGE ARMS THE SUBSTANCE"*), so **the adopted handle holds a body from the instant the
+/// instance exists.** It is `admittedConstraintBatch`'s own shape one key over: the same admission predicate
+/// (`isLawfulListenerElement`, which does not move), the same skip of the classes the store's own list
+/// validation refuses (the package does not shadow a store refusal), and a local index loop.
+export function admittedListenerBatch(cfg) {
+  const admitted = [];
+  const listeners = cfg === null || typeof cfg !== 'object' ? undefined : cfg.listeners;
+  if (listeners === undefined || listeners === null) return admitted;
+  if (types.isProxy(listeners) || !isAdmittedArray(listeners)) return admitted;
+  for (let position = 0; position < listeners.length; position += 1) {
+    const entry = listeners[position];
+    // THE STORE'S OWN ADMISSION KEEPS ITS SUBJECT — an element the encoder or the store refuses is skipped and
+    // never shadowed, so a malformed entry crosses the store's own code at its own instant.
+    if (!isLawfulListenerElement(entry)) continue;
+    // ── THE FUNCTION CHECK — `PIN-9`'s one arm, decided from the element alone and FIRST ──────────────────
+    if (!Object.hasOwn(entry, 'listener') || typeof entry.listener !== 'function') {
+      boundaryReject(
+        'AddressMalformed',
+        'listeners',
+        `the listeners entry at position ${position} carries ${classSpelling(Object.hasOwn(entry, 'listener') ? entry.listener : undefined)} at its listener member, and a listeners entry's listener is a JS function and it is the body the adopted handle fires`,
+      );
+    }
+    appendOwn(admitted, { address: entry.address, handle: entry.handle, listener: entry.listener });
   }
   return admitted;
 }

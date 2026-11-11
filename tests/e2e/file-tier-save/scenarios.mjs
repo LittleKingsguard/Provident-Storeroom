@@ -34,6 +34,25 @@ const K = await import('../../../bindings/js/src/constraint-kernel.mjs');
 const require = createRequire(import.meta.url);
 const ADDON = require('../../../bindings/js/build/Release/storeroom_js_binding.node');
 
+// --------------------------------------------------------------- the closed set ---
+// **THE CLOSED SET THIS ARTEFACT DRIVES AGAINST — READ FROM ITS ONE HOME AND NOT COPIED** (gate 4's finding,
+// closed 2026-11-06). FTS-10.1 and FTS-10.3 drove a hand-written array of twenty against itself, so each stayed
+// green through any move of the set — **measured: the cell printed `set=20 members` on a twenty-one-member
+// tree**. The list is now read from `src/error.rs`'s `pub const CODES` — the store's own array, the set's one
+// home, exactly as `tests/e2e/file-tier-save.test.mjs`'s census reads it — together with the arity `[&str; N]`
+// the array declares, so a set that moves moves this drive with it and a set whose arity and members disagree
+// is caught here.
+const closedSetSource = (() => {
+  const errorRs = fs.readFileSync(new URL('../../../src/error.rs', import.meta.url), 'utf8');
+  const row = /pub const CODES: \[&str; (\d+)\] = \[([\s\S]*?)\];/.exec(errorRs);
+  if (row === null) return { declaredArity: null, members: [] };
+  return {
+    declaredArity: Number(row[1]),
+    members: [...row[2].matchAll(/"([A-Za-z]+)"/g)].map((match) => match[1]),
+  };
+})();
+const CLOSED_SET = closedSetSource.members;
+
 // ---------------------------------------------------------------- harness ---
 const CELLS = [];
 let SCENARIO = 'FTS-00';
@@ -1035,16 +1054,23 @@ scenario('FTS-10', 'the sixteenth member\'s own clause and its template row; the
     // the store's own at `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 20` ✓, `ConstraintListInvalid` keeps rank `16` and
     // `FileCommitFailed` keeps `15` as the SAVE's code alone. **The cell's subject — the closed set this artifact
     // drives against, printed with its ranks — is unmoved; only the superseded figures move.**
-    const setClosed = ['AddressMalformed', 'AddressNotFound', 'LeafHasNoDownstream', 'TierNotFound', 'OutOfDomainTier',
-      'ParentAnchorMonotonicityViolation', 'ContainerKindConflict', 'ReadTargetIsBranch', 'WriteParentNotLink',
-      'JournalOpUnknown', 'RollbackCompacted', 'ConstructionArgumentMissing', 'FilePathUnreachable',
-      'ValueNotAdmitted', 'FileCommitFailed', 'ConstraintListInvalid', 'ValueRefusedAtBoundary',
-      'ConstraintBodyThrew', 'ConstraintRefusedAtRegistration', 'ConstraintPassRefused'];
-    cell('FTS-10.1', 'contract.md §8.1 (the set is closed at 20 members) + §2.2 clause 7',
-      'the closed set this artifact drives against is the twenty named ranks, `ConstraintListInvalid` at 16 and `ConstraintPassRefused` last',
-      () => C(setClosed.length === 20 && setClosed[15] === 'ConstraintListInvalid'
-        && setClosed[19] === 'ConstraintPassRefused',
-      `set=${setClosed.length} members, #16=${JSON.stringify(setClosed[15])}, #20=${JSON.stringify(setClosed[19])}`));
+    // **⟶ AND ONCE MORE 2026-11-06 (`D-124` item `2`; `PIN-10`; the architect, verbatim: *"The closed fail set
+    // moves `20 → 21`"*): TWENTY-ONE, `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 21` ✓, with `ListenerBodyThrew`
+    // appended at rank `21` and NO RANK OF `1`…`20` MOVING.** **AND THE LIST IS NO LONGER WRITTEN HERE AT ALL —
+    // `CLOSED_SET` ABOVE READS `src/error.rs`'s `CODES`, SO THIS CELL AND `FTS-10.3` BELOW ARE A CENSUS OF THE
+    // HOME AND NOT OF A COPY** (gate 4's finding: the copy printed `set=20 members` on a twenty-one-member tree).
+    // **⟶ AND ONCE MORE 2026-11-06 (`D-126` item `2`; `PIN-11`; the architect, verbatim: *"Mint/revive a code: a
+    // corrupt image refuses the construction"*): TWENTY-TWO, `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 22` ✓,
+    // with `FileImageRefused` appended at rank `22` and NO RANK OF `1`…`21` MOVING.**
+    const setClosed = CLOSED_SET;
+    cell('FTS-10.1', 'contract.md §8.1 (the set is closed at 22 members) + §2.2 clause 7',
+      'the closed set this artifact drives against is the twenty-two named ranks, `ConstraintListInvalid` at 16, `ConstraintPassRefused` at 20, `ListenerBodyThrew` at 21 and `FileImageRefused` last',
+      () => C(closedSetSource.declaredArity === setClosed.length && setClosed.length === 22
+        && setClosed[15] === 'ConstraintListInvalid' && setClosed[19] === 'ConstraintPassRefused'
+        && setClosed[20] === 'ListenerBodyThrew' && setClosed[21] === 'FileImageRefused',
+      `set=${setClosed.length} members (the array declares ${closedSetSource.declaredArity}), `
+        + `#16=${JSON.stringify(setClosed[15])}, #20=${JSON.stringify(setClosed[19])}, `
+        + `#21=${JSON.stringify(setClosed[20])}, #22=${JSON.stringify(setClosed[21])}`));
     // ── **⟶ RE-DERIVED 2026-10-27: THE ADDON'S EXPORT SET IS FOURTEEN, AND THE FIGURE MOVES FOR THE ONE ENTRY
     // THE JOURNAL MARK RESTORE ADDS.** The set read thirteen from 2026-10-25 (`package.md §1.3` item 4's
     // *"exactly five names"* was the superseded as-filed figure, and the review's §3.2 row 19 classes the
@@ -1074,8 +1100,14 @@ scenario('FTS-10', 'the sixteenth member\'s own clause and its template row; the
     // **⟶ RE-DERIVED 2026-10-26 WITH THE SET (title and figure together): TWENTY codes, not sixteen** — and the
     // appended rank-`20` row is driven here by the same loop, so `§8.2`'s completeness is asserted over the set the
     // declaration now carries rather than over a superseded one (`DEF-S`/`DEF-N`; `DEF-H`/`DEF-W`).
+    // **⟶ AND RE-DERIVED ONCE MORE 2026-11-06 (`D-124` item `2`): TWENTY-ONE codes, the appended row being rank
+    // `21` `ListenerBodyThrew` — and, because `setClosed` IS `CLOSED_SET` (read from `src/error.rs` above), the new
+    // member is driven by this loop the moment the home carries it.**
+    // **⟶ AND AGAIN 2026-11-06 (`D-126` item `2`; `PIN-11`): TWENTY-TWO codes, the appended row being rank `22`
+    // `FileImageRefused`, driven by the same loop for the same reason: the home carries it, so the generator must
+    // render it or this cell is red.**
     cell('FTS-10.3', 'contract.md §8.2 (completeness: every code of §8.1 generates a non-empty, placeholder-free message)',
-      'every one of the twenty codes renders its row through the generator reachable from JS',
+      'every one of the twenty-two codes renders its row through the generator reachable from JS',
       () => {
         const bad = [];
         for (const c of setClosed) {
@@ -1083,7 +1115,7 @@ scenario('FTS-10', 'the sixteenth member\'s own clause and its template row; the
           const m = r.ok ? r.v : null;
           if (!r.ok || typeof m !== 'string' || m.length === 0 || PLACEHOLDER.test(m) || m.includes('outside the closed set')) bad.push([c, r.ok ? m : describe(r.v)]);
         }
-        return C(bad.length === 0, bad.length === 0 ? 'all twenty codes rendered' : `unrendered: ${JSON.stringify(bad)}`);
+        return C(bad.length === 0, bad.length === 0 ? 'all twenty-two codes rendered' : `unrendered: ${JSON.stringify(bad)}`);
       });
     cell('FTS-10.4', 'contract.md §8.2 (the control: the generator\'s own outside-the-set answer)',
       'a name outside the closed set does NOT render a row but answers the generator\'s outside-the-set sentence, so §FTS-10.3 is discriminating',

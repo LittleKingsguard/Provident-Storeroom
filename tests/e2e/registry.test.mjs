@@ -58,7 +58,7 @@ test('handle_the_construction_takes_a_plain_string_and_the_record_names_the_call
   // `{handle, address}` (`trigger-and-pair.md §2` item 1), and its `handle` member IS the caller's own string —
   // the construction adopts it verbatim (`listen-verb.md §6` item 3: *"the caller's handle passed through the
   // one creation act"*) — so the cell now asserts identity `===` rather than the absence of a string.
-  const inst = mem([{ address: ['a'], handle: 'l1' }]);
+  const inst = mem([{ address: ['a'], handle: 'l1', listener: () => {} }]);
   const record = inst.write(['a'], 'mem', 1);
   assert.equal(record.triggered.length, 1);
   const pair = record.triggered[0];
@@ -88,7 +88,7 @@ test('handle_the_returned_handle_is_the_caller_s_own_string_and_the_pair_address
   // `O-6` (*"no handle is minted — the value the caller supplied and the value the store returns are the same
   // string"*). **What survives from the as-filed cell is its real point — the identity is recoverable by plain
   // reading — carried here as the POSITIVE assertion the new declaration grounds.**
-  const inst = mem([{ address: ['a'], handle: 'l1' }]);
+  const inst = mem([{ address: ['a'], handle: 'l1', listener: () => {} }]);
   const pair = inst.write(['a'], 'mem', 1).triggered[0];
   assert.equal(pair.handle, 'l1',
     '`identity-and-domain.md §6` `O-6`: the identity the caller holds is the identity the record carries');
@@ -250,7 +250,7 @@ test('handle_two_caller_spelled_handles_bind_by_address_and_a_foreign_instances_
 });
 
 test('handle_a_caller_spelled_token_is_adopted_verbatim_and_is_lawful', () => {
-  const inst = mem([{ address: ['a'], handle: 'listener-1' }]);
+  const inst = mem([{ address: ['a'], handle: 'listener-1', listener: () => {} }]);
   const record = inst.write(['a'], 'mem', 1);
   assert.equal(record.triggered.length, 1, 'A69: the construction ADOPTS the caller\'s tokens verbatim');
 });
@@ -272,7 +272,7 @@ test('registry_rule_4_unlisten_over_a_bare_string_is_an_unknown_handle_and_a_no_
   // item 1, whose four declared sites each need their own dated clause; `P: docs/pending.md · P-6`, the ruling
   // *"listen gains a handle position"*). **THE CELL'S SUBJECT — `unlisten`'s no-op-success set and its "NO
   // OTHER REGISTRATION IS REMOVED" half — IS UNMOVED.**
-  const inst = mem([{ address: ['a'], handle: 'l1' }]);
+  const inst = mem([{ address: ['a'], handle: 'l1', listener: () => {} }]);
   inst.listen('l2', [['b']]);
   assert.equal(inst.unlisten('l1'), undefined, 'a well-formed string names its entry, so this IS a removal');
   assert.equal(inst.unlisten('listener-1'), undefined, 'a well-formed string NO entry carries is a NO-OP success');
@@ -361,9 +361,9 @@ test('registry_the_withdrawal_removes_the_store_side_home_entry_and_never_the_fu
 
 test('registry_the_triggered_handle_set_is_exactly_the_prefix_set_descendant_inclusive', () => {
   const inst = mem([
-    { address: ['a'], handle: 'at-a' },
-    { address: ['a', 'b'], handle: 'at-ab' },
-    { address: ['zzz'], handle: 'at-zzz' },
+    { address: ['a'], handle: 'at-a', listener: () => {} },
+    { address: ['a', 'b'], handle: 'at-ab', listener: () => {} },
+    { address: ['zzz'], handle: 'at-zzz', listener: () => {} },
   ]);
   // The containers the write runs through are created first: a write's parent is resolved BY ADDRESS.
   inst.write(['a'], 'mem', {});
@@ -376,8 +376,8 @@ test('registry_the_triggered_handle_set_is_exactly_the_prefix_set_descendant_inc
 
 test('registry_a_delete_fires_its_own_triggered_set_on_the_same_prefix_test', () => {
   const inst = mem([
-    { address: ['a'], handle: 'at-a' },
-    { address: ['zzz'], handle: 'at-zzz' },
+    { address: ['a'], handle: 'at-a', listener: () => {} },
+    { address: ['zzz'], handle: 'at-zzz', listener: () => {} },
   ]);
   inst.write(['a'], 'mem', 1);
   const receipt = inst.delete(['a'], 'mem');
@@ -569,9 +569,9 @@ test('registry_a_handle_at_several_addresses_fires_once_for_the_distinct_handle'
 
 test('registry_the_triggered_set_is_compared_as_a_set_and_no_order_is_asserted', () => {
   const inst = mem([
-    { address: ['a'], handle: 'l1' },
-    { address: ['a'], handle: 'l2' },
-    { address: ['a'], handle: 'l3' },
+    { address: ['a'], handle: 'l1', listener: () => {} },
+    { address: ['a'], handle: 'l2', listener: () => {} },
+    { address: ['a'], handle: 'l3', listener: () => {} },
   ]);
   const first = inst.write(['a'], 'mem', 1);
   const second = inst.write(['a'], 'mem', 2);
@@ -586,7 +586,7 @@ test('registry_the_triggered_set_is_compared_as_a_set_and_no_order_is_asserted',
 // ---------------------------------------------------------------------------------------------
 
 test('delivery_the_record_is_complete_before_the_window_opens', () => {
-  const inst = mem([{ address: ['a'], handle: 'l1' }]);
+  const inst = mem([{ address: ['a'], handle: 'l1', listener: () => {} }]);
   const record = inst.write(['a'], 'mem', 1);
   // Everything the window could need is already in the returned value: the handle set, the watched
   // addresses, the op and the state halves — no member is filled in later.
@@ -646,7 +646,7 @@ test('delivery_listen_carries_no_tier_qualifier_its_address_is_the_whole_of_its_
 });
 
 test('delivery_the_watched_member_is_a_list_of_addresses_and_never_a_list_of_handles', () => {
-  const inst = mem([{ address: ['a'], handle: 'l1' }]);
+  const inst = mem([{ address: ['a'], handle: 'l1', listener: () => {} }]);
   inst.write(['a'], 'mem', {});
   const record = inst.write(['a', 'b'], 'mem', 1);
   assert.deepEqual(record.watched, [['a']], 'PAR-JS-14: an address is a SEGMENT LIST');

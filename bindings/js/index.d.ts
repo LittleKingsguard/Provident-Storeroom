@@ -221,14 +221,28 @@ export interface StoreConfig {
   /** The journal's declared length: a positive integer (`PAR-JS-3`). */
   readonly journalLength: number;
   /**
-   * The listeners a construction adopts (`PAR-JS-4`): an array of `{ address, handle }` records, the EMPTY
-   * array included.
+   * The listeners a construction adopts (`PAR-JS-4`): an array of `{ address, handle, listener }` records, the
+   * EMPTY array included.
    *
    * **AND THE KEY IS REQUIRED, NOT OPTIONAL**: an ABSENT `listeners` is the ONE absence the construction
    * does not admit and answers `AddressMalformed` for, so `listeners?` — the shipped spelling — invited a
    * call that can never construct. **The ELEMENT SHAPE IS THE STORE'S TO REFUSE**: a member that is not an
-   * `{ address, handle }` record, or whose `handle` is not a plain non-empty `string`, is admitted here and
-   * refused by the store's own construction, because the package mints no second refusal for that position.
+   * `{ address, handle, listener }` record, or whose `handle` is not a plain non-empty `string`, is admitted
+   * here and refused by the store's own construction, because the package mints no second refusal for that
+   * position.
+   *
+   * **⟶ AND THE ELEMENT'S THIRD MEMBER IS REQUIRED FROM 2026-11-06 — `PIN-8`, `PIN-9`, `D-123` item `2`.** The
+   * record is `{ address, handle, listener }`, **`listener: Listener`**, and **it NEVER CROSSES**: the encoder
+   * drops it at the crossing exactly as a `cfg.constraints` element's `constraint` is dropped (`D-26`'s move one
+   * key over), the store's `ListenerEntry` and its `{address, handle}` record stay two-membered, and **the
+   * PACKAGE arms the substance** into its own registry at the construction — so **the adopted handle holds a body
+   * from the instant the instance exists.** **AN ENTRY THAT CARRIES NO FUNCTION IS REFUSED — IT IS NOT A
+   * LISTENER — and the refusal precedes the construction's first filesystem act**, so no file is ever created
+   * for it (`PIN-9`; `contract.md §10.4` part 5): the architect's ground is his own, *"Why would a listener that
+   * doesn't have a function to fire on the listened address be accepted?"* **AFTER THE CONSTRAINTS PASS AND
+   * AFTER THE SAVE, THE ADOPTED LISTENERS WHOSE WATCHED ADDRESS RESOLVES ARE FIRED — ONCE PER DISTINCT HANDLE,
+   * WITH THAT ADDRESS AS THEIR ONE ARGUMENT** (`D-123` item `2`; `PIN-6`; `D-125` item `1`), and a body that
+   * throws there refuses the act at rank `21` `ListenerBodyThrew`.
    */
   readonly listeners: readonly unknown[];
   /** The file the file tier is backed by, where one is declared (`PAR-JS-2`; ABSENT is in domain). */
@@ -372,6 +386,37 @@ export interface StoreConfig {
  * falsifies it — **so `write`'s and `rollback`'s refusal paths may no longer answer it and the `file` tier's
  * own failing save still does.** **IT IS THE MEMBER THIS DECLARATION PUBLISHES FOR THE REFUSAL, WHICH IS WHAT
  * MAKES THE UNION HONEST ABOUT WHICH LAYER FAILED RATHER THAN A WIDENING FOR ITS OWN SAKE.**
+ *
+ * **⟶ AND AMENDED AGAIN 2026-11-06, BY THE ARCHITECT'S RULING `D-124` ITEM `2` (`strata/decisions.md:6459`),
+ * VERBATIM: *"A CREATION-FIRED BODY THAT THROWS REFUSES AT A MINTED RANK `21` `ListenerBodyThrew`"*, *"The closed
+ * fail set moves `20 → 21`"* and *"The subject is the LISTENER BODY and not the constraint body"*.** **THE SET IS
+ * TWENTY-ONE, RANKED `1`…`21`, AND THE APPENDED TERM IS `ListenerBodyThrew` AT RANK `21`** — **the member a
+ * LISTENER BODY's throw crosses as at the four REGISTRATION INSTANTS** (`D-125` item `1`: `storeCreate`, a boot
+ * over an existing `filePath`, `addConstraint` and a re-arm), and at those four only: *"a fired body's throw at
+ * those instants is `D-124` item `2`'s rank `21` `ListenerBodyThrew` by the same reading."* **NO RANK OF `1`…`20`
+ * MOVES, the algebra reads `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 21` ✓, and the escape arm `(string & {})`
+ * still stands EXACTLY ONCE, after the members.** **`ConstraintBodyThrew` KEEPS RANK `18` AND IS NOT WIDENED**
+ * (`D-124` item `2`: its subject is the CONSTRAINT body). **AND EVERY FIGURE ABOVE IS READ THROUGH THIS CLAUSE:**
+ * the *"twenty"*s and the *"`20`"*s in them are the figures of their own dates. **AT EVERY OTHER INSTANT THE
+ * IDENTITY PROMISE STANDS BYTE-UNMOVED** — a listener body's throw at a caller's `write`, at a `delete` and
+ * inside a `rollback`'s judgement still crosses AS ITSELF, `caught === thrown` (`surface.md §2.7` item 4;
+ * `contract.md:4299`), which is the carve's own scope and `CSW-25`'s control.
+ *
+ * **⟶ AND AMENDED AGAIN 2026-11-06, BY THE ARCHITECT'S RULING `D-126` ITEM `2` (`strata/decisions.md:6612`),
+ * VERBATIM: *"Mint/revive a code: a corrupt image refuses the construction"*, whose member L1 pins at
+ * `docs/L1/creation-sweep.md` `§3` `PIN-11`.** **THE SET IS TWENTY-TWO, RANKED `1`…`22`, AND THE APPENDED TERM IS
+ * `FileImageRefused` AT RANK `22`** — **the member a CORRUPT IMAGE crosses as at the CONSTRUCTION and at no other
+ * instant**, MINTED BY THE STORE ITSELF at `src/store.rs`'s step `7` through the one read of the path and
+ * therefore **before the package's first ask**: no image is installed, no pair is carried and no instance
+ * exists. **ITS SUBJECT IS THE STORE'S OWN IMAGE AND NOT THE CONSTRAINT LIST** — `cfg.constraints` may be absent
+ * and innocent when the corrupt bytes are read, so rank `16` `ConstraintListInvalid` has the wrong subject at
+ * this instant — **and THE CORRUPT FILE STANDS, un-written-to and un-repaired**: nothing was written to it and
+ * the refusal precedes every save, so no rollback composes and no removal arm is declared. **NO RANK OF `1`…`21`
+ * MOVES, the algebra reads `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 22` ✓, and the escape arm
+ * `(string & {})` still stands EXACTLY ONCE, after the members.** **A ZERO-LENGTH FILE AND AN ABSENT FILE ARE
+ * STILL NO IMAGE** and still load nothing and cross NO code (`§10.4` part 3; `DD-38`) — the corrupt arm is not
+ * widened into the empty one. **AND EVERY FIGURE ABOVE IS READ THROUGH THIS CLAUSE:** the *"twenty-one"*s and
+ * the *"`21`"*s in them are the figures of their own dates.
  */
 export type StoreStatus =
   | 'AddressMalformed'
@@ -394,6 +439,8 @@ export type StoreStatus =
   | 'ConstraintBodyThrew'
   | 'ConstraintRefusedAtRegistration'
   | 'ConstraintPassRefused'
+  | 'ListenerBodyThrew'
+  | 'FileImageRefused'
   | (string & {});
 
 /**
@@ -473,8 +520,15 @@ export interface LogEntry {
  * NAME**: a refusal about a `cfg`, a constraint LIST, a handle, an attempt identity or an artefact path names
  * no act at an address and says so with the declared `null`, never by omitting the member.
  *
- * **IT IS NOT A FIFTH STATUS AND NOT A HEURISTIC**: the closed set is `StoreStatus`'s and stays twenty, and the
- * member is authored by the package at the refusal's own crossing, so no consumer reproduces a rule to read it.
+ * **IT IS NOT A FIFTH STATUS AND NOT A HEURISTIC**: the closed set is `StoreStatus`'s and stays **twenty-one**,
+ * and the member is authored by the package at the refusal's own crossing, so no consumer reproduces a rule to
+ * read it. **⟶ CORRECTED IN PLACE 2026-11-11 — GATE 4's FINDING: THE FIGURE READ *"twenty"* AND IS FALSE AT
+ * TWENTY-ONE.** `D-124` item `2` moved the closed fail set `20 → 21` by appending `ListenerBodyThrew` at rank
+ * `21` (`strata/decisions.md:6459`; the operative statement is `StoreStatus`'s own block above, whose algebra
+ * reads `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 21` ✓ and whose membership below carries the member), and
+ * **this sentence's subject — that `address` is a member of the REFUSAL and not a member of the STATUS SET —
+ * is untouched by the move**: what was wrong was the figure, not the rule. **NO MEMBER IS ADDED, NO RANK MOVES
+ * AND NO OTHER FIGURE OF THIS DECLARATION IS READ THROUGH THIS CLAUSE.**
  * **ITS NAME IS THE DECLARATION'S OWN CONVENTION**: its siblings are one bare noun each naming exactly the
  * datum carried, and this one is the datum the whole declaration already calls `address` — the segment array
  * `read`/`write`/`delete` take, `AttemptContext.address`, `JournalOp.address`, `pair.address`.
@@ -1204,13 +1258,32 @@ export interface StoreInstance {
    * anchor (`bindings/js/README.md`: *"a listener and a constraint do not share one handle"*), and the
    * refusal's `address` member is `null`: the subject is the identity, and naming one of a listener's N mirror
    * addresses would assert a membership no clause supports.
+   *
+   * **⟶ AND THIS ACT DELIVERS THE LISTENERS ITS REPAIR'S WRITE FIRES — `D-125` item `1`, `PIN-6` (ii), `PIN-2`,
+   * 2026-11-06.** **WHEREVER A REPAIR RUNS, THE LISTENERS ITS WRITE FIRES ARE DELIVERED — `storeCreate`, a boot
+   * over an existing `filePath`, `addConstraint`, and a re-arm — after the constraints pass, after the save, in
+   * `D-117`'s order, instant for instant, with no delivery on a refusing arm.** **THE SET AT THIS INSTANT IS THE
+   * STORE'S OWN `triggered`** — *"the very record `write` answers"* — **delivered ONCE PER DISTINCT HANDLE, with
+   * the repair's own op address as the one argument**, and **BEFORE this call answers.** **THE ANSWER'S DECLARED
+   * TYPE IS UNMOVED: the identity is still the answer** (`D-125` item 2). **A fired body's throw pre-empts that
+   * answer and crosses as rank `21` `ListenerBodyThrew`, the pair stands registered and its save stands**
+   * (`PIN-10`; `Q-13`), so the caller's view of a registration gains a third observable — *"the listeners its
+   * repairs fired"* (`D-125` item 2 (i)) — and an EMPTY SET is a count of `0` and not silence (`PIN-6` (v)).
    */
   addConstraint(pair: ConstraintPair, constraint: Constraint): ConstraintIdentity;
   /** **THE ENABLE HALF** (`§2.12` item 2 (a) and item 3's `constraintOn` row): `undefined`. **The
    *  `constraint` position is REQUIRED and is a NO-OP on every success** — the caller supplies as a function
    *  the identity it holds at that pair, the entry never substitutes one, and it is the element the entry
    *  carried at that pair that is evaluated at the next write. **Idempotent success where the pair already
-   *  stands ENABLED.** */
+   *  stands ENABLED.**
+   *
+   *  **⟶ AND THE RE-ARM DELIVERS TOO — `D-125` item `1`, 2026-11-06.** The re-registration's `K-1` reaches the
+   *  same registration route, so **the listeners its repair's write fires are delivered ONCE PER DISTINCT
+   *  HANDLE, after the save and before this call answers its `undefined`**, with the repair's op address as the
+   *  one argument (`PIN-6` (ii), (iv); `PIN-2`). **NO DELIVERY ON A REFUSING ARM** — a re-arm whose repair the
+   *  `D-107` composition rolled back delivers nothing (`PIN-6` (v)) — and **an empty set is a count of `0`**.
+   *  **A fired body's throw pre-empts the answer and crosses as rank `21` `ListenerBodyThrew` while the instance
+   *  and every other pair stand** (`PIN-10`; `Q-13`; `Q-15`). */
   constraintOn(pair: ConstraintPair, constraint: Constraint): void;
   /** **THE DISABLE HALF** (`§2.12` item 2 (a) and item 3's `constraintOff` row): `undefined`; the pair's
    *  element is NOT evaluated on a subsequent write, and **a write the disabled constraint would have

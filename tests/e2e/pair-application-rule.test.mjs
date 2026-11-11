@@ -1160,8 +1160,18 @@ test('G3-12 · NO READ DISTINGUISHES THE TWO EXAMPLES, AND THE WALK DOES: `read(
 // *"The write the route performs NAMES the REGISTRATION'S OWN \`CommitRecord\`"* — which is what the fourth
 // position does and all it does). **A CELL THAT DROVE THE ROUTE HERE WOULD GO RED FOR THE ROUTE'S ABSENCE AND
 // WOULD SAY NOTHING ABOUT THE RE-RUN.**
+//
+// **⟶ AND THE RE-RUN'S VERDICT MOVED `19` → `20` ON `D-124` ITEM `1` AND `D-125` ITEM `4`** (the fourth licensed
+// reason, `F-9`: *"`G3-13` is the plain case: its repair is CREDITED (it returns the route's own op), the re-run
+// asks the pair over its own landing, the body offers its repair again, and `kernel-registration.mjs:930` reaches
+// the cycle"*). **THE ASK IS UNMOVED AND SO IS THE REFUSAL'S `log`**: `D-96` (4) decided WHO the re-run asks — and
+// it asks, twice in all — while the verdict of a *repaired* pair that would repair AGAIN is `D-124` item `1`'s,
+// and it is the cycle: **a pair may land AT MOST ONE REPAIR**, the second attempt is not made, and rank `20`
+// `ConstraintPassRefused` crosses instead of the registration's own rank `19` (whose subject is the registration
+// VERDICT, `contract.md:4312`). **THE TWO-ENTRY CENSUS THAT SELECTS `KC-5` IS UNMOVED**: what the cycle
+// pre-empts is the second repair, not the record of the first.
 
-test('G3-13 · THE RE-RUN IS AN INSTANT THAT READS THE RULE, AND UNDER `D-96` (4) IT **ASKS**: a pair at `[\'window\',\'tabs\']` APPLIED while `window` is a branch, whose body refuses and whose repair writes a LEAF at `[\'window\']` and returns `{ok: true, op: <the op it landed>}` — the re-run finds the parent a LEAF and, because a pair\'s presence implicitly expects `[\'window\']` to be a container, ASKS the pair again and its refusal REFUSES the registration at rank `19` (`ConstraintRefusedAtRegistration`) on the `KC-5` terminal arm, the refusing pair being the REPAIRED one', (t) => {
+test('G3-13 · THE RE-RUN IS AN INSTANT THAT READS THE RULE, AND UNDER `D-96` (4) IT **ASKS**: a pair at `[\'window\',\'tabs\']` APPLIED while `window` is a branch, whose body refuses and whose repair writes a LEAF at `[\'window\']` and returns `{ok: true, op: <the op it landed>}` — the re-run finds the parent a LEAF and, because a pair\'s presence implicitly expects `[\'window\']` to be a container, ASKS the pair again; the body offers its repair a SECOND time, the pair\'s one repair is already landed, and the CYCLE REFUSES the registration at rank `20` `ConstraintPassRefused` (`D-124` item 1; `D-125` item 4), with the two-ask census and the two-entry `log` that select `KC-5` UNMOVED', (t) => {
   // **`PIN-4` (iv)'s LAST SENTENCE AND `D-94` (i) YES READ THROUGH `D-96` (4)**: *"the registration\'s own re-run
   // is an instant that would apply a pair and therefore reads the rule too"* — and **`D-96` (4)'s *"See above"*
   // fixes what that reading ANSWERS here**: a leaf parent is the state the pair declares and judges, so the pair is
@@ -1223,36 +1233,39 @@ test('G3-13 · THE RE-RUN IS AN INSTANT THAT READS THE RULE, AND UNDER `D-96` (4
     `and the re-run is handed the SAME five-member body context, UNMOVED (\`PIN-8\` (iii) (a); \`D-92\` (1)): `
       + `${JSON.stringify(asks[1].members)}`);
 
-  // ── (c) THE REFUSAL — RANK `19`, AND THE TERMINAL ARM `KC-5`. ───────────────────────────────────────
+  // ── (c) THE REFUSAL — RANK `20` (THE CYCLE), AND THE TERMINAL ARM `KC-5`. ───────────────────────────
   assert.equal(add.ok, false,
-    `**A REFUSING PAIR AT THE RE-RUN REFUSES THE REGISTRATION** (\`D-96\` (4): *"a body that refuses refuses the `
-      + `registration — rank \`19\` \`ConstraintRefusedAtRegistration\`, \`KC-5\` where the refusing pair is the `
-      + `repaired one"*). **THE CALL ANSWERED AN IDENTITY, WHICH IS THE WITHDRAWN SKIP READING RETURNING** `
-      + `(\`D-96\` (6): *"cell \`G3-13\`\'s skip arm … must now assert the APPLY and the refusal"*): `
-      + `${JSON.stringify(add.ok === true ? typeof add.value : null)}`);
-  assert.equal(addShape.status, REGISTRATION_REFUSED,
-    `and the code is the registration instant\'s own rank-\`19\` member — not the pass\'s (\`20\`) and not the shape `
-      + `arm\'s (\`16\`, which \`D-90\` (5) reserves for the MALFORMED list): the drive caught `
+    `**A PAIR ASKED AGAIN THAT WOULD REPAIR AGAIN REFUSES THE REGISTRATION — AND THE VERDICT IS THE CYCLE'S** `
+      + `(\`D-124\` item 1: *"A pair may land AT MOST ONE REPAIR in a construction"*; \`D-125\` item 4: *"a cycle is `
+      + `an inconsistent result"*; \`D-96\` (4)'s ASK is unmoved). **THE CALL ANSWERED AN IDENTITY, WHICH IS THE `
+      + `WITHDRAWN SKIP READING RETURNING** (\`D-96\` (6): *"cell \`G3-13\`\'s skip arm … must now assert the APPLY `
+      + `and the refusal"*): ${JSON.stringify(add.ok === true ? typeof add.value : null)}`);
+  assert.equal(addShape.status, PASS_REFUSED,
+    `**AND THE CODE IS RANK \`20\` \`ConstraintPassRefused\` — THE CYCLE'S, NOT THE REGISTRATION'S OWN \`19\` AND NOT `
+      + `THE SHAPE ARM\'S \`16\`** (\`D-125\` item 4; \`contract.md:4312\`: rank \`19\`\'s subject is *"the registration `
+      + `VERDICT, a different instant and a different subject"*, while rank \`20\`\'s trigger is arm-neutral — `
+      + `*"the state this act would leave is not one the registered constraints admit"*): the drive caught `
       + `${JSON.stringify(addShape.status)} with message ${JSON.stringify(addShape.message)}`);
   assert.deepEqual(logKinds(add.caught), ['constraint-check', 'repair-run'],
-    `**AND THE REFUSAL CARRIES THE TWO ENTRIES THE REPAIRED ARM APPENDS, IN ORDER — THE CENSUS THAT MAKES THE `
-      + `TERMINAL ARM \`KC-5\` RATHER THAN A REPAIRLESS REFUSAL (whose \`log\` is \`[]\`, \`G3-02\`'s arm)**: the `
+    `**AND THE REFUSAL CARRIES THE TWO ENTRIES THE REPAIRED ARM APPENDS, IN ORDER — THE CENSUS THAT MAKES IT A `
+      + `REPAIRED PAIR'S REFUSAL RATHER THAN A REPAIRLESS ONE (whose \`log\` is \`[]\`, \`G3-02\`'s arm)**: the `
       + `drive read ${JSON.stringify(logKinds(add.caught))}`);
   assert.equal(log.length, 2,
     `and exactly two — no third entry for the judgement that refused: ${JSON.stringify(log)}`);
   assert.equal(repairRun === null ? null : repairRun.opId, landedOpId,
     `**AND THE \`repair-run\` ENTRY NAMES THE OP THE REPAIR LANDED — THE CREDIT \`landedOp\` GAVE IT, WHICH IS WHAT `
-      + `PUTS THE PAIR IN \`appliedRepairs\` AND SELECTS \`KC-5\` OVER \`KC-6\`** (\`D-96\` (4); `
+      + `PUTS THE PAIR IN \`appliedRepairs\` AND IS WHAT MAKES THE SECOND REPAIR ATTEMPT THE CYCLE** (\`D-124\` `
+      + `item 1; \`D-96\` (4); `
       + `\`kernel-attempt.mjs\`\'s item-4 arms (e)/(f)): the entry reads `
       + `${JSON.stringify(repairRun === null ? null : repairRun.opId)} against ${JSON.stringify(landedOpId)}`);
   assert.equal(log[0].id, 'w',
     `and the \`constraint-check\` entry names THE PAIR THAT REFUSED — the repaired one: `
       + `${JSON.stringify(log[0].id)}`);
-  // **`KC-5` ITSELF IS NOT A MEMBER OF ANYTHING THE CALLER IS HANDED**: \`kernel-registration.mjs\`\'s own clause
-  // reads *"the synthetic attempt\'s `KC-4`/`KC-5`/`KC-6` stays inside this module and reaches no caller"*, so the
-  // cell pins the RECORD THAT SELECTS the arm — the two entries above, the credited op among them — and declares
-  // that it cannot pin the token\'s spelling. **A PASS THAT MOVED THE TOKEN ALONE WOULD BE INVISIBLE HERE, AND THAT
-  // IS SAID RATHER THAN IMPLIED.**
+  // **THE TERMINAL ARM\'S TOKEN IS NOT A MEMBER OF ANYTHING THE CALLER IS HANDED**: \`kernel-registration.mjs\`\'s own
+  // clause reads *"the synthetic attempt\'s `KC-4`/`KC-5`/`KC-6` stays inside this module and reaches no caller"*, and
+  // the cycle\'s arm is that module\'s too, so the cell pins the RECORD THAT SELECTS it — the two entries above, the
+  // credited op among them — and the RANK the refusal crosses at, and declares that it cannot pin the token\'s
+  // spelling. **A PASS THAT MOVED THE TOKEN ALONE WOULD BE INVISIBLE HERE, AND THAT IS SAID RATHER THAN IMPLIED.**
 
   // ── (d) AND THE STORE STANDS WHERE THE REPAIR\'S WRITE LEFT IT (`PIN-7` (iv)). ───────────────────────
   assert.equal(literalAfter.ok, true,
@@ -1279,7 +1292,8 @@ test('G3-13 · THE RE-RUN IS AN INSTANT THAT READS THE RULE, AND UNDER `D-96` (4
     + `\`readLiteral([\'window\'])\` → `
     + `${JSON.stringify(literalAfter.ok === true ? literalAfter.value : shapeOf(literalAfter.caught))}; `
     + `\`read([\'window\'])\` → ${JSON.stringify(standing.value)}; \`constraints()\` = `
-    + `${JSON.stringify(rows.map((row) => ({ address: addressSet(row.address), id: row.id })))} — **THE TERMINAL `
-    + `ARM IS \`KC-5\`: the pair was IN \`ran\` (the \`constraint-check\` entry) AND IN \`appliedRepairs\` (the `
-    + `credited op the \`repair-run\` entry names), and it refused again**`);
+    + `${JSON.stringify(rows.map((row) => ({ address: addressSet(row.address), id: row.id })))} — **THE CYCLE**: `
+    + `the pair was IN \`ran\` (the \`constraint-check\` entry) AND IN \`appliedRepairs\` (the credited op the `
+    + `\`repair-run\` entry names), and the SECOND ask offered its repair again — so no second repair ran and the `
+    + `refusal crossed at rank \`20\`**`);
 });

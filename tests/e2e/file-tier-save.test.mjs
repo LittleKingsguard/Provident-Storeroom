@@ -1452,34 +1452,51 @@ test('fts_S_ARG5_the_refusal_is_the_arity_gates_by_the_count_alone', async () =>
 // §10.9 ROW 8 — `P-TP-8` · STRATEGY `S-CENSUS` — THE ALGEBRA CLOSED, NO EXISTING MEMBER MOVING
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
 
-/** `contract.md §8.1`'s CLOSED SET at its amended heading and rows, ranks `1`…`20` in order.
+/** `contract.md §8.1`'s CLOSED SET — **READ FROM ITS ONE HOME AND NOTHING ELSE**, ranks `1`…`22` in order.
  *
  *  **⟶ RE-DERIVED 2026-10-26 TO THE ARCHITECT'S RULING AND NOT TO THE BYTES** (`DEF-S` and `DEF-N`; the
  *  architect, verbatim: *"Expand the returned error set for both S/N"*). **THE SET IS NINETEEN MEMBERS RANKED
  *  `1`…`19`: ranks `1`…`17` stand EXACTLY as they were — no rank moves and `ConstraintListInvalid` keeps rank
  *  `16` — and the two appended terms are `ConstraintBodyThrew` at rank `18` (a constraint BODY's throw, which
  *  the crossing converts in the one failure form) and `ConstraintRefusedAtRegistration` at rank `19` (a
- *  REGISTRATION VERDICT, so a WELL-FORMED pair is never refused with the SHAPE code).** The count this array
- *  carries had to move with the ruling: a census that kept `17` would be asserting the superseded set.
+ *  REGISTRATION VERDICT, so a WELL-FORMED pair is never refused with the SHAPE code).**
  *
  *  **⟶ AND RE-DERIVED AGAIN 2026-10-26, TO THE RULING AND NOT TO THE BYTES** (`DEF-H` and `DEF-W`; the
  *  architect, verbatim: *"Expand the returned fail-state list to include the refusal"* and *"Assert the
  *  constraints on rollback"*). **THE SET IS TWENTY MEMBERS RANKED `1`…`20`: NO RANK OF `1`…`19` MOVES —
  *  `FileCommitFailed` keeps `15` and is the SAVE's code alone — and the appended term is
- *  `ConstraintPassRefused` at rank `20`, THE ONE STATUS A CONSTRAINT REFUSAL ANSWERS WITH, at the write's
- *  attempt and at a reversal whose terminal state a registered constraint refuses.** A census that kept `19`
- *  would be asserting the superseded set, and this one is the `P-TP-8` algebra's own list. */
-const STORE_CLOSED_SET = [
-  'AddressMalformed', 'AddressNotFound', 'LeafHasNoDownstream', 'TierNotFound', 'OutOfDomainTier',
-  'ParentAnchorMonotonicityViolation', 'ContainerKindConflict', 'ReadTargetIsBranch',
-  'WriteParentNotLink', 'JournalOpUnknown', 'RollbackCompacted', 'ConstructionArgumentMissing',
-  'FilePathUnreachable', 'ValueNotAdmitted', 'FileCommitFailed', 'ConstraintListInvalid',
-  'ValueRefusedAtBoundary',
-  // ⟶ APPENDED 2026-10-26 (`DEF-S`, `DEF-N`; the architect's ruling on the downstream claims).
-  'ConstraintBodyThrew', 'ConstraintRefusedAtRegistration',
-  // ⟶ APPENDED 2026-10-26 (`DEF-H`, `DEF-W`; the architect's ruling on the refusal and the reversal).
-  'ConstraintPassRefused',
-];
+ *  `ConstraintPassRefused` at rank `20`, THE ONE STATUS A CONSTRAINT REFUSAL ANSWERS WITH.**
+ *
+ *  **⟶ AND ONCE MORE 2026-11-06 (`D-124` item `2`; `PIN-10`; the architect, verbatim: *"A CREATION-FIRED BODY
+ *  THAT THROWS REFUSES AT A MINTED RANK `21` `ListenerBodyThrew`"*, *"The closed fail set moves `20 → 21`"*):
+ *  THE SET IS TWENTY-ONE MEMBERS RANKED `1`…`21`, `ListenerBodyThrew` APPENDED LAST, NO RANK OF `1`…`20`
+ *  MOVING and the algebra reading `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 21` ✓.**
+ *
+ *  **⟶ AND ONCE MORE 2026-11-06 (`D-126` item `2`; the architect, verbatim: *"Mint/revive a code: a corrupt
+ *  image refuses the construction"*, its member pinned at `§3` `PIN-11`): THE SET IS TWENTY-TWO MEMBERS RANKED
+ *  `1`…`22`, `FileImageRefused` APPENDED LAST, NO RANK OF `1`…`21` MOVING and the algebra reading
+ *  `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 22` ✓.**
+ *
+ *  **⟶ AND THE CENSUS IS NO LONGER A HAND COPY — GATE 4's FINDING, CLOSED 2026-11-06.** It stood as a
+ *  literal array of twenty that the cell below counted against itself, so it would have stayed green through
+ *  any move of the set. **IT READS `src/error.rs`'s `pub const CODES` — the store's own array, the set's one
+ *  home — exactly as this file's `P-TP-8` census at `:1623` already reads it**: the array's members, in the
+ *  order the array writes them, and the declared arity `[&str; N]` beside them. **A set that moves now moves
+ *  this list with it, and the arity the source declares is compared to the members it carries below, so a
+ *  census that cannot drift is what the cell counts.** */
+function codesFromSource() {
+  // THE ONE READER, SO THE TWO CENSUSES OF THIS FILE CANNOT SPELL `CODES` TWO WAYS (`D-17`: the CODE is the
+  // expectation's home; no document is opened).
+  const errorRs = readFileSync(join(PACKAGE_DIR, '..', '..', 'src', 'error.rs'), 'utf8');
+  const codesRow = /pub const CODES: \[&str; (\d+)\] = \[([\s\S]*?)\];/.exec(errorRs);
+  if (codesRow === null) return { declaredArity: null, members: [] };
+  return {
+    declaredArity: Number(codesRow[1]),
+    members: [...codesRow[2].matchAll(/"([A-Za-z]+)"/g)].map((match) => match[1]),
+  };
+}
+const CODES_SOURCE = codesFromSource();
+const STORE_CLOSED_SET = CODES_SOURCE.members;
 
 test('fts_S_CENSUS_the_sixteenth_member_is_reachable_and_the_terms_of_the_algebra_stand', () => {
   // THE TERMS, READ OFF THE TABLE'S OWN ROWS AND NOT ASSERTED AS A TOTAL ALONE: `11` (§8.1 #1–#11) `+ 2`
@@ -1493,10 +1510,31 @@ test('fts_S_CENSUS_the_sixteenth_member_is_reachable_and_the_terms_of_the_algebr
   // the refusal"*, *"Assert the constraints on rollback"*): THE OPERATIVE SET IS TWENTY,
   // `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 20` ✓ — the eight terms this cell printed stand exactly as filed and
   // the appended term is the constraint pass's refusal at rank `20`. NO RANK OF `1`…`19` MOVES.**
-  assert.equal(STORE_CLOSED_SET.length, 20, 'S-CENSUS: the closed set is TWENTY members. FAIL-STATE: "a set '
+  // **⟶ AND ONCE MORE 2026-11-06 (`D-124` item `2`; `PIN-10`; *"The closed fail set moves `20 → 21`"*): THE
+  // OPERATIVE SET IS TWENTY-ONE, `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 21` ✓, and the appended term is
+  // `ListenerBodyThrew` at rank `21` — the listener body's throw at the four registration instants and at those
+  // four only (`D-125` item `1`). NO RANK OF `1`…`20` MOVES.**
+  // **⟶ AND ONCE MORE 2026-11-06 (`D-126` item `2`; `PIN-11`; *"Mint/revive a code: a corrupt image refuses the
+  // construction"*): THE OPERATIVE SET IS TWENTY-TWO, `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 22` ✓, and the
+  // appended term is `FileImageRefused` at rank `22` — the corrupt image's refusal at the construction, minted by
+  // the STORE and not by the package. NO RANK OF `1`…`21` MOVES.**
+  // **AND THE LIST UNDER IT IS THE SOURCE'S, NOT THIS FILE'S** (gate 4's finding, closed above): the two reads
+  // below are what make the derivation itself falsifiable — the array was FOUND at its home, and **the arity it
+  // declares is the number of members it carries**, so a set that moves is caught here and not by a copy.
+  assert.notEqual(CODES_SOURCE.declaredArity, null,
+    'S-CENSUS: `src/error.rs` declares the closed status set as one array — `pub const CODES: [&str; N] = [ … ]` '
+    + '— and this read answers that the declaration is FOUND. FAIL-STATE: a census derived from a home that no '
+    + 'longer spells it that way, which would fall through to an empty list');
+  assert.equal(CODES_SOURCE.declaredArity, STORE_CLOSED_SET.length,
+    'S-CENSUS: the array\'s declared arity IS the number of members it carries — the same reading this file\'s '
+    + '`P-TP-8` census takes at `:1623`; read '
+    + `${JSON.stringify({ declaredArity: CODES_SOURCE.declaredArity, members: STORE_CLOSED_SET.length })}`);
+  assert.equal(STORE_CLOSED_SET.length, 22, 'S-CENSUS: the closed set is TWENTY-TWO members. FAIL-STATE: "a set '
     + 'of `15` or `17`" (`contract.md §8.1`, amended heading; `implementation-plan.md §10.9` row 8), read from '
-    + '2026-10-26 through the rulings that append ranks `18`, `19` and `20`');
-  assert.equal(11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1, 20, 'S-CENSUS: and its own terms sum it');
+    + '2026-10-26 through the rulings that append ranks `18`, `19` and `20`, from `D-124` item `2` through '
+    + 'the minting of rank `21` and from `D-126` item `2` through the minting of rank `22`; read '
+    + JSON.stringify(STORE_CLOSED_SET));
+  assert.equal(11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1, 22, 'S-CENSUS: and its own terms sum it');
   assert.deepEqual(STORE_CLOSED_SET.slice(11, 13), ['ConstructionArgumentMissing', 'FilePathUnreachable'],
     'S-CENSUS: the construction group\'s TWO members hold ranks 12 and 13');
   assert.equal(STORE_CLOSED_SET[15], 'ConstraintListInvalid',
@@ -1512,6 +1550,15 @@ test('fts_S_CENSUS_the_sixteenth_member_is_reachable_and_the_terms_of_the_algebr
     + 'write\'s attempt (`DEF-H`) and at a reversal whose terminal state a registered constraint refuses '
     + '(`DEF-W`), appended LAST and taking no existing rank (`FileCommitFailed` keeps `15` and is the SAVE\'s '
     + 'code alone)');
+  assert.equal(STORE_CLOSED_SET[20], 'ListenerBodyThrew',
+    'S-CENSUS: rank `21` is `ListenerBodyThrew` — the listener body\'s throw at the four REGISTRATION INSTANTS '
+    + 'and at those four only (`D-124` item `2`; `D-125` item `1`), appended LAST after `ConstraintPassRefused`; '
+    + '`ConstraintBodyThrew` keeps `18` and is NOT widened (the subject there is the CONSTRAINT body)');
+  assert.equal(STORE_CLOSED_SET[21], 'FileImageRefused',
+    'S-CENSUS: rank `22` is `FileImageRefused` — the CORRUPT IMAGE\'s refusal at the CONSTRUCTION, minted by the '
+    + 'store at `src/store.rs`\'s step 7 (`D-126` item `2`; `PIN-11`), appended LAST after `ListenerBodyThrew`; '
+    + '`ConstraintListInvalid` keeps `16` its own malformed-list trigger and is NOT revived (the subject of a '
+    + 'corrupt image is the image and not the constraint list)');
 
   // AND THE NEW MEMBER IS REACHABLE THROUGH A TRIGGER THE SPEC DECLARES: the create-side validation failure.
   const { cfg } = cfgFor({ constraints: [{ address: 'a', id: 'c' }] });
@@ -1620,12 +1667,14 @@ test('fts_S_CENSUS_no_rank_moves_and_no_second_register', async () => {
   // arm) — and a cell's expectation must come from CODE (`D-17`). **THEY ARE RETIRED, NOT REWRITTEN**, and
   // what replaces them is the census this cell's own name already carries the other half of: **NO RANK
   // MOVES**, read at the store's own set.
-  const errorRs = readFileSync(join(PACKAGE_DIR, '..', '..', 'src', 'error.rs'), 'utf8');
-  const codesRow = /pub const CODES: \[&str; (\d+)\] = \[([\s\S]*?)\];/.exec(errorRs);
-  assert.ok(codesRow !== null,
+  // **⟶ AND THE READ IS THE FILE'S ONE READER FROM 2026-11-06 — `codesFromSource` ABOVE — SO THE TWO CENSUSES
+  // OF THIS FILE CANNOT SPELL `CODES` TWO WAYS.** What stands here is the INDEPENDENT half: a literal list of
+  // the twenty-two members, in rank order, compared against the source's own array (below) — ⟶ RE-DERIVED
+  // 2026-11-06 (`D-126` item 2; `PIN-11`), the appended term being `FileImageRefused` at rank `22`.
+  const codes = STORE_CLOSED_SET;
+  assert.notEqual(CODES_SOURCE.declaredArity, null,
     'S-CENSUS: the store declares its closed status set as one array at `src/error.rs` — a `pub const CODES`');
-  const codes = [...codesRow[2].matchAll(/"([A-Za-z]+)"/g)].map((m) => m[1]);
-  assert.equal(Number(codesRow[1]), codes.length,
+  assert.equal(CODES_SOURCE.declaredArity, codes.length,
     'S-CENSUS: the array\'s declared arity IS the number of members it carries — a set whose length and '
     + 'whose literal disagree is a set that prints two counts');
   // **⟶ RE-DERIVED 2026-10-26 (`DEF-S`/`DEF-N`; the architect's ruling, verbatim: *"Expand the returned error
@@ -1638,10 +1687,22 @@ test('fts_S_CENSUS_no_rank_moves_and_no_second_register', async () => {
   // TWENTY AND THE APPENDED TERM IS `ConstraintPassRefused` AT RANK `20`.** `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1
   // = 20` ✓ and **NO RANK OF `1`…`19` MOVES** — `FileCommitFailed` keeps rank `15` and is the SAVE's code
   // alone, `ConstraintListInvalid` keeps rank `16` with its own malformed-entry trigger.
-  assert.equal(codes.length, 20,
-    'S-CENSUS: THE OPERATIVE SET IS TWENTY (`contract.md §8.1`\'s 2026-10-23 amendment, `A148` Q3, read '
+  // **⟶ AND RE-DERIVED AGAIN 2026-11-06 (`D-124` item 2; `PIN-10`; the architect, verbatim: *"The closed fail set
+  // moves `20 → 21`"*): THE OPERATIVE SET IS TWENTY-ONE AND THE MINTED TERM IS `ListenerBodyThrew` AT RANK `21`.**
+  // `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 21` ✓ and **NO RANK OF `1`…`20` MOVES** — `FileCommitFailed` keeps
+  // rank `15` and is the SAVE's code alone, `ConstraintListInvalid` keeps rank `16` with its own
+  // malformed-entry trigger, and `ConstraintPassRefused` keeps rank `20`.
+  // **⟶ AND RE-DERIVED AGAIN 2026-11-06 (`D-126` item 2; `PIN-11`; the architect, verbatim: *"Mint/revive a code: a
+  // corrupt image refuses the construction"*): THE OPERATIVE SET IS TWENTY-TWO AND THE MINTED TERM IS
+  // `FileImageRefused` AT RANK `22`.** `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 22` ✓ and **NO RANK OF
+  // `1`…`21` MOVES** — `FileCommitFailed` keeps rank `15`, `ConstraintListInvalid` keeps rank `16` with its own
+  // malformed-entry trigger, `ConstraintPassRefused` keeps rank `20` and `ListenerBodyThrew` keeps rank `21`.
+  assert.equal(codes.length, 22,
+    'S-CENSUS: THE OPERATIVE SET IS TWENTY-TWO (`contract.md §8.1`\'s 2026-10-23 amendment, `A148` Q3, read '
     + 'through the 2026-10-26 rulings that append ranks `18`/`19` — *"Expand the returned error set for both '
-    + 'S/N"* — and rank `20` — *"Expand the returned fail-state list to include the refusal"*); read '
+    + 'S/N"* — and rank `20` — *"Expand the returned fail-state list to include the refusal"* — and through '
+    + '`D-124` item 2\'s minting of rank `21` `ListenerBodyThrew` and `D-126` item 2\'s minting of rank `22` '
+    + '`FileImageRefused`); read '
     + `${JSON.stringify(codes)}`);
   assert.deepEqual(codes, [
     'AddressMalformed', 'AddressNotFound', 'LeafHasNoDownstream', 'TierNotFound', 'OutOfDomainTier',
@@ -1649,11 +1710,12 @@ test('fts_S_CENSUS_no_rank_moves_and_no_second_register', async () => {
     'WriteParentNotLink', 'JournalOpUnknown', 'RollbackCompacted', 'ConstructionArgumentMissing',
     'FilePathUnreachable', 'ValueNotAdmitted', 'FileCommitFailed', 'ConstraintListInvalid',
     'ValueRefusedAtBoundary', 'ConstraintBodyThrew', 'ConstraintRefusedAtRegistration',
-    'ConstraintPassRefused',
-  ], 'S-CENSUS: NO RANK OF `1`…`19` MOVED AND THE NEW TERMS ARE APPENDED LAST — '
+    'ConstraintPassRefused', 'ListenerBodyThrew', 'FileImageRefused',
+  ], 'S-CENSUS: NO RANK OF `1`…`21` MOVED AND THE NEW TERMS ARE APPENDED LAST — '
     + '`ValueRefusedAtBoundary` at rank `17`, `ConstraintBodyThrew` at `18`, '
-    + '`ConstraintRefusedAtRegistration` at `19` and `ConstraintPassRefused` at `20`, '
-    + '`11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 20` ✓ (`DEF-S`/`DEF-N` and `DEF-H`/`DEF-W`, 2026-10-26), and '
+    + '`ConstraintRefusedAtRegistration` at `19`, `ConstraintPassRefused` at `20`, `ListenerBodyThrew` at '
+    + '`21` and `FileImageRefused` at `22`, `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 22` ✓ '
+    + '(`DEF-S`/`DEF-N` and `DEF-H`/`DEF-W`, 2026-10-26; `D-124` item 2 and `D-126` item 2, 2026-11-06), and '
     + '`ValueNotAdmitted` STAYS at rank `14` and `FileCommitFailed` at `15` — neither is a rename of any of them');
   assert.equal(new Set(codes).size, codes.length, 'S-CENSUS: every rank is distinct — the set is a set');
 

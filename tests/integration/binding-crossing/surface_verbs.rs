@@ -998,18 +998,41 @@ fail_code_cell!(
 // `src/error.rs` moves, `PIN-14` (v)); **what moved is one member's population and the title that named it.** **NO
 // ASSERTION IS WEAKENED AND NO MEMBER IS DROPPED: every one of the twenty is driven in this cell, and the three
 // figures are asserted to sum to the set's own length so a fourth class cannot appear silently.**
+// **⟶ AND RE-DERIVED AGAIN 2026-11-06, TITLE AND FIGURES TOGETHER (`D-124` item 2; `PIN-10`).** **THE SET MOVES
+// `20 → 21` AND THE SPLIT IS `21 = 15 + 5 + 1`.** The minted rank `21` `ListenerBodyThrew` joins the members
+// PRODUCED ABOVE THIS ADDON — a fired listener body is the caller's own JS function and the PACKAGE's invocation
+// loop runs it (`delivery.mjs`'s `deliver`), while the store *"RETURNS the triggered listeners' handles and
+// INVOKES NOTHING"* (`src/lib.rs:12`–`:17`) — so:
+//
+//   · **`15` REACHED** through this crate's own surface, each driven through a real trigger exactly as before;
+//   · **`5` PRODUCED ABOVE THIS ADDON** — `ValueRefusedAtBoundary`, `ConstraintBodyThrew`,
+//     `ConstraintRefusedAtRegistration`, `ConstraintPassRefused` and `ListenerBodyThrew` — each driven at its own
+//     boundary by its own negative drive;
+//   · **`1` DECLARED, NO PRODUCER** — `RollbackCompacted` (`support::declared_unreachable_fail_codes`).
+//
+// **NO ASSERTION IS WEAKENED AND NO MEMBER IS DROPPED: every one of the twenty-two is driven in this cell, and the
+// three figures are still asserted to sum to the set's own length so a fourth class cannot appear silently.**
+// **⟶ AND RE-DERIVED AGAIN 2026-11-06 (`D-126` item 2; `PIN-11`; the architect, verbatim: *"Mint/revive a code: a
+// corrupt image refuses the construction"*): THE SET MOVES `21 → 22` AND THE SPLIT IS `22 = 16 + 5 + 1`.**
+// `FileImageRefused` — rank `22` — is **REACHED THROUGH THIS CRATE'S OWN SURFACE**: the STORE mints it at the
+// construction's step `7` (`src/store.rs`), so it is the store's own answer and not a member any byte above the
+// boundary produces. **The `15` therefore becomes `16` and the five the package owns are unmoved**, the sum still
+// being asserted so no fourth class appears silently.
 #[test]
-fn fail_set_is_closed_at_twenty_and_fifteen_of_them_are_reached_from_the_crossing() {
-    assert_eq!(all_fail_codes().len(), 20, "the store's own array is the census (A148 Q3, read through \
+fn fail_set_is_closed_at_twenty_two_and_sixteen_of_them_are_reached_from_the_crossing() {
+    assert_eq!(all_fail_codes().len(), 22, "the store's own array is the census (A148 Q3, read through \
          the 2026-10-26 rulings: *Expand the returned error set for both S/N* and *Expand the returned \
-         fail-state list to include the refusal*), and `D-118` item 2 does not move it: the token keeps its \
-         place because *the closed set is the store's*");
+         fail-state list to include the refusal*, and through `D-124` item 2's minting of rank 21 \
+         `ListenerBodyThrew`, which moves the set `20 → 21`, and `D-126` item 2's minting of rank 22 \
+         `FileImageRefused`, which moves it `21 → 22`: *Mint/revive a code: a corrupt image refuses the \
+         construction*)");
     assert_eq!(
         crossing_reachable_fail_codes().len(),
-        15,
-        "the four members the package owns (`ValueRefusedAtBoundary`, `ConstraintBodyThrew`, \
-         `ConstraintRefusedAtRegistration` and `ConstraintPassRefused`) are each declared at their own \
-         boundary, and `RollbackCompacted` is `DECLARED, NO PRODUCER` (`D-118` item 2) — `20 - 4 - 1 = 15`"
+        16,
+        "the five members the package owns (`ValueRefusedAtBoundary`, `ConstraintBodyThrew`, \
+         `ConstraintRefusedAtRegistration`, `ConstraintPassRefused` and `ListenerBodyThrew`) are each declared \
+         at their own boundary, and `RollbackCompacted` is `DECLARED, NO PRODUCER` (`D-118` item 2) — \
+         `22 - 5 - 1 = 16`"
     );
     assert_eq!(
         declared_unreachable_fail_codes(),
@@ -1018,10 +1041,10 @@ fn fail_set_is_closed_at_twenty_and_fifteen_of_them_are_reached_from_the_crossin
          than folded into either of the other two"
     );
     assert_eq!(
-        crossing_reachable_fail_codes().len() + 4 + declared_unreachable_fail_codes().len(),
+        crossing_reachable_fail_codes().len() + 5 + declared_unreachable_fail_codes().len(),
         all_fail_codes().len(),
-        "the three figures are the set's own length: `15` reached + `4` produced above this addon + `1` declared \
-         with no producer = `20`, so no member is counted twice and none is dropped"
+        "the three figures are the set's own length: `16` reached + `5` produced above this addon + `1` declared \
+         with no producer = `22`, so no member is counted twice and none is dropped"
     );
     for code in crossing_reachable_fail_codes() {
         assert!(fail_code_drive(code), "`{code}` is a member with a reachable trigger");
@@ -1055,6 +1078,13 @@ fn fail_set_is_closed_at_twenty_and_fifteen_of_them_are_reached_from_the_crossin
         "the twentieth member (`DEF-H`/`DEF-W`) has no producer in this crate either: the constraint PASS is \
          the package kernel's own, and its refusal is converted at the package's crossing into this member; \
          a well-formed pair crossing here with no body attached CONSTRUCTS and produces no code"
+    );
+    assert!(
+        fail_code_drive("ListenerBodyThrew"),
+        "the twenty-first member (`D-124` item 2, minted; `PIN-10`) has no producer in this crate either: a \
+         fired listener BODY is the caller's own function and the PACKAGE's invocation loop runs it, while the \
+         store RETURNS the triggered handles and INVOKES NOTHING (`src/lib.rs:12`–`:17`); a well-formed element \
+         crossing here TRIGGERS its handle and produces no code"
     );
 }
 

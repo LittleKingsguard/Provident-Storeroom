@@ -1056,7 +1056,18 @@ function membersOf(r, want) { return r.members.join(',') === want; }
   const wb = i8.listen(H_WIT2, [['wit']]);
   A('JSG-08.20', '§2.3 item 6 (the WITHDRAWN arm) read THROUGH `D-22` (`bindings/js/index.d.ts:616`)', 'after the withdrawal removed that address\'s home entry, a later installation is a FRESH act: it answers THE SECOND SPELLING and not the withdrawn one (a !== b)',
     typeof wa === 'string' && typeof wb === 'string' && wa === H_WIT && wb === H_WIT2 && wa !== wb, `same=${wa === wb} a=${fmt(wa)} b=${fmt(wb)}`);
-  const dupCfg = { ...mk('g08dup'), listeners: [{ address: ['dup'], handle: 'tok' }, { address: ['dup'], handle: 'tok' }] };
+  // **⟶ RE-DERIVED 2026-11-06 (`D-123` item 2; `§3` `PIN-8`/`PIN-9`): THE ELEMENT'S THIRD MEMBER `listener` IS
+  // REQUIRED, AND A TWO-MEMBER ENTRY IS THE MIGRATION ARM `CSW-29` DRIVES — it is REFUSED at step 2, before any
+  // filesystem act. So the DUPLICATE-HANDLE fixture below carries the function its entries must now carry, and
+  // the cell's subject — *"one invocation per DISTINCT handle"* — is driven unchanged: what moved is the
+  // FIXTURE'S SHAPE and not one assertion of the cell.**
+  const dupCfg = {
+    ...mk('g08dup'),
+    listeners: [
+      { address: ['dup'], handle: 'tok', listener: () => {} },
+      { address: ['dup'], handle: 'tok', listener: () => {} },
+    ],
+  };
   const iDup = thrown(() => ns.storeCreate(dupCfg));
   if (!iDup.threw) iDup.value.write(['dup'], 'temp', {});
   const hDup = iDup.threw ? null : thrown(() => iDup.value.listen('tok', [['dup']]));

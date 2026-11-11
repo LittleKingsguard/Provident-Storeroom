@@ -7,6 +7,17 @@ post-`1.8.0` patch. Dated 2026-11-01. Branch `main`, HEAD `90cd8a7`, with the un
 `strata/research.md` §12 read as the warrant.** **CLASS: `DECLARATION, NO CODE, NO TEST, NO DOC, NO `strata/` BYTE`.** **This pass
 writes ONE path — `docs/L1/repair-listener-delivery.md`. Every other path named below was READ and is unchanged by this pass.**
 
+**⟶ AMENDED `2026-11-06`, BY THE GATE-4 BOOKKEEPING PASS, AND THE AMENDMENT IS `D-125` ITEM `1`'s: THIS FILE'S SILENCE AT THE
+REGISTRATION INSTANT IS REVERSED AND EVERY SENTENCE THAT STATED IT IS CORRECTED AT ITS OWN SENTENCE, ANNOTATE-BESIDE, WITH THE
+SUPERSEDED TEXT LEFT READABLE — §3.2 item `4` (`:359`–`:362`), §7 (`:567`–`:569`), §9's (b)-pricing line (`:731`) and §9's cell list
+(`:748`, `RLD-6`), plus the two statements of the same silence inside them (`:506`, `:756`–`:757`) — those six pairs are GATE 4's
+BYTES, read before this amendment's own insertions shifted the file; every reference below is re-measured at its own date.** **THE
+RULE THEY NOW READ: THE
+REGISTRATION INSTANT DELIVERS — at four instants, in `D-117`'s order instant for instant, after the save and before the answer, with
+ONE ORDER AND TWO SETS (`storeCreate` and a boot deliver `adopted ∩ resolving`; `addConstraint` and a re-arm deliver the repair's
+write's `triggered` set) — and no delivery on a refusing arm.** **No other sentence of this file moves, no cell is deleted, and
+nothing here re-prices the mechanism (a)/(b) choice: (b) is still refused, on its scope.**
+
 **THE WARRANT, AND ITS LIMITS, QUOTED FIRST SO NO CLAUSE BELOW IS READ AS MORE THAN IT IS.** `D-104`, verbatim: ***"This is a
 behavior defect, wrap into the fix patch"*** — with item 2 fixing the intended behaviour (*"The repair's write's listeners ARE
 delivered — in the COMMIT's delivery, after the pass, with the other listeners: the architect's own flow, 'any new
@@ -253,7 +264,7 @@ correction is printed because the first draft of this file got the fixture wrong
 > exclude its id on its own.** **So a single-repair fixture does not measure the predicate**: **`tests/e2e/file-tier-save/
 > scenarios.mjs`'s `FTS-11`** (`:1112`–`:1137`) would merge nothing with or without it, because the `c1` its repair's set names is
 > still standing in the member.
-> **THE FIXTURE THAT DOES MEASURE IT IS `tests/e2e/file-tier-save-properties.test.mjs`'s `P-SM-5`** (`:633`–`:690`):** one repair
+> **THE FIXTURE THAT DOES MEASURE IT IS `tests/e2e/file-tier-save-properties.test.mjs`'s `P-SM-5`** (`:633`–`:690`): one repair
 > write **per pair**, in a chain — **so the SECOND repair's write re-triggers a pair whose check-off an EARLIER run already took,
 > and that id is no longer in `pending`.** **Without the predicate the merge would put it BACK** — `pending` would carry an id the
 > pass evaluated, which is the one thing its reading forbids (`A112`; `DW-14.4`) — **and the caller's own loop over the member would
@@ -360,6 +371,17 @@ one and no cell that asserts the member is re-derived. **(iii)** **Three files i
    arm** (`PIN-6` (v); `D-46`), so `G3-22`'s two zeros (`:490`–`:498`) stand under (b) as they do under (a) — **and under (a) they
    stand structurally rather than by a gate**: a registration's attempt carries no `record` (`kernel-registration.mjs`'s synthetic
    attempt), so the merge has no member to write.
+   **⟶ CORRECTED `2026-11-06` BY `D-125` ITEM `1`, AT THIS ITEM AND BY NAME: THE REGISTRATION INSTANT DELIVERS, AND IT IS NEITHER
+   SILENT NOR SAFE FROM A DELIVERY.** The architect's word, verbatim: *"Widen: `addConstraint`, a re-arm, the boot and the creation
+   ALL deliver after their repairs"* — **at FOUR instants, in `D-117`'s order instant for instant (ask → repairs land → re-run → SAVE
+   → DELIVER → the member's record), after the constraints pass and after the save and before the answer, with ONE ORDER AND TWO
+   SETS:** `storeCreate` and a boot deliver **`adopted ∩ resolving`**; `addConstraint` and a re-arm deliver **the repair's write's
+   `triggered` set** — **and there is NO DELIVERY ON A REFUSING ARM.** **So this item's *"reaches no terminal arm"* and its *"safe
+   for both routes and is not a discriminator"* are the reading of the moment before the widening**, and the two clauses that stated
+   the silence in the code since the instant was built — `kernel-registration.mjs`'s *"IT STILL OPENS NO `K-2` AND STILL DELIVERS NO
+   LISTENER"* (`:888`–`:889`) and `PIN-6` (v) (`:510`–`:512`) — **stop being true** (`D-125` item `1`, its last paragraph; `C-12`
+   stops by name). **WHAT SURVIVES OF THIS ITEM: (b) is still refused — on §3.1's trade about SCOPE, and NOT on the silence this item
+   priced as a discriminator.** *(`D-125` items `1`, `2` (i); `docs/L1/creation-sweep.md` `PIN-2`, `PIN-6`.)*
 
 **VERDICT: (a) IS TAKEN, ON §3.1's TRADE.** **The ruling's own words are *"any new non-constraint listeners"*, and `D-104` item 2
 says *the repair's write's* — so a mechanism whose scope is wider than the ruling, in a patch, is refused before its savings are
@@ -503,7 +525,7 @@ assertions read at their bytes; the landing pass re-measures it and §7.3 says w
 | **`RLD-3` · THE FAILING ARM** | a second pair refuses at the re-run; the repair's listener is **not invoked** (`0`), the store is restored, `pending` holds **no handle of either set**, and the `discarded` witness carries **no entry naming it** — **that last half is asserted as the READING `Q-7` puts up, so the cell is HELD there and the rest of it lands**. **Catches: a fix that delivers a discarded set** — the failure `tests/integration/js-constraints/constraint-kernel-deltamodel.test.mjs:524`–`:529` already names in its own clause. |
 | **`RLD-4` · THE SEAT** | the repair's listeners are invoked **neither inside the repair body nor inside the pass**: a listener body that reads `store.read(['a'])` sees the **post-re-run** value, and a counter read at the repair body's return is `0`. **Catches: an in-window invocation** (`A116`/`A115`, `A112`). |
 | **`RLD-5` · `pending`'S RE-DERIVATION** | at the commit's return `pending` carries the repair's listener's element beside the residue's, **each element is the pair `{handle, address}`** (`TF-1`), and **`triggered` is unmoved** (`pending ⊄ triggered` after a repair, §4). **Catches: a merge into `triggered`, or a bare handle** (`TF-7`). |
-| **`RLD-6` · THE REGISTRATION INSTANT IS UNMOVED** | a repair at `addConstraint`'s evaluation delivers **nothing** (`G3-22`'s zero, re-asserted in this file so the fix cannot widen quietly). **Catches: a carrier that fires outside a commit's arm.** |
+| **`RLD-6` · THE REGISTRATION INSTANT IS UNMOVED** | a repair at `addConstraint`'s evaluation delivers **nothing** (`G3-22`'s zero, re-asserted in this file so the fix cannot widen quietly). **Catches: a carrier that fires outside a commit's arm.** **⟶ CORRECTED `2026-11-06` BY `D-125` ITEM `1`: THE STATEMENT IS WITHDRAWN AND THE CELL'S SUBJECT WITH IT — the registration instant DELIVERS, at four instants, in `D-117`'s order instant for instant, after the save and before the answer, with one order and two sets (`storeCreate` and a boot: `adopted ∩ resolving`; `addConstraint` and a re-arm: the repair's write's `triggered`), and nothing on a refusing arm.** The landed cell asserts that delivery and no longer asserts a zero; the silence it printed here is the clause `D-125` closed (`kernel-registration.mjs:510`–`:512`, `:888`–`:889`). *(`D-125` items `1`, `2` (i); `§7.1`'s own corrected entry above; `D-94` item `3` stops.)* |
 | **`RLD-7` · THE DELETE-SHAPED COMMIT** | a repair during a `delete`'s pass: its listener is invoked **once**, by the delete's own delivery, after the pass (`Q-2`'s cell; it is **held** if the architect narrows §2 B-5). |
 | **`RLD-8` · THE TWO-REPAIR COMMIT** | two pairs violate in turn and **two** repairs land (`P-SM-5`'s shape, with listeners added): **both** listeners are invoked once. **Catches: any single-slot carrier** — the hazard §3.6 (b) 2 would have had to declare. |
 
@@ -567,7 +589,13 @@ over-reached**, so the landing pass promotes it to an `A` cell with the same val
 **AND ONE CELL IS THE FIX'S STRUCTURAL CONSTRAINT RATHER THAN ITS SUBJECT**: `tests/e2e/registration-write-route.test.mjs`'s
 `G3-22` (`:381`–`:519`) asserts `listenerDelta === 0` across a repair's route-write at the registration instant. **It stays GREEN
 under (a) because a registration's attempt carries no `record`**, and `RLD-6` re-asserts it in the new file so the mechanism's
-carrier cannot grow a path to that instant.
+carrier cannot grow a path to that instant. **⟶ CORRECTED `2026-11-06` BY `D-125` ITEM `1`: THE ZERO IS THE READING OF ITS DATE AND
+NOT A STRUCTURAL CONSTANT, BECAUSE THE REGISTRATION INSTANT DELIVERS.** A repair's route-write at `addConstraint` or at a re-arm
+**delivers that write's `triggered` set, after the save and before the answer** — so the delta is `0` only where the set names **no
+adopted handle** (a refusing arm, or a write no watched address is triggered by), **and a pass that re-asserts the zero as a law has
+re-asserted the silence `D-125` reversed.** **`RLD-6` therefore no longer re-asserts it**: that cell's own statement is corrected at
+§7.1 in this same act, and its landed form turns on the delivered count. *(`D-125` items `1`, `2`; `D-94` item `3` stops —
+*"the caller's view of a registration gains a third observable, the listeners its repairs fired"*.)*
 
 ---
 
@@ -728,7 +756,12 @@ scope cannot be narrowed** — the entry cannot separate a repair's write from a
 **double-deliver** an un-ordered class (the constraint body's own write already reaches a nested attempt, §1); **the `state.leg` single
 slot loses a first repair's set on the two-repair commit `P-SM-5` drives**, and the cure is (a)'s carrier in an entry-side dress with a
 nested-window hazard of its own; **the failing arm needs a new gate** (`SETTLED_ON_THE_PASSING_ARM`, available and clean); **and the
-registration instant is safe for both**, so it is not a discriminator.
+registration instant is safe for both**, so it is not a discriminator. **⟶ CORRECTED `2026-11-06` BY `D-125` ITEM `1`: *"THE
+REGISTRATION INSTANT IS SAFE FOR BOTH"* IS FALSE AND THIS PHRASE IS WITHDRAWN FROM (b)'s PRICING.** The registration instant
+**delivers** — at four instants, in `D-117`'s order instant for instant, after the save and before the answer, with one order and two
+sets (`storeCreate` and a boot: `adopted ∩ resolving`; `addConstraint` and a re-arm: the repair's write's `triggered` set) and with
+nothing on a refusing arm — **so it IS a discriminator, and (b)'s refusal stands on its other three costs and on §3.1's trade about
+scope alone.**
 
 **THE FAILING ARM.** **Empty, unchanged** (`surface.md §2.7` item 6): the discard's filter (`kernel-terminal.mjs:95`–`:96`) widens to
 the union of the failed write's returned set and this attempt's repairs' sets, one removal by the set each entry came back in; **a
@@ -746,7 +779,12 @@ re-run refused the landing.
 **THE CELLS — NAMED; THE RED SET READ, AND EMPTY OF ASSERTIONS.** `tests/e2e/repair-listener-delivery.test.mjs`: **`RLD-1`** (the
 delivery), **`RLD-2`** (the doubly-fired handle invoked once), **`RLD-3`** (the failing arm invokes nothing; **its witness half held on
 `Q-7`**), **`RLD-4`** (the seat), **`RLD-5`** (`pending`'s re-derivation; `triggered` unmoved), **`RLD-6`** (the registration instant
-unmoved), **`RLD-7`** (the delete-shaped commit, **held on `Q-2`**), **`RLD-8`** (the two-repair commit). `tests/integration/
+unmoved), **`RLD-7`** (the delete-shaped commit, **held on `Q-2`**), **`RLD-8`** (the two-repair commit). **⟶ CORRECTED
+`2026-11-06` BY `D-125` ITEM `1`: `RLD-6` IS NOT *"THE REGISTRATION INSTANT UNMOVED"* — THE REGISTRATION INSTANT DELIVERS, AND THE
+CELL'S SUBJECT BECOMES THAT DELIVERY.** It is one of the two pre-existing cells that TURN for the delivery instant
+(`docs/L1/creation-sweep.md` `§6` item `1`'s third reason names `RLD-6` beside `screg_blind_08`), **so its landed form asserts the
+delivery at `addConstraint` and at a re-arm — the repair's write's `triggered` set, after the save and before the answer, nothing on a
+refusing arm — and not a zero.** *(`D-125` items `1`, `2` (i); `D-94` item `3` stops.)* `tests/integration/
 js-constraints/repair-listener-delivery.test.mjs`: **`RLD-I1`** (the predicate, on the multi-repair shape that measures it),
 **`RLD-I2`** (the discard's scope), **`RLD-I3`** (the seat before the re-run), **`RLD-I4`** (the credit gate), **`RLD-I5`** (the
 nested-attempt guard — one count, not two). **NO COMMITTED CELL'S ASSERTION REDS** — the merge is empty on every committed repair
@@ -754,7 +792,9 @@ fixture, and **the reason printed in §7.3 is the measured one** (no listener is
 subset sentence the first draft offered, which two sibling-address fixtures falsify); **two CLAIMS are re-derived in the same act**
 (`constraint-kernel-layers.test.mjs:344`–`:351`, `constraint-kernel-negatives.test.mjs:223`–`:224`); **one `observed` cell is promoted
 with its figure unmoved** (`FTS-11.6`); **and `G3-22`'s two zeros are re-asserted by `RLD-6`** because they are the mechanism's
-structural constraint. **The instrument limit is printed at §0: this red set is a READING, not a run.**
+structural constraint. **⟶ CORRECTED `2026-11-06` BY `D-125` ITEM `1`: THE LAST CLAUSE IS WITHDRAWN — `RLD-6` RE-ASSERTS NO ZERO,
+because the registration instant delivers and its `listenerDelta` is `0` only where the repair's write's `triggered` set names no
+adopted handle.** **The instrument limit is printed at §0: this red set is a READING, not a run.**
 
 **THE WRITE SET.** `state.mjs` (the carrier) · `index.mjs` (the append and one dated clause) · `kernel-attempt.mjs` (the two guards, the
 merge and one dated clause) · `kernel-commit.mjs` (one attempt member at two mints) · `kernel-terminal.mjs` (the filter) ·

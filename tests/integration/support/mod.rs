@@ -501,33 +501,30 @@ pub fn assert_code(e: &StoreError, expected: &str, clause: &str) {
 /// **⟶ RE-DERIVED 2026-10-26 (`DEF-S`/`DEF-N`; the architect, verbatim: *"Expand the returned error set for
 /// both S/N"*): `[&str; 19]`, the two appended terms being `ConstraintBodyThrew` at rank `18` and
 /// `ConstraintRefusedAtRegistration` at rank `19`, with NO RANK OF `1`…`17` MOVING.**
-/// **⟶ AND RE-DERIVED AGAIN 2026-10-26 (`DEF-H`/`DEF-W`; the architect, verbatim: *"Expand the returned
-/// fail-state list to include the refusal"* and *"Assert the constraints on rollback"*): `[&str; 20]`, the
-/// appended term being `ConstraintPassRefused` at rank `20`, with NO RANK OF `1`…`19` MOVING.**
-pub const CLOSED_CODES: [&str; 20] = [
-    "AddressMalformed",
-    "AddressNotFound",
-    "LeafHasNoDownstream",
-    "TierNotFound",
-    "OutOfDomainTier",
-    "ParentAnchorMonotonicityViolation",
-    "ContainerKindConflict",
-    "ReadTargetIsBranch",
-    "WriteParentNotLink",
-    "JournalOpUnknown",
-    "RollbackCompacted",
-    "ConstructionArgumentMissing",
-    "FilePathUnreachable",
-    "ValueNotAdmitted",
-    "FileCommitFailed",
-    "ConstraintListInvalid",
-    "ValueRefusedAtBoundary",
-    // ⟶ APPENDED 2026-10-26 (`DEF-S`, `DEF-N`; the ruling on the downstream claims).
-    "ConstraintBodyThrew",
-    "ConstraintRefusedAtRegistration",
-    // ⟶ APPENDED 2026-10-26 (`DEF-H`, `DEF-W`; the ruling on the refusal and the reversal).
-    "ConstraintPassRefused",
-];
+/// **⟶ RE-DERIVED 2026-11-06 (`D-124` item `2`; `PIN-10`; the architect, verbatim: *"A CREATION-FIRED BODY THAT
+/// THROWS REFUSES AT A MINTED RANK `21` `ListenerBodyThrew`"*, *"The closed fail set moves `20 → 21`"*): the set
+/// is TWENTY-ONE members ranked `1`…`21`, its arithmetic is
+/// `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 21` ✓, and the appended term is `ListenerBodyThrew` at rank `21`,
+/// carried by the PACKAGE at the four registration instants (`D-125` item `1`) and minted by no Rust byte —
+/// `src/store.rs` has no trigger for it. NO RANK OF `1`…`20` MOVES.**
+/// **⟶ AND RE-DERIVED AGAIN 2026-11-06 (`D-126` item `2`; the architect, verbatim: *"Mint/revive a code: a
+/// corrupt image refuses the construction"*, its member pinned at `docs/L1/creation-sweep.md §3` `PIN-11`): THE
+/// SET IS TWENTY-TWO MEMBERS RANKED `1`…`22`, ITS ARITHMETIC IS
+/// `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 22` ✓, AND THE APPENDED TERM IS `FileImageRefused` AT RANK `22`
+/// — the STORE'S OWN member, minted at the construction's step `7` and answered before the registration sweep,
+/// so no rank of `1`…`21` moves and no member of the package's five is touched.**
+///
+/// **⟶ AND THE CENSUS IS NO LONGER A HAND COPY — GATE 4's FINDING, CLOSED 2026-11-06.** It stood as a literal
+/// `[&str; 20]` whose own docblock claimed it *"follows `§8.1`'s membership as a drive-side census"*: a copy
+/// counted only against itself, green through any move of the set, and measured at `20` on a twenty-one-member
+/// tree. **IT IS NOW THE STORE'S OWN ARRAY** — `src/error.rs`'s `pub const CODES`, re-exported by the crate root
+/// — so the set has ONE home in this suite and a move of that home moves every drive that reads this name.
+/// **WHAT THE ALIAS GIVES UP, NAMED SO IT IS NOT DISCOVERED LATE:** this name no longer states the membership
+/// independently, and the compiler supplies the arity the old literal had to spell. **THE INDEPENDENT PIN IS
+/// `tests/integration/store-fail-set/fail_codes.rs`'s `expected_ranks`**, a written-out list of the
+/// twenty-two members in rank order compared to this array member for member — so a crate whose `CODES` lost, reordered or
+/// invented a member still fails, at that literal, by name.
+pub use storeroom_native::CODES as CLOSED_CODES;
 
 /// The read's convenience form: an unqualified read (`§2.3`'s zero-tier arm).
 pub fn read_at(store: &Store, address: &[Segment]) -> StoreValue {

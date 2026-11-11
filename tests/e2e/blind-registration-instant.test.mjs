@@ -530,17 +530,23 @@ test('screg_blind_07_the_repair_record_carries_write_its_answer_is_the_store_rec
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
-// 08 — THE ROUTE'S WRITE RUNS NO PASS OF ITS OWN AND DELIVERS NO LISTENER
+// 08 — THE ROUTE'S WRITE RUNS NO PASS OF ITS OWN, AND ITS LANDINGS ARE DELIVERED AT THE CLOSE
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
 
-test('screg_blind_08_the_route_write_runs_no_pass_of_its_own_and_delivers_no_listener', (t) => {
-  // **THE DECLARATION.** The write the route performs **APPENDS NO `constraint-check` ENTRY, NO `outcome`
-  // ENTRY AND NO TERMINAL ACT**, **delivers no listener**, and **is judged by the registration's own re-run
-  // over the op it landed** (`PIN-6` (v)). So a pair standing at the address the route writes is NOT asked by
-  // that write, and a listener bound at an address the route writes is NOT delivered.
+test('screg_blind_08_the_route_write_runs_no_pass_of_its_own_and_its_landing_delivers_once', (t) => {
+  // **THE DECLARATION, AND ONE LIMB OF IT TURNED 2026-11-06 ON `D-125` ITEM `1`** — the THIRD licensed reason
+  // (`docs/L1/creation-sweep.md` `§6` item 1, which names this cell by name): *"`screg_blind_08` turns the OTHER
+  // way and is the honest delivery finding: its body passes on the re-run (`context.op !== null`), so the
+  // registration STANDS, and the route's second write's `triggered` is delivered because **every** landing's
+  // watched set joins the close's owed list — its `fired === 0` becomes `1`."* **THE REST OF THE DECLARATION IS
+  // UNMOVED**: the write the route performs **APPENDS NO `constraint-check` ENTRY, NO `outcome` ENTRY AND NO
+  // TERMINAL ACT**, **runs no pass of its own**, and **is judged by the registration's own re-run over the op it
+  // landed** (`PIN-6` (v)). So a pair standing at the address the route writes is NOT asked by that write — and
+  // the listeners the write fires ARE delivered, once, at the registration's own close (`D-125` item 1: the
+  // delivery is *"a property of the repair's write and not of the creation"*).
   //
-  // **THE READING THAT WOULD MAKE THIS FAIL:** a second ask of the watcher pair; a listener fired; a pass
-  // entered for the route's write.
+  // **THE READING THAT WOULD MAKE THIS FAIL:** a second ask of the watcher pair; a pass entered for the route's
+  // write; **a listener that does NOT fire for the write the route landed at its own address**.
   const store = make();
   store.write(['b'], 'mem', 0);
   let watcherAsked = 0;
@@ -565,14 +571,19 @@ test('screg_blind_08_the_route_write_runs_no_pass_of_its_own_and_delivers_no_lis
   assert.equal(drive.threw, false, 'the registration STANDS on the op its repair returned (`PIN-7` (iii))');
   assert.equal(watcherAsked, watcherBefore, 'the route\'s write at ["b"] ASKED NO PAIR standing there: it runs no pass of its own (`PIN-6` (v))');
   assert.equal(watcherBefore, 1, 'the watcher\'s ONE ask was its own registration\'s (`PIN-4` (iv))');
-  assert.equal(fired, 0, 'and it DELIVERED NO LISTENER for the write it landed (`PIN-6` (v))');
+  // **⟶ TURNED 2026-11-06 ON `D-125` ITEM `1`: THE LANDINGS' WATCHED SETS ARE DELIVERED AT THE CLOSE.** The
+  // body above passes on the re-run (`context.op !== null`), so the registration STANDS, and the route's second
+  // write at `['c']` — where this file's listener stands — joins the close's owed delivery like every other
+  // landing's (`kernel-registration.mjs:579`–`:580`). **THE COUNT IS `1` AND NOT `0`**, and the pair at `['b']`
+  // is still ASKED NOTHING by either landing: what the widening moved is the DELIVERY and never the pass.
+  assert.equal(fired, 1, 'and it DELIVERED THE LISTENER for the write it landed, ONCE (`D-125` item 1: the listeners a repair\'s write fires are delivered at every registration instant)');
   assert.deepEqual(store.read(['b']), 5, 'the route\'s write DID land at ["b"] (`PIN-6` (iv))');
   assert.deepEqual(store.read(['c']), 9, 'and at ["c"], where the listener stands unmoved (`D-53`: the commit is the registration\'s)');
   assert.deepEqual(named(store).sort((x, y) => (x.id < y.id ? -1 : 1)), [{ address: [['a2']], id: 'route-pair' }, { address: [['b']], id: 'watcher' }],
     'both pairs are carried after the route\'s write');
 
   t.diagnostic(`SCREG-08 · NO PASS OF ITS OWN: the watcher at ["b"] was asked ${watcherBefore} -> ${watcherAsked} across a route-write `
-    + `at its own address; the listener at ["c"] fired ${fired} time(s) across a route-write at its own address; read(["b"]) = `
+    + `at its own address; the listener at ["c"] fired ${fired} time(s) — ONCE — across a route-write at its own address; read(["b"]) = `
     + `${JSON.stringify(store.read(['b']))}, read(["c"]) = ${JSON.stringify(store.read(['c']))}. The pair is judged by the `
     + `registration's own re-run and by nothing else (PIN-6 (v); guide §7.2 (4)).`);
 });

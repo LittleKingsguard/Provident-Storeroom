@@ -335,7 +335,7 @@ line(P_SM_5, 'S-REG', 20, (attempt) => {
   //     pushes its own marker WHEN IT RUNS, and the caller's very next statement pushes the second marker —
   //     so a trace of `['listener', 'after-return']` puts the invocation after the verb's return and before
   //     the statement that follows it (which is what SYNCHRONOUS means here), and never before either.
-  const adopted = mem([{ address: ['a'], handle: 'l1' }]);
+  const adopted = mem([{ address: ['a'], handle: 'l1', listener: () => {} }]);
   // **⟶ RE-DERIVED 2026-10-18: the element is the PAIR, so the handle is its `handle` member**
   // (`trigger-and-pair.md §1` item 1; `§4` item 1). The construction ADOPTED `'l1'`, and the member is
   // that same string (`contract.md §2.1` item 1; `(AA-5)`).
@@ -407,7 +407,7 @@ line(P_SM_5, 'S-REG', 20, (attempt) => {
   if (after !== 1) { globalThis.__TRACE.push('S-REG:18'); return false; } // the NEW handle's registration is a NEW entry that fires
 
   // --- rule 1 (unregistered half): a handle with NO registration invokes nothing and reports nothing.
-  const silent = mem([{ address: ['s'], handle: 'l-silent' }]);
+  const silent = mem([{ address: ['s'], handle: 'l-silent', listener: () => {} }]);
   silent.write(['s'], 'mem', 1); // no registration: no code, no warning, no log, and no throw
 
   // --- rule 3, READ THROUGH `§2.4`'s DATED CLAUSE OF 2026-10-11 (its twin at `contract.md §2.4`), WHICH
@@ -465,7 +465,7 @@ line(P_SM_5, 'S-REG', 20, (attempt) => {
   //     CLASS ANSWERS THE ONE FORM WITH THE STORE'S CLOSED-SET `AddressMalformed`, AND THE MESSAGE CARRIES
   //     THE TARGET, THE CLASS AND THE POSITION — and the IN-DOMAIN form is still a SUCCESS, so the predicate
   //     cannot be satisfied by a site that throws on everything.
-  const mine = mem([{ address: ['a'], handle: 'l1' }]);
+  const mine = mem([{ address: ['a'], handle: 'l1', listener: () => {} }]);
   const held = mine.write(['a'], 'mem', 1).triggered[0].handle;
   let heldFired = 0;
   if (mine.register(held, () => { heldFired += 1; }) !== undefined) { globalThis.__TRACE.push('S-REG:27'); return false; }
@@ -627,7 +627,7 @@ line(P_SM_5, 'S-OPAQUE', 10, (attempt) => {
   if (fresh.listen('minted?', [freshAddress]) !== 'minted?') { globalThis.__TRACE.push('OPQ:1'); return false; }
   if (fresh.register('minted?', () => {}) !== undefined) { globalThis.__TRACE.push('OPQ:2'); return false; }
   const minted = fresh.write(freshAddress, 'mem', 1).triggered[0].handle;
-  const adopted = mem([{ address: ['a'], handle: token }]).write(['a'], 'mem', 1).triggered[0].handle;
+  const adopted = mem([{ address: ['a'], handle: token, listener: () => {} }]).write(['a'], 'mem', 1).triggered[0].handle;
   for (const [label, handle] of [['a FRESHLY LISTENED handle', minted], ['an ADOPTED handle', adopted]]) {
     // **THE DECLARED SPELLING IS A `string`, AND THE IN SPELLING AND THE OUT SPELLING ARE ONE** (`§2.1`
     // item 1: *"ARE ONE VALUE AND NOT FIVE SPELLINGS OF ONE"*; `identity-and-domain.md §6` `O-6`).
@@ -792,9 +792,9 @@ const P_TP_8 = row('P-TP-8');
 line(P_TP_8, 'S-TRIGGER', 10, (attempt) => {
   const rng = draw(attempt);
   const inst = mem([
-    { address: ['a'], handle: 'at-a' },
-    { address: ['a', 'b'], handle: 'at-ab' },
-    { address: [`z${rng.next().value}`], handle: 'at-z' },
+    { address: ['a'], handle: 'at-a', listener: () => {} },
+    { address: ['a', 'b'], handle: 'at-ab', listener: () => {} },
+    { address: [`z${rng.next().value}`], handle: 'at-z', listener: () => {} },
   ]);
   // The containers the write runs through are created first: a write's parent is resolved BY ADDRESS.
   inst.write(['a'], 'mem', {});
@@ -864,7 +864,7 @@ line(P_TP_8, 'S-SET', 10, (attempt) => {
   // asserts MEMBERSHIP ONLY: a drive compares SETS, never sequences"* (`§2.7` item 3) over a multiset whose
   // membership is KNOWN — IS UNMOVED**, and the multiset the store yields is still `{2, 1}`: one identity
   // carrying TWO members and one carrying a single one.
-  const inst = mem([{ address: ['a'], handle: 'l1' }, { address: ['a'], handle: distinct }]);
+  const inst = mem([{ address: ['a'], handle: 'l1', listener: () => {} }, { address: ['a'], handle: distinct, listener: () => {} }]);
   // The FIRST identity stands at TWO addresses the write below matches; the second at one.
   inst.listen('l1', [['a'], ['a', 'deep']]);
   inst.write(['a'], 'mem', {});
@@ -938,7 +938,7 @@ line(P_TP_8, 'S-FIRE-WINDOW', 5, () => {
   // no other argument is declared and no return value is read."* **So the invocation half is DRIVEN here,
   // and its argument is asserted at the cell that declares it** — no other argument is asserted, because
   // the cell declares none.
-  const inst = mem([{ address: ['a'], handle: 'l1' }]);
+  const inst = mem([{ address: ['a'], handle: 'l1', listener: () => {} }]);
   const handle = inst.write(['a'], 'mem', 1).triggered[0].handle;
   const trace = [];
   let insideWindow = null; // the store's own state AT THE MOMENT the listener runs
@@ -965,7 +965,7 @@ line(P_TP_8, 'S-FIRE-WINDOW', 5, () => {
 
   // The throwing-body half (`§2.7` item 4): the exception propagates out of the package's own invocation
   // loop, the write is already complete, and the store is neither rolled back nor altered.
-  const thrown = mem([{ address: ['t'], handle: 'l-throw' }]);
+  const thrown = mem([{ address: ['t'], handle: 'l-throw', listener: () => {} }]);
   const thrownHandle = thrown.write(['t'], 'mem', 1).triggered[0].handle;
   let threw = false;
   thrown.register(thrownHandle, () => { throw new Error('the caller\'s own exception'); });

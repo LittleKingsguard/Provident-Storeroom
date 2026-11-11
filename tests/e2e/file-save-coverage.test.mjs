@@ -154,9 +154,19 @@ test('FSC-ARM1-H · `constraintOn`\'s RE-ARM is the same instant — the repair 
   rmSync(dir, { recursive: true, force: true });
 });
 
-test('FSC-ARM1-D · a `storeCreate` carrying `cfg.constraints` over a FRESH path — the repair lands `99`, the file is NOT zero-length and a fresh boot reads `99`', () => {
+test('FSC-ARM1-D · a `storeCreate` carrying `cfg.constraints` over a FRESH path — the repair lands `99` and that `file`-tier landing is SAVED before the CYCLE refuses the construction at rank `20`: the file is NOT zero-length, it carries the repaired value, and a fresh boot reads `99`', () => {
+  // **⟶ RE-PINNED 2026-11-06 (gate 3) ON `D-123` ITEM `1` AND `D-124` ITEM `1` — THE FOURTH LICENSED REASON
+  // (`F-9`; the file's own `§6` item 1 names this cell).** The pair stands at `['a']` and its repair writes
+  // `['dd']`, so **the pair never accepts its own repair**: the sweep's next round re-carries it, the body offers
+  // its repair a second time, and *"a pair may land AT MOST ONE REPAIR in a construction"* refuses the
+  // construction at rank `20` `ConstraintPassRefused`. **THE CELL WAS WRITTEN BEFORE EITHER RULING EXISTED**, so
+  // what it pinned was a returned instance; **WHAT TURNS IS THE ANSWER AND NOT THE SAVE**: the carry's
+  // registration PASSED and its close saved, so the `file`-tier landing `D-106` arm 1 is about still stands in the
+  // bytes, and the refusal comes from the round AFTER it. **NO LIMB IS LOOSENED**: the zero-length limb, the
+  // repaired value and the fresh boot's reading are the ones this cell always carried, and the instance limb is
+  // replaced by the refusal that now stands where the instance did.
   const { dir, filePath } = scratch('arm1d');
-  const store = storeCreate({
+  const construction = attempt(() => storeCreate({
     journalLength: 8,
     listeners: [],
     filePath,
@@ -167,14 +177,34 @@ test('FSC-ARM1-D · a `storeCreate` carrying `cfg.constraints` over a FRESH path
         ? true
         : { message: '`["a"]` is absent', repair: (record) => ({ ok: true, op: record.write(['dd'], 'file', 99).op }) }),
     }],
-  });
+  }));
   const image = bytesOf(filePath);
+  assert.equal(construction.ok, false,
+    `**THE CONSTRUCTION MAY NOT RETURN AN INSTANCE WHOSE REGISTER STILL VIOLATES A CARRIED PAIR** (\`D-123\` `
+      + `item 1; \`D-124\` item 1): it ${construction.ok ? 'RETURNED an instance' : 'refused'} `
+      + `${JSON.stringify(construction.ok ? null : construction.caught.status)}`);
+  assert.equal(construction.ok ? null : construction.caught.status, 'ConstraintPassRefused',
+    `**AND IT REFUSES AT RANK \`20\` \`ConstraintPassRefused\` — THE CYCLE'S MEMBER** (\`D-125\` item 4: *"a cycle `
+      + `is an inconsistent result"*): the refusal answered `
+      + `${JSON.stringify(construction.ok ? null : construction.caught.status)} with message `
+      + `${JSON.stringify(construction.ok ? null : construction.caught.message)}`);
   // `D-106` item 1's measured defect: a construction whose repair lands `99` left a ZERO-LENGTH file, and a
   // second instance over that path answered `AddressNotFound` for the repaired address AND FOR EVERYTHING.
   assert.notEqual(image?.length, 0,
     `**THE FILE MUST NOT BE ZERO-LENGTH** (\`FSC-ARM1-D\`; \`C-3\`): ${JSON.stringify(image)}`);
-  assert.deepEqual(JSON.parse(image), { dd: 99 }, 'and it carries the repaired value');
-  assert.deepEqual(standing(store, ['dd']), { present: true, value: 99 }, 'the acting instance holds it');
+  assert.deepEqual(JSON.parse(image), { dd: 99 }, 'and it carries the repaired value — the carry\'s save stands, because the refusal is the NEXT round\'s');
+  // ⟶ **AND THE LIMB THAT READ THE ACTING INSTANCE IS RE-PINNED ON THE ARM THAT NOW EXISTS — IT WAS NOT
+  // DELETED** (gate 4's finding: `standing(store, ['dd'])` → `{present: true, value: 99}` stood here at old
+  // `:195` and went with the `store` binding when the construction turned). **`D-123` item 1's refusal returns
+  // NO instance**, so *"the acting instance holds it"* is unstatable on this arm and its place is taken by the
+  // two observables the refusal DOES leave: **no instance exists, and `['dd']`'s reading is the image's — the
+  // line above — and the fresh boot's, the line below.** The landing survives the refusal, which is the whole of
+  // `PIN-12`; no arm is loosened, because the limb's subject (a reading of `['dd']`) is asserted again at the
+  // only seat that can answer it.
+  assert.equal(construction.value, undefined,
+    'and NO INSTANCE EXISTS on this arm — the refusal IS the answer (`D-123` item 1: *"the construction throws '
+    + 'instead of returning an instance"*), so the acting-instance limb has no subject and is re-pinned as '
+    + '`construction.value === undefined` beside the image and the fresh boot');
   assert.deepEqual(standing(make({ filePath }), ['dd']), { present: true, value: 99 },
     'and a fresh boot reads it — the defect\'s signature was `AddressNotFound` for every address');
   rmSync(dir, { recursive: true, force: true });
@@ -206,12 +236,18 @@ test('FSC-ARM1-I · a BOOT over an existing `filePath` carrying `cfg.constraints
   rmSync(dir, { recursive: true, force: true });
 });
 
-test('FSC-ARM1-ONCE · ONE registration carrying TWO `file`-tier repairs pays ONE serialization and both repaired values stand in the image', () => {
+test('FSC-ARM1-ONCE · ONE registration carrying TWO `file`-tier repairs pays ONE serialization and both repaired values stand in the image — and the CYCLE then refuses the construction at rank `20`, because NEITHER pair accepts its own repair', () => {
+  // **⟶ RE-PINNED 2026-11-06 (gate 3) — THE SAME REASON AND THE SAME RULINGS AS `FSC-ARM1-D`** (`D-123` item 1;
+  // `D-124` item 1; `F-9`). Neither `['p1']` nor `['p2']` is satisfied by its own repair, so the sweep's next
+  // round re-carries the FIRST of them, the body offers its repair a second time, and the construction is refused
+  // at rank `20`. **THE CELL'S SUBJECT IS UNMOVED AND SO IS ITS EVIDENCE**: the carry's ONE serialization wrote
+  // BOTH repaired values into the image, and a fresh boot reads each of them; the instance limb is the one the
+  // ruling retired, and the refusal stands where it did.
   const { dir, filePath } = scratch('arm1once');
   const rep = (writeAddress, value) => (context) => (context.value !== undefined
     ? true
     : { message: 'absent', repair: (record) => ({ ok: true, op: record.write(writeAddress, 'file', value).op }) });
-  const store = storeCreate({
+  const construction = attempt(() => storeCreate({
     journalLength: 8,
     listeners: [],
     filePath,
@@ -219,7 +255,15 @@ test('FSC-ARM1-ONCE · ONE registration carrying TWO `file`-tier repairs pays ON
       { address: ['p1'], id: 'p1', constraint: rep(['w1'], 1) },
       { address: ['p2'], id: 'p2', constraint: rep(['w2'], 2) },
     ],
-  });
+  }));
+  assert.equal(construction.ok, false,
+    `**A REGISTER THAT STILL VIOLATES A CARRIED PAIR MAY NOT BE RETURNED** (\`D-123\` item 1): it `
+      + `${construction.ok ? 'RETURNED an instance' : 'refused'} `
+      + `${JSON.stringify(construction.ok ? null : construction.caught.status)}`);
+  assert.equal(construction.ok ? null : construction.caught.status, 'ConstraintPassRefused',
+    `**AT RANK \`20\` \`ConstraintPassRefused\` — THE CYCLE** (\`D-124\` item 1; \`D-125\` item 4): the refusal `
+      + `answered ${JSON.stringify(construction.ok ? null : construction.caught.status)} with message `
+      + `${JSON.stringify(construction.ok ? null : construction.caught.message)}`);
   // THE IMAGE CARRIES BOTH — one serialization whose bytes carry the whole register (`PIN-3` (iii)).
   assert.deepEqual(JSON.parse(bytesOf(filePath)), { w1: 1, w2: 2 },
     `**ONE SAVE BY IMAGE** (\`FSC-ARM1-ONCE\`; \`PIN-3\` (iii)): ${JSON.stringify(bytesOf(filePath))}`);
@@ -229,7 +273,17 @@ test('FSC-ARM1-ONCE · ONE registration carrying TWO `file`-tier repairs pays ON
   assert.equal(after.size, bytesOf(filePath).length, 'and the image on disk is the one the close wrote');
   assert.deepEqual(standing(make({ filePath }), ['w1']), { present: true, value: 1 }, 'a fresh boot reads the first repair');
   assert.deepEqual(standing(make({ filePath }), ['w2']), { present: true, value: 2 }, 'and the second — no repair was left unsaved');
-  assert.equal(store.constraints().length, 2, 'and both pairs are carried');
+  // ⟶ **AND THE `store.constraints().length === 2` LIMB IS RE-PINNED, NOT DELETED** (gate 4's finding: it stood
+  // here at old `:263` — *"and both pairs are carried"* — and went with the `store` binding when the construction
+  // turned). `constraints()` is the INSTANCE's member and **`D-123` item 1's refusal returns no instance**, so the
+  // limb cannot be restored as written. **WHAT IT WAS REACHING FOR IS THE ONLY THING IT CAN NOW SAY: both pairs
+  // were CARRIED and both were ASKED** — which is why the one close serialized TWO repaired values, and why the
+  // refusal came from a SECOND round that re-carried the first pair. The pair-carrying is read here at the two
+  // observations the arm leaves standing: no instance exists, and the image carries both repairs.
+  assert.equal(construction.value, undefined,
+    'and NO INSTANCE EXISTS on this arm — so `constraints()` has no subject; its two-pair limb is re-pinned as '
+    + '`construction.value === undefined` beside the image above, whose two repaired values are what the two '
+    + 'pairs being carried and asked left behind (`D-123` item 1: the refusal returns no instance)');
   rmSync(dir, { recursive: true, force: true });
 });
 

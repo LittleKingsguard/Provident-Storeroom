@@ -980,8 +980,8 @@ test('ng_js_e_a_cross_realm_plain_object_or_array_is_accepted_at_both_positions'
 // ANOTHER REGISTRATION BEING MUTATED by a refused call.
 test('ng_js_f_the_handle_inputs_answer_the_declared_form_and_no_other_registration_is_mutated', () => {
   runGenerator('NG-JS-F', 'handle inputs at register and unlisten', 8, (attempt, rng) => {
-    const owner = mem([{ address: ['a'], handle: 'l-owner' }]);
-    const foreign = mem([{ address: ['a'], handle: 'l-foreign' }]);
+    const owner = mem([{ address: ['a'], handle: 'l-owner', listener: () => {} }]);
+    const foreign = mem([{ address: ['a'], handle: 'l-foreign', listener: () => {} }]);
     const held = owner.write(['a'], 'mem', 1).triggered[0].handle;
     const foreignHandle = foreign.write(['a'], 'mem', 1).triggered[0].handle;
     // THE PRE-EXISTING REGISTRATION, WHICH NO REFUSED CALL MAY DISTURB (`§2.4` item 5 (d): *"nothing reaches
@@ -1144,9 +1144,9 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
 
     // (1) THREE DISTINCT IDS AT ONE ADDRESS: each id is matched to ITS OWN function, member by member.
     const three = mem([
-      { address: [key], handle: 'a' },
-      { address: [key], handle: 'b' },
-      { address: [key], handle: 'c' },
+      { address: [key], handle: 'a', listener: () => {} },
+      { address: [key], handle: 'b', listener: () => {} },
+      { address: [key], handle: 'c', listener: () => {} },
     ]);
     const first = three.write([key], 'mem', 1);
     if (first.triggered.length !== 3) {
@@ -1174,7 +1174,7 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
     // **THE ARGUMENT IS THE TRIGGERING ADDRESS AND NOT THE ID** (`§2.4` item 6 (d)): the two data are
     // different, and a package that passed the id would fail here.
     let argument = 'not-observed';
-    const probe = mem([{ address: ['probe'], handle: 'p' }]);
+    const probe = mem([{ address: ['probe'], handle: 'p', listener: () => {} }]);
     const probeId = probe.write(['probe'], 'mem', 1).triggered[0].handle;
     probe.register(probeId, (a) => { argument = a; });
     probe.write(['probe'], 'mem', 2);
@@ -1268,9 +1268,9 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
     // `['del']` is the empty address and `['del']` itself; **`['del','deep']` is in the TOUCHED set**, because the
     // delete removes its node (`D-66`'s delete arm).
     const deleting = mem([
-      { address: [], handle: 'reg' },
-      { address: ['del'], handle: 'x' },
-      { address: ['del', 'deep'], handle: 'y' },
+      { address: [], handle: 'reg', listener: () => {} },
+      { address: ['del'], handle: 'x', listener: () => {} },
+      { address: ['del', 'deep'], handle: 'y', listener: () => {} },
     ]);
     // **⟶ RE-DERIVED 2026-10-18 (`role_test_writer`): `listen` ANSWERS THE UNIT, SO THE THREE IDENTITIES ARE
     // THE CALLER'S OWN SPELLINGS AND THE `===` COMPARISON MOVES ONTO THEM.** The as-filed block took three
@@ -1339,9 +1339,9 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
     // handle fires because `['del']` IS a prefix of `['del','deep']`, and so does the handle at the deleted
     // address itself — the store's own `lf_d2` cell drives exactly this pair.
     const below = mem([
-      { address: [], handle: 'reg2' },
-      { address: ['del'], handle: 'x2' },
-      { address: ['del', 'deep'], handle: 'y2' },
+      { address: [], handle: 'reg2', listener: () => {} },
+      { address: ['del'], handle: 'x2', listener: () => {} },
+      { address: ['del', 'deep'], handle: 'y2', listener: () => {} },
     ]);
     // **⟶ RE-DERIVED 2026-10-18: `listen` answers the unit, so the identities are the ones the CONSTRUCTION
     // already adopted** (`contract.md §2.1` item 1; `(AA-5)`; `PAR-HL-3`) — and the arm adds no redundant
@@ -1390,8 +1390,8 @@ test('ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_
     // ONE registration EXISTS, for an id the trigger below WILL NOT carry, and the trigger's own id has
     // none — so the registered function must not run at all, and the id carried must invoke nothing.
     const silent = mem([
-      { address: ['s'], handle: 'silent-a' },
-      { address: ['t'], handle: 'silent-b' },
+      { address: ['s'], handle: 'silent-a', listener: () => {} },
+      { address: ['t'], handle: 'silent-b', listener: () => {} },
     ]);
     silent.write(['t'], 'mem', {});
     const registeredId = silent.write(['t'], 'mem', 1).triggered[0].handle;
@@ -1934,7 +1934,7 @@ test('ng_js_j_the_in_delivery_corpus_changes_nothing_inside_the_window_and_every
 
     // --- (1) `register` FROM INSIDE A BODY, with a SECOND identity in the SAME trigger set.
     {
-      const inst = build(key, [{ address: [key], handle: `${key}-B` }]);
+      const inst = build(key, [{ address: [key], handle: `${key}-B`, listener: () => {} }]);
       let nestedFires = 0;
       let outerFires = 0;
       outerFires = 0;
@@ -2112,7 +2112,7 @@ test('ng_js_j_the_in_delivery_corpus_changes_nothing_inside_the_window_and_every
       // storeroom-held-listener-identity/contract.md §2.1` item 3: *"a handle names ONE listener, standing at
       // the addresses ONE `listen` gave it"*).
       const shared = `${key}-dup`;
-      const inst = build(key, [{ address: [key], handle: shared }]);
+      const inst = build(key, [{ address: [key], handle: shared, listener: () => {} }]);
       inst.listen(shared, [[key], [key, 'd']]);
       inst.write([key, 'd'], 'mem', {});
       let fires = 0;
@@ -2462,7 +2462,7 @@ test('ng_js_n_a_withdrawn_registration_is_never_invoked_again_across_an_address_
       for (const other of spellings) {
         if (mirrorKey(seeded) !== mirrorKey(other)) continue; // the collision this corpus is ABOUT
         if (JSON.stringify(seeded) === JSON.stringify(other)) continue; // ONE address is not a collision
-        const inst = mem([{ address: seeded, handle: 'h' }]);
+        const inst = mem([{ address: seeded, handle: 'h', listener: () => {} }]);
         // The bucket stands as a MAP, so the `number:index` spelling is in the container's own kind and the
         // corpus is not measuring the store's container-kind check (`ContainerKindConflict`).
         inst.write([tail], 'mem', {});
@@ -2625,7 +2625,7 @@ test('ng_js_o_construction_seeding_and_the_deregistration_route_are_held_at_thei
       // figure into two members — **a state the arm never meant to build, since its claim is *"ONE adopted
       // registration stands"* (`ListenersArg` row 1).** The handle it needs is the one the construction
       // ADOPTED, so the mirror and the store are read at that entry alone.
-      const inst = mem([{ address: [tail], handle: 'adopted' }]);
+      const inst = mem([{ address: [tail], handle: 'adopted', listener: () => {} }]);
       inst.write([tail], 'mem', {});
       const held = 'adopted';
       const triggered = inst.write([tail], 'mem', 1).triggered;
@@ -2649,7 +2649,7 @@ test('ng_js_o_construction_seeding_and_the_deregistration_route_are_held_at_thei
     {
       const seeded = [tail, 'number:1'];
       const minted = [tail, '1'];
-      const inst = mem([{ address: seeded, handle: 'seeded1' }]);
+      const inst = mem([{ address: seeded, handle: 'seeded1', listener: () => {} }]);
       inst.write([tail], 'mem', {});
       // **⟶ RE-DERIVED 2026-10-18: the handle is SPELLED and `listen` answers the unit**
       // (`contract.md §2.2` item 10; `PAR-HL-3`). **THE ARM'S SUBJECT — two SPELLINGS that collide under the

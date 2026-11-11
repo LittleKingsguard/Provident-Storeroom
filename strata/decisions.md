@@ -4799,7 +4799,14 @@ instant the rule reaches?"* — in these words: ***"Always rerun after a repair.
    happens** (always); `D-90` decides **which pairs are asked within it** (those whose parent is a container). **A caller
    sees the difference only on the arm above:** the registration succeeds rather than refusing at rank `19`, and **the arm
    where the pair itself refuses again is untouched** — that is still `KC-5` where the refusing pair is the repaired one
-   and `KC-6` otherwise, and still rank `19`.
+   and `KC-6` otherwise, and still rank `19`. **⟶ AND THIS SENTENCE STOPS BEING THE WHOLE OF THE CALLER'S VIEW `2026-11-06`
+   — `D-125` ITEM 1, WHICH IS LATER THAN THIS ROW AND SUPERSEDES ITS *"ONLY"*. A registration that stands now also DELIVERS
+   the listeners its repairs' writes fired, at all four registration instants (`storeCreate`, a boot over an existing
+   `filePath`, `addConstraint`, a re-arm), after the constraints pass and after the save and before the answer — so the
+   caller's view of a registration gains a THIRD observable beside the success and the rank-`19` refusal. **What is NOT
+   moved: the arm this item is about — *"the arm where the pair itself refuses again is untouched"*, `KC-5`/`KC-6`, rank
+   `19` — stands byte-for-byte; and where a cycle is the reason for the refusal, `D-125` item 4's rank `20` answers instead
+   and this item does not speak to it.**
 4. **THE CONSEQUENCE THIS RULING LICENSES IS RECORDED RATHER THAN LEFT TO BE DISCOVERED:** **a repair that flattens its own
    pair's parent to a leaf permanently disables that pair** — it is skipped at every instant thereafter until something
    makes the parent a container again — **and the registration that was meant to enforce the pair completes with the pair
@@ -6306,3 +6313,335 @@ false claim moves.
 **TERMS: the side chosen (`1` = Side A), the sides refused (`1` = Side B), the guide sentences corrected (`1`), the landing
 re-staged (`1`), the brief sentences corrected (`1`), the contract clauses re-ruled (`0`), the code bytes moved (`0`), the cells
 turned (`0`), the version cells moved (`0`), the units it mints (`0`).**
+
+### `D-123` — ★ CREATION IS AN EDITING ACTION: the whole register is swept and an inconsistent result is REFUSED; `listeners[]` entries must CARRY THEIR FUNCTIONS and fire once the constraints pass; the application diagnoses the refusal; and a creation-fired body's throw refuses the construction with a declared code
+
+**DATE:** 2026-11-06. **BRANCH:** `main`. **HEAD:** `3f24248`. **SOURCE:** the architect, in session, answering `P-2`
+(`strata/proposals.md:259`) four scope questions by selection and in his own words. **HIS ANSWERS, VERBATIM:**
+
+> **scope** — *"A sweep of the whole register, refusing an inconsistent result"*
+>
+> **listener** — *"Refuse listeners that don't carry functions, and fire all ones with an existing address after
+> constraints pass. Why would a listener that doesn't have a function to fire on the listened address be accepted?"*
+>
+> **orphan** — *"If constraints fail on creation, return error. Application needs to check if file data is corrupt or if
+> constraints are incompatible"*
+>
+> **throw** — *"Refuse the construction with a declared code"*
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **CREATION'S CONSTRAINT ACT IS A SWEEP OF THE WHOLE REGISTER, AND ITS RESULT MUST BE CONSISTENT — ELSE THE
+   CONSTRUCTION IS REFUSED.** **The instant's own declared scope — *"THAT ONE PAIR and no other: no pass is opened over
+   the registry and no other registered pair is re-evaluated"* (`bindings/js/src/entry/kernel-registration.mjs:230`–`:232`)
+   — is SUPERSEDED AT THIS INSTANT.** The construction must ask the pairs it carries and cannot return an instance whose
+   register still violates one of them. **This opens a SIXTH instant against `D-90` (4)'s closed list of five**
+   (*"the batch at construction · the list at a boot over an existing `filePath` · `addConstraint` · the toggles that
+   re-arm a held pair · the pass over a write, a `delete` or a `rollback`"*) and `D-90`'s **pair-application rule is read
+   THROUGH this row and not around it**: a pair whose parent does not resolve is still SKIPPED (`D-90` (1)–(3), `D-96`),
+   because the skip is a rule about what can be asked at all and not a scope.
+2. **A `cfg.listeners[]` ENTRY MUST CARRY THE FUNCTION IT FIRES — AN ENTRY THAT CARRIES NONE IS REFUSED — AND AFTER THE
+   CONSTRAINTS PASS, EVERY ADOPTED LISTENER WHOSE WATCHED ADDRESS EXISTS IS FIRED.** **The architect's own ground for the
+   refusal is printed in his question and it is the ruling's ground: *"Why would a listener that doesn't have a function
+   to fire on the listened address be accepted?"*** **The RESERVATION reading is WITHDRAWN AT THIS ENTRY POINT** — a
+   `cfg.listeners[]` element is no longer a handle with a body owed later; it is a listener or it is refused.
+   **THE SHAPE IS `D-26`'s MOVE ONE KEY OVER AND NOT A NEW MECHANISM**: the element gains a third member the ENCODER
+   currently refuses (`bindings/js/src/entry/frame.mjs:31`, `keys.length !== 2`), **the package arms the SUBSTANCE exactly
+   as it already arms a pair's `constraint` member** (`frame.mjs:70`–`:77`: *"THE ELEMENT'S THIRD MEMBER IS DROPPED HERE AND
+   ONLY HERE … THE PACKAGE ARMS THE SUBSTANCE"*), and **the store's listener record, the crossing's `ListenerEntry` and
+   `src/args.rs` do NOT move: a JavaScript function crosses at no depth** (`docs/specs/storeroom-native/contract.md:910`,
+   `:908`). **AND THE FIRING IS NEW: the registration instant and the creation reach NO delivery seam today** — *"IT STILL
+   OPENS NO `K-2` AND STILL DELIVERS NO LISTENER"* (`kernel-registration.mjs:888`–`:889`; `PIN-6` (v) at `:510`–`:512`;
+   `strata/research.md §13.2` `C-12`), so **this row MINTS the corpus's second delivery outside a caller's write, and the
+   first that is not a reversal's** (`D-117`'s is the first). **Its order is `D-117`'s, instant for instant**: **ask →
+   repairs land → re-run → SAVE → DELIVER**, and **no delivery on a refusing arm**.
+3. **THE EXISTING-ADDRESS QUALIFIER IS THE ARCHITECT'S AND IT IS LOAD-BEARING.** He fires *"all ones with an EXISTING
+   address"* — so **a listener whose watched address does not resolve in the register is not fired**, and that is the
+   listener's own reading of the same absence rule `D-90` applies to pairs. **No listener is asked to fire for a node that
+   is not there.**
+4. **A REFUSED CREATION IS AN ERROR THE APPLICATION DIAGNOSES, AND THE DIAGNOSIS IS A REQUIREMENT ON THE REFUSAL.** His
+   words name the application's job — *"check if file data is corrupt or if constraints are incompatible"* — **so the
+   refusal must let a caller TELL THOSE TWO APART.** **The corpus has a code for the second and D-90 (5) ORPHANED IT**:
+   `ConstraintListInvalid` (rank `16`) still names in its own row *"the VALIDATION OF THE LOADED STATE AGAINST IT AT LOAD"*
+   (`docs/specs/storeroom-native/contract.md:4349`), **and the walk that produced that arm was deleted 2026-11-02**
+   (`src/store.rs:784`–`:798`; `D-90` (5)). **This row does not itself choose the code** (item `2` of what it does not
+   settle) **but it makes the distinction a requirement rather than a nicety**: a construction that refuses because the
+   LOADED STATE cannot satisfy the supplied list and a construction that refuses because a BODY answered `false` are two
+   different diagnoses for two different repairs by the application.
+5. **A BODY THAT THROWS AT A CREATION REFUSES THE CONSTRUCTION WITH A DECLARED CODE.** **This is `D-73`'s asymmetry
+   reversed at a new instant and the reversal is the ruling's**: at a caller's write a listener's throw PROPAGATES to the
+   caller because the caller is the only party who can log it; **at a creation the caller is not yet holding an instance,
+   so the throw refuses the call.** **The closed fail set MUST therefore move** — **⟶ CORRECTED `2026-11-06` AT THE
+   DECLARATION'S OWN BYTES (`role_l1_architect`, gate 2): this sentence printed *"it is `17` members today"* AND THAT
+   FIGURE IS THREE INCREMENTS STALE. THE OPERATIVE SET IS TWENTY, RANKED `1`…`20`** — `docs/specs/storeroom-native/contract.md:4305`–`:4311`
+   (*"THE SET IS TWENTY MEMBERS RANKED `1`…`20`"*, the arithmetic `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 20`), `:1022`
+   (`CODES` as `[&'static str; 20]`), `src/error.rs:113` (`pub const CODES: [&str; 20]`), and `bindings/js/index.d.ts:376`'s
+   `StoreStatus` carrying twenty literals, rank `20` `ConstraintPassRefused` last. **The `17` was `strata/brief.md`'s
+   `0.5.0`-era census and it outlived three widenings** (`D-38`'s 2026-10-26 widening is the last). **WHAT THIS
+   CORRECTION MOVES AND WHAT IT DOES NOT: the ruling's ground — *the set must move* — stands whole; the ARITHMETIC is
+   `20 → 21`, and no member the unit mints may be read as the seventeenth.** And
+   **no member covers a body that throws where no kernel mark site
+   exists** (`strata/research.md §19.3` `X-16`). **Which member, whether widened or minted, is item `4` of what this row
+   leaves open.**
+6. **THE FILE MUST STILL SAVE AFTER ANY ACTION THAT CHANGES THE `file`-TIER DATA, WITHOUT EXCEPTION** (`D-106` item 2):
+   **a creation's repair that lands at `file` is saved by the registration's own passing close** (`kernel-registration.mjs`
+   `:930`–`:950`), **measured durable and readable by a fresh instance** (`strata/research.md §19.4` `C3`, `C4`), and
+   **`D-107` item 1's rollback stands unmoved on the refusing arms** (`:952`–`:965`). **No arm of `D-106` or `D-107` is
+   re-opened by this row.**
+
+**WHAT IT DOES NOT SETTLE — and no layer may read this row as having decided them.**
+
+1. **Whether the sweep reaches `addConstraint`, the re-arm and the boot, or the CREATION alone.** His question was *"At
+   creation, which pairs must be asked?"* and his answer is about creation; **the boot already checks (item 1's own instant
+   list) but not this way, and the add route keeps `D-94`'s unconditional re-run and its own scope.** A row that widens it
+   is owed before any pass widens it by implication.
+2. **Which code answers a load-side or sweep-side inconsistency, and whether rank `16` is revived for it or a new member
+   minted.** Item 4 makes the distinction a requirement; it does not name the carrier.
+3. **What address a creation-fired listener is handed as its one argument.** He named the SET (*"all ones with an existing
+   address"*) and not the payload. `§2.7` item 5 fixes a write's argument as the act's address; **a creation's act has no
+   address, and a sweep has as many addresses as it repaired.**
+4. **Which member carries the thrown body's refusal** — a widened rank `18` (`ConstraintBodyThrew`, which reaches the
+   caller only where the kernel MARKED the value and has no mark site at a creation), a new member, or a re-reading of an
+   existing one.
+5. **Whether *"a listener that carries no function is refused"* reaches the RUNTIME surface** — `listen(handle, addresses)`
+   plus `register(handle, fn)` (`docs/specs/storeroom-js/surface.md §2.3`, `:417`–`:444`) and `package-use.md`'s
+   RESERVATION sentence. **His words name a `cfg.listeners[]` entry and his question is about acceptance; the two-step
+   runtime surface is a different door and this row does not close it.**
+6. **The BOUND on the sweep.** *"Refusing an inconsistent result"* implies iterate-until-stable: repairs land, the register
+   changes, the pairs are asked again. **The corpus's loop guards are the PASS's** (`D-42`'s restart budget, the
+   applied-repair marker, *"constraint/repair has loop guards while listeners don't"*), **and a construction has no attempt,
+   no budget and no marker** (`strata/research.md §19`'s `C-19`). **What stops a sweep that never converges is owed.**
+7. **What a refused creation LEAVES.** His answer (*"return error"*) makes the refusal the contract and **does not say
+   whether the store's own created file and any earlier pair's already-saved landing stand** — the orphan measured at `P-2`
+   `§2` (a durable `file` landing behind a construction that returned no instance). **If the application is to check the
+   file for corruption, it must know what a refused construction may have written to it.**
+8. **The release class** — the element-shape move and the fail-set move are not one class, and the pass that lands them
+   says which is which.
+
+**WHAT IT CHANGES BELOW ME: `P-2` IS ANSWERED AND ONE UNIT MAY BE SCOPED (L1's), with the eight residuals above carried as
+questions and not as design.** `strata/research.md §19` stands as the audit; `strata/proposals.md` `P-2 §8` carries these
+answers at their questions. **The prose owed in the same pass is named and unmoved**: `docs/guides/package-use.md:497`–`:499`
+(*"nor does a boot or any read-driven traversal fire a listener"*) and `strata/research.md §13.2`'s `C-12` both declare the
+silence this row reverses.
+
+**TERMS: the scope (`1` = the whole register swept, inconsistency refused), the listener entry (`1` = must carry its
+function, refused otherwise), the firing (`1` = every adopted listener whose address exists, after the constraints pass),
+the application's diagnosis (`1` = a requirement on the refusal), the throw (`1` = a declared code refusing the
+construction), the instants it opens (`1` = a sixth against `D-90` (4)), the deliveries it mints (`1` = the second outside a
+caller's write and the first that is not a reversal's), the rows it supersedes (`1` = the registration instant's
+*"THAT ONE PAIR and no other"* scope, at the creation), the codes it chooses (`0`), the fail-set members it mints (`0`), the
+bounds it declares (`0`), the questions left (`8`), the units it mints (`0` = L1's).**
+
+### `D-124` — the sweep's bound is CYCLE DETECTION and not a round count; the creation-fired throw takes a MINTED rank `21`; the class is HELD until the landing is measured; and the `addConstraint` premise is put back as a question because the tree contradicts it
+
+**DATE:** 2026-11-06. **BRANCH:** `main`. **HEAD:** `3f24248`. **SOURCE:** the architect, in session, answering gate 2's four
+questions (`docs/L1/creation-sweep.md`, its `§5`; envelope at `strata/envelope.md`'s head). **HIS ANSWERS, VERBATIM:**
+
+> **the throw's member** — *"Take the declaration's default"* → **rank `21` `ListenerBodyThrew` MINTED**, the set's arithmetic
+> `20 → 21`.
+>
+> **the release class** — *"Hold the class until the landing is measured"*.
+>
+> **the sweep's bound** — *"This should already follow cycle detection, the same constraint should not attempt a repair
+> twice"*.
+>
+> **the sweep's reach** — *"Add constraint should already run the constraint and fire any listeners triggered by repairs,
+> because the repairs use the write/delete surface"*.
+
+**STATUS: `ACTIVE`, WITH ITEM 4 RECORDED AS WORDS AND NOT AS A SETTLED FACT** (see item 4's own clause).
+
+**WHAT IT SETTLES.**
+
+1. **THE SWEEP'S TERMINATOR IS THE APPLIED-REPAIR RULE, NOT A ROUND CAP — AND `PIN-4`'s *"capped at three"* IS SUPERSEDED.**
+   **A pair may land AT MOST ONE REPAIR in a construction.** **The termination argument is then arithmetic and not budgetary:
+   every round that continues the sweep lands at least one repair, no pair repairs twice, so the repairs number at most the
+   admitted pairs and a sweep that lands no repair ends the sweep.** **No round cap is minted, no restart budget is minted,
+   no attempt and no `AttemptRef` are minted** — which is `PIN-4`'s second half, unmoved, and is the reason this reading is
+   cheaper in mechanism than the one it replaces. **The rule it reads is the corpus's own**: the applied-repair marker and
+   `D-44`'s repeat arms, *"the loop guard is the applied-repair marker and the restart budget"*, whose marker half is what
+   `D-42`'s budget protects at a write. **THE SWEEP INHERITS THE MARKER AND NOT THE BUDGET, because a construction has no
+   attempt to count restarts in.**
+2. **A CREATION-FIRED BODY THAT THROWS REFUSES AT A MINTED RANK `21` `ListenerBodyThrew`.** **The closed fail set moves
+   `20 → 21`** (`D-123` item 5 as corrected: the operative set is twenty, `contract.md:4305`–`:4311`). **The subject is the
+   LISTENER BODY and not the constraint body**, so rank `18` `ConstraintBodyThrew` is NOT widened — its row's own subject
+   says constraint, and the project's minting clause requires a code to name *"the SUBJECT AND THE ONE THING WRONG WITH
+   IT"*. **This is a `MAJOR`-class addition by the corpus's own arithmetic and no pass may classify it otherwise**
+   (`D-101`/`D-102`'s precedent: a type-and-set addition takes its own version line).
+3. **NO RELEASE CLASS IS CLAIMED BY ANY PASS UNTIL THE LANDING IS MEASURED.** **`PIN-15`'s *"two release classes, named
+   separately"* is DEFERRED, not refused.** The publish pass names the class or classes after the tree is built and the
+   cells are green, exactly as `D-100`/`D-102` were named at their own cuts. **Consequence to be stated plainly at the
+   landing: a `MAJOR` fail-set move is the presumptive class of the set's half, and no pass may call the whole unit `MINOR`
+   to keep it cheap.**
+4. **THE `addConstraint` HALF OF HIS ANSWER IS RECORDED AS HIS WORDS AND NOT AS A FACT, BECAUSE THE TREE CONTRADICTS ITS
+   *"SHOULD ALREADY"*.** **What is TRUE:** `addConstraint` already runs the pair's body at the registration instant
+   (`kernel-registration.mjs`'s `registrationAttempt`, its `THAT ONE PAIR` scope), and **a repair's edit goes through the
+   store's write route and is a real `JournalOp`** (`3-bis` (f), `:573`–`:578`). **What is FALSE of the present tree:** a
+   repair's write does NOT fire the listeners it triggers at that instant — **the module contains no `deliver` call at all**
+   (`PIN-6` (v) at `:510`–`:512`; the close's own clause *"IT STILL OPENS NO `K-2` AND STILL DELIVERS NO LISTENER"* at
+   `:888`–`:889`; `strata/research.md §13.2` `C-12`), so **nothing fires until a caller's own write reaches the address.**
+   **THEREFORE HIS SENTENCE IS ONE OF TWO THINGS AND ONLY HE CAN SAY WHICH** — **(i) a RULING that every registration
+   instant delivers, because the repair's write is a write** (which widens `D-123` item 2's firing from the creation to
+   `addConstraint`, a re-arm and the boot, and re-spells `D-94` item 3's *"the caller sees only success vs rank `19`"*), or
+   **(ii) a statement of the PRINCIPLE the creation's firing rests on, whose reach is the creation alone.** **NO PASS MAY
+   CHOOSE BETWEEN THEM.** The question is at L0's hand and unanswered as of this row.
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **Item 4's fork** — whether the registration-instant delivery reaches `addConstraint`, a re-arm and the boot.
+2. **The repeat arm's OWN answer**: where a pair that has already landed its one repair is asked again and would repair
+   again, does the construction REFUSE (a cycle, at rank `20`) or SKIP that pair's second repair and continue? His sentence
+   forbids the second attempt and does not say what meets it.
+3. **Whether a pair may be ASKED again after a repair of its own** (asking is not repairing), and whether such an ask that
+   PASSES is required for `D-123` item 1's *"inconsistent result"* to be decidable.
+4. **The class** — held by item 3, and therefore open by design.
+5. **`PIN-4`'s redraw** — the pin's new statement is L1's to write, not this row's.
+
+**TERMS: the terminator (`1` = cycle detection by the applied-repair rule), the round cap (`1` = retired), the minted member
+(`1` = rank `21` `ListenerBodyThrew`), the widened member (`1` = none), the class (`1` = held), the premises corrected
+(`1` = *"should already … fire"*), the forks left (`1` = the registration-instant reach), the questions left (`3`), the
+mechanisms minted (`0`), the units minted (`0`).**
+
+### `D-125` — ★ A REPAIR'S WRITE'S LISTENERS ARE DELIVERED AT EVERY REGISTRATION INSTANT, NOT AT THE CREATION ALONE; and a pair's SECOND repair attempt is an INCONSISTENT RESULT and refuses
+
+**DATE:** 2026-11-06. **BRANCH:** `main`. **HEAD:** `3f24248`. **SOURCE:** the architect, in session, answering the two
+questions `D-124` put back to him. **HIS ANSWERS, VERBATIM:**
+
+> **the registration-instant reach** — *"Widen: `addConstraint`, a re-arm, the boot and the creation ALL deliver after their
+> repairs"*
+>
+> **the repeat arm** — *"Refuse the construction at rank 20 — a cycle is an inconsistent result"*
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE DELIVERY IS A PROPERTY OF THE REPAIR'S WRITE AND NOT OF THE CREATION.** **Wherever a repair runs, the listeners its
+   write fires are delivered — `storeCreate`, a boot over an existing `filePath`, `addConstraint`, and a re-arm — after the
+   constraints pass, after the save, in `D-117`'s order, instant for instant, with no delivery on a refusing arm.**
+   **⟶ CORRECTED `2026-11-06` BY GATE 4's SECOND READ (`role_l2_examiner`, `F-L2-1`), AND THE ERROR IS THIS ROW'S: THE
+   HEADING SENTENCE IS TOO WIDE FOR THE CREATION AND THE BOOT, AND THE ARCHITECT'S OWN WORDS ARE THE NARROWER RULE.** **At
+   `storeCreate` and at a boot the delivered SET IS `adopted ∩ resolving` — every adopted listener whose watched address
+   EXISTS — and not the repair's write's triggered set**; that is what he said (*"fire all ones with an existing address
+   after constraints pass"*, `D-123` item 2) and what `D-123`'s own item 2 pinned, and `PIN-6` (i) implements it. **At
+   `addConstraint` and a re-arm the set IS the repair's write's triggered set** (`PIN-6` (ii)), because there no adopted list
+   is in play — the pair is being registered against an existing instance. **SO THE RULE IS ONE ORDER AND TWO SETS, AND THE
+   MEASURED CONSEQUENCE IS THAT AT A CREATION OR A BOOT A LISTENER FIRES FOR ITS OWN EXISTING ADDRESS WHETHER OR NOT A
+   REPAIR WROTE IT** (driven: a boot with constraints that repair an unrelated address still fires a listener at an existing
+   address; a boot carrying NO constraints fires it too), **while at the two single-pair routes it fires only for what a
+   repair's write touched.** **What stands unmoved in the heading sentence: the delivery is owed wherever a repair runs, the
+   order, the save, the one-argument rule and the no-delivery-on-a-refusing-arm rule.** **What it loses: the claim that the
+   set is the same object at all four instants.**
+   **`D-123` item 2's firing rule is thereby GENERAL and its creation-only reading is superseded**: the rule it stated was
+   the first instance of a rule that already belonged to the write surface, which is what the architect's own ground said —
+   *"because the repairs use the write/delete surface"*. **THE CORPUS'S THREE-DECADE-LONG SILENCE AT THIS INSTANT IS CLOSED
+   BY NAME: `C-12` (*"a registration reaches no terminal arm and no delivery seam"*) stops being true, and so does the
+   clause that has stated it in the code since the instant was built** — `kernel-registration.mjs`'s *"IT STILL OPENS NO
+   `K-2` AND STILL DELIVERS NO LISTENER"* (`:888`–`:889`) and `PIN-6` (v) (`:510`–`:512`).
+2. **WHAT THE WIDENING MOVES, NAMED SO NO PASS DISCOVERS IT LATE.** **(i) `D-94` item 3** — *"A caller sees the difference
+   only on the arm above: the registration succeeds rather than refusing at rank `19`"* — **STOPS: the caller's view of a
+   registration gains a third observable, the listeners its repairs fired.** **(ii) `docs/specs/storeroom-js/surface.md
+   §2.7` item 7's closed list of delivery instants gains the registration instants** (`X-22`), and `§2.12`'s `(iii)` is read
+   through them. **(iii) `docs/guides/package-use.md:497`–`:499`** — *"nor does a boot or any read-driven traversal fire a
+   listener"* — **is corrected in the same pass**, and its `§6`'s closed list of two firing acts becomes three.
+   **(iv) `strata/research.md §13.2`'s `C-12`** is re-derived by the supervisor. **A delivery at `addConstraint` DOES NOT
+   change the answer's declared type** — the identity is still the answer — and **a fired body's throw at those instants is
+   `D-124` item 2's rank `21` `ListenerBodyThrew` by the same reading.**
+3. **THE SWEEP'S MEMBERSHIP DOES NOT WIDEN WITH THE DELIVERY, AND THE TWO MUST NOT BE READ AS ONE MOVE.** His words name
+   delivering *"after their repairs"*; they do not name a whole-register sweep at `addConstraint`. **So the scope split
+   stands as `D-123` and `D-124` recorded it**: **the CREATION and the BOOT sweep the register and refuse an inconsistent
+   result (`D-123` item 1); `addConstraint` and a re-arm keep the registration instant's own single-pair scope** — **the
+   difference being that a creation's answer is a store and an add route's answer is an identity, so *"an inconsistent
+   result"* is a state only the former can return.** **A pass that widens the SWEEP by implication from this row would be
+   widening a ruling into a design.**
+4. **A PAIR'S SECOND REPAIR ATTEMPT IS AN INCONSISTENT RESULT AND REFUSES AT RANK `20` `ConstraintPassRefused`.** **The
+   cycle detector `D-124` item 1 installed now has its consequence stated: detection is not a skip, not a silent
+   termination and not a cap — *"a cycle is an inconsistent result"*, and an inconsistent result refuses.** At a creation
+   and at a boot the CONSTRUCTION refuses and no instance is returned; **at `addConstraint` and a re-arm the REGISTRATION
+   refuses** (the rank at those two instants is `D-125`'s first residual, below). **A pair asked again after its own repair
+   and PASSING is not a cycle** — asking is not repairing — and that ask is what makes item 3's *"inconsistent result"*
+   decidable at all.
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **The rank a cycle crosses at `addConstraint` and at a re-arm** — rank `20` `ConstraintPassRefused` (the architect's
+   words, written for a construction) or rank `19` `ConstraintRefusedAtRegistration` (the registration instant's own
+   verdict). **The two are different members with different subjects and the row does not choose.**
+2. **Whether the widened delivery reaches a registration whose repair landed NOTHING** — a registration with no repair fires
+   no listener by construction, and a registration whose repair ran but was later rolled back by `D-107` must not deliver
+   (`D-117` item 2's *"no delivery on the failing arm"*), so the set is empty and not silent — **but the arm's own statement
+   is L1's.**
+3. **What a fired body's throw does at a REGISTRATION that has already returned an identity** — at a creation the instance
+   does not exist yet, so the refusal is clean; at `addConstraint` the pair stands registered when the body throws, and
+   whether the registration is undone is unstated.
+4. **The prose list's final form** — item 2 names four sites; the landing pass owns the sentences.
+5. **The redraw of the pins** — `PIN-4` (cycle detection), `PIN-6` (the delivered set and its instants), `PIN-10` (the
+   throw at four instants instead of one) and `PIN-15` (the class, still held) are L1's to restate, and **gate 3 may not
+   open on the superseded text.**
+
+**TERMS: the delivery's reach (`1` = every registration instant), the creation-only reading (`1` = superseded), the
+declarations closed (`2` = `C-12` and the code's own no-delivery clause), the corpus sites that move (`4` = `D-94` item 3 ·
+`surface.md §2.7` item 7 · `package-use.md §6` · `C-12`), the sweep's membership (`1` = UNMOVED), the cycle's answer
+(`1` = refuse at rank `20`), the cycle's skips (`0`), the ranks chosen at `addConstraint` (`0`), the mechanisms minted
+(`0`), the questions left (`5`).**
+
+### `D-126` — ONE REPAIR PER PAIR STANDS AND A CONVERGING CASCADE IS REFUSED BY DESIGN; A CORRUPT IMAGE REFUSES THE CONSTRUCTION WITH A CODE; and the unit is a `MINOR` at `1.11.0`
+
+**DATE:** 2026-11-06. **BRANCH:** `main`. **HEAD:** `3f24248` (unit uncommitted). **SOURCE:** the architect, in session,
+answering gate 4's three consequences. **HIS ANSWERS, VERBATIM:**
+
+> **the cascade** — *"Keep it strictly one repair per pair (D-124's words, unchanged)"*
+>
+> **the corrupt image** — *"Mint/revive a code: a corrupt image refuses the construction"*
+>
+> **the class** — *"`MINOR` → 1.11.0, one line, three classes printed in the notes"*
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **`D-124` ITEM 1'S ONE-REPAIR RULE STANDS UNCHANGED, AND GATE 4's `G4-C-3` IS A RULED CONSEQUENCE AND NOT A DEFECT.** **A
+   pair that would converge in two steps is REFUSED at rank `20`, with the same member and the same sentence as an infinite
+   cycle, and that is the design.** **What this row adds is the declaration the code's sentence lacked: the refusal is a
+   VERDICT ABOUT THE RULE and not a diagnosis of the repair.** **A caller who needs a multi-step normalisation owns it** — it
+   is the caller's job to reach a state its pair accepts in one edit, exactly as `D-70`'s derived-value rule tells a caller to
+   watch a vec rather than an index. **The declaration's `CSW-22` therefore stands as the whole of the arm's coverage: *"asked
+   again and PASSING is not a cycle"* is the only distinction the rule makes, and no progress test is owed, minted or
+   permitted.**
+2. **A CORRUPT IMAGE REFUSES THE CONSTRUCTION WITH A CODE — `D-123` ITEM 4's DIAGNOSIS BECOMES REAL IN BOTH DIRECTIONS.**
+   **The silence `PIN-11` pinned (*"CORRUPT FILE DATA CROSSES NONE"*) is RETIRED**: an application that must *"check if file
+   data is corrupt or if constraints are incompatible"* cannot do it while corruption returns an instance indistinguishable
+   from an empty path — and the next save would then write a readable image over the corrupt bytes (`D-118` item 1), which
+   destroys the only evidence. **WHICH MEMBER IS NOT CHOSEN HERE** (`D-118`'s precedent and `D-123` residual 2 are the frame):
+   rank `16` `ConstraintListInvalid`'s row still declares a load-side validation `D-90` (5) orphaned, so reviving it and
+   minting a new member are both live and both carry a different subject. **L1 pins it**; no pass may implement a corrupt
+   arm against a member it chose for itself.
+3. **THE UNIT IS A `MINOR` — ONE LINE, `1.11.0`, WITH THE THREE CLASSES PRINTED IN THE NOTES.** **The element's required
+   member, the fail set `20 → 21` and the four-instant widening are ONE version, because a version is the maximum of the
+   moves it carries and no unit of this project has ever been cut twice** (`§1.7.0`'s four message changes as one `MINOR`;
+   `§1.6.2`'s record member and seven behaviours as one `PATCH`). **`PUB-DD-9` is the authority for the class** — *"a set
+   change in the store's own membership is NOT by itself a package major"* — **and `D-124` item 3's `MAJOR` presumption for
+   the set's half is SUPERSEDED BY THIS ROW**, not by a pass's reading. **`1.10.1` IS FORECLOSED** (`D-39` calls the last
+   set-growth-under-a-patch *"a semver breach"*, and this carries a breaking input requirement on top). **`2.0.0` is not
+   taken.** **The notes owe three sentences of class and one number**, and the number is `1.11.0`. **`1.10.0` is unreleased
+   at this date, so nothing already published is falsified by the cut.**
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **Which member carries the corrupt image**, and whether a corrupt arm composes `D-107`'s rollback (there is nothing to roll
+   back — the image is unreadable — so the answer is likely *no arm*, and it is L1's to state).
+2. **Whether the corrupt arm's refusal leaves the corrupt bytes alone** — his item's whole point is that evidence matters;
+   `PIN-12`'s *"a refused creation leaves the created file standing"* covers the created file and does not speak of the
+   corrupt one, because nothing was written to it.
+3. **Whether rank `21` carries the throwable** (gate 4's `G4-C-5`: `delivery.mjs` records `{thrown, address}` and the refusal
+   reads only `address`, so a body's error arrives with no cause, no message and no stack — against `D-73`'s ground that the
+   throw is kept precisely so a client can log it). **Unruled.**
+4. **The release-notes section, the guide's re-staging and the corpus's four element-shape sites** — owed by name in
+   `strata/envelope.md`, and none of them decided here.
+5. **The `§6.5a` carve** (`package-use.md:794`–`:796`, `:819`–`:824`), which still states the listener-throw asymmetry
+   without the four registration instants.
+
+**TERMS: the cascade (`1` = refused by design, no progress test), the corrupt image (`1` = refuses with a code), the member
+(`0` = L1's), the class (`1` = `MINOR`), the line (`1` = `1.11.0`), the classes the notes print (`3`), the `MAJOR`
+presumption (`1` = superseded), the versions foreclosed (`1` = `1.10.1`), the questions left (`5`), the units mints (`0`).**

@@ -922,16 +922,61 @@ pub fn fail_code_drive(code: &'static str) -> bool {
                 Err(e) => e.status != "ConstraintPassRefused",
             }
         }
-        other => panic!("`{other}` is not a member of the store's closed 20-member set"),
+        // **⟶ ADDED 2026-11-06 (`D-124` item 2; `PIN-10`; rank `21`): THE SET'S RANK-`21` MEMBER,
+        // `ListenerBodyThrew`, WHICH HAS NO PRODUCER IN THIS CRATE EITHER.** A listener BODY is the caller's own
+        // JS function, and it is invoked by the PACKAGE's own invocation loop (`delivery.mjs`'s `deliver`) — the
+        // store *"RETURNS the triggered listeners' handles and INVOKES NOTHING"* (`src/lib.rs:12`–`:17`), so this
+        // crate never sees a body and never mints this member. **THE DRIVE IS THE NEGATIVE ONE AND IT IS NOT A
+        // PLACEHOLDER**: a WELL-FORMED listener element crosses at the construction — `cfg.listeners` carrying
+        // `{ address, handle }` — the construction STANDS, the write TRIGGERS the adopted handle and NO CODE is
+        // produced. Were this crate to answer the body-throw member for a body it never invoked, this arm returns
+        // `false` and the `S-FAILSET` line and the census below go red.
+        "ListenerBodyThrew" => match create(&cfg_mem_with(vec![handle("l1")])) {
+            Ok(mut inst) => match write_at(&mut inst, &[key("a")], &JsValue::Num(1.0)) {
+                Ok(_) => true,
+                Err(e) => e.status != "ListenerBodyThrew",
+            },
+            Err(e) => e.status != "ListenerBodyThrew",
+        },
+        // **⟶ ADDED 2026-11-06 (`D-126` item 2; `docs/L1/creation-sweep.md §3` `PIN-11` redrawn; rank `22`):
+        // THE SET'S RANK-`22` MEMBER, `FileImageRefused` — AND IT IS REACHED THROUGH THIS CRATE'S OWN
+        // SURFACE, BECAUSE THE STORE MINTS IT.** Unlike the five members whose producer stands ABOVE this
+        // addon and unlike `RollbackCompacted`, this one's producer is `src/store.rs`'s own construction
+        // step `7`: the path is read once, and a PRESENT, NON-EMPTY image the loader REFUSES is the store's
+        // third image class (`FileImage::Refused`), answered **before the registration sweep** — so no image
+        // is installed, no pair is carried and no instance exists.
+        // **THE DRIVE IS THE POSITIVE ONE AND IT IS THE REAL TRIGGER, NOT A PLACEHOLDER**: a CORRUPT image
+        // is written BY HAND at this drive's own scratch path and the construction over it must answer
+        // exactly this member. **THE PATH IS THIS DRIVE'S OWN** (`DrivePath`'s header: the cells of one
+        // binary run on parallel threads, so a shared path is a verdict that depends on a sibling) — this
+        // drive WRITES bytes to the path, which is the state a shared path cannot carry. A construction that
+        // answered an instance, or any other member, or that left the bytes disturbed, returns `false` here
+        // and the `S-FAILSET` line and the census cell go red.
+        "FileImageRefused" => {
+            let scratch = DrivePath::unique("storeroom-js-failset-corrupt-image", "store.json");
+            if std::fs::write(scratch.as_str(), b"{ this is not an image any loader can read").is_err() {
+                return false;
+            }
+            let got = produced(create(&cfg_at(scratch.as_str(), 2)).map(|_| ()));
+            let bytes_stand = std::fs::read(scratch.as_str())
+                .map(|bytes| bytes == b"{ this is not an image any loader can read".to_vec())
+                .unwrap_or(false);
+            got == Some("FileImageRefused".to_string()) && bytes_stand
+        }
+        other => panic!("`{other}` is not a member of the store's closed 22-member set"),
     }
 }
 
-/// The closed set itself, printed with its terms: **the store's own `20` members, and this unit mints no
-/// twenty-first** (`A148` (Q3): *"the OPERATIVE CENSUS IS `17`, RANKED `1`…`17`"*, read THROUGH the architect's
+/// The closed set itself, printed with its terms: **the store's own `22` members** (`D-124` item 2's rank `21`
+/// `ListenerBodyThrew` is MINTED and moves the set `20 → 21`; `D-126` item 2's rank `22` `FileImageRefused` is
+/// MINTED and moves it `21 → 22`; `src/error.rs`'s `pub const CODES: [&str; 22]`). (`A148` (Q3): *"the OPERATIVE CENSUS IS `17`, RANKED `1`…`17`"*, read THROUGH the architect's
 /// ruling of 2026-10-26 — *"Expand the returned error set for both S/N"* — which appends ranks `18` and `19`,
 /// and THROUGH the ruling of the same date on `DEF-H`/`DEF-W` — *"Expand the returned fail-state list to
 /// include the refusal"*, *"Assert the constraints on rollback"* — which appends rank `20`,
-/// `ConstraintPassRefused`; `src/error.rs`'s `pub const CODES: [&str; 20]`).
+/// `ConstraintPassRefused`; `D-124` item 2, which appends rank `21` `ListenerBodyThrew` and moves the array to
+/// `pub const CODES: [&str; 21]`; and `D-126` item 2 — *"Mint/revive a code: a corrupt image refuses the
+/// construction"* — whose member is `L1`'s (`docs/L1/creation-sweep.md §3` `PIN-11`) and is the MINTED rank `22`
+/// `FileImageRefused`, moving the array to `pub const CODES: [&str; 22]`).
 ///
 /// **⟶ WIDENED 2026-10-15 (`DEF-2026-10-15-Y`): the as-filed *"`15` members, and this unit mints no
 /// sixteenth"* printed a superseded figure.** The figure is `CODES.len()`'s and not this comment's, and the
@@ -949,8 +994,9 @@ pub fn all_fail_codes() -> Vec<&'static str> {
     CODES.to_vec()
 }
 
-/// **THE MEMBERS OF THE CLOSED SET WHOSE TRIGGER IS REACHABLE THROUGH THIS CRATE'S OWN SURFACE** — `16` of
-/// `19` (`A148` (Q3)'s rank `17`, `ValueRefusedAtBoundary`, PLUS the two arms the 2026-10-26 ruling appended).
+/// **THE MEMBERS OF THE CLOSED SET WHOSE TRIGGER IS REACHABLE THROUGH THIS CRATE'S OWN SURFACE** — `15` of
+/// `21` (`A148` (Q3)'s rank `17`, `ValueRefusedAtBoundary`, PLUS the two arms the 2026-10-26 ruling appended,
+/// PLUS `D-124` item 2's rank `21`).
 /// **Those three members' producers stand ABOVE this addon** — the boundary walk
 /// (`bindings/js/src/entry/carrier.mjs`'s `valueReject`, driven by the JS battery's `NG-JS-D`), the kernel's
 /// body-throw mark and the entry's conversion (`DEF-S`), and the kernel's registration verdict (`DEF-N`) —
@@ -975,6 +1021,22 @@ pub fn all_fail_codes() -> Vec<&'static str> {
 /// AND THE ARITHMETIC IS NOW `15 + 4 + 1 = 20`**: `15` reached through this crate's own surface, `4` owned by the
 /// package above it, and `1` declared with no producer. **NOTHING IS DROPPED, NOTHING IS COUNTED TWICE, and the
 /// `15` that remain are each driven through a real trigger exactly as they were.**
+/// **⟶ AND RE-DERIVED AGAIN 2026-11-06 (`D-124` item 2; `PIN-10`): THE FILTER CARRIES A SIXTH SPELL, THE
+/// REACHABLE COUNT STANDS AT `15`, AND THE CENSUS MOVES `20 → 21`.** `ListenerBodyThrew` — rank `21`, minted by
+/// `D-124` item 2 — joins the members whose producer stands ABOVE this addon: a fired body is the caller's own
+/// JS function and the PACKAGE's invocation loop runs it (`delivery.mjs`'s `deliver`), while the store
+/// *"RETURNS the triggered listeners' handles and INVOKES NOTHING"* (`src/lib.rs:12`–`:17`). **THE `21` IS THE
+/// SET'S AND THE ARITHMETIC IS NOW `15 + 5 + 1 = 21`**: `15` reached through this crate's own surface, `5` owned
+/// by the package above it, and `1` declared with no producer. **NOTHING IS DROPPED, NOTHING IS COUNTED TWICE,
+/// and the `15` that remain are each driven through a real trigger exactly as they were.**
+/// **⟶ AND RE-DERIVED AGAIN 2026-11-06 (`D-126` item 2; `PIN-11`): THE FILTER IS UNMOVED AND BOTH FIGURES MOVE
+/// — THE REACHABLE COUNT `15 → 16` AND THE CENSUS `21 → 22`.** `FileImageRefused` — rank `22`, minted by
+/// `D-126` item 2 and pinned at `docs/L1/creation-sweep.md §3` `PIN-11` — is **THE STORE'S OWN**: the store
+/// answers it at the construction's step `7` before the sweep, so it is reached through this crate's surface
+/// exactly as ranks `1`…`14` are, **and it joins neither the five the package owns nor the one declared with no
+/// producer.** **THE ARITHMETIC IS NOW `16 + 5 + 1 = 22`**: `16` reached through this crate's own surface, `5`
+/// owned by the package above it, and `1` declared with no producer. **NOTHING IS DROPPED, NOTHING IS COUNTED
+/// TWICE, and the new member is driven through its real trigger by `fail_code_drive`'s own rank-`22` arm.**
 pub fn crossing_reachable_fail_codes() -> Vec<&'static str> {
     all_fail_codes()
         .into_iter()
@@ -983,6 +1045,7 @@ pub fn crossing_reachable_fail_codes() -> Vec<&'static str> {
                 && *code != "ConstraintBodyThrew"
                 && *code != "ConstraintRefusedAtRegistration"
                 && *code != "ConstraintPassRefused"
+                && *code != "ListenerBodyThrew"
                 && *code != "RollbackCompacted"
         })
         .collect()

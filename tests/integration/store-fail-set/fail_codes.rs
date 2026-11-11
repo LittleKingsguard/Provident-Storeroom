@@ -823,14 +823,43 @@ fn s8_1_every_driven_code_is_a_member_of_the_closed_set() {
     // fail-state list to include the refusal"* and *"Assert the constraints on rollback"*): THE SET CARRIES
     // TWENTY MEMBERS, RANKED `1`…`20`, `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 20` ✓, the appended term being
     // the constraint PASS's refusal at rank `20`. NO RANK OF `1`…`19` MOVES.**
+    // **⟶ AND ONCE MORE 2026-11-06 (`D-124` item `2`; `PIN-10`; the architect, verbatim: *"The closed fail set
+    // moves `20 → 21`"*): THE SET CARRIES TWENTY-ONE MEMBERS, RANKED `1`…`21`,
+    // `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 21` ✓, the appended term being `ListenerBodyThrew` at rank
+    // `21`. NO RANK OF `1`…`20` MOVES.**
+    // **⟶ AND ONCE MORE 2026-11-06 (`D-126` item `2`; the architect, verbatim: *"Mint/revive a code: a corrupt
+    // image refuses the construction"*, its member pinned at `§3` `PIN-11`): THE SET CARRIES TWENTY-TWO MEMBERS,
+    // RANKED `1`…`22`, `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 22` ✓, the appended term being
+    // `FileImageRefused` at rank `22`. NO RANK OF `1`…`21` MOVES.**
+    // **⟶ AND THE CENSUS IS NO LONGER A COPY COUNTED AGAINST ITSELF — GATE 4's FINDING, CLOSED 2026-11-06.**
+    // `CLOSED_CODES` is now the crate's own `CODES` (`tests/integration/support/mod.rs`, re-exported from
+    // `src/error.rs`), so this count is a statement about THE SOURCE OF TRUTH and not about a hand-written
+    // list beside it: a set that moves moves `distinct.len()` and this assertion fails. **What it additionally
+    // catches is a member repeated inside that array, because the dedupe stands between the array and the
+    // count.** The membership's INDEPENDENT pin is `expected_ranks` at the end of this drive, a written-out
+    // list compared member for member.
     assert_eq!(
         distinct.len(),
-        20,
-        "§8.1: the set carries 20 members, ranked 1…20 (`11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 20` ✓ — the \
+        22,
+        "§8.1: the set carries 22 members, ranked 1…22 (`11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 22` ✓ — the \
          as-filed `11 + 2 + 1 + 1 = 15` counted the amended heading's own members one short; AMENDED \
          2026-10-15, `DEF-2026-10-15-Y`; WIDENED 2026-10-23 by `A148` Q3 with `ValueRefusedAtBoundary` at \
          rank 17; WIDENED 2026-10-26 on the rulings for `DEF-S`/`DEF-N` with `ConstraintBodyThrew` at 18 and \
-         `ConstraintRefusedAtRegistration` at 19, and for `DEF-H`/`DEF-W` with `ConstraintPassRefused` at 20)"
+         `ConstraintRefusedAtRegistration` at 19, and for `DEF-H`/`DEF-W` with `ConstraintPassRefused` at 20; \
+         WIDENED 2026-11-06 on `D-124` item 2 with `ListenerBodyThrew` at 21, and on `D-126` item 2 with \
+         `FileImageRefused` at 22)"
+    );
+    assert!(
+        distinct.contains(&"FileImageRefused"),
+        "§8.1 #22: `D-126` item 2's member — a CORRUPT IMAGE's refusal at the construction, minted by the STORE \
+         at `src/store.rs`'s step 7 and carried by no package byte — is IN the closed set, and \
+         `ConstraintListInvalid` (rank 16) is NOT revived to reach it (2026-11-06; `PIN-11`)"
+    );
+    assert!(
+        distinct.contains(&"ListenerBodyThrew"),
+        "§8.1 #21: `D-124` item 2's member — a CREATION-FIRED listener body's throw, carried by the package at \
+         the four registration instants (`D-125` item 1) and minted by no Rust byte — is IN the closed set, and \
+         `ConstraintBodyThrew` (rank 18) is NOT widened to reach it (2026-11-06)"
     );
     assert!(
         distinct.contains(&"ConstraintBodyThrew"),
@@ -892,16 +921,25 @@ fn s8_1_every_driven_code_is_a_member_of_the_closed_set() {
         "ConstraintRefusedAtRegistration",
         // ⟶ APPENDED 2026-10-26 (`DEF-H`, `DEF-W`; the ruling on the refusal and the reversal).
         "ConstraintPassRefused",
+        // ⟶ APPENDED 2026-11-06 (`D-124` item `2`; `PIN-10`; the minting of rank `21`).
+        "ListenerBodyThrew",
+        // ⟶ APPENDED 2026-11-06 (`D-126` item `2`; `PIN-11`; the minting of rank `22`).
+        "FileImageRefused",
     ];
     assert_eq!(
         CLOSED_CODES.to_vec(),
         expected_ranks.to_vec(),
         "§8.1's own rank order: `FilePathUnreachable` at `13`, `ValueNotAdmitted` at `14`, \
          `FileCommitFailed` at `15`, `ConstraintListInvalid` at `16`, `ValueRefusedAtBoundary` at `17`, \
-         `ConstraintBodyThrew` at `18`, `ConstraintRefusedAtRegistration` at `19` and \
-         `ConstraintPassRefused` LAST at `20` — no existing rank moves (AMENDED 2026-10-15, \
-         `DEF-2026-10-15-Y`; WIDENED 2026-10-23, `A148` Q3; WIDENED 2026-10-26, the `DEF-S`/`DEF-N` and \
-         `DEF-H`/`DEF-W` rulings)"
+         `ConstraintBodyThrew` at `18`, `ConstraintRefusedAtRegistration` at `19`, \
+         `ConstraintPassRefused` at `20`, `ListenerBodyThrew` at `21` and `FileImageRefused` LAST at `22` — \
+         no existing rank moves \
+         (AMENDED 2026-10-15, `DEF-2026-10-15-Y`; WIDENED 2026-10-23, `A148` Q3; WIDENED 2026-10-26, the \
+         `DEF-S`/`DEF-N` and `DEF-H`/`DEF-W` rulings; WIDENED 2026-11-06, `D-124` item 2 and `D-126` item 2). \
+         **THIS WRITTEN-OUT \
+         LIST IS THE MEMBERSHIP'S INDEPENDENT PIN** — `CLOSED_CODES` is the crate's own `CODES` from \
+         2026-11-06, so the rank order and the membership are stated HERE, by hand, and a crate whose array \
+         lost, reordered or invented a member fails at this literal by name"
     );
 }
 

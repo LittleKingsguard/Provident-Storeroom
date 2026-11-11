@@ -328,6 +328,17 @@ const REGISTRATION_SAVE = Symbol.for('provident-storeroom.registration-save');
 /// over the array's own exotic `length` and its own indices, appending by `appendOwn` — the same helper every
 /// other append on these paths already takes. **NO ANSWER MOVES**: the same segments in the same order, in a
 /// FRESH array, exactly as the `slice` produced.
+/// **ONE MEMBER OF A HANDED VALUE, READ AS AN OWN DATA PROPERTY OR NOT AT ALL** — `[[GetOwnProperty]]`'s
+/// answer, taken through `Object.getOwnPropertyDescriptor`, which consults no prototype chain. It is the same
+/// reading `refusal.mjs`'s own-member helper takes and `constraints.mjs`'s `ownDataMember` spells at the
+/// reversal's delivery, repeated here because this file imports neither.
+function ownDataMember(value, name) {
+  if (value === null || typeof value !== 'object') return undefined;
+  const descriptor = Object.getOwnPropertyDescriptor(value, name);
+  if (descriptor === undefined || !Object.hasOwn(descriptor, 'value')) return undefined;
+  return descriptor.value;
+}
+
 function copySegments(address) {
   const copy = [];
   for (let i = 0; i < address.length; i += 1) appendOwn(copy, address[i]);
@@ -475,6 +486,102 @@ export function installRegistrationSave(instance, state) {
     enumerable: false,
     configurable: false,
   });
+}
+
+/// **⟶ ADDED 2026-11-06 — THE REGISTRATION INSTANT'S OWN DELIVERY, INSTALLED ONCE BY `storeCreate`**
+/// (`D-125` item `1`; `PIN-2`, `PIN-6`; `kernel-registration.mjs`'s `REGISTRATION_DELIVER`, spelled from that
+/// side). **THE RULING, VERBATIM: *"Wherever a repair runs, the listeners its write fires are delivered —
+/// `storeCreate`, a boot over an existing `filePath`, `addConstraint`, and a re-arm — after the constraints pass,
+/// after the save, in `D-117`'s order, instant for instant, with no delivery on a refusing arm."***
+///
+/// **THE SET IS THE STORE'S OWN `triggered`** — `PIN-6` (ii): the `WriteRecord` member the repair's write
+/// answered, which is *"the very record `write` answers"* — and **the kernel hands it over at the close's
+/// PASSING arm, after the save** (`kernel-registration.mjs`'s `closeRegistrationAttempt`). **THE ONE ARGUMENT IS
+/// THE REPAIR'S OWN OP ADDRESS** (`PIN-6` (iv)), which the route carries beside the set.
+///
+/// **ONE INVOCATION PER DISTINCT HANDLE ACROSS THE WHOLE DELIVERY, NOT ONE PER SET** (`PIN-6` (iii); `D-125`
+/// item `1`'s *"once per distinct handle"*): the running handle list is held ACROSS the calls — **the reversal's
+/// own mechanism**, `constraints.mjs:3009`–`:3037`'s `deliver(state, owed, triggeringAddress)` per leg with the
+/// list carried between them — and `deliver`'s own interior rules (`:156`–`:183`'s snapshot and dedupe,
+/// `:188`–`:208`'s one invocation) are UNMOVED. **AN EMPTY SET IS A COUNT OF ZERO AND NOT SILENCE** (`PIN-6`
+/// (v); `Q-12`): a registration that landed nothing reaches this channel with an empty list and delivers
+/// nothing, which is the declared observable and not an absence.
+///
+/// **AND A FIRED BODY'S THROWABLE IS NOT RAISED FROM THIS FRAME** (`PIN-10`, `Q-13`): *"the throw pre-empts the
+/// answer and the standing stands"*, so the throwable is CAUGHT HERE and recorded on the package's own state —
+/// `state.listenerFailure`, a value of the package's state and not a member of any record — and **the ACT that
+/// called the registration converts it into rank `21` `ListenerBodyThrew` before it answers**. That is what keeps
+/// the pair standing, the save standing, the attempt closed, and every other registration of the same act
+/// untouched. **NO ROLLBACK COMPOSES, NO WITHDRAWAL IS DECLARED AND THE KERNEL'S OWN CATCHES ARE NEVER REACHED**
+/// — a throw from here would have crossed the kernel's body-throw frames and converted into ranks this instant
+/// does not declare.
+const REGISTRATION_DELIVER = Symbol.for('provident-storeroom.registration-deliver');
+
+/// **THE INSTALL, CALLED ONCE BY `storeCreate`** — beside the two channels above and for their reason: the
+/// registration's close reaches the entry's delivery by a `Symbol.for` key, the two modules do not import each
+/// other, and `Object.defineProperty` at `enumerable: false` is invisible to `Object.keys` and to
+/// `Object.getOwnPropertyNames`, so the product's declared own member set is unmoved (`A117` (D6)).
+export function installRegistrationDelivery(instance, state) {
+  if (typeof instance[REGISTRATION_DELIVER] === 'function') return;
+  Object.defineProperty(instance, REGISTRATION_DELIVER, {
+    value: (owed) => registrationDelivery(state, owed),
+    writable: true,
+    enumerable: false,
+    configurable: true,
+  });
+}
+
+/// **THE CHANNEL'S BODY — THE PASSING CLOSE'S ONE CALL, ANSWERED AS `undefined` ON EVERY ARM.**
+///
+/// **`state.registrationDelivery` SAYS WHICH INSTANT IS SPEAKING, AND THAT IS WHY IT IS READ FIRST.** The
+/// creation and a boot are the SAME construction act at the same byte (`F-3`, `D-90` (5)), and THEIR delivered
+/// set is `PIN-6` (i)'s — the ADOPTED set ∩ the addresses that resolve — which `storeCreate` delivers itself
+/// after the listeners are armed. **So this channel is silent while the construction is the act in hand** and
+/// speaks at the two single-pair routes alone, where `PIN-6` (ii) makes the set the repair's own `triggered`
+/// (the entry sets the flag around `addConstraint` and `constraintOn`). **NO MEMBER IS MINTED**: the flag and the
+/// failure slot are values of the package's own state, exactly as `legDelivery` already is.
+function registrationDelivery(state, owed) {
+  if (state.registrationDelivery !== 'triggered') return undefined;
+  if (!Array.isArray(owed) || owed.length === 0) return undefined;
+  const delivered = [];
+  for (let leg = 0; leg < owed.length; leg += 1) {
+    const one = owed[leg];
+    if (one === null || typeof one !== 'object') continue;
+    const elements = ownDataMember(one, 'triggered');
+    const legAddress = ownDataMember(one, 'address');
+    const call = [];
+    if (Array.isArray(elements)) {
+      for (let element = 0; element < elements.length; element += 1) {
+        const carried = elements[element];
+        if (carried === null || typeof carried !== 'object') continue;
+        const handle = ownDataMember(carried, 'handle');
+        if (handle === undefined) continue;
+        let seen = false;
+        for (let matched = 0; matched < delivered.length; matched += 1) {
+          if (delivered[matched] === handle) {
+            seen = true;
+            break;
+          }
+        }
+        if (seen === true) continue;
+        appendOwn(delivered, handle);
+        appendOwn(call, carried);
+      }
+    }
+    if (call.length === 0) continue;
+    try {
+      // **THE ONE INVOCATION LOOP IS `deliver`'S AND NOT A SECOND ONE** (`surface.md §2.4` rules 1–3 read at
+      // this instant): one call per leg, its set and its own triggering address, the running list held outside.
+      deliver(state, call, legAddress);
+    } catch (thrown) {
+      // **THE THROWABLE IS THE ACT'S, NOT THIS FRAME'S** (`PIN-10`, `Q-13`): recorded once and handed on, and
+      // the act converts it at rank `21` before it answers. **THE DELIVERY STOPS HERE** — the refusal pre-empts
+      // the answer, so no later leg is delivered on an act that cannot answer.
+      state.listenerFailure = { thrown, address: legAddress };
+      return undefined;
+    }
+  }
+  return undefined;
 }
 
 /// **THE REGISTRY'S OWN SITE AT THE PACKAGE'S BOUNDARY** (`surface.md §2.4` item 5): the caller's FUNCTION

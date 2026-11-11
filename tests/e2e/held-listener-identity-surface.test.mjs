@@ -355,7 +355,7 @@ test('hli_surface_the_boot_route_goes_through_the_same_listen_verb', () => {
     journalLength: 16,
     // ONE HANDLE ARRIVES AT N ADDRESSES AS N ELEMENTS — an element carries ONE address and not a set
     // (`listen-verb.md §6` item 5; `PAR-HL-24`).
-    listeners: [{ address: a, handle: h }, { address: b, handle: h }],
+    listeners: [{ address: a, handle: h, listener: () => {} }, { address: b, handle: h, listener: () => {} }],
   });
   // The boot's own entry is OFF — nothing is registered — so the store returns the handle and nothing runs.
   const at = booted.write(a, 'mem', 1);
