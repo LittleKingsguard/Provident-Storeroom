@@ -826,3 +826,43 @@ The pass held **no shell**; its instrument was the repository's file-listing too
 4. **The guide's `0.5.0` manifest-table rows** — owed to whichever pass owns `§11`'s figures (`D-79`/`D-80`).
 5. **The whole working tree is uncommitted** — a second session's `strata/research.md` §21 and `strata/proposals.md` `P-3` are another request's and must not be swept into the push: the architect's commit should take the unit's paths, not `git add -A` blind.
 
+---
+
+# Envelope — `U-STOREROOM-REQUIRE-CONDITION` · PUSH-READY · 2026-11-17 · `bdc22df`
+
+**WHAT THIS ENTRY IS.** The supervisor's record of the push-readiness acts after the architect's instruction: the unit committed (`bdc22df`), pushed to `origin/main`, and **the preflight taken on a clean tree, exit `0`**. The tag remains the architect's.
+
+## 1 · VERDICT
+
+**`PUSH-READY`** — the unit's 35 paths are committed as `bdc22df` and pushed (`5cfb329..bdc22df`); `scripts/publish.sh --check` on a clean tree (HEAD == `origin/main`) reads **exit `0`**, `ok preflight passed`, with the eleven version cells all reading `1.12.0` and every leg green. **Two warnings stand, both expected and neither a refusal** (§3).
+
+## 2 · THE COMMIT AND THE PUSH
+
+- **`bdc22df` — "Land the require-condition unit (U-STOREROOM-REQUIRE-CONDITION, D-127..D-129)"** — 35 files, `+1647 / -166`, pushed, branch level with `origin/main`.
+- **The shared-file discipline was kept.** `strata/research.md` was staged at its **§20 hunks only** (the staged blob = `HEAD`'s file + §20; §21 is the other session's record and stayed uncommitted — verified: the staged content carries `0` occurrences of `§21`). `strata/proposals.md` (`P-3`, the other session's) is **not in the commit**. The commit body says so.
+- **The other session's records remain uncommitted by design** — after the commit, `git status` shows exactly `strata/research.md` (§21 hunk) and `strata/proposals.md` (`P-3`).
+
+## 3 · THE PREFLIGHT ON THE CLEAN TREE
+
+`bash scripts/publish.sh --check`, run with HEAD == `origin/main` and the tree clean (the other session's two paths temporarily stashed and restored immediately after — nothing committed, nothing changed in their bytes), **exit `0`**:
+
+- `ok tree clean` · `ok preflight passed`
+- the three shipped version lines agree with the manifest
+- cut claims: `accepted(archived) 1 · accepted(baseline) 83 · refused 0 · stale 0`
+- `cargo test --offline: 675 pass / 0 fail` · `cargo build --offline clean` · each lock's package set matches its manifests
+- the JS artefact built and staged
+- `npm test` (the manifest's battery): **1,324 pass / 0 fail** (the `1,325`/`1` skip is the suite's own skip)
+- both landings byte-for-byte at the packaging root, named by `files`
+- **the eleven cells all read `1.12.0`** (main · five pins · five platforms)
+- the tag set shows `v1.11.0` and below; `v1.12.0` unclaimed
+
+**Two warnings, both the expected pre-tag state:**
+1. *"the carrier's anchor phrase … phrase not found — the helper's anchor has moved; read §2.5 item 1"* — the carrier file (`docs/specs/storeroom-publish-proposal.md`) is absent from this tree, the same environment fact the `1.9.3` envelope recorded (§6(c)); the step is a silent no-op and exits `0`.
+2. *"tag(s) above do not match the manifest version '1.12.0' — the coupling cell will redden"* — the last tag is `v1.11.0` and the manifest is `1.12.0`: **expected before the tag**, and discharged by the architect's `v1.12.0`.
+
+## 4 · WHAT REMAINS — THE TAG, AND ONE PRECONDITION FOR IT
+
+1. **The architect's acts**: the annotated tag `v1.12.0`, its push (which fires the publish workflow), then `scripts/publish.sh --verify 1.12.0 --yes`.
+2. **The tag's own preflight will meet the same clean-tree guard** the `--check` run met, and the **two uncommitted paths are still there** (`research.md` §21, `proposals.md` `P-3`). **They must be settled before the tag — by that session's own commit, or by a stash the architect controls.** The unit itself is push-ready; the tree is not clean until the other session's records are.
+3. **Still open, non-blocking**: `Q-9` (esbuild silent-inline home), `Q-10` (provenance), the `package.md` citation discrepancy, and the guide's `0.5.0` manifest-table rows (owner: `§11`'s figures pass).
+
