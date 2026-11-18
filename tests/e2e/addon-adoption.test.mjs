@@ -2410,13 +2410,20 @@ test('ada_the_adoption_manifest_states_the_two_declarations_and_names_the_copy_s
   const addonDeclarations = existsSync(addonDir)
     ? readdirSync(addonDir).filter((name) => name.endsWith('.d.ts'))
     : [];
-  const exportedPaths = [pkg.exports['.'].types, pkg.exports['.'].import]
+  // ⟶ **STRENGTHENED 2026-11-17 (`D-128`), NOT RE-DERIVED: THE CELL'S PROPERTY IS *"NO `exports` CONDITION
+  // POINTS INTO THE ARTEFACT'S OWN DIRECTORY"* AND A THIRD CONDITION WOULD OTHERWISE FALL OUTSIDE IT.** The
+  // as-filed list read `types` and `import` only, so a `require` aimed at `build/Release/…` would have escaped
+  // the very reading that refuses it. **THE LIST NOW CARRIES EVERY CONDITION THE MAP DECLARES** — the
+  // `require` condition names the one `.mjs` (`§3.2` `HO-1` as re-derived: *"no second `.node` load path"*),
+  // so its presence widens the reading without moving it.
+  const exportedPaths = Object.values(pkg.exports['.'])
+    .filter((value) => typeof value === 'string')
     .map((p) => resolve(PKG_DIR, p));
   const staging = JSON.parse(textAt(join(REPO_ROOT, 'package.json'))).scripts['typecheck:stage'];
   assert.equal(exportedPaths.some((p) => p.startsWith(addonDir)), false,
     '(a) NO `exports` condition points into the artefact\'s own directory — `§3-bis` item 1: the addon\'s '
-    + 'declaration is *"reached by NO `exports` condition, unstaged."* The package\'s two conditions point '
-    + `at ${pkg.exports['.'].types} and ${pkg.exports['.'].import}`);
+    + 'declaration is *"reached by NO `exports` condition, unstaged."* The conditions this package declares '
+    + `point at ${JSON.stringify(Object.values(pkg.exports['.']))}`);
   assert.equal(staging.includes(addonDir) || addonDeclarations.some((name) => staging.includes(name)), false,
     '(a) and it is UNSTAGED — the staging step does not copy it. `§3-bis` item 1');
 

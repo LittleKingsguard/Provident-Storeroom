@@ -2988,11 +2988,21 @@ cell('P-PUB-7', 'S-MANIFEST the main package\'s identity, realm and one ESM entr
   // **NO ASSERTION WAS WEAKENED OR DELETED: the `['.']` equality immediately above and the one-entry census
   // stay byte-for-byte, and the arms below are refused BY NAME rather than by count.**
   const rootArm = exports_['.'] ?? {};
-  assert.deepEqual(Object.keys(rootArm), ['types', 'import'],
-    '`PAR-PUB-5` (`parameter-semantics.md §2.5`, line 119) / `DD-24`: the `.` entry carries EXACTLY TWO '
-    + 'conditions — `types` (NOT arms-bearing: no runtime module is routed by it) FIRST, and the ONE '
-    + 'arms-bearing arm `import` SECOND. The `types` condition is admitted on the corpus\'s own falsifier\'s '
-    + 'rule (`negative-generators.test.mjs:2547`: `if (arm !== \'import\' && arm !== \'types\')`)');
+  // ⟶ RE-DERIVED 2026-11-17 (`D-128`, `D-129`; `contract.md §0.2`'s 2026-11-17 foot clause, limb 1):
+  // **THE `.` ENTRY CARRIES THREE CONDITIONS, IN THE DECLARED ORDER — `types` FIRST, `import` SECOND and
+  // UNMOVED, `require` THIRD and ADDED — and the third names the SAME `./index.mjs` the second names.** The
+  // one-arms-bearing-entry rule is UNMOVED (`PAR-PUB-5`; `DD-24` as re-derived: *"one entry, three
+  // conditions; `types` routes a declaration and is not an arm; `import` and `require` name the same
+  // `./index.mjs`; the `require` condition is NOT a co-equal CJS arm"*), so the set-equality grows by the
+  // one condition the ruling names and by no other. **NO REFUSAL IS DELETED: the forbidden set below loses
+  // `require` and keeps `default` and `node`, and `require` moves to a POSITIVE assertion whose equality is
+  // tighter than the `undefined` it replaces** (a `require` aimed at a `.cjs` or a second module reddens).
+  assert.deepEqual(Object.keys(rootArm), ['types', 'import', 'require'],
+    '`PAR-PUB-5` (`parameter-semantics.md §2.5`, line 119) / `DD-24` as re-derived by `D-128`: the `.` '
+    + 'entry carries EXACTLY THREE conditions — `types` (NOT arms-bearing: no runtime module is routed by '
+    + 'it) FIRST, the ONE arms-bearing arm `import` SECOND, and the `require` route THIRD, naming the same '
+    + 'file. The three-name set is the declared one: the falsifier refuses `default`/`node` by the same '
+    + 'names (`negative-generators.test.mjs`, `NG-JS-M`)');
   assert.equal(Object.keys(rootArm)[0], 'types',
     '`DEF-2026-10-17-D`: `types` is FIRST — the order IS the repair, because a `types` condition placed '
     + 'after `import` is never consulted by a resolver that takes `import` first, which is how the shipped '
@@ -3000,17 +3010,28 @@ cell('P-PUB-7', 'S-MANIFEST the main package\'s identity, realm and one ESM entr
   assert.equal(Object.keys(rootArm)[1], 'import',
     'and the ONE arms-bearing arm stands SECOND, `import` moved down one position and not changed: the '
     + 'runtime still takes it, and `DD-24`\'s one claimed entry is intact');
+  assert.equal(Object.keys(rootArm)[2], 'require',
+    'and `require` stands THIRD — the position `D-128` declares rather than leaves to the editor, and the '
+    + 'order a resolver evaluates in insertion order');
   assert.equal(rootArm.import, './index.mjs',
     'the ESM arm IS REQUIRED and EXACT — rename or misspell it and this cell fails: `PAR-PUB-5`\'s one '
     + 'arms-bearing entry is the package\'s own `.mjs` module and nothing else');
-  // THE THREE THE AS-FILED MESSAGE NAMED, NOW REFUSED AS NAMED — a wildcard or a deep import is refused at
-  // the KEY level above (the `['.']` equality), and these two plus `default` are refused at the ARM level.
-  for (const forbidden of ['require', 'default', 'node']) {
+  // THE TWO THE AS-FILED MESSAGE NAMED BESIDE `require`, NOW REFUSED AS NAMED — a wildcard or a deep import is
+  // refused at the KEY level above (the `['.']` equality), and these two are refused at the ARM level.
+  for (const forbidden of ['default', 'node']) {
     assert.equal(rootArm[forbidden], undefined,
-      `\`${forbidden}\` is REFUSED BY NAME — a CJS arm is a SECOND CLAIMED REALM (\`PAR-PUB-5\`: "a CJS arm `
-      + '→ REFUSED: it is a second claimed realm"), and `default`/`node` are the undeclared arms '
-      + '`negative-generators.test.mjs:2544` refuses by the same three names');
+      `\`${forbidden}\` is REFUSED BY NAME — it is an undeclared arm of the one entry (\`contract.md §0.2\`'s `
+      + '2026-11-17 foot clause, limb 1: *"no `main`, no `default`, no `node`"*), and the corpus\'s own '
+      + 'falsifier refuses the same names (`negative-generators.test.mjs`, `NG-JS-M`)');
   }
+  // AND `require` IS ADMITTED, AND NOT BLINDLY: the admitted condition must reach the SAME shipped `.mjs`
+  // the `import` condition reaches — a `require` that pointed at a `.cjs`, at a second module or at the
+  // declaration would be the SECOND CLAIMED REALM `PAR-PUB-5` refuses, and it reddens at this equality.
+  assert.equal(rootArm.require, './index.mjs',
+    '`D-128` / `§3.1` as re-derived: the `require` condition names the ONE ESM entry — a supported ROUTE '
+    + 'into the claimed realm, and never a second module');
+  assert.equal(rootArm.require, rootArm.import,
+    'and it names the SAME file the `import` condition names, so the two specifiers reach ONE module');
   // `types` IS ADMITTED, AND NOT BLINDLY. An admitted-but-MISROUTED `types` condition is the very defect
   // `DEF-2026-10-17-D` is about, so the arm is pinned to the declaration that SHIPS and that declaration is
   // pinned INTO the `files` allowlist: elsewhere, it would be unreachable exactly as the shipped `index.d.ts`
@@ -3051,7 +3072,11 @@ cell('P-PUB-7', 'S-MANIFEST the publish configuration, the supplied fields and t
   assert.deepEqual(manifest.publishConfig ?? null, { access: 'public' },
     '`PAR-PUB-9` / `A82`: the release is PUBLIC, and the field is what declares it');
   assert.equal(manifest.publishConfig?.registry, undefined, 'no registry override is declared');
-  assert.equal(manifest.engines?.node, '>=18.0.0', '`PAR-PUB-6`: the declared floor, and no ABI floor');
+  // ⟶ RE-DERIVED 2026-11-17 (`D-127`, `D-129`; `contract.md §0.2`'s 2026-11-17 foot clause, limb 3):
+  // `DD-38`'s `">=18.0.0"` is SUPERSEDED and the ruled figure is `">=22.12.0"` — the one single comparator
+  // set under which the declared `require` route is true at EVERY admitted version. The literal is
+  // TRANSCRIBED from the ruling; the equality stays EXACT and still refuses an ABI floor.
+  assert.equal(manifest.engines?.node, '>=22.12.0', '`PAR-PUB-6` as re-derived (`D-127`, `D-129`): the declared floor, and no ABI floor');
   // **THE THREE FIELDS, PRESENT AND RESOLVING — the main package and the five platform artefacts, read
   // through ONE predicate so the six cannot be right five times and wrong once.** The platform manifests'
   // declared set is the twelve the `S-TAG` cell asserts; the main package's is its own and is read at its own

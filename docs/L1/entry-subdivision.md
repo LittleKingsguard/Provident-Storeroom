@@ -533,6 +533,23 @@ file** — the barrel, one directory up, which no glob of `src/entry/` can expre
 - **`version` (`0.5.0`) and the five exact `optionalDependencies` are untouched.** **Nothing here authorises a release**,
   and `D-1-ter`'s ordering stands: the code integrates first, the allowlist follows it, and no release is cut in between.
 
+**⟶ AND TWO FIGURES OF THE BULLETS ABOVE ARE RE-DERIVED AT THIS TREE, 2026-11-17 — THE `exports` MAP'S CONDITION
+LIST (the `:527` bullet) AND THE `version` (the `:533` bullet) — AND NEITHER MOVED BECAUSE OF THIS DECLARATION.** `RCA-8(g)` ANNOTATE-BESIDE: **both bullets
+stand BYTE-FOR-BYTE and are read THROUGH this clause, and each superseded reading is named with its successor.**
+**THE `exports` MAP (`:27–32` above reads `:27`–`:33` at this tree, one line longer): ONE arms-bearing entry, `"."`,
+carrying THREE conditions in the declared order — `types` → `./index.d.ts`, `import` → `./index.mjs`, `require` →
+`./index.mjs` — with `import` and `require` naming THE SAME ESM ENTRY** (`D-128` item 1; `D-129` items 1 and 3;
+`docs/specs/storeroom-js/contract.md`'s bounded amendment of the same date). **So the parenthetical above, which
+enumerates `{types, import}`, is a TWO-CONDITION reading of a THREE-CONDITION map, and its `:27–32` is the range of
+the two-condition block.** **`D-1`'s BOUNDARY CLAIM IS UNMOVED BY THAT, WHICH IS THE POINT OF PRINTING IT HERE: no
+`exports` arm for an internal part was added, no subpath, no wildcard, no `.cjs` and no `main`, so the sentence *"No
+part may be added to it"* still binds and the `require` condition reaches the same `./index.mjs` the `import` one
+does.** **THE `version` READS `1.12.0`, NOT `0.5.0`** — the manifest's `version`, its five exact pins and the five
+platform manifests — and the cut is `MINOR` (`D-129` item 5); `0.5.0` is the figure of its own date. **What does not
+move: `D-1-ter`'s ordering, the `files` allowlist's reachability rule, the part inventory and every line count this
+file prints.** (`D-127`; `D-128`; `D-129`; the twin clauses are `docs/L1/module-map.md` §4 `E4`'s and
+`docs/L1/kernel-subdivision.md`'s of the same date.)
+
 ---
 
 ## §9 · Measured, concluded, and not verified

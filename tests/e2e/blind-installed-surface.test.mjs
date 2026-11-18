@@ -112,9 +112,12 @@ const MAIN_NAME = 'provident-storeroom';
  *  reads it at the built artefact's own `version()`, which is the shipped byte that carries it. */
 const VERSION = JSON.parse(readFileSync(join(PACKAGE_DIR, 'package.json'), 'utf8')).version;
 const LICENCE = 'AGPL-3.0';
-/** `package.md §1.4` item 1 / `distribution.md §3.2` field 7: the floor is a DECLARATION, the same floor on
- *  every artefact. */
-const ENGINES_NODE = '>=18.0.0';
+/** `package.md §1.4` item 1 as re-derived 2026-11-17 (`D-127`, `D-129`; `contract.md §0.2`'s 2026-11-17
+ *  foot clause, limb 3): **the floor is a DECLARATION, the same floor on every artefact** — `DD-38`'s
+ *  `">=18.0.0"` is SUPERSEDED and the ruling's figure is `">=22.12.0"`, because the declared `require` route
+ *  is flagged on `21.x` and on `22.0`–`22.11` and true nowhere below `22.12.0` on the 22 line. The literal is
+ *  TRANSCRIBED from the ruling and compared by exact equality against every packed manifest. */
+const ENGINES_NODE = '>=22.12.0';
 
 /** `contract.md §2.1` item 1 as CORRECTED 2026-10-25, read with the architect's ruling of 2026-10-26 that
  *  **THE CONSUMER GUIDE SHIPS**, and with `DEF-AC` (a)'s 2026-10-28 ruling that **THE CHANGE LIST SHIPS WITH IT**:
@@ -543,22 +546,105 @@ test(`installed · contract.md §3.2 item 2 (the coupling rule, ONE figure read 
 //      (`package.md §1.3` items 1–3; `distribution.md §6.1` field 7; `§3.2` field 6; `§2.1` item 6)
 // =============================================================================================
 
-test('installed · package.md §1.3 items 1–2 + distribution.md §6.1 field 7 · `exports` publishes EXACTLY ONE arms-bearing entry — the `.` arm with `types` and `import` — and no wildcard, no second subpath and no CJS arm', () => {
+test('installed · package.md §1.3 items 1–2 + distribution.md §6.1 field 7, read with `contract.md`\'s 2026-11-17 amendment (`D-128`) · `exports` publishes EXACTLY ONE arms-bearing entry — the `.` arm with `types`, `import` and `require`, the last two naming the SAME file — and no wildcard, no second subpath and no CJS build', () => {
   // DECLARED: "**THE `exports` MAP PUBLISHES EXACTLY ONE ARMS-BEARING ENTRY — the ESM one** — and every
   // other subpath a consumer could spell is either absent or an internal file the map does not expose"
   // (`§1.3` item 1); "**A WILDCARD `"./*"` EXPORT IS REFUSED**, because it would expose the `.node` path; **a
   // deep import is refused for the same reason**" (item 2); and the manifest's field row: "**exactly ONE
   // arms-bearing entry, the ESM one**" with "a wildcard, a deep import to the addon and a CJS arm are each
   // refused" (`distribution.md §6.1` field 7).
+  // **⟶ RE-DERIVED 2026-11-17 (`D-128`; `contract.md §0.2`'s 2026-11-17 foot clause, limb 1):** the arm
+  // gains the `require` condition, NAMING THE SAME `./index.mjs`; `§3.2`'s `HO-1` re-derivation states what
+  // the package still does not ship — *"NO CJS ARM — no `.cjs`, no `main`, no second build"* — so this cell
+  // keeps asserting `default`'s absence (and `main`'s, in the cell below) and asserts the two route
+  // conditions EQUAL. **THE ARMS-BEARING COUNT IS UNMOVED AT ONE:** a `require` condition adds no subpath.
   const exports = entryManifest(site.bareTarball).exports;
   assert.equal(typeof exports, 'object');
   const keys = Object.keys(exports);
   assert.deepEqual(keys, ['.'], `the map publishes ${JSON.stringify(keys)} and the declared set is one arm`);
-  assert.deepEqual(Object.keys(exports['.']).sort(), ['import', 'types']);
+  assert.deepEqual(Object.keys(exports['.']).sort(), ['import', 'require', 'types']);
   assert.equal(exports['.'].import, './index.mjs');
   assert.equal(exports['.'].types, './index.d.ts');
-  assert.equal('require' in exports['.'], false, 'a CJS arm reached the one arm (`HO-1`)');
-  assert.equal('default' in exports['.'], false);
+  assert.equal(exports['.'].require, './index.mjs', 'the `require` condition names the SAME one entry (`D-128`)');
+  assert.equal(exports['.'].require, exports['.'].import, 'one file, two of Node\'s specifiers for it (`DD-24` re-derived)');
+  assert.equal('default' in exports['.'], false, 'no `default` condition exists in the map (`§0.2`\'s 2026-11-17 foot clause)');
+  assert.equal('node' in exports['.'], false, 'no `node` condition shortcut to the addon');
+  assert.equal('main' in entryManifest(site.bareTarball), false, 'no CJS `main` is published (`HO-1` as re-derived)');
+});
+
+test('installed · contract.md §0.2\'s 2026-11-17 foot clause, limb 1 + `§3.2`\'s `HO-1` re-derivation (`D-128`) · ⟶ `NEW-2`: THE `require` CONDITION SURVIVES PACKING — the PACKED manifest\'s `exports["."].require` is `./index.mjs`, the file it names is in the packed `files` allowlist, and the tarball actually carries it', () => {
+  // ⟶ **`NEW-2`, LANDED 2026-11-17 BY THE TEST PASS (`strata/envelope.md` §6; `D-129` item 2's gates).** The
+  // claim is the artefact's and not the checkout's, so it is taken at the ONLY site where a published byte
+  // is read in this battery: `entryManifest(site.bareTarball)` — the tarball `npm pack` wrote from
+  // `bindings/js`, read back out of the archive. **A condition that exists in the checkout and is lost in
+  // packing** (an `exports` edit made after the allowlist was cut, a `files` row that drops the entry, a
+  // hand-assembled tarball) **reddens here and nowhere else**, which is why the manifest's own map is
+  // asserted at the tarball and not only at the tree (`D-6`'s `O3` criterion: *"the `exports` map is
+  // therefore asserted where the install shape is assembled"*).
+  const packed = entryManifest(site.bareTarball);
+  assert.equal(packed.exports['.'].require, './index.mjs',
+    'the PACKED manifest carries the `require` condition and it names the one ESM entry');
+  assert.equal(packed.exports['.'].require, packed.exports['.'].import,
+    'and it names the SAME file the `import` condition names, in the packed bytes as in the checkout');
+  // THE FILE THE CONDITION NAMES IS IN THE ALLOWLIST THE TARBALL CARRIES — `PAR-PUB-4`'s rule read at the
+  // second condition: a mapped path absent from `files` is a route to a file that does not ship.
+  assert.ok(Array.isArray(packed.files) && packed.files.includes('index.mjs'),
+    `the packed \`files\` allowlist must carry \`index.mjs\` (read: ${JSON.stringify(packed.files)})`);
+  assert.ok(site.bareEntries.includes('index.mjs'),
+    'and the packed tarball actually contains it, so the condition is not admitted on a path that does not travel');
+  // AND THE CONDITION ADDED NOTHING ELSE TO THE TARBALL: no `.cjs` entry travels, and — the clause re-derived
+  // here at the module SET — **no `.mjs` travels that the `files` allowlist does not already ship**.
+  //
+  // ★ RE-DERIVED 2026-11-18 (`D-16`: a cell corrected inside the wave, by its owning pass, its intent kept).
+  // The as-filed spelling asserted the packed `.mjs` set EQUALLED `['index.mjs']`, and that equality is
+  // unsatisfiable by a CORRECT landing: `§2.1` item 1's allowlist ships the entry's own internal modules
+  // (`src/entry/`, `src/constraint-kernel.mjs` — the `2` in the corrected `7 = 4 + 1 + 2`), so the tarball
+  // legitimately carries FIFTEEN `.mjs` paths — `1` root entry + `1` kernel + the `13` entry modules. **THE
+  // INTENT IS UNMOVED AND IS NOW SPELLED AS WHAT IS ACTUALLY TRUE: *the condition names the entry the
+  // allowlist already ships; it mints no second module.*** A condition that named a second module would have
+  // to name a path `files` ships and the tarball carries, so the claim is read at the ALLOWLIST'S OWN
+  // EXPANSION, **derived from the packed manifest's `files` rows and not from a literal**: a row ending in
+  // `.mjs` names ONE module, a row ending in `/` names a DIRECTORY and reaches every module beneath it (npm
+  // packs a directory row recursively), and the packed `.mjs` set must be exactly those two together. A
+  // second module — an `index2.mjs` beside the entry, a `dist/` twin, a `.cjs` build's ESM companion, any
+  // module a wildcard allowlist would carry — has no row to ride in on and reddens at (i).
+  const moduleRows = packed.files.filter((row) => row.endsWith('.mjs'));
+  const directoryRows = packed.files.filter((row) => row.endsWith('/'));
+  const shippedByAllowlist = (entry) =>
+    moduleRows.includes(entry) || directoryRows.some((row) => entry.startsWith(row));
+  const packedModules = site.bareEntries.filter((entry) => entry.endsWith('.mjs'));
+
+  // (i) NO `.mjs` RIDES OUTSIDE THE ALLOWLIST'S REACH — the one direction that catches a minted module.
+  assert.deepEqual(packedModules.filter((entry) => !shippedByAllowlist(entry)), [],
+    'a `.mjs` outside the `files` allowlist\'s reach is packed: a module travels that the manifest never named');
+
+  // (ii) AND THE REACH IS NOT A FENCE ADMITTED EMPTY-HANDED: every module the rows name one by one is
+  // packed, so a row whose module silently fails to travel reddens here too (`A89`(4) item 2's failure, read
+  // at the module set rather than at the file set).
+  assert.deepEqual(moduleRows.filter((row) => !packedModules.includes(row)), [],
+    'an allowlist row names a module the packed tarball does not carry');
+
+  // (iii) AND THE SET IS THE ALLOWLIST'S OWN EXPANSION, COUNTED: the rows above ship their modules one by one
+  // and the directory row ships the thirteen entry modules the file declares once (`ENTRY_MODULE_COUNT`), so
+  // a sixteenth `.mjs` has no row to ride in on — the `15 = 1 + 1 + 13` of `§2.1`'s census cell, read here at
+  // the `.mjs` set instead of at the twenty-path file set.
+  assert.equal(packedModules.length, moduleRows.length + ENTRY_MODULE_COUNT,
+    `the packed \`.mjs\` set is ${packedModules.length} paths and the allowlist's expansion is ${moduleRows.length} named rows + ${ENTRY_MODULE_COUNT} entry modules`);
+
+  // (iv) AND NO `.cjs` AT ALL — `HO-1` as re-derived refuses a CJS build by name, read at the same packed set.
+  assert.deepEqual(site.bareEntries.filter((entry) => entry.endsWith('.cjs')), [],
+    'a `.cjs` artefact is packed and `§3.2`\'s `HO-1` re-derivation refuses one by name');
+
+  // (v) AND THE CONDITION NAMES A MEMBER OF THAT VERY SET: the file `require` routes to is a module the
+  // allowlist ships, one the tarball carries, and exactly one path in the packed set — a condition naming a
+  // file absent from `files`, or a module the pack omits, reddens at the two clauses below it.
+  const requiredFile = packed.exports['.'].require.replace(/^\.\//, '');
+  assert.equal(shippedByAllowlist(requiredFile), true,
+    'the `require` condition names a file the `files` allowlist does not ship');
+  assert.ok(packedModules.includes(requiredFile),
+    'the `require` condition names a `.mjs` the packed tarball does not carry');
+  assert.deepEqual(packedModules.filter((entry) => entry === requiredFile), [requiredFile],
+    'the condition names the entry the allowlist already ships; it mints no second module');
 });
 
 test('installed · package.md §1.3 item 1 + contract.md §1.1 rung one · the BARE specifier `provident-storeroom` resolves from the consumer, so the one arm is the arm a consumer drives', () => {
@@ -1054,8 +1140,13 @@ test('installed · distribution.md §3.2 field 2 + contract.md §3.2 item 2 · t
   assert.deepEqual([...new Set(Object.values(main.optionalDependencies))], [platform.version]);
 });
 
-test('installed · distribution.md §3.2 fields 7–8 + §4.2 item 2 · the floor and the licence FIELD agree across the two artefacts: `>=18.0.0` and `AGPL-3.0` on both sides, and no third spelling', (t) => {
-  // DECLARED: field `7` carries "`{ \"node\": \">=18.0.0\" }`, **the same floor the main package declares**";
+test('installed · distribution.md §3.2 fields 7–8 + §4.2 item 2, read with `D-129` item 2 · the floor and the licence FIELD agree across the two artefacts: `>=22.12.0` on BOTH sides — the five platform manifests move WITH the main — and `AGPL-3.0` on both sides, and no third spelling', (t) => {
+  // DECLARED: field `7` carries the floor, **the same floor the main package declares**, and **`D-129` item
+  // 2 RE-DERIVES THE FIGURE AND ITS SCOPE: *"THE FIVE PLATFORM MANIFESTS MOVE WITH THE MAIN … `">=22.12.0"`
+  // beside the main's; one declaration, one reader"*** (`contract.md §0.2`'s 2026-11-17 foot clause, limb 3;
+  // `DD-38` as re-derived at its own cell). **THE CELL STAYS AN AGREEMENT CELL AND IS NOT RE-SHAPED:** both
+  // sides are compared to the ONE transcribed figure and to each other, so a platform manifest left at
+  // `>=18.0.0` reddens at `platform.engines.node` and a main manifest left there reddens at `main`'s.
   // field `8` carries "**the manifest's own `license` field reading `AGPL-3.0`**"; and "**EACH PLATFORM
   // ARTEFACT'S MANIFEST `license` FIELD READS `AGPL-3.0`, so the field and the copy agree within each
   // artefact**" (`§4.2` item 2). `contract.md §2.3` item 1 fixes the FOUR sites and the TWO spellings, so a
@@ -1139,7 +1230,7 @@ test('installed · distribution.md §4.2 item 1 · the platform artefact is INST
   assert.ok(report.platform.resolved.endsWith(sep + 'storeroom_js_binding.node'));
 });
 
-test(`installed · distribution.md §6.1 fields 1, 5, 6, 9, 11, 12 + contract.md §2.3 item 1 site (i) · the MAIN package's identity is exactly as declared: UNSCOPED \`provident-storeroom\`, \`${VERSION}\`, ESM, \`AGPL-3.0\`, the \`>=18.0.0\` floor, \`types\` at \`index.d.ts\`, and a PUBLIC publish configuration`, () => {
+test(`installed · distribution.md §6.1 fields 1, 5, 6, 9, 11, 12 + contract.md §2.3 item 1 site (i) · the MAIN package's identity is exactly as declared: UNSCOPED \`provident-storeroom\`, \`${VERSION}\`, ESM, \`AGPL-3.0\`, the \`>=22.12.0\` floor (\`D-127\`, \`D-129\`), \`types\` at \`index.d.ts\`, and a PUBLIC publish configuration`, () => {
   // DECLARED, field by field (`distribution.md §6.1`): field `1` "`provident-storeroom` — the MAIN package's
   // identity, UNSCOPED, as the architect's ruling names it" (`A82`); field `5` "`AGPL-3.0`"; field `6` the
   // floor; field `9` "`index.d.ts`"; field `11` "`{ \"access\": \"public\" }`"; field `12` "`\"module\"`".

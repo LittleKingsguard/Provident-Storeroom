@@ -1,9 +1,18 @@
 # `provident-storeroom` — the published Node ESM binding for the native Rust store
 
-**THE CLAIMED REALM IS `{ Node ESM }` AND NOTHING ELSE** (`A70`, `package.md §1.1`): you `import` this package
-as an ES module from a Node runtime whose ABI carries a Node-API addon. **Every other realm is UNCLAIMED and
-each owes its declared answer** (`package.md §2`: Node CJS, Electron `main`, `preload` and `renderer`, the
-browser, `worker_threads` and any IPC route). **No other realm is described here as supported.**
+**THE CLAIMED REALM IS THE ES MODULE ITSELF — ONE FILE, ONE NAMESPACE, ONE DECLARED MEMBER SET — AND IT IS
+REACHED BY EITHER OF NODE'S TWO SPECIFIERS FOR THAT ONE MODULE** (`A70`, `package.md §1.1`; `docs/specs/storeroom-js/contract.md §3.1`'s
+re-derivation of 2026-11-17, `D-128`/`D-129`): you `import` this package as an ES module, and a CommonJS host
+`require`s the SAME entry through the package's own `require` condition, from a Node runtime whose ABI carries a
+Node-API addon and whose version is at or above the declared `engines` floor, `>=22.12.0`. **Every other realm is
+UNCLAIMED and each owes its declared answer** (`package.md §2`: Node CJS as a module *format*, Electron `main`,
+`preload` and `renderer`, the browser, `worker_threads` and any IPC route). **No other realm is described here as
+supported.**
+
+**Node CJS stays UNCLAIMED as a module format: the package publishes NO CJS arm — no `.cjs` artefact, no `main`
+field and no second build — and it DOES publish a `require` condition on its one ESM entry, so a CJS host's
+`require` is supported at or above the floor.** **What remains your side of the boundary is the runtime feature
+and the floor: below it the loader refuses the module and the package publishes no second answer.**
 
 **THE LICENCE OF RECORD IS `AGPL-3.0`** (`DD-43`): it is the repository's own `LICENSE`, and no clause of this
 package changes it. **AND THE LICENCE COPY TRAVELS WITH EVERY ARTEFACT, THIS PACKAGE'S OWN INCLUDED: each of
@@ -31,7 +40,7 @@ an edit belongs.
 
 **⟶ AND THE ONE FIGURE THIS PAGE CAN BE RIGHT ABOUT IS GENERATED AND ASSERTED, 2026-10-28 — `DEF-AC`'s third part, and `D-57`'s one surviving figure.** `RCA-8(g)` ANNOTATE-BESIDE: **every clause above stands BYTE-FOR-BYTE and is read THROUGH this one; nothing above moves.** **THE DEFECT THIS CLOSES: THIS PAGE DECLARED NO VERSION AT ALL** — a shipped document a consumer reads first, saying nothing about which release it describes — **so `scripts/publish.sh --figures` now GENERATES the line below from `bindings/js/package.json`'s `version` and REFUSES when it disagrees, exactly as it does at the guide's and the change list's own marked lines: three shipped documents, three version lines, one generator, one assertion.** **AND THE CUT-STATE IS NOT STATED HERE, OR ANYWHERE ELSE IN THIS PACKAGE'S DOCUMENTS** (`D-57`, the architect verbatim: *"Drop the cut-state"*): a document is sealed before the tag that would make its cut-state true, so **the cut-state is not a document's to state**; the record of what has been cut is the change list's, and it is past tense. **EVERY OTHER CLAIM OF THIS PAGE STANDS EXACTLY AS IT STOOD.**
 
-PUBLISH-README-VERSION-LINE: THE VERSION THIS README DESCRIBES IS `1.11.0`.
+PUBLISH-README-VERSION-LINE: THE VERSION THIS README DESCRIBES IS `1.12.0`.
 
 ## The one entry
 
@@ -43,9 +52,12 @@ import { storeCreate } from 'provident-storeroom';
 namespace's `8 → 1`). There is no module-level `read`, `write`, `listen` or any other verb — every other name
 you will use is a method of the instance `storeCreate` returns.
 
-**The `exports` map publishes EXACTLY ONE arms-bearing entry — the ESM one** (`package.md §1.3`, `DD-24`),
-and its whole content is: no wildcard export, no deep import to the addon and no CJS arm. **The addon is
-reached INTERNALLY by the package's own resolution step and is not an entry point.**
+**The `exports` map publishes EXACTLY ONE arms-bearing entry — the ESM one** (`package.md §1.3`, `DD-24`), and its
+whole content is THREE conditions: `types` names the declaration, and `import` and `require` name the SAME
+`./index.mjs`. **So the package publishes no wildcard export, no deep import to the addon and no CJS arm** — no
+`.cjs` artefact, no `main` field and no second build exists beside the entry — **and `require` IS A SUPPORTED
+ROUTE INTO THE CLAIMED REALM: a CommonJS host needs no interop of its own.** **The addon is reached INTERNALLY by
+the package's own resolution step and is not an entry point.**
 
 ## The surface
 

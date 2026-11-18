@@ -1526,3 +1526,357 @@ C6 fired after a caller write that reaches LI: 1
 ---
 
 **SOURCE STATUS — NAMING THIS PASS'S CHANNEL LIMIT: `role_l0_research` held READ-ONLY FILE ACCESS AND NO SHELL, so NO DRIVER WAS RE-DRIVEN by this pass and every behavioural figure in §19.4 is either (a) a byte citation at `HEAD` `3f24248`, or (b) the SUPERVISOR'S transcript read against the drivers' own source (`scratch/l0-probe/probe.mjs`, `scratch/l0-probe/probe2.mjs`). Every one of §19.5's eight unmeasured items is unmeasured because this channel could not run a driver, and each is named so it is not read as measured.**
+
+---
+
+## §20 · The CJS entry request — a require condition for provident-storeroom (the exports map, the declared realm, and the runtime predicate)
+
+**WHAT THIS FILE IS, AND THE RULE THIS SECTION IS FILED UNDER.** The intake note for one feature request received from a downstream project, filed under the intake rule that a note goes to `role_l0_research`. **IT DESIGNS NOTHING, RANKS NOTHING, DECIDES NOTHING AND OPENS NO UNIT.** It recommends no arm of the request's own predicate and answers no question the corpus already puts to the architect. What it does is narrower: it reads the declared surface the request would move at its bytes, it separates what was VERIFIED here from what is CARRIED, and it puts the questions back with the bytes that make each one a question.
+
+**CHANNEL LIMIT, RECORDED FIRST BECAUSE IT GOVERNS EVERY VERDICT BELOW.** This pass held **no shell and no write channel** — four read-only file operations and nothing else. **So no driver was re-driven, no `node` invocation was made, `git status` could not be read, and this section was written nowhere: it is returned to the supervisor as text to land** (the file's own convention — `§19.5` item 1, `strata/research.md:1460`: *"No arm was re-driven. This pass held no shell."*). **Every behavioural statement below is either (a) a byte citation at `HEAD` `5cfb329`, or (b) marked CARRIED** — from the relay, the fork's filed request, the downstream records, or **this corpus's own cells** — and the difference is printed rather than left to a reader.
+
+**⟶ LANDED 2026-11-17 BY THE L0 SUPERVISOR, FROM THIS PASS'S RETURNED TEXT.** The section below is `role_l0_research`'s returned text, landed by the supervisor because the pass held no write channel. The supervisor read the note at its `path:line` citations against `HEAD` `5cfb329` (clean tree; `git status` empty before landing), spot-checked the load-bearing sites — the manifest, `DD-4`/`DD-24`/`DD-38`, `§3.2`/`§9`'s `HO-1`, the eight cells, `D-6`/`D-7`, `constraints.mjs:86`, `brief.md:65`–`:67`, the shipped README/guide sentences — and corrected **ONE** evidence sentence: `K-15`'s grep line, from the pass's two named sites to the truthful reading (the grep returns ZERO hits). **No ruling is taken, no claim re-derived, and no other sentence of the returned text is changed.** The cell-level verification this corrected sentence belongs to: `grep -rn '20\.19\|22\.12'` over the tracked tree returns nothing; `RELEASE-NOTES.md:19`/`:58`, `bindings/js/package.json:3`–`:52`, `contract.md:580`, `:603`, `:617`, `:2365`, `:3383`, `:3923`, `constraints.mjs:86`, `blind-cjs-interop.test.mjs:84`/`:148`, `blind-installed-surface.test.mjs:553`/`:557`–`:561`, `staged-install/package-entry.test.mjs:150`–`:155`/`:333`, `blind-package-surface.test.mjs:158`–`:161`, `live-drive.mjs:851`, `:865`–`:869`, `tests/e2e/greens.mjs:1633`, `strata/decisions.md:449`–`:450`/`:565`/`:1002` all resolve at this `HEAD`; `docs/specs/storeroom-js/package.md` is confirmed absent (archive only). **The only modified byte after this pass is `strata/research.md`.**
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `5cfb3296eaa7baeafa08db58356bc8150b9bf436` — the supervisor's reading; this pass cannot run `git`. **THE PACKAGE MEASURED:** `provident-storeroom` `1.11.0` at `bindings/js/` in this checkout (`bindings/js/package.json:3`), whose built addon stands at the ignored path `bindings/js/build/Release/storeroom_js_binding.node` (a file that exists at that path, by glob this pass). **NODE:** `v24.20.0` — not measured here; carried from the workspace's statement and corroborated at a byte: `tests/e2e/staged-install/package-entry.test.mjs:153`, *"on the declared toolchain (Node `v24.20.0`)"*.
+
+---
+
+### §20.1 · The request, verbatim, and its provenance chain
+
+#### (i) THE RELAY, VERBATIM (the whole subject of this note)
+
+> Request from downstream Provident-Electron project:
+>
+> 1 · Upstream (provident-storeroom) — the only real fix. Add a condition to the exports map: "require": "./index.mjs" (or a default). Their acceptance predicate is the right one — boot the unmodified built main, zero fork bytes changed. Two caveats to add to the request: it only works where require(esm) is unflagged (Node ≥20.19/22.12), and it requires the module graph to be synchronous (no top-level await), because require(esm) cannot wait. This package qualifies today. We cannot make this change here — the packages are never modified (D-5, D-52); the fork's filed request is the correct vehicle, and our measurement now corroborates it.
+
+**THREE THINGS THE RELAY OWNS, AND THIS NOTE TREATS EACH AS A CLAIM TO CHECK RATHER THAN A PREMISE:** the manifest's shape; the acceptance predicate; **"This package qualifies today"** — i.e. the synchronous-graph predicate.
+
+#### (ii) THE FILED REQUEST — a fork's, `2026-11-16`
+
+`/media/ryanr/Shared Files/Projects/Astrographer/docs/feature-requests/provident-storeroom-cjs-entry-request.md` (42 lines, read whole). Its own words, at its own sites:
+
+- the need (`:8`–`:9`): *"A `require`-able entry — or a `default` condition — in the package's `exports` map, so a CommonJS Electron main bundle can load `provident-storeroom` the way it loads every other dependency."*
+- the manifest as the fork measured it (`:15`–`:17`): *"`package.json` declares `"type": "module"` and `exports: { ".": { "types": "./index.d.ts", "import": "./index.mjs" } }`, with **no `main`, no `require`, no `default`**"*; *"A CJS `main.cjs` that `require`s it fails at load with **`ERR_PACKAGE_PATH_NOT_EXPORTED`**."*
+- the workarounds, all measured and refused (`:18`–`:20`): *"a subpath import, a manifest shim, `createRequire`, `require.resolve`, and `--experimental-require-module` all fail; only an **absolute path** works, which is unlawful inside a shipped bundle."*
+- **the silent-inline half** (`:21`–`:23`): *"**esbuild exits 0 and silently INLINES the ESM-only package** (measured: +2,667,936 B stripped, 15 package-path comments, `var import_meta = {}` in the bundle) when the `--external:` flag is omitted — a corrupt build that looks successful."*
+- **THE ACCEPTANCE PREDICATE, THREE ARMS** (`:25`–`:35`): arm 1 — *"**`exports["."].require` → `./index.mjs`** (or a `default` condition). Measured: the fork's **already-built, unmodified `main.cjs` boots**, writes `{"display":{}}` to its profile, and the renderer arms — **zero fork bytes changed**"*; arm 2 — *"A published CJS build (`"main"` + `"require"` → a `.cjs` entry), if a dual build is preferred"*; arm 3 — *"A documented, supported statement that the package is ESM-only and that a CJS host must use a dynamic `await import()` seam — in which case a fork pays a Promise boundary across its store construction sites (18 files here)"*.
+- its own evidence list (`:37`–`:42`).
+
+#### (iii) THE DOWNSTREAM RECORDS — a consumer's, quoted as provenance only
+
+- `Astrographer/docs/defects.md:33`, row **`STOREROOM-EXPORTS-MAP-IMPORT-ONLY`**: **"HIGH (PACKAGE) — OPEN, handed off; the fork's main cannot load the package"**; the four-part shape (symptom / reproduction / suspected root cause / *"**UPSTREAM, one line:** add `"require": "./index.mjs"` (or a `default` condition) to the exports map — measured to boot the fork's **unmodified** `main.cjs` with **zero fork bytes** changed"*); and its closing rule, *"**The package is NEVER patched here (D-9).**"*
+- `Astrographer/docs/HANDOFF.md:241`–`:247`, the `2026-11-16` section: *"`provident-storeroom@1.11.0` ships an ESM-only exports map (`{types, import}`, no `main`/`require`/`default`), so this fork's CommonJS Electron main **cannot load it**"*.
+- `Provident-Electron/strata/decisions.md:6301`–`:6315`, **`D-297`** (ACTIVE, `2026-11-16`), read whole: the symptom (`Error [ERR_PACKAGE_PATH_NOT_EXPORTED]: No "exports" main defined in …`), **the reproduction measured in that tree** — *"`node -e "require('provident-storeroom')"` answers exactly that error, while `await import('provident-storeroom')` succeeds"* (`:6305`) — the suspected root cause, the proposed fix shape, **the fork's green** (*"The fork measured that predicate green: its unmodified built main boots with the added condition and **zero fork bytes changed**"*), **its own second half** (*"Measured here on a two-line probe importing `storeCreate`: `213,948` bytes, fifteen package-path comments and a `var import_meta = {}` at exit `0`; the same probe with the flag emits `154` bytes"*, `:6307`), and its own refusal (`:6313`): *"the package is not patched (`D-5`, `D-52`); no `require` condition is authored anywhere in this tree"*.
+
+#### (iv) THE PROVENANCE TENSION, STATED SO IT IS NOT CONFLATED
+
+**The relay's `D-5`/`D-52` are the DOWNSTREAM project's rows, and this repository's `D-5` and `D-52` are different subjects entirely.** Read at their own bytes: `Provident-Electron/strata/decisions.md:99` — **`D-5` — A package finding belongs to the unit that surfaced it** (*"a defect or requirement gap in `provident-ssr` or `provident-storeroom` is still recorded with symptom, reproduction, suspected root cause and proposed fix shape, still upstream-owned, and the packages are still never modified"*, `:104`–`:106`) — and `:1153` — **`D-52` — Corrigendum to `D-5`** (*"a unit's record **stays live in `strata/records/`**"*). **This repository's `D-5` is `strata/decisions.md:370`, "the strata preset's test-role write scopes are kept" (`role_l1_test_writer` → `tests/e2e/`, `role_l2_test_writer` → `tests/integration/<module>/`, `role_l3_test_writer` → `tests/unit/<module>/`, `:387`–`:389`); this repository's `D-52` is `:3271`, "THE THREE ENFORCEMENT RULES ARE REFUTED BY MEASUREMENT".** **So the relay's authority to come upstream is the FILED REQUEST and this architect's fresh ruling — not a row of a consumer's register** (`Q-10`).
+
+---
+
+### §20.2 · The declared surface the request would move, at the bytes
+
+#### (i) THE SHIPPED MANIFEST — `bindings/js/package.json` at `HEAD`, whole
+
+| line | field | its value |
+|---|---|---|
+| `:3` | `version` | `"1.11.0"` |
+| `:5` | `type` | `"module"` |
+| `:24`–`:26` | `engines` | `{ "node": ">=18.0.0" }` |
+| `:27`–`:32` | `exports` | `{ ".": { "types": "./index.d.ts", "import": "./index.mjs" } }` |
+| `:33` | `types` | `"index.d.ts"` |
+| `:34`–`:42` | `files` | `index.mjs` · `README.md` · `README.guide.md` · `RELEASE-NOTES.md` · `index.d.ts` · `src/entry/` · `src/constraint-kernel.mjs` |
+| `:43`–`:49` | `optionalDependencies` | **five** names, each pinned `"1.11.0"` (`@auspicion/provident-storeroom-js-{linux-x64-gnu, linux-arm64-gnu, darwin-x64, darwin-arm64, win32-x64-msvc}`) |
+| `:50`–`:52` | `publishConfig` | `{ "access": "public" }` |
+
+**AND THE THREE ABSENCES THE REQUEST NAMES ARE ABSENCES AT THE BYTES:** **no `main`**, **no `require` condition**, **no `default` condition** — the whole map is the two conditions of `:28`–`:31`. **The request's quote of the manifest is TRUE of this checkout, field for field.**
+
+#### (ii) THE ENTRY'S OWN HEADER — `bindings/js/index.mjs:1`–`:4`
+
+```
+// `provident-storeroom` — **THE CLAIMED REALM: Node ESM, ALONE** (`package.md §1.1`, `A70`).
+//
+// **THE ONE ARMS-BEARING ENTRY** (`package.md §1.3` item 1, `DD-24`) — the `exports` map publishes it and
+// publishes nothing else: no wildcard, no deep import to the addon and no CJS arm (`§1.2`, `HO-1`).
+```
+
+#### (iii) THE LIVE OPERATIVE HOMES — `docs/specs/storeroom-js/contract.md`
+
+- **`:3383` — the declared-surface row.** *"the package | ONE arms-bearing `exports` arm (the ESM one), no wildcard, no CJS arm, no `main`, no `.cjs`; `"engines": { "node": ">=18.0.0" }`; `AGPL-3.0` in `package.json`'s `license` and in `bindings/js/README.md`; the `5`-target prebuild matrix named in `optionalDependencies`; the addon documented as INTERNAL and as no entry point (`§3.1`–`§3.4`; `DD-24`, `DD-25`, `DD-38`, `DD-43`)"* — **the row the note's subject would move.**
+- **`§3.1` at `:2279`–`:2283`** — the realm claim, stated so it can be falsified: *"**THE ARCHITECT'S RULING, VERBATIM: *"Node ESM"*** (`docs/specs/storeroom-js-proposal.md` `§15` · `A70`) … a consumer `import`s the package as an ES module … **the package reaches the addon INTERNALLY** — an addon being a CJS artefact, that internal reach is the package's own `createRequire`-style step and **is NOT a second claimed realm** (`DD-4`)."*
+- **`§3.2` at `:2365` — the `HO-1` row: "Node CJS — a consumer that spells `require('…')`"**, whose *"Why it is unclaimed, at the carrier's own terms"* reads *"the carrier reaches JS through an addon that IS a CJS artefact, but `A70` claimed the ESM entry alone; a CJS consumer would need a second published arm"*, whose declared answer reads *"**the package publishes NO CJS arm and NO `require` entry** (`DD-24`, `DD-4`); a CJS consumer is served by the consumer's own ESM interop, which is the consumer's side of the boundary"*, and whose revisit condition reads *"a fresh ruling that claims CJS, followed by a bounded amendment"*.
+- **`§9` at `:3923` — the same row in the handoff ledger**, with its owner and its positive revisit condition spelled out: *"a fresh ruling claiming CJS, recorded as an ACTIVE `docs/decisions.md` row, followed by a bounded amendment of this directory"*; its OWNER cell: *"**the consuming project's own agents** (`A2`'s route)"*.
+- **`DD-4` at `:580`** — pins *"the package's ESM entry reaches the `.node` addon through a `createRequire`-style internal shim, and the shim is NOT a documented, supported, second entry point"*; REFUSES *"a documented `require()` entry; a second `.node` load path; an `exports` map publishing a CJS arm"*; its alternative, priced: *"**publishing a CJS arm as a co-equal entry** — priced: it would make `require` a claimed realm, which `A70` did not claim, and it would oblige the CJS/ESM dual-package hazard's own clause; available with a fresh ruling"*; its reversal point: *"a fresh ruling recorded as an ACTIVE `docs/decisions.md` row, followed by a bounded amendment"*.
+- **`DD-24` at `:603`** — pins *"the package's `exports` map publishes EXACTLY ONE arms-bearing entry — the ESM one — and every other subpath a consumer could spell is either absent or an internal file the `exports` map does not expose"*; REFUSES *"a co-equal CJS arm; a deep-import path to the `.node`; a wildcard `"./*"` export"*; its alternative, priced: *"**a CJS arm beside the ESM one** — priced: it is a SECOND claimed realm, and `A70` claimed exactly one; available with a fresh ruling"*.
+- **`DD-38` at `:617`** — *"the package declares `"engines": { "node": ">=18.0.0" }`, which is the floor the Node-API carrier's own version needs and not a floor this unit measures"*; REFUSES *"an unbounded engine floor; a floor justified by a measurement this pass did not take; an Electron-specific floor"*; its alternative, priced: *"**a higher floor (`>=20`)** — priced: it would exclude consumers the carrier itself serves, and the version is a declaration rather than a measurement; available with a bounded amendment"*.
+
+#### (iv) THE ARCHIVED HOME, AND A CITATION DISCREPANCY THE CORPUS MAY OWE
+
+**`docs/specs/storeroom-js/package.md` DOES NOT EXIST AT THIS `HEAD`** — a glob of `docs/specs/storeroom-js/*.md` returns exactly two files, `surface.md` and `contract.md`; the only `package.md` in the tree is **`archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-js/package.md`**. **Yet it is cited as a live authority by the entry, by the live contract and by the brief:**
+
+- `bindings/js/index.mjs:1`–`:4` cites `package.md §1.1`, `§1.3` item 1, `§1.2`;
+- `docs/specs/storeroom-js/contract.md:21` — *"the handoff rows are `HO-1`…`HO-7` (`package.md` `§2`)"*;
+- `strata/brief.md:67` — the realm bullet's citation is *"(`docs/specs/storeroom-js/package.md §1`)"*, a path with no file at it;
+- `docs/guides/package-use.md:147` cites the **archive** path for the same fact (`archive/pre-strata-docs-2026-10-24/…/package.md §1`–`§2`, *"archived"*) — so the shipped guide and the brief disagree about whether that document is live.
+
+**THE ARCHIVED TEXT ITSELF, at its own bytes (read whole for `§1`–`§2`):**
+
+- **`§1.1`, `:32`–`:36`** — *"**THE ARCHITECT'S RULING, VERBATIM: *"Node ESM"*** … the package reaches the addon INTERNALLY** — an addon being a CJS artefact, that internal reach is the package's own `createRequire`-style step and **is NOT a second claimed realm** (`DD-4`)."*
+- **`§1.2`, `:44`–`:46`** — *"**THE ADDON IS A CJS ARTEFACT AND THE ESM ENTRY REACHES IT THROUGH THE PACKAGE'S OWN INTERNAL STEP** (`DD-4`). **There is exactly ONE `.node` load per instance construction, at exactly one path, and the path is a file the `exports` map does not expose.**"*
+- **`§1.3` items 1–3, `:90`–`:96`** — *"**THE `exports` MAP PUBLISHES EXACTLY ONE ARMS-BEARING ENTRY — the ESM one** — **and every other subpath a consumer could spell is either absent or an internal file the map does not expose** (`DD-24`)"*; *"**A WILDCARD `"./*"` EXPORT IS REFUSED** … **a deep import is refused for the same reason**"*; *"**`import`ing the entry yields a namespace or default whose NAMED EXPORTS are exactly the verbs of `surface.md §2` and the package's own instance handle factory — and NOTHING ELSE.**"*
+- **`§1.3` item 4, `:105`–`:107`** — the addon's five internal names.
+- **`§1.4`, `:121`–`:122`** — *"**THE PACKAGE DECLARES `"engines": { "node": ">=18.0.0" }`** (`DD-38`). **The floor is a DECLARATION and not a measurement this pass took.**"*
+- **`§1.5`, `:134`–`:136`** — *"**THE PACKAGE CLAIMS `{ Node ESM }` AND PROMISES NO OTHER REALM.** … **no clause of this package's documentation may describe an unclaimed realm as supported.**"*
+- **`§2`, `:149` — the `HO-1` row** (identical in its declared answer to the live `§3.2` row above).
+- **`§2`, `:161`** — *"**ARITHMETIC, PRINTED WITH ITS TERMS: `7` rows = `6` unclaimed realms (`HO-1`…`HO-6`) + `1` route (`HO-7`) — `6 + 1 = 7` ✓.**"*
+
+**THE FACT, STATED AS A FACT AND NOT AS A FINDING OF THIS NOTE:** `HO-1`'s substance is live at `contract.md §3.2:2365` and `§9:3923`, while **its cited home is retired to the archive**; **the `package.md` citations at `index.mjs:1`–`:4`, `contract.md:21` and `brief.md:67` therefore point at a path with no file at it** — a citation question the owning pass may owe (`Q-7`'s neighbourhood, and see `§20.6`'s FINDINGS).
+
+#### (v) THE SHIPPED CONSUMER DOCUMENTS THAT STATE ESM-ONLY
+
+- **`bindings/js/README.md:3`–`:6`** — *"**THE CLAIMED REALM IS `{ Node ESM }` AND NOTHING ELSE** (`A70`, `package.md §1.1`): you `import` this package as an ES module from a Node runtime whose ABI carries a Node-API addon. **Every other realm is UNCLAIMED and each owes its declared answer** (`package.md §2`: Node CJS, Electron `main`, `preload` and `renderer`, the browser, `worker_threads` and any IPC route). **No other realm is described here as supported.**"*
+- **`bindings/js/README.md:46`–`:48`** — *"**The `exports` map publishes EXACTLY ONE arms-bearing entry — the ESM one** (`package.md §1.3`, `DD-24`), and its whole content is: no wildcard export, no deep import to the addon and no CJS arm. **The addon is reached INTERNALLY by the package's own resolution step and is not an entry point.**"*
+- **`bindings/js/README.guide.md`** — the landed copy of `docs/guides/package-use.md` (`README.md:17`–`:27`: *"that step copies its one authored home, `docs/guides/package-use.md`, byte-for-byte to this package's root as `README.guide.md`"*; both files read **2483 lines** this pass — **line-count only; the byte-for-byte equality is `scripts/publish.sh`'s assertion, which this pass did not run**).
+- **`docs/guides/package-use.md:130`** — *"**Which realm you are in:** you must be in **Node ESM**. **No other realm is claimed** (§1)."*
+- **`docs/guides/package-use.md:146`–`:149`** — *"**THE CLAIMED REALM IS `{ Node ESM }` AND NOTHING ELSE** … **Node CJS, Electron's `main`/`preload`/`renderer`, the browser, `worker_threads` and any IPC route are each UNCLAIMED** — the package's own readme enumerates them one by one and describes no other realm as supported."*
+- **`docs/guides/package-use.md:2038`** — the installed-package table's `type` row: *"`module` — **the entry is ESM and there is no CJS arm**"*; **`:2041`** — the `exports` row: *"**ONE arm** — `"."` → `{ "types": "./index.d.ts", "import": "./index.mjs" }`"*; **`:2071`–`:2077`** — *"**★ THE `exports` MAP HAS ONE ARM, AND THAT IS A PROMISE ABOUT WHAT IS REACHABLE** … **There is no wildcard export, no deep import to the addon and no CJS arm**"*.
+- **`bindings/js/RELEASE-NOTES.md:19`** — *"PUBLISH-NOTES-VERSION-LINE: THE VERSION THIS CHANGE LIST DESCRIBES IS `1.11.0`."*; **`:58`** — *"## §1.11.0 · a MINOR — the creation sweep: …"*. **The change list states no realm sentence and no module-system sentence** (a grep for `CJS|require|module system|realm` returns only `:60`, `:64`, `:82`'s constraint-list material and the version line). **AND ONE ABSENCE WORTH NAMING FOR `Q-2`'s ARM 3: no shipped document tells a CJS host to use a dynamic `await import()` seam** — `docs/guides/package-use.md` and `bindings/js/README.md` contain **no** `await import` / dynamic-import sentence at all (grep, zero hits in either file). **The corpus's declared answer to a CJS consumer is a *realm* sentence (`HO-1`), not a recipe.**
+
+#### (vi) THE CORPUS'S **TESTED** REFUSAL — the cells that pin the map exactly
+
+**These are the cells that would turn RED on any `require` or `default` condition. Every assertion below is quoted from its own bytes.**
+
+| # | site | the assertion, verbatim | reads |
+|---|---|---|---|
+| `X-1` | `tests/e2e/blind-cjs-interop.test.mjs:84`–`:91` | *"THE ONE `exports` ARM CARRIES EXACTLY TWO CONDITIONS — `types` and `import` — and NO `require`, `node` or `default` condition stands anywhere in the map"*; `assert.deepEqual(Object.keys(MANIFEST.exports['.']), ['types', 'import']);` and `for (const condition of ['require', 'node', 'default', 'browser', 'worker', 'electron']) { assert.equal(condition in MANIFEST.exports['.'], false, \`the arm declares no ${condition} condition\`); }` | the **checkout's** manifest (`:44`, `readFileSync(join(PACKAGE_DIR, 'package.json'))`) |
+| `X-2` | `tests/e2e/blind-cjs-interop.test.mjs:134`–`:150` | *"`HO-1` … THE DECLARED ANSWER FOR A `require` IS THE MAP'S REFUSAL: a CJS consumer's `require` of the name resolves NO arm, and the error is `ERR_PACKAGE_PATH_NOT_EXPORTED`"*; `assert.equal(printed, 'REFUSED ERR_PACKAGE_PATH_NOT_EXPORTED');` (`:148`) | a **consumer install** — `:62`–`:67` builds a temp `node_modules` and `symlinkSync(PACKAGE_DIR, …)` |
+| `X-3` | `tests/e2e/blind-cjs-interop.test.mjs:93`–`:99` | *"`main` IS ABSENT: the package publishes no legacy entry"*; `assert.equal('main' in MANIFEST, false);` and `assert.equal(JSON.stringify(MANIFEST.exports).includes('.cjs'), false);` | the checkout's manifest |
+| `X-4` | `tests/e2e/blind-installed-surface.test.mjs:557`–`:561` | `assert.deepEqual(Object.keys(exports['.']).sort(), ['import', 'types']);` · `assert.equal('require' in exports['.'], false, 'a CJS arm reached the one arm (\`HO-1\`)');` · `assert.equal('default' in exports['.'], false);` | **the packed tarball** — `:553` `entryManifest(site.bareTarball)` |
+| `X-5` | `tests/e2e/staged-install/package-entry.test.mjs:333` | `assert.equal(PKG.exports['.'].require, undefined, 'no \`require\` arm is published');` (the `HO-1` row of `HO_ROWS`, `:331`–`:335`) | the staged install's manifest |
+| `X-6` | `tests/e2e/blind-package-surface.test.mjs:158`–`:161` | *"its two conditions are `types` and `import`"*; `assert.deepEqual(Object.keys(arm).sort(), ['import', 'types']);` · `assert.equal(arm.import, './index.mjs');` | the checkout's manifest |
+| `X-7` | `tests/e2e/live-drive.mjs:851`–`:852` (`LIVE-11.1`) | *"the `exports['.']` arms carry NO `require` arm — no CJS entry is published"*; `!Object.prototype.hasOwnProperty.call(dot, 'require')` | the checkout's manifest — a **reporting runner** (`D-21`) |
+| `X-8` | `tests/e2e/greens.mjs:1633`–`:1634` (`JSG-12.5`) | *"no require arm is published: CJS is an UNCLAIMED realm"*; `!(arm && typeof arm === 'object' && ('require' in arm)) && !JSON.stringify(ex).includes('.cjs')` | the checkout's manifest — a **greens runner** |
+
+**AND THE CELLS THAT READ THE MAP WITHOUT PINNING ITS CONDITION SET — so they would NOT move.** `tests/e2e/blind-package-surface.test.mjs:233` reads only `manifest.exports['.'].import`, `…['.'].types` and `manifest.types` (the allowlist-reachability cell, `:225`–`:237`); `tests/e2e/addon-adoption.test.mjs:1768` reads only `exports['.'].import` (to locate the entry whose source it then reads from the text), and `:2413` builds `exportedPaths` from `pkg.exports['.'].types` and `pkg.exports['.'].import` only, asserting at `:2416` that **no `exports` condition points into the artefact's own directory**. **A `require` condition naming `./index.mjs` would leave all three of those cells green** (byte-reading, not a run).
+
+#### (vii) THE INSTALL-SHAPE RULING — which cells are `O3`'s, and the sentence that puts the map's assertion there
+
+**`strata/decisions.md:422` — `D-6`**, whose architect's words are *"Use O3 for e2e publish-readiness, O4 for earlier tests"* (`:429`), and whose operative sentence for this note is `:449`–`:450`:
+
+> **The `exports` map is therefore asserted where the install shape is assembled, and nowhere else** — which is also where `D-4`'s publish-shape evidence lives.
+
+with the split criterion at `:447`–`:449` (*"a publish-readiness cell is one whose subject is *whether the package as shipped resolves and runs*, and it takes **`O3`**; every earlier cell takes **`O4`**"*). **`strata/decisions.md:553` — `D-7`** confirms the packaged-resolution claim is `O3`'s alone: *"**`R-2` IS CONFIRMED.** The packaged-resolution claim — *the name resolves through the `exports` map* — lives **exclusively in the `O3` set**. The earlier set claims **nothing about `exports`**"* (`:565`–`:568`).
+
+**WHICH CELLS ARE THE INSTALL-SHAPE (`O3`) SET BY THAT CRITERION, at the bytes:** `X-2` (`blind-cjs-interop`'s consumer-install cell — a temp `node_modules`, a symlink, a child `node -e` from that root), `X-4` (`blind-installed-surface`, driving the **packed tarball**), `X-5` (`staged-install/package-entry`), and the `O3`-shaped limb at `blind-package-surface:156`–`:161` (which reads the checkout's manifest, not an install — **so its route tag is a question for the tagging pass, not a fact this note settles**). **`X-1`, `X-3`, `X-6`, `X-7`, `X-8` read the checkout's own manifest and are route-tagged by the cells' own history, not by this note** (`D-6` `:464`–`:466`: *"**Which cells are "publish-readiness"** … **L1 declares it** — L0 does not, and this ruling does not list them."*).
+
+#### (viii) THE TYPE SURFACE — the staging, the two legs, and the fixture
+
+- **root `package.json:8`** — `"typecheck:stage": "node -e \"…fs.copyFileSync('bindings/js/'+f,'typecheck/node_modules/provident-storeroom/'+f)\""` over `for (const f of ['package.json','index.d.ts'])` — **two files staged, and `index.mjs` is NOT one of them**; `:9`–`:10` run **two** legs: `tsc -p tsconfig.typecheck.json` then `tsc -p tsconfig.typecheck.nodenext.json`.
+- **`tsconfig.typecheck.json:106`–`:107`** — `"module": "esnext"`, `"moduleResolution": "node10"`; **`:122`** — `"include": ["typecheck/**/*.ts"]`.
+- **`tsconfig.typecheck.nodenext.json:66`–`:67`** — `"module": "nodenext"`, `"moduleResolution": "nodenext"`; **`:74`** — the same include.
+- **`typecheck/consumer-fixture.ts:82`** — `import { storeCreate } from 'provident-storeroom';` — **the package specifier, never a relative path** (`:6`–`:10`, and the leg's own rationale at `tsconfig.typecheck.json:12`–`:20`).
+- **the staged copy is a COMMITTED tree file** — `typecheck/node_modules/provident-storeroom/package.json` reads `1.11.0` with the same two-condition `exports` map (read whole, 53 lines) — **so the staged manifest is a second copy of the map, regenerated by `typecheck:stage`.**
+- **root `package.json:4` sets `"type": "module"` for the whole repository**, so the fixture is in a module scope whose format is ESM on both legs.
+
+**WHAT IS A BYTE FACT AND WHAT IS OPEN:** the `types` condition stands FIRST in the map's own key order (`package.json:29` before `:30`), the fixture reaches the package by name, and the staging copies the manifest that carries the condition. **Whether a third condition changes either leg's resolution is NOT MEASURED here** (`tsc` was not run; no TypeScript resolution was observed). Recorded as `Q-7` with its byte facts and **no answer**.
+
+#### (ix) THE CORPUS ALREADY MEASURES THE MECHANISM — and it separates "the map refuses" from "require(esm) works"
+
+**Two cells in this tree already speak to the request's mechanism, and they are the strongest byte-evidence the note can carry without a shell:**
+
+- **`tests/e2e/live-drive.mjs:865`–`:869` (`LIVE-11.6`, a run *reported* by that runner, CARRIED here):** the runner computes `const cjsEntry = thrown(() => req(path.join(pkgDir, 'index.mjs')));` and asserts *"`require()` of the ESM entry succeeds through NODE'S OWN `require(esm)` interop and yields the SAME namespace the ESM import yields — its one remaining name, `storeCreate` — **the consumer's side, not a second published arm**"*, with `!cjsEntry.threw && Object.keys(cjsEntry.value).sort().join(',') === 'storeCreate'`. **So at the ENTRY'S OWN PATH, on the declared toolchain, the corpus already holds that a CJS `require` of this ESM entry loads** — the load path the request's arm 1 would reach by name.
+- **`tests/e2e/staged-install/package-entry.test.mjs:150`–`:155`:** *"**A `require()` of the bare specifier is NOT asserted to throw**: on the declared toolchain (Node `v24.20.0`) the RUNTIME supplies `require(esm)` interop of its own, which is the consumer's own side of the boundary (`HO-1`) and not a published arm of this package."* **That comment is the corpus's own statement of exactly why `X-2`'s refusal is a MAP fact and not a loader fact** — the same distinction the request turns on.
+
+**AND THE TWO CELLS DIFFER IN SUBJECT, WHICH IS THE WHOLE OF THIS INTAKE: `X-2` refuses because no condition names an arm for a `require`; `LIVE-11.6` loads because the path bypasses the map. The request asks for the first to be given a condition, not for the second to be changed.**
+
+#### (x) THE PACKAGE'S OWN GRAPH — the files, and the one `require(esm)` call already shipped
+
+**THE ESM GRAPH THE ENTRY LOADS** — `bindings/js/index.mjs` (:79–:83 Node builtins; :85–:95 the package's own) plus **13 modules** under `bindings/js/src/entry/` (`class-decision` · `carrier` · `refusal` · `artefact` · `kernel-commit` · `kernel-terminal` · `state` · `kernel-attempt` · `constraints` · `kernel-foundations` · `kernel-registration` · `delivery` · `frame`) plus the barrel `bindings/js/src/constraint-kernel.mjs` (4 lines, re-exporting `register`/`remove`, `commit`, `runAttempt`, `log`/`report`) — the figure `strata/brief.md:61` prints (*"`bindings/js/src/entry/` (13 files)"*).
+
+**AND ONE SHIPPED CALL ALREADY DEPENDS ON REQUIRE-OF-ESM, WHICH THE REQUEST DOES NOT MENTION AND `Q-3` TURNS ON:**
+
+- `bindings/js/index.mjs:96`–`:99` — `const require_ = createRequire(import.meta.url);` … `adoptModuleContext(import.meta.url, require_, ADDON_PATH);`
+- `bindings/js/src/entry/artefact.mjs:13`–`:19` — `export let require_ = null;` … `require_ = requireBase;` (the entry's own module context, handed in, `I-29`)
+- **`bindings/js/src/entry/constraints.mjs:86`** — `if (KERNEL === null) KERNEL = require_('./src/constraint-kernel.mjs');` — **a CJS `require` of an `.mjs` file**, lazy, on the first constraint act (`:77`–`:83`: *"**THE KERNEL, RESOLVED ON THE FIRST CONSTRAINT ACT AND NEVER AT LOAD** … the module is reached as a FILE"*).
+
+**SO THE PACKAGE'S DECLARED `engines` FLOOR (`>=18.0.0`) AND ITS OWN KERNEL ROUTE ALREADY PART COMPANY AT ONE BYTE:** the kernel load is `require`-of-ESM, which is exactly the mechanism the request's caveat says is unflagged only at `≥20.19`/`≥22.12`. **What happens on Node 18 at that line is NOT measured here** (no shell; one Node version present) and is put as `Q-3` rather than asserted. **What IS a byte fact is that the shipped constraint path does not use `import()` anywhere** — a grep for `await` over every `.mjs` under `bindings/js/` returns **zero hits**, in the entry, the parts and the barrel alike.
+
+#### THE COLLISION INVENTORY — nothing ranked, and every entry's own state
+
+**THE CORPUS DOES NOT TREAT THIS AS AN UNKNOWN DEFECT. IT DECLARES THE REFUSAL *AND* PRICES THE ALTERNATIVE**, and the two are printed separately below so no reader collapses "this is forbidden" into "this was never considered".
+
+| site | what it says today | its state |
+|---|---|---|
+| `docs/specs/storeroom-js/contract.md:3383` | *"ONE arms-bearing `exports` arm (the ESM one), no wildcard, no CJS arm, no `main`, no `.cjs`"* | **DECLARED SURFACE — would move** |
+| `contract.md:580` · `DD-4` | refuses *"an `exports` map publishing a CJS arm"*; the alternative is *"available with a fresh ruling"* | **DECLARED REFUSAL + PRICED ALTERNATIVE** |
+| `contract.md:603` · `DD-24` | *"EXACTLY ONE arms-bearing entry — the ESM one"*; the alternative is *"a SECOND claimed realm … available with a fresh ruling"* | **DECLARED REFUSAL + PRICED ALTERNATIVE** |
+| `contract.md:617` · `DD-38` | the `>=18.0.0` floor; the alternative is *"a higher floor (`>=20`) … available with a bounded amendment"* | **DECLARED DEFAULT + PRICED ALTERNATIVE** |
+| `contract.md:2365` · `§3.2` `HO-1` | *"NO CJS arm and NO `require` entry"*; revisit: *"a fresh ruling that claims CJS, followed by a bounded amendment"* | **DECLARED REFUSAL + POSITIVE REVISIT CONDITION** |
+| `contract.md:3923` · `§9` `HO-1` | the same, with owner *"the consuming project's own agents"* and the revisit *"a fresh ruling … recorded as an ACTIVE `docs/decisions.md` row"* | **DECLARED + OWNED** |
+| `archive/…/package.md:90`–`:96`, `:134`, `:149` | the same three cells at their retired home | **ARCHIVED AUTHORITY, CITED AS LIVE** |
+| `bindings/js/README.md:3`–`:6`, `:46`–`:48` | *"No other realm is described here as supported"*; *"no CJS arm"* | **SHIPPED DOCUMENT — would move** |
+| `docs/guides/package-use.md:130`, `:146`–`:149`, `:2038`, `:2041`, `:2071`–`:2077` (+ its landed copy `bindings/js/README.guide.md`) | *"you must be in Node ESM. No other realm is claimed"*; *"the entry is ESM and there is no CJS arm"* | **SHIPPED DOCUMENT — would move; the landing must move with it (`README.md:24`–`:27`)** |
+| `strata/brief.md:65`–`:67` | *"The claimed realm is Node ESM and nothing else. Node CJS … are each unclaimed"* | **BRIEF — would move** |
+| `X-1`…`X-8` (§20.2 (vi)) | eight assertions pinning the two-condition map, the absent `main`, and the refusal's error text | **TESTED REFUSAL — the RED set** |
+| `strata/decisions.md` | **NO ROW** — a grep for `exports map` / `\bCJS\b` / `require arm` returns six hits and none rules on the map's conditions (`:144` the publish gate's `files` note, `:350` `D-4`'s non-reach, `:435`/`:440`/`:449`/`:565` the `O3`/`O4` route tags and `R-2`) | **NO RULING — so a fresh ruling is the only route either way** |
+| `tests/e2e/staged-install/package-entry.test.mjs:150`–`:155` | *"A `require()` of the bare specifier is NOT asserted to throw … the RUNTIME supplies `require(esm)` interop of its own, which is the consumer's own side of the boundary (`HO-1`) and not a published arm"* | **THE CORPUS'S OWN DISTINCTION, already written down** |
+| `tests/e2e/live-drive.mjs:865`–`:869` (`LIVE-11.6`) | *"`require()` of the ESM entry succeeds through NODE'S OWN `require(esm)` interop … the consumer's side, not a second published arm"* | **THE MECHANISM, ALREADY MEASURED AT THE PATH ROUTE** |
+| `scripts/publish.sh:232`–`:282`, `:96`–`:109`, `:1191`–`:1229` | the version is generated into three shipped documents and asserted; **eleven version cells** move together (`1` main + `5` pins + `5` platforms); the main manifest must carry `"version"` exactly once | **RELEASE PAPERWORK — a manifest change touches the cut, not the map** |
+| `docs/specs/storeroom-publish/contract.md:117` · `PUB-DD-9` | *"a PATCH re-cuts the tag and re-publishes the six; a MINOR adds a member to the declared surface or a target to the matrix and is a BOUNDED AMENDMENT of this contract; a MAJOR carries any change to the STORE'S closed set's carriage in the types or to the resolution rule's order"* | **CLASS RULE — and a `require` condition fits none of the three literally** (`Q-6`) |
+| `bindings/js/index.mjs:96`–`:99`, `src/entry/artefact.mjs:13`–`:19`, `src/entry/constraints.mjs:86` | the package already requires an `.mjs` through `createRequire` | **A DEPENDENCY ON THE SAME MECHANISM — stated, not ranked** |
+
+**AND THE SECOND HALF OF THE REQUEST — the silent-inline trap — HAS NO HOME IN THIS CORPUS AT ALL:** a grep of `docs/guides/` and `bindings/js/README*` for `esbuild`, `bundle`, or an externalisation sentence finds **nothing about a bundler inlining this package** (the guide's `§1` speaks of realms, tiers and refusals, `:142`–`:149`). **Where such a sentence could lawfully live is a QUESTION (`Q-9`), not a design, and nothing here proposes one.**
+
+---
+
+### §20.3 · The claims ledger
+
+**METHOD.** `V-` = read at the bytes of this tree at `HEAD` `5cfb329`. `C-` = CARRIED (from the relay, the filed request, the downstream records, or this corpus's own driver/cell output which this pass did not run). `U-` = UNVERIFIABLE HERE (no shell / no network / no esbuild). **No claim below was measured by executing anything.**
+
+| # | the claim | verdict | evidence |
+|---|---|---|---|
+| `K-1` | **the shipped manifest is as the request quotes it**: `type: module`, `exports["."] = {types, import}`, **no `main`, no `require`, no `default`**, `engines.node ">=18.0.0"`, version `1.11.0` | **VERIFIED** | `bindings/js/package.json:3`, `:5`, `:24`–`:26`, `:27`–`:32`, `:33`, `:34`–`:42`, `:43`–`:49` — quoted whole at §20.2 (i) |
+| `K-2` | **the entry's own header states the realm claim and the one-arm/no-CJS rule** | **VERIFIED** | `bindings/js/index.mjs:1`–`:4` (quoted) |
+| `K-3` | **the live contract declares the same surface, in one cell that names `no CJS arm` and `no main`** | **VERIFIED** | `docs/specs/storeroom-js/contract.md:3383` |
+| `K-4` | **`DD-4` and `DD-24` forbid a CJS arm and price it as "available with a fresh ruling"; the reversal point is an ACTIVE `docs/decisions.md` row + a bounded amendment** | **VERIFIED** | `contract.md:580`; `:603` |
+| `K-5` | **`DD-38` declares the `>=18.0.0` floor as a DECLARATION and prices "a higher floor (`>=20`)" as a bounded amendment** | **VERIFIED** | `contract.md:617` |
+| `K-6` | **`HO-1` is live at `§3.2:2365` and `§9:3923`, and its cited home `package.md §2` exists only in the archive** | **VERIFIED** | `contract.md:2365`, `:3923`, `:21`; glob of `docs/specs/storeroom-js/*.md` → `surface.md`, `contract.md` only; `archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-js/package.md:149` |
+| `K-7` | **`strata/brief.md` cites `docs/specs/storeroom-js/package.md §1` as a live authority at a path with no file** | **VERIFIED — a citation discrepancy** | `strata/brief.md:67` vs the glob above; the shipped guide cites the **archive** path for the same fact (`docs/guides/package-use.md:147`) |
+| `K-8` | **eight cells pin the map's two-condition shape, the absent `main`, and the refusal's exact error text `ERR_PACKAGE_PATH_NOT_EXPORTED`** | **VERIFIED at the cells' own assertions** | `§20.2` (vi), `X-1`…`X-8`, each with `path:line` |
+| `K-9` | **three cells read the map without pinning its condition set, and would stay green** | **VERIFIED at the bytes (not run)** | `blind-package-surface.test.mjs:225`–`:237`; `addon-adoption.test.mjs:1768`, `:2413`–`:2416` |
+| `K-10` | **`D-6`/`D-7` place the `exports`-map assertion in the `O3` install-shape set and nowhere else** | **VERIFIED** | `strata/decisions.md:449`–`:450`; `:565`–`:568` |
+| `K-11` | **the shipped ESM graph has NO top-level `await` — indeed no `await` token at all** | **VERIFIED at the bytes; NOT DRIVEN** | a grep for `await` over every `*.mjs` under `bindings/js/` returns **zero matches** (entry, 13 parts, barrel) — and the request's *"cannot wait"* predicate therefore has no byte in this package to bite (`Q-1`'s caveat, `§20.4`) |
+| `K-12` | **the package's own kernel route already `require`s an `.mjs`** | **VERIFIED at the bytes; its RUNTIME behaviour on any Node is UNVERIFIED** | `bindings/js/src/entry/constraints.mjs:86`; `artefact.mjs:13`–`:19`; `index.mjs:96`–`:99`; the docblock at `constraints.mjs:77`–`:83` |
+| `K-13` | **a CJS `require` of the ENTRY PATH succeeds on the declared toolchain through Node's own require(esm) interop, yielding `storeCreate` alone** | **CARRIED** — this corpus's own cell asserts it; this pass ran nothing | `tests/e2e/live-drive.mjs:865`–`:869` (`LIVE-11.6`) |
+| `K-14` | **a CJS `require` of the BARE SPECIFIER is refused today with `ERR_PACKAGE_PATH_NOT_EXPORTED`** | **CARRIED** — asserted by a cell that builds a real consumer install; not run here | `tests/e2e/blind-cjs-interop.test.mjs:134`–`:150`; the downstream measures the same error at `Provident-Electron/strata/decisions.md:6305` |
+| `K-15` | **require(esm) is unflagged only at Node `≥20.19.0` / `≥22.12.0` (and 23.x+)** | **CARRIED** — and **no byte of this repository carries that figure** | a grep for `20\.19|22\.12` over the tracked tree returns **ZERO hits**; the nearest bytes state the *declared toolchain* `v24.20.0` (`package-entry.test.mjs:153`) and the corpus's `require(esm)` interop cells (`live-drive.mjs:865`–`:869`), **neither of which states a floor** |
+| `K-16` | **the package's declared floor (`>=18.0.0`) and require(esm)'s unflagged floor are different populations, and the package's own kernel route sits on the second** | **VERIFIED as two facts; the CONSEQUENCE on Node 18 is UNVERIFIED** | `bindings/js/package.json:24`–`:26` + `constraints.mjs:86`; `contract.md:617` (`DD-38`); `Q-3` |
+| `K-17` | **arm 1's green — the fork's unmodified built `main.cjs` boots with the added condition and zero fork bytes changed** | **CARRIED** | filed request `:29`–`:31`, `:41`–`:42`; `defects.md:33`; `D-297:6305` |
+| `K-18` | **the esbuild silent-inline trap** (a green build that inlines the package; the request's `+2,667,936 B`, `15` comments, `var import_meta = {}`; the downstream's `213,948` B vs `154` B) | **UNVERIFIABLE HERE** | `node_modules/` carries exactly one package (`typescript`) — **no esbuild**; no network; no shell. The two figure sets are the request's and the downstream's own measurements of **two different probes** and are not reconciled here |
+| `K-19` | **no shipped document tells a CJS host to use a dynamic `await import()` seam** (so `Q-2`'s arm 3 is not shipped today) | **VERIFIED** — grep for `await import|dynamic import|import()` in `docs/guides/package-use.md` and `bindings/js/README.md` → **zero matches** | §20.2 (v) |
+| `K-20` | **the `typecheck` staging copies `package.json` + `index.d.ts` only, and both legs resolve the package by specifier** | **VERIFIED at the bytes** | `package.json:8`–`:10`; `tsconfig.typecheck.json:106`–`:107`, `:122`; `tsconfig.typecheck.nodenext.json:66`–`:67`, `:74`; `typecheck/consumer-fixture.ts:82`; the committed staged copy `typecheck/node_modules/provident-storeroom/package.json` |
+| `K-21` | **the relay's `D-5`/`D-52` are the DOWNSTREAM's rows, and this repository's rows of those ids are different subjects** | **VERIFIED** | `Provident-Electron/strata/decisions.md:99`, `:1153` vs `strata/decisions.md:370`, `:3271` |
+| `K-22` | **this repository's register holds NO row on the map's conditions** | **VERIFIED** — six hits for `exports map|\bCJS\b|require arm`, none a ruling | `strata/decisions.md:144`, `:350`, `:435`, `:440`, `:449`, `:565` |
+| `K-23` | **the request's error is not something else**: the corpus's own expected text is `ERR_PACKAGE_PATH_NOT_EXPORTED`, not `ERR_REQUIRE_ESM` and not `MODULE_NOT_FOUND` | **VERIFIED at the cell** (`:148`), **CARRIED as behaviour** | `blind-cjs-interop.test.mjs:148` |
+
+**AND THE ONE CLAIM THE TREE REFUTES, STATED SO AGREEMENT IS NOT MANUFACTURED: NONE.** **The request's three checkable premises — the manifest's shape, the refusal's identity, and "This package qualifies today" (a synchronous graph) — all hold at this `HEAD`** (`K-1`, `K-8`/`K-14`, `K-11`). **The one fact that cuts against the request's implicit frame is not a refutation of it but a floor collision (`K-16`), and it is put as a question.**
+
+---
+
+### §20.4 · The drives — **this channel held no shell**, so no arm was driven
+
+**WHAT WAS IMPOSSIBLE, SAID PLAINLY.** This pass held four read-only file operations. **It ran no `node`, no `require()`, no `tsc`, no `git`, and it could not create a temp directory or copy the package.** So **every behavioural arm of the request is either CARRIED (`K-13`, `K-14`, `K-17`) or OPEN (`K-18`, `K-16`'s consequence)** — and none is reported as measured.
+
+**WHAT THE BYTES GIVE IN PLACE OF THE DRIVES, arm by arm:**
+
+| the arm the note would have driven | what this pass can say instead | its verdict |
+|---|---|---|
+| **(1) CONTROL — `require('provident-storeroom')` with the manifest unmodified** | the corpus asserts the outcome **and its exact string**: `assert.equal(printed, 'REFUSED ERR_PACKAGE_PATH_NOT_EXPORTED')`, from a real temp consumer install (`symlinkSync(PACKAGE_DIR, …)`, a child `node -e`) | **CARRIED** (`blind-cjs-interop.test.mjs:134`–`:150`) |
+| **(1-bis) CONTROL — `import('provident-storeroom')` succeeds** | the manifest's `import` condition names `./index.mjs`, which exists; and `blind-installed-surface.test.mjs:564`–`:571` drives the bare specifier from inside a consumer tree and asserts the namespace equals `NAMESPACE_NAMES` | **VERIFIED at the map; CARRIED as behaviour** |
+| **(2) PROBE — the copy's map gains `"require": "./index.mjs"`, then `require` the name** | the mechanism is already asserted at the **path** route: `LIVE-11.6`'s `req(path.join(pkgDir, 'index.mjs'))` succeeds and yields `storeCreate` | **CARRIED** (`live-drive.mjs:865`–`:869`) — **but the map step itself was not driven** |
+| **(3) PROBE — a minimal boot `storeCreate` + a mem write + a read** | the lawful call shape is documented and can be quoted rather than invented: `storeCreate({ journalLength: 256, listeners: [], filePath, constraints })` (`docs/guides/package-use.md:263`–`:268`), with `filePath` OPTIONAL (`:266`), and `store.write(address, tier, value, commit?)` / `store.read(address, tier?)` (`:277`–`:279`) | **NOT DRIVEN — no output exists** |
+| **(4) THE `default` ARM — the same with `"default": "./index.mjs"`** | **no difference was observed by this pass, because nothing was observed.** The cells that pin the map (`X-1`, `X-4`) refuse `default` with the same hardness as `require` (`blind-installed-surface.test.mjs:561`), and `greens.mjs:1630` reads `arm.import ?? arm.default` when locating the ESM arm — **so the two arms are NOT interchangeable at the corpus's own instruments** | **OPEN — a fact about the cells, not a measurement of resolution** |
+| **(5) NODE VERSION** | `v24.20.0`, **not measured here**; carried from the workspace and corroborated at `package-entry.test.mjs:153` | **CARRIED** |
+| **the esbuild arm** | `node_modules/` holds `typescript` alone; no network; no shell | **UNVERIFIABLE HERE** (`K-18`) |
+
+**AND THE DRIVES, PRINTED SO A PASS WITH A SHELL RUNS THEM UNCHANGED** — *these commands are NOT runs, they are the next gate's instrument, written down because a note that names an arm without naming how it would be driven leaves the next pass to re-invent it:*
+
+```
+# (1) CONTROL, manifest unmodified. Outside the repo; the package copied, never edited in place.
+T=$(mktemp -d); mkdir -p "$T/node_modules"; cp -r bindings/js/{index.mjs,index.d.ts,package.json} \
+  bindings/js/src bindings/js/build "$T/node_modules/" ; mv "$T/node_modules" "$T/pkg"   # assemble by hand
+mkdir -p "$T/consumer/node_modules"; ln -s "$T/pkg" "$T/consumer/node_modules/provident-storeroom"
+cd "$T/consumer" && node -e "require('provident-storeroom')"                       # expect ERR_PACKAGE_PATH_NOT_EXPORTED
+cd "$T/consumer" && node -e "import('provident-storeroom').then(m=>console.log(typeof m.storeCreate))"
+
+# (2) PROBE, the COPY's exports["."] gains the condition (the checkout's manifest is never touched).
+#     then, from the same consumer dir:
+node -e "const m=require('provident-storeroom'); console.log(Object.keys(m)); console.log(m.storeCreate && typeof m.storeCreate)"
+node -e "const m=require('provident-storeroom'); const s=m.storeCreate({journalLength:8,listeners:[]}); s.write(['k'],'mem',1); console.log(s.read(['k'],'mem'))"
+
+# (4) the default arm: repeat (2) with "default": "./index.mjs" instead of "require".
+# (3)'s green would measure: the condition resolves; the graph loads synchronously under require (no
+#     ERR_REQUIRE_ASYNC_MODULE); the addon loads through the entry's own createRequire(import.meta.url)
+#     (index.mjs:96-99, artefact.mjs:232); and the store constructs.
+```
+
+**NO OUTPUT IS PRINTED FOR ANY OF THE ABOVE, BECAUSE NONE EXISTS.** `§19.5`'s convention is repeated here verbatim as this pass's own: *"This pass held no shell"* (`strata/research.md:1460`).
+
+---
+
+### §20.5 · OPEN QUESTIONS — the record does not answer these, and this note supplies no default
+
+**Each is put as the question the corpus leaves, with the bytes that make it a question and no answer, no recommendation and no preference.**
+
+1. **WHETHER THE FRESH RULING `DD-24` NAMES IS TAKEN AT ALL — may this package publish a `require` (or `default`) condition?** `DD-24`'s alternative cell says *"a CJS arm beside the ESM one — priced: it is a SECOND claimed realm, and `A70` claimed exactly one; available with a fresh ruling"* (`contract.md:603`); `DD-4`'s says *"available with a fresh ruling"* with the reversal *"a fresh ruling recorded as an ACTIVE `docs/decisions.md` row, followed by a bounded amendment"* (`contract.md:580`); `HO-1`'s revisit condition says the same (`contract.md:3923`). **This repository's register holds no row on the subject (`K-22`). A note cannot take a ruling, and this one does not.**
+
+2. **WHICH ARM OF THE ACCEPTANCE PREDICATE** — `require` → `./index.mjs`; `default` → `./index.mjs`; a published CJS build and a `main`; or the documented ESM-only statement (arm 3)? **AND DOES ARM 1 vs ARM 3 CHANGE WHAT `HO-1` MEANS?** Today `HO-1`'s declared answer is a *realm* sentence — *"a CJS consumer is served by the consumer's own ESM interop, which is the consumer's side of the boundary"* (`contract.md:2365`) — i.e. **arm 3's substance already exists as the package's declared answer, and what arm 3 adds is only the statement that the seam is *supported*** (*"a documented, supported statement …, in which case a fork pays a Promise boundary"*, filed request `:33`–`:35`); **arm 1 moves `require` from an unclaimed realm into a claimed one or into a supported workaround, and the corpus's own vocabulary distinguishes those** (`DD-4`'s price: *"it would make `require` a claimed realm"*). **Which the architect means is not settled anywhere.** And `K-19` is the byte fact beside it: **no shipped document carries the `await import()` seam sentence today.**
+
+**⟶ `Q-1` AND `Q-2` ANSWERED 2026-11-17 BY `D-128`** (`strata/decisions.md`): *"Proceed with arm 1"* — the fresh ruling `DD-4`/`DD-24` name is TAKEN; the package publishes `"require": "./index.mjs"` (the ESM arm, a third condition, no `.cjs`); **arm 2 is refused and arm 3 is not taken**, so `DD-4`'s dual-package price and `DD-24`'s "SECOND claimed realm" price stay untaken. **The exact floor string, the cut class and `HO-1`'s post-arm-1 sentence remain OWED** (see `D-128`'s unsettled list); `Q-4`, `Q-5`, `Q-9`, `Q-10` stand open.
+
+3. **THE `engines` FLOOR.** `"node": ">=18.0.0"` (`package.json:24`–`:26`; `DD-38`, `contract.md:617`) against require(esm)'s unflagged floor `≥20.19`/`≥22.12` (`K-15`, CARRIED — **no byte of this tree carries that figure**). **Does the floor move, does the condition carry a documented caveat, or does nothing move?** **AND THE FACT THAT SHARPENS IT: the shipped constraint path already calls `require_('./src/constraint-kernel.mjs')` (`constraints.mjs:86`) — an `.mjs` required through CJS** — so the package's *existing* surface already sits above the require(esm) floor on one route, whatever this request does. **What a `require` condition would answer on a Node below the floor (`ERR_REQUIRE_ESM` at the loader? the map's `ERR_PACKAGE_PATH_NOT_EXPORTED` still?) and whether that is better or worse for those consumers is UNVERIFIED HERE** — one Node version exists and this channel could not install another (`K-16`).
+
+**⟶ `Q-3` ANSWERED 2026-11-17 BY `D-127`** (`strata/decisions.md`): *"Bump the floor, there's no backwards compatibility concerns"* — the floor is RAISED, `DD-38`'s carrier-only ground and its exclusion objection are WITHDRAWN, and the exact string is owed (see `D-127`'s unsettled item 1; no figure is named by the ruling). **`Q-1`, `Q-2`, `Q-4`–`Q-10` stand open.**
+
+4. **THE SYNCHRONOUS-GRAPH PREDICATE AS A PERMANENT CONSTRAINT.** The request's second caveat is *"it requires the module graph to be synchronous (no top-level await), because require(esm) cannot wait"*, and its verdict is *"This package qualifies today"* — **true at the bytes (`K-11`: no `await` token anywhere in `bindings/js/**/*.mjs`)**. **If the condition lands, what keeps the graph from gaining a top-level `await` later, and where would that rule live?** **No such rule stands today** — the corpus's instruments pin the *manifest* (§20.2 (vi)) and the *whole-file* rewrites (`DEF-2026-10-02`), **not the graph's synchronicity**; `scripts/publish.sh`'s preflights read versions, tags, locks and shipped files, not module top levels. **A future `await` would silently convert a working `require` into `ERR_REQUIRE_ASYNC_MODULE`, and nothing in this tree would redden.**
+
+5. **WHICH CELLS AND ROWS MOVE, AND WHO OWNS THE RE-DERIVATION.** The RED set on `require` is **`X-1`, `X-2`, `X-4`, `X-5`, `X-6`, `X-7`, `X-8`**; on `default` it is **`X-1`, `X-4`, `X-6`, `X-7`** (and `X-5`'s `require === undefined` cell would stay green — a `default` is not a `require`). **The rows that would move are `DD-4`, `DD-24`, `HO-1` (at `§3.2` and at `§9`), `contract.md:3383`, `§3.1`'s realm claim at `:2279`–`:2283`, the archive's `package.md §1.1`–`§1.5` and `§2` (annotate-beside, never rewritten), the shipped README/guide sentences, and `strata/brief.md:65`–`:67`.** **The doctrine puts a deliberate surface change's cells in the owning test pass's hands; the corpus's nearest instruments are `D-5` (`strata/decisions.md:387`–`:391` — `role_l1_test_writer` owns `tests/e2e/`, and every one of `X-1`…`X-8` lives under it) and `D-16` (`:1002`–`:1012` — a cell corrected *"inside the wave"* rather than carried as a red, with the executor named and the write walls stated).** **Whether the five `e2e` files' conditions are re-derived by `role_l1_test_writer`, by the landing pass, or by a wave, and whether the archived `package.md` cells get a read-through clause or stay as the archive's own date, is not decided here.** Recorded, not decided.
+
+6. **THE VERSION CLASS AND THE RELEASE PAPERWORK.** `PUB-DD-9` (`docs/specs/storeroom-publish/contract.md:117`) declares three classes and **a `require` condition fits none of them literally**: *"a PATCH re-cuts the tag and re-publishes the six; a MINOR adds a member to the declared surface or a target to the matrix and is a BOUNDED AMENDMENT of this contract; a MAJOR carries any change to the STORE'S closed set's carriage in the types or to the resolution rule's order"*. **Is a new `exports` condition "a member of the declared surface" (`MINOR`), or a re-cut of an existing arm (`PATCH`)?** **And what does the paperwork require?** `scripts/publish.sh` generates and asserts **three** shipped version lines from the manifest (`:232`–`:282`), moves **eleven** version cells together (`:96`–`:109`), and refuses unless the main manifest carries `"version"` exactly once (`:1227`–`:1229`). **A manifest-only change still touches the cut; whether it needs a `RELEASE-NOTES.md` section, and of what class, is the architect's (`§1.11.0`'s own header is a `MINOR` on `D-126` item 3, `RELEASE-NOTES.md:60`).**
+
+7. **THE TYPE SURFACE.** Do `typecheck/` staging, `tsconfig.typecheck.nodenext.json`, or `index.d.ts` need any re-read if the map gains a condition? **THE BYTES:** the `types` condition stands **first** in the map's key order (`package.json:29`); the staging copies `package.json` + `index.d.ts` and **not** `index.mjs` (`package.json:8`); the fixture imports by specifier (`consumer-fixture.ts:82`) in a repository whose root sets `"type": "module"` (`package.json:4`); the two legs are `node10` and `nodenext` (`tsconfig.typecheck.json:107`, `tsconfig.typecheck.nodenext.json:67`). **Whether any of that moves under a third condition is OPEN — no `tsc` was run.** **Is any CJS-typed consumer path affected? OPEN, and note that no CJS consumer of the *types* exists in this tree.**
+
+8. **THE ACCEPTANCE STANDARD.** The request's predicate is *"boot the unmodified built main, zero fork bytes changed"* (relay; filed request `:29`–`:31`). **Is the upstream's acceptance the same predicate reproduced in a scratch consumer here — which this pass did NOT run (§20.4) — or a different standard?** And **is the downstream's green (their built `main.cjs`, `D-297:6305`) sufficient as CARRIED evidence for a ruling, or does the upstream re-measure it before any ruling?** **Nothing here decides which, and `K-17` is CARRIED rather than verified.**
+
+9. **THE SECOND HALF — the esbuild silent-inline trap.** esbuild exits `0` and inlines this ESM-only package when `--external:provident-storeroom` is omitted (filed request `:21`–`:23`; the downstream measured the same class, `D-297:6307`). **Is documenting it here — in the shipped `README.guide.md` / `docs/guides/package-use.md`, or in the README — in scope of any upstream unit, or is it the consumer's own guide?** **Nothing in this corpus discusses bundling this package at all (§20.2's inventory, last row), and the package's own `HO-` set names no bundler realm.** **Where a warning could lawfully live is the question; this note proposes no home.** *(`K-18`: the figures themselves are UNVERIFIABLE HERE.)*
+
+10. **THE PROVENANCE TENSION.** The relay derives its authority from *"the packages are never modified (D-5, D-52)"* — **the DOWNSTREAM project's rows (`Provident-Electron/strata/decisions.md:99`, `:1153`)**, whose obligation is that *"a defect or requirement gap … is still recorded with symptom, reproduction, suspected root cause and proposed fix shape, still upstream-owned, and the packages are still never modified"*. **This repository's `D-5` and `D-52` are unrelated subjects (`strata/decisions.md:370`, `:3271`).** **So the request's authority here is the FILED REQUEST plus this architect's fresh ruling — nothing in a consumer's register binds this tree, and nothing in this tree binds a consumer.** **Confirming that reading is the architect's; the note records the two registers side by side and chooses neither.**
+
+---
+
+### §20.6 · 1 · VERDICT
+
+**`ESTABLISHED` — THE REQUEST'S PREMISE IS TRUE AT THE BYTES (the manifest, the error and the sync graph all read as the request states them), AND THE CORPUS DOES NOT OWE IT AS AN UNKNOWN DEFECT: IT DECLARES THE REFUSAL AND PRICES THE ALTERNATIVE "available with a fresh ruling", SO THE SUBJECT IS A FRESH RULING AND NOT A FIX.** **Three premises, three verdicts: the manifest is field-for-field what the request quotes (`K-1`); the refusal is tested with the exact error the request names (`X-2`/`K-23`); the graph is `await`-free and qualifies today (`K-11`).** **The surface the request would move is declared in five live places, shipped in four, tested in eight cells, and priced in three `DD` rows — and this repository's `decisions.md` holds no row on it (`K-22`).** **The note decides nothing; the one fact it adds that no party had stated is that the shipped constraint route already `require`s an `.mjs` (`K-12`) — which is why the `engines` floor question (`Q-3`) is sharper than the request's caveat makes it.**
+
+### §20.6 · 2 · WRITE SET
+
+**`strata/research.md` — this section, and no other byte of the repository.** **No code, no test, no declaration, no guide, no contract, no `bindings/js/**` byte (the manifest above all), no `docs/specs/**`, no `docs/guides/**`, no `strata/{decisions,proposals,envelope,brief}.md`, no `scripts/` and no `scratch/` byte.** **This pass WROTE NOTHING AT ALL: it held no shell and no write channel, `git status` could not be read, and this section was returned to the supervisor as text.** **No temp directory was created and no probe file exists anywhere.**
+
+### §20.6 · 3 · FINDINGS (one line each)
+
+- **`F-1`** The shipped manifest is exactly as the request quotes it — `"type": "module"`, `exports["."] = {types, import}`, **no `main`, no `require`, no `default`**, `engines.node ">=18.0.0"`, `1.11.0` (`bindings/js/package.json:3`–`:49`).
+- **`F-2`** The entry's own header states the claim and the refusal in one place: *"THE CLAIMED REALM: Node ESM, ALONE"* … *"no wildcard, no deep import to the addon and no CJS arm"* (`index.mjs:1`–`:4`).
+- **`F-3`** The live contract declares the same surface at `contract.md:3383` (*"ONE arms-bearing `exports` arm (the ESM one), no wildcard, no CJS arm, no `main`, no `.cjs`"*) and forbids it twice, in `DD-4` (`:580`) and `DD-24` (`:603`).
+- **`F-4`** Both `DD` rows PRICE the alternative rather than leaving it unconsidered — *"available with a fresh ruling"*, reversal *"a fresh ruling recorded as an ACTIVE `docs/decisions.md` row, followed by a bounded amendment"* — and `HO-1` carries the same positive revisit condition, twice (`:2365`, `:3923`).
+- **`F-5`** **This repository's register holds NO row on the map's conditions** — six `exports`/`CJS` hits and none a ruling (`K-22`), so a change requires a new row and not the amendment of an old one.
+- **`F-6`** The refusal is **tested with its exact error text**: `assert.equal(printed, 'REFUSED ERR_PACKAGE_PATH_NOT_EXPORTED')` (`blind-cjs-interop.test.mjs:148`), from a real consumer install (`:62`–`:67`).
+- **`F-7`** **Eight cells pin the two-condition map** (`X-1`…`X-8`), and **three cells read the map without pinning its condition set** and would stay green (`K-9`) — so the RED set is bounded and enumerable before any ruling.
+- **`F-8`** `D-6`/`D-7` put the map's assertion **in the `O3` install-shape set and nowhere else** (`decisions.md:449`, `:565`), and **`L1` owns which cells those are** (`:464`–`:466`).
+- **`F-9`** **The graph is `await`-free**: a grep for `await` over every `.mjs` under `bindings/js/` returns zero, so the request's *"This package qualifies today"* is TRUE at the bytes.
+- **`F-10`** **The corpus already measures the mechanism at the path route** — `LIVE-11.6` asserts `require()` of the ESM entry succeeds through Node's own require(esm) interop and yields `storeCreate`, *"the consumer's side, not a second published arm"* (`live-drive.mjs:865`–`:869`), and `package-entry.test.mjs:150`–`:155` states the same distinction in prose.
+- **`F-11`** **The package's own kernel route already `require`s an `.mjs`** — `constraints.mjs:86`, `KERNEL = require_('./src/constraint-kernel.mjs')`, lazily, through `createRequire(import.meta.url)` handed in at `index.mjs:96`–`:99`. **The declared `>=18.0.0` floor and require(esm)'s unflagged floor are therefore already in tension on an existing route, and no document says so.**
+- **`F-12`** **No byte of this repository carries the `20.19`/`22.12` floor** the request's caveat names (`K-15`), so that figure is CARRIED and would enter the corpus for the first time if a ruling used it.
+- **`F-13`** **`docs/specs/storeroom-js/package.md` does not exist at this `HEAD`**, yet it is cited as a live authority by `index.mjs:1`–`:4`, `contract.md:21` and `strata/brief.md:67`; the only copy is the archive's, and the shipped guide cites the archive path for the same fact (`package-use.md:147`).
+- **`F-14`** **No shipped document tells a CJS host to use a dynamic `await import()` seam** (`K-19`), so the request's arm 3 is not shipped today — its substance exists only as `HO-1`'s realm sentence.
+- **`F-15`** **The second half of the request has no home in this corpus**: no shipped document discusses a bundler externalising this package at all, and no `HO-` row names a bundler — so a silent-inline warning is a real question and not an existing sentence to edit.
+- **`F-16`** **The version machinery is not moved by a map change but is touched by any release**: three generated version lines (`publish.sh:232`–`:282`), eleven version cells (`:96`–`:109`), and `PUB-DD-9`'s three classes (`storeroom-publish/contract.md:117`) — **none of which fits a new `exports` condition literally** (`Q-6`).
+- **`F-17`** **The `typecheck` staging copies two files and not `index.mjs`** (`package.json:8`), the fixture imports by the package specifier (`consumer-fixture.ts:82`), and the `types` condition stands first in the map's key order (`package.json:29`) — **the effect of a third condition on either leg is OPEN, not measured** (`Q-7`).
+- **`F-18`** **The provenance tension is real and the ids collide across registers**: the relay's `D-5`/`D-52` are `Provident-Electron`'s (`:99`, `:1153`), this repository's are `:370` (test-role write scopes) and `:3271` (enforcement rules) — **and the filed request itself cites a third spelling, `D-9`, for the same "never patched" rule** (filed request `:3`; `defects.md:33`).
+
+### §20.6 · 4 · THE QUESTIONS FOR THE ARCHITECT
+
+**Ten, `Q-1`…`Q-10` at §20.5, none carrying a default, none a recommendation, none answered here.** **Their load-bearing four, in the order the corpus puts them:** **`Q-1` whether the fresh ruling `DD-24` names is taken at all** (the row says the alternative is *"available with a fresh ruling"*, and no ruling exists — `K-22`) · **`Q-2` which arm, and what arm 1 does to `HO-1`'s meaning** (a claimed realm vs a supported workaround; arm 3's substance already stands as `HO-1`'s declared answer while its *"documented, supported"* sentence does not exist — `K-19`) · **`Q-3` the floor** (`>=18.0.0` declared; require(esm) unflagged only at `≥20.19`/`≥22.12`; **and the package's own kernel route already requires an `.mjs`** — `F-11`) · **`Q-4` what keeps the graph synchronous afterwards** (nothing does today, and a future `await` would convert a working `require` into `ERR_REQUIRE_ASYNC_MODULE` with no cell to redden).
+
+### §20.6 · 5 · WHAT THE NEXT GATE MUST HOLD
+
+**On the bytes, before anything is scoped:** **the citation discrepancy at `F-13` disposed of by name** (`package.md` is archive-only; `index.mjs:1`–`:4`, `contract.md:21` and `brief.md:67` cite it as live) · **`F-11`'s kernel `require` read at `constraints.mjs:86` and put to the architect inside `Q-3`, not resolved by a pass** · **and `K-15`'s carried floor marked as carried wherever it is used**, because no byte of this tree supplies it.
+
+**On the request:** **an answer to `Q-1` before `Q-2`**, because the first decides whether there is a subject at all; **then `Q-2` before any cell is priced**, because arm 1, arm 2 and arm 3 move three different surfaces (an arm, a build, a sentence) and only arm 1 reddens `X-2`.
+
+**On the instruments:** **a drive of `§20.4`'s four arms, unchanged, in a temp tree outside the repository** — the control, the `require` probe, the minimal `storeCreate`/write/read boot, and the `default` variant — **because every behavioural claim in this note is CARRIED and none is measured**; **and a Node below the require(esm) floor** (an installable `18.x` or `20.18`) **if `Q-3` is to be answered by measurement rather than by argument**, since that is the one population where the request's caveat and the package's declared floor disagree.
+
+**On the prose, if a ruling lands:** **the shipped sentences move in the same pass as the cells** — `bindings/js/README.md:3`–`:6` and `:46`–`:48`, `docs/guides/package-use.md:130`/`:146`–`:149`/`:2038`/`:2041`/`:2071`–`:2077` **and its landed copy `bindings/js/README.guide.md`** (the landing is `scripts/publish.sh`'s and is byte-asserted, `README.md:24`–`:27`), `strata/brief.md:65`–`:67`, and the live contract's `contract.md:3383` / `§3.1:2279`–`:2283` / `§3.2:2365` / `§9:3923` with `DD-4` and `DD-24` re-derived at their own cells — **while the archived `package.md` cells are ANNOTATE-BESIDE and are never rewritten** (`DEF-2026-10-02`, the convention the live contract states at `contract.md:2312`–`:2315`).
+
+---
+
+**SOURCE STATUS — NAMING THIS PASS'S CHANNEL LIMIT: `role_l0_research` held READ-ONLY FILE ACCESS, WITH NO SHELL, NO WRITE CHANNEL AND NO NETWORK.** **So `git status` was not read, no `node`, `tsc` or `esbuild` was run, no probe was created, and NOTHING WAS WRITTEN: this section is returned to the supervisor as text to land.** **Every claim in §20.3 is either a byte citation at `HEAD` `5cfb329` or marked CARRIED; the six arms of §20.4 are UNRUN and their commands are printed for the next pass rather than their outputs invented; and `K-18`'s esbuild half is UNVERIFIABLE HERE because `node_modules/` carries only `typescript`.**

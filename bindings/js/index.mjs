@@ -1,7 +1,15 @@
-// `provident-storeroom` — **THE CLAIMED REALM: Node ESM, ALONE** (`package.md §1.1`, `A70`).
+// `provident-storeroom` — **THE CLAIMED REALM IS THE ES MODULE ITSELF: one file, one namespace, one declared
+// member set, reached by EITHER of Node's two specifiers for that one module** (`package.md §1.1`, `A70`;
+// `docs/specs/storeroom-js/contract.md §3.1`'s 2026-11-17 re-derivation — *"`require` IS A SUPPORTED ROUTE INTO THE CLAIMED REALM AND
+// IS NOT A SECOND CLAIMED REALM"*; `D-128`, `D-129`).
 //
 // **THE ONE ARMS-BEARING ENTRY** (`package.md §1.3` item 1, `DD-24`) — the `exports` map publishes it and
-// publishes nothing else: no wildcard, no deep import to the addon and no CJS arm (`§1.2`, `HO-1`).
+// publishes nothing else: `types` names the declaration, and `import` and `require` name the SAME
+// `./index.mjs` at their own conditions, so no wildcard, no deep import to the addon and no CJS arm — no
+// `.cjs` artefact, no `main` field and no second build — is published beside it (`§1.2`; `HO-1` as
+// re-derived 2026-11-17 at `§3.2`; `D-128`). **THE ENTRY'S LOAD-TIME MODULE GRAPH IS SYNCHRONOUS** — no
+// module it reaches at load carries a top-level asynchronous module evaluation — because `require(esm)`
+// cannot wait (`§3.1`'s foot, the synchronous-graph law; `D-129` item 5).
 //
 // ---------------------------------------------------------------------------------------------
 // THE ROUTE, AND THE SHAPE THE ARCHITECT'S RULING `A75` FIXED: `JS -> facade -> core -> store`

@@ -148,6 +148,26 @@ because three of the four things it declared as *targets* are now the tree:
   **1 evidence JSON** (`installed/license-row-evidence.json`) · **3 documents** (`REMEASURE-2026-10-18.md` ·
   `REVIEW-2026-10-24.md` · `file-tier-save/file-tier-save-greens.md`) — **`55 + 12 + 8 + 1 + 3 = 79` ✓.**
   **Every superseded count above stays printed and is read THROUGH this clause.**
+  **⟶ AND THE POPULATION THE TWO CLAUSES ABOVE PRINT IS RE-DERIVED AT THIS TREE, 2026-11-17
+  (`U-STOREROOM-REQUIRE-CONDITION`; `D-127`, `D-128`, `D-129`) — `RCA-8(g)` ANNOTATE-BESIDE: the bullet and the
+  clause above stand BYTE-FOR-BYTE and are read THROUGH this one, and every figure that moved is named with both
+  readings.** **THE PRESENT POPULATION, counted the way `docs/L1/test-stratification.json` defines it
+  (`find <dir> -type f`, one directory at a time, recursive): `tests/e2e/` **104** · `tests/integration/` **35** ·
+  `tests/unit/` **8** · `tests/Cargo.toml` **1** `= 148`, with the e2e five classes at `80` `*.test.mjs` ·
+  `12` runners · `8` support modules · `1` evidence JSON · `3` documents (`80 + 12 + 8 + 1 + 3 = 104` ✓) and
+  `*.test.mjs` under `tests/` at `99`** (`80` e2e + `13` integration + `6` unit). **SO THE `118` AND ITS
+  `79 / 33 / 5 / 1` MOVE ON EVERY TERM BUT ONE: e2e 79 → 104 · integration 33 → 35 · unit 5 → 8 · total 118 → 148,
+  while `tests/Cargo.toml` stays 1; and the movement is TWENTY-FIVE e2e files, every one of them a `*.test.mjs`
+  (55 → 80), with the four non-test classes holding at `12 + 8 + 1 + 3 = 24`.** **The `83` and its `44 / 33 / 5`
+  above are the readings of the migration's own date and the `118` of 2026-10-28; the movement since is printed one
+  for one in `test-stratification.json`'s `relocation.present_population_verified_2026-11-17`, which is where this
+  file's reader is sent rather than given a second copy to drift beside.** **The unit's own contribution is ONE
+  file — `tests/e2e/require-route-install.test.mjs`, routed `O3` at layer `LIVE/INSTALL` — and what this clause does
+  NOT move is the arithmetic this map's FIGURES block owns: the `198` denominator, the 19 modules, the 61 endpoints
+  and the `75` pre-move census with its rows, because the population and the census are different subjects and only
+  the first has moved.** (The twin clauses are `docs/L1/test-stratification.md`'s and
+  `docs/L1/test-stratification.json`'s of the same date.)
+
 - **`bindings/js/Cargo.lock` IS DELETED AND `bindings/js/.gitignore` NO LONGER CARRIES A `/Cargo.lock` LINE.**
   The map's prose below cites that line twice (§"MEASUREMENT LIMIT", §5.2) and both citations are superseded here
   rather than rewritten there: a workspace member has no lock of its own (`D-34`), and the one lock at
@@ -856,6 +876,34 @@ const store = storeCreate(cfg);
   entries, `index.mjs` · `README.md` · `index.d.ts` · `src/constraint-kernel.mjs`, until the entry's cut put
   thirteen parts on disk and the packlist had to carry the directory they live in), `engines.node` `>=18.0.0`,
   five exact `optionalDependencies`.
+  **⟶ RE-DERIVED 2026-11-17 (`D-127`; `D-128`; `D-129`; `docs/specs/storeroom-js/contract.md`'s bounded amendment of
+  this date) — `RCA-8(g)` ANNOTATE-BESIDE: the three bullets above stand BYTE-FOR-BYTE and are read THROUGH this clause;
+  the two figures this unit moves are named with both readings and nothing is rewritten away.** **THE RESOLUTION
+  SURFACE IS ONE ARMS-BEARING ENTRY, `"."`, CARRYING THREE CONDITIONS IN THE ORDER THE MANIFEST DECLARES THEM —
+  `types` → `./index.d.ts`, `import` → `./index.mjs`, `require` → `./index.mjs` (`bindings/js/package.json:27`–`:33`,
+  read at this tree)** — so *"one `exports` arm (`"."`)"* above is **TRUE OF ARMS and was UNDER-SPECIFIED AS TO
+  CONDITIONS**: it read **TWO**, the manifest now reads **THREE**, and **`import` and `require` name THE SAME ESM
+  ENTRY**. **EVERY `"."`-ONLY SPELLING IN THIS MAP STANDS UNDER THAT READING** — this subsection's OUT line, §4 `E6`'s
+  *"`exports` publishes `"."` only"* and `I-23`'s *"the `exports` map publishes `"."` only"* — because **no arm, no
+  subpath and no wildcard was added**; what moved is a condition on the one arm. **NO CJS ARM SHIPS WITH IT AND THE
+  REFUSALS ARE UNMOVED:** no `main`, no `default`, no `node` key, no `.cjs` artefact, no second build —
+  `D-128` item 2 refuses the CJS-build arm by name, and **the `require` condition is a SUPPORTED ROUTE into the one
+  claimed realm and NOT a second claimed realm** (`D-129` item 3; `HO-1`'s re-derived sentence, `contract.md` `§3.2`
+  and `§9`). **THE FLOOR IS `">=22.12.0"`**, and `>=18.0.0` above is read through `D-127` (the carrier-only ground is
+  withdrawn — *"Bump the floor, there's no backwards compatibility concerns"*) and `D-129` item 1 (the string); it is
+  **the same string on the five `bindings/js/platforms/*/package.json`** (`D-129` item 2: one declaration, one
+  reader, and the battery's main-vs-platform agreement cell stays an agreement cell). **AND THE VERSION AT THIS TREE
+  IS `1.12.0`** — `1.0.1` above is the reading of 2026-10-27 and is read THROUGH this clause, never deleted: the
+  manifest's `version` and its five exact `optionalDependencies` pins read `1.12.0` and the five platform manifests
+  read `1.12.0` beside them, that cut being **`MINOR`** (`D-129` item 5). **THE `files` ALLOWLIST IS UNCHANGED BY THIS
+  UNIT, and its figure was already past the `SIX` this bullet prints before the unit landed: it reads `SEVEN` rows**
+  (`index.mjs` · `README.md` · `README.guide.md` · `RELEASE-NOTES.md` · `index.d.ts` · `src/entry/` ·
+  `src/constraint-kernel.mjs`), **the seventh being the change list's landed copy** — the same reading `I-23` carries
+  at its own site, and reachability (`D-3`/`D-4`) is the rule that binds it, not any arity. **What this clause does NOT
+  move: the module count, the endpoint count, the ownership arithmetic, the five pins' exactness, the prohibition set
+  and the interface rows this map declares elsewhere.** (`D-127`; `D-128`; `D-129`; the twin site is `modules.json`'s `delivery`
+  endpoint *"the package's resolution surface"*, and the contract's `§0.2` foot clause of the same date is the
+  authority for every sentence here.)
 - **The allowlist is what `D-1` corrects, and both halves are stated.** The tree **does** carry four entries
   today — that is a fact of the manifest, not a reading — and `D-1` rules that the **fourth
   (`src/constraint-kernel.mjs`) has no subject**, because a tightly integrated kernel is not published as a

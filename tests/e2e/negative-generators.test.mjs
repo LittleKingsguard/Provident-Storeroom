@@ -2809,46 +2809,60 @@ test('ng_js_p_one_token_at_two_addresses_is_withdrawn_registration_by_registrati
 });
 
 // =============================================================================================
-// `NG-JS-M` — **THE REALM CLAIM'S OWN CORPUS: NO SHIPPED CJS ARM, NO DOCUMENTED `require`
-//              ENTRY, NO WILDCARD EXPORT, AND NO BROWSER OR RENDERER PROMISE IN THE
-//              PACKAGE'S OWN DOCUMENTATION**
+// `NG-JS-M` — **THE REALM CLAIM'S OWN CORPUS: NO SHIPPED CJS ARM, NO SECOND ENTRY POINT, NO WILDCARD
+//              EXPORT, AND NO BROWSER OR RENDERER PROMISE IN THE PACKAGE'S OWN DOCUMENTATION**
 // =============================================================================================
 //
-// **THE `§`s THIS GENERATOR ANSWERS, ONE PER ARM: `contract.md §5.7`'s (`P-TP-7`) FAILURE LIST, VERBATIM**
-// (*"a shipped CJS arm beside the ESM one; a documented `require` entry; a wildcard `"./*"` export that
-// exposes the `.node`; a browser or renderer promise anywhere in the package's documentation"*) · **`§5.7`'s
-// PROPERTY** (*"`import`ing the package's ESM entry … reaches exactly ONE claimed realm: **NO other realm, no
-// second addon, no subprocess, no shared library and no WASM module is loaded at any point to reach the
-// store**; and **every unclaimed realm of `§3.2` has a `HO-` row whose own drive asserts ONLY that the
-// package exposes no entry for it**"*) · **`package.md §1.1`–`§1.3`** (the claimed realm `{ Node ESM }`,
-// `DD-24`'s one-arm map, `DD-4`'s no-documented-`require` ruling) · **`package.md §2`'s `HO-1`…`HO-7` rows,
-// each with its own declared answer** (`HO-1` *"the package publishes NO CJS arm and NO `require` entry"* ·
-// `HO-4` and `HO-5` *"nothing is shipped and nothing is promised"* · `HO-6` *"no worker-specific entry"* ·
-// `HO-7` *"this unit ships no bridge, no channel protocol and no serialized value form"*) · **`acceptance.md
-// §4.2` items 2–3** (`APP` layer `NONE`; no `APP`-green claimed).
+// **THE `§`s THIS GENERATOR ANSWERS, ONE PER ARM: `contract.md §5.7`'s (`P-TP-7`) FAILURE LIST** (*"a shipped
+// CJS arm beside the ESM one; a documented `require` entry; a wildcard `"./*"` export that exposes the
+// `.node`; a browser or renderer promise anywhere in the package's documentation"*) **READ THROUGH `§5.7`'s
+// OWN 2026-11-17 RE-DERIVATION** (the member *"a documented `require` entry"* is **RE-SCOPED AND NOT
+// WITHDRAWN**: it means *"A SECOND ENTRY POINT A CONSUMER CAN SPELL — a `.cjs` file, a `main` field, a second
+// arms-bearing subpath, or a documented route to the addon's own path — and NEVER the `require` condition
+// that names `./index.mjs`"*) · **`§5.7`'s PROPERTY** (*"`import`ing the package's ESM entry … reaches
+// exactly ONE claimed realm: **NO other realm, no second addon, no subprocess, no shared library and no WASM
+// module is loaded at any point to reach the store**; and **every unclaimed realm of `§3.2` has a `HO-` row
+// whose own drive asserts ONLY that the package exposes no entry for it**"*) · **`§0.2`'s 2026-11-17 foot
+// clause, limb 1** (the map's new content, printed whole: *`exports["."]` gains `"require": "./index.mjs"` —
+// a THIRD condition beside `types` and `import`, naming the SAME ESM entry; **no `main`, no `default`, no
+// `node`, no `.cjs`**; `D-128`) · **`§3.1`'s 2026-11-17 re-derivation** (*"`require` IS A SUPPORTED ROUTE
+// INTO THE CLAIMED REALM AND IS NOT A SECOND CLAIMED REALM"*; `D-129`) · **`§3.2`'s `HO-1` re-derivation of
+// the same date** (*"the package publishes NO CJS ARM — no `.cjs`, no `main`, no second build — and it DOES
+// publish a `require` CONDITION on its one ESM entry"*) · **`DD-4`/`DD-24`/`DD-38` as re-derived at their own
+// cells** · **`package.md §2`'s `HO-1`…`HO-7` rows, each with its own declared answer** (`HO-4` and `HO-5`
+// *"nothing is shipped and nothing is promised"* · `HO-6` *"no worker-specific entry"* · `HO-7` *"this unit
+// ships no bridge, no channel protocol and no serialized value form"*) · **`acceptance.md §4.2` items 2–3**
+// (`APP` layer `NONE`; no `APP`-green claimed).
 //
 // **THE SITES THIS GENERATOR READS ARE THE SHIPPED BYTES AND NOT A RESTATEMENT OF THEM: the manifest the
 // package would publish (`package.json`) and the ONE documentation surface the allowlist carries
 // (`README.md`)**, together with the package's own description string. **A RESTATEMENT IN A TEST FILE IS A
-// LITERAL; THESE ARE THE ARTEFACTS. THE FALSIFIER: add a `require` arm to the `exports` map, a `"main"`
-// field, a `"./*"` key, a `.node` path to the allowlist, or a sentence promising the browser on either
-// documented surface — and the arm whose site that is FAILS.**
+// LITERAL; THESE ARE THE ARTEFACTS. THE FALSIFIER: add a `main` field, a `"./*"` key, a second arms-bearing
+// subpath, a `.cjs` path to the allowlist, or a `require` condition naming ANYTHING BUT the one entry's own
+// `./index.mjs` — or a sentence promising a CJS arm or the browser on either documented surface — and the arm
+// whose site that is FAILS.** **AND THE FALSIFIER MUST NOT RED ON THE LAWFUL PROSE `D-128`/`D-129` MAKE
+// TRUE**: the `require` CONDITION, a CJS HOST being served, and the `require` ROUTE being supported are the
+// post-amendment surface, so neither this arm nor the `HO-1` promise reading below may read them as a promise
+// (the re-derivation is at its own site, `:2889` and `:2926`).
 //
-// **STATES ENUMERATED BEFORE THE DRIVE WAS AUTHORED:**
+// **STATES ENUMERATED BEFORE THE DRIVE WAS AUTHORED — RE-DERIVED 2026-11-17 ON `D-128`/`D-129`, WITH THE TWO
+// AMENDED ROWS MARKED:**
 //
 // | The state | Its declared answer |
 // | --- | --- |
 // | the `exports` map's own entries | EXACTLY ONE (`package.md §1.3`; `DD-24`), carrying the ESM arm |
-// | a `require`, `default` or `node` condition inside it | a documented `require` entry — a FAILURE of `§5.7` (`HO-1`'s declared answer) |
+// | **⟶ `require` condition naming the SAME `./index.mjs` the `import` condition names** | **THE PUBLISHED ROUTE (`D-128`; `§0.2`'s 2026-11-17 foot clause, limb 1) — ADMITTED, and it is not a second entry** |
+// | **⟶ a `require` condition naming anything else** (a `.cjs`, a second `.mjs`, the declaration, a file the allowlist does not carry, a boolean) | **A SECOND ENTRY POINT A CONSUMER CAN SPELL — a FAILURE of `§5.7` as re-derived (`§3.2` `HO-1`)** |
+// | a `default` or `node` condition inside it | undeclared arms — a FAILURE of `§5.7` (`§0.2`'s 2026-11-17 foot clause: *"no `default`, no `node`"*) |
 // | a wildcard key (`"./*"`, `"./package.json"`, any deep path) | a wildcard export that exposes the `.node` — a FAILURE of `§5.7` |
 // | a root `main` field, or any `.cjs`/`.node` path inside the allowlist | a shipped CJS arm or a published addon path — a FAILURE of `§5.7` |
 // | every unclaimed realm of `package.md §2` | named at the package's own documentation with its declared answer, and NO browser or renderer promise |
 // | a browser/Electron-`renderer` promise on a documented surface | a FAILURE of `§5.7` (**`HO-4`/`HO-5`: *"nothing is shipped and nothing is promised"***) |
 // | the package's own description string | the same rule, read at the second documented surface |
 //
-// **WHAT FAILING LOOKS LIKE, ONE LINE:** a second entry in the map, a `require`/`default` arm, a wildcard
-// key, a published `.node` path, an unclaimed realm left unnamed, or a promise to a realm this unit does not
-// claim.
+// **WHAT FAILING LOOKS LIKE, ONE LINE:** a second entry in the map, a `default`/`node` arm, a `require` arm
+// aimed at any file but the one entry, a wildcard key, a published `.node` path, an unclaimed realm left
+// unnamed, or a promise to a realm this unit does not claim.
 test('ng_js_m_the_manifest_and_the_documentation_publish_one_realm_and_promise_no_other', () => {
   runGenerator('NG-JS-M', 'realm claim, manifest and documentation', 8, (attempt, rng) => {
     const manifest = JSON.parse(readFileSync(join(PACKAGE_DIR, 'package.json'), 'utf8'));
@@ -2886,8 +2900,32 @@ test('ng_js_m_the_manifest_and_the_documentation_publish_one_realm_and_promise_n
       }
       const armNames = Object.keys(arms);
       for (const arm of armNames) {
-        if (arm === 'require' || arm === 'default' || arm === 'node') {
-          return `realm: the \`${key}\` entry carries a \`${arm}\` arm — \`contract.md §5.7\` names *"a documented \`require\` entry"\* and *"a shipped CJS arm beside the ESM one"\*, and \`HO-1\`'s declared answer is *"the package publishes NO CJS arm and NO \`require\` entry"\*`;
+        // ⟶ RE-DERIVED 2026-11-17 ON `D-128`/`D-129` (`role_l1_test_writer`; `contract.md §0.2`'s 2026-11-17
+        // foot clause, limb 1, and `§5.7`'s re-derivation of the same date). **THE `require` CONDITION IS NO
+        // LONGER THE FAILURE THIS ARM REPORTS; A `require` THAT NAMES ANYTHING BUT THE ONE ENTRY STILL IS.**
+        // `D-128` takes the fresh ruling `DD-4`/`DD-24` priced: `exports["."]` gains
+        // `"require": "./index.mjs"` — the THIRD condition on the ONE arm, naming the SAME file the `import`
+        // condition names — so `§5.7`'s *"a documented `require` entry"* member is RE-SCOPED (a SECOND entry
+        // point a consumer can spell) and the condition `D-128` publishes is **ADMITTED HERE**, on ONE
+        // condition and no other: the target must be the string its own `import` condition carries, it must
+        // end `.mjs`, and the allowlist must actually ship it. Everything else a `require` can be — a `.cjs`,
+        // a second `.mjs`, the declaration, the addon's path, a boolean or a map — is a SECOND ENTRY POINT and
+        // returns a reason. **NO REFUSAL IS DROPPED WITH THE WORD `require`:** `default` and `node` stay
+        // refused below, the `main` field stays refused, a `.cjs`/`.node` allowlist row stays refused, and a
+        // second arms-bearing subpath is refused at the key loop above.
+        if (arm === 'require') {
+          const target = arms.require;
+          const allow = Array.isArray(manifest.files) ? manifest.files : [];
+          if (typeof target !== 'string' || !target.endsWith('.mjs') || target !== arms.import) {
+            return `realm: the \`${key}\` entry's \`require\` condition names \`${String(target)}\` — \`D-128\`'s condition names the SAME \`./index.mjs\` its \`import\` condition names (read: \`${String(arms.import)}\`), and anything else is *"a documented \`require\` entry"* in the SECOND-entry sense \`contract.md §5.7\`'s 2026-11-17 re-derivation keeps refused`;
+          }
+          if (!allow.includes(target.replace(/^\.\//, ''))) {
+            return `realm: the \`require\` condition names \`${target}\`, which the \`files\` allowlist does not ship — a condition on a file the tarball does not carry is a route to nowhere`;
+          }
+          continue;
+        }
+        if (arm === 'default' || arm === 'node') {
+          return `realm: the \`${key}\` entry carries a \`${arm}\` arm — \`contract.md §5.7\` names *"a documented \`require\` entry"\* as a SECOND entry point (\`D-128\` refuses the build and \`§0.2\`'s 2026-11-17 foot clause keeps \`default\` and \`node\` out of the map), and a \`${arm}\` arm is the fallback this package claims nowhere`;
         }
         if (arm !== 'import' && arm !== 'types') {
           return `realm: the \`${key}\` entry carries the undeclared arm \`${arm}\` (\`DD-24\`: ONE arms-bearing entry, the ESM one)`;
@@ -2922,8 +2960,39 @@ test('ng_js_m_the_manifest_and_the_documentation_publish_one_realm_and_promise_n
     // DECLARED ANSWER**, and (4) **NO BROWSER OR RENDERER PROMISE STANDS ON EITHER SURFACE**
     // (`HO-1`…`HO-7`; `contract.md §5.7`'s *"a browser or renderer promise anywhere in the package's
     // documentation"*).
+    // ⟶ RE-DERIVED 2026-11-17 — `HO-1`'S PROMISE READING, AT ITS OWN SITE (`D-128`, `D-129`; `contract.md
+    // §3.1`'s and `§3.2`'s re-derivations of the same date). **THE AS-FILED READING
+    // `/\bCJS\b[^.]{0,60}\b(supported|available|entry)\b/i` MEASURED PROXIMITY AND NOT A CLAIM:** it counted
+    // the noun `entry` as a promise word, so `D-128`'s own sentence — *"a `require` condition on the one ESM
+    // entry … a CJS host's `require` is served by the package"* — would have been read as a promise of a CJS
+    // arm, and it reddens on the README's OWN REFUSAL re-said as *"no CJS arm is available"* (measured on
+    // this file's own instrument: both false-RED at the as-filed reading). **THE RE-DERIVED READING ASSERTS
+    // WHAT `§3.2`'s `HO-1` RE-DERIVATION ACTUALLY DECLARES: what the package does NOT ship is a CJS SHAPE —
+    // *"NO CJS ARM — no `.cjs`, no `main`, no second build"* — so a promise is an affirmative claim whose
+    // SUBJECT is one of those shapes or the realm itself, in either word order, with a negator anywhere in
+    // the window cancelling it.** **THE LAWFUL HALF OF THE AMENDMENT PASSES IT WHOLE** — the `require`
+    // CONDITION, a CJS HOST being served, and `require` as a SUPPORTED ROUTE (`§3.1`: *"`require` IS A
+    // SUPPORTED ROUTE INTO THE CLAIMED REALM"*) are the post-amendment surface and none of them is a shape
+    // claim — and **NO REAL PROMISE PASSES IT**: *"a CJS arm is supported"*, *"a CommonJS build is
+    // available"*, *"the package ships a CJS entry point"*, *"CJS is supported"*, *"we support a CJS build"*
+    // each still return a reason at this arm. `HO-2`…`HO-7` are UNMOVED: their realms are still refused
+    // whole, so proximity of their names to a claim word is still a promise and the amendment gives no
+    // lawful sentence that puts them there.
+    const NEGATOR = 'no|not|never|nor|neither|without|cannot';
+    const UNNEGATED_GAP = `(?:(?!\\b(?:${NEGATOR})\\b)[^.]){0,60}`;
+    const CJS_SHAPE = '(?:arm|build|entry(?:\\s+point)?|main(?:\\s+field)?|\\.cjs|module(?:\\s+format)?|realm)';
+    const CLAIM_WORD = '(?:supported|available|shipped|guaranteed)';
+    const HO1_PROMISE = new RegExp(
+      // (a) a CJS SHAPE asserted positive: "a CJS arm is supported", "a CommonJS build is available"
+      `(?<!\\b(?:${NEGATOR})\\s)\\b(?:CJS|CommonJS)\\b\\s+${CJS_SHAPE}\\b${UNNEGATED_GAP}\\b${CLAIM_WORD}\\b`
+      // (b) the REALM itself asserted positive, with the token as its own subject: "CJS is supported"
+      + `|\\b(?:CJS|CommonJS)\\b\\s+(?:is|are)\\s+(?:now\\s+)?(?:fully\\s+)?${CLAIM_WORD}\\b`
+      // (c) a shipping/supporting verb aimed at a CJS SHAPE: "the package ships a CJS arm"
+      + `|\\b(?:ship|ships|shipping|shipped|support|supports|supporting|provide|provides|providing|offer|offers|offering)\\b${UNNEGATED_GAP}\\b(?:CJS|CommonJS)\\b\\s+${CJS_SHAPE}\\b`,
+      'i',
+    );
     const realms = [
-      { id: 'HO-1', named: /CJS|CommonJS/, promise: /\bCJS\b[^.]{0,60}\b(supported|available|entry)\b/i },
+      { id: 'HO-1', named: /CJS|CommonJS/, promise: HO1_PROMISE },
       { id: 'HO-2', named: /Electron\s*`?main`?/, promise: /Electron\s*`?main`?[^.]{0,60}\b(supported|available|works|guaranteed)\b/i },
       { id: 'HO-3', named: /`?preload`?/, promise: /preload[^.]{0,60}\b(supported|available|works|guaranteed)\b/i },
       { id: 'HO-4', named: /renderer/, promise: /renderer[^.]{0,60}\b(supported|available|works|guaranteed)\b/i },
@@ -2947,8 +3016,15 @@ test('ng_js_m_the_manifest_and_the_documentation_publish_one_realm_and_promise_n
       return `realm: \`README.md\` does not name the unclaimed ${missing.join(', ')} — \`package.md §2\` enumerates the set rather than leaving it to a reader's judgement, and \`§5.7\`'s \`S-HO\` reads one drive per \`HO-\` row off the shipped documentation`;
     }
     // AND THE TWO DECLARED ANSWERS THE README MUST CARRY, READ AS ITS OWN WORDS (`HO-1`; `DD-24`).
+    // **⟶ `:2950`'S `/no CJS arm/i` STAYS EXACTLY AS FILED, 2026-11-17 (`D-128`, `D-129`), AND IS NAMED HERE
+    // SO NO LATER PASS SOFTENS IT:** the amendment refuses the CJS BUILD and keeps an ARM-LESS map's own
+    // words — `§3.2`'s `HO-1` re-derivation reads *"the package publishes NO CJS ARM — no `.cjs`, no `main`,
+    // no second build"* — so the four words are still the shipped documentation's duty. **WHAT THE AMENDMENT
+    // DOES RETIRE IS THE SECOND HALF OF THE AS-FILED ANSWER, *"and NO `require` entry"*, WHICH THE README MAY
+    // NO LONGER SAY** (the map now publishes that condition): the regex is UNMOVED because it never read that
+    // half, and the message beside it is re-said so it quotes the answer that still stands.
     if (!/no CJS arm/i.test(README)) {
-      return 'realm: `README.md` does not carry `HO-1`\'s declared answer — *"the package publishes NO CJS arm and NO `require` entry"* — as its own words';
+      return 'realm: `README.md` does not carry `HO-1`\'s declared answer as re-derived — *"the package publishes NO CJS ARM — no `.cjs`, no `main`, no second build — and it DOES publish a `require` CONDITION on its one ESM entry"* (`contract.md §3.2`, 2026-11-17) — as its own words';
     }
     if (!/no wildcard export/i.test(README)) {
       return 'realm: `README.md` does not carry the `exports` map\'s own one-arm reading — *"no wildcard export, no deep import to the addon"* (`DD-24`)';

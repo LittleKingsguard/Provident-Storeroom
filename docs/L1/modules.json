@@ -439,7 +439,7 @@
         {
           "name": "the package's resolution surface",
           "input": "a consumer's `import { storeCreate } from 'provident-storeroom'`",
-          "output": "one exports arm — \".\" to ./index.mjs with ./index.d.ts as its types; no wildcard, no deep import, no CJS arm"
+          "output": "one exports arm — \".\" to ./index.mjs with ./index.d.ts as its types; no wildcard, no deep import, no CJS arm ⟶ RE-DERIVED 2026-11-17 (D-127; D-128; D-129; docs/specs/storeroom-js/contract.md's bounded amendment of this date) — RCA-8(g) ANNOTATE-BESIDE: the reading above stands BYTE-FOR-BYTE and is read THROUGH this clause, and nothing is deleted. The surface is ONE arms-bearing entry, \".\", carrying THREE conditions in the order the manifest declares them: types -> ./index.d.ts, import -> ./index.mjs, require -> ./index.mjs (bindings/js/package.json:27-:33, read at this tree), with import and require naming THE SAME ESM entry. So 'one exports arm' is TRUE OF ARMS and was UNDER-SPECIFIED AS TO CONDITIONS — TWO read, THREE now — and no arm, no subpath and no wildcard is added. The refusals above are unmoved and five are named beside them on purpose: no main, no default, no node key, no .cjs artefact, no second build (D-128 item 2 refuses the CJS-build arm by name), and the require condition is a SUPPORTED ROUTE into the one claimed realm and NOT a second claimed realm (D-129 item 3, HO-1's re-derived sentence). THE FLOOR IS \">=22.12.0\" (D-127 withdraws the carrier-only ground; D-129 item 1 names the string), the same string on the five bindings/js/platforms/*/package.json (D-129 item 2: one declaration, one reader). THE VERSION IS 1.12.0 at the manifest's version and its five exact optionalDependencies pins, and 1.12.0 at the five platform manifests, that cut being MINOR (D-129 item 5). What does NOT move: the module count, the endpoint count (61), the ownership arithmetic, the five pins' exactness and the prohibition set; the files allowlist is unchanged by this unit and reads SEVEN rows (its own endpoint below carries the clause)."
         },
         {
           "name": "the files allowlist",
@@ -449,7 +449,7 @@
         {
           "name": "the release pipeline",
           "input": "a workflow run at the pinned version",
-          "output": "provident-storeroom@0.5.0 plus the five @auspicion platform packages, each pinned exactly at 0.5.0 as an optionalDependency"
+          "output": "provident-storeroom@0.5.0 plus the five @auspicion platform packages, each pinned exactly at 0.5.0 as an optionalDependency ⟶ RE-DERIVED 2026-11-17 ON THE VERSION ALONE (D-129 item 5; the MINOR cut 1.12.0): the reading above stands and is read THROUGH this clause, and the SHAPE it declares is unmoved — one main package plus five platform packages, each pinned EXACTLY, five pins and no sixth. The figure moves: the manifest's version reads 1.12.0, its five exact optionalDependencies pins read 1.12.0, and the five bindings/js/platforms/*/package.json version fields read 1.12.0 (eleven cells, one version). The earlier figure 0.5.0 (twice printed, once for the main package and once for the pins) is the reading of its own date and is read THROUGH this clause; this pass takes the version figure at this tree and claims no tag."
         }
       ],
       "interactions": ["js-surface", "js-declaration", "binding-facade", "js-resolution", "js-battery", "greens-harness"]

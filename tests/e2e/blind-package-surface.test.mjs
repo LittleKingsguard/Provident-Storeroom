@@ -147,18 +147,27 @@ test('package · `§1.2` (the covered key table) and `§2.2` item 5 (`PAR-PUB-21
 // §2 — THE SINGLE `exports` ARM
 // ---------------------------------------------------------------------------------------------
 
-test("package · `distribution.md §5` (`PUB-DD-3` · `PUB-DD-21` · `A127`) · the manifest carries ONE `exports` arm and ONE name: the arm key is `.`, its two conditions are `types` and `import`, and the top-level `types` field agrees at the same path", () => {
+test("package · `distribution.md §5` (`PUB-DD-3` · `PUB-DD-21` · `A127`), read with `contract.md`'s 2026-11-17 amendment (`D-128`) · the manifest carries ONE `exports` arm and ONE name: the arm key is `.`, its THREE conditions are `types`, `import` and `require` — the last two naming the SAME file — and the top-level `types` field agrees at the same path", () => {
   // DECLARED: the entry's own named export set is "**ONE NAME, `storeCreate`, AND NOTHING ELSE**"
   // and `package.md §1.3` item 3's one-name rule reaches the module namespace; the types are "at
   // `bindings/js/index.d.ts`, ARE LISTED IN THE MAIN PACKAGE'S `files`, AND ARE REACHED THROUGH THE
   // MAIN PACKAGE'S `types` FIELD; no `typesVersions`, no separate `@types` package and no second
   // declaration file is shipped" (`PUB-DD-21`).
+  // **⟶ RE-DERIVED 2026-11-17 (`D-128`; `contract.md §0.2`'s 2026-11-17 foot clause, limb 1):** the arm
+  // carries a THIRD condition, `require`, naming the SAME `./index.mjs` the `import` condition names — a
+  // supported ROUTE into the one claimed realm and NOT a second claimed realm (`§3.1` as re-derived). The
+  // set-equality therefore becomes a THREE-condition equality, and the two route conditions are asserted
+  // EQUAL, so a `require` that reached a different file reddens here.
   assert.deepEqual(Object.keys(manifest.exports), ['.']);
 
   const arm = manifest.exports['.'];
-  assert.deepEqual(Object.keys(arm).sort(), ['import', 'types']);
+  assert.deepEqual(Object.keys(arm).sort(), ['import', 'require', 'types']);
   assert.equal(arm.types, './index.d.ts');
   assert.equal(arm.import, './index.mjs');
+  assert.equal(arm.require, './index.mjs');
+  assert.equal(arm.require, arm.import,
+    '`import` and `require` name the SAME one entry — one file, one namespace, two of Node\'s specifiers for '
+    + 'it (`D-128`; `DD-24` as re-derived: the `require` condition is NOT a co-equal CJS arm)');
 
   // THE TOP-LEVEL `types` FIELD AGREES, and it is the path the arm's own condition names.
   assert.equal(manifest.types, 'index.d.ts');

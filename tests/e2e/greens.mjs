@@ -1612,6 +1612,14 @@ function greensReachable() {
 // spellings and in a form STRICTLY TIGHTER than the one it replaces.
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 {
+  // ⟶ RE-DERIVED 2026-11-17 — **TWO CELLS OF THIS SCENARIO ARE RE-DERIVED ON `D-127` AND `D-128`, AT THEIR OWN
+  // SITES, AND NOTHING ELSE HERE MOVES** (`role_l1_test_writer`; `contract.md §0.2`'s 2026-11-17 foot clause,
+  // limbs 1 and 3): `JSG-12.5` — the realm claim's `require` half, a NEGATIVE until today — becomes the
+  // POSITIVE the ruling declares (the condition names the SAME `.mjs`; no `.cjs` anywhere stays refused), and
+  // `JSG-12.8` — the floor — moves `">=18.0.0"` → `">=22.12.0"` on `D-127`/`D-129`. **THE CENSUS OF THIS SET
+  // IS UNMOVED (no cell added, none removed), no cell outside those two is touched, and neither moved cell is
+  // weaker than the one it replaces:** `JSG-12.5`'s `.cjs` refusal is kept and its subject gains an equality,
+  // `JSG-12.8`'s comparison is still an exact equality on a transcribed literal.
   // ⟶ RE-DERIVED 2026-10-17 (THE GATE-5 BLIND-GREENS PASS, `role_blind_test_writer`): **STALE GREENS DOC**,
   // `RCA-8(g)`, for the SAME single clause as `JSG-01.2`/`.3` — `docs/specs/storeroom-js/surface.md §2.9`
   // item 1's `A127` clause of 2026-10-16 gives the module namespace ONE name, `storeCreate`, `11 → 1` ✓ — with
@@ -1630,11 +1638,22 @@ function greensReachable() {
   const armEsrn = typeof arm === 'string' ? arm : (arm && (arm.import ?? arm.default));
   A('JSG-12.4', 'package.md §1.3 item 1; DD-4', "the one entry's arm is an ESM arm naming a .mjs file",
     typeof armEsrn === 'string' && armEsrn.endsWith('.mjs'), fmt(arm));
-  A('JSG-12.5', 'package.md §1.3 item 1; DD-24; §3.2 HO-1', 'no require arm is published: CJS is an UNCLAIMED realm',
-    !(arm && typeof arm === 'object' && ('require' in arm)) && !JSON.stringify(ex).includes('.cjs'), fmt(arm));
+  // ⟶ RE-DERIVED 2026-11-17 (`JSG-12.5` and `JSG-12.8` ONLY; `D-128`, `D-129`; `contract.md §0.2`'s
+  // 2026-11-17 foot clause, limb 1 and limb 3). **`JSG-12.5` WAS *"no require arm is published: CJS is an
+  // UNCLAIMED realm"* AND IT IS NOW THE POSITIVE THE RULING DECLARES:** the arm carries a `require` CONDITION
+  // naming the SAME `.mjs` the `import` condition names — a supported ROUTE into the one claimed realm, not a
+  // second realm (`§3.1` as re-derived) — **while the CJS BUILD stays refused: no `.cjs` anywhere in the map
+  // or the manifest, which this cell also asserted and still asserts** (`§3.2` `HO-1` as re-derived: *"NO
+  // CJS ARM — no `.cjs`, no `main`, no second build"*; `main` is its own neighbouring cell, `JSG-12.7`,
+  // unmoved). **`JSG-12.8`: the floor is `">=22.12.0"`** — `DD-38`'s `">=18.0.0"` superseded by `D-127` and
+  // the figure fixed by `D-129`; the comparison stays an EXACT equality on the transcribed literal.
+  A('JSG-12.5', 'package.md §1.3 item 1; DD-24 as re-derived; §3.2 HO-1; D-128', "the one entry carries a `require` condition naming the SAME `.mjs` its `import` condition names — CJS is answered by a ROUTE, not by a second realm or a CJS build",
+    !!(arm && typeof arm === 'object' && arm.require === arm.import && typeof arm.require === 'string'
+      && arm.require.endsWith('.mjs'))
+      && !JSON.stringify(ex).includes('.cjs'), fmt(arm));
   A('JSG-12.6', 'package.md §1.3 item 2', "no wildcard './*' export exists (it would expose the .node path)", !Object.prototype.hasOwnProperty.call(ex, './*'), Object.keys(ex).join(','));
   A('JSG-12.7', 'package.md §1.3 items 1-2; DD-24', 'the manifest declares no main field (no second, arms-bearing CJS entry)', pkg != null && !Object.prototype.hasOwnProperty.call(pkg, 'main'), pkg ? fmt(pkg.main) : 'no manifest');
-  A('JSG-12.8', 'package.md §1.4 item 1; DD-38', "engines.node is '>=18.0.0'", pkg?.engines?.node === '>=18.0.0', fmt(pkg?.engines));
+  A('JSG-12.8', 'package.md §1.4 item 1; DD-38 as re-derived (`D-127`, `D-129`)', "engines.node is '>=22.12.0'", pkg?.engines?.node === '>=22.12.0', fmt(pkg?.engines));
   A('JSG-12.9', 'package.md §3.4 item 6; DD-43', "license is 'AGPL-3.0'", pkg?.license === 'AGPL-3.0', fmt(pkg?.license));
   // ⟶ RE-DERIVED 2026-10-11 (U-STOREROOM-PUBLISH, `A82`; the blind role's `Q3-6`/`Q5` duty): `PAR-PUB-1`
   // (`docs/specs/storeroom-publish/parameter-semantics.md §2.1`) FIXES the main package's `name` as EXACTLY

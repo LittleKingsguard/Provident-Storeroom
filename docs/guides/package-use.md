@@ -30,7 +30,7 @@ preflight REFUSES when these two lines do not read what it computed** (`scripts/
 one check, read-only). **THE TWO LINES ARE THIS GUIDE'S OPERATIVE FIGURES; every dated paragraph below is the
 reading of its own date and is read through them.**
 
-PUBLISH-GUIDE-VERSION-LINE: THE VERSION THIS GUIDE DESCRIBES IS `1.11.0`.
+PUBLISH-GUIDE-VERSION-LINE: THE VERSION THIS GUIDE DESCRIBES IS `1.12.0`.
 PUBLISH-GUIDE-CUT-STATE: NOT STATED -- this document describes the behaviour at the version line above, and the cut-state is the release's to state, not a shipped document's (`D-57`).
 
 **⟶ AND THE CUT-STATE SENTENCE ABOVE IS WITHDRAWN, 2026-10-28 — THE CUT-STATE IS NOT A DOCUMENT'S TO STATE.** `RCA-8(g)` ANNOTATE-BESIDE, and the architect's ruling verbatim (`strata/decisions.md` · `D-57`): *"Drop the cut-state."* **The two marked lines above stand BYTE-FOR-BYTE as the reading of their own date and are read THROUGH this clause — not one byte of either is deleted — and the sentence this clause withdraws is the SECOND of them, the one that claims to say whether the release this guide travels in is cut.** **THE REASON IS MEASURED, THREE TIMES OVER, AND IT IS STRUCTURAL RATHER THAN A MISTAKE: A SHIPPED DOCUMENT IS SEALED BEFORE THE TAG THAT MAKES ITS CUT-STATE TRUE**, so every release packed before its tag ships a document denying itself, and a guard running in that release's own preflight can only ever confirm *"not cut"* — `1.2.0` shipped *"NOT CUT"*, `1.3.0` shipped *"`v1.3.0` DOES NOT EXIST"*, and the change list's head was stale within minutes of the tag that falsified it. **SO THE CUT-STATE SENTENCE IS DROPPED AS A CLAIM AND THE VERSION LINE STAYS**, because the version line is the ONE figure a tarball can be right about: the manifest knows it and travels beside it. **`scripts/publish.sh --figures` GENERATES AND ASSERTS THE VERSION LINE AND NOTHING ELSE** — the cut-state generation and its assertion are removed in the same act, so a tag set that moves can no longer redden this guide — **and the same one line is asserted in THREE shipped documents: this guide, `README.md` beside it, and the change list** (`DEF-AC`'s remaining demand, *"guard the release notes too"* and *"`README.md` still declares no version at all"*). **THE TAG SET IS NOT DELETED AND NOT DENIED: it is a RECORD OF RELEASES held in the change list, PAST TENSE — a list of what has been cut — and never a claim about the current one.** **AND WHAT THIS CLAUSE DOES NOT SAY, SAID PLAINLY BECAUSE A READER WILL LOOK FOR IT: it does not say whether the version this guide prints is cut.** That is not a document's to state; the record of what has been cut is in `RELEASE-NOTES.md`, and the registry is the registry.
@@ -127,7 +127,9 @@ worth nothing to you if you cannot falsify it:**
    five `optionalDependencies` values. **All six figures must be the SAME version** — the main `version` and the
    five exact pins move together and never singly (`bindings/js/package.json`, measured 2026-10-26; the coupling
    rule is `PUB-DD-10` at `docs/specs/storeroom-publish/contract.md §0.3`).
-2. **Which realm you are in:** you must be in **Node ESM**. **No other realm is claimed** (§1).
+2. **Which realm you are in:** you must be in **Node ESM** — the claimed realm is the ES module itself, reached by
+   EITHER of Node's two specifiers for it, `import` and `require`, at or above the declared floor (`>=22.12.0`).
+   **No other realm is claimed** (§1).
 3. **What is actually loaded:** construct a store and read the empty address. If the loader resolved a
    differently-versioned platform package, that is where it shows.
 
@@ -143,8 +145,12 @@ rest is the consequences.
 facade.** The package itself is small — an ESM entry, its own parts, a readme and a hand-authored type declaration
 — and **the binary does not travel in it**: it arrives in a separate per-platform package (§2).
 
-**THE CLAIMED REALM IS `{ Node ESM }` AND NOTHING ELSE** (`bindings/js/README.md`, opening clause; `A70`; and
-`archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-js/package.md §1`–`§2`, archived). **Node CJS, Electron's
+**THE CLAIMED REALM IS THE ES MODULE ITSELF — ONE FILE, ONE NAMESPACE, ONE DECLARED MEMBER SET — AND IT IS REACHED
+BY EITHER OF NODE'S TWO SPECIFIERS FOR IT** (`bindings/js/README.md`, opening clauses; `A70`; `docs/specs/storeroom-js/contract.md §3.1`'s
+re-derivation of 2026-11-17, `D-128`/`D-129`; and
+`archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-js/package.md §1`–`§2`, archived): you `import` it as an ES
+module, and a CommonJS host `require`s the SAME entry through the package's own `require` condition, at or above the
+declared floor. **Node CJS as a module format, Electron's
 `main`/`preload`/`renderer`, the browser, `worker_threads` and any IPC route are each UNCLAIMED** — the package's
 own readme enumerates them one by one and describes no other realm as supported.
 
@@ -2035,10 +2041,10 @@ contract.**
 | the field | its value |
 |---|---|
 | `name` / `version` | `provident-storeroom` / `0.5.0` |
-| `type` | `module` — **the entry is ESM and there is no CJS arm** |
+| `type` | `module` — **the entry is ESM, `require` reaches the SAME entry through the `require` condition, and there is no CJS arm** |
 | `license` | `AGPL-3.0` |
-| `engines` | `{ "node": ">=18.0.0" }` |
-| `exports` | **ONE arm** — `"."` → `{ "types": "./index.d.ts", "import": "./index.mjs" }` |
+| `engines` | `{ "node": ">=22.12.0" }` |
+| `exports` | **ONE arm, THREE conditions** — `"."` → `{ "types": "./index.d.ts", "import": "./index.mjs", "require": "./index.mjs" }` |
 | `optionalDependencies` | **five names, each pinned exactly to `0.5.0`** (§2.2) |
 | `files` | **five rows**: `index.mjs` · `README.md` · `index.d.ts` · `src/entry/` · `src/constraint-kernel.mjs` |
 
@@ -2069,8 +2075,11 @@ each is the figure its own clause already prints.** **THE FIVE, EACH WITH ITS ME
 **⟶ AND THE SIX FIGURES THIS GUIDE STATES ABOUT THE SHIPPED TREE ARE RE-MEASURED AGAIN AT THE `1.5.0` PREPARATION, 2026-10-29 — EVERY ONE OF THEM UNMOVED, AND THE PACKED SET MEASURED RATHER THAN CARRIED.** `RCA-8(g)` ANNOTATE-BESIDE: **every row, every ★ paragraph and every dated clause above stands BYTE-FOR-BYTE and is read THROUGH this one; this clause adds no rule, moves no figure and re-reads all six at one tree.** **THE SIX, EACH WITH THE READING ITS OWN BYTES GIVE THIS DATE:** **(1) THE STATUS SET IS TWENTY** — `src/error.rs`'s `CODES` is `[&str; 20]`, ranks `1`…`20` (`§8.1`'s heading, its table's `20` row). **(2) THE KERNEL'S TOKEN SET IS NINE** — `bindings/js/src/entry/kernel-foundations.mjs`'s `KC` carries `KC-1`…`KC-9` and no tenth (§8.0a's `KC-9` clause). **(3) THE INSTANCE CARRIES FOURTEEN OWN MEMBERS** (§3.1's table; `index.d.ts`'s `StoreInstance`). **(4) THE DEPTH CEILING IS `126`** — `bindings/js/src/entry/carrier.mjs`'s `ENCODER_CEILING = 126` and `bindings/js/src/crossing.rs`'s `depth > 126` are ONE figure, with `127` and beyond refused at the walk and the node ceiling at `1,000,000` beside it (`§10.3`). **(5) THE ALLOWLIST IS SEVEN ROWS** — `index.mjs` · `README.md` · `README.guide.md` · `RELEASE-NOTES.md` · `index.d.ts` · `src/entry/` · `src/constraint-kernel.mjs`, `7 = 5 + 2` ✓ (the clause of 2026-10-28 above). **(6) THE PACKED MEMBER SET IS `20` BARE AND `21` ASSEMBLED** — measured with `npm pack --dry-run --json` at `bindings/js` this date: `1` `package.json` + `5` root files + `13` entry modules + `1` kernel `= 20` ✓, and the assembled artefact adds the release's `LICENSE` for `21` (the clause above). **AND THE VERSION IS `1.5.0` AT ELEVEN CELLS** (§0's clause of this date). **NO FIGURE MOVED BETWEEN THE `1.4.0` PREPARATION AND THIS ONE**, and the reason is named rather than left to inference: **the twenty-seven commits past `v1.4.0` add no member, no status, no token, no ceiling, no packed byte and no allowlist row** — they declare the reach, the two kinds, the derived address, the listener's independence, the delivery's nesting and the throw (`D-66` … `D-73`), and those are clauses of use rather than rows of this section. (`D-66`–`D-73`; §0's clause of this date; `scripts/publish.sh --figures`.)
 **⟶ AND THE SIX FIGURES ARE RE-MEASURED AGAIN AT THE `1.6.0` PREPARATION, 2026-10-29 — FIVE OF THEM UNMOVED AND ONE MOVED, WHICH IS THE POINT OF MEASURING.** `RCA-8(g)` ANNOTATE-BESIDE: **every row, every ★ paragraph and every dated clause above stands BYTE-FOR-BYTE and is read THROUGH this one; this clause adds no rule and re-reads all six at one tree — the eleven commits past `v1.5.0` (`git describe` `v1.5.0-11-g8f5454f`).** **THE SIX, EACH WITH THE READING ITS OWN BYTES GIVE THIS DATE:** **(1) THE STATUS SET IS TWENTY** — `src/error.rs`'s `CODES` is `[&str; 20]`, ranks `1`…`20` (`§8.1`'s heading, its table's `20` row), **UNMOVED by `D-77`: the member is an address and never a code.** **(2) THE KERNEL'S TOKEN SET IS NINE** — `bindings/js/src/entry/kernel-foundations.mjs`'s `KC` carries `KC-1`…`KC-9` and no tenth, **UNMOVED** (§8.0a's `KC-9` clause). **(3) THE INSTANCE CARRIES FOURTEEN OWN MEMBERS** — measured at a live instance this date by `Object.getOwnPropertyNames`: `read` · `readLiteral` · `write` · `delete` · `rollback` · `listen` · `unlisten` · `addConstraint` · `constraintOn` · `constraintOff` · `constraints` · `removeListener` · `removeConstraint` · `register`, `14` ✓ — **UNMOVED** (§3.1's table; `index.d.ts`'s `StoreInstance`). **(4) THE DEPTH CEILING IS `126`** — `bindings/js/src/entry/carrier.mjs`'s `ENCODER_CEILING = 126` and `bindings/js/src/crossing.rs`'s `depth > 126` are ONE figure, with `127` and beyond refused at the walk and the node ceiling at `1,000,000` beside it, **UNMOVED** (`§10.3`). **(5) THE ALLOWLIST IS SEVEN ROWS** — `index.mjs` · `README.md` · `README.guide.md` · `RELEASE-NOTES.md` · `index.d.ts` · `src/entry/` · `src/constraint-kernel.mjs`, `7 = 5 + 2` ✓, **UNMOVED** (the clause of 2026-10-28 above; no document this release ships was added to `files` and none was removed). **(6) ★ THE PACKED MEMBER SET IS `20` BARE AND `21` ASSEMBLED, AND THE COUNT IS UNMOVED WHILE THE SET'S `README.md` AND `README.guide.md` GREW** — measured with `npm pack --dry-run --json` at `bindings/js` this date: `1` `package.json` + `5` root files + `13` entry modules + `1` kernel `= 20` ✓, and the assembled artefact adds the release's `LICENSE` for `21` (the clause above). **AND THE ONE FIGURE THAT MOVED IS NOT OF THE SIX: `LogEntry` KEEPS ITS FIVE MEMBERS (`kind` · `id` · `opId` · `message` · `state`, `D-65`), AND THE FOURTH MEMBER `D-77` ADDED IS ON THE *FAILURE FORM* AND NOT ON A LOG ENTRY** — so **the entry is five, the refusal is four, and neither is the other.** **AND THE VERSION IS `1.6.0` AT ELEVEN CELLS** (§0's clause of this date). **THE REASON THE FIVE ARE UNMOVED IS NAMED RATHER THAN LEFT TO INFERENCE: the eleven commits past `v1.5.0` add no status, no token, no ceiling and no allowlist row, and their one shape change is the refusal's fourth member (`D-77`)** — `D-74` bounds an entry's content and adds no column, `D-75` puts a witness on paths that already existed, and `D-76`/`D-78` declare what the machinery already did. (`D-74`; `D-75`; `D-77`; `D-78`; §0's clause of this date; `scripts/publish.sh --figures`.)
 **★ THE `exports` MAP HAS ONE ARM, AND THAT IS A PROMISE ABOUT WHAT IS REACHABLE:** **the addon is NOT reachable
-as a subpath and neither is the constraint kernel.** **There is no wildcard export, no deep import to the addon
-and no CJS arm** (`bindings/js/README.md`; `docs/specs/storeroom-publish/contract.md §1.3`;
+as a subpath and neither is the constraint kernel.** **The one arm carries THREE conditions and one file: `types`
+names the declaration, and `import` and `require` name the SAME `./index.mjs` — so there is no wildcard export, no
+deep import to the addon and no CJS arm, which is to say no `.cjs` artefact, no `main` field and no second build**
+(`bindings/js/README.md`; `docs/specs/storeroom-publish/contract.md §1.3`; `docs/specs/storeroom-js/contract.md §3.1`'s
+re-derivation of 2026-11-17, `D-128`;
 `archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-js/package.md §1.3`, archived). **The addon is reached
 INTERNALLY by the package's own `createRequire`-style step and is not an entry point: a consumer that spells the
 addon's path directly is outside every clause of the contract** — the load succeeds or it does not, and nothing
@@ -2103,12 +2112,24 @@ a change of licence.**
 
 **⟶ AND THE CHANGE LIST NOW SHIPS AND THE ALLOWLIST NAMES SEVEN ROWS, 2026-10-28 — `DEF-AC` (a), MEASURED.** `RCA-8(g)` ANNOTATE-BESIDE: **every row and every dated clause above stands BYTE-FOR-BYTE and is read THROUGH this clause; THIS clause re-reads three figures of this section and adds one document, and it moves no rule of theirs.** **(i) THE `files` ROW READS SEVEN ROWS, NOT SIX** — `bindings/js/package.json`'s `files` array, read at its own bytes: `index.mjs` · `README.md` · `README.guide.md` · `RELEASE-NOTES.md` · `index.d.ts` · `src/entry/` · `src/constraint-kernel.mjs` — **`7 = 5 + 2` ✓, the five root files plus the entry directory and the kernel** — and **the seventh row is the CHANGE LIST's landed copy, `RELEASE-NOTES.md`, staged byte-for-byte from the repository root by the release's assembly and imported by nothing**, the same mechanism and the same declared non-code class as `README.guide.md`. **NONE OF THE SEVEN IS A `LICENSE` ROW**, and none will be unless `D-8`'s evidence condition is met. **(ii) THE PACKED SET READS TWENTY MEMBERS BARE AND TWENTY-ONE ASSEMBLED** — **the bare tarball carries `20` files** (`1` `package.json` + `5` root files + `13` entry modules + `1` kernel, `1 + 5 + 13 + 1 = 20` ✓, the guide and the change list standing among the five root files), **and the assembled artefact carries `21`, the twenty plus `LICENSE`** — so a consumer comparing a bare `npm pack` tree with the release's artefact still expects exactly one member's difference and it is still the licence. **(iii) AND THE CHANGE LIST IS ON DISK IN AN INSTALLED PACKAGE**: `node_modules/provident-storeroom/RELEASE-NOTES.md` is **the declaration of `1.2.0`'s one behaviour change** — *"a refused reversal now restores to the commit's opening mark, not the journal's head"* — and **that is the row's own subject: a consumer receives the behaviour change WITH a shipped declaration of it, not a root document it can only reach by reading the repository** (`scripts/publish.sh`'s notes stage; the preflight REFUSES a drifted landing and refuses an allowlist that does not name it). **THE RULE THE COUNT CARRIES IS UNMOVED EITHER WAY: whatever the entry requires by path must ship, and the count is a fact of this tree and not a contract.**
 
-**AND THE `engines` FLOOR IS ONE DECLARATION WITH ONE READER — YOURS.** `>=18.0.0` is what the artefact loads on
-and it is honest rather than provisional: the addon's highest-referenced Node-API class is the `napi_*` pair at
-**Node-API version 6** (`Node 12.17.0` / `10.20.0`), read at `bindings/js/build.rs:35`–`:36`, and the ESM entry uses
-only `node:` builtins — so **raising the floor would be a false restriction rather than a correction**
-(`archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-publish/parameter-semantics.md §2.6`, `PAR-PUB-6`,
-archived). **And the one other version number in that file is not a runtime floor at all:** `bindings/js/build.rs`
+**AND THE `engines` FLOOR IS ONE DECLARATION WITH ONE READER — YOURS, AND ITS FIGURE HAS MOVED TO `>=22.12.0`.**
+`RCA-8(g)` ANNOTATE-BESIDE, 2026-11-17: **the paragraph above stands BYTE-FOR-BYTE as the reading of its own date and
+is read THROUGH this one.** **`D-127` — the architect, verbatim: *"Bump the floor, there's no backwards
+compatibility concerns"* — SUPERSEDES ITS FIGURE, and its closing ground is superseded with it: *"raising the floor
+would be a false restriction rather than a correction"* was the reading of a floor anchored to the CARRIER, and the
+ruling withdrew that ground at its own words.** **THE ANCHOR HAS MOVED FROM THE CARRIER TO THE LOADER, AND THE
+FIGURE IS `D-129` ITEM 1'S:** `require(esm)` is unflagged only from `Node 20.19.0` / `Node 22.12.0` (and on `23.x`+),
+and still flagged on `21.x` and `22.0`–`22.11`, so **`>=22.12.0` is the one single comparator set under which the
+`require` route this package declares is true at EVERY admitted version** (`docs/specs/storeroom-js/contract.md
+§0.2`'s re-derivation of
+`DD-38`; `bindings/js/package.json`'s `engines`, and the five platform manifests move with it — one declaration, one
+reader). **AND THE CARRIER IS NOT THAT FIGURE'S BINDING CONSTRAINT AND NEVER WAS:** the addon's highest-referenced
+Node-API class is still the `napi_*` pair at **Node-API version 6** (`Node 12.17.0` / `10.20.0`), read at
+`bindings/js/build.rs:35`–`:36`, and the ESM entry uses only `node:` builtins — so `max(carrier, loader)` is the
+loader's alone (`DD-29` declares no Node-API floor; and
+`archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-publish/parameter-semantics.md §2.6`, `PAR-PUB-6`,
+archived). **And the one other version number in that
+file is not a runtime floor at all:** `bindings/js/build.rs`
 pins `24.11.0` as **the Windows import library's fixed, reproducible byte** — a build input for one platform's
 linker, exporting the `napi_*` symbols and needing to equal no consumer's runtime (`build.rs:41`). **Every other
 Node version number in this package's repository is addressed to its publisher or to that linker and not to you.**

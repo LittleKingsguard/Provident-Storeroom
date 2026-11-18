@@ -65,13 +65,23 @@ concrete shape is more specific than the sentence:
 - **The claimed realm is Node ESM and nothing else.** Node CJS, Electron `main`/`preload`/`renderer`, the
   browser, `worker_threads` and IPC are each **unclaimed** by the package; the Electron story is a *guide*,
   not a declared realm (`docs/specs/storeroom-js/package.md §1`).
+  **⟶ RE-SAID 2026-11-17 (`D-128`, `D-129`; `strata/decisions.md`): the realm is the ES module itself, and the
+  one arms-bearing entry is reached by TWO specifiers — `import` and `require` both name `./index.mjs`, the
+  `require` condition serving a CJS host through Node's own `require(esm)` at or above the declared floor. That
+  is a SUPPORTED ROUTE into the claimed realm AND NOT A SECOND CLAIMED REALM. No CJS build ships: no `.cjs`, no
+  `main`, no second module (`docs/specs/storeroom-js/contract.md` `§3.1`'s and `§3.2`'s 2026-11-17 clauses).**
 - **Licence of record:** `LICENSE` is `AGPL-3.0` and travels with every published artefact at assembly time.
   **Three spellings stand in the tree and they are not identical:** the root `Cargo.toml` says
   `GPL-3.0-or-later`, `bindings/js/Cargo.toml` says `AGPL-3.0-or-later`, and `bindings/js/package.json` says
   `AGPL-3.0`. A reader should not assume the root crate's spelling is a typo without the architect saying so.
-- **Runtime floor is `engines: { "node": ">=18.0.0" }`** — a pinned domain, not a provisional figure, and far
+- **Runtime floor is `engines: { "node": ">=22.12.0" }`** — a pinned domain, not a provisional figure, and far
   below what the artefact actually needs, because the addon's Node-API surface is ABI-stable and the facade
   stays low in it (`docs/specs/storeroom-publish/release.md §1.1` item 3, `parameter-semantics.md §2.6`).
+  **⟶ READ 2026-11-17 (`D-127`, `D-129`; `strata/decisions.md`): the floor is `">=22.12.0"` — raised from
+  `">=18.0.0"` because the one reader is the `require` route's `require(esm)`, unflagged only from Node `20.19`
+  / `22.12`, and `">=22.12.0"` is the one comparator set true at every admitted version. The FIVE platform
+  manifests carry the same string; the Node-API carrier's own floor (Node-API 6; `bindings/js/build.rs:35`–`:37`)
+  sits far below it.**
 - **No JavaScript substitute store exists and none is declared.** An absent or failed addon refuses; it never
   degrades to a JS store, never absorbs state silently, never returns a partial instance
   (`docs/specs/storeroom-publish/resolution.md §5.3`).

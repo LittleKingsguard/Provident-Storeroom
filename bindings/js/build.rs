@@ -34,7 +34,7 @@ use std::process::Command;
 /// **THE PIN IS A DECLARED CHOICE AND NOT A GUESS, AND WHY ANY VERSION AT OR ABOVE THE FLOOR IS LAWFUL:
 /// NODE-API IS ABI-STABLE.** The facade's highest-referenced class is `napi_get_value_bigint_int64`
 /// (beside `napi_get_all_property_names`), both **Node-API version 6** — `Node 12.17.0` / `10.20.0`, and
-/// this package's own `engines` floor is `Node 18.0.0` — **so the import library's version need not equal
+/// this package's own `engines` floor is `Node 22.12.0` — the LOADER's floor and not this pin's, `DD-38` as re-derived by `D-127`/`D-129` — **so the import library's version need not equal
 /// any consumer runtime's: it need only EXPORT the `napi_*` symbols, and it names `node.exe` as the module
 /// they are imported from.** The pin exists so that the Windows link input is a FIXED, reproducible byte
 /// rather than whatever the runner image happens to carry.

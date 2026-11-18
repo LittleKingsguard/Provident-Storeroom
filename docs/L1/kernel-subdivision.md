@@ -407,6 +407,20 @@ Three measured facts, and each alone would settle it:
 - **It is not an `exports` arm and not a published module.** `bindings/js/package.json`'s `exports` publishes `"."`
   alone (measured: lines 27–32), so no consumer can reach the six names; they are reached by the batteries and by
   `index.mjs`'s lazy `require_` (`index.mjs:5604`).
+  **⟶ RE-DERIVED 2026-11-17 ON THE MAP AND THE RANGE, AND ON NOTHING ELSE — `RCA-8(g)` ANNOTATE-BESIDE: the bullet
+  above stands BYTE-FOR-BYTE and is read THROUGH this clause.** **THE RANGE READS `:27`–`:33` AT THIS TREE** (the
+  block is one line longer than the `27–32` printed above) and **the one arm now carries THREE conditions** —
+  `types` → `./index.d.ts`, `import` → `./index.mjs`, `require` → `./index.mjs` — so *"publishes `"."` alone"* is
+  **TRUE OF ARMS and under-specified as to conditions** (`D-128` item 1; `D-129` items 1 and 3;
+  `docs/specs/storeroom-js/contract.md`'s bounded amendment of the same date). **THE SENTENCE THIS SITE DRAWS FROM
+  THE MAP STANDS UNMOVED: no consumer can reach the six names**, because the `require` condition names the same
+  `./index.mjs` the `import` condition does and no arm is published for an internal part — and **§9's bullet
+  *"`exports` is unmoved (one arm, `"."`)"* is the same spelling in the same class and reads under this clause too.** **WHAT THIS CLAUSE
+  DOES NOT RE-DERIVE, NAMED SO IT IS NOT READ AS RE-READ: the bullet's `index.mjs`'s lazy `require_` half. A grep for
+  `require_(` over `bindings/js/index.mjs` at this tree returns NOTHING, so that citation is past state — falsified
+  when the entry's subdivision landed, which is a different unit's act and not this one's. It is recorded here and
+  owned by whoever next re-derives this file's readings.** (`D-127`; `D-128`; `D-129`; the twin clauses are
+  `docs/L1/module-map.md` §4 `E4`'s and `docs/L1/entry-subdivision.md`'s of the same date.)
 
 ---
 

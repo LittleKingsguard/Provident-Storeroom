@@ -6645,3 +6645,88 @@ answering gate 4's three consequences. **HIS ANSWERS, VERBATIM:**
 **TERMS: the cascade (`1` = refused by design, no progress test), the corrupt image (`1` = refuses with a code), the member
 (`0` = L1's), the class (`1` = `MINOR`), the line (`1` = `1.11.0`), the classes the notes print (`3`), the `MAJOR`
 presumption (`1` = superseded), the versions foreclosed (`1` = `1.10.1`), the questions left (`5`), the units mints (`0`).**
+
+---
+
+### `D-127` — THE `engines` FLOOR MOVES: `DD-38`'s `>=18.0.0` is SUPERSEDED and its exclusion ground is withdrawn, with no figure named
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `5cfb329` (the tree carries `strata/research.md` §20 uncommitted; the register's previous row is `D-126`). **SOURCE:** the architect, in session, answering `strata/research.md` §20.5's `Q-3` — the intake note for the downstream CJS-entry request (`strata/research.md` §20; **the `D-5`/`D-52` that note and the request name are the DOWNSTREAM project's rows, not this register's**). **HIS WORDS, VERBATIM:**
+
+> *"Bump the floor, there's no backwards compatibility concerns"*
+
+**THE QUESTION IT ANSWERS, SO THE ANSWER'S SCOPE IS NOT GUESSED.** `Q-3` asked: *"Does the floor move, does the condition carry a documented caveat, or does nothing move?"* — with the two facts beside it: `DD-38` declares `"engines": { "node": ">=18.0.0" }` as **the floor the Node-API carrier's own version needs and not a floor this unit measures** (`docs/specs/storeroom-js/contract.md:617`), and the request's own caveat names the loader's floor as **`Node ≥20.19` / `≥22.12`** because `require(esm)` is unflagged only from those versions.
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE DECLARED FLOOR IS RAISED — `DD-38`'s `"node": ">=18.0.0"` IS SUPERSEDED.** The row's priced alternative (*"a higher floor (`>=20`)"*) is SELECTED by this ruling, and the alternative's own ground for refusal is WITHDRAWN in the architect's words: *"there's no backwards compatibility concerns"* retires *"it would exclude consumers the carrier itself serves"* as an objection — the exclusion is accepted, so the only live question left in that row is the figure, and the figure is not named here.
+2. **THE FLOOR'S ANCHOR MOVES FROM THE CARRIER TO THE LOADER.** `DD-38` justified `>=18` by the Node-API carrier alone; a floor bumped for `require(esm)` is anchored on the loader feature the request needs, so the declared minimum can no longer be read as *"the floor the carrier itself needs"* — the floor is now `max(carrier floor, loader floor)` in substance, whatever string the amendment prints.
+3. **THE INSTRUMENT IS THE ROW'S OWN: a BOUNDED AMENDMENT.** `DD-38`'s reversal point reads *"available with a bounded amendment"*; this row takes that alternative and names the amendment's subjects without editing them: `docs/specs/storeroom-js/contract.md`'s `DD-38` row and its `§1.4`/`§3.1` regions, `strata/brief.md:72`'s floor bullet, `bindings/js/README.md`'s floor sentence, and the shipped guide's floor/provenance lines (with the landing re-staged). **No byte moves here; this row records the ruling, not the amendment.**
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **The exact string.** One `engines` string cannot express the request's two caveat floors (`≥20.19` on the 20 line / `≥22.12` on the 22 line), and the range `>=20.19.0` would still admit `21.x` and `22.0`–`22.11`, which sit below `22.12`; `>=22.12.0` is clean on the 22 line and excludes the 20.19 users the architect has said he will not protect. **Which versions actually ship `require(esm)` unflagged is a derivation this row does not take** — it is owed to the design pass on evidence, not guessed here.
+2. **Whether the floor moves WITH the loader change or BEFORE it.** This sentence answers the floor question; the loader change itself — `§20.5`'s `Q-1`/`Q-2`, the fresh ruling `DD-4`/`DD-24` name — is **NOT** taken by a floor bump, and `DD-24`'s *"a CJS arm beside the ESM one"* alternative is not selected by it.
+3. **`Q-4` (what keeps the graph synchronous afterwards), `Q-5` (which cells and rows move, and who re-derives them), `Q-6` (the cut class — `PUB-DD-9` fits a new `exports` condition as neither `PATCH` nor `MINOR` literally), `Q-9` (the esbuild silent-inline home), `Q-10` (the provenance question) — all stand open.**
+4. **Why the floor was already in tension on a shipped route** — the intake's `F-11`: the package's own constraint path already `require`s an `.mjs` (`constraints.mjs:86`), so the declared `>=18` was in tension with its own load path before this request — **recorded, not ruled on; the sentence answers the floor question, not the cause.**
+
+**TERMS: the floor (`1` = raised), the carrier-only ground (`1` = withdrawn), the exact figure (`0` = owed), the loader arm (`0` = not named), the amendment's subjects (`4` = named, none edited), the questions left (`Q-1`, `Q-2`, `Q-4`–`Q-10` and the figure), the bytes moved (`0`).**
+
+---
+
+### `D-128` — ★ ARM 1 IS TAKEN: a `require` condition on the ESM arm (`"require": "./index.mjs"`) — no CJS build, no documented-only answer
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `5cfb329` (the tree carries `strata/research.md` §20 and `strata/decisions.md` `D-127` uncommitted). **SOURCE:** the architect, in session, answering `strata/research.md` §20.5's `Q-1` and `Q-2` after `D-127` fixed the floor. **HIS WORDS, VERBATIM:**
+
+> *"Proceed with arm 1"*
+
+**THE QUESTIONS IT ANSWERS, SO THE ANSWER'S SCOPE IS NOT GUESSED.** `Q-1` asked whether the package may publish a `require` (or `default`) condition at all — the fresh ruling `DD-4`/`DD-24` name; `Q-2` enumerated the request's three arms: **arm 1** — `exports["."].require` → `./index.mjs`; **arm 2** — a published CJS build (`main` + a `.cjs` entry); **arm 3** — a documented ESM-only statement with an `await import()` seam, no code change. **`D-127`'s floor ruling answered the floor question these arms turn on; this row answers the arm question itself.**
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE FRESH RULING `DD-4`/`DD-24` NAME IS TAKEN: the package publishes a `require` condition naming `./index.mjs`.** **The map gains a THIRD condition beside `types` and `import`, and the file it names is the SAME ESM entry — no `.cjs`, no `main`, no second build.** **So `DD-24`'s *"EXACTLY ONE arms-bearing entry — the ESM one"* and `DD-4`'s *"NO `require` entry"* are SUPERSEDED FOR THIS ARM** (both rows' own reversal instruments: *"available with a fresh ruling … followed by a bounded amendment"*), **and the entries `DD-4`/`DD-24` price as a *"SECOND claimed realm"* do not come due: arm 2 is refused (below).**
+2. **ARM 2 IS REFUSED.** **No `main`, no `.cjs` artefact, no dual build, no dual-package hazard:** `DD-4`'s price (*"it would oblige the CJS/ESM dual-package hazard's own clause"*) and `DD-24`'s (*"a SECOND claimed realm"*) **both stay priced and untaken**, and the intake's `F-15`'s bundler surface is not opened.
+3. **ARM 3 IS NOT TAKEN.** **The downstream's own fallback — a *"documented, supported statement that the package is ESM-only"*, which `K-19` measured as NOT SHIPPED today — is not the answer:** a CJS host is served by the package's `require` condition under `require(esm)`, not by a seam sentence.
+4. **THE UNIT'S SHAPE IS FIXED, GIVEN `D-127`:** `exports["."]` gains `"require": "./index.mjs"`; the `engines` floor rises (figure OWED, `D-127` item 1); the one-arm/no-CJS-arm sentences — the live contract's row, `§3.1`, `§3.2`'s and `§9`'s `HO-1`, the entry's own header, the shipped README/guide, the brief — are re-sighed; the **eight tested cells** (`X-1`…`X-8`, `strata/research.md` §20.2 (vi)) are re-derived by the owning test pass; and the cut takes `PUB-DD-9`'s class rule (proposal OWED, item 2 below).
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **The exact `engines` string** (`D-127` item 1 stands): one string cannot express *"≥20.19 on the 20 line / ≥22.12 on the 22 line"*, and `>=20.19.0` still admits `21.x` and `22.0`–`22.11`, which are below `22.12`; the derivation is the design pass's on evidence, not this row's to guess.
+2. **The cut class** — `PUB-DD-9` fits a new `exports` condition literally as neither `PATCH` nor `MINOR` (`Q-6`); the design pass proposes and the architect corrects if the default is not the answer. The number follows from that class.
+3. **What `HO-1` now says** — the row's declared answer must be re-said: today it reads *"the package publishes NO CJS arm and NO `require` entry; a CJS consumer is served by the consumer's own ESM interop"*, and after arm 1 the package serves the route itself through `require(esm)`. **Whether that is a *supported workaround* or a *claimed realm* is a sentence the row does not contain** (`Q-2`'s own distinction: `DD-4`'s price is about *"making `require` a claimed realm"*); the design pass proposes, the architect corrects.
+4. **`Q-4` (the synchronous-graph permanence rule — where it lives and what cell enforces it), `Q-5` (the cells and their owning pass, `D-5`'s scope), `Q-9` (the esbuild silent-inline home), `Q-10` (the provenance question) — all stand open.**
+5. **The type surface under a CJS consumer** (`Q-7`) — the `types` condition stands first and no `tsc` run has been taken; whether a CJS-typed leg is owed is the design pass's to state.
+
+**TERMS: the arm (`1`), the condition (`1` = `require`, naming `./index.mjs`), the CJS build (`0` = refused), the documented-only arm (`0` = not taken), the floor figure (`0` = owed), the class (`0` = owed), `HO-1`'s sentence (`0` = owed), the cells (`8` = re-derived, plus the new ones the design pass names).**
+
+---
+
+### `D-129` — ALL SIX PROPOSALS ARE TAKEN: `">=22.12.0"`, the five platform floors move with the main, `HO-1` reads *supported route*, the sync-graph law sits at `§3.1`, the cut is `MINOR` `1.12.0`, and no CJS-typed leg is owed
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `5cfb329` (the tree carries the amendment and the `D-127`/`D-128`/research records uncommitted; a second session's `§21`/`P-3` records also sit in it and are not this row's subject). **SOURCE:** the architect, in session, answering the six questions the `role_l1_architect` declaration put back (`strata/envelope.md`'s `U-STOREROOM-REQUIRE-CONDITION` entry, §4). **HIS WORDS, VERBATIM:**
+
+> *"Take proposed on all"*
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES — THE SIX, ONE LINE EACH.**
+
+1. **`Q-F1` — THE FLOOR IS `">=22.12.0"`.** The one single comparator set under which the declared route is true at every admitted version; `">=20.19.0"` stays refused (it admits `21.x` and `22.0`–`22.11`, where `require(esm)` is still flagged), and the disjunction `"^20.19.0 || >=22.12.0"` is **not taken** — a policy choice the architect made, not a feasibility one (`R-4`).
+2. **`Q-F2` — THE FIVE PLATFORM MANIFESTS MOVE WITH THE MAIN.** `bindings/js/platforms/*/package.json:17`'s five `">=18.0.0"` floors read `">=22.12.0"` beside the main's; **one declaration, one reader**, and the main-vs-platform agreement cell (`blind-installed-surface.test.mjs:1069`–`:1070`) **stays an agreement cell**.
+3. **`Q-H1` — `HO-1`'S SENTENCE IS THE *SUPPORTED ROUTE* READING**, not a claimed second realm: the package now serves the `require` route itself through `require(esm)`, and what remains the consumer's boundary is the runtime feature and the floor.
+4. **`Q-G1` — THE SYNCHRONOUS-GRAPH LAW SITS AT `§3.1`'S FOOT** as a declared law over the entry's load-time graph (not a `DD` row — the `54`-id census does not move), and **its instrument is the `O3` install-shape `require` cell itself**: any top-level `await` anywhere in the graph surfaces at that one `require` as `ERR_REQUIRE_ASYNC_MODULE`. The static token scan stays priced and not taken.
+5. **`Q-C1` — THE CUT IS `MINOR`, `1.12.0`.** `PATCH` is foreclosed (`D-39`'s *"semver breach"*; `D-126` item 3's *"carries a breaking input requirement on top"*), `MAJOR` by `PUB-DD-9`'s own terms; `MINOR` — *"a member of the declared surface"* — is the class the corpus has itself read twice this way (`:120`, `:122`).
+6. **`Q-T1` — NO CJS-TYPED LEG IS OWED.** The type surface does not move: `types` is unchanged and stands first, both routes reach the same `./index.d.ts`, and the staging copies two files and not `index.mjs`.
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **THE ACCEPTANCE DRIVE REMAINS OWED BEFORE ANY TAG** — `NEW-1` (the `O3` install-shape `require` cell that boots `storeCreate`, writes at `mem` and reads it back, in a temp tree) is a **measurement** and not a ruling, and the tag stays the architect's.
+2. **THE GATES THEMSELVES** — the landing pass (manifest, entry header, `build.rs`, the five proxies, the shipped prose and the `§1.12.0` notes, the cut's eleven cells and three generated lines, the staged `typecheck` copy, the rebuilt artefact), the test pass (the 21 re-derived assertions, the two `negative-generators` generators re-derived first, `NEW-1`/`NEW-2`/`NEW-3`), and the gate-4 re-read — all owed and none decided here.
+3. **`Q-9` (the esbuild silent-inline home) AND `Q-10` (the provenance question) STAY OPEN** — they were not among the six.
+4. **The corpus items the amendment named but did not edit** — `docs/specs/storeroom-js/package.md`'s citation discrepancy (cited live by `index.mjs:1`–`:4`, `contract.md:21`, `brief.md:67`; the file exists only in the archive), and `docs/L1/module-map.md:852`/`:857` + `docs/L1/modules.json:442`'s endpoint text — owed by the L1 revision pass that next touches the map.
+
+**TERMS: the proposals (`6` = all taken), the floor string (`1` = `">=22.12.0"`), the platform floors (`5` = move), `HO-1`'s meaning (`1` = supported route), the law's home (`1` = `§3.1`), the class (`1` = `MINOR`), the number (`1` = `1.12.0`), the type leg (`0` = none owed), the tags taken (`0`).**
+

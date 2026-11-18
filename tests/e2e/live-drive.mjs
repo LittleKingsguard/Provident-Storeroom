@@ -848,8 +848,15 @@ console.log(JSON.stringify({ pid: process.pid, value: i.read(${JSON.stringify(['
   const ex = manifest.exports || {};
   const dot = ex['.'] || {};
   start(sc, `a consumer asks, live, whether the shipped manifest exposes an entry for any unclaimed realm (HO-1 … HO-7), and a real CJS resolver is asked the same question`);
-  A(`${sc}.1`, 'package.md §1.3 item 1; DD-24; §3.2 HO-1', 'the `exports[\'.\']` arms carry NO `require` arm — no CJS entry is published',
-    !Object.prototype.hasOwnProperty.call(dot, 'require'), Object.keys(dot).join(','));
+  // ⟶ RE-DERIVED 2026-11-17 (`LIVE-11.1` ONLY; `D-128`, `D-129`; `contract.md §0.2`'s 2026-11-17 foot
+  // clause, limb 1). **THE ROW WAS A NEGATIVE — *"no `require` arm is published"* — AND IT IS NOW THE
+  // POSITIVE THE MAP DECLARES: `exports['.'].require` is `./index.mjs`, the SAME file `import` names.** The
+  // as-filed expectation is not softened but replaced, because the surface it measured changed by ruling.
+  // **`LIVE-11.2`–`LIVE-11.5` ARE UNMOVED AND STILL REFUSALS** (`main`, the realm-specific keys, the `.node`
+  // path, and a CJS `require` of the DIRECTORY — a path route that never consults the map), and `LIVE-11.6`
+  // stays as the load's own witness.
+  A(`${sc}.1`, 'package.md §1.3 item 1; DD-24 as re-derived; §3.2 HO-1; D-128', "the `exports['.']` arms carry a `require` CONDITION naming the SAME `./index.mjs` the `import` condition names — the one entry, reached by both of Node's specifiers, and NOT a second claimed realm",
+    dot.require === './index.mjs' && dot.require === dot.import, `${JSON.stringify(dot.require)} (import: ${JSON.stringify(dot.import)})`);
   A(`${sc}.2`, 'package.md §1.3 items 1-2; DD-24; §3.2 HO-1', 'the manifest carries NO `main` field — no second, arms-bearing CJS entry',
     !Object.prototype.hasOwnProperty.call(manifest, 'main'), String(manifest.main));
   A(`${sc}.3`, 'package.md §2; §3.2 HO-4/HO-5/HO-6', 'no realm-specific field or export key (browser / worker / electron) is declared',
@@ -859,8 +866,8 @@ console.log(JSON.stringify({ pid: process.pid, value: i.read(${JSON.stringify(['
     !Object.keys(ex).some((k) => k.includes('.node')) && !JSON.stringify(ex).includes('.node'), JSON.stringify(ex));
   const req = createRequire(import.meta.url);
   const cjsDir = thrown(() => req(pkgDir));
-  A(`${sc}.5`, "package.md §3.2 HO-1 (*the package publishes NO CJS arm and NO require entry*)",
-    "a real CJS `require` of the package DIRECTORY is refused by the resolver — HO-1's non-exposure, measured in a CJS resolver",
+  A(`${sc}.5`, "package.md §3.2 HO-1 as re-derived 2026-11-17 (*\"the package publishes NO CJS BUILD — no `.cjs`, no `main`, no second build\"*); `contract.md §0.2`'s 2026-11-17 foot clause, limb 1",
+    "a real CJS `require` of the package DIRECTORY is STILL refused by the resolver — the `require` condition answers the SPECIFIER and not a directory, and with no `main` there is nothing for a path route to fall to",
     cjsDir.threw && cjsDir.err.code === 'MODULE_NOT_FOUND', cjsDir.threw ? `${cjsDir.err.code}` : 'the resolver returned a module');
   const cjsEntry = thrown(() => req(path.join(pkgDir, 'index.mjs')));
   A(`${sc}.6`, "package.md §3.2 HO-1 (*a CJS consumer is served by the consumer's own ESM interop*), read with §2.9 item 1's `A127` clause",

@@ -96,6 +96,15 @@ test('register_ptp7_s_one_addon_no_second_addon_no_subprocess_and_no_wasm', () =
 // ---------------------------------------------------------------------------------------------
 
 test('package_the_claim_is_node_esm_alone_through_exactly_one_arms_bearing_entry', () => {
+  // ⟶ RE-DERIVED 2026-11-17 (`D-128`, `D-129`; `contract.md §0.2`'s 2026-11-17 foot clause, limb 1, and
+  // `DD-24` as re-derived at its own cell): **ONE ARMS-BEARING ENTRY, THREE CONDITIONS.** The map still
+  // publishes exactly ONE arms-bearing subpath — `"."` — and that entry now carries `types`, `import` and
+  // `require`, **the last two naming the SAME `./index.mjs`**: `require` is a supported ROUTE into the one
+  // claimed realm and NOT a co-equal CJS arm (`§3.1` as re-derived). **THE ONE-ARM EQUALITY IS NOT WEAKENED,
+  // IT IS STATED AS A THREE-CONDITION EQUALITY:** the arms-bearing COUNT stays `1`, the arm's key set is the
+  // declared three in the declared ORDER, the `require` target is asserted EQUAL to the `import` target (so
+  // a `require` reaching a second file reddens here as a second entry would), and the map's own key set is
+  // asserted to be `"."` alone (so no other subpath can be arms-bearing behind the filter).
   const exportsMap = PKG.exports;
   assert.equal(typeof exportsMap, 'object');
   const arms = Object.values(exportsMap).filter(
@@ -103,7 +112,13 @@ test('package_the_claim_is_node_esm_alone_through_exactly_one_arms_bearing_entry
   );
   assert.equal(arms.length, 1, 'DD-24: EXACTLY ONE arms-bearing entry — the ESM one');
   assert.ok(arms[0].import, 'and it is the ESM arm');
-  assert.equal(arms[0].require, undefined, 'HO-1: the package publishes NO CJS arm');
+  assert.deepEqual(Object.keys(exportsMap), ['.'], 'DD-24: no other subpath is arms-bearing — the key set is `"."`');
+  assert.deepEqual(Object.keys(arms[0]), ['types', 'import', 'require'],
+    '`D-128`: THREE conditions in the declared order — `types` first (a `types` placed after `import` is '
+    + 'never consulted: `DEF-2026-10-17-D`), `import` second and unmoved, `require` third and added');
+  assert.equal(arms[0].require, './index.mjs', '`D-128`: the condition names the ONE ESM entry, not a second module');
+  assert.equal(arms[0].require, arms[0].import,
+    '`import` and `require` name the SAME file: one entry, two of Node\'s specifiers for it (`DD-24` re-derived)');
   // **⟶ RE-READ 2026-10-16 BY THE `A122` PASS, AND THE EXPECTATION ABOVE DOES NOT MOVE BECAUSE THE RULING
   // KEEPS THE ARM: *"the engine is BEHIND the package surface … THE KERNEL'S FIVE ITEMS ARE INTERNAL, not
   // consumer API. There is NO second `exports` arm."*** **THE CONSTRAINT KERNEL'S MODULE ARRIVES IN `files`
@@ -149,9 +164,11 @@ test('package_the_claim_is_node_esm_alone_through_exactly_one_arms_bearing_entry
 
 test('package_a_wildcard_export_and_a_deep_import_are_both_refused', (t) => {
   // `DD-24`: a wildcard `"./*"` export would expose the `.node` path; a deep import is refused for the same
-  // reason. **A `require()` of the bare specifier is NOT asserted to throw**: on the declared toolchain
-  // (Node `v24.20.0`) the RUNTIME supplies `require(esm)` interop of its own, which is the consumer's own
-  // side of the boundary (`HO-1`) and not a published arm of this package.
+  // reason. **⟶ RE-SAID 2026-11-17 (`D-128`; `contract.md §0.2`'s 2026-11-17 foot clause, limb 2): a
+  // `require()` of the bare specifier is no longer served by the consumer's own interop alone — the PACKAGE
+  // publishes the `require` condition — and THIS CELL'S SUBJECT IS UNMOVED: what is refused here is the
+  // DEEP path and the WILDCARD, not the condition.** A `require()` of the double-segment subpath below is
+  // still the map's refusal, because the map publishes no second subpath for either route to reach.
   assert.equal(PKG.exports['./*'], undefined, 'no wildcard export');
 
   // **⟶ REPAIRED (`F-1`, `§10`): THE DEEP-IMPORT PROBE IS RE-CUT AT THE CURRENT DECLARED PLATFORM SPECIFIER
@@ -260,10 +277,21 @@ test('package_a_wildcard_export_and_a_deep_import_are_both_refused', (t) => {
 });
 
 test('package_no_cjs_arm_and_no_require_entry_is_published', () => {
+  // ⟶ RE-DERIVED 2026-11-17 (`D-128`, `D-129`; `contract.md §0.2`'s 2026-11-17 foot clause, limb 1). The
+  // cell's title is the AS-FILED title and it is kept VERBATIM so `git diff` has nothing to recover; **WHAT
+  // IT ASSERTS HAS MOVED, AND NOT BY RELAXATION.** `HO-1`'s declared answer as re-derived at `§3.2` is: *"the
+  // package publishes NO CJS ARM — no `.cjs`, no `main`, no second build — and it DOES publish a `require`
+  // CONDITION on its one ESM entry"*. So the refusals are exactly the BUILD's three spellings, and the one
+  // thing that is now asserted POSITIVELY is the condition's target — **the same `./index.mjs` the `import`
+  // condition names**, which is a tighter statement than the `undefined` it replaces in every direction that
+  // matters: a `require` that reached a `.cjs`, a second module or the addon reddens here.
   const arms = Object.values(PKG.exports).filter((arm) => typeof arm === 'object');
   for (const arm of arms) {
-    assert.equal(arm.require, undefined, 'HO-1: no `require` condition in the map');
+    assert.equal(arm.require, arm.import,
+      'HO-1 as re-derived (`D-128`): the `require` condition names the SAME one ESM entry its `import` '
+      + 'condition names — and nothing else, so no `.cjs` and no second module is reachable through it');
     assert.equal(arm.node, undefined, 'no `node` condition shortcut to the addon');
+    assert.equal(arm.default, undefined, 'no `default` condition (`§0.2`\'s 2026-11-17 foot clause: *"no `default`"*)');
   }
   assert.ok(
     !readdirSync(PACKAGE_DIR).some((f) => f.endsWith('.cjs')),
@@ -299,7 +327,11 @@ test('package_the_named_exports_are_the_eight_verbs_and_nothing_that_reaches_the
 });
 
 test('package_the_engine_floor_is_declared_and_is_not_a_measurement', () => {
-  assert.equal(PKG.engines?.node, '>=18.0.0', 'DD-38: the declared floor, and nothing narrower');
+  // ⟶ RE-DERIVED 2026-11-17 (`D-127`, `D-129`; `contract.md §0.2`'s 2026-11-17 foot clause, limb 3):
+  // `DD-38`'s `">=18.0.0"` is SUPERSEDED and the ruled figure is `">=22.12.0"` — the one single comparator
+  // set under which the declared `require` route is true at EVERY admitted version. The literal is
+  // TRANSCRIBED from the ruling and the equality is EXACT, so a looser or a re-spelled floor reddens here.
+  assert.equal(PKG.engines?.node, '>=22.12.0', 'DD-38 as re-derived (`D-127`, `D-129`): the declared floor, and nothing narrower');
 });
 
 test('package_the_licence_is_declared_at_the_named_sites_and_not_copied_into_the_crate', () => {
@@ -329,8 +361,21 @@ test('package_the_documentation_states_the_two_declared_readings_and_the_reload_
 // ---------------------------------------------------------------------------------------------
 
 const HO_ROWS = [
+  // ⟶ `HO-1`'S ROW RE-DERIVED 2026-11-17 (`D-128`, `D-129`; `contract.md §3.2`'s `HO-1` re-derivation and
+  // `§9`'s ledger row of the same date). **THE ROW KEEPS ITS ID, ITS REALM AND ITS PLACE IN THE UNCLAIMED
+  // SET — *"Node CJS"* read as a MODULE FORMAT the package does not ship — AND ITS DECLARED ANSWER IS THE
+  // *SUPPORTED ROUTE* READING: `D-129` item 3 takes *"a supported route, not a claimed realm"*, so what this
+  // row now asserts is that the `require` condition reaches THE SAME `./index.mjs` the `import` condition
+  // reaches, and that NOTHING BUILT FOR CJS EXISTS to be reached a second way** (`§5.7`'s property as
+  // re-derived: *"the `require` route reaches THE SAME MODULE AND THE SAME ONE NAME as the `import` route,
+  // and no second module, build or artefact exists to be reached"*). **THE AS-FILED `undefined` IS REPLACED
+  // BY AN EQUALITY, NOT BY AN ABSENCE: every refusal it carried stays** — the `.cjs` file, and now the `main`
+  // field, which the row asserts for the first time at this site.
   ['HO-1', 'Node CJS', () => {
-    assert.equal(PKG.exports['.'].require, undefined, 'no `require` arm is published');
+    assert.equal(PKG.exports['.'].require, './index.mjs', 'the `require` condition names the one ESM entry (`D-128`)');
+    assert.equal(PKG.exports['.'].require, PKG.exports['.'].import,
+      'and it names the SAME file `import` names: a supported ROUTE into the one claimed realm, not a second realm (`D-129` item 3)');
+    assert.equal(PKG.main, undefined, 'and no CJS `main` is published — nothing built for CJS exists');
     assert.ok(!readdirSync(PACKAGE_DIR).some((f) => /\.cjs$/.test(f)), 'no CJS artefact is shipped');
   }],
   ['HO-2', 'Electron main', () => assert.ok(!Object.keys(PKG.exports).some((k) => /electron/i.test(k)))],
@@ -352,9 +397,18 @@ const HO_ROWS = [
 ];
 
 for (const [id, realm, drive] of HO_ROWS) {
-  test(`register_ptp7_s_ho_${id.toLowerCase()}_the_package_exposes_no_entry_for_${realm.replace(/\W+/g, '_')}`, () => {
+  // ⟶ RE-SAID 2026-11-17 FOR `HO-1` ALONE (`D-128`, `D-129`; `contract.md §5.7`'s property as re-derived):
+  // the row's drive no longer asserts *"no entry"* for Node CJS — the package serves the `require` ROUTE — it
+  // asserts that NO SECOND MODULE, BUILD OR ARTEFACT EXISTS to be reached and that the route lands on the one
+  // entry. The six other rows are unchanged and their names stay byte-for-byte (`§5.7`'s `S-HO`, *"one drive
+  // per `HO-` row"*, is itself unmoved).
+  const subject = id === 'HO-1'
+    ? 'the_package_exposes_no_CJS_build_for_Node_CJS'
+    : `the_package_exposes_no_entry_for_${realm.replace(/\W+/g, '_')}`;
+  test(`register_ptp7_s_ho_${id.toLowerCase()}_${subject}`, () => {
     // `§5.7`'s `S-HO`: *"one drive per `HO-` row: the package exposes no entry for the realm"* — and the
-    // drive asserts ONLY that.
+    // drive asserts ONLY that; for `HO-1`, read through the row's own 2026-11-17 re-derivation, "no entry for
+    // the realm" means "no CJS build, and the `require` route reaches the same one entry".
     drive();
   });
 }

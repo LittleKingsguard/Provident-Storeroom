@@ -16,7 +16,7 @@ claims to be installable.**
 
 **⟶ AND THE CUT-STATE IS DROPPED FROM THIS FILE, 2026-10-28 — `D-57`, THE ARCHITECT VERBATIM: *"Drop the cut-state."*** `RCA-8(g)` ANNOTATE-BESIDE: **the title line and every dated paragraph of this file stand BYTE-FOR-BYTE as the reading of their own date, THIS clause is the one that reads them, and not one byte is deleted.** **THE REASON IS STRUCTURAL AND IT WAS MEASURED THREE TIMES: A SHIPPED DOCUMENT IS SEALED BEFORE THE TAG THAT MAKES ITS CUT-STATE TRUE**, so every release packed before its tag ships a document denying itself, and a guard running in that release's own preflight can only ever confirm *"not cut"* — `1.2.0` shipped *"NOT CUT"*, `1.3.0` shipped *"`v1.3.0` DOES NOT EXIST"*, and this file's own head was stale within minutes of the tag that falsified it. **SO EVERY SENTENCE BELOW THAT CLAIMS WHETHER SOME VERSION IS OR IS NOT CUT — *"PREPARED — NOT CUT"*, *"no `v1.3.0`"*, *"nothing in this section is cut"*, *"the release is not cut"*, *"what is installed today is still `1.1.0`"*, and each reading printed beside them — IS READ THROUGH THIS CLAUSE: the cut-state is not a document's to state.** **WHAT SURVIVES IS THE ONE FIGURE A SHIPPED DOCUMENT CAN BE RIGHT ABOUT, AND IT IS GENERATED FROM THE MANIFEST AND ASSERTED BY THE PREFLIGHT:**
 
-PUBLISH-NOTES-VERSION-LINE: THE VERSION THIS CHANGE LIST DESCRIBES IS `1.11.0`.
+PUBLISH-NOTES-VERSION-LINE: THE VERSION THIS CHANGE LIST DESCRIBES IS `1.12.0`.
 
 **AND THE TAG SET SURVIVES AS A RECORD OF RELEASES — PAST TENSE, A LIST OF WHAT HAS BEEN CUT, NEVER A CLAIM ABOUT THE CURRENT ONE** (the record stands in `§1.4.0` below — the section this file's head called `§main` until it was re-cut to name the version it prepares, 2026-10-28 — beside the section for the tree this file describes). (`D-57`; `DEF-AC` (b) — `scripts/publish.sh --figures` generates that line from `bindings/js/package.json`'s `version` and refuses on any disagreement, in this file, in `bindings/js/README.md` and in the shipped guide: three documents, three version lines, one generator, one assertion.)
 
@@ -52,6 +52,25 @@ RELEASE-NOTES.md`.**
 `version`, its FIVE exact `optionalDependencies` pins, and the FIVE `platforms/*/package.json` versions. **The
 artefact is stamped from the manifest by `bindings/js/build.rs`, so `version()` answers `1.1.0`** and that is
 the value to assert against, not the crate's own `Cargo.toml` version.
+
+---
+
+## §1.12.0 · a MINOR — the `require` route into the one claimed realm: a third condition on the one `exports` arm, naming the SAME `./index.mjs`, and a floor that moves `>=18.0.0` → `>=22.12.0` on all six manifests — one line, two moves
+
+**THE VERSION IS `1.12.0` AND ITS CLASS IS A MINOR — `D-129` ITEM 5 (`Q-C1`), THE ARCHITECT'S RULING OF 2026-11-17 (`strata/decisions.md`, *"Take proposed on all"*), read beside `D-128` ITEM 1 (*"Proceed with arm 1"*) AND `D-127` (*"Bump the floor, there's no backwards compatibility concerns"*).** **`PUB-DD-9` IS THE AUTHORITY FOR THE CLASS AND THE CLASS IS ITS `MINOR` LIMB — *"a MINOR adds a member to the declared surface"*** (`docs/specs/storeroom-publish/contract.md`, the `PUB-DD-9` row, read at its two dated clauses) — **`PATCH` is FORECLOSED (`D-39`'s *"semver breach"*, and `D-126` item 3's *"carries a breaking input requirement on top"*) and `MAJOR` is FORECLOSED BY THAT ROW'S OWN TERMS**, so **one number, `1.12.0`**, and this section names it and not the cut-state (`D-57`).
+
+**THE CHANGE IS ONE LINE — `exports["."]` GAINS `"require": "./index.mjs"` — AND IT IS THE THIRD CONDITION ON THE ONE ARM, AFTER `types` AND `import` (THE ORDER IS DECLARED RATHER THAN LEFT TO THE EDITOR) AND NAMING THE SAME ESM ENTRY THE `import` CONDITION NAMES.** **No `main`, no `default`, no `node`, no `.cjs` artefact, no wildcard, no second subpath, no second build: the package publishes no CJS ARM — nothing built for CJS is shipped — and it does publish the `require` ROUTE into its one claimed realm, served by NODE'S OWN `require(esm)` interop at or above the floor** (`docs/specs/storeroom-js/contract.md §0.2`'s 2026-11-17 foot clause, limbs 1–2; `§3.1`'s re-derivation — *"`require` IS A SUPPORTED ROUTE INTO THE CLAIMED REALM AND IS NOT A SECOND CLAIMED REALM"*; `§3.2`'s `HO-1` as re-derived, `D-129` item 3). **AND THE FLOOR MOVES WITH IT — `"engines": { "node": ">=22.12.0" }` on the main manifest AND on the five platform manifests (one declaration, one reader; `D-129` items 1–2) — because `require(esm)` is unflagged only from `Node 20.19.0` / `Node 22.12.0` (and on `23.x`+), so `">=22.12.0"` is the one single comparator set under which the declared route is true at EVERY admitted version** (`DD-38` as re-derived).
+
+**WHAT A CONSUMER ON `1.11.0` MEETS, AT EACH ENTRY POINT:**
+
+1. **`import` IS UNCHANGED.** Same module, same one name `storeCreate`, same `types` condition standing first, same declaration, same refusal set — no byte of the load path moves.
+2. **`require('provident-storeroom')` NOW LOADS.** On `1.11.0` the map resolved no arm for that specifier and the loader answered `ERR_PACKAGE_PATH_NOT_EXPORTED`; from `1.12.0` the `require` condition resolves and the same `./index.mjs` loads through Node's own interop — **so a CommonJS host needs no interop of its own.**
+3. **THE FLOOR MOVES `">=18.0.0"` → `">=22.12.0"`, AND THAT IS THE BREAKING HALF.** A host below the figure is no longer served: below the floor the failure is the LOADER's — the runtime refuses the module — and the package mints neither that error nor a fallback (`docs/specs/storeroom-js/contract.md §0.2`'s foot clause, limb 2). **The carrier's own Node-API requirement (version 6, `Node 12.17.0` / `10.20.0`) is far below that figure and does not contest it; the floor is the loader's** (`DD-29`; `DD-38` as re-derived).
+4. **NO CJS BUILD APPEARS.** No `.cjs`, no `main`, no dual build and no dual-package hazard: **the one file is reached by two of Node's specifiers for it**, and a `require` of a directory or of the addon's path stays refused exactly as it was.
+
+**WHAT DOES NOT MOVE, LISTED AND CLOSED:** the module namespace's one name (`storeCreate`) · the instance's own member set · every record, status and message · the `files` allowlist's seven rows, `index.mjs` among them · the type surface (`types` stands first and both routes reach the same `./index.d.ts`, so no CJS-typed leg is owed — `D-129` item 6) · the addon's internal reach, still not an entry point · every `HO-` row, with `HO-1` re-said as the supported route it now is.
+
+**AND THIS SECTION DESCRIBES `1.12.0` AND CLAIMS NO TAG**: the cut-state is not a document's to state (`D-57`).
 
 ---
 
