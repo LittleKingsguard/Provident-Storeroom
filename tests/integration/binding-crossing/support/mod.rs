@@ -699,56 +699,83 @@ pub fn fail_code_drive(code: &'static str) -> bool {
             ) == Some("JournalOpUnknown".to_string())
         }
         "RollbackCompacted" => {
-            // **⟶ RE-DERIVED 2026-11-17 — `strata/decisions.md` · `D-160` ITEMS 1 AND 3: THE MEMBER HAS A PRODUCER
-            // AGAIN, AND THIS ARM IS THE POSITIVE ONE. THE MOVEMENT IS THE FOURTH DIRECTION THIS DRIVE HAS TAKEN,
-            // AND IT IS RECORDED BECAUSE EACH EARLIER ONE ASSERTED THE OPPOSITE.** It began as `DD-42`-class
-            // compaction alone (a one-entry journal rolled the earliest op out and `rollback` answered the code);
-            // **`D-108` item 1 made that arm REGENERATE**; **`D-109` item 1 narrowed the subject** to a
-            // temporally-bounded candidate set holding a compacted entry AND an unreadable `filePath`; **`D-118`
-            // item 1 removed that arm** and made this a NEGATIVE drive. **`D-160` ITEM 1 MAKES THE COMPACTION A
-            // DROP and item 3 gives the dropped op its own refusal** — the architect, verbatim: *"Compaction
-            // dropping history is the point"* — **so the token's one producer is a rollback that names an id at or
-            // below the floor's watermark, decided by ONE NUMBER, and the two refusals stay distinguishable**: the
-            // dropped id answers `RollbackCompacted`, an id that never named a store op answers
-            // `JournalOpUnknown`, and an op the window still HOLDS reverses and answers neither. **The path is
-            // PID-keyed and this drive's own, and the fixture is re-written and read back because the store's own
-            // reversal must write no byte** (`D-112` item 2).
+            // **⟶ RE-DERIVED 2026-11-17 FOR THE FIFTH TIME — `strata/decisions.md` · `D-164` ITEM 2 — AND THE
+            // MOVEMENT IS RECORDED BECAUSE EVERY EARLIER DIRECTION IS NOW PART OF THIS DRIVE'S HISTORY.** It began
+            // as `DD-42`-class compaction alone (a one-entry journal rolled the earliest op out and `rollback`
+            // answered the code); **`D-108` item 1 made that arm REGENERATE**; **`D-109` item 1 narrowed the
+            // subject** to a temporally-bounded candidate set holding a compacted entry AND an unreadable
+            // `filePath`; **`D-118` item 1 removed that arm**; **`D-160` items 1 and 3 made the compaction a DROP
+            // and gave the dropped id the floor's watermark**, and ONE PASS READ THAT AS THE ARM'S WHOLE ANSWER.
+            // **THE ARCHITECT CORRECTED IT, VERBATIM: *"The resolution if an attempted write has to be rolled back
+            // but the required op has been compacted is to regenerate the store from the file, or otherwise signal
+            // the client to recover if no file can be retrieved. This was never ambiguous, 108 is a misread."***
+            // **SO THE TOKEN'S PRODUCER SET IS EXACTLY THE STORES WITH NO RETRIEVABLE FILE**, and this arm drives
+            // BOTH shapes at ONE window and one set of ids: **the path-less instance SIGNALS with the token — the
+            // client's cue to recover from its own image — and the same window on a store WITH a path REGENERATES
+            // and RETURNS a record whose `undoneOps` is empty.** The two refusals stay distinguishable at both: an
+            // id that never named a store op is `JournalOpUnknown` (`D-164` item 4), and an op the window still
+            // HOLDS reverses and answers neither. **The path is PID-keyed and this drive's own, and the fixture is
+            // re-written and read back because the store's own reversal must write no byte** (`D-112` item 2).
+            // ── (a) THE PATH-LESS STORE: THE SIGNAL.
+            let Ok(mut pathless) = create(&cfg_mem()) else {
+                return false;
+            };
+            let Ok(dropped) = write_at(&mut pathless, &[key("a")], &JsValue::Num(1.0)) else {
+                return false;
+            };
+            let Ok(kept) = write_at(&mut pathless, &[key("a")], &JsValue::Num(2.0)) else {
+                return false;
+            };
+            // THE THIRD APPEND TRIGGERS THE COMPACTION, AND WITH A WINDOW OF `2` IT **DROPS** THE FIRST ENTRY.
+            if write_at(&mut pathless, &[key("x")], &JsValue::Num(9.0)).is_err() {
+                return false;
+            }
+            // (a.1) **THE DROPPED ID ON THE PATH-LESS STORE ANSWERS THE TOKEN — the client's signal.**
+            let floor = produced(pathless.rollback(&JsOpIdArg::Str(dropped.op.opId.clone())).map(|_| ()))
+                == Some("RollbackCompacted".to_string());
+            // (a.2) **THE CONTROL: AN OP THE WINDOW STILL HOLDS REVERSES AND ANSWERS NO CODE.**
+            let held = pathless.rollback(&JsOpIdArg::Str(kept.op.opId.clone())).is_ok();
+            // (a.3) **AND AN ID THAT NEVER NAMED A STORE OP IS `JournalOpUnknown`, WHICH IS THE WHOLE POINT.**
+            let unknown = produced(
+                pathless
+                    .rollback(&JsOpIdArg::Str("op-never-minted".to_string()))
+                    .map(|_| ()),
+            ) == Some("JournalOpUnknown".to_string());
+            // ── (b) THE SAME WINDOW ON A STORE WITH A PATH: THE REGENERATION, AND NO CODE.
             let path = std::env::temp_dir().join(format!(
-                "storeroom-js-d160-floor-{}.json",
+                "storeroom-js-d164-floor-{}.json",
                 std::process::id()
             ));
             let path_str = path.to_str().expect("a temp path is UTF-8").to_string();
             let Ok(mut inst) = create(&cfg_at(&path_str, 2)) else {
                 return false;
             };
-            let Ok(dropped) = write_at(&mut inst, &[key("a")], &JsValue::Num(1.0)) else {
+            let Ok(file_dropped) = write_at(&mut inst, &[key("a")], &JsValue::Num(1.0)) else {
                 return false;
             };
-            let Ok(kept) = write_at(&mut inst, &[key("a")], &JsValue::Num(2.0)) else {
+            let Ok(file_kept) = write_at(&mut inst, &[key("a")], &JsValue::Num(2.0)) else {
                 return false;
             };
-            // THE THIRD APPEND TRIGGERS THE COMPACTION, AND WITH A WINDOW OF `2` IT **DROPS** THE FIRST ENTRY.
             if write_at(&mut inst, &[key("x")], &JsValue::Num(9.0)).is_err() {
                 return false;
             }
-            // (a) **THE DROPPED ID ANSWERS THE TOKEN** — the producer `D-160` item 3 gives it.
-            let floor = produced(inst.rollback(&JsOpIdArg::Str(dropped.op.opId.clone())).map(|_| ()))
-                == Some("RollbackCompacted".to_string());
-            // (b) **THE CONTROL: AN OP THE WINDOW STILL HOLDS REVERSES AND ANSWERS NO CODE.**
-            let held = inst.rollback(&JsOpIdArg::Str(kept.op.opId.clone())).is_ok();
-            // (c) **AND AN ID THAT NEVER NAMED A STORE OP IS `JournalOpUnknown`, WHICH IS THE WHOLE POINT.**
-            let unknown = produced(inst.rollback(&JsOpIdArg::Str("op-never-minted".to_string())).map(|_| ()))
-                == Some("JournalOpUnknown".to_string());
-            // (d) **THE REVERSAL WRITES NO BYTE** (`D-112` item 2): the corrupt fixture stands, and the store
-            // still reverses what it holds over those bytes.
+            // (b.1) **THE SAME DROPPED ID, ON THE STORE THAT CAN RETRIEVE A FILE, REGENERATES AND RETURNS.**
+            let regenerates = match inst.rollback(&JsOpIdArg::Str(file_dropped.op.opId.clone())) {
+                Ok(record) => record.undoneOps.is_empty(),
+                Err(_) => false,
+            };
+            // (b.2) **AND THE REVERSAL WRITES NO BYTE** (`D-112` item 2): the corrupt fixture stands, and the store
+            // still reverses what it holds over those bytes — **the regeneration READS the path and never writes
+            // it** (`D-164` item 1; `D-110` item 2's one reader).
             let fixture = b"this is not the store's image";
             let wrote = std::fs::write(&path, fixture).is_ok();
-            let held_over_the_fixture = inst.rollback(&JsOpIdArg::Str(kept.op.opId.clone())).is_ok();
+            let held_over_the_fixture =
+                inst.rollback(&JsOpIdArg::Str(file_kept.op.opId.clone())).is_ok();
             let stands = std::fs::read(&path)
                 .map(|bytes| bytes == fixture.to_vec())
                 .unwrap_or(false);
             let _ = std::fs::remove_file(&path);
-            floor && held && unknown && wrote && held_over_the_fixture && stands
+            floor && held && unknown && regenerates && wrote && held_over_the_fixture && stands
         }
         "ConstructionArgumentMissing" => {
             let cfg = JsConfig {
@@ -1023,15 +1050,17 @@ pub fn all_fail_codes() -> Vec<&'static str> {
 /// MOVED FROM `16` TO `15`.** `RollbackCompacted` left this list because `D-118` item 1 had removed its last
 /// producer, so `fail_code_drive` answered it with a NEGATIVE drive and
 /// [`declared_unreachable_fail_codes`] was where the census named it.
-/// **⟶ AND IT IS BACK IN THIS LIST FROM 2026-11-17 (`strata/decisions.md` · `D-160` ITEMS 1 AND 3), WHICH IS WHY
-/// THE FILTER CARRIES FIVE SPELLS AND NOT SIX.** The architect, verbatim: ***"Compaction dropping history is the
-/// point"*** — the compaction DROPS the entry it reaches, and **the dropped op's own rollback answers
-/// `RollbackCompacted` at the floor's watermark** (`D-160` item 3). **So the member is REACHED THROUGH THIS
-/// CRATE'S OWN SURFACE again**: the store mints it, no byte above the boundary does, and it is driven by
-/// `fail_code_drive`'s own arm — which now drives the DROPPED id, the HELD id and an id that never existed, and
-/// requires all three answers. **THE ARITHMETIC MOVES BY ONE MEMBER'S POPULATION AND BY NOTHING ELSE**:
-/// `declared_unreachable_fail_codes` is EMPTY, so the split is `18` reached + `5` produced above this addon + `0`
-/// declared, and the set's own length is unmoved (`D-118` item 2: *"the closed set is the store's"*).
+/// **⟶ AND IT IS IN THIS LIST FROM 2026-11-17, RE-DERIVED A THIRD TIME (`strata/decisions.md` · `D-164` ITEM 2),
+/// WHICH IS WHY THE FILTER CARRIES FIVE SPELLS AND NOT SIX.** `D-160` items 1 and 3 made the compaction a DROP and
+/// gave the dropped id the floor's watermark, and ONE PASS READ THAT REFUSAL AS THE ARM'S WHOLE ANSWER — **the
+/// architect corrected it, verbatim: *"The resolution if an attempted write has to be rolled back but the required
+/// op has been compacted is to regenerate the store from the file, or otherwise signal the client to recover if no
+/// file can be retrieved."*** **So the member is REACHED THROUGH THIS CRATE'S OWN SURFACE by exactly one shape of
+/// store — the one with NO RETRIEVABLE FILE** — the store mints it, no byte above the boundary does, and
+/// `fail_code_drive`'s own arm drives **both** shapes at one window: the token at the path-less instance, a RECORD
+/// at the store with a path, plus the HELD id and an id that never existed. **THE ARITHMETIC IS `18` reached + `5`
+/// produced above this addon + `0` declared, and the set's own length is unmoved** (`D-118` item 2: *"the closed set
+/// is the store's"*; `D-164` item 2 moves only the token's producer set).
 /// **⟶ AND RE-DERIVED AGAIN 2026-11-06 (`D-124` item 2; `PIN-10`): THE FILTER CARRIES A SIXTH SPELL, THE
 /// REACHABLE COUNT STANDS AT `15`, AND THE CENSUS MOVES `20 → 21`.** `ListenerBodyThrew` — rank `21`, minted by
 /// `D-124` item 2 — joins the members whose producer stands ABOVE this addon: a fired body is the caller's own
@@ -1066,10 +1095,11 @@ pub fn crossing_reachable_fail_codes() -> Vec<&'static str> {
 /// census states could not otherwise be printed without a figure moving.
 ///
 /// **`RollbackCompacted` WAS ITS ONLY MEMBER, AND FROM 2026-11-17 THE CLASS IS EMPTY** (`strata/decisions.md` ·
-/// `D-160` items 1 and 3). `D-118` item 2 had named the token here because `D-118` item 1 removed its last
-/// producer; **`D-160` item 1 makes the compaction a DROP and item 3 gives the dropped op its own refusal decided
-/// by the floor's watermark**, so the member is produced by this crate again — its rollback answers
-/// `RollbackCompacted` for an id at or below the floor, `JournalOpUnknown` for an id that never named a store op —
+/// `D-164` item 2, read with `D-160` items 1 and 3). `D-118` item 2 had named the token here because `D-118` item 1
+/// removed its last producer; **`D-160` made the compaction a DROP and gave the dropped id the floor's watermark, and
+/// `D-164` gives that arm its two-way answer** — so the member is produced by this crate again, **by the store that
+/// can retrieve NO file**: its rollback answers `RollbackCompacted` for an id at or below the floor, `JournalOpUnknown`
+/// for an id that never named a store op, **and a store WITH a path regenerates instead of answering either** —
 /// **and it has rejoined [`crossing_reachable_fail_codes`]**, where `fail_code_drive` drives it.
 ///
 /// **THE FUNCTION STAYS, EMPTY, AND THAT IS THE POINT**: the split the census prints is THREE-WAY and is asserted

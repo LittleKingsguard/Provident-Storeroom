@@ -464,19 +464,26 @@ fn s6_4_m8_a_rollback_is_total_over_its_scope() {
     );
 }
 
-// **⟶ RE-DERIVED 2026-11-17 — `D-160` ITEMS 1, 2 AND 3 (`strata/decisions.md`), AND THE MOVEMENT IS RECORDED
-// RATHER THAN MADE SILENTLY.** The cell was filed on `§6.4 M-6` twice: *"a rollback whose scope includes a
+// **⟶ RE-DERIVED 2026-11-17 FOR THE THIRD TIME — `D-164` ITEM 2 (`strata/decisions.md`), AND THE MOVEMENT IS
+// RECORDED RATHER THAN MADE SILENTLY.** The cell was filed on `§6.4 M-6` twice: *"a rollback whose scope includes a
 // compacted entry fails `RollbackCompacted` and undoes NOTHING"*, and then — after `D-108` item 1 made that arm
 // REGENERATE from the durable ground truth — *"a rollback over a compacted scope regenerates the last valid
-// state"*. **`D-160` ITEM 1 REPLACES BOTH READINGS WITH THE MECHANISM THE RULING NAMES**: the architect, verbatim,
-// ***"Compaction dropping history is the point"*** — the compaction DROPS the entry it reaches, **so there is no
-// compacted entry for a candidate set to hold and no regeneration to run**, and **item 3** gives the dropped op its
-// own refusal **decided by ONE NUMBER, the floor's watermark**: an id at or below the floor answers
-// `RollbackCompacted` and an id that never named a store op answers `JournalOpUnknown`. **The refusal moves
-// nothing** (`M-10`'s all-or-nothing read on this arm), and it answers a code rather than a record, so
-// `undoneOps` is not answered at all.
+// state"*. **`D-160` ITEM 1 then made the compaction a DROP and item 3 gave the dropped op a refusal decided by the
+// floor's watermark, and ONE PASS READ THAT AS THE WHOLE ARM** — the architect, verbatim, correcting it:
+// ***"108 was never supposed to retain compacted entries, getting rid of entries is the point of the compaction.
+// The resolution if an attempted write has to be rolled back but the required op has been compacted is to
+// regenerate the store from the file, or otherwise signal the client to recover if no file can be retrieved. This
+// was never ambiguous, 108 is a misread"*** (`D-164` item 2). **SO THE ARM IS TWO-WAY AND THIS CELL DRIVES BOTH
+// SHAPES AT ONE WINDOW**: **the store WITH a path REGENERATES and RETURNS the walk's own record** — `undoneOps`
+// empty because nothing was there to undo, and `restoredTo` the state the address stands in after the
+// regeneration — **while the store with NO retrievable file, the path-less `saveCall` arm whose durable ground
+// truth lives with the caller, answers `RollbackCompacted`, and that answer IS the client's signal to recover from
+// its own image.** **The watermark is a DISCRIMINATOR and not the arm's answer** (`D-164` item 4), so neither shape
+// answers the two refusals the ids' retention used to buy: the signal is the file's absence and `JournalOpUnknown`
+// is the id's.
 #[test]
-fn s6_4_m6_a_rollback_over_a_dropped_op_refuses_at_the_floor() {
+fn s6_4_m6_a_rollback_over_a_dropped_op_regenerates_from_the_file_or_signals_the_path_less_store() {
+    // ── (a) THE STORE WITH A PATH: IT REGENERATES AND RETURNS (`D-164` items 1 and 2).
     let mut store = new_store_with_journal(1);
     let first = ok(
         store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
@@ -486,20 +493,54 @@ fn s6_4_m6_a_rollback_over_a_dropped_op_refuses_at_the_floor() {
         store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(2.0)),
         "§3.4 W-1 / D-160 item 1: the append DROPS the oldest entry",
     );
-    let refused = failure(
+    let performed = ok(
         store.rollback(OpIdArg::Id(first.op.opId.clone())),
-        "D-160 item 3: a dropped op answers at the floor's watermark",
+        "§6.4 M-6 / D-164 item 2 (a): a dropped op on a store WITH a retrievable file REGENERATES and RETURNS",
     );
-    assert_code(
-        &refused,
-        "RollbackCompacted",
-        "D-160 item 3: the DROPPED op is `RollbackCompacted` — and the id that never existed is \
-         `JournalOpUnknown`, which the fail-set's own cell drives beside this one",
+    assert_eq!(
+        performed.opId, first.op.opId,
+        "§6.3: the record echoes the op id the caller named"
+    );
+    assert!(
+        performed.undoneOps.is_empty(),
+        "§6.3 / D-164 item 2 (a): `undoneOps` is the ids the reversal UNDID, and NOTHING was there to undo — the          op the caller named is gone (`D-160` item 1); got {:?}",
+        performed.undoneOps
+    );
+    assert!(
+        performed.restoredTo.present,
+        "§6.3 / D-164 item 2 (a): `restoredTo` is the state the address stands in AFTER the regeneration — the          register the replay left is not empty, because the window's RETAINED entry was replayed onto its base"
     );
     assert_eq!(
         read_at(&store, &key(&["a"])),
         v_num(2.0),
-        "§6.4 M-10: the refusal undoes NOTHING — the state the second write left stands"
+        "D-164 item 1: the retained entry is replayed outside the (empty) scope and the dropped one is gone, so          the address answers what the window still holds"
+    );
+
+    // ── (b) THE STORE WITH NO RETRIEVABLE FILE: IT ANSWERS THE TOKEN, WHICH IS THE CLIENT'S SIGNAL (`D-164` item 2).
+    let mut pathless = new_mem_store_with_journal(1);
+    let pathless_first = ok(
+        pathless.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    ok(
+        pathless.write(AddressArg::List(key(&["a"])), w_mem(), v_num(2.0)),
+        "§3.4 W-1: the same window, and the same drop",
+    );
+    let refused = failure(
+        pathless.rollback(OpIdArg::Id(pathless_first.op.opId.clone())),
+        "§6.4 M-6 / D-164 item 2 (b): no file can be retrieved, so the store signals the client",
+    );
+    assert_code(
+        &refused,
+        "RollbackCompacted",
+        "D-164 item 2 (b): the token is the SIGNAL and not the arm's first answer — the store has nothing to \
+         rebuild from, so it says so rather than inventing a base; the token keeps its rank, its code and its \
+         generated message, and only its PRODUCER SET moved (`D-118` item 2)",
+    );
+    assert_eq!(
+        read_at(&pathless, &key(&["a"])),
+        v_num(2.0),
+        "§6.4 M-10: a signal undoes NOTHING — the state the second write left stands"
     );
 }
 
@@ -508,12 +549,15 @@ fn s6_4_m6_a_rollback_over_a_dropped_op_refuses_at_the_floor() {
 // rolls back, and the dropped one answers the floor.
 // Drives: §6.1 item 5 (, §6.4 M-6
 //
-// **⟶ RE-DERIVED 2026-11-17 — `D-160` ITEM 1 (`strata/decisions.md`): THE TRIGGER'S VERB CHANGES AND THE FIGURE
-// DOES NOT.** The cell was filed as *"the OLDEST entries are compacted"* and driven through `D-108` item 1's
-// regeneration; **the ruling makes the compaction a DROP** — *"the architect, verbatim: 'Compaction dropping
-// history is the point'"* — so the oldest op is GONE, the reversal that names it answers `RollbackCompacted`
-// (`D-160` item 3), and the reversal at a surviving op lands as it always did. **`journalLength`'s bound is the
-// fact this cell keeps: at most `n` entries stand.**
+// **⟶ RE-DERIVED 2026-11-17 FOR THE SECOND TIME — `D-164` ITEM 2 (`strata/decisions.md`): THE TRIGGER'S VERB IS
+// THE DROP AND THE DROPPED ID'S ARM IS TWO-WAY.** The cell was filed as *"the OLDEST entries are compacted"* and
+// driven through `D-108` item 1's regeneration; **`D-160` item 1 made the compaction a DROP** — *"the architect,
+// verbatim: 'Compaction dropping history is the point'"* — **and one pass read the dropped id's refusal as the
+// arm's whole answer, which `D-164` item 2 corrects**: *"The resolution if an attempted write has to be rolled back
+// but the required op has been compacted is to regenerate the store from the file, or otherwise signal the client to
+// recover if no file can be retrieved."* **So the dropped id on this cell's own path-ful store REGENERATES AND
+// RETURNS**, the op the window still holds reverses as it always did, and **`journalLength`'s bound is the fact this
+// cell keeps: at most `n` entries stand.**
 #[test]
 fn s6_1_item5_the_compression_trigger_drops_the_oldest_entries() {
     let mut store = new_store_with_journal(2);
@@ -529,14 +573,21 @@ fn s6_1_item5_the_compression_trigger_drops_the_oldest_entries() {
         store.write(AddressArg::List(key(&["c"])), w_mem(), v_num(3.0)),
         "§3.4 W-3: the third append triggers it",
     );
-    let dropped = failure(
+    let regenerated = ok(
         store.rollback(OpIdArg::Id(first.op.opId.clone())),
-        "§6.1 item 5 / D-160 item 1: the oldest entry is DROPPED, and its id answers the floor",
+        "§6.1 item 5 / D-164 item 2 (a): the oldest entry is DROPPED, and the reversal that names it REGENERATES \
+         from the store's own file and RETURNS",
     );
-    assert_code(
-        &dropped,
-        "RollbackCompacted",
-        "D-160 item 3: the dropped op's refusal is the floor's watermark and not a regeneration",
+    assert!(
+        regenerated.undoneOps.is_empty(),
+        "D-164 item 2 (a): nothing was undone — the entry the caller named is gone; got {:?}",
+        regenerated.undoneOps
+    );
+    assert_eq!(
+        read_at(&store, &key(&["b"])),
+        v_num(2.0),
+        "D-164 item 1: the retained entries are replayed outside the (empty) scope, so an op the window still \
+         holds answers its version after the regeneration"
     );
     ok(
         store.rollback(OpIdArg::Id(second.op.opId.clone())),

@@ -8561,3 +8561,26 @@ trigger still read the **mark**, and `docs/specs/storeroom-constraints/contract.
 3. **THE CELLS MOVE WITH IT**: the `E2E-C-9` row is re-derived a third time — to the regeneration as the row's main answer and the signal as
    the path-less arm's — **and the supervisor's own provenance note stands: a blind row rewritten by the pass that broke it is weaker evidence,
    and this one has now been rewritten twice on a misread.**
+
+---
+
+### `D-165` — THE NO-FILE ARM'S GROUND, SHARPENED: `saveCall` IS A WRITE-ONLY EXTERNAL PROXY, SO THE PROPERTY IS "NO READ PATH"
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `ad2d7e8`. **SOURCE:** the architect, in session, clarifying `D-164`'s second arm.
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "A case where the store cannot recover from file is in the saveCall branch, where it is saving by way of an external proxy that does
+> not inherently provide a means of reading the file back"
+
+**STATUS: `ACTIVE`.**
+
+1. **THE PROPERTY IS *"NO READ PATH"* AND NOT *"NO PATH"*.** A `saveCall` store hands its image to the caller's function, **and the caller
+   decides where a copy goes and need not be capable of handing one back** — **the channel is WRITE-ONLY BY CONSTRUCTION**, and the only
+   way into such a store is `initialImage` at its construction. **So it cannot retrieve its own durable ground truth even in principle,**
+   and `RollbackCompacted` is the only honest answer: the client recovers from the copy it kept.
+2. **AND IT IS WHY THE CODE'S TEST IS `file_path.is_empty()` AND IS THE WHOLE TEST**: `filePath` and `saveCall` are mutually exclusive
+   (`D-155`), so an empty path names **exactly** the shapes with no read path — the `saveCall` store and the `mem` store. **The
+   implementation this row clarifies is correct; what it lacked was this ground, and it is now stated at the line** (`src/store.rs`'s
+   lookup-miss arm, clause (a), quoting the architect).
+3. **AND IT NAMES WHAT THE TOKEN MEANS**: a `RollbackCompacted` answer is not *"the store cannot remember"* — it is *"this store was never
+   able to read its history back, so YOU must recover"*, which is the same division `D-144` item 5 draws for a save a store cannot confirm.

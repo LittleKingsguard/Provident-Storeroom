@@ -9,11 +9,26 @@
 // unchanged address with `journalLength: 64`, and the second realm died at `alloc::rust_oom` between 12,000 and
 // 16,000. **THE BOUND THE RULING SETS IS `O(store + journal_length)`** (`D-160` item 2).
 //
-// **WHAT THIS FILE DRIVES, AND WHAT IT REFUSES TO DRIVE.** Three cells, and each reads an OBSERVABLE:
+// **⟶ AND THE COMPACTION ARM IS TWO-WAY, 2026-11-17 (`strata/decisions.md` · `D-164` ITEM 2).** The architect,
+// verbatim: ***"108 was never supposed to retain compacted entries, getting rid of entries is the point of the
+// compaction. The resolution if an attempted write has to be rolled back but the required op has been compacted is
+// to regenerate the store from the file, or otherwise signal the client to recover if no file can be retrieved.
+// This was never ambiguous, 108 is a misread"***. **So a reversal whose required op the compaction took REGENERATES
+// from the file and RETURNS wherever a file can be retrieved, and `RollbackCompacted` is the arm's SECOND answer —
+// the client's signal — owed to the store that can retrieve NONE** (`file_path` empty: the path-less `saveCall`
+// store, whose durable ground truth lives with the caller). **`D-160` item 3's watermark keeps the duty `D-164` item
+// 4 leaves it**: it separates an op that was DROPPED from an op that never existed, and is never the
+// discriminator between two refusals.
 //
-//   * `JC-REFUSALS` — `D-160` ITEM 3's two refusals, which the dropped ids made indistinguishable by id alone and
-//     which the floor's WATERMARK keeps apart: **a DROPPED op answers `RollbackCompacted` and an id that never
-//     existed answers `JournalOpUnknown`.**
+// **WHAT THIS FILE DRIVES, AND WHAT IT REFUSES TO DRIVE.** Four cells, and each reads an OBSERVABLE:
+//
+//   * `JC-REFUSALS` — `D-160` ITEM 3's two ids, which the dropped ids made indistinguishable by id alone and which
+//     the floor's WATERMARK keeps apart: **a DROPPED op and an id that never existed are answered differently** —
+//     and, from `D-164` item 2, **what the dropped op's own answer IS depends on the store's file**: this cell's
+//     store has none, so it is the SIGNAL.
+//   * `JC-TWO-WAY` — **`D-164` ITEM 2 AT THE PACKAGE'S SURFACE**: the same window, the same three writes and the same
+//     dropped op id, driven on **a store with a `filePath` and a store with NO retrievable file** — **the first
+//     REGENERATES and answers a record whose `undoneOps` is empty, the second SIGNALS with `RollbackCompacted`.**
 //   * `JC-BOUNDED` — the journal is BOUNDED: after `10 x journalLength` writes the store still answers every verb
 //     it answered before (a read, a write, the journal's own mark, and a reversal of the most recent op).
 //   * `JC-MEMORY` — **THE OWED MEMORY CEILING** (`D-160`'s unsettled item 5; the RCA's §6 last paragraph): `N`
@@ -30,6 +45,9 @@
 // takes), so this file imports `withAddon` and calls it with the store as its receiver.
 
 import assert from 'node:assert/strict';
+import { mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { test } from 'node:test';
 
 import { storeCreate } from '../../bindings/js/index.mjs';
@@ -79,7 +97,7 @@ function standingAt(store, address) {
 // `JC-REFUSALS` — `D-160` ITEM 3: A DROPPED ID AND AN ID THAT NEVER EXISTED, TOLD APART BY ONE NUMBER
 // =============================================================================================================
 
-test('JC-REFUSALS · D-160 item 3 — a rollback that names a DROPPED op answers RollbackCompacted and one that names an id no store op ever carried answers JournalOpUnknown, and the watermark is what tells them apart', () => {
+test('JC-REFUSALS · D-160 item 3 read through D-164 item 2 — a rollback that names a DROPPED op answers RollbackCompacted on a store with NO retrievable file (whose arm this is, and `JC-TWO-WAY` drives the other) and one that names an id no store op ever carried answers JournalOpUnknown, and the watermark is what tells the two IDS apart', () => {
   // **THE DRIVE.** A window of `8` entries and `10` writes at one address: the two oldest appends are DROPPED by
   // the compaction (`D-160` item 1), so the FIRST write's own op id is at or below the floor's watermark and the
   // LAST write's is not. **The first id is remembered from its own record** — the store answers the op on the
@@ -92,14 +110,17 @@ test('JC-REFUSALS · D-160 item 3 — a rollback that names a DROPPED op answers
   const newest = writes[writes.length - 1].op.opId;
   assert.notEqual(dropped, newest, 'the drive must hold two distinct ids: ' + dropped + ' and ' + newest);
 
-  // **(1) THE DROPPED ID ANSWERS `RollbackCompacted`.** This is the refusal the mark's retention used to buy, and
-  // the watermark buys it from one comparison: the named id's own ordinal is at or below the floor's.
+  // **(1) THE DROPPED ID ANSWERS `RollbackCompacted` — ON THIS STORE, BECAUSE IT HAS NO RETRIEVABLE FILE**
+  // (`D-164` item 2 (b)): this construction passes neither `filePath` nor `saveCall`, so there is no image to
+  // rebuild from and the store says so instead of inventing a base. **The watermark identifies the id as DROPPED**
+  // (one comparison against the floor, `D-160` item 3) and **the file's absence decides the answer** — the two
+  // halves of `D-164` items 2 and 4, and `JC-TWO-WAY` below drives the other arm at the same window.
   const onDropped = attempt(() => store.rollback(dropped));
   assert.equal(onDropped.ok, false,
     'D-160 item 3: a rollback that names a DROPPED op REFUSES — it answered ' + JSON.stringify(refusalStatus(onDropped)));
   assert.equal(onDropped.caught.status, 'RollbackCompacted',
-    'D-160 item 3: and its code is RollbackCompacted, the floor the compaction itself names: '
-      + JSON.stringify(onDropped.caught.status));
+    'D-164 item 2 (b): and its code is RollbackCompacted — the CLIENT\'S SIGNAL, which this store owes because no '
+      + 'file can be retrieved from it: ' + JSON.stringify(onDropped.caught.status));
 
   // **(2) AN ID THAT NEVER EXISTED ANSWERS `JournalOpUnknown`.** The number is drawn ABOVE any ordinal this
   // process has minted, so it names no op of this store and no op of any store.
@@ -126,6 +147,120 @@ test('JC-REFUSALS · D-160 item 3 — a rollback that names a DROPPED op answers
     'and an op the window still HOLDS reverses after them: ' + JSON.stringify(refusalStatus(newestAgain)));
   assert.deepEqual(newestAgain.value.undoneOps, [newest],
     'the walk undoes the op it was asked for: ' + JSON.stringify(newestAgain.value.undoneOps));
+});
+
+// =============================================================================================================
+// `JC-TWO-WAY` — `D-164` ITEM 2 AT THE PACKAGE'S SURFACE: THE SAME WINDOW, THE SAME THREE WRITES AND THE SAME
+// DROPPED OP ID, DRIVEN ON A STORE WITH A FILE AND ON ONE WITH NO FILE IT CAN RETRIEVE
+// =============================================================================================================
+
+test('JC-TWO-WAY · D-164 item 2 — the same dropped op id answers a RECORD on a file-tier store (regenerated from the file, `undoneOps` empty, the address at the state the regeneration left) and RollbackCompacted on a path-less saving store (the client\'s signal), while an id that never named an op is JournalOpUnknown on both', () => {
+  // **THE RULING (`strata/decisions.md` · `D-164` item 2, the architect verbatim):** *"The resolution if an
+  // attempted write has to be rolled back but the required op has been compacted is to regenerate the store from
+  // the file, or otherwise signal the client to recover if no file can be retrieved."* **SO THE ARM IS TWO-WAY AND
+  // THE TOKEN IS ITS SECOND ANSWER.** **THIS CELL EXISTS BECAUSE NOTHING ELSE AT THIS SURFACE CLAIMED IT**: the
+  // blind row (`blind-constraints-v2.mjs`'s `E2E-C-9`) drives the same arm, and the Rust cells drive it at the
+  // store's own boundary — **`npm test` is where the distinction is claimed by the package's own cells or nowhere.**
+  //
+  // **THE DRIVE IS ONE WINDOW AND ONE SET OF IDS, AND THE STORES DIFFER IN NOTHING BUT THE FILE.** `journalLength:
+  // 2` on both; the same three `file`-tier writes at the same two addresses on both, so the third append drops the
+  // first write's entry on both (`D-160` item 1); the same dropped op id is then reversed on both. **The one
+  // difference is what the store can retrieve**: the first is constructed with a `filePath` (`D-132` item 1's first
+  // entry condition — a real file, read through `Store::read_file_image`), the second with a `saveCall` and NO
+  // `filePath`, **which is `D-132` item 1's third entry condition and `D-137` item 3's wire fact
+  // (`durable_without_path: true` and `file_path == ""`)**: a `file`-tier register whose durable ground truth lives
+  // with the CALLER, and therefore the shape `D-164` item 2 names as *"no file can be retrieved"*.
+  const journalLength = 2;
+  const saved = [];
+  const path = join(mkdtempSync(join(tmpdir(), 'jc-two-way-')), 'store.json');
+
+  const fileStore = storeCreate({ filePath: path, journalLength, listeners: [] });
+  const saveStore = storeCreate({
+    journalLength,
+    listeners: [],
+    saveCall: (image) => {
+      saved.push(image);
+      return { success: true, message: [] };
+    },
+  });
+
+  const droppedOn = (store) => {
+    const first = store.write(['a'], 'file', 1);
+    store.write(['a'], 'file', 2);
+    store.write(['x'], 'file', 9);        // the third append DROPS the first write's entry (`D-160` item 1)
+    return first.op.opId;
+  };
+  const fileDropped = droppedOn(fileStore);
+  const saveDropped = droppedOn(saveStore);
+  assert.notEqual(fileDropped, saveDropped,
+    'the drive must hold two distinct ids, one per store: ' + JSON.stringify([fileDropped, saveDropped]));
+
+  // ── (1) **THE STORE WITH A FILE REGENERATES AND RETURNS — `D-164` ITEM 2 (a), AND NO REFUSAL IS INVOLVED.**
+  const onFileStore = attempt(() => fileStore.rollback(fileDropped));
+  assert.equal(onFileStore.ok, true,
+    '**THE DROPPED ID ON A STORE WITH A RETRIEVABLE FILE MUST RETURN A RECORD AND NOT THROW** (`D-164` item 2 '
+      + `(a): the resolution is to REGENERATE the store from the file): it answered `
+      + JSON.stringify(refusalStatus(onFileStore)));
+  assert.deepEqual(Object.keys(onFileStore.value).sort(), ['opId', 'restoredTo', 'undoneOps'],
+    'and the record is the walk\'s own three declared members — the arm mints no second shape (`PAR-JS-9`): '
+      + JSON.stringify(Object.keys(onFileStore.value).sort()));
+  assert.equal(onFileStore.value.opId, fileDropped,
+    'the record echoes the op id the caller named: ' + JSON.stringify(onFileStore.value.opId));
+  assert.deepEqual(onFileStore.value.undoneOps, [],
+    '**AND `undoneOps` IS EMPTY** — nothing was there to undo, and a regeneration that claimed ids would be a lie: '
+      + JSON.stringify(onFileStore.value.undoneOps));
+  assert.equal(onFileStore.value.restoredTo.present, true,
+    'and `restoredTo` is the state the address stands in after the regeneration, in the same two-member `BaseState` '
+      + 'every other returning arm answers: ' + JSON.stringify(onFileStore.value.restoredTo));
+  assert.deepEqual(standingAt(fileStore, ['a']), 2,
+    'the address answers what the window still holds — the retained entry replayed onto the regenerated base: '
+      + JSON.stringify(standingAt(fileStore, ['a'])));
+  assert.deepEqual(standingAt(fileStore, ['x']), 9,
+    'and the version outside the reversal\'s (empty) scope stands: ' + JSON.stringify(standingAt(fileStore, ['x'])));
+
+  // ── (2) **THE STORE WITH NO RETRIEVABLE FILE SIGNALS — `D-164` ITEM 2 (b), AND THAT ANSWER IS THE RECOVERY CUE.**
+  const onSaveStore = attempt(() => saveStore.rollback(saveDropped));
+  assert.equal(onSaveStore.ok, false,
+    '**THE SAME CALL ON THE PATH-LESS SAVING STORE MUST THROW** (`D-164` item 2 (b): there is no file to regenerate '
+      + 'from, so the store signals the client to recover from its own image): it answered '
+      + JSON.stringify(onSaveStore.value));
+  assert.equal(onSaveStore.caught.status, 'RollbackCompacted',
+    'and the signal is `RollbackCompacted` — the token keeps its rank, its code and its generated message, and only '
+      + 'its PRODUCER SET moved (`D-118` item 2; `D-164` item 2): ' + JSON.stringify(onSaveStore.caught.status));
+  assert.deepEqual(standingAt(saveStore, ['a']), 2,
+    'a signal undoes nothing — the address answers the state the last write left: '
+      + JSON.stringify(standingAt(saveStore, ['a'])));
+
+  // ── (3) **THE DISCRIMINATOR IS NOT THE ANSWER — `D-164` ITEM 4 — AND IT IS THE SAME ON BOTH STORES.** The
+  // watermark separates a DROPPED op from an op that never existed; it never distinguished two refusals, and it
+  // does not distinguish the two arms above either (both stores place the dropped id at or below the floor).
+  const neverMinted = 'op-9007199254740991';
+  const onFileUnknown = attempt(() => fileStore.rollback(neverMinted));
+  const onSaveUnknown = attempt(() => saveStore.rollback(neverMinted));
+  assert.equal(refusalStatus(onFileUnknown), 'JournalOpUnknown',
+    'an id that never named a store op is `JournalOpUnknown` on the store WITH a file — it is not dropped and it '
+      + 'cannot regenerate anything: ' + JSON.stringify(refusalStatus(onFileUnknown)));
+  assert.equal(refusalStatus(onSaveUnknown), 'JournalOpUnknown',
+    'and it is `JournalOpUnknown` on the path-less store too — the signal is owed to a DROPPED op and to nothing '
+      + 'else (`D-164` item 4): ' + JSON.stringify(refusalStatus(onSaveUnknown)));
+  assert.equal(refusalStatus(onSaveUnknown), 'JournalOpUnknown',
+    'so the two ids answer two different things on the same store, and one id answers two different things on the '
+      + 'two stores — which is `D-164` items 2 and 4 read together');
+
+  // ── (4) **THE REGENERATION IS THE STORE'S ACT AND THE SAVE THAT FOLLOWS IS THE PACKAGE'S** (`D-112` item 2):
+  // the file-tier store's state reached the path — a FRESH boot over it answers the same two addresses — and the
+  // path-less store's durable channel is the caller's, which is why its bytes are not this cell's to read.
+  const booted = attempt(() => storeCreate({ filePath: path, journalLength, listeners: [] }));
+  assert.equal(booted.ok, true,
+    'a fresh boot over the path the regeneration was saved to constructs: ' + JSON.stringify(refusalStatus(booted)));
+  assert.deepEqual(standingAt(booted.value, ['a']), 2,
+    'and it reads the state the regeneration left at the address the reversal named: '
+      + JSON.stringify(standingAt(booted.value, ['a'])));
+  assert.deepEqual(standingAt(booted.value, ['x']), 9,
+    'and the retained version beside it: ' + JSON.stringify(standingAt(booted.value, ['x'])));
+  assert.equal(saved.length >= 3, true,
+    'the path-less store\'s saver is the caller\'s own channel and it was handed the image of every write that '
+      + 'landed (' + journalLength + ' window, 3 writes): read ' + String(saved.length) + ' call(s)');
 });
 
 // =============================================================================================================

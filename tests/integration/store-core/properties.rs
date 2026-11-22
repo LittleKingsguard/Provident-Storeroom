@@ -939,37 +939,66 @@ fn p_im_2_a_failed_write_leaves_zero_residue() {
         // AFTER the failed write so it reads the sibling's state at the same moment the residue comparison
         // does — and it is the TRIGGER's outcome and not residue, because the compaction happened at the
         // SECOND SUCCESSFUL APPEND, before any failed write was attempted.
-        // **⟶ RE-DERIVED 2026-11-17 — `D-160` ITEMS 1 AND 3 (`strata/decisions.md`), AND THE MOVEMENT IS
-        // RECORDED.** The two checks below read `M-6`'s all-or-nothing floor twice: first as a REFUSAL, then —
-        // after `D-108` item 1 — as a REQUIRED RETURN from a regeneration out of the durable ground truth.
-        // **`D-160` ITEM 1 replaces both with its own mechanism**: the compaction DROPS the entry it reaches
-        // (*"Compaction dropping history is the point"*, the architect, verbatim), **so `at journalLength = 1`
-        // the sibling's prior entry is GONE and item 3's watermark answers it** — `RollbackCompacted` for the
-        // dropped id, which is what this check now reads. **The three checks after it are unmoved and read the
-        // facts they always read**: a refusal moves nothing, so the sibling's `temp` version, its per-tier reads
-        // and its whole registry are exactly what they were before the call.
+        // **⟶ RE-DERIVED 2026-11-17 FOR THE THIRD TIME — `D-164` ITEM 2 (`strata/decisions.md`), AND THE MOVEMENT
+        // IS RECORDED.** These checks read `M-6`'s floor on the compacting sibling: first as a REFUSAL, then — after
+        // `D-108` item 1 — as a REQUIRED RETURN from a regeneration out of the durable ground truth; `D-160` items 1
+        // and 3 then made the compaction a DROP and gave the dropped id the floor's watermark, **and one pass read
+        // that refusal as the arm's whole answer. THE ARCHITECT CORRECTED IT, VERBATIM:** ***"The resolution if an
+        // attempted write has to be rolled back but the required op has been compacted is to regenerate the store
+        // from the file, or otherwise signal the client to recover if no file can be retrieved."*** **The sibling is
+        // a store WITH a path, so its dropped id REGENERATES AND RETURNS** — `undoneOps` empty, `restoredTo` the
+        // state the register stands in after the regeneration — **and the three checks after it read the facts they
+        // always read**: the version whose entry the window still HOLDS is replayed onto the regenerated base, and
+        // its per-tier reads and its pair set are exactly what they were.
         let prior_rollback = s.rollback(OpIdArg::Id(prior.op.opId.clone()));
-        drive.check(
-            prior_rollback
-                .as_ref()
-                .err()
-                .map(|e| e.status.as_str())
-                == Some("RollbackCompacted"),
-            &format!(
-                "§6.4 M-6 / D-160 item 3: at journalLength = 1 the sibling's prior entry was DROPPED by the \
-                 second append, and a rollback that names it answers `RollbackCompacted` — the sibling \
-                 answered {:?}",
-                prior_rollback.as_ref().err().map(|e| e.status.clone())
+        match &prior_rollback {
+            Ok(record) => {
+                drive.check(
+                    record.opId == prior.op.opId,
+                    "§6.3 / D-164 item 2 (a): the regeneration's record echoes the op id the caller named",
+                );
+                drive.check(
+                    record.undoneOps.is_empty(),
+                    &format!(
+                        "§6.4 M-6 / D-164 item 2 (a): at journalLength = 1 the sibling's prior entry was DROPPED by \
+                         the second append, so the reversal has NOTHING to undo and reports no id; got {:?}",
+                        record.undoneOps
+                    ),
+                );
+                drive.check(
+                    record.restoredTo.present,
+                    "§6.3 / D-164 item 2 (a): `restoredTo` is the state the register stands in after the \
+                     regeneration — the retained `purgeme` entry was replayed onto the store's own base",
+                );
+            }
+            Err(e) => drive.check(
+                false,
+                &format!(
+                    "§6.4 M-6 / D-164 item 2 (a): the sibling HAS a retrievable file, so a dropped id REGENERATES \
+                     and RETURNS — it must not answer a code; the sibling answered {}",
+                    e.status
+                ),
             ),
-        );
+        }
+        // **THE TWO FACTS THE REGENERATION'S BASE DECIDES, READ AT THEIR OWN ADDRESSES — `D-108` ITEM 3'S ANSWER,
+        // RE-STATED BY `D-164` ITEM 1.** A version whose creating entry the window still HOLDS is replayed onto the
+        // regenerated base; **a version whose only record the compaction DROPPED is GONE, because no file image
+        // carries a `mem`-tier write and the drop is the point** (`D-160` item 1). **The refusal this cell used to
+        // read left BOTH standing; the regeneration is what separates them, so this pair — and not a residue
+        // comparison — is the arm's own measurement.**
         drive.check(
             versions_at(&s, &key(&["purgeme"])) == vec![Tier::Temp],
             &format!(
-                "§5.3 P-IM-2/P-FSC-4: the sibling's OUT-OF-SCOPE, UN-MARKED `temp` version survives the \
-                 regeneration (`PIN-12` (ii)'s filter), and nothing of the reverted `keep` entry is replayed — \
-                 got {:?}",
+                "§5.3 P-IM-2/P-FSC-4: the sibling's OUT-OF-SCOPE but RETAINED `temp` entry is REPLAYED onto the \
+                 regenerated base (`D-164` item 1), so its version survives the arm; got {:?}",
                 versions_at(&s, &key(&["purgeme"]))
             ),
+        );
+        drive.check(
+            s.read(AddressArg::List(key(&["keep"])), none()).is_err(),
+            "§5.3 P-IM-2 / D-108 item 3: the sibling's `keep` version is GONE after the regeneration — its only \
+             record was the entry the second append DROPPED, and no file image carries it. The arm's declared \
+             cost is its own base's, not a residue's",
         );
         drive.check(
             versions_at(&s, &key(&["purgeme"])) == versions_before,

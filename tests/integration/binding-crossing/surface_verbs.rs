@@ -896,30 +896,38 @@ fail_code_cell!(fail_code_7_container_kind_conflict_is_reachable, "ContainerKind
 fail_code_cell!(fail_code_8_read_target_is_branch_is_reachable, "ReadTargetIsBranch");
 fail_code_cell!(fail_code_9_write_parent_not_link_is_reachable, "WriteParentNotLink");
 fail_code_cell!(fail_code_10_journal_op_unknown_is_reachable, "JournalOpUnknown");
-// **⟶ `fail_code_11_rollback_compacted_is_reachable` IS RE-WORDED 2026-11-02 (`D-118` item 2), AND THE RE-WORD IS
-// SAID HERE BECAUSE THE OLD NAME ASSERTED A REACHABILITY THAT IS GONE.** The cell was one line of the
+// **⟶ `fail_code_11_rollback_compacted_is_reachable` IS RE-WORDED, AND THE RE-WORD IS SAID HERE BECAUSE EVERY
+// EARLIER NAME ASSERTED A REACHABILITY THAT MOVED TWICE MORE AFTER IT.** The cell was one line of the
 // `fail_code_cell!` macro, whose verdict is *"the declared code is produced by a real trigger"*. **`D-118` item 1
 // removed the member's LAST trigger** — a present, non-empty `filePath` image the store's loader cannot read is
 // TREATED AS NO IMAGE AT ALL and the regeneration takes `Store::born` (*"In the corrupt file case, then it restores
-// from the store creation image"*, the architect, verbatim) — **so the token is `DECLARED, NO PRODUCER` and its
-// drive is the NEGATIVE one** (`support::fail_code_drive`'s arm drives both arms and requires both to RETURN).
-// **The status is NOT retired and its rank does not move**: it keeps its place in `§8.1`'s twenty, whose census the
-// cell below still counts (`D-118` item 2: *"the closed set is the store's"*). **The drive is not weakened and not
-// dropped: it asserts MORE than the macro's one line did** — two arms instead of one, the fixture's survival at
-// the path (`D-112` item 2), and the member's continued membership.
+// from the store creation image"*, the architect, verbatim) — **so the cell became a NEGATIVE drive;
+// `D-160` items 1 and 3 then made the compaction a DROP and gave the dropped id the floor's watermark, and ONE PASS
+// READ THAT REFUSAL AS THE ARM'S WHOLE ANSWER. THE ARCHITECT CORRECTED IT, VERBATIM:** ***"The resolution if an
+// attempted write has to be rolled back but the required op has been compacted is to regenerate the store from the
+// file, or otherwise signal the client to recover if no file can be retrieved."*** **SO THE MEMBER IS PRODUCED BY
+// EXACTLY ONE SHAPE OF STORE — the one with NO RETRIEVABLE FILE — and this cell drives both at ONE window**:
+// `support::fail_code_drive` answers the token at a path-less instance and answers a RECORD at the store with a
+// path. **The status is NOT retired and its rank does not move**: it keeps its place in `§8.1`'s twenty-three, whose
+// census the cell below still counts (`D-118` item 2: *"the closed set is the store's"*; `D-164` item 2 moves only
+// the token's producer set). **The drive is not weakened and not dropped: it asserts MORE than the macro's one line
+// did** — both shapes of store, the discriminator beside them, the fixture's survival at the path (`D-112` item 2),
+// and the member's continued membership.
 #[test]
-fn fail_code_11_rollback_compacted_is_declared_and_unreachable() {
+fn fail_code_11_rollback_compacted_is_reached_where_no_file_can_be_retrieved() {
     assert!(
         all_fail_codes().contains(&"RollbackCompacted"),
-        "`§8.1` #11: the member KEEPS its rank-`11` place in the closed set — `D-118` item 2 removes its last \
-         producer and does not retire it (the set is the store's)"
+        "`§8.1` #11: the member KEEPS its rank-`11` place in the closed set — `D-118` item 2 left the set to the \
+         store and `D-164` item 2 moves only its producer set"
     );
     assert!(
         fail_code_drive("RollbackCompacted"),
-        "`RollbackCompacted` is DECLARED and UNREACHABLE (`D-118` item 2): neither the compaction alone \
-         (`D-108` item 1) nor the compaction over an image the store's loader cannot read (`D-118` item 1) \
-         answers the token, and the store's own reversal writes no byte of the corrupt fixture (`D-112` item 2) \
-         — were this crate to produce the code on either arm, this drive returns `false` and the cell fails"
+        "`RollbackCompacted` is REACHED through this crate's surface where NO FILE CAN BE RETRIEVED (`D-164` item \
+         2 (b)): a path-less store answers the token for an op the compaction DROPPED — the client's signal to \
+         recover from its own image — while the same window on a store WITH a path REGENERATES and returns a record \
+         (`D-164` item 2 (a)); `JournalOpUnknown` stays the id that never named a store op (`D-164` item 4). Were \
+         this crate to answer the token on the file-tier arm, or to stop answering it on the path-less one, this \
+         drive returns `false` and the cell fails"
     );
 }
 fail_code_cell!(
@@ -1018,16 +1026,19 @@ fail_code_cell!(
 // construction's step `7` (`src/store.rs`), so it is the store's own answer and not a member any byte above the
 // boundary produces. **The `15` therefore becomes `16` and the five the package owns are unmoved**, the sum still
 // being asserted so no fourth class appears silently.
-// **⟶ AND RE-DERIVED AGAIN 2026-11-17 (`strata/decisions.md` · `D-160` ITEMS 1 AND 3): `RollbackCompacted` REJOINS
-// THE REACHED CLASS AND THE THIRD CLASS IS EMPTY, SO THE SPLIT IS `18 + 5 + 0 = 23`.** The architect, verbatim:
-// ***"Compaction dropping history is the point"*** — the compaction DROPS the entry it reaches, so **a rollback that
-// names a dropped id answers `RollbackCompacted`** (the floor's watermark, item 3) and the member is produced by
-// the STORE, through this crate's surface, exactly as ranks `1`…`14` and `22` are. **`D-118` item 2's
-// `DECLARED, NO PRODUCER` class loses its only member and the function that names it stays, empty**, because the
-// three figures are asserted to sum to the set's own length and a class that vanished silently would be a figure
-// with no home. **NO MEMBER IS DROPPED, NO RANK MOVES AND EVERY ONE OF THE TWENTY-THREE IS STILL DRIVEN IN THIS
-// CELL** — the dropped id, the held id and an id that never existed are the three answers `fail_code_drive`'s arm
-// now requires.
+// **⟶ AND RE-DERIVED AGAIN 2026-11-17 FOR THE THIRD TIME (`strata/decisions.md` · `D-164` ITEM 2, read with
+// `D-160` items 1 and 3): `RollbackCompacted` IS REACHED AND THE THIRD CLASS IS EMPTY, SO THE SPLIT IS
+// `18 + 5 + 0 = 23` — THE SAME THREE FIGURES, RE-DERIVED FROM A DIFFERENT PRODUCER SET.** `D-160` made the
+// compaction a DROP and gave the dropped id the floor's watermark, and one pass read that refusal as the arm's whole
+// answer; **the architect corrected it, verbatim: *"The resolution if an attempted write has to be rolled back but
+// the required op has been compacted is to regenerate the store from the file, or otherwise signal the client to
+// recover if no file can be retrieved."*** **So the member's producer set is EXACTLY the stores with NO RETRIEVABLE
+// FILE** — the token is the client's signal there — **while the same window on a store with a path answers a RECORD**;
+// both shapes are driven in this cell through `fail_code_drive`'s own arm. **The member is still the STORE's, produced
+// through this crate's surface exactly as ranks `1`…`14` and `22` are, and `D-118` item 2's `DECLARED, NO PRODUCER`
+// class stays a named-but-empty function** — the three figures are asserted to sum to the set's own length, so a class
+// that vanished silently would be a figure with no home. **NO MEMBER IS DROPPED, NO RANK MOVES AND EVERY ONE OF THE
+// TWENTY-THREE IS STILL DRIVEN IN THIS CELL.**
 #[test]
 fn fail_set_is_closed_at_twenty_three_and_eighteen_of_them_are_reached_from_the_crossing() {
     assert_eq!(all_fail_codes().len(), 23, "the store's own array is the census (A148 Q3, read through \
@@ -1041,16 +1052,16 @@ fn fail_set_is_closed_at_twenty_three_and_eighteen_of_them_are_reached_from_the_
         18,
         "the five members the package owns (`ValueRefusedAtBoundary`, `ConstraintBodyThrew`, \
          `ConstraintRefusedAtRegistration`, `ConstraintPassRefused` and `ListenerBodyThrew`) are each declared \
-         at their own boundary, and `RollbackCompacted` is REACHED THROUGH THIS CRATE'S SURFACE again from \
-         2026-11-17 (`D-160` item 3: a dropped id answers the token at the floor's watermark) — \
-         `23 - 5 - 0 = 18`"
+         at their own boundary, and `RollbackCompacted` is REACHED THROUGH THIS CRATE'S SURFACE from 2026-11-17 \
+         by the store with NO RETRIEVABLE FILE (`D-164` item 2 (b): the token is the client's signal there, and \
+         a store with a path regenerates instead) — `23 - 5 - 0 = 18`"
     );
     assert_eq!(
         declared_unreachable_fail_codes(),
         Vec::<&'static str>::new(),
-        "the third class is EMPTY from 2026-11-17: its only member was `RollbackCompacted`, whose producer \
-         `D-160` item 3 restored, and the class stays named here rather than folded away so the three figures \
-         still sum to the set's own length"
+        "the third class is EMPTY from 2026-11-17: its only member was `RollbackCompacted`, whose producer set \
+         `D-164` item 2 re-derives to the stores with no retrievable file, and the class stays named here rather \
+         than folded away so the three figures still sum to the set's own length"
     );
     assert_eq!(
         crossing_reachable_fail_codes().len() + 5 + declared_unreachable_fail_codes().len(),
@@ -1067,8 +1078,8 @@ fn fail_set_is_closed_at_twenty_three_and_eighteen_of_them_are_reached_from_the_
         assert!(
             fail_code_drive(code),
             "`{code}` is named in the DECLARED, NO PRODUCER class and its drive must still answer: the class is \
-             EMPTY from 2026-11-17 (`D-160` item 3 restored `RollbackCompacted`'s producer), so a member \
-             reappearing here is a figure this cell will not read silently"
+             EMPTY from 2026-11-17 (`D-164` item 2 re-derives `RollbackCompacted`'s producer set to the stores \
+             with no retrievable file), so a member reappearing here is a figure this cell will not read silently"
         );
     }
     assert!(

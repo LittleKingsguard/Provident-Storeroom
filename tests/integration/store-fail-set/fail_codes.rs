@@ -348,8 +348,9 @@ fn s8_1_10_journal_op_unknown_fires_on_an_unknown_id() {
 // watermark** (the architect, verbatim: ***"Compaction dropping history is the point"***). **THIS CELL'S SUBJECT IS
 // UNMOVED AND NARROWER THAN THE RANK'S REACH**: it drives the two arms `D-118` left — an unreadable image over a
 // narrowed scope and the plain walk — and both still RETURN, because neither names a dropped op. **The producer is
-// driven in the sibling cell below** (`s8_1_11_rollback_compacted_fires_at_the_dropped_floor_…`), where the dropped
-// id, the held id and an id that never existed are read at one window.
+// driven in the sibling cell below** (`s8_1_11_rollback_compacted_fires_only_where_no_file_can_be_retrieved`), where
+// the dropped id, the held id and an id that never existed are read at one window, and **the same dropped id is read
+// on a store that CAN retrieve a file** — the two-way arm `D-164` item 2 restores.
 #[test]
 fn s8_1_11_rollback_compacted_does_not_fire_on_an_unreadable_image_over_a_narrowed_scope() {
     let path = fresh_path("s8-1-11");
@@ -417,61 +418,110 @@ fn s8_1_11_rollback_compacted_does_not_fire_on_an_unreadable_image_over_a_narrow
     let _ = first;
 }
 
-// **AND THE CONTROL BESIDE IT CARRIES THIS RANK'S ONE PRODUCER FROM 2026-11-17** (`strata/decisions.md` · `D-160`
-// ITEMS 1 AND 3). The cell was the *"does not fire on a compacted scope alone"* control, filed while
-// `RollbackCompacted` had NO producer (`D-118` item 2). **The architect, verbatim: *"Compaction dropping history is
-// the point"*** — the compaction DROPS the entry it reaches, **so the rank's producer is the DROPPED id and the
-// discriminator is the floor's watermark**: an id at or below it answers `RollbackCompacted`, an op the window
-// still HOLDS reverses and answers nothing, and an id that never named a store op answers `JournalOpUnknown`
-// (`D-160` item 3). **THE NAME IS RE-WORDED AND THIS PARAGRAPH IS WHERE THE RE-WORD IS SAID**; the drive below
-// reads all three answers at one window, so the token's reachability and its two neighbours are pinned in one cell.
+// **AND THE CELL BESIDE IT CARRIES THIS RANK'S PRODUCER SET FROM 2026-11-17, RE-DERIVED A THIRD TIME —
+// `D-164` ITEM 2 (`strata/decisions.md`).** The cell was the *"does not fire on a compacted scope alone"* control,
+// filed while `RollbackCompacted` had NO producer (`D-118` item 2); `D-160` items 1 and 3 then gave it one — *"the
+// architect, verbatim: 'Compaction dropping history is the point'"*, the dropped id answered by the floor's
+// watermark — **and ONE PASS READ THAT AS THE ARM'S WHOLE ANSWER. THE ARCHITECT CORRECTED IT, VERBATIM:** ***"The
+// resolution if an attempted write has to be rolled back but the required op has been compacted is to regenerate
+// the store from the file, or otherwise signal the client to recover if no file can be retrieved. This was never
+// ambiguous, 108 is a misread"***. **SO THE PRODUCER SET IS EXACTLY THE STORES WITH NO RETRIEVABLE FILE, and this
+// cell drives the two shapes at ONE window and one set of ids**: the path-less store **signals** with the token —
+// the client's cue to recover from its own image — **the same store WITH a path REGENERATES and RETURNS**, a held op
+// reverses and answers nothing, and an id that never named a store op is still `JournalOpUnknown` (`D-164` item 4:
+// the watermark separates a dropped op from an op that never existed, and is never the discriminator between two
+// refusals). **THE NAME IS RE-WORDED AND THIS PARAGRAPH IS WHERE THE RE-WORD IS SAID.**
 #[test]
-fn s8_1_11_rollback_compacted_fires_at_the_dropped_floor_and_not_on_a_held_scope() {
-    let path = fresh_path("s8-1-11-control");
-    let mut store = ok(
-        storeCreate(&cfg_at(&path, 2)),
-        "§7.1: a two-entry journal at a real path",
-    );
+fn s8_1_11_rollback_compacted_fires_only_where_no_file_can_be_retrieved() {
+    // ── (a) THE PATH-LESS STORE: THE TOKEN IS PRODUCED HERE AND NOWHERE ELSE (`D-164` item 2 (b)).
+    let mut pathless = new_mem_store_with_journal(2);
     let first = ok(
-        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
+        pathless.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
         "§3.4 W-3",
     );
     let second = ok(
-        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(2.0)),
+        pathless.write(AddressArg::List(key(&["a"])), w_mem(), v_num(2.0)),
         "§3.4 W-1",
     );
     ok(
-        store.write(AddressArg::List(key(&["x"])), w_mem(), v_num(9.0)),
+        pathless.write(AddressArg::List(key(&["x"])), w_mem(), v_num(9.0)),
         "§3.4 W-3: the third append DROPS the first entry (`D-160` item 1)",
     );
-    // **THE PRODUCER: THE DROPPED ID ANSWERS THE TOKEN, AND THE ANSWER IS THE WATERMARK'S ONE COMPARISON.**
     let dropped = failure(
-        store.rollback(OpIdArg::Id(first.op.opId.clone())),
-        "D-160 item 3: a dropped op answers `RollbackCompacted`",
+        pathless.rollback(OpIdArg::Id(first.op.opId.clone())),
+        "§8.1 #11 / D-164 item 2 (b): a store with no retrievable file signals the client with the token",
     );
     assert_code(
         &dropped,
         "RollbackCompacted",
-        "§8.1 #11 is PRODUCED again from 2026-11-17: the floor's watermark refuses the id the compaction took",
+        "§8.1 #11 is PRODUCED on the no-retrievable-file arm (`D-164` item 2 (b)): the floor's watermark \
+         identifies the DROPPED op (`D-160` item 3) and the file's absence decides the answer — the token keeps \
+         its rank, its code and its generated message, and only its producer set moved (`D-118` item 2)",
     );
     // **THE NEIGHBOURS THE SAME WINDOW DECIDES: an id that never named a store op, and an op the journal holds.**
     let unknown = failure(
-        store.rollback(OpIdArg::Id("op-never-minted".into())),
-        "D-160 item 3: an id that never named a store op is not this rank's",
+        pathless.rollback(OpIdArg::Id("op-never-minted".into())),
+        "D-164 item 4: an id that never named a store op is not this rank's",
     );
     assert_code(
         &unknown,
         "JournalOpUnknown",
-        "D-160 item 3: the two refusals stay DISTINGUISHABLE — the discriminator is a watermark and not a list",
+        "D-164 item 4: the watermark is the discriminator between a DROPPED op and an op that never existed — \
+         it was never the discriminator between two refusals",
     );
     let performed = ok(
-        store.rollback(OpIdArg::Id(second.op.opId.clone())),
+        pathless.rollback(OpIdArg::Id(second.op.opId.clone())),
         "§6.4 M-5: an op the window still holds reverses and answers no code",
     );
     assert!(
         performed.undoneOps.contains(&second.op.opId),
         "§6.4 M-8: the reversal is performed over its own bounded scope and reported; got {:?}",
         performed.undoneOps
+    );
+
+    // ── (b) THE SAME WINDOW ON A STORE WITH A PATH: IT REGENERATES AND RETURNS, AND THE TOKEN IS NOT ANSWERED
+    // (`D-164` items 1 and 2 (a)). **THE SAME THREE WRITES, THE SAME DROPPED ID, THE SAME WINDOW — the ONE
+    // difference is that a file can be retrieved**, which is what makes the comparison the measurement.
+    let path = fresh_path("s8-1-11-two-way");
+    let mut store = ok(
+        storeCreate(&cfg_at(&path, 2)),
+        "§7.1: a two-entry journal at a real path",
+    );
+    let file_first = ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(2.0)),
+        "§3.4 W-1",
+    );
+    ok(
+        store.write(AddressArg::List(key(&["x"])), w_mem(), v_num(9.0)),
+        "§3.4 W-3: the third append DROPS the first entry, exactly as above",
+    );
+    let regenerated = ok(
+        store.rollback(OpIdArg::Id(file_first.op.opId.clone())),
+        "§6.4 M-6 / D-164 item 2 (a): the same dropped id, on the store that CAN retrieve a file, \
+         REGENERATES and RETURNS",
+    );
+    assert_eq!(
+        regenerated.opId, file_first.op.opId,
+        "§6.3: the record echoes the op id the caller named"
+    );
+    assert!(
+        regenerated.undoneOps.is_empty(),
+        "D-164 item 2 (a): `undoneOps` is empty — nothing was there to undo; got {:?}",
+        regenerated.undoneOps
+    );
+    assert!(
+        regenerated.restoredTo.present,
+        "D-164 item 2 (a): `restoredTo` is the state the register stands in after the regeneration"
+    );
+    assert_eq!(
+        read_at(&store, &key(&["x"])),
+        v_num(9.0),
+        "D-164 item 1: the retained entries are replayed outside the (empty) scope, so the version the window \
+         still holds answers after the regeneration"
     );
 }
 
