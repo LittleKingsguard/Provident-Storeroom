@@ -8693,10 +8693,14 @@ request it did not raise"*) and the `D-168` reading that narrowed it. **STATUS: 
 2. **THE CHANGE, ONE LINE AT THE OPEN**: `REPAIR_LEGS_LAST = [];` in the bracket's opening, before the run. **The read's own clear stays** (it is
    what keeps a second read from answering twice), and the ordering rule the doc states is unmoved — **what moves is that a bracket opening in
    between now leaves nothing for a stale read to take.**
-3. **AND NO DRIVE DISTINGUISHES IT, SAID PLAINLY RATHER THAN DRESSED UP.** Measured: all five pass-hosts are JUDGED and the two declared
-   windows are not (`discard-witness` `85/85/0`), and **every reader in the tree today follows its own close immediately**, so the fix changes
-   no observable. **THE ONE DRIVE THAT WOULD DISTINGUISH IT** is a read taken **while a bracket is open** after an unread close: without the
-   fix it answers the earlier invocation's list; with the fix it answers `[]`. **That drive does not exist and this row does not claim one.**
+3. **⟶ AND THE DRIVE THAT WOULD DISTINGUISH IT NOW EXISTS — `tests/e2e/leg-carriage.test.mjs`, WRITTEN AFTER THIS ROW, AND IT WAS RUN BOTH
+   WAYS.** **`LC-1` is the case this row named**: a bracketed invocation records a leg and is **never read**, a second bracket opens, and a read
+   **taken inside it** must answer nothing — **and it is measured to do so with the fix and to answer the EARLIER invocation's legs without it**
+   (the fix reverted for one run: `LC-1` FAIL, `actual` a one-element list; fix restored: `3/3` green). **`LC-2`** holds the read's own clear
+   (a second read answers nothing) and **`LC-3`** the nested bracket's ownership (the inner act's leg is the inner invocation's, the outer's the
+   outer's) — **so the fix is narrowed and the two properties beside it are unmoved, each by its own cell.** **NOTHING IN THAT FILE REACHES THE
+   KERNEL**: it drives the package's two `Symbol.for` channels and its exported `appendRepairLeg`, because **a kernel drive cannot place its read
+   BETWEEN an open and a close, which is the whole of the subject.**
 4. **WHAT REMAINS OF `D-54`'S FIRST HALF, NAMED AND NOT GUESSED**: **`RESTART_DRAIN`** (`state.mjs:898`, `runAttempt`'s consumer, `drainRestart`
    in `kernel-attempt.mjs:318`) is the *request's* carriage, and **whether an inner `runAttempt`'s drain can strand an outer pass's request is
    NOT established** — it needs a targeted drive of the reentrant host (`H7`) that reads the outer report beside the inner's. **This row does
