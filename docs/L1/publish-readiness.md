@@ -240,3 +240,29 @@ point of fixing it — **and item 2 is a test-writer act that mints no shipped b
 cells the three intervening units added and never this pass's** — **this pass added no cell, changed no test, changed no
 code and no declaration, and its one touched code file's CODE BYTES are proven identical with its comments stripped**
 (`bindings/js/src/entry/kernel-terminal.mjs`; token-stream and comment-stripped-print equality against `HEAD`).
+
+---
+
+## §11 · CLOSED `2026-11-17` — every item §2 listed is discharged, and what remains is named rather than pending
+
+**§2's FIVE, EACH AT ITS OWN COMMIT** — **the review is now a record and not a plan of work.**
+
+| §2 item | discharged by |
+|---|---|
+| **1 · the release class** | **`D-158`** — a `MINOR`, `1.13.0`, claimed by the architect |
+| **2 · `RELEASE-NOTES.md`'s `§1.13.0`** | **`7b06df7`**, extended to eleven behaviour entries by the drift pass (`D-160`…`D-167`), and **the CANONICAL copy re-cut with it** so `publish.sh`'s `cp canonical → landed` no longer erases the section |
+| **3 · the sixth artefact admitted** | **`2ec4fc9`** — `bindings/js/platforms/wasm/`, `DD-25`'s seven manifests, the coupled-version rule, five publish cells |
+| **4 · a wasm job in `publish.yml`** | **`2ec4fc9`** — `wasm` beside the matrix, `main` needs `[platform, wasm]` |
+| **5 · the two sentences of prose** | **`0ef8aa1`** — the guide's section and the README's realm sentence, landed copies byte-identical |
+
+**AND §3's RESIDUALS, EACH AT ITS OWN ROW**: the WASM retirement **closed** (`D-172`, the nineteenth entry and a tombstone table) · the `structuredClone` probe's cost **measured** (`D-159` item 4: `18,662 ns/write`, `9.3%` of a write) · `isProxy`'s replacement **resolved as a split** (`D-167`: the probe for data, no carrier detection on that arm, declared) · `O-3` and `O-8` **closed by measurement** and `SS-9` **fixed** (`D-173`) · the four tables of one family **all bounded** (`D-160`, `D-162`, `D-171`, `D-172`) · the `Discard` witness's three reds and the two JAS runners **re-derived** (`D-163`, `D-168`, the JAS pass) · and **`D-175`/`D-176`** put the closed table on a `WeakMap` with `§2.15`'s two forms preserved.
+
+**WHAT REMAINS, NAMED AND NOT PENDING ON THIS REVIEW:**
+
+1. **`replayMark`'s base is `born`** — a dropped entry's effects are not replayable without a per-version capture at each drop (`D-160` item 3 of its unsettled). **A design item.**
+2. **The foreign-id collision in the floor watermark** — `journal_floor` is an op-id ordinal and op ids are process-global, so an id another instance minted inside this store's span answers `RollbackCompacted` (`D-160` item 5). **A design item.**
+3. **`NG-PUB-F`'s inert control** — its as-filed half splices a `node:path` call into a part that no longer imports one; inert because the probe drives the mismatch state. **A test-writer item.**
+4. **Two spec parts the cells cite ARE NOT ON THIS TREE** (`seams-and-lifecycle.md`, `crossing.md`, 36 citations). **Declared at the runners' heads; a corpus-completeness item.**
+5. **The release itself** — the class is claimed and **no tag is cut** (`D-57`): that is `delivery`'s act, and this review does not claim it.
+
+**THE FLOOR, TAKEN ON THIS TREE AFTER EVERY ONE OF THEM**: `npm test` **`1381` / `1380` / `0`** · `typecheck` **`0`** · `cargo test` **22 `ok` / 0 FAILED** · `cargo check --target wasm32` **0 errors** · `npm run build` **`0`** · **the installed battery `EXIT 0`, 15 cells `PASS`** · **`CHAIN COMPLETE — 11 runners, every one exit 0`** · **the arm's 8 cells green**.
