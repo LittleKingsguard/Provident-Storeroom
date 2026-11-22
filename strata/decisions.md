@@ -8518,3 +8518,46 @@ clones removed (`1` per write) · the memory's shape (`O(store + journal_length)
 trigger still read the **mark**, and `docs/specs/storeroom-constraints/contract.md` §2.6 item 6's `S-ROLLBACK-FLOOR` predicate is worded on
 *"a compacted entry in the candidate set"* — **both are re-derivable to the `journal_floor` watermark and neither is this row's**; and
 `kernel-terminal.mjs`'s doc comments still describe the deleted regeneration as current (the code is right; the prose is superseded).
+
+---
+
+### `D-164` — CORRECTION: `D-108` WAS NEVER ABOUT RETAINING COMPACTED ENTRIES — THE DROPPED ARM REGENERATES FROM THE FILE, OR SIGNALS THE CLIENT WHEN NO FILE CAN BE RETRIEVED
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `4d64d07`. **SOURCE:** the architect, in session, correcting this supervisor's reading of `D-108`.
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "108 was never supposed to retain compacted entries, getting rid of entries is the point of the compaction. The resolution if an attempted
+> write has to be rolled back but the required op has been compacted is to regenerate the store from the file, or otherwise signal the client
+> to recover if no file can be retrieved. This was never ambiguous, 108 is a misread"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT CORRECTS.**
+
+1. **`D-108` ITEM 1 WAS NEVER CONTINGENT ON AN ENTRY BEING RETAINED.** *"The compaction arm does not strand the state — it regenerates it"* is
+   the arm's answer **whenever the required op is gone**, whether the entry is marked or DROPPED. **`D-160`'s drop is the premise `D-108`
+   already assumed**, and the supervisor's reading — that `D-160` withdrew `D-108`'s subject — **was wrong.**
+2. **THE RESOLUTION IS TWO-WAY, AND `RollbackCompacted` IS THE SECOND ARM AND NOT THE FIRST.** Where a reversal needs an op the compaction
+   took: **`(a)` REGENERATE THE STORE FROM THE FILE**, and **`(b)` otherwise SIGNAL THE CLIENT TO RECOVER, when no file can be retrieved.**
+   **So the tree's present behaviour — refusing on every dropped arm — asserts the SIGNAL where the REGENERATION belongs**, and the
+   supervisor's `E2E-C-9` re-derivation (`D-163`) encoded that misread.
+3. **`D-108` ITEM 2 STANDS UNCONDITIONAL AND IS NOT AFFECTED BY THE WINDOW'S WIDTH.** *"No landed edit survives a refusal, on any arm"* —
+   **and the dropped arm does not refuse**: it regenerates. **The conditionality the supervisor raised as an open question was a consequence
+   of its own misread and is WITHDRAWN as a question.**
+4. **AND `D-160` ITEM 3's WATERMARK KEEPS ITS DUTY, REDUCED TO WHAT IT ALWAYS WAS**: it separates **an op that was dropped from an op that
+   never existed** — the first regenerates or signals, the second is `JournalOpUnknown`. **It was never the discriminator between two
+   refusals; it is the discriminator between a recoverable history and a client error.**
+
+**WHAT IT ORDERS.**
+
+1. **`Store::regenerate` RETURNS**, restored from its pre-`D-160` bytes (`git show b06133e^:src/store.rs`): the file image where one reads,
+   the creation state (`born`) where none does — `D-118` item 1's own reading, *"in the corrupt file case, then it restores from the store
+   creation image"* — and then the journal's RETAINED entries replayed outside the scope. **The `compacted` skip in that replay has no subject
+   and goes.**
+2. **THE ARM IS TWO-WAY AT ITS OWN BYTE**: with **no retrievable file** — the path-less arm (`file_path == ""`, the `saveCall` store whose
+   durable ground truth lives with the caller) — the arm **answers `RollbackCompacted`**, which is the client's signal to recover from its own
+   image. **With a file that can be retrieved** (a readable image, or the creation state where none stands) the arm **REGENERATES AND
+   RETURNS**, and no refusal is involved.
+3. **THE CELLS MOVE WITH IT**: the `E2E-C-9` row is re-derived a third time — to the regeneration as the row's main answer and the signal as
+   the path-less arm's — **and the supervisor's own provenance note stands: a blind row rewritten by the pass that broke it is weaker evidence,
+   and this one has now been rewritten twice on a misread.**
