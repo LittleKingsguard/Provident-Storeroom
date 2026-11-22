@@ -8677,3 +8677,27 @@ trigger still read the **mark**, and `docs/specs/storeroom-constraints/contract.
    `REPAIR_LEGS_LAST` single slot is that half's mechanism** (`state.mjs:434`/`:882`/`:933` — a flat slot beside a correctly nested
    `REPAIR_LEGS_OPEN` stack), and **a request lost there means a judgement never runs — which `D-168` does not excuse**: it says what the
    subject is when a judgement happens, not that a judgement may be skipped. **The host-3 (reentrant) carriage stays owed.**
+
+---
+
+### `D-169` — THE LEG SLOT IS CLEARED WHEN A BRACKET OPENS: THE STRUCTURE ENFORCES THE ORDERING THE CONTRACT ASSUMED
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `2ebbe6f`. **SOURCE:** the supervisor, on `D-54`'s first half (*"do not let a pass consume a restart
+request it did not raise"*) and the `D-168` reading that narrowed it. **STATUS: `ACTIVE`.**
+
+1. **THE HAZARD, AT ITS MECHANISM**: `REPAIR_LEGS_LAST` (`state.mjs:434`) is a **flat slot** beside a correctly nested `REPAIR_LEGS_OPEN`
+   stack; every bracket's `finally` **writes** it and only a **read** clears it. **So an invocation that closed and was never read left its list
+   standing for the next reader — which is another invocation's.** The slot's own doc claims correctness from *"its one reader takes it
+   synchronously after its own invocation returned and before any other code runs"*; **that is a property of the CALL ORDER and not of the
+   structure**, while `D-54`'s ask is structural.
+2. **THE CHANGE, ONE LINE AT THE OPEN**: `REPAIR_LEGS_LAST = [];` in the bracket's opening, before the run. **The read's own clear stays** (it is
+   what keeps a second read from answering twice), and the ordering rule the doc states is unmoved — **what moves is that a bracket opening in
+   between now leaves nothing for a stale read to take.**
+3. **AND NO DRIVE DISTINGUISHES IT, SAID PLAINLY RATHER THAN DRESSED UP.** Measured: all five pass-hosts are JUDGED and the two declared
+   windows are not (`discard-witness` `85/85/0`), and **every reader in the tree today follows its own close immediately**, so the fix changes
+   no observable. **THE ONE DRIVE THAT WOULD DISTINGUISH IT** is a read taken **while a bracket is open** after an unread close: without the
+   fix it answers the earlier invocation's list; with the fix it answers `[]`. **That drive does not exist and this row does not claim one.**
+4. **WHAT REMAINS OF `D-54`'S FIRST HALF, NAMED AND NOT GUESSED**: **`RESTART_DRAIN`** (`state.mjs:898`, `runAttempt`'s consumer, `drainRestart`
+   in `kernel-attempt.mjs:318`) is the *request's* carriage, and **whether an inner `runAttempt`'s drain can strand an outer pass's request is
+   NOT established** — it needs a targeted drive of the reentrant host (`H7`) that reads the outer report beside the inner's. **This row does
+   not touch it.**

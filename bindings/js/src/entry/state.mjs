@@ -864,6 +864,17 @@ export function installAttemptSeam(instance) {
         // record's returned elements here (`appendRepairLeg` above), and **a nested invocation pushes its OWN list
         // and closes it first**, so the inner act's legs are never taken for the outer's.
         const legs = [];
+        // **⟶ AND THE SLOT IS CLEARED WHEN A BRACKET OPENS, NOT ONLY WHEN IT IS READ — 2026-11-17
+        // (`D-54`'s first half: *"do not let a pass consume a restart request it did not raise"*; `D-169`).**
+        // **THE HAZARD THIS CLOSES IS AN UNREAD CLOSE**: `REPAIR_LEGS_LAST` was written by every bracket's `finally`
+        // and cleared only by a read, so an invocation that closed and was never read left its list standing for
+        // **the next reader** — which is another invocation's. **The clear-on-open bounds that staleness to the one
+        // window the contract already requires**: a reader takes the slot immediately after its own close and
+        // before any other bracket opens, because a bracket that opens in between now leaves nothing for it to
+        // take. **The read's own clear stays** (it is what keeps a second read from answering twice), and the
+        // ordering rule it documents is unchanged — **this makes the structure enforce it rather than the call
+        // order alone.**
+        REPAIR_LEGS_LAST = [];
         EXTERNAL_COMMIT = commit;
         EXTERNAL_DEPTH += 1;
         appendOwn(REPAIR_LEGS_OPEN, legs);
