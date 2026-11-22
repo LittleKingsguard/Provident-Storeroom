@@ -121,3 +121,39 @@ rebuild will read sixteen reds that are not defects.
 **★ AND THE FINDING THE RESIDUAL PASS WAS NOT LOOKING FOR — `D-159`.** Measuring the probe's cost needed a bench, **and the bench OOM'd.** The trail from there is one row: **a store that has taken N writes holds on the order of N × (1–4 KB), without bound, on both arms.** The WebAssembly arm is merely the first place it meets a ceiling — **it OOMs at about 16,000 writes** (`rust_oom` at `alloc`) — while the Node arm reaches 7.3 GB of `rss` at the same count. **Two probes rule out the obvious causes**: the rate does not track `journalLength` (`124` · `113` · `75` KB/write at caps `4` · `64` · `1024`) and one address grows like eight thousand distinct ones. **And `rss` is the wrong figure**: `heapUsed` grows ~`3.7 KB` per write, so the growth is LINEAR and V8's heap merely expands to hold it. **The layer is not isolated** — three raw-addon drives failed on this harness's wire, so the retention lies between the kernel and the store and is attributed to neither. **No cell catches it, which is why it has lived through every green battery this session ran.**
 
 **THE FLOOR, AFTER ALL OF IT: `npm test` `1359` / `1358` / `0`.** Nothing in this pass moved a shipped byte.
+
+---
+
+## §10 · RE-MEASURED AFTER `D-160`/`D-162` — four items stand between this tree and a publish, and none is code that ships
+
+**THE FLOORS, TAKEN ON THIS TREE NOW.**
+
+| leg | reading |
+|---|---|
+| `npm test` | **`1364` / `1363` / `0`** |
+| `npm run typecheck` | **exit `0`** |
+| `cargo test` | **22 `ok` / 0 FAILED** |
+| `cargo check --target wasm32-unknown-unknown` | **0 errors** |
+| `npm run build` · `node scripts/build-wasm-package.mjs` | **exit `0`** · staged |
+| **the installed battery** (`live-install.mjs`, re-run after the store and kernel changed) | **15 cells `PASS` · 1 `LAYER-LIMIT` · 0 FAIL · `EXIT 0`** |
+| `tests/e2e/greens.mjs` (out of glob) | **254 authored · 254 executed · 254 PASS · 0 FAIL** |
+
+### 10.1 · THE FOUR BLOCKERS
+
+1. **`tests/e2e/blind-constraints-v2.mjs`'s `E2E-C-9` IS RED, AND THIS TREE MADE IT RED.** Its title is *"… and `RollbackCompacted` has no producer left"* — **`D-160` gave that rank a producer at the dropped floor**, so the row's drive stops at its first step (`x0` FAIL) and **nine cells go `NONRUN`**. **Eight of the file's other rows are `PASS=8`**; this one is the file's own subject falsified. **A blind row cannot be re-derived from inside the pass that falsifies it** — that is its own test pass's `D-16`-class correction, and it must land or the row must be retired with its reason.
+2. **`tests/e2e/discard-witness.mjs` REPORTS 3 FAIL** (`DW-09.1`, `DW-09.2`, `DW-16.3`) — **reported by the pass that ran it as the recorded pre-existing baseline, and NOT independently verified by this review.** They read as the kernel's **commit-window** subject (`open 1`, `live 1`), which is not the two maps `D-160`/`D-162` touched. **A release should not carry three unnamed reds**: each needs a fix or a defect row with an owner.
+3. **`RELEASE-NOTES.md`'s `§1.13.0` IS STALE BY TWO BEHAVIOURS.** It was written before `D-160` and `D-162` and **mentions neither**: (a) **the journal DROPS history and `journalLength` is now the width of the compensation window** — a semantic the notes must state, because it conditions `D-108` item 2's *"no landed edit survives a refusal … unconditional"*; and (b) **a closed attempt's report is retained for the most recent `1024` attempts, and a pruned id answers `KC-2`**, the same refusal an id that never named an attempt meets.
+4. **THE RULING ON `D-108` ITEM 2** — `D-160`'s consequence makes *"no landed edit survives a refusal"* **conditional on the window's width** (where the window took an op a composition must reverse, the store refuses and landed edits stand). **That is a declaration, and it is the architect's.**
+
+### 10.2 · THE RESIDUALS, NAMED AND NOT BLOCKING
+
+1. **`STORE_RETIREMENT` has no finalizer on the WASM arm** — a WASM store is never released and the crate's `INSTANCES` table grows per constructed store (`design.md` §8's `SC-10`, one arm over).
+2. **`replayMark`'s base is `born`** — a dropped entry's effects are not replayable without a per-version capture at each drop.
+3. **The foreign-id collision class in the floor watermark** — an id another instance minted inside this store's span also answers `RollbackCompacted`.
+4. **`NG-PUB-F`'s inert control** — its as-filed half splices a `node:path` call into a part that no longer imports one; inert only because the probe drives the mismatch state.
+5. **`O-3`, `SS-9` and `O-8`** — moot on the WASM arm and **still owed on Node**.
+6. **NO CELL DRIVES THE WASM ARM'S BEHAVIOUR.** `C-W1`, `C-W2` and `C-W5` from `wasm-realm.md` §7 are **named and unwritten**: the staged package is driven **by hand** in this review and in §7/§9 of the RCA, and **the arm's own behaviour — construction, a `file`-tier write, a save through `saveCall`, a seed through `initialImage`, the `Proxy` refusal, the deep clone — is claimed by no cell.** **That is the last real gap between "the arm works" and "the suite says so".**
+
+### 10.3 · WHAT IS NOT A BLOCKER AND IS WORTH SAYING
+
+**The sixth artefact is admitted, the workflow carries its job, the shipped prose names the build, the class is claimed and the version is `1.13.0` across all twelve sites.** **Nothing in §10.1 is a shipped byte except item 3**, and item 3 is prose in an artefact that travels.
