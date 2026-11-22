@@ -1,0 +1,54 @@
+{
+  "name": "provident-storeroom",
+  "version": "1.13.0",
+  "description": "U-STOREROOM-PUBLISH: the published Node ESM binding for the native Rust store of Provident-Storeroom — the entry resolves the scoped per-target platform package first, the checkout's own module-relative addon second, and answers the store's single declared absent-addon form when neither loads",
+  "type": "module",
+  "license": "AGPL-3.0",
+  "author": "Auspicion Innovations LLC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LittleKingsguard/Provident-Storeroom.git"
+  },
+  "homepage": "https://github.com/LittleKingsguard/Provident-Storeroom#readme",
+  "bugs": {
+    "url": "https://github.com/LittleKingsguard/Provident-Storeroom/issues"
+  },
+  "keywords": [
+    "provident-storeroom",
+    "store",
+    "rust",
+    "node-api",
+    "esm",
+    "binding"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.mjs",
+      "require": "./index.mjs"
+    }
+  },
+  "types": "index.d.ts",
+  "files": [
+    "index.mjs",
+    "README.md",
+    "README.guide.md",
+    "RELEASE-NOTES.md",
+    "index.d.ts",
+    "src/entry/",
+    "src/constraint-kernel.mjs"
+  ],
+  "optionalDependencies": {
+    "@auspicion/provident-storeroom-js-linux-x64-gnu": "1.13.0",
+    "@auspicion/provident-storeroom-js-linux-arm64-gnu": "1.13.0",
+    "@auspicion/provident-storeroom-js-darwin-x64": "1.13.0",
+    "@auspicion/provident-storeroom-js-darwin-arm64": "1.13.0",
+    "@auspicion/provident-storeroom-js-win32-x64-msvc": "1.13.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -948,6 +948,10 @@ impl<'e> Codec<'e> {
             Some(token) => self.string_value(token),
             None => self.undefined_value(),
         };
+        // **⟶ AND THE KEY SET IS SEVEN FROM 2026-11-17: `("compacted", self.bool_value(op.compacted))`
+        // STOOD LAST HERE AND IS DELETED** (`strata/decisions.md` · `D-189` item 2). **The emitter is the
+        // carrier's own member list in the carrier's own order, so a member the carrier no longer has cannot
+        // leave this frame** — and a key kept here would be a member `index.d.ts` does not declare.
         self.object(vec![
             ("opId", self.string_value(&op.opId)),
             ("kind", self.string_value(&op.kind)),
@@ -956,7 +960,6 @@ impl<'e> Codec<'e> {
             ("before", self.to_js_base_state(&op.before)),
             ("after", self.to_js_base_state(&op.after)),
             ("seq", self.number_value(op.seq as f64)),
-            ("compacted", self.bool_value(op.compacted)),
         ])
     }
 

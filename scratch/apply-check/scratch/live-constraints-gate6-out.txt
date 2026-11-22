@@ -1,0 +1,165 @@
+== PER-ROW ==
+E2E-C-1 | 8/8 | PASS 8 / FAIL 0 / NOT-EXERCISABLE 0 | PASS
+E2E-C-2 | 10/10 | PASS 8 / FAIL 2 / NOT-EXERCISABLE 0 | OPEN
+E2E-C-3 | 7/7 | PASS 7 / FAIL 0 / NOT-EXERCISABLE 0 | PASS
+E2E-C-4 | 7/7 | PASS 7 / FAIL 0 / NOT-EXERCISABLE 0 | PASS
+E2E-C-5 | 9/9 | PASS 9 / FAIL 0 / NOT-EXERCISABLE 0 | PASS
+E2E-C-6 | 8/8 | PASS 8 / FAIL 0 / NOT-EXERCISABLE 0 | PASS
+E2E-C-7 | 7/7 | PASS 7 / FAIL 0 / NOT-EXERCISABLE 0 | PASS
+E2E-C-8 | 6/6 | PASS 4 / FAIL 1 / NOT-EXERCISABLE 1 | OPEN
+E2E-C-9 | 7/7 | PASS 5 / FAIL 2 / NOT-EXERCISABLE 0 | OPEN
+E2E-C-10 | 7/7 | PASS 6 / FAIL 1 / NOT-EXERCISABLE 0 | OPEN
+E2E-C-11 | 7/7 | PASS 7 / FAIL 0 / NOT-EXERCISABLE 0 | PASS
+E2E-C-12 | 7/7 | PASS 7 / FAIL 0 / NOT-EXERCISABLE 0 | PASS
+E2E-C-13 | 7/7 | PASS 6 / FAIL 1 / NOT-EXERCISABLE 0 | OPEN
+E2E-C-14 | 7/7 | PASS 7 / FAIL 0 / NOT-EXERCISABLE 0 | PASS
+E2E-C-15 | 8/8 | PASS 6 / FAIL 0 / NOT-EXERCISABLE 2 | OPEN
+E2E-C-16 | 8/8 | PASS 5 / FAIL 2 / NOT-EXERCISABLE 1 | OPEN
+SURFACE | 3/3 | PASS 3 / FAIL 0 / NOT-EXERCISABLE 0 | PASS
+
+== PER-CELL ==
+E2E-C-1.1	PASS	handle typeof=object
+E2E-C-1.2	PASS	keys=attempt,op,pending,triggered attempt={"id":"attempt-1"} opId=op-1 write-opId=op-1
+E2E-C-1.3	PASS	outcome=passed keys=attempt,outcome,ops,log,rollback attempt-match=true
+E2E-C-1.4	PASS	ops.length=1 ops[0].opId=op-1 write=op-1
+E2E-C-1.5	PASS	rollback=[] triggered=1 pending=0
+E2E-C-1.6	PASS	shape=ok kinds=[constraint-check/x/null commit/null/null] seqs=[1,2]
+E2E-C-1.7	PASS	ctx.keys=address,attempt,op,tier,value ctx.op.opId=op-1 attempt-match=true full={"address":["a"],"attempt":{"id":"attempt-1"},"op":{"opId":"op-1","kind":"write","address":["a"],"tier":"mem","before":{"present":false},"after":{"present":true,"value":1},"seq":1,"compacted":false},"tier":"mem","value":1}
+E2E-C-1.8	PASS	log-equal=true report-equal=true report-keys=attempt,log,ops,outcome,rollback
+E2E-C-2.1	PASS	record op=op-3 keys=attempt,op,triggered,pending; evaluations when K-2 returned: x=0 y=0 z=0
+E2E-C-2.2	PASS	evaluations: x=2 y=1 z=0 (z never reached); repair's op=op-4 write op=op-3
+E2E-C-2.3	PASS	threw=true keys=status,message,log
+E2E-C-2.4	PASS	status=KC-6
+E2E-C-2.5	PASS	log.len=5 outcome.state=KC-6
+E2E-C-2.6	PASS	kinds=[constraint-check/x/null constraint-check/y/null repair-run/y/null constraint-check/x/null outcome/null/KC-6] length=5 x-check-entries=2 x-opIds=["op-3","op-4"]
+E2E-C-2.7	PASS	len=2 six-members=true order-ok=true steps=[{"opId":"op-4","ans":"ok","failed":false,"undone":["op-4","op-3","op-2"],"cp":null},{"opId":"op-3","ans":"RollbackCompacted","failed":true,"undone":[],"cp":null}] repair-op=op-4 write-op=op-3
+E2E-C-2.8	FAIL	pre-commit read was 2; read after failure = threw AddressNotFound; report ops=["op-3","op-4"] — CONTRADICTION: the store's read does NOT stand at the pre-commit value. The first performed step's own store report swept the PRE-EXISTING write too (undoneOps=["op-4","op-3","op-2"]), so the attempt's rollback reach is wider than its own ops and the last valid state it claims to restore is deleted.
+E2E-C-2.9	FAIL	CONTRADICTION: the live K-2 for this very window returned with the registered pairs evaluated x=0 y=0 z=0 times — the kernel runs NO constraint pass when a write lands, and every constraint-check entry of this attempt appears only at K-3's own pass. The landing the docs' step (7) says VIOLATED pair y was never checked.
+E2E-C-2.10	PASS	repair-run entries: y=1 x=0
+E2E-C-3.1	PASS	outcome=passed
+E2E-C-3.2	PASS	ops=["op-5","op-6"]
+E2E-C-3.3	PASS	repair ctx.keys=address,id,op,tier,value ctx.op.opId=op-5 = write op op-5? true; full={"address":["a"],"id":"x","op":{"opId":"op-5","kind":"write","address":["a"],"tier":"mem","before":{"present":false},"after":{"present":true,"value":99},"seq":1,"compacted":false},"tier":"mem","value":99}
+E2E-C-3.4	PASS	repair-run={"seq":2,"kind":"repair-run","id":"x","opId":"op-6","message":"the repair x landed op-6","state":null}
+E2E-C-3.5	PASS	constraint-check msg="value too large" repair-run msg="the repair x landed op-6"
+E2E-C-3.6	PASS	shape=ok kinds=[constraint-check/x/null repair-run/x/null constraint-check/x/null commit/null/null]
+E2E-C-3.7	PASS	rollback=[]
+E2E-C-4.1	PASS	keys=status,message,log
+E2E-C-4.2	PASS	status=KC-4 kinds=[constraint-check/x/null repair-run/x/null outcome/null/KC-4]
+E2E-C-4.3	PASS	repair-run={"seq":2,"kind":"repair-run","id":"x","opId":"op-7","message":"attempted to clamp at 5 and was refused","state":null}
+E2E-C-4.4	PASS	repairRuns=1 ops=1
+E2E-C-4.5	PASS	report outcome=failed log-equal=true
+E2E-C-4.6	PASS	status=KC-4 outcome.state=KC-4
+E2E-C-4.7	PASS	read=threw AddressNotFound (this window's pre-state is the key's own absence, so the ABSENCE arm is what is readable here; the last-valid-state arm — an address that HELD a value before commit — is read at E2E-C-2 cell 8, where the store does NOT stand at the pre-commit value)
+E2E-C-5.1	PASS	status=KC-6
+E2E-C-5.2	PASS	kinds=[constraint-check/c1/null constraint-check/c2/null repair-run/c2/null constraint-check/c1/null outcome/null/KC-6] repair-run ids=["c2"]
+E2E-C-5.3	PASS	kinds=[constraint-check/c1/null constraint-check/c2/null repair-run/c2/null constraint-check/c1/null outcome/null/KC-6] c1-fn-runs=2 c1-check-opIds=["op-8","op-9"]
+E2E-C-5.4	PASS	status=KC-6 cQ-fn-runs=2
+E2E-C-5.5	PASS	kinds=[constraint-check/cQ/null constraint-check/cP/null repair-run/cP/null constraint-check/cQ/null outcome/null/KC-6] repair-run ids=["cP"]
+E2E-C-5.6	PASS	status=KC-5 outcome.state=KC-5 kinds=[constraint-check/C1/null repair-run/C1/null constraint-check/C1/null outcome/null/KC-5]
+E2E-C-5.7	PASS	C1 repair-runs=1 C1-fn-runs=2
+E2E-C-5.8	PASS	second K-3 = KC-2
+E2E-C-5.9	PASS	limb tokens: (alpha)=KC-6 (gamma)=KC-5
+E2E-C-6.1	PASS	kinds=[constraint-check/A/null constraint-check/B/null commit/null/null]
+E2E-C-6.2	PASS	A=1 B=1
+E2E-C-6.3	PASS	second K-2 at the OPEN attempt's address = THREW KC-7 :: "a constraint attempt is already open at [\"a\"]; it is disposed of by its own K-3 and by no other act"; stale K-3 = KC-2
+E2E-C-6.4	PASS	second K-3 = KC-2; K-4 log-equal=true K-5 outcome=passed
+E2E-C-6.5	PASS	kinds=[constraint-check/A/null commit/null/null] replaced-ran=0 replacement-ran=1
+E2E-C-6.6	PASS	two K-1 calls at pair (a,A) compared by identity: true
+E2E-C-6.7	PASS	replacement=1 replaced=0
+E2E-C-6.8	PASS	order=["A","C"]
+E2E-C-7.1	PASS	ctx a1=1 a2=1 checks=2 ids=["a1","a2"]
+E2E-C-7.2	PASS	ctx.value={"n":1}
+E2E-C-7.3	PASS	ctx.op.opId=op-18 write=op-18 (the member carries the store's own journal record, whose opId is the write's)
+E2E-C-7.4	PASS	kinds=[constraint-check/a1/null constraint-check/a2/null commit/null/null]
+E2E-C-7.5	PASS	open log length at commit time = 0
+E2E-C-7.6	PASS	small=passed big=KC-3 values=1,9
+E2E-C-7.7	PASS	small shape=ok big kinds=[constraint-check/v/null outcome/null/KC-3]
+E2E-C-8.1	PASS	alpha=passed beta=passed
+E2E-C-8.2	PASS	alpha ops=["write"] beta ops=["write"] beta attempt opened=true
+E2E-C-8.3	PASS	alpha=[constraint-check/x/null commit/null/null] beta=[constraint-check/x/null commit/null/null]
+E2E-C-8.4	PASS	alpha attempt=attempt-15 beta attempt=attempt-16
+E2E-C-8.5	FAIL	the caller's own loop over pending invoked 0 handle(s) at this build: pending.length=0 against triggered.length=1, so pending holds NOTHING and the app's declared ONE invoker invokes nothing. The listener body ran 2x by K-2's return (2 at K-2's return, 0 from the caller's own loop) — ALL of it the STORE's own delivery: the store runs the body its own registration holds, and the kernel's own pending filter removes every handle standing at a registered address (including this one, whose registered body is the app's), so no handle of the caller's write is ever left standing for the loop.
+E2E-C-8.7	NOT-EXERCISABLE	NOT EXERCISABLE at this build: the body was not handed control by the caller's own loop — pending held 0 of 1 triggered handle(s) at K-2's return, so the app's declared ONE invoker invokes nothing, and the body ran only because the STORE's own delivery invoked it (2 invocation(s) by K-2's return). The kernel's own layer (a) pass for this write DID run inside K-3 (see this row's alpha window and cell 16.5), but the seam by which the app is handed it does not exist at this build: the two halves cannot be read beside one another.
+E2E-C-9.1	PASS	outcome=failed status=KC-5 steps=["op-31","op-30"] ops=["op-30","op-31"] six=true
+E2E-C-9.2	FAIL	union=["op-31","op-30","op-29","op-28","op-27","op-26","op-25","op-24"] ops=["op-30","op-31"] store read after=threw AddressNotFound (pre-state was 6): the store's own read at ['a'] matches exactly what those members report=false. NOTE: the union names 6 op(s) OUTSIDE this attempt's own ops (["op-29","op-28","op-27","op-26","op-25","op-24"]) — the store's own report of the FIRST performed call's subtree-wide reach, the declared lawful reach at composition-and-states.md §2.6 item 4 · contract.md §5.7 (RC-14, ANSWERED) — so the members' reach is wider than the composition's own call list while being exactly what the store itself reported. (The reading the greens set's own cell 2 leaves open — whether the store's read at ['a'] stands at the state the members report — does NOT hold here: see E2E-C-2 cell 8.)
+E2E-C-9.3	PASS	performed=["op-31","op-30"] distinct=true last-element-failing=true
+E2E-C-9.4	PASS	steps=[{"opId":"op-31","a":"ok","f":false,"undone":["op-31","op-30","op-29","op-28","op-27","op-26","op-25","op-24"],"restoredTo":{"present":false}},{"opId":"op-30","a":"RollbackCompacted","f":true,"undone":[],"restoredTo":{"present":false}}]
+E2E-C-9.5	PASS	checkpoints=["null"]
+E2E-C-9.6	PASS	checkpoints=["null"] (the first pass violated at its first evaluation and the re-run repeated the violation, so the target member is null on every step); steps' own boundary members=[{"opId":"op-31","failed":false,"answer":"ok"},{"opId":"op-30","failed":true,"answer":"RollbackCompacted"}]
+E2E-C-9.7	FAIL	status=KC-5 msg="the pair k:1:a;#x violated a re-run and its repair had already been applied" failing steps=[{"opId":"op-30","answer":"RollbackCompacted","failed":true,"undoneOps":[],"restoredTo":{"present":false}}] — CONTRADICTION: the composition DID meet the store's own RollbackCompacted (the failing step's own answer), yet the thrown form reads the pass's own arm KC-5 and its message names the re-run's repeat, never the store's code. The doc's clause makes the floor's token govern `whatever the pass's own arm was`.
+E2E-C-10.1	PASS	alpha=KC-3 beta=KC-3; the beta body ran 2x, of which the gated re-entrant invocations (the STORE's own delivery firing inside the beta body's own K-2) are 1; the caller's own loop over pending invoked 0
+E2E-C-10.2	PASS	alpha outcome=failed ops=["write"] | beta outcome=failed ops=["write"]
+E2E-C-10.3	PASS	alpha=[constraint-check/x/null outcome/null/KC-3] beta=[constraint-check/x/null outcome/null/KC-3]
+E2E-C-10.4	PASS	alpha steps=[["ok",false]] beta steps=[["ok",false]]
+E2E-C-10.5	PASS	alpha instrument keys=attempt,log,ops,outcome,rollback beta instrument keys=attempt,log,ops,outcome,rollback
+E2E-C-10.6	PASS	alpha msg="too large" beta msg="too large"
+E2E-C-10.7	FAIL	the caller's own loop over pending invoked 0 handle(s) at this build (pending.length=0, triggered.length=1); the beta body's delivery is the STORE's own (2 invocation(s), 1 of them re-entrant inside the beta body's own K-2 — a re-entrancy no caller-side loop has), so the two windows' delivery routes are not the documented ones. The status tokens DO agree (alpha=KC-3 beta=KC-3).
+E2E-C-11.1	PASS	attempt1=passed repair-runs=1
+E2E-C-11.2	PASS	attempt2=passed repair-runs=1
+E2E-C-11.3	PASS	attempt1 op2=op-36 attempt2 op2=op-38
+E2E-C-11.4	PASS	keys=attempt,log,ops,outcome,rollback
+E2E-C-11.5	PASS	keys=attempt,log,ops,outcome,rollback
+E2E-C-11.6	PASS	attempt1=[constraint-check/A/null repair-run/A/null constraint-check/A/null commit/null/null] attempt2=[constraint-check/A/null repair-run/A/null constraint-check/A/null commit/null/null] distinct repair opIds=true
+E2E-C-11.7	PASS	both closed logs read back by K-4; distinct=true
+E2E-C-12.1	PASS	status=KC-1 keys=status,message,log log.len=0
+E2E-C-12.2	PASS	status=KC-2
+E2E-C-12.3	PASS	status=KC-2
+E2E-C-12.4	PASS	statuses=KC-1,KC-2,KC-2
+E2E-C-12.5	PASS	lawful K-1 ok=true
+E2E-C-12.6	PASS	entry ids=[lawful]
+E2E-C-12.7	PASS	a further K-1 at the lawful pair returned the adopted handle=true
+E2E-C-13.1	PASS	status=OutOfDomainTier keys=status,message
+E2E-C-13.2	PASS	second refusal = OutOfDomainTier
+E2E-C-13.3	PASS	repair write status=WriteParentNotLink keys=status,message message="'b' cannot be written into 'a', it holds a leaf and not a link"
+E2E-C-13.4	PASS	identity=true status=WriteParentNotLink keys=status,message
+E2E-C-13.5	PASS	report outcome=failed report log=[constraint-check/x/null repair-run/x/null outcome/null/KC-4]
+E2E-C-13.6	FAIL	repair-run={"seq":2,"kind":"repair-run","id":"x","opId":"op-40","message":"the pair's repair was attempted","state":null} — the store's own token is named in the entry's own message=false
+E2E-C-13.7	PASS	store code at K-2=OutOfDomainTier; store code at the repair's own call=WriteParentNotLink (the body held the store's own object unchanged=true); kernel state=KC-4; repair calls=1
+E2E-C-14.1	PASS	report=passed log=2
+E2E-C-14.2	PASS	bare-id reads compared member for member: K-4 equal=true K-5 equal=true
+E2E-C-14.3	PASS	K-4=KC-2 K-5=KC-2
+E2E-C-14.4	PASS	three outside values over K-5: KC-2,KC-2,KC-2
+E2E-C-14.5	PASS	K-3 again = KC-2
+E2E-C-14.6	PASS	log after the refusals compared member for member: equal=true
+E2E-C-14.7	PASS	refs=attempt-26/attempt-26/attempt-26
+E2E-C-15.1	PASS	inner attempt=attempt-27 inner commit=returned op=op-43
+E2E-C-15.2	PASS	inner=KC-3 steps=1 inner ops=["op-43"]
+E2E-C-15.3	PASS	inner undone union=["op-43"] inner ops=["op-43"] outer write=op-44
+E2E-C-15.4	NOT-EXERCISABLE	NOT EXERCISABLE in this window: the inner attempt's own write is the only landing at ['a','b'] that any caller-side act made, and the kernel pins the member only at a landing of its OWN that its own pass ran and passed (that arm DOES exist live — see this row's sibling reading below), so this window reads ["null"] and no op ANOTHER processing landed is readable here. THE GREENS SET'S STATED CAUSE IS REFUTED BY THIS RUN: it says no landing is EVER recorded as one that left the address valid because no per-landing pass exists, while this run's passing-repair window (E2E-C-3) shows the kernel pinning the member at a landing it made itself.
+E2E-C-15.5	PASS	performed opIds=["op-43"] checkpoint=["null"]
+E2E-C-15.6	PASS	inner log ids=["b1","b2",null]
+E2E-C-15.7	PASS	outer attempt resolved passed (not the inner attempt's KC-3): the outer record carries its own write op-44=true and its own reference; its rollback is []. NOTE: this window's outer pair passes on every value, so there is no outer terminal FAILURE to read here, and the docs' own outer failure depends on a listener body's re-entrant verb call the delivery layer cannot hand a caller (see E2E-C-16.4).
+E2E-C-15.8	NOT-EXERCISABLE	NOT EXERCISABLE on the readings this window can produce: the inner composition reads ["null"] and the outer's rollback is [] (a passing attempt carries no step, so the member has no carrier there). The member's non-null arm IS carried live — but only by a landing the kernel's own pass ran and passed (E2E-C-3's repair window), which is not a member of this window's doc-declared shape.
+E2E-C-16.1	PASS	pending.length=0 triggered.length=1 listener body runs by K-2's return=1
+E2E-C-16.2	PASS	triggered=1 pending=0
+E2E-C-16.3	FAIL	the caller's own loop invoked 0 entr(ies) off pending (pending.length=0); the body DID run 1x by K-2's return — the STORE's own delivery invoked it (argument handed: [["a"]]), not the loop. (The watch address and the operation's own address coincide in this window, so the two readings of the referent are not separated here either.)
+E2E-C-16.4	NOT-EXERCISABLE	NOT EXERCISABLE, and STRUCTURALLY so, on two independent grounds each recorded here: the caller's own store.write at ['a'] under a registration returned triggered=1; its handle(s) never cross into any CommitRecord.pending — no CommitRecord is returned for a caller's own verb call at all — and the store's own delivery had already run the body 1x with the STORE's own argument [["a"]]. So no body of a caller-made write is left standing for the caller's loop to invoke, and the nested CommitRecord of the docs' step (1) cannot cross back through it. The K-1 registration's own handle stands in triggered (true) and is run by the store. The docs also require the store to REFUSE a write at depth >= 2 unless the parent is established: this store refused it AddressNotFound
+E2E-C-16.5	PASS	K-1 body ran inside K-3's own pass; the record's pass context carried value=9 address=["a"]; loop entries of kind constraint=0
+E2E-C-16.6	PASS	the ONE top-level processing this drive could open failed KC-3 on its own pair cA; no second top-level processing was opened (its own verb call cannot be reached through pending at this build)
+E2E-C-16.7	PASS	first attempt final=KC-3 (the second top-level processing of the docs' step (1) was never opened)
+E2E-C-16.8	FAIL	CONTRADICTION: at K-2's return pending held 0 of 1 triggered handle(s) (listener in pending=false) and the listener body had been invoked 1x by the STORE's own delivery, so no caller-side loop over pending invokes it at this build.
+SURFACE.1	PASS	exports=commit,log,register,report,runAttempt
+SURFACE.2	PASS	package exports=delete,listen,read,readLiteral,rollback,storeCreate,unlisten,write
+SURFACE.3	PASS	instance constructed through the declared construction call; instance members=off,on,register (index.d.ts declares register,on,off); end-to-end outcome=passed
+
+== FIGURES ==
+rows=17 cells=123 (annotations=0) PASS=110 FAIL=9 NOT-EXERCISABLE=4
+
+== ROW START/END ==
+E2E-C-1	START: a caller registers one pair at ['a'] and commits an admitted value there	FINAL: K-3 returns the passed arm; K-4/K-5 read the closed attempt back
+E2E-C-2	START: a caller commits a value that violates a pair whose repair runs and whose re-run then violates a pair carrying no repair	FINAL: K-3 throws KC-6; the composition performs its per-op calls
+E2E-C-3	START: a caller commits an over-large value whose repair clamps it in place	FINAL: K-3 returns passed with two ops and a four-entry log
+E2E-C-4	START: a caller commits an over-large value whose repair returns {ok:false, message}	FINAL: K-3 throws KC-4 with the attempt's own three-entry log
+E2E-C-5	START: three separate windows at one address, each with a pair whose repair lands a value another pair then violates	FINAL: KC-6 (alpha), KC-6 (beta), KC-5 (gamma); a second K-3 is KC-2
+E2E-C-6	START: a caller registers two pairs at one address, then calls a second K-2 there while the first attempt stands OPEN	FINAL: KC-2 on the stale record (holds); the second K-2 at the OPEN address
+E2E-C-7	START: a caller registers a pair at an ancestor and one at a descendant, then commits an object	FINAL: one pair reaches two different outcomes for two different values
+E2E-C-8	START: a caller registers a store listener at the address, commits there; its own loop then reads pending	FINAL: both windows resolve passed; the caller's own loop invokes nothing
+E2E-C-9	START: the app writes at ['a'] until the journal compresses, then registers a pair whose repair writes there and commits a violating value	FINAL: the walk reports exactly its own performed calls; the floor is read off the store's own answer
+E2E-C-10	START: one window drives the caller's own call, the other the delivery layer, on the same pair and value	FINAL: alpha and beta compared member for member
+E2E-C-11	START: two separate commits at one address, each over a pair whose repair runs	FINAL: both attempts resolve passed, each with its own repair-run entry
+E2E-C-12	START: a caller calls K-1 with an out-of-domain address, an empty id and a non-function	FINAL: three refusals, all the kernel's own tokens, registry unmoved
+E2E-C-13	START: a caller commits an out-of-domain tier, and a repair whose own write lands under a leaf	FINAL: the store's own codes at the verb calls; KC-4 from the kernel
+E2E-C-14	START: a caller reads K-4/K-5 over a closed, an unknown and three outside references	FINAL: KC-2 from the readers, never KC-7
+E2E-C-15	START: an outer processing at ['a'] and an inner one at ['a','b'], the latter opened and driven FIRST through the same store	FINAL: the inner attempt fails on its own address; the outer then fails on its own
+E2E-C-16	START: a caller registers a plain store listener, commits there, and its own loop reads pending	FINAL: pending holds the listener on no reading; the loop invokes nothing
+SURFACE	START: the module's own export list, the store package's own namespace, and one end-to-end call	FINAL: exactly five kernel items and eight store verbs

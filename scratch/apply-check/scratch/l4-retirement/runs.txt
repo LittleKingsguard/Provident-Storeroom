@@ -1,0 +1,31 @@
+# MEASURED RUNS — the WASM arm's retirement
+#   patch:    scratch/l4-retirement/wasm-retirement.diff   (89,558 bytes, 12 files)
+#   against:  HEAD 367fe78  ("D-171: the retirement path existed only in a docblock …")
+#
+# EVERY RUN WAS TAKEN IN A DETACHED WORKTREE OF HEAD WITH THE PATCH APPLIED, NEVER IN THE CHECKOUT ITSELF:
+#   git worktree add --detach scratch/l4-retirement/wt HEAD ; git apply wasm-retirement.diff
+#   CARGO_HOME=<checkout>/.cargo-home ; cargo target dir outside the repo (a symlinked wt/target) ; node_modules symlinked
+#
+# ★ THE ORDER IS LOAD-BEARING: node scripts/build-wasm-package.mjs BEFORE npm test, because
+# tests/e2e/wasm-arm.test.mjs's ensureBuilt() builds the arm ONLY WHEN ITS ARTEFACTS ARE ABSENT. A checkout whose
+# bindings/js/platforms/wasm/ still holds the PREVIOUS build answers the old 18-entry glue and reddens
+# CW-6 / CW-8 / CW-9 for the wrong reason. Measured on this tree before the rebuild: the staged glue exported 18
+# names and storeRelease was absent.
+
+node scripts/build-wasm-package.mjs   exit 0   @auspicion/provident-storeroom-js-wasm @ 1.13.0
+  staged entry set, counted off the instantiated glue (Object.keys, default/initSync excluded): NINETEEN
+  _delete errorMessage exportImage journalMark listen read readLiteral readTiered register
+  removeListener restoreMark rollback saveFailed saveSucceeded storeCreate storeRelease unlisten version write
+  commitFile: absent   storeRelease: present   _delete: present
+
+npm run build                         exit 0   (stage-addon: libstoreroom_js_binding.so -> bindings/js/build/Release/*.node)
+npm test                              exit 0   1379 tests · 1378 pass · 0 fail · 1 skipped
+                                                baseline before the patch on this tree: 1377 / 1376 / 0 / 1 skipped
+                                                => +2 cells (CW-8, CW-9), no existing cell weakened, skipped or deleted
+npm run typecheck                     exit 0   (tsc -p tsconfig.typecheck.json && tsc -p tsconfig.typecheck.nodenext.json)
+cargo test                            exit 0   22 `test result: ok` lines · 0 FAILED
+cargo check --target wasm32-unknown-unknown --manifest-path bindings/js/Cargo.toml
+                                      exit 0   0 errors
+
+git apply --check --whitespace=error <patch> on a clean detached copy of HEAD : exit 0
+git apply        <patch> on that copy, then `git diff` compared byte for byte with the patch : IDENTICAL

@@ -1,0 +1,1392 @@
+// `D-13` (`docs/L1/kernel-subdivision.md` §1 part `9d`) — the pass: bytes moved from `bindings/js/src/constraint-kernel.mjs`; no logic changed.
+import { KC, KC_TOKENS, SETTLED_ON_THE_PASSING_ARM, SAVE_FAILED_AT_THE_TERMINAL_ARM, TERMINAL_ARM, markBodyThrow, throwableForm, boundedEntryMessage, refuse, isKernelRefusal, pairSpelling, addressSpelling, sameAddress, kernelFor, append, appendOwn, ownMember, withdraw, pairsTriggered, triggeredNames, pairAppliesAt, enterCommitFrame, leaveCommitFrame, commitLogInFlight, sealHandoff } from './kernel-foundations.mjs';
+import { commitAttemptIdOf, terminal, close, dropHandoff } from './kernel-terminal.mjs';
+
+/// **⟶ ADDED 2026-10-28 — THE BUMP'S CHANNEL, SPELLED ON THIS SIDE TOO (`D-63`).** **THE PASSING SWEEP MOVES THE
+/// RESTORE MARK, AND THIS IS THE ONE FRAME THAT KNOWS WHERE THE PASSING VERDICT LANDS.** The key is a
+/// `Symbol.for` spelling, declared here and in `state.mjs` independently, **because this module's import footprint
+/// is EMPTY** (`kernel-surface.md §1` item 1: it imports no entry and is imported by none) — **the same device
+/// `TERMINAL_ARM`, `COMMIT_SCOPE`, `RESTART_DRAIN` and `EXTERNAL_CALL` cross by.** **NO KERNEL ITEM IS MINTED**
+/// (`kernel-surface.md §1` item 2: the extent stays FIVE), **NO EXPORT IS ADDED** (this binding is local) and
+/// **NO MEMBER IS ADDED** to the product (a symbol-keyed own property is invisible to `Object.keys` and to
+/// `Object.getOwnPropertyNames`; `A117` (D6)).
+///
+/// **THE RULING IT CARRIES, `D-63`, THE ARCHITECT, VERBATIM:** *"After the constraint sweep ends in a valid state,
+/// bump the restore mark. The passing constraint state marks the new next valid state."* **THE PLACEMENT IS THE
+/// WHOLE OF IT**, and the two boundaries are named at the call site below: **the passing verdict lands at
+/// `close(kernel, attempt, 'passed')`, the delivery begins at `settleArm`, and the bump stands between them.**
+const BUMP_MARK = Symbol.for('provident-storeroom.bump-mark');
+// ---------------------------------------------------------------------------------------------
+// `K-3` `runAttempt(store, commit) -> AttemptReport`
+// ---------------------------------------------------------------------------------------------
+/// **`D-44`'s CHANNEL, SPELLED ON THIS SIDE TOO** — `state.mjs`'s `installAttemptSeam` installs it and this
+/// module reads it, **and neither side imports the other**: the key is a `Symbol.for` spelling, the same device
+/// `SETTLED_ON_THE_PASSING_ARM`, `SAVE_FAILED_AT_THE_TERMINAL_ARM` and `TERMINAL_ARM` already cross this boundary
+/// by (`kernel-surface.md §1` item 1: this module's import footprint is EMPTY, so it cannot import `state.mjs`
+/// and must not).
+///
+/// **THE INVARIANT IS THE ARCHITECT'S, VERBATIM: *"There should be no state where a constraint is being checked
+/// without an open commit. Any action that would cause a constraint check should open a commit before
+/// beginning"*** (`strata/decisions.md` · `D-44`) — **and it is enforced HERE, at the one frame where a check
+/// runs, and not at the frame that called it**: a bracket taken in `constraintWrite` would be bypassed by every
+/// direct `K-2`/`K-3` drive, and *"a seam a driver can bypass is not an invariant."*  **SO THE PASS OPENS ITS OWN
+/// SCOPE, AND A STORE THAT CARRIES NO CHANNEL IS REFUSED RATHER THAN RUN UNCOMMITTED** — the invariant fails
+/// closed, `KC-2` (the kernel's own argument token, the one its other two store-mismatch arms answer with; no
+/// ninth token is minted, `fail-surface.md §2`).
+const COMMIT_SCOPE = Symbol.for('provident-storeroom.commit-scope');
+
+/// **⟶ `D-42`'s RESTART CONSUMER, REACHED ON THE SAME SEAM AND INSIDE THE SAME SCOPE — 2026-10-27.**
+///
+/// **`D-44`'s OWN TERMS DECLARED THIS OWED AND ITS IMPLEMENTATION DID NOT DELIVER IT**: *"If every check has a
+/// commit, every request has a consumer, and the consumer stops being a property of one call site."* **The
+/// request was still consumed by `constraintWrite`'s frame**, so a constraint body's `rollback` inside a pass
+/// driven straight through `K-2`/`K-3` — the window `D-44` itself emptied — raised a request no frame above it
+/// would ever consume, and the pair the reversal invalidated was never asked at the state the action left.
+///
+/// **THE REQUEST IS A STORE-SIDE FACT, SO ITS CONSUMER IS THE STORE'S OWN COMMIT SCOPE — ONE MECHANISM, NOT
+/// TWO.** `runAttempt` is, since `D-44`, THE universal caller of a pass (every check runs inside its scope), so
+/// it is the one frame every driver reaches; after its pass it asks the store to drain what the pass recorded,
+/// **inside the scope it already owns** — so the restarted check is itself a check with a commit open.
+/// **THE CHANNEL IS A `Symbol.for` KEY** (`state.mjs` installs it; this module spells it and imports nothing of
+/// the entry — `kernel-surface.md §1` item 1's empty import footprint), **and NO KERNEL ITEM IS MINTED**
+/// (`§1` item 2: `K-1`–`K-5` and no sixth name).
+const RESTART_DRAIN = Symbol.for('provident-storeroom.restart-drain');
+
+/// **`D-54` (b)'s SECOND SPELLING OF THE SAME `Symbol.for` KEY** — the entry writes the restarted check's
+/// refusal onto the report under it (`constraints.mjs`'s `carryRestartRefusal`) and this module reads it back
+/// so the failing arm can answer with the very value the terminal judgement built, exactly as the passing arm
+/// reaches it through `constraintWrite`. **NEITHER SIDE IMPORTS THE OTHER** (`kernel-surface.md §1` item 1's
+/// empty import footprint), the key is invisible to `Object.keys` and to `Object.getOwnPropertyNames`
+/// (`A117` (D6)), and no kernel item is minted (`§1` item 2: `K-1`–`K-6` and no seventh name).
+const RESTART_REFUSAL = Symbol.for('provident-storeroom.restart-refusal');
+
+/// **⟶ `D-54` (b)'s COMPENSATION FLAG — the same `Symbol.for` key `constraints.mjs` spells.** The kernel's
+/// terminal act composes the attempt's rollback THROUGH THE APP'S PUBLISHED `rollback` MEMBER
+/// (`kernel-terminal.mjs`'s `composeRollback`), so that call would otherwise take a restart watch and raise a
+/// request — a phantom the failing pass's drain would then judge, asking pairs at the state the compensation
+/// had just restored to. **`D-42` declares the rule the flag keeps: *"a restart is only ever raised by a
+/// consumer's own `rollback` member call."*** The flag stands on the kernel record for the duration of the one
+/// call, is a symbol key (invisible to `Object.keys`/`Object.getOwnPropertyNames`, `A117` (D6)), and mints no
+/// kernel item (`kernel-surface.md §1` item 2).
+const COMPENSATING = Symbol.for('provident-storeroom.compensating-rollback');
+
+/// **THE KERNEL'S ONE TERMINAL ACT, TAKEN WITH ITS COMPENSATION FLAGGED** — the wrapper every terminal call in
+/// this module uses so the composition inside `terminal` is never mistaken for an action of the caller's.
+function terminalComposed(kernel, attempt, status, message) {
+  kernel[COMPENSATING] = true;
+  try {
+    terminal(kernel, attempt, status, message);
+  } finally {
+    kernel[COMPENSATING] = false;
+  }
+}
+
+/// **⟶ ADDED 2026-10-27 — `D-46`'s NAME ON AN INVOCATION'S OWN ENTRY, AND IT IS THIS PASS'S ONE USE OF THE
+/// SEAM'S SIXTH CHANNEL.** **THE RULING, THE ARCHITECT, VERBATIM: *"A constraint's repair needs to stay as part
+/// of the same commit so that it can be tracked as part of the commit process … The original way of maintaining
+/// this was to accept an optional parameter on entry for the commit id, so that a constraint can identify which
+/// open commit it is repairing"*** (`strata/decisions.md` · `D-46`). **SO THE KERNEL NAMES THE ATTEMPT'S COMMIT
+/// WHEN IT INVOKES A REPAIR**, and the write that repair body makes — at `write`'s THREE positions, supplying
+/// nothing — **JOINS the attempt's commit instead of opening a second one**: its op is the attempt's op, the
+/// attempt's log carries the `repair-run` entry naming it, and **`attempt-opened` fires no second time for it,
+/// because a repair is not a new act** (`tests/e2e/repair-in-commit.test.mjs` prints both).
+///
+/// **AND THE TWO HALVES `D-45` MARKED AS OWNERS ARE UN-MARKED HERE, BY NAME**: this file's arm (b) and
+/// `kernel-registration.mjs`'s state `3` invoked the repair body through the entry's `externalCall`, which names
+/// nothing and is therefore the OPENS arm; the body is now reached through the channel with the commit at its
+/// second position. **A REPAIR IS NOT EXTERNAL CODE CLAIMING A COMMIT OF ITS OWN — IT IS PART OF THE ATTEMPT
+/// BEING TRACKED**, which is the one thing `D-45`'s authorship rule had wrong (`D-46` item `2`).
+///
+/// **THE KEY IS A `Symbol.for` SPELLING AND NEITHER SIDE IMPORTS THE OTHER** (`kernel-surface.md §1` item 1's
+/// empty import footprint; the device `COMMIT_SCOPE` and `RESTART_DRAIN` are declared under above), **NO MEMBER
+/// IS ADDED TO ANY RECORD AND NONE TO THE PRODUCT** (`A117` (D6)), and **no kernel item is minted** (`§1`
+/// item 2: `K-1`–`K-6` and no seventh name). **A STORE THAT CARRIES NO SUCH CHANNEL ANSWERS THE INVOCATION WITH
+/// NOTHING NAMED**, so the repair's write opens its own commit — the rule's absent arm and the conservative
+/// side, never a commit nobody named.
+const EXTERNAL_CALL = Symbol.for('provident-storeroom.external-call');
+
+/// **THE INVOCATION OF A REPAIR BODY, WITH THE ATTEMPT'S COMMIT NAMED ON ITS ENTRY** — one call, its answer the
+/// body's own, and a throwable crosses unchanged.
+///
+/// **⟶ AND THE FRAME THAT READS THE CHANNEL IS THE FRAME THAT KNOWS THE BRACKET STOOD, 2026-11-01 — `D-104`'s
+/// FIRST GUARD** (`docs/L1/repair-listener-delivery.md` §3.2). The channel is `writable`/`configurable` by
+/// declaration (`state.mjs`) and a caller can read `EXTERNAL_CALL` away: then this frame takes its `run()`
+/// fallback with NO bracket, nothing is appended to any leg list — **and a bare read of the leg channel would
+/// answer a PREVIOUS invocation's legs.** **SO THE FACT IS CARRIED OUT OF THIS FRAME ON THE CALLER'S OWN
+/// `invocation` OBJECT (`bracketed`), and the arm reads the channel only where it is `true`.**
+///
+/// **⟶ AND IT IS EXPORTED FROM 2026-11-02, FOR ITS SECOND CALLER — `D-113` ITEM 3's REPAIR ARM AT THE REVERSAL'S
+/// JUDGEMENT** (`bindings/js/src/entry/constraints.mjs`'s `judgeReversal`). **ONE KEYWORD, ON THE PRECEDENT
+/// `sites.md §1.5` set for `composeRollback`** (*"it is EXPORTED for its second caller — the part's export list
+/// gains one name and the barrel that publishes the kernel's six does not re-export it"*): `bindings/js/src/
+/// constraint-kernel.mjs` keeps its four lines and its six names, no kernel item is minted (`kernel-surface.md
+/// §1` item 2's `K-1`–`K-6` stand), and no member, arity or entry moves. **THE BODY MOVES NO BYTE**, and the
+/// commit it names at that second caller is the judgement's own (`state.mjs`'s `openCommit` joins where the count
+/// already stands, so a repair's write joins the judgement's commit instead of opening a second one — `D-46`,
+/// `D-53`).
+export function repairInCommit(store, commit, run, invocation) {
+  const channel = store !== null && typeof store === 'object' ? store[EXTERNAL_CALL] : undefined;
+  if (typeof channel === 'function') {
+    invocation.bracketed = true;
+    return channel(run, commit);
+  }
+  return run();
+}
+
+/// **⟶ AND THE CONSTRAINT BODY'S INVOCATION NAMES THE ATTEMPT'S COMMIT TOO — `D-53`, 2026-10-28.**
+///
+/// **THE RULING, VERBATIM: *"Constraints/Repairs should always use the same commit"*** (`strata/decisions.md` ·
+/// `D-53`). **THE INVARIANT THIS FRAME NOW KEEPS IS `D-45`'s *"it should be opening a new commit by default of
+/// entering at the surface"* READ THROUGH `D-53`'s LATER AND NARROWER ONE: a call that NAMES a commit JOINS it,
+/// and a call that names none opens one — and the kernel names the attempt's commit at EVERY invocation of
+/// caller code that belongs to the attempt, a constraint body's as well as a repair body's** (`D-46`'s device,
+/// applied to the second kind of body). **SO A CONSTRAINT NEVER OPENS A COMMIT: the check it is invoked for is
+/// already inside one (`D-44`'s scope) and this name is what makes its verb JOIN that window instead of opening
+/// a second.** **THE LOG IS THE SAME FACT SEEN FROM THE OTHER SIDE**: the entries such a verb mints are the
+/// attempt's own commit's entries, which is what `DEF-AK` measures — *"one inner refusal, two hosts"* — and what
+/// `D-53` dissolved `D-52`'s merge question with (*"the crossed report IS that list"*).
+///
+/// **A LISTENER BODY STILL NAMES NOTHING, AND THAT IS THE INVARIANT AND NOT AN OMISSION**: it is invoked by the
+/// ENTRY at the terminal arm, after the triggering commit has passed its constraints, so *"what the listener
+/// does is a NEW QUESTION and must not inherit the old verdict"* — its own commit, its own list.
+function constraintInCommit(store, commit, run) {
+  const channel = store !== null && typeof store === 'object' ? store[EXTERNAL_CALL] : undefined;
+  if (typeof channel === 'function') return channel(run, commit);
+  return run();
+}
+
+/// **⟶ ADDED 2026-11-01 — `D-104`'s CARRIER, SPELLED ON THIS SIDE TOO: THE LEGS OF THE INVOCATION THAT CLOSED
+/// LAST** (`docs/L1/repair-listener-delivery.md` §3.2; `strata/decisions.md` · `D-104` item `3`'s mechanism
+/// `(a)`). `state.mjs`'s `installAttemptSeam` installs it on the instance and this module reads it, **and neither
+/// side imports the other**: the key is a `Symbol.for` spelling, the same device `COMMIT_SCOPE`, `RESTART_DRAIN`,
+/// `EXTERNAL_CALL` and `BUMP_MARK` above cross by (`kernel-surface.md §1` item 1: this module imports no entry and
+/// is imported by none). **NO KERNEL ITEM IS MINTED** (`§1` item 2's extent stands), **NO EXPORT IS ADDED** (this
+/// binding is local) and **NO MEMBER IS ADDED** to the product or to any record (`A117` (D6)).
+///
+/// **THE SUBJECT IS ONE FACT: the WRITES of the invocation that closed last** — the entry appends one element per
+/// write at `write`'s leg seat and the channel ANSWERS AND CLEARS them, so the read below can only ever answer the
+/// invocation this arm just made. **A STORE THAT CARRIES NO SUCH CHANNEL ANSWERS NOTHING** (the family's
+/// conservative absent arm, the one `bumpMark` takes).
+///
+/// **⟶ AND THE ELEMENT'S SHAPE IS `{ op, triggered }` FROM 2026-11-01 — `D-105`** (`docs/L1/op-free-repair-credit.md`
+/// §2.2; `state.mjs`'s `appendRepairLeg`): one element per WRITE, carrying **that write's own journal `op`** beside
+/// the elements it returned. **WHAT MOVED IS THE ELEMENT AND NOT ONE BYTE OF THE TWO GUARDS OR OF THE READ BELOW**:
+/// the entry still appends into the innermost open bracket, the bracket still closes in the same `finally`, and the
+/// channel still answers and clears in the same read.
+const REPAIR_LEG = Symbol.for('provident-storeroom.repair-leg');
+
+/// **THE TWO GUARDS AND THE READ — ONE FUNCTION, BECAUSE ALL THREE FACTS ARE ABOUT THE ONE INVOCATION**
+/// (`docs/L1/repair-listener-delivery.md` §3.2's invocation guard and §3.4a's nested-attempt guard).
+///
+/// **GUARD (i) — THE READ IS TAKEN ONLY WHERE THE INVOCATION'S OWN BRACKET STOOD** (`invocation.bracketed`,
+/// set by `repairInCommit` above and by nothing else): with no bracket the append went nowhere, so the channel
+/// would answer an EARLIER invocation's legs and they would be merged into this commit's member.
+///
+/// **GUARD (ii) — THE LIST IS DROPPED WHERE A NESTED ATTEMPT WAS OPENED ACROSS THIS INVOCATION.** A repair body's
+/// **unnamed** write (`D-103`'s unsupported route) and a **constraint body's** write both take the three-position
+/// route to `constraintWrite` → a SECOND `K-2` — so **that nested commit's handles append to THIS invocation's
+/// list while its own attempt's terminal arm delivers them**, and merging them here would invoke a caller's body
+/// **twice**. **THE COUNTER IS THE KERNEL'S OWN** (`kernel.attempts`, one increment per `K-2` and per
+/// `commitRemoval`), read before the body is invoked and after it returned: **where it has moved, the list is
+/// DROPPED and the nested attempt's own delivery stands as the whole of that act's delivery.** **AND THE GUARD IS
+/// EXACT, NOT CONSERVATIVE, ON THE SUPPORTED ROUTE**: a repair that names its commit (`D-46`, `D-103`) makes a
+/// FOUR-position call that JOINS, opens no attempt and leaves the count unmoved — so every supported repair's legs
+/// reach the merge.
+///
+/// **A CHANNEL THAT THROWS ANSWERS NOTHING** — `D-35`'s read half read for a hand-over, and the same conservative
+/// side `bumpMark` answers on its own throwing arm: the commit then merges no repair element and delivers exactly
+/// what it delivered before the fix.
+///
+/// **⟶ AND IT IS EXPORTED FROM 2026-11-02, FOR THE SAME SECOND CALLER — `D-113` ITEM 3, `D-104`'s TWO GUARDS READ
+/// AT THE JUDGEMENT'S REPAIR ARM** (the carrier's `§3` (iii) 3 and `§3` (iv): *"the legs are read through `D-104`'s
+/// two guards, which are the pass's, and are carried unchanged"*). **THE ALTERNATIVE IS REFUSED AND PRICED**:
+/// reading the `REPAIR_LEG` channel from `constraints.mjs` would re-implement `invocation.bracketed` and
+/// `kernel.attempts` there — **two guards, a second copy, and the drifting-mechanism hazard `D-110` item 2
+/// forbids**. **ONE KEYWORD AND NO OTHER BYTE**: the barrel keeps its four lines and six names, and the element
+/// shape, the guards, the read and the clear are exactly what they were.
+export function repairLegs(store, kernel, invocation, attemptsBefore) {
+  if (invocation.bracketed !== true) return [];
+  if (kernel.attempts !== attemptsBefore) return [];
+  const channel = store !== null && typeof store === 'object' ? store[REPAIR_LEG] : undefined;
+  if (typeof channel !== 'function') return [];
+  try {
+    const legs = Reflect.apply(channel, store, []);
+    return Array.isArray(legs) ? legs : [];
+  } catch (unanswered) {
+    return [];
+  }
+}
+
+export function runAttempt(store, commitRecord) {
+  // THE SEAM, READ BEFORE ANY STATE MOVES: **a store this package did not build carries no such channel, so it
+  // is not this package's store and no pass of this kernel may run against it.** The refusal is thrown BEFORE
+  // `status` moves, before an entry is appended and before a body is invoked, so a caller's attempt stands
+  // exactly as it stood and nothing is evaluated outside a commit.
+  const scope = store !== null && typeof store === 'object' ? store[COMMIT_SCOPE] : undefined;
+  if (typeof scope !== 'function') {
+    refuse(KC.arg,
+      'the store this constraint attempt would be run against carries no commit-scope channel, so there is no '
+        + 'open commit a constraint could be checked in',
+      []);
+  }
+  // **THE PASS, ITS WHOLE TERMINAL ACT AND THE RESTART, ALL TAKEN INSIDE THE ONE COMMIT WINDOW** — and the
+  // drain is reached ONLY where the pass answered a report: a failing pass throws out of the thunk below, so
+  // `D-42` item `2`'s *"the restart runs on the passing arm of the terminal call alone"* is now the shape of
+  // this function rather than a `catch` in a caller.
+  // **⟶ AND THE SCOPE IS HANDED THE PASS'S OWN COMMIT, 2026-10-27 (`D-46`): THE NAME IS THE RECORD `K-2` BUILT,
+  // so the pass's window JOINS the commit the attempt is tracked in** on the production path (the caller's
+  // `write` opened it and its kernel leg joined it) **and OPENS the one commit the pass owes** where nothing is
+  // open — a direct `K-2`/`K-3` drive, `D-44`'s window. **NO COUNT IS MINTED EITHER WAY**: the channel is
+  // `openCommit`/`closeCommit` composed, and the count moves only where this call's own opening is the one that
+  // took it.
+  // **⟶ AND A FAILING PASS'S TERMINAL STATE IS STILL A JUDGEMENT — `D-54` (b), 2026-10-28, MEASURED.** The bytes
+  // above reached the drain only where the pass ANSWERED A REPORT, so a pass that ended by throwing — a repair
+  // body that reversed the store had then broken the attempt's own re-run, or a delete's pass whose pair
+  // refused after its delivery's reversal — left the request its bodies raised standing, unjudged, with its
+  // effect in the store. **THE REQUEST IS CARRIED TO THE PASS'S TERMINAL JUDGEMENT**: the terminal act has run
+  // and the attempt is closed, so the state the pass left is the state the restarted check is asked at, and the
+  // drain runs here, inside the same scope, exactly as it does on the passing arm. **THE FAILING PASS'S OWN
+  // ANSWER IS NOT RE-SHAPED**: where the restarted check passes, or where the throwable is not the kernel's own
+  // (a caller body's value, a store refusal — each of which must cross as itself), the pass's throwable crosses
+  // unchanged. Only a KERNEL refusal — the pass's own terminal arm — is superseded by the refusal the restarted
+  // check built at that same terminal state, because that check's verdict is the state the pass left.
+  return scope(() => {
+    let report;
+    try {
+      report = passInCommitScope(store, commitRecord);
+    } catch (thrown) {
+      return drainFailingPass(store, commitRecord, thrown);
+    }
+    // **⟶ AND THE RECORD IS SEALED AT THE HANDOFF — `D-55` item 6, `DEF-AO`, 2026-10-28.** The drain above is
+    // the LAST act of closing out (it amends the report's own `outcome` and appends the refusal's entry to the
+    // report's list BEFORE this line), so what the seal freezes is the record the driver receives and no record
+    // in flight: `report.log` and the report are `Object.freeze`d, and a later act can neither append to the
+    // commit's list nor re-member the report. **A PASSING ARM IS SEALED TOO** — its list is handed off once.
+    // **⟶ AND THE DROP FOLLOWS THE SEAL — `D-58`'S SECOND DEMAND, 2026-10-28.** The seal is the handoff: the
+    // record the driver receives is frozen here and is ITS record from this instant. **The store then lets go of
+    // what it handed over** (`dropHandoff`): the closed map keeps the outcome, the ops and the reversal's record,
+    // and the message log — the commit's one list — stops being retained. **The handed-off record is untouched by
+    // it, which is what makes the handoff single-copy.**
+    const sealed = sealHandoff(drainRestart(store, report), commitLogInFlight(kernelFor(store)) !== null);
+    dropHandoff(kernelFor(store), sealed);
+    return sealed;
+  }, commitRecord);
+}
+
+/// **THE FAILING PASS'S DRAIN — `D-54` (b)'s ONE NEW CALL SITE.**
+///
+/// **WHY THE REPORT IS READ AND NOT BUILT**: the pass's terminal act (`kernel-terminal.mjs`'s `terminal`) has
+/// already answered the attempt's ONE five-member report and placed it in the kernel's closed map before it
+/// throws, so the log the drain re-appends onto is the attempt's own list and no second report is minted
+/// (`A117` (D6): no member is added to any record). **A THROWABLE THAT STOOD BEFORE ANY TERMINAL ACT — `KC-2`,
+/// a re-entrant `KC-7`, a store refusal at `K-2` — has no closed report and no request of this pass's window
+/// either**, so it crosses unchanged and the drain is not reached: no pass ran.
+///
+/// **THE ONE PRECEDENCE RULE, STATED ONCE**: a restarted check's refusal supersedes the pass's answer only
+/// where that answer is the KERNEL's own (a `KC`-tokened refusal, `isKernelRefusal`). A constraint body's
+/// throwable is the caller's and crosses as itself (`fail-surface.md §1.1` item `5`), a store verb's refusal
+/// crosses verbatim (`§1.2` item `2`), and neither is re-shaped by a later check's verdict — the request is
+/// still judged and the store still restored by that judgement's own compensating act.
+function drainFailingPass(store, commitRecord, thrown) {
+  // **⟶ THE KEY IS THE ATTEMPT THE RECORD CARRIES — `D-175`** (`CommitRecord.attempt` is the ref).
+  const closed = commitRecord !== null && typeof commitRecord === 'object'
+    && commitRecord.attempt !== null && typeof commitRecord.attempt === 'object'
+    ? kernelFor(store).closed.get(commitRecord.attempt)
+    : undefined;
+  if (closed === undefined) throw thrown;
+  const answered = drainRestart(store, closed);
+  // **⟶ THE FAILING ARM'S RECORD IS SEALED AT ITS OWN HANDOFF — `DEF-AO`.** The drain has already amended the
+  // closed report if the restarted check refused, so the seal stands before this arm picks which value crosses:
+  // the restarted refusal and the pass's own throwable both carry the SAME frozen list (`D-53`), and neither
+  // can be appended to after this line.
+  sealHandoff(answered, commitLogInFlight(kernelFor(store)) !== null);
+  // **AND THE FAILING ARM'S DROP IS THE SAME ACT — `D-58`.** The refusal about to cross carries the list the
+  // client was handed (`D-54` (b)); what the store retains stops holding it. **THE REFUSAL IS READ OFF THE
+  // SEALED RECORD FIRST** (`RESTART_REFUSAL` below), because the dropped record is the store's and the refusal is
+  // the client's.
+  const restarted = answered !== null && typeof answered === 'object' ? answered[RESTART_REFUSAL] : undefined;
+  dropHandoff(kernelFor(store), answered);
+  if (restarted !== undefined && isKernelRefusal(thrown) === true) throw restarted;
+  throw thrown;
+}
+
+/// **THE DRAIN, TAKEN INSIDE THE SCOPE THE PASS JUST ENDED IN.** It hands the store **the report the pass
+/// answered with** and answers the report the kernel returns: unchanged where no request stood or the
+/// restarted check passed, and amended — `outcome` `'failed'` and the refusal's entry in the log — where the
+/// restarted check refused. **THE REFUSAL IS NOT THROWN OUT OF HERE**: it is a later check's, not this pass's,
+/// and a driver that is not the entry (a direct `K-3`) learns it from the report. `constraintWrite` — the
+/// entry — is the frame that refuses on the write's path, with the very value the report carries.
+///
+/// **A STORE THAT CARRIES NO DRAIN CHANNEL ANSWERS ITS REPORT UNCHANGED**, which is also a store no pass of
+/// this package could have raised a request on: the channel is installed by the same seam the scope above is.
+function drainRestart(store, report) {
+  const drain = store !== null && typeof store === 'object' ? store[RESTART_DRAIN] : undefined;
+  if (typeof drain !== 'function') return report;
+  return drain(report);
+}
+
+/// **THE PASS AND ITS WHOLE TERMINAL ACT, TAKEN INSIDE THE COMMIT WINDOW `D-44` REQUIRES.** The scope covers
+/// everything a check reaches — the landing's pass, every re-run, the residue's delivery and the `file`-tier save
+/// — so a body of a delivered set, a repair and a pair body are all invoked in a window. **ON THE PRODUCTION PATH
+/// THE SCOPE JOINS THE VERB'S OWN COMMIT AND MOVES NOTHING** (`state.mjs`'s `openCommit` answers `false` where the
+/// count already stands above zero, which is `§4.1`'s join rule); **on a DIRECT `K-2`/`K-3` DRIVE IT OPENS THE ONE
+/// THE PASS OWES AND CLOSES ONLY THAT**, so the state *"no open commit, one open attempt"* — `D-44`'s direct-pass
+/// window — no longer exists on any path.
+function passInCommitScope(store, commitRecord) {
+  const kernel = kernelFor(store);
+  const id = commitAttemptIdOf(commitRecord);
+  const attempt = kernel.live.get(id);
+  if (attempt === undefined) {
+    // A CLOSED or UNKNOWN attempt is KC-2 — and NEVER KC-7, whose `K-3` site is the RE-ENTRANT call
+    // for a LIVE attempt (`fail-surface.md §2`'s KC-2 row; `kernel-surface.md §2.3` item 3).
+    refuse(KC.arg, `no open constraint attempt answers to ${id}`, []);
+  }
+  // `kernel-surface.md §2.1` item 3's `RD-9` CLAUSE, READ WITH `attempt-lifecycle.md §2.4` item 1: the
+  // `AttemptRef` is MINTED BY THE KERNEL INSTANCE (its `id` "unique within the kernel instance"), so a
+  // `CommitRecord` whose attempt was opened by ANOTHER instance names an attempt THE KERNEL INSTANCE
+  // HANDED THE RECORD HOLDS NONE FOR. That call is THIS refusal — `KC-2`, NO STATE MOVED AND NO ENTRY
+  // APPENDED — and NEVER a run of another instance's attempt: the attempt's own `store` is the instance
+  // its `K-2` reached, and what is refused here is refused BEFORE `status` moves, so the caller's own
+  // attempt stands OPEN, its pair unevaluated, and its address held by ITS OWN run alone (item 4's
+  // unconstrained-argument clause is declared for `K-4`/`K-5` and is not widened to `K-3`).
+  if (attempt.store !== store) {
+    refuse(KC.arg,
+      `no open constraint attempt answers to ${id}: it was opened through another store instance`,
+      []);
+  }
+  if (attempt.status === 'running') {
+    // THE RE-ENTRANT `K-3`, refused by the SAME `KC-7` member a live address answers with.
+    refuse(KC.attemptOpen,
+      `the constraint attempt at ${addressSpelling(attempt.address)} is already running`, [], attempt.address);
+  }
+
+  attempt.status = 'running';
+  const terminalArm = runToCompletion(kernel, attempt);
+  if (terminalArm !== null) {
+    // A FAILING LANDING: the arm's own terminal act, its per-op rollback composition, and the throw
+    // of `fail-surface.md §1.1`'s form carrying the log.
+    terminalComposed(kernel, attempt, terminalArm.status, terminalArm.message);
+    // **⟶ INSTANT (b) ON THE FAILING ARM, AND IT PRECEDES THE REFUSAL** (`docs/decisions.md` · `A116`
+    // (D1); `surface.md §2.4` item 9's table row (b): *"AT THE PASS'S TERMINAL ARM … after the last
+    // constraint of the attempt has been evaluated and before `runAttempt` returns to the calling
+    // process"*). The attempt is already CLOSED and the DISCARD has already emptied the member
+    // (`attempt-lifecycle.md §2.4` item 8 (i) (5); `terminal` above), so the residue this seam reads
+    // stands EMPTY and the arm delivers ZERO — *"on a write that fails on constraints THE OTHER LISTENERS
+    // ARE DISCARDED"* (`§2.7` item 6, read at item 7 (d)) — while the delivery itself is still owed at
+    // this instant and is taken HERE rather than skipped, because the residue and not the arm decides
+    // what it reaches (`§2.7` item 7 (c): *"the empty delivery is a NO-OP AND NOT A FAILURE"*).
+    settleArm(store, attempt);
+    // THE ARM IS READ OFF THE CLOSED ATTEMPT WHERE THE COMPOSITION'S OWN FLOOR OVERRODE IT: a still-owed
+    // op's call meeting `RollbackCompacted`/`JournalOpUnknown` is `KC-8` and not the pass's own arm
+    // (`composition-and-states.md §2.6` item 5 (b); `KC-8`'s own row).
+    refuse(attempt.throwState, attempt.throwMessage, attempt.log, attempt.address);
+  }
+
+  // THE SUCCESS ARM: the registry entry removed and the five-member report — **AND THE `commit` ENTRY IS
+  // NOT APPENDED HERE** (`DEF-2026-10-16-B`; `kernel-surface.md §2.1` item 3's `LogKind` table: `commit`
+  // = "the attempt's SUCCESS arm, appended once"; `composition-and-states.md §2.7` items 5 and 7 put it on
+  // the PASSED arm's own sequence). The save is A CONSTRAINT EVALUATED LAST (`surface.md §2.11` clause 5),
+  // so an arm that appends this entry BEFORE the save's own instant appends it on an arm whose save may
+  // not stand — and the entry's own declared text then LIES beside the `outcome` entry the failure arm
+  // appends (`§2.1` item 4 (ii)). **THE APPEND THEREFORE FOLLOWS THE SAVE'S OWN SUCCESS**, below: it stands
+  // on the passing arm alone, appended once, and it closes that arm's log.
+  const closed = close(kernel, attempt, 'passed');
+  // **⟶ AND THE SWEEP'S PASSING VERDICT MOVES THE RESTORE MARK — `D-63`, 2026-10-28, AND THIS LINE IS THE WHOLE OF
+  // IT.** **THE RULING, THE ARCHITECT, VERBATIM:** *"After the constraint sweep ends in a valid state, bump the
+  // restore mark. The passing constraint state marks the new next valid state."*
+  //
+  // **THE TWO BOUNDARIES, MEASURED SO THE PLACEMENT IS A READING AND NOT A CHOICE.** **THE SWEEP'S PASSING VERDICT
+  // LANDS ON THE LINE ABOVE** — `close(kernel, attempt, 'passed')`: every constraint of the attempt has been
+  // evaluated, the pass returned its success arm, and the state the store holds at this instant is the state the
+  // sweep VALIDATED. **THE DELIVERY BEGINS AT `settleArm` BELOW** — the entry's terminal arm and, inside it, the
+  // `file`-tier save and then `deliver`, which is the FIRST frame that invokes a listener body. **THIS CALL STANDS
+  // BETWEEN THEM, AND THE GAP IS WHERE A REPAIR AND A LISTENER ARE ON DIFFERENT SIDES** (`D-60`'s two halves by
+  // position): **a repair's write is *during* the sweep, so a sweep that refuses it never reaches this line and a
+  // refusal undoes it with the write; a listener's write is *after* it, in the delivery, so it is beyond the
+  // validated position and the outer's restore does not reach it.**
+  //
+  // **A COMMIT THAT NEVER PASSES A SWEEP REACHES NO LINE OF THIS ARM** — the failing terminal arm returned above —
+  // **so its mark stays the one its opening cached, and its refusal restores to the state the commit FOUND**, which
+  // is today's behaviour and stays for that case. **THE POSITION IS THE STORE'S OWN ANSWER AND NOTHING IS COMPOSED
+  // HERE**: the channel takes no argument, `state.mjs` re-reads the store's `journalMark` at THIS instant, and a
+  // store carrying no such channel (or one whose key a caller overwrote) bumps nothing — so no passing write is
+  // turned into a host error by this line and no kernel item, export or member is minted.
+  bumpMark(store);
+  // **⟶ INSTANT (b) ON THE PASSING ARM — THE ORDERING LAW'S WHOLE POINT** (`docs/decisions.md` · `A116`
+  // (D1); `surface.md §2.7` item 6): *"for a write, the surface runs the write's TRIGGERED CONSTRAINTS
+  // FIRST, and THE OTHER LISTENERS ARE REACHED ONLY ONCE EVERY CONSTRAINT HAS PASSED"*. Every constraint
+  // of this attempt has now been evaluated — the pass reached its terminal arm — and the delivery follows
+  // it, at THIS instant, before this item returns to the calling process. The attempt is closed FIRST so
+  // that a listener body's own kernel act meets a disposed attempt rather than a live one.
+  //
+  // AND THE PASS'S OWN CHECK-OFFS ARE PUBLISHED HERE, BEFORE THE SEAM IS REACHED (`A117` (D5)): the
+  // identities this attempt's pass evaluated and checked off are what the terminal arm resolves beside
+  // the residue, so that a registration standing at one of those identities' addresses — the firing the
+  // check-off did NOT consume — is delivered ONCE at this instant (`§2.7` item 6). It is placed on the
+  // PASSING arm ALONE: the failing arm above delivered nothing and published nothing.
+  publishCheckedOff(attempt);
+  // **⟶ AND THE PASSING ARM'S OWN MARK IS TAKEN WITH THEM** (`SETTLED_ON_THE_PASSING_ARM` above;
+  // `surface.md §2.11` clause 2): the seam's terminal arm performs the store's `file`-tier commit on THIS
+  // arm alone — *"the `file` tier, the TERMINAL ARM and the PASSING ARM alone"* (clause 1) — and the
+  // failing arm above reaches the same `settle` call with the same record in hand and owes no save.
+  if (attempt.record !== undefined) {
+    attempt.record[SETTLED_ON_THE_PASSING_ARM] = true;
+  }
+  // **⟶ AND THE SAVE IS A CONSTRAINT EVALUATED LAST, SO THE PASS THAT FAILED REPORTS IT** (`surface.md
+  // §2.11` clause 5; `kernel-surface.md §2.1` items 3–5; `fail-surface.md §1.1` items 1 and 3;
+  // `composition-and-states.md §2.6` item 3). **THIS IS THE ONE ARM ON WHICH THE PASSING ARM'S OWN FIRST
+  // ACT FAILS**, and the clause reads it exactly as it reads every other failing landing: *"a save that
+  // fails IS A CONSTRAINT VIOLATION"*, `ok === false`, the log gains the ONE `outcome` entry, and the
+  // report is the run's answer and never the passing arm's.
+  //
+  // **THE ARM IS READ OFF THE IDENTITY THE SEAM MARKS AND OFF NOTHING ELSE** (`SAVE_FAILED_AT_THE_TERMINAL_
+  // ARM` above): a BODY OF THE DELIVERED SET that throws is NOT this arm — `§2.7` item 4 leaves it NOT
+  // caught, not retried and not reported — so it is rethrown with the attempt standing just as it stood.
+  //
+  // **THE TERMINAL ACT IS THIS MODULE'S ONE TERMINAL ACT, TAKEN VERBATIM** (`terminal` below): the per-op
+  // rollback composition FIRST — ROLLBACK FIRST, MESSAGE SECOND — then the attempt's ONE `outcome` entry,
+  // whose `state` is the token the composition's own floor decides (`KC-8` where the still-owed op's call
+  // meets the store's own `JournalOpUnknown`, the failed save's arm being the store's own `§7.2` item 3
+  // rollback and the entry it rolled back being gone) and the pass's own token `KC-3` where no floor is met.
+  // **THE CALLER MEETS NEITHER FORM**: the store's verb produced this failure, so its code crosses on the
+  // STORE's channel, in the store's own two-member form, VERBATIM AND UNCONVERTED (`§1.2` item 2) — the
+  // kernel's token standing in the `outcome` entry's `state` — and THE VERY THROWABLE THE SEAM REWROTE is
+  // what leaves this call.
+  try {
+    settleArm(store, attempt);
+  } catch (saveFailure) {
+    if (attempt.record === undefined
+      || attempt.record[SAVE_FAILED_AT_THE_TERMINAL_ARM] !== saveFailure) {
+      throw saveFailure;
+    }
+    // **AND THE PIN THE PASSING ARM TOOK IS RELEASED WITH IT** (`composition-and-states.md §2.6` item 3's
+    // `checkpoint` member's own domain, read at item 8 (iii); item 1's filter; item 2's *"WHERE THE ATTEMPT
+    // PASSED NO CHECKPOINT, THE CALL LIST IS ITEM 2'S OWN — THE WHOLE LIST"*). **THE MEMBER IS *"the opId of
+    // the op whose LANDING left the attempt's LAST VALID STATE, or null where no such landing exists FOR
+    // THAT ADDRESS"*** — and on THIS arm no landing of this attempt left one: the store's own failure arm
+    // has ALREADY restored the pre-state and popped the entry (`src/store.rs`'s `commit_file`; `§8.1` #15;
+    // clause 5's ROLLBACK FIRST), so the pass's own pin stood on a landing the save unsaid. **THE PIN IS
+    // THEREFORE `null` AND THE COMPOSITION'S CALL LIST IS THE WHOLE OF `ops`** — item 1's filter excludes
+    // the op a `null` member names from nothing — so the per-op call THIS ARM OWES IS ISSUED and its step
+    // stands in the report's `rollback`: *"the report carries the rollback that actually happened"*
+    // (`§2.6` item 3). Where the pinned op still stands in the store the call returns and the step records
+    // `'ok'`; where the failed save's own rollback took it the store answers `JournalOpUnknown` and the
+    // composition's floor reads `KC-8` in the ONE `outcome` entry (item 5 (b); item 6 (a)).
+    attempt.checkpoint = null;
+    // **⟶ AND THE ARM'S TOKEN IS THE SET'S NINTH MEMBER, `KC-9` — `D-53`'s THIRD RULING, 2026-10-28: *"Open the
+    // token set"*.** **`D-52` MEASURED THE CONTRADICTION THIS CLOSES**: *"a constraint refusal crosses
+    // `ConstraintPassRefused` with terminal `state: 'KC-3'`; and with an in-body reversal meeting the floor,
+    // `ConstraintPassRefused` with terminal `KC-8`; a save failure crosses `FileCommitFailed` with `log: []`, and
+    // the attempt's own log reads `KC-8` — the same token a passing-pair run carries. **SO `KC-8` CROSSES AS BOTH
+    // STATUSES.**"* **THE SAVE ARM THEREFORE GETS A TOKEN OF ITS OWN**, so that a save failure and a constraint
+    // refusal cross with different statuses AND each is derivable from the log's terminal state — **and
+    // `kernel-terminal.mjs`'s precedence clause is what keeps this token through the floor**, which is otherwise
+    // `KC-8` on both arms and would put the contradiction back.
+    terminalComposed(kernel, attempt, KC.saveFailed,
+      typeof saveFailure.message === 'string'
+        ? saveFailure.message
+        : `the attempt's own save at ${addressSpelling(attempt.address)} failed`);
+    throw saveFailure;
+  }
+  // **THE `commit` ENTRY: THE ATTEMPT'S SUCCESS ARM, APPENDED ONCE, ON THIS ARM ALONE**
+  // (`DEF-2026-10-16-B`; `kernel-surface.md §2.1` item 3's `LogKind` table — *"`commit` = the attempt's
+  // success arm, appended once"*, its `id` `null`, its `opId` the attempt's last op, its `state` `null`;
+  // `composition-and-states.md §2.7` items 5 and 7: *"one `constraint-check` entry per registered pair is
+  // appended, THEN the `commit` entry"*). **THE SAVE HAS STOOD** — the call above returned and this arm was
+  // not reached by the failed-save path — **SO IT IS APPENDED HERE AND ONLY HERE, AFTER every
+  // `constraint-check` entry of the pass, AND IT CLOSES THE LOG**: it is the PASSED arm's LAST entry, and
+  // the failing arm above appended its own ONE `outcome` entry and NO `commit` entry at all
+  // (`kernel-surface.md §2.1` item 4 (ii); item 3's two rows read together — the two one-shot arms never
+  // stand in one log). **AND NOTHING IS APPENDED TO THIS LOG AFTER IT**: the delivered set's bodies ran
+  // before this line and reach this attempt's log by no act (`§2.7` item 6), the record this attempt's
+  // report carries being the same list this line closes.
+  // **⟶ AND ITS ITERATION IS `{ pair: null, op }` — the `commit` entry names NO PAIR and the attempt's LAST OP**
+  // (`kernel-surface.md §2.1` item 3's `LogKind` table; `D-53`'s first ruling, which is what the iteration position
+  // carries).
+  append(attempt, 'commit', { pair: null, op: attempt.ops[attempt.ops.length - 1] },
+    `every constraint registered at ${addressSpelling(attempt.address)} passed; the commit stands`);
+  return closed;
+}
+
+/**
+ * **THE BUMP'S ONE CALL, GUARDED (`D-63`).** It reaches the entry's own channel on the store object —
+ * `state.mjs`'s `installAttemptSeam` installs it beside `COMMIT_SCOPE`, `TERMINAL_ARM` and `RESTART_DRAIN` — and
+ * it hands it **NO ARGUMENT**, because the position is the STORE'S own answer and nothing is composed on this
+ * side.
+ *
+ * **A STORE THAT CARRIES NO SUCH CHANNEL BUMPS NOTHING**, and so does a channel whose call throws (a key a
+ * caller overwrote, a store this package never installed the seam on): the commit then keeps the mark its
+ * opening cached, which is the behaviour every failing arm has and never worse than today's. **THE PASSING ARM
+ * IS NOT TURNED INTO A HOST ERROR BY A BOOKKEEPING ACT** — `D-35`'s read half read for a write, and the same
+ * conservative side `state.mjs`'s `journalMarkAtOpening` answers on its own throwing arm.
+ */
+function bumpMark(store) {
+  const bump = store !== null && typeof store === 'object' ? store[BUMP_MARK] : undefined;
+  if (typeof bump !== 'function') return undefined;
+  try {
+    return Reflect.apply(bump, store, []);
+  } catch (unanswered) {
+    return undefined;
+  }
+}
+
+/**
+ * **THE SEAM'S TERMINAL INSTANT, TAKEN AT THE ONE PLACE BOTH ARMS REACH** (`surface.md §2.4` item 9 (b);
+ * `PAR-JS-19`; `A116` (D1)–(D2)): the record identity `K-2` answered, handed once more to THE INSTANCE'S
+ * OWN `settle` member — the member the kernel CALLS and the entry IMPLEMENTS — so that the entry delivers
+ * the residue standing in that record's `pending` at this instant through ITS OWN registry
+ * (`§2.7` item 7 (a)–(b)). **A SECOND CALL FOR THE SAME IDENTITY IS THE DELIVERY** (`PAR-JS-19`'s
+ * domain cell: *"the first call on this instance for a given identity IS the adoption, and the SECOND
+ * call for that identity is the delivery"*), so the record this reads is the very record instant (a)
+ * adopted and never a copy of it.
+ *
+ * **THE MEMBER IS REACHED WITH NO ADDON CALL AND NO STORE VERB**, on the caller's own instance object —
+ * the same object every item of this surface takes first.
+ */
+function settleArm(store, attempt) {
+  const record = attempt.record;
+  if (record === undefined) return;
+  // **⟶ AND THE SEAM'S INSTANT (b) IS REACHED THROUGH THE `TERMINAL_ARM` CHANNEL, 2026-10-18** (`§2.1` item 3's
+  // clause of that date: *"THE KERNEL CALLS NO SEAM ON EITHER TERMINAL ARM"* — the SEAM `settle` is gone; what
+  // remains is the ENTRY'S OWN ACT at this instant, which `docs/specs/storeroom-js/surface.md §2.7` item `7`
+  // declares and `§2.11` clause 2 keys). **THE ARM STILL OWES ITS DELIVERY AND ITS SAVE, AND THIS IS WHERE IT
+  // IS MADE**: a symbol-keyed channel adds no member and mints no kernel item.
+  if (typeof store[TERMINAL_ARM] === 'function') store[TERMINAL_ARM](record);
+}
+
+/**
+ * THE PASS LOOP OF ONE ATTEMPT — the first pass and, for EVERY repair the pass lands, the op's own
+ * ATOMIC LANDING EVALUATION followed by THE RE-RUN.
+ *
+ * `attempt-lifecycle.md §2.4` item 5 (iv): a pass's evaluated set is EVERY PAIR STANDING AT THE
+ * ATTEMPT'S OWN `address` WHEN THAT PASS BEGINS — the first pass and every re-run alike, the pairs that
+ * had already run INCLUDED, the pair whose repair just ran INCLUDED and a pair whose repair is
+ * registered but has not run INCLUDED — each evaluated ONCE in clause (ii)'s first-registration order,
+ * with NO EXCLUSION AND NO SKIP.
+ *
+ * `kernel-surface.md §2.3` item 1 — the OTHER rule: "EVERY WRITE THAT LANDS AT AN ADDRESS THE KERNEL
+ * REGISTERS PAIRS AT RUNS, AFTER THE WRITE VERB RETURNED AND BEFORE ANY OTHER KERNEL ACT, ONE PASS OVER
+ * EVERY PAIR REGISTERED AT THAT ADDRESS against THAT ONE OP's value and tier, its `AttemptContext.op`
+ * naming that op". A repair's own op is such a landing, and THIS is the arm "a repair's edit lands, the
+ * re-run evaluates EVERY pair at the attempt's address against THAT op, and where one of those
+ * evaluations does not return the pass arm THE ATTEMPT MOVES THROUGH THE RE-RUN'S OWN FOUR
+ * COMBINATIONS" names — so the repair's op is evaluated BEFORE the re-run, and the checkpoint therefore
+ * moves to THE REPAIR'S OWN OP.
+ *
+ * Returns `null` on the success arm, and the attempt's terminal arm otherwise.
+ */
+function runToCompletion(kernel, attempt) {
+  for (;;) {
+    // EVERY RUN READS THE ATTEMPT'S OWN SET, IN CLAUSE (ii)'s ORDER, AGAINST THE LANDING'S OWN OP:
+    // `attempt-lifecycle.md §2.4` item 5 (iv) fixes ONE scope for the first pass and every re-run alike,
+    // and `kernel-surface.md §2.3` item 1's atomic landing evaluation — whose own one home is that item —
+    // is the arm a repair's op landing owes: "a repair's edit lands, the re-run evaluates EVERY pair at
+    // the attempt's address against THAT op, and where one of those evaluations does not return the pass
+    // arm THE ATTEMPT MOVES THROUGH THE RE-RUN'S OWN FOUR COMBINATIONS". So the op a repair landed becomes
+    // THE NEXT RUN'S `op`, and every pair at the attempt's address — the pairs that had already run
+    // included — is evaluated against it, with no exclusion and no skip. THE RUN'S LANDING IS THE
+    // ATTEMPT'S LAST OP, AND THE RUN'S ADDRESS IS THAT OP'S OWN ADDRESS.
+    const landing = attempt.ops[attempt.ops.length - 1];
+    const run = evaluate(kernel, attempt, landing);
+    if (run.terminal !== null) return run.terminal;
+    if (!run.rerun) return null;
+  }
+}
+
+/**
+ * ONE EVALUATION RUN — a LANDING'S OWN PASS. `attempt-lifecycle.md §2.4` item 5 (iv): "a pass's evaluated
+ * set is THE PAIRS STANDING AT THE ATTEMPT'S OWN `address` WHEN THAT PASS BEGINS … the first pass and
+ * every re-run alike … the pairs that had already run INCLUDED, the pair whose repair just ran INCLUDED
+ * and a pair whose repair is registered but has not run INCLUDED … each evaluated ONCE in clause (ii)'s
+ * first-registration order, WITH NO EXCLUSION AND NO SKIP." Every run — the commit's own landing, the
+ * repair's own landing and the re-run alike — therefore evaluates THAT ONE SET, against the op whose
+ * landing it reads. Answers:
+ *   `{ terminal }` — the attempt's terminal arm, an EXISTING `KC` member, where one was reached;
+ *   `{ terminal: null, rerun: true }` — a repair landed and its op was added to the attempt;
+ *   `{ terminal: null, rerun: false }` — the pass arm, the `checkpoint` member pinned at that op.
+ */
+function evaluate(kernel, attempt, landing) {
+  // THE PASS'S OWN ADDRESS IS THE ATTEMPT'S (`attempt-lifecycle.md §2.4` item 5 (iv): "THE KERNEL
+  // EVALUATES THE PAIRS IT REGISTERED AT THE ATTEMPT'S OWN ADDRESS — the first pass and every re-run
+  // alike — and NOT the union of the store's prefix-selected addresses"), WHILE THE OP EVERY EVALUATION
+  // CARRIES IS THE LANDING'S OWN — the repair's op where a repair's edit landed, and the attempt's first
+  // write where the pass is the commit's own landing.
+  // **⟶ AND THE SET THAT ADDRESS MATERIALISES IS NOW A PREFIX SET, 2026-10-29 (`D-56`).** `RCA-8(g)`
+  // ANNOTATE-BESIDE: **the quotation above stands BYTE-FOR-BYTE as `attempt-lifecycle.md §2.4` item 5 (iv)'s
+  // EXACT-ADDRESS rule — the clause `D-56` names by number and SUPERSEDES**; the architect's own sentence is
+  // *"A listener/constraint should fire when the descendants of its targeted address node change, because the
+  // descendants become part of the object that is read from that address"*, and what it changes here is the
+  // PREDICATE `pairsAtAddress` applies — **the pairs whose own address is a PREFIX of the attempt's, equality
+  // included.** **NO OTHER LINE OF THIS FRAME MOVES**: the address is still the attempt's, the landing's op is
+  // still what every evaluation carries, and the set is still ONE SNAPSHOT taken at this instant.
+  // THE PASS'S OWN EVALUATED SET IS FIXED WHEN THE PASS BEGINS — a SNAPSHOT of the registry's rows AT OR ABOVE
+  // the attempt's address AT THAT INSTANT, and never a live view of the registry this pass reads again:
+  // "a PASS's evaluated set is FIXED WHEN THE PASS BEGINS — it is every pair registered at the attempt's
+  // address AT THAT INSTANT, each evaluated once in clause (ii)'s order", so "A `K-1` THAT RETURNS
+  // DURING A PASS APPENDS A PAIR TO THE REGISTRY WITHOUT APPENDING ANY ENTRY TO THAT PASS AND WITHOUT
+  // BEING EVALUATED BY IT: the new pair enters the NEXT pass's set" (`attempt-lifecycle.md §2.4` item 5
+  // (iv); `CX-12`, which `D-56` defers to and does NOT move). **THE SNAPSHOT IS MATERIALISED ONCE PER RUN AND
+  // READ BY THE WHOLE RUN** — the loop below, the repair arm's `list` and `releasePending`'s check-off all read
+  // THIS ONE array — **and it is ALSO the set the layer (a) delivery of this run is read over.**
+  //
+  // **⟶ AND THE SET IS HANDED THE ACT THIS RUN EVALUATES — `D-66`, 2026-10-29.** `D-56`'s widening was a property of
+  // the ADDRESS alone, so this call needed nothing but `attempt.address`. **`D-66`'s criterion is TOUCHED, WHICH IS
+  // A PROPERTY OF THE ACT'S KIND AND THE VALUE IT CARRIED**, so the one selection function is handed the one op
+  // every evaluation of this run carries — `landing` (`attempt-lifecycle.md §2.4` item 5 (iv): *"THE OP EVERY
+  // EVALUATION CARRIES IS THE LANDING'S OWN"*), whose `address`/`after`/`before` are the store's own journal op's
+  // (`D-53`'s record). **AND NOT ONE PROPERTY OF THE SNAPSHOT MOVES** (`CX-12`; `HL-8` item 6): it is materialised
+  // once at this instant, it is read by the whole run — the loop below, the repair arm's `list` and
+  // `releasePending`'s check-off — and the touched descendants INTERLEAVE into the one registration order the
+  // ancestors already stand in rather than forming a second. **NO SECOND MEMBERSHIP TEST IS MINTED HERE**: the
+  // predicate is `pairsAtAddress`'s, and this line only hands it the act.
+  // **⟶ AND THE SET IS THE STORE'S OWN `triggered`, FILTERED — `D-69`, 2026-10-29. THIS LINE IS THE WHOLE OF THE
+  // MOVE.** The bytes that stood here read `pairsAtAddress(kernel, attempt.address, landing)`: **the kernel walked
+  // its registry and COMPUTED A SECOND REACH** — the prefix arm from `attempt.address` and the touched arm from the
+  // act's own values (`D-66`) — while the store computed the same reach for its own trigger set, with the per-tier
+  // versions in hand (`D-67`: *"the store computes the reach of an act, and the kernel computed a second one"*).
+  // **NOW THE KERNEL COMPUTES NONE**: `pairsTriggered` asks the store's returned list which of the registry's rows
+  // it names (an equality test on a handle, no address relation), the registry supplies `HL-8` item 6's ORDER, and
+  // `D-56`'s and `D-66`'s predicates stand where the versions live (`src/store.rs`'s `registration_triggered` and
+  // `touched_below`).
+  //
+  // **THE LIST READ IS THE COMMIT'S OWN STORE ANSWER** — `record.triggered`, the set the store returned at the
+  // instant this commit's act landed (`K-2`'s write and `K-2`'s delete alike), which is the set `pending` carries
+  // whole. **AND THE RE-RUN ASKS THE SAME SET, WHICH IS `CX-12`'s OWN RULE** — *"a PASS's evaluated set is FIXED
+  // WHEN THE PASS BEGINS … the first pass and every re-run alike"* (`attempt-lifecycle.md §2.4` item 5 (iv)) —
+  // **and it is not a narrowing**: the act a repair lands runs ITS OWN pass at its own address (a verb called from
+  // a repair body is a write at the surface, `D-45`/`D-46`), so the pairs that act reaches are asked by that pass,
+  // and this re-run's office is to re-ask THIS attempt's set against the new state.
+  // **⟶ AND THE SET IS THE STORE'S OWN `triggered` PLUS THE PAIRS THE PASS'S REPAIRS JOINED — `D-105`, 2026-11-01.**
+  // (`docs/L1/op-free-repair-credit.md` §3.3 `JN-2`; `strata/decisions.md` · `D-105` item `3`: *"the only supported
+  // route for repairs is with the commit id so that its triggers can be joined to the commit and the constraint
+  // battery run again over them"*.) **ONE CALL WIDENED BY ONE ARGUMENT AND NOT A SECOND SELECTION FUNCTION**: the
+  // second argument is `attempt.repairPaired` — the CARRIED PAIRS a credited repair's write triggered, joined at
+  // the merge seat of the run that ran it — **and it only widens MEMBERSHIP. THE ORDER STAYS THE REGISTRY'S**
+  // (`D-39`), **each pair is still evaluated AT MOST ONCE**, and **the set is still materialised ONCE PER RUN AT
+  // THIS INSTANT** (`CX-12`; `HL-8` item 6) — so a pair joined by repair `k` enters the snapshot of the run that
+  // FOLLOWS it and no other, and no pass ever reads a live registry. **`record.triggered` ITSELF IS UNMOVED**: it
+  // is the store's own returned set for the commit's write, VERBATIM (`kernel-commit.mjs:176`–`:178`).
+  const stored = attempt.record === undefined ? undefined : attempt.record.triggered;
+  const list = pairsTriggered(kernel, stored, attempt.repairPaired);
+  // **⟶ AND THE COMMIT THE INVOCATIONS OF THIS RUN NAME — `D-55` ITEM 3's DELETE-SHAPED ATTEMPT, 2026-10-29.**
+  // **A WRITE'S ATTEMPT NAMES ITS `CommitRecord`** (`attempt.record`, the object `K-2` built and adopted), and
+  // every verb a body calls under it JOINS that commit (`D-46`). **A DELETE'S ATTEMPT HAS NO `CommitRecord`** —
+  // it lands no write, so there is no adoption, no residue and no save — **and it still owes the same
+  // invariant**: `D-53`'s *"Constraints/Repairs should always use the same commit"* is not a rule about records
+  // but about the COMMIT, and a body's write under a delete's pass that named nothing would OPEN a second commit
+  // and start a second list. **SO THE ATTEMPT CARRIES ITS COMMIT'S NAME** (`kernel-commit.mjs`'s
+  // `commitRemoval` sets `attempt.name` to the one member `commitAttemptIdOf` reads) **and this frame hands THE
+  // NAME where a record exists and THE RECORD where it does** — one expression, and on the write path it is the
+  // very object it always was, so no byte of the write's own invocation moves.
+  const commitName = attempt.record === undefined ? attempt.name : attempt.record;
+  // THE ATOMIC LANDING EVALUATION'S OWN ARM-TAKING IS `attempt-lifecycle.md §2.4` item 4's arms, read
+  // over THE PAIR THAT FAILED AT THAT OP (`kernel-surface.md §2.3` item 1; `§2.4`: `KC-3` where that pair
+  // is NOT in `ran` before this run and no repair is registered for it; `KC-6` where it IS in `ran` and
+  // is NOT in `appliedRepairs`; `KC-5` where it IS in `ran` and IS in `appliedRepairs`; and arm (b)
+  // where its repair is registered and has not run).
+  //
+  // `§2.4` ITEM 5 (ii)–(iii): "THE ATTEMPT TRANSITIONS AT THE FIRST EVALUATING PAIR WHOSE OUTCOME IS A
+  // VIOLATION: THAT PAIR'S OWN ARM DECIDES WHAT HAPPENS NEXT", and "where two pairs of one pass would
+  // violate, the FIRST in clause (ii)'s order decides and THE SECOND IS NOT EVALUATED". THE DECISION IS
+  // THEREFORE TAKEN INSIDE THE LOOP AT THE FIRST VIOLATING PAIR WHATEVER ITS FORM: a return standing
+  // OUTSIDE the three declared arms is READ AS the `{message}` arm (`PAR-C-5`; item 4's arm (c)
+  // predicate), so it is a violation of exactly the same standing as the caller's own `{message}` arm
+  // and is disposed of by the SAME predicates — NEVER carried to the end of the pass, where a later
+  // pair's landed repair would supersede the arm the attempt took first.
+  if (list !== undefined) {
+    for (const key of list) {
+      const pair = kernel.pairs.get(key);
+      if (pair === undefined) continue;
+      // ═══════════════════════════════════════════════════════════════════════════════════════════════
+      // **⟶ THE PAIR-APPLICATION RULE IS READ AT THE LOOP'S HEAD, BEFORE THE CONTEXT IS BUILT — `D-90`,
+      // `PIN-2` (v), `PIN-3`, `PIN-4` (iv).**
+      // ═══════════════════════════════════════════════════════════════════════════════════════════════
+      //
+      // **A PAIR WHOSE PARENT DOES NOT RESOLVE IS SKIPPED AT EVERY INSTANT THAT WOULD APPLY IT**, and the pass
+      // over a `write`, a `delete` or a `rollback` is the fifth of those instants (`D-90` (4)). **⟶ CORRECTED
+      // 2026-11-02 ON `D-96` (1)–(3): THIS SENTENCE READ *"A PAIR WHOSE PARENT IS NOT A CONTAINER"*, AND THE
+      // THRESHOLD IS ABSENCE ALONE** — the architect, verbatim: *"Reject this, the constraint being there
+      // implicitly expects `'x'` to be a container"* — **so the answers that APPLY a pair are the BRANCH parent
+      // and the LEAF parent, and the one answer that SKIPS it is `AddressNotFound` at the parent.**
+      // **The rule is read HERE and not at the store: the store still computes the reach** (`D-56`/`D-66`/`D-69`,
+      // untouched — the membership filter above is byte-unmoved), and what this clause decides is only **which of
+      // the pairs that reach names is actually ASKED**. **THE ADDRESS IT IS ASKED AT IS THE PAIR'S OWN** — the
+      // array it was registered at, and never the act's — because the rule's discriminator is *"the address's
+      // parent"*: a pair at `['window','tabs']` is SKIPPED after a `delete` of `['window']` however the act is
+      // addressed.
+      // **A pair standing over more than one address is applicable where ANY of them RESOLVES at its parent — as a
+      // container, as a leaf, or as the register**: one body is asked once, and the pair is not killed for a
+      // second address's sake.
+      //
+      // **A SKIP IS NOT A REFUSAL** (`PIN-3`): the pair is not asked, it joins neither `ran` nor
+      // `appliedRepairs`, it appends no `constraint-check` entry, it opens no repair and it cannot reach a
+      // terminal arm — **so an act the pair would have refused LANDS.** It is not counted as a judgement.
+      // **AND IT IS NOT REMOVED**: the pair stays CARRIED and is asked at the first later instant its parent
+      // stands and an act's own touched set reaches it (`PIN-4` (i)–(ii)). **The `pending`/`triggered`
+      // machinery moves no byte**: `releasePending` reads the run's snapshot and never the pairs that were asked.
+      if (!pairAppliesAt(attempt.store, pair)) continue;
+      // `kernel-surface.md §2.3` item 1 — THE OP WHOSE LANDING LEFT THE STATE THIS EVALUATION RUNS AT,
+      // VERBATIM, and the value that write returned, VERBATIM: "the data the constraint confirms".
+      const op = landing;
+      const context = {
+        address: attempt.address.slice(),
+        attempt: attempt.ref,
+        op,
+        tier: op.tier === undefined ? null : op.tier,
+        value: op.after === undefined ? undefined : op.after.value,
+      };
+
+      // THE ENTRY IS OPENED BEFORE THE BODY RUNS, so a body that reads the record's own log mid-flight
+      // reads its own evaluation's entry — and it is WITHDRAWN where the body returns nothing
+      // (`kernel-surface.md §2.5` item 1; `PAR-C-6`).
+      // **⟶ AND IT IS NAMED BY THE ITERATION — the pair AND the op, one identity — `D-53`'s FIRST RULING**
+      // (`kernel-foundations.mjs`'s `append`; `D-52`'s rule 1: *"an entry carries the PAIR identity and the OP
+      // identity together … they are one identity"*).
+      append(attempt, 'constraint-check', { pair, op }, `the evaluation of ${pair.id}`);
+      const check = attempt.log[attempt.log.length - 1];
+      let outcome;
+      // **⟶ AND THE FRAME: every list the body's own verbs append to between these two lines is THIS commit's
+      // list** (`D-53`'s first invariant). The frame is pushed for exactly the invocation and popped in a
+      // `finally`, so a throwable leaves no frame standing and no later write of this commit inherits a frame it
+      // does not own.
+      enterCommitFrame(kernel, attempt.log);
+      try {
+        // **⟶ AND THE BODY IS INVOKED WITH THE ATTEMPT'S COMMIT NAMED, 2026-10-28 (`D-53`).** `D-45` invoked it
+        // with nothing named and `D-46` narrowed that for repairs alone; **`D-53` states the invariant both halves
+        // obey: a CONSTRAINT never opens a commit and a REPAIR never opens one, while a listener's write always
+        // does.** The name is an INVOCATION's and nothing else's: it is set before the call and restored after it,
+        // on the throwing arm too, so an ordinary write still opens ONE commit and a callback's verb is still an
+        // act of its own.
+        outcome = constraintInCommit(attempt.store, commitName, () => pair.constraint(context));
+      } catch (body) {
+        // A body that threw returned nothing, so no `constraint-check` entry stands and the attempt is
+        // closed (`PAR-C-6`; `NX-2`; `composition-and-states.md §2.7` item 13).
+        withdraw(attempt, check);
+        // **⟶ AND THE THROWABLE'S OWN FORM ENTERS THE COMMIT'S LOG — `D-55` ITEM 1, `DEF-AK`, 2026-10-28.**
+        // The architect, verbatim: *"Include a thrown message in the message log. Obviously."* **THE ENTRY IS
+        // THE ONE THE TERMINAL ACT ALREADY APPENDS**: this arm closes the attempt with its ONE `outcome` entry
+        // (`composition-and-states.md §2.7` item 13), and NO second entry and NO fifth `kind` is minted —
+        // `constraint-check` was WITHDRAWN above and must not come back (`fail-surface.md §1.1` item 1 (b),
+        // which the kernel-level cells assert as *"NO entry stands for the pair whose body returned nothing"*).
+        // **SO THE TERMINAL ENTRY'S SENTENCE CARRIES THE FORM** (`throwableForm`: the string's own text, the
+        // object's own `message` member, or the kind of value it was, read off own members only), and the
+        // closed report's list — the list the crossing hands the caller — holds it at that entry's position,
+        // the list's own index and no `seq` member (`D-65`, 2026-10-28).
+        //
+        // **⟶ AND `D-74` (`DEF-AR`) PUTS THE FORM UNDER THE MESSAGE'S OWN BOUND, 2026-10-28.** **THE SITE: this
+        // one — the sentence below is the ONLY entry the thrown value is written into, and it is composed by
+        // `boundedEntryMessage`, which applies `MESSAGE_CEILING` to the TOTAL and not to a level.** A thrown
+        // REFUSAL is answered by `throwableForm`'s SUMMARY arm (its `status`, its entry count and its first
+        // entry's message) and never by the serialised refusal, so a chain of inner refusals costs this entry
+        // the same number of characters at depth `28` as at depth `1`. **NO MEMBER, KIND, ORDINAL OR ENTRY
+        // COUNT MOVES: `LogEntry` stays five members and the bound is on the form's CONTENT** (`D-65`).
+        terminalComposed(kernel, attempt, null, boundedEntryMessage(
+          `the constraint ${pair.id} threw; the attempt is closed — the value it threw was `,
+          throwableForm(body),
+          ''));
+        // **⟶ AND THE VALUE IS MARKED HERE, BY THE FRAME THAT CAUGHT IT FROM THE BODY — `DEF-S`, 2026-10-26,
+        // on the architect's ruling *"Expand the returned error set for both S/N"*.** The mark is what the
+        // entry's `constraintCrossing` converts on, and an UNMARKED value still crosses as itself
+        // (`DEF-A`'s protection, unmoved). **THE MARK CARRIES THE ATTEMPT'S OWN LOG, TAKEN HERE — BEFORE THE
+        // ATTEMPT IS DISPOSED OF — AND THE ADDRESS THE BODY WAS EVALUATED AT** (`markBodyThrow`'s clause,
+        // `kernel-foundations.mjs`). The throwable's own identity is unmoved at THIS layer: a kernel-level
+        // caller still meets the very value the body threw.
+        throw markBodyThrow(body, attempt.address, attempt.log);
+      } finally {
+        // THE FRAME GOES WITH THE INVOCATION, ON EVERY ARM (`D-53`): a frame left standing would make the NEXT
+        // write of this store join a commit it is not inside.
+        leaveCommitFrame(kernel);
+      }
+
+      // THE CONSTRAINT'S OWN OUTCOME — A CLOSED THREE-ARM SET (`PAR-C-5`). A value outside the three
+      // arms is read as the `{message}` arm and never as an arm of its own.
+      // **⟶ AND ITS TWO MEMBERS ARE READ AS THE OUTCOME'S OWN — `D-35`'s READ HALF, CLOSED 2026-10-26.**
+      // `outcome` IS THE CALLER'S CONSTRAINT RETURN. `'message' in outcome` and `outcome.message` were a
+      // `[[HasProperty]]` and a `[[Get]]`, each walking the chain, so a prototype decided the sentence the
+      // refusal carried — measured: a body returning `Object.create({ message: '…' })` made the write refuse
+      // `FileCommitFailed` with THE INHERITED STRING as its message and as the log entry's text. **`ownMember`
+      // is `[[GetOwnProperty]]`**, so an inherited member is absent here and the arm answers this unit's own
+      // `unrecognized` sentence, exactly as it answers a return outside the three arms.
+      let text;
+      let repair = null;
+      if (outcome === true) {
+        text = `the constraint ${pair.id} passed at ${addressSpelling(attempt.address)}`;
+      } else if (outcome !== null && typeof outcome === 'object' && Object.hasOwn(outcome, 'message')) {
+        const outcomeMessage = ownMember(outcome, 'message');
+        text = typeof outcomeMessage === 'string' && outcomeMessage.length > 0
+          ? outcomeMessage
+          : unrecognized(pair);
+        const outcomeRepair = ownMember(outcome, 'repair');
+        if (typeof outcomeRepair === 'function') repair = outcomeRepair;
+      } else {
+        text = unrecognized(pair);
+      }
+
+      check.message = text;
+
+      // THE VIOLATION ARMS (`attempt-lifecycle.md §2.4` item 4 (b)–(f)), read off THE PAIR THAT FAILED
+      // and off nothing else. THE ONE DISCRIMINATOR IS THE PAIR'S OWN REGISTRY MEMBERSHIP READ AT THE
+      // INSTANT BEFORE THIS EVALUATION, TOGETHER WITH `ran` (`kernel-surface.md §2.5` item 3;
+      // `fail-surface.md §2`'s `KC-5`/`KC-6` rows): `KC-5` iff in `ran` AND in `appliedRepairs`;
+      // `KC-6` iff in `ran` AND OUT of `appliedRepairs` — whether or not a repair is registered for the
+      // pair, and NEVER off a repair-run COUNT.
+      const ran = attempt.ran.includes(key);
+      if (!ran) appendOwn(attempt.ran, key);
+      if (outcome === true) continue;
+      if (repair === null) {
+        // ARMS (c), (e) AND (f) — THE PAIR'S FIRST-EVALUATION ARM AND ITS TWO REPEAT ARMS, taken
+        // AT ONCE at the first violating pair whatever the form its return carried
+        // (`attempt-lifecycle.md §2.4` item 4's disjointness rule and item 5 (ii)–(iii)). Arm (c)'s
+        // predicate is "NOT in `ran` before this evaluation and no repair registered for it"; a pair
+        // IN `ran` is a repeat and never this arm, so its own token is read first.
+        if (ran) {
+          return { terminal: attempt.appliedRepairs.includes(key)
+            ? { status: KC.repairRepeat,
+              message: `the pair ${pairSpelling(pair)} violated a re-run and its repair had `
+                + 'already been applied' }
+            : { status: KC.repeat,
+              message: `the pair ${pairSpelling(pair)} violated a re-run and no repair had `
+                + 'been applied to it' },
+            rerun: false };
+        }
+        return { terminal: { status: KC.violated, message: text }, rerun: false };
+      }
+      // LIMB (f) — A REPEAT BY A PAIR WHOSE REGISTERED REPAIR HAS NOT RUN IS TAKEN HERE AND NOT BELOW:
+      // "NO repair function is invoked a second time" (`P-SM-6`; `kernel-surface.md §2.5` item 3), the
+      // pair's own registry membership and never a repair-run count being the discriminator.
+      if (ran && !attempt.appliedRepairs.includes(key)) {
+        return { terminal: { status: KC.repeat,
+          message: `the pair ${pairSpelling(pair)} violated a re-run and no repair had `
+            + 'been applied to it' },
+          rerun: false };
+      }
+      // LIMB (e) — THE PAIR'S REPAIR HAS ALREADY RUN AND IS RECORDED AS APPLIED, so the second repair is
+      // never invoked and the repeat is `KC-5`.
+      if (ran) {
+        return { terminal: { status: KC.repairRepeat,
+          message: `the pair ${pairSpelling(pair)} violated a re-run and its repair had `
+            + 'already been applied' },
+          rerun: false };
+      }
+
+      // ARM (b) — THE PAIR'S REPAIR RUNS THROUGH THE CALLER'S OWN VERB, AND THE OP IT LANDED IS READ
+      // OFF ITS OWN RETURN AND NOWHERE ELSE (`§2.7`). THE ENTRY'S `opId` IS THE ROW'S OWN VALUE FROM THE
+      // INSTANT IT IS APPENDED — "THE OP THE REPAIR PRODUCED WHERE IT PRODUCED ONE, ELSE THE OP IT WAS
+      // INVOKED FOR" (`kernel-surface.md §2.5` item 1's `repair-run` row) — so on EVERY arm the entry
+      // names THE OP THIS EVALUATION CARRIED, and only the arm that produced an op rewrites it below.
+      append(attempt, 'repair-run', { pair, op }, 'the pair\'s repair was attempted');
+      const entry = attempt.log[attempt.log.length - 1];
+      let result;
+      const repairContext = {
+        address: attempt.address.slice(),
+        id: pair.id,
+        op,
+        tier: context.tier,
+        value: context.value,
+          // **⟶ ADDED 2026-10-15 (`surface.md §2.11` clause 6; the architect's ruling of 2026-10-15;
+          // `kernel-surface.md §2.3` item 2).** **THE REPAIR IS PASSED THE COMMIT IT IS PART OF**, and it is
+          // passed THE ONE OBJECT THIS CALL HANDS IT — the context itself — *"so that they can make their
+          // own write call use that commit"*: *"Repair functions are returned by the constraint that they
+          // are triggered by. As externally-provided code, they should be using the package surface
+          // functions, which means they will need to be passed the commit they are part of so that they can
+          // make their own write call use that commit."* **THE FORM IS THE ONE `write`'s FOURTH POSITION
+          // ADMITS** (`ORDINAL CORRECTED 2026-10-21`: the old `"fifth"` was the retired
+          // `call(instance, verb, args)` dispatcher's ARRAY frame, deleted at
+          // `export-set-and-dispatch.md §2`; `write`'s commit position is the FOURTH of the method's four,
+          // `surface.md §2.2`'s `a.write(address, tier, value, commit?)`): **its class test is *"an object
+          // position is a record position only where it CARRIES A
+          // `pending` MEMBER whose value is present and not `undefined`"* (`§2.4` item 9 (g) item 1), and the
+          // member this context carries is THE COMMIT'S OWN `pending`, VERBATIM — the record `K-2` returned,
+          // the one `attempt.record` names, so the repair's write passes THE CONTEXT and the position reads
+          // the commit it stands for. **IT IS A CLASS TEST AND NEVER AN IDENTITY TEST** (the position's own
+          // clause), so a fresh list is handed and the record's own member is not aliased. **NO MEMBER OF
+          // THE DECLARED FIVE IS MOVED**: `address` · `id` · `op` · `tier` · `value` stand as `§2.3` item 2
+          // prints them, and the commit is carried beside them.
+          pending: attempt.record === undefined ? [] : attempt.record.pending.slice(),
+      };
+      // **⟶ ADDED 2026-11-01 — `D-104`'s TWO GUARDS, BOTH READ ACROSS THE ONE INVOCATION BELOW**
+      // (`docs/L1/repair-listener-delivery.md` §3.2, §3.4a): the frame records WHETHER THE INVOCATION'S OWN BRACKET
+      // STOOD (`repairInCommit` sets it — the frame that reads the channel is the frame that knows), and the
+      // attempt counter is read BEFORE the body is invoked so that a nested attempt opened inside it can be seen
+      // afterwards. **BOTH ARE THIS FRAME'S OWN AND NEITHER IS A MEMBER**: no record, no attempt and no product
+      // gains a byte (`A117` (D6)).
+      const invocation = { bracketed: false };
+      const attemptsBefore = kernel.attempts;
+      try {
+        // **⟶ RE-DERIVED 2026-10-27 — THE REPAIR BODY NAMES THE ATTEMPT'S COMMIT AND IS NO LONGER MARKED AS AN
+        // OWNER OF ITS OWN (`D-46` item `2`).** `D-45` invoked it through the entry's `externalCall`, so the
+        // write it made OPENED a second commit and the commit's own record no longer described the repair it
+        // performed. **THE RULING, VERBATIM: *"A constraint's repair needs to stay as part of the same commit so
+        // that it can be tracked as part of the commit process"*** — **so `repairInCommit` above hands the
+        // channel THE ATTEMPT'S OWN RECORD as the invocation's name, and the repair's write JOINS the commit it
+        // is part of.** **THE REPAIR'S CONTEXT CARRIES THAT SAME COMMIT AT ITS `pending` MEMBER** — the vehicle
+        // `surface.md §2.11` clause 6 declares, *"so that they can make their own write call use that commit"* —
+        // so a repair that supplies it at `write`'s fourth position names the same commit by its own hand, and
+        // the two spellings cannot disagree: **the entry's position wins where it is supplied, and this name is
+        // the fallback where it is not** (`state.mjs`'s `openCommit`).
+        // **⟶ AND THE FRAME STANDS FOR THIS INVOCATION TOO (`D-53`'s first invariant): the repair's own verbs
+        // append to the attempt's list, and the frame is what makes `K-2` join rather than open.**
+        enterCommitFrame(kernel, attempt.log);
+        result = repairInCommit(attempt.store, commitName, () => repair(repairContext), invocation);
+      } catch (body) {
+        // THE REPAIR-RUN ENTRY IS APPENDED BEFORE THE THROW, and the attempt's outcome entry carries
+        // `KC-4` (`ck_states_a_repair_body_that_throws_reaches_the_caller_unconverted`).
+        //
+        // AND WHERE THE STORE'S OWN VERB REFUSED THE REPAIR'S EDIT, THE ENTRY'S `message` NAMES THE
+        // STORE'S OWN CODE — `fail-surface.md §2`'s `KC-4` row's `observable` cell, read with `§1.2`
+        // item 3: "THE KERNEL'S GENERIC DESCRIPTION OF THE ATTEMPTED REPAIR ALONE DOES NOT SATISFY IT,
+        // AND THE CODE IS THE STORE'S OWN TOKEN — `WriteParentNotLink` in this unit's own repair window
+        // — and never a kernel string and never a `KC` token." The body threw the store's own form up
+        // through the kernel, so the code is read off that throwable's `status` and it is a STORE code
+        // (the store's form is `{status, message}`, carrying no `log` member — `§1.2` item 2; the
+        // kernel's own form carries three members, and a `KC` token is never named as a store code).
+        // The entry's `state` stays `null`; the thrown form's `status` is `KC-4`.
+        // **⟶ THE TEST THAT THIS THROWABLE IS *NOT* THE KERNEL'S OWN WAS `!('log' in body)`, AND THAT
+        // TEST DIED ON 2026-10-16 WITH THE FLAT `log` RULING — THIS IS THE SECOND SITE THE RULING BROKE AND
+        // IS REPORTED AS A FINDING, NOT SILENTLY REPAIRED.** The old test read *"the store's form carries two
+        // members and the kernel's carries three, so a `log` member means the kernel built it"*. **`surface.md
+        // §2.5` item 4 now puts `log` on EVERY failure the JS surface throws, so a STORE REFUSAL REACHING
+        // THIS FRAME THROUGH THE PACKAGE CARRIES A `log` AND THE OLD TEST READ IT AS THE KERNEL'S OWN** —
+        // measured: the two `S-JOIN` `WriteParentNotLink` cells went red with the caller's `status` reading
+        // `WriteParentNotLink` instead of `KC-4`, because `storeCode` was answered `null` and the refusal fell
+        // through to the unconverted `throw body` below.
+        //
+        // **THE REPLACEMENT IS THE SAME ONE THE ENTRY'S CROSSING TOOK — THE KERNEL'S OWN REFUSAL-CLASS MARK
+        // AND NEVER A MEMBER'S PRESENCE** (`KERNEL_REFUSAL` above): a value this kernel built is marked, and
+        // everything unmarked that carries a store code IS a store code, whatever members the surface has
+        // attached to it on its way back. A `KC` token is still never a store code on either spelling.
+        // **⟶ AND THAT CODE IS READ OFF THE THROWABLE'S OWN MEMBERS — `D-35`'s READ HALF, CLOSED
+        // 2026-10-26.** `body` IS THE CALLER'S OWN THROWABLE (a repair body's throw). `body.status` was a
+        // `[[Get]]` that walked the chain, so a prototype's `status` was read as a STORE CODE — measured: a
+        // body throwing `Object.create({ status: 'WriteParentNotLink' })` made the write refuse
+        // `WriteParentNotLink`, a store member the caller's prototype minted. **`ownMember` is
+        // `[[GetOwnProperty]]`**, so the store code is read off the throwable's own bytes and an inherited one
+        // is no code this kernel read: the throw crosses unconverted, exactly as an unmarked body's does.
+        const bodyStatus = body !== null && typeof body === 'object' ? ownMember(body, 'status') : undefined;
+        const storeCode = body !== null && typeof body === 'object'
+          && isKernelRefusal(body) === false
+          && typeof bodyStatus === 'string'
+          && bodyStatus.length > 0
+          && !KC_TOKENS.includes(bodyStatus)
+          ? bodyStatus
+          : null;
+        if (storeCode !== null) {
+          entry.message = `the repair ${pair.id} was attempted and the store refused its own edit — the `
+            + `store's answer is ${storeCode}`;
+          terminalComposed(kernel, attempt, KC.repairFailed, entry.message);
+          // **⟶ AND THE FORM THAT CROSSES TO THE CALLER IS THE KERNEL'S OWN** (`kernel-surface.md §2.3`
+          // item 2 (iii): the attempt *"moves to `FAILING` with `KC-4`"*, and *"the thrown form's `status`
+          // is NEVER a store member"*) — **the very form the FAILING arm above throws**, carrying the
+          // store's own token in its MESSAGE and not in its `status` (§1.2 item 3). **A BODY WHOSE THROW
+          // CARRIES NO STORE CODE REACHES THE CALLER UNCONVERTED**, below: the unconverted throw is that
+          // body's own arm and this conversion is the refused-verb's.
+          refuse(attempt.throwState, attempt.throwMessage, attempt.log, attempt.address);
+        }
+        terminalComposed(kernel, attempt, KC.repairFailed, `the repair ${pair.id} threw; the attempt is closed`);
+        throw body;
+      } finally {
+        leaveCommitFrame(kernel);
+      }
+
+      // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
+      // **⟶ RE-DERIVED 2026-11-01 — `D-105`: THE RETURNED `op` IS NOT THE CREDIT'S CARRIER; THE FAILING PAIR'S
+      // MARK IS. THE ROLLBACK IS INDEPENDENT, AND THE REPAIR'S WRITE'S TRIGGERS JOIN THE COMMIT.**
+      // (`docs/L1/op-free-repair-credit.md` §1.1 `CT-2`; `strata/decisions.md` · `D-105`, the architect,
+      // verbatim: *"You don't need the ops, the rollback point is determined independently. Track the failing
+      // constraints for the duplicate repairs. The only supported route for repairs is with the commit id so
+      // that its triggers can be joined to the commit and the constraint battery run again over them."*)
+      //
+      // **THE SENTENCES THIS CLAUSE SUPERSEDES ARE NAMED RATHER THAN OVERWRITTEN** (`RCA-8(g)` ANNOTATE-BESIDE):
+      // *"AN `ok === true` RETURN WHOSE `op` IS ABSENT, `undefined` OR NOT THE OP THE REPAIR ACTUALLY LANDED HAS
+      // CARRIED NO OP AND IS THE APP'S OWN DEFECT"* — **that arm is GONE**, and with it `landedOp`'s two grounds
+      // and `landedOpDefect`'s two op-identity sentences. **THE CREDIT IS `appendOwn(attempt.appliedRepairs, key)`
+      // — the pair's OWN registry key, the identity `attempt.ran` and `appliedRepairs` both carry — and the
+      // returned `op` is neither required nor read for it** (`D-105` item `1`: *"A repair that does its write and
+      // returns `undefined` — the natural shape of `repair: () => { … }` — is NOT refused"*).
+      //
+      // **THE CHAIN IS FIVE STEPS, IN ORDER, AND IT IS THE WHOLE OF THE RULE:**
+      //   1. **THE BODY RETURNED** — a THROW keeps its own two arms above, byte-unmoved, and is not this rule's;
+      //   2. **THE DECLARED FAILED ARM** — the return's OWN `ok` is exactly `false` AND its OWN `message` is a
+      //      non-empty string → the attempt fails `KC-4` CARRYING THE CALLER'S WORDS, and nothing is pinned,
+      //      credited or merged (`D-105` item `4`'s first clause — *"The failed arm still fails (`{ok: false,
+      //      message}` — the caller's words)"*);
+      //   3. **THE LEGS OF THIS INVOCATION ARE READ ONCE** — the `1.8.1` channel, through `repairLegs`' two
+      //      guards, in the shape `D-105`'s declaration §2.2 declares: one element per write, carrying that
+      //      write's own journal `op` and its `triggered` elements;
+      //   4. **THE LANDING TEST** — the invocation landed at least one op (`legs` carries an element whose `op`
+      //      is a journal op): THE PAIR IS CREDITED and the pins are taken (below);
+      //   5. **THE RESIDUAL `KC-4`** — the invocation landed no op: the attempt fails `KC-4` with the residual
+      //      template, **over `repairLegs`' FIVE absent arms** (no bracket · a nested attempt · no channel · a
+      //      channel that THREW · a non-array answer), each read at its own line.
+      //
+      // **`undefined`, `{ok: true}`, `{ok: true, op}` AND EVERY VALUE OUTSIDE THE ARMS ARE THE SAME CREDITED ARM**
+      // (`CT-3`), differing in nothing but the value their body happened to return — **and `entry.message`'s
+      // `landed <opId>` sentence, `entry.opId` and the two lists read the LEG's op and never the return's**
+      // (`PN-3`: the returned `op` cannot set `entry.opId`, cannot join `attempt.ops`, cannot become the landing,
+      // cannot move the checkpoint and cannot be named in a sentence).
+      //
+      // **AND ITS `ok` AND `message` ARE THE RETURN'S OWN MEMBERS — `D-35`'s READ HALF, 2026-10-26, UNMOVED.**
+      // `ownMember` is `[[GetOwnProperty]]`, so a prototype's `ok` is no `ok` this kernel read: an inherited
+      // `ok: false` is not the declared failed arm, and the arm below is reached with the legs' own answer.
+      // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
+      const okMember = result !== null && typeof result === 'object' ? ownMember(result, 'ok') : undefined;
+      const messageMember = result !== null && typeof result === 'object'
+        ? ownMember(result, 'message')
+        : undefined;
+      // STEP 2 — THE DECLARED FAILED ARM. The caller's words VERBATIM, and nothing pinned, credited or merged;
+      // the `repair-run` entry stands as it was appended above (its `opId` is the op it was INVOKED for) and its
+      // `message` is rewritten here — so "appends nothing" is true of the three MEMBERS and false of the log.
+      if (okMember === false && typeof messageMember === 'string' && messageMember.length > 0) {
+        entry.message = messageMember;
+        return { terminal: { status: KC.repairFailed, message: messageMember }, rerun: false };
+      }
+      // STEP 3 — THE LEGS, READ ONCE. The list is taken here and reused by the merge seat below, so this
+      // invocation's answer is cleared exactly once.
+      const legs = repairLegs(attempt.store, kernel, invocation, attemptsBefore);
+      const landed = [];
+      for (let i = 0; i < legs.length; i += 1) {
+        const leg = legs[i];
+        if (leg === null || typeof leg !== 'object') continue;
+        const legOp = ownMember(leg, 'op');
+        if (legOp === null || typeof legOp !== 'object') continue;
+        const legOpId = ownMember(legOp, 'opId');
+        if (typeof legOpId !== 'string' || legOpId.length === 0) continue;
+        appendOwn(landed, legOp);
+      }
+      // STEP 5 — THE RESIDUAL `KC-4`, ITS TEMPLATE KEPT BYTE-FOR-BYTE. It answers `(d2)` ALONE and its OP half
+      // is true of its own bytes on every one of the five arms: the repair produced no op the attempt can pin.
+      // The address it names is THE ATTEMPT's — complete on four of the five arms, and NOT complete on the third
+      // (a nested attempt, where the repair's edit landed at a beside address the sentence cannot name): that
+      // residual is the declaration's `Q-4` and is printed, never edited here.
+      if (landed.length === 0) {
+        const carried = `the repair ${pair.id} produced no op at ${addressSpelling(attempt.address)}`;
+        entry.message = carried;
+        return { terminal: { status: KC.repairFailed, message: carried }, rerun: false };
+      }
+      // STEP 4 — THE CREDIT AND THE PINS, EACH READ OFF THE LEG AND OFF NOTHING ELSE (`§2.3 PN-2`):
+      //   `entry.opId`        — THE LAST LEG's `opId` (the entry names the LANDING, never the invocation);
+      //   `entry.message`     — the existing `landed <opId>` sentence, unmoved, with the leg's identity;
+      //   `attempt.ops`       — EVERY leg's op, IN LEG ORDER, de-duplicated by `opId` (`§4 RB-4`: the membership
+      //                         ground `landedOp` performed survives here, read forward);
+      //   `attempt.checkpoint`— UNMOVED HERE: the PASS pins it (the pass arm below, `sameAddress`);
+      //   `appliedRepairs`    — THE PAIR'S KEY, and that is THE CREDIT.
+      // The attempt then returns to the evaluation through THAT OP's OWN ATOMIC LANDING EVALUATION and the re-run
+      // — `attempt.ops`' tail IS the leg's op, so the re-run's `context.op` is it and `context.value` is its
+      // `after.value` (`runToCompletion`'s landing read → `evaluate`'s context).
+      const produced = landed[landed.length - 1];
+      entry.opId = produced.opId;
+      entry.message = `the repair ${pair.id} landed ${produced.opId}`;
+      for (let i = 0; i < landed.length; i += 1) {
+        let held = false;
+        for (let seen = 0; seen < attempt.ops.length; seen += 1) {
+          const opHeld = attempt.ops[seen];
+          if (opHeld !== null && typeof opHeld === 'object' && opHeld.opId === landed[i].opId) {
+            held = true;
+            break;
+          }
+        }
+        if (held === false) appendOwn(attempt.ops, landed[i]);
+      }
+      appendOwn(attempt.appliedRepairs, key);
+      // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
+      // **⟶ ADDED 2026-11-01 — `D-104`'s MERGE, AT ITS SEAT: AFTER THE CREDIT, BEFORE THE RE-RUN, BEFORE THE
+      // CHECK-OFF** (`docs/L1/repair-listener-delivery.md` §3.4; `strata/decisions.md` · `D-104` item `2`;
+      // `A112`'s *"EVERY listener is `pending` on EVERY write"* applied to the act the record had left out).
+      //
+      // **THE THREE REASONS THE SEAT IS THIS ONE, EACH CHECKED AT THE BYTES AROUND IT:**
+      //   1. **AFTER THE CREDIT** — the lines above: a repair whose invocation landed no op returned `(d2)`'s
+      //      `KC-4` before reaching this seat, so **a repair that landed nothing merges NOTHING** and the member is
+      //      never dishonest for the instant between;
+      //   2. **BEFORE THE RE-RUN** — the next iteration's examined set is the commit's `record.triggered` **AND the
+      //      paired list joined here** (below), never `pending`, so **the listener half cannot make the pass ask a
+      //      pair it would not have asked, and cannot make it skip one** (`CX-12`'s fixed-set rule, `D-56`'s reach,
+      //      `D-66`'s touched set and `D-69`'s filter are byte-unmoved) — **and the pair half is the ONE thing that
+      //      widens it**, on `D-105`'s own order;
+      //   3. **BEFORE `releasePending` BELOW** — the run's evaluated pairs are checked off immediately after, and
+      //      **the merged listener elements carry no pair handle at all** (§3.3's predicate), so the check-off can
+      //      never remove them.
+      //
+      // **AND THE ORDER OF THE TWO GUARDS IS THE ONE §3.2 AND §3.4a DECLARE**: the read is taken only where this
+      // invocation's own bracket stood, and the list is DROPPED where a nested attempt was opened inside it — the
+      // nested attempt's own terminal arm delivers that act, so merging its handles here would invoke a caller's
+      // body TWICE. **THE LIST IS THE ONE READ ABOVE (STEP 3) AND IS NOT READ AGAIN**: the channel answers and
+      // clears in the same read.
+      //
+      // **⟶ AND FROM THIS SEAT THE LEGS ARE SPLIT INTO TWO DESTINATIONS — `D-105`, 2026-11-01**
+      // (`docs/L1/op-free-repair-credit.md` §3.2; `strata/decisions.md` · `D-105` item `3`). **A LISTENER's handle
+      // goes to `record.pending` by the `1.8.1` merge, unchanged (`D-104` item `2`: a listener is DELIVERED, never
+      // asked); a CARRIED PAIR's `id` goes to `attempt.repairPaired` (`D-69`: *"an element whose handle is a
+      // constraint's `id` is asked; a listener's is delivered"*) AND NEVER TO `pending`** — **so the member the
+      // caller loops over stays exactly as EMPTY of pair ids as it was, and the pairs a repair's edit fires are
+      // asked by the commit's NEXT battery.** **`record.triggered` IS UNMOVED** — it is the store's own returned set
+      // for the commit's write, VERBATIM (`kernel-commit.mjs`), and a second act's handles written into it would
+      // forge a store result (`A113` (D1)).
+      // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
+      mergeRepairListeners(kernel, attempt, legs);
+      // THE LAYER (a) DELIVERY OF THIS RUN'S OWN HANDLES, ONE PER EVALUATED PAIR (`kernel-surface.md
+      // §2.1` item 2; `§2.2` item 2): every handle this attempt's write returned that stands for a pair
+      // THIS RUN evaluated has now been checked off as it passed — it was invoked in the kernel's own
+      // window — so it leaves `CommitRecord.pending`, the member the caller's own loop reads its work
+      // off, THAT LOOP BEING ONE INVOKER AMONG THE JS SURFACE'S ORDERED LAYERS AND NEVER THE ONLY ONE
+      // (`A: docs/decisions.md` · `A112`). A handle whose pair this run did NOT evaluate STANDS IN THE
+      // MEMBER for that caller's own loop, and is never delivered twice.
+      //
+      // **⟶ RE-DERIVED 2026-11-01 — `D-104`: THE MEMBER THIS LINE FILTERS MAY NOW CARRY A REPAIR'S LISTENER**
+      // (`docs/L1/repair-listener-delivery.md` §4): the sentence above stands byte-for-byte and is read THROUGH
+      // this clause — a handle the commit's own write never returned may stand in the member from the merge above,
+      // it is no pair's handle, and the check-off below cannot reach it (the filter compares the pair's own
+      // `kernel.handles` value). **`RepairContext.pending`'s provenance clause is unmoved** (`§2.3` item 2: *"read
+      // VERBATIM AND HANDED AS A FRESH LIST"*), so in a commit with more than one repair a LATER repair is handed a
+      // member carrying an EARLIER repair's listener elements — declared, and refused to be repaired into
+      // disagreement with the record it stands for.
+      releasePending(kernel, attempt, list);
+      return { terminal: null, rerun: true };
+    }
+  }
+  // A RUN THAT REACHES THIS LINE REACHED NO ARM INSIDE ITS LOOP: EVERY PAIR OF ITS OWN SNAPSHOT
+  // RETURNED THE PASS ARM OR LANDED A REPAIR, and a landed repair returned `rerun: true` above, its op's
+  // own landing evaluation following (`attempt-lifecycle.md §2.4` item 5 (i), (iv)).
+  releasePending(kernel, attempt, list);
+  // THE PASS ARM — EVERY PAIR OF THIS RUN'S OWN SET RETURNED THE PASS ARM, SO THE LANDING LEFT A VALID
+  // STATE AND THE EVALUATION'S RESULT IS PINNED HERE, AT THE ATTEMPT'S OWN `checkpoint` MEMBER, AND AT
+  // THAT LANDING'S OP (`composition-and-states.md §2.6` item 8 (i)–(ii), (iii); `kernel-surface.md §2.3`
+  // item 1). A run whose pair set is EMPTY is still a pair set: it returns the pass arm vacuously and
+  // PINS THE MEMBER AT THAT LANDING'S OP, so the `null` arm of item 8 (iii) is never that arm.
+  //
+  // AND THE VALUE IS ADDRESS-WIDE: THE CHECKPOINT IS "THE `opId` OF THE LAST LANDING THAT LEFT EVERY
+  // REGISTERED PAIR AT THE ATTEMPT'S OWN ADDRESS PASSING", so the pin belongs to the attempt's ADDRESS —
+  // a landing BESIDE it (a repair's op at a descendant address, whose pair set this attempt's scope does
+  // not reach) pins no member of this attempt and moves nothing (`§2.6` item 8 (i)'s foreign-landing
+  // clause; `VD-3`; `VD-6`). A violation arm returned above and therefore LEAVES THE MEMBER UNMOVED, so
+  // an earlier pin survives a later landing that failed.
+  // **⟶ THE CHECKPOINT'S COMPARISON IS STRUCTURAL AND SEGMENT-WISE, WITH `string` AND `number` DISTINGUISHED**
+  // (`P: docs/pending.md · M-3` item (iv), verbatim). **NO OBSERVABLE MOVES**: the prefixes made exactly this
+  // distinction, so a landing at `['a', 0]` and an attempt at `['a', '0']` are still DIFFERENT addresses.
+  if (sameAddress(landing.address, attempt.address)) attempt.checkpoint = landing.opId;
+  return { terminal: null, rerun: false };
+}
+
+/**
+ * A RUN'S OWN LAYER (a) DELIVERY — one per evaluated pair, each carrying that pair's own function
+ * (`kernel-surface.md §2.1` item 2; `§2.2` item 2). The handle each evaluated pair's registration stands
+ * behind has now been invoked in the kernel's own window — THE PAIR'S PASS HAS CHECKED IT OFF AS IT
+ * PASSED — so it has left the member BY ITS OWN PASS and it STILL STANDS in `triggered`, the store's own
+ * returned set, which no removal ever reaches (`A: docs/decisions.md` · `A112`).
+ *
+ * **AND THE CHECK-OFF REMOVES EVERY OCCURRENCE OF THE IDENTITY IT EVALUATED — the entry's OWN pass is
+ * the removal's warrant** (`surface.md §2.7` item 7 (a): the member is the returned set *"MINUS the
+ * entries the pass checked off as they passed … AND MINUS NOTHING ELSE"*; `§2.4` item 8 (c): a body of
+ * a checked-off identity run at the delivery instant is a FAILURE of that item). **THE SINGLE-OCCURRENCE
+ * REMOVAL THIS SITE ONCE SHIPPED — `indexOf` + `splice`, one entry per evaluated pair — LEFT ONE
+ * OCCURRENCE STANDING WHERE THE STORE'S OWN LIST CARRIED THAT IDENTITY TWICE** (the lawful
+ * caller-spelled duplicate: two construction entries at one address carrying the caller's same token
+ * resolve to ONE home entry and ONE handle, which the store returns TWICE — `DD-42` clause 3; `DD-39`;
+ * `surface.md §2.4`'s dated clause (ii); `PAR-JS-15`), **so the residue delivered that identity's
+ * function a second time AT THE DELIVERY INSTANT — an entry the pass checked off, delivered.** **THE
+ * DISCARD BESIDE THIS SITE ALREADY REMOVES BY THE SET (`terminal`'s `filter` against the failed write's
+ * own returned set, `:892`), and the check-off now removes by the identity it evaluated** — ONE warrant,
+ * every occurrence of it, and NO occurrence counts as a second entry for a set the pass has passed.
+ *
+ * **⟶ AND WHAT THE CHECK-OFF CONSUMED IS RECORDED AS IT IS TAKEN** (`docs/decisions.md` · `A117` (D5)):
+ * the removal below is `A117`'s *"check-off consumes the evaluated pair's own delivery of that identity"*
+ * and it is NOT *"that identity's whole owed delivery"* — so the identity it took is pushed onto the
+ * attempt's own `checkedOff` list, which the PASSING arm publishes onto the record (`publishCheckedOff`)
+ * for the terminal arm's delivery to resolve exactly as it resolves the residue. **THE REMOVAL ITSELF IS
+ * UNTOUCHED BY THE RECORDING** — same warrant, same by-identity extent, same member, `pending`-based
+ * assertions intact.
+ */
+function releasePending(kernel, attempt, keys) {
+  const record = attempt.record;
+  if (record === undefined || keys === undefined) return;
+  for (const key of keys) {
+    const handle = kernel.handles.get(key);
+    if (handle === undefined) continue;
+    // **⟶ THE CHECK-OFF POPS: THE ENTRY IS REMOVED, AND THE FILTER COMPARES `entry.handle` AND NEVER `entry`**
+    // (`P: docs/pending.md · (AA-7)`, verbatim: *"Pop from set to check off. Pending will only store the actual
+    // still-pending steps"*; `P: docs/pending.md · P-7`'s `pending` ruling, item (2); `contract.md §2.4`
+    // item 4; `trigger-and-pair.md §3` items 3–5). **UNDER POP NOTHING IS CARRIED BESIDE `pending`, so the
+    // bare-handle union has no subject** — and `attempt.checkedOff` is therefore NOT written here any more
+    // (`AA-7`'s own reading; `contract.md §2.4` item 5).
+    record.pending = record.pending.filter((entry) => entry.handle !== handle);
+  }
+}
+
+/**
+ * **⟶ ADDED 2026-11-01 — `D-104`'s MERGE, AT ITS SEAT: A REPAIR'S WRITE'S TRIGGERED LISTENERS JOIN THE COMMIT'S
+ * ONE MEMBER** (`docs/L1/repair-listener-delivery.md` §3.3, §3.4; `strata/decisions.md` · `D-104` item `2`;
+ * `A112`'s own row — *"because NO listener runs until the constraints pass, EVERY listener is `pending` on EVERY
+ * write"* — applied to the act the record had left out).
+ *
+ * **THE PREDICATE IS `D-69`'s OWN RULE READ AT THE MERGE** (§3.3): an element merges iff its `handle` is not one
+ * the kernel's registry names as a CARRIED PAIR's (`kernel.handles`' adopted values — the equality
+ * `pairsTriggered` reads in the other direction). **A PAIR IS NEVER IN THE DELIVERED SET** — *"an element whose
+ * handle is a constraint's `id` is asked; a listener's is delivered"* — **and its handle is not merged into
+ * `pending` either**, so the member never carries an id the pass will not evaluate. **ITS LOAD-BEARING CASE IS A
+ * MULTI-REPAIR COMMIT**: a run's check-off stands AFTER that run's repair arm, so the pair just evaluated is
+ * still in the member at this seat and the de-duplication below would exclude it on its own — but a SECOND
+ * repair's write re-triggers a pair an EARLIER run already checked off, and that id is no longer there
+ * (`P-SM-5`'s chain). **Without the predicate the merge would put it BACK.**
+ *
+ * **THE MEMBER'S DE-DUPLICATION IS ITS OWN SECOND RULE, BY `handle` AGAINST `pending`'S CURRENT HANDLES** (§3.4):
+ * `pending` is also THE CALLER'S OWN WORK LIST (`A112`), and a member carrying one handle twice would let that
+ * caller's own loop run a body twice — a rule `deliver`'s rule 3 cannot supply, because it de-duplicates the
+ * array IT is handed and not the member a caller reads.
+ *
+ * **AND THE WHOLE RETURNED SET — NOT MERELY THE MERGED ELEMENTS — IS RECORDED ON THE ATTEMPT** (`repairTriggered`,
+ * §3.5): the failing arm's discard is widened to the union of the failed write's set and these, so an entry the
+ * repair's write returned loses the member there too. **NO RECORD MEMBER IS ADDED** (`A117` (D6)).
+ *
+ * **A HANDLE THE ENTRY'S REGISTRY HOLDS NO FUNCTION FOR MERGES AND FIRES NOTHING, SILENTLY** (`delivery.mjs`'s
+ * reserved-entry arm) — so the second gate is generous by declaration, and **the kernel grows no listener
+ * registry** (`D-69`, `D-98`): it asks its own pair registry and nothing else.
+ *
+ * **⟶ RE-DERIVED 2026-11-01 — `D-105`: ONE READ, TWO DESTINATIONS, AND THE LEG IS THE WIDENED ONE.**
+ * (`docs/L1/op-free-repair-credit.md` §3.2, §3.3; `strata/decisions.md` · `D-105` item `3`.) **THE ITERATION IS THE
+ * LEGS AND THEN EACH LEG's `triggered` LIST** — the shape the `1.8.1` channel now mints, ONE ELEMENT PER WRITE,
+ * each carrying that write's own journal `op` beside its returned elements (`state.mjs`'s `appendRepairLeg`). **THE
+ * PREDICATE (`carriedPairHandle`), THE MEMBER DE-DUPLICATION (`pendingNames`) AND THE `repairTriggered` RECORD
+ * MOVE NO BYTE**; what is added is the SECOND DESTINATION `D-69` already discriminates:
+ *   * **A LISTENER's handle → `record.pending`**, by the `1.8.1` merge exactly as it stands above (`D-104` item
+ *     `2`; *"a listener is DELIVERED, never asked"*);
+ *   * **A CARRIED PAIR's `id` → `attempt.repairPaired`**, and **NEVER `pending`** — *"an element whose handle is a
+ *     constraint's `id` is asked"* — so `1.8.1` §3.3's ban stands byte-for-byte: **a pair's id is merged into no
+ *     member the caller loops over.** The pass's own snapshot reads this member (`pairsTriggered`'s second
+ *     argument), so the pairs a repair's edit fires are asked by the commit's NEXT battery.
+ *
+ * **THE PAIR HALF'S DE-DUPLICATION IS THREE RULES, EACH WITH ITS OWN GROUND (`§3.3 JN-4`), AND THE MEMBER IS A SET
+ * IN THE REGISTRY'S ORDER:**
+ *   1. **AGAINST THE COMMIT'S OWN SET, BY HANDLE** — an element whose handle already stands in `record.triggered`
+ *      is not appended: the pair is already in the evaluated set, and a second copy would ask it twice — the very
+ *      double-ask `pairsTriggered`'s one-append-per-row prevents within one list and cannot prevent across two;
+ *   2. **AGAINST THE MEMBER ITSELF, BY HANDLE, INCLUDING EARLIER IN THE SAME LEG LIST** — the store LAWFULLY
+ *      returns one handle twice (the caller-spelled duplicate: two construction entries at one address carrying
+ *      the caller's same token resolve to ONE home entry and ONE handle, which the store returns TWICE — `DD-42`
+ *      clause 3; `DD-39`; `PAR-JS-15`), and this tree has already been bitten by it (`releasePending`'s own
+ *      clause; `pendingNames` exists for exactly that reason). **`pairsTriggered`'s `break` would admit the pair
+ *      once anyway — the duplicate is harmless to the READ and still wrong in the MEMBER;**
+ *   3. **AND NEVER AGAINST `pending`** — that member carries no pair's id at all, so there is nothing to compare,
+ *      and a listener is not a pair (`D-69`).
+ *
+ * **AND A PAIR AN EARLIER RUN ALREADY CHECKED OFF IS RE-JOINED AND RE-ASKED, WHICH IS NOT A DUPLICATE**: it is in
+ * `ran`, so a violation at the next run takes limb `(e)`/`(f)` and its repair is NEVER INVOKED TWICE (`P-SM-6`) —
+ * **`D-105` widens what is ASKED and never what may REPAIR**, and the loop guard is the applied-repair marker and
+ * the restart budget (`D-42`).
+ */
+function mergeRepairListeners(kernel, attempt, legs) {
+  const record = attempt.record;
+  // **A REGISTRATION'S SYNTHETIC ATTEMPT CARRIES NO `record`** (`kernel-registration.mjs`): there is no member to
+  // write, which is why the registration instant's delivery stays `0` STRUCTURALLY and not by a gate.
+  if (record === undefined) return;
+  const pending = record.pending;
+  if (!Array.isArray(pending)) return;
+  const repairTriggered = attempt.repairTriggered;
+  const repairPaired = attempt.repairPaired;
+  const commitSet = record.triggered;
+  for (let i = 0; i < legs.length; i += 1) {
+    const leg = legs[i];
+    if (leg === null || typeof leg !== 'object') continue;
+    const elements = ownMember(leg, 'triggered');
+    if (!Array.isArray(elements)) continue;
+    for (let e = 0; e < elements.length; e += 1) {
+      const element = elements[e];
+      if (element === null || typeof element !== 'object') continue;
+      const handle = ownMember(element, 'handle');
+      if (handle === undefined) continue;
+      // THE DISCARDS' OWN SET, RECORDED BESIDE THE MERGE AND READ BY `terminal`'s FILTER ALONE. It takes EVERY
+      // element the repair's write returned — the pair halves included — because it is the store's own set and
+      // the failing arm removes by the set each entry came back in (`D-104` item `2`).
+      if (Array.isArray(repairTriggered)) appendOwn(repairTriggered, handle);
+      // §3.2 — A CARRIED PAIR's `id` JOINS THE ATTEMPT'S PAIRED LIST AND NEVER `pending` (`D-69`).
+      if (carriedPairHandle(kernel, handle)) {
+        if (!Array.isArray(repairPaired)) continue;
+        if (Array.isArray(commitSet) && triggeredNames(commitSet, handle)) continue;
+        if (triggeredNames(repairPaired, handle)) continue;
+        appendOwn(repairPaired, { handle, address: ownMember(element, 'address') });
+        continue;
+      }
+      // §3.4 — THE MEMBER'S OWN DE-DUPLICATION, BY `handle` AGAINST THE HANDLES THAT STAND IN IT NOW.
+      if (pendingNames(pending, handle)) continue;
+      appendOwn(pending, { handle, address: ownMember(element, 'address') });
+    }
+  }
+}
+
+/// **WHETHER A HANDLE IS ONE THE REGISTRY NAMES A CARRIED PAIR'S** — `kernel.handles`' adopted values, compared by
+/// equality and never by reach (`D-69`'s one membership test, read at the merge).
+function carriedPairHandle(kernel, handle) {
+  const adopted = kernel.handles;
+  for (const value of adopted.values()) {
+    if (value === handle) return true;
+  }
+  return false;
+}
+
+/// **WHETHER A HANDLE ALREADY STANDS IN `pending`** — the member's de-duplication, `entry.handle` against
+/// `handle`, a local index loop and never `Array.prototype.some` (`contract.md §2.1` item `(1c)(vi)`).
+function pendingNames(pending, handle) {
+  for (let i = 0; i < pending.length; i += 1) {
+    const entry = pending[i];
+    if (entry === null || typeof entry !== 'object') continue;
+    if (entry.handle === handle) return true;
+  }
+  return false;
+}
+
+/**
+ * **THE PASSING ARM'S OWN PUBLICATION — `A117` (D5)'s finding PLACED ON THE RECORD THE TERMINAL ARM
+ * HANDS TO THE INSTANCE'S SEAM.**
+ *
+ * It is called at `runAttempt`'s success arm, AFTER the attempt is CLOSED and BEFORE `settleArm`, and it
+ * is called THERE and on NO FAILING ARM (`terminal`'s arm reaches none of this): on a write that fails on
+ * constraints the other listeners are DISCARDED (`§2.7` item 6 read at item 7 (d); `A114` (D1)/(D2)), so
+ * the arm's residue is empty AND a checked-off identity stands for NO delivery, its body never run — the
+ * failing arm stays `0` of the failed write's own set and `0` for the identity too.
+ *
+ * **THE KEY IS A SYMBOL** (`CHECKED_OFF` above): `CommitRecord` keeps its four members (`A117` (D6)), the
+ * record's enumerable shape does not move, and every census that reads a record's members reads them
+ * through the same four.
+ */
+function publishCheckedOff(attempt) {
+  // **⟶ UNDER POP IT PUBLISHES NOTHING — `U-STOREROOM-HELD-LISTENER-IDENTITY` (`D-GP-SHLI`).** **The entry a
+  // check-off removes is REMOVED from `pending`, so nothing is carried beside it and the bare-handle union
+  // has no subject** (`P: docs/pending.md · (AA-7)`, verbatim; `contract.md §2.4` item 5; `trigger-and-pair.md
+  // §3` item 3). **THE THIRD SITE THAT CARRIED THE UNION IS NAMED WITH THE OTHER TWO**: `releasePending`'s push
+  // into `checkedOff` and the terminal arm's re-append of bare handles are the two, and this is the third —
+  // **all three have no subject under POP**, so the symbol key is left UNWRITTEN and the record keeps its FOUR
+  // members (`A117` (D6)).
+  //
+  // **AND THE OWED FIRING IS UNMOVED**: `A117` (D5)/(D6) already holds that an owed firing's home is THE
+  // REGISTRY'S RESOLUTION OF ITS IDENTITY, so a popped identity's firing is still reached at the delivery
+  // instant (`contract.md §2.4` item 4).
+  return attempt;
+}
+
+/** `PAR-C-5`'s outside value, read as the `{message}` arm with the KERNEL's own generated sentence.
+ *
+ *  **⟶ CORRECTED 2026-10-26 ON THE DOWNSTREAM `DEF-Q` ROW: THE SENTENCE'S ADDRESS SLOT IS READ OFF THE MEMBER
+ *  THE REGISTRY ROW ACTUALLY CARRIES.**
+ *
+ *  **THE DEFECT, MEASURED AT BOTH ENTRIES THIS SENTENCE REACHES.** The bytes this return replaced were
+ *  ``+ `${JSON.stringify(pair.address)}` ``, and **the kernel's registry row carries NO `address` member at
+ *  all** — `kernel.pairs`' value is `{ addresses, id, constraint }` (`kernelFor` above; `contract.md §2.6`
+ *  item 4's *"one pair, N registry rows"*), while `address` is the member the CALLER's registration pair and
+ *  the `constraints()` ELEMENT spell. **So the slot read `undefined`**, and the sentence reached the caller
+ *  twice through `evaluate` — once on the `constraint-check` entry the pass was writing (`check.message`) and
+ *  once in the `outcome` entry `terminal` appends carrying that same text — as
+ *  *"… outside the three declared outcome arms at undefined"*, **a member the entry no longer prints while the
+ *  pair still carries it.**
+ *
+ *  **WHICH RENDERING, AND WHERE THE DECLARATION FIXES IT.** The row's address member is the SET
+ *  (`addresses` — `contract.md §2.6` item 5: *"`address`: THE ADDRESS SET the pair was created with — and, at
+ *  the REGISTRATION act, a single address"*), and **this sentence's slot is ONE address and not the set**:
+ *  the kernel declares that reading once, at `pairSpelling` (`kernel-foundations.mjs`), whose own sentence
+ *  spells *"the address's segments joined by `/`"* off **`pair.addresses[0]`** — the pair's first address —
+ *  and never off the whole set. **AND EVERY SIBLING `at <address>` SENTENCE IN THIS FILE IS THE SINGLE-ADDRESS
+ *  SHAPE**: `JSON.stringify(attempt.address)` at the `passed`, `produced no op`, `save` and `commit` arms.
+ *  **SO THE SET FORM `[["a"]]` IS NOT THIS SLOT'S RENDERING AND `["a"]` IS** — the same one-address rendering,
+ *  read off a member the row really holds, and no member of the sentence moves. */
+function unrecognized(pair) {
+  return `the constraint ${pair.id} returned a value outside the three declared outcome arms at `
+    + `${addressSpelling(pair.addresses[0])}`;
+}
+

@@ -1355,16 +1355,26 @@ function assertOpIsTheJournalRecord(dts) {
       + `\`write(...).op.${member}\` type-checks`);
   }
   assert.ok(/export\s+(interface|type)\s+JournalOp\b/.test(dts),
-    'the eight-member record is declared by name (`JournalOp`) and `op` refers to it');
+    'the seven-member record is declared by name (`JournalOp`) and `op` refers to it');
   assert.equal(opType, 'JournalOp',
     `WriteRecord.op's own type IS the declared record; got ${JSON.stringify(opType)}`);
-  // and the record's own member set is the store's eight (`DD-39`), declared in the type's own text
+  // and the record's own member set is the store's SEVEN (`DD-39` as re-derived by `D-189` item 2), declared in
+  // the type's own text
   const record = /interface JournalOp \{([\s\S]*?)\n\}/.exec(dts);
   assert.ok(record, 'the `JournalOp` interface carries its own body');
-  for (const member of ['opId', 'kind', 'address', 'tier', 'before', 'after', 'seq', 'compacted']) {
+  // **⟶ AND THE MEMBER LIST MOVED `8 → 7` ON `2026-11-17`** (`strata/decisions.md` · `D-189` item 2, the
+  // architect VERBATIM: *"If .compacted is always false drop it"*): `compacted` is REMOVED from the declared
+  // record, so a generator still requiring the declaration to carry it would redden the release for doing the
+  // ruling. **The generator's shape is unmoved** — it still asserts every member the declaration does carry,
+  // one at a time.
+  for (const member of ['opId', 'kind', 'address', 'tier', 'before', 'after', 'seq']) {
     assert.ok(new RegExp(`readonly\\s+${member}\\s*:`).test(record[1]),
-      `\`JournalOp\` declares the store's own \`${member}\` member (DD-39: { opId, kind, address, tier, before, after, seq, compacted })`);
+      `\`JournalOp\` declares the store's own \`${member}\` member (DD-39: { opId, kind, address, tier, `
+      + 'before, after, seq } — `compacted` REMOVED by `D-189` item 2)');
   }
+  assert.equal(/readonly\s+compacted\s*:/.test(record[1]), false,
+    'and the declaration does NOT declare `compacted` any more: the member is removed by `D-189` item 2 — not '
+    + 'renamed, not deprecated, and not typed as a constant');
   return opType;
 }
 

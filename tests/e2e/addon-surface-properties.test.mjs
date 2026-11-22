@@ -495,9 +495,14 @@ test('sas_prop_P_SAS_3_S_PARITY_both_shapes_answer_the_same_record_member_for_me
       assert.deepEqual(Object.keys(receipt).sort(), ['address', 'op', 'tiers', 'triggered'],
         `attempt ${i}: the delete receipt's members are `+ '`{address, tiers, triggered, op}` (`surface.md §2.2`) '
         + 'and are unmoved');
+      // **⟶ SEVEN MEMBERS AND NOT EIGHT FROM `2026-11-17`** (`strata/decisions.md` · `D-189` item 2):
+      // `compacted` is REMOVED from the store's record and from `index.d.ts`'s `JournalOp`, so this census is
+      // re-derived `8 → 7` at its own byte. **The limb's SUBJECT is unmoved** — it asks whether the record's
+      // member set is single-valued across the corpus, and the corpus is now compared against the set the
+      // declaration actually carries.
       assert.deepEqual(Object.keys(byFirst.op).sort(),
-        ['address', 'after', 'before', 'compacted', 'kind', 'opId', 'seq', 'tier'],
-        `attempt ${i}: and the operation record's eight members are single-valued across the corpus`);
+        ['address', 'after', 'before', 'kind', 'opId', 'seq', 'tier'],
+        `attempt ${i}: and the operation record's seven members are single-valued across the corpus`);
     }),
   });
   assertHeld(result);

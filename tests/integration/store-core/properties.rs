@@ -692,11 +692,17 @@ fn p_im_2_a_failed_write_leaves_zero_residue() {
             reference.write(AddressArg::List(key(&["purgeme"])), w_mem(), v_str("mem")),
             "§3.4 W-6 on the reference instance: the state whose purge the failed write would extend",
         );
+        // **⟶ AND THIS `drive.check` IS RE-DERIVED RATHER THAN DELETED `2026-11-17`, BECAUSE ITS SUBJECT
+        // MOVED OFF THE FLAG AND ONTO THE OP'S OWN `seq`** (`strata/decisions.md` · `D-189` item 2): the
+        // record no longer carries `compacted`, so the property cannot be read off it. **What the drive
+        // asserts now is the same fact at the member the record does carry** — the prior op is the FIRST op of
+        // the reference instance and its `seq` says so, which is why no later append can have touched it.
+        // **The property's shape is unmoved: the returned record is the entry's snapshot AT THE APPEND.**
         drive.check(
-            reference_prior.op.compacted == false,
-            "§6.2: the op a write returns reports the entry's mark AT THE APPEND — the reference instance's \
-             prior op is un-compacted by construction, and no later append may have marked it (`§6.1` item \
-             5 declares the mark on the JOURNAL ENTRY, and the returned record is the entry's snapshot)",
+            reference_prior.op.seq == 1,
+            "§6.2: the op a write returns is the entry's snapshot AT THE APPEND — the reference instance's \
+             prior op is its FIRST op (`seq` 1) by construction, and no later append may have moved that \
+             snapshot (`D-189` item 2 removed the `compacted` flag this row read before 2026-11-17)",
         );
         // `§6.1` item 5's mark is not carried back onto the `JournalOp` a write already returned, so the
         // triggering append's own effect is read through `§6.4` `M-6`'s floor — the one observable a

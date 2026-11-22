@@ -4368,11 +4368,15 @@ test('JC-TC-64 the record copy and the delivery are the governed copy path\'s, s
   // conjunction of item `(2e)`: the GOVERNED counter `0` AND the record, its `triggered`/`watched` and the one
   // delivery byte-identical to the control's.**
   const drivenAddress = ['a', 'b'];
-  // THE OP'S OWN DECLARED MEMBER SET (`addon-surface-properties.test.mjs:450`): eight members, and the ONE datum
-  // that is NOT a crossing's is `opId` — the package's own PROCESS-GLOBAL journal sequence, measured as `op-2`
-  // and `op-4` for two identically driven instances in one process. So the record is compared byte-identically
-  // with THAT ONE DATUM HELD AT A TOKEN, and its declared shape (`op-<digits>`) is asserted on its own.
-  const RECORD_OP_MEMBERS = ['address', 'after', 'before', 'compacted', 'kind', 'opId', 'seq', 'tier'];
+  // THE OP'S OWN DECLARED MEMBER SET (`addon-surface-properties.test.mjs:450`): **SEVEN** members, and the ONE
+  // datum that is NOT a crossing's is `opId` — the package's own PROCESS-GLOBAL journal sequence, measured as
+  // `op-2` and `op-4` for two identically driven instances in one process. So the record is compared
+  // byte-identically with THAT ONE DATUM HELD AT A TOKEN, and its declared shape (`op-<digits>`) is asserted on
+  // its own.
+  // **⟶ AND THE SET MOVED `8 → 7` ON `2026-11-17`** (`strata/decisions.md` · `D-189` item 2): `compacted` is
+  // REMOVED from the record — not renamed and not deprecated — so a comparison that walked the eighth name
+  // would serialise an `undefined` the record no longer carries and compare it against itself.
+  const RECORD_OP_MEMBERS = ['address', 'after', 'before', 'kind', 'opId', 'seq', 'tier'];
   const recordBytes = (record) => {
     const op = {};
     for (let i = 0; i < RECORD_OP_MEMBERS.length; i += 1) {

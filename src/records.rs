@@ -164,6 +164,17 @@ pub struct BaseState {
 
 /// `§6.2` (`DD-22`): the op's closed record shape, carrying enough to reconstruct the original tree and
 /// resolve the current state with an id.
+///
+/// **⟶ THE RECORD CARRIES SEVEN MEMBERS AND NOT EIGHT FROM 2026-11-17 — `compacted` IS REMOVED, NOT RENAMED
+/// AND NOT DEPRECATED** (`strata/decisions.md` · `D-189` item 2, the architect VERBATIM: *"If .compacted is
+/// always false drop it"*). **THE DIRECTIVE WAS A CONDITIONAL AND THE TREE ANSWERED IT**: the member was
+/// produced at exactly two sites (`src/store.rs`'s two `JournalOp` literals) and **both set it `false`**, so
+/// a member that can hold ONE value carried nothing. **ITS SUBJECT IS CARRIED BY `journal_floor`'s watermark
+/// AND NOT BY A PER-OP FLAG** (`D-160` item 3): an op the compaction DROPPED and an id that never named one
+/// stay distinguishable — `RollbackCompacted` and `JournalOpUnknown` are two refusals decided at the journal
+/// lookup — without one bit on every record. **THE REMOVAL IS BREAKING AGAINST `1.12.0` AND ITS CLASS IS
+/// `MAJOR` — `2.0.0`, `D-190`** (`D-189` item 2's own reading: *"removing it is breaking against `1.12.0` and
+/// `D-158`'s `1.13.0` `MINOR` cannot absorb it"*), so `D-158`'s class claim is SUPERSEDED.
 #[derive(Clone, Debug, PartialEq)]
 pub struct JournalOp {
     pub opId: String,
@@ -173,7 +184,6 @@ pub struct JournalOp {
     pub before: BaseState,
     pub after: BaseState,
     pub seq: u64,
-    pub compacted: bool,
 }
 
 /// `§4.4`'s receipt, **⟶ AMENDED 2026-10-11 (`DD-35`) with the `triggered` member — exactly THREE members:

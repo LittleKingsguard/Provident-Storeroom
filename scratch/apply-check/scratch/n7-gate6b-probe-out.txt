@@ -1,0 +1,27 @@
+  DEBUG at the commit's return: rec.pending.length=1 triggered=1 pendingIsTriggered=false settleReaches[0].pendingLen=0
+── CASE A: `on` at the pair address ──────────────────────────────────────────────
+  identity: hAdopted === hApp = true
+  commit returned: triggered=1 pending=0
+  the SAME identity in triggered twice? 1 occurrence(s) of the adopted handle in triggered
+  BEFORE the pass: pending carries the adopted handle = true (len 1); the FIRST settle reach's own record === the commit's returned record? false
+  constraint body calls after the whole arm = 1; app body calls = 0 (args [])
+  AFTER the pass: pending len = 0; outcome=passed
+  settle reaches (pendingLen seen) = [{"pendingLen":0,"record":{"attempt":{"id":"attempt-1"},"op":{"opId":"op-2","kind":"write","address":["a","pair"],"tier":"mem","before":{"present":false},"after":{"present":true,"value":1},"seq":2,"compacted":false},"triggered":[{}],"pending":[]},"sameAsCommitted":false},{"pendingLen":0,"record":{"attempt":{"id":"attempt-1"},"op":{"opId":"op-2","kind":"write","address":["a","pair"],"tier":"mem","before":{"present":false},"after":{"present":true,"value":1},"seq":2,"compacted":false},"triggered":[{}],"pending":[]},"sameAsCommitted":true}]
+── CASE B: `register(adoptedHandle, fn)` at the pair address ─────────────────────
+  constraint body calls = 1; app body calls = 0; outcome=passed; pending after the arm = 0
+── CASE C: two `listen` calls at one address, then `on` ──────────────────────────
+  listen returned a handle distinct from hApp? false; triggered len=1; occurrences of hApp in triggered=1; app body calls=0
+── CASE D: the listener at the proper PREFIX of the written address ─────────────
+  triggered len=2; the app handle is a distinct identity from the adopted one: true; pending before the pass=2; after=1; app body calls=1 (args [["d","pair"]])
+── CASE D2: `on` at the EXACT address vs at the PROPER PREFIX (one difference) ────
+  EXACT  spelling: hApp===hAdopted=true triggered=1 pending 1->0 constraintCalls=1 appCalls=0 args=[] outcome=passed
+  PREFIX spelling: hApp===hAdopted=false triggered=2 pending 2->1 constraintCalls=1 appCalls=1 args=[["e2","pair"]] outcome=passed
+── CASE E: MINIMAL REPRODUCTION ───────────────────────────────────────────────────
+  1. storeCreate({journalLength:64, listeners:[]}); write(store, ["<top>"], "mem", {})
+  2. register(store, ["m","leaf"], "c", () => true)          // returns the adopted handle H
+  3. store.on(["m","leaf"], appFn)                            // returns the SAME H (identity)
+  4. const rec = commit(store, ["m","leaf"], "mem", 1)        // H is the only member of rec.triggered and rec.pending
+  5. runAttempt(store, rec)                                   // the pass checks H off as it passes => residue EMPTY
+  EXPECTED by the limb: appFn invoked once at the pass's terminal arm. OBSERVED: 0.
+── CASE F: the same identity under a later BARE caller-made write ─────────────────
+  after the kernel arm: app body calls=0; the later bare write returned triggered=1 and the app body calls after it=1

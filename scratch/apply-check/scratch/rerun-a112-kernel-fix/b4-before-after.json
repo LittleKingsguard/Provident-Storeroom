@@ -1,0 +1,10 @@
+{
+  "before": [
+    "FAIL",
+    "failing arm: at the write s return triggered=2 pending=2 (the whole returned set, no SIFT); after the pass pending=0, the never-evaluated ancestor handle still present=false, and its pair was evaluated by NO pass (ancestor body calls=0, the pass being address-scoped to the attempt s own address) so it CANNOT have left by being checked off as it passed; failing pair token=KC-3. PASSING arm of the SAME fixture: after the pass pending=1 with the ancestor handle standing=true (ancestor calls=0, outcome=passed) \u2014 so the removal on the failing arm is not a check-off, and it is not the discard of the failed write s own set either, because the ancestor handle was returned by the ANCESTOR s write, not by the failed one"
+  ],
+  "after": [
+    "FAIL",
+    "failing arm: at the write s return triggered=2 pending=2 (the whole returned set, no SIFT); after the pass pending=1, the never-evaluated ancestor handle still present=true, and its pair was evaluated by NO pass (ancestor body calls=0, the pass being address-scoped to the attempt s own address) so it CANNOT have left by being checked off as it passed; failing pair token=KC-3. PASSING arm of the SAME fixture: after the pass pending=1 with the ancestor handle standing=true (ancestor calls=0, outcome=passed) \u2014 so the removal on the failing arm is not a check-off, and it is not the discard of the failed write s own set either, because the ancestor handle was returned by the ANCESTOR s write, not by the failed one"
+  ]
+}

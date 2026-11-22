@@ -1,0 +1,581 @@
+# `/.github/workflows/publish.yml` — **THE FIVE-ARTEFACT RELEASE MATRIX OF `U-STOREROOM-PUBLISH`**
+# (`docs/specs/storeroom-publish/release.md §1`; `docs/specs/storeroom-publish/contract.md §3.1`; `PUB-DD-7`;
+# `PUB-DD-23`; `Q3-5`).
+#
+# **WHAT THIS FILE IS: the CI INPUTS landed as a workflow — the five per-target runners, the tag/version
+# rule, the tag's actor, the provenance subject and the SIX STEPS IN THE DECLARED ORDER, of which the
+# LOAD-BEARING property is that the MAIN PACKAGE IS PUBLISHED LAST, ALWAYS** (`release.md §1.4` step 5;
+# `§3.1`). **The order is the partial-publish arm's own precondition: a failure before the main package is
+# recovered IN PLACE on the same version, because nothing a consumer can install is yet incomplete.**
+#
+# **NO PASS OF THIS UNIT PUBLISHES, PACKS, TAGS, INSTALLS OR ATTESTS** (`release.md §4.1` item 1): this
+# file DECLARES what the release must satisfy and is executed by NOTHING in this repository. **The release
+# acts are the ARCHITECT'S** (`release.md §1.3` item 1: the tag's actor is the architect) — the tag he
+# creates is this workflow's only trigger, and the publication is his act's consequence.
+#
+# **NO TRACKED BYTE HERE CARRIES A REGISTRY TOKEN, A SECRET OR A CREDENTIAL** (`release.md §1.4`'s closing
+# prohibition; `contract.md §2.5` item 4): the publish steps authenticate through the host's own OIDC
+# federation and through the repository's own trusted-publishing configuration, and NO `secrets.*`
+# reference and no auth token is written into this file. **NOTHING IS PUBLISHED FROM AN UNTAGGED COMMIT**
+# (`release.md §2.1` item 3): the only trigger below is the tag's own push, whose form is
+# `v<major>.<minor>.<patch>`.
+
+name: publish
+
+# `release.md §2.1` items 1–3 — **VERSION EQUALS TAG, AND ONLY THE TAG PUBLISHES.** A branch head, a pull
+# request and a manual dispatch publish nothing: there is no `branches:`, no `pull_request:` and no
+# `workflow_dispatch:` trigger, so an untagged commit has no route to the registry at all.
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+# `release.md §1.3` items 2–3; `§1.4` step 6 — **THE PROVENANCE SUBJECT IS THE TAGGED COMMIT OF THIS
+# REPOSITORY**, recorded as the attestation's subject. `id-token: write` is the host's OIDC federation and
+# is not a credential written into this file; `contents: read` is the whole of the rest of the access.
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  # `release.md §1.2` — **ONE RUNNER PER TARGET, AND NO RUNNER SERVES TWO.** Each runner builds ITS OWN
+  # target and no other, because a cross-compiled artefact would make *"a consumer on a covered target
+  # needs no Rust toolchain"* a claim about a build this matrix did not perform. The five names are the
+  # five declared scoped names of `resolution.md §3.1`, name for name — **each carrying the PROJECT token
+  # `provident-storeroom` beside the language marker `js-`, because the scope `@auspicion` serves more than
+  # one project (`A88`(a))**.
+  platform:
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: linux-x64
+            name: '@auspicion/provident-storeroom-js-linux-x64-gnu'
+            runner: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+          - label: linux-arm64
+            name: '@auspicion/provident-storeroom-js-linux-arm64-gnu'
+            runner: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+          # **⟶ THE TWO macOS LABELS AMENDED 2026-10-11 BY THE RUNNER-LABEL LANDING PASS, UNDER
+          # `release.md §1.2`'s OWN CLOSING RULE** (*"a runner renamed or retired by its host is a one-line
+          # change to this table and to the workflow file, and the change is a bounded amendment rather than
+          # a finding"*) — **THE LABELS ALONE MOVE; AND THEY ARE NOT "FIXED BACK" TO THEIR PREDECESSORS,
+          # WHICH IS WHY THE REASON IS WRITTEN HERE RATHER THAN LEFT TO THE HOST'S DOCUMENTATION.**
+          # `darwin-x64` — **`macos-13` → `macos-15-intel`**: `macos-13` was RETIRED by its host — its
+          # runner-images tracker closes it *"fully unsupported by December 8th, 2025"*
+          # (`actions/runner-images#13046`) — and the tagged run waited `8h 35m` on that queue for it.
+          # `macos-15-intel` is Intel x64, macOS 15, and a STANDARD hosted runner (no plan change).
+          # `darwin-arm64` — **`macos-14` → `macos-15`**: `macos-14` carries a DEPRECATION badge, with
+          # host brownouts live and retirement announced for `2026-11-02` (`actions/runner-images#13518`);
+          # `macos-15` is Apple Silicon arm64, current, and carries no deprecation badge.
+          # **THE PROPERTY IS UNMOVED: each of the five rows is a DISTINCT image and each builds its own
+          # target** — `macos-15-intel` and `macos-15` are different images for different architectures, so
+          # `PAR-PUB-28`'s refusal of a cross-compiled artefact *"a build this matrix did not perform"* is
+          # honoured exactly as before. `ubuntu-24.04`, `ubuntu-24.04-arm` and `windows-2022` DO NOT MOVE.
+          - label: darwin-x64
+            name: '@auspicion/provident-storeroom-js-darwin-x64'
+            runner: macos-15-intel
+            target: x86_64-apple-darwin
+          - label: darwin-arm64
+            name: '@auspicion/provident-storeroom-js-darwin-arm64'
+            runner: macos-15
+            target: aarch64-apple-darwin
+          - label: win32-x64
+            name: '@auspicion/provident-storeroom-js-win32-x64-msvc'
+            runner: windows-2022
+            target: x86_64-pc-windows-msvc
+    steps:
+      # `release.md §1.4` step 1 — **BUILD**, whose precondition is the tagged commit checked out. The
+      # ref is the tag itself and never a branch, so the bytes this matrix builds have the tag's identity.
+      #
+      # **⟶ THE RUNTIME MOVE, 2026-10-13 — `@v4` → `@v7`, AT THIS SITE AND AT `main`'S, AND THE PIN IS
+      # THE REASON.** `actions/checkout@v4` DECLARES `runs.using: node20` — the DEPRECATED runtime the
+      # tag-triggered run's own annotation named (`Node.js 20 is deprecated … actions/checkout@v4`) — and
+      # **`v5`, `v6` AND `v7` EACH DECLARE `node24`, MEASURED FROM EACH TAG'S OWN `action.yml` AND NOT
+      # INFERRED FROM A CHANGELOG.** **SO THE MOVE IS NOT A MAJOR BUMP TAKEN FOR ITS OWN SAKE: IT IS THE
+      # RUNTIME THE RULE NAMES, AND `v7` IS THE NEWEST STABLE MAJOR THAT CARRIES IT** (`v7.0.1` is the
+      # repository's own `releases/latest`, non-prerelease, `2026-07-20`) — **the same runtime this file
+      # ALREADY DECLARES at BOTH sites of its own step name `'precondition: the publishing client — Node
+      # 24, whose npm performs the OIDC exchange'`, WHOSE PIN DOES NOT MOVE.** **AND THE ANCHOR IS THAT
+      # NAME AND NOT A LINE NUMBER, DELIBERATELY: this annotation's own insertion moves every line below
+      # it, so a line anchor written here would be stale the moment it was read** (`release.md §1.4`'s own
+      # reading rule: where a count or a name will do, prefer it to a line number).
+      # **AND WHY `v7` IS REACHABLE HERE RATHER THAN MERELY NEWER, NAMED SO THE MOVE IS NOT READ AS AN
+      # UNMEASURED JUMP: the two majors' `action.yml` are BYTE-IDENTICAL, inputs and outputs INCLUDING
+      # `ref` AND `token` (`repository` · `ref` · `token` · `…` · `allow-unsafe-pr-checkout`), so the input
+      # this step passes is the input it passed before; and v7's two deltas are each OUTSIDE THIS FILE —
+      # the v6 credential-persistence change (`.git/config` → a separate file under `$RUNNER_TEMP`), whose
+      # one documented requirement is *"running authenticated git commands from a Docker container
+      # action"*, WHICH THIS FILE HAS NONE OF; and v7's fork-pull-request guard, which applies ONLY to
+      # `pull_request_target` and `workflow_run`, WHILE THIS FILE'S ONLY TRIGGER IS THE TAG'S OWN PUSH AND
+      # IT CARRIES NO `pull_request:` TRIGGER AT ALL (its own head comment, `§2.1` items 1–3).**
+      # **AND THE OIDC PROPERTY IS UNMOVED BY THE MOVE, WHICH IS THE ONE THING A TOKEN-BEARING ACTION
+      # COULD HAVE BROKEN: `token` DEFAULTS TO `${{ github.token }}` AT BOTH MAJORS, `contents: read`
+      # REMAINS THE WHOLE OF THIS STEP'S NEED AT EACH, AND THE MOVE ADDS NO `secrets.*`, NO
+      # `NODE_AUTH_TOKEN` AND NO CREDENTIAL PATH — not one byte of that vocabulary is written below.**
+      # **IT ALSO ADDS NO INPUT AND NO SECOND MAJOR: `@v5`'s and `@v7`'s shared premise is the `node24`
+      # runtime, so the two pins are the same declaration read at the newest tag that carries it.**
+      - name: '1. checkout the tagged commit'
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.ref }}
+
+      - name: '1. install the Rust toolchain for this target'
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      # **⟶ THE PUBLISHING CLIENT, INSTALLED WITH THE TOOLCHAIN AND BEFORE THE BUILD — CAUSE 2 OF THE
+      # RELEASE'S FAILURE, AND ITS FIX.**
+      # **THE DIAGNOSIS, FROM THE RUN'S OWN LOG, VERBATIM:**
+      #   `npm error code ENEEDAUTH`
+      #   `npm error need auth This command requires you to be logged in to https://registry.npmjs.org/`
+      # **— WHILE THE TARBALL WAS ASSEMBLED CORRECTLY, `4` FILES, MATCHING THE LOCAL DRY RUN TO THE TENTH OF
+      # A KILOBYTE.** **The registry's trusted-publisher configuration is not the fault: the CLIENT is too
+      # old. Trusted publishing needs `npm >= 11.5.1`, and this workflow had NO `setup-node` step at all, so
+      # `npm` was the runner image's own — Node 20's `npm 10.x`, which PREDATES THE FEATURE and therefore
+      # reports exactly what a machine with no credentials reports.**
+      # **WHAT THIS STEP DOES NOT DO, STATED SO THE DECLARED DESIGN IS NOT READ AS WIDENED: IT SETS NO AUTH
+      # TOKEN VARIABLE AND IT REFERENCES NO REPOSITORY SECRET — not one byte of that vocabulary is written
+      # below, so this file's own head claim stands to a `grep`.** Trusted publishing authenticates by the
+      # host's OIDC federation, which the `id-token: write` permission below already grants; a token would
+      # contradict this file's own declared design. **`registry-url` is the registry's ADDRESS and not a
+      # credential, and `npm` loads it with the placeholder the step writes left unset — measured on this
+      # machine at `npm 12.2.0`: a project `.npmrc` carrying setup-node's own auth line, its token
+      # environment variable UNSET, loads at exit `0` (`npm config list`); and the documented npm example for
+      # trusted publishing carries the same `registry-url` beside *"Publish uses OIDC - no token needed"*.**
+      # **POSITION: the platform job's toolchain pair — Rust for the target, then the Node whose npm performs
+      # the exchange — placed BEFORE the build because the Windows leg's own test binary links the Node
+      # import library `bindings/js/build.rs` fetches and runs under a `node.exe` on `PATH`.**
+      # **AND ONE THING THIS FILE CANNOT SEE, LEFT TO THE ARCHITECT RATHER THAN GUESSED: if the registry's
+      # per-package trusted-publisher configuration NAMES AN ENVIRONMENT, the job must declare
+      # `environment: <name>` or the exchange is refused with this same `ENEEDAUTH`. No name is invented
+      # here.** **AND THE COST, DECLARED RATHER THAN HIDDEN: `docs/specs/storeroom-publish/release.md §5.2`
+      # item `1` and `docs/specs/storeroom-publish/contract.md §5.2` item `1` print that this file carries
+      # NO `setup-node` and NO `registry-url`; BOTH CELLS MOVE BY THIS STEP AND ARE REPORTED TO THE
+      # SPECWRITER RATHER THAN EDITED HERE** (a contract edit is not the build's act; `§0.3`'s reversal
+      # instrument is the supervisor's).
+      - name: 'precondition: the publishing client — Node 24, whose npm performs the OIDC exchange'
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+
+      # `release.md §1.4` step 1's second half — **THE SIBLING CRATE'S OWN `cargo test`, ON AT LEAST THE HOST TARGET** — run from the repository root, at the battery's manifest, offline as every leg of this project is (`contract.md §4.5` item 2). **⟶ REPOINTED 2026-10-25 (`D-34`, `D-5`): THE OLD SPELLING `--manifest-path bindings/js/Cargo.toml` RUNS `0` TESTS AND EXITS `0`, so a DECLARED CI LEG had gone SILENTLY VACUOUS** — this crate's six test targets left `bindings/js/tests/` with the stratification's move and a workspace member carries no test targets of its own.
+      # It names the package that hosts those six targets now (`storeroom-tests`, 235 cells), and its `--manifest-path` conjunct is KEPT because `tests/e2e/addon-adoption.test.mjs`'s site table reads this
+      # command's body at this line (`--manifest-path` present, `--offline` absent); the three legs and their counts are declared at `bindings/js/README.md`'s `Tests` section.
+      - name: '1. cargo test the sibling crate (host target)'
+        run: cargo test --manifest-path tests/Cargo.toml -p storeroom-tests --no-fail-fast
+
+      - name: '1. build the sibling crate for this target'
+        run: cargo build --release --manifest-path bindings/js/Cargo.toml --target ${{ matrix.target }}
+
+      # `release.md §1.4` step 2 — **ASSEMBLE** each platform artefact's published content: its manifest
+      # (the tracked one below, whose `version` equals the main package's, character for character), its
+      # `.node` for the target, and the licence copy. **NO BINARY IS EVER COMMITTED** (`distribution.md
+      # §3.1`): the directories below are tracked carrying their manifest and nothing a build produces,
+      # and this step is what places the built artefact beside the manifest at CI time.
+      - name: '2. assemble the platform artefact (manifest, .node, licence copy)'
+        shell: bash
+        run: |
+          set -euo pipefail
+          label='${{ matrix.label }}'
+          dir="bindings/js/platforms/$label"
+          case '${{ runner.os }}' in
+            Windows) built="target/${{ matrix.target }}/release/storeroom_js_binding.dll" ;;
+            macOS)   built="target/${{ matrix.target }}/release/libstoreroom_js_binding.dylib" ;;
+            *)       built="target/${{ matrix.target }}/release/libstoreroom_js_binding.so" ;;
+          esac
+          cp "$built" "$dir/storeroom_js_binding.node"
+          cp LICENSE "$dir/LICENSE"
+          node -e "const m=require('./$dir/package.json');const main=require('./bindings/js/package.json');if(m.version!==main.version){throw new Error('release.md §2.2: '+m.name+' version '+m.version+' differs from the main package version '+main.version)}"
+
+      # **`A89`(4) / `docs/specs/storeroom-publish-proposal.md §15` — THE PLATFORM SITE'S PRE-PUBLISH
+      # EXISTENCE GUARD, AND WHY IT IS HERE: `npm` OMITS A MISSING `files` ENTRY **SILENTLY**, which is the
+      # property that let `0.1.0`'s five platform tarballs publish GREEN while holding `README.md` and
+      # `package.json` alone — their own `files` arrays named a `.node` and a `LICENSE` and NEITHER EXISTED,
+      # and the emptiness was invisible until it was queried at the registry.** **SO THE GUARD ASSERTS THE
+      # PATHS THIS MANIFEST ITSELF NAMES — its `main` and every one of its `files` entries — read FROM the
+      # manifest rather than re-spelled here, so a manifest edit cannot outrun its own check; `test -e` on
+      # each, and the step FAILS LOUDLY before the name and the version are spent** (`PUB-DD-27`'s price: a
+      # bootstrap that skipped the assembly shipped a `package.json` and a `README.md` alone).
+      - name: '4. guard: the manifest''s own paths exist before the publish'
+        shell: bash
+        run: |
+          set -euo pipefail
+          dir="bindings/js/platforms/${{ matrix.label }}"
+          paths=$(node -e "const m=require('./$dir/package.json');const p=[m.main,(m.files||[])].flat().filter((x)=>typeof x==='string');if(p.length===0){throw new Error('A89(4): the manifest names no path to check')}process.stdout.write([...new Set(p)].join('\n'))")
+          while IFS= read -r path; do
+            test -e "$dir/$path" || { echo "A89(4): the manifest $dir/package.json names '$path' and it does not exist — npm omits a missing files entry SILENTLY, which is how 0.1.0's empty platform tarballs published green"; exit 1; }
+          done <<< "$paths"
+
+      # **`release.md §1.4a` — THE PRE-PUBLISH VERSION GUARD, THE SEVENTH STEP: THIS LEG'S ASSEMBLED
+      # ARTEFACT'S OWN `version()`, CALLED AS A FUNCTION, AGAINST THIS LEG'S OWN PLATFORM MANIFEST'S
+      # `version`, CHARACTER FOR CHARACTER.** **ITS SUBJECT IS THE STAMP'S OWN OBSERVABLE**: the value
+      # `bindings/js/src/facade.rs` answers is the value `bindings/js/build.rs` stamped at build time
+      # from `bindings/js/package.json`, with `env!("CARGO_PKG_VERSION")` taken on `option_env!`'s `None`
+      # arm alone — so a leg whose stamp is ABSENT, STALE or MISMATCHED answers the crate's `0.1.0` where
+      # the manifest declares `0.1.1`, and this step is the ONLY instrument that fails it (`§6.10` item 2:
+      # *"IF NOTHING ELSE RUNS, NOTHING ENFORCES IT"*).
+      # **POSITION IS THE CLAUSE'S WHOLE POINT** (`§1.4a` item 4): the step stands AFTER the assembly
+      # whose `run:` carries the manifest-to-manifest comparison and BEFORE the first publish site, so a
+      # mis-stamped leg FAILS ITS OWN STEP AND NO VERSION IS STAGED, PUBLISHED OR SPENT — the ordering
+      # that keeps the partial-publish arm of `§3` UNREACHED by a mis-stamped leg.
+      # **AND ITS FAILURE SHAPE IS THE RUN'S OWN AND NOT A NEW ONE** (item 5): the step fails by its own
+      # non-zero exit, MINTS NO STATUS CODE, NO MESSAGE FORM AND NO SECOND ARM, and the version read
+      # inside the artefact stays the SINGLE DECLARED FAILURE ARM's own read at the consumer's side.
+      # **THE SUBJECT IS PER LEG AND THIS IS WHY IT CANNOT BE ONE CELL** (item 6): each of the five legs
+      # compares ITS OWN `platforms/<label>/storeroom_js_binding.node` against ITS OWN
+      # `platforms/<label>/package.json`; **THE MAIN PACKAGE'S HALF IS NOT A SECOND GUARD STEP**, because
+      # it ships `index.mjs` and no `.node` at all, so the five leg-subjects are the whole guard set.
+      - name: 'pre-publish guard: the assembled artefact''s version() equals its platform manifest''s version'
+        shell: bash
+        run: |
+          set -euo pipefail
+          node -e "const dir='bindings/js/platforms/${{ matrix.label }}';const a=require('./'+dir+'/storeroom_js_binding.node');const m=require('./'+dir+'/package.json');const read=a.version();if(typeof read!=='string'||read!==m.version){throw new Error('release.md §1.4a: the assembled artefact '+dir+'/storeroom_js_binding.node answers version() '+String(read)+' and its own platform manifest '+String(m.version)+' declares '+m.version+', so this leg is mis-stamped and the version is NOT spent')}"
+
+      # `release.md §1.4` step 4 — **PUBLISH THE FIVE PLATFORM ARTEFACTS**, before the main package, at the
+      # tag's own version. The step is a registry publication and is the ARCHITECT'S act's arm: it is
+      # reached only from a tag, and the scope `@auspicion` is owned before the first platform
+      # publish (`PUB-DD-6`'s precondition; `A86`(a)).
+      #
+      # **⟶ MOVED BY THE STAGED-PUBLISH PASS, 2026-10-11: THE VERB IS NOW `npm stage publish` AND THE PASS
+      # ENDS AT A SUCCESSFUL STAGE — NO PASS OF THIS UNIT PROMOTES.**
+      # **THE CAUSE, FROM THE SECOND RUN'S OWN LOG, VERBATIM: `npm error 403 Forbidden — OIDC permission
+      # denied for this action`** — **WHILE THE TOKEN MINTED AND THE PROVENANCE STATEMENT WAS SIGNED AND
+      # LOGGED** (`search.sigstore.dev/?logIndex=3195991700`). **THE MINT WAS NOT THE FAULT: the registry's
+      # trusted-publisher grant for this package is scoped to the STAGE action, so DIRECT publish is the ONE
+      # action the grant refuses**, and no flag of `npm publish` can reach an action the grant does not carry.
+      # **AND THE MOVEMENT IS WHAT THE CONTRACT ALREADY DECLARES** (`release.md §1.3` item `1`): *"NO PASS
+      # PUBLISHES"* — and, `Q9`'s own rule, **THE PROMOTION IS THE ARCHITECT'S ACT, SO THE WORKFLOW'S JOB ENDS
+      # HERE AND THIS FILE CARRIES NO `npm stage approve`, NO `workflow_dispatch` APPROVAL JOB AND NO OTHER
+      # AUTOMATED PROMOTION.** **A STAGED VERSION IS NOT SPENT UNTIL HE PROMOTES IT**, so a bad stage is
+      # DISCARDED rather than deprecated.
+      # **EVERY FLAG BELOW IS NAMED BY THIS MACHINE'S OWN HELP TEXT** (`npm 12.2.0`; `npm stage publish
+      # --help`): `[--tag <tag>] [--access <restricted|public|private>] [--dry-run] [--otp <otp>]
+      # [--provenance|--provenance-file <file>]`. **`--tag latest` is written rather than defaulted because
+      # the help text's Tag Behavior clause makes the tag an IMMUTABLE PROPERTY OF THE STAGED PACKAGE** — and
+      # the default is `latest` for this release's semver, character for character. **NO FLAG OUTSIDE THAT
+      # SET IS USED, AND `npm stage publish` NEEDS NO 2FA OF ANY KIND** (the help text's own 2FA table:
+      # *"`npm stage publish` | No | Designed for automated workflows; defers 2FA to approval"*).
+      # **THE PRE-PUBLISH GUARD ABOVE AND THE CLEANUP BELOW ARE UNMOVED: what moved is the ACTION, not the
+      # assembly, the guards or the order.**
+      - name: '4. publish the platform artefact'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "bindings/js/platforms/${{ matrix.label }}"
+          npm stage publish --access public --provenance --tag latest
+
+      # `release.md §1.4` step 4's own closing half / `distribution.md §3.1` item 2 — **THE ASSEMBLED BYTES DO
+      # NOT OUTLIVE THE STEP THAT NEEDED THEM.** The licence copy `cp LICENSE "$dir/LICENSE"` placed at step
+      # 2 and the `.node` `cp "$built" "$dir/storeroom_js_binding.node"` placed beside it are REMOVED here,
+      # after the publish and whatever its outcome, so no byte a build produced and no licence byte persists
+      # under `bindings/js/platforms/`: the tracked platform directory carries its manifest and its own
+      # `README.md` and nothing else (`distribution.md §3.1`: *"NO BINARY IS EVER COMMITTED TO THE TRACKED
+      # TREE"*), and the copy is an ARTEFACT-LEVEL fact rather than a crate-level file (`§2.3` item 2;
+      # `distribution.md §4.3` item 2; `Q3-5`).
+      - name: '4. remove the assembled licence copy and binary after the publish'
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f "bindings/js/platforms/${{ matrix.label }}/LICENSE" \
+                "bindings/js/platforms/${{ matrix.label }}/storeroom_js_binding.node"
+
+  # =============================================================================================
+  # ⟶ THE SIXTH ARTEFACT'S OWN JOB, DATED 2026-11-17 — AND IT IS NOT A SIXTH MATRIX ROW
+  # (`D-157` item 1; `docs/L1/publish-readiness.md` §2 item 4; `docs/L1/wasm-realm.md` §21;
+  # `parameter-semantics.md §4.4` · `PAR-PUB-28`).
+  #
+  # **WHY A JOB AND NOT A ROW.** The `platform` matrix above is FIVE NATIVE TARGETS ON FIVE RUNNERS, and each
+  # leg builds the target its own label names, because `PAR-PUB-28` refuses a cross-compiled artefact as
+  # *"a build this matrix did not perform"*. **A WEBASSEMBLY MODULE HAS NO HOST**: `wasm32-unknown-unknown` is
+  # built once, on any runner, and `wasm-bindgen --target web` turns that module into this package's own
+  # bytes. A sixth row would therefore have had to carry a `target:` that is not a host, a `runner:` that
+  # duplicates another leg's image, and an `os`/`cpu` pair the sixth manifest does not carry at all — **three
+  # declarations that would be FALSE of it**. So the sixth artefact is built and published by A JOB BESIDE THE
+  # MATRIX, `needs: platform`, on one runner, and the matrix stays five rows and five images.
+  #
+  # **THE STEPS, IN THE ORDER THE ARTEFACT NEEDS THEM**: the tagged commit · the `wasm32` target and the
+  # publishing client · `wasm-bindgen` at the crate's own pin, into the CLI home the build script reads · the
+  # fetch the declared offline build asks for · `node scripts/build-wasm-package.mjs`, which IS the staging ·
+  # the manifest's-own-paths guard · the staged publish. **NOT ONE BYTE OF THE PACKAGE IS AUTHORED HERE**: the
+  # script's six steps and `scripts/emit-declarations.mjs`'s WASM arm are the composition, and this job only
+  # hands them a toolchain.
+  #
+  # **AND TWO THINGS IT DELIBERATELY DOES NOT DO, NAMED SO THEIR ABSENCE IS NOT READ AS AN OVERSIGHT.**
+  # **(1) IT CARRIES NO CLEANUP STEP.** The `platform` job removes the `.node` and the licence copy it placed
+  # in a TRACKED directory; every byte THIS job stages lands at `bindings/js/platforms/wasm/`, which
+  # `.gitignore` keeps out of the tracked tree — so there is nothing to put back, and a third `if: always()`
+  # step would be a cleanup for a pollution this artefact does not cause. **(2) IT DECLARES NO JOB-LEVEL
+  # `permissions:` BLOCK**, so the workflow-level `contents: read` · `id-token: write` IS its effective set:
+  # `actions/checkout@v7` documents `contents: read`, the staged publish's `--provenance` is the OIDC exchange
+  # `id-token: write` exists for, and no site of this job documents anything else — which is exactly what
+  # least privilege asks of it (`release.md §1.3` item 3; `§1.4` step 6).
+  #
+  # **ITS RUNNER IS `ubuntu-24.04`, A MEMBER OF THE FIVE, AND DELIBERATELY SO**: the runner census beside this
+  # file reads EVERY literal `runs-on:` against `release.md §1.2`'s five-image table in both directions, so a
+  # sixth image here would be exactly the drift that guard refuses — and a host-independent build has no
+  # reason to name one.
+  wasm:
+    name: wasm (the sixth artefact — a job beside the matrix, never a row of it)
+    needs: platform
+    runs-on: ubuntu-24.04
+    # **THE CLI HOME IS DECLARED ONCE, BECAUSE TWO STEPS MUST AGREE ABOUT IT**: `cargo install --root` writes
+    # the binary to `$CARGO_HOME/bin/wasm-bindgen`, and `scripts/build-wasm-package.mjs` reads exactly that
+    # path (`join(root, '.cargo-home', 'bin', 'wasm-bindgen')`, with `CARGO_HOME` overriding the cargo legs
+    # beside it). **A CARGO_HOME THE INSTALL AND THE SCRIPT DO NOT SHARE IS A HALF-PACKAGE** — the one failure
+    # the script's own first guard exists to prevent.
+    env:
+      CARGO_HOME: ${{ github.workspace }}/.cargo-home
+    steps:
+      # `release.md §1.4` step 1 — the tagged commit, at the tag's own ref and never a branch, so the bytes
+      # this job builds have the tag's identity exactly as the matrix's five legs do.
+      - name: '1. checkout the tagged commit'
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.ref }}
+
+      # `D-154` item 1's target, at the toolchain step: the matrix above installs `matrix.target`, one per
+      # leg, and this job installs the ONE target a host-independent build needs.
+      - name: '1. the wasm32 target, which is no host at all'
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      # The same publishing client the two native sites install, for the same diagnosed cause: trusted
+      # publishing needs `npm >= 11.5.1` and the runner image's own npm predates it. **NO AUTH TOKEN VARIABLE
+      # AND NO REPOSITORY SECRET IS SET BESIDE IT** — the exchange is the host's OIDC federation.
+      - name: 'precondition: the publishing client — Node 24, whose npm performs the OIDC exchange'
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+
+      # **THE PIN IS THE CRATE'S OWN, AND A BUMP MOVES BOTH OR NEITHER**: `bindings/js/Cargo.toml`'s
+      # `[target.'cfg(target_arch = "wasm32")'.dependencies]` reads `wasm-bindgen = "0.2.130"`, and the CLI
+      # fails hard when the crate and the CLI disagree — so `0.2.130` stands here verbatim rather than
+      # "latest".
+      - name: '2. wasm-bindgen, at the crate''s own pin, into the CLI home the script reads'
+        run: cargo install wasm-bindgen-cli --version 0.2.130 --root "$CARGO_HOME"
+
+      # **THE FETCH THE DECLARED OFFLINE COMMAND ASKS FOR, AND NOTHING BESIDE IT.** The build script's cargo
+      # leg carries `--offline` — the store's command property — and `.cargo-home` is a CACHE that no checkout
+      # carries (`.gitignore`'s own clause: *"NOTHING HERE IS OWED TO A FRESH CLONE: the vendored registry is a
+      # CACHE and never a source of record"*). This step fills it from the same registry the lock already
+      # names, ONLINE, before the offline build asks for it.
+      - name: '2. fetch the crates the offline build will ask for'
+        run: cargo fetch --manifest-path bindings/js/Cargo.toml --target wasm32-unknown-unknown
+
+      # `D-157` item 1 / `docs/L1/wasm-realm.md` §21 — **THE STAGING IS THE SCRIPT'S, WHOLE**: the crate for
+      # `wasm32`, `wasm-bindgen --target web` into the package's own directory, the shared body copied from
+      # `bindings/js/src/`, the housekeeping bytes, and the generator's WASM arm installed as this package's
+      # `index.d.ts` (one generator, one source, two arms, each package taking the arm that describes it).
+      # **IT EXITS NONZERO RATHER THAN PRODUCING A HALF-PACKAGE**, naming the environment fact it is missing.
+      - name: '2. build and stage the sixth package'
+        run: node scripts/build-wasm-package.mjs
+
+      # **THE SAME PRE-PUBLISH EXISTENCE GUARD THE PLATFORM SITE CARRIES, READ AT THIS MANIFEST'S OWN
+      # PATHS** (`A89`(4); `PUB-DD-27`'s price): `npm` omits a missing `files` entry SILENTLY, so every path
+      # this manifest names is asserted to exist BEFORE the name and the version are spent. **THE PATHS ARE
+      # READ FROM THE MANIFEST AND NEVER RE-SPELLED HERE**, so a manifest edit cannot outrun its own check.
+      - name: '4. guard: the manifest''s own paths exist before the publish'
+        shell: bash
+        run: |
+          set -euo pipefail
+          dir="bindings/js/platforms/wasm"
+          paths=$(node -e "const m=require('./$dir/package.json');const p=[m.main,(m.files||[])].flat().filter((x)=>typeof x==='string');if(p.length===0){throw new Error('A89(4): the manifest names no path to check')}process.stdout.write([...new Set(p)].join('\n'))")
+          while IFS= read -r path; do
+            test -e "$dir/$path" || { echo "A89(4): the manifest $dir/package.json names '$path' and it does not exist — npm omits a missing files entry SILENTLY"; exit 1; }
+          done <<< "$paths"
+
+      # `release.md §1.4` step 4 read once more, at the SEVENTH manifest — **THE SIXTH ARTEFACT IS PUBLISHED
+      # BEFORE THE MAIN PACKAGE IS REACHED, and the staged verb is the one the registry's trusted-publisher
+      # grant carries for these names** (`§1.5` item 1): the direct `npm publish` is refused at
+      # `403 · OIDC permission denied for this action`, and the promotion is the architect's act (`Q9`) — this
+      # job stages and does not promote. **FLAGS:** `--access public` · `--provenance` · `--tag latest`, each
+      # named by `npm stage publish --help` on this machine (`npm 12.2.0`), and nothing else.
+      - name: '4. publish the wasm artefact'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "bindings/js/platforms/wasm"
+          npm stage publish --access public --provenance --tag latest
+
+  # `release.md §1.4` steps 3 and 5 — **THE MAIN PACKAGE IS PUBLISHED LAST, ALWAYS.** It waits on the whole
+  # platform matrix AND on the sixth artefact's job, so its five exact pins are already resolved in the
+  # registry when it lands and every one of the seven manifests has been staged before it; and its content is
+  # the entry, the shipped `README.md` and the authored `index.d.ts`, **with NO binary** (`distribution.md
+  # §2.1`; `PUB-DD-1`). **⟶ AND THE DEPENDENCY WIDENED FROM ONE NAME TO TWO, DATED 2026-11-17 BY THE ADMISSION
+  # PASS** (`D-157` item 1): it read `needs: platform`, and it now reads `needs: [platform, wasm]` — **THE
+  # ORDER IS STRICTLY STRONGER AND NOT MERELY LONGER: the main package now begins only after the five native
+  # artefacts AND the sixth artefact have landed, so the last position this file's one load-bearing property
+  # names is the position of ALL SEVEN manifests and not of six of them.**
+  main:
+    name: provident-storeroom (last, always)
+    needs: [platform, wasm]
+    runs-on: ubuntu-24.04
+    # **⟶ THE ATTESTATION'S OWN GRANT, DECLARED ON THE JOB THAT ATTESTS AND NOT ON THE WORKFLOW — CAUSE 3,
+    # AND ITS FIX.** **THE DIAGNOSIS, FROM THE FINAL STEP OF THE TAG-TRIGGERED RUN, VERBATIM:**
+    #   `Error: Failed to persist attestation: Resource not accessible by integration`
+    #   `- https://docs.github.com/rest/repos/attestations#create-an-attestation`
+    # **— WHILE THE STAGING ITSELF SUCCEEDED AND ALL SIX PACKAGES REACHED THE REGISTRY'S STAGE ROUTE, AT BOTH
+    # PUBLISH SITES, WITH THE OIDC EXCHANGE AND THE PROVENANCE STATEMENT BOTH SIGNED.** **THE ENDPOINT THE
+    # ERROR LINKS TO — `POST /repos/{owner}/{repo}/attestations` — is the one the attestation is persisted
+    # through, and `GITHUB_TOKEN` reaches it ONLY under `attestations: write`; the workflow-level block above
+    # grants `contents: read` and `id-token: write` and NEVER THIS ONE, so step 6's persistence was refused at
+    # exactly the step whose action's own documentation asks for it** (`release.md §1.4` step `6`; `§1.3`
+    # item `2`).
+    # **WHY THE JOB AND NOT THE WORKFLOW-LEVEL BLOCK — THE ONE PLACEMENT DECISION, STATED RATHER THAN LEFT TO
+    # THE DIFF: ONLY THE `main` JOB ATTESTS.** The `platform` job builds, assembles, guards and STAGES, and
+    # its five legs call NO attesting action at all, so a workflow-level `attestations: write` would hand the
+    # five-leg matrix a repository write it never asks for — and A REPOSITORY'S LEAST PRIVILEGE IS THE UNIT'S
+    # OWN STANDING PREFERENCE. **THE PLACEMENT IS THEREFORE THE NARROWEST CORRECT ONE, AND THE WORKFLOW-LEVEL
+    # ALTERNATIVE IS DECLINED FOR THAT REASON ALONE — not for an effect it would have: GitHub would apply
+    # either, so this is a width decision and not a functional one.** **AND ONE GITHUB SEMANTIC IS OWED BESIDE
+    # IT, BECAUSE IT IS WHY THE THREE KEYS AND NOT ONE: A `permissions:` BLOCK DECLARED AT A JOB REPLACES THE
+    # WORKFLOW-LEVEL BLOCK FOR THAT JOB RATHER THAN MERGING WITH IT — so the two keys the `main` job already
+    # depended on, `contents: read` (its two `actions/checkout@v7` sites — the major moved by the runtime
+    # move annotated at the `platform` job's own checkout step; THE PERMISSION THIS CLAUSE NAMES DOES NOT
+    # MOVE WITH IT) and `id-token: write` (the OIDC
+    # federation step 6's certificate is minted through), are REDECLARED HERE UNCHANGED. THE WORKFLOW-LEVEL
+    # BLOCK IS UNMOVED BY THIS EDIT — its `contents: read` · `id-token: write` pair stands byte-for-byte for
+    # the `platform` job, which is the job that needs that pair and not this third key.**
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      # **⟶ THE SAME RUNTIME MOVE AT THIS SITE, AND NO SECOND DECISION: `@v4` → `@v7` FOR THE REASON AND
+      # WITH THE MEASUREMENT ANNOTATED IN FULL AT THE `platform` JOB'S OWN CHECKOUT STEP ABOVE — the
+      # `node20` → `node24` runtime, both majors' `action.yml` byte-identical at the inputs this step
+      # passes, and the OIDC/`contents: read` property unmoved. `ref` IS THE TAG AT BOTH SITES.**
+      - name: '1. checkout the tagged commit'
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.ref }}
+
+      # `release.md §1.4` step 3 — **BUILD THE MAIN PACKAGE'S CONTENT**: the entry, the shipped README and
+      # the authored declaration file. **NO BINARY** enters the allowlist, so the tarball is byte-identical
+      # for every publisher (`distribution.md §2.1` item 2), and the version is the tag's own.
+      - name: '3. build the main package content (no binary)'
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          node -e "const m=require('./bindings/js/package.json');if(m.version!=='$version'){throw new Error('release.md §2.1: the tag is v'+'$version'+' and the manifest declares '+m.version)}"
+          node -e "const m=require('./bindings/js/package.json');const pins=Object.entries(m.optionalDependencies||{});if(pins.length!==5){throw new Error('PUB-DD-10: five exact pins are required, found '+pins.length)};for(const [n,p] of pins){if(p!==m.version){throw new Error('PUB-DD-10: '+n+' is pinned '+p+' and the package is '+m.version)}}"
+
+      # `release.md §1.4` step 3's own assembly half / `contract.md §2.3` item 2 / `distribution.md §4.3` item
+      # 2 — **THE MAIN PACKAGE'S LICENCE COPY IS LANDED AT PACK TIME AND REMOVED AFTER IT.** The main
+      # package's `files` allowlist is the three entries `§2.1` item 1 fixes and NOTHING ELSE, so the copy is
+      # never an entry; the mechanism is the release's own assembly step, and `npm` carries a ROOT `LICENSE`
+      # into the tarball REGARDLESS of `files`. The repository's own `LICENSE` is therefore copied
+      # BYTE-FOR-BYTE to this package's packaging root (`bindings/js/`) IMMEDIATELY BEFORE the publish below,
+      # where the tarball picks it up as the fourth published path `§2.1`'s closing clause names, and removed
+      # IMMEDIATELY AFTER it. **THE COPY IS TRANSIENT AND NEVER PERSISTS**: `bindings/js/LICENSE` is REFUSED
+      # as a tracked or drifting copy (`contract.md §2.3` item 4; `distribution.md §4.3` item 1; `PUB-DD-12`),
+      # so the step opens with the absence it must find and the removal below restores it — and NOTHING under
+      # `bindings/js/` is written by any other step of this file.
+      - name: '3. land the main package''s licence copy at the packaging root (pack-time only)'
+        shell: bash
+        run: |
+          set -euo pipefail
+          test ! -e bindings/js/LICENSE
+          cp LICENSE bindings/js/LICENSE
+          node -e "const fs=require('fs');if(fs.readFileSync('LICENSE','utf8')!==fs.readFileSync('bindings/js/LICENSE','utf8')){throw new Error('contract.md §2.3 item 2: the licence copy is byte-for-byte')}"
+
+      # **`A89`(4) / `docs/specs/storeroom-publish-proposal.md §15` — THE MAIN SITE'S PRE-PUBLISH EXISTENCE
+      # GUARD, and the same property as the platform site's: the tarball's FOURTH published path is the
+      # pack-time licence copy above, and `npm` would carry the copy's ABSENCE into a green publish just as
+      # silently — the step above asserts the copy's bytes against the repository's `LICENSE`, and THIS one
+      # asserts that the path it landed at is still there AT THE PACKAGING ROOT, IMMEDIATELY BEFORE the
+      # publish reads it.**
+      - name: '5. guard: the pack-time licence copy exists at the packaging root before the publish'
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -e bindings/js/LICENSE || { echo "A89(4): the pack-time licence copy 'bindings/js/LICENSE' is absent at the packaging root — the publish's fourth path would be omitted SILENTLY"; exit 1; }
+
+      # **⟶ THE SAME PUBLISHING CLIENT, AT THE SECOND PUBLISH SITE — for the same diagnosed cause and with the
+      # same two omissions.** The main site publishes with `npm publish` like the platform site, so it needs
+      # the same floor (`npm >= 11.5.1`) to perform the OIDC exchange at all: the run's `ENEEDAUTH` was
+      # reported by a client below that floor, in the job whose tarball had been assembled correctly. **NO
+      # AUTH TOKEN VARIABLE AND NO REPOSITORY SECRET IS SET BESIDE IT, and the same one thing the architect
+      # must confirm is owed here: whether the per-package trusted-publisher configuration names an
+      # ENVIRONMENT, in which case `environment: <name>` is owed in this job too and this same `ENEEDAUTH` is
+      # the symptom.** **The position is IMMEDIATELY BEFORE the publish it exists for, in a job that needs
+      # Node for nothing else.**
+      - name: 'precondition: the publishing client — Node 24, whose npm performs the OIDC exchange'
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+
+      # `release.md §1.4` step 5 — **PUBLISH THE MAIN PACKAGE**, after all five platform artefacts.
+      #
+      # **⟶ MOVED BY THE SAME STAGED-PUBLISH PASS: THE SAME VERB, THE SAME CAUSE, THE SAME END — THE MAIN
+      # SITE STAGES AND DOES NOT PUBLISH, AND THIS JOB CARRIES NO PROMOTION EITHER.** **The registry's
+      # trusted-publisher grant is one grant for the six names, and the `403 · OIDC permission denied for this
+      # action` the platform site met is the action-level refusal this verb answers** (`release.md §1.3`
+      # item `1`; `Q9`: the promotion is the architect's act). **THE ORDER IS THE PROPERTY THE ARMS DEPEND
+      # ON AND IT IS UNMOVED: `needs: platform`, the five exact pins, the main package LAST; and a stage
+      # resolves its pins only when the five staged platform versions are PROMOTED, which is why the
+      # architect promotes in the declared order — the five platform artefacts, then the main package.**
+      # **FLAGS:** `--access public` · `--provenance` · `--tag latest`, each named by `npm stage publish
+      # --help` on this machine (`npm 12.2.0`), and NOTHING ELSE.
+      - name: '5. publish the main package'
+        working-directory: bindings/js
+        run: npm stage publish --access public --provenance --tag latest
+
+      # `release.md §1.4` step 5's own closing half — **THE PACK-TIME COPY IS REMOVED, WHATEVER THE PUBLISH'S
+      # OUTCOME**, so no `LICENSE` byte persists under `bindings/js/` and the tracked tree is left exactly as
+      # the tagged commit has it (`contract.md §2.3` item 4; `distribution.md §4.3` item 1; `PUB-DD-12`).
+      - name: '5. remove the pack-time licence copy'
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f bindings/js/LICENSE
+          test ! -e bindings/js/LICENSE
+
+      # `release.md §1.4` step 6 — **ATTEST**: the provenance attestation for the tagged commit's bytes,
+      # through the host's OIDC federation at the declared level of reach. **WHERE THE SOURCE REPOSITORY IS
+      # NOT PUBLICLY REACHABLE THE ATTESTATION IS DECLARED-NOT-ATTESTED IN THE RECORD** (`release.md §1.3`
+      # item 2): the attestation's reach is a fact the record states rather than one this file assumes.
+      # **⟶ THE ACTION BUMPED TO THE CURRENT MAJOR, 2026-10-11 BY THE ATTESTATION-GRANT PASS — CARRIED DEBT
+      # PAID, AND NOT THE FIX.** **SOURCE: the action's own repository, `actions/attest-build-provenance` —
+      # `GET /repos/actions/attest-build-provenance/releases`, whose first entry is `v4.2.2`
+      # (`published_at` `2026-08-06T19:59:04Z`, `immutable: true`) — and its `@v4` moving tag, which is the
+      # major this file now names, as the marketplace's own listing declares it.** **`v1` STOOD THREE MAJORS
+      # BEHIND — `v2.4.0` · `v3.2.0` · `v4.2.2` precede `v4` — and NO OTHER BYTE OF THIS STEP MOVES: the
+      # `name:`, the `with:`, the subject and its path are the step's own and are untouched.**
+      # **AND THE ONE QUESTION THIS BUMP MUST ANSWER PLAINLY, BECAUSE A `v1` REFUSAL AND A `v4` REFUSAL WOULD
+      # HAVE THE SAME SHAPE: THE `attestations: write` REQUIREMENT DOES **NOT** DIFFER BETWEEN THE OLD MAJOR
+      # AND THE NEW ONE.** **The v1 README's own permissions block reads `id-token: write` ·
+      # `attestations: write`, and the v4 README's reads `id-token: write` · `attestations: write` ·
+      # `artifact-metadata: write` — the first two keys UNCHANGED, and the third required only *"to create
+      # the artifact storage record"*, which this step does not take: `push-to-registry` is left at its
+      # `false` default and no `create-storage-record` is asked for. THE THIRD KEY IS THEREFORE NOT DECLARED
+      # ABOVE, AND ITS OMISSION IS NOT AN OMISSION: v3's own documentation prints that *"if this permission
+      # is not included, the action will continue without creating the record"* — the narrowest grant is the
+      # one this step needs.** **SO THE BUMP IS NOT NECESSARY FOR THE FIX: `attestations: write` alone makes
+      # step 6 persist under `v1` exactly as under `v4`. The bump is CARRIED DEBT, paid here because the
+      # supervisor flagged it before the run and the run then made this the failing step.**
+      # **AND THE INPUT SHAPE, VERIFIED RATHER THAN ASSUMED, BECAUSE A WRONG INPUT IS WORSE THAN AN OLD
+      # MAJOR: `subject-path` is a v4.2.2 input, spelled identically and carrying the same semantics at
+      # `v1.2.0` — *"Path to the artifact serving as the subject of the attestation"* — and a single file
+      # path is inside both majors' documented use. THE ONE DOCUMENTED DELTA IS THE SUBJECT CEILING —
+      # `2500` subjects per call at `v1`, `1024` at `v4.2.2` — AND THIS STEP NAMES ONE SUBJECT, so the delta
+      # does not reach it.** **AND ONE DEFAULT MOVED BESIDE THE ACTION, STATED SO IT IS NOT LEFT TO THE
+      # READER: as of `v4` this action is a wrapper over `actions/attest`, whose `push-to-registry` defaults
+      # to `false` — the same default `v1` carried — so the step's declared behaviour at its own two inputs
+      # is unmoved.**
+      - name: '6. attest the tagged commit''s provenance'
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: 'bindings/js/index.mjs'

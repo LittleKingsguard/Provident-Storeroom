@@ -673,15 +673,27 @@ export interface BaseState {
 
 /**
  * **THE STORE'S OWN JOURNAL OP, CROSSED MEMBER FOR MEMBER AND IN THE STORE'S OWN SPELLINGS** — `DD-39`'s
- * eight declared names (`distribution.md §5.2` item 1; `P-PUB-7`): `{ opId, kind, address, tier, before,
- * after, seq, compacted }`.
+ * **SEVEN** declared names (`distribution.md §5.2` item 1; `P-PUB-7`): `{ opId, kind, address, tier, before,
+ * after, seq }`.
  *
  * **`opId` IS A `string`** — the store's own op-id domain is a non-empty string (`PAR-JS-9`), and the id a
  * `write` returns is the id a `rollback` takes. **`kind` is the store's own token** (`'write'` and
  * `'delete'` today) **and its membership is the STORE'S to close, so it is typed as `string` and this
  * package mints no union over it.** **`tier` is one of the store's own three tokens, or `null` where the op
- * carries none**; **`seq` is the journal's own sequence number and `compacted` the store's own flag**, each
- * carried verbatim.
+ * carries none**; **`seq` is the journal's own sequence number**, carried verbatim.
+ *
+ * **★ AND THE EIGHTH MEMBER — `readonly compacted: boolean` — IS REMOVED, 2026-11-17. IT IS GONE: NOT
+ * RENAMED, NOT DEPRECATED, NOT TYPED `false`.** The architect, VERBATIM (`strata/decisions.md` · `D-189`
+ * item 2): *"If .compacted is always false drop it"*. **The directive was a conditional and the tree answered
+ * it**: the store set the flag `false` at both of its producers, **so a member that can hold one value
+ * carried nothing**, and the distinction it once shared — *an op this store compacted* against *an op this
+ * store never held* — **is carried by the store's `journal_floor` watermark instead** (`D-160` item 3), which
+ * answers `RollbackCompacted` and `JournalOpUnknown` as two different refusals without a per-op bit. **WHAT
+ * THIS COSTS A CONSUMER: `record.op.compacted` no longer type-checks and no longer exists at run time** — the
+ * read returns `undefined` because the key is absent, and it is absent from the write's record, the delete's
+ * record and every op the kernel's repair leg copies. **THE CLASS IS `MAJOR` (`2.0.0`, `D-190`) for exactly
+ * this reason**: a PUBLISHED declaration member left the surface, which no `MINOR` absorbs — **`D-158`'s
+ * `MINOR` at `1.13.0` is SUPERSEDED and this declaration describes `2.0.0`.**
  */
 export interface JournalOp {
   readonly opId: string;
@@ -691,7 +703,6 @@ export interface JournalOp {
   readonly before: BaseState;
   readonly after: BaseState;
   readonly seq: number;
-  readonly compacted: boolean;
 }
 
 /**
@@ -876,7 +887,9 @@ export interface DeleteRecord {
    * reversible"*).
    *
    * **IT IS THE MEMBER `WriteRecord` CARRIES, AT THE SAME NAME AND THE SAME TYPE** (`WriteRecord.op` above,
-   * the store's own eight-member `JournalOp`), so a caller has **one spelling for "the op this act landed"**
+   * the store's own seven-member `JournalOp` — **⟶ SEVEN AND NOT EIGHT FROM 2026-11-17, `D-189` item 2:
+   * `compacted` is removed from the record and the declaration** (`JournalOp` above states it at its own
+   * docblock)), so a caller has **one spelling for "the op this act landed"**
    * and one route to reversing it: `store.rollback(record.op.opId)` restores every version the delete
    * removed, **at its own tier**, exactly as a write's reversal restores what the write replaced.
    *
@@ -1123,8 +1136,9 @@ export interface AttemptRef {
  *
  * **`triggered` and `pending` are the store's own returned handle set and the kernel's own member
  * respectively, each read as a SET** (`§2.1` item 2; `Handle` above is this file's opaque-handle spelling);
- * **`op` is the op the store's write returned, VERBATIM** (`JournalOp` above, the store's own eight-member
- * record — `§2.1` item 2: *"the op the store's write returned, VERBATIM"*).
+ * **`op` is the op the store's write returned, VERBATIM** (`JournalOp` above, the store's own seven-member
+ * record — **⟶ SEVEN AND NOT EIGHT FROM 2026-11-17, `D-189` item 2** — `§2.1` item 2: *"the op the store's
+ * write returned, VERBATIM"*).
  */
 export interface CommitRecord {
   /** The attempt this commit opened — its identity (`attempt-lifecycle.md §2.4` item 1). */

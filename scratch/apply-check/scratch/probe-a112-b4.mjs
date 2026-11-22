@@ -1,0 +1,14 @@
+import * as storeNs from 'provident-storeroom';
+import { register, commit, runAttempt } from '../bindings/js/src/constraint-kernel.mjs';
+const s = storeNs.storeCreate({ journalLength: 64, listeners: [] });
+const anc = register(s, ['a'], 'cL', () => true);
+const early = storeNs.write(s, ['q'], 'mem', 'q-value');
+const qHandle = early.triggered[0];
+storeNs.write(s, ['a'], 'mem', { k: 1 });
+const own = register(s, ['a', 'b'], 'own', () => true);
+const rec = commit(s, ['a', 'b'], 'mem', 2);
+const show = (t) => console.log(t, 'pending.len', rec.pending.length, 'anc', rec.pending.includes(anc), 'own', rec.pending.includes(own), 'q', rec.pending.includes(qHandle));
+show('at K-2');
+runAttempt(s, rec);
+show('after pass');
+console.log('qHandle === anc?', qHandle === anc, 'qHandle === own?', qHandle === own);

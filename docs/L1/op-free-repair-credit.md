@@ -217,13 +217,13 @@ JOURNAL OP and its returned elements.** Three consequences, each at a site:
 
 - **The mint is the same seat and moves no caller.** `appendRepairLeg(record)` already receives the WHOLE record
   (`index.mjs:463`), whose `op` is `decodeJournalOp(answer.op)` (`:445`) — a journal op carrying `opId`, `kind`, `address`,
-  `tier`, `before`, `after`, `seq`, `compacted` (`frame.mjs:421`–`:431`) — and whose `triggered` is the crossed element
+  `tier`, `before`, `after`, `seq` **— and NOT `compacted`, which was removed from the record and from this copy on 2026-11-17 (`strata/decisions.md` · `D-189` item 2; the record carries seven members and this census moves with it)** (`frame.mjs:421`–`:431`) — and whose `triggered` is the crossed element
   list (`:447`). **So `js-surface` (`bindings/js/index.mjs`) takes NO BYTE**, and the widening is one function in
   `state.mjs` plus its consumer in `kernel-attempt.mjs`.
 - **The element is minted FRESH and the segments are COPIED**, exactly as `:410`–`:419` already does for the elements: the
   record stands on a record the repair body itself was handed back, so the commit must not alias it (`crossing.md §1.1`'s
   copy discipline). **The op is copied at its own members** — `opId`, `kind`, `address`'s segment list, `tier`, `before`,
-  `after`, `seq`, `compacted` — so a body that mutates the op it was handed can move nothing the kernel reads.
+  `after`, `seq` **⟶ AND NOT `compacted`: the copy is the record's own seven-member list from 2026-11-17, `D-189` item 2 removing the member the eighth name carried** — so a body that mutates the op it was handed can move nothing the kernel reads.
 - **The bracket, the stack, the clear and the two guards are UNMOVED** (`state.mjs:761`–`:795`, `:834`–`:845`;
   `kernel-attempt.mjs:183`–`:194`). **The subject is still "the invocation that closed last", the read is still taken
   synchronously after the invocation returned, and the answer is still cleared in the same read.**

@@ -1,0 +1,6189 @@
+{
+  "demo": "A117 — GATE 6 RE-RUN: THE ARCHITECT'S CORRECTION, DRIVEN AT ITS OWN TERMS (the pair-adopted limbs, the identity control, the failing arm, the bare write, the repeat)",
+  "run": "e1",
+  "layer": "LIVE / ASSEMBLED PACKAGE",
+  "layerStatement": {
+    "resolution": "the package is resolved BY ITS PUBLISHED NAME through scratch/node_modules/provident-storeroom -> bindings/js (index.mjs), and the kernel at its declared checkout home bindings/js/src/constraint-kernel.mjs (whose own binding is the package self-reference, so the kernel, the driver and the store share ONE module instance and ONE loaded addon); the Rust store behind the JS binding is exercised in a real Node process (node v24.20.0).",
+    "publishedInstall": "NOT exercised, and a published install could not show this battery: package.json \"files\" carries index.mjs + README.md + index.d.ts only and \"exports\" declares \".\" alone, so an install from the registry carries NO src/constraint-kernel.mjs and no subpath reaching it — the constraint kernel, its pass, its check-off and the terminal arm are checkout-only. `settle` IS a member of the published instance (index.mjs builds it), so an install WOULD show the withheld post-verb window and the seam's delivery, but nothing of the pass that publishes the checked-off note.",
+    "settleWrapper": "the instance's `settle` member is wrapped by this driver ON THE INSTANCE THIS DRIVER ITSELF CREATED, for observation alone: it reads the record's members, symbol keys and enumerability, records the reach, then calls the ORIGINAL member with the same receiver and the same single argument. No package file, no kernel module and no existing record was edited.",
+    "suiteCrossCheck": "the package's own suite was run in this pass, read and not modified: `node --test bindings/js/test/*.test.mjs` reports tests 349 / pass 349 / fail 0."
+  },
+  "fixture": {
+    "address": [
+      "n7",
+      "ord"
+    ],
+    "prefix": [
+      "n7"
+    ],
+    "tier": "mem",
+    "drivingOrder": "K-1 register -> app registration by one of the three handlings -> K-2 commit -> K-3 runAttempt -> read/log/report"
+  },
+  "instanceMemberFigure": {
+    "instanceMembers": [
+      "__reaches",
+      "off",
+      "on",
+      "register",
+      "settle"
+    ],
+    "memberCount": 5,
+    "moduleNamespaceKeys": [
+      "delete",
+      "listen",
+      "read",
+      "readLiteral",
+      "rollback",
+      "storeCreate",
+      "unlisten",
+      "write"
+    ]
+  },
+  "verdicts": [
+    {
+      "limb": 1,
+      "cell": "A1-prefix-address-r1",
+      "handling": "prefix-address",
+      "verdict": "PASS",
+      "requires": "`A117` (D1)/(D4) with `§2.7` item 6: the triggered constraints run FIRST and the other listeners are reached ONCE EVERY CONSTRAINT HAS PASSED — at the pass's terminal arm, never inside the store verb's window, once per owe, with the triggering address as the single argument. At a prefix address the app holds a SECOND home entry, an identity the pass never evaluates, so its firing is reached off the RESIDUE.",
+      "observed": "the app's registration returned the adopted identity=false; write returned triggered=2 (1 occurrence(s) of the app's identity), pending at K-2=2 carries the app's identity=true; constraint body calls=1; APP BODY CALLS=1 OF 1 OWED, in the write verb's window=0, at the pass's terminal arm=1, seqs=[{\"seq\":9,\"phase\":\"K-3\"}] against the arm's own frame [K3.enter=[6], K3.return=[10]]; argument(s)=[{\"json\":\"[\\\"n7\\\",\\\"ord\\\"]\",\"restLen\":0}] with the triggering address as the single argument=true, no second argument=true; app ran before any constraint=false; PENDING AT THE ARM=1 OF TRIGGERED=2, carrying the app's identity=true; the note's own term: the seam handed at instant (b) is handed a residue of [1] that does NOT carry the app's identity=[true], while the record's symbol note stands (non-enumerable=true, length=1) and the firing is made off IT=true; the record's enumerable members at K-2's return=[\"attempt\",\"op\",\"pending\",\"triggered\"] (4) and after the arm=[\"attempt\",\"op\",\"pending\",\"triggered\"] (4); settle reaches at instant (a)=[{\"seq\":4,\"pendingLen\":0,\"noteLength\":null}] and at instant (b)=[{\"seq\":8,\"pendingLen\":1,\"noteLength\":1,\"pendingCarriesTheAppIdentity\":true}]; arm=passed; store read at the address={\"absent\":false,\"value\":\"100\"}; rollback undid the attempt's own op=false",
+      "supersededReading": null
+    },
+    {
+      "limb": 1,
+      "cell": "A1-prefix-address-r2",
+      "handling": "prefix-address",
+      "verdict": "PASS",
+      "requires": "`A117` (D1)/(D4) with `§2.7` item 6: the triggered constraints run FIRST and the other listeners are reached ONCE EVERY CONSTRAINT HAS PASSED — at the pass's terminal arm, never inside the store verb's window, once per owe, with the triggering address as the single argument. At a prefix address the app holds a SECOND home entry, an identity the pass never evaluates, so its firing is reached off the RESIDUE.",
+      "observed": "the app's registration returned the adopted identity=false; write returned triggered=2 (1 occurrence(s) of the app's identity), pending at K-2=2 carries the app's identity=true; constraint body calls=1; APP BODY CALLS=1 OF 1 OWED, in the write verb's window=0, at the pass's terminal arm=1, seqs=[{\"seq\":39,\"phase\":\"K-3\"}] against the arm's own frame [K3.enter=[36], K3.return=[40]]; argument(s)=[{\"json\":\"[\\\"n7\\\",\\\"ord\\\"]\",\"restLen\":0}] with the triggering address as the single argument=true, no second argument=true; app ran before any constraint=false; PENDING AT THE ARM=1 OF TRIGGERED=2, carrying the app's identity=true; the note's own term: the seam handed at instant (b) is handed a residue of [1] that does NOT carry the app's identity=[true], while the record's symbol note stands (non-enumerable=true, length=1) and the firing is made off IT=true; the record's enumerable members at K-2's return=[\"attempt\",\"op\",\"pending\",\"triggered\"] (4) and after the arm=[\"attempt\",\"op\",\"pending\",\"triggered\"] (4); settle reaches at instant (a)=[{\"seq\":34,\"pendingLen\":0,\"noteLength\":null}] and at instant (b)=[{\"seq\":38,\"pendingLen\":1,\"noteLength\":1,\"pendingCarriesTheAppIdentity\":true}]; arm=passed; store read at the address={\"absent\":false,\"value\":\"200\"}; rollback undid the attempt's own op=false",
+      "supersededReading": null
+    },
+    {
+      "limb": 1,
+      "cell": "A1-on-at-adopted-address-r1",
+      "handling": "on-at-adopted-address",
+      "verdict": "PASS",
+      "requires": "`A117` (D3)/(D4)/(D5) with `§2.7` item 6 and item 7 (a) AS RE-SPELLED 2026-10-15 and `§2.4` item 8 (c) AS CORRECTED: a listener registered at a pair-adopted address IS OWED ONE FIRING — after the pass, AT THE PASS'S TERMINAL ARM, NEVER INSIDE THE STORE VERB'S WINDOW, with the triggering address as its SINGLE argument — delivered by THE REGISTRY'S RESOLUTION OF THE CHECKED-OFF IDENTITY and never by an occurrence standing in the residue, so `pending@arm` must NOT carry the app's identity.",
+      "observed": "the app's registration returned the adopted identity=true; write returned triggered=1 (1 occurrence(s) of the app's identity), pending at K-2=1 carries the app's identity=true; constraint body calls=1; APP BODY CALLS=1 OF 1 OWED, in the write verb's window=0, at the pass's terminal arm=1, seqs=[{\"seq\":19,\"phase\":\"K-3\"}] against the arm's own frame [K3.enter=[16], K3.return=[20]]; argument(s)=[{\"json\":\"[\\\"n7\\\",\\\"ord\\\"]\",\"restLen\":0}] with the triggering address as the single argument=true, no second argument=true; app ran before any constraint=false; PENDING AT THE ARM=0 OF TRIGGERED=1, carrying the app's identity=false; the note's own term: the seam handed at instant (b) is handed a residue of [0] that does NOT carry the app's identity=[false], while the record's symbol note stands (non-enumerable=true, length=1) and the firing is made off IT=true; the record's enumerable members at K-2's return=[\"attempt\",\"op\",\"pending\",\"triggered\"] (4) and after the arm=[\"attempt\",\"op\",\"pending\",\"triggered\"] (4); settle reaches at instant (a)=[{\"seq\":14,\"pendingLen\":0,\"noteLength\":null}] and at instant (b)=[{\"seq\":18,\"pendingLen\":0,\"noteLength\":1,\"pendingCarriesTheAppIdentity\":false}]; arm=passed; store read at the address={\"absent\":false,\"value\":\"100\"}; rollback undid the attempt's own op=false",
+      "supersededReading": "the withdrawn reading of `§2.4` item 8 (c) (amended 2026-10-15 on `A115` (D2), superseded by `A117` (D3)) expected 0 of 1 at this address; measured now 1 of 1, at the terminal arm=1"
+    },
+    {
+      "limb": 1,
+      "cell": "A1-on-at-adopted-address-r2",
+      "handling": "on-at-adopted-address",
+      "verdict": "PASS",
+      "requires": "`A117` (D3)/(D4)/(D5) with `§2.7` item 6 and item 7 (a) AS RE-SPELLED 2026-10-15 and `§2.4` item 8 (c) AS CORRECTED: a listener registered at a pair-adopted address IS OWED ONE FIRING — after the pass, AT THE PASS'S TERMINAL ARM, NEVER INSIDE THE STORE VERB'S WINDOW, with the triggering address as its SINGLE argument — delivered by THE REGISTRY'S RESOLUTION OF THE CHECKED-OFF IDENTITY and never by an occurrence standing in the residue, so `pending@arm` must NOT carry the app's identity.",
+      "observed": "the app's registration returned the adopted identity=true; write returned triggered=1 (1 occurrence(s) of the app's identity), pending at K-2=1 carries the app's identity=true; constraint body calls=1; APP BODY CALLS=1 OF 1 OWED, in the write verb's window=0, at the pass's terminal arm=1, seqs=[{\"seq\":49,\"phase\":\"K-3\"}] against the arm's own frame [K3.enter=[46], K3.return=[50]]; argument(s)=[{\"json\":\"[\\\"n7\\\",\\\"ord\\\"]\",\"restLen\":0}] with the triggering address as the single argument=true, no second argument=true; app ran before any constraint=false; PENDING AT THE ARM=0 OF TRIGGERED=1, carrying the app's identity=false; the note's own term: the seam handed at instant (b) is handed a residue of [0] that does NOT carry the app's identity=[false], while the record's symbol note stands (non-enumerable=true, length=1) and the firing is made off IT=true; the record's enumerable members at K-2's return=[\"attempt\",\"op\",\"pending\",\"triggered\"] (4) and after the arm=[\"attempt\",\"op\",\"pending\",\"triggered\"] (4); settle reaches at instant (a)=[{\"seq\":44,\"pendingLen\":0,\"noteLength\":null}] and at instant (b)=[{\"seq\":48,\"pendingLen\":0,\"noteLength\":1,\"pendingCarriesTheAppIdentity\":false}]; arm=passed; store read at the address={\"absent\":false,\"value\":\"200\"}; rollback undid the attempt's own op=false",
+      "supersededReading": "the withdrawn reading of `§2.4` item 8 (c) (amended 2026-10-15 on `A115` (D2), superseded by `A117` (D3)) expected 0 of 1 at this address; measured now 1 of 1, at the terminal arm=1"
+    },
+    {
+      "limb": 1,
+      "cell": "A1-register-at-adopted-handle-r1",
+      "handling": "register-at-adopted-handle",
+      "verdict": "PASS",
+      "requires": "`A117` (D5)/(D6): the same owe, reached by the app's function standing in the registry's slot for the identity `register` adopted — one home entry per address, one identity, one firing at the terminal arm; the record keeps its four members and `pending` keeps the check-off's own value.",
+      "observed": "the app's registration returned the adopted identity=true; write returned triggered=1 (1 occurrence(s) of the app's identity), pending at K-2=1 carries the app's identity=true; constraint body calls=1; APP BODY CALLS=1 OF 1 OWED, in the write verb's window=0, at the pass's terminal arm=1, seqs=[{\"seq\":29,\"phase\":\"K-3\"}] against the arm's own frame [K3.enter=[26], K3.return=[30]]; argument(s)=[{\"json\":\"[\\\"n7\\\",\\\"ord\\\"]\",\"restLen\":0}] with the triggering address as the single argument=true, no second argument=true; app ran before any constraint=false; PENDING AT THE ARM=0 OF TRIGGERED=1, carrying the app's identity=false; the note's own term: the seam handed at instant (b) is handed a residue of [0] that does NOT carry the app's identity=[false], while the record's symbol note stands (non-enumerable=true, length=1) and the firing is made off IT=true; the record's enumerable members at K-2's return=[\"attempt\",\"op\",\"pending\",\"triggered\"] (4) and after the arm=[\"attempt\",\"op\",\"pending\",\"triggered\"] (4); settle reaches at instant (a)=[{\"seq\":24,\"pendingLen\":0,\"noteLength\":null}] and at instant (b)=[{\"seq\":28,\"pendingLen\":0,\"noteLength\":1,\"pendingCarriesTheAppIdentity\":false}]; arm=passed; store read at the address={\"absent\":false,\"value\":\"100\"}; rollback undid the attempt's own op=false",
+      "supersededReading": "the withdrawn reading of `§2.4` item 8 (c) (amended 2026-10-15 on `A115` (D2), superseded by `A117` (D3)) expected 0 of 1 at this address; measured now 1 of 1, at the terminal arm=1"
+    },
+    {
+      "limb": 1,
+      "cell": "A1-register-at-adopted-handle-r2",
+      "handling": "register-at-adopted-handle",
+      "verdict": "PASS",
+      "requires": "`A117` (D5)/(D6): the same owe, reached by the app's function standing in the registry's slot for the identity `register` adopted — one home entry per address, one identity, one firing at the terminal arm; the record keeps its four members and `pending` keeps the check-off's own value.",
+      "observed": "the app's registration returned the adopted identity=true; write returned triggered=1 (1 occurrence(s) of the app's identity), pending at K-2=1 carries the app's identity=true; constraint body calls=1; APP BODY CALLS=1 OF 1 OWED, in the write verb's window=0, at the pass's terminal arm=1, seqs=[{\"seq\":59,\"phase\":\"K-3\"}] against the arm's own frame [K3.enter=[56], K3.return=[60]]; argument(s)=[{\"json\":\"[\\\"n7\\\",\\\"ord\\\"]\",\"restLen\":0}] with the triggering address as the single argument=true, no second argument=true; app ran before any constraint=false; PENDING AT THE ARM=0 OF TRIGGERED=1, carrying the app's identity=false; the note's own term: the seam handed at instant (b) is handed a residue of [0] that does NOT carry the app's identity=[false], while the record's symbol note stands (non-enumerable=true, length=1) and the firing is made off IT=true; the record's enumerable members at K-2's return=[\"attempt\",\"op\",\"pending\",\"triggered\"] (4) and after the arm=[\"attempt\",\"op\",\"pending\",\"triggered\"] (4); settle reaches at instant (a)=[{\"seq\":54,\"pendingLen\":0,\"noteLength\":null}] and at instant (b)=[{\"seq\":58,\"pendingLen\":0,\"noteLength\":1,\"pendingCarriesTheAppIdentity\":false}]; arm=passed; store read at the address={\"absent\":false,\"value\":\"200\"}; rollback undid the attempt's own op=false",
+      "supersededReading": "the withdrawn reading of `§2.4` item 8 (c) (amended 2026-10-15 on `A115` (D2), superseded by `A117` (D3)) expected 0 of 1 at this address; measured now 1 of 1, at the terminal arm=1"
+    },
+    {
+      "limb": 1,
+      "cell": "A1-two-pairs-pass",
+      "handling": "prefix-address",
+      "verdict": "PASS",
+      "requires": "with TWO pairs at the address, EVERY constraint runs first and the app's body is reached only once BOTH have passed, exactly once, at the terminal arm (`A117` (D1); `§2.7` item 6).",
+      "observed": "constraint1 calls=1, constraint2 calls=1, app calls=1 of 1 owed; in the write verb's window=0; at the arm=1; app ran before any constraint=false; two distinct pair identities at the address=false; pending at the arm=1 of triggered=2; arm=passed"
+    },
+    {
+      "limb": 2,
+      "cell": "A2-prefix-address-r1",
+      "handling": "prefix-address",
+      "verdict": "PASS",
+      "requires": "`A114` (D1)/(D2) with `A117` (D5) last clause and `§2.7` item 7 (d): a write that FAILS on constraints DISCARDS the other listeners — ZERO BODIES OF THAT WRITE'S OWN SET RUN, never in the window and never at the arm, no such note is published, the residue is EMPTY and the rollback undid the attempt's own op. The write must actually fail on constraints.",
+      "observed": "arm=KC-3; constraint body calls=1 (a constraint really ran and refused); APP BODY CALLS=0 OF 0 OWED, in the window=0, at the arm=0; pending at the arm=0 of triggered=2, carrying the app's identity=false; the symbol note on the record=false (published on the passing arm alone); settle reaches=[{\"seq\":80,\"pendingLen\":0,\"noteLength\":null}]; rollback undid the attempt's own op=true; store read at the address={\"absent\":false,\"value\":\"0\"}"
+    },
+    {
+      "limb": 2,
+      "cell": "A2-prefix-address-r2",
+      "handling": "prefix-address",
+      "verdict": "PASS",
+      "requires": "`A114` (D1)/(D2) with `A117` (D5) last clause and `§2.7` item 7 (d): a write that FAILS on constraints DISCARDS the other listeners — ZERO BODIES OF THAT WRITE'S OWN SET RUN, never in the window and never at the arm, no such note is published, the residue is EMPTY and the rollback undid the attempt's own op. The write must actually fail on constraints.",
+      "observed": "arm=KC-3; constraint body calls=1 (a constraint really ran and refused); APP BODY CALLS=0 OF 0 OWED, in the window=0, at the arm=0; pending at the arm=0 of triggered=2, carrying the app's identity=false; the symbol note on the record=false (published on the passing arm alone); settle reaches=[{\"seq\":107,\"pendingLen\":0,\"noteLength\":null}]; rollback undid the attempt's own op=true; store read at the address={\"absent\":false,\"value\":\"0\"}"
+    },
+    {
+      "limb": 2,
+      "cell": "A2-on-at-adopted-address-r1",
+      "handling": "on-at-adopted-address",
+      "verdict": "PASS",
+      "requires": "`A114` (D1)/(D2) with `A117` (D5) last clause and `§2.7` item 7 (d): a write that FAILS on constraints DISCARDS the other listeners — ZERO BODIES OF THAT WRITE'S OWN SET RUN, never in the window and never at the arm, no such note is published, the residue is EMPTY and the rollback undid the attempt's own op. The write must actually fail on constraints.",
+      "observed": "arm=KC-3; constraint body calls=1 (a constraint really ran and refused); APP BODY CALLS=0 OF 0 OWED, in the window=0, at the arm=0; pending at the arm=0 of triggered=1, carrying the app's identity=false; the symbol note on the record=false (published on the passing arm alone); settle reaches=[{\"seq\":89,\"pendingLen\":0,\"noteLength\":null}]; rollback undid the attempt's own op=true; store read at the address={\"absent\":false,\"value\":\"0\"}"
+    },
+    {
+      "limb": 2,
+      "cell": "A2-on-at-adopted-address-r2",
+      "handling": "on-at-adopted-address",
+      "verdict": "PASS",
+      "requires": "`A114` (D1)/(D2) with `A117` (D5) last clause and `§2.7` item 7 (d): a write that FAILS on constraints DISCARDS the other listeners — ZERO BODIES OF THAT WRITE'S OWN SET RUN, never in the window and never at the arm, no such note is published, the residue is EMPTY and the rollback undid the attempt's own op. The write must actually fail on constraints.",
+      "observed": "arm=KC-3; constraint body calls=1 (a constraint really ran and refused); APP BODY CALLS=0 OF 0 OWED, in the window=0, at the arm=0; pending at the arm=0 of triggered=1, carrying the app's identity=false; the symbol note on the record=false (published on the passing arm alone); settle reaches=[{\"seq\":116,\"pendingLen\":0,\"noteLength\":null}]; rollback undid the attempt's own op=true; store read at the address={\"absent\":false,\"value\":\"0\"}"
+    },
+    {
+      "limb": 2,
+      "cell": "A2-register-at-adopted-handle-r1",
+      "handling": "register-at-adopted-handle",
+      "verdict": "PASS",
+      "requires": "`A114` (D1)/(D2) with `A117` (D5) last clause and `§2.7` item 7 (d): a write that FAILS on constraints DISCARDS the other listeners — ZERO BODIES OF THAT WRITE'S OWN SET RUN, never in the window and never at the arm, no such note is published, the residue is EMPTY and the rollback undid the attempt's own op. The write must actually fail on constraints.",
+      "observed": "arm=KC-3; constraint body calls=1 (a constraint really ran and refused); APP BODY CALLS=0 OF 0 OWED, in the window=0, at the arm=0; pending at the arm=0 of triggered=1, carrying the app's identity=false; the symbol note on the record=false (published on the passing arm alone); settle reaches=[{\"seq\":98,\"pendingLen\":0,\"noteLength\":null}]; rollback undid the attempt's own op=true; store read at the address={\"absent\":false,\"value\":\"0\"}"
+    },
+    {
+      "limb": 2,
+      "cell": "A2-register-at-adopted-handle-r2",
+      "handling": "register-at-adopted-handle",
+      "verdict": "PASS",
+      "requires": "`A114` (D1)/(D2) with `A117` (D5) last clause and `§2.7` item 7 (d): a write that FAILS on constraints DISCARDS the other listeners — ZERO BODIES OF THAT WRITE'S OWN SET RUN, never in the window and never at the arm, no such note is published, the residue is EMPTY and the rollback undid the attempt's own op. The write must actually fail on constraints.",
+      "observed": "arm=KC-3; constraint body calls=1 (a constraint really ran and refused); APP BODY CALLS=0 OF 0 OWED, in the window=0, at the arm=0; pending at the arm=0 of triggered=1, carrying the app's identity=false; the symbol note on the record=false (published on the passing arm alone); settle reaches=[{\"seq\":125,\"pendingLen\":0,\"noteLength\":null}]; rollback undid the attempt's own op=true; store read at the address={\"absent\":false,\"value\":\"0\"}"
+    },
+    {
+      "limb": 3,
+      "cell": "G-replacement-seam",
+      "verdict": "PASS",
+      "requires": "one function per identity (`§2.4` rule 2 read with item 8 (a)–(c) AS CORRECTED 2026-10-15): a later registration REPLACES the registry's function slot for the identity that address's home entry carries. THE TURNING-ON IS A REGISTRATION FACT AND NOT A FIRING RULE (`A117` (D2)/(D3)): at the ADOPTED address the pass still runs the kernel's pair-keyed body ONCE INSIDE THE PASS (that is what the replacement decides), AND the app's own replaced body is owed its firing and is delivered ONCE AT THE TERMINAL ARM with the triggering address; the failing arm delivers neither body.",
+      "observed": "(a) the app's ON call at the address: the app received the IDENTICAL identity the kernel adopted=true; passing write — constraint body calls=1 (inside the pass), APP body calls=1 of 1 owed, in the window=0, at the arm=1, args=[{\"json\":\"[\\\"n7\\\",\\\"ord\\\"]\",\"restLen\":0}], pending@arm=0 of triggered=1 carrying the app's identity=false; failing write — arm=KC-3, APP body calls=0 of 0 owed, at the arm=0, note on the record=false. (b) the same identity through the register member: passing write — constraint body calls=1, APP body calls=1 of 1 owed at the arm=1; failing write — arm=KC-3, APP body calls=0. (c) THE SIBLING at the proper PREFIX (a second identity, reached off the residue): passing write — APP body calls=1 at the arm=1; failing write — APP body calls=0.",
+      "changedFromTheLastBattery": "the last battery read this limb at the withdrawn clause (the app's replaced slot \"NOT DELIVERED on either arm\") and returned FAIL; at the ruling's own terms the pair-adopted address now shows the app's body 1 of 1 at the arm beside the kernel's pair-keyed body 1 inside the pass, so the limb is PASS"
+    },
+    {
+      "limb": 7,
+      "cell": "D-identity-control",
+      "verdict": "PASS",
+      "requires": "`A117` (D4) at its own decisive term: ONE `on` call, TWO stores differing ONLY in the SPELLING of the address argument — the EXACT spelling returns the identity the pair's `register` adopted (ONE home entry, ONE identity) and the PROPER-PREFIX spelling a second identity. Under the ruling BOTH are owed one firing and BOTH must be delivered once at the terminal arm with the triggering address as the single argument; a FAILING write delivers neither.",
+      "observed": "EXACT spelling — the app identity IS the adopted identity=true, write returned triggered=1 with 1 occurrence(s) of it, pending at K-2 carries it=false, constraint body calls=1, APP BODY CALLS=1 OF 1 OWED (in the window=0, at the arm=1), args=[{\"json\":\"[\\\"c1\\\",\\\"pair\\\"]\",\"restLen\":0}], PENDING AT THE ARM=0 carrying the app's identity=false, the note's own term: residue handed at instant (b) does not carry it and the note does=[{\"phase\":\"K-2\",\"pendingLen\":0,\"noteLength\":null},{\"phase\":\"K-3\",\"pendingLen\":0,\"noteLength\":1}], the note carries the identity the pass checked off=true, arm=passed. PROPER PREFIX — the app identity is a SECOND identity=true, triggered=2, constraint body calls=1, APP BODY CALLS=1 OF 1 OWED (in the window=0, at the arm=1), args=[{\"json\":\"[\\\"c2\\\",\\\"pair\\\"]\",\"restLen\":0}], pending at the arm=1, arm=passed. EXACT + FAILING — arm=KC-3, app body calls=0 of 0 owed, at the arm=0, note on the record=null. PREFIX + FAILING — arm=KC-3, app body calls=0 of 0 owed, at the arm=0. The two exact-spelling stores' record members: K-2 return=[\"attempt\",\"op\",\"pending\",\"triggered\"], after the arm=[\"attempt\",\"op\",\"pending\",\"triggered\"], symbol note after the arm=true non-enumerable=true, note length=1",
+      "changedFromTheLastBattery": "EXACT spelling was 0 of 1 (a \"NOT DELIVERED\" cell) in `scratch/n7-ordering-demo-gate6b-out-b1/-b2.json`; now 1 of 1, at the terminal arm=1, with the app's identity absent from `pending@arm`=true"
+    },
+    {
+      "limb": 5,
+      "cell": "E-bare-write",
+      "verdict": "PASS",
+      "requires": "`§2.7` item 8 with `A117` (D6): a caller-made write with NO kernel evaluation set keeps the POST-VERB instant, is NEVER withheld, carries no `pending` and REACHES NO ADOPTION — the seam is never called for it.",
+      "observed": "(a) a store no kernel act has touched: threw=null, triggered=1, record members=[\"op\",\"triggered\",\"watched\"] (no `pending`=true); the app body ran 1 time(s) INSIDE the verb's own frame=true; seam reaches=0. (b) after a kernel-driven write reached its arm (passed) — and that write DID deliver the app's body at its own arm 1 time(s) beside the bare write: the next bare write delivered in its own window=true (calls=1, triggered=1), seam reaches during it=0."
+    },
+    {
+      "limb": 4,
+      "cell": "F-repeat",
+      "verdict": "PASS",
+      "requires": "the ruled reading is not a first-call artifact: four sequential attempts at ONE address on ONE store, in one process — the passing and the failing write each delivered as `§2.7` item 6 fixes.",
+      "observed": "sequence: F-repeat-seq1-pass: arm=passed, c1=1, app=1, inWindow=0, pending@arm=1 | F-repeat-seq2-fail: arm=KC-3, c1=1, app=0, inWindow=0, pending@arm=0 | F-repeat-seq3-pass: arm=passed, c1=1, app=1, inWindow=0, pending@arm=1 | F-repeat-seq4-fail: arm=KC-8, c1=1, app=0, inWindow=0, pending@arm=0; the passing rows repeat identically=true, the failing rows too=true; app delivered 1 on every passing write=true and 0 on every failing one=true"
+    }
+  ],
+  "changedVerdicts": [
+    {
+      "limb": 3,
+      "cell": "G-replacement-seam",
+      "now": "PASS",
+      "note": "the last battery read this limb at the withdrawn clause (the app's replaced slot \"NOT DELIVERED on either arm\") and returned FAIL; at the ruling's own terms the pair-adopted address now shows the app's body 1 of 1 at the arm beside the kernel's pair-keyed body 1 inside the pass, so the limb is PASS"
+    },
+    {
+      "limb": 7,
+      "cell": "D-identity-control",
+      "now": "PASS",
+      "note": "EXACT spelling was 0 of 1 (a \"NOT DELIVERED\" cell) in `scratch/n7-ordering-demo-gate6b-out-b1/-b2.json`; now 1 of 1, at the terminal arm=1, with the app's identity absent from `pending@arm`=true"
+    }
+  ],
+  "changedNumbers": [
+    {
+      "cell": "O1-on-at-adopted-address-r1",
+      "term": "appBodyCallsOf1Owed",
+      "was": 0,
+      "now": 1,
+      "changed": true
+    },
+    {
+      "cell": "O1-on-at-adopted-address-r1",
+      "term": "pending@arm of triggered",
+      "was": "0 of 1",
+      "now": "0 of 1",
+      "changed": false
+    },
+    {
+      "cell": "O1-on-at-adopted-address-r1",
+      "term": "appListenerCallsAtTheTerminalArm",
+      "was": 0,
+      "now": 1,
+      "changed": true
+    },
+    {
+      "cell": "O1-on-at-adopted-address-r1",
+      "term": "inWindowAppListener",
+      "was": 0,
+      "now": 0,
+      "changed": false
+    },
+    {
+      "cell": "O1-on-at-adopted-address-r1",
+      "term": "the app identity in the residue at K-2 (a member of the returned set)",
+      "was": true,
+      "now": true,
+      "changed": false
+    },
+    {
+      "cell": "O1-on-at-adopted-address-r2",
+      "term": "appBodyCallsOf1Owed",
+      "was": 0,
+      "now": 1,
+      "changed": true
+    },
+    {
+      "cell": "O1-on-at-adopted-address-r2",
+      "term": "pending@arm of triggered",
+      "was": "0 of 1",
+      "now": "0 of 1",
+      "changed": false
+    },
+    {
+      "cell": "O1-on-at-adopted-address-r2",
+      "term": "appListenerCallsAtTheTerminalArm",
+      "was": 0,
+      "now": 1,
+      "changed": true
+    },
+    {
+      "cell": "O1-on-at-adopted-address-r2",
+      "term": "inWindowAppListener",
+      "was": 0,
+      "now": 0,
+      "changed": false
+    },
+    {
+      "cell": "O1-on-at-adopted-address-r2",
+      "term": "the app identity in the residue at K-2 (a member of the returned set)",
+      "was": true,
+      "now": true,
+      "changed": false
+    },
+    {
+      "cell": "O1-register-at-adopted-handle-r1",
+      "term": "appBodyCallsOf1Owed",
+      "was": 0,
+      "now": 1,
+      "changed": true
+    },
+    {
+      "cell": "O1-register-at-adopted-handle-r1",
+      "term": "pending@arm of triggered",
+      "was": "0 of 1",
+      "now": "0 of 1",
+      "changed": false
+    },
+    {
+      "cell": "O1-register-at-adopted-handle-r1",
+      "term": "appListenerCallsAtTheTerminalArm",
+      "was": 0,
+      "now": 1,
+      "changed": true
+    },
+    {
+      "cell": "O1-register-at-adopted-handle-r1",
+      "term": "inWindowAppListener",
+      "was": 0,
+      "now": 0,
+      "changed": false
+    },
+    {
+      "cell": "O1-register-at-adopted-handle-r1",
+      "term": "the app identity in the residue at K-2 (a member of the returned set)",
+      "was": true,
+      "now": true,
+      "changed": false
+    },
+    {
+      "cell": "O1-register-at-adopted-handle-r2",
+      "term": "appBodyCallsOf1Owed",
+      "was": 0,
+      "now": 1,
+      "changed": true
+    },
+    {
+      "cell": "O1-register-at-adopted-handle-r2",
+      "term": "pending@arm of triggered",
+      "was": "0 of 1",
+      "now": "0 of 1",
+      "changed": false
+    },
+    {
+      "cell": "O1-register-at-adopted-handle-r2",
+      "term": "appListenerCallsAtTheTerminalArm",
+      "was": 0,
+      "now": 1,
+      "changed": true
+    },
+    {
+      "cell": "O1-register-at-adopted-handle-r2",
+      "term": "inWindowAppListener",
+      "was": 0,
+      "now": 0,
+      "changed": false
+    },
+    {
+      "cell": "O1-register-at-adopted-handle-r2",
+      "term": "the app identity in the residue at K-2 (a member of the returned set)",
+      "was": true,
+      "now": true,
+      "changed": false
+    },
+    {
+      "cell": "O2-on-at-adopted-address-r1",
+      "term": "appBodyCalls (failing arm)",
+      "was": 0,
+      "now": 0,
+      "changed": false
+    },
+    {
+      "cell": "O2-on-at-adopted-address-r1",
+      "term": "pending@arm",
+      "was": 0,
+      "now": 0,
+      "changed": false
+    },
+    {
+      "cell": "O2-register-at-adopted-handle-r1",
+      "term": "appBodyCalls (failing arm)",
+      "was": 0,
+      "now": 0,
+      "changed": false
+    },
+    {
+      "cell": "I-identity-control/EXACT",
+      "term": "appBodyCallsOf1Owed",
+      "was": 0,
+      "now": 1,
+      "changed": true
+    },
+    {
+      "cell": "I-identity-control/PREFIX",
+      "term": "appBodyCallsOf1Owed",
+      "was": 1,
+      "now": 1,
+      "changed": false
+    },
+    {
+      "cell": "O1-prefix-address-r1",
+      "term": "appBodyCallsOf1Owed",
+      "was": 1,
+      "now": 1,
+      "changed": false
+    },
+    {
+      "cell": "O1-prefix-address-r1",
+      "term": "pending@arm",
+      "was": 1,
+      "now": 1,
+      "changed": false
+    },
+    {
+      "cell": "L5-bare-write",
+      "term": "appListenerBodyCallsInItsOwnWindow (both phases)",
+      "was": [
+        1,
+        1
+      ],
+      "now": [
+        1,
+        1
+      ],
+      "changed": false
+    },
+    {
+      "cell": "L5-bare-write",
+      "term": "settleReachesDuringABareWrite",
+      "was": 0,
+      "now": 0,
+      "changed": false
+    }
+  ],
+  "totals": {
+    "cells": 19,
+    "verdicts": 17,
+    "pass": 17,
+    "fail": 0,
+    "byLimb": [
+      {
+        "limb": 1,
+        "cells": 7,
+        "pass": 7,
+        "fail": 0
+      },
+      {
+        "limb": 2,
+        "cells": 6,
+        "pass": 6,
+        "fail": 0
+      },
+      {
+        "limb": 3,
+        "cells": 1,
+        "pass": 1,
+        "fail": 0
+      },
+      {
+        "limb": 4,
+        "cells": 1,
+        "pass": 1,
+        "fail": 0
+      },
+      {
+        "limb": 5,
+        "cells": 1,
+        "pass": 1,
+        "fail": 0
+      },
+      {
+        "limb": 7,
+        "cells": 1,
+        "pass": 1,
+        "fail": 0
+      }
+    ]
+  },
+  "cells": [
+    {
+      "cell": "A1-prefix-address-r1",
+      "limb": 1,
+      "handling": "prefix-address",
+      "outcome": "pass",
+      "round": 1,
+      "theAppRegistrationReturnsTheAdoptedIdentity": false,
+      "twoPairs": null,
+      "k2": {
+        "threw": false,
+        "triggered": 2,
+        "pending": 2,
+        "occurrencesOfTheAppIdentityInTriggered": 1
+      },
+      "shapeAtK2Return": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingAtK2CarriesTheAppIdentity": true,
+      "bodiesBeforeThePass": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "inWindowInvocationOfEachBody": {
+        "constraint1": 0,
+        "constraint2": 0,
+        "appListener": 0
+      },
+      "settleReachAtInstantA": [
+        {
+          "seq": 4,
+          "pendingLen": 0,
+          "shape": {
+            "enumerableMembers": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "enumerableMemberCount": 4,
+            "ownPropertyNames": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "ownPropertyNamesCount": 4,
+            "symbolKeys": [],
+            "carriesTheNote": false,
+            "theNoteIsNonEnumerable": null,
+            "theNoteIsNoMemberAdded": null,
+            "theNoteIsAnArray": false,
+            "theNoteLength": null,
+            "pendingIsAMember": true,
+            "triggeredIsAMember": true
+          },
+          "noteLength": null
+        }
+      ],
+      "arm": {
+        "kind": "returned",
+        "status": null,
+        "outcome": "passed"
+      },
+      "delivered": {
+        "c1": 1,
+        "c2": 0,
+        "app": 1
+      },
+      "appArgsThisWrite": [
+        {
+          "json": "[\"n7\",\"ord\"]",
+          "restLen": 0
+        }
+      ],
+      "theOneArgumentIsTheTriggeringAddress": true,
+      "noExtraArguments": true,
+      "settleReachAtInstantB": [
+        {
+          "seq": 8,
+          "pendingLen": 1,
+          "noteLength": 1,
+          "pendingCarriesTheAppIdentity": true
+        }
+      ],
+      "pendingAtTheArm": 1,
+      "pendingAtTheArmCarriesTheAppIdentity": true,
+      "triggeredAtTheArm": 2,
+      "framesOfEachCall": {
+        "constraint1": [
+          {
+            "seq": 7,
+            "phase": "K-3"
+          }
+        ],
+        "appListener": [
+          {
+            "seq": 9,
+            "phase": "K-3"
+          }
+        ],
+        "k3Enter": [
+          6
+        ],
+        "k3Return": [
+          10
+        ]
+      },
+      "appDeliveredAtTheTerminalArm": 1,
+      "appRanBeforeAnyConstraint": false,
+      "shapeAfterTheArm": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [
+          "Symbol(provident-storeroom.checked-off-at-the-terminal-arm)"
+        ],
+        "carriesTheNote": true,
+        "theNoteIsNonEnumerable": true,
+        "theNoteIsNoMemberAdded": true,
+        "theNoteIsAnArray": true,
+        "theNoteLength": 1,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "rollbackUndidTheAttemptsOwnOp": false,
+      "storeReadAtTheAddress": {
+        "absent": false,
+        "value": "100"
+      }
+    },
+    {
+      "cell": "A1-on-at-adopted-address-r1",
+      "limb": 1,
+      "handling": "on-at-adopted-address",
+      "outcome": "pass",
+      "round": 1,
+      "theAppRegistrationReturnsTheAdoptedIdentity": true,
+      "twoPairs": null,
+      "k2": {
+        "threw": false,
+        "triggered": 1,
+        "pending": 1,
+        "occurrencesOfTheAppIdentityInTriggered": 1
+      },
+      "shapeAtK2Return": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingAtK2CarriesTheAppIdentity": true,
+      "bodiesBeforeThePass": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "inWindowInvocationOfEachBody": {
+        "constraint1": 0,
+        "constraint2": 0,
+        "appListener": 0
+      },
+      "settleReachAtInstantA": [
+        {
+          "seq": 14,
+          "pendingLen": 0,
+          "shape": {
+            "enumerableMembers": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "enumerableMemberCount": 4,
+            "ownPropertyNames": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "ownPropertyNamesCount": 4,
+            "symbolKeys": [],
+            "carriesTheNote": false,
+            "theNoteIsNonEnumerable": null,
+            "theNoteIsNoMemberAdded": null,
+            "theNoteIsAnArray": false,
+            "theNoteLength": null,
+            "pendingIsAMember": true,
+            "triggeredIsAMember": true
+          },
+          "noteLength": null
+        }
+      ],
+      "arm": {
+        "kind": "returned",
+        "status": null,
+        "outcome": "passed"
+      },
+      "delivered": {
+        "c1": 1,
+        "c2": 0,
+        "app": 1
+      },
+      "appArgsThisWrite": [
+        {
+          "json": "[\"n7\",\"ord\"]",
+          "restLen": 0
+        }
+      ],
+      "theOneArgumentIsTheTriggeringAddress": true,
+      "noExtraArguments": true,
+      "settleReachAtInstantB": [
+        {
+          "seq": 18,
+          "pendingLen": 0,
+          "noteLength": 1,
+          "pendingCarriesTheAppIdentity": false
+        }
+      ],
+      "pendingAtTheArm": 0,
+      "pendingAtTheArmCarriesTheAppIdentity": false,
+      "triggeredAtTheArm": 1,
+      "framesOfEachCall": {
+        "constraint1": [
+          {
+            "seq": 17,
+            "phase": "K-3"
+          }
+        ],
+        "appListener": [
+          {
+            "seq": 19,
+            "phase": "K-3"
+          }
+        ],
+        "k3Enter": [
+          16
+        ],
+        "k3Return": [
+          20
+        ]
+      },
+      "appDeliveredAtTheTerminalArm": 1,
+      "appRanBeforeAnyConstraint": false,
+      "shapeAfterTheArm": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [
+          "Symbol(provident-storeroom.checked-off-at-the-terminal-arm)"
+        ],
+        "carriesTheNote": true,
+        "theNoteIsNonEnumerable": true,
+        "theNoteIsNoMemberAdded": true,
+        "theNoteIsAnArray": true,
+        "theNoteLength": 1,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "rollbackUndidTheAttemptsOwnOp": false,
+      "storeReadAtTheAddress": {
+        "absent": false,
+        "value": "100"
+      }
+    },
+    {
+      "cell": "A1-register-at-adopted-handle-r1",
+      "limb": 1,
+      "handling": "register-at-adopted-handle",
+      "outcome": "pass",
+      "round": 1,
+      "theAppRegistrationReturnsTheAdoptedIdentity": true,
+      "twoPairs": null,
+      "k2": {
+        "threw": false,
+        "triggered": 1,
+        "pending": 1,
+        "occurrencesOfTheAppIdentityInTriggered": 1
+      },
+      "shapeAtK2Return": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingAtK2CarriesTheAppIdentity": true,
+      "bodiesBeforeThePass": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "inWindowInvocationOfEachBody": {
+        "constraint1": 0,
+        "constraint2": 0,
+        "appListener": 0
+      },
+      "settleReachAtInstantA": [
+        {
+          "seq": 24,
+          "pendingLen": 0,
+          "shape": {
+            "enumerableMembers": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "enumerableMemberCount": 4,
+            "ownPropertyNames": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "ownPropertyNamesCount": 4,
+            "symbolKeys": [],
+            "carriesTheNote": false,
+            "theNoteIsNonEnumerable": null,
+            "theNoteIsNoMemberAdded": null,
+            "theNoteIsAnArray": false,
+            "theNoteLength": null,
+            "pendingIsAMember": true,
+            "triggeredIsAMember": true
+          },
+          "noteLength": null
+        }
+      ],
+      "arm": {
+        "kind": "returned",
+        "status": null,
+        "outcome": "passed"
+      },
+      "delivered": {
+        "c1": 1,
+        "c2": 0,
+        "app": 1
+      },
+      "appArgsThisWrite": [
+        {
+          "json": "[\"n7\",\"ord\"]",
+          "restLen": 0
+        }
+      ],
+      "theOneArgumentIsTheTriggeringAddress": true,
+      "noExtraArguments": true,
+      "settleReachAtInstantB": [
+        {
+          "seq": 28,
+          "pendingLen": 0,
+          "noteLength": 1,
+          "pendingCarriesTheAppIdentity": false
+        }
+      ],
+      "pendingAtTheArm": 0,
+      "pendingAtTheArmCarriesTheAppIdentity": false,
+      "triggeredAtTheArm": 1,
+      "framesOfEachCall": {
+        "constraint1": [
+          {
+            "seq": 27,
+            "phase": "K-3"
+          }
+        ],
+        "appListener": [
+          {
+            "seq": 29,
+            "phase": "K-3"
+          }
+        ],
+        "k3Enter": [
+          26
+        ],
+        "k3Return": [
+          30
+        ]
+      },
+      "appDeliveredAtTheTerminalArm": 1,
+      "appRanBeforeAnyConstraint": false,
+      "shapeAfterTheArm": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [
+          "Symbol(provident-storeroom.checked-off-at-the-terminal-arm)"
+        ],
+        "carriesTheNote": true,
+        "theNoteIsNonEnumerable": true,
+        "theNoteIsNoMemberAdded": true,
+        "theNoteIsAnArray": true,
+        "theNoteLength": 1,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "rollbackUndidTheAttemptsOwnOp": false,
+      "storeReadAtTheAddress": {
+        "absent": false,
+        "value": "100"
+      }
+    },
+    {
+      "cell": "A1-prefix-address-r2",
+      "limb": 1,
+      "handling": "prefix-address",
+      "outcome": "pass",
+      "round": 2,
+      "theAppRegistrationReturnsTheAdoptedIdentity": false,
+      "twoPairs": null,
+      "k2": {
+        "threw": false,
+        "triggered": 2,
+        "pending": 2,
+        "occurrencesOfTheAppIdentityInTriggered": 1
+      },
+      "shapeAtK2Return": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingAtK2CarriesTheAppIdentity": true,
+      "bodiesBeforeThePass": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "inWindowInvocationOfEachBody": {
+        "constraint1": 0,
+        "constraint2": 0,
+        "appListener": 0
+      },
+      "settleReachAtInstantA": [
+        {
+          "seq": 34,
+          "pendingLen": 0,
+          "shape": {
+            "enumerableMembers": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "enumerableMemberCount": 4,
+            "ownPropertyNames": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "ownPropertyNamesCount": 4,
+            "symbolKeys": [],
+            "carriesTheNote": false,
+            "theNoteIsNonEnumerable": null,
+            "theNoteIsNoMemberAdded": null,
+            "theNoteIsAnArray": false,
+            "theNoteLength": null,
+            "pendingIsAMember": true,
+            "triggeredIsAMember": true
+          },
+          "noteLength": null
+        }
+      ],
+      "arm": {
+        "kind": "returned",
+        "status": null,
+        "outcome": "passed"
+      },
+      "delivered": {
+        "c1": 1,
+        "c2": 0,
+        "app": 1
+      },
+      "appArgsThisWrite": [
+        {
+          "json": "[\"n7\",\"ord\"]",
+          "restLen": 0
+        }
+      ],
+      "theOneArgumentIsTheTriggeringAddress": true,
+      "noExtraArguments": true,
+      "settleReachAtInstantB": [
+        {
+          "seq": 38,
+          "pendingLen": 1,
+          "noteLength": 1,
+          "pendingCarriesTheAppIdentity": true
+        }
+      ],
+      "pendingAtTheArm": 1,
+      "pendingAtTheArmCarriesTheAppIdentity": true,
+      "triggeredAtTheArm": 2,
+      "framesOfEachCall": {
+        "constraint1": [
+          {
+            "seq": 37,
+            "phase": "K-3"
+          }
+        ],
+        "appListener": [
+          {
+            "seq": 39,
+            "phase": "K-3"
+          }
+        ],
+        "k3Enter": [
+          36
+        ],
+        "k3Return": [
+          40
+        ]
+      },
+      "appDeliveredAtTheTerminalArm": 1,
+      "appRanBeforeAnyConstraint": false,
+      "shapeAfterTheArm": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [
+          "Symbol(provident-storeroom.checked-off-at-the-terminal-arm)"
+        ],
+        "carriesTheNote": true,
+        "theNoteIsNonEnumerable": true,
+        "theNoteIsNoMemberAdded": true,
+        "theNoteIsAnArray": true,
+        "theNoteLength": 1,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "rollbackUndidTheAttemptsOwnOp": false,
+      "storeReadAtTheAddress": {
+        "absent": false,
+        "value": "200"
+      }
+    },
+    {
+      "cell": "A1-on-at-adopted-address-r2",
+      "limb": 1,
+      "handling": "on-at-adopted-address",
+      "outcome": "pass",
+      "round": 2,
+      "theAppRegistrationReturnsTheAdoptedIdentity": true,
+      "twoPairs": null,
+      "k2": {
+        "threw": false,
+        "triggered": 1,
+        "pending": 1,
+        "occurrencesOfTheAppIdentityInTriggered": 1
+      },
+      "shapeAtK2Return": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingAtK2CarriesTheAppIdentity": true,
+      "bodiesBeforeThePass": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "inWindowInvocationOfEachBody": {
+        "constraint1": 0,
+        "constraint2": 0,
+        "appListener": 0
+      },
+      "settleReachAtInstantA": [
+        {
+          "seq": 44,
+          "pendingLen": 0,
+          "shape": {
+            "enumerableMembers": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "enumerableMemberCount": 4,
+            "ownPropertyNames": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "ownPropertyNamesCount": 4,
+            "symbolKeys": [],
+            "carriesTheNote": false,
+            "theNoteIsNonEnumerable": null,
+            "theNoteIsNoMemberAdded": null,
+            "theNoteIsAnArray": false,
+            "theNoteLength": null,
+            "pendingIsAMember": true,
+            "triggeredIsAMember": true
+          },
+          "noteLength": null
+        }
+      ],
+      "arm": {
+        "kind": "returned",
+        "status": null,
+        "outcome": "passed"
+      },
+      "delivered": {
+        "c1": 1,
+        "c2": 0,
+        "app": 1
+      },
+      "appArgsThisWrite": [
+        {
+          "json": "[\"n7\",\"ord\"]",
+          "restLen": 0
+        }
+      ],
+      "theOneArgumentIsTheTriggeringAddress": true,
+      "noExtraArguments": true,
+      "settleReachAtInstantB": [
+        {
+          "seq": 48,
+          "pendingLen": 0,
+          "noteLength": 1,
+          "pendingCarriesTheAppIdentity": false
+        }
+      ],
+      "pendingAtTheArm": 0,
+      "pendingAtTheArmCarriesTheAppIdentity": false,
+      "triggeredAtTheArm": 1,
+      "framesOfEachCall": {
+        "constraint1": [
+          {
+            "seq": 47,
+            "phase": "K-3"
+          }
+        ],
+        "appListener": [
+          {
+            "seq": 49,
+            "phase": "K-3"
+          }
+        ],
+        "k3Enter": [
+          46
+        ],
+        "k3Return": [
+          50
+        ]
+      },
+      "appDeliveredAtTheTerminalArm": 1,
+      "appRanBeforeAnyConstraint": false,
+      "shapeAfterTheArm": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [
+          "Symbol(provident-storeroom.checked-off-at-the-terminal-arm)"
+        ],
+        "carriesTheNote": true,
+        "theNoteIsNonEnumerable": true,
+        "theNoteIsNoMemberAdded": true,
+        "theNoteIsAnArray": true,
+        "theNoteLength": 1,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "rollbackUndidTheAttemptsOwnOp": false,
+      "storeReadAtTheAddress": {
+        "absent": false,
+        "value": "200"
+      }
+    },
+    {
+      "cell": "A1-register-at-adopted-handle-r2",
+      "limb": 1,
+      "handling": "register-at-adopted-handle",
+      "outcome": "pass",
+      "round": 2,
+      "theAppRegistrationReturnsTheAdoptedIdentity": true,
+      "twoPairs": null,
+      "k2": {
+        "threw": false,
+        "triggered": 1,
+        "pending": 1,
+        "occurrencesOfTheAppIdentityInTriggered": 1
+      },
+      "shapeAtK2Return": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingAtK2CarriesTheAppIdentity": true,
+      "bodiesBeforeThePass": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "inWindowInvocationOfEachBody": {
+        "constraint1": 0,
+        "constraint2": 0,
+        "appListener": 0
+      },
+      "settleReachAtInstantA": [
+        {
+          "seq": 54,
+          "pendingLen": 0,
+          "shape": {
+            "enumerableMembers": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "enumerableMemberCount": 4,
+            "ownPropertyNames": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "ownPropertyNamesCount": 4,
+            "symbolKeys": [],
+            "carriesTheNote": false,
+            "theNoteIsNonEnumerable": null,
+            "theNoteIsNoMemberAdded": null,
+            "theNoteIsAnArray": false,
+            "theNoteLength": null,
+            "pendingIsAMember": true,
+            "triggeredIsAMember": true
+          },
+          "noteLength": null
+        }
+      ],
+      "arm": {
+        "kind": "returned",
+        "status": null,
+        "outcome": "passed"
+      },
+      "delivered": {
+        "c1": 1,
+        "c2": 0,
+        "app": 1
+      },
+      "appArgsThisWrite": [
+        {
+          "json": "[\"n7\",\"ord\"]",
+          "restLen": 0
+        }
+      ],
+      "theOneArgumentIsTheTriggeringAddress": true,
+      "noExtraArguments": true,
+      "settleReachAtInstantB": [
+        {
+          "seq": 58,
+          "pendingLen": 0,
+          "noteLength": 1,
+          "pendingCarriesTheAppIdentity": false
+        }
+      ],
+      "pendingAtTheArm": 0,
+      "pendingAtTheArmCarriesTheAppIdentity": false,
+      "triggeredAtTheArm": 1,
+      "framesOfEachCall": {
+        "constraint1": [
+          {
+            "seq": 57,
+            "phase": "K-3"
+          }
+        ],
+        "appListener": [
+          {
+            "seq": 59,
+            "phase": "K-3"
+          }
+        ],
+        "k3Enter": [
+          56
+        ],
+        "k3Return": [
+          60
+        ]
+      },
+      "appDeliveredAtTheTerminalArm": 1,
+      "appRanBeforeAnyConstraint": false,
+      "shapeAfterTheArm": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [
+          "Symbol(provident-storeroom.checked-off-at-the-terminal-arm)"
+        ],
+        "carriesTheNote": true,
+        "theNoteIsNonEnumerable": true,
+        "theNoteIsNoMemberAdded": true,
+        "theNoteIsAnArray": true,
+        "theNoteLength": 1,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "rollbackUndidTheAttemptsOwnOp": false,
+      "storeReadAtTheAddress": {
+        "absent": false,
+        "value": "200"
+      }
+    },
+    {
+      "cell": "A1-two-pairs-pass",
+      "limb": 1,
+      "handling": "prefix-address",
+      "outcome": "pass",
+      "round": 1,
+      "theAppRegistrationReturnsTheAdoptedIdentity": false,
+      "twoPairs": true,
+      "k2": {
+        "threw": false,
+        "triggered": 2,
+        "pending": 2,
+        "occurrencesOfTheAppIdentityInTriggered": 1
+      },
+      "shapeAtK2Return": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingAtK2CarriesTheAppIdentity": true,
+      "bodiesBeforeThePass": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "inWindowInvocationOfEachBody": {
+        "constraint1": 0,
+        "constraint2": 0,
+        "appListener": 0
+      },
+      "settleReachAtInstantA": [
+        {
+          "seq": 65,
+          "pendingLen": 0,
+          "shape": {
+            "enumerableMembers": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "enumerableMemberCount": 4,
+            "ownPropertyNames": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "ownPropertyNamesCount": 4,
+            "symbolKeys": [],
+            "carriesTheNote": false,
+            "theNoteIsNonEnumerable": null,
+            "theNoteIsNoMemberAdded": null,
+            "theNoteIsAnArray": false,
+            "theNoteLength": null,
+            "pendingIsAMember": true,
+            "triggeredIsAMember": true
+          },
+          "noteLength": null
+        }
+      ],
+      "arm": {
+        "kind": "returned",
+        "status": null,
+        "outcome": "passed"
+      },
+      "delivered": {
+        "c1": 1,
+        "c2": 1,
+        "app": 1
+      },
+      "appArgsThisWrite": [
+        {
+          "json": "[\"n7\",\"ord\"]",
+          "restLen": 0
+        }
+      ],
+      "theOneArgumentIsTheTriggeringAddress": true,
+      "noExtraArguments": true,
+      "settleReachAtInstantB": [
+        {
+          "seq": 70,
+          "pendingLen": 1,
+          "noteLength": 1,
+          "pendingCarriesTheAppIdentity": true
+        }
+      ],
+      "pendingAtTheArm": 1,
+      "pendingAtTheArmCarriesTheAppIdentity": true,
+      "triggeredAtTheArm": 2,
+      "framesOfEachCall": {
+        "constraint1": [
+          {
+            "seq": 68,
+            "phase": "K-3"
+          }
+        ],
+        "appListener": [
+          {
+            "seq": 71,
+            "phase": "K-3"
+          }
+        ],
+        "k3Enter": [
+          67
+        ],
+        "k3Return": [
+          72
+        ]
+      },
+      "appDeliveredAtTheTerminalArm": 1,
+      "appRanBeforeAnyConstraint": false,
+      "shapeAfterTheArm": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [
+          "Symbol(provident-storeroom.checked-off-at-the-terminal-arm)"
+        ],
+        "carriesTheNote": true,
+        "theNoteIsNonEnumerable": true,
+        "theNoteIsNoMemberAdded": true,
+        "theNoteIsAnArray": true,
+        "theNoteLength": 1,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "rollbackUndidTheAttemptsOwnOp": false,
+      "storeReadAtTheAddress": {
+        "absent": false,
+        "value": "100"
+      }
+    },
+    {
+      "cell": "A2-prefix-address-r1",
+      "limb": 2,
+      "handling": "prefix-address",
+      "outcome": "fail",
+      "round": 1,
+      "theAppRegistrationReturnsTheAdoptedIdentity": false,
+      "twoPairs": null,
+      "k2": {
+        "threw": false,
+        "triggered": 2,
+        "pending": 2,
+        "occurrencesOfTheAppIdentityInTriggered": 1
+      },
+      "shapeAtK2Return": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingAtK2CarriesTheAppIdentity": true,
+      "bodiesBeforeThePass": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "inWindowInvocationOfEachBody": {
+        "constraint1": 0,
+        "constraint2": 0,
+        "appListener": 0
+      },
+      "settleReachAtInstantA": [
+        {
+          "seq": 76,
+          "pendingLen": 0,
+          "shape": {
+            "enumerableMembers": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "enumerableMemberCount": 4,
+            "ownPropertyNames": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "ownPropertyNamesCount": 4,
+            "symbolKeys": [],
+            "carriesTheNote": false,
+            "theNoteIsNonEnumerable": null,
+            "theNoteIsNoMemberAdded": null,
+            "theNoteIsAnArray": false,
+            "theNoteLength": null,
+            "pendingIsAMember": true,
+            "triggeredIsAMember": true
+          },
+          "noteLength": null
+        }
+      ],
+      "arm": {
+        "kind": "thrown",
+        "status": "KC-3",
+        "outcome": null
+      },
+      "delivered": {
+        "c1": 1,
+        "c2": 0,
+        "app": 0
+      },
+      "appArgsThisWrite": [],
+      "theOneArgumentIsTheTriggeringAddress": false,
+      "noExtraArguments": true,
+      "settleReachAtInstantB": [
+        {
+          "seq": 80,
+          "pendingLen": 0,
+          "noteLength": null,
+          "pendingCarriesTheAppIdentity": false
+        }
+      ],
+      "pendingAtTheArm": 0,
+      "pendingAtTheArmCarriesTheAppIdentity": false,
+      "triggeredAtTheArm": 2,
+      "framesOfEachCall": {
+        "constraint1": [
+          {
+            "seq": 79,
+            "phase": "K-3"
+          }
+        ],
+        "appListener": [],
+        "k3Enter": [
+          78
+        ],
+        "k3Return": [
+          81
+        ]
+      },
+      "appDeliveredAtTheTerminalArm": 0,
+      "appRanBeforeAnyConstraint": false,
+      "shapeAfterTheArm": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "rollbackUndidTheAttemptsOwnOp": true,
+      "storeReadAtTheAddress": {
+        "absent": false,
+        "value": "0"
+      }
+    },
+    {
+      "cell": "A2-on-at-adopted-address-r1",
+      "limb": 2,
+      "handling": "on-at-adopted-address",
+      "outcome": "fail",
+      "round": 1,
+      "theAppRegistrationReturnsTheAdoptedIdentity": true,
+      "twoPairs": null,
+      "k2": {
+        "threw": false,
+        "triggered": 1,
+        "pending": 1,
+        "occurrencesOfTheAppIdentityInTriggered": 1
+      },
+      "shapeAtK2Return": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingAtK2CarriesTheAppIdentity": true,
+      "bodiesBeforeThePass": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "inWindowInvocationOfEachBody": {
+        "constraint1": 0,
+        "constraint2": 0,
+        "appListener": 0
+      },
+      "settleReachAtInstantA": [
+        {
+          "seq": 85,
+          "pendingLen": 0,
+          "shape": {
+            "enumerableMembers": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "enumerableMemberCount": 4,
+            "ownPropertyNames": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "ownPropertyNamesCount": 4,
+            "symbolKeys": [],
+            "carriesTheNote": false,
+            "theNoteIsNonEnumerable": null,
+            "theNoteIsNoMemberAdded": null,
+            "theNoteIsAnArray": false,
+            "theNoteLength": null,
+            "pendingIsAMember": true,
+            "triggeredIsAMember": true
+          },
+          "noteLength": null
+        }
+      ],
+      "arm": {
+        "kind": "thrown",
+        "status": "KC-3",
+        "outcome": null
+      },
+      "delivered": {
+        "c1": 1,
+        "c2": 0,
+        "app": 0
+      },
+      "appArgsThisWrite": [],
+      "theOneArgumentIsTheTriggeringAddress": false,
+      "noExtraArguments": true,
+      "settleReachAtInstantB": [
+        {
+          "seq": 89,
+          "pendingLen": 0,
+          "noteLength": null,
+          "pendingCarriesTheAppIdentity": false
+        }
+      ],
+      "pendingAtTheArm": 0,
+      "pendingAtTheArmCarriesTheAppIdentity": false,
+      "triggeredAtTheArm": 1,
+      "framesOfEachCall": {
+        "constraint1": [
+          {
+            "seq": 88,
+            "phase": "K-3"
+          }
+        ],
+        "appListener": [],
+        "k3Enter": [
+          87
+        ],
+        "k3Return": [
+          90
+        ]
+      },
+      "appDeliveredAtTheTerminalArm": 0,
+      "appRanBeforeAnyConstraint": false,
+      "shapeAfterTheArm": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "rollbackUndidTheAttemptsOwnOp": true,
+      "storeReadAtTheAddress": {
+        "absent": false,
+        "value": "0"
+      }
+    },
+    {
+      "cell": "A2-register-at-adopted-handle-r1",
+      "limb": 2,
+      "handling": "register-at-adopted-handle",
+      "outcome": "fail",
+      "round": 1,
+      "theAppRegistrationReturnsTheAdoptedIdentity": true,
+      "twoPairs": null,
+      "k2": {
+        "threw": false,
+        "triggered": 1,
+        "pending": 1,
+        "occurrencesOfTheAppIdentityInTriggered": 1
+      },
+      "shapeAtK2Return": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingAtK2CarriesTheAppIdentity": true,
+      "bodiesBeforeThePass": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "inWindowInvocationOfEachBody": {
+        "constraint1": 0,
+        "constraint2": 0,
+        "appListener": 0
+      },
+      "settleReachAtInstantA": [
+        {
+          "seq": 94,
+          "pendingLen": 0,
+          "shape": {
+            "enumerableMembers": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "enumerableMemberCount": 4,
+            "ownPropertyNames": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "ownPropertyNamesCount": 4,
+            "symbolKeys": [],
+            "carriesTheNote": false,
+            "theNoteIsNonEnumerable": null,
+            "theNoteIsNoMemberAdded": null,
+            "theNoteIsAnArray": false,
+            "theNoteLength": null,
+            "pendingIsAMember": true,
+            "triggeredIsAMember": true
+          },
+          "noteLength": null
+        }
+      ],
+      "arm": {
+        "kind": "thrown",
+        "status": "KC-3",
+        "outcome": null
+      },
+      "delivered": {
+        "c1": 1,
+        "c2": 0,
+        "app": 0
+      },
+      "appArgsThisWrite": [],
+      "theOneArgumentIsTheTriggeringAddress": false,
+      "noExtraArguments": true,
+      "settleReachAtInstantB": [
+        {
+          "seq": 98,
+          "pendingLen": 0,
+          "noteLength": null,
+          "pendingCarriesTheAppIdentity": false
+        }
+      ],
+      "pendingAtTheArm": 0,
+      "pendingAtTheArmCarriesTheAppIdentity": false,
+      "triggeredAtTheArm": 1,
+      "framesOfEachCall": {
+        "constraint1": [
+          {
+            "seq": 97,
+            "phase": "K-3"
+          }
+        ],
+        "appListener": [],
+        "k3Enter": [
+          96
+        ],
+        "k3Return": [
+          99
+        ]
+      },
+      "appDeliveredAtTheTerminalArm": 0,
+      "appRanBeforeAnyConstraint": false,
+      "shapeAfterTheArm": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "rollbackUndidTheAttemptsOwnOp": true,
+      "storeReadAtTheAddress": {
+        "absent": false,
+        "value": "0"
+      }
+    },
+    {
+      "cell": "A2-prefix-address-r2",
+      "limb": 2,
+      "handling": "prefix-address",
+      "outcome": "fail",
+      "round": 2,
+      "theAppRegistrationReturnsTheAdoptedIdentity": false,
+      "twoPairs": null,
+      "k2": {
+        "threw": false,
+        "triggered": 2,
+        "pending": 2,
+        "occurrencesOfTheAppIdentityInTriggered": 1
+      },
+      "shapeAtK2Return": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingAtK2CarriesTheAppIdentity": true,
+      "bodiesBeforeThePass": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "inWindowInvocationOfEachBody": {
+        "constraint1": 0,
+        "constraint2": 0,
+        "appListener": 0
+      },
+      "settleReachAtInstantA": [
+        {
+          "seq": 103,
+          "pendingLen": 0,
+          "shape": {
+            "enumerableMembers": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "enumerableMemberCount": 4,
+            "ownPropertyNames": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "ownPropertyNamesCount": 4,
+            "symbolKeys": [],
+            "carriesTheNote": false,
+            "theNoteIsNonEnumerable": null,
+            "theNoteIsNoMemberAdded": null,
+            "theNoteIsAnArray": false,
+            "theNoteLength": null,
+            "pendingIsAMember": true,
+            "triggeredIsAMember": true
+          },
+          "noteLength": null
+        }
+      ],
+      "arm": {
+        "kind": "thrown",
+        "status": "KC-3",
+        "outcome": null
+      },
+      "delivered": {
+        "c1": 1,
+        "c2": 0,
+        "app": 0
+      },
+      "appArgsThisWrite": [],
+      "theOneArgumentIsTheTriggeringAddress": false,
+      "noExtraArguments": true,
+      "settleReachAtInstantB": [
+        {
+          "seq": 107,
+          "pendingLen": 0,
+          "noteLength": null,
+          "pendingCarriesTheAppIdentity": false
+        }
+      ],
+      "pendingAtTheArm": 0,
+      "pendingAtTheArmCarriesTheAppIdentity": false,
+      "triggeredAtTheArm": 2,
+      "framesOfEachCall": {
+        "constraint1": [
+          {
+            "seq": 106,
+            "phase": "K-3"
+          }
+        ],
+        "appListener": [],
+        "k3Enter": [
+          105
+        ],
+        "k3Return": [
+          108
+        ]
+      },
+      "appDeliveredAtTheTerminalArm": 0,
+      "appRanBeforeAnyConstraint": false,
+      "shapeAfterTheArm": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "rollbackUndidTheAttemptsOwnOp": true,
+      "storeReadAtTheAddress": {
+        "absent": false,
+        "value": "0"
+      }
+    },
+    {
+      "cell": "A2-on-at-adopted-address-r2",
+      "limb": 2,
+      "handling": "on-at-adopted-address",
+      "outcome": "fail",
+      "round": 2,
+      "theAppRegistrationReturnsTheAdoptedIdentity": true,
+      "twoPairs": null,
+      "k2": {
+        "threw": false,
+        "triggered": 1,
+        "pending": 1,
+        "occurrencesOfTheAppIdentityInTriggered": 1
+      },
+      "shapeAtK2Return": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingAtK2CarriesTheAppIdentity": true,
+      "bodiesBeforeThePass": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "inWindowInvocationOfEachBody": {
+        "constraint1": 0,
+        "constraint2": 0,
+        "appListener": 0
+      },
+      "settleReachAtInstantA": [
+        {
+          "seq": 112,
+          "pendingLen": 0,
+          "shape": {
+            "enumerableMembers": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "enumerableMemberCount": 4,
+            "ownPropertyNames": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "ownPropertyNamesCount": 4,
+            "symbolKeys": [],
+            "carriesTheNote": false,
+            "theNoteIsNonEnumerable": null,
+            "theNoteIsNoMemberAdded": null,
+            "theNoteIsAnArray": false,
+            "theNoteLength": null,
+            "pendingIsAMember": true,
+            "triggeredIsAMember": true
+          },
+          "noteLength": null
+        }
+      ],
+      "arm": {
+        "kind": "thrown",
+        "status": "KC-3",
+        "outcome": null
+      },
+      "delivered": {
+        "c1": 1,
+        "c2": 0,
+        "app": 0
+      },
+      "appArgsThisWrite": [],
+      "theOneArgumentIsTheTriggeringAddress": false,
+      "noExtraArguments": true,
+      "settleReachAtInstantB": [
+        {
+          "seq": 116,
+          "pendingLen": 0,
+          "noteLength": null,
+          "pendingCarriesTheAppIdentity": false
+        }
+      ],
+      "pendingAtTheArm": 0,
+      "pendingAtTheArmCarriesTheAppIdentity": false,
+      "triggeredAtTheArm": 1,
+      "framesOfEachCall": {
+        "constraint1": [
+          {
+            "seq": 115,
+            "phase": "K-3"
+          }
+        ],
+        "appListener": [],
+        "k3Enter": [
+          114
+        ],
+        "k3Return": [
+          117
+        ]
+      },
+      "appDeliveredAtTheTerminalArm": 0,
+      "appRanBeforeAnyConstraint": false,
+      "shapeAfterTheArm": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "rollbackUndidTheAttemptsOwnOp": true,
+      "storeReadAtTheAddress": {
+        "absent": false,
+        "value": "0"
+      }
+    },
+    {
+      "cell": "A2-register-at-adopted-handle-r2",
+      "limb": 2,
+      "handling": "register-at-adopted-handle",
+      "outcome": "fail",
+      "round": 2,
+      "theAppRegistrationReturnsTheAdoptedIdentity": true,
+      "twoPairs": null,
+      "k2": {
+        "threw": false,
+        "triggered": 1,
+        "pending": 1,
+        "occurrencesOfTheAppIdentityInTriggered": 1
+      },
+      "shapeAtK2Return": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingAtK2CarriesTheAppIdentity": true,
+      "bodiesBeforeThePass": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "inWindowInvocationOfEachBody": {
+        "constraint1": 0,
+        "constraint2": 0,
+        "appListener": 0
+      },
+      "settleReachAtInstantA": [
+        {
+          "seq": 121,
+          "pendingLen": 0,
+          "shape": {
+            "enumerableMembers": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "enumerableMemberCount": 4,
+            "ownPropertyNames": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "ownPropertyNamesCount": 4,
+            "symbolKeys": [],
+            "carriesTheNote": false,
+            "theNoteIsNonEnumerable": null,
+            "theNoteIsNoMemberAdded": null,
+            "theNoteIsAnArray": false,
+            "theNoteLength": null,
+            "pendingIsAMember": true,
+            "triggeredIsAMember": true
+          },
+          "noteLength": null
+        }
+      ],
+      "arm": {
+        "kind": "thrown",
+        "status": "KC-3",
+        "outcome": null
+      },
+      "delivered": {
+        "c1": 1,
+        "c2": 0,
+        "app": 0
+      },
+      "appArgsThisWrite": [],
+      "theOneArgumentIsTheTriggeringAddress": false,
+      "noExtraArguments": true,
+      "settleReachAtInstantB": [
+        {
+          "seq": 125,
+          "pendingLen": 0,
+          "noteLength": null,
+          "pendingCarriesTheAppIdentity": false
+        }
+      ],
+      "pendingAtTheArm": 0,
+      "pendingAtTheArmCarriesTheAppIdentity": false,
+      "triggeredAtTheArm": 1,
+      "framesOfEachCall": {
+        "constraint1": [
+          {
+            "seq": 124,
+            "phase": "K-3"
+          }
+        ],
+        "appListener": [],
+        "k3Enter": [
+          123
+        ],
+        "k3Return": [
+          126
+        ]
+      },
+      "appDeliveredAtTheTerminalArm": 0,
+      "appRanBeforeAnyConstraint": false,
+      "shapeAfterTheArm": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "rollbackUndidTheAttemptsOwnOp": true,
+      "storeReadAtTheAddress": {
+        "absent": false,
+        "value": "0"
+      }
+    },
+    {
+      "cell": "D-identity-control",
+      "limb": 7,
+      "phases": {
+        "exactSpellingPassingWrite": {
+          "spelling": "exact-address",
+          "theAppRegistrationIsTheAdoptedIdentity": true,
+          "writeReturnedTriggered": 1,
+          "occurrencesOfTheAppIdentityInTriggered": 1,
+          "pendingAtK2CarriesTheAppIdentity": false,
+          "pendingAtTheArm": 0,
+          "pendingAtTheArmCarriesTheAppIdentity": false,
+          "constraintBodyCalls": 1,
+          "appBodyCallsOwedOnAPassingWrite": 1,
+          "appBodyCallsMade": 1,
+          "appBodyArgs": [
+            {
+              "json": "[\"c1\",\"pair\"]",
+              "restLen": 0
+            }
+          ],
+          "theOneArgumentIsTheTriggeringAddress": true,
+          "inWindowAppBodyCalls": 0,
+          "appBodyCallsAtTheTerminalArm": 1,
+          "bodiesInThisRun": 1,
+          "theNoteCarriesTheIdentityThePassCheckedOff": true,
+          "theNoteLengthAtTheArm": 1,
+          "settleReaches": [
+            {
+              "seq": 128,
+              "phase": "K-2",
+              "pendingLen": 0,
+              "noteLength": null
+            },
+            {
+              "seq": 131,
+              "phase": "K-3",
+              "pendingLen": 0,
+              "noteLength": 1
+            }
+          ],
+          "shapeAtK2Return": {
+            "enumerableMembers": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "enumerableMemberCount": 4,
+            "ownPropertyNames": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "ownPropertyNamesCount": 4,
+            "symbolKeys": [
+              "Symbol(provident-storeroom.checked-off-at-the-terminal-arm)"
+            ],
+            "carriesTheNote": true,
+            "theNoteIsNonEnumerable": true,
+            "theNoteIsNoMemberAdded": true,
+            "theNoteIsAnArray": true,
+            "theNoteLength": 1,
+            "pendingIsAMember": true,
+            "triggeredIsAMember": true
+          },
+          "shapeAfterTheArm": {
+            "enumerableMembers": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "enumerableMemberCount": 4,
+            "ownPropertyNames": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "ownPropertyNamesCount": 4,
+            "symbolKeys": [
+              "Symbol(provident-storeroom.checked-off-at-the-terminal-arm)"
+            ],
+            "carriesTheNote": true,
+            "theNoteIsNonEnumerable": true,
+            "theNoteIsNoMemberAdded": true,
+            "theNoteIsAnArray": true,
+            "theNoteLength": 1,
+            "pendingIsAMember": true,
+            "triggeredIsAMember": true
+          },
+          "reachesK2Count": 1,
+          "arm": "passed"
+        },
+        "properPrefixSpellingPassingWrite": {
+          "spelling": "proper-prefix",
+          "theAppRegistrationIsTheAdoptedIdentity": false,
+          "writeReturnedTriggered": 2,
+          "occurrencesOfTheAppIdentityInTriggered": 1,
+          "pendingAtK2CarriesTheAppIdentity": true,
+          "pendingAtTheArm": 1,
+          "pendingAtTheArmCarriesTheAppIdentity": true,
+          "constraintBodyCalls": 1,
+          "appBodyCallsOwedOnAPassingWrite": 1,
+          "appBodyCallsMade": 1,
+          "appBodyArgs": [
+            {
+              "json": "[\"c2\",\"pair\"]",
+              "restLen": 0
+            }
+          ],
+          "theOneArgumentIsTheTriggeringAddress": true,
+          "inWindowAppBodyCalls": 0,
+          "appBodyCallsAtTheTerminalArm": 1,
+          "bodiesInThisRun": 1,
+          "theNoteCarriesTheIdentityThePassCheckedOff": true,
+          "theNoteLengthAtTheArm": 1,
+          "settleReaches": [
+            {
+              "seq": 128,
+              "phase": "K-2",
+              "pendingLen": 0,
+              "noteLength": null
+            },
+            {
+              "seq": 131,
+              "phase": "K-3",
+              "pendingLen": 0,
+              "noteLength": 1
+            },
+            {
+              "seq": 135,
+              "phase": "K-2",
+              "pendingLen": 0,
+              "noteLength": null
+            },
+            {
+              "seq": 138,
+              "phase": "K-3",
+              "pendingLen": 1,
+              "noteLength": 1
+            }
+          ],
+          "shapeAtK2Return": {
+            "enumerableMembers": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "enumerableMemberCount": 4,
+            "ownPropertyNames": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "ownPropertyNamesCount": 4,
+            "symbolKeys": [
+              "Symbol(provident-storeroom.checked-off-at-the-terminal-arm)"
+            ],
+            "carriesTheNote": true,
+            "theNoteIsNonEnumerable": true,
+            "theNoteIsNoMemberAdded": true,
+            "theNoteIsAnArray": true,
+            "theNoteLength": 1,
+            "pendingIsAMember": true,
+            "triggeredIsAMember": true
+          },
+          "shapeAfterTheArm": {
+            "enumerableMembers": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "enumerableMemberCount": 4,
+            "ownPropertyNames": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "ownPropertyNamesCount": 4,
+            "symbolKeys": [
+              "Symbol(provident-storeroom.checked-off-at-the-terminal-arm)"
+            ],
+            "carriesTheNote": true,
+            "theNoteIsNonEnumerable": true,
+            "theNoteIsNoMemberAdded": true,
+            "theNoteIsAnArray": true,
+            "theNoteLength": 1,
+            "pendingIsAMember": true,
+            "triggeredIsAMember": true
+          },
+          "reachesK2Count": 2,
+          "arm": "passed"
+        },
+        "exactSpellingFailingWrite": {
+          "spelling": "exact-address-fail",
+          "theAppRegistrationIsTheAdoptedIdentity": true,
+          "writeReturnedTriggered": 1,
+          "occurrencesOfTheAppIdentityInTriggered": 1,
+          "pendingAtK2CarriesTheAppIdentity": false,
+          "pendingAtTheArm": 0,
+          "pendingAtTheArmCarriesTheAppIdentity": false,
+          "constraintBodyCalls": 1,
+          "appBodyCallsOwedOnAPassingWrite": 0,
+          "appBodyCallsMade": 0,
+          "appBodyArgs": [],
+          "theOneArgumentIsTheTriggeringAddress": false,
+          "inWindowAppBodyCalls": 0,
+          "appBodyCallsAtTheTerminalArm": 0,
+          "bodiesInThisRun": 0,
+          "theNoteCarriesTheIdentityThePassCheckedOff": null,
+          "theNoteLengthAtTheArm": null,
+          "settleReaches": [
+            {
+              "seq": 128,
+              "phase": "K-2",
+              "pendingLen": 0,
+              "noteLength": null
+            },
+            {
+              "seq": 131,
+              "phase": "K-3",
+              "pendingLen": 0,
+              "noteLength": 1
+            },
+            {
+              "seq": 135,
+              "phase": "K-2",
+              "pendingLen": 0,
+              "noteLength": null
+            },
+            {
+              "seq": 138,
+              "phase": "K-3",
+              "pendingLen": 1,
+              "noteLength": 1
+            },
+            {
+              "seq": 142,
+              "phase": "K-2",
+              "pendingLen": 0,
+              "noteLength": null
+            },
+            {
+              "seq": 145,
+              "phase": "K-3",
+              "pendingLen": 0,
+              "noteLength": null
+            }
+          ],
+          "shapeAtK2Return": {
+            "enumerableMembers": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "enumerableMemberCount": 4,
+            "ownPropertyNames": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "ownPropertyNamesCount": 4,
+            "symbolKeys": [],
+            "carriesTheNote": false,
+            "theNoteIsNonEnumerable": null,
+            "theNoteIsNoMemberAdded": null,
+            "theNoteIsAnArray": false,
+            "theNoteLength": null,
+            "pendingIsAMember": true,
+            "triggeredIsAMember": true
+          },
+          "shapeAfterTheArm": {
+            "enumerableMembers": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "enumerableMemberCount": 4,
+            "ownPropertyNames": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "ownPropertyNamesCount": 4,
+            "symbolKeys": [],
+            "carriesTheNote": false,
+            "theNoteIsNonEnumerable": null,
+            "theNoteIsNoMemberAdded": null,
+            "theNoteIsAnArray": false,
+            "theNoteLength": null,
+            "pendingIsAMember": true,
+            "triggeredIsAMember": true
+          },
+          "reachesK2Count": 3,
+          "arm": "KC-3"
+        },
+        "properPrefixSpellingFailingWrite": {
+          "spelling": "proper-prefix-fail",
+          "theAppRegistrationIsTheAdoptedIdentity": false,
+          "writeReturnedTriggered": 2,
+          "occurrencesOfTheAppIdentityInTriggered": 1,
+          "pendingAtK2CarriesTheAppIdentity": false,
+          "pendingAtTheArm": 0,
+          "pendingAtTheArmCarriesTheAppIdentity": false,
+          "constraintBodyCalls": 1,
+          "appBodyCallsOwedOnAPassingWrite": 0,
+          "appBodyCallsMade": 0,
+          "appBodyArgs": [],
+          "theOneArgumentIsTheTriggeringAddress": false,
+          "inWindowAppBodyCalls": 0,
+          "appBodyCallsAtTheTerminalArm": 0,
+          "bodiesInThisRun": 0,
+          "theNoteCarriesTheIdentityThePassCheckedOff": null,
+          "theNoteLengthAtTheArm": null,
+          "settleReaches": [
+            {
+              "seq": 128,
+              "phase": "K-2",
+              "pendingLen": 0,
+              "noteLength": null
+            },
+            {
+              "seq": 131,
+              "phase": "K-3",
+              "pendingLen": 0,
+              "noteLength": 1
+            },
+            {
+              "seq": 135,
+              "phase": "K-2",
+              "pendingLen": 0,
+              "noteLength": null
+            },
+            {
+              "seq": 138,
+              "phase": "K-3",
+              "pendingLen": 1,
+              "noteLength": 1
+            },
+            {
+              "seq": 142,
+              "phase": "K-2",
+              "pendingLen": 0,
+              "noteLength": null
+            },
+            {
+              "seq": 145,
+              "phase": "K-3",
+              "pendingLen": 0,
+              "noteLength": null
+            },
+            {
+              "seq": 148,
+              "phase": "K-2",
+              "pendingLen": 0,
+              "noteLength": null
+            },
+            {
+              "seq": 151,
+              "phase": "K-3",
+              "pendingLen": 0,
+              "noteLength": null
+            }
+          ],
+          "shapeAtK2Return": {
+            "enumerableMembers": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "enumerableMemberCount": 4,
+            "ownPropertyNames": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "ownPropertyNamesCount": 4,
+            "symbolKeys": [],
+            "carriesTheNote": false,
+            "theNoteIsNonEnumerable": null,
+            "theNoteIsNoMemberAdded": null,
+            "theNoteIsAnArray": false,
+            "theNoteLength": null,
+            "pendingIsAMember": true,
+            "triggeredIsAMember": true
+          },
+          "shapeAfterTheArm": {
+            "enumerableMembers": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "enumerableMemberCount": 4,
+            "ownPropertyNames": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "ownPropertyNamesCount": 4,
+            "symbolKeys": [],
+            "carriesTheNote": false,
+            "theNoteIsNonEnumerable": null,
+            "theNoteIsNoMemberAdded": null,
+            "theNoteIsAnArray": false,
+            "theNoteLength": null,
+            "pendingIsAMember": true,
+            "triggeredIsAMember": true
+          },
+          "reachesK2Count": 4,
+          "arm": "KC-3"
+        }
+      }
+    },
+    {
+      "cell": "E-bare-write",
+      "limb": 5,
+      "phases": {
+        "freshStoreNoKernel": {
+          "thrown": null,
+          "triggered": 1,
+          "recordMembers": [
+            "op",
+            "triggered",
+            "watched"
+          ],
+          "carriesNoPendingMember": true,
+          "appListenerBodyCalls": 1,
+          "deliveredInsideTheWriteVerbsOwnFrame": true,
+          "settleReaches": 0
+        },
+        "afterAKernelPass": {
+          "kernelWriteArm": "passed",
+          "kernelWriteDeliveredTheAppBody": 1,
+          "appListenerBodyCalls": 1,
+          "deliveredInsideTheWriteVerbsOwnFrame": true,
+          "settleReachesDuringTheBareWrite": 0,
+          "triggered": 1
+        }
+      }
+    },
+    {
+      "cell": "F-repeat-seq1-pass",
+      "limb": 4,
+      "handling": "prefix-address",
+      "outcome": "pass",
+      "round": 1,
+      "theAppRegistrationReturnsTheAdoptedIdentity": false,
+      "twoPairs": null,
+      "k2": {
+        "threw": false,
+        "triggered": 2,
+        "pending": 2,
+        "occurrencesOfTheAppIdentityInTriggered": 1
+      },
+      "shapeAtK2Return": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingAtK2CarriesTheAppIdentity": true,
+      "bodiesBeforeThePass": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "inWindowInvocationOfEachBody": {
+        "constraint1": 0,
+        "constraint2": 0,
+        "appListener": 0
+      },
+      "settleReachAtInstantA": [
+        {
+          "seq": 165,
+          "pendingLen": 0,
+          "shape": {
+            "enumerableMembers": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "enumerableMemberCount": 4,
+            "ownPropertyNames": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "ownPropertyNamesCount": 4,
+            "symbolKeys": [],
+            "carriesTheNote": false,
+            "theNoteIsNonEnumerable": null,
+            "theNoteIsNoMemberAdded": null,
+            "theNoteIsAnArray": false,
+            "theNoteLength": null,
+            "pendingIsAMember": true,
+            "triggeredIsAMember": true
+          },
+          "noteLength": null
+        }
+      ],
+      "arm": {
+        "kind": "returned",
+        "status": null,
+        "outcome": "passed"
+      },
+      "delivered": {
+        "c1": 1,
+        "c2": 0,
+        "app": 1
+      },
+      "appArgsThisWrite": [
+        {
+          "json": "[\"n7\",\"ord\"]",
+          "restLen": 0
+        }
+      ],
+      "theOneArgumentIsTheTriggeringAddress": true,
+      "noExtraArguments": true,
+      "settleReachAtInstantB": [
+        {
+          "seq": 169,
+          "pendingLen": 1,
+          "noteLength": 1,
+          "pendingCarriesTheAppIdentity": true
+        }
+      ],
+      "pendingAtTheArm": 1,
+      "pendingAtTheArmCarriesTheAppIdentity": true,
+      "triggeredAtTheArm": 2,
+      "framesOfEachCall": {
+        "constraint1": [
+          {
+            "seq": 168,
+            "phase": "K-3"
+          }
+        ],
+        "appListener": [
+          {
+            "seq": 170,
+            "phase": "K-3"
+          }
+        ],
+        "k3Enter": [
+          167
+        ],
+        "k3Return": [
+          171
+        ]
+      },
+      "appDeliveredAtTheTerminalArm": 1,
+      "appRanBeforeAnyConstraint": false,
+      "shapeAfterTheArm": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [
+          "Symbol(provident-storeroom.checked-off-at-the-terminal-arm)"
+        ],
+        "carriesTheNote": true,
+        "theNoteIsNonEnumerable": true,
+        "theNoteIsNoMemberAdded": true,
+        "theNoteIsAnArray": true,
+        "theNoteLength": 1,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "rollbackUndidTheAttemptsOwnOp": false,
+      "storeReadAtTheAddress": {
+        "absent": false,
+        "value": "100"
+      }
+    },
+    {
+      "cell": "F-repeat-seq2-fail",
+      "limb": 4,
+      "handling": "prefix-address",
+      "outcome": "fail",
+      "round": 2,
+      "theAppRegistrationReturnsTheAdoptedIdentity": false,
+      "twoPairs": null,
+      "k2": {
+        "threw": false,
+        "triggered": 2,
+        "pending": 2,
+        "occurrencesOfTheAppIdentityInTriggered": 1
+      },
+      "shapeAtK2Return": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingAtK2CarriesTheAppIdentity": true,
+      "bodiesBeforeThePass": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "inWindowInvocationOfEachBody": {
+        "constraint1": 0,
+        "constraint2": 0,
+        "appListener": 0
+      },
+      "settleReachAtInstantA": [
+        {
+          "seq": 175,
+          "pendingLen": 0,
+          "shape": {
+            "enumerableMembers": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "enumerableMemberCount": 4,
+            "ownPropertyNames": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "ownPropertyNamesCount": 4,
+            "symbolKeys": [],
+            "carriesTheNote": false,
+            "theNoteIsNonEnumerable": null,
+            "theNoteIsNoMemberAdded": null,
+            "theNoteIsAnArray": false,
+            "theNoteLength": null,
+            "pendingIsAMember": true,
+            "triggeredIsAMember": true
+          },
+          "noteLength": null
+        }
+      ],
+      "arm": {
+        "kind": "thrown",
+        "status": "KC-3",
+        "outcome": null
+      },
+      "delivered": {
+        "c1": 1,
+        "c2": 0,
+        "app": 0
+      },
+      "appArgsThisWrite": [],
+      "theOneArgumentIsTheTriggeringAddress": false,
+      "noExtraArguments": true,
+      "settleReachAtInstantB": [
+        {
+          "seq": 179,
+          "pendingLen": 0,
+          "noteLength": null,
+          "pendingCarriesTheAppIdentity": false
+        }
+      ],
+      "pendingAtTheArm": 0,
+      "pendingAtTheArmCarriesTheAppIdentity": false,
+      "triggeredAtTheArm": 2,
+      "framesOfEachCall": {
+        "constraint1": [
+          {
+            "seq": 178,
+            "phase": "K-3"
+          }
+        ],
+        "appListener": [],
+        "k3Enter": [
+          177
+        ],
+        "k3Return": [
+          180
+        ]
+      },
+      "appDeliveredAtTheTerminalArm": 0,
+      "appRanBeforeAnyConstraint": false,
+      "shapeAfterTheArm": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "rollbackUndidTheAttemptsOwnOp": true,
+      "storeReadAtTheAddress": {
+        "absent": false,
+        "value": "0"
+      }
+    },
+    {
+      "cell": "F-repeat-seq3-pass",
+      "limb": 4,
+      "handling": "prefix-address",
+      "outcome": "pass",
+      "round": 3,
+      "theAppRegistrationReturnsTheAdoptedIdentity": false,
+      "twoPairs": null,
+      "k2": {
+        "threw": false,
+        "triggered": 2,
+        "pending": 2,
+        "occurrencesOfTheAppIdentityInTriggered": 1
+      },
+      "shapeAtK2Return": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingAtK2CarriesTheAppIdentity": true,
+      "bodiesBeforeThePass": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "inWindowInvocationOfEachBody": {
+        "constraint1": 0,
+        "constraint2": 0,
+        "appListener": 0
+      },
+      "settleReachAtInstantA": [
+        {
+          "seq": 184,
+          "pendingLen": 0,
+          "shape": {
+            "enumerableMembers": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "enumerableMemberCount": 4,
+            "ownPropertyNames": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "ownPropertyNamesCount": 4,
+            "symbolKeys": [],
+            "carriesTheNote": false,
+            "theNoteIsNonEnumerable": null,
+            "theNoteIsNoMemberAdded": null,
+            "theNoteIsAnArray": false,
+            "theNoteLength": null,
+            "pendingIsAMember": true,
+            "triggeredIsAMember": true
+          },
+          "noteLength": null
+        }
+      ],
+      "arm": {
+        "kind": "returned",
+        "status": null,
+        "outcome": "passed"
+      },
+      "delivered": {
+        "c1": 1,
+        "c2": 0,
+        "app": 1
+      },
+      "appArgsThisWrite": [
+        {
+          "json": "[\"n7\",\"ord\"]",
+          "restLen": 0
+        }
+      ],
+      "theOneArgumentIsTheTriggeringAddress": true,
+      "noExtraArguments": true,
+      "settleReachAtInstantB": [
+        {
+          "seq": 188,
+          "pendingLen": 1,
+          "noteLength": 1,
+          "pendingCarriesTheAppIdentity": true
+        }
+      ],
+      "pendingAtTheArm": 1,
+      "pendingAtTheArmCarriesTheAppIdentity": true,
+      "triggeredAtTheArm": 2,
+      "framesOfEachCall": {
+        "constraint1": [
+          {
+            "seq": 187,
+            "phase": "K-3"
+          }
+        ],
+        "appListener": [
+          {
+            "seq": 189,
+            "phase": "K-3"
+          }
+        ],
+        "k3Enter": [
+          186
+        ],
+        "k3Return": [
+          190
+        ]
+      },
+      "appDeliveredAtTheTerminalArm": 1,
+      "appRanBeforeAnyConstraint": false,
+      "shapeAfterTheArm": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [
+          "Symbol(provident-storeroom.checked-off-at-the-terminal-arm)"
+        ],
+        "carriesTheNote": true,
+        "theNoteIsNonEnumerable": true,
+        "theNoteIsNoMemberAdded": true,
+        "theNoteIsAnArray": true,
+        "theNoteLength": 1,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "rollbackUndidTheAttemptsOwnOp": false,
+      "storeReadAtTheAddress": {
+        "absent": false,
+        "value": "300"
+      }
+    },
+    {
+      "cell": "F-repeat-seq4-fail",
+      "limb": 4,
+      "handling": "prefix-address",
+      "outcome": "fail",
+      "round": 4,
+      "theAppRegistrationReturnsTheAdoptedIdentity": false,
+      "twoPairs": null,
+      "k2": {
+        "threw": false,
+        "triggered": 2,
+        "pending": 2,
+        "occurrencesOfTheAppIdentityInTriggered": 1
+      },
+      "shapeAtK2Return": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingAtK2CarriesTheAppIdentity": true,
+      "bodiesBeforeThePass": {
+        "c1": 0,
+        "c2": 0,
+        "app": 0
+      },
+      "inWindowInvocationOfEachBody": {
+        "constraint1": 0,
+        "constraint2": 0,
+        "appListener": 0
+      },
+      "settleReachAtInstantA": [
+        {
+          "seq": 194,
+          "pendingLen": 0,
+          "shape": {
+            "enumerableMembers": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "enumerableMemberCount": 4,
+            "ownPropertyNames": [
+              "attempt",
+              "op",
+              "pending",
+              "triggered"
+            ],
+            "ownPropertyNamesCount": 4,
+            "symbolKeys": [],
+            "carriesTheNote": false,
+            "theNoteIsNonEnumerable": null,
+            "theNoteIsNoMemberAdded": null,
+            "theNoteIsAnArray": false,
+            "theNoteLength": null,
+            "pendingIsAMember": true,
+            "triggeredIsAMember": true
+          },
+          "noteLength": null
+        }
+      ],
+      "arm": {
+        "kind": "thrown",
+        "status": "KC-8",
+        "outcome": null
+      },
+      "delivered": {
+        "c1": 1,
+        "c2": 0,
+        "app": 0
+      },
+      "appArgsThisWrite": [],
+      "theOneArgumentIsTheTriggeringAddress": false,
+      "noExtraArguments": true,
+      "settleReachAtInstantB": [
+        {
+          "seq": 198,
+          "pendingLen": 0,
+          "noteLength": null,
+          "pendingCarriesTheAppIdentity": false
+        }
+      ],
+      "pendingAtTheArm": 0,
+      "pendingAtTheArmCarriesTheAppIdentity": false,
+      "triggeredAtTheArm": 2,
+      "framesOfEachCall": {
+        "constraint1": [
+          {
+            "seq": 197,
+            "phase": "K-3"
+          }
+        ],
+        "appListener": [],
+        "k3Enter": [
+          196
+        ],
+        "k3Return": [
+          199
+        ]
+      },
+      "appDeliveredAtTheTerminalArm": 0,
+      "appRanBeforeAnyConstraint": false,
+      "shapeAfterTheArm": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "rollbackUndidTheAttemptsOwnOp": false,
+      "storeReadAtTheAddress": {
+        "absent": false,
+        "value": "400"
+      }
+    }
+  ],
+  "trail": [
+    {
+      "seq": 1,
+      "phase": "K-1",
+      "cell": "A1-prefix-address-r1",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 2,
+      "phase": "K-1",
+      "cell": "A1-prefix-address-r1",
+      "kind": "K1.return"
+    },
+    {
+      "seq": 3,
+      "phase": "K-2",
+      "cell": "A1-prefix-address-r1",
+      "kind": "K2.enter"
+    },
+    {
+      "cell": "A1-prefix-address-r1",
+      "seq": 4,
+      "phase": "K-2",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 5,
+      "phase": "K-2",
+      "cell": "A1-prefix-address-r1",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 6,
+      "phase": "K-3",
+      "cell": "A1-prefix-address-r1",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 7,
+      "phase": "K-3",
+      "cell": "A1-prefix-address-r1",
+      "kind": "constraint1.body",
+      "returned": "true"
+    },
+    {
+      "cell": "A1-prefix-address-r1",
+      "seq": 8,
+      "phase": "K-3",
+      "kind": "settle.reach",
+      "pendingLen": 1,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [
+          "Symbol(provident-storeroom.checked-off-at-the-terminal-arm)"
+        ],
+        "carriesTheNote": true,
+        "theNoteIsNonEnumerable": true,
+        "theNoteIsNoMemberAdded": true,
+        "theNoteIsAnArray": true,
+        "theNoteLength": 1,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [
+        {}
+      ],
+      "pendingLenAfterTheMemberReturned": 1
+    },
+    {
+      "seq": 9,
+      "phase": "K-3",
+      "cell": "A1-prefix-address-r1",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"n7\",\"ord\"]",
+      "extraArgs": 0
+    },
+    {
+      "seq": 10,
+      "phase": "K-3",
+      "cell": "A1-prefix-address-r1",
+      "kind": "K3.return",
+      "thrown": null,
+      "outcome": "passed"
+    },
+    {
+      "seq": 11,
+      "phase": "K-1",
+      "cell": "A1-on-at-adopted-address-r1",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 12,
+      "phase": "K-1",
+      "cell": "A1-on-at-adopted-address-r1",
+      "kind": "K1.return"
+    },
+    {
+      "seq": 13,
+      "phase": "K-2",
+      "cell": "A1-on-at-adopted-address-r1",
+      "kind": "K2.enter"
+    },
+    {
+      "cell": "A1-on-at-adopted-address-r1",
+      "seq": 14,
+      "phase": "K-2",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 15,
+      "phase": "K-2",
+      "cell": "A1-on-at-adopted-address-r1",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 16,
+      "phase": "K-3",
+      "cell": "A1-on-at-adopted-address-r1",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 17,
+      "phase": "K-3",
+      "cell": "A1-on-at-adopted-address-r1",
+      "kind": "constraint1.body",
+      "returned": "true"
+    },
+    {
+      "cell": "A1-on-at-adopted-address-r1",
+      "seq": 18,
+      "phase": "K-3",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [
+          "Symbol(provident-storeroom.checked-off-at-the-terminal-arm)"
+        ],
+        "carriesTheNote": true,
+        "theNoteIsNonEnumerable": true,
+        "theNoteIsNoMemberAdded": true,
+        "theNoteIsAnArray": true,
+        "theNoteLength": 1,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 19,
+      "phase": "K-3",
+      "cell": "A1-on-at-adopted-address-r1",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"n7\",\"ord\"]",
+      "extraArgs": 0
+    },
+    {
+      "seq": 20,
+      "phase": "K-3",
+      "cell": "A1-on-at-adopted-address-r1",
+      "kind": "K3.return",
+      "thrown": null,
+      "outcome": "passed"
+    },
+    {
+      "seq": 21,
+      "phase": "K-1",
+      "cell": "A1-register-at-adopted-handle-r1",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 22,
+      "phase": "K-1",
+      "cell": "A1-register-at-adopted-handle-r1",
+      "kind": "K1.return"
+    },
+    {
+      "seq": 23,
+      "phase": "K-2",
+      "cell": "A1-register-at-adopted-handle-r1",
+      "kind": "K2.enter"
+    },
+    {
+      "cell": "A1-register-at-adopted-handle-r1",
+      "seq": 24,
+      "phase": "K-2",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 25,
+      "phase": "K-2",
+      "cell": "A1-register-at-adopted-handle-r1",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 26,
+      "phase": "K-3",
+      "cell": "A1-register-at-adopted-handle-r1",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 27,
+      "phase": "K-3",
+      "cell": "A1-register-at-adopted-handle-r1",
+      "kind": "constraint1.body",
+      "returned": "true"
+    },
+    {
+      "cell": "A1-register-at-adopted-handle-r1",
+      "seq": 28,
+      "phase": "K-3",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [
+          "Symbol(provident-storeroom.checked-off-at-the-terminal-arm)"
+        ],
+        "carriesTheNote": true,
+        "theNoteIsNonEnumerable": true,
+        "theNoteIsNoMemberAdded": true,
+        "theNoteIsAnArray": true,
+        "theNoteLength": 1,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 29,
+      "phase": "K-3",
+      "cell": "A1-register-at-adopted-handle-r1",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"n7\",\"ord\"]",
+      "extraArgs": 0
+    },
+    {
+      "seq": 30,
+      "phase": "K-3",
+      "cell": "A1-register-at-adopted-handle-r1",
+      "kind": "K3.return",
+      "thrown": null,
+      "outcome": "passed"
+    },
+    {
+      "seq": 31,
+      "phase": "K-1",
+      "cell": "A1-prefix-address-r2",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 32,
+      "phase": "K-1",
+      "cell": "A1-prefix-address-r2",
+      "kind": "K1.return"
+    },
+    {
+      "seq": 33,
+      "phase": "K-2",
+      "cell": "A1-prefix-address-r2",
+      "kind": "K2.enter"
+    },
+    {
+      "cell": "A1-prefix-address-r2",
+      "seq": 34,
+      "phase": "K-2",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 35,
+      "phase": "K-2",
+      "cell": "A1-prefix-address-r2",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 36,
+      "phase": "K-3",
+      "cell": "A1-prefix-address-r2",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 37,
+      "phase": "K-3",
+      "cell": "A1-prefix-address-r2",
+      "kind": "constraint1.body",
+      "returned": "true"
+    },
+    {
+      "cell": "A1-prefix-address-r2",
+      "seq": 38,
+      "phase": "K-3",
+      "kind": "settle.reach",
+      "pendingLen": 1,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [
+          "Symbol(provident-storeroom.checked-off-at-the-terminal-arm)"
+        ],
+        "carriesTheNote": true,
+        "theNoteIsNonEnumerable": true,
+        "theNoteIsNoMemberAdded": true,
+        "theNoteIsAnArray": true,
+        "theNoteLength": 1,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [
+        {}
+      ],
+      "pendingLenAfterTheMemberReturned": 1
+    },
+    {
+      "seq": 39,
+      "phase": "K-3",
+      "cell": "A1-prefix-address-r2",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"n7\",\"ord\"]",
+      "extraArgs": 0
+    },
+    {
+      "seq": 40,
+      "phase": "K-3",
+      "cell": "A1-prefix-address-r2",
+      "kind": "K3.return",
+      "thrown": null,
+      "outcome": "passed"
+    },
+    {
+      "seq": 41,
+      "phase": "K-1",
+      "cell": "A1-on-at-adopted-address-r2",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 42,
+      "phase": "K-1",
+      "cell": "A1-on-at-adopted-address-r2",
+      "kind": "K1.return"
+    },
+    {
+      "seq": 43,
+      "phase": "K-2",
+      "cell": "A1-on-at-adopted-address-r2",
+      "kind": "K2.enter"
+    },
+    {
+      "cell": "A1-on-at-adopted-address-r2",
+      "seq": 44,
+      "phase": "K-2",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 45,
+      "phase": "K-2",
+      "cell": "A1-on-at-adopted-address-r2",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 46,
+      "phase": "K-3",
+      "cell": "A1-on-at-adopted-address-r2",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 47,
+      "phase": "K-3",
+      "cell": "A1-on-at-adopted-address-r2",
+      "kind": "constraint1.body",
+      "returned": "true"
+    },
+    {
+      "cell": "A1-on-at-adopted-address-r2",
+      "seq": 48,
+      "phase": "K-3",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [
+          "Symbol(provident-storeroom.checked-off-at-the-terminal-arm)"
+        ],
+        "carriesTheNote": true,
+        "theNoteIsNonEnumerable": true,
+        "theNoteIsNoMemberAdded": true,
+        "theNoteIsAnArray": true,
+        "theNoteLength": 1,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 49,
+      "phase": "K-3",
+      "cell": "A1-on-at-adopted-address-r2",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"n7\",\"ord\"]",
+      "extraArgs": 0
+    },
+    {
+      "seq": 50,
+      "phase": "K-3",
+      "cell": "A1-on-at-adopted-address-r2",
+      "kind": "K3.return",
+      "thrown": null,
+      "outcome": "passed"
+    },
+    {
+      "seq": 51,
+      "phase": "K-1",
+      "cell": "A1-register-at-adopted-handle-r2",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 52,
+      "phase": "K-1",
+      "cell": "A1-register-at-adopted-handle-r2",
+      "kind": "K1.return"
+    },
+    {
+      "seq": 53,
+      "phase": "K-2",
+      "cell": "A1-register-at-adopted-handle-r2",
+      "kind": "K2.enter"
+    },
+    {
+      "cell": "A1-register-at-adopted-handle-r2",
+      "seq": 54,
+      "phase": "K-2",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 55,
+      "phase": "K-2",
+      "cell": "A1-register-at-adopted-handle-r2",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 56,
+      "phase": "K-3",
+      "cell": "A1-register-at-adopted-handle-r2",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 57,
+      "phase": "K-3",
+      "cell": "A1-register-at-adopted-handle-r2",
+      "kind": "constraint1.body",
+      "returned": "true"
+    },
+    {
+      "cell": "A1-register-at-adopted-handle-r2",
+      "seq": 58,
+      "phase": "K-3",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [
+          "Symbol(provident-storeroom.checked-off-at-the-terminal-arm)"
+        ],
+        "carriesTheNote": true,
+        "theNoteIsNonEnumerable": true,
+        "theNoteIsNoMemberAdded": true,
+        "theNoteIsAnArray": true,
+        "theNoteLength": 1,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 59,
+      "phase": "K-3",
+      "cell": "A1-register-at-adopted-handle-r2",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"n7\",\"ord\"]",
+      "extraArgs": 0
+    },
+    {
+      "seq": 60,
+      "phase": "K-3",
+      "cell": "A1-register-at-adopted-handle-r2",
+      "kind": "K3.return",
+      "thrown": null,
+      "outcome": "passed"
+    },
+    {
+      "seq": 61,
+      "phase": "K-1",
+      "cell": "A1-two-pairs-pass",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 62,
+      "phase": "K-1",
+      "cell": "A1-two-pairs-pass",
+      "kind": "K1.return"
+    },
+    {
+      "seq": 63,
+      "phase": "K-1",
+      "cell": "A1-two-pairs-pass",
+      "kind": "K1b.return"
+    },
+    {
+      "seq": 64,
+      "phase": "K-2",
+      "cell": "A1-two-pairs-pass",
+      "kind": "K2.enter"
+    },
+    {
+      "cell": "A1-two-pairs-pass",
+      "seq": 65,
+      "phase": "K-2",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 66,
+      "phase": "K-2",
+      "cell": "A1-two-pairs-pass",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 67,
+      "phase": "K-3",
+      "cell": "A1-two-pairs-pass",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 68,
+      "phase": "K-3",
+      "cell": "A1-two-pairs-pass",
+      "kind": "constraint1.body",
+      "returned": "true"
+    },
+    {
+      "seq": 69,
+      "phase": "K-3",
+      "cell": "A1-two-pairs-pass",
+      "kind": "constraint2.body",
+      "returned": "true"
+    },
+    {
+      "cell": "A1-two-pairs-pass",
+      "seq": 70,
+      "phase": "K-3",
+      "kind": "settle.reach",
+      "pendingLen": 1,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [
+          "Symbol(provident-storeroom.checked-off-at-the-terminal-arm)"
+        ],
+        "carriesTheNote": true,
+        "theNoteIsNonEnumerable": true,
+        "theNoteIsNoMemberAdded": true,
+        "theNoteIsAnArray": true,
+        "theNoteLength": 1,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [
+        {}
+      ],
+      "pendingLenAfterTheMemberReturned": 1
+    },
+    {
+      "seq": 71,
+      "phase": "K-3",
+      "cell": "A1-two-pairs-pass",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"n7\",\"ord\"]",
+      "extraArgs": 0
+    },
+    {
+      "seq": 72,
+      "phase": "K-3",
+      "cell": "A1-two-pairs-pass",
+      "kind": "K3.return",
+      "thrown": null,
+      "outcome": "passed"
+    },
+    {
+      "seq": 73,
+      "phase": "K-1",
+      "cell": "A2-prefix-address-r1",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 74,
+      "phase": "K-1",
+      "cell": "A2-prefix-address-r1",
+      "kind": "K1.return"
+    },
+    {
+      "seq": 75,
+      "phase": "K-2",
+      "cell": "A2-prefix-address-r1",
+      "kind": "K2.enter"
+    },
+    {
+      "cell": "A2-prefix-address-r1",
+      "seq": 76,
+      "phase": "K-2",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 77,
+      "phase": "K-2",
+      "cell": "A2-prefix-address-r1",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 78,
+      "phase": "K-3",
+      "cell": "A2-prefix-address-r1",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 79,
+      "phase": "K-3",
+      "cell": "A2-prefix-address-r1",
+      "kind": "constraint1.body",
+      "returned": "{message}"
+    },
+    {
+      "cell": "A2-prefix-address-r1",
+      "seq": 80,
+      "phase": "K-3",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 81,
+      "phase": "K-3",
+      "cell": "A2-prefix-address-r1",
+      "kind": "K3.return",
+      "thrown": "KC-3",
+      "outcome": null
+    },
+    {
+      "seq": 82,
+      "phase": "K-1",
+      "cell": "A2-on-at-adopted-address-r1",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 83,
+      "phase": "K-1",
+      "cell": "A2-on-at-adopted-address-r1",
+      "kind": "K1.return"
+    },
+    {
+      "seq": 84,
+      "phase": "K-2",
+      "cell": "A2-on-at-adopted-address-r1",
+      "kind": "K2.enter"
+    },
+    {
+      "cell": "A2-on-at-adopted-address-r1",
+      "seq": 85,
+      "phase": "K-2",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 86,
+      "phase": "K-2",
+      "cell": "A2-on-at-adopted-address-r1",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 87,
+      "phase": "K-3",
+      "cell": "A2-on-at-adopted-address-r1",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 88,
+      "phase": "K-3",
+      "cell": "A2-on-at-adopted-address-r1",
+      "kind": "constraint1.body",
+      "returned": "{message}"
+    },
+    {
+      "cell": "A2-on-at-adopted-address-r1",
+      "seq": 89,
+      "phase": "K-3",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 90,
+      "phase": "K-3",
+      "cell": "A2-on-at-adopted-address-r1",
+      "kind": "K3.return",
+      "thrown": "KC-3",
+      "outcome": null
+    },
+    {
+      "seq": 91,
+      "phase": "K-1",
+      "cell": "A2-register-at-adopted-handle-r1",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 92,
+      "phase": "K-1",
+      "cell": "A2-register-at-adopted-handle-r1",
+      "kind": "K1.return"
+    },
+    {
+      "seq": 93,
+      "phase": "K-2",
+      "cell": "A2-register-at-adopted-handle-r1",
+      "kind": "K2.enter"
+    },
+    {
+      "cell": "A2-register-at-adopted-handle-r1",
+      "seq": 94,
+      "phase": "K-2",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 95,
+      "phase": "K-2",
+      "cell": "A2-register-at-adopted-handle-r1",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 96,
+      "phase": "K-3",
+      "cell": "A2-register-at-adopted-handle-r1",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 97,
+      "phase": "K-3",
+      "cell": "A2-register-at-adopted-handle-r1",
+      "kind": "constraint1.body",
+      "returned": "{message}"
+    },
+    {
+      "cell": "A2-register-at-adopted-handle-r1",
+      "seq": 98,
+      "phase": "K-3",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 99,
+      "phase": "K-3",
+      "cell": "A2-register-at-adopted-handle-r1",
+      "kind": "K3.return",
+      "thrown": "KC-3",
+      "outcome": null
+    },
+    {
+      "seq": 100,
+      "phase": "K-1",
+      "cell": "A2-prefix-address-r2",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 101,
+      "phase": "K-1",
+      "cell": "A2-prefix-address-r2",
+      "kind": "K1.return"
+    },
+    {
+      "seq": 102,
+      "phase": "K-2",
+      "cell": "A2-prefix-address-r2",
+      "kind": "K2.enter"
+    },
+    {
+      "cell": "A2-prefix-address-r2",
+      "seq": 103,
+      "phase": "K-2",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 104,
+      "phase": "K-2",
+      "cell": "A2-prefix-address-r2",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 105,
+      "phase": "K-3",
+      "cell": "A2-prefix-address-r2",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 106,
+      "phase": "K-3",
+      "cell": "A2-prefix-address-r2",
+      "kind": "constraint1.body",
+      "returned": "{message}"
+    },
+    {
+      "cell": "A2-prefix-address-r2",
+      "seq": 107,
+      "phase": "K-3",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 108,
+      "phase": "K-3",
+      "cell": "A2-prefix-address-r2",
+      "kind": "K3.return",
+      "thrown": "KC-3",
+      "outcome": null
+    },
+    {
+      "seq": 109,
+      "phase": "K-1",
+      "cell": "A2-on-at-adopted-address-r2",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 110,
+      "phase": "K-1",
+      "cell": "A2-on-at-adopted-address-r2",
+      "kind": "K1.return"
+    },
+    {
+      "seq": 111,
+      "phase": "K-2",
+      "cell": "A2-on-at-adopted-address-r2",
+      "kind": "K2.enter"
+    },
+    {
+      "cell": "A2-on-at-adopted-address-r2",
+      "seq": 112,
+      "phase": "K-2",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 113,
+      "phase": "K-2",
+      "cell": "A2-on-at-adopted-address-r2",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 114,
+      "phase": "K-3",
+      "cell": "A2-on-at-adopted-address-r2",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 115,
+      "phase": "K-3",
+      "cell": "A2-on-at-adopted-address-r2",
+      "kind": "constraint1.body",
+      "returned": "{message}"
+    },
+    {
+      "cell": "A2-on-at-adopted-address-r2",
+      "seq": 116,
+      "phase": "K-3",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 117,
+      "phase": "K-3",
+      "cell": "A2-on-at-adopted-address-r2",
+      "kind": "K3.return",
+      "thrown": "KC-3",
+      "outcome": null
+    },
+    {
+      "seq": 118,
+      "phase": "K-1",
+      "cell": "A2-register-at-adopted-handle-r2",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 119,
+      "phase": "K-1",
+      "cell": "A2-register-at-adopted-handle-r2",
+      "kind": "K1.return"
+    },
+    {
+      "seq": 120,
+      "phase": "K-2",
+      "cell": "A2-register-at-adopted-handle-r2",
+      "kind": "K2.enter"
+    },
+    {
+      "cell": "A2-register-at-adopted-handle-r2",
+      "seq": 121,
+      "phase": "K-2",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 122,
+      "phase": "K-2",
+      "cell": "A2-register-at-adopted-handle-r2",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 123,
+      "phase": "K-3",
+      "cell": "A2-register-at-adopted-handle-r2",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 124,
+      "phase": "K-3",
+      "cell": "A2-register-at-adopted-handle-r2",
+      "kind": "constraint1.body",
+      "returned": "{message}"
+    },
+    {
+      "cell": "A2-register-at-adopted-handle-r2",
+      "seq": 125,
+      "phase": "K-3",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 126,
+      "phase": "K-3",
+      "cell": "A2-register-at-adopted-handle-r2",
+      "kind": "K3.return",
+      "thrown": "KC-3",
+      "outcome": null
+    },
+    {
+      "seq": 127,
+      "phase": "K-2",
+      "cell": "D-identity-control",
+      "kind": "K2.enter"
+    },
+    {
+      "cell": "D-identity-control",
+      "seq": 128,
+      "phase": "K-2",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 129,
+      "phase": "K-2",
+      "cell": "D-identity-control",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 130,
+      "phase": "K-3",
+      "cell": "D-identity-control",
+      "kind": "K3.enter"
+    },
+    {
+      "cell": "D-identity-control",
+      "seq": 131,
+      "phase": "K-3",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [
+          "Symbol(provident-storeroom.checked-off-at-the-terminal-arm)"
+        ],
+        "carriesTheNote": true,
+        "theNoteIsNonEnumerable": true,
+        "theNoteIsNoMemberAdded": true,
+        "theNoteIsAnArray": true,
+        "theNoteLength": 1,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 132,
+      "phase": "K-3",
+      "cell": "D-identity-control",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"c1\",\"pair\"]",
+      "route": "exact-address"
+    },
+    {
+      "seq": 133,
+      "phase": "K-3",
+      "cell": "D-identity-control",
+      "kind": "K3.return"
+    },
+    {
+      "seq": 134,
+      "phase": "K-2",
+      "cell": "D-identity-control",
+      "kind": "K2.enter"
+    },
+    {
+      "cell": "D-identity-control",
+      "seq": 135,
+      "phase": "K-2",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 136,
+      "phase": "K-2",
+      "cell": "D-identity-control",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 137,
+      "phase": "K-3",
+      "cell": "D-identity-control",
+      "kind": "K3.enter"
+    },
+    {
+      "cell": "D-identity-control",
+      "seq": 138,
+      "phase": "K-3",
+      "kind": "settle.reach",
+      "pendingLen": 1,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [
+          "Symbol(provident-storeroom.checked-off-at-the-terminal-arm)"
+        ],
+        "carriesTheNote": true,
+        "theNoteIsNonEnumerable": true,
+        "theNoteIsNoMemberAdded": true,
+        "theNoteIsAnArray": true,
+        "theNoteLength": 1,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [
+        {}
+      ],
+      "pendingLenAfterTheMemberReturned": 1
+    },
+    {
+      "seq": 139,
+      "phase": "K-3",
+      "cell": "D-identity-control",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"c2\",\"pair\"]",
+      "route": "proper-prefix"
+    },
+    {
+      "seq": 140,
+      "phase": "K-3",
+      "cell": "D-identity-control",
+      "kind": "K3.return"
+    },
+    {
+      "seq": 141,
+      "phase": "K-2",
+      "cell": "D-identity-control",
+      "kind": "K2.enter"
+    },
+    {
+      "cell": "D-identity-control",
+      "seq": 142,
+      "phase": "K-2",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 143,
+      "phase": "K-2",
+      "cell": "D-identity-control",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 144,
+      "phase": "K-3",
+      "cell": "D-identity-control",
+      "kind": "K3.enter"
+    },
+    {
+      "cell": "D-identity-control",
+      "seq": 145,
+      "phase": "K-3",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 146,
+      "phase": "K-3",
+      "cell": "D-identity-control",
+      "kind": "K3.return"
+    },
+    {
+      "seq": 147,
+      "phase": "K-2",
+      "cell": "D-identity-control",
+      "kind": "K2.enter"
+    },
+    {
+      "cell": "D-identity-control",
+      "seq": 148,
+      "phase": "K-2",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 149,
+      "phase": "K-2",
+      "cell": "D-identity-control",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 150,
+      "phase": "K-3",
+      "cell": "D-identity-control",
+      "kind": "K3.enter"
+    },
+    {
+      "cell": "D-identity-control",
+      "seq": 151,
+      "phase": "K-3",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 152,
+      "phase": "K-3",
+      "cell": "D-identity-control",
+      "kind": "K3.return"
+    },
+    {
+      "seq": 153,
+      "phase": "store-write",
+      "cell": "E-bare-write",
+      "kind": "write.enter"
+    },
+    {
+      "seq": 154,
+      "phase": "store-write",
+      "cell": "E-bare-write",
+      "kind": "app-listener.body"
+    },
+    {
+      "seq": 155,
+      "phase": "store-write",
+      "cell": "E-bare-write",
+      "kind": "write.return"
+    },
+    {
+      "cell": "E-bare-write",
+      "seq": 156,
+      "phase": "idle",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "cell": "E-bare-write",
+      "seq": 157,
+      "phase": "idle",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [
+          "Symbol(provident-storeroom.checked-off-at-the-terminal-arm)"
+        ],
+        "carriesTheNote": true,
+        "theNoteIsNonEnumerable": true,
+        "theNoteIsNoMemberAdded": true,
+        "theNoteIsAnArray": true,
+        "theNoteLength": 1,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 158,
+      "phase": "idle",
+      "cell": "E-bare-write",
+      "kind": "app-listener.body"
+    },
+    {
+      "seq": 159,
+      "phase": "store-write",
+      "cell": "E-bare-write",
+      "kind": "write2.enter"
+    },
+    {
+      "seq": 160,
+      "phase": "store-write",
+      "cell": "E-bare-write",
+      "kind": "app-listener.body"
+    },
+    {
+      "seq": 161,
+      "phase": "store-write",
+      "cell": "E-bare-write",
+      "kind": "write2.return"
+    },
+    {
+      "seq": 162,
+      "phase": "K-1",
+      "cell": "F-repeat-seq1-pass",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 163,
+      "phase": "K-1",
+      "cell": "F-repeat-seq1-pass",
+      "kind": "K1.return"
+    },
+    {
+      "seq": 164,
+      "phase": "K-2",
+      "cell": "F-repeat-seq1-pass",
+      "kind": "K2.enter"
+    },
+    {
+      "cell": "F-repeat-seq1-pass",
+      "seq": 165,
+      "phase": "K-2",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 166,
+      "phase": "K-2",
+      "cell": "F-repeat-seq1-pass",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 167,
+      "phase": "K-3",
+      "cell": "F-repeat-seq1-pass",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 168,
+      "phase": "K-3",
+      "cell": "F-repeat-seq1-pass",
+      "kind": "constraint1.body",
+      "returned": "true"
+    },
+    {
+      "cell": "F-repeat-seq1-pass",
+      "seq": 169,
+      "phase": "K-3",
+      "kind": "settle.reach",
+      "pendingLen": 1,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [
+          "Symbol(provident-storeroom.checked-off-at-the-terminal-arm)"
+        ],
+        "carriesTheNote": true,
+        "theNoteIsNonEnumerable": true,
+        "theNoteIsNoMemberAdded": true,
+        "theNoteIsAnArray": true,
+        "theNoteLength": 1,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [
+        {}
+      ],
+      "pendingLenAfterTheMemberReturned": 1
+    },
+    {
+      "seq": 170,
+      "phase": "K-3",
+      "cell": "F-repeat-seq1-pass",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"n7\",\"ord\"]",
+      "extraArgs": 0
+    },
+    {
+      "seq": 171,
+      "phase": "K-3",
+      "cell": "F-repeat-seq1-pass",
+      "kind": "K3.return",
+      "thrown": null,
+      "outcome": "passed"
+    },
+    {
+      "seq": 172,
+      "phase": "K-1",
+      "cell": "F-repeat-seq2-fail",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 173,
+      "phase": "K-1",
+      "cell": "F-repeat-seq2-fail",
+      "kind": "K1.return"
+    },
+    {
+      "seq": 174,
+      "phase": "K-2",
+      "cell": "F-repeat-seq2-fail",
+      "kind": "K2.enter"
+    },
+    {
+      "cell": "F-repeat-seq2-fail",
+      "seq": 175,
+      "phase": "K-2",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 176,
+      "phase": "K-2",
+      "cell": "F-repeat-seq2-fail",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 177,
+      "phase": "K-3",
+      "cell": "F-repeat-seq2-fail",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 178,
+      "phase": "K-3",
+      "cell": "F-repeat-seq2-fail",
+      "kind": "constraint1.body",
+      "returned": "{message}"
+    },
+    {
+      "cell": "F-repeat-seq2-fail",
+      "seq": 179,
+      "phase": "K-3",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 180,
+      "phase": "K-3",
+      "cell": "F-repeat-seq2-fail",
+      "kind": "K3.return",
+      "thrown": "KC-3",
+      "outcome": null
+    },
+    {
+      "seq": 181,
+      "phase": "K-1",
+      "cell": "F-repeat-seq3-pass",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 182,
+      "phase": "K-1",
+      "cell": "F-repeat-seq3-pass",
+      "kind": "K1.return"
+    },
+    {
+      "seq": 183,
+      "phase": "K-2",
+      "cell": "F-repeat-seq3-pass",
+      "kind": "K2.enter"
+    },
+    {
+      "cell": "F-repeat-seq3-pass",
+      "seq": 184,
+      "phase": "K-2",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 185,
+      "phase": "K-2",
+      "cell": "F-repeat-seq3-pass",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 186,
+      "phase": "K-3",
+      "cell": "F-repeat-seq3-pass",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 187,
+      "phase": "K-3",
+      "cell": "F-repeat-seq3-pass",
+      "kind": "constraint1.body",
+      "returned": "true"
+    },
+    {
+      "cell": "F-repeat-seq3-pass",
+      "seq": 188,
+      "phase": "K-3",
+      "kind": "settle.reach",
+      "pendingLen": 1,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [
+          "Symbol(provident-storeroom.checked-off-at-the-terminal-arm)"
+        ],
+        "carriesTheNote": true,
+        "theNoteIsNonEnumerable": true,
+        "theNoteIsNoMemberAdded": true,
+        "theNoteIsAnArray": true,
+        "theNoteLength": 1,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [
+        {}
+      ],
+      "pendingLenAfterTheMemberReturned": 1
+    },
+    {
+      "seq": 189,
+      "phase": "K-3",
+      "cell": "F-repeat-seq3-pass",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"n7\",\"ord\"]",
+      "extraArgs": 0
+    },
+    {
+      "seq": 190,
+      "phase": "K-3",
+      "cell": "F-repeat-seq3-pass",
+      "kind": "K3.return",
+      "thrown": null,
+      "outcome": "passed"
+    },
+    {
+      "seq": 191,
+      "phase": "K-1",
+      "cell": "F-repeat-seq4-fail",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 192,
+      "phase": "K-1",
+      "cell": "F-repeat-seq4-fail",
+      "kind": "K1.return"
+    },
+    {
+      "seq": 193,
+      "phase": "K-2",
+      "cell": "F-repeat-seq4-fail",
+      "kind": "K2.enter"
+    },
+    {
+      "cell": "F-repeat-seq4-fail",
+      "seq": 194,
+      "phase": "K-2",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 195,
+      "phase": "K-2",
+      "cell": "F-repeat-seq4-fail",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 196,
+      "phase": "K-3",
+      "cell": "F-repeat-seq4-fail",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 197,
+      "phase": "K-3",
+      "cell": "F-repeat-seq4-fail",
+      "kind": "constraint1.body",
+      "returned": "{message}"
+    },
+    {
+      "cell": "F-repeat-seq4-fail",
+      "seq": 198,
+      "phase": "K-3",
+      "kind": "settle.reach",
+      "pendingLen": 0,
+      "handedARecord": true,
+      "argsHanded": 1,
+      "shape": {
+        "enumerableMembers": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "enumerableMemberCount": 4,
+        "ownPropertyNames": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "ownPropertyNamesCount": 4,
+        "symbolKeys": [],
+        "carriesTheNote": false,
+        "theNoteIsNonEnumerable": null,
+        "theNoteIsNoMemberAdded": null,
+        "theNoteIsAnArray": false,
+        "theNoteLength": null,
+        "pendingIsAMember": true,
+        "triggeredIsAMember": true
+      },
+      "pendingSlice": [],
+      "pendingLenAfterTheMemberReturned": 0
+    },
+    {
+      "seq": 199,
+      "phase": "K-3",
+      "cell": "F-repeat-seq4-fail",
+      "kind": "K3.return",
+      "thrown": "KC-8",
+      "outcome": null
+    }
+  ],
+  "determinismDigest": "1f88ba874fd5671986d859f93f56976ef4994a270c8e8027b179c939b3d702a4"
+}

@@ -1,0 +1,10 @@
+import { write as storeWrite, storeCreate } from 'provident-storeroom';
+const store = storeCreate({ journalLength: 8, listeners: [] });
+const addr = ['direct'];
+const calls = [];
+const h = store.on(addr, (a) => calls.push(String(a)));
+const rec = { attempt: { id: 'x' }, op: null, triggered: [], pending: [] };
+store.settle(rec);
+console.log('after adopt, calls', calls.length);
+const written = storeWrite(store, addr, 'mem', 1);
+console.log('after write, calls', calls.length, 'written.triggered', written.triggered.length, 'has rec?', written.triggered[0] === h);

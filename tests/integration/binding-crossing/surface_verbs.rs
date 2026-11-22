@@ -241,9 +241,14 @@ fn write_triggered_is_an_array_of_opaque_handles() {
     assert!(w2.triggered.is_empty(), "[] when no registration matched");
 }
 
-/// `PAR-JS-13`: the returned `op` is a fresh JS object carrying **the store's own eight members**.
+/// `PAR-JS-13`: the returned `op` is a fresh JS object carrying **the store's own SEVEN members**.
+///
+/// **⟶ AND THE NAME SAID `write_op_carries_the_stores_own_eight_members` UNTIL 2026-11-17, WHICH `D-189` ITEM
+/// 2 FALSIFIED**: the eighth was `compacted`, and the member is REMOVED from the store's record — not renamed,
+/// not deprecated and not typed as a constant. **The name and this cell move `8 → 7` together**, because a cell
+/// name that counts a member the record no longer carries is a claim the body cannot keep.
 #[test]
-fn write_op_carries_the_stores_own_eight_members() {
+fn write_op_carries_the_stores_own_seven_members() {
     let mut inst = mem_instance();
     let w = write_at(&mut inst, &[key("a")], &JsValue::Num(1.0)).expect("a write");
     let op: JsJournalOp = w.op.clone();
@@ -254,7 +259,11 @@ fn write_op_carries_the_stores_own_eight_members() {
     assert!(!op.before.present);
     assert!(op.after.present);
     assert!(js_equal(&op.after.value, &JsValue::Num(1.0)));
-    assert!(op.compacted == false || op.compacted == true, "a boolean");
+    // **⟶ AND `op.compacted`'S OWN LIMB IS DELETED AT THIS BYTE `2026-11-17`** (`strata/decisions.md` ·
+    // `D-189` item 2): the member is REMOVED from `JournalOp` — not renamed and not deprecated — so a cell
+    // reading it no longer compiles against the record it is meant to describe. **Its subject moved to the
+    // member list itself**, which is what the store's own `§6.2` record now carries, and `D-189` item 2's
+    // reason is that the flag's two producers both set `false` — a check that could only ever read one value.
     let _ = op.seq;
 }
 

@@ -539,7 +539,11 @@ console.log('\n── W6 · THE REGISTRATION WINDOW: an opaque identity carries 
   const identity = registration.ok ? registration.value : null;
   const next = attempt(() => store.write(['elsewhere'], 'mem', { active: 'AFTER' }));
   P('the first pair registered against the seed', first.ok);
-  P('the prior op (id, seq, compacted)', [prior.op.opId, prior.op.seq, prior.op.compacted]);
+  // **⟶ AND THE `compacted` DATUM IS DROPPED FROM THIS PROBE `2026-11-17`** (`strata/decisions.md` ·
+  // `D-189` item 2): the record no longer carries the member, so reading it here would print `undefined` under
+  // a name that claims to be a datum. **The other two — the id and the `seq` — are the probe's subject and are
+  // unmoved.**
+  P('the prior op (id, seq)', [prior.op.opId, prior.op.seq]);
   P('the registration body ran with open commits', inside);
   P('the rollback it raised', raised === null ? '<not reached>' : (raised.ok ? 'answered its record' : JSON.stringify(raised.caught)));
   P('the registration\'s answer — `typeof` / own names', [identity === null ? '<no answer>' : typeof identity, ownNamesOf(identity)]);

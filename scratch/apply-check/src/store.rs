@@ -1,0 +1,4233 @@
+//! The store itself: the construction (`§7.1`), the shared resolver and the walk (`§2`), the write arms
+//! (`§3`), the read and delete (`§4`), the tiers, the shadow and the purge chain (`§5`), the journal, the
+//! rollback and the watched-address list (`§6`), and the `file` tier's persistence (`§7.2`).
+//!
+//! Every mutation is all-or-nothing: a failed arm installs nothing, appends nothing and changes no
+//! container's kind (`§3.5`, `DD-4`, `DD-19`).
+
+use crate::args::{
+    address_segments, construction_listeners, delete_tier, op_id, read_tier_sel, write_tier,
+    AddressArg, ConstraintEntry, ConstraintsArg, DurableWithoutPathArg, FilePathArg, InitialImageArg,
+    JournalLengthArg, OpIdArg, StoreConfig,
+    TierArg, TierSel,
+};
+use std::cell::RefCell;
+use crate::error::{
+    address_not_found, constraint_list_invalid, container_kind_conflict,
+    container_kind_conflict_for_key, file_commit_failed, file_image_refused, file_path_unreachable,
+    journal_op_unknown, leaf_has_no_downstream, malformed_named, malformed_segment, missing_argument,
+    monotonicity_violation, read_target_is_branch, rollback_compacted, slashed_address,
+    tier_not_found, value_not_admitted, write_parent_not_link, StoreError,
+};
+use crate::json;
+use crate::records::{
+    tier_token, BaseState, ChildAnchor, DeleteReceipt, JournalOp, JournalOpKind, Kind, Listener,
+    ListenerHandle, ListenerTrigger, NodeRef, RollbackResult, Tier, WriteResult,
+};
+use crate::value::{Segment, StoreValue};
+use std::collections::{BTreeMap, HashMap, HashSet};
+use std::sync::atomic::{AtomicU64, Ordering};
+
+/// The one query the declared child container asks about an anchor that the container itself does not
+/// hold: **its TIER** — the anchor's tier is the composite key's second half (`A34`, `DD-10`) and it lives
+/// in the reference arena, so the container is answered by the store's own `refs` table.
+type RefTier<'a> = &'a dyn Fn(usize) -> Tier;
+
+/// `§6.2` property 3: an op's id is non-empty and unique — per instance and per session, so the counter is
+/// process-wide and two instances never mint the same token (`§5.7`'s independence clause).
+static NEXT_OP: AtomicU64 = AtomicU64::new(1);
+
+/// **⟶ `NEXT_HANDLE` IS DELETED, `U-STOREROOM-HELD-LISTENER-IDENTITY` (`D-GP-SHLI`) — NOTHING MINTS.** The
+/// static and the mint it served stood here (*"a store-minted handle is unique PER STORE INSTANCE and PER
+/// SESSION, so the minting counter is process-wide exactly as the op id's is"*). **The architect's ruling,
+/// VERBATIM: *"You don't need to mint anything. The handle is already a unique identifier."* and *"Refuse
+/// handles that aren't strings."*** (`P: docs/pending.md · P-6`, the handle's type). **THE HANDLE IS A STRING
+/// THE CALLER SPELLS; the store ADOPTS it and nothing increments.** **`PAR-13`'s *"unique per instance and
+/// per session"* spelling is RETIRED WITH THE MINT** (`contract.md §2.8` item 2 item (4);
+/// `identity-and-domain.md §5` item 1), and the uniqueness this model rests on is **STRUCTURAL** — **the store
+/// holds AT MOST ONE LIVE ENTRY PER HANDLE STRING, guaranteed by the PURGE-AND-REPLACE rule and not by
+/// allocation** (`contract.md §2.1` item 3).
+///
+/// **AND THE NON-COLLISION RULE THAT STOOD HERE IS GONE WITH ITS SUBJECT** (the *"`listen` MUST NOT MINT A
+/// TOKEN EQUAL TO ANY TOKEN THE HOME ALREADY HOLDS … a mint that would collide SKIPS the colliding token"*
+/// clause, carried by `Home::mint`/`Home::holds_token`): **a collision is a REPLACEMENT by the purge ruling,
+/// and there is nothing to collide with anyway** — the ruling's own disposition, verbatim: *"a collision is a
+/// REPLACEMENT by the purge ruling, and there is nothing to collide with anyway"* (`P: docs/pending.md ·
+/// P-6`, the mint's uniqueness clause). **`holds_token` and the skip loop go with it** (`P: docs/pending.md ·
+/// D-iv` item (iv)). **AND THE CITATION IS NOT `DD-42`'s**, which is the publish step's trigger and
+/// versioning policy and carries no handle-mint content: the mint rule's true home was
+/// `docs/specs/storeroom-native/contract.md §0.2` and `§0.4` clause 2 (a) (`P: docs/pending.md · X-7`).
+fn next_op_id() -> String {
+    format!("op-{}", NEXT_OP.fetch_add(1, Ordering::SeqCst))
+}
+
+/// **⟶ ADDED 2026-11-17 (`strata/decisions.md` · `D-160` item 3) — THE ORDINAL AN OP ID CARRIES, PARSED AT THE
+/// ONE SITE THAT NEEDS IT.** It answers the number `next_op_id` wrote between `op-` and the end, and `None` for
+/// an id it cannot read — **and `None` is not a failure: it is the answer that a caller-supplied token never
+/// named a store op at all**, which `rollback` reads as `JournalOpUnknown`.
+///
+/// **★ AND THE WATERMARK'S NUMBERING IS THIS ONE, WHICH IS NOT THE ENTRY'S `seq` — MEASURED AT THE BYTES AND
+/// STATED HERE BECAUSE THE TWO ARE DIFFERENT SEQUENCES AND CONFUSING THEM WOULD MAKE THE FLOOR LIE.** `op.seq`
+/// is the JOURNAL's own append ordinal (`Store::append`: `self.last_seq += 1; op.seq = self.last_seq`), **per
+/// instance**; the op id is minted by `next_op_id` from `NEXT_OP`, a **PROCESS-WIDE** counter (`§6.2` property
+/// 3's *"per instance and per session"* uniqueness). So `op-<seq>` is FALSE of this tree: two instances created
+/// in one process each begin their own `seq` at `1` and take DIFFERENT ids, and an instance that has dropped
+/// three entries has no entry left carrying the map from a named id to its `seq`. **A floor compared against
+/// `op.seq` could not be evaluated for the ids it exists to refuse** — the number the dropped entry carried is
+/// gone with the entry — **so the store's floor is kept in the ids' own numbering** (`Store::journal_floor`),
+/// where one number answers every named id the store itself minted.
+fn op_id_ordinal(op_id: &str) -> Option<u64> {
+    op_id.strip_prefix("op-")?.parse::<u64>().ok()
+}
+
+/// `§1.3`: a link — exactly one parent anchor and a container of child anchors.
+///
+/// **⟶ THE DECLARED STRUCTURE, RESTORED 2026-10-11 (`DEF-18`; the architect's decision VERBATIM at
+/// `docs/specs/storeroom-native-proposal.md §1` line 42 — *"Links have exactly one parent anchor and a
+/// hashmap xor vec of child anchors"* — and line 81 — *"…branch's descendant link in its **hashmap**. If
+/// array, populate **vec**"*), which supersedes §5-ter's additive-index recommendation.** **The two kinds
+/// carry the two declared structures rather than one positional list each:**
+///
+/// * **a KEYED link (`Kind::Map`, and the register — `A23`: *"Registry is always hashmap"*) holds its
+///   child anchors in the `HashMap` the decision rules, keyed by the child anchor's own KEY, and each
+///   key's own entry is keyed by the TIER** — so a key maps to *at most the tiers standing at it*, one
+///   anchor per `(key, tier)` pair and never an unbounded list (the directive's *"cannot have more than one
+///   child anchor with the same index/key"* bounds anchors per key BY THE TIER: `P: §15 · A34`, `DD-10`);
+/// * **an ARRAY link (`Kind::Vec`) holds them in the `Vec`, POSITIONAL and contiguous from `0`**
+///   (`store-model.md §1.3`, `§4.2` `R-3`) — the container's index is the position, and each position
+///   holds that index's anchors, one per tier, in rank DESCENDING order.
+struct Link {
+    /// The child anchors the container holds — **THE ONE DECLARATION OF THE KIND** (`F-7`: *"the kind IS the
+    /// variant"*), and `Link::kind()` derives the marker from it rather than storing a second copy beside it
+    /// (`U-13`/`U-14`: the redundant discriminator and the `debug_assert_eq!` that kept it honest are gone;
+    /// the variant cannot drift from itself, so nothing needs asserting).
+    children: Children,
+    /// `§1.6`: the register acts as a link and always is a hashmap. **It HAS a parent anchor** — `§1.6`
+    /// item 3's *"NO parent anchor"* is WITHDRAWN for the register-as-a-link by `A41` and is read through
+    /// item 4, which is the operative clause: the register's parent anchor's address IS the empty set `[]`
+    /// and its `node` is the DISTINCT CARRIER NODE (`§1.6` item 4 (a)/(b)). What carries no parent is that
+    /// CARRIER NODE, not the register (`§1.6` item 4 (b), (c)).
+    is_register: bool,
+}
+
+impl Link {
+    /// **`U-13`/`U-14` — THE MARKER, DERIVED FROM THE VARIANT THAT IS THE KIND.** The link's container kind
+    /// is a pure function of the structure it holds, so it is read from the structure and stored nowhere: no
+    /// `Kind` field stands beside `Children`, and no `debug_assert_eq!` (which compiles out — `V-2`) is owed
+    /// to keep a second copy honest.
+    fn kind(&self) -> Kind {
+        self.children.kind()
+    }
+}
+
+/// **THE DECLARED CHILD CONTAINER — `hashmap` XOR `vec`** (`P: §1` line 42; `A22`: *"Decided at write,
+/// inferred from contents on read"*). **The variant IS the kind**: a link holds one of the two and never
+/// both, every entry of the hashmap is a live child anchor reference, and every entry of the vec is a
+/// contiguous position. **Both hold REFERENCES INTO THE INSTANCE'S REFERENCE ARENA, and the key a
+/// reference stands under is the one the arena's anchor carries** (`§1.2`: the key is a property of the
+/// anchor).
+///
+/// The hashmap's own iteration order is UNSPECIFIED — as a `MAP`'s is (`store-model.md §1.3`:
+/// *"`MAP` … **unordered** — the store declares no order over a `MAP`'s children"*), and this store still
+/// declares none. Every deterministic consumer sorts the key set by `Segment::spelling()` at the point of
+/// iteration (`keys_at`), which is `§8.2` property (a)'s determinism requirement and NOT an order the
+/// store declares over the container.
+enum Children {
+    /// A KEYED container: key → (tier → the one child anchor standing at that pair).
+    Map(HashMap<Segment, HashMap<Tier, usize>>),
+    /// An ARRAY container: position `i` IS index `i`, and its slots are that index's anchors, one per
+    /// tier — the same inner tier key the hashmap's own key holds, so **the pair is the composite key in
+    /// both kinds**.
+    Vec(Vec<HashMap<Tier, usize>>),
+}
+
+impl Children {
+    fn map() -> Children {
+        Children::Map(HashMap::default())
+    }
+
+    fn vec() -> Children {
+        Children::Vec(Vec::new())
+    }
+
+    fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
+    /// The kind this structure IS — `§1.3`'s `MAP` xor `VEC`. **The variant is the single source of truth
+    /// (`F-7`, `U-14`): this is the derived marker, and no copy of it is stored beside the structure.**
+    fn kind(&self) -> Kind {
+        match self {
+            Children::Map(_) => Kind::Map,
+            Children::Vec(_) => Kind::Vec,
+        }
+    }
+
+    /// The container's own key count — **a keyed container's key set's size, an array container's index
+    /// count (`§1.3`: *"contiguous from `0`"*, so the count IS the domain's upper bound).**
+    fn len(&self) -> usize {
+        match self {
+            Children::Map(keys) => keys.len(),
+            Children::Vec(positions) => positions.len(),
+        }
+    }
+
+    /// **⟶ ADDED 2026-10-21 (`§1.2`'s dated clause, on the architect's ruling): THE POSITION A REFERENCE IS
+    /// HELD AT, DERIVED FROM THIS STRUCTURE AND NOT CACHED ON ANY ANCHOR.**
+    ///
+    /// **The derivation is EXACT and the structure is why:** a `MAP` container's key IS the hashmap's own key,
+    /// and a `VEC` container's position IS its index (`§1.3`/`R-3`, *"contiguous from `0`"*) — so the position
+    /// is `Segment::Index(position)` off the container's own arena, and the crate's `key_fits` is the gate
+    /// (`Kind::Vec` admits ONLY `Segment::Index`, `Kind::Map` ONLY `Segment::Key`) that makes the kind and the
+    /// position the key's whole function.
+    ///
+    /// **The search stops at the FIRST key holding this reference**, which is sound because a reference
+    /// stands at ONE `(key, tier)` pair of one container (`A34` bounds a pair to one anchor; a reference is
+    /// minted once, `Store::mint`, and installed once). It walks the structure directly and allocates
+    /// nothing — the answer's `Segment` is the only allocation, and only when one is found.
+    fn position_of(&self, reference: usize) -> Option<Segment> {
+        match self {
+            Children::Map(keys) => keys
+                .iter()
+                .find(|(_, slots)| slots.values().any(|held| *held == reference))
+                .map(|(key, _)| key.clone()),
+            Children::Vec(positions) => positions
+                .iter()
+                .position(|slots| slots.values().any(|held| *held == reference))
+                .map(|position| Segment::Index(position as u64)),
+        }
+    }
+
+    /// **THE ONE INSTALL** — the one site a child anchor is added, **and the composite key does the work in
+    /// BOTH kinds: one anchor per `(key, tier)` pair** (`A34`, `DD-10`). A keyed container files the
+    /// anchor under its own key and the pair's tier. An array container files it at its index's POSITION —
+    /// the position IS the index (`§1.3`) — where `i = len` is the append the container's own contiguous
+    /// domain allows and `i < len` is a pair of an index the container already holds, whose own position
+    /// receives the new anchor **beside** the tiers already standing there.
+    fn install(&mut self, key: Segment, tier: Tier, reference: usize) {
+        match self {
+            Children::Map(keys) => {
+                keys.entry(key).or_default().insert(tier, reference);
+            }
+            Children::Vec(positions) => {
+                let Segment::Index(index) = key else {
+                    unreachable!("a VEC's key domain is index keys (§1.3)")
+                };
+                let position = index as usize;
+                debug_assert!(
+                    position <= positions.len(),
+                    "§1.3: a VEC's index keys are contiguous from 0"
+                );
+                if position == positions.len() {
+                    positions.push(HashMap::new());
+                }
+                positions[position].insert(tier, reference);
+            }
+        }
+    }
+
+    /// **THE ONE PER-PAIR ACCESS the declared structure exists for** — the reference standing at
+    /// `(key, tier)`, or none. **`O(1)` amortized for a keyed container and `O(1)` for an array one**
+    /// (`A34`: at most ONE child anchor per pair), never a scan of the siblings.
+    fn pair(&self, key: &Segment, tier: Tier) -> Option<usize> {
+        let slots = match self {
+            Children::Map(keys) => keys.get(key),
+            Children::Vec(positions) => match key {
+                Segment::Index(index) => positions.get(*index as usize),
+                _ => None,
+            },
+        };
+        slots.and_then(|slots| slots.get(&tier)).copied()
+    }
+
+    /// Every anchor standing at one key, in the store's canonical rank DESCENDING order — the same key at
+    /// up to the three tiers, one anchor per pair.
+    fn at(&self, key: &Segment, rank: impl Fn(usize) -> u8) -> Vec<usize> {
+        let slots = match self {
+            Children::Map(keys) => keys.get(key),
+            Children::Vec(positions) => match key {
+                Segment::Index(index) => positions.get(*index as usize),
+                _ => None,
+            },
+        };
+        rank_ordered(slots, &rank)
+    }
+
+    /// The container's distinct keys — **the hashmap's own key set** for a keyed container (the keys are
+    /// distinct BY CONSTRUCTION, so no `contains` dedup scan runs) and index `0..len` for an array one.
+    fn key_set(&self) -> Vec<Segment> {
+        match self {
+            Children::Map(keys) => keys.keys().cloned().collect(),
+            Children::Vec(positions) => (0..positions.len() as u64).map(Segment::Index).collect(),
+        }
+    }
+
+    /// **THE ONE REMOVAL** — the one site a child anchor is dropped, **by the pair it stands at**. A keyed
+    /// container drops the reference from its own key's tier slot and drops the key itself when its last
+    /// anchor goes; an array container drops the reference from its index's position's tier slot, and then
+    /// applies `close_up` to the position itself: **a DELETE closes the gap and renumbers (`§1.3`/`R-3`),
+    /// while a REPLACEMENT keeps the position, because the index is still occupied by the anchor the write
+    /// is about to install there.**
+    fn remove(&mut self, reference: usize, tier_of: RefTier<'_>, close_up: bool) {
+        let tier = tier_of(reference);
+        match self {
+            Children::Map(keys) => {
+                let mut emptied: Option<Segment> = None;
+                for (key, slots) in keys.iter_mut() {
+                    if slots.get(&tier) == Some(&reference) {
+                        slots.remove(&tier);
+                        if slots.is_empty() {
+                            emptied = Some(key.clone());
+                        }
+                        break;
+                    }
+                }
+                if let Some(key) = emptied {
+                    keys.remove(&key);
+                }
+            }
+            Children::Vec(positions) => {
+                if let Some(position) = positions
+                    .iter()
+                    .position(|slots| slots.get(&tier) == Some(&reference))
+                {
+                    if close_up {
+                        positions.remove(position);
+                    } else {
+                        positions[position].remove(&tier);
+                    }
+                }
+            }
+        }
+    }
+
+    // **⟶ DELETED 2026-10-21 (`§1.2`'s dated clause, on the architect's ruling): `Children::renumber` is
+    // GONE.** Its only caller was `Store::renumber_vec`, deleted in the same pass, and its whole output was
+    // the `(reference, position)` pairs that pass wrote into `ChildAnchor.key`. **The `§1.3`/`R-3` property it
+    // served is a property of THIS structure and is untouched by its departure: positions ARE indices,
+    // `remove(position)` closes the gap, and `key_set` still answers `0..len`** — so a reader that needs a
+    // reference's position reads it from `Children::key_set`/`pair` as `Store::derived_key` does. **DELETED
+    // RATHER THAN LEFT DEAD** (this codebase's doctrine), since a dead renumbering would read as a live one.
+}
+
+/// One key's own anchors, rank DESCENDING — so the store's canonical order (`§5.1`: `file`, `mem`, `temp`)
+/// is a property of the structure rather than of the order a hash table happened to walk in.
+fn rank_ordered(slots: Option<&HashMap<Tier, usize>>, rank: &impl Fn(usize) -> u8) -> Vec<usize> {
+    let Some(slots) = slots else {
+        return Vec::new();
+    };
+    let mut ordered: Vec<usize> = slots.values().copied().collect();
+    ordered.sort_by_key(|reference| std::cmp::Reverse(rank(*reference)));
+    ordered
+}
+
+/// `§1.1`: the two node kinds.
+#[derive(Debug)]
+enum Node {
+    Leaf(StoreValue),
+    Branch(usize),
+}
+
+/// **⟶ RE-DECLARED 2026-10-11 (`F-9`; the sweep's `§3`, `SUBSTANTIVE`) — THE HOME IS THE MAP `A45`
+/// RULES.** *"the top-level listener map is the home"*, and the ruling's stated purpose is the LOOKUP
+/// COUNT: **the shipped home was a `Vec` reached by two linear keyed scans.** **THE DECLARED STRUCTURE,
+/// ADDRESS-KEYED, WITH THE ADDRESS'S OWN BUCKET:**
+///
+/// * **`members: HashMap<Vec<Segment>, Vec<Listener>>`** — the address is the KEY, so a registration's
+///   lookup is the structure's own `O(1)` access and no scan of the home runs. **The bucket is a `Vec`
+///   because the contract allows ONE address to carry MORE THAN ONE entry: the CONSTRUCTION's
+///   `listeners[]` ADOPTS caller-spelled duplicates VERBATIM (`DD-39`, `§0.4` clause 2 (b)) — *"both
+///   entries are KEPT, each with its OWN handle"* — while `listen` itself never adds a second entry at an
+///   address the home already holds (`§6.5` item 12 (c)). The bucket holds the DECLARED record
+///   (`Listener{address,handle}`, `§6.5` item 10 (a)) and NEVER an anonymous shape beside it (`U-5`).**
+/// * **`handles: HashMap<String, Vec<(Vec<Segment>, usize)>>`** — **THE HANDLE→ADDRESS INDEX**: the
+///   handle's own token maps to the ORDERED LIST of the entries that token names, each as its address and
+///   its position in that address's bucket, so `unlisten` is an index lookup plus an in-bucket removal and
+///   **`DD-42`'s MINT-COLLISION rule is answered by the index itself** (`U-6`: the linear skip-loop is
+///   gone — a candidate token is colliding iff THIS map holds a non-empty list for it). **The index is
+///   keyed by the token and not by `ListenerHandle`: `ListenerHandle` keeps the contract's own derives
+///   (`Clone + PartialEq + Eq + Debug`, `§0.4` clause 1) and gains no `Hash` it is not declared with.**
+/// * **The token is the index's key rather than the handle's, and that is the WHOLE of the change to
+///   `DD-42`'s rule: "the home already holds the token" is now a key the index answers, so a mint whose
+///   candidate is held SKIPS it and mints the NEXT one — O(1) per candidate instead of a walk of the
+///   entries. The CALLER-SPELLED duplicates the construction adopts are UNTOUCHED by the rule (they never
+///   pass through the mint), and `unlisten` over a duplicated token still removes the FIRST match — the
+///   entry with the SMALLEST bucket position — which is `DD-42` clause (2)'s DECLARED answer.**
+///
+/// **⟶ ONE LIST PER TOKEN, ADDED 2026-10-11 BY THIS HOST-FIX PASS, CLOSING THE FIRST HALF OF `C-3`** (the
+/// gate-4 adversarial pass; `write-and-read.md §6.5` item 12; `DD-42` clause (2); `DD-39`; `DD-51`): **the
+/// as-built index was `token → ONE (address, position)`, and `Home::adopt` OVERWROTE that one mapping at
+/// every adoption.** **With the LAWFUL duplicate `[{['a'], 'dup'}, {['b'], 'dup'}]` — `DD-39`'s own
+/// duplicate case, `§0.4` clause 2 (b)'s ADOPTION VERBATIM — the map therefore named ONE of the two
+/// entries at any moment and DROPPED the other's mapping entirely: after ONE withdrawal the surviving
+/// entry answered the same token through `members` while the index held NO key for it, so that entry could
+/// NEVER be withdrawn by its own handle — the state `DD-51`'s own failure list names (*"an index whose
+/// membership and the home's entries can disagree"*).** **THE INDEX NOW CARRIES EVERY ENTRY A TOKEN NAMES,
+/// in adoption order, and THE WITHDRAWAL TAKES THE FIRST OF THEM — the entry with the smallest bucket
+/// position, which is `DD-42` clause (2)'s DECLARED FIRST match and the one `ng_c_a…`'s cell (2) drives;
+/// the survivors stay INDEXED, so a second `unlisten` over the same token names the next entry and the
+/// token's every entry is reachable by withdrawal.** **THE READER THAT WANTS THE OTHER READING — a single
+/// withdrawal clearing EVERY entry a token names — is NOT taken here, and the reason is a cell rather than
+/// a preference: the withdrawal of ONE entry with a survivor at a prefix-related address is DRIVEN as the
+/// declared answer (`tests/gate4_red_set_fix.rs` `ng_c_a_handle_token_colliding_with_a_minted_one`, its
+/// part (2): *"`unlisten` removes ONE entry … the SURVIVOR's address still fires it"*), so that reading
+/// would falsify a cell this pass may not touch.** **IT IS REPORTED AS A CONTRACT FINDING INSTEAD**
+/// (`DD-42`'s and `§6.5` item 12's *"drops ONE home-map entry"* read against `surface.md §2.4` item 7 (b)'s
+/// own arm, which asserts of `off` what only the caller-spelled ONE-ADDRESS duplicate can deliver).
+///
+/// **The node-side lists of `§6.5` item 9 are REFERENCES INTO IT and never a second copy**, and the home is
+/// NOT addressable, NOT a graph record and NOT inside a read at `[]` (`A48`).
+struct Home {
+    /// The address-keyed map `A45` declares — the home's own primary structure.
+    members: HashMap<Vec<Segment>, Vec<Listener>>,
+    /// The handle→address index: token → its entries, as (address, position in that address's bucket),
+    /// in adoption order.
+    handles: HashMap<String, Vec<(Vec<Segment>, usize)>>,
+}
+
+impl Home {
+    fn new() -> Home {
+        Home {
+            members: HashMap::default(),
+            handles: HashMap::default(),
+        }
+    }
+
+    /// `§6.5` item 8: the home's own key set walks as the map's members — **this is the iterator the two
+    /// returned lists read** (`F-9`: *"with `triggered_for`/`watched_for` iterating the map's own keys
+    /// instead of scanning"*). Each member is the DECLARED record, so a reader of the home destructures
+    /// `Listener` and no other shape.
+    fn members(&self) -> impl Iterator<Item = &Listener> {
+        self.members.values().flatten()
+    }
+
+    /// **WHETHER THE HOME NAMES A REGISTRATION AT ALL** — the guard an act's reach is measured behind: **a store
+    /// that names none has nothing to reach, and its touched set is EMPTY BY CONSTRUCTION rather than by a walk**
+    /// (`touched_below`'s caller). **Nothing is decided here**: `triggered_for`/`watched_for` over an empty home
+    /// answer the empty list whether or not the set was materialised, so this guard moves the cost and no answer.
+    fn is_empty(&self) -> bool {
+        self.members.values().all(|bucket| bucket.is_empty())
+    }
+
+    /// **THE CONSTRUCTION'S ADOPTION** (`§7.1` step 5; `DD-39`; `§0.4` clause 2 (b)): an accepted
+    /// `listeners[]` entry's handle is adopted VERBATIM under its address, a duplicate address keeps BOTH
+    /// entries, and NO TOKEN IS RE-MINTED (`DD-42` clause (3)).
+    ///
+    /// **⟶ AND THE INDEX GAINS A LIST RATHER THAN REPLACING A MAPPING (2026-10-11; `C-3`'s first half).** The
+    /// token's own list is APPENDED TO, so a token the caller spelled at two addresses names BOTH entries
+    /// and the SECOND adoption no longer drops the FIRST's mapping. **The appended ORDER is the caller's
+    /// spelling order ACROSS addresses and the bucket's own order WITHIN one address**, which is the order
+    /// `DD-42` clause (2)'s *"FIRST match"* is defined by.
+    fn adopt(&mut self, address: Vec<Segment>, handle: ListenerHandle) {
+        let token = handle.to_string();
+        let bucket = self.members.entry(address.clone()).or_default();
+        let position = bucket.len();
+        bucket.push(Listener {
+            address: address.clone(),
+            handle,
+        });
+        self.handles
+            .entry(token)
+            .or_default()
+            .push((address, position));
+    }
+
+    /// **`⟶ DELETED WITH ITS IDEMPOTENCE, `U-STOREROOM-HELD-LISTENER-IDENTITY` (`D-GP-SHLI`).** The site
+    /// this function stood at (`first_at`, `§6.5` item 12 (c): *"the address's OWN first entry, where the
+    /// home holds one — the handle `listen` returns instead of minting a second one"*) **IS GONE WHOLE,
+    /// with its ONE caller (`listen`'s fall-through), on the architect's ruling VERBATIM: *"Purge wins —
+    /// delete first_at's idempotence"*** (`P: docs/pending.md · R-B1`; `P: docs/pending.md · P-6`, the
+    /// `first_at` ruling, item (i)). **THERE IS NO *"already registered so mint nothing"* ARM**: a repeated
+    /// `listen` at a held address DESTROYS the listener that was there and installs the new one, and the
+    /// declared consequence is that it NO LONGER ANSWERS THE SAME HANDLE (`contract.md §2.2` item 3;
+    /// `listen-verb.md §8` `LF-7`).
+    ///
+    /// **WHAT REPLACES IT IS THE PURGE-THEN-INSTALL PAIR BELOW** (`purge` and `install`, the operation this
+    /// directory DECLARES as `HL-DD-2`/`PAR-HL-4`): the purge takes the OLD handle and the install takes the
+    /// NEW one, which is why the two cannot be one function (`P: docs/pending.md · (M-1)`).
+
+    /// **⟶ `install` — THE MINT, KEPT BY NAME AND REPLACED IN PLACE (`AD-2`; `contract.md §2.2` item 4's
+    /// `HL-DD-5`).** **THE NAME `mint` IS KEPT** — *"replaced in place, not renamed, now meaning INSTALL
+    /// WITHOUT A COLLISION TEST"* (`docs/pending.md · (AD-2)`) — **and its skip loop and its `holds_token`
+    /// guard GO WITH `first_at`'s idempotence**: nothing mints an identity any more, because **the caller
+    /// spells the handle and the store ADOPTS it**, so there is no candidate to collide with and nothing to
+    /// skip (`P: docs/pending.md · P-6`, the minting ruling, verbatim: *"You don't need to mint anything. The
+    /// handle is already a unique identifier."*).
+    ///
+    /// **THE INSTALL IS TOTAL AND UNCONDITIONAL: it APPENDS ONE `Listener` under the address it is handed.**
+    /// Two live entries under ONE handle cannot arise, and the guarantee is STRUCTURAL AND NOT POLICED — it
+    /// is the PURGE's, because a reused handle purges before it installs (`contract.md §2.1` item 3;
+    /// `identity-and-domain.md §1` item 4).
+    fn install(&mut self, address: &[Segment], handle: ListenerHandle) {
+        let token = handle.to_string();
+        let bucket = self.members.entry(address.to_vec()).or_default();
+        let position = bucket.len();
+        bucket.push(Listener {
+            address: address.to_vec(),
+            handle,
+        });
+        self.handles
+            .entry(token)
+            .or_default()
+            .push((address.to_vec(), position));
+    }
+
+    /// **⟶ `purge` — THE WHOLESALE REMOVAL BY HANDLE, `U-STOREROOM-HELD-LISTENER-IDENTITY`'s ONE NEW `Home`
+    /// OPERATION (`contract.md §2.2` item 4's `HL-DD-2`; `PAR-HL-4`; `listen-verb.md §3` item 2).**
+    ///
+    /// **THE RULING, VERBATIM: *"purge the previous listener entirely"* · *"purge EVERY entry the handle
+    /// named, at EVERY address it stood at"* · *"S1 gets purged wholesale"*** (`P: docs/pending.md · (M-1)`;
+    /// `P: docs/pending.md · P-6`'s rule 2; `P: docs/pending.md · (Y-1)` — *"the purge is by HANDLE — it
+    /// never enumerates addresses or consults a count"*). **IT REMOVES EVERY `Listener` AT EVERY ADDRESS THE
+    /// HANDLE NAMES — across `members`' buckets and the `handles` index, nothing surviving, nothing
+    /// partial.** **IT IS NEITHER `withdraw` (ONE entry by `DD-42` clause (2)'s first-match rule) NOR
+    /// `adopt` (which appends)**: it is the fourth operation the ruling names, and it sits beside them.
+    ///
+    /// **ITS THREE NAMING QUESTIONS ARE THIS DIRECTORY'S DECLARED ANSWERS** (`contract.md §2.2` item 4):
+    /// the NAME is `purge`, the POSITION is beside `adopt`/`install`/`withdraw`, and **the ANSWER is the
+    /// COUNT OF ENTRIES REMOVED, `usize`** — so a drive can assert the wholesale reach NUMERICALLY, and so
+    /// the operation is neither `withdraw`'s `bool` nor `adopt`'s `()`. **A handle the home holds no entry
+    /// for is IN DOMAIN and answers `0`, because a purge of nothing is a lawful act and not a refusal**
+    /// (`PAR-HL-4`'s outside-value cell).
+    ///
+    /// **AND THE INTERMEDIATE STATE IS NOT OBSERVABLE**: the purge runs BEFORE the install, and the two are
+    /// called in that order at `listen` and at every constraint site, so no observable instant holds both
+    /// (`contract.md §2.2` item 4; `P: docs/pending.md · (M-1)`).
+    fn purge(&mut self, handle: &ListenerHandle) -> usize {
+        let token = handle.to_string();
+        let mut removed = 0usize;
+        // EVERY address the handle names, and every entry at it: the map is walked because the reach is
+        // the HANDLE's and not any one address's. **NO COUNT OF ADDRESSES IS CONSULTED** — the walk's own
+        // answer IS the count (`P: docs/pending.md · (Y-1)`).
+        for bucket in self.members.values_mut() {
+            let before = bucket.len();
+            bucket.retain(|listener| listener.handle.to_string() != token);
+            removed += before - bucket.len();
+        }
+        // A bucket the purge emptied leaves no key behind: an address no listener stands at is not a home
+        // member (`A45`'s address-keyed map holds listeners and nothing else).
+        self.members.retain(|_, bucket| !bucket.is_empty());
+        // The index is DERIVED (`DD-51`): every entry it named for this token is gone, and the survivors'
+        // positions have shifted, so it is re-derived rather than patched.
+        self.rebuild_index();
+        removed
+    }
+
+    /// `§6.5` item 12: **`unlisten` drops ONE home-map entry** — the one the handle names, through the
+    /// handle index, with no walk of the map. **An unknown, foreign, prior-session or fabricated handle
+    /// matches nothing at all** (the no-op success), and a token the CALLER spelled more than once removes
+    /// the FIRST match — the entry with the smallest bucket position, in the index's own adoption order
+    /// (`DD-42` clause (2)), **which is the entry `ng_c_a…`'s cell (2) drives and the one this function
+    /// removes.**
+    ///
+    /// **⟶ AND THE TOKEN IS UNBOUND FROM THAT ENTRY ALONE, NOT FROM THE HOME (2026-10-11; `C-3`'s second
+    /// half).** The withdrawal's own structural change is an in-bucket removal, so every position after it
+    /// has SHIFTED and the index's own positions for the token's remaining entries are stale — **and the
+    /// as-built code repaired exactly one of them, through the ONE address it had been handed, which is
+    /// why a token whose two entries stood at TWO addresses lost its index key at the first withdrawal.**
+    /// **The whole index is therefore rebuilt from the home** (`rebuild_index`): the home's `members` is the
+    /// primary structure and the index a LOOKUP STRUCTURE over it (`DD-51`: *"it holds NO listener state, is
+    /// reached by no verb and by no read"*), so the index is DERIVED and is never patched entry by entry.
+    fn withdraw(&mut self, handle: &ListenerHandle) -> bool {
+        let token = handle.to_string();
+        let Some(entries) = self.handles.get(&token).cloned() else {
+            return false;
+        };
+        // `DD-42` clause (2): the FIRST match is the entry the token's own list names first — the one with
+        // the smallest bucket position over an address bucket, and the earliest adoption across addresses.
+        let Some((address, position)) = entries
+            .iter()
+            .min_by_key(|(address, position)| (*position, address.clone()))
+            .cloned()
+        else {
+            return false;
+        };
+        let mut emptied = false;
+        if let Some(bucket) = self.members.get_mut(&address) {
+            if position < bucket.len() {
+                bucket.remove(position);
+            }
+            if bucket.is_empty() {
+                emptied = true;
+            }
+        }
+        if emptied {
+            self.members.remove(&address);
+        }
+        // The survivors of ONE token may stand at several addresses and at shifted positions: the index is
+        // re-derived from the home rather than patched at the one address this call happened to name.
+        self.rebuild_index();
+        true
+    }
+
+    /// **THE INDEX RE-DERIVED FROM THE HOME** (`DD-51`; `C-3`'s second half): the token's own list of
+    /// `(address, position)` pairs, rebuilt over every address bucket in the home. **It carries no listener
+    /// state of its own and nothing but the home is read**, and after ONE withdrawal every token that
+    /// still names an entry is reachable by `withdraw` again.
+    fn rebuild_index(&mut self) {
+        let mut index: HashMap<String, Vec<(Vec<Segment>, usize)>> = HashMap::default();
+        for (address, bucket) in &self.members {
+            for (position, listener) in bucket.iter().enumerate() {
+                index
+                    .entry(listener.handle.to_string())
+                    .or_default()
+                    .push((address.clone(), position));
+            }
+        }
+        self.handles = index;
+    }
+}
+
+/// The pre-state an operation must be able to restore: every version that stood at one address path,
+/// transitively, with its tier. `path` is relative to the operation's own address.
+#[derive(Clone)]
+struct Captured {
+    path: Vec<Segment>,
+    /// **⟶ ADDED 2026-10-27 (THE JOURNAL MARK RESTORE, `§6.6`): THE TIER OF THE VERSION THIS ONE HANGS
+    /// UNDER** — `None` at the operation's OWN node (`path` empty, so there is no enclosing version), and
+    /// `Some(tier)` for every entry beneath it, naming the enclosing version whose node holds the pair.
+    /// **WITHOUT IT A PER-PATH CAPTURE CANNOT SAY WHICH VERSION OF THE PARENT HOLDS THE CHILD**, so a
+    /// subtree standing at DIFFERENT tiers at DIFFERENT depths — a MIXED-DEPTH SHADOW — could only be put
+    /// back under whichever parent version the rebuild happened to pick, and the versions under the others
+    /// were dropped. The restore was measured against exactly that shape (`D-41` item `2`'s *"a shadow
+    /// standing at DIFFERENT tiers at different depths of one branch"*, which the per-tier capture could not
+    /// reach) and this field is what makes it reachable.
+    under: Option<Tier>,
+    tier: Tier,
+    value: StoreValue,
+}
+
+/// The addressed pair an operation's pre-state is measured from: the LINK its key stands on, and the key.
+/// It is recorded AT CAPTURE, because the operation's own write may re-mint the anchor the walk would
+/// otherwise find (`§3.4` arms `W-2`/`W-6`).
+#[derive(Clone)]
+struct PairHome {
+    link: usize,
+    key: Segment,
+}
+
+/// One journal entry (`§6.1` item 1): the declared op the caller may see, plus the pre-state the walk-back
+/// reconstructs it from (`§6.2` property 1). The journal is CARRIER-INTERNAL (`§6.1` item 2).
+struct Entry {
+    op: JournalOp,
+    captured: Vec<Captured>,
+    /// **⟶ ADDED 2026-10-27 (THE JOURNAL MARK RESTORE, `§6.6`): THE STATE THE OPERATION LEFT** — the same
+    /// per-version, per-tier shape as `captured`, taken the instant the mutation landed. **MEASURED BEFORE IT
+    /// WAS ADDED: the journal held each op's full BEFORE and only a READ-VIEW of its after** (`op.after` is a
+    /// `BaseState` — `present` and the value a `read` answers, which COLLAPSES a shadow's versions into one
+    /// value and says nothing about the versions beneath the addressed node), **so no replay could reproduce
+    /// a state that a `write` could not itself have produced.** With this half the journal records what
+    /// `§6.6` requires of it: every operation's address, its before AND its after, both replayable.
+    after: Vec<Captured>,
+    /// The pair the entry's pre-state is measured from, recorded at append time.
+    home: Option<PairHome>,
+    // **⟶ DELETED 2026-11-17 (`strata/decisions.md` · `D-160` ITEMS 1 AND 4): THIS ENTRY CARRIED
+    // `compacted: Vec<String>` — THE COMPLETE LIST OF ALREADY-COMPACTED OP IDS AT THE MOMENT THE ENTRY WAS
+    // APPENDED — AND IT IS GONE WITH THE MARK IT PAIRED WITH.** The field the compaction wrote
+    // (`entry.op.compacted`) was read by exactly two acts: `Store::restore_compaction`, which put the marks back
+    // when a popped append was undone, and `Store::write`'s per-write snapshot of the marks that stood at
+    // ENTRY. **Both have no subject once compaction REMOVES an entry rather than marking it**, so the field,
+    // its clone (`docs/L1/journal-retention-rca.md` §1 item 1's measured quadratic) and its two readers are
+    // withdrawn together. **The op id, the `seq` and every other member an entry records are unmoved** — what
+    // left is the per-entry bookkeeping of a mechanism the ruling replaces.
+    /// **⟶ ADDED 2026-10-15 (`DEF-2026-10-15-Z`; `implementation-plan.md §10.9` row 3's FAILS-IT cell:
+    /// *"a save performed twice for one record"*): WHETHER THIS ENTRY'S OWN `file`-TIER SAVE HAS ALREADY BEEN
+    /// PERFORMED.** **A `file`-tier write on the passing arm COMMITS ONCE**, so the act — the terminal arm's
+    /// own step, keyed by the settled record's own `op` (`surface.md §2.11` clause 2) — is performed ONCE per
+    /// record, and a second drive of that same `op` performs NO SAVE. **A state in which one record is saved
+    /// twice is the row's own FAILS-IT state, and the observable is the file's bytes: a re-serialization of a
+    /// register a memory-only act has since changed would move them, which is exactly what the row refuses
+    /// (`§7.2` item 5: *"the bytes at `cfg.filePath` are therefore the bytes of the LAST SUCCESSFUL `file`-TIER
+    /// WRITE"*).** **THE MARK IS THE ENTRY'S AND NOT THE PATH'S**: it is set only on the SUCCESS arm, so a
+    /// failed save leaves the entry unmarked and its rollback removes it with the entry (`§8.1` #15).
+    saved: bool,
+}
+
+/// The store instance.
+pub struct Store {
+    nodes: Vec<Node>,
+    links: Vec<Link>,
+    refs: Vec<NodeRef>,
+    register: usize,
+    register_ref: usize,
+    journal: Vec<Entry>,
+    last_seq: u64,
+    /// **§6.5 item 8 (a): THE ONE HOME MAP** — the instance's authoritative registration state, separate
+    /// from the register and from the graph, holding listeners and nothing else. **`F-9`: it IS the MAP the
+    /// ruling names (`A45`) — an address-keyed map with a handle→address index — and no longer a `Vec`
+    /// reached by two linear keyed scans.**
+    home: Home,
+    file_path: String,
+    journal_length: usize,
+    /// **⟶ ADDED 2026-11-17 BY `D-160` ITEM 3 — THE COMPACTION'S WATERMARK: THE ORDINAL OF THE LAST OP THIS
+    /// JOURNAL **DROPPED**, AND THE ONE NUMBER THAT KEEPS THE TWO REFUSALS DISTINGUISHABLE WITHOUT THE LOST
+    /// IDS.** The architect, verbatim: ***"Compaction dropping history is the point"*** (`strata/decisions.md` ·
+    /// `D-160`). **`None` means nothing has been dropped yet**; `Some(n)` means **every op id this store minted
+    /// at or below `op-n` was dropped by the compaction** (`Store::append`'s loop sets it from the entry it
+    /// removes), so a rollback that names one of them is answered as the DROPPED arm while an id that never named a
+    /// store op answers `JournalOpUnknown` — **the discrimination `compacted: Vec<String>` used to make by
+    /// membership, now made by one comparison** (`D-160` item 3: *"THE DISCRIMINATOR IS A WATERMARK AND NOT A
+    /// LIST"*).
+    ///
+    /// **⟶ AND WHAT THE DROPPED ARM *IS* IS `D-164` ITEM 2'S TWO-WAY ANSWER AND NOT THIS FIELD'S, FROM 2026-11-17
+    /// (`strata/decisions.md`).** The watermark decides **THAT** the op was dropped — *"it separates an op that was
+    /// dropped from an op that never existed … it is the discriminator between a recoverable history and a client
+    /// error"* (`D-164` item 4) — **and never HOW the store recovers: the store with a path REGENERATES from its
+    /// file ([`Store::regenerate`]) and the store with none answers `RollbackCompacted` as the client's signal to
+    /// recover from its own image.** **So the cost below is stated of the path-less arm, which is the only arm that
+    /// answers a code at all.**
+    ///
+    /// **THE NUMBER IS THE OP ID'S OWN ORDINAL AND NOT THE ENTRY'S `seq`, AND THE DIFFERENCE IS MEASURED AT
+    /// THE BYTES** — see [`op_id_ordinal`]: `op.seq` is the journal's per-instance append ordinal while the id
+    /// is minted from the process-wide `NEXT_OP`, so the dropped entry's `seq` is a number no caller-supplied id
+    /// carries and the map from an id to its `seq` left with the entry. **THE COST OF KEEPING ONE NUMBER RATHER
+    /// THAN A LIST IS DECLARED HERE AND NOT PAPERED**: an id another instance minted inside this store's own
+    /// span — numerically at or below the floor — also takes the DROPPED arm rather than
+    /// `JournalOpUnknown`, because the id carries no instance. **No act of this store mints such a token for
+    /// this journal** (the store's own ids are strictly increasing and only its own dropped ops fall at or below
+    /// the floor), and `D-160` item 3 prices exactly this trade: the ids need not be retained to keep a refusal
+    /// honest.
+    journal_floor: Option<u64>,
+    /// `§6.1` item 5: **the compression's BASE STATE — a SNAPSHOT of the store's own observable state at
+    /// the moment of compression, replacing every compressed entry as the walk's floor.** It begins as the
+    /// empty register's read (`{}`) and is re-taken whenever an append compresses an entry.
+    base_state: StoreValue,
+    /// **⟶ ADDED 2026-10-27 (THE JOURNAL MARK RESTORE, `§6.6`): THE STATE THE STORE HELD BEFORE ITS FIRST
+    /// JOURNALED OPERATION** — the replay's FLOOR, captured once at construction. **IT IS NOT ALWAYS THE EMPTY
+    /// REGISTER**: a store constructed over an EXISTING FILE boots that image into the `file` tier (`§7.2`
+    /// item 6) and journals NO entry for it, so an empty-register floor would make the replay DROP every
+    /// boot-loaded key. Captured with the same per-version shape the entries carry (`capture_register`), so a
+    /// booted shadow's versions survive the floor as well.
+    born: Vec<Captured>,
+    /// **⟶ ADDED 2026-11-17 BY `D-178` — THE STATE THE COMPACTION'S FLOOR STANDS AT, AND THE BASE
+    /// [`Store::replayMark`] BEGINS FROM.** The architect, verbatim: ***"Replay should start over from the
+    /// compacted floor instead of 'born'"*** (`strata/decisions.md` · `D-178`).
+    ///
+    /// **THE SENTENCE THAT STOOD AT `replayMark` READ *"the state the record stands before its first entry — the
+    /// booted image where the store loaded one and the empty register where it did not (`Store::born`)"*, AND IT
+    /// DESCRIBES A STORE NOTHING HAS BEEN DROPPED FROM AND NO LONGER THE WHOLE CLASS.** `D-160` item 1's compaction
+    /// REMOVES the oldest entries whole, **so the effect of every entry it took is absent from `born`** — which is
+    /// the boot's creation state and journals nothing for itself (`§7.2` item 6) — **while it is PRESENT in the
+    /// state the RETAINED entries were appended onto.** That state is this field: **the state immediately after
+    /// the last entry the compaction dropped, which is exactly the base a replay of the journal's own record
+    /// needs.** **MEASURED BEFORE IT WAS ADDED**: `journalLength: 2`, `a` · `b` · `c`, a restoral to the RETAINED
+    /// mark `op-2` answered *returned* and left `a` at `AddressNotFound` although the state at `op-2` held it.
+    ///
+    /// **IT IS ONE STATE AND IT BEGINS AS `born`** (`storeCreateWithInputs` takes the register's capture ONCE and
+    /// this carrier holds it beside `born`), **so a store nothing has been dropped from has a floor EQUAL to
+    /// `born` and ONE code path serves both cases** — `D-178` item 2 (i)'s `journal_floor.is_some()` test is NOT
+    /// read here as a second rule, because the branch it names IS this equality: **a second rule for the
+    /// uncompacted case would be a second place for the two bases to disagree, and nothing but the drop below may
+    /// move this field.**
+    ///
+    /// **IT IS ADVANCED ONCE PER DROP, IN [`Store::append`]'s LOOP, BY THE ENTRY THAT LOOP DROPS**
+    /// ([`Store::advance_floor`]) — and **it is NOT `base_state`, the field above it**: `base_state` is
+    /// `assemble_all`'s answer taken AFTER the push, **so it is the HEAD's state and not the floor's** (`D-178`
+    /// item 4), and it is the COLLAPSED `StoreValue` a read answers rather than the per-version, per-tier carrier
+    /// a replay can begin from (`Entry::after`'s own clause). **The two are different states at the same instant
+    /// and the names must not be read as one another.**
+    ///
+    /// **⟶ AND ITS BOUND IS DECLARED IN BYTES, WHICH IS WHY IT IS ONE STATE AND NOT A LIST.** This field holds
+    /// **ONE REGISTER'S WORTH OF VERSIONS** — one [`Captured`] per standing version at every path, each one a
+    /// `Vec<Segment>` path, an `Option<Tier>` carrier, a `Tier` and one `StoreValue` — **which is the same order as
+    /// `born`, a carrier the store already holds**, and **NOT one capture per drop**: a drop REPLACES the subtree at
+    /// the dropped entry's address INSIDE this state, so the n-th drop costs that entry's own `after` capture and
+    /// never the register times the number of drops. **RETENTION IS `O(one register)` IN THE STATE AND `O(0)` IN
+    /// THE HISTORY** — `D-160` item 2's `O(store + journal_length)` with nothing added to its `journal_length`
+    /// term, and nothing that grows with the write count.
+    floor_state: Vec<Captured>,
+}
+
+/// `§7.1` — **THE CONSTRUCTION, IN THE AMENDMENT'S OWN ORDERED SEQUENCE** (`A49`–`A56`; `§7.1`'s amended
+/// block and table; `DD-34`, `DD-39`, `DD-40`): **(2) `journalLength` FIRST, because it is the only
+/// argument whose absence is still an error; (3) the `filePath` DRY RUN — writes nothing, WRITE ACCESS
+/// REQUIRED, reachable iff the file exists or the application can write it; (4) `FilePathUnreachable`, or
+/// the register's tier FIXED AT CREATION (`file` when the path passes, `mem` otherwise); (5) the HOME MAP
+/// POPULATED FROM `listeners[]`; (6) the REGISTRY GENERATED over the already-populated home; (7) the `file`
+/// tier's content boot-loaded, which produces `0` registrations (`DD-38`).**
+///
+/// **⟶ `storeCreate` IS THE AMENDED SEQUENCE WITH THE FOURTH KEY'S `Absent` SPELLING** (`§0.4`'s
+/// `ConstraintsArg` row: *"its `Absent` variant is the optional spelling"*).
+pub fn storeCreate(cfg: &StoreConfig) -> Result<Store, StoreError> {
+    storeCreateWithConstraints(cfg, &ConstraintsArg::Absent)
+}
+
+/// **⟶ ADDED 2026-10-15 BY THE `RCA-9` PASS — THE SAME CONSTRUCTION, WITH THE FOURTH KEY SUPPLIED**
+/// (`§7.1` step 4-bis; `§8.1` #16; `parameter-semantics.md §2.21`).
+///
+/// **IT IS A SECOND ENTRY POINT AND NOT A SECOND CONSTRUCTION.** `§0.4`'s `StoreConfig` row declares the
+/// fourth member beside the three, and the red set at `tests/**` spells `StoreConfig` with THREE members
+/// in four places (`tests/support/mod.rs`'s `cfg_full` and three literal sites), so a fourth FIELD there
+/// would refuse to compile every Rust drive; the key therefore rides THIS argument, the declared
+/// `ConstraintsArg` carrier, and the sequence, the codes and the generator are unmoved.
+pub fn storeCreateWithConstraints(
+    cfg: &StoreConfig,
+    constraints: &ConstraintsArg,
+) -> Result<Store, StoreError> {
+    storeCreateWithInputs(cfg, constraints, &DurableWithoutPathArg::Absent, &InitialImageArg::Absent)
+}
+
+/// **⟶ ADDED 2026-11-17 BY `U-STOREROOM-03`/`-04` — THE SAME CONSTRUCTION WITH THE THIRD ENTRY CONDITION
+/// SUPPLIED** (`D-132` items 1–2; `D-137` item 3).
+///
+/// **IT IS A THIRD ENTRY POINT AND NOT A SECOND CONSTRUCTION**: the widest frame holds the body and the narrower
+/// ones delegate, so `storeCreate` and `storeCreateWithConstraints` keep their names and arities and every Rust
+/// drive compiles unmoved. **THE INPUT IS NOT A `cfg` KEY** (`D-137` item 3).
+///
+/// **ITS ONE MOVED STEP IS STEP 4b's, WHICH BECOMES THREE-WAY, AND THE THIRD ARM PERFORMS NO FILESYSTEM ACT**:
+/// `register_tier` answers `Tier::File` with `file_path == ""` (`D-132` item 1), so `ParentAnchorMonotonicityViolation`
+/// (rank `6`) is the code that DISAPPEARS on this arm — and it disappears because the tier is `file`, not because a
+/// check is relaxed. **The exclusive create's two arms are skipped, so `FilePathUnreachable` (rank `13`) has no
+/// subject** (`D-132` item 5).
+///
+/// **⟶ AND THE FOURTH INPUT ARRIVES HERE, 2026-11-17 (`U-STOREROOM-05`; `D-137` item 4; `D-147` items 1–4) — THE SEED.**
+/// It takes the carrier this unit places beside `DurableWithoutPathArg`, by the same widening: **the widest frame holds the
+/// body and the narrower entry points pass that carrier's `Absent` spelling**. **AND ITS ONE INSTANT IS STEP 7's**: the
+/// tier is already FIXED and `store.born` is not yet taken, so a seed stands INSIDE the born floor — both replayers start
+/// FROM `born`, so no `rollback` can reach behind a seeded construction.
+pub fn storeCreateWithInputs(
+    cfg: &StoreConfig,
+    constraints: &ConstraintsArg,
+    durable: &DurableWithoutPathArg,
+    initial_image: &InitialImageArg,
+) -> Result<Store, StoreError> {
+    // Step 2 — `journalLength`: ABSENT → `ConstructionArgumentMissing`; present but outside `{≥ 1 integer}`
+    // → `AddressMalformed` (`DD-16`, `DD-17`'s operative form).
+    let journal_length = match cfg.journalLength {
+        JournalLengthArg::Count(n) if n >= 1 => n as usize,
+        JournalLengthArg::Absent => {
+            return Err(missing_argument(
+                "ConstructionArgumentMissing",
+                "journalLength",
+            ))
+        }
+        _ => return Err(malformed_named("journalLength")),
+    };
+    // Step 3 — `filePath`: ABSENT is LEGAL and fixes the register at `mem`; a non-empty string is PROBED
+    // by a dry run that writes nothing and requires write access; the three shape-less/non-string forms
+    // answer the as-filed `AddressMalformed` and are NOT probed (`§7.1`'s amended `filePath` row).
+    let file_path = match &cfg.filePath {
+        FilePathArg::Absent => String::new(),
+        FilePathArg::Path(p) if !p.is_empty() => {
+            // **⟶ AND ON A `wasm32` TARGET THERE IS NO PROBE TO TAKE, BECAUSE THERE IS NO FILESYSTEM (2026-11-17 —
+            // `D-154` item 4; `docs/L1/wasm-realm.md` §4).** **The WASM build carries NO `filePath`: the key is not in
+            // domain there and the PACKAGE refuses it at `cfg`'s own class gate, so this arm answers the store's own
+            // `FilePathUnreachable` — never a probe, never a create, never a silent acceptance of a path it cannot
+            // honour.** **`path_is_reachable` is not compiled on that target** (it is the one function whose whole body is
+            // the platform), so this arm cannot name it: **the arm and the function leave together, which is what keeps the
+            // build whole.**
+            // **THE PROBE ITSELF: ARM (a) IS DECIDED HERE AND ARM (b) IS DECIDED BY STEP 4b'S OWN `create_new`** —
+            // ONE PREDICATE, TWO KERNEL-DECIDED ARMS (`§10.4` part 1; `DD-45`'s amended clause, whose *"a second
+            // reachability predicate"* is refused). **IT IS A STATEMENT AND NOT THE ARM'S VALUE**, so the arm answers
+            // `p.clone()` on both targets and only this act moves.
+            #[cfg(not(target_arch = "wasm32"))]
+            if !path_is_reachable(p) {
+                return Err(file_path_unreachable(p));
+            }
+            #[cfg(target_arch = "wasm32")]
+            return Err(file_path_unreachable(p));
+            #[cfg_attr(target_arch = "wasm32", allow(unreachable_code))]
+            p.clone()
+        }
+        _ => return Err(malformed_named("filePath")),
+    };
+    // Step 3-bis — `PAR-1`/`PAR-13` (`§7.1`'s NEW step; `contract.md §10.4` part 4): **EVERY `listeners[]`
+    // ENTRY IS VALIDATED BEFORE THE CREATE**, and a rejected array admits NOTHING — *"no entry is silently
+    // dropped"*. **The step's reason is that step 4b below is a REAL, ONCE-PER-CONSTRUCTION FILESYSTEM ACT:
+    // a construction that failed on this LATER argument would otherwise LEAVE THE FILE IT CREATED BEHIND,
+    // and `A55`'s *"leaves nothing behind"* must hold of EVERY construction that FAILS** (`§10.4` part 5).
+    // **ITS ANSWER IS THE AS-FILED STEP 5'S OWN** (`§8.1` #1), performed here rather than moved.
+    let admitted = construction_listeners(&cfg.listeners)?;
+    // Step 4-bis — **`§7.1` step 4-bis, THE FOURTH KEY'S OWN VALIDATION AT THE CREATE INSTANT**
+    // (`parameter-semantics.md §2.21`; `§8.1` #16): the list's shape is validated HERE, **BEFORE step 4b's
+    // create**, for the reason step 3-bis stands here — *"leaves nothing behind"* must hold of EVERY
+    // construction that FAILS — and **A REJECTED LIST ADMITS NOTHING AND RETURNS NO INSTANCE.** The four
+    // outside forms of the LIST ITSELF and the element that is not an `{ address, id }` pair answer the
+    // store's own sixteenth member and never `§8.1` #1 (`§7.1`: ABSENCE answers #12, PRESENCE with a value
+    // outside the domain answers the key's own member).
+    let _pairs = construction_constraints(constraints)?;
+    // Step 4b — THE CONSTRUCTION'S EXCLUSIVE CREATE, THE LAST ACT OF THE CONSTRUCTION'S ARGUMENT
+    // VALIDATION (`§7.1` step 4b; `contract.md §10.4` parts 1–5; `DD-45`'s amended clause). **ARM (b): WHERE
+    // `filePath` IS PROVIDED AND ITS FILE IS ABSENT, THE STORE CREATES ITS OWN FILE AT THAT PATH —
+    // EXCLUSIVELY, BY `create_new` (`O_CREAT|O_EXCL`) AND NEVER BY `File::create`'s
+    // `O_CREAT|O_WRONLY|O_TRUNC`, WHOSE TRUNCATION WOULD DESTROY A FILE CARRYING COMMITTED BYTES BEFORE THE
+    // BOOT COULD READ IT — AND LEAVES IT ZERO-LENGTH: AN EMPTY FILE AND NO BYTE** (`§10.4` parts 2 and 3).
+    // **ON `AlreadyExists` (an existing file, or one that appeared between the probe and this act) THE ARM
+    // FALLS THROUGH TO ARM (a)'S EXISTING WRITE-MODE OPEN, so a construction over an EXISTING file NEVER
+    // TRUNCATES and the persisted register is never destroyed by the construction that reads it**
+    // (`§10.4` part 6). **EVERY OTHER FAILURE — `EROFS`, `EACCES`, `ENOENT`, a path that IS a directory —
+    // REFUSES AT CONSTRUCTION with `FilePathUnreachable` AND RETURNS NO INSTANCE** (`§10.4` part 5;
+    // `§8.1` #13), **leaving nothing behind**.
+    // **⟶ AMENDED 2026-11-17 (`U-STOREROOM-03`/`-04`; `D-132` item 2): STEP 4b IS THREE-WAY, AND THE THIRD ARM
+    // PERFORMS NO FILESYSTEM ACT.** *"If a saveCall is provided and a filePath is not, treat the file probe as
+    // successful"* — the architect's words, verbatim — so a path-less register whose construction was told the
+    // save's bytes live elsewhere stands at `Tier::File` with NO PATH (`D-132` item 1). **THE FIRST ARM'S BYTES ARE
+    // UNMOVED, name for name.** **WHAT THE THIRD ARM DOES NOT DO IS THE POINT**: it opens nothing, creates nothing,
+    // probes nothing and returns no `FilePathUnreachable`.
+    // **⟶ AND ON A `wasm32` TARGET STEP 4b KEEPS ITS FORK AND LOSES ITS ARM: the path is always empty there (step 3's
+    // `Path` arm refuses), so the create-and-probe branch is DEAD BY CONSTRUCTION and is not compiled** (2026-11-17 —
+    // `D-154` item 4; `docs/L1/wasm-realm.md` §4). **THE THIRD ARM'S BYTES ARE UNMOVED ON BOTH TARGETS**, because the
+    // durable register is exactly what a WASM build has.
+    #[cfg(not(target_arch = "wasm32"))]
+    let register_tier = if !file_path.is_empty() {
+        match std::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&file_path)
+        {
+            Ok(created) => drop(created),
+            Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
+                if !path_is_reachable(&file_path) {
+                    return Err(file_path_unreachable(&file_path));
+                }
+            }
+            Err(_) => return Err(file_path_unreachable(&file_path)),
+        }
+        Tier::File
+    } else if durable.is_set() {
+        // THE THIRD ENTRY CONDITION — `saveCall` PRESENT ∧ `filePath` ABSENT, AND THE PROBE TREATED AS SUCCESSFUL
+        // (`D-132` items 1–2). **NO PATH IS PROBED, CREATED OR OPENED**: the register is `file` tier and `file_path`
+        // is the empty string, which is what every downstream site reads to answer the mem-tier way without
+        // reconstructing a file (`D-144` item 5).
+        Tier::File
+    } else {
+        Tier::Mem
+    };
+    // **⟶ AND THE `wasm32` TARGET'S OWN STEP 4b: TWO ARMS AND NO PROBE** — the path cannot be non-empty there (step 3's
+    // `Path` arm refuses), so the fork is `durable`'s alone and **`Tier::File` with `file_path == ""` is the whole store**
+    // (`D-154` item 4's own coherence, and `D-155` item 3's consequence).
+    #[cfg(target_arch = "wasm32")]
+    let register_tier = if durable.is_set() { Tier::File } else { Tier::Mem };
+    // Step 5 — the home is POPULATED FROM the array step 3-bis validated, and a rejected array admits
+    // NOTHING. **The adopted entry is the DECLARED `Listener` record, filed in the address-keyed map
+    // (`A45`; `DD-39`).**
+    let mut home = Home::new();
+    for (address, handle) in admitted {
+        home.adopt(address, handle);
+    }
+    // Step 6 — the registry is generated over the ALREADY-POPULATED home (`A56`: *"populate home map before
+    // generating registry"*; the order of these two steps is the ruling's whole point).
+    let mut store = Store::empty(file_path, journal_length, register_tier, home);
+    // Step 7 — `§7.2` item 6: the `file` tier's content at `cfg.filePath` is loaded if the file exists; `mem`
+    // and `temp` begin EMPTY, the journal begins with 0 entries, and the home is NOT re-populated from the
+    // file, so a fresh instance over an equal path loads NO registration (`DD-38`).
+    //
+    // **⟶ STEP 7'S FIRST ARM, ADDED 2026-11-06 — A CORRUPT IMAGE REFUSES THE CONSTRUCTION** (`D-126` item `2`,
+    // verbatim: *"Mint/revive a code: a corrupt image refuses the construction"*; `§3` `PIN-11`; `§8.1` #22).
+    // **THE CLASS IS READ THROUGH THE STORE'S ONE READ OF THE PATH** — [`Store::read_file_image`], *"THE ONE
+    // PLACE THE BYTES AT `file_path` ARE READ AND DECODED"* (`D-110` item 2) — **and its THIRD class,
+    // `FileImage::Refused` (*"a present, non-empty image the loader REFUSES"*), is the member's whole trigger.**
+    // **THE SEAT IS HERE AND NOWHERE ELSE**: this is before `born` is taken below and therefore before the
+    // package's first ask, so **no image is installed, no pair is carried and no instance exists**, and the
+    // construction answers the minted rank `22` `FileImageRefused` whose subject is the `filePath`'s own
+    // spelling (`FilePathUnreachable`'s precedent).
+    // **THE ROUTE TAKEN IS A DISTINCT CONSTRUCTION-SIDE READ, AND `boot_load`'S ANSWER STAYS FROZEN**: the read
+    // is PURE (*"no node is minted, no anchor is installed, nothing is mutated, so a caller may refuse on this
+    // answer and leave the store exactly where it found it"*), so refusing on it moves no byte of
+    // `boot_load`, whose `Option<usize>` answer neither widens for the class nor is asked (`D-110` item 3
+    // forbids widening it), and its `Refused => Some(0)` arm simply stops being the CONSTRUCTION's reading of
+    // that class — the construction never reaches it, because this arm refuses first.
+    // **WHAT IT LEAVES: THE CORRUPT FILE STANDS, UN-WRITTEN-TO AND UN-REPAIRED.** The exclusive create above
+    // never touches an existing file (on `AlreadyExists` it falls through *"and a construction over an
+    // EXISTING file NEVER TRUNCATES"*), nothing was written to it and this refusal precedes every save, **so
+    // there is no rollback to compose and no arm to undo** (`D-126` residual `1` answered NO ARM, residual `2`
+    // answered the BYTES STAND) — no removal arm is declared.
+    // **AND WHAT IT DOES NOT TOUCH: A ZERO-LENGTH FILE AND AN ABSENT FILE ARE STILL `FileImage::NoImage`** —
+    // the reader answers `NoImage` for both, so a construction over either loads nothing and crosses NO code
+    // (`§10.4` part 3; `DD-38`), **and `Members`, the install, the third class's own reading and
+    // `standing_image`'s `None` are unmoved.** **⟶ AND THE ONE OTHER CALLER OF THIS CLASS IS WITHDRAWN FROM
+    // 2026-11-17**: the regeneration read it too, and `D-160` item 5 deletes that arm with the compaction mark it
+    // was built on — **the boot ([`Store::boot_load`]) is the reader this answer has left, and the third class
+    // keeps its two consequences there** (`None` → `Some(0)` for the load-side check, the refusal minted by the
+    // construction's own seam above).
+    if let FileImage::Refused = store.read_file_image() {
+        return Err(file_image_refused(&store.file_path));
+    }
+    let _loaded = store.boot_load();
+    // **⟶ STEP 7'S THIRD ACT, ADDED 2026-11-17 BY `U-STOREROOM-05` — THE SEED: THE BOOT PATH WITH THE TEXT SUPPLIED
+    // INSTEAD OF THE PATH** (`D-135` item 1; `D-137` item 4; `D-147` items 1–4). **The caller's image text is decoded by
+    // the store's own decoder tail** (`classify_image`: `json::decode` + the `is_admitted()` filter, and no second parser)
+    // **and installed at `Tier::File` by the load's own mint** (`install_file_image`), so a `saveCall`-backed or a
+    // `filePath`-backed store BEGINS LIFE WITH THE CALLER'S DATA.
+    //
+    // **ITS INSTANT IS THIS ONE, AND IT IS THIS UNIT'S DESIGN CONSTRAINT**: the tier is already FIXED, the boot's own load
+    // has already run, and `store.born` is NOT YET TAKEN — so **a seed is INSIDE the born floor**, which is the replay's
+    // floor and the regeneration's construction image, and **no `rollback` can reach behind it**. **AND THE SEED RUNS
+    // SECOND**: the boot's load and this install are two installs at `Tier::File` over one home and the last one wins, so a
+    // `filePath` store carrying both boots the file and then lays the caller's image over it — exactly the overwrite
+    // `D-147` item 1 has the guides discourage rather than a refusal this frame may mint.
+    //
+    // **A SEED IS NOT AN ACT** (`D-147` item 2): no journal entry, no `saved` mark, no byte, no `seq` step and **no
+    // `async`**. **AND ITS REFUSAL MINTS NO MEMBER**: an image the loader cannot accept is `FileImage::Refused`, whose
+    // status is rank `22` `FileImageRefused`, and **the decode is a PURE READ** — *"no node is minted, no anchor is
+    // installed, nothing is mutated"* — so the arm answers the store's own refusal with **no instance and nothing left
+    // behind**. **`NoImage` is unreachable from a seed**: the empty string is refused one layer up at `cfg`'s class gate.
+    if let Some(text) = initial_image.text() {
+        match Store::classify_image(text) {
+            FileImage::Members(members) => {
+                let _seeded = store.install_file_image(&members);
+            }
+            FileImage::NoImage | FileImage::Refused => {
+                return Err(file_image_refused(&store.file_path));
+            }
+        }
+    }
+    // **⟶ STEP 7'S OWN SECOND HALF, ADDED 2026-10-15 (`§7.1` step 7 as amended; `parameter-semantics.md
+    // §2.21`): THE LOAD INSTANT VALIDATES THE SUPPLIED LIST AGAINST THE STATE IT JUST LOADED** — *"the
+    // list's validation at the construction and its validation at the load"* (*"that is what detects a
+    // corrupt or obsolete file, one whose state no longer satisfies the constraints the application now
+    // supplies"*). **The loaded state satisfies a supplied pair iff the pair's `address` RESOLVES in it**;
+    // the first pair that does not is the failing entry and the answer is the store's own sixteenth member
+    // with NO INSTANCE RETURNED (`§8.1` #16). **A file that carried no image is not a state to be measured
+    // against**: a construction over an ABSENT or ZERO-LENGTH file — the store's own exclusive create
+    // leaves the latter — loads nothing and validates nothing.
+    // **⟶ AND THE EXEMPTION IS NARROWED TO THE CLAUSE'S OWN TWO CLASSES, 2026-10-15 (`DEF-2026-10-15-Z`,
+    // `P-TP-6`/`S-CONSTRAINTS-KEY`): *"over an EXISTING FILE at load THE LOADED STATE IS VALIDATED AGAINST
+    // THE SUPPLIED LIST"* (`§7.2` item 5 as amended; `contract.md §8.1` #16) — **the check runs for EVERY
+    // EXISTING FILE THAT CARRIES AN IMAGE, INCLUDING AN EMPTY-BUT-PRESENT ONE. WHAT IS EXEMPT IS THE ABSENT
+    // FILE AND THE ZERO-LENGTH FILE ALONE, WHICH ARE THE TWO CLASSES NO STATE CAN BE MEASURED AGAINST**
+    // (`§7.2` item 6; `§10.4` part 3: a successful exclusive create *"LEAVES IT ZERO-LENGTH"* and that file
+    // *"reads … as an EMPTY register with `0` registrations and NO code"*). **THE SUPERSEDED GUARD TESTED
+    // THE LOADED MEMBER COUNT (`loaded > 0`), SO A PRESENT, NON-ZERO-LENGTH IMAGE WHOSE MEMBER COUNT IS `0`
+    // — `{}` IS THE WHOLE OF THAT CLASS — EXEMPTED ITSELF AND THE LOAD-SIDE ARM NEVER FIRED FOR IT: a
+    // non-zero-length image is a state, and the clause's exemption names *"absent or zero-length"* and NOT
+    // *"empty"*. `boot_load` therefore answers WHETHER AN IMAGE STOOD THERE AT ALL and not how many members
+    // it admitted, and the count it returns is no longer what the guard reads.**
+    //
+    // **⟶ AND THE WALK ITSELF IS DELETED 2026-11-02 — `D-90` (5), CARRIED AS `PIN-5` (i) AND NOT NARROWED.**
+    // `RCA-8(g)` ANNOTATE-BESIDE: **every byte above stands BYTE-FOR-BYTE as the reading of its own dates and is
+    // read THROUGH this clause; what goes is the `if loaded.is_some() { for pair in &pairs { … } }` block that
+    // stood here, and this frame now proceeds to the replay's floor below unchanged.**
+    //
+    // **THE RULING, THE ARCHITECT, VERBATIM: *"Constraints that would be applied to an address that can't be
+    // walked to yet should be skipped … A constraint that can be walked to but doesn't exist … should be applied.
+    // This is a global rule, not a batch-only one"*** (`strata/decisions.md` · `D-90`), and its `(5)` names THIS
+    // site: **an unresolvable parent SKIPS its pair and no list-wide refusal stands for it**, so *"its parent
+    // does not exist yet"* is no longer a defect in the list. **THE WALK WAS DELETED RATHER THAN NARROWED**
+    // because the arm it answered is a cause the rule now SKIPS: after it, a WELL-FORMED pair whose parent does
+    // not resolve neither refuses the list nor reaches the shape arm — it registers and is skipped, at the
+    // registration instant's own evaluation, where the pair-application rule is read (`D-90` (3): *"registration
+    // does not fail for it"*).
+    //
+    // **WHAT REMAINS OF `ConstraintListInvalid` AT THIS INSTANT IS THE MALFORMED LIST ALONE** (`PIN-5` (ii)):
+    // `construction_constraints` below — the out-of-domain segment, the empty `id`, the list's own outside forms
+    // and the element that is not a pair — **so `docs/specs/storeroom-native/contract.md §8.1` item 3's own
+    // sentence, *"a well-formed pair is never answered by the shape arm"*, is made TRUE by this deletion rather
+    // than amended.** **`ConstraintListInvalid` KEEPS ITS RANK, ITS SENTENCE AND ITS OWN TRIGGERS** (`PIN-5`
+    // (iii); `src/error.rs` is out of this unit's write set and moves no byte), and what it says on the arms that
+    // survive is a later unit's question (`D-90` (6)-iii).
+    //
+    // **THE TWO BINDINGS THIS DELETION LEAVES WITHOUT A READER ARE NAMED FOR WHAT THEY ARE AND NEITHER ACT MOVES**:
+    // `_loaded` still PERFORMS the load — `boot_load` is the load, and its answer is what the deleted walk
+    // consumed — and `_pairs` still PERFORMS the list's own shape validation, which is the arm that survives.
+    // No store semantic moves (`D-90` (6)): the walk, the tiers, the journal and the address model are untouched.
+    // **THE REPLAY'S FLOOR, TAKEN HERE BECAUSE THIS IS THE ONE INSTANT IT IS DEFINED** (`§6.6`): the state the
+    // store holds before any operation it will journal — the booted image where one was loaded, the empty
+    // register where none was. A `file`-tier boot journals nothing (`§7.2` item 6), so nothing else records it.
+    store.born = store.capture_register();
+    // **⟶ AND THE FLOOR BEGINS AS IT, 2026-11-17 (`D-178`): ONE CAPTURE, TWO CARRIERS.** The floor the replay
+    // begins from is the born state until the compaction drops something — **so this line is the whole of the
+    // uncompacted case, and `replayMark` reads ONE base on every store instead of branching on whether a drop has
+    // happened.** The clone is taken here and never re-derived: nothing else in the store writes
+    // `Store::floor_state` except the drop in `Store::append`.
+    store.floor_state = store.born.clone();
+    Ok(store)
+}
+
+/// **`§7.1` step 4-bis** — **the constraint list's OWN validation, at the store's own code**, over the
+/// permissive [`ConstraintsArg`] the boundary hands across: **the list's outside forms and the element
+/// that is not an `{ address, id }` pair answer `§8.1` #16, and a legal list is admitted WHOLE** — *"no
+/// entry is silently dropped"* — **as `{ address, id }` pairs, in the caller's own order.**
+fn construction_constraints(arg: &ConstraintsArg) -> Result<Vec<(Vec<Segment>, String)>, StoreError> {
+    match arg {
+        ConstraintsArg::List(entries) => {
+            let mut pairs: Vec<(Vec<Segment>, String)> = Vec::new();
+            for entry in entries {
+                match entry {
+                    ConstraintEntry::Pair { address, id } => {
+                        if let Some(segment) = address.iter().find(|s| !s.is_in_domain()) {
+                            return Err(constraint_list_invalid(segment.spelling()));
+                        }
+                        if id.is_empty() {
+                            return Err(constraint_list_invalid(slashed_address(address)));
+                        }
+                        pairs.push((address.clone(), id.clone()));
+                    }
+                    ConstraintEntry::Invalid(subject) => {
+                        return Err(constraint_list_invalid(subject.clone()))
+                    }
+                }
+            }
+            Ok(pairs)
+        }
+        ConstraintsArg::Absent => Ok(Vec::new()),
+        // The list's own three shape-less/non-list forms, named where `§8.2`'s `<SEGMENT>` slot stands:
+        // `null`, `undefined`, and a value that is not a list at all (the class is read at the boundary,
+        // `crossing.md §1.4` item 9, and the code and the message stay the store's).
+        ConstraintsArg::Null => Err(constraint_list_invalid("null".to_string())),
+        ConstraintsArg::Undefined => Err(constraint_list_invalid("undefined".to_string())),
+        ConstraintsArg::NonArray(_) => {
+            Err(constraint_list_invalid("a value that is not a list".to_string()))
+        }
+    }
+}
+
+/// `§7.1` step 3 (`A52`, `A55`; `DD-40`) — **THE DRY-RUN REACHABILITY PROBE, AND THE EXISTING-PATH HALF
+/// OF THE ONE PREDICATE** (`contract.md §10.4` part 1; `§7.1` step 3's dated clauses): **the path is
+/// REACHABLE iff the file exists OR the application can write it successfully**, read with `A55`'s two
+/// requirements: **the probe creates NO file, NO directory and NO byte, and WRITE ACCESS IS REQUIRED** (so
+/// an EXISTING BUT READ-ONLY file fails, and `A52`'s *"the application can write it successfully"* arm
+/// governs wherever it and *"the file exists"* disagree). **A path that IS a directory is UNREACHABLE**
+/// (`DD-40` (b)), and a path whose parent directory does not exist is UNREACHABLE (`DD-40` (a)).
+///
+/// **THE PREDICATE'S TWO ARMS ARE BOTH KERNEL-DECIDED AND IT IS ONE PREDICATE** (`§10.4` part 1;
+/// `DD-45`'s amended clause): **ARM (a) — the path EXISTS — is the WRITE-MODE OPEN performed here, which
+/// creates nothing, truncates nothing and leaves NO byte; ARM (b) — the path is ABSENT — is the
+/// construction's own EXCLUSIVE CREATE, whose success IS the answer, performed once as step 4b.** **This
+/// function therefore answers arm (a) directly and is the FALL-THROUGH arm's test where the create answers
+/// `AlreadyExists`** (`§10.4` part 6): a file that appeared between the probe and the create is decided by
+/// the same write-mode open, so a construction over an EXISTING file truncates nothing. **NO SECOND
+/// PREDICATE IS AUTHORED.**
+///
+/// **⟶ AMENDED 2026-10-13 (`DEF-2026-10-13-D`): THE TWO ARMS ARE SEPARATED BY THE NAME'S OWN EXISTENCE
+/// (`lstat`), NOT BY A FOLLOWED LOOKUP (`stat`), AND THE SEPARATION IS WHAT MAKES THE DANGLING SYMLINK
+/// REFUSE.** **The arms' frontier is exactly the question the exclusive create answers: step 4b's
+/// `create_new` answers `AlreadyExists` **iff an entry (of any kind) occupies the NAME**, and arm (b) is
+/// declared for the path that `PART 1` calls ABSENT — so *"absent"* is read as *"no entry at the name"*,
+/// which is `symlink_metadata`'s answer and not `metadata`'s.** **A DANGLING SYMLINK IS NOT AN ABSENT PATH:
+/// its name IS taken (which is why `create_new` answers `AlreadyExists`), and the write-mode open that arms
+/// (a) is `ENOENT` — the link is followed to a target that does not exist.** **Under the followed lookup the
+/// `ENOENT` of the target was read as the ABSENCE of the path, so the link fell into arm (b) on evidence the
+/// kernel contradicts, step 3 accepted it, and the `AlreadyExists` fall-through re-entered this function and
+/// was answered by the SAME `ENOENT`-means-absent reading — reporting arm (a)'s outcome WITHOUT arm (a)'s
+/// act, at a construction that had created nothing and a first `file`-tier write that silently replaced the
+/// symbol's link** (`§10.4` part 3 and its blast-radius clause, both falsified; the architect's ruling *"the
+/// file store method needs a writeable file address"*; `A55`'s *"File must have write access"*). **NO
+/// PREDICATE IS ADDED, NO ARM IS ADDED, NO MODE BIT IS READ AND NOTHING IS CREATED, TRUNCATED OR REMOVED BY
+/// THIS AMENDMENT: `symlink_metadata` REPLACES `metadata` AT THE ONE LOOKUP THAT SEPARATES THE TWO ARMS, so
+/// every path class it does not reclassify keeps the byte it had.** **AND IT RECLASSIFIES EXACTLY ONE: a name
+/// occupied by a symlink whose target is absent — arm (a)'s path, decided by arm (a)'s open, `ENOENT`, NOT
+/// REACHABLE.** **A SYMLINK WHOSE TARGET IS A REAL WRITEABLE FILE STAYS REACHABLE (`A52`'s *"the
+/// application can write it successfully"* holds of it, measured), A REGULAR DIRECTORY STAYS UNREACHABLE BY
+/// THE `is_dir` ARM, A SYMLINK TO A DIRECTORY REACHES ARM (a) AND IS UNREACHABLE BY ITS OPEN (`EISDIR`),
+/// and a name no entry occupies is unmoved into arm (b)'s create** (`contract.md §10.4` part 1; the red
+/// set's own drives).
+// **⟶ AND THE ONE FUNCTION WHOSE WHOLE BODY IS THE PLATFORM LEAVES THE `wasm32` BUILD, 2026-11-17** (`D-154` item 4;
+// `docs/L1/wasm-realm.md` §4). **Its body is `symlink_metadata` plus a write-mode open and nothing else**, so there is no
+// realm-pure half to keep — and **its two callers leave with it** (step 3's `Path` arm and step 4b's `AlreadyExists`
+// fall-through), which is the only way a `#[cfg]` that removes a function can be sound.
+#[cfg(not(target_arch = "wasm32"))]
+fn path_is_reachable(path: &str) -> bool {
+    let candidate = std::path::Path::new(path);
+    match std::fs::symlink_metadata(candidate) {
+        // The `is_dir` guard reads the NAME's own type, so a SYMLINK TO A DIRECTORY is not short-circuited
+        // here: it reaches arm (a)'s open like every other occupied name and is refused by `EISDIR`.
+        Ok(metadata) if metadata.is_dir() => false,
+        Ok(_) => std::fs::OpenOptions::new()
+            .write(true)
+            .open(candidate)
+            .is_ok(),
+        // ARM (b)'s ANSWER IS REACHABLE, AND THIS ARM NOW MEANS *"NO ENTRY OCCUPIES THE NAME"* RATHER THAN
+        // *"A LOOKUP FAILED"* (the `lstat` amendment above): an ABSENT path is UNREACHABLE only where the
+        // create refuses it, and every such refusal is step 4b's own (`EROFS`, `EACCES`, `ENOENT`). **THE
+        // PARENT DIRECTORY'S MODE BITS ARE WITHDRAWN AS THIS ARM'S DECIDING INSTRUMENT** (`§10.4` part 1;
+        // `DEF-20`), **so a mode-readable parent is not read here at all: the create asks whether the process
+        // may ADD AN ENTRY, which is the exact question `§7.1` states.**
+        Err(_) => true,
+    }
+}
+
+/// **THE STORE'S ONE ANSWER ABOUT THE BYTES AT `file_path`, AND ITS ONE DECODE — `D-110` ITEM 2.**
+/// **THE THREE CLASSES `boot_load` ANSWERS `None` FOR** — **no `filePath` at all, an ABSENT (or unreadable)
+/// file, and a ZERO-LENGTH file**, the last being what the construction's own exclusive create leaves — are
+/// [`FileImage::NoImage`]; **the IMAGE THAT STANDS and that the store's loader ADMITS as its own** is
+/// [`FileImage::Members`], its admitted members carried out of the decode in the file's own order; **and the
+/// IMAGE THAT STANDS and that the loader REFUSES** is [`FileImage::Refused`] (**`D-109`'s narrowed subject AND,
+/// FROM 2026-11-02, NO REFUSAL OF ITS OWN: `strata/decisions.md` · `D-118` item 1 reads it as NO IMAGE AT ALL, so
+/// the regeneration takes the creation state where the boot still answers that an image stood there**).
+/// **The third class is spelled ONCE, HERE, WHERE THE DECODE HAPPENS**, because it is a fact of the same read
+/// that neither the boot's declared answer nor the construction image can carry — **and the two callers map
+/// this one answer onto their own declared forms rather than reading the path a second time** (`D-110` item 3).
+enum FileImage {
+    /// No image stood there for a load to measure: no `filePath`, an absent or unreadable file, or a
+    /// zero-length file.
+    NoImage,
+    /// A present, non-empty image the loader ADMITS: its admitted members, in the file's own order.
+    Members(Vec<(String, StoreValue)>),
+    /// A present, non-empty image the loader REFUSES — bytes that are not this store's image.
+    Refused,
+}
+
+impl Store {
+    /// **THE EMPTY REGISTER'S THREE ARENAS, IN ONE PLACE** — the graph a store begins with and the graph a
+    /// mark restore's replay begins from (`§6.6`: the replay starts at the state the journal's record stands
+    /// BEFORE its first entry, which is this one). One constructor for both, so the two can never drift.
+    fn fresh_register(register_tier: Tier) -> (Vec<Node>, Vec<Link>, Vec<NodeRef>) {
+        (
+            vec![Node::Branch(0)],
+            vec![Link {
+                children: Children::map(),
+                is_register: true,
+            }],
+            vec![NodeRef {
+                // `§1.6` item 4 (a)/(c)/(d): the register's parent anchor's address IS the empty set and its
+                // own reference carries the register's OWN identity marker (the EMPTY segment marker) and THE
+                // REGISTER'S OWN CONDITIONAL TIER — `file` where the path was provided and passed, `mem`
+                // otherwise — and never a caller-passed tier (`§2.1`'s empty-address reference clause, `A42`).
+                // **`§1.2`'s dated clause of 2026-10-21: the register's reference stands at NO key, so this
+                // cell opens `None`** — the register is the walk's START and is reached by no segment, and
+                // nothing here stores a key for it. (`§2.1`'s withdrawn `NodeRef.anchor.key =
+                // Segment::Key(String::new())` spelling is gone with the member it spelled.)
+                anchor: ChildAnchor {
+                    tier: register_tier,
+                    // **`DD-44` (`§1.6` item 4 (c)): `register_marker` is TRUE on THIS reference and on no
+                    // other — the register's own, whose address is the empty set. Every reference a segment
+                    // reaches is minted through `Store::mint`, which carries `false`.**
+                    register_marker: true,
+                    derived_key: RefCell::new(None),
+                },
+                node: 0,
+            }],
+        )
+    }
+
+    fn empty(file_path: String, journal_length: usize, register_tier: Tier, home: Home) -> Store {
+        let (nodes, links, refs) = Store::fresh_register(register_tier);
+        Store {
+            nodes,
+            links,
+            refs,
+            register: 0,
+            register_ref: 0,
+            journal: Vec::new(),
+            last_seq: 0,
+            home,
+            file_path,
+            journal_length,
+            // **⟶ ADDED 2026-11-17 (`D-160` item 3): NOTHING HAS BEEN DROPPED AT THE CONSTRUCTION**, so the
+            // watermark is absent and every op id answers as the journal's own record finds it.
+            journal_floor: None,
+            base_state: StoreValue::Object(BTreeMap::new()),
+            born: Vec::new(),
+            // **⟶ AND THE FLOOR'S OWN CARRIER IS EMPTY HERE FOR THE SAME REASON `born` IS, 2026-11-17 (`D-178`):
+            // both are taken at ONE instant, at the end of the construction, from the SAME capture.** An empty
+            // arena's register is empty, so nothing is claimed by the initial value — and no store is handed out
+            // before that instant, since the two assignments stand side by side and the construction returns below
+            // them.
+            floor_state: Vec::new(),
+        }
+    }
+
+    // -----------------------------------------------------------------------------------------------
+    // The arenas.
+    // -----------------------------------------------------------------------------------------------
+
+    fn new_node(&mut self, node: Node) -> usize {
+        self.nodes.push(node);
+        self.nodes.len() - 1
+    }
+
+    fn new_link(&mut self, container: Kind) -> usize {
+        // The decision the write made (`A22`) builds the structure once, and the structure IS the kind from
+        // here on: `Kind` is the transient decision token and `Children` is what the link declares (`U-14`).
+        let children = match container {
+            Kind::Map => Children::map(),
+            Kind::Vec => Children::vec(),
+        };
+        self.links.push(Link {
+            children,
+            is_register: false,
+        });
+        self.links.len() - 1
+    }
+
+    fn new_ref(&mut self, anchor: ChildAnchor, node: usize) -> usize {
+        self.refs.push(NodeRef { anchor, node });
+        self.refs.len() - 1
+    }
+
+    fn node(&self, reference: usize) -> &Node {
+        &self.nodes[self.refs[reference].node]
+    }
+
+    fn link_of(&self, reference: usize) -> Option<usize> {
+        match self.node(reference) {
+            Node::Branch(link) => Some(*link),
+            Node::Leaf(_) => None,
+        }
+    }
+
+    /// The tier an anchor stands at. **It is the composite key's second half and it lives in the anchor**
+    /// (`§1.2`, `A34`), so the declared child container asks the arena for it rather than holding a copy.
+    fn tier_of(&self, reference: usize) -> Tier {
+        self.refs[reference].anchor.tier
+    }
+
+    /// The rank `Children`'s own queries sort by, bound to this instance's arena.
+    fn rank_of(&self) -> impl Fn(usize) -> u8 + '_ {
+        move |reference| self.refs[reference].anchor.tier.rank()
+    }
+
+    /// **`§4.2` `R-1`/`R-2` — THE CONTAINER'S KEYS.** **A keyed container answers with the HASHMAP'S OWN
+    /// KEY SET** (`P: §1` line 96: *"hashmap, convert to an object, using the same keys"*), which is
+    /// distinct by construction — **the `contains` dedup scan is gone with the scan**. **The keys are then
+    /// put in spelling order, and that sort is the ONLY thing that orders them:** a `MAP`'s own iteration
+    /// is *"unordered — the store declares no order over a `MAP`'s children"* (`store-model.md §1.3`), and
+    /// the spelling sort exists so the GENERATED MESSAGES and a `MAP`'s assembled member list are
+    /// DETERMINISTIC, which `§8.2` property (a) requires. An ARRAY container answers its index keys
+    /// `0..len`, which ARE both its order and its contiguity (`§1.3`, `R-3`).
+    fn keys_at(&self, link: usize) -> Vec<Segment> {
+        let mut keys = self.links[link].children.key_set();
+        keys.sort_by_key(|key| key.spelling());
+        keys
+    }
+
+    /// **THE KEYED ACCESS — `O(1)`, BY CONSTRUCTION.** It is a lookup in the declared structure, not a
+    /// scan of the siblings, and it allocates only when a key holds more than one anchor (at most the
+    /// three tiers, `A34`).
+    fn refs_at(&self, link: usize, key: &Segment) -> Vec<usize> {
+        let rank = self.rank_of();
+        self.links[link].children.at(key, rank)
+    }
+
+    /// The one reference standing at `(key, tier)`, or none — **the answer `A34` bounds to `0` or `1`**.
+    fn pair_at(&self, link: usize, key: &Segment, tier: Tier) -> Option<usize> {
+        self.links[link].children.pair(key, tier)
+    }
+
+    fn canonical(&self, mut references: Vec<usize>) -> Vec<usize> {
+        references.sort_by_key(|reference| self.refs[*reference].anchor.tier.rank());
+        references
+    }
+
+    /// Drop every anchor in `doomed` from the container, **by the pair each one stands at** — so the
+    /// removal costs what the doomed set costs and never a scan of the surviving siblings.
+    ///
+    /// `close_up` is the CALLER'S own distinction between the two states a removal serves, and it is the
+    /// store's, not this helper's: **the WRITE arms (`W-1`'s replacement, `W-6`'s purge, the re-mint) and
+    /// every rebuild clear a pair whose INDEX stays occupied, so no gap is opened and nothing is owed; a
+    /// DELETE removes the index itself, so its position closes up IN THE ARENA (`§1.3`/`R-3`) — and that
+    /// closing IS the whole of it, `close_up: true` reaching `Children::remove`'s `Vec::remove(position)`.
+    /// NO RE-KEYING PASS FOLLOWS: `§1.2`'s dated clause of 2026-10-21 removed `ChildAnchor.key`, so a
+    /// survivor's key is DERIVED from the position it stands at rather than written into it.**
+    fn remove_refs(&mut self, link: usize, doomed: &[usize], close_up: bool) {
+        if doomed.is_empty() {
+            return;
+        }
+        for reference in doomed {
+            let tier = self.tier_of(*reference);
+            self.links[link]
+                .children
+                .remove(*reference, &|_held| tier, close_up);
+        }
+    }
+
+    // **⟶ DELETED 2026-10-21 (`§1.2`'s dated clause, on the architect's ruling): `renumber_vec` IS GONE.**
+    // Its single body statement re-keyed each surviving anchor to the position it now stands at — a write to
+    // the `ChildAnchor.key` member, which has LEFT the member set. **The pass's other work is not lost,
+    // because it was never the pass's:** `remove_refs`' `close_up` already closes the gap IN THE STRUCTURE
+    // (`Children::remove` → `Vec::remove(position)`), so after a DELETE removing index `i` the survivors ARE
+    // at positions `0..len` — the `§1.3`/`R-3` contiguity is a property of the ARENA, not of any anchor — and
+    // `Store::derived_key` reads each position back off that arena at the read. **The deleted pass had no
+    // reader and no other effect: `Children::renumber` was its only caller and it too is deleted.**
+    // **DELETED RATHER THAN LEFT AS A NO-OP** (this codebase's doctrine): an emptied `renumber_vec` would
+    // still be called on the delete path and would still tell a later reader that a re-keying happens there.
+
+    // -----------------------------------------------------------------------------------------------
+    // §2 — the shared resolver and the walk.
+    // -----------------------------------------------------------------------------------------------
+
+    /// `§2.3`'s selection rule, run at EVERY step of the walk — a pass-through step is no exception, so the
+    /// passed tier set governs the whole walk. `L-3`/`L-TIER` are the two states a key can be in:
+    ///
+    /// * **no anchor at the key at all** (or a key whose CLASS the container's own key domain cannot hold —
+    ///   `§1.5` item 3: *"NO COERCION OCCURS"*, a `string` segment resolves nowhere against a `VEC`) →
+    ///   `L-3`'s `AddressNotFound`;
+    /// * **an anchor at the key but no passed tier matching** → `L-TIER`'s `TierNotFound`.
+    fn select(
+        &self,
+        link: usize,
+        key: &Segment,
+        sel: &TierSel,
+        container_address: &[Segment],
+    ) -> Result<usize, StoreError> {
+        let anchors = self.refs_at(link, key);
+        if anchors.is_empty() || !key_fits(self.links[link].kind(), key) {
+            return Err(address_not_found(
+                key,
+                container_address,
+                &self.keys_at(link),
+                self.links[link].is_register,
+            ));
+        }
+        let matched: Vec<usize> = anchors
+            .iter()
+            .copied()
+            .filter(|reference| sel.matches(self.refs[*reference].anchor.tier))
+            .collect();
+        if matched.is_empty() {
+            let mut present: Vec<Tier> = anchors
+                .iter()
+                .map(|reference| self.refs[*reference].anchor.tier)
+                .collect();
+            present.sort_by_key(|tier| std::cmp::Reverse(tier.rank()));
+            return Err(tier_not_found(key, container_address, &present));
+        }
+        Ok(self.lowest(&matched))
+    }
+
+    /// `§2.3`: the selection is by `rank` ASCENDING — the lowest-persistence anchor answers.
+    fn lowest(&self, references: &[usize]) -> usize {
+        *references
+            .iter()
+            .min_by_key(|reference| self.refs[**reference].anchor.tier.rank())
+            .expect("the candidate set is non-empty")
+    }
+
+    /// `§2.2`: the walk, arm by arm. It starts at the register, consumes exactly one segment per step and
+    /// never mutates the store and never installs anything on its way down. Its second member is the
+    /// register's own anchor tier, present only for `L-0`'s empty address.
+    fn walk(
+        &self,
+        address: &[Segment],
+        sel: &TierSel,
+    ) -> Result<(usize, Option<Tier>), StoreError> {
+        if address.is_empty() {
+            // `L-0`: the empty address terminates immediately and resolves to the REGISTER, whose own
+            // reference carries the register's OWN identity marker and NEVER a caller-passed tier
+            // (`§2.1`'s empty-address reference clause, `§1.6` item 3).
+            return Ok((self.register_ref, None));
+        }
+        let mut current = self.register_ref;
+        let mut container_address: Vec<Segment> = Vec::new();
+        for (step, segment) in address.iter().enumerate() {
+            if !segment.is_in_domain() {
+                // `L-1`: outside the segment domain — and NO FURTHER SEGMENT IS CONSUMED, so the container
+                // the mismatch is found in is the one this step stands in (`§2.2`'s arm order, `§8.2`).
+                return Err(malformed_segment(segment, &container_address));
+            }
+            let link = self
+                .link_of(current)
+                .expect("the walk holds an anchored node before each step");
+            if self.links[link].is_register && matches!(segment, Segment::Index(_)) {
+                // `L-INT-REG`: the register carries no index semantics.
+                return Err(address_not_found(
+                    segment,
+                    &container_address,
+                    &self.keys_at(link),
+                    true,
+                ));
+            }
+            let reached = self.select(link, segment, sel, &container_address)?;
+            container_address.push(segment.clone());
+            current = reached;
+            if self.link_of(current).is_none() && step + 1 < address.len() {
+                // `L-4`: a leaf with segments remaining fails verbosely.
+                return Err(leaf_has_no_downstream(
+                    &address[step + 1],
+                    &container_address,
+                ));
+            }
+        }
+        // `L-5`: the address is exhausted and the held node is the addressed target.
+        Ok((current, None))
+    }
+
+    /// `§4.2`'s assembly step, run at every key of the read's recursive walk — **and it is NOT `§2.2`'s
+    /// walk**: the passed set is applied to each address EXACTLY as `§2.3` applies it at a walk step (the
+    /// lowest-persistence anchor WITHIN THE PASSED SET answers, `A11`'s one predicate being its ground), but
+    /// **a key whose anchors lie at NO passed tier contributes NO MEMBER — it is OMITTED** (`§4.2`'s
+    /// reconciliation (a)/(b); `§2.2`'s scope clause (ii); `DD-31`). The omission **produces NO code**: this
+    /// step answers no `L-TIER`'s `TierNotFound` for a key the caller never addressed, assembles no
+    /// out-of-set anchor and never falls back to the lowest-persistence arm `A28` reserves to a `0`-token set.
+    ///
+    /// `None` has exactly ONE meaning here: **no passed version is selectable at this key**, so the member is
+    /// omitted. The zero-tier arm (`TierSel::All`) matches every anchor, so `A28`'s lowest-persistence
+    /// selection runs at every address and **nothing is omitted**.
+    fn select_member(&self, link: usize, key: &Segment, sel: &TierSel) -> Option<usize> {
+        let anchors = self.refs_at(link, key);
+        if anchors.is_empty() {
+            return None;
+        }
+        let matched: Vec<usize> = anchors
+            .iter()
+            .copied()
+            .filter(|reference| sel.matches(self.refs[*reference].anchor.tier))
+            .collect();
+        if matched.is_empty() {
+            return None;
+        }
+        Some(self.lowest(&matched))
+    }
+
+    /// `§4.2`: the read's assembly, recursively, with the selection rule applied at every key. Its fail set
+    /// is EMPTY: the only state a read cannot reach is the ADDRESS it was named (`§2.2`'s scope clause, the
+    /// `L-TIER` at a WALK step) — a descendant the caller did not name is an omitted member, never a failure.
+    fn assemble(
+        &self,
+        reference: usize,
+        sel: &TierSel,
+        address: &mut Vec<Segment>,
+    ) -> Result<StoreValue, StoreError> {
+        match self.node(reference) {
+            Node::Leaf(value) => Ok(value.clone()),
+            Node::Branch(link) => {
+                let link = *link;
+                match self.links[link].kind() {
+                    Kind::Map => {
+                        let mut members = BTreeMap::new();
+                        // **`P: §1` line 96 — *"hashmap, convert to an object, using the same keys"*: the
+                        // walk iterates THE KEYED STRUCTURE'S OWN KEYS**, so the `contains` dedup scan and
+                        // the per-key `refs_at` scan are gone and each member costs its own pair lookup.
+                        let mut keys = self.links[link].children.key_set();
+                        keys.sort_by_key(|key| key.spelling());
+                        for key in keys {
+                            let child = match self.select_member(link, &key, sel) {
+                                Some(child) => child,
+                                // `§4.2` (b): the key's anchors lie at no passed tier, so the member is
+                                // OMITTED — no entry to the assembled `MAP`, and no code at all.
+                                None => continue,
+                            };
+                            let name = match &key {
+                                Segment::Key(name) => name.clone(),
+                                other => other.spelling(),
+                            };
+                            address.push(key);
+                            let value = self.assemble(child, sel, address)?;
+                            address.pop();
+                            members.insert(name, value);
+                        }
+                        Ok(StoreValue::Object(members))
+                    }
+                    Kind::Vec => {
+                        let mut items = Vec::new();
+                        // **`P: §1` line 95 — *"If the downstream link is a vec, convert to array"*: the
+                        // container's positions ARE its contiguous indices (`§1.3`, `R-3`), so the walk
+                        // takes each position in index order and needs no key test to know it holds one.**
+                        for index in 0..self.links[link].children.len() {
+                            let key = Segment::Index(index as u64);
+                            // `§4.2` (b) + `R-3`: an omitted element contributes no entry, so the
+                            // assembled array stays DENSE FROM `0` — its length is the count of the
+                            // container's index keys the passed set selects.
+                            let child = match self.select_member(link, &key, sel) {
+                                Some(child) => child,
+                                None => continue,
+                            };
+                            address.push(key);
+                            let value = self.assemble(child, sel, address)?;
+                            address.pop();
+                            items.push(value);
+                        }
+                        Ok(StoreValue::Array(items))
+                    }
+                }
+            }
+        }
+    }
+
+    /// **`§4.1`'s THIRD READ VERB — THE READ'S ANSWER, COMPILED** (`U-STOREROOM-TIER-READOUT`,
+    /// `D-121-ter` item 1; the mechanism is candidate (a) of `contract.md` `PIN-10` as `D-121-quinquies`
+    /// item 1 decided it). **It is the read-shaped SIBLING of [`Store::assemble`] and not a sixth arm of
+    /// it:** the same recursion, the same [`Store::select_member`] at every key, the same two container
+    /// arms, and the same omitted-member rule (`§4.2` (b), `DD-31`). What it adds is ONE member per node,
+    /// `_tier`, carrying **THAT NODE'S OWN anchor tier** as the ordinary string [`tier_token`] gives
+    /// (`§5.1`).
+    ///
+    /// **THE SHAPE IS A TOTAL FUNCTION OF NODE KIND** (`D-121-ter` item 1, verbatim): an OBJECT node
+    /// answers `{ _tier, …members }` with its members **INLINE**, an ARRAY node answers
+    /// `{ _tier, value: [ … ] }` and a LEAF node answers `{ _tier, value: <the literal> }`. **Every node
+    /// of the answer is therefore an object and no node is a primitive**, which is exactly what lets the
+    /// compilation be an ordinary [`StoreValue`]: the tiers cross the boundary as ORDINARY STRINGS inside
+    /// an ordinary tree, so no byte of the codec moves, no value kind is minted and there is no second
+    /// assembly (`D-121-quinquies` item 1).
+    ///
+    /// **`_tier` IS THE NODE'S OWN TIER AND IS NEVER A SET** (`D-121-ter` item 2): it is the anchor tier of
+    /// the reference this step selected — the walk's own selection at the addressed node (`§2.3`, `A28`'s
+    /// lowest-persistence rule inside the passed set) and [`Store::select_member`]'s at every descendant —
+    /// so a tree whose child stands at a less persistent tier than its parent answers TWO different tokens,
+    /// and a child never inherits its parent's.
+    ///
+    /// **THE ONE COLLISION IS DECLARED AND NOT LEFT TO A MAP'S INSERTION ORDER** (`D-121-ter` item 3): at a
+    /// `MAP` node the compiled member set is the store's own key set with `_tier` **REMOVED** and the
+    /// minted `_tier` **ADDED**, so a caller's stored member at that name is NOT DELIVERED in this answer
+    /// at all — while the default [`Store::read`] still answers it, so nothing is destroyed. `value` is
+    /// never shadowed: it is this compilation's wrapper key at the ARRAY and LEAF kinds alone.
+    ///
+    /// **ITS FAIL SET IS EMPTY, WHICH IS WHY IT ANSWERS NO `Result`**: an omitted member produces no code
+    /// (`§4.2`'s arithmetic), and the compilation mints no arm that can fail. The address, the tier
+    /// argument and the walk's refusals belong to [`Store::read_tiered`], and they are `read`'s five.
+    fn compile_tiered(&self, reference: usize, sel: &TierSel) -> StoreValue {
+        // `PIN-4` (i): the referent, at every node, from the anchor the read's own selection chose.
+        let minted = StoreValue::Str(tier_token(self.tier_of(reference)).to_string());
+        match self.node(reference) {
+            // `R-1`: a leaf's literal, verbatim — and **NEVER ITSELF COMPILED**, because no lawful write
+            // mints an object or an array as a leaf (`PIN-3` (iii)).
+            Node::Leaf(value) => {
+                let mut members = BTreeMap::new();
+                members.insert("_tier".to_string(), minted);
+                members.insert("value".to_string(), value.clone());
+                StoreValue::Object(members)
+            }
+            Node::Branch(link) => {
+                let link = *link;
+                match self.links[link].kind() {
+                    // `R-2`: one member per key, INLINE beside the minted `_tier`, each compiled by this
+                    // same rule.
+                    Kind::Map => {
+                        let mut members = BTreeMap::new();
+                        for key in self.keys_at(link) {
+                            // `PIN-5` (i): the store's own key set WITH `_tier` REMOVED — the minted field
+                            // wins on this node and the caller's stored value at that name is not
+                            // delivered here at all.
+                            if matches!(&key, Segment::Key(name) if name == "_tier") {
+                                continue;
+                            }
+                            let name = match &key {
+                                Segment::Key(name) => name.clone(),
+                                other => other.spelling(),
+                            };
+                            let child = match self.select_member(link, &key, sel) {
+                                Some(child) => child,
+                                // `§4.2` (b) / `DD-31` / `PIN-9` (ii): no passed version is selectable
+                                // at this key, so the member is OMITTED — no name, no node, and NO
+                                // `_tier` to stamp, because there is nothing to stamp it on.
+                                None => continue,
+                            };
+                            members.insert(name, self.compile_tiered(child, sel));
+                        }
+                        members.insert("_tier".to_string(), minted);
+                        StoreValue::Object(members)
+                    }
+                    // `R-3`: the dense array of the same compilation, in index order, under the one wrapper
+                    // key — `D-121-ter` item 1's *"Wrap arrays too"*.
+                    Kind::Vec => {
+                        let mut items = Vec::new();
+                        for index in 0..self.links[link].children.len() {
+                            let key = Segment::Index(index as u64);
+                            let child = match self.select_member(link, &key, sel) {
+                                Some(child) => child,
+                                None => continue,
+                            };
+                            items.push(self.compile_tiered(child, sel));
+                        }
+                        let mut members = BTreeMap::new();
+                        members.insert("_tier".to_string(), minted);
+                        members.insert("value".to_string(), StoreValue::Array(items));
+                        StoreValue::Object(members)
+                    }
+                }
+            }
+        }
+    }
+
+    /// The infallible assembly the journal's state halves and the `file` snapshot use (`§2.3`'s zero-tier
+    /// arm cannot miss: every key it visits holds at least one anchor).
+    fn assemble_all(&self, reference: usize) -> StoreValue {
+        self.assemble(reference, &TierSel::All, &mut Vec::new())
+            .unwrap_or(StoreValue::Null)
+    }
+
+    // -----------------------------------------------------------------------------------------------
+    // §7.2 — the `file` tier.
+    // -----------------------------------------------------------------------------------------------
+
+    fn assemble_at_tier(&self, reference: usize, tier: Tier) -> StoreValue {
+        match self.node(reference) {
+            Node::Leaf(value) => value.clone(),
+            Node::Branch(link) => {
+                let link = *link;
+                match self.links[link].kind() {
+                    Kind::Map => {
+                        let mut members = BTreeMap::new();
+                        // The keyed structure's OWN keys, and the pair's OWN entry (`A34`'s `0`-or-`1`),
+                        // rather than a per-key scan of the key's anchors.
+                        let mut keys = self.links[link].children.key_set();
+                        keys.sort_by_key(|key| key.spelling());
+                        for key in keys {
+                            let name = match &key {
+                                Segment::Key(name) => name.clone(),
+                                other => other.spelling(),
+                            };
+                            if let Some(child) = self.pair_at(link, &key, tier) {
+                                members.insert(name, self.assemble_at_tier(child, tier));
+                            }
+                        }
+                        StoreValue::Object(members)
+                    }
+                    Kind::Vec => {
+                        let mut items = Vec::new();
+                        // **⟶ REPAIRED 2026-10-11 (`F-4b`; the sweep's own first fix, `§7`).** **THE SHIPPED
+                        // ARM `break`s AT THE FIRST POSITION HOLDING NO ANCHOR AT THE PASSED TIER, WHILE
+                        // `assemble` OMITS AND CONTINUES — so the two assemblies of ONE container disagreed
+                        // on the array's length, and for the `file` snapshot that length IS WRITTEN INTO THE
+                        // COMMITTED BYTES (`commit_file`) and reloaded by `boot_load`.** **The declared
+                        // rule is `§4.2` `R-3`'s *"dense from `0` and its length is the container's
+                        // contiguous index count"* read with `§4.2` (b)'s OMISSION: a position whose anchors
+                        // lie at no passed tier contributes NO ELEMENT and the walk CONTINUES to the
+                        // positions beside it — exactly as the keyed arm above omits a member and continues
+                        // (`continue` in `assemble`'s `Kind::Map` arm).** **One token: `break` → `continue` —
+                        // and the two assemblies of one container now answer the SAME length.**
+                        for index in 0..self.links[link].children.len() {
+                            let key = Segment::Index(index as u64);
+                            match self.pair_at(link, &key, tier) {
+                                Some(child) => items.push(self.assemble_at_tier(child, tier)),
+                                // `§4.2` (b) + `R-3`: no passed version at this position ⇒ no element, and
+                                // the positions beside it are still assembled.
+                                None => continue,
+                            }
+                        }
+                        StoreValue::Array(items)
+                    }
+                }
+            }
+        }
+    }
+
+    /// `§7.2` `M-12`: the `file` tier's state — every REGISTER key's `file`-tier version, whole.
+    fn file_snapshot(&self) -> StoreValue {
+        let mut members = BTreeMap::new();
+        for key in self.keys_at(self.register) {
+            let Segment::Key(name) = &key else { continue };
+            let file_anchor = self.pair_at(self.register, &key, Tier::File);
+            if let Some(reference) = file_anchor {
+                members.insert(name.clone(), self.assemble_at_tier(reference, Tier::File));
+            }
+        }
+        StoreValue::Object(members)
+    }
+
+    /// `§7.2` `M-12` + `DD-2`: the commit is atomic at the file — the whole serialized state is written to
+    /// a sibling and renamed over the path, so a failure leaves the prior bytes intact.
+    ///
+    /// **⟶ AMENDED 2026-10-21 — THE COMMIT VERIFIES THE IMAGE IT IS ABOUT TO WRITE: IT RE-DECODES IT AND
+    /// REFUSES, WITH THE EXISTING `FileCommitFailed`, WHEN IT DOES NOT LOAD** (`seams-and-lifecycle.md §7.2`
+    /// item 2 — the clause, in five parts; `docs/decisions.md` · `A144` — the architect's ruling, verbatim:
+    /// *"(B) The commit verifies the image"*). **THE WRITER HAS NO CEILING OF ITS OWN — NO DEPTH CLASS IN
+    /// `§1.4`'s ADMITTED TAXONOMY AND NO DEPTH GUARD IN THIS CRATE — WHILE THE LOADER'S CEILING IS
+    /// `serde_json`'s RECURSION GUARD AT `128` NESTED CONTAINERS, A STACK-OVERFLOW GUARD THAT STANDS AND IS
+    /// NOT LIFTED** (`§7.2` item 7 (f), class (4); `docs/defects.md` · `DEF-2026-10-21-W`) — **SO A VALUE OF
+    /// WALK-DEPTH `127` OR MORE WAS ADMITTED, WAS COMMITTED AS SUCCESS, AND WAS LOST AT THE NEXT BOOT, THE
+    /// WHOLE FILE SILENTLY.** **THE VERIFICATION BELOW IS THE WRITER'S HALF OF THAT CEILING: THE IMAGE IS
+    /// RE-DECODED BEFORE A BYTE IS WRITTEN, AND AN IMAGE THE LOADER WOULD REFUSE IS REFUSED HERE WITH THE
+    /// EXISTING `FileCommitFailed` (`contract.md §8.1` #15 — NO NEW FAIL CODE, NO NEW ROW, NO NEW
+    /// VOCABULARY), SO THE `file` TIER'S ROUND TRIP (`contract.md §5.2`'s ROW `P-IM-1`) IS EXACT FOR EVERY
+    /// ADMITTED VALUE WHOSE COMMITTED IMAGE THE LOADER ADMITS; FOR AN ADMITTED VALUE WHOSE IMAGE THE LOADER
+    /// REFUSES, THE COMMIT REFUSES, THE VALUE NEVER PERSISTS, AND NO ROUND TRIP EXISTS — AND THE FILE TIER
+    /// CAN NO LONGER HOLD A FILE ITS OWN LOADER REFUSES.** **THE PRICE: ONE RE-DECODE PER COMMIT.** **THE
+    /// PRIOR BYTES STAND: THE REFUSAL IS BEFORE THE SIBLING IS
+    /// WRITTEN, SO THE PATH IS NEVER TOUCHED, AND THE CALLER'S OWN FAILURE ARM ROLLS THE WRITE BACK FIRST
+    /// AND ANSWERS SECOND (`surface.md §2.11` clause 5).**
+    ///
+    /// **⟶ AND ITS FIRST TWO ACTS ARE FACTORED INTO `Store::compose_verified_image`, 2026-11-17 (`U-STOREROOM-03`):
+    /// the composition and the re-decode move into ONE helper that this writer and the export share, so the
+    /// verification is taken ONCE and by both callers.** **WHAT STAYS HERE IS THE TWO FILESYSTEM ACTS AND NOTHING
+    /// ELSE** — the sibling's write and the rename — so the export can never reach a name, create a sibling or touch
+    /// a byte.
+    fn write_file(&self, address: &[Segment]) -> Result<(), StoreError> {
+        let text = self.compose_verified_image(address)?;
+        // **⟶ AND THE TWO FILESYSTEM ACTS LEAVE THE `wasm32` BUILD, 2026-11-17** (`D-154` item 4; `D-155` item 4;
+        // `docs/L1/wasm-realm.md` §4). **THE SIGNATURE AND THE COMPOSE STAY ON BOTH TARGETS**, because `commit_file` and
+        // `save_file_delta` both name this function and `save_file_delta` is `save_state`'s own body.
+        //
+        // **AND WHAT THE `wasm32` ARM ANSWERS IS DEAD CODE, WHICH IS WHY `D-155` ITEM 4 NEEDED NO DECLARATION FOR IT**:
+        // the path is empty on every construction there (step 3's `Path` arm refuses) and `save_file_delta` returns early
+        // on an empty path, **so nothing on either side of the boundary reaches this arm** — and **`commitFile` is not
+        // an entry on that build at all** (18 exports, `D-155` item 4). **The arm answers the store's own rank `15`
+        // `FileCommitFailed`, because a save that cannot be committed is exactly what it would be, and no reader exists to
+        // disagree with it.** **TWO ARMS AND NO SHARED TAIL**: each is the function's own tail on its own target, so
+        // neither target compiles a byte of the other's act.
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            let temp = format!("{}.snst-commit-{}", self.file_path, std::process::id());
+            let committed = std::fs::write(&temp, text.as_bytes())
+                .and_then(|_| std::fs::rename(&temp, &self.file_path));
+            if committed.is_err() {
+                let _ = std::fs::remove_file(&temp);
+                return Err(file_commit_failed(address, &self.file_path));
+            }
+            Ok(())
+        }
+        #[cfg(target_arch = "wasm32")]
+        {
+            let _unread = text;
+            Err(file_commit_failed(address, &self.file_path))
+        }
+    }
+
+    /// **`surface.md §2.11` CLAUSE 2 / `contract.md §7.2` ITEM 2 AS AMENDED 2026-10-15 — THE TERMINAL ARM'S
+    /// OWN ACT.** **THE `file`-TIER DURABLE COMMIT IS NO LONGER A VERB'S ARM: IT IS THE TERMINAL ARM'S
+    /// OWN STEP ON ITS PASSING ARM, ITS FIRST ACT, BEFORE ANY BODY OF THE DELIVERED SET IS INVOKED**
+    /// (`surface.md §2.11` clauses 2–3). **Its subject is the SETTLED RECORD'S OWN `op`** — *"the record the
+    /// kernel settled carries the journal op that write returned, and that op is the key this act reads"*:
+    /// the entry this op id names is looked up in the journal, and the act is the `file` tier's and no other
+    /// (`§7.2` item 2, whose eligibility ground is **WHAT THE ACT MOVED** and not the op's own tier word —
+    /// `strata/decisions.md` · `D-106` arm 2, and the clause is cited and no longer quoted here because
+    /// `D-107` item 4 corrected the sentence that stood at this position). **⟶ AND THE ITEM'S REVERSAL HALF IS
+    /// NOT THIS ACT'S FROM 2026-11-02**: the reversal commits on the STATE it left, through the entry's own
+    /// absent arm ([`Store::save_state`]) and after the package's judgement — so this verb's subject is a record
+    /// and no reversal's (`strata/decisions.md` · `D-112` items 1–2, `D-116` item 2).
+    ///
+    /// **⟶ AND THE ELIGIBILITY GROUND IS TWO DISJUNCTS WITH ONE MEANING, 2026-11-02 (`D-106` arm 2): AN OP IS
+    /// ELIGIBLE EXACTLY WHEN THE ACT IT NAMES MOVED AT LEAST ONE VERSION STANDING AT `Tier::File`.** The first
+    /// disjunct is the op's own tier word (`op.tier == Some(Tier::File)`: a `file`-tier write and a tier-named
+    /// `file` delete, both already conforming); **the second is the WHOLE-TARGET `delete`, whose `op.tier` is
+    /// `None` and whose own entry records the versions it removed WITH THEIR TIERS** (`Entry::captured`,
+    /// `Captured::tier`) — so the predicate is read off the store's own record and needs no new member, no new
+    /// op and no caller's hint. **AND ITS NEGATIVE ARM IS THE OTHER HALF: a whole-target delete whose removed
+    /// set held NO `file`-tier version moved no `file`-tier data and SAVES NOTHING** — the ground reads
+    /// `captured`, never the act's scope.
+    /// **⟶ AND FROM 2026-11-02 THE SECOND DISJUNCT IS READ AS A DEPARTURE AND ITS POPULATION IS EVERY OTHER OP
+    /// (`strata/decisions.md` · `D-106` item 2, `PIN-17`)**: a `mem`- or `temp`-tier WRITE of a CONTAINER value
+    /// that PURGES a `file`-tier version — the re-mint arm above pushes a leaf standing at a higher rank into
+    /// `doomed` — **moved `file`-tier data and is eligible like any other**, while a SCALAR at the same address
+    /// SHADOWS the durable version and owes nothing. **The reading is [`Store::save_owed`]'s own and is spelled
+    /// there rather than re-derived here.**
+    ///
+    /// **ON THE FAILURE ARM THE STORE ROLLS THE WRITE BACK FIRST AND ANSWERS `FileCommitFailed` SECOND**
+    /// (`§8.1` #15; `surface.md §2.11` clause 5): the entry is removed from the journal, the pre-state the
+    /// entry captured is restored, the marks its own append set are undone and the sequence is stepped
+    /// back — **the caller is never handed the rolled-back state**, and a read over it answers the store's
+    /// own `AddressNotFound`.
+    ///
+    /// **AN OP ID NO STANDING ENTRY NAMES IS A NO-OP**: the act is the passing arm's own step and the
+    /// failing arm owes nothing (`§2.11` clause 1).
+    ///
+    /// **⟶ AND AN ENTRY WHOSE OWN SAVE HAS ALREADY BEEN PERFORMED IS A NO-OP TOO, ADDED 2026-10-15
+    /// (`DEF-2026-10-15-Z`; `implementation-plan.md §10.9` row 3): THE ACT IS PERFORMED ONCE PER RECORD.**
+    /// **A `file`-tier write on the passing arm COMMITS ONCE**, and *"a save performed twice for one record"*
+    /// is that row's own FAILS-IT state — **so a second drive of the same `op` writes NO byte: the
+    /// re-serialization of a register that a memory-only act (`delete`, `rollback`, a `mem`-tier write) has
+    /// since changed would move the path off *"the bytes of the LAST SUCCESSFUL `file`-TIER WRITE"*, which is
+    /// `§7.2` item 5's own declared state** (`§2.11` clause 2; the store's `file` state is what the journal
+    /// restores it to, `§6.4` `M-11`).
+    pub fn commit_file(&mut self, op_id: &str) -> Result<(), StoreError> {
+        let Some(index) = self
+            .journal
+            .iter()
+            .position(|entry| entry.op.opId == op_id)
+        else {
+            return Ok(());
+        };
+        if !self.save_owed(index) {
+            return Ok(());
+        }
+        if self.journal[index].saved {
+            return Ok(());
+        }
+        let address = self.journal[index].op.address.clone();
+        match self.write_file(&address) {
+            Ok(()) => {
+                self.journal[index].saved = true;
+                Ok(())
+            }
+            Err(failure) => {
+                let entry = self.journal.remove(index);
+                if let Some(home) = &entry.home {
+                    self.restore(home, &entry.captured);
+                }
+                // **⟶ DELETED 2026-11-17 (`strata/decisions.md` · `D-160` item 3): `restore_compaction` STOOD
+                // HERE AND THE CALL IS WITHDRAWN WITH IT.** It re-marked the entries this append's compaction
+                // had marked, because a MARK is reversible and a failed commit's residue may not include one
+                // (`§3.5`, `§6.4` `M-6`). **A DROP IS NOT REVERSIBLE AND IS NOT THE FAILED ACT'S RESIDUE TO
+                // UNDO**: the entry it removed is gone, `journal_floor` keeps naming it, and the observable
+                // state the failure must leave byte-identical is untouched by the drop — the journal keeps
+                // FEWER entries and the floor, never a mark. **`last_seq -= 1` is unmoved**: the popped entry's
+                // ordinal is the append's own and the next append re-takes it.
+                self.last_seq -= 1;
+                Err(failure)
+            }
+        }
+    }
+
+    /// **⟶ ADDED 2026-11-17 BY `U-STOREROOM-04` — `saveSucceeded(opId)`: THE MARK THE `saveCall` ARM OWES THE
+    /// ONCE-PER-RECORD LAW, AND NO BYTE** (`D-144` item 6; `D-145` item 3).
+    ///
+    /// **IT SETS `journal[index].saved = true` AND DOES NOTHING ELSE**: no `write_file`, no composition, no journal
+    /// append, no sequence move, **no byte**. **THE THREE ARMS, AND THE TWO `commit_file` TAKES THIS ACT DOES NOT**
+    /// (`D-145` item 3): an op this store does not hold **REFUSES** at `JournalOpUnknown` (rank `10`); **the `save_owed`
+    /// gate is DROPPED** (its subject is *where* a save is owed, never *whether one has run*, and `commit_file` asks it
+    /// before it asks `saved`, so the mark's only reader is unreachable for such an entry); **an already-saved entry
+    /// answers `Ok(())` and writes nothing** — idempotent, the reading `D-145` item 3 left open and this frame takes.
+    ///
+    /// **THE POSITION IS CLASSIFIED BY THE STORE'S OWN CLASSIFIER**, so a blank op id answers `AddressMalformed` naming
+    /// `opId` (the design's `O-6` preference: one classifier, never two).
+    pub fn save_succeeded(&mut self, op_id: &str) -> Result<(), StoreError> {
+        // THE FULL PATH, BECAUSE THIS FRAME'S ONE POSITION IS NAMED `op_id` (`commitFile`'s declared form) and the
+        // bare name would resolve to the parameter rather than to the classifier.
+        let token = crate::args::op_id(&OpIdArg::Id(op_id.to_string()))?;
+        let Some(index) = self.journal.iter().position(|entry| entry.op.opId == token) else {
+            return Err(journal_op_unknown(&token));
+        };
+        self.journal[index].saved = true;
+        Ok(())
+    }
+
+    /// **⟶ ADDED 2026-11-17 BY `U-STOREROOM-04` — `saveFailed(opId)`: THE MIRROR, AND `commit_file`'s FAILURE ARM
+    /// AND NOTHING ELSE** (`D-146` item 1).
+    ///
+    /// **EXACTLY the four steps of `commit_file`'s failure arm, in the tree's own order**: the entry removed from the
+    /// journal · `restore(home, &entry.captured)` · `last_seq -= 1` · answer. **THE FIFTH STEP — the
+    /// `restore_compaction(&entry.compacted)` re-mark — IS DELETED 2026-11-17 by `D-160` item 3** and for the same
+    /// reason it is deleted at its sibling above: **compaction DROPS an entry and a drop is no mark to put back**,
+    /// so a failed save leaves the journal shorter and the floor advanced, exactly as a passing one does.
+    /// **IT WRITES NO BYTE**, which keeps the store's own writer suppressed on this arm (`D-133` item 3) and the journal
+    /// the STORE's, never the package's. **It asks no gate**: a failure that conditionally unwound would leave standing a
+    /// record the store's own writer would have removed.
+    ///
+    /// **★ THE UNKNOWN-OP ARM BELOW IS A READING AND NOT A RULING.** `D-146` item 1 of its unsettled prices both arms and
+    /// chooses neither: **(a) refuse at `JournalOpUnknown`**, the exact mirror of `save_succeeded`, whose cost is a second
+    /// failure pre-empting the first; **or (b) answer `Ok(())` as a no-op**, `commit_file`'s own silent arm. **This frame
+    /// takes (a)**, mirroring the success arm, and this paragraph is the reading's own name.
+    pub fn save_failed(&mut self, op_id: &str) -> Result<(), StoreError> {
+        let token = crate::args::op_id(&OpIdArg::Id(op_id.to_string()))?;
+        let Some(index) = self.journal.iter().position(|entry| entry.op.opId == token) else {
+            return Err(journal_op_unknown(&token));
+        };
+        let entry = self.journal.remove(index);
+        if let Some(home) = &entry.home {
+            self.restore(home, &entry.captured);
+        }
+        // **⟶ `restore_compaction(&entry.compacted)` STOOD HERE AND IS DELETED 2026-11-17 (`D-160` item 3)** —
+        // the reason is its sibling's at `commit_file`'s failure arm: a drop is not a mark to put back.
+        self.last_seq -= 1;
+        Ok(())
+    }
+
+    /// **⟶ ADDED 2026-11-02 — THE STATE-KEYED SAVE: THE SECOND READING OF `OpIdArg`'S ABSENT CARRIER, AND THE
+    /// SECOND KEY ON THE STORE'S ONE WRITER** (`strata/decisions.md` · `D-116` item 2; `D-112` items 1–2). **The
+    /// store writes on TWO keys and no third: an OP, for a write's and a delete's and a registration's close
+    /// ([`Store::commit_file`], unmoved); and a STATE, here, for the reversal's save** — which the package makes
+    /// after its constraint judgement has passed, through the addon entry `commitFile`'s ONE position supplied
+    /// with nothing (`bindings/js/src/facade.rs`'s absent arm).
+    ///
+    /// **IT IS NOT A SECOND INSTRUMENT**: the whole body is [`Store::save_file_delta`] at the register's own
+    /// subject (`&[]`, `D-55` item 2's spelling of the root), which is the instrument `replayMark` already saves
+    /// through — so **the comparison is still the guard and the serialization is still `write_file`'s**, and a
+    /// second identical reversal writes no byte because the standing image already holds the state it stands at
+    /// (`D-116` items 3 and 5).
+    ///
+    /// **THE SUBJECT IS THE REGISTER AND NOT THE REVERSED OP'S ADDRESS**: the image any save writes is the whole
+    /// register's (`§7.2` `M-12`), so a subject is a failure's NAME and never a write target — **and no record
+    /// stands for a reversal to be named by** (*"a save is an effect and not an op"*, `§6.4` `M-9`). **So a save
+    /// that cannot land answers `FileCommitFailed` naming the register, not an op that was already undone** — and
+    /// it removes no entry, restores no pre-state and steps no `seq` (`D-107` item 3), because it reaches
+    /// `write_file` and never this file's own failing arm at [`Store::commit_file`].
+    ///
+    /// **AND `Store::rollback` NO LONGER CALLS THIS INSTRUMENT**: the reversal's save left the store with
+    /// `D-112` item 2, and the arm that owes it is the judgement's. [`Store::save_file_delta`] keeps its bytes and
+    /// gains this caller while `replayMark` keeps its own.
+    pub fn save_state(&self) -> Result<(), StoreError> {
+        self.save_file_delta(&[])
+    }
+
+    /// **THE ELIGIBILITY GROUND OF ONE STANDING ENTRY — `D-106` ARM 2, SPELLED ONCE AND READ BY
+    /// `commit_file` ALONE.** **TRUE EXACTLY WHEN THE ACT THE ENTRY NAMES MOVED AT LEAST ONE VERSION STANDING
+    /// AT `Tier::File`.** The op's own tier word answers the first two classes (a `file`-tier write and a
+    /// tier-named `file` delete); **every other op is answered by THE DEPARTURE ITS TWO RECORDS SHOW**, and
+    /// no longer by a count of what its pre-state held.
+    ///
+    /// **⟶ AND THE SECOND DISJUNCT IS READ AS A DEPARTURE AND NOT AS A CARDINALITY, 2026-11-02
+    /// (`strata/decisions.md` · `D-106` item 2, `PIN-17`).** **An op is eligible exactly when at least one
+    /// version standing at `Tier::File` LEFT THE REGISTER DURING THE ACT — wrote over, replaced at its own
+    /// tier, or PURGED** — and the store reads *"left"* off the two records it already holds on the entry:
+    /// [`Entry::captured`], the pair's pre-state taken at the act, and the entry's own post-state, both
+    /// `Vec<Captured>` carrying [`Captured::tier`]. **A `file`-tier `Captured` in the pre-state with NO
+    /// COUNTERPART in the post-state left the register during the act**, and nothing else did.
+    /// **THE GROUND THIS REPLACES WAS A COUNT** — *"its `captured` set holds a version at `Tier::File`"* —
+    /// **and it was right by accident on the whole-target `delete`** (everything it captured leaves) **and
+    /// wrong in both directions elsewhere**: a `mem`- or `temp`-tier write of a CONTAINER value PURGES the
+    /// `file`-tier version standing as a leaf above it (`§1.1`'s re-mint arm, above) and its `captured` holds
+    /// that version, so the purge WAS owed a save the count refused; **and a `mem`- or `temp`-tier SCALAR at
+    /// the same address SHADOWS the durable version, leaves it standing, and its `captured` holds it too** —
+    /// so the count would have made every shadowing write eligible and written a byte for a datum nothing
+    /// durable moved. **The departure test answers `true` for the first and `false` for the second, which is
+    /// the rule's own meaning and not a second rule.** **NO MEMBER IS MINTED FOR IT**: `Entry` gains nothing,
+    /// `Captured` gains nothing and `JournalOp::tier`'s domain is unmoved.
+    ///
+    /// **The mark is the entry's own and the act is performed once per record**: this predicate answers WHERE
+    /// a save is owed and never WHETHER one has run — that is `Entry::saved`'s question, below.
+    fn save_owed(&self, index: usize) -> bool {
+        let entry = &self.journal[index];
+        if entry.op.tier == Some(Tier::File) {
+            return true;
+        }
+        entry.captured.iter().any(|before| {
+            before.tier == Tier::File
+                && !entry
+                    .after
+                    .iter()
+                    .any(|now| now.tier == before.tier && now.path == before.path)
+        })
+    }
+
+    /// `§7.2` item 6: the boot loads the `file` tier's content if the file exists — **step 7 of `§7.1`'s
+    /// amended sequence, which produces `0` registrations (`DD-38`).** A path-less instance (`filePath`
+    /// ABSENT) has no `file` tier at all, so nothing is loaded and the register keeps its `mem` tier.
+    ///
+    /// **⟶ AMENDED 2026-10-15 (`§7.1` step 7 as amended; `parameter-semantics.md §2.21`): the boot ANSWERS
+    /// THE MEMBERS IT LOADED**, so that the LOAD instant's own validation of the supplied `constraints`
+    /// list can be performed over the image this boot produced and over nothing else — *"the list's
+    /// validation at the construction and its validation at the load"*.
+    ///
+    /// **⟶ AND AMENDED AGAIN 2026-10-15 (`DEF-2026-10-15-Z`): THE ANSWER IS `Option<usize>` — `None` where
+    /// NO IMAGE STOOD THERE FOR THE LOAD-SIDE CHECK TO MEASURE, `Some(members)` where one did.** **`None` is
+    /// the two classes the clause exempts and no others: no `filePath` at all, and a file that is ABSENT or
+    /// ZERO-LENGTH** (`§7.2` item 5 and item 6; `§10.4` part 3 — the construction's own exclusive create
+    /// *"LEAVES IT ZERO-LENGTH"*). **A PRESENT, NON-ZERO-LENGTH FILE IS A STATE WHETHER OR NOT IT DECODES
+    /// AND WHETHER OR NOT IT ADMITS A MEMBER, so `{}` answers `Some(0)` and NOT `None`, and the caller's
+    /// validation runs over it** — **which is the reading `§7.2` item 5's own reason gives: *"WHICH IS WHAT
+    /// DETECTS A CORRUPT OR OBSOLETE FILE, one whose state no longer satisfies the constraints the
+    /// application now supplies"*.**
+    /// **⟶ AND ITS BODY IS THE STORE'S ONE READ OF THE PATH FROM 2026-11-02 (`D-110` item 2): the load reads
+    /// nothing itself any more, it MAPS [`Store::read_file_image`]'s one answer onto this declared
+    /// `Option<usize>` — `None` for the three classes item `DEF-2026-10-15-Z` exempts and `Some(loaded)` for a
+    /// present, non-zero-length image, whose members it mints through [`Store::install_file_image`] at
+    /// `Tier::File`. `D-110` item 3 forbids widening this answer and this signature stands unmoved.**
+    fn boot_load(&mut self) -> Option<usize> {
+        let image = self.read_file_image();
+        match image {
+            FileImage::NoImage => None,
+            // **A PRESENT, NON-ZERO-LENGTH IMAGE IS A STATE WHETHER OR NOT IT DECODES**: the loader refuses
+            // these bytes, and the boot still answers that an image STOOD there — `Some(0)` members admitted.
+            FileImage::Refused => Some(0),
+            FileImage::Members(members) => Some(self.install_file_image(&members)),
+        }
+    }
+
+    /// **⟶ ADDED 2026-11-17 BY `U-STOREROOM-05` — THE LOADER'S TAIL, FACTORED SO A SEED AND A FILE ARE CLASSIFIED BY ONE
+    /// ACT** (`D-135` item 1; `D-137` item 4).
+    ///
+    /// **It is `read_file_image`'s LAST THREE ACTS and nothing else** — `json::decode`, the `Ok(StoreValue::Object(_))`
+    /// acceptance and the `is_admitted()` filter — so *"decoded by the store's own decoder tail"* is ONE body and no
+    /// second parser enters either half. **IT IS AN ASSOCIATE FUNCTION AND NOT A METHOD**: it reads no path and takes no
+    /// `&self`, which is what makes the decode's own clause structural rather than documentary. **AND IT HAS NO `NoImage`
+    /// ARM**: the absence of an image is a fact about a PATH and never about text.
+    fn classify_image(text: &str) -> FileImage {
+        match json::decode(text) {
+            Ok(StoreValue::Object(members)) => FileImage::Members(
+                members
+                    .into_iter()
+                    .filter(|(_, value)| value.is_admitted())
+                    .collect(),
+            ),
+            _ => FileImage::Refused,
+        }
+    }
+
+    /// **THE ONE PLACE THE BYTES AT `file_path` ARE READ AND DECODED, AND THE ONE PLACE THE THREE CLASSES ARE
+    /// SPELLED — `D-110` ITEM 2.** The boot ([`Store::boot_load`]) and the seed's own read reach the file through
+    /// this answer and neither reads the path beside it; **a fact the answer does not carry would be carried out
+    /// of this frame rather than re-derived next to it.** **⟶ AND THE REGENERATION IS ITS THIRD CALLER, SAID HERE
+    /// FROM 2026-11-17 (`strata/decisions.md` · `D-164` ITEM 1): the reversal whose required op the compaction took
+    /// rebuilds its base from this answer whenever the store has a path** ([`Store::regenerate`], restored by that
+    /// ruling) — **which is why the path-less store answers the token instead: no reader, no base, no
+    /// regeneration.** **IT IS A PURE READ:** no node is minted, no anchor is installed, nothing is mutated, so a
+    /// caller may refuse on this answer and leave the store exactly where it found it.
+    fn read_file_image(&self) -> FileImage {
+        // **⟶ AND THE ONE PLATFORM ACT LEAVES THE `wasm32` BUILD, 2026-11-17** (`D-154` item 4; `docs/L1/wasm-realm.md`
+        // §4). **THE FUNCTION STAYS ON BOTH TARGETS** — four callers name it and **all four already answer the mem-tier
+        // way through the empty-path return above** — so only the read moves, and it moves as ONE TAIL PER TARGET: on
+        // `wasm32` the path is empty on every construction, so `NoImage` is the whole answer and the decode's tail is
+        // never reached there; on every other target the read, the empty-text class and `classify_image`'s tail stand byte
+        // for byte, because they are facts about TEXT and the SEED decodes through that tail on every build.
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            let Ok(text) = std::fs::read_to_string(&self.file_path) else {
+                return FileImage::NoImage;
+            };
+            if text.is_empty() {
+                return FileImage::NoImage;
+            }
+            // **⟶ THE TAIL IS `classify_image` FROM 2026-11-17 (`U-STOREROOM-05`)**, so the boot's class, the regeneration's
+            // class and the seed's class are ONE decode; the `NoImage` arms above stay this frame's own, because they are
+            // facts about a path and never about text.
+            Store::classify_image(&text)
+        }
+        #[cfg(target_arch = "wasm32")]
+        FileImage::NoImage
+    }
+
+    /// **THE LOAD'S INSTALL, FACTORED OUT SO THE BOOT AND THE REGENERATION INSTALL AN IMAGE BY ONE ACT —
+    /// `D-110` items 2 and 4.** Every member the reader admitted is minted at `Tier::File`, which is the tier
+    /// the boot gives every member it loads, and the answer is the number it minted (the boot's `Some(loaded)`).
+    /// **It is the `mint` every `file`-tier write performs** (`Tier::File`, the same-pair replacement the
+    /// write's own arms carry), so the graph a regeneration's base leaves is the graph a boot over the same
+    /// bytes would stand at.
+    fn install_file_image(&mut self, members: &[(String, StoreValue)]) -> usize {
+        let mut loaded = 0;
+        for (name, value) in members {
+            let link = self.register;
+            self.mint(link, Segment::Key(name.clone()), Tier::File, value);
+            loaded += 1;
+        }
+        loaded
+    }
+
+    // -----------------------------------------------------------------------------------------------
+    // §3 — the write's install stage, the purge and the mint.
+    // -----------------------------------------------------------------------------------------------
+
+    /// `§3.3`: mint a node (or a whole branch-tree, recursively) and its child anchor at `tier`. Every
+    /// anchor the write mints carries the write's tier (`DD-10`), and `(key, tier)` is the composite key —
+    /// at most one child anchor per pair (`P: §15 · A34`).
+    fn mint(&mut self, link: usize, key: Segment, tier: Tier, value: &StoreValue) -> usize {
+        self.install(link, key, tier, value, false)
+    }
+
+    /// **⟶ STEP (a) OF THE REPAIR, 2026-10-11 (`DEF-18`; the architect's own observation at
+    /// `docs/specs/storeroom-js-rca-scaling.md §5-bis` — *"The write doesn't have to look up the written
+    /// siblings, it only has to check the index/tier the write occurs at, which is O(1)"*) — THE VACUOUS
+    /// SAME-PAIR LOOKUP IS REMOVED, and the GENUINE one is kept exactly where it is owed:**
+    ///
+    /// * **`fresh` is TRUE at the two recursion sites below and nowhere else** — each of them calls
+    ///   `new_link` first, whose `Children` begins EMPTY, and then installs into it **once per member of
+    ///   the value being written (its object's distinct names, its array's contiguous indices)**. **No
+    ///   `(key, tier)` pair can stand there**, so the same-pair access is provably empty and the lookup
+    ///   and its removal are skipped: **the `Σ k ≈ n²/2` the RCA measured is gone from a container write,
+    ///   and this holds whatever structure the container uses.**
+    /// * **`fresh` is FALSE at every write site — `mint` from `write` (`W-1`'s replacement, `W-6`'s purge
+    ///   and the re-mint arm), from `rebuild`'s two levels, and from the boot's `boot_load`** — so **the
+    ///   GENUINE same-pair lookup still runs there and still removes the anchor standing at the pair**,
+    ///   which is `A34`'s one-anchor-per-pair rule and the write arms' own replacement semantics. The
+    ///   removal at those sites is bounded by the tier count, exactly as `§5-bis` (2) states.
+    ///
+    /// The pair is resolved through the declared structure's own `O(1)` access, so the lookup that IS owed
+    /// costs one pair's own answer rather than a scan of the siblings.
+    fn install(
+        &mut self,
+        link: usize,
+        key: Segment,
+        tier: Tier,
+        value: &StoreValue,
+        fresh: bool,
+    ) -> usize {
+        if !fresh {
+            if let Some(doomed) = self.pair_at(link, &key, tier) {
+                // **`U-13`/`U-14`: THE `debug_assert_eq!` THAT KEPT THE TWO DECLARATIONS HONEST IS GONE WITH
+                // THE SECOND DECLARATION.** It compared the link's `container` marker against the structure's
+                // own `kind()` — a release-absent check (`V-2`) over a copy that had no reason to exist,
+                // because `F-7`'s *"the kind IS the variant"* makes the structure the ONE source of the kind
+                // (`Link::kind()`). There is nothing left to drift, so there is nothing left to assert.
+                // A REPLACEMENT: the index the pair stands at stays occupied by the anchor installed
+                // below, so no position closes up and no renumbering runs.
+                self.remove_refs(link, &[doomed], false);
+            }
+        }
+        let node = match value {
+            StoreValue::Object(members) => {
+                let child_link = self.new_link(Kind::Map);
+                for (name, member) in members {
+                    self.install(child_link, Segment::Key(name.clone()), tier, member, true);
+                }
+                self.new_node(Node::Branch(child_link))
+            }
+            StoreValue::Array(items) => {
+                let child_link = self.new_link(Kind::Vec);
+                for (index, item) in items.iter().enumerate() {
+                    self.install(child_link, Segment::Index(index as u64), tier, item, true);
+                }
+                self.new_node(Node::Branch(child_link))
+            }
+            leaf => self.new_node(Node::Leaf(leaf.clone())),
+        };
+        // **`DD-44`: a reference a SEGMENT reaches carries `register_marker: false`** — the marker is TRUE on
+        // the register's own reference ALONE (`§1.6` item 4 (c)), and this is the one mint every other
+        // reference in the store passes through.
+        // **`§1.2`'s dated clause of 2026-10-21: the anchor NO LONGER CARRIES `key`, and the `key` argument
+        // above is NOT copied into it** — the container's own position IS the key and `Store::derived_key`
+        // reads it back off the structure, so no anchor caches a key any more and the cell opens `None` for
+        // every reference this mint builds.
+        let reference = self.new_ref(
+            ChildAnchor {
+                tier,
+                register_marker: false,
+                derived_key: RefCell::new(None),
+            },
+            node,
+        );
+        // The one install: a keyed container files the anchor under its own key and tier, an array
+        // container places it at its own contiguous index (`§1.3`).
+        self.links[link].children.install(key, tier, reference);
+        reference
+    }
+
+    /// The parent link and the last key an address names, when the address resolves.
+    fn locate(&self, address: &[Segment]) -> Option<(usize, Segment)> {
+        let (last, parents) = address.split_last()?;
+        // An EMPTY parent chain is `L-0`: the parent IS the register, whose link is the register's own —
+        // `walk`'s `L-0` reference names no child of it, so it must not be resolved as one.
+        let link = if parents.is_empty() {
+            self.register
+        } else {
+            self.link_of(self.walk(parents, &TierSel::All).ok()?.0)?
+        };
+        Some((link, last.clone()))
+    }
+
+    /// The pre-state of an operation, transitively (`§6.2` property 1): the version set of the addressed
+    /// node's OWN pair, AND the version set of every key/index beneath it — because destroying or
+    /// replacing a version CASCADES to its whole downstream subtree (`§3.3` item 3, `§3.4` arms
+    /// `W-1`/`W-2`/`W-6`), and a re-mint at one tier would otherwise fold every descendant version into
+    /// that tier. Each entry's `path` is relative to the operation's own address.
+    fn capture(&self, home: &PairHome) -> Vec<Captured> {
+        let mut captured = Vec::new();
+        for reference in self.refs_at(home.link, &home.key) {
+            let tier = self.refs[reference].anchor.tier;
+            captured.push(Captured {
+                path: Vec::new(),
+                under: None,
+                tier,
+                value: self.assemble_all(reference),
+            });
+            self.capture_below(reference, Vec::new(), tier, &mut captured);
+        }
+        captured
+    }
+
+    /// **THE WHOLE REGISTER'S STATE, IN THE SAME PER-VERSION SHAPE** — what an operation at the EMPTY address
+    /// leaves **and, since 2026-10-27 (`D-43` item 3), what such an operation REMOVED**: the delete's
+    /// pre-state at the empty address, without which its entry could not be reversed. The empty address names
+    /// no single pair, so its paths are ABSOLUTE from the register and its top-level entries carry
+    /// `under: None` exactly as an operation's own node does.
+    fn capture_register(&self) -> Vec<Captured> {
+        let mut captured = Vec::new();
+        for key in self.keys_at(self.register) {
+            for reference in self.refs_at(self.register, &key) {
+                let tier = self.refs[reference].anchor.tier;
+                captured.push(Captured {
+                    path: vec![key.clone()],
+                    under: None,
+                    tier,
+                    value: self.assemble_all(reference),
+                });
+                self.capture_below(reference, vec![key.clone()], tier, &mut captured);
+            }
+        }
+        captured
+    }
+
+    /// Every version standing BELOW one anchor, at every key/index path, with the value that version's
+    /// own subtree reads as at that moment. `under` is the tier of the enclosing version whose node holds
+    /// this level's pairs — the association the restore rebuilds on (`Captured::under`).
+    fn capture_below(
+        &self,
+        reference: usize,
+        path: Vec<Segment>,
+        under: Tier,
+        captured: &mut Vec<Captured>,
+    ) {
+        let Some(link) = self.link_of(reference) else {
+            return;
+        };
+        for key in self.keys_at(link) {
+            let mut child_path = path.clone();
+            child_path.push(key.clone());
+            for child in self.refs_at(link, &key) {
+                let tier = self.refs[child].anchor.tier;
+                captured.push(Captured {
+                    path: child_path.clone(),
+                    under: Some(under),
+                    tier,
+                    value: self.assemble_all(child),
+                });
+                self.capture_below(child, child_path.clone(), tier, captured);
+            }
+        }
+    }
+
+    /// The restore the rollback and the `file` tier's automatic rollback run (`§6.4`, `§7.2` item 3). It
+    /// re-mints EVERY captured version at its OWN tier — the addressed node's own version set AND every
+    /// version beneath it — so the subtree comes back whole and `§3.5`'s *"byte-identical to its state
+    /// before it"* holds for the failed commit.
+    fn restore(&mut self, home: &PairHome, captured: &[Captured]) -> bool {
+        let own: Vec<Captured> = captured
+            .iter()
+            .filter(|entry| entry.path.is_empty())
+            .cloned()
+            .collect();
+        if self.refs_at(home.link, &home.key).is_empty() && captured.is_empty() {
+            // The pair's own node is gone and no version of it stood before the operation: nothing stood
+            // there to put back.
+            return true;
+        }
+        self.rebuild(home.link, Vec::new(), home.key.clone(), &own, captured);
+        true
+    }
+
+    /// Rebuild the pair a level walks, and — beneath it — every captured path, each at its OWN tier. Each
+    /// level clears the pair it walks, THEN writes its own version set and recurses into the child pairs
+    /// those versions hold — so each descendant version is written on the node of the PARENT VERSION it hung
+    /// under, never on a node the rebuilt tree has left behind.
+    ///
+    /// **⟶ CORRECTED 2026-10-27 WITH THE MARK RESTORE (`§6.6`), AND THE DEFECT IT CORRECTS WAS MEASURED.**
+    /// The child-level lookup stood as `refs_at(base, &last)` — the ENCLOSING CONTAINER's own pairs — so a
+    /// captured child version was only ever found when its key also stood at that same container, which for
+    /// a nested path is never. **A subtree whose nodes stood at DIFFERENT tiers at DIFFERENT depths therefore
+    /// came back FLATTENED**, with every version that hung below the addressed node's own tier dropped; the
+    /// same clause's `mint` masked it for the ordinary case, because a structured `mint` installs the whole
+    /// assembled tree at one tier. **The lookup is now the PARENT VERSION's node** (`Captured::under`, the
+    /// association the capture records), so each child version is written on the node of the version it
+    /// actually hung under.
+    fn rebuild(
+        &mut self,
+        base: usize,
+        walked: Vec<Segment>,
+        key: Segment,
+        own: &[Captured],
+        captured: &[Captured],
+    ) {
+        // Clear the pair before writing it: every version's node is minted fresh, so no version from the
+        // operation's own attempt may stand beside them.
+        let doomed = self.refs_at(base, &key);
+        self.remove_refs(base, &doomed, false);
+        for entry in ordered_one_anchor(own) {
+            self.mint(base, key.clone(), entry.tier, &entry.value);
+        }
+        // The child pairs DIRECTLY below this level, each once.
+        let mut children: Vec<Vec<Segment>> = child_paths(captured, &walked);
+        children.retain(|path| path.len() == walked.len() + 1);
+        for path in children {
+            let last = path.last().cloned().expect("a child path is not empty");
+            // The versions of THIS level each of the child's own versions hangs under, in the store's
+            // canonical tier order — one recursion per enclosing version, so a child version is written on
+            // the node of the parent version that held it and on no other.
+            let mut unders: Vec<Tier> = Vec::new();
+            for entry in captured.iter().filter(|entry| entry.path == path) {
+                if let Some(under) = entry.under {
+                    if !unders.contains(&under) {
+                        unders.push(under);
+                    }
+                }
+            }
+            unders.sort_by_key(|tier| std::cmp::Reverse(tier.rank()));
+            for under in unders {
+                let Some(mut anchor) = self.pair_at(base, &key, under) else {
+                    // No version of this level stood at that tier: the capture and the level it was taken
+                    // at disagree, which no self-consistent journal can produce.
+                    debug_assert!(false, "a captured child hangs under a version that does not stand");
+                    continue;
+                };
+                if self.link_of(anchor).is_none() {
+                    // A LITERAL version with descendants still standing below it: its children hang from
+                    // the link its own anchor stands on, so the anchor is replaced by an empty branch at
+                    // its own tier and the recursion writes them there (`§3.3` item 1: the new node is
+                    // added UNLESS the resolved node was a leaf).
+                    self.remove_refs(base, &[anchor], false);
+                    anchor = self.mint(base, key.clone(), under, &StoreValue::Object(BTreeMap::new()));
+                }
+                let Some(link) = self.link_of(anchor) else {
+                    continue;
+                };
+                let own_here: Vec<Captured> = captured
+                    .iter()
+                    .filter(|entry| entry.path == path && entry.under == Some(under))
+                    .cloned()
+                    .collect();
+                if own_here.is_empty() {
+                    continue;
+                }
+                self.rebuild(link, path.clone(), last.clone(), &own_here, captured);
+            }
+        }
+    }
+
+    // **⟶ DELETED 2026-11-17 (`strata/decisions.md` · `D-160` ITEMS 1, 3 AND 4): `fn restore_compaction(&mut
+    // self, compacted: &[String])` STOOD HERE — `for entry in self.journal.iter_mut() { entry.op.compacted =
+    // compacted.contains(&entry.op.opId); }` — AND IT IS WITHDRAWN WHOLE WITH ITS TWO CALLERS.** It was `§6.1`
+    // item 5's mark-undo: the failed write's residue may not include a compaction mark an append caused
+    // (`§3.5`, `§6.4` `M-6`), so the popped entry carried the list of marks that stood when it was appended and
+    // this frame put them back. **WITH A DROP THERE IS NOTHING TO RE-LEARN AND NOTHING TO PUT BACK**: no entry is
+    // ever marked, so no entry can be un-marked, and the state a failed act owes back is the OBSERVABLE state —
+    // which the drop never moved. **What replaces it is the floor's own record**: a drop is permanent,
+    // `journal_floor` keeps naming the last op it took, and the arm that names such an op is `Store::rollback`'s
+    // lookup arm — **which answers a code only where no file can be retrieved, and REGENERATES where one can
+    // (2026-11-17, `strata/decisions.md` · `D-164` item 2).**
+
+    /// The declared `before`/`restoredTo` view of an address: `present` and the value a read answers there.
+    /// Where the operation touched MORE THAN ONE version at the addressed node, the value is the ordered
+    /// list of the values it touched, in `§5.1`'s canonical tier order (`§6.2`'s `BaseState.value`).
+    ///
+    /// An ABSENT state is spelt `StoreValue::Undefined` — `§0.4`'s own `StoreValue` member and `§1.4`'s
+    /// outside class, *"each spelled so its trigger is REACHABLE"* — and never `Null`, which is the OTHER
+    /// outside class and a value the taxonomy refuses; `present` carries the absent state's semantics
+    /// (`§6.2`'s `BaseState` clause, `§1.4`).
+    fn absent_state() -> BaseState {
+        BaseState {
+            present: false,
+            value: StoreValue::Undefined,
+        }
+    }
+
+    fn state_from_captured(&self, address: &[Segment], captured: &[Captured]) -> BaseState {
+        if captured.is_empty() {
+            return Store::absent_state();
+        }
+        if address.is_empty() {
+            return BaseState {
+                present: true,
+                value: self.assemble_all(self.register_ref),
+            };
+        }
+        let touched: Vec<&Captured> = captured
+            .iter()
+            .filter(|entry| entry.path.is_empty())
+            .collect();
+        if touched.len() > 1 {
+            let mut ordered = touched;
+            ordered.sort_by_key(|entry| std::cmp::Reverse(entry.tier.rank()));
+            return BaseState {
+                present: true,
+                value: StoreValue::Array(ordered.iter().map(|entry| entry.value.clone()).collect()),
+            };
+        }
+        let lowest = touched
+            .first()
+            .copied()
+            .or_else(|| captured.iter().min_by_key(|entry| entry.tier.rank()))
+            .expect("the captured set is non-empty");
+        BaseState {
+            present: true,
+            value: lowest.value.clone(),
+        }
+    }
+
+    /// The state an address stands at NOW — the current-state half (`§6.2` property 2).
+    fn state_now(&self, address: &[Segment]) -> BaseState {
+        if address.is_empty() {
+            if self.links[self.register].children.is_empty() {
+                return Store::absent_state();
+            }
+            return BaseState {
+                present: true,
+                value: self.assemble_all(self.register_ref),
+            };
+        }
+        match self.locate(address) {
+            Some((link, key)) => {
+                let anchors = self.canonical(self.refs_at(link, &key));
+                match anchors.first() {
+                    Some(reference) => BaseState {
+                        present: true,
+                        value: self.assemble_all(*reference),
+                    },
+                    None => Store::absent_state(),
+                }
+            }
+            None => Store::absent_state(),
+        }
+    }
+
+    // -----------------------------------------------------------------------------------------------
+    // §6.1 item 5 — the journal's bound and its compression trigger.
+    //
+    // **⟶ AND THE BOUND IS A REAL ONE FROM 2026-11-17 (`strata/decisions.md` · `D-160` ITEMS 1–2).** The
+    // architect, verbatim: ***"Compaction dropping history is the point"***. **What the cap bounds is the
+    // HISTORY THE STORE KEEPS** — the compression's base state plus at most `journal_length` entries — and no
+    // longer the count of entries whose flag is set, **so memory is `O(store + journal_length)`**, which is what
+    // this section always said it was. **THE MEASUREMENT THAT PRODUCED THE RULING** is
+    // `docs/L1/journal-retention-rca.md` §2: the journal's total size was QUADRATIC in the write count
+    // (47 · 125 · 472 · 1,850 · 7,277 MB at 1k · 2k · 4k · 8k · 16k writes on one unchanged address), because
+    // every entry additionally carried the complete list of already-compacted op ids and `write` cloned that
+    // list on every write.
+    // -----------------------------------------------------------------------------------------------
+
+    fn append(
+        &mut self,
+        mut op: JournalOp,
+        captured: Vec<Captured>,
+        after: Vec<Captured>,
+        home: Option<PairHome>,
+    ) -> JournalOp {
+        self.last_seq += 1;
+        op.seq = self.last_seq;
+        let stored = op.clone();
+        self.journal.push(Entry {
+            op,
+            captured,
+            after,
+            home,
+            saved: false,
+        });
+        loop {
+            // **THE CONDITION IS `§6.1` ITEM 5's AND ITS SUBJECT MOVES WITH THE RULING**: *"when an append would
+            // leave more than `journalLength` un-compacted entries"* — **and `uncompacted` IS NOW SIMPLY THE
+            // JOURNAL'S OWN LENGTH**, because with a DROP there is no marked-but-retained entry left: every entry
+            // the journal holds is an uncompacted one (`D-160` item 1). **The figure does not move and the
+            // arithmetic becomes the one the cap always claimed.**
+            let uncompacted = self.journal.len();
+            if uncompacted <= self.journal_length {
+                break;
+            }
+            // **⟶ AND THE OLDEST ENTRY IS REMOVED RATHER THAN MARKED, 2026-11-17 (`D-160` ITEM 1).** The line
+            // that stood here read `self.journal[oldest].op.compacted = true;` — **the mark that made the cap a
+            // mark and not a bound**, because the entry stayed, its op id stayed and the vector grew by one entry
+            // per write for the store's whole life (`docs/L1/journal-retention-rca.md` §1 item 4). **With a drop
+            // the op ids are GONE** and the entry's record with them.
+            let dropped = self.journal.remove(0);
+            // **AND THE WATERMARK TAKES THE DROPPED OP'S PLACE AS THE DISCRIMINATOR** (`D-160` item 3): one
+            // number, so a rollback that names this op is answered as the DROPPED arm — the regeneration where the
+            // store has a file to retrieve, the `RollbackCompacted` signal where it has none (`D-164` item 2) — while
+            // an id that never named a store op answers `JournalOpUnknown`. It is kept in the ids' own numbering — see
+            // [`op_id_ordinal`] — and `Option::or` keeps the higher floor if a token is ever unreadable, so the
+            // watermark can never move backwards.
+            self.journal_floor = op_id_ordinal(&dropped.op.opId).or(self.journal_floor);
+            // **⟶ AND THE FLOOR ADVANCES BY THE VERY ENTRY THIS LOOP JUST TOOK, 2026-11-17 (`D-178`): THIS IS THE
+            // INSTANT, AND IT COSTS ONE ENTRY AND NOT ONE REGISTER.** `Store::floor_state` becomes the state
+            // IMMEDIATELY AFTER the dropped entry — **which is exactly the base the RETAINED entries replay
+            // onto**, because the retained entries are the ones appended after it — **and `Store::advance_floor`
+            // applies the entry's own `after` snapshots to it**; no second assembly runs and nothing walks back
+            // through the retained entries (`D-178` item 4 prices the two shapes this avoids).
+            //
+            // **WHY THIS INSTANT AND NOT THE PUSH ABOVE**: the pushed entry is the journal's HEAD, and the floor
+            // is a state BELOW it. **THE DROP IS THE ONE MOMENT AT WHICH THE FLOOR MOVES AT ALL** — a position the
+            // journal was compressed to is a fact the drop creates — so a state advanced anywhere else would be
+            // advanced by an event that did not occur. And the snapshots applied are the entry's own, taken the
+            // instant its operation landed (`Entry::after`), **so the floor can never see an effect the entry did
+            // not record nor miss one it did.**
+            self.advance_floor(&dropped.op.address, &dropped.after);
+            // `§6.1` item 5: **the base state is a SNAPSHOT of the store's own observable state at
+            // the moment of compression** — the value every reachable address reads at that moment,
+            // i.e. the register's whole readable content — and it replaces every compressed entry as
+            // the walk's floor.
+            //
+            // **⟶ AND IT IS THE HEAD'S STATE AND NOT THE FLOOR'S, WHICH IS WHY THE ADVANCE ABOVE DOES NOT USE IT**
+            // (`D-178` item 4, verbatim: *"`append` pushes the entry and only then runs the compaction loop … so
+            // `assemble_all` at that instant reflects the NEW entry — it is the HEAD's state and not the floor's"*).
+            // This line is unmoved and its sentence stands for its own subject; the replay's base is
+            // `Store::floor_state`, which is a different state taken from a different carrier.
+            self.base_state = self.assemble_all(self.register_ref);
+        }
+        stored
+    }
+
+    // -----------------------------------------------------------------------------------------------
+    // §6.5 — the listener surface: the home's lookup, the trigger's selection and the two returned lists.
+    // -----------------------------------------------------------------------------------------------
+
+    /// **`§6.5` item 10 (d) (iii) — THE TRIGGER'S SELECTION RULE, RE-STATED AS THE LISTENER'S OWN**:
+    /// **a listener bound at address `W` is triggered by a successful `write` or `delete` at address `X`
+    /// iff `W` is a PREFIX of `X`** — descendant-inclusive from `W` downward (`A33`, `A37`; `DD-18`) — **and
+    /// `DD-36` adds that NOTHING CARRIES OVER from the superseded tier qualifier: `address` is the WHOLE of
+    /// the listener's key, so NO TIER TEST RUNS AT ANY TRIGGER.** **The store RETURNS these handles and
+    /// INVOKES NOTHING** (`A57`); **the order is unspecified and the list is a SET** (`DD-37`).
+    ///
+    /// **⟶ AND THE SELECTION RULE IS WIDENED TO THE PASS'S OWN, 2026-10-29 — `D-67` AND `D-66`.** `RCA-8(g)`
+    /// ANNOTATE-BESIDE: **this item's prefix-only sentence stands as the reading of its own date and IS READ
+    /// THROUGH THIS CLAUSE, which supersedes it.** **`D-67` measured the asymmetry it produced: A CONSTRAINT AT
+    /// A TOUCHED DESCENDANT WAS ASKED AND A LISTENER AT THE SAME ADDRESS WAS NEVER TOLD**, because `D-66`
+    /// widened the KERNEL's predicate while this filter stayed `is_prefix`. **`D-69` rules that the store's
+    /// answer is the ONLY answer, so the two predicates are one and it is here**: a registration is triggered
+    /// by an act at `X` iff **ITS ADDRESS IS A PREFIX OF `X`** (the ancestor arm, `D-56`, unmoved) **OR THE ACT
+    /// TOUCHED ITS ADDRESS** (the descendant arm, `D-66`) — **and `touched` is handed in by the verb that
+    /// performed the act, because THE VERSIONS ARE THE STORE'S OWN and only the store can name every path a
+    /// purge removed** (`touched_below`).
+    ///
+    /// **THE ONE HOME IS THE SOURCE OF THE SET** (`A45`/`A48`; `§5.8` (c)/(d)): a node's `active`/`carried`
+    /// lists are *"an INDEX FOR LOOKUP COST only"*, and *"the same two sets must be produced whether the
+    /// index is consulted or the home is scanned"* — so the selection below reads the home directly and no
+    /// membership depends on a node's lifetime (`A46`) or on the `active`/`carried` split (`A47`).
+    fn triggered_for(&self, address: &[Segment], touched: &[Vec<Segment>]) -> Vec<ListenerTrigger> {
+        // **`F-9`: THE MAP'S OWN MEMBERS ARE ITERATED — each address's own bucket, in the map's own
+        // iteration — and no keyed scan of a linear home runs.**
+        //
+        // **⟶ AND EACH ELEMENT IS NOW THE PAIR `{handle, address}` (`U-STOREROOM-HELD-LISTENER-IDENTITY`;
+        // `contract.md §2.4` item 1; `trigger-and-pair.md §1` item 2).** **THE BINDING'S OWN ADDRESS IS
+        // ALREADY IN HAND INSIDE THIS FILTER — `listener.address` — and was DISCARDED by the
+        // `.map(|listener| listener.handle.clone())` this replaces** (`P: docs/pending.md · P-7`'s `WHAT IT
+        // CARRIES` clause, verbatim). **SO THE PAIR REPLACES the bare-handle list and does not supplement it,
+        // and NO `triggeredAddresses` ARRAY EXISTS** (the aligned form is an i-th correspondence, and it
+        // reverses `DD-37`; `contract.md §2.4` item 1).
+        //
+        // **AND THE PREFIX RULE IS SUPERSEDED BY THE ONE PREDICATE — `D-67`/`D-69`, 2026-10-29.** The filter
+        // is `registration_triggered(&listener.address, address, touched)`: the prefix arm is unmoved
+        // (descendant-inclusive, so a binding at `['a']` fired by a write at `['a','b','c']` carries `['a']` —
+        // THE BINDING's address — while the invocation's ONE argument stays the WRITE's), **and the second arm
+        // admits a registration whose own address the act TOUCHED**, whichever kind it is.
+        self.home
+            .members()
+            .filter(|listener| registration_triggered(&listener.address, address, touched))
+            .map(|listener| ListenerTrigger {
+                handle: listener.handle.clone(),
+                address: listener.address.clone(),
+            })
+            .collect()
+    }
+
+    /// `§5.8` (e) — the KEPT half: **`watched` keeps carrying the watched ADDRESSES** (`DD-35`), as a SET of
+    /// DISTINCT addresses (`§6.5` item 2's kept half, item 5: *"NO ORDER IS DECLARED FOR THE LIST"*), so ONE
+    /// address yields ONE member however many home entries carry it. **The only surface that can leave TWO
+    /// entries at ONE address is the CONSTRUCTION's `listeners[]`** — `DD-39`'s *"both entries are KEPT, each
+    /// with its OWN handle"*, adopted VERBATIM and never re-minted (`§0.4` clause 2 (b)) — **and there the
+    /// address is one member while both handles fire; `listen` itself never adds a second entry at an
+    /// address the home already holds** (`§6.5` item 12 (c)).
+    fn watched_for(&self, address: &[Segment], touched: &[Vec<Segment>]) -> Vec<Vec<Segment>> {
+        let mut watched: Vec<Vec<Segment>> = Vec::new();
+        // **`F-9`: the home's own members, one member per distinct address** — the set is the addresses the
+        // map's entries carry, and the DISTINCT rule (`§6.5` item 2's kept half) is applied as they walk.
+        // **⟶ AND THE MEMBERSHIP TEST IS THE ONE `triggered_for` TAKES — `D-67`/`D-69`, 2026-10-29.** `§5.8`'s
+        // re-derived `(vi)(3)` reads `watched` as *"the ADDRESS PROJECTION of `triggered`"*, so the two lists
+        // must be produced by ONE predicate or the projection is false: **a registration the act touched below
+        // stands in the trigger set, and its address therefore stands here too.**
+        for listener in self.home.members() {
+            if registration_triggered(&listener.address, address, touched)
+                && !watched.contains(&listener.address)
+            {
+                watched.push(listener.address.clone());
+            }
+        }
+        watched
+    }
+
+    /// **THE ADDRESSES AN ACT TOUCHED BELOW ITS OWN — `D-66`'s COMPUTATION, AT THE ONE PLACE THE VERSIONS
+    /// LIVE.**
+    ///
+    /// **WHY IT IS HERE AND NOT IN THE KERNEL, STATED AS THE DEFECT IT CLOSES** (`D-67`, verbatim: *"the store
+    /// computes the reach of an act, and the kernel computed a second one"*): **`bindings/js/src/entry/
+    /// kernel-foundations.mjs`'s `touchedAddresses` reads the act's `after`/`before` VALUES**, and a
+    /// higher-persistence write that purges a shadow leaves a `before` whose per-tier versions collapse into one
+    /// array — **so the JS reader could not name the paths the purge removed, while the store holds them as
+    /// `Captured` records with their tiers.** **THE STORE THEREFORE COMPUTES IT, FROM `captured` AND THE TIERS
+    /// IT IS ABOUT TO REMOVE, AND THE PASS READS THE RESULT OFF `triggered`** (`D-69`: one predicate, in the
+    /// store, where the per-tier versions live).
+    ///
+    /// **ITS TWO ARMS, EACH A PROPERTY OF WHAT THE ACT MOVED:**
+    ///   * **WHAT THE ACT WROTE** — `written`'s own path set below the act's address: an object contributes one
+    ///     path per own member name, an array one per index (as a `number` segment and never a string, `§1.5`),
+    ///     each recursed into one level down; a scalar contributes nothing, because it has no members;
+    ///   * **WHAT THE ACT REMOVED** — every captured path whose ENCLOSING version was removed, which is the
+    ///     whole subtree of every purged version: a write's `doomed` versions (`W-6`'s purge, the equal-tier
+    ///     replacement included) and a delete's `removed` ones, **at the tier the act actually took**, so a
+    ///     version standing at a HIGHER persistence and left standing keeps its own subtree UNTOUCHED.
+    ///
+    /// **THE ENCLOSING VERSION IS `Captured::under`** — `None` at an operation's own node (so a register-wide
+    /// delete's TOP-LEVEL captures, whose paths are absolute, are judged by their OWN tier and not by a parent
+    /// that does not exist), and `Some(tier)` beneath it. **A FIRST WRITE AT AN ADDRESS HAS NO BEFORE VALUE AND
+    /// TOUCHES NOTHING THROUGH THIS ARM**: it purges nothing, so `removed_tiers` is empty and no captured path
+    /// qualifies.
+    ///
+    /// **THE RESULT IS A SET OF ADDRESSES, APPENDED WITHOUT DUPLICATION, AND THE ACT'S OWN ADDRESS IS NOT ONE OF
+    /// THEM** — equality is the prefix arm's, already, and this list is the DESCENDANT arm alone.
+    fn touched_below(
+        &self,
+        address: &[Segment],
+        captured: &[Captured],
+        removed_tiers: &[Tier],
+        written: Option<&StoreValue>,
+    ) -> Vec<Vec<Segment>> {
+        let mut out: Vec<Vec<Segment>> = Vec::new();
+        // **THE SET'S MEMBERSHIP IS A HASH LOOKUP AND NOT A SCAN.** The measured reason: a dense array of
+        // `999,999` members written at one address materialises `999,999` paths, and a scan per append is
+        // `O(n^2)` — measured as a HANG, not a slowness (`tests/e2e/json-crossing.test.mjs`'s `JC-TC-42`).
+        let mut seen: HashSet<Vec<Segment>> = HashSet::new();
+        if let Some(value) = written {
+            append_value_paths(&mut out, &mut seen, address, value);
+        }
+        if removed_tiers.is_empty() {
+            return out;
+        }
+        for entry in captured {
+            // The act's OWN node is the prefix arm's, never this one's.
+            if entry.path.is_empty() {
+                continue;
+            }
+            let enclosing_removed = match entry.under {
+                Some(under) => removed_tiers.contains(&under),
+                // The register's own capture: its top-level paths hang under no version, so the version that
+                // stood at that path IS the one the act removed and its own tier is the test.
+                None => removed_tiers.contains(&entry.tier),
+            };
+            if !enclosing_removed {
+                continue;
+            }
+            let mut path: Vec<Segment> = address.to_vec();
+            path.extend(entry.path.iter().cloned());
+            if seen.insert(path.clone()) {
+                out.push(path);
+            }
+        }
+        out
+    }
+
+    // -----------------------------------------------------------------------------------------------
+    // The verbs.
+    // -----------------------------------------------------------------------------------------------
+
+    /// **`§1.2`'s dated clause of 2026-10-21: THE DERIVED KEY — the segment `reference` is held at, computed
+    /// AT THE READ from the container's own structure and from the position it stands at.**
+    ///
+    /// **THE DERIVATION IS EXACT, and `key_fits` is the gate that makes it so** (`src/store.rs`, the crate's
+    /// own predicate): **a `VEC` container admits ONLY `Segment::Index` keys and a `MAP` container ONLY
+    /// `Segment::Key` keys**, so **the key a container holds is a FUNCTION OF THE CONTAINER KIND AND THE
+    /// POSITION AND OF NOTHING ELSE** — for a `Vec`, `Segment::Index(position)` REPRODUCES the value the
+    /// withdrawn member cached exactly (the positions ARE its contiguous indices, `§1.3`/`R-3`), and for a
+    /// `Map` the key is the `HashMap`'s OWN key, which the container already holds.
+    ///
+    /// **THE SEARCH.** The reference's own record names no container (`NodeRef` is a node handle, `§2.1`), so
+    /// the derivation walks the store's LINKS — a `MAP`'s own key set directly, a `VEC`'s `0..len` positions —
+    /// and asks each whether this reference stands at it. **`A34` bounds the answer: at most ONE anchor per
+    /// `(key, tier)` pair, but the SAME reference may stand at a key under ONE tier only, so the first pair
+    /// whose slot holds this reference IS the answer** and the search stops there.
+    ///
+    /// **THE REGISTER'S OWN REFERENCE IS THE ONE CASE WITH NO ANSWER** (`§1.6` item 4; `§2.1`'s empty-address
+    /// reference clause): **it stands on no link at all** — it is the walk's start, reached by NO segment —
+    /// so no container holds it and this returns `None`. **That is the register's whole distinction from a
+    /// reference reached by the legal `""` key, and it is carried by `register_marker`, not by a key**
+    /// (`§0.4`'s marker clause: the marker's old spelling was *"a MARKER and not a key"*).
+    fn derived_key(&self, reference: usize) -> Option<Segment> {
+        // The register's own reference is the marker's ONE `true` (`DD-44`) and is held by no container: it
+        // stands at no key, and this is the one state in which the answer is absent.
+        if self.refs[reference].anchor.register_marker {
+            return None;
+        }
+        // The structure that holds it names the key: the walk is over the store's links and the derivation
+        // itself is `Children::position_of`'s (`§1.2`'s dated clause — *"the codec can infer the key from the
+        // vec index directly"*).
+        self.links
+            .iter()
+            .find_map(|link| link.children.position_of(reference))
+    }
+
+    /// `§2.1`: the ONE shared resolution function — **the AMENDED consumer set, `read` · `write` · `delete` ·
+    /// `listen` · `unlisten`, each reaching its target through it and through no second resolver.** The
+    /// as-filed sentence named `watch`, which `A58` SUPERSEDES as a stopgap for the listener surface
+    /// (`write-and-read.md §6.5`), so `§2.1`'s restatement of this consumer set replaces it.
+    ///
+    /// **⟶ AMENDED 2026-10-21 (`§1.2`'s dated clause, on the architect's ruling): the boundary DERIVES the
+    /// reference's key and hands it back on the anchor it returns.** The return type is UNMOVED — still
+    /// `&NodeRef` — so `§2.1`'s `findAddress(address, t).anchor.tier == t` observable and every caller of
+    /// this function read exactly as before; what moved is that the key is no longer a member the anchor
+    /// STORED but a value the read DERIVES (`Store::derived_key`) and files in the anchor's answer cell.
+    pub fn findAddress(&self, address: AddressArg, tier: TierArg) -> Result<&NodeRef, StoreError> {
+        let sel = read_tier_sel(&tier)?;
+        let segments = address_segments(&address)?;
+        let reference = if segments.is_empty() {
+            self.register_ref_for(&sel)
+        } else {
+            self.walk(&segments, &sel)?.0
+        };
+        // **The derivation, taken once at the boundary the caller reads the answer from** (`§1.2`'s dated
+        // clause: *"a derived key is still answerable at that boundary"*). The cell is the one the answer
+        // carries out; it holds no value the store maintains, and a reference the store holds under no
+        // container — the register's — answers `None`.
+        *self.refs[reference].anchor.derived_key.borrow_mut() = self.derived_key(reference);
+        Ok(&self.refs[reference])
+    }
+
+    /// The REGISTER's own reference — the one state `L-0` answers, where no anchor stands on any link.
+    /// **⟶ AMENDED 2026-10-11: the register IS a link and therefore CARRIES its own parent anchor, whose
+    /// address is the empty set `[]` and whose `node` is the DISTINCT CARRIER NODE** (`§1.6` item 4 (a)/(b);
+    /// as-filed item 3's *"it has NO parent anchor"* is WITHDRAWN and read through item 4, and it is the
+    /// CARRIER NODE — not the register — that has no parent of its own). `§2.1`'s empty-address reference
+    /// clause, re-read through `§1.6` item 4: **NO ANCHOR OF A CALLER-NAMED KEY AND NO CALLER-PASSED TIER IS
+    /// READ INTO THE RETURNED REFERENCE** — the register's reference carries the EMPTY SEGMENT MARKER and
+    /// **the register's OWN CONDITIONAL TIER, `file` where the construction's path is provided and passes the
+    /// reachability test and `mem` otherwise, FIXED AT CREATION and never moved** (`§1.6` item 4 (d); `A42`,
+    /// `A49`, `A50`; that is the `register_tier` this `Store::empty` recorded and the field the code stores —
+    /// **not a fixed spelling of `mem`**) — so `findAddress([], file)` and `findAddress([], temp)` answer the
+    /// SAME reference, that reference's `anchor.tier` is the register's own tier in every case, and neither
+    /// answer asserts the caller's `t`.
+    fn register_ref_for(&self, _sel: &TierSel) -> usize {
+        self.register_ref
+    }
+
+    /// `§4.1`: the read — the tier argument is OPTIONAL and accepts zero to many tiers.
+    pub fn read(&self, address: AddressArg, tier: TierArg) -> Result<StoreValue, StoreError> {
+        let sel = read_tier_sel(&tier)?;
+        let segments = address_segments(&address)?;
+        let reference = if segments.is_empty() {
+            self.register_ref_for(&sel)
+        } else {
+            self.walk(&segments, &sel)?.0
+        };
+        let mut path = segments.clone();
+        // R-5 falls out of R-2: the register is always a MAP (`P: §13 · A23`).
+        self.assemble(reference, &sel, &mut path)
+    }
+
+    /// `§4.1.1`: the literal-only form — the same read with ONE narrowing, its target must be a `leaf`.
+    pub fn readLiteral(
+        &self,
+        address: AddressArg,
+        tier: TierArg,
+    ) -> Result<StoreValue, StoreError> {
+        let sel = read_tier_sel(&tier)?;
+        let segments = address_segments(&address)?;
+        let reference = if segments.is_empty() {
+            self.register_ref_for(&sel)
+        } else {
+            self.walk(&segments, &sel)?.0
+        };
+        match self.node(reference) {
+            Node::Leaf(value) => Ok(value.clone()),
+            Node::Branch(_) => Err(read_target_is_branch(&segments)),
+        }
+    }
+
+    /// **`§4.1`'s THIRD READ VERB — `readTiered(address, tier?)`** (`D-121-ter` item 5, verbatim: *"THE NAME
+    /// IS `readTiered`, WITH `read`'s OWN ARITY AND `read`'s OWN DECLARED WALK AND REFUSAL SET —
+    /// `readTiered(address: Address, tier?: TierSet)`"*).
+    ///
+    /// **IT IS [`Store::read`] WITH THE ANSWER COMPILED AND NOTHING ELSE MOVED**: the same
+    /// [`read_tier_sel`] over the same `TierArg` (so a SUPPLIED `undefined`/`null` is `AddressMalformed` and
+    /// an out-of-domain token is `OutOfDomainTier`, the domain checked BEFORE the empty address is taken),
+    /// the same [`address_segments`], the same [`Store::register_ref_for`] at `L-0` and the same
+    /// [`Store::walk`] — **so `TierNotFound` fires at every walk step, pass-through and addressed alike,
+    /// and no sixth code is reachable** (`§2.2`'s fail-closure). **A `readTiered` at a BRANCH ANSWERS**: it
+    /// is not `readLiteral`, so `ReadTargetIsBranch` is never reachable here.
+    ///
+    /// **THE REGISTER'S `_tier` IS THE REGISTER'S OWN CREATION-FIXED TIER AND NEVER THE ARGUMENT'S**
+    /// (`§1.6` item 4 (d); `A42`, `A49`, `A50`): [`Store::register_ref_for`] ignores the selection and
+    /// [`Store::compile_tiered`] stamps the reference's own anchor, so `readTiered([], 'temp')` answers the
+    /// tier the CONSTRUCTION fixed — **while the argument still NARROWS the register's members exactly as
+    /// it narrows `read`'s**, because the assembly's omission rule is the read's own and this verb inherits
+    /// it unchanged (`§4.2` (b), `DD-31`).
+    pub fn read_tiered(&self, address: AddressArg, tier: TierArg) -> Result<StoreValue, StoreError> {
+        let sel = read_tier_sel(&tier)?;
+        let segments = address_segments(&address)?;
+        // `R-5` falls out of `R-2` here exactly as it does in `read`: the register is always a `MAP`.
+        let reference = if segments.is_empty() {
+            self.register_ref_for(&sel)
+        } else {
+            self.walk(&segments, &sel)?.0
+        };
+        Ok(self.compile_tiered(reference, &sel))
+    }
+
+    /// `§3.1`: `write(address, tier, value) → WriteResult`, with `§3.2`'s two-stage resolution and
+    /// `§3.4`'s closed arm table.
+    pub fn write(
+        &mut self,
+        address: AddressArg,
+        tier: TierArg,
+        value: StoreValue,
+    ) -> Result<WriteResult, StoreError> {
+        // `F-1` and `§3.1.1`'s arity row: the write's tier is REQUIRED and SINGULAR.
+        let write_tier = write_tier(&tier)?;
+        let segments = address_segments(&address)?;
+        // `F-2`: the value taxonomy (`§1.4`); no node is minted.
+        if !value.is_admitted() {
+            return Err(value_not_admitted(&segments));
+        }
+        // `§6.1` item 5's compression marks THIS write's own append may set. The entries the journal held
+        // at ENTRY are marked here, and the mark is carried into the journal once the append lands — because
+        // the failed append's pop shifts the indices the mark would otherwise be restored through (`§3.5`,
+        // `DD-16`).
+        //
+        // **⟶ AND THAT WHOLE SNAPSHOT IS DELETED 2026-11-17 (`strata/decisions.md` · `D-160` ITEM 4, AND THE
+        // QUADRATIC WITH IT).** The block that stood here cloned ONE STRING PER ALREADY-COMPACTED ENTRY ON
+        // EVERY WRITE (`docs/L1/journal-retention-rca.md` §1 item 1, measured at §2 as the only quadratic term
+        // in the write path: `(N − journal_length)/2 × the size of one op id` per write, ~115 KB/write at
+        // N = 4,000 with `journalLength: 64`). **It has no subject once the entries are dropped** — nothing is
+        // marked at ENTRY, nothing needs carrying into the journal, and no failed append's pop has a mark to
+        // shift. **The write's own body below is unmoved: the compression is `append`'s, and `append` takes no
+        // list.**
+        // `§3.2` item 6: a target that IS the register has no key to install under.
+        if segments.is_empty() {
+            return Err(write_parent_not_link("''".to_string(), &segments));
+        }
+        let key = segments[segments.len() - 1].clone();
+        // `L-1` at the target's OWN segment, fired in the walk's own arm order (`§2.2`): the segment the
+        // write is addressed by is consumed last, so an earlier segment's failure is the write's failure.
+        if !key.is_in_domain() {
+            let parents: Vec<Segment> = segments[..segments.len() - 1].to_vec();
+            return Err(malformed_segment(&key, &parents));
+        }
+        let parents: Vec<Segment> = segments[..segments.len() - 1].to_vec();
+        // `§3.2` item 2 (DD-27): the PARENT resolution is TIER-AGNOSTIC — the walk's zero-tier arm.
+        let parent = self.walk(&parents, &TierSel::All)?.0;
+        if self.link_of(parent).is_none() {
+            // `F-5`: the resolved parent is a leaf, whatever the value's class is.
+            return Err(write_parent_not_link(key.spelling(), &parents));
+        }
+        let parent_link = self.link_of(parent).expect("checked above");
+        if self.links[parent_link].is_register && matches!(key, Segment::Index(_)) {
+            return Err(address_not_found(
+                &key,
+                &parents,
+                &self.keys_at(parent_link),
+                true,
+            ));
+        }
+        if !key_fits(self.links[parent_link].kind(), &key) {
+            // `§1.3`'s KEY-DOMAIN ARM (`§1.5` items 2–3): the write is the ONE verb whose answer at a segment
+            // whose class the parent container's key domain cannot hold differs from the walk's answer — it
+            // would MINT at the key, so the state is a KIND CONTRADICTION and it answers the same member the
+            // value's own kind contradiction answers: `ContainerKindConflict`, with NOTHING INSTALLED (no
+            // anchor, no coercion, no container-kind change, and no journal entry) (`§3.4` arm `F-4`).
+            let kind = self.links[parent_link].kind();
+            return Err(container_kind_conflict_for_key(
+                &key,
+                &parents,
+                kind,
+                &self.keys_at(parent_link),
+            ));
+        }
+        // **⟶ ADDED 2026-10-11 (`DD-43`; `write-and-read.md §3.4`'s totality clause, read with
+        // `store-model.md §1.3`'s `VEC` key domain and `§4.2` `R-3`) — THE `VEC` INDEX-RANGE RULE:** **a
+        // write whose LAST segment is an INDEX and whose resolved parent container is a `VEC` holding `n`
+        // anchors is IN DOMAIN iff `0 ≤ i ≤ n` — `i = n` APPENDS (`W-3`/`W-4`) and `i < n` is the pair's own
+        // arm — and is OUT OF DOMAIN iff `i > n`, which fails `ContainerKindConflict` and INSTALLS NOTHING:
+        // no anchor, no coercion, no container-kind change and no journal entry.** The integer segment is an
+        // INDEX that contradicts the container's own key domain by falling outside the contiguous domain the
+        // same clause declares (`§1.3`'s key-domain arm; `F-4`), so **no node the parent's own read cannot
+        // contain can be minted by a write** — `read(['v'])` stays DENSE from `0` with its length the
+        // container's contiguous index count (`R-3`) and `read(['v', idx(5)])` over a `2`-element `VEC`
+        // fails `AddressNotFound` (`L-3`), because the hole has NO INSTANCE (`§8.1` #7, UNCHANGED and no new
+        // member minted).
+        if let Segment::Index(index) = key {
+            let container = self.links[parent_link].kind();
+            if container == Kind::Vec {
+                // The container's contiguous index count: its DISTINCT index keys (`§1.3`'s *"contiguous
+                // from `0`"*, read with `§4.2` `R-3`'s *"the container's contiguous index count"*). No
+                // renumbering is owed here — a refused write mints no key and removes none, so no gap can
+                // stand: the DELETE path's `close_up: true` (`DD-30`) is the only state that closes one, and
+                // it closes it in the ARENA (`Children::remove`'s `Vec::remove(position)`) rather than by any
+                // re-keying pass — the `renumber_vec` this comment once named was deleted on 2026-10-21 with
+                // the `ChildAnchor.key` member it wrote (`§1.2`'s dated clause).
+                let contiguous = self.keys_at(parent_link).len() as u64;
+                if index > contiguous {
+                    return Err(container_kind_conflict_for_key(
+                        &key,
+                        &parents,
+                        container,
+                        &self.keys_at(parent_link),
+                    ));
+                }
+            }
+        }
+        // `§3.2` item 4: the monotonic clause over the parent anchor and the child the write mints.
+        // **⟶ AMENDED 2026-10-11 (`A51`; `§1.6` item 4 (d) (ii)): THE REGISTER'S BOUND IS REAL — the shipped
+        // exemption is superseded, so a write whose tier outranks the REGISTER's own tier fails exactly as at
+        // any other link, and in a `mem`-register store the `file` tier is unreachable at register keys and,
+        // through this clause, at every address below them.**
+        let parent_tier = self.refs[parent].anchor.tier;
+        if write_tier.rank() > parent_tier.rank() {
+            return Err(monotonicity_violation(&key, &segments));
+        }
+        let home = PairHome {
+            link: parent_link,
+            key: key.clone(),
+        };
+        let captured = self.capture(&home);
+        let anchors = self.refs_at(parent_link, &key);
+        let selected = anchors
+            .iter()
+            .copied()
+            .min_by_key(|reference| self.refs[*reference].anchor.tier.rank());
+        // `F-4`: the value's kind contradicts the TARGET's container kind (`DD-19`: one code, both
+        // directions, and the container, the node and the journal stay untouched).
+        if let Some(reference) = selected {
+            if let (Some(value_kind), Some(target_link)) =
+                (value.container_kind(), self.link_of(reference))
+            {
+                if self.links[target_link].kind() != value_kind {
+                    let keys = self.keys_at(target_link);
+                    return Err(container_kind_conflict(
+                        &value,
+                        &segments,
+                        self.links[target_link].kind(),
+                        &keys,
+                    ));
+                }
+            }
+        }
+        // `W-6`'s purge (the designated arm where `W-1`'s and `W-6`'s pre-states hold at once):
+        // every version of the addressed node at `rank ≤ rank(write tier)` is removed, whole subtree with
+        // it; `W-1`'s equal-tier replacement is that same removal.
+        let mut doomed: Vec<usize> = anchors
+            .iter()
+            .copied()
+            .filter(|reference| self.refs[*reference].anchor.tier.rank() <= write_tier.rank())
+            .collect();
+        // `§1.1`'s re-mint arm: a structured write whose target resolves to a leaf destroys that leaf's
+        // pointing anchor and places a new anchor on the same link — the destroyed anchor's tier does not
+        // survive onto the new one.
+        if value.container_kind().is_some() {
+            if let Some(reference) = selected {
+                if self.link_of(reference).is_none()
+                    && self.refs[reference].anchor.tier.rank() > write_tier.rank()
+                {
+                    doomed.push(reference);
+                }
+            }
+        }
+        // **⟶ THE TIERS THIS WRITE PURGES, READ OFF THE VERSIONS THEMSELVES BEFORE THEY LEAVE THE ARENA —
+        // `D-66`/`D-67`, 2026-10-29.** The `doomed` references are handed to `remove_refs` below, after which
+        // their arena rows are the removal's and no tier can be read off them: **so the set is taken HERE, and
+        // it is what makes the touched descendants a property of the store's OWN versions rather than of a
+        // value the crossing carried** (`touched_below`). **A tier stands at most once per node** (`A34`), so
+        // the collection de-duplicates by the tier itself.
+        let mut doomed_tiers: Vec<Tier> = Vec::new();
+        for reference in &doomed {
+            let tier = self.refs[*reference].anchor.tier;
+            if !doomed_tiers.contains(&tier) {
+                doomed_tiers.push(tier);
+            }
+        }
+        self.remove_refs(parent_link, &doomed, false);
+        self.mint(parent_link, key, write_tier, &value);
+        let before = self.state_from_captured(&segments, &captured);
+        let op = JournalOp {
+            opId: next_op_id(),
+            kind: JournalOpKind::Write,
+            address: segments.clone(),
+            tier: Some(write_tier),
+            before,
+            after: BaseState {
+                present: true,
+                value: value.clone(),
+            },
+            seq: 0,
+            compacted: false,
+        };
+        // **`§6.6`: THE STATE THIS WRITE LEFT, TAKEN THE INSTANT IT LANDED** — the other half of the entry's
+        // record, on the same pair the write installed at, so the journal can be replayed FORWARD as well as
+        // back. Without it the journal held only the op's `after` READ VIEW, which collapses a shadow's
+        // versions into the one value a read answers (`Entry::after`).
+        let after_state = self.capture(&home);
+        // **⟶ AND THE APPEND TAKES FIVE POSITIONS FROM 2026-11-17, NOT SIX** (`D-160` item 4): the list of
+        // already-compacted op ids the write used to hand over is gone, so no caller materialises it.
+        let op = self.append(op, captured.clone(), after_state, Some(home.clone()));
+        // **⟶ AND THE ACT'S REACH IS COMPUTED HERE, ONCE, FROM THE STATE THIS WRITE DISPLACED AND THE VALUE IT
+        // INSTALLED — `D-67`/`D-66`.** The two lists below are the SAME set seen twice (`§5.8`'s re-derived
+        // `(vi)(3)`), so both are handed the one materialisation: **the paths the written value contains, plus
+        // the whole subtree of every version this write purged at a tier it reached.** No second reach is
+        // computed anywhere else — the kernel's `pairsAtAddress` walk is gone (`D-69`).
+        let touched = if self.home.is_empty() {
+            Vec::new()
+        } else {
+            self.touched_below(&segments, &captured, &doomed_tiers, Some(&value))
+        };
+        let watched = self.watched_for(&segments, &touched);
+        let triggered = self.triggered_for(&segments, &touched);
+        // **⟶ AMENDED 2026-10-15 (`contract.md §7.2` item 1, read with `surface.md §2.11` clause 1): THE
+        // WRITE RECORDS, INSTALLS, APPENDS AND RETURNS ITS `WriteResult` ON EVERY TIER AND PERFORMS NO FILE
+        // I/O ON ANY OF ITS ARMS.** **THE `file` TIER'S DURABLE COMMIT IS NO LONGER A VERB'S ARM AT ALL: it
+        // is the TERMINAL ARM's own act on its passing arm — `commit_file`, below — performed after every
+        // constraint of the write's own set has passed and BEFORE any body of the delivered set is invoked.**
+        // The removed block stood here and its `§7.2` items 3–4 failure path moved with it, whole.
+        Ok(WriteResult {
+            op,
+            watched,
+            triggered,
+        })
+    }
+
+    /// `§4.3`: `delete(address, tier?) → DeleteReceipt`. Its scope is the tier it names — or every tier
+    /// when it names none — and a delete that removes nothing is a SUCCESS (`DD-9`).
+    ///
+    /// **⟶ `D-43` ITEM 3 (`strata/decisions.md`): THE DELETE IS JOURNALED AND REVERSIBLE, AND THIS VERB NOW
+    /// ANSWERS THE OP THAT NAMES IT.** The journaling was already here — one entry, its address, its
+    /// per-tier BEFORE-state and an op id from `next_op_id` — and `rollback` already accepted that id and
+    /// put every removed version back at its own tier. **What was missing was the identity: the receipt did
+    /// not carry the op, so no caller could name the act and the kernel's unwinding could not reach it.**
+    /// `DeleteReceipt::op` is the member that carries it, on `D-3`'s nothing-removed arm `None` because that
+    /// arm appends no entry.
+    pub fn delete(
+        &mut self,
+        address: AddressArg,
+        tier: TierArg,
+    ) -> Result<DeleteReceipt, StoreError> {
+        let named = delete_tier(&tier)?;
+        let segments = address_segments(&address)?;
+        let (link, key) = match segments.split_last() {
+            None => (self.register, None),
+            Some((last, parents)) => {
+                // `L-1` at the target's own segment, fired in the walk's own arm order (`§2.2`).
+                if !last.is_in_domain() {
+                    return Err(malformed_segment(last, parents));
+                }
+                // `D-4`: the address must resolve, and the walk's own code is the failure.
+                let parent = self.walk(parents, &TierSel::All)?.0;
+                match self.link_of(parent) {
+                    Some(parent_link) => (parent_link, Some(last.clone())),
+                    None => return Err(leaf_has_no_downstream(last, parents)),
+                }
+            }
+        };
+        if let Some(key) = &key {
+            // `§1.5` item 3: a segment whose class the container's key domain cannot hold is a key the
+            // container does not hold — `L-3`'s `AddressNotFound`, never a coerced lookup.
+            if self.refs_at(link, key).is_empty() || !key_fits(self.links[link].kind(), key) {
+                return Err(address_not_found(
+                    key,
+                    &segments[..segments.len() - 1],
+                    &self.keys_at(link),
+                    self.links[link].is_register,
+                ));
+            }
+        }
+        // **⟶ CORRECTED 2026-10-27 (`D-43` item 3): THE PRE-STATE IS CAPTURED AT THE PAIR THE WRITE CAPTURES
+        // AT — THE PARENT CONTAINER'S LINK AND THE TARGET'S OWN KEY** (`PairHome { link, key }`, the same
+        // convention `write` uses at its own capture and `home_of_address` derives at a reversal). **The
+        // `pair_home` call this replaces resolved the LINK of the first version standing at the key, so for a
+        // STRUCTURED target it captured the versions of a node that holds none — measured: the entry held an
+        // EMPTY before-state, and a reversal of a structured delete restored nothing at all** (a scalar
+        // target was unaffected, the literal version having no link of its own, which is why the arm looked
+        // healthy). **An entry whose before-state is empty cannot be reversed, and that is the whole of
+        // `D-43` item 3's first clause.** An operation at the EMPTY address removes the whole register, so
+        // its pre-state is the register's own capture.
+        let home = key.clone().map(|key| PairHome { link, key });
+        let captured = match &home {
+            Some(home) => self.capture(home),
+            None => self.capture_register(),
+        };
+        let before = self.state_from_captured(&segments, &captured);
+        let mut removed: Vec<usize> = Vec::new();
+        match &key {
+            Some(key) => {
+                removed.extend(self.refs_at(link, key).into_iter().filter(|reference| {
+                    named.is_none_or(|tier| self.refs[*reference].anchor.tier == tier)
+                }));
+            }
+            None => {
+                for key in self.keys_at(self.register) {
+                    removed.extend(self.refs_at(self.register, &key).into_iter().filter(
+                        |reference| {
+                            named.is_none_or(|tier| self.refs[*reference].anchor.tier == tier)
+                        },
+                    ));
+                }
+            }
+        }
+        if removed.is_empty() {
+            // `D-3`: nothing was removed and that is a success with `tiers: []` — **and `§6.5` item 11 adds
+            // that it carries `triggered: []` as well, *"because nothing was destroyed and no trigger
+            // occurred"*.**
+            return Ok(DeleteReceipt {
+                address: segments,
+                tiers: Vec::new(),
+                triggered: Vec::new(),
+                // `D-3`: nothing was removed, so NO entry was appended and there is no op to name —
+                // `§6.1` item 1 journals one entry per operation that changed the register.
+                op: None,
+            });
+        }
+        let mut tiers: Vec<Tier> = Vec::new();
+        for tier in canonical_tiers() {
+            if removed
+                .iter()
+                .any(|reference| self.refs[*reference].anchor.tier == tier)
+            {
+                tiers.push(tier);
+            }
+        }
+        // **⟶ AND THE ACT'S REACH, COMPUTED BEFORE THE VERSIONS LEAVE THE ARENA — `D-67`/`D-66`, 2026-10-29.**
+        // **A DELETE TOUCHES THE WHOLE SUBTREE AT ITS ADDRESS AT THE TIERS IT NAMED** (`D-66`'s delete arm: *"the
+        // WHOLE SUBTREE at the act's address, because the act removes all of it"*), and **the paths are read off
+        // the store's OWN captured versions rather than off a value the crossing carried**: every captured path
+        // whose ENCLOSING version is one this delete removed is a path the act moved. **A version standing at a
+        // tier the delete did not name keeps its own subtree, and that subtree is NOT touched** — the per-tier
+        // half `D-67` measured as the residual. `tiers` is the ordered spelling of the same set, so the two
+        // cannot disagree.
+        let touched = if self.home.is_empty() {
+            Vec::new()
+        } else {
+            self.touched_below(&segments, &captured, &tiers, None)
+        };
+        // **A DELETE removes the index itself**: an array container's position closes up **in the arena**
+        // (`§1.3`/`R-3`; `Children::remove`'s `close_up: true`, which is the whole of the closing).
+        match &key {
+            Some(_) => self.remove_refs(link, &removed, true),
+            None => self.remove_refs(self.register, &removed, true),
+        }
+        // **⟶ DELETED 2026-10-21 (`§1.2`'s dated clause): the `renumber_vec(link)` call that stood here is
+        // GONE with the pass itself** — it re-keyed survivors to their new positions, which the structure
+        // already is. **`§1.3`'s domain (*"index keys — non-negative integers, contiguous from `0`"`) and
+        // `§4.2` `R-3`'s *"contiguous index count"* STILL HOLD, and hold for the same reason they always
+        // did: `close_up: true` above applies `Vec::remove(position)` to the ARENA, so the survivors ARE at
+        // `0..len` with no gap** — a removal that left one would still leave a minted node unreachable
+        // (`§5.5`) and is exactly what `close_up` prevents. **The write path's `close_up: false` is UNMOVED
+        // and is not this clause's business: `remove_refs` runs moments before `install` puts the new anchor
+        // at that same `(index, tier)`, so closing the gap there would shift later positions** (`remove_refs`'
+        // own clause).
+        let after = self.state_now(&segments);
+        let op = JournalOp {
+            opId: next_op_id(),
+            kind: JournalOpKind::Delete,
+            address: segments.clone(),
+            tier: named,
+            before,
+            after,
+            seq: 0,
+            compacted: false,
+        };
+        // **⟶ AND THE LIST THIS DELETE BUILT IS DELETED 2026-11-17 (`strata/decisions.md` · `D-160` item 4).**
+        // The block that stood here collected the journal's UN-compacted op ids into a `Vec<String>` on every
+        // delete (the mirror of `write`'s snapshot, and the second quadratic term in the journal's own path);
+        // **with a drop there is no mark for a caller to carry and `append` takes no list.**
+        // **`§6.6`: THE STATE THIS DELETE LEFT.** The addressed pair is named by the PARENT link the delete
+        // resolved and by its own key — the convention `rebuild` restores on — and an operation at the EMPTY
+        // address names no pair at all, so its after-state is the whole register's (`capture_register`).
+        let after_state = match &key {
+            Some(key) => self.capture(&PairHome {
+                link,
+                key: key.clone(),
+            }),
+            None => self.capture_register(),
+        };
+        // **⟶ ADDED 2026-10-27 (`D-43` item 3): THE APPENDED OP IS RETURNED ON THE RECEIPT.** `append`
+        // answers the entry it stored — `seq` included — so the record carries the id `rollback` looks up in
+        // `self.journal`, and the delete becomes a NAMED act a caller can reverse. **Measured before this
+        // line: the entry was there and `rollback` accepted its id; the id simply never reached the caller.**
+        let op = self.append(op, captured, after_state, home);
+        // **`§6.5` item 11 / `§5.8` (b): THE DELETE IS THE SECOND TRIGGER EVENT** (`A43`) — the receipt
+        // carries the handles of the listeners the trigger fired, selected by the SAME prefix rule.
+        let triggered = self.triggered_for(&segments, &touched);
+        Ok(DeleteReceipt {
+            address: segments,
+            tiers,
+            triggered,
+            op: Some(op),
+        })
+    }
+
+    /// **`§6.5` item 12 — `listen(handle, addresses) → void`** (`A57`, `A58`; `contract.md §0.4` read
+    /// through `U-STOREROOM-HELD-LISTENER-IDENTITY`): **the listener surface's registration verb.** **A
+    /// malformed address is `PAR-1`'s own answer — `AddressMalformed` — and the store installs nothing**
+    /// (`PAR-13`'s own outside-value list).
+    ///
+    /// **THE DUPLICATE-ADDRESS RULE OF THIS VERB IS GONE WITH ITS IDEMPOTENCE** — the paragraphs that stood
+    /// here declared that *"a `listen(address)` whose address IS already registered returns the EXISTING
+    /// entry's handle rather than minting a second one"*, and the architect's ruling **DELETES THAT
+    /// IDEMPOTENCE WHOLE**: *"Purge wins — delete first_at's idempotence"* (`P: docs/pending.md · R-B1`).
+    /// **THE DECLARED CONSEQUENCE, PRINTED PLAINLY BECAUSE IT IS THE ONE A CALLER MEETS: a repeated `listen`
+    /// at a held address NO LONGER answers the same handle — it DESTROYS the listener that was there and
+    /// installs a new one** (`P: docs/pending.md · P-6`, the `first_at` ruling, its closing clause).
+    /// **`DD-39`'s two kept entries with their OWN two handles are the CONSTRUCTION's case, not this verb's:**
+    /// the construction's `listeners[]` adopts the caller's handles VERBATIM (`§0.4` clause 2, arms (a)/(b);
+    /// `seams-and-lifecycle.md §7.1` step 5), so two construction entries at ONE address stay two entries
+    /// with two handles.
+    /// **⟶ `U-STOREROOM-HELD-LISTENER-IDENTITY` (`D-GP-SHLI`): THE VERB IS `listen(handle, addresses)` —
+    /// TWO POSITIONS, THE SECOND A SET** (`contract.md §2.2`; `listen-verb.md §1` item 1). **POSITION 1 IS
+    /// THE CALLER-SPELLED HANDLE, adopted rather than minted; POSITION 2 IS THE SET OF ADDRESSES the handle
+    /// stands at after this act.** **THE ARITY FIGURE MOVES `1 → 2`** (`P: docs/pending.md · P-6`, the ruling
+    /// *"`listen` gains a handle position"*).
+    ///
+    /// **THE SET IS AN ASSIGNMENT AND NOT A UNION**: `listen(h, S2)` after `listen(h, S1)` **DESTROYS `S1`
+    /// WHOLLY AND INSTALLS `S2`** (`P: docs/pending.md · (R1)`, verbatim: *"S1 gets purged wholesale, yes"*;
+    /// `contract.md §2.2` item 3). **THE PURGE RUNS FIRST, THE INSTALL SECOND, AND NO INTERMEDIATE STATE IS
+    /// OBSERVABLE** (`P: docs/pending.md · (M-1)`).
+    ///
+    /// **THE PURGE IS BY HANDLE AND IT IS UNCONDITIONAL**: this verb does not test whether the entry it
+    /// destroys belongs to another actor and no clause exempts a kernel-held entry (`P: docs/pending.md ·
+    /// (C-1)`/`(C-2)` item (iv): *"`listen` gains NO conflict test at all, and its purge reach stays
+    /// unconditional"*).
+    ///
+    /// **AND ITS ANSWER IS `()`** — **the caller supplied the identity, so there is no datum to return**
+    /// (`contract.md §2.2` item 10's `HL-DD-2`-adjacent declared change; `PAR-HL-3`).
+    pub fn listen(&mut self, handle: &ListenerHandle, addresses: &[Vec<Segment>]) -> Result<(), StoreError> {
+        // THE WHOLE SET IS VALIDATED FIRST, and the FIRST segment outside the domain is the failing one —
+        // the walk's own `L-1` `AddressMalformed` with the same generated message beside its container
+        // address (`crossing.md §1.3`'s `AddressArg` rows 7–10; `§2.10`/`PAR-JS-5`). **A REFUSED `listen`
+        // REACHES NO STORE ACT: no purge, no install, nothing changed** (`listen-verb.md §2.2` item 3).
+        for address in addresses {
+            let mut container: Vec<Segment> = Vec::new();
+            for segment in address {
+                if !segment.is_in_domain() {
+                    return Err(malformed_segment(segment, &container));
+                }
+                container.push(segment.clone());
+            }
+        }
+        // ── (1) THE PURGE: EVERY ENTRY THE HANDLE NAMED, AT EVERY ADDRESS IT STOOD AT ────────────────────
+        // **NO COUNT OF ADDRESSES IS CONSULTED AND THE SET ABOVE PLAYS NO PART IN THE REACH**: the purge
+        // takes the handle, and `S1` is destroyed wholesale even where `S2` names none of its addresses
+        // (`P: docs/pending.md · (Y-1)`; `contract.md §5.2`'s `S-PURGE-SET`).
+        self.home.purge(handle);
+        // ── (2) THE INSTALL: ONE ENTRY PER ADDRESS OF THE NEW SET ────────────────────────────────────────
+        // The EMPTY ARRAY is in the domain and is the ordinary "listen at no address" act (`listen-verb.md
+        // §2.2` item 1): the purge still ran, so a caller may narrow a live handle's standing to nothing.
+        for address in addresses {
+            self.home.install(address, handle.clone());
+        }
+        Ok(())
+    }
+
+    /// **⟶ `removeListener(handle)`'s STORE HALF — THE WHOLESALE PURGE, `U-STOREROOM-HELD-LISTENER-IDENTITY`
+    /// (`D-GP-SHLI`).** **It removes EVERY entry the handle names, at EVERY address it stood at, and answers
+    /// `()`** (`contract.md §2.7` item 2; `removal-members.md §2` item 3: *"the removal IS the purge"*).
+    ///
+    /// **IT IS NOT `unlisten`**: that verb drops ONE home-map entry by `DD-42` clause (2)'s first-match rule,
+    /// while this act's reach is the HANDLE's own and total (`P: docs/pending.md · (Y-1)`, verbatim: *"the
+    /// purge is by HANDLE — it never enumerates addresses or consults a count"*). **AND A HANDLE THE HOME HOLDS
+    /// NO ENTRY FOR IS IN DOMAIN AND ANSWERS `()` — a purge of nothing is a lawful act and not a refusal**
+    /// (`PAR-HL-4`'s outside-value cell).
+    pub fn remove_listener(&mut self, handle: &ListenerHandle) -> Result<(), StoreError> {
+        self.home.purge(handle);
+        Ok(())
+    }
+
+    /// **`§6.5` item 12 — `unlisten(handle) → void`**: it drops ONE home-map entry, and **a handle the
+    /// store did not mint — an unknown handle, a FOREIGN instance's, a PRIOR SESSION's, a FABRICATED one —
+    /// is a NO-OP SUCCESS: no code is produced and no other registration is removed** (the superseded
+    /// `unwatch`'s own clause, item 6, carried forward; `PAR-13`).
+    pub fn unlisten(&mut self, handle: &ListenerHandle) -> Result<(), StoreError> {
+        // ONE entry and no more (`§6.5` item 12: *"it drops ONE home-map entry"*); an unknown, foreign,
+        // prior-session or fabricated handle matches nothing at all — the same no-op success. **`F-9`: the
+        // entry is named through the HANDLE INDEX, which is the second half of the declared home — no scan
+        // of the map runs and no entry is removed by a walk over addresses.**
+        self.home.withdraw(handle);
+        Ok(())
+    }
+    /// `§6.3`/`§6.4`: `rollback(opId)` — the journal's only consumer, addressed by op id, TOTAL over its
+    /// scope and ALL-OR-NOTHING at its floor.
+    ///
+    /// **⟶ AND ITS FLOOR IS THE WATERMARK AND NOT A STRAND, FROM 2026-11-17 (`strata/decisions.md` · `D-160`
+    /// ITEM 3).** A candidate set can no longer HOLD a compacted entry, because the compaction REMOVES the entry
+    /// rather than marking it (`D-160` item 1), **so the candidate-set predicate the mark fed has no subject and the
+    /// two ids the mark's retention kept apart are kept apart by ONE NUMBER instead**: a rollback that names an op
+    /// the compaction DROPPED is the compaction arm, and an id that never named a store op answers
+    /// `JournalOpUnknown` — **the discrimination `compacted: Vec<String>` made by membership, made now by
+    /// comparing the named id's own ordinal with [`Store::journal_floor`]** (`D-160` item 3, verbatim: ***"the ids
+    /// need not be retained to keep a refusal honest"***). **The token's rank, its code and its generated message
+    /// are unmoved** (`arms.md §B.3`; no byte of `src/error.rs` moves for it).
+    ///
+    /// **⟶ ★ AND THE COMPACTION ARM IS TWO-WAY FROM 2026-11-17, AND `RollbackCompacted` IS ITS SECOND ANSWER AND
+    /// NOT ITS FIRST — `D-164` ITEM 2** (`strata/decisions.md`). **The architect, verifying the reading this file
+    /// carried for one pass, VERBATIM:** ***"108 was never supposed to retain compacted entries, getting rid of
+    /// entries is the point of the compaction. The resolution if an attempted write has to be rolled back but the
+    /// required op has been compacted is to regenerate the store from the file, or otherwise signal the client to
+    /// recover if no file can be retrieved. This was never ambiguous, 108 is a misread"***. **So a reversal whose
+    /// required op the compaction took REGENERATES the store from the file and RETURNS a `RollbackResult`**
+    /// ([`Store::regenerate`], restored by that ruling with the mark's skip removed — its subject is gone), **and
+    /// the token is produced by the ONE arm that has no file to regenerate from**: a store whose `file_path` is
+    /// empty — the path-less `saveCall` store, whose durable ground truth lives with the caller — **answers
+    /// `RollbackCompacted`, and that answer IS the client's signal to recover from its own image** (**`D-164` item
+    /// 2, verbatim: *"otherwise signal the client to recover if no file can be retrieved"***). **`D-118` item 2's
+    /// subject is unmoved and is what makes this a producer-set change and nothing else: *"the closed set is the
+    /// store's"*, and the token keeps its rank, its code and its generated message.** **And `D-160` item 3's
+    /// watermark keeps exactly the duty `D-164` item 4 leaves it** — *"it separates an op that was dropped from an
+    /// op that never existed … it is the discriminator between a recoverable history and a client error"* — **never
+    /// the discriminator between two refusals, which is what it was read as for one pass.**
+    ///
+    /// **⟶ AND THIS FRAME PERFORMS THE REVERSAL AND NO WRITE, 2026-11-02 — `D-112` ITEM 2.** The reversal's save
+    /// is **the PACKAGE's** act and stands **behind the constraint judgement**: `D-106`'s arm 3 is a package-side
+    /// arm from this date and no longer a store-side one, so `rollback` takes **no projection of any kind** and
+    /// writes no byte of the state it leaves. **A SAVE THAT RAN HERE WOULD HAVE SAVED A STATE THE JUDGEMENT MAY
+    /// REFUSE**, and — being reached by the kernel's own compensation — would have needed a predicate to tell a
+    /// compensation from a caller's reversal, which `D-111` item 1 forbids. **THE ORDERING DISCHARGES IT INSTEAD**:
+    /// `judgeReversal` returns on `COMPENSATING` before any ask, so a compensation reaches neither the judgement
+    /// nor the save. **THE STORE'S ONE WRITER KEEPS TWO KEYS**: an op, for a write's and a delete's and a
+    /// registration's close ([`Store::commit_file`], byte-unmoved), and a state, for the reversal's — the second
+    /// reached only after the judgement ([`Store::save_state`], [`Store::save_file_delta`]).
+    pub fn rollback(&mut self, op: OpIdArg) -> Result<RollbackResult, StoreError> {
+        let op_id = op_id(&op)?;
+        let Some(index) = self.journal.iter().position(|entry| entry.op.opId == op_id) else {
+            // `M-11`: an op id the instance's journal does not hold.
+            //
+            // **★ AND FROM 2026-11-17 THE TWO IDS ARE TOLD APART HERE, BY ONE NUMBER** (`strata/decisions.md` ·
+            // `D-160` item 3): **an op the compaction DROPPED is the compaction arm and an id that never existed is
+            // `JournalOpUnknown`.** The journal no longer holds the dropped ids, so the discriminator is
+            // [`Store::journal_floor`] — the ordinal of the last op the compaction took — and the comparison is the
+            // named id's OWN ordinal against it. **The seq is parsed only for the comparison** ([`op_id_ordinal`],
+            // the store's one reader of the id's numbering), and **an id it cannot parse answers
+            // `JournalOpUnknown`, because an unparseable token never named a store op** and so cannot have been
+            // dropped by anything. **A journal whose floor is absent (`None`, nothing ever dropped) answers
+            // `JournalOpUnknown` for every id it does not hold**, which is `M-11` unmoved. **⟶ AND THE WATERMARK IS A
+            // DISCRIMINATOR AND NOT AN ANSWER FROM 2026-11-17 (`D-164` item 4): it separates an op that was DROPPED
+            // from an op that never existed, and it never decided WHICH refusal a dropped op meets — the reading it
+            // was given for one pass, and the one this arm corrects below.**
+            match op_id_ordinal(&op_id) {
+                Some(ordinal)
+                    if self
+                        .journal_floor
+                        .is_some_and(|dropped_through| ordinal <= dropped_through) =>
+                {
+                    // **(a) THE STORE HAS NO RETRIEVABLE FILE, SO IT ANSWERS THE TOKEN — AND THAT ANSWER IS THE
+                    // CLIENT'S SIGNAL TO RECOVER FROM ITS OWN IMAGE** (`D-164` item 2). **AND THE GROUND IS THE ONE THE
+                    // ARCHITECT NAMED WHEN HE CLARIFIED THE CASE, VERBATIM — *"A case where the store cannot recover
+                    // from file is in the saveCall branch, where it is saving by way of an external proxy that does not
+                    // inherently provide a means of reading the file back"* — SO THE PROPERTY IS NOT *"no path"* BUT
+                    // *"NO READ PATH"*.** **THE `saveCall` CHANNEL IS WRITE-ONLY BY CONSTRUCTION** (`D-146` item 4's
+                    // key, `D-148`/`D-149`'s verdicts): the store hands its image to the caller's function, **the caller
+                    // decides where a copy goes and need not be able to hand one back** — the only way into such a
+                    // store is `initialImage` at its construction (`D-147`) — **so a `saveCall` store cannot retrieve
+                    // its own durable ground truth even in principle, and a `mem`-tier store has none at all.** **THAT
+                    // IS WHY THE TEST BELOW IS `file_path.is_empty()` AND WHY IT IS THE WHOLE TEST**: `filePath` and
+                    // `saveCall` are mutually exclusive (`D-155`), so an empty path names exactly the two shapes with no
+                    // read path — **and the arm is decided by the absence of a READ, not by which construction emptied
+                    // the path.** **There is nothing for this store to rebuild from, so it says so instead of inventing
+                    // a base**, and the token keeps its rank, its code and its generated message: **only its PRODUCER
+                    // SET moves, which is the one subject `D-118` item 2 always left the token** — ***"the closed set is
+                    // the store's"***.
+                    if self.file_path.is_empty() {
+                        return Err(rollback_compacted(&op_id));
+                    }
+                    // **(b) THE STORE HAS A PATH, SO IT REGENERATES AND RETURNS — `D-164` item 1.** The file is the
+                    // durable ground truth this arm CAN retrieve: the store rebuilds its base from the image where
+                    // one reads and from its CREATION image where none does (`D-118` item 1's reading, preserved:
+                    // ***"in the corrupt file case, then it restores from the store creation image"***), and answers
+                    // the record every returning arm of this verb answers — no second shape is minted here.
+                    //
+                    // **⟶ AND THE SCOPE IS EMPTY, WHICH IS THE ONE ARGUMENT THIS ARM OWES AND THE ONE IT CANNOT
+                    // COMPUTE.** `regenerate` replays the journal's retained entries OUTSIDE the scope it is undoing
+                    // — its one predicate. **Here NOTHING is being undone**: the op the caller named is GONE
+                    // (`D-160` item 1), so its address and its `seq` went with its entry and there is no subtree and
+                    // no floor to exclude, **which means every retained entry is out of a scope that holds no entry
+                    // at all. An empty scope is therefore the EXACT exclusion here and not a default or a
+                    // placeholder.** **The argument keeps the shape `regenerate`'s caller always had** — the
+                    // candidate set, as a slice of journal indices — because the verb's contract with its one caller
+                    // does not move with this arm.
+                    self.regenerate(&[])?;
+                    return Ok(RollbackResult {
+                        opId: op_id,
+                        // **`undoneOps` IS EMPTY BECAUSE NOTHING WAS UNDONE** — there was no op to undo (`§6.3`:
+                        // *"the opIds the rollback undid"*), and a regeneration that claimed ids would be the one
+                        // lie this report could tell.
+                        undoneOps: Vec::new(),
+                        // **`restoredTo` IS THE STATE THE ADDRESS STANDS IN AFTER THE REGENERATION, in the same
+                        // two-member `BaseState` every other arm answers** — **and the address is the REGISTER'S OWN
+                        // ROOT (`&[]`), because the named op's address left with its entry and no byte of this store
+                        // can name it.** The root is the one address every dropped op's address stands UNDER
+                        // (`state_now`'s empty-address arm, `D-43` item 3's whole-register read): **it is what this
+                        // arm can state, and it is a claim this store can keep — the state the regeneration actually
+                        // left — rather than a subtree it would have to guess at.**
+                        restoredTo: self.state_now(&[]),
+                    });
+                }
+                _ => return Err(journal_op_unknown(&op_id)),
+            }
+        };
+        let address = self.journal[index].op.address.clone();
+        // `M-5` item 1's amendment (a) (ii): the TEMPORAL FLOOR, read off the named entry's own `seq` —
+        // *"`E.seq` ≥ THE NAMED OP'S OWN `seq`"*, `≥` because *"the named op itself must be reversed or
+        // nothing is"*. It bounds the candidate set, and it is the ONLY floor the walk has from 2026-11-17.
+        let floor = self.journal[index].op.seq;
+        // `M-5`/`DD-21`: the candidate set is every entry in the addressed subtree AT OR AFTER the named op's
+        // `seq`. **⟶ AND THE `compacted` PREDICATE THAT STOOD BESIDE IT IS DELETED, 2026-11-17 (`D-160` item 5):
+        // THE WALK CANNOT CROSS THE FLOOR BECAUSE THERE IS NO ENTRY BELOW IT.** The dropped ops are gone, so
+        // every entry this vector can name is an uncompacted one — *"compacted entries included"* has no subject
+        // — and the refusal the mark used to express is now the lookup arm's above, which is the walk's floor
+        // stated as a refusal rather than as a skip.
+        let scope: Vec<usize> = (0..self.journal.len())
+            .filter(|candidate| {
+                let entry = &self.journal[*candidate].op;
+                is_prefix(&address, &entry.address) && entry.seq >= floor
+            })
+            .collect();
+        // **⟶ AND THE REGENERATION CALL IS DELETED 2026-11-17 (`D-160` items 1 and 5).** The block that stood
+        // here asked whether ANY candidate carried the mark and, if one did, re-based the store on the durable
+        // image before walking (`D-108` item 1, `D-118` item 1). **No candidate can carry a mark now**: compaction
+        // removes the entry, so the predicate's subject does not exist and an arm guarded by it could never run.
+        // **What the reversal does instead is what it always did after the regeneration** — the plain backward
+        // walk over its bounded scope, newest first, re-stating each entry's captured pre-state.
+        let mut undone = Vec::new();
+        for candidate in scope.iter().rev() {
+            let (captured, entry_id, entry_home, entry_address) = {
+                let entry = &self.journal[*candidate];
+                (
+                    entry.captured.clone(),
+                    entry.op.opId.clone(),
+                    entry.home.clone(),
+                    entry.op.address.clone(),
+                )
+            };
+            // **⟶ THE PAIR IS RE-DERIVED FROM THE ADDRESS, AND THE RECORDED HOME IS THE FALLBACK — 2026-10-27.**
+            // An entry's `home` is an ARENA INDEX (`links`/`refs`), and `§6.6`'s mark restore REBUILDS the
+            // graph, so every index recorded before it is stale: the pair the reversal must rebuild is the one
+            // the address names in the graph THAT STANDS, and `home_of_address` derives exactly that (the same
+            // derivation the write itself used). **The recorded home keeps its one remaining job**: an address
+            // whose PARENT no longer resolves has no derivable pair, and the entry's own record is then the only
+            // home there is — which is also the case an operation at the EMPTY address has (`None`, `restored`
+            // `false`, `§6.3`'s own residue).
+            let home = match self.home_of_address(&entry_address) {
+                Some(derived) => Some(derived),
+                // THE RECORDED HOME IS AN ARENA INDEX, so it is read only where it still names a link of the
+                // graph that stands: an index the `§6.6` replay left behind names nothing, and `restore` must
+                // answer the declared residue (`§6.3`: an entry whose pre-state could not be put back is NOT
+                // reported as undone) rather than reach into an arena that no longer holds it.
+                None => entry_home.filter(|home| home.link < self.links.len()),
+            };
+            // **⟶ AND AN OPERATION AT THE EMPTY ADDRESS IS REVERSIBLE FROM 2026-10-27 (`D-43` item 3): its
+            // pre-state is the WHOLE REGISTER's capture (`capture_register`), and `apply_register` re-states
+            // exactly that.** The arm answered `false` — the `§6.3` residue for an address that names no pair
+            // — which left a whole-register delete unreachable to every reversal. **The guard keeps the one
+            // state that must stay a residue: an entry whose capture is EMPTY has no before-state to put
+            // back, and re-stating nothing over the standing register would destroy state no op removed.**
+            let restored = match home {
+                Some(home) => self.restore(&home, &captured),
+                None if entry_address.is_empty() && !captured.is_empty() => {
+                    self.apply_register(&captured);
+                    true
+                }
+                None => false,
+            };
+            // `§6.3`: `undoneOps` is *"the opIds the rollback undid"* — so an entry whose pre-state could
+            // not be put back is NOT reported as undone.
+            //
+            // **⟶ AND THE MARK THE WALK SET ON WHAT IT REVERTED IS DELETED, 2026-11-17 (`strata/decisions.md` ·
+            // `D-160` item 5).** The line that stood here read `self.journal[*candidate].op.compacted = true;` —
+            // `M-9`'s mark on a SPENT entry, which a later walk's candidate-set predicate read and a
+            // `regenerate` skipped. **IT IS NOT REPLACED BY A SECOND MECHANISM, AND THAT IS THE RULING'S OWN
+            // ANSWER**: the mark's two grounds were *"the window took it"* and *"a reversal spent it"*, and the
+            // first is now a DROP (`D-160` item 1) while the second has no reader left once the candidate-set
+            // predicate and the regeneration are gone. **What stands in its place is the walk's own
+            // idempotence**: a second reversal of the same op re-states the same captured pre-states over the
+            // same addresses in the same newest-first order, so it lands the same state and reports the same
+            // `undoneOps` — the fact the mark was introduced to protect, held by the walk rather than by a flag
+            // on the record.
+            if restored {
+                undone.push(entry_id);
+            }
+        }
+        // **⟶ AND THE REVERSAL WRITES NO BYTE, 2026-11-02 — `D-112` ITEM 2: THE SAVE IS THE PACKAGE'S ACT, AT
+        // THE INSTANT THE JUDGEMENT HAS PASSED.** The `save_file_delta` call that stood here, its paragraph and
+        // the two-arm argument it carried are WITHDRAWN WHOLE, and none of them survives beside this line: a
+        // save taken here would run BEFORE the judgement and would therefore save a state the judgement may
+        // refuse — **and it would be reached by the kernel's own compensation, which the ordering now excludes
+        // from the save without needing a predicate to tell it from a caller's reversal** (`D-111` item 1 is
+        // discharged by the ORDERING, `D-112` item 3). **What this frame does is the reversal — the backward
+        // walk and the report — and nothing else** (**⟶ and the regeneration is no longer one of its acts from
+        // 2026-11-17: `D-160` item 1 removes the arm that had a base to regenerate**); the save is
+        // `Store::save_state`'s, made after the judgement, and the compensating restore's own save is
+        // `replayMark`'s, unmoved (`D-106` item 4).
+        Ok(RollbackResult {
+            opId: op_id,
+            undoneOps: undone,
+            restoredTo: self.state_now(&address),
+        })
+    }
+
+    // -----------------------------------------------------------------------------------------------
+    // §6.6 — THE JOURNAL MARK RESTORE: the state the journal's own record describes
+    // -----------------------------------------------------------------------------------------------
+
+    /// **`journalMark() → Option<String>` — THE JOURNAL'S LAST VALID MARK, AND THE STORE IS THE ONE THAT SAYS
+    /// WHICH ENTRIES ARE VALID.** It answers **the op id of the last entry the journal holds**, or **`None`
+    /// where the journal holds no entry at all** — the replay's floor, which the mark restore reaches through
+    /// [`Store::restoreFloor`] and which no op id can name. **IT IS A PURE READ**:
+    /// it appends nothing, compacts nothing, replays nothing, delivers nothing and touches no file. **Its one
+    /// caller is the package's `openCommit` (`bindings/js/src/entry/state.mjs`), which caches the answer on the
+    /// window it opens** — so the mark a later compensating act restores is the journal's position AT THAT
+    /// INSTANT and not whatever the journal holds when the act finally runs.
+    ///
+    /// **⟶ AND `None` IS THE FLOOR AND NO LONGER ONLY THE BORN STATE, 2026-11-17 (`strata/decisions.md` · `D-178`).**
+    /// The sentence above read *"the state the store was born with (`Store::born`)"*, **and it is true of a store
+    /// nothing has been dropped from**: where `D-160`'s compaction has dropped an entry, **the state an empty
+    /// journal's `None` reaches is `Store::floor_state` — the state immediately after the last entry it took — and
+    /// not the creation state.** **THE CARRIER THIS READ ANSWERS CANNOT TELL THE TWO APART** (the floor row is the
+    /// only spelling the absent position has, and this read answers `None` in both classes), **so
+    /// the distinction is NOT drawn here and no second carrier row is minted**: a package that renders the floor
+    /// row as *"the state the store was born with"* is right where nothing has been dropped and reads one ruling
+    /// behind the tree where something has — and the store's answer stays the one spelling it declares.
+    ///
+    /// **WHAT "VALID" MEANS HERE, MEASURED RATHER THAN ASSUMED — THE TWO STATES A MARK CAN BE IN:**
+    ///   * **AN ENTRY A FAILED `file`-SAVE REMOVED IS GONE, AND IT IS NOT A MARK.** `commit_file`'s failing arm
+    ///     takes the entry it just reverted out of the journal (`self.journal.remove(index)`), and it restores
+    ///     that entry's pre-state and un-marks what its append compacted in the same act — so the record no
+    ///     longer describes the operation at all, and `restoreMark` answers `JournalOpUnknown` (`M-11`) for its
+    ///     id. **The read therefore answers PRESENT entries only, and PRESENCE is the whole membership test**:
+    ///     an id the journal no longer holds is not a state the store can re-state.
+    ///   * **⟶ AND AN ENTRY THE COMPACTION TOOK IS NO MARK AT ALL, FROM 2026-11-17 (`strata/decisions.md` ·
+    ///     `D-160` ITEM 1).** The bullet that stood here read *"A COMPACTED ENTRY IS STILL A MARK"* and was true
+    ///     while `journalLength` MARKED entries and removed none — *"the read does not filter on `compacted`, and
+    ///     it must not"*. **THE RULING REVERSES THE PREMISE AND NOT THIS READ**: compaction now REMOVES the
+    ///     entries it reaches, so an entry behind the window is not a mark the journal can name, and a caller
+    ///     that holds one meets the store's own declared answer for an id it does not hold — `JournalOpUnknown`
+    ///     at `restoreMark` (`M-11`, below) and `RollbackCompacted` at `rollback` where the watermark places it
+    ///     (`D-160` item 3). **What this read answers is unmoved and simpler**: the head the journal holds, or
+    ///     `None` where it holds none, and no predicate on `compacted` runs because no entry is ever marked.
+    ///   **AND EVERY PRESENT ENTRY IS REPLAYABLE, WHICH IS WHY PRESENCE IS THE TEST RATHER THAN A SECOND
+    ///   PREDICATE**: each `write`/`delete` records its own `after` as a per-version, per-tier snapshot
+    ///   (`Entry::after`), and the replay re-derives every home from the born floor forward, so the state a
+    ///   present entry names is a state the journal reproduces. **A reversal does not erase the entries it
+    ///   reverses** (`M-9`/`M-6` mark them and nothing removes them), so a mark a reversal passes through is
+    ///   still a valid mark — which is what makes the pre-reversal position nameable at all.
+    ///
+    /// **THE LAST VALID MARK IS THEREFORE THE HEAD, AND ITS NAME IS THE POINT.** The head was always reachable
+    /// by supplying NO position to `restoreMark`; what the surface could not do was NAME it as a value and
+    /// therefore CACHE it. This read names it, in the store's own terms, so a caller can hold the position it
+    /// opened at instead of re-reading the head when the act finally runs.
+    pub fn journalMark(&self) -> Option<String> {
+        // THE HEAD IS THE LAST ENTRY THE JOURNAL HOLDS. `None` is the FLOOR, not an error: the record describes no
+        // operation, so the state it describes is the floor the replay begins at — `Store::floor_state`, which is
+        // the born state only where nothing has been dropped (`D-178`; see this method's clause).
+        self.journal.last().map(|entry| entry.op.opId.clone())
+    }
+
+    /// **`restoreMark(mark?) → void` — THE STORE RETURNS ITS OWN STATE TO A JOURNAL MARK.** *"The state it
+    /// held at a given journal position"*, reached **by replaying its own journal** and not by any capture a
+    /// caller took: the journal records every operation's ADDRESS and, since this method's pass, its BEFORE
+    /// (`Entry::captured`) **and its AFTER** (`Entry::after`) as full per-version, per-tier snapshots.
+    ///
+    /// **THE MARK IS AN OP ID, OR THE HEAD WHEN THE POSITION IS ABSENT.** `OpIdArg::Absent` names the HEAD —
+    /// the state the journal's most RECENT entry describes — and that is the mark a reversal leaves
+    /// unchanged, because **`rollback` appends no entry** (`M-9`): the journal's head still describes the
+    /// state that stood BEFORE the reversal, which is exactly the state a refused reversal owes back. An op
+    /// id names the state that stood **immediately after that operation landed**.
+    ///
+    /// **⟶ AND THE ABSENT CARRIER HAS TWO READERS FROM 2026-11-02, EACH NAMED AT ITS OWN ENTRY — `D-117` ITEM
+    /// 4 (a), RE-DERIVED IN THIS UNIT.** The row is `OpIdArg`'s absent form and its ARITHMETIC DOES NOT MOVE (two
+    /// entries read it, the domain keeps its six rows, and no second position is minted): **at THIS entry it is
+    /// the journal's HEAD**, exactly as the sentence above declares; **and at the terminal arm's `commitFile`
+    /// entry it is the STATE — SAVED** ([`Store::save_state`]), the reversal's own key, which names no mark, no op
+    /// and no record. **So the gloss *"the journal's head"* is this entry's reading of the row and not the row's
+    /// whole meaning**, and the corpus sentence that glossed it as one at `docs/specs/storeroom-native/
+    /// contract.md` `§6.6` item 1 carries both readings.
+    ///
+    /// **⟶ AND THE SENTENCE ABOVE IS READ THROUGH ITS MARK, 2026-10-27 (`RCA-8(g)` ANNOTATE-BESIDE: the bytes
+    /// above stand and this clause is the operative statement of what a refused reversal restores). THE
+    /// REASONING *"a reversal appends no journal entry, so the head describes the state that stood before the
+    /// action"* IS TRUE OF A REVERSAL TAKEN AT REST AND FALSE OF ONE TAKEN INSIDE A WRITE'S COMMIT**: in the
+    /// restart arm the enclosing write's own op stands at the head when the listener's reversal runs, so the
+    /// head describes the write's LANDING and not the pre-attempt state — measured, `9` becoming `7`, the
+    /// refusal's own value standing (`DEF-AE`). **SO THE HEAD IS NOT THE MARK A REFUSED REVERSAL OWES BACK**:
+    /// the mark it owes is the journal's last valid position **AT THE MOMENT ITS COMMIT OPENED**, which is what
+    /// [`Store::journalMark`] answers and what the package caches on the window (`bindings/js/src/entry/
+    /// state.mjs`). **This method's ABSENT arm still names the head** — it is the declared spelling, `§6.6`
+    /// item 1, and nothing about it moves; what moves is the package's own choice of position, which is stated
+    /// at `docs/specs/storeroom-js/contract.md §2.6`'s clause of this date.
+    ///
+    /// **THE REPLAY IS ABSOLUTE AND NOT RELATIVE, AND THAT IS THE MEASURED REQUIREMENT.** A backward walk
+    /// from the CURRENT state is not safe here: after a reversal the journal's head is AHEAD of the state,
+    /// and re-reversing an entry whose subtree a later-reversed ancestor overwrote does not compose — the
+    /// same walk from a rolled-back state lands somewhere the journal never described. **So the replay
+    /// re-derives the state from the journal's own record**: the empty register, then each entry at or before
+    /// the mark in its own appended order, applying THE STATE THAT ENTRY LEFT (`Entry::after`) to the pair its
+    /// address names — the home re-derived against the graph as it stands at that instant
+    /// (`home_of_address`), never the link recorded when the entry was appended.
+    ///
+    /// **THE STATE IS DEFINED DIRECTLY AND THE WRITE RULES ARE NOT RE-APPLIED** — a deliberate bypass and the
+    /// whole reason this primitive can reach states a `write` cannot: `restore`/`rebuild` mint each recorded
+    /// version at ITS OWN tier with NO PURGE and NO MONOTONICITY TEST, so a shadow comes back with every tier
+    /// it stood at, and a version whose tier OUTRANKS its parent's — which `§3.4`'s monotonic clause refuses
+    /// to WRITE — is restored, because here nothing is being written: a state the journal recorded is being
+    /// re-stated. The precedent is the store's own `restore`, which the rollback has always rebuilt on.
+    ///
+    /// **WHAT THE MARK'S WINDOW IS, DECLARED.** `journalLength` bounds what the journal KEEPS, and **⟶ FROM
+    /// 2026-11-17 IT BOUNDS IT BY DROPPING THE OLDEST ENTRIES WHOLE** (`strata/decisions.md` · `D-160` item 1):
+    /// the sentence that stood here — *"compaction is a mark and not an erasure"* — describes the mechanism the
+    /// ruling reverses, and **so does its conclusion that a mark behind the window is still replayable.** **THE
+    /// OPERATIVE STATEMENT IS THIS ONE: a position the compaction has taken is NOT a mark this primitive can name**,
+    /// and a caller that holds one meets the store's own refusal for an id the journal does not hold —
+    /// **`JournalOpUnknown`** (`M-11`'s code) — **with the store's state UNCHANGED**, because the mark is resolved
+    /// before the replay begins and nothing is half-replayed. **The head is always a mark the journal holds**
+    /// (`Store::journalMark` answers the head), so the package's window cache never names a dropped position.
+    /// **A second class still leaves the journal the same way** — the entry a failed `file`-tier commit takes with
+    /// it (`commit_file`'s `§7.2` item 3 path removes the entry it just reverted) — and it answers the same code
+    /// for the same reason.
+    ///
+    /// **IT APPENDS NO ENTRY AND DELIVERS NO TRIGGER** — it re-states what the journal already records, so
+    /// the journal and the observable state agree again when it returns. **A SAVE IS AN EFFECT AND NOT AN OP:
+    /// the entry the act would append is the one thing it never appends.**
+    ///
+    /// **⟶ AMENDED 2026-10-27 — THE ARCHITECT'S RULING: *"Update file after a restore that touches
+    /// file-tier nodes."*** **THE SENTENCE THIS CLAUSE REPLACES READ *"AND PERFORMS NO FILE I/O"*, AND ITS
+    /// REASON WAS THE DEFECT.** A restore that re-states a `file`-tier version moves the state the file
+    /// describes; with no save the bytes at `cfg.filePath` kept describing the PRE-restore state, **and a
+    /// re-boot READS THEM** — so the state a refusal had just declared restored was lost at the next
+    /// instance (`§7.2` item 6's boot). **The act now saves EXACTLY WHERE THE STANDING IMAGE DOES NOT ALREADY HOLD
+    /// THE RESTORED STATE, and not otherwise**: the reading is not a guess about which op ran, it is the store's
+    /// own `file_snapshot` — every register key's version standing at `Tier::File`, assembled at that tier, which
+    /// is precisely the image `write_file` encodes and the boot loads — compared after the replay with the
+    /// projection of the DURABLE state ([`Store::durable_projection`], 2026-11-02, `strata/decisions.md` ·
+    /// `D-111` item 1). **AN EQUALITY MEANS THE BYTES ALREADY SAY WHAT THE STORE NOW HOLDS, so no byte is touched
+    /// and a restore that returns the store to the state the file holds keeps the no-file-I/O property** — which
+    /// is the failing attempt's compensating restore, and the reason its reversal owes no save. **THE SAVE IS THE
+    /// STORE'S OWN AND NOT A SECOND IMPLEMENTATION**: it is `write_file`, the one serialization-and-atomic-rename a
+    /// `file`-tier write's save performs (`commit_file` is the RECORD-KEYED wrapper around it — entry lookup, tier
+    /// test, `saved` marker, `§7.2` item 3's rollback — and the restore appends no record for that wrapper to key
+    /// on).
+    ///
+    /// **AND A FAILED SAVE IS REPORTED, NOT SWALLOWED, AFTER THE STATE IS RESTORED.** The replay has already
+    /// happened when the save is attempted, and it is NOT rolled back: the caller learns that the in-memory
+    /// state was restored **and** that the bytes were not — the store answers `FileCommitFailed` (the set's
+    /// one save code, `§8.1` #15, whose trigger reaches the save act) with the failing path in its generated
+    /// message, while `read` at every address the restore moved answers the restored state. **What the file
+    /// still holds is the state that stood before the restore, and that is stated rather than papered.**
+    pub fn restoreMark(&mut self, mark: OpIdArg) -> Result<(), StoreError> {
+        // THE MARK IS RESOLVED FIRST, AND THAT IS WHAT MAKES THE ACT ALL-OR-NOTHING.
+        let up_to: Option<usize> = match &mark {
+            // THE HEAD: the last entry the journal holds. An EMPTY journal describes no operation at all, so
+            // the state it describes is the empty register the store began with — `None` below.
+            //
+            // **⟶ AND THAT SENTENCE IS SUPERSEDED WHERE A DROP HAS HAPPENED, 2026-11-17 (`strata/decisions.md` ·
+            // `D-178`).** An empty journal of a store the compaction HAS dropped from describes no operation
+            // either — **but the state `None` below reaches is the COMPACTED FLOOR and no longer *"the empty
+            // register the store began with"***, because `replayMark` begins from `Store::floor_state` and that
+            // field holds the dropped entries' effects. **This is the same ruling one layer down, at the one place
+            // its old spelling still stood**, and it is stated here because this arm is the reader that reaches
+            // `None`.
+            OpIdArg::Absent => self.journal.len().checked_sub(1),
+            _ => {
+                let named = op_id(&mark)?;
+                let index = self
+                    .journal
+                    .iter()
+                    .position(|entry| entry.op.opId == named)
+                    .ok_or_else(|| journal_op_unknown(&named))?;
+                Some(index)
+            }
+        };
+        self.replayMark(up_to)
+    }
+
+    /// **⟶ ADDED 2026-10-27 — `restoreFloor() → void`: THE STORE RETURNS ITS OWN STATE TO ITS FLOOR, AND IT IS THE
+    /// MARK'S FLOOR NAMED AS A MARK.** It is the replay of `§6.6` with **NO ENTRY APPLIED**: the state the
+    /// compaction's floor stands at — the booted `file`-tier image where one was loaded and the empty register
+    /// where none was (`Store::floor_state`), **which is the born state exactly where nothing has been dropped**
+    /// (`Store::born`, `§6.6` item 2). **`restoreMark` HAS NO SPELLING FOR THIS STATE ONCE THE JOURNAL IS
+    /// NON-EMPTY** — its ABSENT arm names the HEAD, and a caller that opened on an empty journal and later asks
+    /// for "the state that stood then" is asking for a position BEFORE the journal's first entry, which an op
+    /// id cannot name (an op id names the state immediately AFTER an operation). **So the floor gets a spelling
+    /// of its own**, and it is this method: the act the mark restore performs at position `None`, carried
+    /// through the same replay and the same save (a floor that moves a `file`-tier node saves, exactly as an
+    /// op-id mark does — item 5's clause).
+    ///
+    /// **⟶ AND FROM 2026-11-17 THE FLOOR THIS SPELLS IS THE COMPACTED ONE WHERE A DROP HAS HAPPENED — `D-178`,
+    /// the architect verbatim: *"Replay should start over from the compacted floor instead of 'born'"*.** The
+    /// sentences above read *"THE STATE IT WAS BORN WITH"* and are the reading of a store nothing has been dropped
+    /// from; **where `D-160`'s compaction has dropped an entry the floor is the state immediately after the last
+    /// entry it took** (`Store::floor_state`), **so this method names THAT state and the dropped entries' effects
+    /// STAND on it** — measured: `journalLength: 2`, `a` · `b` · `c`, and this call answers a register holding `a`,
+    /// where the creation state holds nothing.
+    ///
+    /// **IT APPENDS NOTHING, COMPACTS NOTHING, DELIVERS NO TRIGGER AND READS NO CONSTRAINT** — the same three
+    /// negatives `restoreMark` carries, for the same reason: a state the record already describes is being
+    /// re-stated, and the floor is the record's own (`Store::floor_state`), not a caller's list.
+    pub fn restoreFloor(&mut self) -> Result<(), StoreError> {
+        self.replayMark(None)
+    }
+
+    /// **⟶ ADDED 2026-11-02 — `D-108`'S FOURTH ARM: THE REGENERATION A LAST-VALID-STATE REVERSAL RUNS WHEN
+    /// ITS REQUIRED OP IS NO LONGER IN THE JOURNAL.** The architect, verbatim: *"The default behavior for a
+    /// last-valid-state rollback encountering the compaction should already be to regenerate from
+    /// file/creation data"*. **It changes the BASE a reversal reverts onto and nothing else: it writes no
+    /// journal entry, removes none, re-orders none, steps no `seq`, advances no compression and clears no mark**
+    /// (`M-9`, `DD-30`). **Its only effect on the journal is the loop below, and it appends nothing.**
+    ///
+    /// **⟶ ★ AND IT IS RESTORED 2026-11-17 AFTER ONE PASS OF DELETION, ON THE ARCHITECT'S CORRECTION —
+    /// `strata/decisions.md` · `D-164` ITEM 1, VERBATIM:** ***"108 was never supposed to retain compacted entries,
+    /// getting rid of entries is the point of the compaction. The resolution if an attempted write has to be rolled
+    /// back but the required op has been compacted is to regenerate the store from the file, or otherwise signal the
+    /// client to recover if no file can be retrieved. This was never ambiguous, 108 is a misread"***. **`D-160`'s
+    /// drop was the PREMISE this frame already assumed and not the withdrawal of its subject** (`D-164` item 1),
+    /// so the frame returns **byte-for-byte from its pre-`D-160` body — `git show 1685d96^:src/store.rs` — with ONE
+    /// change: the replay's `if self.journal[index].op.compacted { continue; }` skip GOES.** **No entry is marked
+    /// any more** (the compaction DROPS the entry it reaches, `D-160` item 1), **so the skip's subject does not
+    /// exist and its two grounds — *"the window took it"* and *"a reversal spent it"* — are gone with the mark.**
+    /// **Everything else stands as it stood: the `read_file_image()` fallback, `FileImage::Members`'s
+    /// `reset_register()` + `install_file_image(...)`, `FileImage::NoImage | FileImage::Refused`'s
+    /// `apply_register(&self.born)`, and the scope-skipping replay.**
+    ///
+    /// **THE BASE IS THE STORE'S OWN EXISTING FILE-OR-CONSTRUCTION FALLBACK, AND NOT A READER BESIDE IT —
+    /// 2026-11-02, `D-110`.** The architect, verbatim: *"The regeneration should be an already existing
+    /// fallback that uses the file, if available, and the construction image if not"*. **THE FILE'S IMAGE WHERE
+    /// ONE STANDS, AND THE CONSTRUCTION IMAGE IN THE THREE CLASSES THAT OWE IT** — the classes `boot_load` *"the
+    /// store's own loader … answers `None` for"* (`D-110` item 1): no `filePath`, an absent or unreadable file, a
+    /// zero-length file. **Both grounds are reached through the read and the install the BOOT performs**
+    /// ([`Store::read_file_image`], the one place the path is read and decoded; [`Store::install_file_image`],
+    /// every admitted member minted at `Tier::File`) — **one decode, two mappings, and no second reach of the
+    /// path.** **AND THE CONSTRUCTION IMAGE IS NOT OVERLAID ON THE FILE'S:** where an image stands, the base is
+    /// THAT image over the graph a boot begins from — which is what `boot_load` itself leaves at the
+    /// construction — **because `born` is a one-instant capture, so an overlay would PUT BACK a version the
+    /// durable file has since REMOVED: a durable removal would come back, the state this section's own text
+    /// refuses (*"a deletion is durable at any scope and a durable removal does not come back"*), and the
+    /// reversal's own save would write the stale version into the file.** **The state that separates the two
+    /// compositions, and the reason this frame is spelled the second way: a boot over `{"x":1}`, a tier-named
+    /// `file` delete of `x`, then a `rollback` over a compacted entry — an overlay answers `x` and writes it
+    /// back, while this frame leaves `x` absent and the bytes at what the delete saved.**
+    /// **AND `born` IS NOT THE DURABLE STATE EITHER**: after ANY later successful save the bytes at the path
+    /// have moved past it, so a base taken from `born` where a file image stands would DROP every version whose
+    /// only journal record the compaction has taken **even where the file carries it** — and the reversal's own
+    /// save would then write that loss into the file (`D-108` item 1's first ground; gate 4's `F1`).
+    /// **⟶ AND AN IMAGE THE LOADER REFUSES IS NOT A REFUSAL HERE, FROM 2026-11-02 (`strata/decisions.md` ·
+    /// `D-118` item 1, correcting `D-109`'s narrowing at its own subject), AND THAT CLAUSE IS PRESERVED BY ITS OWN
+    /// WORDS.** A present, non-empty `filePath` whose bytes cannot be read as this store's state is **TREATED AS NO
+    /// IMAGE AT ALL**, exactly as where no path, no file or a zero-length file stands: the base is the CREATION
+    /// STATE the store was born with, the reversal proceeds, and the save that follows writes a readable image over
+    /// those bytes. **The architect, verbatim: *"In the corrupt file case, then it restores from the store creation
+    /// image"*** — **so this frame refuses on NO state of the path**, and that is `D-164` item 1's requirement, word
+    /// for word. **THE READ IS NOT A HAZARD TO THE WALK, AND THE WALK IS WHY: an in-scope
+    /// entry is filtered out of the replay below and the caller's own backward walk then re-states its captured
+    /// pre-state over whatever the base put back, so a durable version the reversal must remove is removed by
+    /// the reversal and never by the base's choice.**
+    ///
+    /// **THE INCREMENTS AND THE FILTER, ONE PREDICATE ON ONE SCOPE — AND THE MARK THAT STOOD BESIDE IT IS GONE.**
+    /// Every journal entry is applied in appended order **iff it is OUTSIDE the reversal's candidate scope — its
+    /// address is not under the named address or its `seq` is below the floor.** An in-scope entry is not replayed
+    /// because it is what the reversal is undoing and the caller's walk re-states its pre-state next. **⟶ AND THE
+    /// SECOND HALF OF THE OLD PREDICATE — *"AND ITS `op.compacted` MARK DOES NOT STAND"* — IS DELETED 2026-11-17
+    /// (`D-164` item 1, naming the one change): no entry is marked any more, so a predicate on the mark is a
+    /// predicate with no subject.** **SO THE LAST VALID STATE IS THE DURABLE STATE *PLUS* EVERYTHING THE SURVIVING
+    /// JOURNAL STILL REACHES: a `mem`- or `temp`-tier version whose creating entry is RETAINED SURVIVES, because the
+    /// entry's own `after` carries every version at every tier and this replay re-mints each at its own tier; and a
+    /// version whose ONLY record the compaction DROPPED IS LOST, because the entry is gone and no file image carries
+    /// it.** That is `D-108` item 3's answer and it is the undo window's own edge rather than a failure.
+    ///
+    /// **IT IS NOT A SECOND REVERSAL, NOT A JOURNAL RESET, NOT A `restoreMark` CALL AND NOT A SAVE.** It is not
+    /// `restoreMark`: that replays to a POSITION and drops every entry above it, while this replay keeps every
+    /// out-of-scope entry and drops none of them. **It is not a save either, and from 2026-11-02 the save it is not
+    /// is not even this verb's caller's**: `rollback` writes no byte (`D-112` item 2), and the state-keyed write is
+    /// [`Store::save_state`]'s, made by the package after the reversal's judgement and compared against the
+    /// durable state — never against a position this frame took before it moved the base. And it delivers no
+    /// trigger, reads no constraint and opens no `K-2` — the same three negatives the two restore frames carry.
+    fn regenerate(&mut self, scope: &[usize]) -> Result<(), StoreError> {
+        // **THE FALLBACK'S ONE ANSWER, TAKEN BEFORE ANYTHING MOVES — `D-110` item 3.** **⟶ AND AN IMAGE THE
+        // STORE'S OWN LOADER CANNOT READ IS TREATED AS NO IMAGE AT ALL, 2026-11-02 (`strata/decisions.md` ·
+        // `D-118`):** it is NOT a refusal and it is not a state this arm refuses to reach — the three classes
+        // `boot_load` answers `None` for and this fourth one take the same base. **THE ARCHITECT'S OWN WORDS,
+        // VERBATIM: *"In the corrupt file case, then it restores from the store creation image"*.** **SO THE
+        // REGENERATION NEVER REFUSES ON THE IMAGE, THE REVERSAL PROCEEDS, AND THE SAVE THAT FOLLOWS WRITES A
+        // READABLE IMAGE OVER THE CORRUPT FILE — which is the durable state the memory holds.** **WHAT THAT
+        // COSTS IS NAMED AND IT IS NOT A LOSS THE STORE COULD HAVE AVOIDED: the bytes at that path were never
+        // readable as this store's state, so nothing the store could have read is dropped.** **AND NO BYTE OF
+        // `src/error.rs` MOVES FOR IT** (`PIN-14` (v)): `rollback_compacted` keeps its rank, its code and its
+        // generated message, **and its producer is the arm with no file to retrieve — the path-less store — and no
+        // longer an arm of this frame** (`D-164` item 2; `arms.md §B.3`, `D-118` item 2).
+        let image = self.read_file_image();
+        match image {
+            // **THE FILE'S IMAGE WHERE ONE STANDS** — installed over the graph a boot begins from, which is the
+            // act `boot_load` itself performs at the construction (`reset_register` then `install_file_image`).
+            FileImage::Members(members) => {
+                self.reset_register();
+                self.install_file_image(&members);
+            }
+            // **AND THE CONSTRUCTION IMAGE IN THE FOUR CLASSES THAT OWE IT** — the three `boot_load` answers its
+            // `None` for, and an image the loader REFUSES, which `D-118` reads as no image at all.
+            //
+            // **⟶ AND `born` IS READ HERE ON PURPOSE AND IS NOT THE REPLAY'S FLOOR, 2026-11-17 (`D-178`).** This
+            // arm's base is `D-110` item 3's *"the construction image"* — the durable state's stand-in where no
+            // file can be retrieved — and **it is NOT `Store::floor_state`**: a regeneration re-bases a REVERSAL on
+            // what can be retrieved, while the replay re-states a POSITION of the journal's own record. **The two
+            // are different questions about different subjects and this line must not be unified with
+            // `replayMark`'s base**; the floor the replay begins from moves no byte of `D-164`'s arm.
+            FileImage::NoImage | FileImage::Refused => {
+                let born = self.born.clone();
+                self.apply_register(&born);
+            }
+        }
+        for index in 0..self.journal.len() {
+            if scope.contains(&index) {
+                continue;
+            }
+            // **⟶ `if self.journal[index].op.compacted { continue; }` STOOD HERE AND IS THE ONE CHANGE `D-164`
+            // ITEM 1 MAKES:** the compaction DROPS the entry it reaches (`D-160` item 1), so no entry carries the
+            // mark and the skip has no subject. **The replay's scope predicate above is the whole filter.**
+            self.replay_entry(index)?;
+        }
+        Ok(())
+    }
+
+    /// **THE REPLAY ITSELF, AT ONE POSITION, AND IT IS THE ONE BODY `restoreMark` AND `restoreFloor` SHARE** —
+    /// so the mark's two spellings (an op id, and the floor) cannot drift apart on the replay, the save or the
+    /// answers. `up_to = Some(index)` applies the journal's entries `0..=index`; `up_to = None` applies NONE of
+    /// them and answers **the CURRENT floor**.
+    ///
+    /// **⟶ THE BASE IS NOW THE COMPACTED FLOOR AND NOT `born` — 2026-11-17, `strata/decisions.md` · `D-178`, the
+    /// architect verbatim: *"Replay should start over from the compacted floor instead of 'born'"*.** The sentence
+    /// that stood here read *"the replay, from the state the record stands before its first entry — the booted
+    /// image where the store loaded one and the empty register where it did not (`Store::born`)"*, **and it is the
+    /// state of a store NOTHING HAS BEEN DROPPED FROM.** Once `D-160`'s compaction drops an entry, **the effect of
+    /// every entry it took is absent from `born`**, so a replay that began there answered a state the journal's own
+    /// record never described: the effects of the dropped entries **belong to the base, and the base is now
+    /// `Store::floor_state`** — the state immediately after the last entry the compaction dropped, which BEGINS
+    /// equal to `born` (so an uncompacted store's answer does not move) and is advanced by each drop and by nothing
+    /// else.
+    ///
+    /// **AND `up_to = None` STILL MEANS THE FLOOR — THE FLOOR'S OWN SPELLING, `Store::restoreFloor` — WHICH IS NOW
+    /// THE COMPACTED FLOOR AND NO LONGER THE CREATION STATE.** **THE SENTENCE THAT ARRIVES AT THIS ARM FROM
+    /// `restoreMark` — *"the state it describes is the empty register the store began with"* — IS SUPERSEDED WHERE
+    /// A DROP HAS HAPPENED**, and it is the same ruling one layer down: the empty journal of a store the compaction
+    /// has dropped from still describes no operation, **but the state `None` reaches is the one below, not the one
+    /// the store was born with.**
+    fn replayMark(&mut self, up_to: Option<usize>) -> Result<(), StoreError> {
+        // THE REPLAY'S BASE IS THE FLOOR — `Store::floor_state`: the state immediately after the last entry the
+        // compaction dropped, and EQUAL to the born state where nothing has been dropped (`storeCreateWithInputs`
+        // takes one capture and this carrier holds it). Each entry's address then names the pair it set, and an
+        // operation at the EMPTY address is applied at the register's own root. **ONE BASE AND ONE PATH — there is
+        // no branch on `journal_floor.is_some()` here** (`D-178` item 2 (i)'s test is the equality the field
+        // begins with), so the two cases cannot drift apart.
+        let floor = self.floor_state.clone();
+        self.apply_register(&floor);
+        if let Some(up_to) = up_to {
+            for index in 0..=up_to {
+                self.replay_entry(index)?;
+            }
+        }
+        // **THE SAVE, AND ONLY WHERE THE STANDING IMAGE DOES NOT ALREADY HOLD THE RESTORED STATE — THE RULING OF
+        // 2026-10-27, RE-DERIVED BY `D-111` ITEM 1.** The projection of the state that stands and the projection
+        // of the durable state (`Store::durable_projection`: the file's image where one stands, the construction
+        // image where none does) are the same reading of the same law taken at the two ends it is about — "the
+        // image the file carries IS the image the store holds" — so where they are equal no version at `Tier::File`
+        // stands unrepresented at the path and touching it would be file I/O the act does not owe. **A RESTORE THAT
+        // RETURNS THE STORE TO WHERE ITS CALL FOUND IT THEREFORE WRITES NOTHING**, which is the compensating
+        // restore's own case where the durable image is already that state; **and a restore that moves a `file`-tier
+        // version off the durable image — a refused reversal's compensating restore among them — writes.** **The
+        // four steps are ONE instrument from 2026-11-02** (`save_file_delta`), shared with the entry's state-keyed
+        // save ([`Store::save_state`]) and with nothing else: `rollback` writes no byte of its own (`D-112` item 2).
+        // **THE SUBJECT IS THE MARK'S OWN ADDRESS** — the operation whose state this mark names — the same
+        // convention `commit_file` takes from the record it saves; the image written is the whole register
+        // (`§7.2` `M-12`), so the address is the failure's subject and not a write target.
+        let subject = up_to
+            .map(|index| self.journal[index].op.address.clone())
+            .unwrap_or_default();
+        // **THE STORE'S ONE SAVE PATH**, not a second one: `write_file` is what a `file`-tier write's save
+        // performs. **A FAILURE IS PROPAGATED AND THE RESTORED STATE STANDS** — the replay is not undone, so
+        // the caller is told that the memory was restored and the bytes were not.
+        self.save_file_delta(&subject)
+    }
+
+    /// **THE PER-ENTRY ACT OF EVERY REPLAY IN THIS STORE, SPELLED ONCE — `replayMark`'s loop body and the
+    /// regeneration's increments are the same act and must not drift apart.** An operation at the EMPTY address
+    /// is applied at the register's own root; every other entry's address then names the pair it set, the home
+    /// **re-derived against the graph as it stands at that instant** (`home_of_address`), never the link recorded
+    /// when the entry was appended. **AND THE ENTRY'S OWN HOME IS RE-RECORDED AT THE END** (`PairHome` is an ARENA
+    /// INDEX and the replay has just rebuilt the arena), so the one job the recorded home still has — an address
+    /// whose parent no longer resolves — keeps naming the pair this replay actually wrote.
+    fn replay_entry(&mut self, index: usize) -> Result<(), StoreError> {
+        let address = self.journal[index].op.address.clone();
+        let after = self.journal[index].after.clone();
+        if address.is_empty() {
+            self.apply_register(&after);
+            return Ok(());
+        }
+        let home = self.home_of_address(&address).ok_or_else(|| {
+            // A journal whose own entries cannot be resolved is not a state this primitive may
+            // guess at: it refuses in the store's own address form and stops.
+            debug_assert!(false, "a journaled address does not resolve during its own replay");
+            address_not_found(&address[address.len() - 1], &address[..address.len() - 1], &[], false)
+        })?;
+        self.restore(&home, &after);
+        self.journal[index].home = Some(home);
+        Ok(())
+    }
+
+    /// **⟶ ADDED 2026-11-17 BY `D-178` — THE FLOOR'S ONE ADVANCE: ONE ENTRY APPLIED TO THE STATE THE COMPACTION'S
+    /// FLOOR HOLDS, SPELLED ON THE CAPTURED CARRIER AND NOT ON THE GRAPH.**
+    ///
+    /// **THERE WAS NO HELPER THAT APPLIES ONE ENTRY'S SNAPSHOTS TO A STATE, AND THAT IS STATED HERE RATHER THAN
+    /// PAPERED** — [`Store::apply_register`] takes a WHOLE captured state and installs it, [`Store::restore`] takes
+    /// a live GRAPH and a `PairHome`, and [`Store::replay_entry`] is the graph-level primitive. **SO THIS IS
+    /// `replay_entry`'S OWN ACT SPELLED ON THE CARRIER `Store::floor_state` HOLDS — not a second semantics for
+    /// *"apply an entry"*: the two steps below are the two steps `replay_entry` performs, in its order.**
+    ///   * **THE PAIR AT THE ENTRY'S ADDRESS AND ITS WHOLE DOWNSTREAM SUBTREE ARE CLEARED** — `replay_entry` resolves
+    ///     the pair and `restore`'s `rebuild` removes its versions BEFORE it writes any (`remove_refs`); here every
+    ///     captured entry at or below that address leaves the state, which is the same subtree expressed on the
+    ///     absolute paths a register's capture carries.
+    ///   * **EVERY VERSION THE ENTRY LEFT IS WRITTEN AT ITS OWN TIER, UNDER THE VERSION IT HUNG UNDER** —
+    ///     `rebuild`'s `mint` loop and `Captured::under`: **no purge and no monotonicity test**, because a state the
+    ///     record already describes is being re-stated and not being written (`§6.6`'s own clause, which is why this
+    ///     primitive can reach states a `write` cannot). **TWO THINGS MOVE AND ONLY TWO**: the PATH, re-based from
+    ///     the entry's own address to the register's absolute path, and the `under` of the addressed pair's own
+    ///     versions — which is the one carrier re-basing would otherwise falsify, and it is stated below.
+    ///
+    /// **THE EMPTY ADDRESS IS THE SAME ACT AND NOT A SECOND ARM.** `replay_entry` applies `apply_register(&after)`
+    /// there; here an empty prefix clears EVERY captured entry (every path starts with the empty path) and
+    /// re-bases nothing, so what remains is the entry's `after` — the whole register, which is what an operation at
+    /// the EMPTY address left (`capture_register`). **A second arm would be a second place for the one address
+    /// class to drift, and `replay_entry` does not have one either.**
+    ///
+    /// **AND THE `under` CARRIER IS RE-DERIVED FOR THE ADDRESSED PAIR'S OWN VERSIONS, BECAUSE RE-BASING IS WHERE IT
+    /// WOULD OTHERWISE LIE.** [`Captured::under`] names the TIER OF THE ENCLOSING VERSION whose node holds the pair,
+    /// and `rebuild` writes a child only under a version it can find at that tier (`pair_at`). **The entry's own
+    /// capture is RELATIVE to its address, so its top-level versions carry `under: None` — right at the addressed
+    /// pair and FALSE one level down**, once they are re-based onto a deeper absolute path: `None` puts them under
+    /// no parent version at all and `rebuild` skips them. **The enclosing version is not guessed — it is the one
+    /// `replay_entry` itself resolves**: `home_of_address`'s `walk` answers the LOWEST-persistence version at the
+    /// parent path (`§2.3`: *"the lowest-persistence anchor answers"*, `A28`), **and this reads that same rule over
+    /// this state's own versions**, which are the versions the entry was appended onto. **MEASURED BEFORE IT WAS
+    /// ADDED**: a floor advanced by a write at `['a','q']` replayed as `a.q`'s value from BEFORE that write — the
+    /// entry's effect in the state and absent from the replay.
+    fn advance_floor(&mut self, address: &[Segment], after: &[Captured]) {
+        self.floor_state.retain(|entry| !entry.path.starts_with(address));
+        // THE VERSION OF THE ADDRESS'S PARENT THAT THE ADDRESSED PAIR HANGS UNDER — `walk`'s own selection over
+        // this state's versions of that path (`lowest`: rank ascending) — and `None` where the parent IS the
+        // register, whose own top level is the capture's top level and never carries `under` (`capture_register`).
+        let enclosing: Option<Tier> = match address.split_last() {
+            Some((_, parents)) if !parents.is_empty() => self
+                .floor_state
+                .iter()
+                .filter(|entry| entry.path.as_slice() == parents)
+                .map(|entry| entry.tier)
+                .min_by_key(|tier| tier.rank()),
+            _ => None,
+        };
+        for entry in after {
+            let mut rebased = entry.clone();
+            let mut path = address.to_vec();
+            path.extend(entry.path.iter().cloned());
+            rebased.path = path;
+            if entry.path.is_empty() {
+                rebased.under = enclosing;
+            }
+            self.floor_state.push(rebased);
+        }
+    }
+
+    /// **⟶ ADDED 2026-11-17 BY `U-STOREROOM-03` — THE COMPOSITION AND ITS SELF-VERIFICATION, FACTORED ONCE SO THE
+    /// WRITER AND THE EXPORT TAKE THE SAME BYTES** (`D-133` item 2; `D-137` item 2).
+    ///
+    /// **`write_file`'s first two acts and nothing else**: the whole-state serialization of the `file` tier's
+    /// projection (`json::encode(&self.file_snapshot())`) **and the loader's own acceptance applied before any byte is
+    /// written**. **THE TWO FILESYSTEM ACTS ARE ON THE FAR SIDE OF THE FACTORING**. **IT TAKES `&self` AND CAN NEVER TAKE
+    /// `&mut self`**, which is what makes "marks nothing" structural rather than documentary. **The refusal is the one
+    /// the writer already answers with** — `FileCommitFailed` (rank `15`) — because the check is `write_file`'s and no
+    /// code is minted for it.
+    fn compose_verified_image(&self, address: &[Segment]) -> Result<String, StoreError> {
+        let text = json::encode(&self.file_snapshot());
+        // THE LOADER'S OWN ACCEPTANCE, APPLIED TO THE IMAGE BEFORE IT IS WRITTEN OR HANDED OUT: the store's one read
+        // of the path (`Store::read_file_image`) IS THE LOADER, and its `Ok(StoreValue::Object(_))` arm is the
+        // acceptance every load rests on. It reads the text and never the standing bytes (`A144`; `D-110`).
+        if !matches!(json::decode(&text), Ok(StoreValue::Object(_))) {
+            return Err(file_commit_failed(address, &self.file_path));
+        }
+        Ok(text)
+    }
+
+    /// **⟶ ADDED 2026-11-17 BY `U-STOREROOM-03` — `exportImage()`'s STORE HALF: THE IMAGE THE WRITER WOULD WRITE,
+    /// ANSWERED AS TEXT, AND NOTHING MARKED** (`D-133` item 2; `D-137` item 2).
+    ///
+    /// **IT IS THE STORE'S OWN COMPOSITION AND NOT A PACKAGE SNAPSHOT**: *"the addon will have to hand the JS package the
+    /// JSON export"* is `D-133`'s direction, and the artefact is the text `write_file` writes today — the WHOLE STATE
+    /// and not a delta. **THE AUTHORITY IS THE STORE'S COMPOSITION AND NEVER `read([])`** (`D-133` item 4).
+    ///
+    /// **IT MARKS NOTHING** (`D-137` item 2): no `Entry::saved`, no journal entry, no byte, no sibling, no rename. **AND
+    /// THE RE-DECODE IS RETAINED** (`SC-R4`, discharged by construction): `D-137` item 2's literal *"assertion"* is NOT
+    /// taken, because a release-mode pass-through would hand the caller an image the loader refuses.
+    ///
+    /// **ITS SUBJECT IS THE REGISTER** (`&[]`), which is `save_file_delta`'s own subject, so a refusal names what the
+    /// state-keyed save already names.
+    pub fn export_image(&self, address: &[Segment]) -> Result<String, StoreError> {
+        self.compose_verified_image(address)
+    }
+
+    /// **⟶ ADDED 2026-11-02 — THE STATE-KEYED SAVE, FACTORED OUT SO THERE IS ONE INSTRUMENT AND NOT THREE**
+    /// (`D-106` arm 3, `D-108`'s fourth arm, `D-116` item 2). **THE ACT RUNS FIRST AND THIS HELPER ASKS ONE
+    /// QUESTION AFTER IT: does the standing image at the path already hold the state the act has left?** It
+    /// takes the `file` tier's projection of the state THAT STANDS and the projection of the DURABLE state, and
+    /// writes the store's one serializer (`write_file`) only where the two DIFFER. **⟶ AND THE SECOND PROJECTION
+    /// IS THE DURABLE STATE AND NOT A SECOND READING OF IT, 2026-11-02 (`strata/decisions.md` · `D-111` item 1
+    /// AND item 2): the correction pass compared the state across the act, which made a reversal that returns
+    /// the store to where the call found it write a byte for a delta nothing durable had moved.** The state the
+    /// file holds is [`Store::durable_projection`] — the file's own image where one stands and the construction
+    /// image where none does, which are `D-108` item 1's two grounds read through the store's one reader
+    /// (`D-110` item 2).
+    ///
+    /// **AND THE QUESTION THIS HELPER ASKS IS *"HAS THIS SAVE BEEN PERFORMED"* AND NOT *"WHICH ARM IS THIS"* —
+    /// 2026-11-02, `D-112` ITEM 3.** **THE TWO ARMS `D-111` SEPARATES ARE NOT SEPARATED HERE AND ARE NOT
+    /// DISTINGUISHED BY ANY BYTE OF THIS STORE**: a compensation is excluded from the save by the ORDERING the
+    /// package keeps — `judgeReversal` returns on `COMPENSATING` before any ask, so a compensation reaches
+    /// neither the judgement nor the save — and the equality test as their discriminator is WITHDRAWN WHOLE
+    /// WITH ITS SUBJECT. **WHAT THIS COMPARISON IS, INSTEAD, IS ONE BIT OF INFORMATION ABOUT ONE IMAGE**: the
+    /// state the register stands at, against the state the path already holds. **Where they are equal there is
+    /// nothing to write, and that is the WHOLE of what stops a redundant byte** — no record, no mark and no flag
+    /// is consulted (`D-116` items 3 and 5).
+    ///
+    /// **A PATH-LESS INSTANCE CANNOT OWN A `file`-TIER NODE** (`§1.6`), so no byte is touched and nothing is owed.
+    /// **AND THE EQUALITY GUARD IS WHAT KEEPS THIS LAWFUL UNDER THE ONCE-PER-RECORD LAW: the guard is an IMAGE and
+    /// not a record**, so a second identical reversal (or a second identical restore) reads equal and writes
+    /// nothing, and the same image is never serialized twice for one delta. **A FAILURE IS PROPAGATED AND THE
+    /// STATE STANDS** — the caller's reversion is not undone, so the caller learns that the memory stands at the
+    /// last valid state **and** that the bytes were not updated (`restoreMark`'s declared two-fact form, which is
+    /// the reversal's as well).
+    fn save_file_delta(&self, subject: &[Segment]) -> Result<(), StoreError> {
+        if self.file_path.is_empty() {
+            return Ok(());
+        }
+        let standing = self.file_snapshot();
+        // **AN IMAGE THE LOADER REFUSES IS NOT A DURABLE STATE THIS STORE CAN COMPARE AGAINST** (`D-109`'s
+        // narrowed subject): nothing is assumed about it, so the state that stands is written over it, exactly
+        // as the act did before this comparison existed.
+        if let Some(durable) = self.durable_projection() {
+            if standing == durable {
+                return Ok(());
+            }
+        }
+        self.write_file(subject)
+    }
+
+    /// **THE DURABLE STATE, READ THROUGH THE STORE'S ONE READER — `D-110` item 2, AND `D-108` ITEM 1'S TWO
+    /// GROUNDS.** The `file` tier's image where one stands ([`Store::read_file_image`], the one place the path is
+    /// read and decoded), and the construction image where none does — the state the store was born with
+    /// ([`Store::born`]), and the same class of `None` [`Store::boot_load`] exempts (no `filePath`, an absent or
+    /// unreadable file, a zero-length file). **⟶ AND THE REGENERATION THAT ALSO READ IT IS WITHDRAWN, 2026-11-17
+    /// (`D-160` item 5)**: `D-108` item 1's re-base had this projection as its ground truth, and the ruling's DROP
+    /// leaves that arm no subject — **so this reading has ONE caller left, the state-keyed save's comparison
+    /// (`replayMark` via `save_file_delta`), which is the guard `D-111` item 1 gave it.**
+    ///
+    /// **`None` MEANS THE STANDING IMAGE CANNOT BE READ AS THIS STORE'S STATE** — [`FileImage::Refused`] — so
+    /// nothing is claimed about it and the caller writes.
+    fn durable_projection(&self) -> Option<StoreValue> {
+        match self.read_file_image() {
+            FileImage::Members(members) => Some(StoreValue::Object(members.into_iter().collect())),
+            FileImage::NoImage => Some(self.born_projection()),
+            FileImage::Refused => None,
+        }
+    }
+
+    /// **THE CONSTRUCTION IMAGE'S `file`-TIER PROJECTION** — every member `born` carries AT `Tier::File` at the
+    /// register's own top level, assembled at that tier: what a boot over no image stands at, spelled the way
+    /// [`Store::file_snapshot`] spells the state that stands now, so the two are comparable by equality alone.
+    fn born_projection(&self) -> StoreValue {
+        let mut members = BTreeMap::new();
+        for entry in &self.born {
+            if entry.path.len() != 1 || entry.tier != Tier::File {
+                continue;
+            }
+            if let Segment::Key(name) = &entry.path[0] {
+                members.insert(name.clone(), entry.value.clone());
+            }
+        }
+        StoreValue::Object(members)
+    }
+
+    /// **THE GRAPH THE REPLAY BEGINS FROM** — `Store::empty`'s three arenas and nothing else: the register's
+    /// node, its link and its own reference, with the tier the register was constructed at. The journal, the
+    /// home map, the file path and the sequence counter are NOT touched (`§6.6`).
+    fn reset_register(&mut self) {
+        let register_tier = self.refs[self.register_ref].anchor.tier;
+        let (nodes, links, refs) = Store::fresh_register(register_tier);
+        self.nodes = nodes;
+        self.links = links;
+        self.refs = refs;
+        self.register = 0;
+        self.register_ref = 0;
+    }
+
+    /// **THE WHOLE REGISTER, RE-STATED FROM ONE CAPTURE OF IT** — what an operation at the EMPTY address left
+    /// (`capture_register`). The register's top-level pairs are rebuilt one key at a time, each by the same
+    /// `rebuild` the pair-level restore uses, so a version standing only at `temp` and a shadow standing at
+    /// two tiers are both reproduced (`§6.6`).
+    fn apply_register(&mut self, captured: &[Captured]) {
+        self.reset_register();
+        let mut keys: Vec<Segment> = Vec::new();
+        for entry in captured {
+            if let Some(first) = entry.path.first() {
+                if !keys.contains(first) {
+                    keys.push(first.clone());
+                }
+            }
+        }
+        for key in keys {
+            let own: Vec<Captured> = captured
+                .iter()
+                .filter(|entry| entry.path.len() == 1 && entry.path[0] == key)
+                .cloned()
+                .collect();
+            self.rebuild(self.register, vec![key.clone()], key, &own, captured);
+        }
+    }
+
+    /// **THE PAIR AN ADDRESS NAMES, IN THE WRITE'S OWN CONVENTION** — the PARENT container's link and the
+    /// address's last segment, which is the pair `restore`/`rebuild` clear and re-mint at.
+    ///
+    /// **⟶ THE `pair_home` FUNCTION THIS CLAUSE ONCE CONTRASTED ITSELF WITH IS DELETED, 2026-10-27 (`D-43`
+    /// item 3).** It resolved the LINK OF THE FIRST VERSION standing at the key rather than the parent
+    /// container's link, and it was the delete's capture home: for a STRUCTURED target it captured a node
+    /// that holds no versions, so the entry held an EMPTY before-state and a reversal restored nothing.
+    /// **The delete captures at this convention now — one convention, and the one every reversal derives.**
+    fn home_of_address(&self, address: &[Segment]) -> Option<PairHome> {
+        let (last, parents) = address.split_last()?;
+        let parent = if parents.is_empty() {
+            self.register_ref
+        } else {
+            self.walk(parents, &TierSel::All).ok()?.0
+        };
+        Some(PairHome {
+            link: self.link_of(parent)?,
+            key: last.clone(),
+        })
+    }
+}
+
+/// `§1.5` item 3: **a container's key domain decides which segment CLASS resolves against it — and
+/// *"NO COERCION OCCURS"*.** A `string` segment resolves against a `MAP`; it resolves NOWHERE against a
+/// `VEC`. An integer segment resolves against a `VEC`, and against a `MAP` only at an index-shaped key,
+/// which no `MAP` write can install (`§1.3`: a `MAP`'s key domain is string keys). So a segment whose class
+/// the container cannot hold is `L-3`'s `AddressNotFound` — the key does not exist there — and never a
+/// coerced lookup and never a minted anchor outside the container's domain.
+fn key_fits(container: Kind, key: &Segment) -> bool {
+    match container {
+        Kind::Map => matches!(key, Segment::Key(_)),
+        Kind::Vec => matches!(key, Segment::Index(_)),
+    }
+}
+
+/// `§5.1`'s canonical order: **the order used by every printed list in this contract is `file`, `mem`,
+/// `temp`** — which is rank DESCENDING, not ascending.
+fn canonical_tiers() -> [Tier; 3] {
+    [Tier::File, Tier::Mem, Tier::Temp]
+}
+
+/// The captured versions of ONE pair, in rank ascending order (so a `MAP`'s per-pair count stays at one
+/// anchor per `(key, tier)` after a re-mint).
+fn ordered_one_anchor(captured: &[Captured]) -> Vec<Captured> {
+    let mut ordered = captured.to_vec();
+    ordered.sort_by_key(|entry| entry.tier.rank());
+    ordered
+}
+
+/// Every captured path strictly BELOW the given path, deduplicated and outermost first.
+fn child_paths(captured: &[Captured], walked: &[Segment]) -> Vec<Vec<Segment>> {
+    let mut paths: Vec<Vec<Segment>> = captured
+        .iter()
+        .map(|entry| entry.path.clone())
+        .filter(|path| path.len() > walked.len() && path.starts_with(walked))
+        .collect();
+    paths.sort_by_key(|path| path.len());
+    paths.dedup();
+    paths
+}
+
+/// The rollback's scope relation (`§6.4` `M-5`, `DD-21`): `op.address` is a prefix of the entry's address.
+fn is_prefix(prefix: &[Segment], address: &[Segment]) -> bool {
+    prefix.len() <= address.len() && prefix.iter().zip(address.iter()).all(|(a, b)| a == b)
+}
+
+/// **`D-66`/`D-67`'s ONE PREDICATE, SPELLED ONCE FOR BOTH RETURNED LISTS — an act at `address` triggers a
+/// registration bound at `registration` iff THE REGISTRATION'S ADDRESS IS A PREFIX OF THE ACT'S (`D-56`, the
+/// ancestor arm, equality included) OR THE ACT TOUCHED IT (`D-66`, the descendant arm, and the purge arm that
+/// closes the per-tier residual).**
+///
+/// **THE TWO ARMS ARE ONE CRITERION AND NOT TWO RULES**: a pair is asked (and a listener told) when the act
+/// CHANGES THE VALUE AT ITS ADDRESS — the value read at a prefix contains its subtree, so a change anywhere
+/// below it moves it; **and a node the act CREATED OR PURGED has a value that changed, so its own registration
+/// is reached.** An address that is neither above the act nor touched by it is NOT reached: `['a','b','e']`
+/// stays silent for a write at `['a','b']` with `{c, d}` (`D-66`'s own example).
+fn registration_triggered(
+    registration: &[Segment],
+    address: &[Segment],
+    touched: &[Vec<Segment>],
+) -> bool {
+    is_prefix(registration, address) || touched.iter().any(|path| path == registration)
+}
+
+/// **ONE VALUE'S PATH SET, APPENDED UNDER `prefix`** — the walk `Store::touched_below` states the rule of. Each
+/// member's address is built FRESH, a copy of `prefix` plus the one segment, and a path already standing in the
+/// list is not appended a second time: the answer is a SET.
+///
+/// **THE SEGMENT CLASS IS THE CONTAINER'S OWN** (`§1.5`: an index key is a non-negative integer), so an array
+/// contributes `Segment::Index` and an object `Segment::Key` — `[7, 8]` written at `['a']` touches `['a',0]` and
+/// `['a',1]` and NEVER `['a','0']`. **A SCALAR HAS NO MEMBERS AND TOUCHES NOTHING.**
+fn append_value_paths(
+    out: &mut Vec<Vec<Segment>>,
+    seen: &mut HashSet<Vec<Segment>>,
+    prefix: &[Segment],
+    value: &StoreValue,
+) {
+    match value {
+        StoreValue::Object(members) => {
+            for (name, member) in members {
+                let mut path: Vec<Segment> = prefix.to_vec();
+                path.push(Segment::Key(name.clone()));
+                if seen.insert(path.clone()) {
+                    out.push(path.clone());
+                }
+                append_value_paths(out, seen, &path, member);
+            }
+        }
+        StoreValue::Array(items) => {
+            for (index, member) in items.iter().enumerate() {
+                let mut path: Vec<Segment> = prefix.to_vec();
+                path.push(Segment::Index(index as u64));
+                if seen.insert(path.clone()) {
+                    out.push(path.clone());
+                }
+                append_value_paths(out, seen, &path, member);
+            }
+        }
+        _ => {}
+    }
+}

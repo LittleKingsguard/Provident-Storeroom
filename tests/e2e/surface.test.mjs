@@ -317,7 +317,14 @@ test('verbs_write_returns_its_three_member_record_and_burns_nothing_on_failure',
   assert.equal(record.op.before.present, false);
   assert.equal(record.op.after.present, true);
   assert.equal(typeof record.op.seq, 'number');
-  assert.equal(typeof record.op.compacted, 'boolean');
+  // **⟶ AND `compacted` IS GONE FROM THE RECORD FROM `2026-11-17`** (`strata/decisions.md` · `D-189` item 2,
+  // the architect VERBATIM: *"If .compacted is always false drop it"*). **The limb that stood here read
+  // `typeof record.op.compacted === 'boolean'`**; a member that can hold one value carried nothing, its subject
+  // is the `journal_floor` watermark's (`D-160` item 3), and a record that still carried the key would be a
+  // member the declaration no longer declares. **The absence is asserted in its place** — a removal is measured
+  // by the key's absence and by nothing else.
+  assert.equal(Object.hasOwn(record.op, 'compacted'), false,
+    'the operation record carries SEVEN members: `compacted` is removed from it, not renamed and not deprecated');
   assert.throws(() => inst.write(['b'], 'mem', () => {}));
   assert.throws(() => inst.read(['b']), 'a refused write installs nothing');
 });

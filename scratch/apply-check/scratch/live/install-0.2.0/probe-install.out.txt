@@ -1,0 +1,28 @@
+=== MAIN MANIFEST (installed) ===
+path            : /media/ryanr/Shared Files/Projects/Provident-Storeroom/scratch/live/install-0.2.0/node_modules/provident-storeroom/package.json
+name            : provident-storeroom
+version         : "0.2.0"
+optionalDeps    : {"@auspicion/provident-storeroom-js-linux-x64-gnu":"0.2.0","@auspicion/provident-storeroom-js-linux-arm64-gnu":"0.2.0","@auspicion/provident-storeroom-js-darwin-x64":"0.2.0","@auspicion/provident-storeroom-js-darwin-arm64":"0.2.0","@auspicion/provident-storeroom-js-win32-x64-msvc":"0.2.0"}
+all five pins == 0.2.0 : true
+
+=== PLATFORM MANIFEST (installed, the one npm actually placed) ===
+path            : /media/ryanr/Shared Files/Projects/Provident-Storeroom/scratch/live/install-0.2.0/node_modules/@auspicion/provident-storeroom-js-linux-x64-gnu/package.json
+name            : @auspicion/provident-storeroom-js-linux-x64-gnu
+version         : "0.2.0"
+main            : storeroom_js_binding.node
+os/cpu/libc     : [["linux"],["x64"],null]
+
+=== THE RUNGS, AS THE INSTALLED TREE ANSWERS THEM ===
+rung one (@auspicion/provident-storeroom-js-linux-x64-gnu) : RESOLVED -> exports=call,errorMessage,register,storeCreate,version
+rung one resolved path          : /media/ryanr/Shared Files/Projects/Provident-Storeroom/scratch/live/install-0.2.0/node_modules/@auspicion/provident-storeroom-js-linux-x64-gnu/storeroom_js_binding.node
+rung one artefact version()     : "0.2.0"
+rung one version() typeof       : string
+rung one version() chars        : 0:U+0030 .:U+002E 2:U+0032 .:U+002E 0:U+0030
+rung one artefact byte size     : 969976
+rung two (module-relative)      : /media/ryanr/Shared Files/Projects/Provident-Storeroom/scratch/live/install-0.2.0/node_modules/provident-storeroom/build/Release/storeroom_js_binding.node ABSENT (rung one is the rung that stands)
+
+=== THE INSTALLED ENTRY, DRIVEN ===
+namespace      : ["delete","listen","read","readLiteral","rollback","storeCreate","unlisten","write"]
+storeCreate    : OK, members= ["off","on","register","settle"]
+artefact version() === main manifest version : true "0.2.0" === "0.2.0"
+artefact exports : ["call","errorMessage","register","storeCreate","version"]

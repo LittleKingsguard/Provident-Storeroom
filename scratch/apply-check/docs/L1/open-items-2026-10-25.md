@@ -1,0 +1,419 @@
+# L1 open items — 2026-10-25: every item this branch has named and not closed, closed or explicitly deferred
+
+**WHAT THIS FILE IS.** The closing record of a **declaration/record pass**: the twelve blind instances (⟶ RE-COUNTED 2026-10-27: **THIRTEEN** — the twelve surface instances plus `blind-defect-cases.test.mjs`, the defect-cases instance) now cover
+every general-purpose surface, and what remained was a short list of things recorded as open. **Nothing here is an
+implementation, a design or a new unit.** Each item is either **answered from the declared surface**, or
+**deferred with the one question that would settle it**, or **named as a record that is simply wrong**.
+
+**METHOD, AND ITS LIMIT, STATED FIRST.** This pass's **own** session had **no shell** — every figure below was read
+from a file at its own bytes with a file-reading tool (`read`/`glob`/`grep`), and no count in §1–§4 is a transcript of
+a run. **The LEGS were therefore run by DELEGATED READ-ONLY PROBES** — agents that executed the commands in this same
+tree and returned their raw output, making no edit, no commit and no branch change. **Their results are printed in §5
+in full, because a verification nobody can re-read is a claim.**
+
+**THE WRITE SCOPE THIS PASS HAD, NAMED SO NO READER ASSUMES THE TREE MOVED.** `docs/L1/**`,
+`strata/decisions.md`, and `docs/specs/**` by ANNOTATE-BESIDE only. **No source, no test, no manifest byte was
+written**, and every edit is an insertion beside a reading that stands byte-for-byte.
+
+---
+
+## §1 · The addon's export set: the oldest thread, and what moves
+
+**WHAT IS TRUE, MEASURED AT THE BYTES.** `bindings/js/src/facade.rs` declares **THIRTEEN line-initial `#[napi]`
+sites**, and **no `call`**:
+
+| kind | entries | sites (re-measured 2026-10-25) |
+|---|---|---|
+| bare `#[napi]` — the four STANDING entries | `storeCreate` · `register` · `version` · `errorMessage` | `:328` · `:942` · `:1019` · `:1047` |
+| `#[napi(js_name = …)]` — the nine PER-VERB entries | `read` · `readLiteral` · `write` · `delete` · `rollback` · `listen` · `unlisten` · `removeListener` · `commitFile` | `:544` · `:590` · `:637` · `:676` · `:710` · `:745` · `:776` · `:811` · `:846` |
+
+**`4 + 9 = 13` ✓, and `call` is absent.** The kept corpus already agrees: `docs/specs/storeroom-addon-surface/
+contract.md`'s **`P-SAS-1`** — *"the addon's export set is exactly the thirteen declared names — `4` standing plus
+`9` per-verb — and `call` is absent"* — and the addon's own battery asserts the retired entry **absent by its exact
+registration symbol** (`tests/integration/binding-crossing/addon_adoption.rs`'s `RETIRED_ENTRY`). The archived
+`export-set-and-dispatch.md §2` prints the deletion in its own words: *"**`call` IS DELETED.** It **was** the
+dispatcher … The split is precisely its replacement, so it does not survive."*
+
+**THE DISPOSITION: THIS IS A STALE DECLARATION, NOT A CODE DIVERGENCE.** No behaviour byte moves, no manifest row
+moves, and no design question exists. **The five was TRUE WHEN EACH SITE PRINTED IT** — `A145`'s adoption
+(2026-10-21) landed `#[napi]` over a hand-built table of five — and **the sites were never re-derived when the
+addon-surface split re-cut the boundary to thirteen.** The count moved `5 → 13` at the split; the declaration did
+not follow.
+
+**THE SITES, EACH WITH WHAT IT SAYS, WHAT IS TRUE, AND WHICH ONE MOVES.**
+
+| # | site | what it now says | what is true | which one moves |
+|---|---|---|---|---|
+| 1 | **`archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-js/package.md` `§1.3` item 4** | *"`version` · `errorMessage` · `storeCreate` · `call` · `register`"* — *"Every one of the five is INTERNAL"* | thirteen, no `call` | **NOTHING MOVES.** The file is archived, `archive/` is gitignored by the project's own rule, and no role writes it. It stands as the record of its date and is **read through `P-SAS-1`**, which is the kept row of record |
+| 2 | **`docs/specs/storeroom-js/surface.md`'s 2026-10-16 counter-pass** (`:1864`, its second print `:1871`) | *"the store's own `8`-verb namespace, **the addon's `5` exports**, the dispatcher's `8` tokens, the register's `8` rows, **the kernel's five items** and **the store's closed `16`** … are all UNMOVED"* | addon **13**; kernel **6**; store's closed set **17** | **THE DOCUMENT** — an annotate-beside clause landed by this pass (§5) |
+| 3 | **`bindings/js/src/lib.rs`'s closing comment** (`:79`–`:85`) | *"Measured after the deletion, not assumed: the rebuilt artefact still exports exactly the five"* · *"**THE FIVE ENTRY FUNCTIONS KEEP THEIR NAMES AND ARITIES** — `version` · `errorMessage` · `storeCreate` · `call` · `register`"* | thirteen, no `call` | **THE CODE'S COMMENT** — a source comment, and this pass has no source scope. **The exact edit is printed at §4 item 2 and owed to whoever next edits the file.** No behaviour byte moves with it: **this is not a code question** |
+| 4 | **`docs/specs/storeroom-js/contract.md`** (`:1913`, `:1921`) | the same five, beside *"the store's closed `16`"* and *"the kernel's five items"* | **13 / 17 / 6** | **THE DOCUMENT** — annotate-beside, landed by this pass (§5) |
+| 5 | **`docs/L1/module-map.md` E2** (`:673`–`:686`) | **thirteen, correctly**, but with a stale grep list (`lines 297, 513, 559, 606, 645, 679, 714, 745, 780, 815, 911, 988, 1016`) | the sites in the table above | **THE MAP** — the count stands, the line list is re-measured beside it (§5) |
+
+**AND ONE RECORD THAT IS SIMPLY WRONG, FOUND WHILE READING THESE SITES.** There is **no ruling `A150` that retired
+`call`.** `A150` (2026-10-25) is the architect's *"Remove the register half, `constraintOff` removes the
+constraint"*, and **nothing in it touches the addon's export set** (`archive/pre-strata-docs-2026-10-24/docs/
+decisions.md` `:225`; `archive/pending/2026-10-25-discharged-park-g14.md`; `docs/defects.md`'s `DEF-2026-10-20-F`
+closure). **The `call` deletion's declared authority is the addon-surface unit's split** —
+`export-set-and-dispatch.md §2` read with `P-SAS-1`, under the architect's 2026-10-18 *"Split and proceed"*.
+**`tests/integration/binding-crossing/addon_adoption.rs` cites `A150` twice for that deletion** (`:84`, `:129`–
+`:131`), and **both citations are mis-citations** — owed a re-point by the test's owner, since no role in this pass
+may write `tests/**`. **The mission's own brief repeated the mis-citation, which is why it is recorded here rather
+than absorbed.**
+
+---
+
+## §2 · The five `OWED`s — each ANSWERED with its clause, or DEFERRED with its question
+
+**Each was recorded rather than guessed across the blind passes, at the cell named. None was a design decision in
+disguise: four are answerable from the declared surface and one leaves a narrower residue that is.**
+
+### 2.1 The escape arm's runtime observable — **ANSWERED: there is none, and none is owed**
+
+**THE OWED, AS RECORDED** (`tests/e2e/blind-entry-surface.test.mjs:306`–`:308`): *"the escape arm itself is a
+TYPE-level property with no runtime observable — no declared member enumerates the set, and no arm lets a drive
+force a status the store has not minted."*
+
+**THE CLAUSE THAT ANSWERS IT.** The escape arm's **only** declared duty is typeability: `StoreStatus` is the store's
+seventeen literals **plus `(string & {})`** (⟶ RE-DERIVED 2026-10-27: **TWENTY literals**, `bindings/js/index.d.ts:316`–`:336` — the citation `:292`–`:310` here is the block's pre-widening site), and *"an unknown status is still typed — the escape is load-bearing,
+not a looseness … its absence would be a finding rather than a strictness"* (`bindings/js/index.d.ts:292`–`:310`).
+At runtime the set is **the store's and closed**: `src/error.rs`'s `CODES` carries seventeen (⟶ RE-MEASURED 2026-10-27: **twenty**, `[&str; 20]`), `docs/specs/
+storeroom-native/contract.md §8.1` declares *"the operative set is `17` members ranked `1`…`17`"*, and the package
+**mints no member** (`strata/brief.md §5` item 4; `D-26` item 5's *"the package mints no code"*). And the surface's
+own clause forbids a cell naming a token on the kernel-produced arm: *"on the constraint-check sub-arm A DRIVE MAY
+NAME NONE, AND A CELL THAT NAMES ONE IS CLAIMING A VALUE NO CLAUSE OF THIS DIRECTORY DECLARES"*
+(`docs/specs/storeroom-js/surface.md §2.12` item 3).
+
+**SO THE ARM'S RUNTIME OBSERVABLE IS: NONE.** A drive may assert (a) `typeof status === 'string'` on every arm and
+(b) **membership of the seventeen** where a store-produced code is named; it may assert **nothing** about a member
+outside the seventeen (⟶ **the twenty**), in either direction. **The `OWED` closes with no work owed**, and the blind cell's reading is
+the operative one. **⟶ RE-DERIVED 2026-10-27 (`D-38`; `DEF-S`/`DEF-N`; `DEF-H`): THE SET IS TWENTY, RANKED `1`…`20`** — `ConstraintBodyThrew` `18` and `ConstraintRefusedAtRegistration` `19` on the architect's *"Expand the returned error set for both S/N"* (`DEF-S`/`DEF-N`), `ConstraintPassRefused` `20` on *"Expand the returned fail-state list to include the refusal"* + *"Assert the constraints on rollback"* (`D-38`'s `DEF-H`/`DEF-W`), carried by `docs/specs/storeroom-native/contract.md §8.1`'s 2026-10-26 amendment (`:4118`) and by `CODES` (`[&str; 20]`). **Every `seventeen` in this subsection is the figure of its own date and is read THROUGH this clause; the READING the `OWED` closes on is UNMOVED** — the arm's runtime observable is still NONE, and (b)'s membership now reads *of the twenty*. **AND THE ESCAPE ARM IS WHAT MAKES THE WIDENING PATCH-SHAPED**: `(string & {})` is open, so no typed consumer can write an exhaustive switch and a widened union breaks none of them (`D-38`'s version consequence read beside the architect's `1.0.1`).
+
+### 2.2 Whether *"no own property of the product is store data"* reaches SYMBOL-KEYED properties — **ANSWERED: it does not reach them as a declared census, and nothing is owed**
+
+**THE OWED, AS RECORDED** (`tests/e2e/blind-entry-surface.test.mjs:427`–`:431`): *"whether that sentence also reaches
+an own SYMBOL-KEYED property is not decided by any clause read for this cell … the contract ITSELF relies on
+symbol-keyed own properties being invisible to both."*
+
+**THE TWO CLAUSES THAT ANSWER IT, AND THEY ARE DIFFERENT KINDS OF CLAUSE.**
+
+1. **AS A CENSUS**, the rule is fixed at `Object.getOwnPropertyNames`: *"the product's OWN PROPERTY SET IS METHODS
+   ONLY … no own property of the product is store data, a record, a map, a tier, an address, a handle or a
+   commit"* (`docs/specs/storeroom-js/surface.md §2.1` (e) item 1 and `§2.4` item 9 (f)), read at the fourteeen
+   members. **And the same corpus declares symbols invisible to that read**: *"a symbol-keyed own property is
+   invisible to both"* (`surface.md §2.11` clause 9; `A117` (D6)), which is the precedent the entry's own
+   `STORE_INDEX`, `TERMINAL_ARM` and `FORGET_PAIR` channels cite at their sites (`bindings/js/index.mjs:1200`–
+   `:1218`, `:1249`–`:1257`).
+2. **AS A SUBSTANCE**, the rule protects the register, and **no symbol slot carries register state**. The store's
+   data lives behind the Rust boundary and is reachable **only** through `read` (`strata/brief.md §5` item 3). What
+   the symbol slots carry is the kernel's own registration record (`pairs` · `handles` · `live` · `closed` ·
+   `store`, the instance-scoped record `D-30` installed) and the receiver's routing channels — **kernel
+   bookkeeping and a receiver handle, not the register.**
+
+**AND THE CONSEQUENCE IS ALREADY RULED, WHICH IS WHY THE LITERAL READING MUST NOT BE TAKEN.** A caller who reaches
+the slot, mutates it, or forges it from `Object.prototype` **is breaking their own code inside their own realm**:
+`D-35` reclassifies exactly those three examiner findings as **client scope**, declines the revert, and moves the
+defence to **parameter access and the Rust boundary**. **So: no cell may assert against an own symbol-keyed member
+either way, and no layer owes a guard.** The one residue worth naming: **the literal reading would make the symbol
+slot a violation, and `D-35` is the ruling that refused it** — a future pass that wants the literal reading needs a
+ruling, not a cell.
+
+### 2.3 The reload arm's message — **ANSWERED: the refusal cannot name the deletion, because the two causes are ONE state**
+
+**THE OWED, AS RECORDED** (`tests/e2e/blind-listener-surface.test.mjs:367`–`:371`): *"**Whether the refusal names
+the deletion as the reason is `OWED`**"* (`docs/specs/storeroom-held-listener-identity/contract.md §2.1` item 8) —
+so that cell asserts the `status` alone and not one byte of the message.
+
+**THE DECLARATION THAT SETTLES IT.** §2.1 item 5's table gives **one row** for the whole state: *"a WELL-FORMED
+string THE STORE DOES NOT HOLD (fabricated)"* → `unlisten` a NO-OP SUCCESS, `register` a REFUSAL with the store's
+`AddressMalformed` in the surface's one form; and §2.2 item 6 gives the message's rule — *"the message names the
+argument's POSITION and its CLASS"* (`A134`'s container-that-names-the-argument rule). **A deleted handle is outside
+`map.has` (§2.1 item 8's own words), and the entry is removed WHOLE (`§2.2` item 5 (c)), so nothing remembers it.**
+**A message naming the deletion would require the product to retain what the removal declares it destroys** — and
+the map's size is *"bounded by the set of handles the caller has LISTENED TO AND NOT EXPLICITLY DELETED"* (§2.2
+item 6, `A117` (D6)). **The prior-session arm lands on the same row by §2.1 item 7's own conclusion** (*"handles
+are NOT saved data"*, `(AA-3)`: *"NO CLAUSE IS OWED"*).
+
+**SO: the message does not and may not name the deletion; it names the position and the class.** The **only**
+per-row message distinction the table declares is the FOREIGN-instance row (*"its message naming a 'FOREIGN
+instance'"*), which is a fact the instance can hold; the deleted and the never-registered causes are one state and
+are told apart by nothing. **`§2.1` item 8's `OWED` closes on its own revisit condition**: the pass that re-derives
+`surface.md §2.5`'s message obligations has now been written, and its answer is that no subject exists.
+
+### 2.4 `removeConstraint`'s uncarried-pair form — **ANSWERED (the form), with a named residue DEFERRED**
+
+**THE OWED, AS RECORDED** (`tests/e2e/blind-removal-surface.test.mjs:265`–`:269`): *"which of the two forms this
+arm takes is NOT settled by the clauses read for this cell — `§2.7` item 5 gives a store code for a handle-shaped
+value and 'the surface's own one form' for a pair-shaped one, while item 6 gives the constraint methods'
+`TypeError` for the pair-shaped arms. `F-8` prints only 'THROWN, with a verbose message'."*
+
+**THE ANSWER, AND THE CELL THAT SETTLES IT.** The absent-row pair is **in the parameter row's OWN outside set**:
+`PAR-HL-16`'s outside cell reads *"every shape row of `PAR-HL-8`'s outside list, **PLUS a well-formed pair the
+entry does not carry**"*, so this arm is governed by **rule (ii)** — *"THE THREE CONSTRAINT METHODS' EVERY OUTSIDE
+VALUE — ONE THROWN `TypeError`, the `status` member ABSENT"* (`docs/specs/storeroom-js/surface.md:1063`;
+`docs/specs/storeroom-held-listener-identity/contract.md §2.7` item 6; `removal-members.md §6` item 2:
+*"the constraint methods' `TypeError`, `status` ABSENT"*). **`F-8`'s *"THROWN, with a verbose message"* is satisfied
+by a `TypeError` carrying a verbose message**, which is what `removal-members.md §5` row 1 asks for (*"names the
+value and the reason"*). **And the build agrees**, at the site that must: `bindings/js/index.mjs:1155`–`:1163`
+throws *"a WELL-FORMED PAIR THIS INSTANCE HOLDS NO ROW FOR IS A THROW WITH A VERBOSE MESSAGE — and NOT a class
+refusal … the value is inside every class domain and it is the ROW that is absent"*, naming the `id` and the
+addresses. **So: `TypeError`, `status` absent, message naming the pair and the reason. `§2.7` item 5's *"the
+surface's own one form for a pair-shaped one"* is read as the CLASS test's arm (F-7), and not as this one.**
+
+**THE RESIDUE, DEFERRED, WITH ITS QUESTION.** The build throws that `TypeError` **carrying a `log` member**
+(`withEmptyLog`), and **no clause declares the member set of the pair-shaped `TypeError`**. `A135` (1)'s crossed
+form is declared for the surface's **one** form `{status, message, log}`; `D-25`'s own observation already records
+that a `TypeError` carrying a `log` is *"neither the one plain `{status, message}` form the surface declares for
+every refusal nor a bare `TypeError`"*. **THE QUESTION: does the pair-shaped `TypeError` carry `log`, and if it
+does, is that member declared for every class-test arm of the three constraint methods or only where an attempt
+exists?** That is a declaration question with an owner (`role_spec_writer`), not a design one.
+
+### 2.5 The empty-address receipt's array identity — **ANSWERED: a fresh array, on every arm, the empty address included**
+
+**THE OWED, AS RECORDED** (`tests/e2e/blind-address-verbs.test.mjs:556`–`:559`): *"the empty-address delete empties
+the register (`§4.4` arm `D-5`), and the receipt's `address` there is `[]` — but whether the store's `[]` is a fresh
+array on a call that removed nothing is not decided by any clause read for this cell."*
+
+**THE CLAUSE THAT DECIDES IT, AND IT IS UNCONDITIONAL.** `docs/specs/storeroom-native/contract.md §4.4`'s
+`DeleteReceipt` row: *"`address`: the address the caller passed, VERBATIM — the same array's segments, in order;
+**the store returns a fresh array**"* (`:2329`–`:2334`). **The rule is on the RECEIPT's production and not on the
+address's content or the count removed**: a delete that removes nothing is a **success** carrying `tiers: []`
+(`DD-9`) and it is the same record (`§4.4`'s arm `D-3`; `5 = 4 + 1` arms, unmoved). **The second ground is the
+crossing's own**: *"the crossing is a deep copy in both directions"* (`strata/brief.md §5` item 2), so the receipt's
+array is the store's, never the caller's — which is what the same cell asserts at a non-empty address
+(`assert.notEqual(receipt.address, caller)`).
+
+**SO THE EMPTY-ADDRESS RECEIPT'S `address` IS A FRESH `[]`, EVERY CALL.** A drive may assert identity
+(`notEqual(receipt.address, caller)`) and content (`deepEqual(…, [])`) at the empty address exactly as at any other,
+and **the cell's "nothing below asserts the empty-address receipt's own identity" limiter retires** — its owner may
+now assert it.
+
+---
+
+## §3 · The four declaration-versus-build disagreements, as one list
+
+**Four were found by the blind set. THREE CORRECTED A DOCUMENT and are CLOSED; ONE STILL POINTS AT THE CODE and is
+OPEN.** Each row names the clause, what it says, what the build does, and which side moved.
+
+| # | clause | what the clause says | what the build does | which side moved | state |
+|---|---|---|---|---|---|
+| **1** | `docs/specs/storeroom-native/contract.md §8.1`'s heading (`:4081`) | *"THE CLOSED CODE SET — `16` members, each with its trigger"* | `src/error.rs`'s `CODES` carries **17**; `index.d.ts`'s `StoreStatus` writes **17** literals in rank order before the escape arm | **THE DOCUMENT**, 2026-10-25 — a PURE INSERTION at the heading's own site (`:4085`–`:4090`), which also corrects its *"one other site"* census to the **five** sites that print the algebra | **CLOSED** |
+| **2** | `docs/specs/storeroom-js/surface.md §2.5` item 9 (`:1282`) | *"`Object.keys(caught)` reads exactly `["log","message","status"]`"* | the object literal's own **insertion order**, `["status","message","log"]` — the order the form is written in | **THE DOCUMENT**, 2026-10-25 — a clause at item 9 (`:1285`–`:1286`) whose ground is item 8's own *"sorted ascending"* CENSUS device, plus the two downstream prints it had left stale (`surface.md:1214`; `docs/specs/storeroom-json-crossing/contract.md:478`) | **CLOSED** |
+| **3** | `docs/specs/storeroom-publish/contract.md §2.1` item 1 (`:358`) | a **three-entry** `files` allowlist | the manifest carries **FIVE** rows — `index.mjs` · `README.md` · `index.d.ts` · `src/entry/` · `src/constraint-kernel.mjs` | **THE DOCUMENT**, 2026-10-25 — a correction clause at the item, `5 = 3 + 2` ✓ | **CLOSED** |
+| **4** | `archive/…/storeroom-constraints/parameter-semantics.md §2.8` (`PAR-C-8`)'s `observable` cell, read with `docs/specs/storeroom-native/contract.md §7.3` (b) `3-bis` (d) | a repair returning `{ok: true, op}` whose `op` is **not the one it landed** *"has carried no op"* — *"fires item 4's arm `(d)`, its `outcome` entry carrying `KC-4`"* | **the kernel CREDITS it** and the attempt fails **`KC-8`**: the credited op joins `attempt.ops`, the per-op rollback walks it, and meets the store's own `JournalOpUnknown` | **THE CODE** — the cell `tests/e2e/blind-constraints-unit.test.mjs:172` is **RED and must stay red** | **OPEN** |
+
+**THE OPEN ONE, AT ITS BYTES.** `bindings/js/src/entry/kernel-foundations.mjs`'s `landedOp` (`:497`–`:510`)
+applies **two grounds** to a returned `op`: (i) its `opId` must not be an identity the attempt **already holds**;
+(ii) where both ordinals are numbers, its `seq` must stand **above** the invoked-for op's `seq`. The red cell's
+return is `{ ok: true, op: { opId: 'not-the-op-it-landed' } }` — a non-empty-string identity no attempt holds, and
+**no `seq` member at all**, so ground (ii) *"is not applied"* by its own comment (`:494`–`:495`) and ground (i) has
+nothing to see. The op is credited, lands in `ops`, and the attempt's per-op rollback then meets
+`JournalOpUnknown` → `KC-8`. **The declaration's answer is `KC-4` and the build's is `KC-8`; the build is the side
+in the wrong**, because `PAR-C-8`'s arm is declarative about a value the kernel *can* be handed.
+
+**WHAT A FIX WOULD REQUIRE — THE CARRIER THE CLAUSE ASSUMES, AND WHETHER IT IS A DESIGN OR A DECLARATION QUESTION.**
+*"Not the one it landed"* is a comparison against **the set of ops the repair's own invocation landed**, and **no
+such carrier exists in the declared surface**: `A110` deleted every route by which the kernel could learn it —
+*"no `createRequire`, no addon load path, no addon-verb interception window, no monkey-patch"* — so the kernel reads
+the op **off the repair's return and off the attempt's own record and off nothing else** (`kernel-foundations.mjs`
+`:456`–`:475`). The two grounds the build has are the **only** identities a caller-side record can prove. **So a fix
+needs one of three things, and each is a move this pass may not take:**
+
+- **(a) a declared per-invocation LANDED-OP RECORD** the kernel keeps between the repair's entry and its return (a
+  carrier — a new member or a new journal-derived read), **which re-opens `A110`'s one-carrier rule**;
+- **(b) a widened `op` domain** — the repair's `op` carrying the store's `seq` **in domain**, so ground (ii) always
+  runs (a declared shape move on `PAR-C-7`'s carrier, and every producer of a repair's return changes);
+- **(c) a narrowed clause** — *"not the one it landed"* reading as *"not an identity this attempt already holds and
+  not an op at or before the invoked-for op"*, **which withdraws a declared arm**.
+
+**IT IS A DESIGN DECISION, NOT A DECLARATION ONE.** The answer `KC-4` is already declared; what is undeclared is
+**the instrument that makes the declaration observable**, and (a) and (b) mint a carrier while (c) removes an arm.
+**One sentence settles it**, and it is put to the architect at §5.
+
+---
+
+## §4 · The two stale records a review left, and one it did not name
+
+### 4.1 `bindings/js/index.mjs:1233` — the clone sentence opens with the opposite of its own correct half
+
+**WHAT STANDS TODAY** (`:1232`–`:1234`, inside the receiver's own publication block):
+
+> **AND IT IS THE ROW A CLONED STORE OBJECT CARRIES TOO**, because `Object.assign`/spread copy own enumerable
+> properties only: a clone carries NO index and therefore resolves NO store, which is the SAME one observable the
+> detached call gets.
+
+**The opening clause asserts the clone CARRIES it; its own ground and its own conclusion say the clone carries
+NOTHING.** `:1261`–`:1271` was corrected last pass — *"a clone carries NO INDEX AND NO SLOT, AND A CLONE RESOLVES NO
+STORE"* — and this one was not.
+
+**WHAT IT SHOULD SAY, AS A COMMENT** (no behaviour byte moves):
+
+> **AND A CLONED STORE OBJECT DOES NOT CARRY THE ROW**, because `Object.assign`/spread copy own ENUMERABLE
+> properties only and this row is published at `enumerable: false`: **a clone carries NO index, NO slot and
+> therefore resolves NO store**, which is the SAME one observable the detached call gets.
+
+**AND THIS PASS CANNOT EDIT IT**: `bindings/js/src/**` is source and `bindings/js/index.mjs` is the shipped hub;
+neither is in this pass's scope. **The edit is the three words *"IS THE ROW A CLONED STORE OBJECT CARRIES TOO"* →
+*"A CLONED STORE OBJECT DOES NOT CARRY THE ROW"*, and nothing else in the block moves.**
+
+**ONE ADJACENT STALENESS, NAMED BECAUSE IT SITS IN THE SAME TWO BLOCKS AND NEITHER REVIEW NAMED IT.** `:1202`
+(*"the product's declared twelve own members are UNMOVED"*) and `:1231` (*"the product's declared member set is
+UNMOVED at twelve"*) print **twelve**, and the set is **fourteen** (`index.d.ts`'s `StoreInstance`; `surface.md
+§2.4` item 9 (f)'s operative figure). **Both figures are stale by the `12 → 14` move the held-listener-identity unit
+landed (2026-10-19)** — a source comment, owed by the same pass that takes 4.1.
+
+### 4.2 `strata/brief.md` — the figures the branch has moved past
+
+**`strata/brief.md` is OUTSIDE THIS PASS'S WRITE SCOPE** (`docs/L1/**` and `strata/decisions.md` are its scope), so
+**it is not edited here** — and this is exactly the file every L1 reads, which is why the stale figures are printed
+in full rather than absorbed. **Every figure below was re-measured at the file's own last line by this pass; the
+brief's own §2 note that its columns are re-measurable is what makes this a defect of the file and not of a reader.**
+
+| the brief's site | its figure | measured 2026-10-25 | note |
+|---|---|---|---|
+| §2 table, `bindings/js/` row | `index.mjs` **1,409** (was 5,903) | **1,417** | the hub grew after the cut; the *was* figure is history and stands |
+| §2 table, `bindings/js/src/` row | `refusal.mjs` **82** | **161** | |
+| " | `artefact.mjs` **355** | **376** | |
+| " | `state.mjs` **600** | **602** | |
+| " | `class-decision.mjs` **1,204** | **1,214** | |
+| " | `carrier.mjs` **960** | **986** | |
+| " | `frame.mjs` **416** | **417** | |
+| " | `kernel-foundations.mjs` **529** | **597** | |
+| " | `codec.rs` **966** | **1,030** | |
+| " | `facade.rs` **1,105** | **1,136** | the file that gained the nine per-verb entries |
+| §2 table, `tests/` row | **83 files in three scopes** | **104** | `e2e/` **44 → 65**; `integration/` 33 ✓; `unit/` 5 ✓; `tests/Cargo.toml` 1 ✓ |
+| **⟶ the same two rows, RE-MEASURED 2026-10-28** | the two readings above, printed | **`e2e/` 79 · `integration/` 33 · `unit/` 5 · `tests/Cargo.toml` 1 = `118`** | counted with `find <dir> -type f`, one directory at a time this date: `tests/e2e/` **44 → 79**, `integration/` and `unit/` and the manifest **unmoved**, and `find tests -type f` counts the same **118** |
+| §2 table, `tests/` row, the `e2e/` breakdown | **23 `*.test.mjs`, 11 runners, 6 support modules, 1 evidence JSON, 3 documents** | **42 · 11 · 8 · 1 · 3** — **⟶ RE-MEASURED 2026-10-28: `55 · 12 · 8 · 1 · 3 = 79` ✓** — the twelve blind instances (⟶ 2026-10-27: **thirteenth**, `blind-defect-cases.test.mjs`) plus `status-census`, `constraint-address-extension`, `instance-independence` and the four `prototype-*` cells; two support modules joined (`module-set`, `pack-reachability`) |
+
+**EVERY OTHER FIGURE THE BRIEF PRINTS WAS CHECKED AND STANDS**, and the ones a reader is most likely to doubt are
+named here so the check is not mistaken for a skim: `src/`'s seven line counts (`lib.rs` 41 · `store.rs` 2,472 ·
+`error.rs` 795 · `args.rs` 329 · `value.rs` 330 · `records.rs` 268 · `json.rs` 203) · `index.d.ts` **891** ·
+`delivery.mjs` 639 · `constraints.mjs` 795 · `kernel-registration.mjs` 644 · `kernel-commit.mjs` 156 ·
+`kernel-attempt.mjs` 570 · `kernel-terminal.mjs` 324 · `crossing.rs` 1,216 · `src/lib.rs` 90 · the barrel **4** ·
+`src/entry/` **13 files** · `files`' **FIVE** rows · `version` **0.5.0** · the member set **14** · the status set
+**17** — **⟶ RE-MEASURED 2026-10-27, and this is the pass's own table re-read, so every figure that moved is named in order:** `index.mjs` **1,509**; `refusal.mjs` **161**; `artefact.mjs` **376**; `state.mjs` **623**; `class-decision.mjs` **1,214**; `carrier.mjs` **1,002**; `frame.mjs` **417**; `delivery.mjs` **647**; `constraints.mjs` **1,530**; `kernel-foundations.mjs` **725**; `kernel-registration.mjs` **677**; `kernel-commit.mjs` **166**; `kernel-attempt.mjs` **627**; `kernel-terminal.mjs` **409**; the barrel **4** ✓; `src/entry/` **13 files** ✓; `files`' **SIX** rows (`README.guide.md` joined them); `version` **1.0.1**; the member set **14** ✓; the status set **TWENTY** (ranked `1`…`20`; `D-38` + `DEF-S`/`DEF-N` + `DEF-H`); the depth ceiling **126** and the node ceiling **1,000,000** (not re-measured by this pass); the two Rust legs **415** / **235** ✓ and `cargo test`'s **650** ✓ (re-run 2026-10-27, `0` failed); `bindings/js/Cargo.lock` **DELETED** ✓. · the depth ceiling **126** and the node ceiling **1,000,000** · the three Rust legs' `415` / `235` / `650` ·
+
+**⟶ AND EVERY FIGURE OF THE PARAGRAPH ABOVE IS RE-MEASURED AT THE TREE 2026-10-28, BECAUSE THAT PARAGRAPH IS ITSELF ONE PASS BEHIND.** `RCA-8(g)` ANNOTATE-BESIDE: **the paragraph above stands BYTE-FOR-BYTE and is read THROUGH this clause; every superseded reading it prints stays printed.** **THE LINE COUNTS, `wc -l` at each file's own last line this date:** `index.mjs` **1,565** (the paragraph reads 1,509) · `refusal.mjs` **161** ✓ · `artefact.mjs` **376** ✓ · `state.mjs` **995** (623) · `class-decision.mjs` **1,214** ✓ · `carrier.mjs` **1,002** ✓ · `frame.mjs` **418** (417) · `delivery.mjs` **662** (647) · `constraints.mjs` **2,362** (1,530 — **`832` lines and 35% more than the figure printed**) · `kernel-foundations.mjs` **816** (725) · `kernel-registration.mjs` **731** (677) · `kernel-commit.mjs` **166** ✓ · `kernel-attempt.mjs` **762** (627) · `kernel-terminal.mjs` **409** ✓ · `codec.rs` **1,071** (the 2026-10-25 column's 1,030) · `facade.rs` **1,252** (1,136) · `crossing.rs` **1,276** (1,178 · 1,216) · `index.d.ts` **1,017** (891) · `src/lib.rs` **99** (90) · the `src/` seven: `lib.rs` **41** ✓ · `store.rs` **2,876** (2,472) · `error.rs` **886** (795) · `args.rs` **329** ✓ · `value.rs` **330** ✓ · `records.rs` **290** (268) · `json.rs` **203** ✓ · the barrel **4** ✓ · `src/entry/` **13 files** ✓ · the member set **14** ✓ (measured own members of a live instance: `addConstraint` · `constraintOff` · `constraintOn` · `constraints` · `delete` · `listen` · `read` · `readLiteral` · `register` · `removeConstraint` · `removeListener` · `rollback` · `unlisten` · `write`). **THE SET AND THE MANIFEST:** the status set **TWENTY** ✓ (`src/error.rs`'s `CODES: [&str; 20]` at `:113`) · a blind instance count of **THIRTEEN** ✓ (`tests/e2e/blind-*.test.mjs`, counted this date) · the `files` allowlist **SIX** ✓ (`index.mjs` · `README.md` · `README.guide.md` · `index.d.ts` · `src/entry/` · `src/constraint-kernel.mjs`) · `version` **`1.1.0`** (the paragraph reads 1.0.1; all five `optionalDependencies` pins agree) · the packed member set **19 bare** (`npm pack --dry-run --json` → `entryCount` `19`) **and 20 assembled** (the nineteen plus the release's `LICENSE`, per `INSTALL-01`). **THE LEGS, EACH RUN THIS DATE, `0` failed:** `npm test` **1121 · 1120 pass · 1 skip** (the paragraph reads 1081 · 1080 · 1) · `cargo test --offline -p storeroom-native` **434** (415) · `cargo test -p storeroom-tests` **235** ✓ · `cargo test` **669** (650) · `npm run greens` exit `0`, `CHAIN COMPLETE — 11 discovered runner(s), every one exit 0` (10) · `npm run test:e2e` exit `0` (see its own row) · `npm run typecheck` exit `0`. **THE DEPTH CEILING `126` AND THE NODE CEILING `1,000,000` WERE NOT RE-MEASURED BY THIS PASS**, exactly as the paragraph says of itself, and they are left as they stand. **`bindings/js/Cargo.lock` IS STILL `DELETED` ✓.**
+and `bindings/js/Cargo.lock`'s **DELETED**.
+
+**⟶ AND ONE FIGURE OF THE CLAUSE ABOVE IS RE-READ AT THE TREE 2026-10-28, BECAUSE THIS PASS MOVED IT AND NOTHING ELSE: `version` READS `1.2.0`, AND IT IS A PREPARED FIGURE RATHER THAN A CUT ONE.** `RCA-8(g)` ANNOTATE-BESIDE: **the clause above stands BYTE-FOR-BYTE and is read THROUGH this clause; its `1.1.0` is the figure of its writing date and reads `1.2.0` from here on, exactly as its own `1.0.1` was read through it.** **THE ELEVEN SITES, MOVING TOGETHER AND NEVER SINGLY** (`PUB-DD-10`): `bindings/js/package.json`'s `version` and its five exact `optionalDependencies` pins, and the five `bindings/js/platforms/*/package.json` versions — **`1.2.0` at all eleven, and the artefact `bindings/js/build.rs` stamps from that manifest answers `version()` = `1.2.0` after `npm run build`.** **AND THE TAG DOES NOT COME WITH THEM:** `git tag --list` carries `v1.0.0` · `v1.0.1` · `v1.1.0` and no `v1.2.0`, so **`1.2.0` is PREPARED at those eleven figures and is not cut** — `release.md §2.5`'s order (the carrier, then the eleven cells, then the tag) leaves the cut to the architect, and the tag-coupling cells read this tree as the PRE-release state they declare. **NO OTHER FIGURE OF THE CLAUSE ABOVE IS RE-MEASURED BY THIS PASS, AND NONE IS CLAIMED AS RE-READ HERE.**
+
+**⟶ AND THE FIGURES OF BOTH CLAUSES ARE RE-MEASURED AT THIS TREE 2026-10-28 — THE TWO THAT MOVED MOST ARE THE ALLOWLIST'S `SIX → SEVEN` AND THE PACKED SET'S `19/20 → 20/21`, AND THE TAG LINE ABOVE IS THE READING OF ITS OWN DATE AND READS `CUT` FROM HERE.** `RCA-8(g)` ANNOTATE-BESIDE: **both clauses above stand BYTE-FOR-BYTE and are read THROUGH this clause; every superseded reading they print stays printed, including *"no `v1.2.0`"* and *"is not cut"*, each true of the tree it was read on.** **THE LINE COUNTS, `wc -l` at each file's own last line this date, each beside the reading the clause above printed:** `index.mjs` **1,573** (1,565) · `refusal.mjs` **161** ✓ · `artefact.mjs` **376** ✓ · `state.mjs` **1,038** (995) · `class-decision.mjs` **1,214** ✓ · `carrier.mjs` **1,002** ✓ · `frame.mjs` **418** ✓ · `delivery.mjs` **668** (662) · `constraints.mjs` **2,695** (2,362) · `kernel-foundations.mjs` **908** (816) · `kernel-registration.mjs` **772** (731) · `kernel-commit.mjs` **190** (166) · `kernel-attempt.mjs` **879** (762) · `kernel-terminal.mjs` **422** (409) · `codec.rs` **1,071** ✓ · `facade.rs` **1,252** ✓ · `crossing.rs` **1,276** ✓ · `index.d.ts` **1,053** (1,017) · `src/lib.rs` **99** ✓ · the `src/` seven: `lib.rs` **41** ✓ · `store.rs` **2,876** ✓ · `error.rs` **886** ✓ · `args.rs` **329** ✓ · `value.rs` **330** ✓ · `records.rs` **290** ✓ · `json.rs` **203** ✓ · the barrel **4** ✓ · `src/entry/` **13 files** ✓ · the member set **14** ✓. **THE SET AND THE MANIFEST:** the status set **TWENTY** ✓ (`src/error.rs`'s `CODES: [&str; 20]` at `:113`) · **the KERNEL's own token set is NINE, `KC-1`…`KC-9`** (`KC-9` is the save arm's own, appended by `D-53`'s *"Open the token set"* on fourteen sites; the earlier `eight` is the reading of its own date) · a blind instance count of **THIRTEEN** ✓ (`tests/e2e/blind-*.test.mjs`, counted this date) · the `files` allowlist **SEVEN**, not SIX — `index.mjs` · `README.md` · `README.guide.md` · `RELEASE-NOTES.md` · `index.d.ts` · `src/entry/` · `src/constraint-kernel.mjs`, measured at `bindings/js/package.json`'s own `files` array, **the seventh being the change list's landed copy that `DEF-AC` (a) made a tracked, generated file and a staged row** · `version` **`1.2.0`** ✓ at all eleven sites, and **`v1.2.0` IS CUT** — `git tag --list` answers `v1.0.0` · `v1.0.1` · `v1.1.0` · `v1.2.0`, and `git describe` reads `v1.2.0-9-g989c216`, nine commits past it with no bump in any of them · the packed member set **`20` bare** (`npm pack --dry-run --json` → `entryCount` `20`) **and `21` assembled** (the twenty plus the release's `LICENSE`; the installed battery's `INSTALL-01` prints `members=21`). **THE LEGS, EACH RUN THIS DATE, `0` failed:** `npm test` **1121 · 1120 pass · 0 fail · 1 skip**, exit `0`, and the one skip is the same dispatcher-shape cell · `cargo test --offline -p storeroom-native` **434** · `cargo test -p storeroom-tests` **235** · `cargo test` **669** · `npm run greens` exit `0`, **CHAIN COMPLETE — 11 discovered runner(s), every one exit 0** · `npm run test:e2e` exit `0` (`15` cells declared: `14` PASS · `1` LAYER-LIMIT · `0` FAIL) · `npm run typecheck` exit `0`. **THE TEST POPULATION IS UNMOVED:** `tests/e2e/` **79** · `tests/integration/` **33** · `tests/unit/` **5** · `tests/Cargo.toml` **1** `= 118`, and the e2e breakdown is still **`55` `*.test.mjs` · `12` runners · `8` support modules · `1` evidence JSON · `3` documents `= 79` ✓**.
+
+**⟶ AND EVERY FIGURE OF THAT CLAUSE IS RE-MEASURED AGAIN AT THIS TREE 2026-10-28, BECAUSE THE CLAUSE ABOVE IS ITSELF PAST STATE — `D-57`'s ACT, AND THE SEVEN COMMITS IT READS.** `RCA-8(g)` ANNOTATE-BESIDE: **the clauses above stand BYTE-FOR-BYTE and are read THROUGH this one; every superseded reading they print stays printed, INCLUDING `constraints.mjs` 2,695, `index.mjs` 1,573, `index.d.ts` 1,053, the `v1.2.0` cut and the `1.2.0` eleven sites.** **THE LINE COUNTS, `wc -l` at each file's own last line this date, each beside the reading the clause above printed:** `index.mjs` **1,651** (1,573) · `refusal.mjs` **161** ✓ · `artefact.mjs` **376** ✓ · `state.mjs` **1,038** ✓ · `class-decision.mjs` **1,214** ✓ · `carrier.mjs` **1,002** ✓ · `frame.mjs` **418** ✓ · `delivery.mjs` **676** (668) · `constraints.mjs` **2,951** (2,695) · `kernel-foundations.mjs` **1,058** (908) · `kernel-registration.mjs` **785** (772) · `kernel-commit.mjs` **355** (190) · `kernel-attempt.mjs` **920** (879) · `kernel-terminal.mjs` **422** ✓ · `codec.rs` **1,071** ✓ · `facade.rs` **1,252** ✓ · `crossing.rs` **1,276** ✓ · `index.d.ts` **1,088** (1,053) · `src/lib.rs` **99** ✓ · the `src/` seven: `lib.rs` **41** ✓ · `store.rs` **2,876** ✓ · `error.rs` **886** ✓ · `args.rs` **329** ✓ · `value.rs` **330** ✓ · `records.rs` **290** ✓ · `json.rs` **203** ✓ · the barrel **4** ✓ · `src/entry/` **13 files** ✓ · the member set **14** ✓. **THE SET AND THE MANIFEST:** the status set **TWENTY** ✓ (`src/error.rs`'s `CODES: [&str; 20]` at `:113`) · **the KERNEL's own token set is NINE, `KC-1`…`KC-9`** ✓ · a blind instance count of **THIRTEEN** ✓ (`tests/e2e/blind-*.test.mjs`, counted this date) · the `files` allowlist **SEVEN**, measured at `bindings/js/package.json`'s own `files` array ✓ · `version` **`1.3.0`** at all eleven sites, and **`v1.3.0` IS CUT** — `git tag --list` answers `v1.0.0` · `v1.0.1` · `v1.1.0` · `v1.2.0` · `v1.3.0`, and `git describe` reads `v1.3.0-8-g8c0e671` **— and the cut-state itself is not a declaration this file makes any more: `D-57` dropped it** · the packed member set **`20` bare** (`npm pack --dry-run --json` → `entryCount` `20`) **and `21` assembled** (the twenty plus the release's `LICENSE`; the installed battery's `INSTALL-01` prints `members=21`) ✓. **THE LEGS, EACH RUN THIS DATE, `0` failed:** `npm test` **1121 · 1120 pass · 0 fail · 1 skip**, exit `0` ✓ · `cargo test --offline -p storeroom-native` **434** ✓ · `cargo test -p storeroom-tests` **235** ✓ · `cargo test` **669** ✓ · `npm run greens` exit `0`, **CHAIN COMPLETE — 11 discovered runner(s), every one exit 0** ✓ · `npm run test:e2e` exit `0` (`15` cells declared: `14` PASS · `1` LAYER-LIMIT · `0` FAIL) ✓ · `npm run typecheck` exit `0` ✓. **THE TEST POPULATION IS UNMOVED:** `tests/e2e/` **79** · `tests/integration/` **33** · `tests/unit/` **5** · `tests/Cargo.toml` **1** `= 118`, and the e2e breakdown is still **`55` `*.test.mjs` · `12` runners · `8` support modules · `1` evidence JSON · `3` documents `= 79` ✓**; `69` `*.test.mjs` stand under `tests/` ✓, because the seven commits added cells to existing files and never files. (`D-57`; `D-56`; `scripts/publish.sh --figures` — which now asserts ONE version line in THREE shipped documents and no cut-state at all.)
+
+**⟶ AND THE VERSION FIGURE OF THE TWO CLAUSES ABOVE IS RE-READ AT THIS TREE 2026-10-28 BY THE `1.3.0` PREPARATION — `version` READS `1.3.0` AT ELEVEN SITES, PREPARED AND NOT CUT — AND THE FIGURES IT RESTATES ALONGSIDE IT ARE RE-MEASURED AND UNMOVED.** `RCA-8(g)` ANNOTATE-BESIDE: **both clauses above stand BYTE-FOR-BYTE and are read THROUGH this clause; every superseded reading they print stays printed, including *"`version` **`1.2.0`**"*, which is the figure of its own date and reads `1.3.0` from here on.** **THE ELEVEN SITES, MOVING TOGETHER AND NEVER SINGLY** (`PUB-DD-10`): `bindings/js/package.json`'s `version` and its five exact `optionalDependencies` pins, and the five `bindings/js/platforms/*/package.json` versions — **`1.3.0` at all eleven, and the artefact `bindings/js/build.rs` stamps from that manifest answers `version()` = `1.3.0` after `npm run build`.** **AND THE TAG DOES NOT COME WITH THEM:** `git tag --list` carries `v1.0.0` · `v1.0.1` · `v1.1.0` · `v1.2.0` and no `v1.3.0`, so **`1.3.0` is PREPARED at those eleven figures and is not cut** — the published release is `1.2.0`, the tree is `10` commits past it (`git describe` reads `v1.2.0-10-g14787b5`), and `release.md §2.5`'s order (the carrier, then the eleven cells, then the tag) leaves the cut to the architect. **THE FIGURES THE CLAUSES ABOVE RESTATE, EACH RE-MEASURED THIS DATE AND NONE MOVED BY THE BUMP:** `npm test` **`1121` · `1120` pass · `0` fail · `1` skip**, exit `0` — the same dispatcher-shape skip ✓ · the packed member set **`20` bare and `21` assembled** ✓ — measured this date by `npm pack` of the packaging root with and without the release's assembly (`scripts/publish.sh --pack`: `20` members bare, `21` with the `LICENSE` copy), and by the installed battery's `INSTALL-01`, which prints `members=21` · the `files` allowlist **SEVEN** rows ✓ (`index.mjs` · `README.md` · `README.guide.md` · `RELEASE-NOTES.md` · `index.d.ts` · `src/entry/` · `src/constraint-kernel.mjs`) · **the KERNEL's own token set is NINE, `KC-1`…`KC-9`** ✓ · and the fourteen own members ✓. **NO OTHER FIGURE OF THE CLAUSES ABOVE IS RE-MEASURED BY THIS PASS, AND NONE IS CLAIMED AS RE-READ HERE.**
+
+**⟶ AND EVERY FIGURE OF THE FOUR CLAUSES ABOVE IS RE-MEASURED AT THIS TREE 2026-10-28, BECAUSE THE CLAUSE ABOVE IS ITSELF PAST STATE — THE ELEVEN COMMITS PAST `v1.4.0`, AND THE `D-58` / `D-63` / `D-65` ACTS THEY CARRY.** `RCA-8(g)` ANNOTATE-BESIDE: **the four clauses above stand BYTE-FOR-BYTE and are read THROUGH this one; every superseded reading they print stays printed, INCLUDING `constraints.mjs` 2,951, `index.mjs` 1,651, `index.d.ts` 1,088, the `v1.3.0` cut and the `1.3.0` eleven sites.** **THE LINE COUNTS, `wc -l` at each file's own last line this date, each beside the reading the clause above printed:** `index.mjs` **1,651** ✓ · `refusal.mjs` **161** ✓ · `artefact.mjs` **376** ✓ · `state.mjs` **1,125** (1,038) · `class-decision.mjs` **1,214** ✓ · `carrier.mjs` **1,002** ✓ · `frame.mjs` **418** ✓ · `delivery.mjs` **676** ✓ · `constraints.mjs` **3,014** (2,951) · `kernel-foundations.mjs` **1,083** (1,058) · `kernel-registration.mjs` **793** (785) · `kernel-commit.mjs` **356** (355) · `kernel-attempt.mjs` **991** (920) · `kernel-terminal.mjs` **468** (422) · `codec.rs` **1,071** ✓ · `facade.rs` **1,252** ✓ · `crossing.rs` **1,276** ✓ · `index.d.ts` **1,089** (1,088) · `bindings/js/src/lib.rs` **99** ✓ · the `src/` seven: `lib.rs` **41** ✓ · `store.rs` **2,876** ✓ · `error.rs` **886** ✓ · `args.rs` **329** ✓ · `value.rs` **330** ✓ · `records.rs` **290** ✓ · `json.rs` **203** ✓ · the barrel **4** ✓ · `src/entry/` **13 files** ✓ · the member set **14** ✓ — re-measured at a live instance this date, `Object.getOwnPropertyNames` reading `read` · `readLiteral` · `write` · `delete` · `rollback` · `listen` · `unlisten` · `addConstraint` · `constraintOn` · `constraintOff` · `constraints` · `removeListener` · `removeConstraint` · `register`. **THE THREE COMMITS THAT MOVED THE LENGTH ARE `d862448` (`D-58`, `state.mjs` and `kernel-terminal.mjs`), `85b0174` (`D-63`, `constraints.mjs` and the attempt's mark) and `90f810c` (`D-65`, `constraints.mjs`, `kernel-foundations.mjs` and `kernel-attempt.mjs`); the eight record-only commits moved no line.** **THE SET AND THE MANIFEST:** the status set **TWENTY** ✓ (`src/error.rs`'s `CODES: [&str; 20]` at `:113`) · **the KERNEL's own token set is NINE, `KC-1`…`KC-9`** ✓ (`constraints.mjs:92`'s `KC_TOKENS`, re-read this date) · a blind instance count of **THIRTEEN** ✓ (`tests/e2e/blind-*.test.mjs`) · the `files` allowlist **SEVEN** ✓, measured at `bindings/js/package.json`'s own `files` array — `index.mjs` · `README.md` · `README.guide.md` · `RELEASE-NOTES.md` · `index.d.ts` · `src/entry/` · `src/constraint-kernel.mjs` · **`version` **`1.4.0`** at all eleven sites** (the clause above reads `1.3.0`; the main manifest's `version`, its five `optionalDependencies` pins and the five platform manifests all read `1.4.0`), and **the tag set is a record of releases, past tense — `v1.0.0` · `v1.0.1` · `v1.1.0` · `v1.2.0` · `v1.3.0` · `v1.4.0` — beside `git describe`'s `v1.4.0-11-g90f810c`, and whether `1.5.0` is cut is not a declaration this file makes, because `D-57` dropped that claim** · the packed member set **`20` bare** (`npm pack --dry-run --json` → `entryCount` `20`) **and `21` assembled** (the twenty plus the release's `LICENSE`; the installed battery's `INSTALL-01` prints `members=21`) ✓. **THE LEGS, EACH RUN THIS DATE, `0` failed:** `npm test` **1121 · 1120 pass · `0` fail · 1 skip**, exit `0` ✓ · `cargo test --offline -p storeroom-native` **434** ✓ · `cargo test --offline -p storeroom-tests` **235** ✓ · `cargo test --offline` **669** ✓ (`434 + 235 = 669`) · `npm run greens` exit `0`, **CHAIN COMPLETE — 11 discovered runner(s), every one exit 0** ✓ · `npm run test:e2e` exit `0` (`15` cells declared: `14` PASS · `1` LAYER-LIMIT · `0` FAIL) ✓ · `npm run typecheck` exit `0` ✓. **THE TEST POPULATION IS UNMOVED:** `tests/e2e/` **79** · `tests/integration/` **33** · `tests/unit/` **5** · `tests/Cargo.toml` **1** `= 118`, the e2e breakdown still **`55` `*.test.mjs` · `12` runners · `8` support modules · `1` evidence JSON · `3` documents `= 79` ✓**, and **`69` `*.test.mjs` stand under `tests/` ✓** — the eleven added cells to existing files and never files. **THE DENOMINATOR IS UNMOVED AT `198`:** `git ls-files | grep -v '^scratch/'` reads **198** against a whole index of **675** and **477** `scratch/` paths, `675 = 477 + 198` ✓, in the same thirteen terms the 2026-10-28 clause itemises. **THE DEPTH CEILING `126` AND THE NODE CEILING `1,000,000` WERE NOT RE-MEASURED BY THIS PASS**, exactly as the clauses above say of themselves. **AND THE ONE THING THAT DID MOVE A SHAPE RATHER THAN A LENGTH IS NOT A FIGURE OF THIS TABLE: `LogEntry` IS FIVE MEMBERS SINCE `D-65`** (`kind` · `id` · `opId` · `message` · `state`, the `seq` member gone, the array index the position), which is why `tests/e2e/`'s cells that censused six members were re-derived against the tree and the file count did not move with them. (`D-57`; `D-58`; `D-63`; `D-65`; the matching clauses are `docs/L1/module-map.md`'s, `entry-subdivision.md`'s, `kernel-subdivision.md`'s, `surface-deltas.md`'s and `test-stratification.md`'s of the same date, and the two JSONs' keys.)
+
+**⟶ AND THE FIGURES OF THE FOUR CLAUSES ABOVE ARE RE-MEASURED AN EIGHTH TIME AT THIS TREE, 2026-10-29 — THE ELEVEN COMMITS PAST `v1.5.0` (`git describe`: `v1.5.0-11-g8f5454f`), WHICH IS THE `1.6.0` PREPARATION, AND THIS TIME SIX OF THEM MOVE.** `RCA-8(g)` ANNOTATE-BESIDE: **the clause above stands BYTE-FOR-BYTE and is read THROUGH this one; every figure it printed stays printed, and the ones that moved are named with both readings.** **THE LINE COUNTS, `wc -l` at each file's own last line this date, each beside the reading the clause above printed:** `index.mjs` **1,708** (1,651) · `refusal.mjs` **216** (161) · `artefact.mjs` **376** ✓ · `state.mjs` **1,138** (1,125) · `class-decision.mjs` **1,214** ✓ · `carrier.mjs` **1,002** ✓ · `frame.mjs` **418** ✓ · `delivery.mjs` **751** (676) · `constraints.mjs` **3,291** (3,014) · `kernel-foundations.mjs` **1,395** (1,083) · `kernel-registration.mjs` **847** (793) · `kernel-commit.mjs` **356** (355) · `kernel-attempt.mjs` **1,030** (991) · `kernel-terminal.mjs` **468** ✓ · `codec.rs` **1,071** ✓ · `facade.rs` **1,252** ✓ · `crossing.rs` **1,276** ✓ · `index.d.ts` **1,185** (1,088) · `bindings/js/src/lib.rs` **99** ✓ · the `src/` seven: `lib.rs` **41** ✓ · `store.rs` **3,065** (**the `2,876` this clause carried from the clause above is WRONG and is corrected here — the file reads `3,065` at its own last line this date and read `3,065` at `v1.5.0` as well, so the tick it was carried with was never re-measured against this file; `DEF-AC` at one figure**) · `error.rs` **886** ✓ · `args.rs` **329** ✓ · `value.rs` **330** ✓ · `records.rs` **290** ✓ · `json.rs` **203** ✓ · the barrel **4** ✓ · `src/entry/` **13 files** ✓ · the member set **14** ✓ — re-measured at a live instance this date, `Object.getOwnPropertyNames` reading `read` · `readLiteral` · `write` · `delete` · `rollback` · `listen` · `unlisten` · `addConstraint` · `constraintOn` · `constraintOff` · `constraints` · `removeListener` · `removeConstraint` · `register`. **THE FOUR COMMITS THAT MOVED THE LENGTH ARE `96eddfc` (`D-74`, the bounded entry: `constraints.mjs` and `kernel-foundations.mjs`), `9933405` (`D-75`, the witness on every path: `constraints.mjs`, `index.mjs`, `index.d.ts`), `bfe844a` (`D-77`, the fourth member: `refusal.mjs`, `constraints.mjs`, `kernel-attempt.mjs`, `kernel-foundations.mjs`, `state.mjs`, `delivery.mjs`, `index.mjs`, `index.d.ts`) and `8d31995` (a doc block under `constraints.mjs`, whose fourteen lines state what the code already did); the seven others moved no source line.** **THE SET AND THE MANIFEST:** the status set **TWENTY** ✓ (`src/error.rs`'s `CODES: [&str; 20]` at `:113`) · **the KERNEL's own token set is NINE, `KC-1`…`KC-9`** ✓ · a blind instance count of **THIRTEEN** ✓ · the `files` allowlist **SEVEN** ✓, measured at `bindings/js/package.json`'s own `files` array · **`version` `1.6.0` at all eleven sites** (the clause above reads `1.4.0`) · **the tag set `v1.0.0` · `v1.0.1` · `v1.1.0` · `v1.2.0` · `v1.3.0` · `v1.4.0` · `v1.5.0` beside `git describe`'s `v1.5.0-11-g8f5454f`, with no `v1.6.0`**, and whether `1.6.0` is cut is not a declaration this file makes, because `D-57` dropped that claim · the packed member set **`20` bare** (`entryCount` `20`) **and `21` assembled** ✓. **THE LEGS, EACH RUN THIS DATE, `0` failed:** `npm test` **1121 · 1120 pass · `0` fail · 1 skip**, exit `0` ✓ · `cargo test --offline` **669** (`434 + 235`) ✓ · `npm run greens` exit `0` ✓ · `npm run test:e2e` exit `0` (`14` PASS · `1` LAYER-LIMIT · `0` FAIL) ✓ · `npm run typecheck` exit `0` ✓. **THE TEST POPULATION IS UNMOVED:** `tests/e2e/` **79** · `tests/integration/` **33** · `tests/unit/` **5** · `tests/Cargo.toml` **1** `= 118`, the e2e breakdown still **`55` · `12` · `8` · `1` · `3` `= 79` ✓**, and **`69` `*.test.mjs` stand under `tests/` ✓**. **THE DENOMINATOR MOVED BY ONE: 199 where the clause above reads 198** — `git ls-files | grep -v '^scratch/'` reads **199** against a whole index of **676** and **477** `scratch/` paths, `676 = 477 + 199` ✓ — **because `docs/guides/backup/D76-2026-10-29-guide-move-out.md` is one new tracked path, the archive `D-76` item 3 moved the guide's two superseded passages into.** **AND THE ONE THING THAT DID NOT MOVE A LENGTH BUT DID MOVE A FORM IS NOT A FIGURE OF THIS TABLE: THE FAILURE FORM IS FOUR MEMBERS SINCE `D-77`** (`{status, message, log, address}`, `address` `null` where nothing is nameable), **which is why the guide's and the README's own prints of the form were corrected at their own lines and `LogEntry` was not.** (`D-57`; `D-74`; `D-75`; `D-77`; `D-78`; the matching clauses are `docs/L1/module-map.md`'s, `entry-subdivision.md`'s, `kernel-subdivision.md`'s, `surface-deltas.md`'s and `test-stratification.md`'s eighth `2026-10-29` re-measures, and the two JSONs' keys.)
+
+---
+
+## §5 · What this pass changed, and what it puts to the architect
+
+**EDITS LANDED (all ANNOTATE-BESIDE; no reading deleted, no behaviour byte anywhere):**
+
+1. **`docs/L1/open-items-2026-10-25.md`** — this file.
+2. **`docs/L1/module-map.md`** — E1's `StoreStatus` figure (`sixteen` → **seventeen**, with the site), E2's grep
+   line list re-measured beside the stale one, and E2's *"Recorded, not resolved"* closed with the addon-set
+   disposition and a pointer here.
+3. **`docs/L1/surface-deltas.md §1.5`** — the `StoreStatus` delta it declares is **CLOSED**: the declaration
+   carries the seventeenth literal, and the five prose sites the section enumerated are re-spelled read-through.
+4. **`docs/specs/storeroom-js/surface.md`** and **`docs/specs/storeroom-js/contract.md`** — one dated
+   `RCA-8(g)` clause each, at the counter-pass print, naming the three figures that have since moved (**the addon's
+   `5` → `13`**, **the kernel's `five items` → `6`**, **the store's closed `16` → `17`**) and where each moved.
+5. **`strata/decisions.md`** — one `FINDING` entry: the record of this pass, the five `OWED`s' disposition, the
+   four disagreements, and the brief's stale figures.
+
+**AND THE VERIFICATION, MEASURED — every leg run in this tree after the edits, by read-only probes, with its own exit
+status:**
+
+| leg | command | result |
+|---|---|---|
+| `test` | `npm test` | **`1053` tests · `1051` pass · `1` fail · `1` skipped, exit `1`** — **the one fail is the HELD DISAGREEMENT and it stays red**: `tests/e2e/blind-constraints-unit.test.mjs:172` (*"`KC-8` !== `KC-4`"*, asserted at `:187`) — **⟶ RE-MEASURED 2026-10-27 AT THE `1.0.1` PREPARATION: `1081` tests · `1080` pass · `0` fail · `1` skipped, exit `0`. THE HELD DISAGREEMENT IS NO LONGER RED** — the `D-40`/`D-38` passes re-derived it and the suite is green at the bump; the one skip is the dispatcher-shape cell (*"the old dispatcher shape is absent after the split; the golden was captured before it"*) — **⟶ RE-RUN 2026-10-28: `1121` tests · `1120` pass · `0` fail · `1` skipped, exit `0`, AND IT IS THE SAME SKIP** (the dispatcher-shape cell) |
+| store | `cargo test --offline -p storeroom-native` | **`415` passed · `0` failed**, exit `0` — **⟶ RE-RUN 2026-10-28: `434` passed · `0` failed** (over `15` test binaries plus the crate's own unit tests and doc-tests), exit `0` |
+| battery | `cargo test -p storeroom-tests` | **`235` passed · `0` failed**, exit `0` |
+| both | `cargo test` | **`650` passed · `0` failed · `0` ignored** over `22` binaries, exit `0` (`415 + 235 = 650` ✓) — **⟶ RE-RUN 2026-10-28: `669` = `434 + 235` ✓, `0` failed, exit `0`** (the binary count was not re-derived by this pass and is left as it stands) — **⟶ RE-RUN 2026-10-29: unmoved, `669` = `434` + `235` ✓, `0` failed, exit `0`** at `v1.4.0-21-ga1c65d9` |
+| greens | `npm run greens` | exit `0` — `AUTHORED 100 · EXECUTED 100 · PASS 100 · FAIL 0`, `10` discovered runners, every one exit `0` — **⟶ RE-RUN 2026-10-27: exit `0`, `CHAIN COMPLETE — 10 discovered runner(s), every one exit 0`, with the three batteries' own totals `AUTHORED 254 · PASS 254`, `175 · 175`, `100 · 100` and `0` FAIL anywhere (`CF-11` still `UNRUNNABLE` by declaration, `D-21`)**, layer `LIVE / ASSEMBLED PACKAGE`, `APP` `NONE` — **⟶ RE-RUN 2026-10-28: exit `0`, `CHAIN COMPLETE — 11 discovered runner(s), every one exit 0`** (the `10` above is superseded: one runner joined the chain), with the per-runner totals reported by each; layer `LIVE / ASSEMBLED PACKAGE`, `APP` `NONE` — **⟶ RE-RUN 2026-10-29: unmoved, exit `0`, `CHAIN COMPLETE — 11 discovered runner(s), every one exit 0`, `AUTHORED 103 · EXECUTED 103 · PASS 103 · FAIL 0`** |
+| e2e | `npm run test:e2e` | exit `0` — `15` declared / `15` recorded: `14 PASS · 0 FAIL · 0 FINDING · 1 LAYER-LIMIT` — **⟶ RE-RUN 2026-10-27: unmoved, `15` declared / `15` recorded / `14 PASS` / `1 LAYER-LIMIT` (`INSTALL-09`), and `INSTALL-01` now reads the assembled `1.0.1` tarball's `20` members** (`INSTALL-09`, the four non-host platform names: driven, refused `EBADPLATFORM`, **never claimed green**), `APP` stays `NONE` — **⟶ RE-RUN 2026-10-28: exit `0`, `15` declared / `15` recorded, `14 PASS · 0 FAIL · 0 FINDING · 1 LAYER-LIMIT` (`INSTALL-09`), `APP` `NONE`; `INSTALL-01` reads the assembled `1.1.0` tarball's `20` members and the two readings AGREE member for member** — **⟶ RE-RUN 2026-10-29: unmoved, exit `0`, `15` declared / `15` recorded, `14 PASS · 0 FAIL · 0 FINDING · 1 LAYER-LIMIT` (`INSTALL-09`), `APP` `NONE`; `INSTALL-11` re-reads the packed manifest's `files` at its SEVEN rows and records that the tarball carries `LICENSE` where the bare copy does not** |
+| typecheck | `npm run typecheck` | exit `0` — no `tsc` diagnostic |
+
+**AND THE TWO JSON FILES STILL PARSE, MEASURED RATHER THAN ASSUMED:** `docs/L1/modules.json` and
+`docs/L1/test-stratification.json` were each `JSON.parse`d by a probe and answered **PARSES OK**; **neither was edited
+by this pass** (19 modules / 61 endpoints unmoved). **The working tree after every edit and every leg carries
+DOCUMENTATION ALONE** — `git status` names exactly five modified files (`docs/L1/module-map.md`,
+`docs/L1/surface-deltas.md`, `docs/specs/storeroom-js/surface.md`, `docs/specs/storeroom-js/contract.md`,
+`strata/decisions.md`) and one untracked addition (this file): **no source, no test, no manifest byte**, which is why
+the seven legs cannot have moved and did not.
+
+**PUT TO THE ARCHITECT — ONE QUESTION, ONE SENTENCE, AND NOTHING ELSE IS OWED HIM:**
+
+> **`KC-4`/`KC-8`: does the kernel get a DECLARED CARRIER for the ops a repair landed — a per-invocation landed-op
+> record, or a repair `op` whose domain carries the store's `seq` so the existing `seq`-floor ground always runs —
+> or is `PAR-C-8`'s *"not the one it landed"* arm NARROWED to the identities a caller-side record can prove?**
+
+**THE LEDGER, ONE LINE PER SECTION OF THIS PASS:**
+
+| section | state |
+|---|---|
+| §1 the addon's export set (5 vs 13) | **CLOSED** — a stale DECLARATION at three sites and an archived fourth; the code is right; one mis-citation (`A150`) named for its owner |
+| §2 the five `OWED`s | **CLOSED — four ANSWERED** (the escape arm; symbols; the reload message; the receipt's array identity) and **one ANSWERED WITH A NAMED RESIDUE** (`removeConstraint`'s form = `TypeError`, `status` absent; the `log` member on it is a declaration question with an owner) |
+| §3 the four disagreements | **CLOSED — three (the documents moved) · OPEN — one (`KC-4`/`KC-8`, the code)** |
+| §4 the stale records | **CLOSED for `:1233` (the exact comment edit printed; this pass has no source scope) and CLOSED for `brief.md`'s measurement — but `brief.md` is OUTSIDE this pass's write scope and needs its owner's hand: 10 line-count figures, the `tests/` total and the `e2e/` breakdown** |
+
+---
+
+## §6 · 2026-11-01 — one item a downstream consumer filed, RECORDED and NOT REPAIRED
+
+**A second pass appended this section; it is not part of the 2026-10-25 record's own account, and it repairs nothing.**
+The item was filed by the Provident-Electron app against the installed `provident-storeroom@1.6.1` and reached this
+repository as `ST-F2`; its gate-1 record is `docs/specs/storeroom-repair-failure-path-proposal-review.md`, whose `§1`
+part 3 carries the measurement.
+
+| # | clause | what the clause says | what the build does | which side moved | state |
+|---|---|---|---|---|---|
+| **5** | the `no op` refusal's sentence — `bindings/js/src/entry/kernel-attempt.mjs:883` | *"the repair `<id>` produced no op at `<address>`"* | `<address>` is `addressSpelling(attempt.address)` — the **caller's** address, in an arm where the repair may have written legally at a different one; and on that arm the kernel holds **no repair op and no repair address at all**, because the return is the op's one carrier (decision `A110`, `strata/decisions.md:2612-2619`) | **THE CODE** — ⟶ CORRECTED BY THE SUPERVISOR, 2026-11-01: the sentence never moved; the CODE gained the ability for a repair to write inside the commit (`docs/guides/package-use.md:1020`–`:1021`, `:1028`, and its own landed clause), so an arm that once always held no op can now hold one the sentence denies. **`NEITHER` was wrong by this cell's own question** (`docs/specs/storeroom-repair-failure-path/sites.md §3` carries the re-derived answer) | **OPEN — recorded, not repaired. No unit is queued**: the architect ruled the text a **defect row only** (`D-88`) |
+
+**WHAT WOULD SETTLE IT, AND WHY IT IS NOT SETTLED HERE.** Two lawful outcomes and no third: either the sentence's
+**text** changes — a **behaviour byte** in a shipped refusal message, needing its own ruling and its own version — or
+the text **stands** and the guide teaches what the refusal means and what the store holds. **The second is what
+`U-STOREROOM-REPAIR-FAILURE-PATH` does**, and it is why this row is a record and not a cell of that unit: this pass
+writes no code byte, and changing this sentence's address would require a store reach the kernel's own decision
+forbids (`D-67`).
+
+---
+
+## §7 · 2026-11-02 — the arming instant: one code defect and one misclassified refusal a downstream failure exposed, and the guide sentences that state them
+
+**A third pass appended this section; it is not part of the 2026-10-25 record's own account, and it repairs nothing.**
+It was opened by a downstream report — `Provident-Electron` "having problems with constraint/repair logic" — and by the
+architect's ruling on the first measurement: ***"If a `cfg.constraints` load can't run a repair, that is a code
+defect."*** **Every count and every status below was MEASURED on this checkout through the published entry
+(`bindings/js/index.mjs`), 2026-11-02; none is inferred from a reading of the code alone.** **The repair machinery
+itself is sound: the same body, added with `addConstraint` after construction, repairs and the write answers
+normally.**
+
+| # | clause | what the clause says | what the build does | which side moved | state |
+|---|---|---|---|---|---|
+| **6** | the batch route's arming instant — `bindings/js/src/entry/constraints.mjs:436`, `kernel-registration.mjs:59` | `docs/guides/package-use.md §7.2:872` — the batch *"ARMS the function at construction … through the same act the add route performs"* | **measured:** the same act is taken (`constraintsKernel().register(instance, …)`, `constraints.mjs:436` for the batch, `:637` for the add route) **at an instant where the caller's handle does not yet exist** — `storeCreate` is still on the stack — so a repair that must write cannot: `cfg.constraints: [{address:['b'], id:'b-exists', constraint: () => ({message: …, repair: rc => storeB.write(…, rc)})}]` **refuses the construction** with rank-`19` `ConstraintRefusedAtRegistration` and a **two-entry** log (`constraint-check`, `repair-run`), while **the identical body via `addConstraint` passes** and the object it writes stands (`tests/e2e/registration-repair-existence.test.mjs`, commit `9501456`). **The repair is a RETURN VALUE of the constraint body**, so the route is not what blocks it — the instant is: on an ordinary write the same batch element's repair runs, is credited, and the write answers `{"opId":"op-2","after":{"present":true,"value":{"bad":false}}}` | **THE CODE** — the act is the declared one and the instant cannot admit it; the two routes disagree only in *when* | **RULED — `D-91` chose the WRITE-ROUTE arm** (the deferral arm was not taken): the timing stands and the registration instant must gain a lawful write route that joins its own commit and is creditable; **gate 2 may now open**, and the implementation is owed to the unit and NOT STARTED |
+| **7** | the boot-over-an-existing-file validation — `src/store.rs:783`-`:786`; `cfg.constraints` with a `filePath` naming a readable store | `docs/guides/package-use.md §7.2:889`-`:890` — *"It is validated at TWO instants, both answering `ConstraintListInvalid` with no instance: at CONSTRUCTION, and at a boot over an existing `filePath`, where the LOADED state is validated against the list you supplied"* | **THE RULE IS DECLARED AND THE REFUSAL IS BY IT, NOT AGAINST IT:** a boot walks each pair's address and refuses the whole list when one does not resolve (`src/store.rs:783`-`:786`), which is the sentence the guide prints. **Measured on a file carrying `['x']` and no `['must']`:** `{address:['must'], id:'p', constraint: () => true}` — a **shape-valid** entry — is refused `ConstraintListInvalid` with *"'must' is not a valid constraint entry in 'constraints', a constraint entry is an address and an id, and the address is a segment array"*, **a claim TRUE of that address and therefore no diagnosis of why the entry was refused**; the same element on a `mem` store **constructs**; and a genuinely shape-invalid address (`address: 'must'`) draws the **byte-identical message on both routes**. **SO THE DEFECT IS THE CLASSIFICATION AND NOT THE RULE:** the contract's own division reads that the shape instants detect a **malformed list** while the evaluation instant detects **a well-formed pair whose function does not pass** (`docs/specs/storeroom-native/contract.md §8.1`), and a well-formed pair refused for resolvability is neither — it is answered by the shape arm with the shape row's fixed phrase. **AND WITH THE ADDRESS PRESENT (`['x']`) THE BOOT EVALUATES**, so row `6`'s instant is reached at a boot too — measured rank-`19` with a two-entry log | **THE CLAUSE** — the status and the message, both misdescribing a well-formed pair; **the RULE itself is declared and stands unless the architect re-rules it** | **RULED — SUPERSEDED BY `D-90`:** an address whose PARENT does not resolve now SKIPS its pair, so the list-wide refusal this row measured is withdrawn; what remains is the IMPLEMENTATION (row `13`), and the message question `D-90` (iii) leaves open is not this row's |
+| **8** | the beside-write sentence — `docs/guides/package-use.md:469` | **THE FLOOR CALL RESTORES THE ADDRESS THE ATTEMPT WROTE; AN ADDRESS A REPAIR LANDED AT BESIDE IT IS NOT RESTORED** — *"keep it yourself: the store's own floor call does not put it back"* — *"(E2E-C-9 cell 6 in `tests/e2e/blind-constraints-v2.mjs` is the measured reach)"* | **the composition moved 2026-10-26 and the sentence did not:** the cited cell now reads *"so a failing attempt leaves BESIDE addresses too restored: the repair's address answers its seeded value"* (`blind-constraints-v2.mjs:1038-1041`), and the floor plan is **one call per distinct address the attempt's owed ops touched**. **A CREDITED repair's op joins `attempt.ops`, so its address IS reached and its write IS restored with the attempt**; only an **uncredited** repair's write stands (`['b']` measured at the seed on the credited arm, still the repair's value on the uncredited one) | **THE CLAUSE** — its citation measures the opposite of the sentence it supports | **OPEN — a named adjacent tension, now consumer-visible.** `§7.6:1045` states the address geometry correctly and, by its own terms, does not edit `§5.4` |
+| **9** | the same instant, as the guide states it — `docs/guides/package-use.md §7.2:868-872` | the batch *"ARMS the function at construction — not merely validates it and defers … through the same act the add route performs"* | the sentence is **true of the act and silent on its consequence**: the act is the same `K-1` `register`, but taken while the caller holds no handle, so *"the same act"* is not the same reach. **A reader takes it as "the routes are interchangeable", which is exactly what rows `6` and `7` falsify** | **THE CLAUSE** — not a false sentence but a missing one, and the one a downstream leaned on | **OPEN — belongs to the unit minted at row `6`** |
+| **10** | the `delete` example — `docs/guides/package-use.md:1109`–`:1121` | the fenced sample: `store.write(['window','tabs'], 'mem', { landingPage: { active: true } })`, then `addConstraint`, then `delete`, expecting rank-`20` with `opId: 'op-3'` | **measured:** the first statement throws `{status:'AddressNotFound', message:"'window' does not exist in '', it holds no keys"}` on any store without `['window']` — **a nested write does not create its parent** — and the block creates no store and no parent. Every claim inside reproduces byte for byte once the parent stands (`log[0]` `constraint-check`, `log[1]` `outcome` with `KC-3`, read-back `{active:true}`), and `op-3` presumes **two** prior writes the sample does not contain | **THE CLAUSE** — a sample that cannot run as printed | **OPEN — needs its own docs unit** |
+| **11** | the log census at a construction refusal — `docs/guides/package-use.md §8.0a:1385` | *"A refusal that names no attempt still carries `[]` — a `listen` refusal, **a construction refusal**, a detached member's"* | **measured, both arms:** a construction refusal with **no repair** carries `log: []` ✓; a construction refusal whose element **carried a repair** carries **two entries** (`constraint-check`, `repair-run`) ✗. The sentence is true of state `2` and false of state `3`, and does not say so | **THE CLAUSE** — unscoped | **OPEN — belongs to the unit minted at row `6`** |
+| **12** | the guide's own test citations — 26 `tests/` paths across `docs/guides/package-use.md` | citations of the form *"the package's own suite drives this arm at `tests/e2e/…`"*, and *"`tests/e2e/downstream-claims.test.mjs:1498`-`:1501` prints a `passed` entry inside a refusal's own list"* | **measured:** **22 of the 26** point at `tests/e2e/discard-witness.mjs` (21) and `tests/e2e/blind-constraints-v2.mjs` (1), which **`node --test "tests/**/*.test.mjs"` does not run** — `scripts/greens-chain.mjs --list` owns them, they are green there (`AUTHORED 85 · EXECUTED 85 · PASS 85`), and **"the suite is green, 1125 tests" says nothing about them**; and `downstream-claims.test.mjs:1498`–`:1501` is a **comment block** quoting the **pre-fix** rendering (`the constraint x passed at ["a"]`), not an executable cell | **THE CLAUSE** — citations that resolve to the wrong leg, and one to a withdrawn rendering | **OPEN — needs its own docs unit** |
+
+| **13** | the pair-application rule at EVERY instant — `bindings/js/src/entry/constraints.mjs:436`, `kernel-registration.mjs:59`, `src/store.rs:783`-`:786`, and the pass over a write, a `delete` and a `rollback` | **`strata/decisions.md` `D-90`, verbatim:** *"Constraints that would be applied to an address that can't be walked to yet should be skipped (ex. `['window','tabs']`, where `'window'` does not yet exist). A constraint that can be walked to but doesn't exist (ex. `['window']`, where `'window'` doesn't exist) should be applied. This is a global rule, not a batch-only one"* | **measured, all four cases identical today:** on a `mem` store, `cfg.constraints` at `['window']` (leaf absent), at `['window','tabs']` (parent absent), at `['x','deep']` with `'x'` absent, and at `['x','deep']` with `'x'` present **each ask the body exactly once with `context.value === undefined`** and refuse rank-`19`; `addConstraint` behaves identically at both example addresses; **and the store cannot tell the two examples apart by any read** — `read(['window'])` and `read(['window','tabs'])` both throw `AddressNotFound` while `read([])` answers `{}`, so the discriminator the rule needs is the **parent** walk and no existing status supplies it. At a boot the same cause is answered **list-wide** (`ConstraintListInvalid`, row `7`) | **THE CODE** — it applies pairs the rule would skip, and refuses lists the rule would skip past | **RULED BY `D-90` — implementation NOT STARTED, owed to the unit as its SECOND subject**; the supervisor's split records that both subjects are read at ONE decision point (*is this pair applied at this instant?*), so two units would have to land together |
+
+| **14** | the guide's sentence about a body's OWN write — `docs/guides/package-use.md:1371`-`:1372` | it prints, as supported behaviour, *"**A nested write a CONSTRAINT body makes is part of the same commit**, so **its entries are in YOUR list** — which is why a constraint body that performs a refused write now shows you that refusal's own…"* | **`D-92` declares a body's direct write UNSUPPORTED** — the architect, verbatim: *"a constraint should not be making writes directly, that is unsupported. Any changes should be handled by a repair"* — and **MEASURED the same date the act still LANDS**: a body calling `store.write(['beside'], 'mem', 'from-body')` while judging a write at `['a']` answers `opId op-3`, `seq 3`, and `read(['beside'])` afterwards is `"from-body"`; **four committed batteries drive it** (`blind-defect-cases`, `external-commit`, `file-tier-save`, `js-constraints/constraint-kernel-states`). **So the guide describes as supported an act the architect has declared unsupported, and nothing in the tree refuses it** | **THE CLAUSE** — the guide's sentence is the reading to withdraw; **`D-92` moves no code byte on purpose**, since withdrawing support is not the same act as refusing one | **OPEN — RECORDED, NOT REPAIRED.** **Owner: a SEPARATE DOCS UNIT** (the architect's answer to the registration-instant contract's `Q4`, recorded at `D-93`) — not that unit, whose write set stays two guide positions; **the docs unit is NOT QUEUED** and its queueing is the architect's. **The refusal question is ANSWERED — the capability stays and only the claim is withdrawn (`D-93` (1))** |
+
+**WHAT WOULD SETTLE ROWS 6, 7, 9 AND 11, AND WHAT THE UNIT OWES.** **Two fixes are lawful and the architect has not chosen between them: DEFER the batch's EVALUATION to the caller's first call after construction (the five-member evaluation context stays intact; the rank-`19` refusal moves from `storeCreate` to the first call, and `§7.2`'s "validated at construction" sentence needs amending to say which instant is which), or GIVE the registration-instant body a lawful WRITE ROUTE (the timing stays; the **five-member `AttemptContext`** is a declared shape cited across this corpus — `kernel-surface.md §2.3` item 1 — so this contradicts a pinned clause unless it is re-derived first). **`D-90` ANSWERS THE QUESTION ROWS `6` AND `7` PUT:** the discriminator is the **parent** address — an unresolvable parent **SKIPS** its pair, a resolvable one **APPLIES** it, with the leaf's own absence as the state it judges — so *"cannot be walked to yet"* is no longer a refusal anywhere, and the boot's list-wide `ConstraintListInvalid` is withdrawn (row `13`). **The two rulings do not settle each other:** `D-90` decides WHICH pairs are applied at an instant, and the arming choice decides whether an applied pair can repair where it is applied. **The unit's gate-1 record decides which, on a measurement of both arms, and no design work precedes it.** **THE WORKAROUND A CONSUMER HAS TODAY, RECORDED SO IT IS NOT INVENTED DOWNSTREAM: a "must exist, with a repair" pair must be added with `addConstraint` after `storeCreate` and must not travel in `cfg.constraints`** — measured green in `tests/e2e/registration-repair-existence.test.mjs`.
+
+**⟶ GATE 3 HAS LANDED, 2026-11-02 — ROWS `6`, `7`, `9`, `11` AND `13` ARE IMPLEMENTED, AND THEIR CELLS ARE GREEN.** **The pair-application rule is read at every instant that would apply a pair** (the registration evaluation, the unconditional re-run, the pass, and the reversal's own judgement — the last of which widened the write set by one guard on the architect's word); **the boot's list-wide walk is deleted** so `ConstraintListInvalid` answers the malformed list alone; **the repair's registration record carries `write`**; and the two guide corrections landed with the landing regenerated by the assembly's own operation. **Measured: `npm test` `1146` tests · `1145` pass · `0` fail · `1` skipped, and the acceptance chain `npm run greens` COMPLETES — `11` runners, every one exit `0`** (`greens` `254/254`, `file-tier-save/scenarios` `91` pass `0` fail, `discard-witness` `85/85`, `json-acceptance-set-greens` `48` pass `0` fail, the two live runners and `live-drive` `103/103`). **Fourteen cells across eight files were re-derived on the rulings' ground rather than weakened**, each naming its ruling and each carrying a stated red side; and **`D-96`'s inversion returned `P-HL-8` mode 2 to green** by its own ground. **WHAT IS NOT DONE HERE: gate 4's adversarial re-read has not run**, and three hygiene residues are named for it — `docs/specs/storeroom-constraint-registration-instant/verification.md`'s `G3-08`/`G3-13` rows and rung `V-4` still print the leaf-skip `D-96` inverts; three pass sites' comment prose (`kernel-registration.mjs:296`-`:309`, `:673`-`:687`, `kernel-attempt.mjs:609`-`:624`) still narrate the withdrawn rule while their code is correct; and `discard-witness.mjs`'s `W13` banner phrases the reach as the asking rule with no cell riding on it.
+
+**⟶ AND THE UNIT IS `DONE`, 2026-11-02 — GATES 4, 5, 11 AND 10 JOIN IT.** **Gate 4 ran three times on the landed bytes:** `DO-NOT-SHIP` (seven blockers, every one in the corpus or the shipped prose and none in the behaviour), `DO-NOT-SHIP` again (five disposed, seven new, all citation drift), then **`SHIP-WITH-CONDITIONS` on three printed ranges that resolved onto prose of a different subject — discharged after each target was read at its bytes**. **Gate 5's blind set is `OWED` no longer: sixteen cells written from the declaration alone**, and it found what it exists to find — `G3-23`'s wording says a forged op refuses the registration where the tree credits it and the re-run refuses. **Gate 11's register is REAL: three property rows over generated input**, each with its falsifier and its reached-arms assertion. **Gate 10 is the tracker entry appended as the gate-1 record's `§8`.** **MEASURED AT THE END: `npm test` `1165` tests · `1164` pass · `0` fail · `1` skipped; `npm run greens` completes, eleven runners exit `0`; typecheck `0`; build `0` under `CARGO_HOME`.** **FOUR RESIDUALS ARE RECORDED AND REPAIRED NOWHERE, EACH WITH AN OWNER IN THAT ENTRY:** `G3-23`'s and `P-SCRI-3`'s wording (the credit at a registration is the membership ground alone; the re-run is the judge), the `KC`-token observability note at a registration refusal, and `D-94`'s empty-set arm being unreachable through this route. **AND THE STRUCTURAL LESSON IS WRITTEN INTO THE CORPUS, NOT INTO THIS LEDGER: `contract.md §7` now FREEZES the directory against citation drift** — no pass may edit a file it cites without re-spelling the citation in the same commit — **because three correction rounds each manufactured the next round's findings.**
+
+**⟶ AND THE 1.6.2 PREPARATION FOUND A FIFTEENTH CELL, IN THE RUST BATTERY, WHICH NO GATE OF THIS UNIT HAD RUN.** `tests/integration/store-core/e2e_json_round_trip.rs`'s `e2e_loader_refused_file_with_a_constraint_list_…` asserted the very arm `D-90` (5) deleted — a well-formed pair whose address resolves in no register refusing the construction — and it went RED the moment `src/store.rs`'s walk went. **IT WAS RE-DERIVED ON THE RULING'S GROUND AND COMMITTED** (the construction over a refused file returns an instance with the pair carried, and a malformed element still answers `ConstraintListInvalid`, so the cell keeps its red side), **and the rust batteries are green again.** **THE GAP IS NAMED RATHER THAN ABSORBED: gate 9's trio is `test`/`typecheck`/`build` where `test` is `node --test` ALONE, and the three Rust legs are separate scripts (`test:store`, `test:battery`, `test:both`) that no gate of this unit invoked** — so a Rust cell asserting a superseded arm survived three gate-4 runs, a blind set and a property register, **and only the publish preflight found it**. **Owner: the walkthrough's gate-9 question, which must ask for the Rust legs by name on a unit that moves `src/**`; revisit at the next unit whose write set reaches the store.**
+
+**WHAT THIS SECTION DOES NOT DO.** It writes no code byte, moves no shipped prose and mints no ruling. **The guide-text rows `8`, `10` and `12` are not the minted unit's**: each needs its own docs unit, and row `8` in particular is a named adjacent tension (`docs/specs/storeroom-repair-failure-path/contract.md §4` item 2) that this pass records from the consumer's side rather than adjudicating.

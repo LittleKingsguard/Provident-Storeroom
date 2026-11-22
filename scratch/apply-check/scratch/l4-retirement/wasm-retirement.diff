@@ -1,0 +1,938 @@
+diff --git a/bindings/js/src/entry/addon-slot.mjs b/bindings/js/src/entry/addon-slot.mjs
+index 42d9a5b..f688ab1 100644
+--- a/bindings/js/src/entry/addon-slot.mjs
++++ b/bindings/js/src/entry/addon-slot.mjs
+@@ -57,13 +57,24 @@
+ // **AND `delete` → `_delete` AT THAT SAME TABLE** (`wasm-realm.md` §15: the toolchain emits the entry as `_delete`
+ // because the published name is a reserved word), so the parts' `entryOf().delete` is spelled as the module's own
+ // `_delete` in one place and no site learns a second name. `commitFile` is **ABSENT** from the injected export set
+-// (`D-155` item 4; eighteen of the Node arm's twenty, which is **⟶ NINETEEN UNTIL 2026-11-19 AND TWENTY FROM THE
+-// `storeRelease` LANDING** — `facade.rs`'s retirement entry, which has no wasm twin), so the table carries no such
++// (`D-155` item 4; **nineteen of the Node arm's twenty** from 2026-11-19 — *"the Node arm's twenty minus
++// `commitFile`"*, the arithmetic unchanged and its figure re-cut at this sentence), so the table carries no such
+ // member and this file mints no stand-in for it: a save that names it on that arm is the design's own declared
+-// absence, not a table's omission. **AND THE SAME HOLDS OF `storeRelease` ON THIS ARM**: `state.mjs`'s
+-// `STORE_RETIREMENT` calls it, the injected table carries no such member, and **the registry's own `try`/`catch`
+-// is what makes that absence SILENT rather than a throwable crossing a finalizer** — the arm's declared state is
+-// that its table never retires a store (`docs/L1/wasm-realm.md:311`), and nothing here mints a stand-in.
++// absence, not a table's omission.
++//
++// **⟶ AND `storeRelease` IS THE NINETEENTH, AND IT JOINS `PASSED_THROUGH_ENTRIES` — 2026-11-19, THE ARCHITECT'S
++// CLOSURE ANSWER, ARM `a`.** **THE TWO SENTENCES THAT STOOD HERE ARE QUOTED BEFORE THEY ARE RETIRED**: *"eighteen of
++// the Node arm's twenty, which is NINETEEN UNTIL 2026-11-19 AND TWENTY FROM THE `storeRelease` LANDING —
++// `facade.rs`'s retirement entry, which has no wasm twin"* and *"AND THE SAME HOLDS OF `storeRelease` ON THIS ARM:
++// `state.mjs`'s `STORE_RETIREMENT` calls it, the injected table carries no such member, and the registry's own
++// `try`/`catch` is what makes that absence SILENT rather than a throwable crossing a finalizer — the arm's declared
++// state is that its table never retires a store (`docs/L1/wasm-realm.md:311`), and nothing here mints a stand-in."*
++// **THE TWIN EXISTS NOW (`bindings/js/src/wasm.rs`'s `storeRelease`), the table CARRIES it, and the registry's
++// `catch` is no longer the arm's whole answer — it is the guard it always was on both arms.** **IT IS A
++// PASSED-THROUGH MEMBER AND NOT A HANDLE-FIRST ONE**, and that is the shape of its position, not a choice: the entry
++// takes THE STORE'S OWN INDEX, which the finalizer hands as its held value, so there is no receiver whose row could
++// be prepended — prepending one would hand the entry a second integer and leave the first as a stranger. **A plain
++// forwarder is therefore the exact table entry**, and `state.mjs`'s callback reaches the module unchanged.
+ //
+ // **NO `node:` SPECIFIER APPEARS IN THIS FILE AND NONE MAY** — that is the whole of the seam.
+ 
+@@ -291,9 +302,17 @@ const HANDLE_FIRST_ENTRIES = [
+ /// LEARNS A SECOND NAME.**
+ const MODULE_SPELLING = { delete: '_delete' };
+ 
+-/// **THE THREE ENTRIES THAT TAKE NO HANDLE AND CROSS AS THEY ARE** — the construction (`storeCreate`, whose one
+-/// position is the encoded config and whose answer is the handle), the version read and the store's generator.
+-const PASSED_THROUGH_ENTRIES = ['storeCreate', 'version', 'errorMessage'];
++/// **THE FOUR ENTRIES THAT TAKE NO HANDLE AND CROSS AS THEY ARE** — the construction (`storeCreate`, whose one
++/// position is the encoded config and whose answer is the handle), the version read, the store's generator, **and,
++/// ⟶ FROM 2026-11-19, THE RETIREMENT: `storeRelease(storeIndex)`** (`bindings/js/src/wasm.rs`; `D-171`; the
++/// architect's closure answer, arm `a`). **THE RELEASE IS NOT A HANDLE-FIRST MEMBER AND THAT IS ITS POSITION AND
++/// NOT ITS CONVENIENCE**: the one caller that exists is `state.mjs`'s `STORE_RETIREMENT`, whose held value is THE
++/// STORE'S OWN INDEX — a finalizer has no receiver to be called on and may not hold the store — so the integer the
++/// callback hands IS the entry's first real position, and prepending a receiver's row would hand it a second one.
++/// **`passedThroughEntry` is therefore the whole of what this member needs: no row is read, no argument is added,
++/// and the release reaches the module with the bytes the finalizer passed it.** **THE NODE ARM MOVES NO BYTE**:
++/// `withAddon()` there answers the walked module itself, so this table is not on that arm's path at all.
++const PASSED_THROUGH_ENTRIES = ['storeCreate', 'version', 'errorMessage', 'storeRelease'];
+ 
+ /// **THE TABLE AN INSTALLED MODULE IS READ THROUGH.** Each handle-first member becomes a function that takes the
+ /// positions the PARTS hand it (`(address, tier)` and so on) and calls the module's free function with the
+diff --git a/bindings/js/src/entry/state.mjs b/bindings/js/src/entry/state.mjs
+index d469802..81b0481 100644
+--- a/bindings/js/src/entry/state.mjs
++++ b/bindings/js/src/entry/state.mjs
+@@ -1004,10 +1004,18 @@ export const STORE_INDEX = Symbol.for('provident-storeroom.storeIndex');
+ /// **AND THE KEY SET MOVED `19 → 20` WITH IT**, which this pass re-derives rather than argues away: the
+ /// artefact's live set is the nineteen declared names plus `storeRelease`, and **`§1`'s "exactly the declared
+ /// names" is a statement about the DECLARED set, which now carries the twentieth** — a *"`release`"* entry was
+-/// never the failure; an **undeclared** name is. **THE SECOND REALM'S ARM IS UNMOVED**: `storeRelease` has no
+-/// `wasm.rs` twin (`D-155` item 4's eighteen stand), so on that arm this callback's call is refused by the
+-/// table itself — `storeRelease` is not a function there — and **THE `catch` BELOW IS WHAT MAKES THAT ARM'S
+-/// ABSENCE SILENT RATHER THAN A THROWN FINALIZER**, which is the same guard, kept and now load-bearing.
++/// never the failure; an **undeclared** name is.
++///
++/// **⟶ AND THE SECOND REALM'S ARM IS NO LONGER UNMOVED, 2026-11-19 — THE SENTENCE IS QUOTED BEFORE IT IS RETIRED**:
++/// *"THE SECOND REALM'S ARM IS UNMOVED: `storeRelease` has no `wasm.rs` twin (`D-155` item 4's eighteen stand), so
++/// on that arm this callback's call is refused by the table itself — `storeRelease` is not a function there — and
++/// THE `catch` BELOW IS WHAT MAKES THAT ARM'S ABSENCE SILENT RATHER THAN A THROWN FINALIZER, which is the same
++/// guard, kept and now load-bearing."* **THE ARCHITECT'S CLOSURE ANSWER, ARM `a`, GIVES THAT ARM THE TWIN**: its set
++/// moves `18 → 19` (*"the Node arm's twenty minus `commitFile`"*, `D-155` item 4's arithmetic with its figure
++/// re-cut), its table empties a slot and never shifts one, and `addon-slot.mjs` forwards this very name as a
++/// PASSED-THROUGH member — **so this callback, unmoved byte for byte, now reaches the arm too.** **THE `catch` IS
++/// KEPT AND IS NO LONGER ANY ARM'S WHOLE ANSWER**: it is the guard it always was on the first arm — a retirement
++/// never throws into a finalizer — and the arm that made it load-bearing has an entry behind it now.
+ ///
+ /// **⟶ THE GUARD IS KEPT UNMOVED: A RETIREMENT NEVER THROWS INTO A FINALIZER.**
+ ///
+@@ -1026,9 +1034,10 @@ export const STORE_RETIREMENT = new FinalizationRegistry((storeIndex) => {
+     withAddon().storeRelease(storeIndex);
+   } catch {
+     // **A RETIREMENT NEVER THROWS INTO A FINALIZER**: the callback runs on the host's own collection turn,
+-    // and a throwable escaping there would be a raw host error crossing a path no caller asked for. **AND ON
+-    // THE SECOND REALM'S ARM THIS CATCH IS THE ARM'S WHOLE ANSWER** — the injected table carries no
+-    // `storeRelease` (`D-155` item 4), so the call raises and the release simply does not happen there.
++    // and a throwable escaping there would be a raw host error crossing a path no caller asked for. **AND BOTH
++    // ARMS NOW HAVE THE MEMBER THIS LINE CALLS** (`facade.rs`'s `storeRelease`; `wasm.rs`'s, ⟶ 2026-11-19), so the
++    // catch is the guard and no longer a silence standing in for an absent entry — kept, because a finalizer
++    // turn is the one place a throwable has no caller to be refused by.
+   }
+ });
+ 
+@@ -1300,9 +1309,11 @@ export function carryRefusal(call, args, log, address) {
+ /// value of the one position, and `commitFile`(1) counts one.
+ export function commitFile(receiver, opId) {
+   // **⟶ AND AN ARM THAT EXPORTS NO `commitFile` PERFORMS NO STORE SAVE — 2026-11-17** (`D-155` item 4; `D-143`'s
+-  // arm; `D-144` item 5). **`commitFile` IS ABSENT FROM THE SECOND REALM'S EXPORT SET BY RULING** (eighteen of the
+-  // Node arm's twenty — nineteen when this sentence was written, twenty since the 2026-11-19 `storeRelease`
+-  // landing, which has no wasm twin either — `D-155` item 4: *"the writer is unreachable"*), **and that ruling was TRUE OF THE STORE'S
++  // arm; `D-144` item 5). **`commitFile` IS ABSENT FROM THE SECOND REALM'S EXPORT SET BY RULING** (⟶ **nineteen** of
++  // the Node arm's twenty from 2026-11-19 — this sentence read *"eighteen of the Node arm's twenty — nineteen when
++  // this sentence was written, twenty since the 2026-11-19 `storeRelease` landing, which has no wasm twin
++  // either"*, and **the twin now exists, so the arm's figure is `19` and the one name that is still absent is
++  // `commitFile` alone** — `D-155` item 4: *"the writer is unreachable"*), **and that ruling was TRUE OF THE STORE'S
+   // WRITER AND NOT OF THIS CALL**: the terminal arm reaches this helper on a passing `file`-tier write and lets the
+   // STORE decide eligibility, so with no entry here a lawful write threw a raw host **`TypeError`** instead of any
+   // declared answer (measured: `state.mjs:1263` ← `delivery.mjs:1245` ← `terminalArm`).
+diff --git a/bindings/js/src/facade.rs b/bindings/js/src/facade.rs
+index e2ccd03..03f9a75 100644
+--- a/bindings/js/src/facade.rs
++++ b/bindings/js/src/facade.rs
+@@ -1286,6 +1286,15 @@ fn verb_commit_file(env: Env, receiver: This<Object<'_>>, op_id_pos: JsVal<'_>)
+ // held value may carry). **THE SECOND REALM'S ARM IS NOT THIS PASS'S AND ITS SET DOES NOT MOVE**: `storeRelease` has no
+ // `wasm.rs` twin, so that arm's eighteen stand (`D-155` item 4) and its table never retires a store — the absence
+ // `docs/L1/wasm-realm.md:311` already declares.
++//
++// **⟶ AND THE SENTENCE ABOVE IS RE-CUT AT ITS OWN BYTES, 2026-11-19 — THE TWIN EXISTS.** *"THE SECOND REALM'S ARM IS
++// NOT THIS PASS'S AND ITS SET DOES NOT MOVE: `storeRelease` has no `wasm.rs` twin, so that arm's eighteen stand
++// (`D-155` item 4) and its table never retires a store — the absence `docs/L1/wasm-realm.md:311` already declares."*
++// **THE ARCHITECT'S CLOSURE ANSWER, ARM `a`, GIVES THAT ARM THE TWIN** (`wasm.rs`'s `storeRelease`, a tombstoned
++// slot table of its own, and `addon-slot.mjs`'s PASSED-THROUGH forwarder for the name): **that arm's set moves
++// `18 → 19` and its table retires a store.** **AND THE HALF OF THE SENTENCE THAT STILL READS TRUE IS THE HALF THAT
++// MATTERS HERE: THIS FILE MOVES NO BYTE** — the Node frame, its two tables, its `Slots` and every one of its entries
++// are untouched by that landing, and the twenty it declares are the twenty it declared.
+ 
+ /// **⟶ ADDED 2026-11-17 BY `U-STOREROOM-03` — `exportImage()`: THE EXPORT CARRIER, POSITION-LESS, ANSWERING THE
+ /// STORE'S OWN IMAGE TEXT AS A STRING** (`D-137` items 1–2; `D-133` item 2).
+diff --git a/bindings/js/src/wasm.rs b/bindings/js/src/wasm.rs
+index 266a9c9..7d4325b 100644
+--- a/bindings/js/src/wasm.rs
++++ b/bindings/js/src/wasm.rs
+@@ -1,5 +1,17 @@
+-//! `wasm` — **THE SECOND CLAIMED REALM'S ENTRY LAYER: EIGHTEEN FREE FUNCTIONS — FIFTEEN OF THEM TAKING THE
+-//! HANDLE FIRST, ONE TAKING THE WIRE, AND TWO TAKING NO HANDLE AT ALL.**
++//! `wasm` — **THE SECOND CLAIMED REALM'S ENTRY LAYER: NINETEEN FREE FUNCTIONS — FIFTEEN OF THEM TAKING THE
++//! HANDLE FIRST, ONE TAKING THE WIRE, TWO TAKING NO HANDLE AT ALL, AND ONE TAKING THE STORE'S OWN INDEX.**
++//!
++//! **⟶ THE SET MOVED `18 → 19` ON 2026-11-19, AND THE SENTENCE IT MOVED FROM IS QUOTED BEFORE IT IS RE-DERIVED:
++//! *"THE SECOND CLAIMED REALM'S ENTRY LAYER: EIGHTEEN FREE FUNCTIONS — FIFTEEN OF THEM TAKING THE HANDLE FIRST,
++//! ONE TAKING THE WIRE, AND TWO TAKING NO HANDLE AT ALL."*** **THE ARCHITECT'S CLOSURE ANSWER, ARM `a`, IS THAT
++//! THIS ARM RETIRES A STORE AS THE NODE ARM DOES** — and `D-171` item 5 named the absence at its own last
++//! sentence while leaving it open: *"THE WASM ARM IS UNTOUCHED: its set stays **eighteen** and **its table still
++//! never retires a store** — which is now the one arm of the two whose leak is unclosed, and closing it changes
++//! that arm's export set (a declaration, `D-155` item 4, and `CW-6`'s subject)."* **`D-155` item 4 AND `CW-6` ARE
++//! THE TWO SITES THIS LANDING RE-CUTS**, and the nineteenth entry is [`store_release`] — the retirement's frame,
++//! whose whole docblock stands at its own bytes below. **THE ARITHMETIC KEEPS ITS SHAPE**: the arm's set is *"the
++//! Node arm's twenty minus `commitFile`"*, which is `19`, and it read `18` only because the retirement's entry had
++//! no twin on this arm — so the COUNT moves and the rule that produces it does not.
+ //!
+ //! **THE FORM IS `docs/L3/wasm-realm/design.md` §1's, AND IT IS A RULING RATHER THAN A TASTE**: the store's
+ //! fifteen members and `cfg`'s six keys are the package's, so *"the crossing may be shaped freely beneath
+@@ -22,14 +34,25 @@
+ //! **`state.receiver` BECOMES `state.handle` AS THE ROUTING DATUM** (`§1`'s closing sentence: *"the
+ //! envelope's forced change"*), and the handle is **a `u32` index into a module-level table of `Instance`s**
+ //! — [`INSTANCES`], the same `thread_local!` shape `facade.rs`'s table takes, minus the second ids table,
+-//! because on this arm the handle IS the row index and no release entry exists to retire a row.
++//! because on this arm the handle IS the row index and `facade.rs`'s second table exists only to map a
++//! RECEIVER's channel to a live row.
++//!
++//! **⟶ AND THE SENTENCE THAT STOOD HERE IS QUOTED BEFORE IT IS RETIRED, 2026-11-19**: *"… because on this arm the
++//! handle IS the row index and no release entry exists to retire a row."* **THERE IS ONE NOW** — [`store_release`],
++//! the arm's twin of `facade.rs`'s retirement entry — and **it retires a row without a second table, for the
++//! reason the first half of that sentence gives**: the row IS the handle, so a release EMPTIES the slot
++//! ([`Slots`]) and every index minted before it still names the store it was minted for.
+ //!
+-//! **THE SET IS EIGHTEEN AND IT WAS DELIVERED IN TWO SLICES** (`design.md` §6, at its own words: *"The WASM
+-//! module exports 18 of the Node arm's 19: `commitFile` (`facade.rs:1072`) is ABSENT"*; `D-155` item 4).
++//! **THE SET IS NINETEEN AND IT WAS DELIVERED IN TWO SLICES AND ONE LATER ENTRY** (`design.md` §6, at its own
++//! words: *"The WASM module exports 18 of the Node arm's 19: `commitFile` (`facade.rs:1072`) is ABSENT"*; `D-155`
++//! item 4 — **⟶ RE-CUT AT ITS OWN SENTENCE, 2026-11-19: the exports are `19` of the Node arm's `20`, and
++//! `commitFile` is still the one that is ABSENT**).
+ //! **THE FIRST SLICE WAS THE SIX THE `saveCall` PATH NEEDS** — `storeCreate` · `read` · `write` ·
+ //! `exportImage` · `saveSucceeded` · `saveFailed` — **AND THE SECOND IS THE TWELVE THAT COMPLETE `6 + 12 = 18`**:
+ //! `delete` · `readLiteral` · `readTiered` · `rollback` · `restoreMark` · `journalMark` · `listen` ·
+-//! `unlisten` · `removeListener` · `register` · `version` · `errorMessage`. **`commitFile` IS ABSENT BY
++//! `unlisten` · `removeListener` · `register` · `version` · `errorMessage` — **AND THE NINETEENTH STANDS BESIDE
++//! THE TWO SLICES AND IS NEITHER ONE'S: `storeRelease`, the retirement's frame, declared in its own section at
++//! the end of this file.** **`commitFile` IS ABSENT BY
+ //! RULING AND IS DECLARED BY NO BYTE OF THIS FILE** — named nowhere except in the two sentences that record
+ //! its absence, which is the only mention a name the arm must not export may have. Each entry is the
+ //! `facade.rs` frame it is named after, with the same reader, the same core delegate and the same answer.
+@@ -52,18 +75,90 @@ use crate::wasm_codec as codec;
+ // the realm is single-threaded by construction — a wasm module has one thread unless it starts one — so the
+ // affinity claim the `napi` arm declines to make is the arm's own fact here.
+ //
+-// **⟶ THE RETIREMENT PATH IS ABSENT AND THAT IS DECLARED, NOT FORGOTTEN** (`design.md` §8:
+-// *"`STORE_RETIREMENT` has no finalizer to fire it — so a WASM store is never released and the `INSTANCES`
+-// table grows, `SC-10`'s shape one arm over"*). **The `napi` arm's second table (`INSTANCE_IDS`) has no
+-// subject here**: it exists to map a receiver's channel to a live row and to retire exactly that row, and
+-// this arm's handle is the row INDEX — so the table is `Vec<Instance>` and the miss arm is a length test,
+-// with nothing between the handle and the row at all.
++// **⟶ AND THE RETIREMENT PATH, ABSENT AT THE SENTENCE ABOVE, IS HERE FROM 2026-11-19 — THE SENTENCE IS QUOTED
++// BEFORE IT IS MADE TRUE** (`design.md` §8: *"`STORE_RETIREMENT` has no finalizer to fire it — so a WASM store is
++// never released and the `INSTANCES` table grows, `SC-10`'s shape one arm over"*). **THE ARCHITECT'S CLOSURE
++// ANSWER, ARM `a`, IS THAT THIS ARM RETIRES AS THE NODE ARM DOES, so the sentence's subject is discharged and its
++// bytes are kept**: [`store_release`] is the finalizer's frame, the package's `STORE_RETIREMENT` is the caller of
++// it (`state.mjs`'s callback, unchanged), and `addon-slot.mjs`'s dispatch table forwards it (a PASSED-THROUGH
++// member — the release takes the index and not a handle-of-a-receiver, so nothing is prepended).
++//
++// **THE `napi` arm's second table (`INSTANCE_IDS`) STILL HAS NO SUBJECT HERE, AND THE RETIREMENT DOES NOT MINT
++// ONE**: it exists to map a receiver's channel to a live row and to retire exactly that row, and this arm's handle
++// IS the row INDEX — so the table is [`Slots`] and the miss arm is a length test, with nothing between the handle
++// and the row at all. **THE RELEASE EMPTIES THE SLOT AND NEVER SHIFTS IT**, which is the one thing a `Vec::remove`
++// would get wrong on an arm whose handles are row indexes ([`Slots`]' own docblock).
+ // =================================================================================================
++/// **THE SLOTS OF [`INSTANCES`] — A STORE'S OWN SLOT, OR THE TOMBSTONE ITS RELEASE LEAVES BEHIND** — the twin of
++/// `facade.rs`'s own table type (`facade.rs:327`), read at `D-171` item 2's sentence: *"It takes the slot (a
++/// TOMBSTONE, so no index shifts and the integer the package holds can never name its neighbour), drops the
++/// instance and removes its id, in one act."* **THE FOUR METHODS ARE THE FOUR READS THE SIXTEEN ENTRIES ALREADY
++/// TAKE**, so not one of them moves a byte.
++///
++/// **⟶ ADDED 2026-11-19 WITH THE ARM'S RETIREMENT, AND THE REASON IT IS A TOMBSTONE IS THIS ARM'S OWN FACT AND NOT
++/// A COPY OF THE OTHER'S.** On this arm the handle IS the row index (`design.md` §1 ground 1), so a `Vec::remove`
++/// would renumber every store minted after the freed one: a store minted as `7` would answer at `6`, and the
++/// integer the package publishes on its own `STORE_INDEX` row would name its NEIGHBOUR — a silent cross-store
++/// defect and not a stale handle. **SO THE ID IS KEPT STABLE AND THE SLOT IS EMPTIED**: `Some(store)` is a live
++/// store and `None` is the tombstone its release left, the row count never shrinks, and an index can name at most
++/// the one store it was minted for.
++///
++/// **WHAT A TOMBSTONE COSTS AND WHAT IT BUYS, AT THIS ARM'S OWN MEASURE.** It costs ONE EMPTY OPTION PER STORE
++/// EVER CONSTRUCTED — the slot's own footprint, and NOT the store's: the `Instance` and the `Store` inside it are
++/// DROPPED at the release, which is the ~18–21 KB per constructed-and-dropped store this arm retained until this
++/// landing (the figure `tests/e2e/store-retirement.test.mjs` measures on the other arm). **IT BUYS ONE OBSERVABLE
++/// AS A PROPERTY OF THE TYPE**: `get_mut` answers `None` for an emptied slot exactly as it does for an index no
++/// mint ever reached, so a released store and a fabricated index are ONE answer — [`no_instance_at`]'s
++/// `AddressNotFound` — at every entry, which is `receiver-and-refusal.md §3`'s rule reached on this arm.
++///
++/// **AND THE `Vec` IS NOT REALLOCATED BY A RELEASE**, so an index is stable against the growth every later
++/// construction performs: nothing but `push` touches the shape.
++struct Slots(Vec<Option<Instance>>);
++
++impl Slots {
++    /// **THE ONE WRITER OF A NEW ROW** — `storeCreate`'s mint, and the index it answers is this row's own.
++    fn push(&mut self, instance: Instance) {
++        self.0.push(Some(instance));
++    }
++
++    /// The row count, which is the number of stores ever constructed and never the number live. **IT IS THE
++    /// HANDLE RESOLVER'S TEST** ([`store_index_of`]), so a handle is in range exactly where a row exists — and a
++    /// TOMBSTONE in that range is the release's own arm, taken one line later by the entry that reads it.
++    fn len(&self) -> usize {
++        self.0.len()
++    }
++
++    /// **THE ONE READER OF A LIVE STORE** — a live row's `&mut`, or `None` for an emptied row and for an index the
++    /// table never reached. **THE ENTRIES TAKE NO OTHER ROUTE TO A STORE**, so no verb can observe the difference
++    /// between a tombstone and a fabricated index at any depth.
++    fn get_mut(&mut self, store_index: usize) -> Option<&mut Instance> {
++        self.0.get_mut(store_index).and_then(Option::as_mut)
++    }
++
++    /// **THE SHARED-BORROW HALF OF THE SAME READ** — `exportImage` and `journalMark` take `&self` on the instance
++    /// and borrow the table without mutability. **The tombstone is `None` here exactly as it is above**, so a
++    /// released store is one observable on the pure reads too.
++    fn get(&self, store_index: usize) -> Option<&Instance> {
++        self.0.get(store_index).and_then(Option::as_ref)
++    }
++
++    /// **THE RELEASE** — the store is TAKEN OUT OF ITS SLOT AND DROPPED, and the slot stands as the tombstone.
++    /// Answers whether this call was the one that freed it: `false` for a slot already emptied and for an index no
++    /// mint ever reached, which are the two arms the entry answers its absent form with.
++    fn release(&mut self, store_index: usize) -> bool {
++        self.0.get_mut(store_index).and_then(Option::take).is_some()
++    }
++}
++
+ thread_local! {
+     /// **THE HANDLE'S TABLE** — `storeCreate`'s answer is the row it appends, and every other entry's first
+     /// position names one. **A HANDLE THE TABLE DOES NOT HOLD ANSWERS THE ONE REFUSED FORM** ([`no_instance_at`])
+     /// — **never a panic and never a raw host `TypeError`** (`design.md` §1 ground 2; `C-W10`).
+-    static INSTANCES: RefCell<Vec<Instance>> = const { RefCell::new(Vec::new()) };
++    ///
++    /// **⟶ AND THE SLOT TYPE MOVED `Instance` → `Option<Instance>` ON 2026-11-19** ([`Slots`]): a store can now be
++    /// RELEASED, and an emptied slot is the tombstone that keeps every index stable. `RefCell<Slots>` declines
++    /// `Sync` for exactly the reason `RefCell<Vec<…>>` did, so the bound's argument above is unmoved.
++    static INSTANCES: RefCell<Slots> = const { RefCell::new(Slots(Vec::new())) };
+ }
+ 
+ // =================================================================================================
+@@ -179,6 +274,24 @@ fn no_instance_at(_store_index: u32) -> Refusal {
+     }
+ }
+ 
++/// **THE RETIREMENT ENTRY'S OWN MALFORMED ARM — the token `facade.rs`'s `not_a_store_index` answers
++/// (`facade.rs:1412`), at the position this arm's finalizer hands instead of a receiver** (`store_release`'s
++/// docblock; `receiver-and-refusal.md §3`).
++///
++/// **NO STATUS IS MINTED** (`DD-40`): `AddressMalformed` is the store's own member for *"a present argument outside
++/// its domain"*, and the sentence behind it names THIS position — the store's index — rather than a receiver,
++/// because a `message` that named a receiver on a call that has none would be false at its own bytes.
++/// **THE BYTES ARE THE NODE FRAME'S, BYTE FOR BYTE, AND THAT IS THE TWIN'S RULE RATHER THAN AN OMISSION**: the
++/// arms answer ONE form for one caller's mistake, `storeCreate` is the entry's name on both of them, and the word
++/// *"addon"* is this layer's own name for the artefact on both. **THE TWO-MEMBER FORM IS [`throw_refusal`]'S AND IS
++/// UNMOVED**: this function authors a `Refusal` and throws nothing.
++fn not_a_store_index() -> Refusal {
++    Refusal {
++        status: "AddressMalformed".to_string(),
++        message: "the position is not the store index this addon's storeCreate returned".to_string(),
++    }
++}
++
+ /// The address's own segments, where the argument IS the declared list shape — `facade.rs`'s `segments_of`:
+ /// the `triggeringAddress` member the write's record carries (`PAR-JS-12`, `§2.7` item 2).
+ fn segments_of(address: &JsAddressArg) -> Vec<JsSegment> {
+@@ -200,7 +313,10 @@ fn op_id_token(op_id: &JsOpIdArg) -> String {
+ }
+ 
+ // =================================================================================================
+-// THE FIRST SLICE'S SIX ENTRIES — the `saveCall` path's own, and the arm's first six of eighteen
++// THE FIRST SLICE'S SIX ENTRIES — the `saveCall` path's own, and six of the eighteen the TWO SLICES deliver
++// (`6 + 12 = 18`; **⟶ and the ARM's set is NINETEEN from 2026-11-19, the nineteenth standing in its own section
++// below and belonging to neither slice** — the slices' arithmetic is unmoved and this heading's figure was the
++// slice count and never the arm's)
+ // =================================================================================================
+ 
+ /// **`storeCreate(wire)` — ONE POSITION, THE ENCODED CONFIG AS A JS OBJECT, ANSWERING THE HANDLE AS A
+@@ -376,7 +492,9 @@ pub fn save_failed(handle: JsValue, op_id: JsValue) -> Result<JsValue, JsValue>
+ }
+ 
+ // =================================================================================================
+-// THE SECOND SLICE'S TWELVE ENTRIES — `D-155` ITEM 4's ARM COMPLETED AT EIGHTEEN (`design.md` §6)
++// THE SECOND SLICE'S TWELVE ENTRIES — `D-155` ITEM 4's ARM COMPLETED AT EIGHTEEN (`design.md` §6) — **⟶ AND THE
++// ARM IS NINETEEN FROM 2026-11-19, `storeRelease` standing in its own section at the end of this file: the
++// `6 + 12 = 18` this heading counts is the SLICES' and stays exactly so**
+ //
+ // **EACH IS THE `facade.rs` FRAME IT IS NAMED AFTER, AND WHAT MOVES IS ONLY WHAT `design.md` §1 AND §3
+ // MOVE.** The handle is the FIRST POSITION rather than the Node-API receiver (`§1`: on this arm the receiver
+@@ -681,3 +799,86 @@ pub fn version() -> String {
+ pub fn error_message(code: String, subject: JsValue, container: JsValue, token: JsValue) -> String {
+     codec::error_message(&code, &subject, &container, &token)
+ }
++
++// =================================================================================================
++// THE NINETEENTH ENTRY — `storeRelease`, THE RETIREMENT'S FRAME (`D-171`; the architect's closure answer, arm `a`)
++//
++// **IT IS NOT ONE OF THE FIFTEEN PER-VERB AND NOT A MEMBER OF THE PRODUCT'S SURFACE**, exactly as its Node twin is
++// not (`facade.rs:1279`–`:1288`): it is reached by the package's own `STORE_RETIREMENT` callback and by no consumer,
++// and the declaration names it not at all (`surface.md §3.8`; `index.d.ts` moves no byte — the addon's entries are
++// not the package's declared surface). **AND IT IS THE ONE ENTRY OF THE NINETEEN WHOSE STORE IS A POSITION AND NOT
++// THE HANDLE-FIRST FORM**, which is the single place this file's §1 rule is bent — and it is bent by who calls it,
++// not by a taste: see its own docblock.
++// =================================================================================================
++
++/// **`storeRelease(handle)` — THE RETIREMENT'S FRAME: THE STORE IS DROPPED AND ITS SLOT STANDS AS THE TOMBSTONE**
++/// (`facade.rs:473`–`:549`, read as this arm's own; `D-171` item 2; `receiver-and-refusal.md §6`).
++///
++/// **⟶ ADDED 2026-11-19 BY THE ARCHITECT'S CLOSURE ANSWER, ARM `a`: THIS ARM RETIRES AS THE NODE ARM DOES.** The
++/// state it closes is declared at this file's own head and at `design.md` §8 — *"`STORE_RETIREMENT` has no finalizer
++/// to fire it — so a WASM store is never released and the `INSTANCES` table grows"* — and **the package's callback
++/// already existed and already fires**: `state.mjs`'s `STORE_RETIREMENT.register(instance, id)` holds the INTEGER
++/// and calls `withAddon().storeRelease(id)`, so before this entry that call raised and the registry's `catch`
++/// swallowed it. **Nothing in the package moves; the member it calls now exists.**
++///
++/// **THE POSITION IS AN INDEX AND NOT A HANDLE-OF-A-RECEIVER, AND THAT IS FORCED BY WHO CALLS IT.** Every other
++/// entry here resolves its store from the FIRST position, which on this arm is the same integer the Node arm reads
++/// off its Node-API `this` — and **a finalizer has no receiver to be called on**: `FinalizationRegistry`'s callback
++/// is handed the HELD VALUE and nothing else, and the held value may not be the store object itself, because
++/// holding it would be the strong reference that stops the very collection the finalizer exists to observe. **SO
++/// THE INTEGER IS THE WHOLE OF WHAT CROSSES**, and this entry therefore reads `store_index_of` not at all: the
++/// position IS the row's name and there is nothing between it and the table.
++///
++/// **THE POSITION IS READ BY CLASS, AND THAT IS WHY IT IS NOT DECLARED A `u32`.** A declared `u32` parameter would
++/// let the glue perform `arg0 >>> 0`, where a detached call's `undefined` and a `NaN` both become `0` — **a slot the
++/// table DOES hold, and a release that answers while freeing the wrong store** — which is `receiver-and-refusal.md
++/// §3`'s regression read backwards (`store_index_of`'s own clause, one screen up). The value is read through
++/// `wasm_codec`'s `number_of`, which asks the CLASS first ([`codec::number_of`]), and no coercion stands anywhere on
++/// this path.
++///
++/// **★ AND THE `NaN` GUARD IS LOAD-BEARING, STATED AT THE LINE THAT TAKES IT.** `NaN as usize` — and `NaN as u32`
++/// on this arm — **SATURATES TO `0` IN RUST** (a float→integer cast saturates rather than being undefined, which is
++/// the reason the other arm's docblock calls the same cast out): a cast that let `NaN` through would name **THE FIRST
++/// STORE EVER CONSTRUCTED** and free a store the caller never named. **SO THE DOMAIN TEST IS THE GUARD AND NOT A
++/// CAST**: `NaN`, `±Infinity`, a negative and a fraction are one arm and are refused — never coerced — and no store
++/// is touched by any of them.
++///
++/// **THE TWO ABSENT ARMS ARE ONE OBSERVABLE, WHICH IS `receiver-and-refusal.md §3`'s OWN RULE.** A handle whose
++/// slot has ALREADY been emptied and a handle no mint ever reached both answer [`no_instance_at`] — the crate's own
++/// `AddressNotFound` — because [`Slots::release`] is a `get_mut`-guarded take: the tombstone and the fabricated index
++/// read the same `None`. **NEITHER PANICS AND NEITHER ANSWERS `Ok`**: a finalizer that fires twice, or a package
++/// handed the same integer by a stale row, is REFUSED rather than obeyed, so a second release can never free a
++/// second store. **AND A NUMBER THIS ARM COULD NEVER HAVE MINTED** — integral and finite but beyond `u32::MAX` — is
++/// the same table miss and not the malformed arm, because the Node frame's `raw as usize` saturates there and
++/// answers its absent form; the two arms keep one observable for one value.
++///
++/// **THE ANSWER IS `undefined` AND IT IS THE NODE FRAME'S** (`facade.rs:546`'s `make_undefined`), on the one landing
++/// every entry takes ([`answer_or_throw`]).
++#[wasm_bindgen(js_name = "storeRelease")]
++pub fn store_release(handle: JsValue) -> Result<JsValue, JsValue> {
++    let store_index = match codec::number_of(&handle) {
++        // **THE CLASS IS READ FIRST, THEN THE DOMAIN** — a finite, non-negative integer that fits the arm's own
++        // handle width. **Nothing on this path coerces the value**, which is the property the guard above states.
++        Some(raw) if raw.is_finite() && raw >= 0.0 && raw.fract() == 0.0 && raw <= u32::MAX as f64 => raw as u32,
++        // A number this arm could never have minted: the table miss, and NOT the malformed arm (see the docblock).
++        Some(raw) if raw.is_finite() && raw >= 0.0 && raw.fract() == 0.0 => {
++            return Err(throw_refusal(&no_instance_at(u32::MAX)));
++        }
++        // **AND `NaN`, `±inf`, a negative, a fraction and every non-number are THIS arm** — the malformed one, which
++        // touches no store. The `NaN` arm is the load-bearing one: `NaN as u32` would be `0`, the first store's slot.
++        _ => return Err(throw_refusal(&not_a_store_index())),
++    };
++    // **THE ONE ACT** (`§6`): the instance is TAKEN OUT OF ITS SLOT AND DROPPED, and the slot stands as the
++    // tombstone — so every index minted before this act still names the store it was minted for and no later store
++    // is renumbered. **THE `Err` ARM IS THE TOMBSTONE AND THE FABRICATED INDEX ALIKE** ([`no_instance_at`]), and it
++    // is taken BEFORE anything is dropped, so a refused release frees nothing at all.
++    let answer: Result<(), Refusal> = INSTANCES.with(|instances| {
++        let mut instances = instances.borrow_mut();
++        if instances.release(store_index as usize) {
++            Ok(())
++        } else {
++            Err(no_instance_at(store_index))
++        }
++    });
++    answer_or_throw(answer.map(|()| JsValue::UNDEFINED))
++}
+diff --git a/bindings/js/src/wasm_codec.rs b/bindings/js/src/wasm_codec.rs
+index 1b2fc71..e8adc36 100644
+--- a/bindings/js/src/wasm_codec.rs
++++ b/bindings/js/src/wasm_codec.rs
+@@ -257,7 +257,15 @@ pub(crate) fn bool_of(value: &JsVal) -> bool {
+ /// class is read first, on the value as it is, and a value that is not a JS `number` is never handed to the
+ /// numeric conversion at all** (`as_f64` answers `None` for a `bigint` at the glue's own `typeof` test, so
+ /// the second half is the same class decision and not a coercion).
+-fn number_of(value: &JsVal) -> Option<f64> {
++///
++/// **⟶ AND THIS READER IS THE RETIREMENT POSITION'S OWN FROM 2026-11-19** — `wasm.rs`'s `storeRelease(handle)` reads
++/// its one position through it, which is **the one place this file was asked for nothing new and said so**: a
++/// class-first numeric read already stood here and already answers exactly what that position is, so the entry
++/// layer needed a READER made visible and not a reader authored. **THE DOMAIN TEST IS THE ENTRY'S AND NOT THIS
++/// FUNCTION'S**, which is the Node frame's own division (`facade.rs`'s `storeRelease` takes its class test and its
++/// finite/non-negative/integral test in the entry, and no codec function there performs either), so what moved in
++/// this file is exactly one visibility token: `fn` → `pub(crate) fn`, and no byte of the body.
++pub(crate) fn number_of(value: &JsVal) -> Option<f64> {
+     if kind_of(value) != Kind::Number {
+         return None;
+     }
+diff --git a/docs/L1/publish-readiness.md b/docs/L1/publish-readiness.md
+index be948b3..fdf276d 100644
+--- a/docs/L1/publish-readiness.md
++++ b/docs/L1/publish-readiness.md
+@@ -212,8 +212,9 @@ rebuild will read sixteen reds that are not defects.
+    `CW-2` (`C-W2`: `filePath` refused at the store's `Path` arm and an empty `initialImage` with it), `CW-4` (`C-W4`: no
+    `node:` specifier and no top-level `await` in the entry's graph), `CW-5` (`C-W5`: the tier is the construction's — the
+    same write lands on a `saveCall` store and is refused on a store with neither), `CW-6` (`C-W6`: eighteen entries,
+-   `commitFile` absent), and `CW-7` (`D-156`'s: the deep clone both ways and a `Proxy` refused with all eight trap
+-   counters at zero). **The two cells this gap's own note said were held out are `C-W1` and `C-W5`, and they were held
++   `commitFile` absent — **⟶ NINETEEN FROM 2026-11-19**, the arm's retirement beside them, and `CW-8`/`CW-9` land with
++   it: the entry's arms driven and the package's own finalizer fired at that arm), and `CW-7` (`D-156`'s: the deep
++   clone both ways and a `Proxy` refused with all eight trap counters at zero). **The two cells this gap's own note said were held out are `C-W1` and `C-W5`, and they were held
+    out for a defect in the instrument: `D-166` found it and `D-167` split the seam** (`isProxyOf` for data,
+    `isProxyOfCarrier` for carriers). **The arm's own behaviour is claimed by cells and not by a review's hand.**
+ 
+diff --git a/docs/L1/wasm-realm.md b/docs/L1/wasm-realm.md
+index be7b335..1391739 100644
+--- a/docs/L1/wasm-realm.md
++++ b/docs/L1/wasm-realm.md
+@@ -121,7 +121,7 @@ CLAUSE OWES:**
+ | **`C-W3`** | **✅ THE FLOOR, AND IT IS NOT A CELL OF THAT FILE** | it is this row's own subject — **every existing cell stays green** — and it is re-measured at the whole suite: `npm test` **`1371` / `1370` / `0`**, `npm run typecheck` **exit `0`**, `cargo test` **22 `ok` / 0 FAILED** |
+ | **`C-W4`** | **✅ LANDED** (`CW-4`) | the glue offers **`initSync`** · and the entry's **transitive set carries no `node:` specifier and no top-level `await`**, walked from `index.mjs` downward by specifier — the narrowed subject §10 item 2 fixed |
+ | **`C-W5`** | **✅ LANDED** (`CW-5`) | **the same verb, two stores, two answers**: the `file`-tier write LANDS on a `saveCall` store and `readTiered` reads `{ _tier: 'file', value: 1 }` at the address (`file_path === ''`, the tier set by the construction) · the identical write on a store with **neither `saveCall` nor a path** is refused **`ParentAnchorMonotonicityViolation`** · and the durable store is the one that saved |
+-| **`C-W6`** | **✅ LANDED** (`CW-6`) | **eighteen** entries, counted off the module · **`commitFile` absent** by `D-155` item 4 · **`delete` spelled `_delete`** (the toolchain escapes a keyword and `addon-slot.mjs`'s `MODULE_SPELLING` spells it back) · `saveSucceeded` and `exportImage` present. **The `19-or-18` fork is gone: §10 item 3 took 18** |
++| **`C-W6`** | **✅ LANDED** (`CW-6`) | **NINETEEN** entries, counted off the module · **`commitFile` absent** by `D-155` item 4 · **`delete` spelled `_delete`** (the toolchain escapes a keyword and `addon-slot.mjs`'s `MODULE_SPELLING` spells it back) · `saveSucceeded` and `exportImage` present · **and `storeRelease` is the nineteenth, added 2026-11-19**. **⟶ THE FIGURE MOVED `18 → 19` AT THIS ROW, AND THE SENTENCE IT MOVED FROM IS QUOTED BEFORE IT IS RE-CUT — *"eighteen entries, counted off the module … The `19-or-18` fork is gone: §10 item 3 took 18"*.** **THE SHAPE OF THE COUNT IS UNMOVED** — the Node arm's twenty minus `commitFile` (`D-155` item 4), which is what `§10` item 3 took and what this landing re-derives one entry wider |
+ 
+ **AND THE FILE'S SIXTH CELL IS NOT A ROW OF THIS TABLE**: `CW-7` in `tests/e2e/wasm-arm.test.mjs` is `D-156`'s own —
+ **a value crosses by value both ways (an app-side mutation of the written object and of the read one changes nothing
+@@ -129,6 +129,19 @@ the store holds) and a `Proxy` at a VALUE is refused `ValueRefusedAtBoundary` wi
+ **AND `C-W7`…`C-W11` ARE A DIFFERENT FIVE AND ARE NOT LANDED** — they are `docs/L3/wasm-realm/design.md` §7's, they
+ share two ids with this table's numbering only by collision, and no cell of this file claims them.
+ 
++**⟶ AND TWO MORE CELLS LAND IN THAT FILE ON 2026-11-19, NEITHER OF THEM A ROW OF THIS TABLE** — the arm's RETIREMENT,
++which this plan's seven sections do not price because the arm had no release when it was written (`§9`'s residual
++list and `design.md` §8's last sentence both declared the absence; the architect's closure answer, arm `a`, closes
++it). **`CW-8` drives the entry's arms**: a live store's release answers `undefined`, the released handle answers
++**`AddressNotFound` at the verb that names it** (the observable `SR-03` reads on the Node arm, and never a table
++length — `receiver-and-refusal.md §6`'s `OWED-2`), a second release refuses, a handle no mint reached answers the same
++arm, nine non-index positions answer **`AddressMalformed`**, and a neighbour store still answers its own register
++across the release. **`CW-9` drives the PACKAGE'S FINALIZER**: a child re-executed with `--expose-gc` constructs and
++drops a batch, collects, and then asks the module to release each handle it kept — every one answering
++`AddressNotFound` is a slot the finalizer had ALREADY emptied, so the count is the retirement measured at the entry's
++own answer. **What the cell cannot force is stated at its byte**: the asserting process has no `gc()`, and the host's
++collection TURN is the host's.
++
+ **WHAT THIS PLAN'S CELL SECTION OWED AND WHAT IT NOW OWES.** **Owed then: the build. Owed now: none of the six**, and the
+ arm's whole behaviour is driven above. **AND THE ONE RESIDUAL THIS SECTION LEANED ON IS ANSWERED RATHER THAN MERELY
+ CARRIED: `§9.5`'s `util.types.isProxy` replacement is `D-167`, whose split states the answer and its price AT THE
+@@ -193,6 +206,14 @@ CLOSES WITH THE HAZARD DECLARED AND NOT CURED**: a `Proxy` at a CARRIER gate is
+ 
+ **Residuals, after this amendment:** §9.2 and §9.3 **closed**; **§9.1 (the release class) now the only realm item unclaimed**; §9.4 unchanged (moot on WASM, owed on Node); §9.5 (`isProxy` has no browser equivalent) unchanged and still the design-class problem the crossing cannot solve; §9.6 and §9.7 unchanged.
+ 
++**⟶ AND ITEM 3'S FIGURE MOVED ON 2026-11-19, AT ITS OWN ROW, WITHOUT MOVING ONE WORD OF THAT ROW'S GROUND.** **THE ROW
++READ *"`commitFile` absent, **18 exports**"* AND CLOSED WITH *"§7's `C-W6` loses its `19-or-18` fork: the WASM arm is
++18"*.** **BOTH FIGURES OF THAT FORK WERE TAKEN BEFORE THE ARM HAD A RETIREMENT**, and the arm now exports
++**NINETEEN** — *"the Node arm's twenty minus `commitFile`"*, the same shape, one entry wider (the architect's closure
++answer, arm `a`; `D-155` item 4 re-cut at its own sentence in `strata/decisions.md`; `CW-6` re-cut at its own count).
++**EVERY OTHER CLAUSE OF THE ROW STANDS BYTE FOR BYTE**: the writer's body still answers nobody, the cfg still leaves
++any faithful arm, and `O-8`'s path slot is still moot on that arm and owed on Node.
++
+ ---
+ 
+ ## §11 · STEP 1 LANDED `2026-11-17` — the `#[cfg]` boundary is drawn, and every native leg is unmoved
+@@ -312,13 +333,15 @@ exportImage() after unwind  → "{}"                             ← and the ima
+ 
+ ---
+ 
+-## §15 · THE WASM ARM'S ENTRY SET IS COMPLETE `2026-11-17` — eighteen entries, driven, and one name the toolchain moved
++## §15 · THE WASM ARM'S ENTRY SET IS COMPLETE `2026-11-17` — eighteen entries, driven, and one name the toolchain moved — **⟶ NINETEEN FROM 2026-11-19, WITH THE RETIREMENT'S FRAME AS THE NINETEENTH**
+ 
+ **`wasm.rs` 370 → 683 lines, `wasm_codec.rs` 927 → 1134**; the twelve new entries are in, the six readers they needed are in, and `lib.rs`/`crossing.rs`/`Cargo.toml` move no byte.
+ 
+ **THE SET, AT THE INSTANTIATED MODULE** (`Object.keys` of the `initSync`'d glue, `default`/`initSync` excluded): **eighteen names — `_delete` · `errorMessage` · `exportImage` · `journalMark` · `listen` · `read` · `readLiteral` · `readTiered` · `register` · `removeListener` · `restoreMark` · `rollback` · `saveFailed` · `saveSucceeded` · `storeCreate` · `unlisten` · `version` · `write`.** **`commitFile` is `undefined` at runtime and absent from the set** (`D-155` item 4) — the one textual match in the glue is a docblock sentence, not an entry.
+ 
+-**★ AND ONE NAME MOVED, MEASURED, AND IT IS THE TOOLCHAIN'S AND NOT THE ARM'S: `delete` EXPORTS AS `_delete`.** `wasm-bindgen-macro-support-0.2.130/src/parser.rs:1604`–`:1607` escapes every free exported function whose JS name is a keyword — *"Due to legacy behavior, we need to escape all keyword identifiers as `_keyword`"* → `name = format!("_{}", name)` — **and the CLI already owns the machinery that would spell it lawfully** (`wasm-bindgen-cli-support-0.2.130/src/js/mod.rs:712`–`:716` emits `export { id as 'delete' }` for a name that is not an identifier); **the escape fires first and the alias arm is never reached.** **`delete` is the only JS keyword among the eighteen**, which is why the first six never surfaced it. **THE CURES ARE ALL OUTSIDE THE ARM'S RUST**: a `wasm-bindgen` bump · a glue post-step emitting `export { _delete as 'delete' }` · or **the package's forked entry dispatching `delete` to the module's `_delete` member**, which is the cheapest and lands in step 3's dispatch table.
++**⟶ AND THE SET IS NINETEEN FROM 2026-11-19, READ AT THE SAME INSTRUMENT (`Object.keys` of the instantiated glue, the same two exclusions).** **THE LIST ABOVE IS QUOTED, NOT REPLACED, BECAUSE IT IS THE SET OF ITS OWN DATE**, and the entry this section's figure moved for is added beside it: **`storeRelease` — `storeCreate`'s twin, the retirement's frame, `wasm.rs`'s own `#[wasm_bindgen(js_name = "storeRelease")]`.** **IT IS THE ONE ENTRY OF THE NINETEEN WHOSE STORE IS A POSITION AND NOT A HANDLE-STOPPED RECEIVER-CARRIER**: `FinalizationRegistry`'s callback is handed the HELD VALUE — the integer the package publishes on its own `STORE_INDEX` row — and nothing else, so *"a finalizer has no receiver"* is the whole reason, and `addon-slot.mjs` forwards it as a **PASSED-THROUGH** member rather than a handle-first one. **THE FIGURE'S SHAPE IS UNMOVED**: nineteen of the Node arm's twenty, `commitFile` absent (`D-155` item 4, re-cut at its own sentence the same date).
++
++**★ AND ONE NAME MOVED, MEASURED, AND IT IS THE TOOLCHAIN'S AND NOT THE ARM'S: `delete` EXPORTS AS `_delete`.** `wasm-bindgen-macro-support-0.2.130/src/parser.rs:1604`–`:1607` escapes every free exported function whose JS name is a keyword — *"Due to legacy behavior, we need to escape all keyword identifiers as `_keyword`"* → `name = format!("_{}", name)` — **and the CLI already owns the machinery that would spell it lawfully** (`wasm-bindgen-cli-support-0.2.130/src/js/mod.rs:712`–`:716` emits `export { id as 'delete' }` for a name that is not an identifier); **the escape fires first and the alias arm is never reached.** **`delete` is the only JS keyword among the eighteen** — **⟶ AND STILL THE ONLY ONE AMONG THE NINETEEN** (`storeRelease` is not a keyword) — which is why the first six never surfaced it. **THE CURES ARE ALL OUTSIDE THE ARM'S RUST**: a `wasm-bindgen` bump · a glue post-step emitting `export { _delete as 'delete' }` · or **the package's forked entry dispatching `delete` to the module's `_delete` member**, which is the cheapest and lands in step 3's dispatch table.
+ 
+ **DRIVEN BY THE SUPERVISOR on the built module and the emitted glue** (a `mem` store, `initSync({ module })`, the package's own carriers):
+ 
+@@ -341,7 +364,7 @@ errorMessage(...)      → 'a' does not exist in '', it holds no keys   ← the
+ 
+ **TWO PLACES `facade.rs`'s behaviour could not be carried, both named and neither silent:** the `delete` spelling above, and **`errorMessage`'s `code` position** — the node arm's `String` conversion is strict and throws a library error before the frame is entered, while the glue decodes/coerces it; **no shipped caller can see the difference** (every call site passes a status token) and declaring the position a value would have been a third, third-place answer.
+ 
+-**WHERE THE LADDER STANDS.** Step 1 ✅ · step 2 ✅ (**eighteen entries, driven**) · step 4 ✅ · **step 3 — the loader split — is the last implementation step, and `D-156` unblocked it**: the five `node:util` parts take an injected class-decision instrument, `artefact.mjs`'s Node-only walk is extracted, and the forked entry dispatches through `state.handle` (with `delete → _delete` at that table). · step 5 (the realm sentences) still last, still owing `contract.md:3280`'s re-scope first.
++**WHERE THE LADDER STANDS.** Step 1 ✅ · step 2 ✅ (**eighteen entries, driven** — **⟶ NINETEEN FROM 2026-11-19**, the retirement's frame beside them, this section's own added clause) · step 4 ✅ · **step 3 — the loader split — is the last implementation step, and `D-156` unblocked it**: the five `node:util` parts take an injected class-decision instrument, `artefact.mjs`'s Node-only walk is extracted, and the forked entry dispatches through `state.handle` (with `delete → _delete` at that table). · step 5 (the realm sentences) still last, still owing `contract.md:3280`'s re-scope first.
+ 
+ ---
+ 
+@@ -370,7 +393,7 @@ a plain object round-trips → {"a":1}                               ← and the
+ 
+ **MEASURED.** `npm test`: **`1359` tests, `1358` pass, `0` fail** · the drive above · every part parses (`node --check`).
+ 
+-**WHERE THE LADDER STANDS.** Step 1 ✅ · step 2 ✅ (18 entries, driven) · **step 3: seam ✅, extraction OWED, the fork OWED** · step 4 ✅ · step 5 (the realm sentences) still last, still owing `contract.md:3280`'s re-scope first.
++**WHERE THE LADDER STANDS.** Step 1 ✅ · step 2 ✅ (18 entries, driven — **⟶ 19 FROM 2026-11-19**, `storeRelease`) · **step 3: seam ✅, extraction OWED, the fork OWED** · step 4 ✅ · step 5 (the realm sentences) still last, still owing `contract.md:3280`'s re-scope first.
+ 
+ ---
+ 
+diff --git a/docs/L3/wasm-realm/design.md b/docs/L3/wasm-realm/design.md
+index f151f3c..8a8ace1 100644
+--- a/docs/L3/wasm-realm/design.md
++++ b/docs/L3/wasm-realm/design.md
+@@ -2,7 +2,7 @@
+ 
+ **WHAT THIS FILE IS.** The design `D-155` leaves owed after the form and the target. **No byte is moved by this pass** — it is shell-less, `wasm32-unknown-unknown` is not installed and `wasm-bindgen` is not in the offline registry. **EVERY RUNTIME CLAIM IN THIS FILE IS `NOT DRIVEN`.** Written `2026-11-17` by **`role_l3_designer`**, landed by the supervisor.
+ 
+-**Figures re-read at their bytes:** 19 Node entries · 18 on the WASM arm · 17 `Instance` delegates · 6 `cfg` keys · 15 `StoreInstance` members · 23 statuses. **And four figures the plan printed short — printed here rather than absorbed (see §8): `types.isProxy` is 25 code sites, not 37 · `withAddon()` is 15 sites, not 16 · the receiver census is a sum of four forms, not 42 addon calls · seven parts of `src/entry/` are realm-neutral, not six.**
++**Figures re-read at their bytes:** 19 Node entries · 18 on the WASM arm — **⟶ 19 ON THE WASM ARM FROM 2026-11-19, THE FIGURE OF ITS OWN DATE QUOTED AND NOT ERASED** (`§6`'s row and the retirement's entry, `D-155` item 4 re-cut at its own sentence in `strata/decisions.md`) · 17 `Instance` delegates · 6 `cfg` keys · 15 `StoreInstance` members · 23 statuses. **And four figures the plan printed short — printed here rather than absorbed (see §8): `types.isProxy` is 25 code sites, not 37 · `withAddon()` is 15 sites, not 16 · the receiver census is a sum of four forms, not 42 addon calls · seven parts of `src/entry/` are realm-neutral, not six.**
+ 
+ ---
+ 
+@@ -76,9 +76,9 @@
+ 
+ **What the fork leaves:** the forked entry is `:87`–`:112` plus the module-access function; **the shared body — the fifteen members, `deliver`, the kernel glue — is ONE copy.**
+ 
+-## §6 · The entry set at 18, and the declaration's generation
++## §6 · The entry set at 18 — **⟶ 19 FROM 2026-11-19** — and the declaration's generation
+ 
+-**The WASM module exports 18 of the Node arm's 19: `commitFile` (`facade.rs:1072`) is ABSENT** (`D-155` item 4), and the other eighteen keep their names and positions. **Which `create` entry the injection changes: NEITHER of the crossing's** — `create` → `create_with_constraints` → `create_with_inputs` keep all four positions and the addon's `storeCreate` keeps one. **What changes is where `storeCreate`'s argument comes from being called** — that is why `D-155` item 3 is the cheapest of the three forks.
++**The WASM module exports 18 of the Node arm's 19: `commitFile` (`facade.rs:1072`) is ABSENT** (`D-155` item 4), and the other eighteen keep their names and positions. **⟶ RE-DERIVED ON 2026-11-19: THE FIGURE IS `19` OF THE NODE ARM'S `20`, AND THE SHAPE OF THE SENTENCE IS UNMOVED** — `commitFile` is still the one entry that is ABSENT BY RULING, and the entry that moved the count is the RETIREMENT'S FRAME, `storeRelease`, which the architect's closure answer (arm `a`) gave this arm: it takes the store's own INDEX rather than a handle-first receiver's row (a finalizer has no receiver), it drops the instance out of a TOMBSTONED slot so no index shifts, and `addon-slot.mjs` forwards it as a PASSED-THROUGH member. **THE DECLARATION MOVES NO BYTE FOR IT**: the addon's entries are not the package's declared surface (`surface.md §3.8`), so `index.d.ts` is untouched by the nineteenth entry. **Which `create` entry the injection changes: NEITHER of the crossing's** — `create` → `create_with_constraints` → `create_with_inputs` keep all four positions and the addon's `storeCreate` keeps one. **What changes is where `storeCreate`'s argument comes from being called** — that is why `D-155` item 3 is the cheapest of the three forks.
+ 
+ **The declaration's generation (`D-155` item 2).** The one source stays `bindings/js/index.d.ts`, hand-authored — **no second hand-maintained surface.** **The realm marker's home (the design's): a comment-delimited region around the one member** — `// ⟦realm:filePath:begin⟧` above, `…:end⟧` below — **both indented comment lines, so neither the member parser nor the status parser sees them and they cannot move a census.** A Node script run from `npm run build` emits **two** declarations: the Node arm's — **the source's own bytes, region unchanged, and its identity is asserted** — and the WASM arm's, the region's body replaced by `readonly filePath?: never;`. **The WASM file's PATH is `delivery`'s** (second package, second artefact, or subpath is `SILENT`).
+ 
+@@ -96,6 +96,6 @@
+ 
+ **The architect's, named and left:** **the `isProxy` substitute** (§4's four arms, none chosen — **⟶ ANSWERED `2026-11-17`: `D-167` takes (iv) for DATA and (i)'s declaration for CARRIERS, one seam and two predicates, `§4`'s dated clause; the item is closed and the price is stated at the predicate**) · **the release class** (`D-154` item 4; the only realm item still unclaimed) · **the factory's spelling and module** (§2 prices (A) and (B), draws only (A)'s shape) · **the publish shape** (`SILENT`, and it decides the WASM declaration's path) · **the `FilePathUnreachable` replacement** (below) · **the sentence passes** (`D-154` item 1's eleven rows, with `contract.md:3280` re-scoped **before** any guide sentence lands).
+ 
+-**★ THE ONE PLACE THE INJECTED-INSTANCE SHAPE FORCES A CHANGE THE PLAN DID NOT NAME.** `wasm-realm.md §6` names `artefact.mjs`'s three-rung walk as what goes — **and what it does not name is the STATUS the walk exists to answer: `FilePathUnreachable`**, the absent/failed-artefact state (`artefact.mjs:94`–`:101`, `withAddon()`'s `fail`, the reproduced generator string). **On the injected arm there is no artefact to be absent, so that status has NO SUBJECT — and the case it covered does not vanish: it becomes *"the factory was handed nothing, or something that is not the bindings"*.** **The package must refuse that in the one form with a member of the closed twenty-three, and no ruling names which.** `AddressMalformed` — the arm `D-144` item 2 and `D-147` item 4 both use for a broken carrier — is **a reading, not a ruling.** **The same shape, smaller, appears twice more and is named so it is not discovered:** `version`'s mismatch arm is **unreachable** on this arm (there is no `package.json` read to compare against), and **`STORE_RETIREMENT` has no finalizer to fire it** — so **a WASM store is never released and the `INSTANCES` table grows**, `SC-10`'s shape one arm over.
++**★ THE ONE PLACE THE INJECTED-INSTANCE SHAPE FORCES A CHANGE THE PLAN DID NOT NAME.** `wasm-realm.md §6` names `artefact.mjs`'s three-rung walk as what goes — **and what it does not name is the STATUS the walk exists to answer: `FilePathUnreachable`**, the absent/failed-artefact state (`artefact.mjs:94`–`:101`, `withAddon()`'s `fail`, the reproduced generator string). **On the injected arm there is no artefact to be absent, so that status has NO SUBJECT — and the case it covered does not vanish: it becomes *"the factory was handed nothing, or something that is not the bindings"*.** **The package must refuse that in the one form with a member of the closed twenty-three, and no ruling names which.** `AddressMalformed` — the arm `D-144` item 2 and `D-147` item 4 both use for a broken carrier — is **a reading, not a ruling.** **The same shape, smaller, appears twice more and is named so it is not discovered:** `version`'s mismatch arm is **unreachable** on this arm (there is no `package.json` read to compare against), and **`STORE_RETIREMENT` has no finalizer to fire it** — so **a WASM store is never released and the `INSTANCES` table grows**, `SC-10`'s shape one arm over. **⟶ AND THE SECOND OF THE TWO IS ANSWERED RATHER THAN MERELY NAMED, 2026-11-19**: the architect's closure answer, arm `a`, gives this arm the retirement the package's finalizer already calls — `wasm.rs`'s `storeRelease`, a tombstoned slot table, and `addon-slot.mjs`'s forwarder — so *"a WASM store is never released"* is false from that date, and the sentence stands as the state it was written in.
+ 
+ **The design's riskiest line:** *"an injected instance keeps the entry's own graph synchronous, because `web`'s glue instantiates nothing at its top level and `initSync` performs the instantiation in the host's frame."* **Falsified by any one of three tool facts, each fatal to §2 rather than to a detail:** the pinned glue carries a top-level instantiation or `await` · **`initSync` is absent, leaving only the async `__wbg_init` and therefore a top-level `await` — the exact arm `D-155` item 3 was chosen over** · or the `web` output imports the `.wasm` as a module (the `bundler` shape leaking in).
+diff --git a/strata/decisions.md b/strata/decisions.md
+index d492a91..5a424df 100644
+--- a/strata/decisions.md
++++ b/strata/decisions.md
+@@ -8162,6 +8162,12 @@ unchanged: durable with no path) · the plans ordered (`1`) · the code moved (`
+    **★ AND THAT DISCHARGES THE ONE `#[cfg]` THE PLAN REFUSED TO DRAW.** The plan held that removing the writer's two acts "leaves a body where they were, and whatever that body answers is
+    a declared answer". **With the entry absent it answers nobody**: the arm is dead on both sides of the boundary, so the cfg may leave any faithful arm and **no declaration is owed**.
+    **`O-8`'s sentence — `FileCommitFailed`'s `path` slot naming a path a pathless build does not have — becomes MOOT on this arm and stays owed on Node.**
++   **⟶ THE ITEM'S FIGURE MOVES `18 → 19` ON 2026-11-19 AND ITS GROUND DOES NOT MOVE ONE WORD.** **THE SENTENCE AS IT STOOD IS QUOTED BEFORE IT IS RE-DERIVED: *"THE WASM BUILD'S ENTRY SET IS
++   EIGHTEEN: `commitFile` DOES NOT EXIST ON THAT ARM."*** **THE RULING IT RECORDS IS A SET OF EXCLUSIONS AND IT STILL BINDS** — `commitFile` is `cfg`'d out, the writer is unreachable from both
++   sides, the cfg owes no declared answer, and `O-8`'s path slot stays moot on this arm and owed on Node. **WHAT MOVED IS THE COUNT, BECAUSE THE ARM GAINED AN ENTRY THIS ROW DID NOT PRICE**:
++   `bindings/js/src/wasm.rs`'s `storeRelease`, the RETIREMENT'S FRAME, given by the architect's closure answer (arm `a`) and named as the one thing this row's figure withheld by `D-171` item 5.
++   **SO THE SET IS NINETEEN — *"the Node arm's twenty minus `commitFile`"*, the shape this row's own ground produces — and the one name that is absent BY THIS RULING is still `commitFile` alone**
++   (`docs/L1/wasm-realm.md` §7's `C-W6`, §10 item 3 and §15, `docs/L3/wasm-realm/design.md` §6, and `tests/e2e/wasm-arm.test.mjs`'s `CW-6` re-cut with it).
+ 5. **AND THE THREE TOGETHER MAKE THE PLAN'S SEQUENCE SAFER, NOT LONGER.** **Step 1 is unchanged and still route-independent** · **step 2 gains two sub-decisions before code (the export
+    FORM: a `#[wasm_bindgen] pub struct` with methods, or free functions each taking a handle; and the glue TARGET: `web`, `bundler` or `no-modules`)** · **step 3 remains the largest step,
+    because the receiver convention changes for `42` call sites in the package** (16 `withAddon()`, 8 `.call(state.receiver)`, 14 `Reflect.apply`) · and **`initSync` becomes the one TOOL
+@@ -8623,7 +8629,9 @@ trigger still read the **mark**, and `docs/specs/storeroom-constraints/contract.
+    the design and a cell asserting the construction is red.
+ 6. **AND THE CELLS THAT DO NOT NEED IT ARE LANDED AND GREEN**: `C-W2` (the `cfg` domain: `filePath` refused, and the empty seed with it), `C-W4`
+    (the entry's graph synchronous, no `node:` specifier anywhere in it), `C-W6` (the eighteen entries, `commitFile` absent, `delete` spelled
+-   `_delete`) and `D-156`'s own two (the deep clone both ways and a `Proxy` refused with **all eight trap counters at zero**).
++   `_delete` — **⟶ NINETEEN FROM 2026-11-19, `CW-6`'s own count re-cut with the arm's retirement: `D-155` item 4's figure one entry wider, `storeRelease`
++   the nineteenth and `commitFile` still the one that is absent by ruling**) and `D-156`'s own two (the deep clone both ways and a `Proxy` refused with
++   **all eight trap counters at zero**).
+ 
+ ---
+ 
+@@ -8764,6 +8772,14 @@ finding is the same family as `D-159`/`D-160`/`D-162`** \u2014 a table that grow
+ 5. **THE ADDON'S EXPORT SET MOVES `19 \u2192 20`** and every census that counts it moved with its reason at its byte; **`index.d.ts` moved NO byte** (the addon's
+    entries are not the package's declared surface). **THE WASM ARM IS UNTOUCHED**: its set stays **eighteen** and **its table still never retires a store** \u2014
+    which is now the one arm of the two whose leak is unclosed, and closing it changes that arm's export set (a declaration, `D-155` item 4, and `CW-6`'s subject).
++   **⟶ AND THE ARM THAT SENTENCE LEFT OPEN IS CLOSED, 2026-11-19 — THE SENTENCE IS QUOTED BEFORE IT IS RE-CUT: *"THE WASM ARM IS UNTOUCHED: its set stays
++   eighteen and its table still never retires a store — which is now the one arm of the two whose leak is unclosed, and closing it changes that arm's export set
++   (a declaration, `D-155` item 4, and `CW-6`'s subject)."*** **THE ARCHITECT'S CLOSURE ANSWER, ARM `a`, IS THAT THE ARM RETIRES AS THIS ONE DOES**, so **its set
++   moves `18 → 19`** (`bindings/js/src/wasm.rs`'s `storeRelease`), **its table empties a slot and never shifts one** (a tombstone, because on that arm the
++   handle IS the row index), **and the two subjects this item named are exactly the two sites the landing re-cut**: `D-155` item 4 at its own sentence and `CW-6` at
++   its own count, with `addon-slot.mjs`'s census sentence and `docs/L1/wasm-realm.md` §7/§10/§15/§16 moving with them. **THIS ITEM'S OWN SUBJECT — THE NODE ARM'S
++   ENTRY, ITS TWO TABLES AND ITS CELLS — IS UNMOVED BY THAT LANDING**, which is why this clause is the whole of what this row says about it: the second arm's
++   bytes are the second arm's pass, and no line of `facade.rs` moves for it.
+ 6. **CELLS**: `tests/e2e/store-retirement.test.mjs` \u2014 `SR-01` (the payload ceiling), `SR-02` (**the finalizer's own answer**: every constructed-and-dropped
+    store's index reads `AddressNotFound`, which is the release measured at its own answer and not a table length), `SR-03` (the entry's contract: double
+    release, absent index, eight outside classes, and the second store answering across the first's release). **Red first: `0/3` on the pre-fix artefact.**
+diff --git a/tests/e2e/addon-surface-support.mjs b/tests/e2e/addon-surface-support.mjs
+index cdf4b44..1dee4c1 100644
+--- a/tests/e2e/addon-surface-support.mjs
++++ b/tests/e2e/addon-surface-support.mjs
+@@ -143,7 +143,10 @@ export const PER_VERB_ELEVENTH = [
+  *  not the dispatcher's arms and they add no member to the product's fifteen: **they are the addon's entries and
+  *  the package's reach to them.** `exportImage` takes no op id (the store composes its own image); the two
+  *  verdicts each take one. **AND `commitFile` STAYS A MEMBER OF THE SIXTEEN ABOVE ON THIS ARM** — the second
+- *  realm's eighteen are a different build's set (`D-155` item 4) and are not read by this cell.
++ *  realm's eighteen are a different build's set (`D-155` item 4) and are not read by this cell. **⟶ AND THAT SET IS
++ *  NINETEEN FROM 2026-11-19**: the second arm gained its retirement's frame (`bindings/js/src/wasm.rs`'s
++ *  `storeRelease`), which is that build's entry and not this one's — `D-155` item 4's figure is re-cut at its own
++ *  sentence, and **this file's twenty, its census and every cell that reads them move no byte**.
+  */
+ export const SAVE_ARM_THREE = [
+   { name: 'exportImage', arity: 0, clause: 'facade.rs\'s `exportImage` entry, 2026-11-17 — the store\'s image, composed and verified by the store itself (`D-148`)' },
+diff --git a/tests/e2e/store-retirement.test.mjs b/tests/e2e/store-retirement.test.mjs
+index efa3d8e..98fb306 100644
+--- a/tests/e2e/store-retirement.test.mjs
++++ b/tests/e2e/store-retirement.test.mjs
+@@ -48,6 +48,16 @@
+ // is a declaration and a cell's subject and not this pass's. **`index.d.ts` moves no byte**: the addon's entries
+ // are not the package's declared surface (`surface.md §3.8`), and `storeRelease` is reached by the finalizer and
+ // by no consumer.
++//
++// **⟶ AND THE FIRST OF THOSE SENTENCES IS RE-CUT AT ITS OWN BYTES, 2026-11-19 — THE SECOND ARM'S PASS LANDED.**
++// *"The second realm's arm has no `storeRelease` and retires nothing (`bindings/js/src/wasm.rs`; `D-155` item 4:
++// its set is eighteen and `commitFile` is the one that is absent BY RULING) — adding a release there would change
++// that export set, which is a declaration and a cell's subject and not this pass's."* **THAT ARM HAS ONE NOW**:
++// `wasm.rs`'s `storeRelease`, its set is **nineteen** (`D-155` item 4's figure re-cut at its own sentence), and its
++// own two cells are `tests/e2e/wasm-arm.test.mjs`'s `CW-8` (the entry's arms, `SR-03`'s limbs one arm over) and
++// `CW-9` (the package's finalizer fired at that arm under `--expose-gc`). **EVERY CELL OF THIS FILE MOVES NO BYTE**:
++// the Node frame's entry, its two tables and these three cells are exactly what they were, and the addon's twenty
++// are still the twenty.
+ import test from 'node:test';
+ import assert from 'node:assert/strict';
+ import { execFileSync } from 'node:child_process';
+diff --git a/tests/e2e/wasm-arm.test.mjs b/tests/e2e/wasm-arm.test.mjs
+index 72d6571..292d616 100644
+--- a/tests/e2e/wasm-arm.test.mjs
++++ b/tests/e2e/wasm-arm.test.mjs
+@@ -22,7 +22,7 @@
+ import assert from 'node:assert/strict';
+ import { test } from 'node:test';
+ import { execFileSync } from 'node:child_process';
+-import { existsSync, readFileSync } from 'node:fs';
++import { existsSync, readFileSync, writeSync } from 'node:fs';
+ import { dirname, join, resolve } from 'node:path';
+ import { fileURLToPath, pathToFileURL } from 'node:url';
+ 
+@@ -92,6 +92,81 @@ function transitiveSet(start) {
+   return seen;
+ }
+ 
++// ─────────────────────────────────────────────────────────────────────────────────────────────────────
++// **THE RETIREMENT PROBE'S MACHINERY, ABOVE EVERY CELL — AND ITS POSITION IS PART OF ITS CORRECTNESS.**
++// The child branch stands here, before any `test(…)` call, so **the child never registers a cell**: it writes its one
++// JSON line and exits, and the runner in that process has nothing to run and nothing to print over it. (Measured the
++// other way round: with the branch below the cells, the child ran the whole file AND its exit truncated the piped
++// write; see the drained-exit note at the branch.)
++// ─────────────────────────────────────────────────────────────────────────────────────────────────────
++const STORE_INDEX = Symbol.for('provident-storeroom.storeIndex');
++
++const PROBE_FLAG = '--wasm-arm-retirement-probe';
++/** **THE STORES PER BATCH, AND THE WARM-UP BESIDE IT.** The warm-up batch is dropped and collected before the
++ *  measured one so the registry's callback path has run once before the batch that is counted (`SR-01`'s device). */
++const PROBE_WARMUP = 8;
++const PROBE_STORES = 48;
++
++/// **A COLLECTION AND A TURN** — three collects and a settle, which is what a `FinalizationRegistry` callback needs
++/// before it has run: the collect is the host's, the callback is queued on it, and the settle hands it its turn.
++async function settleCollection() {
++  globalThis.gc();
++  globalThis.gc();
++  await new Promise((resolve) => setTimeout(resolve, 25));
++  globalThis.gc();
++}
++
++/// **ONE BATCH: N STORES CONSTRUCTED, EACH WRITTEN TO, EVERY ONE DROPPED** — the only reference that outlives an
++/// iteration is the handle (a NUMBER), so nothing here can retain the store OBJECT.
++async function constructAndDrop(glue, storeCreate, n) {
++  const handles = [];
++  for (let i = 0; i < n; i += 1) {
++    const dropped = storeCreate(glue, { journalLength: 8, listeners: [] });
++    dropped.write(['payload'], 'mem', i);
++    handles.push(dropped[STORE_INDEX]);
++  }
++  return handles;
++}
++
++if (process.argv.includes(PROBE_FLAG)) {
++  const { glue, storeCreate } = await arm();
++  await settleCollection();
++  // THE WARM-UP, DISCARDED: one batch dropped and collected, so the measured batch is not the first callback.
++  await constructAndDrop(glue, storeCreate, PROBE_WARMUP);
++  for (let round = 0; round < 3; round += 1) await settleCollection();
++  const handles = await constructAndDrop(glue, storeCreate, PROBE_STORES);
++  for (let round = 0; round < 4; round += 1) await settleCollection();
++  // **THE ONE READING, TAKEN ONCE AND DESTRUCTIVELY**: a live slot answers `undefined` (and is freed by this very
++  // call), an emptied one answers `AddressNotFound` — so the count cannot be taken twice and is not.
++  let releasedByFinalizer = 0;
++  let stillLive = 0;
++  let unexpected = null;
++  for (const handle of handles) {
++    try {
++      glue.storeRelease(handle);
++      stillLive += 1;
++    } catch (thrown) {
++      if (thrown !== null && typeof thrown === 'object' && thrown.status === 'AddressNotFound') releasedByFinalizer += 1;
++      else unexpected = { status: thrown === null ? null : thrown.status, message: thrown === null ? null : thrown.message };
++    }
++  }
++  // **THE LINE IS WRITTEN SYNCHRONOUSLY TO FD 1 AND THAT IS LOAD-BEARING** — measured, not assumed: when this
++  // child's stdout is a PIPE, which is what `execFileSync` gives it, `process.stdout.write` is ASYNCHRONOUS, so an
++  // immediate `process.exit(0)` truncated it — the parent read a lone `{` and `JSON.parse` threw at position 1 — and
++  // a write CALLBACK is not enough either (measured: it did not fire before the exit and the child then re-entered
++  // this file's own probe). `fs.writeSync` returns only once the bytes are in the pipe, so the one line the parent
++  // parses is the whole line and the exit after it loses nothing.
++  writeSync(1, `${JSON.stringify({
++    gc: typeof globalThis.gc === 'function',
++    stores: PROBE_STORES,
++    handlesAreNumbers: handles.every((handle) => typeof handle === 'number'),
++    releasedByFinalizer,
++    stillLive,
++    unexpected,
++  })}\n`);
++  process.exit(0);
++}
++
+ // ─────────────────────────────────────────────────────────────────────────────────────────────────────
+ // **`C-W1` AND `C-W5` LAND HERE, AND THEIR PROVENANCE IS THE GAP THEY CLOSE** (`D-166` found the defect;
+ // `D-167` is the ruling that made them writable): **the cells build the arm themselves** — the module above does,
+@@ -254,15 +329,24 @@ test('CW-4 · C-W4 — the entry\'s transitive set carries no `node:` specifier
+ });
+ 
+ // ─────────────────────────────────────────────────────────────────────────────────────────────────────
+-// **`C-W6` · THE ARM'S EXPORT SET — EIGHTEEN, `commitFile` ABSENT, `delete` SPELLED `_delete`**
++// **`C-W6` · THE ARM'S EXPORT SET — NINETEEN, `commitFile` ABSENT, `delete` SPELLED `_delete`**
++//
++// **⟶ THE FIGURE MOVED `18 → 19` ON 2026-11-19 AND THE SENTENCE IT MOVED FROM IS QUOTED BEFORE IT IS RE-CUT:
++// *"`C-W6` · THE ARM'S EXPORT SET — EIGHTEEN, `commitFile` ABSENT, `delete` SPELLED `_delete`"*, and the cell's own
++// message read *"D-155 item 4: the WASM arm's entry set is eighteen of the Node arm's twenty"*.** **THE ARCHITECT'S
++// CLOSURE ANSWER, ARM `a`, IS THAT THIS ARM RETIRES A STORE AS THE NODE ARM DOES**, so `wasm.rs` gains the
++// nineteenth entry — `storeRelease` — and **the arithmetic keeps its shape: the Node arm's twenty minus
++// `commitFile`.** `D-155` item 4's own sentence is re-cut at its byte in the same pass, and this cell is the other
++// site `D-171` item 5 named by name.
+ // ─────────────────────────────────────────────────────────────────────────────────────────────────────
+-test('CW-6 · C-W6 — the module exports the eighteen declared entries, and `commitFile` is not one of them', async () => {
++test('CW-6 · C-W6 — the module exports the nineteen declared entries, and `commitFile` is not one of them', async () => {
+   const { glue } = await arm();
+   const names = Object.keys(glue)
+     .filter((name) => name !== 'default' && name !== 'initSync' && typeof glue[name] === 'function')
+     .sort();
+-  assert.equal(names.length, 18,
+-    'D-155 item 4: the WASM arm\'s entry set is eighteen of the Node arm\'s twenty — it read ' + names.join(', '));
++  assert.equal(names.length, 19,
++    'D-155 item 4, re-cut 2026-11-19: the WASM arm\'s entry set is NINETEEN — the Node arm\'s twenty minus '
++    + '`commitFile`, plus the retirement\'s frame — it read ' + names.join(', '));
+   assert.equal(names.includes('commitFile'), false,
+     'and `commitFile` is the one that is absent BY RULING: the arm has no writer to reach');
+   assert.equal(names.includes('_delete'), true,
+@@ -270,6 +354,11 @@ test('CW-6 · C-W6 — the module exports the eighteen declared entries, and `co
+     + 'what spells it back (`addon-slot.mjs`\'s `MODULE_SPELLING`)');
+   assert.equal(names.includes('saveSucceeded'), true, 'the save arm\'s verdicts are entries');
+   assert.equal(names.includes('exportImage'), true, 'and so is the image export');
++  // **AND THE NINETEENTH IS THE RETIREMENT'S FRAME** — the one name this figure moved for, named here so a reader of
++  // the count sees which entry answered for the `18 → 19` and not only that the number moved.
++  assert.equal(names.includes('storeRelease'), true,
++    'the nineteenth entry is `storeRelease` — the retirement the package\'s `STORE_RETIREMENT` callback calls, '
++    + 'declared by `bindings/js/src/wasm.rs` and forwarded by `addon-slot.mjs`\'s `PASSED_THROUGH_ENTRIES`');
+ });
+ 
+ // ─────────────────────────────────────────────────────────────────────────────────────────────────────
+@@ -310,3 +399,148 @@ test('CW-7 · D-156 — a value crosses by value both ways, and a `Proxy` is ref
+     'and NOT ONE trap ran: the instrument is `structuredClone`, which throws on a Proxy before any handler is '
+     + 'reached — `DD-34`\'s property kept on an arm with no `util.types.isProxy`: ' + JSON.stringify(counters));
+ });
++
++// ═════════════════════════════════════════════════════════════════════════════════════════════════════
++// **THE ARM'S RETIREMENT — THE ENTRY'S ARMS, DRIVEN** (the architect's closure answer, arm `a`;
++// `bindings/js/src/wasm.rs`'s `storeRelease`; `D-171` item 5's last sentence is what named the absence open)
++//
++// **THIS IS `tests/e2e/store-retirement.test.mjs`'s `SR-03`, ONE ARM OVER, AND ITS OBSERVABLE IS THE SAME ONE**: a
++// released handle answers `AddressNotFound` at the verb that names it — **THE OBSERVABLE AT ITS OWN ANSWER, AND
++// NEVER A TABLE LENGTH** (`receiver-and-refusal.md §6`'s `OWED-2`: *"NOTHING ASSERTS A TABLE TYPE"*; a release that
++// was measured by the table's size would be measuring the very interior that clause forbids a cell to read). **AND
++// THE INDEX-INVARIANCE IS ASSERTED THE SAME WAY `SR-03` ASSERTS IT — BY A NEIGHBOUR**: `§6`'s requirement is that a
++// retirement removes EXACTLY ONE store, so the second store constructed across the first's release must still
++// answer its own register, which is what a renumbering table would break first.
++// ═════════════════════════════════════════════════════════════════════════════════════════════════════
++
++test('CW-8 · the arm retires a store: the released handle answers `AddressNotFound`, a second release refuses, a handle no mint reached answers the same arm, and a position that is not an index answers `AddressMalformed` — and none of them panics', async () => {
++  const { glue, storeCreate } = await arm();
++  assert.equal(typeof glue.storeRelease, 'function',
++    'the module carries the retirement\'s entry — `wasm-bindgen` publishes it as `storeRelease`, the name '
++    + '`state.mjs`\'s `STORE_RETIREMENT` callback has always called and the name `addon-slot.mjs` now forwards');
++
++  // **THE STORE, ITS REGISTER AND THE INDEX THE PACKAGE HOLDS** — the same three `SR-03` reads on the other arm.
++  const instance = storeCreate(glue, { journalLength: 8, listeners: [] });
++  instance.write(['a'], 'mem', 7);
++  const handle = instance[STORE_INDEX];
++  assert.equal(typeof handle, 'number',
++    'the handle the module minted is published on the store object as the package\'s own `Symbol.for` row — a '
++    + 'NUMBER, which is what the finalizer\'s held value may carry and all it may carry: ' + JSON.stringify(handle));
++  // **A SECOND STORE, HELD ACROSS THE FIRST'S RELEASE**: the store that must still answer (`§6`'s one-entry rule).
++  const neighbour = storeCreate(glue, { journalLength: 8, listeners: [] });
++  neighbour.write(['b'], 'mem', 11);
++
++  // ── (a) THE RELEASE ITSELF: `undefined`, no throw.
++  const released = attempt(() => glue.storeRelease(handle));
++  assert.equal(released.ok, true,
++    'the release of a live store ANSWERS rather than throwing: ' + String(released.ok ? '' : released.caught?.status));
++  assert.equal(released.value, undefined,
++    'and its answer is `undefined` — the crate\'s own shape for an entry that carries nothing back (`register`\'s arm)');
++
++  // ── (b) THE RELEASED STORE'S OWN CALL REFUSES IN THE ONE FORM — the observable `§3` names, read through the
++  // package's own `read` rather than through the module, so the route is the parts' and not the cell's.
++  const after = attempt(() => instance.read(['a'], 'mem'));
++  assert.equal(after.ok, false, 'a call on a RELEASED store refuses rather than answering');
++  assert.equal(statusOf(after), 'AddressNotFound',
++    'and the refusal is the crate\'s own absent arm — `no_instance_at`\'s `AddressNotFound`, the same observable a '
++    + 'detached call and a fabricated index get (`receiver-and-refusal.md §3`): ' + JSON.stringify(statusOf(after)));
++  assert.equal(after.caught instanceof Error, false,
++    'and it is the ONE FORM and never an `Error` (`failure-form.md §1`)');
++
++  // ── (c) THE SECOND STORE STILL ANSWERS ITS OWN — `§6`'s one-entry rule, and the tombstone's whole point.
++  assert.equal(neighbour.read(['b'], 'mem'), 11,
++    '**THE RETIREMENT EMPTIED ONE SLOT AND NEVER SHIFTED ONE** (`§6`): the second store\'s own register answers '
++    + 'after the first store\'s release, so the handle the package holds cannot name its neighbour');
++
++  // ── (d) THE SAME HANDLE AGAIN — an EMPTIED slot, not a live one.
++  const twice = attempt(() => glue.storeRelease(handle));
++  assert.equal(twice.ok, false,
++    'releasing an already-released store refuses rather than releasing again — the release is not idempotent at '
++    + 'its answer: a second call must not free a second store');
++  assert.equal(statusOf(twice), 'AddressNotFound',
++    'and it answers the crate\'s absent arm: ' + JSON.stringify(statusOf(twice)));
++
++  // ── (e) A HANDLE NO MINT EVER REACHED — the same arm, because an emptied slot and a fabricated handle are one
++  // observable (`receiver-and-refusal.md §3`: *"There is no second arm and no second observable"*).
++  const nothing = attempt(() => glue.storeRelease(handle + 4096));
++  assert.equal(statusOf(nothing), 'AddressNotFound',
++    'a handle the table never reached refuses with the SAME token the emptied slot answers: '
++    + JSON.stringify(statusOf(nothing)));
++
++  // ── (f) A POSITION THAT IS NOT AN INDEX — the crate's malformed arm, and never a store touched.
++  const outside = ['not-an-index', null, undefined, {}, Number.NaN, Number.POSITIVE_INFINITY,
++    Number.NEGATIVE_INFINITY, -1, 1.5, true];
++  for (const position of outside) {
++    const answered = attempt(() => glue.storeRelease(position));
++    assert.equal(answered.ok, false,
++      'a position that is not an index refuses: ' + JSON.stringify(position) + ' answered instead');
++    assert.equal(statusOf(answered), 'AddressMalformed',
++      'and its status is the crate\'s own malformed-argument member — the token the Node frame\'s '
++      + '`not_a_store_index` answers and no new one minted (`DD-40`): ' + JSON.stringify(position) + ' answered '
++      + JSON.stringify(statusOf(answered)));
++  }
++  // **★ AND THE `NaN` GUARD IS ASSERTED AT ITS OWN CONSEQUENCE.** `NaN as u32` — `NaN as usize` on the other arm —
++  // SATURATES TO `0` in Rust, so a class test that let `NaN` through would name THE FIRST STORE EVER CONSTRUCTED in
++  // this process and free a store the caller never named. **THE LIVE STORE THIS CELL HOLDS IS RE-READ AFTER ALL
++  // NINE OF THEM**, and it must still answer its own register.
++  assert.equal(neighbour.read(['b'], 'mem'), 11,
++    'and none of those outside positions freed a live store: `NaN` in particular would have saturated to index `0` '
++    + 'and released whatever store this process minted first');
++  // ── (g) AND THE RELEASED STORE STILL READS AS RELEASED, after all of the refusals above.
++  const stillGone = attempt(() => instance.read(['a'], 'mem'));
++  assert.equal(statusOf(stillGone), 'AddressNotFound',
++    'the released store is still released after the nine refusals: the tombstone is not resurrected by a failed '
++    + 'release, and nothing here answered `Ok` for it');
++});
++
++// ═════════════════════════════════════════════════════════════════════════════════════════════════════
++// **THE FINALIZER REACHES THE ARM — THE PACKAGE'S OWN `STORE_RETIREMENT`, FIRED BY A COLLECTION**
++//
++// **WHAT CAN BE FORCED HERE AND WHAT CANNOT, AT THE BYTE.** `npm test` runs `node --test "tests/**/*.test.mjs"` with
++// no `--expose-gc`, so **NO COLLECTION CAN BE FORCED IN THE PROCESS THAT ASSERTS** — `gc()` is not a function there
++// at all, and a cell claiming it had forced one would be claiming an instrument it does not hold. **SO THE
++// INSTRUMENT IS A CHILD PROCESS THIS FILE RE-EXECUTES ITSELF AS WITH `--expose-gc`**, which is the device
++// `store-retirement.test.mjs` already uses one arm over (`SR-01`/`SR-02`'s probe) — one file, one copy of the
++// instrument, and the asserting process is the same file.
++//
++// **AND WHAT IS *STILL* NOT FORCED IS THE HOST'S TIMING.** V8 queues a finalization callback and runs it on a turn
++// of its own, so the child SETTLES in bounded rounds (`gc`, `gc`, a 25 ms turn, `gc`) and then reads the answer once.
++// **THE READING IS THE ENTRY'S OWN AND NOT A TABLE'S**: after the stores are dropped and collected, the child calls
++// `storeRelease` on each handle it kept — an `AddressNotFound` there means the FINALIZER already emptied that slot
++// (the release refused because there was nothing left to free), while an `undefined` answer means the slot was still
++// live and this call is the one that freed it. **THE COUNT IS THEREFORE THE FINALIZER'S, MEASURED, AND NOT A
++// PROMISE**: the cell asserts that every store the child dropped was already retired when it asked.
++// ═════════════════════════════════════════════════════════════════════════════════════════════════════
++
++/// **THE PROBE, RUN** — one child, `--expose-gc`, this same file. **`--expose-gc` IS THE ONLY WAY `gc()` IS AVAILABLE
++/// HERE AT ALL**, and a child is also what keeps the probe's heap out of the test process's own.
++function retirementProbe() {
++  const stdout = execFileSync(process.execPath, ['--expose-gc', fileURLToPath(import.meta.url), PROBE_FLAG], {
++    encoding: 'utf8',
++    timeout: 300000,
++    maxBuffer: 4 * 1024 * 1024,
++  });
++  return JSON.parse(stdout.trim().split('\n').pop());
++}
++
++const RETIREMENT_REPORT = retirementProbe();
++
++test('CW-9 · the package\'s finalizer reaches the ARM — every store the probe constructed-and-dropped is already retired when the probe asks the module for it', () => {
++  assert.equal(RETIREMENT_REPORT.gc, true,
++    'the probe ran with `--expose-gc`, so what it measured is a retirement and not a lag in the collector');
++  assert.equal(RETIREMENT_REPORT.stores, PROBE_STORES, 'and it measured the batch this cell declares');
++  assert.equal(RETIREMENT_REPORT.handlesAreNumbers, true,
++    'every handle the probe kept is a NUMBER — the held value `STORE_RETIREMENT.register(instance, id)` passes, and '
++    + 'the only thing a finalizer\'s held value may be without retaining the store it observes');
++  assert.equal(RETIREMENT_REPORT.unexpected, null,
++    'the entry answered in the crate\'s own forms and in no third one: ' + JSON.stringify(RETIREMENT_REPORT.unexpected));
++  assert.equal(RETIREMENT_REPORT.stillLive, 0,
++    '**NO MEASURED STORE WAS STILL IN THE ARM\'S TABLE AFTER THE COLLECTION**: each of the '
++    + `${PROBE_STORES} answered \`{status: 'AddressNotFound'}\` when the probe asked to release it, whose declared `
++    + 'reading is *"the package holds no instance at that id"* — the slot was emptied by the finalizer before this '
++    + `probe asked. MEASURED: ${RETIREMENT_REPORT.releasedByFinalizer} of ${RETIREMENT_REPORT.stores}. `
++    + '**BEFORE THE ENTRY EXISTED THE SAME CALL WAS A RAW HOST `TypeError` AND THE STORES STAYED IN THE TABLE**');
++  assert.equal(RETIREMENT_REPORT.releasedByFinalizer, PROBE_STORES,
++    'and the count is the whole batch — a partial count would mean the finalizer reaches the arm for some stores '
++    + `and not others: ${RETIREMENT_REPORT.releasedByFinalizer} of ${PROBE_STORES}`);
++});

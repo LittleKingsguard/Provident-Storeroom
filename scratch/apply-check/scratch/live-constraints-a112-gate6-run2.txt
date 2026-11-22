@@ -1,0 +1,60 @@
+A112-A1    PASS             module namespace keys=[commit,log,register,report,runAttempt] allFunctions=true
+A112-A2    PASS             store=[delete,listen,read,readLiteral,rollback,storeCreate,unlisten,write] instance=[off,on,register]
+A112-A3    PASS             identical-adopted-handle-on-all-four=true typeof=object
+A112-A4    PASS             keys=[attempt,op,pending,triggered] triggered==[K-1 handle]=true attemptKeys=[id] opKind=write
+A112-B1    PASS             triggered=1 pending=1 whole=true noExtra=true listenerCalls=1
+A112-B2    PASS             triggered=2 pending=2 ancestorHandleCarried=true ancestorBodyCallsAtK-2=0
+A112-B3    PASS             PASSING: at K-2 return triggered=1 pending=1 (no SIFT at the write); its own pass ran 1x and PASSED (outcome=passed), entry left (1 -> 0). FAILING: at K-2 return pending=1 -> 0 after the pass, while the pair never passed (1 call(s), token KC-3)
+A112-B4    PASS             ARM (i) — AN EARLIER CALLER WRITE'S ENTRY: r1 (at [q]) pending=1; the failing write's triggered=1, the earlier entry a member of the FAILED write's own returned set=false; token=KC-3; after the arm: the failed write's own pending=0, its own address's entry still present=false, THE EARLIER WRITE'S OWN ENTRY STILL PRESENT=true. ARM (ii) — THE DISCARD'S REACH: at the failed write's return triggered=2 pending=2 (ancestor handle a member of the returned set=true); after the arm pending=1, never-evaluated ancestor handle still present=true, the failed write's own address's handle still present=false, ancestor body calls=0. PASSING ARM of the SAME fixture: after the pass ancestor standing=true (ancestor calls=0, outcome=passed)
+A112-B5    PASS             pending.length at K-2 return=1, after K-3=0, report.outcome=passed
+A112-B6    PASS             K-2(1): triggered=1 pending=1 bodyCalls=0 -> after K-3 pending=0; K-2(2): triggered=1 pending=1 (no residue of the first) -> after K-3 pending=0; pair body ran 2x in total, once per write
+A112-C1    PASS             token=KC-3 pendingAfterThrow=0 caller-loop invocations=0 pairBodyCallsInsideK-3=1
+A112-C2    PASS             at K-2: triggered=1 pending=1 (discarded-at-the-write=false); after the failing K-3 pending=0; token=KC-3 -> the removal happened in the K-3 window, not at the write
+A112-C3    PASS             delivered=[pq] constraint-check ids=[p,q] outcome=passed
+A112-C4    PASS             constraint-check order=[b,a,c] replacementRan=1
+A112-D1    PASS             body calls after a bare store.write with the entry standing=0, after unlisten=0, write error=none, unlisten=ok
+A112-D2    NOT-EXERCISABLE  MEASURED WITHOUT VERDICT: at K-2's return constraint body calls=0, pending.length=1 of triggered.length=1 (no check-off), app listener body calls=1; after K-3 constraint calls=1, listener calls=1, outcome=passed, pending=0
+A112-D3    PASS             handles left in pending after K-3=0; caller-loop invocations=0; outcome=passed
+A112-D4    FAIL             on() returned the SAME adopted handle=true; constraint body calls at K-2=0; app listener calls at K-2=1; outcome=passed; pair body calls after K-3=1, app listener calls after K-3=1; pending after K-3=0 — THE DECLARED OBSERVABLE ("a listener the app registered after the kernel's adoption is not invoked while the kernel's registration stands") IS FALSIFIED BY appListenerCalls=1 INSIDE THE K-2 WINDOW; the greens cell prints this same value and reads PASS
+A112-D5    NOT-EXERCISABLE  MEASURED WITHOUT VERDICT: with on() issued after K-1 the app listener body calls stood at 1 inside the K-2 window while the constraint body of that same write stood at 0; after K-3 constraint calls=1, outcome=passed. THE ORDERING OF THE TWO LAYERS OF ONE CALL IS NOT READABLE BY THIS UNIT.
+A112-E1    PASS             second K-2 while open=KC-7 (the address still reads 1 at that instant — the first write's value, not the refused one); first arm=passed; fresh K-2 after the terminal arm=returned keys=[attempt,op,pending,triggered]
+A112-E2    PASS             failing arm=KC-3; fresh K-2=returned keys=[attempt,op,pending,triggered]
+A112-E3    PASS             K-2=KC-7 K-3=KC-7 K-1=admitted K-5=KC-7 K-4=["1:constraint-check:p","2:commit:null"] outcome=passed
+A112-E4    PASS             status=KC-5 outcomeEntry.state=KC-5 repair-run entries=1 constraint-check ids=[x,x]
+A112-E5    NOT-EXERCISABLE  MEASURED WITHOUT VERDICT: no drive of the five declared items reaches a second evaluation of a passing pair inside one attempt (a pair is evaluated at most once per pass, and a re-run is caused only by a repair's own landing, which puts its pair in `appliedRepairs`). KC-6 was not reached and no probe of this surface can reach it.
+A112-E6    PASS             status=KC-8 outcome entries=1 outcome.state=KC-8 message names the store's own answer=true
+A112-E7    PASS             thrown form keys=[log,message,status]; K-5=returned rollback steps=1 step member set=[answer,checkpoint,failed,opId,restoredTo,undoneOps] first step={"opId":"op-38","answer":"RollbackCompacted","failed":true,"undoneOps":[],"restoredTo":{"present":true,"value":3},"checkpoint":null}
+A112-E8    FAIL             thrown form keys=[message,status] status=WriteParentNotLink (a store code? true; the kernel's own KC-4? false); the thrown form carries a `log` member=false; K-4 (the attempt's own log) names the store code in its repair-run entry=true; report.outcome=failed report.ops.length=1
+A112-E9    PASS             thrown is the body's own Error=true message=live-body-throw; closed record outcome entry state=null; fresh K-2=returned keys=[attempt,op,pending,triggered]
+A112-F1    PASS             {"null":"KC-1","nonArray":"KC-1","blankToken":"none(no throw)","emptyId":"KC-2","nonFunction":"KC-2"}
+A112-F2    PASS             store refusal at K-2: OutOfDomainTier (a KC token? false); an in-domain K-2 at the same address=returned a record — so the refused call opened no attempt; a second K-2 at that address=KC-7
+A112-F3    PASS             form keys=[log,message,status] LogEntry keys=[id,kind,message,opId,seq,state] status=KC-3 matches KC-1..KC-8=true
+A112-F4    NOT-EXERCISABLE  MEASURED WITHOUT VERDICT: a store-side interception of the kernel's own act is STRUCTURALLY BLOCKED by the assembled package itself — a store argument the package did not mint is REFUSED at the verb's first position (`AddressMalformed: 'a Proxy' is not a legal address segment in '', segments are strings or non-negative integers, the verb's first argument is a Proxy, and it is not an instance this package returned`), so no proxy, wrapper or recording stand-in can carry the kernel's own verb calls. The spy arm reads: admitted by register; K-2 threw AddressMalformed :: 'a Proxy' is not a legal address segment in '', segments are strings or non-negative integers, the verb's first argument is a Proxy, and it is not an instance this package returned. WHAT THE DRIVE DOES READ is that the kernel reaches the instance's `on` member at K-1 (the store's own listener registration), and that the kernel's verb calls are made through the package's own exported verbs, which no caller-side object can intercept. WHAT NO DECLARED MEMBER OF THE FIVE ITEMS EXPOSES is what the kernel HOLDS and which verb function it calls.
+A112-G1    PASS             success arm: report.rollback=[] ops=2; failure arm (KC-8): K-5 report rollback steps=1
+A112-G2    PASS             alpha={"outcome":"failed","opsKinds":"","log":"constraint-check/c/null,outcome/null/KC-3","pending":0,"triggered":1} betaListenerRan=true={"outcome":"failed","opsKinds":"","log":"constraint-check/c/null,outcome/null/KC-3","pending":0,"triggered":1} equal=true (the listener is invoked inside the outer write's own window; the ORDER inside that window is A112-D5's hand-off, N7; the window's own address shapes are named at E2E-C-8.5 below)
+A112-G3    NOT-EXERCISABLE  MEASURED WITHOUT VERDICT: the falsifier's FIRST limb (no handle of the returned set omitted) reads true in window (β) (triggered=1, pending=1) — a K-2 in the listener-body window was made; the falsifier's SECOND limb is NOT READABLE by this unit.
+A112-G4    PASS             triggered=2 pending at K-2=2 (the ancestor handle a member of BOTH=true); after K-3 pending=1 with the ancestor still the one standing entry=true; ancestor body calls=0 outcome=passed
+A112-G5    PASS             second K-2 while attempt 1 OPEN=returned keys=[attempt,op,pending,triggered] triggered=2 pending=2; attempt 1 arm=passed
+A112-G6    PASS             outcome entries=1 token(s)=[KC-8] message names the store's answer AND the op=true rows=[constraint-check:null,repair-run:null,constraint-check:null,outcome:KC-8]
+A112-H1    PASS             memberSetUniform=true seqs=[1,2,3,4] ascending-from-1=true kinds=[constraint-check,repair-run,commit] nonOutcome state null=true K-4 length=4
+A112-H2    PASS             K-5 members=[attempt,log,ops,outcome,rollback] K-5 == K-3 report=true K-4 length=2 stale K-3 token=KC-2
+A112-H3    PASS             AttemptContext members=[address,attempt,op,tier,value] ctx.op.kind=write outcome=passed
+E2E-C-8.5  PASS             alpha outcome=passed log=constraint-check/c/null,commit/null/null; beta listenerRan=true outcome=passed log=constraint-check/c/null,commit/null/null nested throw=null; equal=true
+E2E-C-8.6  NOT-EXERCISABLE  MEASURED WITHOUT VERDICT: window (β) made a K-2; triggered=1, pending=1, first limb (omits no handle)=true; the SECOND limb (a listener standing in `pending` while a constraint of that write is unchecked) is not readable by this unit.
+E2E-C-16.2 PASS             a#cL in triggered=true in pending at K-2=true after the pass=true (triggered=2 [a#cL at [a] + cB at [a,b]]; pending at K-2=2 -> after the pass=1, the standing entry being a#cL alone=true) a#cL body calls=0 outcome=passed
+E2E-C-16.5 PASS             second K-2=fresh record, triggered=2 pending=2; attempt 1 arm=passed
+E2E-C-16.step2PASS             THE DOCUMENTED NESTED SEQUENCE AT ITS OWN ADDRESSES: listenerRan=true nested={"commit":"returned keys=[attempt,op,pending,triggered] pending=2","run":"passed"}; the FIRST attempt's arm=passed. AND THE COMPANION FACT MEASURED BESIDE IT: a nested K-2 at the SAME address the outer K-2 holds is REFUSED KC-7 (the hold is taken at the write's own act), so the step is reachable only with the nested call at ANOTHER address — the shape its own text spells.
+E2E-C-16.5bPASS             with [a] NOT LANDED: the K-2 at [a,b] threw AddressNotFound (the store's own ADDRESS rule, reached through K-2's own store verb — not a kernel token); with [a] as a LINK: it returned a record carrying a#cA=true (triggered=2, pending=2) — THE STEP'S OWN DESCENDANT-WRITE SHAPE IS REACHABLE ONLY ON THE LINK ARM
+
+== FIGURES ==
+{"cells":47,"PASS":39,"FAIL":2,"NOT-EXERCISABLE":6}
+A        {"cells":4,"PASS":4,"FAIL":0,"NOT-EXERCISABLE":0}
+B        {"cells":6,"PASS":6,"FAIL":0,"NOT-EXERCISABLE":0}
+C        {"cells":4,"PASS":4,"FAIL":0,"NOT-EXERCISABLE":0}
+D        {"cells":5,"PASS":2,"FAIL":1,"NOT-EXERCISABLE":2}
+E        {"cells":9,"PASS":7,"FAIL":1,"NOT-EXERCISABLE":1}
+F        {"cells":4,"PASS":3,"FAIL":0,"NOT-EXERCISABLE":1}
+G        {"cells":6,"PASS":5,"FAIL":0,"NOT-EXERCISABLE":1}
+H        {"cells":3,"PASS":3,"FAIL":0,"NOT-EXERCISABLE":0}
+BATTERY  {"cells":6,"PASS":5,"FAIL":0,"NOT-EXERCISABLE":1}
+record -> scratch/live-constraints-a112-gate6-out.json

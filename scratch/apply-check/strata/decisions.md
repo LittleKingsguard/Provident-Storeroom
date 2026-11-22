@@ -1,0 +1,9335 @@
+# Decisions — the architect's rulings
+
+**WHAT THIS FILE IS.** The user's rulings, recorded verbatim, and the consequences each one carries for the
+work below me. **This file is L0's authority.** A question it answers is answered; a question it does not
+answer goes back to the user. **No entry here is a design decision taken by the supervisor** — an entry exists
+only because the architect said it, and the ruling's own words are quoted so that no later restatement can
+drift from them.
+
+**WHAT AN ENTRY CARRIES.** The architect's words; the date and branch it was given on; the artifacts it
+supersedes; **what it settles**; and **what it explicitly does not settle** — because the boundary of a ruling
+is as load-bearing as the ruling.
+
+---
+
+## `D-1` — the constraint kernel is tightly integrated, not an external import
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, in session,
+correcting a configuration made by the earlier (pre-strata) workflow's agent.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> Because the constraint mechanism is a strict requirement and is checked for triggered handles automatically
+> on read, the constraint kernel does not need to be an external import as with how the original agent
+> mistakenly configured it, it can be tightly integrated
+
+**WHAT IT SUPERSEDES IN THE TREE AND IN THE PLAN.** The correction is of a *configuration*, and the tree
+carries it at four sites, each of which this ruling names:
+
+1. **`bindings/js/index.mjs:5227`** — `if (KERNEL === null) KERNEL = require_('./src/constraint-kernel.mjs');`
+   — the kernel is reached **lazily, inside `constraintsKernel()`, never at load**. The entry's own comments
+   state the same rule in as many words (*"the entry imports no kernel at load"*).
+2. **`bindings/js/package.json`** — the `files` allowlist spends a **fourth** entry on
+   `src/constraint-kernel.mjs`, so the kernel ships as a separately-reachable module of the published package.
+3. **`docs/L1/module-map.md`** — module **13 `js-constraints`** ("reach the kernel lazily without importing it
+   at load"), module **14 `constraint-kernel`** (owning the separate file), interaction **I-11** (the lazy
+   reach, declared as a call), interaction **I-23** (the four-entry `files` allowlist), interaction **I-26**
+   (the battery reaching kernel cells through `../src/constraint-kernel.mjs`).
+4. **`docs/L1/modules.json`** — the same two modules and their endpoints.
+
+**WHAT IT SETTLES.**
+
+- **The constraint mechanism is a strict requirement and is not optional**, so the lazy-and-separable
+  configuration has no ground to stand on: there is nothing to defer, because the mechanism is always there.
+- **The kernel is not an external import.** It is **tightly integrated**, and ownership of it therefore does
+  not sit at a module boundary: the two modules above are **one** integrated ownership, and the boundary
+  between them in the map is not a boundary the architect recognises.
+- **The fourth `files` entry** exists only to publish a separately-reachable kernel, so **it has no subject**
+  under this ruling; the published package's allowlist consequence is the ruling's, and the map carries it.
+- **The kernel's export set stops being a boundary claim.** The archived unit pinned it (*"exactly five"*, now
+  six) and refused a seventh by name; a tightly integrated kernel **publishes no export set at all**, so that
+  pin no longer governs anything outside the code.
+
+**WHAT IT DOES NOT SETTLE, AND MUST NOT BE READ AS SETTLING.**
+
+- **It does not order a code move.** It rules what the constraint mechanism *is* — integrated, not imported —
+  not which pass physically merges the file, nor in what order the edits land. That is an implementation
+  question and it is not L0's, and this entry opens no unit.
+- **It does not re-decide the `A112` ordering law.** The architect's phrase *"checked for triggered handles
+  automatically on read"* is recorded above verbatim and is **not** to be re-spelled by any layer below: its
+  exact mechanical reading against `A112` — constraints evaluated first, other listeners only once every
+  constraint has passed — is the architect's to confirm if any pass needs it as a testable claim. **The
+  distinction matters: `D-1` says the mechanism is unconditional; whether delivery already follows the pass
+  remains the measurement the brief marks `OWED`.**
+- **It does not move evaluation to the store side.** The ruling is about an **import** — a JS module
+  boundary — and it neither requires nor forbids the Rust store evaluating constraints itself. A layer that
+  reads it as a store-side mandate has invented that.
+- **It does not touch the five published surface members or the failure set.** The instance's fourteen own
+  members, the sixteen statuses and the single failure form are unmoved by it.
+
+**THE STATE OF THE PLAN AT THIS RULING.** `docs/L1/module-map.md` and `docs/L1/modules.json` were committed
+at `e2fcbef` **before** this ruling and still carry the superseded configuration. They are owed a revision,
+and the map's own honesty conventions require the revision to say what it replaced rather than to present the
+new reading as though it had always been there.
+
+---
+
+### `D-1-bis` — the reading of *"automatically on read"* is settled: **(a)**
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, answering a
+question L0 put to him rather than interpreting the clause itself.
+
+**THE QUESTION L0 ASKED, IN FULL — the two readings put to him, neither taken:**
+
+> - **(a) The triggered set is what gets checked automatically** — i.e. the mechanism is unconditional on the
+>   write/commit path, which is the `A112` law as it stands. This is how I read it, and it's what makes the
+>   lazy import pointless.
+> - **(b) Reads check constraints** — a `read` would consult registered constraints and refuse or filter. **No
+>   clause in any kept contract declares this**, and it would be new law: it changes `read`, `readLiteral` and
+>   the assembly's omission rules.
+
+**THE ARCHITECT'S ANSWER, VERBATIM:**
+
+> a is correct
+
+**WHAT IT SETTLES.**
+
+- **The constraint mechanism is unconditional on the write/commit path**, over the triggered handle set. There
+  is nothing conditional to defer, which is the ground under `D-1`: the lazy-and-separable reach has no
+  subject because the mechanism is always present.
+- **★ READS CHECK NO CONSTRAINT — (b) is REFUSED BY THE ARCHITECT.** `read`, `readLiteral` and a branch's
+  assembly **consult no constraint**, **refuse nothing on a constraint's verdict**, and **filter nothing** on
+  one. **There is no read-side enforcement arm, none is declared, and none is owed** — this is stated as a
+  refusal of a candidate reading rather than as an absence, so that no later pass "helpfully" adds one.
+
+**WHAT IT DOES NOT SETTLE — AND THIS IS THE CLAUSE THAT WILL BE MISREAD IF IT IS NOT PRINTED.**
+
+- **It confirms what the law IS; it does not confirm that the implementation CONFORMS.** The `A112`
+  conformance question — *does delivery actually follow the constraint pass?* — **remains unmeasured on this
+  branch.** The archived tracker (`docs/next-steps.md` `N7`) measured it **red** on 2026-10-15, and no pass
+  since has re-measured it. **`D-1-bis` does not turn that measurement green, and no layer may report it green
+  on the strength of this ruling.** The brief marks it `OWED` a measurement and that marking stands.
+- **It adds no status to the closed failure set** (sixteen, plus the open escape arm) and moves no member.
+- **It orders no code move and opens no unit.** It settles a reading; it schedules nothing.
+
+**WHAT IT CHANGED BELOW ME: nothing but a prohibition.** The L1 map needs no revision for it — the module
+merge, the endpoint counts and the ownership arithmetic are all `D-1`'s and are unmoved by which reading of
+"on read" is true. **What it changes is what a designer may NOT build: a read-path constraint arm.**
+
+---
+
+### `D-1-ter` — what the lazy reach was protecting, and why the `files` entry is not a one-line delete
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **WHAT THIS IS:** not a new ruling. It is
+**the verified mechanism that `D-1` dissolves**, recorded at the architect's request ("explain the files
+question") so that the explanation persists rather than living in one reply.
+
+**THE REACH ITSELF.** `bindings/js/index.mjs:5227`:
+`if (KERNEL === null) KERNEL = require_('./src/constraint-kernel.mjs');`, inside `constraintsKernel()`.
+
+**THE REASON THE SITE ITSELF GIVES FOR THE LAZINESS, VERBATIM FROM THE CODE** — and it is **not** "the
+constraints are optional", which is the reading `D-1` corrects:
+
+> **IT IS NOT AN EXPORT AND NOT A SUBPATH**: the module is reached as a FILE, at the path the allowlist
+> publishes it at. **AND THE RESOLUTION IS LAZY ON PURPOSE**: the entry must still LOAD where nothing is staged
+> beside it — the publish and negative drives assemble trees carrying `index.mjs` alone — and a load-time
+> import of `./src/` would make every one of those trees unable to reach the artefact they were built to drive.
+
+**So the laziness protects the PROJECT'S OWN TEST DRIVES, not a caller's optionality.** That is why removing it
+is a coupled change and not a deletion, and the coupling is **three layers deep, each verified on this branch:**
+
+| layer | what pins the fourth entry | where |
+|---|---|---|
+| **the code** | the entry reaches the kernel by **path**, so a package published without the file throws at the **first constraint act** | `bindings/js/index.mjs:5227` |
+| **the publish gate** | the kernel is deliberately **not** an `exports` arm — `exports` publishes `"."` alone — so `files` is the **only** gate that puts it in the tarball | `bindings/js/package.json`, the `exports` map |
+| **the test** | a cell asserts **exactly four** entries, the fourth named by path, and that no `.node` and no `build/Release` is among them | `bindings/js/test/publish.test.mjs`, cell `P-PUB-7` |
+| **the contract** | the allowlist's own count is a **declared clause**, not an implementation detail | `docs/specs/storeroom-publish/contract.md §2.1` item **6**, which `P-PUB-7` cites |
+
+**THE FOURTH CONSEQUENCE, AND THE ONE THAT MAKES IT A WAVE RATHER THAN AN EDIT.** When the kernel stops being
+a separately-reached file, **the drives that assemble `index.mjs`-alone trees stop being lawful as they stand** —
+they must either stage the integrated set or drop their kernel-only limbs. So the change touches **source, the
+publish drive fixtures, a test assertion and a contract clause**, and the ordering is forced: **the code
+integrates first, the allowlist and the clause follow it, and no release may be cut in between**, because a
+tarball cut in between is a tarball whose first constraint act throws.
+
+**WHAT THIS ENTRY DOES NOT DO.** It does not order that wave, schedule it, or open a unit — `D-1` and `D-1-bis`
+both say no code move is ordered. It records what the move would have to touch, so that the question "who lands
+the fourth entry's removal" has a factual answer instead of a guess: **whoever owns a wave that spans the entry,
+the drives, the assertion and the clause — which is a unit, and no unit is open.**
+
+---
+
+### `D-2` — `index.mjs` is to be subdivided for readability
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, answering L0's
+question about `D-1`'s end state (whether one module owning two files satisfied *"tightly integrated"*
+indefinitely, or whether the kernel was intended eventually to be inlined into `index.mjs`).
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> 1. Index.mjs is already too long and should be subdivided anyway for readability
+
+**WHAT IT SETTLES.**
+
+- **The subdivision of `bindings/js/index.mjs` (5,903 lines) is sanctioned by the architect, on its own ground
+  of readability** — not as a consequence of `D-1`, and not conditional on it. It is owed as legibility work
+  even if the kernel question had never arisen.
+- **`D-1`'s end state is thereby answered, and the answer is neither of the two L0 put to the plan:** the
+  kernel is **not** appended to `index.mjs` as it stands, because a file already too long is the wrong
+  destination for 2,203 more lines. **`D-1` and `D-2` compose: the tight integration lands inside a
+  subdivided entry**, and `D-2` is the shape in which `D-1` is realised rather than a competing direction.
+- **The L1 map's co-ownership of `index.mjs` stops being a standoff.** `docs/L1/module-map.md §5.1` records
+  that *"no single module can own `index.mjs` until the regions are physically separable"* and that **"this map
+  does not order the separation."** **The architect now does.** §6's question 2 asked two things and its second
+  half — *should the split be taken?* — is **CLOSED: yes, for readability.**
+
+**WHAT IT DOES NOT SETTLE, AND MUST NOT BE READ AS SETTLING.**
+
+- **The cut lines.** How many parts, where the boundaries fall, and what they are called is **L1's** to declare
+  and an implementation wave's to land. **`D-2` sanctions the subdivision; it does not draw it**, and a layer
+  that treats this ruling as a file plan has invented one.
+- **§6 question 2's first half** — *are the five declared line-regions right?* — **stays open.** The regions
+  that exist are the ones the current file implies, and nothing in `D-2` blesses them as the cuts to take.
+- **It orders no pass, opens no unit, and moves no code today.** Like `D-1`, it settles a direction and
+  schedules nothing.
+- **It licenses no change to the published surface:** the one `exports` arm, the fourteen own members, the
+  sixteen statuses, the single failure form and the `files` allowlist's ordering are all outside it. The
+  allowlist question is `D-1`'s and `D-1-ter`'s.
+
+**WHAT IT CHANGED BELOW ME.** The map is owed a revision at two sites (`§5.1` and `§6` question 2) so that it
+stops saying the separation is unordered. That revision is delegated; the map's module count, endpoint count
+and ownership arithmetic are unmoved by it, because `D-2` reclassifies a standoff and draws no boundary.
+
+---
+
+### `D-1-quater` — the `files` question was L0's mis-framing: `delivery` already owns it
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect's challenge —
+*"Wouldn't this already be handled by the delivery module?"* — and it is, so this entry records a **correction to
+L0's own framing, not a ruling of the architect's.**
+
+**WHAT L0 GOT WRONG.** `D-1-ter` closed with *"whoever owns a wave that spans the entry, the drives, the
+assertion and the clause — which is a unit, and no unit is open."* **That sentence implies an ownership gap, and
+there is none.** The map already assigns every one of those artifacts:
+
+| artifact | owner |
+|---|---|
+| `bindings/js/package.json` — **the `files` allowlist itself** | **`delivery`**, whose declared responsibility is *"Own the package manifest, the five per-platform packages, both crate manifests, the shipped README and the release pipeline"* |
+| `bindings/js/index.mjs` region `L5202–L5903` and `src/constraint-kernel.mjs` | `js-constraints` |
+| `bindings/js/test/publish.test.mjs` (cell `P-PUB-7`) and `publish-generators.test.mjs` — the `index.mjs`-alone drive fixtures | `js-battery` |
+
+**So the answer to "who lands the fourth entry's removal" is: `delivery`. It always was.** No module needed
+declaring, no boundary needed drawing, and **no separate unit is owed for it.**
+
+**WHAT IS STILL TRUE FROM `D-1-ter`, AND THE DISTINCTION THAT MAKES BOTH CORRECT.** Ownership and sequencing are
+different questions.
+- **Ownership is complete and was never in doubt.** `delivery` owns the artifact and performs the edit.
+- **What `delivery` cannot do is decide the count alone.** The allowlist's *value* — **exactly four, the fourth
+  being the kernel** — is declared at `docs/specs/storeroom-publish/contract.md §2.1` item **6** and asserted at
+  `P-PUB-7`. **A contract is deliberately owned by no module** (map §5.3: *"no code module owns its own
+  specification: a module that owned its contract could amend what it is measured against"*), so **moving that
+  declared surface is a spec act**, not an implementer's edit.
+- **The order is a property of the dependency, not a negotiation:** the file the allowlist names must exist and
+  be reachable, so `js-constraints` integrates, `js-battery` re-points its fixtures and its assertion, and
+  **`delivery` retires the entry last**.
+
+**THE PRACTICAL UPSHIFT, WHICH IS WHAT THE CHALLENGE WAS POINTING AT.** The `files` step is **not a question
+standing on its own** — it is **`delivery`'s step in an integration wave**, and it needs no separate open item,
+no separate unit and no separate owner. **`D-1-ter`'s facts stand** (four pins, forced ordering, no release cut
+mid-way); **its closing question does not, and is withdrawn here by name.**
+
+**WHAT THIS ENTRY CHANGES BELOW ME: nothing.** No map revision, no module, no endpoint, no boundary — and that
+no-change is itself the answer: when the integration wave is opened, `delivery` already owns its part of it.
+
+---
+
+### `D-3` — the "exactly four" constraint on the `files` allowlist is OBSOLETE
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, in session.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> Obsolete the constraint on 'exactly four'
+
+**WHAT "OBSOLETE" IS TAKEN TO MEAN, STATED SO IT IS NOT OVER- OR UNDER-READ:** the project **no longer holds
+itself to a declared count** on the package's `files` allowlist. The count is not replaced by another count —
+**the constraint is retired**, and what remains binding is the *function* the allowlist serves: **whatever the
+entry requires by path must ship in the tarball.**
+
+**WHAT IS OBSOLETED, BY NAME.** Two artifacts encode the retired constraint, and they are **not the same kind of
+thing**, so they do not retire the same way:
+
+1. **`docs/specs/storeroom-publish/contract.md` `§2.1` item `6`** — the clause that landed 2026-10-16 and
+   declares *"exactly FOUR entries, the fourth being the constraint kernel's own module"* (`A122`, `A121`).
+   **It stands as text and is read through this ruling**, which is this project's own supersession convention
+   (`RCA-8(d)` ANNOTATE-BESIDE). **No role in this workflow owns the spec corpus** — the nine kept contracts are
+   declared inputs, deliberately unowned (map §5.3: *"a module that owned its contract could amend what it is
+   measured against"*) — **so this file, the authority log, is what supersedes it. The clause is not rewritten,
+   and no pass is ordered to rewrite it.**
+2. **`bindings/js/test/publish.test.mjs`, cell `P-PUB-7`** — whose `assert.deepEqual` compares the allowlist
+   against the sorted four-name array. **That equality *is* the count constraint; it cannot be narrowed, only
+   removed or replaced.** **A test cannot be superseded by a ruling — it passes or it fails** — so this cell is
+   **owed a change by its owner (`js-battery`)**, and until that change lands it **encodes an obsolete
+   constraint** and would fail the moment the fourth entry is honestly retired.
+
+**AND THE RULE THAT DOES NOT RETIRE WITH IT, NAMED BECAUSE IT LIVES IN THE SAME CELL.** `P-PUB-7` asserts four
+further things beside the equality, and **none of them is a count constraint**: `build/Release` leaves `files`;
+**no `.node` is published**; no `postinstall` build-on-install route (`PUB-DD-1`); and a tracked-tree walk for a
+shipped binary. **They stand, and any change to that cell must keep them** — a pass that deletes the equality and
+takes the prohibitions with it has destroyed the load-bearing half of the cell.
+
+**AND ONE ANCESTOR CLAUSE THIS RULING LEAVES STRANDED, RECORDED RATHER THAN RESOLVED.** `§2.1` **item `1`** is
+the earlier and stricter rule — *"the allowlist is `index.mjs` · `README.md` · `index.d.ts` and **NOTHING
+ELSE**"* — and `P-PUB-7`'s own comment records that item `6` was landed as **item 1's operative reading**. **With
+item `6` obsoleted, item `1` has no operative successor in that family, and whether "NOTHING ELSE" retires with
+the count or survives as a separate prohibition is a question this ruling does not answer.** It is put to the
+architect below rather than decided here.
+
+**WHAT IT SETTLES.**
+
+- **The allowlist stops being an independently declared surface with an arity.** It becomes a **consequence of
+  reachability**: the entry requires `./src/constraint-kernel.mjs` by path **today**, so that path must ship
+  **today**; when it requires nothing by path, nothing is owed. **The count follows the code; the code no longer
+  follows the count.**
+- **The spec gate `D-1-quater` described is gone.** `delivery` no longer needs a contract amendment to change the
+  allowlist. **The only remaining pin is mechanical** — do not publish a tarball in which an entry-required
+  file is absent, because its first constraint act fails — **and that is a consequence of the code, not a rule
+  about arity.**
+
+**WHAT IT DOES NOT SETTLE.**
+
+- **It orders no code move.** `D-1` and `D-2` still order none, and this ruling removes a constraint rather than
+  scheduling the removal of the entry it constrained. **Retiring the fourth entry before the code stops
+  requiring the file publishes a tarball that breaks at the first constraint act** (`D-1-ter`).
+- **It does not decide what `P-PUB-7` should assert instead, or whether it should assert anything.** Reachability
+  rather than arity is the obvious candidate and **L0 does not write it and must not invent it** — the assertion
+  is the test layer's to declare, and the cell's four surviving assertions are its floor.
+- **It does not address a glob, a wildcard, or a directory entry in the allowlist.** Whether those are lawful is
+  a separate question, and **nothing here licenses one.**
+- **It moves no module, no endpoint and no boundary.** The map's I-23 statement of the tree stays true — the
+  manifest carries four entries today — and only its *binding force* is retired; the map carries the pointer.
+
+---
+
+### `D-4` — the strict count is lifted, and the publish shape is determined by `delivery` and the e2e/blind scenarios
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, in session,
+answering the question `D-3` left open rather than deciding it.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> The strict count is lifted, the delivery module and the e2e/blind scenario testing will determine the required
+> publish shape
+
+**WHAT IT SETTLES.**
+
+- **`D-3`'s stranded ancestor is closed, and on the wider side: the STRICT COUNT IS LIFTED — the whole family.**
+  `§2.1` **item `1`**'s *"`index.mjs` · `README.md` · `index.d.ts` and **NOTHING ELSE**"* retires with item `6`'s
+  *"exactly FOUR entries"*. **No declared arity and no declared exclusivity binds the `files` allowlist.** The
+  question `D-3` put to the architect — *does "NOTHING ELSE" survive as a separate prohibition?* — is answered:
+  **it does not survive.**
+- **The publish shape has a named authority, and it is empirical.** **`delivery` — the manifest's owner — and
+  the e2e/blind scenario testing together determine the required publish shape.** So the shape is a
+  **consequence of what the scenarios prove is required**, and **no allowlist question needs to be put to the
+  architect again**: a pass that needs to know the shape runs the instruments that determine it, and `delivery`
+  declares the answer in the manifest.
+- **This is the replacement for the clause, and it is not another clause.** The count was a *declared* surface;
+  its successor is **an evidence-derived one**. A pass that keeps a hand-maintained list in a specification has
+  re-created the constraint this ruling lifted.
+
+**WHAT IT DOES NOT SETTLE.**
+
+- **It names no scenario** and does not say that a new one must be written. Which cells carry the evidence, and
+  whether the existing e2e/blind set is sufficient to determine the shape, is a test-layer question.
+- **It orders no wave and schedules nothing.** `D-1`, `D-2` and `D-3` each order no code move, and this ruling
+  assigns authority rather than opening work. **Retiring the fourth entry still requires the code to stop
+  requiring it by path** (`D-1-ter`).
+- **It changes no prohibition.** `P-PUB-7`'s four surviving assertions — no `.node`, no `build/Release`, no
+  `postinstall` route, and the tracked-tree walk — are **functional and security rules, not shape rules**, and
+  the lifted count does not touch them.
+- **It does not reach the `exports` map or the five exact `optionalDependencies` pins.** Those are not the
+  allowlist's shape: `exports` is the resolution surface and the pins are the dedupe guard.
+
+**THE CROSS-WALK THIS RULING OWES THE MODEL, RECORDED BECAUSE IT IS A LIVE COLLISION.** The ruling hands the
+shape to *"the delivery module and the e2e/blind scenario testing"*, and **in this tree those are not one layer's
+artifacts:**
+
+| the ruling's instrument | the module that owns it today | the strata role that would own it |
+|---|---|---|
+| the manifest | **`delivery`** | L2 `delivery` |
+| the e2e/blind scenarios | **`js-battery`** (`bindings/js/test/*.test.mjs`, incl. `json-crossing-blinded.test.mjs`) and **`greens-harness`** (`bindings/js/greens/blind-constraints-v2.mjs`) | **`role_l1_test_writer`**, whose declared write scope is **`tests/e2e/`**, and `role_l2_test_writer` (`tests/integration/<module>/`) |
+
+**So the authority the architect has named spans two modules and one strata role that do not yet share a path
+convention:** this project keeps its batteries at `bindings/js/test/` and `bindings/js/greens/`, while the strata
+preset's test roles are declared to write under `tests/e2e/`, `tests/integration/<module>/` and
+`tests/unit/<module>/`. **That is a real open question for the model — not for the publish shape** — and it is
+put to the architect below rather than resolved here.
+
+---
+
+### `D-5` — the strata preset's test-role write scopes are kept; the project's batteries adapt
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, answering the
+model question `D-4` left open.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> Keep the preset's choice
+
+**THE QUESTION IT ANSWERS, SO THE ANSWER'S SCOPE IS NOT GUESSED.** `D-4` hands the publish shape to *"the
+e2e/blind scenario testing"*, and `D-4` recorded that the project's batteries and the preset's test roles do not
+share a path convention. The question put to the architect was: **does the e2e/blind battery keep
+`bindings/js/test/` and `bindings/js/greens/`, with the preset's test-role scopes bending to it — or do the
+batteries move under the preset's scopes?** **The answer is the second: the preset is not amended.**
+
+**WHAT IT SETTLES.**
+
+- **The strata preset's three test-role write scopes stand as configured and are not edited for this project:**
+  `role_l1_test_writer` → **`tests/e2e/`**, `role_l2_test_writer` → **`tests/integration/<module>/`**,
+  `role_l3_test_writer` → **`tests/unit/<module>/`**. **The preset is the constraint; the tree adapts to it**,
+  and every alternative that bent a role's declared scope to a path this project already uses is refused by this
+  ruling.
+- **The battery modules' current paths are therefore PRESENT-STATE paths, not the model's homes.** The map's
+  `store-battery` (`tests/`), `binding-battery` (`bindings/js/tests/`), `js-battery` (`bindings/js/test/`) and
+  `greens-harness` (`bindings/js/greens/`) own what exists **today**; **when the strata model takes the batteries
+  over, their content is stratified into the preset's three scopes.**
+
+**WHAT IT DOES NOT SETTLE, AND THIS IS THE WHOLE OF THE REMAINING WORK.**
+
+- **It does not say which file goes to which scope.** The preset's decomposition is **by layer** — e2e drives the
+  built artefact through its declared entry points; integration drives one module's I/O surface; unit pins one
+  module's signatures — while **this project's batteries are organised by unit and wave** (`json-crossing`,
+  `held-listener-identity`, `constraints`, `file-tier-save`, `publish`, the `gate4_*` sets). **A re-cut from one
+  organisation to the other is a redistribution of 75 files across three layers, and it is not a path rename.**
+  **That decomposition is L1's to declare, not L0's**, and no clause here draws it.
+- **It orders no migration and schedules nothing.** `D-1`…`D-4` each order no code move, and this ruling settles
+  a convention rather than opening work.
+- **It does not change any battery's content, coverage, or the layer each green is reported against.** The
+  project's rule that *"a green on one layer does not retire a red on another"* (`strata/brief.md` §5 item 8)
+  survives the move of the files that report it.
+- **It does not touch `role_l1_examiner`, `role_l2_examiner` or `role_l3_examiner`**, whose scopes are reads and
+  whose procedures are unchanged by where the battery lives.
+
+**WHAT IT MEANS FOR THE TWO OPEN PIECES OF WORK, STATED SO THE ORDER IS VISIBLE.** Two pieces now stand
+recorded and unscheduled: the **subdivision + kernel integration** (`D-1`, `D-2`, `D-3`, `D-4`) and the
+**battery stratification** (`D-5`). **They are not independent:** `D-4` makes the publish shape a consequence of
+what the e2e/blind scenarios prove, so **the scenarios' placement is upstream of delivery's manifest decision** —
+which means the battery stratification is arguably the first of the two, not the second. **That ordering is L0's
+own reading and is marked as such; it is not a ruling and the architect has not said it.**
+
+---
+
+### `D-6` — the specifier blocker is resolved: O3 for e2e publish-readiness, O4 for earlier tests
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, choosing from the
+option space L0 put to him after the stratification declaration raised the blocker.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> Use O3 for e2e publish-readiness, O4 for earlier tests
+
+**THE TWO OPTIONS, RESTATED SO THIS RECORD STANDS ALONE.**
+
+- **`O3` — STAGED INSTALL.** The cell assembles a package tree into a scratch `node_modules` — the package's own
+  files as the allowlist carries them, plus a reachable addon — and imports the package **by its name from
+  inside that tree**. It passes through the package's **`exports` map** *and* through an **install-shaped**
+  tree. It is the project's own idiom: `publish.test.mjs`'s `coveredEnv`/`makeScratch` already assemble trees
+  to drive, and `typecheck/` already stages `node_modules/provident-storeroom`.
+- **`O4` — PATH ENTRY.** The cell reaches the entry by **path** (`bindings/js/index.mjs`), which resolves the
+  addon ladder from the **entry's own directory** and so exercises rung 2 exactly as a name-route does, and
+  which **bypasses the `exports` map** — so it cannot catch an `exports` error.
+
+**WHAT IT SETTLES.**
+
+- **The blocker is closed.** No cell needs a bare specifier to reach a package it cannot self-reference from
+  `tests/e2e/`, because no cell is left in that position: the publish-readiness cells **stage**, and every other
+  cell **reaches by path**.
+- **The split criterion is PURPOSE, not layer.** It cuts across the preset's three scopes: a publish-readiness
+  cell is one whose subject is *whether the package as shipped resolves and runs*, and it takes **`O3`**; every
+  earlier cell takes **`O4`**. **The `exports` map is therefore asserted where the install shape is assembled,
+  and nowhere else** — which is also where `D-4`'s publish-shape evidence lives.
+- **The 19 files that carry the bare specifier today are all re-spelled**: 17 `*.test.mjs` plus the two shared
+  helpers (`constraint-kernel-helpers.mjs`, `held-listener-identity-helpers.mjs`). **Verified list, by path:**
+  `a127-surface`, `addon-adoption`, `addon-surface-properties`, `addon-surface`, `constraints-publication`,
+  `convenience`, `file-tier-save-properties`, `file-tier-save`, `held-listener-identity-gate4-regressions`,
+  `held-listener-identity-surface`, `json-crossing-blinded`, `json-crossing-gate4-adversarial`, `json-crossing`,
+  `negative-generators`, `registry`, `round-trip`, `surface` — plus the two helpers.
+- **Every greens runner is ALREADY `O4`-shaped, verified:** `greens.mjs:196` is `await import('../index.mjs')`,
+  `live-drive.mjs:35` is `path.resolve(HERE,'..','index.mjs')`, and `json-crossing-live.mjs:132` is
+  `process.env.JC_ENTRY ?? path.join(HERE,'..','index.mjs')`. **So the move costs the greens nothing but their
+  directory** — the one part of the battery `D-5` relocates most easily.
+
+**WHAT IT DOES NOT SETTLE.**
+
+- **Which cells are "publish-readiness".** That is the assignment the stratification declaration owes: each of
+  the **33** e2e files takes a route tag, `O3` or `O4`, and **L1 declares it** — L0 does not, and this ruling
+  does not list them.
+- **What the staged tree contains** (`O3`'s own design): which files it copies, whether the addon is staged as
+  the checkout's `build/Release` or as a platform package, and whether one tree serves several cells. **L1's to
+  declare.**
+- **★ WHETHER THE EARLIER SET KEEPS A PACKAGED-RESOLUTION CELL.** `O4` as L0 defined it carried *"one cell
+  asserting the packaged name resolves"*. **With `O3` asserting resolution through a real staged install, a
+  second such assertion in the earlier set would be a second home for one claim** — which this project treats as
+  a finding rather than a redundancy. **L0's reading, marked as inference and not as the ruling: the packaged
+  claim lives EXCLUSIVELY in the `O3` set, and the earlier cells use paths and claim nothing about `exports`.**
+  **The architect should confirm or correct that reading.**
+- **It does not answer `F3` (the labels).** Route and label are different questions: a cell can reach the entry
+  by path and *still* be labelled for the layer it drives. **Whether the checkout's `.node` makes a cell
+  `assembled` or leaves it `envelope` is unmoved by this ruling.**
+- **It does not answer `F4`.** No route here produces an **installed-from-the-registry** green; `O3` is
+  install-*shaped*, not installed. `D-4`'s installed-shape evidence still needs its own driver.
+- **It orders no file move.** Like every ruling before it, it settles a mechanism and schedules nothing.
+
+---
+
+### Correction to `D-3` — the count was pinned in **two** cells, not one
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** L0's own verification while
+preparing `D-6`; **a correction to `D-3`, not a ruling.**
+
+**WHAT `D-3` SAID.** *"`bindings/js/test/publish.test.mjs`, cell `P-PUB-7`"* — named as **the** test that encodes
+the retired four-entry count.
+
+**WHAT IS ALSO TRUE, VERIFIED.** **`bindings/js/greens/greens.mjs` cell `JSG-12.18` asserts the same thing, and
+more:** an **exact set equality** on `['index.mjs', 'README.md', 'index.d.ts', 'src/constraint-kernel.mjs']`
+(line 1205), **the fourth entry refused any looser form**, **a fifth entry refused**, and **a `LICENSE` row
+refused** (line 1211). **So retiring the count honestly fails TWO cells in TWO different batteries** —
+`P-PUB-7` in `js-battery` and `JSG-12.18` in `greens-harness` — and `greens-harness` is the battery whose whole
+purpose is to *report* rather than assert.
+
+**AND THE CAUTION `D-3` STATED FOR `P-PUB-7` APPLIES HERE TOO, CELL FOR CELL.** `JSG-12.18`'s other subjects —
+**no `build/Release` path, no `.node` at any entry, and no `LICENSE` row** — are **functional and licensing
+rules, not shape rules**, and they survive the count's lifting exactly as `P-PUB-7`'s four do. **A pass that
+retires the fourth entry must edit both cells and take neither's prohibitions with it.**
+
+---
+
+### Correction to `D-6` — 24 files carry the bare specifier, not 19
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the L1 route-tagging pass,
+which measured the population and challenged L0's figure; **L0 verified it and was wrong.**
+
+**WHAT `D-6` SAID.** *"The 19 files that carry the bare specifier today are all re-spelled"*, with a
+seventeen-test list plus the two helpers.
+
+**WHAT IS TRUE, VERIFIED TWO WAYS.** **24 test files carry the bare specifier as a module id.**
+- **19 by static import** — the list `D-6` already prints, unchanged.
+- **5 by DYNAMIC import, which `D-6` missed entirely**: `a126-constraint-methods.test.mjs`,
+  `held-listener-identity-properties.test.mjs`, `package-entry.test.mjs`, `publish.test.mjs`,
+  `register.test.mjs`.
+- **The cause is L0's measurement, stated so it is not repeated: the grep was `from 'provident-storeroom'`,
+  which finds static import declarations only, and the count was reported as though it were the population.**
+
+**THE CONSEQUENCE, WHICH IS NOT COSMETIC.** Two of the five were already `O3`-bound (`publish`,
+`package-entry`), so `O3`'s staged-name mechanism covers them. **Three were `O4`-bound and were absent from
+`D-6`'s list entirely** — `a126-constraint-methods`, `held-listener-identity-properties`, `register` — **and each
+carries a dynamic `import()` of the bare name that a path re-spelling must therefore rewrite.** A migration that
+worked `D-6`'s list literally would have left three cells importing a name that no longer resolves, which fails
+at the cell's own `import()` rather than at load — **the failure mode that reads like a red test instead of a
+broken import.**
+
+**THE RULE THIS LEAVES:** **a specifier census must count every form — static `from`, dynamic `import()`,
+`require()` and `createRequire` — and must say which forms it counted.** `D-6`'s criterion is unchanged; only its
+population was short.
+
+---
+
+### Two readings L0 puts on the record, awaiting the architect's confirmation
+
+**Not rulings. Marked as inference, and nothing is built on either.**
+
+**`R-1` — the `LICENSE`-row prohibition survives the lifted count.** The route-tagging pass flagged that `D-4`
+lifts `§2.1` item `1`'s *"and NOTHING ELSE"* while `D-3`'s correction keeps `JSG-12.18`'s **`LICENSE`-row
+refusal**, and read the two as colliding on one manifest row. **L0's reading: they do not collide. The
+`LICENSE`-row prohibition has its OWN home — `§2.1` item `5`, which `JSG-12.18` cites separately from items `1`
+and `6` — so it never depended on item `1`'s exclusivity, and lifting item `1` does not lift item `5`.** The cell's
+`LICENSE` subject therefore stands, and the cell is editable: only its exact-set equality is obsolete.
+
+**`R-2` — the packaged-resolution claim lives exclusively in the `O3` set.** Already recorded as `D-6`'s open
+item. **Restated here only to keep it visible: it remains UNCONFIRMED, and no pass may build on it as settled.**
+
+---
+
+### `D-7` — the packaged-resolution claim is `O3`'s alone; `O3` is surface-facing/install only, with its own helpers
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, closing `D-6`'s open
+item and the route-tagging pass's helper finding.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> 2. Put in 03
+> 3. 03 is for surface-facing/install tests only and will have/need its own test helpers for the import/install regardless
+
+**WHAT IT SETTLES.**
+
+- **`R-2` IS CONFIRMED.** The packaged-resolution claim — *the name resolves through the `exports` map* — lives
+  **exclusively in the `O3` set.** The earlier set claims **nothing about `exports`**: its cells reach the entry
+  by path and say so. **No packaged-resolution cell is owed in the `O4` set, and a migration that adds one has
+  invented work.**
+- **`O3`'s membership rule is now narrower than "assembles a tree":** it is **surface-facing and install tests
+  only.** A cell that assembles a tree but whose subject is a *behaviour* is not an `O3` cell — which confirms the
+  tagging pass's call on `negative-generators` (an arm's subject, not the file's route) and confirms that the
+  `O3`-shaped *limbs* found inside `O4` files stay limbs, not routes.
+- **`O3` OWNS ITS OWN HELPERS, FOR THE IMPORT/INSTALL MECHANISM, AND WILL NEED THEM REGARDLESS.** This dissolves
+  the helper constraint the tagging pass reported: an `O3` cell must **not** consume an `O4` helper, because one
+  `import` statement cannot be both a name reach and a path reach. **So the shared-helper question has no
+  subject: `O3`'s helpers are `O3`'s.** `O4` keeps the existing helpers, and no helper becomes a
+  two-mechanism file.
+
+**WHAT IT DOES NOT SETTLE.**
+
+- **Which helpers `O3` needs and what they contain** — the staging helper, the install helper, the
+  name-resolution assertion helper. **L1's to declare**, and `D-6` already declares the staged tree's contents.
+- **The two shared helpers' fate** (`constraint-kernel-helpers.mjs`, consumed by 12 files across three scopes;
+  `held-listener-identity-helpers.mjs`, by e2e + integration). Since no `O3` cell may consume them, **their
+  consumption set shrinks to `O4` + integration + unit**, and the re-check at migration is a bookkeeping task,
+  not a design question.
+- **It orders no file move.**
+
+---
+
+### Correction to `R-1` — withdrawn: the `LICENSE`-row refusal is grounded in item 1, not item 5
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** L0, reading the contract's own
+carriage clause; **a correction to L0's reading, not a ruling.**
+
+**WHAT `R-1` SAID.** *"The `LICENSE`-row prohibition has its OWN home — `§2.1` item `5` — so it never depended on
+item `1`'s exclusivity, and lifting item `1` does not lift item `5`."*
+
+**WHAT THE CONTRACT ACTUALLY SAYS, READ AT ITS BYTES.** `§2.1` item `1`'s carriage clause
+(`docs/specs/storeroom-publish/contract.md`, the paragraph following item `1`) states the refusal's ground in
+terms this reading cannot survive: **"adding a `LICENSE` entry to the main package's `files` is REFUSED because it
+would contradict `§2.1` item 1 on its own face."** **So the prohibition IS grounded in item 1's *"and NOTHING
+ELSE"*, and `D-4` lifted exactly that.** `R-1` is **withdrawn by name.**
+
+**WHAT SURVIVES INDEPENDENTLY — and this is why the question is live rather than settled.** Three things are not
+item 1:
+1. **The CARRIAGE MECHANISM.** The main package's licence copy is landed by **the release's own assembly step**,
+   which copies the repository's `LICENSE` byte-for-byte into **each of the six artefacts' tarballs**
+   (`§2.3` item 2; `distribution.md §4.3` item 2; the `Q3-5` duty; `PUB-DD-11`). **A consumer who unpacks reads
+   FOUR published paths while the tracked manifest names THREE, and the contract says that difference "is the
+   mechanism rather than a defect".**
+2. **`PUB-DD-11`** — a per-artefact copy is *"the licence's TEXT travelling with an artefact"* and **not a fifth
+   declaration site**.
+3. **`PUB-DD-12` / `DD-43`** — a `LICENSE` byte **written under `bindings/js/`** is refused as a *tracked or
+   persisting* file; the pack-time transient copy is reconciled separately and is lawful.
+
+**AND THE FACT THAT DECIDES WHAT THE CHOICE IS WORTH: A `files` ROW CHANGES NO BYTE OF THE TARBALL HERE.** The
+licence copy is landed by the assembly step **regardless of the allowlist**, and npm includes a `LICENSE` file
+when one is present **regardless of `files`** (npm's own always-included set — general npm behaviour, **not
+measured on this branch**). **So the row is PURELY DECLARATIVE: it changes what the manifest says, never what
+publishes.** The project has met the neighbouring hazard and has the scar: `publish.yml`'s pre-publish `test -e`
+guards exist because **npm omits a missing `files` entry silently** — a declared path that no tarball carries
+packs green.
+
+**THE THREE READINGS, PUT TO THE ARCHITECT RATHER THAN DECIDED.**
+
+- **(i) The row stays refused** — on the carriage ground: a row would be **redundant with the assembly step** and
+  would make the manifest a second declaration of how the licence travels. `JSG-12.18`'s `LICENSE` subject then
+  **stands**, and only its exact-set equality is obsolete.
+- **(ii) The row is now LAWFUL** — because its only stated ground is lifted, and a declarative row that cannot
+  change the tarball costs nothing.
+- **(iii) The row is lawful ONLY IF EVIDENCE REQUIRES IT** — `D-4`'s own criterion: if an e2e/install scenario
+  shows a consumer or a scanner needs the row, `delivery` adds it; otherwise it stays out. **L0's reading is
+  (iii)**, because it is the only one that does not re-introduce a fixed manifest rule in the place of the one
+  `D-4` lifted. **It is marked as inference and nothing is built on it.**
+
+**WHAT THIS CHANGES BELOW ME: one cell's editability.** `JSG-12.18` is the second pin on the retired count
+(`D-3`'s correction), and **whether its `LICENSE` subject survives is now an architect's call rather than a
+restatement of an existing clause.** Until it is answered, that cell cannot be edited safely.
+
+---
+
+### The path move owes two amendments, and one of them names the move itself
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** L0's reading of the publish
+contract while elaborating `F3`; **a finding, not a ruling.**
+
+**`PUB-DD-24` is the clause that pins the red set's home, its command AND its layer**, and `D-5`'s relocation of
+the batteries collides with all three: it declares that **the red set is `bindings/js/test/publish.test.mjs`,
+inside the directory the landed JS leg's command globs (`node --test bindings/js/test/*.test.mjs`, taken at the
+repository root)**, because *"a red set under `docs/specs/**` would be executed by NO COMMAND THIS PROJECT
+RUNS"*, and that **"the unit's own node legs are that same command at that same site, at `ENVELOPE/PURE`"**
+
+**AND ITS OWN `alt` IS THE MOVE, ALREADY PRICED:** *"A SEPARATE COMMAND AND DIRECTORY FOR THE PUBLISH CELLS —
+priced: the project's landed legs both run at the repository root, so a third command would need its own tracker
+leg, its own record cell and its own layer statement, while the existing command already globs the file; available
+with a fresh ruling"*, **followed by a bounded amendment of `docs/specs/storeroom-publish/` together with
+`docs/specs/storeroom-js/implementation-plan.md`'s leg declaration, which names the command.**
+
+**SO THE MOVE'S REAL COST IS NOW NAMED, AND IT IS NOT THE FILES:** `tests/e2e/` needs **a third command, its own
+tracker leg, its own record cell and its own layer statement**, and two spec directories owe bounded amendments.
+**The spec corpus is unowned, so who performs those amendments remains the open question the route pass put to
+the architect — this clause is the thing they must amend.** And its finding list also carries **"a rewritten
+existing test file"**, which a re-spelling pass must be reconciled against rather than ignored.
+
+---
+
+### `D-8` — `LICENSE` reading **(iii)**: the row is lawful only if evidence requires it
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, choosing among the
+three readings `D-4`'s correction put to him.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> License - iii
+
+**WHAT IT SETTLES.** **The `LICENSE` row is not refused by rule any more, and it is not granted by rule either:**
+`delivery` adds it **only if an e2e/install scenario shows a consumer or a scanner needs the row**, and otherwise
+it stays out. **That is `D-4`'s criterion applied to the one manifest row that was still rule-bound** — the shape
+follows evidence, and no fixed manifest rule replaces the one `D-4` lifted.
+
+**WHAT THIS DOES TO `JSG-12.18`.** Its `LICENSE` subject asserted an **unconditional** refusal. **An
+unconditional refusal no longer exists, so that assertion has no subject** — it is owed **retirement or
+re-derivation as evidence-conditional by its owner**, and which of the two is a test-layer declaration, not L0's.
+**Its exact-set equality is obsolete separately (`D-3`'s correction), so the cell owes two edits, not one**, and a
+pass that makes only the equality edit leaves an assertion standing on a rule that is gone.
+
+**WHAT STANDS, UNMOVED.** The **carriage mechanism** — the assembly step lands the licence byte-for-byte into all
+six tarballs, and the manifest's three names against the tarball's four paths *"is the mechanism rather than a
+defect"*. `PUB-DD-11` (*not a fifth declaration site*) and `PUB-DD-12`/`DD-43` (**no persisting `LICENSE` byte under
+`bindings/js/`**; the pack-time transient copy lawful). **And the fact that makes the choice cheap: the row changes
+no byte of the tarball — it is purely declarative.**
+
+---
+
+### `D-9` — `F3`: make the change — and the label is per-run, which makes this structural
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect: *"F3 - Make change"*.
+
+**WHAT IT SETTLES.** **The `O3` cells are to be labelled `assembled`, and the `O4` cells keep `ENVELOPE/PURE`** —
+on the ground `D-6` established: an `O3` cell stages a package tree and a platform package and **must not lean on
+rung two**, while an `O4` cell is the *"package layer, in-process"* that `§2.1` item 2 says rung two carries.
+
+**★ AND THE STRUCTURAL FINDING L0 MET WHILE PREPARING IT — THE LABEL CANNOT BE CHANGED FOR FIVE CELLS IN PLACE.**
+**The layer is declared PER RUN, not per cell:** each runner carries one `const LAYER`
+(`greens.mjs:70`, `held-listener-identity-greens.mjs:20`, `json-acceptance-set-greens.mjs:58`,
+`json-acceptance-set-live.mjs:54`), and **`greens.mjs` states the coupling in its own words** — *"`const LAYER` AND
+`const APP_LAYER` ABOVE, THE HEAD COMMENT AND THE PRINT ARE BYTE-IDENTICAL: a cell of
+`bindings/js/test/register.test.mjs` reads them, and a change there would manufacture a false green."*
+**So relabelling a subset requires one of exactly two structural moves: (a) per-cell layer labels, or (b) the `O3`
+cells separated into their own run carrying its own label.** **Neither is drawn here; L1 declares which.** The
+consequence of missing this is the one the code warns about: a half-relabelled run that still prints one label
+manufactures a false green in `register.test.mjs`.
+
+**THE SITES ANY PLAN MUST NAME, ALL FOUR ASSERTED RATHER THAN DISPLAYED.** `greens.mjs`'s constant and its two
+asserting cells `JSG-12.15`/`JSG-12.16`; `register.test.mjs`'s extraction from `greens.mjs` by path;
+`package-entry.test.mjs:345`'s pin against `DD-20`; and `json-acceptance-set-live.mjs:54`'s own glossed label.
+
+**AND THE VOCABULARY'S DEFINITIONAL HOME IS NOW ARCHIVED.** The publish contract cites
+`docs/specs/storeroom-js/acceptance.md §4.2` as *"the sibling LAYER label, cited and never re-labelled"* — and
+**that file is at `archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-js/acceptance.md`** after this
+branch's archival pass, because the keep-set was one `contract.md` per module. **So the relabel's documentary
+home sits outside the kept corpus**, and a pass must cite the archived path rather than pretend the citation
+resolves.
+
+**WHAT IT DOES NOT SETTLE.** Which structural move (a) or (b); whether the four `O3` *greens* runners are split
+from `greens.mjs` or labelled per cell; whether the publish-side vocabulary must move with the JS-side label; and
+**no file move is ordered.**
+
+**AND THE PLACEMENT, RECORDED BECAUSE IT GOVERNS WHEN THIS CAN LAND.** `bindings/js/test/` and
+`bindings/js/greens/` are **present-state paths that no strata role may write** — the preset's test roles write
+`tests/e2e/`, `tests/integration/<module>/` and `tests/unit/<module>/` (`D-5`). **So the relabel lands with the
+migration wave, in the battery's new home, and not before** — editing the batteries in place would be L0 doing
+implementation outside the model, which is the one thing the wall exists to prevent.
+
+---
+
+### `D-10` — `F4` is in scope, for the local-environment-compatible import
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect: *"F4 - In scope for
+the local-env-compatible import"*.
+
+**WHAT IT SETTLES.** **The installed-layer battery is in scope, and it is driven by a LOCALLY PACKED tarball** —
+the `LIVE/INSTALL` instrument's own *"packed or released tarball"* arm (`§4.2` item 1), in a directory with no
+repository in its ancestry and no `build/Release` beside the entry, with one real Node process. **A registry
+release is not required, and nothing here authorises one.**
+
+**WHY THIS IS THE RIGHT ARM, RECORDED BECAUSE IT CLOSES A GAP `F4` DESCRIBED WRONGLY AT FIRST.** L0 called the
+situation a circularity — shape determined by installed evidence, but nothing installable before it is shaped.
+**It is not a circularity: the declared instrument already accepts `npm pack` output, so the shape can be
+determined before any release.** `F4`'s gap was a **missing battery**, not a missing ruling — and `D-4`'s evidence
+base is now available: **a packed-tarball install is the instrument that falsifies the allowlist, which is exactly
+what the lifted count no longer constrains by rule.**
+
+**WHAT IT BECOMES IN THE STRATIFICATION.** It is **`O3`'s strongest cell set** — surface-facing/install, staged,
+name-resolved — and under `D-7` it **carries `O3`'s own import/install helpers and consumes no `O4` helper.** It
+is the one battery that reaches **rung one**, so the five platform names are falsified there and nowhere else
+today.
+
+**WHAT IT MUST NOT CLAIM — both already priced, and neither is optional.** **`PUB-DD-13`:** a **local tarball's
+digest is NOT the released artefact's tie** — a consumer verifying against it meets a mismatch on a correct
+package, so the battery takes **shape** evidence and mints **no digest figure**. **`PUB-DD-14`:** it is **not**
+*"a consumer has loaded this package"* — that universal negative is unfalsifiable by this topology, and
+`LIVE/INSTALL` drives a clean directory and one Node process, **not an application**. **And `APP` stays `NONE`**: an
+installed green is not an `APP`-green.
+
+**WHAT IT DOES NOT SETTLE.** Its cells, their count, its own label string, its helpers' contents, and its command —
+**L1 declares all of it.** And it orders no build: the battery is declared before it runs, like every unit here.
+
+---
+
+### Correction to `D-9` — the `O4` set is LEFT UNTOUCHED, not "kept at `ENVELOPE/PURE`"
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** L0, against the tree, after the
+declaration pass reported its four-site reading.
+
+**WHAT `D-9` SAID.** *"The `O3` cells are to be labelled `assembled`, and the `O4` cells keep `ENVELOPE/PURE`."*
+
+**WHAT THE TREE SHOWS.** **`live-drive.mjs` already declares `LIVE / ASSEMBLED PACKAGE`** — its head comment
+reads *"this run is a LIVE run of the ASSEMBLED PACKAGE — the real artifact, a real process, real file I/O, real
+caller"* and it prints the same at `:1296` — **and it is an `O4` cell** (`O4` = path entry, which says nothing
+about the layer). **So `D-9`'s second half, read literally, would have DOWNGRADED a run that already reports the
+stronger layer.** That was L0's over-specification, not the architect's instruction, and it is corrected here.
+
+**THE OPERATIVE READING.** **`D-9` moves the `O3` cells to `assembled` and LEAVES THE `O4` SET ALONE** — whatever
+each `O4` run already declares stays declared, `ENVELOPE/PURE` where it says so and `LIVE / ASSEMBLED PACKAGE`
+where `live-drive.mjs` says so. **Route and label are independent axes (`D-6`), and `D-9` moves one of them.**
+
+**AND THE DECLARATION PASS'S STRUCTURAL CHOICE IS THEREBY CONFIRMED ON EVIDENCE, NOT ON PREFERENCE.** It measured
+that **no `O3` cell sits inside any of the four files that carry a run-level `const LAYER`**, so the relabel is
+**not** an edit to any existing runner: the `O3` label gets its home in the new `O3` helper
+(`tests/e2e/staged-install/staged-install-support.mjs`), and **`greens.mjs`'s constant, `JSG-12.15`/`12.16`, and
+`register.test.mjs`'s two extraction cells are not edited at all** — which is what keeps the trap the code warns
+about (`"a change there would manufacture a false green"`) from ever being approached.
+
+**`Q14` AND `Q18`, ANSWERED AS CONSEQUENCES RATHER THAN PUT TO THE ARCHITECT.** **`Q14`:** yes — `publish` and
+`publish-generators` are `O3` cells, so `D-9` reaches them; **what they conflict with is `PUB-DD-24`'s text, and
+that clause's amendment is already recorded as owed**, so the relabel waits on the amendment rather than on a
+ruling. **`Q18`:** `D-8` (iii) makes the `LICENSE` row's antecedent *"does a consumer or a scanner need it?"* an
+**install observation**, so its evidence lives in the installed battery — declared as `INSTALL-11` (the carriage
+as a **positive** observable, where a refusal used to stand) and `INSTALL-12` (the conditional, citing its
+evidence). **A greens cell is a blind instance off documentary bytes and cannot carry an install observation,
+which is why the disposal is retire-here / re-derive-there and not a rewrite of `JSG-12.18`.**
+
+---
+
+### `D-11` — the third leg, its tracker entry and its layer statement are owned by the battery/greens module
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, answering the
+ownership question `D-9`'s amendment note left open.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> 1. Owned by battery/greens module
+
+**WHAT IT SETTLES.** **The `tests/e2e/` command, its tracker leg and its own layer statement are owned by the
+battery/greens modules** — `js-battery` and `greens-harness`, the two modules that own the batteries being moved
+(map §2.4). **The e2e set spans both batteries, so the leg follows the battery that carries it rather than a
+project-level harness.**
+
+**AND THE SPEC-CORPUS GAP IS CLOSED FOR THIS CLAUSE BY ITS OWN SUBJECT, which is why the earlier
+"unowned corpus" objection does not block this move.** `PUB-DD-24` declares **exactly those three things** — the
+red set's *site*, the *command* that globs it, and the *layer* it reports — **so the module that owns the
+battery owns the clause's subject**, and the amendment is read through that module's declaration rather than
+through an unowned corpus. **This is a narrow resolution and it does not make the corpus owned in general**: it
+says that a clause whose entire subject is a module's site, command and layer follows that module. **L0's reading
+of the architect's words, recorded as such.**
+
+**WHAT IT DOES NOT SETTLE.** **Where the split falls between `js-battery` and `greens-harness`** when one leg
+spans both — L1 declares it if a single owner is needed. **Who amends
+`docs/specs/storeroom-js/implementation-plan.md`'s leg declaration** — the second amendment `PUB-DD-24`'s `alt`
+names, whose subject is a *command* the sibling unit declares rather than a battery's own site. **And the root
+manifest's `scripts`** (the private harness manifest, unowned by design): the leg's *declaration* is the battery
+module's, while the root `package.json` byte that spells it is still harness — **a pass that adds the script edits
+an unowned file, and that is declared rather than glossed.**
+
+---
+
+### `D-12` — the installed battery MAY pack a local platform tarball
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect: *"2. Yes"*, to the
+question whether the battery may pack a local platform tarball.
+
+**WHAT IT SETTLES.** **The installed battery is SELF-CONTAINED: it packs the main package AND the host platform
+package and installs both, so RUNG ONE FIRES WITHOUT A REGISTRY.** `D-10`'s local-env-compatible arm is therefore
+fully drivable off-line, and `INSTALL-08` (this host's name as a **load**) becomes a green the battery can reach
+rather than a claim it can only restate.
+
+**AND IT BUYS A FALSIFIER THE PROJECT HAS PAID FOR ONCE ALREADY.** Packing the platform artefact locally puts
+**that artefact's own `files` allowlist** under the battery's observation — the exact surface whose defect made
+`0.1.0`'s five platform tarballs **publish green while each carried `README.md` and `package.json` alone**, its
+`files` naming a `.node` and a `LICENSE` that were *"NAMED BUT ABSENT"* (`docs/specs/storeroom-publish/contract.md`
+§3's failure list; the reason `publish.yml` grew its pre-publish `test -e` guards). **A local pack + install sees
+that defect at the artefact rather than at the registry.**
+
+**THE MECHANICAL RISK, DECLARED SO IT IS NOT DISCOVERED IN THE CELL.** The main package's five
+`optionalDependencies` are **pinned exactly**, so a plain `npm install` of the packed main tarball will attempt to
+**resolve the platform package from the registry** unless the pin is satisfied locally. **Which route solves that
+— install order, `--omit=optional` then a manual placement, a local resolution route, or a rewritten dependency —
+is L1's and L2's to declare; the permission this ruling gives is to pack and install locally, not a mechanism.**
+
+**WHAT IT DOES NOT SETTLE.** Whether the battery packs **all five** platform artefacts or **the host's alone**;
+whether a **registry-named** install is also driven to show the pinned-dependency route; the platform artefact's
+own cells; and how the local install is isolated from the repository ancestry `§4.2` item 1 requires absent.
+
+---
+
+### `D-13` — the kernel is cut too, and `bindings/js/src/entry/` is the parts' home
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, answering the
+subdivision declaration's first two questions.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> 1. Kernel can be cut
+> 2. That works
+
+**WHAT IT SETTLES.**
+
+- **`bindings/js/src/constraint-kernel.mjs` (2,203 lines) IS TO BE CUT**, on `D-2`'s own ground: **it is longer
+  than every one of the eight entry parts**, so leaving it whole would reproduce in miniature the problem `D-2`
+  exists to fix. **The entry's cut and the kernel's cut are one readability decision, not two.**
+- **`bindings/js/src/entry/` is the parts' home** — confirmed, so the entry's parts ship **inside `src/`** rather
+  than at the package root or a sibling `parts/`. **That is also the reachability fact the allowlist inherits:**
+  with the parts under `src/`, a published tarball must carry `src/entry/**`, which is the third time this branch
+  has found the allowlist to be a consequence of the code rather than a declaration (`D-3`, `D-4`).
+
+**WHAT IT DOES NOT SETTLE — and the first is a precondition rather than a detail.**
+
+- **The kernel's cut lines.** The subdivision pass **did not measure the kernel's internal graph** and said so;
+  **its cut must be declared against a measurement of that file, not guessed from its length.** A kernel cut
+  declared from the outside would be exactly the kind of invented boundary `D-2` was told not to draw.
+- **Whether the kernel's parts live under `src/entry/`** (the entry's home) **or their own directory** — the
+  kernel is not part of the entry's I/O surface, so "the parts' home" answers the entry's question and not
+  necessarily the kernel's.
+- **The module and endpoint arithmetic after both cuts.** Whether a kernel part becomes its own module or stays
+  internal to `js-constraints` moves the counts the map now holds at 19 modules / 61 endpoints.
+- **It orders no code move**, like `D-1` and `D-2`.
+
+**FACT THAT MAKES THE KERNEL CUT CHEAP, MEASURED ON THIS BRANCH:** `constraint-kernel.mjs` has **zero imports**
+(`D-2`'s pass measured it, and L0 re-measured it here). **It is internally self-contained, so its parts can be cut
+without creating an import cycle among them** — the one hazard a cut of a 2,203-line file most often meets.
+
+---
+
+### `D-14` — the four drives re-stage by GLOB plus an explicit kernel path
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, choosing among the
+three re-staging mechanisms L0 put to him.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> 3
+
+**WHAT IT SETTLES.**
+
+- **The re-staging mechanism is the GLOB of the parts directory, paired with an EXPLICIT KERNEL PATH.** No
+  hand-maintained part list is written into any drive: `src/entry/` is a **closed set by construction**, so a glob
+  is stable, **and the kernel's path is named explicitly because a glob cannot express it.**
+- **The four drives stop claiming an entry-only tree.** `publish`, `publish-generators`, `version-stamp` and
+  `negative-generators` each stage **the part set** instead of `index.mjs` alone, so **the claim that a tree
+  carrying the entry by itself still loads retires with `D-1`'s lazy seam** — it is not repaired, it is withdrawn.
+- **It is the option that does not re-introduce a list**, which was the ground: `D-3` and `D-4` removed a
+  hand-maintained manifest rule from this project, and a hand-listed part set would have put one back one
+  directory over.
+
+**WHAT IT DOES NOT SETTLE.**
+
+- **The glob's exact form** — which directory it walks, whether it is recursive, and what a drive does if it
+  matches nothing (an empty match must be a **loud** failure, not a silently smaller tree).
+- **The explicit kernel path after the kernel's cut**, which `D-13` left unmeasured: the path named today
+  (`src/constraint-kernel.mjs`) is the path of a file the cut is about to change.
+- **Whether the kernel's parts belong under `src/entry/`** — if they do, the glob covers them and the explicit
+  path is belt-and-braces; **if they do not, the explicit path is load-bearing** (`D-14`'s pairing).
+- **How `publish`'s fault-injection arms stay orthogonal.** That drive writes a **deliberately faulty** entry
+  source, and its subjects are the absent-addon and wrong-version arms. **A globbed part set must not let a shape
+  fault and an injected fault be read as one another** — a finding to declare, not to discover at the assertion.
+- **It orders no code move.** The cut and these four drives land as one wave (`D-14`'s own ordering fact), and no
+  wave is opened by this ruling.
+
+---
+
+### `D-15` — the kernel cut is accepted (five parts + a barrel), and three of its findings corrected
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the kernel-cut declaration pass,
+validated by L0 against the tree; **the rulings it needed resolved are L0's readings, marked as such.**
+
+**THE CUT, VERIFIED RATHER THAN ACCEPTED.** Five parts and a barrel, tiling `constraint-kernel.mjs` exactly:
+**2,195 lines in assigned regions + 8 separator lines, and L0 measured all eight of those separators to be BLANK**
+(`482 · 1154 · 1363 · 1418 · 1776 · 1803 · 2059 · 2090`) — so `2,195 + 8 = 2,203` closes with no gap and no
+overlap. The DAG is `9a→∅ · 9b→9a · 9c→9a · 9d→9a,9e · 9e→9a`: **the root has no out-edge, exactly one part reaches a
+second part, depth is three** — no cycle, and two candidate cuts were refused with the cycle that would have
+followed. **The file's measured zero-import footprint is what let the cut avoid the usual hazard.**
+
+**★ THE BARREL IS NOT A CONVENIENCE — THE ARCHIVED CLAUSE REQUIRES IT. L0's reading of `kernel-surface.md §1`
+item 1** (now at `archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-constraints/kernel-surface.md`):
+**"the kernel module's ONE checkout home is the ESM SOURCE FILE `bindings/js/src/constraint-kernel.mjs`, and the
+import spelling a red set at `bindings/js/test/**` uses is `import { register, commit, runAttempt, log, report }
+from '../src/constraint-kernel.mjs'`."** **A barrel at that path preserves BOTH the one home and that spelling, so
+the five parts sit *behind* the home rather than becoming five new homes.** **That answers the pass's questions 2
+and 4 at once: the barrel is required, and five internal relative imports do not violate the clause — it governs
+where the surface is REACHED from a red set, not the edges inside the package.** **Marked as L0's reading of an
+archived clause; the architect may overrule it.**
+
+**`src/entry/` with a `kernel-` prefix is confirmed BY `D-14`, not by taste:** one glob plus one explicit path
+stages a loadable tree **only if the parts share the globbed directory**, so a nested `src/entry/kernel/` would
+need a recursive glob or a second one. **The barrel stays at its old path one level up, which is precisely why
+`D-14` pairs the glob with an explicit kernel path — the glob cannot express the barrel.**
+
+**THE PASS'S QUESTION 1 IS ANSWERED BY ITS OWN ARITHMETIC: `9a` at 561 lines is NOT the largest part.** `9b` is
+`634`; `9a` is second and comparable to `9d`'s `565`. **The premise "9a is too large" does not survive the
+figures, so no further cut is owed on that ground.**
+
+**★ AND TWO OF THE PASS'S FINDINGS ARE WRONG, CORRECTED HERE ON MEASUREMENT.**
+
+- **It reported `held-listener-identity-greens.mjs:909`'s cell `HLI-13.1` as FALSE on this tree, "for an ordering
+  reason". IT IS GREEN.** The cell compares `Object.keys(kernel).sort()` to `KERNEL_ITEMS`, and **the greens file
+  declares its OWN `KERNEL_ITEMS` at `:31` — sorted, six names** — which **shadows** the helper's unsorted constant
+  the pass attributed to it. **A fixer sent to "the ordering bug" would have edited a file that has no bug.**
+- **So exactly ONE cell is red, not two: `blind-constraints-v2.mjs:1139`'s `SURFACE` cell 1**, which pins the
+  kernel's namespace to **five** names (`commit,log,register,report,runAttempt`) and is **false at HEAD** because
+  `K-6` (`remove`) landed. **That is a stale blind cell, red before this branch's rulings touched anything.**
+
+**AND THE INCONSISTENCY THE PASS FOUND IS REAL AND IS NOT THE SAME FINDING: TWO SHARED HELPERS DISAGREE ABOUT THE
+KERNEL'S EXTENT.** `bindings/js/test/constraint-kernel-helpers.mjs:48` declares **five** names;
+`bindings/js/test/held-listener-identity-helpers.mjs:163` declares **six**. **Both are consumed across scopes, so
+the disagreement is a live hazard for the migration** — and under `D-7` the `O3` set will carry its own helpers,
+which is where this must be settled rather than copied forward.
+
+**ARITHMETIC, WITH THE PASS'S OWN CORRECTION APPLIED.** **19 modules / 61 endpoints, unmoved** — the kernel's parts
+are files inside `js-constraints` and every new edge is intra-module, so no interaction is minted. **Tracked paths:
+`126 → 133` after the entry cut** (the pass corrected `entry-subdivision.md`'s `134`, which had counted part 1 as
+new) **and `138` after both cuts.** **The allowlist by reachability becomes 16 rows** — the barrel, the five kernel
+parts, the entry's own file, and the entry's parts.
+
+---
+
+### `D-16` — the stale red cell is fixed in the wave, and the wave's executor is named
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect: *"Fix in the wave"*.
+
+**WHAT IT SETTLES.** **`blind-constraints-v2.mjs:1139`'s five-name census is corrected inside the wave**, not
+carried as a red. **So the wave's green is unambiguous: it starts from a known red and ends with none.**
+
+**WHICH STAGE, STATED BECAUSE THE WAVE HAS TWO.** The wave is **(1) the kernel cut** — five parts plus a barrel,
+source only — and **(2) the entry cut with the four drives' re-staging**, which `D-14` couples. **The red cell
+censuses the kernel's NAMESPACE, so it belongs to the stage that touches that namespace: stage 1.** But its file
+is a **test**, and no strata role may write `bindings/js/greens/` — the preset's test roles write `tests/e2e/`,
+`tests/integration/<module>/` and `tests/unit/<module>/` (`D-5`), and the greens are still at their present-state
+path. **So the fix lands AT THE MOMENT THE BATTERY REACHES A PATH A TEST ROLE MAY WRITE — with the migration —
+and not in stage 1.** Both readings are the architect's instruction honoured; the second is the only one the
+model's own walls permit, and saying so is preferable to inventing a role.
+
+**THE EXECUTOR QUESTION, ANSWERED AND RECORDED AS A MODEL FINDING.** **The strata preset has no role for a
+mechanical refactor of existing, working code.** `role_l4_implementer`'s persona is *"you receive pseudocode,
+signatures, guardrail notes and the exact command that must go green"* and *"your write scope is the source files
+of your module only"* — which fits a pure move exactly. **`role_l2_integration` and `role_l3_designer` design
+SURFACES and SIGNATURES, and a move designs neither: the cut lines, the DAG, the barrel and the six exports are
+already declared at L1, and L2/L3 would be re-deriving an existing surface.** **So stage 1 is delegated to L4
+directly, on the declared design, with the command it must keep green** — and this deviation is stated rather than
+hidden, because the first real test of this workflow on this project is worth recording as such.
+
+---
+
+### FINDING — the archival pass broke the batteries, and the wave's baseline is red because of it
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** L0's own baseline run, taken before
+opening the implementation wave. **Not a ruling: an error of L0's, recorded at the size it actually is.**
+
+**WHAT THE BASELINE SAYS.** `npm test` (the repository's own leg, `node --test bindings/js/test/*.test.mjs`) exits
+**`1`** with **21 failing cells** — all in `publish.test.mjs` (`P-PUB-2`, `-3`, `-6` ×2, `-7`, `-8` ×2) and in
+`version-stamp-r2.test.mjs` — and **every one is an `ENOENT` on a document this branch moved to the archive**:
+`storeroom-publish/{acceptance,parameter-semantics,release,resolution,implementation-plan}.md`,
+`storeroom-js/package.md`, `storeroom-native/implementation-plan.md`, and others.
+
+**THE SIZE OF IT.** The batteries read **52** `docs/**` paths. **44 of them were in the archived set.** **42 have
+archive copies and are restorable — 4,293,789 bytes.**
+
+**THE MISTAKE, STATED SO IT IS NOT REPEATED.** When the archival's keep-set was proposed, **L0 measured what
+`src/`, `bindings/` and `tests/` CITE in code, and did not measure what the `.mjs` batteries READ at runtime.** The
+citations were the wrong population. **A battery that opens a document is not citing it — it is using it as an
+oracle**, and the difference is the whole of this failure. **And the pass committed a 201-file documentation move
+without running the suite, which was the one check that would have caught it.** The exit walkthrough asks for
+exactly that check and it was not taken.
+
+**WHY RE-POINTING AT THE ARCHIVE IS NOT AN OPTION.** `archive/` is **gitignored by this project's own rule**
+(`.gitignore:172`), which the architect chose to keep. **A battery reading `archive/...` fails on every fresh
+checkout and in any CI** — it would replace a documentary dependency with a local-only one. **That route is closed
+by a decision already taken, not by preference.**
+
+**WHY THE KEEP-SET WAS MIS-SPECIFIED RATHER THAN THE INSTRUCTION MIS-READ.** The instruction was to keep *"the
+project surface behavior"*. **These batteries are blind instances off documentary bytes** — `D-8`'s own ground for
+retiring the `LICENSE` limb says so in as many words — **so the documents they read ARE behavior-defining, and
+they fall inside the exception rather than outside it.** **Restoring them honours the instruction; the earlier
+keep-set was L0's misreading of where "surface behavior" stops.**
+
+**AND THE SECOND BASELINE, NAMED BECAUSE IT IS A DIFFERENT LEG.** The stale blind cell `D-16` fixes
+(`blind-constraints-v2.mjs:1139`) lives in **`bindings/js/greens/`**, which `npm test` does not run — it belongs to
+**`npm run greens`**, whose baseline **L0 has not taken**. **So this branch has two oracles and only one has been
+measured**, and a wave verified against `npm test` alone would leave the greens unmeasured.
+
+---
+
+### `D-17` — tests are for code: the documentary-read assertions are rewritten or retired
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, answering the
+restore question with a different disposition entirely.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> Rewrite or retire the tests that point at docs. Tests are for code.
+
+**WHAT IT SETTLES.**
+
+- **The archival STANDS.** `D-17` is the opposite disposition to the restore L0 proposed: **the documents stay
+  archived, and the cells that read them are the thing that changes.**
+- **A battery cell's subject must be CODE.** A cell whose expectation is produced by opening a document is
+  **either rewritten to assert a code fact, or retired.** **Which of the two, per cell, is the test layer's
+  declaration** — L0 does not choose between rewrite and retire, and a cell is not retired merely because
+  rewriting is harder.
+- **It also retires a stated ground, and that is recorded rather than glossed.** `D-8`'s disposal of
+  `JSG-12.18`'s `LICENSE` limb reasoned that *"a greens cell is a blind instance off documentary bytes and cannot
+  carry an install observation."* **Under `D-17` the premise still holds for the retirement — a greens cell
+  cannot carry an install observation — but its REASON changes: a greens cell asserts code, not that the
+  documentary bytes it used to read are archived.** The disposal stands; the sentence that justified it is read
+  through `D-17`.
+
+**THE SCOPE, MEASURED, SO NOBODY GUESSES AT IT.** **12 direct open-sites across four files** — `publish.test.mjs`
+(6), `version-stamp-r2.test.mjs` (3), `file-tier-save.test.mjs` (2), `greens/json-acceptance-set-live.mjs` (1) —
+**plus three swallowed reads behind a helper** at `json-acceptance-set-live.mjs:175–178`
+(`readDoc` with `catch → return ''`). **That helper is the dangerous one and `D-17` must reach it first: it turns
+an `ENOENT` into an EMPTY STRING, so its cells assert against nothing and may be reporting FALSE GREENS on this
+tree right now.** **A read that cannot fail cannot be trusted to have passed.**
+- **The 52 `docs/**` paths the batteries MENTION are not the scope.** A path inside a cell's name or clause
+  string is a **citation**, and citations are how this project records provenance; **only a call that OPENS a file
+  is a documentary read.** L0's first count conflated the two and would have overstated the work fourfold.
+
+**WHAT IT DOES NOT SETTLE.** Per cell: rewrite or retire. **And where a rewrite's code fact comes from** — a
+declared surface, an observable behaviour, a property — **is the test layer's to declare, with one standing
+constraint from `D-18`: the rewrite may not read a document to obtain it.**
+
+---
+
+### `D-18` — L0's standing duty: baseline before any archival move
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, on L0's own process
+failure.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> Add to my duties: baseline before any archival move
+
+**WHAT IT ESTABLISHES.** **A documentation move of any size runs the project's own verification legs FIRST — `npm
+test` and `npm run greens` where they apply — and records the pass/fail counts BEFORE it commits.** **The counts go
+into the move's own record, so the move can be judged against the tree it changed.** **This duty is L0's, it is
+standing, and a brief that omits it is incomplete.**
+**WHY IT EXISTS:** this branch's archival moved 201 files and committed, and **the suite was the one check that
+would have caught the 21 cells it broke.** The exit walkthrough asks for the check; the check was not taken; the
+duty is now written down so that the asking is not the only thing standing between a pass and that failure.
+
+---
+
+### FINDING — the greens leg is RED AND CRASHES on the pre-existing tree, and this is not L0's damage
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** L0's baseline of the second leg,
+`npm run greens`, taken under `D-18`. **A finding, not a ruling — and the most consequential one on this branch.**
+
+**WHAT THE SECOND BASELINE SAYS.** `npm run greens` (`greens.mjs` → `live-drive.mjs` → `file-tier-save/scenarios.mjs`)
+exits **`1`** after **40 `FAIL` cells**, and **crashes before reaching its second and third legs** — the process dies
+on an **uncaught `{status:'AddressMalformed', …}`** thrown out of `greens.mjs`. **So two of the three runners the
+project's own `greens` script names were not executed at all.**
+
+**AND NONE OF IT IS THE ARCHIVAL'S DOING. Verified by cause, not by absence:** the failures are **member-set and
+signature** failures with **no `ENOENT` and no documentary read anywhere in the log**, and `greens.mjs` is **not one
+of the four files that open a document** (`D-17`'s measured 12 sites).
+
+**THE TWO STALE SUBJECTS, EACH NAMED FROM THE LOG'S OWN OBSERVED LINE.**
+1. **`JSG-01.9` expects TWELVE own members and the code carries FOURTEEN.** Its observed list is
+   `addConstraint,constraintOff,constraintOn,constraints,delete,listen,read,readLiteral,register,removeConstraint,removeListener,rollback,unlisten,write`.
+   **`removeListener` and `removeConstraint` are the `+ 2` the held-listener-identity unit landed on 2026-10-19**
+   (`contract.md §2.7` item 9's `12 → 14`), **and the greens were never re-derived.**
+2. **`JSG-01.16`/`JSG-01.17` drive the SUPERSEDED `listen(address)` signature.** The code's `listen` takes
+   `(handle, addresses)` with the handle spelled by the caller, so the greens' call throws
+   `AddressMalformed … listen's first argument is an Array, and a listener's handle is a non-empty string this
+   caller spells`. **The same wave that moved the member count moved this signature, and the greens still drive
+   the old one.**
+
+**WHY THIS MATTERS MORE THAN ITS OWN SIZE.**
+
+- **`D-4` hands the publish shape to "the e2e/blind scenario testing". Those instruments are currently STALE AND
+  RED.** `F4` established that no green reports an installed layer; this establishes that the existing greens do not
+  run green at all. **The evidence base `D-4` names does not merely have a gap — it has a failing instrument.**
+- **`D-17`'s scope was understated by L0 twice, and both times in the same direction.** First as 52 documentary
+  citations (measured down to 12 open-sites), and now again: **`D-17` says a cell's subject must be code, which
+  makes every stale greens cell — 40 of them and counting — part of the same rewrite-or-retire work**, not just the
+  twelve that read documents. **The greens' staleness and the documentaries are one problem wearing two costumes:
+  cells whose expectation no longer comes from the code.**
+- **A crashed runner is worse than a failing cell.** `greens.mjs`'s uncaught refusal means `live-drive.mjs` and
+  `file-tier-save/scenarios.mjs` never ran, **so a reader of the exit code learns "red" and not "two thirds of this
+  leg did not execute".**
+
+**THE BASELINE THIS BRANCH NOW CARRIES, STATED AS ONE LEDGER.**
+
+| leg | result at HEAD | cause |
+|---|---|---|
+| `npm test` | **21 red cells** | **L0's archival** — 12 documentary open-sites, `D-17` retires or rewrites them |
+| `npm run greens` | **40 red cells, then a CRASH** | **pre-existing staleness** — a 12-member expectation against a 14-member surface, and a superseded `listen` signature |
+| `npm run typecheck` | **not taken** | owed under `D-18` |
+| `cargo test` | **not taken** | owed under `D-18` |
+
+**AND THE CONSEQUENCE FOR THE WAVE, WHICH IS THE POINT OF TAKING A BASELINE.** **The implementation wave cannot be
+verified against a green oracle, because there is no green oracle.** Its bar is therefore **"no new red, every red
+accounted for"** — and **the first item in it is not the entry cut**: it is **re-deriving the batteries that are
+supposed to judge the entry cut** (`D-17`), because using a stale instrument to judge a refactor produces two
+findings and no information.
+
+---
+
+### Addendum — the remaining two legs are GREEN, and the baseline ledger is now complete
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** L0, completing the baselines `D-18`
+requires. **A measurement, not a ruling.**
+
+| leg | result at HEAD | cause |
+|---|---|---|
+| `npm test` | **21 red cells** | **L0's archival** — the 12 documentary open-sites `D-17` retires or rewrites |
+| `npm run greens` | **40 red cells, then a CRASH** | **pre-existing staleness** — a 12-member expectation against a 14-member surface, and a superseded `listen` signature |
+| `npm run typecheck` | **GREEN** (exit `0`) | — |
+| `cargo test --offline` | **GREEN** (exit `0`) | — |
+
+**WHAT THIS LEDGER BUYS, AND IT IS NOT SYMMETRICAL.** **The Rust side and the type declarations are green; the
+JavaScript battery carries L0's 21 and the greens carry 40 of their own.** **So the damage is confined to two legs
+and neither of them is the compiled side** — which is why the entry cut, a JavaScript restructure, **cannot be
+verified by the leg it most needs, and can be verified by the one it needs least.**
+
+**AND ONE CONSEQUENCE FOR `D-17` THAT THE LEDGER MAKES UNAVOIDABLE.** The stale greens cells and the documentary
+cells are **one class**: cells whose expectation no longer comes from the code. **`D-17`'s rewrite-or-retire work
+is therefore 21 + 40 and not 12**, and the greens' crash means **two of that leg's three runners have never been
+measured on this tree at all** — so the 40 is a floor, not a total.
+
+---
+
+### `D-19` — the batteries are the test writers' to review, and L0 grants the transitional scope
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, on the executor
+question L0 put to him after the baseline ledger.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> Fix crash. Have test writers review existing suites and determine which they can keep, rewrite for new code shape,
+> or discard/replace entirely
+
+**WHAT IT SETTLES.**
+
+- **The crash is FIXED, not worked around.** `greens.mjs`'s uncaught `AddressMalformed` — the one that kills the
+  run before `live-drive.mjs` and `file-tier-save/scenarios.mjs` execute — is repaired in the same pass as the
+  review, so both of the leg's unmeasured runners become measurable.
+- **The disposition of every existing cell is a TEST-WRITER determination, in three classes:** **KEEP** (still
+  true of the current code), **REWRITE** (true of the code as it now stands), **DISCARD/REPLACE** (its subject is
+  gone). **L0 does not class a single cell.**
+- **★ AND IT ANSWERS THE EXECUTOR QUESTION L0 LEFT OPEN, ON THE ONLY SIDE THE MODEL PERMITS.** L0 granted no
+  exception and the architect has not overridden `D-5` (the preset's scopes are kept): **the work goes to the
+  strata test writers**, and **the review is a read-and-determine act they may perform on the present-state paths
+  wherever those paths sit.** **An edit is still confined to a scope a role may write** — so **L0 records a
+  transitional scope grant for this pass only: `bindings/js/test/` and `bindings/js/greens/` are the paths this
+  pass may write, because the batteries have no strata home until the migration and the crash cannot be fixed
+  from inside a directory that does not exist yet.** **The grant is L0's, it is time-boxed to this pass, and it is
+  recorded here so that no later pass inherits it by silence.**
+
+**WHAT IT DOES NOT SETTLE.** **How many cells land in each class** — that is the determination itself. **And
+whether a REWRITE's new expectation comes from a declared surface, an observable behaviour or a property** — the
+test writer's declaration, under `D-17`'s one standing constraint: **it may not come from opening a document.**
+
+---
+
+### `D-20` — the battery work is staged: crash and determination first, execution second
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** L0, reading `D-19`'s two verbs.
+
+**WHAT IT ORDERS.** **`D-19` names two acts and L0 stages them:**
+
+1. **THIS PASS:** **the crash fix and the determination** — every existing JS cell classified KEEP / REWRITE /
+   DISCARD-REPLACE **with the evidence for its class**, and **the record written where this project already keeps
+   such records** (a review document beside the battery, matching `REMEASURE-2026-10-18.md`'s precedent).
+2. **THE NEXT PASS:** **execution** — the REWRITE and DISCARD-REPLACE classes performed, and the legs re-run
+   against the ledger.
+
+**WHY STAGE RATHER THAN ONE PASS.** **53 JS battery files and at least 61 failing cells is not a review and a
+rewrite a single pass can do honestly** — and `D-17`'s own standard says a cell is not retired merely because
+rewriting is harder. **A determination the architect can read is worth more than a rewrite nobody classified.**
+**And the crash comes first inside the stage, because until it is fixed two thirds of the greens leg cannot be
+measured at all, so the determination would be made blind on those two runners.**
+
+---
+
+### FINDING — the batteries are stale in SIX declared ways, and the published declaration is missing a status
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the test-writer review `D-19`
+commissioned, **validated by L0 by re-running both legs and by reading the kept contract.**
+
+**THE CRASH IS FIXED. VERIFIED BY L0, NOT TAKEN ON TRUST.** `greens.mjs` died on an **unguarded** superseded call
+(`:731`, `i8.listen(['ev'])` — the old one-argument form) that sat outside the file's own `thrown()` helper, and the
+same defect killed `live-drive.mjs` at `LIVE-2` and one `scenarios.mjs` scenario. **All three runners now complete**
+(L0 measured: `greens.mjs` **48 FAIL** over all 16 scenarios; `live-drive.mjs` **13 FAIL** over 13/13;
+`scenarios.mjs` reaches `CLEANUP`). **No `try/catch` was added and no cell was retired by the fix.**
+
+**AND THE CRASH WAS HIDING RED, WHICH IS WHY THE COUNT WENT UP.** 40 FAIL before, 48 after — **because the run used
+to die at `JSG-08` and ten scenarios never executed.** **`npm run greens` still exits `1`**: the script chains its
+three runners with `&&` and each exits `1` on honest reds, so runner 2 and 3 are reachable only by direct
+invocation until the REWRITEs land (`Q5`, and it belongs to the battery/greens module under `D-11`).
+
+**`npm test` RE-MEASURED BY L0: `841` tests, `830` pass, `10` fail, `1` skipped.** **The agent's correction of
+L0's own count is accepted:** L0's "21" was `✖`-mark counting, which double-lists failures in the summary; **the true
+red set is nine cells plus one whole file**, and **`version-stamp-r2.test.mjs` dies at IMPORT on three
+`readFileSync` calls, so its eleven cells never run at all** — a dying file is not eleven red cells and not a green.
+
+**★ `Q4` IS ANSWERED BY THE KEPT CORPUS, AND IT IS A DEFECT RATHER THAN A QUESTION.** `docs/specs/storeroom-native/
+contract.md` was **amended 2026-10-23** (`A148` Q3, folded into `U-STOREROOM-JSON-CROSSING`): **the closed set widens
+`16 → 17` with `ValueRefusedAtBoundary` at rank `17`, and no rank `1`…`16` moves** — *"the operative set is `17`
+members ranked `1`…`17`"*, the spelling moves to `[&'static str; 17]`. **The store implements seventeen
+(`src/error.rs`'s `CODES` = 17, measured). But `bindings/js/index.d.ts` declares SIXTEEN — and the greens' census
+cells assert sixteen.** **So the published type declaration omits a status the store emits and the contract
+declares.** The `(string & {})` escape arm means a consumer is not mis-typed fatally, but **every census claim in
+the declaration and in the batteries is false as written**, and this project's own discipline is that the
+declaration declares the closed set. **That is a code artifact (`delivery`'s and `js-declaration`'s subject) and not
+a battery question, and this branch's brief said "sixteen" too — corrected below.**
+
+**THE SIX MOVED FIGURES BEHIND THE 81 REWRITES, EACH A WAVE THE BATTERY MISSED.** **own members `12 → 14`**;
+**the `listen` signature** (`listen(address)` → `listen(handle, addresses)`, with `on`/`off` merged away);
+**`ValueNotAdmitted` → `ValueRefusedAtBoundary` and the set `16 → 17`**; **the walk ceiling `65 → 126`**;
+**the addon's exports `5 → 13`**; **the kernel's exports `5 → 6`**. **A battery written against a surface that
+moved six times and was never re-derived does not verify the code — it verifies a memory of it.**
+
+**THE DETERMINATION, ACCEPTED AS `D-19` REQUIRED.** **KEEP `43` groups (≥`1,244` cells) · REWRITE `25` groups
+(≥`101` cells) · DISCARD/REPLACE `6` groups (`12` cells) · unclassified `2` cells.** Record:
+`bindings/js/test/REVIEW-2026-10-24.md`. **The two unclassified cells and the four open behaviour questions
+(`Q1`–`Q3`, and the undeliverable-register question) are put to the architect.**
+
+**AND ONE FINDING THAT IS WORSE THAN A FALSE GREEN: CELL EVAPORATION.** Behind `json-acceptance-set-live.mjs`'s
+`readDoc` helper (`catch → return ''`), **a guard `return`s before one cell ever runs, one records
+`AMENDMENT-PENDING` and one records `GAP` — and both scenarios still print `PASS` and exit `0`.** **A runner that
+exits zero while its cells never executed is a broken instrument in the one direction a red cannot be.** (`Q7`:
+`blind-constraints-v2.mjs` exits `0` with **21** FAIL for the same reason — a reporting runner whose exit code does
+not carry its red.)
+
+---
+
+### `R-3` — three of the review's seven questions are answered by the kept corpus; recorded as L0 readings
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** L0, reading
+`bindings/js/test/REVIEW-2026-10-24.md §7` against `docs/specs/**`. **READINGS, NOT RULINGS — each awaits the
+architect's confirm or correct, and nothing is built on one.**
+
+**`Q1` — THE TWO "UNCLASSIFIABLE" CELLS ARE CLASSIFIABLE, AND THE CODE IS RIGHT.** The review asked whether
+`JSG-05.7`/`JSG-10.2` are stale or the code is out of order. **The rank-17 amendment answers it:** the native
+contract's `ValueRefusedAtBoundary` row says **"the store never receives those values on the JavaScript route; the
+package's walk decides the class BEFORE ANY VERB IS CALLED"** (`docs/specs/storeroom-native/contract.md` §8.1, the
+2026-10-23 amendment). **So on a call whose value position is absent, the walk refuses before the carrier positions
+are ever converted — which is exactly what the code answers.** **Both the two cells and `index.mjs:1947`–`1957`'s
+comment are STALE, and the comment names `ValueNotAdmitted`, a status that has not existed since rank 17 landed.**
+**Reading: REWRITE the two cells to `ValueRefusedAtBoundary`; the comment is a finding for whoever owns the
+walk.** `Q1` therefore stops blocking the determination — **the two unclassified cells become REWRITE.**
+
+**`Q3` — THE DECLARATION IS LAW AND THE CODE IS THE DEFECT.** The review found three cells red on whether a
+`file`-tier write's **verb** or its **terminal arm** performs the save. **`docs/specs/storeroom-js/surface.md §2.11`
+clause 2 declares it without ambiguity**: *"ON THE PASSING ARM … THE TERMINAL ARM PERFORMS THE STORE'S
+`commit_file` ACT AS ITS OWN STEP, AND THE ACT IS THE FIRST THING THAT ARM DOES, before any body of the delivered
+set is invoked."* **Reading: `LIVE-4.8`, `FTS-05.1` and `FTS-05.2` are RIGHT and stay KEEP-AND-RED; the code owes
+the fix, and `REMEASURE-2026-10-18.md`'s conflict is a defect that has stood for six days rather than a
+question.**
+
+**`Q4` — ALREADY SETTLED AND ALREADY RECORDED (`FINDING`, above).** The set is **`17`**, the store implements
+seventeen, and **`index.d.ts` declaring sixteen is the defect.** `Q4` needs no answer; it needs an edit `delivery`
+and `js-declaration` owe.
+
+**WHAT REMAINS GENUINELY THE ARCHITECT'S.** **`Q2`** — is a `register` accepted at a handle it will never deliver
+to a defect, or is it the caller's spelling to get right? **No clause L0 could find decides it**, the measured
+asymmetry is real, and four cells turn on it. **`Q5`** — may the greens leg stay chained with `&&` and be measured
+runner by runner, or must the manifest change? **`D-11` gives the leg to the battery/greens module, so this is
+theirs to declare unless the architect rules otherwise.** **`Q7`** — must a reporting runner's exit code carry its
+red, given `blind-constraints-v2.mjs` exits `0` with 21 FAIL? **L0's reading: yes — a runner that exits zero while
+its cells never ran is broken in the one direction a red cannot be — but the exit contract is the leg owner's to
+declare.** **`Q6` is answered by `D-8` itself**: the three functional prohibitions stand and the reachability
+assertion the review declared is consistent with it; **L0 confirms it as already-recorded rather than as a new
+ruling.**
+
+---
+
+### `D-21` — a reporting runner's exit code MUST carry its red
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, taking L0's
+recommendation on `Q7` of the battery review.
+
+**WHAT IT SETTLES.** **A greens/live runner that reports a `FAIL` exits NON-ZERO.** A runner whose cells are red, or
+whose cells **never ran**, may not exit `0`. **The exit code is part of the instrument**, and a reporting runner
+that exits zero while its cells failed is broken in the one direction a red cannot be seen from.
+**WHAT IT OBLIGATES, MEASURED:** `blind-constraints-v2.mjs` **exits `0` with `21` `FAIL`**; and
+`json-acceptance-set-live.mjs` **exits `0`** while one cell's guard `return`s before it runs and two record
+`AMENDMENT-PENDING` and `GAP`. **Both are owed a non-zero exit, and the "cell never ran" case is owed an explicit
+third state — neither `PASS` nor `FAIL` may be printed for a cell that did not execute.**
+**WHO EXECUTES IT:** the test writers, in `D-20`'s execution pass (`D-19`'s grant). **Not L0, and not by editing a
+cell** — a runner's exit contract is the runner's, which is the leg owner's under `D-11`.
+
+---
+
+### `R-4` — what the `register`/`listen` asymmetry actually is (elaboration of `Q2`, for the architect's call)
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** L0, reading the three members at the
+code. **A reading, not a ruling; `Q2` remains the architect's.**
+
+**THE THREE PARTS, AND WHAT EACH OWNS.**
+1. **`listen(handle, addresses)`** — the store-facing half. **The CALLER spells the handle**, the address position
+   is a **set**, and the store's home entry is keyed by that spelling. It answers `undefined`.
+2. **`register(handle, listener)`** — the package's own registry, a **handle → listener-function** map. It answers
+   `undefined` and **performs no deliverability check**: it accepts any handle it is handed.
+3. **`K.register(store, address, id, constraint)`** — the **kernel's** registration. It registers a constraint pair
+   and **returns `home`**, the store-side handle **the kernel itself spelled** — `constraint@<JSON address>`, the
+   spelling `index.mjs:4916`–`4918` names as *"the identity the two layers can both read"*.
+
+**HOW DELIVERY IS SUPPOSED TO WORK.** A write returns `triggered` — the **handles** whose home entry prefix-matches
+the write's address. `deliver` then snapshots `registry.get(handle)` **per distinct identity, at the window's
+opening**, and invokes each known function **once**. **An identity the registry holds no function for fires NOTHING,
+SILENTLY** (`surface.md §2.4` rule 1) — no warning, no log, no code.
+
+**★ AND THE DOOR THAT LETS THE MEASURED CALL THROUGH IS NAMED IN THE CODE.** `registerOn` refuses a listener at a
+handle where a **constraint** stands — *"a listener and a constraint do not share one"* — **but the refusal is
+SKIPPED for any handle that starts with `constraint@`** (`index.mjs:4916`–`4924`, the `conflicted = null` arm).
+**The exemption exists for exactly one consumer**: the kernel arming **its own noop** at **its own handle** without
+tripping the rule, and its comment says so — *"the predicate determined no behaviour of its own"*, the one behaviour
+its consumer wanted being that structural comparison. **It was never written for an application caller, and nothing
+distinguishes the two.**
+
+**THE TWO READINGS `Q2` PUTS.**
+- **(A) THE ASYMMETRY IS DELIBERATE.** The kernel's handle is the **constraint layer's** identity; an application
+  listener belongs in the **listener layer** under **its own** handle. `register` accepting it is harmless — the map
+  is keyed by handle and delivery needs the handle in `triggered`. **Under (A) the four cells are REWRITE: the app
+  arms its own handle (`listen(h, …)` + `register(h, fn)`), which the review measured DOES deliver on the same route.**
+- **(B) IT IS A DEFECT.** A `register` that **accepts** a handle it can never deliver to is a silent no-op that looks
+  like success — the one shape this project keeps filing against. **Under (B) the four cells are KEEP-and-RED and the
+  code owes a refusal** (or a delivery), not a doc note.
+
+**L0'S READING, MARKED AS INFERENCE: (A) FOR THE CELLS, (B) FOR A DEFECT ROW.** The exemption's provenance makes the
+*acceptance* deliberate and its *purpose* the kernel's; **an application caller reaching it is an unintended use of
+a deliberate door, which makes the four cells REWRITE (they are testing the app's route through the kernel's handle)
+and the undeliverable-acceptance a HAZARD worth a defect row** — the narrowest honest repair being to exempt **only
+the kernel's own call**, not every kernel-prefixed handle. **That is a code change in `js-registry-delivery`'s
+subject, not a battery change, and it is the architect's to order or refuse.**
+
+---
+
+### FINDING — the `constraint@` handle is not a declared design; it is a seam the caller-spelled-handle move created
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** L0, asked by the architect why the
+kernel creates that handle at all. **A finding, not a ruling — and it is the root `Q2` was standing on.**
+
+**WHAT THE DECLARED DESIGN SAYS, at `kernel-surface.md` (archived: `archive/pre-strata-docs-2026-10-24/docs/specs/
+storeroom-constraints/kernel-surface.md`).**
+
+1. **THE HANDLE IS *ADOPTED*, "NEVER MINTED BY THE KERNEL".** *"A second `register` at an address the store already
+   holds returns the SAME handle, because the store's `listen` is idempotent at the address level and returns the
+   existing entry's handle."*
+2. **ITS ONE DECLARED PURPOSE IS SET MEMBERSHIP, not the kernel's own work:** *"the entry appears in the store's
+   `triggered`/`watched` handle set for exactly the operations its address is a PREFIX of … WHATEVER CALLER'S
+   OPERATION IT IS."*
+3. **AND THE KERNEL NEVER NEEDS IT AGAIN:** *"the kernel **ADOPTS the handle the store returned at `K-1` and never
+   consults it again**, so an entry the APP removes through `unlisten` stops appearing in later returned sets
+   **while the registry pair keeps being evaluated** — this unit declares NO arm for that state."*
+   **L0 verified the evaluation half at the code:** `evaluate` reads `pairsAtAddress(kernel, attempt.address)` — the
+   kernel's **own** registry at the attempt's address — and the code's comment cites `attempt-lifecycle.md §2.4`
+   item 5 (iv) for it: *"the kernel evaluates the pairs it registered at the attempt's own address … and NOT the
+   union of the store's prefix-selected addresses."* **So the handle is not in the kernel's path at all.**
+
+**★ AND THE API IT WAS DECLARED AGAINST NO LONGER EXISTS. `listen` is now `listen(handle, addresses) => void`** —
+arity `2`, **the caller spells the handle**, and it **returns `void`** (`index.d.ts:596`). **Adoption is therefore
+IMPOSSIBLE: there is no returned handle to adopt.** **So the kernel does the only thing left to it — it spells one —
+and `noopHandleFor(address)` is that spelling: `constraint@` + `JSON.stringify(address)`**
+(`constraint-kernel.mjs:1001`), armed at `store.listen(home, set)` and `store.register(home, noopListener)`
+(`:565`–`566`).
+
+**SO THE ANSWER TO "WHY DOES IT CREATE THE `constraint@` HANDLE" HAS TWO HALVES, AND ONLY THE FIRST IS A DESIGN.**
+
+- **THE NEED THAT IS REAL:** the pair must occupy a **store-side home entry** so it appears in the caller-visible
+  `triggered`/`watched` sets, and so the two-layer delivery can be stated over one set. **That need survives any
+  signature.**
+- **THE MINTING THAT IS NOT:** the *spelling* — a prefix in the same string namespace application handles live in —
+  exists **only because `listen` stopped returning a handle.** **It is a seam, not a decision**, and **`Q2`'s
+  hazard is downstream of it**: because the kernel's handles and an app's handles share one namespace, the entry's
+  *"a listener and a constraint do not share one"* refusal had to be **exempted for the whole `constraint@` prefix**
+  to let the kernel arm its noop — **and that blanket exemption is the door an app caller walks through to get an
+  accepted-but-never-delivered registration.**
+
+**AND ONE MORE STALE CELL THIS ADDS TO THE DETERMINATION.** `FTS-12.4` (in
+`greens/file-tier-save/file-tier-save-greens.md`) asserts **`store.listen(addr) === kernel.register(store, addr, id,
+fn)`** — the **adoption** observable, by reference equality. **`listen` returns `void`, so that assertion is not
+stale about a figure; it is unsatisfiable by the API.** **It belongs to the REWRITE class with a subject that has
+moved, and its clause's own sentence (*"adopted, never minted"*) is a documentary statement the code has
+contradicted since the caller-spelled-handle move.**
+
+---
+
+### `D-22` — `listen` returns the handle on success, and the `constraint@` noop prefix is discarded
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, ruling on the root
+`FINDING` above.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> Listen should return the handle on success, or error message on fail. Discard the noop prefix
+
+**WHAT IT SETTLES.**
+
+- **`listen`'s return shape moves `undefined → Handle` on success**, and **failure stays the ONE thrown form**
+  (`{status, message}` — the project has exactly one failure channel and this ruling mints no second one).
+- **THE NOOP PREFIX IS DISCARDED.** The kernel's `constraint@<JSON address>` spelling, its `noopHandleFor` and its
+  `noopListener` (`constraint-kernel.mjs:970`, `:983`, `:1001`) all go, **and with them the entry's blanket
+  exemption for kernel-prefixed handles** (`index.mjs:4916`–`4924`). **`Q2`'s hazard dissolves with its cause: no
+  reserved namespace means no door for an application caller to walk through into a silently undeliverable
+  registration.**
+- **AND THE KERNEL'S HANDLE BECOMES ADOPTED AGAIN, which is what `kernel-surface.md` declared all along** —
+  *"adopted, never minted by the kernel"* — **and what `FTS-12.4`'s adoption observable (`store.listen(addr) ===
+  kernel.register(...)`) has been unable to assert since `listen` stopped returning anything.** **That cell moves
+  from unsatisfiable to assertable.**
+
+**WHAT IT SUPERSEDES, NAMED AT ITS OWN BYTES.** `docs/specs/storeroom-held-listener-identity/contract.md` **§2.2
+item `10`**, verbatim: *"`listen(handle, addresses) -> undefined`. **This is a DECLARED CHANGE of the return shape
+(`Handle` → `undefined`) and it is FORCED: the caller supplied the handle, so returning it would be a second
+spelling of the caller's own datum**"* — **the architect now overrules exactly that ground, so the return is a
+success signal that CARRIES the identity rather than an echo to be suppressed.** The clause stands as text and is
+read through this ruling; **the four clause sites item `1` declares for the `1 → 2` arity figure are not touched,
+and item `7`'s *"no conflict test"* for `listen` is unaffected.**
+
+**WHAT IT DOES NOT SETTLE — TWO, AND THE FIRST IS LOAD-BEARING.**
+
+1. **WHAT HANDLE THE KERNEL PASSES TO `listen` NOW THAT IT MAY NOT MINT A PREFIX.** It must still spell *something*
+   to occupy the pair's home entry, and it must still learn the standing identity. **The candidates are L1's to
+   declare against the code, not L0's:** the address spelled plainly; the handle the store already answers at that
+   address; or the returned value treated as the adoption point whatever the caller supplied.
+2. **★ AND THE CLAUSE THE PREFIX WAS QUIETLY PAPERING OVER: §2.2 ITEM `7`'s UNCONDITIONAL PURGE.** *"`listen` does not
+   test whether the entry it destroys belongs to another actor, and no clause exempts a kernel-held entry."* **So
+   a kernel occupancy at an address destroys whatever entry stood there**, and once the kernel has no reserved
+   namespace it is, at the store's own rule, **an ordinary actor with an unconditional purge.** Whether that is
+   acceptable — the pair's home entry replacing an app listener's — **is the design question the prefix hid, and
+   discarding the prefix surfaces it rather than creating it.**
+
+**THE SURFACE CONSEQUENCES, ALL DECLARED AND NONE OF THEM EXECUTED.** `bindings/js/index.d.ts`'s `listen` gains its
+`Handle` return (`js-declaration`); the entry loses its prefix exemption (`js-surface` / `js-registry-delivery`);
+the kernel loses its three symbols (`js-constraints`); the `listen → undefined` cells across the batteries move to
+REWRITE; and `PUB-DD-9`'s semantics are satisfied additively — a caller that ignores the return is unaffected by
+widening `void → Handle`. **No unit is open and no code is moved by this ruling.**
+
+---
+
+### `D-23` — setting a constraint expects a handle NAME, used as the handle and for process/error logging
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, on the question `D-22`
+left open (what handle the kernel passes now that it may not mint a prefix).
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> Setting a constraint should expect a handle name to be used for handle and process/error logging purposes
+
+**WHAT IT SETTLES.**
+
+- **THE CALLER NAMES THE CONSTRAINT'S HANDLE, exactly as the caller already names a listener's.**
+  `cfg.listeners`' elements are `{ address, handle }` records today — **the caller spells those** — and this ruling
+  gives constraints the same footing: **the set-a-constraint act expects a handle name, that name IS the store-side
+  handle for the pair, and it is what process and error logging identifies the constraint by.**
+- **IT ANSWERS `D-22`'S QUESTION `1`, AND IN THE CALLER'S FAVOUR:** the kernel neither mints a spelling nor derives
+  one from the address. **There is no kernel-authored identity left to reserve, so the prefix is not merely
+  discarded — it has nothing left to name.**
+- **IT CARRIES A LOGGING SUBJECT, which is a real surface move and not a courtesy.** A name that appears in process
+  and error logging is an **observable**, so it is declared, not incidental.
+
+**WHAT IT DOES NOT SETTLE — FIVE, EACH WITH THE EVIDENCE THAT BEARS ON IT, AND ALL OF THEM L1'S.**
+
+1. **A NEW MEMBER, OR THE EXISTING `id` PROMOTED?** **The evidence points one way but does not decide it for you:**
+   **`id` is scoped WITHIN A PAIR** — the pair is `(address, id)`, and two pairs at different addresses may lawfully
+   reuse one `id` — **while a HANDLE is INSTANCE-SCOPED.** **A bare `id` therefore cannot lawfully be the handle the
+   moment two addresses share one id.** A separate member survives that fact; `id`-as-handle does not.
+2. **WHAT THE BATCH ELEMENT BECOMES.** The published declaration's element is **TWO members** —
+   `readonly constraints?: readonly { readonly address: Address; readonly id: string }[]` — and its own comment says
+   the element type is **"the caller's own shape and not a narrowed record here"**, validated by the store.
+   **Note the divergence this sits on: the `D-8` era's record and the use-case record both describe the element as
+   `{ address, id, constraint }` with the function as the substance, while this declaration names no function at
+   all.** The name member lands on a shape whose functional member is already disputed, and L1 must say what the
+   element is before adding to it.
+3. **WHETHER THE NAME FLOWS INTO `constraints()`.** That read returns **`{address, id}`** and declares **four
+   exclusions** — no function, no opaque identity, no order, no `enabled`. **A name is a fifth candidate and one of
+   the four exclusions does not cover it**, so its exclusion or inclusion is a declaration rather than an omission.
+4. **WHETHER IT FLOWS INTO `LogEntry`.** The kernel's entry has **EXACTLY SIX members** — `seq` · `kind` · `id` ·
+   `message` · `opId` · `state` — **and already carries `id`.** **So the name's logging role must say whether `id`
+   is already the name it means, or whether the entry's member set moves.** A member-set move is a declared count;
+   an undeclared seventh member is exactly what this project files as a finding.
+5. **THE DOMAIN RULE AND THE COLLISION ARM.** A handle is a **non-empty string**; a pair is unique by
+   `(address, id)`. **A caller-supplied name is INSTANCE-SCOPED, so a collision across two pairs becomes possible
+   for the first time** — and no clause declares what a repeated name answers. **That arm is owed before the name
+   ships.**
+
+**AND ONE THING IT MAKES BETTER THAN IT FOUND IT.** With the caller naming the handle, **the kernel's occupancy of
+the pair's home entry stops being an anonymous intrusion**: the name it occupies under is the application's own
+word for that constraint, so `D-22`'s surfaced question (a kernel occupancy purging an app's entry, §2.2 item 7)
+becomes **visible in the caller's own vocabulary** rather than hidden behind a reserved prefix. **It does not
+resolve that question; it makes it legible.**
+
+---
+
+### `D-24` — the handle IS the `id`; handles are unique; a duplicate handle is an overwrite
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, on the two questions
+`D-23` left open (a new member or `id` promoted, and the collision arm).
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> The handle becomes the id - the handle needs to be unique regardless, and setting a duplicate handle is an
+> overwrite
+
+**WHAT IT SETTLES, AND IT SETTLES FOUR OF `D-23`'S FIVE.**
+
+1. **NO NEW MEMBER.** The constraint's `id` **is** the handle. `ConstraintPair`'s shape is unchanged, the batch
+   element gains no third field from this ruling, and the kernel's spelling problem is gone by identity rather than
+   by derivation: **the handle the pair occupies under is the caller's own word for the constraint.**
+2. **`constraints()` NEEDS NOTHING NEW.** That read already returns `{ address, id }`, and **the `id` is now the
+   handle**, so the four declared exclusions (no function · no identity · no order · no `enabled`) stand exactly as
+   written.
+3. **`LogEntry` NEEDS NO SEVENTH MEMBER — the sharpest of `D-23`'s questions answers itself.** The kernel's entry
+   already carries **`id`**, and `D-23` made the name the logging subject; **with the name and the `id` the same
+   datum, the entry's six members already carry it.** **No member-set move is owed and no undeclared seventh
+   member exists to file.**
+4. **THE COLLISION ARM IS `OVERWRITE`, and it is the rule `addConstraint` already declares** — *"adding an id that
+   already exists OVERWRITES: it does not refuse and it throws nothing for the mere fact that the id was held."*
+   **So a repeated name is a replacement, uniformly, and not a new refusal to mint.**
+
+**AND THE RULING IS COHERENT WITH THE MODEL ALREADY DECLARED, which is why it needs no new vocabulary:** the pair's
+own key is **`(id, address-set)`** — `contract.md §2.6` item 4, *"a pair standing over N addresses occupies N
+registry rows and **ONE identity**"*, the keying ruling *"one id, N addresses"* — **so one `id` already names one
+pair, one identity and one handle. The handle and the pair's key become the same string, which is the whole of the
+ruling.**
+
+**WHAT IT LEAVES — TWO, AND THE FIRST IS A CONTRADICTION THAT MUST NOW BE RECONCILED RATHER THAN DECIDED.**
+
+- **★ `register`'s CONFLICT TEST LOSES ITS SUBJECT.** `registerOn` currently REFUSES a listener at a handle where a
+  constraint stands — *"a listener and a constraint do not share one"* — and the kernel-prefix exemption existed
+  only to get the kernel past it. **`D-24` says the two DO share one: a duplicate handle is an OVERWRITE.** **So the
+  refusal and the overwrite rule cannot both hold**, and the refusal is the one the architect's words contradict.
+  **L1 declares the reconciliation** (the exemption already died in `D-22`; this may take the refusal with it), and
+  L0 does not.
+- **`D-22`'s SURFACED QUESTION IS NOW UNIFORM, WHICH IS BETTER THAN IT WAS.** An app listener's handle and a
+  constraint's `id` at one address are **one handle**, and the later set overwrites the earlier — **so `§2.2` item
+  7's unconditional purge is no longer a kernel-shaped special case; it is the ordinary handle rule applied to one
+  namespace.** **The behaviour is still a silent loss for whoever is overwritten, and that remains the architect's
+  to accept or refuse — but it is now one rule rather than two.**
+
+**WHAT IT DOES NOT SETTLE.** `D-23`'s remaining question stands untouched: **what the batch element's functional
+member is** — the declaration names `{ address, id }` and no function, while the use-case record describes
+`{ address, id, constraint }` with the function as the substance. **And whether `id`-as-handle forces a stricter
+`id` domain**: an `id` is a non-empty string and so is a handle, so the domains already agree, but a name that is now
+an instance-scoped handle is a stronger thing than a pair-local id was, and a pass must say whether any further
+rule (length, characters) is owed.
+
+---
+
+### `D-25` — a cross-KIND overwrite is REJECTED; the overwrite rule is same-kind only
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, reconciling the
+contradiction `D-24` created.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> Attempting to overwrite a listener with a constraint or vice versa is rejected
+
+**WHAT IT SETTLES, AND IT IS THE RECONCILIATION `D-24` OWED.**
+
+- **THE OVERWRITE RULE IS SCOPED BY KIND.** A duplicate handle **of the same kind** is an overwrite (`D-24`). **A
+  duplicate handle ACROSS kinds — a listener where a constraint stands, or a constraint where a listener stands — is
+  REJECTED.**
+- **`register`'s CONFLICT TEST THEREFORE KEEPS ITS SUBJECT, and gets a better one.** It is no longer a rule that
+  needed a reserved-namespace exemption to be survivable — **it is the cross-kind rule itself**, and **the prefix
+  exemption stays dead for an independent reason: under `D-22` the kernel registers nothing, so nothing needs to
+  get past the test.**
+- **AND THE RULE IS SYMMETRIC, WHICH IS WHERE AN ARM IS OWED.** The built surface tests **only one direction** —
+  `register(handle, listener)` refuses when a constraint stands at that handle/address. **The other direction —
+  setting a constraint whose `id` equals a live listener's handle at one of the pair's addresses — has no test at
+  either population route**, and `D-25`'s *"or vice versa"* requires one. **That arm is owed and it is L1's and L2's
+  to declare: which act refuses, at which instant, and with which status.**
+- **ONE OBSERVATION ON THE REFUSAL'S FORM, NOT A RULING.** The built conflict refusal is
+  `throw withEmptyLog(new TypeError(…))` — **a `TypeError` carrying a `log` member**, which is neither the one plain
+  `{status, message}` form the surface declares for every refusal nor a bare `TypeError`. **The surface's own
+  comment calls a `TypeError` from a store-reaching verb a finding while exempting the registration site; the
+  conflict arm sits between those two readings.** **L1 declares which form the cross-kind rejection takes**; L0 does
+  not choose it here.
+
+---
+
+### FINDING — the "batch element" carries `{address, id}` only, and the FUNCTION a caller puts on it is DROPPED
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** L0, asked to clarify what "batch
+element" means; the answer required reading both ends.
+
+**WHAT "BATCH ELEMENT" MEANS — THE TWO POPULATION ROUTES, NAMED.** A constraint can be populated at **exactly two**
+sites, and the surface declares that neither substitutes for the other:
+
+1. **THE BATCH AT CONSTRUCTION** — `cfg.constraints`, the **fourth declared key** of `StoreConfig`, *"an array of
+   `{ address, id }` pairs"*. **One "batch element" is one element of that array.**
+2. **THE POST-CREATION ADD ROUTE** — `addConstraint(pair, constraint)`, whose **second argument is the function**.
+
+**AND THE BATCH ELEMENT IS VERIFIED, AT BOTH ENDS, TO CARRY TWO MEMBERS AND NO FUNCTION.**
+
+- **THE DECLARATION:** `readonly constraints?: readonly { readonly address: Address; readonly id: string }[]`.
+- **THE JS ENCODER:** `constraintEntry(entry, position)` reads `entry.address` and `entry.id` **and returns
+  `{ address, id: entry.id }`** — **nothing else is forwarded, so a `constraint` member a caller attaches to an
+  element is DROPPED at the crossing, silently** (`index.mjs`, the element encoder).
+- **THE STORE:** the batch's Rust carrier is **`ConstraintEntry::Pair { address, id }`** (`src/args.rs`), with a
+  `ConstraintEntry::Invalid(subject)` arm for a malformed element — **two fields, no function.**
+
+**★ SO THE FINDING IS THIS, AND IT CONTRADICTS THE RECORDED SURFACE:** the use-case record states, dated
+2026-10-16, that **the element is `{ address, id, constraint }`, that *"the pair is its addressing and THE FUNCTION
+IS ITS SUBSTANCE"*, and that *"the list you supply carries the constraint function at each element"*.** **The code
+carries no such thing.** A caller who supplies `{ address, id, constraint }` today gets **a pair with no function**
+— and the surface's own rule then applies: *"a well-formed element that carried no function IS admitted by the
+store's list rule and is NOT a CARRIED pair, which is why the toggles refuse at it."* **The batch can therefore
+register an IDENTITY but cannot arm a constraint, and the function arrives only through `addConstraint`.**
+
+**WHAT THIS MEANS FOR THE RULINGS NOW STANDING.** `D-23`/`D-24` make the `id` the handle; **the batch is therefore
+the route that names a handle under which nothing is armed yet** — legitimate, but a state the surface must declare,
+because it is exactly the state `D-24`'s overwrite rule will act on when the function later arrives. **Whether the
+batch SHOULD carry the function — and so whether this is a code gap or a documentation error — is the architect's
+call and L1's to declare; L0 records that the two disagree and that the code is the looser one.**
+
+---
+
+### `D-26` — the batch in `cfg.constraints` MUST supply functions
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, on the question the
+`FINDING` above put to him (is the batch's dropped function a code gap or a documentation error).
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> The batch in cfg.constraints must supply functions
+
+**WHAT IT SETTLES.**
+
+1. **THE BATCH ELEMENT IS THREE MEMBERS — `{ address, id, constraint }` — AND THE FUNCTION IS REQUIRED.** **This
+   confirms the recorded surface over the code:** the use-case record's dated clause said *"the pair is its
+   addressing and THE FUNCTION IS ITS SUBSTANCE … the list you supply carries the constraint function at each
+   element"*, and **the encoder's silent drop is therefore a DEFECT and not a design.** **`strata/brief.md`'s UC-9
+   already reads this way** — **so this is a rare direction: the declaration of record is right and the
+   implementation is the thing that moves.**
+2. **`bindings/js/index.d.ts`'s element type gains the member** — `constraint: Constraint` — where `Constraint` is
+   already declared as `(context: unknown) => unknown`. That is `js-declaration`'s edit.
+3. **THE STORE'S CARRIER DOES NOT GAIN IT, AND THAT IS NOT A GAP.** `ConstraintEntry::Pair { address, id }` stays two
+   fields in `src/args.rs` **because a JavaScript function cannot cross into Rust at all.** **So the boundary carries
+   the PAIR and the package arms the SUBSTANCE**, through the same act the add route performs, at construction.
+4. **★ THE "IDENTITY WITHOUT ARMING" STATE DISAPPEARS FROM THE BATCH ROUTE.** The surface's rule *"a well-formed
+   element that carried no function … is NOT a CARRIED pair, which is why the toggles refuse at it"* **had the batch
+   as its only source of an uncarried pair. Under `D-26` every batch element is carried**, so that rule's subject
+   moves to pairs whose function was never supplied — **which the batch can no longer produce.**
+5. **AND IT OWES A REFUSAL THE PACKAGE MUST OWN.** A missing, `undefined` or non-function `constraint` member cannot
+   be seen by the store, **so the PACKAGE refuses it** — and it may mint no new code, so it must use an existing set
+   member (`ConstraintListInvalid` is the natural one, being the list's own validation code at rank `16`), **in the
+   one thrown form, at construction, and BEFORE ANY FILESYSTEM ACT** — the order `contract.md §10.4` part `4`
+   already fixed for the other construction arguments.
+
+**WHAT IT DOES NOT SETTLE.** **Where in the construction's argument order the function check joins** (it must precede
+the create; `D-26` does not place it relative to `journalLength`, `listeners` or the list's own shape walk). **Whether
+the boot route arms functions the same way** — the list is supplied at every startup, so it should, and a pass must
+say so. **And how it composes with `D-25` at construction**: if the boot's adopted listeners are in place before the
+list arms, **a batch `id` colliding with an adopted listener's handle is a cross-kind overwrite and must be
+REJECTED** — **which makes the construction's argument order a correctness matter rather than a tidiness one.**
+
+---
+
+### `D-27` — the batch arms its functions, REJECTS duplicate handles regardless of kind, and the check placement is delegated
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, on the three questions
+`D-26` left open.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> Functions are armed
+> Reject duplicate handles in batch - regardless of listener/constraint type
+> Leave function check placement to agent decision
+
+**WHAT EACH SETTLES.**
+
+1. **"FUNCTIONS ARE ARMED."** At construction, **each batch element's `constraint` is registered as the pair's
+   substance** — not merely validated and deferred to a later add call. **So the batch is a population route in the
+   full sense the surface always claimed:** it delivers a pair that is *carried*, and `D-26`'s "identity without
+   arming" state is not merely narrowed but **absent from this route entirely.**
+2. **★ "REJECT DUPLICATE HANDLES IN BATCH — REGARDLESS OF LISTENER/CONSTRAINT TYPE."** **The batch's uniqueness rule is
+   STRICTER than the add route's, and by design:**
+   - **within the batch**, two elements naming one handle → **REJECTED**;
+   - **against the construction's adopted listeners**, a batch `id` equal to an adopted `handle` → **REJECTED**,
+     cross-kind included — **which is `D-25`'s cross-kind rejection applied at the one instant it can be checked
+     wholesale.**
+   **★ AND THIS MAKES THE TWO RULES EXPLICIT, BECAUSE A PASS THAT CONFLATES THEM WILL GET BOTH WRONG:**
+
+   | act | a repeated handle |
+   |---|---|
+   | **the batch, `cfg.constraints`** | **REJECTED** — the list is ONE supplied act, so an internal ambiguity is malformed input and not a second write |
+   | **the add route, `addConstraint(pair, constraint)`** | **OVERWRITE** (`D-24`) — acts are separate in time, so a later one replaces the earlier |
+
+   **The distinction is whether the two namings arrive in ONE act or in two, and that is why both rules can be right
+   at once.**
+3. **"LEAVE FUNCTION CHECK PLACEMENT TO AGENT DECISION."** Where the function check sits in the construction's
+   argument order is **delegated to L1/L2** — **with `D-27`'s own two constraints surviving the delegation: the
+   check precedes any filesystem act, and it precedes the uniqueness check that must see the adopted listeners.**
+
+**WHAT FOLLOWS FROM THESE THREE, AND IT IS PACKAGE-SIDE WORK.** **Neither the function check nor the uniqueness check
+can be performed by the store**: a JavaScript function cannot cross to Rust, and the store cannot see the package's
+adopted listener handles. **So both arms are the PACKAGE's**, refusing in the one thrown form with an existing set
+member (`ConstraintListInvalid` remains the natural one). **The store's own list validation keeps its subject — shape,
+address domain, `id` domain — and gains no arm.**
+
+**AND ONE ORDERING FACT THIS SETTLES THAT `D-26` COULD NOT.** A batch `id` colliding with an adopted listener's handle
+must be **rejected**, so **the construction must know its adopted listeners before the list's collision check runs**
+— **the correctness question `D-26` raised is thereby answered, and it is answered by requiring the information
+rather than by fixing a sequence.** **L1/L2 may still choose where the check sits; the information dependency is not
+theirs to move.**
+
+**WHAT IT DOES NOT SETTLE.** **The refusal's code, its form and its exact instant** (the agent's, within the two
+constraints above). **Whether the boot route's list is held to the same strictness** — it is the same route by the
+surface's own word (*"the list is supplied at every startup"*), so it should be, and a pass must say so. **And whether
+a duplicate inside the batch is reported per element or per pair** — a receipt shape, not a rule.
+
+---
+
+### `D-28` — the remaining work's order, recorded as L0's sequencing and not as a ruling
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** L0, on the architect's *"Proceed"*.
+
+**THE ORDER, AND WHY IT IS THIS ORDER.**
+
+1. **THE SURFACE'S DECLARATIONS, THEN THE SURFACE'S CODE** (`D-22`…`D-27`). **The seven rulings interlock and one of
+   them resolves a contradiction inside the code** (`D-25` against the built conflict refusal), so **they must land
+   as one coherent change or the tree is left holding two rules that cannot both be true.** An L1 declaration of the
+   refusal arms, codes, forms and the construction order comes first, so the implementer invents nothing.
+2. **THE BATTERIES' RE-DERIVATION** (`D-17`, `D-19`, `D-20`), against the **post-ruling** shape. **This reverses L0's
+   earlier plan, and on purpose:** re-deriving the 25 REWRITE groups before the rulings land would have written
+   cells against a surface that is about to move a second time — the exact rework the review's classification exists
+   to prevent.
+3. **THE ENTRY AND KERNEL SUBDIVISION** (`D-1`, `D-2`, `D-13`, `D-14`). A pure move, verified by an oracle that is
+   finally trustworthy because step 2 made it so.
+4. **THE MIGRATION** — the 75 files to their strata homes, with the route re-spellings, the relabel (`D-9`) and the
+   installed battery (`D-10`).
+
+**AND THE VERIFICATION BAR FOR EVERY STEP, STATED ONCE.** **`npm run typecheck` and `cargo test --offline` are green
+today** and must stay green. **`npm test` and `npm run greens` are red for catalogued reasons** — so their bar is
+**"no new red, every red accounted for"**, with every red attributable to `REVIEW-2026-10-24.md`'s classification or
+to a ruling that has not landed yet. **A red that is neither is the finding.**
+
+---
+
+### `D-29` — `listen` may overwrite only listeners; the HANDLE becomes the INTERNAL ID; the boot is held to the same strictness
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, on the four questions
+`docs/L1/surface-deltas.md` raised.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> Listen cannot overwrite constraint, only other listeners
+> Handle becomes the internal ID
+> Q3 - no
+> Q4 - Yes
+
+**WHAT EACH SETTLES.**
+
+1. **`listen` GAINS EXACTLY ONE CROSS-KIND TEST, AND IT SUPERSEDES A KEPT CLAUSE.**
+   `docs/specs/storeroom-held-listener-identity/contract.md` **§2.2 item `7`** declares *"`listen` GAINS NO CONFLICT
+   TEST AT ALL"*. **`D-29` narrows that to: `listen` gains no conflict test against ANOTHER LISTENER, and gains one
+   against a CONSTRAINT.** **Overwriting a listener with a listener stays lawful — that is `D-24`'s same-kind rule —
+   and overwriting a constraint with a listener is now REJECTED.** **The kept clause stands as text and is read
+   through this ruling; its sentence is narrowed and not withdrawn.**
+2. **★ "HANDLE BECOMES THE INTERNAL ID" — THE PAIR'S IDENTITY KEY IS THE `id`, OUTRIGHT.** This supersedes two
+   things at once: the `(id, address-set)` keying (`index.mjs:5237`, `contract.md §2.6` item 4's *"one id, N
+   addresses"*) **is now simply "one id, ONE PAIR"**, and **`K-1`'s *"a second `register` at the same `id` begins a
+   pair of its own"* is superseded — it does not, because there is only ever one pair per `id`.** **The agent's
+   collision (`D-29`'s own question `Q-2`: a later `removeConstraint` deleting the other pair) is thereby not
+   refused but made IMPOSSIBLE.**
+3. **`Q3` — no: the prefix removal may not ship before the pair-key question is answered. IT IS NOW ANSWERED, so the
+   gate `Q3` set is satisfied and the prefix removal ships with the pair-key change as one act.**
+4. **`Q4` — yes: the boot route's list is held to `D-27`'s strictness in full** — functions required, handles unique
+   within the list and against the adopted listeners, cross-kind rejected.
+
+**THE SIXTH ARM THIS CREATES, AND ITS MEMBER IS DERIVED RATHER THAN CHOSEN.** **`listen`'s cross-kind rejection is a
+SIXTH refusal arm** (`B-6`). **Its `StoreStatus` member follows the principle `surface-deltas.md` already declared —
+*the member follows the act's subject*: `listen` is a SINGLE REGISTRATION, so it takes the handle domain's member,
+`AddressMalformed`, exactly as `B-5` (`register`) does.** **Its instant: after the handle's class test and the set's
+domain test, and BEFORE the purge — the act must not destroy what it may not overwrite.** **No state moves.**
+
+**WHAT REMAINS OPEN, AND IT IS ONE MECHANISM QUESTION.** **Is `listen`'s cross-kind test IDENTITY-based (the handle
+equals a constraint's `id`), ADDRESS-based (the set names an address a constraint's home entry occupies, so the
+purge would reach it), or BOTH?** **The ruling's intent is settled — no cross-kind overwrite — and the address
+dimension is NECESSARY, because §2.2 item `7`'s purge is address-reaching; whether the identity dimension is also
+tested is L1/L2's to declare against `Home::purge`.** **L0's reading: both, because under `D-29` the handle and the id
+are one string and an identity collision names the same entry an address collision does.**
+
+**AND ONE CONSEQUENCE FOR THE DECLARATION'S OWN TEXT.** `surface-deltas.md` was committed with five arms; **it is owed
+`B-6`'s row and the pair-key restatement.** **The implementer implements `B-6` from this ruling and reports its exact
+shape**; L1 adds the row when it next touches the file.
+
+---
+
+### `D-30` — the attempt registry is INSTANCE-SCOPED: a new store is a new stack
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, on the `KC-7` defect
+L0 confirmed at the code.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> Make it instance-scoped - Creating a new store should create a new stack
+
+**WHAT IT SETTLES.** **The live and closed attempt records belong to the STORE INSTANCE, not to the module.** The
+defect L0 verified: `KERNELS` is a `WeakMap` keyed by the store (`constraint-kernel.mjs:297`) **while `LIVE` and
+`CLOSED` are MODULE-LEVEL `Map`s (`:302`–`:303`)**, and `attemptHeldAt` (`:1387`) iterates `LIVE.values()` with
+**no store filter — only an address comparison** — so **a live attempt in one instance refuses a `K-2`, and the
+entry's `write`, at that address in a DIFFERENT, FRESH instance.** **That defeats `A137`'s own ruling** (*"it can get
+that by creating multiple stores"*: *"the registries and the journals are independent and a constraint on one store
+does not refuse a write to the same address on another"*) **and every other registration structure in that file is
+already instance-scoped.**
+
+**AND IT IS CONSISTENT WITH THE DECLARED ID RULE RATHER THAN A DEPARTURE FROM IT.** The attempt's `id` is *"unique
+within the kernel instance"* — **a per-instance counter and a per-instance map are the same statement.** The
+module-level counter over-satisfied uniqueness while the module-level map broke scoping; both move together.
+
+**WHAT IT DOES NOT DO.** **It changes no behaviour other than that scope**: the `KC-7` refusal stands, a second `K-2`
+at a held address **within one instance** is still refused, and no arm, message or record member moves.
+
+---
+
+### `D-31` — an UNTESTABLE behaviour's cell is REMOVED
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, on the second defect
+L0 reported (`B-6`'s address dimension is blind on the kernel's own route).
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> If it's not testable behavior remove the test
+
+**WHAT IT SETTLES.** **When a cell asserts a behaviour that no declared surface can expose, the CELL goes — it is
+neither rewritten nor carried as a permanent red.** **The removal is recorded with what it asserted and why nothing
+can observe it**, so the absence is legible rather than a gap.
+
+**★ AND THE BOUNDARY IS THE WHOLE OF THE RULING, because this must not become a licence to delete reds.**
+
+| the state | what it is | the disposition |
+|---|---|---|
+| **UNTESTABLE** | the behaviour cannot be observed through **any declared surface** — no getter, no record member, no thrown form, no return: **there is no lawful instrument** | **REMOVE the cell**, and record what it asserted |
+| **OBSERVABLE BUT WRONG** | the behaviour is reachable and the code does it wrong — `LIVE-4.8`/`FTS-05.1`'s `file`-tier save, for instance | **KEEP IT RED** and the code owes the fix (`R-3`'s standing rule, `D-17`'s rewrite-or-retire) |
+| **HARD** | observable, but the cell is awkward or expensive to write | **REWRITE it.** Difficulty is not untestability |
+
+**WHAT IT DOES NOT SETTLE.** **Which cells are untestable** — that is the test layer's determination, cell by cell,
+with the instrument named and its absence argued. **And `D-31` does not reach a cell whose subject is gone** — that
+is `D-17`'s DISCARD class; **`D-31` is for a subject that EXISTS and cannot be SEEN.**
+
+---
+
+### `R-5` — the last red is a CONTRADICTION BETWEEN TWO KEPT CONTRACTS, and `R-3`'s disposition of it is withdrawn
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** L0, gathering facts to brief the
+fix the architect ordered with *"Proceed"* — and finding that the fix's direction is not L0's to choose.
+
+**WHAT THE TWO CELLS ASSERT.** `LIVE-4.8` and `FTS-05.1` (and `FTS-05.2` in the same family) assert that **a `file`-tier
+`write` does NOT persist**: *"the write VERB performs NO file commit: the write succeeds and the address does NOT
+resolve after a fresh boot — the save being §2.11 clause 2's terminal-arm act."* **They drive a BARE write** — no
+`K-2`, no `K-3`, no kernel attempt at all — and measured on this tree, **that bare write leaves the image at 13
+bytes**, so the cell is red.
+
+**★ AND THE TWO KEPT CONTRACTS SAY OPPOSITE THINGS ABOUT THAT EXACT ACT.**
+
+| contract | its declaration |
+|---|---|
+| **`docs/specs/storeroom-native/contract.md` `DD-28`** | **"`file`-TIER DURABILITY IS PRODUCED BY A SUCCESSFUL `file`-TIER `write` ONLY"** — *"the `delete` and the `rollback` DO NOT COMMIT THE FILE, and the `file` tier's durability is a WRITE's act alone"* |
+| **`docs/specs/storeroom-js/surface.md` §2.11 clause 1** | **"THE LIFT IS FOR THE `file` TIER, THE TERMINAL ARM AND THE PASSING ARM ALONE, AND FOR NOTHING ELSE"** — with clause 2 putting the save on the **terminal arm**, as `commit_file`, before any delivered body |
+
+**THE STORE IMPLEMENTS BOTH ACTS**, which is why nothing in the code looks wrong from either side alone:
+`src/store.rs` has a private **`write_file` (`:1300`)** that a file-tier `write` reaches, **and** a public
+**`commit_file` (`:1343`)** that the terminal arm calls through the addon's `commitFile` dispatch. **So the bare
+write commits under `DD-28`, and the terminal arm also commits via `commit_file` — the cells test the second and
+the store implements the first.**
+
+**SO `R-3`'S DISPOSITION IS WITHDRAWN, AND THE WITHDRAWAL IS L0'S OWN ERROR.** `R-3` recorded *"`LIVE-4.8`,
+`FTS-05.1` and `FTS-05.2` are RIGHT and stay KEEP-AND-RED; the code owes the fix"* — **and it reached that from
+`surface.md` ALONE, without reading `DD-28`, whose subject is the same act.** **A cell cannot be adjudicated against
+one of two contracts that disagree**, and the battery's authors wrote theirs from the JS side.
+
+**AND THE EVIDENCE TILTS, WHICH IS WORTH KNOWING EVEN THOUGH THE CHOICE IS THE ARCHITECT'S.**
+**`strata/brief.md`'s UC-6 already states the native reading**: *"durability is a property of `file`-tier WRITES
+only"* — and the store's own Rust battery is **green** while asserting it.
+
+**THE TWO BRANCHES, PRICED.**
+
+- **(A) THE NATIVE READING GOVERNS — no code change, two cells move.** A bare file-tier write persists; `§2.11`
+  clause 1 is read as *"the write verb performs no file I/O **of its own** beyond the store's declared write"*, and
+  the terminal arm's `commit_file` is the **kernel path's** save of a whole attempt. **Cost: the three cells are
+  REWRITE (`D-17`), and a JS-side clause re-spelling. Nothing in `src/**` moves.**
+- **(B) THE JS READING GOVERNS — a Rust change, a `DD-28` amendment, and a consumer-visible semantic.**
+  `src/store.rs`'s file-tier `write` must stop reaching `write_file`, **`DD-28` must be amended**, **the Rust
+  battery must be re-derived** (`cargo test` is green today asserting the opposite), and **a bare JS file-tier write
+  would then never persist** — which contradicts the brief's UC-6 and the consumer guide's whole durability story.
+  **Cost: the largest of any single decision on this branch, and it moves a published semantic.**
+
+**L0 has ordered no fix.** The architect said *"Proceed"* to a fix whose target turned out to be two contracts in
+conflict, and **a pass that picked one side would be inventing the ruling it was asked to implement.**
+
+---
+
+### `D-32` — a bare `file`-tier write PERSISTS: `DD-28` governs, and `§2.11` clause 1 is read through it
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, on the contradiction
+`R-5` put to him.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> a
+
+**WHAT IT SETTLES, AND THE PRECEDENT IT USES.** **(A): the NATIVE contract governs the act a bare `file`-tier write
+performs.** **`DD-28`'s sentence is law: *"`file`-TIER DURABILITY IS PRODUCED BY A SUCCESSFUL `file`-TIER `write`
+ONLY."*** **So `write(addr, 'file', v)` commits, with no kernel attempt and no terminal arm in the path, and a fresh
+`storeCreate` over the same `filePath` resolves the address.**
+
+**WHAT IT SUPERSEDES, AND WHAT IT DOES NOT.** **`docs/specs/storeroom-js/surface.md` §2.11 CLAUSE `1` IS READ THROUGH
+THIS RULING**: its *"the verb performs no file I/O on any of its arms"* becomes **"the write verb performs no file
+I/O OF ITS OWN beyond the store's declared write"** — **the clause still governs the PACKAGE's layer (it adds no
+second write path, no scratch copy and no package-authored image), and it no longer denies the store's own declared
+act.** **CLAUSE `2` IS UNTOUCHED AND STILL BINDS**: **the terminal arm performs `commit_file` as its first act on
+the passing arm, before any delivered body** — **and that is now the KERNEL path's save of a whole attempt, which is
+exactly what it was for.** **Both acts stand; the bare write's and the terminal arm's are different saves of
+different scopes, and the same bytes may lawfully be committed by both.**
+**AND THE CLAUSE IS NOT EDITED.** The spec corpus is unowned (`D-11`'s narrow rule); **this log is what supersedes
+it, exactly as `D-3` superseded `§2.1` item `6` without touching the file.**
+
+**WHAT IT OBLIGATES — THREE CELLS, AND NOTHING ELSE.** `LIVE-4.8`, `FTS-05.1` and `FTS-05.2` asserted the opposite
+reading and are now **REWRITE (`D-17`)**, not KEEP-and-red: **`R-3`'s *"the code owes the fix"* is dead, and `R-5`
+had already withdrawn it.** **Each cell re-derives to the native reading: the bare write persists, and its boot
+resolves.** **NO CODE MOVES — `src/**` is untouched, the store keeps `write_file` and `commit_file`, and the Rust
+battery keeps asserting `DD-28` and stays green.**
+
+**AND THE CONSEQUENCE FOR THE BRIEF'S OWN HISTORY, RECORDED BECAUSE IT IS THE LESSON.** **`strata/brief.md`'s UC-6
+already said *"durability is a property of `file`-tier WRITES only"*** — **the brief was right the whole time, and the
+cells were written from the other contract.** **A contradiction between two kept contracts is not resolvable by the
+corpus; it needs the architect, and this one took a direct question to surface.**
+
+---
+
+### FINDING — both subdivision declarations went STALE before they were executed, and the cause is the sequencing L0 chose
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the L4 pass refused to execute the
+kernel cut, reporting the declared regions false at HEAD; **L0 verified every claim and the refusal is correct.**
+
+**WHAT THE PASS MEASURED, AND WHAT L0 CONFIRMED.**
+
+| declared (at `D-15`, commit `fe66387`) | at HEAD |
+|---|---|
+| the file is **2,203** lines | **2,213** |
+| **8 blank separators** at `482 · 1154 · 1363 · 1418 · 1776 · 1803 · 2059 · 2090` | **all eight NON-BLANK** — `482` is `if (!inDomainId(id) …`, `1418` is `return false;`, `2059` is `return { present: false …` |
+| `export function register` at `486` | **`472`** — so the declared boundary at `481`/`482`/`483` falls **inside `register`** |
+| the six export sites at `486 · 1008 · 1158 · 2063 · 2075 · 2111` | **`472 · 1001 · 1155 · 2066 · 2082 · 2121`** |
+| `9a` owns `pairKey` · `PAIR_KEYS` · `pairKeyOf` · `pairRowCarrying` | **`D-29` deleted all four** |
+| `9a` owns a module-scope `LIVE`/`CLOSED`/`ATTEMPTS` block | **`D-30` moved all three into the per-store record** |
+
+**★ THE CAUSE, STATED PLAINLY BECAUSE IT IS L0'S OWN SEQUENCING.** `D-28` ordered **the surface work first and the
+subdivision last** — correct for the oracle, and **wrong for the declaration's shelf life**: **twenty-four commits
+touched that file after `D-15` accepted the cut**, so every line region in `docs/L1/kernel-subdivision.md` describes
+a file that no longer exists. **A declaration of LINE REGIONS has a shelf life, and it expires with the next commit
+that touches the file it measures.** **`docs/L1/entry-subdivision.md` is stale by the same cause and to the same
+degree**: `index.mjs` was the file the seven rulings rewrote most heavily.
+
+**AND TWO OF THE STALEHOODS ARE SUBSTANTIVE RATHER THAN NUMERICAL.** The cut's premise for `9a` — *"shared writes to
+one home, not edges"* — **no longer describes the file**, because `D-30` moved the attempt state out of module scope.
+And **the one carve the declaration added to break a cycle (`9a` taking `attemptHeldAt`) was justified against a
+function whose signature and consumers `D-30` then changed.**
+
+**THE CORRECT RESPONSE IS THE ONE `D-13` ITSELF NAMES AS ITS PRECONDITION:** *"its cut must be declared against a
+MEASUREMENT of that file, not guessed from its length."* **The declarations are re-issued against HEAD; no code
+moves until they are.** **The L4 pass was right to stop, and it is recorded as having been right.**
+
+---
+
+### `D-33` — take the entry's clean seam, and the subdivision executes in two stages
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect: *"Split"*.
+
+**WHAT IT SETTLES.** **Entry part 6 (`the walk`, 1,337 lines) SPLITS at `L2799` into `927 + 410`** — the seam the
+re-measurement found clean — **so the entry becomes NINE parts and the subdivision's target set becomes thirteen
+paths plus the barrel, not twelve.** **`D-14`'s enumeration is restated accordingly, and the four drives' re-staging
+is declared against thirteen.** **Part 5 keeps its size**: its natural seam is a **measured cycle**, so splitting it
+would need a code change and not a move.
+**The split serves `D-2`'s own ground.** Part 6 was the second-largest at **1,337**; `927 + 410` puts every entry
+part under 1,000 **except part 1 at 1,400, which is irreducible by a pure move** (1,310 is `storeCreate` with
+fourteen members closing over one local state).
+
+**AND THE EXECUTION IS STAGED, BECAUSE THE MODEL'S OWN WALL SPLITS IT.**
+
+1. **STAGE 1 — THE KERNEL CUT (L4, source only).** Five parts under `src/entry/kernel-*.mjs` plus a re-export barrel
+   at the old path. **Independently verifiable and verifiable to GREEN**: the barrel keeps the path every importer
+   uses, and `index.mjs` is untouched — **so all four legs must stay green and any red is the pass's own.**
+2. **STAGE 2 — THE ENTRY CUT (L4, source only) THEN THE FOUR DRIVES RE-STAGED (test writer).** **These two are
+   COUPLED and the tree is transiently RED between them**: once `index.mjs` imports parts, the drives' staged trees —
+   which carry `index.mjs` alone — cannot load (`D-14`), and **`role_l4_implementer` may not edit tests.** **So stage
+   2's source move lands with four known load failures, and the very next pass repairs them.** **That transient red
+   is DECLARED here rather than discovered**, and the two passes must land back to back.
+
+---
+
+### FINDING — the kernel cut is implementable and byte-verified, and ONE PATH-PINNED TEST blocks it
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the second L4 pass, which built the
+cut, verified it, and stopped rather than edit a test. **L0 confirmed the tree was restored and the blocker is real.**
+
+**WHAT THE PASS PROVED BEFORE STOPPING.** The five parts were built and **their bodies are byte-identical to
+`git show HEAD:…constraint-kernel.mjs`** — only 24 lines differ, each by an added `export ` prefix that the siblings'
+imports cannot resolve without. **Line counts land exactly on the declaration: `528 · 642 · 154 · 567 · 322`; the
+declaration census `24/11/1/7/9 = 52` holds; the DAG was built with no edge the declaration did not have; and there
+are ZERO temporal-dead-zone sites**, because all 52 top-level lines are declarations with no top-level executable
+statement and every cross-part use sits inside a function body. **A pure move, demonstrated rather than asserted.**
+
+**AND WITH THE CUT IN PLACE, THREE LEGS STAY GREEN AND ONE DOES NOT: `npm test` falls to 846 pass / 4 fail.**
+**The four are `JC-TC-63`, `-64`, `-65`, `-66`, and the cause is a single predicate:**
+`bindings/js/test/json-crossing.test.mjs:3941` declares
+**`CROSSING_KERNEL_FILE_SUFFIX = '/bindings/js/src/constraint-kernel.mjs'`** and `:4003` classifies a take by
+**the file its own stack frame names** — `frame.file.endsWith(CROSSING_KERNEL_FILE_SUFFIX)`. **After the cut, a
+kernel frame names `src/entry/kernel-*.mjs`, so takes that were `ROUTED_KERNEL` become `UNATTRIBUTED`, which is a
+violation by that cell's own design.** The failures name the parts: `kernel-foundations.mjs:179 inDomainAddress`,
+`kernel-foundations.mjs:371 append`, `kernel-attempt.mjs:256 evaluate`, `kernel-attempt.mjs:525 releasePending`.
+
+**★ THE GENERAL LESSON, WHICH IS THE REASON THIS IS A FINDING AND NOT A NUISANCE: A TEST THAT IDENTIFIES A MODULE BY
+ITS FILE PATH IS A COUPLING ON THAT FILE'S PARTITION.** **It is invisible while the file is whole**, which is why
+nothing in the declaration or the map saw it — and **it is the class of coupling a subdivision is most likely to
+meet, because a partition is exactly what a path identity cannot survive.** **The repair is a predicate that
+recognises the module's identity by its HOME rather than by one file**: the barrel's own path **or** the parts'
+directory pattern, so it is **correct before the cut and after it** — which means it can land FIRST, with the tree
+green throughout.
+
+**AND ONE STALE CLAIM THE RE-ISSUED DECLARATION INHERITED, RECORDED FOR L1 TO FIX.** `kernel-subdivision.md §4.2`
+still says `blind-constraints-v2.mjs:1139` **pins five kernel names and is red**. **At HEAD that cell is at `:1251`
+and it is GREEN on six** — the battery's re-derivation moved it. **A declaration that inherits a claim without
+re-measuring it is how the last stale declaration happened; this one is small and is named rather than repeated.**
+
+---
+
+### FINDING — a subdivision meets THREE coupling classes, and the declaration named ONE
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the entry cut, measured by L0.
+**A finding about what a partition costs, not about a mistake.**
+
+**WHAT LANDED.** `index.mjs` went from **6,350 to 1,409 lines**, with **eight new parts** in `src/entry/` — so the
+directory now holds **thirteen files** (8 entry + 5 kernel), exactly `D-33`'s target. **Byte-identity held**: the
+reassembled bodies are the same sha256 as `git show HEAD:…index.mjs`, with 73 `export ` prefixes and exactly one
+enumerated edit. **`D-33`'s split was taken** as `carrier.mjs` (927, the carrier tree's encoders) and `frame.mjs`
+(410, the construction's frame and answers), with the edge `frame → carrier` derived from the seam: above `L2799`
+nothing calls anything declared below it.
+
+**★ AND THE RED IS WIDER THAN `D-33` DECLARED, IN A WAY THAT GENERALISES.** `npm test` is **842 · 785 · 56** and
+`live-drive` is **95/100**. **The four drives `D-33` named are only one class:**
+
+| class | the coupling | what broke |
+|---|---|---|
+| **(1) STAGED-TREE COPIES** | a tree that copies `index.mjs` **alone** and drives it there | the four declared drives **and `live-drive.mjs`** — a GREENS runner that copies `index.mjs` + `package.json` alone (`LIVE-8.2/.3/.4/.5/.7`) |
+| **(2) PATH-IDENTITY PREDICATES** | a cell that classifies a take by the file its stack frame names | `json-crossing.test.mjs`'s `JC-TC-65`: the classifier was widened to the barrel **and the kernel parts**, and entry-part frames — `state.mjs:386`, `constraints.mjs:95` — are `UNATTRIBUTED` |
+| **(3) SOURCE-TEXT COUPLINGS** | a cell that greps **the file's text** | `addon-surface.test.mjs`'s `sas_d6_` and `addon-surface-properties.test.mjs`'s `sas_prop_P_SAS_6_` (both grep `index.mjs` for `commitFile`), and `publish-generators.test.mjs`'s control, which fails **at load** because *"the rung-one success site moved"* — `tried.push(ADDON_PATH)` now lives in `artefact.mjs` |
+
+**SO A PARTITION COSTS THREE KINDS OF REPAIR, AND ONLY THE FIRST IS OBVIOUS.** **Class (2) had already bitten once
+(before the kernel cut) and was repaired for the KERNEL's parts — and that repair did not generalise, because it
+named a prefix rather than the directory.** **Class (3) is the one nobody predicts: a test that asserts what a file
+SAYS couples to where the file IS.** **All three are test-side repairs, and all three are the next pass's.**
+
+**AND THE MOVE NEEDED THREE THINGS THE DECLARATION DID NOT HAVE, EACH REPORTED RATHER THAN ABSORBED.**
+
+1. **TWO CYCLE-FORMING EDGES the DAG lacked**, each closed by a **pure-move carve**: `class-decision → walk` through
+   a **constant reference** (`NODE_CEILING`, invisible to a `name(`-shaped scan) and `walk → delivery` through a plain
+   call (`isLawfulListenerElement`), so a one-line declaration and a 35-line block moved into `class-decision.mjs`.
+2. **THE HUB HANDS ITS CONTEXT IN.** `artefact.mjs` cannot derive `ADDON_PATH`, `require_` or the manifest path from
+   its own URL, so the hub passes them: `adoptModuleContext(import.meta.url, require_, ADDON_PATH)`. **One expression
+   had to follow** — `packageVersion`'s `import.meta.url` became `entryUrl` — **and the pass reports that its own
+   first build carried a silent defect this closed.** That is the shape of a finding worth having.
+3. **THE LAZY KERNEL REACH STAYS.** `§4.2`'s retirement is **not a move** — it is a behaviour change — so the hub
+   still reaches the kernel lazily, and **the retirement belongs with the drives' re-staging, where the trees that
+   needed it stop existing.**
+
+---
+
+### FINDING — the subdivision broke the PACKAGE, and every test is green anyway
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the coupling-repair pass, which
+reported the gap; **L0 verified it and it is a shipping blocker.**
+
+**WHAT IS TRUE RIGHT NOW.** `bindings/js/package.json`'s `files` names **four entries** —
+`index.mjs` · `README.md` · `index.d.ts` · `src/constraint-kernel.mjs` — and **the hub imports EIGHT parts from
+`./src/entry/`** while **the barrel imports five more from `./entry/`.** **So a tarball built from this manifest
+carries the hub and the barrel and NONE of the thirteen parts they import: THE PUBLISHED PACKAGE CANNOT LOAD.**
+**`ERR_MODULE_NOT_FOUND` at import time, on every platform, for every consumer.**
+
+**AND IT IS THE EXACT SHAPE OF THE PROJECT'S OWN OLDEST SCAR.** **`0.1.0`'s five platform tarballs published GREEN
+while each carried `README.md` and `package.json` alone**, their `files` naming a `.node` and a `LICENSE` that were
+*"NAMED BUT ABSENT"* — **the reason `publish.yml` grew its pre-publish `test -e` guards.** **The lesson was applied to
+the platform artefacts and never to the main package's own import graph**, so this is the same defect one level up.
+
+**WHY EVERY LEG IS GREEN WHILE IT IS BROKEN.** **Every battery drives the CHECKOUT, where all thirteen parts sit on
+disk beside the hub** — the parts are simply there, so nothing notices. **The only instrument that would see this is
+one that installs what the manifest actually packs**, and **that is `D-10`'s installed battery, which is declared and
+not built.** **So the defect is invisible to the whole current apparatus by construction.**
+
+**AND THREE CELLS ARE STILL ENFORCING THE CONSTRAINT THAT WOULD PREVENT THE FIX.** `constraints-publication`'s
+`cp_allowlist_…`, `greens.mjs`'s `JSG-12.18` and `publish-generators`' `NG-PUB-I` (`assertAllowlistIsFour`) **all pin
+the four-entry allowlist** — **the very constraint `D-3` retired and `D-4` replaced with reachability.** **They were
+kept in the re-derivations because their *other* limbs (no `.node`, no `build/Release`, no `LICENSE` row) are
+functional rules that stand — and the count limb went with them.**
+
+**AND THE INVARIANT THAT MATTERS HAS NO CELL AT ALL: *every file reachable from the hub and the barrel must be
+packed*.** **`D-4` handed the shape to reachability and evidence, and nothing asserts reachability.** **A cell for it
+would have caught this on the commit that made it.**
+
+**THE FIX IS TWO SUBJECTS, AND NEITHER IS L0'S.** **`delivery`'s manifest** gains the parts — **as a consequence of
+reachability, which is what `D-4` says the shape is** — and **the three count-limb cells re-derive to the reachability
+invariant**, with a cell added for the invariant itself. **`D-14`'s declared re-staging is not the fix**: a staged tree
+is not a packed one.
+
+---
+
+### FINDING — the allowlist is by reachability now, and FIVE cells pinned the count, not three
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the manifest pass; **L0 verified the
+form, the co-tenancy fact and the packed arithmetic.**
+
+**THE FORM CHOSEN, AND ITS REASON IS A MEASUREMENT RATHER THAN A PREFERENCE.** `files` is now
+**`index.mjs` · `README.md` · `index.d.ts` · `src/entry/` · `src/constraint-kernel.mjs`** — **a DIRECTORY entry for
+the parts' home plus the barrel's EXPLICIT path**, which is **`D-14`'s recorded mechanism** (a glob cannot express a
+path one level up) applied to the manifest. **A bare `"src/"` was refused ON EVIDENCE: `bindings/js/src/` is
+CO-TENANTED by the Rust crate** — `codec.rs` · `crossing.rs` · `facade.rs` · `lib.rs` sit beside `entry/` and the
+barrel — **so `"src/"` would pack four files nothing imports** (22 members / 934,346 B against **18 members /
+739,304 B**). **L0 confirmed the co-tenancy at the directory listing.** **A directory entry also cannot drift when a
+fourteenth part arrives, which is why the enumerated alternative was refused.**
+
+**AND THE PACKED SET IS CLOSED UNDER IMPORT — PROVEN, NOT ARGUED.** **40 relative specifiers** taken from the hub,
+the barrel and all thirteen parts resolve against the packed list, **13 distinct part targets, 0 MISSING**; and **the
+18 packed members staged into a scratch tree load**: the hub's namespace is `['storeCreate']`, the barrel answers its
+six names, and `storeCreate()` refuses in the **declared absent-addon form** (`FilePathUnreachable`) because the
+platform package is not packed. **That last detail is the one that distinguishes "the packed set is closed" from
+"the package is complete" — and only an installed battery can tell them apart (`D-10`, still unbuilt).**
+
+**★ AND THE RED IS FIVE CELLS, WHERE `D-3`'s CORRECTION NAMED ONE AND L0 EXPECTED THREE.** `D-3`'s correction said
+*"`P-PUB-7`"*; **`publish.test.mjs` holds TWO equalities that pin the four-entry allowlist**, and they are
+`P-PUB-7::S-MANIFEST \`build/Release\` leaves \`files\`…` **and** `P-PUB-7::S-MANIFEST the licence notice travels with
+all six artefacts`. **So the count was enforced in FIVE places across THREE batteries** — `constraints-publication`'s
+`cp_allowlist_…`, `publish-generators`' `NG-PUB-I`, **two** `P-PUB-7` cells, and greens' `JSG-12.18`. **A retired
+constraint had five homes, and every earlier count of its homes was short.**
+
+**WHAT REMAINS IS THE INVARIANT ITSELF.** **No cell asserts *"every file reachable from the hub and the barrel is
+packed"*** — **the reachability rule `D-4` declared, with no instrument.** **The five count cells re-derive to it, and
+the invariant gets its own cell** — which must resolve a **directory row through the packlist rather than by path
+equality**, and must allow `package.json`, which npm always packs. **That cell is the one that would have caught this
+defect on the commit that made it.**
+
+---
+
+### FINDING — the stratification's RUST half is not executable as declared, and it needs the architect
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** L0, taking the last migration piece.
+**This is the one item L0 is pausing on: it is a design decision, not an information gap.**
+
+**WHAT IS TRUE.** The stratification assigns **22 Rust files** to the preset's scopes: the store crate's fifteen to
+`tests/integration/store-core/…` and `store-fail-set`/`store-args`, and the binding crate's seven to
+`tests/integration/binding-crossing/…` and `tests/unit/binding-crossing/…`.
+
+**AND THE TWO CRATES ARE NOT ONE PACKAGE.** **`bindings/js/Cargo.toml` states it in its own words:** *"It is NOT a
+workspace member … the root `Cargo.toml` carries no `[workspace]` and this manifest declares none."* **L0 confirmed
+that at both manifests.** **So `bindings/js/` is a STANDALONE Cargo package with a path dependency on the root crate,
+and Cargo's integration tests must live INSIDE their package's directory.**
+
+**THE CONSEQUENCE, SPLIT BY CRATE.**
+- **THE STORE CRATE`S FIFTEEN ARE MOVABLE** — `tests/integration/store-core/…` is inside the root package, reachable by
+  `[[test]] name = … path = …` entries plus the `mod support;` resolution the move disturbs. **Mechanical.**
+- **THE BINDING CRATE'S SEVEN ARE NOT.** `tests/integration/binding-crossing/…` at the **repository root** is
+  **outside the binding package**, so those files cannot be that package's test targets. **Three routes exist and
+  every one of them is a decision rather than a mechanism:**
+
+**(A) THE PRESET BENDS FOR A RUST CRATE — the crate's battery lives at the crate.** `bindings/js/tests/**` stays, and
+the preset's scopes cover the batteries a crate can host: the 47 JS files and the store crate's 15. **Cost:** `D-5`
+(*"keep the preset's choice"*) is narrowed and must say so. **Cost of the alternative:** none in code, none in Cargo,
+and the seven files' green is untouched. **L0's reading — the least invasive and the most honest**, because the preset
+was written for a project with one `tests/` tree and this repository has two standalone packages; a scope convention
+cannot outrank a language's packaging rule, and saying that plainly is better than a `[[test]]` path that escapes its
+own package.**
+
+**(B) A WORKSPACE RESTRUCTURE.** The root gains `[workspace]` and the binding crate becomes a member, so one `tests/`
+tree at the root can host both crates' batteries. **Cost:** it **reverses the packaging decision the binding
+manifest states in as many words**, it changes the release's build topology (the workflow builds the binding with its
+own `--manifest-path`), and it puts a workspace layer under a package that ships a native artefact. **The largest of
+the three and the only one that moves a build.**
+
+**(C) CARGO TARGET PATHS THAT ESCAPE THE PACKAGE.**
+`[[test]] name = "crossing_copy" path = "../../tests/integration/binding-crossing/crossing_copy.rs"` in
+`bindings/js/Cargo.toml`. **Cost:** unverified — Cargo's tolerance for a path outside the package root must be
+measured before it is relied on, and even if it works the files would sit **outside the package while remaining its
+targets**, which every tool that walks a package directory would then mis-read.
+
+**L0 HAS NOT CHOSEN.** The JS migration is complete and green; **this is the last piece, and the choice between (A),
+(B) and (C) is the architect's.**
+
+---
+
+### `D-34` — the separate-crate requirement is LIFTED, and the technical assessment behind that
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect: *"Lift the separate crate
+requirement unless a technical reason for keeping it is present."*
+
+**THE ASSESSMENT, MADE BEFORE THE LIFT, BECAUSE THE INSTRUCTION MAKES THE LIFT CONDITIONAL.** **L0 measured what a
+workspace would actually collide with, and there is NO BLOCKING TECHNICAL REASON.** The three claims that could have
+been technical, each tested:
+
+| the claim | is it technical? |
+|---|---|
+| *"a root `cargo test` keeps its single-package meaning"* | **NO — a convention.** `-p storeroom-native` restores exactly that meaning inside a workspace. |
+| *"the `rlib` half is load-bearing so this crate's own tests link the crossing"* | **NO — and it is not a reason to stay separate at all.** `rlib` and workspace membership are independent; a member may be `["cdylib","rlib"]` and host its own tests. |
+| *"the store builds `--offline`, the binding fetches at build time"* | **A CONSEQUENCE, NOT A BLOCKER.** `cargo build --offline --release` at a workspace root builds **every member** — including the binding's `napi`/`napi-build` registry deps — so the `build` script would need `-p storeroom-native` on its offline half. **One flag.** |
+
+**AND TWO FACTS CONFIRMED AT THE MANIFESTS.** The `build` script is
+**`cargo build --offline --release && cargo build --release --manifest-path bindings/js/Cargo.toml`** — **the asymmetry
+is already in the commands, so scoping is a command property and not a crate property.** And **`bindings/js/Cargo.lock`
+exists but is UNTRACKED** (`DD-27`: *"its OWN `Cargo.lock` is NOT committed"*), so a workspace's single committed lock
+**changes a declared property and blocks nothing.**
+
+**SO `§3.4` ITEM `2` IS LIFTED** — *"IT IS NOT A WORKSPACE MEMBER"* — **as a requirement.** **The clause survives as
+history and is read through this ruling**, exactly as `D-3` superseded `§2.1` item 6 without editing the file; **the
+spec corpus is unowned and this log is what supersedes it.** **`§3.4` item `1`'s layout stands** (an independent
+crate, its own manifest, `crate-type = ["cdylib","rlib"]`, one path dependency) — **what is lifted is the
+NOT-A-MEMBER requirement, not the crate's existence.** And **item `3`'s `rlib` finding is untouched**, because
+nothing in this ruling changes how the crate is built.
+
+**WHAT IT UNLOCKS, WHICH IS WHY IT WAS ASKED FOR.** The binding's seven Rust test files could not reach
+`tests/integration/binding-crossing/…` while the crate was outside every workspace, because **Cargo requires a
+package's integration tests to live inside that package.** **With membership available, a THIRD PACKAGE can host
+them** — a tests package at the repository root that depends on both crates and owns `tests/integration/<module>/…`
+and `tests/unit/<module>/…` as its own targets. **That is the only shape that puts the Rust batteries at the
+preset's scopes without contradicting a language rule, and it is what this ruling makes possible.**
+
+**WHAT IT DOES NOT DECIDE.** **Whether to take that restructure at all** — the architect lifted the requirement; L0
+proposes the tests package as the shape that serves `D-5`'s goal, and **the next pass stops rather than accept a red
+Rust battery.**
+
+---
+
+### FINDING — there is a SEVENTH leg, it is RED, and L0's verification was incomplete
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the workspace pass refused to land a
+red member and measured why; **L0 confirmed it at the command.** **This is L0's own error of coverage.**
+
+**WHAT IS TRUE.** **`cargo test --manifest-path bindings/js/Cargo.toml` exits `101`.** **`surface_verbs.rs` does not
+compile (19 errors), `crossing_carriers.rs` does not compile (4), `register_layer.rs` fails one test, and
+`crossing_values.rs` fails two** — and **four of the seven are unbuildable because `listen` now takes `(handle,
+addresses)`** (`D-22`/`D-29` made the caller spell the handle, so the Rust-facing signature is `&JsHandleArg,
+&JsAddressArg`) **while the Rust battery still drives the one-argument form.** `WriteResult.triggered` is
+`Vec<JsListenerTrigger>` where `support::js_set_equal` takes `&[JsHandle]`, so the carriers file fails on types as
+well as arity.
+
+**AND IT IS A DECLARED CI LEG, NOT A DORMANT DIRECTORY:** `.github/workflows/publish.yml:171` runs
+`cargo test --manifest-path bindings/js/Cargo.toml --no-fail-fast`, and line `174` builds it for every target.
+
+**★ SO L0'S "ALL FOUR LEGS GREEN" WAS SIX LEGS, AND THE SEVENTH WAS RED THE WHOLE TIME.** **The root
+`cargo test --offline` tests the STORE only — 415 tests — and the binding's battery is a SEPARATE COMMAND that no
+pass in this session ran.** **Every report of this branch's health since the surface landed has been true of the six
+legs measured and silent about a leg that was failing.** **That is the same defect the whole session has been
+finding in others' work — a verification that names what it measured and does not name what it left out — and it is
+recorded here at its own size rather than folded into a passing summary.**
+
+**THE CAUSE IS THE SAME ONE THE JS BATTERY HAD.** The seven surface rulings changed the published shape and **the
+batteries were re-derived against it — the JS ones.** **The binding crate's Rust battery drives the same surface
+through `crossing` and was not re-derived, because it is reached by a command the session never ran.**
+
+**AND IT BLOCKS THE WORKSPACE.** The workspace pass measured the restructure, derived it fully (members, the tests
+package, `mod support` resolution per group, `default-members = [".", "tests"]`, the `-p storeroom-native` scoping
+that keeps `--offline` honest), **and refused to put a red member inside the root command's path.** **It was right:
+the Rust batteries must be re-derived BEFORE they move.**
+
+---
+
+### FINDING — the relocation is measured, sound, and blocked on FOUR decisions, three of them the architect's
+
+**DATE:** 2026-10-24. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the relocation pass, which measured
+the shape in a scratch workspace and stopped rather than change a declared property. **L0's tree is clean and green.**
+
+**THE SHAPE IS SOUND AND MEASURED.** A tests-only package with no `src/lib.rs` is lawful; `[workspace] members =
+[".", "tests"]` beside a root package is accepted; `#[path = "../support/mod.rs"]` resolves as derived; **`cargo test`
+at the workspace root runs both packages.** Baselines before: **store 415** (14 targets), **binding 235** (6 targets).
+
+**★ A — THE TWO NAMED LEGS STOP MEANING WHAT THEY MEAN, AND THAT IS THE REAL COST.** **After the move: root
+`cargo test --offline` = 650 (415 + 235), not 415; `cargo test --manifest-path bindings/js/Cargo.toml` = 0, because
+the binding's only test targets were the six files that leave; and `-p storeroom-native` = 0, because the battery now
+lives in `storeroom-tests`.** **Nothing vanishes — but two commands this project's own verification names would name
+nothing.** **`default-members = [".", "tests"]` is exactly WHY the root command covers both, so the design's virtue
+is the verification's contradiction.** **The question is the architect's: what are the legs after the move?**
+**L0's proposal: the store's leg becomes `cargo test -p storeroom-native` (415, unchanged meaning), the binding's
+becomes `cargo test -p storeroom-tests` (235), and the root's plain `cargo test` is declared as the both-of-them
+command.** That is a leg-naming decision, not a mechanism.
+
+**★ B — THE `-p` SCOPING TURNS AN EXECUTED CELL RED, AND THE CELL IS PINNING A DECLARED COMMAND.**
+`tests/e2e/addon-adoption.test.mjs:1972`–`1977` asserts **`storeHalf === ['cargo build --offline --release']`**
+exactly, and `command-sites-and-residue.md §3` declares that half **"THE STORE'S AND UNMOVED — it does not appear in
+the site table at all"**. **So adding `-p storeroom-native` breaks a declared command spelling, measured: `npm test`
+goes 851 · 1.** **Architect's: amend the pinned command, or keep the spelling and accept that an `--offline` root
+build would pull the binding's registry crates.**
+
+**★ C — THE LOCK IS `DD-27`'s PRICED ALTERNATIVE.** The root `Cargo.lock` is **tracked**; under one workspace lock the
+next commit **pins the binding's 38 registry crates**, and `DD-27`'s alt cell says *"a committed `Cargo.lock` …
+available with a bounded amendment"*, while `bindings/js/.gitignore:6` goes dead. **Untracking breaks `--locked` on a
+fresh clone, which `preflight_pkgs` depends on.** **Both branches change a declared property → architect.**
+
+**D — TWO RELEASE PATHS DIE AND THEY ARE OUTSIDE THE PASS'S SCOPE.** `scripts/publish.sh:193`–`194` copies
+`bindings/js/target/release/…`, and **a member's target dir is the workspace root**, so the path goes stale and its
+`|| true` **silently stages the old `.node`**. `.github/workflows/publish.yml:171` runs the binding command that now
+runs **0 tests and exits 0** — **a declared CI leg gone silently vacuous** — and `:188` builds from the same stale
+path. **These are the release's, and they are the reason a relocation cannot be called done until they move too.**
+
+---
+
+### FINDING — the blind instrument runs in NO leg, and no examiner role ran in this session
+
+**DATE:** 2026-10-25. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect's question, answered
+from the tree. **L0's own coverage finding, and the third of its kind.**
+
+**THREE BLIND/ADVERSARIAL INSTRUMENTS EXIST, AND TWO OF THEM RUN.**
+
+| instrument | in a leg? | state |
+|---|---|---|
+| `tests/e2e/json-crossing-blinded.test.mjs` | **yes** — `npm test`'s glob | **passing** |
+| `tests/e2e/json-crossing-gate4-adversarial.test.mjs` | **yes** — same glob | **passing** |
+| **`tests/e2e/blind-constraints-v2.mjs`** | **NO LEG RUNS IT** | **RED: exit 1 · FAIL 25 · NONRUN 17 · NOT-DRIVABLE-BLIND 10** |
+
+**WHY IT IS IN NO LEG, NAMED PRECISELY:** `npm test` globs **`*.test.mjs`** and this file is `.mjs`; `npm run greens`
+chains **three named runners** and this is not one of them; `npm run test:e2e` runs **the installed battery alone**.
+**So the largest blind instrument in the project is invoked only when somebody remembers to, and it has been red since
+the surface rulings landed** — its 25 FAIL and 17 NONRUN measured at HEAD.
+
+**★ AND THE PROCESS GAP IS WORSE THAN THE INSTRUMENT GAP: NO EXAMINER ROLE RAN IN THIS SESSION.** The strata preset
+gives **`role_l1_examiner`, `role_l2_examiner` and `role_l3_examiner`** a procedure (`strata/examiner.md`) whose first
+duty is *"validate the battery before the code, then diagnose."* **Not one of them was used.** Every validation this
+session was either **L0's own shell check** or **a test writer re-deriving a battery the rulings had moved** — and
+**the two are not the same act: a writer re-derives against a shape, an examiner asks whether the battery could have
+CAUGHT the defect.** **That question was asked by nobody, and this branch found nine defects — several of which a
+battery existed for and did not catch.** **A green battery validated by its own author is the weakest evidence this
+model has, and it is the evidence most of this session rested on.**
+
+---
+
+### THE EXAMINER'S FINDINGS — the first examiner pass on this branch, and it overturns the reading of "green"
+
+**DATE:** 2026-10-25. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** `role_l1_examiner`, read-only, the model's
+own procedure applied for the first time. **Nothing written; its findings are recorded here because they are
+perishable and they are the most consequential of the session.**
+
+**1 · THE BLIND INSTRUMENT'S 52 CELLS: `0` REAL DEFECT · `20` STALE · `0` UNTESTABLE · `32` BATTERY FAULT.**
+**The 25 FAIL are not the code failing.** **Twenty are stale against four rulings already re-derived in KEPT files and
+never in this one** — and **one cause sits behind twelve of them**: `triggered`/`pending` elements are the pair
+`{handle, address}`, so `includes(handle)` is *always* false (`register.test.mjs:48–56` spells that out). **The other
+32 are the INSTRUMENT breaking**: `E2E-C-2`'s fixture write is itself refused `FileCommitFailed`, so its own setup
+cannot be admitted and `2.9` — cited by three other cells — never runs; and **`E2E-C-12`'s `landingOnly` shield wraps
+`'not-a-function'` into a function, so `KC-2` never fires — the shield that saved seven scenarios in `D-20` created the
+blind spot in the one row that tests the refusal to *be* a function.** **And one cell — `16.5` — is green no drive
+earned: `loop.every(kind !== 'constraint')` is vacuous because every loop entry is unresolved.**
+
+**2 · LEG BY LEG, THE DEFECT EACH LEG MISSED — AND TWO GAPS THAT ARE STILL OPEN.**
+
+| leg | the history defect it missed | closed? |
+|---|---|---|
+| `test` 851 | the partition broke the package, 851 green | **in another leg** (`INSTALL-02`), not this one |
+| `greens` 254 | exited `0` with 21 FAIL | by `D-21`'s contract |
+| `test:e2e` 15 | a tarball that could not load | **by a cell with a control** |
+| **`typecheck`** | `index.d.ts` missing rank 17 | **NOT CLOSED HERE — the fixture names zero status literals**, and the gap is caught in `greens` by a HAND-TRANSCRIBED array, not a derivation from `src/error.rs`'s `CODES` |
+| `test:store` 29 | 127/128 admit-then-fail | by a cell |
+| **`test:battery` 235** | **the address set replacing instead of extending** | **NO CELL EXISTS** |
+
+**3 · THE BLIND INSTRUMENT BELONGS IN THE `greens` CHAIN — ONE TOKEN — AND `greens` GOES RED WHEN IT DOES.**
+**That is the point, not the cost.** Renaming it to `.test.mjs` would drag it onto `node:test` and lose `D-21`'s
+four-state report; **a reporting runner outside every leg is a document that fails when read.**
+
+**4 · FOUR DEFECTS NO PASS FOUND, EACH MEASURED BY THE EXAMINER.**
+1. **The constraint pass runs at landing on the bare-write route but NOT on `K-2`'s** — `store.write` evaluated the
+   pair and then refused the caller's own write; `commit(...)` left the counter unchanged. **An asymmetry claimed
+   nowhere.**
+2. **The pair carries the REGISTERED address, not the written one** (`{address:['a']}` for a write at `['a','b']`), so
+   an ancestor listener is handed its watch address as the trigger.
+3. **`E2E-C-2`'s own title names an unreachable behaviour** — a successful rollback marks the entry `compacted`, so the
+   second same-address call meets `M-6` and never `C-2`.
+4. **`greens`'s status census is hand-written**, so the declaration-shortfall direction is caught only because someone
+   widened it by hand.
+
+**5 · ADDED TO `D-10`'S CEILING, WHICH IS THE EXAMINER'S MOST USEFUL LINE.** **`scripts/publish.sh` — 22 KB, the
+release's whole assembly — runs in NO leg and NO workflow.** **No leg runs `build`**, so `stage-addon.mjs` guards only
+when invoked. **No leg drives concurrency or interleaving** — every battery is synchronous and single-process, **which
+is exactly the `D-30` class the defect belonged to.** **A skip is not a green: `skipped 1` is a cell that did not run.**
+
+**L0's SUMMARY, AND IT BELONGS IN THE RECORD RATHER THAN IN A REPORT:** **this branch's "all legs green" was true of
+the legs, and the examiner has now shown that two of them cannot catch what they exist for, one instrument with 52
+cells runs in no leg, and a third of that instrument is broken in a way that hides its own subject.** **The code is in
+good shape. The VERIFICATION is not, and it was never examined until now.**
+
+---
+
+### THE SECOND REVIEW — the instance-owned kernel REGRESSED three things, and my agreement with it was wrong
+
+**DATE:** 2026-10-25. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** `role_l1_examiner`, read-only, against
+the tree as it stood after `cdd2467`. **L0's own error, recorded at its size.**
+
+**THE HEADLINE, WHICH IS THE REASON THIS ENTRY COMES FIRST:** **`cdd2467` — deleting `KERNELS` and moving the kernel
+record onto the store object — introduced THREE regressions, one of which defeats the `F8-2` class this branch had just
+spent two passes closing and another of which lets a caller bypass a constraint.** **The examiner measured all three
+against a `/tmp` copy of `HEAD~1` with the `WeakMap` restored.**
+
+1. **A FROZEN, SEALED OR NON-EXTENSIBLE STORE NOW THROWS A RAW HOST `TypeError`.** `Object.freeze(store)` **before**
+   the store's first kernel act, then a lawful `write` or `addConstraint` → **`TypeError: Cannot define property
+   Symbol(provident-storeroom.kernel), object is not extensible`** — `status` absent, not one of the seventeen, not
+   the one form. **Order-dependent**: freeze *after* any kernel act and the same write succeeds. **`WeakMap.set` on a
+   non-extensible object cannot fail; `defineProperty` on one always does.** **No clause forbids freezing a store, and
+   nothing in the tree freezes one — so no cell tried it, and none does now.**
+2. **THE KERNEL RECORD IS NOW REACHABLE *AND MUTABLE* FROM THE STORE.** `Object.getOwnPropertySymbols(store)` yields
+   the slot; the record carries `pairs`, `handles`, `live`, `closed`, `store`. **`store[SYM].pairs.clear()` makes an
+   armed constraint stop refusing — the value lands — while `constraints()` still reports the pair.** Unreachable
+   under the `WeakMap`; new in `cdd2467`. **That is a constraint bypass, not a tidiness regression.**
+3. **PROTOTYPE FORGERY: A GETTER AT `Object.prototype[SYM]` SUPPLIES ONE RECORD TO EVERY STORE.** Measured
+   `a[SYM] === b[SYM]`, shared `attempts` = 2 after one write each. **`Symbol.for` is a REGISTERED symbol, so the key
+   is guessable; and `store[SLOT]` is a plain read that walks the chain.** **This is the `F8-2` class by a third
+   vector — and `appendOwn` cannot help, because it is a read, not an append.** **Ownership held for writes only.**
+
+**WHY THE PROPOSAL LOOKED RIGHT AND WASN'T.** **`KERNELS` was not indirection-for-nothing: it was PRIVATE STATE.** A
+`WeakMap` is not enumerable, is not inherited, and works on a frozen object. **An own property of a caller-visible
+object is none of those three** — and the three regressions are exactly those three properties, lost. **The kernel's
+own clause (*"holds no instance handle … carries no module-level store"*) is about not *holding* a store strongly, and
+a `WeakMap` key is weak — so the clause was already satisfied.** **L0 read "the instance should own it" as "the
+instance should carry it", and those are different claims.**
+
+**RECOMMENDATION, AND L0 DOES NOT ACT ON IT WITHOUT THE ARCHITECT: REVERT `cdd2467`.** The change bought a conceptual
+tidy-up and cost a raw host error on a lawful call, a reachable mutable record, and a forged shared kernel. **Restoring
+the `WeakMap` restores all three protections and no test changes** — the nine call sites never moved, so the revert is
+one file.
+
+**AND FIVE MORE FINDINGS NO EARLIER PASS MADE, EACH MEASURED.**
+- **`facade.rs:170`/`:173` is worse than reported**: at the addon the own `status` IS dropped, and at the surface
+  `fail()` **re-reads `refusal.status` through the prototype and rebuilds the form** — so the caller gets three own
+  keys whose `status` and `message` are **prototype strings**: a status outside the closed set and a caller-authored
+  message. No cell installs those accessors.
+- **`index.mjs:1261`'s clone claim is falsified** — a spread clone carries no index and no slot, and the file's own
+  message contradicts it.
+- **`strata/brief.md` still says `index.d.ts` declares sixteen and calls its census claims false** — the declaration
+  carries all seventeen. **L0's own file, stale since the surface pass.**
+- **Two of the five document corrections left their superseded prints at four other normative sites** (the
+  `Object.keys` order at `surface.md:1213` and `json-crossing contract:477`; the sixteen-algebra at four lines of the
+  native contract), **and correction 4's own "one other site" census is false.**
+- **The kernel slot has NO CELL AT ALL** — its descriptor, its own-symbol census: `enumerable: true` left six census
+  files green.
+
+**AND THE CELLS ARE HONEST.** Every new family was mutated in a `/tmp` copy and went red: instance-independence
+(module-scope kernel), both prototype cells, status-census, address-extension, and **all six blind instances** by one
+targeted mutation each. **The one exception is the family that has no cell: the kernel slot.**
+
+---
+
+### `D-35` — JS is CLIENT SCOPE; the defence is PARAMETER ACCESS and the RUST BOUNDARY
+
+**DATE:** 2026-10-25. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the architect, on the examiner's three
+"regressions".
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> The client will be able to break the JS code if they want to, the node_modules import is still in client scope
+> Guard against parameter access and at the Rust boundary
+
+**WHAT IT SETTLES, AND IT RECLASSIFIES FIVE FINDINGS.**
+
+- **THE THREE `cdd2467` "REGRESSIONS" ARE NOT DEFECTS.** A client who **freezes** their own store, who reaches
+  `Object.getOwnPropertySymbols(store)` and mutates the record, or who plants a getter on `Object.prototype` for a
+  registered symbol, **is breaking their own code inside their own realm** — **the package lives in `node_modules` and
+  is entirely client-scope.** **`cdd2467` STANDS; the recommended revert is DECLINED by this ruling.** The examiner's
+  findings were true and the classification was L0's error: **client-scope breakage is not a defect of the package.
+  **
+- **THE DEFENCE MOVES TO TWO PLACES, AND THEY ARE THE ONLY TWO:**
+  1. **PARAMETER ACCESS.** What the package **reads off a value the caller supplied** must not be decided by a
+     mutable prototype. **The `F8-2` class is this, and it is the right class** — `appendOwn`, the index loops and the
+     native `define_properties` all serve it. **`fail()`'s re-read of `refusal.status` through the prototype and
+     `facade.rs:170/173`'s dropped own `status` are PARAMETER-ACCESS holes and are therefore still defects** — a
+     caller gets a status outside the closed set and a caller-authored message, not because they broke anything but
+     because **the package read a supplied object through a chain it should not consult.**
+  2. **THE RUST BOUNDARY.** **Nothing crossing into Rust may be trusted.** Every JS-supplied value must be validated
+     by the crate's own carriers, whose *"outside-value arms make each refusal reachable"* — **so the boundary is
+     designed to validate, and any site that assumes instead is a defect.**
+
+**WHAT IT DOES NOT SETTLE.** **The frozen-store TypeError's FORM** — accepted as client-scope breakage, but a raw host
+`TypeError` where a lawful call used to answer is still worth a note, not a fix. **And the boundary audit itself** —
+which sites assume rather than validate is a measurement, not a ruling.
+
+---
+
+### FINDING — the declaration pass: the twelve blind instances' named-and-unclosed list, closed or deferred
+
+**DATE:** 2026-10-25. **BRANCH:** `docs/pre-strata-consolidation`. **SOURCE:** the `strata` L1 declaration pass
+(`docs/L1/**`, this file, and `docs/specs/**` by `RCA-8(g)` annotate-beside only). **A RECORD AND NOT A RULING:** no
+entry below decides anything; the one decision lives at the closing paragraph and is put to the architect.
+
+**ITS LIMIT, STATED FIRST BECAUSE EVERY FIGURE BELOW CARRIES IT.** **This pass's OWN session had NO SHELL**: every
+number it prints was read from a file at its own last line with a file-reading tool, and no count of its §1–§4 is a
+transcript of a run. **THE LEGS WERE RUN BY DELEGATED READ-ONLY PROBES**, which executed them in this same tree after
+every edit, made no edit, no commit and no branch change, and returned their raw output: **`npm test` `1053 · 1051 ·
+1 · 1` exit `1` — the one fail being the held disagreement, `tests/e2e/blind-constraints-unit.test.mjs:172`'s
+*"`KC-8` !== `KC-4`"`, which STAYS RED**; **store `415` exit `0`**; **battery `235` exit `0`**; **plain `cargo test`
+`650` exit `0`** (`415 + 235 = 650` ✓); **`greens` exit `0`** (`AUTHORED 100 · EXECUTED 100 · PASS 100 · FAIL 0`, ten
+runners, `APP` `NONE`); **`test:e2e` exit `0`** (`14 PASS · 0 FAIL · 1 LAYER-LIMIT` of fifteen cells, `APP` `NONE`);
+**`typecheck` exit `0`**. **AND BOTH JSON FILES PARSED** (`docs/L1/modules.json`, `docs/L1/test-stratification.json` —
+`JSON.parse` `OK`, neither edited, 19 modules / 61 endpoints unmoved). **The working tree carries DOCUMENTATION ALONE**
+— five modified files and one untracked addition, **no source, no test, no manifest byte**.
+
+**1 · THE ADDON'S EXPORT SET: THIRTEEN, NO `call`; A STALE DECLARATION AND NOT A CODE DIVERGENCE.** `bindings/js/src/
+facade.rs` declares **thirteen line-initial `#[napi]` sites** — `4` bare (`storeCreate` · `register` · `version` ·
+`errorMessage`) plus `9` per-verb (`read` · `readLiteral` · `write` · `delete` · `rollback` · `listen` · `unlisten` ·
+`removeListener` · `commitFile`), `4 + 9 = 13` ✓ — **and no `call`.** The kept row of record already says so:
+`docs/specs/storeroom-addon-surface/contract.md`'s `P-SAS-1` (*"exactly the thirteen declared names … and `call` is
+absent"*). **So the `5` is TRUE WHEN EACH SITE PRINTED IT and was never re-derived when the addon-surface split
+re-cut the boundary.** **The sites: the archived `package.md §1.3` item 4 does not move** (archived, gitignored, no
+role writes it; it is read through `P-SAS-1`); **`surface.md`'s 2026-10-16 counter-pass print and `docs/specs/
+storeroom-js/contract.md`'s two prints take an annotate-beside clause each** (landed by this pass); **`bindings/js/
+src/lib.rs`'s closing comment is a source comment** whose exact replacement is printed at `docs/L1/
+open-items-2026-10-25.md §1` and owed to whoever next edits that file — **no behaviour byte moves with it.** **AND ONE
+RECORD THAT IS SIMPLY WRONG, NAMED HERE BECAUSE THE BRIEF REPEATED IT: `A150` DID NOT RETIRE `call`.** `A150`
+(2026-10-25) is *"Remove the register half, `constraintOff` removes the constraint"*; **the `call` deletion's
+authority is the addon-surface split** (`export-set-and-dispatch.md §2`, *"`call` IS DELETED"*). **Two citations in
+`tests/integration/binding-crossing/addon_adoption.rs` (`:84`, `:129`–`:131`) mis-attribute it to `A150`** and are
+owed a re-point by the test's owner.
+
+**2 · THE FIVE `OWED`s: FOUR ANSWERED, ONE ANSWERED WITH A NAMED RESIDUE.** **(a) The escape arm's runtime
+observable — NONE, and none is owed:** the arm is type-level (`index.d.ts:292`–`:310`), the store's `CODES` is
+closed at seventeen, the package mints no member, and `surface.md §2.12` item 3 forbids a cell naming a token on the
+kernel-produced arm. **(b) The symbol-keyed question — the rule does not reach a symbol-keyed own property as a
+declared census** (`Object.getOwnPropertyNames`; `A117` (D6)'s *"invisible to both"* at `surface.md §2.11` clause 9)
+**and no symbol slot carries register state**, so `D-35`'s client-scope classification leaves nothing owed; **the
+literal reading would make `cdd2467`'s slot a violation and `D-35` refused exactly that, so no cell may assert it.**
+**(c) The reload arm's message — the refusal cannot name the deletion**, because a deleted handle and a never-
+registered one are ONE row of `§2.1` item 5's table, the entry is removed WHOLE, and nothing retains what the removal
+destroys; the message names the position and the class (`A134`; `§2.1` item 6). **(d) `removeConstraint`'s
+uncarried-pair form — the constraint methods' `TypeError` with `status` ABSENT and a verbose message**, because
+`PAR-HL-16`'s outside cell puts *"a well-formed pair the entry does not carry"* in that row (`surface.md:1063` rule
+(ii); `§2.7` item 6; the build agrees at `index.mjs:1155`–`:1163`) — **with one residue DEFERRED: the `TypeError` is
+thrown carrying `log` and no clause declares that member set** (owner `role_spec_writer`). **(e) The empty-address
+receipt's array identity — a FRESH array on every arm including `[]`**, because `§4.4`'s `DeleteReceipt` declares
+*"the store returns a fresh array"* unconditionally and the crossing is a deep copy in both directions.
+
+**3 · THE FOUR DECLARATION-VERSUS-BUILD DISAGREEMENTS: THREE CLOSED BY A DOCUMENT, ONE OPEN AGAINST THE CODE.**
+**CLOSED** — `§8.1`'s `16` heading (`17`; the heading's own 2026-10-25 insertion, which also corrected its *"one
+other site"* census to five); `surface.md §2.5` item 9's `Object.keys` order (`["status","message","log"]`, the
+literal's own source order; item 9's 2026-10-25 clause and the two downstream prints it had left stale); `publish
+contract.md §2.1` item 1's three-entry allowlist (five rows, `5 = 3 + 2` ✓). **OPEN** — **the `KC-4`/`KC-8` repair
+arm**: `PAR-C-8`'s `observable` cell and `§7.3` (b) `3-bis` (d) declare that a repair returning `{ok: true, op}`
+whose `op` is **not the one it landed** has carried no op and fires arm `(d)` with `KC-4`; **the kernel credits it
+and the attempt fails `KC-8`** through the per-op rollback meeting `JournalOpUnknown`. **The red cell
+`tests/e2e/blind-constraints-unit.test.mjs:172` is the one fail in the leg and MUST STAY RED.** **WHAT A FIX WOULD
+REQUIRE, AND WHY IT IS A DESIGN DECISION AND NOT A DECLARATION ONE:** *"not the one it landed"* is a comparison
+against **the ops the repair's own invocation landed**, and **no such carrier exists** — `A110` deleted every route by
+which the kernel could learn it, so `landedOp` (`bindings/js/src/entry/kernel-foundations.mjs:497`–`:510`) has only
+two provable grounds (an identity the attempt already holds; a `seq` above the invoked-for op's). A fix therefore
+needs **a per-invocation landed-op record (which re-opens `A110`), or a repair `op` domain that carries the store's
+`seq` (a declared shape move), or a narrowed clause (a withdrawn arm)** — **the answer `KC-4` is already declared;
+what is undeclared is the instrument that makes it observable.**
+
+**4 · THE TWO STALE RECORDS A REVIEW LEFT.** **`bindings/js/index.mjs:1233`** opens *"**AND IT IS THE ROW A CLONED
+STORE OBJECT CARRIES TOO**"* before its own correct half (*"a clone carries NO index and therefore resolves NO
+store"*), and `:1261` was corrected last pass while this one was not; **it should read *"AND A CLONED STORE OBJECT
+DOES NOT CARRY THE ROW"*** — the exact edit, and the adjacent stale *twelve*-member figures at `:1202` and `:1231`,
+are printed at `docs/L1/open-items-2026-10-25.md §4.1`; **this pass has no source scope.** **`strata/brief.md`** is
+**outside this pass's write scope**, and **it carries figures the branch has moved past** — re-measured at each
+file's own last line: **`index.mjs` 1,409 → 1,417**; the entry parts **`refusal.mjs` 82 → 161 · `artefact.mjs` 355 →
+376 · `state.mjs` 600 → 602 · `class-decision.mjs` 1,204 → 1,214 · `carrier.mjs` 960 → 986 · `frame.mjs` 416 → 417 ·
+`kernel-foundations.mjs` 529 → 597**; **`codec.rs` 966 → 1,030 · `facade.rs` 1,105 → 1,136**; and **`tests/` 83 files
+→ 104**, its `e2e/` row **44 → 65** with the breakdown **23/11/6/1/3 → 42/11/8/1/3**. **Every other figure it prints
+was checked and stands** (the `src/` seven, `index.d.ts` 891, the ten unmoved part sizes, `crossing.rs` 1,216, the
+barrel 4, thirteen entry files, five `files` rows, `0.5.0`, 14 members, 17 statuses, 126 / 1,000,000, and the three
+Rust legs). **The brief is the file every L1 reads, so the correction is owed to its owner rather than absorbed.**
+
+**THE LEDGER.** **§1 CLOSED** (a stale declaration; one mis-citation named for its owner) · **§2 CLOSED** (four
+answered, one answered with a residue that has an owner) · **§3 CLOSED/THE ONE OPEN IS THE ARCHITECT'S** (three
+documents moved; the code does not) · **§4 CLOSED AS A MEASUREMENT, OWED AS AN EDIT** (`index.mjs`'s comment to its
+file's owner; `brief.md` to its own). **THE FULL RECORD — sites, figures, clauses and the two ledger tables — is
+`docs/L1/open-items-2026-10-25.md`.**
+
+**PUT TO THE ARCHITECT, IN ONE SENTENCE:** **does the kernel get a DECLARED CARRIER for the ops a repair landed — a
+per-invocation landed-op record, or a repair `op` whose domain carries the store's `seq` — or is `PAR-C-8`'s *"not
+the one it landed"* arm NARROWED to the identities a caller-side record can prove?**
+
+---
+
+### `D-36` — the client is presumed not to vandalize `Array.prototype`; the crate-minted reads are NOT debts
+
+**DATE:** 2026-10-26. **BRANCH:** `main` (post-merge). **SOURCE:** the architect, closing the last question `D-35` left.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> Presume the client isn't going to vandalize Array.prototype
+
+**WHAT IT SETTLES.** **The ~8 sites that read arrays THE CRATE MINTED with prototype methods are not debts and are
+not fixed.** `written.triggered.slice()` (`kernel-commit.mjs:144`), `attempt.write.triggered.map/includes`
+(`kernel-terminal.mjs:82–83`), `record.pending.slice()` (`delivery.mjs:547`, `kernel-attempt.mjs:390`,
+`kernel-registration.mjs:290`) and `record.pending.filter` (`kernel-attempt.mjs:560`) **keep their present form.**
+**The premise is the realm's: the client will not delete or redefine `Array.prototype`'s members.**
+
+**AND THE LINE IS NOW EXACT, WHICH IS WHAT THE PASS NEEDED.** **`D-35`'s parameter-access class is closed as
+implemented**: a value **the caller supplied** is read by own-property forms, built by `appendOwn`, crossed as
+**null-prototype wire nodes**, and refused by the six arms; **a value the package itself minted is read with the realm's
+prototype methods**, which is ordinary JavaScript. **The distinction is provenance after all — but only because the
+premise makes the chain trustworthy for the package's own data.**
+
+**WHAT IT DOES NOT REOPEN, EACH NAMED SO THE RULING IS NOT READ WIDER THAN IT IS.**
+- **The VERDICT-level mutation-independence stands** (`storeroom-json-crossing/contract.md`'s 2026-10-24 amendment,
+  items 1–8): **pollution of this or a foreign realm's `Object.prototype`/`Array.prototype` must not change the
+  admit/refuse verdict for a lawful value.** That clause is about a **caller's** value and it is unchanged.
+- **The `F8-2` write-half work stands** (`appendOwn` at ~70 sites, `napi_define_properties` in the codec, the
+  null-prototype wire nodes): it is what makes a **supplied** value safe.
+- **The Rust-boundary work stands** (`D-35`'s second half): the carriers validate, the cast now receives
+  null-prototype nodes, and `fail()` no longer rebuilds a refusal out of a caller's chain.
+
+**THE ONE RESIDUAL IT ACCEPTS, STATED SO IT IS NOT DISCOVERED.** **A client who deletes or redefines
+`Array.prototype.slice` gets a raw host `TypeError` out of a lawful `write`** — measured — **and that is accepted
+behaviour rather than a defect**, because the premise is that the realm's builtins are intact. **`written.triggered`
+is the most exposed of those sites and the one to name if the premise ever moves.**
+
+**STATE OF THE DEBT LIST: EMPTY.** The five known debts were closed before this ruling (the read-side audit's 16
+caller-supplied sites, `removeConstraint`'s declared member set, `errorMessage` measured sound, `E2E-C-2`'s title, and
+the one skip explained), and **this ruling closes the sixth question rather than leaving it open.**
+
+---
+
+### `D-37` — `R14` IS DISCHARGED: the per-graph split is the MULTIPLE STORES
+
+**DATE:** 2026-10-26. **BRANCH:** `main`. **SOURCE:** the architect, on the downstream handoff's `R14` /
+`UK-5` contradiction.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> Close the R14 demand, it is addressed by the multiple stores.
+
+**WHAT `R14` ASKED, AND WHY IT IS WITHDRAWN.** The downstream catalogue files *"no per-graph / `secure` split at
+all"* as a **question**, against its own binding `UK-5` — *"two registers, one per graph; a generic pass never
+observes a `secure` commit and vice versa"*. **The question assumed the package's unit of isolation is the
+REGISTER. It is the INSTANCE.**
+
+- **A graph IS a store instance.** `storeCreate` is the one factory; each call builds an instance with **its own**
+  constraint registry and **its own** attempt records. **Two graphs = two instances**, and *"a generic pass never
+  observes a `secure` commit"* holds **by construction** — there is no shared structure to leak through.
+- **And the isolation is STRONGER than a register split.** A split inside one store would be a discipline the
+  package would have to enforce internally; separate instances share **nothing** — the per-instance kernel
+  (`D-30`), the instance owning it (`D-46`), and a receiver guard that **refuses a foreign `this`** on twelve of
+  the fourteen members. **No clause of this package has ever owed a graph, a scope or a `secure` register, and
+  none is owed.**
+- **So `'secure'` as a tier stays `OutOfDomainTier`, and that is CORRECT** rather than an absence: **`secure` is
+  not a tier of this store; it is another store.** The consumer's `secureLoad`/`secureRead`/`secureWrite`/
+  `secureListen`/`secureConstrain` are its own verbs over **its** secure instance, and none of them names a
+  package verb.
+
+**WHAT THE DOWNSTREAM SIDE MUST DO, AND IT IS NOTHING THE PACKAGE SHIPS.** Two `storeCreate` calls, one per graph;
+the right instance passed to each verb (**the receiver guard now enforces this** — a detached call is refused and
+moves no state); the `'secure-gated'` refusal at the consumer's own `K-GATE` (**that gate is the consumer's
+`F3`/`R-5`, never this package's**); and the `secure*` spellings in the consumer's own vocabulary.
+
+**THE ONE HONEST COST, NAMED BECAUSE IT INTERACTS WITH `R16`/`DEF-J`.** **N graphs now means N store instances, so
+the resident set multiplies by the graph count** — and this package **declares no resident bound on any long-lived
+structure** (`R16`, still a question, and `DEF-J`'s closed-attempt map has no deletion site). **Isolation by instance
+buys the split at the price of one full retention set per graph**, and **that is the number the consumer's `R16`
+question should be asked about.**
+
+**TERMS: `R14` WITHDRAWN (`1`), `UK-5` DISCHARGED BY THE INSTANCE (`1`), the package's obligations unchanged (`0`),
+the multi-store retention cost named and still undeclared (`1`).**
+
+---
+
+### `D-38` — three downstream demands ACCEPTED: the union is lawful, the reversal is judged, the refusal gets a status
+
+**DATE:** 2026-10-26. **BRANCH:** `main`. **SOURCE:** the architect, on the handoff's `DEF-P`, `DEF-W`, `DEF-H`.
+
+**THE RULINGS, VERBATIM:**
+
+> **`DEF-P`:** Accept a one-to-many handler/constraint addressing at package surface
+> **`DEF-W`:** Assert the constraints on rollback
+> **`DEF-H`:** Expand the returned fail-state list to include the refusal
+
+**`DEF-P` — DECLARATIVE, and the code already agrees.** `index.d.ts` currently says *"the pair-local reuse of
+one `id` at two addresses is NO LONGER LAWFUL"* and that the creation act takes *"a single address"* — **while the
+runtime accepts the pair and unions its addresses.** **The architect's ruling settles it on the code's side: one id
+at N addresses is LAWFUL, at every act.** **The declaration moves; no behaviour changes.** **And the coverage gap this
+exposes is mine: `constraint-address-extension.test.mjs` drives the TWO-CALL union, never the single-call
+multi-address pair the handoff filed** — **that cell is owed.**
+
+**`DEF-W` — BEHAVIOURAL, and the check belongs at the TERMINAL STATE.** `index.mjs:486` passes the reversal
+straight to the addon entry (`Reflect.apply(entryOf().rollback, this, args)`), so no constraint is consulted.
+**A reversal must now be judged** — **at the state it leaves, never per unwinding step** (a per-step check is
+unsound: an unwinding composition passes through intermediate states no constraint would approve — the handoff's own
+`(f)` says this and it is right). **A reversal whose terminal state violates a registered constraint FAILS and says
+so**; the declared arm and its status are owed by the same act as `DEF-H` below.
+
+**`DEF-H` — the failure list GROWS.** A constraint refusal crosses today as **`FileCommitFailed`** — the store's own
+SAVE code — with the kernel's `KC` token demoted to `log[].state`. **The architect rules the returned fail-state list
+EXPANDS to carry the refusal.** **Read narrowly, and this reading is why the entry is written down: ONE status for
+the refusal, not one per `KC` token** — the token continues to ride `log[].state` where it already does, and the
+status stops lying about which layer failed. **Consequences, all of them real and none of them free:**
+- **THE CLOSED SET MOVES `17 → 18`.** `src/error.rs`'s `CODES`, `index.d.ts`'s `StoreStatus`, the store contract's
+  rank table and `A148`'s amendment all move together, **and the status-census cell — which derives both sides from
+  `CODES` and the union — is the instrument that will catch any half-move.**
+- **IT IS A BREAKING CHANGE TO A CLOSED UNION**: an exhaustive consumer's switch gains a member.
+- **AND IT PAIRS WITH `DEF-W`**: a refused reversal needs a status too, and it must be a status a save path cannot
+  mint, for the same reason.
+
+**VERSION CONSEQUENCE, NAMED SO IT IS NOT DISCOVERED AT TAG TIME.** **`DEF-W` and `DEF-H` change shipped behaviour
+and a closed union; `DEF-P` does not.** **The three cannot ship as `1.0.1`.** **The next release is at least `1.1.0`,
+and `DEF-H`'s union expansion makes `2.0.0` the honest semver** — the architect decides which, and `D-36`/`D-35`'s
+client-scope rulings do not reach it.
+
+**TERMS: accepted (`3`), declarative-only (`1` = `DEF-P`), behavioural (`2` = `DEF-W` + `DEF-H`), owed cells (`2` =
+the single-call multi-address pair, the refused-reversal arm), version consequence (`1` = at least `1.1.0`,
+`2.0.0` if the union's expansion is read as breaking).**
+
+---
+
+### `D-39` — `DEF-V` is NOT a defect, `R16` is NOT a defect, `DEF-R` owes a deterministic order
+
+**DATE:** 2026-10-26. **BRANCH:** `main`. **SOURCE:** the architect, on three of the handoff's rows.
+
+**THE RULINGS, VERBATIM:**
+
+> **`DEF-V`:** refusal is correct, specific error code/message is a 'could have'
+> **`DEF-R`:** add deterministic ordering
+> **`R-16`:** Not a defect, constraints are lifetime-limited by the store instance
+
+**`DEF-V` — CLOSED, NOT A DEFECT.** `write(h, ['a'], undefined, 1)` refuses, and **the refusal is correct**: a
+supplied `undefined` tier is out of domain. **The status naming the address rather than the tier, and the message's
+specificity, are a COULD-HAVE** — a refinement a consumer would like, **not a failure of the promise.** **No cell is
+owed; no behaviour moves.** *(The handoff's own `(g)` asked that the status "never be an address code"; the architect
+has ruled that ask away, and the ruling is the authority.)*
+
+**`R16` — CLOSED, NOT A DEFECT.** **The bound IS declared, by the model rather than by a figure: a constraint's
+lifetime is the STORE INSTANCE's lifetime.** A store owns its registry and its attempt records (`D-30`), it owns the
+kernel that holds them (`D-46`), and **when the instance is released they go with it — there is nothing else to
+declare.** **`DEF-J`'s "no deletion site" is therefore not a leak**: the deletion site is the instance's own
+collection. **No bound, cap or eviction arm is owed, and `R16` asks a question the model has already answered.**
+
+**`DEF-R` — ACCEPTED, and it is a BEHAVIOURAL change.** `constraints()` must emit in a **DECLARED, deterministic
+order** — registration sequence, which is the order the pairs were registered and the one a consumer can reason
+about. **The declaration currently says "no order" among its four exclusions; that exclusion is superseded and the
+order becomes part of what the method promises.** **The cell is owed**: five snapshots across a pass, a refusal, a
+toggle and a `rollback` must be element-wise equal.
+
+**TERMS: closed as not-a-defect (`2` = `DEF-V`, `R16`), accepted and owed (`1` = `DEF-R`'s ordering + its cell),
+behaviour moved (`1`), cells owed (`1`).**
+
+---
+
+### `D-40` — A FAILING REPAIR ROLLS BACK LIKE A CONSTRAINT REJECTION
+
+**DATE:** 2026-10-26. **BRANCH:** `main`. **SOURCE:** the architect, on `DEF-M`'s verified arm.
+
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> A failing repair triggers a rollback like a constraint rejection
+
+**WHAT IT DECLARES, AND IT SETTLES THE ARM THAT WAS UNDECLARED.** **The failing-repair arm is NOT a new outcome —
+it is a ROLLBACK, and the SAME rollback a plain constraint rejection performs.** **And a plain rejection leaves the
+PRE-ATTEMPT state**: the measured comparison arm — a repair returning `{ok: false}` — leaves the seeded `5`, and that
+is the declared answer. **So a failing repair must leave `5` too.**
+
+**AND THE MEASURED BEHAVIOUR CONTRADICTS IT.** Seed `5`, refused `9`, repair `1`: the repair lands as `op-3`, the
+re-run refuses `1`, the write fails — **and `read(['a'])` answers `9`, the REJECTED value**, with the outcome's
+message reading *"…met the store's own `RollbackCompacted` at `op-2`"*. **The composition rolled back to `op-2` —
+the caller's own write — and left the rejected value standing.** **`DEF-M` is therefore a DEFECT against this
+ruling, not an open question**: the rollback must reach the **attempt's floor**, not one op above it.
+
+**WHAT THIS FIXES, IN ONE SENTENCE A READER CAN CARRY:** **a failed attempt leaves the store exactly as it found it,
+whether the constraint refused outright or its repair failed on the re-run.**
+
+**AND THE DECLARATION OWES THE SENTENCE.** The arm was undeclared; it is now declared, and the record must say so
+where a consumer reads it — the same act as `D-38`'s fail-state expansion.
+
+**TERMS: arm declared (`1` = failing repair ⇒ rollback ⇒ pre-attempt state), defect confirmed (`1` = `DEF-M`, the
+composition stops at `op-2`), cells owed (`1` = the DEF-M cell re-derived to the declared outcome), declaration owed
+(`1`).**
+
+---
+
+### `D-40`'s IMPLEMENTATION FINDING — the floor law, and TWENTY-TWO cells that encode the arm `D-40` overrules
+
+**DATE:** 2026-10-26. **BRANCH:** `main`. **SOURCE:** the implementer's stop, which refused a wrong write scope and
+measured instead of guessing.
+
+**1 · THE SITE IS `kernel-terminal.mjs:178–269` (`composeRollback`), NOT `kernel-attempt.mjs`.** Its only store call is
+`:232`, `attempt.store.rollback(op.opId)`. **The brief named the wrong file; the implementer found the right one and
+stopped rather than editing blind.** *(L0's error, recorded.)*
+
+**2 · THE FLOOR LAW, WHICH IS THE REAL PRODUCT OF THIS PASS.** **The store's rollback scope is TEMPORALLY FLOORED at
+the named op's own `seq` and ALL-OR-NOTHING at the compacted mark** (`src/store.rs:2374–2430`). Call `1` over `op-3`
+reverses `op-3` and marks it compacted; call `2` over `op-2` then finds that compacted `op-3` in its candidate set →
+`RollbackCompacted`, **undoes nothing**. **So a NEWEST-FIRST PER-OP WALK CAN NEVER REACH THE FLOOR ONCE A REPAIR OP
+EXISTS.** **The cure is ONE CALL over the attempt's first op, which sweeps both.**
+
+**3 · AND IT WAS MEASURED, THEN REVERTED.** With that single floor call: **failing arm `read` `9 → 5`** (exactly what
+`D-40` requires), the comparison arm `5` unmoved, the passing arm's `op.after.value` still `9` against `read` `1`, and
+the outcome's message moving from *"…`RollbackCompacted` at `op-2`"* to *"the repaired value is refused by the second
+pair"* with `KC-8 → KC-3`.
+
+**4 · ★ THE COST, AND IT IS A SYSTEMIC FINDING RATHER THAN A SIDE EFFECT.** **That fix reddens EIGHTEEN cells, because
+they were RE-DERIVED ON 2026-10-25 TO ASSERT `KC-8`** — the very arm this ruling overrules — and `blind-constraints-
+v2.mjs`'s `E2E-C-5` cells `1`, `4`, `6` and `9` assert `KC-8` too, which would redden `npm run greens`. **So TWENTY-TWO
+cells across two files encode the outcome the architect has now ruled wrong.** **They are not stale by accident: a
+2026-10-25 pass re-derived them to the observed behaviour and recorded that re-derivation as a correction.** **That is
+the failure mode of re-deriving from the code instead of from a ruling, and it is the exact thing the blind set exists
+to resist — the blind cells were authored from the clause and are the reason `DEF-M` could be filed at all.**
+
+**5 · THE RETURNED-`op` HALF IS A SECOND CAUSE.** `index.mjs:419–427` builds the **store-leg record** and
+`constraints.mjs:663–678` returns it, **discarding `runAttempt`'s report** — so the record describes the store leg and
+not the attempt. **The fix is the one `DEF-M`'s own (f) already names: the passing arm must RETURN the report it
+already builds.** No forgery of the op's `after` is admissible, and the implementer said so.
+
+**WHAT THIS PASS DID NOT DO, AND WHY.** **The fix needs one behavioural change plus a RE-DERIVATION OF TWENTY-TWO
+CELLS from the overruled arm to the declared one** — **a test-writer's act, not an implementer's, and not a one-file
+edit.** **The tree is byte-identical to `HEAD`; nothing half-done ships.**
+
+---
+
+### `D-41` — THE DOWNSTREAM'S REVIEW OF `1.0.1`: my semver defence was wrong, and the restoration destroys data
+
+**DATE:** 2026-10-26. **BRANCH:** `main`. **SOURCE:** the adjacent consumer's regenerated handoff (47,194 bytes, ten
+ranked rows) against the published `1.0.1`. **Two of its findings are mine, and one is a data-integrity defect L0
+introduced while closing `DEF-W`.**
+
+**1 · ★ THE VERSION IS THE HEADLINE AND L0 DEFENDED THE PATCH AGAINST ITS OWN RECORDED CONCLUSION.**
+`D-38` says, in my words: *"The three cannot ship as `1.0.1`. The next release is at least `1.1.0`, and `DEF-H`'s union
+expansion makes `2.0.0` the honest semver."* **When the architect chose `1.0.1`, L0 wrote a justification into the
+prep brief — that `StoreStatus`'s open escape arm `(string & {})` makes an added member non-breaking — and that
+argument is TRUE OF THE UNION AND OF NOTHING ELSE.** **Four behaviour changes shipped under a patch:** the emitted
+vocabulary **17 → 20**; **a stored value moved `9 → 5`**; **a constraint-refused write's status changed**; and
+**`rollback` went from total to partial — it now THROWS, where the `1.0.0` declaration promised a record and no
+failure.** **The escape arm cannot reach any of the last three: a type-level arm does not cover a behaviour.** **The
+consumer's consequence is concrete and correct: pin `<1.0.1` until the four are declared breaking.** **This is a semver
+breach, it is on the release that is already published, and the remedy is a version-policy statement plus a release
+note that names the four — not a silent patch.**
+
+**2 · ★ THE COMPENSATING RESTORE DESTROYS DATA, WHICH IS WORSE THAN THE DEFECT IT CLOSES.** `restoreReversal` **clears
+every tier and rewrites the captured standing at `mem`** — so **a `file`-tier value is destroyed by a REFUSAL that then
+tells the consumer every address *"stands again at its pre-reversal state"*.** **And when the terminal value is absent
+the restore cannot succeed while the message still claims *"the reversal was UNDONE"* — measured by the consumer at
+`200` of `200` across `200` pairs.** **A refusal must not move data, and a message must not claim a restoration that
+did not happen.** **This is the worst thing on the branch: `DEF-W`'s cure introduced a data-integrity class, and the
+`F8-2`/`D-40` pattern repeats — a fix that closed one arm opened another.**
+
+**3 · THE CONSERVATIVE DIRECTION IS THE PERMISSIVE ONE, AND TWO COMMIT SUBJECTS CLAIMED THE WINDOW CLOSED.**
+`D-40`'s conjunction makes a reversal **inside an open commit unjudged**, so **its violating effect stands** — while the
+identical call one frame out is refused **and restored**. **Zero judgement invocations inside a listener or constraint
+body.** **The declaration says this** (`§2.6` item 1, at rest only); **the commit subjects did not.** **Whether to judge
+inside a commit is a RULING, not a fix**: judging there invokes bodies mid-attempt, which is the danger `D-40` exists
+to avoid — **so the trade is real and L0 does not choose it.**
+
+**4 · AND THREE SMALLER MINE.** **A body that throws at the judgement refuses with `log: []` and NO UNDO.** **A
+fabricated `seq: 1`** in the refused-reversal log entry. **The shipped guide names itself one version behind.**
+
+**5 · THREE WITHDRAWALS ARRIVE FROM THE CONSUMER'S SIDE, AND TWO RECORD L0 SHOULD NOT HAVE FILED.** **`DEF-R` never
+reproduced at either version** — five snapshots, a batch construction and a removal/re-add all in registration order,
+byte-identically in both — **so it is withdrawn as UNPROVEN, even though `1.0.1` minted a registration sequence
+anyway**. **`DEF-T`'s two spellings did not reproduce**; what stands is **four spellings across the fourteen members**,
+so the row is re-scoped to the observation. **`DEF-V` drops to a diagnostic wish** by the ruling already given.
+**Their own withdrawal — the retention demand — is pinned so no later pass re-files it.**
+
+**6 · `DEF-U` IS DECLARED-ONLY AND THEY SAY SO RATHER THAN DRESSING IT UP:** *"the release record says green, but no
+test ships in the tarball, so it can't be measured from the artifact."* **Correct — and it is the same reason the
+package's suite cannot be the evidence for a consumer.**
+
+**OWED, AND NOTHING ELSE: the two `STOREROOM-*` rows need re-measurement at `1.0.1`** — both read, both labelled not
+re-measured, each naming its own owed measurement.
+
+---
+
+### `D-42` — the semver remedy is a MINOR, and an action inside an open commit RESTARTS the constraint check
+
+**DATE:** 2026-10-26. **BRANCH:** `main`. **SOURCE:** the architect, on `D-41`'s two open items.
+
+**THE RULINGS, VERBATIM:**
+
+> **Minor semver**
+> **Actions inside of an open commit start the constraint check over again**
+
+**1 · THE SEMVER BREACH IS ANSWERED BY A MINOR.** `1.0.1` shipped four behaviour changes under a patch — the
+vocabulary `17 → 20`, a stored value `9 → 5`, a constraint-refused write's status, and **`rollback` going from total to
+partial**. **The architect rules the remedy a MINOR: the next release is `1.1.0`**, and **the four are declared
+breaking in the record and the release note.** **So `1.0.1` stands as published with a disclosed breach, and `1.1.0`
+carries the declaration** — the consumer's *"pin `<1.0.1`"* is answered by naming the version that supersedes it, not by
+pretending the patch was one.
+
+**2 · AND THE UNJUDGED WINDOW IS CLOSED BY RESTARTING, NOT BY JUDGING THE STEP.** `D-40`'s gate makes a reversal
+**inside an open commit** unjudged, so **its violating effect stands** — the conservative direction being the permissive
+one, as the downstream measured. **The architect's answer is neither to judge the step nor to leave it: an action
+performed INSIDE an open commit STARTS THE CONSTRAINT CHECK OVER AGAIN.** **The check the action invalidated is re-run
+from its beginning against the state the action left** — so **no violating effect can stand unjudged**, and **no body is
+invoked mid-unwind either**, because the restart is a fresh pass and not a judgement of a partial composition.
+
+**TERMS: semver answered (`1` = minor, the four declared), the window closed by restart (`1`), the step still unjudged
+(`1`, `D-40`'s gate stands), a restart cell and its cost measurement owed (`2`).**
+
+---
+
+### `D-43` — a listener's write is its OWN COMMIT; a delete is journaled and reversible; and the residue is a KNOWN FAIL-STATE with a defined exit
+
+**DATE:** 2026-10-26. **BRANCH:** `main`. **SOURCE:** the architect, on `D-42`'s four remaining windows.
+
+**THE RULINGS, VERBATIM:**
+
+> **1.** listener should trigger its own commit, because it's entering at the package surface
+> **2.** Known fail-state, file reloads/client regenerates store to return to valid state
+> **3.** Delete should be journaled and reversible
+> **4.** (a question — answered below, not a ruling)
+
+**1 · A LISTENER'S WRITE TRIGGERS ITS OWN COMMIT, AND THAT IS WHY IT NEEDS NO SPECIAL WINDOW.** **A listener body's write **IS** a write entering at the package surface** — so it gets **its own commit, its own attempt and its own constraint check**, exactly as a caller's write does. **That closes the descendant window by construction**: the ancestor pair is asked **by the listener's own pass**, not by the outer write's, and the restart machinery is not asked to reach upward at all. **The outer commit does not absorb it and the inner one does not hide inside it.**
+
+**2 · THE RESIDUE IS A KNOWN FAIL-STATE WITH A DEFINED EXIT.** Where a window genuinely cannot be judged, **the answer is not a further reach into the machinery — it is a fail-state a consumer can leave: the FILE RELOADS, or the CLIENT REGENERATES THE STORE, and the state is valid again.** **So those windows are DECLARED, with their exit, rather than pursued.** **A known fail-state with a documented recovery is a specification; an unreachable window with no exit is a defect.** **And it is only honest because the file now records the restored state (`bd0fd8c`) — a reload returns to bytes that describe a judged state.**
+
+**3 · A DELETE IS JOURNALED AND REVERSIBLE.** A delete **is a mutation and must be in the journal with an identity a reversal accepts** — the earlier measurement was that **delete op ids are not exposed** (`del` answers `{address, tiers, triggered}`), **so a delete could not be named and therefore could not be reversed.** **It is journaled now, and reversible**, which is what makes the kernel's unwinding able to reach a delete's effect at all.
+
+**TERMS: closed by construction (`1` = the descendant window, via a listener's own commit), declared with its exit (`1` = the known fail-state), built (`1` = the journaled, reversible delete), answered rather than ruled (`1` = the `K-2`/`K-3` question).**
+
+---
+
+### `D-44` — NO CONSTRAINT CHECK WITHOUT AN OPEN COMMIT; an act that causes a check OPENS ONE FIRST
+
+**DATE:** 2026-10-26. **BRANCH:** `main`. **SOURCE:** the architect, on `D-43`'s item 4 and the window it left.
+
+**THE RULING, VERBATIM:**
+
+> There should be no state where a constraint is being checked without an open commit. Any action that would cause a
+> constraint check should open a commit before beginning
+
+**WHAT IT IS: AN INVARIANT, NOT A PATCH, AND IT EMPTIES THE CLASS RATHER THAN ITS CASES.** Every window left on this
+branch's list was a variant of one state — **a check running where no commit was open**:
+
+- **`D-42`'s window 1** (a listener body's write at a descendant): the listener's write is a write **entering at the
+  package surface** (`D-43` item 1) and must **open its own commit** — so its check has a window and the ancestor pair
+  is asked by the listener's own pass;
+- **`D-42`'s window 4** (a pass driven by hand, `open=0`/`live=1`): **that state must not exist.** **A pass opens a
+  commit before it begins**, wherever it was driven from, so **the restart's request always has a consumer** and the
+  stale-pass hazard — a body reversing mid-pass, leaving every later pair answered against a state the body replaced —
+  **cannot arise**;
+- **the restart's own contract** (`D-42`): its request is consumed by the write's check path. **If every check has a
+  commit, every request has a consumer**, and the consumer stops being a property of one call site.
+
+**SO THE INVARIANT REPLACES THE CASE LIST.** `open commit` becomes the **precondition of the check**, not a
+circumstance some call sites happen to satisfy. **And it is enforced where the check runs, not where it is called
+from** — **a seam a driver can bypass is not an invariant.**
+
+**TERMS: the invariant (`1` = check ⇒ open commit), the cases it empties (`3` = the descendant window, the direct-pass
+window, the restart-consumer dependence), the enforcement point owed (`1` = at the check, with a seam the kernel may
+use), and `D-43`'s two implementations unchanged and owed (`2`).**
+
+---
+
+### `D-45` — AN EXTERNAL CALLBACK'S CALL OPENS A NEW COMMIT; the join rule conflated internal nesting with external re-entry
+
+**DATE:** 2026-10-26. **BRANCH:** `main`. **SOURCE:** the architect, on `D-43` item 1.
+
+**THE ARCHITECT, VERBATIM:**
+
+> For 43, how is a listener supposed to be able to reuse the outer verb's commit? The listener is an externally-passed
+> function and should be making calls at the package surface. It should be opening a new commit by default of entering
+> at the surface
+
+**AND THE QUESTION IS THE ARGUMENT: THERE IS NO LAW THAT MAKES A LISTENER *ABLE* TO REUSE IT.** `state.mjs`'s rule —
+*"COMMIT JOINS IT RATHER THAN OPENING A SECOND, which is what keeps the count exact under nesting"* — **was written to
+keep a single act's machinery from double-counting itself.** **It conflates two different things:**
+
+1. **INTERNAL NESTING** — the package's own machinery inside its own verb (a check inside a write, a save inside a
+   commit). **One act, one commit; joining is right**, and the count stays exact.
+2. **EXTERNAL RE-ENTRY** — **a caller's own function that the package invoked** (a listener body, a constraint body)
+   **calling a verb.** **That is a DIFFERENT ACT BY A DIFFERENT AUTHOR, entering the package surface from outside**,
+   and **it has no claim on the outer verb's commit at all.** **The outer commit is the outer act's; the callback is
+   not the outer act's code.**
+
+**SO THE RULE BECOMES:** **a call entering the surface from an externally-supplied function OPENS A NEW COMMIT by
+default** — **because that is what "entering at the package surface" MEANS** — **and only the package's own internal
+continuation joins.** **The discriminator is AUTHORSHIP, not depth.**
+
+**WHAT IT CLOSES, AND IT IS `D-42`'s DESCENDANT WINDOW AT ITS ROOT.** With the listener's call owning its own commit,
+**its check has a window, its pass runs, the ancestor pair is asked by the listener's own attempt**, and **the restart's
+request has a consumer that is the listener's own scope.** **Three fixes that had been reaching for the ancestor
+become unnecessary**, because the callback was never inside the outer act to begin with.
+
+**TERMS: authorship replaces depth (`1` = the discriminator), the join rule narrowed (`1`), the descendant window
+closed at its root (`1`), the external-entry marker and its sites owed (`2` = the marker's implementation, the cells
+that prove a callback's commit is its own).**
+
+---
+
+### `D-46` — THE COMMIT ID IS THE DISCRIMINATOR: listeners open, repairs join, and the parameter says which
+
+**DATE:** 2026-10-26. **BRANCH:** `main`. **SOURCE:** the architect, clarifying `D-45`.
+
+**THE ARCHITECT, VERBATIM:**
+
+> A listener should be operating at the surface and opening a new commit
+> A constraint's repair needs to stay as part of the same commit so that it can be tracked as part of the commit
+> process
+> The original way of maintaining this was to accept an optional parameter on entry for the commit id, so that a
+> constraint can identify which open commit it is repairing
+
+**IT REFINES `D-45` IN TWO DIRECTIONS, AND ONE OF THEM REVERSES PART OF IT.**
+
+1. **A LISTENER OPENS — `D-45` STANDS FOR IT.** A listener is externally-supplied code **operating at the surface**; its
+   call **opens a new commit**. **That half is right and stays.**
+2. **★ A REPAIR JOINS — AND `D-45` MARKED IT AS AN OWNER, WHICH IS WRONG.** **A repair is not a separate act at the
+   surface; it is PART OF THE ATTEMPT BEING TRACKED.** **It must stay inside the attempt's own commit**, or the
+   commit's record no longer describes the repair it performed. **So the repair bodies the last pass marked as owning a
+   commit are un-marked: they join.**
+3. **AND THE MECHANISM IS EXPLICIT RATHER THAN INFERRED.** *"The original way of maintaining this was to accept an
+   optional parameter on entry for the commit id, so that a constraint can identify which open commit it is
+   repairing."* **The discriminator is a COMMIT ID the caller passes on entry** — **not an authorship depth the package
+   infers.** **A call that supplies a commit id JOINS that commit; a call that supplies none OPENS a new one.** **The
+   entry already carries such a position** (`write`'s fourth parameter is `commit`), so the surface does not grow a
+   member — **it grows a rule about one it has.**
+
+**WHAT THIS BUYS THAT THE INFERENCE COULD NOT.** **Tracking**: a repair's ops belong to the commit that performed them,
+**by declaration rather than by depth coincidence**. **Legibility**: a caller who *wants* to join a commit says so, and
+one who does not opens its own — **the intent is in the call, where a reader can see it.** **And the marker stops
+having to be right about authorship, which was a guess the package made on the caller's behalf.**
+
+**TERMS: listener opens (`1`, unchanged), repair joins (`1`, reverses the last pass's marking for repair bodies),
+the commit id is the discriminator (`1`), the authorship marker's fate owed (`1` — it retires or survives as a
+fallback, and the pass must say which), the cells owed (`2` = a repair tracked inside its attempt, a listener in its
+own).**
+
+---
+
+### `D-47` — `DEF-R` OUTLIVED ITS FILING, AND THE RECORD MUST SAY SO
+
+**DATE:** 2026-10-26. **BRANCH:** `main`. **SOURCE:** the downstream's withdrawal, recorded so a later pass does not revert a guarantee.
+
+**THE DOWNSTREAM WITHDREW `DEF-R` AS UNPROVEN** — *"never reproduced at either version: five snapshots, a batch construction and a removal/re-add all in registration order, byte-identically in both."* **They are right about their measurement, and their filing was wrong.**
+
+**AND `D-39` BUILT IT ANYWAY.** `1.0.1` **mints a registration sequence** — monotone, kept through overwrite, toggle and restore — and `constraints()` **emits by it**, with the cell asserting five snapshots element-wise equal **and equal to registration order**.
+
+**SO THE BRANCH NOW GUARANTEES SOMETHING THE FILING NO LONGER ASKS FOR, AND THAT IS NOT A REASON TO REMOVE IT.** **Three grounds, each independent of the filing:**
+
+1. **`D-39` IS THE ARCHITECT'S RULING** — *"add deterministic ordering"* — **and it stands whether or not the consumer's observation reproduced.** **A ruling is not an observation with a citation.**
+2. **THE BEHAVIOUR WAS UNDECLARED, NOT ABSENT.** Before `D-39`, the contract said *"NO ORDER IS PROMISED"* and the reader rebuilt from a live collection **whose order a toggle perturbs** — **the order moved in this tree even where the consumer's drive did not move it.** **A consumer diffing snapshots could hit it; that no filed drive hit it is a fact about the drive.**
+3. **AND THE GUARANTEE IS CHEAP AND NOW EXACT**: a monotone key, already minted, already emitted by, already asserted.
+
+**WHAT A LATER PASS MUST NOT DO.** **Do not revert the registration sequence on the ground that `DEF-R` was withdrawn.** **The withdrawal retires the FILING; it does not retire the RULING, the declaration, or the cells.** **If the ordering is ever removed, it is removed by a ruling, and the cells go red first.**
+
+**TERMS: the filing withdrawn (`1`), the ruling intact (`1`), the guarantee declared and asserted (`1`), the revert forbidden without a ruling (`1`).**
+
+---
+
+### `D-48` — THE DOWNSTREAM'S `1.1.0` REVIEW: seven behaviour rows, no numbers, and the lesson they wrote as a rule
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the adjacent consumer's review of the published `1.1.0`.
+
+**THEIR FRAMING, QUOTED BECAUSE IT IS THE FINDING:** *"What the open set rests on now is behaviour only, and none of it
+depends on a number."* **After six review rounds in which the failures were counts, vocabularies and stale figures,
+the open set has crossed into behaviour** — **and a behaviour cannot be fixed by re-deriving a declaration.**
+
+**THE SEVEN, AND L0'S READ OF EACH.**
+
+| id | their one line | L0's read |
+|---|---|---|
+| **`DEF-AE`** | a write that reports refusal while its own value lands | **the most severe: a refusal that does not prevent the write.** A data-integrity row, not a diagnostics one. |
+| **`DEF-X`** | five hosts that still don't judge a reversal | **the judgement is exercised on the one host this checkout builds** — the other four platform tarballs are `LAYER-LIMIT` and carry no `.node`. **A coverage gap, and it is theirs to close only by building each target.** |
+| **`DEF-AH`** | the restart request that a second act silently discards | **this is the two windows `D-43` item 2 declared a KNOWN FAIL-STATE** — **they now file it as a defect.** **The ruling said reload-or-regenerate; the consumer says a silently discarded request is not a state, it is a loss.** **A ruling question, not a fix.** |
+| **`DEF-AI`** | a log entry missing a field its own declaration requires | **a declaration and an entry disagreeing** — the class this branch has closed nine times. **Fixable.** |
+| **`DEF-AC`** | a guide denying its own tarball | **the shipped `README.guide.md` contradicts what the tarball carries** — the drift class, now inside the document rather than beside it. **Fixable.** |
+| **`DEF-AD`** | cost with no demand | **an observation carrying no ask** — **their own rule says a preference is an observation with a cost, and only a clause makes it a defect.** **No action, and the row says so.** |
+| **`DEF-AB`** | one address printed two ways | **two spellings of the same rendering** — the defect class `DEF-Q` was filed under, at another site. **Fixable.** |
+
+**AND THE LESSON THEY WROTE AS A RULE RATHER THAN A RESOLUTION** — *"the fourth [withdrawal] was my own framing rather
+than the package's arithmetic … now written as a rule instead of a resolution"*: **a preference is an observation with a
+cost attached; it becomes a defect only when it breaks a clause the consumer's contract requires.** **That rule is
+better than any of the seven rows, and it is the first thing in six review rounds that applies to BOTH sides of the
+boundary** — **it is exactly what this branch learned from the other direction when it re-derived twenty-two cells
+toward the code instead of toward a ruling.**
+
+**TERMS: behaviour-only open set (`7`), severe and unambiguous (`1` = `DEF-AE`), declaration disagreements fixable
+(`2` = `DEF-AI`, `DEF-AB`), document drift (`1` = `DEF-AC`), coverage the consumer must build (`1` = `DEF-X`), a ruling
+question (`1` = `DEF-AH`), and an observation with no ask (`1` = `DEF-AD`, actioned by doing nothing).**
+
+---
+
+### `D-49` — THE DISCARD IS MADE OBSERVABLE, and the use case that says why
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, answering `D-48`'s open question (`DEF-AH`).
+
+**THE RULING, VERBATIM:**
+
+> Make discard observable
+> Example use case: window.tabs reads as object. When window.tabs.landingPage is removed, listener should fire on
+> window.tabs to check that exactly one tab is active
+
+**THE RULING IS THE SECOND OF `D-48`'s THREE, AND THE EXAMPLE IS WHY IT MATTERS.** `DEF-AH` was a **visibility** defect
+wearing a behaviour defect's clothes: the two windows **run no pass**, so there is no verdict to skip — **but a caller
+could not learn that a request had been discarded.** **A fail-state is honest only if the consumer learns it happened.**
+
+**AND THE USE CASE IS THE SHARPEST ARGUMENT ANY REVIEW HAS MADE ON THIS BRANCH.** **`window.tabs` is a tree; a delete at
+`window.tabs.landingPage` must FIRE the listener standing at `window.tabs`, so the listener can check that exactly one
+tab is active.** **That check IS the invariant the caller cares about, and it is exactly the kind of act the
+`delete`-delivery window throws away.** **An invariant a caller registers to defend its own tree cannot be silently
+unchecked** — **not because the package owes a verdict, but because the caller cannot see that it did not get one.**
+
+**TWO THINGS THE PASS MUST SETTLE, IN THIS ORDER.**
+
+1. **THE USE CASE'S FOUNDATION FIRST: does a delete at a DESCENDANT fire a listener at its ANCESTOR?** **The triggered
+   set's membership rule is the address prefix** — **measure it** rather than assuming: **if the ancestor listener does
+   not fire, that is a defect ahead of the discard**, and it is the one the caller would file next.
+2. **THEN THE WITNESS.** **A request a window discards must be visible to the caller of the act whose window it was** —
+   **on that act's own answer**, not in a document and not on the next unrelated call. **Which member, on which record,
+   is the pass's call, declared and justified.**
+
+**TERMS: the visibility ruling (`1`), the use case as its ground (`1`), the ancestor-fires measurement owed and FIRST
+(`1`), the witness owed (`1`), the declaration owed (`1`), and the behaviour unchanged (`0` — these windows still run no
+pass, `D-43` item 2 stands on its fail-state and both exits).**
+
+---
+
+### `D-50` — `context.value` STAYS AS DECLARED: a constraint that needs another location READS IT
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, closing `D-49`'s cross-address finding.
+
+**THE RULING, VERBATIM:**
+
+> If a constraint needs to look for the data at a given location, it can read()
+
+**WHAT IT CLOSES, AND IT WAS THE LAST PLACE A CONSTRAINT COULD PASS A CHECK IT SHOULD FAIL.** The measured finding was:
+**a repair that writes at a DIFFERENT address leaves the earlier constraint passing** — `c1` refuses `2` at its own
+address, its repair lands `11` elsewhere, and the re-run asks `c1` at `11` and passes while the address `c1` judges
+still stands at `2`. **L0 read that as machinery defeat. The architect rules it RESPONSIBILITY.**
+
+**`context.value` IS *THE VALUE THE WRITE VERB RETURNED* AND THAT IS CORRECT** (`S-WINDOW`'s declared reading, unmoved).
+**A constraint's job is to judge the value it is handed for the address it stands at.** **If it cares about another
+location, IT READS THAT LOCATION** — **the body is caller code and closes over the store handle the caller already
+holds.** **So the machinery owes the constraint one value and the constraint owes itself the rest.**
+
+**AND THE THREE-SESSION PATTERN THIS CLOSES IS WORTH NAMING.** Three times this branch found "address-scoped machinery
+defeated by a repair that landed elsewhere": **the floor call's beside address**, **the delete's wrong-home capture**,
+and **the re-check's value**. **The first two were defects and were fixed** — the store's own scope and its own journal
+decided them. **The third is not**, and the difference is precise: **the first two were the PACKAGE misreading its own
+record, and the third was the CALLER not asking.** **A package cannot be wrong about a value it was told to hand over;
+it can only be wrong about what it stored.**
+
+**CONSEQUENCE TO DECLARE, NOT TO INVENT.** **A constraint that reads inside its body is caller code entering the
+surface**, so by `D-45` **that read opens its own commit** — **and a read runs no check, so nothing is judged by it.**
+**That must be said where a consumer reads it**, because it is the one place where "a callback opens a commit" meets
+"a constraint evaluates a body", and a reader will otherwise assume the read joins the attempt.
+
+**TERMS: the finding closed as not-a-defect (`1`), `context.value` unmoved (`1`), the responsibility named (`1`), the
+consequence to declare (`1` = the read's own commit), the two real defects of the family distinguished (`2`).**
+
+---
+
+### `D-50`'S CONSEQUENCE IS CORRECTED BY MEASUREMENT — a read brackets no commit
+
+**DATE:** 2026-10-28. **SOURCE:** the pass that proved `D-50`'s pattern, which measured the consequence and found L0's
+sentence wrong.
+
+**L0 WROTE**, in `D-50`: *"A constraint that reads inside its body is caller code entering the surface, so by `D-45`
+that read opens its own commit."* **Measured: a read brackets NO commit.** **`read`, `readLiteral` and `constraints` are
+the surface's NON-BRACKETING calls** — the count during a constraint body's read **is the attempt's own**, it is **left
+undisturbed**, `attempt-opened` **does not fire for it**, and **the same `attempt` is in force.**
+
+**SO THE ACCURATE CONSEQUENCE IS THE SHORTER ONE: a read inside a constraint body runs INSIDE the attempt's window,
+opens nothing and disturbs nothing.** **`D-45`'s rule is about CALLS THAT OPEN** — a write, a delete, a reversal —
+**and a read is not one of them, so the rule never applied to it.** **L0 applied a general sentence to a call it did
+not cover, which is the same error as reading a figure from the wrong table.**
+
+**AND IT WAS CAUGHT BY THE PASS THAT WAS IMPLEMENTING IT**, before the sentence could travel any further than one guide
+revision — which is the difference between a ruling written with its measurement beside it and one written ahead of it.
+
+---
+
+### `D-51` — THE `1.2.0` REVIEW (ROUND 12): the release's one behaviour change ships declared nowhere, and two rows are confirmed worse than read
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the adjacent consumer's rebuilt handoff (701 lines, 54,545 bytes)
+against the published `1.2.0`. **Four rows by consumer harm, and the first is L0's.**
+
+**1 · ★ THE RELEASE'S ONE BEHAVIOUR CHANGE IS DECLARED IN NO SHIPPED DOCUMENT.** **The refused reversal's restore to
+the commit's OPENING mark is the only behaviour `1.2.0` changes** — **it is declared in `RELEASE-NOTES.md`, which is at
+the repository root and rides no tarball**, and **the shipped guide does not state it.** **So a consumer installing
+`1.2.0` receives a behaviour change with no shipped declaration of it.** **That is `B-3` of the previous release's
+breach repeating in a smaller key: the record knew and the tarball did not.**
+
+**2 · `DEF-AL` — THE BUDGET REFUSAL ACCUSES THE WRONG PAIR, AND IS INDISTINGUISHABLE FROM A REAL REFUSAL.**
+**The restart budget's refusal names the FIRST WATCHED ADDRESS rather than the one that spent the budget**, so
+**registration order decides the accusation**; **the pair it names answered true on every ask it received**; and **the
+message is byte-identical to a genuine refusal's**, so **a consumer reading only the message cannot tell a real refusal
+from an exhausted budget.** `log[0]` names the true cause **while naming a passing pair by id.** **A diagnostic that
+accuses the innocent is worse than no diagnostic: it sends the reader to the wrong constraint.**
+
+**3 · `DEF-AK` — ONE INNER REFUSAL, TWO HOSTS, TWO ANSWERS.** **A listener body propagates an inner refusal verbatim**:
+same status, same message, same two-entry log, same op. **A constraint body making the identical write has it REPLACED
+by a generated `ConstraintBodyThrew`** whose single outcome entry is **the outer attempt's**, with **the inner refusal's
+distinctive literal occurring ZERO TIMES anywhere.** **So which host you are inside decides what you are told** — a
+second instance beside `DEF-X`'s two-of-seven — **and the crossed sentence claims *"a constraint body's throwable
+crosses as this refusal"* while a marked error of this kind crosses nowhere at all.**
+
+**4 · THE WITNESS IS EMPTIED BY THE ACT THAT NEEDS IT.** **`DeleteRecord.discarded` reports a discarded request on the
+delete's own receipt — and the listener standing inside that same delivery cannot read it, because the receipt does not
+exist at its instant.** **The witness serves the party who acts AFTER; the party who could act DURING is the one it
+withholds from.**
+
+**AND THE WITHDRAWALS, NAMED SO THE DEMANDS ARE NOT READ AS UNBOUNDED**: **four by the architect, and three of the
+consumer's own filings that did not survive contact.** **The discipline that produced them is theirs and it is the best
+thing in six rounds**: *a preference is an observation with a cost; it becomes a defect only when it breaks a clause the
+contract requires.*
+
+**TERMS: shipped declaration owed (`1` = the behaviour change), misattribution owed (`1` = `DEF-AL`), swallowed inner
+refusal owed (`1` = `DEF-AK`), the witness's reach named (`1`), withdrawals counted (`7` = 4 + 3).**
+
+---
+
+### `D-52` — THE THREE ENFORCEMENT RULES ARE REFUTED BY MEASUREMENT; each needs a ruling, and none can be invented
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the pass that measured `D-51`'s enforcement and stopped with nothing changed.
+**This is a STOP, and it is correct: the task it was given was not implementable as written.**
+
+**RULE 3 — "THE CROSSED STATUS IS THE LOG'S VERDICT" — IS CONTRADICTORY AS WRITTEN, AND THE MEASUREMENT IS
+DECISIVE.**
+- **a constraint refusal crosses `ConstraintPassRefused`** with terminal `state: 'KC-3'`; **and with an in-body
+  reversal meeting the floor, `ConstraintPassRefused` with terminal `KC-8`**;
+- **a save failure crosses `FileCommitFailed` with `log: []`**, **and the attempt's own log reads `KC-8`** — **the same
+  token a passing-pair run carries.**
+
+**SO `KC-8` CROSSES AS BOTH STATUSES.** Deriving the status from the terminal state **cannot** hold while the two arms
+must cross differently — **that needs a distinct state token for the save arm, which falsifies `D-38`'s *"the token
+continues to ride `log[].state`"*, `FTS-04.9`'s `^KC-[1-8]$`, the `KC-8` floor row, and the no-new-status guardrail.**
+**A contract redesign, not an enforcement.**
+
+**RULE 1 — "ONE SUBJECT SOURCE FROM ONE ACTED-UPON OBJECT" — NAMES NO RULE FOR TWO OF THE FOUR KINDS.** `append`'s
+signature is `(attempt, kind, id, opId, message, state)` across **7 call sites**; **two kinds carry a PAIR identity and
+an OP identity from two DIFFERENT acted-upon objects**, and the replay site carries a **fourth** (an existing entry).
+**Any choice would have been invented.**
+
+**RULE 2 — THE MERGE BOUNDARY AND THE "ATTEMPT IDENTITY" ARE UNDECIDABLE ON THIS TREE.** **Three functions build a
+nested attempt's report**; **the `CommitRecord` has no `log` member**; **the enclosing attempt is recorded nowhere.**
+**And a merged entry must keep "its own attempt identity", but the declared members are exactly six — `seq · kind · id ·
+opId · message · state` — and `seq` is *"the ordinal of the list it stands in"*:** **a merge either RENUMBERS (losing the
+inner list's identity) or needs a SEVENTH member (forbidden by `DEF-AI`'s own ruling).**
+
+**★ AND THE SENTENCE THE PASS WAS MEANT TO MAKE IMPOSSIBLE IS STILL TRUE, MEASURED:** **a save failure crosses as
+`FileCommitFailed` with `log: []`, and its verdict stands only in the attempt's log, which the crossed value does not
+carry and the fourteen members expose no route to.**
+
+**SO `D-51`'s DIAGNOSIS STANDS AND ITS PRESCRIPTION DOES NOT.** **Six rows, one mechanism — that is right. The three
+rules for making the bypasses unreachable are L0's guess at HOW, and the tree refuted two of them and could not decide
+the third.** **The three questions are the architect's, and they are asked exactly, with the measurements beside them.**
+
+---
+
+### `D-53` — THE LOG BELONGS TO THE COMMIT, NOT THE ATTEMPT; and the four rulings that follow
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, answering `D-52`'s three questions.
+
+**THE RULINGS, VERBATIM:**
+
+> 1. Open the token set
+> 2. Both combined to identify which constraint iteration it is on
+> 3. Elaborate
+> **Commit use invariants:** If it's part of the same commit, then it uses the same message log. If it opens a new
+> commit, it uses the new commit's message log. Constraints/Repairs should always use the same commit. Listeners should
+> open a new commit, because the triggering commit already passed constraints.
+
+**★ THE INVARIANTS DISSOLVE `D-52`'S SECOND QUESTION RATHER THAN ANSWERING IT, AND THEY EXPOSE THE ARCHITECTURAL ERROR.**
+**The log lives on the ATTEMPT today** (`attempt.log`). **It must live on the COMMIT.** **A commit is the unit of work; an
+attempt is the constraint-judged write inside it.** **A commit may hold several attempts — a check, its repair, the
+re-run — and by the first invariant every one of them appends to ONE list.**
+
+- **`DEF-AK` NEEDED NO MERGE BECAUSE THERE SHOULD NEVER HAVE BEEN TWO LISTS.** A constraint body's write is **part of the
+  same commit**, so **its entries are the same list's entries**; the crossed report **is** that list. **No merge, no
+  renumbering, no seventh member, and `seq` keeps its declaration** — *the ordinal of the list it stands in* — **because
+  there is one list.**
+- **A LISTENER'S WRITE OWNS ITS OWN LOG**, and the reason is now **semantic rather than authorial**: **"the triggering
+  commit already passed constraints."** **What the listener saw was already approved; whatever it does now is a NEW
+  question and must not inherit the old verdict.** **That is a better ground than `D-45`'s authorship rule, and it
+  supersedes the REASON while keeping the RULE.**
+- **AND A CONSTRAINT OR A REPAIR NEVER OPENS A COMMIT.** **They are the commit.** **`D-45`'s marking of repair bodies as
+  owners was already reversed by `D-46` on tracking grounds; this states the invariant it was reaching for.**
+
+**`D-52`'s FIRST QUESTION — RULE 1 — IS ANSWERED BY "BOTH COMBINED":** **an entry carries the PAIR identity and the OP
+identity together, and the PAIR identifies WHICH CONSTRAINT of that pair's evaluations is being spoken about.** **So a
+`constraint-check` names the pair and the op it judged; a `repair-run` names them; an `outcome` names them where they
+exist. The two columns are not alternatives — they are one identity.**
+
+**AND `D-52`'s THIRD QUESTION — RULE 3 — IS ANSWERED BY OPENING THE TOKEN SET:** **the save arm gets its own state token**,
+so **a save failure and a constraint refusal cross with different statuses AND each is derivable from the log's terminal
+state** — which was the contradiction `D-52` measured, resolved by letting the set grow rather than by weakening either
+half. **The `KC` set's declared count `^KC-[1-8]$` moves with it, and every cell that pins the count.**
+
+**TERMS: the log moves from the attempt to the commit (`1` = the structural change), the invariants (`4` = same-commit
+log, new-commit log, constraints-and-repairs never open, listeners always open), `D-52`'s questions answered (`2` = rules
+1 and 3) and dissolved (`1` = rule 2), the token set opens (`1`), `D-45`'s REASON superseded while its rule stands (`1`).**
+
+---
+
+### `D-54` — THE BOUND IS FALSE: THREE HOSTS RUN A PASS AND LEAVE THE REVERSAL UNJUDGED
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the downstream's Round 12 follow-up, which named the exact
+sentence and refuted it with three measured hosts.
+
+**THE FALSE CLAUSE, NAMED EXACTLY** — `README.guide.md:1339`, the last sentence of *"Two windows in the constraint
+machinery are known and are NOT defects"*: ***"the fail-state is bounded by the two acts that run none"*** — **and its
+premise immediately before it, *"every pass that DOES run drains its own restart request."***
+
+**IT IS FALSE, AND THE CONSUMER MEASURED THREE HOSTS WHERE BOTH CANNOT HOLD**: **a repair body**, **a delete's
+constraint pass**, and **a reentrant reversal-then-write** — **each RUNS a pass, and each leaves the reversal unjudged
+with its effect standing** — **zero judge invocations, the refused `5` still there.**
+
+**AND THEIR THREE CANDIDATES ARE SETTLED, BY THEM:** **not the restart budget's three** (declared, measured, correct:
+three asks, a fourth raise refused, the store restored) · **not the witness's "carries the discard"** (declared, and
+measured true on the delete path; its defects are the nested write emptying it and its addresses naming the whole
+registry, which are separate rows).
+
+**`DEF-X` IS THREE HOSTS, NOT FIVE — THEY WITHDRAW TWO OF THEIR OWN.** **Hosts 4 (a registration's own evaluation) and 5
+(a delete's listener delivery) are exactly the two windows the guide declares and rules not-defects** — **"a declared
+window with two named exits is a design decision, not a defect"** — **and filing them would repeat the mistake this
+review sequence has withdrawn five times.** **L0's five-count came from the consumer's own earlier count and was never
+re-derived; the consumer's re-derivation stands.**
+
+**AND THE "FOUR TARGET BUILDS" PREMISE IS DEAD**: **all seven hosts were driven on the SINGLE published linux build,
+same machine, same harness — the split is by CALL PATH, not by target.** **So `DEF-X` is not CI's**, and L0's
+*"four target builds this checkout cannot produce"* is refuted.
+
+**THE ASK, AND IT IS SMALL:** **do not let a pass consume a restart request it did not raise, and carry a request raised
+inside a pass through to that pass's terminal judgement.** **The budget, its three asks and `D-42` stay exactly as they
+are. `R8` is untouched and re-verified across four adversarial arms.**
+
+**AND THEIR QUESTION TO THIS ROLE, WHICH IS NOW ANSWERED RATHER THAN DEFERRED:** **a delete runs a constraint pass, and a
+reversal raised inside it is unjudged — covered by the declared delete-listener window, or a THIRD undeclared one?**
+**Their measurement: the pass ran (`triggered` names the pair) and the reversal was not judged.** **The declared window
+is the delete's LISTENER DELIVERY, which runs no pass; a reversal raised during the delete's own CONSTRAINT PASS is a
+different act at a different instant.** **So it is a THIRD case, undeclared — and the fix below covers it, which is why
+the sentence must go rather than be narrowed.**
+
+**TERMS: the clause false and withdrawn (`1`), `DEF-X` re-derived to three (`1`, with two of their own withdrawals),
+the CI premise refuted (`1`), the ask (`2` = do not consume what a pass did not raise; carry what it did), the
+delete-pass question answered as a third case (`1`).**
+
+---
+
+### `D-55` — THE SIX CLARIFICATIONS THAT SETTLE SEVEN ROWS, AND THE THREE THAT ARE STRUCTURAL
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the downstream's Round 13, and the architect's clarifications answering it.
+
+**THE CLARIFICATIONS, VERBATIM, EACH WITH THE ROWS IT SETTLES.**
+
+1. **"Include a thrown message in the message log. Obviously."** → **`DEF-AK`**: a body's throwable must reach **the commit's message log**, not merely be claimed in the crossed sentence. **A claim that something "crosses as this refusal" while crossing nothing is the `DEF-H` class in the sentence a consumer reads first.**
+2. **"A witness address of [] corresponds to the register itself. This is not a legal response for any other watched address"** → **`DEF-AH`**: **an ADDRESS of `[]` is the register** and is legal **for the root only**; **an entry whose address LIST is empty is never legal** — **do not ship one.** **The row's `addresses: []` is a list, not a root.**
+3. **"A delete is an editing verb and must pass constraints. This includes all of the relevant commit and message logic."** → **`DEF-X` ANSWERED: YES.** **A delete runs a constraint pass** — **and the consumer is right that no shape at `1.3.0` admits one**, so **its `1.2.0` measurement may have measured something the artifact cannot express.** **The demand is to make it expressible, not to dispute the measurement.**
+4. **"A reverse is an editing verb and must be treated as above"** → **`rollback` already is** (`D-38`), **and the rule now covers both**: **every editing verb passes constraints and carries the commit and message logic.**
+5. **"A constraint-refused edit rolls back to the previous safe state, with all edits in the commit undone. Specify this."** → **`DEF-AN` ANSWERED**: **the restore to the commit's OUTERMOST OPENING mark is CORRECT** — **a write that succeeded inside the same commit is undone *because the commit is undone*** — **and the answer must SAY SO**, since today nothing does. **The behaviour is right; the declaration is missing.**
+6. **"Attempts don't log. This is what the commits are for. The commits have their log handed off to the client and are dropped after closing out"** → **`DEF-AO` ANSWERED and `D-53` CONFIRMED at its root**: **the attempt holds no log (done), the COMMIT's log is handed off and dropped on close**, **so a closed attempt's report and log must not mutate afterwards** — **a consumer holding a refusal is holding the record, and a record that changes after the handoff is not a record.**
+
+**AND `DEF-AP` — TWO LISTENERS EACH REVERSING IN ONE COMMIT, ONLY THE LAST RAISE JUDGED** — **the demand is *judge the standing state at the drain*, and it follows from 5 and 6**: **if a refused edit undoes the whole commit, then the drain must judge the state the commit STANDS at, not the request that happened to survive.** **The row's own escape — declare that an overwritten raise can leave a violation unjudged — is now unavailable**, because 5 says the safe-state rule is the promise.
+
+**AND `DEF-AC` IS THE GUARD'S OWN ROW, ONE RELEASE ON**: **the cut-state guard was right and could not fire before its fact.** **The published `1.3.0` tarball says `v1.3.0 DOES NOT EXIST`** — **and the consumer's demand is the correct one: generate at publish, fail the publish on disagreement, and GUARD THE RELEASE NOTES TOO.** **`README.md` declaring no version is its own small gap.**
+
+**TERMS: settled by clarification (`4` = `DEF-AK`, `DEF-AH`, `DEF-X`, `DEF-AN`), confirmed and extended (`2` = `DEF-AO` from 6, `DEF-AP` from 5+6), structural (`3` = the delete's pass, the log's handoff and immutability, the standing-state drain), the guard's own row open (`1` = `DEF-AC`, with the notes and `README.md`), observations (`2` = `DEF-AD`, `DEF-AM`).**
+
+---
+
+### `D-56` — A CONSTRAINT FIRES WHEN ITS DESCENDANTS CHANGE, BECAUSE THE DESCENDANTS ARE PART OF THE OBJECT READ AT ITS ADDRESS
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, superseding the exact-address rule `HL-8` preserved.
+
+**THE RULING, VERBATIM:**
+
+> A listener/constraint should fire when the descendants of its targeted address node change, because the descendants
+> become part of the object that is read from that address
+
+**IT IS A SEMANTIC ARGUMENT AND IT SETTLES WHAT THREE CLAUSES HAD BEEN DECIDING BY PRECEDENT.** **The value read at a
+prefix CONTAINS its subtree** — so **a change at a descendant CHANGES what a read at the ancestor returns,** and a pair
+standing at the ancestor **judges an object that moved.**
+
+**SO THE EXACT-ADDRESS RULE IS SUPERSEDED, AND WITH IT FOUR THINGS THAT DEFER TO IT:**
+- **`attempt-lifecycle.md §2.4` item 5 (iv)** — the EXACT-ADDRESS rule itself.
+- **`HL-8` item 1's own sentence** — *"rather than widening it to `triggered`'s prefix set"* — **which refused the
+  widening `D-50` then had to route around with a caller-side `read()`.**
+- **`CX-12`'s materialisation** — the pass's set is still fixed at pass start, **but it is materialised from the act's
+  address AND its ancestors, not from the act's address alone.**
+- **`D-50`'s `read()` route** — **no longer NECESSARY for an ancestor's interest in a descendant**, though it remains
+  available for anything else.
+
+**THE SET, STATED ONCE AND PRECISELY: a pair is asked when THE ACT'S ADDRESS IS AT OR BELOW THE PAIR'S ADDRESS** — that
+is, **the pair's address is a prefix of the act's address** (equality included). **A pair at `['tabs']` is asked for a
+delete at `['tabs','landingPage']`; a pair at `['tabs','landingPage']` is asked for that same delete; a pair at
+`['tabs','landingPage','x']` is NOT asked, because the act did not change it.**
+
+**AND ONE DIRECTION IS NOT RULED AND MUST BE MEASURED RATHER THAN ASSUMED**: **an act AT OR ABOVE a pair's address** —
+deleting `['tabs']` removes the node a pair at `['tabs','landingPage']` judges. **The ruling's sentence is
+one-directional (descendants of the pair's node), so the reverse is reported, not implemented.** **The pass must measure
+what that pair's value becomes and say whether the same reason extends to it** — **the object read at a descendant of a
+deleted node is ABSENT, which is a change too.**
+
+**TERMS: the exact-address rule superseded (`1`), the four deferrers (`4` = lifecycle item 5 (iv), `HL-8`'s refusal,
+`CX-12`'s materialisation, `D-50`'s necessity), the set stated (`1`), the unruled direction to be measured (`1`), the
+cells owed (`2` = the ancestor pair asked, and the descendant-pair direction's measurement).**
+
+---
+
+### `D-57` — DROP THE CUT-STATE; and the delete's commit is a SCOPE AND A RECORD, not a kernel item
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, answering `D-56`'s open item and the delete's `CommitRecord` question.
+
+**THE RULINGS, VERBATIM:**
+
+> Drop the cut-state
+> What is a delete doing with a commit if it mints no kernel item?
+
+**1 · THE CUT-STATE GOES, AND IT IS THE ONLY ANSWER THAT CANNOT RECUR.** **A shipped document is sealed BEFORE the tag that makes its cut-state true** — so **every release packed before its tag ships a doc that denies itself**, and the guard, running in the preflight, can only ever confirm *"not cut"*. **Three iterations have now proved it: `1.2.0` shipped *"NOT CUT"*, `1.3.0` shipped *"v1.3.0 DOES NOT EXIST"*, and the notes' head was stale again five minutes ago.** **So the cut-state sentence is REMOVED from the shipped guide and from the notes as a claim; the VERSION LINE stays**, because **the manifest knows it and travels beside it.** **The tag set stays in the notes as a RECORD OF RELEASES — past tense, a list — never as a claim about the current one.** **The assertion narrows to the version line, which is the only figure a tarball can be right about.**
+
+**2 · AND THE QUESTION IS THE RIGHT ONE: A DELETE'S COMMIT MINTS NO KERNEL ITEM, AND IT STILL DOES FIVE THINGS.** **A kernel ITEM is a FUNCTION on the kernel's surface — `K-1`…`K-6`, the constraint machinery's API, whose caller drives it directly. A delete's caller drives `delete`, not the kernel.** **So the commit the delete opens is not an export; it is:**
+
+- **THE SCOPE** — `D-44`'s boundary (*no check without an open commit*), satisfied by the delete's own window;
+- **THE LOG'S HOME** — `D-53`'s one list, which is what the crossed report carries;
+- **THE SAFE-STATE UNIT** — `DEF-AN`'s rollback extent: **a refused edit undoes the COMMIT, and the commit is what the delete opened**;
+- **THE RECORD A CONSUMER HOLDS** — the `CommitRecord` on the receipt, with its `pending` residue and its `op`;
+- **AND THE THING `K-4`/`K-5` CAN ANSWER BY REF** — which they now do, because **the kernel's records are keyed by the COMMIT, not by the item that opened it.**
+
+**SO THE SHAPE IS COHERENT AND IT IS NEW: A COMMIT CAN BE OPENED BY A VERB RATHER THAN BY `K-2`.** **`D-53` put the log on the commit; `D-44` made the commit the check's precondition; `DEF-AN` made it the rollback's unit — all three are satisfied by a verb-opened commit, and none of them requires a kernel item.** **What a kernel item would add is a PUBLIC ENTRY — and a delete already has one: its own verb.** **So no `K-7` is owed, and the honest statement is that the kernel's six items are the WRITE's surface, not the constraint machinery's whole surface.**
+
+**AND THE ONE THING THAT WOULD CHANGE THE ANSWER, NAMED SO IT IS NOT DISCOVERED**: **if a consumer must drive a delete's attempt DIRECTLY** — without going through the verb — **then it needs an item, and `K-7` `commitRemoval` becomes owed.** **No consumer can: the kernel is not a subpath, and the verb is the surface.**
+
+**TERMS: the cut-state dropped (`1`), the version line kept (`1`), the assertion narrowed (`1`), the tag set demoted to a record (`1`), the delete's commit's five jobs (`5`), the kernel item not owed and the condition that would owe it (`1`).**
+
+---
+
+### `D-58` — NO IN-FLIGHT INSIGHT, AND NO RETENTION AFTER THE HANDOFF
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, while the downstream builds its review.
+
+**THE RULING, VERBATIM:**
+
+> The client does not need any insight into the current state of a commit/attempt before it completes. Don't expose
+> any of it. After a commit/attempt resolves/rejects, the store does not need to retain the message log or other
+> client-returned data. Don't retain it.
+
+**TWO DEMANDS, EACH WITH A MEASURED TARGET ON THIS TREE.**
+
+**1 · NO IN-FLIGHT EXPOSURE.** **`K-5` (`report`) already refuses a LIVE attempt with `KC-7`** — *"the constraint attempt
+… is still open"* — **so the report cannot be read mid-run.** **`K-4` (`log`) DOES NOT: it answers a live attempt's log
+today**, **which is exactly the insight this ruling forbids** — **`D-39`'s `seq` sequence, part-way through, as a
+consumer read.** **So `K-4`'s live arm must refuse, and the same member `K-5` uses (`KC-7`) is the declared answer.** **And
+a `CommitRecord` is handed out only when the commit RESOLVES OR REJECTS** — **never while it runs.**
+
+**2 · NO RETENTION AFTER THE HANDOFF.** **`D-55` item 6 made the commit's log be *"handed off to the client and dropped
+after closing out"*** — **and only the SEAL was built** (`sealHandoff` freezes what the client received). **The DROP was
+not.** **Measured: the closed attempt's record is retained in `kernel.closed`, and the log travels with it.** **That is the
+retention `DEF-J` filed as *"no deletion site"* — and this ruling IS the deletion site.**
+
+**SO: once a commit resolves or rejects, the store keeps NO message log and no other client-returned data.** **What the
+store still needs it keeps (the outcome for `K-5`'s answer, the ops the journal holds, the reversal's record); what the
+CLIENT was handed, the store lets go.** **A retained copy is a second source of truth that can disagree with the one
+the consumer holds — and `D-55`'s seal exists precisely because a record that changes after handoff is not a record.**
+
+**AND THE BOUND THIS GIVES `R16` IS THE ONE `D-39` COULD NOT STATE**: **the resident set of the client-returned data is
+THE INSTANCE'S LIFETIME AND NOTHING LONGER, and within the instance it is THE OPEN COMMIT'S — not the closed one's.**
+**`DEF-J`'s closed-map growth stops being unbounded-in-kind**: **it may still hold outcomes, but it must not hold logs.**
+
+**TERMS: in-flight exposure closed (`1` = `K-4`'s live arm, with `K-5`'s existing `KC-7`), retention dropped (`1` = the
+log and client data on close), the deletion site `DEF-J` lacked (`1`), the handoff made single-copy (`1`), the bound
+`R16` gains (`1`).**
+
+---
+
+### `D-59` — ATOMICITY IS A CLIENT-VISIBLE BOUNDARY; a callback's write is INSIDE the commit that invoked it
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, resolving `DEF-AN`'s collision between `DEF-AN` and `D-45`/`D-46`.
+
+**THE RULING, VERBATIM:**
+
+> The write is a discrete action - the process flow does not return to the client until after the write commits.
+> If the client then makes a second change, that is another discrete action that is its own commit, and that should
+> be *entirely* atomic from the first commit.
+
+**IT SETTLES THE COLLISION, AND NOT IN THE DIRECTION MY `1.4.0` SENTENCE ASSUMED.** **Atomicity is a property of a
+CLIENT-VISIBLE boundary**: **a commit is atomic from another when THE CLIENT'S OWN CALL opened it and returned.** **So:**
+
+- **TWO CLIENT CALLS ARE TWO DISCRETE ACTIONS**, each committing before it returns, **and each entirely atomic from
+  the other.** **That is a stronger guarantee than anything on the tree today and it is the one that matters to a
+  consumer.**
+- **★ AND A LISTENER'S (OR ANY CALLBACK'S) WRITE IS *NOT* A SECOND DISCRETE ACTION** — **the client's flow has not
+  returned when the listener runs**, because the listener runs INSIDE the delivery of the act the client called.
+  **So its write is INSIDE that commit's extent, and `DEF-AN`'s measured behaviour — the outer refusal undoing it — is
+  CORRECT.**
+
+**THEREFORE `D-45`/`D-46` AND `DEF-AN` DO NOT COLLIDE AFTER ALL, AND L0'S SENTENCE WAS THE ONLY THING THAT DID.** **A
+listener's write has its OWN COMMIT SCOPE — its own log (`D-53`), its own constraint pass (`D-44`), its own delivery
+position** — **and it is NOT an ATOMIC BOUNDARY, because no client call returned to open one.** **"Its own commit" was
+read as "an atomic boundary", and it is a SCOPE.**
+
+**WHAT IS OWED, AND IT IS THE DOWNSTREAM'S OWN FIX SHAPE, WHICH IS NOW PROVEN RIGHT:** **correct the sentence that claimed
+a callback's edit is untouched** — **state the restore's real extent: the commit a client call opened, and everything
+that committed inside it, callbacks included** — **and name in the refusal what the restore TOOK: the addresses it
+moved that the refused act did not itself write.** *"A consumer can survive an undo it is told about; it cannot survive
+one it is not."*
+
+**AND ONE THING BECOMES A REAL QUESTION RATHER THAN A BUG**: **if two CLIENT calls must be atomic, is that true today?**
+**A client's second write opens its own commit and its own opening mark** — **so a refusal of the second cannot reach
+the first.** **That must be MEASURED rather than assumed**, because it is the guarantee this ruling actually promises.
+
+**TERMS: atomicity defined (`1` = client-visible boundary), the callback's write placed INSIDE (`1`), `DEF-AN`'s
+behaviour confirmed correct (`1`), `D-45`/`D-46`'s scope-vs-boundary distinction (`1`), L0's sentence falsified and owed
+(`1`), the client-to-client atomicity to be measured (`1`).**
+
+---
+
+### `D-60` — A LISTENER'S WRITE IS DISCRETE BECAUSE IT RUNS AFTER ALL CONSTRAINTS; A REPAIR'S IS ATOMIC WITH THE WRITE
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, refining `D-59` and reversing its placement of the listener's write.
+
+**THE RULING, VERBATIM:**
+
+> A *listener* write is discrete, because it occurs after all constraints. A *constraint repair* is atomic with the
+> original write.
+
+**IT REVERSES ONE HALF OF `D-59` AND KEEPS THE OTHER, AND THE DISCRIMINATOR IS PHASE, NOT AUTHORSHIP.** `D-59` placed a
+listener's write **inside** the outer commit's extent, on the ground that *the client's flow has not returned* — **that
+fact is true and is not the decisive one.** **The decisive fact is WHEN the callback runs relative to the judgement:**
+
+- **A CONSTRAINT REPAIR RUNS DURING THE PASS** — before the judgement completes — **so it is part of the state being
+  judged, and a refusal undoes it with the write.** **ATOMIC WITH THE ORIGINAL WRITE.**
+- **★ A LISTENER RUNS AFTER THE PASS, IN THE DELIVERY** — **after ALL CONSTRAINTS have been asked and passed** — **so
+  its write is a NEW question against an already-judged state, and `DEF-AN`'s measured behaviour — the outer refusal
+  undoing it — is a DEFECT.** **DISCRETE, and entirely atomic from the write that triggered it.**
+
+**SO MY BOTH RECENT SENTENCES WERE WRONG, IN OPPOSITE DIRECTIONS.** **The `1.4.0` clause said a callback's edit is
+untouched — true of the listener, false of the repair.** **`D-59` put the listener inside — false of the listener, true
+of the repair.** **The correct split is the phase, and it is the split `D-53` already stated for a different reason**
+(**"the triggering commit already passed constraints"**) — **the same sentence, now read for atomicity rather than for
+commit scope.**
+
+**THE MECHANISM THIS REQUIRES, AND IT IS THE ONE `D-59` NAMED AS STRUCTURAL**: **the restore's extent must stop at a
+listener's commit boundary.** **The outer restore goes to the outer OPENING mark, which precedes the listener's ops** —
+**so a restore that sweeps a journal RANGE cannot honour this.** **The journal must know WHICH COMMIT EACH OP BELONGS TO,
+and a restore must undo a commit's ops and no other commit's.** **That is the "commit id on entry" `D-46` already uses for
+joining, applied to the record of what landed.**
+
+**TERMS: the split (`2` = listener discrete, repair atomic), `D-59`'s placement reversed (`1`), the `1.4.0` sentence
+corrected in the other direction (`1`), the mechanism ruled (`1` = a commit identity per journal op), the cells owed
+(`2` = a listener's write surviving an outer refusal, and a repair's write NOT surviving).**
+
+---
+
+### `D-61` — `D-60` IS BLOCKED ON THREE GRANTS AND ONE UNRULED CASE, AND TWO OF ITS THREE ARMS ARE ALREADY MEASURED
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the pass that measured `D-60`'s arms and stopped rather than declare a behaviour the tree does not have.
+
+**THE MEASUREMENT, ON THE SHIPPED ARTEFACT — AND IT SPLITS THE RULING IN TWO.**
+
+| arm | verdict |
+|---|---|
+| **★ a listener's write SURVIVES an outer refusal** | **RED — it does NOT survive.** The listener's `write(['g'],'mem',1)` returned; the outer write crossed `ConstraintPassRefused`; **`read(['g'])` throws `AddressNotFound`.** **This is `DEF-AN`'s arm, and it is the defect.** |
+| **a repair's write does NOT survive** | **GREEN** — the repair landed `a = 1`, the re-run refused, `read(['a']) === 5`. **The repair goes with the write, as `D-60` rules.** |
+| **a client's second write is atomic from the first** | **GREEN — and this has never been measured before.** `A` answered `op-4`; `B` refused; **`read(['A']) === 1`**. **`D-59`'s promise holds.** |
+
+**WHY IT CANNOT BE BUILT IN THE GRANTED SCOPE — THREE GRANTS AND ONE UNRULED CASE, EACH MEASURED.**
+
+1. **THE COMMIT IDENTITY DOES NOT CROSS.** **The JS knows the commit** (`state.mjs`'s `index.windowSeq`, minted once per commit that opens, joined by a join) — **and it never reaches Rust**: `facade.rs`'s `verb_write` **declares a fourth position `commit_identity: JsVal` and never reads it**; `crossing.rs`'s `Instance::write` takes **three**; `index.mjs` builds **three** args, so that position is `undefined` on every path. **`delete`'s addon entry declares two and has none.** **The fix therefore needs `facade.rs`, `crossing.rs` and `index.mjs`** — **none of them in the granted scope.**
+2. **THE ARITY IS PINNED.** `restoreMark`'s arity is asserted at `1` and the addon's export set at **exactly fifteen names** by set equality — **so a new `restoreCommit` verb is a red cell the pass may not edit.**
+3. **AND ONE SEMANTICS `D-60` DOES NOT DECIDE, WHICH THE PASS REFUSED TO INVENT.** **Stamping each op with the opening the store observes at the existing `journalMark()` read would make a declared PURE READ mint per-opening state** — and **it cannot separate two commits that open at the SAME journal head**, which is reachable: **a reversal opens a commit and appends no entry**, so **a pair-body write invoked at its judgement opens at that same head.** **So two commits can share an opening mark, and a mark-keyed restore cannot tell them apart.**
+
+**AND THE DECLARATION WAS CORRECTLY NOT LANDED.** The correction owed — *a listener's write is discrete and atomic, because it runs after all constraints; a repair's write is atomic with the write it repairs* — **would declare behaviour the tree measurably lacks.** **The `1.4.0` clause stands as written until the tree moves, and that is the right order for a declaration.**
+
+**TERMS: the ruling split (`3` = one red, two green), grants owed (`3` = `facade.rs`, `crossing.rs`, `index.mjs`), pinned cells to be ruled (`2` = `restoreMark`'s arity, the export set's fifteen), unruled semantics (`1` = two commits at one journal head), declaration withheld and why (`1`).**
+
+---
+
+### `D-62` — THE MODEL IS ALREADY THE STATE, IN THE JS LAYER; WHAT IS MISSING IS THAT THE COMMIT NEVER CROSSES TO THE STORE
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, asking how `D-60`'s model is not already the tree.
+
+**THE CLARIFICATION, VERBATIM:**
+
+> A constraint should be expected to be passed and subsequently identify the commit that it is part of, specifically so
+> that it is logged and can be reversed if needed. A listener *should not be doing this*. A second action by the client,
+> even if it's from the same function as the original call, should not have any knowledge of the current commit state and
+> should not be able to add to the prior commit, *because the prior commit should no longer exist in the store*
+
+**AND THE ARCHITECT IS RIGHT: ALL THREE ARE ALREADY THE STATE — IN THE JS LAYER.**
+
+- **A constraint identifies its commit**: `D-46`'s mechanism, the kernel naming the attempt's commit at the repair's second position. **It is logged and reversible because the commit's log is the commit's** (`D-53`).
+- **A listener does not**: it passes no commit, so `D-45` makes it open its own.
+- **A second client action cannot join the prior commit**: **the prior commit is DROPPED on resolution** (`D-58`'s no-retention half). **There is nothing to join.**
+
+**SO WHAT IS MISSING IS ONE THING, AND IT IS MEASURED: THE COMMIT NEVER REACHES THE STORE.**
+
+- `facade.rs:655` **declares** `verb_write(…, commit_identity: JsVal<'_>)` — **and `:645` documents in the file's own words: *"CONSUMED HERE AND WAS NEVER READ BY THIS BODY: no read of `commit_identity` stands anywhere in this"***. **The parameter exists and is unread by its own admission.**
+- `index.mjs:413` passes `args`, which carries **three** entries — **so the fourth position is `undefined` on every path.**
+- `crossing.rs`'s `Instance::write` takes **three**; **`delete`'s addon entry declares two and has none.**
+
+**THEREFORE THE STORE HAS NO NOTION OF A COMMIT AT ALL.** **It sees `write(address, tier, value)` and nothing else** — **so the journal's ops carry no commit, `restoreMark` sweeps a JOURNAL RANGE, and a listener's own commit's ops sit INSIDE the outer's range** (its write happened during the outer's delivery, hence after the outer's opening). **The restore then undoes them — not because the listener joined the outer commit (it did not) but because THE STORE CANNOT TELL TWO COMMITS APART.**
+
+**`DEF-AN`'S DEFECT HAS ONE CAUSE AND IT IS NOT THE RESTORE'S LOGIC**: **the restore does exactly what it was told — *undo everything after this mark* — because there is no commit for it to undo instead.** **The JS layer knows the boundary; the store is told only a position.**
+
+**AND THE THIRD SENTENCE IS TRUE IN BOTH LAYERS, WITH A SHARP EDGE**: **a second client action cannot add to the prior commit because the prior is dropped — but THE STORE STILL HOLDS THE PRIOR'S OPS.** **The journal retains them, and a position-restore reaches them.** **So "the prior commit should no longer exist in the store" is satisfied for the COMMIT and not for its OPS** — **and the ops are what the restore measures.**
+
+**AND THE SAME-HEAD QUESTION FROM `D-61` DISSOLVES**: **a commit that identifies itself is distinguishable by IDENTITY, not by where it opened** — **so two commits at one journal head stop being ambiguous the moment the identity crosses.** **No tiebreaker is owed; the identity IS the tiebreaker.**
+
+**TERMS: the model confirmed as the JS state (`3`), the single missing crossing (`1`), the cause of `DEF-AN` (`1` = the store has no commit), the same-head question dissolved (`1`), the unblock list (`5` = read the fourth position, give `delete` one, carry it through `crossing.rs`, add the field to `JournalOp`, let the restore take a commit).**
+
+---
+
+### `D-63` — BUMP THE MARK WHEN A SWEEP ENDS VALID: the restore target is the LAST VALIDATED STATE, not the opening
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, closing `DEF-AN` with a position rule instead of an identity.
+
+**THE RULING, VERBATIM:**
+
+> After the constraint sweep ends in a valid state, bump the restore mark. The passing constraint state marks the new
+> next valid state.
+
+**IT REPLACES `D-62`'S FIVE-ITEM UNBLOCK WITH ONE MOVEMENT OF A MARK.** **`D-62` established that the restore is told a
+POSITION and no commit, and its unblock wanted the commit to cross into the store.** **This ruling needs neither**: **if
+the mark MOVES FORWARD when a sweep validates, then everything that happens AFTER that sweep is beyond it — and a later
+refusal cannot reach it.**
+
+**THE MECHANISM, AND THE PLACEMENT IS THE WHOLE OF IT.**
+
+- **A commit opens** → the mark is the journal's mark at its opening — **the state it inherited.**
+- **A write lands its ops; the sweep runs.** **IF THE SWEEP PASSES, THE STATE IS VALID, AND THE MARK BUMPS TO THAT
+  POSITION** — **the passing state is the new next valid state** — **BEFORE THE DELIVERY RUNS.**
+- **A later refusal in that commit restores to the BUMPED mark**: **everything since the last validated state is undone,
+  and everything before it stands.**
+- **A REPAIR'S WRITE IS *DURING* THE SWEEP** — before the bump — **so a refusal undoes it with the write** ✓ **`D-60`'s
+  atomic half.**
+- **★ A LISTENER'S WRITE IS *AFTER* THE SWEEP, in the delivery** — **so it is beyond the bumped mark, and the outer's
+  restore does not reach it** ✓ **`D-60`'s discrete half.**
+
+**SO `DEF-AN` CLOSES WITHOUT A COMMIT IDENTITY ON THE JOURNAL, AND `D-62`'S FIVE GRANTS ARE MOOT.** **The `D-60` split is
+implemented by WHEN the mark moves, not by WHAT the mark names** — **and the boundary is the delivery, which is exactly
+where the phase changes.**
+
+**AND `DEF-AN`'S OWN CLAUSE IS CORRECTED IN ITS FIRST SENTENCE TOO**: it says *"a refused edit rolls the commit back to
+the state it opened at — every edit the commit made is undone, including writes that succeeded before the refusal."*
+**After this ruling the restore target is THE LAST VALIDATED STATE, not the opening** — **so an edit that succeeded AND
+passed its sweep STANDS, and only what came after the last validation is undone.** **The `1.4.0` clause and `D-59` were
+both wrong; this is the third statement of the same rule, and the first that the machine can keep.**
+
+**TERMS: the bump (`1`), its placement before the delivery (`1`), `D-60`'s two halves achieved by position (`2`), `D-62`'s
+unblock moot (`5` → `0`), `DEF-AN`'s clause corrected (`1`), the cells owed (`3` = a validated edit standing against a
+later refusal, a repair undone, a listener's write surviving).**
+
+---
+
+### `D-64` — AFTER THE PASS, NOTHING RE-ENTERS; the only later judgement is a listener's own, and it is not atomic
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, confirming `D-63` and stating the pass's closure boundary.
+
+**THE RULING, VERBATIM:**
+
+> After the constraint pass, there are no further instances of constraint/repair invocations on that work, the
+> constraints do not re-enter except to judge behavior on listeners, which are not atomic with the original write
+
+**IT IS A CONFIRMATION WITH ONE MEASURABLE OBLIGATION, AND IT NAMES THE BOUNDARY `D-63`'S BUMP ALREADY SITS ON.**
+
+- **AFTER THE PASS, NOTHING RE-ENTERS ON THAT WORK.** **A `write`'s constraint sweep runs once** — **repairs and the
+  re-runs they force are INSIDE that pass** (`D-42`'s restart drains *to the pass's own terminal*, `D-54`), **and once the
+  pass ends nothing invokes a constraint or a repair on it again.**
+- **THE ONE LATER JUDGEMENT IS A LISTENER'S OWN**, **and it is a NEW question against a NEW commit** — **not atomic with
+  the write that triggered it** — **which `D-63`'s bump implements by moving the mark past everything the passing sweep
+  approved, so the delivery runs beyond it.**
+- **AND THE CONSTRAINTS DO NOT OTHERWISE RE-ENTER**: **nothing after the pass walks the same work to judge it again.**
+
+**SO THE OBLIGATION IS TO VERIFY THERE IS NO POST-PASS RE-ENTRY ON THE SAME WORK**, and the candidates are the ones this
+branch built:
+- **`D-42`'s restart** — **inside the pass**, draining to that pass's terminal judgement. **Compliant.**
+- **`D-54`'s carry** — a request raised inside a pass reaches *that pass's* terminal state. **Compliant.**
+- **`DEF-AP`'s standing-state drain** — at the drain, before the handoff. **Compliant.**
+- **`D-63`'s `bumpMark`** — a mark movement, **not an invocation**. **Compliant.**
+- **AND THE ONE THAT WOULD VIOLATE IT**: **anything that judges a completed write's work again after its pass ended** —
+  **no such thing is on the tree, and if one is ever added it must be a new commit, not a re-entry.**
+
+**TERMS: the boundary stated (`1`), the pass's internals confirmed inside (`3` = restart, carry, drain), the bump
+confirmed as a movement and not an invocation (`1`), the obligation (`1` = keep post-pass re-entry off the tree), and
+`D-63`'s clause confirmed as the one the machine keeps (`1`).**
+
+---
+
+### `D-65` — THE LOG ENTRY SHOULD NOT CARRY `seq`: the array index IS the position, and the member restates it
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, asking why a log entry carries `seq` at all.
+
+**THE QUESTION IS THE ANSWER, AND IT IS `DEF-AI`'S OWN FALLBACK.** **`seq: attempt.log.length + 1` IS THE ARRAY INDEX.** **A log entry's position in a list is where it stands in that list** — **and a member that restates it is a SECOND SOURCE OF TRUTH for a fact the array already encodes.**
+
+**AND THIS BRANCH HAS SPENT ITSELF REMOVING EXACTLY THAT CLASS**: the allowlist as a hand-count replaced by reachability (`D-3`) · the hand-named greens chain replaced by discovery · a hand-transcribed status census replaced by derivation from `CODES` · the commit's log taken off the attempt so there is **one** list (`D-53`) · the store's copy dropped so there is **one** copy (`D-58`). **`seq` on a log entry is the same shape at its smallest scale: two places that must agree, and only one of them is authoritative.**
+
+**WHY IT WAS THERE, STATED SO THE REMOVAL IS NOT A MYSTERY.** **It is part of the declared six-member `LogEntry` shape** (`seq · kind · id · opId · message · state`), **and `D-53`'s argument for it was that a MERGE would have to renumber** — **but `D-53` also concluded there is nothing to merge, because there is one list.** **So the argument survives only as an argument for not needing `seq`, and was read as an argument for keeping it.** **A member justified by a problem that was shown not to exist is the exact form of the defects this branch has been closing.**
+
+**AND THE ROW ITSELF ALREADY OFFERED THE FIX**: `DEF-AI`'s demand is *"mint `seq` from the attempt's counter, **or omit the member**."* **The tree did neither — it declared.** **Removing it is the version that cannot drift**: **there is no second copy of the position, so there is nothing to disagree with the journal's ordinal.**
+
+**THE COST, PRICED.** **`LogEntry` moves from six members to five** — **a breaking change for a typed consumer reading `entry.seq`**, and **every cell that reads `log[].seq` or censuses six members moves with it.** **That is the price of one fewer thing that can be wrong, and it is the same price every removal on this list charged.**
+
+**TERMS: the member removed (`1`), the six-member shape moving to five (`1`), the class named (`1` = a member restating its container), the cells to re-derive (`2` = the `SEQ` census and the monotonicity arm), the declaration's `seq` sentence retired (`1`).**
+
+---
+
+### `D-66` — THE DESCENDANT DIRECTION IS RULED, AND IT IS "ONLY WHAT THE CHANGE TOUCHED"
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, completing `D-56`'s one-directional sentence.
+
+**THE RULING, VERBATIM:**
+
+> A pair at a descendant should only be asked if the change also affects that descendant, ex. write(['a', 'b'], {'c':
+> "foo", 'd': "bar"} should trigger at ['a'], ['a', 'b'], ['a', 'b', 'c'], and ['a', 'b', 'd'], but not ['a', 'b', 'e']
+
+**IT COMPLETES `D-56` WITH THE DIRECTION IT LEFT OUT, AND THE CRITERION IS THE SAME ONE**: **a pair is asked when the act
+CHANGES THE VALUE AT THE PAIR'S ADDRESS.** **That sentence already produced the ancestor rule** (*a read at a prefix
+contains its subtree, so a change below it changes what that read returns*). **It produces the descendant rule with one
+more step**: **a WRITE at `['a','b']` with `{c, d}` DOES create `['a','b','c']` and `['a','b','d']`** — **those nodes exist
+after the write and did not before** — **and it does NOT create `['a','b','e']`.**
+
+**SO THE SET IS:**
+- **the act's own address** (equality);
+- **every ANCESTOR of it** (`D-56` — the value at a prefix contains the subtree);
+- **and every DESCENDANT THE ACT ACTUALLY TOUCHED**:
+  - **for a WRITE**, **exactly the paths the written value contains** — `{c, d}` touches `['a','b','c']` and
+    `['a','b','d']` and nothing else; **a nested object touches its own sub-paths, by the same rule one level down**;
+  - **for a DELETE**, **the WHOLE SUBTREE at the act's address**, **because the act removes all of it** — a descendant of
+    a deleted node is ABSENT after the act and was not before, **which is a change to what a read there returns**.
+
+**AND THE DISTINCTION `D-56` COULD NOT DRAW IS NOW THE WHOLE POINT**: **a pair at `['a','b','e']` is NOT asked for a write
+at `['a','b']` with `{c, d}`, because the write did not touch `e`.** **The criterion is not "descendant", it is
+"TOUCHED"** — **and touched is computable from the act's kind and the value it carried.**
+
+**WHAT IT REQUIRES**: **the pass must know WHAT THE ACT WROTE**, not merely where — **for a write, the value's path set;
+for a delete, the subtree's address set.** **The attempt carries the op, and the op carries the value and the address**
+(`D-53`'s record, `JournalOp`'s `after`/`address`) — **measure whether the path set is reachable from what the attempt
+holds, and say so plainly if it is not.**
+
+**TERMS: the direction ruled (`1`), the criterion named (`1` = touched, not descendant), the two act kinds (`2` = write's
+paths, delete's subtree), the path set's reachability to be measured (`1`), the cells owed (`3` = a written path asked, an
+untouched descendant not asked, a deleted subtree's descendants asked).**
+
+---
+
+### `D-67` — THE LISTENER DOES NOT FIRE, AND THAT IS THE PROBLEM; `triggered` IS PREFIX-ONLY WHILE THE PASS IS NOT
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, redirecting the residual from the before/after display to the listener's reach.
+
+**THE QUESTION, VERBATIM:** *"Does the listener get fired when the value is purged by a higher-persistence write that doesn't include it? Because that's the actual problem, not whether the before/after displays by tier"*
+
+**MEASURED, AND THE ANSWER IS NO.** **`src/store.rs:1873`'s `triggered_for(address)` filters by `is_prefix(&listener.address, address)`** — and **`:1885` says it in the file's own words: *"AND THE PREFIX RULE IS UNMOVED: the filter is still `is_prefix(&listener.address, address)`"`.** **So a listener fires when ITS ADDRESS IS AN ANCESTOR OF THE ACT'S — and never when the act reached below it.**
+
+**SO THE LISTENER AT A PURGED PATH HEARS NOTHING**, **and the display-by-tier question was a symptom**: **`D-66` widened the PASS to the touched descendants, and `triggered` did not move.** **The convergence `D-56` recorded — *"the pass's set now equals the store's `triggered` set"* — is BROKEN, and broken in the worse direction: A CONSTRAINT AT A TOUCHED DESCENDANT IS ASKED; A LISTENER AT THE SAME ADDRESS IS NEVER TOLD.**
+
+**AND THE PURGE CASE IS WORSE THAN THE MISSING PATH**: **a higher-persistence write that does not include a value REMOVES it, and the store's rule does not reach the address at all** — **so a listener registered on the removed node is not merely given a stale path, it is not invoked.**
+
+**THE FIX, AND IT IS A UNIFICATION RATHER THAN A SECOND RULE.** **`triggered` and the pass compute THE SAME THING — the reach of an act** — **one in Rust, one in JS**, **and only one of them can see the per-tier versions.** **So:**
+
+- **`triggered_for` widens to the same predicate the pass uses**: **the listener's address is a prefix of the act's, OR the act touched the listener's address**;
+- **AND THE STORE COMPUTES `touched`, because it alone knows the versions it purged** — **the JS's `touchedAddresses` becomes the reader of that answer rather than a second implementer of the rule**;
+- **which resolves the per-tier residual by construction**: **a purge is the store's own act, and the store can name every path it removed.**
+
+**TERMS: the listener's reach measured (`1` = prefix-only, no descendants), the convergence `D-56` recorded broken (`1`), the asymmetry named (`1` = pair asked, listener silent), the purge case worse than a stale path (`1` = never invoked), the unification (`1` = one rule computed where the versions live), the per-tier residual resolved by it (`1`).**
+
+---
+
+### `D-68` — THE PREMISE IS THE DESIGN THE TREE ABANDONED: `K-1`'S `store.register` CALL WAS DELETED, so constraints left the store's trigger map
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, stating that a constraint is mechanically a listener to the store's triggers.
+
+**THE CLARIFICATION, VERBATIM:**
+
+> How is a constraint being fired when a listener is not? The original implementation is that a constraint is
+> mechanically the same as a listener from the perspective of the rust store triggers. The distinction is whether it
+> is registered as a constraint (and thus run in the constraint loop and expecting the constraint signature format) or
+> as a listener (and thus running after constraints and not being confined to the constraint signature)
+
+**AND THE TREE IS NOT THAT DESIGN ANY MORE, MEASURED IN TWO PLACES.**
+
+- **`bindings/js/src/entry/kernel-registration.mjs:134`**: ***"IT MAKES NO SECOND CALL. `store.register(home, noopListener)` IS DELETED, NOT RE-POINTED"*** — **`K-1`'s registration with the store was removed**, and `:681` says why: *"`K-1`'s `store.register` call is DELETED and the inert body has no subject"*, and `:117` calls the old spelling *"a SEAM and not a decision"***.
+- **`src/store.rs:1863`**: *"a listener bound at address `W` is triggered by a successful `write` or `delete` at address `X` iff `W` is a PREFIX of `X`"* — **the store's rule speaks of LISTENERS**, and **`ListenerTrigger { handle: ListenerHandle, address }`** carries a **listener handle**: **the map is the listener map.**
+
+**SO THE ANSWER TO "HOW IS A CONSTRAINT FIRED WHEN A LISTENER IS NOT" IS: BECAUSE THE TWO ARE NO LONGER THE SAME MECHANISM.** **The listener is fired by the store's `triggered`, which the store RETURNS and INVOKES NOTHING** (`A57`). **The constraint is fired by the KERNEL'S OWN WALK over `kernel.pairs` (`HL-8`, `pairsAtAddress`)** — **which is why `D-66` could widen one predicate and leave the other behind.**
+
+**AND `D-66`'S ASYMMETRY IS A SYMPTOM OF THAT SPLIT, NOT A BUG IN EITHER HALF**: **the kernel's predicate gained the touched descendants; the store's stayed `is_prefix`.** **Two rules for one reach.**
+
+**SO THE DECISION IS ONE OF TWO, AND IT IS THE ARCHITECT'S.**
+
+1. **RESTORE THE UNIFICATION** — **`K-1` registers its pair with the store again**, **the store's `triggered` names both kinds** (the element growing a `kind`, or the kernel holding the kind by handle), **and the pass filters `triggered` to the constraints and runs the loop.** **One predicate, in Rust, where the per-tier versions live** — **and `D-67`'s listener reach and `D-66`'s per-tier residual both close by construction.**
+2. **KEEP THE SPLIT AND ALIGN THE PREDICATES** — **`triggered_for` widens to the kernel's predicate**, **which requires the store to compute `touched`** (it can: the purge is its own act), **and the kernel keeps its own walk.** **Two implementations, made to agree.**
+
+**WHAT THE FIRST COSTS, NAMED**: **the deletion at `K-1` had a reason** — **a constraint is not a listener handle, and `store.register(home, noopListener)` minted an inert listener body to make one.** **So restoring it needs the store's registry to admit a THIRD kind** — **a registration that is neither adopted as a listener nor given an inert body, but fired and identified as a constraint** — **which is a `src/**` shape, not a re-point.**
+
+**TERMS: the premise measured false (`1`), the two mechanisms (`2` = the store's `triggered`, the kernel's walk), the abandonment's site and its reason (`2` = the `K-1` deletion, the "seam not a decision" clause), `D-66`'s asymmetry as a symptom (`1`), the two options (`2`), the first's cost (`1` = the store's registry admitting a third kind).**
+
+---
+
+### `D-69` — THERE IS NO THIRD KIND: a registration is a HANDLE AND A BODY, and a constraint already has both
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, correcting `D-68`'s cost.
+
+**THE CORRECTION, VERBATIM:** *"It doesn't need to mint an inert listener body, it already should require a constraint function with a handle"*
+
+**AND `D-68`'S "THIRD KIND" WAS A SHAPE THAT ALREADY EXISTS.** **The store's registration is a HANDLE AND A BODY** — **a listener carries `{handle, address, listener}`; a constraint carries `{handle, address, constraint}`.** **The pair HAS a handle — its `id` is its handle (`D-29`) — and it HAS a body — the `constraint` function (`D-26`).** **So registering a pair with the store passes WHAT IT ALREADY HAS.** **The inert body `store.register(home, noopListener)` minted was a SEAM because it fabricated a listener to make a handle; it is not a seam to pass the constraint's own function, because that function IS the registration's body.**
+
+**SO `D-68`'S OPTION 1 IS CHEAP, AND ITS OPTION 2 DISAPPEARS.** **There is nothing to invent:**
+
+- **`K-1` registers the pair with the store, handing it the pair's `id` and the pair's `constraint`** — **no fake body**;
+- **the store's registry holds it beside the listeners**, **the same shape with the other slot filled**;
+- **`triggered` therefore names the pair's `id` in `{handle, address}`**, exactly as it names a listener's handle;
+- **and the PASS becomes a FILTER over `triggered` rather than a walk over `kernel.pairs`** — **an element whose handle is a constraint's `id` is asked; a listener's is delivered.** **ONE PREDICATE, in the store, where the per-tier versions live.**
+
+**AND THIS IS WHAT `D-67` AND `D-66` WERE BOTH REACHING FOR.** **`D-67` found the listener silent on a touched descendant; `D-66` gave the pass a predicate the store did not share.** **Both are the same defect: the store computes the reach of an act, and the kernel computed a second one.** **Restoring the registration makes the store's answer the only answer** — **and the per-tier residual closes with it, because the store knows which versions it purged.**
+
+**WHY THE DELETION AT `K-1` LOOKED RIGHT, AND WAS HALF RIGHT.** **`store.register(home, noopListener)` deserved to go: it made a listener-shaped thing that was not a listener.** **What it should have been replaced with is the pair's own function — and the deletion took the registration instead of the seam.**
+
+**TERMS: the correction (`1` = no third kind), the shape (`1` = handle + body, both already on the pair), the pass as a filter (`1`), the single predicate (`1`), the per-tier residual closed by it (`1`), the deletion's half-rightness (`1` = the seam deserved to go, the registration did not).**
+
+---
+
+### `D-70` — A DERIVED VALUE IS NOT AN ADDRESS, AND THE TWO KINDS HAVE DIFFERENT JOBS
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, closing the `VEC` residual and stating which kind to use.
+
+**THE RULINGS, VERBATIM:**
+
+> A constraint/listener that cares about a derived value like the vec index should listen to the vec, not the contained node
+> Functions that automatically produce changes in the stored data should be written as constraint/repair, not as listeners, because constraint/repair has loop guards while listeners don't
+> The use case for listeners is for updating external code with new data, ex. changing the rendered information on screen
+
+**1 · THE `VEC` RESIDUAL IS NOT A DEFECT, AND THE REASON IS THAT AN INDEX IS NOT AN ADDRESS.** `delete(['v',0])` moves
+`{b:2}` from `['v',1]` to `['v',0]`, and **a listener at `['v',1']` does not hear it** — **correctly**: **`1` is a DERIVED
+value, a position inside a collection, and its meaning changes when a neighbour is removed.** **A registration at a
+DERIVED address is a registration on a value the store never wrote.** **The stable address is the container: a
+constraint/listener that cares about positional membership registers at `['v']` and reads the vec.** **So the seventh
+residual closes by declaration, not by machinery** — **and the `triggered` list is right to be empty, because nothing at
+`['v',1]` was written.**
+
+**2 · AND THE TWO KINDS HAVE DIFFERENT JOBS, WHICH IS THE SENTENCE A CONSUMER NEEDS.**
+
+- **CONSTRAINT / REPAIR: for functions that AUTOMATICALLY PRODUCE CHANGES in the stored data.** **They run inside the
+  pass, they are judged, and THEY HAVE LOOP GUARDS** — the restart budget (`D-42`), the applied-repair marker, the
+  per-op floor. **A function whose job is to change data belongs here, because the machinery that stops a loop exists
+  only here.**
+- **LISTENER: for updating EXTERNAL code with new data** — **changing the rendered information on screen.** **A listener
+  runs AFTER all constraints, it opens its own commit when it writes, and IT HAS NO LOOP GUARD.** **So a listener that
+  writes as a matter of course can drive a chain the machinery does not bound** — **which is why the first sentence
+  matters.**
+
+**SO THE RULE, IN ONE LINE A CONSUMER CAN HOLD: IF YOUR CALLBACK CHANGES THE STORE, IT IS A CONSTRAINT; IF IT TELLS THE
+WORLD, IT IS A LISTENER.** **And a registration at a derived address is a third mistake: register at the container and
+read what you care about (`D-50`).**
+
+**TERMS: the residual closed (`1`), the reason (`1` = an index is derived), the two jobs (`2`), the guards' asymmetry
+(`1` = constraints bounded, listeners not), the derived-address rule (`1`), the guide owed (`1`).**
+
+---
+
+### `D-71` — A LISTENER IS INDEPENDENT OF THE CALLER'S COMMIT: the caller learns nothing of its outcome, and that is the design
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, closing `D-70`'s first residual.
+
+**THE RULING, VERBATIM:**
+
+> A listener is independent of the commit record of the triggering caller. The caller does not need to know about the
+> outcome of the listeners.
+
+**SO `D-70`'S FIRST LEFTOVER IS NOT A GAP; IT IS THE ANSWER.** **A listener runs in its own commit (`D-45`), and its
+outcome — passed or refused — is THAT commit's.** **The triggering caller receives its own outcome and nothing about the
+listener's**, **and a listener's refusal does not fail the write that fired it.** **A listener is a SIDE EFFECT for
+external code; a side effect's failure is the side effect's.**
+
+**AND IT MAKES `D-70`'S ABSENCE THE ONLY OBSERVABLE ONE.** **Since a caller cannot see a listener's outcome, the only
+thing a chain of listener writes exposes is ITS COST — depth, and whatever the listener itself does with what its own
+call returns.** **Which is exactly why the missing loop guard matters**: **nothing else about the chain is observable,
+so nothing else can be bounded.**
+
+**TERMS: the residual closed as the design (`1`), the independence stated (`1`), the caller's blindness to a listener's
+outcome (`1`), the consequence for observability (`1` = cost is the only exposed property).**
+
+---
+
+### `D-72` — DELIVERY WINDOWS NEST SYNCHRONOUSLY AND UNBOUNDEDLY; nothing declares the cross-window order, and nothing above sees below
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the elaboration of `D-70`'s second residual, for the guide.
+
+**THE SHAPE, IN ONE STACK.** **A commit resolves and its DELIVERY begins; a listener that writes opens a commit of its
+own (`D-45`), which runs its own pass and then ITS delivery — so windows are live at once, NESTED, every level a
+synchronous call on one thread:**
+
+`outer write → its commit → its pass → its delivery → listener A → A's write (a NEW commit) → A's pass → A's delivery → listener B → …`
+
+**SO "INTERLEAVING" IS NOT CONCURRENCY; IT IS NESTED SUSPENSION.** **`A`'s entire chain runs to completion before the window
+that fired it invokes its next listener.** **The outer loop is suspended, not interleaved.**
+
+**FOUR PROPERTIES ARE UNDECLARED, AND EACH IS STATED SO THE GUIDE CAN CARRY IT:**
+
+1. **DEPTH IS UNBOUNDED** — no counter, no cap, no instrument (`D-70`'s absence). **The stack grows until the caller's
+   code stops calling.**
+2. **THE CROSS-WINDOW ORDER IS REAL AND UNDECLARED** — **within one window the order is unspecified and the list is a
+   set** (`DD-37`), **but across windows the nesting imposes one**: **a nested chain precedes the window's next
+   listener.** **The machine provides that guarantee and no clause promises it** — **so a consumer relying on the
+   opposite relies on nothing.**
+3. **RE-ENTRANCY IS UNAVOIDABLY OPEN** — **a listener that writes at the address it was delivered for fires itself
+   again**, because the store's trigger set is computed per act. **Nothing detects it; nothing is meant to. That is the
+   loop the missing guard leaves open, and the concrete shape of "no instrument you can read."**
+4. **AND NOTHING ABOVE SEES BELOW** (`D-71`) — **a nested commit's outcome, refusal and record are invisible upward, so
+   a chain that fails at depth three is indistinguishable, to the original caller, from one that never ran.**
+
+**TERMS: the nesting stated (`1`), the suspension order (`1`), depth unbounded (`1`), re-entrancy open (`1`), upward
+invisibility (`1`), the guide owed (`1`).**
+
+---
+
+### `D-73` — THE LISTENER'S THROW STAYS: it is the one thing a listener can do to its caller, and it exists so errors can be logged
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the architect, ruling the asymmetry `D-71` revealed.
+
+**THE RULING, VERBATIM:** *"Keep the throw so that the client can log errors cleanly"*
+
+**SO THE ASYMMETRY IS THE DESIGN, AND `D-71`'S SENTENCE NEEDS ONE CLAUSE TO BE TRUE.** **A listener's REFUSAL is
+CONTAINED** — **its own commit refused, the caller's write answering its own record, the refused value never landing** —
+**because a refusal is a JUDGEMENT ABOUT DATA, and the data had its chance.** **A listener's THROW PROPAGATES TO THE
+CALLER** — **the caller's write throws the listener's error** — **because a throw is an ERROR IN THE CLIENT'S CODE, and
+code that swallows errors cannot be debugged.**
+
+**THE REASON IS THE WHOLE RULING: A CONTAINED THROW IS AN ERROR NOBODY CAN LOG.** **A listener is where a client's own
+handler runs** — **the screen update, the render, the external call** — **and when that code fails, the failure belongs to
+the client, at the point the client can see it.** **Containment would turn "your listener exploded" into "your write
+succeeded and nothing happened", which is the least debuggable outcome a library can produce.**
+
+**AND THE CONSEQUENCE, STATED SO IT IS NOT A SURPRISE**: **a listener that throws leaves the triggering write
+UNANSWERED** — **the caller sees the listener's error instead of its own record.** **That is the caller's signal to log
+and decide**, and it is the one place where a listener's failure is not silent.
+
+**SO `D-71` READS, COMPLETE: a listener is independent of the caller's commit, and its OUTCOME is its own — its refusal is
+contained; its THROW is the exception, and it is the client's to log.**
+
+**TERMS: the throw kept (`1`), the refusal's containment unchanged (`1`), the reason (`1` = a contained throw is an
+unloggable error), the unanswered write declared (`1`), `D-71` completed by one clause (`1`).**
+
+---
+
+### `D-74` — `DEF-AR`: THE MESSAGE IS BOUNDED AND THE LOG ENTRY IS NOT; the log entry must be a SUMMARY of the inner refusal
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the downstream's `DEF-AR` row.
+
+**THE HALF THEY WITHDRAW, AND IT IS THEIR OWN CORRECTION.** They filed *"at N = 28 the refused state stood"*; measured
+since, **a `ConstraintBodyThrew` on a single act leaves the pre-attempt value standing** — **the restore reaches.** **Their
+earlier reading mistook a lawfully admitted inner act for a leak** — **the same error class as `DEF-AU`, third time**,
+**and they say so.**
+
+**★ THE HALF THAT STANDS, AND IT IS REAL: `longestLogEntryChars` IS `268,446,684` AT `N = 28`** (**`268,446,682` at
+`N = 26`**). **The chain is lawful — it stops at the caller's own depth limit, no loop — but A QUARTER-GIGABYTE LOG ENTRY
+IS A LIVE OBJECT A CONSUMER CAN BE HANDED.** **`1.4.0` gave `RangeError: Invalid string length` inside the caller's own
+frame and NO REFUSAL AT ALL; `1.5.0` answers `ConstraintBodyThrew` with a 307-character message at depth 28** — **so the
+MESSAGE was bounded and the LOG ENTRY never was.** **The message's bound was never applied to the entry beside it.**
+
+**THE DEMAND, VERBATIM: *"bound the log entry as the message is bounded — compose it from a summary of the inner refusal
+rather than re-serialising it."*** **So: when the value a body threw is itself a refusal — with its own status, message
+and log — the `outcome` entry's form must be a SUMMARY** (**status, entry count, the first message's own bound**),
+**never the serialised refusal.** **The entry is a log LINE, and a log line that can be 268 MB is not a line.**
+
+**AND THIS IS THE `D-58`/`D-65` CLASS ONCE MORE**: **a datum restating another datum's content instead of naming it.**
+**The message already summarised; the entry re-serialised.** **Two treatments of the same thrown value, one bounded and
+one not, and only the consumer's measurement found the second.**
+
+**TERMS: the withdrawn half (`1`), the standing half (`1` = a 268 MB entry), the bound's asymmetry (`1` = message
+bounded, entry not), the demand (`1` = summarise, do not re-serialise), the class named (`1` = a datum restating another's
+content), the cells owed (`2` = a summary form at depth, and a bound asserted on every entry).**
+
+---
+
+### `D-75` — THE WITNESS IS ABSENT MORE OFTEN THAN PRESENT: `[]` cannot mean "nothing was discarded" until every discard is reported
+
+**DATE:** 2026-10-28. **BRANCH:** `main`. **SOURCE:** the downstream's `DEF-AH` re-filing.
+
+**THE MEASUREMENTS.** **At rest**: **one raise with a pair at the raised address → `discarded: [{opId, addresses}]`** ✓;
+**TWO RAISES with pairs at both → `[]`**; **two raises with a pair at only the first → `[]`**. **INSIDE A CONSTRAINT BODY**:
+**absent entirely** — **no `discarded` on the raise's own answer, NONE on the triggering write's, at one raise and at
+two.**
+
+**AND THE SENTENCE THE MEMBER CARRIES IS THE THING IT CANNOT SAY.** **`discarded.length === 0` is documented to mean THIS
+ACT'S DELIVERY DISCARDED NOTHING.** **A witness absent more often than present cannot carry that** — **a consumer reading
+`[]` cannot tell "nothing was discarded" from "I wasn't told."** **So the member states a fact it does not have the
+coverage to state.**
+
+**BOTH ARMS ARE ONE DEFECT, AND IT IS WHAT `D-49`'S SINGLE SLOT ALREADY IMPLIED.** **`D-49`'s own return admitted *"only
+the last pending request exists (one slot)"*, and the architect's ruling was *"make discard observable"*.** **Observable
+turned out to mean "reported once, sometimes".** **And `DEF-AP`'s earliest-capture merge collapsed two raises to one
+request — so the merge that fixed the JUDGEMENT removed the COUNT from the witness.**
+
+**THE DEMAND, VERBATIM: *"report every discarded raise at any count, on every path."*** **So:**
+
+- **EVERY raise, at any count** — `discarded` is a LIST, and its length is the number of raises the act's delivery
+  discarded;
+- **ON EVERY PATH** — **the act's own answer and the triggering write's**, **including a raise made inside a constraint
+  body**, where it is presently absent on both;
+- **and `[]` then means what the sentence says**: **nothing was discarded, and the member is present to say so.**
+
+**AND THE SENTENCE MUST BE TRUE OF EVERY ACT THAT CAN DISCARD.** **An act that cannot discard may omit the member; an act
+that can must carry it with its count, `0` included.**
+
+**TERMS: the two arms (`2` = count, and path), the defect (`1` = a witness absent more often than present), the
+sentence it cannot carry (`1`), the merge that removed the count (`1` = `DEF-AP`), the demand (`1` = every raise, every
+path), the cells owed (`5` = one raise · two raises both paired · two raises one paired · inside a body · the trigger's
+answer).**
+
+---
+
+### `D-76` — `D-71`'S SENTENCE WAS L0'S PARAPHRASE HARDENING A PERMISSION INTO A PROHIBITION; and two stale passages moved instead of leaving
+
+**DATE:** 2026-10-29. **BRANCH:** `main`. **SOURCE:** the Round 15 handoff's `DEF-AU` and `DEF-AT`.
+
+**1 · ★ `DEF-AU`: THE BEHAVIOUR IS CORRECT AND `D-71` IS FALSE AS L0 WROTE IT.** **The architect said**: *"The caller does
+not need to know about the outcome of the listeners."* **L0 wrote**: *"the caller learns NOTHING of its outcome."* **A
+PERMISSION BECAME A PROHIBITION** — **and `D-73` then ruled the throw stays *"so the client can log errors cleanly"*,
+which is the caller learning the outcome, in the very next ruling.** **So L0 wrote a sentence and its counter-example two
+rulings apart, in the same record.**
+
+**THE CORRECTION**: **a listener's REFUSAL is contained** — its own commit's, invisible upward. **A listener's THROW is the
+channel** — **the caller is the only party positioned to log the violation, because the listener's act is in the
+listener's own commit.** **"Does not need to know" is a permission; "learns nothing" was a claim, and a false one.**
+
+**2 · AND NOTHING TELLS THE CALLER ITS OWN ACT STOOD.** **The throw's `status` is `ConstraintPassRefused`, INDISTINGUISHABLE
+FROM A REFUSAL OF THE CALLER'S OWN ACT** — **so a consumer reading only the answer concludes its write did not happen,
+while the store says it did.** **That is `D-73`'s retry hazard in its sharpest form**, and the row asks the rule be stated
+plainly, **and the two be tellable apart.**
+
+**3 · `DEF-AT`: TWO SUPERSEDED PASSAGES MOVED RATHER THAN LEFT.** The guide still prints, at new line numbers:
+- **`README.guide.md:1044-1046`** — *"a pair at an ANCESTOR address is not asked by the delete's pass"* — **contradicted by
+  `:1055` in the same document, by `D-56`, and by measurement**;
+- **`README.guide.md:1979`** — *"the `delete`'s own pass is still a measurement and not a behaviour … IT NEVER CALLS THE
+  KERNEL"* — **falsified by `§7.8` of the same document and by measurement.**
+
+**THE CLASS IS THE ONE THIS BRANCH KEEPS FINDING**: **a correction applied at one site and not at the others** — **the same
+shape as the half-corrected README, the stale `sixteen`, and the `seq` that was struck as fabricated.** **And the row's own
+discipline is right: move the superseded bytes out with a one-line pointer, and leave the standing sentence alone.**
+
+**TERMS: the paraphrase's escalation (`1` = permission to prohibition), the throw's status ambiguity (`1`), the two
+passages (`2`), the class (`1` = corrected at one site, not the others), the migration note owed (`1`).**
+
+---
+
+### `D-77` — NEW MEMBER: the failure form gains a fourth, so a caller can tell its own refusal from a listener's throw
+
+**DATE:** 2026-10-29. **BRANCH:** `main`. **SOURCE:** the architect, answering `D-76`'s owed ruling.
+
+**THE RULING, VERBATIM: *"New member"***
+
+**THE MEASUREMENT IT ANSWERS.** **A caller's own act refused and a caller's act that PASSED while a listener threw cross
+with the same status, the same message, the same keys and the same two log entries** — **only the `opId` differs, and a
+refused act answers no `op` for the caller to key against.** **So the caller is told the wrong thing by omission**: **it
+reads `ConstraintPassRefused` and concludes its write did not happen, while the store says it did** — **and that is
+`D-73`'s retry hazard with nothing in the answer to stop it.**
+
+**SO THE ONE PLAIN FORM GAINS A FOURTH MEMBER, AND IT IS THE ONE THING THE CALLER NEEDS: WHICH ACT WAS REFUSED.** **The
+caller wrote an address; it knows that address; the answer carries the address the refusal is about; `equal` means your
+own act, `different` means a listener's, and a retry is then a decision rather than a guess.**
+
+**THE COST, NAMED AND ACCEPTED AS THE RULING'S OWN**: **the form is declared as EXACTLY THREE MEMBERS and asserted that way
+on every arm by cells on both sides of the boundary.** **It becomes FOUR** — **a breaking change to the failure form**, and
+**every "exactly three" census, every `Object.keys(caught)` assertion, and every prose that prints the three-member set
+moves with it.** **That is the price of an answer that can be told apart from its neighbour.**
+
+**AND WHAT IT MUST NOT BECOME**: **not a fifth status** (the closed set is `D-38`'s and twenty stands), **not a
+heuristic the caller has to reproduce**, and **not a member present only sometimes** — **a member absent on some arm is the
+`DEF-AH` defect wearing a new name.** **Present on every refusal, `null` where there is nothing to name, and asserted
+everywhere.**
+
+**TERMS: the member (`1`), the form three to four (`1`), the breaking change declared (`1`), every census to move (`1`),
+the absences forbidden (`1`), the retry hazard made decidable (`1`).**
+
+---
+
+### `D-78` — `DEF-X` IS RETRACTED BY ITS OWN FILER, WITH THE CONFOUND NAMED; and `DEF-AH` downgrades to ONE clause
+
+**DATE:** 2026-10-29. **BRANCH:** `main`. **SOURCE:** the downstream's own correction, which is the most precise thing in this
+whole sequence.
+
+**1 · `DEF-X` DOES NOT REPRODUCE, AND THE PACKAGE AGENT WAS RIGHT.** **Their probe registered the raising pair with an
+UNCONDITIONALLY ARMED body** — **so the raise fired during REGISTRATION'S EVALUATION, host 4, a declared unjudged
+window** — and **was applied there.** **When the delete's pass asked the pair again the second attempt answered
+`RollbackCompacted`, nothing remained to judge, and their counter honestly read `0`.** **The count was right; the
+reading was wrong.** **And their corrected reproduction prints the delete's pass and a write's pass LINE FOR LINE
+IDENTICAL** — **judged `YES`, the pair asked with a judgement instant, the raise undone, the refusal crossing.**
+
+**AND THEY MADE THE SAME ERROR TWICE**: **the "generalizes to a plain write host" claim came from a two-raises probe
+with the identical confound.** **Both filings fall.**
+
+**2 · AND THEIR PROCESS NOTES ARE THE MOST USEFUL SENTENCES ANY REVIEWER HAS SENT THIS BRANCH.**
+- ***"A broken probe is indistinguishable from a confirmation. I nearly read it as one."*** — **the first clean attempt
+  armed its flag from inside the only function that checks it, so the raise never fired and BOTH hosts reported `0`.**
+  **That is this branch's own lesson from the other side**: **a green battery validated by its own author.**
+- **A mis-anchored edit deleted 63 lines of `docs/defects.md`** — restored from HEAD. **Same failure mode as L0's
+  `--assume-unchanged` masking**: **an edit whose scope it does not see.**
+
+**3 · `DEF-AH` DOWNGRADES TO ONE DEMAND, AND THE DEMAND IS RIGHT.** **`.discarded` is ABSENT on every path they can
+build** — a raise at rest, a raise inside a constraint body, a listener raising 1, 2 and 3 times — **and no arm produced
+a false or clearing answer.** **So the AH.4/AH.5 contrast reflects DIFFERENT OUTCOMES (something discarded vs nothing
+discarded) and NOT count-dependent silence.**
+
+**THE SURVIVING DEMAND, VERBATIM: *"say when the member is present, and that `undefined` is not `[]`."*** **And that is
+the correct axis**: **an ABSENT member and an EMPTY list are different claims** — **`undefined` means "this act cannot
+discard", `[]` means "it can, and nothing was discarded"** — **and a consumer reading `undefined` cannot tell "not
+reported" from "nothing to report".**
+
+**AND `D-75`'S FIX ALREADY PUTS IT ON THE RIGHT AXIS**: **the member is present on `delete`, `write` and `rollback` —
+the three acts that can discard — and `[]` where nothing was.** **What is owed is the CLAUSE**, not the machinery.
+
+**TERMS: the retraction (`1`), the confound (`1` = the registration-time raise), the doubled error (`1`), the process
+notes (`2` = the broken probe, the mis-anchored edit), `DEF-AH`'s downgrade (`1`), the surviving clause (`1` = `undefined`
+is not `[]`), machinery already correct (`1`).**
+
+---
+
+### `D-79` — THE TAG SET IS THE RECORD, AND THE GUARD IS WIDENED: no version literal outside a dated section may differ from the manifest
+
+**DATE:** 2026-10-29. **BRANCH:** `main`. **SOURCE:** the downstream's `DEF-AC` re-filing, and the architect's instruction to fix it definitively.
+
+**THE CONTRADICTION, MEASURED IN ONE FILE.** `RELEASE-NOTES.md:19` says **THE VERSION THIS CHANGE LIST DESCRIBES IS `1.6.0`**;
+**`:265` says NOTHING IN THIS SECTION IS CUT, NO TAG NAMES IT … AND THE ELEVEN VERSION SITES STAY AT `1.2.0`**; **and `:269`
+explicitly preserves the cut claim** — *"what it says about the cut is not"* superseded. **So one document asserts both
+`1.6.0` and `1.2.0` as the version it describes, while `v1.6.0` is tagged and published.** **The sentence MOVED (`:212` →
+`:265`) because the file grew; it did not LEAVE** — **seventh instance of the class.**
+
+**THE FIX, IN FOUR PARTS.**
+1. **ARCHIVE IT OUT** — both the paragraph and its affirming clause, byte-exact, with hashes, **a one-line pointer where each
+   stood**.
+2. **THE TAG SET IS THE RECORD** — `git tag --list` is the cut-state's authority, **and no prose paragraph may assert or
+   deny it in the present tense.**
+3. **★ THE GUARD WIDENED, AND THIS IS THE DEFINITIVE HALF.** The preflight asserted **only the generated line** — `:264`'s
+   own claim that *"a hand-written line that contradicts the manifest can no longer travel"* **was false**, because the
+   `1.2.0` paragraph is not in the generated line's shape. **So: OUTSIDE A DATED SECTION (`## §x.y.z` to the next `##`), EVERY
+   VERSION LITERAL IN A SHIPPED DOCUMENT MUST EQUAL THE MANIFEST'S.** **A dated section may name its own version — that is
+   what a change list is — and nothing else may name a different one.**
+4. **AND THE GUARD MUST BE SHOWN TO BITE** — a `/tmp` revert re-introducing a `1.2.0` literal outside a section **must fail
+   the preflight**, or the guard is a green light wearing the word "check."
+
+**TERMS: the contradiction measured (`1`), the archive-out (`2` = the paragraph and its affirmation), the tag set as the
+authority (`1`), the guard widened (`1` = any literal outside a dated section), the guard proven (`1` = a revert that
+reddens), the class's seventh instance (`1`).**
+
+---
+
+### `D-80` — L0'S GUARD WAS UNSOUND: the finding lives inside the dated span the rule exempts, and ONLY TENSE separates a citation from a claim
+
+**DATE:** 2026-10-29. **BRANCH:** `main`. **SOURCE:** the pass that stopped rather than force `D-79`'s step 3 green.
+
+**THE MEASUREMENT, AND IT IS A NEGATIVE RESULT ABOUT L0'S OWN PLAN.**
+- **`RELEASE-NOTES.md:265–267` and `:269` SIT INSIDE THE `§1.3.0` DATED SPAN** (`:163` → `:273`) — **which step 3 exempted
+  wholesale. So "the definitive half" would be BLIND TO THE ONE SITE `D-79` NAMES.**
+- **And it would be RED ON 355 HISTORICAL LITERALS** — `README.guide.md` 259 (0 dated spans), `RELEASE-NOTES.md` 107
+  outside spans — **140 lines carrying a literal that differs from the manifest, every one of them a lawful historical
+  reading this tree's law protects byte-for-byte.**
+- **Tightening it — "in-span literals must equal the span's version" — FAILS HARDER**: **the change lists cite ancestors
+  throughout** (`§1.6.0`'s own span carries `1.5.0`), **and `:265`'s `1.2.0` IS a lawful ancestor of `1.3.0`.**
+
+**AND THE PASS NAMED THE REAL DISTINCTION IN ONE SENTENCE, WHICH IS THE WHOLE OF IT**: ***"No literal-shaped rule separates
+"ten commits past `v1.2.0`" from "the eleven version sites stay at `1.2.0`"; only the claim's TENSE distinguishes them —
+step 2's job, not a scanner's."***
+
+**SO L0 INVENTED A GUARD THAT A SCANNER CANNOT IMPLEMENT, AND THE PASS REFUSED TO FORCE IT GREEN.** **That is the
+correct behaviour and it is the same one `D-35`'s scope and `D-31`'s red limb asked for**: **do not make an instrument
+report what it did not measure.**
+
+**THE RULING THAT UNBLOCKS IT — (B), EXEMPT DATED READINGS BY ONE DECLARED MARKER.** **A literal is accepted when the line
+carries the tree's own annotate-beside marker (`⟶ … <date>`) or stands inside a dated reading; EVERY OTHER PRESENT-TENSE
+CLAIM MUST AGREE WITH THE MANIFEST.** **It is coherent with the convention the tree already runs, it leaves the historical
+readings byte-for-byte, and — the reason it is the one chosen — `:265`'s paragraph CARRIES NO MARKER, so under (B) IT
+REDDENS, and archiving it out is what makes it green.** **So the guard bites exactly where the eighth instance would live:
+a NEW unmarked prose claim.**
+
+**TERMS: L0's guard unsound (`1`), the span it was blind to (`1`), the 355 literals it would have reddened (`1`), the
+tightening that fails harder (`1`), the real distinction (`1` = tense, not shape), the ruling (`1` = B), why B
+(`1` = the unmarked claim reddens and the marked readings stand).**
+
+---
+
+### `D-81` — THE GUARD IS A CUT-CLAIM SCANNER, NOT A VERSION SCANNER: the marker is not a tense proxy
+
+**DATE:** 2026-10-29. **BRANCH:** `main`. **SOURCE:** the second pass that stopped, having measured rule (B) to be undecidable.
+
+**THREE DIRECTIONS MEASURED, AND ALL THREE FAIL.**
+- **Rule (B), the marker rule**: **`:265` IS among the reds** ✓ — **but after archiving A and B the reds are still `158`
+  occurrences on `108` lines in the change list and `32` on `24` in the guide — 70 unmarked paragraphs, every one a lawful
+  reading.** **AFTER is not green and cannot be without editing bytes the tree forbids.**
+- **Section-scoped coverage — the generous direction**: **`RELEASE-NOTES.md:165` declares the section's body *"stands
+  BYTE-FOR-BYTE as the reading of its own date"*** — **so `:265` is inside a marker's covered bytes and turns GREEN.** **And
+  `:269`, PASSAGE B ITSELF, carries a `⟶ … 2026-10-28` marker — so rule (B) ACCEPTS the clause that preserves the stale cut
+  claim.** ***"A guard that accepts B and refuses A is not the definitive half; the marker is not a tense proxy."***
+- **Figure-vocabulary direction**: **reds `46` lines in the change list and `8` in the guide — every one a marked-as-read past
+  claim.**
+
+**AND THE REAL FINDING, WHICH IS THE TREE'S OWN CONVENTION GIVING OUT.** **The `⟶ … <date>` marker means THIS CLAUSE
+SUPERSEDES WHAT STANDS BESIDE IT** — **and `:269` is such a clause whose CONTENT is *"what it says about the cut is NOT
+superseded."*** **So the marker marks AUTHORSHIP, not TENSE, and one marker can affirm a stale claim as easily as retire
+one.** **No literal-shaped and no marker-shaped rule can separate the two — `D-80` said it, and this pass measured it.**
+
+**SO THE GUARD CHANGES SUBJECT: A CUT-CLAIM SCANNER, NOT A VERSION SCANNER.** **The class is not "a version literal is
+wrong" — it is "a paragraph asserts a CUT-STATE in the present tense."** **The tree's vocabulary for that is small and
+closed: `IS CUT`, `IS NOT CUT`, `NOTHING … IS CUT`, `NO TAG NAMES IT`, `THE … SITES STAY AT`.** **So:**
+
+- **the three shipped documents may contain NO cut-claim phrase at all, outside a line whose pointer marks it archived** —
+  **and that is measurable, small, and exactly the class;**
+- **it is NOT section-scoped**, because a section-scoped rule greens `:265` through `:165`'s byte-for-byte clause;
+- **and after Passage A and B are archived out it is GREEN** — **because they are the only such phrases in the three
+  documents** — **which is the property the whole plan needed and three earlier designs could not deliver.**
+
+**TERMS: three directions measured (`3`), each failing with its measurement (`3`), the marker's real meaning (`1` = authorship,
+not tense), the subject changed (`1`), the vocabulary named (`5` phrases), not section-scoped (`1`), green only after the
+archive (`1`).**
+
+---
+
+### `D-82` — THE SCANNER IS RIGHT AND THE TREE IS NOT CLEAN: 56 sites, and the guard becomes a RATCHET
+
+**DATE:** 2026-10-29. **BRANCH:** `main`. **SOURCE:** the pass that stopped at step 4 having falsified `D-81`'s premise.
+
+**`D-81` SAID THE TWO PASSAGES WERE ***"the only such phrases in the three documents."*** **THEY ARE NOT.** **Measured: 31
+distinct sites / 56 refused lines still carry an operative cut phrase** — **25 in the change list (both homes), 6 in the
+guide**, with samples `RELEASE-NOTES.md:288 IS NOT CUT` and `README.guide.md:68 IS CUT · IS NOT CUT`. **So AFTER is not green,
+and the pass stopped instead of editing historical bytes to make it so.**
+
+**AND THE NUMBER IS THE MOST USEFUL THING THIS SEQUENCE HAS PRODUCED**: **the class `DEF-AC` filed five times is FIFTY-SIX
+SITES WIDE, and it was invisible because nobody had ever scanned for it.** **One row, filed five times, each time at the
+site that happened to be read — and the scanner found the other fifty-one in one run.**
+
+**AND THE PHRASE SET IS BLIND TO FOUR SPELLINGS STANDING TODAY** — each of them the same defect in a different coat:
+**`§1.6.0`'s `**PREPARED**` over the tagged `v1.6.0`** (**the fifth `DEF-AC` iteration, found while implementing its own
+fix**), **`§1.3.0`'s historical `UNRELEASED`**, **the past-tense `CUT AND PUBLISHED — tag vX` headings**, and **`DOES NOT
+EXIST` / `no consumer can install`.**
+
+**SO THE RULING: A RATCHET, NOT A CLEAN SWEEP.** **The 56 catalogued sites are the BASELINE** — **`docs/guides/backup/
+D81-2026-10-29-notes-move-out.md §3.2/§3.3` already enumerates them** — **and the scanner refuses any cut-claim phrase
+outside (a) an archived pointer and (b) a catalogued baseline site.** **So:**
+
+- **green is reachable today, without editing one historical byte**;
+- **and the EIGHTH instance — a NEW claim — cannot land**, because it is by definition not in the baseline;
+- **and the catalogue is the exemption set**, which is what `D-81` step 6 asked for and what `D-82` now makes load-bearing.
+
+**AND THE CLEANUP IS A NAMED BACKLOG RATHER THAN A HIDDEN ONE**: **the baseline may only ever SHRINK** — **a commit that
+removes a catalogued site must remove its entry**, **and a commit that adds one is refused** — **so the ratchet turns one
+way, which is the only direction a ratchet may turn.**
+
+**TERMS: the premise falsified (`1`), the measured scope (`56` sites), the blind spellings (`4`), the ratchet (`1`), the
+catalogue as its exemption set (`1`), one-way (`1`), the cleanup named as a backlog (`1`).**
+
+---
+
+### `D-84` — **SPECULATIVE — PARKED**: a top-level `inventory` container a tree node may point to in place of its own value/descendant map
+
+**DATE:** 2026-10-29. **BRANCH:** `main`. **SOURCE:** the architect, in session, adding a feature to the record and
+marking its status himself. **STATUS: `SPECULATIVE — PARKED. NOTHING BUILT, NOTHING PROMISED.`** — the status line is
+this tree's OWN existing convention for a speculative ask
+(`archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-graph-assembly-proposal-review.md:88`, its `STATUS` field),
+adopted here rather than re-spelled, so a reader meets one spelling of "parked" and not two.
+
+**THE NUMBER IS `D-84` AND NOT `D-83`, MEASURED 2026-10-29, AND THE REASON IS PRINTED BECAUSE A NUMBERED SEQUENCE WITH AN
+UNEXPLAINED HOLE INVITES A READER TO FILL IT.** **`D-83` IS ALREADY SPOKEN FOR BY THE TREE'S OWN SHIPPED RECORD**:
+`RELEASE-NOTES.md` and `bindings/js/RELEASE-NOTES.md` each cite it twice — *"**`D-83`** gave it the arm"* (`:87`) and
+*"the one new cut-claim `D-82`'s ratchet could not admit until **`D-83`** gave it the arm"* (`:82`) — while **NO ENTRY
+UNDER THAT NUMBER STANDS IN THIS FILE**, and no commit ever added one (`git log --all -S"D-83" -- strata/decisions.md`
+answers nothing; `abdcbd7`, the commit that gave the ratchet that arm, touched only the two notes files and
+`scripts/publish.sh`). **So `D-83` is a ruling the release record leans on and this file does not carry.** **THIS ENTRY
+NEITHER FILLS THAT GAP NOR GUESSES AT ITS CONTENT: what `D-83` rules must not be inferred from those citations, and the
+gap is the architect's to close or to leave.**
+
+**THE ARCHITECT'S WORDS, VERBATIM — the whole of the ask, unaltered, its spelling included:**
+
+> Add as a speculative future feature
+> A top-level 'inventory' container that a storeroom tree node can point to as its value/descendant map instead of
+> having its own.
+> Use cases:
+> - storing large single elements that aren't expected to change frequently (ex. images) but have parents that can be
+>   overwritten frequently
+> - storing objects or other data that must be frequently moved byte-identically between tree locations
+> - storing objects or other data that should be addressible in more than one place
+
+**WHAT THIS ENTRY IS.** The record that the feature is **NAMED, PARKED AND NOT AVAILABLE**. **It is not a ruling and it
+grants nothing**: it prices nothing, schedules nothing, opens no unit, admits no gate, mints no identifier, amends no
+contract and revises no module map. **An entry in this file normally settles something; this one settles the record and
+nothing else, and it says so at its head rather than at its foot so no reader has to reach the end to learn that.**
+
+**WHAT IT SETTLES.**
+
+1. **The feature is on the record by that name, with those three use cases as its own ground, and it is parked.** No
+   layer below me is owed it, no unit carries it, no tracker row is opened by it, and no pass may report it as pending
+   work.
+2. **NO LAYER MAY BUILD IT — AND THAT IS NOT THIS ENTRY'S JUDGEMENT BUT FOUR DECLARED CLAUSES READ TOGETHER.** They
+   are printed here, because the collision is the whole finding:
+
+   - **`docs/specs/storeroom-native/contract.md` `§1.1`, the `leaf` row**: a leaf's `anchor` is *"the one `AnchorRef`
+     that points to it"*, and the row's REFUSES column carries **"more than one anchor"**.
+   - **the same section's `branch` row**: a branch's members are `anchor` · `container` (*"exactly one `Link`"*, `MAP`
+     or `VEC`) · `address` (*"the path from the register by which it is reachable"*), and its REFUSES column carries
+     **"a readable value of its own"** and **"more than one container"**.
+   - **`§1.5` item 5**: *"**A single address reaches exactly one node.** Every minted node is reachable by exactly one
+     address path (`DD-6`), and no two distinct addresses resolve to one node."*
+   - **`§5.5`'s `P-IM-3`** — the property, its `S-STRUCT` **uniqueness pass** (*"no path resolves to a node another
+     path also resolves to"*) and its FAILS list (*"two distinct addresses resolving to one node"*), closing the
+     store's data structures at **five**.
+
+   **SO EVERY READING OF THE ASK COLLIDES WITH AT LEAST ONE OF THEM, AND THE THIRD USE CASE SAYS SO IN ITS OWN WORDS**:
+   a thing *"addressible in more than one place"* is, for a node, **"a node shared by two anchors"** — which is exactly
+   the alternative `DD-6`'s own row prices and refuses (*"priced: the read's per-key assembly (one value per key) would
+   have two sources and would stop being a function"*). **And the collision is not confined to containers: the `leaf`
+   row refuses a second anchor as flatly as the `branch` row refuses a second container**, so a large-element reading
+   of use cases one and two is not automatically the cheaper reading it looks like.
+3. **THE ONE ROUTE THAT COULD EVER OPEN IT IS NAMED, AND THIS ENTRY DOES NOT TAKE IT:** a fresh **ACTIVE** ruling in
+   this file superseding the reading above, followed by a **bounded amendment** of the native contract — `DD-6`'s
+   instrument column names that amendment as the instrument, and no other is declared. **Neither exists. Nothing here
+   is either.**
+4. **The clauses above STAND BYTE-FOR-BYTE.** `DD-6`, `P-IM-3`, `§1.1`, `§1.5` and `§1.7` are not softened,
+   superseded or annotated by this entry, and no clause anywhere may be read as having anticipated it.
+
+**WHAT IT DOES NOT SETTLE — AND NO LAYER MAY CHOOSE, PRINT OR PLAN FOR ANY OF THESE.**
+
+- **(i) WHICH MECHANISM THE WORDS MEAN.** *"a tree node can point to … as its value/descendant map instead of having
+  its own"* fits at least **three** mechanical readings and this entry picks none of them: **(1) a container SHARED
+  behind N parent anchors** — the node keeps its anchor, and its one `Link` is a structure other nodes' anchors also
+  reach; **(2) a REFERENCE in place of a container** — the node carries a pointer, mints no container of its own, and
+  the pointed-at structure is one; **(3) a SECOND TOP-LEVEL STRUCTURE with `inventory` as its own root**, a top-level
+  key whose value is a pointer into it. **The one structural observation that may be printed without choosing:
+  reading (1) is the one `DD-6` already prices and refuses BY NAME, and readings (2) and (3) meet `§1.7`'s
+  five-component closure and `P-IM-3`'s *"no address answers a sixth structure"* instead.** No reading is free, and
+  which price is paid is the architect's.
+- **(ii) ANY SPELLING.** No identifier, no member, no config key, no verb, no status and no record shape is minted
+  here. **`inventory` is the architect's word for the idea and is NOT a declared identifier.**
+- **(iii) THE TIER QUESTION.** The tier is *"carried BY ANCHORS"* (`contract.md` `§1.2`'s `ChildAnchor` row, `P: §14 ·
+  A27`; that row is read through `store-model.md §1.2`'s dated clause of 2026-10-21, which leaves the set `tier` ·
+  `node` · `register_marker`), the uniqueness key is the pair **`(key, tier)`**
+  (`P: §15 · A34`), the monotonic clause is `rank(child.tier) ≤ rank(parent.tier)`, and a write at a tier **purges the
+  versions it outranks** (brief §4 `UC-5`). **One set of child anchors under N parent anchors has N parents' worth of
+  rank reasoning over one structure, and nothing declares whose rank bounds whose, nor what a write through one
+  address purges at another.** Unsettled.
+- **(iv) JOURNAL AND ROLLBACK SCOPE.** `rollback`'s scope is *"every operation touching the same subtree"*, reported
+  newest first (brief §4 `UC-7`; `write-and-read.md §6.1`–`§6.4`). **With N addresses over one structure, "the same
+  subtree" is not answerable from one address**, and no clause here decides which op set a rollback naming an op
+  inside an inventory would reverse.
+- **(v) DELIVERY.** `triggered` membership is *"decided by address prefix and by nothing else"* (brief §4 `UC-8`), and
+  `D-56` / `D-66` / `D-67` gave the constraint pass and the store's trigger map one reach over a tree in which every
+  node has **one** path. **A write inside a structure reachable under two prefixes stands inside both; whose listeners
+  fire, once or twice, and with which argument, is undecided — and is NOT to be inferred from any existing clause,
+  because every one of them was written over the one-path model.**
+- **(vi) DELETION AND OWNERSHIP.** What a `delete` at one address does when another address still reaches the
+  structure; whether the structure goes when the last pointer does; whether a count exists at all. **No reference
+  count, no ownership rule and no garbage rule is declared, implied or owed by this entry.**
+- **(vii) WHAT THE USE CASES WOULD ACTUALLY SAVE, WHICH IS UNMEASURED.** All three rest on a cost the model pays
+  today: **the crossing is a deep copy in both directions** and *"if it cannot cross IPC it cannot be stored"*
+  (brief §5 item 2), so a large element costs a full copy in and a full copy out, and a "move" is a read plus a write
+  that re-admits the whole value through the walk's ceilings (`126` deep, `1,000,000` nodes). **The saving is the
+  feature's own premise and no measurement of it exists on this tree. This entry claims none, and no layer may report
+  one on its strength.**
+- **(viii) WHETHER THE FEATURE IS WORTH ITS PRICE AT ALL** — that question is the architect's and is not asked of any
+  layer below me.
+
+**THE THREE USE CASES, EACH NAMED FOR THE COST IT ASKS THE MODEL TO STOP PAYING — the ask's own words, and no design:**
+
+| # | the ask, in its own words | the cost it is aimed at |
+|---|---|---|
+| (a) | *"storing large single elements that aren't expected to change frequently (ex. images) but have parents that can be overwritten frequently"* | the **parent** is the volatile part and the **element** the stable one: a structured write at a key *"mints the branch tree beneath it in one call"* (brief §4 `UC-4`), so an element standing under a frequently re-written parent pays the parent's churn |
+| (b) | *"storing objects or other data that must be frequently moved byte-identically between tree locations"* | a move is read-then-write, so the bytes cross twice and the second write re-admits the value whole (item (vii) above) |
+| (c) | *"storing objects or other data that should be addressible in more than one place"* | **the strongest of the three and the only one that cannot be had under any reading without shared reachability** — the collision in item 2, and the use case that states the collision itself |
+
+**WHAT CHANGED BELOW ME: nothing but the record.** No module map, no contract, no battery, no manifest, no drive and no
+figure. **No role is delegated by this entry and none is owed it.**
+
+**TERMS: the status (`1` = speculative, parked), the status line's source convention (`1` = the tree's own), the
+readings of the ask (`3`, none chosen), the clauses that forbid it today (`4`), the instrument named and NOT taken
+(`1` = an ACTIVE ruling plus a bounded amendment, `DD-6`'s own), the unsettled questions (`8`), the phantom number
+carried and NOT filled (`1` = `D-83`), the measurements claimed (`0`), the units opened (`0`).**
+
+---
+
+### `D-85` — THE THREE CORPUS QUESTIONS ARE ANSWERED: a closure MAY be re-derived, an archived part is NOT citable and its cited section is REGENERATED, and the registration instant gets its own cell
+
+**DATE:** 2026-10-30. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering the three open-semantics rows of
+`docs/specs/storeroom-constraint-outcome-proposal-review.md` `§5` — **VERBATIM, IN ORDER:** *"1. Yes"* ·
+*"2. No, if it needs to be cited regenerate the cited section"* · *"3. Yes"*.
+
+**THE QUESTIONS AS ASKED, ONE SENTENCE EACH — the record's `§6` is their home and their wording is not re-derived here:**
+**1. `CLOSURE-SET`** — *"May a pass re-derive a closure predicate over a file set of which one file exists, or does that
+re-derivation need the ruling — and does the registration instant's read get its own instrument, or may a corpus cell
+record the two instants' two answers as divergent without naming a repair?"* · **2. `CIT-FORM`** — *"Is a part that
+survives only inside the gitignored archive citable at all, and if so in which single form, corpus-wide?"* ·
+**3. `DIVERGENCE-HOME`** — *"Does the registration instant's read get an `OWED` cell in this corpus, or does
+`docs/specs/storeroom-native/contract.md §7.3 (b)` already own that instant and its answer?"*
+
+**WHAT IT SETTLES.**
+
+1. **A PASS MAY RE-DERIVE A CLOSURE PREDICATE over a file set of which one file exists — no separate ruling gates the
+   re-derivation — AND a corpus cell MAY record the two instants' two answers as DIVERGENT without naming a repair**
+   (question 1, both halves answered `Yes`).
+2. **AN ARCHIVED PART IS NOT CITABLE. WHERE A CITATION MUST RESOLVE, THE CITED SECTION IS REGENERATED** — brought back
+   into the live tree and cited there (question 2, answered `No` plus its own remedy). **The identifier-only form this
+   tree has used since the archive move (`strata/brief.md:377-379`) is RETIRED AS A CITATION REMEDY: it stays the form
+   for the corpus's OWN record — `D-3`'s log and the archived tracker set — and it is not a way to cite a section.**
+3. **THE REGISTRATION INSTANT'S READ GETS ITS OWN `OWED` CELL** in `docs/specs/storeroom-constraints/contract.md`'s own
+   `OWED` enumeration, with its owner and its positive revisit condition (question 3, answered `Yes`); **it is NOT owned
+   by `docs/specs/storeroom-native/contract.md §7.3 (b)`.**
+
+**WHAT IT DOES NOT REOPEN, EACH NAMED SO THE ENTRY IS NOT READ WIDER THAN IT IS.** **`D-3`** — the corpus stays unowned:
+this entry ANSWERS QUESTIONS, it takes no ownership of the nine kept contracts and grants no role scope inside them ·
+**`D-35`/`D-36`** — the parameter-access class stays CLOSED, and the registration site remains a REGRESSION against that
+closure: an `OWED` cell RECORDS the divergence and does not cure it · **the `131,072` B per-path line** — what answer `2`
+asks for is a regenerated SECTION, never a whole restored part carrying `137,457` B · **`RCA-8(g)`** — append-only: the
+regeneration ADDS a live section and moves no existing clause · **`D-84`** — untouched, uncommitted, and this entry
+asserts nothing about `inventory`.
+
+**WHAT MOVES, AND WHERE IT IS DISCHARGED — RECORDED HERE, PERFORMED BY NO CLAUSE OF THIS ENTRY.** **`U-STOREROOM-CONSTRAINT-OUTCOME`
+is no longer blocked**: its surviving cell is permitted by item 3 and its closure re-derivation by item 1 ·
+**`U-STOREROOM-CORPUS-CITATION-INTEGRITY` now has its instrument** from item 2 — regenerate each cited section, then
+re-derive each closure predicate under item 1 — and it stays UNSTARTED by this entry · **the shipped clause
+`bindings/js/index.d.ts` will carry cites NO archived path and states its rule in its own words**, so its repair is NOT a
+re-point and waits on a regenerated section only where a citation is retained.
+
+**TERMS: the questions answered (`3`), the answers that are `Yes` (`2`), the answer that is `No` plus a remedy (`1`), the
+ruling rows minted (`1` = this one), the corpus clauses edited here (`0`), the sections regenerated here (`0`), the units
+unblocked (`1`), the units instrumented (`1`), the clauses reopened (`0`), the measurements claimed here (`0`).**
+
+---
+
+### `D-86` — `D-85` ITEMS 1 AND 3 ARE THE SCOPE GRANT: the one `OWED` cell of `U-STOREROOM-CONSTRAINT-OUTCOME` may be appended, and the reading is the architect's own
+
+**DATE:** 2026-10-30. **BRANCH:** `main`. **SOURCE:** the architect, in session, on being asked which of three routes granted scope for the cell —
+**VERBATIM:** *"1"*, being the route the supervisor printed as *"your answers already are the grant — read `D-85` items 1+3 as scope and let the cell go to gate 2"*.
+
+**WHAT IT SETTLES.** **`D-85` items 1 and 3 ARE READ AS THE GRANT OF SCOPE, not as a statement of content only.** A pass MAY
+append ONE cell to `docs/specs/storeroom-constraints/contract.md`'s own `OWED` enumeration, recording that the registration
+instant's read of the constraint outcome is DIVERGENT from the landing instant's, with an owner and a positive revisit
+condition, and MAY re-derive a closure predicate over a file set of which one file exists where that cell's landing needs it.
+
+**WHAT IT NARROWS, AND ONLY THIS.** `D-85`'s *"grants no role scope inside them"* clause is NARROWED to its original scope:
+**items 1 and 3 carry the grant for THIS one cell, in THIS one document, for THIS one subject; nothing else in the nine kept
+contracts is opened, and no second cell, no second document and no second subject follows from this entry.**
+
+**WHAT IT DOES NOT REOPEN, each standing exactly as `D-85` left it.** The divergence is RECORDED and NOT CURED — no repair is
+named by the cell · **`D-35`/`D-36` stay closed and the site stays a REGRESSION against them** · the registration instant is
+NOT assigned to `docs/specs/storeroom-native/contract.md §7.3 (b)` · **`CIT-FORM` (`D-85` item 2) is untouched: no archived
+part is citable and `U-STOREROOM-CORPUS-CITATION-INTEGRITY` stays UNSTARTED** · `RCA-8(g)` append-only · `D-84` untouched.
+
+**TERMS: the routes offered (`3`), the route taken (`1` = the reading of `D-85` items 1+3), the scope narrowed (`1` clause of
+`D-85`), the cells this entry authorises (`1`), the documents this entry opens beyond that cell (`0`), the subjects (`1`), the
+rulings minted (`1` = this one), the measurements claimed here (`0`).**
+
+---
+
+### `D-87` — **the five corpus-citation answers, all five taken at their recommended default**
+
+**DATE:** 2026-10-30. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering the five questions
+`docs/specs/storeroom-corpus-citation-integrity-proposal-review.md §7` put once, with the word **"Take recommended"** —
+i.e. he ruled the DEFAULT of each question, and this row records those defaults as the ruling so no later pass reads
+any of them as a pass's own assumption. **STATUS: `ACTIVE`.**
+
+**WHAT IT PINS.** **(1) NO SCOPE INSIDE THE NINE KEPT CONTRACTS.** No admission is granted for edits there — not in a
+`D-86`-shaped row and not in a unit's own contract — so `U-STOREROOM-CORPUS-CITATION-INTEGRITY` writes nothing, files
+its census and its dossier, and **stays `UNSTARTED`**; the census (`§2`, `968` dangling-target lines) and the dossier
+(`docs/specs/storeroom-corpus-citation-integrity-adoption-dossier.md`) are the whole of its durable output.
+**(2) THE SHIPPED FACE IS OUT.** The docs-only wall stands, `bindings/js/index.d.ts` is outside it, and neither of its
+two dead cites is this unit's — the shipped face's remedy is `D-85`'s own (state the rule in the reader's own words,
+cite no archived path) and reaching for it needs its own unit. **(3) A NON-`CLOSED` RE-DERIVATION HALTS THE PASS.**
+The first predicate that does not re-derive `CLOSED` stops the pass, is printed as a **dated divergence beside** the
+standing token, and is escalated — never absorbed into narration, never printed as a new `CLOSED`, never `0 = 0` in the
+document's own voice. **(4) THE `R: docs/decisions.md · A<n>` IDENTIFIER CLASS IS OUT**, read as inside `D-85:4447-4448`'s
+carve-out for the corpus's own record form; those lines are cited and left alone, so the authority log is never folded
+into a contract. **(5) THE `archive/spec-history/**` PROVENANCE POINTERS ARE OUT**: they stand as written, because their
+bytes were moved out under a volume remedy and re-adding them would cross the line that remedy defended; their repair is
+parked with a revisit condition.
+
+**WHAT IT DOES NOT REOPEN.** `D-85`'s three answers and `D-86`'s one-cell grant stand untouched; `D-83`'s absent row
+stays the log's to file; `docs/L1/modules.json` is a live path with a stale figure and belongs to the `docs/L1` twin's
+re-measure pass; `D-35`/`D-36` stay closed and the two registration-instant reads stay `REGRESSION`s. **No ruling here
+cures a defect, moves a byte, or opens a spec gate.**
+
+**TERMS: the questions answered (`5`), the defaults ruled (`5`), the scope admissions granted (`0`), the shipped bytes
+this row moves (`0`), the units left `UNSTARTED` by it (`1`).**
+
+---
+
+### `D-88` — **the repair failure path is a teaching unit; the refusal sentence's text is a recorded defect only**
+
+**DATE:** 2026-11-01. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering the three questions
+`docs/specs/storeroom-repair-failure-path-proposal-review.md §6` put on the downstream request `ST-F2` — the word
+**"Proceed"** taken as approval of the fraction and of each question's recorded default. **STATUS: `ACTIVE`.**
+
+**WHAT IT PINS.** **(1) THE FRACTION IS APPROVED AS MINTED** — `U-STOREROOM-REPAIR-FAILURE-PATH`, DOCS-ONLY: **one dated
+clause in `docs/guides/package-use.md §7.6`** (after `:1033`, before `:1035`) and **one sentence inside `§8.0a`'s
+existing `:1376`–`:1379` paragraph**, plus the unit's own contract directory. It states what no shipped sentence says:
+the crossed refusal, the sentence a refusing attempt carries, that the crossed log is the COMMIT's list and may hold
+entries saying a pair passed, **which entry is the verdict**, and what the store holds after a repair's answer is not
+credited. **No code byte, no type, no test, and no second example.** **(2) THE REFUSAL SENTENCE'S ADDRESS IS A RECORDED
+DEFECT AND NOT A UNIT.** *"the repair `<id>` produced no op at `<address>`"* names the **caller's** address, and on that
+arm the kernel holds neither the repair's op nor its address — so the row is filed in the live open-items ledger
+(`docs/L1/open-items-2026-10-25.md §6` row `5`) as **OPEN, recorded, not repaired**, and **no successor unit is
+queued**; a change to that text would be a behaviour byte needing its own ruling and its own version, and naming the
+repair's address at that instant would need a store reach `D-67` forbids. **(3) THE STORE-STATE FACT MAY BE STATED AS A
+CONSEQUENCE.** The unit may say, in its own words, that **an uncredited write's address is not restored and therefore
+stands**, as the declared consequence of the credit rule — **read THROUGH the guide's `§7.8:1091`** (a refusal undoes
+every edit the attempt made, the repair's write included) and `§5.4`, **neither of which is edited**; the clause carries
+a read-through mark, never a contradiction.
+
+**WHAT IT DOES NOT REOPEN.** The prior unit's clause in `§7.6` is not re-spelled — the new clause POINTS at it and at
+`index.d.ts`'s two result arms, and mints no second enumeration of the return, the crossed form, the `LogEntry` members,
+the `KC` tokens or the entry sequence. The sibling's `PIN-3` ban on naming the outside return forms stands and needs no
+amendment: the failure path is described by its refusal and its store state, never by spelling what a repair returned.
+`D-85`, `D-86` and `D-87` stand. **No ruling here moves a code byte, and none is a fix.**
+
+**TERMS: the questions answered (`3`), the unit approved (`1`), the successor units queued (`0`), the defect rows filed
+(`1`), the behaviour bytes this row moves (`0`), the shipped sites granted (`2`).**
+
+---
+
+### `D-89` — **`D-88` (3)'s example sentence is withdrawn by name; the address geometry stands in its place**
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, on the supervisor's report that the
+gate-4 correction delta of 2026-11-02 falsifies one sentence inside `D-88` (3) — the word being **"correct only the
+example"**. **STATUS: `ACTIVE`.**
+
+**WHAT IT PINS.** **THE SENTENCE *"an uncredited write's address is not restored and therefore stands"* IS WITHDRAWN BY
+NAME AND IS NO LONGER THIS UNIT'S READING.** It made **credit** the test of whether a repair's write survives a refusal;
+the operative axis is **THE ADDRESS'S MEMBERSHIP IN THE ATTEMPT'S OWN OPS** — a repair's write **at or under** an address
+one of `attempt.ops` named **is swept with the attempt, credited or not**, and a write at an address **no attempt op
+named STANDS** (`PIN-2` (v), re-derived 2026-11-02; `bindings/js/src/entry/kernel-terminal.mjs:255`-`:256`, `:288`-`:343`;
+`src/store.rs:2617`, `:2622`, `:2628`). **Credit is the mechanism and never the test**: the refused op never joins
+`attempt.ops` (`bindings/js/src/entry/kernel-attempt.mjs:885`-`:892`), which is *why* an uncredited write **can** stand —
+and it can equally be swept. **The withdrawn sentence is replaced by that geometry and by nothing else.**
+
+**AND NOTHING ELSE OF `D-88` (3) MOVES.** The permission stands — the unit **may** state the store-state fact in its own
+words as a **declared consequence**, read through the guide's `§7.8` step 3 and **both** `§5.4` lines, **neither of which
+is edited** — and the two lines are read **by line**: `§5.4:469` (the floor call restores the attempt's address, and an
+address a repair landed at beside it is **not** restored) and `§5.4:476`(2) (*"a repair's write goes with the write"*,
+**unscoped by credit**), with **the address as the discriminator between them**.
+
+**WHAT IT DOES NOT REOPEN.** `D-88` (1) and (2) stand whole — the docs-only fraction, and the refusal sentence's text and
+address a **recorded defect row and not a unit**, with **no successor queued**. The sibling's `PIN-3` ban on naming a
+repair's outside return forms stands and needs no amendment. **The read-through MARK `D-88` (3) also required is neither
+confirmed nor amended here: its retirement is the consolidation delta's own record** (`PIN-7` (v); `clause-7-6.md §1A`),
+and the landed clause cites both sections instead of carrying a mark. **No shipped byte moves by this row** — the landed
+clause already states the geometry and never printed the withdrawn sentence — and **no unit is opened, queued or
+versioned** by it.
+
+**TERMS: the sentences withdrawn (`1`), the rulings otherwise amended (`0`), the behaviour bytes this row moves (`0`), the
+units queued (`0`), the shipped sites granted (`0`).**
+
+---
+
+### `D-90` — **a pair is SKIPPED when its address cannot be walked to, and APPLIED when only its own key is absent; a global rule at every instant**
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, on the supervisor's report of the
+arming-instant defect (`docs/L1/open-items-2026-10-25.md §7` rows `6`, `7`, `9`, `11`) and of the gate-1 record's open
+question, *"whether an absent address should be armable at a boot at all"*. **STATUS: `ACTIVE`.**
+
+**THE ARCHITECT'S WORDS, VERBATIM — the whole of the ruling, unaltered:**
+
+> Constraints that would be applied to an address that can't be walked to yet should be skipped (ex. ['window', 'tabs'],
+> where 'window' does not yet exist)
+> A constraint that can be walked to but doesn't exist (ex. ['window'], where 'window' doesn't exist) should be applied.
+> This is a global rule, not a batch-only one
+
+**WHAT IT PINS.**
+
+1. **THE DISCRIMINATOR IS THE ADDRESS'S PARENT, NOT THE ADDRESS.** A pair's key is its address's **last segment** and its
+   parent is **the address minus that segment**; the empty parent **is the register**, which always resolves to a
+   container. **So a pair is APPLICABLE exactly when its parent resolves to a container, and SKIPPED exactly when it does
+   not.** The two examples are the two arms: `['window','tabs']` with no `window` has an unresolvable parent and is
+   **skipped**; `['window']` with no `window` has the register for a parent and is **applied**, with the absence of its
+   own key as the state it judges.
+2. **A SKIPPED PAIR IS SKIPPED AT EVERY INSTANT, AND ITS BEING SKIPPED IS NOT A REFUSAL.** It is not asked, not refused
+   for, not repaired for and not counted as a judgement; nothing in this row makes a skip cross as a status, open an
+   attempt, or answer the caller anything. **`SKIP` is not a fourth outcome arm:** the closed three-arm set for a body
+   (`true` · `{message, repair}` · `{message}`) is untouched, because a skipped pair's body never runs.
+3. **"YET" IS LOAD-BEARING: A SKIP IS NOT A REFUSAL OF THE PAIR.** A pair whose parent is absent is **carried anyway** —
+   registration does not fail for it — and it **becomes applicable at the instant its parent exists**, because the rule
+   is read afresh at every instant. **A design that reads `yet` as *"never applicable"* has read the row backwards.**
+4. **THE RULE IS GLOBAL AND THE BATCH-ONLY READING IS WITHDRAWN.** Every instant that would apply a pair reads it: **the
+   batch at construction**, **the list at a boot over an existing `filePath`**, **`addConstraint`**, **the toggles that
+   re-arm a held pair**, and **the pass over a write, a `delete` or a `rollback`** — the last of which is what makes a
+   pair at `['window','tabs']` skip after a `delete` of `['window']` and apply again when it stands.
+5. **IT SUPERSEDES THE BOOT'S LIST-WIDE REFUSAL.** Today a boot walks each pair's address and **refuses the whole list**
+   `ConstraintListInvalid` when one does not resolve (`src/store.rs:783`-`:786`; stated at
+   `docs/guides/package-use.md §7.2:889`-`:890`). **Under this rule an unresolvable parent SKIPS the pair and no list-wide
+   refusal stands for it**: *"its parent does not exist yet"* is no longer a defect in the list, and the shape arm is no
+   longer reached by a well-formed pair for that reason. **What remains of `ConstraintListInvalid` at those instants is the
+   malformed list and nothing else** — the contract's own division (`docs/specs/storeroom-native/contract.md §8.1` item 3)
+   is thereby made true rather than amended.
+6. **THE RULE CHANGES NO STORE SEMANTIC.** Nothing here touches the walk, the tiers, the journal, the pass's prefix rule
+   (`D-56`/`D-66`) or the address model: it decides **which pairs are put to the pass and when**, and it adds no verb, no
+   member, no status, no config key and no record shape.
+
+**WHAT IT DOES NOT SETTLE.** **(i) THE ARMING INSTANT'S FIX SHAPE** — `U-STOREROOM-CONSTRAINT-REGISTRATION-INSTANT`'s
+question between deferring the batch's evaluation and giving the registration instant a write route stands, and this row
+changes neither arm. **(ii) WHETHER THE TWO SUBJECTS ARE ONE UNIT** — the supervisor's split; the ruling settles the rule
+and not the decomposition. **(iii) THE MESSAGE** — with the list-wide refusal gone for this cause, the fixed phrase
+`"'<address>' is not a valid constraint entry in 'constraints', a constraint entry is an address and an id, and the
+address is a segment array"` no longer has this arm to answer on, and what it says on the arms that survive is a
+docs-and-code question this row does not open.
+
+**TERMS: the sentences ruled (`3`), the instants the rule reaches (`5` named: construction · boot · `addConstraint` ·
+re-arm · the pass), the rulings superseded (`1` = the boot's list-wide refusal), the readings derived and marked
+load-bearing (`1` = *"yet"*), the behaviour bytes this row moves (`0`), the units opened or queued (`0`).**
+
+---
+
+### `D-91` — **the registration instant gets a LAWFUL write route: the timing stands, and the five-member evaluation context must be re-derived to admit a write**
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering
+`docs/specs/storeroom-constraint-registration-instant-proposal-review.md §6`'s choice between the two lawful arms, in
+these words: ***"Give the registration instant a lawful write route."*** **STATUS: `ACTIVE`.**
+
+**WHAT IT PINS.**
+
+1. **THE ARM IS THE WRITE ROUTE, AND THE TIMING DOES NOT MOVE.** The batch's evaluation stays where it is — at
+   construction, and at a boot over an existing `filePath`. **The DEFERRAL arm is not taken**: a rank-`19` refusal keeps
+   surfacing from `storeCreate` and from the boot, and no clause of this row moves it to the caller's first call.
+2. **WHAT THE ROUTE MUST BE GOOD FOR, STATED AS REQUIREMENTS AND NOT AS A SHAPE.** A body or a repair invoked at a
+   registration instant **must be able to write**, and that write **must join the registration's own commit** (`D-53`'s
+   invariant, *"Constraints/Repairs should always use the same commit"*), **must land**, and **must be creditable by the
+   same rule every repair's return is** — the op the write landed, returned as the repair's answer, so the re-run over that
+   op is the pass (`D-88` (3), `PIN-2` (v)). **A route that writes outside the registration's commit, or whose op cannot
+   be credited, does not satisfy this row.**
+3. **IT CONTRADICTS A DECLARED SHAPE AND SAYS SO RATHER THAN ABSORBING IT.** The registration instant's evaluation context
+   is declared as **five members** — `address` · `tier` · `op` · `value` · `attempt` (`kernel-surface.md §2.3` item 1;
+   operative bytes at `bindings/js/src/entry/kernel-registration.mjs:345`-`:356`) — and **a write route reachable from that
+   context is a member it does not carry.** **So the contract at gate 2 must re-derive that clause as part of this
+   mechanism, and may not present the route as a member the clause already admitted.** **This row mints no member, no name
+   and no spelling; the contract decides which context carries the route** — the body's five-member evaluation context,
+   the repair's six-member `RepairContext`, or a third carrier it declares.
+4. **THE ROUTE IS READ AT EVERY REGISTRATION INSTANT, NOT AT CONSTRUCTION ALONE** — construction, a boot over an existing
+   `filePath`, `addConstraint`, and a re-arm — because `D-90`'s skip rule and this row's reach are both global. **A pair
+   `D-90` skips is never asked, so the route is not reached for it; a pair `D-90` applies is asked, and therefore has the
+   route.**
+5. **NOTHING ELSE MOVES.** No store semantic, no verb, no status, no config key and no record shape is changed by this row;
+   the closed three-arm outcome set for a body stands; `D-53`, `D-71`, `D-72` and `D-67` are read and not amended.
+
+**WHAT IT DOES NOT SETTLE.** **(i) THE CARRIER AND THE SPELLING** — which context carries the route and what it is called,
+which is the contract's to declare (`PIN`-shaped) and not this row's. **(ii) WHETHER A BODY, AS WELL AS A REPAIR, MAY
+WRITE AT THAT INSTANT** — the row requires the route to exist at the instant and does not rule on which of the two may use
+it. **(iii) THE `value` MEMBER'S MEANING AT A REGISTRATION** — a route that writes changes what `value` could hold after
+the write; whether the context's `value` is re-read, left as the pre-write absence, or declared to be the value at the
+instant the body was asked is a contract question and is not answered here. **(iv) THE INTERACTION WITH `D-90`'s SKIP FOR
+A PAIR WHOSE PARENT IS CREATED BY ITS OWN REPAIR** — a pair skipped because its parent is absent is not asked, so nothing
+runs to create the parent; that consequence is `D-90`'s and is recorded there, not repaired here.
+
+**TERMS: the arm chosen (`1` = the write route), the arms not taken (`1` = the deferral), the clauses to be re-derived by
+the contract (`1` = the five-member evaluation context), the carriers priced and unchosen (`2` + a third the contract may
+declare), the members minted (`0`), the behaviour bytes this row moves (`0`), the units opened (`0`).**
+
+---
+
+### `D-92` — **a constraint body does NOT write: the route is the repair's alone, and a body's direct write is UNSUPPORTED**
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering
+`docs/specs/storeroom-constraint-registration-instant/contract.md §8`'s `Q1` — *"may a body, as well as a repair, write at
+a registration instant?"* — in these words: ***"Q1 - a constraint should not be making writes directly, that is
+unsupported. Any changes should be handled by a repair."*** **STATUS: `ACTIVE`.**
+
+**WHAT IT PINS.**
+
+1. **`Q1` IS ANSWERED `NO`, AND THE ANSWER IS THE CONTRACT'S RULING RATHER THAN ITS DEFAULT.** The registration instant's
+   write route (`D-91`) is carried by **the repair's own record** and by nothing else; **the constraint body's five-member
+   evaluation context gains no member, at any instant**, and **no clause of any unit may extend the route to a body**.
+2. **AND THE RULING IS WIDER THAN THE ROUTE: A BODY'S DIRECT WRITE IS UNSUPPORTED, AT EVERY INSTANT AND NOT AT A
+   REGISTRATION ALONE.** *"Any changes should be handled by a repair"* is the mechanism's stated division of labour: **a
+   constraint body's job is to be ASKED and to ANSWER**, and **a change is a repair's**. No clause of any unit may be read
+   as declaring a body's direct write supported, guaranteed, or part of the surface.
+3. **"UNSUPPORTED" IS A DECLARATION AND NOT (YET) A REFUSAL — AND THIS ROW DOES NOT TURN IT INTO ONE.** **MEASURED
+   2026-11-02 on this checkout, through the published entry:** a body that calls `store.write(['beside'], 'mem',
+   'from-body')` while judging a write at `['a']` **LANDS**, with `opId` `op-3` and `seq` `3`, and `read(['beside'])`
+   afterwards answers `"from-body"` — so the act **works today and is driven by committed cells**
+   (`tests/e2e/blind-defect-cases.test.mjs`, `external-commit.test.mjs`, `file-tier-save.test.mjs`,
+   `tests/integration/js-constraints/constraint-kernel-states.test.mjs` all drive a constraint body that writes). **This row
+   mints no status, refuses nothing, opens no attempt and moves no byte: what it withdraws is the CLAIM, not the
+   capability.** **WHETHER THE ACT IS LATER REFUSED IS A SEPARATE QUESTION, put to the architect and not answered here.**
+4. **THE DIVERGENCE IT CREATES IS NAMED AND FILED, NOT ABSORBED.** `docs/guides/package-use.md:1371`-`:1372` prints, as
+   supported behaviour, *"**A nested write a CONSTRAINT body makes is part of the same commit**, so **its entries are in
+   YOUR list** — which is why a constraint body that performs a refused write now shows you that refusal's own…"* — **from
+   this date that sentence describes an UNSUPPORTED act.** It is filed as the live ledger's `§7` row `14`, with its owner
+   and its revisit condition, and **no pass may read it as support.**
+
+**WHAT IT DOES NOT SETTLE.** **(i) WHETHER THE ENGINE REFUSES A BODY'S WRITE** — the row withdraws support and rules no
+behaviour; a refusal would need its own row, its own status question and its own version. **(ii) WHICH UNIT CORRECTS
+`docs/guides/package-use.md:1371`-`:1372`** — the site is inside `§8.0a`, which
+`U-STOREROOM-CONSTRAINT-REGISTRATION-INSTANT` already touches for ledger row `11`, but its `PIN-1` (ii) declares exactly
+two guide locations and this would be a third; put to the architect as that contract's `Q4`. **(iii) THE CELLS THAT DRIVE
+A BODY'S WRITE** — they are measuring a capability, not declaring support, and this row does not retract them; a unit that
+refuses the act would have to retire them in the same pass. **(iv) `D-53`'s READING** — *"constraints/repairs should always
+use the same commit"* — is about **which commit a write joins** and is not amended; this row says a body should not be
+writing at all.
+
+**TERMS: the questions answered (`1` = `Q1`, NO), the declarations made (`1` = a body's write is unsupported), the
+refusals minted (`0`), the statuses minted (`0`), the behaviour bytes this row moves (`0`), the divergences filed (`1` =
+guide `:1371`-`:1372`, ledger row `14`), the cells retracted (`0`), the questions opened (`2` = refusal, ownership).**
+
+---
+
+### `D-93` — **the two questions `D-92` left open are answered: a body's write stays working, and the guide's sentence is another unit's**
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, taking one option from each of the two
+questions the supervisor put on `D-92`'s and the contract's foot — **the options he took, quoted as they were presented:**
+***"Leave the capability, declare it unsupported only"*** **for the refusal question, and** ***"A separate docs unit
+corrects §8.0a:1371"*** **for the ownership question.** **STATUS: `ACTIVE`.**
+
+**WHAT IT PINS.**
+
+1. **`D-92` (i) IS ANSWERED, AND THE ANSWER IS `NO REFUSAL`.** **A constraint body's direct write stays CAPABLE and
+   WORKING**; `D-92`'s declaration stands as **the withdrawal of support and nothing else**. **No status is minted, no
+   behaviour byte moves, and the four committed batteries that drive the act stand** (`tests/e2e/blind-defect-cases`,
+   `external-commit`, `file-tier-save`, `tests/integration/js-constraints/constraint-kernel-states`). **A later row that
+   would refuse the act must name the status question and retire those cells in the same pass; nothing here does either.**
+2. **`D-92` (ii) IS ANSWERED, AND THE ANSWER IS `NOT THIS UNIT`.** **`docs/guides/package-use.md:1371`-`:1372` is corrected
+   by a SEPARATE DOCS UNIT**, so **`U-STOREROOM-CONSTRAINT-REGISTRATION-INSTANT`'s write set stays `PIN-1` (ii)'s TWO guide
+   positions** and its contract's `Q4` takes its recorded default `(ii)`. **The docs unit is NOT QUEUED BY THIS ROW** — no
+   unit id is minted and no tracker row is opened by it (`D-88` (2)'s convention) — **and the sentence stays filed at
+   `docs/L1/open-items-2026-10-25.md §7` row `14` with its owner named and its revisit condition unchanged.**
+3. **THE GUIDE IS NOT THEREFORE SILENT ABOUT IT IN THE MEANTIME, AND THAT IS SAID PLAINLY RATHER THAN LEFT:** from
+   `D-92`'s date the sentence at `:1371`-`:1372` **describes an unsupported act**, and **a reader who meets it before the
+   docs unit runs meets the reading `D-92` withdraws** — the exposure is filed, not hidden, and **no clause of any unit may
+   present a body's write as supported while it stands.**
+4. **`Q2` AND `Q3` OF THE CONTRACT ARE UNMOVED.** This row answers the refusal question and the ownership question **and
+   nothing else**: the contract's `Q2` (`value` at a registration, default *the value when the record was built*) and `Q3`
+   (the re-run instant, default *the rule reaches it*) **stand on their recorded defaults**, and neither is re-opened here.
+
+**TERMS: the questions answered (`2`), the refusals minted (`0`), the behaviour bytes this row moves (`0`), the cells
+retracted (`0`), the guide positions granted (`2` = the unit's own, no third), the docs units queued (`0`), the contract
+questions left on their defaults (`2` = `Q2`, `Q3`).**
+
+---
+
+### `D-94` — **the re-run after a repair is UNCONDITIONAL, and the pair-application rule is read inside it**
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering
+`docs/specs/storeroom-constraint-registration-instant/contract.md §8`'s `Q3` — *"is the registration's own re-run an
+instant the rule reaches?"* — in these words: ***"Always rerun after a repair."*** **STATUS: `ACTIVE`.**
+
+**WHAT IT PINS.**
+
+1. **THE RE-RUN ALWAYS HAPPENS AFTER A REPAIR — IT IS NEVER OMITTED, DEFERRED, CONDITIONAL OR SHORT-CIRCUITED.** Where a
+   registration-instant repair is **credited**, the kernel re-runs the evaluated set over the repair's landed op on every
+   arm, **including the arm where the rule has emptied that set**: `registrationRerun` is called and its result consulted;
+   **`0` pairs asked is not the same as no re-run**, and no implementation may skip the call because its set is empty.
+2. **AND THE RULE IS READ INSIDE IT, WHICH IS `Q3`'S `(i) YES`.** The re-run is an instant that would apply a pair, and
+   `D-90` is global (`D-90` (4)), so **a pair whose PARENT is not a container is SKIPPED at the re-run** exactly as at the
+   other instants — **it is not asked, crosses nothing, and cannot refuse the registration.** **The one reachable arm is a
+   repair that makes its own pair's parent cease to be a container** (it writes a leaf over it, or deletes it): the pair is
+   skipped at the re-run, **the registration STANDS on the repair's landing**, and the pair is CARRIED (`D-90` (3)) for the
+   first later instant its parent stands.
+3. **THE TWO RULINGS DO NOT COLLIDE, AND THIS IS WHY THEY ARE ONE ROW:** *"always rerun"* decides **whether the re-run
+   happens** (always); `D-90` decides **which pairs are asked within it** (those whose parent is a container). **A caller
+   sees the difference only on the arm above:** the registration succeeds rather than refusing at rank `19`, and **the arm
+   where the pair itself refuses again is untouched** — that is still `KC-5` where the refusing pair is the repaired one
+   and `KC-6` otherwise, and still rank `19`. **⟶ AND THIS SENTENCE STOPS BEING THE WHOLE OF THE CALLER'S VIEW `2026-11-06`
+   — `D-125` ITEM 1, WHICH IS LATER THAN THIS ROW AND SUPERSEDES ITS *"ONLY"*. A registration that stands now also DELIVERS
+   the listeners its repairs' writes fired, at all four registration instants (`storeCreate`, a boot over an existing
+   `filePath`, `addConstraint`, a re-arm), after the constraints pass and after the save and before the answer — so the
+   caller's view of a registration gains a THIRD observable beside the success and the rank-`19` refusal. **What is NOT
+   moved: the arm this item is about — *"the arm where the pair itself refuses again is untouched"*, `KC-5`/`KC-6`, rank
+   `19` — stands byte-for-byte; and where a cycle is the reason for the refusal, `D-125` item 4's rank `20` answers instead
+   and this item does not speak to it.**
+4. **THE CONSEQUENCE THIS RULING LICENSES IS RECORDED RATHER THAN LEFT TO BE DISCOVERED:** **a repair that flattens its own
+   pair's parent to a leaf permanently disables that pair** — it is skipped at every instant thereafter until something
+   makes the parent a container again — **and the registration that was meant to enforce the pair completes with the pair
+   inert.** **This is `D-90`'s skip applied at the last instant that could have caught it, and it is the reading the
+   architect has taken; a consumer who meets it should be answered with this row and not with a repair to the rule.**
+   **REVISIT CONDITION: the first consumer drive that reports a registration completing over an inert pair, or any pass
+   that would give the re-run its own refusal arm.**
+
+**WHAT IT DOES NOT SETTLE.** **(i) NOTHING ABOUT THE LANDING PASS'S RESTART.** `RESTART_LIMIT` and the write's own
+restart loop (`KC-5`/`KC-6` at a landing) are read and not amended: **this row's subject is the REGISTRATION's re-run**,
+which is one evaluation per pair and not a restart budget. **(ii) NOTHING ABOUT `Q2`.** The re-run's context `value` is
+`produced.after.value` by the existing code and is not moved by this row. **(iii) NOTHING ABOUT THE RE-RUN'S SET** —
+`pairsAtAddress` and `D-56`'s prefix rule stand; the rule filters which of those pairs is asked and does not change the
+selection.
+
+**TERMS: the questions answered (`1` = `Q3`, `(i) YES`), the instants ruled (`1` = the registration's re-run), the
+properties pinned (`2` = unconditional · the rule read inside it), the refusals withdrawn (`1` = the arm where a skipped
+pair would have refused), the behaviour bytes this row moves (`0`), the hazards recorded (`1` = an inert pair), the units
+opened (`0`).**
+
+---
+
+### `D-95` — **`Q2` is answered at its DEFAULT: a registration record's `value` is the value at the instant the record was built, and a write does not refresh it**
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, on
+`docs/specs/storeroom-constraint-registration-instant/contract.md §8`'s `Q2` — *"what does `value` mean at a registration
+once a write is possible there?"* — in these words: ***"Take default on Q2 and proceed."*** **The default was printed at
+`§8` and this row records it as the ruling rather than as a pass's assumption** (the same form `D-87` took when the
+architect answered five questions with *"take recommended"*). **STATUS: `ACTIVE`.**
+
+**WHAT IT PINS.**
+
+1. **THE READING IS TAKEN: the record's `value` is the value read at the instant the record was BUILT — read once, before
+   the invocation, and NOT re-read after any write the registration's route lands.** The operative bytes stand as they
+   are (`kernel-registration.mjs:306`, `:352`, `:393`, whose read is `readCurrent` at `:360`-`:366`): **no code byte moves
+   for this row**, and the route's write does not move a member of a record already handed out.
+2. **THE TWO READINGS NOT TAKEN, NAMED SO THEY ARE NOT RE-PROPOSED SILENTLY.** **(a) A RE-READ AFTER THE WRITE** — refused
+   because it would make a record's member a moving value, would make two reads of one record disagree, and would put a
+   live view behind a member the corpus declares as a datum. **(b) THE NARROWER *"the pre-write absence, declared as
+   such"*** — **not refused but NOT THIS ROW'S**: it is reading (1) plus one sentence, and the guide's `§7.2` correction may
+   carry that sentence later without moving a code byte.
+3. **WHAT IT KEEPS INTACT.** `D-50`'s declared answer — *"a constraint that needs another location READS IT"* — is
+   untouched and is now the whole of how a body or a repair learns a state its own record does not carry: **the record is a
+   datum, not a window.**
+4. **AND THE CONSEQUENCE, STATED WHERE THE UNIT WILL MEET IT:** on the arm where a repair lands and the re-run then judges
+   the pair (`D-94`), **the re-run's context is where the pair meets the repair's state** — its `value` is
+   `produced.after.value` (`kernel-registration.mjs:597`-`:603`) — **and the in-flight record's `value` stays the value the
+   pair was asked against.** A reader who expects the in-flight record to show the repair's result has read the record as a
+   window.
+
+**WHAT IT DOES NOT SETTLE.** It settles `§8`'s `Q2` **and nothing else**; `Q1`, `Q3` and `Q4` stand as `D-92`, `D-94` and
+`D-93` recorded them, and no other contract question is opened or re-opened by this row.
+
+**TERMS: the questions answered (`1` = `Q2`, at its default), the readings not taken (`1` refused, `1` not this row's),
+the behaviour bytes this row moves (`0`), the guide sentences owed (`0`, one permitted later), the units opened (`0`).**
+
+---
+
+### `D-96` — **the skip is ABSENCE and not "not a container": a LEAF parent APPLIES its pair, because the pair's presence implies the node must be a container**
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, rejecting two of the supervisor's six
+enumerated behaviour changes and giving the ground for both — on the leaf-parent arm, verbatim: ***"Reject this, the
+constraint being there implicitly expects 'x' to be a container"***, and on the registration re-run's arm, ***"See
+above"***. **The other four changes were confirmed as correct.** **STATUS: `ACTIVE`.**
+
+**WHAT IT PINS.**
+
+1. **THE THRESHOLD IS ABSENCE, AND ONLY ABSENCE.** A pair is **SKIPPED exactly when its PARENT DOES NOT RESOLVE** — the
+   walk fails with `AddressNotFound` — and **a parent that RESOLVES applies the pair, whether it resolves as a CONTAINER or
+   as a LEAF.** `D-90` (1)'s phrase *"the parent resolves to a container"* is **read THROUGH this row**: the container is
+   what the pair's own presence expects, not a condition of the skip.
+2. **AND THE REASON IS THE ARCHITECT'S, CARRIED VERBATIM: *"the constraint being there implicitly expects `'x'` to be a
+   container"*.** A pair registered at `['x','deep']` **declares** that `['x']` is a container; **a leaf standing at
+   `['x']` is therefore the state the pair is there to judge, not a state to look away from.** Its address cannot be read,
+   so the registration instant hands the body `context.value === undefined` (`readCurrent` swallows the read's refusal) and
+   **the body may refuse** — and a repair may replace the leaf with a container, which is the arm a repair exists for.
+3. **SO THE PREDICATE'S THIRD ARM INVERTS, AND ONLY IT.** `readLiteral(parent)` with the tier argument omitted answers three
+   things and now reads: **`ReadTargetIsBranch` ⇒ the parent is a container ⇒ APPLICABLE · `AddressNotFound` ⇒ the parent
+   does not resolve ⇒ SKIPPED · ANY VALUE ANSWERED ⇒ the parent is a LEAF ⇒ APPLICABLE** (not skipped). **The skip keeps its
+   two properties whole — it is not a refusal, and the pair stays CARRIED (`D-90` (2)–(3)).**
+4. **THE REGISTRATION'S RE-RUN IS READ THE SAME WAY, WHICH IS WHAT *"See above"* SECURES.** A repair that writes a leaf
+   over its own pair's parent **does NOT skip its pair at the re-run**: the re-run asks it, the body meets
+   `undefined`-as-its-own-address's-state, and **a body that refuses refuses the registration** — rank `19`
+   `ConstraintRefusedAtRegistration`, `KC-5` where the refusing pair is the repaired one. **`D-94`'s unconditional re-run
+   is unmoved.**
+5. **AND `D-94` (4)'S HAZARD NARROWS TO WHAT REMAINS TRUE.** The *"inert pair"* consequence **no longer arises from a
+   flattened parent**; it arises only where a repair **DELETES** the parent (or otherwise leaves it unresolvable), because
+   that is the only arm that skips — a pair whose parent was deleted is carried and skipped until the parent stands again,
+   and the registration that was meant to enforce it completes with it inert. **`D-94` (4) is read THROUGH this row and
+   survives at exactly that arm.**
+6. **WHAT IT WITHDRAWS, NAMED SO NO PASS CHASES THEM.** The supervisor's recorded reading of `D-90` (1) that made "not a
+   container" a skip; **`PIN-2` (iii)'s third arm** in the unit's contract; **cell `G3-08`'s leaf arm** and **cell
+   `G3-13`'s skip arm**, which must now assert the APPLY and the refusal respectively; and **`P-HL-8` mode 2's red**, which
+   this row makes green again by its own ground (its fixture writes a leaf at the pair's parent, and the pair is now asked
+   and refuses).
+
+**WHAT IT DOES NOT SETTLE.** **Nothing about the absent-parent skip** — that arm stands exactly as `D-90` (1)–(3) and
+`D-90` (5) record it, and it is the only arm a skip survives on. **It mints no status**, moves no member, and opens no
+unit: the cells' re-derivation and the predicate's one-arm inversion are the implementer's and the test writer's, at gate 3.
+
+**TERMS: the arms ruled (`3` = branch · absent · leaf, the third inverted), the behaviour changes confirmed (`4`), the
+behaviour changes rejected (`2`), the readings withdrawn (`1` = the leaf-as-skip reading of `D-90` (1)), the artifacts to be
+re-derived (`2` cells) and to be restored to green (`1` = `P-HL-8` mode 2), the statuses minted (`0`), the behaviour bytes
+this row moves (`0`).**
+
+---
+
+### `D-97` — **the write set is widened by ONE guard: the reversal's own judgement reads the pair-application rule**
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering the supervisor's question on
+`G3-11` — the rollback instant lies in `bindings/js/src/entry/constraints.mjs`, which `PIN-1` (i) forbade — by taking the
+option presented as ***"Widen the write set by one guard in constraints.mjs"***. **STATUS: `ACTIVE`.**
+
+**WHAT IT PINS.**
+
+1. **THE BYTE IS GRANTED, AND IT IS ONE GUARD.** `bindings/js/src/entry/constraints.mjs`'s reversal judgement — the loop in
+   `judgeReversal` that asks the pairs a reversal moves, at its own head, before `ASKING.set` / `reversalOutcome` — **is in
+   the unit's write set at that position and at no other.** **Every other byte of that file stays forbidden**: not
+   `carryConstraint`, not `restoreHeldPair`, not `reversalRefusal`, not the `constraint-check` entry a refusal appends, not
+   the import list's other names.
+2. **AND THE REASON IS STRUCTURAL, NOT CONVENIENT: a `rollback` appends no journal entry, so no pass reaches it.** The
+   fifth instant `D-90` (4) names is judged **there or nowhere**; `kernel-attempt.mjs`'s pass loop is never entered for a
+   reversal. **`PIN-1` (i)'s position list and `PIN-4` (iv)'s fifth-instant citation were therefore WRONG, not merely
+   narrow, and are corrected to name this site** — the reviewer's finding is accepted in terms.
+3. **THE GUARD IS THE SAME PREDICATE, READ, AND NOT A SECOND RULE.** It calls the one function the pass calls
+   (`pairAppliesAt`) — no copy, no status, no attempt, no entry, and the skip it produces is inert exactly as `D-90` (2)
+   requires.
+4. **NO OTHER WIDENING IS GRANTED BY THIS ROW.** The re-derived cells' files and the register are a different question
+   (the pins must name them or the landing must not touch them) and are not covered here.
+
+**WHAT IT DOES NOT SETTLE.** The cells' placement in the write set, and the register rows a ruling supersedes, are the
+contract's to name; this row grants one code byte and nothing else.
+
+**TERMS: the questions answered (`1`), the positions granted (`1` = the reversal's judgement), the bytes granted (`1`
+guard + its call), the other bytes of that file (`0`), the rules minted (`0`), the behaviour bytes this row moves (`0` —
+the landing already moved it).**
+
+---
+
+### `D-98` — a constraint and a listener MAY share one address; the cross-kind restriction is the HANDLE — and the ADDRESS dimension the `1.6.2` build enforces is a DEFECT
+
+**DATE:** 2026-11-01. **BRANCH:** `main`. **SOURCE:** the architect, in session, on the downstream report of the app
+`Provident-Electron`'s `src/main/tabs-record/index.ts` (the failing record at `bd2b119`, the app's fix at `664d9dd`, and
+`62a30de` the documentation-only commit after it; the package it drives is `provident-storeroom` `1.6.2`), **verbatim:**
+
+> Constraints and listeners can share the same address, but not handle
+
+**and, restated when the report's own premise was put to him:**
+
+> A constraint and a listener can share an address, as can multiple constraints/listeners. The restriction is that a
+> listener and a constraint cannot have the same *handle*.
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE INTENDED FUNCTION, IN THREE CLAUSES.** **(i)** **A constraint pair and a listener MAY stand at ONE ADDRESS** —
+   different handles, one address, both reached by the act (the pair ASKED by the pass, the listener DELIVERED after
+   it: `D-68`'s one trigger set, filtered by kind). **(ii)** **MULTIPLE CONSTRAINTS at one address, and MULTIPLE
+   LISTENERS at one address, are LAWFUL** — the record already carries both (`D-24`'s same-kind overwrite; `DD-39`'s
+   construction duplicate), and this row confirms them as the intended shape and not as tolerated states. **(iii)**
+   **THE ONLY CROSS-KIND RESTRICTION IS THE HANDLE**: a listener's handle EQUAL to a constraint pair's `id` — or the
+   reverse, a pair whose `id` equals a live listener's handle — is REFUSED, **in both directions**. That is `D-25`'s
+   *"overwrite"* at its own subject, and `D-29`'s *"the handle becomes the internal ID"* is what makes the subject the
+   handle and not the address.
+
+2. **THE BUILD DOES NOT IMPLEMENT IT, MEASURED — AND THE DRIVE IS THIS ROW'S GROUND.** On the installed `1.6.2`, whose
+   `bindings/js/index.mjs` is **byte-identical to this checkout's** (`sha256
+   d3790c75b582ff4334a872da696abd1adbeab9bef3b92d7f9af5ee17aefd7a38`, both), one pair `{address: ['tabs'], id:
+   'tabs-must-stand'}` and a fresh instance per arm, **`29` arms were driven — `19` lawful, `10` refused, and `5` of
+   the `10` are this row's defect**:
+
+   - **`listen('h', [['tabs']])` — DIFFERENT handles, ONE address — THROWS** `AddressMalformed`, `log: []`, `address:
+     null`: `"'tabs' is not a legal address segment in '', segments are strings or non-negative integers, the listener
+     'h' cannot be installed at tabs: the constraint 'tabs-must-stand' stands there, and a listener and a constraint do
+     not share one"`. **DEFECT per (i).** The app's own arm (`listen('tabs-record', [['tabs']])`, the record at
+     `bd2b119`) is this one, byte for byte.
+   - **THE CONSTRUCTION'S ADOPTED LISTENERS ARE THE SAME ARM**: `listeners: [{address: ['tabs'], handle: 'L'}]` beside
+     a batch pair `P` at `['tabs']` **refuses the construction** — the construction applies `cfg.listeners` through
+     `listen` AFTER the batch has armed the pairs, so the pair stands when the listener is installed. **DEFECT per
+     (i).**
+   - **A MIXED SET REFUSES WHOLE**: `listen('h', [['tabs'], ['tabs','order']])` throws and installs nothing; there is
+     no partial install. **DEFECT per (i)**, and the `log: []`/`address: null` tell the caller nothing about which
+     member offended (item 4).
+   - **THE IDENTITY ARMS REFUSE, AND ARE INTENDED TO**: `listen('tabs-must-stand', [['tabs','order']])` (same handle,
+     DIFFERENT address) throws; `listen('tabs-must-stand', [['x','y']])` throws; `register('tabs-must-stand')` throws;
+     `addConstraint({address: ['q'], id: 'hx'})` where a live listener `hx` stands throws; and the batch's
+     `id`-equal-to-an-adopted-handle arm throws. **All five are (iii) and unmoved.**
+   - **AND THE MECHANISM ALREADY SUPPORTS CO-LOCATION, WHICH IS WHY THE DEFECT IS A GUARD AND NOT A MODEL**: with the
+     listener standing FIRST and the pair added AFTER at the same address, `listen`, `register` and `addConstraint` all
+     succeed and a write triggers BOTH — the listener delivered once, the pair asked — `triggered` reading
+     `[{handle:'r1', address:['k']}, {handle:'P', address:['k']}]`. **Two listeners at one address, five pairs at one
+     address, `constraintOff` then `listen`, and `constraintOn` over a listener already standing, are all lawful.**
+     The app's post-fix shape answers the same way: `triggered` carries the five pair ids AND the listener's handle,
+     and the subscriber's handler is called exactly once.
+
+3. **THE ADDRESS DIMENSION IS A DEFECT, AND `D-29`'s GROUND FOR IT IS FALSE AT THE BUILD.** `D-29` wrote *"the address
+   dimension is NECESSARY, because §2.2 item 7's purge is address-reaching"*; **THE PURGE IS BY HANDLE, AND THE BUILD
+   SAYS SO AT THREE PLACES:** `src/store.rs`'s `listen` runs `self.home.purge(handle)` and its docblock reads *"the
+   purge is BY HANDLE and it is UNCONDITIONAL"*; `Home::purge` (`src/store.rs:476`) is `bucket.retain(|listener|
+   listener.handle.to_string() != token)` (`:484`); and the package's own mirror purge is `state.home =
+   state.home.filter((row) => row.handle !== handle)` (`bindings/js/index.mjs:821`). **So a listener's act cannot reach
+   a pair's home rows — the handles differ — and the destruction the address dimension guarded against does not
+   exist.** The one state where a purge WOULD reach a pair's rows is a SHARED handle, which (iii) refuses already; the
+   kernel's own re-listing exemption (`handle === entry.id` and the set covering the pair's addresses) carries the
+   kernel's act and is untouched by this row. **THE SITES THAT ENCODE THE DEFECT, NAMED:** `bindings/js/index.mjs`'s
+   `B-6` (`:797`'s `constraintOverwrittenByListen(state, handle, addresses)` call, the `boundaryReject` at `:799`–
+   `:806`) and `bindings/js/src/entry/delivery.mjs`'s `B-5` (`:369`'s `constraintAtAnyAddress(state, handle)` call,
+   the helper at `:450` and its docblock; the sibling helper `constraintOverwrittenByListen` at `:518`) — **both test
+   ADDRESS-SET MEMBERSHIP where (i)–(iii) test the HANDLE.** The identity arms stand and are unmoved:
+   `bindings/js/index.mjs`'s `addConstraint` arm (`:987`'s `listenerStandingAt(state, site.id)`, the `boundaryReject`
+   at `:989`–`:995`) and `bindings/js/src/entry/frame.mjs`'s batch arm (`B-3`, the `boundaryReject` at `:309`–`:315`).
+
+4. **AND THE MESSAGE IS A SECOND, INDEPENDENT DEFECT — CONFIRMED AT ALL FOUR ARMS.** `boundaryReject`
+   (`bindings/js/src/entry/artefact.mjs:360`) composes `` `${generated}, ${clause}` ``, where `generated` is
+   `addon.errorMessage(status, subject[, container])`; for a cross-kind refusal the **generated half is the store's
+   `AddressMalformed` SEGMENT template** (`src/error.rs`'s malformed-segment sentence) **rendered with the default
+   container `''`** — so each of the four arms prints a FIRST SENTENCE THAT IS FALSE (the segment is legal; the
+   container is a placeholder) and then a hand-authored second sentence that is true: `"…cannot be installed at …"`
+   (`listen`), `"…cannot be registered at …"` (`register`), `"…cannot share its handle with …"` (`addConstraint`),
+   `"…adopts a listener under that handle at …"` (the batch). **THE STATUS MEMBER IS UNMOVED BY THIS ROW** — the three
+   single-registration arms carry `AddressMalformed` (rank `1`; `D-29`'s member-follows-the-act's-subject) and the batch
+   carries `ConstraintListInvalid` (rank `16`; `D-27`) — **and the false half cannot stay**: what replaces it is a
+   declaration and not this row's (the first of "what it does not settle").
+
+5. **THE RECORD'S READING, AND WHAT MOVES UNDER IT.** `D-25` STANDS, and `D-29`'s operative clause (*"Listen cannot
+   overwrite constraint, only other listeners"*) STANDS read at the HANDLE; **`D-29`'s *"the address dimension is
+   NECESSARY"* sentence is WITHDRAWN at this row** (its ground is false, item 3), and **`docs/L1/surface-deltas.md`'s
+   `B-5` row condition — *"`register` where a constraint's `id` stands"* (`:271`) — is the HANDLE condition the build's
+   address test widened past.** READ THROUGH THIS ROW, EACH OWING ITS OWN CORRECTION WHEN IT IS TOUCHED NEXT:
+   `docs/guides/package-use.md`'s `§7.3` (`:920`–`:932`, **whose 2026-10-26 measured paragraph at `:927` is the
+   measurement OF THE DEFECT and not of the rule**) and `§7.2`'s batch paragraph (`:916`–`:918`);
+   `docs/specs/storeroom-held-listener-identity/contract.md`'s `§2.3` item 9 and `§4`'s `F-9` (its condition —
+   *"`register` at an address a CALLER's constraint pair stands at"* — becomes a HANDLE condition, and its form cell's
+   message obligation loses the false half); `bindings/js/index.d.ts`'s `register`, `addConstraint` and
+   `StoreConfig.constraints` clauses; `docs/specs/storeroom-js/surface.md`'s `§2.4` (iii); the entry's `B-5`/`B-6`
+   comments and `constraintAtAnyAddress`'s docblock; `src/entry/kernel-registration.mjs`'s prefix-exemption comment
+   (`:127`); and **the cells that assert the address-based refusal** — `tests/e2e/registration-write-route.test.mjs`'s
+   `G3-22` already RECORDS the refusal as a finding and binds its listener at the register to work around it (`:380`–
+   `:400`); `tests/e2e/held-listener-identity-greens.mjs`'s `HLI-11.3`/`.3.a` assert it as greens;
+   `tests/e2e/file-tier-save/scenarios.mjs:164` reads it as *"a listener and a constraint do not share one handle"* (the
+   HANDLE reading, and the sentence the build then contradicts); and the cells at
+   `tests/e2e/blind-listener-surface.test.mjs` (`:280`, `:303`), `blind-defect-cases.test.mjs`'s `DEF-N` (`:68`,
+   `:794`–`:802`), `blind-constraints-surface.test.mjs`'s batch arm (`:133`),
+   `registration-instant-properties.test.mjs` (`:323`) and `constraints-publication.test.mjs` (`:838`, `:931`) assert the
+   arms this row KEEPS — **their MESSAGES, not their existence, is what item 4 moves.**
+   **⟶ CORRECTED 2026-11-01 BY THE CORRECTION'S OWN DECLARATION (`docs/L1/cross-kind-handle-only.md` §5.1), and the
+   correction is owed because this item grouped two cells that do NOT assert the kept arms:**
+   `constraints-publication.test.mjs`'s probes at `:843`–`:855` and `:936`–`:950` listen under
+   `'a-callers-own-listener'` — **a handle that is NOT the pair's `id`** — and refuse it at `register`, so they drive
+   the **ADDRESS** arm and their assertions move with the defect; the two figures this item named (`:838`, `:931`) are
+   the COMMENT lines that explain them. **The item's grouping of the other four files stands as written.**
+
+6. **AND THE APP'S OWN ACT IS A WORKAROUND, NOT THE RULE — SAID SO THAT REPOSITORY IS NOT MISLED BY THE SHIPPED
+   GUIDE.** The downstream's relocation of `subscribe` to `['tabs','order']`, its `register` call, its per-subscription
+   handle and its contained throw are ALL LAWFUL and its measured readings stand (one notification per committed
+   change; none for a write touching none of the record); **it is not required by the intended function once this row
+   lands** — a listener at `['tabs']` is lawful, and the app may reclaim it (that repository's call, not this one's).
+   **The report is RIGHT about the failing record** (two independent faults; `handler` occurs exactly twice in
+   `bd2b119`'s file; the fix is `664d9dd`, not `62a30de`) **and RIGHT that the refusal's REPORTING is defective; it is
+   wrong only where it took the shipped refusal for the intended rule** — its *"the operative clause is 'a listener and
+   a constraint do not share one'"* reads the ADDRESS, and this row reads the HANDLE.
+
+**WHAT IT DOES NOT SETTLE — L1's.**
+
+- **(i) THE MESSAGE'S FORM AND ITS GENERATION.** The identity arms may not print a segment-legality sentence about a
+  legal segment. Which generator row, which clause, which container spelling (none?), and whether the status moves are
+  a declaration; the one-form rule (`surface.md §2.5`) and `strata/brief.md`'s UC-10 are its constraints.
+- **(ii) THE DISABLED-PAIR ARM.** `constraintOverwrittenByListen` SKIPS pairs whose `entry.enabled !== true`, while
+  `constraintAtAnyAddress` does NOT filter on `enabled` at all — **measured: a disabled pair frees the address for
+  `listen`, and that same pair's handle is still tested by `register`.** Whether a DISABLED pair's handle blocks a
+  listener's claim of it (and what `constraintOn` then does with a listener standing under the pair's own id) is a
+  declaration; the asymmetry is recorded here as an open question and not as a rule.
+  **⟶ CORRECTED 2026-11-01 BY THE DECLARATION'S AMENDMENT (`docs/L1/cross-kind-handle-only.md` §9.4 (`C-19`)), WHICH
+  PRINTS THE MEASUREMENT AND OWES IT TO THIS ITEM:** **the second half of the sentence above is FALSE at the bytes** —
+  `constraintAtAnyAddress` answers `null` when the handle stands no mirror rows (`delivery.mjs:452`–`:453`), and a
+  disable purges them, **so at a disabled pair BOTH arms admit today and `register` is not the arm this item took it
+  for**; **and the destruction the skip permits is FORWARD, not instant** — a disabled pair stands no store rows, so the
+  loss lands at the **next `constraintOn`**, where the enable re-lists the pair at the same handle (`index.mjs:1186`),
+  `K-1`'s store act purges **by handle** (`src/store.rs:2594`), and `installRegistrationSeam` overwrites the entry's
+  function, `off` and `kind` (`delivery.mjs:277`–`:279`) — the listener stops being delivered with **no observable at
+  the instant of the loss**. **The reading this item's ruling relies on is unchanged** (`D-24`'s *"the handle needs to
+  be unique regardless"*; `D-25`'s *"or vice versa"*, unconditional); **and the arm itself is ANSWERED BY THE
+  DECLARATION, not by this correction**: `C-19` decides that **a disabled pair's handle blocks both arms**, reading
+  membership off the package's carried pairs (`state.constraints`), because the kernel's own rows are emptied by `K-6`
+  and are not reachable from the entry anyway. **The asymmetry this item printed is therefore WITHDRAWN, and the open
+  question with it.**
+- **(iii) THE CORRECTION'S WRITE SET, ITS CELLS AND ITS LADDER** — what re-derives, what is re-planned, and which gates
+  the correction passes.
+- **(iv) THE CONSTRUCTION'S ORDER.** Arming the batch before applying `cfg.listeners` is lawful either way under (i); no
+  clause decides the order and this row does not.
+
+**TERMS: the clauses settled (`3` = address co-location · multiplicity · handle-only), the rulings unmoved (`2` =
+`D-25`, `D-29`'s operative clause), the sentences withdrawn (`1` = `D-29`'s address-necessity), the drives measured (`29`
+arms: `19` lawful, `10` refused of which `5` are this row's defect and `5` are the intended handle arms), the record
+sites named (code `5` · documents `10` · cells `8` files), the codes minted (`0`), the units opened (`0`), the questions
+left to L1 (`4`).**
+
+---
+
+### `D-99` — the store tracks HANDLES and no kinds; the kind is JS-side, read off the KERNEL's rows; and the kernel's own registration needs NO exemption
+
+**DATE:** 2026-11-01. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering `Q-1` — the L1 declaration's
+`docs/L1/cross-kind-handle-only.md` §7 residual (its `C-2` exemption, a per-act marker a constraint body could borrow) —
+**verbatim:**
+
+> The store treating a constraint as a special case of listener is why they can't share a handle, this doesn't need an
+> exception. The store can only track the handle, the js-side determines whether the handle corresponds to a constraint
+> or a listener by checking if it exists in the kernel
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE STORE'S VIEW IS ONE NAMESPACE AND NO KINDS.** A constraint is mechanically a listener to the store (`D-68`,
+   `D-69`); the home map keys on the HANDLE and nothing else (`src/store.rs`'s `Home`); and **that unified view is the
+   GROUND of the handle rule** — *a listener and a constraint cannot have the same handle* is the store's own
+   one-handle-one-entry fact, **not a store-side kind test**. **No store change is owed and no store-side cross-kind
+   test may be introduced.**
+2. **KIND IS A JS-SIDE FACT AND ITS INSTRUMENT IS KERNEL MEMBERSHIP.** A handle is a constraint's iff it exists in the
+   **kernel's pair rows** (`D-29`'s *"the handle becomes the internal ID"*, read through `D-68`). **The package's
+   determination must read membership — not a spelling, not a set's shape, and not an act marker.**
+3. **AND THE KERNEL'S OWN REGISTRATION NEEDS NO EXCEPTION.** The declaration's `C-2` — the `state.establishing` marker,
+   bracketed at four kernel re-listing sites, the coverage half deleted — **is not the instrument the architect wants**,
+   and `Q-1`'s residual (a constraint body borrowing the bracket) **is to disappear with the marker rather than be
+   accepted or tightened**. `C-3` (the disabled-pair skip deleted) is **re-derived under this row**, because its printed
+   ground was that `C-2` made it safe.
+
+**WHAT IT DOES NOT SETTLE — put back rather than invented.** **The mechanism by which the KERNEL'S OWN store-side
+re-listing avoids a test phrased on the caller's listener act.** Measured at the bytes: `K-1` reaches the store through
+the package's `listen` member (`kernel-registration.mjs`'s `store.listen(id, set)`), and the enable arm re-lists a
+CARRIED pair **one address per call** (`index.mjs:1182`–`:1187`), so at that call's instant the handle **is** in the
+kernel. **Two readings remain and they are different mechanisms:** **(i)** the kernel's registrations do not pass
+through the caller-facing test at all — its store-side act is the kernel's own (no marker, no exception, and the four
+brackets and `Q-1`'s residual go with it); **(ii)** the test itself carries an origin the package can read (the marker),
+which is what the declaration built and this row's *"doesn't need an exception"* refuses. **Which reading is meant is
+the architect's; no pass may take it for him.** **The disabled-pair arm's fate follows from the same fork**: a disabled
+pair stays carried (`state.constraints` holds it; `constraints()` names it), so *"exists in the kernel"* still blocks
+its handle unless membership is read off the KERNEL's rows and not the package's CARRIED PAIRS.
+
+**TERMS: the clauses settled (`3`), the instruments refused (`2` = the declaration's `C-2` marker and `C-3`'s printed
+ground), the store bytes this row moves (`0`), the statuses or members minted (`0`), the mechanism readings left to the
+architect (`2`), the cells this row re-points (`2` = `XK-6`'s shape and `XK-8`'s residual), the questions closed
+(`0`).**
+
+**⟶ ANSWERED 2026-11-01, THE SAME SESSION — the fork this row printed is SETTLED, and the settling is named: THE
+ARCHITECT CHOSE THE ROUTE READING.** Verbatim, on the two readings this row put: ***"Route reading — the kernel's act
+is its own (Recommended)"***. **WHAT IT RESOLVES, IN THIS ROW'S OWN TERMS:** **the kernel's own store-side registration
+does not pass through the caller-facing test at all** — the test lives on the caller's members (`listen`, `register`),
+and the kernel's registrations are its own act — **so the marker, the four `state.establishing` brackets, `Q-1`'s
+residual and `C-2`'s instrument are DELETED** (`docs/L1/cross-kind-handle-only.md` §1.2's bytes are read THROUGH this
+clause, and `C-3`'s printed ground — *"the two decisions are one decision"* — is re-derived under it); **and
+`restoreHeldPair`'s latent refusal is repaired by the act being the kernel's own, not by a bracket.** **WHAT IT STILL
+OWES L1 — item 2 of "what it does not settle" is thereby NARROWED and not closed:** **(a) THE INTERNAL ROUTE, SPELLED**
+— which store act and which mirror/registry writes the kernel's registration performs, and why that is not *"a second
+route installs a store entry"* (`D-69`, `surface.md §2.4`), since the store's ONE verb is unmoved and only the
+caller-facing wrapper's tests are skipped; **(b) THE MEMBERSHIP'S SOURCE, DECIDED AT THE BYTES** — `kernel.pairs` and
+`kernel.handles` are BOTH emptied when a pair is disabled (`K-6`'s `FORGET_PAIR`, `kernel-registration.mjs:928`), so a
+disabled pair "does not exist in the kernel" while it is still carried by the package (`constraints()` names it);
+**whether a disabled pair's handle blocks a caller's listener is therefore a declaration L1 makes or sends up, and not
+an assumption this row may make**; **(c) `XK-6`/`XK-8` RE-SHAPED** — the kernel's four re-listings remain driven at
+`N = 1` and `N = 3` (they now pass through the internal route), and the residual cell becomes the pair of acts at ONE
+handle: a caller's `listen('<pair id>', …)` REFUSED, the kernel's own re-listing at the same handle STANDING.
+**THE MESSAGE DECISIONS (§3), THE STATUSES, THE REVERSE ARMS (§2) AND THE RELEASE (`D-100`) ARE UNMOVED BY THIS
+ANSWER.**
+
+---
+
+### `D-100` — the cross-kind correction ships as a MINOR, `1.7.0`
+
+**DATE:** 2026-11-01. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering the L1 declaration's `Q-2` —
+*"the four refusal messages change text on a published `1.6.2`. Is a release cut, and at which version?"* — **verbatim:
+*"Minor — 1.7.0"***. **STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.** **The correction lands as a MINOR release, `1.7.0`, and as no patch:** **(i)** four refusal
+MESSAGES change their text on a published surface — `AddressMalformed` at the three single-registration arms and
+`ConstraintListInvalid` at the batch (`docs/L1/cross-kind-handle-only.md` §3.6); **(ii)** the closed set, every member,
+every type and every consumer-visible arity are **UNMOVED**, and no status is minted; **(iii)** the addon's INTERNAL
+generator gains an optional position (§3.7) — an artefact-internal widening that is not a consumer API
+(§3.8). **The version line, the change list and the release notes are the release pass's; this row fixes the number and
+the class.**
+
+**WHAT IT DOES NOT SETTLE.** Whether the cut happens at the correction's landing or batched with other work, and its
+date. **It mints nothing, moves no member, and decides no cell.**
+
+**TERMS: the decisions the answer fixes (`2` = the class `minor` and the number `1.7.0`), the members, types and arities
+it moves (`0`), the statuses it mints (`0`), the release documents it owes the release pass (`3` = the version line, the
+change list, the notes), the questions closed (`1`).**
+
+---
+
+### `D-101` — the repair-outcome types are MINTED: five named types, `Constraint` typed, and NO behaviour moves
+
+**DATE:** 2026-11-01. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering the supervisor's fork on the
+downstream `ST-F2` report (`strata/research.md` §10) — *"The defect is real and recorded; the only open piece is the
+typing (and optionally the sentence). Do I open a pass for the types, rule a text change, or leave it as recorded?"* —
+**verbatim: *"Mint the types"***, its own option text reading *"a docs/typing pass: `ConstraintContext`/`RepairContext`
+and a `RepairOutcome` alias for the two-arm return … No behaviour change, no refusal text moved."* **STATUS:
+`ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE TYPES ARE MINTED, AND THE DECLARATION IS `docs/L1/repair-outcome-types.md`.** Five names — `AttemptContext`,
+   `RepairContext`, `RegistrationRepairContext`, `ConstraintOutcome`, `RepairOutcome` — and **`Constraint` becomes
+   `(context: AttemptContext) => ConstraintOutcome`**. **THE SUGGESTED `ConstraintContext` IS REFUSED BY NAME**: the
+   kernel and the declaration's own prose already call that record `AttemptContext`, and its subject member is `attempt`.
+   **No member is minted**: every member of every alias is read at the build site the declaration cites.
+2. **NO BEHAVIOUR MOVES.** Zero code bytes outside `bindings/js/index.d.ts`; the closed status set at `20`, every member,
+   every arity, the `KC` token set, and the fourteen own members stand.
+3. **THE DOCBLOCK'S OWN SENTENCE IS RE-DERIVED BY NAME.** `index.d.ts:1294`–`:1296`'s *"NOTHING HERE MINTS A TYPE, A
+   SYMBOL, AN ALIAS … one `unknown` in and one `unknown` out"* stands byte-for-byte as the 2026-10-30 reading and is read
+   THROUGH a dated clause of this date inside the same block.
+4. **THE REFUSAL SENTENCE'S TEXT IS UNMOVED.** `D-88` (2)'s recorded defect — the `produced no op` sentence's address —
+   stands and is **not reopened** by this row; `ST-F2`'s (iii) is answered by that disposition and not by this one.
+5. **THE RELEASE CLASS IS ITS OWN.** A type addition with no behaviour change takes its own version line; **`D-100`'s
+   `1.7.0` is not reopened**, and the release notes owe the row when that cut is made.
+
+**WHAT IT DOES NOT SETTLE — put back to the architect, not taken.** **`Q-1`** — `write`'s commit position: the guide's
+worked example (`docs/guides/package-use.md:1075`–`:1088`) passes the repair's own record as the fourth argument and
+**does not type-check today (`TS2345`, measured)**; the kernel and the package's own `repair-in-commit` drive accept it,
+so the declared `commit?: CommitRecord` is the outlier. **`Q-2`** — whether the publish/spec corpus owes its amendment
+before the types land, and whose. **`Q-3`** — whether the two stale `tsconfig` heads may be corrected by the pass that
+adds the typecheck cells.
+
+**TERMS: the types minted (`5`), the members minted (`0` — every member read at a build site), the aliases refused by
+name (`1` = `ConstraintContext`), the behaviour bytes this row moves (`0`), the statuses, members, arities and tokens it
+moves (`0`), the sentences withdrawn (`1` = the docblock's no-types sentence, read through a dated clause), the questions
+left to the architect (`3`), the units opened (`0`).**
+
+**⟶ ANSWERED 2026-11-01, THE SAME SESSION — `Q-1` IS TAKEN: `write`'S COMMIT POSITION IS WIDENED TO ITS OWN CLASS TEST.**
+Verbatim: ***"Widen the position to its class test"***. **WHAT IT RESOLVES.** The fourth position's declared type stops
+being `CommitRecord` alone and becomes **the class test's own class**: an object carrying an OWN `pending` member that
+is not `undefined` (`bindings/js/src/entry/delivery.mjs`'s `commitPositionRefusal` — a non-null, non-Proxy, non-array
+object with an own, defined `pending`) — **so the guide's worked example, which passes the repair's OWN record as the
+fourth argument, and the package's own `repair-in-commit` drive type-check AS WRITTEN.** **The type follows the
+behaviour; no byte of the behaviour and no byte of the guide moves.** **THE AMENDMENT'S HOME IS THE DECLARATION**
+(`docs/L1/repair-outcome-types.md`, a dated clause at its `Q-1`), **and `Q-2` and `Q-3` stand as it lists them.**
+
+---
+
+### `D-102` — the typing cut is a MINOR, `1.8.0`
+
+**DATE:** 2026-11-01. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering the release-class fork on the
+typing pass — *"Which version line does the typing cut take …?"* — **verbatim: *"Minor — 1.8.0"***. **STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.** **The typing pass (`9afb411`) and the guide anchor (`06189fa`) — the two commits past the released
+`v1.7.0` — ship as a MINOR release, `1.8.0`.** **(i)** The declaration gains six named types — `AttemptContext`,
+`RepairContext`, `RegistrationRepairContext`, `ConstraintOutcome`, `RepairOutcome`, `CommitCarrier` — an ADDITIVE type
+surface. **(ii)** And `Constraint` is NARROWED: `(context: unknown) => unknown` no longer assigns to it, so the release
+is consumer-visible at the declaration even though nothing a call *does* moves — the same class `D-100` gave the four
+refusal texts. **(iii)** NO behaviour byte moves: the closed set, every member, every arity, the fourteen own members
+and every refusal text are unmoved, and `D-88` (2)'s sentence stays a recorded defect. **The version cells, the three
+version lines and the `§1.8.0` notes row are the release pass's.**
+
+**WHAT IT DOES NOT SETTLE.** The push and the tag — the architect's own act (`docs/specs/storeroom-publish/release.md`
+§4.1). **No member, status, arity or code byte moves; no cell is re-derived by this row.**
+
+**TERMS: the class and the number (`2` = `minor` · `1.8.0`), the types it adds (`6`), the declaration narrowing (`1`),
+the behaviour bytes it moves (`0`), the release documents it owes (`4` = the `§1.8.0` section, the eleven version
+cells, the three version lines, the notes row), the questions closed (`1` = the release class).**
+
+---
+
+### `D-103` — a repair that does not pass the commit in is UNSUPPORTED: the fourth position is not optional IN USE
+
+**DATE:** 2026-11-01. **BRANCH:** `main`. **SOURCE:** the architect, in session, on the repair's commit position — verbatim:
+***"Writing a repair function that does not pass the commit in is unsupported"***. **STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE SUPPORTED ROUTE, IN ONE SENTENCE.** **Every repair passes the commit at `write`'s DECLARED FOURTH POSITION** — the
+   object carrying `pending` (`CommitCarrier`; `D-46`; the repair's own record carries that commit at its `pending` member).
+   **A repair that does NOT pass it is UNSUPPORTED**: the package declares nothing about it, and the tracking that `D-46`
+   exists for — the op in `attempt.ops`, the entries in the commit's log, the `pending` delivery, the rollback's scope, a
+   `file`-tier save riding the commit's terminal act — is not promised for it.
+2. **WHAT DOES NOT MOVE: THE MECHANISM.** The frame's own name at `state.mjs`'s `openCommit` (*"the entry's position wins
+   where it is supplied, and this name is the fallback where it is not"*, `kernel-attempt.mjs:820`–`:822`) is the CODE's and
+   it STAYS — **what falls is its standing as a DOCUMENTED ROUTE.** **The guide's sentence *"A repair that names nothing in
+   the fourth place also joins, by the kernel's own name; the fourth position is how YOU name it"*
+   (`docs/guides/package-use.md:1061`) is READ THROUGH this row**: it describes a mechanism that is **NOT SUPPORTED**, not a
+   second lawful route, and the clause that replaces it says so at its own site.
+3. **AND THE TYPE STAYS `Optional`, ON PURPOSE.** `write`'s `commit?: CommitCarrier` remains optional because a CALLER's own
+   write must not name a commit (its write IS its own commit); making the member required would break that route. **The
+   obligation is on the REPAIR and is declared in the guide and the declaration, not enforced by the type.** **No type
+   moves, no code byte moves, and an unsupported use is NOT a refusal** — the corpus's own standing for an unsupported
+   route (the same class `strata/brief.md` gives the register-one-thing-as-both anti-pattern).
+
+**WHAT IT DOES NOT SETTLE.** Whether the unnamed route should be **REFUSED** — a behaviour byte, needing its own ruling and
+its own version — is not ruled here; the record says **unsupported** and the code's fallback is unchanged.
+
+**TERMS: the route settled (`1` = the named commit), the route declared unsupported (`1` = the unnamed), the mechanism
+bytes this row moves (`0`), the types it moves (`0`), the code bytes it moves (`0`), the refusal it does NOT take (`1`),
+the sites re-derived under it (`2` = the guide's sentence and the declaration's note), the questions left open (`1` =
+whether to refuse the unnamed route).**
+
+---
+
+### `D-104` — a repair's write's listeners are a BEHAVIOUR DEFECT: they ARE delivered, and the fix lands in the patch
+
+**DATE:** 2026-11-01. **BRANCH:** `main`. **SOURCE:** the architect, in session, on the confirmation of the delivery batch
+(`strata/research.md` §12 — *"a repair's write's triggered listeners are read by nothing"*) — **verbatim: *"This is a
+behavior defect, wrap into the fix patch"***. **STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE DEFECT, AND IT IS A BEHAVIOUR DEFECT AND NOT A DOCUMENTATION GAP.** A repair's write's `triggered` listeners are
+   carried on the REPAIR'S OWN WRITE RECORD (`index.mjs`'s `{op, watched, triggered}`), and **no delivery site reads
+   them**: the commit's terminal arm delivers the COMMIT's `pending` residue (`delivery.mjs`'s `terminalArm`), the repair's
+   write's own delivery is WITHHELD (*"this frame is the leg … its silence is total"*), and a listener the repair's edit
+   fired is therefore invoked by nothing. **The record is silent on it in both directions** — no clause delivers those
+   listeners and none says they are dropped — and that silence is the defect, not the resolution.
+2. **THE INTENDED BEHAVIOUR.** **The repair's write's listeners ARE delivered — in the COMMIT's delivery**, after the
+   pass, with the other listeners: the architect's own flow, *"any new non-constraint listeners are bookmarked to be run
+   after commit"*. **ONE INVOCATION PER DISTINCT HANDLE** stands (`surface.md §2.4` rule 3) — a listener fired by both the
+   original write and the repair's edit is invoked once — and **the failing arm keeps its declared empty delivery**: a
+   repair's listeners are discarded with the rest when the attempt fails (`§2.7` item 6), and the witness (`discarded`)
+   reads them as it reads any other discarded raise.
+3. **THE MECHANISM IS L1's, PRICED.** Two routes and no third: **(a)** the repair's write's triggered listeners are MERGED
+   into the commit's `pending` at the repair arm, so the terminal arm delivers them with the residue; or **(b)** the
+   terminal arm's delivered set becomes the commit's `pending` PLUS the leg's `triggered` listeners (de-duplicated by
+   identity). **Either way `D-56`'s reading of `pending` is re-read rather than contradicted** — `pending` is "the handles
+   the pass did not evaluate", and a listener is never the pass's — and the cells that assert the member's contents are
+   re-derived with it.
+4. **THE FIX LANDS IN THE PATCH.** The post-`1.8.0` patch carries this behaviour fix **together with the docs corrections
+   already committed** (`24f5b94` — the guide anchor and `D-103`'s unsupported-commit clause — and `90cd8a7` — the
+   re-staged landing). **Its version line is the release pass's**; `D-100`'s `1.7.0` and `D-102`'s `1.8.0` are not
+   reopened, and no status, member, arity or type moves for this fix.
+
+**WHAT IT DOES NOT SETTLE.** The mechanism (L1's, item 3), the cells, the write set, and the patch's own number — the
+release pass's, once the fix is landed.
+
+**TERMS: the defect classified (`1` = behaviour), the behaviour the fix declares (`2` = the delivery in the commit's batch ·
+the one-invocation rule), the mechanisms priced (`2`), the statuses, members, arities and types this row moves (`0`), the
+release it rides (`1` = the post-`1.8.0` patch), the questions left (`1` = the mechanism's declaration).**
+
+---
+
+### `D-105` — the returned op is NOT the credit's carrier: the failing pairs are tracked, the rollback is independent, and the repair's route is the commit whose triggers join it
+
+**DATE:** 2026-11-01. **BRANCH:** `main`. **SOURCE:** the architect, in session, on the returned-op question — `ST-F2`'s surviving limb — **verbatim:**
+
+> You don't need the ops, the rollback point is determined independently. Track the failing constraints for the
+> duplicate repairs. The only supported route for repairs is with the commit id so that its triggers can be joined to
+> the commit and the constraint battery run again.
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE RETURN'S OP IS NOT THE CREDIT'S CARRIER.** **A repair that does its write and returns `undefined` — the natural
+   shape of `repair: () => { … }` — is NOT refused.** The credit is the **FAILING PAIR's** mark (`attempt.appliedRepairs`,
+   keyed by the pair), and **the returned `op` is neither required nor read for it.** `ST-F2`'s remaining limb is thereby
+   the record's to fix and not its to decline: the `KC-4` arm that answered an op-less return, and the sentence *"the
+   repair `<id>` produced no op at `<address>`"* with it, are **superseded by this row**, and `D-88` (2)'s "recorded,
+   not repaired" disposition is read **THROUGH** it.
+2. **THE ROLLBACK IS INDEPENDENT of the returned op.** The rollback point is the **restore mark** (`D-63` — the last
+   validated state), and the returned op is not its instrument; the floor call's candidates are re-derived from the
+   commit's own record, not from the repair's return.
+3. **THE ONLY SUPPORTED REPAIR ROUTE IS THE COMMIT ID** (`D-103`), **and through it the repair's write's TRIGGERS ARE
+   JOINED TO THE COMMIT so the constraint battery runs again over them**: the PAIRS the repair's edit reaches join the
+   commit's evaluated set (the listener half is the `1.8.1` delivery's — `D-104`), so **the pairs a repair's edit fires
+   are asked by the commit's next battery** and not by nothing (the declaration's `Q-5`).
+4. **WHAT DOES NOT MOVE.** A repair returning the **failed arm** `{ok: false, message}` still fails the attempt (that is
+   the failure's own arm, and its `message` is the caller's words); **no status is minted** — the `KC-4` token's subject
+   is re-derived by L1, not the closed set; and the **one-invocation-per-distinct-handle** rule (`surface.md §2.4`
+   rule 3) stands.
+
+**WHAT IT DOES NOT SETTLE — L1's.** The credited arm's exact shape (`{ok: true}` with `op` optional/informational, or
+no member), what refusal (if any) the `KC-4` arm retains, the floor call's candidates, the re-run's own value carrier
+(the `1.8.1` `REPAIR_LEG` channel already hands the kernel the repair's write's record — is THAT the value's source
+now?), the TYPES (`RepairOutcome` / `ConstraintOutcome` re-derived), the cells, the write set, the SENTENCE's fate (its
+wrong address is moot once the kernel holds the repair's leg — withdrawn, or re-derived), and the release class.
+
+**TERMS: the carriers this row removes (`1` = the returned op as the credit's), the carriers it names (`2` = the failing
+pair's mark · the commit's leg), the behaviours it changes (`2` = an op-less return is credited · the repair's triggers
+join the battery), the statuses, members and codes it mints (`0`), the releases it will need (`1` = a cut, class L1's),
+the questions left (`1` = the declaration).**
+
+---
+
+### `D-106` — the file must save after ANY action that changes the file-tier data: three measured arms, one rule, and the text that hid it
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, forwarding a downstream report and ruling
+on it — **verbatim:**
+
+> Feedback from downstream claiming that the store doesn't save after a repair writes at the file tier during constraint
+> registration or store creation. If this is correct, it is a defect, the file must save after any action that changes
+> the file-tier data, without exception
+
+**AND THE TWO QUESTIONS L0 PUT TO HIM, ANSWERED BY SELECTION** (`strata/research.md` §13 carries the measurements they
+were asked on): **scope — *"All three arms"***, that is the registration-instant repair's file-tier write, the
+**whole-target `delete`** and the **successful `rollback`**, all three in one unit; **and the text limb — *"Carry the text
+correction in this unit"***, so the guide's `§9.2`/`§9.3` sentences and the `D-32`-derived spelling **move as a documents
+act inside the unit** rather than standing and being read through a ruling — **the project's usual ANNOTATE-BESIDE
+convention is NOT what he ordered here, and no layer may substitute it.**
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE REPORT IS CORRECT, MEASURED — and its own citation of the instant, and not of the producer, is why it is correct.**
+   A repair invoked at a **registration instant** — `addConstraint`, `constraintOn`'s re-arm, a `storeCreate` carrying
+   `cfg.constraints`, and a **boot** over an existing `filePath` carrying them — **can write at the `file` tier through the
+   route `D-91` gave it**, and the registration then **passes**, and **the file is not written**. Measured on this tree at
+   `1a0d252` (`strata/research.md` §13's drives, verbatim): `addConstraint` answers an identity, the in-memory read is the
+   repaired value, and the bytes at `filePath` are **byte-identical to the state before the call**; a construction whose
+   repair lands `99` leaves a **zero-length** file and a second instance over that path answers **`AddressNotFound`** for
+   the repaired address *and for everything else*; and **an unrelated later caller's save carries the repair's value into
+   the file**, which is the whole of the defect's shape — *the record is durable when some other caller happens to save*.
+2. **THE RULE, AND IT IS THE AUTHORITY FOR EVERY LATER PASS.** **The file must save after ANY action that changes the
+   file-tier data, without exception.** **`DD-28`'s *"durability is produced by a successful `file`-tier `write` ONLY"* is
+   read as a statement about the ACTS THAT OWE A SAVE and no longer as a closed list of them**: a `file`-tier write is
+   still the paradigm, **and an act that changes file-tier data without being a `file`-tier write is under the same
+   duty.** **No design, patch or later ruling may introduce an act that moves file-tier data and leaves the bytes alone**;
+   where such an act exists today it is a defect until it is closed.
+3. **THE THREE ARMS, EACH A DEFECT AND EACH IN THIS UNIT** — the first reported, the other two measured here because the
+   rule reaches them and L0 put them to him rather than deciding them:
+   * **ARM 1 — a repair's `file`-tier write at a registration instant.** Package-side, and it has a lawful carrier today:
+     the repair's write **is a `file`-tier journal op** and `commit_file` accepts exactly that. The registration's
+     synthetic attempt closes **without reaching the terminal arm** (`kernel-registration.mjs`'s `closeRegistrationAttempt`,
+     whose own clause says it *"reaches neither the per-op rollback composition nor the delivery seam"*), and **the save
+     lives at that arm alone** (`delivery.mjs`'s `terminalArm` → `commitFile`, gated on
+     `record[SETTLED_ON_THE_PASSING_ARM]`), so nothing names the repair's op to the store's writer.
+   * **ARM 2 — a WHOLE-TARGET `delete`** (no tier named). Measured: the version leaves the store in memory, **the file
+     still holds it**, and a second instance reads it back. Its op carries **no tier** (`index.d.ts:631`), and the store's
+     `commit_file` answers early on exactly that (`if self.journal[index].op.tier != Some(Tier::File) { return Ok(()) }`),
+     so **this arm needs a NATIVE-side decision** — a tier-less op that may save, or an eligibility rule the store states.
+   * **ARM 3 — a SUCCESSFUL `rollback`** that restores `file`-tier versions. Measured: the restored value stands in memory,
+     **the file still holds the reversed one**, and a second instance reads the reversed one back. **A rollback appends no
+     journal entry at all** — *"a save is an effect and not an op"* — so it has **no op to name to `commit_file`**, and
+     this arm needs a **NATIVE-side carrier decision** (an op-less save) as well.
+4. **WHAT IS ALREADY CONFORMING, SO THE FIX IS NOT TAKEN WIDER THAN THE DEFECT** — each measured here, not carried: a plain
+   caller's `file`-tier write **saves**; a repair's `file`-tier write at the **landing** instant **saves** (the terminal arm
+   names its op, and the writer re-serializes the whole image, so the bytes carry the repaired value); a **tier-named**
+   `file` delete **saves** (the 2026-10-29 clause); and a **refused** `rollback`'s compensating restore **saves** (the
+   2026-10-27 clause). **No arm of those four moves.**
+5. **THE TEXT IS THE UNIT'S, AND IT IS THE HALF THAT LET THIS HIDE.** The downstream's finding is confirmed at the bytes
+   and is filed (`strata/research.md` §13): **guide `§9.2` and `D-32` both say a `file`-tier write commits *"with no kernel
+   attempt and no terminal arm in the path"*, and that sentence is false of the package's own surface** — every
+   `store.write` reaches the kernel's `K-2`/`K-3` (`index.mjs:396`–`:397` → `constraints.mjs`'s `constraintWrite` →
+   `kernel.commit` + `kernel.runAttempt`) and is saved **by the terminal arm**; **the addon's write verb writes no byte on
+   any arm** (`src/store.rs`'s own closing clause: *"THE `file` TIER'S DURABLE COMMIT IS NO LONGER A VERB'S ARM AT ALL"*).
+   **So the sentence names the wrong mechanism AND no instant**, and the instant is what the registration route lacks.
+   **The correction of those bytes is part of this unit's write set** (item 3 of the put questions, answered above).
+6. **NO STATUS, MEMBER, ARITY OR TYPE MOVES FOR THE RULE ITSELF.** A save that cannot land is still `FileCommitFailed`
+   with the store's journal rollback first (`§9.4`); the closed set is unmoved; and the registration instant's record
+   census (`PIN-6`'s seventh member `write`) is unmoved by this row.
+
+**WHAT IT DOES NOT SETTLE — L1's, and no layer below may read this row as having decided them.** **Each arm's carrier**
+(item 3's two native-side arms are the live design questions, and the store's `commit_file` is the only writer — whether it
+grows an op-less arm, whether a tier-less op becomes eligible, or whether the eligibility rule moves to the caller, is
+declared by the unit's contract and not here); **the save's ONCE-PER-RECORD law is untouched and constrains the answer**
+(`storeroom-js/contract.md`'s per-record marker: *"a save performed twice for one record"* is a named FAILS-IT state, so a
+fix may not re-drive an already-saved op, and **any new save must be keyed to an op, or to a state, the store knows it has
+not saved**); **the guide's and the declaration's exact new sentences**; **the cells, the write set, the layer statement,
+and the release class**; and **whether a `storeCreate`'s construction write (the exclusive create that leaves the file
+zero-length) is itself in scope** — it changes no file-tier data and is out by that ground.
+
+**WHAT IT CHANGES BELOW ME: an intake note, a unit, and a rule that outlives the unit.** `strata/research.md` §13 carries
+the measurements and the package finding; `U-STOREROOM-FILE-SAVE-COVERAGE` is the unit (L1's declaration, the four gates
+that follow it, and the release pass's number); and item 2's rule binds every later design even where this unit's arms are
+closed.
+
+**TERMS: the acts the rule reaches (`3` = the registration-instant repair's write · the whole-target `delete` · the
+successful `rollback`), the acts it confirms as already conforming (`4`), the carriers it removes (`1` = `DD-28`'s
+closed-list reading · and, with the text limb, `D-32`'s and guide `§9.2`'s *"no attempt, no terminal arm"* mechanism
+sentence), the mechanisms it leaves to L1 (`2` = a tier-less op's eligibility · an op-less save), the statuses, members,
+arities and types it mints (`0`), the releases it will need (`1` = a cut, class L1's), the questions left (`1` = the
+carriers).**
+
+---
+
+### `D-107` — a REFUSAL ROLLS BACK, without exception: the registration's refused arm is a defect, `§9.4` is not widened, and the native contract's mechanism byte moves in this unit
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering the three questions
+`U-STOREROOM-FILE-SAVE-COVERAGE`'s gate-2 declaration put to him (`docs/specs/storeroom-file-save-coverage/`, and
+`strata/research.md` §13.5 item 3 for the first one's discovery). **THE THREE ANSWERS, VERBATIM:**
+
+> **(Q1 — does a registration whose repair lands and whose re-run then refuses OWE A SAVE?)** *"Any refusal should be
+> rolling back. Any exceptions are a defect"*
+>
+> **(Q2 — what form does a reversal's failed save take, when there is no journal entry to roll back?)** *"Rollback should
+> still revert to the last valid state"*
+>
+> **(Q3 — is `docs/specs/storeroom-native/contract.md` `§7.2` item 2's mechanism sentence read through `D-106`, or
+> corrected?)** ***"Correct that byte too, in this unit"***
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **★ `Q1` IS NOT A SAVE-DUTY ANSWER AND MUST NOT BE CARRIED AS ONE: IT IS A BEHAVIOUR DEFECT IN THE REFUSED ARM.** **A
+   REFUSAL ROLLS BACK** — the architect's words are unconditional and the defect is the standing edit, not the unsaved
+   one. **So the shipped sentence that declares the opposite is FALSE BY RULING and is replaced**: guide `§7.2` (4)'s
+   *"a write the route lands before a refusal STANDS, because a registration composes no rollback"* — and
+   `docs/guides/package-use.md`'s copy of it at `:914` — **states a behaviour the architect has now ruled a defect**, and
+   the registration's refusing arm **composes a rollback over everything it landed**, leaving the store where it found it,
+   exactly as a failing attempt does today (`kernel-terminal.mjs`'s `composeRollback`, `D-40`'s one-call-per-address floor
+   plan). **A refused registration that leaves its landed edits standing is a defect wherever it is found.**
+2. **AND THE BYTES OF A REFUSED REGISTRATION FOLLOW FROM (1) AND FROM `D-106`, NOT FROM A SECOND RULE.** A refusal that
+   rolls back leaves the `file`-tier data where the call found it, **so the file and the memory agree and no `D-106` save is
+   owed on that arm** — **and the rollback it composes is itself an act that may move `file`-tier data, so `D-106`'s ARM 3
+   is what makes the bytes right**: the registration's refused arm needs **no save of its own** and **inherits arm 3's**.
+   **A pass that adds a save to the refusing arm as well has given the act two saves of one image and has left this row.**
+3. **`Q2` KEEPS THE REVERSAL'S SEMANTIC AND NOT ITS TEXT.** **A `rollback` still reverts to the LAST VALID STATE** —
+   `D-63`'s restore mark, unmoved — **and the save `D-106` adds is an effect that FOLLOWS the reversion and is never a
+   condition on it.** **A save that cannot land therefore leaves the memory AT the last valid state and the bytes NOT
+   updated, and the refusal says both** (the refused-reversal restore's declared form, `README.guide.md:1729`–`:1742`) —
+   **and `§9.4` IS NOT WIDENED**: it stays narrow, naming `FileCommitFailed` for a `file`-tier write's save, and is not a
+   false sentence for being narrow.
+4. **`Q3` EXTENDS THE TEXT LIMB ONE STEP FURTHER THAN `D-106` ITEM 5.** **`docs/storeroom-native/contract.md` `§7.2` item
+   2's mechanism sentence is CORRECTED IN THIS UNIT** — the kept contracts are no longer read through `D-106` on this one
+   sentence; **its bytes move, and the unit's write set carries them.** **This is the architect's second departure from the
+   project's usual ANNOTATE-BESIDE convention in one unit, and both are his** (`D-106` item 5 and this item).
+5. **NO STATUS, MEMBER OR ARITY IS MINTED BY (1) ITSELF.** The refusal a registration answers keeps its rank `19`
+   `ConstraintRefusedAtRegistration` and its `§8.2`-generated message; **what a rollback floor met at that arm does is L1's
+   to declare** (whether the floor's `KC-8` can reach a registration refusal at all is the live question) — **and no
+   sentence of this row may be read as minting a token.**
+
+**WHAT IT DOES NOT SETTLE — L1's.** **The registration's rollback composition**: which ops it covers (the synthetic
+attempt's `ops`), which floor call it issues and over which addresses (`D-40`'s plan is the landing's; whether it is the
+same plan here is a declaration), **what the refusal answers when the composition meets a compacted floor** (an
+all-or-nothing floor that undoes nothing leaves exactly the standing edit this row declares a defect, so this is not a
+detail), and **whether the refused arm's rollback is visible in the caller's `log`**; **the exact replacement sentences**
+for `§7.2` (4) and for the native contract's `§7.2` item 2; **the cells, the write set, the layer statement and the release
+class**.
+
+**WHAT IT CHANGES BELOW ME: the unit's gate 2 re-runs.** `docs/specs/storeroom-file-save-coverage/` was declared `CLOSED` on
+an answer this row removes — its `(4-B)` draft saves an edit that now must be undone — so its contract, its clauses' `§1`,
+its claims' row for the refused arm, its `sites.md` and its `verification.md` are **owed a re-derivation by the gate that
+failed**, and the gate that corrects is not the gate that certifies (`strata/walkthrough.md` §1).
+
+**TERMS: the behaviours this row declares (`2` = a refusal rolls back · a reversal reverts before it saves), the shipped
+bytes it moves (`3` = guide `§7.2` (4)'s *"STANDS"* sentence · the native contract's `§7.2` item 2 mechanism sentence · and
+`(4-B)`'s withdrawal from the spec it was drafted into), the text it refuses to widen (`1` = `§9.4`), the statuses, members
+and arities it mints (`0`), the gates it voids (`1` = the unit's gate-2 verdict), the questions left (`2` = the
+composition's floor arm · the composition's log).**
+
+---
+
+### `D-108` — a rollback that meets COMPACTION REGENERATES from the file/creation data: the all-or-nothing floor is not the strand, and this is the unit's fourth arm
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering `U-STOREROOM-FILE-SAVE-COVERAGE`'s
+gate-2 correction pass's one architect-bound question — *when a rollback's composition meets a compacted journal entry, the
+store's floor is all-or-nothing and undoes nothing, so the landed edit `D-107` calls a defect would stand; what does that arm
+do?* **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> The default behavior for a last-valid-state rollback encountering the compaction should already be to regenerate from
+> file/creation data
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE COMPACTION ARM DOES NOT STRAND THE STATE — IT REGENERATES IT.** When a last-valid-state reversal meets a compacted
+   entry and the journal can no longer replay backward, **the answer is not *"undo nothing and stand where you are"*: the
+   store REBUILDS the last valid state from the durable ground truth** — the `file` tier's image, and the creation state where
+   no image stands (`DD-38`'s `0`-registration boot, the construction's own base). **The architect's *"should already be"*
+   is taken as what it says**: this is the behaviour the store **owes**, so its absence is **a defect of the same class as
+   `D-106`'s arms** — **the compaction arm is this unit's FOURTH ARM, and it is a store-side one.**
+2. **NO LANDED EDIT SURVIVES A REFUSAL, ON ANY ARM, AND THAT IS NOW UNCONDITIONAL.** `D-107` item 1's rule — *a refusal rolls
+   back, any exception is a defect* — **has no exception left on this arm**: the registration's composition inherits the
+   regeneration, so the arm that could not undo now rebuilds. **A pass that keeps the all-or-nothing strand as the arm's
+   final answer has left this row.**
+3. **THE GROUND TRUTH IS NAMED**: the **file image** where one stands, and the **creation state** where none does. **What a
+   regeneration does with versions that were never durable** — a `mem`- or `temp`-tier version the compaction swallowed, which
+   no file image carries — **is NOT settled here**, and it is the arm's own semantic question: a regeneration from the file
+   cannot restore what the file never held, so either the last valid state is the DURABLE state (and a memory-only version
+   is lost, which is a statement about what a rollback promises) or some part of the in-memory register survives the
+   rebuild. **L1 declares which, and if the answer contradicts a kept clause it is the architect's again.**
+4. **THE TEXT THIS FALSIFIES IS IN THE SHIPPED GUIDE, AND IT IS THE TEXT LIMB'S, NOT A NEW LIMB.** `§6.1`–`§6.4`'s and
+   `§9.3`'s *"a rollback whose candidate set includes one compacted entry fails `RollbackCompacted` and undoes nothing — the
+   floor is all-or-nothing"*, and `M-5`/`M-6`'s spelling of that floor as the arm's **answer**, are **read through this
+   row**; **the guide's bytes are replaced in place by the same unit's text limb** (`D-106` item 5, `D-107` item 4), and the
+   native contract's floor clauses follow `D-107` item 4's precedent.
+5. **NO STATUS IS MINTED HERE, AND WHETHER ONE IS RETIRED IS NOT THIS ROW'S.** If the regeneration replaces the arm,
+   **`RollbackCompacted`'s subject may be gone** — **and the closed set is the store's, so that is the architect's question
+   and it is put below rather than decided.** **Nothing in this row may be read as having retired, renamed or widened a
+   status.**
+
+**WHAT IT DOES NOT SETTLE — L1's, with the one that is his stated.** **Whether `RollbackCompacted` survives with a narrowed
+subject, or retires** (his: the set is closed by the store); **what the regeneration reports** (`undoneOps`, `restoredTo`,
+and whether the report's `rollback` member carries a regeneration step at all); **whether the journal resets after a
+regeneration** (the `seq` arm, `M-9`, and `DD-30`'s compaction law); **how the registration's composition is told a
+regeneration happened vs a replay**; **the exact replacement sentences**; **the cells, the write set, the layer statement
+and the release class**.
+
+**WHAT IT CHANGES BELOW ME: the unit's part map and its gate 2, again.** A fourth arm with a store-side mechanism, a possible
+status retirement and its own text sites is not an amendment to a declared contract — **it is a re-derivation**, and the
+gate-2 verdict the correction pass issued is voided with it (`strata/walkthrough.md` §1).
+
+**TERMS: the arms this row adds (`1` = the rollback's compaction arm), the ground truths it names (`2` = the file image · the
+creation state), the defects it declares (`2` = a stranded state on that arm · `D-106`'s own three), the statuses it retires
+(`0` = none decided; `1` = `RollbackCompacted`'s subject, put to him), the questions left (`2` = the memory-only versions ·
+the journal's `seq` after a regeneration).**
+
+---
+
+### `D-109` — `RollbackCompacted` is NARROWED, not retired: the twenty stand, the unit proceeds to its landing, and one bookkeeping operation is bookmarked
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, accepting the one question
+`U-STOREROOM-FILE-SAVE-COVERAGE`'s third gate-2 derivation left open. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> Accept the narrowing. Proceed and bookmark the bookkeeping operation for after implementation
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **`RollbackCompacted` SURVIVES, AND ITS SUBJECT NARROWS TO ONE STATE.** With `D-108`'s regeneration doing the work the
+   all-or-nothing floor used to refuse, the token's remaining subject is **a temporally-bounded candidate set holding a
+   compacted entry AND a `filePath` whose image cannot be read as an object** — **the only producer left**, and one an
+   externally corrupted file is required to reach. **THE FAIL SET STAYS TWENTY: no member retires, none is renumbered, and no
+   status byte in a kept contract moves** (that is the price the alternative carried and this row refuses).
+2. **THE SPEC'S RECOMMENDATION IS THE RULING, SO THE GATE-2 VERDICT STANDS AS ISSUED.** The unit's contract directory
+   declared both branches and priced the narrowing; the architect took the declared branch, **so no fourth derivation is
+   owed** — the directory is usable as it stands, and **`sites.md §4.2`'s items 15–18, which could be edited in neither
+   direction while the question stood, are edited in the narrowing's direction.**
+3. **THE UNIT PROCEEDS TO GATE 3 — THE LANDING** (`strata/walkthrough.md` §2's gate 3: the bytes at their sites, the
+   generated copy restored, and the records the unit owes).
+4. **ONE BOOKKEEPING OPERATION IS BOOKMARKED FOR AFTER IMPLEMENTATION** — `strata/research.md` §14 `BK-1`, with its owner
+   and its revisit condition: the dirty-tree boundary set is **two rows in one file** (`S-1` and `REG-EXEC`), not the
+   four-in-three and six-in-four that earlier reports repeated. **AND THE BOOKMARK CARRIES A CORRECTION TO THE REPORT'S OWN
+   CITATION, FOUND BY RE-READING IT RATHER THAN REPEATING IT: the report says *"the brief's own §6 says the same — 'one
+   trivial no-op edit reads 2 failed'"*, and `strata/brief.md` §6 CARRIES NO SUCH SENTENCE** (`grep`, this date: no `2
+   failed`, no `no-op edit`, and no dirty-tree figure anywhere in the file). **So the figure is the report's own
+   re-measurement and its citation does not resolve** — the correction is owed, and so is a re-measurement that stands on
+   its own instrument. **It is `RESERVED`, not started, and no byte of this unit's landing carries it.**
+
+**WHAT IT DOES NOT SETTLE.** The cell that re-derives `s8_1_11` against a corrupt-file fixture (the test layer's, and the
+narrowed subject's only producer); the exact guide and contract sentences the narrowing needs (`clauses.md`'s text limb,
+already declared); the release's number (the release pass's); and the bookmark's own performance, which waits on the
+landing.
+
+**WHAT IT CHANGES BELOW ME: nothing but a scope sentence and a queue entry.** The narrowing's mechanism was declared and
+priced by the spec's own recommendation; **the landing takes it as written, and the bookmark is recorded rather than
+worked** — the two halves of the architect's sentence are exactly that, and a pass that starts the bookkeeping before the
+implementation lands has left this row.
+
+**TERMS: the statuses this row retires (`0`), the status it narrows (`1` = `RollbackCompacted`), the set's size it keeps
+(`20`), the derivations it voids (`0` = the declared branch was taken), the gates it opens (`1` = gate 3), the operations it
+bookmarks (`1` = `BK-1`).**
+
+---
+
+### `D-110` — the regeneration's base is the store's own EXISTING file-or-construction fallback, not a second reader
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, on gate 4's `F1` and the correction that
+answered it. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> The regeneration should be an already existing fallback that uses the file, if available, and the construction image if
+> not.
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **`F1`'S CORRECTION IS RIGHT ABOUT THE BASE AND WRONG ABOUT THE MEANS.** The correction pass gave the regeneration a
+   fresh base — the `file`'s own image where one stands, `Store::born` where none does — which is `D-108` item 1's two
+   grounds, and it drove the durable-loss finding closed. **But it minted a SECOND READER to do it**
+   (`Store::durable_base`, its own three "none" arms and its own `json::decode`), **duplicating a fallback the store already
+   has**: `Store::boot_load` (`src/store.rs:1498`) reads the file, answers `None` for exactly the three classes that owe
+   the construction image (no `filePath`, an absent or unreadable file, a zero-length file), and mints every admitted
+   member at `Tier::File` — **the existing fallback is `boot_load` for "the file, if available" and `Store::born`
+   (`:646`, set at `:814`) for "the construction image if not".**
+2. **THE STORE KEEPS ONE READER, AND THAT IS THE RULING AND NOT A STYLE NOTE.** A second reader is a second decode of the
+   same bytes by the same format, and this project has already paid for one duplicated mechanism drifting from its
+   sibling (`D-1-ter`'s four pins on one file, `D-69`'s second reach). **`durable_base` is DELETED as a reader**; the
+   regeneration reaches its base through the existing fallback, and any fact the fallback's current answer does not carry
+   **is carried out of the one place the decode already happens** rather than re-derived beside it.
+3. **`D-109`'S PRODUCER SURVIVES THE SIMPLIFICATION, AND THAT IS THE HARD PART, SO IT IS SAID PLAINLY.** The narrowed
+   `RollbackCompacted` fires on *an image that stands and that the store's own loader refuses*, and `boot_load`'s declared
+   answer (`Option<usize>`) cannot tell that state from an empty-but-decoded `{}` — **both read `Some(0)`**. **So the
+   shared reader's answer carries the third class once, where the decode happens, and `boot_load` keeps its declared
+   `Option<usize>` answer unchanged for the boot path** — **a design that widens `boot_load`'s declared answer, or that
+   re-reads the file a second time to recover the missing class, has left this row.**
+4. **NOTHING ELSE MOVES.** The `file` tier's minting, the replay of what the journal still reaches, the absent journal
+   entry, the unstepped `last_seq`, the untouched marks, the single serialization, and `D-108` item 3's answer on
+   memory-only versions all stand as the correction pass left them. **The twenty statuses, the fourteen members and the
+   barrel stay unmoved.**
+
+**WHAT IT DOES NOT SETTLE.** The reader's own name and shape (the store's, and L1's if a pin names it); whether the third
+class travels as an `Option<Result<…>>`, an enum or a private struct; and the prose that names the mechanism — **a guide
+sentence that names `boot_load` must name the fallback and not a helper that no longer exists.**
+
+**WHAT IT CHANGES BELOW ME: one file and one deletion, and a rule that outlives the unit.** `src/store.rs` loses
+`durable_base` and gains the reuse; **and every later mechanism in this tree that needs "the durable state, else the
+construction state" reaches the existing fallback rather than copying it.**
+
+**TERMS: the readers this row leaves (`1` = the store's own), the readers it deletes (`1` = the correction's second), the
+grounds it names (`2` = the file · the construction image), the declared answers it forbids widening (`1` =
+`boot_load`'s), the statuses, members and arities it mints (`0`), the questions left (`1` = the reader's shape).**
+
+---
+
+### `D-111` — a COMPENSATING rollback does not save: the failing attempt's own reversal is compensation and not an act, and `D-38`'s rank-20 judgement is not preempted
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering the one question gate 4's second
+verdict left open. **THE QUESTION, AND THE ANSWER BY SELECTION (the option's own words are the record's):**
+
+> **(Q — the reversal's save sits inside `Store::rollback`, so it runs before the package judges the attempt. A reversal
+> composed by a FAILING attempt now saves, so a refused `file`-tier write's bytes move (measured: zero-length → `{}`)
+> although the unit's own shipped sentence says *"a failing pass performs no save at all"*; and when that save fails the
+> caller gets `FileCommitFailed` with an empty log instead of `D-38`'s rank-20 `ConstraintPassRefused`, which no ruling has
+> amended. Who owns the save on a compensating rollback?)**
+>
+> ***"The failing attempt's rollback does not save"***
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **A REVERSAL THE KERNEL COMPOSES TO UNDO A FAILING ATTEMPT IS COMPENSATION, NOT AN ACT, AND IT OWES NO SAVE.** It returns
+   the store to the state the call found, **so it changes nothing durable and there is nothing to save** — and because the
+   failing write's own save never happened, the `file`-tier projection is what it was. **`D-106`'s rule is not narrowed by
+   this row: it is applied correctly for the first time on that arm**, and the arm that violated it was the correction's
+   placement, not the rule.
+2. **A CALLER'S OWN `rollback` STILL SAVES** — that reversal is the caller's act and not compensation, so `D-106`'s ARM 3
+   stands whole (measured before the corrections: two `file`-tier writes, one reversal, the bytes holding the restored
+   value and a fresh boot reading it).
+3. **`D-38`'S RANK-20 JUDGEMENT IS NOT PREEMPTED AND `FileCommitFailed` DOES NOT TAKE ITS PLACE.** A reversal's save cannot
+   run before the pass's arm is decided, **so a `FileCommitFailed` can never answer where the declared arm is
+   `ConstraintPassRefused`** — **and the shipped sentence *"a failing pass performs no save at all"* is TRUE and stands**
+   (`clauses.md`'s final `§9.2` text, already landed; `docs/specs/storeroom-native/contract.md:3997`'s *"a write that did not
+   reach the pass's passing arm performs no commit"* with it).
+4. **THE MEASURED DEFECTS THIS CLOSES, EACH A CORRECTION'S AND NOT THE RULE'S**: the failing arm's bytes moving
+   (`J1`/`J2`: a refused `file`-tier write taking the path from zero-length to `{}`, and the inode moving on a standing
+   image), and the wrong token with an empty log (`K1`/`K3`: `FileCommitFailed`, `log: []`, where
+   `bindings/js/index.mjs:669`–`:672` and `docs/specs/storeroom-js/contract.md §2.6` declare `ConstraintPassRefused`).
+
+**WHAT IT DOES NOT SETTLE — L1's.** **How the store is TOLD that a rollback is compensation** — a second entry point, a
+position on the existing one, or a package-side decision reached before the store is called — with its price, and
+**whether the distinction needs a name in the corpus at all**; **the cells** that drive the two arms apart; and **the
+prose**, which must not leave a sentence implying that a caller's reversal and a compensation are one act.
+
+**WHAT IT CHANGES BELOW ME: one mechanism and one exemption, and it is the last blocker gate 4 named.** The unit's other
+open findings — the kept contract's remaining live survivor, the write set's six-against-two, the spec's own arithmetic,
+and the sixteen cells' re-derivation — are **not** answered here and are queued.
+
+**TERMS: the arms this row separates (`2` = a caller's reversal that saves · a compensation's that does not), the
+judgement it protects (`1` = `D-38`'s rank 20), the sentence it confirms (`1` = *"a failing pass performs no save at
+all"*), the defects it closes (`2`), the statuses, members and arities it mints (`0`), the questions left (`1` = the
+mechanism's carrier).**
+
+---
+
+### `D-112` — the reversal's save is AFTER the constraint judgement: the store's `rollback` does not save, and `judgeReversal` is the boundary the save stands behind
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, correcting L0's own account of the landing's
+placement. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> The save *does* happen after the constraint judgement
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE ORDER IS THE ARCHITECTURE'S AND IT IS ONE ORDER EVERYWHERE.** A write's save is its **terminal arm's, after the
+   pass**; a `delete`'s is its **terminal arm's, after the pass**; **and a reversal's is after ITS judgement** — the package's
+   `judgeReversal` (`bindings/js/src/entry/constraints.mjs:2474`, called from `index.mjs`'s `rollback` member at `:701`),
+   which asks the state the reversal left and throws `D-38`'s rank-20 `ConstraintPassRefused` where a touched pair refuses
+   it. **A SAVE THAT RUNS BEFORE THAT JUDGEMENT HAS SAVED A STATE THE JUDGEMENT MAY REFUSE** — which is exactly what the
+   shipped bytes did and what L0 miscounted as *"a narrow residual"* when it reported pass three.
+2. **SO `Store::rollback` DOES NOT SAVE, AND THE STORE'S `save_file_delta` CALL IS NOT THE REVERSAL'S CARRIER.** The reversal
+   performs the reversal — the replay, the regeneration, the report — **and no write to the path**; the save is the
+   package's act at the instant the judgement has passed. **`D-106`'s ARM 3 IS THEREFORE A PACKAGE-SIDE ARM AND NO LONGER A
+   STORE-SIDE ONE**, and `D-110`'s one-reader rule is what the carrier must respect.
+3. **THE COMPENSATING ARM IS UNCHANGED AND IS NOW STRUCTURALLY RIGHT FOR FREE.** The kernel's own compensation is
+   `COMPENSATING` and `judgeReversal` returns on it before any ask (`constraints.mjs:2478`), so a compensation is never
+   judged **and, standing behind the judgement, is never saved either** — `D-111` item 1 is discharged by the ordering
+   rather than by a predicate, and the equality test the third correction pass invented is no longer the mechanism.
+4. **AND THE DEFECT THE LANDING'S PLACEMENT PRODUCED IS CLOSED BY CONSTRUCTION, NOT BY A SPECIAL CASE**: a failed save can no
+   longer answer where `D-38`'s rank 20 is the declared arm, because the save is reached only after that arm has passed.
+
+**WHAT IT DOES NOT SETTLE — L1's, and one of them is a declared-surface act.** **The carrier the post-judgement save uses**: a
+reversal appends no journal entry (*"a save is an effect and not an op"*, `M-9`, unmoved), so an op-keyed `commitFile` cannot
+name it, and **the addon's entry count and the instance's member set are declared surfaces** — whether the carrier is a
+tenth addon entry, a position on the existing one, or a package act that reaches the store's own writer through a channel
+the corpus already declares, **is a declaration and not an implementer's choice**. **Also L1's:** the cells that drive the
+two arms apart, and the prose that must stop implying a caller's reversal and a compensation are one act.
+
+**WHAT IT CHANGES BELOW ME: the last mechanism of the unit moves out of the store and behind the judgement.** The three
+correction passes' store-side saves are **withdrawn as carriers** — the equality test, the pre-act projections and the
+`save_file_delta` call in `rollback` go with them — while the regeneration (`D-108`), the one reader (`D-110`), the
+registration's close (`D-106` arm 1, `D-107`) and the eligibility by what an act moved (`D-106` arm 2) stand as they were.
+
+**TERMS: the instants this row orders (`2` = the reversal · its judgement), the carriers it removes (`1` = the store's
+`rollback` save), the arms it makes structural (`1` = the compensation), the declared surfaces it hands to L1 (`2` = the
+addon's entry count · the instance's members), the statuses it mints (`0`), the questions left (`1` = the carrier).**
+
+---
+
+### `D-113` — the reversal's save names an OP: the most recent repair's, else the reversal's own — and the reversal's judgement RUNS REPAIRS
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering L1's question about the save
+command's format. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> The reversal is already pointing to an op and should be checking constraints and running repairs, if any are needed. Use
+> the most recently generated repair op or the original reversal op if no repairs were needed.
+
+**AND, ON THE FAILED SAVE'S LOG, ANSWERED BY SELECTION AND CONFIRMED IN THE SAME SESSION:** ***"It carries the judgement's
+entries"*** — the refusal carries the entries the judgement appended in its own window, and `§9.4` stays untouched.
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **★ NO NEW ADDON ENTRY IS OWED, AND THE COUNT STAYS `15`.** `D-112` left the carrier open and L1 proposed a twelfth
+   per-verb entry keyed to a state (`saveFile()`, zero positions). **The architect's answer makes that unnecessary: the save
+   command is the one the store already has — `commitFile(opId)`, ONE POSITION, AN OP ID** — **because a reversal is already
+   pointing at an op and the judgement may mint more.** **So the addon's export set does not move, the instance's fourteen
+   stand, and the contract's census byte owes nothing.**
+2. **THE OP THE SAVE NAMES, IN TWO ARMS AND NO THIRD.** **The MOST RECENTLY GENERATED REPAIR OP where the judgement ran a
+   repair, and THE REVERSAL'S OWN OP where no repair was needed** — that is, the `opId` the caller's `rollback(opId)` named.
+   **A save is keyed to an op the journal holds, and to nothing else**: no state-keyed command, no argument-free entry, no
+   second form of `commitFile`'s position.
+3. **★ THE REVERSAL'S JUDGEMENT IS A PASS, NOT A VETO: IT CHECKS CONSTRAINTS AND RUNS REPAIRS WHERE ONE IS NEEDED.** Today
+   `judgeReversal` (`bindings/js/src/entry/constraints.mjs:2474`) asks the touched pairs and **throws rank `20` where one
+   refuses, with no repair arm at all** — **the architect now says the reversal should be doing what a write's pass does:
+   ask, and let a pair's registered repair land its edit.** **A repair landed at a reversal's judgement generates an op,
+   that op is what the save names, and the re-run over it is the ordinary one** (`D-53`'s invariant: the repair joins the
+   same commit).
+4. **THE ONCE-PER-RECORD LAW IS NOT RE-SPELLED BUT ITS GUARD IS NAMED, AND THIS IS THE POINT OF THE TWO ARMS.** A reversal's
+   save at the reversal's own op is a save of a record the journal may already mark `saved`, **and the reason the law exists
+   is a record's save no longer describing the register** — **so the guard on this arm is that the store writes only where
+   the image the path holds is not the state the store stands at** (`D-108`'s *"a state the store knows it has not saved"*),
+   **which is also what makes a second identical reversal write nothing.** **`storeroom-js/contract.md:684`'s FAILS-IT state
+   — *"a save performed twice for one record"* — keeps its subject: a second save of the same record with nothing moved is
+   still refused; a save of the same record after the register moved is the save the rule owes.**
+5. **A FAILED SAVE ON THIS ARM CARRIES THE JUDGEMENT'S ENTRIES** (the confirmed answer): the refusal is the store's
+   `FileCommitFailed` with the entries the judgement appended, **and the reversal stands in memory while the bytes were not
+   updated** (`D-107` item 3, untouched), **and `§9.4` is not widened.**
+
+**WHAT IT DOES NOT SETTLE — L1's.** **How the repair arm reaches the reversal's judgement** (the same `judgeReversal` frame,
+or a pass shaped like the delete's attempt — `D-55` item 3's precedent is the nearest), **which commit the reversal's
+judgement stands in** (`D-44`: no constraint check without an open commit — the frame opens one today at `:2533`), **what a
+reversal whose repair itself refuses answers** (rank `20` is the current arm; whether a repair's failure on this instant has
+its own token is a declaration), **the cells**, and **the prose**.
+
+**WHAT IT CHANGES BELOW ME: the carrier question closes, and it closes by removing the thing it was going to add.** The
+declaration L1 wrote for a state-keyed entry is **withdrawn as unwritten** — nothing was landed from it — and the unit's
+remaining work is the reversal's repair arm plus the op-keyed save behind the judgement, with the addon's surface, the
+instance's members and the fail set all unmoved.
+
+**TERMS: the carriers this row removes (`1` = a state-keyed addon entry, never landed), the carriers it names (`1` =
+`commitFile`'s op position), the arms of the naming (`2` = the last repair op · the reversal's own op), the behaviours it
+declares (`1` = the reversal's judgement runs repairs), the declared surfaces it moves (`0` = the addon's `15`, the
+fourteen members, the twenty statuses), the questions left (`2` = the repair arm's frame · the open-commit rule at that
+instant).**
+
+---
+
+### `D-114` — CORRECTION to `D-113` item 2: the save names the op PRIOR to the reversed op, not the reversed op
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, correcting `D-113`'s second naming arm. **THE
+ARCHITECT'S WORDS, VERBATIM:**
+
+> Correction: Use the op prior to the reversed op
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT CORRECTS, BY NAME.** `D-113` item 2 read *"the MOST RECENTLY GENERATED REPAIR OP where the judgement ran a repair,
+and THE REVERSAL'S OWN OP where no repair was needed"*. **THE SECOND ARM IS WITHDRAWN AND REPLACED**: where no repair was
+needed, **the save names THE OP PRIOR TO THE REVERSED OP** — **and the reason is the reversal's own semantics, not a
+preference: a reversal undoes the named op AND EVERYTHING AFTER IT** (`§6.1`–`§6.4`; the store's scope is the addressed
+subtree at or after the named op's `seq`), **so the state it restores is the state the store stood at before the reversed op
+landed — which is exactly the state the PRIOR op left.** **A save named at the reversed op would name the state the reversal
+has just undone.** **`D-113` item 2's FIRST arm stands whole** (the most recently generated repair op where the judgement ran
+a repair), and so do items 1, 3, 4 and 5.
+
+**WHAT IT SETTLES.**
+
+1. **THE NAMING RULE, ONE SENTENCE**: **the most recently generated repair op where the judgement ran a repair; otherwise the
+   op prior to the reversed op.** Every save this unit adds at a reversal is keyed to an op the journal holds, and to a
+   record whose state is the state the store stands at.
+2. **AND THE GUARD `D-113` ITEM 4 NAMED NOW READS AS THE SAME FACT FROM THE OTHER SIDE.** The prior op's entry may already
+   carry the per-record mark (its own save happened when it was written), **and the store still writes, because the image the
+   path holds is the state the reversal removed and not the state the store stands at** — **so the guard is not a licence to
+   re-drive; it is the statement that THIS save has not been performed.** **A second identical reversal finds the image
+   equal and writes nothing** (`D-113` item 4's property, unmoved).
+3. **NO DECLARED SURFACE MOVES AGAIN**: the addon's `15`, the instance's fourteen, the twenty statuses — `D-113` item 1's
+   consequence stands, and this correction does not reopen it.
+
+**WHAT IT DOES NOT SETTLE, AND ONE EDGE IS NOW VISIBLE BECAUSE THIS CORRECTION CREATED IT.** **THE REVERSED OP THAT IS THE
+STORE'S FIRST OP HAS NO PRIOR OP** — an empty journal before it, or a born/creation state and nothing else — **so the second
+arm has nothing to name and the restored state has no record to name it by.** **That edge is put to the architect below rather
+than decided here**, and the rest — the repair arm's frame, the open-commit rule at the reversal's judgement, the cells, the
+prose — remain L1's.
+
+**WHAT IT CHANGES BELOW ME: one arm of one naming rule, and an edge this row exposes.** The unit's carrier question stays
+closed (no new addon entry), the `D-108` regeneration and `D-110`'s single reader stay, and the store-side save the third
+correction pass put inside `Store::rollback` is still owed its withdrawal — **now with a naming rule that has to be able to
+name the first-op case.**
+
+**TERMS: the arms this row corrects (`1` = the no-repair naming), the arms it keeps (`1` = the last repair op), the reason it
+states (`1` = a reversal undoes its op and everything after), the edges it exposes (`1` = the first op), the declared surfaces
+it moves (`0`), the questions left (`1` = the first-op arm).**
+
+---
+
+### `D-115` — the THIRD naming arm: the reversed op names its own save when it is the journal's first, and the guard is what makes it lawful
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering the edge `D-114` exposed — a
+reversal of the journal's first op has no prior op to name. **THE ANSWER BY SELECTION (the option's own words are the
+record's):**
+
+> ***"Name the reversed op when it is the first"***
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE NAMING RULE IS NOW COMPLETE, IN THREE ARMS AND NO FOURTH: the most recently generated REPAIR op where the judgement
+   ran a repair · the op PRIOR to the reversed op where one stands · and THE REVERSED OP ITSELF where it is the journal's
+   first.** `D-113` item 2 and `D-114` stand as they were read through this one; **no fourth arm exists and no arm may be
+   invented for a case this rule covers.**
+2. **THE GUARD `D-113` ITEM 4 NAMED IS WHAT MAKES THE THIRD ARM LAWFUL, AND THAT IS THE WHOLE ARGUMENT.** The reversed op's
+   record may carry the per-record mark, **but the store writes because the image the path holds is the state the reversal
+   REMOVED and not the state the store stands at** — **so this save has not been performed**, and the guard is the statement
+   of that fact rather than a licence to re-drive. **A second identical reversal finds the image equal and writes nothing.**
+3. **THE MEASURED EDGE THIS CLOSES — and it was live, not hypothetical.** A store on a fresh `filePath`, one `file`-tier
+   write at `['a']` (`{"a":1}`), then `rollback(op-1)`: the memory goes empty, **and under the ruled two-arm naming there is
+   no op to name, so the bytes would keep `{"a":1}` while the memory holds nothing** — the defect class this unit exists for,
+   on the one arm the rule could not reach. **With this third arm the save is named, and the arm answers as the rule
+   requires: bytes `{}`, a fresh boot reading `AddressNotFound`.** (`Measured 2026-11-02 at `1a0d252`+landing, the checkout's
+   own addon; the driver is outside the repository.)
+4. **NO DECLARED SURFACE MOVES**: the addon's `15`, the instance's fourteen members, the twenty statuses, the four-line /
+   six-name barrel — `D-113` item 1's consequence stands and this row does not reopen it. **No new entry, no state-keyed
+   command, no second form of `commitFile`'s position.**
+
+**WHAT IT DOES NOT SETTLE — L1's.** **Where the save stands relative to the judgement** (`D-112`: after it, and the store's
+`rollback`-internal save is withdrawn); **how the reversal's judgement reaches its repair arm** (`D-113` item 3); **the cells
+and the prose**; and **the ordering rule the three arms imply** — a repair op outranks a prior op outranks the reversed op, and
+**a pass must say which arm it took where more than one is available** (a repair that lands AND a prior op that stands is the
+first arm; the rule is stated so that precedence is not left to a scan order).
+
+**WHAT IT CHANGES BELOW ME: the naming rule is closed.** The unit's remaining work is mechanical against it — the withdrawal
+of the store-internal save, the save placed behind `judgeReversal`, the judgement's repair arm, and the cells — and **the
+carrier question that has run through `D-112`–`D-115` is answered without a single byte moving on any declared surface.**
+
+**TERMS: the arms the rule holds (`3` = the last repair op · the prior op · the reversed op where it is first), the guard it
+leans on (`1` = the image the path holds), the defects it closes (`1`), the declared surfaces it moves (`0`), the questions
+left (`0` = the naming's; L1's four remain as `D-113`/`D-114` stated them).**
+
+---
+
+### `D-116` — the reversal's save is the STATE-KEYED write the store already performs: no op, no naming rule, no new entry
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering the question L0 put after re-reading
+the addon's own census — *is the op-based save the only save command?* **THE ANSWER BY SELECTION (the option's own words are
+the record's):**
+
+> ***"The state-keyed save the restore already performs"***
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **★ `D-113`–`D-115`'s NAMING RULE IS WITHDRAWN WHOLE, AND WITH IT THE QUESTION THAT BROKE IT.** Those three rows named an
+   **op** for the reversal's save — the last repair op, else the op prior to the reversed op, else the reversed op where it
+   is first — and **the third arm existed only because the second could not reach the journal's beginning, while the second
+   existed because a save named by the reversed op would name a state the reversal had undone.** **The architect's answer
+   removes the premise: the reversal's save is keyed to a STATE, not to a record, so there is nothing to name and no order to
+   resolve.** **No prior-op lookup is owed, no instrument is owed, and the count does not move.**
+2. **THE SAVE IS THE STORE'S EXISTING STATE-KEYED WRITE — the one its own RESTORE path performs** (`src/store.rs`'s
+   `restoreMark` chain: it takes the `file` tier's projection before the replay and again after it, and writes the restored
+   image **only where the two differ**, through the same `write_file` every save uses). **That is the fallback the tree already
+   has and it is the reason a refused reversal's compensating restore leaves the bytes agreeing with the memory.** **The store
+   keeps ONE writer and now exactly TWO keys: an op (`commitFile`, for a write's and a delete's and a registration's close) and
+   a state (the reversal's).** — **and the state-keyed reading is reached through `commitFile`'s ONE POSITION in its own ABSENT
+   CARRIER** (`OpIdArg`'s absent form, the one `restoreMark` already uses: *"an op id, or the ABSENT carrier"*), **so no
+   twelfth entry is minted, no arity moves, and the addon's set stays `15`.**
+3. **THE GUARD IS THE COMPARISON, AND THAT IS WHY A SECOND IDENTICAL REVERSAL WRITES NOTHING** (`D-113` item 4's property,
+   unmoved): the store writes where the image the path holds is not the state it stands at — **which is the same fact as "this
+   save has not been performed", and is why `storeroom-js/contract.md:684`'s FAILS-IT state keeps its subject.**
+4. **`D-112` STANDS WHOLE AND IS NOW THE ONLY CONSTRAINT ON THE INSTANT**: the save is the package's act **after** the
+   judgement, the store's `rollback` performs no write, and **the compensation is unreachable because `judgeReversal` returns
+   on `COMPENSATING` before any ask** — so it reaches neither the judgement nor the save. **`D-113` item 3's repair arm
+   stands** (the judgement asks and lets a pair's repair land), **`D-113` item 5's failed-save log stands** (the refusal
+   carries the judgement's entries), and **`D-107` item 3's `§9.4` stays untouched.**
+5. **WHAT THIS COSTS, SAID SO IT IS NOT DISCOVERED LATER**: the op-keyed save's **per-record marker** does not apply to this
+   arm (there is no record), **so the only thing that stops a redundant write is the projection comparison** — **which is
+   exactly the guard that the once-per-record law's *ground* names**; and a save that fails on this arm still refuses with
+   `FileCommitFailed` carrying the judgement's entries, **the reversal standing in memory and the bytes not updated.**
+
+**WHAT IT DOES NOT SETTLE — L1's.** **The absent carrier's declared reading** (it must be stated once as a form of
+`commitFile`'s position, with what `OpIdArg`'s domain owes — if the corpus's arity row must change, that is a declared surface
+and a numbered question, not a declaration); **the repair arm's frame** (`D-113` item 3's open question, unchanged); **whether a
+repair's own failure at this judgement owes its own token** (the status question, still his); **the cells and the prose**.
+
+**WHAT IT CHANGES BELOW ME: the unit's last mechanism, and it is the smallest one named so far.** The three naming arms go
+unwritten; the `saveFile()` declaration stays withdrawn; the store-side save inside `rollback` is still owed its withdrawal
+(`D-112`), with `D-108`'s regeneration and `D-110`'s single reader untouched; and the reversal's save becomes the second
+reading of a position that already exists.
+
+**TERMS: the mechanisms this row removes (`2` = the op-naming rule · the state-keyed entry), the keys the store keeps (`2` = an
+op · a state), the named surfaces it moves (`0` = the addon's `15`, the fourteen members, the twenty statuses, the barrel), the
+properties it keeps (`2` = a second identical reversal writes nothing · the once-per-record law's ground), the questions left
+(`2` = the absent carrier's form · the repair arm's frame).**
+
+---
+
+### `D-117` — ★ THE REVERSAL DELIVERS: the batch a reversal's judgement produces is delivered, and two smaller questions are answered with it
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering the three questions the third
+carrier derivation left open. **THE ARCHITECT'S WORDS, VERBATIM, IN FULL:**
+
+> Reversal needs to deliver
+>
+> Keep the other recommended answers
+
+**AND THE TWO ANSWERS THAT ARE "KEPT", READ FROM THE QUESTIONS THEY ANSWERED:** the absent carriage's two per-entry readings
+**are re-derived in this unit** (the corpus sentence, not the row's arithmetic), and **a repair that itself fails at the
+reversal's judgement answers rank `20` `ConstraintPassRefused` — no twenty-first status**.
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **★ A REVERSAL'S JUDGEMENT DELIVERS ITS BATCH — the reversal is not a check and its silence is REFUSED BY NAME.** `D-104`
+   gave a repair's write's `triggered` listeners their delivery **at a write's commit**; **a reversal's judgement can run a
+   repair too (`D-113` item 3), and the listeners that repair's write fires have a recipient — the caller's registry — and now
+   an instant.** So the reversal performs a delivery: **after its judgement has passed and after its save**, before the
+   member returns its record.
+2. **THE ORDER IS THE WRITE'S TERMINAL ARM'S, INSTANT FOR INSTANT**: **ask → repairs land → re-run → SAVE → DELIVER → the
+   member's record.** **The save precedes every delivered body** (`§2.11` clause 2's rule, applied at this instant), **and the
+   delivery's set is de-duplicated by handle and invoked once per distinct handle with the TRIGGERING ADDRESS as its single
+   argument** (`surface.md §2.4` rule 3; `PAR-JS-12`) — **the same three rules the write's arm obeys, read at the reversal's
+   own instant.** **No delivery occurs on the throwing arm, on the failing arm, or where nothing was fired** — a reversal that
+   fired no listener delivers nothing, and an empty batch is a no-op and not a failure (`§2.7` item 7 (c)).
+3. **AND THE FAILING ARM'S SET IS THE DISCARD'S, NOT A LEFTOVER** (`A113` (D1)'s second, unlawful removal stays withdrawn): a
+   judgement that refuses discards **the handles ITS repairs' writes returned** and nothing else, by each write's own
+   returned set, exactly as the landing's failing arm does (`kernel-terminal.mjs`'s discard filter, `D-104` item 2's failing
+   half).
+4. **THE OTHER TWO, KEPT**: **(a)** `OpIdArg`'s absent row bears two per-entry readings — *the journal's head* at
+   `restoreMark` and *the state, saved* at `commitFile` — **and the corpus sentence that glossed it as one is re-derived in
+   this unit**, on the same ground `D-107` item 4 used for the native contract's byte, **without moving the row's
+   arithmetic**. **(b)** **A repair that itself fails at this judgement answers rank `20` `ConstraintPassRefused`,
+   restore-first, and NO STATUS IS MINTED** — the closed set stays twenty.
+5. **WHAT THIS COSTS, NAMED SO IT IS NOT DISCOVERED**: a reversal gains a **delivery instant** it did not have, **and the
+   delivery is the package's act over the caller's registry** — so the reversal's own record is unchanged (`{opId, undoneOps,
+   restoredTo}`), **no member is added**, **and a listener a reversal fires now runs before the member returns** — which is a
+   behaviour a consumer can observe and therefore a release note, not a silent fix.
+
+**WHAT IT DOES NOT SETTLE — L1's.** **Where the reversal's delivery set is collected** (the repair's write's returned
+`triggered`, read off the repair's own record — `D-104`'s mechanism at the pass, at this instant), **whether the reversal's own
+act carries a `triggered` set at all** (a reversal appends no journal entry, so the store returns none — **a declaration, and
+if the answer needs a store-side change it comes back**), **the cells** (a fired listener on the passing arm, none on the
+failing arm, the discard on the refusing arm), **the prose**, and **the version line** this delivery owes.
+
+**WHAT IT CHANGES BELOW ME: the unit's fifth behaviour, and the first a consumer can observe from outside the store.** The
+carrier work (`D-112`–`D-116`) is untouched by it — the save still stands behind the judgement, still keyed to a state, still
+`commitFile`'s absent carriage — and **the delivery is the act that follows it.**
+
+**TERMS: the instants this row orders (`4` = ask · repair · save · deliver), the rules it reads at the new instant (`2` = the
+save before any body · the one-invocation-per-handle), the arms it leaves silent (`3` = throwing · failing · empty), the
+statuses it mints (`0`), the declared surfaces it moves (`0` = the fifteen, the fourteen, the twenty, the barrel), the
+questions left (`2` = the delivery set's provenance · the reversal's own `triggered`).**
+
+---
+
+### `D-118` — a CORRUPT image is not a refusal: the regeneration falls back to the store's CREATION image, and `RollbackCompacted` loses its last producer
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering the question `D-117`'s property register left open — whether the last surviving producer of the narrowed token should be retired or kept as a declared exception. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> In the corrupt file case, then it restores from the store creation image
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **A PRESENT IMAGE THE STORE'S OWN LOADER CANNOT READ IS TREATED AS NO IMAGE AT ALL, AND THE REGENERATION FALLS BACK TO THE CREATION STATE** — `Store::born`, the boot's own floor (`D-108` item 1's second ground), **exactly as where no `filePath`, no file, or a zero-length file stands.** **So the regeneration never refuses on a corrupt image: it rebuilds from the creation state and the reversal proceeds** — **and the reversal's own save then writes that image over the corrupt file**, which is the durable state the memory holds.
+2. **★ `RollbackCompacted` THEREFORE HAS NO PRODUCER LEFT.** `D-109` narrowed it to the corrupt-image arm; **this row removes that arm**. **The token's SET MEMBERSHIP IS NOT DECIDED HERE** — the closed set is the store's — **but no act of this tree can reach it any more, and L1 must declare it `DECLARED, NO PRODUCER` or put its retirement as a numbered question.** **`D-107` ITEM 1 IS NOW UNCONDITIONAL, AND THE RELEASE NOTE MAY SAY SO** (the prohibition `D-117`'s declaration put on the note is discharged).
+3. **WHAT THIS CLOSES, BY NAME**: finding (β) of the property register — **a refusing registration whose composition met `RollbackCompacted` left its landing standing** — **cannot arise**: the composition regenerates from the creation state instead of refusing, so no landed edit survives a refusal on that arm either.
+4. **WHAT IT COSTS**: a store whose file was replaced by something that is not its image **loses whatever the file held and rebuilds from its creation state** when a reversal or a refused composition regenerates — **the bytes at that path were never readable as this store's state, so nothing the store could have read is lost**, and the save that follows puts a readable image back. **Nothing else moves** — the reader (`D-110`), the two ground truths, the once-per-record guard, the twenty statuses' membership, the fifteen/fourteen/barrel.
+
+**WHAT IT DOES NOT SETTLE — L1's, one of them his.** **Whether `RollbackCompacted` retires from the closed set** (his: the set is the store's) — the only point put to him; **the cells** (the corrupt-image arm now asserting the CREATION-state rebuild and the save that follows, replacing the token's cell); **and the prose** that names the token.
+
+**WHAT IT CHANGES BELOW ME: the unit's last refusal on the file's own corruption is gone, and with it the only exception `D-107` item 1 ever had.**
+
+**TERMS: the arms this row removes (`1` = the corrupt-image refusal), the ground truths it names (`2` = the creation state · the file image where readable), the findings it closes (`1` = the register's β), the statuses it retires (`0` decided; `1` put to him), the declared surfaces it moves (`0`), the questions left (`1` = the token's membership).**
+
+---
+
+### `D-119` — ★ THE LOG CROSSES ON RESOLUTION TOO: cached by the package and handed to the surface, so a manual data change can see what it moved downstream
+
+**DATE:** 2026-11-02. **BRANCH:** `main`. **SOURCE:** the architect, in session, on the package's answer to a passing call. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> Cache the log and pass to the surface on resolution, same as on failure. This is needed so that manual data
+> changes can check what additional data changed downstream of their request
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **★ THE MESSAGE LOG IS A RESULT, NOT ONLY A FAILURE REPORT.** `D-53` gave the commit's one list to every **refusal**;
+   **this row gives the same list to every RESOLUTION** — **a call that PASSES answers with the entries the commit
+   appended, exactly as a refusal does.** **The architect's ground is the consumer's: a manual data change may fire
+   constraints whose REPAIRS land edits downstream of the request, and the caller must be able to see what its own act
+   moved beyond what it asked for.** **A caller that cannot read the passing log cannot audit its own write.**
+2. **AND THE CARRIER IS ALREADY NAMED IN THE TREE: the PACKAGE caches the log, because the STORE does not keep it.**
+   `D-58`'s rule stands whole — *"After a commit/attempt resolves/rejects, the store does not need to retain the message
+   log … Don't retain it"* — **so the store still drops it at the handoff (`dropHandoff`) and no store retention
+   returns.** **What changes is the PACKAGE's side: the kernel holds the commit's list until the answer crosses, and the
+   surface hands it over with the record.** **A pass that re-opens store retention has left this row; a pass that lets the
+   entry drop the list before the answer crosses has failed it.**
+3. **"SAME AS ON FAILURE" IS THE FORM'S OWN SENTENCE, AND ITS CONSEQUENCES ARE L1's TO PRICE.** A refusal carries `log` as
+   **one of its four declared members** (`{status, message, log, address}`); **a passing answer's record is a CLOSED set
+   whose members a census counts** (`write`'s three, `delete`'s, `rollback`'s three, the registration's identity), **and
+   `A117` (D6)'s device — a `Symbol.for`-keyed, non-enumerable own accessor, the one `discarded` already uses — is the
+   precedent for attaching a datum without moving a census.** **Whether the passing log rides that way or becomes a
+   declared member is a DECLARATION and not a detail**: the first moves no census (the fourteen members, the record
+   shapes, every deep-equality a consumer writes), the second moves a record's declared members and every type that
+   reads it.
+4. **WHAT IT IS *NOT*.** It is not a second log: the entries are the commit's own, one list, the same objects a refusal
+   crosses with — **so a call that passes and a later refusal on the same commit can never disagree.** It is not a live
+   view: the list is **cached at the crossing and stable after it**, the store having let go of its own copy. And it does
+   not touch the delivery: a listener body's view and the caller's view are the same list, but the delivery's set is
+   still `pending`'s.
+5. **THE RELEASE CARRIES IT.** The release is committed at `5325526` and **not yet pushed or tagged**, so `1.9.1` still
+   absorbs this row; **the note's five lines become six**, and the sixth says a passing call answers with the commit's
+   log so a caller can see what its act moved downstream.
+
+**WHAT IT DOES NOT SETTLE — L1's.** **The form** (item 3's two choices, priced against `A117`'s census and every
+consumer deep-equality); **where the cache lives and when it is released** (the kernel's `closed` map keeps the report
+today and `dropHandoff` strips the log — the cache must outlive that strip at least until the answer crosses); **which
+answers carry it** (a write, a delete, a reversal, a registration's identity, and a re-arm); **the cells** (a passing
+call's log carrying a repair's entry; a passing call whose log is empty; a caller's deep-equality over the record
+unaffected); **the prose**; and whether `D-77`'s `address` lesson — *"equal means the caller's own act, different means a
+listener's"* — needs a parallel sentence for the log.
+
+**WHAT IT CHANGES BELOW ME: the last asymmetry between a passing call and a refusing one.** A consumer's audit trail
+stops depending on the call having failed.
+
+**TERMS: the arms this row gives the log (`2` = resolution · failure), the cache it requires (`1` = the package's, the
+store's retention untouched), the forms it prices (`2` = a non-enumerable accessor · a declared member), the surfaces it
+moves (`0` decided by this row), the statuses it mints (`0`), the questions left (`1` = the form).**
+
+---
+
+### `D-120` — **`ST-F1`'s fix is ONE code-bearing unit: the whole membership class at the registration instant, a PATCH cut, the full acceptance standard, and the corpus cell's cure marked in the same pass**
+
+**DATE:** 2026-11-03. **BRANCH:** `main`. **SOURCE:** the architect, in session, answering the four questions the supervisor put on the intake of the downstream fix request `ST-F1` (`strata/research.md` `§15.6`), each with its recommended option. **STATUS: `ACTIVE`.** **THE FOUR ANSWERS, VERBATIM AS THE OPTIONS WERE PUT:**
+> 1. Whole class: outcome message+repair AND the result's ok
+> 2. Cut PATCH 1.9.3, eleven version cells + notes
+> 3. Full code-bearing standard
+> 4. This unit asks for the grant and marks the cure in the same pass
+
+**WHAT IT SETTLES.**
+
+1. **SCOPE — THE WHOLE CLASS, AT THE REGISTRATION INSTANT, IN ONE UNIT.** The fix converts **BOTH** registration-instant reads of a caller-supplied value to the write's own-member discipline — the constraint outcome's `message` and `repair` (`bindings/js/src/entry/kernel-registration.mjs:399`-`:401` at this date) **AND** the repair result's `ok` (`kernel-registration.mjs:676`) — so the two divergences the record names as ONE CLASS (`docs/specs/storeroom-repair-arm-surface/contract.md` `§4` items 3 and 4) close together. **THE DOWNSTREAM ASKED FOR ONE WORD (`repair`); THIS ROW RULES THE WHOLE CLASS** — an inherited `message` and an inherited `ok` are the same defect, and a unit that fixed one arm would leave the other owed with the same owner. **The write's evaluation and the reversal's judgement are NOT in the write set** — they already read own members (`kernel-attempt.mjs:810`-`:818`, `:1028`-`:1033`; `constraints.mjs:2810`-`:2814`) — and no instant's reading may move to a chain read.
+
+2. **CLASS AND CUT — `PATCH 1.9.3`, THE ELEVEN CELLS MOVING TOGETHER WITH THE RELEASE NOTES.** The ground is `D-104`'s own precedent (*"This is a behavior defect, wrap into the fix patch"*) and `PUB-DD-9`'s `PATCH` row (*"a fix inside the declared surface"*): **no type, no instance member, no record member, no status and no refusal MESSAGE moves** — what moves is *what a shape answers at one instant*. **The eleven cells are the main manifest's `version`, its five exact `optionalDependencies` pins and the five platform manifests' `version`; the three shipped documents' generated version line follows; `RELEASE-NOTES.md` and `bindings/js/RELEASE-NOTES.md` carry the section.**
+
+3. **ACCEPTANCE — THE FULL CODE-BEARING STANDARD.** The unit owes: **a committed `tests/e2e/` red set** driving the report's shape at **both registration routes** (`storeCreate`'s batch and `addConstraint`) and **both arms** (an inherited `repair`; an inherited `ok`; the inherited `message` alone), each asserted by its own status; **a blind instance where the battery can turn** (a cell that fails today and passes only after the read is converted); **and the property row `U-STOREROOM-CONSTRAINT-OUTCOME` `§9` names in words** — *"at BOTH evaluation instants the same returned outcome answers the same membership question — what `addConstraint` decides a shape CARRIES is what the write's own evaluation READS of that shape, both decided by own-property forms"*. **The downstream's `VA-14`/`VA-15` are NOT copied:** they are that project's cells and this repository carries no `VA-` family.
+
+4. **THE CORPUS CELL — THE GRANT IS ASKED FOR AND TAKEN IN THE SAME PASS.** `docs/specs/storeroom-constraints/contract.md:361`-`:405`, sub-item `(viii)`, is the OWED cell whose **positive revisit condition is exactly this unit's landing** (*"the first passing code-bearing unit that touches `addConstraint`'s outcome read"*). **Its own rule — *"RECORDED and NOT CURED"* — means the cure owes a mark, and `D-87` (1) grants no scope inside the nine kept contracts, so the grant must be this row's.** **IT IS: the unit MAY append ONE dated `RCA-8(g)` mark beside sub-item `(viii)` — appending, deleting nothing, moving no standing byte, minting no second cell, opening no other subject — recording that the two reads were converted at this unit's landing and that the cell's subject is thereby CURED rather than standing.** **No other clause of any kept contract may move, and the mark may not re-print the reads' arms, the `D-35`/`D-36` classification, or the cell's ownership sentence.**
+
+**WHAT IT DOES NOT SETTLE, EACH LEFT TO A LAYER BELOW.**
+- **The unit's gate-1 record**: the fraction, the remainder and their boundaries are the validity gate's, not this row's. **`D-85` item 1 lets a pass record the divergence as CURED without naming a repair** — this row is the architect's word that the repair is now OWED and taken, and the gate-1 record prices the unit's shape.
+- **The cells' names and their files**, the **property row's strategy and generator** — the test layer's (`D-5`'s scopes apply; a new path under `tests/e2e/`).
+- **The exact sites of the prose marks.** The guide's `:1094` and `bindings/js/index.d.ts:1587`-`:1589` clauses assert the one-instant scope and would become FALSE the moment the reads were converted, so **they are OWED a date-stamped correction in this same pass** — append-only, the sentence standing and the mark beside it stating the new reading. **`bindings/js/README.guide.md` is re-staged from its authored home**, never hand-edited.
+- **The adjacent credit rule.** The registration instant's credit is op-based (`{ok: true, op}` required, `kernel-registration.mjs:676`-`:679`) while the write's is op-free since `D-105`; **that is `docs/L1/op-free-repair-credit.md §8.3`'s open `Q-1`, not this unit's, and no byte of it moves here.** **`strata/research.md` `§15.6` `Q-6` records the hazard and this row declines it.**
+- **The implementation, its ordering and its executor** — `D-13`'s/`D-16`'s pattern applies: the unit's gate 1 declares, gate 2 fixes the statement list, gate 3 lands code + tests + prose + the PATCH cut.
+
+**THE UNIT, MINTED BY THE SUPERVISOR ON THIS WORD.** **Unit id: `U-STOREROOM-REGISTRATION-OWN-MEMBERS`** — the subject is the instant and the rule, and the id names both. **Its contract directory, at gate 2: `docs/specs/storeroom-registration-own-members/`.** **Prefix `D-GP-SROM` — PROPOSED BY THE SUPERVISOR AND FILED BY THE ARCHITECT** (`D-GP-SCRI`'s precedent: a prefix is the architect's to file). **The intake record this unit derives from is `strata/research.md` `§15`; the defect rows it closes are `docs/specs/storeroom-repair-arm-surface/contract.md` `§4` items 3 and 4; the corpus cell it cures is `docs/specs/storeroom-constraints/contract.md:361`-`:405`; and the ruling the reads regress against is `D-35` as closed by `D-36`.**
+
+**TERMS: the questions answered (`4`), the answers that take the recommended option (`4`), the read sites this row puts in the unit's subject (`2`), the reads it declares unmoved (`3`), the version it names (`1` = `1.9.3`, PATCH), the acceptance limbs it requires (`3`), the corpus cells it opens (`1`), the cells it opens beyond that one (`0`), the statuses it mints (`0`), the types it moves (`0`), the code bytes this row moves (`0`), the units it mints (`1`).**
+
+---
+
+### `D-121` — ★ **A READ CARRIES THE TIER WHEN THE CALLER ASKS: an OPT-IN read option that, compiling to JSON, stamps `_tier` on objects and replaces leaf literals with `{ _tier, value }`**
+
+**DATE:** 2026-11-06. **BRANCH:** `main`. **HEAD:** `2c2b882`. **SOURCE:** the architect, in session, answering the supervisor's gate-1 record `strata/proposals.md` `P-1` (which carried verdict `BLOCKED-ON-SEMANTICS`, ten questions and six priced alternatives) with **a shape rather than a per-question answer**. **STATUS: `ACTIVE`.** **THE RULING, VERBATIM:**
+
+> "Add an additional read option that, when compiling to JSON, adds a `_tier` field to objects and replaces the literals on leaf nodes with objects with a `_tier` and `value` keyset"
+
+**WHAT IT SETTLES.**
+
+1. **THE CARRIER IS AN OPT-IN OPTION ON THE READ — AND IT IS THE FIRST OF `P-1`'s SIX SHAPES TO BE CHOSEN.** It is **not** an envelope replacing `read`'s answer (alternative `a`), **not** a default member on every answer (alternative `b`), **not** a second verb (alternative `c`), **not** documentation alone (alternative `d`), and **not** a hidden symbol channel (alternative `e`). **A caller who does not ask receives today's answer, byte for byte** — so the default arm is unmoved, and with it `P-SR-1`'s member-set relation (`docs/specs/storeroom-js/contract.md:1150`), the `67` `assert.deepEqual` sites over a `read(…)` answer measured in `11` files, and the two shipped measured prose sentences (`RELEASE-NOTES.md:361` and its landing, *"`store.read(['v'])` answers its value and the object's own names are `["v"]`"*).
+
+2. **THE COMPILATION INSTANT IS THE JSON ENCODING, AND NOT THE STORED DATA.** The words are *"when compiling to JSON"*, with *"the literals on leaf nodes"* and *"objects"* — **so the transformation belongs to the answer's ENCODING and never to what the store holds.** **THE STORE'S OWN ANSWER IS NOT RE-DECLARED:** arm `R-1`'s *"its value, verbatim"* (`docs/specs/storeroom-native/contract.md:2228`), `R-2`'s *"one member per key"* (`:2229`), `R-5` (`:2232`) and `readLiteral`'s *"the same absence of any wrapper"* (`:2190`) **stand as the DEFAULT arm's law, and the option is a second arm beside them.** **NO BYTE OF ANY STORED VALUE MOVES, and no member is minted into the caller's data** — which is what keeps `docs/specs/storeroom-json-crossing/contract.md:836`'s exact-member-set rule and `P-SR-1` intact: what the option changes is the **shape of the answer the caller asked to be compiled**, not the shape of the tree.
+
+3. **THE TWO NODE FORMS, AND `Q-6` IS ANSWERED BY THE WRAPPER RATHER THAN BY AN EXEMPTION.** **An OBJECT node gains a `_tier` field. A LEAF node is REPLACED by an object with a `_tier` key and a `value` key.** So **the primitive-leaf obstacle that made `P-1` `BLOCKED-ON-SEMANTICS` is discharged by the ruling's own shape**: nothing is asked of a JS primitive, because in this arm a leaf is no longer delivered as one. **`readLiteral`'s declared indistinguishability at a leaf (`docs/specs/storeroom-native/contract.md:2191`-`:2192`) is a fact of the DEFAULT arm and is not narrowed here** — the two forms differ only in what they refuse, and the option is an argument, not a verb.
+
+4. **`_tier` AND `value` ARE THE NAMES, GIVEN AS WORDS.** They are the architect's, not a layer's to rename — **a design pass may not silently re-spell either**, and a collision with a caller's own stored key is a consequence **this row leaves open** (below), not a licence to rename.
+
+**WHAT IT DOES NOT SETTLE, EACH PUT BACK TO THE ARCHITECT IN THE SAME SESSION AND ANSWERED NOWHERE YET.**
+
+- **THE ARRAYS.** **A JSON array cannot carry a `_tier` field.** The ruling names *"objects"* and *"leaf nodes"*; **an array node is neither**, and the three readings (a bare array of compiled elements; `{ _tier, value: [...] }` on arrays too; a bare array whose elements are compiled) are **not** the same contract and **not** the same crossing. **This is the one gap that blocks scoping a unit**: it decides whether the answer's shape is a total function of node kind.
+- **THE TIER ON A NODE WHOSE MEMBERS STAND AT DIFFERENT TIERS.** `(key, tier)` is the composite key (`docs/specs/storeroom-native/contract.md:3302`) and the monotonic clause holds a child at the same or a **less** persistent tier than its parent, **so a node's own anchor tier is well defined and is the most persistent in its subtree** — but *"adds a `_tier` field to objects"* does not say whether the field reports **that node's own tier** or something else. **`P-1`'s `Q-1` and `Q-2` are not answered by the shape**, which settles the carrier and not the referent.
+- **A CALLER'S OWN STORED `_tier` KEY.** Any string is a legal register key, and in this arm the compiled object would carry **both** the caller's stored `_tier` and the minted one. **`P-1`'s `Q-4`'s collision is MADE, not avoided, by the ruling's own spelling** — the ruling gives the name and leaves the collision's disposition unnamed.
+- **THE OPTION'S REACH AND THE WRITE-BACK.** Whether the option reaches `read`/`readLiteral` alone (its words say *"read option"*) **or also the constraint's and repair's `context.value`, which is itself a zero-tier read** (`bindings/js/src/entry/kernel-registration.mjs:427`); and what a caller who hands a compiled answer back to `write` is storing — **the copy-in walk reads `Object.keys` (`bindings/js/src/entry/carrier.mjs:364`), so a compiled answer written back stores `_tier` and the wrappers as the caller's data.** **No clause of this corpus says what that must do.**
+
+**NO UNIT IS MINTED BY THIS ROW.** `P-1`'s verdict was `BLOCKED-ON-SEMANTICS` and **the block is partly discharged and partly not**: the carrier is decided, the leaf obstacle is discharged, and **four gaps above are undecided — the first of them (arrays) is enough on its own to make a contract directory unscopeable**, because it fixes the answer's shape. **The unit is minted on the architect's next word, not on this one**; when it is, its intake is `strata/proposals.md` `P-1` and this row, and its contract directory is `docs/specs/storeroom-tier-readout/` (a name the supervisor proposes and the architect files, `D-GP-SCRI`'s precedent).
+
+**TERMS: the shapes this row chooses (`1` = the option, of `P-1`'s `6`), the shapes it refuses by choosing (`5`), the node forms it names (`2` = object gains a field, leaf becomes `{ _tier, value }`), the names it fixes (`2` = `_tier`, `value`), the default-arm bytes it moves (`0`), the stored-data bytes it moves (`0`), the cells it turns on the default arm (`0`), the questions it answers from `P-1`'s ten (`1` = `Q-6`, by the wrapper), the gaps it leaves to the architect (`4`), the units it mints (`0`).**
+
+### `D-121-ter` — the four gaps CLOSE, and the carrier is a THIRD READ VERB: `readTiered(address, tier?)`
+
+**DATE:** 2026-11-06. **BRANCH:** `main`. **HEAD:** `2c2b882`. **SOURCE:** the architect, in session, answering the four gaps `D-121` left and then naming the verb, each answer given as the supervisor's offered option or in his own words. **STATUS: `ACTIVE`.** **THE ANSWERS, VERBATIM AS PUT:**
+
+> 1. Arrays: "Wrap arrays too: {_tier, value: [...]}"
+> 2. The tier's referent: "Each node's own tier, recursively"
+> 3. Collision: "Minted `_tier` wins; declared, default read still shows the truth"
+> 4. Reach: **"third read verb only"** — HIS OWN WORDS, not an offered option
+> 5. The name: "readTiered(address, tier?)"
+
+**WHAT IT SETTLES — AND THE FOURTH ANSWER MOVES THE CARRIER THIS TIME, NOT THE ENCODING.**
+
+1. **THE ARRAYS ARE WRAPPED: an array node answers `{ _tier, value: [...] }`.** **SO EVERY NODE IN `readTiered`'s ANSWER IS AN OBJECT** — an object node carries its members inline beside the minted `_tier`, and an array node and a leaf node each carry `value` — **and the compiled shape is a TOTAL function of node kind: `object → { _tier, …members }`, `array → { _tier, value }`, `leaf → { _tier, value }`.**
+
+2. **EVERY NODE REPORTS ITS OWN TIER, RECURSIVELY** — an object's `_tier` is that node's own anchor tier, an array's is that node's own anchor tier, and a **leaf's is the tier of the version the read selected** (`src/store.rs:1143`–`:1152`'s lowest-rank selection). **`P-1`'s `Q-1` AND `Q-2` ARE THEREFORE ANSWERED: the referent is the node's own version's tier and never a set** — and by the monotonic clause (`rank(child.tier) ≤ rank(parent.tier)`) a node's tier is the **most** persistent in its own subtree, so an answer's shape carries the persistence ladder in its `_tier` fields.
+
+3. **ON A COLLISION THE MINTED `_tier` WINS, AND THE CONSEQUENCE IS DECLARED RATHER THAN SILENT:** **a stored `_tier` member is NOT DELIVERED by `readTiered`** — the compiled field is the store's — **while the DEFAULT `read` still answers the caller's stored value**, so nothing is destroyed and the truth is reachable. **This is the one place a read answer is LOSSY, and it is lossy in one field of one verb only.**
+
+4. **THE REACH IS A THIRD READ VERB AND NOTHING ELSE — `D-121`'s *"read option"* LANDED AS `P-1`'s ALTERNATIVE `(c)`, NOT AS AN ARGUMENT ON THE EXISTING TWO.** **`read` and `readLiteral` gain NO position, no default and no arm**; the constraint's and repair's `context.value` is **untouched** (`kernel-registration.mjs:427`'s zero-tier read stays as it is); the listener's one-argument invocation is **untouched**. **So the default arm is doubly unmoved: it is unmoved by the encoding AND unreached by the verb.**
+
+5. **THE NAME IS `readTiered`, WITH `read`'s OWN ARITY AND `read`'s OWN DECLARED WALK AND REFUSAL SET** — `readTiered(address: Address, tier?: TierSet)` — **its tier argument read exactly as `read`'s is** (absent, one token, or an any-match array; a supplied `undefined` refused), **its walk the same `L-1`/`L-3`/`L-TIER`/`L-4` set** (`docs/specs/storeroom-native/contract.md:1715`–`:1768`), **and its only difference the compilation of the answer.** **`readLiteral` has NO tiered twin**: the compiled form is node-kind-driven, so there is nothing for a literal-only narrowing to add.
+
+**THE UNIT, MINTED BY THIS WORD.** **Unit id: `U-STOREROOM-TIER-READOUT`**; **contract directory `docs/specs/storeroom-tier-readout/`**; **prefix `D-GP-TRO`** — proposed by the supervisor, fileable by the architect (`D-GP-SCRI`'s precedent). **Its intake is `strata/proposals.md` `P-1`; its ruling is `D-121` as completed here; its published class is `MINOR` on `PUB-DD-9`'s own words** (*"a member ADDED to the declared surface"*, `docs/specs/storeroom-publish/contract.md:117`) — **the instance moves `14 → 15` members, the addon's export census moves `11 → 12` (`bindings/js/src/facade.rs:375`), and the declaration lands in TWO files** (`bindings/js/index.d.ts` and its `typecheck/node_modules/provident-storeroom/index.d.ts` copy).
+
+**WHAT IT DOES NOT SETTLE, EACH LEFT TO A LAYER BELOW.**
+- **The cells, the property rows and the cut's arithmetic** — the test and delivery layers'.
+- **THE WRITE-BACK, DECLARED HERE AS A CONSEQUENCE AND NOT RULED:** a caller who hands a `readTiered` answer to `write` is storing `_tier` and `value` **as ordinary data** (`bindings/js/src/entry/carrier.mjs:364`'s `Object.keys` walk), **no clause forbids it and no clause blesses it.** **If it needs a rule it needs a fresh word; until then a docblock must SAY SO rather than leave it discovered.**
+- **Whether `readTiered`'s answer is the same `StoreValue` tree the crossing admits at all** — it is not a stored value and does not round-trip, **so the crossing's `P-SR-1` relation is not this verb's** and the gate-2 record owes that statement rather than a silent assumption.
+
+**TERMS: the gaps answered (`4`), the answers given in the architect's own words rather than an option (`1` = the reach), the names he filed (`3` = `_tier`, `value`, `readTiered`), the node kinds the answer's shape closes over (`3`), the positions the two existing read verbs gain (`0`), the arms of the default read that move (`0`), the instance's member set (`14 → 15`), the addon's export census (`11 → 12`), the type cells the cut moves (`11`), the published class (`1` = `MINOR`), the units minted (`1`).**
+
+### `D-121-quater` — the `MINOR`'s corpus marks are GRANTED, and the write-back stays a DOCBLOCK
+
+**DATE:** 2026-11-06. **BRANCH:** `main`. **HEAD:** `2c2b882`. **SOURCE:** the architect, in session, answering the two questions the supervisor put after the gate-4 re-read (`role_l1_examiner`, `SHIP-WITH-CONDITIONS`) showed that both were live and neither was a layer's to close. **STATUS: `ACTIVE`.** **THE ANSWERS, VERBATIM AS PUT:**
+
+> 1. The grant: "Grant it, in this unit, as dated marks"
+> 2. The write-back: "Docblock only"
+
+**WHAT IT SETTLES.**
+
+1. **THE GRANT IS TAKEN IN THIS UNIT — THREE DATED MARKS, APPEND-ONLY, AND `D-87` (1)'s SCOPE IS WIDENED TO EXACTLY THEM.** A fifteenth member falsifies three kept clauses and `D-87` (1) grants no scope inside them; **this row grants it, bounded:**
+   - **`docs/specs/storeroom-publish/contract.md:117`** — `PUB-DD-9`'s own words make a `MINOR` *"a BOUNDED AMENDMENT of this contract"*, so the amendment is **the contract's own requirement and not an exception to it.**
+   - **`docs/specs/storeroom-held-listener-identity/contract.md:508`–`:510`** — `P-HL-7`'s FOURTEEN is falsified by the fifteenth member, and its `12 → 14` figure at `:299` reads through it.
+   - **`docs/specs/storeroom-native/contract.md §4.1`'s verb family** — **ONLY if `Q-1` answers YES and the compilation is store-side**, in which case the new read-side verb needs its family clause.
+   **EACH MARK APPENDS, DELETES NOTHING, MOVES NO STANDING BYTE, MINTS NO SECOND CELL AND OPENS NO OTHER SUBJECT** (`RCA-8(g)` annotate-beside), and **no fourth clause is in the grant.**
+2. **THE WRITE-BACK STAYS A DECLARED CONSEQUENCE — NO RULE, NO REFUSAL, NO STRIP.** A caller who hands a `readTiered` answer to `write` stores `_tier` and `value` **as ordinary data** (`bindings/js/src/entry/carrier.mjs:364`'s `Object.keys` walk), **and the ONE obligation is that the member's docblock SAYS SO** — nothing is forbidden and nothing is blessed. **A refusal and a strip are both DECLINED** — a refusal would need a marker that distinguishes a minted `_tier` from one the caller meant and this ruling has given none, and a strip would move the crossing's write path for every value.
+
+**WHAT IT DOES NOT SETTLE.** **`Q-1` (may the compilation be store-side), `Q-2` (the `TieredNode` return type or `unknown`) and the seven gate-4 conditions** — the first two are the layer below's with defaults marked, the third is the correction pass's and must re-run gate 4 when it lands. **And it grants no amendment beyond the three clauses named in item 1.**
+
+**TERMS: the questions answered (`2`), the marks granted (`3`, the third conditional on `Q-1`), the clauses the grant opens (`3`), the clauses it opens beyond them (`0`), the rules the write-back gains (`0`), the refusals declined (`1`), the strips declined (`1`), the obligations the docblock carries (`1`), the gate-4 conditions this row closes (`0`), the units it mints (`0`).**
+
+### `D-121-quinquies` — `Q-1` and `Q-2` ANSWERED, on the defaults: the store compiles, and the return type is the declared `TieredNode` union
+
+**DATE:** 2026-11-06. **BRANCH:** `main`. **HEAD:** `2c2b882`. **SOURCE:** the architect, in session, in his own words: **"Accept default on questions"** — the two questions the gate-2 directory left open at its `§8`, which `D-121-quater` had already declared to be the layer below's with defaults marked. **STATUS: `ACTIVE`.** **THE ANSWERS, TAKEN AS THE DEFAULTS THE DIRECTORY PRINTED:**
+
+> 1. **`Q-1` — WHERE THE COMPILATION LIVES: the DEFAULT, which is YES.** A **STORE-SIDE** read whose answer is an **ordinary `StoreValue`** — candidate (a) of `PIN-10`'s price table.
+> 2. **`Q-2` — THE DECLARED RETURN TYPE: the DEFAULT, which is THE DECLARED `TieredNode` UNION** rather than `unknown` like its two siblings.
+
+**WHAT IT SETTLES.**
+
+1. **THE MECHANISM IS DECIDED AND `PIN-10`'s `OPEN` MARK CLOSES ON CANDIDATE (a).** The compilation is a **new read-shaped store function beside `assemble`** that stamps each selected node's `anchor.tier` (public at `src/records.rs:84`) into the object it mints, reached through **one new `#[napi]` entry** and **one new instance member**. **THE PRICE (a) WAS PRICED AT IS NOW THE LAW OF THE LANDING:** the tiers cross **as ordinary strings inside an ordinary tree**, so `to_js_value`/`decodeValue` are **unmoved** — **no new crossing form, no new value kind, no second assembly, and the codec gains no byte.** **Candidate (b)** (an intermediate tier-carrying structure compiled at the facade) is **not taken**, and **candidate (c)** (a JS-side re-walk over a per-node native probe) stays **refused** on `A63` (`docs/specs/storeroom-js/contract.md:2207`–`:2209`) — **this row does not license it, and a pass that builds it has left the unit.**
+2. **THE THIRD GRANT MARK IS LIVE AND OWED — IT IS NO LONGER CONTINGENT.** `D-121-quater` item 1's third mark (`docs/specs/storeroom-native/contract.md §4.1`'s verb family) was made conditional on `Q-1` answering YES; **`Q-1` has now answered YES, so the third mark is OWED BY THIS UNIT'S LANDING** and the grant stands at **three taken, none contingent, and no fourth.**
+3. **THE TYPECHECK FIXTURE STAYS IN THE WRITE SET — ITS CONDITION IS NOW MET.** `PIN-1` (vii) made `typecheck/consumer-fixture.ts` conditional on `Q-2`'s default; **`Q-2` has answered with that default, so the fixture is IN the write set** and owes positive cells for the new verb. **The alias IS the return type**, exactly as `PIN-1`'s reconciliation states (`readTiered(…): TieredNode`), so the union is the return type's own declaration and not a type line beside it. **A `TieredNode` used anywhere else remains forbidden.**
+
+**WHAT IT DOES NOT SETTLE.** **The landing itself** — the code, the cells, the prose, the three marks and the `1.10.0` cut are gate 3's, and this row orders no byte moved. **And the two cosmetic gate-4 conditions** (`PIN-3` (iv) and `PIN-9` (vii) pointer labels; `claims.md`'s `§17.4` range) remain the correction pass's, and gate 4 must re-run on them when they land.
+
+**TERMS: the questions answered (`2`), the answers taken from the directory's own defaults (`2`), the candidates refused (`1` = (c), on `A63`), the candidate not taken (`1` = (b)), the grant marks made live (`3`), the grant marks still contingent (`0`), the codec bytes this row moves (`0`), the instances of `readTiered` this row writes (`0`), the units it mints (`0`).**
+
+### `D-122` — ★ THE GUIDE IS CORRECTED, not the contract: Side A is the reading, and the shadow sentence is a defect
+
+**DATE:** 2026-11-06. **BRANCH:** `main`. **HEAD:** `2c2b882`. **SOURCE:** the architect, in session, on the question
+`strata/research.md §17` filed — *"which side is the guide supposed to be on: the docs correct it, or you rule the contract
+wrong"* — answered in his own words: **"Correct guide"**. **STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE CONTRACT AND THE CRATE ARE RIGHT AND THE GUIDE IS WRONG.** `docs/guides/package-use.md`'s `§5.1` sentence —
+   *"the newer version is added alongside and **the more persistent one wins the unqualified read**"* (`:386`–`:387`) — **is a
+   DEFECT and is corrected to the store's own rule:** an unqualified read selects the **LOWEST-persistence** version
+   (`temp` before `mem` before `file`), which is the **shadowing** one. **The ground is the crate's own selection**
+   (`src/store.rs`'s `select_member` → `lowest`, `min_by_key(rank)`), **the operative contract's eight statements of it**
+   (`docs/specs/storeroom-native/contract.md:1789`–`:1794`, `:3304`, arm `R-4` at `:2233`, arm `W-5` at `:2006`, the `read` row
+   at `:1863`, `DD-12` at `:470`, the assembly clause, and **the failure list at `:2588` — *"a read that answers the
+   higher-persistence version"* is a DECLARED FAILURE**), **the measured battery**
+   (`tests/integration/store-core/walk_and_resolver.rs:316`–`:343`, `properties.rs:469`–`:485`), **and `D-121-ter:6215`, which
+   quotes the lowest-rank selection as the read's own rule.** **`docs/specs/storeroom-native/contract.md`'s selection is NOT
+   re-ruled and no clause of it moves.**
+2. **THE CORRECTION IS PROSE AND IT SHIPS.** The canonical home is `docs/guides/package-use.md`; **the landing
+   `bindings/js/README.guide.md` is GENERATED and is re-staged from it by the publish script's own assembly, never hand-edited**
+   (`scripts/publish.sh:108`–`:120`; the landing ships in the package's `files`). **NO CODE, NO STATUS, NO MEMBER, NO CELL AND NO
+   CONTRACT CLAUSE MOVES — the unit's own `readTiered` and the whole `1.10.0` landing stand exactly as certified.**
+3. **THE SAME FALSE CLAIM IS CORRECTED WHEREVER ELSE IT STANDS.** `strata/brief.md:219`–`:220` carries the guide's
+   **definition** of `shadow` (*"the key holds a **more** persistent version than the write's"*) on the contract's
+   **predicate** (*"the shadow wins the unqualified read"*), so its sentence reads the wrong way by its own definition —
+   **it is corrected at the brief too.** **`strata/research.md §17`'s finding is thereby DISCHARGED, and its `§17.4` census
+   stands as the record of what the carriers said at its date.**
+4. **THE RELEASE.** The `1.10.0` cut is **unreleased at this date** (no tag is claimed), so **the correction RIDES it: no version
+   cell moves, no fourth generated version line appears, and the `1.10.0` note's own subject — the tier readout — is unchanged.**
+   **A published tag's guide may not be corrected in place**; were `1.10.0` already published, this word would owe a `PATCH`.
+
+**WHAT IT DOES NOT SETTLE.** **Whether the guide's `§5.1` should carry an ADDITIONAL sentence telling a consumer how to pin a
+version** — the tier argument already does it (`read(address, 'file')`), and the corrected sentence now says which one answers
+without one. **No new prose beyond the correction is ordered by this row**, and no clause of `docs/guides/**` other than the
+false claim moves.
+
+**TERMS: the side chosen (`1` = Side A), the sides refused (`1` = Side B), the guide sentences corrected (`1`), the landing
+re-staged (`1`), the brief sentences corrected (`1`), the contract clauses re-ruled (`0`), the code bytes moved (`0`), the cells
+turned (`0`), the version cells moved (`0`), the units it mints (`0`).**
+
+### `D-123` — ★ CREATION IS AN EDITING ACTION: the whole register is swept and an inconsistent result is REFUSED; `listeners[]` entries must CARRY THEIR FUNCTIONS and fire once the constraints pass; the application diagnoses the refusal; and a creation-fired body's throw refuses the construction with a declared code
+
+**DATE:** 2026-11-06. **BRANCH:** `main`. **HEAD:** `3f24248`. **SOURCE:** the architect, in session, answering `P-2`
+(`strata/proposals.md:259`) four scope questions by selection and in his own words. **HIS ANSWERS, VERBATIM:**
+
+> **scope** — *"A sweep of the whole register, refusing an inconsistent result"*
+>
+> **listener** — *"Refuse listeners that don't carry functions, and fire all ones with an existing address after
+> constraints pass. Why would a listener that doesn't have a function to fire on the listened address be accepted?"*
+>
+> **orphan** — *"If constraints fail on creation, return error. Application needs to check if file data is corrupt or if
+> constraints are incompatible"*
+>
+> **throw** — *"Refuse the construction with a declared code"*
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **CREATION'S CONSTRAINT ACT IS A SWEEP OF THE WHOLE REGISTER, AND ITS RESULT MUST BE CONSISTENT — ELSE THE
+   CONSTRUCTION IS REFUSED.** **The instant's own declared scope — *"THAT ONE PAIR and no other: no pass is opened over
+   the registry and no other registered pair is re-evaluated"* (`bindings/js/src/entry/kernel-registration.mjs:230`–`:232`)
+   — is SUPERSEDED AT THIS INSTANT.** The construction must ask the pairs it carries and cannot return an instance whose
+   register still violates one of them. **This opens a SIXTH instant against `D-90` (4)'s closed list of five**
+   (*"the batch at construction · the list at a boot over an existing `filePath` · `addConstraint` · the toggles that
+   re-arm a held pair · the pass over a write, a `delete` or a `rollback`"*) and `D-90`'s **pair-application rule is read
+   THROUGH this row and not around it**: a pair whose parent does not resolve is still SKIPPED (`D-90` (1)–(3), `D-96`),
+   because the skip is a rule about what can be asked at all and not a scope.
+2. **A `cfg.listeners[]` ENTRY MUST CARRY THE FUNCTION IT FIRES — AN ENTRY THAT CARRIES NONE IS REFUSED — AND AFTER THE
+   CONSTRAINTS PASS, EVERY ADOPTED LISTENER WHOSE WATCHED ADDRESS EXISTS IS FIRED.** **The architect's own ground for the
+   refusal is printed in his question and it is the ruling's ground: *"Why would a listener that doesn't have a function
+   to fire on the listened address be accepted?"*** **The RESERVATION reading is WITHDRAWN AT THIS ENTRY POINT** — a
+   `cfg.listeners[]` element is no longer a handle with a body owed later; it is a listener or it is refused.
+   **THE SHAPE IS `D-26`'s MOVE ONE KEY OVER AND NOT A NEW MECHANISM**: the element gains a third member the ENCODER
+   currently refuses (`bindings/js/src/entry/frame.mjs:31`, `keys.length !== 2`), **the package arms the SUBSTANCE exactly
+   as it already arms a pair's `constraint` member** (`frame.mjs:70`–`:77`: *"THE ELEMENT'S THIRD MEMBER IS DROPPED HERE AND
+   ONLY HERE … THE PACKAGE ARMS THE SUBSTANCE"*), and **the store's listener record, the crossing's `ListenerEntry` and
+   `src/args.rs` do NOT move: a JavaScript function crosses at no depth** (`docs/specs/storeroom-native/contract.md:910`,
+   `:908`). **AND THE FIRING IS NEW: the registration instant and the creation reach NO delivery seam today** — *"IT STILL
+   OPENS NO `K-2` AND STILL DELIVERS NO LISTENER"* (`kernel-registration.mjs:888`–`:889`; `PIN-6` (v) at `:510`–`:512`;
+   `strata/research.md §13.2` `C-12`), so **this row MINTS the corpus's second delivery outside a caller's write, and the
+   first that is not a reversal's** (`D-117`'s is the first). **Its order is `D-117`'s, instant for instant**: **ask →
+   repairs land → re-run → SAVE → DELIVER**, and **no delivery on a refusing arm**.
+3. **THE EXISTING-ADDRESS QUALIFIER IS THE ARCHITECT'S AND IT IS LOAD-BEARING.** He fires *"all ones with an EXISTING
+   address"* — so **a listener whose watched address does not resolve in the register is not fired**, and that is the
+   listener's own reading of the same absence rule `D-90` applies to pairs. **No listener is asked to fire for a node that
+   is not there.**
+4. **A REFUSED CREATION IS AN ERROR THE APPLICATION DIAGNOSES, AND THE DIAGNOSIS IS A REQUIREMENT ON THE REFUSAL.** His
+   words name the application's job — *"check if file data is corrupt or if constraints are incompatible"* — **so the
+   refusal must let a caller TELL THOSE TWO APART.** **The corpus has a code for the second and D-90 (5) ORPHANED IT**:
+   `ConstraintListInvalid` (rank `16`) still names in its own row *"the VALIDATION OF THE LOADED STATE AGAINST IT AT LOAD"*
+   (`docs/specs/storeroom-native/contract.md:4349`), **and the walk that produced that arm was deleted 2026-11-02**
+   (`src/store.rs:784`–`:798`; `D-90` (5)). **This row does not itself choose the code** (item `2` of what it does not
+   settle) **but it makes the distinction a requirement rather than a nicety**: a construction that refuses because the
+   LOADED STATE cannot satisfy the supplied list and a construction that refuses because a BODY answered `false` are two
+   different diagnoses for two different repairs by the application.
+5. **A BODY THAT THROWS AT A CREATION REFUSES THE CONSTRUCTION WITH A DECLARED CODE.** **This is `D-73`'s asymmetry
+   reversed at a new instant and the reversal is the ruling's**: at a caller's write a listener's throw PROPAGATES to the
+   caller because the caller is the only party who can log it; **at a creation the caller is not yet holding an instance,
+   so the throw refuses the call.** **The closed fail set MUST therefore move** — **⟶ CORRECTED `2026-11-06` AT THE
+   DECLARATION'S OWN BYTES (`role_l1_architect`, gate 2): this sentence printed *"it is `17` members today"* AND THAT
+   FIGURE IS THREE INCREMENTS STALE. THE OPERATIVE SET IS TWENTY, RANKED `1`…`20`** — `docs/specs/storeroom-native/contract.md:4305`–`:4311`
+   (*"THE SET IS TWENTY MEMBERS RANKED `1`…`20`"*, the arithmetic `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 20`), `:1022`
+   (`CODES` as `[&'static str; 20]`), `src/error.rs:113` (`pub const CODES: [&str; 20]`), and `bindings/js/index.d.ts:376`'s
+   `StoreStatus` carrying twenty literals, rank `20` `ConstraintPassRefused` last. **The `17` was `strata/brief.md`'s
+   `0.5.0`-era census and it outlived three widenings** (`D-38`'s 2026-10-26 widening is the last). **WHAT THIS
+   CORRECTION MOVES AND WHAT IT DOES NOT: the ruling's ground — *the set must move* — stands whole; the ARITHMETIC is
+   `20 → 21`, and no member the unit mints may be read as the seventeenth.** And
+   **no member covers a body that throws where no kernel mark site
+   exists** (`strata/research.md §19.3` `X-16`). **Which member, whether widened or minted, is item `4` of what this row
+   leaves open.**
+6. **THE FILE MUST STILL SAVE AFTER ANY ACTION THAT CHANGES THE `file`-TIER DATA, WITHOUT EXCEPTION** (`D-106` item 2):
+   **a creation's repair that lands at `file` is saved by the registration's own passing close** (`kernel-registration.mjs`
+   `:930`–`:950`), **measured durable and readable by a fresh instance** (`strata/research.md §19.4` `C3`, `C4`), and
+   **`D-107` item 1's rollback stands unmoved on the refusing arms** (`:952`–`:965`). **No arm of `D-106` or `D-107` is
+   re-opened by this row.**
+
+**WHAT IT DOES NOT SETTLE — and no layer may read this row as having decided them.**
+
+1. **Whether the sweep reaches `addConstraint`, the re-arm and the boot, or the CREATION alone.** His question was *"At
+   creation, which pairs must be asked?"* and his answer is about creation; **the boot already checks (item 1's own instant
+   list) but not this way, and the add route keeps `D-94`'s unconditional re-run and its own scope.** A row that widens it
+   is owed before any pass widens it by implication.
+2. **Which code answers a load-side or sweep-side inconsistency, and whether rank `16` is revived for it or a new member
+   minted.** Item 4 makes the distinction a requirement; it does not name the carrier.
+3. **What address a creation-fired listener is handed as its one argument.** He named the SET (*"all ones with an existing
+   address"*) and not the payload. `§2.7` item 5 fixes a write's argument as the act's address; **a creation's act has no
+   address, and a sweep has as many addresses as it repaired.**
+4. **Which member carries the thrown body's refusal** — a widened rank `18` (`ConstraintBodyThrew`, which reaches the
+   caller only where the kernel MARKED the value and has no mark site at a creation), a new member, or a re-reading of an
+   existing one.
+5. **Whether *"a listener that carries no function is refused"* reaches the RUNTIME surface** — `listen(handle, addresses)`
+   plus `register(handle, fn)` (`docs/specs/storeroom-js/surface.md §2.3`, `:417`–`:444`) and `package-use.md`'s
+   RESERVATION sentence. **His words name a `cfg.listeners[]` entry and his question is about acceptance; the two-step
+   runtime surface is a different door and this row does not close it.**
+6. **The BOUND on the sweep.** *"Refusing an inconsistent result"* implies iterate-until-stable: repairs land, the register
+   changes, the pairs are asked again. **The corpus's loop guards are the PASS's** (`D-42`'s restart budget, the
+   applied-repair marker, *"constraint/repair has loop guards while listeners don't"*), **and a construction has no attempt,
+   no budget and no marker** (`strata/research.md §19`'s `C-19`). **What stops a sweep that never converges is owed.**
+7. **What a refused creation LEAVES.** His answer (*"return error"*) makes the refusal the contract and **does not say
+   whether the store's own created file and any earlier pair's already-saved landing stand** — the orphan measured at `P-2`
+   `§2` (a durable `file` landing behind a construction that returned no instance). **If the application is to check the
+   file for corruption, it must know what a refused construction may have written to it.**
+8. **The release class** — the element-shape move and the fail-set move are not one class, and the pass that lands them
+   says which is which.
+
+**WHAT IT CHANGES BELOW ME: `P-2` IS ANSWERED AND ONE UNIT MAY BE SCOPED (L1's), with the eight residuals above carried as
+questions and not as design.** `strata/research.md §19` stands as the audit; `strata/proposals.md` `P-2 §8` carries these
+answers at their questions. **The prose owed in the same pass is named and unmoved**: `docs/guides/package-use.md:497`–`:499`
+(*"nor does a boot or any read-driven traversal fire a listener"*) and `strata/research.md §13.2`'s `C-12` both declare the
+silence this row reverses.
+
+**TERMS: the scope (`1` = the whole register swept, inconsistency refused), the listener entry (`1` = must carry its
+function, refused otherwise), the firing (`1` = every adopted listener whose address exists, after the constraints pass),
+the application's diagnosis (`1` = a requirement on the refusal), the throw (`1` = a declared code refusing the
+construction), the instants it opens (`1` = a sixth against `D-90` (4)), the deliveries it mints (`1` = the second outside a
+caller's write and the first that is not a reversal's), the rows it supersedes (`1` = the registration instant's
+*"THAT ONE PAIR and no other"* scope, at the creation), the codes it chooses (`0`), the fail-set members it mints (`0`), the
+bounds it declares (`0`), the questions left (`8`), the units it mints (`0` = L1's).**
+
+### `D-124` — the sweep's bound is CYCLE DETECTION and not a round count; the creation-fired throw takes a MINTED rank `21`; the class is HELD until the landing is measured; and the `addConstraint` premise is put back as a question because the tree contradicts it
+
+**DATE:** 2026-11-06. **BRANCH:** `main`. **HEAD:** `3f24248`. **SOURCE:** the architect, in session, answering gate 2's four
+questions (`docs/L1/creation-sweep.md`, its `§5`; envelope at `strata/envelope.md`'s head). **HIS ANSWERS, VERBATIM:**
+
+> **the throw's member** — *"Take the declaration's default"* → **rank `21` `ListenerBodyThrew` MINTED**, the set's arithmetic
+> `20 → 21`.
+>
+> **the release class** — *"Hold the class until the landing is measured"*.
+>
+> **the sweep's bound** — *"This should already follow cycle detection, the same constraint should not attempt a repair
+> twice"*.
+>
+> **the sweep's reach** — *"Add constraint should already run the constraint and fire any listeners triggered by repairs,
+> because the repairs use the write/delete surface"*.
+
+**STATUS: `ACTIVE`, WITH ITEM 4 RECORDED AS WORDS AND NOT AS A SETTLED FACT** (see item 4's own clause).
+
+**WHAT IT SETTLES.**
+
+1. **THE SWEEP'S TERMINATOR IS THE APPLIED-REPAIR RULE, NOT A ROUND CAP — AND `PIN-4`'s *"capped at three"* IS SUPERSEDED.**
+   **A pair may land AT MOST ONE REPAIR in a construction.** **The termination argument is then arithmetic and not budgetary:
+   every round that continues the sweep lands at least one repair, no pair repairs twice, so the repairs number at most the
+   admitted pairs and a sweep that lands no repair ends the sweep.** **No round cap is minted, no restart budget is minted,
+   no attempt and no `AttemptRef` are minted** — which is `PIN-4`'s second half, unmoved, and is the reason this reading is
+   cheaper in mechanism than the one it replaces. **The rule it reads is the corpus's own**: the applied-repair marker and
+   `D-44`'s repeat arms, *"the loop guard is the applied-repair marker and the restart budget"*, whose marker half is what
+   `D-42`'s budget protects at a write. **THE SWEEP INHERITS THE MARKER AND NOT THE BUDGET, because a construction has no
+   attempt to count restarts in.**
+2. **A CREATION-FIRED BODY THAT THROWS REFUSES AT A MINTED RANK `21` `ListenerBodyThrew`.** **The closed fail set moves
+   `20 → 21`** (`D-123` item 5 as corrected: the operative set is twenty, `contract.md:4305`–`:4311`). **The subject is the
+   LISTENER BODY and not the constraint body**, so rank `18` `ConstraintBodyThrew` is NOT widened — its row's own subject
+   says constraint, and the project's minting clause requires a code to name *"the SUBJECT AND THE ONE THING WRONG WITH
+   IT"*. **This is a `MAJOR`-class addition by the corpus's own arithmetic and no pass may classify it otherwise**
+   (`D-101`/`D-102`'s precedent: a type-and-set addition takes its own version line).
+3. **NO RELEASE CLASS IS CLAIMED BY ANY PASS UNTIL THE LANDING IS MEASURED.** **`PIN-15`'s *"two release classes, named
+   separately"* is DEFERRED, not refused.** The publish pass names the class or classes after the tree is built and the
+   cells are green, exactly as `D-100`/`D-102` were named at their own cuts. **Consequence to be stated plainly at the
+   landing: a `MAJOR` fail-set move is the presumptive class of the set's half, and no pass may call the whole unit `MINOR`
+   to keep it cheap.**
+4. **THE `addConstraint` HALF OF HIS ANSWER IS RECORDED AS HIS WORDS AND NOT AS A FACT, BECAUSE THE TREE CONTRADICTS ITS
+   *"SHOULD ALREADY"*.** **What is TRUE:** `addConstraint` already runs the pair's body at the registration instant
+   (`kernel-registration.mjs`'s `registrationAttempt`, its `THAT ONE PAIR` scope), and **a repair's edit goes through the
+   store's write route and is a real `JournalOp`** (`3-bis` (f), `:573`–`:578`). **What is FALSE of the present tree:** a
+   repair's write does NOT fire the listeners it triggers at that instant — **the module contains no `deliver` call at all**
+   (`PIN-6` (v) at `:510`–`:512`; the close's own clause *"IT STILL OPENS NO `K-2` AND STILL DELIVERS NO LISTENER"* at
+   `:888`–`:889`; `strata/research.md §13.2` `C-12`), so **nothing fires until a caller's own write reaches the address.**
+   **THEREFORE HIS SENTENCE IS ONE OF TWO THINGS AND ONLY HE CAN SAY WHICH** — **(i) a RULING that every registration
+   instant delivers, because the repair's write is a write** (which widens `D-123` item 2's firing from the creation to
+   `addConstraint`, a re-arm and the boot, and re-spells `D-94` item 3's *"the caller sees only success vs rank `19`"*), or
+   **(ii) a statement of the PRINCIPLE the creation's firing rests on, whose reach is the creation alone.** **NO PASS MAY
+   CHOOSE BETWEEN THEM.** The question is at L0's hand and unanswered as of this row.
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **Item 4's fork** — whether the registration-instant delivery reaches `addConstraint`, a re-arm and the boot.
+2. **The repeat arm's OWN answer**: where a pair that has already landed its one repair is asked again and would repair
+   again, does the construction REFUSE (a cycle, at rank `20`) or SKIP that pair's second repair and continue? His sentence
+   forbids the second attempt and does not say what meets it.
+3. **Whether a pair may be ASKED again after a repair of its own** (asking is not repairing), and whether such an ask that
+   PASSES is required for `D-123` item 1's *"inconsistent result"* to be decidable.
+4. **The class** — held by item 3, and therefore open by design.
+5. **`PIN-4`'s redraw** — the pin's new statement is L1's to write, not this row's.
+
+**TERMS: the terminator (`1` = cycle detection by the applied-repair rule), the round cap (`1` = retired), the minted member
+(`1` = rank `21` `ListenerBodyThrew`), the widened member (`1` = none), the class (`1` = held), the premises corrected
+(`1` = *"should already … fire"*), the forks left (`1` = the registration-instant reach), the questions left (`3`), the
+mechanisms minted (`0`), the units minted (`0`).**
+
+### `D-125` — ★ A REPAIR'S WRITE'S LISTENERS ARE DELIVERED AT EVERY REGISTRATION INSTANT, NOT AT THE CREATION ALONE; and a pair's SECOND repair attempt is an INCONSISTENT RESULT and refuses
+
+**DATE:** 2026-11-06. **BRANCH:** `main`. **HEAD:** `3f24248`. **SOURCE:** the architect, in session, answering the two
+questions `D-124` put back to him. **HIS ANSWERS, VERBATIM:**
+
+> **the registration-instant reach** — *"Widen: `addConstraint`, a re-arm, the boot and the creation ALL deliver after their
+> repairs"*
+>
+> **the repeat arm** — *"Refuse the construction at rank 20 — a cycle is an inconsistent result"*
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE DELIVERY IS A PROPERTY OF THE REPAIR'S WRITE AND NOT OF THE CREATION.** **Wherever a repair runs, the listeners its
+   write fires are delivered — `storeCreate`, a boot over an existing `filePath`, `addConstraint`, and a re-arm — after the
+   constraints pass, after the save, in `D-117`'s order, instant for instant, with no delivery on a refusing arm.**
+   **⟶ CORRECTED `2026-11-06` BY GATE 4's SECOND READ (`role_l2_examiner`, `F-L2-1`), AND THE ERROR IS THIS ROW'S: THE
+   HEADING SENTENCE IS TOO WIDE FOR THE CREATION AND THE BOOT, AND THE ARCHITECT'S OWN WORDS ARE THE NARROWER RULE.** **At
+   `storeCreate` and at a boot the delivered SET IS `adopted ∩ resolving` — every adopted listener whose watched address
+   EXISTS — and not the repair's write's triggered set**; that is what he said (*"fire all ones with an existing address
+   after constraints pass"*, `D-123` item 2) and what `D-123`'s own item 2 pinned, and `PIN-6` (i) implements it. **At
+   `addConstraint` and a re-arm the set IS the repair's write's triggered set** (`PIN-6` (ii)), because there no adopted list
+   is in play — the pair is being registered against an existing instance. **SO THE RULE IS ONE ORDER AND TWO SETS, AND THE
+   MEASURED CONSEQUENCE IS THAT AT A CREATION OR A BOOT A LISTENER FIRES FOR ITS OWN EXISTING ADDRESS WHETHER OR NOT A
+   REPAIR WROTE IT** (driven: a boot with constraints that repair an unrelated address still fires a listener at an existing
+   address; a boot carrying NO constraints fires it too), **while at the two single-pair routes it fires only for what a
+   repair's write touched.** **What stands unmoved in the heading sentence: the delivery is owed wherever a repair runs, the
+   order, the save, the one-argument rule and the no-delivery-on-a-refusing-arm rule.** **What it loses: the claim that the
+   set is the same object at all four instants.**
+   **`D-123` item 2's firing rule is thereby GENERAL and its creation-only reading is superseded**: the rule it stated was
+   the first instance of a rule that already belonged to the write surface, which is what the architect's own ground said —
+   *"because the repairs use the write/delete surface"*. **THE CORPUS'S THREE-DECADE-LONG SILENCE AT THIS INSTANT IS CLOSED
+   BY NAME: `C-12` (*"a registration reaches no terminal arm and no delivery seam"*) stops being true, and so does the
+   clause that has stated it in the code since the instant was built** — `kernel-registration.mjs`'s *"IT STILL OPENS NO
+   `K-2` AND STILL DELIVERS NO LISTENER"* (`:888`–`:889`) and `PIN-6` (v) (`:510`–`:512`).
+2. **WHAT THE WIDENING MOVES, NAMED SO NO PASS DISCOVERS IT LATE.** **(i) `D-94` item 3** — *"A caller sees the difference
+   only on the arm above: the registration succeeds rather than refusing at rank `19`"* — **STOPS: the caller's view of a
+   registration gains a third observable, the listeners its repairs fired.** **(ii) `docs/specs/storeroom-js/surface.md
+   §2.7` item 7's closed list of delivery instants gains the registration instants** (`X-22`), and `§2.12`'s `(iii)` is read
+   through them. **(iii) `docs/guides/package-use.md:497`–`:499`** — *"nor does a boot or any read-driven traversal fire a
+   listener"* — **is corrected in the same pass**, and its `§6`'s closed list of two firing acts becomes three.
+   **(iv) `strata/research.md §13.2`'s `C-12`** is re-derived by the supervisor. **A delivery at `addConstraint` DOES NOT
+   change the answer's declared type** — the identity is still the answer — and **a fired body's throw at those instants is
+   `D-124` item 2's rank `21` `ListenerBodyThrew` by the same reading.**
+3. **THE SWEEP'S MEMBERSHIP DOES NOT WIDEN WITH THE DELIVERY, AND THE TWO MUST NOT BE READ AS ONE MOVE.** His words name
+   delivering *"after their repairs"*; they do not name a whole-register sweep at `addConstraint`. **So the scope split
+   stands as `D-123` and `D-124` recorded it**: **the CREATION and the BOOT sweep the register and refuse an inconsistent
+   result (`D-123` item 1); `addConstraint` and a re-arm keep the registration instant's own single-pair scope** — **the
+   difference being that a creation's answer is a store and an add route's answer is an identity, so *"an inconsistent
+   result"* is a state only the former can return.** **A pass that widens the SWEEP by implication from this row would be
+   widening a ruling into a design.**
+4. **A PAIR'S SECOND REPAIR ATTEMPT IS AN INCONSISTENT RESULT AND REFUSES AT RANK `20` `ConstraintPassRefused`.** **The
+   cycle detector `D-124` item 1 installed now has its consequence stated: detection is not a skip, not a silent
+   termination and not a cap — *"a cycle is an inconsistent result"*, and an inconsistent result refuses.** At a creation
+   and at a boot the CONSTRUCTION refuses and no instance is returned; **at `addConstraint` and a re-arm the REGISTRATION
+   refuses** (the rank at those two instants is `D-125`'s first residual, below). **A pair asked again after its own repair
+   and PASSING is not a cycle** — asking is not repairing — and that ask is what makes item 3's *"inconsistent result"*
+   decidable at all.
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **The rank a cycle crosses at `addConstraint` and at a re-arm** — rank `20` `ConstraintPassRefused` (the architect's
+   words, written for a construction) or rank `19` `ConstraintRefusedAtRegistration` (the registration instant's own
+   verdict). **The two are different members with different subjects and the row does not choose.**
+2. **Whether the widened delivery reaches a registration whose repair landed NOTHING** — a registration with no repair fires
+   no listener by construction, and a registration whose repair ran but was later rolled back by `D-107` must not deliver
+   (`D-117` item 2's *"no delivery on the failing arm"*), so the set is empty and not silent — **but the arm's own statement
+   is L1's.**
+3. **What a fired body's throw does at a REGISTRATION that has already returned an identity** — at a creation the instance
+   does not exist yet, so the refusal is clean; at `addConstraint` the pair stands registered when the body throws, and
+   whether the registration is undone is unstated.
+4. **The prose list's final form** — item 2 names four sites; the landing pass owns the sentences.
+5. **The redraw of the pins** — `PIN-4` (cycle detection), `PIN-6` (the delivered set and its instants), `PIN-10` (the
+   throw at four instants instead of one) and `PIN-15` (the class, still held) are L1's to restate, and **gate 3 may not
+   open on the superseded text.**
+
+**TERMS: the delivery's reach (`1` = every registration instant), the creation-only reading (`1` = superseded), the
+declarations closed (`2` = `C-12` and the code's own no-delivery clause), the corpus sites that move (`4` = `D-94` item 3 ·
+`surface.md §2.7` item 7 · `package-use.md §6` · `C-12`), the sweep's membership (`1` = UNMOVED), the cycle's answer
+(`1` = refuse at rank `20`), the cycle's skips (`0`), the ranks chosen at `addConstraint` (`0`), the mechanisms minted
+(`0`), the questions left (`5`).**
+
+### `D-126` — ONE REPAIR PER PAIR STANDS AND A CONVERGING CASCADE IS REFUSED BY DESIGN; A CORRUPT IMAGE REFUSES THE CONSTRUCTION WITH A CODE; and the unit is a `MINOR` at `1.11.0`
+
+**DATE:** 2026-11-06. **BRANCH:** `main`. **HEAD:** `3f24248` (unit uncommitted). **SOURCE:** the architect, in session,
+answering gate 4's three consequences. **HIS ANSWERS, VERBATIM:**
+
+> **the cascade** — *"Keep it strictly one repair per pair (D-124's words, unchanged)"*
+>
+> **the corrupt image** — *"Mint/revive a code: a corrupt image refuses the construction"*
+>
+> **the class** — *"`MINOR` → 1.11.0, one line, three classes printed in the notes"*
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **`D-124` ITEM 1'S ONE-REPAIR RULE STANDS UNCHANGED, AND GATE 4's `G4-C-3` IS A RULED CONSEQUENCE AND NOT A DEFECT.** **A
+   pair that would converge in two steps is REFUSED at rank `20`, with the same member and the same sentence as an infinite
+   cycle, and that is the design.** **What this row adds is the declaration the code's sentence lacked: the refusal is a
+   VERDICT ABOUT THE RULE and not a diagnosis of the repair.** **A caller who needs a multi-step normalisation owns it** — it
+   is the caller's job to reach a state its pair accepts in one edit, exactly as `D-70`'s derived-value rule tells a caller to
+   watch a vec rather than an index. **The declaration's `CSW-22` therefore stands as the whole of the arm's coverage: *"asked
+   again and PASSING is not a cycle"* is the only distinction the rule makes, and no progress test is owed, minted or
+   permitted.**
+2. **A CORRUPT IMAGE REFUSES THE CONSTRUCTION WITH A CODE — `D-123` ITEM 4's DIAGNOSIS BECOMES REAL IN BOTH DIRECTIONS.**
+   **The silence `PIN-11` pinned (*"CORRUPT FILE DATA CROSSES NONE"*) is RETIRED**: an application that must *"check if file
+   data is corrupt or if constraints are incompatible"* cannot do it while corruption returns an instance indistinguishable
+   from an empty path — and the next save would then write a readable image over the corrupt bytes (`D-118` item 1), which
+   destroys the only evidence. **WHICH MEMBER IS NOT CHOSEN HERE** (`D-118`'s precedent and `D-123` residual 2 are the frame):
+   rank `16` `ConstraintListInvalid`'s row still declares a load-side validation `D-90` (5) orphaned, so reviving it and
+   minting a new member are both live and both carry a different subject. **L1 pins it**; no pass may implement a corrupt
+   arm against a member it chose for itself.
+3. **THE UNIT IS A `MINOR` — ONE LINE, `1.11.0`, WITH THE THREE CLASSES PRINTED IN THE NOTES.** **The element's required
+   member, the fail set `20 → 21` and the four-instant widening are ONE version, because a version is the maximum of the
+   moves it carries and no unit of this project has ever been cut twice** (`§1.7.0`'s four message changes as one `MINOR`;
+   `§1.6.2`'s record member and seven behaviours as one `PATCH`). **`PUB-DD-9` is the authority for the class** — *"a set
+   change in the store's own membership is NOT by itself a package major"* — **and `D-124` item 3's `MAJOR` presumption for
+   the set's half is SUPERSEDED BY THIS ROW**, not by a pass's reading. **`1.10.1` IS FORECLOSED** (`D-39` calls the last
+   set-growth-under-a-patch *"a semver breach"*, and this carries a breaking input requirement on top). **`2.0.0` is not
+   taken.** **The notes owe three sentences of class and one number**, and the number is `1.11.0`. **`1.10.0` is unreleased
+   at this date, so nothing already published is falsified by the cut.**
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **Which member carries the corrupt image**, and whether a corrupt arm composes `D-107`'s rollback (there is nothing to roll
+   back — the image is unreadable — so the answer is likely *no arm*, and it is L1's to state).
+2. **Whether the corrupt arm's refusal leaves the corrupt bytes alone** — his item's whole point is that evidence matters;
+   `PIN-12`'s *"a refused creation leaves the created file standing"* covers the created file and does not speak of the
+   corrupt one, because nothing was written to it.
+3. **Whether rank `21` carries the throwable** (gate 4's `G4-C-5`: `delivery.mjs` records `{thrown, address}` and the refusal
+   reads only `address`, so a body's error arrives with no cause, no message and no stack — against `D-73`'s ground that the
+   throw is kept precisely so a client can log it). **Unruled.**
+4. **The release-notes section, the guide's re-staging and the corpus's four element-shape sites** — owed by name in
+   `strata/envelope.md`, and none of them decided here.
+5. **The `§6.5a` carve** (`package-use.md:794`–`:796`, `:819`–`:824`), which still states the listener-throw asymmetry
+   without the four registration instants.
+
+**TERMS: the cascade (`1` = refused by design, no progress test), the corrupt image (`1` = refuses with a code), the member
+(`0` = L1's), the class (`1` = `MINOR`), the line (`1` = `1.11.0`), the classes the notes print (`3`), the `MAJOR`
+presumption (`1` = superseded), the versions foreclosed (`1` = `1.10.1`), the questions left (`5`), the units mints (`0`).**
+
+---
+
+### `D-127` — THE `engines` FLOOR MOVES: `DD-38`'s `>=18.0.0` is SUPERSEDED and its exclusion ground is withdrawn, with no figure named
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `5cfb329` (the tree carries `strata/research.md` §20 uncommitted; the register's previous row is `D-126`). **SOURCE:** the architect, in session, answering `strata/research.md` §20.5's `Q-3` — the intake note for the downstream CJS-entry request (`strata/research.md` §20; **the `D-5`/`D-52` that note and the request name are the DOWNSTREAM project's rows, not this register's**). **HIS WORDS, VERBATIM:**
+
+> *"Bump the floor, there's no backwards compatibility concerns"*
+
+**THE QUESTION IT ANSWERS, SO THE ANSWER'S SCOPE IS NOT GUESSED.** `Q-3` asked: *"Does the floor move, does the condition carry a documented caveat, or does nothing move?"* — with the two facts beside it: `DD-38` declares `"engines": { "node": ">=18.0.0" }` as **the floor the Node-API carrier's own version needs and not a floor this unit measures** (`docs/specs/storeroom-js/contract.md:617`), and the request's own caveat names the loader's floor as **`Node ≥20.19` / `≥22.12`** because `require(esm)` is unflagged only from those versions.
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE DECLARED FLOOR IS RAISED — `DD-38`'s `"node": ">=18.0.0"` IS SUPERSEDED.** The row's priced alternative (*"a higher floor (`>=20`)"*) is SELECTED by this ruling, and the alternative's own ground for refusal is WITHDRAWN in the architect's words: *"there's no backwards compatibility concerns"* retires *"it would exclude consumers the carrier itself serves"* as an objection — the exclusion is accepted, so the only live question left in that row is the figure, and the figure is not named here.
+2. **THE FLOOR'S ANCHOR MOVES FROM THE CARRIER TO THE LOADER.** `DD-38` justified `>=18` by the Node-API carrier alone; a floor bumped for `require(esm)` is anchored on the loader feature the request needs, so the declared minimum can no longer be read as *"the floor the carrier itself needs"* — the floor is now `max(carrier floor, loader floor)` in substance, whatever string the amendment prints.
+3. **THE INSTRUMENT IS THE ROW'S OWN: a BOUNDED AMENDMENT.** `DD-38`'s reversal point reads *"available with a bounded amendment"*; this row takes that alternative and names the amendment's subjects without editing them: `docs/specs/storeroom-js/contract.md`'s `DD-38` row and its `§1.4`/`§3.1` regions, `strata/brief.md:72`'s floor bullet, `bindings/js/README.md`'s floor sentence, and the shipped guide's floor/provenance lines (with the landing re-staged). **No byte moves here; this row records the ruling, not the amendment.**
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **The exact string.** One `engines` string cannot express the request's two caveat floors (`≥20.19` on the 20 line / `≥22.12` on the 22 line), and the range `>=20.19.0` would still admit `21.x` and `22.0`–`22.11`, which sit below `22.12`; `>=22.12.0` is clean on the 22 line and excludes the 20.19 users the architect has said he will not protect. **Which versions actually ship `require(esm)` unflagged is a derivation this row does not take** — it is owed to the design pass on evidence, not guessed here.
+2. **Whether the floor moves WITH the loader change or BEFORE it.** This sentence answers the floor question; the loader change itself — `§20.5`'s `Q-1`/`Q-2`, the fresh ruling `DD-4`/`DD-24` name — is **NOT** taken by a floor bump, and `DD-24`'s *"a CJS arm beside the ESM one"* alternative is not selected by it.
+3. **`Q-4` (what keeps the graph synchronous afterwards), `Q-5` (which cells and rows move, and who re-derives them), `Q-6` (the cut class — `PUB-DD-9` fits a new `exports` condition as neither `PATCH` nor `MINOR` literally), `Q-9` (the esbuild silent-inline home), `Q-10` (the provenance question) — all stand open.**
+4. **Why the floor was already in tension on a shipped route** — the intake's `F-11`: the package's own constraint path already `require`s an `.mjs` (`constraints.mjs:86`), so the declared `>=18` was in tension with its own load path before this request — **recorded, not ruled on; the sentence answers the floor question, not the cause.**
+
+**TERMS: the floor (`1` = raised), the carrier-only ground (`1` = withdrawn), the exact figure (`0` = owed), the loader arm (`0` = not named), the amendment's subjects (`4` = named, none edited), the questions left (`Q-1`, `Q-2`, `Q-4`–`Q-10` and the figure), the bytes moved (`0`).**
+
+---
+
+### `D-128` — ★ ARM 1 IS TAKEN: a `require` condition on the ESM arm (`"require": "./index.mjs"`) — no CJS build, no documented-only answer
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `5cfb329` (the tree carries `strata/research.md` §20 and `strata/decisions.md` `D-127` uncommitted). **SOURCE:** the architect, in session, answering `strata/research.md` §20.5's `Q-1` and `Q-2` after `D-127` fixed the floor. **HIS WORDS, VERBATIM:**
+
+> *"Proceed with arm 1"*
+
+**THE QUESTIONS IT ANSWERS, SO THE ANSWER'S SCOPE IS NOT GUESSED.** `Q-1` asked whether the package may publish a `require` (or `default`) condition at all — the fresh ruling `DD-4`/`DD-24` name; `Q-2` enumerated the request's three arms: **arm 1** — `exports["."].require` → `./index.mjs`; **arm 2** — a published CJS build (`main` + a `.cjs` entry); **arm 3** — a documented ESM-only statement with an `await import()` seam, no code change. **`D-127`'s floor ruling answered the floor question these arms turn on; this row answers the arm question itself.**
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE FRESH RULING `DD-4`/`DD-24` NAME IS TAKEN: the package publishes a `require` condition naming `./index.mjs`.** **The map gains a THIRD condition beside `types` and `import`, and the file it names is the SAME ESM entry — no `.cjs`, no `main`, no second build.** **So `DD-24`'s *"EXACTLY ONE arms-bearing entry — the ESM one"* and `DD-4`'s *"NO `require` entry"* are SUPERSEDED FOR THIS ARM** (both rows' own reversal instruments: *"available with a fresh ruling … followed by a bounded amendment"*), **and the entries `DD-4`/`DD-24` price as a *"SECOND claimed realm"* do not come due: arm 2 is refused (below).**
+2. **ARM 2 IS REFUSED.** **No `main`, no `.cjs` artefact, no dual build, no dual-package hazard:** `DD-4`'s price (*"it would oblige the CJS/ESM dual-package hazard's own clause"*) and `DD-24`'s (*"a SECOND claimed realm"*) **both stay priced and untaken**, and the intake's `F-15`'s bundler surface is not opened.
+3. **ARM 3 IS NOT TAKEN.** **The downstream's own fallback — a *"documented, supported statement that the package is ESM-only"*, which `K-19` measured as NOT SHIPPED today — is not the answer:** a CJS host is served by the package's `require` condition under `require(esm)`, not by a seam sentence.
+4. **THE UNIT'S SHAPE IS FIXED, GIVEN `D-127`:** `exports["."]` gains `"require": "./index.mjs"`; the `engines` floor rises (figure OWED, `D-127` item 1); the one-arm/no-CJS-arm sentences — the live contract's row, `§3.1`, `§3.2`'s and `§9`'s `HO-1`, the entry's own header, the shipped README/guide, the brief — are re-sighed; the **eight tested cells** (`X-1`…`X-8`, `strata/research.md` §20.2 (vi)) are re-derived by the owning test pass; and the cut takes `PUB-DD-9`'s class rule (proposal OWED, item 2 below).
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **The exact `engines` string** (`D-127` item 1 stands): one string cannot express *"≥20.19 on the 20 line / ≥22.12 on the 22 line"*, and `>=20.19.0` still admits `21.x` and `22.0`–`22.11`, which are below `22.12`; the derivation is the design pass's on evidence, not this row's to guess.
+2. **The cut class** — `PUB-DD-9` fits a new `exports` condition literally as neither `PATCH` nor `MINOR` (`Q-6`); the design pass proposes and the architect corrects if the default is not the answer. The number follows from that class.
+3. **What `HO-1` now says** — the row's declared answer must be re-said: today it reads *"the package publishes NO CJS arm and NO `require` entry; a CJS consumer is served by the consumer's own ESM interop"*, and after arm 1 the package serves the route itself through `require(esm)`. **Whether that is a *supported workaround* or a *claimed realm* is a sentence the row does not contain** (`Q-2`'s own distinction: `DD-4`'s price is about *"making `require` a claimed realm"*); the design pass proposes, the architect corrects.
+4. **`Q-4` (the synchronous-graph permanence rule — where it lives and what cell enforces it), `Q-5` (the cells and their owning pass, `D-5`'s scope), `Q-9` (the esbuild silent-inline home), `Q-10` (the provenance question) — all stand open.**
+5. **The type surface under a CJS consumer** (`Q-7`) — the `types` condition stands first and no `tsc` run has been taken; whether a CJS-typed leg is owed is the design pass's to state.
+
+**TERMS: the arm (`1`), the condition (`1` = `require`, naming `./index.mjs`), the CJS build (`0` = refused), the documented-only arm (`0` = not taken), the floor figure (`0` = owed), the class (`0` = owed), `HO-1`'s sentence (`0` = owed), the cells (`8` = re-derived, plus the new ones the design pass names).**
+
+---
+
+### `D-129` — ALL SIX PROPOSALS ARE TAKEN: `">=22.12.0"`, the five platform floors move with the main, `HO-1` reads *supported route*, the sync-graph law sits at `§3.1`, the cut is `MINOR` `1.12.0`, and no CJS-typed leg is owed
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `5cfb329` (the tree carries the amendment and the `D-127`/`D-128`/research records uncommitted; a second session's `§21`/`P-3` records also sit in it and are not this row's subject). **SOURCE:** the architect, in session, answering the six questions the `role_l1_architect` declaration put back (`strata/envelope.md`'s `U-STOREROOM-REQUIRE-CONDITION` entry, §4). **HIS WORDS, VERBATIM:**
+
+> *"Take proposed on all"*
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES — THE SIX, ONE LINE EACH.**
+
+1. **`Q-F1` — THE FLOOR IS `">=22.12.0"`.** The one single comparator set under which the declared route is true at every admitted version; `">=20.19.0"` stays refused (it admits `21.x` and `22.0`–`22.11`, where `require(esm)` is still flagged), and the disjunction `"^20.19.0 || >=22.12.0"` is **not taken** — a policy choice the architect made, not a feasibility one (`R-4`).
+2. **`Q-F2` — THE FIVE PLATFORM MANIFESTS MOVE WITH THE MAIN.** `bindings/js/platforms/*/package.json:17`'s five `">=18.0.0"` floors read `">=22.12.0"` beside the main's; **one declaration, one reader**, and the main-vs-platform agreement cell (`blind-installed-surface.test.mjs:1069`–`:1070`) **stays an agreement cell**.
+3. **`Q-H1` — `HO-1`'S SENTENCE IS THE *SUPPORTED ROUTE* READING**, not a claimed second realm: the package now serves the `require` route itself through `require(esm)`, and what remains the consumer's boundary is the runtime feature and the floor.
+4. **`Q-G1` — THE SYNCHRONOUS-GRAPH LAW SITS AT `§3.1`'S FOOT** as a declared law over the entry's load-time graph (not a `DD` row — the `54`-id census does not move), and **its instrument is the `O3` install-shape `require` cell itself**: any top-level `await` anywhere in the graph surfaces at that one `require` as `ERR_REQUIRE_ASYNC_MODULE`. The static token scan stays priced and not taken.
+5. **`Q-C1` — THE CUT IS `MINOR`, `1.12.0`.** `PATCH` is foreclosed (`D-39`'s *"semver breach"*; `D-126` item 3's *"carries a breaking input requirement on top"*), `MAJOR` by `PUB-DD-9`'s own terms; `MINOR` — *"a member of the declared surface"* — is the class the corpus has itself read twice this way (`:120`, `:122`).
+6. **`Q-T1` — NO CJS-TYPED LEG IS OWED.** The type surface does not move: `types` is unchanged and stands first, both routes reach the same `./index.d.ts`, and the staging copies two files and not `index.mjs`.
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **THE ACCEPTANCE DRIVE REMAINS OWED BEFORE ANY TAG** — `NEW-1` (the `O3` install-shape `require` cell that boots `storeCreate`, writes at `mem` and reads it back, in a temp tree) is a **measurement** and not a ruling, and the tag stays the architect's.
+2. **THE GATES THEMSELVES** — the landing pass (manifest, entry header, `build.rs`, the five proxies, the shipped prose and the `§1.12.0` notes, the cut's eleven cells and three generated lines, the staged `typecheck` copy, the rebuilt artefact), the test pass (the 21 re-derived assertions, the two `negative-generators` generators re-derived first, `NEW-1`/`NEW-2`/`NEW-3`), and the gate-4 re-read — all owed and none decided here.
+3. **`Q-9` (the esbuild silent-inline home) AND `Q-10` (the provenance question) STAY OPEN** — they were not among the six.
+4. **The corpus items the amendment named but did not edit** — `docs/specs/storeroom-js/package.md`'s citation discrepancy (cited live by `index.mjs:1`–`:4`, `contract.md:21`, `brief.md:67`; the file exists only in the archive), and `docs/L1/module-map.md:852`/`:857` + `docs/L1/modules.json:442`'s endpoint text — owed by the L1 revision pass that next touches the map.
+
+**TERMS: the proposals (`6` = all taken), the floor string (`1` = `">=22.12.0"`), the platform floors (`5` = move), `HO-1`'s meaning (`1` = supported route), the law's home (`1` = `§3.1`), the class (`1` = `MINOR`), the number (`1` = `1.12.0`), the type leg (`0` = none owed), the tags taken (`0`).**
+
+
+---
+
+### `D-130` — A REJECTED LISTENER BODY IS A NEW STATUS, AND ASYNC DELIVERY STARTS ALL BODIES TOGETHER WITH INTERFERENCE THE CALLER'S OWN HAZARD
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af` (the tree carries `research.md §22`/`§22.12` and `proposals.md P-4` uncommitted; `§20`/`§21`/`P-3`/`D-127`…`D-129` are earlier sessions' and are not this row's subject). **SOURCE:** the architect, in session, in answer to `P-4`'s questions — `AL-2`/`AL-3` (a rejected body's disposition), `NQ-1`/`NQ-2`/`AL-6` (concurrency and order under an awaited delivery) — after his earlier answer to `AL-1` (*"Await listeners before the write answers"*, `research.md:2629`–`:2635`). **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Rejected body is new status"
+
+> "For asyncs, start all, assume user is responsible for not registering async listeners that interfere with each other"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **`AL-2` — A LISTENER BODY'S REJECTION IS A REFUSAL AND NOT A SILENCE.** It carries the package's ONE failure form; **it is not a warning, not a log line and not nothing.** So the shape's failure channel is the record's own form and **not** a new kind of report.
+2. **`AL-3` — THE STATUS IS NEW AND IS NOT A WIDENING.** A **NEW** member is appended to the closed set — `src/error.rs`'s `CODES`, **`22 → 23`**, and `bindings/js/index.d.ts`'s `StoreStatus`, **twenty-two literals `22 → 23`**, the escape arm `(string & {})` unmoved — **and `ListenerBodyThrew` at rank `21` is NOT the carrier.** **The store's set is the architect's and this row mints NO NAME, NO SLUG, NO RANK POSITION AND NO MESSAGE**; the message rule of `seams-and-lifecycle.md §8.2` (generated from the code and the failing trigger's arguments, never hand-authored) governs whichever cell he names.
+3. **`NQ-2` IS ANSWERED IN THE NEGATIVE — THE WAITING DOES NOT ASSERT AN ORDER.** **`§2.7` item 3 stands UNAMENDED**: *"NO ORDER IS ASSERTED … a drive compares sets, never sequences"* (`docs/specs/storeroom-js/surface.md:1664`–`:1666`). **So the fork `P-4 §5` priced — serialise (asserting a sequence item 3 declines) or run together (breaking `D-72`'s premise) — takes the second arm, and the price is paid elsewhere: see item 5.**
+4. **`AL-6` — THE WINDOW DOES NOT WAIT FOR A CHAIN; IT WAITS FOR THE DELIVERED SET.** **Every body of the set is STARTED TOGETHER, and the answer is withheld until the delivered set has SETTLED** — the owner's `AL-1` sentence read through this one. **A body therefore may suspend, and its siblings do not queue behind it.**
+5. **`NQ-1` — INTERFERENCE BETWEEN ASYNC BODIES IS THE CALLER'S OWN HAZARD, DECLARED AND NOT DEFENDED AGAINST.** **This follows the corpus's own precedent for a caller-side hazard**: *"TWO INSTANCES OVER ONE `cfg.filePath` ARE THE CALLER'S OWN HAZARD"* (`docs/specs/storeroom-js/contract.md:2512`–`:2517`). **A caller that registers `async` listeners which depend on each other, order each other, or write to each other's addresses is outside what the package defends.** **⟶ AND THE PATH IS CORRECTED AT THIS LINE, `2026-11-17`, BY THE GATE-1 PASS ON THE CONSOLIDATED SHAPE:** it read *"`docs/specs/storeroom-native/contract.md:2512`–`:2517`"*, **which does not resolve at its subject** — the native contract's `:2505`–`:2522` is the `-0` normalization clause — **and the hazard's sentence lives at `docs/specs/storeroom-js/contract.md:2512`–`:2517`, read whole by that pass.** **The precedent is not in doubt; its path was wrong, and `strata/walkthrough.md §3` exit question 5 makes that a defect by definition rather than a blemish.**
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **THE NEW STATUS'S NAME, RANK POSITION AND MESSAGE** — the set is the store's and the architect's; **nothing is minted by this row.**
+2. **WHICH REJECTION CROSSES WHEN SEVERAL BODIES REJECT.** **With `start all`, `N` bodies can reject in one delivery and the package's form carries ONE `{status, message, log, address}`.** **First to settle wins, a declared order, a list, or one refusal per call — SILENT**, and **this row does not choose.**
+3. **WHERE THE STATUS CROSSES.** **Four live sites still declare that a rejection is not the failure form** (`bindings/js/index.d.ts:498`–`:499`; `docs/specs/storeroom-js/surface.md:1275`–`:1278`; `docs/specs/storeroom-js/contract.md:591`; `strata/brief.md:287`–`:289`). **This row says WHAT the failure is; it does not say HOW it reaches the caller** — a rejection from the awaited answer, a throw at a later member, or another carrier. **`P-4`'s `RM-3` stands open.**
+4. **WHAT THE ANSWER CARRIES** (`RM-4`) — **the architect asked this question of L0 and has not yet answered it**; the explanation is owed to him before it can be ruled.
+5. **PACKAGE-INTERNAL STATE UNDER A SUSPENSION IS *NOT* COVERED BY ITEM 5 OF WHAT THIS ROW SETTLES.** **The caller-hazard sentence covers the CALLER'S OWN registrations interfering with each other.** **It cannot cover the package corrupting its own module-level or per-instance slots when two of ITS OWN bodies suspend** — `EXTERNAL_COMMIT`/`EXTERNAL_DEPTH` (`bindings/js/src/entry/state.mjs:319`, `:811`–`:845`), `state.legDelivery` (`index.mjs:858`; `delivery.mjs:984`), `state.listenerFailure` (`delivery.mjs:580`), `witnessDiscardedReversal` (`index.mjs:905`), `REPAIR_LEGS_LAST` (`state.mjs:836`). **Those are the DESIGN's obligation, and `P-4 §7` `N-4` names each; no ruling is owed for them, but a design that leaves one crossing is defective.**
+6. **`RM-6` — WHERE A SUSPENDED BODY'S OWN WRITE NAMES ITS COMMIT STAYS SILENT** (`state.mjs:667`, `:674`–`:675`; `P-4 §7` `N-2`). **`start all` does not decide it: the triggering commit is OPEN for the whole of the suspension, so the JOIN arm `N-2` derives is live rather than foreclosed.**
+7. **THE RESIDUAL `P-4` QUESTIONS, unchanged**: `RM-1` in the letter of an ACTIVE row is given by the two sentences only for the *scheduler-shaped* half and its instruments still need the bounded amendment (`contract.md:602`); `RM-2`, `RM-4`, `RM-5`'s measurement, `RM-7` (which verbs and instants), `RM-8`, `RM-9`, `NQ-3`, `NQ-4`, `NQ-5`, `NQ-6`, `AL-7`…`AL-12` — **none is touched by this row.**
+
+**WHAT IS CARRIED AND NOT ASKED — recorded so no reader takes silence for a decision.** **`AL-7`'s *"one invocation per distinct handle"* stands whole** (`surface.md:394`–`:398`; `delivery.mjs:165`): `start all` changes when bodies run, **not how many identities are invoked**. **`AL-8`'s window membership stands whole** (`delivery.mjs:107`–`:121`): a registration made during the window — including one made by a body that suspended — **takes effect at the next trigger and at no element of this one**, which is deterministic and needs no new rule. **If the architect reads either differently, he will say so and this clause is the pointer.**
+
+**TERMS: the answers (`2` = a new status · start-all with the interference hazard the caller's), the statuses minted (`1` = a NEW member, name owed), the statuses widened (`0`), the order assertions added (`0`), the caller hazards declared (`1`), the `P-4` questions closed (`AL-2`, `AL-3`'s *which*, `AL-6`, `NQ-1`, `NQ-2` = `5`), the `P-4` questions left open (`12`), the cells written (`0`), the code moved (`0`), the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT.** **The next move is his answer to the one question he asked to have explained (`RM-4`), and L0's explanation of it is owed before anything is designed.**
+
+---
+
+### `D-131` — THE SIX-KEY CONFIG: `saveCall` CARRIES THE STORE'S OWN IMAGE, `channel` IS PER-WRITE AND ITS ANSWER IS THE RECEIPT, AND BOTH MAY STAND BESIDE `filePath` WITH `saveCall` WINNING
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, in answer to three questions
+L0 put to him while the intake audit (`strata/research.md §23`) ran. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "saveCall, which is a (async optional) function that the package invokes when saving instead of writing to the filePath, expecting a return of `True` or a verbose error log"
+>
+> "channel, which is an interface function used for batching the writes when communicating from backend<-->frontend. If a channel is registered, the store will pass the listeners and their return values with the write receipt … Channel function returns data to client so that it can load the data."
+>
+> **and, asked directly:** the payload is **"The store's own file image"** · the boundary is **"Per write, its return is the receipt"** · and `filePath` beside it is **"Both allowed, saveCall wins"**.
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE CONFIG'S TWO NEW KEYS, AS `cfg` KEYS BESIDE THE PRESENT FOUR — `4 → 6`.** **THE ANTECEDENT OF *"Add two optional ones"* IS THE FOUR DECLARED KEYS THE PRIOR EXCHANGE NAMED** (the owner asked *"What are the current config options accepted for the store creation?"* and these two bullets answer it), **so `saveCall` and `channel` are `cfg` keys and not instance members, module exports or verb positions.** **This reading answers `§23.13`'s `SC-1` and `CH-1` BY CONTEXT AND NOT BY HIS OWN WORD; if he means otherwise he will say so and this clause is the pointer.** **The cost is `§23.3`'s `A-B11`: `frame.mjs:203`–`:222` passes four keys and ignores the rest, so today BOTH keys are silently inert — measured, `§23.16` (2)(c).**
+2. **`saveCall` CARRIES THE STORE'S OWN FILE IMAGE — NOT A PACKAGE SNAPSHOT AND NOT A DELTA.** **This answers `§23.13`'s `SC-5`.** **The consequence is immediate and is the largest thing this row buys: the store must be able to HAND ITS IMAGE OUT**, and the corpus's only prior text on that class is `D-112`'s unclosed question, which named exactly three carriers — *"a tenth addon entry, a position on the existing one, or a package act that reaches the store's own writer through a channel the corpus already declares"* — and called the choice *"a declaration and not an implementer's choice"* (`strata/decisions.md:5784`–`:5788`). **This row does not choose among the three.**
+3. **`saveCall` AND `filePath` MAY STAND TOGETHER, AND `saveCall` PREVAILS ON THE WRITE PATH.** **This answers `SC-4`, and it is the answer that keeps the tier model coherent — MEASURED, `§23.16` (2)(a): a `file`-tier write on a store with NO `filePath` is REFUSED (`ParentAnchorMonotonicityViolation`), so a `saveCall` store without a `filePath` can never enter the `file` tier and `save_owed` would answer `false` forever, invoking `saveCall` ZERO times.** **So `filePath` REMAINS the probe that fixes the register at `file` (`docs/specs/storeroom-native/contract.md:4868`, `§10.4` pt. 1–3), and `saveCall` REDIRECTS WHERE THE BYTES GO, not whether the register is durable.** **`file` therefore keeps a probed path as its entry condition — `SC-7`'s reversal is NOT taken.** **⟶ THAT LAST CLAUSE IS SUPERSEDED AT THIS LINE, `2026-11-17`, BY `D-132` ITEM 2, WHICH AUTHORS EXACTLY THE THIRD ENTRY CONDITION THIS CLAUSE DECLINES** (*"If a saveCall is provided and a filePath is not, treat the file probe as successful"*), **and `role_l0_critique` found the two rows standing unreconciled (`VN-4`). `D-131` ITEM 3 STANDS FOR EVERYTHING ELSE — `filePath` remains ONE way into the tier, `saveCall` prevails on the write path, and the probe still fixes the register at `file` where a path is given. What does NOT stand is the words *"NOT taken"*: the reversal is taken, by `D-132`, and this pointer is the one home of that correction.**
+4. **`channel` IS INVOKED PER WRITE AND IS NOT BATCHED.** **This answers `CH-6` in the only one of its three arms that schedules nothing**, and `§23.12`'s asymmetry is why it matters: *a per-write call meets `DD-22`'s scheduler refusal NOT by reversing it but by never reaching it* (`docs/specs/storeroom-js/contract.md:602`). **The batching sentence in the request is thereby read as the channel's PURPOSE — one delivery point per write for a backend↔frontend hop — and not as an accumulate-and-flush queue.** **A flush boundary is NOT declared, and none may be invented without a ruling.**
+5. **THE CHANNEL'S ANSWER IS THE RECEIPT.** **This answers `CH-5` in its largest form**: the caller receives what the channel returned, *"so that it can load the data"*. **The channel receives `{listenerHandle: <data>, …}` — one entry per triggered handle, the value being that listener's return value.**
+6. **THE BOUNDARY OF THE PACKAGE'S RESPONSIBILITY IS THE CHANNEL'S RETURN — THE OWNER'S OWN WORDS: *"(End of package scope)"*.** **What the caller does with the data afterwards is the caller's.**
+7. **`A57` IS NOT MOVED BY EITHER KEY.** **The store still invokes nothing; the PACKAGE invokes `saveCall` and `channel`, which is exactly the shape `A57` permits** (`docs/specs/storeroom-js/surface.md:387`; `strata/brief.md:331`–`:332`). **A pass that files this request as an `A57` breach has read the wrong boundary.**
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **`saveCall`'s DECLARED ANSWER AND ITS OUTSIDE FORM** (`SC-2`) — *"`True` or a verbose error log"* is **a third answer shape** beside the store's one crossed form and `PAR-JS-12`'s `TypeError`; **whether `True` is a boolean, a truthy value or an outcome record, and what a non-function `saveCall` answers, are unruled.**
+2. **THE STORE READOUT'S FORM** — `D-112`'s three carriers, unchosen (`D-112`'s own unclosed question, reopened by item 2 above).
+3. **THE BOOT ROUTE FROM A `saveCall` IMAGE.** **Nothing in the tree declares a restore-from-outside route** (`read_file_image` is *"THE ONE PLACE THE BYTES AT `file_path` ARE READ AND DECODED"*, `src/store.rs:1714`), **so an image persisted elsewhere has no declared way back in**, and a store booting over a `filePath` whose bytes `saveCall` superseded reads **the stale file** — measured at `§23.16` (2)(b) for the file's own arm, not for this one.
+4. **`FileCommitFailed` AND WHO ROLLS A FAILED SAVE BACK** (`SC-6`). **The declared rollback lives in `commit_file`'s `Err` arm (`src/store.rs:1601`–`:1609`) and a package-performed save has no such arm**; **`§2.11` clause 5's observable loses its producer unless the store grows an entry or the package grows a second mechanism, and those are different classes.**
+5. **THE RECEIPT'S FORM** (`CH-5`, precise) — **whether the channel's answer REPLACES the receipt or rides beside it.** **`WriteRecord` declares three typed members and carries two more as non-enumerable own accessors** (`bindings/js/index.d.ts:616`–`:680`), and **`D-119` declares the log a RESULT the caller audits its own act with (`:6112`–`:6137`)** — **so a receipt that IS the channel's answer has to say what happens to `op`, `watched`, `triggered`, `discarded` and `log`, and this row does not.**
+6. **A CHANNEL OR SAVE FAILURE'S DISPOSITION** (`CH-4`, and `D-130` item 3's own *"it does not say HOW it reaches the caller"*): silently, as the new twenty-third status `D-130` minted but nobody has named, as a `TypeError`, or as a throw through.
+7. **WHICH OF THE FIVE DELIVERY SITES THE CHANNEL REACHES** (`CH-2`) — *"with the write receipt"* exists at a `write` and a `delete` and nowhere else; a `rollback`'s judgement, the four registration instants and the creation answer other things (`surface.md:1728`; `bindings/js/index.mjs:887`, `:2171`).
+8. **WHICH VALUE CROSSES WHEN SEVERAL LISTENERS RETURN ONE, AND HOW A REPLACED HANDLE'S ENTRY IS KEYED** (`CH-3`) — **`D-130` item 2's plurality question in the channel's voice, made structural by a map.**
+9. **WHETHER `channel`'S ABSENCE OR PRESENCE CHANGES WHAT A LISTENER'S RETURN VALUE IS FOR** (`CH-7`) — the request's own words condition the invocation on registration, and **nothing in the tree conditions an invocation on a body's answer** (`PAR-JS-12`'s observable carries no value term).
+10. **`DD-17`/`A74`'S PREMISE** — *"no in-flight state to flush and no async resource whose abandonment could lose data"* (`docs/specs/storeroom-js/contract.md:2507`–`:2510`) **loses its premise under an `async` `saveCall`, which the request names explicitly.**
+11. **`SC-8`, `SC-10`, `SC-11`, `CH-9`, `CH-10`, `CH-11`** — the WASM question, the second-instance-over-a-backend hazard, and both release classes — **all stand open.**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT.** **A gate-1 pass on this shape (`P-5`) and its adversarial companion are owed before any design work; the intake it rests on is `strata/research.md §23` and `§23.16`.**
+
+---
+
+### `D-132` — `saveCall` WITHOUT A `filePath` ENTERS THE `file` TIER: THE PROBE IS TREATED AS SUCCESSFUL
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, answering the supervisor's report
+of a measured hole (`strata/research.md §23.16` (2)(a)). **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "If a saveCall is provided and a filePath is not, treat the file probe as successful"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **A `saveCall` STORE WITH NO `filePath` IS A `file`-TIER REGISTER.** **This closes the hole the supervisor measured**: without it,
+   *"a `saveCall` store with no `filePath` is a `mem` register, `save_owed` answers `false` for every op, and `saveCall` is invoked
+   ZERO times"* (`§23.16` (2)(a): a `file`-tier write on a path-less store is refused at `ParentAnchorMonotonicityViolation` and no
+   body runs). **So `saveCall` ALONE is from this date a complete durability configuration, and `D-131` item 3's *"`filePath`
+   remains the probe that fixes the register at `file`"* is NARROWED: `filePath` remains ONE way into the tier and is no longer
+   the only one.**
+2. **AND IT AUTHORS A THIRD ENTRY CONDITION FOR `file`, WHICH IS A REVERSAL AND NOT A DECLARATION.** **`docs/specs/storeroom-native/contract.md:4868`
+   (`§10.4` part 1) declares the entry condition in closed form — *"a provided `filePath` is REACHABLE iff (a) the path EXISTS and a
+   write-mode open of it succeeds … or (b) the path is ABSENT and the process can perform an exclusive create at it … **NO SECOND
+   PREDICATE IS AUTHORED**"* — and **this row authors exactly that second predicate**, in the form *"`saveCall` present ∧ `filePath`
+   absent ⇒ the probe is successful"*. **It is the architect's to author; it is recorded as a reversal so no later pass presents it
+   as a reading of `§10.4`.**
+
+**WHAT IT DOES NOT SETTLE — AND THE THREE THAT DECIDE WHETHER IT CAN BE BUILT.**
+
+1. **THE PACKAGE CANNOT IMPLEMENT IT ALONE: THE TIER IS THE STORE'S, AND NO CALLER-SPELLABLE STATE MEANS *"durable, pathless"* —
+   MEASURED.** `src/store.rs:730`–`:731` decides by `if file_path.is_empty() { Tier::Mem } else { …probe… Tier::File }`, and the step's
+   own comment reads *"`filePath`: ABSENT is LEGAL and fixes the register at `mem`; a non-empty string is PROBED"* (`:688`–`:690`).
+   **A caller who tries to spell the missing state is refused before the probe is reached**: `filePath: ''` answers
+   **`AddressMalformed`** (*"'filePath' is not a legal address segment in '', segments are strings or non-negative integers"*),
+   measured `2026-11-17`. **So the ADDON'S CONSTRUCTION MUST LEARN A NEW INPUT** — a carried bit or key that says *file tier,
+   no path* — and that is a store change, a `cfg` row and an arity move in Rust, not a package edit. **This row does not choose its
+   spelling and mints no key.**
+2. **THE STORE'S OWN WRITER BECOMES REACHABLE ON A PATH-LESS REGISTER, AND IT CARRIES NO GUARD.** `commit_file`
+   (`src/store.rs:1581`–`:1611`) tests the journal entry, `save_owed` and `saved`, and **nothing tests the path** — while its
+   state-keyed sibling does (`:3411`–`:3413`). **Today that state is unreachable (measured: the write is refused a layer earlier);
+   this row makes it reachable.** **So the store must either grow a path guard with its own answer, or never enter its own writer
+   when `saveCall` is present** — **`P-4`/`§23.13`'s `SC-3` is thereby promoted from an unmeasured curiosity to a REQUIRED
+   declaration.** **Derived from the bytes; `NOT DRIVEN`, because no implementation exists.**
+3. **THE BOOT ROUTE IS NOW MANDATORY AND NOT OPTIONAL — AND THE TREE DECLARES NONE.** **With no `filePath` there is no image at any
+   path to read**: `read_file_image` is *"THE ONE PLACE THE BYTES AT `file_path` ARE READ AND DECODED"* (`src/store.rs:1714`), and the
+   boot's absent/unreadable arms fall back to the creation state (`D-108` item 1). **So a `saveCall` store SAVES AND CANNOT LOAD:
+   its durability is WRITE-ONLY** — **unless a restore route is declared, and nothing in the tree declares one.** **This is from
+   this date the request's most important open item, and it is `SC-R1` below.**
+4. **`saveCall`'s FORM IS STILL UNRULED** (`SC-2`): *"if a `saveCall` is PROVIDED"* names presence and not validity — **a `saveCall`
+   that is present but not a function, or one whose answer is neither `True` nor a log, has no declared answer, and this row does
+   not supply one.**
+5. **`FilePathUnreachable` LOSES A SUBJECT ON THIS ARM** (rank `13`, `src/error.rs:184`): the probe it names never runs. **And the
+   two-instances-over-one-path hazard moves to the backend, where nothing declares it (`SC-10`).**
+
+**NEW QUESTIONS THIS ROW OPENS, CARRIED WITH THE OLD ONES.**
+
+- **`SC-R1`** — **the restore route**: how does an image persisted by `saveCall` re-enter a store at boot? A new construction input
+   carrying an image, a store entry that accepts bytes, or nothing (**in which case a `saveCall` store cannot boot with its own
+   data, and that must be said in the declaration rather than discovered by a consumer**).
+- **`SC-R2`** — the spelling of the *file tier, no path* input (item 1 above), and whether `saveCall`'s ABSENCE returns the register
+   to `mem` or refuses.
+- **`SC-R3`** — whether the store's own writer is suppressed by that input, or guarded, or removed for the arm (item 2 above).
+
+**TERMS: the entry conditions for `file` (`2 → 3`, and the third is a `REVERSAL` of `§10.4` pt. 1's *"NO SECOND PREDICATE IS AUTHORED"*) ·
+the keys minted (`0`) · the store inputs minted (`0` = owed, `SC-R2`) · the restore routes declared (`0` = owed, `SC-R1`) · the codes
+minted (`0`) · the members moved (`0`) · the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT.** **`saveCall`/`channel` still await their gate-1 pass (`P-5`) and its adversarial
+companion before any design work.**
+
+---
+
+### `D-133` — THE ADDON HANDS THE PACKAGE THE JSON EXPORT, AND THE PACKAGE PASSES IT TO `saveCall` INSTEAD OF THE FILE WRITE
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "If using the saveCall method, the addon will have to hand the JS package the JSON export to pass into the saveCall function
+> instead of the file write"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE CARRIER'S DIRECTION, AND `D-112`'S THREE FORMS NARROW TO TWO.** *"the addon will have to hand the JS package the JSON
+   export"* **excludes the third of `D-112`'s carriers** — *"a package act that reaches the store's own writer through a channel
+   the corpus already declares"* (`strata/decisions.md:5784`–`:5788`) — **and leaves exactly two**: **a tenth addon entry that
+   answers the image, or a position on the existing `commitFile`.** **This row chooses neither.**
+2. **THE ARTEFACT IS THE STORE'S OWN COMPOSITION AND NOT A PACKAGE SNAPSHOT — the text `write_file` writes today**:
+   `let text = json::encode(&self.file_snapshot())` (`src/store.rs:1516`), whose snapshot walks the register's `file`-tier anchors
+   (`:1482`–`:1492`). **It is the WHOLE STATE and not a delta**, which confirms `D-131` item 2 at the level of the artefact.
+3. **ON THIS ARM THE STORE'S OWN WRITER IS NOT USED** — *"instead of the file write"*. **So `§23.13`'s `SC-R3` is answered as
+   SUPPRESSED, not guarded, for the `saveCall` arm.** **What the store does instead of entering `write_file` is the carrier's own
+   question and is not in this row.**
+4. **AND A MEASUREMENT BESIDE IT, TAKEN `2026-11-17`, because it decides whether "the JSON export" is exotic: for an ordinary
+   `file`-tier state the bytes the store writes ARE `JSON.stringify` of the register's own read.**
+   `storeCreate({journalLength: 16, listeners: [], filePath})`; `write(['tabs'], 'file', {a:{url:'x'}, b:2})`; the file read back is
+   **32 bytes, JSON-parseable, and BYTE-IDENTICAL to `JSON.stringify(store.read([]))`** (`{"tabs":{"a":{"url":"x"},"b":2}}`).
+   **The consequence cuts both ways and both halves matter**: **nothing exotic need be minted for the common case**, **and the
+   authority is still the STORE'S composition and never `read([])`**, because **`file_snapshot` assembles at `Tier::File` while
+   `read([])` selects the LOWEST-persistence version present (`D-122`) — so the two texts differ wherever a `mem` or `temp` version
+   shadows a `file` one, which the selection rule makes routine.** **A package that exported `read([])` would ship a text the
+   store's own loader need not accept.**
+
+**WHAT IT DOES NOT SETTLE — AND THE FIVE THAT DECIDE WHETHER THE ARM IS SOUND.**
+
+1. **THE CARRIER'S SPELLING AND ITS ARITY** — a new entry is a `10 → 11` dispatcher figure and a new `PAR` row; **a position on
+   `commitFile` changes that entry's declared answer from `undefined` to a string** (`docs/specs/storeroom-js/surface.md:1915`;
+   `src/facade.rs:1028`–`:1030`'s *"NO POSITION IS MINTED AND NO ARITY MOVES"*). **A declaration, still unmade.**
+2. **THE EXPORT MUST KEEP `write_file`'s SELF-VERIFICATION, AND THIS IS NEW.** **`write_file` RE-DECODES the text it composed and
+   refuses an image the loader would refuse** (`src/store.rs:1522`–`:1524`). **An export route that composes and hands out without
+   that check would hand the caller an image the store would itself have refused** — and, the save now happening outside, nothing
+   downstream performs the check. **Filed as `SC-R4`.**
+3. **THE RETURN JOURNEY IS STILL UNDECLARED — `SC-R1`, and this row makes it the symmetric half of its own sentence.** **If the
+   image leaves as JSON text, the route by which it re-enters at boot is owed in the same breath**: `read_file_image` is *"THE ONE
+   PLACE THE BYTES AT `file_path` ARE READ AND DECODED"* (`:1714`), and a `saveCall` store has no `file_path` at all (`D-132`). **As
+   the record stands, a `saveCall` store SAVES AND CANNOT LOAD.**
+4. **THE STALE-FILE ARM** — with both keys supplied (`D-131` item 3), the file at `filePath` **stops being updated**, so a boot at
+   that path loads an older state which the store then saves through `saveCall`: **two durable artefacts diverging with nothing
+   declared about either.** **No sentence in the tree names it.**
+5. **`strata/brief.md:333`'s INVARIANT 6 NEEDS AN AMENDMENT IN HIS NAME.** *"The file is the store's. Never read, edit, parse or
+   migrate it by hand"* — **the image may now be TRANSPORTED verbatim by the package and handed to a caller-supplied function;
+   parsing, editing and migrating it remain forbidden.** **This row makes the export lawful and does not by itself move the
+   invariant's sentence.**
+
+**UNMOVED BY THIS ROW, AND NAMED SO NO PASS FILED THEM AGAINST IT.** **`SC-2`** (`saveCall`'s answer form and its outside form) ·
+**`SC-6`** (who rolls a failed save back, `§2.11` cl. 5's producer) · **`SC-R2`** (the spelling of the *file tier, no path* input) ·
+**`SC-10`** (a second instance over one backend) · **the release class** — **all open.**
+
+**TERMS: the carrier's direction (`1` = addon → package, chosen) · `D-112`'s forms (`3 → 2` open) · the artefact (`1` = the store's
+own JSON image, whole-state) · the store's writer on this arm (`1` = suppressed) · the carriers minted (`0`) · the restore routes
+declared (`0`) · the self-verification rows added (`1` = `SC-R4`) · the codes minted (`0`) · the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT.** **`P-5` and its adversarial companion remain owed before any design work.**
+
+---
+
+### `D-134` — THE `saveCall` STORE IS EXPECTED TO BE TEMPORARY AND ITS TRUTH TO LIVE ELSEWHERE, AND THE ROUND TRIP GAINS A SEVENTH `cfg` KEY: INITIAL DATA SUPPLIED AT CONSTRUCTION
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, after the supervisor named the
+missing return journey (`D-133` item 3's *"a `saveCall` store SAVES AND CANNOT LOAD"*). **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "The use cases for the saveCall direction are for client-side instances or where data is preserved by DB; in either case the store
+> is likely going to be temporary"
+
+> "Add an additional cfg option for passing in the initial data, to be used when saveCall is active so that the DB can be initialized
+> with data from a source not owned by the storeroom filePath"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE USE CASE IS NAMED, AND IT DISPOSES OF THE SEVERITY OF `SC-R1`.** **A `saveCall` store is a CLIENT-SIDE or TEMPORARY instance
+   whose state's truth is kept by a database the store does not own.** **So *"the store saves and cannot load"* is not a hole for
+   this direction: the store is not the source of truth, and a process that reconstructs it per session never expected it to read
+   its own image back.** **What `SC-R1` becomes is therefore a DIRECTION and not an omission — and the direction is item 2.**
+2. **THE ROUND TRIP IS ASYMMETRIC BY DESIGN, AND THIS ROW MAKES THE ASYMMETRY DELIBERATE: OUT AS THE STORE'S OWN IMAGE, IN AS
+   CALLER-SUPPLIED DATA.** **`D-133` sends the store's JSON image OUT through `saveCall`; this row sends the caller's OWN DATA IN at
+   construction.** **The store therefore never has to parse text it did not compose** — **which also narrows `SC-R4`: the self-
+   verification at `src/store.rs:1522`–`:1524` stays the store's own guard on the outgoing artefact, and the incoming artefact is
+   not an image at all but a value in the API's domain.**
+3. **THE SEVENTH `cfg` KEY: INITIAL DATA, AT CONSTRUCTION, FOR THE `saveCall` DIRECTION.** **It carries *"data from a source not owned
+   by the storeroom `filePath`"*** — i.e. **the DB's copy of the state, supplied by the application, and it is the route by which a
+   `saveCall`-backed store begins life with content.** **The set moves `6 → 7`** (`D-131` item 1 took it `4 → 6`).
+4. **AND A FACT THAT MAKES THE KEY CHEAPER THAN IT LOOKS, NAMED AS A FINDING AND NOT AS A DECISION: THE STORE ALREADY CARRIES A
+   SUPPLIED-STATE CONCEPT.** `src/store.rs:636`–`:639` declares **`base_state: StoreValue`, *"a SNAPSHOT of the store's own observable
+   state"* for the compression's floor**; it is initialised **empty** at creation (`:1011`, `StoreValue::Object(BTreeMap::new())`)
+   and **overwritten during compression** from `assemble_all` (`:2145`–`:2149`). **So a seeded construction is structurally the same
+   kind of act the store already performs on itself — but a base state is the COMPRESSION FLOOR and not the REGISTER, and the two are
+   not the same object.** **Whether the seed populates the base state, the register, or both is the design pass's to price, and this
+   row chooses neither.**
+
+**WHAT IT DOES NOT SETTLE — THE EIGHT THAT DECIDE THE KEY'S SHAPE.**
+
+- **`SE-1` — THE SEED'S SHAPE: THE CALLER'S OWN DATA, OR THE STORE'S IMAGE TEXT?** **The request's own words say *"data from a source
+  not owned by the storeroom `filePath`"*, which reads as the application's data and not as this store's JSON.** **If it is the
+  caller's data, the crossing's declared domain governs it** (structured-clone-compatible values, the `126`-deep ceiling and the
+  `1,000,000`-node budget, `ValueNotAdmitted`), **and a structured write at the register mints the whole branch tree beneath it**
+  (`strata/brief.md` UC-4). **If it is the image text, a parser enters the package, which `brief.md:333` forbids by hand.**
+- **`SE-2` — WHICH TIER THE SEED LANDS AT.** Under `D-132` a `saveCall` store is `file`-tier; **a seed landing at `mem` would be
+  shadowed or purged by the first `file`-tier write, and a seed landing at `file` would owe a save from the instant the store
+  exists** (see `SE-7`). **Undeclared.**
+- **`SE-3` — IS THE SEED AN OP?** **A journal entry with an `opId` makes it rollbackable and counts against `journalLength`; a base
+  state makes it the floor beneath the journal.** **The two have different observed answers for a `rollback` issued before any
+  write, and the record declares nothing.**
+- **`SE-4` — SEED BESIDE AN EXISTING READABLE FILE.** `D-131` item 3 allows `filePath` beside `saveCall`; **so a store may be given a
+  seed AND boot over a file that already holds a state.** **Which wins — the seed, the file, or a refusal — is undeclared, and the
+  two silent behaviours differ (a seed that wins silently discards the file's state; a file that wins silently discards the seed).**
+- **`SE-5` — IS THE KEY LEGAL WITHOUT `saveCall`?** *"to be used when saveCall is active"* **names the key's purpose and not its
+  domain.** **Ignored like a seventh key today, refused, or in domain everywhere — undeclared.**
+- **`SE-6` — ITS VALIDATION'S INSTANT AND ITS CODE.** **Every construction argument is validated before any filesystem act**
+  (`strata/brief.md` UC-2; `contract.md §10.4` parts 1–5), **so a seed's refusal must precede the probe — and whether that refusal
+  is `ValueNotAdmitted`, `ValueRefusedAtBoundary`, `AddressMalformed` or a new member is unruled.**
+- **`SE-7` — DOES A SEEDED STORE OWE A SAVE IMMEDIATELY?** **If the seed lands at `file` tier, the store holds `file`-tier state it
+  has not written; a `saveCall` fired on the next write would export a state the DB already holds, and a `saveCall` never fired
+  would leave the store's `saved` mark and the DB disagreeing.** **The store's `commit_file` already carries a `saved` conjunct
+  (`src/store.rs:1581`–`:1611`); nothing declares its meaning for a seeded construction.**
+- **`SE-8` — THE UNDO WINDOW OVER A SEED.** `journalLength` bounds the journal and the store compacts into a base state as it fills
+  (`strata/brief.md` UC-7); **whether a `rollback` can reach behind a seed, and what `undoneOps` reports there, is undeclared.**
+
+**AND ONE THING THIS ROW CARRIES THAT NO ONE ASKED FOR, RECORDED BECAUSE IT IS A CONSEQUENCE OF THE ASYMMETRY AND NOT OF THE KEY.**
+**A `saveCall` store is expected to be temporary — so a consumer that keeps one for the process's life is outside the declared use
+case.** **The corpus's own standing rule is the opposite — *"There is no release verb — construct one store and keep it for the
+process's life"* (`strata/brief.md:188`–`:189`).** **The two are not in contradiction for this direction: the standing rule governs
+the file-backed store, and this row names a direction in which a store may be per-session.** **No member moves, and no release verb is
+introduced — a temporary store is a store whose caller stops using it.**
+
+**TERMS: the `cfg` keys (`6 → 7`) · the round trip (`2` directions, asymmetric and chosen: image out, data in) · the use cases named
+(`1` = client-side or temporary, truth elsewhere) · the `SC-R1` disposition (`1` = answered in direction, still owed in mechanism) ·
+the keys minted by name (`0` — the key's NAME is the design's, this row names its subject) · the codes minted (`0`) · the tiers chosen
+(`0` = `SE-2` owed) · the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT.** **`P-5` and its adversarial companion remain owed; this row joins `D-131`…`D-133` as
+their input.**
+
+---
+
+### `D-135` — CORRECTION BY NAME: AN IMAGE-TEXT SEED IS POSSIBLE, AND IT IS THE CHEAPER OF THE TWO SEED SHAPES
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, CHALLENGING L0's OWN SENTENCE:
+*"Why is the store's image text not possible? It's already the data it's reading from file"*. **STATUS: `ACTIVE`.**
+
+**THE SENTENCE WITHDRAWN, QUOTED FROM `D-134`'s `SE-1` AND REPLACED AT THIS LINE** (`strata/walkthrough.md §4`: a superseded cell
+leaves and leaves one pointer):
+
+> *"**If it is the image text, a parser enters the package, which `brief.md:333` forbids by hand.**"*
+
+**IT IS FALSE, AND IT IS FALSE ON BOTH OF ITS HALVES.** **(a) No parser enters the PACKAGE, because the store already owns the
+decoder**: `read_file_image` is *"THE ONE PLACE THE BYTES AT `file_path` ARE READ AND DECODED"* (`src/store.rs:1714`) and decodes with
+`json::decode(&text)` at `:1730`, filtering members through `is_admitted()` and answering one of three declared classes —
+`NoImage` · `Members` · `Refused` (`:1720`–`:1737`). **`write_file` verifies its own composition the same way** (`:1522`). **The
+package would transport an opaque string and parse nothing.** **(b) `brief.md:333` DOES NOT FORBID IT** — its sentence is *"the file is
+the store's. Never read, edit, parse or migrate it by hand"*, **and a seed decoded by the store is neither a hand-parse nor an edit.**
+
+**WHAT REPLACES IT — THE CORRECTED READING, AT THE BYTES.**
+
+1. **AN IMAGE-TEXT SEED IS THE BOOT PATH WITH THE TEXT SUPPLIED INSTEAD OF THE PATH.** **The decode is a PURE READ** — its own clause:
+   *"no node is minted, no anchor is installed, nothing is mutated, so a caller may refuse on this answer and leave the store exactly
+   where it found it"* (`:1716`–`:1719`) — **and `Store::boot_load` / `Store::regenerate` are what INSTALL the members.** **So a seed
+   needs a route that feeds text to the same decode, and the installation machinery it then reuses already exists.**
+2. **AND IT IS CHEAPER THAN A CALLER-DATA SEED, NOT DEARER — the `SE-1` comparison inverted.** **A caller-data seed needs the crossing's
+   whole validation at construction** (structured-clone compatibility, the `126`-deep ceiling, the `1,000,000`-node budget,
+   `ValueNotAdmitted`) **AND a structured write that mints the entire branch tree beneath the register** (`strata/brief.md` UC-4). **An
+   image-text seed needs neither: the store decodes what it composed, and `is_admitted()` is already the filter.**
+3. **ITS REFUSAL ALREADY HAS A DECLARED HOME.** **An image the loader cannot accept is `FileImage::Refused`, and its status is rank
+   `22` `FileImageRefused`** (`src/store.rs:1737`; `src/error.rs:195`; `D-126` item 2). **So the seed's failure arm mints no member and
+   opens no rank question — it is `SE-6`'s answer for this shape, and it is already declared.**
+4. **AND THE ROUND TRIP BECOMES SYMMETRIC, WHICH WITHDRAWS `D-134` ITEM 2'S ASYMMETRY AS A DESIGN MERIT.** **Out as the store's JSON
+   image (`D-133`), in as the same text: THE DB STORES EXACTLY THE BYTES THE STORE EMITTED.** **`D-134` item 2 called the asymmetry
+   *"deliberate"*; with the image-text route available and cheaper, the asymmetry is a choice a design may still take and no longer a
+   structural virtue.** **The direction stays: the DB holds the text, the store composes and decodes it, and the caller never parses.**
+5. **THE ONE CONSTRAINT THAT IS REAL AND STAYS.** **An image is `file`-tier state only** — `file_snapshot` walks the register's
+   `Tier::File` anchors (`src/store.rs:1482`–`:1492`). **So an image-text-seeded store is a `file`-tier store, which is exactly what
+   `D-132` declares a `saveCall` store to be** — **and a seed cannot express a `mem` or `temp` version, which the `saveCall` direction
+   does not need.** **And the format remains the store's private composition: OPAQUE to the caller, transported verbatim, never
+   hand-edited.**
+
+**STILL UNDECLARED, AND NAMED RATHER THAN ANSWERED.** **Whether the seed key accepts BOTH shapes (the store's image text AND the
+caller's own data) or only one** (`SE-1` now splits in two, and this row does not choose) · **the import CARRIER** — `D-112`'s remaining
+two forms, symmetric with `D-133`'s export, and neither chosen · **whether an absent or empty seed reads as `NoImage` and the creation
+state stands** (`SE-*`'s degenerate arm) · **`SE-2`…`SE-8` unchanged.**
+
+**TERMS: the withdrawn sentences (`1`) · the corrected readings (`5`) · the parsers added to the package (`0`) · the codes minted (`0`)
+· the ranks opened (`0` — `FileImageRefused` is the seat) · the seed shapes (`2`, neither chosen) · the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT.** **`P-5` and its adversarial companion remain owed.**
+
+---
+
+### `D-136` — THE CHANNEL'S DATA RIDES BESIDE THE RECEIPT, UNDER ITS OWN NAME; THE RECEIPT'S FIVE MEMBERS ARE UNMOVED
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, answering the gate's one blocking
+question (`strata/proposals.md` `P-5`; `D-130:6768`'s *"L0's explanation of it is owed before anything is designed"*). **THE
+ARCHITECT'S WORDS, VERBATIM:**
+
+> "Ride beside it, under its own name"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **`RM-4` IS CLOSED, AND SO IS `CH-5` — the two were one question and one answer closes both.** **The write's answer keeps its
+   declared shape exactly: `WriteRecord`'s THREE typed members `op` · `watched` · `triggered`** (`bindings/js/index.d.ts:616`–`:620`)
+   **and its TWO non-enumerable own accessors `discarded` and `log`** (`:621`–`:644`, `:645`–`:680`) — **and the channel's returned data
+   is attached BESIDE them, under its own name, on the same object.** **So the census moves on the accessor side alone** — a
+   **third** non-enumerable own accessor, `A117` (D6)/`D-119` item 3's device — **and `Object.keys` stays three and every consumer
+   deep-equality over a write's answer is unmoved.**
+2. **`D-131` ITEM 5's TITLE IS NARROWED, BECAUSE ITS OWN BODY HAD ALREADY WITHDRAWN IT.** That row's headline reads *"THE CHANNEL'S
+   ANSWER IS THE RECEIPT"* while its `WHAT IT DOES NOT SETTLE` item 5 says *"whether the channel's answer REPLACES the receipt or
+   rides beside it … this row does not"* (`:6801`). **THIS ROW TAKES THE SECOND ARM AND WITHDRAWS THE FIRST AS A READING: the
+   channel's answer is NOT the receipt; it rides beside it under its own name.** **The `D-131` byte stands; its title is read through
+   this clause from this date.**
+3. **AND `D-119` item 4 STANDS WHOLE, WHICH IS WHY THE OTHER ARM WAS UNAVAILABLE BELOW HIM.** *"The entries are the commit's own, one
+   list, the same objects a refusal crosses with — so a call that passes and a later refusal on the same commit can never
+   disagree"* (`:6124`–`:6128`), grounded on *"a caller that cannot read the passing log cannot audit its own write"*
+   (`:6105`–`:6109`). **A receipt that IS a caller-supplied value carries no log at all, and the passing call and the later refusal
+   would disagree. No layer below the architect could take that arm; this row does not take it either.**
+4. **AND THE CALLER'S READING IS ONE OBJECT, NOT TWO:** `record` keeps its five members and carries the channel's data under the
+   name the declaration will spell. **What that name is, is the design's — this row names the RELATION and not the identifier**
+   (`D-134`'s terms set the precedent for name-vs-subject and this row follows it).
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **THE ACCESSOR'S NAME, ITS TYPE, AND WHETHER A WRITE WITH NO CHANNEL CARRYING ANYTHING CARRIES THE ACCESSOR AT ALL** — an accessor
+   that is absent where no channel stands and present-but-empty where a channel returned nothing are different observables, and the
+   record's own precedent carries both shapes: `discarded` is always present, `log` is present always and `[]` for a joined call
+   (`index.d.ts:670`–`:672`). **Design's to price; this row does not choose.**
+2. **`CH-3` AND `D-130` ITEM 2's PLURALITY** — which value crosses when several listeners return one, which rejection crosses when
+   several bodies reject, and how a replaced handle's entry is keyed — **all still open, and now more visible because the map and the
+   accessor are one artefact.**
+3. **WHETHER AN `async` CHANNEL'S PROMISE MAY CROSS AS `{handle: <promise>}`** (`VN-7`): the request declared `saveCall` *"(async
+   optional)"* and said nothing of the channel, and this row does not supply the word.
+4. **EVERYTHING THE GATE LISTED AS `PRICEABLE`** — the export/import carriers, `SC-2`, `SC-3`, `SC-6`/`SC-R2`, the seed's shape and
+   tier, `CH-2`, `CH-4`, `CH-7`, `CH-8`, the release class — **is untouched by this row.**
+
+**TERMS: the receipt's typed members (`3`, unmoved) · its non-enumerable accessors (`2 → 3`) · `RM-4` (`1` = closed) · `CH-5` (`1` =
+closed) · the arms the ruling withdraws (`1` = *"its answer IS the receipt"*) · the identifiers minted (`0` = design's) · the codes
+minted (`0`) · the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT — EXCEPT THAT IT REMOVES THE ONE THING `P-5` RECORDED AS BLOCKING, WHICH IS WHY THE GATE'S
+TOKEN IS NOW ISSUED AND THE DESIGN PASS MAY OPEN (`strata/proposals.md` `P-5` `§1`).**
+
+---
+
+### `D-137` — FOUR SPELLINGS AND A STATUS: `exportImage` · `durable_without_path` · `initialImage` (image text only) · rank `23` `ListenerBodyRejected`
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, answering the four holes
+`docs/L1/seven-key-config.md` left open, **and delegating the four inventions to L0 in his own words.** **THE ARCHITECT'S WORDS,
+VERBATIM:**
+
+> "Add new entry for export"
+> "Invent a spelling"
+> "Image text only - best practices for writeCall should be interacting with JSON stores anyway"
+> "Invent a status"
+
+**STATUS: `ACTIVE`.**
+
+**ONE WORD IS READ AND NOT ASSUMED.** *"best practices for **writeCall**"* — **no member or key of that name exists in this tree; its
+counterpart `saveCall` does, and the sentence's subject is the store's interaction with a JSON-backed store.** **This row reads it as
+`saveCall` and no other reading is offered.**
+
+**WHAT IT SETTLES — THE FOUR CHOICES TAKEN.**
+
+1. **THE EXPORT CARRIER IS A NEW ADDON ENTRY, AND `D-133`'s TWO SURVIVORS BECOME ONE.** *"Add new entry for export"* **excludes the
+   position on `commitFile`** — so `facade.rs:1028`–`:1033`'s *"NO POSITION IS MINTED AND NO ARITY MOVES"*, `surface.md:1915`'s *"its one
+   argument is an op id and its answer is `undefined`", and `delivery.mjs:939`'s call are UNMOVED.** **THE ADDON'S ENTRY SET MOVES `12 → 13`**
+   (counted at this tree's bytes: twelve `#[napi(js_name = …)]` entries at `facade.rs:581`, `:627`, `:669`, `:713`, `:752`, `:786`, `:852`,
+   `:895`, `:920`, `:951`, `:986`, `:1034`; `surface.md:1917`'s figure of `5` does not resolve at this file and is a recorded defect).
+2. **THE SPELLING IS `exportImage`.** **Position-less, answering the store's own image text as a `string`, and MARKING NOTHING** — it
+   writes no byte, sets no `saved` mark, appends no journal entry, and refuses nothing on its own composition (the re-decode at
+   `src/store.rs:1522`–`:1524` becomes an assertion inside it, which is `SC-R4` discharged by construction). **The name is chosen for the
+   parallel with `commitFile`**: both concern the durable artefact — `commitFile` writes it, `exportImage` answers it.
+3. **THE TIER-WITHOUT-PATH SPELLING IS `durable_without_path`, AND IT IS AN ARGS CARRIER AND NOT A `cfg` KEY.** **The caller spells
+   NOTHING: the PACKAGE sets it when `saveCall` is present and `filePath` is absent**, which is `D-132`'s clause carried to the store.
+   **`cfg` THEREFORE KEEPS SEVEN KEYS** (`D-131` item 1's figure unmoved) **and `DD-36`'s refusal of a key the package injects is NOT
+   engaged, because that refusal governs the CALLER's key set and not the package's internal call shape.** **`SC-R2` IS CLOSED.**
+4. **THE SEED IS IMAGE TEXT ONLY, AND ITS KEY IS `initialImage`.** *"Image text only"* **closes `SE-1` on the arm `D-135` priced as
+   cheaper**, and its ground is the architect's own: **the save side's counterpart already speaks JSON, so the store's image is the
+   currency of both halves and no caller-shaped seed is owed.** **The key's name is invented here because `D-134`'s terms handed it to
+   design and the architect has now delegated the spellings**; **the subject stays his *"initial data"*.** **It is decoded by the store's
+   own decoder tail (`json::decode` + `is_admitted()`, `src/store.rs:1730`–`:1734`) and its refusal arm is rank `22` `FileImageRefused`
+   (`D-135` item 3, unmoved).**
+5. **THE 23rd STATUS IS INVENTED: RANK `23` · `ListenerBodyRejected`.** **THE NAME** follows the family and the promise pair: its
+   sibling at rank `21` is `ListenerBodyThrew` (`src/error.rs:193`), its subject is the same LISTENER BODY, and its verb is the other half
+   of the same pair — **it is NOT a widening of rank `21`** (`D-130` item 2's clause, unmoved: `21` remains the registration-instant
+   throw). **ITS SUBJECT** is the WATCHED ADDRESS'S SPELLING — the address whose triggering fired the body — and **no `<CONTAINER>` slot
+   is printed**, because the act's subject is a delivery and not a place (`ListenerBodyThrew`'s own precedent, `:542`–`:543`). **ITS
+   GENERATED MESSAGE**, in `errorMessage`'s own form:
+
+   ```
+   "<address> was refused by a listener body that rejected, a fired listener body's rejection refuses the act that fired it"
+   ```
+
+   **THE SENTENCE DECLARES WHAT CROSSED AND NOT WHAT THE BODY REJECTED WITH** — the body's own reason is the caller's and is never
+   rendered as though this package had authored it (the clause `ListenerBodyThrew` and `ConstraintBodyThrew` already carry). **`CODES`
+   moves `22 → 23`** (`src/error.rs:171`–`:196`) **and `StoreStatus` moves to twenty-three literals plus its one escape arm**
+   (`bindings/js/index.d.ts:421`–`:444`).
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **HOW THE 23rd STATUS CROSSES — `RM-3`'s standing half, and it is now the LAST blocking semantic for the declaration.** **The four
+   live sites still declare that a rejection is not the failure form** (`index.d.ts:498`–`:499`; `surface.md:1275`–`:1278`;
+   `contract.md:591`; `brief.md:287`–`:289`), **and this row names the status without naming its carrier.** **`D-130` item 1 says a rejected
+   body *"carries the package's ONE failure form"*, which reads toward the awaited answer's rejection — but this row does not say it, and
+   the amendment of those four sites in his name is still owed.**
+2. **`exportImage`'s ARITY IS INVENTED, NOT RULED** — a position-less entry is this row's spelling of a "new entry for export". **If the
+   design finds it needs the op's identity to answer the state that act left, that is a second declaration and it returns here.**
+3. **`durable_without_path`'s REDUNDANCY RULE** — whether it is ignored or refused when a `filePath` is also present (**the probe would
+   govern either way**), and what it means when neither carrier stands (**the writer hazard `SC-3`**). **Design's to price.**
+4. **`initialImage` WITHOUT `saveCall`** (`SE-5`), **its tier and instant** (`SE-2`/`SE-4`), **whether it owes an immediate save**
+   (`SE-7`), **and its provenance** (`VN-5`: an admissible but foreign image installs silently — unchanged by this row).
+5. **`Entry::saved`'s KEEPER IS NOW SHARPER AND STILL UNOWNED**: `exportImage` marks nothing by item 2, so on the `saveCall` arm **nothing
+   in the store ever sets `saved`** and *"once per record"* (`src/store.rs:1573`–`:1580`) has no keeper. **Filed, not cured.**
+6. **THE RECEIPT ACCESSOR'S NAME AND EMPTINESS** (`CH-NAME`, `CH-EMPTY`) — **not invented here: the architect asked for four things and
+   this is a fifth.** **Still open.**
+7. **EVERY OTHER `PRICEABLE` ITEM** — `SC-2`, `SC-3`, `SC-6`, `SC-10`, the import route, `CH-2`/`CH-3`/`CH-4`/`CH-7`/`CH-8`, the plurality
+   rules, the release class — **untouched.**
+
+**TERMS: the export carriers (`2 → 1` = a new entry) · the addon's entries (`12 → 13`) · `cfg`'s keys (`7`, unmoved) · the args carriers
+(`+1` = `durable_without_path`) · `SE-1` (`1` = image text only) · the seed's key (`1` = `initialImage`) · the status set (`22 → 23`) · the
+statuses widened (`0`) · the statuses named (`1` = `ListenerBodyRejected`) · the codes moved by package-side spellings (`0`) · the units
+opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT.** **The design at `docs/L1/seven-key-config.md` is amended where these four choices reach it
+(`§8` of that file), and the last blocking semantic is `RM-3`'s carrier.**
+
+---
+
+### `D-138` — A REJECTING BODY'S STATUS RIDES ON THE RECEIPT, NOT IN A REJECTION: **A** IS REFUSED ON THE ARCHITECT'S OWN GROUND, AND THE FOUR "NEVER A REJECTION" SITES STAND UNAMENDED
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, **correcting L0's question by refusing its
+first arm.** **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Correction - A cannot reject cleanly because listeners fire after the write has commited to file/saveCall. Use B and expect the client to
+> recover as needed"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **ARM `A` IS REFUSED, AND THE GROUND IS THE ARCHITECT'S OWN AND IS A DURABILITY FACT.** **The delivered set runs AFTER the terminal arm's
+   SAVE** (`delivery.mjs:939` → `:987`; `docs/specs/storeroom-js/surface.md §2.11` clause 2; `D-117`'s chain) — **so by the instant any body
+   can reject, the act has ALREADY COMMITTED: its `file`-tier bytes are written, or its `saveCall` has returned, or both.** **A rejection of
+   the awaited answer would therefore report a DURABLE SUCCESS as a FAILURE**, and the caller's own recovery — re-issuing the write, or
+   believing the register did not move — would act on a false premise. **This is not a shape preference; it is the one arm that cannot be
+   reconciled with the order the corpus already declares.**
+2. **ARM `B` IS TAKEN: THE WRITE RESOLVES, AND THE STATUS RIDES ON THE RECEIPT.** **The 23rd status of `D-137` (rank `23`
+   `ListenerBodyRejected`) keeps its identity, its subject and its generated message, and its CARRIER is the write's answer** — **a datum the
+   caller reads, beside the channel's data `D-136` already put there.** **`RM-3`'s *"how"* is thereby answered, and the answer is that the
+   failure does not cross as a rejection at all.**
+3. **★ AND THE FOUR LIVE SITES THAT DECLARE A REJECTION IS NOT THE FAILURE FORM STAND UNAMENDED — the amendment `P-5` and `D-137` both owed
+   is WITHDRAWN.** `index.d.ts:498`–`:499` (*"never an `Error` subclass, never a returned tagged union and never a `Promise` rejection"*),
+   `surface.md:1275`–`:1278` (*"no `Promise` rejection (**every verb is synchronous**)"*), `contract.md:591` (`DD-12`'s REFUSES cell) and
+   `brief.md:287`–`:289` (*"thrown synchronously … never a rejection"*) **all stand byte-for-byte.** **`surface.md:1276`'s parenthetical
+   *"(every verb is synchronous)"* also stands — what the shape moves is the verb's ANSWER INSTANT (`RM-2`), and `D-138` keeps the answer's
+   FAILURE FORM synchronous-thrown-shaped in the sense that matters: it is a datum, never a rejection.**
+4. **AND THE SYNCHRONOUS THROW KEEPS ITS OWN CHANNEL, WHICH IS NOW AN EXPLICIT ASYMMETRY AND NOT AN OVERSIGHT.** **A body that throws
+   synchronously leaves the triggering write UNANSWERED and the caller sees the body's error** (`D-73`; `surface.md:1791`–`:1815`; measured
+   `§22.12` `M-1`) — **that arm is untouched.** **A body that REJECTS leaves the write ANSWERED, with the status on the receipt.** **THE
+   TWO ARE DECLARED DIFFERENT ON PURPOSE and no pass may harmonise them**: *a throw is an error in the client's code caught at the
+   invocation, which the caller is positioned to log* (`D-73`'s own ground: *"code that swallows errors cannot be debugged"*); *a rejection
+   arrives after the durable act and cannot unwind it, so the caller must be told without losing its record.*
+5. **AND THE CLIENT'S RECOVERY IS THE CLIENT'S — *"expect the client to recover as needed"*.** **The package neither retries, nor rolls
+   back, nor suppresses; it reports.** **`DD-23`'s *"not caught, not retried, not reported"* is NOT reversed: the package catches nothing,
+   retries nothing and reports through its own answer's datum rather than through any side channel it does not own** (`DD-12`'s one-form
+   ground, `contract.md:590`–`:591`).
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **THE ACCESSOR'S NAME AND ITS EMPTINESS** (`CH-NAME`, `CH-EMPTY`) — **still open, and now load-bearing for two data at one seat**: the
+   channel's values (`D-136`) and the delivery's failures (`D-138`). **Whether they share ONE accessor or take TWO is the design's to price,
+   and the receipt's `getOwnPropertyNames` census moves `5 → 6` or `5 → 7` with that choice.** **No name is minted by this row.**
+2. **THE PLURALITY, WHICH IS NOW A SHAPE AND NOT A CHOICE AMONG BAD ARMS.** **`D-130` item 2's four arms were priced for a SCALAR carrier that
+   could answer once. A receipt datum can carry one entry PER HANDLE** — **and if it does, the plurality dissolves: `N` rejections become `N`
+   entries and no rule is owed for *which one crosses*, because none is dropped.** **That is a consequence this row notes and does not
+   decide**; **the design prices it, and the architect confirms.**
+3. **WHETHER THE ACCESSOR IS PRESENT WHEN NOTHING IS OWED** — with no channel and no failing body, and with no channel but a failing body
+   (`D-138` requires the second to be observable, so **an accessor that is present-and-empty for `log` and absent here would make the
+   failure unreadable in exactly that case**). **`CH-EMPTY`'s answer is now forced toward *present always* by this row's own requirement —
+   the design must say so explicitly and the architect confirm it.**
+4. **EVERYTHING ELSE STANDS**: `SC-2` (`saveCall`'s answer and outside form), `SC-3`, `SC-6`, `SC-10`, the import route, `CH-2`/`CH-4`/`CH-7`/`CH-8`,
+   `SE-2`/`SE-4`/`SE-5`/`SE-7`, `VN-5`'s provenance, `Entry::saved`'s keeper, the release class.
+
+**TERMS: the failure carriers (`2 → 1` = the receipt's datum; the rejection arm refused) · the sites amended (`0` — the four stand) · the
+statuses withdrawn (`0`) · the statuses carried (`1` = `ListenerBodyRejected`, `D-137`) · the accessors (`+1` or `+2`, design's pricing) · the
+`cfg` keys (`7`, unmoved) · the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT.** **`RM-3` IS CLOSED, AND WITH IT THE LAST DECLARATION `P-5` RECORDED AS BLOCKING. The design at
+`docs/L1/seven-key-config.md` is amended where this reaches it (`§9`), and the first unit — `U-STOREROOM-06 DELIVERY-SETTLE` — may be
+designed.**
+
+---
+
+### `D-139` — THE TWO SPELLINGS ARE ACCEPTED, AND WHERE NO RECEIPT EXISTS THE PACKAGE FORGES ONE AND HANDS IT TO THE CHANNEL
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, answering
+`docs/L3/delivery-settle/design.md`'s two pending spellings and its third open question. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Accept spellings"
+
+> "If a channel is given during store creation, forge a write receipt and pass to the channel so that it can proceed"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **`CH-NAME` AND `CH-EMPTY` ARE CLOSED AS PROPOSED.** **The receipt's failure accessor is `bodyFailures`, non-enumerable,
+   `configurable`, a getter over a symbol-keyed datum** — and **it is PRESENT ON EVERY RECEIPT, reading `{}` when nothing failed** (`D-138`'s
+   own requirement: a body's failure must be readable exactly when no channel stands). **`Object.keys` stays `["op","watched","triggered"]`;
+   `Object.getOwnPropertyNames` moves `5 → 6`.** *(Design: `docs/L3/delivery-settle/design.md §5`.)*
+2. **AND THE NO-RECEIPT INSTANTS GAIN A CHANNEL PATH — the third open question of that design is answered, and not by either arm it
+   priced.** **The question was: a rejecting body at the CREATION and at the FOUR REGISTRATION INSTANTS has no `WriteRecord` and no
+   `DeleteRecord` to ride on, so either the package observes its settlement and answers nothing (a declared silence) or it observes nothing
+   and the rejection stays as fatal as `M-2` measured.** **THE ARCHITECT'S ANSWER IS A THIRD ARM: WHERE NO RECEIPT EXISTS AND A CHANNEL
+   STANDS, THE PACKAGE FORGES ONE AND PASSES IT TO THE CHANNEL.** **So the delivery's data — `D-136`'s channel values and `D-138`'s
+   `bodyFailures` — reaches the CALLER'S OWN FUNCTION at every delivery instant, and no failure at those instants is dropped and none is
+   silenced.**
+3. **THE FORGED RECEIPT IS THE CHANNEL'S ARGUMENT AND NOT THE CALLER'S ANSWER.** **`D-136` item 2's relation is unmoved: the channel's data
+   rides BESIDE a receipt, and the caller receives its own answer.** **At an instant whose answer is an instance or an opaque identity,
+   there is no receipt to ride beside, so the package supplies the channel with the one it would have had** — **and the caller's answer
+   there is UNMOVED: an instance at the creation, an identity or `undefined` at a registration** (`D-125` item 1's own clause: a delivery
+   there *"DOES NOT change the answer's declared type"*, `strata/decisions.md:6548`–`:6549`).
+4. **AND `CH-2` IS THEREBY ANSWERED IN SUBSTANCE: THE CHANNEL IS NOT RESTRICTED TO `write` AND `delete`.** **The five delivery sites all reach
+   it** — the terminal arm's residue (`delivery.mjs:987`), a `delete`'s own arm (`index.mjs:887`), a reversal's judgement
+   (`constraints.mjs:3037`), a registration's delivery (`delivery.mjs:575`) and the creation's (`index.mjs:2171`) — **the last three
+   through the forged receipt.**
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **THE FORGED RECEIPT'S DECLARED SHAPE.** **A `WriteRecord`'s typed members are `op` · `watched` · `triggered`** (`bindings/js/index.d.ts:616`–`:620`)
+   **and the no-receipt instants have no `op` and no `watched`.** **What the forgery puts in those two positions — `null`, an empty array, an
+   omitted member — is a new observable on a value the channel's own function reads, and it is NOT declared here.** **The one member that
+   IS determined is `triggered`: the instant's delivered set is known** (`D-131` item 5's map is keyed by exactly those handles).
+2. **WHETHER THE FORGED RECEIPT CARRIES THE SAME ACCESSORS.** **`bodyFailures` must be readable on it — that is what item 2 of what this row
+   settles is FOR** — **while `discarded` and `log` are a write's and a commit's own facts and a registration has neither.** **Whether they are
+   absent, empty or present-with-an-empty-value is undeclared.**
+3. **WHETHER THE CALLER EVER SEES A FORGED RECEIPT.** **This row says the CHANNEL receives it and the caller's answer is unmoved**; **a
+   caller-facing forged receipt would be a new member on `StoreInstance`'s answers and is not this row's.**
+4. **WHAT HAPPENS WHEN A BODY REJECTS AT A NO-RECEIPT INSTANT AND **NO** CHANNEL STANDS.** **The forged-receipt path requires a channel
+   (`"If a channel is given"`).** **Absent one, the design's status quo stands: the package observes nothing there, and the rejection is
+   `M-2`'s measured fatal unhandled rejection — the caller's own hazard by `D-130` item 5.** **This row does not change that arm and no pass
+   may read it as having changed it.**
+5. **THE SCOPE OF "DURING STORE CREATION".** **Read here as *"where `cfg.channel` was given at construction"* — the condition for having a
+   channel at all, since `channel` is a construction key (`D-131` item 1) — and NOT as *"at the creation instant only".** **So the forged path
+   is owed at every no-receipt instant, the creation's and the four registrations'.** **If he means the creation instant alone, he will say so
+   and this clause is the pointer.** *(The reading is L0's and is flagged as such, not presented as his word.)*
+6. **EVERYTHING ELSE STANDS**: `SC-2`, `SC-3`, `SC-6`, `SC-10`, the import route, `CH-3`'s keying, `CH-4`'s failure disposition,
+   `CH-7`, `CH-8`, `SE-2`/`SE-4`/`SE-5`/`SE-7`, `VN-5`, `Entry::saved`'s keeper, the release class.
+
+**TERMS: the spellings (`2` = accepted as proposed) · the receipt's accessors (`2 → 3`, `bodyFailures` third) · the delivery sites the channel
+reaches (`2 → 5`, three through a forged receipt) · the forged receipts (`1` class, shape owed) · the statuses minted (`0`) · the members moved
+on any caller-facing answer (`0`) · the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT.** **`docs/L3/delivery-settle/design.md` is amended at its `§11`; `U-08 CHANNEL`'s brief gains the
+forged path, and the forged receipt's shape goes with its other priceable items.**
+
+---
+
+### `D-140` — A FORGED RECEIPT'S `op` IS THE FIRST OP ATTACHED TO THE COMMIT, OR `null` WHEN NOTHING TRIGGERED
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, answering `D-139`'s open item 1 —
+the shape of the receipt the package forges where an act has none. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Use the first op attached to the commit, or null if nothing triggered"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE FORGED RECEIPT'S `op` IS TAKEN, NOT INVENTED.** **Where the act carries an op, the forgery uses THE FIRST OP ATTACHED TO THE
+   COMMIT** — the earliest operation the commit recorded for itself — **and where the act attached none — *"nothing triggered"*, his own
+   condition — the member is `null`.** **So the forgery borrows a fact the commit already holds rather than minting one**, which is the
+   cheapest possible answer and keeps the receipt's `op` readable by the same code that reads a real one's.
+2. **AND WITH `D-139` ITEMS 2–3 THIS CLOSES THE FORGERY'S THREE MEMBERS:** **`triggered` is the instant's delivered set** (`D-131` item 5's map is
+   keyed by exactly those handles), **`watched` is that same set's ADDRESS PROJECTION** — the store's own `watched_for` relation, one member per
+   distinct address however many handles stand there (`src/store.rs:2211`–`:2240`; `DD-35`; `D-67`/`D-69`'s one-predicate law), **and `op` is
+   this row's.** **`watched` and `triggered` are therefore NOT open questions any more, and `D-139` item 1 of its unsettled is closed.**
+3. **`null` IS A DECLARED VALUE IN THAT POSITION AND NOT AN ABSENT MEMBER.** **The member stands on every forged receipt; its value is `null`
+   exactly where the act attached no op.** **That distinguishes it from the `CH-EMPTY` question, which is about a MAP's empty value.**
+4. **AND THE CHANNEL'S PARAMETER TYPE MUST ADMIT IT.** **A forged receipt whose `op` may be `null` cannot be typed as `WriteRecord`, whose `op`
+   is `JournalOp` non-nullable** (`bindings/js/index.d.ts:616`–`:617`). **The channel's declared parameter is therefore a receipt TYPE whose `op`
+   admits `null` — a declaration `U-08` owes and that this row does not spell.** **It moves no member of any caller-facing answer and no census.**
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **WHICH CARRIER OF "THE COMMIT" THE FIRST OP IS READ OFF, AND THIS ROW DOES NOT PRETEND THE PHRASE SETTLES IT.** **Two referents stand in
+   the tree**: **the kernel's `CommitRecord` carries its own `op` member** (`{attempt, op, triggered, pending}`, `index.d.ts:962`–`:993`) **and
+   its log carries `op` inside several entries' payloads** (`kernel-attempt.mjs:741`'s `{pair, op}`, `:873`'s `{pair, op}`). **"The FIRST op"
+   reads as the log's earliest, since a single member has no first; a commit that attached several entries with ops makes the two readings
+   differ.** **The design resolves it and says which; if he means the record's own `op`, that is one word.**
+   **⟶ AND THERE IS A THIRD READING, FOUND `2026-11-17` AFTER THIS ROW WAS WRITTEN, WHICH MAKES THE FORK *FIRST* VERSUS *LAST* AND NOT *RECORD* VERSUS *LOG*: a WRITE'S OWN RECORD does not carry the commit's first op at all — `constraints.mjs:855`–`:860` builds `op: landed` from `report.ops[report.ops.length - 1]`, the attempt report's LAST op, falling back to the store leg's own `answer.op` where there is no report, and its own comment says why: *"the store afterwards holds the REPAIRED one"*, so the record describes the store.* **This row's *"first op attached to the commit"* and the shipped record's LAST op are therefore two rules for ONE member name on two receipts the same channel reads.** **Both are defensible — the forgery has no settled state to describe, so the first op is the only honest answer there — but no pass may leave the difference undeclared: a channel that reads `op` must be able to tell which receipt it holds, or the two rules must be reconciled in his name.** **⟶ AND THAT FORK IS CLOSED AT `D-141`, `2026-11-17`: the forge takes THE COMMIT'S OWN OP, so the ordinal reading — *first* versus *last* — loses its subject and one rule governs the member for both receipts.**
+2. **WHETHER THE FORGERY CARRIES `discarded` AND `log`** — still open (`D-139` item 2 of its unsettled): **those are a write's and a commit's own
+   facts and a registration has neither.** **`bodyFailures` must be there** (`D-139` item 1), **and `op`/`watched`/`triggered` now are.**
+3. **WHETHER THE CHANNEL IS INVOKED AT ALL WHEN NOTHING TRIGGERED.** **This row gives that case a SHAPE (`op: null`) and not an INSTANT** —
+   **if the delivered set is empty there is nothing to tell the channel, and whether the call is made with an empty `triggered`/`watched` or
+   skipped is `CH-7`'s**, still open.
+4. **EVERYTHING ELSE STANDS**: `SC-2`, `SC-3`, `SC-6`, `SC-10`, the import route, `CH-3`, `CH-4`, `CH-8`, `SE-2`/`SE-4`/`SE-5`/`SE-7`,
+   `VN-5`, `Entry::saved`'s keeper, the release class.
+
+**TERMS: the forged receipt's members (`3` = `op` · `watched` · `triggered` named) · its absent member (`0` — `op` is `null`, not absent) ·
+the carriers of "the commit" (`2` = the record's, the log's; design resolves) · the caller-facing members moved (`0`) · the censuses moved
+(`0`) · the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT.**
+
+---
+
+### `D-141` — A FORGED RECEIPT TAKES THE COMMIT'S OWN OP WHERE THE REGISTRATION OPENED ONE, AND `null` WHERE THE COMMIT CARRIES NONE
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, answering L0's report that
+`D-140`'s *"first op"* and the shipped record's *"last op"* were two rules for one member name. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "If the registration opens a commit, and the commit has an op, use that"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE FORGED RECEIPT'S `op` IS THE COMMIT'S OWN OP, AND NOT AN ORDINAL POSITION IN ITS LOG.** **`D-140`'s phrase *"the first op attached to
+   the commit"* is READ THROUGH THIS CLAUSE from this date: what is taken is THE OP THE COMMIT CARRIES** — **not the first entry of the
+   commit's log, and not the earliest of several entries that carry one.** **The referent is settled by the architect's own words and the third
+   reading L0 filed at `D-140` loses its subject** *(the `first` versus `last` fork closes: there is one op per commit and it is the one the
+   act reports)*.
+2. **AND THE REGISTRATION'S COMMIT IS THE ONE THAT CARRIES IT — THIS ROW IS THE MECHANISM `D-140` ASSUMED.** **`addConstraint`
+   (`bindings/js/index.mjs:1217`) and `constraintOn` (`:1409`) open a commit themselves (`openCommit(instance)` at `:1239` and `:1425`), and a
+   repair their pass lands JOINS that commit rather than opening a second** (`kernel-attempt.mjs:85`–`:93`; `D-46`; `D-53`) — **so the commit
+   that carries an op is the registration's own, and the op it carries is the one the act's report names.**
+3. **THE THREE CASES, SPELLED.** **A registration whose act or whose repair WROTE something** → **the forge uses that op**, **and it is the
+   SAME value a write's own record would carry** (the attempt report's op, `constraints.mjs:855`–`:860`). **A registration whose commit
+   carries NO op — the act wrote nothing and no repair landed** → **`null`.** **THE CREATION** → **`null`, because there is no commit at all**
+   (`storeCreate` is not a commit; `D-125` item 1's creation instant delivers without one).
+4. **SO ONE RULE NOW GOVERNS THE MEMBER FOR THE CHANNEL, WHICH IS WHAT THE TENSION REQUIRED.** **A channel that reads `op` sees the commit's op
+   on both receipts — the write's own and the forged one — and `null` exactly where no commit carried one.** **No tell is owed and no
+   reconciliation remains outstanding.**
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **WHETHER THE ACT'S REPORT OP IS "THE COMMIT'S OP" WHEN THE COMMIT RAN SEVERAL WRITES.** **A registration's pass may land MORE than one repair,
+   each a write with its own JournalOp** (`kernel-attempt.mjs:873`'s `repair-run` entry per attempt). **This row names the commit's op and does
+   not say which write's it is when the commit carries several** — **the shipped record's answer is the report's LAST op** (`constraints.mjs:855`–`:860`,
+   *"the record DESCRIBES THE STORE"*), **and this row is read as adopting that answer unless he says otherwise; a different choice would make the
+   forged receipt's `op` differ from the real one's on the same commit.**
+2. **WHETHER THE FORGERY CARRIES `discarded` AND `log`** — still open (`D-139` item 2 of its unsettled): a registration's commit has a `log`
+   **and** a registration has no witness of a write's discard. **`bodyFailures` must be there** (`D-139` item 1).
+3. **WHETHER THE CHANNEL IS CALLED AT ALL WHEN NOTHING TRIGGERED** — `CH-7`'s, still open.
+4. **EVERYTHING ELSE STANDS**: `SC-2`, `SC-3`, `SC-6`, `SC-10`, the import route, `CH-3`, `CH-4`, `CH-8`,
+   `SE-2`/`SE-4`/`SE-5`/`SE-7`, `VN-5`, `Entry::saved`'s keeper, the release class.
+
+**TERMS: the forged receipt's `op` (`1` rule, referent settled) · its `null` cases (`2` = no op in the commit · no commit at all) · the
+ordinal readings withdrawn (`1` = `D-140`'s *"first"* as a position in the log) · the caller-facing members moved (`0`) · the censuses moved
+(`0`) · the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT.**
+
+---
+
+### `D-142` — A FORGED RECEIPT CARRIES `log`; `discarded` IS CLARIFIED AND LEFT OPEN
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, answering the two members `D-139` left
+open on a forged receipt. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Carry log"
+> "Clarify discard"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **`log` IS CARRIED ON THE FORGED RECEIPT, AND IT IS THE COMMIT'S OWN LIST.** **`D-119`'s member — a non-enumerable, `configurable` own
+   accessor at the name `log`** (`bindings/js/src/entry/constraints.mjs:1935`–`:1988`; `index.d.ts:645`–`:680`) — **is present on the forged
+   receipt and answers the entries the commit appended**: the pass's `constraint-check` entries, every `repair-run` a repair landed, and the
+   entry that closes the commit. **Its ground is unmoved and applies with full force here**: *"a caller that cannot read the passing log cannot
+   audit its own write"* (`D-119` item 1) — **and at a registration the list is not empty in principle, because a registration's pass asks the
+   pairs and may land repairs** (`kernel-attempt.mjs:741`, `:873`). **The one thing this row does NOT import is `discarded`'s REASON for being
+   an accessor** (`constraints.mjs:1958`–`:1962`): a log is built after every act that appends to it and answers one cached reference, so it is
+   an accessor for the census's sake and not for liveness's.
+
+**`discarded` IS CLARIFIED BELOW AND NOT RULED — the clarification is what he asked for.**
+
+**WHAT `discarded` IS, IN ITS OWN TERMS.** **An array of `{opId: string | null, addresses: readonly Address[]}`** (`index.d.ts:629`), whose
+entries are **one per RAISE stamped with THIS act's commit window that no pass's drain consumed**, in raise order; **`[]` means the pass's drain
+consumed and JUDGED every raise of this window, and the member is present to say so.** **It is a `D-75` member — the architect's words: *"report
+every discarded raise at any count, on every path"* — and it is a NON-ENUMERABLE own ACCESSOR whose READ IS LIVE BY NECESSITY**: the answer is
+built before the pass that judges the raise has run (`D-42`), so a datum captured at the call would answer `[]` about a discarding window
+forever. **THE WITNESS IS COMPUTED PER WINDOW** (`constraints.mjs:1908`–`:1916`): the settled entries plus every raise in `record.raises` whose
+`raise.window === window`, and nothing else.
+
+**SO WHAT CARRYING IT ON A FORGED RECEIPT WOULD MEAN, CASE BY CASE.**
+
+| instant | the window the forged receipt would speak for | what `discarded` would hold |
+|---|---|---|
+| **a registration** (`addConstraint`, `constraintOn`, or a re-arm) | **the registration's OWN commit** — it opens one (`openCommit(instance)` at `index.mjs:1239`, `:1425`), and a repair joins it (`D-141` item 2) | **a real, non-trivial value**: the raises stamped with THAT window that no drain consumed. **A body fired at the registration instant can raise a `rollback`, and it is stamped with this window** — so `[]` would be a CLAIM (*every raise was judged*) and not a default |
+| **the creation** | **there is no single one.** `storeCreate` is not a commit; the creation fires each adopted listener at its registration's own close (`index.mjs:1902`, `:2171`), so **the creation carries N windows, not one** | **`discarded` has no subject until a rule names which window a creation-time forged receipt speaks for** — one per adopted registration, or the first, or none |
+| **a `write` or a `delete`** | the act's own commit, unchanged | unmoved — **this row does not touch the real receipt** |
+
+**THE THREE WAYS IT COULD LAND, PRICED AND NONE CHOSEN.**
+
+1. **Carry it exactly as a write's record does** — a live accessor over the forged receipt's own window. **Cheap at a registration** (the window
+   exists and the machinery is `defineDiscardWitness`'s), **and it needs the creation's window rule before it can be total.**
+2. **Carry `[]` on forged receipts** — **a claim that no raise of that window was discarded, and a registration can falsify it**: a body fired
+   there may raise, and the drain may not consume it. **Refused unless he says the registration arm's raises are judged by construction.**
+3. **Omit it** — **and `D-77`/`D-78`'s rule refuses this**: *"the member is PRESENT on every passing answer, `[]` included, never absent and
+   never `undefined`"* (`constraints.mjs:1966`–`:1968`).
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **THE CHOICE ABOVE, and (if it is 1) the creation's window rule.**
+2. **`CH-7`** — whether the channel is invoked at all when the delivered set is empty (unchanged).
+3. **EVERYTHING ELSE STANDS**: `SC-2`, `SC-3`, `SC-6`, `SC-10`, the import route, `CH-3`, `CH-4`, `CH-8`,
+   `SE-2`/`SE-4`/`SE-5`/`SE-7`, `VN-5`, `Entry::saved`'s keeper, the release class.
+
+**TERMS: the forged receipt's members (`log` = carried · `discarded` = clarified, open) · the windows a forged receipt can speak for (`1` at a
+registration, `N` at the creation = owed) · the caller-facing members moved (`0`) · the censuses moved (`0`) · the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT.**
+
+---
+
+### `D-143` — `discarded` IS CARRIED ON A REGISTRATION'S FORGED RECEIPT, AND IS PRESENT-AND-EMPTY AT THE CREATION BECAUSE THERE IS NO PRIOR STATE TO DISCARD
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, answering `D-142`'s open item 1.
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Carry it for registration. On creation it has no prior state to discard"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **AT A REGISTRATION INSTANT THE FORGED RECEIPT CARRIES `discarded` — THE LIVE WITNESS OVER THE REGISTRATION'S OWN COMMIT WINDOW.** **The
+   window exists** (`addConstraint` opens one at `bindings/js/index.mjs:1239`, `constraintOn` at `:1425`, and a repair joins it — `D-141` item 2),
+   **the device exists** (`defineDiscardWitness`, `constraints.mjs:1928`–`:1936`), **and the computation exists** (`:1908`–`:1916`: the settled
+   entries plus every raise whose `raise.window === window`). **So `D-142`'s option 1 is taken for this instant, and it is the option that does
+   not make a claim a fired body can contradict.**
+2. **AT THE CREATION THE MEMBER IS PRESENT AND `[]`, ON THE ARCHITECT'S OWN GROUND — "NO PRIOR STATE TO DISCARD".** **`storeCreate` is not a
+   commit and the register holds no operation when the creation's first listener is fired**, **so there is nothing a raise could be discarded
+   FROM** — **and no window rule is owed**, which is what `D-142`'s third table cell demanded. **The member's presence at `[]` keeps
+   `D-77`/`D-78`'s rule whole**: *"PRESENT on every passing answer, `[]` included, never absent and never `undefined`"*
+   (`constraints.mjs:1966`–`:1968`).
+3. **SO THE FORGED RECEIPT IS NOW COMPLETE IN ALL FIVE MEMBERS:** `op` (`D-140` as read through `D-141`: the commit's own op, `null` at the
+   creation) · `watched` (the instant's delivered set's address projection) · `triggered` (the instant's delivered set, as pairs) · `log` (the
+   commit's own list, `D-142` item 1) · `discarded` (the registration's live witness; present-and-empty at the creation, item 2 above).
+
+**WHAT IT DOES NOT SETTLE — AND ONE FLAG THAT IS THIS ROW'S OWN HONESTY.**
+
+1. **THE GROUND IS A CLAIM AND THE DESIGN MUST MAKE IT TRUE RATHER THAN ASSUME IT.** **"No prior state to discard" is a SEMANTIC FACT ABOUT THE
+   EMPTY JOURNAL, not a mechanical impossibility**: a creation-time body CAN call `rollback`, and **what it meets there — a refusal because the
+   journal holds no op, or an empty `undoneOps` — is a behaviour the design must state and a cell must prove.** **If such a call can produce a
+   raise stamped with a registration's window and left unconsumed, then `[]` would be a false claim at that instant and the member's answer would
+   have to be re-opened in his name.** **Filed as a design/cell obligation, not as an open question.**
+2. **WHETHER `[]` AT THE CREATION IS THE SHARED FROZEN CONSTANT OR A FRESH ARRAY** — `D-142`'s own precedent (`RESOLUTION_LOG_EMPTY`,
+   `constraints.mjs:1988`) makes the shared constant the pattern; **the design may take it and moves nothing.**
+3. **`CH-7`** — whether the channel is invoked at all when the delivered set is empty: still open.
+4. **EVERYTHING ELSE STANDS**: `SC-2`, `SC-3`, `SC-6`, `SC-10`, the import route, `CH-3`, `CH-4`, `CH-8`,
+   `SE-2`/`SE-4`/`SE-5`/`SE-7`, `VN-5`, `Entry::saved`'s keeper, the release class.
+
+**TERMS: the forged receipt's members (`5` named: `op` · `watched` · `triggered` · `log` · `discarded`) · the windows owed (`0` — the creation's
+emptiness removes the question) · the claims this row rests on (`1` = *no prior state to discard*, to be proved by a cell) · the caller-facing
+members moved (`0`) · the censuses moved (`0`) · the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT.**
+
+---
+
+### `D-144` — `saveCall` CLOSES: `{success, message[]}` · a non-function is BROKEN CONFIG · a failed save ROLLS THE COMMIT BACK · the refusal PASSES THROUGH to the kernel · NO FILE RECONSTRUCTION · a SUCCESS SURFACE · `filePath` and `saveCall` are MUTUALLY EXCLUSIVE
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, answering `P-5`'s `saveCall` remainder.
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "SaveCall
+> Change response to object, success(bool) and message (string[])
+> Refuse non-function saveCall as broken config
+> On failed save, signal package to roll back commit
+> Passthrough saveCall refusal response to kernel
+> In cases where store would attempt to reconstruct state from file (ex. attempting to rollback to a compacted state), error as if it's a mem-tier store to instruct the client to rebuild
+> Add addon surface for informing addon that save suceeded
+> Make filePath and saveCall mutually exclusive"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES — SEVEN, EACH WITH ITS CONSEQUENCE.**
+
+1. **`SC-2` IS CLOSED: `saveCall`'s answer is an OBJECT, `{success: boolean, message: string[]}`.** **It replaces *"a return of `True` or a verbose error log"*** — **the boolean is the verdict and the array is the reason, and the reason is a LIST by declaration, so several messages are one answer.** **`success: true` with a non-empty `message` is in domain and means what it says** (a save that succeeded and said why); **this row does not forbid it.**
+2. **`SC-2`'s OUTSIDE FORM IS CLOSED: A NON-FUNCTION `saveCall` IS REFUSED AS BROKEN CONFIG.** **Not ignored as a key beyond the four, and not a `PAR-JS-12`-style `TypeError`** — **it is `cfg`'s own outside-form refusal, taken at the class gate `frame.mjs:203`–`:210` carries, BEFORE ANY FILESYSTEM ACT.** **The status is the one a bad `cfg` already answers** (`AddressMalformed`, `PAR-JS-1`), **the package mints no code, and no second non-store failure form is created** — **which leaves `CH-8`'s one-form question for the CHANNEL alone.**
+3. **`SC-6` IS CLOSED IN DIRECTION: A FAILED SAVE ROLLS THE COMMIT BACK, AND THE SIGNAL IS THE PACKAGE'S TO SEND.** **`saveCall` answering `success: false` is the signal; the commit is then rolled back, and the caller receives the failure AFTER that rollback** — `§2.11` clause 5's declared order, *"the store rolls the write back first and answers second"* (`surface.md:1899`). **THE MECHANISM IS NOT SPELLED HERE and is the design's**: **the rollback machinery is `commit_file`'s `Err` arm** (`src/store.rs:1601`–`:1609`: remove the journal entry, `restore(home, captured)`, `restore_compaction`, `last_seq -= 1`) **and on this arm the store's writer never runs** (`D-133` item 3) — **so the design must name the store-side route the package's signal reaches.** **A package-side re-implementation of the journal's rollback is the dearest arm and would be a second mechanism.**
+4. **AND THE REFUSAL'S CONTENT PASSES THROUGH TO THE KERNEL.** **`saveCall`'s `message: string[]` is not the package's to render, drop or paraphrase — it crosses to the kernel**, **which is what builds the commit's log and the answer that crosses** (`D-53`; `D-119`). **THIS GIVES `VN-2` A SOURCE where it had only a lost one**: the kernel no longer needs the store's rethrow to know a save failed — **the package tells it, with the reason.** **The mapping of a `string[]` into the answer (the one form's `message` is a single string, and its `log` is a list of entries) is the design's to spell; this row requires the passthrough and does not choose the rendering.**
+5. **AND A `saveCall` STORE NEVER RECONSTRUCTS STATE FROM A FILE: where the store would, it ERRORS AS A MEM-TIER STORE WOULD, INSTRUCTING THE CLIENT TO REBUILD.** **So the file's three loader classes — `NoImage` · `Members` · `Refused`** (`src/store.rs:1720`–`:1737`) **and the regeneration-from-creation-state arm (`D-108` item 1) are NOT reached on this arm at all**: **a store that would read a file to rebuild — a rollback whose candidate set includes a compacted entry (`RollbackCompacted`, rank `11`), or any reconstruction — answers the MEM-TIER answer instead, and the client's recovery is its own rebuild** (fed back through `initialImage`, `D-134`/`D-135`).
+6. **AND A SECOND ADDON SURFACE EXISTS SO THE STORE CAN BE TOLD THE SAVE SUCCEEDED.** **`exportImage` marks nothing** (`D-137` item 2) **and the store's own writer does not run** (`D-133` item 3), **so nothing set `Entry::saved`** — **the keeper gap `P-5` filed as `VN-2`'s sibling is closed by this surface.** **The ADDON'S ENTRY SET MOVES `13 → 14`** (`D-137` item 1 took it `12 → 13`): **`exportImage`, and this one.** **THE SPELLING IS INVENTED UNDER `D-137`'s DELEGATION: `saveSucceeded(opId)`** — **it takes the operation the save was owed for and marks that record saved, and it writes no byte.** *(If he prefers another word, one word replaces it; `U-09` is where it lands.)*
+7. **AND `filePath` AND `saveCall` ARE MUTUALLY EXCLUSIVE.** **A `cfg` carrying both is REFUSED** — **at the same class gate and before any filesystem act, as broken config** (item 2's arm). **This SUPERSEDES `D-131` item 3**, and its consequences are large and are spelled in `WHAT IT SUPERSEDES` below.
+
+**WHAT IT SUPERSEDES, BY NAME.**
+
+| superseded | why | what now stands |
+|---|---|---|
+| **`D-131` item 3** — *"`saveCall` and `filePath` may stand together, `saveCall` PREVAILS on the write path"* | **item 7 makes them exclusive** | **a `saveCall` store has NO `filePath`**, so **`D-132`'s third entry condition is the ONLY way a `saveCall` store enters the `file` tier**, and the probe never runs. **`FilePathUnreachable` has no subject on this arm.** |
+| **`D-137` item 3's redundancy question** — whether `durable_without_path` is ignored or refused beside a `filePath` | **no `filePath` can stand beside it** | **the question is MOOT; `durable_without_path` is set exactly where `saveCall` is present, and nowhere else** |
+| **`D-133` item 4's stale-file arm** | **no file is written and none is read** | **DISSOLVED: there is no second durable artefact to diverge** |
+| **`VN-3`** — *"the save's declared durability observable has no subject"* | **item 5 removes file reconstruction entirely** | **the observable has no subject ON THIS ARM AT ALL and must be replaced in the declaration**: **the truth is the client's backend, and the package may not read it** (`A57`; `P-SR-7`) — **so durability on this arm is DECLARED UNOBSERVABLE IN THIS REPOSITORY, said plainly rather than left as a missing test** |
+| **`VN-2`** — *"the `save-failed-at-the-terminal-arm` mark loses its producer"* | **item 4 passes the refusal to the kernel** | **the mark's subject is the package's own throwable/failure datum and the kernel receives the reason**; **the mark's SENTENCE is still owed to a spec pass, and its classification now has a source** |
+| **`Entry::saved`'s keeper gap** | **item 6's surface** | **the store keeps the mark; the package informs it** |
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **THE ROLLBACK'S STORE-SIDE ROUTE** (item 3): a new entry, a reading of an existing one, or a package-side mechanism. **And whether the failure's status is `FileCommitFailed` (rank `15`) with the `saveCall` messages carried, or a different seat** — **item 4 requires the passthrough and does not name the status**; **this is the one question `U-04` cannot be designed without.**
+2. **THE `message: string[]`'s RENDERING** in the answer — the one form's `message` is one string and its `log` is a list.
+3. **`saveSucceeded(opId)`'s ARITY** — invented position-less or op-keyed; **and what it answers.**
+4. **WHAT A `saveCall` STORE ANSWERS AT BOOT WHEN `initialImage` IS ABSENT** — the creation state, by `D-108`'s fallback, or a refusal. **Now that no file is ever read, this is the ordinary arm and it is undeclared.**
+5. **`SE-2`/`SE-3`/`SE-4`/`SE-5`/`SE-7`/`SE-8`** and **`VN-5`** — the seed's tier, op-or-base-state, versus a file (now vacuous, since no `filePath` stands), legal-without-`saveCall`, an immediate save, the undo window, provenance. **`SE-4` is thereby DISSOLVED by item 7** (there is no readable file to race), **and the rest stand.**
+6. **`SC-10`** (a second instance over one backend) and **the release class** — open.
+
+**TERMS: the `saveCall` answers (`2` members: `success`, `message`) · its outside form (`1` = broken config, refused) · the rollback (`1` = taken, mechanism owed) · the passthrough (`1` = to the kernel) · the file-reconstruction arms removed (`1` class) · the addon's entries (`13 → 14`) · the surfaces spelled (`1` = `saveSucceeded`) · the `cfg` keys (`7`, unmoved) · the exclusive pairs (`1` = `filePath` ∧ `saveCall`) · the supersessions (`6` named) · the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT.** **`U-04 SAVE-CALL` is unblocked on everything except items 1–3 of what this row does not settle; `U-05 SEED` keeps its own five.**
+
+---
+
+### `D-145` — THE LAST FIVE `saveCall` ANSWERS: `FileCommitFailed` IS WIDENED · THE SAVER'S MESSAGES RIDE IN THE LOG · `saveSucceeded` REFUSES A BAD OP · BOOT-EMPTY IS THE CLIENT'S RESPONSIBILITY · THE BACKEND HAZARD IS DOCUMENTED AND THE CLASS DEFERRED
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, answering L0's elaboration of `D-144`'s
+remainder. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "1. Widen. A store instance can't have both the store write and an external saver any more, so there's no conflict
+> 2. Use log
+> 3. answer with refusal
+> 4. First option, client is responsible for passing correct config
+> 5.1. Provide guidance in docs for responsible use, including not doubling two stores on the exact same saveCall function
+> 5.2. Review when release-ready"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE FAILED SAVE'S SEAT IS `FileCommitFailed` (rank `15`), WIDENED — NO NEW STATUS.** **THE ARCHITECT'S GROUND IS THAT THE TWO SUBJECTS CAN NO
+   LONGER COEXIST AT ONE INSTANCE:** `filePath` and `saveCall` are mutually exclusive (`D-144` item 7), **so a store either saves through its own
+   writer or through the caller's function and never both** — **and one status for "the save failed" therefore has one subject at every instance
+   that can reach it.** **`CODES` STAYS AT `23`** (`src/error.rs:171`–`:196`, plus `D-137`'s rank `23`), **and `StoreStatus` stays at twenty-three
+   literals plus its escape arm.** **AND ITS GENERATED MESSAGE OWES AN AMENDMENT, NAMED HERE RATHER THAN DISCOVERED LATER:** `src/error.rs:460`–`:466`
+   prints *"`<subject>` could not be committed to `<path>`, the file write failed at `<path>`"* — **which speaks of a path twice, and on the
+   `saveCall` arm there is no path.** **The widened sentence is a spec pass's byte and the `path` slot's disposition is its question**; **this row
+   rules the SEAT and not the prose.**
+2. **THE SAVER'S `message: string[]` RIDES IN THE `log`.** **The one form's generated `message` stays the generated sentence for rank `15`; the
+   caller's own words cross as LOG ENTRIES.** **That keeps the "never hand-authored at a call site" rule whole** (the generated field carries no
+   caller prose), **serves `D-119`'s audit law**, **and gives a `string[]` the list-shaped surface the corpus already has.** **Whether each string is
+   ONE entry or the array is one entry's payload is the design's to spell.**
+3. **`saveSucceeded(opId)` IS ARITY `1` AND ANSWERS `undefined`, AND A CALL IT CANNOT HONOUR ANSWERS A REFUSAL — NOT THE SILENT `Ok(())`
+   `commit_file` takes.** **The three silent arms of `commit_file`** (`src/store.rs:1585`–`:1594`: an unknown op, an op owing no save, an
+   already-saved op) **are the precedent this row DECLINES to inherit.** **So a `saveSucceeded` naming an op this store does not hold REFUSES**,
+   **and the seat is the op-keyed failure's existing one — `JournalOpUnknown`, rank `10`** (`src/error.rs:180`) — **rather than a new member.**
+   **⟶ AND ONE ARM IS FLAGGED RATHER THAN ASSUMED:** the **already-saved** op (`:1591`–`:1594`) is **not the same subject** — *"a save performed
+   twice for one record"* is `commit_file`'s own FAILS-IT state and today it writes no byte and answers `Ok(())`. **This row reads *"answer with
+   refusal"* as reaching the unknown-op arm it was asked about and NOT as converting the idempotent arm into a refusal; if he means both, one
+   word says so, and the once-per-record law's observable changes with it.**
+4. **A `saveCall` STORE BOOTS EMPTY WHEN NO `initialImage` IS GIVEN, AND THE RESPONSIBILITY IS THE CLIENT'S.** **No cross-key refusal is owed** —
+   **the pair `{saveCall, initialImage}` is NOT enforced as a pair**, and **the declaration and the guides must say plainly that a store which
+   boots empty and then saves will persist an empty image over whatever the client's backend held.** **This row records the hazard as DECLARED
+   and UNGUARDED, by his word.**
+5. **AND THE BACKEND HAZARD IS GUIDANCE, NOT A REFUSAL: *"not doubling two stores on the exact same `saveCall` function"* is a DOCUMENTED DUTY.**
+   **The package may not refuse a second instance over one backend** (`docs/specs/storeroom-js/contract.md:3256`), **so the sentence lands in the
+   guides and in the `saveCall` key's own declaration prose, and nowhere in code.** **A documentary unit is owed by that sentence.**
+6. **AND THE RELEASE CLASS IS DEFERRED BY NAME: *"Review when release-ready"*.** **`RM-9`/`SC-11`/`CH-11` stay open with a NAMED REVISIT INSTANT** —
+   the release's own readiness review — **which is the positive revisit condition `strata/walkthrough.md` exit question `12` demands for a
+   residual.**
+
+**WHAT IT DOES NOT SETTLE — AND THE ONE THING STILL BLOCKING `U-04`.**
+
+1. **★ THE ROLLBACK'S STORE-SIDE ROUTE IS STILL UNRULED, BECAUSE THE ANSWER ABOVE IS THE STATUS AND NOT THE ROUTE.** **The five restoration steps
+   live in `commit_file`'s failure arm** (`src/store.rs:1601`–`:1608`) **behind a writer that never runs on this arm** (`D-133` item 3), **so the
+   package's failure signal has no declared road into them.** **L0 PROPOSES, AND THIS ROW DOES NOT RULE, THE MIRROR OF `D-144` ITEM 6:
+   `saveFailed(opId)` — arity `1`, answers `undefined`, performing exactly `commit_file`'s five failure steps and writing no byte** — **which makes
+   the addon's entry set `14 → 15` and keeps the journal the STORE's own. The one-word alternative is a single entry carrying a verdict, which the
+   corpus's surface discipline keeps away from the addon.** **`U-04` cannot be designed past its failure arm until this is one or the other.**
+2. **THE `FileCommitFailed` SENTENCE'S `path` SLOT** (item 1) — a spec pass's byte, owed with the widening.
+3. **THE ALREADY-SAVED ARM OF `saveSucceeded`** (item 3's flag).
+4. **THE `message[]` ENTRY SHAPE** (item 2: one entry per string, or one entry carrying the array).
+5. **THE SEED'S REMAINING FIVE** — `SE-2`, `SE-3`, `SE-5`, `SE-7`, `SE-8` — and `VN-5`'s provenance.
+6. **THE CHANNEL'S FIVE** — `CH-3`, `CH-4`, `CH-7`, `CH-8`, `CH-7`, the accessor's name, `VN-7`.
+
+**TERMS: the `saveCall` answers taken (`5`) · the statuses minted (`0`) · the statuses widened (`1` = `FileCommitFailed`) · the set (`23`, unmoved) ·
+the addon's entries (`14` now; `15` if the proposal is accepted) · the cross-key refusals (`0` for the seed pair; `1` for `filePath` ∧ `saveCall`) ·
+the documentary units owed (`2` = the boot hazard and the backend hazard) · the classes deferred (`1`, with a named revisit) · the units opened
+(`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT.** **`U-04` is blocked on item 1 alone; everything else it needed is now declared.**
+
+---
+
+### `D-146` — `saveFailed(opId)` IS THE MIRROR OF `saveSucceeded`: ARITY `1`, ANSWERS `undefined`, PERFORMS THE FAILURE ARM AND WRITES NO BYTE
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, accepting L0's proposal at `D-145` item 1 of
+its unsettled. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Mirror"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE ROLLBACK'S STORE-SIDE ROUTE IS A NEW ADDON ENTRY, `saveFailed(opId)`** — **arity `1`, answering `undefined`, on `commitFile`'s own
+   declared form** (`src/facade.rs:1028`–`:1030`: *"its one argument is an op id and its answer is `undefined`"*). **It performs EXACTLY
+   `commit_file`'s failure arm and nothing else** (`src/store.rs:1601`–`:1608`): **remove the journal entry · `restore(home, &entry.captured)` ·
+   `restore_compaction(&entry.compacted)` · `last_seq -= 1` · answer.** **IT WRITES NO BYTE**, which is what keeps the store's own writer
+   suppressed on this arm (`D-133` item 3) and the journal the STORE's, never the package's.
+2. **AND THE PAIR IS ONE SHAPE AT TWO VERDICTS — the two entries are each other's mirror**, which is `D-144` item 6's surface completed:
+   `exportImage()` answers the image and marks nothing · `saveSucceeded(opId)` marks the record saved · **`saveFailed(opId)` unwinds it.**
+   **NO VERDICT IS CARRIED ON ANY ENTRY'S POSITION** — the addon is told twice, once per outcome, and never asked to judge.
+3. **THE ADDON'S ENTRY SET MOVES `14 → 15`** (`D-137` item 1 took it `12 → 13`; `D-144` item 6 took it `13 → 14`).
+4. **AND `SC-6` IS CLOSED IN FULL — route and seat.** **The route is this entry; the seat is rank `15` `FileCommitFailed` widened**
+   (`D-145` item 1) — **so `§2.11` clause 5's declared order is kept exactly: the rollback happens, and the caller receives the failure AFTER it**
+   (`docs/specs/storeroom-js/surface.md:1899`). **The package sends the signal (a `success: false` from `saveCall`); the store unwinds; the kernel
+   answers with the caller's own messages in the `log`** (`D-145` item 2).
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **`saveFailed`'s ARMS WHERE THE OP IS UNKNOWN OR OWES NOTHING.** **`saveSucceeded` refuses those (`D-145` item 3), and the mirror of a refusal
+   is not a refusal**: **a `saveFailed` naming an op this store does not hold has nothing to unwind, and whether it refuses at `JournalOpUnknown`
+   (matching its mirror) or answers `undefined` as a no-op (matching `commit_file`'s own silent arms) is undecided.** **One word, and the design may
+   not assume either.**
+2. **WHETHER `saveFailed`'s ANSWER CARRIES THE UNWOUND STATE** — **the design's to price; `undefined` is `commitFile`'s precedent and not an
+   argument against a signal nobody has asked for.**
+3. **THE ALREADY-SAVED ARM OF `saveSucceeded`** (`D-145` item 3's flag) and **the `message[]` entry shape** (`:6800`) — unchanged.
+4. **THE SEED'S FIVE AND THE CHANNEL'S FIVE** — unchanged.
+
+**TERMS: the addon's entries (`14 → 15`) · the rollback's route (`1` = taken) · the verdict positions (`0` — two calls, no verdict on a position) ·
+the bytes written by the new entry (`0`) · the statuses minted (`0`) · the `cfg` keys (`7`, unmoved) · the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT. `SC-6` IS CLOSED AND `U-04 SAVE-CALL` IS FULLY DECLARED** except for the two design details this row
+flags.
+
+---
+
+### `D-147` — THE SEED CLOSES: IN DOMAIN EVERYWHERE WITH GUIDANCE · NO IMMEDIATE SAVE · PROVENANCE DECLARED AND LEFT · AN EMPTY STRING IS REFUSED
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, answering `D-144`/`D-145`'s seed remainder.
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "1. In domain everywhere (Guidance should discourage it where overwrites are not intentional, though - stores should enforce their
+> defaults with repairs, and `file` pathed stores are in danger of being overwritten)
+> 2. No immediate save
+> 3. Declare and leave
+> Bonus: Refuse empty string - intentional emptiness is excluding param entirely, accepting empty string is an overwrite risk"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **`SE-5` — `initialImage` IS IN DOMAIN ON EVERY ARM, AND THE DANGER IS CARRIED BY GUIDANCE AND NOT BY A REFUSAL.** **A `filePath` store may be
+   seeded; a plain `mem` store may be seeded; a `saveCall` store is seeded as its bootstrap.** **His grounds are three and each is a sentence the
+   guides owe**: **guidance must discourage seeding where an overwrite is not intended** · **a store should enforce its DEFAULTS WITH REPAIRS —
+   not by refusing the seed** (the constraint kernel's own mechanism, `D-1`'s unconditional write-path pass) · **and a `file`-pathed store's bytes
+   are IN DANGER OF BEING OVERWRITTEN**, which is the risk stated rather than defended against. **So the seed-versus-file collision is not resolved
+   by precedence law; it is resolved by the caller knowing what it asked for.**
+2. **`SE-7` — NO IMMEDIATE SAVE.** **A seeded construction fires no `saveCall`.** **It follows from `save_owed`'s own ground — the eligibility is an
+   act's DEPARTURE** (`src/store.rs:1640`–`:1674`) **and a seed is not an act** — **and its consequences are declared rather than left implicit**:
+   **the store and the client's backend agree at instant zero because the client just supplied the state** · **they DIVERGE after a `mem`-tier act
+   until the next `file`-tier write, which is every store's ordinary shape** · **the `saved` mark has no subject for a seed** (there is no journal
+   entry to mark) · **and the construction stays SYNCHRONOUS** — **no `async` stands at creation**, which keeps `DD-17`'s *"commits synchronously,
+   so there is no in-flight state to flush"* whole (`contract.md:2507`–`:2510`).
+3. **`VN-5` — PROVENANCE IS DECLARED AND LEFT: the image carries no identity, and the client is responsible for passing its own store's image.**
+   **`read_file_image`'s filter is `is_admitted()` and nothing else** (`:1730`–`:1737`), **so a stale, foreign or hand-assembled image of admissible
+   values installs silently and the store answers as if it were its own.** **That is now a DECLARED property with a documentary duty** — the
+   guides and the key's own declaration prose — **and not a hole.** **Adding a format marker to the image is REFUSED by this row**: it would change
+   the durable bytes on every arm and every existing file, a migration-class act no pass may take.
+4. **AND AN EMPTY-STRING SEED IS REFUSED — *"intentional emptiness is excluding param entirely, accepting empty string is an overwrite risk"*.** **So
+   `initialImage: ''` is BROKEN CONFIG**: **absence means *no seed* and the creation state stands; an empty string means a caller that computed a
+   value rather than omitting one, and it is refused rather than read as absence.** **THE SEAT IS `cfg`'s class gate — `AddressMalformed` — on the
+   precedent this tree already sets and which the supervisor MEASURED at `2026-11-17` for its neighbour: `filePath: ''` answers
+   `AddressMalformed` (*"'filePath' is not a legal address segment in '', segments are strings or non-negative integers"*).** **The status is a
+   reading of consistency and not his word; if he means rank `22` `FileImageRefused` instead, one word moves it.**
+   **And a NON-STRING seed is the same gate:** `initialImage: 5` and its siblings are `cfg`'s outside forms, refused before any filesystem act.
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **THE SEED-VERSUS-FILE PRECEDENCE WHEN A `filePath` STORE BOTH CARRIES A SEED AND BOOTS OVER A FILE THAT HOLDS STATE.** **Item 1 puts the case in
+   domain and item 1's third ground acknowledges the danger; no precedence is declared.** **THE BINDING FACT IS THE INSTALL ORDER**: **a seed installed
+   BEFORE `born` is taken (`src/store.rs:842`) and a file installed through the boot's own load are two installs at `Tier::File` over the same home, and
+   the LAST one wins** — **so the answer turns on which the design runs second.** **This row does not choose it; the design states it and the guides
+   say it, and `D-145` item 4's *"client is responsible for passing correct config"* is the arm that lets it stand either way.**
+2. **THE `filePath`+seed case's DURABILITY CONSEQUENCE** — a seed that wins means the next `file`-tier write overwrites the path with the seeded
+   state: **exactly the danger item 1 names, stated and not defended.**
+3. **THE CHANNEL'S FIVE** — `CH-3`, `CH-4`, `CH-7`, `CH-8`, the accessor's name, `VN-7` — **unchanged and now the ONLY open cluster.**
+4. **THE TWO SMALL READINGS ABOVE** (the empty-string seat, `AddressMalformed` versus rank `22`).
+5. **THE RELEASE CLASS** — deferred by `D-145` item 6 with its named revisit.
+
+**TERMS: the seed's questions closed (`4` = domain · immediate save · provenance · empty string) · the seeds refused (`1` = empty string) · the
+documentary duties owed (`3` = the seed's overwrite danger, the boot hazard `D-145` item 4, the backend hazard `D-145` item 5) · the image's format
+changed (`0`) · the statuses minted (`0`) · the `cfg` keys (`7`, unmoved) · the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT. `U-05 SEED` IS DECLARED** except for the install order this row flags, which is the design's to state.
+
+---
+
+### `D-148` — THE CHANNEL CLOSES: A NON-FUNCTION REFUSED · A NEW 24TH STATUS FOR A CHANNEL THAT FAILS · A LISTENER KEEPS ITS VALUE ONLY IF IT RETURNS ONE · A CONSTRAINT LEAVES THE REGISTRY · AND THE CHANNEL'S DELIVERY **IS** THE ANSWER
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, answering the channel cluster.
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "1. Refuse handles that don't have a function (Should already be the case, defect if not). A constraint is not a listener and shouldn't be in the
+> registry or part of this returned set. A listener that returns nothing should be assumed to only perform backend code that does not need the
+> channel pass. Declare that return-undefined functions will not pass back over channel, responsibility is on client.
+> 2. Add new status
+> 3. Channel returns the normal receipt for its action, or the forged receipt for one that previously didn't return one
+> 4. Refuse non-function channel
+> 5. When the channel is in use, the channel delivery *is* the answer"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **`CH-3` IS CLOSED, AND IT CLOSES INTO THREE SEPARATE SENTENCES.**
+   **(a) A HANDLE WITH NO FUNCTION IS REFUSED, AND *"SHOULD ALREADY BE THE CASE"* IS CONFIRMED AT THE BYTES — NO DEFECT.** **The construction refuses an
+   entry carrying no `listener`** (`bindings/js/src/entry/frame.mjs`'s entry walk; `PIN-8`/`PIN-9`; the architect's own ground quoted at
+   `index.d.ts:239`–`:242`: *"Why would a listener that doesn't have a function to fire on the listened address be accepted?"*), **and the
+   registration route refuses a non-function at its own site** (`PAR-JS-12`'s one non-store form). **So no handle without a body can be adopted, and
+   no such handle can stand in a returned set.**
+   **(b) A CONSTRAINT IS NOT A LISTENER, AND THAT IS A SEMANTIC STATEMENT — NO CODE MOVES.** **⟶ CORRECTED AT THIS LINE, `2026-11-17`, ON THE ARCHITECT'S OWN CLARIFICATION — *"the constraint behavior doesn't need to change, argument was semantics"*.** **THIS SENTENCE READ *"A CONSTRAINT … LEAVES THE REGISTRY"* AND CLAIMED A CHANGE THAT SUPERSEDED PART OF `D-69`'S MECHANISM; BOTH HALVES ARE WITHDRAWN BY NAME.** **What the tree already does implements the semantics exactly, and nothing in it moves**: **the registration seam writes the pair's body into the package's registry under `entry.kind = 'constraint'`** (`delivery.mjs:279`), **`deliver` skips it by that kind** (`:181`) **so no constraint ever reaches the delivered set or the channel's value map**, **and `register` refuses to replace such an entry with a caller's function** (`:788`). **`D-69`'s requirement stands whole, its mechanism stands whole, and THE REGISTRY'S KINDS STAY AT TWO — the `TERMS` line below prints *"`2 → 1`"* and is superseded at this clause.** **What this item contributes is the DECLARED READING: a constraint is asked by the pass and is never a listener, so it is neither a member of the delivered set nor a key in the channel's map — which the shipped device already guarantees.**
+   **(c) A BODY THAT RETURNS `undefined` DOES NOT PASS BACK OVER THE CHANNEL, AND THAT IS DECLARED — *"responsibility is on client"*.** **A listener
+   that returns nothing is assumed to perform backend work that needs no channel pass**; **so the channel's value map carries ONE ENTRY PER HANDLE
+   THAT RETURNED A VALUE and no entry for the rest.** **Silence is therefore meaningful and declared: a handle absent from the map either returned
+   nothing or was not part of the delivered set, and the caller owns the distinction.**
+2. **`CH-4` IS CLOSED BY A NEW STATUS — RANK `24`.** **A CHANNEL THAT FAILS (throws or rejects) REFUSES THE ACT, and the member is NEW rather than a
+   widening** (unlike `FileCommitFailed`, `D-145` item 1: **a channel is not a listener body and rank `23`'s name would misname it**). **THE MINTING
+   IS INVENTED UNDER `D-137`'s DELEGATION, on the family's own pattern** (`ListenerBodyThrew` `21` · `ListenerBodyRejected` `23`): **`ChannelThrew`**,
+   **rank `24`**, **subject the ACT'S OWN ADDRESS — the triggering address — because a channel call is per act and not per registration**, **and the
+   generated message:**
+   ```
+   "<address> was refused by the channel, the caller's own channel function failed while delivering this act's events"
+   ```
+   **`CODES` moves `23 → 24` and `StoreStatus` to twenty-four literals plus its escape arm.** **AND THE ASYMMETRY WITH `D-138` IS DECLARED, NOT SLIPPED
+   IN**: **a listener's failure cannot refuse the act because the act has already committed and the caller must not lose its record** (`D-138` items 1
+   and 4); **a channel's failure refuses the act because, with a channel in use, there is no record for the caller to lose — the delivery IS the
+   answer** (item 5). **The two arms differ because their SUBJECTS differ, exactly as `D-144` item 1's widening turned on one subject per instance.**
+3. **THE CHANNEL IS HANDED A RECEIPT — THE REAL ONE FOR AN ACT THAT RETURNS ONE, THE FORGED ONE FOR AN ACT THAT DOES NOT.** **So the channel's
+   argument carries the action's identity**: **a `write`'s or a `delete`'s own receipt with its five members** (`D-136`, `D-143`), **and at the
+   creation or a registration the forged receipt** (`D-139`, `D-140`…`D-143`: the commit's op or `null`, the delivered set's `watched` and
+   `triggered`, the commit's `log`, the registration's `discarded`, and `bodyFailures`).
+4. **`CH-8` IS CLOSED: A NON-FUNCTION `channel` IS REFUSED, ON `saveCall`'s OWN ARM.** **Broken config, at `cfg`'s class gate, before any filesystem
+   act** (`D-144` item 2's arm) — **so the package mints no second non-store failure form, `DD-12`'s one-form law stands whole, and `CH-8`'s
+   question is answered by consistency rather than by a new device.**
+5. **★ AND `CH-5` IS SETTLED IN ITS LARGEST FORM — WHEN A CHANNEL IS IN USE, ITS DELIVERY IS THE ANSWER.** **`write` and `delete` answer WHAT THE
+   CHANNEL RETURNED rather than a receipt carrying the channel's data beside it.** **THIS SUPERSEDES `D-136` ITEM 1's *"rides beside"* FOR THE
+   CHANNEL'S DATA — and it DISSOLVES the channel's unnamed accessor, which is why `CH-NAME` is closed as *no such member***. **What survives of
+   `D-136` is the RECEIPT: its five members are unmoved, `bodyFailures` stays third accessor, and THAT receipt is what the channel is handed** (item 3).
+   **A store with NO channel is unchanged: its answer is the receipt, with `bodyFailures` and everything else.**
+
+**WHAT IT DOES NOT SETTLE — AND THE ONE READING WHICH IS L0's.**
+
+1. **THE CHANNEL'S EXACT SIGNATURE, AND THE READING THIS ROW TAKES IS FLAGGED.** **His item 3 names the RECEIPT and his original request named the MAP**
+   (*"Result is passed to channel as `{listenerHandle: <data>, …}`"*). **This row reads them as TWO POSITIONS — `channel(values, receipt)` — the map
+   first because it is the payload his request declared, the receipt second because it is the identity item 3 names.** **The alternative reading is one
+   position with the values riding on the receipt as an accessor** (which would revive `CH-NAME` for that accessor). **The design may not choose
+   between them; one word from him settles it and the declaration follows.**
+2. **WHAT A CHANNEL RECEIVES WHEN THE ACT'S DELIVERED SET IS EMPTY** — `CH-7`, still open, and now sharper: with item 5 making the delivery the answer,
+   a channel invoked with an empty map returns the caller's whole answer.
+3. **`VN-7` — THE CHANNEL'S ASYNC-NESS** — still open: item 5 makes the channel's return the answer, which raises whether the answer also waits for a
+   channel that returns a promise.
+4. **THE KERNEL'S HOLD ON A CONSTRAINT BODY** (item 1 (b)) — where the pair's function lives once it leaves the registry, and what `register`'s
+   refusal at `delivery.mjs:788` becomes. **A design/code move with `D-69`'s requirement intact.**
+5. **THE RELEASE CLASS** — deferred with its named revisit (`D-145` item 6).
+
+**TERMS: the channel's questions closed (`5` = the map's contents · a failing channel · the receipt it is handed · a non-function channel · the
+delivery-as-answer) · the statuses minted (`1` = rank `24` `ChannelThrew`) · the statuses withdrawn (`0`) · the accessors dissolved (`1` = the
+channel's own) · the registry's kinds (`2 → 1`) · the readings flagged (`1` = the signature) · the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT.**
+
+---
+
+### `D-149` — THE EXTERNAL `channel` IS NOT NEEDED: THE RECEIPT CARRIES THE LISTENERS' RETURN VALUES, AND THE WHOLE CHANNEL CLUSTER DISSOLVES
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, reconsidering the channel's paradigm and confirming the
+outcome. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "The channel itself would not be needed, but the write receipt would still need to include data that is not currently contained, ex. the listener
+> function returns"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **`channel` IS NOT A `cfg` KEY.** **`cfg` MOVES `7 → 6`**: `journalLength` · `listeners` · `filePath` · `constraints` · `saveCall` ·
+   `initialImage`. **The package invokes no caller-supplied function beyond the listeners themselves** — **which is `A57`'s minimal shape restored**:
+   *"the store returns handles and invokes nothing"* was always about the store, and **now the package's own invocation surface holds one class of
+   function and no other.**
+2. **★ AND THE RECEIPT CARRIES WHAT IT DOES NOT CARRY TODAY: THE LISTENERS' RETURN VALUES.** **A `write`'s — and, on the same reasoning, a `delete`'s —
+   answer gains a datum keyed by handle, one entry per listener that RETURNED A VALUE** (`D-148` item 1(c), unmoved: a body that returns `undefined`
+   contributes no entry, and the caller owns that silence). **Its seat is `bodyFailures`' own device** (`D-136` items 1 and 4): **a NON-ENUMERABLE,
+   `configurable` own accessor over a symbol-keyed datum, so `Object.keys` stays `["op","watched","triggered"]` and every consumer deep-equality over
+   an answer is unmoved.** **`Object.getOwnPropertyNames` moves `6 → 7`** (three typed + `discarded` · `log` · `bodyFailures` · this one).
+   **THE NAME IS NOT MINTED HERE — it is the one identifier this change leaves owed, on `D-137`'s delegation precedent, and `U-09` is where it lands.**
+3. **AND THE SETTLE IS WHAT MAKES THE DATUM POSSIBLE, WHICH IS WHY THIS IS COHERENT RATHER THAN MERELY SIMPLER.** **The answer is withheld until the
+   delivered set settles** (`D-130` item 4) — **so the map is COMPLETE when the caller reads it, and a promise a body returned is already settled into a
+   value or into `bodyFailures`.** **The two rulings were never independent: the awaited answer is what a per-handle result map needs in order to exist at
+   all.**
+4. **THE CALLER'S ANSWER IS THE RECEIPT AGAIN.** **`D-148` item 5's *"when the channel is in use, the channel delivery is the answer"* has no subject,
+   so the receipt is the answer on every arm — and `D-119`'s audit property is restored**: *"a caller that cannot read the passing log cannot audit its own
+   write."* **Under item 5 the caller had to have its own channel hand the record back to see it; it no longer does.**
+
+**WHAT IT DISSOLVES — NAMED SO NOTHING IS CARRIED FORWARD AS IF IT STILL STOOD.**
+
+| dissolved | what it was for |
+|---|---|
+| **the forged receipt, whole** — `D-139` items 2–4 · `D-140` · `D-141` · `D-142` · `D-143` | **it existed only so the PACKAGE could invoke a channel at instants that have no receipt.** **With the package invoking nothing, there is nothing to forge, no `op: null` case, no "the commit's op", no `watched` projection to compute and no `discarded` at a creation.** **The five members' answers stand as the RECEIPT's own declarations and are no longer a forgery's.** |
+| **rank `24` `ChannelThrew`** (`D-148` item 2) | **a channel the package invokes can fail; a channel the caller invokes fails in the caller's own frame.** **IT WAS MINTED AND NEVER IMPLEMENTED, so its withdrawal moves no byte: `CODES` STAYS AT `23`** (twenty-two + `ListenerBodyRejected`) **and `StoreStatus` at twenty-three literals plus its escape arm.** |
+| **`CH-7`** (called when nothing triggered?) | **an empty map is an empty map; nothing is called.** |
+| **`VN-7`** (the channel's async-ness) | **no package-side invocation, no question whether the answer waits for it.** |
+| **`CH-4`**, **`CH-8`**, **`CH-2`**, **`CH-5`**, **`CH-1`**, **`CH-6`**, **`VN-6`** | **all channel-shaped; all lost their subject.** **`VN-6`'s name collision goes with the key.** |
+| **`D-131` items 4–6**, **`D-136` item 1**, **`D-148` items 2, 3, 5** | superseded by items 1 and 4 above. |
+
+**WHAT SURVIVES, AND IS NOT WEAKENED.**
+
+- **`D-148` item 1(a)** — a handle with no function is refused, and that was measured as already true.
+- **`D-148` item 1(b)** — a constraint is asked by the pass and is never a listener, so it is neither in the delivered set nor a key in the datum. **No code moved for it then and none moves now.**
+- **`D-148` item 1(c)** — value-only entries; `undefined`-returners do not appear; responsibility is the client's.
+- **`D-130` items 3–5** — start all, settle, no order asserted, interference the caller's hazard.
+- **`D-138`** — a rejecting body's status rides on the receipt as `bodyFailures`, and the write RESOLVES.
+- **`D-136`** — the receipt's five members and the three-accessor family, now four.
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **THE DATUM'S NAME**, and whether an empty map is the shared frozen constant or a fresh `{}` — **`D-142`'s own precedent says the frozen constant; the name is owed** (`D-137`'s delegation stands).
+2. **WHICH ANSWERS CARRY IT.** **`write` and `delete` are named by his words and their own reasoning; a `rollback`'s judgement answers a `judgementLog` and not a receipt, and whether it delivers values that must be surfaced is the design's to price.** **The creation and the four registration instants carry NO values — their answers are an instance and an identity, and the caller is the one who acted, so nothing is lost that the caller does not already know.**
+3. **Whether `bodyFailures` and this datum ever share a seat** — `D-136`'s two-accessor reasoning put them apart on `CH-3`'s keying question, **which has now dissolved; the design may revisit that and moves nothing by keeping them apart.**
+4. **THE REST OF THE OPEN SET, unchanged**: the seed's install order · `saveFailed`'s unknown-op arm · `saveSucceeded`'s already-saved arm · the `message[]` entry shape · `FileCommitFailed`'s message's `path` slot (a spec byte) · three documentary duties · the release class with its named revisit.
+
+**TERMS: the `cfg` keys (`7 → 6`) · the statuses withdrawn (`1` = rank `24`, never implemented) · the set (`23`, unmoved) · the receipts gaining a datum (`2` = `write`, `delete`; the reversal's judgement owed) · the accessors (`3 → 4`) · the forged receipts (`0` — nothing is forged any more) · the identifiers owed (`1` = the datum's name) · the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT.**
+
+---
+
+### `D-150` — THE RETURN-VALUES DATUM IS NAMED `returnedValues`
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, accepting L0's proposal.
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Stick with returnedValues and proceed with design"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE RECEIPT'S FOURTH ACCESSOR IS `returnedValues`** — **a NON-ENUMERABLE, `configurable` own accessor over a symbol-keyed datum, one entry
+   per listener that RETURNED A VALUE, keyed by handle** (`D-149` item 2; `D-148` item 1(c) unmoved: an `undefined`-returner contributes no entry).
+   **`Object.keys` stays `["op","watched","triggered"]`; `Object.getOwnPropertyNames` reads SEVEN** — the three typed plus `discarded` · `log` ·
+   `bodyFailures` · `returnedValues`.
+2. **ITS EMPTY VALUE IS THE SHARED FROZEN `{}`**, on `D-142`'s own precedent for the empty map and `defineResolutionLog`'s for the shared `[]`
+   (`constraints.mjs:1988`) — **present always, never absent, never `undefined`** (`D-77`/`D-78`'s rule).
+3. **AND THE IDENTIFIER IS NOW THE DECLARATION'S, WHICH UNBLOCKS `U-09` ON THAT POINT.** **`StoreInstance` is unmoved at fifteen; `CommitRecord` at
+   four; `WriteRecord` keeps its three typed members and gains its fourth accessor.**
+
+**WHAT IT DOES NOT SETTLE.** **Whether the datum's carriage rides `U-06`'s implementer pass or stays `U-08`'s own unit** — **the plan's `§13` keeps
+them apart and the design pass decides the boundary; either way the code is the same delivery point.** · **the four small design items already
+flagged** (the seed's install order · `saveFailed`'s unknown-op arm · `saveSucceeded`'s already-saved arm · the `message[]` entry shape) · **three
+documentary duties** · **the release class with its named revisit.**
+
+**TERMS: the identifiers owed (`0`) · the accessors (`4`) · the censuses moved (`1` = `getOwnPropertyNames` `6 → 7`) · the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT — AND IT IS THE LAST IDENTIFIER THE THREE REQUESTS OWED.**
+
+---
+
+### `D-151` — A REPAIR'S WRITE AT A LISTENED ADDRESS MUST FIRE ITS LISTENER, AND THE MEASURED BEHAVIOUR IS A DEFECT
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af` (the tree carries `U-STOREROOM-06`'s landing uncommitted). **SOURCE:** the architect, in
+session, ruling on the finding `docs/specs/storeroom-delivery-settle/contract.md §11` filed. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "If a repair writes at an address that should trigger a listener, that listener should fire, and any behavior to the contrary is a defect"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE EXPECTED BEHAVIOUR IS DECLARED AND THE MEASURED BEHAVIOUR IS A DEFECT.** **A repair's write that lands at an address a listener watches FIRES that
+   listener** — **`D-104` item 2's *"a repair's write's listeners are delivered in the commit's delivery"* (`strata/decisions.md:5321`–`:5326`) is the
+   declared rule and it is NOT narrowed.** **The probe recorded at `contract.md §11` (a repair landing `P = 7`, its listener never fired, while a plain
+   write at the same address fires it) is therefore a DEFECT IN THE TREE and not a declaration read too widely.** **The `D-125` item 1 question the same
+   section raised is NOT answered here and is not needed to: the defect stands on `D-104` item 2 alone.**
+2. **AND THE DEFECT'S LOCUS IS NAMED SO IT IS NOT REDISCOVERED.** **At an `addConstraint` (`bindings/js/index.mjs:1292`) and at a `constraintOn`
+   (`:1478`) the registration sets `state.registrationDelivery = 'triggered'` and **THE FILE CALLS `deliver` NOWHERE FOR THAT INSTANT** — the only two
+   `deliver(state, …)` calls in `index.mjs` are the creation's (`:339`) and the delete's (`:917`).** **So the set the registration's mode names is never
+   handed to a delivery at all, and no listener can fire from either the act or a repair leg — which is exactly what the probe measured.** **The fix is
+   a DELIVERY AT THOSE TWO MEMBERS over the set the instant owes; it is package-side and touches no store byte unless the set itself must be computed
+   from the register, which `D-67`/`D-69`'s one-predicate-in-the-store law would make a store question.**
+3. **AND THE TWO CELLS THAT MEASURED IT ARE UNBLOCKED IN PRINCIPLE AND STAY RED UNTIL THE FIX LANDS** — **`S-SLOTS-3` and `S-SETTLE-3`'s arm (b.1)/(b.2)**
+   remain in `tests/e2e/delivery-settle.test.mjs`, red, as the standing witness of the defect. **`U-STOREROOM-06`'s own pins are all discharged by its
+   ten green cells; the two reds are not this unit's requirement and must not be read as a failure of its landing.**
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **WHAT SET A REGISTRATION INSTANT OWES.** **The act's own address's watching listeners (the `D-125` item 1 reading the probes could not reach), the
+   union of its repair legs' triggered sets (`D-104` item 2), or both.** **This row rules the repair leg and not the act arm**, and **the two cells need the
+   answer before they can be re-specified** if the act arm is also owed.
+2. **WHETHER THE SET IS COMPUTED BY THE STORE OR THE PACKAGE** — `D-67`/`D-69`'s *"one predicate, in the store, where the per-tier versions live"* points
+   at the store; the registration mints no journal op for the store to key on, which is the whole reason the set is empty today.
+3. **THE UNIT THAT CARRIES THE FIX**, and its class (a repair of a declared rule is a fix; whether it is `PATCH` or `MINOR` is `D-124` item 3's discipline
+   and nobody has claimed it).
+
+**TERMS: the declared behaviour (`1` = a repair's write fires its listener) · the defects ruled (`1`) · the loci named (`2` = `:1292`, `:1478`) · the cells
+left red as witness (`2`) · the units opened (`0`) · the statuses minted (`0`) · the store bytes moved (`0`).**
+
+---
+
+### `D-152` — A REGISTRATION INSTANT FIRES ONLY THE LISTENERS ITS REPAIR WRITES CHANGED, AND THE REACH IS COMPUTED IN THE STORE
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, answering the two questions `D-151` left open.
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Fires only the listeners changed by the writes"
+> "Compute within the store"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE SET A REGISTRATION INSTANT OWES IS THE LISTENERS ITS REPAIR WRITES CHANGED — AND NOTHING ELSE.** **A registration that writes nothing FIRES NOTHING**, so **`D-125` item 1's
+   *"the four registration instants deliver"* is READ THROUGH this clause**: *deliver* names **the delivery of the writes the instant's pass landed**, **not** a delivery of the act's own
+   address's watching set. **The first probe at `contract.md §11` (a listener at the pair's own address, nothing written, `fired = []`) therefore measured CORRECT BEHAVIOUR, and the second
+   (a repair landing `P = 7` with its listener silent) measured the DEFECT `D-151` rules.**
+2. **AND THE REACH IS THE STORE'S TO COMPUTE — `D-67`/`D-69`'s one-predicate law, unmoved and now applied to this arm.** **The store already computes each repair write's `triggered` and
+   `watched` from its own `Captured` records** (`src/store.rs:2211`–`:2240`; `D-69`: *"the store computes the reach of an act, and the kernel computed a second one"*). **So the set is not
+   minted by the package: it is UNIONED from the writes the pass landed, each of which the store has already answered.** **The package may not compute a reach of its own** — a second
+   predicate is the defect `D-67` was filed for.
+
+**WHAT IT MEANS FOR THE FIX — the shape is now fully determined and no declaration is left.**
+
+- **THE LOCUS IS UNCHANGED (`D-151` item 2):** `addConstraint` (`bindings/js/index.mjs:1292`) and `constraintOn` (`:1478`) set `state.registrationDelivery = 'triggered'` and call `deliver`
+  nowhere. **What is missing is the DELIVERY, not the COMPUTATION** — the union of the repair legs' own store-answered `triggered` sets, handed to `deliver` at those two members.
+- **A REGISTRATION WITH NO REPAIR LANDS NOTHING TO DELIVER, AND THAT IS NOT A SILENCE**: it is the declared meaning of *"only the listeners changed by the writes"*.
+- **AND THE TWO RED CELLS BECOME REACHABLE EXACTLY AS THEY STAND**: `S-SLOTS-3` needs a repair's write to fire a throwing body and `S-SETTLE-3`'s (b.1)/(b.2) need one to fire a
+  suspending body — **both already arm their repairs to write at the listened address**, so both go green when the delivery lands and for no other reason.
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **THE ORDER OF THE UNION AND ITS DEDUPE.** **`DD-22` forbids asserting an order**; whether two legs that both watched one address yield one entry or two is the one mechanical question the
+   cells will settle — **a drive compares the SET, and the implementation's dedupe must be the store's own identity rule (`deliver`'s dedupe on `entry.handle`, `delivery.mjs:160`) rather
+   than a second one.**
+2. **WHETHER THE UNION IS DELIVERED ONCE, OR ONCE PER LEG.** **`D-104` item 2 says a repair's write's listeners are delivered *"in the commit's delivery"* — one delivery for the commit —
+   and this row does not narrow that; a per-leg delivery would repeat a listener's invocation and breach the once-per-distinct-handle law.**
+3. **THE UNIT AND ITS CLASS** — `D-151` item 3's.
+
+**TERMS: the set (`1` = the listeners the repair writes changed) · the computation (`1` = the store) · the act arm (`0` = not owed) · the deliverables the fix owes (`1` = a delivery at
+two members) · the store bytes the fix may move (`0` — the predicate exists) · the units opened (`0`).**
+
+---
+
+### `D-153` — THE SAVER'S MESSAGES GET A FIFTH `LogKind`, AND THE FAILED ASYNC SAVE GETS A THIRD ARM
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af` (the tree carries `U-06` and `U-08` landed, uncommitted). **SOURCE:** the architect, in
+session, answering the two `BLOCKING` declarations `docs/L3/image-export-and-save-call/design.md` filed. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "1. take first option
+> 5. Add third arm"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **`O-1` — THE CALLER'S `message: string[]` RIDES IN LOG ENTRIES OF A NEW FIFTH `LogKind`, AND THE `log` KINDS MOVE `4 → 5`.** **The design's arm (i)
+   is taken: `D-145` item 2's list shape is honoured** — *one entry per string, in the commit's own list* — **and the kind set is widened rather than
+   bent.** **THE COST IS PAID WHERE THE DESIGN SAID IT WOULD BE, AND IT IS TWO BYTES OUTSIDE `U-03`/`U-04`'s ORIGINAL SET**: **the `LogKind` union in
+   `bindings/js/src/entry/kernel-foundations.mjs` and the declaration's own literal (`bindings/js/index.d.ts`).** **This row WIDENS THE PAIR'S WRITE SET
+   BY THOSE TWO FILES and by nothing else**: the fifth kind is a declared member of a closed set, so it is minted in the kernel's foundations and
+   declared in the type, exactly as the four before it were. **THE SPELLING IS INVENTED UNDER `D-137`'s DELEGATION: `'save'`** — lowercase like the four
+   (`'constraint-check'` · `'repair-run'` · `'outcome'` · `'commit'`), and its subject is the durable act the package performed on the store's behalf.
+   **A cell asserting the caller's messages in the log may now go green.**
+2. **`O-5` — THE ASYNC ARM GETS ITS THIRD ARM, AND `U-06`'S BRANCH BECOMES THREE-WAY.** **A failed `saveCall` that was AWAITED MUST REACH THE CALLER'S
+   ANSWER**: the branch `settle === null ? recordOut : settledAnswer(settle, recordOut)` gains a third arm for **a settle that settles into a REFUSAL
+   rather than into an answer**, and **that arm answers the refusal** — `FileCommitFailed` (rank `15`, widened, `D-145` item 1) **with the saver's
+   `message[]` carried as the fifth kind's entries** (item 1 above), **because the caller must not lose the reason it wrote.** **THE DOMAIN IS NOT NARROWED:
+   a thenable answer stays in domain** (`D-144` item 1's *"(async optional)"*), **and the synchronous answer's arm is unmoved.** **THIS ROW OWES ONE BYTE OF
+   `U-06`'S LANDED FILE** — `bindings/js/src/entry/constraints.mjs`'s tail — **and it authorises that byte**, which `D-152`'s settled state did not.
+   **THE THIRD ARM MUST NOT MAKE `settledAnswer` ABLE TO REJECT** (`PIN-5`: *"No `Promise` rejection is a failure form on any arm"*): the refusal is a
+   **datum the settle RESOLVES INTO**, never a rejection of the promise — the distinction `D-138` item 4 drew and this row keeps.
+
+**WHAT IT DOES NOT SETTLE — the design's `PRICEABLE` list, carried forward unchanged.** **`O-2`** the already-saved arm (`saveSucceeded`'s idempotence)
+· **`O-3`** the path-less writer's stray sibling and whether a guard is owed · **`O-4`** the `saveCall` answer's validation (a runtime refusal versus a
+tolerant read) · **`O-6`** a malformed op id's classifier at the new entries · **`O-8`** the export's refusal seat and `FileCommitFailed`'s `path` slot on
+an arm with no path (a spec byte, `D-145` item 1 of its unsettled) · **`O-9`** the per-passing-op saver cost · **`O-10`** the verdict entries'
+reachability on a `filePath` store. **Each is priced in the design and none is taken here.**
+
+**TERMS: the `LogKind` set (`4 → 5`) · the kinds spelled (`1` = `'save'`) · the files this row admits to the pair's write set (`2` = `kernel-foundations.mjs`,
+`index.d.ts`) · the `U-06` bytes it authorises (`1` = `constraints.mjs`'s tail) · the arms added to the settle branch (`2 → 3`) · the domain narrowed
+(`0` — the async answer stays in domain) · the rejections made a failure form (`0`) · the statuses minted (`0` — rank `15` widened by `D-145`) · the units
+opened (`0`).**
+
+---
+
+### `D-154` — THE REALM CLAIM IS LIFTED: A SECOND CLAIMED REALM IS PERMITTED, AND THE WASM BUILD CARRIES NO `filePath`
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af` (the tree carries the nine-unit ladder landed and green, uncommitted). **SOURCE:** the architect, in session,
+answering L0's WASM assessment (`strata/research.md §24`). **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Lift the realm claim restriction and plan for the change. The WASM version would not need the fs calls because it has no reason to support the filePath option,
+> given the sandboxing it is subject to in browser"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **★ THE ONE-CLAIMED-REALM RESTRICTION IS LIFTED, AND IT IS LIFTED BY THE ONLY AUTHORITY THAT COULD LIFT IT.** **`A70`'s *one claimed realm* ground, `P-SR-7`'s *"NO other realm"*
+   (`docs/specs/storeroom-js/contract.md:3272`), `contract.md §1.5`'s *"THE PACKAGE CLAIMS `{ Node ESM }` AND PROMISES NO OTHER REALM … no clause of this package's documentation may
+   describe an unclaimed realm as supported"*, and `HO-1`'s *supported-route* reading all stand on one premise — that a SECOND claimed realm is not on offer — and that premise is
+   WITHDRAWN AT THIS LINE.** **A second claimed realm is now PERMITTED, and a browser/WebAssembly build of the store may be described as supported.** **THIS IS THE LARGEST SINGLE
+   CHANGE THIS SESSION MAKES TO THE CORPUS'S OWN CONSTITUTION, and the sentences above are the ones a documentation pass owes.**
+2. **AND `DD-24`'S *"SECOND claimed realm"* REFUSAL IS NOT REPEALED — ITS SUBJECT IS DIFFERENT AND IT IS NAMED HERE SO THE TWO ARE NOT CONFUSED.** `DD-24` refuses *"a co-equal CJS arm"*
+   as a second claimed realm **inside the Node realm** — the same entry, two module systems — and this row does not touch it. **What is lifted is the claim that the product may serve ONE
+   REALM AND NO OTHER; what stands is that one realm's two module systems are not both claimed.** **`D-129` item 5's `HO-1` *supported-route* reading likewise stands as the Node arm's
+   own answer.**
+3. **AND `P-SR-7`'S LOAD-TIME-REACH REFUSAL STANDS WHOLE.** *"No WASM module is loaded at any point **to reach the store**"* is a sentence about a NODE consumer's boot: no wasm instantiated
+   to reach a Node-API addon. **A WASM BUILD of the store is not a module loaded to reach this store — it IS this store — and `SC-8`'s reading is now the record's reading.** **So the two
+   sentences that survive are: a Node consumer reaches the store through the one addon (`S-ONE-ADDON`), and a WASM consumer reaches it through a WASM build and no addon at all.**
+4. **AND THE WASM BUILD CARRIES NO `filePath`, WHICH IS WHY IT NEEDS NO `std::fs`.** **The architect's ground is the browser's own: *"it has no reason to support the filePath option, given
+   the sandboxing it is subject to in browser"*.** **So on that build `cfg.filePath` is NOT IN DOMAIN** — the key is absent from its declared config and a caller supplying one is refused as
+   broken config, the arm `D-144` item 2 already uses — **and the `file` tier's PATH arm is not compiled**: the seven `std::fs` calls and `std::process::id()` that `strata/research.md §24`
+   measured are `#[cfg]`-ed out with the writer and reader they belong to.
+   **AND THE TIER MODEL IS UNTOUCHED BY THAT REMOVAL, BY AN ARGUMENT THE LAST TWO UNITS ALREADY MADE**: a path-less register that is durable **is `Tier::File` with `file_path == ""`**
+   — `D-132` item 1's third entry condition, which on a WASM build is the ONLY configuration — **and its saves go through the caller's `saveCall` with `initialImage` for the load side.**
+   **So the WASM build is not a weaker store: it is a `saveCall` store whose `filePath` arm does not exist.**
+5. **AND IT IS PLANNED, NOT BUILT.** **"Plan for the change" is the second half of his sentence**, and this row orders **a plan and no implementation**: the realm's sentences, the build's
+   `cfg` domain, the second crossing and loader, and the cells — **`docs/L1/wasm-realm.md`, an L1 plan.** **No code, no addon, no crate target and no declaration byte moves by this row.**
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **WHAT THE SECOND CROSSING IS** — `wasm-bindgen`, hand-rolled exports, or a third — and **what of the Node crossing's discipline is re-authored against it** (the one thrown form,
+   the class-first reads, `carryRefusal`'s unconverted crossing). **The plan prices them; this row chooses none.**
+2. **HOW THE DECLARATION EXPRESSES A REALM-CONDITIONAL `StoreConfig`** — one `index.d.ts` with `filePath` optional everywhere and refused on the WASM arm at runtime, **or** two declarations
+   with the key absent on the WASM arm. **A declaration question, and it is the architect's.**
+3. **THE SYNCHRONOUS-GRAPH ORDERING** (`contract.md:2379`; `D-129` item 4): **`WebAssembly.instantiate` is asynchronous**, so a WASM entry cannot honour a synchronous load-time graph
+   unless the host instantiates the module before the entry runs and injects it. **The plan states the order; whether the law then reads as *"the entry's own graph"* with the
+   instantiation outside it is his reading to give.**
+4. **THE CLASS OF THE RELEASE THAT SHIPS A SECOND REALM** — `D-124` item 3's discipline, and nobody has claimed it. **`MINOR` would say a build moved; `MAJOR` a realm did.**
+5. **EVERY REMAINING `file`-TIER QUESTION THE LANDED UNITS LEFT** — `O-3` (the path-less writer's stray sibling: moot on a WASM build, since the writer is not compiled), `O-9`, `O-10`
+   (closed by `D-151`'s fix), and the seed's zero-byte-file finding (`SS-9`: moot here for the same reason as `O-3`).
+
+**TERMS: the realm claim (`1`, lifted) · the realms now permitted (`2`) · `P-SR-7`'s load-time-reach sentence (`1`, standing) · `DD-24`'s refusal (`1`, standing, different subject) ·
+the WASM build's `cfg.filePath` (`1` = NOT IN DOMAIN) · the platform calls removed from that build (`8` = seven `std::fs` + one `process::id()`) · the `file` tier's meaning (`1`,
+unchanged: durable with no path) · the plans ordered (`1`) · the code moved (`0`) · the declarations moved (`0`) · the units opened (`0`).**
+
+**IT ORDERS A PLAN AND NO CODE. `docs/L1/wasm-realm.md` IS THAT PLAN, AND NO LANDING MAY CITE THIS ROW AS AUTHORITY FOR A BYTE.**
+
+---
+
+### `D-155` — THE WASM PLAN'S THREE FORKS TAKEN: A GENERATED REALM-CONDITIONAL DECLARATION · AN INJECTED INSTANCE · AND NO `commitFile` ON THAT BUILD
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, answering `docs/L1/wasm-realm.md`'s priced arms — **with
+`wasm-bindgen` already his by the question that asked what its choice changed in the others.** **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Option 2 - iii
+> Option 3 - b
+> Option 4 - d"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES — THREE, EACH WITH WHAT IT BINDS.**
+
+1. **THE CROSSING IS `wasm-bindgen`** (item 1 of the priced routes, taken by the question that preceded this one), **AND THE REFUSAL KEEPS ITS DISCIPLINE.**
+   **⟶ CORRECTED AT THIS LINE, `2026-11-17`, BY `docs/L3/wasm-realm/design.md` §3, BECAUSE THE MECHANISM THIS ROW NAMED IS THE ONE `D-35` REMOVED.** **This row printed
+   *"`js_sys::Object` plus `Reflect::set` reproduces `throw_refusal`'s own construction"*, and `Reflect::set` is `[[Set]]` — precisely what `D-35` took out of that frame
+   (`facade.rs:182`–`:194`) because a non-writable own `status` on `Object.prototype` makes `[[Set]]` answer `false` and DROPS the member** (measured on the artefact as
+   `own=["message"]`). **The twin is `define_property`, not `set`** — **same two names, same two strings from the same core bytes, same flags, and NO CALLER-FACING SURFACE
+   MOVES** — so **the discipline is kept by `DefineOwnProperty` and by nothing else**, and a crossing that used `set` would hand the caller the bare object instead of the one
+   form. **`D-35`'s measurement is re-run on that arm as a cell (`C-W7`), not assumed.**
+2. **`option 2 (iii)` — ONE DECLARATION SOURCE, TWO GENERATED DECLARATIONS: the WASM arm types `filePath?: never`.** **The hand-authored declaration stays ONE SOURCE** — it is not
+   duplicated and it is not forked by hand — **and the realm-conditional shape is PRODUCED by a build step**, so the type is truthful on both arms and no hand-maintained second
+   surface exists. **WHAT IT BINDS:** the declaration's census cells (`tests/e2e/blind-entry-module.test.mjs`'s `StoreConfig` cell) must read the arm's own generated file, and
+   `D-129` item 6's `typecheck:stage` — which copies exactly two files today — must learn the third. **WHERE THE REALM MARKER LIVES IS THE DESIGN'S** and this row does not spell it.
+3. **`option 3 (b)` — AN INJECTED INSTANCE, AND THE SYNCHRONOUS-GRAPH LAW IS READ AS *"THE ENTRY'S OWN GRAPH"*.** **The host instantiates asynchronously, then hands the instance to
+   the package; the entry's own load-time graph stays synchronous and carries no top-level `await`** (`contract.md:2379`; `D-129` item 4). **THIS IS THE READING `D-154` item 3 of its
+   unsettled reserved for him, and he has given it by taking the arm.** **WHAT IT BINDS:** a new entry shape — a construction that TAKES the instance — which is a declaration of the
+   same class as `storeCreate`'s own and is NOT spelled here; and **no `instantiateStreaming` and no `await __wbg_init()` may stand in the entry's graph**, because either would make
+   the arm this one was chosen over.
+4. **`option 4 (d)` — THE WASM BUILD'S ENTRY SET IS EIGHTEEN: `commitFile` DOES NOT EXIST ON THAT ARM.** **The export set is the set of annotated items**, so `commitFile` is `cfg`'d out with
+   no facade surgery, the writer is unreachable from JS, **and `save_file_delta`'s `file_path.is_empty()` early return keeps it unreachable from Rust too.**
+   **★ AND THAT DISCHARGES THE ONE `#[cfg]` THE PLAN REFUSED TO DRAW.** The plan held that removing the writer's two acts "leaves a body where they were, and whatever that body answers is
+   a declared answer". **With the entry absent it answers nobody**: the arm is dead on both sides of the boundary, so the cfg may leave any faithful arm and **no declaration is owed**.
+   **`O-8`'s sentence — `FileCommitFailed`'s `path` slot naming a path a pathless build does not have — becomes MOOT on this arm and stays owed on Node.**
+   **⟶ THE ITEM'S FIGURE MOVES `18 → 19` ON 2026-11-19 AND ITS GROUND DOES NOT MOVE ONE WORD.** **THE SENTENCE AS IT STOOD IS QUOTED BEFORE IT IS RE-DERIVED: *"THE WASM BUILD'S ENTRY SET IS
+   EIGHTEEN: `commitFile` DOES NOT EXIST ON THAT ARM."*** **THE RULING IT RECORDS IS A SET OF EXCLUSIONS AND IT STILL BINDS** — `commitFile` is `cfg`'d out, the writer is unreachable from both
+   sides, the cfg owes no declared answer, and `O-8`'s path slot stays moot on this arm and owed on Node. **WHAT MOVED IS THE COUNT, BECAUSE THE ARM GAINED AN ENTRY THIS ROW DID NOT PRICE**:
+   `bindings/js/src/wasm.rs`'s `storeRelease`, the RETIREMENT'S FRAME, given by the architect's closure answer (arm `a`) and named as the one thing this row's figure withheld by `D-171` item 5.
+   **SO THE SET IS NINETEEN — *"the Node arm's twenty minus `commitFile`"*, the shape this row's own ground produces — and the one name that is absent BY THIS RULING is still `commitFile` alone**
+   (`docs/L1/wasm-realm.md` §7's `C-W6`, §10 item 3 and §15, `docs/L3/wasm-realm/design.md` §6, and `tests/e2e/wasm-arm.test.mjs`'s `CW-6` re-cut with it).
+5. **AND THE THREE TOGETHER MAKE THE PLAN'S SEQUENCE SAFER, NOT LONGER.** **Step 1 is unchanged and still route-independent** · **step 2 gains two sub-decisions before code (the export
+   FORM: a `#[wasm_bindgen] pub struct` with methods, or free functions each taking a handle; and the glue TARGET: `web`, `bundler` or `no-modules`)** · **step 3 remains the largest step,
+   because the receiver convention changes for `42` call sites in the package** (16 `withAddon()`, 8 `.call(state.receiver)`, 14 `Reflect.apply`) · and **`initSync` becomes the one TOOL
+   fact to verify before the crossing is written**, because the law's reading is now given and only its instrument is unknown.
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **THE REALM MARKER'S HOME** and the generation step's own shape (item 2) — a design question.
+2. **THE INJECTED INSTANCE'S SPELLING** — a new entry name, a factory, or `storeCreate` gaining a position (item 3) — **a declaration, and it changes what `withAddon()` hands out.**
+3. **THE EXPORT FORM AND THE GLUE TARGET** (item 5) — two sub-decisions of the crossing, priced in the plan and not taken here.
+4. **`initSync`'s availability on the pinned version** — a tool fact, not a ruling, and it decides whether item 3's reading needs any instrument at all.
+5. **THE RELEASE CLASS** (`D-154` item 4 of its unsettled) — **still unclaimed, and now the only thing about this realm that is.**
+6. **THE SENTENCE PASSES** `D-154` item 1 names — unchanged by this row, and `bindings/js/README.md`'s shipped byte among them.
+
+**TERMS: the options taken (`3` = (iii) · (b) · (d), beside `wasm-bindgen`) · the declarations hand-maintained (`1`) · the declarations generated (`2`) · the entry sets (`Node 19`,
+`WASM 18`) · the call sites whose convention changes (`42`) · the `#[cfg]` questions discharged (`1`) · the readings given by him (`1` = the sync-graph law's subject) · the code moved
+(`0`) · the units opened (`0`) · the plans amended (`1`).**
+
+---
+
+### `D-156` — THE WASM ARM DETECTS A `Proxy` WITH `structuredClone`, AND ITS CROSSING IS A DEEP CLONE IN BOTH DIRECTIONS
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, answering the `isProxy` question
+`docs/L3/wasm-realm/design.md` §4 left open. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Take the structuredClone on the WASM arm. WASM still should be deep-clone operation because allowing the app to change values managed by
+> the store would circumvent listener/constraint detection"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **`DD-34`'s INSTRUMENT ON THE SECOND REALM IS `structuredClone`, AND ARM (iv) IS TAKEN.** **Per the structured-serialisation algorithm a
+   `Proxy` exotic object is NOT serializable — `DataCloneError` — so `try { structuredClone(value) } catch { refuse }` restores a detector
+   that RUNS NO TRAP BEFORE THE REFUSAL**, which is `DD-34`'s whole property: *"a `Proxy` … is REFUSED … WITH NO TRAP RUN"*. **The refusal
+   stays rank-neutral and class-for-class what the Node arm answers** (`ValueNotAdmitted`, `NonPlainCollection`): **the INSTRUMENT differs and
+   the ANSWER does not.** **The price is the design's own and it is accepted: one clone per value on that arm's crossing.**
+2. **★ AND THE DEEPER HALF OF THE SENTENCE IS A LAW AND NOT AN IMPLEMENTATION NOTE: THE WASM ARM'S CROSSING IS A DEEP CLONE IN BOTH
+   DIRECTIONS.** **HIS GROUND, VERBATIM: *"allowing the app to change values managed by the store would circumvent listener/constraint
+   detection"*** — **so a value crosses BY VALUE and never by reference, and no crossing on that arm may hold a live reference into a
+   caller's object or expose a view into the store's own state.** **`strata/brief.md`'s INVARIANT 2 stated the rule** (*"the crossing is a deep
+   copy in both directions"*); **this row declares its GROUND**, and the ground is the one that could have been got wrong on this arm because
+   `wasm-bindgen` can carry an `externref` — **a JS object the store could hold by handle — and that shape is REFUSED BY THIS ROW.**
+3. **AND IT IS ONE LAW AT THREE OBSERVABLES, EACH A CELL CLASS.** A value the caller hands in is **copied at the crossing**, so mutating the
+   caller's object afterwards changes nothing the store holds · a value the store answers is **a fresh object**, so mutating what `read`
+   returned changes nothing the store holds · and **therefore no app-side mutation can fire a listener or trip a constraint without a `write`**,
+   because the store never shares a mutable object with the app. **`D-71`'s independence and the constraint pass's reach both rest on this.**.
+4. **AND IT MAKES `structuredClone` DO DOUBLE DUTY, WHICH IS WHY IT IS THE RIGHT INSTRUMENT HERE AND NOT MERELY THE AVAILABLE ONE**: it is the
+   `Proxy` detector (item 1) **and** a test that the value is clone-compatible at all — which is exactly the domain `INV-2` declares
+   (*"if it cannot cross IPC it cannot be stored"*). **A value that cannot be cloned is a value the domain already refuses; on this arm the
+   refusal happens at the instrument rather than one layer down.**
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **WHERE THE DETECTOR IS INJECTED** — the five parts that import `node:util` (`frame.mjs` · `class-decision.mjs` · `carrier.mjs` ·
+   `delivery.mjs` · `constraints.mjs`, **25 `types.isProxy` sites**) must take their class-decision instrument from the realm, the Node arm keeping
+   `types.isProxy` and the WASM arm taking the `structuredClone` probe. **The seam's shape is the loader split's (§5 of the design) and this row
+   does not spell it.**
+2. **WHETHER THE PROBE IS TAKEN ONCE PER VALUE OR ONCE PER CLASS DECISION** — one `structuredClone` per value is the design's price; whether the
+   probe's result is carried beside the value to avoid a second clone at the second class test is the implementation's.
+3. **THE COST ON THE HOT PATH, PRICED AND NOT MEASURED**: a clone per value on every crossing read and write. **No measurement exists on this
+   arm, and none may be claimed.**
+4. **THE RELEASE CLASS** (`D-154` item 4 of its unsettled) and **`D-155` item 2 of its unsettled** (the factory's spelling) — unchanged.
+
+**TERMS: the arms taken (`1` = `structuredClone`) · the answers changed (`0` — `ValueNotAdmitted` on both arms) · the crossing's direction (`2` =
+deep clone in and out, DECLARED BY THIS ROW) · the `externref` shapes refused (`1` class) · the sites whose instrument is injected (`25`, in five
+parts) · the cells this row owes (`3` = the two mutation observables and the no-bypass one) · the code moved (`0`) · the units opened (`0`).**
+
+---
+
+### `D-157` — THE SECOND REALM SHIPS AS A SIXTH PLATFORM PACKAGE, AND A HOST THAT HANDS THE FACTORY NOTHING IS REFUSED IN THE PACKAGE'S OWN CLASS FORM
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af` (the tree carries the nine-unit ladder, the second realm and the realm
+sentences, uncommitted). **SOURCE:** the architect, in session, answering `docs/L1/wasm-realm.md` §18's `F-1` and `F-2`.
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "1 - e
+> 2 - d"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **`F-1` — ARM (e): THE SECOND REALM SHIPS AS A SIXTH PACKAGE, BESIDE THE FIVE PLATFORM PACKAGES.** **So a browser/WebAssembly build is
+   published the way a platform variant already is** (`@auspicion/provident-storeroom-js-{linux-x64,linux-arm64,darwin-x64,darwin-arm64,win32-x64}`
+   — five siblings the corpus minted for exactly this), **and NOT as a second entry inside the `provident-storeroom` package.**
+   **★ AND IT DISSOLVES THE TWO CELLS THAT BLOCKED THE ROOT RATHER THAN RE-CUTTING THEM**: `blind-cjs-interop.test.mjs:308`'s *"the root carries
+   exactly one `.mjs`"* and `S-ONE-ADDON`'s `.wasm` scan are **the NODE package's own sentences about its own root**, and a sixth package has
+   its own root, its own `files`, its own `exports` and its own cells. **Neither sentence is amended and neither cell moves.** **The fork's
+   home is therefore the sixth package's root — `index.wasm.mjs` becomes its `index.mjs`** — and the *move* is a `git mv` plus that package's
+   manifest.
+2. **AND IT MAKES THE PUBLISHED SURFACE TWO PACKAGES AND NOT ONE ENTRY'S MAP**, so **`blind-package-surface`'s and the `exports`-reading cells
+   describe the Node package alone**, and the sixth package owes its own surface cells — **which is a unit, not a byte**, and is named below.
+3. **`F-2` — ARM (d): A HOST THAT HANDS THE INJECTED FACTORY NOTHING IS REFUSED IN THE PACKAGE'S OWN CLASS FORM — `PAR-JS-12`'s ONE
+   `TypeError`, its `status` member ABSENT and a string `message` required.** **THE GROUND, AND IT IS A GROUND AND NOT A PREFERENCE:** the state
+   is *"the second realm's factory was called without its bindings"*, **and nothing of the store is in it** — no instance exists, no verb is
+   reached, no op is minted, no journal is touched. **A member of the closed set would name a state the STORE cannot be in**, and the corpus
+   keeps that set for the store's states (its one package-produced member, rank `23` `ListenerBodyRejected`, is a failure of a delivery the
+   store's own pass asked for — which this is not).
+4. **AND IT IS IMPLEMENTED AS TWO STATES TOLD APART BY ONE OF THE FILE'S OWN FACTS, NOT BY A FLAG.** **A LOAD PATH STANDS ONLY ON THE
+   HOST-BORNE ARM** (`installAddonPath`, called once by the Node entry), so in `addon-slot.mjs`'s `withAddon()`: **where a path stands and the
+   walk answered nothing, the artefact is absent and the surface's DECLARED form is the answer** (`FilePathUnreachable` with the attempt list,
+   `PUB-R-3`'s arm, **byte-unmoved**); **where no path stands, no bindings were installed and the class form is thrown.** **`installAddon`'s
+   own refusal — a first position that is not the module — takes the same class form**, and **both leave the slot EMPTY**, so every later call
+   answers the same form rather than a half-installed table.
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **THE SIXTH PACKAGE'S NAME, `files`, `exports`, `types` CONDITION, floor and publish path** — **every one a declaration** (`D-4` hands the
+   publish shape to `delivery`), and **the corpus's platform packages are the template, not the decision**.
+2. **WHETHER THE SIXTH PACKAGE CARRIES THE WASM DECLARATION AS ITS `index.d.ts`** — the generator emits two arms and the WASM arm's PATH has
+   stood `SILENT` (`D-155` item 2); **this row gives it a home and not a filename.**
+3. **THE SIXTH PACKAGE'S OWN CELLS** — a surface cell, a reachability cell, an install-shape cell — **a unit, and not this row's.**
+4. **THE RELEASE CLASS** (`D-154` item 4 of its unsettled) — unchanged, and now covering a sixth package.
+5. **THE GUIDES AND THE SHIPPED `README.md`** (`wasm-realm.md` §2 rows 9 and 10) — a guide pass, waiting on a build that ships, which this row
+   now makes a package rather than a recipe.
+
+**TERMS: the arms taken (`2` = (e) · (d)) · the cells re-cut (`0` — the sixth package dissolves the two that blocked the root) · the packages
+(`5 platform siblings + 1 = 6`) · empty-slot states (`2`, told apart by the load path) · the store statuses minted (`0`) · the class forms
+(`1`, `PAR-JS-12`'s) · the sixth package's declarations owed (`name`, `files`, `exports`, `types`, floor, publish path) · the units opened (`0`).**
+
+---
+
+### `D-158` — THE RELEASE CLASS FOR THE SECOND REALM'S LANDING IS A `MINOR`, AND ITS VERSION IS `1.13.0`
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `48d83f0` (the tree carries the nine units, the second realm, the realm
+sentences, the admission of the sixth artefact, the workflow's `wasm` job and the shipped prose, uncommitted). **SOURCE:** the
+architect, in session, answering `docs/L1/publish-readiness.md` §5's last open item — **the one act no other could precede.
+THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "MINOR — 1.13.0"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE CLASS IS A `MINOR`** — the same class the three precedents `RELEASE-NOTES.md` records took (`1.10`, `1.11`, `1.12`), and the
+   same reading of additive work: **a second claimed realm in its own package, two `cfg` keys beside the two required ones, the save
+   arm's three addon entries, the closed set's twenty-third member, and two receipt accessors.** **Nothing a consumer on `1.12.0` has
+   stops working**: the module's one name, the instance's fifteen members, the one `exports` arm, the floor and the five native
+   artefacts all stand.
+2. **THE VERSION IS `1.13.0` AND IT MOVES TWELVE SITES TOGETHER** — the main manifest's `version`, its **five** exact
+   `optionalDependencies` pins, and the **six** `platforms/*/package.json` versions (five native + the WebAssembly sibling). **The
+   artefact is stamped from the manifest by `bindings/js/build.rs`, so `version()` answers `1.13.0`.**
+3. **AND IT DISCHARGES `D-154` ITEM 4 OF ITS UNSETTLED** (*"THE RELEASE CLASS … unclaimed"*), which stood against four earlier rows
+   and is now the only realm item that had been left open for a reason other than its own owner's work.
+4. **AND IT LICENSES THE SECTION `RELEASE-NOTES.md` NOW CARRIES**, written in that file's own house form: the class and its ruling,
+   the twelve moving sites, the headline sentence, **what a consumer on `1.12.0` meets at each entry point** (seven points, the wasm
+   package's class form among them), **what does not move** (eleven items, `DD-24`'s refusal among them with its price's new ground),
+   the published set's `6 → 7`, and **`AND THIS SECTION DESCRIBES 1.13.0 AND CLAIMS NO TAG`** (`D-57`).
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **THE TAG ITSELF** — `D-57`: the cut-state is not a document's to state, and this row claims none.
+2. **THE RESIDUALS** — `STORE_RETIREMENT`'s missing finalizer on the WASM arm · the `structuredClone` probe's priced-and-unmeasured
+   cost · `NG-PUB-F`'s inert control · and `O-3`, `SS-9` and `O-8` moot on that arm and owed on Node (`docs/L1/publish-readiness.md` §3).
+3. **THE SIXTH PACKAGE'S FIRST PUBLISH** — a `delivery` act with its own first-release questions (a new package's initial `publish`
+   permissions, its provenance, and whether it ships `1.13.0` as its first version).
+
+**TERMS: the class claimed (`1` = MINOR) · the version (`1.13.0`) · the sites it moves (`12`) · the manifests (`7`) · the release
+notes' sections (`+1`) · the code moved by this row (`0`) · the rows it discharges (`1` = `D-154` item 4 of its unsettled).**
+
+---
+
+### `D-159` — A FINDING, NOT A RULING: EVERY WRITE RETAINS MEMORY, THE SECOND REALM OOMs AT ~12,000 WRITES, AND THE ISOLATION IS OWED
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `2e07c1a`. **SOURCE:** **the supervisor's own measurement**, taken while discharging the
+residual `docs/L1/publish-readiness.md` §3 named as *"the `structuredClone` probe's cost — priced and unmeasured"*. **THIS ROW ASKS FOR
+NOTHING AND DECIDES NOTHING**: it records what was measured, what the measurement rules out, and what is still owed.
+
+**STATUS: `ACTIVE` — A FINDING.**
+
+**THE MEASUREMENTS, EACH TAKEN ON THE COMMITTED TREE.**
+
+| # | drive | the reading |
+|---|---|---|
+| 1 | the WASM arm, one store, `journalLength: 64`, one address, `{a: 1}` per write | **8,000 writes OK · 12,000 OK · 16,000 `RuntimeError: unreachable` at `alloc::rust_oom`** |
+| 2 | the Node arm, the same drive | **16,000 writes OK, `rss` 7,344 MB** |
+| 3 | the Node arm, `heapUsed` growth | **~3.7 KB per write** (500 → 8,000 writes, monotone across the range) |
+| 4 | the Node arm, `rss` growth | **quadratic in appearance**: 46 · 62 · 115 · 226 · 444 KB/write at 1k · 2k · 4k · 8k · 16k **— `rss` doubling per doubling of N** |
+| 5 | **the journal cap as the probe**: 4,000 writes at `journalLength` `4` · `64` · `1024` | **124 · 113 · 75 KB/write — THE RATE DOES NOT TRACK THE CAP** |
+| 6 | **address as the probe**: 8,000 writes to ONE address vs to 8,000 DISTINCT addresses | **226 KB/write EITHER WAY** |
+
+**WHAT THE MEASUREMENTS RULE OUT, AND WHY THAT MATTERS.**
+
+1. **IT IS NOT THE JOURNAL'S LENGTH.** `journalLength` bounds the OP COUNT and the rate does not move with it (row 5): a store capped at
+   `4` ops grows as fast as one capped at `1024`. **So the retention is not "the journal holds too many ops".**
+2. **IT IS NOT A PER-ADDRESS HISTORY.** One address and eight thousand addresses grow alike (row 6), so the retention is not a chain hung
+   off a key.
+3. **★ AND `rss` IS NOT THE FIGURE TO QUOTE. `heapUsed` IS.** Row 3's ~3.7 KB/write is the LIVE JS datum; row 4's quadratic `rss` is **V8's
+   heap EXPANSION under a raised `--max-old-space-size`**, which is why the Node arm looks catastrophic and is merely slow: **the true
+   growth is LINEAR in the number of writes, and the second realm simply has a small heap to fill.** The WASM arm's OOM at ~16,000 writes
+   is that same linear growth meeting a fixed ceiling — **it is the FIRST PLACE THE RETENTION IS VISIBLE, not a different defect.**
+
+**SO THE FINDING IS ONE SENTENCE: A STORE THAT HAS TAKEN N WRITES HOLDS ON THE ORDER OF N × (1–4 KB), WITHOUT BOUND, ON BOTH ARMS** — which
+makes a long-lived page or a busy long-lived process a slow leak, and makes the second realm's ceiling a user-visible failure at a low
+write count.
+
+**WHAT IS OWED, AND WHAT THE ISOLATION NEEDED THAT THIS PASS COULD NOT DO.**
+
+1. **THE LAYER IS NOT ISOLATED.** Three drives through the addon's own entry failed on **this harness's wire** (`AddressMalformed`: the address
+   is the package's TAGGED carrier and the receiver must be the object `storeCreate` returned), so **the retention is known to lie between the
+   package's kernel and the store and is not yet attributed to one of them.** **The isolation is one working raw-addon drive away**, and it is
+   the first thing a pass taking this row should build.
+2. **WHETHER IT IS A LEAK OR A DECLARED RETENTION IS UNKNOWN.** The store keeps ops for `rollback` and `restoreMark`, so *some* per-write
+   retention is by design; **whether N × 3.7 KB is what the design intends, or a copy that outlives its use, is the question** — and it is a
+   question about `src/store.rs`'s journal and the kernel's attempt records, not about either realm.
+3. **NO CELL EXISTS, AND ONE SHOULD.** A drive that takes N writes and reads `heapUsed` (not `rss`) with a declared ceiling would make this
+   falsifiable; **it does not exist**, which is why the retention has lived through every green battery this session ran.
+4. **⟶ AND THE `structuredClone` PROBE'S COST IS NOW MEASURED, ON A BENCH SMALL ENOUGH TO SURVIVE THE CEILING** — **and it is the seam
+   itself that made the measurement possible**, because `installClassInstrument` is exported: the same store is driven twice, once with the probe
+   the second head installs and once with a no-op, and the difference is the probe's own cost. **THE METHOD, STATED SO THE FIGURE IS NOT READ AS
+   A BENCHMARK**: the WebAssembly arm under a Node host, `journalLength: 32`, one address, a four-member value, **400 writes per round, 50 warm-up,
+   6 rounds each way ALTERNATING** so ordering cannot favour either, and **medians**. **THE READING:**
+
+   | the drive | the reading |
+   |---|---|
+   | the clone probe installed | **220,179 ns/write** |
+   | a no-op probe installed | **201,517 ns/write** |
+   | **the probe's own cost** | **18,662 ns/write — 9.3% of a write** |
+   | `structuredClone` of that value, standalone | **898 ns** |
+
+   **SO THE PROBE COSTS UNDER A TENTH OF A WRITE on that arm**, which is the figure `docs/L1/wasm-realm.md` §18's `NOT DRIVEN` was waiting
+   for. **AND THE GAP BETWEEN THE TWO NUMBERS IS ITSELF A FINDING THE BENCH DID NOT SET OUT TO MAKE**: a standalone clone of the same value is
+   `898 ns` and the probe's measured share is `18,662 ns` — **so the probe is entered on the order of twenty times per write**, or the
+   instrument is read at sites this pass did not enumerate. **That is not a defect claimed here; it is a question the next pass should answer
+   at the call sites** (`isProxyOf`'s readers, five parts, 25 static sites — and a write's crossing walks a value tree, so a per-NODE read is
+   the likely shape). **AND THE 220 µs PER WRITE IS THE OTHER HALF OF THIS ROW**: a write on that arm is two hundred microseconds, which is far
+   more than a value's copy and is the same heaviness the retention above describes.
+
+**TERMS: the drives (`6`) · the arms measured (`2`) · the layers isolated (`0`) · the cells added (`0`) · the figures that may be quoted
+(`1` = the linear ~3.7 KB/write floor, as a FLOOR and not a design) · the rulings this row makes (`0`).**
+
+---
+
+### `D-160` — COMPACTION DROPS HISTORY: THE JOURNAL IS BOUNDED BY ITS CAP, AND THE MARK IS NOT THE MECHANISM
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `12e2d1d` (the tree carries the RCA `docs/L1/journal-retention-rca.md`). **SOURCE:** the
+architect, in session, answering that RCA's §6. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Compaction dropping history is the point"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **COMPACTION IS A DROP AND NOT A MARK.** The journal's cap bounds **the history the store KEEPS**, not the number of entries whose flag is
+   set: **an entry the compaction reaches is REMOVED, and its op ids are gone.** **So the current implementation is WRONG AND NOT MERELY
+   UNBOUNDED**: `src/store.rs`'s loop marks `op.compacted = true` and pushes forever, and **the RCA measured the consequence — a journal whose
+   total size is QUADRATIC in the write count** (`docs/L1/journal-retention-rca.md` §2: 47 · 125 · 472 · 1,850 · 7,277 MB at 1k · 2k · 4k · 8k ·
+   16k writes; the second realm OOMs between 12,000 and 16,000).
+2. **AND THE BOUND IS `journal_length` PLUS THE FLOOR.** What survives is **the base state** — the register's own snapshot at the moment of the
+   last compression, which the code already carries and already calls *"the walk's floor"* (`src/store.rs:2331`) — **plus at most
+   `journal_length` uncompacted ops.** **Memory becomes `O(store + journal_length)`, which is what the cap always said it was.**
+3. **★ AND THE TWO REFUSALS STAY DISTINGUISHABLE WITHOUT THE DROPPED IDS, WHICH IS THE ONE THING THAT MADE THE MARK LOOK NECESSARY.** A
+   rollback names an op; **a dropped op must answer `RollbackCompacted` and an id that never existed must answer `JournalOpUnknown`** — and once
+   the ids are dropped the two are indistinguishable **by id alone**. **THE DISCRIMINATOR IS A WATERMARK AND NOT A LIST: op ids are the store's
+   own sequence, so "every op at or below the floor's own seq was dropped" is ONE NUMBER**, and the two refusals are decided by comparing the
+   named id's seq with it. **`compacted: Vec<String>`'s replacement is that watermark; the ids need not be retained to keep a refusal honest.**
+4. **AND IT LICENSES THE REMOVAL OF THE PER-ENTRY CLONE.** `src/store.rs:2653`–`:2659` clones one string per already-compacted entry **on every
+   write**; that clone has no subject once the entries are dropped, **and the quadratic with it.**
+
+**WHAT IT DOES NOT SETTLE, AND EACH IS THE IMPLEMENTATION'S.**
+
+1. **THE WATERMARK'S HOME** — a field on the store, an entry on the floor, or the base state's own record; **and whether the floor is an `Entry`
+   or a snapshot beside one.**
+2. **WHAT `restore_compaction` BECOMES** — it exists to re-learn the marks from a stored list; **with a drop there is nothing to re-learn**, and
+   whether it disappears or becomes the watermark's reader is the implementation's.
+3. **WHAT THE IMAGE CARRIES** — the file tier's committed image is composed from the register and the journal; **a drop changes what a boot over an
+   older image can refuse**, and whether the image records the watermark is the implementation's.
+4. **THE `compacted` MEMBER THE JS RECEIPT CARRIES** (`WriteRecord.compacted`) — a fresh write answers `false` today; **whether the member
+   survives the drop, and what it means once nothing is marked**, is a declaration this row does not make.
+5. **THE OWED CELL** — a drive that takes N writes and reads **`heapUsed` against a declared ceiling** (§6's last paragraph), plus a cell for
+   item 3's two refusals at a dropped id and an unknown one. **Neither exists.**
+
+**TERMS: the mechanism (`1` = drop) · the bound (`journal_length` + the floor) · the discriminator (`1` = a seq watermark) · the per-entry
+clones removed (`1` per write) · the memory's shape (`O(store + journal_length)`) · the code moved by this row (`0`) · the units it opens
+(`1`).**
+
+---
+
+### `D-161` — A FINDING: THE SAME UNBOUNDED-MAP DEFECT EXISTS ON THE PACKAGE'S SIDE, IN `kernel.closed`
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `1685d96` (the tree carries `D-160`'s cure). **SOURCE:** the architect's clarification —
+*"Literally, what data is being stored to reach a ~4.7KB write volume?"* — answered by measurement. **A FINDING: it decides nothing.**
+
+**STATUS: `ACTIVE` — A FINDING.**
+
+1. **THE ANSWER, LITERALLY: A KERNEL ATTEMPT REPORT, ONE PER WRITE, IN `kernel.closed`.** `kernel-terminal.mjs:128`/`:158`/`:481` and
+   `kernel-registration.mjs:1146` write it; **four readers read it by id; NOTHING DELETES FROM IT** (no `delete`, no prune, no cap in
+   `src/entry/`). Measured with the collector pinned: **~700–745 B retained per `write`**, `~27 B` per `read`, `~4 B` for a call that reaches
+   no store.
+2. **AND MOST OF THE CELL'S 4.7 KB IS NOT RETENTION AT ALL.** `heapUsed` counts live PLUS uncollected: the same drive reads **~10 KB/write
+   unpinned** and **~0.8 KB/write with `gc()` on both sides.** **`JC-MEMORY`'s figure is a mix, and the pinned figure is the one that describes
+   the store.**
+3. **SO `D-160` FIXED ONE HALF AND THIS IS THE OTHER.** The store's journal now drops (`D-160` item 1); **the package's `closed` map still
+   retains every attempt's report for the life of the store's kernel** — the same shape one layer up, and the reason `JC-MEMORY` does not read
+   zero.
+4. **OWED**: a ruling or a unit on the map's bound (three cures priced in `docs/L1/journal-retention-rca.md` §8.3, none chosen), and the
+   cell's instrument pinned so it bounds retention rather than allocation.
+
+---
+
+### `D-162` — `D-161` FIXED: A CLOSED ATTEMPT'S REPORT IS KEPT FOR A WINDOW OF `1024`, AND THE MAP'S OWN ORDER IS THE FIFO
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `208936f`. **SOURCE:** the architect — *"Proceed with fix for package-side defect"*. **STATUS: `ACTIVE`.**
+
+1. **THE BOUND**: `CLOSED_ATTEMPT_WINDOW = 1024`; `sealClosedReport` is the **one** writer, and all four seal points go through it
+   (`kernel-terminal.mjs:128`/`:158`/`:481`, `kernel-registration.mjs:1146`).
+2. **THE FIFO IS THE `Map`'S INSERTION ORDER** — no second structure, **and no array**: the first mechanism used `Array.prototype.push`,
+   which writes its index through `[[Set]]`, and **a getter-only accessor on `Array.prototype[1]` made a lawful `write` throw** from
+   inside the seal (the cell at `crossing · contract.md §2.1 item (1c)` caught it). **A `Map` consults no prototype, so the seal is immune
+   to that class of host mutation by construction.**
+3. **MEASURED, PINNED**: retention falls **~700–745 B/write → 0.04–0.19 B/write**, and **flat** (0.75 MB at both 4,000 and 16,000 writes
+   against 3.26 → 12.66 MB before).
+4. **WHAT A PRUNED ID MEETS**: `KC-2` — **the same refusal an id that never named an attempt already meets**, so the window takes nothing a
+   caller can distinguish but the attempt's age, and `log()` still answers a held closed attempt with the empty list its handoff leaves.
+5. **THE DECLARATION IT IMPLIES, NAMED SO IT CAN BE OVERRULED**: a closed attempt's record is retained for **the most recent `1024` attempts**
+   and not for the store's life — the store's own discipline one layer up (`D-160` item 3). **A `WeakMap` keyed by the attempt is the
+   alternative that needs no window at all** (`docs/L1/journal-retention-rca.md` §8.3).
+6. **CELLS**: `tests/e2e/kernel-attempt-window.test.mjs` — `KAW-1` (the window's size, the dropped oldest meeting `KC-2`, the held newest
+   answering `[]`, and the pruned and never-minted refusals being equal) and `KAW-2` (the per-write ceiling, with the pinned figure in the
+   message and the reason the cell reads unpinned stated at the byte).
+
+---
+
+### `D-163` — `E2E-C-9` RE-DERIVED: TWO RULINGS FALSIFIED IT, NOT ONE, AND THREE LIMBS ARE RETIRED WITH THEIR SUBJECTS
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `1f54894`. **SOURCE:** the architect — *"Proceed on the E2E fix"*. **STATUS: `ACTIVE`.**
+
+1. **THE ROW IS GREEN AND ITS PROVENANCE IS WEAKER, SAID AT ITS OWN BYTE.** `node tests/e2e/blind-constraints-v2.mjs` reads **`rows=17
+   cells=125 PASS=125 FAIL=0 NONRUN=0`**, `EXIT 0`, and every other row stands. **BUT A BLIND ROW REWRITTEN BY THE PASS THAT BROKE IT IS
+   WEAKER EVIDENCE THAN A FRESH ONE**: this row's prediction has now been falsified twice (`D-108`/`D-118`, then `D-160`), and a green here
+   is evidence the tree is **consistent with `D-160`**, never that a blind author could have predicted it.
+2. **★ THE DIAGNOSIS THIS ROW WAS SENT TO FIX WAS HALF WRONG, AND THE MEASUREMENT SAYS SO.** The failure was attributed to the fixture's own
+   `floor.rollback` inside a constraint body. **Measured, that call RETURNED** (the repair's op is retained at a window of 2); **the `x0`
+   throw was `FileImageRefused` from the CORRUPT WINDOW's fresh boot**, which stands *before* the first cell — hence nine `NONRUN` and not
+   one. **So the row was falsified by TWO rulings**: `D-160` item 1 (**compaction drops**, so the arm the row drives — a candidate set holding
+   a `compacted` entry — has no subject), and **`D-126` item 2** (*"a corrupt image refuses the construction"*), which retires `D-118` item
+   1's equality (corrupt == zero-length) and its *"the save writes a readable image over the corrupt bytes"*.
+3. **AND HAD ONLY THE `x0` BEEN FIXED, TWO CELLS WOULD HAVE GONE GREEN ASSERTING A DELETED ARM** — measured: `status=KC-3`, the plain walk,
+   no regeneration anywhere. **That is the vacuous-pass trap and the re-derivation refused it.**
+4. **THE THREE RETIREMENTS, EACH WITH ITS RULING**: (i) **`D-108`'s regeneration over a RETAINED compacted entry and the `RollbackResult` it
+   returned** — withdrawn with their subject by `D-160` items 1 and 5; (ii) **`D-118` item 1's equality and its overwrite claim** — retired by
+   `D-126` item 2; (iii) **the old title's clause *"`RollbackCompacted` has no producer left"*** — retired by `D-160` item 3, **quoted in the
+   row's head as the falsified sentence rather than deleted.**
+5. **THE FILE'S REPORTER CANNOT EXPRESS A RETIREMENT** (`D-21`'s four tags, and both non-executing tags turn the exit red), **so every
+   retirement is recorded at its own byte and the cell EXECUTES an assertion of the tree's answer** — never `markUnrun`, never `nd`.
+6. **WHAT THE ROW NOW MEASURES**: the compaction arm's **one surviving producer** — a reversal naming an op the window dropped is refused
+   `RollbackCompacted`, the step answers `failed:true` with `undoneOps:[]` and the attempt's state is the floor's own `KC-8`; a never-minted id
+   still answers `JournalOpUnknown`; **and where the window took an op the composition owes, the landed edits STAND** (measured, not declared).
+
+**AND THE SPEC PROSE THIS LEAVES OWED, NAMED AND NOT MOVED**: `docs/specs/storeroom-native/contract.md` §6.4 items 1–2 and §8.1 #11's
+trigger still read the **mark**, and `docs/specs/storeroom-constraints/contract.md` §2.6 item 6's `S-ROLLBACK-FLOOR` predicate is worded on
+*"a compacted entry in the candidate set"* — **both are re-derivable to the `journal_floor` watermark and neither is this row's**; and
+`kernel-terminal.mjs`'s doc comments still describe the deleted regeneration as current (the code is right; the prose is superseded).
+
+---
+
+### `D-164` — CORRECTION: `D-108` WAS NEVER ABOUT RETAINING COMPACTED ENTRIES — THE DROPPED ARM REGENERATES FROM THE FILE, OR SIGNALS THE CLIENT WHEN NO FILE CAN BE RETRIEVED
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `752e49e`. **SOURCE:** the architect, in session, correcting this supervisor's reading of `D-108`.
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "108 was never supposed to retain compacted entries, getting rid of entries is the point of the compaction. The resolution if an attempted
+> write has to be rolled back but the required op has been compacted is to regenerate the store from the file, or otherwise signal the client
+> to recover if no file can be retrieved. This was never ambiguous, 108 is a misread"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT CORRECTS.**
+
+1. **`D-108` ITEM 1 WAS NEVER CONTINGENT ON AN ENTRY BEING RETAINED.** *"The compaction arm does not strand the state — it regenerates it"* is
+   the arm's answer **whenever the required op is gone**, whether the entry is marked or DROPPED. **`D-160`'s drop is the premise `D-108`
+   already assumed**, and the supervisor's reading — that `D-160` withdrew `D-108`'s subject — **was wrong.**
+2. **THE RESOLUTION IS TWO-WAY, AND `RollbackCompacted` IS THE SECOND ARM AND NOT THE FIRST.** Where a reversal needs an op the compaction
+   took: **`(a)` REGENERATE THE STORE FROM THE FILE**, and **`(b)` otherwise SIGNAL THE CLIENT TO RECOVER, when no file can be retrieved.**
+   **So the tree's present behaviour — refusing on every dropped arm — asserts the SIGNAL where the REGENERATION belongs**, and the
+   supervisor's `E2E-C-9` re-derivation (`D-163`) encoded that misread.
+3. **`D-108` ITEM 2 STANDS UNCONDITIONAL AND IS NOT AFFECTED BY THE WINDOW'S WIDTH.** *"No landed edit survives a refusal, on any arm"* —
+   **and the dropped arm does not refuse**: it regenerates. **The conditionality the supervisor raised as an open question was a consequence
+   of its own misread and is WITHDRAWN as a question.**
+4. **AND `D-160` ITEM 3's WATERMARK KEEPS ITS DUTY, REDUCED TO WHAT IT ALWAYS WAS**: it separates **an op that was dropped from an op that
+   never existed** — the first regenerates or signals, the second is `JournalOpUnknown`. **It was never the discriminator between two
+   refusals; it is the discriminator between a recoverable history and a client error.**
+
+**WHAT IT ORDERS.**
+
+1. **`Store::regenerate` RETURNS**, restored from its pre-`D-160` bytes (`git show 1685d96^:src/store.rs`): the file image where one reads,
+   the creation state (`born`) where none does — `D-118` item 1's own reading, *"in the corrupt file case, then it restores from the store
+   creation image"* — and then the journal's RETAINED entries replayed outside the scope. **The `compacted` skip in that replay has no subject
+   and goes.**
+2. **THE ARM IS TWO-WAY AT ITS OWN BYTE**: with **no retrievable file** — the path-less arm (`file_path == ""`, the `saveCall` store whose
+   durable ground truth lives with the caller) — the arm **answers `RollbackCompacted`**, which is the client's signal to recover from its own
+   image. **With a file that can be retrieved** (a readable image, or the creation state where none stands) the arm **REGENERATES AND
+   RETURNS**, and no refusal is involved.
+3. **THE CELLS MOVE WITH IT**: the `E2E-C-9` row is re-derived a third time — to the regeneration as the row's main answer and the signal as
+   the path-less arm's — **and the supervisor's own provenance note stands: a blind row rewritten by the pass that broke it is weaker evidence,
+   and this one has now been rewritten twice on a misread.**
+
+---
+
+### `D-165` — THE NO-FILE ARM'S GROUND, SHARPENED: `saveCall` IS A WRITE-ONLY EXTERNAL PROXY, SO THE PROPERTY IS "NO READ PATH"
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `53b4a1a`. **SOURCE:** the architect, in session, clarifying `D-164`'s second arm.
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "A case where the store cannot recover from file is in the saveCall branch, where it is saving by way of an external proxy that does
+> not inherently provide a means of reading the file back"
+
+**STATUS: `ACTIVE`.**
+
+1. **THE PROPERTY IS *"NO READ PATH"* AND NOT *"NO PATH"*.** A `saveCall` store hands its image to the caller's function, **and the caller
+   decides where a copy goes and need not be capable of handing one back** — **the channel is WRITE-ONLY BY CONSTRUCTION**, and the only
+   way into such a store is `initialImage` at its construction. **So it cannot retrieve its own durable ground truth even in principle,**
+   and `RollbackCompacted` is the only honest answer: the client recovers from the copy it kept.
+2. **AND IT IS WHY THE CODE'S TEST IS `file_path.is_empty()` AND IS THE WHOLE TEST**: `filePath` and `saveCall` are mutually exclusive
+   (`D-155`), so an empty path names **exactly** the shapes with no read path — the `saveCall` store and the `mem` store. **The
+   implementation this row clarifies is correct; what it lacked was this ground, and it is now stated at the line** (`src/store.rs`'s
+   lookup-miss arm, clause (a), quoting the architect).
+3. **AND IT NAMES WHAT THE TOKEN MEANS**: a `RollbackCompacted` answer is not *"the store cannot remember"* — it is *"this store was never
+   able to read its history back, so YOU must recover"*, which is the same division `D-144` item 5 draws for a save a store cannot confirm.
+
+---
+
+### `D-166` — A FINDING FROM THE ARM'S OWN CELLS: `structuredClone` REFUSES EVERY `saveCall` STORE, SO THE ARM CANNOT CONSTRUCT THE ONLY STORE IT EXISTS FOR
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `ab53ea9`. **SOURCE:** **the supervisor's own cells** — `tests/e2e/wasm-arm.test.mjs`'s
+`C-W1`, written to close the gap `docs/L1/publish-readiness.md` §10.2 item 6 named. **A FINDING: it decides nothing.**
+
+**STATUS: `ACTIVE` — A FINDING, AND IT BLOCKS `C-W1`/`C-W5`.**
+
+1. **THE MEASUREMENT, WHICH IS THE WHOLE OF IT**: `structuredClone` throws for **a `Proxy` AND for any object carrying a function** — measured,
+   side by side: `structuredClone({ saveCall: () => {} })` and `structuredClone(new Proxy({}, {}))` fail identically (`DataCloneError`), and so
+   does `structuredClone([() => {}])`. **So the instrument `D-156` chose cannot tell the two apart.**
+2. **AND `cfg` CARRIES FUNCTIONS BY DEFINITION**: `saveCall` is a function (`D-146` item 4), and `cfg.listeners[]`'s `listener` was one until
+   `D-26` stripped it. **So on the WASM arm every `saveCall` construction is refused as if `cfg` were a Proxy**:
+   `storeCreate(bindings, { journalLength, listeners: [], saveCall })` answers **`AddressMalformed`** — *"'cfg' is not a legal address segment in
+   '', … the construction's cfg is a Proxy"*. **THE ARM CANNOT CONSTRUCT THE ONE STORE IT EXISTS FOR**: its whole purpose is `saveCall` durability
+   with no `filePath` (`D-154` item 4), and the instrument refuses that configuration at the gate.
+3. **THE TWO QUESTIONS ARE DIFFERENT AND THE INSTRUMENT CONFLATES THEM**: *"is this a `Proxy`?"* (asked of `cfg`, of values, of prototype links)
+   and *"is this cloneable?"* (asked of values, by `INV-2`). **For VALUES the conflation is harmless and even correct** — an uncloneable value is
+   refused by the domain anyway, and the refusal runs no trap. **For CARRIERS it is fatal**, because the API's own shape is function-bearing.
+4. **THE FOUR WAYS OUT, PRICED AND NONE CHOSEN.**
+   **(a) SPLIT THE SEAM INTO TWO PREDICATES** — `isProxyOf` for carriers and `isProxyOfValue` (the clone probe) for values — with the carrier's
+   answer on this arm **declared as unable to detect a `Proxy`**. Cost: the `DD-34` property is lost **at the carrier gates only**, and the design's
+   §4 arm (i) is then literally true for them; the value crossing keeps the property. One seam, two questions, one declaration.
+   **(b) PROJECT AROUND FUNCTIONS BEFORE THE PROBE** — strip function members and clone the projection. Cost: building the projection **reads
+   members of the object being tested**, which is the exact trap hazard the refusal exists to prevent; a hostile handler could then make itself
+   look cloneable.
+   **(c) DETECT BY A `Proxy`-ONLY SIGNAL** — there is none in the platform: no ECMAScript operation distinguishes a `Proxy` from its target
+   (`design.md` §4's own finding). Refused as an option by the platform.
+   **(d) DECLARE THE ARM'S CARRIER GATES UNDETECTED AND KEEP THE VALUE PROBE** — which is (a) with the seam left as one predicate and the
+   declaration made in prose. **It is the cheapest and it is what the design already prices; its cost is that `frame.mjs`'s `cfg`/listener gates
+   would run a lying handler on that arm.**
+5. **WHAT THIS ROW DOES NOT DO**: it does not choose. **`D-156`'s instrument is the architect's ruling and this row is evidence against its
+   reach, not a replacement for it.** **`C-W1` and `C-W5` — the arm's construction, its `file`-tier write, its `saveCall`, its `initialImage`
+   seed, and the coherence — cannot be written honestly until the seam is split**, because a cell asserting the refusal would encode a defect as
+   the design and a cell asserting the construction is red.
+6. **AND THE CELLS THAT DO NOT NEED IT ARE LANDED AND GREEN**: `C-W2` (the `cfg` domain: `filePath` refused, and the empty seed with it), `C-W4`
+   (the entry's graph synchronous, no `node:` specifier anywhere in it), `C-W6` (the eighteen entries, `commitFile` absent, `delete` spelled
+   `_delete` — **⟶ NINETEEN FROM 2026-11-19, `CW-6`'s own count re-cut with the arm's retirement: `D-155` item 4's figure one entry wider, `storeRelease`
+   the nineteenth and `commitFile` still the one that is absent by ruling**) and `D-156`'s own two (the deep clone both ways and a `Proxy` refused with
+   **all eight trap counters at zero**).
+
+---
+
+### `D-167` — THE PROBE IS FOR DATA: THE SEAM HOLDS TWO PREDICATES, AND THE ARM CONSTRUCTS THE STORE IT EXISTS FOR
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `b7c3752`. **SOURCE:** the architect, answering `D-166`. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "The clone requirement is for data that has to enter the Rust store. constraints, listeners, and the saveCall do not"
+
+**STATUS: `ACTIVE`.**
+
+1. **THE SEAM HOLDS TWO PREDICATES.** `isProxyOf` is the **DATA** question — the `structuredClone` probe on the WASM arm, `types.isProxy` on
+   Node — and `isProxyOfCarrier` is the **CARRIER** question, which on Node is also `types.isProxy` (nothing on that arm moves) and on the WASM
+   arm answers **`false`**: **a `Proxy` at a carrier gate is NOT DETECTED on that arm, and that is DECLARED at the predicate's own byte** with
+   the platform's ground (the only distinguishing signal is `structuredClone`, and it cannot tell a `Proxy` from a function-carrying carrier,
+   while the carriers the API requires are function-bearing by definition).
+2. **THE CARRIER GATES MOVED, THE DATA SITES DID NOT** — `cfg` itself through a carrier-shaped sibling (`isPlainObjectCarrier`), `cfg.listeners`,
+   `cfg.constraints`, the two batch walks, and the write's commit record (which carries `write`, a function, by construction).
+3. **AND THE RULING'S OWN SENTENCE CLOSES THE ELEMENT SITES TOO** — *"constraints, listeners … do not"* is read at the ELEMENT and not only at
+   the ARRAY: the listeners element, the constraints element and `isLawfulListenerElement` are carriers, because an element carries the body.
+   **WITH THAT, THE ARM CONSTRUCTS A LISTENERS-BEARING STORE** — driven: `write(['t'],'mem',1)` answers `triggered:
+   [{"handle":"h","address":["t"]}]`, **a registered body FIRES once**, and **an async body settles once**.
+4. **THE ARM IS WHOLE.** The `saveCall` store constructs and saves (`D-166`'s blocker gone), the seeded store reads back, a listeners-bearing store
+   delivers, and the value crossing is untouched: **a `Proxy` at a VALUE is still `ValueRefusedAtBoundary` with all eight trap counters at zero.**
+5. **WHAT IT COSTS, SAID PLAINLY**: on the WASM arm a `Proxy` handed as `cfg` — or as a listeners or constraints batch — is **read** rather than
+   refused-for-being-a-Proxy: its traps run for the reads a construction must make anyway, and a target missing a key is refused for the honest
+   reason. **The loss is bounded by the API's own surface and no wider.**
+
+---
+
+### `D-168` — ALWAYS JUDGE THE CURRENT STATE: THE JUDGEMENT'S SUBJECT IS THE STATE THE STORE STANDS IN, AT THE INSTANT IT RUNS
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `37599fe`. **SOURCE:** the architect, answering the `D-54` question this supervisor put.
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Always judge the current state"
+
+**STATUS: `ACTIVE`.**
+
+1. **THE JUDGEMENT IS OF THE CURRENT STATE — ALWAYS, AND ON EVERY HOST.** Not the state a repair's reversal left, not the state before a
+   rollback, not a snapshot a caller can point at: **the subject is what the store answers at the instant the judgement runs.**
+2. **AND THE TREE ALREADY DOES IT, BY CONSTRUCTION.** `kernel-terminal.mjs`'s `baseState(store, address)` is
+   `{ present: true, value: store.read(address) }` — **the terminal judgement's base is a READ OFF THE STORE at the moment it is taken**, so the
+   `context.value` a pair is handed **is** the current state and cannot be another. **`D-54`'s symptom (*"zero judge invocations, the refused `5`
+   still there"*) is therefore not a statement about WHICH state should be judged but about whether a judgement ran at all.**
+3. **SO THE THREE `DW` HOSTS ARE RIGHT AND THEIR STATE PREDICATE IS WRONG.** `askedAtSeed(asks)` — *"the pair was handed the state the reversal
+   left"* — **asserts a subject the ruling does not require**: the pair is handed the CURRENT state, and on a repair host that state is what the
+   pass's own rollback left. **The cells are re-cut to the law**: the pair was asked, at the current state (its `context.value` equal to the
+   store's read at that instant), and the pass's log carries the three entries the declared kinds produce.
+4. **AND WHAT `D-54` STILL OWES IS NARROWED TO ITS FIRST HALF**: *"do not let a pass consume a restart request it did not raise."* **The
+   `REPAIR_LEGS_LAST` single slot is that half's mechanism** (`state.mjs:434`/`:882`/`:933` — a flat slot beside a correctly nested
+   `REPAIR_LEGS_OPEN` stack), and **a request lost there means a judgement never runs — which `D-168` does not excuse**: it says what the
+   subject is when a judgement happens, not that a judgement may be skipped. **The host-3 (reentrant) carriage stays owed.**
+
+---
+
+### `D-169` — THE LEG SLOT IS CLEARED WHEN A BRACKET OPENS: THE STRUCTURE ENFORCES THE ORDERING THE CONTRACT ASSUMED
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `ec61576`. **SOURCE:** the supervisor, on `D-54`'s first half (*"do not let a pass consume a restart
+request it did not raise"*) and the `D-168` reading that narrowed it. **STATUS: `ACTIVE`.**
+
+1. **THE HAZARD, AT ITS MECHANISM**: `REPAIR_LEGS_LAST` (`state.mjs:434`) is a **flat slot** beside a correctly nested `REPAIR_LEGS_OPEN`
+   stack; every bracket's `finally` **writes** it and only a **read** clears it. **So an invocation that closed and was never read left its list
+   standing for the next reader — which is another invocation's.** The slot's own doc claims correctness from *"its one reader takes it
+   synchronously after its own invocation returned and before any other code runs"*; **that is a property of the CALL ORDER and not of the
+   structure**, while `D-54`'s ask is structural.
+2. **THE CHANGE, ONE LINE AT THE OPEN**: `REPAIR_LEGS_LAST = [];` in the bracket's opening, before the run. **The read's own clear stays** (it is
+   what keeps a second read from answering twice), and the ordering rule the doc states is unmoved — **what moves is that a bracket opening in
+   between now leaves nothing for a stale read to take.**
+3. **⟶ AND THE DRIVE THAT WOULD DISTINGUISH IT NOW EXISTS — `tests/e2e/leg-carriage.test.mjs`, WRITTEN AFTER THIS ROW, AND IT WAS RUN BOTH
+   WAYS.** **`LC-1` is the case this row named**: a bracketed invocation records a leg and is **never read**, a second bracket opens, and a read
+   **taken inside it** must answer nothing — **and it is measured to do so with the fix and to answer the EARLIER invocation's legs without it**
+   (the fix reverted for one run: `LC-1` FAIL, `actual` a one-element list; fix restored: `3/3` green). **`LC-2`** holds the read's own clear
+   (a second read answers nothing) and **`LC-3`** the nested bracket's ownership (the inner act's leg is the inner invocation's, the outer's the
+   outer's) — **so the fix is narrowed and the two properties beside it are unmoved, each by its own cell.** **NOTHING IN THAT FILE REACHES THE
+   KERNEL**: it drives the package's two `Symbol.for` channels and its exported `appendRepairLeg`, because **a kernel drive cannot place its read
+   BETWEEN an open and a close, which is the whole of the subject.**
+4. **WHAT REMAINS OF `D-54`'S FIRST HALF, NAMED AND NOT GUESSED**: **`RESTART_DRAIN`** (`state.mjs:898`, `runAttempt`'s consumer, `drainRestart`
+   in `kernel-attempt.mjs:318`) is the *request's* carriage, and **whether an inner `runAttempt`'s drain can strand an outer pass's request is
+   NOT established** — it needs a targeted drive of the reentrant host (`H7`) that reads the outer report beside the inner's. **This row does
+   not touch it.**
+
+---
+
+### `D-170` — `D-54`'S SECOND HALF IS DISCHARGED BY THE WINDOW STAMP, AND THE STRANDED-RAISE PATH HAS NO REACHABLE INPUT
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `4f033cc`. **SOURCE:** the supervisor, closing the question it had listed as owed. **STATUS: `ACTIVE`.**
+
+1. **THE DRAIN CONSUMES ONLY ITS OWN WINDOW, BY A PREDICATE AND NOT BY ORDERING.** A restart request is `{ watched, reversalId,
+   window, asked }`; a raise is appended to `record.raises` **stamped with its raising window**; and the drain's consume is
+   `consumeRaisedRaises(record, window)` — **`if (raise.window !== window) { keep; continue; }`** (`constraints.mjs:2599`–`:2614`), with the
+   request's own take carrying the same predicate (`:2322`–`:2325`, *"A REQUEST BELONGS TO THE ACT THAT RAISED IT"*). **So
+   `D-54`'s first half — *"do not let a pass consume a restart request it did not raise"* — is satisfied for the drain, and a nested
+   `store.write` inside a repair body does reach `runAttempt` (`:849`), so the case is reachable and kept apart.**
+2. **AND THE SECOND HALF IS IMPLEMENTED**: `runAttempt` calls `drainRestart(store, report)` after its own pass, inside the commit scope;
+   the consumer judges the reversal (`judgeReversal(...)`, inside that commit) and a refusal is carried into the report
+   (`carryRestartRefusal`), with the rounds bounded by `RESTART_LIMIT`. **That IS *"carry a request raised inside a pass through to that
+   pass's terminal judgement."***
+3. **AND THE RESIDUAL I NAMED — A RAISE STRANDED BY A WINDOW WITH NO CONSUMER — HAS NO REACHABLE INPUT, MEASURED.**
+   `settleStandingRaises` (`:2571`) has **one** call site: an **at-rest reversal** (`:2562`), so a stranded raise *would* live until such a
+   call. **A DRIVE WAS WRITTEN TO STRAND ONE AND IT DOES NOT**: 100 · 400 · 1,000 rounds of *register a pair, let its body reverse at the
+   registration instant, remove the pair* — the exact declared window with no consumer — retain **0.25 · 0.17 · 0.17 MB** with the collector
+   pinned, **flat**. **AND THE REASON IS THE MECHANISM ITSELF**: a raise is created **inside a pass** (`raiseReversal` runs from a body the
+   pass is asking), and **every pass drains**, so a raise cannot be born into a window that has no consumer. **The registration's own
+   evaluation raises nothing because it runs no pass** — which is the same fact that makes `H4` a declared window rather than a defect.
+4. **SO `D-54` IS CLOSED: (i) the legs — fixed in `D-169` and driven both ways by `tests/e2e/leg-carriage.test.mjs`; (ii) the drain —
+   satisfied by the window stamp, read at its bytes, and its one residual shown unreachable by measurement.** **The two prunes that keep
+   the list bounded are the drain's own and `settleStandingRaises`' ended-window settle, and the `settled` ring is bounded by
+   `trimSettled`** — there is no third place a raise can live.
+
+---
+
+### `D-171` — THE RETIREMENT PATH EXISTED ONLY IN A DOCBLOCK: A STORE CONSTRUCTED AND DROPPED WAS NEVER RELEASED, AND IT NOW IS
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `9d0e1f5`. **SOURCE:** the supervisor, closing a residual of `docs/L1/publish-readiness.md` §3; **the
+finding is the same family as `D-159`/`D-160`/`D-162`** \u2014 a table that grows per act. **STATUS: `ACTIVE`.**
+
+1. **`facade.rs:306`\u2013`:311` DOCUMENTED A `storeRelease` ENTRY THAT DID NOT EXIST** \u2014 *"the store is freed by the package's own GC finalizer \u2026 which
+   reaches this addon through the standing `storeRelease` entry below; that entry DROPS the instance AND removes ITS OWN index from this table, IN ONE
+   ACT"* \u2014 and **`grep -rn storeRelease bindings/js/src/` found one doc comment and no definition.** **NOR DID THE PACKAGE'S FINALIZER REACH THE ADDON**:
+   `instance.mjs`'s `STORE_RETIREMENT.register(instance, () => { INSTANCES.delete(instance); })` deleted from the **JS** `WeakMap` and nothing else.
+   **So every constructed store stayed in the addon's `Vec<crossing::Instance>` for the process's life \u2014 ON THE SHIPPED ARM.**
+2. **THE ENTRY IS NOW REAL AND THE DOCBLOCK IS MADE TRUE RATHER THAN CORRECTED**: `storeRelease(store_pos)` \u2014 **the one entry of the twenty whose
+   store is a POSITION and not a receiver**, because a `FinalizationRegistry` callback receives the held value and not the object. **It takes the slot
+   (a TOMBSTONE, so no index shifts and the integer the package holds can never name its neighbour), drops the instance and removes its id, in one act.**
+   A released index, an index no mint reached, and a position that is not an index each answer the crate's own arm (`AddressNotFound` / `AddressMalformed`
+   with a new MESSAGE and no new token), **and a `NaN` guard is load-bearing**: `NaN as usize` saturates to `0` in Rust, so a cast would have named the
+   FIRST store. **None panics; a second release refuses rather than freeing a second store.**
+3. **★ AND THE INSTRUMENT THE RESIDUAL WAS FILED WITH COULD NOT SEE THE FIX \u2014 WHICH IS THE PART WORTH KEEPING.** The filed reading (`~18\u201321 KB/store`, a
+   zero-payload single-batch `rss` figure) is reproduced on this tree and is **noise either way** (`65.5 / 22.2 / 15.2` before, `53.0 / 22.9 / 15.1` after).
+   **THE HONEST OBSERVABLE IS THE STORE'S OWN PAYLOAD**: a store told to keep `128 KiB` and then dropped **costs nothing once freed**, so a retained-store
+   cost over that ceiling is the defect stated in bytes. Measured three times each: **BEFORE `~573,112` bytes/store (flat), AFTER `~42,000`**; the cell
+   declares the **payload itself** (`131,072`) as its ceiling \u2014 *"a store that is still held cannot cost less than the data it was told to keep"* \u2014 and its
+   failure message prints both pre-fix figures.
+4. **AND THE SUPERVISOR'S OWN FIRST PROBE OF THE FIX READ `418\u2013489 KB/store`, WHICH IS THE WARM-UP BATCH AND NOT A LEAK.** Re-measured across three
+   batches: **batch 0 pays the runtime's reservation (`494 KB/store`), then `33` and `56 KB/store`** \u2014 the pass's own figure. **A probe that reads its
+   FIRST batch after a process start measures the allocator, not the store.**
+5. **THE ADDON'S EXPORT SET MOVES `19 \u2192 20`** and every census that counts it moved with its reason at its byte; **`index.d.ts` moved NO byte** (the addon's
+   entries are not the package's declared surface). **THE WASM ARM IS UNTOUCHED**: its set stays **eighteen** and **its table still never retires a store** \u2014
+   which is now the one arm of the two whose leak is unclosed, and closing it changes that arm's export set (a declaration, `D-155` item 4, and `CW-6`'s subject).
+   **⟶ AND THE ARM THAT SENTENCE LEFT OPEN IS CLOSED, 2026-11-19 — THE SENTENCE IS QUOTED BEFORE IT IS RE-CUT: *"THE WASM ARM IS UNTOUCHED: its set stays
+   eighteen and its table still never retires a store — which is now the one arm of the two whose leak is unclosed, and closing it changes that arm's export set
+   (a declaration, `D-155` item 4, and `CW-6`'s subject)."*** **THE ARCHITECT'S CLOSURE ANSWER, ARM `a`, IS THAT THE ARM RETIRES AS THIS ONE DOES**, so **its set
+   moves `18 → 19`** (`bindings/js/src/wasm.rs`'s `storeRelease`), **its table empties a slot and never shifts one** (a tombstone, because on that arm the
+   handle IS the row index), **and the two subjects this item named are exactly the two sites the landing re-cut**: `D-155` item 4 at its own sentence and `CW-6` at
+   its own count, with `addon-slot.mjs`'s census sentence and `docs/L1/wasm-realm.md` §7/§10/§15/§16 moving with them. **THIS ITEM'S OWN SUBJECT — THE NODE ARM'S
+   ENTRY, ITS TWO TABLES AND ITS CELLS — IS UNMOVED BY THAT LANDING**, which is why this clause is the whole of what this row says about it: the second arm's
+   bytes are the second arm's pass, and no line of `facade.rs` moves for it.
+6. **CELLS**: `tests/e2e/store-retirement.test.mjs` \u2014 `SR-01` (the payload ceiling), `SR-02` (**the finalizer's own answer**: every constructed-and-dropped
+   store's index reads `AddressNotFound`, which is the release measured at its own answer and not a table length), `SR-03` (the entry's contract: double
+   release, absent index, eight outside classes, and the second store answering across the first's release). **Red first: `0/3` on the pre-fix artefact.**
+
+---
+
+### `D-173` — THE THREE `file`-TIER ITEMS OWED ON NODE: `SS-9` IS FIXED, AND `O-3`/`O-8` ARE CLOSED BY MEASUREMENT
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `823617a`. **SOURCE:** the supervisor, on `docs/L1/publish-readiness.md` §10.2 item 5's three.
+**STATUS: `ACTIVE`.**
+
+1. **`SS-9` WAS LIVE AND IS FIXED.** **MEASURED FIRST**: a construction over an ABSENT `filePath` whose constraint body throws at its own
+   registration answers **`ConstraintBodyThrew`** — **and the store's exclusive create at step 4b has already made its zero-length file, so the
+   refusal left that file at the path** (measured: `EXISTS, 0 bytes`, against `A55`'s *"leaves nothing behind"*). **THE FIX IS A CHANNEL AND NOT
+   AN IMPORT**: `instance.mjs` carries no `node:` specifier (`C-W4`'s cell asserts the arm's whole graph holds none), so `state.mjs` gains
+   `installConstructionFileGuard` and `openConstructionFileGuard` — a module-level slot, one installer, and a guard `{ existed, undo }` — the
+   construction opens it **before the one filesystem act** and the arming sweep's refusal calls `undo()`. **THE NODE ENTRY INSTALLS IT** with
+   `node:fs` (`existsSync` before the act, `unlinkSync` only where the file did not exist); **the injected arm installs nothing**, which is right
+   because a path-less store refuses `filePath` outright and never creates a file to remove. **IT CAN ONLY REMOVE A FILE THE CONSTRUCTION MADE**,
+   so a caller's data is never touched.
+2. **`O-3` IS CLOSED, MEASURED.** The worry was a path-less writer's stray `.snst-commit-<pid>` sibling. **A `saveCall` store taking a `file`-tier
+   write was driven and its working directory read**: the saver was called, the op answers `tier: 'file'`, and **no `.snst-commit` sibling stands**
+   — **the store's own writer is not reached on that arm** (`D-133` item 3: *"the store's own writer is NOT USED"*), and `save_file_delta` returns
+   early on an empty path.
+3. **`O-8` IS CLOSED BY THE SAME FACT.** Its sentence — `FileCommitFailed`'s `path` slot naming a path a pathless build does not have — **has no
+   subject**, because **nothing produces that member with an empty path on either arm**: the writer is unreachable on a path-less store (item 2),
+   and on the WASM arm it is **dead code by construction** (`D-160`'s cfg boundary and `D-171` item 5's tombstone). **The generated sentence keeps
+   its slot and its words; what it never sees is the subject the row feared.**
+4. **CELLS**: `tests/e2e/construction-file-guard.test.mjs` — `CFG-1` (**a construction refused after its create leaves NO file**) and `CFG-2` (the
+   guard's bound: **the caller's own file stands, bytes unmoved**). **`CFG-1` fails on the pre-fix tree** by the file's own presence.
+
+---
+
+### `D-174` — THE `WeakMap` ALTERNATIVE IS DECLINED: THE MAP STANDS, AND THE WINDOW WITH IT
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `6175c06`. **SOURCE:** the architect, on the alternative `docs/L1/journal-retention-rca.md` §8.3
+priced and this session's measurement of a receipt's lifetime. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Go with the map"
+
+**STATUS: `ACTIVE` — AND ⟶ CORRECTED AT THIS LINE THE SAME DAY, BECAUSE ITS TITLE AND ITS ITEM 1 READ THE ARCHITECT'S WORDS THE WRONG WAY.**
+
+**THE CORRECTION, VERBATIM FROM THE ARCHITECT:** *"Clarification: Weak map"* — **so *"Go with the map"* named the `WeakMap` and not the `Map`.** **THIS ROW'S TITLE (… IS DECLINED: THE MAP STANDS) AND ITS ITEM 1 (*"`D-162`'S WINDOW STANDS"*) ARE FALSE OF THE DECISION**; **what is true is the opposite: the `WeakMap` is TAKEN, the window's `1024` has no subject, and the id-only read degrades to `KC-2` by declaration.** **The evidence this row collected — the receipt's measured lifetime (0 B per write when the caller drops it, ~1.6 KB when it is kept, `state.leg` a slot and not a ledger) — is exactly what the `WeakMap` needs, and it is kept.** **The three items below are read through this clause: item 1 is REVERSED, item 2's cost is the accepted declaration, item 3's measurement is the ground, item 4's *"nothing moves"* is FALSE — the landing is `D-175`'s.** **A LATER PASS MUST NOT READ THIS ROW'S TITLE WITHOUT THIS LINE.**
+
+1. **`D-162`'S WINDOW STANDS**: `kernel.closed` stays a **`Map<id, report>`** bounded by `CLOSED_ATTEMPT_WINDOW = 1024`, its FIFO the map's own insertion order, one writer (`sealClosedReport`) at all four seal points, and **a pruned id answering `KC-2` — the same refusal an id that never named an attempt meets** (`KAW-1`).
+2. **AND THE ALTERNATIVE IS DECLINED WITH ITS EVIDENCE INTACT, SO A LATER PASS CAN REOPEN IT ON FACTS AND NOT ON TASTE.** The `WeakMap` keyed by `attempt.ref` was priced and is available — the seal sites hold the ref, and the receipt carries it (`CommitRecord.attempt`). **Its decisive cost was measured**: **a caller holding only an ID STRING cannot read a closed attempt's log**, because a string has no key. **THE WINDOW ALREADY ANSWERS THAT CALLER `KC-2`** — for a pruned id — **so the `WeakMap` would make the boundary exact instead of arbitrary, at the price of declaring that a caller must hold the attempt rather than its id.** **THE ARCHITECT TAKES THE MAP AND THEREFORE TAKES THE WINDOW'S OWN APPROXIMATION OF REACHABILITY.**
+3. **AND THE MEASUREMENT THAT MADE THE CHOICE POSSIBLE IS KEPT AT ITS OWN ROW**: a receipt is disposed **the moment the caller drops its last reference, and nothing in the package keeps one** — 2,000 writes with the receipt dropped retain **0 B per write**, with the receipts kept the caller retains **~1.6 KB each**, and **`state.leg` is a slot and not a ledger** (one receipt, the latest). **So the `WeakMap` would not have been "never disposed": it would have been exactly "as long as the caller can ask".** **The window spends that exactness for a figure no measurement produced, and that is the trade this row accepts.**
+4. **WHAT DOES NOT MOVE**: no code byte, no cell, no figure, no declaration. **`D-162`'s five items stand whole**, `KAW-1` and `KAW-2` remain the window's proof, and **the residual §10.2 named — that `CLOSED_ATTEMPT_WINDOW`'s `1024` is a declared figure and not a derived one — is unchanged and now DECLARED AS ACCEPTED** rather than open.
+
+---
+
+### `D-175` — THE `WeakMap` IS THE ARCHITECT'S MEANING, AND ITS LANDING IS BLOCKED BY 43 KERNEL CELLS: THE ATTEMPT IS REVERTED AND THE CAUSE NAMED AS UNKNOWN
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `866ef30` (the map's tree, green). **SOURCE:** the architect's clarification, **VERBATIM**:
+
+> "Clarification: Weak map"
+
+**STATUS: `ACTIVE` — THE DECISION IS THE WEAKMAP; THE IMPLEMENTATION IS REVERTED AND OWED.**
+
+1. **`D-174`'S TITLE AND ITEM 1 WERE A MISREAD OF *"Go with the map"*, AND THAT ROW NOW CARRIES ITS OWN CORRECTION AT ITS FIRST LINE.** `D-175` is
+   the decision: **`kernel.closed` is to become a `WeakMap` keyed by the attempt's `ref` object**, retention tied to reachability rather than to
+   `CLOSED_ATTEMPT_WINDOW`'s declared `1024`, and the id-string read degraded to `KC-2` by declaration.
+2. **★ AND THE IMPLEMENTATION WAS ATTEMPTED AND REVERTED, WITH THE MEASUREMENT THAT FORCED IT.** The five changes were made (`closed: new WeakMap()`,
+   the sealer keyed on `ref` with the eviction loop gone, the four seal sites passing `attempt.ref`, `drainFailingPass` keyed on
+   `commitRecord.attempt`, and `log`/`report` keyed on the reference object): **`npm test` read `1381` tests with `1337` pass and `43` FAIL.** **The
+   failing population is the `ck_constraint_*` kernel cells, and ONE of them measures the shape directly**: the retained record read
+   `['attempt','log','ops','outcome','rollback']` where `D-58` requires `['attempt','ops','outcome','rollback']` — **a `log` member the sealed
+   report should not carry.** **THE TREE WAS RESTORED FROM `HEAD` FOR ONE REASON: THE CAUSE IS NOT ESTABLISHED, AND A 43-RED TREE IS NOT A LANDING.**
+3. **WHAT IS KNOWN AND WHAT IS NOT.** **KNOWN**: the cells drive `log(store, record.attempt)` — **the ref object, not an id string** — so the
+   declared id-only cost is **not** what reddens them. **KNOWN**: the failure appears only under the `WeakMap` + ref-keyed sealing, so it lies in the
+   **key identity or in which seal arm writes last**, not in the reader's shape. **NOT KNOWN**: whether `attempt.ref` is the same object at all four
+   seal sites and at the receipt, and which arm's report (the `:159` failed arm carries a `log`; `dropHandoff`'s does not) is the one the cell reads.
+   **THE NEXT PASS MUST ANSWER THOSE TWO QUESTIONS BEFORE IT TOUCHES A BYTE**, and `attempt.id` versus `attempt.ref.id` is the first place to look:
+   `dropHandoff` keyed by `attempt.id` while the other three keyed by `attempt.ref.id`, and **under the window those were two string keys; under a
+   `WeakMap` they are one object — WHICH IS THE CHANGE THAT COULD HAVE MOVED WHICH REPORT A READER FINDS.**
+4. **THE WINDOW STANDS UNTIL THEN**, and no cell, figure or declaration of `D-162` moves in this row.
+
+---
+
+### `D-176` — THE `WeakMap` LANDS, WITH TWO DEFECTS OF MINE FOUND ON THE WAY, AND `§2.15`'S TWO FORMS PRESERVED
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `ecd782f`. **SOURCE:** the architect's *"Clarification: Weak map"* (`D-175`), landed.
+**STATUS: `ACTIVE`.**
+
+1. **`kernel.closed` IS A `WeakMap` KEYED BY THE ATTEMPT'S REF**, `kernel.closedIds` is a **`Map<id, WeakRef>`** beside it, `CLOSED_ATTEMPT_WINDOW`'s
+   `1024` stands with **no reader**, the eviction loop and the order array are gone, and **the five seal points and the three readers are re-keyed**:
+   three seals pass `attempt.ref`, **`dropHandoff` passes the ref ITSELF**, `drainFailingPass` reads `commitRecord.attempt`, and `log`/`report`
+   resolve a bare id through the weak index.
+2. **★ AND `parameter-semantics.md §2.15` IS PRESERVED — *"the `AttemptRef` record OR ITS `id` STRING and NOTHING ELSE"*** — which the plain
+   `WeakMap` broke: a string has no key, so `blind-kernel-surface.mjs`'s two-form cell read the record's `[]` beside a `KC-2`. **The weak id index
+   restores it WITHOUT restoring the strong path**: `closedIds` holds a `WeakRef`, so the id answers **while the ref lives** and meets `KC-2` when
+   it does not — **the same instant the report is gone, so the two forms can never disagree about whether the attempt is still answerable.**
+3. **★ AND TWO DEFECTS WERE MINE, EACH FOUND BY A CELL AND EACH NAMED HERE RATHER THAN SWEPT:**
+   **(a) `dropHandoff`'s `attempt` IS the ref** (`report.attempt` is `attempt.ref`, `{id}` and nothing else), so sealing it with `attempt.ref`
+   answered `undefined`, the sealer's own guard skipped it, **and the reader fell through to another arm's report** — the failed arm's, which
+   carries the `log` member `D-58` forbids. **`43` cells red, resolved by one token: seal with `attempt`.**
+   **(b) THE ID TABLE'S FIRST CLEANER WAS A FINALIZER WHOSE HELD VALUE WAS THE KERNEL — AND THE KERNEL HOLDS THE STORE.** A
+   `FinalizationRegistry.register(ref, { kernel, id })` hands the registry a **STRONG** held value, so every sealed ref pinned its kernel and its
+   store: **measured, `store-retirement` read `431,104 bytes` per constructed-and-dropped store and `400 of 400` still in the addon's table** —
+   **the very leak the retirement had just closed.** **The cleaner is a LAZY SWEEP that holds nothing**, taken **every `256` SEALS** — and its
+   first form swept whenever the table was large, **which rebuilt the whole `Map` on every seal: `8383 B per write` against the cell's declared
+   `4096`**, a quadratic disguised as a bound.
+4. **MEASURED AFTER THE LANDING.** `npm test` **`1381` / `1380` / `0`** · `typecheck` `0` · `cargo check --target wasm32` **0 errors** · the arm's
+   **eight** cells green · **`CHAIN COMPLETE — 11 runners`** · **the pinned retention `0.80 B/write` at 4,000 writes and `0.09` at 16,000** —
+   the same shape the window had, **with the arbitrary `1024` gone**, and **a `KAW-1` re-derived to the property the window approximated: the
+   first attempt still nameable after `1056` writes, by its ref and by its id.**
+
+---
+
+### `D-177` — THE TWO DESIGN ITEMS, REVIEWED: ONE IS CLOSED BY CONSTRUCTION, THE OTHER IS NARROWED AND NEEDS ITS OWN PASS
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `be644f5`. **SOURCE:** the supervisor, reviewing `docs/L1/publish-readiness.md` §11's items 1 and 2.
+**STATUS: `ACTIVE`.**
+
+**1 · THE FOREIGN-ID COLLISION IS CLOSED — IT CANNOT OCCUR.**
+
+**THE FLAG ASSUMED PER-INSTANCE NUMBERING AND THE TREE HAS PROCESS-GLOBAL NUMBERING**: `src/store.rs:38`'s `static NEXT_OP: AtomicU64 = AtomicU64::new(1)` minted every op id by `format!("op-{}", NEXT_OP.fetch_add(1, SeqCst))`
+(`:61`), so **every id in a process is greater than every id minted before it, across all stores**. **A store's floor is the ordinal of the last op IT dropped, and every op it ever held came from that
+same monotone sequence** — so **a foreign id — one another store minted — is above that store's maximum and therefore strictly above its floor**, and the lookup answers **`JournalOpUnknown`**, which is
+the right answer for an id that never named this store's op. **THE FLAG'S PREMISE (*"op ids come from a process-wide atomic while the floor is an ordinal"*) IS TRUE AND ITS CONCLUSION IS FALSE**: the
+shared sequence is exactly what makes the comparison safe.
+
+**AND ONE DEPENDENCY IS STATED SO THE CLOSURE IS NOT OVERSTATED**: it holds **only while a journal's ids are monotone in its own append order**, which is the case because **a booted store's journal
+starts EMPTY** — the file image carries the register's members and no ops (§6.2's `JournalOp` is the journal's own record, and `read_file_image` answers the *members*). **If a future change ever
+restores a journal from an image, the floor stops being a monotone bound relative to the restored ids and this row must be re-opened.**
+
+**2 · `replayMark`'S BASE IS NARROWED TO A QUESTION ABOUT `restoreMark`'S OWN SUBJECT, AND THE DRIVE THAT WAS MEANT TO FIND THE DEFECT DID NOT.**
+
+**THE DRIVE**: a `file`-tier store at `journalLength: 2`, four writes at four addresses (so the first two journal entries are dropped), a `journalMark` (answering `op-4`), a fifth write, then
+`restoreMark('op-4')`. **MEASURED**: **every value stands before and after** (`a`…`e` all readable), **and `restoreMark` answered `undefined` without moving a byte of the register** — *the fifth
+write's version was NOT undone*. **SO THE FEARED DEFECT — A REPLAY FROM `born` MISSING THE DROPPED ENTRIES' EFFECTS — WAS NOT REACHED**, because **the register is not replayed at all in that path**: the
+values never depend on the journal, which is history. **WHAT THE DRIVE RAISED INSTEAD IS A QUESTION THE ITEM DOES NOT NAME**: whether `restoreMark` is a *restore to a mark* (and therefore owes the fifth
+write's reversal) or **a mark-read that re-arms the journal's head**, **is not established by this pass** — and `D-171`'s drive, `E2E-C-9`'s, and the `fts` cells disagree about nothing here because none
+of them drives this shape. **A PASS THAT TAKES THIS ITEM MUST FIRST ESTABLISH WHAT `restoreMark` PROMISES**, then re-derive `replayMark`'s base against it; **this row does not guess, and `D-160` item 3 of
+its unsettled stays open, narrowed.**
+
+---
+
+### `D-178` — THE REPLAY STARTS FROM THE COMPACTED FLOOR AND NOT FROM `born`: THE RULING, AND THE ONE THING THAT MUST BE REPRODUCED BEFORE IT IS IMPLEMENTED
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `49d2e8b`. **SOURCE:** the architect, on `D-177` item 2. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Replay should start over from the compacted floor instead of 'born'"
+
+**STATUS: `ACTIVE`.**
+
+1. **THE RULING**: `Store::replay_mark`'s base becomes **the state at the COMPACTED FLOOR** — the point the journal was compressed to — and **not `born`**
+   (the boot's creation state). **`born` is the base of a store NOTHING has been dropped from**, which is the state the code's own vocabulary assumed: `state.mjs`'s
+   `windowMark` renders *"`{k:'F'}` names the FLOOR (the state the store was born with, where the journal held no entry when the commit opened)"* — **and
+   `D-160`'s drop made the floor a place the journal was compressed to, so both the base and that sentence are one ruling behind the tree.**
+2. **WHAT IT REQUIRES, AT ITS BYTES.** **(i)** `replay_mark`'s `apply_register(&self.born)` becomes an application of **the floor's own state** wherever a drop
+   has happened (`journal_floor.is_some()`), `born` standing only where nothing has been dropped. **(ii)** The store must therefore **HOLD** that state: a
+   field captured at each compression. **(iii)** And the mark carrier's `{k:'F'}` re-derives with it — the floor is no longer *"the state the store was born
+   with"*.
+3. **★★ CORRECTED THE SAME DAY: THE DEFECT IS REPRODUCED, AND THE THREE "INERT" DRIVES WERE THE SUPERVISOR'S OWN INVOCATION.**
+   **`store.restoreMark` IS NOT A MEMBER OF THE INSTANCE** (its fifteen are `addConstraint`…`write`), so those drives called **`undefined`**, the `TypeError`
+   carried no `status`, and **its empty `.status` printed as `undefined` — which this row read as the verb's answer.** **THE VERB WAS NEVER CALLED.** **With the
+   package's own invocation — `Reflect.apply(withAddon().restoreMark, store, [mark])`, `constraints.mjs:3354` — it restores on BOTH arms** (measured:
+   `b` becomes `AddressNotFound`, the image goes `{"a":"A","b":"B"}` → `{"a":"A"}`, and a fresh boot reads `b` as absent). **AND WITH THAT INVOCATION THE DEFECT IS
+   EXACTLY AS THE ARCHITECT DESCRIBED IT**: `journalLength: 2`, `a` (op-1), `b` (op-2), `c` (op-3, which drops op-1), then a restoral to the RETAINED mark `op-2`
+   answers **`returned`** and leaves **`a = AddressNotFound`**, **`b = "B"`**, **`c = AddressNotFound`** — **the state at `op-2` held `a` and the replay from `born`
+   lost it**, while a restoral to the DROPPED mark `op-1` answers `JournalOpUnknown` (correct). **That is this row's subject, measured.**
+   Three drives put a `file` store at `journalLength: 2` and restored to marks by **the carrier the store itself answers** (`Reflect.apply(withAddon().journalMark, store, [])`
+   then `restoreMark(thatCarrier)`, which is the package's own call at `constraints.mjs:3354`): **every one answered `undefined` and left the register byte-unchanged**
+   — including a restoral to a **retained** mark whose predecessor had been dropped (`c` still standing) and one to a **dropped** mark (which owes `JournalOpUnknown`).
+   **SO EITHER THE INVOCATION IS STILL NOT THE VERB'S, OR THE VERB IS INERT ON THIS TREE, AND NEITHER IS KNOWN.** **A pass that implements this row must FIRST make
+   `restoreMark` visibly restore** — `tests/e2e/def-ae-restore-mark.test.mjs` drives this verb and passes, so it holds the invocation, and it is the place to start.
+   **AN IMPLEMENTATION LANDED BEFORE THAT IS A CHANGE TO A PATH NO DRIVE HAS SHOWN RUNNING.**
+4. **AND THE CAPTURE POINT IS A REAL DESIGN CHOICE, NOT A DETAIL.** `append` **pushes the entry and only then** runs the compaction loop
+   (`self.journal.push(...)`, then the drop), so **`assemble_all` at that instant reflects the NEW entry** — it is the HEAD's state and not the floor's.
+   **Two ways to hold the floor, priced and neither chosen:** **(a) CAPTURE BEFORE THE PUSH** when a drop is about to happen — the state as of the last retained
+   entry before the new one, which is the floor a replay needs and costs one full assembly per compressing append (the cost `D-160` already pays once per
+   compressing append, moved earlier); **(b) DERIVE THE FLOOR FROM THE DROPPED ENTRY'S OWN SNAPSHOTS** — `Entry::captured` and `Entry::after` are per-version and
+   per-tier, so a whole-register floor can only be derived by walking back from the current register through every retained entry, which is a replay of its own.
+   **(a) is the shape this row would expect; neither is taken here.**
+5. **WHAT DOES NOT MOVE**: no cell, no figure, no declaration, and **`D-177` item 1's closure stands** (the foreign-id collision remains impossible by construction).
+
+---
+
+### `D-179` — THE REPLAY'S BASE IS THE COMPACTED FLOOR: LANDED, AND THE FLOOR IS ADVANCED BY THE DROPPED ENTRY ITSELF
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `b4e70f1`. **SOURCE:** `D-178`'s ruling, option (a), implemented. **STATUS: `ACTIVE`.**
+
+1. **`Store::floor_state` IS ONE CAPTURED REGISTER, IT BEGINS AS `born`, AND IT IS ADVANCED ONCE PER DROP BY THE DROPPED ENTRY'S OWN `after`
+   SNAPSHOTS** — in `append`'s compaction loop, at the instant of the drop: **a position the journal was compressed to is a fact the DROP produces and
+   nothing else does**, so the push cannot be the instant (the pushed entry is the HEAD, and `base_state` beside the drop is the head's state — `D-178`
+   item 4). **`replayMark` reads it as its ONE base and does not branch on `journal_floor.is_some()`**: **the uncompacted case is the equality the field
+   begins with**, so there is no second rule. **The bound is O(one register) in the state and O(0) in the history** — nothing that grows with the write
+   count.
+2. **★ AND THE ONE THING THE IMPLEMENTATION HAD TO GET RIGHT AND ALMOST DID NOT: `Captured::under` IS RELATIVE TO THE ENTRY'S OWN ADDRESS**, so a
+   dropped entry's top-level versions carry `under: None`, and **re-based one level down, `None` puts them under no parent version and the rebuild
+   silently skips them.** **The enclosing version is not invented**: it is the one `walk` resolves (`§2.3`, `A28`, lowest persistence) over the floor's
+   own versions — the versions the entry was appended onto. **IT WAS CAUGHT BY DRIVING AND NOT BY READING, AND IT REDDENED NOTHING**: all 1,385 cells
+   and all four new ones stayed green without it, because every one of their addresses is top-level. **The evidence is `scratch/d178-floor-equivalence.mjs`**
+   — the same record on a compacting and a non-compacting store compared at every retained mark: **0 disagreements across caps 1–10, on a nested record
+   and on a two-tier shadow record.**
+3. **THE DEFECT, MEASURED BOTH WAYS.** `journalLength: 2`, `a` (op-1), `b` (op-2), `c` (op-3, dropping op-1), restoral to the **retained** mark `op-2`:
+   **BEFORE — `a = AddressNotFound`, `b = "B"`, `c = AddressNotFound`** (the state at `op-2` held `a` and the replay from `born` lost it); **AFTER —
+   `a = "A"`, `b = "B"`, `c = AddressNotFound`**; and **a restoral to the DROPPED `op-1` answers `JournalOpUnknown` on both trees**, which is the
+   declared answer and did not become a restore. `restoreFloor()` now names the **compacted floor** — `{a:"A"}` where it used to name the creation
+   state.
+4. **`{k:'F'}` DID NOT MOVE, AND CANNOT BE MADE TO FROM WHAT THE STORE ANSWERS**: `journalMark` answers `None` for **two classes it cannot tell apart at
+   that entry** — a store nothing has been dropped from (floor = `born`, the sentence *"the state the store was born with"* true) and a store the
+   compaction has dropped from whose journal is momentarily empty (floor ≠ `born`, the sentence false, and reachable because `commit_file`'s failing arm
+   removes the entry it reverted). **The absent position has one spelling and no second row exists to carry the distinction**, so `state.mjs` moves no
+   byte; **the store-side sentences that WERE false are re-derived at their own lines** (`journalMark`'s `None` is the floor; `restoreFloor`'s is the
+   compacted floor where a drop has happened; and `replayMark`'s *"the empty register the store began with"* is quoted and superseded where a drop has).
+   **`Store::regenerate`'s `apply_register(&self.born)` is unmoved and marked as deliberately NOT this base** — the two answer different questions.
+5. **CELLS**: `tests/e2e/journal-retention-floor.test.mjs` — `RF-1` (the retained mark keeps the dropped version's value), `RF-2` (the uncompacted control,
+   identical before and after), `RF-3` (the dropped mark still refuses `JournalOpUnknown`), `RF-4` (the floor names the compacted floor). **`RF-1` and `RF-4`
+   fail on the pre-fix tree** with the readings item 3 records, printed in their own messages.
+6. **★ AND ONE CELL IS OWED AND NAMED RATHER THAN IMPLIED**: **no cell drives a write BELOW the address whose predecessor was dropped** — the case item 2's
+   `under` re-derivation exists for. **`RF-1`'s drive is all top-level addresses and stays green without the re-derivation.** The fifth cell is owed by the
+   next pass that owns cells; **the equivalence drive is its evidence and is not a substitute for it.**
+7. **MEASURED**: `npm test` **`1385` / `1384` / `0`** · `typecheck` `0` · `cargo test` **22 `ok` / 0 FAILED** · `cargo check --target wasm32` **0 errors** ·
+   `npm run build` `0` · the arm's **eight** cells green and its **nineteen** entries unmoved · **`CHAIN COMPLETE — 11 runners`**.
+
+---
+
+### `D-180` — THE PUBLISH LEDGER, TAKEN ON THE FINAL TREE: NOTHING BLOCKS, AND EIGHT RESIDUALS ARE NAMED FOR AFTER
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `42e7ca5`. **SOURCE:** the architect's question, answered from the tree and not from the record.
+**STATUS: `ACTIVE`.**
+
+**THE FLOOR, TAKEN ONCE ON THIS TREE AFTER EVERY LANDING**: `npm test` **`1386` / `1385` / `0`** (`1` deliberate skip) · `typecheck` **`0`** · `cargo test`
+**22 `ok` / 0 FAILED** · `cargo check --target wasm32` **0 errors** · `npm run build` **`0`** · **the installed battery `EXIT 0`, 15 cells `PASS`** (`INSTALL-09`
+`LAYER-LIMIT` for the four non-host declared names) · **`CHAIN COMPLETE — 11 runners, every one exit 0`** · the arm's **8** cells green, its **19** entries
+unmoved. **NOTHING BLOCKS A PUBLISH.**
+
+**AND TWO ROWS FROM THE SAME LIST AS `O-3`/`O-8` ARE CLOSED BY MEASUREMENT IN THIS PASS**: **`O-6`** — a malformed op id at the new entries answers **one**
+classifier (`rollback('not-an-op')`, `rollback('op-')`, `rollback('op-999999')` and a malformed mark carrier each answer **`JournalOpUnknown`** with the id named
+in the message) · and **`O-4`** was closed by `D-151`'s fix. **`JournalOp.compacted` HAS ITS PRODUCERS** (`src/store.rs` sets it at both op-minting sites,
+always `false`), so `D-160` item 4's *"no producer"* is the milder and true form: **a declared member with a constant**.
+
+**THE EIGHT RESIDUALS, EACH WITH ITS OWN REASON AND ITS OWN OWNER:**
+
+1. **`{k:'F'}`'s renderer** still says *"the state the store was born with"*, and **the store CANNOT distinguish its two classes at that entry** — a store
+   nothing was dropped from (`floor = born`, sentence true) and one the compaction dropped from whose journal is momentarily empty (reachable through
+   `commit_file`'s failing arm, sentence false). **IT NEEDS A SECOND SPELLING FOR THE ABSENT POSITION** — a design act, not a fix (`D-179` item 4).
+2. **`D-178` item 4's capture-point question is answered by `D-179` and NOT by a measurement of the cost**: the floor advances **by the dropped entry** (O(one
+   entry)), so option (a)'s priced "one full assembly per compressing append" **was never needed and was never taken** — which is the better answer and one nobody
+   has measured the alternative against. **A cost note, not a hazard.**
+3. **`NG-PUB-F`'s inert control** — its as-filed half splices a `node:path` call into a part that no longer imports one. **A test-writer item** (attempted twice,
+   reverted both times rather than landed half-right).
+   **⟶ CLOSED 2026-11-17 — THE RE-CUT TOOK BOTH ARMS THE FILE ALLOWS.** The inert half is **retired with a dated record** and the successor splice lands
+   in `artefact-node.mjs` (the part with the mismatch arm and the three `node:` imports), reading `entryUrl` at a site the mismatch drive evaluates.
+   **BOTH HALVES FAIL IN ISOLATION** — each shown by removing the other's `.replace`, running, and restoring `diff`-clean — and **the guarded
+   behaviour was seen red**: altering `generatorFilePathUnreachable`'s rendering reddens the cell with *"THE PROPERTY DOES NOT HOLD AT THE SHIPPED BYTES"*.
+   **THE PASS NAMED WHAT IT COULD NOT LEDGER**: the two halves are independent in effect but not separately counted, and splitting them would take the
+   cell from `3` to `4` measured controls and redden `publish.test.mjs`'s prose count — **a census move not taken.**
+4. **Two spec parts the cells cite are NOT ON THIS TREE** — `seams-and-lifecycle.md` and `crossing.md`, **36 citations**, declared at the JAS runners' heads.
+   **A corpus-completeness item; no test can fix it and no pass may re-point a citation without knowing where the law now stands.**
+5. **One skipped cell** — `sas_d3_s_parity_…` skips with its reason (*"the old dispatcher shape is absent after the split; the golden was captured before
+   it"*). **A golden without a subject: it should be RETIRED rather than skipped**, since a skip is a cell that never executes and cannot fail.
+   **⟶ RETIRED 2026-11-17 — AND ARM (b) WAS TESTED AND DOES NOT EXIST.** What replaced `call(index, verb, args)` is the nine PER-VERB entries, so the only
+   live *"same verb, other shape"* left is a verb through its own entry against the same verb through the package's wrapper — **one call and its own
+   decoder, which would pass trivially at any byte.** **So the honest act is that NO instrument exists, not that one was skipped**: the cell is withdrawn and
+   the file's head records what it measured, when it stopped measuring anything, and which ruling removed its subject (`export-set-and-dispatch.md §2`:
+   *"`call` IS DELETED … THE SPLIT IS PRECISELY ITS REPLACEMENT, SO IT DOES NOT SURVIVE"*). **AND THE ARITHMETIC THIS ROW WAS WRITTEN WITH WAS MINE AND WRONG**:
+   the skip was a **nested** `test.skip` inside a running `test(\u2026)`, so Node counts two rows — retiring it takes `tests −2` and `pass −1`, and the
+   measured reading is **`1384` / `1384` / `0` / `0` skipped**, not the `1385`/`1384` the plan predicted. **`P-SAS-3`'s old-dispatcher half now has no
+   instrument and can have none — recorded, not repaired, and the clause still stands in the spec.**
+6. **`replayMark` and `regenerate` answer different questions and that is DELIBERATE** (`D-179` item 4): `regenerate` keeps `born` because it regenerates from the
+   file image (`D-164`'s arm). **Named here so a later pass does not unify them by tidiness.**
+7. **The release act** — the class is claimed (`D-158`, `1.13.0`, a `MINOR`) and **no tag is cut** (`D-57`). **`delivery`'s act.**
+8. **The `WeakMap`'s id-only read** — `D-175`/`D-176` preserved `§2.15`'s two forms through a weak id index, so **nothing is owed**; what remains is that
+   **`closedIds` is bounded by a sweep of every 256 seals and by nothing else** — a bound with a constant in it, like the window it replaced, and **the only
+   one left in that file.**
+
+---
+
+### `D-181` — THE RESIDUAL LEDGER, RE-TAKEN: TWO CLOSED, THREE NEWLY NAMED, AND FIVE THAT STAND
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `3051df1`. **SOURCE:** `D-180`'s eight, worked. **STATUS: `ACTIVE`.**
+
+**CLOSED IN THIS PASS (2)**
+
+1. **`D-180` item 3 · `NG-PUB-F`'s inert control** — **the pass took both arms the file allows**: the inert as-filed half is **retired with a dated record**, the
+   successor splice lands in `artefact-node.mjs` (the part with the mismatch arm **and** the three `node:` imports) at a site the mismatch drive evaluates, **both
+   halves fail in isolation** (each shown by removing the other's `.replace`, restored `diff`-clean), and **the guarded behaviour was seen red** — altering
+   `generatorFilePathUnreachable`'s rendering reddens the cell with *"THE PROPERTY DOES NOT HOLD AT THE SHIPPED BYTES"*.
+2. **`D-180` item 5 · the permanently-skipped cell** — **RETIRED, and arm (b) was tested and does not exist**: what replaced `call(index, verb, args)` is the nine
+   per-verb entries, so the only live *"same verb, other shape"* is a verb through its own entry against the package's wrapper — one call and its own decoder,
+   which would pass trivially at any byte. **`P-SAS-3`'s old-dispatcher half now has NO INSTRUMENT AND CAN HAVE NONE** — recorded, not repaired, and its clause
+   still stands in the spec. **AND `D-180`'s OWN PREDICTED FIGURE WAS WRONG**: the skip was a **nested** `test.skip`, so Node counts two rows and retirement takes
+   `tests −2`/`pass −1` — **measured `1384`/`1384`/`0` with `0` skipped**, not the `1385`/`1384` the row predicted.
+
+**AND `D-180` item 1's SENTENCES ARE RE-DERIVED**: `constraints.mjs`'s two `{k:'F'}` sentences said *"the state the store was born with"*, which `D-179` made false
+where a drop has happened. **They now name THE FLOOR and are true of both of its classes** — the store cannot tell them apart at that entry, so naming the floor
+is the only sentence that does not lie.
+
+**NEWLY NAMED, EACH SMALL AND EACH ITS OWN OWNER (3)**
+
+3. **`NG-PUB-F`'s two halves are independent in effect but NOT SEPARATELY COUNTED.** Splitting it into two controls takes the cell from **`3` to `4`** measured
+   controls and **reddens `publish.test.mjs`'s prose count** — a census move the pass did not take. **The evidence for each half is its isolation run, which is
+   not a permanent instrument**; a ledger split is what would make it one. **A census move for whoever owns that count.**
+4. **`sas_d3_s_parity_the_goldens_diff_excludes_…`'s `compared.length >= 20` limb now has ONE row of headroom** (`21`), so **any further retirement in that group
+   trips a cell from a different group than the one edited**. **A brittleness, not a defect**; the figure should be re-derived to whatever the group now holds.
+5. **A second cell of the skip's own class is named and NOT retired**: the capture cell is green only because **its first branch asserts `call` absent — already
+   asserted by `sas_d1_s_export_set_call_is_absent_…`** — and its recording half is unreachable in this tree. **`D-180` item 5 ruled on the skip and not on the
+   capture**; the capture's pre-split records are the only evidence the old comparison ever ran, which is why retiring it is not free.
+
+**AND FIVE STAND, UNCHANGED FROM `D-180`**: the two spec parts the cells cite are **not on this tree** (36 citations, declared at the JAS runners' heads) · the
+`WeakMap`'s `closedIds` is bounded by a sweep of every `256` seals and by nothing else (the only constant left in that file) · `replayMark` and `regenerate` answer
+different questions **deliberately** · **`D-178` item 4's cost note** (the floor advances by the dropped entry, so the priced option (a) was never needed and was
+never measured against) · and **the release itself** — the class is claimed and **no tag is cut**, which is `delivery`'s act.
+
+**THE FLOOR**: `npm test` **`1384` / `1384` / `0`**, **`0` skipped** · `typecheck` `0` · `cargo test` **22 `ok` / 0 FAILED** · `cargo check --target wasm32`
+**0 errors** · `npm run build` `0` · **`CHAIN COMPLETE — 11 runners`**.
+
+---
+
+### `D-182` — `D-181`'S THREE TEST-SIDE ITEMS CLOSED, AND TWO SMALLER ONES NAMED IN THEIR PLACE
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `93b89f1`. **SOURCE:** `D-181` items 3, 4 and 5, worked. **STATUS: `ACTIVE`.**
+
+1. **`NG-PUB-F`'S CONTROL IS SPLIT, AND THE CENSUS MOVED WITH IT (item 3).** One entry holding two chained substitutions becomes **two controls, one
+   substitution each**, each staging **its own mutation in its own scratch tree** — **so the attribution is structural rather than a matter of removing the
+   other's `.replace` with an experiment.** **Measured: controls `3 → 4`, the ledger line `4 → 5`, `publish.test.mjs`'s prose `3 → 4`, and `npm test`
+   unchanged at `1384`** — a control is an entry inside one generator and **not** a `test(\u2026)` row, which is why the count did not move and why the figure
+   was measured rather than assumed. **SAID PLAINLY: both halves red at the SAME limb** (`assert.equal(A.message, gen(RUNG_ONE_TAIL))`); **what the split buys
+   is that the ledger names the SITE instead of a different clause.**
+2. **AND THE SPEC ROW THE SPLIT FALSIFIED IS RE-DERIVED**: `docs/specs/storeroom-publish/contract.md`'s `P-PUB-5` row said *"`3` measured controls"* and now
+   says **`4`**, with the split's reason at its byte — **the figure the pass could not move because it was outside its write set.**
+3. **THE FLOOR IS RE-DERIVED `20 → 21` (item 4), AND ITS SHAPE IS CONFIRMED RIGHT.** Read at the cell, the limb's subject is **"the diff excludes
+   something"** — the excluded set is already asserted **by name** one limb above, so **a floor is the correct shape and a named set would be a second census
+   every rename falsifies.** **The cost, stated: zero headroom**, so the next retirement in that file still trips it — **armed exactly, and now legible**,
+   with the message printing `compared` of `cells` and the exclusion.
+4. **THE CAPTURE CELL IS KEPT, ARM (c), WITH ITS REASON AT ITS BYTE (item 5).** **RETIREMENT WOULD DESTROY THE INSTRUMENT**: it is the only written spelling of
+   the two-shape capture, the `§6` item 4 run/skip ledger, the dated invocation, **and the only assertion of the operation record's eight members** (measured
+   true here: `address, after, before, compacted, kind, opId, seq, tier`). **REMOVING THE DUPLICATE ASSERTION WOULD DESTROY THE LAST CLAIM**: the remaining body
+   is a ledger push and a `return` — **a cell that runs and reports `PASS` without being able to fail, which is `D-180` item 5's skip one degree worse.** **It
+   stands as a RECORD and not as a claim**, and its head now says the operation-record members are **written there and measured nowhere.**
+
+**TWO SMALLER ITEMS NAMED IN PLACE OF THE THREE (each its own owner):** **the operation record's eight members are asserted by a cell that cannot fail** — **a
+live instrument is a new cell, not this pass's item** · and **`compared.length >= 21` is at zero headroom**, so a cell renamed to contain `s_export_set_` or a
+declaration no longer beginning a line with `test('` silently drops `cells` and reds it — **`D-181` item 4's trap, armed exactly.**
+
+**THE FLOOR**: `npm test` **`1384` / `1384` / `0`**, **`0` skipped** · `typecheck` `0` · `cargo test` 22 `ok` / 0 FAILED · `wasm32` `0` errors · `build` `0` ·
+**`CHAIN COMPLETE — 11 runners`**.
+
+---
+
+### `D-183` — THE CITATION RESIDUAL SPLITS IN TWO: ONE PART IS RE-POINTED TO A HOME THE CORPUS DECLARED, THE OTHER STANDS BECAUSE NOBODY HAS RE-HOMED IT
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `c856b72`. **SOURCE:** `D-180` item 4 / `D-181`'s fifth standing item. **STATUS: `ACTIVE`.**
+
+1. **`seams-and-lifecycle.md §7.2 item 7 (f)` IS RE-POINTED — 36 CITATIONS, ALL OF THEM — because THE CORPUS ITSELF DECLARED THE RELOCATION.**
+   `docs/specs/storeroom-native/contract.md:201`'s citation table carries the part as **`carrier`** with the word **`relocated:`** and the destinations
+   (*"the construction inputs (`§7`), the boot and lifetime clauses, the constraint-evaluation seam, the fail-code set …"*), and **`:4213` authors the
+   clause's sixth part there and `:4215` amends it for `D-126` item 2's three-way answer.** **No test may leave a citation pointing at a path the owning
+   specification has already moved**, so all **36** now read `docs/specs/storeroom-native/contract.md §7.2 item 7 (f)` (26 in
+   `json-acceptance-set-greens.mjs`, 10 in `json-acceptance-set-live.mjs`), **with a dated clause at each head quoting the relocation and stating that
+   NO CELL'S ASSERTION MOVED — a citation is where a cell says its law lives, and the law's text is the spec's.**
+2. **AND `crossing.md §1.4 item 5` IS **NOT** RE-POINTED, DELIBERATELY (16 citations, kept).** **No relocation of that part is declared anywhere on this
+   tree**: `docs/specs/storeroom-json-crossing/contract.md:32` still cites `docs/specs/storeroom-js/crossing.md §1.2` — **a path that is not tracked
+   either** — so the corpus has **not** re-homed the part, and **a test may not decide a relocation the owning specification has not made.** **THE
+   CITATION STANDS AS THE RECORD OF A PART THAT IS ABSENT, WHICH IS WHAT IT HAS ALWAYS BEEN**, and both heads say so at their own line rather than
+   leaving a reader to discover it.
+3. **SO `D-180` item 4 SHRINKS RATHER THAN CLOSES, AND ITS REMAINDER IS NO LONGER A TEST'S:** the test-tree half is discharged (36 re-pointed, 16 declared
+   absent), and **what is left is a corpus act — the json-crossing specification should either declare `crossing.md`'s relocation the way the native one
+   did, or author the part it still cites.** **That is `role_spec_writer`'s lane and not a pass's.**
+4. **MEASURED**: `npm test` **`1384` / `1384` / `0`**, **`0` skipped** · both JAS runners exit `0` · **`CHAIN COMPLETE — 11 runners`** · and the
+   citation ledger reads **0** stale `seams-and-lifecycle` cells, with the part's name surviving only in the two head clauses that say it was re-pointed.
+
+---
+
+### `D-184` — FOUR RESIDUALS CLOSED WITH CELLS THAT CAN FAIL: THE EIGHT MEMBERS LIVE, THE TWO BASES PINNED, A PARTITION INSTEAD OF A FLOOR, AND THE SWEEP'S BOUND MEASURED
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `241752f`. **SOURCE:** `D-181` items 3–5 and `D-182`'s two named — worked. **STATUS: `ACTIVE`.**
+
+1. **THE OPERATION RECORD'S EIGHT MEMBERS NOW HAVE A LIVE INSTRUMENT** (`D-182` item 4's owed cell). `sas_d3_s_parity_the_live_write_carries_the_operations_eight_members_…`
+   drives the package's own `write` and asserts **`address, after, before, compacted, kind, opId, seq, tier`** **by name**, each at its value, both of the base state's
+   two members, a second op, **and the delete receipt's `op` as a second route**. **AND IT SAYS WHAT IT CANNOT SEE**: the capture's artefact-layer limbs
+   (`dispatcherCarrierAddress`/`dispatcherCarrierTier`) have **no live counterpart** because their producer `call` is deleted — **the same shape at the package
+   layer and not at the carrier.** **FAILURE SHOWN**: deleting `compacted: encoded.compacted,` at `frame.mjs:607` reddens it with the seven-member actual.
+2. **THE DELIBERATE `replayMark`/`regenerate` DIFFERENCE IS PINNED** (`D-180` item 6; `D-179` item 4). A Rust test drives **a store that boots a committed image and
+   whose cap drops an entry**, then **both paths**: the floor answers `{x:1, a:1}`, and `regenerate` answers the image `{x:1}` plus the retained `b`,`c` — **two
+   different states from one journal**, with `D-179` item 4 quoted at the cell. **BOTH HALVES DRIVABLE IN ONE CELL**, `regenerate` reached through its only public
+   producer. **FAILURE SHOWN TWICE**: the floor reverted to `born` reddens the first half; the regeneration's base moved to the floor reddens the second.
+3. **A FLOOR AT ZERO HEADROOM BECOMES A PARTITION** (`D-182` item 3; `D-181` item 4). `compared.length >= 21` is **gone**: the limb now asserts that
+   **`excluded ∪ compared names every declared cell exactly once** — **a partition, not a count**, so **a retirement stays green while a cell silently dropped
+   from both sets reddens.** **THE REFUSED ARMS ARE NAMED WITH THEIR MEASUREMENTS**, including the body-derived partition (the capture cell reads `addonKeySet()`
+   at six sites, one of them its own duplicate claim). **FAILURE SHOWN**: indenting one `test(` reddens it with *"25 distinct names, against 26 declarations"*.
+4. **THE `256` SWEEP NOW HAS A MEASURED BOUND — AND THE BOUND IS THE CODE'S, NOT A NICER ONE** (`D-180` item 8; `D-181`). `KAW-3` drives **5,120 writes** with
+   receipts dropped, a `--expose-gc` child, a drain turn per batch (**a sweep's own `deref()` pins its targets for the job — measured `5120 → 5120` without
+   it**), and measures `maxSize 191`, `survivors 64`, `maxRise 127`, over `10,240` seals. **THE TRUE WORST CASE IS ASSERTED: `size ≤ survivors + 255`, and
+   UNBOUNDED when the refs stay reachable (`1200` writes → `1200`)** — **so `≤ 256` IS ASSERTED NOWHERE, because the code does not guarantee it.** Limbs: the
+   constant still declared `256` · the rise `≤ 255` (the schedule) · the size `≤ survivors + 255` · **flatness** (the second half's max no higher than the
+   first's `+ 255`, which is the pruning itself) · an absolute `≤ 511` · and a discriminating workload. **FAILURE SHOWN TWICE**: the constant set to `1 << 20`
+   reddens the declaration limb; the pruning body deleted reddens *"5120 exceeds 2560"*.
+5. **COUNTS: `1386` / `1386` / `0` / `0` SKIPPED, not the `1388` the plan predicted** — two items add a `test(…)` row, **item 3 is a rewrite inside an existing
+   row (`+0`)** and **item 2 is a Rust `#[test]` (`+0` npm, `+1` cargo: `46 → 47`)**. **The plan's figure was arithmetic about a shape and the code had another.**
+6. **NAMED AND NOT CLOSED**: the capture's carrier limbs are **owed to nobody** (their producer is deleted) · **`§6` item 2's body-derived rule** is a record and
+   not a defect, and curing it is a decision about that cell · **the unbounded case is a collector property and is recorded as a measurement, asserted nowhere**.
+
+---
+
+### `D-185` — THE FLOOR'S ADVANCE IS NOT A MEASURABLE COST, AND THE OPTION I PRICED WAS NEVER NEEDED
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `40bb8cb`. **SOURCE:** `D-178` item 4's cost note, measured. **STATUS: `ACTIVE`.**
+
+**MEASURED, TWENTY THOUSAND WRITES PER ARM, THREE RUNS EACH, MEDIANS:**
+
+| `journalLength` | | ns/write | the three runs |
+|---|---|---|---|
+| **`2`** (compacts on nearly every write) | the floor advances constantly | **52,028** | 51,824 / 52,028 / 54,774 |
+| **`16`** (compacts every ~14 writes) | | **51,121** | 50,997 / 51,121 / 51,443 |
+| **`1000000`** (never compacts) | no advance at all | **73,908** | 73,342 / 73,908 / 74,900 |
+
+**AND THE FIGURE THAT MATTERS IS THE THIRD ROW: THE STORE THAT NEVER COMPACTS IS THE SLOWEST, by ~42%.** Its journal grows without bound, so **every append carries a larger
+history than a compacted store's does** — **the floor's advance rides inside a path that is already much cheaper than not compacting.** The two compacting arms are **~900 ns
+apart** (52.0 against 51.1 µs), and that gap is the *entire* difference between compacting on nearly every write and compacting one in fourteen.
+
+**SO `D-178` ITEM 4'S PRICED OPTION (a) — *"capture before the push, one full `assemble_all` per compressing append"* — WAS NEVER NEEDED AND IS NOT WHAT LANDED**:
+`D-179` advances the floor **by the dropped entry's own snapshots** (O(one entry) instead of O(one register)), and **the measurement shows no cost to find**: the floor's advance is
+not separable from the compaction it belongs to, and **the alternative would have added a whole-register assembly to a path that already pays less than the one that never compacts.**
+**The note is closed as a measurement and not as an argument**, and **a future pass that considers a per-append capture has this table to read first.**
+
+---
+
+### `D-186` — READINESS, TAKEN ON THE FINAL TREE: EVERY GATE GREEN, AND TWO ACTS OUTSIDE THIS LANE
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `dba685c`. **SOURCE:** the supervisor, at the end of the residual sweep. **STATUS: `ACTIVE`.**
+
+**EVERY LEG, MEASURED ON THIS TREE IN ONE PASS:**
+
+| the leg | the reading |
+|---|---|
+| `npm test` | **`1386` / `1386` / `0`**, **`0` skipped**, `0` todo |
+| `npm run typecheck` | exit **`0`** |
+| `cargo test` | **22** `test result: ok` lines, **676** passed, **0 FAILED** |
+| `cargo check --target wasm32-unknown-unknown` | **0 errors** |
+| `npm run build` | exit **`0`** · **the addon's export set is `20`** |
+| **the WASM arm's cells** | **8 / 8** |
+| **`npm run greens`** (11 runners, the whole out-of-glob battery) | **`CHAIN COMPLETE — every one exit 0`** |
+| `discard-witness` | **`85` / `85` / `0`** |
+| `blind-constraints-v2` | **`125` / `125` / `0`** |
+| **the installed battery** (locally packed tarball, clean install) | **`EXIT 0`** — `15` cells `PASS`, `1` `LAYER-LIMIT`, **no cell `FAIL`ed and every cell RAN** |
+
+**SO NOTHING ON THIS TREE IS RED AND NOTHING IS SKIPPED.** **What a publish still owes is TWO ACTS, AND NEITHER IS THIS LANE'S:**
+
+1. **A SPEC ACT** — `docs/specs/storeroom-json-crossing/contract.md:32` cites `docs/specs/storeroom-js/crossing.md §1.2`, **a path that is not tracked**, and it is the *only*
+   place the corpus still points at that part without having declared where the law now stands. **The native specification did the equivalent act for `seams-and-lifecycle`
+   at its own citation table (“relocated:”) and 36 test citations were re-pointed to it (`D-183`); the json-crossing part has had no such declaration**, so **the 16 remaining
+   test citations are correct and declared-absent rather than wrong.** **`role_spec_writer`'s: either declare the relocation the way the native spec did, or author the part.**
+   **THIS IS NOT A TEST'S ACT AND NOT THIS LANE'S** — a test may not decide a relocation the owning specification has not made.
+2. **THE RELEASE ACT** — **the class is claimed (`D-158`, `1.13.0`, a `MINOR`) and NO TAG IS CUT** (`D-57`: a document may not claim what it cannot observe).
+   **`delivery`'s act**, and the tree is in the state that act expects: green on every leg above, the version `1.13.0` across the manifests, and the notes carrying
+   this landing's behaviours.
+
+**AND THE RECORDS THAT REMAIN ARE RECORDS, NOT WORK**: the capture's artefact-layer limbs are **owed to nobody** (their producer `call` is deleted) · **`§6` item 2's
+body-derived rule** is a record and curing it is a decision about that cell · and **the `closedIds` unbounded case** is a collector property **recorded as a measurement and
+asserted nowhere** (`D-184` item 4).
+
+---
+
+### `D-187` — THE SPECS AND THE GUIDES ARE REGENERATED FOR THE LANDING, AND FIVE STALE FIGURES OUTSIDE BOTH LENSES ARE RE-CUT
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `70666d7`. **SOURCE:** the architect's instruction, *"Update specs and then regenerate guide docs for new behavior changes and WASM realm"*. **STATUS: `ACTIVE`.**
+
+1. **THE SPEC CORPUS GAINED TEN CLAUSES ACROSS SIX PARTS**, each an ANNOTATE-BESIDE that **quotes the superseded sentence before it is re-cut**:
+   `storeroom-native` §6.6's three (the replay's base is `Store::floor_state`; the absent position's two indistinguishable classes; `restoreFloor`'s subject) ·
+   `storeroom-js`'s one (`DEF-AE`'s item 2 and its cell `(4)`) · **`storeroom-json-crossing`'s one, which is the SPEC ACT `D-183` and `D-186` SAID WAS OWED** ·
+   `storeroom-delivery-settle`'s three (the record's own name counts, one per record: write `7`, rollback `7`, delete `9`) · `storeroom-addon-surface`'s one
+   (`P-SAS-1`: the addon's set is **twenty**, 5 standing + 15 per-verb, `storeRelease` the one positional entry, `call` still absent, **the arm's nineteen declared as
+   that row's non-subject**) · `storeroom-file-save-coverage`'s one (`PIN-11` (ii): the pin's subject stands, **its two citations moved**).
+2. **★ AND THE JSON-CROSSING PART TOOK ARM (a) — IT DECLARED THE RELOCATION, BECAUSE THE LAW GENUINELY STANDS THERE.** Each subject was verified at its destination
+   and not assumed: `§1.2` row `5` survives split across `§1`'s array bullet plus `§2` row `13`; row `4` across `§1`'s object bullet plus `§2` row `14`;
+   **`§1.4` item `4`'s structural test survives at THREE conditions and NOT at seven — so the `(a)`–`(g)` spelling is declared NOT relocated rather than invented to
+   match an absent part**; and **`§1.4` item `5` — the subject of the sixteen unmoved test citations — survives at `§8`'s register rows `7` and `8` with `§4`'s
+   ceiling clause.** **So the corpus now has a live home for that clause, and a later test pass can re-point those 16 citations without a second spec act.**
+3. **THE GUIDES ARE REGENERATED**: `docs/guides/package-use.md` gains **§13 — THE WEBASSEMBLY REALM** (the five subsections: the bindings handed in; `filePath` refused, the
+   `file` tier without a path, `saveCall` as the channel; `initialImage` as image text; **the clone law in both directions and the two `Proxy` answers**; what it cannot do),
+   plus dated clauses for **compaction's drop and what a consumer observes in order** (`rollback` of a dropped op **returns** where a readable `filePath` exists and
+   **throws `RollbackCompacted`** where there is no read path) · **the restore that reads the compacted floor** · **retention by reachability in place of the window** ·
+   **a store released when it is dropped** · and **the two receipt accessors with `ListenerBodyRejected` at rank 23**. `bindings/js/README.md` moves with it.
+   **AND THE INTERNAL CARRIAGES (`D-169`, `D-170`) ARE DELIBERATELY ABSENT FROM THE GUIDES**: no consumer acts on a leg slot or a window stamp, and the one observable
+   consequence — a refusal restoring the state the pass opened on — was already the guide's subject.
+4. **AND FIVE FIGURES OUTSIDE BOTH LENSES WERE FOUND BY THE PASSES AND RE-CUT HERE**: the guide's generated line read **`1.12.0`** against a `1.13.0` manifest · its
+   **"fourteen own members"** in three places against the tree's **fifteen** (`readTiered`) · the README's **"four keys"** against the tree's **six** (`saveCall`,
+   `initialImage` joined the two required ones with `constraints`) · and **`RELEASE-NOTES.md` item 10 declared the `1024`-attempt window `D-176` replaced**, so it is
+   **re-cut to retention-by-reachability with the superseded window quoted and `CLOSED_ATTEMPT_WINDOW` named as having no reader** · and its WebAssembly `filePath`
+   refusal was `AddressMalformed` where the shipped bytes answer **`FilePathUnreachable`** (re-cut, with `CW-2` named as the divergence's own recorder). **Both note copies
+   are byte-identical.**
+5. **AND ONE IDENTIFIER WAS DANGLING AND IS NOW RESOLVABLE**: `D-172` **has no heading** — the WASM arm's retirement is recorded as **`D-171` item 5's dated clause of
+   2026-11-19** (its own heredoc leaked that day and the substance landed there) — so a reader searching the name this session's commits use now finds it **through this row's item 6.**
+6. **WHAT THE PASSES COULD NOT CLOSE, AND SAID**: a **second spelling for `{k:'F'}`'s absent position** (a design act, `D-180` item 1) · whether **`JournalOp.compacted`
+   survives** the drop (`D-160` item 4 of its unsettled) · the **sibling part-map rows** for `crossing.md` and `parameter-semantics.md` in `storeroom-js/` (**both absent
+   paths, named and not edited**) · **`bindings/js/README.guide.md` needs re-staging** by `scripts/publish.sh`'s assembly (`PUB-DD-11`), which no test compares · and the
+   **`S-RECEIPT-ACCESSOR` test title** that still prints *"reads 6"* while its assertion was re-pinned to seven (**a title, not an assertion**, and a test file).
+7. **MEASURED**: `npm test` **`1386` / `1386` / `0`**, **`0` skipped** · `typecheck` `0` · **`publish.test.mjs` `65` / `0`** (the shipped-prose census, unmoved) ·
+   **`CHAIN COMPLETE — 11 runners`**.
+
+---
+
+### `D-188` — THE DOCUMENTATION IS REGENERATED AND CONSISTENT; TWO DECISIONS ARE THE ARCHITECT'S AND ONE ACT IS `delivery`'S
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `8eff774`. **SOURCE:** `D-187`'s owed list, worked. **STATUS: `ACTIVE`.**
+
+1. **THE GENERATED LANDINGS ARE RE-STAGED AND THE ASSEMBLY'S OWN CHECK PASSES.** `scripts/publish.sh --figures` was **failing, and rightly**: the notes'
+   generated version line read **`1.12.0`** against the manifest's `1.13.0`, and **`bindings/js/README.guide.md` still carried the pre-edit line**. Both landings
+   are copied **byte-for-byte** from their canonicals (`PUB-DD-11`), the notes' own line is re-cut, and the check now reads *"all three shipped documents'
+   version lines AGREE with the manifest"*.
+2. **A TITLE THAT CONTRADICTED ITS OWN ASSERTION IS RE-CUT.** `S-RECEIPT-ACCESSOR`'s name printed *"reads `6`"* while its assertion had been re-pinned to
+   **seven** when `U-STOREROOM-08` landed. **A title printing a figure the assertion does not read is the same defect as a sentence one layer up**, and it is
+   re-cut with the reason at the byte.
+3. **THE SIBLING PART MAP'S TWO `carrier` PATHS ARE BOTH ABSENT, AND THE DIFFERENCE IS DECLARED AT EACH.** `crossing.md`'s law now stands in
+   **`docs/specs/storeroom-json-crossing/contract.md`**, which declares the relocation itself — array and object limbs at its `§1` bullets and `§2` rows
+   `13`/`14`, the structural test at `§1`'s **three** conditions (**with the `(a)`–`(g)` spelling declared NOT relocated, because it does not survive**), and
+   the walk ceiling at `§8`'s register rows `7`/`8`. **`parameter-semantics.md` has no such declaration anywhere**, so its row stands as **the record of an
+   absent part** and a reader may not read it as a path that exists. **A relocation is declared by the owning specification or by nobody.**
+4. **MEASURED**: `npm test` **`1386` / `1386` / `0`**, `0` skipped · `typecheck` `0` · **`CHAIN COMPLETE — 11 runners`** · **`publish.sh --figures` `ok`**.
+
+**WHAT IS LEFT IS TWO DECISIONS AND ONE ACT, AND NONE IS A PASS'S:**
+
+- **(a) A SECOND SPELLING FOR `{k:'F'}`** (`D-179` item 4; `D-180` item 1). **The store cannot distinguish, at `journalMark`'s absent answer, a store nothing has
+  been dropped from (floor = `born`, the sentence *"the state the store was born with"* true) from one the compaction has dropped from whose journal is
+  momentarily empty (floor ≠ `born`, the sentence false — reachable through `commit_file`'s failing arm).** **THE DECISION**: mint a second carrier row (a
+  spelling for "the compacted floor" beside "the born state"), **or** keep one row and the floor-only sentence the guides and specs now carry. **Cost of the
+  first: a carrier row moves, and every consumer that spells a mark by hand must learn it. Cost of the second: a caller cannot tell the two states apart —
+  which today it cannot observe either, because both answer the same restore.** **THE ARCHITECT'S.**
+- **(b) WHETHER `JournalOp.compacted` SURVIVES THE DROP** (`D-160` item 4 of its unsettled, still owed). **The member is produced and always `false`; with entries
+  DROPPED rather than flagged, its subject may be gone** — which is a declaration about the record's shape, not a fix. **THE ARCHITECT'S.**
+- **(c) THE RELEASE ACT** — the class is claimed (`D-158`, `1.13.0`) and **no tag is cut**. **`delivery`'s.**
+
+---
+
+### `D-189` — TWO ARCHITECT'S DECISIONS: THE MARK KEEPS ONE FLOOR SPELLING, AND `JournalOp.compacted` IS DROPPED
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `0c7c4a3`. **SOURCE:** the architect, on `D-188` items (a) and (b). **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Keep floor-only"
+> "If .compacted is always false drop it"
+
+**STATUS: `ACTIVE`.**
+
+1. **THE MARK KEEPS ONE SPELLING — THE FLOOR.** **No second carrier row is minted for `{k:'F'}`**, so **the absent position names the floor and the guides and specs
+   already carry that sentence**, and **a caller cannot be told the two classes apart** (a store nothing has been dropped from, where the floor *is* `born`; and a store the
+   compaction has dropped from whose journal is momentarily empty). **THE DECISION IS SOUND ON ITS OWN EVIDENCE**: **the two classes answer the SAME RESTORE**, so a
+   distinction no caller can act on would be a carrier row bought for nothing. **`D-180` item 1's *"needs a second spelling"* is ANSWERED and not deferred**: what it
+   needed was a sentence true of both classes, and the floor is that sentence.
+2. **`JournalOp.compacted` IS DROPPED — AND THE DIRECTIVE IS A CONDITIONAL ANSWERED BY THE TREE.** **MEASURED: the member is produced at two sites
+   (`src/store.rs:2981`, `:3153`) and BOTH SET IT `false`.** **So a member that can hold one value carries nothing**, and its subject — the discrimination
+   `compacted: Vec<String>` once made between *"an op this store compacted"* and *"an op this store never held"* — **is now carried by the `journal_floor` watermark**
+   (`D-160` item 3), which answers `RollbackCompacted` and `JournalOpUnknown` as two distinct refusals **without a per-op flag**. **The removal is a surface change and
+   the class is the architect's next word** (`D-190`): `index.d.ts:694` declares `readonly compacted: boolean` on the PUBLISHED `JournalOp`, so **removing it is breaking
+   against `1.12.0` and `D-158`'s `1.13.0` `MINOR` cannot absorb it.**
+3. **WHAT THE REMOVAL TOUCHES, ENUMERATED SO THE UNIT IS SIZED**: `src/records.rs:176` (the field) · `src/store.rs`'s two producers · `bindings/js/src/entry/frame.mjs:607`
+   and `state.mjs:512` (the two projections) · **`bindings/js/index.d.ts:694`** (the declared member and its `678`–`684` prose) · **`src/store.rs:625`/`:668`'s
+   docblock mentions** and `:2335`'s · **every cell that counts the record's members** (the live-instrument cell `D-184` item 1 landed asserts **eight**, and the capture
+   cell's eight-member claim) · **the specs** (`storeroom-native` `§6.2`'s `compacted` member, `storeroom-delivery-settle`'s record rows) · **the notes**
+   (`§1.13.0`'s item naming it) · **the guides**, where it appears as *"`compacted` still reads `false`"* (§5.4 item 4).

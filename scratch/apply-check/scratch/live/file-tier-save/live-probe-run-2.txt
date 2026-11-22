@@ -1,0 +1,25 @@
+== F5: THE REPAIR JOIN, THE ROUTE THE CLAUSE NAMES ======================
+outcome=passed ops=2
+listener fires (address, file bytes at that instant): [[["c"],""],[["c"],"{\"c\":10}"]]
+file bytes after the pass = "{\"c\":10}"
+rc.op.opId="op-1" rc.pending.length=1
+ops = [["op-1","write",["c"],1],["op-2","write",["c"],2]]
+log = [["constraint-check",null,"op-1","too large"],["repair-run",null,"op-2","the repair c1 landed op-2"],["constraint-check",null,"op-2","the constraint c1 passed at [\"c\"]"],["commit",null,"op-2","every constraint registered at [\"c\"] passed; the commit stands"]]
+
+== F6: THE FIFTH POSITION VS A FOREIGN `pending` (the OPEN wider class) ==
+write with { pending: [<a handle this instance never minted>] } -> PROCEEDED "op-3"
+write with { pending: [{ notAHandle: true }] } -> PROCEEDED "op-4"
+write with { pending: [] } -> PROCEEDED "op-5"
+file bytes = ""
+
+== F7: ONE RECORD, TWO SAVES ============================================
+first drive = passed ; bytes after 1st = "{\"c\":6}"
+re-drive = REFUSED ["KC-2","no open constraint attempt answers to attempt-2"]
+bytes after re-drive = "{\"c\":6}"
+
+== F8: THE SAVE'S OWN ARM ON THE FAILING PATH, READ INSIDE THE CATCH ====
+thrown = ["FileCommitFailed","'b' could not be committed to '/media/ryanr/Shared Files/Projects/Provident-Storeroom/scratch/live/file-tier-save/fs/probe2-1792115961929/f8/arm.json', the file write failed at '/media/ryanr/Shared Files/Projects/Provident-Storeroom/scratch/live/file-tier-save/fs/probe2-1792115961929/f8/arm.json'"]
+inside/after the catch: {"log":[["constraint-check",null],["commit",null],["outcome","KC-8"]],"report":["failed",[{"opId":"op-8","answer":"JournalOpUnknown","failed":true,"undoneOps":[],"restoredTo":{"present":false},"checkpoint":null}]]}
+the failing store's own register reads (['b']) = "AddressNotFound expected"
+
+FIXTURES LEFT AT /media/ryanr/Shared Files/Projects/Provident-Storeroom/scratch/live/file-tier-save/fs/probe2-1792115961929

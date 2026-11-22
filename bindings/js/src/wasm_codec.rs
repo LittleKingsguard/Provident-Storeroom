@@ -1049,7 +1049,12 @@ fn to_js_base_state(state: &JsBaseState) -> JsVal {
     ])
 }
 
-/// `PAR-JS-13`'s own eight members — `codec.rs`'s `to_js_journal_op`.
+/// `PAR-JS-13`'s own **SEVEN** members — `codec.rs`'s `to_js_journal_op`.
+///
+/// **⟶ SEVEN, NOT EIGHT, FROM 2026-11-17** (`strata/decisions.md` · `D-189` item 2): **`compacted` left the
+/// store's record, so it leaves this emitter with the key it carried, and the wasm arm and the node arm agree
+/// key for key** — the two emitters are one spelling of one member list, and a key that survived on one arm
+/// and not the other would be a second declared record.
 fn to_js_journal_op(op: &JsJournalOp) -> JsVal {
     let tier = match &op.tier {
         Some(token) => string_value(token),
@@ -1063,7 +1068,6 @@ fn to_js_journal_op(op: &JsJournalOp) -> JsVal {
         ("before", to_js_base_state(&op.before)),
         ("after", to_js_base_state(&op.after)),
         ("seq", number_value(op.seq as f64)),
-        ("compacted", bool_value(op.compacted)),
     ])
 }
 

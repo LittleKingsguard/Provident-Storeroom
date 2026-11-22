@@ -49,13 +49,15 @@ test('d43_3_a_delete_is_reversible_from_the_op_its_own_record_carries_and_every_
   assert.equal(instance.read(['d43'], 'mem'), 'mem-value');
 
   const receipt = instance.delete(['d43']);
-  // THE RECORD NAMES ITS OWN ACT (`index.d.ts` `DeleteRecord.op`): the store's own eight-member journal op,
-  // the member `WriteRecord` carries at the same name and the same type.
+  // THE RECORD NAMES ITS OWN ACT (`index.d.ts` `DeleteRecord.op`): the store's own **seven-member** journal
+  // op, the member `WriteRecord` carries at the same name and the same type.
+  // **⟶ SEVEN AND NOT EIGHT FROM `2026-11-17`** (`strata/decisions.md` · `D-189` item 2): `compacted` is
+  // REMOVED from the store's record, from the crossing and from the declaration, so this census — which drives
+  // the DELETE route, the second live producer of an operation record — moves `8 → 7` with it.
   assert.deepEqual(Object.keys(receipt.op).sort(), [
     'address',
     'after',
     'before',
-    'compacted',
     'kind',
     'opId',
     'seq',

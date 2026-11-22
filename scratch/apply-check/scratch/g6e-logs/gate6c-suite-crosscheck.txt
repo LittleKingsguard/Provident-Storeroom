@@ -1,0 +1,763 @@
+✔ ck_dm_the_callers_own_write_returns_the_handle_the_adopted_registration_answers_with (2.766728ms)
+✔ ck_dm_the_triggering_address_is_the_operations_own_address_and_never_the_watch_address (0.375581ms)
+✔ ck_dm_the_kernel_runs_an_evaluated_pairs_own_body_in_its_own_window_with_the_attempt_context (0.992078ms)
+✔ ck_dm_a_plain_listener_body_is_never_run_by_the_surfaces_constraints_layer (0.437949ms)
+✔ ck_dm_a_passed_constraint_does_not_mark_a_listener_run_and_no_kernel_act_runs_one (0.57592ms)
+✔ ck_dm_on_a_throwing_arm_the_callers_loop_performs_no_invocation_for_a_handle_the_set_carries (0.783343ms)
+✔ ck_dm_the_throw_reaches_the_caller_and_the_arm_leaves_nothing_for_a_loop_to_invoke (0.261425ms)
+✔ ck_dm_a_rolled_back_writes_triggered_set_is_discarded_rather_than_carried (0.355513ms)
+✔ ck_dm_a_writes_whole_returned_set_stands_in_pending_at_the_moment_the_record_is_produced (0.430234ms)
+✔ ck_dm_a_checked_off_entry_leaves_pending_and_a_failing_entry_stands_until_it_passes (0.39668ms)
+✔ ck_dm_no_sifted_subset_is_produced_and_no_listener_is_absent_from_the_write_pending (0.61281ms)
+✔ ck_dm_the_callers_loop_is_one_invoker_and_the_kernel_runs_a_pair_body_in_its_own_window (0.454411ms)
+✔ ck_neg_dm_01_throwing_arm_prefix_listener_discard_extent (3.7723ms)
+✔ ck_neg_dm_02_pass_exits_at_repair_unevaluated_handle (0.900905ms)
+✔ ck_neg_dm_03_nested_K2_from_a_body_the_pass_reaches_held_address_refused_and_descendant_admitted (0.996466ms)
+✔ ck_neg_dm_04_sift_and_checkoff_indistinguishable_to_the_caller (0.566923ms)
+✔ ck_neg_dm_05_the_failing_arms_discard_reaches_every_handle_of_the_failed_writes_returned_set (0.716477ms)
+✔ ck_neg_dm_06_the_passing_arms_entry_leaves_by_its_own_checkoff_and_the_discard_reaches_nothing (0.590027ms)
+✔ ck_neg_dm_07_the_stale_adoption_of_a_write_that_never_ran_withholds_the_next_bare_writes_window (0.682983ms)
+✔ ck_neg_dm_08_the_check_off_removes_one_occurrence_and_the_residue_delivers_the_rest (1.108298ms)
+✔ ck_neg_dm_09_the_abandoned_attempt_stands_open_holds_its_address_and_is_disposed_of_by_its_own_late_terminal_arm (0.646203ms)
+✔ ck_neg_dm_10_a_listener_registered_at_the_address_a_pair_holds_is_reached_once_every_constraint_has_passed (1.472818ms)
+✔ ck_neg_dm_census_the_four_delta_cells_and_the_one_limb_this_unit_cannot_drive (0.118814ms)
+✔ ck_layer_a_a_kernel_made_writes_returned_handle_is_invoked_in_the_kernel_s_own_window (3.988329ms)
+✔ ck_layer_a_two_ids_at_one_address_each_get_their_own_function_and_one_store_home (0.419965ms)
+✔ ck_layer_a_constraints_run_before_other_listeners_at_the_same_address (0.415486ms)
+✔ ck_layer_b_the_uninvoked_caller_returned_handle_stands_in_pending_and_in_no_other_member (0.539771ms)
+✔ ck_layer_b_the_plain_store_listener_carries_the_triggering_address_as_its_one_argument (0.351084ms)
+✔ ck_layer_b_the_order_law_every_layer_a_delivery_completes_before_any_layer_b_body (0.73961ms)
+✔ ck_layer_b_a_caller_made_writes_uninvoked_handle_stands_in_pending_and_is_not_run_by_the_kernel (3.960437ms)
+✔ ck_layer_b_a_record_with_no_caller_work_leaves_the_caller_s_loop_with_nothing_to_run (0.374479ms)
+✔ ck_layer_b_a_handle_delivered_in_window_is_checked_off_and_not_handed_to_the_callers_loop (0.321699ms)
+✔ ck_layer_b_a_foreign_instances_handle_is_never_invoked_by_the_kernel (0.328592ms)
+✔ ck_p_neg_14_the_discard_reaches_a_handle_by_the_set_it_came_back_in_and_not_by_the_ancestry_of_its_registration (7.331026ms)
+✔ ck_p_neg_15_a_pair_registered_mid_pass_joins_no_pass_and_appends_no_entry_in_it (0.907437ms)
+✔ ck_p_neg_16_the_outside_form_decides_at_the_first_violating_pair_whatever_its_form (0.462635ms)
+✔ ck_p_neg_17_the_repair_run_entry_names_the_op_it_was_invoked_for_on_both_arm_d_arms (1.122915ms)
+✔ ck_p_neg_18_a_repair_naming_a_pre_attempt_op_credits_nothing_and_is_KC4 (1.794457ms)
+✔ ck_p_neg_19_a_commit_record_from_another_instance_is_refused_KC2_and_eats_nothing (1.076488ms)
+✔ ck_p_neg_20_a_throwing_body_over_a_compacted_base_leaves_the_one_outcome_entry_at_KC8 (0.763886ms)
+✔ ck_p_neg_22_a_delete_shaped_repair_reaches_arm_d_KC4_because_the_delete_record_carries_no_op (0.570059ms)
+✔ ck_prop_P_IM_1_the_pair_key_is_unique_and_the_handle_check_is_the_store_s (8.375955ms)
+✔ ck_prop_P_IM_1_a_malformed_address_is_refused_caller_side_and_a_store_refusal_stays_the_store_s (1.364844ms)
+✔ ck_prop_P_IM_1_two_distinct_pairs_that_spell_alike_each_answer_their_own_address (0.901677ms)
+✔ ck_prop_P_IM_2_no_attempt_record_member_crosses_the_store_s_surface (2.945796ms)
+✔ ck_prop_P_IM_2_an_op_the_attempt_created_and_no_op_it_did_not (2.967897ms)
+✔ ck_prop_P_IM_3_no_drive_of_this_unit_produces_a_store_member_as_a_constraint_failure_s_status (2.471168ms)
+✔ ck_prop_P_SM_4_every_attempt_reaches_exactly_one_declared_terminal_answer (3.028462ms)
+✔ ck_prop_P_SM_5_the_log_s_own_order_and_the_registry_s_first_registration_order (3.823808ms)
+✔ ck_prop_P_SM_5_the_constraint_reads_only_the_value_the_write_landed (2.016547ms)
+✔ ck_prop_P_SM_6_an_applied_repair_never_runs_twice_within_one_attempt (2.914437ms)
+✔ ck_prop_P_SM_6_the_two_repeat_limbs_are_distinguishable_by_the_pair_s_own_state (3.408202ms)
+✔ ck_prop_P_TP_7_a_failed_attempt_ran_one_call_per_op_and_a_passed_one_rolled_nothing_back (3.547455ms)
+✔ ck_prop_P_TP_8_the_marker_opens_empty_on_a_second_attempt_at_the_same_address (3.351884ms)
+✔ ck_prop_P_IM_1_a_second_id_at_one_address_stands_and_the_store_holds_one_home_entry (1.924092ms)
+✔ ck_prop_P_IM_1_the_handle_check_is_the_store_s_on_both_arms (1.314038ms)
+✔ ck_prop_P_IM_2_the_two_disposal_arms_and_the_log_they_carry (2.395785ms)
+✔ ck_prop_P_SM_4_one_drive_per_outside_form_and_its_declared_state (1.018658ms)
+✔ ck_prop_P_SM_4_one_drive_per_arm_of_the_repeat_pair_and_the_owed_op (3.234723ms)
+✔ ck_prop_P_SM_5_the_constraint_function_is_invoked_by_the_caller_and_never_by_the_store (2.896102ms)
+✔ ck_prop_P_SM_6_no_repair_budget_or_retry_count_is_the_attempt_s_bound (1.715517ms)
+✔ ck_prop_P_TP_8_two_instances_never_see_each_other_s_marker (2.199263ms)
+✔ ck_prop_P_TP_8_the_marker_writes_no_store_entry_no_journal_entry_and_no_closed_record (1.297486ms)
+✔ ck_prop_the_register_ran_at_most_four_hundred_attempts_and_stopped_after_five_failures_a_row (0.198807ms)
+✔ ck_p_neg_21_every_declared_strategy_id_cites_a_row_cell_or_stands_in_the_named_undrivable_list (0.12117ms)
+✔ ck_repairop_arm_b_the_declared_success_arm_carries_the_op_the_callers_own_verb_answered (4.533161ms)
+✔ ck_repairop_arm_d_an_ok_true_return_with_no_op_member_is_KC4_and_its_repair_run_entry_is_appended (2.057154ms)
+✔ ck_repairop_arm_d_an_ok_true_return_whose_op_is_undefined_is_KC4 (0.573947ms)
+✔ ck_repairop_arm_d_an_ok_true_return_naming_an_op_the_repair_never_landed_is_KC4 (0.51788ms)
+✔ ck_repairop_the_kernel_reaches_the_store_only_through_the_callers_own_instance (0.535684ms)
+✔ ck_repairop_the_module_holds_no_addon_load_path_and_loads_with_native_addons_disabled (28.400108ms)
+✔ ck_constraint_null_arm_the_calls_are_item_2_s_list_minus_the_ops_the_store_reported_undone (6.967639ms)
+✔ ck_constraint_null_arm_holds_at_a_fresh_address_where_the_pre_state_is_absence (0.80862ms)
+✔ ck_constraint_a_failed_attempt_at_an_address_the_caller_already_wrote_undoes_that_addresss_own_entry (0.721025ms)
+✔ ck_constraint_a_later_commit_at_a_failed_attempts_address_returns_a_fresh_record (0.667433ms)
+✔ ck_constraint_a_second_attempt_at_a_failed_attempts_address_meets_the_store_s_own_floor_and_closes_KC8 (0.894253ms)
+✔ ck_constraint_a_store_refused_repair_has_its_own_token_named_in_the_repair_run_entry (0.806767ms)
+✔ ck_states_arm_b_a_successful_repair_adds_its_op_and_the_re_run_passes (5.294492ms)
+✔ ck_states_arm_c_a_violation_with_no_repair_is_KC3_and_the_log_carries_the_callers_own_text (0.78183ms)
+✔ ck_states_arm_c_a_value_outside_the_three_arms_is_read_as_the_message_arm (0.402071ms)
+✔ ck_states_arm_d_a_repair_that_produces_no_op_is_KC4_and_the_store_is_rolled_back (0.392513ms)
+✔ ck_states_arm_d_every_value_outside_the_two_repair_arms_is_read_as_the_failure_arm (2.365427ms)
+✔ ck_states_a_repair_body_that_throws_reaches_the_caller_unconverted (0.403153ms)
+✔ ck_states_a_constraint_body_that_throws_reaches_the_caller_unconverted (0.330896ms)
+✔ ck_states_arm_f_a_repeat_by_a_pair_whose_repair_is_not_recorded_is_KC6_and_the_repair_never_ran (0.450643ms)
+✔ ck_states_arm_e_a_repeat_by_a_pair_already_recorded_as_applied_is_KC5_and_runs_no_second_repair (1.854551ms)
+✔ ck_states_the_two_repeat_limbs_are_disjoint_by_the_appliedRepairs_member_and_not_by_the_count (1.331301ms)
+✔ ck_states_each_refused_repeat_token_is_one_of_the_eight_and_is_never_a_store_member (1.338533ms)
+✔ ck_states_the_composition_runs_repaired_ops_first_in_reverse_then_the_first_write_last (0.860248ms)
+✔ ck_states_every_step_carries_the_six_declared_members_and_the_arm_s_own_checkpoint (0.641033ms)
+✔ ck_states_a_first_evaluation_failure_leaves_the_checkpoint_null (0.268809ms)
+✔ ck_states_an_attempt_that_passes_leaves_a_rollback_of_length_zero (0.245334ms)
+✔ ck_states_a_successful_rollback_clears_the_registry_and_a_later_commit_is_free (0.305759ms)
+✔ ck_states_a_throwing_per_op_call_leaves_the_attempt_s_own_registry_entry_standing (0.584566ms)
+✔ ck_states_a_reentrant_run_attempt_and_a_reentrant_commit_are_KC7_and_change_nothing (0.296702ms)
+✔ ck_states_K5_over_an_attempt_that_is_still_open_is_KC7 (0.273417ms)
+✔ ck_states_K3_and_K5_refusals_carry_no_store_member (0.265282ms)
+✔ ck_states_a_per_op_call_over_an_op_the_composition_does_not_owe_is_never_KC8 (0.261024ms)
+✔ ck_states_every_step_reports_a_boolean_failed_member_and_a_carried_answer (0.26423ms)
+✔ ck_neg_1_the_first_violating_pair_decides_and_the_second_pair_is_never_evaluated (0.310307ms)
+✔ ck_neg_2_the_call_list_reaches_beside_addresses_and_the_walk_runs_to_its_last_member (1.347942ms)
+✔ ck_neg_3_a_still_owed_call_meeting_a_compacted_base_is_KC8_with_one_outcome_entry (0.417992ms)
+✔ ck_neg_4_every_step_carries_its_own_answer_and_a_two_member_restored_to_on_both_arms (0.842344ms)
+✔ ck_neg_5_a_closed_failure_never_refuses_a_later_commit_and_its_record_is_retained (0.588624ms)
+✔ ck_neg_6_an_open_attempt_is_KC7_at_K5_while_a_commit_record_is_never_an_attempt_ref (0.280641ms)
+✔ ck_neg_10_both_body_throw_paths_leave_the_closed_log_and_the_thrown_log_the_same_list (0.550021ms)
+✔ ck_surface_K1_the_five_items_are_the_whole_surface (2.110435ms)
+✔ ck_surface_K1_a_lawful_registration_returns_the_store_s_own_adopted_handle (3.273637ms)
+✔ ck_surface_K1_two_ids_at_one_address_leave_two_entries_and_one_store_home (1.684008ms)
+✔ ck_surface_K1_a_null_address_is_refused_with_KC1 (0.362977ms)
+✔ ck_surface_K1_every_address_shape_outside_the_domain_is_refused_with_KC1 (0.434372ms)
+✔ ck_surface_K1_the_empty_address_is_in_the_store_s_domain (0.247509ms)
+✔ ck_surface_K1_every_id_outside_its_domain_is_refused_with_KC2 (0.308434ms)
+✔ ck_surface_K1_a_non_function_constraint_is_refused_with_KC2 (0.253279ms)
+✔ ck_surface_K1_the_three_refused_shapes_of_E2E_C_12_add_nothing_to_the_registry (0.384989ms)
+✔ ck_surface_K2_commit_returns_a_four_member_CommitRecord_and_opens_the_attempt (0.358779ms)
+✔ ck_surface_K2_a_second_commit_at_the_same_address_meets_KC7_before_the_write_verb (0.283507ms)
+✔ ck_surface_K2_an_out_of_domain_tier_is_the_store_s_own_code_on_the_store_s_own_channel (0.409365ms)
+✔ ck_surface_K2_an_absent_value_is_refused_by_the_store_and_never_by_a_KC2 (0.338691ms)
+✔ ck_surface_K3_the_happy_path_is_a_two_entry_log_a_one_op_report_and_an_empty_rollback (0.404325ms)
+✔ ck_surface_K3_the_log_entry_is_exactly_six_members_in_seq_order (0.538389ms)
+✔ ck_surface_K3_a_pass_that_holds_no_pair_carries_no_constraint_check_entry (0.329695ms)
+✔ ck_surface_K3_a_closed_commit_record_is_refused_with_KC2_and_never_reruns (0.428301ms)
+✔ ck_surface_K3_an_unknown_attempt_reference_is_refused_with_KC2 (0.160744ms)
+✔ ck_surface_K4_the_closed_attempt_s_log_is_reachable_and_is_the_report_s_own_list (0.365382ms)
+✔ ck_surface_K5_the_report_is_the_five_member_shape_and_equals_the_K3_return (0.293355ms)
+✔ ck_surface_K5_an_unknown_attempt_reference_is_KC2_and_never_KC7 (0.171144ms)
+✔ ck_surface_K4_the_readers_answer_from_the_record_and_not_from_the_store_instance (0.326378ms)
+✔ combined_call_on_returns_a_handle_a_write_fires_the_function_once_with_the_triggering_address_and_the_triggered_identity_is_that_handle (3.373556ms)
+✔ validation_first_and_atomicity_a_non_function_listener_and_a_malformed_address_are_each_refused_verbosely_with_nothing_left_behind (1.981852ms)
+✔ held_address_arm_on_returns_the_same_handle_and_replaces_the_function_and_on_over_a_register_entry_is_a_replacement_not_a_refusal (0.711887ms)
+✔ off_performs_both_removals_and_returns_undefined_while_unlisten_removes_only_the_store_side_registration_and_the_registry_entry_stands (1.892362ms)
+✔ the_removal_order_is_validate_then_store_side_withdrawal_then_registry_removal_and_a_throwing_path_leaves_both_entries_exactly_as_they_were (0.614573ms)
+✔ the_instance_member_set_is_register_on_off_settle_and_the_module_namespace_is_unchanged_at_the_eight_declared_verbs (0.492041ms)
+✔ off_over_every_outside_handle_class_is_refused_address_malformed_in_the_one_form_and_removes_neither_half (0.566452ms)
+✔ off_deregisters_the_identity_in_the_duplicate_token_state_so_the_surviving_entry_still_fires_for_its_own_address_while_the_package_invokes_nothing_it_removed (0.629452ms)
+✔ fts_prop_P_IM_1_S_ORDER_SAVE_ordinals_and_the_pre_save_image (21.44365ms)
+✔ fts_prop_P_IM_2_S_DURABLE_IMAGE_a_failing_pass_is_byte_identical (23.767609ms)
+✔ fts_prop_P_SM_3_S_ARM_SAVE_the_arm_table_is_total_over_tier_and_arm (8.353282ms)
+✔ fts_prop_P_SM_4_S_REFUSAL_rollback_first_message_second_and_no_repair (6.401187ms)
+✔ fts_prop_P_SM_5_S_JOIN_the_op_set_grows_by_exactly_one_per_repair_write (6.581859ms)
+✔ fts_prop_P_TP_6_S_CONSTRAINTS_KEY_instance_iff_the_list_lies_inside_its_domain (10.75605ms)
+✔ fts_prop_P_TP_7_S_ARG5_a_refused_fifth_position_stops_the_write (3.513962ms)
+✔ fts_prop_P_TP_8_S_CENSUS_the_set_the_keys_and_the_rows_are_single_valued (5.611331ms)
+✔ fts_S_ORDER_SAVE_the_constraint_body_reads_the_pre_save_image_and_the_listener_the_post_save_one (6.6141ms)
+✔ fts_S_ORDER_SAVE_no_listener_body_runs_while_a_constraint_of_the_same_write_stands_owed (0.603132ms)
+✔ fts_S_ORDER_SAVE_the_save_precedes_every_body_of_the_delivered_set_and_not_the_first_only (0.870848ms)
+✔ fts_S_DURABLE_IMAGE_a_failing_pass_leaves_the_last_passing_image_byte_identical (1.30485ms)
+✔ fts_S_DURABLE_IMAGE_a_passing_passs_image_is_durable_before_the_first_listener_body (0.573425ms)
+✔ fts_S_ARM_SAVE_the_file_tier_passing_arm_commits_once_and_only_at_the_terminal_arm (0.50719ms)
+✔ fts_S_ARM_SAVE_the_file_tier_failing_arm_commits_nothing (0.587392ms)
+✔ fts_S_ARM_SAVE_a_mem_tier_write_commits_nothing_on_either_arm (0.493514ms)
+✔ fts_S_ARM_SAVE_a_temp_tier_write_commits_nothing_on_either_arm (1.840604ms)
+✔ fts_S_ARM_SAVE_a_record_whose_op_is_not_a_file_tier_writes_commits_nothing (0.468727ms)
+✔ fts_S_REFUSAL_a_failed_save_rolls_the_write_back_first_and_answers_the_caller_after_it (0.731816ms)
+✔ fts_S_REFUSAL_the_failed_saves_code_is_FileCommitFailed_and_its_message_carries_the_path (1.071919ms)
+✔ fts_S_REFUSAL_the_save_is_evaluated_last_after_every_constraint_of_its_set_has_passed (0.582453ms)
+✔ fts_S_JOIN_a_repairs_write_joins_the_same_commit_and_the_op_set_grows_by_exactly_one (0.562935ms)
+✔ fts_S_JOIN_a_repairs_write_is_an_ordinary_write_and_its_refusal_is_the_kernels_KC_4 (0.405457ms)
+✔ fts_S_JOIN_a_repair_refused_as_WriteParentNotLink_answers_the_callers_KC_4 (0.484838ms)
+✔ fts_S_CONSTRAINTS_KEY_an_absent_key_is_in_domain_and_is_never_read_as_an_empty_list (0.341306ms)
+✔ fts_S_CONSTRAINTS_KEY_an_empty_array_is_a_legal_list_and_is_not_the_absent_key (0.169711ms)
+✔ fts_S_CONSTRAINTS_KEY_one_well_formed_pair_constructs_and_the_pass_evaluates_it (0.374479ms)
+✔ fts_S_CONSTRAINTS_KEY_two_well_formed_pairs_construct (0.377024ms)
+✔ fts_S_CONSTRAINTS_KEY_null_and_undefined_are_outside_the_domain_and_no_instance_returns (0.307021ms)
+✔ fts_S_CONSTRAINTS_KEY_a_non_array_is_outside_the_domain (0.380441ms)
+✔ fts_S_CONSTRAINTS_KEY_the_worked_example_answers_its_own_generated_message_verbatim (0.238532ms)
+✔ fts_S_CONSTRAINTS_KEY_an_array_carrying_an_element_that_is_not_a_pair (1.29434ms)
+✔ fts_S_CONSTRAINTS_KEY_a_pair_whose_address_lies_outside_the_segment_array (1.249976ms)
+✔ fts_S_CONSTRAINTS_KEY_a_pair_whose_id_is_absent_or_not_a_string (0.325557ms)
+✔ fts_S_CONSTRAINTS_KEY_no_package_side_code_and_no_package_side_message_is_minted_for_any_outside_form (0.16897ms)
+✔ fts_S_CONSTRAINTS_KEY_the_load_side_validates_the_persisted_list_and_a_valid_one_boots (0.361655ms)
+✔ fts_S_CONSTRAINTS_KEY_the_load_side_failure_answers_ConstraintListInvalid_and_no_instance (0.928127ms)
+✔ fts_S_ARG5_the_declared_position_is_the_fifth_and_the_last_and_it_is_optional (0.378256ms)
+✔ fts_S_ARG5_an_absent_commit_is_in_domain_and_the_write_proceeds (0.210619ms)
+✔ fts_S_ARG5_an_adopted_record_position_is_accepted_and_the_write_proceeds (0.191322ms)
+✔ fts_S_ARG5_null_is_refused_by_the_class_test_and_the_write_does_not_proceed (0.202313ms)
+✔ fts_S_ARG5_a_non_object_scalar_is_refused_and_the_write_does_not_proceed (0.280621ms)
+✔ fts_S_ARG5_a_function_is_refused_and_the_write_does_not_proceed (0.162918ms)
+✔ fts_S_ARG5_a_proxy_value_carrying_no_pending_member_is_refused (0.16417ms)
+✔ fts_S_ARG5_the_object_and_any_object_whose_pending_is_absent_or_undefined_is_refused (0.319555ms)
+✔ fts_S_ARG5_an_array_is_refused_and_the_write_does_not_proceed (0.222501ms)
+✔ fts_S_ARG5_an_absent_fifth_argument_opens_or_joins_its_commit_and_the_write_proceeds (0.196842ms)
+✔ fts_S_ARG5_a_supplied_undefined_at_the_fifth_position_is_refused_and_the_write_does_not_proceed (0.195991ms)
+✔ fts_S_ARG5_the_refusal_is_the_arity_gates_by_the_count_alone (0.312071ms)
+✔ fts_S_CENSUS_the_sixteenth_member_is_reachable_and_the_terms_of_the_algebra_stand (0.150314ms)
+✔ fts_S_CENSUS_no_existing_trigger_is_widened_to_reach_the_new_member (0.345204ms)
+✔ fts_S_CENSUS_the_construction_declares_four_keys_and_no_fifth_is_added (0.288186ms)
+✔ fts_S_CENSUS_no_rank_moves_no_ninth_register_row_and_no_second_register (1.163512ms)
+✔ fts_FTS_04_9_the_failed_saves_own_log_carries_the_outcome_entry_and_the_report_does_not_claim_the_passing_arm (0.588444ms)
+✔ fts_FTS_04_9_the_same_failure_by_the_second_route_the_parents_access_withdrawn_reports_the_same_record_side_failure (0.449851ms)
+✔ fts_FTS_04_9_THE_DISCRIMINATE_a_succeeding_save_still_reports_passed_with_an_empty_rollback (0.386782ms)
+✔ fts_FTS_04_10_a_failing_saves_log_carries_the_outcome_entry_and_no_commit_entry (0.856872ms)
+✔ fts_FTS_04_10_THE_SECOND_ROUTE_the_withdrawn_access_leaves_no_commit_entry_either (0.396761ms)
+✔ fts_FTS_04_10_THE_DISCRIMINATE_a_succeeding_saves_log_carries_the_commit_entry_once_and_last (0.270031ms)
+✔ fts_FTS_11_5_a_repairs_write_carries_the_commit_it_is_part_of_at_the_fifth_position_and_joins_that_commit (0.456324ms)
+✔ fts_FTS_09_zero_byte_file_boots_an_instance_while_a_two_byte_empty_image_is_validated_and_refused (0.456504ms)
+✔ fts_S_REPAIR_CTX_the_context_the_kernel_hands_a_repair_carries_exactly_the_six_declared_members_and_pending_is_an_array (0.608071ms)
+✔ fts_S_REPAIR_CTX_the_handed_list_is_a_fresh_copy_so_the_repairs_own_mutation_moves_nothing_on_the_commit (0.3751ms)
+✔ fts_S_REPAIR_CTX_the_fifth_position_accepts_the_context_only_because_it_carries_that_member (0.498123ms)
+✔ fts_S_UNREPAIRABLE_a_repair_registered_for_the_writes_own_set_is_never_delivered_the_saves_failure (0.522209ms)
+NG NG-JS-A strategy=rollback op-id corpus attempts=8 failures=0 verdict=HELD
+NG NG-JS-B strategy=Array subclass, both positions attempts=6 failures=0 verdict=HELD
+NG NG-JS-C strategy=cfg shapes attempts=8 failures=0 verdict=HELD
+NG NG-JS-D strategy=depth 63/64/65/66 attempts=4 failures=0 verdict=HELD
+NG NG-JS-D-nodes strategy=visited 1,000,000 / 1,000,001 attempts=1 failures=0 verdict=HELD
+NG NG-JS-E strategy=cross-realm plain objects and arrays attempts=6 failures=0 verdict=HELD
+NG NG-JS-F strategy=handle inputs at register and unlisten attempts=8 failures=0 verdict=HELD
+NG NG-JS-G strategy=listener sets and trigger shapes attempts=8 failures=0 verdict=HELD
+NG NG-JS-H strategy=absent-addon load state attempts=1 failures=0 verdict=HELD (status=FilePathUnreachable, two-arm byte equality asserted at 2 tried subject(s))
+NG NG-JS-I-arm strategy=Proxy-over-array corpus at the address position attempt=0 arms=6+3 traps=0 reentries=0 verdict=HELD
+NG NG-JS-I-arm strategy=Proxy-over-array corpus at the address position attempt=1 arms=6+3 traps=0 reentries=0 verdict=HELD
+NG NG-JS-I-arm strategy=Proxy-over-array corpus at the address position attempt=2 arms=6+3 traps=0 reentries=0 verdict=HELD
+NG NG-JS-I-arm strategy=Proxy-over-array corpus at the address position attempt=3 arms=6+3 traps=0 reentries=0 verdict=HELD
+NG NG-JS-I-arm strategy=Proxy-over-array corpus at the address position attempt=4 arms=6+3 traps=0 reentries=0 verdict=HELD
+NG NG-JS-I-arm strategy=Proxy-over-array corpus at the address position attempt=5 arms=6+3 traps=0 reentries=0 verdict=HELD
+NG NG-JS-I strategy=Proxy-over-array corpus at the address position attempts=6 failures=0 verdict=HELD
+NG NG-JS-J-arm strategy=in-delivery corpus attempt=0 arms=6 verdict=HELD
+NG NG-JS-J-arm strategy=in-delivery corpus attempt=1 arms=6 verdict=HELD
+NG NG-JS-J-arm strategy=in-delivery corpus attempt=2 arms=6 verdict=HELD
+NG NG-JS-J-arm strategy=in-delivery corpus attempt=3 arms=6 verdict=HELD
+NG NG-JS-J-arm strategy=in-delivery corpus attempt=4 arms=6 verdict=HELD
+NG NG-JS-J-arm strategy=in-delivery corpus attempt=5 arms=6 verdict=HELD
+NG NG-JS-J-arm strategy=in-delivery corpus attempt=6 arms=6 verdict=HELD
+NG NG-JS-J-arm strategy=in-delivery corpus attempt=7 arms=6 verdict=HELD
+NG NG-JS-J strategy=register/replace/off/unlisten from inside a body attempts=8 failures=0 verdict=HELD
+NG NG-JS-K-arm strategy=caller-spelled duplicate attempt=0 arms=2 verdict=HELD
+NG NG-JS-K-arm strategy=caller-spelled duplicate attempt=1 arms=2 verdict=HELD
+NG NG-JS-K-arm strategy=caller-spelled duplicate attempt=2 arms=2 verdict=HELD
+NG NG-JS-K-arm strategy=caller-spelled duplicate attempt=3 arms=2 verdict=HELD
+NG NG-JS-K-arm strategy=caller-spelled duplicate attempt=4 arms=2 verdict=HELD
+NG NG-JS-K-arm strategy=caller-spelled duplicate attempt=5 arms=2 verdict=HELD
+NG NG-JS-K-arm strategy=caller-spelled duplicate attempt=6 arms=2 verdict=HELD
+NG NG-JS-K-arm strategy=caller-spelled duplicate attempt=7 arms=2 verdict=HELD
+NG NG-JS-K strategy=caller-spelled duplicate through off and unlisten attempts=8 failures=0 verdict=HELD
+NG NG-JS-L-arm strategy=silent-repair corpus attempt=0 arms=3 verdict=HELD
+NG NG-JS-L-arm strategy=silent-repair corpus attempt=1 arms=3 verdict=HELD
+NG NG-JS-L-arm strategy=silent-repair corpus attempt=2 arms=3 verdict=HELD
+NG NG-JS-L-arm strategy=silent-repair corpus attempt=3 arms=3 verdict=HELD
+NG NG-JS-L-arm strategy=silent-repair corpus attempt=4 arms=3 verdict=HELD
+NG NG-JS-L-arm strategy=silent-repair corpus attempt=5 arms=3 verdict=HELD
+NG NG-JS-L strategy=lone surrogate at a segment and a member key; saturated segments attempts=6 failures=0 verdict=HELD
+✔ ng_js_a_the_rollback_op_id_corpus_answers_the_one_form_and_never_a_raw_host_error (4.37919ms)
+✔ ng_js_b_an_array_subclass_is_refused_as_a_value_and_as_an_address_and_the_plain_array_is_not (3.546312ms)
+✔ ng_js_c_the_cfg_shapes_are_decided_by_class_first_and_an_absent_key_is_never_read_as_present (2.120243ms)
+✔ ng_js_d_the_depth_and_node_ceilings_are_the_packages_own_walks_arm (1519.855777ms)
+✔ ng_js_e_a_cross_realm_plain_object_or_array_is_accepted_at_both_positions (6.925459ms)
+✔ ng_js_f_the_handle_inputs_answer_the_declared_form_and_no_other_registration_is_mutated (1.655153ms)
+✔ ng_js_g_the_id_identity_selects_the_function_and_an_unregistered_id_fires_nothing (3.764416ms)
+✔ ng_js_h_the_absent_addon_state_answers_the_one_form_and_the_two_arms_messages_are_byte_equal (29.834894ms)
+✔ ng_js_i_the_proxy_over_array_corpus_at_the_address_position_is_refused_with_no_trap_run (1.454393ms)
+✔ ng_js_j_the_in_delivery_corpus_changes_nothing_inside_the_window_and_everything_at_the_next_trigger (3.392101ms)
+✔ ng_js_k_the_caller_spelled_duplicate_is_withdrawn_entry_by_entry_and_deregistered_once (1.644232ms)
+✔ ng_js_l_a_lone_surrogate_and_a_saturated_segment_are_refused_and_never_silently_repaired (1.514737ms)
+✔ ord_the_constraint_body_runs_and_the_listener_body_is_reached_only_once_every_constraint_has_passed (4.91299ms)
+✔ ord_an_ordered_write_whose_every_entry_was_checked_off_delivers_nothing_and_throws_nothing (0.369539ms)
+✔ ord_a_constraint_failing_write_never_runs_the_listeners_body_and_its_pending_residue_is_discarded (0.630684ms)
+✔ ord_the_held_arms_two_holders_the_home_entry_stands_and_the_registrys_function_slot_is_replaced (0.564519ms)
+✔ ord_a_bare_caller_made_write_carries_no_kernel_evaluation_set_and_its_delivery_is_the_post_verb_instant (0.580398ms)
+✔ register_ptp7_s_load_the_esm_entry_resolves_and_loads_the_addon (1.603275ms)
+✔ register_ptp7_s_one_addon_no_second_addon_no_subprocess_and_no_wasm (2.339579ms)
+✔ package_the_claim_is_node_esm_alone_through_exactly_one_arms_bearing_entry (0.13765ms)
+✔ package_a_wildcard_export_and_a_deep_import_are_both_refused (0.433962ms)
+✔ package_no_cjs_arm_and_no_require_entry_is_published (0.145716ms)
+✔ package_the_named_exports_are_the_eight_verbs_and_nothing_that_reaches_the_store_directly (0.102183ms)
+✔ package_the_engine_floor_is_declared_and_is_not_a_measurement (0.091283ms)
+✔ package_the_licence_is_declared_at_the_named_sites_and_not_copied_into_the_crate (1.222584ms)
+✔ package_the_documentation_states_the_two_declared_readings_and_the_reload_rule (0.25394ms)
+✔ register_ptp7_s_ho_ho-1_the_package_exposes_no_entry_for_Node_CJS (0.237489ms)
+✔ register_ptp7_s_ho_ho-2_the_package_exposes_no_entry_for_Electron_main (0.125007ms)
+✔ register_ptp7_s_ho_ho-3_the_package_exposes_no_entry_for_Electron_preload (0.121861ms)
+✔ register_ptp7_s_ho_ho-4_the_package_exposes_no_entry_for_Electron_renderer (0.043162ms)
+✔ register_ptp7_s_ho_ho-5_the_package_exposes_no_entry_for_the_browser (0.077477ms)
+✔ register_ptp7_s_ho_ho-6_the_package_exposes_no_entry_for_workers (0.078999ms)
+✔ register_ptp7_s_ho_ho-7_the_package_exposes_no_entry_for_any_IPC_route (0.112583ms)
+✔ register_ptp7_s_layer_the_figure_names_its_site_and_its_layer_and_no_app_green_is_claimed (0.172647ms)
+[F-14 audit] NG-PUB-A :: control-rung-one-does-not-stop-the-walk → verdict FAIL · state reached: 1 drive(s) against the staged bytes · attempt sets [3] · failed at: the artefact that loaded is the artefact that constructed
+[F-14 audit] NG-PUB-B :: control-a-name-assembled-from-the-runtime-tokens → verdict FAIL · state reached: 5 drive(s) against the staged bytes · attempt sets [2,2,0,0,2] · failed at: (d) the empty string: no computed name outside the five may be required; the attempt set was ["@auspicion/provident-storeroom-js---gnu","/tmp/storeroom-pubgen-HhcOMi/hostile-4-yLcaVn/build/Release/storeroom_js_binding.node"]
+[F-14 audit] NG-PUB-C :: control-the-arm-falls-through-to-rung-two → verdict FAIL · state reached: 1 drive(s) against the staged bytes · attempt sets [2] · failed at: a throwing read is the single declared arm
+[F-14 audit] NG-PUB-D :: control-the-entry-authors-the-arm-itself → verdict FAIL · state reached: 1 drive(s) against the staged bytes · attempt sets [2] · failed at: the arm's message is the LOADED artefact's own generator's string, carrying the artefact's own mutation
+[F-14 audit] NG-PUB-E :: control-the-catch-classifies-the-throw → verdict FAIL · state reached: 1 drive(s) against the staged bytes · attempt sets [2] · failed at: (a) a plain {status}: a throw at rung one is a MISS, so the loadable rung two carries the load
+[F-14 audit] NG-PUB-F :: control-the-mismatch-arm-appends-the-both-paths-join → verdict FAIL · state reached: 1 drive(s) against the staged bytes · attempt sets [2] · failed at: `§1.4` item 7: the subject is the RUNG-ONE ARTEFACT'S OWN PATH ALONE, rendered by the generator's own '<subject>' slot, and NEVER the both-paths join — at this state only rung one was tried; got "'@auspicion/provident-storeroom-js-linux-x64
+[F-14 audit] NG-PUB-F :: control-the-sub-case-mints-a-second-shape → verdict FAIL · state reached: 1 drive(s) against the staged bytes · attempt sets [2] · failed at: no declared arm was thrown; the report was {"platform":"linux","arch":"x64","attempts":["@auspicion/provident-storeroom-js-linux-x64-gnu","/tmp/storeroom-pubgen-HhcOMi/no-generator-loaded-mismatch-KIghHP/node_modules/@auspicion/provident-st
+[F-14 audit] NG-PUB-F :: control-the-fallback-names-an-untried-path → verdict FAIL · state reached: 1 drive(s) against the staged bytes · attempt sets [2] · failed at: `§1.4` item 7: the subject is the RUNG-ONE ARTEFACT'S OWN PATH ALONE, rendered by the generator's own '<subject>' slot, and NEVER the both-paths join — at this state only rung one was tried; got "'@auspicion/provident-storeroom-js-linux-x64
+[F-14 audit] NG-PUB-G :: control-the-subject-is-cfg-filePath → verdict FAIL · state reached: 1 drive(s) against the staged bytes · attempt sets [2] · failed at: P-PUB-5: the subject is the artefact's own path and NEVER `cfg.filePath`; got "'the-cfg-filePath-decoy.node' is not reachable at construction, the path must exist or the application must be able to write it"
+
+[NG-PUB-A] serves P-PUB-1 · strategies: S-RESOLVE
+[NG-PUB-A] VERDICT: PASS (1 generator) · controls measured: 2
+
+[NG-PUB-B] serves P-PUB-2 · strategies: S-KEYSET
+[NG-PUB-B] VERDICT: PASS (1 generator) · controls measured: 2
+
+[NG-PUB-C] serves P-PUB-4 · strategies: S-VERSION
+[NG-PUB-C] VERDICT: PASS (1 generator) · controls measured: 2
+
+[NG-PUB-D] serves P-PUB-4 · strategies: S-ONEARM
+[NG-PUB-D] VERDICT: PASS (1 generator) · controls measured: 2
+
+[NG-PUB-E] serves P-PUB-3 · strategies: S-MUSL
+[NG-PUB-E] VERDICT: PASS (1 generator) · controls measured: 2
+
+[NG-PUB-F] serves P-PUB-5 · strategies: S-TAXONOMY
+[NG-PUB-F] VERDICT: PASS (1 generator) · controls measured: 4
+
+[NG-PUB-G] serves P-PUB-5 · strategies: S-TAXONOMY
+[NG-PUB-G] VERDICT: PASS (1 generator) · controls measured: 2
+
+[NG-PUB-H] serves P-PUB-6 · strategies: S-SCOPE · S-MANIFEST
+[NG-PUB-H] VERDICT: PASS (1 generator) · controls measured: 6
+
+[NG-PUB-I] serves P-PUB-7 · strategies: S-TYPES · S-LICENCE
+[NG-PUB-I] VERDICT: PASS (1 generator) · controls measured: 4
+
+[NG-PUB-J] serves P-PUB-8 · strategies: S-TAG · S-LAYER
+[NG-PUB-J] VERDICT: PASS (1 generator) · controls measured: 7
+
+--- per-generator verdicts ---
+  NG-PUB-A::both candidates present and loadable at once — rung one alone answers PASS [SHIPPED-BYTES=PASS (required) · control-rung-one-does-not-stop-the-walk=FAIL (required) → the artefact that loaded is the artefact that constructed]
+  NG-PUB-B::non-string platform/arch tokens never reach a sixth name PASS [SHIPPED-BYTES=PASS (required) · control-a-name-assembled-from-the-runtime-tokens=FAIL (required) → (d) the empty string: no computed name outside the five may be required; the attempt set was ["@auspicion/provident-storeroom-js---gnu","/tmp/storeroom-pubgen-HhcOMi/hostile-4-yLcaVn/build/Release/storeroom_js_binding.node"]]
+  NG-PUB-C::a throwing version() is the arm, never a fallback to a loadable rung two PASS [SHIPPED-BYTES=PASS (required) · control-the-arm-falls-through-to-rung-two=FAIL (required) → a throwing read is the single declared arm]
+  NG-PUB-D::the mismatch arm's message is authored by the LOADED artefact PASS [SHIPPED-BYTES=PASS (required) · control-the-entry-authors-the-arm-itself=FAIL (required) → the arm's message is the LOADED artefact's own generator's string, carrying the artefact's own mutation]
+  NG-PUB-E::every non-Error rung-one throw is a miss, and rung two answers PASS [SHIPPED-BYTES=PASS (required) · control-the-catch-classifies-the-throw=FAIL (required) → (a) a plain {status}: a throw at rung one is a MISS, so the loadable rung two carries the load]
+  NG-PUB-F::an artefact with no usable generator names rung one's path ALONE PASS [SHIPPED-BYTES=PASS (required) · control-the-mismatch-arm-appends-the-both-paths-join=FAIL (required) → `§1.4` item 7: the subject is the RUNG-ONE ARTEFACT'S OWN PATH ALONE, rendered by the generator's own '<subject>' slot, and NEVER the both-paths join — at this state only rung one was tried; got "'@auspicion/provident-storeroom-js-linux-x64 · control-the-sub-case-mints-a-second-shape=FAIL (required) → no declared arm was thrown; the report was {"platform":"linux","arch":"x64","attempts":["@auspicion/provident-storeroom-js-linux-x64-gnu","/tmp/storeroom-pubgen-HhcOMi/no-generator-loaded-mismatch-KIghHP/node_modules/@auspicion/provident-st · control-the-fallback-names-an-untried-path=FAIL (required) → `§1.4` item 7: the subject is the RUNG-ONE ARTEFACT'S OWN PATH ALONE, rendered by the generator's own '<subject>' slot, and NEVER the both-paths join — at this state only rung one was tried; got "'@auspicion/provident-storeroom-js-linux-x64]
+  NG-PUB-G::the arm's subject is the artefact's path, never cfg.filePath PASS [SHIPPED-BYTES=PASS (required) · control-the-subject-is-cfg-filePath=FAIL (required) → P-PUB-5: the subject is the artefact's own path and NEVER `cfg.filePath`; got "'the-cfg-filePath-decoy.node' is not reachable at construction, the path must exist or the application must be able to write it"]
+  NG-PUB-H::a platform manifest's os/cpu match its name, and its files carry its .node PASS [SHIPPED-FIVE=PASS (required) · control-os-cpu-contradict-the-name=FAIL (required) → darwin-arm64 (@auspicion/provident-storeroom-js-darwin-arm64): PAR-PUB-19 — the manifest's `os` must be the target its own name SPELLS, and not another's · control-files-omit-the-.node=FAIL (required) → linux-x64: PAR-PUB-21 / distribution.md §3.2 item 5 — the artefact's allowlist CARRIES its own `.node`, because an allowlist that omits it cannot be loaded by rung one · control-drops-repository=FAIL (required) → linux-x64: the TWELVE declared fields and no field not declared — the nine the platform artefact always carried, PLUS `homepage` · `repository` · `bugs`, the three `PUB-DD-7` writes "the moment a remote exists"; a manifest MISSING ONE OF TH · control-drops-homepage=FAIL (required) → darwin-x64: the TWELVE declared fields and no field not declared — the nine the platform artefact always carried, PLUS `homepage` · `repository` · `bugs`, the three `PUB-DD-7` writes "the moment a remote exists"; a manifest MISSING ONE OF T · control-drops-bugs=FAIL (required) → win32-x64: the TWELVE declared fields and no field not declared — the nine the platform artefact always carried, PLUS `homepage` · `repository` · `bugs`, the three `PUB-DD-7` writes "the moment a remote exists"; a manifest MISSING ONE OF TH]
+  NG-PUB-I::the shipped value type-checks against the declaration, and six notices are falsifiable PASS [SHIPPED-BYTES=PASS (required) · control-op-declared-as-a-number=FAIL (required) → PUB-R-4 / DD-39: `op` is NOT a number — every value the entry returns is the store's own journal record · control-readme-states-the-copy-is-not-carried=FAIL (required) → §2.3 item 2 / distribution.md §4.2 item 1: the shipped README declares that EACH OF THE SIX artefacts carries a copy · control-manifest-lists-license-in-files=FAIL (required) → §2.1 item 1: the main package's allowlist is three entries and NOTHING ELSE]
+  NG-PUB-J::the version equals a resolved tag, and every figure row's site/layer pair holds PASS [SHIPPED-BYTES=PASS (required) · control-no-tag-at-all=FAIL (required) → the untagged control: `release.md §2.1` item 2 / `PAR-PUB-29` — the manifest declares `0.2.0`, so `v0.2.0` IS the tag the coupling fixes and it must EXIST. `git tag --list`: [] · control-a-tag-whose-version-differs=FAIL (required) → the divergent-version control: `PAR-PUB-18` — THE MANIFEST AT THE TAG (`v0.2.0:bindings/js/package.json`) declares `9.9.9` WHERE THE COUPLING FIXES `0.2.0`: the tag and the manifest DIVERGE, which the coupling rule REFUSES · control-a-tag-naming-another-version=FAIL (required) → the other-name control: `release.md §2.1` item 2 / `PAR-PUB-29` — the manifest declares `0.2.0`, so `v0.2.0` IS the tag the coupling fixes and it must EXIST. `git tag --list`: ["v9.9.9"] · control-a-tag-outside-this-history=FAIL (required) → the unreachable-tag control: `release.md §1.3` item 2 — the tag's commit `90bc4a324c24018043516653b99cf17f611a5708` must be REACHABLE, lying on THIS branch's own history, so the bytes the tag names are the bytes this tree carries · control-a-wrong-site-layer-pair=FAIL (required) → the figure's LAYER must match the layer its SITE runs at; a wrong pair is void (acceptance.md §2.3) · control-a-figure-row-with-no-site=FAIL (required) → the figure's SITE is a real home: bindings/js/test/not-a-file.mjs]
+
+✔ NG-PUB-A::both candidates present and loadable at once — rung one alone answers (50.495011ms)
+✔ NG-PUB-B::non-string platform/arch tokens never reach a sixth name (176.832192ms)
+✔ NG-PUB-C::a throwing version() is the arm, never a fallback to a loadable rung two (41.283665ms)
+✔ NG-PUB-D::the mismatch arm's message is authored by the LOADED artefact (39.431018ms)
+✔ NG-PUB-E::every non-Error rung-one throw is a miss, and rung two answers (102.378751ms)
+✔ NG-PUB-F::an artefact with no usable generator names rung one's path ALONE (71.847489ms)
+✔ NG-PUB-G::the arm's subject is the artefact's path, never cfg.filePath (32.261778ms)
+✔ NG-PUB-H::a platform manifest's os/cpu match its name, and its files carry its .node (1.20475ms)
+✔ NG-PUB-I::the shipped value type-checks against the declaration, and six notices are falsifiable (0.810875ms)
+✔ NG-PUB-J::the version equals a resolved tag, and every figure row's site/layer pair holds (60.881982ms)
+
+[P-PUB-5/S-ONEARM · `PUB-R-13` · `contract.md §1.4` item 7] the third-condition controls, MEASURED AGAINST THE SHIPPED INSTRUMENT:
+  the both-paths join appended at this state           → `§1.4` item 7 / `resolution.md §5.3a`: at absent the arm reproduces the store's own clause BYTE-FOR-BYTE at THE RUNG-ONE ARTEFACT'S OWN PATH
+  a second failure shape minted at the arm             → no arm was thrown: {"platform":"linux","arch":"x64","attempts":["@auspicion/provident-storeroom-js-linux-x64-gnu","/tmp/storeroom-pubred-bpl
+
+[P-PUB-8/S-TAG] THE TAG COUPLING (`release.md §2.1` items 1–3; `PAR-PUB-29`), MEASURED AGAINST THE SHIPPED INSTRUMENT:
+  the real tree                                  → PASS (required): v0.2.0 at 8ef2fba137e685bbbb10a0aae40fd7a1bf17c5f0, on this branch's own history, the manifest at the tag declaring 0.2.0
+  no tag at all (the as-filed pre-release state) → `PAR-PUB-29` / `release.md §2.1` item 2 (the control for no tag at all (the as-filed pre-release state)): the manifest declares `0.2
+  a tag whose version differs from the manifest's → (the control for a tag whose version differs from the manifest's) `PAR-PUB-18`: THE MANIFEST AT THE TAG (`v0.2.0:bindings/js/package
+  a tag naming another version                   → `PAR-PUB-29` / `release.md §2.1` item 2 (the control for a tag naming another version): the manifest declares `0.2.0`, so `v0.2.0` I
+  a tag outside this branch's history            → (the control for a tag outside this branch's history) `release.md §1.3` item 2: the tag's commit `6f4d6ba965e59a8a5bbb37774065748254
+
+[P-PUB-8/S-TAG] THE RUNNER-LABEL GUARD, BOTH DIRECTIONS MEASURED (`release.md §1.2` and its closing rule; `PAR-PUB-28`):
+  the shipped five  → PASS  ["macos-15","macos-15-intel","ubuntu-24.04","ubuntu-24.04-arm","windows-2022"]
+                      matrix `runs-on:` sites 1 · literal sites ["ubuntu-24.04"]
+  (B) one label changed  (`macos-15-intel` → `macos-14`) → the control of one changed runner label: `§1.2`'s five-runner table, row for row — the file's own rows being ["ubuntu-24.04","ubuntu-24.04-arm","macos
+  (C) a sixth image injected (`ubuntu-22.04`)         → the control of a sixth runner label: `§1.2` / `PAR-PUB-28` — NO `runs-on:` SITE NAMES AN IMAGE THE CONTRACT'S TABLE DOES NOT: no more than the five. S
+  (D) one leg on another leg's image (`darwin-arm64` → `macos-15-intel`) → the control of one leg served by another leg's image: `§1.2` / `PAR-PUB-28` — NO RUNNER SERVES TWO: the five rows are FIVE DISTINCT IMAGES, and this f
+
+[P-PUB-8/S-TAG] the workflow's declared shapes and the forbidden ones, MEASURED AGAINST THE SHIPPED INSTRUMENT (`release.md §1.1`–`§1.4`; the file is EXECUTED BY NOTHING here — `§4.1` item 1):
+  a publish from a non-tag trigger             → the control for a publish from a non-tag trigger: `release.md §2.1` item 3 — no `branches` trigger exists: publishing from the bra
+  a platform artefact published after the main → the control for a platform artefact published after the main: `§1.4` steps 1–2 — the platform job waits on NOTHING: it IS the matr
+  the main package published NOT last          → the control for the main package published NOT last: `§1.4` step 5 — the main package carries `needs: platform`, so THE MAIN PACKA
+  a credential in a tracked byte               → the control for a credential in a tracked byte: `§3.1` item 5 / `release.md §1.4`'s closing prohibition — no secret, token, creden
+  a platform name left in the superseded form  → the control for a platform name left in the superseded form: the five declared names, name for name — and neither the AS-FILED spe
+  a runner label the contract's table does not name → the control for a runner label the contract's table does not name: `§1.2`'s five-runner table, row for row — the file's own rows b
+  a publish script in the package              → the control publish script: no `publish` script exists
+
+[P-PUB-8/S-TAG] THE REFUSAL LIST, WIDENED AND DRIVEN BOTH DIRECTIONS (`release.md §4.1` item 1; `§1.5` item 1), WITH THE AS-FILED LIST PRINTED BESIDE ITS REPLACEMENT:
+  as filed : npm publish|pnpm publish|yarn publish|npm pack|git tag|npm install -g
+  widened  : \b(?:npm|pnpm|yarn)\s+(?:stage\s+)?(?:publish|approve|pack)\b|\b(?:npm|pnpm|yarn)\s+(?:dist-tag|tag)\b|\bgit\s+tag\b|\b(?:npm|pnpm|yarn)\s+(?:global\s+)?(?:install|add|i)\s+(?:-g|--global)\b|\b(?:npm|pnpm|yarn)\s+global\s+(?:install|add|i)\b
+  `npm stage publish --access public` → as filed NOT REFUSED (THE HOLE, MEASURED) · widened REFUSED (CLOSED)
+  the six as-filed members, each still refused: npm publish → REFUSED · pnpm publish → REFUSED · yarn publish → REFUSED · npm pack → REFUSED · git tag → REFUSED · npm install -g → REFUSED
+  ---- what it matches and what it does not, EVERY ROW AN ASSERTION ----
+  REFUSED  the STAGED verb in a package script                                                              npm stage publish --access public
+  REFUSED  the STAGED verb under another client                                                             pnpm stage publish --access public
+  REFUSED  the STAGED verb in the client's second position                                                  yarn npm publish --access public
+  REFUSED  the DIRECT verb, the case the list was written against                                           npm publish --access public
+  REFUSED  the PROMOTION verb of a staged version (`PUB-DD-31`)                                             npm stage approve provident-storeroom@0.1.1
+  REFUSED  the packer                                                                                       npm pack --dry-run
+  REFUSED  the registry's own tagging surface                                                               npm dist-tag add provident-storeroom@0.1.1 latest
+  REFUSED  the release's trigger, minted by a script                                                        git tag v0.1.1
+  REFUSED  a global install, the short flag                                                                 npm i -g provident-storeroom
+  REFUSED  a global install, the long flag                                                                  pnpm add --global provident-storeroom
+  REFUSED  a global install, the client's own order                                                         yarn global add provident-storeroom
+  REFUSED  the READ-ONLY tag listing the tests themselves perform — refused here too, as the as-filed list refused it git tag --list
+  no match a `test` script                                                                                  node --test test/*.test.mjs
+  no match a `build` script                                                                                 cargo build --release --offline
+  no match a delegation to a script of this package                                                         npm run build
+  no match the release's own red-set leg, whose FILENAME carries the word                                   node --test bindings/js/test/publish.test.mjs
+  no match a clean install with no global flag                                                              npm ci
+  no match a bare dependency install                                                                        npm install
+  no match a READ of the registry, which puts nothing of ours up                                            npm view provident-storeroom
+  no match the word `publish` in a sentence                                                                 the published Node ESM binding
+  ---- the four controls, measured ----
+  (a) a package script `"npm stage publish --access public"` → the control staged publish script: the script `release` carries no publish, pack, tag or install verb — DIRECT or STAGED, and any 
+  (a′) the same body under the name `publish` → the control staged publish script, named `publish`: no `publish` script exists
+  (b) a package script `"npm publish --access public"` → the control direct publish script: the script `release` carries no publish, pack, tag or install verb — DIRECT or STAGED, and any 
+  (c) the legitimate control (`test` · `build` · `npm run build`) → PASSES (no verdict)
+  (c) the shipped manifest's absent-`scripts` state → PASSES (0 scripts read)
+  (d) the workflow's own bytes, at the widened shape → 2 matches (npm stage publish · npm stage publish) — legitimately, AND THE BOUNDARY IS THE SUBJECT: the instrument parses a JSON manifest FIRST, so the workflow's text is refused by that reader (Unexpected token '#', "# `/.githu"... is not valid JSON) while `driveWorkflow` PASSES it with all five matrix rows read
+
+[P-PUB-8/S-TAG] THE GRANT GUARD — THE EFFECTIVE-PERMISSION RESOLUTION RULE, THE `uses:` CENSUS AND THE PLACEMENT RULING (`release.md §1.4` step 6; `§1.3` item 2; `§5.3` item 1):
+  the rule  : (1) the workflow-level `permissions:` block is the only top-level one; (2) A JOB THAT
+               DECLARES ITS OWN BLOCK REPLACES IT FOR THAT JOB RATHER THAN MERGING WITH IT, so the
+               job block IS the effective set, whole; (3) otherwise the workflow block IS; (4) every
+               `uses:` and `run:` site is read against the effective set of THE JOB IT RUNS IN.
+               (Every line number printed here is an offset in the COMMENT-STRIPPED code, not a line of
+               the raw file: the file's own prose names the refused forms in order to refuse them.)
+  workflow-level `permissions:` at line 9 → {"contents":"read","id-token":"write"}
+  job `platform` → effective {"contents":"read","id-token":"write"} FROM the WORKFLOW-LEVEL block, which no job block replaces for this job
+  job `main` → effective {"contents":"read","id-token":"write","attestations":"write"} FROM its OWN job block at line 114, WHICH REPLACES the workflow-level block rather than merging with it
+  the census: 6 `uses:` sites in the file, EVERY ONE carried in this cell's own documented-requirement table with its source; 2 `run:` site(s) that document a permission need (the OIDC federation, which no action carries)
+  ---- the census, every site, its job, its documented requirement and that requirement's source ----
+  uses  actions/checkout@v7                      job `platform` · documents {"contents":"read"} · source: the action's own README, whose recommended workflow declares `permissions: contents: read` at this ref; read with the file's own commentary at the `main` job, which names `contents: read` for "its two `actions/checkout@v7` sites" and states that "THE PERMISSION THIS CLAUSE NAMES DOES NOT MOVE WITH IT" — `D-GP-NODE-1` moved the ACTION'S OWN RUNTIME (`node20` → `node24`), which is not a permission, and each of v6's and v7's two documented deltas (credential persistence; the fork-PR guard) falls outside this file's shape (no container action, no `pull_request_target`/`workflow_run` trigger)
+  uses  dtolnay/rust-toolchain@stable            job `platform` · documents {} · source: the action's own README declares no `permissions:` block and reads no repository scope: it fetches a toolchain from `static.rust-lang.org` with the one input this file passes (`toolchain`)
+  uses  actions/setup-node@v6                    job `platform` · documents {} · source: the action's own README declares no `permissions:` requirement for the inputs this file passes (`node-version` only — no `cache:`, no `registry-url`): the client is downloaded from `nodejs.org` and no repository scope is read (`release.md §1.4`'s CI-inputs clause)
+  run   npm stage publish --access public --provenance --tag latest job `platform` · documents {"id-token":"write"} · source: `release.md §5.3` item 1 — "`--provenance` IS AN OIDC CAPABILITY … minted by the host's own OIDC federation, through the workflow's `id-token: write`" (`acceptance.md`'s bootstrap clause item 1 reads it the same way)
+  uses  actions/checkout@v7                      job `main` · documents {"contents":"read"} · source: the action's own README, whose recommended workflow declares `permissions: contents: read` at this ref; read with the file's own commentary at the `main` job, which names `contents: read` for "its two `actions/checkout@v7` sites" and states that "THE PERMISSION THIS CLAUSE NAMES DOES NOT MOVE WITH IT" — `D-GP-NODE-1` moved the ACTION'S OWN RUNTIME (`node20` → `node24`), which is not a permission, and each of v6's and v7's two documented deltas (credential persistence; the fork-PR guard) falls outside this file's shape (no container action, no `pull_request_target`/`workflow_run` trigger)
+  uses  actions/setup-node@v6                    job `main` · documents {} · source: the action's own README declares no `permissions:` requirement for the inputs this file passes (`node-version` only — no `cache:`, no `registry-url`): the client is downloaded from `nodejs.org` and no repository scope is read (`release.md §1.4`'s CI-inputs clause)
+  uses  actions/attest-build-provenance@v4       job `main` · documents {"id-token":"write","attestations":"write"} · source: the action's own READMEs, quoted at this file's own attestation-grant commentary: `v1` reads `id-token: write` · `attestations: write` and `v4` reads the same two beside `artifact-metadata: write`, required only "to create the artifact storage record" — a record this step does not take, `push-to-registry` standing at its default `false`
+  run   npm stage publish --access public --provenance --tag latest job `main` · documents {"id-token":"write"} · source: `release.md §5.3` item 1 — "`--provenance` IS AN OIDC CAPABILITY … minted by the host's own OIDC federation, through the workflow's `id-token: write`" (`acceptance.md`'s bootstrap clause item 1 reads it the same way)
+  ---- the controls, each measured against the shipped instrument ----
+  (A) `attestations: write` removed from the `main` job — THE RUN THAT HAPPENED                            → FAIL: THE EFFECTIVE `permissions:` FOR JOB `main` DO NOT SATISFY EVERY DOCUMENTED REQUIREMENT: `actions/attest-build-provenance@v4` (line 164) documents `attestations: write` and the effective set
+  (B) `attestations: write` MOVED TO THE WORKFLOW LEVEL, the `main` job's own block left in place          → FAIL: THE EFFECTIVE `permissions:` FOR JOB `main` DO NOT SATISFY EVERY DOCUMENTED REQUIREMENT: `actions/attest-build-provenance@v4` (line 165) documents `attestations: write` and the effective set
+  (B′) THE SAME MOVE WITH THE JOB'S OWN BLOCK REMOVED, so the workflow grant is the only one               → FAIL: LEAST PRIVILEGE IS HELD AS A REQUIREMENT AND NOT AS A PREFERENCE — job `platform` holds `attestations: write` AND NO SITE OF THAT JOB DOCUMENTS ANY NEED FOR IT (effective set {"contents":"re
+  (C) the `main` job's block REDUCED TO `attestations: write` ALONE                                        → FAIL: THE EFFECTIVE `permissions:` FOR JOB `main` DO NOT SATISFY EVERY DOCUMENTED REQUIREMENT: `actions/checkout@v7` (line 118) documents `contents: read` and the effective set carries NOTHING AT 
+  (D1) `attestations: write` MISSPELLED as `attestation: write`                                            → FAIL: job `main`'s effective `permissions:` carries the key `attestation`, AND `attestation` IS NOT A KEY THE HOST'S `permissions` DOMAIN CARRIES: the file is refused before any step of that job r
+  (D2) `attestations: write` declared as `attestations: read`                                              → FAIL: THE EFFECTIVE `permissions:` FOR JOB `main` DO NOT SATISFY EVERY DOCUMENTED REQUIREMENT: `actions/attest-build-provenance@v4` (line 165) documents `attestations: write` and the effective set
+  (E) `artifact-metadata: write` ADDED beside the three — the key the attesting action declines            → FAIL: job `main` holds `artifact-metadata: write`, WHICH THE ACTION IT RUNS EXPLICITLY DECLINES: that action's own documentation names `artifact-metadata` as required only to create the artifact s
+  ---- the ruling, stated because no spec clause makes it ----
+  NO CLAUSE OF `docs/specs/storeroom-publish/**` DECIDES JOB-LEVEL VERSUS WORKFLOW-LEVEL (that part's own
+  permission cell is stale and is the SpecWriter's, and no spec byte was touched here), SO THIS PASS RULES
+  PLAINLY: LEAST PRIVILEGE IS A REQUIREMENT AND NOT A PREFERENCE. The deciding reading is `release.md §1.4`
+  step 6 — THE ATTESTING ACTION IS A STEP OF `main` — read with the file's own placement: a workflow-level
+  grant is held by EVERY job the file declares, so (B) would hand the five-leg `platform` matrix a
+  repository write it never uses. (B) FAILS, (B′) FAILS ON LEAST PRIVILEGE ALONE.
+  ---- THE CLASS, NAMED AT ITS EIGHTH INSTANCE ----
+  A DECLARED STEP WHOSE GRANT THE CONFIGURATION NEVER MAKES IS A CLAIM ABOUT A CAPABILITY THE WORLD DOES
+  NOT OFFER IT, AND ITS ONLY FALSIFIER WAS A RUN — the same shape as the retired runner label whose only
+  falsifier was a dispatch, and the unbuilt link matrix whose only falsifier was a linker.
+
+[P-PUB-1] strategies: S-RESOLVE · S-INPLACE
+[P-PUB-1] VERDICT: PASS (5 cells)
+
+[P-PUB-2] strategies: S-KEYSET
+[P-PUB-2] VERDICT: PASS (5 cells)
+
+[P-PUB-3] strategies: S-PLATFORM · S-MUSL
+[P-PUB-3] VERDICT: PASS (11 cells)
+
+[P-PUB-4] strategies: S-VERSION · S-INPLACE
+[P-PUB-4] VERDICT: PASS (7 cells)
+
+[P-PUB-5] strategies: S-TAXONOMY · S-ONEARM
+[P-PUB-5] VERDICT: PASS (14 cells)
+
+[P-PUB-6] strategies: S-SCOPE
+[P-PUB-6] VERDICT: PASS (4 cells)
+
+[P-PUB-7] strategies: S-MANIFEST · S-TYPES · S-LICENCE
+[P-PUB-7] VERDICT: PASS (9 cells)
+
+[P-PUB-8] strategies: S-TAG · S-LAYER
+[P-PUB-8] VERDICT: PASS (7 cells)
+
+[GUARD] strategies: S-INPLACE (the JS unit's 113-cell leg, in place)
+[GUARD] VERDICT: PASS (2 cells)
+
+--- per-cell verdicts ---
+  P-PUB-1::S-RESOLVE rung one resolves and is reported as rung one               PASS
+  P-PUB-1::S-RESOLVE rung one misses and rung two then resolves                  PASS
+  P-PUB-1::S-RESOLVE rung three is reached only after both rungs were tried      PASS
+  P-PUB-1::S-RESOLVE a rung-two load is never reported as rung one               PASS
+  P-PUB-1::S-RESOLVE rung two is derived from the entry module's own location    PASS
+  P-PUB-2::S-KEYSET no computed name outside the five is ever required           PASS
+  P-PUB-2::S-KEYSET a name assembled from tokens is never required at any depth  PASS
+  P-PUB-2::S-KEYSET a guessed fallback on an uncovered pair is refused           PASS
+  P-PUB-2::S-KEYSET the converse: each declared key IS answered by the table     PASS
+  P-PUB-2::S-KEYSET the five pins are exact and no sixth pin exists              PASS
+  P-PUB-3::S-PLATFORM one drive per covered key, each landing on its declared name PASS
+  P-PUB-3::S-PLATFORM linux/ia32 is NOT COVERED and reaches rung two only        PASS
+  P-PUB-3::S-PLATFORM linux/ppc64le is NOT COVERED and reaches rung two only     PASS
+  P-PUB-3::S-PLATFORM linux/s390x is NOT COVERED and reaches rung two only       PASS
+  P-PUB-3::S-PLATFORM freebsd/x64 is NOT COVERED and reaches rung two only       PASS
+  P-PUB-3::S-PLATFORM win32/ia32 is NOT COVERED and reaches rung two only        PASS
+  P-PUB-3::S-PLATFORM sunos/x64 is NOT COVERED and reaches rung two only         PASS
+  P-PUB-3::S-PLATFORM android/arm64 is NOT COVERED and reaches rung two only     PASS
+  P-PUB-3::S-MUSL the musl state reaches the declared answer, not a sixth key    PASS
+  P-PUB-3::S-MUSL a `-gnu` artefact that LOADS is answered by the read, not by a libc test PASS
+  P-PUB-3::S-PLATFORM no `libc` mechanism, value set or measured domain is declared PASS
+  P-PUB-4::S-VERSION a matching artefact loads                                   PASS
+  P-PUB-4::S-VERSION a substituted artefact is answered by the SINGLE declared arm PASS
+  P-PUB-4::S-VERSION no read performed fails (the read is wired, not merely declared) PASS
+  P-PUB-4::S-VERSION a second failure shape fails; the arm's form is fixed once  PASS
+  P-PUB-4::S-VERSION the mismatch predicate is exact equality, not a range       PASS
+  P-PUB-4::S-VERSION the version is read from the PACKAGE'S OWN MANIFEST, not passed in PASS
+  P-PUB-4::S-INPLACE a rung-two load performs NO version comparison              PASS
+  P-PUB-5::S-TAXONOMY covered × absent — the declared absent form, both paths    PASS
+  P-PUB-5::S-TAXONOMY covered × present-unloadable — the same declared absent form PASS
+  P-PUB-5::S-TAXONOMY covered × present-wrong-version — the single arm, rung one's path PASS
+  P-PUB-5::S-TAXONOMY covered × present-right-version — SUCCESS, no rung-two attempt PASS
+  P-PUB-5::S-TAXONOMY uncovered × absent — the declared absent form, rung two's path alone PASS
+  P-PUB-5::S-TAXONOMY uncovered × present-unloadable — the declared absent form  PASS
+  P-PUB-5::S-TAXONOMY uncovered × present-wrong-version is DECLARED UNREACHABLE  PASS
+  P-PUB-5::S-TAXONOMY musl × absent and musl × present-unloadable                PASS
+  P-PUB-5::S-TAXONOMY musl × present-wrong-version and musl × present-right-version PASS
+  P-PUB-5::S-ONEARM the arm is a plain object of exactly two members             PASS
+  P-PUB-5::S-ONEARM the status is carried from the store's closed set, never minted PASS
+  P-PUB-5::S-ONEARM the message is the store's generated string at the subject   PASS
+  P-PUB-5::S-ONEARM the artefact that LOADED and carries no usable generator is arm (b) at rung one's path ALONE PASS
+  P-PUB-5::S-ONEARM no fallback, no partial instance, no no-op verb, no fourth outcome PASS
+  P-PUB-6::S-SCOPE the five names, name for name, in the manifest and the entry  PASS
+  P-PUB-6::S-SCOPE every name is scoped, and the scope is `@auspicion`           PASS
+  P-PUB-6::S-SCOPE the alternative literal reading is written nowhere            PASS
+  P-PUB-6::S-SCOPE the five spellings agree across every home the contract names PASS
+  P-PUB-7::S-MANIFEST `build/Release` leaves `files`, and no binary ships        PASS
+  P-PUB-7::S-TYPES `index.d.ts` is present, authored, and listed                 PASS
+  P-PUB-7::S-TYPES the `status` union is over a declared-but-open set            PASS
+  P-PUB-7::S-LICENCE the licence field agrees with the declared four sites       PASS
+  P-PUB-7::S-LICENCE no fifth declaration site, and `bindings/js/LICENSE` is refused PASS
+  P-PUB-7::S-MANIFEST the licence notice travels with all six artefacts          PASS
+  P-PUB-7::S-MANIFEST the main package's identity, realm and one ESM entry       PASS
+  P-PUB-7::S-MANIFEST the publish configuration, the supplied fields and the three metadata fields that RESOLVE to the provenance source PASS
+  P-PUB-7::S-MANIFEST no secret, token or credential is written into a tracked byte PASS
+  P-PUB-8::S-TAG no publish verb is declared by any tracked byte of the package  PASS
+  P-PUB-8::S-TAG the workflow file and the five platform manifests ARE the declared shapes, and the forbidden ones are absent PASS
+  P-PUB-8::S-TAG every documented grant is effective at the job that needs it — the `uses:` census, the resolution rule, and least privilege held as a requirement PASS
+  P-PUB-8::S-TAG the six artefacts' order and the one version they share         PASS
+  P-PUB-8::S-TAG the partial-publish arm is declared, both windows               PASS
+  P-PUB-8::S-LAYER every figure this unit reports carries its SITE and its LAYER PASS
+  P-PUB-8::S-LAYER no released-bytes digest is claimed by this pass              PASS
+  GUARD::the real entry still resolves IN PLACE at rung two                      PASS
+  GUARD::the in-place loop still resolves and works at rung two                  PASS
+
+✔ P-PUB-1::S-RESOLVE rung one resolves and is reported as rung one (27.647634ms)
+✔ P-PUB-1::S-RESOLVE rung one misses and rung two then resolves (20.977017ms)
+✔ P-PUB-1::S-RESOLVE rung three is reached only after both rungs were tried (20.807446ms)
+✔ P-PUB-1::S-RESOLVE a rung-two load is never reported as rung one (40.537312ms)
+✔ P-PUB-1::S-RESOLVE rung two is derived from the entry module's own location (59.639681ms)
+✔ P-PUB-2::S-KEYSET no computed name outside the five is ever required (171.070355ms)
+✔ P-PUB-2::S-KEYSET a name assembled from tokens is never required at any depth (17.222641ms)
+✔ P-PUB-2::S-KEYSET a guessed fallback on an uncovered pair is refused (19.394582ms)
+✔ P-PUB-2::S-KEYSET the converse: each declared key IS answered by the table (91.690609ms)
+✔ P-PUB-2::S-KEYSET the five pins are exact and no sixth pin exists (1.202225ms)
+✔ P-PUB-3::S-PLATFORM one drive per covered key, each landing on its declared name (92.312296ms)
+✔ P-PUB-3::S-PLATFORM linux/ia32 is NOT COVERED and reaches rung two only (20.629369ms)
+✔ P-PUB-3::S-PLATFORM linux/ppc64le is NOT COVERED and reaches rung two only (17.352957ms)
+✔ P-PUB-3::S-PLATFORM linux/s390x is NOT COVERED and reaches rung two only (17.893781ms)
+✔ P-PUB-3::S-PLATFORM freebsd/x64 is NOT COVERED and reaches rung two only (16.405233ms)
+✔ P-PUB-3::S-PLATFORM win32/ia32 is NOT COVERED and reaches rung two only (19.205513ms)
+✔ P-PUB-3::S-PLATFORM sunos/x64 is NOT COVERED and reaches rung two only (16.696544ms)
+✔ P-PUB-3::S-PLATFORM android/arm64 is NOT COVERED and reaches rung two only (17.499424ms)
+✔ P-PUB-3::S-MUSL the musl state reaches the declared answer, not a sixth key (74.358111ms)
+✔ P-PUB-3::S-MUSL a `-gnu` artefact that LOADS is answered by the read, not by a libc test (43.735756ms)
+✔ P-PUB-3::S-PLATFORM no `libc` mechanism, value set or measured domain is declared (19.505081ms)
+✔ P-PUB-4::S-VERSION a matching artefact loads (19.706762ms)
+✔ P-PUB-4::S-VERSION a substituted artefact is answered by the SINGLE declared arm (18.003518ms)
+✔ P-PUB-4::S-VERSION no read performed fails (the read is wired, not merely declared) (16.735709ms)
+✔ P-PUB-4::S-VERSION a second failure shape fails; the arm's form is fixed once (39.184862ms)
+✔ P-PUB-4::S-VERSION the mismatch predicate is exact equality, not a range (88.939672ms)
+✔ P-PUB-4::S-VERSION the version is read from the PACKAGE'S OWN MANIFEST, not passed in (35.90882ms)
+✔ P-PUB-4::S-INPLACE a rung-two load performs NO version comparison (36.935284ms)
+✔ P-PUB-5::S-TAXONOMY covered × absent — the declared absent form, both paths (15.652007ms)
+✔ P-PUB-5::S-TAXONOMY covered × present-unloadable — the same declared absent form (33.093372ms)
+✔ P-PUB-5::S-TAXONOMY covered × present-wrong-version — the single arm, rung one's path (19.054909ms)
+✔ P-PUB-5::S-TAXONOMY covered × present-right-version — SUCCESS, no rung-two attempt (17.209396ms)
+✔ P-PUB-5::S-TAXONOMY uncovered × absent — the declared absent form, rung two's path alone (17.576701ms)
+✔ P-PUB-5::S-TAXONOMY uncovered × present-unloadable — the declared absent form (18.101454ms)
+✔ P-PUB-5::S-TAXONOMY uncovered × present-wrong-version is DECLARED UNREACHABLE (18.156918ms)
+✔ P-PUB-5::S-TAXONOMY musl × absent and musl × present-unloadable (35.39587ms)
+✔ P-PUB-5::S-TAXONOMY musl × present-wrong-version and musl × present-right-version (35.694816ms)
+✔ P-PUB-5::S-ONEARM the arm is a plain object of exactly two members (17.156335ms)
+✔ P-PUB-5::S-ONEARM the status is carried from the store's closed set, never minted (39.450225ms)
+✔ P-PUB-5::S-ONEARM the message is the store's generated string at the subject (16.254557ms)
+✔ P-PUB-5::S-ONEARM the artefact that LOADED and carries no usable generator is arm (b) at rung one's path ALONE (129.264381ms)
+✔ P-PUB-5::S-ONEARM no fallback, no partial instance, no no-op verb, no fourth outcome (54.256781ms)
+✔ P-PUB-6::S-SCOPE the five names, name for name, in the manifest and the entry (0.708421ms)
+✔ P-PUB-6::S-SCOPE every name is scoped, and the scope is `@auspicion` (17.889252ms)
+✔ P-PUB-6::S-SCOPE the alternative literal reading is written nowhere (2.000106ms)
+✔ P-PUB-6::S-SCOPE the five spellings agree across every home the contract names (0.442989ms)
+✔ P-PUB-7::S-MANIFEST `build/Release` leaves `files`, and no binary ships (0.300439ms)
+✔ P-PUB-7::S-TYPES `index.d.ts` is present, authored, and listed (0.178888ms)
+✔ P-PUB-7::S-TYPES the `status` union is over a declared-but-open set (0.202473ms)
+✔ P-PUB-7::S-LICENCE the licence field agrees with the declared four sites (0.238392ms)
+✔ P-PUB-7::S-LICENCE no fifth declaration site, and `bindings/js/LICENSE` is refused (6.489754ms)
+✔ P-PUB-7::S-MANIFEST the licence notice travels with all six artefacts (0.366654ms)
+✔ P-PUB-7::S-MANIFEST the main package's identity, realm and one ESM entry (0.30136ms)
+✔ P-PUB-7::S-MANIFEST the publish configuration, the supplied fields and the three metadata fields that RESOLVE to the provenance source (0.86109ms)
+✔ P-PUB-7::S-MANIFEST no secret, token or credential is written into a tracked byte (8.377457ms)
+✔ P-PUB-8::S-TAG no publish verb is declared by any tracked byte of the package (83.174999ms)
+✔ P-PUB-8::S-TAG the workflow file and the five platform manifests ARE the declared shapes, and the forbidden ones are absent (5.378992ms)
+✔ P-PUB-8::S-TAG every documented grant is effective at the job that needs it — the `uses:` census, the resolution rule, and least privilege held as a requirement (3.065883ms)
+✔ P-PUB-8::S-TAG the six artefacts' order and the one version they share (0.222522ms)
+✔ P-PUB-8::S-TAG the partial-publish arm is declared, both windows (0.520435ms)
+✔ P-PUB-8::S-LAYER every figure this unit reports carries its SITE and its LAYER (0.130287ms)
+✔ P-PUB-8::S-LAYER no released-bytes digest is claimed by this pass (0.692732ms)
+✔ GUARD::the real entry still resolves IN PLACE at rung two (17.269148ms)
+✔ GUARD::the in-place loop still resolves and works at rung two (2.937591ms)
+ROW P-SM-5 strategy=S-REG attempts=20 failures=0 verdict=HELD
+ROW P-SM-5 strategy=S-REG-DUP attempts=10 failures=0 verdict=HELD
+ROW P-SM-5 strategy=S-OPAQUE attempts=10 failures=0 verdict=HELD
+ROW P-SM-5 strategy=S-WITHDRAW attempts=10 failures=0 verdict=HELD
+ROW P-SM-5 attempts=50 verdict=HELD
+ROW P-TP-7 strategy=S-LOAD attempts=5 failures=0 verdict=HELD
+ROW P-TP-7 strategy=S-ONE-ADDON attempts=5 failures=0 verdict=HELD
+ROW P-TP-7 strategy=S-HO attempts=7 failures=0 verdict=HELD
+ROW P-TP-7 strategy=S-LAYER attempts=5 failures=0 verdict=HELD
+ROW P-TP-7 attempts=22 verdict=HELD
+ROW P-TP-8 strategy=S-TRIGGER attempts=10 failures=0 verdict=HELD
+ROW P-TP-8 strategy=S-NOOP attempts=10 failures=0 verdict=HELD
+ROW P-TP-8 strategy=S-SET attempts=10 failures=0 verdict=HELD
+ROW P-TP-8 strategy=S-FIRE-WINDOW attempts=5 failures=0 verdict=HELD
+ROW P-TP-8 attempts=35 verdict=HELD
+REGISTER JS SIDE attempts=107 rows=3 driven_lines=12 un_run_lines=0
+SITE node --test, /media/ryanr/Shared Files/Projects/Provident-Storeroom/bindings/js
+LAYER ENVELOPE/PURE (APP = NONE, app-green claimed: false)
+✔ register_js_side_three_rows_are_executed_with_strategy_ids_and_verdicts (1.511481ms)
+✔ register_the_figure_names_its_site_and_its_layer_from_the_records_own_artifact (0.260123ms)
+✔ handle_the_construction_takes_a_plain_string_and_the_return_value_is_opaque (2.190387ms)
+✔ handle_the_returned_token_is_readable_by_no_js_code (0.328682ms)
+✔ handle_a_repeat_listen_at_a_registered_address_returns_the_entries_own_handle (0.931514ms)
+✔ handle_a_mint_is_unique_per_process_and_two_addresses_on_one_instance_differ (0.853505ms)
+✔ handle_a_caller_spelled_token_is_adopted_verbatim_and_is_lawful (0.191773ms)
+✔ handle_a_blank_token_is_outside_the_domain_at_the_construction (0.132962ms)
+✔ registry_rule_4_unlisten_over_a_bare_string_is_an_unknown_handle_and_a_no_op_success (0.197193ms)
+✔ registry_rule_4_unlisten_over_a_foreign_handle_fabricated_or_non_opaque_is_a_no_op_success (0.267577ms)
+✔ registry_the_withdrawal_removes_the_store_side_home_entry_and_never_the_function (0.250284ms)
+✔ registry_the_triggered_handle_set_is_exactly_the_prefix_set_descendant_inclusive (0.42276ms)
+✔ registry_a_delete_fires_its_own_triggered_set_on_the_same_prefix_test (0.31184ms)
+✔ registry_a_lawful_duplicate_token_fires_once_for_the_distinct_handle (0.529101ms)
+✔ registry_the_triggered_set_is_compared_as_a_set_and_no_order_is_asserted (0.264981ms)
+✔ delivery_the_record_is_complete_before_the_window_opens (0.239924ms)
+✔ delivery_unlisten_returns_the_unit_on_success_including_its_no_op_success (0.1423ms)
+✔ delivery_listen_carries_no_tier_qualifier_its_address_is_the_whole_of_its_key (0.333691ms)
+✔ delivery_the_watched_member_is_a_list_of_addresses_and_never_a_list_of_handles (0.282615ms)
+✔ round_trip_the_corpus_is_the_nine_declared_states_plus_the_key_set_state (0.891588ms)
+✔ round_trip_a_string_is_exact_under_the_relation (2.258615ms)
+✔ round_trip_the_empty_string_is_exact_under_the_relation (0.252078ms)
+✔ round_trip_a_boolean_is_exact_under_the_relation (0.181964ms)
+✔ round_trip_a_second_boolean_is_exact_under_the_relation (1.251829ms)
+✔ round_trip_a_finite_integral_number_is_exact_under_the_relation (0.205499ms)
+✔ round_trip_a_finite_fractional_number_is_exact_under_the_relation (0.175422ms)
+✔ round_trip_zero_is_exact_under_the_relation (0.185932ms)
+✔ round_trip_an_empty_object_is_exact_under_the_relation (0.225927ms)
+✔ round_trip_an_empty_array_is_exact_under_the_relation (0.309205ms)
+✔ round_trip_a_nested_object_is_exact_under_the_relation (0.275411ms)
+✔ round_trip_a_nested_array_is_exact_under_the_relation (0.187555ms)
+✔ round_trip_an_object_holding_an_array_holding_an_object_is_exact_under_the_relation (0.191833ms)
+✔ round_trip_an_integer_like_key_beside_a_non_integer_like_one_is_exact_under_the_relation (0.160884ms)
+✔ round_trip_at_every_tier_the_mem_register_holds (0.656483ms)
+✔ round_trip_the_relation_is_not_vacuous_on_member_order_or_array_order (0.160053ms)
+✔ round_trip_negative_zero_is_exact_at_the_mem_tier_before_any_boot (0.137971ms)
+✔ round_trip_the_layer_declares_exactly_two_exclusions (0.04238ms)
+✔ round_trip_a_failed_write_returns_nothing_and_a_successful_one_returns_the_record (0.499055ms)
+✔ round_trip_read_literal_returns_the_literal_at_a_leaf (0.277475ms)
+✔ round_trip_the_surface_carries_the_eight_verbs_and_no_resolver (0.10024ms)
+✔ construction_takes_one_plain_object_with_the_stores_three_keys (1.791861ms)
+✔ construction_an_absent_file_path_is_in_domain_and_creates_the_register_at_mem (0.58107ms)
+✔ construction_an_absent_journal_length_is_the_one_absence_the_construction_refuses (0.442567ms)
+✔ construction_a_zero_or_non_integer_journal_length_answers_address_malformed (0.360462ms)
+✔ construction_an_absent_listeners_is_refused_and_no_instance_is_returned (0.153761ms)
+✔ construction_an_empty_listeners_array_is_the_ordinary_no_listener_store (0.580008ms)
+✔ construction_a_duplicate_address_is_kept_with_both_handles (0.288466ms)
+✔ construction_a_malformed_listener_entry_is_refused_and_admits_nothing (0.389568ms)
+✔ construction_a_fourth_key_does_not_change_the_outcome (0.232941ms)
+✔ construction_a_failed_construction_returns_no_partial_instance (0.180772ms)
+✔ verbs_read_on_a_leaf_a_branch_and_the_empty_address (0.346415ms)
+✔ verbs_read_accepted_tier_shapes_and_the_any_match_set (0.283827ms)
+✔ verbs_read_refused_tier_shapes_answer_their_own_codes (0.604675ms)
+✔ verbs_write_requires_a_singular_tier_and_refuses_every_array (0.314595ms)
+✔ verbs_write_returns_its_three_member_record_and_burns_nothing_on_failure (0.992599ms)
+✔ verbs_delete_returns_the_receipt_with_address_verbatim_and_canonical_tiers (0.26411ms)
+✔ verbs_delete_naming_a_tier_the_target_does_not_hold_is_a_success_with_no_tiers (0.161826ms)
+✔ verbs_delete_refuses_an_array_or_out_of_domain_tier (0.21124ms)
+✔ verbs_rollback_returns_its_three_member_result_and_refuses_every_outside_op_id (0.356305ms)
+✔ verbs_read_literal_narrows_to_a_leaf (0.220177ms)
+✔ crossing_a_lone_surrogate_is_refused_at_the_packages_own_walk (0.848666ms)
+✔ address_the_declared_shapes_and_every_outside_shape (0.589246ms)
+✔ address_an_integer_segment_aimed_at_a_map_is_refused_with_its_own_code_and_generated_message (0.320547ms)
+✔ address_the_package_performs_no_arity_check_of_its_own (0.407061ms)
+✔ failure_form_the_thrown_object_is_a_plain_two_member_record (0.096332ms)
+✔ failure_form_the_prototype_is_the_caller_realms_object_prototype (0.070354ms)
+✔ failure_form_the_status_is_a_member_token_verbatim_and_the_message_is_generated (0.094158ms)
+✔ failure_form_is_thrown_and_never_returned (0.118855ms)
+✔ failure_form_the_crossing_reaches_its_own_codes_and_a_failed_read_is_the_probe (0.455572ms)
+✔ failure_form_carries_no_discrimination_rule_between_a_value_and_a_failure (0.135706ms)
+✔ constraint_pattern_evaluate_after_write_and_reverse_with_rollback (0.170673ms)
+✔ constraint_pattern_no_constraint_verb_parameter_or_record_exists (0.120037ms)
+✔ file_readings_a_delete_and_a_rollback_perform_no_file_io (8.721458ms)
+✔ file_readings_a_failed_file_commit_answers_file_commit_failed (1.436589ms)
+✔ file_readings_a_path_that_fails_the_probe_answers_file_path_unreachable_and_creates_nothing (0.622238ms)
+✔ file_readings_two_instances_over_one_path_are_the_callers_own_declared_hazard (0.620886ms)
+[version-stamp-r2] R2-07 DRIVEN (the control): artefact version()="0.2.0" (5 chars), manifest="0.2.0" (5 chars), crate="0.1.0" — the correct path is intact. And the measured "version" occurrence count is 1 (the corrected figure; the count of 6 was a different token).
+[version-stamp-r2] R2-10 THE ADMISSION VECTOR OVER THE REAL `bindings/js/build.rs` — 11/11 guards ADMIT the shipped bytes, 0/11 REFUSE them (none).
+[version-stamp-r2]   ADMITTED ADM-1 no TOTAL rightmost-occurrence search (the absence CAN be answered)
+[version-stamp-r2]   ADMITTED ADM-2 the absence is HELD AS A STATE
+[version-stamp-r2]   ADMITTED ADM-3 NO SILENT DEFAULT answers any arm instead of aborting
+[version-stamp-r2]   ADMITTED ADM-4 EVERY abort is MESSAGE-CARRYING (the verbose requirement, at the carrier)
+[version-stamp-r2]   ADMITTED ADM-5 all FOUR states abort, each present as its own state
+[version-stamp-r2]   ADMITTED ADM-6 each arm's message carries the THREE REQUIRED CONTENTS
+[version-stamp-r2]   ADMITTED ADM-7 the four states' messages are PAIRWISE DISTINGUISHABLE, and every one of them IDENTIFIES ITS STATE
+[version-stamp-r2]   ADMITTED ADM-8 ONE emit site, standing UNGUARDED (the carried path)
+[version-stamp-r2]   ADMITTED ADM-9 provenance is the MANIFEST (no crate version, no ambient read)
+[version-stamp-r2]   ADMITTED ADM-10 every value LOCATOR reads ABSENCE-SCOPED text AND TAKES THE COLON BELONGING TO THE KEY IT FOUND (no other key's value)
+[version-stamp-r2]   ADMITTED ADM-11 NO emptiness test on a lawful value
+[version-stamp-r2] R2-10 SYNTHETIC: 11/11 guards ADMIT the clause-shaped carrier; 10/10 guards FIRE on their mutation (ADM-3/5/6/7, ADM-8, ADM-9, ADM-11, ADM-10(i), ADM-1, ADM-9, ADM-10(ii), R2-11 (the same five steps, the same manifest), ADM-10(i)).
+[version-stamp-r2] R2-10 (d) A WRONG CARRIER CUT FROM THE REAL BYTES' OWN FOUR ARMS — 8/11 guards ADMIT it, 3/11 REFUSE it (ADM-3 NO SILENT DEFAULT answers any arm instead of aborting, ADM-5 all FOUR states abort, each present as its own state, ADM-7 the four states' messages are PAIRWISE DISTINGUISHABLE, and every one of them IDENTIFIES ITS STATE).
+[version-stamp-r2] R2-11 THE ADVERSARIAL MANIFEST: the DECLARED REPAIR (release.md :634) answers state="N2" slot=null; WITHOUT it the same five steps answer state=null slot="module" (that slot's own occurrence stands behind key "type"); the carrier's own bytes carry 1 key-scoped adjacency operand(s) ["tail"] and 0 colon split(s) that consult no key occurrence.
+✔ PAR-PUB-35 (vii-a) SOURCE :: R2-01 — the `version` KEY'S ABSENCE is a STATE THE SCRIPT HOLDS, and it ABORTS (2.029261ms)
+✔ PAR-PUB-35 (vii) SOURCE :: R2-02 — A NON-STRING, AN UNTERMINATED VALUE, A VALUE WITH NO COLON AND AN ABSENT KEY EACH ABORT THE BUILD, AND THE EMPTY STRING IS EMITTED FOR NONE (0.802529ms)
+✔ PAR-PUB-35 (vii) SOURCE :: R2-03 — the ABORT'S MESSAGE carries the THREE REQUIRED CONTENTS: the STATE (distinguishable), the MANIFEST'S PATH, and what the MANIFEST MUST CONTAIN (1.090003ms)
+✔ PAR-PUB-35 (vii) SOURCE :: R2-04 — the value LOCATOR reads only ABSENCE-SCOPED text: no OTHER key's value is stamped where the slot holds no string (0.685077ms)
+✔ PAR-PUB-35 (vii) SOURCE :: R2-05 — the directive IS EMITTED FOR THE REAL MANIFEST: ONE emit site, standing UNCONDITIONAL on the carried path (0.186352ms)
+✔ PAR-PUB-35 (v) SOURCE :: R2-06 — the EMPTY string is a VALUE THAT WAS READ: no fallback and no emptiness test stands in the derivation (0.161265ms)
+✔ PAR-PUB-35 (i) DRIVEN :: R2-07 — THE CONTROL: the real manifest still stamps `0.2.0` character for character, through the artefact's OWN `version()` (1.086226ms)
+✔ PAR-PUB-35 SOURCE :: R2-08 — the emitted value's provenance reaches the MANIFEST read: no crate version and no ambient environment path leads to the directive (0.75555ms)
+✔ PAR-PUB-35 (vii-) SOURCE :: R2-09 — THE MANIFEST THAT CANNOT BE READ aborts AT ITS OWN SITE: its own state, distinct from the four arms (0.307141ms)
+✔ THE R2 INSTRUMENTS' OWN TEETH :: R2-10 — a LAWFUL carrier is ADMITTED by every guard, each guard FIRES on its mutation, AND THE SAME VECTOR IS RUN OVER THE REAL `bindings/js/build.rs` (11.966461ms)
+✔ PAR-PUB-35 (vii-c) SOURCE :: R2-11 — a `version` key with NO COLON OF ITS OWN reaches `(N2)` AND ABORTS, and NO NEIGHBOURING KEY'S VALUE IS EVER STAMPED (2.296718ms)
+[version-stamp falsifier battery] B0 legacy=ADMITTED corrected=ADMITTED legacyRefusedBy=[] correctedRefusedBy=[] reads=[{"name":"declared","manifest":true}] legacyDerivation=true valueReachable=[ABSENT, CARGO_MANIFEST_DIR, COLON, Either, For, JSON, KEY, N1, N2, N3, N4, NEIGHBOURING] :: THE REAL CARRIER — the present control, so a relation that refuses everything is not mistaken for a strong one
+[version-stamp falsifier battery] B1 legacy=ADMITTED corrected=ADMITTED legacyRefusedBy=[] correctedRefusedBy=[] reads=[{"name":"declared","manifest":true}] legacyDerivation=true valueReachable=[declared, end, expect, find, format, fs, json, next, read_to_string, rest, rsplit, split_once] :: the lawful relation with ONE HOP REMOVED: the manifest is read through `CARGO_MANIFEST_DIR`, the value is extracted from THAT read
+[version-stamp falsifier battery] B2 legacy=REFUSED corrected=REFUSED legacyRefusedBy=[emitted, nameExact, valueIsABinding, manifestPathBuilt, manifestReadStands, extractedFromTheBytes, viaManifestDir, viaManifestFile, derivedFromManifest] correctedRefusedBy=[emitted, nameExact, valueIsABinding, manifestPathBuilt, manifestReadStands, extractedFromTheBytes, viaManifestDir, viaManifestFile, derivedFromManifest] reads=[] legacyDerivation=false valueReachable=[] :: A HARD-CODED EMITTER: no read at all, the version a literal in the format string
+[version-stamp falsifier battery] B3 legacy=REFUSED corrected=REFUSED legacyRefusedBy=[extractedFromTheBytes, viaManifestDir, viaManifestFile, derivedFromManifest] correctedRefusedBy=[extractedFromTheBytes, viaManifestDir, viaManifestFile, derivedFromManifest] reads=[{"name":"declared","manifest":true}] legacyDerivation=false valueReachable=[] :: THE MANIFEST IS READ, THE VALUE IS A LITERAL — the read is present and the printed value is not from it
+[version-stamp falsifier battery] B4 legacy=REFUSED corrected=REFUSED legacyRefusedBy=[manifestPathBuilt, manifestReadStands, extractedFromTheBytes, viaManifestDir, viaManifestFile, derivedFromManifest] correctedRefusedBy=[manifestPathBuilt, manifestReadStands, extractedFromTheBytes, viaManifestDir, viaManifestFile, derivedFromManifest, noForeignReadConsumed] reads=[{"name":"declared","manifest":false}] legacyDerivation=false valueReachable=[declared, expect, fs, lines, next, read_to_string, unwrap_or] :: A DIFFERENT FILE and NO `CARGO_MANIFEST_DIR`: a relative `Cargo.toml`, the crate's own manifest
+[version-stamp falsifier battery] B5 legacy=REFUSED corrected=REFUSED legacyRefusedBy=[manifestPathBuilt, manifestReadStands, viaManifestDir, derivedFromManifest] correctedRefusedBy=[manifestPathBuilt, manifestReadStands, viaManifestDir, derivedFromManifest, noForeignReadConsumed] reads=[{"name":"declared","manifest":false}] legacyDerivation=false valueReachable=[declared, expect, format, fs, read_to_string, trim] :: NO `CARGO_MANIFEST_DIR`: the path is built from a directory variable the clause does not name
+[version-stamp falsifier battery] B6 legacy=REFUSED corrected=REFUSED legacyRefusedBy=[extractedFromTheBytes, viaManifestDir, viaManifestFile, derivedFromManifest] correctedRefusedBy=[extractedFromTheBytes, viaManifestDir, viaManifestFile, derivedFromManifest] reads=[{"name":"declared","manifest":true}] legacyDerivation=false valueReachable=[env, expect, var] :: AN AMBIENT VARIABLE AS THE VALUE: the manifest is read and the value comes from outside the build
+[version-stamp falsifier battery] B7 legacy=ADMITTED corrected=REFUSED legacyRefusedBy=[] correctedRefusedBy=[viaManifestFile, derivedFromManifest, noForeignReadConsumed] reads=[{"name":"declared","manifest":true},{"name":"other","manifest":false}] legacyDerivation=true valueReachable=[expect, format, fs, next, other, read_to_string, rsplit] :: **THE MISSING MEMBER** — THE MANIFEST READ STANDS AND IS USED, AND THE VERSION PRINTED IS TAKEN FROM A SECOND READ of another file (`package.json.bak`) reached through the SAME `CARGO_MANIFEST_DIR`-built path
+[version-stamp falsifier battery] B8 legacy=REFUSED corrected=REFUSED legacyRefusedBy=[viaManifestFile] correctedRefusedBy=[viaManifestFile, derivedFromManifest, noForeignReadConsumed] reads=[{"name":"declared","manifest":true},{"name":"other","manifest":false}] legacyDerivation=true valueReachable=[expect, format, fs, next, other, read_to_string, rsplit] :: the SAME shape as `B7` with ONE free parameter moved: the second source does not carry the manifest's name (`version.txt`) — carried so `B7` is not read as a file name chosen to fit an instrument
+[version-stamp re-run trigger battery] T-real legacy{changed=true,env=true} corrected{changed=true,env=true} correctedManifestHits=["{manifest}/package.json"] correctedEnvHits=["STOREROOM_JS_PACKAGE_VERSION"] dirBuilt=["manifest"] :: THE DECLARATION THE CLAUSE ASKS FOR, spelled from `§6.1` item `7` itself and NOT from the file in the tree: ABSOLUTE, built from `CARGO_MANIFEST_DIR`, naming the manifest, with `cargo:rerun-if-env-changed` for the directive — and it prints NO directive, so the trigger relation is exercised on a carrier the directive reader returns nothing for
+[version-stamp re-run trigger battery] T-bak legacy{changed=true,env=true} corrected{changed=false,env=true} correctedManifestHits=[] correctedEnvHits=["STOREROOM_JS_PACKAGE_VERSION"] dirBuilt=["manifest","declared","version"] :: `cargo:rerun-if-changed=package.json.bak` — the manifest's name is a SUBSTRING of it, and the file the build reads is NOT the file the trigger watches
+[version-stamp re-run trigger battery] T-relative legacy{changed=true,env=true} corrected{changed=false,env=true} correctedManifestHits=[] correctedEnvHits=["STOREROOM_JS_PACKAGE_VERSION"] dirBuilt=["manifest","declared","version"] :: `cargo:rerun-if-changed=package.json` — the manifest's name EXACTLY and a RELATIVE path, which cargo resolves against the build script's own working directory and not against the manifest directory the clause names
+[version-stamp re-run trigger battery] T-otherdir legacy{changed=true,env=true} corrected{changed=false,env=true} correctedManifestHits=[] correctedEnvHits=["STOREROOM_JS_PACKAGE_VERSION"] dirBuilt=[] :: `cargo:rerun-if-changed={other}/package.json` where `other` is built from a directory the clause does not name — the manifest's name stands in the path and the path is not the one the build reads
+[version-stamp re-run trigger battery] T-slot legacy{changed=true,env=true} corrected{changed=true,env=false} correctedManifestHits=["{manifest}/package.json"] correctedEnvHits=[] dirBuilt=["manifest","declared","version"] :: `cargo:rerun-if-env-changed=version` — THE PRINTED SLOT'S OWN NAME, which the pre-correction test admitted through its `n === DIRECTIVE.slot` branch, and which is NOT the directive's name
+
+[version-stamp property layer] seed=20261013 attemptsTotal=24 capPerRow=100 capTotal=400 failureCap=5
+[version-stamp property layer] P-PUB-9 strategy=S-STAMP attempts=1 breaks=0 verdict=HELD (SINGLE-STATE SUBJECT and NOT a sample: the host build `/media/ryanr/Shared Files/Projects/Provident-Storeroom/bindings/js/build/Release/storeroom_js_binding.node` driven as rung two — one artefact stands in a tree, so this row drives it instead of many near-misses; the artefact answered `0.2.0`, the manifest declares `0.2.0`)
+[version-stamp property layer] P-PUB-4 strategy=S-VERSION attempts=24 breaks=0 verdict=HELD (THE COMPOSED FAKE, and its subject is named so no figure of it can be read onto `P-PUB-9`: each attempt writes a rung-one `node_modules/`-shaped addon whose `version()` is handed a perturbed string, so what is driven is the version READ's refusal of a value it does not match (`PUB-DD-18`: the read guards rung one alone; `PUB-DD-19`: the predicate is exact string inequality) — NOT the artefact's own answer, which only `P-PUB-9 strategy=S-STAMP` reports)
+[version-stamp property layer] P-PUB-10 strategy=S-GUARD attempts=0 breaks=0 verdict=NOT-EXPRESSIBLE-AS-A-PROPERTY (the row is fiable at the file — two cells above — and at the RUN, which no cell of this suite may drive)
+✔ P-PUB-9::S-STAMP a stamped carrier declares the directive, DERIVES its value from the manifest it READS, and the facade reads it with the crate version on `None` as the only fallback (105.080835ms)
+✔ P-PUB-9::S-STAMP THE FALSIFIER BATTERY — eight carrier shapes; the shape that broke the LINK (a standing manifest read, a value from a SECOND read) is REFUSED by the correction and was ADMITTED by the test it replaced (331.557297ms)
+✔ P-PUB-9::S-VERSION GREEN CONTROL (and NOT a red-set member) — where an artefact answers the manifest, the load succeeds (18.130599ms)
+✔ P-PUB-9::S-VERSION THE CELL OF THE INVARIANT — the BUILT ARTEFACT's own `version()` answers the manifest's `version`, character for character (18.323545ms)
+✔ P-PUB-9::S-VERSION ACCIDENTALLY-GREEN — a `version()` answering the crate's `Cargo.toml` version is refused (17.197843ms)
+✔ P-PUB-9::S-VERSION ACCIDENTALLY-GREEN — an empty-string answer is refused and the stamp does not fall back from it (16.44045ms)
+✔ P-PUB-9::S-VERSION ACCIDENTALLY-GREEN — a non-string answer is refused by the same single arm (69.110898ms)
+✔ P-PUB-9::S-VERSION ACCIDENTALLY-GREEN — a `version` member that is not callable, and an absent `version` member, are refused (40.503749ms)
+✔ P-PUB-9::S-VERSION ACCIDENTALLY-GREEN — a version differing by ONE character is refused, and a substitute artefact is refused with it (36.731068ms)
+✔ P-PUB-9::S-STAMP the carrier declares a RE-RUN TRIGGER on the manifest it reads, read at `bindings/js/build.rs`'s own bytes (103.407507ms)
+✔ P-PUB-9::S-STAMP THE RE-RUN TRIGGER BATTERY — the real declaration is admitted by both tests, and the four red declarations the substring test admitted are refused by the corrected one (204.716031ms)
+✔ P-PUB-10::S-GUARD the pre-publish guard step is PRESENT, NAMED by its three tokens, and POSITIONED between the assembly and the first publish site (0.340955ms)
+✔ P-PUB-10::S-GUARD the guard is declared in the job that BUILDS ALL FIVE LEGS, and the main package carries no second guard step (0.303244ms)
+✔ P-PUB-9::S-STAMP ACCIDENTALLY-GREEN (and GREEN BY DESIGN under `A96`) — every runtime environment read is inside the five-member closed set (0.321228ms)
+✔ P-PUB-9 property (S-STAMP) — THE ARTEFACT ROW: the row this unit bears on reports the BUILT ARTEFACT's own answer, or reports the state of a SKIPPED subject, and NEVER a figure from the composed fake (16.969021ms)
+✔ P-PUB-4 property (S-VERSION) — THE COMPOSED FAKE, UNDER ITS OWN IDENTITY: the rung-one version READ's equality is EXACT, and every one-character-perturbed answer is refused (371.333978ms)
+✔ P-PUB-10 property — REPORTED AS NOT EXPRESSIBLE: the guard's comparison is a RUN observable, and no cell of this suite may claim to drive it (0.102605ms)
+✔ THE PROPERTY LAYER'S OWN CENSUS — the seed, the attempt counts and every row's verdict are PRINTED (0.320787ms)
+ℹ tests 414
+ℹ suites 0
+ℹ pass 414
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1786.064686

@@ -2978,7 +2978,12 @@ impl Store {
                 value: value.clone(),
             },
             seq: 0,
-            compacted: false,
+            // **⟶ AND THE `compacted: false` THIS LITERAL USED TO CARRY IS DELETED, 2026-11-17
+            // (`strata/decisions.md` · `D-189` item 2).** **THIS SITE IS ONE OF THE MEMBER'S TWO
+            // PRODUCERS AND IT SET `false` — MEASURED, AND THAT IS THE WHOLE OF THE DIRECTIVE'S
+            // CONDITION** (*"If .compacted is always false drop it"*): a member that can hold one value
+            // carries nothing, and the discrimination it once shared with compaction is the `journal_floor`
+            // watermark's (`D-160` item 3). **NO ACT SETS IT AND NO ACT READS IT.**
         };
         // **`§6.6`: THE STATE THIS WRITE LEFT, TAKEN THE INSTANT IT LANDED** — the other half of the entry's
         // record, on the same pair the write installed at, so the journal can be replayed FORWARD as well as
@@ -3150,7 +3155,11 @@ impl Store {
             before,
             after,
             seq: 0,
-            compacted: false,
+            // **⟶ AND THE `compacted: false` THIS LITERAL USED TO CARRY IS DELETED, 2026-11-17
+            // (`strata/decisions.md` · `D-189` item 2) — THE SECOND AND LAST OF THE MEMBER'S TWO PRODUCERS,
+            // AND IT SET `false` TOO** (the condition the directive names, measured at this site: *"If
+            // .compacted is always false drop it"*). **The member is gone from the record
+            // (`src/records.rs`), so there is nothing here to set.**
         };
         // **⟶ AND THE LIST THIS DELETE BUILT IS DELETED 2026-11-17 (`strata/decisions.md` · `D-160` item 4).**
         // The block that stood here collected the journal's UN-compacted op ids into a `Vec<String>` on every

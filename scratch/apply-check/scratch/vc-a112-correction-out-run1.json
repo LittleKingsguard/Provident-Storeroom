@@ -1,0 +1,45 @@
+{
+ "run": "run1",
+ "layer": "LIVE / ASSEMBLED PACKAGE",
+ "totals": {
+  "cells": 2,
+  "PASS": 0,
+  "FAIL": 0,
+  "NOT-EXERCISABLE": 2
+ },
+ "filedReadings": {
+  "PASS": 0,
+  "FAIL": 2,
+  "NOT-EXERCISABLE": 0
+ },
+ "cells": [
+  {
+   "id": "A112-D4",
+   "clause": "docs/specs/storeroom-js/surface.md §2.4 rule 1 (an unregistered handle fires nothing, silently) + kernel-surface.md §2.1 item 1 (the adopted handle; \"the kernel holds its own registry entry beside it\")",
+   "expected": "a listener the app registered after the kernel's adoption is not invoked while the kernel's registration stands",
+   "falsifier": "FAIL iff the app listener registered AFTER K-1 is invoked INSIDE the K-2 window (appListenerCallsAtK-2 > 0) while the kernel's own registration for that address still stands (its caller-side entry evaluated → kernelPairCalls=1 and outcome=passed)",
+   "verdict": "NOT-EXERCISABLE",
+   "why": "THE CLAUSE IS TWO-VALUED ON THIS DRIVE: the reading the cell filed answers FAIL, the sibling reading answers PASS — named in the split below; the observable is printed WITHOUT a verdict",
+   "readings": {
+    "readingA": "FAIL",
+    "readingB": "PASS"
+   },
+   "observed": "on() returned the SAME adopted handle=true; app listener calls INSIDE the K-2 window=1; the constraint bodies' calls at that same instant=0; outcome=passed; constraint body calls after K-3=1; pending after K-3=0",
+   "split": "THE SPLIT, NAMED: docs/specs/storeroom-js/surface.md §2.4 rule 1 + kernel-surface.md §2.1 item 1 (the app's `listen`/`on` and the kernel's `register` return the SAME adopted handle and \"neither call replaces the other's holder — the store holds ONE entry at that address, and the kernel holds its own registry entry beside it\" → the kernel's registration stands → the app's listener may not be invoked) AGAINST docs/specs/storeroom-js/surface.md §2.4 rule 2 + §2.4 item 7 (a)'s HELD arm (the address is already held, the second registration REPLACES the registry's function for that identity and \"a later trigger invokes the REPLACEMENT once\") → the app's listener IS invoked and the drive conforms. THE ORDERING that would decide between them is the gate handed off at docs/next-steps.md · N7 (enforced nowhere in the delivered surface), which is the reason this cell cannot be read as a clean product failure."
+  },
+  {
+   "id": "A112-E8",
+   "clause": "fail-surface.md §2 KC-4 (the repair transition: \"the repair's own verb call threw the store's code\") + §1.1 (the three-member failure form) + kernel-surface.md §2.3 item 2",
+   "expected": "the kernel's answer is KC-4, its message NAMES the store's own code, and `ops` holds no op for the attempt",
+   "falsifier": "READING A's falsifier (the cell as filed + §1.1's head + §1.2 item 3's sentence \"the thrown form's `status` is `KC-4`\"): FAIL unless the thrown form is exactly {log,message,status} AND its `status` is the kernel's own KC-4. READING B's falsifier (§1.1 items 3 and 5 + §1.2 item 2 and item 3's ruling sentence + §2's KC-4 row's `observable` cell): FAIL unless the caller holds the BODY'S OWN THROWABLE — the store's own {status,message} with the store's code VERBATIM — while KC-4's token stands on the attempt's own `outcome` entry, the `repair-run` entry's message NAMES the store's code, the report reads `failed`, and the refused edit left no op in `ops`",
+   "verdict": "NOT-EXERCISABLE",
+   "why": "THE CLAUSE IS TWO-VALUED ON THIS DRIVE: the reading the cell filed answers FAIL, the sibling reading answers PASS — named in the split below; the observable is printed WITHOUT a verdict",
+   "readings": {
+    "readingA": "FAIL",
+    "readingB": "PASS"
+   },
+   "observed": "thrown form keys=[message,status] status=WriteParentNotLink (a store code? true; the kernel's own KC-4? false); the thrown form carries a `log` member=false; K-4 names the store code in its repair-run entry=true; the attempt's own outcome entry state=KC-4; report.outcome=failed report.ops.length=1 (the refused edit left no op=true)",
+   "split": "THE SPLIT, NAMED — and it is printed INSIDE ONE ITEM: fail-surface.md §1.1's head + §1.1 item 1 (a) (\"EVERY FAILURE THIS KERNEL REPORTS IS A THROWN PLAIN OBJECT WITH EXACTLY THREE MEMBERS\"; \"`status` … is never a member of the store's closed 15\") + §1.2 item 3's FIRST sentence (\"a REPAIR's store failure does not reach the caller as a store failure … the kernel's answer to the CALLER is KC-4\") and its later sentence \"the thrown form's `status` is `KC-4`\" AGAINST §1.1 item 3 + §1.1 item 5 + §1.2 item 2 + §1.2 item 3's OWN RULING sentence (\"ON THIS PATH the caller holds the BODY'S OWN THROWABLE, which is the STORE's own form carrying the store's own code for its `status` … §2's KC-4 row is the MORE SPECIFIC clause and governs this path\") + §2's KC-4 row's `observable` cell (\"THE DECLARED MEMBER THAT CARRIES THIS MEMBER ON THE THROWING-REPAIR PATH IS NAMED SO IT IS NOT SOUGHT IN THE THROWN FORM … its ONE `outcome` ENTRY, whose `state` member carries KC-4\"). The spec-side reconciliation of that split is a parallel pass; this cell is not graded on a guess at its outcome. NOTE ALSO: the cell's third limb (\"`ops` holds no op for the attempt\") is read the same two ways — §2's KC-4 row (CC-9) reads it as no op OF THE REFUSED EDIT, which the drive satisfies (`ops.length=1`, that op being K-2's own write)."
+  }
+ ]
+}

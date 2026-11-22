@@ -892,7 +892,15 @@ fn base_state(s: &BaseState) -> JsBaseState {
     }
 }
 
-/// `PAR-JS-13`: the journal op's own eight members, at the package's own spellings.
+/// `PAR-JS-13`: the journal op's own **SEVEN** members, at the package's own spellings.
+///
+/// **⟶ SEVEN, NOT EIGHT, FROM 2026-11-17 — `compacted` LEFT THE STORE'S RECORD AND LEAVES THE CARRIER WITH
+/// IT** (`strata/decisions.md` · `D-189` item 2, the architect VERBATIM: *"If .compacted is always false drop
+/// it"*). **THE COUNSEL IS THE SAME ONE THE STORE STATES AT ITS OWN BYTE**: the member's two producers both
+/// set `false`, so a member that can hold one value carried nothing, and its subject — which op the compaction
+/// took — is the `journal_floor` watermark's (`D-160` item 3). **This carrier crosses the store's record
+/// MEMBER FOR MEMBER, so a member the store no longer has cannot cross, and `codec.rs`'s and
+/// `wasm_codec.rs`'s emitters drop the key with this field.**
 #[derive(Clone, Debug, PartialEq)]
 pub struct JsJournalOp {
     pub opId: String,
@@ -903,7 +911,6 @@ pub struct JsJournalOp {
     pub before: JsBaseState,
     pub after: JsBaseState,
     pub seq: u64,
-    pub compacted: bool,
 }
 
 /// `PAR-JS-13`–`PAR-JS-15`: `{op, watched, triggered}` — a fresh record on every call.
@@ -953,7 +960,11 @@ fn journal_op(op: &storeroom_native::JournalOp) -> JsJournalOp {
         before: base_state(&op.before),
         after: base_state(&op.after),
         seq: op.seq,
-        compacted: op.compacted,
+        // **⟶ `compacted: op.compacted` STOOD HERE AND IS DELETED 2026-11-17 (`strata/decisions.md` ·
+        // `D-189` item 2): the store's own record no longer carries the member, so this crossing — which
+        // copies the record MEMBER FOR MEMBER and mints none — has none to copy.** No substitution is made
+        // and no default is synthesised: a key that appeared here would be a member the declaration does not
+        // carry.
     }
 }
 

@@ -1,0 +1,1133 @@
+# Release notes — `provident-storeroom` `1.1.0`
+
+**⟶ THE FILE'S OPERATIVE READING, 2026-10-28 — THE HEAD IS CORRECTED HERE, AND THE DEFECT WAS ONE LEVEL IN: A DOCUMENT
+DENYING THE STATE IT DESCRIBED.** `RCA-8(g)` ANNOTATE-BESIDE: **the title line above and every dated paragraph below
+stand BYTE-FOR-BYTE as the reading of their own date; THIS clause and the `§MAIN` section beneath it are the operative
+readings of the two things the head got wrong.** **(i) `1.2.0` IS NOT UNRELEASED.** `git tag --list` answers `v1.0.0` ·
+`v1.0.1` · `v1.1.0` · `v1.2.0`; the tag `v1.2.0` names a tree whose `bindings/js/package.json` reads `"version": "1.2.0"`
+at its own bytes; and the registry carries `1.2.0`. **So the section that stood under *"UNRELEASED"* is the change list
+of a CUT release, its *"no `v1.2.0` tag exists"* sentence and its *"what is installed today is still `1.1.0`"* sentence
+are the reading of the date they were written, and its heading is corrected at its own line** — the withdrawn bytes are
+recorded there, because a heading that denies its own tag is exactly the class of defect this project calls `DEF-AC`.
+**(ii) THE PUBLISHED FIGURE IS `1.2.0`, NOT `1.1.0`, AND THE TREE READ HERE IS NINE COMMITS PAST THAT RELEASE WITH NO
+TAG ON IT.** **So this file now carries a section for the tree that is not cut (`§MAIN`, prepared and marked so) beside
+the section for the release that is (`§1.2.0`).** **No version is bumped, no manifest moves, and nothing in `§MAIN`
+claims to be installable.**
+
+**⟶ AND THE CUT-STATE IS DROPPED FROM THIS FILE, 2026-10-28 — `D-57`, THE ARCHITECT VERBATIM: *"Drop the cut-state."*** `RCA-8(g)` ANNOTATE-BESIDE: **the title line and every dated paragraph of this file stand BYTE-FOR-BYTE as the reading of their own date, THIS clause is the one that reads them, and not one byte is deleted.** **THE REASON IS STRUCTURAL AND IT WAS MEASURED THREE TIMES: A SHIPPED DOCUMENT IS SEALED BEFORE THE TAG THAT MAKES ITS CUT-STATE TRUE**, so every release packed before its tag ships a document denying itself, and a guard running in that release's own preflight can only ever confirm *"not cut"* — `1.2.0` shipped *"NOT CUT"*, `1.3.0` shipped *"`v1.3.0` DOES NOT EXIST"*, and this file's own head was stale within minutes of the tag that falsified it. **SO EVERY SENTENCE BELOW THAT CLAIMS WHETHER SOME VERSION IS OR IS NOT CUT — *"PREPARED — NOT CUT"*, *"no `v1.3.0`"*, *"nothing in this section is cut"*, *"the release is not cut"*, *"what is installed today is still `1.1.0`"*, and each reading printed beside them — IS READ THROUGH THIS CLAUSE: the cut-state is not a document's to state.** **WHAT SURVIVES IS THE ONE FIGURE A SHIPPED DOCUMENT CAN BE RIGHT ABOUT, AND IT IS GENERATED FROM THE MANIFEST AND ASSERTED BY THE PREFLIGHT:**
+
+PUBLISH-NOTES-VERSION-LINE: THE VERSION THIS CHANGE LIST DESCRIBES IS `1.13.0`.
+
+**AND THE TAG SET SURVIVES AS A RECORD OF RELEASES — PAST TENSE, A LIST OF WHAT HAS BEEN CUT, NEVER A CLAIM ABOUT THE CURRENT ONE** (the record stands in `§1.4.0` below — the section this file's head called `§main` until it was re-cut to name the version it prepares, 2026-10-28 — beside the section for the tree this file describes). (`D-57`; `DEF-AC` (b) — `scripts/publish.sh --figures` generates that line from `bindings/js/package.json`'s `version` and refuses on any disagreement, in this file, in `bindings/js/README.md` and in the shipped guide: three documents, three version lines, one generator, one assertion.)
+
+**⟶ AND THE CUT-STATE'S ONE AUTHORITY IS THE TAG SET, 2026-10-29 — `D-79` ITEM 2, KEPT BY `D-81` ITEM 2.** `RCA-8(g)` ANNOTATE-BESIDE: **no byte above or below moves; this clause is added beside the record paragraph above, and every dated paragraph of this file stands BYTE-FOR-BYTE as the reading of its own date.** **THE AUTHORITY IS `git tag --list` AND IT IS THE WHOLE OF IT: what has been released is what the tag set answers, and NO PROSE PARAGRAPH OF THIS FILE — or of the consumer guide, or of `bindings/js/README.md`, or of either landed copy — MAY ASSERT OR DENY THAT IN THE PRESENT TENSE.** **EVERY SENTENCE BELOW THAT DOES IS THE READING OF ITS OWN DATE AND IS READ THROUGH THIS CLAUSE**: the change lists of `§1.2.0` through `§1.5.0` describe releases the tag set answers for, and each one's sentence about what had or had not been released belongs to the date that wrote it. **AND WHAT THIS CLAUSE DOES NOT DO, SAID SO IT IS NOT READ AS DONE: it corrects none of them and deletes no byte of them** — `D-81` item `2`'s sweep is a REPORT of where each stands, and the catalogue at `docs/guides/backup/D81-2026-10-29-notes-move-out.md` §3 is that report, entry by entry, so a reader can check a scan by eye. (`D-79`; `D-81`; `git tag --list`.)
+
+**THE ONE THING THIS DOCUMENT IS FOR: `1.1.0` IS A MINOR, AND THIS IS WHERE ITS BREAKING CHANGES ARE
+DECLARED.** `1.0.1` was published as a PATCH and it carried behaviour changes a patch may not carry. The
+architect ruled the remedy a MINOR — *"the next release is `1.1.0`"* (`strata/decisions.md` · `D-42` item `1`)
+— so **`1.0.1` stands as published with a disclosed breach, and `1.1.0` carries the declaration.** This file
+is that declaration. **It is not a changelog of everything that happened; it is the list of things that can
+break you, each with what it did before and what it does now.**
+
+**WHERE IT BELONGS, AND WHY IT IS AT THE REPOSITORY ROOT.** This note is at the packaging root's PARENT, not
+inside `bindings/js/`: the main manifest's `files` allowlist does not name it and must not, so **it ships in NO
+tarball.** It addresses a consumer deciding whether to move off `1.0.1`, so it must be readable BEFORE an
+install and must cover the six packages at once — the main package and the five platform packages share one
+version and one decision.
+
+**⟶ AND THE PARAGRAPH ABOVE IS SUPERSEDED BY MEASUREMENT, 2026-10-28 — `DEF-AC`, AND THIS FILE NOW SHIPS.** `RCA-8(g)`
+ANNOTATE-BESIDE: **the paragraph above stands BYTE-FOR-BYTE and is the reading of its own date (the `1.1.0` cut, when
+it did ship nowhere); it is read THROUGH this clause.** **THE DEFECT THE DOWNSTREAM FILED: the ONE behaviour change
+`1.2.0` makes — a refused reversal's restore to the commit's OPENING mark — was declared in THIS FILE and in no
+shipped document, so a consumer installing `1.2.0` received a behaviour change with no shipped declaration of it.**
+**SO THE FILE IS LANDED THE WAY THE GUIDE IS LANDED**: `RELEASE-NOTES.md` at the repository root is the ONE authored
+home, the release's assembly stages it **BYTE-FOR-BYTE** at the packaging root as `bindings/js/RELEASE-NOTES.md`,
+and the main manifest's `files` allowlist **names it** — one additive documentation row beside `README.guide.md`,
+staged by the same assembly step and admitted by the reachability rule's own declared non-code class. **A BARE
+`npm pack` STILL WORKS** because the landed copy is a TRACKED, GENERATED file like `README.guide.md`: it is present
+whether or not the assembly has run. **AND WHAT SHIPS IS THE CHANGE LIST, at `node_modules/provident-storeroom/
+RELEASE-NOTES.md`.**
+
+**THE VERSION THIS RELEASE DECLARES IS `1.1.0` AT ELEVEN SITES, MOVING TOGETHER** — the main manifest's
+`version`, its FIVE exact `optionalDependencies` pins, and the FIVE `platforms/*/package.json` versions. **The
+artefact is stamped from the manifest by `bindings/js/build.rs`, so `version()` answers `1.1.0`** and that is
+the value to assert against, not the crate's own `Cargo.toml` version.
+
+---
+
+## §1.13.0 · a MINOR — the second claimed realm, and the save arm it made possible: a WebAssembly build in its own package, three `cfg` keys' companions, a twenty-third status, and two receipt accessors
+
+**THE VERSION IS `1.13.0` AND ITS CLASS IS A MINOR — `D-158`, THE ARCHITECT'S RULING OF 2026-11-17, whose words were
+the class alone: *"MINOR — 1.13.0"*. THE VERSION MOVES TWELVE SITES TOGETHER: the main manifest's `version`, its FIVE
+exact `optionalDependencies` pins, and the SIX `platforms/*/package.json` versions** — the five native siblings and the
+WebAssembly sibling whose `version` its own coupled-version clause names (the admission's reading of `§3.2`'s rule as
+*"the SEVEN manifests move to `X.Y.Z` TOGETHER"*). **The artefact is stamped from the manifest by `bindings/js/build.rs`,
+so `version()` answers `1.13.0`**, and that is the value to assert against.
+
+**THE HEADLINE IS ONE SENTENCE: THE PACKAGE IS NO LONGER CLOSED AT ONE REALM, AND A WEBASSEMBLY BUILD OF THIS STORE NOW
+SHIPS AS ITS OWN PACKAGE.** `D-154` lifted the claim; the build carries **no `filePath`** — the key is not in domain
+there, and a construction that supplies it is refused **by the store's own path arm with `FilePathUnreachable`, whose message names the path** —
+**⟶ RE-CUT 2026-11-17: this entry said `AddressMalformed` at the `cfg` gate, and the shipped bytes answer `FilePathUnreachable`** (`CW-2`
+measures the divergence itself and records it; the guide prints the measured answer) — so the seven `std::fs`
+calls and `std::process::id()` are `#[cfg]`-ed out with the writer and the reader they belong to, and the register is
+**`file` tier with no path**: a store whose durability is a caller's function.
+
+**WHAT A CONSUMER ON `1.12.0` MEETS, AT EACH ENTRY POINT:**
+
+1. **`import` AND `require` OF `provident-storeroom` ARE UNCHANGED.** Same module, same one name `storeCreate`, same
+   `types` condition standing first, same `require` condition on the same one ESM file, same floor `>=22.12.0`.
+2. **`@auspicion/provident-storeroom-js-wasm` IS NEW, AND IT IS A SECOND PACKAGE AND NOT A SECOND ARM.** Its
+   construction is `storeCreate(bindings, cfg)`: the WebAssembly module is an ARGUMENT, the package instantiates
+   nothing and loads no addon, and a first position that is not the module refuses in the package's own class form
+   (`TypeError`, `status` absent) rather than as a store status. **A store the package never constructed is not a state
+   the store can be in.**
+3. **`cfg` GAINS TWO KEYS ON THE NODE ARM AND KEEPS ITS TWO REQUIRED ONES.** `saveCall` (a function the store hands its
+   own image to, and whose verdict gates the write's answer) and `initialImage` (the image text a store boots from) are
+   both optional and both absent-by-default, so every construction lawful on `1.12.0` is lawful here. **`filePath` and
+   `saveCall` are mutually exclusive** — a construction carrying both is refused, because two save mechanisms over one
+   register is a state the store cannot answer for.
+4. **THE SAVE ARM IS FIVE ENTRIES AND NO NEW VERB.** `exportImage` (the store composes and verifies its own image),
+   `saveSucceeded(opId)` and `saveFailed(opId)` (the caller's verdict, and its mirror), each reached through the store's
+   own pass. **The addon's export set moves `16 → 19`; the instance's own fifteen members DO NOT MOVE.**
+5. **THE CLOSED STATUS SET GAINS ITS TWENTY-THIRD MEMBER, `ListenerBodyRejected`.** A DELIVERED listener body that
+   REJECTS refuses the act that fired it — which is not rank `21`'s `ListenerBodyThrew`: a throw leaves the write
+   unanswered, a rejection RESOLVES it and the refusal is the datum. **No rank of `1`…`22` moves.**
+6. **THE WRITE, DELETE AND ROLLBACK RECEIPTS GAIN TWO NON-ENUMERABLE ACCESSORS**: `bodyFailures` and `returnedValues`,
+   each a `configurable` getter over symbol-keyed data. **`Object.keys` and every deep-equality over a receipt are
+   unmoved** — the one census that sees them is `Object.getOwnPropertyNames`.
+7. **A VALUE MUST BE CLONEABLE, AND A `Proxy` IS REFUSED WITHOUT A TRAP RUNNING.** The crossing is a deep copy in both
+   directions — which is what stops an application mutating a value the store holds, and so bypassing a listener's
+   firing or a constraint's pass — and on the WebAssembly arm the detector is `structuredClone`. **On the Node arm
+   nothing about this moves**: `util.types.isProxy` still reads no member and invokes no handler, and the refusal is
+   still `ValueRefusedAtBoundary`.
+8. **THE JOURNAL NOW DROPS HISTORY, AND `journalLength` IS THE WIDTH OF THE COMPENSATION WINDOW.** On `1.12.0` the cap
+   was a MARK: the oldest entries were flagged and kept for the store's whole life, and the flag was what told a
+   reversal it had gone past the floor. **From `1.13.0` the cap is a BOUND**: what survives is the base state plus at
+   most `journalLength` uncompacted ops, **an op the compaction reaches is REMOVED and its op id is gone with it**, and
+   memory is `O(store + journalLength)` rather than growing with every write ever made (`D-160` items 1–2). **The two
+   refusals stay distinguishable and they are told apart by ONE NUMBER rather than by a retained list**: an op the
+   compaction DROPPED answers `RollbackCompacted`, and an id that never named an op answers `JournalOpUnknown`
+   (`D-160` item 3 — the floor's own `seq` is the watermark). **A write's record still carries its `compacted` member
+   and it reads `false`**: no act sets it any more, because the mark is not the mechanism — **and whether the member
+   survives the drop is a declaration this section does not make** (`D-160` item 4 of its unsettled).
+9. **A REVERSAL THAT NEEDS AN OP THE COMPACTION DROPPED REGENERATES FROM THE FILE — AND ANSWERS `RollbackCompacted`
+   ONLY ON A STORE WITH NO READ PATH.** `D-164` item 2's division, at the two shapes you can construct: **with a
+   `filePath` whose image can be read — or the state the store was created with where no image stands — the store
+   REBUILDS its base from that file and the call RETURNS a `RollbackResult`; no refusal is involved.** **With NO READ
+   PATH the call answers `RollbackCompacted`, and that token is your signal to recover the value from your own copy**
+   — the path-less `saveCall` store, whose channel is write-only by construction, and any `mem` store, which has no
+   durable ground truth at all (`D-165` items 1–3; the test is the empty path and it is the whole test). **The token's
+   rank, its code and its generated message are unmoved; what moves is the set of acts that produce it** (`D-163`
+   item 6; `D-164` items 3–4).
+10. **A CLOSED ATTEMPT'S REPORT IS KEPT WHILE THE ATTEMPT CAN STILL BE NAMED — BY REACHABILITY, NOT BY A WINDOW.** The package does not
+   retain one report per act for the life of the instance, and **it no longer keeps a count either**: the closed table is a `WeakMap` keyed by the
+   attempt's reference, so **a report lives exactly as long as something can still name the attempt — which is the receipt you were handed** — and
+   the collector is what ends it, not an eviction (`D-175`, the architect's one-word clarification *"Clarification: Weak map"*; `D-176`).
+   **BOTH DECLARED WAYS OF NAMING AN ATTEMPT STILL ANSWER**: the `AttemptRef` record **or its `id` string**
+   (`parameter-semantics.md §2.15`), through a weak id index beside the map — **and the two cannot disagree**, because an id whose attempt has been
+   collected and an id that never named one both answer `KC-2`. **★ AND THIS ENTRY IS RE-CUT FROM A SUPERSEDED ONE, SAID PLAINLY**: it declared a
+   `1024`-attempt window (`CLOSED_ATTEMPT_WINDOW`) whose FIFO was the map's own insertion order (`D-162` items 1–3). **`D-162`'s window was the right
+   bound while the table was a `Map`; it is not what the tree does now**, and `CLOSED_ATTEMPT_WINDOW`'s `1024` stands with no reader. **What a consumer
+   observes is unchanged in kind**: an attempt that can still be named answers as it did, an id that names nothing answers `KC-2`. **What moved is that
+   AGE NO LONGER ENDS AN ANSWER — being unreachable does** (`D-176` item 2).
+
+11. **A `Proxy` IS DETECTED BY WHAT IT HANDS THE STORE, NOT BY WHAT YOU HAND A CONSTRUCTION — ON THE WEBASSEMBLY ARM.**
+   **The clone probe is asked of DATA THAT ENTERS THE RUST STORE**: the write's value, an address, a tier, a value's
+   class and a value's prototype link — the population `DD-34`'s refusal is about — **and there a `Proxy` is still
+   refused in the declared form with not one trap run.** **At a CARRIER gate it is not detected on that arm** — `cfg`
+   itself, `cfg.listeners`, `cfg.constraints` and the write's commit record are the package's own data and never
+   cross into the store, and the one platform signal that tells a `Proxy` from its target cannot tell it from a
+   carrier that carries a function, which the API's own keys require (`D-166` item 1; `D-167` items 1–2 and 5).
+   **What that costs you is bounded and it is stated**: a `cfg` handed as a `Proxy` on that arm is READ rather than
+   refused — its traps run for the reads a construction must make anyway, and a target missing a declared key is
+   refused for that reason. **On the Node arm both questions are `util.types.isProxy` and not a byte moves.**
+
+**⟶ AND THE SEVENTH ENTRY'S HEADLINE IS TRUE OF VALUES AND OF ONE ARM'S DATA, 2026-11-17 — `D-167`, READ BESIDE
+`D-166`, AND THIS CLAUSE IS WHERE THE DIFFERENCE IS SAID RATHER THAN LEFT TO THE ENTRY ABOVE** (`RCA-8(d)`
+ANNOTATE-BESIDE: **the entry stands BYTE-FOR-BYTE as the reading of the date it was written and is read THROUGH this
+clause**). **THE SENTENCES IT CARRIES ARE** *"A VALUE MUST BE CLONEABLE, AND A `Proxy` IS REFUSED WITHOUT A TRAP
+RUNNING … on the WebAssembly arm the detector is `structuredClone`"*. **THE SPLIT IS THE WHOLE OF WHAT MOVED: the
+probe answers the DATA question** — *"is this a `Proxy`"* for the population that enters the Rust store, which is
+`DD-34`'s property and which this entry's sentence states exactly — **and the CARRIER question is answered without
+it on that arm, where the answer is `false` and where the declaration is written at the predicate's own byte**
+(`class-instrument.mjs`'s `isProxyOf` and `isProxyOfCarrier`; **on Node the two are the same instrument and not a
+behaviour moves**). **So the entry's first clause is read as the VALUE clause it is**, and a consumer who took it for
+a statement about `cfg` on the WebAssembly arm took it one gate wide — **which is the defect `D-166` measured when
+every `saveCall` construction was refused as if `cfg` were a `Proxy`, and the arm could not construct the one store
+it exists for.** **AND THE CLASS THIS SECTION CARRIES DOES NOT MOVE FOR ANY OF THE FOUR ENTRIES ABOVE OR FOR THIS
+CLAUSE**: `D-158`'s `MINOR` at `1.13.0` stands, no version cell moves, and **a class claim is the architect's — none
+is made here.**
+
+**WHAT DOES NOT MOVE, LISTED AND CLOSED:** the module namespace's one name (`storeCreate`) · the instance's own fifteen
+members, name for name · the one `exports` arm and its three conditions · the `files` allowlist's five rows · the floor
+`>=22.12.0` · the five native platform artefacts' shape, names and `os`/`cpu` pairs · `DD-24`'s refusal of a co-equal CJS
+arm, whose PRICE was re-grounded (a second claimable realm no longer makes it wrong; two module systems inside ONE realm
+still does) · `S-ONE-ADDON` and `P-SR-7`'s load-time-reach sentence, unchanged · the store's own statuses `1`…`22`,
+in their order · **`RollbackCompacted`'s and `JournalOpUnknown`'s ranks, codes and generated messages, unmoved — what
+moves is WHICH ACTS PRODUCE the first, not what it says** (`D-164` item 2; `D-165` item 3) · **and the `file`-tier
+`saveCall` store's own shape: `exportImage`, `saveSucceeded` and `saveFailed` keep their arities and their answers.**
+
+**AND THE PUBLISHED SET MOVES `6 → 7` MANIFESTS** — the main package, the five native platform artefacts, and the
+WebAssembly artefact, which is produced by **a job BESIDE the prebuild matrix and never as a sixth row of it**. **The
+main package is still published last**, of all seven.
+
+**AND THIS SECTION DESCRIBES `1.13.0` AND CLAIMS NO TAG**: the cut-state is not a document's to state (`D-57`).
+
+---
+
+## §1.12.0 · a MINOR — the `require` route into the one claimed realm: a third condition on the one `exports` arm, naming the SAME `./index.mjs`, and a floor that moves `>=18.0.0` → `>=22.12.0` on all six manifests — one line, two moves
+
+**THE VERSION IS `1.12.0` AND ITS CLASS IS A MINOR — `D-129` ITEM 5 (`Q-C1`), THE ARCHITECT'S RULING OF 2026-11-17 (`strata/decisions.md`, *"Take proposed on all"*), read beside `D-128` ITEM 1 (*"Proceed with arm 1"*) AND `D-127` (*"Bump the floor, there's no backwards compatibility concerns"*).** **`PUB-DD-9` IS THE AUTHORITY FOR THE CLASS AND THE CLASS IS ITS `MINOR` LIMB — *"a MINOR adds a member to the declared surface"*** (`docs/specs/storeroom-publish/contract.md`, the `PUB-DD-9` row, read at its two dated clauses) — **`PATCH` is FORECLOSED (`D-39`'s *"semver breach"*, and `D-126` item 3's *"carries a breaking input requirement on top"*) and `MAJOR` is FORECLOSED BY THAT ROW'S OWN TERMS**, so **one number, `1.12.0`**, and this section names it and not the cut-state (`D-57`).
+
+**THE CHANGE IS ONE LINE — `exports["."]` GAINS `"require": "./index.mjs"` — AND IT IS THE THIRD CONDITION ON THE ONE ARM, AFTER `types` AND `import` (THE ORDER IS DECLARED RATHER THAN LEFT TO THE EDITOR) AND NAMING THE SAME ESM ENTRY THE `import` CONDITION NAMES.** **No `main`, no `default`, no `node`, no `.cjs` artefact, no wildcard, no second subpath, no second build: the package publishes no CJS ARM — nothing built for CJS is shipped — and it does publish the `require` ROUTE into its one claimed realm, served by NODE'S OWN `require(esm)` interop at or above the floor** (`docs/specs/storeroom-js/contract.md §0.2`'s 2026-11-17 foot clause, limbs 1–2; `§3.1`'s re-derivation — *"`require` IS A SUPPORTED ROUTE INTO THE CLAIMED REALM AND IS NOT A SECOND CLAIMED REALM"*; `§3.2`'s `HO-1` as re-derived, `D-129` item 3). **AND THE FLOOR MOVES WITH IT — `"engines": { "node": ">=22.12.0" }` on the main manifest AND on the five platform manifests (one declaration, one reader; `D-129` items 1–2) — because `require(esm)` is unflagged only from `Node 20.19.0` / `Node 22.12.0` (and on `23.x`+), so `">=22.12.0"` is the one single comparator set under which the declared route is true at EVERY admitted version** (`DD-38` as re-derived).
+
+**WHAT A CONSUMER ON `1.11.0` MEETS, AT EACH ENTRY POINT:**
+
+1. **`import` IS UNCHANGED.** Same module, same one name `storeCreate`, same `types` condition standing first, same declaration, same refusal set — no byte of the load path moves.
+2. **`require('provident-storeroom')` NOW LOADS.** On `1.11.0` the map resolved no arm for that specifier and the loader answered `ERR_PACKAGE_PATH_NOT_EXPORTED`; from `1.12.0` the `require` condition resolves and the same `./index.mjs` loads through Node's own interop — **so a CommonJS host needs no interop of its own.**
+3. **THE FLOOR MOVES `">=18.0.0"` → `">=22.12.0"`, AND THAT IS THE BREAKING HALF.** A host below the figure is no longer served: below the floor the failure is the LOADER's — the runtime refuses the module — and the package mints neither that error nor a fallback (`docs/specs/storeroom-js/contract.md §0.2`'s foot clause, limb 2). **The carrier's own Node-API requirement (version 6, `Node 12.17.0` / `10.20.0`) is far below that figure and does not contest it; the floor is the loader's** (`DD-29`; `DD-38` as re-derived).
+4. **NO CJS BUILD APPEARS.** No `.cjs`, no `main`, no dual build and no dual-package hazard: **the one file is reached by two of Node's specifiers for it**, and a `require` of a directory or of the addon's path stays refused exactly as it was.
+
+**WHAT DOES NOT MOVE, LISTED AND CLOSED:** the module namespace's one name (`storeCreate`) · the instance's own member set · every record, status and message · the `files` allowlist's seven rows, `index.mjs` among them · the type surface (`types` stands first and both routes reach the same `./index.d.ts`, so no CJS-typed leg is owed — `D-129` item 6) · the addon's internal reach, still not an entry point · every `HO-` row, with `HO-1` re-said as the supported route it now is.
+
+**AND THIS SECTION DESCRIBES `1.12.0` AND CLAIMS NO TAG**: the cut-state is not a document's to state (`D-57`).
+
+---
+
+## §1.11.0 · a MINOR — the creation sweep: the `listener` a `cfg.listeners[]` entry must now carry, a fail set that ends at `22`, and a delivery at four registration instants — one line, three classes
+
+**THE VERSION IS `1.11.0` AND ITS CLASS IS A MINOR — `D-126` ITEM 3, THE ARCHITECT'S RULING OF 2026-11-06 (`strata/decisions.md:6620`–`:6628`), VERBATIM: *"`MINOR` → 1.11.0, one line, three classes printed in the notes"*.** **`PUB-DD-9` IS THE AUTHORITY FOR THE CLASS, IN ITS OWN ROW'S WORDS** — *"a set change in the store's own membership is NOT by itself a package major"* (`docs/specs/storeroom-publish/contract.md:117`) — **so `D-124` item 3's `MAJOR` PRESUMPTION FOR THE SET'S HALF IS SUPERSEDED BY THAT ROW AND NOT BY ANY PASS'S READING OF IT; `1.10.1` is FORECLOSED at `D-126` item 3's own sentence** (`D-39`'s *"a semver breach"* on the last set-growth-under-a-patch, with a breaking input requirement riding on top); **and `2.0.0` is not taken.** **ONE NUMBER, AND THE THREE CLASSES STAND BESIDE IT UNFOLDED** — a version is the maximum of the moves it carries, and no unit of this project has been cut twice (`§1.7.0`'s four message changes as one `MINOR`; `§1.6.2`'s record member and seven behaviours as one `PATCH`). **NO VERSION CELL MOVES BY THIS SECTION**: the eleven cells and the three generated version lines are the CUT's (`D-124` item 3), and this section names the number and not the cut-state (`D-57`).
+
+**THE THREE CLASSES, ONE SENTENCE EACH.**
+
+1. **THE ELEMENT.** A `cfg.listeners[]` entry now REQUIRES its `listener` function — the element is `{ address, handle, listener }`, three own members with the third required — **a two-member entry is REFUSED, and the function is STRIPPED at the crossing and reaches the store at no depth** (`D-123` item 2; `PIN-8`; `bindings/js/src/entry/frame.mjs:48`'s shape test and `:60`'s `{ address, handle }` projection).
+2. **THE FAIL SET.** The closed set moved `20 → 22` across this unit — rank `21` `ListenerBodyThrew` (`D-124` item 2) and then rank `22` `FileImageRefused` (`D-126` item 2, `PIN-11`) — **and the census is RE-DERIVED rather than summed: `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 22` ✓** (`src/error.rs:171`'s `pub const CODES: [&str; 22]`; `bindings/js/index.d.ts:421`'s `StoreStatus`, its escape arm still standing exactly once).
+3. **THE WIDENING.** The delivery now occurs at FOUR registration instants — the creation, the boot, `addConstraint` and a re-arm — **with a creation's sweep of its own register beside them**, where before this unit a registration reached no delivery seam at all (`D-123` item 2; `D-124` item 4; `D-125` items 1, 3, 4).
+
+**WHAT A CONSUMER ON `1.10.0` MEETS, AT EACH ENTRY POINT — DRIVEN RATHER THAN TRUSTED, EACH AT THE BYTE THAT ANSWERS IT:**
+
+1. **A CONSTRUCTION REFUSES A TWO-MEMBER `cfg.listeners[]` ENTRY, AND IT REFUSES IT BEFORE ANY FILESYSTEM ACT.** The refusal is `AddressMalformed` with the subject `listeners`, in the encoder's own form, and its sentence names the member the entry lacks — *"… carries undefined at its listener member, and a listeners entry's listener is a JS function and it is the body the adopted handle fires"* (`frame.mjs:403`–`:409`). **THE INSTANT IS STEP 2 OF THE ACT ORDER**: `admittedListenerBatch(cfg)` stands at `index.mjs:410`, the construction's FIRST FILESYSTEM ACT is `addon_.storeCreate(encoded)` at `:413`, **so a refused construction still leaves nothing behind** (`PIN-9`; `contract.md §10.4` part 5). **AND A TYPESCRIPT BUILD DOES NOT CATCH IT**: `StoreConfig.listeners` is still `readonly listeners: readonly unknown[]` (`index.d.ts:247`) — the element's three members are DESCRIBED in that key's docblock and TYPED NOWHERE — so `tsc` accepts a two-member entry and the package refuses it at run time.
+2. **A BOOT REFUSES IT TOO — AND A BOOT OVER A CORRUPT IMAGE NOW REFUSES RATHER THAN OPENING A STORE OVER IT.** The boot is the same construction act at the same byte (`D-90` (5); a construction over an existing `filePath`), so the element's refusal is identical; and a `filePath` holding a present, non-empty image the loader cannot read now crosses the minted rank `22` `FileImageRefused` **instead of answering an instance indistinguishable from an empty path** (`D-126` item 2; `src/store.rs`'s step `7`, through its one read of the path). **A ZERO-LENGTH FILE AND AN ABSENT FILE ARE STILL NO IMAGE AND CROSS NO CODE.**
+3. **`addConstraint` AND A RE-ARM GAIN AN OBSERVABLE, NOT A REFUSAL.** No `listeners` array is in play at either route, so the element's shape moves nothing there; **what moves is that a repair's write now DELIVERS the listeners it fired, after the save and before the answer** (`D-125` item 1; `PIN-6` (ii); `index.mjs:1227`–`:1228` and `:1413`–`:1414`; `delivery.mjs:543`–`:544`) — **so the caller's view of a registration gains a third observable** (`D-125` item 2 (i)) **while `addConstraint` still answers the identity and a re-arm still answers `undefined`** (`D-125` item 2). **A FIRED BODY'S THROW AT EITHER NOW REFUSES AT RANK `21`** (`PIN-10`), and a registration that REFUSES still delivers nobody (`D-117` item 2).
+4. **THE MIGRATION ROUTE THIS TREE OFFERS, AND WHAT IT CANNOT BUY BACK.** An entry that wants to construct first and be armed later keeps constructing by passing `listener: () => {}` — a function, admitted, stripped, and armed into the instance's registry like any other — **and installing the real body at the first `register(handle, fn)`** (`surface.md §2.4` rule 2's replacement rule). **WHAT IT CANNOT BUY BACK IS THE CREATION'S OWN FIRING**: the seat is `deliverAtTheCreation(state, adopted)` at `index.mjs:2163`, which stands after the sweep's passing close and BEFORE the answer — **so the creation fires the placeholder you passed, and no `register` a caller can make is early enough to be the body that fires there** (`PIN-2`; `PIN-6` (i)). **A body that must see the creation's state, or must be allowed to throw at it, belongs in `cfg.listeners[]`.**
+
+**WHAT MOVES, EACH ITEM WITH THE RULING IT RESTS ON:**
+
+1. **THE CREATION SWEEPS ITS REGISTER — AND A CONVERGING CASCADE IS REFUSED BY DESIGN.** The construction carries every admitted pair and then repeats a round until a round lands NO repair; **a pair may land AT MOST ONE REPAIR**, a pair asked again that WOULD repair again is a CYCLE and **refuses at rank `20` `ConstraintPassRefused`**, and **a pair asked again that PASSES is not a cycle — asking is not repairing** (`D-124` item 1; `D-125` item 4; `index.mjs:1957`'s guard scope, `:1985`'s markers and `:1989`–`:2022`'s rounds; `kernel-registration.mjs:759`, `:792`). **NO ROUND CAP, NO RESTART BUDGET, NO ATTEMPT AND NO `AttemptRef` IS MINTED** — termination is arithmetic and not budgetary — **and a pair that would converge in TWO steps is refused at the same member with the same sentence, which is the ruling and not a defect** (`D-126` item 1; `PIN-4`). **THE SCOPE IS THE CREATION'S AND THE BOOT'S ALONE** (`D-125` item 3).
+2. **THE FOUR DELIVERY INSTANTS, IN `D-117`'S ORDER, WITH ONE ORDER AND TWO SETS.** ASK → REPAIRS LAND → RE-RUN → SAVE → DELIVER → THE ANSWER; **at `storeCreate`, and therefore at the boot, the delivered set is the ADOPTED set ∩ the addresses that RESOLVE in the register; at `addConstraint` and a re-arm it is THE STORE'S OWN `triggered`** (`D-117` item 2; `PIN-2`; `PIN-6` (i)–(ii)). **ONCE PER DISTINCT HANDLE, WITH THE TRIGGERING ADDRESS AS THE ONE ARGUMENT** — the listener's own watched address at the creation — **an EMPTY SET IS A COUNT OF ZERO AND NOT SILENCE, an address that does not resolve is SILENT and is not a refusal, and NO DELIVERY COMPOSES ON A REFUSING ARM** (`PIN-6` (iii)–(v); `PIN-7`).
+3. **RANK `20` CARRIES THE CYCLE AND THE POST-ROUND INCONSISTENCY** — one member, arm-neutral by its own row, none minted for either; the creation and the boot refuse the CONSTRUCTION, `addConstraint` and a re-arm refuse the REGISTRATION (`PIN-5`; `kernel-registration.mjs:931`).
+4. **RANK `21` `ListenerBodyThrew` — A FIRED BODY'S THROW REFUSES THE ACT AT ALL FOUR INSTANTS, AND NO ROLLBACK COMPOSES.** The delivery sits after the save, so the closes' saved bytes stand; the throw pre-empts the answer, so a caller receives the throw and — where the route answers one — never the identity, **and the pair remains registered with no withdrawal arm declared** (`D-124` item 2; `PIN-10`; `index.mjs:267`–`:271`, `:328`). **AND THE THROWABLE ITSELF IS NOT CARRIED**: this refusal reads the address and no `message`, so a body's error arrives with no cause and no stack — an OPEN item and not a promise (`D-126` residual 3).
+5. **RANK `22` `FileImageRefused` — A CORRUPT IMAGE REFUSES THE CONSTRUCTION AND THE CORRUPT BYTES STAND.** The STORE mints this one at the construction's step `7`, through its one read of the path and therefore before the package's first ask, with the `filePath`'s own spelling as its subject and `address: null` as its truth — **nothing was written to the file, so there is no rollback to compose and no removal arm to declare** (`D-126` item 2; `PIN-11`; `src/store.rs`'s step `7`).
+6. **THE DIAGNOSIS IS NOW A DISTINCTION A CALLER CAN MAKE.** An incompatible list crosses a code whose subject is the CONSTRAINTS (`19` or `20`) and a corrupt image crosses `22`, whose subject is the STORE'S OWN IMAGE — which is what `D-123` item 4 requires of a refusal — **and rank `16` `ConstraintListInvalid`'s load arm stays `DECLARED, NO PRODUCER`** (`D-123` item 4; `PIN-11`).
+7. **AND THE TWO DEFECTS GATE 4 MEASURED ARE FIXED — BOTH INVISIBLE TO A GREEN SUITE.** **THE SWEEP'S SUPPRESSION NO LONGER OUTLIVES ITS CONSTRUCTION**: the guard's scope is the construction's own and is cleared at `index.mjs:2039`, before the listeners are applied, before the delivery and before the answer — **so a pair that repaired during a construction keeps its `repair` on every later refusal for the life of the instance** (`PIN-16`; `CSW-27`). **AND THE GUARD NO LONGER INVENTS A `message`**: where the body's own outcome carries no own `message`, the wrapper returns it UNTOUCHED (`index.mjs:205`), so a form outside `PAR-C-5`'s closed three arms repairs nowhere at any instant instead of repairing at a creation and running nothing at `addConstraint` (`PIN-17`; `CSW-28`).
+
+**WHAT DOES NOT MOVE, LISTED AND CLOSED:**
+
+- **`D-90`'s SKIP** (`kernel-registration.mjs:379`'s `pairApplication` test, and `:883`'s in the pass): a pair whose parent does not resolve is still skipped at every instant, and the sweep reads that rule THROUGH and not around it (`D-123` item 1).
+- **`D-104`'s LANDING DELIVERY, `D-117`'s REVERSAL DELIVERY, `D-106`'s SAVE, `D-107`'s ROLLBACK COMPOSITION AND THE WRITE'S TERMINAL-ARM DELIVERY** — each frozen by name (`PIN-14` (i)–(ii)).
+- **THE EMPTY BATCH IS STILL A NO-OP**: a construction that carries no pair asks nobody, lands no repair and answers its instance.
+- **THE SWEEP'S MEMBERSHIP DOES NOT WIDEN WITH THE DELIVERY**: `addConstraint` and a re-arm keep the registration instant's own single-pair scope and can only refuse, and `register` sweeps no register at all (`D-125` item 3; `PIN-14` (iii)).
+- **THE INSTANCE'S OWN MEMBER SET STAYS FIFTEEN** (`10 + 1 + 1 + 2 + 1 = 15`, `index.mjs:500`), **THE STORE'S `Listener` RECORD STAYS THE CLOSED TWO-MEMBER `{ address, handle }`** (`src/records.rs:257`–`:259`), **and THE ADDON'S EXPORT CENSUS STAYS `4 + 12 = 16`** (`bindings/js/src/facade.rs:375`).
+- **A LISTENER BODY'S THROW STILL CROSSES AS `caught === thrown`** at a `write`, a `delete` and a `rollback`'s judgement — the rank `21` arm above is the four registration instants' and no other instant's.
+
+**THE TWO CORRECTIONS THIS UNIT CARRIES IN THIS FILE, EACH AT ITS OWN SENTENCE, WITH THE SUPERSEDED TEXT LEFT READABLE BESIDE IT** (`RCA-8(g)` ANNOTATE-BESIDE; `D-125` item 1): **`§1.8.1`'s `RLD-6` DESCRIPTOR** — the bullet that reads *"the registration instant unmoved (`G3-22`'s two zeros re-asserted)"* — **and `§1.8.1`'s `G3-22` BULLET** — the bullet that reads *"`listenerDelta === 0` stays green because a registration's attempt carries no `record`, and `RLD-6` re-asserts it in the fix's own file so the carrier cannot grow a path to that instant"*. **Both are corrected at their own bytes below, and no other byte of `§1.8.1` moves.**
+
+**AND THIS SECTION DESCRIBES `1.11.0` AND CLAIMS NO TAG**: the cut-state is not a document's to state (`D-57`).
+
+---
+
+## §1.10.0 · a MINOR — the tier readout: a third read verb that answers the durability tier of every node it returns
+
+**THE VERSION IS `1.10.0` AND ITS CLASS IS A MINOR, AND WHAT IT ADDS IS ONE INSTANCE MEMBER — a read that tells you, at every node it answers with, WHICH VERSION WON and the tier that version stands at, without a second call** (`D-121`; `D-121-ter`; `docs/specs/storeroom-tier-readout/contract.md`).
+
+1. **`readTiered(address, tier?)`** — the third read verb — is an instance member (never a module export) and takes `read`'s two positions, the address and the optional tier, with `read`'s own walk and `read`'s own refusal set.
+2. **WHAT THE ANSWER LOOKS LIKE AT EACH KIND**: an OBJECT node answers `{ _tier, …members }` — its own members inline beside the tier — an ARRAY node answers `{ _tier, value: [ … ] }`, and a LEAF node answers `{ _tier, value: <the literal> }`; **so every node of the answer is an object**, and each `_tier` is that node's own tier (`'mem'`, `'file'` or `'temp'`), never a set.
+3. **`read` AND `readLiteral` ARE UNCHANGED** — no argument, no default, no arm, and their answers byte for byte; this verb is an addition beside them and not a rewrite of either.
+4. **A CALLER'S OWN STORED `_tier` IS NOT DELIVERED BY THIS VERB, AND `read` STILL ANSWERS IT** — the minted field wins on the node that carries it, which is this verb's one lossy name; nothing is destroyed and the truth stays reachable.
+5. **A `readTiered` ANSWER HANDED BACK TO `write` IS STORED AS ORDINARY DATA** — the `_tier` members and the `value` wrappers become your own stored members, because the write stores the object you hand it. **That is a consequence and not a rule: no clause forbids it, no clause blesses it, and nothing refuses or strips it.**
+6. **WHAT DOES NOT MOVE, LISTED AND CLOSED**: every stored value · every record · the closed status set · the kernel's export set · the module namespace's one name (`storeCreate`) · `read`'s and `readLiteral`'s answers.
+
+**AND THIS SECTION DESCRIBES `1.10.0` AND CLAIMS NO TAG**: the cut-state is not a document's to state (`D-57`).
+
+---
+
+## §1.9.3 · a PATCH — the registration instant reads a returned outcome and a repair's return as own members: one membership question, answered alike at the two instants
+
+**THE VERSION IS `1.9.3` AND ITS CLASS IS A PATCH, AND WHAT IT CARRIES IS ONE BEHAVIOUR A CONSUMER MEETS AT THE REGISTRATION INSTANT, DRIVEN RATHER THAN TRUSTED** (`D-120`; `docs/specs/storeroom-registration-own-members/contract.md`).
+
+1. **THE TWO INSTANTS NOW ANSWER THE SAME MEMBERSHIP QUESTION** — the registration instant reads a returned outcome's `message` and `repair`, and a repair's return's `ok`, as OWN members of the value your function returned, exactly as the write's own evaluation reads the same members; a member carried on a prototype is a member neither instant reads.
+2. **AN INHERITED MEMBER IS REFUSED AT THE REGISTRATION** — a constraint whose `message` or `repair` the returned shape carries on a prototype no longer registers a repair the write then refuses to read, so the failure surfaces where the constraint is authored rather than at the first write.
+3. **THE WRITE'S SENTENCE IS UNCHANGED** — an inherited or outside-arm return still answers the kernel's `unrecognized` sentence at a write, and no refusal's text moves at either instant.
+
+**WHAT DOES NOT MOVE, NAMED ONE BY ONE: the twenty-status set** — no rank and no member of it moves · **the fourteen instance members** · **the declared type set** — `ConstraintOutcome`, `RepairOutcome`, `RepairContext` and the registration instant's `RegistrationRepairContext` all stand as they stand · **every refusal message** · **and the credit rules: the registration instant's op-based credit and the write's op-free credit are TWO rules and this release does not unify them** (`D-120`; `D-105`).
+
+**AND THIS RELEASE DESCRIBES `1.9.3` AND CLAIMS NO TAG**: the cut-state is not a document's to state (`D-57`).
+
+---
+
+## §1.9.2 · a PATCH — the log a passing call answers with: one behaviour a consumer can observe
+
+**THE VERSION IS `1.9.2` AND ITS CLASS IS A PATCH, AND WHAT IT CARRIES IS ONE BEHAVIOUR, ONE LINE, A THING A CONSUMER CAN DRIVE RATHER THAN A SENTENCE TO TRUST** (`docs/specs/storeroom-file-save-coverage/resolution-log.md`; `D-119`). **`§1.9.1` BELOW STANDS AT THE BYTES IT WAS CUT WITH — FIVE BEHAVIOURS, ITS SIXTH CLAUSE ABSENT FROM IT — AND THIS SECTION CARRIES THE BEHAVIOUR WHICH THAT SECTION MUST NOT CLAIM** (`D-119` item 5).
+
+1. **A passing call answers with the commit's log** — the entries the act appended, on a resolution and not only on a refusal — at `record.log` on a `write`'s record and a `delete`'s receipt, and the judgement's list on a passing `rollback`; non-enumerable, so no declared shape and no `Object.keys` census moves; cached at the crossing and released with the answer, the store retaining nothing (`D-119`).
+
+---
+
+## §1.9.1 · a PATCH — the reversal's save, its delivery, its judgement's repair arm, the refusing registration's rollback, and the corrupt image's rebuild: five behaviours a consumer can observe
+
+**THE VERSION IS `1.9.1` AND ITS CLASS IS A PATCH, AND WHAT IT CARRIES IS FIVE BEHAVIOURS, ONE LINE EACH, EACH A THING A CONSUMER CAN DRIVE RATHER THAN A SENTENCE TO TRUST** (`docs/specs/storeroom-file-save-coverage/carrier.md` §7.1; `D-117` item 5; `D-118`).
+
+1. **A REVERSAL'S SAVE — THE FILE HOLDS THE STATE THE REVERSAL RESTORED, WRITTEN AFTER THE JUDGEMENT THAT JUDGED IT.** Where the store carries a `filePath`, a `rollback` that passes leaves the file holding the state it restored, saved after that judgement and before the member answers — so a re-opened store boots the reversal's state, and a body the judgement refused cannot have been saved.
+2. **A REVERSAL'S DELIVERY — A LISTENER A REVERSAL'S REPAIR FIRES IS INVOKED ONCE, WITH THE TRIGGERING ADDRESS, BEFORE `rollback` RETURNS.** A reversal's judgement can run your pairs' repairs (`D-113` item 3), and the listeners those repairs' writes fire are now delivered: after that save and before the member returns its record, once per distinct handle, with the triggering address as the single argument. **A judgement that refuses invokes none of them** (`D-117` items 1–3).
+3. **A REVERSAL'S JUDGEMENT RUNS YOUR REPAIRS, AND THE CREDIT IS THE FAILING PAIR'S.** The pair whose repair landed is marked applied — **not the op the repair returned** — and the re-run judges the landing the repair actually made, so a repair answering `undefined` or `{ ok: true }` is credited and only the declared failed arm `{ ok: false, message }` refuses (`D-105`).
+4. **A REFUSING REGISTRATION NOW ROLLS BACK — NO LANDED EDIT SURVIVES A REFUSAL, WITHOUT EXCEPTION.** Every edit a registration landed is restored before the refusal answers; there is no arm of this tree on which a refusal leaves its landing standing (`D-107` item 1, now unconditional).
+5. **A `filePath` WHOSE BYTES ARE NOT THE STORE'S IMAGE NO LONGER REFUSES — A REVERSAL REBUILDS FROM THE CREATION STATE AND THE NEXT SAVE WRITES A READABLE IMAGE.** A present image the store's own loader cannot read is treated as no image at all, exactly as where no file stands: the regeneration rebuilds from the store's creation state and the reversal proceeds, and the save that follows puts a readable image back over the bytes that were never readable as this store's state. **`RollbackCompacted` keeps its place in the twenty statuses and is `DECLARED, NO PRODUCER`** — this release retires no token and mints none (`D-118` items 1–2).
+
+---
+
+## §1.9.0 · a MINOR — the op-free repair credit: what a consumer sees now, the one declaration that moves, what does not move, the twelve re-derived cells, and the arithmetic that says how many commits
+
+**⟶ THIS SECTION IS NEW, 2026-11-01, AND IT STATES THE VERSION AND NOT THE CUT-STATE.** `RCA-8(g)` ANNOTATE-BESIDE: **no byte of the sections below moves; this section is added above `§1.8.1`, whose body stands BYTE-FOR-BYTE as the reading of its own date and is read through no clause here.** **AND THIS SECTION DOES NOT STATE WHETHER `1.9.0` HAS BEEN RELEASED: the cut-state is the tag set's to carry and not a document's to state** (`D-57`; the head clause of 2026-10-28 and the authority clause of 2026-10-29 above, which govern every sentence here).
+
+**THE VERSION IS `1.9.0` AND ITS CLASS IS A MINOR — `D-105`'s OWN DECLARATION, MADE AT `docs/L1/op-free-repair-credit.md` §8.2 and taken here as the number it names: *"MINOR, unnumbered; the number is the release pass's … the next line's candidate is `1.9.0`."*** **THE CLASS IS `PUB-DD-9`'s `MINOR` ROW, and its ground is two-armed and MEASURED rather than preferred:** **(i) THE BEHAVIOUR MOVES** — a repair's answer that was refused is credited, a repair's edit's triggered pairs are asked by the commit's next battery, and the `KC-4` arm's population shrinks to two predicates and grows by one regression; **and (ii) THE DECLARATION MOVES CONSUMER-VISIBLY** — `RepairOutcome`'s `op` is no longer required and admits `null`, so a consumer reading `op` off a value typed `RepairOutcome` **must now narrow** — which is exactly why this release is not `1.8.1`'s class: a patch changes behaviour *"without adding a member, an arity, a type or a status"*, and this release moves a type (`D-105`; `docs/L1/op-free-repair-credit.md` §8.2).
+
+**THE ELEVEN CELLS AND THE THREE VERSION LINES MOVE TOGETHER, AS EVERY RELEASE OF THIS FILE'S** — `bindings/js/package.json`'s `version`, its five exact `optionalDependencies` pins and the five `bindings/js/platforms/*/package.json` `version` fields at `1.9.0`, with the main manifest still carrying `"version"` exactly once (`grep -o '"version"' bindings/js/package.json | wc -l` reads `1`, which is the carrier's own precondition rather than a style note) — beside the three shipped documents' one generated version line each: this change list's `PUBLISH-NOTES-VERSION-LINE`, the consumer guide's `PUBLISH-GUIDE-VERSION-LINE` and `bindings/js/README.md`'s `PUBLISH-README-VERSION-LINE`. **And the artefact is stamped from that manifest by `bindings/js/build.rs`, so `version()` answers `1.9.0` at the rebuilt artefact** — `1.8.1` at the artefact this pass found, `1.9.0` at the artefact it rebuilt — **and that, and not the crate's own `Cargo.toml` version, is the value the coupling rule is asserted against** (three cells read it, all through one helper: `P-PUB-2::S-KEYSET`, `P-PUB-6::S-SCOPE` and `P-PUB-7::S-MANIFEST`, whose `declaredReleaseVersion` reads the SHIPPED BYTE rather than a document).
+
+**THE ARITHMETIC — TWO INSTRUMENTS, ONE OF WHICH REFUSES, AND BOTH PRINTED.** **`git rev-list --count v1.8.1..HEAD` DOES NOT ANSWER: it exits `128` with *"fatal: ambiguous argument 'v1.8.1..HEAD': unknown revision or path not in the working tree"*, because NO TAG NAMES `1.8.1`.** **The tag set answers `v1.8.0` last** (`git tag --list`: twelve tags, `v1.0.0` through `v1.8.0`, and `git describe --tags --abbrev=0` answers `v1.8.0`), **so the count is taken from the tag the tag set actually carries: `git rev-list --count v1.8.0..HEAD` READS `3`, AND THE SPLIT BY WHAT THE COMMITS ARE IS THIS MINOR'S OWN PRE-HISTORY.** **`7a31053`, *"Fix the repair's write's listeners: delivered in the commit's batch, once per handle, and cut 1.8.1"*** — `25` files, `+2757`/`−30`: the `D-104` delivery fix and its thirteen cells, the guide's live-listener clause, the declaration, and the `1.8.1` eleven cells with their two landed copies — **`90cd8a7`, *"Re-stage the guide's landing after the D-103 clause"*** — `1` file, `+6`/`−0`, the generated landing re-produced from its authored home so the preflight's drift leg stayed green — **and `24f5b94`, *"Make the unnamed commit position unsupported (`D-103`), and record the published 1.8.0 verification"*** — `4` files, `+105`/`−0`, the guide's clause and the two records. **NEITHER THE `1.8.1` TAG'S ABSENCE NOR THAT COMMIT MESSAGE IS THIS DOCUMENT'S TO SETTLE: the cut-state is the tag set's** (`D-57`), **and this section prints what the tag set answers rather than what a commit subject claims.** **AND THIS RELEASE'S OWN LANDING COMMIT IS NOT YET MADE — it is the one that will carry the five code paths, the nine test and typecheck paths, the declaration, the guide's three clauses, this section, the eleven cells and the two landed copies — so no figure above is summed with it, and none of the three commits is a behaviour commit of THIS release.** (`git rev-list --count v1.8.0..HEAD`; `git log --oneline v1.8.0..HEAD`; `git show --stat 24f5b94 90cd8a7 7a31053`.)
+
+**WHAT A CONSUMER SEES, EACH AN OBSERVABLE TO DRIVE RATHER THAN A SENTENCE TO TRUST:**
+
+1. **AN OP-LESS REPAIR IS CREDITED — AND UNTIL THIS RELEASE IT WAS `ConstraintPassRefused`.** A repair that does its write and returns `undefined` (the natural shape of `repair: () => { … }`), or a bare `{ ok: true }`, or any value outside the declared arms at all, **is credited: the failing pair is marked applied (`attempt.appliedRepairs`), the re-run judges the landing, and the write answers its record.** **The value the repair returned is read by NOTHING** — it sets no pin, joins no list, becomes no landing and is named by no sentence. **The one return that still fails is the declared failed arm `{ ok: false, message }`, whose `message` is your own sentence and whose `KC-4` refusal carries it verbatim** (`D-105` item `1` and item `4`; `docs/L1/op-free-repair-credit.md` §1.1).
+2. **THE COMMIT'S LEG CARRIES THE REPAIR'S LANDING.** The repair's own `write`, made through the commit it names, **mints one leg — `{op, triggered}` — per write**, and the attempt pins from the leg and never from the return: **`entry.opId` is the last leg's `opId`; `attempt.ops` is the commit's own landing plus every leg's op, in leg order, de-duplicated by `opId`; and the re-run hands your body the value the leg's op landed (`op.after.value`)** — so `context.value` after a repaired write is the repair's landed value, which is what `§7.6`'s clause has always said it is. **A repair that writes twice appends two ops and the last is the landing**, and the rollback point is `D-63`'s restore mark, which the returned op never was (see `§7.6`'s second clause of 2026-11-01).
+3. **THE REPAIR'S EDIT'S TRIGGERED PAIR IS ASKED BY THE COMMIT'S NEXT BATTERY.** A pair standing where a repair wrote — **not in the commit's own triggered set** — **is asked ONCE, at the re-run, against the repair's op and the value it landed**; the registry still supplies the order, the set is still materialised once per run, and a pair already in the commit's triggered set is asked once and not twice (see `§7.6`'s third clause of 2026-11-01).
+4. **AND THE LISTENER HALF WAS `1.8.1`'S, NOT THIS RELEASE'S.** A listener a repair's edit fires rides **the commit's one delivery, after the pass, once per distinct handle** — `D-104`'s patch, declared at `§1.8.1` above, **whose five observables, two held halves and thirteen cells stand unmoved by this release and are not restated here** (`§1.8.1` item 1's list; that section's own cell clause, not one assertion changed).
+
+**THE DECLARATION'S CHANGE — ONE ALIAS, MOVED CONSUMER-VISIBLY, AND IT IS THE ONLY DECLARED SURFACE THIS RELEASE MOVES** (`bindings/js/index.d.ts:1540`; the docblock above it carries the dated re-derivation):
+
+```ts
+export type RepairOutcome =
+  | void
+  | { readonly ok: true; readonly op?: WriteRecord['op'] | null }
+  | { readonly ok: false; readonly message: string };
+```
+
+**TWO MOVES AND NO THIRD: `void` joins the union, so `undefined` is ASSIGNABLE; and `op` becomes OPTIONAL and admits `null`.** **WHAT THAT COSTS A CONSUMER, SAID PLAINLY RATHER THAN LEFT TO A COMPILER'S OWN WORDS: a value annotated `RepairOutcome` whose `op` is READ must now be narrowed first** — that is the declared break, and it is the reason the class is MINOR. **The failed arm is unmoved, no name is minted, and the type still declares the shape a consumer SHOULD return rather than judging what a consumer DOES return:** the runtime credits `true`, `false`, `7`, `'done'`, `{ ok: 'yes' }` and `{ ok: false }` with no message, and this alias admits none of them — **the type declines, the runtime credits, and a green compile was never evidence of a credit** (`docs/L1/op-free-repair-credit.md` §6.1; the alias's own docblock says so at the bytes).
+
+**WHAT DOES NOT MOVE, ENUMERATED SO THE MINOR IS NOT READ AS WIDER THAN IT IS:**
+
+- **NO STATUS IS MINTED. The closed status set stays TWENTY, ranked `1`…`20`, and no status name, rank or message moves** (`src/error.rs`'s `CODES: [&str; 20]`). `KC-4` is the token that answers both `KC-4` arms and it is not new; **the `KC` token set stays at NINE.**
+- **NO MEMBER, NO ARITY, AND NO COUNT IN THE MAP.** The instance's **fourteen own members**, the log entry's five, the failure form's four and `storeCreate` as the namespace's only value name are unmoved; **`write`'s fourth position keeps its arity and its type (`commit?: CommitCarrier`)** — what changed is what a repair RETURNS, never the position it passes; and the module map is unmoved at **`19` modules / `61` endpoints**.
+- **THE `1.8.1` LISTENER CELLS ARE UNMOVED.** The thirteen cells of that patch — eight `RLD` in `tests/e2e/repair-listener-delivery.test.mjs` and five at the kernel in `tests/integration/js-constraints/repair-listener-delivery.test.mjs` — **have no assertion changed by this release**; what moves beside three of them is the GROUND a comment states, and those re-derivations are printed at the cells.
+- **THE REFUSAL TEMPLATE IS UNMOVED.** *"the repair `<id>` produced no op at `<address>`"* stands **BYTE-FOR-BYTE** — template literal and interpolations included — and answers the invocation-landed-nothing arm alone, over `repairLegs`' five absent arms; **the two op-identity sentences that stood beside it are DELETED with the private helper that spelled them, so the write path's three `KC-4` messages become two.** **`D-88` (2)'s *"recorded, not repaired"* row is READ THROUGH this release and is HALVED, not closed:** the op-denial half dissolves by carrier, the address half survives on the nested-attempt arm, and the row stays OPEN with its population narrowed in its own record (`D-105` item `1`; `docs/L1/op-free-repair-credit.md` §5.1).
+
+**THE TWELVE RE-DERIVED CELLS, NAMED SO A READER CAN CHECK THE BATTERY AGAINST THEM, AND THE FIFTEEN THIS RELEASE ADDS.** **The twelve are those whose assertions moved with the carrier — four in Class A (a four-position repair that lands, whose cell asserted the RETURNED op was the credit: three cells of `tests/integration/js-constraints/constraint-kernel-repairop.test.mjs` and `constraint-kernel-negatives.test.mjs`'s `P-NEG-18`), seven in Class B (the three-position route, whose four asserted goods are `D-103` item `1`'s own non-promises: four cells of `tests/e2e/blind-constraints-unit.test.mjs`, `constraint-kernel-states.test.mjs`'s `ck_neg_2`, `tests/e2e/repair-in-commit.test.mjs`'s `D-46` (1), and `discard-witness.mjs`'s `DW-08.1`), and one counted cell in Class C (the typecheck fixture's two retired directives and its un-narrowed `op` reading, named as three edits inside one arithmetic).** **★ AND ONE FINDING THIS RELEASE PRINTS RATHER THAN ABSORBS: `tests/e2e/discard-witness.mjs` IS OUTSIDE `npm test`'s GLOB.** The suite's command is the root manifest's own `"test": "node --test \"tests/**/*.test.mjs\""`, and that file's basename ends `-witness.mjs` — **so `DW-08.1`'s re-derivation is executed by NO leg the suite runs, and it is measured by the standalone drive the guide's own `MEASURED` claims cite (`node tests/e2e/discard-witness.mjs`, 85 cells, all passing) rather than by the battery's count.** **THE FIFTEEN ADDED CELLS:** **nine in `tests/e2e/op-free-repair-credit.test.mjs`** (`ORC-1` the op-less credit · `ORC-2` the bare receipt · `ORC-3` the op still lawful and not the carrier · `ORC-4` the declared failed arm · `ORC-5` the residual `KC-4`'s four drives · `ORC-6` the repair's edit's triggered pair asked · `ORC-7` the repair's edit's triggered listener · `ORC-8` the floor call's undo on a failing arm · `ORC-9` the delete-shaped repair not credited) **and six at the kernel's own surface in `tests/integration/js-constraints/op-free-repair-credit.test.mjs`** (`ORC-I1` the credit is the mark · `ORC-I2` the pins and the order · `ORC-I3` the residual's two predicates · `ORC-I4` the joined pair · `ORC-I5` the leg's shape · `ORC-I6` the failed arm's undo plan), **each reaching the entry by path and claiming nothing about the packaged resolution** (`D-6`/`D-7`'s `O4` set). **The typecheck fixture's three edits are the same release's** (`ORC-T1`–`ORC-T3`).
+
+**THE RECORDS THIS RELEASE CARRIES, AND THE SIX QUESTIONS IT DOES NOT ANSWER.** **`strata/decisions.md` · `D-105`** is the ruling, quoted at the guide's first clause of 2026-11-01 and at `docs/L1/op-free-repair-credit.md`'s head; **`D-88` (2)'s row is read THROUGH it and halved rather than closed**; and the L1 declaration `docs/L1/op-free-repair-credit.md` is the corpus path that names the credit, the leg, the rollback, the sentence, the types, the cells and the class. **AND THE SIX OPEN QUESTIONS ARE PRINTED AS OPEN, NEVER DECIDED** (`docs/L1/op-free-repair-credit.md` §8.3): **`Q-1`** the registration instant is a second credit site and keeps its own rule · **`Q-2`** the unnamed route's observables regress, and that consequence is the question `D-103` reserved — **a repair that omits the commit now fails its enclosing write**, which the guide's third clause of 2026-11-01 states and no sentence of this document settles · **`Q-3`** whether a refused repair's landed edit should be undone too · **`Q-4`** the sentence's own text · **`Q-5`** two bookkeeping items owed to the battery · **`Q-6`** `delete` has no commit position, so a deletion-repair cannot be on the supported route — **and giving `delete` a fourth position is a MINOR of its own and the architect's.**
+
+**WHAT TRAVELS, SAID SO NO CONSUMER READS A CLAIM THIS RELEASE'S TARBALL DOES NOT CARRY** (`D-51` item 1's lesson): **the declaration ships** — `bindings/js/index.d.ts` carries the re-derived alias and its dated docblock, and the manifest's `files` names it; **the guide's three clauses ship** — the guide lands BYTE-FOR-BYTE as `README.guide.md` and that row is named as well; **and this change list ships at `node_modules/provident-storeroom/RELEASE-NOTES.md`.** **So a consumer holding the tarball reads the credit's rule, the leg, the joined battery and the declaration's change at the shipped homes, not only in this repository.**
+
+**AND WHAT THIS SECTION IS NOT: a restatement of `§1.8.1`.** **That section is the previous release's change list and stands BYTE-FOR-BYTE beneath this one; this release restates none of its five observables, its two held halves, its thirteen cells or its arithmetic.** **The two releases touch the same member — `pending` — from two sides and neither moves it: `§1.8.1` said whose LISTENERS the member may carry, and this one says which of a repair's triggered handles are ASKED and which are delivered, so the member's own population is unmoved.**
+
+---
+
+## §1.8.1 · a PATCH — the repair's write's listeners: what a consumer sees now, the docs corrections this patch carries, the cells, and the arithmetic that says how many commits
+
+**⟶ THIS SECTION IS NEW, 2026-11-01, AND IT STATES THE VERSION AND NOT THE CUT-STATE.** `RCA-8(g)` ANNOTATE-BESIDE: **no byte of the sections below moves; this section is added above `§1.8.0`, whose body stands BYTE-FOR-BYTE as the reading of its own date and is read through no clause here.** **AND THIS SECTION DOES NOT STATE WHETHER `1.8.1` HAS BEEN RELEASED: the cut-state is the tag set's to carry and not a document's to state** (`D-57`; the head clause of 2026-10-28 and the authority clause of 2026-10-29 above, which govern every sentence here).
+
+**THE VERSION IS `1.8.1` AND ITS CLASS IS A PATCH — `D-104` ITEM 4, THE ARCHITECT'S RULING OF 2026-11-01 (`strata/decisions.md` `D-104`), VERBATIM: *"This is a behavior defect, wrap into the fix patch"*.** **THE CLASS IS `PUB-DD-9`'s `PATCH` row — *"a fix inside the declared surface"* — AND ITS GROUND IS ENUMERATED RATHER THAN ASSERTED: NOTHING THE SURFACE DECLARES MOVES.** **The closed status set stays TWENTY, ranked `1`…`20`** (`src/error.rs:113`, `pub const CODES: [&str; 20]`) · **the instance's FOURTEEN own members, the log entry's five, `KC`'s nine tokens and `storeCreate` as the namespace's only value name are unmoved** · **the declaration's NAMED-TYPE SET stays at `27`** (the `21 → 27` figure `§1.8.0` prints, asserted at `tests/e2e/blind-entry-module.test.mjs`'s `DECLARED_TYPE_NAMES`) · **no member, no arity, no type and no refusal message moves** · and **`triggered` is unmoved as well** — it stays the store's own returned set for the commit's write, VERBATIM.
+
+**THE ELEVEN CELLS AND THE THREE VERSION LINES MOVE TOGETHER, AS EVERY RELEASE OF THIS FILE'S** — `bindings/js/package.json`'s `version`, its five exact `optionalDependencies` pins and the five `bindings/js/platforms/*/package.json` `version` fields at `1.8.1`, with the main manifest still carrying `"version"` exactly once (`grep -c` reads `1`), beside the three shipped documents' one generated version line each — **and the artefact is stamped from that manifest by `bindings/js/build.rs`, so `version()` answers `1.8.1` at the rebuilt artefact and at a package installed from it**; that, and not the crate's own `Cargo.toml` version, is the value the coupling rule is asserted against (`scripts/publish.sh`'s own cell enumeration, `§2.5` item `2`).
+
+**THE ARITHMETIC, MEASURED AT THIS TREE BEFORE THE LANDING: `git rev-list --count v1.8.0..HEAD` READS `2`, AND THE SPLIT BY WHAT THE COMMITS ARE IS THIS PATCH'S OWN STORY.** **`24f5b94`, *"Make the unnamed commit position unsupported (`D-103`), and record the published 1.8.0 verification"*** — `4` files, `+105`/`−0`: the guide's `§7.6` clause, the declaration's `§7.1` withdrawal, and the two records (`strata/decisions.md` `D-103`, `strata/research.md` §11) — **and `90cd8a7`, *"Re-stage the guide's landing after the D-103 clause"*** — `1` file, `+6`/`−0`, the generated landing re-produced from its authored home so the preflight's drift leg stayed green. **NEITHER COMMIT IS A BEHAVIOUR COMMIT: they move documents and a landing, and no byte of `bindings/js/src/` or `src/`.** **AND THE FIX'S OWN LANDING IS THE ONE COMMIT THAT CARRIES THIS SECTION** — the six code paths, the five test paths, the two records, the L1 declaration, the guide's two clauses, this section and the eleven cells — **so the figure above is printed with its instrument and is not summed with that commit.** (`git rev-list --count v1.8.0..HEAD`; `git log --oneline v1.8.0..HEAD`; `git show --stat 24f5b94 90cd8a7`.)
+
+**WHAT A CONSUMER SEES, EACH AN OBSERVABLE TO DRIVE RATHER THAN A SENTENCE TO TRUST:**
+
+1. **A REPAIR'S WRITE'S LISTENERS ARE INVOKED — AND UNTIL THIS PATCH THEY WERE INVOKED BY NOTHING.** A repair's write answers its own record (`{op, watched, triggered}`), the terminal arm delivered only the COMMIT's `pending` residue, and the repair's own frame's delivery is withheld (*"this frame is the leg … its silence is total"*), **so a listener bound where a repair wrote fired never** (`D-104` item 1; `strata/research.md` §12's chain, confirmed at every link at `docs/L1/repair-listener-delivery.md` §1). **From this patch it is invoked in the COMMIT's ONE delivery, AFTER the pass** — the same `deliver` call and the same recipient snapshot as the residue's — **so no listener a repair's edit fired runs inside the repair body or inside the pass.**
+2. **ONCE PER DISTINCT HANDLE, AND ONE MEMBER ELEMENT FOR IT.** A listener fired by BOTH the original write and the repair's edit is invoked ONCE (`surface.md §2.4` rule 3), and **`CommitRecord.pending` carries ONE element for it** — the member's own de-duplication, by `handle`, with its own ground: `pending` is also a caller's work list, so a member carrying one handle twice would let a caller's own loop run that body twice.
+3. **WITH THE REPAIR'S OWN DELIVERY ADDRESS — AND NO PER-HANDLE ATTRIBUTION.** The delivery takes ONE `triggeringAddress`, read off the leg's op, which is the repair's write's record where a repair landed; **so the whole batch is handed the repair's address, and no member, no clause and no cell asserts which of the two acts fired a doubly-fired handle** (`DD-22`, `DD-37`). **The pre-existing half — a handle the commit's own write alone fired is handed the repair's address too — is unmoved and is `docs/L1/repair-listener-delivery.md` §10's `Q-3`.**
+4. **AND `pending` CARRIES THEM TOO, WHICH IS A MEMBER A CONSUMER READS.** `pending` is **the handles the pass did not evaluate** and **a listener is never the pass's** (`D-56`; `D-69`), so **an entry may now be a listener a repair's edit fired that the commit's write never returned** — and **on a repaired write `pending` is no longer a subset of `triggered`.** **AND THE ONE SENTENCE A LATER REPAIR SEES, BECAUSE IT IS A MEMBER A CONSUMER'S OWN BODY READS:** `RepairContext.pending` is a fresh list read per evaluation, so **in a multi-repair commit every repair after the first is handed a member carrying an earlier repair's listener elements** — its declared shape unmoved (six members, the pair element `{handle, address}`, a fresh list).
+5. **AND ON A FAILED ATTEMPT THEY ARE DISCARDED WITH THE REST.** `surface.md §2.7` item 6 is unmoved: **a failed attempt delivers nothing — the repair's listeners are NOT invoked and `pending` ends empty** (the discard's filter widened to the union of the failed write's returned set and this attempt's repairs' sets). **A reader who learns the first half without this one will expect a listener on a refusal.**
+
+**THE TWO HALVES HELD, PRINTED AS HELD AND NOT AS DECLARATIONS** — each needs the architect's word, and the behaviour above is unaffected by either answer: **`Q-7`** — `D-104` item 2's `discarded`-witness sentence cannot be honoured at the bytes (a failed write's arm answers no record at all, and the witness's element is `{opId, addresses}`, a discarded reversal request, into which no listener handle could be written), **so the failing arm is asserted by its two observables alone** — the invocation count `0` and a `pending` holding none of those handles; **`Q-2`** — the delete-shaped commit is in the fix by construction (`D-55` item 3, one repair arm shared by both attempt kinds) **and whether that scope is confirmed or narrowed is the architect's.**
+
+**THE DOCS CORRECTIONS THIS PATCH CARRIES, BOTH POST-`1.8.0` COMMITS AND NEITHER A BEHAVIOUR CHANGE:**
+- **`D-103`'S UNSUPPORTED-COMMIT CLAUSE.** The guide's `§7.6` sentence *"a repair that names nothing in the fourth place also joins, by the kernel's own name; the fourth position is how YOU name it"* is read through a dated clause of 2026-11-01: **the commit passed at `write`'s DECLARED FOURTH POSITION is THE route, and a repair that omits it is UNSUPPORTED** — **not refused, and the frame's fallback bytes stand** (`D-103` items 1–3; the clause at `docs/guides/package-use.md`'s `§7.6`, and the declaration's own withdrawal at `docs/L1/repair-outcome-types.md` §7.1).
+- **THE GUIDE'S LIVE-LISTENER ANCHOR.** `§7.3`'s clause that *"live"* names the SECOND of `§6.2`'s two acts: **an entry a `listen` wrote that `register` has not filled is a RESERVATION — it delivers to no listener and carries no kind — and the cross-kind refusal is read for a listener a `register` has made live.** **It moves no refusal and no status: the four messages `§1.7.0` declares are untouched by it.** **Both corrections move documents and landings and no code byte, and the patch's behaviour change is item 1's alone.**
+
+**THE CELLS THE FIX CARRIES, NAMED SO A READER CAN CHECK THE BATTERY AGAINST THEM:**
+- **THIRTEEN NEW CELLS.** Eight in `tests/e2e/repair-listener-delivery.test.mjs` — **`RLD-1`** the delivery (the defect itself: a count of `1` where the unfixed tree answered `0`), **`RLD-2`** the doubly-fired handle (one invocation, one member element), **`RLD-3`** the failing arm (its `discarded`-witness half HELD on `Q-7` and recorded, never asserted), **`RLD-4`** the seat, **`RLD-5`** `pending`'s re-derivation (the pair element, the member's de-duplication, `pending ⊄ triggered`), **`RLD-6`** the registration instant DELIVERS TOO — `fired` `0 → 1` across a repair's route-write at `addConstraint`, with its watcher's `0` standing — re-pinned `2026-11-06` (`D-125` item 1), **`RLD-7`** the delete-shaped commit (HELD on `Q-2`: driven, coherent, its delivery recorded), **`RLD-8`** the two-repair commit (both listeners once each) — **and five at the kernel's own surface in `tests/integration/js-constraints/repair-listener-delivery.test.mjs`** — **`RLD-I1`** the predicate (a carried pair's id does not merge, a listener's handle does), **`RLD-I2`** the discard's widened scope, **`RLD-I3`** the seat before the re-run, **`RLD-I4`** the credit gate, **`RLD-I5`** the nested-attempt guard (one invocation, not two). **⟶ AND THE `RLD-6` FRAGMENT ABOVE IS CORRECTED AT ITS OWN SENTENCE, 2026-11-06 — `RCA-8(g)` ANNOTATE-BESIDE, `D-125` ITEM `1`: the withdrawn bytes are *"the registration instant unmoved (`G3-22`'s two zeros re-asserted)"*, and they are the reading of their own date.** **THE CELL NOW ASSERTS THE DELIVERY AT THAT INSTANT** — `fired` `0 → 1` with `watcherDelta` `0` standing and the identity answered — **and it turns under `docs/L1/creation-sweep.md §6` item `1`'s THIRD reason, the registration's delivery, and not under the sweep's** (`F-10` corrected; `tests/e2e/repair-listener-delivery.test.mjs:581`–`:671`).
+- **THE TWO CLAIM RE-DERIVATIONS, IN THE SAME ACT.** `tests/integration/js-constraints/constraint-kernel-layers.test.mjs`'s loop *"a layer (b) handle is a handle THIS call's write returned"* and `constraint-kernel-negatives.test.mjs`'s passing-arm set equality **both become non-total on a repaired write, and both are re-derived as clauses** — each was GREEN on its own fixture, and each would have gone red on the first fixture that lands a repair firing a handle outside the commit's set, which `RLD-5` creates.
+- **ONE `observed` CELL PROMOTED WITH ITS FIGURE UNMOVED.** `FTS-11.6` (`tests/e2e/file-tier-save/scenarios.mjs`) asserted nothing and printed *"the number of times the delivered body ran on the repair-join arm"*; **from this patch it asserts that figure, `1`, and `1` is discriminating**: a merge that appended the repair's set a second time would make it `2`, and a merge that let a carried pair's id through would hand the delivery a constraint's registration to resolve as a listener's.
+- **AND `G3-22` IS THE MECHANISM'S STRUCTURAL CONSTRAINT, NOT ITS SUBJECT.** `tests/e2e/registration-write-route.test.mjs`'s `listenerDelta === 0` stays green because THAT REGISTRATION REFUSES — the repair declines after its route-write, the call answers rank `19`, and no delivery composes on a refusing arm (`D-117` item 2; `PIN-6` (v)) — **while `RLD-6`, re-pinned `2026-11-06`, carries the PASSING arm's reading in the fix's own file: the registration does reach the delivery channel, and its `fired` count moves `0 → 1`** (`D-125` item 1; `docs/L1/creation-sweep.md §6` item `1`). **⟶ CORRECTED AT ITS OWN SENTENCE, 2026-11-06 — `RCA-8(g)` ANNOTATE-BESIDE: the withdrawn bytes are *"`listenerDelta === 0` stays green because a registration's attempt carries no `record`, and `RLD-6` re-asserts it in the fix's own file so the carrier cannot grow a path to that instant"*, and they are the reading of their own date.** **THE CARRIER HAS GROWN THAT PATH**, by name: `delivery.mjs`'s `installRegistrationDelivery` and its channel (`:524`–`:544`), which the entry arms around `addConstraint` and `constraintOn` (`index.mjs:1227`–`:1228`, `:1413`–`:1414`).
+
+**WHAT TRAVELS, SAID SO NO CONSUMER READS A CLAIM THIS PATCH'S TARBALL DOES NOT CARRY** (`D-51` item 1's lesson, applied before it can bite again): **the declaration's clause ships** — `bindings/js/index.d.ts`'s `CommitRecord.pending` docblock carries the dated re-derivation, and `index.d.ts` is named by the manifest's `files` — **and the guide's clauses ship too** — the guide lands BYTE-FOR-BYTE as `README.guide.md`, and that row is named as well — **and this change list ships at `node_modules/provident-storeroom/RELEASE-NOTES.md`.** **So a consumer holding the tarball reads the `pending` sentence's re-derivation at both of its shipped homes.**
+
+**AND WHAT THIS SECTION IS NOT: a restatement of `§1.8.0`.** **That section is the previous release's change list and stands BYTE-FOR-BYTE beneath this one; this patch restates none of its six names, its narrowing, its fixture figures or its arithmetic.** **The two touch the same member — `pending` — from two sides, and neither moves it: `§1.8.0` typed the commit position that CARRIES the member, and this patch says WHOSE listeners the member may carry.**
+
+---
+
+## §1.8.0 · a MINOR — the typed declaration's landing: the six names a consumer can now annotate, the one type that NARROWS, what does not move, and the arithmetic that says how many commits
+
+**⟶ THIS SECTION IS NEW, 2026-11-01, AND IT STATES THE VERSION AND NOT THE CUT-STATE.** `RCA-8(g)` ANNOTATE-BESIDE: **no byte of the sections below moves; this section is added above `§1.7.0`, whose body stands BYTE-FOR-BYTE as the reading of its own date and is read through no clause here.** **AND THIS SECTION DOES NOT STATE WHETHER `1.8.0` HAS BEEN RELEASED: the cut-state is the tag set's to carry and not a document's to state** (`D-57`; the head clause of 2026-10-28 and the authority clause of 2026-10-29 above, which govern every sentence here).
+
+**THE VERSION IS `1.8.0` AND ITS CLASS IS A MINOR — `D-102`, THE ARCHITECT'S RULING OF 2026-11-01 (`strata/decisions.md` `D-102`), VERBATIM: *"Minor — 1.8.0"*.** **THE GROUND IS MEASURED AND IT IS TWO-ARMED, NOT A PREFERENCE (`D-102` items (i) and (ii)): an ADDITIVE TYPE SURFACE — six names the declaration did not carry — AND ONE DECLARED TYPE THAT NARROWS**, so the release is consumer-visible at the declaration while every answer a call *gives* is unmoved. **THE CLASS IS `PUB-DD-9`'s `MINOR` row** (`docs/specs/storeroom-publish/contract.md:117`, *"a MINOR adds a member to the declared surface"*): **what this minor adds is a TYPE surface, and what it can refuse is a consumer's own annotation at compile time.**
+
+**THE ELEVEN CELLS MOVE TOGETHER AND NEVER SINGLY** — `bindings/js/package.json`'s `version`, its **five** exact `optionalDependencies` pins, and the **five** `bindings/js/platforms/*/package.json` `version` fields — **and the artefact is stamped from that manifest by `bindings/js/build.rs`, so `version()` answers `1.8.0` at the rebuilt artefact and at a package installed from it**; that, and not the crate's own `Cargo.toml` version, is the value the coupling rule is asserted against (`scripts/publish.sh`'s own cell enumeration, `§2.5` item `2`; `bindings/js/build.rs:58`–`:70`, whose `cargo:rerun-if-changed` on `package.json` is what makes a plain rebuild re-stamp it).
+
+**THE ARITHMETIC, AT THIS TREE: `git rev-list --count v1.7.0..HEAD` READS `2`, AND THE SPLIT BY WHAT THE COMMITS ARE IS THIS RELEASE'S OWN STORY.** `D-102`'s clause names both by hash and by subject: **`9afb411`, the typing pass** — the declaration's six names, the typed `Constraint` line, the widened `write` position, the typecheck cells and their fixture, the eight re-anchoring marks, and the blind census — **and `06189fa`, the guide anchor**, which is the guide's own 2026-11-01 live-listener clause and the measurement it carries. **NEITHER COMMIT IS A BEHAVIOUR COMMIT: the typing pass's fraction is *"zero code bytes outside `bindings/js/index.d.ts`"* (`D-101` item 2), the guide anchor moves one document and no code, and the pass that seals this release adds the version cells, the three version lines, this section and the two staged landings — and no byte of `bindings/js/src/` or `src/`.** (`git rev-list --count v1.7.0..HEAD`; `git log --oneline v1.7.0..HEAD`; `strata/decisions.md` `D-102`.)
+
+**WHAT A CONSUMER SEES, EACH AN ANNOTATION TO DRIVE RATHER THAN A SENTENCE TO TRUST:**
+
+1. **SIX NAMES THE DECLARATION NOW CARRIES, EACH ONE A RECORD THE KERNEL ALREADY BUILDS** — `bindings/js/index.d.ts`: `AttemptContext` (`:1404`) · `RepairContext` (`:1429`) · `RegistrationRepairContext` (`:1455`) · `ConstraintOutcome` (`:1476`) · `RepairOutcome` (`:1504`) · `CommitCarrier` (`:1528`). **THE FIRST FIVE ARE `D-101` ITEM 1's AND THE SIXTH IS THAT ENTRY'S `⟶ ANSWERED` CLAUSE's** (`docs/L1/repair-outcome-types.md` §1 and its `Q-1` clause). **NO MEMBER IS MINTED**: every member of every alias is read at the build site the declaration cites, so the six are names for shapes the package has always handed back and never published.
+2. **`Constraint` IS TYPED — AND IT IS NARROWED**: `export type Constraint = (context: AttemptContext) => ConstraintOutcome;` (`index.d.ts:1375`). **THE NARROWING IS THE ONE THING THIS RELEASE CAN BREAK, SAID PLAINLY RATHER THAN LEFT TO A COMPILER'S OWN WORDS: a body annotated `(context: unknown) => unknown` NO LONGER ASSIGNS to `Constraint`** — it is `TS2322`, exactly as a body handing back a widened `boolean` is — **so a consumer who annotated the context with `unknown` meets a compile error, and a consumer who annotated no context meets none and their code is unchanged** (`D-102` item (ii); the declaration's `⟶ RE-DERIVED BY NAME` clause above the line, `:1364`–`:1374`; `docs/L1/repair-outcome-types.md` §4, and §5.2's cells).
+3. **`write`'s FOURTH POSITION IS TYPED, AT ITS OWN CLASS TEST**: `write(address: Address, tier: Tier, value: unknown, commit?: CommitCarrier): WriteRecord;` (`index.d.ts:904`). **THE TYPE FOLLOWS THE BEHAVIOUR AND NOT THE OTHER WAY ROUND**: `CommitCarrier` is ONE member — `readonly pending: readonly TriggerPair[]` — which is the predicate the kernel's own delivery check applies (a non-null, non-Proxy, non-array object carrying an own, defined `pending`; `bindings/js/src/entry/delivery.mjs:27`–`:54`). **SO THE GUIDE'S WORKED EXAMPLE, which passes the repair's OWN record as the fourth argument, and this package's own `repair-in-commit` drive, TYPE-CHECK AS WRITTEN — where the withdrawn `commit?: CommitRecord` refused both** (`D-101`'s `⟶ ANSWERED` clause, verbatim: *"Widen the position to its class test"*; `docs/L1/repair-outcome-types.md` §8's `Q-1` clause, whose refusal of the union `CommitRecord | RepairContext` is measured at this tree's own drive).
+4. **THE GUIDE'S 2026-11-01 LIVE-LISTENER ANCHOR SHIPS WITH IT** — `docs/guides/package-use.md` `§7.3`'s clause that *"live"* names the SECOND of `§6.2`'s two acts, `:955`–`:970`: **an entry `listen` wrote that `register` has not filled is a RESERVATION — it delivers to no listener and carries no kind — and a pair may take its handle; the cross-kind refusal is read for a listener a `register` has made live** (`off === false` AND a function AND `kind !== 'constraint'`, the `listenerStandingAt` predicate at `bindings/js/src/entry/delivery.mjs`). **ITS MEASUREMENT IS NAMED AND NOT ASSERTED: one fresh instance per arm on 2026-11-01, the reserved case ANSWERED and the live case THROWN in both directions.** **AND IT MOVES NO REFUSAL AND NO STATUS: it says WHICH listener the refusal reads, and the four messages `§1.7.0` declares are untouched by it.**
+
+**WHAT DOES NOT MOVE, ENUMERATED SO THE MINOR IS NOT READ AS WIDER THAN IT IS:**
+
+- **NO BEHAVIOUR BYTE.** The six names are erased at run time, the kernel reads the same values it read before them, and `D-101` item 2's fraction is *"zero code bytes outside `bindings/js/index.d.ts`"*.
+- **THE CLOSED STATUS SET IS TWENTY, ranked `1`…`20`, and no status is minted** (`src/error.rs:113`, `pub const CODES: [&str; 20]`; `D-102` item (iii)).
+- **EVERY MEMBER, EVERY ARITY, AND THE MODULE NAMESPACE'S ONE NAME.** The instance's **fourteen own members** (`bindings/js/index.d.ts`'s `StoreInstance`; the count re-derived at `tsconfig.typecheck.json:57`–`:64`), the log entry's five, the failure form's four, `KC`'s nine tokens and `storeCreate` as the namespace's only value name are all unmoved (`D-102` item (iii)). **`write`'s fourth position keeps its ARITY: what moved is the type the position is declared at, never the number of positions.**
+- **THE REFUSAL TEXT `D-88` (2) RECORDS IS UNMOVED, AND IT STAYS A RECORDED DEFECT RATHER THAN A FIX**: *"the repair `<id>` produced no op at `<address>`"* stands at `bindings/js/src/entry/kernel-attempt.mjs:911` and is copied whole into the guide's `§7.6` — **it names the ATTEMPT's address and is no claim about where the repair wrote; this release mints types describing the repair's RETURN and changes no byte of that sentence** (`D-101` item 4; `strata/research.md` §10's disposition).
+
+**THE CELLS AND THE RECORDS THE TYPING PASS CARRIES, NAMED SO A READER CAN CHECK THE BATTERY AGAINST THEM:**
+
+- **THE TYPED FIXTURE AND ITS `43` DIRECTIVES** — `typecheck/consumer-fixture.ts`, whose `^\s*// @ts-expect-error` lines stand at **`43`** at this tree; the count is the `nodenext` leg's own head figure, re-taken by the pass that added the cells (`tsconfig.typecheck.nodenext.json:27`–`:33`).
+- **THE TWO `tsconfig` HEADS**, both re-derived 2026-11-01: **`tsconfig.typecheck.json:35`–`:46`** withdraws the head's *"the shipped declaration is UNREACHABLE to a `nodenext` consumer"* paragraph — false in fact since the package's `exports` map gained its `types` condition, its bytes standing and read through — and **`tsconfig.typecheck.nodenext.json:27`–`:33`** re-takes the refusal count, which printed `28` and was wrong by two, to `43`.
+- **THE BLIND CENSUS AT `27`** — `tests/e2e/blind-entry-module.test.mjs`'s `DECLARED_TYPE_NAMES` (`:72`–`:101`) gains the six names, `21 → 27` (`13 + 4 = 17` interfaces and `8 + 2 = 10` aliases), and the figure is moved in the three places that file prints it: its head (`:4`), its assertion message (`:260`) and its second test's title (`:264`).
+- **THE EIGHT RE-ANCHORING MARKS** — eight `⟶ RE-ANCHORED, 2026-11-01` clauses inside `index.d.ts`'s `Constraint` docblock (`:1273`, `:1287`, `:1291`, `:1294`, `:1310`, `:1314`, `:1334`, `:1344`), one per citation the `D-90`/`D-91`/`D-94` landings had moved, **each printing the superseded range and read through rather than rewritten** (`docs/L1/repair-outcome-types.md` §7.2's eight-row table; `RCA-8(g)`).
+- **THE RECORDS**: `strata/decisions.md` **`D-101`** (`:5194`) — *"Mint the types"*, its `⟶ ANSWERED` clause being the sixth name and the widened position; this release's own **`D-102`** (`:5243`); and **`strata/research.md` §10** (`:323`–`:355`), the `ST-F2` intake whose third ask — *the return type is untyped* — this release answers by typing the return rather than by moving the sentence.
+
+**AND WHAT THIS SECTION IS NOT: a restatement of `§1.7.0`.** **That section is the previous release's change list and stands BYTE-FOR-BYTE beneath this one; this release restates none of its findings and re-cites none of its figures.** **The one artifact the two releases share is the declaration, and they move two different parts of it: `§1.7.0` moved messages a consumer READS, and this one adds types a consumer ANNOTATES.**
+
+---
+
+## §1.7.0 · a MINOR — the cross-kind correction's landing: the four refusal messages a consumer reads differently, what does not move, and the arithmetic that says how many commits
+
+**⟶ THIS SECTION IS NEW, 2026-11-01, AND IT STATES THE VERSION AND NOT THE CUT-STATE.** `RCA-8(g)` ANNOTATE-BESIDE: **no byte of the sections below moves; this section is added above `§1.6.2`, whose heading is corrected at its own line in the same act.** **AND THIS SECTION DOES NOT STATE WHETHER `1.7.0` HAS BEEN RELEASED: the cut-state is the tag set's to carry and not a document's to state** (`D-57`; the head clause of 2026-10-28 and the authority clause of 2026-10-29 above, which govern every sentence here).
+
+**THE VERSION IS `1.7.0` AND ITS CLASS IS A MINOR — `D-100`, THE ARCHITECT'S RULING OF 2026-11-01 (`strata/decisions.md` `D-100`), VERBATIM: *"Minor — 1.7.0"*.** **THE GROUND IS A MEASUREMENT AND NOT A PREFERENCE: FOUR REFUSAL MESSAGES CHANGE THEIR TEXT ON A PUBLISHED SURFACE**, which is more than this project's own `PUB-DD-9` row allows a PATCH (*"a fix inside the declared surface"*) and less than a break of any member — so the class is the MINOR the number names (`D-100` item (i)).
+
+**THE ELEVEN CELLS MOVE TOGETHER AND NEVER SINGLY** — `bindings/js/package.json`'s `version`, its **five** exact `optionalDependencies` pins, and the **five** `bindings/js/platforms/*/package.json` `version` fields — **and the artefact is stamped from that manifest by `bindings/js/build.rs`, so `version()` answers `1.7.0` at the rebuilt artefact and at a package installed from it**; that, and not the crate's own `Cargo.toml` version, is the value the coupling rule is asserted against (`§1.6.2`'s version clause states the shape and is read through it; `scripts/publish.sh`'s own cell enumeration).
+
+**THE ARITHMETIC, MEASURED AT THIS TREE: `git rev-list --count v1.6.2..HEAD` READS `1`.** **The one commit is `e024195`, *"Land the cross-kind correction: one address is lawful, the handle is the restriction (D-98–D-100)"*, and `git show --stat e024195` reads `33` files changed, `4506` insertions and `355` deletions — a split by what the commits ARE rather than by what they touch, in four kinds:** **the JS entry and its parts** (`index.mjs`, `src/entry/delivery.mjs`, `constraints.mjs`, `frame.mjs`, `kernel-registration.mjs`, `artefact.mjs`); **the addon's facade and the store's own message generator** (`bindings/js/src/facade.rs`, `src/error.rs`); **the declaration** (`bindings/js/index.d.ts`); **and the documents and the batteries** (the L1 declaration, the guide with its landing, the move-out record, two spec parts, three records, and eleven paths under `tests/e2e/`). **AND THE RELEASE'S OWN LANDING IS THIS PASS'S WORKING TREE AND NOT A COMMIT COUNT** — the bump, this section, `§1.6.2`'s heading repair, the two generated landings and the ledger row — **so the figure above is printed with its instrument and is not summed with them.** (`git rev-list --count v1.6.2..HEAD`; `git show --stat e024195`.)
+
+**WHAT A CONSUMER SEES, EACH AN ARM TO DRIVE RATHER THAN A SENTENCE TO TRUST:**
+
+1. **A CONSTRAINT PAIR AND A LISTENER MAY STAND AT ONE ADDRESS.** Before this release a `listen` at an address a carried pair stood at was refused; now the act stands, both actors are carried, and **a write at that address triggers the pair AND delivers the listener** (`D-98` item 1; `docs/L1/cross-kind-handle-only.md` §1 and its `XK-1`). **AND THE ONLY CROSS-KIND RESTRICTION IS THE HANDLE**: a listener's handle and a constraint's `id` are **one string**, and neither kind may claim a handle the other keeps (`D-98` item 1 (iii); `D-99`).
+2. **THE FOUR CROSS-KIND REFUSALS PRINT NEW MESSAGE TEXT, AND THE RULE SENTENCE IS *"a listener and a constraint do not share one handle"*.** `AddressMalformed` stands at **three** arms — `listen` (`B-6`), `register` (`B-5`) and `addConstraint` (`B-4`) — and `ConstraintListInvalid` at **one**, the construction's batch element (`B-3`); the four texts whole are `docs/L1/cross-kind-handle-only.md` §3.6, and they are asserted **whole** at five cell homes, so a pass that edits one word of a message moves five cells. **THE STATUSES DO NOT MOVE; THE SENTENCES DO** — and the half they carried that was false at every arm, the store's segment sentence rendered with an empty container, is gone (`D-98` item 4, verbatim: *"the false half cannot stay"*).
+3. **A DISABLED PAIR'S HANDLE BLOCKS A CALLER EXACTLY AS AN ENABLED ONE'S DOES** — a caller's `listen('<pair id>', …)` and a caller's `register('<pair id>', fn)` are both refused after `constraintOff`, where the second was admitted before (`D-99`; `docs/L1/cross-kind-handle-only.md` §9.4, and `XK-6` is the measurement).
+4. **THE KERNEL REACHES THE STORE THROUGH ITS OWN ROUTE AND NO LONGER THROUGH A CALLER-FACING MEMBER.** That is the correction's one internal restructure (`D-99`'s ANSWERED clause: `listenOn`, the `LISTEN_ROUTE` symbol and `installListenRoute`, §9.2), **it deletes the `state.establishing` marker and its four brackets, and it changes no answer a consumer's own call receives** — which is why it is stated here rather than left to a reader who meets the changed call in a stack.
+
+**WHAT DOES NOT MOVE, ENUMERATED SO THE MINOR IS NOT READ AS WIDER THAN IT IS:**
+
+- **THE CLOSED STATUS SET IS TWENTY, ranked `1`…`20`, and no status is minted.** `AddressMalformed` keeps rank `1` and `ConstraintListInvalid` keeps `16` (`src/error.rs`'s `CODES`; `D-99` item 1; `D-100` item (ii)).
+- **EVERY MEMBER, EVERY TYPE AND EVERY CONSUMER-VISIBLE ARITY.** The instance's fourteen members, the log entry's five, the failure form's four, `KC`'s nine tokens and the module namespace's one name are all unmoved (`D-100` item (ii)).
+- **THE ONE ARITY THAT WIDENS IS THE ADDON'S OWN GENERATOR, AND IT IS ARTEFACT-INTERNAL.** `errorMessage` gains **one optional fourth position** carrying the closed arm token `'handle'`, so the artefact's internal range reads **`2`–`4`** where the census cell read `2`–`3`; **no named export of the module namespace and no subpath reaches it**, so this is a widening of the artefact's own generator and not of a consumer API (`D-100` item (iii); `docs/L1/cross-kind-handle-only.md` §3.7–§3.8).
+- **THE SURFACE MAP IS UNMOVED AT `19` MODULES AND `61` ENDPOINTS** — the correction adds a part to a module and no endpoint (`D-100`; `docs/L1/cross-kind-handle-only.md` §6.3, which is the L2 reading this release declares).
+
+**THE CELLS AND THE RECORDS THE CORRECTION CARRIES, NAMED SO A READER CAN CHECK THE BATTERY AGAINST THEM** (`docs/L1/cross-kind-handle-only.md` §6.1's write set, verbatim: *"§5.1's six rewrites, §5.2's two, §5.3's eight"*):
+
+- **SIX REWRITTEN CELLS**, each one a cell that asserted the address dimension the ruling withdraws — `HLI-11.3` and `HLI-11.3.a`, `G3-22`, the two `constraints-publication` probes with their prose, the `blind-listener-surface` form cell, and `DEF-N`'s constant — beside **two kept cells whose MESSAGES are re-read** rather than weakened (§5.2).
+- **EIGHT `XK` CELLS ADDED**, `XK-1`…`XK-8`, in the file `tests/e2e/cross-kind-handle-only.test.mjs`; **`XK-6` and `XK-8` are re-shaped by `D-99`** (§9.5), and `Q-1`'s residual is retired by name rather than carried.
+- **THE MOVE-OUT RECORD**: the guide's 2026-10-26 measured paragraph left **byte-exactly** to `docs/guides/backup/D98-2026-11-01-guide-move-out.md`, with its source path, its pre-move position, its date, a computed `sha256` and why — and the delivered text states the rule in its place (`docs/L1/cross-kind-handle-only.md` §4.1).
+- **THE CONTRACT'S `§2.2` ITEM 7 POINTER**: a **pure insertion** of 2026-11-01 at `docs/specs/storeroom-held-listener-identity/contract.md` `§2.2` item 7, which *"moves no position, no domain, no fail arm and no other item"* of that section.
+
+**AND WHAT THIS SECTION IS NOT: a restatement of `§1.6.2`.** **That section is the change list of the previous release and stands BYTE-FOR-BYTE beneath this one; what this release carries of it is the version and the arithmetic and nothing else.**
+
+---
+
+## §1.6.2 · **CUT AND PUBLISHED — tag `v1.6.2`** — a BEHAVIOUR release: what the thirty-four commits past the previous tag carry, the one additive member, the workaround it retires, and the four things it does not fix
+
+**⟶ AND THIS HEADING CARRIED THE PRE-RELEASE MARKER UNTIL THE TAG WAS CUT, 2026-11-01 — `DEF-AC` at its fifth iteration, and the one red `D-82`'s ratchet refused on every run before this one.** `RCA-8(g)` ANNOTATE-BESIDE: **the withdrawn heading's bytes stand in the withdrawn record — `docs/guides/backup/D81-2026-10-29-notes-move-out.md` `§6`, which carries the source path, the pre-move line, the date, a computed `sha256` and why they moved — and are read THROUGH this clause; this sentence deliberately does not quote them, for the reason the `§1.6.1` clause above states and `D-80` measured: a quotation of a claim reads as a claim, and the scan cannot tell the two apart.** **AND THE CORRECTED HEADING IS THE PAST-TENSE RECORD THIS FILE'S OWN PRECEDENT USES** — the spelling `§1.6.0`, `§1.6.1`, `§1.5.0` and `§1.4.0` already carry — **because a cut-state belongs to the tag set: `git tag --list` answers `v1.6.2`, so this section names a past act and not a present claim, and `D-82`'s past-tense condition accepts the line for exactly that reason.** **AND WHAT THIS ACT DOES NOT DO: it moves no other byte of `§1.6.2`, whose body and items below stand BYTE-FOR-BYTE as the reading of their own date; it adds no entry to the exemption set, because a line whose bytes change must leave that set rather than join it and the set may only SHRINK; and it changes no figure the withdrawn line carried, which the record names.** (`D-57`; `D-82`; `git tag --list`.)
+
+**THE VERSION: `1.6.2`, AT ELEVEN CELLS THAT MOVE TOGETHER AND NEVER SINGLY** — the main manifest's `version`, its **five** exact `optionalDependencies` pins, and the **five** `platforms/*/package.json` versions — **plus the three shipped documents' one generated version line each.** **The artefact is stamped from the manifest by `bindings/js/build.rs`, so `version()` answers the release figure** and that is the value the coupling rule is asserted against, not the crate's own `Cargo.toml` version.
+
+**THE ARITHMETIC, MEASURED AT THIS TREE: `git rev-list --count v1.6.1..HEAD` READS `34`.** The release's own work is `U-STOREROOM-CONSTRAINT-REGISTRATION-INSTANT` — the constraint registration instant — and the guide and corpus corrections it carried.
+
+**WHAT A CONSUMER SEES CHANGE, EACH A RULING OF 2026-11-02 AND EACH IN THE SHIPPED GUIDE:**
+
+1. **A pair whose PARENT address does not resolve is SKIPPED, not asked** (`D-90`). Before, it was asked with `undefined` and could refuse a construction; now the pair is **carried**, the registration stands, and it is applied at the first instant its parent resolves.
+2. **A pair whose parent RESOLVES is applied — including where the parent holds a LEAF** (`D-96`). **The pair's presence declares that parent a container**, so a leaf standing there is the state the pair judges: the body is asked, and a body that refuses refuses the registration at rank `19`.
+3. **A boot no longer refuses a constraint list for an unresolvable address** (`D-90` (5)). The list-wide walk is gone; `ConstraintListInvalid` now answers **the malformed list alone**, and a well-formed pair is never answered by the shape arm.
+4. **A repair invoked at a registration instant can WRITE** (`D-91`). The repair's own record carries a `write` function taking exactly the store write's first three positions; it joins the registration's own commit, and the repair is credited by returning the op it landed.
+5. **The re-run after a repair always runs, and reads the pair-application rule** (`D-94`).
+6. **`value` on a registration record is read once, and a write does not refresh it** (`D-95`).
+7. **A `rollback`'s own judgement reads the same rule** (`D-97`).
+
+**AND ONE MEMBER IS ADDED, WHICH IS WHY THIS IS A PATCH AND NOT A FEATURE** — **the package's own policy, `PUB-DD-9`: a PATCH is *"a fix inside the declared surface"*.** `write` exists **on the repair's record at a REGISTRATION instant only**: the landing instant's record still has six members, the constraint body's context still has five, **no status, verb, config key, `KC` token or other member moves**, and the closed status set stays twenty ranked `1`…`20`. A consumer that enumerates the registration repair record sees seven; one that enumerates either of the other two sees what it saw before.
+
+**THE WORKAROUND THIS RELEASE RETIRES, MEASURED ON THIS TREE.** Until now a "must exist, with a repair" pair could not travel in `cfg.constraints`, and this project's own register told a consumer to add it after construction instead. **That is no longer true:** with a `cfg.constraints` element whose body refuses on `ctx.value === undefined` and whose repair writes through the route, the construction **stands**, the body is asked **twice**, the repair's record carries `write` as a function, the object lands, and the pair stands. **The `addConstraint`-after-construction advice is withdrawn by this release.**
+
+**TWO CHANGES WITH A MIGRATION COST, SAID PLAINLY RATHER THAN LEFT TO A BUG REPORT:**
+
+- **A pair registered at a deep address no longer guards its ancestor's removal.** A `delete` of `['window']` reaches a pair at `['window','tabs']` and **skips it**, so the delete lands. **To guard a container, register the pair AT the container** — its parent is the register, which always resolves.
+- **A construction that refused for a well-formed pair whose parent was absent now stands.** A consumer who relied on that refusal to catch a stale list gets an instance with the pairs carried instead.
+
+**WHAT THIS RELEASE DOES NOT FIX**, recorded with owners in the unit's tracker entry and the live ledger: the refusal sentence's address at `kernel-attempt.mjs` (a recorded defect row, no successor queued); `§5.4`'s beside-write sentence, a named adjacent tension read through and edited by no pass; a body's direct write, now **declared unsupported** while the capability stays (`D-92`/`D-93`); and four corpus residuals — two property rows' wording, a `KC` token that no registration refusal prints, and a re-run arm unreachable through this route.
+
+---
+
+## §1.4.0 · **CUT AND PUBLISHED — tag `v1.4.0`** — what that release carries: the seven commits on `main` past `v1.3.0`, and the one figure this section states
+
+**⟶ THE HEADING THAT STOOD HERE WAS *"`## §1.4.0 · **PREPARED** — what `1.4.0` carries: the seven commits on `main` past `v1.3.0`, and the one figure this section states`"*, AND IT IS CORRECTED AT ITS OWN LINE, 2026-10-28.** `RCA-8(g)` ANNOTATE-BESIDE: **the withdrawn bytes are quoted above, every paragraph of this section below stands BYTE-FOR-BYTE as the reading of its own date, and nothing is deleted.** **THE DEFECT IS THE `DEF-AC` CLASS AT ITS THIRD ITERATION AND AT ITS SHARPEST: A HEADING THAT DENIED THE RELEASE ITS OWN TAG NAMES.** The tag set at this date reads `v1.0.0` · `v1.0.1` · `v1.1.0` · `v1.2.0` · `v1.3.0` · `v1.4.0`; **the tag `v1.4.0` names a tree whose `bindings/js/package.json` reads `"version": "1.4.0"` at its own bytes**, its five `optionalDependencies` pins read `1.4.0` with it, and the five platform manifests' `version` fields read `1.4.0` with them; and **a reader opening this file met *"PREPARED"* over a version the registry carries.** **SO THE HEADING NOW READS `CUT AND PUBLISHED — tag `v1.4.0``, which is a PAST-TENSE RECORD OF A RELEASE AND NOT A CLAIM ABOUT THE TREE YOU ARE READING** — the tag set is the record of what has been cut, and the state of the current tree's version is not a document's to state (`D-57`, and the head clause of this file, which stands). **AND WHAT THE SECTION BELOW DECLARES IS UNMOVED BY THE CORRECTION: the ancestor set (`D-56`), the `delete`'s own attempt and its `CommitRecord` (`D-57`), the five smaller items of `D-55`, and the one shipped sentence that all of it falsified — those are `1.4.0`'s content, they travelled in its tarball, and a consumer who installed `1.4.0` has them.** (`D-57`; the head clause of 2026-10-28 above; `git tag --list` and `bindings/js/package.json` read at their own bytes this date.)
+
+**⟶ THIS SECTION IS RE-CUT FROM THE HEADING IT STOOD UNDER, 2026-10-28, AND ITS FIGURES MOVED WITH THE ELEVEN CELLS.** `RCA-8(g)` ANNOTATE-BESIDE: **the heading that stood here was *"`## §main · **PREPARED** — the seven commits on `main` past `v1.3.0`, and the one figure this section states`"*, the withdrawn bytes are quoted there, and the four numbered items below stand BYTE-FOR-BYTE as the reading of their own date and are read THROUGH this clause.** **THE HEADING NOW NAMES THE VERSION THIS SECTION PREPARES — `1.4.0` — because the section below it, `§1.3.0`, is the change list of a release that IS cut, and a prepared section must say which version it prepares.** **AND IT STILL STATES THE VERSION AND NOT THE CUT-STATE, BECAUSE THE SECOND IS NOT A DOCUMENT'S TO STATE (`D-57`).**
+
+**THE VERSION THIS TREE CARRIES IS `1.3.0` AT ELEVEN SITES** — `bindings/js/package.json`'s `version`, its five `optionalDependencies` pins, and the five `bindings/js/platforms/*/package.json` `version` fields — **the artefact is stamped from that manifest by `bindings/js/build.rs`, so `version()` answers `1.3.0`, and no version bump is in any of the commits listed here.** **THE RECORD OF RELEASES, PAST TENSE — the tags this repository has cut, and nothing about the tree you are reading:** `v1.0.0` · `v1.0.1` · `v1.1.0` · `v1.2.0` · `v1.3.0`.
+
+**⟶ AND THE PARAGRAPH ABOVE IS CORRECTED AT THIS LINE, 2026-10-28 — ITS FIGURE WAS `1.3.0` AND IS NOW `1.4.0`.** `RCA-8(g)` ANNOTATE-BESIDE: **the paragraph above stands BYTE-FOR-BYTE as the reading of its own date (`v1.3.0`'s tag) and is read THROUGH this clause; not one byte of it is deleted.** **`bindings/js/package.json`'s `version` now reads `1.4.0`, its five `optionalDependencies` pins read `1.4.0` five times, and the five `bindings/js/platforms/*/package.json` `version` fields read `1.4.0` — ELEVEN CELLS, ONE VERSION, moved TOGETHER in this act — and `npm run build` stamps the artefact from that manifest, so `version()` answers `1.4.0` at the built artefact and at a package installed from it.** **AND THE TREE NOW STANDS NINE COMMITS PAST `v1.3.0`** — `git describe` reads `v1.3.0-9-gf579a5a` — **of which the two beyond the seven below change no behaviour**: `23ac519` regenerates the guide's cut-state sentence and `f579a5a` DROPS the cut-state from the shipped face, because `D-57` drops it. **THE TAG SET IS NOT TOUCHED BY THIS ACT AND REMAINS A RECORD OF RELEASES, PAST TENSE:** `v1.0.0` · `v1.0.1` · `v1.1.0` · `v1.2.0` · `v1.3.0`. **AND NOTHING IN THIS SECTION CLAIMS WHETHER `1.4.0` IS CUT: the cut-state is not a document's to state, and `D-57` is why.** **AND THE PARAGRAPH BELOW — *"THE TREE STANDS EIGHT COMMITS PAST THAT TAG"* — STANDS AS THE READING OF ITS OWN DATE AND IS READ THROUGH THIS CLAUSE TOO: the count is NINE, and the two beyond the seven are `23ac519` and `f579a5a`.**
+
+**THE TREE STANDS EIGHT COMMITS PAST THAT TAG** — `git describe` reads `v1.3.0-8-g8c0e671` — **and SEVEN of them change what this package does or what it declares.** **The eighth is `23ac519`'s regeneration of the guide's cut-state sentence, which is the sentence `D-57` drops and the reason it is dropped.** **THE SEVEN, DERIVED FROM THE TREE THEY LANDED ON, EACH STATED FOR A CONSUMER:**
+
+**1 · ★ A PAIR IS ASKED FOR ACTS BELOW IT — THE PASS'S SET WIDENED TO THE ACT'S ANCESTORS (`D-56`), BECAUSE THE VALUE READ AT A PREFIX CONTAINS ITS SUBTREE.** **The architect, verbatim: *"A listener/constraint should fire when the descendants of its targeted address node change, because the descendants become part of the object that is read from that address."*** **WHAT A CONSUMER SEES: a pair standing at `['tabs']` is now asked for a `delete` at `['tabs','landingPage']`** — it is handed the ACT's `address`, `tier` and `value`, so a refusal crosses as it would at its own address and the commit rolls back — **and the membership rule reads once: your pair is asked when THE ACT'S ADDRESS IS AT OR BELOW YOUR PAIR'S ADDRESS.** **A pair at a DESCENDANT of the act is still NOT asked, and its address then reads as absent.** **AND THE CONSEQUENCE THAT IS UNMISTAKABLE: a passing write now EMPTIES `pending`** — the pass's set now EQUALS the store's `triggered` set, which is exactly what the earlier exact-address rule refused to allow — **measured `1` → `0` on a passing write.** (`D-56`; `HL-8` item 1 and attempt-lifecycle `§2.4` item 5 (iv) are annotated beside in the guide, not rewritten.)
+
+**2 · A `delete` IS AN EDITING VERB — ITS OWN ATTEMPT KIND, ITS OWN PASS, AND A DELIVERY AFTER THE JUDGEMENT.** **WHAT A CONSUMER SEES:** the `delete`'s receipt now carries a **non-enumerable `commit` member** — the same four-member `CommitRecord` a write's `K-2` mints (`attempt`, `op`, `triggered`, `pending`) — **so a delete can be read back through `K-4` and `K-5`, which now answer BY REFERENCE where they refused `NO-REF` before**; the record is **ADOPTED** by the entry, which stands the delete's own receipt in the leg slot for the pass and restores the enclosing leg in a `finally`; the **`pending` residue is one entry** (the returned set minus the handles the delete's own pass checked off), and the delivery fires **THE RESIDUE** rather than the whole returned set; and a `file`-tier delete **SAVES** — the terminal arm saves the delete's own op, so a fresh boot answers `AddressNotFound` where the bytes used to stand. **A DELETE THAT REMOVES NOTHING MINTS NOTHING** (`D-3`), **and a `rollback` keeps no attempt**, because a reversal appends no journal op and a fabricated ref would be a lie. **THE COMMIT IS A SCOPE, A LOG'S HOME, A SAFE-STATE UNIT AND A RECORD — NOT A KERNEL ITEM** (`D-57`'s second half: the kernel's surface stays `K-1`…`K-6`, and `K-7` `commitRemoval` is owed only if a consumer must drive a delete's attempt directly, which none can). (`D-57`; `D-3`; `D-44`; `D-53`; `DEF-AN`.)
+
+**3 · FIVE SMALLER ITEMS, EACH A THING A CONSUMER SEES.** **A THROWN MESSAGE'S FORM IS IN THE LOG** (`D-55` item 1 · `DEF-AK`): the value a pair threw is PRINTED in the attempt's one `outcome` entry, named rather than silently stringified, and the crossed `message` stops claiming the value crosses. **AN ENTRY IS NEVER SHIPPED WITH AN EMPTY ADDRESS LIST** (`D-55` item 2 · `DEF-AH`). **A CLOSED RECORD IS SEALED AT HANDOFF** (`D-55` item 6 · `DEF-AO`): what a consumer holds is final. **THE DRAIN JUDGES THE STANDING STATE** (`D-55` item 6 · `DEF-AP`, and `D-54`'s withdrawn sentence): where two of your listeners each reverse inside one commit, the check judges the state the commit STANDS AT — both raises — and a pass that ends by throwing reaches the same judgement at the state the pass left. **AND A REFUSED EDIT UNDOES THE WHOLE COMMIT** (`D-55` · `DEF-AN`): a constraint-refused edit rolls back to the previous safe state with ALL edits in the commit undone — including a delete's. (`D-55`'s six clarifications; the four rows `dfa9fc7` settled; `strata/decisions.md` `D-55`.)
+
+**4 · AND A SHIPPED SENTENCE WAS FALSIFIED BY ALL OF IT, AND IS CORRECTED AT ITS OWN HOME.** **The package's `README.md` said a `delete` and a `rollback` both perform no file I/O at any tier scope.** **A `delete` SAVES NOW** — a `file`-tier delete left the bytes standing and a fresh boot read the old value; the terminal arm saves the delete's own op, and a failed save is the write's arm with `KC-9`. **A `rollback` still performs no file I/O, because it has no op of its own to save at** — and that half of the sentence was never in doubt. (`1090e1e`; `bindings/js/README.md`'s own 2026-10-28 clause.)
+
+---
+
+## §1.6.1 · **CUT AND PUBLISHED — tag `v1.6.1`** — a DOCUMENTATION release: what `1.6.1` carries, and the arithmetic that says how many commits
+
+**⟶ AND THIS HEADING CARRIED THE PRE-RELEASE MARKER UNTIL THE TAG WAS CUT, 2026-10-30 — `D-83`.** `RCA-8(g)`
+ANNOTATE-BESIDE: **the withdrawn heading's bytes stand in the withdrawn record and are read THROUGH this clause; this
+sentence deliberately does not quote them, because a quotation of a claim reads as a claim and the scan cannot tell
+them apart — which is `D-80`'s own finding.** **A cut-state is the tag set's to answer: the tag exists, so this section
+names a past act and not a present claim — and it is the one new cut-claim `D-82`'s ratchet could not admit until
+`D-83` gave it the arm.**
+
+**⟶ THIS SECTION IS NEW, 2026-10-30, AND IT STATES THE VERSION AND NOT THE CUT-STATE.** `RCA-8(g)` ANNOTATE-BESIDE: **no byte of the sections below moves; this section is added above `§1.6.0`, and that section's heading is corrected at its own line in the same act.** **AND THIS SECTION DOES NOT STATE WHETHER `1.6.1` HAS BEEN CUT: the cut-state is the tag set's to carry and not a document's to state** (`D-57`; the head clause of 2026-10-28 above, which governs every sentence here).
+
+**THE VERSION: `1.6.1` AT ELEVEN CELLS THAT MOVE TOGETHER AND NEVER SINGLY** — `bindings/js/package.json`'s `version`, its five exact `optionalDependencies` pins, and the five `bindings/js/platforms/*/package.json` `version` fields, read at their own bytes this date — **and `npm run build` stamps the artefact from that manifest, so `version()` answers `1.6.1` at the built artefact and at a package installed from it** (measured this date at `bindings/js/build/Release/storeroom_js_binding.node`, and again at a package installed into a `/tmp` consumer with no repository in its ancestry). **AND `scripts/publish.sh --figures` REPORTS THE SAME FIGURE IN THREE SHIPPED DOCUMENTS** — this change list's marked line, the guide's and `bindings/js/README.md`'s are each generated from that manifest, and the three agree: one generator, one assertion. (`DEF-AC` (b); `D-57`; `scripts/publish.sh --figures`.)
+
+**THE ARITHMETIC, RE-MEASURED AT THIS TREE: `git rev-list --count v1.6.0..HEAD` READS `4` AND `git describe` READS `v1.6.0-4-g674b79e`.** **The four — `636e69f`, `9ac7e0e`, `93682f3` and `674b79e` — each write `strata/decisions.md` and no other path: they are the rulings `D-79`, `D-80`, `D-81` and `D-82`, recorded beside the tree they measured, and not one of them changes a line the package ships.** **SO THE FOUR COMMITS MOVE NO BEHAVIOUR, AND THE RELEASE'S CONTENT IS THE WORKING TREE THIS PASS CARRIES BESIDE THEM — named here because a consumer must be able to read it before the cut:** **the TWO MOVE-OUTS** (`D-81` item `1`: the `§1.3.0` paragraph that claimed a cut-state and the clause that preserved it, each moved out byte-exactly into `docs/guides/backup/D81-2026-10-29-notes-move-out.md`, each leaving a one-line pointer at this file's lines `267` and `269`); **the SCANNER** (`D-81` item `3`: `scripts/publish.sh --cut-claims`, four documents and nine phrase spellings, NOT section-scoped); and **the RATCHET** (`D-82`: the catalogue is the exemption set — a cut claim at a catalogued site is accepted, a claim anywhere else is refused, and an entry whose site no longer carries one is a stale entry); **and beside them this version's bump, this section, the guide's and the README's generated lines, and the heading correction above.** **AND WHAT THAT ADDS UP TO FOR YOU, SAID INSTEAD OF LEFT TO INFERENCE: four record commits past `v1.6.0`, four documents touched on the working tree, and `4 + 4` is the whole of it — no line of `bindings/js/src/`, `bindings/js/index.mjs` or `bindings/js/index.d.ts` moved.**
+
+**NO BEHAVIOUR CHANGE — the failure form stays four members, `LogEntry` stays five, the status set stays twenty, the `KC` set stays nine, and not one call a consumer makes changes its answer.** **THIS IS A DOCUMENTATION RELEASE AND IT SAYS SO PLAINLY:** what `1.6.1` carries is the record of a guard's design and of a document's honesty — a scanner, a baseline, two moved-out passages and the arithmetic above — and **a consumer who installs `1.6.1` meets the behaviour of `1.6.0` at every arm the suite measures**, because no arm moved. (`D-74`; `D-75`; `D-77`; `D-78`; `§1.6.0`'s items `1` through `8`, which are the behaviour `1.6.0` carries; `npm test`'s reading on this tree.)
+
+## §1.6.0 · **CUT AND PUBLISHED — tag `v1.6.0`** — what that release carries: the eleven commits on `main` past `v1.5.0`, derived from the tree
+
+**⟶ `RCA-8(g)` MOVE-OUT OF THE HEADING THAT STOOD AT THIS LINE, AUTHORED 2026-10-30 BY THE `1.6.1` PASS (`D-82` · `DEF-AC`): THE HEADING THAT STOOD HERE CLAIMED A PREPARATION STATE OVER `1.6.0`, THE VERSION THE TAG `v1.6.0` NAMES — ITS BYTE-EXACT TEXT, WITH THE `sha256` OF ITS ONE LINE, STANDS AT `docs/guides/backup/D81-2026-10-29-notes-move-out.md` `§5`.** **`git tag --list` answers `v1.6.0`, so a heading over that version is a PAST-TENSE RECORD OF A RELEASE and not a preparation, which is the spelling `§1.4.0` and `§1.5.0` above already carry.** **AND WHAT THIS ACT DOES NOT DO: it moves no other byte of this section, its body and its items below stand BYTE-FOR-BYTE as the reading of their own date, and the `1.6.1` bump is stated in the section above and in no line of this one.** (`D-57`; `D-79`; `D-82`; `git tag --list`.)
+
+**⟶ THE HEADING THAT STOOD HERE WAS *"`## §1.6.0 · **PREPARED** — what `1.6.0` carries: the six commits on `main` past `v1.5.0`, derived from the tree`"*, AND ITS COUNT IS CORRECTED AT ITS OWN LINE, 2026-10-29.** `RCA-8(g)` ANNOTATE-BESIDE: **the withdrawn bytes are quoted above, every paragraph of this section below stands BYTE-FOR-BYTE as the reading of its own date, and nothing is deleted.** **THE COUNT MOVED BECAUSE THE TREE DID**: the section was written when `git describe` read `v1.5.0-6-g9e7a766`, and **the five commits after that reading — `74d871e` through `8f5454f` — carry `D-77`'s member and `D-78`'s clause, which this preparation declares.** **A HEADING THAT UNDERCOUNTS THE COMMITS IT PREPARES IS THE `DEF-AC` CLASS AT ITS MILDLEST AND IS CORRECTED RATHER THAN ANNOTATED AROUND, because the count is the one figure this section's own arithmetic prints.** (`D-57`; `git describe` at `v1.5.0-11-g8f5454f`; the arithmetic clause below, which is the re-sort.)
+
+**⟶ THIS SECTION IS NEW, 2026-10-29, AND IT STATES THE VERSION AND NOT THE CUT-STATE.** `RCA-8(g)` ANNOTATE-BESIDE: **no byte above or below moves; this section is added beside `§1.5.0`, and every sentence of it is derived from the tree it names.** **AND ITS POSITION IS THIS FILE'S ARRANGEMENT AND NOT A CHRONOLOGY: it stands ABOVE `§1.5.0`, which is the change list of a release that IS cut, because the section for the tree that is not cut belongs at the head of the two.** (`D-57`; the head clause of 2026-10-28 above, which governs every sentence here.)
+
+**THE FIGURE THIS SECTION MAY BE RIGHT ABOUT, AND ITS GENERATOR.** the version line at this file's head is generated from `bindings/js/package.json`'s `version` and asserted by `scripts/publish.sh --figures` in three shipped documents — **`1.5.0`, at eleven cells that move together and never singly**: the main manifest's `version`, its five exact `optionalDependencies` pins, and the five `bindings/js/platforms/*/package.json` `version` fields; and `bindings/js/build.rs` stamps the artefact from that manifest, so the built artefact's `version()` answers `1.5.0`. **NO VERSION BUMP IS MADE BY THIS PREPARATION AND NO MANIFEST MOVES: the section PREPARES `1.6.0` and the cells that would carry it read `1.5.0` at their own bytes.** **AND NOTHING IN THIS SECTION CLAIMS WHETHER `1.6.0` IS CUT: the cut-state is not a document's to state** (`D-57`).
+
+**⟶ AND THE BUMP IS THIS PREPARATION'S, 2026-10-29 — THE ELEVEN CELLS READ `1.6.0`, MOVED TOGETHER IN ONE ACT AND NEVER SINGLY.** `RCA-8(g)` ANNOTATE-BESIDE: **the paragraph above stands BYTE-FOR-BYTE as the reading of its own date and is read THROUGH this clause; not one byte of it is deleted, and its cut-state sentence — *"nothing in this section claims whether `1.6.0` is cut"* — is UNMOVED and governs every sentence here.** **THE CELLS AT THEIR OWN BYTES THIS DATE: `bindings/js/package.json`'s `version` reads `"1.6.0"`, its five exact `optionalDependencies` pins read `1.6.0` five times, and the five `bindings/js/platforms/*/package.json` `version` fields read `1.6.0` — ELEVEN CELLS, ONE VERSION** (`scripts/publish.sh --bump`'s own post-bump check reads them all, and the main manifest still carries `"version"` exactly once, which is the carrier's precondition). **AND `npm run build` STAMPS THE ARTEFACT FROM THAT MANIFEST, SO `version()` ANSWERS `1.6.0`**: measured at `bindings/js/build/Release/storeroom_js_binding.node` this date, and again at a package installed from that artefact into a `/tmp` consumer with no repository in its ancestry. **AND `scripts/publish.sh --figures` ANSWERS THE SAME FIGURE IN THREE SHIPPED DOCUMENTS** — this change list's, the guide's and `bindings/js/README.md`'s marked lines are regenerated and agree, one generator, one assertion. **SO THE ONE SENTENCE ABOVE THAT THIS CLAUSE SUPERSEDES IS *"NO VERSION BUMP IS MADE BY THIS PREPARATION AND NO MANIFEST MOVES"*, named here rather than overwritten.** (`D-57`; `scripts/publish.sh --figures` and `--bump`'s post-bump check; the eleven cells read at their own bytes.)
+
+**THE TREE STANDS SIX COMMITS PAST `v1.5.0`** — `git rev-list --count v1.5.0..HEAD` reads `6` and `git describe` reads `v1.5.0-6-g9e7a766` — **and the honest shape of the six is `2 + 3 + 1`.** **TWO MOVE THE PACKAGE**, a line under `bindings/js/src/` or `bindings/js/index.mjs`/`index.d.ts` changing so a consumer can observe it: `96eddfc` (`D-74`, the bounded entry) and `9933405` (`D-75`, the witness on every path). **THREE ARE RECORD RULINGS AND MOVE NO BEHAVIOUR** — each writes `strata/decisions.md` and no other path: `9e0a56f` (`D-74`), `aa5d36b` (`D-75`) and `9e7a766` (`D-76`). **AND ONE IS A MEASUREMENT WHOSE CODE CHANGE IS A COMMENT AND NOT AN ARM** — `8d31995`, whose fourteen added lines under `bindings/js/src/entry/constraints.mjs` are a doc block stating what the code already did; its substance is the seven-host table in item `3` below. **`2 + 3 + 1 = 6` ✓ — the whole of the six past `v1.5.0`, and no commit is counted twice.** **AND THIS PASS'S OWN DECLARATIONS — `D-76`'s three items at the guide and in the four contracts, and the two passages moved out — are on the working tree and in no commit yet, so they are stated here and counted nowhere.**
+
+**⟶ AND THE SAME ARITHMETIC IS DONE AGAIN FOR THE WHOLE ELEVEN, 2026-10-29 — `git rev-list --count v1.5.0..HEAD` READS `11`, `git describe` READS `v1.5.0-11-g8f5454f`, AND THE HONEST SHAPE IS `3 + 5 + 3`.** `RCA-8(g)` ANNOTATE-BESIDE: **the paragraph above stands BYTE-FOR-BYTE as the reading of its own date (`v1.5.0-6-g9e7a766`) and is read THROUGH this clause; its `2 + 3 + 1` is kept and its METHOD is reused rather than replaced — each of the eleven is read at the paths it touched and sorted by what those paths are.** **THREE MOVE THE PACKAGE**, a line under `bindings/js/src/` or `bindings/js/index.mjs`/`index.d.ts` changing so a consumer can observe it: **`96eddfc`** (`D-74`, the bounded entry), **`9933405`** (`D-75`, the witness at any count on every path) and **`bfe844a`** (`D-77`, the failure form's fourth member — **the one breaking change in the eleven**). **FIVE ARE RECORD RULINGS AND MOVE NO BEHAVIOUR** — each writes `strata/decisions.md` and no other path: `9e0a56f` (`D-74`), `aa5d36b` (`D-75`), `9e7a766` (`D-76`), `74d871e` (`D-77`) and `40a6e7f` (`D-78`). **AND THREE CARRY DOCUMENTS AND MOVE NO CODE** — the guide, this change list, the README and the specs: **`8d31995`**, a measurement whose fourteen added lines under `bindings/js/src/entry/constraints.mjs` are a doc block stating what the code already did (its substance is the seven-host table in item `3` below); **`aaa6515`**, `D-76`'s corrections at the guide, the README, the four contracts and the two moved-out passages, and the `v1.5.0` cut marked in this change list; and **`8f5454f`**, `D-78`'s clause at the guide, the README and the two specs. **`3 + 5 + 3 = 11` ✓ — the whole of the eleven past `v1.5.0`, and no commit is counted twice.** **AND THE COUNT THAT MATTERS TO A CONSUMER IS THE FIRST TERM: THREE COMMITS CHANGE WHAT THE PACKAGE DOES, and one of the three changes the FORM OF EVERY REFUSAL.** (`D-74`; `D-75`; `D-77`; `D-78`; `git rev-list v1.5.0..HEAD` and each commit's own touched paths.)
+
+**1 · ★ THE LOG ENTRY IS BOUNDED, AND WHEN THE VALUE A BODY THREW IS ITSELF A REFUSAL THE ENTRY IS A SUMMARY OF IT AND NEVER ITS SERIALISATION (`D-74` · `DEF-AR`).** **WHAT `1.5.0` DID, MEASURED:** a lawful chain of inner refusals — each level's body throwing the last level's refusal — **wrote the previous level's whole form into the next level's `outcome` entry, so the entry doubled per level: `134,228,754` characters at depth `26` and `268,446,544` as JSON text, and at depth `28` the composition passed V8's maximum string length and the package answered `RangeError: Invalid string length` inside the caller's own frame — with no refusal at all.** **WHAT A CONSUMER GETS NOW: a SUMMARY carrying THREE facts and nothing else** — the inner refusal's own `status`, its entry count, and its first entry's message — **and never its log**, so **a refusal whose log holds fifty thousand entries costs your caller one number**; **the bound is ONE NUMBER, `307` characters** (`MESSAGE_CEILING` at `bindings/js/src/entry/kernel-foundations.mjs`), **applied to the entry's total and not to a level**, **and the crossed `message` is bounded the same way at the one place it quotes an inner sentence** (`753` at every depth after, where it was `134,229,071` at `26` and `268,447,241` at `27`). **`LogEntry` GAINED NO MEMBER: the bound is on the form's content and not a new column** — every entry still carries exactly `id` · `kind` · `message` · `opId` · `state`. **AND THE THREE LAWFUL ARMS ARE UNCHANGED WHERE THEY FIT** — a plain `Error`, a string and an object with no `message` answer the very words they always did. (`D-74`; `96eddfc`; `tests/e2e/discard-witness.mjs`'s `DW-17.1`–`DW-17.5`, before → after.)
+
+**2 · ★ EVERY DISCARDED RAISE IS REPORTED, AT ANY COUNT, ON EVERY PATH (`D-75` · `DEF-AH` re-filed).** **WHAT WAS BROKEN, MEASURED:** two raises in one delete answered `[]`, because the machinery keeps ONE request and merges the second into it; **a raise inside a constraint body was absent from BOTH answers** — the raise's own and the triggering write's; **and `discarded.length === 0` therefore meant two things**, *"nothing was discarded"* and *"I wasn't told."* **WHAT A CONSUMER GETS NOW:** **`discarded` is ONE ENTRY PER RAISE the act's delivery threw away, in raise order, at any count**, each `{opId, addresses}`, **and it is present wherever an act can discard, `0` included — on a `delete`'s receipt (as it was), on a `write`'s record and on a `rollback`'s record, which carried none before** — so **`discarded.length === 0` now reads on every one of them: NOTHING WAS DISCARDED, and the member is present to say so.** **IT IS STILL A NON-ENUMERABLE OWN MEMBER and `Object.keys` still prints the record's own members only; a `rollback`'s is a LIVE VIEW, settled once the act whose window the raise stands in has returned.** **AND ONE THING IS STILL UNCARRIED: a registration's answer is an opaque identity with no witness** — the store's next at-rest act proves that window has ended, the raise settles as discarded, and the `rollback` record you already hold names it then. (`D-75`; `9933405`; `tests/e2e/discard-witness.mjs`'s `W18`, every one of its five cells RED under its own `/tmp` revert.)
+
+**3 · AND THE SEVEN HOSTS ARE A MEASURED TABLE RATHER THAN AN ARGUED ONE (`D-42` · `D-54` · `D-55` ITEM 3).** **WHAT THIS SETTLES, SAID IN A CONSUMER'S TERMS: a `rollback` you raise inside a pass is CARRIED TO THAT PASS'S TERMINAL CHECK AND JUDGED THERE — five of the seven hosts — and the two that are not judged are exactly the two windows the guide declares, both of which run no pass at all.** **The seven: `H1` a constraint body in a write's pass — judged `[9, 7, 5]`; `H2` a repair body — judged `[9, 7, 5]`; `H3` a listener body in a write's delivery — judged `[9, 5]`; `H4` a REGISTRATION's own evaluation — NOT judged `[9]`, a declared window; `H5` a `delete`'s listener delivery — NOT judged `[9]`, a declared window, and `discarded` reports it; `H6` a constraint body during a DELETE'S OWN PASS — judged `[9, undefined, 5]`; `H7` a reentrant reversal-then-write — judged `[9, 5]`.** **SO THE MEASURED SET AND THE DECLARED SET ARE THE SAME SET.** (`D-42`; `D-54`; `D-55` item `3`; `8d31995`; the guide's `§12.6` table of the same date; cells `DW-16.1`–`DW-16.4`, three of them RED under a `/tmp` revert that removes the `delete`'s pass.)
+
+**4 · ★ A LISTENER'S REFUSAL IS CONTAINED AND ITS THROW IS THE CHANNEL — THE SENTENCE THAT SAID OTHERWISE IS CORRECTED, AND THE ONE THING THE ANSWER CANNOT SAY IS DECLARED (`D-76` · `DEF-AU`).** **THE SENTENCE, AND WHY IT WAS FALSE:** *"the caller learns nothing of the outcome of the listeners"* **is L0's paraphrase of the architect's PERMISSION** — *"the caller does not need to know about the outcome of the listeners"* — **and `D-73` then kept the throw in the very next ruling precisely so the client can log errors cleanly, which is the caller learning the outcome.** **THE TRUE PAIR, WHICH IS WHAT THE GUIDE AND THE SPECS PRINT FROM THIS DATE:** **a listener's REFUSAL is CONTAINED** — its own commit's, invisible upward; **a listener's THROW is the CHANNEL** — **and the caller is the only party positioned to log the violation, because the listener's act is in the listener's own commit**; **and *"does not need to know"* is a permission, never a claim that it cannot.** **AND THE SECOND HALF, MEASURED IN BOTH ARMS ON THIS CHECKOUT AND DECLARED RATHER THAN LEFT TO BE DISCOVERED: `ConstraintPassRefused` DOES NOT SAY WHOSE ACT IT REFUSED.** **The same pair, the same message, one store:** the caller's own refused write answers `{status, message, log, address}` with two entries and the value never lands; **the same pair refusing an act made inside a listener that does not catch it answers the same status, the same message, the same three own members, the same entry count and entries equal in `kind` · `id` · `message` · `state` — the log's `opId` the only differing byte, and a byte the caller can never key against anything, because a refused act answers no `op`** — **while the caller's data is IN THE STORE.** **SO THE RULE, AND IT IS THE ONE TO WRITE INTO YOUR ERROR HANDLER: DO NOT RETRY ON THE ANSWER — READ THE ADDRESS YOU WROTE.** **Your value stands ⇒ the refusal was a listener's, YOUR WRITE LANDED, and a retry re-applies it (`D-73`'s hazard in its sharpest form). Your value does not stand ⇒ the refusal was your own act's, and the write did not happen.** **THE TWO LIMITS OF THAT READ, SAID PLAINLY: it answers *"did my value land"* and not *"whose act was refused"*; and a write whose value equalled what already stood cannot be told apart by it.** **NO CODE, NO STATUS AND NO MEMBER MOVED FOR ANY OF THIS: a new status or a member naming the act is a change to a closed set (`D-38`) and the architect's call, so it stands `OWED`.** (`D-76`; `D-73`; `D-71`; `9e7a766`; the guide's `§6.5a`, `§8.1` row `20`'s clause and the four contracts' clauses of the same date.)
+
+**⟶ AND THE ONE THING THAT STOOD `OWED` IN THE SENTENCE ABOVE WAS ASKED FOR AND GRANTED — `D-77`, THE ARCHITECT, ONE WORD: *"New member"*.** `RCA-8(g)` ANNOTATE-BESIDE: **every sentence of item `4` above stands BYTE-FOR-BYTE as the reading of its own date and is read THROUGH this clause; not one byte of it is deleted.** **THE DEFECT THIS FILE'S OWN CORRECTION DISCIPLINE WOULD HAVE MISSED OTHERWISE: item `4` is a correction applied at two sites — the guide's `§6.5a` and this change list's — and the ruling it said was owed has now been made, so the OWED is DISCHARGED at both, not merely at the newer one.** **WHAT MOVED: the member that names the act is `address`, item `7` below declares it, and the two arms item `4` measured are separated by it.** **WHAT DID NOT MOVE: THE ANSWER'S TWO LIMITS, RE-STATED SO THEY ARE NOT READ AS WITHDRAWN — `address` names the act the refusal is ABOUT and never the party who made it, so *"whose act was refused"* is answered by comparing that address with the one you wrote and by nothing else; and a write whose value equalled what already stood is still not told apart by reading back.** **SO THE RULE AT THE END OF ITEM `4` — *"do not retry on the answer, read the address you wrote"* — STANDS, AND THE MEMBER MAKES IT A COMPARISON RATHER THAN A READ-BACK.** (`D-77`; `D-76`; `bfe844a`; item `7` below; item `6`'s migration bullet.)
+
+
+**5 · AND THE TWO PASSAGES THE GUIDE STILL PRINTED ARE MOVED OUT, NOT LEFT STANDING (`D-76` ITEM 3 · `DEF-AT`).** **WHAT WAS WRONG, SAID AS THE CLASS IT IS — a correction applied at one site and not at the others:** the guide printed, in `§7.8`, *"a pair at an ANCESTOR address is not asked by the delete's pass"* **two paragraphs above its own corrected rule and `D-56`'s ruling and the measurement of it**, and printed, at its close, *"your `delete`'s own pass is still a measurement and not a behaviour … IT NEVER CALLS THE KERNEL"*, **which `§7.8` and the measurement both falsify.** **SO BOTH ARE MOVED OUT BYTE-EXACTLY, EACH WITH A ONE-LINE POINTER WHERE IT STOOD, into `docs/guides/backup/D76-2026-10-29-guide-move-out.md`, whose head names the source path, the pre-move line ranges and the `sha256` of each region.** **NO BEHAVIOUR AND NO PROMISE MOVES: what a consumer relied on was the corrected rule, and it is the rule that stands.** (`D-76`; `D-56`; `D-55` item `3`; `RCA-8(g)`.)
+
+**6 · ★ WHAT YOU MUST CHANGE IN YOUR CODE — THE MIGRATION SECTION THIS RELEASE OWES, DERIVED FROM THE THREE BEHAVIOUR CHANGES ABOVE AND WRITTEN AS SUCH.** **A guide normally carries this; this one carries no "migration note" item and none is hidden anywhere in it** — the only migration subject in its own text is `§9.1`'s rule for the STORE'S FILE (*"read the old value through `read` and write the new one through `write`"*), **which is written, standing, and owes nothing** — **so the note below is derived from the tree and is offered as the note this change list owes, not as a document's claim to be the one that was asked for.**
+
+**⟶ AND THE THIRD OF THOSE THREE IS THE ONE THAT BREAKS A CONSUMER, SO THE SECTION'S FIRST BULLET IS ITS AND IT IS WRITTEN AS A MIGRATION AND NOT AS A DESCRIPTION.** `RCA-8(g)` ANNOTATE-BESIDE: **the lead paragraph above stands BYTE-FOR-BYTE and is read THROUGH this clause; what moves is its count — *"the two behaviour changes"* reads THREE — and what is added is the section D-77's breaking change makes mandatory.** **THE THREE, NAMED SO YOU CAN FIND YOURS: `D-74`'s bounded entry (a summary where a serialisation was), `D-75`'s witness at any count on every path, and `D-77`'s fourth member — which is the only one of the three that a TYPED or CENSUS-READING consumer must act on, because it changes the form itself.** (`D-74`; `D-75`; `D-77`.)
+
+- **★ THE MIGRATION, AND READ THIS ONE FIRST: IF YOU DESTRUCTURE `{ status, message, log }` FROM A CAUGHT REFUSAL, YOU NOW GET THREE OF FOUR — THE FORM IS `{status, message, log, address}` AND THAT IS A BREAKING CHANGE (`D-77`).** **WHAT TO CHANGE, CONCRETELY:** `const { status, message, log } = caught;` **becomes** `const { status, message, log, address } = caught;` — **the fourth in the form's own order, never `undefined` on any arm and `null` only where the refusal names no act at an address.** **AND THE CENSUSES MUST RE-DERIVE, NOT JUST THE DESTRUCTURINGS:** a `Object.keys(caught)` pinned to `["status","message","log"]`, a `length === 3`, or a JSON-string comparison of the form is a census of `1.5.0`'s shape and reads FOUR now; **a consumer that reads `caught.status` and nothing else is UNCHANGED and needs no edit — and it is exactly the consumer the fourth member exists for.** **AND THE ONE THING THE NEW MEMBER MAKES POSSIBLE, WHICH IS WHY IT WAS ADDED: COMPARE `address` WITH THE ADDRESS YOU WROTE — equal means YOUR OWN act was refused (your write did not happen, and a retry is yours to make); different means a LISTENER's act was (your own write STANDS, and a retry would apply it twice) — and THAT is what decides whether a retry is safe.** **The read-back rule item `4` above gives you survives as the fallback where the address is `null` and as the cross-check where it is not; the comparison is the direct answer the read-back can only infer.** (`D-77`; `bfe844a`; item `7` below; the guide's `§8` form and its `§6.5a` clause — **both corrected in this pass, not one of them**.)
+- **IF YOU READ A THROWING BODY'S INNER REFUSAL OUT OF A LOG ENTRY, YOU NOW READ A SUMMARY** (`D-74`). **The entry names the inner refusal's `status`, its entry count and its first message, and NOT its log** — a consumer that walked `entry.message` for the inner form must stop; **where the host is a constraint body, the value the body threw is STILL carried as itself under `Symbol.for('provident-storeroom.inner-refusal')`** (`D-55` item `1`, unmoved), **and a listener's throw has always crossed as itself.**
+- **IF YOU INFERRED "NOTHING WAS DISCARDED" FROM AN ABSENT `discarded` OR FROM `[]` ON A WRITE, RE-READ IT** (`D-75`). **The member is now on `write` and `rollback` records as well as a `delete`'s receipt, its entries are one per raise at any count, and `[]` now means exactly what it says on every one of them.**
+- **AND IF YOU RETRY ON A CAUGHT `ConstraintPassRefused`, YOUR RETRY POLICY IS THE THING THAT MUST CHANGE, NOT THE LIBRARY** (`D-76` item `2`). **The status can arrive from a listener's refused act with your own write already landed; do not retry on the answer — read the address you wrote** (item `4` above; the guide's `§6.5a`).
+- **AND ONE THING NO CONSUMER MUST CHANGE: NOTHING ELSE ON `main` SINCE `v1.5.0` MOVES A SHAPE, A MEMBER, A STATUS, A RANK OR A BOUND.** **The eleven version cells read `1.6.0`, `LogEntry` keeps its five members, the closed set keeps its twenty, and the kernel's `KC` set keeps its nine.** (`D-74`; `D-75`; `D-76`; `D-77`; `D-57`. **The withdrawn byte in that sentence is the figure: it read `1.5.0` when it was written, before this preparation's bump, and the cells read `1.6.0` at their own bytes this date** — the clause at this section's head states all eleven.)
+
+**7 · ★ THE FAILURE FORM IS FOUR MEMBERS — `address`, THE ACT THAT WAS REFUSED — AND THAT IS A BREAKING CHANGE THIS RULING ACCEPTS (`D-77`).** **WHAT WAS WRONG, MEASURED:** a caller's OWN act refused and a caller's act that PASSED while a LISTENER's act was refused **cross with the same `status`, the same `message`, the same keys and the same two log entries** — only the `opId` differs, **and a refused act answers no `op` for you to key against** — so **you read `ConstraintPassRefused` and concluded your write did not happen, while the store says it did.** **WHAT YOU GET NOW: the fourth member, `address`, the ADDRESS the refusal is about** — a segment array in the domain you write with, or `null` where the refusal names no act at an address. **COMPARE IT WITH THE ADDRESS YOU WROTE: equal means YOUR OWN act was refused (your write did not happen — a retry is yours to make); different means a LISTENER's act was (your own write STANDS, and a retry would apply it twice).** **THE FORM IS `{status, message, log, address}`, `Object.keys(caught)` reads `["status","message","log","address"]` and its length is `4` on EVERY arm** — on the `cfg`-side refusals and the load-path arm as much as on a refused write, with `address` `null` where nothing is nameable. **NOT A FIFTH STATUS**: the closed set stays twenty and the member carries an address, never a code. **NOT A HEURISTIC**: the package authors it at the refusal's own crossing. **AND THE MEMBER IS NEVER ABSENT** — *"a member absent on some arm is the `DEF-AH` defect wearing a new name"* — which is why the flatness reading of `1.5.0`'s form holds at four exactly as it held at three. (`D-77`; the cells `tests/e2e/discard-witness.mjs`'s `DW-19.1`–`DW-19.3`.)
+
+- **IF YOU COMPARE `Object.keys(caught)` WITH THREE NAMES, IT NOW READS FOUR** (`D-77`): a census pinned to `["status","message","log"]` or to a length of `3` is a census of `1.5.0`'s form and must re-derive. **A consumer that reads `caught.status` and nothing else is unaffected — and is exactly the consumer this member exists for.**
+
+**8 · ★ WHICH ACTS CARRY `discarded`, AND THAT `undefined` IS NOT `[]` — ONE CLAUSE, AND IT IS THE WHOLE OF WHAT `D-78` OWED (`D-78` · `DEF-AH` DOWNGRADED).** **WHAT THE DOWNSTREAM ASKED FOR, VERBATIM: *"say when the member is present, and that `undefined` is not `[]`."*** **AND THE AXIS IS RIGHT: AN ABSENT MEMBER AND AN EMPTY LIST ARE DIFFERENT CLAIMS** — **one is about an ACT THAT CANNOT HAVE THIS OUTCOME AT ALL, the other is a statement about an act that can — so a consumer reading absence cannot tell *"not reported"* from *"nothing to report."*** **THE MACHINERY ALREADY KEPT IT (`D-75`'s fix put it on the right axis), so this ruling owes the CLAUSE and not a line of code.** **WHAT A CONSUMER GETS, MEASURED BOTH WAYS FOR EACH OF THE THREE AND ONCE FOR THE ONE THAT CANNOT:**
+
+- **THREE ANSWERS CARRY IT, AND THEY ARE EXACTLY THE THREE THAT CAN DISCARD A RAISE: a `delete`'s receipt, a `write`'s record and a `rollback`'s own record.** **On all three the member is PRESENT on every return, `0` included** — it is not a member that appears when something went wrong. **Measured this date: `delete` `discarded [1]` / nothing `[]` · `write` `[1]` / drained `[]` · `rollback` `[1]` / at rest `[]`.**
+- **`[]` MEANS: THIS ACT'S DELIVERY DISCARDED NOTHING** — present, empty and TRUE. **`record.discarded.length === 0` is that sentence and no other.**
+- **`undefined` MEANS: THIS ACT CANNOT DISCARD A RAISE, SO THE QUESTION DOES NOT ARISE.** **A `read` — and `readLiteral`, and every member that hands you a VALUE rather than a record of an act — carries no such member at all**; measured, `store.read(['v'])` answers its value and the object's own names are `["v"]`. **DO NOT READ ABSENCE AS *"NOTHING WAS DISCARDED"*.**
+- **AND THE TRAP, NAMED BECAUSE IT IS THE WHOLE POINT: THE TWO LINES ASK DIFFERENT QUESTIONS.** **`if (record.discarded === undefined)` asks *"can this act discard at all?"*** — about the ACT. **`if (record.discarded.length === 0)` asks *"did it, this time?"*** — about YOUR run. **Neither is a spelling of the other, `record.discarded?.length` tested for truthiness collapses the two into one falsy reading, a spread copy loses the member (it is NON-ENUMERABLE on all three) and hands the copy `undefined`, and on a `read` the second line throws.**
+- **AND NO CONTRADICTION WAS FOUND: no act that can discard was missing the member, and no act that cannot discard carried it.** (`D-78`; `D-75`; `8f5454f`; the guide's `§8` `record.discarded` clause of the same date, which carries the same five lines; `bindings/js/README.md`'s clause.)
+
+---
+
+## §1.5.0 · **CUT AND PUBLISHED — tag `v1.5.0`** — what that release carries: the twenty-seven commits on `main` past `v1.4.0`, derived from the tree
+
+**⟶ THE HEADING THAT STOOD HERE WAS *"`## §1.5.0 · **PREPARED** — what `1.5.0` carries: the twenty-seven commits on `main` past `v1.4.0`, derived from the tree`"*, AND IT IS CORRECTED AT ITS OWN LINE, 2026-10-29.** `RCA-8(g)` ANNOTATE-BESIDE: **the withdrawn bytes are quoted above, every paragraph of this section below stands BYTE-FOR-BYTE as the reading of its own date, and nothing is deleted.** **THE DEFECT IS THE `DEF-AC` CLASS AT ITS FOURTH ITERATION: A HEADING THAT DENIED THE RELEASE ITS OWN TAG NAMES.** **The tag set at this date reads `v1.0.0` · `v1.0.1` · `v1.1.0` · `v1.2.0` · `v1.3.0` · `v1.4.0` · `v1.5.0`; the tag `v1.5.0` names the tree `43c8442`, whose `bindings/js/package.json` reads `"version": "1.5.0"` at its own bytes** (`git show v1.5.0:bindings/js/package.json`), **whose five `optionalDependencies` pins read `1.5.0` with it, and whose five platform manifests' `version` fields read `1.5.0` with them — eleven cells, one version.** **SO THE HEADING NOW READS `CUT AND PUBLISHED — tag `v1.5.0``, which is a PAST-TENSE RECORD OF A RELEASE AND NOT A CLAIM ABOUT THE TREE YOU ARE READING** — the tag set is the record of what has been cut, and the state of the current tree's version is not a document's to state (`D-57`, and this file's head clause, which stands). **AND THE COUNT BELOW IS ONE SHORT OF THE TAG'S OWN: `git rev-list --count v1.4.0..v1.5.0` reads `28`, and the twenty-eighth is `43c8442` itself — the preparation commit the tag carries, which writes the guide, this change list and the manifest and declares nothing a consumer meets.** **AND WHAT THE SECTION BELOW DECLARES IS UNMOVED BY THE CORRECTION: the restore mark's bump (`D-63`), `seq`'s retirement (`D-65`), the drop (`D-58`), one registration and one reach (`D-66`–`D-69`), `pending`'s emptying, the derived index (`D-70`) and the listener's independence with its nesting (`D-71`–`D-73`) — those are `1.5.0`'s content, they travelled in its tarball, and a consumer who installed `1.5.0` has them.** (`D-57`; `git tag --list`, `git show v1.5.0:bindings/js/package.json` and `bindings/js/package.json` read at their own bytes this date.)
+
+**⟶ THE HEADING THAT STOOD HERE WAS *"`## §1.5.0 · **PREPARED** — what `1.5.0` carries: the eleven commits on `main` past `v1.4.0`, derived from the tree`"*, AND ITS COUNT IS CORRECTED AT ITS OWN LINE, 2026-10-29.** `RCA-8(g)` ANNOTATE-BESIDE: **the withdrawn bytes are quoted above, every paragraph of this section below stands BYTE-FOR-BYTE as the reading of its own date, and nothing is deleted.** **THE COUNT MOVED BECAUSE THE TREE DID**: the section was written when `git describe` read `v1.4.0-11-g90f810c`, and **the sixteen commits after that reading — `c3c61ab` through `a3312b7` — carry the rulings and the code changes this section's items `5` through `8` declare.** **A HEADING THAT UNDERCOUNTS THE COMMITS IT PREPARES IS THE `DEF-AC` CLASS AT ITS MILDLEST AND IS CORRECTED RATHER THAN ANNOTATED AROUND, because the count is the one figure this section's own arithmetic prints.** (`D-57`; `git describe` at `v1.4.0-27-ga3312b7`.)
+
+**⟶ THIS SECTION IS NEW, 2026-10-28, AND IT STATES THE VERSION AND NOT THE CUT-STATE.** `RCA-8(g)` ANNOTATE-BESIDE: **no byte above moves and no byte of the sections below moves; this section is added beside them and is read through the same head clause as the rest of this file.** **THE FIGURE THIS SECTION MAY BE RIGHT ABOUT, AND ITS GENERATOR:** the version line at this file's head is generated from `bindings/js/package.json`'s `version` and asserted by `scripts/publish.sh --figures` in three shipped documents — **`1.4.0`, at eleven cells that move together and never singly**: the main manifest's `version`, its five exact `optionalDependencies` pins, and the five `bindings/js/platforms/*/package.json` `version` fields; and `bindings/js/build.rs` stamps the artefact from that manifest, so the built artefact's `version()` answers `1.4.0`. **AND THE TREE IS ELEVEN COMMITS PAST THE TAG THAT NAMES THOSE CELLS:** `git describe` reads `v1.4.0-11-g90f810c`, `git rev-list --count v1.4.0..HEAD` reads `11`, and **no version bump is in any of the eleven** — the manifest still reads `1.4.0` after all of them. **THE TAG SET IS A RECORD OF RELEASES, PAST TENSE, AND NOT A CLAIM ABOUT THIS TREE:** `git tag --list` answers `v1.0.0` · `v1.0.1` · `v1.1.0` · `v1.2.0` · `v1.3.0` · `v1.4.0`. **AND NOTHING IN THIS SECTION CLAIMS WHETHER `1.5.0` IS CUT: the cut-state is not a document's to state** (`D-57`; the head clause of this file; the `§1.4.0` correction above, which is the same defect met one section higher).
+
+**⟶ AND THAT PARAGRAPH'S TWO FIGURES ARE RE-READ AT THE TREE THIS SECTION PREPARES, 2026-10-29 — THE TREE IS TWENTY-SEVEN COMMITS PAST `v1.4.0`, AND THE ELEVEN CELLS READ `1.5.0`.** `RCA-8(g)` ANNOTATE-BESIDE: **the paragraph above stands BYTE-FOR-BYTE as the reading of its own date (`v1.4.0-11-g90f810c`) and is read THROUGH this clause; not one byte of it is deleted.** **THE COUNT:** `git rev-list --count v1.4.0..HEAD` reads `27` and `git describe` reads `v1.4.0-27-ga3312b7`, so its *"ELEVEN COMMITS"* is read as TWENTY-SEVEN. **THE VERSION: `bindings/js/package.json`'s `version` now reads `"1.5.0"`, its five exact `optionalDependencies` pins read `1.5.0` five times, and the five `bindings/js/platforms/*/package.json` `version` fields read `1.5.0` — ELEVEN CELLS, ONE VERSION, moved TOGETHER in this act — and `npm run build` stamps the artefact from that manifest, so `version()` answers `1.5.0` at the built artefact AND at a package installed from it.** **SO ITS SENTENCE *"no version bump is in any of the eleven — the manifest still reads `1.4.0` after all of them"* IS THE READING OF ITS OWN DATE, and the bump is THIS preparation's.** **AND THE TAG SET IS UNMOVED BY THE BUMP AND STILL A RECORD OF RELEASES, PAST TENSE:** `git tag --list` answers `v1.0.0` · `v1.0.1` · `v1.1.0` · `v1.2.0` · `v1.3.0` · `v1.4.0` — **no `v1.5.0` among them** — **and nothing in this section claims whether `1.5.0` is cut** (`D-57`; the head clause of this file).
+
+**THE ELEVEN, DERIVED FROM THE TREE THEY LANDED ON, EACH STATED FOR A CONSUMER — AND THE HONEST SHAPE OF THE ELEVEN IS `3 + 8`.** **THREE OF THEM MOVE THE PACKAGE**: `d862448` carries `D-58` (*"No insight into a running commit, and nothing retained after the handoff"*), `85b0174` carries `D-63` (*"Bump the mark when a sweep ends valid: the restore target is the last validated state"*), and `90f810c` carries `D-65` (*"Drop seq from the log entry: the array index is the position"*). **THE OTHER EIGHT RECORD RULINGS AND MOVE NO BEHAVIOUR** — `e5acd49` (`D-58`), `9b58c4a` (`D-59`), `0f113bf` (`D-60`), `e152c0b` (`D-61`), `15444fd` (`D-62`), `8dd2593` (`D-63`), `47ec840` (`D-64`), `b9936ac` (`D-65`) — each of which is a ruling written down beside the code that implements it, and none of which a consumer can observe except by reading them.
+
+**⟶ AND THE SAME ARITHMETIC IS DONE AGAIN FOR THE WHOLE TWENTY-SEVEN, 2026-10-29 — THE HONEST SHAPE IS `6 + 16 + 5`.** `RCA-8(g)` ANNOTATE-BESIDE: **the paragraph above stands BYTE-FOR-BYTE as the reading of its own date and is read THROUGH this clause; its `3 + 8` is kept and its METHOD is reused rather than replaced — each of the twenty-seven is read at the paths it touched and sorted by what those paths are.** **SIX OF THE TWENTY-SEVEN MOVE THE PACKAGE** — a line under `bindings/js/src/` or `src/store.rs` changes, so a consumer can observe it: `d862448` (`D-58`: the log reader's live arm refuses, and the closed record is dropped to its four members), `85b0174` (`D-63`: the restore mark bumps when a sweep ends valid), `90f810c` (`D-65`: `seq` leaves `LogEntry`), `c3c61ab` (`D-66`: the pass asks a descendant the act touched), `3384d2e` (the touched set made symmetric: a path that disappears changed as surely as one that appears), and `6fd15a7` (`D-69`: the registration is restored, so the store's `triggered` names both kinds and the pass FILTERS it instead of walking its own registry). **SIXTEEN ARE RECORD RULINGS AND MOVE NO BEHAVIOUR** — each writes `strata/decisions.md` and no other path: `e5acd49` (`D-58`), `9b58c4a` (`D-59`), `0f113bf` (`D-60`), `e152c0b` (`D-61`), `15444fd` (`D-62`), `8dd2593` (`D-63`), `47ec840` (`D-64`), `b9936ac` (`D-65`), `535b56a` (`D-66`), `948dcde` (`D-67`), `5fa84e6` (`D-68`), `c37adae` (`D-69`), `2ba405e` (`D-70`), `aaedc73` (`D-71`), `5331993` (`D-72`) and `92d2ec6` (`D-73`). **AND FIVE CARRY DOCUMENTS AND MOVE NO CODE** — the guide, this change list and the `docs/L1` records: `7e81e7f` (this change list, the guide and the L1 declarations regenerated to the tree), `a1c65d9` (`D-70`'s rule of use declared), `80c2ca7` (the reach's two readings reconciled and the three asymmetries declared), `fc81fd3` (`D-71`'s independence and `D-72`'s nesting declared) and `a3312b7` (`D-73`'s throw and its consequence declared). **`6 + 16 + 5 = 27` ✓ — the count is the whole of the twenty-seven past `v1.4.0`, and no commit is counted twice.**
+
+**1 · ★ THE RESTORE MARK BUMPS WHEN A SWEEP ENDS VALID — THE RESTORE TARGET IS THE LAST VALIDATED STATE, NOT THE STATE THE COMMIT OPENED AT (`D-63`).** **THE ARCHITECT, VERBATIM: *"After the constraint sweep ends in a valid state, bump the restore mark. The passing constraint state marks the new next valid state."*** **`AT `1.4.0`:** a refused edit rolled the commit back to the state it OPENED at — every edit the commit made was undone, a successful write's included. **NOW:** the restore is told a POSITION and the position MOVES FORWARD — it starts where the commit opened and it moves to the store's own journal position at every constraint sweep that ends valid, **before the listeners are delivered.** **WHAT A CONSUMER SEES, IN THE THREE ARMS THE RULING'S TERM OF ART MAKES DIFFERENT: a VALIDATED EDIT STANDS against a later refusal; a REPAIR'S WRITE does not stand**, because a repair's write is atomic with the write that asked for it and the sweep that follows judges the pair together — **and a LISTENER'S WRITE SURVIVES**, because the delivery runs after the bump and the sweep that validated it is the sweep the mark now names. **So *"the state it opened at"* is now the answer to exactly one case — a commit whose constraint sweep never passed — and it is `1.4.0`'s behaviour there and stays.** (`D-63`; `D-38`'s restore; the `DEF-AN` measurement, whose pair refuses on the FIRST check so nothing moves the mark and its reading is unchanged; `tests/e2e/discard-witness.mjs`'s `W12` arms `DW-12.1`–`DW-12.4`, with the re-derived readings in `tests/e2e/in-commit-restart.test.mjs`, `tests/e2e/direct-pass-restart.test.mjs`, `tests/e2e/downstream-claims.test.mjs` and `tests/e2e/def-ae-restore-mark.test.mjs`.)
+
+**2 · ★ `seq` IS DROPPED FROM `LogEntry` — SIX MEMBERS TO FIVE, `kind` · `id` · `opId` · `message` · `state`, AND THAT IS A BREAKING SHAPE CHANGE FOR A TYPED CONSUMER.** **THE RULING, THE ARCHITECT, ONE WORD: *"Drop it"*** (`D-65`) — and `DEF-AI`'s own demand had offered the route: *"mint `seq` from the attempt's counter, **or omit the member**."* **THE REASON IS THE ONE THIS FILE KEEPS MEETING AT A SMALLER SCALE: `seq: log.length + 1` IS THE INDEX OF THE ENTRY BEING APPENDED, a second copy of a fact the array already carries** — the same class as a hand-maintained allowlist, a hand-named runner chain or a hand-transcribed census. **WHAT A CONSUMER SEES:** a log entry carries **five** own members and **`entry.seq` is `undefined`**; **the position survives as the index and is asserted rather than assumed** — `log[0]` is the entry, `log.indexOf(entry)` answers its position, and a commit's entries run `0..n-1` continuously across its attempts. **A TYPED CONSUMER READING `entry.seq` MEETS A COMPILE ERROR, WHICH IS THE HONEST FORM OF THIS CHANGE**; a JavaScript consumer reading it meets `undefined`, and **`JournalOp.seq` IS UNMOVED** — the store's own append ordinal is a different subject and is now impossible to confuse with the commit's, because the commit's no longer has a member to be confused with. (`D-65`; `index.d.ts`'s `LogEntry`; `bindings/js/README.md` and the shipped guide each carry the retirement at their own home.)
+
+**3 · NO INSIGHT INTO A RUNNING COMMIT, AND NOTHING RETAINED AFTER THE HANDOFF (`D-58`).** **THE ARCHITECT, VERBATIM: *"The client does not need any insight into the current state of a commit/attempt before it completes. Don't expose any of it. After a commit/attempt resolves/rejects, the store does not need to retain the message log or other client-returned data. Don't retain it."*** **WHAT A CONSUMER SEES, IN TWO PARTS. (i) `K-4` REFUSES A LIVE ATTEMPT WITH `KC-7`**, the same member `K-5` already used, in the same shape and the same message family — so an in-flight list is no longer a thing you can read at all. **(ii) THE CLOSED RECORD IS `{attempt, ops, outcome, rollback}` AND THE LOG IS LET GO**: the record a commit resolves or rejects with carries those four and no message list, and the entries on the refusal you caught (or on `report`'s return) are **the only copy** — sealed at the handoff. **WHAT THAT COSTS, SAID PLAINLY:** on an arm whose handoff carries no list at all — a repair body that throws, and a PASSING `write`, whose answer is `{op, watched, triggered}` and has never carried one — the entries are no longer readable after the call. **That is the ruling's price and not a defect.** (`D-58`; `d862448`; `tests/e2e/discard-witness.mjs`'s `DW-11.1`–`DW-11.4`, each RED under its own revert.)
+
+**4 · AND THE TWO HEADLINES A CONSUMER MEETS THAT ARE NOT THE ELEVEN'S, NAMED SO NOBODY ATTRIBUTES THEM TO `1.5.0`.** **`D-56`'s ancestor set and the `delete`'s own attempt with its `CommitRecord` are `§1.4.0`'s content and travelled in the `1.4.0` tarball** — `4449a93`, `1d23abc` and `1090e1e` are all ancestors of the tag `v1.4.0`, and the section above declares them in full. **THEY ARE RESTATED HERE ONLY AS THE FACTS A `1.5.0` READER STILL MEETS, WITH THEIR TWO CONSEQUENCES NAMED BECAUSE THEY ARE THE ONES A CONSUMER TRIPS OVER:** **① a pair is asked for acts at or below its own address — so a pair at `['window','tabs']` IS asked for a `delete` at `['window','tabs','landingPage']`**, because the value read at a prefix contains its subtree; **and because the pass's set now EQUALS the store's `triggered` set, a passing write now EMPTIES `pending`** (measured `1` → `0`) — the handles the pass checked off are exactly the handles the record carried. **② a `delete` is an editing verb with its own attempt, its own pass and its own `CommitRecord`**, whose four follow-ons are the record's ADOPTION by the entry, the `pending` residue, the `file`-tier SAVE, and `K-4`/`K-5` answering a delete's record BY REFERENCE where they refused `NO-REF` before. **AND NO KERNEL ITEM IS OWED FOR IT: `K-7` `commitRemoval` is owed only if a consumer must drive a delete's attempt directly, and none can — the verb is the surface** (`D-57`'s second half; the kernel's surface stays `K-1`…`K-6`). (`D-56`; `D-57`; `D-3`; `D-44`; `D-53`; `§1.4.0`'s items 1 and 2, which declare both in full.)
+
+**5 · ★ ONE REGISTRATION, ONE REACH — A CONSTRAINT AND A LISTENER ARE THE SAME MECHANICAL THING TO THE STORE, `triggered` NAMES BOTH KINDS IN ONE LIST, AND THE PASS FILTERS IT RATHER THAN WALKING A REGISTRY OF ITS OWN (`D-56` · `D-66` · `D-67` · `D-68` · `D-69`).** **THE ARCHITECT, VERBATIM** (`D-68`): *"a constraint is mechanically the same as a listener from the perspective of the rust store triggers. The distinction is whether it is registered as a constraint (and thus run in the constraint loop and expecting the constraint signature format) or as a listener (and thus running after constraints and not being confined to the constraint signature)"*. **WHAT A CONSUMER SEES, IN FOUR SENTENCES.** **(i) ONE PREDICATE, COMPUTED WHERE THE VERSIONS LIVE:** a registration fires when **its address is a PREFIX of the act's OR the act TOUCHED it** — the touched set being the written value's paths unioned with what it replaced, and, for a `delete`, the whole subtree it removed — so **a listener bound at a strict descendant of a deleted address FIRES** where the prefix-only rule never reached it, and a pair standing there is ASKED. **(ii) ★ A PAIR AT AN ANCESTOR IS ASKED FOR A DESCENDANT'S ACT, AND SO IS A LISTENER:** a pair at `['window','tabs']` is asked for a `delete` at `['window','tabs','landingPage']`, and its refusal crosses and rolls the delete back — because the value read at a prefix contains its subtree (`D-56`, whose `1.4.0` half is `§1.4.0` item 1) — **while a LISTENER bound at that ancestor fires for the same act, which the prefix rule never had to be taught.** **WHAT THIS RELEASE ADDS TO THAT DIRECTION IS THE REVERSE ONE**: `D-67` measured the listener SILENT on a touched descendant while the pass asked the pair standing there, and `D-69`'s restored registration closed it — **so the two kinds now share ONE reach, computed in Rust where the per-tier versions live.** **(iii) A PAIR AT A DESCENDANT IS ASKED ONLY WHEN THE ACT TOUCHED IT:** `write(['a','b'], {c,d})` asks `['a','b','c']` and `['a','b','d']` and **not** `['a','b','e']` — the criterion is TOUCHED and not "descendant" (`D-66`). **(iv) AND THE ELEMENT CARRIES NO KIND**, because **a registration is a HANDLE AND A BODY and a constraint already has both** — its `id` is the handle (`D-29`) and its `constraint` is the body (`D-26`), so the inert listener body the old `store.register(home, noopListener)` fabricated does not return (`D-69`). **WHAT THAT MEANS FOR YOU: `triggered` and `pending` name listener handles AND constraint `id`s in ONE list, and which is which is your own registry's answer.** (`D-56`; `D-66`; `D-67`; `D-68`; `D-69`; `6fd15a7`; `c3c61ab`; `3384d2e`; the guide's `§6.3` item 2, `§6.4` and `§7.6`–`§7.9` clauses of the same date; `tests/e2e/discard-witness.mjs`'s `DW-13`/`DW-14` cells.)
+
+**6 · ★ `pending` EMPTIES ON A PASSING WRITE — BECAUSE THE PASS'S SET NOW EQUALS THE STORE'S FIRED SET.** **WHAT MOVES:** `record.pending` is seeded whole from the store's `triggered` set and every handle the pass EVALUATES is checked off by identity, so **the CONSTRAINTS the store named leave `pending` as the pass passes them and the member reads `[]` on an arm whose fired set is constraints only** — *measured `1` → `0`* — **and a LISTENER's handle is the one element that STAYS, because the pass evaluates constraint rows and a listener is the DELIVERY's work (measured at `K-2` `['anc-pair','watch-child']` → after the pass `['watch-child']`).** **WHAT IT MEANS, SAID PLAINLY: `pending` IS NO LONGER A LIST OF "WHAT I STILL OWE A DELIVERY TO" — IT IS THE LIST OF HANDLES THE PASS DID NOT EVALUATE.** A non-empty `pending` therefore means one of two things and only two: **the write FAILED** (the record's `pending` is the whole returned set, because a failing arm checks nothing off), **or a handle stands in `triggered` that the pass holds no row for** — the one reachable state being a registration whose own body refused it at the registration instant (`ConstraintRefusedAtRegistration`, state `2`), which leaves the store-side entry standing, fires nothing, silently. **AND AT `K-2` THE MEMBER NOW CARRIES BOTH KINDS**: a write whose pair stands at a TOUCHED descendant and whose listener stands at an ancestor carries **`2`** elements at `K-2` where the prefix-only composition carried **`1`**, and **`1`** after the pass (the listener's handle, which is the delivery's work and never the pass's). (`D-56`; `D-69`; `6fd15a7`; the guide's `§6.4` clauses of the same date; `tests/e2e/discard-witness.mjs`'s `DW-14.3`/`DW-14.4`.)
+
+**7 · ★ A DERIVED ADDRESS IS NOT AN ADDRESS — AN INDEX INSIDE A COLLECTION IS DERIVED, AND A REGISTRATION THERE IS A REGISTRATION ON A VALUE THE STORE NEVER WROTE (`D-70`).** **THE ARCHITECT, VERBATIM:** *"A constraint/listener that cares about a derived value like the vec index should listen to the vec, not the contained node"*. **WHAT A CONSUMER SEES:** `delete(['v',0])` moves `{b:2}` from `['v',1]` to `['v',0]`, **and a listener at `['v',1]` does not fire** — correctly, because **the store wrote `['v',0]` and replaced nothing at `['v',1]`**, and the `triggered` list is right to be empty. **THE RULE: register at the CONTAINER (`['v']`) and READ what you care about** — a container listener fires once, is handed the ACT's address `['v',0]`, and its body's read at `['v']` answers the renumbered collection. **AND THE TWO KINDS HAVE DIFFERENT JOBS, WHICH IS THE SENTENCE TO CARRY AWAY: IF YOUR CALLBACK CHANGES THE STORE IT IS A CONSTRAINT OR A REPAIR; IF IT TELLS THE WORLD IT IS A LISTENER** — *"Functions that automatically produce changes in the stored data should be written as constraint/repair, not as listeners, because constraint/repair has loop guards while listeners don't"*, and *"The use case for listeners is for updating external code with new data"*. **NO MEMBER, STATUS, KERNEL ITEM OR BOUND MOVES: this is a rule of USE over a surface already measured.** (`D-70`; `a1c65d9`; `80c2ca7`; the guide's `§7.9` of the same date; `tests/e2e/discard-witness.mjs`'s `DW-15.1`–`DW-15.3`.)
+
+**8 · ★ A LISTENER IS INDEPENDENT OF YOUR COMMIT, AND DELIVERY NESTS — its refusal is CONTAINED, its THROW is NOT, and the windows are nested synchronous calls on one thread (`D-71` · `D-72` · `D-73`).** **THE INDEPENDENCE, VERBATIM** (`D-71`): *"A listener is independent of the commit record of the triggering caller. The caller does not need to know about the outcome of the listeners."* **SO: a listener runs in its own commit, its OUTCOME IS THAT COMMIT'S, and a listener's refusal does NOT fail the write that fired it** — your write already passed every constraint and already answered before the delivery ran. **AND THE THROW IS THE EXCEPTION, BY RULING** (`D-73`, verbatim: *"Keep the throw so that the client can log errors cleanly"*): **a listener that throws makes YOUR write throw the listener's own error, identity equal, and ANSWER NOTHING — while its DATA HAS ALREADY LANDED** (the commit resolved before its delivery ran; what the throw takes away is the answer, not the write). **THE PRACTICAL HAZARD, WRITTEN: a client that retries on error RE-APPLIES A WRITE THAT ALREADY SUCCEEDED**, and the error carries no depth, handle or address — *"A contained throw is an error nobody can log"* is the ruling's reason, and **a listener body's own `catch` is the only containment arm there is.** **AND THE NESTING** (`D-72`): `outer write → its commit → its pass → its delivery → listener A → A's write (a NEW commit) → A's pass → A's delivery → listener B → …` — **windows live at once, NESTED, every level a synchronous call**, so *"interleaving"* is **nested suspension**: A's whole chain runs to completion before the window that fired it invokes its next listener. **FOUR PROPERTIES, NONE DECLARED ANYWHERE UP THE STACK:** **depth is UNBOUNDED** (no counter, no cap, no instrument); **the CROSS-WINDOW ORDER is real and undeclared** (a nested chain precedes the window's next listener — the machine provides it and no clause promises it); **RE-ENTRANCY IS UNAVOIDABLY OPEN** (a listener that writes at the address it was delivered for fires itself again); **and NOTHING ABOVE SEES BELOW** — a chain that fails at depth three is indistinguishable, to the original caller, from one that never ran, **except by the throw, which crosses every hop as the same error object.** **MEASURED 2026-10-29 ON THIS CHECKOUT, THROUGH THE PUBLISHED ENTRY, ALL THREE WAYS:** the throw (`write(['a'])` threw the listener's `Error`, `===` true, and answered `undefined`, with `['a']` reading `1`); the containment beside it (a listener's refused write crossed nothing, the caller's record carried no status and no `log`, and `['b']` read ABSENT, while the same caller writing `['b']` directly WAS refused); and the depth-two throw (surfacing first at the inner write, then reaching the original caller with identity preserved, and the original write unanswered — while a listener body that catches instead leaves the original write ANSWERING ITS OWN RECORD). (`D-71`; `D-72`; `D-73`; `fc81fd3`; `a3312b7`; the guide's `§6.5`, `§6.5a` and `§6.6` of the same date.)
+
+**NO VERSION BUMP IS PROPOSED BY THIS SECTION AND THE ELEVEN VERSION CELLS STAY AT `1.4.0` — AND WHETHER `1.5.0` IS CUT IS NOT WRITTEN HERE, BECAUSE IT IS NOT A DOCUMENT'S TO WRITE.**
+
+**⟶ AND THE FIRST OF THOSE TWO CLAUSES IS SUPERSEDED BY THIS PREPARATION, 2026-10-29 — THE BUMP IS MADE, THE SECOND CLAUSE IS NOT, AND THE THREE ARE NOW SIX.** `RCA-8(g)` ANNOTATE-BESIDE: **the paragraph above stands BYTE-FOR-BYTE as the reading of its own date and is read THROUGH this clause; its second half — *"whether `1.5.0` is cut is not written here, because it is not a document's to write"* — is UNMOVED and governs every clause of this section.** **SUPERSEDED: *"NO VERSION BUMP IS PROPOSED BY THIS SECTION AND THE ELEVEN VERSION CELLS STAY AT `1.4.0`"* — the bump IS this preparation's, and the eleven cells read `1.5.0`** (the clause at this section's head states the manifest, the pins, the five platform manifests and the rebuilt artefact's `version()`; `scripts/publish.sh --figures` asserts the one generated line in three shipped documents). **AND ITS LAST SENTENCE IS RE-READ TOO: *"THE THREE COMMITS THAT MOVE THE PACKAGE"* reads SIX** — `d862448`, `85b0174`, `90f810c`, `c3c61ab`, `3384d2e` and `6fd15a7` — **because the arithmetic above re-sorts all twenty-seven and six of them change a line the package ships.** **The honesty the paragraph declares is unmoved: a consumer can read every commit that moves the package before installing a release that carries them.** **The three commits that move the package are declared here so that a consumer can read them before installing a release that carries them, and so that no reader has to infer them from a tarball's contents** — the `DEF-AC` honesty this whole file has been corrected toward, and the same honesty the corrected heads above owe.
+
+---
+
+## §1.3.0 · **CUT AND PUBLISHED — tag `v1.3.0`** — what that release carries, ten commits past `v1.2.0`
+
+**⟶ THE HEADING THAT STOOD HERE WAS *"`## §1.3.0 · **PREPARED — NOT CUT** — what `1.3.0` carries, ten commits past `v1.2.0``"*, AND IT IS CORRECTED AT ITS OWN LINE RATHER THAN ANNOTATED AROUND, 2026-10-28.** `RCA-8(g)` ANNOTATE-BESIDE: **the withdrawn bytes are quoted above, the section's body below stands BYTE-FOR-BYTE as the reading of its own date, and every reading in it that says the release is not cut is read THROUGH the head clause.** **THE DEFECT: the heading denied the release the tag names — `git tag --list` answers `v1.3.0`, the tag names a tree whose `bindings/js/package.json` reads `"version": "1.3.0"` at its own bytes, and the registry carries `1.3.0` — so a reader opening this file met *"PREPARED — NOT CUT"* over a published version.** **That is the `DEF-AC` class one level in, and it is the third iteration of the same class; `D-57` is the ruling that ends the recurrence.** (`D-57`; the head clause above.)
+
+**★ THIS SECTION DESCRIBES A TREE NOTHING CAN INSTALL, AND IT IS MARKED BEFORE IT SAYS ANYTHING ELSE, BECAUSE A MARK
+ADDED AFTERWARDS IS THE DEFECT THIS FILE JUST CORRECTED ONE SECTION DOWN.** **THE PUBLISHED RELEASE IS `1.2.0`**: `git
+tag --list` answers `v1.0.0` · `v1.0.1` · `v1.1.0` · `v1.2.0`, the tag `v1.2.0` names a tree whose
+`bindings/js/package.json` reads `"version": "1.2.0"` at its own bytes, and the registry carries that release. **THE TREE
+THIS SECTION IS DERIVED FROM IS NINE COMMITS PAST IT** — `git describe` reads `v1.2.0-9-g989c216`, `git rev-list --count
+v1.2.0..HEAD` reads `9`, and **no version bump is in any of those nine commits: the manifest still reads `1.2.0` at
+eleven sites and no tag names this tree.** **SO THE HONEST READING IS THIS: A CONSUMER INSTALLING `1.2.0` GETS `1.2.0`'S
+BYTES AND `1.2.0`'S CHANGE LIST (the section below); WHAT THIS SECTION DECLARES IS PREPARED AND NOT CUT, and a prepared
+change is not a shipped one.** **No consumer can install any of it yet, and every figure this section prints is a
+figure of the TREE and not of a tarball.**
+
+**⟶ AND THE VERSION THIS SECTION DECLARES IS `1.3.0` AT ELEVEN SITES, PREPARED AND NOT CUT, 2026-10-28.** `RCA-8(g)` ANNOTATE-BESIDE: **the ★ paragraph above stands BYTE-FOR-BYTE as the reading of its own date and is read THROUGH this clause; the two sentences of it that the bump supersedes are named here rather than overwritten.** **THE MANIFEST AT ITS OWN BYTES THIS DATE: `bindings/js/package.json`'s `version` is `"1.3.0"`, all five `optionalDependencies` pins are `1.3.0` with it, and the five `bindings/js/platforms/*/package.json` `version` fields read `1.3.0` with them — ELEVEN SITES, ONE REBUILD — and the rebuilt artefact is stamped from that manifest, so `version()` answers `1.3.0`.** **SO *"no version bump is in any of those nine commits: the manifest still reads `1.2.0` at eleven sites"* IS THE READING OF ITS OWN DATE, AND THE BUMP IS THIS PREPARATION'S (a working-tree change, not a commit): the tree is `10` commits past `v1.2.0` — `git describe` reads `v1.2.0-10-g14787b5` and `git rev-list --count v1.2.0..HEAD` reads `10` — and the eleven sites read `1.3.0`.** **AND WHAT THIS SECTION IS AND IS NOT, SAID PLAINLY BECAUSE THE EASIER THING TO GET WRONG IS THAT A BUMP IS A RELEASE: `1.3.0` IS THE PREPARED VERSION — at the eleven sites and in the rebuilt artefact — and it is NOT A RELEASE. `git tag --list` answers `v1.0.0` · `v1.0.1` · `v1.1.0` · `v1.2.0` and no `v1.3.0`, the registry carries no `1.3.0`, and no consumer can install any of this until the architect cuts the tag.** **The published release remains `1.2.0`, and the section below remains its change list, unchanged and still marked CUT AND PUBLISHED.** (The shipped guide's two generated figures — `scripts/publish.sh --figures` — agree with this clause: the version line reads `1.3.0` and the cut-state sentence reads *"`v1.3.0` DOES NOT EXIST, SO THE RELEASE THIS GUIDE DESCRIBES IS NOT CUT"*.)
+
+**IT DECLARES TWO BEHAVIOUR CHANGES A CONSUMER WILL FEEL, AND THEN FOUR SMALLER ITEMS. THE TWO COME FIRST BECAUSE THEY
+ARE THE CONTENT.**
+
+**1 · ★ THE MESSAGE LOG BELONGS TO THE COMMIT NOW — SO A CROSSED REPORT CARRIES MORE ENTRIES THAN `1.2.0`'S DID.**
+**`AT `1.2.0`:** the `log` was the **ATTEMPT's** own list — the constraint-judged write inside a commit carried the
+entries its own pass appended, and where an attempt was **nested** inside another (a write a constraint body makes, a
+repair's own write) the enclosing report carried the **enclosing** attempt's list: the nested refusal's entries were not
+in it, and on the arm the downstream filed (`DEF-AK`) the inner refusal's own entry was **REPLACED** rather than joined.
+**NOW:** the list belongs to the **COMMIT** — it is taken once per commit off the kernel's frame stack, defined on the
+`CommitRecord` under a symbol, and **every attempt in that commit holds a reference to it** — so **a crossed report
+carries the entries of EVERY attempt in the commit**, including a nested write made by a constraint body, whose refusal
+now shows its own `constraint-check` and `outcome` entries verbatim before the enclosing `outcome` entry. **A CONSUMER
+DIFFING `1.2.0` AGAINST THIS RELEASE SEES A REPORT CARRY MORE ENTRIES** — and that is the whole change: what is refused,
+what is restored, and which status crosses have not moved with it. **The one declared reach that is still a new list: a
+listener's write opens a commit of its own** (*"the triggering commit already passed constraints"*), so its entries are
+not in the triggering commit's list; and a pair body asked at a reversal's judgement names no commit, so a write that
+body makes opens one.
+**AND THE ENTRY'S `seq` IS THE POSITION IN THAT LIST — NOT THE STORE'S JOURNAL ORDINAL.** **`1.2.0`'s declaration said
+*"the ordinal of the list it stands in"* and that sentence was read as the journal's** (`DEF-AI`, measured): a refusal's
+entry carried `seq` `1` while the store's own journal counter read `41`. **They are two ordinals with two homes:
+`JournalOp.seq` is the store's append ordinal that orders the store's record, and this `seq` orders the COMMIT's message
+log and nothing else; neither equals the other by design.** **One repair write appends five entries in one list at `seq`
+`1..5`, strictly increasing in array order** — the pass's `constraint-check`, the repair's `repair-run`, the repair's
+`commit`, the re-run's `constraint-check`, and the terminal `commit`/`outcome` — **and no entry is ever minted from the
+store's journal counter.** **Say it to yourself before you count: `log.length` is every entry of the COMMIT, not "how
+many constraints were evaluated" and not "how many attempts this write made".**
+
+**2 · ★ A REVERSAL RAISED INSIDE A PASS IS NOW JUDGED — THREE HOSTS CHANGED FROM "A PASS RAN AND THE REVERSAL'S EFFECT
+STOOD" TO "REFUSED AND RESTORED".** **`AT `1.2.0`:** a reversal raised where a pass was running could be **left unjudged
+with its effect standing**, and the shipped guide said so falsely: *"And every pass that DOES run drains its own restart
+request — so the fail-state is bounded by the two acts that run none."* **That sentence is WITHDRAWN AS FALSE** (`D-54`;
+measured by the downstream): **a pass no longer consumes a request it did not raise, and the request is carried to the
+pass's own terminal state.** **The rule, quoted from the shipped guide:** ***"no pass consumes a restart request it did
+not raise, and a request raised inside a pass is carried to that pass's own terminal state and judged there — once,
+never per step."*** **THE THREE HOSTS, EACH MEASURED, BEFORE → AFTER:**
+- **A REPAIR BODY'S REVERSAL** — the judge was asked the pairs `[9,7]` and never `[5]`, with `0` judge invocations and the
+  refused `5` standing; **now the pairs asked are `[9,7,5]`, the invocation count is `1`, the write crosses
+  `ConstraintPassRefused`, and the store reads `9`** — the refused value does not stand.
+- **A REVERSAL INSIDE A `delete`'S CONSTRAINT PASS** — the same `[9,7]`/`0`/standing-`5` reading, and **now the same
+  `[9,7,5]`/`1`/`9`**, with the delete's own `discarded` witness reading `[]` because nothing was discarded.
+- **A REENTRANT REVERSAL-THEN-WRITE** — the write used to answer with the reversal's effect standing at `5`; **now it
+  REFUSES and the store reads `9`.**
+**AND THE TWO DECLARED PASSLESS WINDOWS STILL RUN NO PASS, WITH THEIR EXITS UNCHANGED: a `delete`'s LISTENER DELIVERY
+(a listener invoked by a delete's delivery runs no constraint pass, so a reversal raised inside it is unjudged and its
+effect stands, and the `discarded` witness reports the discard) and a REGISTRATION'S OWN EVALUATION (`addConstraint`'s
+and `constraintRegister`'s evaluation of a supplied body runs no pass, so an action raised there is unjudged and its
+effect stands).** **Their exits are the two the guide declares and they are unchanged: RELOAD THE FILE — a restore that
+moved a `file`-tier version saves the restored image, so a fresh boot over that path returns to judged bytes — or
+REGENERATE THE STORE, replaying your writes.** **A reversal raised by the listener a `delete`'s delivery fires INSIDE a
+pass is a THIRD case and not the declared window: that pass's terminal check now asks the pairs at the state the
+reversal left.** `D-42`, `D-38`'s once-per-terminal-state rule, the restart budget (`3`), its spend-and-never-reset rule
+and its failing-closed arm are **untouched**; what changed is where the request is carried and who may consume it.
+
+**3 · THE RESTORE NO LONGER REPORTS A SUCCEEDED WHOLE-COMMIT UNDO AS A FAILURE (`DEF-AJ`).** **`AT `1.2.0`:** a message
+could say *"0 of the 1 address it moved stand again"* when **every** address stood: the restore verified each moved
+address against the watch's **pre-reversal capture** while the store returned it to the **journal mark the commit cached
+at its OPENING**, and on the restart arm the commit had already landed `7` before the reversal ran, so the mark's `9`
+did not equal the capture's `7` and a complete whole-commit undo read as a failure. **NOW:** a successful restore counts
+every measured address restored to the mark, a standing **past** the capture is recorded as a `wholeCommit` and spoken as
+such with the baseline named, and **only a refused mark, a cacheless window or an unrestored address say NOT undone.**
+The message's meaning is the thing that moved; nothing about what a refusal restores moved with it.
+
+**4 · THE `discarded` WITNESS NAMES WHAT MOVED, NOT THE WHOLE WATCHED REGISTRY (`DEF-AM`).** A delete's `discarded`
+carries `addresses` — the addresses the discarded check would have been asked at — and **those are now the addresses the
+reversal actually MOVED, measured once against the standing the store holds, and not every address the registry
+watches.** **Measured: two pairs in the registry, one moved, and the witness names one.** **The witness is still a
+WITNESS and not a repair** — the delete answers what it answered, throws nothing, and the reversal's effect still
+stands in that declared window — and it is still **non-enumerable** (`Object.keys` never shows it; a spread copy loses
+it).
+
+**5 · THE CHANGE LIST ITSELF NOW SHIPS IN THE TARBALL (`DEF-AC` (a)).** **`RELEASE-NOTES.md` is the SEVENTH row of the
+main manifest's `files` allowlist**, staged **byte-for-byte** from this repository-root home to the packaging root as
+`bindings/js/RELEASE-NOTES.md` by the release's assembly — the same mechanism that lands `README.guide.md` and the
+`LICENSE` copy — and the preflight REFUSES a drifted landing. **So a consumer installing the next release has this
+change list at `node_modules/provident-storeroom/RELEASE-NOTES.md`**, and the packed member set reads **`20` bare / `21`
+assembled** (`1` manifest + `5` root files + `13` entry modules + `1` kernel = `20`, plus the licence at assembly).
+**This is the half of `DEF-AC` that is already cut in `1.2.0` and it stays cut in this tree.**
+
+**6 · THE PREFLIGHT GENERATES AND ASSERTS THE SHIPPED GUIDE'S VERSION LINE AND CUT-STATE (`DEF-AC` (b)).** **The
+guide's version line and cut-state sentence used to be HAND-WRITTEN, which is how the guide came to deny the release it
+travelled in.** **Now `scripts/publish.sh` GENERATES both from `bindings/js/package.json`'s `version` and `git tag
+--list`, and its preflight REFUSES when the shipped guide's two marked lines disagree** — a hand-written *"IS NOT CUT"*
+beside a generated *"IS CUT"* fails, and the generated line passes; `--figures` runs that one check read-only. **A
+hand-written line that contradicts the manifest can no longer travel.**
+
+**⟶ `RCA-8(g)` MOVE-OUT, AUTHORED 2026-10-29 BY `D-81` ITEM 1 (`D-79` · `DEF-AC`): THE PARAGRAPH THAT STOOD HERE — the `§1.3.0` clause that asserted the cut-state of the version this section prepares, denied the tag set beside it, and named the figure the version cells then read — IS NO LONGER AT THESE LINES.** **Its byte-exact text stands at `docs/guides/backup/D81-2026-10-29-notes-move-out.md §1`, whose head names this source path, the pre-move lines `265`–`267` and the `sha256` of the region.** **The cut-state's ONE authority is `git tag --list`, stated at this file's head clause of 2026-10-29: no paragraph here asserts or denies it.** **AND WHAT DID NOT MOVE: the two behaviour changes the paragraph preceded travelled in `1.3.0`'s tarball and are declared at this section's items `1` and `2` above, unmoved.** (`D-79`; `D-81`; `git tag --list`.)
+
+**⟶ `RCA-8(g)` MOVE-OUT, AUTHORED 2026-10-29 BY `D-81` ITEM 1 (`D-79` · `DEF-AC`): THE CLAUSE THAT STOOD HERE — the `2026-10-28` annotate-beside that preserved the paragraph above's cut-state while superseding its figures — IS NO LONGER AT THIS LINE.** **Its byte-exact text stands at `docs/guides/backup/D81-2026-10-29-notes-move-out.md §2`, whose head names this source path, the pre-move line `269` and the `sha256` of the region.** **The distinction that clause drew is kept where it belongs: `§1.3.0`'s own head records the release the tag set answers for, and its half about the figures is the reading of its own date.** **The cut-state's ONE authority is `git tag --list`, stated at this file's head clause of 2026-10-29: no paragraph here asserts or denies it.** (`D-79`; `D-81`; `git tag --list`.)
+
+---
+
+## §1.2.0 · **CUT AND PUBLISHED — tag `v1.2.0`** — what that release adds, derived from the tree
+
+**⟶ THE HEADING THAT STOOD HERE WAS *"`## §1.2.0 · **UNRELEASED** — what the release in preparation adds, derived from
+the tree`"*, AND IT IS CORRECTED RATHER THAN ANNOTATED AROUND, 2026-10-28.** `RCA-8(g)` ANNOTATE-BESIDE: **the withdrawn
+bytes are quoted above and the section's body below stands BYTE-FOR-BYTE as the reading of its own date; every reading
+in it that says the release is not cut is read THROUGH the head clause and the clause of 2026-10-28 at the end of this
+section's opening paragraphs.** **THE DEFECT: a heading denying the release it describes is the `DEF-AC` class one level
+in, and a reader opening this file met *"UNRELEASED"* over a version the registry carries.** **The tag is cut — `git tag
+--list` answers `v1.0.0` · `v1.0.1` · `v1.1.0` · `v1.2.0` — and the release this section describes is published.**
+
+**★ THIS SECTION DESCRIBES A RELEASE THAT HAS NOT BEEN CUT, AND IT IS MARKED SO IT CAN NEVER BE MISTAKEN FOR A
+DECLARATION OF SHIPPED BYTES.** `bindings/js/package.json`'s `version` reads **`1.2.0`** at its own bytes this
+date, all five `optionalDependencies` pins read `1.2.0` with it, the five platform manifests' `version` fields read
+`1.2.0` with them — **eleven sites, one rebuild, and the artefact the manifest stamps answers `version()` =
+`1.2.0`** — **and no `v1.2.0` tag exists: `git tag --list` answers `v1.0.0` · `v1.0.1` · `v1.1.0` and nothing else.**
+**SO THE HONEST READING IS THIS: THE MANIFEST IS PREPARED AT `1.2.0` AND THE RELEASE IS NOT CUT — a prepared version
+is not a released one, the tag is not cut until the architect cuts it, and no consumer can install any of this
+yet.** **What `1.1.0` describes is still what is cut and published; what this section describes is the preparation,
+derived from the tree on 2026-10-28, and the figure a reader checks against the registry today is still `1.1.0`.**
+
+**AND WHAT SHIPS NOWHERE, SAID FIRST BECAUSE IT IS THE EASIEST THING TO GET WRONG: THIS FILE IS AT THE
+REPOSITORY ROOT AND NO TARBALL CARRIES IT.** The main manifest's `files` allowlist names six rows — `index.mjs` ·
+`README.md` · `README.guide.md` · `index.d.ts` · `src/entry/` · `src/constraint-kernel.mjs` — **and this document
+is not one of them and must not be.** So a `npm install provident-storeroom` puts **no `RELEASE-NOTES.md`** on
+disk: a consumer holding only `node_modules` has the package's own bytes and the shipped guide
+(`README.guide.md`), and reaches this file only by reading the repository. **The same was already true of the
+`1.1.0` declaration above and it is true of the `1.2.0` list below.**
+
+**⟶ AND BOTH PARAGRAPHS ABOVE ARE RE-READ, 2026-10-28 — `DEF-AC`: THIS FILE SHIPS, AND IT IS THE CHANGE LIST A
+CONSUMER OF `1.2.0` RECEIVES.** `RCA-8(g)` ANNOTATE-BESIDE: **the two paragraphs stand BYTE-FOR-BYTE as the reading
+of their own date; THIS clause is the operative reading of BOTH the heading and the allowlist.** **(i) THE TAG IS
+CUT:** `git tag --list` answers `v1.0.0` · `v1.0.1` · `v1.1.0` · `v1.2.0`, so **the `1.2.0` section's *"UNRELEASED"*
+heading and its *"no `v1.2.0` tag exists"* sentence are the reading of the date they were written and are read
+THROUGH this clause; the release is CUT, and this text travels in its tarball.** **(ii) THE ALLOWLIST NAMES SEVEN
+ROWS, THIS FILE AMONG THEM:** `index.mjs` · `README.md` · `README.guide.md` · `RELEASE-NOTES.md` · `index.d.ts` ·
+`src/entry/` · `src/constraint-kernel.mjs` — **the landed copy of this document is a TRACKED, GENERATED file at
+`bindings/js/RELEASE-NOTES.md`, staged byte-for-byte from this authored home by the release's assembly, exactly as
+`README.guide.md` is staged from `docs/guides/package-use.md`** (`scripts/publish.sh`'s notes stage; the preflight
+REFUSES a drifted landing). **SO THE SENTENCE *"NO TARBALL CARRIES IT"* IS UNTRUE FROM THIS DATE AND IS READ THROUGH
+THIS CLAUSE: a consumer installing `1.2.0` has this change list at `node_modules/provident-storeroom/
+RELEASE-NOTES.md`.**
+
+**WHAT HAS CHANGED SINCE `1.1.0`, IN FOUR ITEMS — ONE OF THEM A BEHAVIOUR CHANGE AND THREE OF THEM NOT.**
+
+1. **`DeleteRecord` GAINED `discarded` (ADDITIVE).** A delete's record carries a fifth own member beside
+   `address`, `op`, `tiers` and `triggered`: **`discarded`**, a list `0` or `1` long of `{ opId, addresses }` —
+   the reversal a delivery raised and the engine threw away, with the addresses the discarded check owed.
+   `discarded.length === 0` means the delivery discarded nothing. **It is a WITNESS and not a repair:** the
+   delete still answers everything it answered, throws nothing, mints no status, and the reversal's effect still
+   stands. **AND ITS ENUMERABILITY CONSEQUENCE IS PART OF THE DECLARATION, NOT A FOOTNOTE: `discarded` is
+   DECLARED as a member in `index.d.ts` and is NON-ENUMERABLE at runtime.** Measured on this checkout
+   2026-10-28: a delete's record answers `Object.keys` as `['address','op','tiers','triggered']` — **four** —
+   while `Object.getOwnPropertyNames` answers **five**, `discarded`'s own descriptor being
+   `{enumerable: false, configurable: true, writable: false}`. **So `Object.keys` never shows it, and a spread or
+   `Object.assign` copy of a receipt LOSES it:** both were driven and neither copy carried the member. **Read the
+   witness off the record itself** — a consumer that copies a receipt loses the witness, and nothing throws when
+   it does.
+
+2. **THE ONE BEHAVIOUR CHANGE: A REFUSED REVERSAL NOW RESTORES TO THE COMMIT'S OPENING MARK, NOT THE JOURNAL'S
+   HEAD.** `restoreReversal` used to restore the journal's head, on the reasoning that *"a reversal appends no
+   journal entry, so that head describes the state that stood BEFORE the action"*. **That reasoning fails on the
+   restart arm**: the enclosing write's own op stands at the head when a listener's reversal runs, so the
+   compensation restored the write's LANDING and **a write that reported a refusal had left its own value
+   standing** (`DEF-AE`: `9` stayed `9` where the refused write should have restored `7`). **Now the opening
+   caches its mark — the journal's last valid op id, or the floor where the journal holds no entry — and the
+   restore hands that cached mark back.** Measured: the refusing arm leaves the store where the ATTEMPT found it
+   (`tests/e2e/def-ae-restore-mark.test.mjs`, cells `1`–`2`, and the seven refusing arms swept around them).
+   **A lawful reversal is unchanged**, and a lawful write still answers its record with its value standing.
+
+3. **`context.value`'S RESPONSIBILITY IS NOW DECLARED (NO BEHAVIOUR CHANGE).** `D-50`, the architect, verbatim:
+   *"If a constraint needs to look for the data at a given location, it can read()"*. **`context.value` is the
+   value the write verb returned** — a repair that lands elsewhere hands your body the value that op landed — **so
+   a constraint that cares about any other location reads it itself.** Nothing about the machinery moved; the
+   guide's `§7.6` now says it, and the same section now names the exact-address consequence beside it: **a pass
+   judges the pairs standing at the address it writes, so a pair at another address is not asked** (measured: a
+   pair at `['b']` asked `0` times by a write at `['a']`).
+
+4. **THE PASS'S STATE MACHINE IS PINNED BY CELLS (NO BEHAVIOUR CHANGE).** The architect's state machine — one
+   action, the checks in order, **a repair restarting the checks from `#1` because a repair can break a check
+   already passed**, and termination being structural rather than counted — is now measured property by property
+   through the entry (`tests/e2e/repair-restart-state-machine.test.mjs`, whose cells also print that a pass
+   evaluates exactly the pairs at the attempt's own address). **The behaviour is the behaviour `1.1.0` already
+   ships; what is new is that it is pinned, so a later move meets a red instead of a reader.**
+
+**AND ONE NUMBER A CONSUMER MIGHT WANT, WITH ITS WARNING: THE RESTART BUDGET IS `3` AND IT NOW SAYS SO IN THE
+GUIDE.** `RESTART_LIMIT = 3` at `bindings/js/src/entry/constraints.mjs:1366` has been the behaviour since
+`1.1.0`; the shipped guide declared it nowhere, and the guide's `§7.7` now does. **This is a DECLARATION and not
+a change** — the bound, its spend-and-never-reset rule and its fail-closed arm stand exactly as they shipped.
+
+**NOTHING ELSE IN THIS LIST IS A BREAKING CHANGE, AND NOTHING IN IT IS CUT.** Items `1` and `2` are the two a
+consumer can feel; `3` and `4` are declarations and pins. **When `1.2.0` is cut, this section is the declaration
+it carries — and until then the six figures a reader checks are PREPARED at `1.2.0` and the tag is NOT CUT, so what
+is installed today is still `1.1.0`.**
+
+---
+
+## §0 · What to do if you are on `1.0.1`
+
+1. **Re-read your refusal mapper.** Read §2 items `B-1`, `B-2` and `B-5` before you upgrade. **A status you
+   branch on has changed meaning and one has changed value.** If your mapper treats `FileCommitFailed` as "a
+   constraint refused my write", it is now WRONG: that code is the SAVE's alone.
+2. **Wrap `rollback` in your throw path.** It throws now (§2 `B-3`) where a total function was declared.
+3. **Stop assuming a refused attempt leaves the refused value.** It leaves the state before the attempt
+   (§2 `B-4`).
+4. **Add `op` to anything that reads a delete's record** (§2 `B-7`). The record grew a fourth member; a
+   delete's reversal is now reachable by that member's id.
+5. **Do not carry a handle, an address object or a store instance across the recovery exits in §3.** Those
+   exits are the consumer's act, and the package does not perform them.
+6. **If you pinned `<1.0.1`** — the answer to `1.0.1`'s breach — **`1.1.0` is the version that supersedes it.**
+   Pin `1.1.0`, not `1.0.1`: the four items `B-1`…`B-4` reached `1.0.1`'s bytes UNDECLARED, and you get them
+   either way.
+
+**A NOTE ON `B-1`…`B-4` AND THE WORD "AT `1.0.1`".** Those four were already in `1.0.1`'s shipped bytes —
+`src/error.rs`'s `CODES` reads `[&str; 20]` at the `v1.0.1` tag, not `17`. **So for each of them this file
+gives the reading at `1.0.0` (what moved), the fact that `1.0.1` shipped the move UNDECLARED, and the
+reading at `1.1.0` (which is the same behaviour, now declared).** A consumer already on `1.0.1` has absorbed
+them; **`B-5` onward are what `1.1.0` changes under them.**
+
+---
+
+## §1 · The shape of the list, and where it exceeded the ruling's count
+
+`D-42` item `1` named **FOUR** breaking changes. **Derived from the tree rather than from the ruling's count,
+the list is ELEVEN.** Four were shipped in `1.0.1` (`B-1`…`B-4`); seven more land in `1.1.0` (`B-5`…`B-11`).
+**The list exceeded `D-42`'s four at `B-5`**, and every addition below was measured at its own site — the
+commits named beside each item are the ones that made the change.
+
+| # | the change | shipped in |
+|---|---|---|
+| `B-1` | the emitted vocabulary `17 → 20` | `1.0.1` (undeclared) |
+| `B-2` | a constraint-refused write's status is no longer `FileCommitFailed` | `1.0.1` (undeclared) |
+| `B-3` | `rollback` went from total to partial: **it throws** | `1.0.1` (undeclared) |
+| `B-4` | a failing attempt leaves the pre-attempt state (`9 → 5`) | `1.0.1` (undeclared) |
+| `B-5` | a refused reversal is RESTORED, and its restore WRITES the file | `1.1.0` |
+| `B-6` | a constraint check always runs inside an open commit | `1.1.0` |
+| `B-7` | `DeleteRecord` gained `op` — a record's shape grew | `1.1.0` |
+| `B-8` | a delete's journal before-state was captured at the wrong home | `1.1.0` |
+| `B-9` | an external callback's call opens its OWN commit | `1.1.0` |
+| `B-10` | an action inside an open commit RESTARTS the constraint check | `1.1.0` |
+| `B-11` | a directly driven pass reports a restart as a REPORT, not a throw | `1.1.0` |
+
+---
+
+## §2 · The breaking changes, one line of "before" and one of "now"
+
+### `B-1` · The emitted status vocabulary grew `17 → 20`
+
+**AT `1.0.0`:** `CODES` was `[&str; 17]` — ranks `1`…`17`, the last being `ValueRefusedAtBoundary`.
+**`1.0.1` SHIPPED THREE MEMBERS UNDER A PATCH WITHOUT SAYING SO.**
+**AT `1.1.0`:** the set is **`[&str; 20]`**, ranks `1`…`20`, and the three appended members are:
+
+- **rank `18` `ConstraintBodyThrew`** — a constraint BODY threw, where the package's crossing used to answer
+  the store's own code for a body that failed;
+- **rank `19` `ConstraintRefusedAtRegistration`** — the store refused a pair AT REGISTRATION;
+- **rank `20` `ConstraintPassRefused`** — the ONE status a constraint's refusal of a `write` answers, and of
+  a `rollback` whose terminal state a pair refuses.
+
+**WHAT BREAKS YOU:** a mapper with a closed `switch` over the seventeen old members now meets three values it
+has no arm for, and `errorMessage(code, args)` resolves a clause for each. **NO RANK OF `1`…`17` MOVED**, so
+an ordinal you already stored is still that member (`FileCommitFailed` is still rank `15`).
+**ONE MEMBER IS NOT A CONSUMER'S TO SEE:** `ConstraintRefusedAtRegistration` is the store's and crosses only
+where the store mints it.
+
+### `B-2` · A constraint-refused write's status is `ConstraintPassRefused`, not `FileCommitFailed`
+
+**AT `1.0.0` (and under `1.0.1`'s undeclared change, before it):** a write a constraint refused crossed as
+`FileCommitFailed` — **which is the STORE'S SAVE CODE, rank `15`** — so the status named a layer the failure
+did not happen at.
+**AT `1.1.0`:** the refusal crosses as **`ConstraintPassRefused`, rank `20`**, the pass's own member.
+**`FileCommitFailed` STAYS the save's code and is produced by save failures ONLY.**
+**WHAT BREAKS YOU:** the most likely break in this release. **A consumer who treated `FileCommitFailed` as
+"a constraint said no" now reads a save failure as a constraint refusal.** The refusal's own `KC` token still
+rides `log[].state`; it is one status for all eight tokens, not one per token.
+
+### `B-3` · `rollback` went from total to partial, and it THROWS
+
+**AT `1.0.1`'s DECLARATION:** `rollback(opId): RollbackRecord` — **a total function that answers a record and
+fails never.** It was already untrue of `1.0.1`'s code; **this file declares it against the code, which is
+where the truth is.**
+**AT `1.1.0`:** a reversal is JUDGED. **A `rollback` whose TERMINAL state a registered pair refuses THROWS
+`{status: 'ConstraintPassRefused', message, log}` at rank `20`.** A LAWFUL reversal is unchanged — same
+`{opId, undoneOps, restoredTo}`, three members, no throw, no new member. **The judgement is of the state the
+reversal LEFT, never a per-step approval** — an unwinding composition passes through intermediate states no
+constraint would approve.
+**WHAT BREAKS YOU:** a call you could not fail now throws a plain object literal (never an `Error` subclass).
+**AND THE THROW IS NOT THE WHOLE OF IT — SEE `B-5`: THE REVERSAL IS ALSO UNDONE.**
+**THE JUDGEMENT IS NOT A WALK AND NOT FREE:** it takes a pre-reversal standing of every enabled pair's every
+address before the store call and asks the terminal state after it. A store that registered no constraint
+reaches no read at all, and the member is what it was.
+
+### `B-4` · A failing attempt leaves the PRE-ATTEMPT state, not the refused value
+
+**AT `1.0.0`:** seed `5`, refused write `9`, repair `1` — **the store was left holding `9`, the value the
+constraint REFUSED.** A per-op walk over the repair's op reversed it AND marked it compacted, so the second
+call over the write's op was answered `RollbackCompacted` and undid nothing. **The floor law made the walk
+unsound and the violation stood.**
+**AT `1.1.0`:** the failing arm leaves **`5`** — the state before the attempt. **A plain rejection still
+leaves it, a repair answering `{ok: false}` still leaves it, and a PASSING repaired write still lands its
+repaired value and composes nothing.**
+**WHAT BREAKS YOU:** if you compensated for the old residue in your own layer, **your compensation now
+unwinds a state that is already unwound.** The composition reports one step per address it issued a call at,
+and `report.rollback` carries what actually happened.
+
+### `B-5` · A refused reversal is RESTORED, and its restore WRITES THE FILE
+
+**AT `1.0.1`:** the compensating undo cleared every tier and rewrote at `mem` — **so a `file`-tier value was
+DESTROYED by a refusal that then told you every address stood again at its pre-reversal state** (measured by
+the downstream at 200 of 200), **and the restore was in memory only, so a re-boot read bytes describing the
+PRE-restore state.** *(Commits `00f90df`, `9e16c0e`, `bd0fd8c`.)*
+**AT `1.1.0`:** the restore puts back **exactly the per-tier standing it captured** — a present capture writes
+each tier at its own tier, most persistent first, so a shadow reconstructs; an absent capture becomes ONE
+untiered delete, where `AddressNotFound` **is** the owed state; **no tier that stood is ever cleared.** It
+**verifies the result and counts an address restored only if it is exact**, so the message cannot claim what
+did not happen — where it fails it names the address, what stands, what was owed, and how many of the
+addresses it moved stand again. It restores **from the store's own journal** (`restoreMark`), not from a JS
+capture, so a mixed-depth shadow and a higher tier whose parent the reversal moved below it are now reachable.
+**AND `bd0fd8c` MAKES THE FILE AGREEMENT REAL:** the restore takes a `file`-tier snapshot before and after the
+replay, and **where a version standing at `Tier::File` moved it SAVES the restored image** with the store's one
+writer — so a re-boot returns to JUDGED bytes.
+**WHAT BREAKS YOU — TWO THINGS, BOTH NEW BEHAVIOUR:**
+- **THE BYTES AT `cfg.filePath` ARE NO LONGER "the last successful `file`-tier write's and no other state".**
+  A refused reversal's restore is now a SECOND producer of them. **A consumer who diffs those bytes, hashes the
+  file, or watches its inode/mtime will see it move on a path that used to write nothing** — and where no
+  file-tier version moved, **no byte is touched and the inode and mtime stay put.**
+- **THE ASYMMETRY, SAID PLAINLY RATHER THAN LEFT TO BE DISCOVERED: a SUCCESSFUL `rollback` persists NOTHING.**
+  Measured: `file` `a=1`, `file` `a=2`, rollback the second — memory reads `1`, the bytes still say `{"a":2}`,
+  and a fresh boot reads `2`. **A reversal writes no bytes; a restore now does.**
+**AND A SAVE THAT CANNOT LAND IS REPORTED, NOT SWALLOWED.** `FileCommitFailed` propagates after the replay and
+the refusal says the store restored its state IN MEMORY while its FILE WAS NOT UPDATED. **The status stays
+`ConstraintPassRefused`; nothing is minted for it.** **A constraint BODY that throws at the judgement now fails
+closed**: the reversal is restored and the log names the throwing pair, with the body's own rank-`18` status
+crossing — the code says what happened, the treatment is the violation's.
+**STILL NOT RESTORABLE, NAMED SO IT IS NOT ASSUMED:** mixed-depth shadows *(reached by `restoreMark` now)*; an
+address whose parent the journal never resolved *(reported as residue rather than guessed)*; state changed by
+an act the store does not journal; an entry a failed file-save removed.
+
+### `B-6` · No constraint check without an open commit — a check always runs inside one
+
+**AT `1.0.1`:** a CHECK could run where NO commit was open. That one state was every remaining window on this
+branch's list — a listener body's write at a descendant, a pass driven by hand (`open=0`/`live=1`), and the
+restart's dependence on the write path being the consumer. *(Commit `846f5ea`.)*
+**AT `1.1.0`:** **an open commit is the PRECONDITION of the check**, enforced **where the check runs, not where
+it is called from** — a seam a driver can bypass is not an invariant. `runAttempt` wraps its whole pass in the
+store's own commit scope: **the scope opens one if none is open, joins the one that is, and closes only what it
+opened.**
+**WHAT BREAKS YOU:** **a store that carries no such channel is REFUSED, not run uncommitted** — the invariant
+fails closed before status moves, before an entry, before any body, and without minting a token. **So a
+consumer or a harness that hand-drives a pass over a store lacking that seam now gets a refusal where it used
+to run.** **MEASURED: the production write's nesting is UNCHANGED** — the count during the pass is one at the
+body's ask and one after its nested write. **A pass you drive directly now carries `open 1` where it carried
+`0`**, opening exactly one commit itself and returning to zero.
+
+### `B-7` · `DeleteRecord` gained `op` — a record's shape grew
+
+**AT `1.0.1`:** `delete` answered **`{address, tiers, triggered}`** — three members, **and no identity.** The
+act was already journalled and `rollback` already accepted its id, **but no caller could NAME the act, so no
+caller could reverse it**: an act that cannot be named cannot be reversed. *(Commit `c25765c`.)*
+**AT `1.1.0`:** `delete` answers **`{address, tiers, triggered, op}`** — `op` is the store's own `JournalOp`,
+**the same member, at the same name and the same type, that `WriteRecord` carries**, so `rollback(record.op.opId)`
+is the one route to reversing a delete.
+**`op` IS `null` ON THE ARM THAT REMOVED NOTHING** (`tiers: []`): that arm appends no journal entry, so it names
+no op — **`null` is the truth rather than a minted id no reversal could find.**
+**WHAT BREAKS YOU:** an object-shape assertion (`Object.keys(...).length === 3`, a strict deep-equal, a
+serializer with a closed schema) breaks. **And `null` does not fold to `undefined`** — it crosses as `null`
+unchanged.
+
+### `B-8` · A delete's journal before-state was captured at the wrong home
+
+**AT `1.0.1`:** the entry's before-state was captured at the WRONG HOME — `pair_home` resolved the first
+standing version's link — **so a STRUCTURED target journalled an EMPTY before-state and its reversal restored
+NOTHING AT ALL.** Scalars looked healthy, which is why it went unseen; an EMPTY-ADDRESS delete had the same
+fate. *(Commit `c25765c`, the defect the `B-7` exposure had been hiding.)*
+**AT `1.1.0`:** the capture is at the correct home, and **an empty-address delete captures the register and
+reverses too.**
+**WHAT BREAKS YOU:** **code that worked around the old behaviour** — a manual re-write after reversing a
+subtree delete — now restores over a correction that already happened. The reversal restores the values AND
+their tiers, scalar and subtree alike. **A SECOND reversal of the same op answers `RollbackCompacted`**, which
+is the existing floor and not a new rule.
+
+### `B-9` · An external callback's call opens its OWN commit
+
+**AT `1.0.1`:** the join rule said a nested call *"JOINS the extant commit rather than opening a second"* — it
+was written to keep ONE ACT's machinery from double-counting itself, **and it conflated INTERNAL NESTING (the
+package's machinery inside its own verb) with EXTERNAL RE-ENTRY (your function, which the package invoked,
+calling back in).** A listener body's write reused the outer verb's commit, so a listener's write at a
+DESCENDANT address left the ancestor pair unasked and the violating effect stood. *(Commits `98cb3ac`,
+`835f09f`; rulings `D-45`, `D-46`.)*
+**AT `1.1.0`:** **a listener body — and every one of the caller-code invocation sites — OPENS A NEW COMMIT**,
+because that is what entering at the package surface means. **The discriminator is the COMMIT ID a call NAMES,
+not an authorship the package infers:** a call that supplies a commit id **JOINS** that commit; **a call that
+supplies none OPENS a new one.** `write`'s FOURTH position already carries the commit, so **the surface did not
+grow a member — it grew a rule about one it has.**
+**A REPAIR JOINS** — a repair is not a separate act at the surface, it is PART OF THE ATTEMPT BEING TRACKED, so
+it stays inside the attempt's own commit and the commit's record still describes the repair it performed.
+**WHAT BREAKS YOU — THE OBSERVABLE COUNTS MOVE:** a listener body's write now **opens a second commit**, so an
+attempt-opened observer **fires TWICE where it fired once**, and the descendant address is now asked by the
+listener's OWN attempt rather than the outer write's. **The outer commit's count is unchanged across the call
+and the outer write's record is untouched.** An ordinary write with a pair body and a listener body inside it
+still opens ONE commit. **ONE EXTERNAL FUNCTION STILL INHERITS, named rather than hidden: the attempt-opened
+observer itself**, which is called inside the opening before it returns — marking it would let a self-writing
+observer open a commit at every notification, unbounded.
+
+### `B-10` · An action inside an open commit RESTARTS the constraint check
+
+**AT `1.0.1`:** a reversal issued INSIDE an open commit — from a listener body, from a constraint body — was
+**UNJUDGED**, so its violating effect STOOD, **while the identical call one frame out was refused and
+restored.** The conservative direction had become the permissive one. *(Commit `fd11eff`.)*
+**AT `1.1.0`:** **an action performed inside an open commit STARTS THE CONSTRAINT CHECK OVER AGAIN** — the
+check the action invalidated is **re-run from its FIRST pair against the state the action left**, so no
+violating effect can stand unjudged and no body is invoked mid-unwind either, because the restart is a fresh
+pass and not a judgement of a partial composition. **The step itself is still not judged at its instant**
+(`D-40`'s gate stands: the watch keeps answering empty and no body runs there).
+**WHAT BREAKS YOU:** **a violating reversal inside an open commit is now REFUSED and restored, where it used to
+stand.** Measured: a listener body asked `[9,7,5]` and the write was REFUSED, store at `7`; a constraint body
+the same; a LAWFUL act asked `[9,7,5]` with NO refusal and its effect stands. **TERMINATION IS BOUNDED RATHER
+THAN ASSUMED: three restarts per terminal act**, the budget spent and not reset by actions raised inside a
+restart, **and past it the check FAILS CLOSED in the same form.** **So a consumer whose body writes and
+reverses in a loop now meets a refusal at the third restart instead of an unbounded pass.**
+
+### `B-11` · A directly driven pass LEARNS a restart from the REPORT, not from a throw
+
+**AT `1.0.1`:** the restart's request was consumed by the WRITE's frame, **so a body's `rollback` inside a
+directly driven pass was neither judged at its instant nor restarted, and the request died with its window.**
+*(Commit `0ade6b3`.)*
+**AT `1.1.0`:** the request is a store-side fact and **its consumer is the store's own commit scope** — one
+mechanism, not two. `runAttempt` drains it after its pass answers, inside the same scope. **And a directly
+driven pass learns it from the REPORT rather than a throw: the outcome becomes `failed` and the refusal's own
+constraint-check entry joins the attempt's log with its REAL ordinal**, so `K-3` does not throw while `K-5`
+answers the same object.
+**WHAT BREAKS YOU:** **a harness that drove a pass by hand and expected a THROW now gets none** — it must read
+`report.outcome` and `report.log`. **The refusal's compensating restore runs before the report is amended**, so
+your store stands restored; what you must READ is the report, never a throw.
+
+---
+
+## §3 · The two known fail-states, and their exits
+
+**These are DECLARED, not fixed.** `D-43` item `2`, the architect, verbatim: *"Known fail-state, file reloads /
+client regenerates store to return to valid state."* **A known fail-state with a documented recovery is a
+specification; an unreachable window with no exit is a defect.** **The declaration of record is
+`docs/specs/storeroom-js/contract.md`'s clause of 2026-10-27 and it is restated here because a consumer of the
+tarball reads this file.**
+
+**THE TWO WINDOWS.** Each holds a commit and **runs NO PASS**, so a request raised inside it has no consumer
+and dies with that window:
+1. **A `delete`'s listener delivery** — a delete consults no constraint, so the delivery runs with an open
+   commit and no check; a `rollback` a listener body issues there is a step whose check never runs.
+2. **A REGISTRATION's own evaluation** — `addConstraint`/`register` asks a pair's body inside the registering
+   verb's own commit window, at an instant no `K-2`/`K-3` attempt stands at, so a `rollback` a registration
+   body issues dies the same way.
+
+**NEITHER WINDOW IS NEW, NEITHER IS A DEFECT, AND NEITHER IS AN UNREACHED CASE OF THE RESTART.**
+**WHAT IS TRUE OF BOTH, SAID BEFORE THE EXIT: the reversal's own effect STANDS in the live instance — so the
+absence of a refusal there is NOT an approval and must not be read as one.**
+
+**EXIT 1 — RELOAD THE FILE.** **Construct a fresh instance over the same `cfg.filePath`.** The boot reads the
+bytes at the path and nothing else. **AND SINCE `1.1.0` THIS RETURNS TO JUDGED BYTES RATHER THAN TO BYTES
+DESCRIBING AN UNJUDGED STATE**: a restore that moved a version standing at `Tier::File` now SAVES the restored
+image (§2 `B-5`). **What it does not carry:** the boot reads the last successful save and no other state — no
+journal, no registration, no `mem` or `temp` version — and a reversal that moved only `mem`/`temp` nodes does
+not save, so a reload does not carry it. **This exit is the store's declared boot semantics, not a general
+undo.**
+
+**EXIT 2 — REGENERATE THE STORE.** **Discard the instance and construct the store again from the same
+configuration** — a `mem` register with no `filePath`, or a `file` register over the same path, which is exit
+`1` as well. **The new instance is a judged state by construction**: no attempt, no open commit, no window
+carried over.
+
+**THE CONSUMER'S OBLIGATION IS THE SAME ON BOTH EXITS, AND IT IS THE POINT: the recovery is YOUR act; the
+package neither performs it nor pretends to.**
+
+---
+
+## §4 · What did NOT break — so the reading is not taken wider than it is
+
+- **THE FOURTEEN OWN MEMBERS ARE UNMOVED** — `{ read, readLiteral, write, delete, rollback, listen, unlisten,
+  addConstraint, constraintOn, constraintOff, register, constraints, removeListener, removeConstraint }`.
+  **No member was added and none was removed.** The module namespace keeps its ONE name, `storeCreate`.
+- **NO POSITION, ARITY OR CLASS TEST MOVED.** `write`'s fourth position was READ for a new purpose and its
+  class domain is unmoved: it accepts the commit RECORD and refuses everything else in the one `TypeError`.
+- **THE THROWN FORM IS THE SAME ONE FORM** — a plain object literal `{status, message, log, address}`, never an `Error`
+  subclass — and `ConstraintPassRefused` is a member of the SAME set, not a new shape.
+- **REGISTRATION ORDER IS A GUARANTEE, NOT A LUCK.** `constraints()` emits by a MONOTONE REGISTRATION
+  SEQUENCE, kept through overwrite, toggle and restore, so five snapshots are element-wise equal and equal to
+  registration order. **This is new in `1.0.1` and it is a GUARANTEE, NOT A BREAK** — before it, *"no order is
+  promised"* and a toggle could perturb it. It is declared here because a consumer diffing snapshots relies on
+  it and because a later change would be a break.
+- **NO TABLE ROW, RANK OR TRIGGER MOVED** inside ranks `1`…`17`.
+- **THE CRATE'S VERSION IS NOT THE RELEASE VERSION.** `bindings/js/Cargo.toml` reads the crate's own `0.1.0`
+  and `version()` answers the RELEASE's. They are deliberately distinct.
+
+---
+
+## §5 · Where the authority lives
+
+- **The declaration of record** is the tree under `docs/specs/` — chiefly `storeroom-js/contract.md` (the
+  package surface), `storeroom-native/contract.md` (the store), and `storeroom-publish/contract.md` (the six
+  packages' coupling). **This note is a CONSUMER SUMMARY of them and yields to them.**
+- **The rulings** are `strata/decisions.md` — `D-42` (the minor, the four, the restart), `D-43` (a listener's
+  own commit, the known fail-state, a journaled and reversible delete), `D-44` (no check without an open
+  commit), `D-45`/`D-46` (a callback opens, a repair joins, the commit id decides), `D-41`/`D-40` (the
+  attempt's footprint and the step's gate).
+- **The shipped guide** is `README.guide.md` INSIDE the main package — the assembly stages
+  `docs/guides/package-use.md` there BYTE-FOR-BYTE, so when you read it from `node_modules/provident-storeroom/`
+  it IS that document.
+
+**THE SIX PACKAGES, ONE VERSION, ONE DECISION:** `provident-storeroom` and the five
+`@auspicion/provident-storeroom-js-{linux-x64-gnu, linux-arm64-gnu, darwin-x64, darwin-arm64, win32-x64-msvc}`
+all read **`1.1.0`**, and the main manifest's five `optionalDependencies` pins are EXACT `1.1.0` — no caret, no
+tilde, no range. **A manifest that reads anything else anywhere is the wrong package.**
+
+**STATUS OF THIS RELEASE'S OWN REHEARSAL:** the six tarballs were packed, a `1.1.0` install was driven in a
+`/tmp` consumer with no repository in its ancestry, and `version()` answered `1.1.0` at the rebuilt artefact and
+at the installed package. **No tag was cut, nothing was pushed, nothing was published, and no registry install
+was witnessed** — a registry-installed `1.1.0` is described here from the manifest and from a locally packed,
+installed artefact, and is still not witnessed as a registry download.
+
+**⟶ AND THE TWO PARAGRAPHS ABOVE ARE `1.1.0`'S OWN READING AND ARE READ THROUGH THIS CLAUSE, 2026-10-28: AT THIS
+TREE THE SIX FIGURES READ `1.2.0`, AND `1.2.0` IS PREPARED AND NOT CUT.** `RCA-8(g)` ANNOTATE-BESIDE: **both stand
+BYTE-FOR-BYTE; what each says of `1.1.0` was true of the tree it was read on.** **THE SIX FIGURES, RE-READ AT THEIR
+OWN BYTES THIS DATE: the main manifest's `version` is `"1.2.0"`, its five `optionalDependencies` pins are exact
+`1.2.0` with it, and the five platform manifests' `version` fields are `1.2.0` with them — eleven sites, moving
+together and never singly** (`PUB-DD-10`) — **so the rule the paragraph above teaches is UNMOVED and its figure is
+`1.2.0`: a manifest that reads anything else anywhere is the wrong package.** **THE CUT, AND WHAT THIS FILE STILL
+DOES NOT CLAIM:** `git tag --list` carries `v1.0.0` · `v1.0.1` · `v1.1.0` and no `v1.2.0`, so **`1.2.0` is PREPARED
+at those eleven figures and the tag is not cut until the architect cuts it**; the bytes a registry install yields
+today are `1.1.0`'s, and nothing here says otherwise.

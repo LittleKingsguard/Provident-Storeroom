@@ -1,0 +1,650 @@
+diff --git a/bindings/js/index.mjs b/bindings/js/index.mjs
+index 5437110..eea4d77 100644
+--- a/bindings/js/index.mjs
++++ b/bindings/js/index.mjs
+@@ -138,8 +138,19 @@ adoptModuleContext(import.meta.url, require_, ADDON_PATH);
+ // deliberately**: the other arm, refusing everything, refuses every value's prototype link, so no value crosses and
+ // no store can be constructed at all. **The entry's installation is therefore the thing that closes the gap, and it
+ // happens at the module's own evaluation, before any verb and before any part classifies anything.**
++//
++// **⟶ AND THE SETTER TAKES BOTH PREDICATES FROM 2026-11-17 — `D-167`.** The seam holds two questions now — the DATA
++// one (`isProxyOf`: *does this value enter the Rust store?*) and the CARRIER one (`isProxyOfCarrier`: *is this the
++// package's own `cfg`/listeners/constraints/commit carrier?*) — and **THE NODE ARM'S ANSWER TO BOTH IS
++// `types.isProxy`, WHICH IS WHY THIS LINE CHANGES BY ONE ARGUMENT AND NOTHING ON THIS ARM MOVES BY A BYTE**: that
++// predicate is precise here (it reads the exotic object's own internal slot, invokes no handler and throws for
++// nothing), so every `Proxy` a carrier gate refused before this line changed is still refused, in the same form
++// with the same message. **WHAT THE SECOND ARGUMENT BUYS IS NOTHING ON THIS ARM AND EVERYTHING ON THE OTHER**: it
++// is the arm whose probe cannot answer the carrier question that must be able to answer it differently, and **an
++// entry that installed only the data instrument would leave `isProxyOfCarrier` at its `false` default HERE, which is
++// a silent loss of `DD-34` at every carrier gate** — so the setter requires both and this line passes both.
+ // ---------------------------------------------------------------------------------------------
+-installClassInstrument((value) => types.isProxy(value));
++installClassInstrument((value) => types.isProxy(value), (value) => types.isProxy(value));
+ 
+ 
+ // ---------------------------------------------------------------------------------------------
+diff --git a/bindings/js/src/entry/class-decision.mjs b/bindings/js/src/entry/class-decision.mjs
+index 9246dff..546b898 100644
+--- a/bindings/js/src/entry/class-decision.mjs
++++ b/bindings/js/src/entry/class-decision.mjs
+@@ -8,7 +8,16 @@
+ // `structuredClone` while **the ANSWER does not move** (`D-156` item 1: the refusal stays rank-neutral and
+ // class-for-class what this arm answers). **NO DECISION, NO ORDER AND NO ANSWER OF THIS FILE MOVES** — only the
+ // predicate's name and its home.
+-import { isProxyOf } from './class-instrument.mjs';
++// **⟶ AND THE CARRIER PREDICATE JOINS THE IMPORT FROM 2026-11-17 — `D-167`.** `class-instrument.mjs` holds two
++// answers now: `isProxyOf` is THE DATA QUESTION (*does this value enter the Rust store?* — the `structuredClone`
++// probe on the WASM arm) and `isProxyOfCarrier` is THE CARRIER QUESTION (*is this the package's own `cfg` /
++// listeners / constraints carrier?* — `false` on that arm, with the declaration at the predicate itself).
++// **EVERY `isProxyOf` SITE BELOW KEEPS ITS ANSWER BYTE-FOR-BYTE**: each is about a value's class or a value's
++// PROTOTYPE LINK, and a link is data. **THE CARRIER ANSWER IS TAKEN BY ONE PREDICATE AND ONE ONLY** —
++// `isPlainObjectCarrier` below, the carrier-shaped sibling of `isPlainObjectValue`, whose one reader is
++// `frame.mjs`'s `encodeConfig`. **The split cannot live inside the shared predicate** (`isPlainObjectValue`
++// classifies both carriers and values), so it lives at the call.
++import { isProxyOf, isProxyOfCarrier } from './class-instrument.mjs';
+ import { boundaryReject } from './addon-slot.mjs';
+ import { appendOwn } from './refusal.mjs';
+ 
+@@ -295,7 +304,15 @@ function referenceSet(standardMembers, liveCensus, allowance) {
+ /// reached.** Where a spend is refused this predicate answers `false`, i.e. **"not a standard shape"**: the
+ /// conservative direction, since the class answer is `'class'` and the render guard keeps walking instead of
+ /// exempting a link whose census it could not pay for.
+-function isStandardObjectPrototype(proto, allowance) {
++/// **⟶ AND WHICH PREDICATE THE LINK IS ASKED OF IS THE CALLER'S FROM 2026-11-17 — `D-167`.** The link test is
++/// `linkInstrument`'s answer, **defaulting to `isProxyOf`, so every existing caller is byte-unmoved**; the carrier
++/// sibling below passes `isProxyOfCarrier` instead, because the object whose prototype link is being read THERE is
++/// the package's `cfg` and not a value (the split lives at the call and this is the one place the call has to
++/// reach one link deeper). **ON THE NODE ARM THE TWO ARE THE SAME FUNCTION, so the parameter moves nothing there;
++/// on the WASM arm it is the whole of what makes the carrier gate answer "not a `Proxy`" without reading a member
++/// the API does not declare** — the declaration and its price are at `class-instrument.mjs`'s
++/// `isProxyOfCarrier`.
++function isStandardObjectPrototype(proto, allowance, linkInstrument = isProxyOf) {
+   if (proto === null) return false;
+   // **⟶ `contract.md §2`'s clause of 2026-10-24 on `F-RA-12`, item `(6)(a)`: A PROTOTYPE LINK THAT IS A
+   // `Proxy` — INCLUDING A REVOKED ONE — IS `false`, WITH NO TRAP RUN AND BEFORE ANY CENSUS READ OF IT.** A
+@@ -305,7 +322,7 @@ function isStandardObjectPrototype(proto, allowance) {
+   // and invokes no handler, and a shape the package may not read is not a shape the value carries. **THE
+   // GROUND IS `§1`'s OWN** — this guard covers `protoClass`'s whole census path, `arrayClass`'s chain link
+   // and `isLanguageStandardPrototype`'s `above` read, so no limb and no conversion test reads a proxy link.
+-  if (isProxyOf(proto)) return false;
++  if (linkInstrument(proto)) return false;
+   let names;
+   try {
+     if (!spendGuardRead(allowance, 1)) return false; // ONE `getPrototypeOf` CALL — item `(4c)(ii)`
+@@ -360,10 +377,17 @@ function isStandardObjectPrototype(proto, allowance) {
+ /// admitted, and unmoved by this clause — and `proto === Object.prototype ? 'plain' : 'foreign'` LABELS an
+ /// admitted value's classification and decides NO admission (`§1`'s item `(5)`); a verdict that turned on it
+ /// would be the removed test under another name.
+-export function protoClass(value) {
++/// **⟶ AND ITS LINK TEST IS A PARAMETER FROM 2026-11-17 (`D-167`), DEFAULTING TO `isProxyOf`** — the data
++/// question, which is what every existing caller asks. `isPlainObjectCarrier` below — the one carrier-shaped
++/// reader — passes `isProxyOfCarrier`, so the object whose link is read there is classified as the carrier it is
++/// and not as a value. **NO CENSUS, NO TERMINALITY TEST AND NO `'class'` ANSWER MOVES**: only which predicate is
++/// asked of the one link.
++export function protoClass(value, linkInstrument = isProxyOf) {
+   const proto = Object.getPrototypeOf(value);
+   if (proto === null) return 'null';
+-  return isStandardObjectPrototype(proto) ? (proto === Object.prototype ? 'plain' : 'foreign') : 'class';
++  return isStandardObjectPrototype(proto, undefined, linkInstrument)
++    ? (proto === Object.prototype ? 'plain' : 'foreign')
++    : 'class';
+ }
+ 
+ /// `crossing.md §1.4` item 4 (c), (d) and item 1: an own ACCESSOR, or an own `Symbol`-keyed property,
+@@ -504,6 +528,37 @@ export function isPlainObjectValue(value) {
+   return protoClass(value) !== 'class';
+ }
+ 
++/// **⟶ THE CARRIER-SHAPED SIBLING — `D-167`, ADDED 2026-11-17. THE SAME PREDICATE WITH THE ONE PREDICATE MOVED:**
++/// the same own-data census (`Array.isArray`, the prototype-link rule below) and **`isProxyOfCarrier` asked of the
++/// value AND of its link**, where `isPlainObjectValue` above asks `isProxyOf` of both.
++///
++/// **IT EXISTS BECAUSE THE SPLIT CANNOT LIVE INSIDE ITS SIBLING.** `isPlainObjectValue` is SHARED: it classifies
++/// `cfg` (a carrier) at `frame.mjs`'s `encodeConfig` and it classifies values (data) at the verbs' walks, so a
++/// decision taken inside it would move the value crossing with the carrier gate. **THE DECISION IS THEREFORE AT
++/// THE CALL, AND THIS IS THE CALL'S OWN COPY OF IT** — one reader, `frame.mjs`'s `encodeConfig`, and no other.
++///
++/// **WHAT MOVES AND WHAT DOES NOT, ON EACH ARM:**
++///   * **On the Node arm: NOTHING.** `isProxyOfCarrier` is `types.isProxy` there — precise, handler-free, exact —
++///     so this predicate answers byte-for-byte what its sibling answers, and every Node cell that hands a `Proxy`
++///     a `cfg` keeps its refusal, its form and its message (`NG-JS-*`, `F-RA-12`, `DD-34`).
++///   * **On the WASM arm: THE ONE THING THAT LETS THE ARM CONSTRUCT A STORE.** The sibling's `isProxyOf` is
++///     `structuredClone`, which throws for BOTH a `Proxy` AND any object carrying a function — and `cfg` carries
++///     functions by definition (`cfg.saveCall`, a listener's `listener`, a constraint's `constraint`) — so the
++///     shared predicate refused every `cfg` the arm exists for (`D-166`, measured: `storeCreate(bindings,
++///     { journalLength, listeners: [], saveCall })` answered `AddressMalformed`). **`isProxyOfCarrier` answers
++///     `false` for every value there, and the declaration and its price are stated at that predicate**
++///     (`class-instrument.mjs`): **a `Proxy` at a carrier gate is NOT DETECTED on that arm.**
++///
++/// **THE CENSUS IS THE SIBLING'S AND IS NOT RE-DERIVED**: `null` and every non-object `false` · an `Array`
++/// `false` · the value's class through the SAME `protoClass` link rule · a class instance or another
++/// prototype-carrying object `false` (`§1.4` item 4 (e)–(g)). **No member is read, no accessor runs and no
++/// `Object.keys` is taken here** — the `cfg` gate's own reads happen after it, by `Object.hasOwn` (`A76`/`JS-5`).
++export function isPlainObjectCarrier(value) {
++  if (value === null || typeof value !== 'object') return false;
++  if (Array.isArray(value) || isProxyOfCarrier(value)) return false;
++  return protoClass(value, isProxyOfCarrier) !== 'class';
++}
++
+ /// **THE CLASS THAT FAILED, SPELLED FOR THE VERBOSE REJECTION** (`A76`: *"the rejection names the failing
+ /// target and the reason"*; `surface.md §2.5` item 5 (b): *"the reason is the CLASS the value HAS — named as
+ /// `§1.2`'s or `§1.3`'s own class, never as a class the value could be converted to"*). **IT READS NO
+diff --git a/bindings/js/src/entry/class-instrument.mjs b/bindings/js/src/entry/class-instrument.mjs
+index 6cbe2c3..56d6043 100644
+--- a/bindings/js/src/entry/class-instrument.mjs
++++ b/bindings/js/src/entry/class-instrument.mjs
+@@ -34,37 +34,153 @@
+ // UNREACHABLE ON THE NODE ARM ONLY BECAUSE THE ENTRY INSTALLS `types.isProxy` AT ITS OWN LOAD, BEFORE ANY PART
+ // CAN CLASSIFY ANYTHING** (`index.mjs`, at the head of the module, `D-156`; `docs/L3/wasm-realm/design.md` §5) —
+ // **so the entry's installation is the thing that makes this default unreachable, and a part driven without that
+-// entry has NO `Proxy` detector at all.** `tests/e2e/class-instrument.test.mjs` is the cell that holds both
+-// halves of that sentence: the entry installs, and the un-installed predicate answers `false`.
++// entry has NO `Proxy` detector at all.**
++//
++// ⟶ **AMENDED 2026-11-17 — THE DEFAULT'S SENTENCE NAMES THE SET OF CELLS THAT HOLDS IT, AND THE SET THIS FILE
++// ONCE NAMED WAS NOT LANDED.** The block above read *"`tests/e2e/class-instrument.test.mjs` is the cell that holds
++// both halves of that sentence: the entry installs, and the un-installed predicate answers `false`"*; **that path
++// does not exist in this tree** (`tests/e2e/` carries no `class-instrument` cell — read at the directory), and
++// **no cell anywhere drives `installClassInstrument` with no instrument installed**. **The two halves are held,
++// after this amendment, by the cells that do drive the seam**: `tests/e2e/blind-installed-surface.test.mjs` holds
++// the module set (`class-instrument.mjs` is one of the eighteen parts the packed set carries), and the arm's own
++// cells hold the installed arm (`tests/e2e/wasm-arm.test.mjs` — a value crosses by value, and a `Proxy` is
++// refused with no trap run, which is only true of an arm whose instrument IS the probe). **NO BYTE OF THE
++// PREDICATE MOVES WITH THIS SENTENCE**: it says where a claim is held and not what the code does.
+ //
+ // **NO `node:` SPECIFIER APPEARS IN THIS FILE AND NONE MAY** — that is the whole of the seam: the realm supplies
+ // the instrument and this file only holds it and answers with it.
++//
++// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
++// **⟶ `D-167` · THE SEAM GAINS A SECOND PREDICATE, BECAUSE THE PROBE ANSWERS TWO DIFFERENT QUESTIONS AND THE
++// RULING SEPARATES THEM — 2026-11-17.**
++// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
++//
++// **THE ARCHITECT'S WORDS, VERBATIM: *"The clone requirement is for data that has to enter the Rust store.
++// constraints, listeners, and the saveCall do not"*** (`D-167`, answering the finding `D-166` is). **THE FINDING
++// IT ANSWERS, MEASURED AT ITS OWN INSTRUMENT: `structuredClone` throws for BOTH a `Proxy` AND any object carrying
++// a function** — `structuredClone({ saveCall: () => {} })` and `structuredClone(new Proxy({}, {}))` fail
++// identically (`DataCloneError`) — **so on the WASM arm the one instrument classified every `saveCall` `cfg` as
++// "a Proxy" and refused it, and the arm could not construct the one store it exists for.**
++//
++// **SO THE SEAM HOLDS TWO PREDICATES AND EACH ANSWERS ONE QUESTION:**
++//   * **`isProxyOf` — THE DATA QUESTION**, unmoved in meaning: *does this value enter the Rust store?* It is the
++//     write's value, an address, a tier, a value's class and a value's prototype link — **and on the WASM arm it
++//     is still the `structuredClone` probe, so `DD-34`'s property is kept on that arm exactly as `D-156` states
++//     it: a `Proxy` is refused and NOT ONE TRAP RUNS** (`CW-7` in `tests/e2e/wasm-arm.test.mjs` is that cell).
++//   * **`isProxyOfCarrier` — THE CARRIER QUESTION**: *is this the package's own carrier — the `cfg` it is read
++//     from, the `listeners` and `constraints` arrays and their elements, the save the caller hands in, the commit
++//     record the package builds?* **A carrier DOES NOT CROSS**, so `invariant 2`'s domain (*"if it cannot cross
++//     IPC it cannot be stored"*) says nothing about it and the probe must not be asked of it.
++//
++// **AND THE SPLIT CANNOT LIVE INSIDE `isPlainObjectValue`, WHICH IS THE ONE PLACE IT WOULD LOOK NATURAL**: that
++// predicate is **shared** between `cfg` (a carrier) and the values a verb admits (data), so a decision taken
++// inside it would move the value crossing with the carrier gate. **THE SPLIT LIVES AT THE CALL** — the carrier
++// gates call the carrier predicate and every data site keeps `isProxyOf` — and `class-decision.mjs` carries a
++// carrier-shaped sibling of `isPlainObjectValue` (`isPlainObjectCarrier`) for the one gate whose subject is the
++// `cfg` OBJECT itself rather than a member of it.
++//
++// **THE TWO PREDICATES ON EACH ARM, STATED TOGETHER SO NEITHER IS READ AS THE OTHER:**
++//   * **THE NODE ARM: BOTH ARE `types.isProxy`, AND NOTHING ABOUT THAT ARM MOVES.** `types.isProxy` is precise
++//     there — it answers *"is this exotic object a `Proxy`"* and invokes nothing — so it is the right answer to
++//     BOTH questions and the entry installs it twice. **Every Node cell that drives a `Proxy` at a carrier gate
++//     still refuses it in the same form with the same message** (`NG-JS-*`, `F-RA-12`, `DD-34`), because
++//     `isProxyOfCarrier(v)` and `isProxyOf(v)` are the same answer on that arm by construction.
++//   * **THE WASM ARM: `isProxyOf` IS THE `structuredClone` PROBE AND `isProxyOfCarrier` ANSWERS `false`.** **THE
++//     DECLARATION, AND IT IS THE WHOLE OF THE PRICE: a `Proxy` AT A CARRIER GATE IS NOT DETECTED ON THAT ARM** —
++//     because the only platform signal that distinguishes a `Proxy` from its target is `structuredClone`, and
++//     **it cannot distinguish a `Proxy` from a function-carrying carrier**, and **the carriers the API requires
++//     are function-bearing by definition** (`cfg.saveCall`, a listener's `listener`, a constraint's
++//     `constraint`). **A `cfg` that is a `Proxy` on that arm is therefore READ, not refused** — `encodeConfig`
++//     reads its four declared keys by `Object.hasOwn` and never by `in` (`A76`/`JS-5`), so what an un-detected
++//     carrier costs that arm is a `get` of exactly the keys the API declares and nothing wider; and **the value
++//     crossing keeps `DD-34` whole** — the arm's one claimed property in this matter is about what it STORES.
+ 
+-/// **THE INSTALLED INSTRUMENT, OR `null` BEFORE AN ENTRY INSTALLS ONE.** Module-level, unexported and not a
++/// **THE INSTALLED DATA INSTRUMENT, OR `null` BEFORE AN ENTRY INSTALLS ONE.** Module-level, unexported and not a
+ /// member of anything (`A117` (D6)); `installClassInstrument` is its only writer and `isProxyOf` its only reader.
+ let instrument = null;
+ 
++/// **⟶ AND THE CARRIER INSTRUMENT IS ITS OWN SLOT FROM 2026-11-17** (`D-167`) — a second module-level `let`, no
++/// member on any record, its one writer the same setter and its one reader `isProxyOfCarrier` below. **TWO SLOTS
++/// AND NOT ONE, BECAUSE THE TWO ANSWERS DIFFER ON ONE ARM**: a single slot could only hold one of them, and the
++/// arm that needs them apart is the arm whose instrument cannot answer the second question at all.
++let carrierInstrument = null;
++
+ /// **THE ONE SETTER, CALLED BY AN ENTRY AT ITS OWN LOAD** (`D-156`; `docs/L3/wasm-realm/design.md` §5). **A
+ /// NON-FUNCTION IS REFUSED** rather than held: a truthy non-function stored here would throw at the FIRST
+ /// classification instead of at the install, which is a host `TypeError` out of a caller's first verb and a
+ /// second failure form on a path `DD-12` allows none. The refusal is a load-time programming error and is a
+ /// plain `TypeError` on purpose — **it is NOT a store refusal, it mints no status (`DD-40`) and it can reach no
+ /// caller**, because the only caller is an entry's own evaluation.
+-export function installClassInstrument(fn) {
++///
++/// **⟶ AND IT TAKES BOTH INSTRUMENTS FROM 2026-11-17 — `D-167`'s one seam, two questions.** The second position
++/// is the carrier answer and **it is REQUIRED**: an entry that installed only the data instrument would leave
++/// `isProxyOfCarrier` at its `false` default, which on the Node arm would be a silent loss of the `DD-34`
++/// refusal at every carrier gate — the exact class of loss this file's head declares as the dangerous default.
++/// **A call that omits it therefore fails at its own evaluation**, where the mistake is, and not at the first
++/// caller that hands a `Proxy` a `cfg`. `undefined` is refused like any other non-function: **absence is not a
++/// lawful spelling of "answer `false`"** — the arm that answers `false` says so by passing a function that
++/// answers `false` (the WASM fork's own install), so the declaration is written at the call that takes it.
++export function installClassInstrument(fn, carrierFn) {
+   if (typeof fn !== 'function') {
+     throw new TypeError('installClassInstrument: the class-decision instrument is a function');
+   }
++  if (typeof carrierFn !== 'function') {
++    throw new TypeError('installClassInstrument: the carrier class-decision instrument is a function');
++  }
+   instrument = fn;
++  carrierInstrument = carrierFn;
+ }
+ 
+-/// **THE ONE PREDICATE THE FIVE PARTS CALL** (`D-156`'s 25 sites) — **the installed instrument's answer, and
+-/// `false` where none is installed** (the default stated at the head of this file, with its consequence). **THE
+-/// ANSWER IS COERCED TO A BOOLEAN BY `=== true`**, so an instrument answering a truthy non-boolean cannot admit a
+-/// value by accident and one answering nothing cannot refuse one: the two arms of this predicate are the two
+-/// booleans, exactly as `util.types.isProxy` answered. **A THROWING INSTRUMENT IS NOT CAUGHT HERE** — on the arm
+-/// that needs a `try`, the `try` is the instrument's own (`D-156` item 1's `structuredClone` probe), so a
+-/// failure inside an instrument is its author's and never silently read as *"not a `Proxy`"* — which would be a
+-/// second, hidden copy of this file's default.
++/// **THE ONE PREDICATE THE FIVE PARTS CALL AT A DATA SITE** (`D-156`'s 25 sites) — **the installed instrument's
++/// answer, and `false` where none is installed** (the default stated at the head of this file, with its
++/// consequence). **THE ANSWER IS COERCED TO A BOOLEAN BY `=== true`**, so an instrument answering a truthy
++/// non-boolean cannot admit a value by accident and one answering nothing cannot refuse one: the two arms of this
++/// predicate are the two booleans, exactly as `util.types.isProxy` answered. **A THROWING INSTRUMENT IS NOT
++/// CAUGHT HERE** — on the arm that needs a `try`, the `try` is the instrument's own (`D-156` item 1's
++/// `structuredClone` probe), so a failure inside an instrument is its author's and never silently read as *"not a
++/// `Proxy`"* — which would be a second, hidden copy of this file's default.
+ export function isProxyOf(value) {
+   return instrument === null ? false : instrument(value) === true;
+ }
++
++/// **⟶ THE CARRIER PREDICATE — `D-167`, ADDED 2026-11-17. THE ONE PREDICATE THE CARRIER GATES CALL, AND THE
++/// ANSWER IS THE ARM'S OWN.**
++///
++/// **A CARRIER IS THE PACKAGE'S OWN DATA, AND IT DOES NOT ENTER THE RUST STORE** — `cfg` itself, the `listeners`
++/// and `constraints` arrays and their elements, and the commit record the package builds — **so the probe that
++/// decides what may CROSS (`invariant 2`: *"if it cannot cross IPC it cannot be stored"*) has no subject here.**
++/// **THE ARCHITECT'S RULING, VERBATIM: *"The clone requirement is for data that has to enter the Rust store.
++/// constraints, listeners, and the saveCall do not"*** (`D-167`).
++///
++/// **THE NODE ARM ANSWERS `types.isProxy`, EXACTLY AS `isProxyOf` DOES, AND THAT IS NOT A SHORTCUT**: that
++/// instrument is PRECISE there — it reads the exotic object's own internal slot, invokes no handler and throws
++/// for nothing — so it is the right answer to this question too, and **every Node cell that drives a `Proxy` at a
++/// carrier gate keeps its refusal, its form and its message** (`NG-JS-*`, `F-RA-12`, `DD-34`). **NO BYTE OF THE
++/// NODE ARM'S BEHAVIOUR MOVES WITH THIS PREDICATE**; only the name at six carrier gates does.
++///
++/// ★ **THE WASM ARM ANSWERS `false` — FOR EVERY VALUE — AND THIS IS THE DECLARATION, SAID WHERE THE PREDICATE IS
++/// DECIDED AND NOT ONLY WHERE IT IS INSTALLED: A `Proxy` AT A CARRIER GATE IS NOT DETECTED ON THAT ARM.** **THE
++/// GROUND IS THE PLATFORM'S AND IT IS NOT A PREFERENCE:** the only signal that distinguishes a `Proxy` from its
++/// target is `structuredClone`, and **it cannot distinguish a `Proxy` from a function-carrying carrier** — both
++/// throw `DataCloneError` (`D-166` items 1–2, measured) — **and the carriers this API requires are function-bearing
++/// by definition: `cfg.saveCall`, a listener's `listener`, and a constraint's `constraint`.** The three ways to
++/// make the probe answer anyway were priced by `D-166` item 4 and each is refused on a stated ground: projecting
++/// around the functions **reads members of the object being tested**, which is the trap hazard the refusal exists
++/// to prevent; a `Proxy`-only signal **does not exist in ECMAScript**; and there is no fourth. **SO THIS ARM
++/// CHOOSES BETWEEN TWO REFUSALS IT CANNOT TELL APART AND TAKES THE ONE THAT LEAVES THE STORE CONSTRUCTIBLE.**
++/// **WHAT IT COSTS, NAMED AT ITS SEAT:** a `cfg` handed as a `Proxy` on that arm is read rather than refused —
++/// `encodeConfig` takes its four declared keys by `Object.hasOwn` (`A76`/`JS-5`) and reads those keys' values and
++/// no member the API does not declare, so the traps an un-detected handler sees are the reads the construction
++/// must make anyway; **a carrier gate is not a place where a trap can run that a construction would not run.** **AND
++/// WHAT IT DOES NOT COST: the value crossing.** `isProxyOf` above still answers the probe at every DATA site, so a
++/// `Proxy` handed to a verb as a VALUE is still refused in the declared form with **NO TRAP RUN** — `DD-34`'s
++/// property is kept on this arm for the one population it is about, which is the data that enters the store.
++///
++/// **THE DEFAULT IS `false`, AND IT IS THE SAME DIRECTION THE DATA PREDICATE'S DEFAULT TAKES, FOR A STRONGER
++/// REASON:** a default `true` here would refuse every `cfg` ever constructed (*"'cfg' is a Proxy"* for an object
++/// that is not one), so the arm would construct no store at all. **AND IT IS UNREACHABLE ON THE NODE ARM BY THE
++/// ENTRY'S OWN INSTALLATION**, exactly as `isProxyOf`'s default is: `index.mjs` installs `types.isProxy` at both
++/// positions at its own load, before any part can classify anything.
++export function isProxyOfCarrier(value) {
++  return carrierInstrument === null ? false : carrierInstrument(value) === true;
++}
+diff --git a/bindings/js/src/entry/delivery.mjs b/bindings/js/src/entry/delivery.mjs
+index 8e74ff0..fec6750 100644
+--- a/bindings/js/src/entry/delivery.mjs
++++ b/bindings/js/src/entry/delivery.mjs
+@@ -8,7 +8,26 @@
+ // `structuredClone` while **the ANSWER does not move** (`D-156` item 1: the refusal stays rank-neutral and
+ // class-for-class what this arm answers). **NO DECISION, NO ORDER AND NO ANSWER OF THIS FILE MOVES** — only the
+ // predicate's name and its home.
+-import { isProxyOf } from './class-instrument.mjs';
++// **⟶ AND THE CARRIER PREDICATE IS THE ONE THIS FILE TAKES, FROM 2026-11-17 — `D-167`.** **BOTH OF THIS FILE'S
++// `Proxy` SITES ARE CARRIER GATES AND NEITHER IS DATA**: the write's fourth position (`commitPositionRefusal` —
++// the site the ruling's classification censuses as `delivery.mjs:53`) and the terminal arm's record (`terminalArm`
++// — its `:1171`) are the COMMIT RECORD: the package's own bookkeeping, which never enters the Rust store. **THOSE
++// TWO LINE NUMBERS ARE THE RULING'S CITED POSITIONS AND NOT THIS FILE'S, BECAUSE THIS PARAGRAPH MOVES THE LINES
++// BELOW THEM.** **THE RULE THE RULING GIVES, APPLIED AT EACH SITE, IS *"CAN THIS
++// RECORD CARRY A FUNCTION? IF IT CAN, IT IS A CARRIER"***, and the answer at the fourth position is measured, not argued: **the
++// repair's own context is the shape the API HANDS THAT POSITION** — `store.write(address, tier, value, context)`,
++// the route `§2.11` clause 6 declares and `tests/e2e/blind-defect-cases.test.mjs:197` drives — and
++// `kernel-registration.mjs`'s `registrationRepairContext` carries `write: registrationRoute(...)`, **a function, as
++// its seventh member**. So a lawful commit record carries a function by construction, `structuredClone` throws on
++// it, and the probe would have refused the repair's own write as *"a Proxy"* on the WASM arm. **AT `:1171` the
++// record carries no function today** — `CommitRecord` is four members and its `attempt` is `AttemptRef { id }`
++// (`index.d.ts`), so the probe answers `false` there and the two predicates agree — **and it is still a carrier by
++// the same rule, because it is the package's own record and not data the store holds**; the switch is therefore
++// behaviourally inert on both arms there, which is the honest reading and is stated rather than dressed up.
++// **ON THE NODE ARM BOTH SWITCHES ARE INERT TOO**: `isProxyOfCarrier` IS `types.isProxy`, so every `Proxy` these
++// two sites refuse is still refused, in the same form with the same message
++// (`tests/e2e/repair-in-commit.test.mjs`'s `Proxy` row and `tests/e2e/file-tier-save-properties.test.mjs`'s).
++import { isProxyOfCarrier } from './class-instrument.mjs';
+ import { appendOwn, fail, refusalAddress, refusalLog } from './refusal.mjs';
+ import { withAddon, boundaryReject } from './addon-slot.mjs';
+ import { arrayClass, classSpelling, hasLoneSurrogate, isPlainObjectValue, targetSpelling } from './class-decision.mjs';
+@@ -50,7 +69,11 @@ export function commitPositionRefusal(commit) {
+     // **A `Proxy` IS OUTSIDE THE POSITION'S DOMAIN** (`§2.20`'s outside-value row) and is refused BEFORE a
+     // member is read from it, so a `get` trap is never raised — the class order `encodeAddress` and
+     // `encodeTier` already take at their own carriers (`A76`/`JS-2`).
+-    if (!isProxyOf(commit) && !Array.isArray(commit)) {
++    // **⟶ AND THE PREDICATE IS THE CARRIER'S FROM 2026-11-17 (`D-167`)**: this record is the package's own, it
++    // never crosses, and it carries a function whenever it is a repair's context (`write`). **The arm, the order,
++    // the refusal and the sentence do not move** — on the Node arm the answer is identical; on the WASM arm the
++    // probe would have refused every repair's own write as *"a Proxy"* and this is the line that stops it.
++    if (!isProxyOfCarrier(commit) && !Array.isArray(commit)) {
+       let pending;
+       try {
+         pending = commit.pending;
+@@ -1168,7 +1191,12 @@ export function terminalArm(state, record) {
+   // **THE CLASS TEST COMES FIRST AND IS THE ONE THE FIFTH POSITION ALREADY TAKES** (`docs/specs/storeroom-js/surface.md §2.4` item 9 (g) item 1
+   // read with `§2.20`): a value carrying no `pending` is no record position, and this channel is the kernel's
+   // own — a caller never reaches it. Nothing is changed by a refused value.
+-  if (record === null || typeof record !== 'object' || isProxyOf(record) || record.pending === undefined) {
++  // **⟶ AND THE RECORD IS THE CARRIER PREDICATE'S FROM 2026-11-17 (`D-167`)** — the package's own four-member
++  // `CommitRecord`, which carries the delivered set's handles and never enters the store. **Its members are
++  // cloneable today** (`attempt: AttemptRef { id }`, `op`, `triggered[]`, `pending[]`), so this switch answers
++  // exactly what the shipped byte answered on BOTH arms; it is made because the RECORD's class is the carrier's
++  // and not because a measurement moved.
++  if (record === null || typeof record !== 'object' || isProxyOfCarrier(record) || record.pending === undefined) {
+     return undefined;
+   }
+   // ── `docs/specs/storeroom-js/surface.md §2.11` CLAUSE 2: THE TERMINAL ARM'S FIRST ACT, ON THE PASSING ARM ────
+diff --git a/bindings/js/src/entry/frame.mjs b/bindings/js/src/entry/frame.mjs
+index 9517209..634828d 100644
+--- a/bindings/js/src/entry/frame.mjs
++++ b/bindings/js/src/entry/frame.mjs
+@@ -8,17 +8,45 @@
+ // `structuredClone` while **the ANSWER does not move** (`D-156` item 1: the refusal stays rank-neutral and
+ // class-for-class what this arm answers). **NO DECISION, NO ORDER AND NO ANSWER OF THIS FILE MOVES** — only the
+ // predicate's name and its home.
+-import { isProxyOf } from './class-instrument.mjs';
++// **⟶ AND THE CARRIER PREDICATE BESIDE IT FROM 2026-11-17 — `D-167`.** **THE ARCHITECT, VERBATIM: *"The clone
++// requirement is for data that has to enter the Rust store. constraints, listeners, and the saveCall do not"*** —
++// so **the six gates in this file whose subject is the package's own CARRIER take `isProxyOfCarrier`** — named by
++// FUNCTION and not by line, because this paragraph moves the lines: **the `listeners` array in `encodeListeners` ·
++// the `constraints` array in `encodeConstraints` · the two reads `admittedConstraintBatch` takes of them ·
++// `admittedListenerBatch`'s one · and `cfg` ITSELF at `encodeConfig`'s class gate, through
++// `isPlainObjectCarrier`**, the carrier-shaped sibling of `isPlainObjectValue`, which cannot carry the split
++// because it classifies values too. **EVERY OTHER `isProxyOf` SITE IN THIS FILE IS DATA AND IS UNMOVED**:
++// `constraintAddress`'s address is a value the store resolves and it keeps the probe. **ON THE NODE ARM NOTHING
++// MOVES AT ALL** — `isProxyOfCarrier` IS `types.isProxy` there, so every `Proxy` this file refused it still
++// refuses, in the same form with the same message; **on the WASM arm this is what lets the arm construct a store at
++// all** (`D-166`: `cfg` carries functions by definition and the probe cannot tell a function from a `Proxy`), and
++// the price is declared at `class-instrument.mjs`'s `isProxyOfCarrier`.
++//
++// **★ AND THE TWO `isPlainObjectValue` SITES THAT CLASSIFY ONE LISTENERS OR CONSTRAINTS ENTRY — `encodeListeners`'S
++// ELEMENT TEST AND `constraintEntry` — ARE NOT MOVED BY THIS ROW: A DECLARED RESIDUE AND NOT AN OVERSIGHT.** A `listeners`
++// entry carries `listener` and a `constraints` entry carries `constraint`, so each is a carrier that stays in the
++// package exactly as its array does, and on the WASM arm those two sites still ask the probe and refuse a `cfg`
++// that carries a **batch**: `isPlainObjectValue(entry)` → `isProxyOf(entry)` → `structuredClone` throws on the
++// function member → *"not a plain object"* → `AddressMalformed`, with `cfg`'s own gate now passed. **What this row
++// does construct on that arm is the `saveCall` store `D-166` found it could not** — the configuration the arm exists
++// for (`D-154` item 4) — **and closing the elements is the same one-line move at each site that the sibling above
++// makes possible, which is a ruling this row does not take and names rather than takes.**
++import { isProxyOf, isProxyOfCarrier } from './class-instrument.mjs';
+ import { boundaryReject } from './addon-slot.mjs';
+ import { appendOwn } from './refusal.mjs';
+ import { addressSpelling } from './kernel-foundations.mjs';
+-import { arrayClass, classSpelling, hasLoneSurrogate, isAdmittedArray, isLawfulListenerElement, isPlainObjectValue, valueTargetSpelling } from './class-decision.mjs';
++import { arrayClass, classSpelling, hasLoneSurrogate, isAdmittedArray, isLawfulListenerElement, isPlainObjectCarrier, isPlainObjectValue, valueTargetSpelling } from './class-decision.mjs';
+ import { encodeAddress, encodeFilePath, encodeJournalLength } from './carrier.mjs';
+ 
+ function encodeListeners(listeners) {
+   if (listeners === undefined) return undefined;
+   if (listeners === null) return null;
+-  if (isProxyOf(listeners)) return { bad: 'non-array' }; // row 3: not the array's shape (`DD-34`)
++  // **⟶ `isProxyOfCarrier` FROM 2026-11-17 (`D-167`): `cfg.listeners` IS A CARRIER, NOT DATA.** The ruling,
++  // verbatim: *"constraints, listeners, and the saveCall do not"* [enter the Rust store] — so the probe that
++  // decides what may CROSS is not asked of this list. **THE ANSWER, THE ORDER AND THE `{bad: 'non-array'}` ARM DO
++  // NOT MOVE**: on the Node arm the two predicates are the same function, and on the WASM arm this is the gate
++  // that stopped a lawful `listeners` list being read as *"a Proxy"* because its elements carry functions.
++  if (isProxyOfCarrier(listeners)) return { bad: 'non-array' }; // row 3: not the array's shape (`DD-34`)
+   if (!Array.isArray(listeners)) return { bad: 'non-array' };
+   if (arrayClass(listeners) === 'class') return { bad: 'non-array' }; // `JS-2`: a class extending `Array`
+   // **⟶ AND THE LIST IS WALKED BY A LOCAL INDEX LOOP, NOT BY `Array.prototype.map`** (`contract.md §2.1`'s
+@@ -84,7 +112,10 @@ function encodeListeners(listeners) {
+ function encodeConstraints(constraints) {
+   if (constraints === undefined) return undefined;
+   if (constraints === null) return null;
+-  if (isProxyOf(constraints)) return { bad: 'non-array' }; // `DD-34`'s class order, taken first
++  // **⟶ AND THE FOURTH KEY'S LIST IS A CARRIER TOO FROM 2026-11-17 (`D-167`)** — *"constraints … do not"* [enter
++  // the Rust store] — so the SAME predicate takes it, at the SAME position, answering the same arm. `DD-34`'s class
++  // order is unmoved: the class decision is still taken first, on the value as it is.
++  if (isProxyOfCarrier(constraints)) return { bad: 'non-array' }; // `DD-34`'s class order, taken first
+   if (!Array.isArray(constraints)) return { bad: 'non-array' };
+   if (arrayClass(constraints) === 'class') return { bad: 'non-array' };
+   // **⟶ AND THE FOURTH KEY'S OWN WALK IS A LOCAL INDEX LOOP, NOT `Array.prototype.map`** (`contract.md §2.1`'s
+@@ -210,7 +241,19 @@ export function spellConstraintAddress(segments) {
+ /// prototype-carrying object or a class instance, whose inherited keys the shipped `in`-test read as
+ /// PRESENT (`JS-5`).**
+ export function encodeConfig(cfg) {
+-  if (!isPlainObjectValue(cfg)) {
++  // **⟶ AND `cfg` ITSELF IS THE CARRIER THE WHOLE ROW IS ABOUT — `D-167`, 2026-11-17.** `cfg` is not a value that
++  // crosses: it is the package's own configuration, and `saveCall`/`listener`/`constraint` are functions it carries
++  // BY THE API'S OWN DEFINITION. **So the class gate asks the carrier-shaped sibling**, `isPlainObjectCarrier` —
++  // the same own-data census and the same prototype-link rule, with `isProxyOfCarrier` at the value and at the
++  // link — and **`isPlainObjectValue` STAYS WHAT IT IS AND WHERE IT IS** (`:33`, `:116`), because it classifies
++  // values too and a decision inside it would move the value crossing with this gate. **ON THE NODE ARM THIS IS
++  // THE SAME ANSWER THE SHIPPED BYTE GAVE**, byte for byte: `types.isProxy` is both predicates there, so every
++  // `Proxy` this gate refused it still refuses with the same message. **ON THE WASM ARM IT IS THE LINE THAT LETS
++  // THE ARM CONSTRUCT ANY STORE AT ALL** (`D-166` item 2: `structuredClone({ saveCall: () => {} })` and
++  // `structuredClone(new Proxy({}, {}))` fail identically, so the probe read every `saveCall` `cfg` as *"a Proxy"*
++  // and answered `AddressMalformed`) — and the price, a `Proxy` at a carrier gate being UNDETECTED there, is
++  // declared at the predicate that takes it (`class-instrument.mjs`).
++  if (!isPlainObjectCarrier(cfg)) {
+     boundaryReject(
+       'AddressMalformed', // `PAR-JS-1`'s declared answer for every outside form of `cfg`, carried — **AND THE MESSAGE BELOW IS RE-SPELLED IN PLACE, 2026-10-16: *"carrying the store's three declared keys"* READS *"carrying the store's four declared keys"*, THE COUNT ALONE MOVING, because the set is `filePath` · `journalLength` · `listeners` · `constraints` (`§2.1`'s `cfg` block and dated clause, both of 2026-10-15), because the sentence's subject is the `cfg` CARRIER CLASS and NEVER a caller obligation (a CALLER-SUPPLIED key BEYOND the four is still IGNORED and never refused, `contract.md §7.1` — no semantics and no refusal path moves with the word), and because NOTHING PINNED THE OLD WORDING: no clause of `docs/specs/**` declares this message's figure and no test reads it — the drives read the TARGET `cfg` and the CLASS that failed (`negative-generators.test.mjs` · `registry.test.mjs`) — so it was ordinary prose written when the count was three and NOT a clause's own byte.**
+       'cfg',
+@@ -326,12 +369,14 @@ export function admittedConstraintBatch(cfg) {
+   const admitted = [];
+   const constraints = cfg.constraints;
+   if (constraints === undefined || constraints === null) return admitted;
+-  if (isProxyOf(constraints) || !isAdmittedArray(constraints)) return admitted;
++  // **⟶ AND THIS READ IS THE CARRIER PREDICATE FROM 2026-11-17 (`D-167`)**, for the reason `encodeConstraints`
++  // states one layer down: the batch is the package's carrier and it never crosses.
++  if (isProxyOfCarrier(constraints) || !isAdmittedArray(constraints)) return admitted;
+   // ── THE SUPPLIED LISTENER HANDLES, AND THE ADDRESS EACH IS ADOPTED AT (for `B-3`'s message) ────────────
+   const adoptedHandles = [];
+   const adoptedAddresses = [];
+   if (cfg.listeners !== undefined && cfg.listeners !== null
+-    && !isProxyOf(cfg.listeners) && isAdmittedArray(cfg.listeners)) {
++    && !isProxyOfCarrier(cfg.listeners) && isAdmittedArray(cfg.listeners)) {  // `D-167`: a carrier read
+     for (let i = 0; i < cfg.listeners.length; i += 1) {
+       const entry = cfg.listeners[i];
+       if (!isLawfulListenerElement(entry)) continue;
+@@ -454,7 +499,7 @@ export function admittedListenerBatch(cfg) {
+   const admitted = [];
+   const listeners = cfg === null || typeof cfg !== 'object' ? undefined : cfg.listeners;
+   if (listeners === undefined || listeners === null) return admitted;
+-  if (isProxyOf(listeners) || !isAdmittedArray(listeners)) return admitted;
++  if (isProxyOfCarrier(listeners) || !isAdmittedArray(listeners)) return admitted;  // `D-167`: a carrier read
+   for (let position = 0; position < listeners.length; position += 1) {
+     const entry = listeners[position];
+     // THE STORE'S OWN ADMISSION KEEPS ITS SUBJECT — an element the encoder or the store refuses is skipped and
+diff --git a/bindings/js/wasm/index.wasm.mjs b/bindings/js/wasm/index.wasm.mjs
+index 974993c..1e4b898 100644
+--- a/bindings/js/wasm/index.wasm.mjs
++++ b/bindings/js/wasm/index.wasm.mjs
+@@ -85,6 +85,21 @@ installKernelResolver(() => KERNEL);
+ // **AND IT IS A PROBE AND NOT A CARRIER**: the clone's result is DISCARDED, because the crossing's own readers build
+ // the store's value from the value itself and `D-156`'s deep-clone law is about what the store HOLDS, not about this
+ // call. Nothing here hands a cloned value to any reader.
++//
++// **⟶ AND THE SETTER'S SECOND POSITION IS THIS ARM'S CARRIER ANSWER, WHICH IS `false` — `D-167`, 2026-11-17.**
++// **THE ARCHITECT'S RULING, VERBATIM: *"The clone requirement is for data that has to enter the Rust store.
++// constraints, listeners, and the saveCall do not"*** — and on THIS arm the probe cannot be asked of a carrier at
++// all: **`structuredClone` throws for BOTH a `Proxy` and any object carrying a function** (`D-166` items 1–2,
++// measured: `structuredClone({ saveCall: () => {} })` and `structuredClone(new Proxy({}, {}))` fail identically),
++// **and the carriers the API requires are function-bearing by definition** (`cfg.saveCall`, a listener's
++// `listener`, a constraint's `constraint`). **SO THE DECLARATION IS TAKEN HERE, AT THE BYTE THAT TAKES IT: a
++// `Proxy` at a carrier gate is NOT DETECTED on this arm** — the arm cannot tell one from its lawful carrier, and
++// it chooses the answer that leaves the store constructible over the one that refuses the only store it exists for
++// (`D-154` item 4). **WHAT DOES NOT MOVE IS THE VALUE CROSSING**: the first position above is still the probe, so a
++// `Proxy` handed to a verb as a VALUE is still refused in the declared form with NO TRAP RUN — `DD-34`'s property,
++// kept on the population it is about. **The `false` is a FUNCTION AND NOT AN OMITTED ARGUMENT** on purpose: the
++// setter requires both, so this arm states the answer it takes instead of inheriting a default that means the same
++// thing by accident. The predicate, the declaration and its price are `class-instrument.mjs`'s `isProxyOfCarrier`.
+ installClassInstrument((value) => {
+   try {
+     structuredClone(value);
+@@ -92,7 +107,7 @@ installClassInstrument((value) => {
+   } catch {
+     return true;
+   }
+-});
++}, () => false);
+ 
+ // ---------------------------------------------------------------------------------------------
+ // THE SURFACE — `surface.md §2.9` item 1: the ONE value-level name, `storeCreate`, and NOTHING else.
+diff --git a/tests/e2e/wasm-arm.test.mjs b/tests/e2e/wasm-arm.test.mjs
+index 7a241da..c4d2ea6 100644
+--- a/tests/e2e/wasm-arm.test.mjs
++++ b/tests/e2e/wasm-arm.test.mjs
+@@ -1,6 +1,7 @@
+ // =====================================================================================================
+ // **`wasm-arm.test.mjs` — THE SECOND REALM, CLAIMED BY CELLS AND NOT ONLY BY A DRIVE** (`D-154`, `D-155`,
+-// `D-156`, `D-164`; `docs/L1/wasm-realm.md` §7's `C-W1`, `C-W2`, `C-W4`, `C-W5` and `C-W6`)
++// `D-156`, `D-164`, and — for the two cells that are no longer held out — `D-166` and `D-167`;
++// `docs/L1/wasm-realm.md` §7's `C-W1`, `C-W2`, `C-W4`, `C-W5` and `C-W6`)
+ // =====================================================================================================
+ //
+ // **WHY THIS FILE EXISTS, IN ONE SENTENCE: THE ARM WAS DRIVEN BY HAND IN EVERY REVIEW THAT CLAIMED IT, AND
+@@ -92,19 +93,117 @@ function transitiveSet(start) {
+ }
+ 
+ // ─────────────────────────────────────────────────────────────────────────────────────────────────────
+-// **`C-W1` AND `C-W5` ARE HELD OUT, AND THE REASON IS A DEFECT THIS FILE FOUND** (`D-166`).
++// **`C-W1` AND `C-W5` LAND HERE, AND THEIR PROVENANCE IS THE GAP THEY CLOSE** (`D-166` found the defect;
++// `D-167` is the ruling that made them writable): **the cells build the arm themselves** — the module above does,
++// by `scripts/build-wasm-package.mjs`, and fails in words when the toolchain cannot (`P-PUB-7`'s doctrine: no cell
++// here skips) — **and they are the two `docs/L1/publish-readiness.md` §10.2 item 6 named as the last real gap
++// between "the arm works" and "the suite says so"** (`docs/L1/wasm-realm.md` §7's `C-W1` and `C-W5`).
+ //
+-// **THE ARM CANNOT CONSTRUCT A `saveCall` STORE TODAY**: the class instrument `D-156` chose is `structuredClone`,
+-// and `structuredClone` THROWS for BOTH a `Proxy` AND any object carrying a function — measured:
+-// `{ saveCall: () => {} }` and `new Proxy({}, {})` fail identically. `cfg.saveCall` is a function by
+-// definition, and `cfg.listeners[].listener` is too, so **every configuration the arm exists for is refused as
+-// if it were a Proxy**: `storeCreate(bindings, { journalLength, listeners: [], saveCall })` answers
+-// `AddressMalformed` — *"'cfg' is not a legal address segment in '', … the construction's cfg is a Proxy"*.
+-//
+-// **SO `C-W1` (construct · file tier · save through `saveCall` · seed through `initialImage` · read back), `C-W5`
+-// (the `file` tier with no caller spelling) AND ANY SEEDED STORE CANNOT BE WRITTEN HONESTLY YET** — a cell asserting the
+-// refusal would encode a defect as the design, and a cell asserting the construction would be red. **They land
+-// with `D-166`'s fix, which is the instrument's own question and the architect's.**
++// **THEY WERE HELD OUT FOR ONE REASON AND IT IS DISCHARGED AT ITS OWN SEAT.** The arm's class instrument is
++// `structuredClone` (`D-156`), and `structuredClone` throws for BOTH a `Proxy` AND any object carrying a function
++// (`{ saveCall: () => {} }` and `new Proxy({}, {})` fail identically, `D-166` item 1, measured) — so every `cfg`
++// the arm exists for was refused as *"a Proxy"* before any of it could be constructed, and **a cell asserting that
++// refusal would have encoded a defect as the design**. **The fix is the architect's and it splits the question**
++// (`D-167`, verbatim: *"The clone requirement is for data that has to enter the Rust store. constraints,
++// listeners, and the saveCall do not"*): the carrier gates are decided without the probe, the value crossing keeps
++// it. **THE PRICE IS DECLARED WHERE IT IS TAKEN** (`class-instrument.mjs`'s `isProxyOfCarrier`): a `Proxy` at a
++// carrier gate is not detected on this arm — and `CW-7` below is the cell that says the DATA half is unmoved.
++
++// ─────────────────────────────────────────────────────────────────────────────────────────────────────
++// **`C-W1` · THE ARM CONSTRUCTS THE STORE IT EXISTS FOR — `saveCall` IN, THE IMAGE OUT, THE IMAGE BACK IN**
++// ─────────────────────────────────────────────────────────────────────────────────────────────────────
++test('CW-1 · C-W1 — a `saveCall` store constructs, its `file`-tier write lands, the caller\'s saver takes the image '
++  + 'text naming the address, and a second store seeded with that image reads the value back', async () => {
++  const { glue, storeCreate } = await arm();
++  /** Every image the caller's saver was handed, in the order the store handed them over (`D-144` item 1: ONE position). */
++  const saved = [];
++  // **THE CONSTRUCTION IS THE ONE `D-166` MEASURED AS REFUSED** — `journalLength`, an empty listeners list and a
++  // `saveCall`, and no `filePath` (it is not in domain on this arm, `C-W2` above) — **and on this arm it is the
++  // whole of a durable store** (`D-154` item 4: `saveCall` + `initialImage` replace the path).
++  const store = storeCreate(glue, {
++    journalLength: 8,
++    listeners: [],
++    saveCall: (image) => {
++      saved.push(image);
++      // **THE VERDICT IS THE CALLER'S AND IT IS THE ONLY ONE THAT SAVES** (`D-146` item 2): anything that is not
++      // `{ success: true }` is the failed arm, the store rolls the write back and answers rank `15`
++      // `FileCommitFailed`. A cell that returned `undefined` here would drive the other arm and assert nothing.
++      return { success: true };
++    },
++  });
++  // **A FIFTEEN-MEMBER STORE** — `surface.md §2.4` item 9 (f)'s declared census, unmoved by the second realm and
++  // unmoved by this landing (`D-167` adds no member, no `cfg` key and no entry).
++  assert.equal(Object.getOwnPropertyNames(store).length, 15,
++    'the arm constructs the store the whole realm exists for: `saveCall` with no path, and the instance carries the '
++    + 'fifteen declared members — it read ' + JSON.stringify(Object.getOwnPropertyNames(store)));
++
++  // **A `file`-TIER WRITE LANDS.** On this arm there is no `filePath` to write to; the tier is lawful because the
++  // construction set `durable_without_path` with no caller spelling (`D-132` item 1's third entry condition).
++  const receipt = store.write(['c'], 'file', { a: 1 });
++  assert.equal(receipt.op.tier, 'file',
++    'the `file`-tier write LANDS on a `saveCall` store — the receipt\'s own op reads tier ' + JSON.stringify(receipt.op.tier));
++  assert.deepEqual(store.read(['c']), { a: 1 }, 'and the value is readable at its address afterwards');
++
++  // **THE CALLER'S SAVER RECEIVES THE IMAGE, AS TEXT, NAMING THE ADDRESS** (`D-144` item 1: one position; `D-137`
++  // item 2: the export marks nothing).
++  assert.equal(saved.length, 1, 'the passing write performed ONE save through the caller\'s function — it performed '
++    + saved.length);
++  const image = saved[0];
++  assert.equal(typeof image, 'string',
++    'the saver is handed the store\'s own IMAGE TEXT and never a record, a handle or a view — it was handed '
++    + (typeof image));
++  assert.ok(image.includes('c'),
++    'and the text names the address that moved: the image reads ' + JSON.stringify(image).slice(0, 160));
++
++  // **AND A SECOND STORE SEEDED WITH THAT IMAGE READS THE VALUE BACK** — `initialImage` is the only way into such a
++  // store (`D-165` item 1: the save channel is write-only by construction, so the copy the caller kept IS the
++  // ground truth, and this is the act that proves the copy is a lawful seed).
++  const seeded = storeCreate(glue, { journalLength: 8, listeners: [], initialImage: image });
++  assert.deepEqual(seeded.read(['c']), { a: 1 },
++    'the image the caller was handed SEEDS a store: the value the first store held is the value the second one reads');
++});
++
++// ─────────────────────────────────────────────────────────────────────────────────────────────────────
++// **`C-W5` · THE `file` TIER IS A FACT ABOUT THE CONSTRUCTION AND NOT ABOUT THE VERB**
++// ─────────────────────────────────────────────────────────────────────────────────────────────────────
++test('CW-5 · C-W5 — the same `file`-tier write lands on a `saveCall` store and is refused on a store with neither '
++  + '`saveCall` nor a path, so the tier is the construction\'s and not the verb\'s', async () => {
++  const { glue, storeCreate } = await arm();
++
++  // **ARM ONE: THE `saveCall` STORE.** The same construction `C-W1` drives, and the register it produces reads
++  // `file` — which is `docs/L1/wasm-realm.md` §3's coherence claim read at its own byte.
++  const saved = [];
++  const durable = storeCreate(glue, {
++    journalLength: 8,
++    listeners: [],
++    saveCall: (image) => { saved.push(image); return { success: true }; },
++  });
++  const durableWrite = attempt(() => durable.write(['t'], 'file', 1));
++  assert.equal(durableWrite.ok, true,
++    'a `file`-tier write lands on a `saveCall` store — it threw '
++    + (durableWrite.ok ? 'nothing' : String(durableWrite.caught?.status)));
++  assert.equal(durableWrite.value.op.tier, 'file', 'and its receipt names the tier the store is in');
++  // **AND THE READOUT IS THE STORE'S OWN** (`readTiered`): a leaf at a `file`-tier address answers its tier beside
++  // its value, so the claim is read at the datum and not inferred from the verb that wrote it.
++  assert.deepEqual(durable.readTiered(['t']), { _tier: 'file', value: 1 },
++    'the register itself reads `file` tier at the address — `file_path == \'\'` with the tier bit set by the '
++    + 'construction, no caller spelling anywhere (`D-132` item 1, third entry condition)');
++
++  // **ARM TWO: NEITHER `saveCall` NOR A PATH — THE `mem` STORE.** The SAME VERB, the SAME POSITIONS, the SAME TIER
++  // WORD, and the answer is the store's refusal: **a child anchor may not outrank its parent's tier**
++  // (`ParentAnchorMonotonicityViolation`), which is what a `file`-tier write asks of a `mem` store and gets.
++  const plain = storeCreate(glue, { journalLength: 8, listeners: [] });
++  const plainWrite = attempt(() => plain.write(['t'], 'file', 1));
++  assert.equal(plainWrite.ok, false, 'the identical write on a store with neither `saveCall` nor a path does NOT land');
++  assert.equal(statusOf(plainWrite), 'ParentAnchorMonotonicityViolation',
++    'and it answers the store\'s own declared refusal for a child anchor outranking its parent — not a package '
++    + 'code and not a host error: ' + statusOf(plainWrite));
++
++  // **SO THE TIER IS THE CONSTRUCTION'S.** One verb, two stores, two answers: the difference is what the caller
++  // spelled at `storeCreate` and nothing the write did.
++  assert.equal(saved.length, 1, 'and the durable store is the one that saved — the `mem` store performed no save '
++    + 'at all: ' + saved.length);
++});
+ 
+ // ─────────────────────────────────────────────────────────────────────────────────────────────────────
+ // **`C-W2` · THE ARM'S `cfg` DOMAIN — `filePath` IS NOT IN DOMAIN, AND THE EMPTY SEED IS REFUSED**

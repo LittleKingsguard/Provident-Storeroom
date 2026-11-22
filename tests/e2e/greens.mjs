@@ -1447,14 +1447,24 @@ const g10 = { all: [] };
       && Array.isArray(rec.discarded),
     rec ? `${Object.keys(rec).sort().join(',')} / own ${formOf(rec).members.join(',')}` : `threw ${fmt(w.err)}`);
   const op = rec?.op;
-  A('JSG-11.2', 'parameter-semantics.md §2.13; store §6.2', "the op has exactly the store's own eight members {address, after, before, compacted, kind, opId, seq, tier}",
-    op && membersAre(formOf(op), 'address,after,before,compacted,kind,opId,seq,tier'), op ? formOf(op).members.join(',') : 'no op');
+  // **⟶ AND JSG-11.2 IS RE-DERIVED `8 → 7` ON `2026-11-17`** (`strata/decisions.md` · `D-189` item 2): the
+  // op has exactly the store's own SEVEN members, because `compacted` is REMOVED from the record (not renamed
+  // and not deprecated). **The row's subject is unmoved** — the op's member set is the store's own — and only
+  // the set it is compared against moved.
+  A('JSG-11.2', 'parameter-semantics.md §2.13; store §6.2', "the op has exactly the store's own seven members {address, after, before, kind, opId, seq, tier}",
+    op && membersAre(formOf(op), 'address,after,before,kind,opId,seq,tier'), op ? formOf(op).members.join(',') : 'no op');
   A('JSG-11.3', 'store §6.2 property 3', 'opId is a non-empty string', typeof op?.opId === 'string' && op.opId.length > 0, fmt(op?.opId));
   A('JSG-11.4', 'store §6.2 property 4', "kind is exactly 'write'", op?.kind === 'write', fmt(op?.kind));
   A('JSG-11.5', 'store §6.2', 'address is the address the verb was called with, VERBATIM and in order', rel(op?.address, ['j']), fmt(op?.address));
   A('JSG-11.6', 'DD-39; store §6.2', "tier crosses as the string token 'mem'", op?.tier === 'mem', fmt(op?.tier));
   A('JSG-11.7', 'store §6.2', 'seq is a number >= 1 (strictly increasing from 1)', typeof op?.seq === 'number' && op.seq >= 1, fmt(op?.seq));
-  A('JSG-11.8', 'store §6.2; §6.4 M-9', 'a fresh entry is not compacted', op?.compacted === false, fmt(op?.compacted));
+  // **⟶ AND JSG-11.8 IS RE-DERIVED RATHER THAN RETIRED `2026-11-17`, BECAUSE ITS SUBJECT MOVED OFF THE RECORD
+  // AND ONTO THE ABSENCE** (`D-189` item 2). **The row read *"a fresh entry is not compacted"* and measured
+  // `op.compacted === false`** — a member that could hold one value, which is why the ruling dropped it. **What
+  // the row measures now is the removal itself**: the record carries no such key, so a member restored on any
+  // arm is visible here. **The id and its place in the count are unmoved; the figure it reads is.**
+  A('JSG-11.8', 'store §6.2 as re-derived 2026-11-17 (D-189 item 2); §6.4 M-9', 'a fresh entry carries NO `compacted` member — the flag is removed from the record, not renamed and not deprecated',
+    op !== undefined && op !== null && !formOf(op).members.includes('compacted'), op ? formOf(op).members.join(',') : 'no op');
   A('JSG-11.9', 'store §6.2 (BaseState)', 'before.present is false at an address whose pre-state was absent', op?.before?.present === false, fmt(op?.before));
   A('JSG-11.10', 'store §6.2 property 2', 'after.present is true and its value is EQUAL to the written value under §1.5', op?.after?.present === true && rel(op.after.value, V11), fmt(op?.after));
   A('JSG-11.11', 'parameter-semantics.md §2.14; store §3.6', 'watched is an array (possibly empty) and never undefined', Array.isArray(rec?.watched), fmt(rec?.watched));

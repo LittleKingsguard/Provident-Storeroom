@@ -1,0 +1,5 @@
+route: the path replaced by a regular file
+pre-image (before the path was replaced): {"a":111}
+caught: FileCommitFailed :: 'b' could not be committed to '/tmp/fts-residue-j1YJwP/store.json', the file write failed at '/tmp/fts-residue-j1YJwP/store.json'
+log kinds: [["constraint-check",null,"the constraint cB passed at [\"b\"]"],["outcome","KC-8","the per-op rollback met the store's own JournalOpUnknown at op-2"]]
+report.outcome=failed rollback=[{"opId":"op-2","answer":"JournalOpUnknown","failed":true,"undoneOps":[],"restoredTo":{"present":false},"checkpoint":null}]

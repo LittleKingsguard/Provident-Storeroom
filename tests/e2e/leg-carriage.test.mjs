@@ -50,7 +50,11 @@ function aRecord(handle) {
     op: {
       opId: 'op-' + handle, kind: 'write', address: ['a'], tier: 'mem',
       before: { present: false, value: undefined }, after: { present: true, value: 1 },
-      seq: 1, compacted: false,
+      seq: 1,
+      // **⟶ AND `compacted: false` IS DELETED FROM THIS FIXTURE `2026-11-17`** (`strata/decisions.md` ·
+      // `D-189` item 2): the append copies the op at the record's own SEVEN members (`state.mjs`'s
+      // `appendRepairLeg`), so a fixture carrying an eighth name would be handing the copy a member the record
+      // does not have — and the copy, which mints no key of its own, simply would not carry it.
     },
     triggered: [{ handle, address: ['a'] }],
   };

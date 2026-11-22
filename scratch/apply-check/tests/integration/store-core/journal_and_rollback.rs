@@ -1,0 +1,2617 @@
+//! `tests/journal_and_rollback.rs` — contract `§6` (`write-and-read.md §6`): what the journal is and what
+//! it tracks, its entry-formation rule and its bounded length with the compression trigger, the `JournalOp`
+//! and `BaseState` shapes, the `rollback` verb with its reach/scope/floor/direction/residue (`M-5`…`M-11`),
+//! and the journal's own closed surface.
+//!
+//! States enumerated for this concern, each driven below: one successful write; one failed write; a delete
+//! that removed a version; a delete that removed nothing; an un-compacted scope; a scope containing a
+//! compacted entry; an unknown op id; a foreign instance's op id; a blank/non-string op id; a rollback
+//! that is total over its scope; a rollback's own residue; the journal's non-addressability.
+
+// `D-5`'s move (`docs/L1/test-stratification.json`): this target stands one level below
+// `tests/integration/`, so the store's one scaffolding module is named by `#[path]` rather than by a
+// `mod support;` beside it (2026-10-25).
+#[path = "../support/mod.rs"]
+mod support;
+use support::*;
+
+// §6.1 item 1 + §6.2 — one entry per SUCCESSFUL `write`, and its `seq` is the entry's append ordinal,
+// strictly increasing from 1.
+// Drives: §6.1 item 1, §6.2
+#[test]
+fn s6_1_one_entry_per_successful_write() {
+    let mut store = new_store();
+    let a = ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    let b = ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(2.0)),
+        "§3.4 W-1",
+    );
+    let c = ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(3.0)),
+        "§3.4 W-1",
+    );
+    assert_eq!(
+        (a.op.seq, b.op.seq, c.op.seq),
+        (1, 2, 3),
+        "§6.2: strictly increasing from 1"
+    );
+}
+
+// §6.1 item 1 — one entry per SUCCESSFUL `delete` THAT REMOVED AT LEAST ONE VERSION. A delete returns no
+// op, so the entry is observed through the rollback's scope: the delete's entry lies in the subtree of the
+// earlier write's address and is undone with it (`M-5`), which restores what the delete removed.
+// Drives: §6.1 item 1
+#[test]
+fn s6_1_a_delete_that_removed_a_version_appends_an_entry_in_the_same_subtree() {
+    let mut store = new_store();
+    let w = ok(
+        store.write(
+            AddressArg::List(key(&["a"])),
+            w_mem(),
+            v_obj(&[("b", v_num(1.0))]),
+        ),
+        "§3.4 W-4",
+    );
+    ok(
+        store.delete(AddressArg::List(key(&["a", "b"])), none()),
+        "§6.1 item 1: one entry per successful delete",
+    );
+    let undone = ok(store.rollback(OpIdArg::Id(w.op.opId.clone())), "§6.4 M-5");
+    assert_eq!(
+        undone.undoneOps.len(),
+        2,
+        "§6.1 item 1: the delete's entry is in the write's subtree"
+    );
+    assert_eq!(
+        undone.undoneOps[1], w.op.opId,
+        "§6.4 M-7: the walk goes newest-first, so the write's own id is the OLDER of the two"
+    );
+    assert_ne!(
+        undone.undoneOps[0], w.op.opId,
+        "§6.1 item 1: the newer entry is the delete's, and a delete returns no op"
+    );
+    let e = failure(
+        store.read(AddressArg::List(key(&["a", "b"])), TierArg::Absent),
+        "§6.4 M-5",
+    );
+    assert_code(
+        &e,
+        "AddressNotFound",
+        "§6.4 M-5: both in-scope operations were undone, newest first",
+    );
+}
+
+// §6.1 item 1 — a delete that removed nothing (`D-3`) appends NO entry: the rollback's undone set holds
+// exactly the write's own entry.
+// Drives: §6.1 item 1
+#[test]
+fn s6_1_a_delete_that_removed_nothing_appends_no_entry() {
+    let mut store = new_store();
+    let w = ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    ok(
+        store.delete(AddressArg::List(key(&["a"])), t(Tier::Temp)),
+        "§4.4 D-3",
+    );
+    let undone = ok(store.rollback(OpIdArg::Id(w.op.opId.clone())), "§6.4 M-5");
+    assert_eq!(
+        undone.undoneOps,
+        vec![w.op.opId],
+        "§6.1 item 1: a delete that removed nothing appends no entry"
+    );
+}
+
+// §6.2 — the op's record shape carries every declared member, and `BaseState`'s `present` half records
+// whether the pre-state existed at all.
+// Drives: §6.2
+#[test]
+fn s6_2_the_op_carries_every_declared_member_and_both_state_halves() {
+    let mut store = new_store();
+    let w = ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_str("v")),
+        "§3.4 W-3",
+    );
+    assert!(
+        !w.op.opId.is_empty(),
+        "§6.2: a non-empty, store-unique string token"
+    );
+    assert_eq!(
+        w.op.kind,
+        JournalOpKind::Write,
+        "§6.2 property 4: `'write' | 'delete'`"
+    );
+    assert_eq!(
+        w.op.address,
+        key(&["a"]),
+        "§6.2: the address the verb was called with, VERBATIM"
+    );
+    assert_eq!(w.op.tier, Some(Tier::Mem), "§6.2: the write's single tier");
+    assert!(
+        !w.op.before.present,
+        "§6.2: `present: false` = the pre-state was absent"
+    );
+    assert!(w.op.after.present, "§6.2: the current-state half");
+    assert_eq!(
+        w.op.after.value,
+        v_str("v"),
+        "§6.2 property 2: `resolve(op.after, currentJournal)`"
+    );
+    assert_eq!(w.op.seq, 1, "§6.2: strictly increasing from 1");
+    assert!(
+        !w.op.compacted,
+        "§6.2: true once compressed into the base state"
+    );
+}
+
+// §6.2 property 2 — `resolve(op.after, currentJournal)` yields the state the store is in NOW at
+// `op.address`: the read at that address agrees with `op.after.value`.
+// Drives: §6.2 property 2
+#[test]
+fn s6_2_the_after_half_agrees_with_the_current_read() {
+    let mut store = new_store();
+    let value = v_obj(&[("k", v_arr(vec![v_num(1.0), v_bool(false)]))]);
+    let w = ok(
+        store.write(AddressArg::List(key(&["a"])), w_file(), value.clone()),
+        "§3.4 W-4",
+    );
+    assert_eq!(w.op.after.value, value, "§6.2 property 2");
+    assert_eq!(
+        read_at(&store, &key(&["a"])),
+        w.op.after.value,
+        "§6.2 property 2: the current state agrees"
+    );
+}
+
+// §6.2 property 1 — `reconstruct(op.before)` yields the ORIGINAL tree for the operation's reach, and the
+// rollback is the instrument that produces it. **THE SCOPE IS THE CONTRACT'S, AND IT IS TOTAL OVER IT:**
+// `§6.4` `M-5`/`M-8` (`DD-20`) undo EVERY operation touching the SAME subtree and offer no partial
+// rollback, and `§6.4` item 1 / `DD-21` measure that subtree against the WRITTEN ADDRESS's own subtree —
+// an entry is in scope iff `op.address` is a PREFIX of its address (itself or a descendant), at any tier.
+// So this drive rolls back an operation at a DESCENDANT address and the prefix test does NOT reach
+// upward: the older write at `["a"]` is OUT of scope (`§6.4` item 1, `A35`, `DD-21`), the named op is the
+// only entry undone, and its `before` half is what stands at the addressed node afterwards. Driving two
+// writes at ONE address would put NEITHER on the far side of `M-5`'s TEMPORAL floor — an entry at the same
+// address whose `seq` is ≥ the named op's is in scope — but this drive's older write is OUT of scope by the
+// SPATIAL test alone, which is the half `§6.4` item 1 (a)(i) keeps unmoved, so the two shapes are two halves
+// of ONE scope rule (amended 2026-10-16, `M-5` (a)(i)+(a)(ii)) and not two claims about it. `s6_4_m8` drives
+// the other half: an entry AT the named op's own `seq` IS in scope, which is item 1 (a)(ii)/(b)'s `≥`.
+// Drives: §6.2 property 1, §6.4 M-5, §6.4 item 1 / DD-21, §6.4 M-8 / DD-20
+#[test]
+fn s6_2_the_before_half_reconstructs_the_original_tree() {
+    let mut store = new_store();
+    let original = v_obj(&[("b", v_num(1.0))]);
+    ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), original.clone()),
+        "§3.4 W-4",
+    );
+    let second = ok(
+        store.write(AddressArg::List(key(&["a", "b"])), w_mem(), v_num(2.0)),
+        "§3.4 W-1",
+    );
+    assert!(
+        second.op.before.present,
+        "§6.2: the pre-operation value of the addressed node's own version — the ORIGINAL-STATE half"
+    );
+    assert_eq!(
+        second.op.before.value,
+        v_num(1.0),
+        "§6.2: `before` carries the value the operation replaced at the addressed node"
+    );
+    assert_eq!(
+        read_at(&store, &key(&["a", "b"])),
+        v_num(2.0),
+        "§3.4 W-1: the second write landed at the addressed node"
+    );
+    let r = ok(
+        store.rollback(OpIdArg::Id(second.op.opId.clone())),
+        "§6.4 M-5",
+    );
+    assert_eq!(
+        r.undoneOps,
+        vec![second.op.opId.clone()],
+        "§6.4 item 1 / DD-21: the scope is the written address's OWN subtree — the prefix test reaches \
+         the addressed entry and its descendants, and NOT the older entry at [\"a\"] above it"
+    );
+    assert!(
+        r.restoredTo.present,
+        "§6.3: the state the addressed subtree now stands at is the one the undo restored"
+    );
+    assert_eq!(
+        read_at(&store, &key(&["a", "b"])),
+        v_num(1.0),
+        "§6.2 property 1: `reconstruct(op.before)` yields the ORIGINAL tree for the operation's reach"
+    );
+    assert_eq!(
+        read_at(&store, &key(&["a"])),
+        original,
+        "§6.2 property 1: the original tree stands again, and the out-of-scope write above it survives"
+    );
+}
+
+// §6.2 property 3 — `op.opId` is a non-empty string, unique within the instance.
+#[test]
+fn s6_2_op_ids_are_unique_within_the_instance() {
+    let mut store = new_store();
+    let mut ids: Vec<String> = Vec::new();
+    for i in 0..12 {
+        let w = ok(
+            store.write(AddressArg::List(key(&["k"])), w_mem(), v_num(i as f64)),
+            "§3.4 W-1",
+        );
+        assert!(!w.op.opId.is_empty(), "§6.2 property 3: a non-empty string");
+        assert!(
+            !ids.contains(&w.op.opId),
+            "§6.2 property 3: unique within the instance"
+        );
+        ids.push(w.op.opId);
+    }
+}
+
+// §6.3 — `rollback(op: string)` echoes the id the caller passed and reports the op ids it undid in
+// REVERSE append order (newest first).
+// Drives: §6.3
+#[test]
+fn s6_3_rollback_echoes_the_op_id_and_orders_undone_ops_newest_first() {
+    let mut store = new_store();
+    let a = ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    let b = ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(2.0)),
+        "§3.4 W-1",
+    );
+    let c = ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(3.0)),
+        "§3.4 W-1",
+    );
+    let r: RollbackResult = ok(store.rollback(OpIdArg::Id(a.op.opId.clone())), "§6.3");
+    assert_eq!(r.opId, a.op.opId, "§6.3: the id the caller passed, echoed");
+    assert_eq!(
+        r.undoneOps,
+        vec![c.op.opId.clone(), b.op.opId.clone(), a.op.opId.clone()],
+        "§6.3: in REVERSE append order (newest first)"
+    );
+}
+
+// §6.3 + §6.4 item 3 (ii) — `restoredTo` IS THE STATE THE ADDRESSED SUBTREE ACTUALLY STANDS AT AFTER THE
+// ROLLBACK — PRESENT OR ABSENT, NEVER AN UNDONE ENTRY'S PRE-STATE.
+//
+// **⟶ RE-DERIVED 2026-10-16 (THE TEMPORAL STOP; `M-5`'s amended scope). THE SUPERSEDED PREMISE, NAMED SO IT
+// CANNOT BE RE-READ: this cell's own comment read *"after undoing every version ever written at that address,
+// the address holds nothing"* — the ADDRESS-WIDE reach `write-and-read.md §6.4` item 1's `⟶ AMENDED
+// 2026-10-16` clause WITHDREW.** **BOTH ARCHITECT'S RULINGS, VERBATIM: *"Add temporal stop to the rollback."*
+// AND *"Overshoot is a defect."*** **The operative scope is item 1's amendment (a): an entry `E` is in scope
+// IFF the SPATIAL test holds (`op.address` is a prefix of `E.address`; `DD-21`) **AND** the TEMPORAL test
+// holds — `E.seq` ≥ the named op's own `seq` — *"AN ENTRY AT OR AFTER THE NAMED OP, WITHIN ITS SUBTREE, AND
+// NOTHING OLDER"* (`≥` NOT `>`).** **So the earlier value at the SAME address STANDS: THE ADDRESS DOES NOT
+// HOLD NOTHING, and this cell now asserts what the clause says it holds.**
+//
+// **THE DECIDING CLAUSE IS §6.4 ITEM 3 (ii) (`write-and-read.md`, and `contract.md §6.4` item 3 (ii) at the
+// same bytes): `restoredTo` *"REPORTS THE STATE THE ADDRESSED SUBTREE ACTUALLY STANDS AT AFTER THE ROLLBACK —
+// PRESENT OR ABSENT, NEVER AN UNDONE ENTRY'S PRE-STATE"*.** **The window this cell drives is a
+// **pre-existing address**, not a fresh one, so §6.4 item 1A (B) — `{present: false}` for a FRESH-ADDRESS
+// window — does not decide it; what decides it is that the seed's entry is OUT of the rollback's temporal
+// scope (`seq` 1 < the named op's `seq` 2) and is therefore standing when the walk finishes.**
+// **`restoredTo` is read here as the record of `read` that item 1A refuses AS THE PROPERTY'S TEST** — on THIS
+// window the two readings agree, because the seed's entry was never reached, so no compression and no
+// overshoot can be confused with each other.**
+//
+// **THE OBSERVABLE IS ITEM 1A'S, NOT A PLAIN `read`:** **(A1) `undoneOps` CONTAINS NO `opId` WHOSE ENTRY LIES
+// AT OR UNDER THE ROLLED-BACK ADDRESS WITH `seq` < THE NAMED OP'S** — read on EVERY window, floor-met or not;
+// **AND (A2) WHERE CALLS RETURNED AND AT LEAST ONE UNDID AN ENTRY AT OR UNDER THAT ADDRESS, THE SEED'S OWN
+// `opId` IS ABSENT FROM THE UNION OF THE RETURNED `undoneOps`** — a MEMBERSHIP test over the id the seeding
+// write itself returned, never an absence inferred from a value. **The plain `read` below is DRIVEN and
+// asserted, exactly as item 1's amendment prints it (*"has found the property when the seed still reads"*),
+// but it is (A2)'s SUPPORTING evidence and NOT the discriminating one** (`§6.4` item 1A's own retained-but-
+// demoted note): a store that OVERSHOT the temporal floor also leaves the seed reading by compression, so no
+// cell may rest on that observation alone.
+//
+// Drives: §6.3, §6.4 item 1 (M-5, as amended (a)(i)+(a)(ii)), §6.4 item 1A (A1) and (A2), §6.4 item 3 (ii),
+//         §6.4 M-7 (the walk stops at the named op), §6.2 property 3 (the id the caller holds)
+#[test]
+fn s6_3_restored_to_is_the_state_the_addressed_subtree_now_stands_at() {
+    let mut store = new_store();
+    let seed = ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3: the seed stands BEFORE the named op, so it is outside the temporal scope",
+    );
+    let second = ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(2.0)),
+        "§3.4 W-1",
+    );
+    // The two `seq`s the scope is measured in, asserted rather than assumed (`§6.2`: strictly increasing
+    // from 1) — the temporal test is `E.seq ≥ the named op's seq`, and this cell's whole window is that
+    // the seed is strictly older.
+    assert_eq!(
+        (seed.op.seq, second.op.seq),
+        (1, 2),
+        "§6.2: the seed's `seq` is the named op's - 1, so `M-5` (a)(ii)'s `E.seq >= floor` excludes it"
+    );
+    let r = ok(store.rollback(OpIdArg::Id(second.op.opId.clone())), "§6.3");
+    // **(A1)** — the performed set names nothing older than the named op, on this window and every window.
+    assert_eq!(
+        r.undoneOps,
+        vec![second.op.opId.clone()],
+        "§6.4 item 1A (A1) + M-7: the scope is the named op AT OR AFTER its `seq` (>=, item 1 (a)(ii)/(b)), \
+         so the walk stops at the named op and the seed's entry — `seq` 1, older than the floor — is in NO \
+         walk; a second member here would be the OVERSHOOT the second ruling names a defect"
+    );
+    // **(A2)** — a membership test over the id the seeding write itself returned, never an absence inferred
+    // from a value.
+    assert!(
+        !r.undoneOps.contains(&seed.op.opId),
+        "§6.4 item 1A (A2): the seed's own `opId` is ABSENT from `undoneOps` — the seed's entry lies at the \
+         rolled-back address and its `seq` is below the floor"
+    );
+    // **§6.4 item 3 (ii)** — `restoredTo` is the state the address ACTUALLY stands at: the seed PRESENT, not
+    // the undone entry's pre-state (which was ABSENT).
+    assert!(
+        r.restoredTo.present,
+        "§6.4 item 3 (ii): the addressed subtree STANDS with the seed still there; the undone entry's \
+         pre-state was absent and the clause forbids reporting THAT"
+    );
+    // The plain `read` — item 1's amendment's own words, and (A2)'s supporting evidence only.
+    assert_eq!(
+        read_at(&store, &key(&["a"])),
+        v_num(1.0),
+        "§6.4 item 1 (M-5, as amended): *\"a pre-existing value at the rolled-back op's own address survives \
+         the rollback that reverses that op, and the caller finds it where it stood\"* — the seed value, \
+         read back"
+    );
+}
+
+// §6.4 M-5 (P: §15 · A35) — a rollback undoes EVERY operation touching the SAME subtree: not the last op
+// alone, and not the failing op's own ops alone; and the scope is measured against the written address's
+// own subtree, so an unrelated address is untouched.
+// Drives: §6.4 M-5 (P, §15 · A35)
+#[test]
+fn s6_4_m5_a_rollback_undoes_every_operation_touching_the_same_subtree() {
+    let mut store = new_store();
+    let root = ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_obj(&[])),
+        "§3.4 W-4",
+    );
+    let child = ok(
+        store.write(AddressArg::List(key(&["a", "b"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    ok(
+        store.write(AddressArg::List(key(&["x"])), w_mem(), v_str("unrelated")),
+        "§3.4 W-3",
+    );
+    let r = ok(
+        store.rollback(OpIdArg::Id(root.op.opId.clone())),
+        "§6.4 M-5",
+    );
+    assert_eq!(
+        r.undoneOps,
+        vec![child.op.opId, root.op.opId],
+        "§6.4 M-5: every operation in the subtree"
+    );
+    assert_eq!(
+        read_at(&store, &key(&["x"])),
+        v_str("unrelated"),
+        "§0.2 DD-21: not a store-wide rollback"
+    );
+}
+
+// §6.4 M-5 + §0.2 DD-21 — the scope is measured at ANY tier: two operations at one address at two
+// different tiers are both in scope.
+// Drives: §6.4 M-5, §0.2 DD-21
+#[test]
+fn s6_4_m5_the_scope_reaches_every_tier_at_the_address() {
+    let mut store = new_store();
+    let durable = ok(
+        store.write(AddressArg::List(key(&["a"])), w_file(), v_num(1.0)),
+        "§3.4 W-3 at file",
+    );
+    let trial = ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(2.0)),
+        "§3.4 W-5 at mem",
+    );
+    let r = ok(
+        store.rollback(OpIdArg::Id(durable.op.opId.clone())),
+        "§6.4 M-5 / DD-21",
+    );
+    assert_eq!(
+        r.undoneOps,
+        vec![trial.op.opId, durable.op.opId],
+        "§0.2 DD-21: at ANY tier"
+    );
+}
+
+// §6.4 M-8 — a rollback is TOTAL over its scope: no partial or subset rollback is available, so undoing
+// the oldest operation undoes every later in-scope operation with it.
+// Drives: §6.4 M-8
+#[test]
+fn s6_4_m8_a_rollback_is_total_over_its_scope() {
+    let mut store = new_store();
+    let first = ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(2.0)),
+        "§3.4 W-1",
+    );
+    ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(3.0)),
+        "§3.4 W-1",
+    );
+    let r = ok(
+        store.rollback(OpIdArg::Id(first.op.opId.clone())),
+        "§6.4 M-8",
+    );
+    assert_eq!(
+        r.undoneOps.len(),
+        3,
+        "§0.2 DD-20: it undoes EVERY un-compacted operation in scope"
+    );
+    let e = failure(
+        store.read(AddressArg::List(key(&["a"])), TierArg::Absent),
+        "§6.4 M-8",
+    );
+    assert_code(
+        &e,
+        "AddressNotFound",
+        "§6.4 M-8: no partial rollback is available",
+    );
+}
+
+// **⟶ RE-DERIVED 2026-11-17 FOR THE THIRD TIME — `D-164` ITEM 2 (`strata/decisions.md`), AND THE MOVEMENT IS
+// RECORDED RATHER THAN MADE SILENTLY.** The cell was filed on `§6.4 M-6` twice: *"a rollback whose scope includes a
+// compacted entry fails `RollbackCompacted` and undoes NOTHING"*, and then — after `D-108` item 1 made that arm
+// REGENERATE from the durable ground truth — *"a rollback over a compacted scope regenerates the last valid
+// state"*. **`D-160` ITEM 1 then made the compaction a DROP and item 3 gave the dropped op a refusal decided by the
+// floor's watermark, and ONE PASS READ THAT AS THE WHOLE ARM** — the architect, verbatim, correcting it:
+// ***"108 was never supposed to retain compacted entries, getting rid of entries is the point of the compaction.
+// The resolution if an attempted write has to be rolled back but the required op has been compacted is to
+// regenerate the store from the file, or otherwise signal the client to recover if no file can be retrieved. This
+// was never ambiguous, 108 is a misread"*** (`D-164` item 2). **SO THE ARM IS TWO-WAY AND THIS CELL DRIVES BOTH
+// SHAPES AT ONE WINDOW**: **the store WITH a path REGENERATES and RETURNS the walk's own record** — `undoneOps`
+// empty because nothing was there to undo, and `restoredTo` the state the address stands in after the
+// regeneration — **while the store with NO retrievable file, the path-less `saveCall` arm whose durable ground
+// truth lives with the caller, answers `RollbackCompacted`, and that answer IS the client's signal to recover from
+// its own image.** **The watermark is a DISCRIMINATOR and not the arm's answer** (`D-164` item 4), so neither shape
+// answers the two refusals the ids' retention used to buy: the signal is the file's absence and `JournalOpUnknown`
+// is the id's.
+#[test]
+fn s6_4_m6_a_rollback_over_a_dropped_op_regenerates_from_the_file_or_signals_the_path_less_store() {
+    // ── (a) THE STORE WITH A PATH: IT REGENERATES AND RETURNS (`D-164` items 1 and 2).
+    let mut store = new_store_with_journal(1);
+    let first = ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(2.0)),
+        "§3.4 W-1 / D-160 item 1: the append DROPS the oldest entry",
+    );
+    let performed = ok(
+        store.rollback(OpIdArg::Id(first.op.opId.clone())),
+        "§6.4 M-6 / D-164 item 2 (a): a dropped op on a store WITH a retrievable file REGENERATES and RETURNS",
+    );
+    assert_eq!(
+        performed.opId, first.op.opId,
+        "§6.3: the record echoes the op id the caller named"
+    );
+    assert!(
+        performed.undoneOps.is_empty(),
+        "§6.3 / D-164 item 2 (a): `undoneOps` is the ids the reversal UNDID, and NOTHING was there to undo — the          op the caller named is gone (`D-160` item 1); got {:?}",
+        performed.undoneOps
+    );
+    assert!(
+        performed.restoredTo.present,
+        "§6.3 / D-164 item 2 (a): `restoredTo` is the state the address stands in AFTER the regeneration — the          register the replay left is not empty, because the window's RETAINED entry was replayed onto its base"
+    );
+    assert_eq!(
+        read_at(&store, &key(&["a"])),
+        v_num(2.0),
+        "D-164 item 1: the retained entry is replayed outside the (empty) scope and the dropped one is gone, so          the address answers what the window still holds"
+    );
+
+    // ── (b) THE STORE WITH NO RETRIEVABLE FILE: IT ANSWERS THE TOKEN, WHICH IS THE CLIENT'S SIGNAL (`D-164` item 2).
+    let mut pathless = new_mem_store_with_journal(1);
+    let pathless_first = ok(
+        pathless.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    ok(
+        pathless.write(AddressArg::List(key(&["a"])), w_mem(), v_num(2.0)),
+        "§3.4 W-1: the same window, and the same drop",
+    );
+    let refused = failure(
+        pathless.rollback(OpIdArg::Id(pathless_first.op.opId.clone())),
+        "§6.4 M-6 / D-164 item 2 (b): no file can be retrieved, so the store signals the client",
+    );
+    assert_code(
+        &refused,
+        "RollbackCompacted",
+        "D-164 item 2 (b): the token is the SIGNAL and not the arm's first answer — the store has nothing to \
+         rebuild from, so it says so rather than inventing a base; the token keeps its rank, its code and its \
+         generated message, and only its PRODUCER SET moved (`D-118` item 2)",
+    );
+    assert_eq!(
+        read_at(&pathless, &key(&["a"])),
+        v_num(2.0),
+        "§6.4 M-10: a signal undoes NOTHING — the state the second write left stands"
+    );
+}
+
+// §6.6's floor + §6.4 M-6 (`D-164` item 2's arm) — **THE COMPACTED FLOOR AND THE FILE'S IMAGE ARE TWO BASES
+// BECAUSE THEY ANSWER TWO QUESTIONS, AND THIS CELL PINS THE DIFFERENCE SO A LATER PASS CANNOT UNIFY THEM BY
+// TIDINESS.**
+//
+// **THE RULING, QUOTED AT ITS OWN SENTENCE** (`strata/decisions.md` · `D-179` item 4): ***"`Store::regenerate`'s
+// `apply_register(&self.born)` is unmoved and marked as deliberately NOT this base — the two answer different
+// questions."*** **AND `D-180` ITEM 6 NAMED THE RISK THIS CELL EXISTS FOR**: *"`replayMark` and `regenerate`
+// answer different questions and that is DELIBERATE (`D-179` item 4): `regenerate` keeps `born` because it
+// regenerates from the file image (`D-164`'s arm). **Named here so a later pass does not unify them by
+// tidiness.**"*
+//
+// **THE TWO QUESTIONS, IN THE STORE'S OWN WORDS.** A REPLAY re-states a POSITION of the journal's own record, so
+// its base is the state the record already describes before the entries it applies — **`Store::floor_state`, the
+// state immediately after the last entry `D-160`'s compaction dropped** (`D-179` item 1; `replayMark`'s one base,
+// with the uncompacted case an equality and not a branch). A REGENERATION re-bases a REVERSAL on what can be
+// RETRIEVED, so its base is **the file's image**, the durable state, and the entries it applies are every
+// retained entry OUTSIDE the reversal's scope (`D-164` item 1's arm; `D-110` item 3's fallback).
+//
+// **THE FIXTURE IS THE ONE STATE THAT SEPARATES THEM — A STORE THAT HAS BOTH**: a journal the compaction has
+// dropped from (so the floor has advanced past `born`) **and** a booted file image (so the regeneration has a
+// retrievable base). `journalLength: 2`, two `mem` writes after the boot, and the third append drops the first:
+// **the floor then carries the dropped entry's effect and the image does not, and the retained entries are on the
+// image and not on the floor.** The two paths are driven one after the other on that one store, each landing read
+// before the next runs, so every figure below is attributable to the path that produced it.
+//
+// **AND THE FAILURE THIS CELL IS BUILT TO GIVE**: unify either base with the other by tidiness — `replayMark`'s
+// `floor_state` → `born`, or `regenerate`'s image → `floor_state` — and one half of the difference below goes
+// red, by name, at the path that moved. Neither unification is a legal change (`D-179` item 4), and this is the
+// only byte of the tree that would say so.
+//
+// Drives: §6.6, §6.4 M-6, `D-164` item 2 (a), `D-179` items 1 and 4
+#[test]
+fn d179_the_compacteds_floor_and_the_files_image_are_two_bases_and_both_paths_are_driven() {
+    // ── (0) THE IMAGE: A FIRST STORE WRITES ONE `file`-TIER MEMBER AND THE TERMINAL ARM'S ACT COMMITS IT.
+    let path = fresh_path("d179-two-bases");
+    let mut image_store = ok(
+        storeCreate(&cfg_at(&path, 8)),
+        "§7.1: the three arguments valid — an instance is returned",
+    );
+    let seeded = ok(
+        image_store.write(AddressArg::List(key(&["x"])), w_file(), v_num(1.0)),
+        "§3.4 W-3 at file: the durable member the image will carry",
+    );
+    ok(
+        commit_at_the_terminal_arm(&mut image_store, &seeded.op.opId),
+        "§7.2 item 2 as amended / §2.11 clause 2: the terminal arm's own act puts the `file` tier at the path",
+    );
+    drop(image_store);
+
+    // ── (1) THE STORE WITH BOTH: IT BOOTS THAT IMAGE, AND ITS BOUND IS TWO SO THE THIRD APPEND DROPS THE FIRST.
+    let mut store = ok(
+        storeCreate(&cfg_at(&path, 2)),
+        "§7.2 item 6: a fresh instance over an equal `cfg.filePath` boot-loads the image",
+    );
+    assert_eq!(
+        read_at(&store, &key(&["x"])),
+        v_num(1.0),
+        "§7.2 item 6 / D-110 item 1: the register's own key is LOADED, so this store has a BOOTED IMAGE and not \
+         merely a path — which is the half of the fixture the regeneration's base is taken from"
+    );
+    let a = ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3: the entry the compaction is about to drop",
+    );
+    ok(
+        store.write(AddressArg::List(key(&["b"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3: a retained entry, outside every later scope",
+    );
+    ok(
+        store.write(AddressArg::List(key(&["c"])), w_mem(), v_num(1.0)),
+        "§6.1 item 5 / D-160 item 1: the third append DROPS the oldest entry — `a`'s",
+    );
+
+    // ── (2) THE REPLAY'S PATH — `restoreFloor`, WHOSE BASE IS THE COMPACTED FLOOR AND NOT THE IMAGE.
+    ok(
+        store.restoreFloor(),
+        "§6.6 / D-178 / D-179: the floor is a mark and a mark is a replay; `up_to = None` is its spelling",
+    );
+    assert_eq!(
+        ok(
+            store.read(AddressArg::List(key(&["a"])), none()),
+            "**D-179 item 1 — THE DROPPED ENTRY'S EFFECT STANDS ON THE FLOOR.** The compaction dropped `a`'s \
+             entry, so no retained entry can put `a` back and the only base that carries it is the compacted \
+             floor; a replay that began at `born` (or at the file's image) answers `AddressNotFound` here",
+        ),
+        v_num(1.0),
+        "and its VALUE is the one the dropped entry left behind"
+    );
+    assert_code(
+        &failure(
+            store.read(AddressArg::List(key(&["b"])), none()),
+            "the floor is a POSITION and not the journal's head: nothing above it is applied",
+        ),
+        "AddressNotFound",
+        "**AND THE RETAINED ENTRIES ARE NOT ON THE FLOOR** — `b` stands only above it, so the replay that applies \
+         NONE of them answers the position the record describes and not the head",
+    );
+    assert_eq!(
+        read_at(&store, &key(&["x"])),
+        v_num(1.0),
+        "the durable member is on the floor too, which is why the floor is 'the state after the last dropped \
+         entry' and not 'the creation state'"
+    );
+
+    // ── (3) THE REGENERATION'S PATH — `rollback` OVER THE DROPPED OP, WHOSE BASE IS THE FILE'S IMAGE.
+    let performed = ok(
+        store.rollback(OpIdArg::Id(a.op.opId.clone())),
+        "§6.4 M-6 / D-164 item 2 (a): a dropped op on a store WITH a retrievable file REGENERATES and RETURNS",
+    );
+    assert!(
+        performed.undoneOps.is_empty(),
+        "D-164 item 2 (a): `undoneOps` is the ids the reversal UNDID and nothing was there to undo — the op the \
+         caller named is gone; got {:?}",
+        performed.undoneOps
+    );
+    assert_code(
+        &failure(
+            store.read(AddressArg::List(key(&["a"])), none()),
+            "the regeneration's base is the FILE's image, which never carried `a`",
+        ),
+        "AddressNotFound",
+        "**D-179 ITEM 4 — `regenerate` KEEPS ITS OWN BASE, AND THIS IS THE BYTE THAT SHOWS IT.** `a`'s effect is \
+         on the compacted floor and NOT on the image, so the two paths land on DIFFERENT states from the same \
+         journal: the replay answered `1` here and the regeneration answers `AddressNotFound`. **Unifying the two \
+         bases would make exactly one of these two assertions fail**, which is what this cell exists to do"
+    );
+    assert_eq!(
+        read_at(&store, &key(&["b"])),
+        v_num(1.0),
+        "D-164 item 1: the retained entry is replayed OUTSIDE the (empty) scope, because the regeneration applies \
+         the journal's retained entries onto the image — the half the floor never reaches"
+    );
+    assert_eq!(
+        read_at(&store, &key(&["c"])),
+        v_num(1.0),
+        "and so is the second retained entry: the regeneration's state is the image PLUS the journal, which is \
+         what makes it a different state and not a different spelling of the same one"
+    );
+    assert_eq!(
+        read_at(&store, &key(&["x"])),
+        v_num(1.0),
+        "**AND THE DURABLE MEMBER SURVIVES BOTH PATHS** — it is on the floor and on the image, so it is the one \
+         member the difference is NOT about (`D-164` item 1: the regeneration never refuses on the image)"
+    );
+}
+
+// §6.1 item 5 (`PAR-7`'s observable) + §6.4 M-6 — with `journalLength = n`, after `n + 1` appends the
+// OLDEST entries are DROPPED and at most `n` remain: an operation outside the dropped entry's subtree still
+// rolls back, and the dropped one answers the floor.
+// Drives: §6.1 item 5 (, §6.4 M-6
+//
+// **⟶ RE-DERIVED 2026-11-17 FOR THE SECOND TIME — `D-164` ITEM 2 (`strata/decisions.md`): THE TRIGGER'S VERB IS
+// THE DROP AND THE DROPPED ID'S ARM IS TWO-WAY.** The cell was filed as *"the OLDEST entries are compacted"* and
+// driven through `D-108` item 1's regeneration; **`D-160` item 1 made the compaction a DROP** — *"the architect,
+// verbatim: 'Compaction dropping history is the point'"* — **and one pass read the dropped id's refusal as the
+// arm's whole answer, which `D-164` item 2 corrects**: *"The resolution if an attempted write has to be rolled back
+// but the required op has been compacted is to regenerate the store from the file, or otherwise signal the client to
+// recover if no file can be retrieved."* **So the dropped id on this cell's own path-ful store REGENERATES AND
+// RETURNS**, the op the window still holds reverses as it always did, and **`journalLength`'s bound is the fact this
+// cell keeps: at most `n` entries stand.**
+#[test]
+fn s6_1_item5_the_compression_trigger_drops_the_oldest_entries() {
+    let mut store = new_store_with_journal(2);
+    let first = ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    let second = ok(
+        store.write(AddressArg::List(key(&["b"])), w_mem(), v_num(2.0)),
+        "§3.4 W-3",
+    );
+    ok(
+        store.write(AddressArg::List(key(&["c"])), w_mem(), v_num(3.0)),
+        "§3.4 W-3: the third append triggers it",
+    );
+    let regenerated = ok(
+        store.rollback(OpIdArg::Id(first.op.opId.clone())),
+        "§6.1 item 5 / D-164 item 2 (a): the oldest entry is DROPPED, and the reversal that names it REGENERATES \
+         from the store's own file and RETURNS",
+    );
+    assert!(
+        regenerated.undoneOps.is_empty(),
+        "D-164 item 2 (a): nothing was undone — the entry the caller named is gone; got {:?}",
+        regenerated.undoneOps
+    );
+    assert_eq!(
+        read_at(&store, &key(&["b"])),
+        v_num(2.0),
+        "D-164 item 1: the retained entries are replayed outside the (empty) scope, so an op the window still \
+         holds answers its version after the regeneration"
+    );
+    ok(
+        store.rollback(OpIdArg::Id(second.op.opId.clone())),
+        "§6.1 item 5: at most `n` entries stand, and an operation the window still holds rolls back",
+    );
+}
+
+// §6.4 M-9 — a rollback ITSELF appends NO journal entry: the next write's `seq` continues the append
+// ordinal as though the rollback had not happened.
+// Drives: §6.4 M-9
+#[test]
+fn s6_4_m9_a_rollback_appends_no_journal_entry() {
+    let mut store = new_store();
+    let first = ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(2.0)),
+        "§3.4 W-1",
+    );
+    ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(3.0)),
+        "§3.4 W-1",
+    );
+    ok(
+        store.rollback(OpIdArg::Id(first.op.opId.clone())),
+        "§6.4 M-9",
+    );
+    let next = ok(
+        store.write(AddressArg::List(key(&["z"])), w_mem(), v_num(9.0)),
+        "§3.4 W-3",
+    );
+    assert_eq!(
+        next.op.seq, 4,
+        "§6.4 M-9: the journal records store changes, and a rollback is not one"
+    );
+}
+
+// §6.4 M-9 — the undone entries are marked `compacted: true` and are no longer in any later walk's scope:
+// a second rollback of the same op id fails RollbackCompacted.
+// Drives: §6.4 M-9
+#[test]
+fn s6_4_m9_the_undone_entries_are_out_of_any_later_walk_s_scope() {
+    let mut store = new_store();
+    let first = ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    ok(
+        store.rollback(OpIdArg::Id(first.op.opId.clone())),
+        "§6.4 M-9: the entry is undone",
+    );
+    // **⟶ RE-DERIVED 2026-11-02 — `D-108` ITEM 1.** The second reversal was filed as FAILING
+    // `RollbackCompacted`. **It now RETURNS**, and the fact the cell pins is unchanged and stronger: the
+    // undone entry is OUT OF A LATER WALK'S SCOPE — the replay does not re-instate a spent entry (`M-9`'s one
+    // predicate read at `PIN-12` (ii)'s filter), so a second reversal does not undo the first.
+    let again = ok(
+        store.rollback(OpIdArg::Id(first.op.opId.clone())),
+        "§6.4 M-9 / D-108 item 1: a later walk does not re-instate an undone entry, and the arm returns",
+    );
+    let _ = again;
+    assert!(
+        store.read(AddressArg::List(key(&["a"])), none()).is_err(),
+        "§6.4 M-9: an undone entry stays out of scope — the reverted version is not replayed back"
+    );
+}
+
+// §6.4 M-10 — a rollback is ATOMIC: if it fails, the store is unchanged.
+// **⟶ RE-DERIVED 2026-11-02 — `D-118` ITEM 2, AND THE FAILING ARM IS RE-POINTED BECAUSE THE OLD ONE NO LONGER
+// FAILS.** `M-10`'s subject — *"if it fails, the store is unchanged"* — is unmoved and is what this cell drives;
+// **what moved is the population of arms that FAIL.** The previous derivation took `D-109` item 1's narrowed
+// `RollbackCompacted` — a compacted candidate set over a `filePath` whose image cannot be read — as its fixture.
+// **`D-118` item 1 removes that arm: an unreadable image is treated as NO image at all, the reversal rebuilds from
+// `Store::born` and RETURNS, so no act of this tree produces the token (`D-118` item 2) and that fixture is no
+// longer a failing one.** **So the cell is driven on the arms that DO fail and no assertion is weakened:** the
+// journal-lookup arm (`JournalOpUnknown`, `M-11`'s own code) on a store whose register and journal both carry
+// state, and the argument arm (`OpIdArg::Absent`, `§8.1` #1). **For each, the WHOLE register is read before and
+// after and the journal's own sequence counter is read through the next write, so "unchanged" is the memory's
+// state and the record's — not a single address's.** **`M-6`'s all-or-nothing floor is NOT this cell's subject and
+// is not lost: its regenerating answer is `s6_4_m6_*`'s and the compaction arm's creation-state rebuild is the
+// fail-set's `s8_1_11_*` cell's.**
+#[test]
+fn s6_4_m10_a_failed_rollback_leaves_the_store_unchanged() {
+    // THE STATE THE FAILING CALLS MUST NOT MOVE: two addresses at two tiers, one of them a container, plus the
+    // journal's own appends.
+    let mut store = new_store();
+    ok(
+        store.write(
+            AddressArg::List(key(&["a"])),
+            w_mem(),
+            v_obj(&[("b", v_num(2.0))]),
+        ),
+        "§3.4 W-4: a map at ['a']",
+    );
+    let c = ok(
+        store.write(AddressArg::List(key(&["c"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3: a leaf at ['c']",
+    );
+    let before = read_at(&store, &empty_address());
+    // THE JOURNAL'S OWN COUNTER, READ THROUGH THE LAST APPEND IT NAMED — the store exposes no journal accessor,
+    // and `JournalOp.seq` IS the record's own ordinal (`§6.2`).
+    let before_seq = c.op.seq;
+
+    // (1) THE JOURNAL-LOOKUP ARM — a well-formed id this instance's journal does not hold (`§6.4` `M-11`).
+    let unknown = failure(
+        store.rollback(OpIdArg::Id("no-such-op".into())),
+        "§6.4 M-10 over M-11's own failing arm",
+    );
+    assert_code(&unknown, "JournalOpUnknown", "§8.1 #10");
+    assert_eq!(
+        read_at(&store, &empty_address()),
+        before,
+        "§6.4 M-10: if it fails, the store is unchanged — the WHOLE register, not one address"
+    );
+
+    // (2) THE ARGUMENT ARM — the absent operand answers the address-malformed member before any walk.
+    let absent = failure(
+        store.rollback(OpIdArg::Absent),
+        "§6.4 M-10 over §8.1 #1's failing arm",
+    );
+    assert_code(&absent, "AddressMalformed", "§8.1 #1");
+    assert_eq!(
+        read_at(&store, &empty_address()),
+        before,
+        "§6.4 M-10: and the argument arm leaves the register unchanged too"
+    );
+
+    // (3) **AND THE RECORD IS UNMOVED** — no entry was removed, re-ordered or appended by either failure, which the
+    // journal's own sequence counter states through the next append (`M-9`; `DD-30`).
+    let next = ok(
+        store.write(AddressArg::List(key(&["d"])), w_mem(), v_num(3.0)),
+        "§3.4 W-3: the append that reads the counter",
+    );
+    assert_eq!(
+        next.op.seq,
+        before_seq + 1,
+        "§6.4 M-10: no `seq` was stepped by either failure — the next append names {} where the last one before \
+         the failing calls named {before_seq}",
+        before_seq + 1
+    );
+}
+
+// §6.4 M-11 — an unknown op id fails JournalOpUnknown: a well-formed string the instance's journal does
+// not hold.
+// Drives: §6.4 M-11
+#[test]
+fn s6_4_m11_an_unknown_op_id_fails_journal_op_unknown() {
+    let mut store = new_store();
+    ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    let e = failure(
+        store.rollback(OpIdArg::Id("no-such-op".into())),
+        "§6.4 M-11",
+    );
+    assert_code(&e, "JournalOpUnknown", "§8.1 #10");
+}
+
+// PAR-10's outside list — a FOREIGN instance's op id is a well-formed string this instance's journal does
+// not hold: JournalOpUnknown (uniqueness is per instance and per session).
+// Drives: § (no clause found)
+#[test]
+fn par_10_a_foreign_instance_s_op_id_fails_journal_op_unknown() {
+    let mut a = new_store();
+    let mut b = new_store();
+    let w = ok(
+        a.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    ok(
+        b.write(AddressArg::List(key(&["b"])), w_mem(), v_num(2.0)),
+        "§3.4 W-3",
+    );
+    let e = failure(
+        b.rollback(OpIdArg::Id(w.op.opId.clone())),
+        "PAR-10: a foreign instance's id",
+    );
+    assert_code(
+        &e,
+        "JournalOpUnknown",
+        "PAR-10: the id is not one this instance's journal holds",
+    );
+    ok(
+        a.rollback(OpIdArg::Id(w.op.opId)),
+        "PAR-10: the id belongs to its own instance",
+    );
+}
+
+// PAR-10's outside list — a blank string, a non-string, `null`, `undefined` or an ABSENT op id is a
+// malformed identity argument: AddressMalformed.
+// Drives: § (no clause found)
+#[test]
+fn par_10_a_malformed_op_id_fails_address_malformed() {
+    let mut store = new_store();
+    ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    for arg in [
+        OpIdArg::Id(String::new()),
+        OpIdArg::Null,
+        OpIdArg::Undefined,
+        OpIdArg::Absent,
+        OpIdArg::NonString(1),
+    ] {
+        let e = failure(store.rollback(arg), "PAR-10's declared answer");
+        assert_code(
+            &e,
+            "AddressMalformed",
+            "PAR-10: a malformed identity argument",
+        );
+    }
+}
+
+// §6.3's NEGATIVE — the journal is not readable, enumerable, addressable or deletable by any other call:
+// no `findAddress` path reaches an entry.
+// Drives: §6.3
+#[test]
+fn s6_3_the_journal_is_not_addressable() {
+    let mut store = new_store();
+    let w = ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    let e = failure(
+        store.findAddress(
+            AddressArg::List(key(&[w.op.opId.as_str()])),
+            TierArg::Absent,
+        ),
+        "§6.3: no `findAddress` path reaches an entry",
+    );
+    assert_code(
+        &e,
+        "AddressNotFound",
+        "§6.3: the journal is CARRIER-INTERNAL",
+    );
+    assert_eq!(
+        read_at(&store, &empty_address()),
+        v_obj(&[("a", v_num(1.0))]),
+        "§6.3: the register holds the store's keys and no journal entry"
+    );
+}
+
+// §7.2 items 3–5 driven at the journal's seam — a `mem`-tier write performs NO file I/O, so a second
+// instance booting from the same path does not see it.
+// Drives: §7.2 items 3
+#[test]
+fn s7_2_a_mem_tier_write_never_touches_the_file() {
+    let path = fresh_path("mem-no-io");
+    let cfg = cfg_at(&path, 8);
+    let mut first = ok(storeCreate(&cfg), "§7.1");
+    ok(
+        first.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    let second = ok(
+        storeCreate(&cfg),
+        "§7.2 item 6: the boot reads the file if it exists",
+    );
+    let e = failure(
+        second.read(AddressArg::List(key(&["a"])), TierArg::Absent),
+        "§7.2 item 5",
+    );
+    assert_code(
+        &e,
+        "AddressNotFound",
+        "§7.2 item 5: a `mem`-tier write performs no file I/O",
+    );
+}
+
+
+
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════
+// §6.6 — THE JOURNAL MARK RESTORE (`Store::restoreMark`)
+//
+// **WHAT THIS GROUP PINS, AND THE MEASUREMENT IT WAS WRITTEN FROM.** `restoreMark(mark?)` returns the store
+// to the state a JOURNAL MARK describes by REPLAYING THE JOURNAL, and every cell below reads the state back
+// through the store's own `read` — per address and PER TIER — because the cross-tier read answers one value
+// and cannot tell a `file` version shadowed beneath a `mem` one from a `mem` version alone.
+//
+// **THE MEASUREMENT THAT DECIDED THE RECORD (`§6.6`'s `Entry::after`).** Before this pass the journal held
+// each operation's full BEFORE (`Entry::captured`) and only a READ VIEW of its after (`JournalOp::after` is
+// a `BaseState` — `present` plus the value one read answers). The cells below are the ones that could not
+// pass on that record: a mixed-depth shadow and a version standing ABOVE its parent's tier both need the
+// AFTER as a per-version snapshot, and `restoreMark` reproduces both, so the entry records both halves.
+//
+// **AND THE REVERSAL DOES NOT ERASE ITS ENTRIES.** `rollback` MARKS the entries it reverses `compacted` and
+// does not remove them, so a mark a reversal passes through is still a mark the journal can replay — which
+// is why the head mark after a reversal is the PRE-REVERSAL state, and why a mark outside the
+// `journalLength` window is still inside the RECORD (`s6_6_a_mark_outside_the_window_is_still_replayable`).
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+/// **THE HEAD MARK AFTER A REVERSAL IS THE PRE-REVERSAL STATE — AND IT IS EXACT AT EVERY TIER.**
+///
+/// `rollback` appends no entry (`M-9`), so the journal's head still describes the state that stood BEFORE the
+/// reversal. A `file`-tier value shadowed beneath a `mem` one is the state the old compensating restore
+/// destroyed, and this cell stands it back up at ITS OWN tier and at no other.
+#[test]
+fn s6_6_the_head_mark_after_a_reversal_is_the_pre_reversal_state() {
+    let mut store = new_store();
+    ok(
+        store.write(AddressArg::List(key(&["a"])), w_file(), v_str("durable")),
+        "§3.4 W-3",
+    );
+    ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_str("base")),
+        "§3.4 W-5",
+    );
+    let second = ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_str("second")),
+        "§3.4 W-1",
+    );
+    // THE PRE-REVERSAL STANDING, READ PER TIER: `file` `"durable"` shadowed beneath `mem` `"second"`.
+    assert_eq!(
+        tiers_answering_at(&store, &key(&["a"])),
+        vec![Tier::File, Tier::Mem],
+        "§5.1: the drive must stand the two-tier shadow this cell restores"
+    );
+    assert_eq!(read_tier(&store, &key(&["a"]), Tier::File), v_str("durable"));
+    assert_eq!(read_tier(&store, &key(&["a"]), Tier::Mem), v_str("second"));
+    // THE REVERSAL, which leaves the journal's head where it was.
+    ok(store.rollback(OpIdArg::Id(second.op.opId.clone())), "§6.3");
+    assert_eq!(
+        read_at(&store, &key(&["a"])),
+        v_str("base"),
+        "§6.3: the reversal restores the `mem` version that stood before the second write"
+    );
+    // THE MARK.
+    ok(store.restoreMark(OpIdArg::Absent), "§6.6: the head mark");
+    assert_eq!(
+        tiers_answering_at(&store, &key(&["a"])),
+        vec![Tier::File, Tier::Mem],
+        "§6.6: BOTH versions stand again — the `file` one the reversal found and the `mem` one it restored \
+         over"
+    );
+    assert_eq!(
+        read_tier(&store, &key(&["a"]), Tier::File),
+        v_str("durable"),
+        "§6.6: the `file` version is restored at `file` and not moved to `mem`"
+    );
+    assert_eq!(
+        read_tier(&store, &key(&["a"]), Tier::Mem),
+        v_str("second"),
+        "§6.6: and the `mem` version is the PRE-REVERSAL one"
+    );
+    assert_eq!(read_at(&store, &key(&["a"])), v_str("second"));
+    // **⟶ RE-DERIVED 2026-11-02 — `D-108` ITEM 1 / `D-109`.** The follow-on reversal was filed as answering
+    // its compacted floor. **It now RETURNS** (the mark is honoured as one mark and the arm regenerates), and
+    // the journal-invariance this cell is about is read off `M-9` rather than off a refusal: the restore
+    // appends no entry, compacts nothing, and a later reversal still reaches the same record.
+    let again = ok(
+        store.rollback(OpIdArg::Id(second.op.opId.clone())),
+        "§6.6 / D-108 item 1: the restore appends no entry and compacts nothing, and the arm returns",
+    );
+    let _ = again;
+    assert_eq!(
+        read_tier(&store, &key(&["a"]), Tier::File),
+        v_str("durable"),
+        "§6.6 / M-9: the journal is unmoved by the restore — the `file` version the reversal found still stands"
+    );
+}
+
+/// **A MARK THE COMPACTION TOOK IS NO MARK AT ALL, FROM 2026-11-17 — AND THAT IS THE MEASURED ANSWER.**
+///
+/// **⟶ RE-DERIVED 2026-11-17 (`strata/decisions.md` · `D-160` ITEMS 1 AND 3), AND THE CELL'S NAME ASSERTED THE
+/// PREMISE THE RULING REVERSES.** It was filed as *"a mark outside the `journalLength` window is still
+/// replayable"*, on the reading that `journalLength` MARKS the oldest entries and removes none — *"compaction is a
+/// MARK and not an erasure"*. **`D-160` ITEM 1 MAKES IT AN ERASURE** (*"Compaction dropping history is the
+/// point"*, the architect, verbatim): the entry behind the window is GONE, so the mark that named it is not a mark
+/// this store can name — **`restoreMark` answers `JournalOpUnknown`** (`M-11`, the code it already answers for an
+/// id it does not hold) **and leaves the state where it stands**. **What the window does NOT take is the head**,
+/// and the head still replays here — so the primitive's own subject (`§6.6`'s mark) is read on both sides of the
+/// floor rather than asserted on the wrong one.
+#[test]
+fn s6_6_a_mark_the_compaction_took_is_no_mark_at_all() {
+    let mut store = new_store_with_journal(1);
+    let first = ok(
+        store.write(AddressArg::List(key(&["x"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    ok(
+        store.write(AddressArg::List(key(&["x"])), w_mem(), v_num(2.0)),
+        "§3.4 W-1",
+    );
+    ok(
+        store.write(AddressArg::List(key(&["x"])), w_mem(), v_num(3.0)),
+        "§3.4 W-1: the window has taken the first two entries (`D-160` item 1)",
+    );
+    // THE HEAD IS A MARK THE JOURNAL HOLDS, AND IT REPLAYS: the state the THIRD write left.
+    ok(
+        store.restoreMark(OpIdArg::Absent),
+        "§6.6: the head mark replays — `journalMark` answers a position the journal still holds",
+    );
+    assert_eq!(
+        read_at(&store, &key(&["x"])),
+        v_num(3.0),
+        "§6.6: the head names the state immediately after the third write"
+    );
+    // **THE DROPPED MARK IS REFUSED IN THE STORE'S OWN DECLARED FORM AND THE STATE IS UNCHANGED**: the mark is
+    // resolved before the replay begins, so nothing is half-replayed.
+    let refused = failure(
+        store.restoreMark(OpIdArg::Id(first.op.opId.clone())),
+        "§6.6 / D-160 item 1: a mark the compaction took is not a mark the journal holds",
+    );
+    assert_code(
+        &refused,
+        "JournalOpUnknown",
+        "§6.4 M-11: the code `restoreMark` already answers for an id the journal does not hold",
+    );
+    assert_eq!(
+        read_at(&store, &key(&["x"])),
+        v_num(3.0),
+        "§6.6: the refusal changes nothing — the state the head mark left stands"
+    );
+}
+
+/// **A MARK THE JOURNAL DOES NOT HOLD REFUSES IN THE STORE'S OWN DECLARED FORM AND CHANGES NOTHING**
+/// (`M-11`'s `JournalOpUnknown`, the code the rollback already answers). The mark is resolved BEFORE the
+/// replay begins, so nothing is half-replayed.
+#[test]
+fn s6_6_an_unknown_mark_refuses_journal_op_unknown_and_changes_nothing() {
+    let mut store = new_store();
+    ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(7.0)),
+        "§3.4 W-3",
+    );
+    let refused = failure(store.restoreMark(OpIdArg::Id("op-absent".to_string())), "§6.4 M-11");
+    assert_code(&refused, "JournalOpUnknown", "§6.4 M-11");
+    assert_eq!(
+        read_at(&store, &key(&["a"])),
+        v_num(7.0),
+        "§6.6: a refused mark leaves the store exactly as it found it"
+    );
+    // AND THE TWO MALFORMED ARMS ARE THE CARRIER'S OWN, NOT A SECOND DOMAIN.
+    let blank = failure(store.restoreMark(OpIdArg::Id(String::new())), "PAR-10");
+    assert_code(&blank, "AddressMalformed", "PAR-10");
+    let null = failure(store.restoreMark(OpIdArg::Null), "PAR-10");
+    assert_code(&null, "AddressMalformed", "PAR-10");
+    assert_eq!(read_at(&store, &key(&["a"])), v_num(7.0));
+}
+
+/// **A MIXED-DEPTH SHADOW IS RESTORED VERSION BY VERSION** — a subtree whose nodes stand at DIFFERENT tiers
+/// at DIFFERENT depths. **THIS IS THE SHAPE THE PER-ADDRESS, PER-TIER CAPTURE COULD NOT REACH**: the capture
+/// reads the PAIR's own tiers, so a version standing one level BELOW the pair is recorded only inside its
+/// parent's assembled value — and writing that value back at the parent's tier moves the descendant's tier
+/// with it. The journal's per-version `after` snapshot does not: `a.b` stands at `mem` while `a.b.c` stands
+/// at `mem` AND `temp`, and every one of them is read back at its own tier.
+#[test]
+fn s6_6_a_mixed_depth_shadow_is_restored_version_by_version() {
+    let mut store = new_mem_store();
+    let root = ok(
+        store.write(
+            AddressArg::List(key(&["a"])),
+            w_mem(),
+            v_obj(&[("b", v_obj(&[("c", v_num(1.0))]))]),
+        ),
+        "§3.4 W-4",
+    );
+    ok(
+        store.write(
+            AddressArg::List(key(&["a", "b", "c"])),
+            w_temp(),
+            v_num(5.0),
+        ),
+        "§3.4 W-5: a version one level below the pair, at a LOWER tier than the version that holds it",
+    );
+    // THE PRE-REVERSAL STANDING, AND THE TWO READINGS THAT PROVE IT. **A TIER-NARROWED READ NARROWS EVERY
+    // SEGMENT OF THE WALK** (`read_tier_sel`), so at a DEEP address it only answers at a tier the whole path
+    // stands at: `a` and `a.b` stand at `mem` and at no other tier, so `mem` is the one narrowing that reaches
+    // `a.b.c`. **THE PAIR OF READINGS IS THE PROOF OF THE MIX**: the `mem`-narrowed read answers the `mem`
+    // VERSION (1) while the cross-tier read answers 5 — and a cross-tier read answers the LOWEST-rank version
+    // present, so a `temp` version MUST be standing beside the `mem` one for the two to differ (`§4.2` `R-4`).
+    assert_eq!(
+        read_tier(&store, &key(&["a", "b", "c"]), Tier::Mem),
+        v_num(1.0),
+        "§5.1: the `mem` version of the deep node"
+    );
+    assert_eq!(
+        read_at(&store, &key(&["a", "b", "c"])),
+        v_num(5.0),
+        "§4.2 R-4: and the cross-tier read answers the `temp` version beside it"
+    );
+    assert_eq!(
+        read_at(&store, &key(&["a", "b"])),
+        v_obj(&[("c", v_num(5.0))]),
+        "§4.2 R-2: `a.b` assembles to the deep read"
+    );
+    assert_eq!(
+        tiers_answering_at(&store, &key(&["a", "b"])),
+        vec![Tier::Mem],
+        "§5.1: and `a.b` itself stands at ONE tier, so the mix is DEPTH and not a shadow at every level"
+    );
+    // THE REVERSAL THAT MOVES IT: naming the root write undoes the `temp` version and the whole subtree.
+    ok(
+        store.rollback(OpIdArg::Id(root.op.opId.clone())),
+        "§6.3",
+    );
+    assert_eq!(
+        store
+            .read(AddressArg::List(key(&["a"])), TierArg::Absent)
+            .is_err(),
+        true,
+        "§6.3: the reversal removes the subtree the root write created"
+    );
+    // THE MARK.
+    ok(store.restoreMark(OpIdArg::Absent), "§6.6: the head mark");
+    assert_eq!(
+        read_at(&store, &key(&["a"])),
+        v_obj(&[("b", v_obj(&[("c", v_num(5.0))]))]),
+        "§4.2 R-2: `a` assembles one member per child key"
+    );
+    assert_eq!(
+        read_tier(&store, &key(&["a", "b", "c"]), Tier::Mem),
+        v_num(1.0),
+        "§6.6: THE FINDING — the deep `mem` version is the PRE-REVERSAL one (1), not the assembled value an \
+         address-by-address restore writes back at the parent's tier (5)"
+    );
+    assert_eq!(
+        read_at(&store, &key(&["a", "b", "c"])),
+        v_num(5.0),
+        "§4.2 R-4: and the `temp` version beside it still wins the cross-tier read, at `temp`, where it stood"
+    );
+    assert_eq!(
+        read_at(&store, &key(&["a", "b"])),
+        v_obj(&[("c", v_num(5.0))])
+    );
+    assert_eq!(
+        tiers_answering_at(&store, &key(&["a"])),
+        vec![Tier::Mem],
+        "§6.6: the branch above the mix stands at the one tier it stood at"
+    );
+}
+
+/// **A VERSION STANDING ABOVE ITS PARENT'S TIER IS RESTORED, AND THAT IS A DELIBERATE BYPASS.** `§3.4`'s
+/// monotonic clause refuses to WRITE a version whose tier outranks its parent's, and a compensating restore
+/// that writes address by address hits exactly that refusal when the reversal moved the parent BELOW the
+/// child: an address whose parent stands at `mem` cannot have a `file` version written back onto it. A mark
+/// restore does not write — it RE-STATES what the journal recorded — and `restore`/`rebuild` have always
+/// minted each version at its own tier with no monotonicity test and no purge (`§6.6`).
+#[test]
+fn s6_6_a_version_above_its_parent_s_tier_is_restored_from_the_record() {
+    let mut store = new_store();
+    // The pre-reversal standing: `a` at `file`, and `a.b` at `file` beneath it.
+    ok(
+        store.write(
+            AddressArg::List(key(&["a"])),
+            w_mem(),
+            v_obj(&[("b", v_str("second"))]),
+        ),
+        "§3.4 W-3",
+    );
+    let top = ok(
+        store.write(
+            AddressArg::List(key(&["a"])),
+            w_file(),
+            v_obj(&[("b", v_str("durable"))]),
+        ),
+        "§3.4 W-6: a `file` write purges every version it outranks",
+    );
+    assert_eq!(
+        tiers_answering_at(&store, &key(&["a", "b"])),
+        vec![Tier::File],
+        "§5.1: the drive must stand `a.b` at `file` ALONE before the reversal"
+    );
+    // THE REVERSAL MOVES THE PARENT DOWN: undoing the `file` write restores `a` at `mem`, and `a.b` with it.
+    ok(store.rollback(OpIdArg::Id(top.op.opId.clone())), "§6.3");
+    assert_eq!(
+        tiers_answering_at(&store, &key(&["a"])),
+        vec![Tier::Mem],
+        "§6.3: the reversal leaves the parent at `mem`"
+    );
+    assert_eq!(
+        read_at(&store, &key(&["a", "b"])),
+        v_str("second"),
+        "§6.3: and the child with it"
+    );
+    // THE WRITE THE COMPENSATING RESTORE WOULD HAVE TO TAKE IS REFUSED BY THE STORE ITSELF.
+    let outranked = failure(
+        store.write(
+            AddressArg::List(key(&["a", "b"])),
+            w_file(),
+            v_str("durable"),
+        ),
+        "§3.4",
+    );
+    assert_code(
+        &outranked,
+        "ParentAnchorMonotonicityViolation",
+        "§3.4: a `file` version cannot be written under a parent standing at `mem`",
+    );
+    // AND THE MARK PUTS IT BACK ANYWAY, because it re-states a recorded state rather than writing one.
+    ok(store.restoreMark(OpIdArg::Absent), "§6.6: the head mark");
+    assert_eq!(
+        tiers_answering_at(&store, &key(&["a"])),
+        vec![Tier::File],
+        "§6.6: the parent is back at `file`"
+    );
+    assert_eq!(
+        tiers_answering_at(&store, &key(&["a", "b"])),
+        vec![Tier::File],
+        "§6.6: THE FINDING — and the child above it is back at `file`, exactly where the record put it"
+    );
+    assert_eq!(
+        read_tier(&store, &key(&["a", "b"]), Tier::File),
+        v_str("durable")
+    );
+    assert_eq!(read_at(&store, &key(&["a"])), v_obj(&[("b", v_str("durable"))]));
+}
+
+/// **A MIXED-DEPTH SHADOW INSIDE A REVERSAL'S OWN RESTORE — the shape the rebuild's child lookup is keyed on.**
+///
+/// A node holding TWO versions (`mem` and `temp`) may hold a DIFFERENT child version under EACH of them: here
+/// `a`'s `mem` version assembles `{b:5}` because the `temp` version of `a.b` wins the cross-tier read BENEATH
+/// it, so writing that ASSEMBLED value back at `mem` — which is what a lookup that reads the enclosing
+/// container's own pairs produces — moves the deep version's tier and destroys the `temp` one. **The capture
+/// records which version of the parent each child hangs under (`Captured::under`), and the rebuild writes it
+/// there.** This is the `rollback`'s own restore and not the mark restore's act, which is why it is driven
+/// separately.
+#[test]
+fn s6_6_a_reversal_restores_a_child_version_under_the_parent_version_that_held_it() {
+    let mut store = new_store();
+    ok(
+        store.write(
+            AddressArg::List(key(&["a"])),
+            w_mem(),
+            v_obj(&[("b", v_num(1.0))]),
+        ),
+        "§3.4 W-3",
+    );
+    ok(
+        store.write(AddressArg::List(key(&["a", "b"])), w_temp(), v_num(5.0)),
+        "§3.4 W-5: `a.b` stands at `mem` (1) BESIDE `temp` (5), under `a`'s `mem` version",
+    );
+    let replaced = ok(
+        store.write(
+            AddressArg::List(key(&["a"])),
+            w_mem(),
+            v_obj(&[("b", v_num(100.0))]),
+        ),
+        "§3.4 W-6: a `mem` write purges `mem` and `temp` and re-mints the subtree",
+    );
+    assert_eq!(
+        read_tier(&store, &key(&["a", "b"]), Tier::Mem),
+        v_num(100.0),
+        "§3.4: the drive's state after the third write — one version of `a.b`, at `mem`"
+    );
+    assert_eq!(
+        store
+            .read(AddressArg::List(key(&["a", "b"])), t(Tier::Temp))
+            .is_err(),
+        true,
+        "§3.4: and the `temp` version of `a.b` is purged with the subtree, so the reversal has a state to \
+         restore"
+    );
+    // THE REVERSAL RESTORES WHAT STOOD: `a`'s `mem` version, with `a.b` at `mem` 1 and at `temp` 5 beneath it.
+    ok(store.rollback(OpIdArg::Id(replaced.op.opId.clone())), "§6.3");
+    assert_eq!(
+        read_tier(&store, &key(&["a", "b"]), Tier::Mem),
+        v_num(1.0),
+        "§6.4: THE FINDING — the `mem` version of the child is the one that stood (1), not the parent's \
+         assembled value (5)"
+    );
+    // **AND THE `temp` VERSION BENEATH THE SAME PARENT VERSION STANDS AGAIN, READ AS THE PAIR OF READINGS THAT
+    // CANNOT BOTH HOLD WITHOUT IT**: a tier-narrowed read narrows EVERY segment of the walk, so a `temp`
+    // narrowing stops at `a` and finds nothing; the `mem` narrowing reaches the child and answers the `mem`
+    // version (1), while the CROSS-TIER read at that same address answers the LOWEST-rank version present (5) —
+    // which is a `temp` version standing beside the `mem` one, written there by the recursion the child-level
+    // lookup used to miss.
+    assert_eq!(
+        read_at(&store, &key(&["a", "b"])),
+        v_num(5.0),
+        "§6.4: the cross-tier read answers the `temp` version, so it stands again under its own parent version"
+    );
+    assert_eq!(
+        read_at(&store, &key(&["a"])),
+        v_obj(&[("b", v_num(5.0))])
+    );
+}
+
+/// **A REVERSAL AFTER A MARK RESTORE STILL FINDS THE PAIR IT MUST REBUILD.** An entry's recorded `home` is an
+/// ARENA INDEX, and the replay REBUILDS the arena — so every index recorded before a `restoreMark` is stale.
+/// The pair is therefore re-derived from the entry's ADDRESS at the instant of the reversal (`home_of_address`),
+/// which is the derivation the write itself used, and the entry's own record is left as the fallback for an
+/// address whose parent no longer resolves. **Without it a later rollback would rebuild into whichever link the
+/// stale index now happens to name.**
+#[test]
+fn s6_6_a_reversal_after_a_mark_restore_still_finds_the_pair_it_must_rebuild() {
+    let mut store = new_store();
+    let first = ok(
+        store.write(AddressArg::List(key(&["x"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    ok(
+        store.write(AddressArg::List(key(&["x"])), w_mem(), v_num(2.0)),
+        "§3.4 W-1",
+    );
+    ok(
+        store.write(
+            AddressArg::List(key(&["z"])),
+            w_mem(),
+            v_obj(&[("y", v_num(1.0))]),
+        ),
+        "§3.4 W-4: a structured write, so the entry's home is a link the mark's state does not hold",
+    );
+    let deep = ok(
+        store.write(AddressArg::List(key(&["z", "y"])), w_mem(), v_num(3.0)),
+        "§3.4 W-1",
+    );
+    // **THE REPLAY REBUILDS THE ARENAS**: `['z']`'s value link — the home the fourth entry recorded — does not
+    // exist in the state the mark describes.
+    ok(
+        store.restoreMark(OpIdArg::Id(first.op.opId.clone())),
+        "§6.6: the state immediately after the FIRST write",
+    );
+    assert_eq!(read_at(&store, &key(&["x"])), v_num(1.0));
+    assert_eq!(
+        store
+            .read(AddressArg::List(key(&["z"])), TierArg::Absent)
+            .is_err(),
+        true,
+        "§6.6: the mark's state holds no `['z']`, so the fourth entry's recorded home names nothing"
+    );
+    // **THE REVERSAL ANSWERS AND DOES NOT REACH INTO AN ARENA THAT NO LONGER HOLDS THAT LINK.** `[`z`,`y`]` does
+    // not resolve in this state either, so there is no derivable pair and the entry is reported as a residue.
+    let undone = ok(
+        store.rollback(OpIdArg::Id(deep.op.opId.clone())),
+        "§6.3",
+    );
+    assert_eq!(
+        undone.undoneOps.len(),
+        0,
+        "§6.3: an entry whose pre-state cannot be put back is NOT reported as undone"
+    );
+    assert_eq!(
+        read_at(&store, &key(&["x"])),
+        v_num(1.0),
+        "§6.3 M-10: and the store's state is the state the mark left"
+    );
+}
+
+/// **A BOOT-LOADED STORE'S IMAGE IS THE REPLAY'S FLOOR AND IS NOT DROPPED.** A store constructed over an
+/// EXISTING FILE loads that image into the `file` tier and journals NO entry for it (`§7.2` item 6), so a
+/// replay that assumed an EMPTY register at position `0` would delete every key the boot loaded. `Store::born`
+/// is that floor, captured at construction.
+#[test]
+fn s6_6_a_boot_loaded_image_survives_a_mark_restore() {
+    let path = fresh_path("s6_6-born");
+    {
+        let mut first = ok(
+            storeCreate(&cfg_at(&path, 8)),
+            "§7.1: the first construction creates the file",
+        );
+        let kept = ok(
+            first.write(AddressArg::List(key(&["durable"])), w_file(), v_str("kept")),
+            "§3.2 W-1",
+        );
+        ok(
+            commit_at_the_terminal_arm(&mut first, &kept.op.opId),
+            "§7.2 item 5: the file-tier save",
+        );
+    }
+    // THE SECOND CONSTRUCTION BOOTS THE IMAGE: `['durable']` stands at `file` and NO journal entry records it.
+    let mut second = ok(storeCreate(&cfg_at(&path, 8)), "§7.1 step 7");
+    assert_eq!(
+        read_tier(&second, &key(&["durable"]), Tier::File),
+        v_str("kept"),
+        "§7.2 item 6: the boot loads the image"
+    );
+    ok(
+        second.write(AddressArg::List(key(&["fresh"])), w_file(), v_str("later")),
+        "§3.2 W-1",
+    );
+    // THE MARK AT THE HEAD IS THE STATE AFTER THAT WRITE — WITH THE BOOTED KEY STILL UNDER IT.
+    ok(second.restoreMark(OpIdArg::Absent), "§6.6: the head mark");
+    assert_eq!(
+        read_tier(&second, &key(&["durable"]), Tier::File),
+        v_str("kept"),
+        "§6.6: THE FINDING — the boot-loaded key stands: the floor is the image the store was born with and          not an empty register"
+    );
+    assert_eq!(
+        read_tier(&second, &key(&["fresh"]), Tier::File),
+        v_str("later"),
+        "§6.6: and the journaled operation above it stands"
+    );
+}
+
+/// **THE HEAD MARK AT REST IS A NO-OP** — the property that makes the replay trustworthy: when nothing has
+/// been reversed, the state the journal's record describes IS the state the store stands at, at every
+/// address and at every tier. A replay that drifted anywhere would move one of these readings.
+#[test]
+fn s6_6_the_head_mark_at_rest_leaves_every_reading_where_it_stood() {
+    let mut store = new_store();
+    ok(
+        store.write(
+            AddressArg::List(key(&["a"])),
+            w_mem(),
+            v_obj(&[("b", v_num(1.0)), ("c", v_obj(&[("d", v_num(2.0))]))]),
+        ),
+        "§3.4 W-4",
+    );
+    ok(
+        store.write(AddressArg::List(key(&["a", "b"])), w_temp(), v_num(8.0)),
+        "§3.4 W-5",
+    );
+    ok(
+        store.write(AddressArg::List(key(&["v"])), w_file(), v_arr(vec![v_num(1.0), v_num(2.0)])),
+        "§3.4 W-4",
+    );
+    ok(
+        store.delete(AddressArg::List(key(&["a", "c", "d"])), none()),
+        "§4.3: a delete empties the key it names",
+    );
+    let addresses = [
+        key(&["a"]),
+        key(&["a", "b"]),
+        key(&["a", "c"]),
+        key(&["v"]),
+        key(&["v", "0"]),
+        key(&["v", "1"]),
+    ];
+    let before: Vec<(Vec<Tier>, Option<StoreValue>, Option<StoreValue>, Option<StoreValue>)> = addresses
+        .iter()
+        .map(|address| {
+            (
+                tiers_answering_at(&store, address),
+                store
+                    .read(AddressArg::List(address.clone()), t(Tier::File))
+                    .ok(),
+                store
+                    .read(AddressArg::List(address.clone()), t(Tier::Mem))
+                    .ok(),
+                store
+                    .read(AddressArg::List(address.clone()), t(Tier::Temp))
+                    .ok(),
+            )
+        })
+        .collect();
+    ok(store.restoreMark(OpIdArg::Absent), "§6.6: the head mark");
+    let after: Vec<(Vec<Tier>, Option<StoreValue>, Option<StoreValue>, Option<StoreValue>)> = addresses
+        .iter()
+        .map(|address| {
+            (
+                tiers_answering_at(&store, address),
+                store
+                    .read(AddressArg::List(address.clone()), t(Tier::File))
+                    .ok(),
+                store
+                    .read(AddressArg::List(address.clone()), t(Tier::Mem))
+                    .ok(),
+                store
+                    .read(AddressArg::List(address.clone()), t(Tier::Temp))
+                    .ok(),
+            )
+        })
+        .collect();
+    assert_eq!(
+        after, before,
+        "§6.6: the state the journal's head describes IS the state the store stood at — every address, every \
+         tier, both sides of the replay"
+    );
+}
+
+/// **AN OPERATION AT THE EMPTY ADDRESS IS REPLAYED TOO.** `delete([])` names the register itself, whose state
+/// has no pair home (`pair_home` answers `None` for the empty address), so the entry records the WHOLE
+/// REGISTER's after-state and the replay re-states the root from it (`§6.6`'s `capture_register`).
+#[test]
+fn s6_6_the_register_s_own_operation_is_replayed() {
+    let mut store = new_mem_store();
+    ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    let zed = ok(
+        store.write(AddressArg::List(key(&["z"])), w_temp(), v_num(2.0)),
+        "§3.4 W-5",
+    );
+    ok(
+        store.delete(AddressArg::List(empty_address()), t(Tier::Temp)),
+        "§4.3: one tier at the register's every key",
+    );
+    assert_eq!(
+        tiers_answering_at(&store, &key(&["z"])),
+        Vec::<Tier>::new(),
+        "§4.3: the `temp` version is gone and the key holds nothing"
+    );
+    // THE MARK NAMES THE STATE THE LAST WRITE LEFT — the `temp` version standing beside `a`.
+    ok(store.restoreMark(OpIdArg::Id(zed.op.opId.clone())), "§6.6");
+    assert_eq!(
+        tiers_answering_at(&store, &key(&["z"])),
+        vec![Tier::Temp],
+        "§6.6: the register-level capture is replayed, key by key and tier by tier"
+    );
+    assert_eq!(read_tier(&store, &key(&["z"]), Tier::Temp), v_num(2.0));
+    assert_eq!(
+        read_at(&store, &key(&["a"])),
+        v_num(1.0),
+        "§6.6: and the key the delete did not name stands where it stood"
+    );
+}
+
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════
+// §6.6 — THE RESTORE'S OWN SAVE (the architect's ruling of 2026-10-27)
+//
+// **THE RULING, VERBATIM: *"Update file after a restore that touches file-tier nodes."*** `restoreMark`
+// re-states a recorded state; where that state moves a version standing at `Tier::File`, the bytes at
+// `cfg.filePath` were left describing the PRE-restore state — **and `§7.2` item 6's boot READS THEM** — so a
+// second instance over the same path answered a state the journal no longer described. The three cells below
+// pin the three arms the ruling owes: **the save happens where a file-tier version moved and the re-boot reads
+// the restored state**; **it does not happen where none moved, and the path's bytes AND the path's identity are
+// untouched**; **and where the save cannot land the caller hears that the memory was restored and the bytes
+// were not, with the state standing.**
+//
+// **THE DETECTION THE FIRST TWO CELLS MEASURE IS THE STORE'S OWN, NOT A GUESS ABOUT WHICH OP RAN**: the
+// `file` tier's image — every register key's version standing at `Tier::File`, assembled at that tier, exactly
+// the image `write_file` encodes and the boot loads — is taken before the replay and again after it. Equal
+// images mean no file-tier version moved. **THE CELLS USE THE STORE'S OWN OPS AS THE REVERSALS' SUBJECTS**
+// (there is no constraint kernel in this binary, so the `file`-tier node a reversal moves is driven directly):
+// a `delete` that removed a `file` version changes the in-memory image WITHOUT committing (`DD-28`), and a
+// reversal of an earlier write in a SIBLING subtree then moves a `file`-tier node while the head still
+// describes the deleted state.
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════
+
+/// **A RESTORE THAT MOVES A `file`-TIER NODE WRITES THE STORE'S OWN FILE, AND A FRESH BOOT READS THE RESTORED
+/// STATE.** The drive holds a `file` value at `b` and one at `a`, deletes `a` (a delete commits nothing,
+/// `DD-28`), so the bytes at the path still carry `a` while the memory does not; a reversal of the `b` write
+/// removes `b` from the `file` tier; and the head mark then re-states the state the delete left. **WITHOUT THE
+/// SAVE the bytes keep carrying `a`, and the second construction reads a state the journal no longer
+/// describes.** The cell also pins that the save appends NO entry: the next write's `seq` is the journal's own
+/// ordinal, unmoved.
+#[test]
+fn s6_6_a_restore_that_moves_a_file_tier_node_writes_the_store_s_own_file() {
+    let path = fresh_path("s6-6-save-and-reboot");
+    let mut store = ok(
+        storeCreate(&cfg_at(&path, 8)),
+        "§7.1: the construction returns an instance at a reachable path",
+    );
+    // THE PRE-STATE: two `file`-tier values, each committed by the terminal arm's own act, then `a` deleted.
+    let b = ok(
+        store.write(AddressArg::List(key(&["b"])), w_file(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    ok(
+        commit_at_the_terminal_arm(&mut store, &b.op.opId),
+        "§7.2 item 2 as amended: the terminal arm's own act puts `b` in the file",
+    );
+    let a = ok(
+        store.write(AddressArg::List(key(&["a"])), w_file(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    ok(
+        commit_at_the_terminal_arm(&mut store, &a.op.opId),
+        "§7.2 item 2 as amended: and `a` beside it",
+    );
+    ok(
+        store.delete(AddressArg::List(key(&["a"])), none()),
+        "§4.3: a delete removes the version in memory and commits NOTHING (DD-28)",
+    );
+    assert_eq!(
+        std::fs::read_to_string(&path).expect("§7.2 item 2: the committed image"),
+        "{\"a\":1,\"b\":1}",
+        "DD-28: the delete performed no file I/O, so the bytes still describe the PRE-delete state"
+    );
+    assert!(
+        store
+            .read(AddressArg::List(key(&["a"])), TierArg::Absent)
+            .is_err(),
+        "§4.3: and the memory does not stand `a`"
+    );
+    // THE REVERSAL THAT MOVES A `file`-TIER NODE: `b`'s write is undone, and no other entry stands in its
+    // subtree, so `b` leaves the `file` tier while the delete at `['a']` is not touched.
+    ok(store.rollback(OpIdArg::Id(b.op.opId.clone())), "§6.3");
+    assert!(
+        store
+            .read(AddressArg::List(key(&["b"])), TierArg::Absent)
+            .is_err(),
+        "§6.3: the reversal removed the `file`-tier version of `b`"
+    );
+    // THE RESTORE: the head still describes the state the delete left (`rollback` appends no entry, `M-9`).
+    ok(store.restoreMark(OpIdArg::Absent), "§6.6: the head mark");
+    // (1) THE MEMORY IS THE RESTORED STATE.
+    assert_eq!(
+        read_at(&store, &key(&["b"])),
+        v_num(1.0),
+        "§6.6: `b` is back at the state the record describes"
+    );
+    assert_code(
+        &failure(
+            store.read(AddressArg::List(key(&["a"])), TierArg::Absent),
+            "§6.6: the head describes the post-delete state",
+        ),
+        "AddressNotFound",
+        "§4.3: so `a` is absent in memory",
+    );
+    // (2) **THE FINDING: THE FILE WAS UPDATED TO THE RESTORED STATE.**
+    assert_eq!(
+        std::fs::read_to_string(&path).expect("§7.2 item 2: the file the restore's save wrote"),
+        "{\"b\":1}",
+        "THE RULING OF 2026-10-27: a restore that moves a `file`-tier node saves the restored image through \
+         the store's own write_file — the bytes carry the RESTORED state, not the pre-restore one"
+    );
+    // (3) THE RE-BOOT — A SECOND INSTANCE OVER THE SAME PATH READS THE RESTORED STATE AND NOT THE STALE ONE.
+    let fresh = ok(
+        storeCreate(&cfg_at(&path, 8)),
+        "§7.2 item 6: the boot loads the file's content",
+    );
+    assert_eq!(
+        read_at(&fresh, &key(&["b"])),
+        v_num(1.0),
+        "§7.2 item 6: THE FINDING — the fresh boot reads the restored state"
+    );
+    assert_code(
+        &failure(
+            fresh.read(AddressArg::List(key(&["a"])), TierArg::Absent),
+            "§4.2: the same address the first instance holds absent",
+        ),
+        "AddressNotFound",
+        "§4.2: the fresh boot does NOT read the pre-restore `a`, which the un-saved bytes carried",
+    );
+    // (4) A SAVE IS AN EFFECT AND NOT AN OP: the journal's ordinal did not move.
+    let next = ok(
+        store.write(AddressArg::List(key(&["c"])), w_mem(), v_num(9.0)),
+        "§3.4 W-3",
+    );
+    assert_eq!(
+        next.op.seq, 4,
+        "§6.6: the restore appended NO entry — three operations landed and the next write is the fourth"
+    );
+    let _ = std::fs::remove_file(&path);
+}
+
+/// **A RESTORE THAT MOVES NO `file`-TIER NODE TOUCHES NO BYTE — the no-file-I/O property, ASSERTED.** The
+/// drive holds a committed `file` value at `b` and moves only `mem` versions at `a`, so the two `file` images
+/// are equal and the save must not run. **THE BYTES ARE COMPARED AND SO IS THE PATH'S IDENTITY**: the commit
+/// is a sibling write plus a rename (`§7.2` `M-12`/`DD-2`), so a save that ran — even one writing identical
+/// bytes — replaces the inode and moves the mtime. Both standing still is the no-I/O property measured rather
+/// than promised.
+#[test]
+fn s6_6_a_restore_that_moves_no_file_tier_node_performs_no_file_io() {
+    let path = fresh_path("s6-6-no-file-io");
+    let mut store = ok(storeCreate(&cfg_at(&path, 8)), "§7.1");
+    let kept = ok(
+        store.write(AddressArg::List(key(&["b"])), w_file(), v_str("durable")),
+        "§3.4 W-3",
+    );
+    ok(
+        commit_at_the_terminal_arm(&mut store, &kept.op.opId),
+        "§7.2 item 2 as amended",
+    );
+    ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3 at `mem`",
+    );
+    let second = ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(2.0)),
+        "§3.4 W-1",
+    );
+    let bytes_before = std::fs::read(&path).expect("§7.2 item 2: the committed bytes");
+    let meta_before = std::fs::metadata(&path).expect("§7.2 item 2: the path's identity");
+    // THE REVERSAL MOVES ONE `mem` VERSION AND NOTHING AT `file`.
+    ok(store.rollback(OpIdArg::Id(second.op.opId.clone())), "§6.3");
+    assert_eq!(
+        read_tier(&store, &key(&["a"]), Tier::Mem),
+        v_num(1.0),
+        "§6.3: the reversal restored the `mem` version"
+    );
+    // THE RESTORE RE-STATES THE HEAD — again one `mem` version, and the `file` image is unmoved.
+    ok(store.restoreMark(OpIdArg::Absent), "§6.6: the head mark");
+    assert_eq!(
+        read_at(&store, &key(&["a"])),
+        v_num(2.0),
+        "§6.6: the restored `mem` state stands"
+    );
+    assert_eq!(
+        read_at(&store, &key(&["b"])),
+        v_str("durable"),
+        "§6.6: and the `file`-tier value is the one it was"
+    );
+    let bytes_after = std::fs::read(&path).expect("§7.2 item 2: the bytes after the restore");
+    let meta_after =
+        std::fs::metadata(&path).expect("§7.2 item 2: the path's identity after the restore");
+    assert_eq!(
+        bytes_before, bytes_after,
+        "THE FINDING: no `file`-tier version moved, so the restore performed NO file I/O — the bytes are \
+         byte-identical before and after"
+    );
+    assert_eq!(
+        meta_before.len(),
+        meta_after.len(),
+        "§7.2 item 2: the length is unmoved"
+    );
+    assert_eq!(
+        meta_before.modified().ok(),
+        meta_after.modified().ok(),
+        "§7.2 item 2: the modification time is unmoved — a save that ran would have renamed a new sibling over \
+         the path"
+    );
+    // THE SAME STATEMENT AT THE PATH'S IDENTITY, WHERE THE PLATFORM EXPOSES IT: the rename would replace the
+    // inode, so one inode before and after is proof the path was not written rather than an identical rewrite.
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::MetadataExt;
+        assert_eq!(
+            meta_before.ino(),
+            meta_after.ino(),
+            "§7.2 item 2: the inode is unmoved — the file was NOT replaced by a sibling-and-rename commit"
+        );
+        assert_eq!(
+            (meta_before.mtime(), meta_before.mtime_nsec()),
+            (meta_after.mtime(), meta_after.mtime_nsec()),
+            "§7.2 item 2: the timestamp is unmoved to the nanosecond"
+        );
+    }
+    let _ = std::fs::remove_file(&path);
+}
+
+/// **A SAVE THAT FAILS IS REPORTED AFTER THE STATE IS RESTORED — the memory is restored and the bytes are
+/// not.** The path's directory is removed between the committed writes and the restore, so the store's own
+/// save cannot land: the act answers `FileCommitFailed` (the set's one save code, `§8.1` #15, whose generated
+/// message names the path), **the replay is NOT undone** — `read` answers the restored state — **and no byte
+/// is written**, which is stated rather than papered.
+#[test]
+fn s6_6_a_restore_whose_save_cannot_land_reports_the_restored_memory_and_the_unwritten_bytes() {
+    let dir = std::path::PathBuf::from(fresh_path("s6-6-save-fail-dir"));
+    std::fs::create_dir_all(&dir).expect("the drive's own directory");
+    let path = dir.join("store.json").to_string_lossy().into_owned();
+    let mut store = ok(storeCreate(&cfg_at(&path, 8)), "§7.1");
+    let b = ok(
+        store.write(AddressArg::List(key(&["b"])), w_file(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    ok(
+        commit_at_the_terminal_arm(&mut store, &b.op.opId),
+        "§7.2 item 2",
+    );
+    let a = ok(
+        store.write(AddressArg::List(key(&["a"])), w_file(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    ok(
+        commit_at_the_terminal_arm(&mut store, &a.op.opId),
+        "§7.2 item 2",
+    );
+    ok(
+        store.delete(AddressArg::List(key(&["a"])), none()),
+        "§4.3: the delete commits nothing",
+    );
+    // THE REVERSAL THAT MOVES A `file`-TIER NODE.
+    ok(store.rollback(OpIdArg::Id(b.op.opId.clone())), "§6.3");
+    // THE SAVE'S TARGET BECOMES UNREACHABLE — the directory the path stands in is gone.
+    std::fs::remove_dir_all(&dir).expect("the drive's own directory is removable");
+    let refused = failure(
+        store.restoreMark(OpIdArg::Absent),
+        "§6.6: the restore's save cannot land and the act reports it",
+    );
+    assert_code(
+        &refused,
+        "FileCommitFailed",
+        "§8.1 #15: the set's one save code, whose trigger reaches the save act",
+    );
+    assert!(
+        refused.message.contains(&path),
+        "§8.2: the generated message names the failing path — got {}",
+        refused.message
+    );
+    // **THE MEMORY IS THE RESTORED STATE — THE FAILURE IS THE FILE'S AND NOT THE REPLAY'S.**
+    assert_eq!(
+        read_at(&store, &key(&["b"])),
+        v_num(1.0),
+        "§6.6: the caller learns the IN-MEMORY state was restored — the replay is not undone by a save failure"
+    );
+    assert_code(
+        &failure(
+            store.read(AddressArg::List(key(&["a"])), TierArg::Absent),
+            "§6.6: the head describes the post-delete state",
+        ),
+        "AddressNotFound",
+        "§4.3: and `a` is absent, exactly as the restored state has it",
+    );
+    // **AND THE BYTES WERE NOT WRITTEN.** The path's directory is gone, so there is no image at the path: the
+    // failure is that the file was NOT updated, and the cell says so instead of implying one.
+    assert_eq!(
+        std::path::Path::new(&path).exists(),
+        false,
+        "§7.2 item 2: a failed save leaves no image at the path — the bytes still describe the state that stood \
+         BEFORE the restore, and here that image is gone with its directory"
+    );
+}
+
+
+// =================================================================================================
+// `D-43` ITEM 3 (`strata/decisions.md`, the architect, verbatim: *"Delete should be journaled and
+// reversible"*) — THE DELETE'S IDENTITY IS ON ITS RECORD AND THE ACT IS REVERSIBLE.
+//
+// THE MEASUREMENT THESE CELLS STAND ON, taken before the member was added: the delete WAS already
+// journaled — one entry, its address, its per-tier before-state, an op id — and `rollback` ALREADY
+// accepted that id and put every removed version back at its own tier. What was missing was the
+// IDENTITY: `DeleteReceipt` carried `{address, tiers, triggered}` and no op, so the act could not be
+// NAMED and therefore could not be reversed. These cells read the id OFF THE RETURNED RECORD and
+// nowhere else — a Rust drive cannot reach the journal at all, which is the point: the record is the
+// caller's one route to the act's identity.
+// =================================================================================================
+
+/// `D-43` item 3 · **A DELETE IS REVERSIBLE, AND THE REVERSAL RESTORES EVERY VALUE AT ITS OWN TIER.**
+///
+/// Two versions are written at one address — `file` first, because a `mem` write purges only the `temp`
+/// version while a `file` write purges what stands at or below it (`§5.4`) — the delete removes both, and
+/// the reversal is named by `receipt.op.opId`, THE IDENTITY THE RECORD CARRIES. **The per-tier restoration
+/// is printed per address and per tier**, so the cell's own observable is legible and not merely asserted.
+///
+/// Drives: `D-43` item 3; `§6.1` item 1; `§6.3` (`rollback`'s `undoneOps`); `§6.4` (`M-5`'s reach).
+#[test]
+fn d43_3_a_delete_is_reversible_and_restores_each_value_at_its_own_tier() {
+    let mut store = new_store();
+    let address = key(&["d43"]);
+    ok(
+        store.write(AddressArg::List(address.clone()), w_file(), v_str("file-value")),
+        "§3.4 W-3",
+    );
+    ok(
+        store.write(AddressArg::List(address.clone()), w_mem(), v_str("mem-value")),
+        "§3.4 W-5",
+    );
+    let receipt = ok(
+        store.delete(AddressArg::List(address.clone()), none()),
+        "D-43 item 3: an unqualified delete removes every version",
+    );
+    assert_eq!(
+        receipt.tiers,
+        vec![Tier::File, Tier::Mem],
+        "§4.4 D-2 / §5.1: both tiers removed, in the canonical order"
+    );
+    // **THE IDENTITY IS THE RECORD'S OWN MEMBER — THE ONE `WriteRecord` CARRIES UNDER THE SAME NAME.**
+    let op = receipt
+        .op
+        .clone()
+        .expect("D-43 item 3: a delete that removed versions names its op on the record it returns");
+    assert_eq!(
+        op.kind,
+        JournalOpKind::Delete,
+        "§6.2: the op the record carries is the DELETE's own, not a write's"
+    );
+    assert_eq!(op.address, address, "§6.2: the op's address is the delete's");
+    assert_eq!(
+        op.tier, None,
+        "§6.2: an unqualified delete's op names no single tier — the record's `tiers` names the set"
+    );
+    assert_eq!(
+        op.before.present, true,
+        "§6.2: the op's before-state is what the delete removed, recorded per tier by the entry"
+    );
+    assert_eq!(
+        op.after.present, false,
+        "§6.2: and its after-state is the absence the delete left"
+    );
+    assert!(
+        !op.opId.is_empty(),
+        "`PAR-JS-9`: the op id is a non-empty string a reversal takes"
+    );
+    // NOTHING ANSWERS BEFORE THE REVERSAL — at either tier.
+    assert_eq!(
+        versions_at(&store, &address),
+        Vec::<Tier>::new(),
+        "§4.3: the delete removed every version"
+    );
+
+    let reversed = ok(
+        store.rollback(OpIdArg::Id(op.opId.clone())),
+        "D-43 item 3: `rollback` takes the id the delete's record carried",
+    );
+    assert_eq!(
+        reversed.undoneOps,
+        vec![op.opId.clone()],
+        "§6.3: the reversal undid exactly the op the record named"
+    );
+    assert_eq!(
+        reversed.restoredTo.present,
+        true,
+        "§6.3: and the addressed subtree now stands at a present state"
+    );
+
+    // **THE PER-ADDRESS, PER-TIER RESTORATION, PRINTED** — the cell's own observable, legible off the run.
+    println!("D-43 item 3 · rollback({}) — the delete reversed, per address and per tier:", op.opId);
+    for tier in canonical_tiers() {
+        let standing = versions_at(&store, &address).contains(&tier);
+        let value = if standing {
+            format!("{:?}", read_tier(&store, &address, tier))
+        } else {
+            "<no version at this tier>".to_string()
+        };
+        println!("  [{}] @ {} = {}", "/d43", tier_token(tier), value);
+    }
+
+    assert_eq!(
+        versions_at(&store, &address),
+        vec![Tier::File, Tier::Mem],
+        "D-43 item 3: THE VALUES AND THEIR TIERS — both versions stand again, each at its OWN tier"
+    );
+    assert_eq!(
+        read_tier(&store, &address, Tier::File),
+        v_str("file-value"),
+        "D-43 item 3: the `file` version's value, at the `file` tier"
+    );
+    assert_eq!(
+        read_tier(&store, &address, Tier::Mem),
+        v_str("mem-value"),
+        "D-43 item 3: the `mem` version's value, at the `mem` tier"
+    );
+}
+
+/// `D-43` item 3 · **THE IDENTITY THE RECORD CARRIES IS THE ONE THE JOURNAL HOLDS — and the subtree the
+/// delete destroyed comes back whole, at each version's own tier.**
+///
+/// The delete targets a NESTED address whose versions stand at two tiers and whose `mem` version carries a
+/// descendant of its own, so the reversal has to reach the whole captured subtree and not one pair. **The
+/// id is read off `receipt.op` and no other route to the journal exists in this cell** — a Rust drive
+/// cannot open `Store`'s journal, so a passing reversal is itself the proof that the record's identity is
+/// the entry's.
+///
+/// Drives: `D-43` item 3; `§6.2` property 1 (the transitive capture); `§6.3`–`§6.4`.
+#[test]
+fn d43_3_the_identity_is_the_one_the_record_carries_and_the_subtree_comes_back_whole() {
+    let mut store = new_store();
+    ok(
+        store.write(
+            AddressArg::List(key(&["root"])),
+            w_file(),
+            v_obj(&[("a", v_str("file-a")), ("b", v_str("file-b"))]),
+        ),
+        "§3.4 W-4",
+    );
+    ok(
+        store.write(
+            AddressArg::List(key(&["root"])),
+            w_mem(),
+            v_obj(&[("a", v_str("mem-a"))]),
+        ),
+        "§3.4 W-5",
+    );
+    let receipt = ok(
+        store.delete(AddressArg::List(key(&["root"])), none()),
+        "D-43 item 3",
+    );
+    assert_eq!(
+        receipt.tiers,
+        vec![Tier::File, Tier::Mem],
+        "§4.4 D-2: both versions of the target were removed"
+    );
+    let op = receipt.op.clone().expect("D-43 item 3: the record carries the delete's op");
+    assert_eq!(
+        op.seq > 0,
+        true,
+        "§6.2: the op is the appended entry's own — its `seq` is the append ordinal, which only the journal \
+         assigns, so the record carries the STORED op and not a fresh one"
+    );
+
+    let reversed = ok(
+        store.rollback(OpIdArg::Id(op.opId.clone())),
+        "D-43 item 3: the record's identity is accepted by the reversal",
+    );
+    assert_eq!(
+        reversed.undoneOps,
+        vec![op.opId.clone()],
+        "§6.3: exactly the delete's entry was undone — named by the id the RECORD carried"
+    );
+    println!(
+        "D-43 item 3 · identity from the record: rollback({}) → undoneOps {:?}",
+        op.opId, reversed.undoneOps
+    );
+    println!("D-43 item 3 · per address and per tier, after the reversal:");
+    for (path, tiers) in [
+        (key(&["root"]), vec![Tier::File, Tier::Mem]),
+        // `root/a` held a version under the `file` version and another under the `mem` one — the mixed-depth
+        // shadow `§6.2` property 1's transitive capture exists for, back at BOTH its tiers.
+        (key(&["root", "a"]), vec![Tier::File, Tier::Mem]),
+        (key(&["root", "b"]), vec![Tier::File]),
+    ] {
+        for tier in canonical_tiers() {
+            let value = if versions_at(&store, &path).contains(&tier) {
+                format!("{:?}", read_tier(&store, &path, tier))
+            } else {
+                "<no version at this tier>".to_string()
+            };
+            println!("  [{}] @ {} = {}", path_debug(&path), tier_token(tier), value);
+        }
+        assert_eq!(
+            versions_at(&store, &path),
+            tiers,
+            "D-43 item 3: every version the delete destroyed is back AT ITS OWN TIER"
+        );
+    }
+    assert_eq!(
+        read_tier(&store, &key(&["root", "a"]), Tier::File),
+        v_str("file-a"),
+        "§6.2 property 1: the `file` version's descendant came back with it"
+    );
+    assert_eq!(
+        read_tier(&store, &key(&["root", "a"]), Tier::Mem),
+        v_str("mem-a"),
+        "§6.2 property 1: and so did the `mem` version's, at the `mem` tier"
+    );
+}
+
+/// `D-43` item 3 · **A REVERSED DELETE IS REFUSED ON A SECOND REVERSAL — `RollbackCompacted`, the SAME rule
+/// every compacted op answers, and not a new one.**
+///
+/// `§6.3`'s floor: the reversal marks the entries it undid `compacted`, so a second walk finds a compacted
+/// entry in its scope and undoes NOTHING (`M-6`). **A delete's op is now nameable and it is not therefore
+/// re-reversible**: the id is a name, and the name obeys the same one-reversal rule the write's op does.
+///
+/// Drives: `D-43` item 3; `§6.3`–`§6.4` `M-6`; `§8.1` #10.
+#[test]
+fn d43_3_a_reversed_delete_is_refused_on_a_second_reversal() {
+    let mut store = new_store();
+    ok(
+        store.write(AddressArg::List(key(&["once"])), w_file(), v_str("kept")),
+        "§3.4 W-3",
+    );
+    let receipt = ok(
+        store.delete(AddressArg::List(key(&["once"])), none()),
+        "D-43 item 3",
+    );
+    let op = receipt.op.clone().expect("D-43 item 3: the record carries the delete's op");
+    ok(
+        store.rollback(OpIdArg::Id(op.opId.clone())),
+        "§6.3: the first reversal is total over its scope",
+    );
+    // **⟶ RE-DERIVED 2026-11-02 — `D-108` ITEM 1.** The second reversal was filed as REFUSED by `M-6`'s
+    // compacted floor. **It now RETURNS**: the arm regenerates from the durable ground truth and the fact
+    // this cell is about is unmoved — the delete's op is a name and no licence to reverse twice, because a
+    // regeneration does not re-instate what the first reversal undid (`M-9`'s one predicate, `PIN-12`'s
+    // filter). `RollbackCompacted` is narrowed (`D-109`) and this drive stands no corrupt image.
+    let second = ok(
+        store.rollback(OpIdArg::Id(op.opId.clone())),
+        "§6.3 / D-108 item 1: the compacted candidate set regenerates and returns its record",
+    );
+    println!(
+        "D-43 item 3 · second reversal of the delete's op {} → RETURNED, undone {:?}",
+        op.opId, second.undoneOps
+    );
+    assert!(
+        second.opId == op.opId,
+        "§6.3: the reversal still echoes the op id the caller named"
+    );
+    // **AND THE REFUSAL CHANGED NOTHING**: the restoration the first reversal landed still stands.
+    assert_eq!(
+        read_tier(&store, &key(&["once"]), Tier::File),
+        v_str("kept"),
+        "§6.3: `M-6`'s floor undoes NOTHING — the restored state is untouched by the refused walk"
+    );
+}
+
+/// The one spelling the printed table above needs for a segment path — the address as the caller spelled it.
+fn path_debug(path: &[Segment]) -> String {
+    let parts: Vec<String> = path
+        .iter()
+        .map(|segment| match segment {
+            Segment::Key(k) => k.clone(),
+            other => format!("{other:?}"),
+        })
+        .collect();
+    format!("/{}", parts.join("/"))
+}
+
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+// §6.6-bis — THE JOURNAL'S LAST VALID MARK (`Store::journalMark`) AND THE MARK'S FLOOR
+// (`Store::restoreFloor`)
+//
+// **WHY THE STORE ANSWERS THIS AND WHAT "VALID" MEANS, MEASURED IN THE THREE CELLS BELOW.** The package caches
+// this read at the commit's opening (`bindings/js/src/entry/state.mjs`'s `openCommit`), on the architect's
+// ruling *"Cache the restoreMark when opening a commit, based on the last valid state/op of the journal"*, so
+// that a refused reversal restores the position its commit FOUND rather than the journal's head (`DEF-AE`).
+// **THE VALIDITY PREDICATE IS MEMBERSHIP, AND THE TWO STATES A MARK CAN BE IN ARE BOTH DRIVEN HERE:**
+//   * **AN ENTRY A FAILED `file`-SAVE REMOVED IS GONE AND IS NOT A MARK** — `commit_file`'s failing arm removes
+//     the entry it just reverted, so `journalMark` answers the entry BEFORE it and `restoreMark` refuses its id
+//     with `JournalOpUnknown` (`M-11`);
+//   * **A COMPACTED ENTRY IS STILL A MARK** — `rollback` marks and never removes (`M-9`/`M-6`), and the replay
+//     reads every entry the journal holds, so the head after a reversal is still a valid, replayable mark.
+// **AND THE FLOOR IS A POSITION NO OP ID CAN NAME**: the state the store was BORN with — the empty register on
+// a pathless store, and the BOOTED `file`-tier image where one was loaded (`§7.2` item 6 journals no entry for
+// a boot). `restoreMark`'s ABSENT arm names the HEAD, so a caller that opened on an empty journal has no
+// spelling for *"the state that stood then"* once the journal is non-empty; `restoreFloor` is that spelling.
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+/// **THE LAST VALID MARK IS THE HEAD, A REVERSAL DOES NOT MOVE IT, AND A COMPACTED ENTRY STILL REPLAYS.**
+///
+/// Drives: `§6.6` items 1 and 4; `§6.4` `M-9`/`M-6`; the empty-journal row of `§6.6` item 4.
+#[test]
+fn s6_6_bis_the_last_valid_mark_is_the_head_and_the_journal_holds_no_mark_at_all() {
+    // **⟶ AND THE NAME SAID `a_compacted_entry_is_still_a_mark` UNTIL 2026-11-17, WHICH `D-160` ITEM 1 FALSIFIED**: compaction
+    // DROPS an entry rather than marking it, so no entry is ever `compacted` and *"still a mark"* has no subject. **The
+    // assertions below are UNMOVED and still hold** — every one of them is satisfied with no mark set — so this is a NAME
+    // and a message moved with the ruling, not a cell re-cut (`docs/specs/storeroom-native/contract.md` §6.2's clause).
+    let mut store = new_mem_store();
+    // (1) A FRESH STORE'S JOURNAL HOLDS NOTHING: the mark is the floor and no op id stands.
+    assert_eq!(
+        store.journalMark(),
+        None,
+        "§6.6-bis: an empty journal names no operation, so its last valid mark is the FLOOR"
+    );
+    ok(
+        store.restoreFloor(),
+        "§6.6-bis: the floor on an empty record is the born state",
+    );
+    // (2) EVERY APPEND MOVES THE MARK TO ITS OWN OP.
+    let first = ok(
+        store.write(AddressArg::List(key(&["x"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    assert_eq!(
+        store.journalMark(),
+        Some(first.op.opId.clone()),
+        "§6.6-bis: the last valid mark is the journal's head — the first write's own op"
+    );
+    let second = ok(
+        store.write(AddressArg::List(key(&["x"])), w_mem(), v_num(2.0)),
+        "§3.4 W-1",
+    );
+    assert_eq!(
+        store.journalMark(),
+        Some(second.op.opId.clone()),
+        "§6.6-bis: and the second write's"
+    );
+    // (3) **A REVERSAL COMPACTS AND DOES NOT REMOVE: the mark is unmoved and it still replays.** This is the
+    // half of the predicate that is NOT membership-removal — `M-6`'s compacted floor refuses the ROLLBACK, and
+    // it must not make the entry invalid as a MARK.
+    ok(
+        store.rollback(OpIdArg::Id(second.op.opId.clone())),
+        "§6.3",
+    );
+    assert_eq!(
+        store.journalMark(),
+        Some(second.op.opId.clone()),
+        "§6.6-bis: compaction is a mark and not an erasure, so a reversed entry stays the head"
+    );
+    ok(
+        store.restoreMark(OpIdArg::Id(second.op.opId.clone())),
+        "§6.6: a compacted mark replays (measured here, not assumed)",
+    );
+    assert_eq!(
+        read_at(&store, &key(&["x"])),
+        v_num(2.0),
+        "§6.6: the state immediately AFTER the second write is what its mark names"
+    );
+}
+
+/// **AN ENTRY A FAILED `file`-SAVE REMOVED IS GONE AND IS NOT A MARK.**
+///
+/// The save's failure is forced the only way a Rust drive can force it without a second store: **the path the
+/// store's own commit writes to is REPLACED BY A NON-EMPTY DIRECTORY**, so the sibling-and-rename cannot land
+/// and the terminal arm's failure path runs exactly as it runs on a real `EACCES`/`EROFS`.
+///
+/// Drives: `§7.2` item 3; `§8.1` #15; `§6.4` `M-11`; `§6.6` item 4's removed-entry clause.
+#[test]
+fn s6_6_bis_an_entry_a_failed_file_save_removed_is_not_a_mark() {
+    let path = fresh_path("s6-6-bis-removed");
+    let mut store = ok(
+        storeCreate(&cfg_at(&path, 8)),
+        "§7.1: the construction returns an instance at a reachable path",
+    );
+    let first = ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    assert_eq!(
+        store.journalMark(),
+        Some(first.op.opId.clone()),
+        "§6.6-bis: the first write is the mark"
+    );
+    let second = ok(
+        store.write(AddressArg::List(key(&["b"])), w_file(), v_num(2.0)),
+        "§3.4 W-3",
+    );
+    assert_eq!(
+        store.journalMark(),
+        Some(second.op.opId.clone()),
+        "§6.6-bis: the file-tier write is the mark until its save runs"
+    );
+    // THE SAVE'S FAILURE IS FORCED: the path becomes a NON-EMPTY DIRECTORY, so no rename can reach it.
+    std::fs::remove_file(&path).expect("§7.2 item 3: the committed image stood at the path");
+    std::fs::create_dir(&path).expect("§7.2 item 3: the path is free for the forced failure");
+    std::fs::write(std::path::Path::new(&path).join("blocker"), b"x")
+        .expect("§7.2 item 3: the directory is non-empty, so a rename over it must fail");
+    let refused = failure(
+        commit_at_the_terminal_arm(&mut store, &second.op.opId),
+        "§8.1 #15: the terminal arm's own save",
+    );
+    assert_code(&refused, "FileCommitFailed", "§8.1 #15");
+    // **THE FINDING: the entry is GONE, so the mark falls back to the entry BEFORE it.**
+    assert_eq!(
+        store.journalMark(),
+        Some(first.op.opId.clone()),
+        "§6.6-bis: an entry a failed file-save removed is NOT a mark — the read answers the entry before it"
+    );
+    let unknown = failure(
+        store.restoreMark(OpIdArg::Id(second.op.opId.clone())),
+        "§6.4 M-11",
+    );
+    assert_code(
+        &unknown,
+        "JournalOpUnknown",
+        "§6.6 item 4: a mark the journal no longer holds is refused, and the store keeps its state",
+    );
+    // AND THE REMOVAL ROLLED ITS OWN STATE BACK: `b` does not stand, `a` does.
+    assert_code(
+        &failure(
+            store.read(AddressArg::List(key(&["b"])), TierArg::Absent),
+            "§7.2 item 3: the failure arm restores the entry's pre-state",
+        ),
+        "AddressNotFound",
+        "§7.2 item 3",
+    );
+    assert_eq!(
+        read_at(&store, &key(&["a"])),
+        v_num(1.0),
+        "§7.2 item 3: the entry before the removed one is untouched"
+    );
+    // AND THE MARK THAT STANDS STILL REPLAYS.
+    ok(
+        store.restoreMark(OpIdArg::Id(first.op.opId.clone())),
+        "§6.6",
+    );
+    assert_eq!(read_at(&store, &key(&["a"])), v_num(1.0));
+    std::fs::remove_dir_all(&path).expect("the drive cleans the forced-failure directory");
+}
+
+/// **THE FLOOR IS THE STATE BEFORE THE FIRST ENTRY, AND IT IS NOT THE EMPTY REGISTER ON ASSUMPTION** — the
+/// pathless store is born empty and a BOOTED store is born WITH its image (`Store::born`, `§6.6` item 2).
+///
+/// Drives: `§6.6` item 2's floor clause; `§7.2` item 6.
+#[test]
+fn s6_6_bis_the_floor_is_the_state_before_the_first_entry_including_the_booted_image() {
+    // (A) A PATHLESS STORE IS BORN EMPTY: the floor is the register with nothing in it, and the HEAD is a
+    // different state — which is what makes the floor a position of its own.
+    let mut store = new_mem_store();
+    let first = ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    let second = ok(
+        store.write(AddressArg::List(key(&["b"])), w_mem(), v_num(2.0)),
+        "§3.4 W-3",
+    );
+    assert_eq!(read_at(&store, &key(&["b"])), v_num(2.0));
+    ok(store.restoreFloor(), "§6.6-bis: the floor");
+    assert_code(
+        &failure(
+            store.read(AddressArg::List(key(&["a"])), TierArg::Absent),
+            "§6.6-bis: the floor is BEFORE the first entry",
+        ),
+        "AddressNotFound",
+        "§6.6-bis: the born state of a pathless store holds nothing",
+    );
+    assert_code(
+        &failure(
+            store.read(AddressArg::List(key(&["b"])), TierArg::Absent),
+            "§6.6-bis: and nothing beside it",
+        ),
+        "AddressNotFound",
+        "§6.6-bis",
+    );
+    // AND THE RECORD IS UNMOVED: the floor appends nothing, so the head mark still replays both writes — which
+    // is the contrast that makes the floor a POSITION and not an erasure.
+    assert_eq!(
+        store.journalMark(),
+        Some(second.op.opId.clone()),
+        "§6.6-bis: the floor appends nothing, so the last valid mark is unmoved"
+    );
+    ok(store.restoreMark(OpIdArg::Absent), "§6.6: the head mark");
+    assert_eq!(
+        read_at(&store, &key(&["b"])),
+        v_num(2.0),
+        "§6.6: the head is AHEAD of the floor, and it re-states both writes"
+    );
+    assert_eq!(read_at(&store, &key(&["a"])), v_num(1.0));
+    let _ = first;
+    // (B) A BOOTED STORE IS BORN WITH ITS IMAGE, AND THE FLOOR IS THAT IMAGE — never the empty register.
+    let path = fresh_path("s6-6-bis-floor-boot");
+    let mut origin = ok(
+        storeCreate(&cfg_at(&path, 8)),
+        "§7.1: the construction returns an instance at a reachable path",
+    );
+    let seeded = ok(
+        origin.write(AddressArg::List(key(&["k"])), w_file(), v_num(7.0)),
+        "§3.4 W-3",
+    );
+    ok(
+        commit_at_the_terminal_arm(&mut origin, &seeded.op.opId),
+        "§7.2 item 2: the terminal arm's own act puts the image in the file",
+    );
+    let mut booted = ok(
+        storeCreate(&cfg_at(&path, 8)),
+        "§7.2 item 6: the boot loads the image and journals no entry for it",
+    );
+    assert_eq!(
+        read_tier(&booted, &key(&["k"]), Tier::File),
+        v_num(7.0),
+        "§7.2 item 6: the boot stood the image"
+    );
+    let written = ok(
+        booted.write(AddressArg::List(key(&["k"])), w_file(), v_num(9.0)),
+        "§3.4 W-1",
+    );
+    assert_eq!(
+        booted.journalMark(),
+        Some(written.op.opId.clone()),
+        "§6.6-bis: the one entry the booted store appended is the mark"
+    );
+    ok(booted.restoreFloor(), "§6.6-bis: the floor");
+    assert_eq!(
+        read_tier(&booted, &key(&["k"]), Tier::File),
+        v_num(7.0),
+        "§6.6-bis: the floor is the BOOTED image — an empty-register floor would have deleted the loaded key"
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
+// **⟶ THE UNIT'S OWN NATIVE CELLS — `U-STOREROOM-FILE-SAVE-COVERAGE`, added 2026-11-02 inside this existing
+// target (`sites.md §4.1`'s own reason: a new integration target would need a `[[test]]` row in the root
+// `Cargo.toml`, and no manifest byte is this unit's). Each cell names the ruling it drives and asserts the
+// BYTES at the store's own path and the store's own answers.**
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+/// The path's own bytes, read as text — the observable every save clause is read off.
+fn bytes_at(path: &str) -> Option<String> {
+    std::fs::read_to_string(path).ok()
+}
+
+// `N1` · **ARM 2's ELIGIBILITY GROUND, POSITIVE** (`D-106` item 3; `contract.md PIN-4` (i)): a WHOLE-TARGET
+// `delete`'s op carries no tier, and the store's own ground — *"an op is eligible exactly when the act it
+// names moved at least one version standing at `Tier::File`"* — makes it eligible, so `commit_file` writes.
+#[test]
+fn n1_a_whole_target_delete_is_eligible_on_the_stores_own_ground() {
+    let path = fresh_path("n1");
+    let mut store = ok(storeCreate(&cfg_at(&path, 8)), "§7.1");
+    ok(
+        store.write(AddressArg::List(key(&["k"])), w_file(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    let receipt = ok(
+        store.delete(AddressArg::List(key(&["k"])), none()),
+        "§4.4",
+    );
+    let op = receipt.op.clone().expect("D-43 item 3: the record carries the delete's op");
+    assert_eq!(op.tier, None, "a whole-target delete's op names no tier");
+    ok(store.commit_file(&op.opId), "ARM 2: the ground makes it eligible");
+    assert_eq!(
+        bytes_at(&path).as_deref(),
+        Some("{}"),
+        "the bytes describe the state the delete left"
+    );
+}
+
+// `N2` · **ARM 2's ELIGIBILITY GROUND, NEGATIVE** (`PIN-4` (v)): a whole-target delete whose removed set held
+// no `file`-tier version moves no file-tier data, so `commit_file` answers `Ok(())` and writes NO byte.
+#[test]
+fn n2_a_whole_target_delete_over_mem_only_versions_writes_no_byte() {
+    let path = fresh_path("n2");
+    let mut store = ok(storeCreate(&cfg_at(&path, 8)), "§7.1");
+    ok(
+        store.write(AddressArg::List(key(&["m"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    let before = bytes_at(&path);
+    let receipt = ok(
+        store.delete(AddressArg::List(key(&["m"])), none()),
+        "§4.4",
+    );
+    let op = receipt.op.clone().expect("the delete's op");
+    ok(store.commit_file(&op.opId), "PIN-4 (v): eligible is read off `captured`");
+    assert_eq!(bytes_at(&path), before, "the path is byte-identical");
+}
+
+// `N3` · **THE ONCE-PER-RECORD MARKER UNDER THE WIDENED GROUND** (`PIN-4` (iii)): a SECOND `commit_file` of the
+// same op writes NO byte and answers `Ok(())` — the `S-ARM-SAVE` FAILS-IT state is unreachable on the new ground.
+#[test]
+fn n3_a_second_commit_of_the_same_delete_op_writes_nothing() {
+    let path = fresh_path("n3");
+    let mut store = ok(storeCreate(&cfg_at(&path, 8)), "§7.1");
+    ok(
+        store.write(AddressArg::List(key(&["k"])), w_file(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    let receipt = ok(
+        store.delete(AddressArg::List(key(&["k"])), none()),
+        "§4.4",
+    );
+    let op = receipt.op.clone().expect("the delete's op");
+    ok(store.commit_file(&op.opId), "the first save");
+    let after_first = bytes_at(&path);
+    ok(
+        store.commit_file(&op.opId),
+        "the marker's early return answers `Ok(())`",
+    );
+    assert_eq!(bytes_at(&path), after_first, "and writes no byte");
+}
+
+// `N5` · **`Store::rollback` PERFORMS NO WRITE OF ITS OWN** (`D-112` item 2): the reversal's save is the
+// package's act behind the judgement, so the store-side verb leaves the path alone and the caller's own
+// `save_state` is what moves the bytes — the store's ONE writer, its second key (`D-116` item 2).
+#[test]
+fn n5_the_store_rollback_writes_no_byte_and_save_state_is_the_state_keyed_write() {
+    let path = fresh_path("n5");
+    let mut store = ok(storeCreate(&cfg_at(&path, 8)), "§7.1");
+    ok(
+        store.write(AddressArg::List(key(&["l"])), w_file(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    let second = ok(
+        store.write(AddressArg::List(key(&["l"])), w_file(), v_num(2.0)),
+        "§3.4 W-1",
+    );
+    ok(store.commit_file(&second.op.opId), "the write's own terminal-arm save");
+    assert_eq!(bytes_at(&path).as_deref(), Some("{\"l\":2}"));
+    // THE REVERSAL: the memory moves, the bytes do not (`D-112` item 2).
+    let undone = ok(
+        store.rollback(OpIdArg::Id(second.op.opId.clone())),
+        "§6.3",
+    );
+    assert!(undone.undoneOps.contains(&second.op.opId));
+    assert_eq!(
+        bytes_at(&path).as_deref(),
+        Some("{\"l\":2}"),
+        "D-112 item 2: `Store::rollback` writes no byte of its own"
+    );
+    // THE STATE-KEYED SAVE, the judgement's act (`D-116` item 2): it compares and writes once …
+    ok(store.save_state(), "the state-keyed save");
+    assert_eq!(
+        bytes_at(&path).as_deref(),
+        Some("{\"l\":1}"),
+        "and the bytes now describe the state the reversal left"
+    );
+    // … AND A SECOND IDENTICAL CALL WRITES NOTHING (the projection comparison is the whole guard).
+    ok(store.save_state(), "the same state again");
+    assert_eq!(
+        bytes_at(&path).as_deref(),
+        Some("{\"l\":1}"),
+        "D-116 item 3: a second identical reversal's save writes nothing"
+    );
+}
+
+// `N6` · **THE REGENERATION'S RECORD** (`PIN-13` (i)–(iii), `M-9`): the arm appends NO entry and steps no `seq`,
+// and the next write's ordinal continues as though the reversal had not happened.
+#[test]
+fn n6_a_regenerating_reversal_appends_no_entry_and_steps_no_seq() {
+    let path = fresh_path("n6");
+    let mut store = ok(storeCreate(&cfg_at(&path, 2)), "§7.1");
+    ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    let second = ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(2.0)),
+        "§3.4 W-1",
+    );
+    let third = ok(
+        store.write(AddressArg::List(key(&["x"])), w_mem(), v_num(9.0)),
+        "§3.4 W-3",
+    );
+    assert_eq!(third.op.seq, 3, "§6.2: the append ordinal");
+    ok(
+        store.rollback(OpIdArg::Id(second.op.opId.clone())),
+        "the plain walk, which marks its candidates",
+    );
+    ok(
+        store.rollback(OpIdArg::Id(second.op.opId.clone())),
+        "D-108 item 1: the regenerating arm returns its record",
+    );
+    let next = ok(
+        store.write(AddressArg::List(key(&["z"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3",
+    );
+    assert_eq!(
+        next.op.seq, 4,
+        "M-9 / PIN-13 (ii): a reversal appends no entry, regenerating or not — the next append takes 4"
+    );
+}

@@ -33,7 +33,7 @@ Provident-Storeroom is a small synchronous store for that shape: a tree of keys 
 
 ## The shape of an answer
 
-A **write** answers its record — `{ op, watched, triggered }` — where `op` is the store's own journal record (`{opId, kind, address, tier, before, after, seq, compacted}`), `watched` is the listener addresses the act reached (`[["win"]]` with a listener standing at `['win']`, `[]` when no listener was in reach), and `triggered` is the `{handle, address}` pairs it fired. A **delete** answers `{ address, tiers, triggered, op }`, and a delete at a tier holding no version is a success with `tiers: []` and `op: null`.
+A **write** answers its record — `{ op, watched, triggered }` — where `op` is the store's own journal record (`{opId, kind, address, tier, before, after, seq}` — **⟶ SEVEN MEMBERS, NOT EIGHT, FROM 2026-11-17: `compacted` is REMOVED from the record and from the published declaration by `strata/decisions.md` · `D-189` item 2**, *"If .compacted is always false drop it"*; the class it costs is `MAJOR`, `2.0.0`, `D-190`), `watched` is the listener addresses the act reached (`[["win"]]` with a listener standing at `['win']`, `[]` when no listener was in reach), and `triggered` is the `{handle, address}` pairs it fired. A **delete** answers `{ address, tiers, triggered, op }`, and a delete at a tier holding no version is a success with `tiers: []` and `op: null`.
 
 A **refusal** throws four members, and the address the act wrote is as it stood before the refused act:
 

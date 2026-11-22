@@ -1,0 +1,1464 @@
+// `D-2` (`docs/L1/entry-subdivision.md` §1 part `4`) — bytes moved from `bindings/js/index.mjs`; no logic changed.
+import { appendOwn, fail } from './refusal.mjs';
+import { withAddon, boundaryReject } from './addon-slot.mjs';
+import { classSpelling, targetSpelling, valueReject } from './class-decision.mjs';
+import { encodeOpId } from './carrier.mjs';
+import { decodeSegments } from './frame.mjs';
+
+/**
+ * **THE PASS'S OWN CHECK-OFFS, CARRIED FROM THE KERNEL TO THE TERMINAL ARM'S DELIVERY UNDER A SYMBOL KEY
+ * (`docs/decisions.md` · `A117` (D5)–(D6); `surface.md §2.7` item 7's keying of 2026-10-15).**
+ *
+ * `docs/specs/storeroom-js/surface.md §2.7` item 7 (a) delivers **THE RESIDUE** — *"the handle set that stands in `CommitRecord.pending` at
+ * that instant"* — and item 7's keying of 2026-10-15 fixes what the check-off consumed: *"the check-off
+ * consumes the evaluated pair's own delivery of that identity and NEVER that identity's whole owed
+ * delivery"*. **So the residue is one term of the arm's delivered set and the pass's own checked-off
+ * identities are a second**, and this key is how the kernel's finding reaches this file: the kernel
+ * records each identity its check-off took and publishes the list on the record AT ITS PASSING ARM, before
+ * it hands that record back to this instance's own `settle` member.
+ *
+ * **THE KEY IS A SYMBOL ON PURPOSE** (`A117` (D6)): **NO MEMBER IS ADDED** — `CommitRecord` keeps its four
+ * members and the record's enumerable shape does not move, so no census of a record's members changes and
+ * nothing of the named-shape set is widened. **AND THE ENTRY DOES NOT IMPORT THE KERNEL TO READ IT** — the
+ * same well-known symbol is declared on both sides, which is what keeps the entry's zero-dependency rule
+ * and `kernel-surface.md §1` item 1's one checkout home intact. **A RECORD CARRYING NO SUCH KEY** — a
+ * record this instance adopted from a caller, one from a session without the kernel, and the failing
+ * arm's own record — reaches the arm's residue term ALONE and behaves exactly as it behaved before.
+ */
+const CHECKED_OFF = Symbol.for('provident-storeroom.checked-off-at-the-terminal-arm');
+
+/// **⟶ ADDED 2026-10-15 (`surface.md §2.11` clauses 1–2; `contract.md §7.2` item 2 as amended) — THE PASSING
+/// ARM'S OWN MARK: THE SAME DEVICE AS `CHECKED_OFF` ABOVE, ONE CLAUSE EARLIER.**
+///
+/// **THE TERMINAL ARM'S OWN ACT IS SCOPED TO THE PASSING ARM ALONE** (clause 1: *"the `file` tier, the
+/// TERMINAL ARM and the PASSING ARM alone"*), **and the seam reaches ONE instant on BOTH arms**: a
+/// `file`-tier write whose pass FAILED arrives at this same delivery with its record in hand, and clause 1
+/// refuses it a save and a store call of its own — *"a failing arm drives no save"*. **THE ARM IS THE
+/// KERNEL'S OWN FACT** (`attempt-lifecycle.md §2.4` item 4), so the KERNEL marks the record it settled on
+/// its passing arm and the entry reads THAT MARK and nothing else — never a residue, never a member a
+/// caller may set, and never a second store call on the failing arm.
+///
+/// **THE KEY IS A SYMBOL ON PURPOSE, EXACTLY AS `CHECKED_OFF`'s IS** (`A117` (D6)): **NO MEMBER IS ADDED** —
+/// `CommitRecord` keeps its four members, `record.pending` stands exactly as the pass left it, and no
+/// census moves. **THE ENTRY DOES NOT IMPORT THE KERNEL TO READ IT**: the same well-known symbol is
+/// declared on both sides. **A RECORD CARRYING NO SUCH KEY** — a caller's own record, and the failing arm's
+/// own record — performs no save and behaves exactly as it behaved before.
+export const SETTLED_ON_THE_PASSING_ARM = Symbol.for('provident-storeroom.settled-on-the-passing-arm');
+
+/// **⟶ ADDED 2026-10-15 — THE FAILED SAVE'S OWN MARK, THE SIBLING OF THE KEY ABOVE AND READ BY THE KERNEL'S
+/// OWN CATCH** (`docs/specs/storeroom-js/surface.md §2.11` clause 5; `kernel-surface.md §2.1` items 3–5).
+/// **`docs/specs/storeroom-js/surface.md §2.11` clause 5's save IS A CONSTRAINT, EVALUATED LAST — SO A SAVE THAT FAILS IS REPORTED BY THE PASS
+/// THAT FAILED AND NOT BY THE PASSING ARM**: the failed save's own log gains the `outcome` entry, the
+/// terminal answer returns that closed record's FINAL log, and the report carries the rollback that
+/// actually happened (`§2.6` item 3). **THE ENTRY MINTS NO TOKEN AND CONVERTS NO FORM**: it tells the
+/// kernel WHICH ARM this is, on the record identity it was handed, by carrying THE VERY THROWABLE it
+/// rethrows — while the store's own two-member form crosses UNCHANGED. **IT IS A SYMBOL KEY ON PURPOSE**
+/// (`A117` (D6)): `CommitRecord` keeps its four members, `record.pending` stands exactly as the pass left
+/// it, and no census moves. **A RECORD CARRYING NO SUCH KEY** — every arm but the failed save — is
+/// untouched by it.
+export const SAVE_FAILED_AT_THE_TERMINAL_ARM = Symbol.for('provident-storeroom.save-failed-at-the-terminal-arm');
+
+/// **⟶ ADDED 2026-10-18 — THE TERMINAL ARM'S DELIVERY CHANNEL, AND IT IS A SYMBOL-KEYED OWN PROPERTY ON THE
+/// PRODUCT FOR THE SAME REASON EVERY SYMBOL ABOVE IS ONE** (`surface.md §2.7`'s clause of 2026-10-18, item
+/// `2`; `docs/specs/storeroom-js/surface.md §2.4` item 9's `REMOVED-WHOLE` pointer of the same date; `A117` (D6), the precedent this family is
+/// declared under).
+///
+/// **THE PROBLEM THIS SOLVES, STATED PLAINLY: `settle` WAS THE CHANNEL, AND THE CHANNEL IS NOT THE
+/// DELIVERY.** `settle`'s REMOVAL takes a MEMBER off the product (`13 → 12`); it does NOT abolish what that
+/// member was the conduit for — **THE TERMINAL ARM'S ACT IS `docs/specs/storeroom-js/surface.md §2.7` ITEM `7`'s AND IT IS THE ENTRY'S TO
+/// PERFORM**, and `docs/specs/storeroom-js/surface.md §2.11` clause 2's `file`-tier save is the FIRST thing that arm does (`docs/specs/storeroom-js/surface.md §2.11` clause `9`'s
+/// mark of this date: *"the `file`-tier save's own arm is UNMOVED and is REACHED BY EVERY WRITE from this
+/// date"*). **SO THE KERNEL STILL NEEDS ONE WAY TO REACH THIS ENTRY AT ITS TERMINAL ARM, AND THAT WAY MUST
+/// ADD NO MEMBER**: `docs/specs/storeroom-js/surface.md §2.4` item 9 (f) declares TWELVE own members *"AND NOTHING ELSE"*, and a thirteenth
+/// NAMED member would be the finding that clause exists to catch.
+///
+/// **THE DEVICE IS THE FAMILY'S OWN**: a `Symbol.for` key, spelled on both sides, so the entry imports no
+/// kernel and the kernel imports no entry (`docs/specs/storeroom-js/surface.md §2.11` clause 9 — *"BOTH SIDES DECLARE THEM INDEPENDENTLY and
+/// neither side imports the other"*). **IT IS INVISIBLE TO `Object.keys` AND TO
+/// `Object.getOwnPropertyNames`** — the two censuses `docs/specs/storeroom-js/surface.md §2.11` clause 9 declares UNMOVED — **so the product's
+/// declared twelve own members, every own-key count and every member-set assertion read exactly what they
+/// read before.** **AND IT IS NOT A THIRD SYMBOL OF THE SAVE FAMILY**: that family is the `2` symbols above
+/// (`docs/specs/storeroom-js/surface.md §2.11` clause 9's own enumeration), each a mark ON A RECORD; this key is a CHANNEL ON THE PRODUCT and
+/// marks no record.
+/// **IT CARRIES THE ONE ARGUMENT THE TERMINAL ARM HAS: the attempt's own `CommitRecord`** — the identity
+/// `K-2` built, never a copy (`kernel-surface.md §2.1` item 2). **ITS ANSWER IS `undefined` AND NO KERNEL
+/// ACT BRANCHES ON IT** (`PAR-JS-19`'s answer cell, whose subject is the arm's return and not a member's).
+export const TERMINAL_ARM = Symbol.for('provident-storeroom.terminal-arm');
+
+/// **⟶ ADDED 2026-10-28 — THE COMMIT'S OWN MESSAGE LOG, SPELLED HERE AS THE KERNEL SPELLS IT (`D-53`).**
+///
+/// **THE RULING, VERBATIM: *"If it's part of the same commit, then it uses the same message log. If it opens a new
+/// commit, it uses the new commit's message log"*** (`strata/decisions.md` · `D-53`). **SO THE LIST LIVES ON THE
+/// COMMIT AND IT TRAVELS ON THE COMMIT'S OWN RECORD** — `kernel-commit.mjs` defines it on the `CommitRecord` it
+/// builds, under this key, and this module reads it for the ONE site that needs the commit's verdict and not an
+/// attempt's: **a failed `file`-tier save.** The save is the write's LAST constraint and it fails at the terminal
+/// arm, so the crossing this module builds there carries the COMMIT's entries — `D-52`'s sentence *"a save failure
+/// crosses as `FileCommitFailed` with `log: []`, and its verdict stands only in the attempt's log, which the
+/// crossed value does not carry"* is the defect this member closes.
+///
+/// **IT IS A `Symbol.for` KEY ON THE RECORD AND NO MEMBER IS ADDED** (`A117` (D6)): `Object.keys` and
+/// `Object.getOwnPropertyNames` read past it, so `CommitRecord` keeps its FOUR declared members and every census of
+/// them moves by nothing — the device `SETTLED_ON_THE_PASSING_ARM` and `SAVE_FAILED_AT_THE_TERMINAL_ARM` already
+/// stand on. **A RECORD CARRYING NO SUCH KEY** — a caller's own record, and every record the kernel did not build —
+/// answers `undefined`, and the crossing falls back to the declared `[]`.
+export const COMMIT_LOG = Symbol.for('provident-storeroom.commit-log');
+
+/// **⟶ AND THE ONE READ OF IT — a `[[GetOwnProperty]]` and never a `[[Get]]`, `D-35`'s READ HALF.**
+///
+/// The record this reads is handed through `write`'s FOURTH POSITION, which a CALLER may fill: an ordinary member
+/// read would run a getter the caller installed there — user code on a refusal path, before any verdict. **The
+/// descriptor's own `value` is taken only where it IS one, so an accessor answers `undefined` exactly as an absent
+/// key does, and `fail`'s declared `[]` is what crosses.** A record the KERNEL built carries the list as an own
+/// non-enumerable data property (`kernel-commit.mjs` defines it with `Object.defineProperty`), so the lawful arm
+/// reads it and every other arm reads nothing.
+export function commitLogOf(record) {
+  if (record === null || typeof record !== 'object') return undefined;
+  const descriptor = Object.getOwnPropertyDescriptor(record, COMMIT_LOG);
+  if (descriptor === undefined || !Object.hasOwn(descriptor, 'value')) return undefined;
+  return descriptor.value;
+}
+
+/// **⟶ ADDED 2026-11-17 — THE DELIVERED SET'S FAILURES, SPELLED HERE AS THE DATUM'S KEY, BESIDE `COMMIT_LOG` AND
+/// `SETTLED_ON_THE_PASSING_ARM`** (`U-STOREROOM-06 DELIVERY-SETTLE`; `contract.md §3`'s `defineBodyFailures` row and
+/// `§4`'s `PIN-5`, `PIN-10`; `design.md §5`, *"a symbol-keyed own property (beside `COMMIT_LOG`/
+/// `SETTLED_ON_THE_PASSING_ARM` in `state.mjs`'s symbol block)"*).
+///
+/// **THE RULING IT CARRIES, `D-138` ITEM 2, VERBATIM: *"the write resolves, and the status rides on the receipt …
+/// its CARRIER is the write's answer — a datum the caller reads"***. **SO THE DATUM LIVES ON THE RECORD UNDER THIS
+/// KEY AND THE RECORD'S FOURTH ACCESSOR READS IT** (`constraints.mjs`'s `defineBodyFailures`: a non-enumerable,
+/// `configurable` own GETTER at the name `bodyFailures`, answering the frozen empty map where this key is absent).
+///
+/// **THE KEY IS A `Symbol.for` SPELLING ON PURPOSE, EXACTLY AS EVERY SYMBOL ABOVE IS ONE** (`A117` (D6)): **NO MEMBER
+/// IS ADDED** — `Object.keys` and `Object.getOwnPropertyNames` read past it, so the record keeps the three enumerable
+/// members `PAR-JS-13` declares and the census moves by the accessor's ONE name and no more (`PIN-10`).
+/// **AND THE TWO MODULES THAT NEED IT DO NOT IMPORT EACH OTHER FOR IT**: `delivery.mjs` installs the datum
+/// (`settledAnswer`) and `constraints.mjs` reads it (the accessor) — both import this file already, so one spelling
+/// in one home means the install and the read cannot drift.
+export const BODY_FAILURES = Symbol.for('provident-storeroom.body-failures');
+
+/// **⟶ AND THE DATUM'S EMPTY VALUE — ONE FROZEN `{}`, MINTED ONCE AND ANSWERED BY BOTH SIDES** (`contract.md §2`'s
+/// *"`BODY_FAILURES` and `BODY_FAILURES_EMPTY` (one symbol and one frozen empty)"*; `design.md §5`: *"A frozen
+/// module-level `{}` is the constant, on `defineResolutionLog`'s precedent for `[]`"*).
+///
+/// **IT SITS BESIDE THE KEY AND NOT BESIDE ITS TWO READERS, AND THE REASON IS THE ONE FACT IT SPELLS**: the empty map
+/// means *"no rejecting body"*, and that is the same fact whether **no settle ran at all** (the plain arm, where
+/// `settledAnswer` never executes) or **a settle ran and found no rejection** (`bodyFailures`' own answer). **THE
+/// RECEIPT'S ACCESSOR AND THE SETTLE MUST ANSWER THE SAME VALUE, or a reader could tell the two apart** — so one
+/// constant, in the one module both frames already import, and neither side mints a second. **IT CARRIES NO CLIENT
+/// DATA**, so `D-58`'s retained-data bound — a retained LIST — has no subject here, and no fresh `{}` is built per
+/// call.
+export const BODY_FAILURES_EMPTY = Object.freeze({});
+
+/// **⟶ ADDED 2026-11-17 — THE DELIVERED SET'S SETTLED RETURN VALUES: THE DATUM'S KEY, BESIDE `BODY_FAILURES` ABOVE**
+/// (`U-STOREROOM-08 RETURN-VALUES`; `D-149` item 2; `D-150` item 1). **The datum lives on the record under this key and the
+/// record's FOURTH accessor reads it** (`constraints.mjs`'s `defineReturnedValues`). **A `Symbol.for` spelling on purpose**
+/// (`A117` (D6)): `Object.keys` and `Object.getOwnPropertyNames` read past it, so the census moves by the accessor's ONE
+/// name and no more (`D-150` item 1: *"`Object.keys` stays `["op","watched","triggered"]`"*). **The two modules that need it
+/// do not import each other for it**: `delivery.mjs` installs the datum and `constraints.mjs` reads it, both from here.
+export const RETURNED_VALUES = Symbol.for('provident-storeroom.returned-values');
+
+/// **⟶ AND THE DATUM'S EMPTY VALUE — ONE FROZEN `{}`, MINTED ONCE AND ANSWERED BY BOTH SIDES** (`D-150` item 2:
+/// *"ITS EMPTY VALUE IS THE SHARED FROZEN `{}` … present always, never absent, never `undefined`"*). **It means *"no body
+/// returned a value"*** — the same fact whether no settle ran (the all-synchronous arm, every reversal's record) or a
+/// settle found no value — so a reader cannot tell the two apart. **It carries no client data** (`D-58`'s bound is a
+/// retained LIST and there is none here), and no fresh `{}` is built per call.
+export const RETURNED_VALUES_EMPTY = Object.freeze({});
+
+/// **⟶ ADDED — `K-6`'s READ-MODEL CHANNEL, under a symbol key for the same reason every symbol above is
+/// one** (`A117` (D6): *"a symbol-keyed own property is invisible to both"* `Object.keys` and
+/// `Object.getOwnPropertyNames`, so the product's declared fourteen own members are UNMOVED by it).
+///
+/// **WHY IT EXISTS AT ALL, AND IT IS NOT A SECOND ROUTE:** `K-6`'s success must leave the PAIR gone from
+/// `constraints()` — *"THE PAIR IS GONE FROM `constraints()` after `K-6` returns"* (`contract.md §3` `S-19`;
+/// `remove-member.md §4` item 1; `docs/specs/storeroom-held-listener-identity/contract.md §2.7` item 8) — and that read model is the ENTRY'S (`state.constraints`),
+/// which the kernel cannot see. **THE ROUTE THE KERNEL ALREADY USES FOR ITS OWN ACTS IS THE INSTANCE'S**
+/// (`contract.md §2.9` item 2's one-route rule: `K-6` calls the app's own published member rather than
+/// inventing a second one), **so the deletion travels the same way `[TERMINAL_ARM]` does** — the kernel holds
+/// the instance, and this symbol names the one act it may take on the entry's own bookkeeping.
+///
+/// **AND IT IS NOT `removeConstraint`**: this act removes the read-model row alone. The full four-structure
+/// ordering is `removeConstraint`'s (`removal-members.md §4` item 2's `HL-DD-4`), and `removeConstraint`
+/// reaches THIS item for the row, the store's entries and the address rows.
+export const FORGET_PAIR = Symbol.for('provident-storeroom.forget-pair');
+
+// ---------------------------------------------------------------------------------------------
+// THE ACTIVE-EDIT COUNT AND ITS READ SEAM — `finalizer-and-teardown.md §4`, DECLARED AT ITS `§4.2`
+//
+// **THE COUNT IS THE NUMBER OF OPEN COMMITS FOR ONE STORE** (`§4.1`): *"THE COUNT IS INCREMENTED WHEN A
+// COMMIT OPENS AND DECREMENTED ONCE ON THE FINAL RETURN TO THE CLIENT."* **A VERB THAT FINDS AN EXTANT
+// COMMIT JOINS IT RATHER THAN OPENING A SECOND**, which is what keeps the count exact under nesting.
+//
+// **⟶ AMENDED 2026-10-27, SECOND CLAUSE — THE DISCRIMINATOR IS THE COMMIT A CALL NAMES ON ENTRY AND IS NEITHER
+// DEPTH'S NOR AN AUTHORSHIP THE PACKAGE INFERS (`D-46`). THE CLAUSES ABOVE AND THE `D-45` ONE BELOW STAND
+// BYTE-FOR-BYTE AND ARE READ THROUGH THIS ONE.**
+//
+// **THE ARCHITECT, VERBATIM: *"A listener should be operating at the surface and opening a new commit"* · *"A
+// constraint's repair needs to stay as part of the same commit so that it can be tracked as part of the commit
+// process"* · *"The original way of maintaining this was to accept an optional parameter on entry for the commit
+// id, so that a constraint can identify which open commit it is repairing"*** (`strata/decisions.md` · `D-46`).
+//
+// **THE RULE, AS ONE SENTENCE: A CALL THAT NAMES A COMMIT ON ITS OWN ENTRY JOINS THAT COMMIT, AND A CALL THAT
+// NAMES NONE OPENS A NEW ONE.** **The position that carries the name is the `write` METHOD'S FOURTH** — the
+// commit, at the position `index.d.ts` declares (*"the commit, at the FOURTH position of the METHOD"*), which
+// takes a RECORD (an object carrying an own, present `pending`) and never an id token. **AND WHERE A CALL SITS
+// INSIDE AN INVOCATION THE PACKAGE ITSELF MADE OF CALLER CODE, THE NAME MAY COME FROM THE INVOCATION'S OWN
+// ENTRY** — see `EXTERNAL_COMMIT` below: **the kernel names the attempt's commit when it invokes a REPAIR, and
+// names nothing when it invokes a listener or a constraint body.** **A NAME IS NEVER INFERRED FROM A FRAME
+// COUNT, AN AUTHORSHIP MARK, A DEPTH OR A WINDOW, AND TWO NAMES CANNOT CONFLICT: THE ENTRY'S OWN POSITION WINS
+// AND THE INVOCATION'S IS ITS FALLBACK.**
+//
+// **WHY THE REPAIR JOINS AND THE LISTENER DOES NOT, IN THE ARCHITECT'S OWN TERMS.** A repair is **PART OF THE
+// ATTEMPT BEING TRACKED** — *"so that it can be tracked as part of the commit process"* — so its ops belong to
+// the attempt's commit and that commit's record describes the repair it performed; a listener body is
+// **externally-passed code operating at the surface**, so *"it's entering at the package surface"* and opens one
+// of its own (`D-43` item `1`, `D-45`), **and it has no commit in hand to name.** **THAT IS THE ONE CALLER THAT
+// CANNOT SUPPLY AN ID, AND IT IS THE RULE'S OWN ABSENT ARM RATHER THAN AN EXCEPTION TO IT.**
+//
+// **AMENDED 2026-10-27 — THE JOIN RULE IS NARROWED TO AUTHORSHIP AND IS NO LONGER DEPTH'S (`D-45`).**
+// The sentences above stand BYTE-FOR-BYTE and are read THROUGH this clause. **THE ARCHITECT, VERBATIM:
+// *"For 43, how is a listener supposed to be able to reuse the outer verb's commit? The listener is an
+// externally-passed function and should be making calls at the package surface. It should be opening a new
+// commit by default of entering at the surface"*** (`strata/decisions.md` · `D-45`). **THE RULE ABOVE WAS
+// WRITTEN FOR ONE CASE — THE PACKAGE'S OWN MACHINERY INSIDE ITS OWN VERB — AND IT CONFLATED THAT WITH
+// EXTERNAL RE-ENTRY**: *"a listener body, a constraint body"* is **A DIFFERENT ACT BY A DIFFERENT AUTHOR,
+// entering the package surface from outside, and it has no claim on the outer verb's commit at all.**
+// **SO: A CALL ENTERING THE SURFACE FROM AN EXTERNALLY-SUPPLIED FUNCTION OPENS A NEW COMMIT BY DEFAULT, AND
+// ONLY THE PACKAGE'S OWN INTERNAL CONTINUATION JOINS. THE DISCRIMINATOR IS AUTHORSHIP, NOT DEPTH.**
+//
+// **HOW AUTHORSHIP IS MEASURED, AND IT IS THE SECOND THING THE COUNT NEEDS.** `EXTERNAL_DEPTH` below is the
+// number of caller-supplied frames the package is, at this instant, running INSIDE; every window the index
+// opens records the depth it was opened at (`attemptIndex(...).externalAt`, in lockstep with `windows`).
+// **`openCommit` JOINS IFF THE CURRENT DEPTH IS NOT GREATER THAN THE DEPTH OF THE COMMIT IN FLIGHT** — so the
+// package's own continuation of that commit, which runs at the same depth, joins; **a call made from a
+// caller's function, which runs one frame deeper, opens.** **NO COUNT IS MINTED AND NO SECOND INDEX EXISTS**:
+// the mark is a depth and a per-window number, both of them this file's own.
+//
+// **AND ITS READER IS THE SEAM `§4.2` DECLARES**, reached as two `Symbol.for` channels ON THE STORE
+// INSTANCE — **NOT module exports of `constraint-kernel.mjs`**, whose export set a standing assertion
+// closes at the six `K-1`–`K-6` items (`§4.2` item 3; `implementation-plan.md §2` step `4`). **THE ROUTE
+// IS THE ONE THIS MODULE ALREADY USES**: `TERMINAL_ARM` and `FORGET_PAIR` above are the same lookup.
+//
+// **THE INDEX IS `§4.3`'s SECOND INDEX, KEYED BY STORE AND STANDING OVER THE KERNEL'S OWN RECORDS.** No
+// member is added to any record: the kernel's attempt records keep their nine members and the closed
+// report its five.
+// ---------------------------------------------------------------------------------------------
+const ATTEMPT_COUNT = Symbol.for('provident-storeroom.attempt-count');
+const ATTEMPT_OPENED = Symbol.for('provident-storeroom.attempt-opened');
+
+/// **⟶ ADDED 2026-10-27 — `D-44`'s ENFORCEMENT POINT: THE COMMIT SCOPE, AND IT IS THE SEAM'S THIRD CHANNEL.**
+///
+/// **THE RULING IS THE ARCHITECT'S, VERBATIM: *"There should be no state where a constraint is being checked
+/// without an open commit. Any action that would cause a constraint check should open a commit before
+/// beginning"*** (`strata/decisions.md` · `D-44`) — **and it is an INVARIANT, enforced WHERE THE CHECK RUNS and
+/// not at its callers**: *"a seam a driver can bypass is not an invariant."* `runAttempt` has ONE production
+/// call site (`constraints.mjs`'s `constraintWrite`) **and is also driven DIRECTLY by the batteries**, so a
+/// bracket taken in the entry would be bypassed by every direct drive. **THE SCOPE IS THEREFORE OPENED BY THE
+/// PASS ITSELF**, and the kernel — which declares an EMPTY import footprint (`kernel-surface.md §1` item 1) and
+/// cannot import this module — reaches it through the seam `installAttemptSeam` already installs: the same
+/// `Symbol.for` device, a third channel on the object `storeCreate` returns.
+///
+/// **WHAT THE CHANNEL DOES, AND THE ONE RULE IT KEEPS**: `store[COMMIT_SCOPE](run)` runs the thunk `run` inside
+/// a commit window — **OPENING one if none is open, JOINING the extant one if one is, and CLOSING ONLY WHAT IT
+/// OPENED** (`openCommit` answers whether THIS call opened; `closeCommit` releases iff it did). **THAT IS
+/// `§4.1`'s OWN RULE** — *"a verb that finds an extant commit JOINS it rather than opening a second, which is
+/// what keeps the count exact under nesting"* — **so the production path's nesting is JOINED and never
+/// doubled**: the caller's verb bracket already holds the count at `1` and the pass's scope inside it moves the
+/// count by nothing. **A THROWABLE OUT OF `run` CROSSES UNCHANGED**, and the window is released on that arm
+/// too, so no count is ever left standing (`§5`'s failure list).
+///
+/// **NO MEMBER IS ADDED TO ANY RECORD AND NONE TO THE PRODUCT**: the channel is a `Symbol.for` key, invisible to
+/// `Object.keys` and to `Object.getOwnPropertyNames` (`A117` (D6)), so the product's declared own members are
+/// unmoved, no census of a `CommitRecord` moves and no kernel item is minted (`kernel-surface.md §1` item 2).
+const COMMIT_SCOPE = Symbol.for('provident-storeroom.commit-scope');
+
+/// **⟶ ADDED 2026-10-27 — `D-42`'s RESTART CONSUMER, AND IT NOW SITS WHERE THE SCOPE IS OWNED.**
+///
+/// **THE FINDING THIS CLOSES, SAID AS THE LAST PASS MEASURED IT** (`docs/specs/storeroom-js/contract.md §2.6`'s
+/// `D-44` annotate-beside, item `4`): *"a reversal issued INSIDE a directly driven pass is still neither judged
+/// nor restarted … the restart's consumer is the write's check path (`constraintWrite`'s
+/// `restartInvalidatedCheck`) and a directly driven pass has no such frame above it, so the request the body
+/// raises dies with its window."* **`D-44` gave every check an open commit and stopped there**; the request a
+/// check's own body raises was still consumed by ONE call site (`constraintWrite`), which is a property of a
+/// caller and not of the check. **So the consumption moves to the frame that owns the scope — `runAttempt` —
+/// and the store reaches its consumer by a fifth `Symbol.for` channel on this same seam.**
+///
+/// **THE CHANNEL IS THE SAME DEVICE AS THE SCOPE ABOVE**: installed once by `installAttemptSeam`, invisible to
+/// `Object.keys` and `Object.getOwnPropertyNames` (`A117` (D6)), no member added to any record and none to the
+/// product, and no kernel item minted (`kernel-surface.md §1` item 2: `K-1`–`K-5` and no sixth name). **Its one
+/// argument is the closed `AttemptReport` the pass answered with**, and its answer is the report the kernel
+/// returns: the consumer may leave it untouched (no request stood, or the restarted check passed) or answer it
+/// amended (the restarted check refused). **ITS IMPLEMENTATION IS THE ENTRY'S AND IT IS INJECTED HERE**
+/// (`installRestartConsumer` below): this module may not import `constraints.mjs` — `constraints.mjs` imports
+/// this one, and `kernel-attempt.mjs` imports neither — so the restart machinery stays in its own file and only
+/// the CHANNEL is declared on the seam.
+///
+/// **AND IT RUNS INSIDE THE PASS'S OWN SCOPE**: `runAttempt` calls it after its pass and before the scope is
+/// released, so the restarted check is a check with a commit open — `D-44`'s invariant reaches the restart
+/// itself, which it could not while the consumer was a frame outside the scope.
+const RESTART_DRAIN = Symbol.for('provident-storeroom.restart-drain');
+
+/// **⟶ ADDED 2026-10-28 — THE SEAM'S SEVENTH CHANNEL: THE PASSING SWEEP MOVES THE MARK, AND THE KERNEL MUST BE ABLE
+/// TO SAY SO WITHOUT IMPORTING THIS FILE** (`D-63`; `docs/specs/storeroom-js/contract.md §2.6`'s clause of this date).
+///
+/// **THE PROBLEM IT SOLVES IS AN IMPORT ONE, AND IT IS THE SAME ONE EVERY SYMBOL ON THIS SEAM SOLVES.**
+/// `kernel-attempt.mjs` is the frame that REACHES the passing verdict (`close(kernel, attempt, 'passed')`) and the
+/// frame where the DELIVERY begins (`settleArm`), so the bump stands between them **in that file** — **and that
+/// file's import footprint is EMPTY** (`kernel-surface.md §1` item 1: it may not import this one and this one may
+/// not import it). **SO THE KERNEL SPELLS THE KEY AND THIS MODULE ANSWERS IT**, exactly as `COMMIT_SCOPE`,
+/// `RESTART_DRAIN`, `EXTERNAL_CALL` and `TERMINAL_ARM` already cross.
+///
+/// **IT TAKES NO ARGUMENT AND IT MINTS NOTHING**: the position is the STORE'S own answer, read here by the store's
+/// own `journalMark` entry (`bumpWindowMark` above), so **no caller and no kernel composes a position**, **no arity
+/// moves** and **no journal field is added** (`D-62`'s five-item unblock is MOOT). **A KERNEL-SIDE GUARD KEEPS A
+/// STORE THAT CARRIES NO SUCH CHANNEL — or one whose key a caller has overwritten — from turning a passing write
+/// into a host error**: a channel that is absent or that throws bumps nothing, and the commit keeps its opening
+/// mark, which is the behaviour every failing arm has.
+const BUMP_MARK = Symbol.for('provident-storeroom.bump-mark');
+
+/// **THE RESTART'S ONE IMPLEMENTATION, INJECTED BY THE FILE THAT OWNS IT** — `constraints.mjs` calls
+/// `installRestartConsumer(drainRestartRequests)` at its own module scope. **A NULL SLOT IS A STORE WITH NO
+/// RESTART MACHINERY AND ITS PASS ANSWERS ITS REPORT UNCHANGED** — a request can only be raised by a pair, a
+/// pair is only carried by `constraints.mjs`, and a tree that never loads that file has no request to consume.
+let RESTART_CONSUMER = null;
+export function installRestartConsumer(consumer) {
+  RESTART_CONSUMER = consumer;
+}
+
+/// **⟶ ADDED 2026-10-27 (`D-45`), RE-SPELLED 2026-10-27 (`D-46`) — THE SEAM'S SIXTH CHANNEL, AND IT CARRIES
+/// THE COMMIT AN INVOCATION OF CALLER CODE NAMES ON ITS OWN ENTRY.**
+///
+/// **WHAT IT CARRIES NOW, AND WHAT IT NO LONGER CARRIES.** `D-45` armed it with **A DEPTH** — the number of
+/// caller-supplied frames in flight — and `openCommit` compared that depth against the depth the commit in
+/// flight was opened at. **`D-46` REPLACES THE DEPTH WITH THE COMMIT ITSELF**: the second position holds **the
+/// commit the invocation names**, or `undefined` where the invocation names none, and **`openCommit` reads it as
+/// the name a call supplies when its own entry position carries none.** **THE DEPTH IS DELETED, NOT KEPT BESIDE
+/// IT** — one discriminator, stated once: **a call that names a commit JOINS it; a call that names none OPENS
+/// one** (`openCommit` below).
+///
+/// **WHICH INVOCATIONS NAME ONE, AND IT IS THE WHOLE OF `D-46`'s SECOND DIRECTION.** **A REPAIR NAMES THE
+/// ATTEMPT'S COMMIT** — *"A constraint's repair needs to stay as part of the same commit so that it can be
+/// tracked as part of the commit process"* — so the kernel hands the attempt's own record at the two frames that
+/// invoke a repair body (`kernel-attempt.mjs`'s arm (b) and `kernel-registration.mjs`'s state `3`), and the write
+/// a repair body makes **joins the attempt's commit by declaration**: its ops are the attempt's ops, its
+/// `repair-run` entry names the op it landed, and **no second commit opens for it** (`attempt-opened` stays at
+/// ONE for a write that repairs `tests/e2e/repair-in-commit.test.mjs` prints it). **A LISTENER BODY NAMES
+/// NOTHING, AND THAT IS NOT AN OMISSION: IT HAS NO COMMIT IN HAND TO NAME** — it is externally-passed code
+/// entering at the surface (`D-43` item `1`, `D-45`), so its call **OPENS ITS OWN** and the descendant window
+/// stays closed by construction (`tests/e2e/external-commit.test.mjs`, unchanged and green). **A CONSTRAINT
+/// BODY NAMES NOTHING EITHER**: it is invoked to be *asked*, not to act, so a verb it calls is a fresh act at the
+/// surface — the same reading `D-45` gave it.
+///
+/// **WHAT IT MARKS AND FOR HOW LONG**: one invocation of a caller-supplied function and nothing else. The site
+/// arms it BEFORE the call and restores the previous value AFTER, on the throwing arm too, so no name outlives
+/// the invocation and a nested invocation is measured by its own name and not its caller's.
+///
+/// **WHY IT IS A `Symbol.for` CHANNEL ON THE PRODUCT AND NOT AN EXPORT THE KERNEL IMPORTS** (`A117` (D6), the
+/// family `TERMINAL_ARM`, `FORGET_PAIR`, `COMMIT_SCOPE` and `RESTART_DRAIN` are declared under): the kernel's
+/// four part modules declare an EMPTY import footprint (`kernel-surface.md §1` item 1; `A110`) and cannot
+/// import this file, so **both sides spell the same key and neither side imports the other**. **IT IS INVISIBLE
+/// TO `Object.keys` AND TO `Object.getOwnPropertyNames`**, so the product's declared own members are unmoved,
+/// no census moves, and no kernel item is minted (`§1` item 2: `K-1`–`K-6` and no seventh name).
+const EXTERNAL_CALL = Symbol.for('provident-storeroom.external-call');
+
+/// **THE NAME ITSELF — the commit the invocation in flight was handed, for the process** (`undefined` where it
+/// was handed none), read by `openCommit` and moved by the channel below and by nothing else.
+let EXTERNAL_COMMIT = undefined;
+
+/// **AND THE MARK'S OWN SECOND FACT IS KEPT, AS `D-46`'s FALLBACK FOR THE CALLERS THAT CANNOT NAME ONE** — the
+/// depth of caller-supplied frames in flight, read at `openCommit`'s unnamed arm and moved by the same channel.
+/// **IT NO LONGER DECIDES ANY CALL THAT NAMES A COMMIT**: `D-45`'s rule is narrowed to the unnamed arm and is the
+/// whole of what answers there, which is what keeps the package's own continuation (`constraintOn`'s nested
+/// `listen`, a pass's scope) JOINING while a listener body's or a constraint body's verb — one frame deeper than
+/// the commit it finds — OPENS. **TWO FACTS, ONE RULE**: the name if the call has one, and authorship only where
+/// it has none (see `openCommit`).
+let EXTERNAL_DEPTH = 0;
+
+/// **THE ONE FORM THE ENTRY'S OWN SITES CALL** — it hands the thunk to the channel the store carries **without a
+/// commit, because the entry's own two sites are a listener body's delivery and a reversal's judgement, and
+/// neither has one to name**, and answers what the invocation answered; its throwable crosses unchanged.
+///
+/// **A STORE THAT CARRIES NO CHANNEL ANSWERS THE INVOCATION WITH NOTHING NAMED** — a store this package never
+/// installed the seam on, or a caller that read the symbol property away. That is the CONSERVATIVE side for this
+/// mechanism: the call then opens its own commit, which is the rule's own absent arm, and it can never join a
+/// commit nobody named.
+export function externalCall(store, run) {
+  const channel = store !== null && typeof store === 'object' ? store[EXTERNAL_CALL] : undefined;
+  if (typeof channel === 'function') return channel(run);
+  return run();
+}
+
+/// **⟶ ADDED 2026-11-01 — `D-104`'s CARRIER: THE LEGS OF THE INVOCATION THAT CLOSED LAST, ONE `Symbol.for`
+/// CHANNEL BESIDE THE ONE ABOVE AND NO OTHER CROSSING** (`docs/L1/repair-listener-delivery.md` §3.2 and §8's
+/// `js-registry-delivery` row; `strata/decisions.md` · `D-104` item `3`'s mechanism `(a)`).
+///
+/// **THE FACT IT CARRIES, AND WHY IT HAS TO CROSS AT ALL.** A repair's write is this package's own `write`
+/// member, so the store's returned set for that write is decoded into a record this file stands in `state.leg`
+/// (`bindings/js/index.mjs`'s `n >= 4` arm) — **and the KERNEL cannot read that slot**: `kernel-attempt.mjs`
+/// *"imports no entry and is imported by none"* (`kernel-surface.md §1` item 1), and the repair's own return
+/// carries `op` alone (`guide §7.6`). **SO THE ENTRY HANDS THE REPAIR'S WRITE'S RETURNED ELEMENTS OVER ON THIS
+/// CHANNEL, AND THE KERNEL'S REPAIR ARM IS ITS ONE READER** (`kernel-attempt.mjs`'s `REPAIR_LEG`, spelled there
+/// independently — the same device `TERMINAL_ARM`, `COMMIT_SCOPE`, `RESTART_DRAIN`, `BUMP_MARK` and
+/// `EXTERNAL_CALL` cross by).
+///
+/// **THE SUBJECT IS ONE FACT AND IT IS THE INVOCATION'S: the legs of the invocation that CLOSED LAST.** The
+/// bracket is `EXTERNAL_CALL`'s own (`installAttemptSeam` below), which already holds the commit the invocation
+/// names — so the SAME bracket opens a leg list beside that name and closes it in the SAME `finally`, and the
+/// `write` member's `n >= 4` arm appends its record's `triggered` elements to the list of the bracket that
+/// stands (`appendRepairLeg` below).
+///
+/// **AND ITS ABSENT ARMS ARE TOTAL**, the conservative side every channel of this family answers on: **no bracket
+/// standing at a write ⇒ the append goes nowhere** (a caller's own write, a direct `K-2` drive's store leg); **no
+/// invocation closed ⇒ the channel answers `[]`** (the clear below); **a store this package did not build carries
+/// no channel ⇒ the kernel's own `typeof` guard answers `[]`.** **A CALLER THAT READ THIS PROPERTY AWAY** loses
+/// the merge and nothing else: no status, no member, no arity moves.
+///
+/// **THE KEY IS A `Symbol.for` SPELLING ON PURPOSE** (`A117` (D6)): **NO MEMBER IS ADDED** — the product's
+/// declared own named members and every census of them are unmoved, a symbol-keyed own property being invisible
+/// to `Object.keys` and to `Object.getOwnPropertyNames`.
+export const REPAIR_LEG = Symbol.for('provident-storeroom.repair-leg');
+
+/// **THE INVOCATIONS IN FLIGHT, ONE LEG LIST PER OPEN BRACKET — AND THE INNERMOST IS THE ONE AN APPEND
+/// REACHES.** It is a STACK because an invocation can be made INSIDE another (a repair body's `register`, a
+/// constraint body's verb): the nested bracket closes FIRST, so it is the nested list that is handed over at that
+/// instant, and the outer bracket's list still stands where the outer invocation's own writes append.
+///
+/// **IT IS MODULE-LEVEL FOR THE REASON `EXTERNAL_COMMIT` AND `EXTERNAL_DEPTH` ABOVE ARE**: the invocation bracket
+/// is one process-wide fact of the seam and no store carries it. **IT IS NOT A COUNT, NOT A WINDOW AND NOT A
+/// SECOND INDEX** — it adds nothing to `attemptIndex` and moves no mark.
+let REPAIR_LEGS_OPEN = [];
+
+/// **THE LEGS OF THE INVOCATION THAT CLOSED LAST — ANSWERED ONCE AND CLEARED IN THE SAME READ.** A "last
+/// invocation" slot cannot be confused with another's because its one reader takes it SYNCHRONOUSLY after its
+/// own invocation returned and before any other code runs; the clear is what keeps a LATER invocation that wrote
+/// nothing from answering an EARLIER one's legs.
+let REPAIR_LEGS_LAST = [];
+
+/// **THE APPEND — TAKEN AT THE `write` MEMBER'S OWN LEG SEAT AND NOWHERE ELSE** (`bindings/js/index.mjs`, the one
+/// line beside `state.leg = record`, inside the `n >= 4` arm only): ONE LEG IS MINTED PER WRITE the invocation
+/// made, into the innermost OPEN invocation's list, and with no bracket standing nothing is taken at all.
+///
+/// **THE ELEMENT IS MINTED FRESH, WITH A FRESH SEGMENT LIST** (`crossing.md §1.1`'s copy discipline read at this
+/// crossing): the record's own element stands on a record the REPAIR BODY itself was handed back, and the
+/// commit's member must not alias it — so a repair that mutated its own returned record's element can never move
+/// the caller's `pending`. **THE ELEMENT TYPE IS THE MEMBER'S OWN**, `{ handle, address }` (`TF-1`,
+/// `contract.md §2.5` item 2).
+///
+/// **NOTHING IS FILTERED HERE, AND A PAIR'S HANDLE IS NOT REMOVED** (`D-69`): this is the store's returned set
+/// VERBATIM, and the KERNEL's predicate is what excludes a carried pair's own handle at the merge — one
+/// membership test, in the frame that holds the registry.
+///
+/// **⟶ WIDENED 2026-11-01 — THE LEG CARRIES THE WRITE'S OWN JOURNAL OP TOO** (`docs/L1/op-free-repair-credit.md`
+/// §2.2; `strata/decisions.md` · `D-105` item `2`: *"the rollback point is determined independently"*, and item
+/// `3`: *"the only supported route for repairs is with the commit id so that its triggers can be joined to the
+/// commit"*). **THE SUBJECT OF THE CHANNEL IS STILL ONE FACT — the invocations that closed last — and it is now
+/// ONE ELEMENT PER WRITE: `{ op, triggered }`, carrying THAT WRITE'S OWN JOURNAL `op` and its returned elements.**
+/// **THE OP IS COPIED AT ITS OWN MEMBERS** — `opId` · `kind` · `address`'s segment list · `tier` · `before` ·
+/// `after` · `seq` · `compacted` (`frame.mjs`'s `decodeJournalOp`, `:421`–`:431`; `index.mjs:445` stands that very
+/// record) — by the same copy discipline the elements below already take, **so a body that mutates the op it was
+/// handed back can move nothing the kernel reads**: the re-run's `context.value` is this op's `after.value` and
+/// the floor call's candidates are this op's `address` and `opId`. **THE BRACKET, THE STACK, THE CLEAR AND THE
+/// CHANNEL ARE UNMOVED** (`:761`–`:795`, `:834`–`:845`): the read is still taken synchronously after the
+/// invocation returned and the answer is still cleared in the same read.
+///
+/// **THE `triggered` MEMBER IS THE ELEMENT LIST THIS FUNCTION ALWAYS MINTED** — one `{ handle, address }` per
+/// returned element, fresh and segment-copied. A record whose set is not an array carries NO element (the
+/// absent arm this function has always answered) **and still carries its op**: the credit is the WRITE's, and
+/// a write that landed is a write whatever its returned set held.
+export function appendRepairLeg(record) {
+  const open = REPAIR_LEGS_OPEN;
+  if (open.length === 0) return;
+  if (record === null || typeof record !== 'object') return;
+  const list = open[open.length - 1];
+  const triggered = record.triggered;
+  const elements = [];
+  if (Array.isArray(triggered)) {
+    for (let i = 0; i < triggered.length; i += 1) {
+      const element = triggered[i];
+      if (element === null || typeof element !== 'object') continue;
+      const address = [];
+      const segments = element.address;
+      if (Array.isArray(segments)) {
+        for (let s = 0; s < segments.length; s += 1) appendOwn(address, segments[s]);
+      }
+      appendOwn(elements, { handle: element.handle, address });
+    }
+  }
+  // THE WRITE'S OWN JOURNAL OP, COPIED MEMBER BY MEMBER — `before` and `after` included, each as its own
+  // `{present, value}` (`decodeBaseState`, `frame.mjs:417`–`:419`), so the op the kernel reads stands on no
+  // object the caller's body was handed back. A record carrying no op object carries `null` here, which is the
+  // kernel's own absent arm (`repairLegs`' landing test).
+  const held = record.op;
+  let op = null;
+  if (held !== null && typeof held === 'object') {
+    const address = [];
+    const segments = held.address;
+    if (Array.isArray(segments)) {
+      for (let s = 0; s < segments.length; s += 1) appendOwn(address, segments[s]);
+    }
+    const before = held.before;
+    const after = held.after;
+    op = {
+      opId: held.opId,
+      kind: held.kind,
+      address,
+      tier: held.tier,
+      before: before !== null && typeof before === 'object'
+        ? { present: before.present, value: before.value }
+        : before,
+      after: after !== null && typeof after === 'object'
+        ? { present: after.present, value: after.value }
+        : after,
+      seq: held.seq,
+      compacted: held.compacted,
+    };
+  }
+  appendOwn(list, { op, triggered: elements });
+}
+
+/** The per-store index: `{ open, observers, windows, marks, windowSeq }`, keyed by the store instance and by
+ *  nothing else. **`windows` IS THE STACK OF OPEN WINDOW IDENTITIES** — one number per commit this store opened, the
+ *  top being the window in flight — and it exists so a restart request can name the window that raised it
+ *  (`D-42`'s *"a request belongs to the act that raised it"*, made a measurement instead of an inference).
+ *  **`marks` IS THE STACK BESIDE IT AND IT IS THE SAME ONE STACK READ AS THE JOURNAL MARK** — one entry per commit
+ *  that OPENED, pushed and popped in lockstep with `windows` (`openCommit`/`closeCommit`), so `windowMark` answers
+ *  the outermost opening's mark and a join neither pushes nor pops. */
+const ATTEMPT_INDEX = new WeakMap();
+
+function attemptIndex(store) {
+  let index = ATTEMPT_INDEX.get(store);
+  if (index === undefined) {
+    // **⟶ THE OBSERVER LIST IS A PLAIN ARRAY, READ BY INDEX** (`contract.md §2.1`'s clause of 2026-10-24 on
+    // `F7-1`, item `(1b)` and `(1d)(iv)`): a `Set` is reached through `Set.prototype.add`/`delete` and its
+    // ITERATION (the opening's copy) through `Set.prototype[Symbol.iterator]`, and the copy was an ARRAY
+    // SPREAD whose `for … of` took `Array.prototype[Symbol.iterator]`. **That is the off-inventory site the
+    // battery names at its row `(a)`: every `write` reaches the opening BEFORE the walk, so a forged array
+    // iterator answered a raw host `TypeError` (`observer is not a function`) instead of the declared
+    // refusal.** The list preserves the Set's own two facts — insertion order and uniqueness — and the copy
+    // is taken before any notification, so an observer that removes itself mid-notification still moves
+    // nothing.
+    index = { open: 0, observers: [], windows: [], marks: [], externalAt: [], windowSeq: 0 };
+    ATTEMPT_INDEX.set(store, index);
+  }
+  return index;
+}
+
+/// **⟶ ADDED 2026-10-26 — THE PLAIN ACCESSOR FOR THE SAME FACT, SO A DISCRIMINATOR CAN READ IT WITHOUT THE
+/// CHANNEL.** The count this index holds is `§4.1`'s and `§4.2` item 1's, and its declared reader has always
+/// been the symbol channel `installAttemptSeam` installs on the instance. **A CHANNEL IS A CALLABLE ON THE
+/// PRODUCT, AND A CALLER CAN LOSE IT**: it is absent on a store this module never installed it on, it is
+/// `writable`/`configurable` by declaration, and the read is therefore a site where a `typeof` guard and a
+/// `catch` had to answer *something* — and both answered the CONSERVATIVE side, which for a reversal's
+/// judgement is a MISSED judgement rather than a wrong one.
+///
+/// **THIS ACCESSOR HAS NO SUCH ARM AND NEEDS NONE**: it is a module export, so no product byte can remove
+/// it, and it answers `attemptIndex(store).open` — an index this function CREATES ON MISS (the `undefined`
+/// arm above defines it and publishes it in the same act), whose `open` is a number on every path. **IT
+/// CANNOT ANSWER `undefined`, so no caller of it carries a branch for that answer.** **AND IT IS A PURE READ**
+/// in the sense `§4.2` item 1 declares: no state, no code, no journal entry, no file.
+///
+/// **IT IS THE SAME ONE INDEX THE CHANNEL READS** (`attemptIndex` above): a second count is not minted, the
+/// increment and decrement moments stay `openCommit`/`closeCommit` alone, and the channel keeps answering
+/// exactly what it answered before.
+export function openCommits(store) {
+  return attemptIndex(store).open;
+}
+
+/// **⟶ ADDED 2026-10-27 — THE WINDOW IN FLIGHT, AS THE PLAIN ACCESSOR BESIDE THE COUNT ABOVE.**
+///
+/// **IT ANSWERS THE IDENTITY OF THE COMMIT THE STORE HAS OPEN, AND `0` WHERE NONE IS** — a number minted once
+/// per commit that OPENS (`windowSeq`, strictly increasing and never reused) and held on a stack so that a
+/// nested verb's JOIN answers the enclosing window's identity and not a second one. **IT IS READ BY EXACTLY
+/// ONE ACT AND FOR EXACTLY ONE FACT**: `constraints.mjs`'s `reversalWatch` stamps the restart request an
+/// in-commit action raises with the window that raised it, and `drainRestartRequests` consumes a request only
+/// where that stamp equals the window the draining pass runs in. **SO *"A REQUEST BELONGS TO THE ACT THAT
+/// RAISED IT"* — `D-42`'s own sentence — IS MEASURED RATHER THAN ASSUMED**, and the two declared windows that
+/// have no check to run (`D-42`'s `delete` delivery, and the pass a hand drives) no longer need a counting
+/// frame to tell them apart from the write the check belongs to.
+///
+/// **IT IS A PURE READ** in `§4.2` item 1's sense — no state, no code, no journal entry and no file — and it
+/// creates its index on miss exactly as `openCommits` does, so it cannot answer `undefined` on any path.
+export function currentWindow(store) {
+  const windows = attemptIndex(store).windows;
+  return windows.length === 0 ? 0 : windows[windows.length - 1];
+}
+
+/// **⟶ ADDED 2026-10-27 — THE MARK THE WINDOW IN FLIGHT CACHED AT ITS OPENING, AND `undefined` WHERE NO COMMIT
+/// IS OPEN.**
+///
+/// **THE RULING IT CARRIES, THE ARCHITECT, VERBATIM: *"Cache the restoreMark when opening a commit, based on the
+/// last valid state/op of the journal."*** **THE DEFECT IT CLOSES IS `DEF-AE`'s AND IT IS A DATA-INTEGRITY ONE:**
+/// the refused reversal's restore named **the journal's HEAD**, on the reasoning that *"a reversal appends no
+/// journal entry, so that head describes the state that stood BEFORE the action"* — **a reasoning that fails on
+/// exactly one arm**. In the restart arm the ENCLOSING WRITE'S OWN OP STANDS AT THE HEAD when the listener's
+/// reversal runs, so the compensation restored **the write's landing, not the pre-attempt state**: a write that
+/// reported refusal left its own value standing (`9 → 7`).
+///
+/// **SO THE MARK IS TAKEN WHERE IT IS TRUE AND NOT WHERE IT IS NEEDED.** Every commit that OPENS reads the store's
+/// last valid mark (`withAddon().journalMark`, the store's own `journalMark`) and stands it on the window beside
+/// the window's identity. **THE INSTANT IS THE WHOLE POINT**: at an outermost opening nothing of the attempt has
+/// landed yet, so the mark names the state the commit FOUND. A JOIN IS THE SAME ACT AND RE-CACHES NOTHING — a join
+/// appends no window and no mark, so the cache in flight stays the outermost opening's — which is what makes a
+/// repair's write (a join, `D-46`) and a pass's scope (a join on the production path, `D-44`) read the attempt's
+/// own position rather than a later one. **A CALLBACK'S OWN COMMIT IS ITS OWN OPENING WITH ITS OWN CACHE**
+/// (`D-45`/`D-46`: a listener body's call names nothing and opens), so the mark a listener's own attempt restores
+/// to is where ITS window opened.
+///
+/// **A WINDOW WITH NO CACHE IS A WINDOW THAT NEVER OPENED, AND `undefined` IS ITS SPELLING.** The store answers
+/// `{k:'s', v:<op id>}` where the journal holds an entry and `{k:'F'}` where it holds none (the FLOOR — the state
+/// the store was born with); `undefined` means the read could not answer at all (a store whose artefact could not
+/// be reached), and the refused-reversal restore REFUSES rather than falling back to the head
+/// (`constraints.mjs`'s `restoreReversal` states that arm). **THE MARK IS OPAQUE HERE**: this file caches the
+/// store's own carrier and never composes a position of its own.
+export function windowMark(store) {
+  const index = attemptIndex(store);
+  if (index.windows.length === 0) return undefined;
+  return index.marks[index.marks.length - 1];
+}
+
+/// **⟶ ADDED 2026-10-28 — THE MARK MOVES FORWARD WHEN A SWEEP VALIDATES: THE RESTORE TARGET IS THE LAST VALIDATED
+/// STATE, NOT THE COMMIT'S OPENING.** **THE RULING, `D-63`, THE ARCHITECT, VERBATIM:** *"After the constraint
+/// sweep ends in a valid state, bump the restore mark. The passing constraint state marks the new next valid
+/// state."*
+///
+/// **WHAT MOVES, AND IT IS THE WHOLE OF IT.** The cache above is taken once per commit that OPENS and, until this
+/// function, it never moved — so a later refusal restored the commit's OPENING and undid every edit the commit had
+/// made, a validated one included (`DEF-AN`). **NOW: WHEN THE CONSTRAINT SWEEP ENDS IN A VALID STATE, THE POSITION
+/// THE STORE HOLDS AT THAT INSTANT BECOMES THE CACHE.** **THE INSTANT IS THE KERNEL'S PASSING VERDICT** — the line
+/// `kernel-attempt.mjs` reaches as `close(kernel, attempt, 'passed')` — **and the bump stands BETWEEN that verdict
+/// and the DELIVERY** (`settleArm` → the entry's terminal arm → `deliver`): **the state the passing sweep validated
+/// is the new next valid state, and everything the delivery does comes after it.**
+///
+/// **AND THAT GAP IS WHERE A REPAIR AND A LISTENER ARE ON DIFFERENT SIDES — `D-60`'s TWO HALVES, BY POSITION AND NOT
+/// BY IDENTITY:**
+///   * **A REPAIR'S WRITE IS *DURING* THE SWEEP** — the pass loop's own re-run reads it — **so a sweep that refuses
+///     it never bumps, and the refusal restores to the opening with the write** (`D-60`'s atomic half).
+///   * **A LISTENER'S WRITE IS *AFTER* THE SWEEP, IN THE DELIVERY** — **so the position it leaves is already the
+///     validated one when the delivery begins, the next validation carries the mark past it, and the outer's
+///     restore does not reach it** (`D-60`'s discrete half).
+/// **IT NEEDS NO COMMIT IDENTITY, NO NEW PARAMETER, NO NEW JOURNAL FIELD AND NO ARITY CHANGE** (`D-62`'s five-item
+/// unblock is MOOT): **the store is told a POSITION and the ruling moves the position.**
+///
+/// **EVERY WINDOW IN FLIGHT CARRIES THE POSITION, AND THAT IS ONE FACT AND NOT A LOOP OF FACTS.** The mark is the
+/// STORE's last validated position — `journalMark`'s own declaration, *"the op id of the last entry the journal
+/// holds"* — so a sweep that validates anywhere while windows are in flight moves every cached slot to it: **the
+/// window the validated state belongs to and every window that encloses it hold the same position, because there is
+/// only one position of the record that is valid.** The slots stay in lockstep with `windows` (`closeCommit` still
+/// releases one per window), and a caller's own nested commit's validation is therefore not lost to the commit that
+/// invoked it — **which is exactly what keeps a listener's write standing under the enclosing refusal it is
+/// discrete from.**
+///
+/// **A COMMIT WHOSE SWEEP NEVER PASSES KEEPS ITS OPENING MARK — NOTHING BUMPS.** No line of the kernel reaches this
+/// function on a failing arm, so a refusal there restores to the state the commit found, which is the behaviour
+/// every earlier clause declared and it STANDS for that case.
+///
+/// **A READ THAT THROWS BUMPS NOTHING** — the same arm `journalMarkAtOpening` states: the cache the window already
+/// holds stands, so a store whose journal read cannot answer keeps today's target rather than losing one. **THE
+/// MARK IS STILL OPAQUE HERE**: the value that is written back is the store's own carrier, read by the store's own
+/// entry, and this module composes no position of its own.
+export function bumpWindowMark(store) {
+  const index = attemptIndex(store);
+  if (index.marks.length === 0) return undefined;
+  const mark = journalMarkAtOpening(store);
+  if (mark === undefined) return undefined;
+  // **THE SLOTS ARE REBUILT BY A LOCAL INDEX LOOP**, the form `closeCommit` takes for the same stack
+  // (`contract.md §2.1`'s clause of 2026-10-24 on `F7-1`/`F8-2`): no `Array.prototype` write, no spread and no
+  // iterator, so an own accessor at `Array.prototype`'s index reaches no byte of this path.
+  const bumped = [];
+  for (let i = 0; i < index.marks.length; i += 1) appendOwn(bumped, mark);
+  index.marks = bumped;
+  return mark;
+}
+
+/// **THE MARK THE OPENING TAKES** — the store's own read, once per commit that OPENS and never per join. **IT IS
+/// TAKEN THROUGH THE ENTRY THE ADDON PUBLISHES** (`journalMark`), bound to the store object exactly as every other
+/// addon call is (`commitFile` above is the same form). **A READ THAT THROWS IS A WINDOW WITH NO CACHE AND NOT A
+/// REFUSED CALL**: the opening is not the act the consumer asked for, and refusing the consumer's verb because the
+/// journal read failed would answer a form the verb does not declare — so the arm answers `undefined`, the window
+/// stands without a cache, and the one consumer that needs the mark refuses its own restore instead.
+function journalMarkAtOpening(store) {
+  try {
+    const addon_ = withAddon();
+    return Reflect.apply(addon_.journalMark, store, []);
+  } catch (unanswered) {
+    return undefined;
+  }
+}
+
+/** **THE INCREMENT MOMENT** (`PAR-ADA-15`): the opening of a commit. It is taken iff THIS call opens one —
+ *  a call that finds the count already above zero has joined an extant commit and opens nothing.
+ *
+ *  **⟶ AND FROM 2026-10-27 THE TEST IS THE COMMIT THE CALL NAMES** (`D-46`; the clause at this section's head):
+ *  **A CALL THAT NAMES A COMMIT JOINS THAT COMMIT, AND A CALL THAT NAMES NONE OPENS A NEW ONE FROM A STORE AT
+ *  REST OR FROM A CALLER-SUPPLIED FUNCTION — while the package's own continuation, which can name nothing
+ *  either, JOINS the commit in flight.** `commit` IS THE ENTRY'S POSITION — `write`'s FOURTH, the one
+ *  `index.d.ts` declares *"the commit, at the FOURTH position of the METHOD"*, whose domain is a RECORD (an
+ *  object carrying an own, present `pending`) and never an id token. **AND WHERE A CALL SITS INSIDE AN
+ *  INVOCATION THE PACKAGE ITSELF MADE OF CALLER CODE, THE NAME IS THE ONE THAT INVOCATION WAS HANDED**
+ *  (`EXTERNAL_COMMIT` above): the kernel names the attempt's commit when it invokes a **repair** — *"so that it
+ *  can be tracked as part of the commit process"* — and names nothing when it invokes a listener body or a
+ *  constraint body. **ONE RULE AND TWO PLACES THE NAME MAY COME FROM; THE ENTRY'S OWN POSITION WINS, THE
+ *  INVOCATION'S IS ITS FALLBACK, AND THE AUTHORSHIP MARK BELOW IS THE FALLBACK OF THE FALLBACK — read only
+ *  where neither position stands.**
+ *
+ *  **SO THE COUNT STILL MOVES BY EXACTLY ONE PER ACT**: an ordinary write's opening is the only one it takes
+ *  (its kernel leg names the record and joins, its pass scope names it and joins, its repair names it and
+ *  joins), a listener body's own write names nothing and is a window of its own beside it (`open` rises by one
+ *  for the callback and falls by one when the callback's call ends, the outer verb's count unchanged across
+ *  it), and a constraint body's nested write does the same (`D-45`). **A JOIN CAN ONLY BE A JOIN OF A COMMIT
+ *  THAT IS OPEN** — where the count stands at zero there is nothing to join, so the call opens, which is what
+ *  keeps `D-44`'s direct `K-2`/`K-3` drive's pass inside a commit of its own. */
+export function openCommit(store, commit) {
+  const index = attemptIndex(store);
+  // THE COMMIT THIS CALL NAMES — the entry's own position first, the invocation's second (`EXTERNAL_COMMIT`).
+  const named = commit !== undefined ? commit : EXTERNAL_COMMIT;
+  if (index.open > 0) {
+    // **A NAMED COMMIT IS JOINED** — `D-46`'s rule, and it stands FIRST and decides wherever a name exists.
+    if (named !== undefined) return false;
+    // **AND WHERE NO NAME STANDS, `D-45`'S MARK DECIDES, AND IT IS THE FALLBACK FOR EXACTLY THE CALLERS THAT
+    // CANNOT NAME A COMMIT**: the package's own continuation of the commit in flight runs at the depth that
+    // commit was opened at and JOINS; a call made from a caller-supplied function — one frame deeper — OPENS.
+    const at = index.externalAt.length === 0 ? 0 : index.externalAt[index.externalAt.length - 1];
+    if (EXTERNAL_DEPTH <= at) return false;
+  }
+  index.open += 1;
+  // **AND THE WINDOW'S OWN IDENTITY IS MINTED WITH THE OPENING AND STOOD ON THE STACK** (`currentWindow`
+  // above): a commit that JOINS answers an id already held, so the nesting `§4.1` keeps exact in the count is
+  // kept exact in the identity too, and no window id is ever reused.
+  index.windowSeq += 1;
+  appendOwn(index.windows, index.windowSeq);
+  // **⟶ AND THE MARK THE OPENING TAKES, 2026-10-27 — THE ARCHITECT'S RULING: *"Cache the restoreMark when opening
+  // a commit, based on the last valid state/op of the journal."*** **THE CACHE IS TAKEN HERE AND ONLY HERE**: this
+  // is the arm that OPENS (a join returned above and takes nothing), so the store's read names the journal's
+  // position at the instant the commit was entered — before anything the commit will land has landed. **IT IS
+  // TAKEN BEFORE THE OBSERVERS FIRE** (the notification below is part of the opening, and an observer that acts
+  // would open its own commit; this window's mark is the one that stood when the window itself opened). It is
+  // pushed in lockstep with `windows` so the two stacks are one stack, and `closeCommit` releases it with it.
+  appendOwn(index.marks, journalMarkAtOpening(store));
+  // **AND THE DEPTH FALLBACK'S OWN RECORD IS STOOD BESIDE IT**: the depth this commit was opened at, in lockstep
+  // with `windows`, so the next unnamed call can tell the package's own continuation from a callback's act.
+  appendOwn(index.externalAt, EXTERNAL_DEPTH);
+  // **THE OBSERVER SEAM IS READ AT THE INSTANT OF THE OPENING** (`§4.2` item 2), one call per opening — and
+  // the iteration is a copy, so an observer that unsubscribes itself mid-notification moves nothing. **The
+  // copy and the notification are LOCAL INDEX LOOPS** (item `(1c)(i)`): no spread, no iterator.
+  const observers = index.observers;
+  const copied = [];
+  for (let i = 0; i < observers.length; i += 1) appendOwn(copied, observers[i]);
+  for (let i = 0; i < copied.length; i += 1) copied[i]();
+  return true;
+}
+
+/** **THE DECREMENT MOMENT** (`PAR-ADA-16`): the final return to the client, once, and only for the call
+ *  that opened. A joining call opened nothing and decrements nothing. */
+export function closeCommit(store, opened) {
+  if (!opened) return;
+  const index = attemptIndex(store);
+  index.open -= 1;
+  // **AND THE WINDOW THE OPENING STOOD ON GOES WITH IT**, by a local index loop rather than through a mutable
+  // prototype's `slice`/`pop` (`contract.md §2.1`'s clause of 2026-10-24 on `F7-1`/`F8-2`). A joining call
+  // opened nothing and releases nothing, so the enclosing window's identity stands. **AND THE DEPTH STOOD BESIDE
+  // IT GOES WITH IT, IN THE SAME LOOP AND AT THE SAME INSTANT**: the two stacks are one stack read two ways, so a
+  // commit's depth can never be left standing for a commit that has closed. **AND THE MARK THE OPENING CACHED
+  // GOES WITH IT IN THAT SAME LOOP** — `windows`, `externalAt` and `marks` are one stack read three ways, so no
+  // closed window's journal position can be answered to a later act.
+  const kept = [];
+  const keptAt = [];
+  const keptMark = [];
+  for (let i = 0; i + 1 < index.windows.length; i += 1) {
+    appendOwn(kept, index.windows[i]);
+    appendOwn(keptAt, index.externalAt[i]);
+    appendOwn(keptMark, index.marks[i]);
+  }
+  index.windows = kept;
+  index.externalAt = keptAt;
+  index.marks = keptMark;
+}
+
+/// **THE TWO CHANNELS, INSTALLED ONCE ON THE OBJECT `storeCreate` RETURNS** (`§4.2` item 4: *"`storeCreate`
+/// installs each channel once on the object it returns; a second read or a second observer does not install
+/// a second copy, and one store's channels never answer for another's."*).
+///
+/// **THE READ IS PURE** (`§4.2` item 1): it changes no state, mints no code, appends no journal entry and
+/// touches no file — it answers the index's own `open` and nothing else.
+///
+/// **THE OBSERVER ANSWERS ITS OWN REMOVAL** (`§4.2` item 2): `observer` is a FUNCTION called once per commit
+/// that OPENS for that store, and the return is a FUNCTION that removes that observer.
+export function installAttemptSeam(instance) {
+  if (typeof instance[ATTEMPT_COUNT] !== 'function') {
+    Object.defineProperty(instance, ATTEMPT_COUNT, {
+      value: () => attemptIndex(instance).open,
+      writable: true,
+      enumerable: false,
+      configurable: true,
+    });
+  }
+  if (typeof instance[ATTEMPT_OPENED] !== 'function') {
+    Object.defineProperty(instance, ATTEMPT_OPENED, {
+      value: (observer) => {
+        const index = attemptIndex(instance);
+        if (typeof observer !== 'function') {
+          return () => {};
+        }
+        // **REGISTRATION AND ITS WITHDRAWAL ARE LOCAL INDEX LOOPS** (`contract.md §2.1`'s clause of 2026-10-24
+        // on `F7-1`, item `(1b)`): neither `Set.prototype.add` nor `Set.prototype.delete` is taken from a
+        // mutable prototype, and the list keeps the Set's own uniqueness and insertion order.
+        const observers = index.observers;
+        let known = false;
+        for (let i = 0; i < observers.length; i += 1) {
+          if (observers[i] === observer) {
+            known = true;
+            break;
+          }
+        }
+        if (!known) appendOwn(observers, observer);
+        return () => {
+          const kept = [];
+          for (let i = 0; i < observers.length; i += 1) {
+            if (observers[i] !== observer) appendOwn(kept, observers[i]);
+          }
+          index.observers = kept;
+        };
+      },
+      writable: true,
+      enumerable: false,
+      configurable: true,
+    });
+  }
+  // **⟶ AND THE SCOPE, INSTALLED ONCE BY THE SAME RULE** (`§4.2` item 4: *"`storeCreate` installs each channel
+  // once on the object it returns"*; `D-44`). **It is the two moments `openCommit`/`closeCommit` already own,
+  // composed into one bracket and minting no third count**: this channel adds no index, no state and no
+  // increment — it only decides WHO opens. **AND FROM 2026-10-27 IT TAKES THE PASS'S OWN COMMIT AT ITS SECOND
+  // POSITION** (`D-46`): `runAttempt` hands the record `K-2` built, so **the pass's scope NAMES the commit the
+  // attempt is tracked in and joins it** on the production path, **and on a direct `K-2`/`K-3` drive the name
+  // has nothing to join and the scope OPENS the one commit the pass owes** (`D-44`'s direct-pass window).
+  if (typeof instance[COMMIT_SCOPE] !== 'function') {
+    Object.defineProperty(instance, COMMIT_SCOPE, {
+      value: (run, commit) => {
+        const opened = openCommit(instance, commit);
+        try {
+          return run();
+        } finally {
+          closeCommit(instance, opened);
+        }
+      },
+      writable: true,
+      enumerable: false,
+      configurable: true,
+    });
+  }
+  // **⟶ AND THE INVOCATION'S OWN ENTRY, INSTALLED ONCE BY THE SAME ONE-INSTALLATION RULE, 2026-10-27 —
+  // `D-45`'s channel, carrying `D-46`'s name.** It takes ONE thunk — **the invocation of a caller-supplied
+  // function** — and, at its SECOND position, **the commit that invocation names** (absent where it names
+  // none), runs the thunk with `EXTERNAL_COMMIT` holding that name, and answers what the thunk answered. **THE
+  // NAME IS RESTORED IN A `finally`**, so a body that throws leaves no name standing and the next invocation
+  // reads the one it was handed; and **the arming and the restoring are this closure's whole body**, so nothing
+  // the package does outside an invocation is ever measured by a name. **A CALLER THAT SUPPLIES ONLY THE THUNK
+  // NAMES NOTHING** — which is the rule's own absent arm and not a second rule, and it is how the kernel's
+  // `externalCall` (`kernel-foundations.mjs`) and this module's own `externalCall` above reach the channel.
+  if (typeof instance[EXTERNAL_CALL] !== 'function') {
+    Object.defineProperty(instance, EXTERNAL_CALL, {
+      value: (run, commit) => {
+        const standing = EXTERNAL_COMMIT;
+        // **⟶ AND THE INVOCATION'S OWN LEG LIST IS OPENED HERE AND CLOSED IN THE SAME `finally` — `D-104`,
+        // 2026-11-01.** The bracket already holds the commit this invocation names, so **the SAME bracket is what
+        // opens the list beside it**: every `write` this invocation makes at `write`'s `n >= 4` arm appends its
+        // record's returned elements here (`appendRepairLeg` above), and **a nested invocation pushes its OWN list
+        // and closes it first**, so the inner act's legs are never taken for the outer's.
+        const legs = [];
+        // **⟶ AND THE SLOT IS CLEARED WHEN A BRACKET OPENS, NOT ONLY WHEN IT IS READ — 2026-11-17
+        // (`D-54`'s first half: *"do not let a pass consume a restart request it did not raise"*; `D-169`).**
+        // **THE HAZARD THIS CLOSES IS AN UNREAD CLOSE**: `REPAIR_LEGS_LAST` was written by every bracket's `finally`
+        // and cleared only by a read, so an invocation that closed and was never read left its list standing for
+        // **the next reader** — which is another invocation's. **The clear-on-open bounds that staleness to the one
+        // window the contract already requires**: a reader takes the slot immediately after its own close and
+        // before any other bracket opens, because a bracket that opens in between now leaves nothing for it to
+        // take. **The read's own clear stays** (it is what keeps a second read from answering twice), and the
+        // ordering rule it documents is unchanged — **this makes the structure enforce it rather than the call
+        // order alone.**
+        REPAIR_LEGS_LAST = [];
+        EXTERNAL_COMMIT = commit;
+        EXTERNAL_DEPTH += 1;
+        appendOwn(REPAIR_LEGS_OPEN, legs);
+        try {
+          return run();
+        } finally {
+          // **THE LIST LEAVES THE STACK BY A LOCAL INDEX LOOP** (`contract.md §2.1` item `(1c)(i)`'s form, the
+          // same one `closeCommit` takes for its own stack): no `Array.prototype` write and no iterator, so an own
+          // accessor at `Array.prototype`'s index reaches no byte of this path.
+          const kept = [];
+          for (let i = 0; i + 1 < REPAIR_LEGS_OPEN.length; i += 1) appendOwn(kept, REPAIR_LEGS_OPEN[i]);
+          REPAIR_LEGS_OPEN = kept;
+          // **AND THE LEGS OF THE INVOCATION THAT JUST CLOSED ARE THE ONES THE CHANNEL ANSWERS NEXT** — set on the
+          // throwing arm too, so an invocation whose body threw leaves the list it accumulated for its own arm's
+          // judgement rather than a stale one.
+          REPAIR_LEGS_LAST = legs;
+          EXTERNAL_DEPTH -= 1;
+          EXTERNAL_COMMIT = standing;
+        }
+      },
+      writable: true,
+      enumerable: false,
+      configurable: true,
+    });
+  }
+  // **⟶ AND THE RESTART'S CONSUMER, BY THE SAME ONE-INSTALLATION RULE, 2026-10-27.** `runAttempt` calls it
+  // AFTER its pass and INSIDE the scope above, handing THE REPORT THE PASS ANSWERED WITH; the answer is the
+  // report the kernel returns, amended where the restarted check refused (`constraints.mjs`'s
+  // `carryRestartRefusal`) and untouched where none refused. **A STORE WITH NO INJECTED CONSUMER ANSWERS ITS
+  // REPORT UNCHANGED** — the restart machinery is the entry's and its absence is a tree that never loaded it,
+  // which is also a tree that carries no pair and so can have raised no request.
+  if (typeof instance[RESTART_DRAIN] !== 'function') {
+    Object.defineProperty(instance, RESTART_DRAIN, {
+      value: (report) => (typeof RESTART_CONSUMER === 'function'
+        ? RESTART_CONSUMER(instance, report)
+        : report),
+      writable: true,
+      enumerable: false,
+      configurable: true,
+    });
+  }
+  // **⟶ AND THE BUMP'S OWN CHANNEL, INSTALLED ONCE BY THE SAME ONE-INSTALLATION RULE, 2026-10-28 — `D-63`.**
+  // `kernel-attempt.mjs` takes it at the ONE instant this mechanism has: **the passing verdict, before the
+  // delivery** (`close(kernel, attempt, 'passed')` and then `settleArm`), and **the act it performs is this
+  // module's own** (`bumpWindowMark`): the store's `journalMark` read again, stood over every slot in flight.
+  // **IT MINTS NO STATE OF ITS OWN** — no index, no window, no count and no entry — and **a store this seam was
+  // never installed on carries no channel**, which is the absent arm the kernel's guard answers by bumping
+  // nothing.
+  if (typeof instance[BUMP_MARK] !== 'function') {
+    Object.defineProperty(instance, BUMP_MARK, {
+      value: () => bumpWindowMark(instance),
+      writable: true,
+      enumerable: false,
+      configurable: true,
+    });
+  }
+  // **⟶ AND THE REPAIR'S OWN LEGS, INSTALLED ONCE BY THE SAME ONE-INSTALLATION RULE, 2026-11-01 — `D-104`.**
+  // **IT ANSWERS THE LEGS OF THE INVOCATION THAT CLOSED LAST AND CLEARS THEM IN THE SAME READ** (`REPAIR_LEG`
+  // above): the kernel's repair arm is its one reader and it reads SYNCHRONOUSLY after its own invocation
+  // returned, so the answer can only ever be that invocation's. **IT MINTS NO STATE OF ITS OWN** — no index, no
+  // window, no count and no entry; the list it answers is the bracket's own — and **a store this seam was never
+  // installed on carries no channel**, which is the absent arm the kernel's `typeof` guard answers with an empty
+  // hand-over.
+  if (typeof instance[REPAIR_LEG] !== 'function') {
+    Object.defineProperty(instance, REPAIR_LEG, {
+      value: () => {
+        const legs = REPAIR_LEGS_LAST;
+        REPAIR_LEGS_LAST = [];
+        return legs;
+      },
+      writable: true,
+      enumerable: false,
+      configurable: true,
+    });
+  }
+}
+
+// ---------------------------------------------------------------------------------------------
+// THE PACKAGE'S OWN SURFACE — the opaque handle (`docs/specs/storeroom-js/surface.md §2.3` item 2) and the per-instance registry (`docs/specs/storeroom-js/surface.md §2.4`)
+// ---------------------------------------------------------------------------------------------
+/// **THE PACKAGE'S OWN INSTANCE HANDLE'S STATE**, keyed by the instance the factory returned. The handle
+/// itself carries EXACTLY ONE member, `register` (`surface.md §2.4` item 5 (a)) — **⟶ RE-SPELLED 2026-10-16: THAT ONE-MEMBER FIGURE IS THE AS-FILED READING AND IS SUPERSEDED AS A MEMBER-SET FIGURE — the instance's OPERATIVE member set is `{ register, on, off, settle }`, FOUR OWN MEMBERS AND NOTHING ELSE (`surface.md §2.7` item 8 AS AMENDED, where the as-filed `{register, on, off}` reads `{register, on, off, settle}`; `§2.11` clause 7; `docs/decisions.md` `A116` (D1)) — while the WeakMap below is still keyed by the INSTANCE alone and no member is added to it by this clause.**
+export const INSTANCES = new WeakMap(); // instance -> the package's own per-instance state
+
+/// **THE RECEIVER'S OWN ROW AND ITS RETIREMENT** — `receiver-and-refusal.md §1` and `§6` (`OWED-2`).
+///
+/// `STORE_INDEX` is the NON-ENUMERABLE own property the store object carries the addon's index on. **IT IS
+/// A `Symbol` RATHER THAN A STRING KEY FOR THE REASON `A117` (D6) DECLARES**: a symbol key is invisible to
+/// `Object.keys` AND to `Object.getOwnPropertyNames`, so the product's declared twelve own members stay
+/// exactly twelve and the row is not a member a caller can find, forge or overwrite.
+///
+/// `STORE_RETIREMENT` is the package-side `FinalizationRegistry` whose callback retires the freed store's own
+/// row from the addon's receiver table (`§6`). **ITS HELD VALUE IS THE INDEX ALONE AND NOTHING ELSE, AND IT
+/// HOLDS NO REFERENCE TO THE STORE** — holding the object would be the strong reference that stops the very
+/// collection this callback exists to observe. **⟶ AND THAT SENTENCE WAS FALSE OF THE SHIPPED CALLBACK AND IS
+/// TRUE FROM 2026-11-19**: `instance.mjs` registered a CLOSURE that closed over `instance`, i.e. a held value
+/// that strongly referenced its own target and could never fire; **the registration now passes the integer**
+/// (`STORE_RETIREMENT.register(instance, id)`), so the sentence is a property of the value — a `Number` — and
+/// the release it fires is `storeRelease`'s.
+export const STORE_INDEX = Symbol.for('provident-storeroom.storeIndex');
+
+/// **⟶ THE RETIREMENT NOW REACHES THE ADDON, AND THE THREE SENTENCES THIS BLOCK CARRIED — EACH OF WHICH SAID
+/// IT MUST NOT — ARE QUOTED HERE AND RETIRED — 2026-11-19.** **WHAT THEY DECLARED, QUOTED BEFORE THEY ARE
+/// RETIRED:** *"THE ROW IS RETIRED BY DROPPING THE PACKAGE'S OWN HOLD ON THE STORE, AND THE ADDON NEEDS NO
+/// ENTRY FOR IT"* · *"AND THE ADDON'S TABLE IS REACHED BY NO SECOND EXPORT, WHICH IS FORCED RATHER THAN
+/// CHOSEN: `export-set-and-dispatch.md
+/// §1` fixes the artefact's key set at EXACTLY the thirteen declared names … so a `finalize`, `retained` or
+/// `release` entry on the artefact WOULD ITSELF BE THE FAILURE `F-2` NAMES"* · *"SO THE RETIREMENT IS THE
+/// PACKAGE'S OWN ACT ON ITS OWN HOLD; the addon's row is retired by the addon when the receiver it is handed no
+/// longer resolves."*
+///
+/// **EVERY ONE OF THE THREE WAS FALSE OF THE BEHAVIOUR AND THE FIRST WAS FALSE OF THE MECHANISM.** The addon's
+/// `INSTANCES` table holds every constructed store for the process's life — `bindings/js/src/facade.rs`'s own
+/// docblock at `INSTANCE_IDS` declares the retirement path and, until this pass, cited a `storeRelease` entry
+/// that did not exist — so **a dropped store was never retired by anything: ~18–21 KB per
+/// construct-and-drop, linear, on the shipped arm.** *"The addon's row is retired by the addon when the
+/// receiver it is handed no longer resolves"* was the worse half: **a row that is never removed resolves
+/// forever**, so the sentence described the state that makes the defect invisible.
+///
+/// **WHAT STANDS INSTEAD, AND IT IS ONE ACT ON THE ADDON'S OWN TWO TABLES**: the held value is **the integer**
+/// the store object was published with (`STORE_INDEX`), the callback hands it to `withAddon().storeRelease`, and
+/// **that entry drops the instance and removes its own id from the receiver table in one act**
+/// (`facade.rs`'s `storeRelease`; `receiver-and-refusal.md §6`). **THE HELD VALUE IS STILL THE INDEX ALONE AND
+/// STILL HOLDS NO REFERENCE TO THE STORE** — which is now a property of the value rather than of a promise:
+/// a `Number` cannot hold anything.
+///
+/// **AND THE KEY SET MOVED `19 → 20` WITH IT**, which this pass re-derives rather than argues away: the
+/// artefact's live set is the nineteen declared names plus `storeRelease`, and **`§1`'s "exactly the declared
+/// names" is a statement about the DECLARED set, which now carries the twentieth** — a *"`release`"* entry was
+/// never the failure; an **undeclared** name is.
+///
+/// **⟶ AND THE SECOND REALM'S ARM IS NO LONGER UNMOVED, 2026-11-19 — THE SENTENCE IS QUOTED BEFORE IT IS RETIRED**:
+/// *"THE SECOND REALM'S ARM IS UNMOVED: `storeRelease` has no `wasm.rs` twin (`D-155` item 4's eighteen stand), so
+/// on that arm this callback's call is refused by the table itself — `storeRelease` is not a function there — and
+/// THE `catch` BELOW IS WHAT MAKES THAT ARM'S ABSENCE SILENT RATHER THAN A THROWN FINALIZER, which is the same
+/// guard, kept and now load-bearing."* **THE ARCHITECT'S CLOSURE ANSWER, ARM `a`, GIVES THAT ARM THE TWIN**: its set
+/// moves `18 → 19` (*"the Node arm's twenty minus `commitFile`"*, `D-155` item 4's arithmetic with its figure
+/// re-cut), its table empties a slot and never shifts one, and `addon-slot.mjs` forwards this very name as a
+/// PASSED-THROUGH member — **so this callback, unmoved byte for byte, now reaches the arm too.** **THE `catch` IS
+/// KEPT AND IS NO LONGER ANY ARM'S WHOLE ANSWER**: it is the guard it always was on the first arm — a retirement
+/// never throws into a finalizer — and the arm that made it load-bearing has an entry behind it now.
+///
+/// **⟶ THE GUARD IS KEPT UNMOVED: A RETIREMENT NEVER THROWS INTO A FINALIZER.**
+///
+/// **THE PARAGRAPHS BELOW ARE THE READING OF THE MOMENT BEFORE THIS PASS AND ARE READ THROUGH THIS CLAUSE.**
+///
+/// **WHAT MUST BE OBSERVED IS THE CALL, NOT THE TABLE.** `§6` requires that *"an entry whose store has been
+/// freed must be retired in the same act that frees the store"*, and its stated reason is the observable:
+/// *"otherwise the table holds a key naming nothing, which is the dangling the refusal arm would then have to
+/// absorb."* **THE OBSERVABLE IS READ AT IT ITS OWN SITE AND `P-SAS-5` DRIVES EXACTLY IT**: a freed store's
+/// call refuses in the ONE DECLARED FORM, and a second store's call still answers its own register. **NO CELL
+/// READS THE TABLE'S TYPE, ITS LENGTH OR A ROW** — `contract.md §7`'s `OWED-2` prohibits exactly that
+/// (*"NOTHING ASSERTS A TABLE TYPE"*), so the table's interior is not an observable this unit may be graded
+/// on and is not one this comment claims.
+/// **⟶ THE CONSTRUCTION'S FILE GUARD — ADDED 2026-11-17** (`SS-9`; `A55`'s *"leaves nothing behind"*; `contract.md §10.4` part 5).
+///
+/// **THE DEFECT IT CLOSES, MEASURED**: a construction over an ABSENT `filePath` whose **constraint body throws at its own
+/// registration** answers **`ConstraintBodyThrew`** — **and the store's exclusive create has ALREADY made its zero-length
+/// file at step 4b, so the refusal leaves that file on disk.** `A55` says every construction that fails leaves nothing
+/// behind. **The construction's own checks are placed before the create for exactly this reason** (`instance.mjs`'s step 2),
+/// and **the registration sweep is the one refuser that runs AFTER it** — the store cannot undo a file the PACKAGE'S arming
+/// threw over, so the package must.
+///
+/// **AND IT IS A CHANNEL AND NOT AN IMPORT BECAUSE THE BODY IS REALM-NEUTRAL**: `instance.mjs` carries no `node:` specifier
+/// (`C-W4`'s cell asserts the entry's whole graph holds none), so the filesystem cannot be reached from it. **The node arm
+/// installs `node:fs`; the injected arm installs nothing and `openConstructionFileGuard` answers `null` — which is right,
+/// because a path-less store refuses `filePath` outright and therefore never creates a file to remove.**
+///
+/// **IT CAN ONLY REMOVE A FILE THAT DID NOT EXIST BEFORE THE CALL** (`existed` is false), so a caller's own data is never
+/// touched by it: the guard's whole subject is the store's own zero-length artefact.
+let CONSTRUCTION_FILE_GUARD = null;
+
+/** Install the realm's file guard. `null` clears it, which is the injected arm's answer. */
+export function installConstructionFileGuard(guard) {
+  CONSTRUCTION_FILE_GUARD = typeof guard === 'function' ? guard : null;
+}
+
+/** **THE GUARD FOR ONE CONSTRUCTION** — `{ existed, undo }`, or `null` where the realm installed none. `undo()` removes the
+ *  file **only if this construction created it**, and never throws into the refusal path. */
+export function openConstructionFileGuard(filePath) {
+  if (CONSTRUCTION_FILE_GUARD === null) return null;
+  if (typeof filePath !== 'string' || filePath === '') return null;
+  try {
+    return CONSTRUCTION_FILE_GUARD(filePath);
+  } catch {
+    return null;
+  }
+}
+
+export const STORE_RETIREMENT = new FinalizationRegistry((storeIndex) => {
+  try {
+    withAddon().storeRelease(storeIndex);
+  } catch {
+    // **A RETIREMENT NEVER THROWS INTO A FINALIZER**: the callback runs on the host's own collection turn,
+    // and a throwable escaping there would be a raw host error crossing a path no caller asked for. **AND BOTH
+    // ARMS NOW HAVE THE MEMBER THIS LINE CALLS** (`facade.rs`'s `storeRelease`; `wasm.rs`'s, ⟶ 2026-11-19), so the
+    // catch is the guard and no longer a silence standing in for an absent entry — kept, because a finalizer
+    // turn is the one place a throwable has no caller to be refused by.
+  }
+});
+
+/// **⟶ `wrapHandles` IS DELETED, NOT REWRITTEN — `U-STOREROOM-HELD-LISTENER-IDENTITY` (`D-GP-SHLI`).**
+/// The function that stood here — a frozen `{}` per token, a `state.tokens` value scan, and the `Object.freeze`
+/// at what was line 1757 — **HAS NO SUBJECT**: the handle IS the string the caller spells, so *"what it did
+/// reduces to the handles the store named, which the store already has as its own values"*
+/// (`P: docs/pending.md · P-5`, ruling (1), verbatim; `P: docs/pending.md · P-6`'s token-removal clause;
+/// `contract.md §2.8` item 2 item (5)).
+///
+/// **AND WITH IT GO `Object.freeze({})`, `state.tokens` AND ITS ONE READ** (`P: docs/pending.md · P-6`,
+/// verbatim: *"AND THE `{}` AT `index.mjs:1757` GOES WITH IT"*; `P: docs/pending.md · P-5`'s ruling (2):
+/// *"nothing in the entry, the crossing or the store holds a token"*). **THE IDENTITY LIVES IN THE STORE, NOT
+/// IN A JS CACHE** (`P: docs/pending.md · (AA-2)`, verbatim: *"Move the identity into the store"*), so a
+/// cache miss is no longer indistinguishable from a removal, because the identity's presence IS a store
+/// row's presence.
+///
+/// **WHAT CROSSES IN ITS PLACE IS THE STORE'S OWN PAIR LIST, MEMBER FOR MEMBER, WITH NO TRANSFORM**
+/// (`contract.md §2.4` item 1; `trigger-and-pair.md §2` item 2): the addon's emitter has already built
+/// `{handle, address}` and this layer CARRIES it, because there is nothing left to translate.
+///
+/// **⟶ AND THE REPLY'S RECORD COPY IS A LOCAL INDEX LOOP AND AN INDEX WRITE, NOT AN ITERATION AND AN APPEND**
+/// (`contract.md §2.1`'s clause of 2026-10-24 on `F8-1`, items `(1a)`, `(1b)` and `(1c)`, and item `(2b)`'s
+/// row `55`; arm `(xviii)`, cell `JC-TC-64`): the as-built set was copied by `for (const element of triggered)`
+/// — `Array.prototype[Symbol.iterator]` — and appended with `out.push(…)` — `Array.prototype.push`. **A forged
+/// iterator yielding one `undefined` made `element.handle` throw a RAW HOST `TypeError` out of a `write` the
+/// walk ADMITTED and the store ALREADY WROTE**, and a caller's `push` answering `0` without copying emptied
+/// the record's trigger set so the listener never fired — a delivery decided by a prototype the caller owns.
+/// Both reads are now item `(1c)(i)`'s index loop and an OWN-PROPERTY APPEND on this function's own array
+/// (`appendOwn`: `[[Set]]` walks the chain and a getter-only `Array.prototype` index turned the append into a
+/// raw host `TypeError`, the `F8-2` write vector this clause's own form had left), and the record's declared
+/// bytes, its order and its pair shape are unmoved.
+export function crossTriggered(state, triggered) {
+  if (!Array.isArray(triggered)) return [];
+  const out = [];
+  for (let i = 0; i < triggered.length; i += 1) {
+    const element = triggered[i];
+    appendOwn(out, { handle: element.handle, address: decodeSegments(element.address) });
+  }
+  return out;
+}
+
+/// **THE HANDLES A TRIGGER SET NAMES, in its own order** — how a caller-side read of the set as a SET is
+/// spelled, and how the delivery's dedupe key is read (`contract.md §2.4` item 6).
+///
+/// **⟶ AND THE TRANSFORM IS A LOCAL INDEX LOOP, NOT `Array.prototype.map`** (`contract.md §2.1`'s clause of
+/// 2026-10-24 on `F8-1`, items `(1c)(i)` and `(2b)`'s row `56`; arm `(xviii)`, cell `JC-TC-64`): `delete
+/// Array.prototype.map` threw a RAW HOST `TypeError` out of an admitted `write`, and a forged `map` decided
+/// which handles the delivery saw. The loop answers the same list in the set's own order.
+function handlesOf(triggered) {
+  const handles = [];
+  for (let i = 0; i < triggered.length; i += 1) appendOwn(handles, triggered[i].handle);
+  return handles;
+}
+
+/// **THE STATE A VERB'S FIRST ARGUMENT NAMES** (`surface.md §2.2`'s signatures: every verb takes the
+/// package's own instance handle first).
+///
+/// **⟶ AND THE REFUSAL FOR A VALUE OUTSIDE THAT POSITION'S DOMAIN IS SHIPPED IN THE ONE FORM** — `docs/specs/storeroom-js/surface.md §2.5`
+/// item 5 (e), verbatim: *"a rejection is NEVER A RAW HOST ERROR — a `TypeError`, a `RangeError`, … or any
+/// host object escaping from the boundary's own frame is a FINDING at whatever site produced it, not a
+/// rejection"*, and `docs/specs/storeroom-js/surface.md §2.4` item 5 (e): *"a `TypeError` thrown by a VERB remains a FINDING"*. The shipped arm
+/// was `throw new TypeError()`. **THE DECLARED READING IS `§2.5` item 5 (g)'s own: the store's `AddressMalformed`,
+/// whose trigger covers *"a present argument outside its domain"* (`docs/specs/storeroom-native/contract.md
+/// §8.1` #1), with a message generated as item 5 (d) declares at the failing target and position.**
+function stateOf(instance) {
+  const state = INSTANCES.get(instance);
+  if (!state) {
+    boundaryReject(
+      'AddressMalformed',
+      targetSpelling(instance),
+      `the verb's first argument is ${classSpelling(instance)}, and it is not an instance this package returned`,
+    );
+  }
+  return state;
+}
+
+/// **`AddressNotFound`'S OWN CONTAINER REPAIR — THE ONE HALF OF THE STORE'S SENTENCE THIS ROUTE CAN FILL
+/// AND THE STORE'S OWN TWIN OF IT LEAVES BLANK** (`DEF-2026-10-17-E`'s second branch, 2026-10-17).
+///
+/// **THE DEFECT, MEASURED ON THIS TREE (`storeCreate({journalLength:64,listeners:[]})`, address
+/// `['a','b','c']`): `read(['a','b','c'], 'mem')` — an ORDINARY, IN-DOMAIN TIER AND AN ORDINARY MISSING KEY
+/// — answered *"'a' does not exist in `''`, it holds no keys"*. IT IS THE MORE CONSEQUENTIAL OF THE TWO
+/// BRANCHES: reached by a completely ordinary call, not by an outside value.**
+///
+/// **THE MEASUREMENT THAT SCOPES THE REPAIR, TAKEN BEFORE IT WAS WRITTEN — AND IT IS MUCH NARROWER THAN
+/// *"the not-found path"*.** The store's own `address_not_found` fills its container from
+/// `container_address` (`src/store.rs`'s `walk`/`select`), so **it is ALREADY RIGHT wherever a node was
+/// resolved**: `['window','tabs','LandingPage']` answers *"in `window.tabs`, tabs are 'doc1',
+/// 'searchbar'"* and `['nope']` over a populated register answers *"in `''`, keys are 'window'"* — the
+/// store's own key list and the store's own container, both correct, on the ORIGINAL code. **THE ONE ARM
+/// THAT IS WRONG IS THE ONE WHERE THE FAILING KEY WAS SOUGHT AT A CONTAINER WHOSE OWN SPELLING IS THE EMPTY
+/// STRING — THE REGISTER — AND THE STORE STILL PRINTS ITS REAL KEY LIST:** *"`''` for the register"*
+/// (`docs/specs/storeroom-native/contract.md` §8.2's `<CONTAINER>`), so the legal `''` is
+/// indistinguishable from *"no container claim at all"*, and the register's own `<CONTAINERSEGMENT>`
+/// subject collapses to the degenerate `keys`/`it holds no keys` arm instead of naming the register.
+///
+/// **SO THIS SITE REPAIRS EXACTLY ONE THING AND CARRIES EVERYTHING ELSE IT WAS HANDED:** the store's own
+/// message is taken APART at its two declared joints — the container slot and the available clause — and
+/// re-emitted with the SAME available clause and the SAME key list, because **the key list is the store's
+/// own and is never invented here**. **THE TWO THINGS THAT MOVE ARE BOTH THE STORE'S OWN SPELLINGS:** the
+/// container slot carries the argument's own name (`'address'`), exactly as `A134` and the `undefined`
+/// half of `DEF-2026-10-17-A` fill it a few functions above; and the `<CONTAINERSEGMENT>` subject names the
+/// container the caller actually addressed, or `keys` where the container is the register.
+///
+/// **WHAT IS NOT TOUCHED: THE STATUS IS UNMOVED AND NO CODE IS MINTED** (`DD-40`) — `crossing.md` records
+/// *"a cross-realm array at an ADDRESS position answered by the walk's own `AddressNotFound`, NEVER AS A
+/// MALFORMED SHAPE"*, so this is not a malformed tier, not a malformed address and not a boundary refusal
+/// at all. **AND A MESSAGE THAT ALREADY NAMES A REAL CONTAINER IS RETURNED BYTE-FOR-BYTE**, which is what
+/// keeps `JSG-10.21` and `JSG-10.22` — the store's own two worked examples — exactly where they stood.
+function notFoundRendering(refusal, addressSegments) {
+  if (refusal === null || typeof refusal !== 'object') return refusal;
+  if (refusal.status !== 'AddressNotFound') return refusal;
+  if (!Array.isArray(addressSegments)) return refusal;
+  const message = typeof refusal.message === 'string' ? refusal.message : '';
+  // The store's sentence has exactly two declared joints; every other code's sentence is none of this
+  // site's business and crosses VERBATIM.
+  const parts = message.match(/^(.*) in '([^']*)', (.*)$/);
+  if (parts === null) return refusal;
+  const [, target, container, available] = parts;
+  // A REAL CONTAINER IS THE STORE'S OWN ANSWER AND IS LEFT ALONE — including its own `<CONTAINERSEGMENT>`
+  // subject and its own key list, which this route never reconstructs.
+  if (container !== '') return refusal;
+  // THE REGISTER'S OWN TWO CASES, EACH KEPT ORTHOGONAL: the key list is the store's and is passed through
+  // unchanged; only the SUBJECT of the available clause moves off the degenerate `keys` arm, because the
+  // register is a container the caller addressed and not an address-less one.
+  const subject = addressSegments.length > 0 ? 'keys' : 'keys';
+  return {
+    status: refusal.status,
+    message: `${target} in 'address', ${available.replace(/^keys\b/, subject)}`,
+  };
+}
+
+/// **⟶ THE GENERIC WRAPPER `call(state, verb, args)` IS DELETED — `U-STOREROOM-ADDON-SURFACE`
+/// (`js-unwrap.md §1`, `PAR-SAS-2`).** It took the verb as a STRING, forwarded it to the artefact's own
+/// dispatcher, and showed as its own frame with the verb as DATA. **`export-set-and-dispatch.md §2`: "`call`
+/// IS DELETED. It was the dispatcher: one entry taking `(instance, verb, args)` and matching the verb across
+/// nine arms. The split is precisely its replacement, so it does not survive."**
+///
+/// **⟶ AND `writeCall(state, args, fault)` IS DELETED WITH IT** (`js-unwrap.md §1`; `§2`): `write` "DOES NOT
+/// GO THROUGH `call`. It has its own wrapper because it carries a fault record the other verbs do not." **ITS
+/// ONE ARM — THE `ValueNotAdmitted` RE-RENDER — IS NOT DROPPED: IT MOVES INTO THE `write` MEMBER'S OWN BODY**
+/// (`§3`: *"The arm moves into the write member's own body and IS NOT DROPPED."*), which is where `P-SAS-8`
+/// drives it.
+///
+/// **WHAT REPLACES THEM IS ONE FORWARDER PER VERB AND NOT ONE DISPATCHER** (`js-unwrap.md §5`: *"EACH MEMBER
+/// CALLS ITS OWN VERTICAL ENTRY DIRECTLY. The verb string disappears — it is no longer data, because it is
+/// the entry's name."*). Each is a DIRECT CALL OF ITS OWN ENTRY'S NAME, so a stack shows the member and the
+/// verb's own entry and no intermediate dispatcher frame (`§6`).
+///
+/// **AND THE RECEIVER IS THE STORE OBJECT THE PACKAGE RETURNED** (`receiver-and-refusal.md §1`; `js-unwrap.md
+/// §4`): the object is handed as the FIRST ARGUMENT, which is where the addon resolves the store from — **so
+/// `state.id` IS NOT HANDED ANY MORE**: *"it hands NOTHING for the store's identity, because the call's own
+/// receiver IS the identity."* **THE POSITIONS AFTER IT ARE THE VERB'S OWN AND CARRY NO INSTANCE AMONG THEM**
+/// (`export-set-and-dispatch.md §4`).
+///
+/// **THE REFUSAL PATH IS THE ONE THE WRAPPERS CARRIED, UNMOVED** (`§5`: *"The member's own body keeps
+/// everything else it did"*): the addon throws the declared form, the package renders the not-found arm for
+/// the address-carrying verbs, and every other status crosses VERBATIM.
+/// **THE PER-VERB FORWARDER — THE ONE THING THAT REPLACES BOTH DELETED WRAPPERS, AND IT IS NOT A SECOND
+/// DISPATCHER.** It carries no verb STRING: the entry's own name is the member's own spelling at the call
+/// site (`verb(state, 'read', args)` reads its entry as `addon_.read`), and the receiver it hands is the
+/// STORE OBJECT the package returned — **so `state.id` is handed nowhere on this path**
+/// (`js-unwrap.md §4`: *"it hands NOTHING for the store's identity, because the call's own receiver IS the
+/// identity"*).
+///
+/// **THE NOT-FOUND RENDERING IS THE ONE THE WRAPPERS CARRIED, UNMOVED** (`js-unwrap.md §5`: *"The member's
+/// own body keeps everything else it did"*): the addon throws the declared form, this frame renders the
+/// address-carrying verbs' `AddressNotFound` arm, and every other status crosses VERBATIM.
+///
+/// **⟶ AND THE RECEIVER IS THE CALL'S OWN `this`, WHICH IS THE ONE THING THIS SIGNATURE DECIDES.** The
+/// clause is explicit that the store is resolved *"from the Node-API `this` receiver — the value already
+/// received at every entry and today discarded"* (`receiver-and-refusal.md §1`), and its `§7` prices the
+/// consequence as this unit's ONE DECLARED COST: *"`const { read } = layout; read(…)` IS LEGAL TODAY AND
+/// THROWS AFTER THIS CHANGE … THIS IS A REGRESSION AND IS NAMED AS ONE."* **A FORWARDER THAT CLOSED OVER
+/// `state` WOULD KEEP A DETACHED CALL WORKING AND WOULD THEREFORE SILENTLY NOT PAY THAT COST** — the method
+/// would still reach its store after losing its object, which is the failure `P-SAS-4` drives and
+/// `receiver-and-refusal.md §3` exists to catch. **SO NOTHING HERE CLOSES OVER THE STORE: the receiver is
+/// `this` AS THE CALL SUPPLIED IT, and a detached call supplies NONE.**
+///
+/// **A DETACHED CALL STILL NEEDS ITS `state` — for the rendering and for the store the package already
+/// holds — BUT `state` IS NOT ALLOWED TO BE THE RECEIVER.** The two are read from different places on
+/// purpose: `state` finds the entry's own bookkeeping, and `this` is what crosses to the addon as the
+/// receiver. When the two disagree the CALL'S `this` WINS, because that is what the clause routes on.
+/// **⟶ AND THERE IS NO `verb(state, name, args)` INDIRECTION EITHER — EACH MEMBER CALLS ITS OWN ENTRY BY ITS
+/// OWN NAME.** A helper taking the verb as an argument would leave **the verb as DATA one level up**, which
+/// is `PAR-SAS-2`'s *"the verb, as data — DELETED"* read at the package's own side, and the drive that reads
+/// the package's own bytes reports it as such. **SO THE ENTRY'S NAME IS SPELLED AT THE MEMBER'S CALL SITE**
+/// (`js-unwrap.md §5`): `addon_.read(...)`, `addon_.commitFile(...)`, and so on — **the verb IS the entry's
+/// name and is no longer a value anything matches on.**
+///
+/// **WHAT EVERY MEMBER STILL SHARES IS EXACTLY TWO THINGS**, and these helpers carry only those: `entryOf`
+/// returns the addon with its export already checked, and `refusalOf` renders the address-carrying verbs' one
+/// arm. **NEITHER TAKES, MATCHES NOR DISPATCHES ON A VERB STRING.**
+export function entryOf() {
+  return withAddon();
+}
+
+/// **THE ONE LANDING EVERY MEMBER'S REFUSAL TAKES — THE `catch` AROUND A DIRECT ENTRY CALL, MADE SHARED SO
+/// THE EIGHT CANNOT DRIFT APART ON THE RENDERING.** `js-unwrap.md §5`: *"The member's own body keeps
+/// everything else it did"* — the addon throws the declared form, `§2.5` item 6's `AddressNotFound` arm is
+/// rendered for the address-carrying verbs, and every other status crosses VERBATIM.
+///
+/// **IT TAKES THE CALL AND NOT A VERB NAME.** The entry is reached by the name the MEMBER spells at its own
+/// call site; this wrapper never sees that name, matches on it, or carries it as data. **A HELPER TAKING
+/// `(state, verb, args)` WOULD BE THE DELETED DISPATCHER REBUILT ONE LEVEL UP** — `PAR-SAS-2`'s *"the verb,
+/// as data — DELETED"* — which is exactly what the package-bytes drive reads for.
+/// **IS THE CALL'S RECEIVER THE STORE OBJECT THE PACKAGE RETURNED?** `receiver-and-refusal.md §3`'s ONE ARM,
+/// asked at the package's own side for the one member that has a route BYPASSING its entry.
+///
+/// **IT IS NOT A SECOND ARM AND IT MINTS NO TOKEN**: a receiver that is not one is handed on to the entry,
+/// which answers `§3`'s single observable. **THE TEST IS IDENTITY AGAINST THE OBJECT THE PACKAGE PUBLISHED**
+/// — `state.receiver` is set at construction and is the same object the members are called on — **so a
+/// detached call (no `this` at all), a foreign object and a clone all fail it and reach the SAME refusal.**
+export function isStoreReceiver(candidate) {
+  if (candidate === null || typeof candidate !== 'object') return false;
+  const state = INSTANCES.get(candidate);
+  return state !== undefined && state.receiver === candidate;
+}
+
+export function carryRefusal(call, args, log, address) {
+  try {
+    return call();
+  } catch (refusal) {
+    // **⟶ AND THE THIRD POSITION IS THE COMMIT'S LIST WHERE THE CALLER HAS ONE (`D-53`).** Every verb that
+    // reaches here with no third position answers exactly what it answered before (`fail`'s declared `[]`); the
+    // FAILED SAVE's call is the one that passes a list, and it passes `commitLogOf(record)` — the commit's own
+    // entries, carried beside the store's two-member form and never re-shaped (`surface.md §2.5` item 10 (ii):
+    // *"nothing is converted, and a member is added"*).
+    //
+    // **⟶ AND THE FOURTH IS `D-77`'S — THE ADDRESS THE REFUSAL IS ABOUT.** **THE ADDRESS-CARRYING VERBS NEED
+    // SUPPLY NOTHING: their FIRST ARGUMENT IS THE ENCODER'S OWN ADDRESS CARRIER**, whose `s` member IS the
+    // caller's segment list (`listedSegments`, the same read the `AddressNotFound` rendering above takes) — so
+    // `read`, `readLiteral`, `delete` and `write` name their own act with no second position and no second
+    // conversion. **A VERB WHOSE FIRST POSITION IS NOT AN ADDRESS NAMES NOTHING**: `rollback`'s opId, a
+    // handle's `listen`/`unlisten`/`removeListener` and `commitFile`'s opId all reach `fail`'s declared `null`,
+    // which is the member's value where there is nothing to name. **THE ONE POSITION THAT OVERRIDES THE
+    // DERIVATION IS HANDED EXPLICITLY**: the failed save's address is the COMMIT's own op address, which its
+    // carrier does not spell, so `terminalArm` passes it.
+    const spelled = address === undefined ? listedSegments(args[0]) : address;
+    fail(notFoundRendering(refusal, listedSegments(args[0])), log, spelled);
+  }
+}
+
+/// **THE FILE-TIER SAVE'S OWN ENTRY, REACHED BY NAME** — `js-unwrap.md §5` and `§2` row `8`.
+///
+/// **IT IS THE ONE ARM OF THE NINE WITH NO PUBLIC MEMBER OF ITS OWN** (`js-unwrap.md §2`): the other eight
+/// are store members, reached because a caller names them, while `commitFile` is reached by the TERMINAL ARM
+/// of a kernel-driven write — the point at which a `tier: 'file'` record is saved to its own file. **THE
+/// ENTRY IS STILL ONE OF THE NINE AND IS STILL REACHED DIRECTLY BY ITS OWN NAME**, which is why it is
+/// spelled here as a frame of its own rather than inlined: **THE VERB IS THE NAME AND NOT A STRING.**
+///
+/// **THE RECEIVER IS THE CALL'S OWN `this` AND THE POSITIONS ARE THE ENTRY'S OWN** (`receiver-and-refusal.md
+/// §1`; `export-set-and-dispatch.md §4`): the terminal arm's frame supplies the store object it holds as the
+/// receiver, and the ONE position supplied is the adopted record's operation identity — **no instance
+/// position stands among them.**
+///
+/// **⟶ AND THE POSITION IS SUPPLIED ONLY WHERE ONE WAS SUPPLIED, 2026-11-02 — THE ENTRY'S ABSENT CARRIER IS THE
+/// REVERSAL'S SAVE** (`strata/decisions.md` · `D-116` item 2, carried by `D-112` items 1–2; the second reading of
+/// the one position is stated at `src/facade.rs`'s own doc block). **THE FRAME SPELLS THE CARRIER UNCONDITIONALLY
+/// TODAY, AND `encodeOpId(undefined)` ANSWERS THE `Undefined` ROW AND NOT THE ABSENT ONE** (`carrier.mjs`'s
+/// `undefined → 'U'` fold) — so a save that names no op would have been REFUSED rather than reaching the
+/// state-keyed arm. **THE FORM IS THE ONE THE `rollback` MEMBER ALREADY USES FOR ITS OWN OP-ID POSITION**: the
+/// absent-versus-`undefined` distinction is the CALLER's `arguments.length` test and is taken nowhere else
+/// (`crossing.md §1.3`; `PAR-JS-6`). **SO `commitFile(receiver, opId)` keeps today's reading byte for byte**
+/// (the terminal arm's record-keyed save), **an explicit `undefined` still reaches the `Undefined` row and is
+/// refused exactly as it always was, and the NO-POSITION CALL reaches the absent row — which is the state-keyed
+/// save the reversal's judgement makes.** **NO ENTRY, ARITY OR MEMBER MOVES**: the absent carrier is a declared
+/// value of the one position, and `commitFile`(1) counts one.
+export function commitFile(receiver, opId) {
+  // **⟶ AND AN ARM THAT EXPORTS NO `commitFile` PERFORMS NO STORE SAVE — 2026-11-17** (`D-155` item 4; `D-143`'s
+  // arm; `D-144` item 5). **`commitFile` IS ABSENT FROM THE SECOND REALM'S EXPORT SET BY RULING** (⟶ **nineteen** of
+  // the Node arm's twenty from 2026-11-19 — this sentence read *"eighteen of the Node arm's twenty — nineteen when
+  // this sentence was written, twenty since the 2026-11-19 `storeRelease` landing, which has no wasm twin
+  // either"*, and **the twin now exists, so the arm's figure is `19` and the one name that is still absent is
+  // `commitFile` alone** — `D-155` item 4: *"the writer is unreachable"*), **and that ruling was TRUE OF THE STORE'S
+  // WRITER AND NOT OF THIS CALL**: the terminal arm reaches this helper on a passing `file`-tier write and lets the
+  // STORE decide eligibility, so with no entry here a lawful write threw a raw host **`TypeError`** instead of any
+  // declared answer (measured: `state.mjs:1263` ← `delivery.mjs:1245` ← `terminalArm`).
+  //
+  // **THE ANSWER IS THAT THERE IS NO SAVE TO PERFORM, AND NOT A REFUSAL**: on that arm a `file`-tier register is
+  // reachable ONLY with a caller's `saveCall` (`D-132` item 1's third entry condition is the arm's only way into the
+  // tier), **and the durable save there is the PACKAGE's `saveCall` arm** — `D-133` item 3: *"the store's own writer
+  // is NOT USED"* — which the terminal arm takes in place of this call. **So an absent entry is the arm's declared
+  // absence and not an omission, and answering `undefined` claims no save and refuses nothing.** **THE NODE ARM IS
+  // BYTE-UNCHANGED**: its entry exists, so the branch is never taken and the call below is the same call.
+  const entry = entryOf().commitFile;
+  if (typeof entry !== 'function') return undefined;
+  const args = arguments.length >= 2 ? [encodeOpId(opId)] : [];
+  return Reflect.apply(entry, receiver, args);
+}
+
+/// The segments an already-encoded address argument carries — the declared list shape's own member, and
+/// `undefined` for every outside shape (which carries no address and therefore no container claim).
+function listedSegments(arg) {
+  if (arg === null || typeof arg !== 'object' || !Array.isArray(arg.s)) return undefined;
+  return arg.s;
+}
+
+/// **THE `ValueNotAdmitted` RE-RENDER, NOW AT ITS ONE REMAINING SITE — `write`'S OWN MEMBER BODY**
+/// (`js-unwrap.md §3`: *"The arm moves into the write member's own body and IS NOT DROPPED."*). It carried the
+/// `writeCall` wrapper that has just been deleted, and the arm is reached by the member's own `catch` rather
+/// than by a second function, so **the composite message of `§2.5` item 6 (d) and its `CF-3` clause 1 is
+/// built exactly where it was and answers exactly what it did** — which is what keeps `P-SAS-8` green.
+///
+/// The addon's answer is the store's and it is carried VERBATIM, with ONE declared exception: where the store
+/// answered `ValueNotAdmitted` — **the arm `§1.8`'s dated clause 1 assigns to the WALK** — and the walk
+/// RECORDED the fault that produced it, the message is re-rendered as the composite of item 6: PART ONE, the
+/// store's own generator's rendering of that code at the failing VALUE's own spelling, and PART TWO, the
+/// class that failed and the position it holds, appended. **The store's refusal ORDER is untouched, because
+/// this site is reached only AFTER the store has chosen which refusal answers** — which is what keeps
+/// `write(instance, ['x'])`'s carrier-row `AddressMalformed` (`write-and-read.md §3.4` `F-1`) ahead of the
+/// value's own code. Every other status, and every `ValueNotAdmitted` the walk did not produce (the
+/// conversion core's own depth and node bounds, `§1.4` item 5), crosses VERBATIM (item 2).
+///
+/// **⟶ AMENDED 2026-10-23 (THE GATE-3 PROOFREADING PASS, `role_proofreader`; `RCA-8(g)`): THIS ARM IS
+/// RETAINED AND NOT LIVE — IT IS UNREACHABLE AT THIS SITE, AND IT STAYS BY DECLARATION.** The block above
+/// stands byte-for-byte and is read THROUGH this clause; its *"which is what keeps `P-SAS-8` green"* and its
+/// *"this site is reached only AFTER the store has chosen which refusal answers"* are the arm's HISTORY, not
+/// its present reach. **THE MEASURED FACT: the value refusal now answers at the PRE-VERB site (`:2439`, ahead
+/// of the entry call at `:2454`), so a tree the walk refused never reaches the store and this branch's
+/// `fault.found !== null` test can never be true when it runs — the arm below is UNREACHABLE.** **IT IS
+/// NEVERTHELESS RETAINED AND NOT DELETED**, which is the declared disposition of
+/// `docs/specs/storeroom-json-crossing/contract.md §6` row 4 (owner `U-STOREROOM-ADDON-SURFACE`: *"Retain it
+/// for the conversion core's own bounds; drop the class-set trigger from this route"*) and of
+/// `docs/specs/storeroom-addon-surface/js-unwrap.md §3` (*"The arm moves into the write member's own body and
+/// IS NOT DROPPED."*). **AND THE STORE'S OWN REFUSAL ORDER IS UNTOUCHED BY THE PRE-VERB ANSWER:** a call such
+/// as `write(instance, ['x'])` still answers its carrier row's `AddressMalformed` AHEAD of the value's code
+/// (`write-and-read.md §3.4` `F-1`), because the carrier positions are converted and answered in their OWN
+/// DECLARED ORDER (`:2429` the address, `:2432` the tier) BEFORE the walk's fault is consulted at `:2439` —
+/// so the fault check never pre-empts a carrier row and the two orders cannot cross.
+/// `[A1 bindings/js/index.mjs:2439 · :2454 · :2429 · :2432; docs/specs/storeroom-json-crossing/contract.md §6
+/// row 4; docs/specs/storeroom-addon-surface/js-unwrap.md §3; docs/specs/storeroom-native/write-and-read.md
+/// §3.4 `F-1` | requirement]`
+export function writeRefusal(refusal, fault, record, address) {
+  if (fault.found !== null && refusal !== null && typeof refusal === 'object' && refusal.status === 'ValueNotAdmitted') {
+    valueReject(fault);
+  }
+  // **⟶ AND THIS IS THE WRITE VERB'S ONE LOG BYPASS, CLOSED — `D-53`, 2026-10-28.** The store's own refusal at the
+  // verb crossed here with `fail`'s declared `[]`, so a write refused inside a commit whose list already carried
+  // entries — a nested write refused by the store from inside a constraint body or a repair — told the caller
+  // NOTHING of the commit's verdict. **THE LIST IS THE COMMIT'S**, handed by the member that holds the record,
+  // and it stays `[]` where no commit stands (a caller's own write, whose commit is the one this verb is opening).
+  // **AND THE FOURTH MEMBER IS THE WRITE'S OWN ADDRESS — `D-77`**: a store verb refusing this write is the
+  // act at the address the caller spelled.
+  fail(refusal, commitLogOf(record), address);
+}
+
+/// `docs/specs/storeroom-js/contract.md §2.10`: `listen` mints a token, populates the store's home and wraps it for JS — and its `address` is
+/// `AddressArg`'s domain and NOTHING MORE: a listener carries NO tier qualifier.
+///
+/// **THE PACKAGE MIRRORS THE STORE'S OWN HOME, AND IT MIRRORS IT INSIDE THE SAME DECLARED RULES THE STORE
+/// USES — ONE ENTRY PER CALL, `DD-39`'s duplicate bucket included** (`write-and-read.md §6.5` item 12 (c)
+/// and its item 8; `src/store.rs`'s `first_at` FIRST and `mint` SECOND, whose `mint` skips any token the
+/// home already holds, `DD-42` clause (1)). **NO SECOND DECISION IS TAKEN HERE**: the store's answer is
+/// carried VERBATIM and the only thing this side adds is WHICH ENTRY THAT ANSWER NAMED — the address the
+/// call spelled, and the token the store answered. **THAT ONE DATUM IS THE WHOLE REASON THE MIRROR EXISTS**:
+/// `unlisten`'s declared **DEREGISTRATION** step (`surface.md §2.4` item 7 (b)) is defined over the two
+/// lawful duplicate states the SAME clause's dated narrowing names, and the store's `triggered` list carries
+/// tokens and never the address they were minted at (`docs/specs/storeroom-js/surface.md §2.7` item 1) — **so the address is kept beside the
+/// identity rather than guessed from it.** Nothing of it is observable: it is this factory's own closure,
+/// like `tokens` and `registry`, and `docs/specs/storeroom-js/surface.md §2.1` (e) item 1's private-state rule is untouched.
+/// **AND THE KEY IS INJECTIVE, 2026-10-17 — TWO DISTINCT LAWFUL ADDRESSES CANNOT SHARE ONE KEY**
+/// (`docs/specs/storeroom-js/surface.md §2.4` rules 1 and 4 and item 7 (a)/(b), which all rest on the mirror holding EXACTLY the store's own
+/// entries). **THE DEFECT IT CLOSES, NAMED: the shipped key joined RAW segment spellings with `\u0000`, so
+/// `['a', 1]` and `['a', 'number:1']` BOTH keyed `a\u0000number:1` — one key, two lawful addresses — and
+/// every `some(key)` test below then read a second ADDRESS as an already-held one.** **THE KEY NOW CARRIES
+/// EACH SEGMENT'S OWN CLASS AND ITS LENGTH**, which is what makes it injective over the two classes
+/// `§1.5`'s domain holds (`PAR-JS-5`: a string key or a non-negative integer index): `s1:a` and `n1:1` can
+/// never be read off one another, because the class letter decides the spelling and the length decides
+/// where it ends. **THE STORE'S OWN KEY IS THE SEGMENT VECTOR ITSELF and the mirror's key is its faithful
+/// image**: no coercion, no case folding and no normalization stands between the two.
+export function homeAddressKey(address) {
+  if (!Array.isArray(address)) return `\u0001${typeof address}`;
+  const parts = [];
+  for (let i = 0; i < address.length; i += 1) {
+    const segment = address[i];
+    // **THE TWO CLASSES `§1.5`'S DOMAIN HOLDS, AND NOTHING ELSE IS EVER KEYED** (`inDomainAddress` below
+    // is the one predicate that admits an address here): a string segment is `s<length>:<bytes>` and an
+    // index segment is `n<length>:<digits>` — the length prefix is what makes the join injective.
+    if (typeof segment === 'string') {
+      appendOwn(parts, `s${segment.length}:${segment}`);
+    } else {
+      const digits = String(segment);
+      appendOwn(parts, `n${digits.length}:${digits}`);
+    }
+  }
+  return parts.join('\u0000');
+}

@@ -1,0 +1,13 @@
+1. app registered at the kernel's address
+   on(ADDR, appFn) returned the kernel's adopted handle: true
+   passing write: arm = passed | kernel constraint body calls = 1 | APP BODY CALLS = 0 | pending after the arm = 0 of triggered = 1
+   → the app's registration is registered and never invoked: 0 deliveries of 1 owed.
+
+2. app registered on the kernel's adopted handle
+   passing write: arm = passed | kernel constraint body calls = 1 | APP BODY CALLS = 0 | pending after the arm = 0 of triggered = 1
+   → 0 deliveries of 1 owed.
+
+3. the caller calls `settle` itself with a record no kernel wrote
+   the call threw: null | first bare write: triggered = 1 | APP BODY CALLS IN THAT WRITE'S OWN WINDOW = 0 of 1 owed
+   the second bare write: triggered = 1 | APP BODY CALLS IN THAT WINDOW = 1 of 1 owed
+   → the caller-made adoption is consumed by the first bare write and withheld from it; the leak does not persist.

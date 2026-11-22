@@ -1,0 +1,610 @@
+// `D-2` (`docs/L1/entry-subdivision.md` §1 part `6b`, `D-33`'s seam at `L2799`) — bytes moved from `bindings/js/index.mjs`; no logic changed.
+// **⟶ AND THE `Proxy` PREDICATE IS THE INSTALLED CLASS-DECISION INSTRUMENT FROM 2026-11-17** (`D-156` item 1 and
+// the loader split's row for these five parts, `docs/L3/wasm-realm/design.md` §5: the host import line is *"swapped
+// for a local helper"* — **neutralised**, conditional on that design's §4 instrument). **`isProxyOf` IS
+// `class-instrument.mjs`'s one predicate and this file carries no host specifier for the class decision any more**:
+// every site below takes the answer `util.types.isProxy` gave, because **the NODE entry installs `types.isProxy`
+// ITSELF at load** (`index.mjs`, at the head of the module), and on the other arm the instrument is
+// `structuredClone` while **the ANSWER does not move** (`D-156` item 1: the refusal stays rank-neutral and
+// class-for-class what this arm answers). **NO DECISION, NO ORDER AND NO ANSWER OF THIS FILE MOVES** — only the
+// predicate's name and its home.
+// **⟶ AND THE CARRIER PREDICATE BESIDE IT FROM 2026-11-17 — `D-167`.** **THE ARCHITECT, VERBATIM: *"The clone
+// requirement is for data that has to enter the Rust store. constraints, listeners, and the saveCall do not"*** —
+// so **the six gates in this file whose subject is the package's own CARRIER take `isProxyOfCarrier`** — named by
+// FUNCTION and not by line, because this paragraph moves the lines: **the `listeners` array in `encodeListeners` ·
+// the `constraints` array in `encodeConstraints` · the two reads `admittedConstraintBatch` takes of them ·
+// `admittedListenerBatch`'s one · and `cfg` ITSELF at `encodeConfig`'s class gate, through
+// `isPlainObjectCarrier`**, the carrier-shaped sibling of `isPlainObjectValue`, which cannot carry the split
+// because it classifies values too. **EVERY OTHER `isProxyOf` SITE IN THIS FILE IS DATA AND IS UNMOVED**:
+// `constraintAddress`'s address is a value the store resolves and it keeps the probe. **ON THE NODE ARM NOTHING
+// MOVES AT ALL** — `isProxyOfCarrier` IS `types.isProxy` there, so every `Proxy` this file refused it still
+// refuses, in the same form with the same message; **on the WASM arm this is what lets the arm construct a store at
+// all** (`D-166`: `cfg` carries functions by definition and the probe cannot tell a function from a `Proxy`), and
+// the price is declared at `class-instrument.mjs`'s `isProxyOfCarrier`.
+//
+// **★ AND THE TWO `isPlainObjectValue` SITES THAT CLASSIFY ONE LISTENERS OR CONSTRAINTS ENTRY — `encodeListeners`'S
+// ELEMENT TEST AND `constraintEntry` — ARE NOT MOVED BY THIS ROW: A DECLARED RESIDUE AND NOT AN OVERSIGHT.** A `listeners`
+// entry carries `listener` and a `constraints` entry carries `constraint`, so each is a carrier that stays in the
+// package exactly as its array does, and on the WASM arm those two sites still ask the probe and refuse a `cfg`
+// that carries a **batch**: `isPlainObjectValue(entry)` → `isProxyOf(entry)` → `structuredClone` throws on the
+// function member → *"not a plain object"* → `AddressMalformed`, with `cfg`'s own gate now passed. **What this row
+// does construct on that arm is the `saveCall` store `D-166` found it could not** — the configuration the arm exists
+// for (`D-154` item 4) — **and closing the elements is the same one-line move at each site that the sibling above
+// makes possible, which is a ruling this row does not take and names rather than takes.**
+import { isProxyOf, isProxyOfCarrier } from './class-instrument.mjs';
+import { boundaryReject } from './addon-slot.mjs';
+import { appendOwn } from './refusal.mjs';
+import { addressSpelling } from './kernel-foundations.mjs';
+import { arrayClass, classSpelling, hasLoneSurrogate, isAdmittedArray, isLawfulListenerElement, isPlainObjectCarrier, isPlainObjectValue, valueTargetSpelling } from './class-decision.mjs';
+import { encodeAddress, encodeFilePath, encodeJournalLength } from './carrier.mjs';
+
+function encodeListeners(listeners) {
+  if (listeners === undefined) return undefined;
+  if (listeners === null) return null;
+  // **⟶ `isProxyOfCarrier` FROM 2026-11-17 (`D-167`): `cfg.listeners` IS A CARRIER, NOT DATA.** The ruling,
+  // verbatim: *"constraints, listeners, and the saveCall do not"* [enter the Rust store] — so the probe that
+  // decides what may CROSS is not asked of this list. **THE ANSWER, THE ORDER AND THE `{bad: 'non-array'}` ARM DO
+  // NOT MOVE**: on the Node arm the two predicates are the same function, and on the WASM arm this is the gate
+  // that stopped a lawful `listeners` list being read as *"a Proxy"* because its elements carry functions.
+  if (isProxyOfCarrier(listeners)) return { bad: 'non-array' }; // row 3: not the array's shape (`DD-34`)
+  if (!Array.isArray(listeners)) return { bad: 'non-array' };
+  if (arrayClass(listeners) === 'class') return { bad: 'non-array' }; // `JS-2`: a class extending `Array`
+  // **⟶ AND THE LIST IS WALKED BY A LOCAL INDEX LOOP, NOT BY `Array.prototype.map`** (`contract.md §2.1`'s
+  // clause of 2026-10-24 on `F8-2`, items `(2a)`, `(2b)` and `(2c)`, and item `(2b)`'s row `62`; arm `(xix)`,
+  // cell `JC-TC-65`): a caller-side `delete Array.prototype.map` made EVERY `storeCreate` throw a RAW HOST
+  // `TypeError` before it returned — the direction `F-RA-3`'s item `(3)` forbids — and a forged `map` decided
+  // which entries the construction's declared seeding saw. The loop answers one encoded entry per element, at
+  // that element's own position.
+  const encoded = [];
+  for (let position = 0; position < listeners.length; position += 1) {
+    const entry = listeners[position];
+    if (!isPlainObjectCarrier(entry)) {
+      // **⟶ AND THE SENTENCE NAMES THE SHAPE THIS UNIT ACTUALLY ADMITS — GATE 4's FINDING, 2026-11-11.** The
+      // message read *"an entry is a plain `{ address, handle }` record"* and told a consumer the very shape the
+      // projection at the foot of this loop REFUSES (two own keys where three are required) — `PIN-8`'s third
+      // member is REQUIRED, so the non-object arm now spells the shape it is asking for. **NO CODE, NO SUBJECT
+      // AND NO FORM MOVES**: still `AddressMalformed`, still the container `listeners`, still the two-position
+      // `boundaryReject` arm this position already took (`PIN-9`'s amendment owns the arm-token repair and is
+      // not read here).
+      boundaryReject(
+        'AddressMalformed',
+        'listeners',
+        `the listeners entry at position ${position} is ${classSpelling(entry)}, and an entry is a plain { address, handle, listener } record`,
+      );
+    }
+    const keys = Object.keys(entry); // the OWN enumerable string keys, and nothing inherited
+    // **⟶ THE ELEMENT'S THIRD MEMBER IS ADMITTED HERE AND STRIPPED AT THE CROSSING — `PIN-8`, `D-123` item `2`,
+    // 2026-11-06.** The element type is `{ address, handle, listener }` — `listener` REQUIRED — and the shape
+    // this test reads is that shape alone: two or three own keys, `address` and `handle` present, and where a
+    // third stands it is `listener`. **A JAVASCRIPT FUNCTION CANNOT CROSS INTO RUST AT ANY DEPTH**, so the
+    // projection below carries `{ address, handle }` and nothing else — which is `D-26`'s move one key over
+    // (`encodeConstraints`' own strip, `:70`–`:77`), and **`ListenerEntry`, `src/args.rs` and `src/records.rs`
+    // do not move**. **THE FUNCTION'S PRESENCE IS NOT TESTED HERE**: a missing or non-function `listener` is
+    // step 2's refusal (`admittedListenerBatch` below), decided one layer up in the construction's own walk, in
+    // the form this position already answers, and before any filesystem act (`PIN-9`).
+    if (keys.length < 2 || keys.length > 3 || !Object.hasOwn(entry, 'address') || !Object.hasOwn(entry, 'handle')
+      || (keys.length === 3 && !Object.hasOwn(entry, 'listener'))) {
+      appendOwn(encoded, { bad: 'entry' });
+      continue;
+    }
+    const handle = entry.handle;
+    if (typeof handle !== 'string' || handle === '') {
+      appendOwn(encoded, { bad: 'handle' });
+      continue;
+    }
+    // **THE ELEMENT'S THIRD MEMBER IS DROPPED HERE AND ONLY HERE … THE PACKAGE ARMS THE SUBSTANCE**
+    // (`frame.mjs:70`–`:74`, `D-26` item 3, read one key over).
+    appendOwn(encoded, { address: encodeAddress(entry.address), handle });
+  }
+  return encoded;
+}
+
+/// **⟶ ADDED 2026-10-15 (`parameter-semantics.md §2.21`; `surface.md §2.1`'s `cfg` block dated 2026-10-15;
+/// `contract.md §8.1` #16) — THE CONSTRUCTION'S FOURTH DECLARED KEY, `constraints`: THE LIST'S OWN WALK.**
+///
+/// **THE CLASS DECISION IS TAKEN FIRST, ON THE VALUE AS IT IS, AND NO COERCION IS PERFORMED ANYWHERE
+/// HERE** (`A76`'s part (1)): a `Proxy`, a class extending `Array` and every non-array is the LIST's own
+/// outside form and is carried as one; a plain array is walked element by element; **and ONE ELEMENT
+/// OUTSIDE THE `{ address, id }` PAIR'S SHAPE crosses as THE FAILING ENTRY'S OWN `<SEGMENT>` SPELLING**
+/// (`§8.2`'s row: *"the failing ENTRY's `address` spelling, joined by `/` … or the element's own position
+/// printed bare where the failing element carries no address at all"*). **THE CODE AND THE MESSAGE STAY THE
+/// STORE'S** (`§8.1` #16, `DD-40`): nothing here mints a status and nothing here authors a sentence.
+function encodeConstraints(constraints) {
+  if (constraints === undefined) return undefined;
+  if (constraints === null) return null;
+  // **⟶ AND THE FOURTH KEY'S LIST IS A CARRIER TOO FROM 2026-11-17 (`D-167`)** — *"constraints … do not"* [enter
+  // the Rust store] — so the SAME predicate takes it, at the SAME position, answering the same arm. `DD-34`'s class
+  // order is unmoved: the class decision is still taken first, on the value as it is.
+  if (isProxyOfCarrier(constraints)) return { bad: 'non-array' }; // `DD-34`'s class order, taken first
+  if (!Array.isArray(constraints)) return { bad: 'non-array' };
+  if (arrayClass(constraints) === 'class') return { bad: 'non-array' };
+  // **⟶ AND THE FOURTH KEY'S OWN WALK IS A LOCAL INDEX LOOP, NOT `Array.prototype.map`** (`contract.md §2.1`'s
+  // clause of 2026-10-24 on `F8-2`, items `(2a)`, `(2b)` and `(2c)`, and item `(2b)`'s row `63`; arm `(xix)`,
+  // cell `JC-TC-65`): a forged `map` registered nothing while the construction returned an instance, and the
+  // deletion threw a RAW HOST `TypeError` out of the same construction. Each element is encoded at its own
+  // position and the list crosses WHOLE.
+  const encoded = [];
+  for (let position = 0; position < constraints.length; position += 1) {
+    const element = constraintEntry(constraints[position], position);
+    // **⟶ AND THE ELEMENT'S THIRD MEMBER IS DROPPED HERE AND ONLY HERE — `D-26` item 3, 2026-10-24.** The
+    // element type the declaration now carries is THREE members and `constraint` is REQUIRED; **a JavaScript
+    // function cannot cross into Rust at any depth**, so `ConstraintEntry::Pair { address, id }` stays two
+    // fields and the crossing carries the PAIR. **THE PACKAGE ARMS THE SUBSTANCE** — `constraintEntry` below
+    // FORWARDS it and the construction's own batch walk captures it; the crossing is this one projection.
+    appendOwn(encoded, element.bad === undefined
+      ? { address: element.address, id: element.id }
+      : element);
+  }
+  return encoded;
+}
+
+/// ONE `constraints[]` ELEMENT: the closed `{ address, id }` pair, or the element's own `<SEGMENT>`
+/// spelling (`§8.2`). **AN ELEMENT THAT IS NOT A PLAIN OBJECT — an array, a `Proxy`, a class instance and
+/// every non-object included — CARRIES NO ADDRESS AT ALL**, so its slot is the element's own POSITION
+/// printed bare.
+function constraintEntry(entry, position) {
+  const where = `the constraint entry at position ${position}`;
+  if (!isPlainObjectCarrier(entry)) return { bad: 'element', subject: where };
+  if (!Object.hasOwn(entry, 'address') || entry.address === undefined) {
+    return { bad: 'element', subject: where };
+  }
+  const address = constraintAddress(entry.address);
+  if (typeof address === 'string') return { bad: 'element', subject: address };
+  // AN ELEMENT CARRYING NO `id` AT ALL IS THE SAME OUTSIDE FORM AS ONE WHOSE `id` IS NOT A STRING: the
+  // `<SEGMENT>` slot prints the entry's own `address` spelling and the `<KEYLIST>`'s members are the
+  // entry's own, read by the store's generator and never here.
+  if (
+    !Object.hasOwn(entry, 'id')
+    || entry.id === undefined
+    || typeof entry.id !== 'string'
+    || entry.id === ''
+  ) {
+    return { bad: 'element', subject: spellConstraintAddress(address.s) };
+  }
+  // **⟶ AMENDED 2026-10-24 (`D-26`, verbatim: *"The batch in cfg.constraints must supply functions"*): THE
+  // ELEMENT'S THIRD MEMBER IS FORWARDED, NOT DROPPED.** The bytes this return replaced were
+  // `return { address, id: entry.id };` — *"nothing else is forwarded, so a `constraint` member a caller
+  // attaches to an element is DROPPED at the crossing, silently"* — and **that drop is named a DEFECT by
+  // `D-26` item 1, not a design**. The member is CARRIED HERE for the PACKAGE's own use: the construction's
+  // batch walk validates it (`B-1`) and the arming loop hands it to `K-1` after the instance exists (`D-27`:
+  // *"Functions are armed"*). **IT IS STRIPPED AT THE CROSSING ALONE** (`encodeConstraints` above), because
+  // a JS function cannot cross into Rust. **THE FUNCTION'S PRESENCE IS NOT TESTED HERE**: a missing or
+  // non-function member is `B-1`'s refusal, decided one layer up in the construction's own walk, in the
+  // surface's one thrown form and before any filesystem act (`D-26` item 5).
+  return { address, id: entry.id, constraint: entry.constraint };
+}
+
+/// `§1.5`'s segment array as the carrier `encodeAddress` declares it — **or, where the value lies outside
+/// that domain, the failing ELEMENT's own `address` spelling as a STRING** (`§8.2`'s `<SEGMENT>` slot: a
+/// string key single-quoted, an integer index bare, joined by `/`).
+export function constraintAddress(address) {
+  if (isProxyOf(address) || !Array.isArray(address) || arrayClass(address) === 'class') {
+    return `'${valueTargetSpelling(address)}'`;
+  }
+  const segments = [];
+  for (let i = 0; i < address.length; i += 1) {
+    if (!(i in address)) {
+      return `${spellConstraintAddress(segments)} and no segment at position ${i}`;
+    }
+    const segment = address[i];
+    if (typeof segment === 'string' && !hasLoneSurrogate(segment)) {
+      appendOwn(segments, segment);
+    } else if (typeof segment === 'number' && Number.isInteger(segment) && segment >= 0
+      && Number.isSafeInteger(segment)) {
+      appendOwn(segments, segment);
+    } else {
+      return `${spellConstraintAddress(segments)} and ${classSpelling(segment)} at position ${i}`;
+    }
+  }
+  return { k: 'L', s: segments };
+}
+
+/// `§8.2`'s whole-address spelling: **a string key SINGLE-QUOTED (`'a'`) and an integer index BARE (`0`),
+/// JOINED BY `/`** — the same spelling the store's own generator prints at its `<SEGMENT>` slot.
+///
+/// **⟶ AND NOTHING HERE IS TAKEN FROM A MUTABLE PROTOTYPE FROM 2026-10-24** (`contract.md §2.1`'s clause of
+/// this date on `F7-1`, items `(2b)`'s row `39` and `(10d)`): the as-built spelling built an array with
+/// `Array.prototype.map` and joined it with `Array.prototype.join`, so a caller's override RAN on every
+/// `ConstraintListInvalid` rendering and ITS RETURN VALUE BECAME THE `<SEGMENT>` SLOT of the store's own
+/// diagnostic — the battery's row `(k)` measures the marker in the message. **The form is item `(1c)(i)`'s
+/// local loop and the same `+=` join `valuePosition` takes**; the bytes, the quoting, the bare integer and the
+/// `/` separator are unmoved.
+export function spellConstraintAddress(segments) {
+  let spelled = '';
+  for (let i = 0; i < segments.length; i += 1) {
+    const segment = segments[i];
+    const rendered = typeof segment === 'string' ? `'${segment}'` : String(segment);
+    spelled += i === 0 ? rendered : `/${rendered}`;
+  }
+  return spelled;
+}
+
+/// `surface.md §2.1` / `DD-36`: the as-filed *"`cfg` carries the store's THREE declared keys and no
+/// fourth"* is read THROUGH this clause and is **the FOUR declared keys and no FIFTH** — `filePath` ·
+/// `journalLength` · `listeners` · `constraints` (`surface.md §2.1`'s `cfg` block dated 2026-10-15 and its
+/// dated clause of 2026-10-16; `parameter-semantics.md §2.21` = `PAR-JS-21`) — **and a CALLER-SUPPLIED key
+/// beyond those four is IGNORED, never refused: no code, no refusal and no member moved** (`docs/specs/storeroom-js/surface.md §2.1`'s dated
+/// clause of 2026-10-16, `contract.md §7.1`'s third-key row governing the caller's key; `§8.1`'s
+/// complement). **Each key's own ABSENCE is the member's own absence** — `crossing.md §1.3`'s
+/// absent-versus-`undefined` rule reads a
+/// `cfg` key by MEMBERSHIP and never by arity, and **`A76`/`JS-5` fixes that membership as OWNERSHIP:
+/// `Object.hasOwn` and never `in`, which walks the prototype chain.**
+///
+/// **AND THE CLASS DECISION COMES FIRST, ON `cfg` AS IT IS.** The shipped line
+/// `const object = cfg !== null && typeof cfg === 'object' ? cfg : {};` **SUBSTITUTED an empty object for
+/// every non-object `cfg`** — a repair, and one that answered the wrong code at that: `storeCreate(null)`,
+/// `storeCreate(5)` and `storeCreate([])` all fell through to a missing `journalLength` and answered
+/// `ConstructionArgumentMissing`, where `PAR-JS-1` declares **`AddressMalformed` for EVERY outside form of
+/// `cfg`** (*"ABSENT · `null` · `undefined` · a non-object (a number, a string, a boolean, a function, an
+/// array) — `AddressMalformed` for every one of them, with no instance returned"*). **That substitution is
+/// GONE: a `cfg` that is not a PLAIN object is REFUSED, verbosely, naming the class — and so is a
+/// prototype-carrying object or a class instance, whose inherited keys the shipped `in`-test read as
+/// PRESENT (`JS-5`).**
+export function encodeConfig(cfg) {
+  // **⟶ AND `cfg` ITSELF IS THE CARRIER THE WHOLE ROW IS ABOUT — `D-167`, 2026-11-17.** `cfg` is not a value that
+  // crosses: it is the package's own configuration, and `saveCall`/`listener`/`constraint` are functions it carries
+  // BY THE API'S OWN DEFINITION. **So the class gate asks the carrier-shaped sibling**, `isPlainObjectCarrier` —
+  // the same own-data census and the same prototype-link rule, with `isProxyOfCarrier` at the value and at the
+  // link — and **`isPlainObjectValue` STAYS WHAT IT IS AND WHERE IT IS** (`:33`, `:116`), because it classifies
+  // values too and a decision inside it would move the value crossing with this gate. **ON THE NODE ARM THIS IS
+  // THE SAME ANSWER THE SHIPPED BYTE GAVE**, byte for byte: `types.isProxy` is both predicates there, so every
+  // `Proxy` this gate refused it still refuses with the same message. **ON THE WASM ARM IT IS THE LINE THAT LETS
+  // THE ARM CONSTRUCT ANY STORE AT ALL** (`D-166` item 2: `structuredClone({ saveCall: () => {} })` and
+  // `structuredClone(new Proxy({}, {}))` fail identically, so the probe read every `saveCall` `cfg` as *"a Proxy"*
+  // and answered `AddressMalformed`) — and the price, a `Proxy` at a carrier gate being UNDETECTED there, is
+  // declared at the predicate that takes it (`class-instrument.mjs`).
+  if (!isPlainObjectCarrier(cfg)) {
+    boundaryReject(
+      'AddressMalformed', // `PAR-JS-1`'s declared answer for every outside form of `cfg`, carried — **AND THE MESSAGE BELOW IS RE-SPELLED IN PLACE, 2026-10-16: *"carrying the store's three declared keys"* READS *"carrying the store's four declared keys"*, THE COUNT ALONE MOVING, because the set is `filePath` · `journalLength` · `listeners` · `constraints` (`§2.1`'s `cfg` block and dated clause, both of 2026-10-15), because the sentence's subject is the `cfg` CARRIER CLASS and NEVER a caller obligation (a CALLER-SUPPLIED key BEYOND the four is still IGNORED and never refused, `contract.md §7.1` — no semantics and no refusal path moves with the word), and because NOTHING PINNED THE OLD WORDING: no clause of `docs/specs/**` declares this message's figure and no test reads it — the drives read the TARGET `cfg` and the CLASS that failed (`negative-generators.test.mjs` · `registry.test.mjs`) — so it was ordinary prose written when the count was three and NOT a clause's own byte.**
+      'cfg',
+      `the construction's cfg is ${classSpelling(cfg)}, and cfg is one plain object carrying the store's four declared keys`,
+    );
+  }
+  const out = {};
+  if (Object.hasOwn(cfg, 'filePath')) out.filePath = encodeFilePath(cfg.filePath);
+  if (Object.hasOwn(cfg, 'journalLength')) out.journalLength = encodeJournalLength(cfg.journalLength);
+  if (Object.hasOwn(cfg, 'listeners')) out.listeners = encodeListeners(cfg.listeners);
+  // **⟶ THE FOURTH DECLARED KEY** (`§2.21`; `docs/specs/storeroom-js/surface.md §2.1`'s `cfg` block dated 2026-10-15): `constraints` passes
+  // through by the SAME membership rule the three above take, so a key the caller did not supply is
+  // ABSENT and a key the caller supplied as `undefined` is the key's own outside form. **A key BEYOND the
+  // four is IGNORED and produces no code** (`§8.1`'s complement), and no default, no rename and no fifth
+  // key is added here (`DD-36`).
+  if (Object.hasOwn(cfg, 'constraints')) out.constraints = encodeConstraints(cfg.constraints);
+  // **⟶ AND THE FIFTH DECLARED KEY IS TESTED HERE AND PROJECTED NOWHERE — `D-144` ITEM 2, 2026-11-17.**
+  // **Its ruling, verbatim: *"Refuse non-function saveCall as broken config"***, and this class gate is the LAST instant
+  // before the construction's first filesystem act. **A `saveCall` that is not a JS function is `cfg`'s own outside form,
+  // taken here in the surface's one thrown form under the status a bad `cfg` already answers** (`AddressMalformed`,
+  // `PAR-JS-1`; `D-144` item 2: *"the package mints no code, and no second non-store failure form is created"*).
+  // **A JAVASCRIPT FUNCTION CANNOT CROSS INTO RUST AT ANY DEPTH**, so the key is **tested and not projected**: it joins
+  // no member of `out`. **Membership is `Object.hasOwn` and never `in`** (`A76`/`JS-5`), so a present `undefined` is the
+  // key's own outside form and is refused here rather than read as its absence.
+  if (Object.hasOwn(cfg, 'saveCall') && typeof cfg.saveCall !== 'function') {
+    boundaryReject(
+      'AddressMalformed',
+      'saveCall',
+      `the construction's saveCall is ${classSpelling(cfg.saveCall)}, and saveCall is a JS function`,
+    );
+  }
+  // **⟶ AND THE ONE CROSS-KEY RULE STANDS BESIDE IT — `D-144` ITEM 7: *"Make filePath and saveCall mutually
+  // exclusive"*.** **A `cfg` carrying both is refused at this same gate, in this same instant, under this same status
+  // and BEFORE ANY FILESYSTEM ACT.** **Its subject is the carrier `'cfg'`** — a cross-KEY rule has no per-key subject,
+  // and `'cfg'` is the target this gate's own class test already names — and the clause names both keys, which is what a
+  // caller needs to see. **No code is minted** (`PAR-JS-1`). It stands after the two per-key class tests, so a `cfg` that
+  // is both excluded and malformed answers the malformed key's own refusal.
+  if (Object.hasOwn(cfg, 'filePath') && Object.hasOwn(cfg, 'saveCall')) {
+    boundaryReject(
+      'AddressMalformed',
+      'cfg',
+      "the construction's cfg carries both filePath and saveCall, and a store saves through its own writer or "
+        + "through the caller's function and never both",
+    );
+  }
+  // **⟶ AND THE SEED — THE SIXTH DECLARED KEY — IS TESTED HERE AND PROJECTED AS A STRING, 2026-11-17 (`U-STOREROOM-05`;
+  // `D-137` item 4; `D-147` items 1–4).** **`initialImage` IS IMAGE TEXT AND NOTHING ELSE**, so unlike `saveCall` it
+  // CROSSES: it is `out`'s own member and the store decodes it with its own decoder tail. **A value that is not a string,
+  // and the EMPTY string, are `cfg`'s outside forms and are refused HERE, at the class gate, before any filesystem act** —
+  // `D-147` item 4, verbatim: *"Refuse empty string - intentional emptiness is excluding param entirely, accepting empty
+  // string is an overwrite risk"* — so **absence alone means *no seed***. **The status is the one a bad `cfg` already
+  // answers** (`AddressMalformed`, `PAR-JS-1`) and **the package mints no code**; the subject is the key's own name, on the
+  // precedent the measured `filePath: ''` arm sets. **Membership is `Object.hasOwn` and never `in`**, so a present
+  // `undefined` is the key's own outside form. **The wire member is `initial_image`** — the spelling the facade reads — and
+  // **the CALLER's key keeps its declared spelling**.
+  if (Object.hasOwn(cfg, 'initialImage')) {
+    const seed = cfg.initialImage;
+    if (typeof seed !== 'string' || seed === '') {
+      boundaryReject(
+        'AddressMalformed',
+        'initialImage',
+        typeof seed === 'string'
+          ? "the construction's initialImage is the empty string, and initialImage is this store's own image text"
+          : `the construction's initialImage is ${classSpelling(seed)}, and initialImage is this store's own image text`,
+      );
+    }
+    out.initial_image = seed;
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------------------------------------
+// **⟶ ADDED 2026-10-24 — THE CONSTRUCTION'S STEP `2`: THE BATCH'S MEMBER CHECKS (`D-26`, `D-27`), TAKEN
+// BEFORE ANY FILESYSTEM ACT.** (`docs/L1/surface-deltas.md` §3.1 step 2, §3.2.)
+// ---------------------------------------------------------------------------------------------
+/// **THE BATCH'S THREE CHECKS, PER ELEMENT, ASCENDING POSITION, AND THE ELEMENT IT ANSWERS IS THE ONE THE
+/// ARMING LOOP LATER HANDS TO `K-1`.**
+///
+/// **`D-27`'S TWO WALLS, WHICH ARE NOT THIS PASS'S TO MOVE:** every check **precedes any filesystem act** —
+/// and the construction's FIRST filesystem act is inside `addon_.storeCreate(encoded)`, which is why this
+/// function is called between `encodeConfig` and that call — and **the function check precedes the uniqueness
+/// check that must see the adopted listeners.**
+///
+/// **THE THREE CHECKS, IN THE DECLARED ORDER, AND THE TWO GROUNDS FOR THAT ORDER:**
+///   * **`B-1` — the function check is FIRST among the three, and first for every element before that
+///     element's uniqueness checks.** A function fault is decidable **from the element alone** while both
+///     uniqueness checks need a second input, so **the first fault to cross is the fault that needs the least
+///     information** (`A76`'s part (1)).
+///   * **`B-2` — the within-batch uniqueness check precedes `B-3` for the same element.** `2b` is decidable
+///     from the list alone; `2c` needs the adopted handles. **A caller whose list is self-contradictory is told
+///     the self-contradiction, not a collision with an argument they may not even have supplied.**
+///   * **`B-3` — the cross-kind check against the construction's listeners**, `D-25`'s cross-kind rejection
+///     *"applied at the one instant it can be checked wholesale"* (`D-27`).
+///
+/// **THE CHECKS ARE TAKEN OVER THE ELEMENTS THE STORE WOULD ADMIT AND SKIP THE ENCODER'S OWN `{bad: …}` ARMS**
+/// (`constraintEntry`'s three refusals): **the package does not shadow a store refusal**, so an element that is
+/// both malformed and functionless is refused by the store's own code, at its own instant, with its own
+/// generated message. (`D-27`: *"the store's own list validation keeps its subject — shape, address domain,
+/// `id` domain — and gains no arm"*.)
+///
+/// **AND THE ADOPTED-LISTENER SET IS COMPUTED FROM THE SUPPLIED `cfg.listeners`, NOT FROM THE STORE'S ADOPTED
+/// ONE, WHICH DOES NOT EXIST YET.** That is not a loophole: **the boot ruling applies every adopted handle
+/// through `listen`, i.e. after the create**, and a `cfg.listeners` array that reaches the create is admitted
+/// **WHOLE** (*"a REJECTED ARRAY ADMITS NOTHING"*), so on any construction that can succeed the lawful
+/// supplied handles and the adopted handles are **the same set** (`docs/L1/surface-deltas.md` §3.2, marked
+/// CONCLUDED there). `isLawfulListenerElement` is the one predicate both sides take.
+///
+/// **THE FORM IS THE SURFACE'S ONE THROWN OBJECT** `{status, message, log: []}` — `boundaryReject` reaches the
+/// store's own generator for the message and throws the one form with `log: []`, because **no attempt is open
+/// and no instance exists**. `ConstraintListInvalid` is the member: the list's own validation code, the same
+/// subject one layer up, and **the package mints no code** (`D-26` item 5; `D-27`; §1.5's clause 5).
+export function admittedConstraintBatch(cfg) {
+  const admitted = [];
+  const constraints = cfg.constraints;
+  if (constraints === undefined || constraints === null) return admitted;
+  // **⟶ AND THIS READ IS THE CARRIER PREDICATE FROM 2026-11-17 (`D-167`)**, for the reason `encodeConstraints`
+  // states one layer down: the batch is the package's carrier and it never crosses.
+  if (isProxyOfCarrier(constraints) || !isAdmittedArray(constraints)) return admitted;
+  // ── THE SUPPLIED LISTENER HANDLES, AND THE ADDRESS EACH IS ADOPTED AT (for `B-3`'s message) ────────────
+  const adoptedHandles = [];
+  const adoptedAddresses = [];
+  if (cfg.listeners !== undefined && cfg.listeners !== null
+    && !isProxyOfCarrier(cfg.listeners) && isAdmittedArray(cfg.listeners)) {  // `D-167`: a carrier read
+    for (let i = 0; i < cfg.listeners.length; i += 1) {
+      const entry = cfg.listeners[i];
+      if (!isLawfulListenerElement(entry)) continue;
+      appendOwn(adoptedHandles, entry.handle);
+      appendOwn(adoptedAddresses, entry.address);
+    }
+  }
+  // ── THE WITHIN-BATCH NAMES, AS TWO PARALLEL LOCAL ARRAYS READ BY INDEX ────────────────────────────────
+  // (`contract.md §2.1`'s clause of 2026-10-24 on `F7-1`/`F8-2`: no `Map`/`Set` member and no iterator is
+  // taken off a mutable prototype on this path.)
+  const namedHandles = [];
+  const namedPositions = [];
+  for (let position = 0; position < constraints.length; position += 1) {
+    const element = constraintEntry(constraints[position], position);
+    // THE STORE'S OWN ARM KEEPS ITS SUBJECT — an element the encoder refused is skipped, never shadowed.
+    if (element.bad !== undefined) continue;
+    const segment = spellConstraintAddress(element.address.s);
+    // ── `B-1` — THE FUNCTION CHECK ──────────────────────────────────────────────────────────────────────
+    if (typeof element.constraint !== 'function') {
+      boundaryReject(
+        'ConstraintListInvalid',
+        segment,
+        `the batch element at position ${position} carries ${classSpelling(element.constraint)} at its `
+          + "constraint member, and a batch element's constraint is a JS function and it is the pair's substance",
+        ['constraints'],
+      );
+    }
+    // ── `B-2` — TWO BATCH ELEMENTS NAMING ONE HANDLE: REPORTED AT THE LATER ONE ───────────────────────────
+    let namedAt = -1;
+    for (let n = 0; n < namedHandles.length; n += 1) {
+      if (namedHandles[n] === element.id) {
+        namedAt = namedPositions[n];
+        break;
+      }
+    }
+    if (namedAt !== -1) {
+      boundaryReject(
+        'ConstraintListInvalid',
+        segment,
+        `the batch element at position ${position} names the handle '${element.id}', and the element at `
+          + `position ${namedAt} names the same one: a batch element's id is the store-side handle for its `
+          + 'pair, and one batch may not name one handle twice',
+        ['constraints'],
+      );
+    }
+    // ── `B-3` — A BATCH `id` EQUAL TO AN ADOPTED LISTENER'S `handle`: THE CROSS-KIND COLLISION ───────────
+    // **⟶ RE-DERIVED 2026-11-01 (`D-98` item 4; `C-9`, `C-11`; §2, §3.4, §3.6), AND THE DIMENSION IS UNMOVED.**
+    // The arm compares a listener's **HANDLE** to a pair's **`id`** — the only cross-kind restriction `D-98`
+    // keeps, in the direction the ruling names second — so **its condition, its status (`ConstraintListInvalid`,
+    // `D-27`) and its instant are exactly what they were.** **TWO THINGS RE-DERIVE, AND BOTH ARE THE MESSAGE'S:**
+    //   * **THE SUBJECT IS THE HANDLE AND NOT THE ADDRESS.** It was `spellConstraintAddress(element.address.s)` —
+    //     an address whose string segments are ALREADY single-quoted here, and which the facade quotes again, so
+    //     the rendered bytes read `''ck''` (`research.md` §5.3). **A BARE HANDLE RENDERS `'shared-handle'` and
+    //     that doubling has no subject at this arm** (`B-1`/`B-2` keep it, and that residual is `Q-3`).
+    //   * **ITS CLAUSE NAMES THE POSITION AND THE ADOPTED LISTENER'S ONE ADDRESS** (§3.4): an adopted
+    //     `cfg.listeners` element carries exactly ONE `address`, so naming it asserts no order and is exact —
+    //     where the POSITION names the element, whose address could not (two elements may carry one address).
+    // **AND THE CONTAINER IS `undefined` ON PURPOSE**: the generated half is the store's own QUALIFIED
+    // `ConstraintListInvalid` arm under the appended `'handle'` token, and **that arm prints NO `<CONTAINER>`
+    // slot at all** — the list's name `constraints` is named on the clause's side and not in the generated half,
+    // where it would read as the place the mismatch was found (§3.3).
+    let adoptedAt = -1;
+    for (let n = 0; n < adoptedHandles.length; n += 1) {
+      if (adoptedHandles[n] === element.id) {
+        adoptedAt = n;
+        break;
+      }
+    }
+    if (adoptedAt !== -1) {
+      boundaryReject(
+        'ConstraintListInvalid',
+        element.id,
+        `the batch element at position ${position} names that handle, and this construction adopts a `
+          + `listener under it at ${addressSpelling(adoptedAddresses[adoptedAt])}`,
+        undefined,
+        'handle',
+      );
+    }
+    appendOwn(namedHandles, element.id);
+    appendOwn(namedPositions, position);
+    appendOwn(admitted, {
+      addresses: [element.address.s],
+      id: element.id,
+      constraint: element.constraint,
+    });
+  }
+  return admitted;
+}
+
+// ---------------------------------------------------------------------------------------------
+// **⟶ ADDED 2026-11-06 — STEP `2`'s SECOND WALK: THE ADOPTED LISTENERS' FUNCTIONS (`PIN-8`, `PIN-9`,
+// `D-123` item `2`), TAKEN BEFORE ANY FILESYSTEM ACT BESIDE `admittedConstraintBatch`.**
+// ---------------------------------------------------------------------------------------------
+/// **AN ENTRY THAT CARRIES NO FUNCTION IS REFUSED AT STEP `2`, BEFORE ANY FILESYSTEM ACT, IN THE FORM THE
+/// ENCODER ALREADY ANSWERS THAT POSITION WITH — AND NO CODE IS MINTED FOR IT (`PIN-9`).**
+///
+/// **THE ARCHITECT'S GROUND, WHICH IS THE RULING'S** (`D-123` item `2`, verbatim): *"Why would a listener that
+/// doesn't have a function to fire on the listened address be accepted?"* — and the RESERVATION reading is
+/// WITHDRAWN at this entry point: a `cfg.listeners[]` element is no longer a handle with a body owed later; it
+/// is a listener or it is refused. **SO THE THIRD MEMBER IS REQUIRED, AND THIS WALK IS WHAT MAKES IT SO.**
+///
+/// **THE POSITION IS LOAD-BEARING AND IT IS `index.mjs`'s STEP `2`'s**: every check here **precedes the
+/// construction's FIRST filesystem act**, which is inside `addon_.storeCreate(encoded)` — so a functionless
+/// entry refuses the construction **with no file left behind** (`contract.md §10.4` part `5`), which a check
+/// placed in the arming loop could not do: that loop runs after the exclusive create has already left the
+/// store's own zero-length file on disk.
+///
+/// **THE FORM IS THE ENCODER'S OWN** (`frame.mjs:25`'s `boundaryReject('AddressMalformed', 'listeners', …)`):
+/// the same member and the same subject the entry's own outside forms already answer with, and **no code is
+/// minted for this fault** (`PIN-9`) — the status is a member of the store's closed set and is carried, never
+/// minted, by the package (`DD-40`).
+///
+/// **WHAT IT ANSWERS IS THE ADOPTED LIST — ONE ENTRY PER ELEMENT THE STORE WOULD ADMIT, CARRYING THE
+/// FORWARDED `listener` MEMBER** — and it is what the construction's arming walk arms through `register`
+/// (`PIN-8`: *"THE PACKAGE ARMS THE SUBSTANCE"*), so **the adopted handle holds a body from the instant the
+/// instance exists.** It is `admittedConstraintBatch`'s own shape one key over: the same admission predicate
+/// (`isLawfulListenerElement`, which does not move), the same skip of the classes the store's own list
+/// validation refuses (the package does not shadow a store refusal), and a local index loop.
+export function admittedListenerBatch(cfg) {
+  const admitted = [];
+  const listeners = cfg === null || typeof cfg !== 'object' ? undefined : cfg.listeners;
+  if (listeners === undefined || listeners === null) return admitted;
+  if (isProxyOfCarrier(listeners) || !isAdmittedArray(listeners)) return admitted;  // `D-167`: a carrier read
+  for (let position = 0; position < listeners.length; position += 1) {
+    const entry = listeners[position];
+    // THE STORE'S OWN ADMISSION KEEPS ITS SUBJECT — an element the encoder or the store refuses is skipped and
+    // never shadowed, so a malformed entry crosses the store's own code at its own instant.
+    if (!isLawfulListenerElement(entry)) continue;
+    // ── THE FUNCTION CHECK — `PIN-9`'s one arm, decided from the element alone and FIRST ──────────────────
+    if (!Object.hasOwn(entry, 'listener') || typeof entry.listener !== 'function') {
+      boundaryReject(
+        'AddressMalformed',
+        'listeners',
+        `the listeners entry at position ${position} carries ${classSpelling(Object.hasOwn(entry, 'listener') ? entry.listener : undefined)} at its listener member, and a listeners entry's listener is a JS function and it is the body the adopted handle fires`,
+      );
+    }
+    appendOwn(admitted, { address: entry.address, handle: entry.handle, listener: entry.listener });
+  }
+  return admitted;
+}
+
+// ---------------------------------------------------------------------------------------------
+// THE COPY OUT — the core's own records and values mapped back into FRESH JS values
+// (`crossing.md §1.1` clause 2: no returned value is a view into store memory).
+// ---------------------------------------------------------------------------------------------
+export function decodeValue(encoded) {
+  // **THE COPY-OUT IS THE SAME BARE TREE** (`contract.md §5`; `A148` Q4/Q5): the native writer already
+  // builds fresh plain objects and dense arrays, so this frame only normalizes `-0` and keeps the tree fresh.
+  if (typeof encoded === 'number') return Object.is(encoded, -0) ? 0 : encoded;
+  // **⟶ AND THE COPY-OUT'S OWN ARRAY ARM TAKES NO METHOD FROM A MUTABLE PROTOTYPE** (`contract.md §1`'s clause
+  // of 2026-10-24 on `F-RA-3`, item `(3)`): the as-built `.map` read `Array.prototype.map` off the array's own
+  // chain, so `delete Array.prototype.map` in the caller's realm threw a raw `TypeError` out of a read the
+  // crossing had already ADMITTED — an admission converted into a failure by the caller's own deletion. The
+  // walk is by INDEX, so the fresh tree is the same fresh tree.
+  if (Array.isArray(encoded)) {
+    const elements = [];
+    for (let i = 0; i < encoded.length; i += 1) appendOwn(elements, decodeValue(encoded[i]));
+    return elements;
+  }
+  if (encoded !== null && typeof encoded === 'object') {
+    // **⟶ AN OWN DATA PROPERTY IS DEFINED, NEVER SET — CLOSED 2026-10-23 BY THE GATE-4 ADVERSARIAL BATTERY
+    // (`json-crossing-gate4-adversarial.test.mjs`'s `ADV-12`).** `out[name] = member` runs `[[Set]]`, whose
+    // `__proto__` step reaches the `Object.prototype` accessor: a stored member genuinely named `__proto__`
+    // became the returned object's PROTOTYPE instead of an own member (and an attacker-supplied member could
+    // shadow the returned object's methods). **`Object.fromEntries` defines OWN data properties**, so the
+    // bare tree the contract declares crosses back member for member (`contract.md §5`; `A76`: *"do not
+    // attempt to fix"*). **⟶ AND FROM 2026-10-24 THE MEMBERS ARE DEFINED BY A LOCAL LOOP** (`contract.md
+    // §2.1`'s clause of this date on `F7-1`, items `(1c)(ii)` and `(2b)`'s rows `21` and `22`):
+    // `Object.entries`'s pair iteration and `fromEntries`'s argument iteration are both
+    // `Array.prototype[Symbol.iterator]` — a member of a MUTABLE PROTOTYPE on the COPY-OUT path — so the key
+    // census is read by `Object.keys` and consumed by index, the member is read by its own key, and each is
+    // defined as `fromEntries` defined it.
+    const names = Object.keys(encoded);
+    const plain = {};
+    for (let i = 0; i < names.length; i += 1) {
+      const name = names[i];
+      Object.defineProperty(plain, name, {
+        value: decodeValue(encoded[name]),
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      });
+    }
+    return plain;
+  }
+  return encoded;
+}
+
+/// `crossing.md §1.3`'s segment spellings, mapped back: a string or a non-negative integer is what the JS
+/// side spelled, and every outside class is carried as its own marker rather than silently coerced.
+function decodeSegment(segment) {
+  if (typeof segment === 'object' && segment !== null) {
+    if (segment.bad === 'null') return null;
+    if (segment.bad === 'undefined') return undefined;
+    if (segment.bad === 'bool') return false;
+    if (segment.bad === 'array') return [];
+    if (segment.bad === 'function') return () => {};
+    return {};
+  }
+  return segment;
+}
+
+/// **⟶ AND NO METHOD IS TAKEN FROM A MUTABLE PROTOTYPE HERE EITHER** (`contract.md §1`'s clause of 2026-10-24
+/// on `F-RA-3`, item `(3)`: a caller-side DELETION cannot turn an admission into a refusal). The reply's own
+/// segment array is decoded by INDEX: the as-built `.map` read `Array.prototype.map` off the array's chain, so
+/// `delete Array.prototype.map` in the caller's realm made THIS read throw a raw `TypeError` out of a write the
+/// walk had already ADMITTED — the admission converted into a failure at the package's own frame, which is
+/// `§2.5` item 5 (e)'s forbidden raw host error as well as item `(3)`'s forbidden conversion.
+export function decodeSegments(segments) {
+  const decoded = [];
+  for (let i = 0; i < segments.length; i += 1) appendOwn(decoded, decodeSegment(segments[i]));
+  return decoded;
+}
+
+export function decodeBaseState(encoded) {
+  return { present: encoded.present, value: decodeValue(encoded.value) };
+}
+
+export function decodeJournalOp(encoded) {
+  return {
+    opId: encoded.opId,
+    kind: encoded.kind,
+    address: decodeSegments(encoded.address),
+    tier: encoded.tier === undefined ? null : encoded.tier,
+    before: decodeBaseState(encoded.before),
+    after: decodeBaseState(encoded.after),
+    seq: encoded.seq,
+    compacted: encoded.compacted,
+  };
+}
+

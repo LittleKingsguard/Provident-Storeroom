@@ -1,0 +1,10 @@
+import { storeCreate } from '../bindings/js/index.mjs';
+const journalLength = 64;
+const N = 4000;
+const store = storeCreate({ journalLength, listeners: [] });
+const value = { a: 1 };
+for (let i = 0; i < 200; i += 1) store.write(['a'], 'mem', value);
+const base = process.memoryUsage().heapUsed;
+for (let i = 0; i < N; i += 1) store.write(['a'], 'mem', value);
+const grown = process.memoryUsage().heapUsed - base;
+console.log(JSON.stringify({ N, grownMB: Math.round(grown / 10485.76) / 100, kbPerWrite: Math.round((grown / N / 1024) * 1000) / 1000 }));

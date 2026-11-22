@@ -443,9 +443,15 @@ test('entry-module · index.d.ts `WriteRecord` · `DeleteRecord` · `RollbackRec
   assert.match(DECLARATION, /readonly undoneOps: readonly string\[\];/);
 });
 
-test('entry-module · index.d.ts `CommitRecord` · `AttemptRef` · `JournalOp` · `BaseState` · `ConstraintPair` · the kernel-side record the write\'s fourth position takes is FOUR members, the attempt identity is ONE, the journal op is EIGHT, and the pair is TWO', () => {
+test('entry-module · index.d.ts `CommitRecord` · `AttemptRef` · `JournalOp` · `BaseState` · `ConstraintPair` · the kernel-side record the write\'s fourth position takes is FOUR members, the attempt identity is ONE, the journal op is SEVEN, and the pair is TWO', () => {
+  // **⟶ AND THE NAME SAID `EIGHT` UNTIL `2026-11-17`, WHICH `D-189` ITEM 2 FALSIFIED** — `compacted` is
+  // REMOVED from the declaration, so the record declares SEVEN names and the census below is re-derived with
+  // its reason at its own byte. **A blind cell's name is read as its assertion here, which is why the name and
+  // the `deepEqual` move together rather than the name being left to say a number the body refuses.**
   assert.deepEqual(membersOf('CommitRecord').map((m) => m.name), ['attempt', 'op', 'triggered', 'pending']);
   assert.deepEqual(membersOf('AttemptRef').map((m) => m.name), ['id']);
+  // **SEVEN MEMBERS: `compacted` IS REMOVED FROM THE DECLARATION** (`D-189` item 2) — not renamed, not
+  // deprecated, and no constant stands in its place.
   assert.deepEqual(membersOf('JournalOp').map((m) => m.name), [
     'opId',
     'kind',
@@ -454,7 +460,6 @@ test('entry-module · index.d.ts `CommitRecord` · `AttemptRef` · `JournalOp` �
     'before',
     'after',
     'seq',
-    'compacted',
   ]);
   assert.deepEqual(membersOf('BaseState').map((m) => m.name), ['present', 'value']);
   assert.deepEqual(membersOf('ConstraintPair').map((m) => m.name), ['address', 'id']);

@@ -160,13 +160,19 @@ test("verbs · contract.md §1.3 (`TierArg` row 3 and row 4) · `write`'s tier i
 // §3 — THE THREE RETURNED RECORDS
 // ---------------------------------------------------------------------------------------------
 
-test('verbs · index.d.ts `WriteRecord` · a `write` answers EXACTLY THREE members — `op` (the store\'s own eight-member journal record, NOT a number), `watched` (a list of ADDRESSES) and `triggered` (a list of PAIRS)', () => {
+test('verbs · index.d.ts `WriteRecord` · a `write` answers EXACTLY THREE members — `op` (the store\'s own seven-member journal record, NOT a number), `watched` (a list of ADDRESSES) and `triggered` (a list of PAIRS)', () => {
   // DECLARED: `WriteRecord`'s three members, with "**`op` IS THE STORE'S OWN JOURNAL RECORD AND NOT
   // A NUMBER** … the shipped declaration read `op: number`, which is false of EVERY value the line
-  // returns"; `JournalOp`'s eight declared names `{ opId, kind, address, tier, before, after, seq,
-  // compacted }`; and `watched`'s own rule from the store's `WriteResult` (`native contract.md`
+  // returns"; `JournalOp`'s **SEVEN** declared names `{ opId, kind, address, tier, before, after, seq }`;
+  // and `watched`'s own rule from the store's `WriteResult` (`native contract.md`
   // §3.6): "`watched` is ALWAYS an array … it is never `undefined`", its members being addresses —
   // "a watched address is **a SEGMENT LIST** … and NOT a `string`".
+  //
+  // **⟶ AND THE NAME SAID `eight-member` UNTIL `2026-11-17`, WHICH `D-189` ITEM 2 FALSIFIED** — the eighth
+  // name was `compacted`, the member is REMOVED (not renamed, not deprecated), and the cell's own census and
+  // its name move `8 → 7` together. **The reason is at this byte rather than in a commit message**: the record
+  // the package answers is crossed member for member, so a declaration that carries seven names and a record
+  // that carried eight would be the disagreement this cell exists to catch.
   const instance = make();
   const record = instance.write(['wr'], 'mem', { v: 1 });
 
@@ -174,11 +180,12 @@ test('verbs · index.d.ts `WriteRecord` · a `write` answers EXACTLY THREE membe
 
   assert.equal(typeof record.op, 'object');
   assert.notEqual(typeof record.op, 'number');
+  // **⟶ SEVEN MEMBERS AND NOT EIGHT FROM `2026-11-17`** (`D-189` item 2): the census is re-derived here and
+  // the removed name is named nowhere in it.
   assert.deepEqual(Object.keys(record.op).sort(), [
     'address',
     'after',
     'before',
-    'compacted',
     'kind',
     'opId',
     'seq',
@@ -190,7 +197,12 @@ test('verbs · index.d.ts `WriteRecord` · a `write` answers EXACTLY THREE membe
   assert.equal(record.op.tier, 'mem');
   assert.deepEqual(record.op.after, { present: true, value: { v: 1 } });
   assert.equal(typeof record.op.seq, 'number');
-  assert.equal(typeof record.op.compacted, 'boolean');
+  // **⟶ AND THE `compacted` LIMB THAT STOOD HERE IS DELETED `2026-11-17`** (`D-189` item 2): the member is
+  // GONE from the record, the crossing and the declaration. **The absence is asserted in its place**, because a
+  // removal is measured by the key's absence — a member quietly restored on one arm is exactly the defect a
+  // member-removal unit must be able to see.
+  assert.equal(Object.hasOwn(record.op, 'compacted'), false,
+    'the operation record carries SEVEN members: `compacted` is removed and is not renamed or deprecated');
 
   assert.ok(Array.isArray(record.watched), '`watched` is not an array');
   assert.ok(Array.isArray(record.triggered), '`triggered` is not an array');

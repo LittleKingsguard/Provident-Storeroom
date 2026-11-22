@@ -1,0 +1,1485 @@
+diff --git a/RELEASE-NOTES.md b/RELEASE-NOTES.md
+index 13ec1dc..8b0ad39 100644
+--- a/RELEASE-NOTES.md
++++ b/RELEASE-NOTES.md
+@@ -16,7 +16,7 @@ claims to be installable.**
+ 
+ **⟶ AND THE CUT-STATE IS DROPPED FROM THIS FILE, 2026-10-28 — `D-57`, THE ARCHITECT VERBATIM: *"Drop the cut-state."*** `RCA-8(g)` ANNOTATE-BESIDE: **the title line and every dated paragraph of this file stand BYTE-FOR-BYTE as the reading of their own date, THIS clause is the one that reads them, and not one byte is deleted.** **THE REASON IS STRUCTURAL AND IT WAS MEASURED THREE TIMES: A SHIPPED DOCUMENT IS SEALED BEFORE THE TAG THAT MAKES ITS CUT-STATE TRUE**, so every release packed before its tag ships a document denying itself, and a guard running in that release's own preflight can only ever confirm *"not cut"* — `1.2.0` shipped *"NOT CUT"*, `1.3.0` shipped *"`v1.3.0` DOES NOT EXIST"*, and this file's own head was stale within minutes of the tag that falsified it. **SO EVERY SENTENCE BELOW THAT CLAIMS WHETHER SOME VERSION IS OR IS NOT CUT — *"PREPARED — NOT CUT"*, *"no `v1.3.0`"*, *"nothing in this section is cut"*, *"the release is not cut"*, *"what is installed today is still `1.1.0`"*, and each reading printed beside them — IS READ THROUGH THIS CLAUSE: the cut-state is not a document's to state.** **WHAT SURVIVES IS THE ONE FIGURE A SHIPPED DOCUMENT CAN BE RIGHT ABOUT, AND IT IS GENERATED FROM THE MANIFEST AND ASSERTED BY THE PREFLIGHT:**
+ 
+-PUBLISH-NOTES-VERSION-LINE: THE VERSION THIS CHANGE LIST DESCRIBES IS `1.13.0`.
++PUBLISH-NOTES-VERSION-LINE: THE VERSION THIS CHANGE LIST DESCRIBES IS `2.0.0`.
+ 
+ **AND THE TAG SET SURVIVES AS A RECORD OF RELEASES — PAST TENSE, A LIST OF WHAT HAS BEEN CUT, NEVER A CLAIM ABOUT THE CURRENT ONE** (the record stands in `§1.4.0` below — the section this file's head called `§main` until it was re-cut to name the version it prepares, 2026-10-28 — beside the section for the tree this file describes). (`D-57`; `DEF-AC` (b) — `scripts/publish.sh --figures` generates that line from `bindings/js/package.json`'s `version` and refuses on any disagreement, in this file, in `bindings/js/README.md` and in the shipped guide: three documents, three version lines, one generator, one assertion.)
+ 
+@@ -55,14 +55,23 @@ the value to assert against, not the crate's own `Cargo.toml` version.
+ 
+ ---
+ 
+-## §1.13.0 · a MINOR — the second claimed realm, and the save arm it made possible: a WebAssembly build in its own package, three `cfg` keys' companions, a twenty-third status, and two receipt accessors
+-
+-**THE VERSION IS `1.13.0` AND ITS CLASS IS A MINOR — `D-158`, THE ARCHITECT'S RULING OF 2026-11-17, whose words were
+-the class alone: *"MINOR — 1.13.0"*. THE VERSION MOVES TWELVE SITES TOGETHER: the main manifest's `version`, its FIVE
++## §2.0.0 · a MAJOR — the second claimed realm, the save arm it made possible, AND THE REMOVAL OF A PUBLISHED DECLARATION MEMBER: a WebAssembly build in its own package, three `cfg` keys' companions, a twenty-third status, two receipt accessors, and `JournalOp.compacted` gone from the record and the declaration
++
++**⟶ THIS HEADING READ `§1.13.0 · a MINOR` UNTIL 2026-11-17, AND `D-158`'s CLASS IS SUPERSEDED — NOT WITHDRAWN.**
++**THE ELEVEN ENTRIES BELOW ARE THE SAME LANDING READ AT A DIFFERENT CLASS**: every one of them still ships, every one of
++them still describes what a consumer on `1.12.0` meets, **and a reader who sees this section re-lettered is not being told
++the work is new** — the work is the same work, and what moved is the number the work is released under, because the same
++landing also removes a member the published declaration carried. **THE ARCHITECT'S RULINGS, VERBATIM AND IN ORDER**
++(`strata/decisions.md`): `D-158` — *"MINOR — 1.13.0"*; `D-189` item 2 — *"If .compacted is always false drop it"*; and
++`D-190` — **`MAJOR — bump to 2.0.0`**. **THE REASON THE CLASS MOVED IS ONE SENTENCE AND IT IS THE ONLY ONE**: `D-189` item
++2 removes `readonly compacted: boolean` from the PUBLISHED `JournalOp` (`bindings/js/index.d.ts`), **and removing a
++declared member is breaking against `1.12.0`** — `D-189` item 2 says it in as many words (*"removing it is breaking
++against `1.12.0` and `D-158`'s `1.13.0` `MINOR` cannot absorb it"*), so a `MINOR` could not carry this landing and the
++class is `MAJOR`. **THE VERSION MOVES TWELVE SITES TOGETHER: the main manifest's `version`, its FIVE
+ exact `optionalDependencies` pins, and the SIX `platforms/*/package.json` versions** — the five native siblings and the
+ WebAssembly sibling whose `version` its own coupled-version clause names (the admission's reading of `§3.2`'s rule as
+ *"the SEVEN manifests move to `X.Y.Z` TOGETHER"*). **The artefact is stamped from the manifest by `bindings/js/build.rs`,
+-so `version()` answers `1.13.0`**, and that is the value to assert against.
++so `version()` answers `2.0.0`**, and that is the value to assert against.
+ 
+ **THE HEADLINE IS ONE SENTENCE: THE PACKAGE IS NO LONGER CLOSED AT ONE REALM, AND A WEBASSEMBLY BUILD OF THIS STORE NOW
+ SHIPS AS ITS OWN PACKAGE.** `D-154` lifted the claim; the build carries **no `filePath`** — the key is not in domain
+@@ -102,14 +111,27 @@ calls and `std::process::id()` are `#[cfg]`-ed out with the writer and the reade
+    still `ValueRefusedAtBoundary`.
+ 8. **THE JOURNAL NOW DROPS HISTORY, AND `journalLength` IS THE WIDTH OF THE COMPENSATION WINDOW.** On `1.12.0` the cap
+    was a MARK: the oldest entries were flagged and kept for the store's whole life, and the flag was what told a
+-   reversal it had gone past the floor. **From `1.13.0` the cap is a BOUND**: what survives is the base state plus at
++   reversal it had gone past the floor. **From `2.0.0` the cap is a BOUND** (the sentence printed `1.13.0` before
++   `D-190` re-classed this landing; no `1.13.0` is released): what survives is the base state plus at
+    most `journalLength` uncompacted ops, **an op the compaction reaches is REMOVED and its op id is gone with it**, and
+    memory is `O(store + journalLength)` rather than growing with every write ever made (`D-160` items 1–2). **The two
+    refusals stay distinguishable and they are told apart by ONE NUMBER rather than by a retained list**: an op the
+    compaction DROPPED answers `RollbackCompacted`, and an id that never named an op answers `JournalOpUnknown`
+    (`D-160` item 3 — the floor's own `seq` is the watermark). **A write's record still carries its `compacted` member
+    and it reads `false`**: no act sets it any more, because the mark is not the mechanism — **and whether the member
+-   survives the drop is a declaration this section does not make** (`D-160` item 4 of its unsettled).
++   survives the drop is a declaration this section does not make** (`D-160` item 4 of its unsettled). **⟶ AND THAT
++   QUESTION IS ANSWERED, AND THE ANSWER IS THAT THE MEMBER DOES NOT SURVIVE: `compacted` IS REMOVED FROM THE WRITE'S
++   RECORD, 2026-11-17** (`strata/decisions.md` · `D-189` item 2, the architect VERBATIM: *"If .compacted is always false
++   drop it"*). **THE DIRECTIVE WAS A CONDITIONAL AND THE SHIPPED TREE ANSWERED IT**: the store produced the flag at
++   exactly two sites and both set it `false`, **so a member that can hold one value carried nothing**, and the
++   discrimination it once shared — *an op this store compacted* against *an op this store never held* — is the
++   `journal_floor` watermark's (`D-160` item 3), which answers `RollbackCompacted` and `JournalOpUnknown` as two
++   refusals without a per-op bit. **SO THIS SENTENCE IS WITHDRAWN, NOT AMENDED** (*"a write's record still carries its
++   `compacted` member"*): the record carries **SEVEN** members — `{ opId, kind, address, tier, before, after, seq }` —
++   and the eighth is **gone: not renamed, not deprecated, and not typed `false`**. **WHAT YOU MEET AS A CONSUMER**:
++   `record.op.compacted` no longer type-checks, and at run time it is `undefined` because the key is absent; the write's
++   record, the delete's receipt's `op`, and every op the kernel's repair leg copies all carry the same seven. **THIS
++   REMOVAL IS THE WHOLE OF WHY THIS RELEASE IS A `MAJOR`** — see the section head.
+ 9. **A REVERSAL THAT NEEDS AN OP THE COMPACTION DROPPED REGENERATES FROM THE FILE — AND ANSWERS `RollbackCompacted`
+    ONLY ON A STORE WITH NO READ PATH.** `D-164` item 2's division, at the two shapes you can construct: **with a
+    `filePath` whose image can be read — or the state the store was created with where no image stands — the store
+@@ -154,9 +176,14 @@ it on that arm, where the answer is `false` and where the declaration is written
+ behaviour moves**). **So the entry's first clause is read as the VALUE clause it is**, and a consumer who took it for
+ a statement about `cfg` on the WebAssembly arm took it one gate wide — **which is the defect `D-166` measured when
+ every `saveCall` construction was refused as if `cfg` were a `Proxy`, and the arm could not construct the one store
+-it exists for.** **AND THE CLASS THIS SECTION CARRIES DOES NOT MOVE FOR ANY OF THE FOUR ENTRIES ABOVE OR FOR THIS
+-CLAUSE**: `D-158`'s `MINOR` at `1.13.0` stands, no version cell moves, and **a class claim is the architect's — none
+-is made here.**
++it exists for.** **⟶ AND THE CLASS CLAUSE THAT STOOD HERE IS SUPERSEDED AT ITS OWN BYTE, 2026-11-17 — IT READ *"`D-158`'s `MINOR` at
++`1.13.0` stands, no version cell moves, and a class claim is the architect's — none is made here"*.** **`D-158`'s
++`MINOR` DOES NOT STAND ANY MORE: `D-190` SUPERSEDES IT WITH `MAJOR — bump to 2.0.0`**, and the reason is stated once, at
++this section's head: `D-189` item 2 removes a published declaration member, which no `MINOR` absorbs. **THE SENTENCE IS
++WITHDRAWN FOR ITS CLASS HALF AND STANDS FOR ITS OTHER HALF** — the four entries above and the clause they carry move the
++class by nothing, and **they are the same landing this section always described**; what moved is the release's number.
++**No class claim is invented here: the class is `D-190`'s and the version cells follow it**, and a document claiming
++whether a release is CUT is still not this section's to write (`D-57`).
+ 
+ **WHAT DOES NOT MOVE, LISTED AND CLOSED:** the module namespace's one name (`storeCreate`) · the instance's own fifteen
+ members, name for name · the one `exports` arm and its three conditions · the `files` allowlist's five rows · the floor
+@@ -171,7 +198,7 @@ moves is WHICH ACTS PRODUCE the first, not what it says** (`D-164` item 2; `D-16
+ WebAssembly artefact, which is produced by **a job BESIDE the prebuild matrix and never as a sixth row of it**. **The
+ main package is still published last**, of all seven.
+ 
+-**AND THIS SECTION DESCRIBES `1.13.0` AND CLAIMS NO TAG**: the cut-state is not a document's to state (`D-57`).
++**AND THIS SECTION DESCRIBES `2.0.0` AND CLAIMS NO TAG**: the cut-state is not a document's to state (`D-57`).
+ 
+ ---
+ 
+diff --git a/bindings/js/README.guide.md b/bindings/js/README.guide.md
+index 0bc3a95..e472eb5 100644
+--- a/bindings/js/README.guide.md
++++ b/bindings/js/README.guide.md
+@@ -30,7 +30,7 @@ preflight REFUSES when these two lines do not read what it computed** (`scripts/
+ one check, read-only). **THE TWO LINES ARE THIS GUIDE'S OPERATIVE FIGURES; every dated paragraph below is the
+ reading of its own date and is read through them.**
+ 
+-PUBLISH-GUIDE-VERSION-LINE: THE VERSION THIS GUIDE DESCRIBES IS `1.13.0`.
++PUBLISH-GUIDE-VERSION-LINE: THE VERSION THIS GUIDE DESCRIBES IS `2.0.0`.
+ PUBLISH-GUIDE-CUT-STATE: NOT STATED -- this document describes the behaviour at the version line above, and the cut-state is the release's to state, not a shipped document's (`D-57`).
+ 
+ **⟶ AND THE CUT-STATE SENTENCE ABOVE IS WITHDRAWN, 2026-10-28 — THE CUT-STATE IS NOT A DOCUMENT'S TO STATE.** `RCA-8(g)` ANNOTATE-BESIDE, and the architect's ruling verbatim (`strata/decisions.md` · `D-57`): *"Drop the cut-state."* **The two marked lines above stand BYTE-FOR-BYTE as the reading of their own date and are read THROUGH this clause — not one byte of either is deleted — and the sentence this clause withdraws is the SECOND of them, the one that claims to say whether the release this guide travels in is cut.** **THE REASON IS MEASURED, THREE TIMES OVER, AND IT IS STRUCTURAL RATHER THAN A MISTAKE: A SHIPPED DOCUMENT IS SEALED BEFORE THE TAG THAT MAKES ITS CUT-STATE TRUE**, so every release packed before its tag ships a document denying itself, and a guard running in that release's own preflight can only ever confirm *"not cut"* — `1.2.0` shipped *"NOT CUT"*, `1.3.0` shipped *"`v1.3.0` DOES NOT EXIST"*, and the change list's head was stale within minutes of the tag that falsified it. **SO THE CUT-STATE SENTENCE IS DROPPED AS A CLAIM AND THE VERSION LINE STAYS**, because the version line is the ONE figure a tarball can be right about: the manifest knows it and travels beside it. **`scripts/publish.sh --figures` GENERATES AND ASSERTS THE VERSION LINE AND NOTHING ELSE** — the cut-state generation and its assertion are removed in the same act, so a tag set that moves can no longer redden this guide — **and the same one line is asserted in THREE shipped documents: this guide, `README.md` beside it, and the change list** (`DEF-AC`'s remaining demand, *"guard the release notes too"* and *"`README.md` still declares no version at all"*). **THE TAG SET IS NOT DELETED AND NOT DENIED: it is a RECORD OF RELEASES held in the change list, PAST TENSE — a list of what has been cut — and never a claim about the current one.** **AND WHAT THIS CLAUSE DOES NOT SAY, SAID PLAINLY BECAUSE A READER WILL LOOK FOR IT: it does not say whether the version this guide prints is cut.** That is not a document's to state; the record of what has been cut is in `RELEASE-NOTES.md`, and the registry is the registry.
+@@ -534,7 +534,7 @@ guide's constraint story that is not yet observable.
+ 1. **`journalLength` IS THE WIDTH OF THE COMPENSATION WINDOW AND IT IS NOT A RETENTION PROMISE.** What survives is the base state — the register at the last compression — **plus at most `journalLength` uncompacted ops**, and **an op the compaction reaches is REMOVED: its entry is gone and its op id is gone with it** (`D-160` items 1–2). **So the `opId` a write answered is a token whose lifetime is measured in WRITES and not in the store's life, and a program that keeps op ids for a long time keeps ids the journal no longer holds.**
+ 2. **THE ID THAT WAS DROPPED AND THE ID THAT NEVER EXISTED ARE TOLD APART, AND THEY DO NOT ANSWER THE SAME.** An id that named an op the compaction **dropped** names a **recoverable** history and is never answered as unknown; **an id that never named an op — a fabricated `'op-999999'`, a malformed `'op-'`, a token another store minted — answers `JournalOpUnknown`**, because no compaction can have dropped what never stood there (`D-160` item 3; `D-164` item 4: the watermark separates a recoverable history from a client error, and it is one number and not a retained list).
+ 3. **WHAT A `rollback` OF A DROPPED OP DOES DEPENDS ON ONE THING — WHETHER YOUR STORE CAN READ A FILE BACK.** **With a `filePath`** whose image the store can read — **and where no image stands, the state the store was created with — the store REBUILDS its base from that file, replays what its journal still reaches, and the call RETURNS a record: no refusal is involved.** `undoneOps` is `[]`, because nothing was undone — **the entry the call named is gone** — and `restoredTo` is the register as it stands after the rebuild (`D-164` items 1–2). **With NO READ PATH — a `saveCall` store, whose channel is write-only by construction, and any `mem` store — the call THROWS `RollbackCompacted`**, and **that token is a SIGNAL and not a verdict on you: recover the value from the copy you kept**, because such a store cannot retrieve its own durable ground truth even in principle (`D-165` items 1–3).
+-4. **AND NOTHING ELSE ABOUT A REFUSAL MOVES BY THIS CLAUSE.** A `rollback` still appends no journal entry, the mark a refusal's compensation names is still the commit's opening mark or the last state a pass validated (`D-63`'s clause above), and **`record.compacted` still reads `false` on every write's record** — a declared member with a constant, because the mark is not the mechanism (`D-160` item 4; `D-180`).
++4. **AND NOTHING ELSE ABOUT A REFUSAL MOVES BY THIS CLAUSE.** A `rollback` still appends no journal entry, and the mark a refusal's compensation names is still the commit's opening mark or the last state a pass validated (`D-63`'s clause above). **⟶ AND THE THIRD THING THIS ITEM SAID IS WITHDRAWN AT ITS OWN BYTE, 2026-11-17: *"`record.compacted` still reads `false` on every write's record — a declared member with a constant"* IS NO LONGER TRUE, BECAUSE THE MEMBER IS GONE** (`strata/decisions.md` · `D-189` item 2, the architect VERBATIM: *"If .compacted is always false drop it"*). **A declared member with a constant is exactly what the ruling refused**: the store set the flag `false` at both of its producers, so it carried nothing, and the distinction it once shared — *an op this store compacted* against *an op this store never held* — is carried by the `journal_floor` watermark instead (`D-160` item 3), which answers `RollbackCompacted` and `JournalOpUnknown` as two different refusals without a per-op bit. **SO `record.compacted` NO LONGER READS ANYTHING**: the write's record carries **SEVEN** members — `{ opId, kind, address, tier, before, after, seq }` — the key is absent, and reading it gives you `undefined`. **It is REMOVED, not renamed and not deprecated**; the release that carries it is `2.0.0` because a published declaration member left the surface (`D-190`).
+ 
+ **THE MOVE, IN ONE SENTENCE, SO YOU CAN TELL WHICH BEHAVIOUR YOUR VERSION HAS: BEFORE THIS LANDING THE CAP WAS A MARK — the oldest entries were FLAGGED and kept for the store's life, and the flag was what told a reversal it had gone past the floor; FROM THIS LANDING THE CAP IS A BOUND — the oldest entries are REMOVED, memory is `O(store + journalLength)` instead of growing with every write ever made, and the two answers are told apart by one number rather than by a retained list.** (`D-160` items 1–2; `D-164`; `D-165`; `tests/e2e/journal-compaction.test.mjs`; `tests/e2e/journal-retention-floor.test.mjs`.)
+ 
+@@ -717,7 +717,11 @@ itself** (§7.9's item 4, where the reason is given: the act's address is the st
+ position moved is the caller's question).
+ 
+ - **`write` answers `{op, watched, triggered}`** (`index.d.ts`, `WriteRecord`). **`op` is the store's own journal
+-  record and not a number** — `{opId, kind, address, tier, before, after, seq, compacted}` — and **the op's
++  record and not a number** — `{opId, kind, address, tier, before, after, seq}` — and **the op's
++  `compacted` member that this line printed until 2026-11-17 is REMOVED** (`strata/decisions.md` · `D-189` item 2:
++  *"If .compacted is always false drop it"* — a member that can hold one value carries nothing; the discrimination it
++  shared is the `journal_floor` watermark's, `D-160` item 3; the record carries SEVEN members and the removal is why
++  this release is a `MAJOR`, `D-190`) — and **the op's
+   `opId` is a string** and is the token `rollback` accepts (`index.d.ts`, `JournalOp`). **`watched` carries
+   ADDRESSES where `triggered` carries pairs — two types on purpose, so a call site cannot confuse the two lists**
+   (`index.d.ts`, `WriteRecord`; `write-and-read.md §3.5`).
+@@ -828,7 +832,9 @@ THIS IS A CLAIM ABOUT WHAT CROSSES AND IT MUST BE PRINTED RATHER THAN ASSUMED.**
+ whose body writes `['b'] = 'bad'`, and a constraint at `['b']` that refuses `'bad'` with
+ `{message: 'b may not be bad'}`. **WHAT THE DRIVE PRINTED, RAW:**
+ 
+-- **THE CALLER'S `store.write(['a'], 'mem', 1)` ANSWERED NORMALLY** — `{op: {opId: 'op-1', kind: 'write', address:
++- **⟶ THE PRINT BELOW IS THE READING OF ITS OWN DATE AND STANDS BYTE-FOR-BYTE; IT CARRIES A `compacted` KEY THE
++  RECORD NO LONGER HAS** (`D-189` item 2 removes the member; the drive was taken 2026-10-30). **THE CALLER'S
++  `store.write(['a'], 'mem', 1)` ANSWERED NORMALLY** — `{op: {opId: 'op-1', kind: 'write', address:
+   ['a'], tier: 'mem', before: {present: false}, after: {present: true, value: 1}, seq: 1, compacted: false},
+   watched: [['a']], triggered: [{handle: 'watch-a', address: ['a']}]}` — **no refusal, no status and no `log`
+   member: nothing of the listener's outcome crossed.**
+@@ -1279,7 +1285,7 @@ store.read(['b']);   // 11 — where the repair landed, inside the commit it is
+ 
+ **WHAT THE EXAMPLE SHOWS, IN THE ORDER THE MACHINERY RUNS IT.** **Your constraint returns ONE object literal carrying both members** — `message` the refusal's sentence, `repair` a function — so both instants read the same pair. **The repair runs with ITS OWN RECORD, makes its OWN `write` at `['b']` with that record in the fourth position, and RETURNS `{ ok: true, op: landed.op }`: the store's own record of the write it just made, never a number and never a record you assembled yourself.** **And the credit is visible to you:** `written.op` is that same op — in the drive named below, `{"opId":"op-3","kind":"write","address":["b"],"seq":3,…}` — **so the op the repair returned IS the op its own edit produced, which is what makes the re-run come back through that op's own landing and hand your body the value the repair landed (`11`) while the address your pair judges still stands at `2`.** **The write answers its record because that re-run passes; a repair that returned an op it did not land fails `KC-4` instead.** **Note what is NOT in the block: no type annotation, no new symbol, no import the guide does not already publish (`§3`), and no fourth outcome arm.**
+ 
+-**MEASURED 2026-10-30, on this checkout, through the published entry (`bindings/js/index.mjs`), on the block above's exact bytes:** the write's own record carries `op` `{"opId":"op-3","kind":"write","address":["b"],"tier":"mem","before":{"present":false},"after":{"present":true,"value":11},"seq":3,"compacted":false}`, `store.read(['a'])` answers `2` and `store.read(['b'])` answers `11` — **so the repair was READ, its edit LANDED at the beside address, and its op was CREDITED.** **That drive is a measurement of the landing pass and not a committed test**; the package's own suite drives this arm at `tests/e2e/repair-in-commit.test.mjs`.
++**MEASURED 2026-10-30, on this checkout, through the published entry (`bindings/js/index.mjs`), on the block above's exact bytes — AND THE `compacted` KEY IN THE PRINT IS THE READING OF ITS DATE, THE MEMBER BEING REMOVED FROM `2026-11-17` BY `D-189` ITEM 2:** the write's own record carries `op` `{"opId":"op-3","kind":"write","address":["b"],"tier":"mem","before":{"present":false},"after":{"present":true,"value":11},"seq":3,"compacted":false}` — **the record today prints `{"opId":"op-3","kind":"write","address":["b"],"tier":"mem","before":{"present":false},"after":{"present":true,"value":11},"seq":3}`, seven members and no eighth** — `store.read(['a'])` answers `2` and `store.read(['b'])` answers `11` — **so the repair was READ, its edit LANDED at the beside address, and its op was CREDITED.** **That drive is a measurement of the landing pass and not a committed test**; the package's own suite drives this arm at `tests/e2e/repair-in-commit.test.mjs`.
+ 
+ **(1) WHAT CROSSED.** **A repair's answer that the credit check does not admit FAILS THE ATTEMPT, and what your caller catches is the refusal crossing as the set's rank-`20` member `ConstraintPassRefused`, with the kernel's token `KC-4` riding the TERMINAL entry's `state`** — `KC-4` is the kernel's repair-failed token (`bindings/js/src/entry/kernel-foundations.mjs:62`), the crossing and the token's seat are declared at `docs/specs/storeroom-js/surface.md:2079`, and the repair-body path that answers it prints at `docs/specs/storeroom-constraints/contract.md:557`. **This clause names `KC-4` and declares no member of any set.**
+ **(2) WHAT THE REFUSAL SAYS — THREE MESSAGES REACH THE ARM AND THE COPY BELOW IS THE FALL-THROUGH'S ALONE.** **The message a `KC-4` refusal carries is drawn from ONE OF THREE SOURCES, the choice among them standing at `bindings/js/src/entry/kernel-attempt.mjs:878`-`:883`: where `ok` is `true` and the op the return names is defective, the kernel's own OP-IDENTITY SENTENCE, which stands at `bindings/js/src/entry/kernel-foundations.mjs:1139`-`:1150` and which this clause NAMES AND NEVER QUOTES; where `ok` is `false` and the return's `message` is a non-empty string, THE CALLER'S OWN `message`, which is no kernel sentence at all, so a caller holding a `{ok: false, message}` refusal is holding THEIR OWN WORDS and not the copy below; and, on the remaining arm, the `produced no op` template at `bindings/js/src/entry/kernel-attempt.mjs:883`, COPIED ON 2026-11-01 FROM THAT ONE LINE, template literal and interpolations included, character for character:**
+diff --git a/bindings/js/README.md b/bindings/js/README.md
+index cca1bab..1b98eb6 100644
+--- a/bindings/js/README.md
++++ b/bindings/js/README.md
+@@ -50,7 +50,7 @@ an edit belongs.
+ 
+ **⟶ AND THE ONE FIGURE THIS PAGE CAN BE RIGHT ABOUT IS GENERATED AND ASSERTED, 2026-10-28 — `DEF-AC`'s third part, and `D-57`'s one surviving figure.** `RCA-8(g)` ANNOTATE-BESIDE: **every clause above stands BYTE-FOR-BYTE and is read THROUGH this one; nothing above moves.** **THE DEFECT THIS CLOSES: THIS PAGE DECLARED NO VERSION AT ALL** — a shipped document a consumer reads first, saying nothing about which release it describes — **so `scripts/publish.sh --figures` now GENERATES the line below from `bindings/js/package.json`'s `version` and REFUSES when it disagrees, exactly as it does at the guide's and the change list's own marked lines: three shipped documents, three version lines, one generator, one assertion.** **AND THE CUT-STATE IS NOT STATED HERE, OR ANYWHERE ELSE IN THIS PACKAGE'S DOCUMENTS** (`D-57`, the architect verbatim: *"Drop the cut-state"*): a document is sealed before the tag that would make its cut-state true, so **the cut-state is not a document's to state**; the record of what has been cut is the change list's, and it is past tense. **EVERY OTHER CLAIM OF THIS PAGE STANDS EXACTLY AS IT STOOD.**
+ 
+-PUBLISH-README-VERSION-LINE: THE VERSION THIS README DESCRIBES IS `1.13.0`.
++PUBLISH-README-VERSION-LINE: THE VERSION THIS README DESCRIBES IS `2.0.0`.
+ 
+ ## The one entry
+ 
+diff --git a/bindings/js/RELEASE-NOTES.md b/bindings/js/RELEASE-NOTES.md
+index 13ec1dc..8b0ad39 100644
+--- a/bindings/js/RELEASE-NOTES.md
++++ b/bindings/js/RELEASE-NOTES.md
+@@ -16,7 +16,7 @@ claims to be installable.**
+ 
+ **⟶ AND THE CUT-STATE IS DROPPED FROM THIS FILE, 2026-10-28 — `D-57`, THE ARCHITECT VERBATIM: *"Drop the cut-state."*** `RCA-8(g)` ANNOTATE-BESIDE: **the title line and every dated paragraph of this file stand BYTE-FOR-BYTE as the reading of their own date, THIS clause is the one that reads them, and not one byte is deleted.** **THE REASON IS STRUCTURAL AND IT WAS MEASURED THREE TIMES: A SHIPPED DOCUMENT IS SEALED BEFORE THE TAG THAT MAKES ITS CUT-STATE TRUE**, so every release packed before its tag ships a document denying itself, and a guard running in that release's own preflight can only ever confirm *"not cut"* — `1.2.0` shipped *"NOT CUT"*, `1.3.0` shipped *"`v1.3.0` DOES NOT EXIST"*, and this file's own head was stale within minutes of the tag that falsified it. **SO EVERY SENTENCE BELOW THAT CLAIMS WHETHER SOME VERSION IS OR IS NOT CUT — *"PREPARED — NOT CUT"*, *"no `v1.3.0`"*, *"nothing in this section is cut"*, *"the release is not cut"*, *"what is installed today is still `1.1.0`"*, and each reading printed beside them — IS READ THROUGH THIS CLAUSE: the cut-state is not a document's to state.** **WHAT SURVIVES IS THE ONE FIGURE A SHIPPED DOCUMENT CAN BE RIGHT ABOUT, AND IT IS GENERATED FROM THE MANIFEST AND ASSERTED BY THE PREFLIGHT:**
+ 
+-PUBLISH-NOTES-VERSION-LINE: THE VERSION THIS CHANGE LIST DESCRIBES IS `1.13.0`.
++PUBLISH-NOTES-VERSION-LINE: THE VERSION THIS CHANGE LIST DESCRIBES IS `2.0.0`.
+ 
+ **AND THE TAG SET SURVIVES AS A RECORD OF RELEASES — PAST TENSE, A LIST OF WHAT HAS BEEN CUT, NEVER A CLAIM ABOUT THE CURRENT ONE** (the record stands in `§1.4.0` below — the section this file's head called `§main` until it was re-cut to name the version it prepares, 2026-10-28 — beside the section for the tree this file describes). (`D-57`; `DEF-AC` (b) — `scripts/publish.sh --figures` generates that line from `bindings/js/package.json`'s `version` and refuses on any disagreement, in this file, in `bindings/js/README.md` and in the shipped guide: three documents, three version lines, one generator, one assertion.)
+ 
+@@ -55,14 +55,23 @@ the value to assert against, not the crate's own `Cargo.toml` version.
+ 
+ ---
+ 
+-## §1.13.0 · a MINOR — the second claimed realm, and the save arm it made possible: a WebAssembly build in its own package, three `cfg` keys' companions, a twenty-third status, and two receipt accessors
+-
+-**THE VERSION IS `1.13.0` AND ITS CLASS IS A MINOR — `D-158`, THE ARCHITECT'S RULING OF 2026-11-17, whose words were
+-the class alone: *"MINOR — 1.13.0"*. THE VERSION MOVES TWELVE SITES TOGETHER: the main manifest's `version`, its FIVE
++## §2.0.0 · a MAJOR — the second claimed realm, the save arm it made possible, AND THE REMOVAL OF A PUBLISHED DECLARATION MEMBER: a WebAssembly build in its own package, three `cfg` keys' companions, a twenty-third status, two receipt accessors, and `JournalOp.compacted` gone from the record and the declaration
++
++**⟶ THIS HEADING READ `§1.13.0 · a MINOR` UNTIL 2026-11-17, AND `D-158`'s CLASS IS SUPERSEDED — NOT WITHDRAWN.**
++**THE ELEVEN ENTRIES BELOW ARE THE SAME LANDING READ AT A DIFFERENT CLASS**: every one of them still ships, every one of
++them still describes what a consumer on `1.12.0` meets, **and a reader who sees this section re-lettered is not being told
++the work is new** — the work is the same work, and what moved is the number the work is released under, because the same
++landing also removes a member the published declaration carried. **THE ARCHITECT'S RULINGS, VERBATIM AND IN ORDER**
++(`strata/decisions.md`): `D-158` — *"MINOR — 1.13.0"*; `D-189` item 2 — *"If .compacted is always false drop it"*; and
++`D-190` — **`MAJOR — bump to 2.0.0`**. **THE REASON THE CLASS MOVED IS ONE SENTENCE AND IT IS THE ONLY ONE**: `D-189` item
++2 removes `readonly compacted: boolean` from the PUBLISHED `JournalOp` (`bindings/js/index.d.ts`), **and removing a
++declared member is breaking against `1.12.0`** — `D-189` item 2 says it in as many words (*"removing it is breaking
++against `1.12.0` and `D-158`'s `1.13.0` `MINOR` cannot absorb it"*), so a `MINOR` could not carry this landing and the
++class is `MAJOR`. **THE VERSION MOVES TWELVE SITES TOGETHER: the main manifest's `version`, its FIVE
+ exact `optionalDependencies` pins, and the SIX `platforms/*/package.json` versions** — the five native siblings and the
+ WebAssembly sibling whose `version` its own coupled-version clause names (the admission's reading of `§3.2`'s rule as
+ *"the SEVEN manifests move to `X.Y.Z` TOGETHER"*). **The artefact is stamped from the manifest by `bindings/js/build.rs`,
+-so `version()` answers `1.13.0`**, and that is the value to assert against.
++so `version()` answers `2.0.0`**, and that is the value to assert against.
+ 
+ **THE HEADLINE IS ONE SENTENCE: THE PACKAGE IS NO LONGER CLOSED AT ONE REALM, AND A WEBASSEMBLY BUILD OF THIS STORE NOW
+ SHIPS AS ITS OWN PACKAGE.** `D-154` lifted the claim; the build carries **no `filePath`** — the key is not in domain
+@@ -102,14 +111,27 @@ calls and `std::process::id()` are `#[cfg]`-ed out with the writer and the reade
+    still `ValueRefusedAtBoundary`.
+ 8. **THE JOURNAL NOW DROPS HISTORY, AND `journalLength` IS THE WIDTH OF THE COMPENSATION WINDOW.** On `1.12.0` the cap
+    was a MARK: the oldest entries were flagged and kept for the store's whole life, and the flag was what told a
+-   reversal it had gone past the floor. **From `1.13.0` the cap is a BOUND**: what survives is the base state plus at
++   reversal it had gone past the floor. **From `2.0.0` the cap is a BOUND** (the sentence printed `1.13.0` before
++   `D-190` re-classed this landing; no `1.13.0` is released): what survives is the base state plus at
+    most `journalLength` uncompacted ops, **an op the compaction reaches is REMOVED and its op id is gone with it**, and
+    memory is `O(store + journalLength)` rather than growing with every write ever made (`D-160` items 1–2). **The two
+    refusals stay distinguishable and they are told apart by ONE NUMBER rather than by a retained list**: an op the
+    compaction DROPPED answers `RollbackCompacted`, and an id that never named an op answers `JournalOpUnknown`
+    (`D-160` item 3 — the floor's own `seq` is the watermark). **A write's record still carries its `compacted` member
+    and it reads `false`**: no act sets it any more, because the mark is not the mechanism — **and whether the member
+-   survives the drop is a declaration this section does not make** (`D-160` item 4 of its unsettled).
++   survives the drop is a declaration this section does not make** (`D-160` item 4 of its unsettled). **⟶ AND THAT
++   QUESTION IS ANSWERED, AND THE ANSWER IS THAT THE MEMBER DOES NOT SURVIVE: `compacted` IS REMOVED FROM THE WRITE'S
++   RECORD, 2026-11-17** (`strata/decisions.md` · `D-189` item 2, the architect VERBATIM: *"If .compacted is always false
++   drop it"*). **THE DIRECTIVE WAS A CONDITIONAL AND THE SHIPPED TREE ANSWERED IT**: the store produced the flag at
++   exactly two sites and both set it `false`, **so a member that can hold one value carried nothing**, and the
++   discrimination it once shared — *an op this store compacted* against *an op this store never held* — is the
++   `journal_floor` watermark's (`D-160` item 3), which answers `RollbackCompacted` and `JournalOpUnknown` as two
++   refusals without a per-op bit. **SO THIS SENTENCE IS WITHDRAWN, NOT AMENDED** (*"a write's record still carries its
++   `compacted` member"*): the record carries **SEVEN** members — `{ opId, kind, address, tier, before, after, seq }` —
++   and the eighth is **gone: not renamed, not deprecated, and not typed `false`**. **WHAT YOU MEET AS A CONSUMER**:
++   `record.op.compacted` no longer type-checks, and at run time it is `undefined` because the key is absent; the write's
++   record, the delete's receipt's `op`, and every op the kernel's repair leg copies all carry the same seven. **THIS
++   REMOVAL IS THE WHOLE OF WHY THIS RELEASE IS A `MAJOR`** — see the section head.
+ 9. **A REVERSAL THAT NEEDS AN OP THE COMPACTION DROPPED REGENERATES FROM THE FILE — AND ANSWERS `RollbackCompacted`
+    ONLY ON A STORE WITH NO READ PATH.** `D-164` item 2's division, at the two shapes you can construct: **with a
+    `filePath` whose image can be read — or the state the store was created with where no image stands — the store
+@@ -154,9 +176,14 @@ it on that arm, where the answer is `false` and where the declaration is written
+ behaviour moves**). **So the entry's first clause is read as the VALUE clause it is**, and a consumer who took it for
+ a statement about `cfg` on the WebAssembly arm took it one gate wide — **which is the defect `D-166` measured when
+ every `saveCall` construction was refused as if `cfg` were a `Proxy`, and the arm could not construct the one store
+-it exists for.** **AND THE CLASS THIS SECTION CARRIES DOES NOT MOVE FOR ANY OF THE FOUR ENTRIES ABOVE OR FOR THIS
+-CLAUSE**: `D-158`'s `MINOR` at `1.13.0` stands, no version cell moves, and **a class claim is the architect's — none
+-is made here.**
++it exists for.** **⟶ AND THE CLASS CLAUSE THAT STOOD HERE IS SUPERSEDED AT ITS OWN BYTE, 2026-11-17 — IT READ *"`D-158`'s `MINOR` at
++`1.13.0` stands, no version cell moves, and a class claim is the architect's — none is made here"*.** **`D-158`'s
++`MINOR` DOES NOT STAND ANY MORE: `D-190` SUPERSEDES IT WITH `MAJOR — bump to 2.0.0`**, and the reason is stated once, at
++this section's head: `D-189` item 2 removes a published declaration member, which no `MINOR` absorbs. **THE SENTENCE IS
++WITHDRAWN FOR ITS CLASS HALF AND STANDS FOR ITS OTHER HALF** — the four entries above and the clause they carry move the
++class by nothing, and **they are the same landing this section always described**; what moved is the release's number.
++**No class claim is invented here: the class is `D-190`'s and the version cells follow it**, and a document claiming
++whether a release is CUT is still not this section's to write (`D-57`).
+ 
+ **WHAT DOES NOT MOVE, LISTED AND CLOSED:** the module namespace's one name (`storeCreate`) · the instance's own fifteen
+ members, name for name · the one `exports` arm and its three conditions · the `files` allowlist's five rows · the floor
+@@ -171,7 +198,7 @@ moves is WHICH ACTS PRODUCE the first, not what it says** (`D-164` item 2; `D-16
+ WebAssembly artefact, which is produced by **a job BESIDE the prebuild matrix and never as a sixth row of it**. **The
+ main package is still published last**, of all seven.
+ 
+-**AND THIS SECTION DESCRIBES `1.13.0` AND CLAIMS NO TAG**: the cut-state is not a document's to state (`D-57`).
++**AND THIS SECTION DESCRIBES `2.0.0` AND CLAIMS NO TAG**: the cut-state is not a document's to state (`D-57`).
+ 
+ ---
+ 
+diff --git a/bindings/js/index.d.ts b/bindings/js/index.d.ts
+index 5110d18..0f5da22 100644
+--- a/bindings/js/index.d.ts
++++ b/bindings/js/index.d.ts
+@@ -673,15 +673,27 @@ export interface BaseState {
+ 
+ /**
+  * **THE STORE'S OWN JOURNAL OP, CROSSED MEMBER FOR MEMBER AND IN THE STORE'S OWN SPELLINGS** — `DD-39`'s
+- * eight declared names (`distribution.md §5.2` item 1; `P-PUB-7`): `{ opId, kind, address, tier, before,
+- * after, seq, compacted }`.
++ * **SEVEN** declared names (`distribution.md §5.2` item 1; `P-PUB-7`): `{ opId, kind, address, tier, before,
++ * after, seq }`.
+  *
+  * **`opId` IS A `string`** — the store's own op-id domain is a non-empty string (`PAR-JS-9`), and the id a
+  * `write` returns is the id a `rollback` takes. **`kind` is the store's own token** (`'write'` and
+  * `'delete'` today) **and its membership is the STORE'S to close, so it is typed as `string` and this
+  * package mints no union over it.** **`tier` is one of the store's own three tokens, or `null` where the op
+- * carries none**; **`seq` is the journal's own sequence number and `compacted` the store's own flag**, each
+- * carried verbatim.
++ * carries none**; **`seq` is the journal's own sequence number**, carried verbatim.
++ *
++ * **★ AND THE EIGHTH MEMBER — `readonly compacted: boolean` — IS REMOVED, 2026-11-17. IT IS GONE: NOT
++ * RENAMED, NOT DEPRECATED, NOT TYPED `false`.** The architect, VERBATIM (`strata/decisions.md` · `D-189`
++ * item 2): *"If .compacted is always false drop it"*. **The directive was a conditional and the tree answered
++ * it**: the store set the flag `false` at both of its producers, **so a member that can hold one value
++ * carried nothing**, and the distinction it once shared — *an op this store compacted* against *an op this
++ * store never held* — **is carried by the store's `journal_floor` watermark instead** (`D-160` item 3), which
++ * answers `RollbackCompacted` and `JournalOpUnknown` as two different refusals without a per-op bit. **WHAT
++ * THIS COSTS A CONSUMER: `record.op.compacted` no longer type-checks and no longer exists at run time** — the
++ * read returns `undefined` because the key is absent, and it is absent from the write's record, the delete's
++ * record and every op the kernel's repair leg copies. **THE CLASS IS `MAJOR` (`2.0.0`, `D-190`) for exactly
++ * this reason**: a PUBLISHED declaration member left the surface, which no `MINOR` absorbs — **`D-158`'s
++ * `MINOR` at `1.13.0` is SUPERSEDED and this declaration describes `2.0.0`.**
+  */
+ export interface JournalOp {
+   readonly opId: string;
+@@ -691,7 +703,6 @@ export interface JournalOp {
+   readonly before: BaseState;
+   readonly after: BaseState;
+   readonly seq: number;
+-  readonly compacted: boolean;
+ }
+ 
+ /**
+@@ -876,7 +887,9 @@ export interface DeleteRecord {
+    * reversible"*).
+    *
+    * **IT IS THE MEMBER `WriteRecord` CARRIES, AT THE SAME NAME AND THE SAME TYPE** (`WriteRecord.op` above,
+-   * the store's own eight-member `JournalOp`), so a caller has **one spelling for "the op this act landed"**
++   * the store's own seven-member `JournalOp` — **⟶ SEVEN AND NOT EIGHT FROM 2026-11-17, `D-189` item 2:
++   * `compacted` is removed from the record and the declaration** (`JournalOp` above states it at its own
++   * docblock)), so a caller has **one spelling for "the op this act landed"**
+    * and one route to reversing it: `store.rollback(record.op.opId)` restores every version the delete
+    * removed, **at its own tier**, exactly as a write's reversal restores what the write replaced.
+    *
+@@ -1123,8 +1136,9 @@ export interface AttemptRef {
+  *
+  * **`triggered` and `pending` are the store's own returned handle set and the kernel's own member
+  * respectively, each read as a SET** (`§2.1` item 2; `Handle` above is this file's opaque-handle spelling);
+- * **`op` is the op the store's write returned, VERBATIM** (`JournalOp` above, the store's own eight-member
+- * record — `§2.1` item 2: *"the op the store's write returned, VERBATIM"*).
++ * **`op` is the op the store's write returned, VERBATIM** (`JournalOp` above, the store's own seven-member
++ * record — **⟶ SEVEN AND NOT EIGHT FROM 2026-11-17, `D-189` item 2** — `§2.1` item 2: *"the op the store's
++ * write returned, VERBATIM"*).
+  */
+ export interface CommitRecord {
+   /** The attempt this commit opened — its identity (`attempt-lifecycle.md §2.4` item 1). */
+diff --git a/bindings/js/package.json b/bindings/js/package.json
+index e13caf8..07ad272 100644
+--- a/bindings/js/package.json
++++ b/bindings/js/package.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "provident-storeroom",
+-  "version": "1.13.0",
++  "version": "2.0.0",
+   "description": "U-STOREROOM-PUBLISH: the published Node ESM binding for the native Rust store of Provident-Storeroom — the entry resolves the scoped per-target platform package first, the checkout's own module-relative addon second, and answers the store's single declared absent-addon form when neither loads",
+   "type": "module",
+   "license": "AGPL-3.0",
+@@ -42,11 +42,11 @@
+     "src/constraint-kernel.mjs"
+   ],
+   "optionalDependencies": {
+-    "@auspicion/provident-storeroom-js-linux-x64-gnu": "1.13.0",
+-    "@auspicion/provident-storeroom-js-linux-arm64-gnu": "1.13.0",
+-    "@auspicion/provident-storeroom-js-darwin-x64": "1.13.0",
+-    "@auspicion/provident-storeroom-js-darwin-arm64": "1.13.0",
+-    "@auspicion/provident-storeroom-js-win32-x64-msvc": "1.13.0"
++    "@auspicion/provident-storeroom-js-linux-x64-gnu": "2.0.0",
++    "@auspicion/provident-storeroom-js-linux-arm64-gnu": "2.0.0",
++    "@auspicion/provident-storeroom-js-darwin-x64": "2.0.0",
++    "@auspicion/provident-storeroom-js-darwin-arm64": "2.0.0",
++    "@auspicion/provident-storeroom-js-win32-x64-msvc": "2.0.0"
+   },
+   "publishConfig": {
+     "access": "public"
+diff --git a/bindings/js/platforms/darwin-arm64/package.json b/bindings/js/platforms/darwin-arm64/package.json
+index 74fa3df..1824b53 100644
+--- a/bindings/js/platforms/darwin-arm64/package.json
++++ b/bindings/js/platforms/darwin-arm64/package.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "@auspicion/provident-storeroom-js-darwin-arm64",
+-  "version": "1.13.0",
++  "version": "2.0.0",
+   "os": [
+     "darwin"
+   ],
+diff --git a/bindings/js/platforms/darwin-x64/package.json b/bindings/js/platforms/darwin-x64/package.json
+index 053db45..b2eced1 100644
+--- a/bindings/js/platforms/darwin-x64/package.json
++++ b/bindings/js/platforms/darwin-x64/package.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "@auspicion/provident-storeroom-js-darwin-x64",
+-  "version": "1.13.0",
++  "version": "2.0.0",
+   "os": [
+     "darwin"
+   ],
+diff --git a/bindings/js/platforms/linux-arm64/package.json b/bindings/js/platforms/linux-arm64/package.json
+index d1286f6..b908d13 100644
+--- a/bindings/js/platforms/linux-arm64/package.json
++++ b/bindings/js/platforms/linux-arm64/package.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "@auspicion/provident-storeroom-js-linux-arm64-gnu",
+-  "version": "1.13.0",
++  "version": "2.0.0",
+   "os": [
+     "linux"
+   ],
+diff --git a/bindings/js/platforms/linux-x64/package.json b/bindings/js/platforms/linux-x64/package.json
+index 0bdf4bf..52990ba 100644
+--- a/bindings/js/platforms/linux-x64/package.json
++++ b/bindings/js/platforms/linux-x64/package.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "@auspicion/provident-storeroom-js-linux-x64-gnu",
+-  "version": "1.13.0",
++  "version": "2.0.0",
+   "os": [
+     "linux"
+   ],
+diff --git a/bindings/js/platforms/wasm/package.json b/bindings/js/platforms/wasm/package.json
+index fba31bd..53bee9f 100644
+--- a/bindings/js/platforms/wasm/package.json
++++ b/bindings/js/platforms/wasm/package.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "@auspicion/provident-storeroom-js-wasm",
+-  "version": "1.13.0",
++  "version": "2.0.0",
+   "description": "provident-storeroom for a WebAssembly host — the same store, the same package, with its bindings handed in.",
+   "type": "module",
+   "main": "index.mjs",
+diff --git a/bindings/js/platforms/win32-x64/package.json b/bindings/js/platforms/win32-x64/package.json
+index f4c9b84..135d330 100644
+--- a/bindings/js/platforms/win32-x64/package.json
++++ b/bindings/js/platforms/win32-x64/package.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "@auspicion/provident-storeroom-js-win32-x64-msvc",
+-  "version": "1.13.0",
++  "version": "2.0.0",
+   "os": [
+     "win32"
+   ],
+diff --git a/bindings/js/src/codec.rs b/bindings/js/src/codec.rs
+index b596e87..c98259c 100644
+--- a/bindings/js/src/codec.rs
++++ b/bindings/js/src/codec.rs
+@@ -948,6 +948,10 @@ impl<'e> Codec<'e> {
+             Some(token) => self.string_value(token),
+             None => self.undefined_value(),
+         };
++        // **⟶ AND THE KEY SET IS SEVEN FROM 2026-11-17: `("compacted", self.bool_value(op.compacted))`
++        // STOOD LAST HERE AND IS DELETED** (`strata/decisions.md` · `D-189` item 2). **The emitter is the
++        // carrier's own member list in the carrier's own order, so a member the carrier no longer has cannot
++        // leave this frame** — and a key kept here would be a member `index.d.ts` does not declare.
+         self.object(vec![
+             ("opId", self.string_value(&op.opId)),
+             ("kind", self.string_value(&op.kind)),
+@@ -956,7 +960,6 @@ impl<'e> Codec<'e> {
+             ("before", self.to_js_base_state(&op.before)),
+             ("after", self.to_js_base_state(&op.after)),
+             ("seq", self.number_value(op.seq as f64)),
+-            ("compacted", self.bool_value(op.compacted)),
+         ])
+     }
+ 
+diff --git a/bindings/js/src/crossing.rs b/bindings/js/src/crossing.rs
+index 4dca523..e60aabf 100644
+--- a/bindings/js/src/crossing.rs
++++ b/bindings/js/src/crossing.rs
+@@ -892,7 +892,15 @@ fn base_state(s: &BaseState) -> JsBaseState {
+     }
+ }
+ 
+-/// `PAR-JS-13`: the journal op's own eight members, at the package's own spellings.
++/// `PAR-JS-13`: the journal op's own **SEVEN** members, at the package's own spellings.
++///
++/// **⟶ SEVEN, NOT EIGHT, FROM 2026-11-17 — `compacted` LEFT THE STORE'S RECORD AND LEAVES THE CARRIER WITH
++/// IT** (`strata/decisions.md` · `D-189` item 2, the architect VERBATIM: *"If .compacted is always false drop
++/// it"*). **THE COUNSEL IS THE SAME ONE THE STORE STATES AT ITS OWN BYTE**: the member's two producers both
++/// set `false`, so a member that can hold one value carried nothing, and its subject — which op the compaction
++/// took — is the `journal_floor` watermark's (`D-160` item 3). **This carrier crosses the store's record
++/// MEMBER FOR MEMBER, so a member the store no longer has cannot cross, and `codec.rs`'s and
++/// `wasm_codec.rs`'s emitters drop the key with this field.**
+ #[derive(Clone, Debug, PartialEq)]
+ pub struct JsJournalOp {
+     pub opId: String,
+@@ -903,7 +911,6 @@ pub struct JsJournalOp {
+     pub before: JsBaseState,
+     pub after: JsBaseState,
+     pub seq: u64,
+-    pub compacted: bool,
+ }
+ 
+ /// `PAR-JS-13`–`PAR-JS-15`: `{op, watched, triggered}` — a fresh record on every call.
+@@ -953,7 +960,11 @@ fn journal_op(op: &storeroom_native::JournalOp) -> JsJournalOp {
+         before: base_state(&op.before),
+         after: base_state(&op.after),
+         seq: op.seq,
+-        compacted: op.compacted,
++        // **⟶ `compacted: op.compacted` STOOD HERE AND IS DELETED 2026-11-17 (`strata/decisions.md` ·
++        // `D-189` item 2): the store's own record no longer carries the member, so this crossing — which
++        // copies the record MEMBER FOR MEMBER and mints none — has none to copy.** No substitution is made
++        // and no default is synthesised: a key that appeared here would be a member the declaration does not
++        // carry.
+     }
+ }
+ 
+diff --git a/bindings/js/src/entry/frame.mjs b/bindings/js/src/entry/frame.mjs
+index e9fc7a7..f6e90e5 100644
+--- a/bindings/js/src/entry/frame.mjs
++++ b/bindings/js/src/entry/frame.mjs
+@@ -595,6 +595,13 @@ export function decodeBaseState(encoded) {
+   return { present: encoded.present, value: decodeValue(encoded.value) };
+ }
+ 
++// **⟶ AND THE DECODED RECORD CARRIES SEVEN MEMBERS FROM 2026-11-17, NOT EIGHT: `compacted` IS DELETED**
++// (`strata/decisions.md` · `D-189` item 2, the architect VERBATIM: *"If .compacted is always false drop it"*).
++// **THE STORE'S OWN RECORD NO LONGER CARRIES THE MEMBER** (`src/records.rs`), so the crossing's carrier has
++// none (`bindings/js/src/crossing.rs`) and this decoder — which rebuilds the record in the store's own
++// spellings and mints no member of its own — has none to rebuild. **No `null`, no `undefined` and no default
++// stands in its place**: a key here would be a member `index.d.ts` does not declare, and the package's record
++// would then disagree with the store's on a member both are supposed to spell alike.
+ export function decodeJournalOp(encoded) {
+   return {
+     opId: encoded.opId,
+@@ -604,7 +611,6 @@ export function decodeJournalOp(encoded) {
+     before: decodeBaseState(encoded.before),
+     after: decodeBaseState(encoded.after),
+     seq: encoded.seq,
+-    compacted: encoded.compacted,
+   };
+ }
+ 
+diff --git a/bindings/js/src/entry/state.mjs b/bindings/js/src/entry/state.mjs
+index 324b7d4..e208bc7 100644
+--- a/bindings/js/src/entry/state.mjs
++++ b/bindings/js/src/entry/state.mjs
+@@ -453,7 +453,10 @@ let REPAIR_LEGS_LAST = [];
+ /// commit"*). **THE SUBJECT OF THE CHANNEL IS STILL ONE FACT — the invocations that closed last — and it is now
+ /// ONE ELEMENT PER WRITE: `{ op, triggered }`, carrying THAT WRITE'S OWN JOURNAL `op` and its returned elements.**
+ /// **THE OP IS COPIED AT ITS OWN MEMBERS** — `opId` · `kind` · `address`'s segment list · `tier` · `before` ·
+-/// `after` · `seq` · `compacted` (`frame.mjs`'s `decodeJournalOp`, `:421`–`:431`; `index.mjs:445` stands that very
++/// `after` · `seq` **· ⟶ AND NOT `compacted`, WHICH IS DELETED FROM THE LIST 2026-11-17** (`strata/decisions.md` ·
++/// `D-189` item 2, the architect VERBATIM: *"If .compacted is always false drop it"*; the record carries SEVEN
++/// members and the store's own has carried seven since the same landing) (`frame.mjs`'s `decodeJournalOp`,
++/// `:421`–`:431`; `index.mjs:445` stands that very
+ /// record) — by the same copy discipline the elements below already take, **so a body that mutates the op it was
+ /// handed back can move nothing the kernel reads**: the re-run's `context.value` is this op's `after.value` and
+ /// the floor call's candidates are this op's `address` and `opId`. **THE BRACKET, THE STACK, THE CLEAR AND THE
+@@ -509,7 +512,11 @@ export function appendRepairLeg(record) {
+         ? { present: after.present, value: after.value }
+         : after,
+       seq: held.seq,
+-      compacted: held.compacted,
++      // **⟶ AND `compacted: held.compacted` IS DELETED AT THIS BYTE, 2026-11-17** (`strata/decisions.md` ·
++      // `D-189` item 2): **this copy holds the record's own member list to the copy discipline stated above,
++      // and the record carries SEVEN members now** (`frame.mjs`'s `decodeJournalOp`; `index.d.ts`'s
++      // `JournalOp`). A member copied here that the declaration no longer carries would be a key the kernel
++      // reads and the caller cannot name — and no default stands in its place.
+     };
+   }
+   appendOwn(list, { op, triggered: elements });
+diff --git a/bindings/js/src/wasm_codec.rs b/bindings/js/src/wasm_codec.rs
+index e8adc36..d8f5ca7 100644
+--- a/bindings/js/src/wasm_codec.rs
++++ b/bindings/js/src/wasm_codec.rs
+@@ -1049,7 +1049,12 @@ fn to_js_base_state(state: &JsBaseState) -> JsVal {
+     ])
+ }
+ 
+-/// `PAR-JS-13`'s own eight members — `codec.rs`'s `to_js_journal_op`.
++/// `PAR-JS-13`'s own **SEVEN** members — `codec.rs`'s `to_js_journal_op`.
++///
++/// **⟶ SEVEN, NOT EIGHT, FROM 2026-11-17** (`strata/decisions.md` · `D-189` item 2): **`compacted` left the
++/// store's record, so it leaves this emitter with the key it carried, and the wasm arm and the node arm agree
++/// key for key** — the two emitters are one spelling of one member list, and a key that survived on one arm
++/// and not the other would be a second declared record.
+ fn to_js_journal_op(op: &JsJournalOp) -> JsVal {
+     let tier = match &op.tier {
+         Some(token) => string_value(token),
+@@ -1063,7 +1068,6 @@ fn to_js_journal_op(op: &JsJournalOp) -> JsVal {
+         ("before", to_js_base_state(&op.before)),
+         ("after", to_js_base_state(&op.after)),
+         ("seq", number_value(op.seq as f64)),
+-        ("compacted", bool_value(op.compacted)),
+     ])
+ }
+ 
+diff --git a/docs/L1/op-free-repair-credit.md b/docs/L1/op-free-repair-credit.md
+index 86e04d7..6433781 100644
+--- a/docs/L1/op-free-repair-credit.md
++++ b/docs/L1/op-free-repair-credit.md
+@@ -217,13 +217,13 @@ JOURNAL OP and its returned elements.** Three consequences, each at a site:
+ 
+ - **The mint is the same seat and moves no caller.** `appendRepairLeg(record)` already receives the WHOLE record
+   (`index.mjs:463`), whose `op` is `decodeJournalOp(answer.op)` (`:445`) — a journal op carrying `opId`, `kind`, `address`,
+-  `tier`, `before`, `after`, `seq`, `compacted` (`frame.mjs:421`–`:431`) — and whose `triggered` is the crossed element
++  `tier`, `before`, `after`, `seq` **— and NOT `compacted`, which was removed from the record and from this copy on 2026-11-17 (`strata/decisions.md` · `D-189` item 2; the record carries seven members and this census moves with it)** (`frame.mjs:421`–`:431`) — and whose `triggered` is the crossed element
+   list (`:447`). **So `js-surface` (`bindings/js/index.mjs`) takes NO BYTE**, and the widening is one function in
+   `state.mjs` plus its consumer in `kernel-attempt.mjs`.
+ - **The element is minted FRESH and the segments are COPIED**, exactly as `:410`–`:419` already does for the elements: the
+   record stands on a record the repair body itself was handed back, so the commit must not alias it (`crossing.md §1.1`'s
+   copy discipline). **The op is copied at its own members** — `opId`, `kind`, `address`'s segment list, `tier`, `before`,
+-  `after`, `seq`, `compacted` — so a body that mutates the op it was handed can move nothing the kernel reads.
++  `after`, `seq` **⟶ AND NOT `compacted`: the copy is the record's own seven-member list from 2026-11-17, `D-189` item 2 removing the member the eighth name carried** — so a body that mutates the op it was handed can move nothing the kernel reads.
+ - **The bracket, the stack, the clear and the two guards are UNMOVED** (`state.mjs:761`–`:795`, `:834`–`:845`;
+   `kernel-attempt.mjs:183`–`:194`). **The subject is still "the invocation that closed last", the read is still taken
+   synchronously after the invocation returned, and the answer is still cleared in the same read.**
+diff --git a/docs/L1/wasm-realm.md b/docs/L1/wasm-realm.md
+index 89b3e51..b87568e 100644
+--- a/docs/L1/wasm-realm.md
++++ b/docs/L1/wasm-realm.md
+@@ -315,7 +315,7 @@ cargo check --offline --target wasm32-unknown-unknown --manifest-path bindings/j
+ handle = 0 | a saveCall-shaped store: no filePath, durable without a path
+ write(addr, file, {a:1})    → {"op":{"opId":"op-1","kind":"write","address":["tabs"],"tier":"file",
+                                  "before":{"present":false},"after":{"present":true,"value":{"a":1}},
+-                                 "seq":1,"compacted":false},"watched":[],"triggered":[],
++                                 "seq":1},"watched":[],"triggered":[],
+                                  "triggeringAddress":["tabs"]}
+ read(addr)                  → {"a":1}
+ exportImage()               → "{\"tabs\":{\"a\":1}}"          ← the store's own image text
+@@ -429,7 +429,7 @@ a plain object round-trips → {"a":1}                               ← and the
+ storeCreate(glue, cfg)        → an instance with 15 own members
+ write(["t"], "mem", {a:1})    → {"op":{"opId":"op-1","kind":"write","address":["t"],"tier":"mem",
+                                    "before":{"present":false},"after":{"present":true,"value":{"a":1}},
+-                                   "seq":1,"compacted":false},"watched":[],"triggered":[]}
++                                   "seq":1},"watched":[],"triggered":[]}
+ read(["t"])                   → {"a":1}
+ readLiteral(["t"])            → THREW ReadTargetIsBranch        ← the declared refusal: a container is a branch
+ write again {a:2}             → op-2 | read after → {"a":2}
+diff --git a/docs/brief/overview.md b/docs/brief/overview.md
+index 6f215ca..775a52d 100644
+--- a/docs/brief/overview.md
++++ b/docs/brief/overview.md
+@@ -33,7 +33,7 @@ Provident-Storeroom is a small synchronous store for that shape: a tree of keys
+ 
+ ## The shape of an answer
+ 
+-A **write** answers its record — `{ op, watched, triggered }` — where `op` is the store's own journal record (`{opId, kind, address, tier, before, after, seq, compacted}`), `watched` is the listener addresses the act reached (`[["win"]]` with a listener standing at `['win']`, `[]` when no listener was in reach), and `triggered` is the `{handle, address}` pairs it fired. A **delete** answers `{ address, tiers, triggered, op }`, and a delete at a tier holding no version is a success with `tiers: []` and `op: null`.
++A **write** answers its record — `{ op, watched, triggered }` — where `op` is the store's own journal record (`{opId, kind, address, tier, before, after, seq}` — **⟶ SEVEN MEMBERS, NOT EIGHT, FROM 2026-11-17: `compacted` is REMOVED from the record and from the published declaration by `strata/decisions.md` · `D-189` item 2**, *"If .compacted is always false drop it"*; the class it costs is `MAJOR`, `2.0.0`, `D-190`), `watched` is the listener addresses the act reached (`[["win"]]` with a listener standing at `['win']`, `[]` when no listener was in reach), and `triggered` is the `{handle, address}` pairs it fired. A **delete** answers `{ address, tiers, triggered, op }`, and a delete at a tier holding no version is a success with `tiers: []` and `op: null`.
+ 
+ A **refusal** throws four members, and the address the act wrote is as it stood before the refused act:
+ 
+diff --git a/docs/guides/package-use.md b/docs/guides/package-use.md
+index 0bc3a95..e472eb5 100644
+--- a/docs/guides/package-use.md
++++ b/docs/guides/package-use.md
+@@ -30,7 +30,7 @@ preflight REFUSES when these two lines do not read what it computed** (`scripts/
+ one check, read-only). **THE TWO LINES ARE THIS GUIDE'S OPERATIVE FIGURES; every dated paragraph below is the
+ reading of its own date and is read through them.**
+ 
+-PUBLISH-GUIDE-VERSION-LINE: THE VERSION THIS GUIDE DESCRIBES IS `1.13.0`.
++PUBLISH-GUIDE-VERSION-LINE: THE VERSION THIS GUIDE DESCRIBES IS `2.0.0`.
+ PUBLISH-GUIDE-CUT-STATE: NOT STATED -- this document describes the behaviour at the version line above, and the cut-state is the release's to state, not a shipped document's (`D-57`).
+ 
+ **⟶ AND THE CUT-STATE SENTENCE ABOVE IS WITHDRAWN, 2026-10-28 — THE CUT-STATE IS NOT A DOCUMENT'S TO STATE.** `RCA-8(g)` ANNOTATE-BESIDE, and the architect's ruling verbatim (`strata/decisions.md` · `D-57`): *"Drop the cut-state."* **The two marked lines above stand BYTE-FOR-BYTE as the reading of their own date and are read THROUGH this clause — not one byte of either is deleted — and the sentence this clause withdraws is the SECOND of them, the one that claims to say whether the release this guide travels in is cut.** **THE REASON IS MEASURED, THREE TIMES OVER, AND IT IS STRUCTURAL RATHER THAN A MISTAKE: A SHIPPED DOCUMENT IS SEALED BEFORE THE TAG THAT MAKES ITS CUT-STATE TRUE**, so every release packed before its tag ships a document denying itself, and a guard running in that release's own preflight can only ever confirm *"not cut"* — `1.2.0` shipped *"NOT CUT"*, `1.3.0` shipped *"`v1.3.0` DOES NOT EXIST"*, and the change list's head was stale within minutes of the tag that falsified it. **SO THE CUT-STATE SENTENCE IS DROPPED AS A CLAIM AND THE VERSION LINE STAYS**, because the version line is the ONE figure a tarball can be right about: the manifest knows it and travels beside it. **`scripts/publish.sh --figures` GENERATES AND ASSERTS THE VERSION LINE AND NOTHING ELSE** — the cut-state generation and its assertion are removed in the same act, so a tag set that moves can no longer redden this guide — **and the same one line is asserted in THREE shipped documents: this guide, `README.md` beside it, and the change list** (`DEF-AC`'s remaining demand, *"guard the release notes too"* and *"`README.md` still declares no version at all"*). **THE TAG SET IS NOT DELETED AND NOT DENIED: it is a RECORD OF RELEASES held in the change list, PAST TENSE — a list of what has been cut — and never a claim about the current one.** **AND WHAT THIS CLAUSE DOES NOT SAY, SAID PLAINLY BECAUSE A READER WILL LOOK FOR IT: it does not say whether the version this guide prints is cut.** That is not a document's to state; the record of what has been cut is in `RELEASE-NOTES.md`, and the registry is the registry.
+@@ -534,7 +534,7 @@ guide's constraint story that is not yet observable.
+ 1. **`journalLength` IS THE WIDTH OF THE COMPENSATION WINDOW AND IT IS NOT A RETENTION PROMISE.** What survives is the base state — the register at the last compression — **plus at most `journalLength` uncompacted ops**, and **an op the compaction reaches is REMOVED: its entry is gone and its op id is gone with it** (`D-160` items 1–2). **So the `opId` a write answered is a token whose lifetime is measured in WRITES and not in the store's life, and a program that keeps op ids for a long time keeps ids the journal no longer holds.**
+ 2. **THE ID THAT WAS DROPPED AND THE ID THAT NEVER EXISTED ARE TOLD APART, AND THEY DO NOT ANSWER THE SAME.** An id that named an op the compaction **dropped** names a **recoverable** history and is never answered as unknown; **an id that never named an op — a fabricated `'op-999999'`, a malformed `'op-'`, a token another store minted — answers `JournalOpUnknown`**, because no compaction can have dropped what never stood there (`D-160` item 3; `D-164` item 4: the watermark separates a recoverable history from a client error, and it is one number and not a retained list).
+ 3. **WHAT A `rollback` OF A DROPPED OP DOES DEPENDS ON ONE THING — WHETHER YOUR STORE CAN READ A FILE BACK.** **With a `filePath`** whose image the store can read — **and where no image stands, the state the store was created with — the store REBUILDS its base from that file, replays what its journal still reaches, and the call RETURNS a record: no refusal is involved.** `undoneOps` is `[]`, because nothing was undone — **the entry the call named is gone** — and `restoredTo` is the register as it stands after the rebuild (`D-164` items 1–2). **With NO READ PATH — a `saveCall` store, whose channel is write-only by construction, and any `mem` store — the call THROWS `RollbackCompacted`**, and **that token is a SIGNAL and not a verdict on you: recover the value from the copy you kept**, because such a store cannot retrieve its own durable ground truth even in principle (`D-165` items 1–3).
+-4. **AND NOTHING ELSE ABOUT A REFUSAL MOVES BY THIS CLAUSE.** A `rollback` still appends no journal entry, the mark a refusal's compensation names is still the commit's opening mark or the last state a pass validated (`D-63`'s clause above), and **`record.compacted` still reads `false` on every write's record** — a declared member with a constant, because the mark is not the mechanism (`D-160` item 4; `D-180`).
++4. **AND NOTHING ELSE ABOUT A REFUSAL MOVES BY THIS CLAUSE.** A `rollback` still appends no journal entry, and the mark a refusal's compensation names is still the commit's opening mark or the last state a pass validated (`D-63`'s clause above). **⟶ AND THE THIRD THING THIS ITEM SAID IS WITHDRAWN AT ITS OWN BYTE, 2026-11-17: *"`record.compacted` still reads `false` on every write's record — a declared member with a constant"* IS NO LONGER TRUE, BECAUSE THE MEMBER IS GONE** (`strata/decisions.md` · `D-189` item 2, the architect VERBATIM: *"If .compacted is always false drop it"*). **A declared member with a constant is exactly what the ruling refused**: the store set the flag `false` at both of its producers, so it carried nothing, and the distinction it once shared — *an op this store compacted* against *an op this store never held* — is carried by the `journal_floor` watermark instead (`D-160` item 3), which answers `RollbackCompacted` and `JournalOpUnknown` as two different refusals without a per-op bit. **SO `record.compacted` NO LONGER READS ANYTHING**: the write's record carries **SEVEN** members — `{ opId, kind, address, tier, before, after, seq }` — the key is absent, and reading it gives you `undefined`. **It is REMOVED, not renamed and not deprecated**; the release that carries it is `2.0.0` because a published declaration member left the surface (`D-190`).
+ 
+ **THE MOVE, IN ONE SENTENCE, SO YOU CAN TELL WHICH BEHAVIOUR YOUR VERSION HAS: BEFORE THIS LANDING THE CAP WAS A MARK — the oldest entries were FLAGGED and kept for the store's life, and the flag was what told a reversal it had gone past the floor; FROM THIS LANDING THE CAP IS A BOUND — the oldest entries are REMOVED, memory is `O(store + journalLength)` instead of growing with every write ever made, and the two answers are told apart by one number rather than by a retained list.** (`D-160` items 1–2; `D-164`; `D-165`; `tests/e2e/journal-compaction.test.mjs`; `tests/e2e/journal-retention-floor.test.mjs`.)
+ 
+@@ -717,7 +717,11 @@ itself** (§7.9's item 4, where the reason is given: the act's address is the st
+ position moved is the caller's question).
+ 
+ - **`write` answers `{op, watched, triggered}`** (`index.d.ts`, `WriteRecord`). **`op` is the store's own journal
+-  record and not a number** — `{opId, kind, address, tier, before, after, seq, compacted}` — and **the op's
++  record and not a number** — `{opId, kind, address, tier, before, after, seq}` — and **the op's
++  `compacted` member that this line printed until 2026-11-17 is REMOVED** (`strata/decisions.md` · `D-189` item 2:
++  *"If .compacted is always false drop it"* — a member that can hold one value carries nothing; the discrimination it
++  shared is the `journal_floor` watermark's, `D-160` item 3; the record carries SEVEN members and the removal is why
++  this release is a `MAJOR`, `D-190`) — and **the op's
+   `opId` is a string** and is the token `rollback` accepts (`index.d.ts`, `JournalOp`). **`watched` carries
+   ADDRESSES where `triggered` carries pairs — two types on purpose, so a call site cannot confuse the two lists**
+   (`index.d.ts`, `WriteRecord`; `write-and-read.md §3.5`).
+@@ -828,7 +832,9 @@ THIS IS A CLAIM ABOUT WHAT CROSSES AND IT MUST BE PRINTED RATHER THAN ASSUMED.**
+ whose body writes `['b'] = 'bad'`, and a constraint at `['b']` that refuses `'bad'` with
+ `{message: 'b may not be bad'}`. **WHAT THE DRIVE PRINTED, RAW:**
+ 
+-- **THE CALLER'S `store.write(['a'], 'mem', 1)` ANSWERED NORMALLY** — `{op: {opId: 'op-1', kind: 'write', address:
++- **⟶ THE PRINT BELOW IS THE READING OF ITS OWN DATE AND STANDS BYTE-FOR-BYTE; IT CARRIES A `compacted` KEY THE
++  RECORD NO LONGER HAS** (`D-189` item 2 removes the member; the drive was taken 2026-10-30). **THE CALLER'S
++  `store.write(['a'], 'mem', 1)` ANSWERED NORMALLY** — `{op: {opId: 'op-1', kind: 'write', address:
+   ['a'], tier: 'mem', before: {present: false}, after: {present: true, value: 1}, seq: 1, compacted: false},
+   watched: [['a']], triggered: [{handle: 'watch-a', address: ['a']}]}` — **no refusal, no status and no `log`
+   member: nothing of the listener's outcome crossed.**
+@@ -1279,7 +1285,7 @@ store.read(['b']);   // 11 — where the repair landed, inside the commit it is
+ 
+ **WHAT THE EXAMPLE SHOWS, IN THE ORDER THE MACHINERY RUNS IT.** **Your constraint returns ONE object literal carrying both members** — `message` the refusal's sentence, `repair` a function — so both instants read the same pair. **The repair runs with ITS OWN RECORD, makes its OWN `write` at `['b']` with that record in the fourth position, and RETURNS `{ ok: true, op: landed.op }`: the store's own record of the write it just made, never a number and never a record you assembled yourself.** **And the credit is visible to you:** `written.op` is that same op — in the drive named below, `{"opId":"op-3","kind":"write","address":["b"],"seq":3,…}` — **so the op the repair returned IS the op its own edit produced, which is what makes the re-run come back through that op's own landing and hand your body the value the repair landed (`11`) while the address your pair judges still stands at `2`.** **The write answers its record because that re-run passes; a repair that returned an op it did not land fails `KC-4` instead.** **Note what is NOT in the block: no type annotation, no new symbol, no import the guide does not already publish (`§3`), and no fourth outcome arm.**
+ 
+-**MEASURED 2026-10-30, on this checkout, through the published entry (`bindings/js/index.mjs`), on the block above's exact bytes:** the write's own record carries `op` `{"opId":"op-3","kind":"write","address":["b"],"tier":"mem","before":{"present":false},"after":{"present":true,"value":11},"seq":3,"compacted":false}`, `store.read(['a'])` answers `2` and `store.read(['b'])` answers `11` — **so the repair was READ, its edit LANDED at the beside address, and its op was CREDITED.** **That drive is a measurement of the landing pass and not a committed test**; the package's own suite drives this arm at `tests/e2e/repair-in-commit.test.mjs`.
++**MEASURED 2026-10-30, on this checkout, through the published entry (`bindings/js/index.mjs`), on the block above's exact bytes — AND THE `compacted` KEY IN THE PRINT IS THE READING OF ITS DATE, THE MEMBER BEING REMOVED FROM `2026-11-17` BY `D-189` ITEM 2:** the write's own record carries `op` `{"opId":"op-3","kind":"write","address":["b"],"tier":"mem","before":{"present":false},"after":{"present":true,"value":11},"seq":3,"compacted":false}` — **the record today prints `{"opId":"op-3","kind":"write","address":["b"],"tier":"mem","before":{"present":false},"after":{"present":true,"value":11},"seq":3}`, seven members and no eighth** — `store.read(['a'])` answers `2` and `store.read(['b'])` answers `11` — **so the repair was READ, its edit LANDED at the beside address, and its op was CREDITED.** **That drive is a measurement of the landing pass and not a committed test**; the package's own suite drives this arm at `tests/e2e/repair-in-commit.test.mjs`.
+ 
+ **(1) WHAT CROSSED.** **A repair's answer that the credit check does not admit FAILS THE ATTEMPT, and what your caller catches is the refusal crossing as the set's rank-`20` member `ConstraintPassRefused`, with the kernel's token `KC-4` riding the TERMINAL entry's `state`** — `KC-4` is the kernel's repair-failed token (`bindings/js/src/entry/kernel-foundations.mjs:62`), the crossing and the token's seat are declared at `docs/specs/storeroom-js/surface.md:2079`, and the repair-body path that answers it prints at `docs/specs/storeroom-constraints/contract.md:557`. **This clause names `KC-4` and declares no member of any set.**
+ **(2) WHAT THE REFUSAL SAYS — THREE MESSAGES REACH THE ARM AND THE COPY BELOW IS THE FALL-THROUGH'S ALONE.** **The message a `KC-4` refusal carries is drawn from ONE OF THREE SOURCES, the choice among them standing at `bindings/js/src/entry/kernel-attempt.mjs:878`-`:883`: where `ok` is `true` and the op the return names is defective, the kernel's own OP-IDENTITY SENTENCE, which stands at `bindings/js/src/entry/kernel-foundations.mjs:1139`-`:1150` and which this clause NAMES AND NEVER QUOTES; where `ok` is `false` and the return's `message` is a non-empty string, THE CALLER'S OWN `message`, which is no kernel sentence at all, so a caller holding a `{ok: false, message}` refusal is holding THEIR OWN WORDS and not the copy below; and, on the remaining arm, the `produced no op` template at `bindings/js/src/entry/kernel-attempt.mjs:883`, COPIED ON 2026-11-01 FROM THAT ONE LINE, template literal and interpolations included, character for character:**
+diff --git a/docs/specs/storeroom-js/contract.md b/docs/specs/storeroom-js/contract.md
+index 87355ce..be1dedb 100644
+--- a/docs/specs/storeroom-js/contract.md
++++ b/docs/specs/storeroom-js/contract.md
+@@ -620,7 +620,7 @@ by that same bounded amendment** (`[A1 docs/specs/storeroom-js-proposal-review.m
+ | **`DD-37`** | the unit's own choice — the READ's tier argument spelling on the JS side | **`read(address, tier?)` and `readLiteral(address, tier?)` accept the store's own two spellings — one token or an array of tokens — verbatim, and the package neither normalizes nor validates them** | `§2.2`; `parameter-semantics.md` `PAR-JS-6` | a normalized tier spelling; a pre-validated tier; an array flattened or de-duplicated by the package | `P-SR-8` | **accepting only a single token on read** — priced: it would make the store's own any-match set unreachable from JS and would narrow a declared parameter's domain; available with a fresh ruling | a bounded amendment of `docs/specs/storeroom-js/` |
+ | **`DD-38`** | the unit's own choice — the PACKAGE's own JS runtime floor | **the package declares `"engines": { "node": ">=18.0.0" }`, which is the floor the Node-API carrier's own version needs and not a floor this unit measures** | `package.md §1.4` | an unbounded engine floor; a floor justified by a measurement this pass did not take; an Electron-specific floor | `P-SR-7`'s `S-LOAD` (the floor is a property of the one claimed entry's own boot) · **as filed: `P-TP-9` — reconciled 2026-10-11, a NINTH row the cap forbids, and its subject is `P-TP-7`'s** | **a higher floor (`>=20`)** — priced: it would exclude consumers the carrier itself serves, and the version is a declaration rather than a measurement; available with a bounded amendment | a bounded amendment of `docs/specs/storeroom-js/` |
+ | **`DD-38`** — **RE-DERIVED 2026-11-17 AT ITS OWN CELL ON `D-127`, AND ITS FIGURE IS THIS PASS'S PROPOSAL BECAUSE THE RULING NAMES NONE** (`role_l1_architect`; `RCA-8(g)`: **the as-filed row above stands BYTE-FOR-BYTE and is read THROUGH this row, which re-derives three of its cells and re-emits no other cell — the two rows are ONE ROW, ONE ID, ONE PROPERTY AND ONE REVERSAL POINT**) | the unit's own choice — the PACKAGE's own JS runtime floor, re-derived: the anchor moves from the CARRIER to the LOADER | **`What it pins`, RE-DERIVED: *"the package declares `"engines": { "node": ">=22.12.0" }`"* — **PROPOSED BY THIS PASS AND THE ARCHITECT'S TO CORRECT** — *"which is `max(carrier floor, loader floor)`: the loader's, because `require(esm)` is unflagged only from `Node 20.19.0` / `Node 22.12.0` (and `23.x`+), and the carrier's is lower and unnamed (`DD-29`: the package declares NO Node-API version floor of its own, and the facade's highest-referenced class is Node-API version 6, `Node 12.17.0`/`10.20.0`, at `bindings/js/build.rs:35`–`:36`), so the floor is a floor the LOADER sets and the carrier does not contest"* | — | **`What it REFUSES`, RE-DERIVED: an unbounded engine floor; a floor justified by a measurement this pass did not take (the `20.19`/`22.12` figure is CARRIED — `strata/research.md` §20.3's `K-15` — and no byte of this directory carried it before this clause); an Electron-specific floor; **AND, ADDED: a floor that ADMITS a version where the declared `require` route is flagged** | — | **`alt`, RE-DERIVED: *"a higher floor (`>=20`)"* — **SELECTED BY `D-127` AND THEREBY NO LONGER AN ALTERNATIVE**, and its refusal ground (*"it would exclude consumers the carrier itself serves"*) is **WITHDRAWN AT THE RULING'S OWN WORDS** (*"there's no backwards compatibility concerns"*). **The alternatives this pass prices and does NOT take are `">=20.19.0"` — priced: it admits `21.x` and `22.0`–`22.11`, which sit above `20.19` yet below `22.12` and lack the feature, so the declaration would be FALSE INSIDE ITS OWN DOMAIN — and the disjunction `"^20.19.0 || >=22.12.0"` — priced: it serves the `20.19`+ line exactly, at one disjunction in a field whose every other value in this tree is one comparator set, and at protecting a line `D-127` declares need not be protected. **BOTH ARE PUT TO THE ARCHITECT; the figure is his** (`D-127` item 1) | — |
+-| **`DD-39`** | the unit's own choice — the JS SIDE'S SPELLINGS of the store's returned records | **the store's returned records cross as fresh JS objects with the store's OWN member names: `WriteResult` → `{ op, watched, triggered }`, `DeleteReceipt` → `{ address, tiers, triggered }`, `JournalOp` → `{ opId, kind, address, tier, before, after, seq, compacted }`, `BaseState` → `{ present, value }`, `RollbackResult` → `{ opId, undoneOps, restoredTo }`, and a tier crosses as the STRING token `'file'|'mem'|'temp'`** | `crossing.md §1.3`'s returned-record rows; `parameter-semantics.md` `§2.13`–`§2.16` | a renamed member; a camel-cased re-spelling of `opId`; a numeric index for a tier; an opaque wrapper for a record | `P-SR-1` (the round trip, under the declared relation) · **as filed: `P-IM-1`; `P-TP-9` — the `P-TP-9` half reconciled 2026-10-11, a NINTH row the cap forbids, and its subject is `P-IM-1`'s** | **a camel-casing pass over the store's member names** — priced: `opId` is the store's own declared spelling (`docs/specs/storeroom-native/contract.md §0.4`) and a re-spelling would make the contract's own spelling table and the JS surface disagree; available with a fresh ruling | a bounded amendment of `docs/specs/storeroom-js/` |
++| **`DD-39`** | the unit's own choice — the JS SIDE'S SPELLINGS of the store's returned records | **the store's returned records cross as fresh JS objects with the store's OWN member names: `WriteResult` → `{ op, watched, triggered }`, `DeleteReceipt` → `{ address, tiers, triggered }`, `JournalOp` → `{ opId, kind, address, tier, before, after, seq, compacted }` — **⟶ AND THE LAST NAME IS REMOVED FROM THIS ROW'S SPELLING FROM 2026-11-17, SO THE CROSSED RECORD IS SEVEN NAMES `{ opId, kind, address, tier, before, after, seq }`** (`strata/decisions.md` · `D-189` item 2, the architect VERBATIM: *"If .compacted is always false drop it"*): **the member left the store's own record and the declaration (`bindings/js/index.d.ts`), so the crossing has none to carry, and the row's own falsifier *"a renamed member"* is unmoved while its member LIST moves `8 → 7`** — the class is `MAJOR`, `2.0.0` (`D-190`). `BaseState` → `{ present, value }`, `RollbackResult` → `{ opId, undoneOps, restoredTo }`, and a tier crosses as the STRING token `'file'|'mem'|'temp'`** | `crossing.md §1.3`'s returned-record rows; `parameter-semantics.md` `§2.13`–`§2.16` | a renamed member; a camel-cased re-spelling of `opId`; a numeric index for a tier; an opaque wrapper for a record | `P-SR-1` (the round trip, under the declared relation) · **as filed: `P-IM-1`; `P-TP-9` — the `P-TP-9` half reconciled 2026-10-11, a NINTH row the cap forbids, and its subject is `P-IM-1`'s** | **a camel-casing pass over the store's member names** — priced: `opId` is the store's own declared spelling (`docs/specs/storeroom-native/contract.md §0.4`) and a re-spelling would make the contract's own spelling table and the JS surface disagree; available with a fresh ruling | a bounded amendment of `docs/specs/storeroom-js/` |
+ | **`DD-40`** | the unit's own choice — the BINDING's error path when the store returns a code outside the closed set | **the binding maps a code outside the `16`-member set (RE-SPELLED 2026-10-15 BY THE `RCA-9` FILE-TIER-SAVE PASS — the `15` this cell printed is the set's count before its sixteenth member, `ConstraintListInvalid`; the cell's own rule is UNMOVED) to a thrown `{status, message}` whose `status` is the received token VERBATIM and whose `message` is generated by the store's own `storeErrorMessage`; the package MINTS NO CODE and throws NO code of its own** | `§2.5`; `surface.md §5` | a package-minted code; a silently swallowed non-member; a re-mapped code | `P-SR-3` (the failure channel's single form, and the closed set's reachability with no package-minted code) · **as filed: `P-TP-9` — reconciled 2026-10-11, a NINTH row the cap forbids, and its subject is `P-IM-3`'s** | **throwing a package-owned `UnknownFailure` code** — priced: it adds a token outside the store's closed set, which the store's own contract calls *"a contract violation, not an extension of the set"*; available with a fresh ruling | a bounded amendment of `docs/specs/storeroom-js/` |
+ | **`DD-41`** | the unit's own choice — the HANDOFF rows' ids | **the `HO-` family is minted here as `HO-1`…`HO-7`, one row per unclaimed realm and one for the IPC route, and the tracker rows the `HO-` duties land in are written by the TRACKER gate and not by this pass** | `§9`; `package.md §2` | a handoff duty discharged as a patch; an unnumbered handoff; a handoff row without a positive revisit condition | `P-SR-7`'s `S-HO` (one drive per `HO-` row: the package exposes no entry for the realm) · **as filed: `P-TP-9` — reconciled 2026-10-11, a NINTH row the cap forbids, and its subject is `P-TP-7`'s** | **deferring the `HO-` ids to the tracker gate** — priced: the realm clause would then print unnumbered duties, which `AR-7` forbids; available with a fresh ruling | a bounded amendment of `docs/specs/storeroom-js/` |
+ | **`DD-42`** | the unit's own choice — the PUBLISH step's TRIGGER and versioning policy | **the prebuild matrix is produced on a release TAG of the form `v<major>.<minor>.<patch>`, the package's `version` is that tag's, and NO publication happens from an untagged commit** | `package.md §3.3` | a publish from a branch; a version bumping on every commit; a prebuild matrix produced by hand | `P-SR-7`'s `S-LOAD` (the tagged artefact is what the one claimed entry loads) · **as filed: `P-TP-9` — reconciled 2026-10-11, a NINTH row the cap forbids, and its subject is `P-TP-7`'s** | **publishing from `main`'s head on every merge** — priced: an artefact with no identity to name and no reproducible tag to rebuild from, while the store's own plan cites reproducibility as its build's property; available with a bounded amendment | a bounded amendment of `docs/specs/storeroom-js/` |
+@@ -2188,7 +2188,7 @@ properties below are its elaboration.**
+ 4. **MEASURED ON THIS TREE, THROUGH THE PUBLISHED ENTRY, 2026-10-29.** **A listener at `['a']` whose body writes
+    `['b'] = 'bad'`, against a constraint at `['b']` refusing `'bad'`: the caller's `write(['a'], 'mem', 1)`
+    answered normally — `{op: {opId: 'op-1', kind: 'write', address: ['a'], tier: 'mem', before: {present: false},
+-   after: {present: true, value: 1}, seq: 1, compacted: false}, watched: [['a']], triggered: [{handle:
++   after: {present: true, value: 1}, seq: 1}, watched: [['a']], triggered: [{handle:
+    'watch-a', address: ['a']}]}`, **no status and no `log`** — while **the listener's own write was refused
+    `ConstraintPassRefused` INSIDE the listener**, `['b']` read **ABSENT** afterwards, and **the control arm's
+    direct caller write at `['b'] = 'bad'` WAS refused with the same status and the same message.** **AND THE
+diff --git a/docs/specs/storeroom-native/contract.md b/docs/specs/storeroom-native/contract.md
+index c56e756..e113507 100644
+--- a/docs/specs/storeroom-native/contract.md
++++ b/docs/specs/storeroom-native/contract.md
+@@ -477,7 +477,7 @@ bounded amendment — the gate-4 adversarial pass's `CL-3` | CONTRACT]`).
+ | **`DD-19`** | `J-62` — a contradicting write's code and residue | a write whose JSON top-level kind contradicts the target container fails **`ContainerKindConflict`**, and the failed write leaves **the container, the node and the journal UNTOUCHED** — no journal entry is appended for a failed write | `§8.1`, `§3.4`, `§6.4` | a mutation before the kind check; a journal entry for a failed write; a distinct code per direction (both directions share the one code) | `P-SM-4`; `P-TP-9` | **a direction-specific code pair** — priced: two codes would observe one rule (`A22` names one failure for both directions), and a caller cannot act differently on the two | a bounded amendment |
+ | **`DD-20`** | `J-63` — a partial rollback's availability | a rollback is addressed by **op id** and is **TOTAL over its scope** — it undoes **every** un-compacted operation touching the same subtree; **no partial/subset rollback is available and none is declared** | `§6.4` | a subset rollback; a per-op rollback; a rollback by address or timestamp | `P-TP-8` | **a subset rollback** — priced: `A35`'s scope is *"every operation touching the same subtree"*, and a subset would need a selection rule no ruling supplies | a fresh ruling + amendment |
+ | **`DD-21`** | `J-64` — what *"the same subtree"* is measured against | the rollback's scope is measured against **the written address's own subtree**: an operation is in scope iff **its address has the rolled-back write's address as a prefix** (itself or a descendant), at **any** tier | `§6.4` | a store-wide rollback; a scope measured against the failing operation alone | `P-TP-8` | **a store-wide rollback** — priced: it would undo operations in unrelated subtrees, which `A35`'s *"the same subtree"* forbids | a fresh ruling + amendment |
+-| **`DD-22`** | `J-66` — the op's concrete record shape and its id's type | `JournalOp` is the record of `§6.2`: **`opId: string`** (the id's type) · `address` · `tier` · `before` (the enough-to-reconstruct snapshot) · `after` (enough-to-resolve-the-current-state) · `seq: number` · `compacted: boolean` | `§6.2` | an opaque handle; an id of a numeric or object type; an op without its two state halves | `P-TP-8` | **an opaque handle** — priced: `P: §15 · A37` requires the op to *"store enough data to reconstruct the original tree and resolve the current state"*, which an opaque handle cannot be shown to do | a bounded amendment |
++| **`DD-22`** | `J-66` — the op's concrete record shape and its id's type | `JournalOp` is the record of `§6.2`: **`opId: string`** (the id's type) · `address` · `tier` · `before` (the enough-to-reconstruct snapshot) · `after` (enough-to-resolve-the-current-state) · `seq: number` — **⟶ SEVEN MEMBERS AND NOT EIGHT FROM 2026-11-17: this row's `compacted: boolean` is REMOVED from the closed shape by `strata/decisions.md` · `D-189` item 2** (*"If .compacted is always false drop it"*: a member whose two producers both set `false` carries nothing, and its subject is the `journal_floor` watermark's, `D-160` item 3), **so the row's own falsifier set loses *"an op without its two state halves"* no member and gains the removed one's absence; the class that pays for it is `MAJOR`, `2.0.0` (`D-190`)** | `§6.2` | an opaque handle; an id of a numeric or object type; an op without its two state halves | `P-TP-8` | **an opaque handle** — priced: `P: §15 · A37` requires the op to *"store enough data to reconstruct the original tree and resolve the current state"*, which an opaque handle cannot be shown to do | a bounded amendment |
+ | **`DD-23`** | `J-27` · `J-28` · `J-67` — the listener's attachment rule, the alerted list's order, and a throwing body | **NOT SPECIFIED BY THIS CONTRACT — PARKED.** This contract declares only that the store **tracks registrations** keyed by the **watched address** and returns the list of **distinct watched addresses** whose registration is in the descendant-inclusive scope of the write (`DD-18`), with **`watch` returning an opaque registration handle**; **the order of the returned list, the attachment-by-identity rule, the firing mechanism, the callback invocation, the JS-facing surface and a throwing body's disposition are `P-3`'s** | `§6.5` | any contract clause on order, identity attachment, firing or throw behaviour; a store-side callback invocation | `P-TP-8` (the list's *membership* only — the order is not observable here) | **an ordered, callback-invoking surface** — priced: it is the `P-1` crossing (`A7`'s *"so that node can instruct"*), and a park read as a closure is a finding; **the row's subject also stands in `docs/pending.md` `P-3`'s park, whose lift is the architect's act (`R: §17.1`) — the park is stated in this cell and NEVER as the reversal instrument** | **the preamble's own instrument: a fresh ruling recorded as an ACTIVE `docs/decisions.md` row, followed by a bounded amendment of this contract** (`A: docs/decisions.md · A38`·`A39`; `P: §10 · A8`) — **which also lifts `P-3`, the lift being the architect's act and never a pass's** |
+ | **`DD-24`** | the contract's own choices, declared so they are not silent | **(a)** this document's prefix `D-GP-SNST` and its three id families are **this contract's own mint** (`P: §1`'s *"owed by the spec gate"* clause); **(b)** a failure is delivered by **`throw` of the `StoreError` of `§8.3`**, never as a returned tagged union; **(c)** the address segment domain is the **strict** one of `§1.5`; **(d)** the address is supplied as a **JS/JSON array**, *"containing the path to walk through the tree"* (`P: §1`), and **not as a delimited string**; **(e)** a node's value is admitted by the **taxonomy of `§1.4`** | `§1.4`, `§1.5`, `§8.3` | a second prefix; a returned-union error channel; a permissive segment coercer; a string address; an unadmitted value class | `P-TP-9`; `P-IM-1` | its alternative, priced: **MOVED OUT 2026-10-16 — it stands at `backup/RCA-8D-CONVERSION-2026-10-16-superseded.md §1`, whose source path and line range are named there; the retired `§RCA-8(d)(1)` clause address is the finding `A129` (3) declares** (one-line `RCA-8(g)` pointer) | a bounded amendment |
+ 
+@@ -715,7 +715,7 @@ clause under it are the operative statement of the table's size**; the finding's
+ | **`DD-47`** | the residual it carries: **MOVED OUT 2026-10-16 — it stands at `backup/RCA-8D-CONVERSION-2026-10-16-superseded.md §1`** (one-line `RCA-8(g)` pointer) | **THE COMPOSITE KEY'S SECOND HALF IS A MAP FROM THE TIER TO THE ONE CHILD ANCHOR AT THAT PAIR, for BOTH container kinds** — **so `A34`'s *"at most one child anchor per key/index and tier"* is a property of the STRUCTURE rather than a rule a lookup must enforce: a pair holds ONE reference or NONE, and the same inner shape serves a `MAP`'s key and a `VEC`'s index.** **The inner table is the CONTAINER's own, its key being the tier because the tier IS the composite key's second half** (`§1.2`'s child-anchor row; `§1.7`), **and no node, link or anchor carries a per-tier table of its own.** **The OUTER container is `A22`'s and UNMOVED by this row** (`F-5`/`F-7`/`F-8`: *"hashmap xor vec"*, decided at write, inferred on read) | `§1.2`; `§1.3`; `§1.7`; `§5.4`'s `P-SM-4` (`(b)`'s pair-count arm); `DD-8`; `DD-10`; `P: §15 · A34`; `P: §13 · A22` | **an inner table that ADMITS TWO anchors at one pair** (the bound would move off the structure into a search); **a per-node `Tier` member or a tier-typed node kind** (`§1.7`: the tier is a property of the ANCHOR); **a second inner table keyed by anything but the tier**; **an inner key spelling that re-types `Segment` or widens `§1.5`'s domain** | **`P-SM-4`** (the pair count does not grow at an equal tier, and no pair is occupied twice) **+ `P-IM-3`** (`S-STRUCT`: every minted node reachable by exactly one address path, which a two-anchor pair would break) | **ONE FLAT LIST OF `(key, tier, reference)` TRIPLES WITH A LINEAR SEARCH PER LOOKUP** — priced: the search is the per-datum cost the RCA measured (`docs/specs/storeroom-js-rca-scaling.md` `§4`: `Σ k ≈ n²/2`), and `A34`'s bound would then be enforced by CODE rather than carried by the structure, so a lookup's ANSWER could be right while the structure contradicts the ruling's own stated purpose | a bounded amendment of this contract (the inner table's type is this contract's own to state) |
+ | **`DD-48`** | **`U-2` — `Store::register_ref`, the second field naming the register** — *"a second field naming the register, which `A41`/`A18`'s component model does not carry"* (the sweep's `F-4a`, `PARTIAL`/`MINOR`, owner the implementer) | **THE REGISTER'S OWN IDENTITY IS CARRIED BY ONE CRATE-INTERNAL FIELD OF THE STORE — an INDEX into the instance's own reference arena, naming the reference the register's parent anchor stands at — beside the declared register component: a SPELLING of `A18`'s *"the register acts as a link"* and NOT a sixth component, NOT a second register, NOT addressable, NOT returned and NOT a member of any record.** **`L-0`'s own answer stays the contract's ONE observable of the register's identity, and this field is the structure that produces it** | `§1.6` items 3–4; `§1.7`'s five-component closure; `§2.1`/`§2.2`'s `L-0`; `P: §8 · A41`; `P: §12 · A18`; `P: §13 · A25` | **a SIXTH data structure** (the store's closure stands at five); **a second register**; **a field any caller, verb, read or record can reach**; **a register whose identity exists only as the answer to a walk at `[]`, with no field recording it between two calls**; **a register reference that moves off the register's own parent anchor** (`DD-34`'s fixity) | **`P-IM-3`** (`S-STRUCT`'s CLOSURE pass: no address answers a sixth structure) **+ `P-TP-7`** (the register-reference cell: `findAddress([], t)` answers the register's own reference and its creation-fixed tier) | **HOLDING NO FIELD AND RESOLVING THE REGISTER BY WALKING `[]` AT EVERY USE** — priced: it puts a walk on every registration, trigger, purge, rollback and read-at-`[]` path, which is the lookup count `A45`'s ONE home exists to bound, and it leaves the register's identity unrecorded between two calls; available with a bounded amendment | a bounded amendment of this contract (the carrier's shape is this contract's own to state) |
+ | **`DD-49`** | **`U-3` — `Link::is_register`, the registry carried as a FLAG on a link** — *"no ruling declares a register record or a marker of this shape"* (the sweep's `F-4a`) | **THE REGISTER'S CARRIER LINK CARRIES ONE BOOLEAN MARKER IDENTIFYING IT AS THE REGISTER'S OWN LINK** (`A18`'s *"acts as a link"*), **TRUE on EXACTLY ONE link in a store and FALSE on every other; and it AGREES with the reference-side `register_marker` — both TRUE on the register's own pair alone and nowhere else.** **Neither marker is a node kind, a container kind or a `Segment` variant, so `§1.5`'s closed segment domain and `§1.7`'s five components are UNMOVED** | `§1.6` items 3–4; `§1.7`; `§1.2`'s `ChildAnchor` row; `§0.4`'s `NodeRef`/`ChildAnchor` marker clauses; `DD-44`; `P: §13 · A18` | **a `registry` RECORD TYPE or a SIXTH NODE KIND minted for the register** (which would put it outside `§1.7`'s five and make `A18` unreadable); **a marker TRUE on more than one link**; **the link-side and reference-side markers DISAGREEING in one store**; **a marker read off a node kind or a container kind**; **a marker reachable through any address, read or record** | **`P-IM-3`** (`S-STRUCT`'s CLOSURE pass: the register is reached by no segment) **+ `P-TP-7`**'s register-reference cell (the reference-side marker and the register's own tier) | **A DISTINCT REGISTER NODE KIND** — priced: it puts the register outside `§1.7`'s five components, gives every link-walking path a second arm, and makes `A18`'s *"the register acts as a link"* false of the structure it rules; available with `§1.7` re-read | a fresh ruling recorded as an ACTIVE `docs/decisions.md` row, followed by a bounded amendment (the marker's shape is a ruling's silence) |
+-| **`DD-50`** | the residual it carries: **MOVED OUT 2026-10-16 — it stands at `backup/RCA-8D-CONVERSION-2026-10-16-superseded.md §1`** (one-line `RCA-8(g)` pointer) | **THE JOURNAL'S ENTRY CARRIES, BESIDE THE DECLARED `JournalOp`, THE PRE-STATE THE WALK-BACK RECONSTRUCTS THE OPERATION FROM — every version that stood at the operation's addressed path, transitively, each with its tier, measured from the addressed PAIR (`link` · `key`) RECORDED AT CAPTURE — TOGETHER WITH THE COMPACTION MARKS THE ENTRY'S OWN APPEND SET.** **The carrier is CARRIER-INTERNAL (`§6.1` item 2): no member of it crosses any verb, no read or `findAddress` surfaces it, and the returned `JournalOp.compacted` member is PRODUCED FROM the marks while the declared record's own eight members are unmoved** (`DD-22`) | `§6.1` items 1–2; `§6.2`; `§6.4`; `§3.5`; `§3.4` arms `W-2`/`W-6`; `DD-20`; `DD-21`; `DD-22`; `P: §15 · A37` | **an entry carrying NO pre-state** (a rollback would have nothing to reconstruct from); **a captured set or a mark list reachable through any verb, read, record or address**; **a SECOND journal record beside the entry**; **a compaction mark that moves the returned record's own member set or its `compacted` spelling**; **a pre-state measured from a pair resolved at ROLLBACK time instead of at capture** | **`P-TP-8`** (the rollback's totality over the scope `DD-21` measures, and the journal as the verb's own record) **+ `P-TP-9`** (a failed write's residue: nothing half-installed, and no journal entry for a failed write, `DD-19`) | **RECONSTRUCTING THE PRE-STATE BY RE-WALKING THE ADDRESS AT ROLLBACK TIME** — priced: the operation's own write may have RE-MINTED the anchor the walk would find (`§3.4` arms `W-2`/`W-6`), so the walk-back would reconstruct a tree that never stood at that path; available with `A35`'s scope re-read | a bounded amendment of this contract (the carrier's shape is this contract's own to state) |
++| **`DD-50`** | the residual it carries: **MOVED OUT 2026-10-16 — it stands at `backup/RCA-8D-CONVERSION-2026-10-16-superseded.md §1`** (one-line `RCA-8(g)` pointer) | **THE JOURNAL'S ENTRY CARRIES, BESIDE THE DECLARED `JournalOp`, THE PRE-STATE THE WALK-BACK RECONSTRUCTS THE OPERATION FROM — every version that stood at the operation's addressed path, transitively, each with its tier, measured from the addressed PAIR (`link` · `key`) RECORDED AT CAPTURE — TOGETHER WITH THE COMPACTION MARKS THE ENTRY'S OWN APPEND SET.** **The carrier is CARRIER-INTERNAL (`§6.1` item 2): no member of it crosses any verb, no read or `findAddress` surfaces it, and the returned `JournalOp.compacted` member is PRODUCED FROM the marks while the declared record's own eight members are unmoved** (`DD-22`) — **⟶ READ THROUGH `D-189` ITEM 2 FROM 2026-11-17: there is no returned `JournalOp.compacted` member to produce, the record's closed set is SEVEN, and the per-entry mark list this residual's append was said to carry is itself withdrawn** (`D-160` item 4). **The residual's SUBJECT — the pre-state the walk-back reconstructs the operation from — is untouched, and the carrier stays CARRIER-INTERNAL** | `§6.1` items 1–2; `§6.2`; `§6.4`; `§3.5`; `§3.4` arms `W-2`/`W-6`; `DD-20`; `DD-21`; `DD-22`; `P: §15 · A37` | **an entry carrying NO pre-state** (a rollback would have nothing to reconstruct from); **a captured set or a mark list reachable through any verb, read, record or address**; **a SECOND journal record beside the entry**; **a compaction mark that moves the returned record's own member set or its `compacted` spelling**; **a pre-state measured from a pair resolved at ROLLBACK time instead of at capture** | **`P-TP-8`** (the rollback's totality over the scope `DD-21` measures, and the journal as the verb's own record) **+ `P-TP-9`** (a failed write's residue: nothing half-installed, and no journal entry for a failed write, `DD-19`) | **RECONSTRUCTING THE PRE-STATE BY RE-WALKING THE ADDRESS AT ROLLBACK TIME** — priced: the operation's own write may have RE-MINTED the anchor the walk would find (`§3.4` arms `W-2`/`W-6`), so the walk-back would reconstruct a tree that never stood at that path; available with `A35`'s scope re-read | a bounded amendment of this contract (the carrier's shape is this contract's own to state) |
+ | **`DD-51`** | **`U-6` — THE HANDLE-MINT'S COLLISION RULE'S NEW FORM: the handle→address INDEX inside the home** — *"`next_handle_token(&[HomeEntry])` — `DD-42`'s collision rule is a linear skip-loop, not an index over the minted set"* | what it pins: **MOVED OUT 2026-10-16 — it stands at `backup/RCA-8D-CONVERSION-2026-10-16-superseded.md §1`** (one-line `RCA-8(g)` pointer) | `write-and-read.md §6.5` item 8 (a) (the home) and item 12; `§0.4`'s `ListenerHandle` construction rule (clauses 2, 4, 5); `DD-42`; `DD-39`; `parameter-semantics.md §2.13` (`PAR-13`) | **a `listen`-minted token equal to one the home already holds**; **an index that carries listener state, that a read, a `findAddress` or a verb can reach, or that outlives the entry it names**; **a `Hash` added to `ListenerHandle` for the index's sake** (the index is keyed by the TOKEN); **an index whose membership and the home's entries can disagree** (a `triggered` list with a duplicated store-minted member, or an `unlisten` that removes an entry the caller did not name) | **`P-TP-8`** (`(a)`/`(b)`: the handle set is exactly the triggered set, with no duplicated member where the store minted the token) **+ `P-SM-4`**'s `(f)` (no change action LOSES or DUPLICATES a handle) **+ `P-TP-7`** (the construction's `2`-entries-in / `2`-entries-in-the-home cell, `DD-39`) | **THE LINEAR SKIP-LOOP OVER THE HOME'S OWN ENTRIES (the as-built form)** — priced: the mint's cost becomes a function of the home's size, so the registration path re-enters the super-linear curve the RCA measured (`docs/specs/storeroom-js-rca-scaling.md` `§4`) for an ANSWER that is IDENTICAL either way; available with a bounded amendment that restates this row | a bounded amendment of this contract (the index's form is this contract's own to state) |
+ | **`DD-52`** | **`U-7` — THE ERROR GENERATOR'S INTERNAL `Msg`** — *"a second internal argument record beside the declared `MessageArgs`"* | **THE MESSAGE GENERATOR'S ARGUMENT RECORD HAS A CRATE-INTERNAL TWIN ONE STEP CLOSER TO THE TRIGGER THAN THE DECLARED `MessageArgs`: it also carries the CONTAINER KIND where the message needs it and the ARGUMENT NAME where the trigger is an absent argument.** **It is NOT a surface item — not exported, not a second declared argument record, admitted by no verb, no record and no message — and the message is still built by the ONE generator from `§8.2`'s clause table, code by code** | `§8.2` (the generator and its `args` record); `§8.1`; `§0.4`'s `MessageArgs` row; `DD-3`; `DD-24(b)`; `§8.3` | **a second PUBLIC argument record**; **a message built outside `§8.2`'s clause table or hand-authored** (`DD-3`); **a template expansion reading a value the declared `args` record does not carry**; **the twin, or a type of its shape, crossing any boundary**; **a code whose message is produced from a second source** | **`P-TP-9`** (`S-FAILSET`: every code in the closed `16`-member set has a generated message built from its own row's arguments, both directions — **⟶ RE-SPELLED 2026-10-15 BY THE GATE-4 FINDINGS PASS: this cell read `15`, BYTE-FOR-BYTE above and read THROUGH this reading; the set is `16`, `ConstraintListInvalid` at rank `16`, and *"both directions"* reaches the new member by the drive `§5.9`'s own `16 + 1` census names** — **⟶ AND *"BOTH DIRECTIONS"* IS RE-READ AT `#16`'s THIRD INSTANT, 2026-10-16, AND IT HOLDS WITHOUT THE TWIN AND WITHOUT A SECOND SOURCE: the code→message direction is satisfied at the REGISTRATION instant by `§8.2`'s amended clause of this date (the ONE generator, the row's own slots, the row's own fixed phrase), and the message→code direction is satisfied because that instant's message is built from THAT row and no other — so `DD-52`'s fail *"a code whose message is produced from a second source"* is NOT reached by the widening, and the twin is still declared and still does not cross**; `§8.1` #16's amended trigger clause of 2026-10-16) | **FOLDING THE TWIN INTO THE DECLARED RECORD — `MessageArgs` gaining the container-kind and absent-argument members so ONE type serves both call sites** — priced: `§0.4`'s spelling table declares `MessageArgs` as the generator's `args` record and every generated-message clause cites it, so the fold moves a DECLARED SPELLING and owes a citation sweep, for a difference NO OBSERVABLE carries; available with a bounded amendment | a bounded amendment of this contract (the generator's internal carrier is this contract's own to state) |
+ | **`DD-53`** | **`U-8` — `NodeRef`'s ARENA HALF** — *"the reference's node half is an arena index; `A26` says only *"returns reference"*"* | what it pins: **MOVED OUT 2026-10-16 — it stands at `backup/RCA-8D-CONVERSION-2026-10-16-superseded.md §1`** (one-line `RCA-8(g)` pointer) | `§2.1` (the returned reference and its observables); `§0.4`'s `NodeRef`/`ChildAnchor` row; `§1.7`; `P: §13 · A26` (`*"find address returns reference"*`); `P: §11 · A9` | **a PUBLIC node member on the reference**; **the arena index crossing any boundary, or entering any record, message or journal entry**; **an ADDRESS derived from the index** (reachability is decided by addresses alone); **a reference whose second half is enumerable, serializable or comparable by a caller**; **a SECOND reference type beside it** | **`P-IM-3`** (`S-STRUCT`: reachability is by ADDRESSES and never by arena ids, and the reference's drivable observable is its own anchor's key and tier) **+ `P-TP-7`** (`findAddress`'s returned reference at the empty address and at a `""` key, `DD-44`) | **CARRYING THE NODE'S OWN ADDRESS IN THE REFERENCE INSTEAD OF THE ARENA INDEX** — priced: an address is RESOLVED BY A WALK, and a `VEC`'s surviving index keys are RE-LABELLED by a delete (`DD-30`) and a purge/re-mint replaces nodes, so a returned reference would either carry a walk's cost at every read or go stale between two calls, while the arena index is stable for the instance's life; available with `§2.1`'s returned-reference clause re-read | a bounded amendment of this contract (the reference's second half is this contract's own to state) |
+@@ -934,7 +934,7 @@ significant"* FAILS the row).
+ | `NodeRef` with `NodeRef.anchor: ChildAnchor` and `ChildAnchor.{key, tier}` **⟶ AMENDED 2026-10-11: `ChildAnchor` also carries `register_marker: bool`, TRUE on the register's own reference alone (`DD-44`; the clause above)** **⟶ AMENDED 2026-10-21 (`role_spec_writer`) ON THE ARCHITECT'S RULING: THE CELL'S `ChildAnchor.{key, tier}` IS RE-SPELLED `ChildAnchor.{tier, register_marker, node}` — `key` HAS LEFT THE MEMBER SET, SO THE SPELLING TABLE DECLARES ONLY MEMBERS THE SHAPE CARRIES** (`store-model.md §1.2`'s dated clause of this date, which is the ONE home of the member set and its `4 − 1 = 3` arithmetic; `A129` (3) — **this cell now bears its own date and the ruling it reads, so the re-spelling is a live operative statement correctly amended rather than a quotation**; `[T: the spelling table reads no member the declared shape does not carry | CONTRACT]`) | the resolver's RETURNED REFERENCE and the anchor's own properties, **with the empty address's non-colliding marker** | `§2.1`, `§1.2`; `§1.6` item 4 (a)/(b); `DD-44` **⟶ AMENDED 2026-10-11: this row's *"non-colliding marker"* is the `register_marker` member ALONE, and the marker's `key` spelling STAYS `Segment::Key(String::new())` — the SAME value the LEGAL `""` register key carries (`§1.5` item 1), so the collision of the two `key` values is DECLARED and the property is the carrier (`DD-44`'s dated clause; `§0.4`'s marker clause above; `[T: the row's own marker carrier, stated so the spelling table reads no unholdable key | CONTRACT]`)** |
+ | `StoreError { status: String, message: String }` | `StoreError`'s closed two-member record (**exactly these two members and no third**; `status` is the member's **exact** `§8.1` spelling) | `§8.3` |
+ | `WriteResult { op: JournalOp, watched: Vec<Vec<Segment>> }` | `§3.6`'s two members; **`watched` is the watched ADDRESSES** (`P-TP-8`, `§6.5`) — **NOT a `string[]`** | `§3.6`, `§6.5` |
+-| `JournalOp { opId: String, kind: JournalOpKind, address: Vec<Segment>, tier: Option<Tier>, before: BaseState, after: BaseState, seq: u64, compacted: bool }` · `JournalOpKind::{Write, Delete}` | `§6.2`'s closed record shape and `kind`'s closed two-value domain | `§6.2` |
++| `JournalOp { opId: String, kind: JournalOpKind, address: Vec<Segment>, tier: Option<Tier>, before: BaseState, after: BaseState, seq: u64 }` · `JournalOpKind::{Write, Delete}` | `§6.2`'s closed record shape and `kind`'s closed two-value domain — **⟶ `compacted: bool` IS REMOVED FROM THIS SPELLING TOO, 2026-11-17 (`strata/decisions.md` · `D-189` item 2), so this row and `src/records.rs` print the same seven members** | `§6.2`; `D-189` item 2 |
+ | `BaseState { present: bool, value: StoreValue }` | `§6.2`'s two-member base state (**the multi-value case is spelled as `StoreValue::Array`**) | `§6.2` |
+ | `DeleteReceipt { address: Vec<Segment>, tiers: Vec<Tier> }` | `§4.4`'s two-member receipt | `§4.4` |
+ | `RollbackResult { opId: String, undoneOps: Vec<String>, restoredTo: BaseState }` | `§6.3`'s **three**-member result (**⟶ RECONCILED 2026-10-11, BY THE DOCUMENTATION-REVIEW GATE: this cell's *"`§6.3`'s two-member result"* read the same stale count `§6.3`'s own head carried; the record's members are `opId` · `undoneOps` · `restoredTo` — three — as the spelling in this row's own first column prints, and `§6.3`'s head is reconciled to match**) | `§6.3` |
+@@ -3453,11 +3453,29 @@ JournalOp {
+   after:     BaseState,               // the CURRENT-STATE half: at least the post-operation value of the
+                                       // addressed node's version(s) — enough to RESOLVE THE CURRENT STATE
+                                       // at the written address
+-  seq:       number,                  // the entry's append ordinal, strictly increasing from 1
+-  compacted: boolean                  // true once the entry is OUT OF ANY LATER ROLLBACK WALK — its TWO
+-                                      // sufficient grounds are "compressed into the base state" (§6.1
+-                                      // item 5) and "undone by a rollback" (§6.4 M-9), and the record
+-                                      // carries no member that distinguishes them
++  seq:       number                   // the entry's append ordinal, strictly increasing from 1
++}
++```
++
++**⟶ AND THE BLOCK ABOVE CARRIES SEVEN MEMBERS AND NOT EIGHT FROM 2026-11-17: ITS LAST LINE,
++`compacted: boolean` WITH ITS FOUR-LINE COMMENT, IS REMOVED** (`strata/decisions.md` · `D-189` item 2, the
++architect VERBATIM: *"If .compacted is always false drop it"*). **THE DIRECTIVE WAS A CONDITIONAL AND THE
++TREE ANSWERED IT**: the store produced the member at exactly two sites (`src/store.rs`'s two `JournalOp`
++literals) and **both set it `false`**, so **a member that can hold one value carried nothing** — and the
++distinction it was minted for is carried by the `journal_floor` watermark (`D-160` item 3), which answers
++`RollbackCompacted` and `JournalOpUnknown` as two different refusals without a per-op bit. **THE MEMBER IS
++REMOVED AND NOT RENAMED, NOT DEPRECATED AND NOT TYPED AS A CONSTANT**, and the removal is a surface change:
++it is the whole of why the release that carries it is a `MAJOR`, `2.0.0` (`D-190`).
++
++```
++JournalOp {
++  opId:      string,
++  kind:      'write' | 'delete',
++  address:   (string|number)[],
++  tier:      Tier | null,
++  before:    BaseState,
++  after:     BaseState,
++  seq:       number
+ }
+ ```
+ 
+@@ -3473,7 +3491,8 @@ REFUSES — the rollback REVERTS TO THE LAST VALID STATE BY REGENERATING IT FROM
+ (`§6.4` item 2; `strata/decisions.md` · `D-108`) — and `RollbackCompacted` is left for the one state it
+ survives for, a `filePath` whose image cannot be read as an object (`D-109`).**
+ 
+-**⟶ AND THE `compacted` MEMBER'S TWO GROUNDS ARE RE-DERIVED BESIDE THE RECORD THAT CARRIES THEM, 2026-11-17** (`RCA-8(d)` ANNOTATE-BESIDE: **the record block above, its `compacted: boolean` comment and this paragraph stand BYTE-FOR-BYTE and are read THROUGH this clause**; `D-160` items 1, 3–5; `D-164` item 2). **THE OLD WORDS, QUOTED:** *"an entry is `compacted` iff it is out of any later rollback walk's candidate set — (i) because it was COMPRESSED INTO THE BASE STATE (`§6.1` item 5), or (ii) because a ROLLBACK UNDID IT (`§6.4` `M-9`)"*, and *"the two grounds' common observable is the one this member carries: a candidate set that holds such an entry NO LONGER REFUSES — the rollback REVERTS TO THE LAST VALID STATE BY REGENERATING IT FROM THE DURABLE GROUND TRUTH"*. **BOTH GROUNDS HAVE LOST THEIR PRODUCERS, THE MEMBER HAS LOST ITS MEANING, AND THE SHAPE HAS MOVED BY NOT ONE BYTE.** **GROUND (i) IS NOW A REMOVAL** — *"compressed into the base state"* now describes an entry that no longer exists, so the predicate reads over a set that cannot contain it (`D-160` item 1). **GROUND (ii) IS GONE WITH ITS ONE READER** — a reversal's mark existed so a LATER walk's candidate-set predicate would see it, and predicate, mark and regeneration-over-a-mark are withdrawn together; the walk's own idempotence re-states the same captured pre-states where the flag stood (`D-160` item 5; `src/store.rs`'s `rollback`). **SO `compacted` ON THIS RECORD IS A MEMBER NO ACT SETS**: a fresh write and a fresh delete both carry it `false` (`src/store.rs`'s two `JournalOp` literals), **and whether the member survives the drop is a declaration `D-160` item 4 of its unsettled declines to make — it names `WriteRecord.compacted` there, and the same answer is owed to this record by the same reasoning, which this clause states rather than takes.** **AND THE THREE ROWS THAT PRINT THIS SHAPE ARE READ THROUGH THIS CLAUSE WITH IT: `DD-22`'s row** (its closed eight members unmoved, its `compacted: boolean` now producerless) · **`DD-16`'s falsifier** (*"a rollback that reaches a compacted entry"* — no entry is marked and none is reachable; the refusal is the watermark's, `§6.4` item 2 as re-derived below) · **`DD-50`'s residual** (*"the compaction marks the entry's own append set"* — the per-entry op-id list is withdrawn whole with the mark it carried, while the residual's SUBJECT, the pre-state the walk-back reconstructs from, is untouched).
++**⟶ AND THE `compacted` MEMBER'S TWO GROUNDS ARE RE-DERIVED BESIDE THE RECORD THAT CARRIES THEM, 2026-11-17** (`RCA-8(d)` ANNOTATE-BESIDE: **the record block above, its `compacted: boolean` comment and this paragraph stand BYTE-FOR-BYTE and are read THROUGH this clause**; `D-160` items 1, 3–5; `D-164` item 2). **THE OLD WORDS, QUOTED:** *"an entry is `compacted` iff it is out of any later rollback walk's candidate set — (i) because it was COMPRESSED INTO THE BASE STATE (`§6.1` item 5), or (ii) because a ROLLBACK UNDID IT (`§6.4` `M-9`)"*, and *"the two grounds' common observable is the one this member carries: a candidate set that holds such an entry NO LONGER REFUSES — the rollback REVERTS TO THE LAST VALID STATE BY REGENERATING IT FROM THE DURABLE GROUND TRUTH"*. **BOTH GROUNDS HAVE LOST THEIR PRODUCERS, THE MEMBER HAS LOST ITS MEANING, AND THE SHAPE HAS MOVED BY NOT ONE BYTE.** **GROUND (i) IS NOW A REMOVAL** — *"compressed into the base state"* now describes an entry that no longer exists, so the predicate reads over a set that cannot contain it (`D-160` item 1). **GROUND (ii) IS GONE WITH ITS ONE READER** — a reversal's mark existed so a LATER walk's candidate-set predicate would see it, and predicate, mark and regeneration-over-a-mark are withdrawn together; the walk's own idempotence re-states the same captured pre-states where the flag stood (`D-160` item 5; `src/store.rs`'s `rollback`). **SO `compacted` ON THIS RECORD IS A MEMBER NO ACT SETS**: a fresh write and a fresh delete both carry it `false` (`src/store.rs`'s two `JournalOp` literals), **and whether the member survives the drop is a declaration `D-160` item 4 of its unsettled declines to make — it names `WriteRecord.compacted` there, and the same answer is owed to this record by the same reasoning, which this clause states rather than takes.** **⟶ AND HERE THE DECLARATION THE CLAUSE ABOVE DECLINED TO MAKE IS MADE, 2026-11-17: THE MEMBER IS REMOVED FROM THE RECORD** (`strata/decisions.md` · `D-189` item 2, the architect VERBATIM: *"If .compacted is always false drop it"*). **The clause above ends by saying *"whether the member survives the drop is a declaration `D-160` item 4 of its unsettled declines to make"* — that declaration is `D-189`'s and the answer is NO**, and it is answered on the tree's own evidence: a member whose two producers both set one value carries nothing, and what it was minted to distinguish is the `journal_floor` watermark's (`D-160` item 3). **So every byte above that names `compacted` as a live member of this record is the reading of its own date and is read THROUGH this clause; the record this contract declares carries SEVEN members**, and the shape is printed as seven in the block above. **THE CLASS IS `MAJOR` — `2.0.0`, `D-190`** — because the member is on the PUBLISHED declaration (`bindings/js/index.d.ts`'s `JournalOp`), which no `MINOR` absorbs (`D-189` item 2: *"removing it is breaking against `1.12.0`"*).
++**AND THE THREE ROWS THAT PRINT THIS SHAPE ARE READ THROUGH THIS CLAUSE WITH IT: `DD-22`'s row** (its closed members `8 → 7`, its `compacted: boolean` REMOVED rather than producerless) · **`DD-16`'s falsifier** (*"a rollback that reaches a compacted entry"* — no entry is marked and none is reachable; the refusal is the watermark's, `§6.4` item 2 as re-derived below) · **`DD-50`'s residual** (*"the compaction marks the entry's own append set"* — the per-entry op-id list is withdrawn whole with the mark it carried, while the residual's SUBJECT, the pre-state the walk-back reconstructs from, is untouched).
+ 
+ **`BaseState` is a record with exactly two members** (`[T: the base state's shape, declared here | CONTRACT]`):
+ 
+diff --git a/src/records.rs b/src/records.rs
+index 9dd7f12..64deb6e 100644
+--- a/src/records.rs
++++ b/src/records.rs
+@@ -164,6 +164,17 @@ pub struct BaseState {
+ 
+ /// `§6.2` (`DD-22`): the op's closed record shape, carrying enough to reconstruct the original tree and
+ /// resolve the current state with an id.
++///
++/// **⟶ THE RECORD CARRIES SEVEN MEMBERS AND NOT EIGHT FROM 2026-11-17 — `compacted` IS REMOVED, NOT RENAMED
++/// AND NOT DEPRECATED** (`strata/decisions.md` · `D-189` item 2, the architect VERBATIM: *"If .compacted is
++/// always false drop it"*). **THE DIRECTIVE WAS A CONDITIONAL AND THE TREE ANSWERED IT**: the member was
++/// produced at exactly two sites (`src/store.rs`'s two `JournalOp` literals) and **both set it `false`**, so
++/// a member that can hold ONE value carried nothing. **ITS SUBJECT IS CARRIED BY `journal_floor`'s watermark
++/// AND NOT BY A PER-OP FLAG** (`D-160` item 3): an op the compaction DROPPED and an id that never named one
++/// stay distinguishable — `RollbackCompacted` and `JournalOpUnknown` are two refusals decided at the journal
++/// lookup — without one bit on every record. **THE REMOVAL IS BREAKING AGAINST `1.12.0` AND ITS CLASS IS
++/// `MAJOR` — `2.0.0`, `D-190`** (`D-189` item 2's own reading: *"removing it is breaking against `1.12.0` and
++/// `D-158`'s `1.13.0` `MINOR` cannot absorb it"*), so `D-158`'s class claim is SUPERSEDED.
+ #[derive(Clone, Debug, PartialEq)]
+ pub struct JournalOp {
+     pub opId: String,
+@@ -173,7 +184,6 @@ pub struct JournalOp {
+     pub before: BaseState,
+     pub after: BaseState,
+     pub seq: u64,
+-    pub compacted: bool,
+ }
+ 
+ /// `§4.4`'s receipt, **⟶ AMENDED 2026-10-11 (`DD-35`) with the `triggered` member — exactly THREE members:
+diff --git a/src/store.rs b/src/store.rs
+index 47143c8..bef6842 100644
+--- a/src/store.rs
++++ b/src/store.rs
+@@ -2978,7 +2978,12 @@ impl Store {
+                 value: value.clone(),
+             },
+             seq: 0,
+-            compacted: false,
++            // **⟶ AND THE `compacted: false` THIS LITERAL USED TO CARRY IS DELETED, 2026-11-17
++            // (`strata/decisions.md` · `D-189` item 2).** **THIS SITE IS ONE OF THE MEMBER'S TWO
++            // PRODUCERS AND IT SET `false` — MEASURED, AND THAT IS THE WHOLE OF THE DIRECTIVE'S
++            // CONDITION** (*"If .compacted is always false drop it"*): a member that can hold one value
++            // carries nothing, and the discrimination it once shared with compaction is the `journal_floor`
++            // watermark's (`D-160` item 3). **NO ACT SETS IT AND NO ACT READS IT.**
+         };
+         // **`§6.6`: THE STATE THIS WRITE LEFT, TAKEN THE INSTANT IT LANDED** — the other half of the entry's
+         // record, on the same pair the write installed at, so the journal can be replayed FORWARD as well as
+@@ -3150,7 +3155,11 @@ impl Store {
+             before,
+             after,
+             seq: 0,
+-            compacted: false,
++            // **⟶ AND THE `compacted: false` THIS LITERAL USED TO CARRY IS DELETED, 2026-11-17
++            // (`strata/decisions.md` · `D-189` item 2) — THE SECOND AND LAST OF THE MEMBER'S TWO PRODUCERS,
++            // AND IT SET `false` TOO** (the condition the directive names, measured at this site: *"If
++            // .compacted is always false drop it"*). **The member is gone from the record
++            // (`src/records.rs`), so there is nothing here to set.**
+         };
+         // **⟶ AND THE LIST THIS DELETE BUILT IS DELETED 2026-11-17 (`strata/decisions.md` · `D-160` item 4).**
+         // The block that stood here collected the journal's UN-compacted op ids into a `Vec<String>` on every
+diff --git a/tests/e2e/addon-surface-properties.test.mjs b/tests/e2e/addon-surface-properties.test.mjs
+index c633e48..c5b736f 100644
+--- a/tests/e2e/addon-surface-properties.test.mjs
++++ b/tests/e2e/addon-surface-properties.test.mjs
+@@ -495,9 +495,14 @@ test('sas_prop_P_SAS_3_S_PARITY_both_shapes_answer_the_same_record_member_for_me
+       assert.deepEqual(Object.keys(receipt).sort(), ['address', 'op', 'tiers', 'triggered'],
+         `attempt ${i}: the delete receipt's members are `+ '`{address, tiers, triggered, op}` (`surface.md §2.2`) '
+         + 'and are unmoved');
++      // **⟶ SEVEN MEMBERS AND NOT EIGHT FROM `2026-11-17`** (`strata/decisions.md` · `D-189` item 2):
++      // `compacted` is REMOVED from the store's record and from `index.d.ts`'s `JournalOp`, so this census is
++      // re-derived `8 → 7` at its own byte. **The limb's SUBJECT is unmoved** — it asks whether the record's
++      // member set is single-valued across the corpus, and the corpus is now compared against the set the
++      // declaration actually carries.
+       assert.deepEqual(Object.keys(byFirst.op).sort(),
+-        ['address', 'after', 'before', 'compacted', 'kind', 'opId', 'seq', 'tier'],
+-        `attempt ${i}: and the operation record's eight members are single-valued across the corpus`);
++        ['address', 'after', 'before', 'kind', 'opId', 'seq', 'tier'],
++        `attempt ${i}: and the operation record's seven members are single-valued across the corpus`);
+     }),
+   });
+   assertHeld(result);
+diff --git a/tests/e2e/addon-surface.test.mjs b/tests/e2e/addon-surface.test.mjs
+index 96c4dae..5d19f67 100644
+--- a/tests/e2e/addon-surface.test.mjs
++++ b/tests/e2e/addon-surface.test.mjs
+@@ -43,16 +43,26 @@
+ // re-cut against is a verb through its OWN entry against the same verb through the package's wrapper — one
+ // call and its own decoder, not two shapes: a comparison that cannot fail and would pass trivially at any
+ // byte.** The clause's package-layer half never depended on the dispatcher and did not leave: the record
+-// members, the corpus equality across two stores and the operation record's eight members stand asserted in
++// members, the corpus equality across two stores and the operation record's **SEVEN** members stand asserted in
+ // the group's first cell, and the golden's key-set exclusion in its third.
+ //
++// **⟶ AND "EIGHT" IN THE SENTENCE ABOVE IS SUPERSEDED AT ITS OWN BYTE `2026-11-17`: THE OPERATION RECORD
++// CARRIES SEVEN MEMBERS AND NOT EIGHT, BECAUSE `compacted` IS REMOVED FROM IT** (`strata/decisions.md` ·
++// `D-189` item 2, the architect VERBATIM: *"If .compacted is always false drop it"*). **THE DIRECTIVE WAS A
++// CONDITIONAL AND THE TREE ANSWERED IT**: both of the store's producers set the flag `false`, so the member
++// carried nothing, and the discrimination it once shared is the `journal_floor` watermark's (`D-160` item 3).
++// **So every count of the record's members in this file moves `8 → 7`, and every assertion that named the
++// member is re-derived: a cell that names a member the declaration no longer carries is a cell asserting a
++// surface that does not exist.**
++//
+ // **⟶ AND THE SENTENCE JUST ABOVE IS CORRECTED IN PLACE `2026-11-22`, BECAUSE IT SAYS "ASSERTED" OF BYTES NO RUN
+ // REACHES** (`D-181` item 5; `D-57`'s discipline, applied to this record as it was to the docblock below). The
+ // first cell's recording half is behind its `oldDispatcherShape() === null` branch and is reached on NO
+ // evaluation of this tree, so those members are **WRITTEN THERE AND MEASURED NOWHERE** — `S-PARITY`'s
+ // package-layer half is not carried by a live instrument at all, and the write and delete member sets are
+-// asserted a second time by `sas_d7_s_unwrap_parity_…` while the operation record's eight members are asserted
+-// there nowhere. **The capture cell is KEPT and its reason is recorded at its own byte** (`D-181` item 5, arm
++// asserted a second time by `sas_d7_s_unwrap_parity_…` while the operation record's **SEVEN** members are asserted
++// there nowhere. **⟶ SEVEN, NOT EIGHT, FROM 2026-11-17 (`D-189` item 2: `compacted` is removed from the record
++// — the head's dated clause above states it, and this one reads the count through it).** **The capture cell is KEPT and its reason is recorded at its own byte** (`D-181` item 5, arm
+ // `(c)`): it is a RECORD and not coverage, and the head says so here rather than letting the word "asserted"
+ // carry a claim the run does not make. **THE EXCLUSION CELL IS UNMOVED** and its `compared` floor is re-derived
+ // to the figure this file now holds.
+@@ -61,7 +71,7 @@
+ // WAS TAKEN AND THE FILE GREW THE THING IT SAID WAS MISSING** (`D-182`'s two smaller items; `role_l3_test_writer`).
+ // **(a) THE OPERATION RECORD'S EIGHT MEMBERS HAVE A LIVE INSTRUMENT NOW.** The package's own `write` answers the
+ // store's journal record on every call — `bindings/js/index.d.ts`'s `JournalOp` — so the members are asserted **BY
+-// NAME, on a body that runs on this tree**, at `sas_d3_s_parity_the_live_write_carries_the_operations_eight_members_…`
++// NAME, on a body that runs on this tree**, at `sas_d3_s_parity_the_live_write_carries_the_operations_seven_members_…`
+ // below. The capture cell's recording half is unchanged and remains **a RECORD and not coverage**; what changed is
+ // that the claim no longer rests on it. **(b) THE EXCLUSION CELL'S `compared` FLOOR IS GONE RATHER THAN
+ // RE-DERIVED** (`D-181` item 4's trap, disarmed by REMOVING the figure): the limb is a PARTITION of this file's
+@@ -692,7 +702,7 @@ test('sas_d2_s_no_instance_the_packages_own_surface_carries_no_instance_position
+ //
+ // **⟶ AND THE GROUP HOLDS THREE AGAIN, ON A CELL ADDED RATHER THAN ONE UN-RETIRED** (`D-182`'s first smaller
+ // item; dated `2026-11-22`). The third is
+-// `sas_d3_s_parity_the_live_write_carries_the_operations_eight_members_the_capture_wrote_and_no_run_reached`: the
++// `sas_d3_s_parity_the_live_write_carries_the_operations_seven_members_the_capture_wrote_and_no_run_reached`: the
+ // live instrument for `P-SAS-3`'s package-layer half, driving the package's own `write` — **not a re-filing of the
+ // retired cell, whose subject (`call`) is deleted and cannot return.** The corpus's consumer is still the capture
+ // cell alone; the live cell mints its own writes and reads no row of `PARITY_CORPUS`.
+@@ -767,7 +777,7 @@ const GOLDEN = {
+ // **WHAT IT CAPTURED, WHILE THE OLD SHAPE STOOD.** `contract.md §6` item `1`'s capture: one corpus — the store's
+ // declared value domain, six rows, `PARITY_CORPUS` above — driven through the package's receiver surface BESIDE
+ // the old dispatcher's `call(index, verb, args)` at its own three positions, and RECORDED member for member into
+-// `GOLDEN.records` (the write record's members, the operation record's eight, the delete receipt's three, and the
++// `GOLDEN.records` (the write record's members, the operation record's seven, the delete receipt's three, and the
+ // carrier spelling at the artefact layer), with the invocation item `1` requires to be named, the seed (`null` —
+ // the corpus is a fixed list), and item `4`'s run-versus-skip record in `GOLDEN.ran` / `GOLDEN.skipped`.
+ //
+@@ -791,9 +801,12 @@ const GOLDEN = {
+ //   * **ARM `(a)`, RETIREMENT, DESTROYS THE INSTRUMENT.** What this cell holds and no other byte of this tree
+ //     holds: the only written spelling of the two-shape capture; `§6` item `4`'s run-versus-skip ledger; the
+ //     invocation and its date (the frozen artefact, `DISCHARGED 2026-10-21`); the corpus's only consumer; and —
+-//     measurably — the ONLY assertion of the operation record's EIGHT members
+-//     (`address`, `after`, `before`, `compacted`, `kind`, `opId`, `seq`, `tier`), which holds on this tree
+-//     (measured `2026-11-22`) and which no other cell asserts. **A head record would describe all of that and keep
++//     measurably — the ONLY assertion of the operation record's SEVEN members
++//     (`address`, `after`, `before`, `kind`, `opId`, `seq`, `tier`), which holds on this tree
++//     (measured `2026-11-22`) and which no other cell asserts. **⟶ AND IT WAS EIGHT UNTIL `2026-11-17`, WHEN
++//     `D-189` ITEM 2 REMOVED `compacted` FROM THE RECORD** — the name is re-derived here and the reason is at
++//     its byte: the member is GONE (not renamed, not deprecated), so a limb asserting it would assert a
++//     surface the declaration no longer carries. **A head record would describe all of that and keep
+ //     none of it: the description of an instrument is not the instrument.**
+ //   * **ARM `(b)`, REMOVE THE DUPLICATE, DESTROYS THE LAST CLAIM AND GAINS NONE.** With the duplicate gone the
+ //     cell's whole reachable body is a ledger push and a `return`: **it can fail on no byte**, which is the very
+@@ -887,9 +900,13 @@ test('sas_d3_s_parity_the_golden_captures_the_two_shapes_record_for_record_and_e
+     const opB = layoutB.delete(address, 'mem');
+     assert.deepEqual(Object.keys(opB).sort(), ['address', 'tiers', 'triggered'],
+       `P-SAS-3 — the delete receipt's members, unmoved by the route the call took: ${row.label}`);
++    // **⟶ AND THE SET IS SEVEN FROM `2026-11-17`, RE-DERIVED HERE WITH ITS REASON AT ITS BYTE** (`D-189`
++    // item 2): `compacted` is REMOVED from the store's record and from `index.d.ts`'s `JournalOp`, so the
++    // capture's own census moves `8 → 7` — a set that still named it would be comparing a record against a
++    // declaration that no longer carries the member.
+     assert.deepEqual(Object.keys(byReceiver.op).sort(),
+-      ['address', 'after', 'before', 'compacted', 'kind', 'opId', 'seq', 'tier'],
+-      `P-SAS-3 — and the operation record\'s eight members, as \`surface.md §2.2\` declares them: ${row.label}`);
++      ['address', 'after', 'before', 'kind', 'opId', 'seq', 'tier'],
++      `P-SAS-3 — and the operation record\'s seven members, as \`surface.md §2.2\` declares them: ${row.label}`);
+   }
+   assert.equal(GOLDEN.records.length, PARITY_CORPUS.length,
+     'the corpus is driven whole: the capture is the record set and not a sample');
+@@ -898,10 +915,17 @@ test('sas_d3_s_parity_the_golden_captures_the_two_shapes_record_for_record_and_e
+ });
+ 
+ // ═════════════════════════════════════════════════════════════════════════════════════════════════════
+-// **⟶ THE LIVE INSTRUMENT FOR THE OPERATION RECORD'S EIGHT MEMBERS — ADDED `2026-11-22`** (`D-182`'s first
++// **⟶ THE LIVE INSTRUMENT FOR THE OPERATION RECORD'S SEVEN MEMBERS — ADDED `2026-11-22`** (`D-182`'s first
+ // smaller item, taken; `D-181` item 5's own sentence: *"a live instrument is a new cell, not this pass's item."*)
+ //
+-// **WHAT WAS WRONG, IN ONE LINE.** The eight members (`address`, `after`, `before`, `compacted`, `kind`, `opId`,
++// **⟶ AND ITS COUNT MOVED `8 → 7`, AND ITS CELL'S OWN NAME WITH IT, `2026-11-17`** (`strata/decisions.md` ·
++// `D-189` item 2). **THE OLD NAME WAS
++// `sas_d3_s_parity_the_live_write_carries_the_operations_eight_members_the_capture_wrote_and_no_run_reached`
++// and this block said "EIGHT" at every count**, because the eighth member was `compacted`. **The member is
++// REMOVED — not renamed and not deprecated** — so the census moves, the name moves with it, and the old
++// spelling is recorded HERE rather than left for a reader to meet as a name that lies about its own body.
++//
++// **WHAT WAS WRONG, IN ONE LINE.** The seven members (`address`, `after`, `before`, `kind`, `opId`,
+ // `seq`, `tier`) were measured TRUE on this tree and measured by NOTHING that could fail: the only assertion of
+ // them stood inside the capture cell's recording half, behind `oldDispatcherShape() === null`, which is reached on
+ // NO evaluation (the block above that cell says so at its own byte). **A claim carried by a byte-image no run
+@@ -912,7 +936,10 @@ test('sas_d3_s_parity_the_golden_captures_the_two_shapes_record_for_record_and_e
+ // (`docs/specs/storeroom-js/surface.md §2.2`), and `op` **IS** the store's journal record crossed member for
+ // member: `bindings/js/index.d.ts`'s `JournalOp` — *"THE STORE'S OWN JOURNAL OP, CROSSED MEMBER FOR MEMBER AND IN
+ // THE STORE'S OWN SPELLINGS — `DD-39`'s eight declared names (`distribution.md §5.2` item 1; `P-PUB-7`):
+-// `{ opId, kind, address, tier, before, after, seq, compacted }`."* **So `write` is the live surface that
++// `{ opId, kind, address, tier, before, after, seq, compacted }`."* **⟶ AND THAT QUOTATION IS THE DECLARATION AS
++// IT STOOD BEFORE `2026-11-17` AND IS KEPT AS THE READING OF ITS DATE**: from `D-189` item 2 the declaration
++// reads `{ opId, kind, address, tier, before, after, seq }` — SEVEN names — and `index.d.ts`'s own docblock
++// carries the removal with its reason. **So `write` is the live surface that
+ // actually produces an operation record, and this cell drives it** — no stub, no artefact key set, no private
+ // kernel state.
+ //
+@@ -924,17 +951,17 @@ test('sas_d3_s_parity_the_golden_captures_the_two_shapes_record_for_record_and_e
+ // (`surface.md §2.2`), so **no `{k, s}` form is reachable from the package's own answer at all** — the carrier
+ // spelling is a difference between the two records, and its producer is gone with the dispatcher
+ // (`export-set-and-dispatch.md §2`: *"`call` IS DELETED … THE SPLIT IS PRECISELY ITS REPLACEMENT"*). **SO THE
+-// OPERATION RECORD'S MEMBER SET IS THE SAME EIGHT ON BOTH PATHS AND THE CARRIER SPELLING IS NOT** — this cell
++// OPERATION RECORD'S MEMBER SET IS THE SAME SEVEN ON BOTH PATHS AND THE CARRIER SPELLING IS NOT** — this cell
+ // asserts exactly what the live path carries, and `dispatcherCarrierAddress` / `dispatcherCarrierTier` are named
+ // as **owed and owed to nobody**: a cell asserting them would be the same defect one layer over.
+ //
+ // **AND ONE THING THE CAPTURE COULD NEVER HAVE SHOWN**: the two base-state records carry BOTH declared members on
+ // both arms (`index.d.ts`'s `BaseState` is `{ present, value }`, `value` being `undefined` where no version stood),
+-// so a limb that asserted only the eight NAMES would still miss a `before`/`after` that lost a member. Both limbs
++// so a limb that asserted only the seven NAMES would still miss a `before`/`after` that lost a member. Both limbs
+ // are asserted below.
+ // ═════════════════════════════════════════════════════════════════════════════════════════════════════
+ 
+-test('sas_d3_s_parity_the_live_write_carries_the_operations_eight_members_the_capture_wrote_and_no_run_reached', () => {
++test('sas_d3_s_parity_the_live_write_carries_the_operations_seven_members_the_capture_wrote_and_no_run_reached', () => {
+   const layout = mem();
+   const written = layout.write(['a'], 'mem', 1);
+   // **THE WRITE RECORD'S OWN THREE, AS THE CAPTURE ASSERTED THEM AND AS `surface.md §2.2` DECLARES THEM** —
+@@ -942,11 +969,13 @@ test('sas_d3_s_parity_the_live_write_carries_the_operations_eight_members_the_ca
+   assert.deepEqual(Object.keys(written).sort(), ['op', 'triggered', 'watched'],
+     'P-SAS-3 / `surface.md §2.2` — `write` returns `{ op, watched, triggered }`; "a record member moved" is '
+     + 'this row\'s first failure (`contract.md §5`)');
+-  // **THE OPERATION RECORD'S EIGHT MEMBERS, BY NAME, ON A BODY THAT RUNS.**
++  // **THE OPERATION RECORD'S SEVEN MEMBERS, BY NAME, ON A BODY THAT RUNS** — **⟶ SEVEN AND NOT EIGHT FROM
++  // `2026-11-17`: `compacted` is REMOVED from the record and from the declaration** (`D-189` item 2), so the
++  // census is re-derived here and the member it used to name is named nowhere in this set.
+   const op = written.op;
+   assert.deepEqual(Object.keys(op).sort(),
+-    ['address', 'after', 'before', 'compacted', 'kind', 'opId', 'seq', 'tier'],
+-    'P-SAS-3 — the operation record\'s eight members, as `index.d.ts`\'s `JournalOp` declares them and '
++    ['address', 'after', 'before', 'kind', 'opId', 'seq', 'tier'],
++    'P-SAS-3 — the operation record\'s seven members, as `index.d.ts`\'s `JournalOp` declares them and '
+     + '`distribution.md §5.2` item 1 names them. **THIS IS THE ASSERTION THE CAPTURE CELL HOLDS AND NO RUN '
+     + 'REACHES** (`D-181` item 5); it is measured HERE, on a live write. Got '
+     + `${JSON.stringify(Object.keys(op).sort())}`);
+@@ -960,8 +989,15 @@ test('sas_d3_s_parity_the_live_write_carries_the_operations_eight_members_the_ca
+   assert.equal(op.tier, 'mem', 'the tier the version was minted at, as one of the store\'s three tokens');
+   assert.equal(typeof op.opId, 'string', 'the id a `rollback` takes (`PAR-JS-9`: a non-empty string)');
+   assert.equal(op.seq, 1, 'the journal\'s own append ordinal, strictly increasing from 1 (`§6.2`)');
+-  assert.equal(op.compacted, false,
+-    'the store\'s own flag, carried verbatim — `false` here, since the compaction dropped nothing');
++  // **⟶ AND THE VALUE LIMB THAT NAMED `compacted` IS DELETED AT ITS OWN BYTE, 2026-11-17** (`D-189`
++  // item 2): the member is GONE — not renamed, not deprecated and NOT TYPED AS A CONSTANT — so a limb asserting
++  // *"the store's own flag, carried verbatim — `false` here"* would assert a key the record does not carry.
++  // **WHAT REPLACES IT IS A NEGATIVE LIMB**: the absence is asserted, because a member that quietly came back
++  // (on one arm, at one route) is exactly what a removal has to be measured by.
++  assert.equal(Object.hasOwn(op, 'compacted'), false,
++    'the operation record does NOT carry `compacted` any more (`D-189` item 2): the member is removed from the '
++    + 'store\'s record, from the crossing and from the declaration, so an own key of that name on a live '
++    + 'record is a surface nobody declared');
+   // **THE TWO BASE-STATE RECORDS CARRY BOTH DECLARED MEMBERS ON BOTH ARMS**, `value` being `undefined` where no
+   // version stood (`index.d.ts`'s `BaseState`: *"`value` is that version's value where one did — `undefined` where
+   // none did"*). **`Object.keys` SEES THAT MEMBER AND `JSON.stringify` DOES NOT**, which is why the arm is
+@@ -974,7 +1010,7 @@ test('sas_d3_s_parity_the_live_write_carries_the_operations_eight_members_the_ca
+   assert.equal(op.before.value, undefined, 'so its `value` member is `undefined` — and is still PRESENT');
+   assert.equal(op.after.present, true, 'and a version stands after it');
+   assert.equal(op.after.value, 1, 'with the value the caller wrote');
+-  // **A SECOND WRITE ANSWERS THE SAME EIGHT** — the record is the store's own at every op, not a one-shot shape.
++  // **A SECOND WRITE ANSWERS THE SAME SEVEN** — the record is the store's own at every op, not a one-shot shape.
+   const second = layout.write(['a'], 'mem', 2);
+   assert.deepEqual(Object.keys(second.op).sort(), Object.keys(op).sort(),
+     'P-SAS-3 — "a record member moved" (`contract.md §5`) is asked of a SECOND op as well as the first: a member '
+@@ -982,10 +1018,10 @@ test('sas_d3_s_parity_the_live_write_carries_the_operations_eight_members_the_ca
+   assert.equal(second.op.seq, 2, 'and the ordinal advances while the member set does not');
+   // **AND THE DELETE'S RECEIPT CARRIES AN OPERATION RECORD TOO, AT THE SAME NAME AND THE SAME SHAPE**
+   // (`index.d.ts`: *"IT IS THE MEMBER `WriteRecord` CARRIES, AT THE SAME NAME AND THE SAME TYPE"*). **A second
+-  // live route to the same eight members** — which is what makes this a member SET and not one verb's answer.
++  // live route to the same seven members** — which is what makes this a member SET and not one verb's answer.
+   const receipt = layout.delete(['a'], 'mem');
+   assert.deepEqual(Object.keys(receipt.op).sort(), Object.keys(op).sort(),
+-    'P-SAS-3 — the delete\'s operation record carries the same eight members, so the set is the STORE\'s record '
++    'P-SAS-3 — the delete\'s operation record carries the same seven members, so the set is the STORE\'s record '
+     + 'and not `write`\'s private shape');
+   assert.equal(receipt.op.kind, 'delete', 'and its `kind` is the store\'s own token for the other op kind');
+ });
+diff --git a/tests/e2e/blind-address-verbs.test.mjs b/tests/e2e/blind-address-verbs.test.mjs
+index a389c19..fd74fdb 100644
+--- a/tests/e2e/blind-address-verbs.test.mjs
++++ b/tests/e2e/blind-address-verbs.test.mjs
+@@ -160,13 +160,19 @@ test("verbs · contract.md §1.3 (`TierArg` row 3 and row 4) · `write`'s tier i
+ // §3 — THE THREE RETURNED RECORDS
+ // ---------------------------------------------------------------------------------------------
+ 
+-test('verbs · index.d.ts `WriteRecord` · a `write` answers EXACTLY THREE members — `op` (the store\'s own eight-member journal record, NOT a number), `watched` (a list of ADDRESSES) and `triggered` (a list of PAIRS)', () => {
++test('verbs · index.d.ts `WriteRecord` · a `write` answers EXACTLY THREE members — `op` (the store\'s own seven-member journal record, NOT a number), `watched` (a list of ADDRESSES) and `triggered` (a list of PAIRS)', () => {
+   // DECLARED: `WriteRecord`'s three members, with "**`op` IS THE STORE'S OWN JOURNAL RECORD AND NOT
+   // A NUMBER** … the shipped declaration read `op: number`, which is false of EVERY value the line
+-  // returns"; `JournalOp`'s eight declared names `{ opId, kind, address, tier, before, after, seq,
+-  // compacted }`; and `watched`'s own rule from the store's `WriteResult` (`native contract.md`
++  // returns"; `JournalOp`'s **SEVEN** declared names `{ opId, kind, address, tier, before, after, seq }`;
++  // and `watched`'s own rule from the store's `WriteResult` (`native contract.md`
+   // §3.6): "`watched` is ALWAYS an array … it is never `undefined`", its members being addresses —
+   // "a watched address is **a SEGMENT LIST** … and NOT a `string`".
++  //
++  // **⟶ AND THE NAME SAID `eight-member` UNTIL `2026-11-17`, WHICH `D-189` ITEM 2 FALSIFIED** — the eighth
++  // name was `compacted`, the member is REMOVED (not renamed, not deprecated), and the cell's own census and
++  // its name move `8 → 7` together. **The reason is at this byte rather than in a commit message**: the record
++  // the package answers is crossed member for member, so a declaration that carries seven names and a record
++  // that carried eight would be the disagreement this cell exists to catch.
+   const instance = make();
+   const record = instance.write(['wr'], 'mem', { v: 1 });
+ 
+@@ -174,11 +180,12 @@ test('verbs · index.d.ts `WriteRecord` · a `write` answers EXACTLY THREE membe
+ 
+   assert.equal(typeof record.op, 'object');
+   assert.notEqual(typeof record.op, 'number');
++  // **⟶ SEVEN MEMBERS AND NOT EIGHT FROM `2026-11-17`** (`D-189` item 2): the census is re-derived here and
++  // the removed name is named nowhere in it.
+   assert.deepEqual(Object.keys(record.op).sort(), [
+     'address',
+     'after',
+     'before',
+-    'compacted',
+     'kind',
+     'opId',
+     'seq',
+@@ -190,7 +197,12 @@ test('verbs · index.d.ts `WriteRecord` · a `write` answers EXACTLY THREE membe
+   assert.equal(record.op.tier, 'mem');
+   assert.deepEqual(record.op.after, { present: true, value: { v: 1 } });
+   assert.equal(typeof record.op.seq, 'number');
+-  assert.equal(typeof record.op.compacted, 'boolean');
++  // **⟶ AND THE `compacted` LIMB THAT STOOD HERE IS DELETED `2026-11-17`** (`D-189` item 2): the member is
++  // GONE from the record, the crossing and the declaration. **The absence is asserted in its place**, because a
++  // removal is measured by the key's absence — a member quietly restored on one arm is exactly the defect a
++  // member-removal unit must be able to see.
++  assert.equal(Object.hasOwn(record.op, 'compacted'), false,
++    'the operation record carries SEVEN members: `compacted` is removed and is not renamed or deprecated');
+ 
+   assert.ok(Array.isArray(record.watched), '`watched` is not an array');
+   assert.ok(Array.isArray(record.triggered), '`triggered` is not an array');
+diff --git a/tests/e2e/blind-entry-module.test.mjs b/tests/e2e/blind-entry-module.test.mjs
+index 3995d01..c5082db 100644
+--- a/tests/e2e/blind-entry-module.test.mjs
++++ b/tests/e2e/blind-entry-module.test.mjs
+@@ -443,9 +443,15 @@ test('entry-module · index.d.ts `WriteRecord` · `DeleteRecord` · `RollbackRec
+   assert.match(DECLARATION, /readonly undoneOps: readonly string\[\];/);
+ });
+ 
+-test('entry-module · index.d.ts `CommitRecord` · `AttemptRef` · `JournalOp` · `BaseState` · `ConstraintPair` · the kernel-side record the write\'s fourth position takes is FOUR members, the attempt identity is ONE, the journal op is EIGHT, and the pair is TWO', () => {
++test('entry-module · index.d.ts `CommitRecord` · `AttemptRef` · `JournalOp` · `BaseState` · `ConstraintPair` · the kernel-side record the write\'s fourth position takes is FOUR members, the attempt identity is ONE, the journal op is SEVEN, and the pair is TWO', () => {
++  // **⟶ AND THE NAME SAID `EIGHT` UNTIL `2026-11-17`, WHICH `D-189` ITEM 2 FALSIFIED** — `compacted` is
++  // REMOVED from the declaration, so the record declares SEVEN names and the census below is re-derived with
++  // its reason at its own byte. **A blind cell's name is read as its assertion here, which is why the name and
++  // the `deepEqual` move together rather than the name being left to say a number the body refuses.**
+   assert.deepEqual(membersOf('CommitRecord').map((m) => m.name), ['attempt', 'op', 'triggered', 'pending']);
+   assert.deepEqual(membersOf('AttemptRef').map((m) => m.name), ['id']);
++  // **SEVEN MEMBERS: `compacted` IS REMOVED FROM THE DECLARATION** (`D-189` item 2) — not renamed, not
++  // deprecated, and no constant stands in its place.
+   assert.deepEqual(membersOf('JournalOp').map((m) => m.name), [
+     'opId',
+     'kind',
+@@ -454,7 +460,6 @@ test('entry-module · index.d.ts `CommitRecord` · `AttemptRef` · `JournalOp` 
+     'before',
+     'after',
+     'seq',
+-    'compacted',
+   ]);
+   assert.deepEqual(membersOf('BaseState').map((m) => m.name), ['present', 'value']);
+   assert.deepEqual(membersOf('ConstraintPair').map((m) => m.name), ['address', 'id']);
+diff --git a/tests/e2e/delete-reversal.test.mjs b/tests/e2e/delete-reversal.test.mjs
+index c5bbefa..58a73a9 100644
+--- a/tests/e2e/delete-reversal.test.mjs
++++ b/tests/e2e/delete-reversal.test.mjs
+@@ -49,13 +49,15 @@ test('d43_3_a_delete_is_reversible_from_the_op_its_own_record_carries_and_every_
+   assert.equal(instance.read(['d43'], 'mem'), 'mem-value');
+ 
+   const receipt = instance.delete(['d43']);
+-  // THE RECORD NAMES ITS OWN ACT (`index.d.ts` `DeleteRecord.op`): the store's own eight-member journal op,
+-  // the member `WriteRecord` carries at the same name and the same type.
++  // THE RECORD NAMES ITS OWN ACT (`index.d.ts` `DeleteRecord.op`): the store's own **seven-member** journal
++  // op, the member `WriteRecord` carries at the same name and the same type.
++  // **⟶ SEVEN AND NOT EIGHT FROM `2026-11-17`** (`strata/decisions.md` · `D-189` item 2): `compacted` is
++  // REMOVED from the store's record, from the crossing and from the declaration, so this census — which drives
++  // the DELETE route, the second live producer of an operation record — moves `8 → 7` with it.
+   assert.deepEqual(Object.keys(receipt.op).sort(), [
+     'address',
+     'after',
+     'before',
+-    'compacted',
+     'kind',
+     'opId',
+     'seq',
+diff --git a/tests/e2e/discard-witness.mjs b/tests/e2e/discard-witness.mjs
+index d215596..7cf151e 100644
+--- a/tests/e2e/discard-witness.mjs
++++ b/tests/e2e/discard-witness.mjs
+@@ -539,7 +539,11 @@ console.log('\n── W6 · THE REGISTRATION WINDOW: an opaque identity carries
+   const identity = registration.ok ? registration.value : null;
+   const next = attempt(() => store.write(['elsewhere'], 'mem', { active: 'AFTER' }));
+   P('the first pair registered against the seed', first.ok);
+-  P('the prior op (id, seq, compacted)', [prior.op.opId, prior.op.seq, prior.op.compacted]);
++  // **⟶ AND THE `compacted` DATUM IS DROPPED FROM THIS PROBE `2026-11-17`** (`strata/decisions.md` ·
++  // `D-189` item 2): the record no longer carries the member, so reading it here would print `undefined` under
++  // a name that claims to be a datum. **The other two — the id and the `seq` — are the probe's subject and are
++  // unmoved.**
++  P('the prior op (id, seq)', [prior.op.opId, prior.op.seq]);
+   P('the registration body ran with open commits', inside);
+   P('the rollback it raised', raised === null ? '<not reached>' : (raised.ok ? 'answered its record' : JSON.stringify(raised.caught)));
+   P('the registration\'s answer — `typeof` / own names', [identity === null ? '<no answer>' : typeof identity, ownNamesOf(identity)]);
+diff --git a/tests/e2e/greens.mjs b/tests/e2e/greens.mjs
+index 9bfc888..ca8aaee 100644
+--- a/tests/e2e/greens.mjs
++++ b/tests/e2e/greens.mjs
+@@ -1447,14 +1447,24 @@ const g10 = { all: [] };
+       && Array.isArray(rec.discarded),
+     rec ? `${Object.keys(rec).sort().join(',')} / own ${formOf(rec).members.join(',')}` : `threw ${fmt(w.err)}`);
+   const op = rec?.op;
+-  A('JSG-11.2', 'parameter-semantics.md §2.13; store §6.2', "the op has exactly the store's own eight members {address, after, before, compacted, kind, opId, seq, tier}",
+-    op && membersAre(formOf(op), 'address,after,before,compacted,kind,opId,seq,tier'), op ? formOf(op).members.join(',') : 'no op');
++  // **⟶ AND JSG-11.2 IS RE-DERIVED `8 → 7` ON `2026-11-17`** (`strata/decisions.md` · `D-189` item 2): the
++  // op has exactly the store's own SEVEN members, because `compacted` is REMOVED from the record (not renamed
++  // and not deprecated). **The row's subject is unmoved** — the op's member set is the store's own — and only
++  // the set it is compared against moved.
++  A('JSG-11.2', 'parameter-semantics.md §2.13; store §6.2', "the op has exactly the store's own seven members {address, after, before, kind, opId, seq, tier}",
++    op && membersAre(formOf(op), 'address,after,before,kind,opId,seq,tier'), op ? formOf(op).members.join(',') : 'no op');
+   A('JSG-11.3', 'store §6.2 property 3', 'opId is a non-empty string', typeof op?.opId === 'string' && op.opId.length > 0, fmt(op?.opId));
+   A('JSG-11.4', 'store §6.2 property 4', "kind is exactly 'write'", op?.kind === 'write', fmt(op?.kind));
+   A('JSG-11.5', 'store §6.2', 'address is the address the verb was called with, VERBATIM and in order', rel(op?.address, ['j']), fmt(op?.address));
+   A('JSG-11.6', 'DD-39; store §6.2', "tier crosses as the string token 'mem'", op?.tier === 'mem', fmt(op?.tier));
+   A('JSG-11.7', 'store §6.2', 'seq is a number >= 1 (strictly increasing from 1)', typeof op?.seq === 'number' && op.seq >= 1, fmt(op?.seq));
+-  A('JSG-11.8', 'store §6.2; §6.4 M-9', 'a fresh entry is not compacted', op?.compacted === false, fmt(op?.compacted));
++  // **⟶ AND JSG-11.8 IS RE-DERIVED RATHER THAN RETIRED `2026-11-17`, BECAUSE ITS SUBJECT MOVED OFF THE RECORD
++  // AND ONTO THE ABSENCE** (`D-189` item 2). **The row read *"a fresh entry is not compacted"* and measured
++  // `op.compacted === false`** — a member that could hold one value, which is why the ruling dropped it. **What
++  // the row measures now is the removal itself**: the record carries no such key, so a member restored on any
++  // arm is visible here. **The id and its place in the count are unmoved; the figure it reads is.**
++  A('JSG-11.8', 'store §6.2 as re-derived 2026-11-17 (D-189 item 2); §6.4 M-9', 'a fresh entry carries NO `compacted` member — the flag is removed from the record, not renamed and not deprecated',
++    op !== undefined && op !== null && !formOf(op).members.includes('compacted'), op ? formOf(op).members.join(',') : 'no op');
+   A('JSG-11.9', 'store §6.2 (BaseState)', 'before.present is false at an address whose pre-state was absent', op?.before?.present === false, fmt(op?.before));
+   A('JSG-11.10', 'store §6.2 property 2', 'after.present is true and its value is EQUAL to the written value under §1.5', op?.after?.present === true && rel(op.after.value, V11), fmt(op?.after));
+   A('JSG-11.11', 'parameter-semantics.md §2.14; store §3.6', 'watched is an array (possibly empty) and never undefined', Array.isArray(rec?.watched), fmt(rec?.watched));
+diff --git a/tests/e2e/json-crossing.test.mjs b/tests/e2e/json-crossing.test.mjs
+index f68ae2c..dba2bc7 100644
+--- a/tests/e2e/json-crossing.test.mjs
++++ b/tests/e2e/json-crossing.test.mjs
+@@ -4368,11 +4368,15 @@ test('JC-TC-64 the record copy and the delivery are the governed copy path\'s, s
+   // conjunction of item `(2e)`: the GOVERNED counter `0` AND the record, its `triggered`/`watched` and the one
+   // delivery byte-identical to the control's.**
+   const drivenAddress = ['a', 'b'];
+-  // THE OP'S OWN DECLARED MEMBER SET (`addon-surface-properties.test.mjs:450`): eight members, and the ONE datum
+-  // that is NOT a crossing's is `opId` — the package's own PROCESS-GLOBAL journal sequence, measured as `op-2`
+-  // and `op-4` for two identically driven instances in one process. So the record is compared byte-identically
+-  // with THAT ONE DATUM HELD AT A TOKEN, and its declared shape (`op-<digits>`) is asserted on its own.
+-  const RECORD_OP_MEMBERS = ['address', 'after', 'before', 'compacted', 'kind', 'opId', 'seq', 'tier'];
++  // THE OP'S OWN DECLARED MEMBER SET (`addon-surface-properties.test.mjs:450`): **SEVEN** members, and the ONE
++  // datum that is NOT a crossing's is `opId` — the package's own PROCESS-GLOBAL journal sequence, measured as
++  // `op-2` and `op-4` for two identically driven instances in one process. So the record is compared
++  // byte-identically with THAT ONE DATUM HELD AT A TOKEN, and its declared shape (`op-<digits>`) is asserted on
++  // its own.
++  // **⟶ AND THE SET MOVED `8 → 7` ON `2026-11-17`** (`strata/decisions.md` · `D-189` item 2): `compacted` is
++  // REMOVED from the record — not renamed and not deprecated — so a comparison that walked the eighth name
++  // would serialise an `undefined` the record no longer carries and compare it against itself.
++  const RECORD_OP_MEMBERS = ['address', 'after', 'before', 'kind', 'opId', 'seq', 'tier'];
+   const recordBytes = (record) => {
+     const op = {};
+     for (let i = 0; i < RECORD_OP_MEMBERS.length; i += 1) {
+diff --git a/tests/e2e/leg-carriage.test.mjs b/tests/e2e/leg-carriage.test.mjs
+index 7536f3f..726e546 100644
+--- a/tests/e2e/leg-carriage.test.mjs
++++ b/tests/e2e/leg-carriage.test.mjs
+@@ -50,7 +50,11 @@ function aRecord(handle) {
+     op: {
+       opId: 'op-' + handle, kind: 'write', address: ['a'], tier: 'mem',
+       before: { present: false, value: undefined }, after: { present: true, value: 1 },
+-      seq: 1, compacted: false,
++      seq: 1,
++      // **⟶ AND `compacted: false` IS DELETED FROM THIS FIXTURE `2026-11-17`** (`strata/decisions.md` ·
++      // `D-189` item 2): the append copies the op at the record's own SEVEN members (`state.mjs`'s
++      // `appendRepairLeg`), so a fixture carrying an eighth name would be handing the copy a member the record
++      // does not have — and the copy, which mints no key of its own, simply would not carry it.
+     },
+     triggered: [{ handle, address: ['a'] }],
+   };
+diff --git a/tests/e2e/staged-install/publish-generators.test.mjs b/tests/e2e/staged-install/publish-generators.test.mjs
+index 026388b..8a31adf 100644
+--- a/tests/e2e/staged-install/publish-generators.test.mjs
++++ b/tests/e2e/staged-install/publish-generators.test.mjs
+@@ -1355,16 +1355,26 @@ function assertOpIsTheJournalRecord(dts) {
+       + `\`write(...).op.${member}\` type-checks`);
+   }
+   assert.ok(/export\s+(interface|type)\s+JournalOp\b/.test(dts),
+-    'the eight-member record is declared by name (`JournalOp`) and `op` refers to it');
++    'the seven-member record is declared by name (`JournalOp`) and `op` refers to it');
+   assert.equal(opType, 'JournalOp',
+     `WriteRecord.op's own type IS the declared record; got ${JSON.stringify(opType)}`);
+-  // and the record's own member set is the store's eight (`DD-39`), declared in the type's own text
++  // and the record's own member set is the store's SEVEN (`DD-39` as re-derived by `D-189` item 2), declared in
++  // the type's own text
+   const record = /interface JournalOp \{([\s\S]*?)\n\}/.exec(dts);
+   assert.ok(record, 'the `JournalOp` interface carries its own body');
+-  for (const member of ['opId', 'kind', 'address', 'tier', 'before', 'after', 'seq', 'compacted']) {
++  // **⟶ AND THE MEMBER LIST MOVED `8 → 7` ON `2026-11-17`** (`strata/decisions.md` · `D-189` item 2, the
++  // architect VERBATIM: *"If .compacted is always false drop it"*): `compacted` is REMOVED from the declared
++  // record, so a generator still requiring the declaration to carry it would redden the release for doing the
++  // ruling. **The generator's shape is unmoved** — it still asserts every member the declaration does carry,
++  // one at a time.
++  for (const member of ['opId', 'kind', 'address', 'tier', 'before', 'after', 'seq']) {
+     assert.ok(new RegExp(`readonly\\s+${member}\\s*:`).test(record[1]),
+-      `\`JournalOp\` declares the store's own \`${member}\` member (DD-39: { opId, kind, address, tier, before, after, seq, compacted })`);
++      `\`JournalOp\` declares the store's own \`${member}\` member (DD-39: { opId, kind, address, tier, `
++      + 'before, after, seq } — `compacted` REMOVED by `D-189` item 2)');
+   }
++  assert.equal(/readonly\s+compacted\s*:/.test(record[1]), false,
++    'and the declaration does NOT declare `compacted` any more: the member is removed by `D-189` item 2 — not '
++    + 'renamed, not deprecated, and not typed as a constant');
+   return opType;
+ }
+ 
+diff --git a/tests/e2e/surface.test.mjs b/tests/e2e/surface.test.mjs
+index 8304e72..3f6d3ce 100644
+--- a/tests/e2e/surface.test.mjs
++++ b/tests/e2e/surface.test.mjs
+@@ -317,7 +317,14 @@ test('verbs_write_returns_its_three_member_record_and_burns_nothing_on_failure',
+   assert.equal(record.op.before.present, false);
+   assert.equal(record.op.after.present, true);
+   assert.equal(typeof record.op.seq, 'number');
+-  assert.equal(typeof record.op.compacted, 'boolean');
++  // **⟶ AND `compacted` IS GONE FROM THE RECORD FROM `2026-11-17`** (`strata/decisions.md` · `D-189` item 2,
++  // the architect VERBATIM: *"If .compacted is always false drop it"*). **The limb that stood here read
++  // `typeof record.op.compacted === 'boolean'`**; a member that can hold one value carried nothing, its subject
++  // is the `journal_floor` watermark's (`D-160` item 3), and a record that still carried the key would be a
++  // member the declaration no longer declares. **The absence is asserted in its place** — a removal is measured
++  // by the key's absence and by nothing else.
++  assert.equal(Object.hasOwn(record.op, 'compacted'), false,
++    'the operation record carries SEVEN members: `compacted` is removed from it, not renamed and not deprecated');
+   assert.throws(() => inst.write(['b'], 'mem', () => {}));
+   assert.throws(() => inst.read(['b']), 'a refused write installs nothing');
+ });
+diff --git a/tests/integration/binding-crossing/surface_verbs.rs b/tests/integration/binding-crossing/surface_verbs.rs
+index a47bb67..3efc417 100644
+--- a/tests/integration/binding-crossing/surface_verbs.rs
++++ b/tests/integration/binding-crossing/surface_verbs.rs
+@@ -241,9 +241,14 @@ fn write_triggered_is_an_array_of_opaque_handles() {
+     assert!(w2.triggered.is_empty(), "[] when no registration matched");
+ }
+ 
+-/// `PAR-JS-13`: the returned `op` is a fresh JS object carrying **the store's own eight members**.
++/// `PAR-JS-13`: the returned `op` is a fresh JS object carrying **the store's own SEVEN members**.
++///
++/// **⟶ AND THE NAME SAID `write_op_carries_the_stores_own_eight_members` UNTIL 2026-11-17, WHICH `D-189` ITEM
++/// 2 FALSIFIED**: the eighth was `compacted`, and the member is REMOVED from the store's record — not renamed,
++/// not deprecated and not typed as a constant. **The name and this cell move `8 → 7` together**, because a cell
++/// name that counts a member the record no longer carries is a claim the body cannot keep.
+ #[test]
+-fn write_op_carries_the_stores_own_eight_members() {
++fn write_op_carries_the_stores_own_seven_members() {
+     let mut inst = mem_instance();
+     let w = write_at(&mut inst, &[key("a")], &JsValue::Num(1.0)).expect("a write");
+     let op: JsJournalOp = w.op.clone();
+@@ -254,7 +259,11 @@ fn write_op_carries_the_stores_own_eight_members() {
+     assert!(!op.before.present);
+     assert!(op.after.present);
+     assert!(js_equal(&op.after.value, &JsValue::Num(1.0)));
+-    assert!(op.compacted == false || op.compacted == true, "a boolean");
++    // **⟶ AND `op.compacted`'S OWN LIMB IS DELETED AT THIS BYTE `2026-11-17`** (`strata/decisions.md` ·
++    // `D-189` item 2): the member is REMOVED from `JournalOp` — not renamed and not deprecated — so a cell
++    // reading it no longer compiles against the record it is meant to describe. **Its subject moved to the
++    // member list itself**, which is what the store's own `§6.2` record now carries, and `D-189` item 2's
++    // reason is that the flag's two producers both set `false` — a check that could only ever read one value.
+     let _ = op.seq;
+ }
+ 
+diff --git a/tests/integration/js-constraints/op-free-repair-credit.test.mjs b/tests/integration/js-constraints/op-free-repair-credit.test.mjs
+index f13106e..0a6719f 100644
+--- a/tests/integration/js-constraints/op-free-repair-credit.test.mjs
++++ b/tests/integration/js-constraints/op-free-repair-credit.test.mjs
+@@ -30,7 +30,9 @@
+ //     one `triggered` list stands ONCE in `attempt.repairPaired` and is asked once, `record.triggered` is
+ //     UNMOVED and `pending` carries no pair id;
+ //   · `ORC-I5` — the LEG'S SHAPE: the channel answers one `{op, triggered}` element per write, the op a FRESH
+-//     COPY carrying `opId` · `kind` · `address` · `tier` · `before` · `after` · `seq` · `compacted`; and the three
++//     COPY carrying `opId` · `kind` · `address` · `tier` · `before` · `after` · `seq` (**⟶ SEVEN NAMES AND NOT
++//     EIGHT FROM 2026-11-17: `compacted` is REMOVED from the record, so the copy loses it in the same landing —
++//     `strata/decisions.md` · `D-189` item 2**); and the three
+ //     absent answers — a channel READ AWAY, a channel that THROWS, a channel answering a NON-ARRAY — are one arm,
+ //     `(d2)`;
+ //   · `ORC-I6` — the FAILED ARM'S UNDO PLAN by ADDRESS GEOMETRY and never by credit (`D-89`): a failed-arm
+@@ -667,10 +669,16 @@ test('ck_orc_i5_the_leg_is_one_element_per_write_and_the_channels_absent_answers
+     assert.deepEqual(Object.keys(leg).sort(), ['op', 'triggered'],
+       `leg ${index}: the element is EXACTLY \`{op, triggered}\` — the write's own journal op beside the elements `
+       + `it returned, and no third member (§2.2): read ${JSON.stringify(Object.keys(leg).sort())}`);
++    // **⟶ AND THE COPIED OP CARRIES SEVEN MEMBERS AND NOT EIGHT FROM `2026-11-17`** (`strata/decisions.md` ·
++    // `D-189` item 2, the architect VERBATIM: *"If .compacted is always false drop it"*). **The leg copies the
++    // record at its own member list, so when the record lost `compacted` the copy lost it in the same landing**
++    // (`frame.mjs`'s `decodeJournalOp`; `state.mjs`'s `appendRepairLeg`). **A limb still naming eight would
++    // assert a key the kernel itself no longer carries** — and the copy discipline this cell measures is
++    // unmoved: what moved is the list it copies.
+     assert.deepEqual(Object.keys(leg.op).sort(),
+-      ['address', 'after', 'before', 'compacted', 'kind', 'opId', 'seq', 'tier'],
++      ['address', 'after', 'before', 'kind', 'opId', 'seq', 'tier'],
+       `leg ${index}: **THE OP IS COPIED AT ITS OWN MEMBERS** — \`opId\` · \`kind\` · \`address\` · \`tier\` · `
+-      + `\`before\` · \`after\` · \`seq\` · \`compacted\` (\`decodeJournalOp\`'s own eight): read `
++      + `\`before\` · \`after\` · \`seq\` (\`decodeJournalOp\`'s own seven): read `
+       + `${JSON.stringify(Object.keys(leg.op).sort())}`);
+     assert.equal(leg.op.opId, recordReturns[index].op.opId,
+       `leg ${index}: and the leg's \`opId\` IS the op THAT WRITE landed — read ${JSON.stringify(leg.op.opId)}`);
+diff --git a/tests/integration/store-core/journal_and_rollback.rs b/tests/integration/store-core/journal_and_rollback.rs
+index e20035d..9ce58fe 100644
+--- a/tests/integration/store-core/journal_and_rollback.rs
++++ b/tests/integration/store-core/journal_and_rollback.rs
+@@ -142,10 +142,13 @@ fn s6_2_the_op_carries_every_declared_member_and_both_state_halves() {
+         "§6.2 property 2: `resolve(op.after, currentJournal)`"
+     );
+     assert_eq!(w.op.seq, 1, "§6.2: strictly increasing from 1");
+-    assert!(
+-        !w.op.compacted,
+-        "§6.2: true once compressed into the base state"
+-    );
++    // **⟶ AND THE `!w.op.compacted` LIMB THAT STOOD HERE IS DELETED `2026-11-17`** (`strata/decisions.md` ·
++    // `D-189` item 2, the architect VERBATIM: *"If .compacted is always false drop it"*): the store's record
++    // carries SEVEN members and this one is gone from it — **not renamed, not deprecated and not folded into
++    // another member** — so a cell asserting it would not compile against the record it describes. **Its
++    // subject — *"a fresh entry is not compacted"* — is answered by the member's ABSENCE**, which the
++    // record's own shape (`src/records.rs`) states: a store with no such bit cannot report a compacted entry,
++    // and the discrimination it once carried is the `journal_floor` watermark's (`D-160` item 3).
+ }
+ 
+ // §6.2 property 2 — `resolve(op.after, currentJournal)` yields the state the store is in NOW at
+diff --git a/tests/integration/store-core/properties.rs b/tests/integration/store-core/properties.rs
+index 7487c5f..8709b6b 100644
+--- a/tests/integration/store-core/properties.rs
++++ b/tests/integration/store-core/properties.rs
+@@ -692,11 +692,17 @@ fn p_im_2_a_failed_write_leaves_zero_residue() {
+             reference.write(AddressArg::List(key(&["purgeme"])), w_mem(), v_str("mem")),
+             "§3.4 W-6 on the reference instance: the state whose purge the failed write would extend",
+         );
++        // **⟶ AND THIS `drive.check` IS RE-DERIVED RATHER THAN DELETED `2026-11-17`, BECAUSE ITS SUBJECT
++        // MOVED OFF THE FLAG AND ONTO THE OP'S OWN `seq`** (`strata/decisions.md` · `D-189` item 2): the
++        // record no longer carries `compacted`, so the property cannot be read off it. **What the drive
++        // asserts now is the same fact at the member the record does carry** — the prior op is the FIRST op of
++        // the reference instance and its `seq` says so, which is why no later append can have touched it.
++        // **The property's shape is unmoved: the returned record is the entry's snapshot AT THE APPEND.**
+         drive.check(
+-            reference_prior.op.compacted == false,
+-            "§6.2: the op a write returns reports the entry's mark AT THE APPEND — the reference instance's \
+-             prior op is un-compacted by construction, and no later append may have marked it (`§6.1` item \
+-             5 declares the mark on the JOURNAL ENTRY, and the returned record is the entry's snapshot)",
++            reference_prior.op.seq == 1,
++            "§6.2: the op a write returns is the entry's snapshot AT THE APPEND — the reference instance's \
++             prior op is its FIRST op (`seq` 1) by construction, and no later append may have moved that \
++             snapshot (`D-189` item 2 removed the `compacted` flag this row read before 2026-11-17)",
+         );
+         // `§6.1` item 5's mark is not carried back onto the `JournalOp` a write already returned, so the
+         // triggering append's own effect is read through `§6.4` `M-6`'s floor — the one observable a
+diff --git a/tests/integration/support/mod.rs b/tests/integration/support/mod.rs
+index 3f105d7..8eee940 100644
+--- a/tests/integration/support/mod.rs
++++ b/tests/integration/support/mod.rs
+@@ -40,7 +40,7 @@
+ //! | `StoreError { status, message }` reached as `Err(StoreError)` | `StoreError`'s closed two-member record, "delivered by THROWING" — Rust's only spelling of a throw at a call boundary | `seams-and-lifecycle.md` §8.3; `contract.md` §0.2 `DD-24(b)` |
+ //! | `WriteResult.op` / `.watched: Vec<Vec<Segment>>` | `§3.6`'s members; `watched` is the watched **addresses** of `P-TP-8`/§6.5, not the `string[]` spelling §3.6 prints | `write-and-read.md` §3.6; `contract.md` §5.8 |
+ //! | `NodeRef.anchor.{key,tier}` | `P-SM-4`(a)'s own observable, `findAddress(address, t).anchor.tier === t` | `contract.md` §5.4 (a) |
+-//! | `JournalOp.{opId,kind,address,tier,before,after,seq,compacted}`, `BaseState.{present,value}` | §6.2's closed record shapes (`BaseState`'s `value | value[]` is spelled as a `StoreValue::Array` in the multi-value case) | `write-and-read.md` §6.2 |
++//! | `JournalOp.{opId,kind,address,tier,before,after,seq}`, `BaseState.{present,value}` | §6.2's closed record shapes (`BaseState`'s `value | value[]` is spelled as a `StoreValue::Array` in the multi-value case) — **⟶ SEVEN MEMBERS AND NOT EIGHT FROM 2026-11-17: `compacted` is REMOVED from the record by `strata/decisions.md` · `D-189` item 2** (*"If .compacted is always false drop it"*), so this census of the supported surface moves `8 → 7` at its own byte | `write-and-read.md` §6.2; `D-189` item 2 |
+ //! | `DeleteReceipt.{address,tiers}`, `RollbackResult.{opId,undoneOps,restoredTo}` | the two receipt/result records (**the delete's receipt gains `triggered` — see the amended row above**) | `write-and-read.md` §4.4, §6.3 |
+ //! | `tier_token(Tier) -> &'static str` (reached through this module's `pub use`, never re-declared here) | §5.1's token column, **a declared surface item** | `contract.md §0.4` |
+ //!
+diff --git a/typecheck/consumer-fixture.ts b/typecheck/consumer-fixture.ts
+index 02a5ac0..d7a4962 100644
+--- a/typecheck/consumer-fixture.ts
++++ b/typecheck/consumer-fixture.ts
+@@ -195,7 +195,12 @@ const opTier: Tier | null = op.tier;
+ const opBefore: BaseState = op.before;
+ const opAfter: BaseState = op.after;
+ const opSeq: number = op.seq;
+-const opCompacted: boolean = op.compacted;
++// **⟶ AND `const opCompacted: boolean = op.compacted;` STOOD HERE AND IS DELETED `2026-11-17`**
++// (`strata/decisions.md` · `D-189` item 2, the architect VERBATIM: *"If .compacted is always false drop it"*).
++// **THIS FILE IS THE CONSUMER, SO THE REMOVAL IS MEASURED HERE RATHER THAN DESCRIBED**: the member is GONE from
++// `JournalOp` — not renamed, not deprecated and not typed `false` — so the line no longer type-checks, which is
++// exactly what a consumer on `1.12.0` meets when it reads the member. **The class is `MAJOR` (`2.0.0`, `D-190`)
++// for this reason and no other**, and `D-158`'s `MINOR` at `1.13.0` is SUPERSEDED.
+ const watched: readonly Address[] = written.watched;
+ // `triggered` IS THE PAIR, NOT A BARE HANDLE (`contract.md §2.4` item 1;
+ // `trigger-and-pair.md §1`): the pair REPLACES the handle list it supersedes.
+@@ -640,7 +645,10 @@ void [
+   // member on the real product would still satisfy `StoreInstance` (`:594`–`:597`'s clause, unmoved).
+   tieredWhole, tieredAt, tieredOneTier, tieredTierSet, tieredNodeTier, tieredInlineMember,
+   tieredTierReadAsSet, tieredValueOffObjectNode,
+-  opKind, opAddress, opTier, opBefore, opAfter, opSeq, opCompacted,
++  // **⟶ AND `opCompacted` IS DROPPED FROM THIS LIST `2026-11-17` WITH THE BINDING IT NAMED**
++  // (`strata/decisions.md` · `D-189` item 2): the member is REMOVED from `JournalOp`, so the binding above
++  // cannot exist and neither can a use of it.
++  opKind, opAddress, opTier, opBefore, opAfter, opSeq,
+   watched, writtenTriggered, removedAddress, removedTiers, removedTriggered,
+   rolledBackOpId, restoredPresent, restoredValue, listened, withdrawn,
+   identity, enabled, disabled, registered,

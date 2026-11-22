@@ -142,10 +142,13 @@ fn s6_2_the_op_carries_every_declared_member_and_both_state_halves() {
         "§6.2 property 2: `resolve(op.after, currentJournal)`"
     );
     assert_eq!(w.op.seq, 1, "§6.2: strictly increasing from 1");
-    assert!(
-        !w.op.compacted,
-        "§6.2: true once compressed into the base state"
-    );
+    // **⟶ AND THE `!w.op.compacted` LIMB THAT STOOD HERE IS DELETED `2026-11-17`** (`strata/decisions.md` ·
+    // `D-189` item 2, the architect VERBATIM: *"If .compacted is always false drop it"*): the store's record
+    // carries SEVEN members and this one is gone from it — **not renamed, not deprecated and not folded into
+    // another member** — so a cell asserting it would not compile against the record it describes. **Its
+    // subject — *"a fresh entry is not compacted"* — is answered by the member's ABSENCE**, which the
+    // record's own shape (`src/records.rs`) states: a store with no such bit cannot report a compacted entry,
+    // and the discrimination it once carried is the `journal_floor` watermark's (`D-160` item 3).
 }
 
 // §6.2 property 2 — `resolve(op.after, currentJournal)` yields the state the store is in NOW at

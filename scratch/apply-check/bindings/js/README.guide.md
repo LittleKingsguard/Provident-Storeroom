@@ -1,0 +1,2691 @@
+# Using `provident-storeroom` — the installed package
+
+**This guide is for someone who has just run `npm install provident-storeroom` and has never seen the repository
+it comes from.** It describes the package you now have in `node_modules`: how it is reached, what its surface
+does, how an address is shaped, how the tiers behave, what each refusal means, and — the part most worth your
+time — **§12, which lists the behaviours you can break and tells you exactly where this package's promises stop.**
+
+**The two guides that used to describe this package are archived and wrong.** They are
+`package-use.md` and `electron-integration.md` under `archive/pre-strata-docs-2026-10-24/docs/guides/`, and they
+describe the `0.2.0`/`0.3.0`-era surface; the surface has moved under them twice more since. **Nothing in this file
+is copied from them.** Where a figure here is a declaration, it is cited; where it is a measurement, the
+measurement is named.
+
+---
+
+## §0 · What this guide describes, and where its figures come from
+
+**THE VERSION THIS GUIDE DESCRIBES IS `0.5.0`** (`bindings/js/package.json`'s `version` field). **AND NOTHING HERE
+WAS DRIVEN AGAINST A PUBLISHED TARBALL:** every behavioural claim below is either read from the package's own
+**declaration of record** (`bindings/js/index.d.ts`), from a **kept contract** under `docs/specs/`, or from a
+measurement taken on this repository's checkout and named as one. **No `npm install` was run by the pass that
+wrote this file against the registry, so a registry-installed `0.5.0` is described here and not witnessed.**
+
+**⟶ AND THE TWO FIGURES THIS GUIDE CANNOT AFFORD TO HAND-WRITE ARE GENERATED AND ASSERTED FROM 2026-10-28 — `DEF-AC` (b), AND THE ASSERTION IS THE DELIVERABLE.** `RCA-8(g)` ANNOTATE-BESIDE: **the paragraph above stands
+BYTE-FOR-BYTE and is read THROUGH this clause.** **THE DEFECT: the version line and the cut-state sentence below
+were written BY HAND, which is how this guide came to deny the release it travels in** — a figure copied by hand
+goes stale the moment the manifest or the tag set moves, and for eight dated paragraphs nothing reddened. **SO
+`scripts/publish.sh` GENERATES BOTH from `bindings/js/package.json`'s `version` and `git tag --list`, and its
+preflight REFUSES when these two lines do not read what it computed** (`scripts/publish.sh --figures` runs that
+one check, read-only). **THE TWO LINES ARE THIS GUIDE'S OPERATIVE FIGURES; every dated paragraph below is the
+reading of its own date and is read through them.**
+
+PUBLISH-GUIDE-VERSION-LINE: THE VERSION THIS GUIDE DESCRIBES IS `1.13.0`.
+PUBLISH-GUIDE-CUT-STATE: NOT STATED -- this document describes the behaviour at the version line above, and the cut-state is the release's to state, not a shipped document's (`D-57`).
+
+**⟶ AND THE CUT-STATE SENTENCE ABOVE IS WITHDRAWN, 2026-10-28 — THE CUT-STATE IS NOT A DOCUMENT'S TO STATE.** `RCA-8(g)` ANNOTATE-BESIDE, and the architect's ruling verbatim (`strata/decisions.md` · `D-57`): *"Drop the cut-state."* **The two marked lines above stand BYTE-FOR-BYTE as the reading of their own date and are read THROUGH this clause — not one byte of either is deleted — and the sentence this clause withdraws is the SECOND of them, the one that claims to say whether the release this guide travels in is cut.** **THE REASON IS MEASURED, THREE TIMES OVER, AND IT IS STRUCTURAL RATHER THAN A MISTAKE: A SHIPPED DOCUMENT IS SEALED BEFORE THE TAG THAT MAKES ITS CUT-STATE TRUE**, so every release packed before its tag ships a document denying itself, and a guard running in that release's own preflight can only ever confirm *"not cut"* — `1.2.0` shipped *"NOT CUT"*, `1.3.0` shipped *"`v1.3.0` DOES NOT EXIST"*, and the change list's head was stale within minutes of the tag that falsified it. **SO THE CUT-STATE SENTENCE IS DROPPED AS A CLAIM AND THE VERSION LINE STAYS**, because the version line is the ONE figure a tarball can be right about: the manifest knows it and travels beside it. **`scripts/publish.sh --figures` GENERATES AND ASSERTS THE VERSION LINE AND NOTHING ELSE** — the cut-state generation and its assertion are removed in the same act, so a tag set that moves can no longer redden this guide — **and the same one line is asserted in THREE shipped documents: this guide, `README.md` beside it, and the change list** (`DEF-AC`'s remaining demand, *"guard the release notes too"* and *"`README.md` still declares no version at all"*). **THE TAG SET IS NOT DELETED AND NOT DENIED: it is a RECORD OF RELEASES held in the change list, PAST TENSE — a list of what has been cut — and never a claim about the current one.** **AND WHAT THIS CLAUSE DOES NOT SAY, SAID PLAINLY BECAUSE A READER WILL LOOK FOR IT: it does not say whether the version this guide prints is cut.** That is not a document's to state; the record of what has been cut is in `RELEASE-NOTES.md`, and the registry is the registry.
+
+**⟶ CORRECTED 2026-10-26 — THE VERSION THIS GUIDE DESCRIBES IS `1.0.0`, NOT `0.5.0`, AND THE SENTENCE ABOVE STANDS
+BYTE-FOR-BYTE AS THE READING OF THE DAY THIS FILE WAS WRITTEN AND IS READ THROUGH THIS CLAUSE** (`RCA-8(g)`
+ANNOTATE-BESIDE; `DEF-2026-10-02`: no whole-file rewrite). **`bindings/js/package.json`'s `version` field read at its
+own bytes this date is `"version": "1.0.0"`, and all five `optionalDependencies` pins are `1.0.0` with it** — **so
+every `0.5.0` this guide prints is the figure of its writing date and reads `1.0.0` from here on: `§2.2`'s five exact
+pins, `§8.1`'s *"an installed `0.5.0`"*, and `§11`'s manifest table.** **AND THE ONE THING THIS PASS DID NOT WITNESS
+IS UNMOVED: no `npm install` was run against the registry, so a registry-installed `1.0.0` is described here from
+the manifest and from measurements on this checkout, and is still not witnessed.**
+
+**⟶ AND THE FIGURE THAT CORRECTION CARRIES IS ITSELF ONE RELEASE BEHIND, 2026-10-27 — THE VERSION THIS GUIDE
+DESCRIBES IS `1.0.1`, AND EVERY `1.0.0` THIS GUIDE PRINTS READS `1.0.1` FROM HERE ON.** `RCA-8(g)`
+ANNOTATE-BESIDE: **the paragraph above stands BYTE-FOR-BYTE and is read THROUGH this clause — so do its reading of
+`0.5.0` and its reading of `1.0.0`; each was true of the tree it was read on and each is one release behind the
+shipped tree from this date.** **THE MANIFEST AT ITS OWN BYTES: `bindings/js/package.json`'s `version` is
+`"1.0.1"`, and all five `optionalDependencies` pins are `1.0.1` with it** — the six figures move together and never
+singly (§0 item 1; `PUB-DD-10`) — **and the tags the tree carries are `v1.0.0` and `v1.0.1`, with `main` sixteen
+commits past `v1.0.1` and no version bump in any of them** (`git describe` at this date reads `v1.0.1-16-gdf3ef88`;
+`D-41` item `1`'s semver ruling names the next release `1.1.0`, and that release has not been cut). **SO THE SITES
+ARE RE-READ, NOT RE-SPELLED:** §2.2's five exact pins, §8.1's *"an installed `0.5.0`"* — itself already corrected to
+`1.0.0` — and §11's manifest table all read `1.0.1`; **every `0.5.0` this guide prints is the figure of its writing
+date and reads `1.0.1` from here on.** **AND THE ONE THING NO PASS WITNESSED IS STILL UNMOVED: no `npm install` was
+run against the registry, so a registry-installed `1.0.1` is described here from the manifest and from
+measurements on a locally packed, installed artefact, and is still not witnessed as a registry download.**
+
+**⟶ AND THE FIGURE THE PARAGRAPH ABOVE CARRIES IS ITSELF ONE RELEASE BEHIND THE TARBALL IT DESCRIBES, 2026-10-28 — THE VERSION THIS GUIDE DESCRIBES IS `1.1.0`, `1.1.0` HAS BEEN CUT, AND EVERY `1.0.1` THIS GUIDE PRINTS READS `1.1.0` FROM HERE ON.** `RCA-8(g)` ANNOTATE-BESIDE: **the three dated paragraphs above stand BYTE-FOR-BYTE and are read THROUGH this clause — so do their readings of `0.5.0`, of `1.0.0` and of `1.0.1`; each was true of the tree it was read on and each is one release behind the shipped tree from this date.** **THE PARAGRAPH THAT OWES THIS IS QUOTED AT ITS OWN BYTES, because a guide that denies its own tarball is the defect this clause closes — `D-48` · `DEF-AC`: *"THE VERSION THIS GUIDE DESCRIBES IS `1.0.1`, AND EVERY `1.0.0` THIS GUIDE PRINTS READS `1.0.1` FROM HERE ON … the tags the tree carries are `v1.0.0` and `v1.0.1`, with `main` sixteen commits past `v1.0.1` and no version bump in any of them (`git describe` at this date reads `v1.0.1-16-gdf3ef88`; `D-41` item `1`'s semver ruling names the next release `1.1.0`, and that release has not been cut)."*** **THE TARBALL DENIES EVERY FIGURE OF THAT SENTENCE, AND IT IS THE FILE THE GUIDE TELLS YOU TO READ: `bindings/js/package.json`'s `version` is `"1.1.0"` at its own bytes, all five `optionalDependencies` pins are `1.1.0` with it, the tags the tree carries are `v1.0.0` · `v1.0.1` and `v1.1.0`, `git describe` reads `v1.1.0-1-gcbc3f8a`, and `D-41` item `1`'s minor has been RELEASED rather than awaited.** **SO THE SITES ARE RE-READ, NOT RE-SPELLED:** §0's two paragraphs above, §2.2's five exact pins, §8.1's *"an installed `0.5.0`"* — itself already corrected to `1.0.0` and then to `1.0.1` — and §11's manifest table all read `1.1.0`; **every `0.5.0`, `1.0.0` and `1.0.1` this guide prints is the figure of its writing date and reads `1.1.0` from here on**, and the six figures — the main `version` and the five pins — move together and never singly (§0 item 1; `PUB-DD-10`). **THE ONE THING THAT IS STILL UNMOVED IS THE ONE THING NO PASS WITNESSED, AND IT IS NOT A FIGURE:** no `npm install` was run against the registry, so a registry-installed `1.1.0` is described here from the manifest and from measurements on a locally packed, installed artefact, and is still not witnessed as a registry download. **NO OTHER CLAIM OF THIS GUIDE MOVES: the `files` allowlist's six rows (§11's dated re-read clause (i)), the packed set's nineteen-bare/twenty-assembled (§11's clause (ii)), the twenty-status set (§11's clause (iv)), the fourteen own members and every API clause stand exactly as they stood.** (`strata/decisions.md` · `D-48` · `DEF-AC`; `D-41` item `1`; `D-42` item `1`; `D-38`; `docs/specs/storeroom-publish/contract.md §2.3` item `3` — the byte-for-byte guide stage this correction travels by.)
+
+**⟶ AND THE RELEASE IN PREPARATION IS NOT THIS GUIDE'S VERSION, 2026-10-28 — THE MANIFEST IS `1.1.0`, AND THIS GUIDE CLAIMS NO `1.2.0`.** `RCA-8(g)` ANNOTATE-BESIDE: **the four dated paragraphs above stand BYTE-FOR-BYTE and are read THROUGH this clause; this clause re-reads one figure and adds one pointer, and moves no other claim of this file.** **THE FIGURE, AT ITS OWN BYTES, READ THIS DATE: `bindings/js/package.json`'s `version` is `"1.1.0"` and all five `optionalDependencies` pins are `1.1.0` with it** — the six figures move together and never singly (§0 item 1; `PUB-DD-10`) — **so `1.1.0` is the version this guide DESCRIBES, and it is the version an installed tree answers to.** **A RELEASE IS IN PREPARATION AND IT HAS NOT BEEN CUT: what it adds is listed in `RELEASE-NOTES.md` at the repository root, under a `1.2.0` heading MARKED UNRELEASED, and nothing in that section is a version this guide claims or a behaviour this guide measured as shipped.** **AND THAT FILE SHIPS NOWHERE:** it stands at the repository root and no tarball carries it (§11's `files` allowlist, six rows), so a consumer reading `node_modules/provident-storeroom` has this guide and the six figures of `1.1.0`, and the `1.2.0` list is a CHECKOUT reader's document. **The rule, in one line: this guide describes what was cut (`1.1.0`); `RELEASE-NOTES.md` describes what is being prepared (`1.2.0`, UNRELEASED); neither claims the other's figure.** (`D-41` item `1`; §11's manifest table reads the same six figures; `docs/specs/storeroom-publish/contract.md §2.3` item `3`.)
+
+**⟶ AND THE FIGURES MOVE TO THE PREPARED RELEASE, 2026-10-28 — THE SIX FIGURES THIS GUIDE POINTS AT READ `1.2.0`, AND `1.2.0` IS PREPARED, NOT CUT.** `RCA-8(g)` ANNOTATE-BESIDE: **the five dated paragraphs above stand BYTE-FOR-BYTE and are read THROUGH this clause — so do their readings of `0.5.0`, `1.0.0`, `1.0.1` and `1.1.0`; each was true of the tree it was read on.** **THE MANIFEST AT ITS OWN BYTES THIS DATE: `bindings/js/package.json`'s `version` is `"1.2.0"` and all five `optionalDependencies` pins are `1.2.0` with it** — the six figures move together and never singly (§0 item 1; `PUB-DD-10`) — **and the five platform manifests' own `version` fields read `1.2.0` with them, which is eleven sites and one rebuild.** **SO THE SITES ARE RE-READ, NOT RE-SPELLED:** this section's version line, §2.2's five exact pins, §8.1's *"an installed `0.5.0`"* and §11's manifest table all read `1.2.0`; **every `0.5.0`, `1.0.0`, `1.0.1` and `1.1.0` this guide prints is the figure of its writing date and reads `1.2.0` from here on.** **AND WHAT THIS CLAUSE DOES NOT CLAIM, SAID FIRST BECAUSE IT IS THE EASIER THING TO GET WRONG: `1.2.0` IS PREPARED AT THOSE SIX FIGURES AND THE TAG IS NOT CUT — `git tag --list` carries `v1.0.0` · `v1.0.1` · `v1.1.0` and no `v1.2.0`, so nothing here says the release is cut, and the tag is not cut until the architect cuts it.**
+
+**⟶ AND THE TAG THAT CLAUSE SAID WAS ABSENT IS CUT, 2026-10-28 — `v1.2.0` EXISTS, AND IT IS THE RELEASE THIS GUIDE TRAVELS IN.** `RCA-8(g)` ANNOTATE-BESIDE: **the six dated paragraphs above stand BYTE-FOR-BYTE and are read THROUGH this clause — so does the sentence *"`1.2.0` IS PREPARED AT THOSE SIX FIGURES AND THE TAG IS NOT CUT … the tag is not cut until the architect cuts it"*; it was true of the tree it was written on.** **THE TAG AT ITS OWN NAME THIS DATE: `git tag --list` answers `v1.0.0` · `v1.0.1` · `v1.1.0` · `v1.2.0`; the tag `v1.2.0` names a tree whose `bindings/js/package.json` reads `"version": "1.2.0"` at its own bytes and whose five `optionalDependencies` pins read `1.2.0` with it; and `git describe` reads `v1.2.0-1-ge7c211f`.** **SO `1.2.0` IS CUT AND THIS GUIDE DESCRIBES IT — the text you are reading travels inside the `1.2.0` tarball, and a guide that told you its own release did not exist would be the denial this clause closes.** **`RELEASE-NOTES.md` at the repository root still heads its `1.2.0` section `UNRELEASED` and still says no `v1.2.0` tag exists; that file ships nowhere (§11's `files` allowlist, six rows) and its heading is behind the tag — this guide states what was cut, and what was cut is `1.2.0`.** **NO OTHER CLAIM OF THIS GUIDE MOVES: the `files` allowlist's six rows (§11), the packed set's nineteen-bare/twenty-assembled (§11), the twenty-status set (§11) and the fourteen own members all stand exactly as they stood.** (§0's figure rule; `docs/specs/storeroom-publish/contract.md §2.3` item `3` — the byte-for-byte guide stage this correction travels by.) **THE ONE THING THAT IS STILL UNMOVED IS THE ONE THING NO PASS WITNESSED, AND IT IS NOT A FIGURE:** no `npm install` was run against the registry, so a registry-installed `1.2.0` is described here from the manifest and from measurements on a locally packed, installed artefact, and is still not witnessed as a registry download. **NO OTHER CLAIM OF THIS GUIDE MOVES: the `files` allowlist's six rows (§11's dated re-read clause (i)), the packed set's nineteen-bare/twenty-assembled (§11's clause (ii)), the twenty-status set (§11's clause (iv)), the fourteen own members and every API clause stand exactly as they stood.** (`D-41` item `1`; `D-48` · `DEF-AC`; `docs/specs/storeroom-publish/contract.md §2.3` item `3` — the byte-for-byte guide stage this correction travels by; `scripts/publish.sh`'s eleven cells, and the tag coupling `release.md §2.5` puts AFTER them.)
+
+**⟶ AND THE TREE THIS TEXT DESCRIBES IS NINE COMMITS PAST THE TARBALL IT TRAVELS IN, 2026-10-28 — THE MANIFEST IS `1.2.0`, `1.2.0` IS CUT AND PUBLISHED, AND `main` CARRIES BEHAVIOUR THAT IS NOT IN THAT TARBALL.** `RCA-8(g)` ANNOTATE-BESIDE: **the seven dated paragraphs above stand BYTE-FOR-BYTE and are read THROUGH this clause; this clause adds the one distinction none of them draws and corrects two sentences of the paragraph immediately above, and it moves no figure and no other claim of theirs.** **THE SIX FIGURES AND THE TAG, AT THEIR OWN BYTES THIS DATE:** `bindings/js/package.json`'s `version` is `"1.2.0"`, all five `optionalDependencies` pins are `1.2.0` with it, the five platform manifests' `version` fields read `1.2.0` with them — eleven sites, one rebuild — and `git tag --list` carries `v1.2.0`, **so the version line above is generated from exactly those two facts and it states that the release this guide travels in is CUT.** **AND THE TREE IS NINE COMMITS PAST THAT TAG:** `git describe` reads `v1.2.0-9-g989c216`, no version bump is in any of the nine commits, and **two of them change behaviour: `§8.0a`'s claim that the `log` belongs to the COMMIT — and that `seq` is the position in that list and not the store's journal ordinal — and `§12.6b`'s carry rule, that a reversal raised inside a pass is judged at that pass's terminal state, describe THIS TREE'S BEHAVIOUR AND NOT THE BEHAVIOUR OF THE `1.2.0` TARBALL** — `1.2.0` ships the per-attempt list and the sentence the carry rule withdraws. **So read this guide for what it is: it is the tree's text, and where it describes the two changes that are not in `1.2.0`, the change list at `node_modules/provident-storeroom/RELEASE-NOTES.md` is what tells you which release carries them — and until the next release is cut, nothing a consumer installs has them.** **AND THE TWO SENTENCES OF THE PARAGRAPH ABOVE THIS ONE THAT THIS CLAUSE CORRECTS:** *"that file ships nowhere (§11's `files` allowlist, six rows)"* is **false from 2026-10-28** — the change list is the allowlist's SEVENTH row and the release's assembly stages it byte-for-byte at the packaging root, so it ships (§11's `2026-10-28` clause (i)) — and *"its heading is behind the tag"* is **withdrawn at that file's own head**, where the `1.2.0` section is now marked **CUT AND PUBLISHED**. **THE VERSION LINE ABOVE IS NOT MOVED BY THIS CLAUSE AND MUST NOT BE: the manifest is `1.2.0` and `v1.2.0` exists, so the figure the preflight generates is the figure written there.** (`D-53`; `D-54`; `DEF-AI`; `DEF-AM`; `DEF-AJ`; the change list's `§MAIN`.)
+
+**⟶ AND THE FIGURES MOVE TO THE PREPARED RELEASE, 2026-10-28 — THE ELEVEN SITES READ `1.3.0`, AND `1.3.0` IS PREPARED, NOT CUT.** `RCA-8(g)` ANNOTATE-BESIDE: **the eight dated paragraphs above stand BYTE-FOR-BYTE and are read THROUGH this clause — so do their readings of `0.5.0`, `1.0.0`, `1.0.1`, `1.1.0` and `1.2.0`; each was true of the tree it was read on.** **THE MANIFEST AT ITS OWN BYTES THIS DATE: `bindings/js/package.json`'s `version` is `"1.3.0"` and all five `optionalDependencies` pins are `1.3.0` with it** — the six figures move together and never singly (§0 item 1; `PUB-DD-10`) — **and the five platform manifests' own `version` fields read `1.3.0` with them, which is eleven sites and one rebuild; the rebuilt artefact is stamped from that manifest, so `version()` answers `1.3.0`.** **SO THE SITES ARE RE-READ, NOT RE-SPELLED:** this section's version line, §2.2's five exact pins, §8.1's *"an installed `0.5.0`"* and §11's manifest table all read `1.3.0`; **every `0.5.0`, `1.0.0`, `1.0.1`, `1.1.0` and `1.2.0` this guide prints is the figure of its writing date and reads `1.3.0` from here on.** **AND WHAT THIS CLAUSE DOES NOT CLAIM, SAID FIRST BECAUSE IT IS THE EASIER THING TO GET WRONG: `1.3.0` IS PREPARED AT THOSE ELEVEN FIGURES AND THE TAG IS NOT CUT — `git tag --list` carries `v1.0.0` · `v1.0.1` · `v1.1.0` · `v1.2.0` and no `v1.3.0`, and the registry carries no `1.3.0`; so nothing here says the release is cut, and the tag is not cut until the architect cuts it.** **AND THE TREE THIS GUIDE DESCRIBES IS TEN COMMITS PAST `v1.2.0`** — `git describe` reads `v1.2.0-10-g14787b5` and `git rev-list --count v1.2.0..HEAD` reads `10`, one commit past the nine the paragraph above reads — **so the two behaviour changes and the four smaller items `§1.3.0` of the change list declares are the CONTENT of `1.3.0`, and `1.3.0` is the version that carries them once it is cut; the `1.2.0` tarball carries neither, and `1.3.0` is the version this guide describes from here on.** **THE ONE THING THAT IS STILL UNMOVED IS THE ONE THING NO PASS WITNESSED, AND IT IS NOT A FIGURE:** no `npm install` was run against the registry, so a registry-installed `1.3.0` is described here from the manifest and from measurements on a locally packed, installed artefact, and is still not witnessed as a registry download. **NO OTHER CLAIM OF THIS GUIDE MOVES: the `files` allowlist's seven rows (§11's `2026-10-28` clause (i)), the packed set's `20` bare / `21` assembled (§11's clause (ii)), the twenty-status set (§11's clause (iv)), the fourteen own members and every API clause stand exactly as they stood.** (`D-41` item `1`; the change list's `§1.3.0`; `docs/specs/storeroom-publish/contract.md §2.3` item `3` — the byte-for-byte guide stage this correction travels by; `scripts/publish.sh`'s eleven cells and its two generated figures.)
+
+**⟶ AND THE ELEVEN VERSION SITES READ `1.5.0`, 2026-10-29 — THE PREPARED FIGURE, AND EVERY `1.3.0` THIS GUIDE PRINTS READS `1.5.0` FROM HERE ON.** `RCA-8(g)` ANNOTATE-BESIDE: **the nine dated paragraphs above stand BYTE-FOR-BYTE and are read THROUGH this clause — so do their readings of `0.5.0`, `1.0.0`, `1.0.1`, `1.1.0`, `1.2.0` and `1.3.0`; each was true of the tree it was read on.** **THE MANIFEST AT ITS OWN BYTES THIS DATE: `bindings/js/package.json`'s `version` is `"1.5.0"`, all five `optionalDependencies` pins are `1.5.0` with it, and the five `bindings/js/platforms/*/package.json` `version` fields read `1.5.0` with them — ELEVEN CELLS, ONE VERSION, moved TOGETHER in this act and never singly (§0 item 1; `PUB-DD-10`) — and `npm run build` stamps the artefact from that manifest, so `version()` answers `1.5.0` at the built artefact and at a package installed from it.** **AND THE RELEASE THIS CHAIN SKIPPED IS NAMED RATHER THAN SILENTLY ABSORBED: `1.4.0` read `1.4.0` at those same eleven cells and was cut from them — the tag `v1.4.0` names a tree whose `bindings/js/package.json` reads `"version": "1.4.0"` at its own bytes.** **SO THE SITES ARE RE-READ, NOT RE-SPELLED:** this section's version line, §2.2's five exact pins, §8.1's *"an installed `0.5.0`"* — itself already corrected to `1.0.0`, `1.0.1`, `1.1.0`, `1.2.0` and `1.3.0` — and §11's manifest table all read `1.5.0`.
+
+**⟶ AND THE ELEVEN SITES READ `1.6.0` FROM THIS PREPARATION, 2026-10-29 — THE BUMP IS MADE HERE AND EVERY `1.5.0` ABOVE IS READ THROUGH THIS CLAUSE.** `RCA-8(g)` ANNOTATE-BESIDE: **every dated paragraph above stands BYTE-FOR-BYTE and is read THROUGH this clause — including its `1.5.0` — because each was true of the tree it was read on.** **THE MANIFEST AT ITS OWN BYTES THIS DATE: `bindings/js/package.json`'s `version` is `"1.6.0"`, all five `optionalDependencies` pins are `1.6.0` with it, and the five `bindings/js/platforms/*/package.json` `version` fields read `1.6.0` with them — ELEVEN CELLS, ONE VERSION, moved TOGETHER in this act and never singly (§0 item 1; `PUB-DD-10`)** — and **`npm run build` stamps the artefact from that manifest, so `version()` answers `1.6.0` at the built artefact and at a package installed from it** (measured this date at `bindings/js/build/Release/storeroom_js_binding.node`, and again at a package installed into a `/tmp` consumer with no repository in its ancestry). **SO THE SITES ARE RE-READ AGAIN, NOT RE-SPELLED:** this section's version line above, §2.2's five exact pins, §8.1's *"an installed …"* clause and §11's manifest table each read `1.6.0`, **and the one figure this guide can be right about is generated from that manifest and asserted in three shipped documents by `scripts/publish.sh --figures`.** **AND THE TAG SET IS A RECORD OF RELEASES AND NOT A CLAIM ABOUT THIS TREE:** `git tag --list` answers `v1.0.0` · `v1.0.1` · `v1.1.0` · `v1.2.0` · `v1.3.0` · `v1.4.0` · `v1.5.0`, `git describe` reads `v1.5.0-11-g8f5454f`, and **no `v1.6.0` is among them** — **so this clause states the version and NOT whether it is cut, because the cut-state is not a document's to state** (`D-57`; the clause above). **AND THE TAG SET IS A RECORD OF RELEASES AND NOT A CLAIM ABOUT THIS TREE:** `git tag --list` answers `v1.0.0` · `v1.0.1` · `v1.1.0` · `v1.2.0` · `v1.3.0` · `v1.4.0`, and `git describe` reads `v1.4.0-27-ga3312b7` — **so this clause states the version and NOT whether it is cut, because the cut-state is not a document's to state** (`D-57`; the clause above).
+**⟶ AND THE ELEVEN SITES READ `1.6.2` FROM THIS PREPARATION, 2026-11-02, AS THEY READ `1.6.1` FROM THE DOCUMENTATION RELEASE BEFORE IT — EVERY `1.6.1` AND `1.6.0` ABOVE IS READ THROUGH THIS CLAUSE.** `RCA-8(g)` ANNOTATE-BESIDE: **every dated paragraph above stands BYTE-FOR-BYTE and is read THROUGH this clause, because each was true of the tree it was read on.** **THE MANIFEST AT ITS OWN BYTES THIS DATE: `bindings/js/package.json`'s `version` is `"1.6.1"`, all five `optionalDependencies` pins are `1.6.1` with it, and the five `bindings/js/platforms/*/package.json` `version` fields read `1.6.1` with them — ELEVEN CELLS, ONE VERSION, moved TOGETHER in this act and never singly (§0 item 1; `PUB-DD-10`) — and `npm run build` stamps the artefact from that manifest, so `version()` answers `1.6.1` at the built artefact and at a package installed from it.** **SO THE SITES ARE RE-READ AGAIN, NOT RE-SPELLED:** this section's version line above, §2.2's five exact pins, §8.1's *"an installed …"* clause and §11's manifest table each read `1.6.1`. **AND WHAT THIS RELEASE CHANGES FOR YOU IS NO ARM OF THE PACKAGE: the failure form stays four members, a log entry stays five, the status set stays twenty and the kernel's token set stays nine** — the change list's `§1.6.1` states it with its arithmetic. **AND THE TAG SET IS A RECORD OF RELEASES AND NOT A CLAIM ABOUT THIS TREE:** `git tag --list` answers `v1.0.0` · `v1.0.1` · `v1.1.0` · `v1.2.0` · `v1.3.0` · `v1.4.0` · `v1.5.0` · `v1.6.0`, and `git describe` reads `v1.6.0-4-g674b79e`. (`D-57`; the change list's `§1.6.1`; `scripts/publish.sh --figures`, which asserts the one figure in three shipped documents.)
+
+**AND ONE THING A READER OF THE INSTALLED PACKAGE SHOULD KNOW BEFORE THE CITATIONS: WHEN THIS DOCUMENT IS AT
+`node_modules/provident-storeroom/README.guide.md`, IT IS THIS GUIDE.** **Its ONE authored home is
+`docs/guides/package-use.md` in the repository, and the release's assembly stages it byte-for-byte at the packaging
+root as `README.guide.md`, beside `README.md`, where the manifest's `files` row ships it** (`PUB-DD-11`;
+`docs/specs/storeroom-publish/contract.md §2.3` item `3`; `scripts/publish.sh`'s guide stage). **The paths this guide
+cites — `bindings/js/…`, `docs/specs/…`, `tests/…` — are the CHECKOUT's, and they do not travel in the tarball; a
+consumer reading from `node_modules` has this guide's text and the package's own shipped bytes (`index.mjs`,
+`index.d.ts`, `README.md`, `src/`), and every declaration a citation names is answered first by those bytes.** **So
+nothing here is addressed to a checkout reader alone: the installed tree carries this text unaltered, and a clause
+that names a repository path says where its authority lives, not where you must stand to use it.**
+
+**Every figure carries one of four marks, and the four are not the same thing:**
+
+| the mark | what it means |
+|---|---|
+| **`path §section`** | **declared** — the clause says it, and it is the authority for that subject |
+| **`path` alone, or a row id such as `DD-28`** | **declared** at a contract's own named row |
+| **`archive/…`** | declared in a file that has been **archived** by this branch's documentation pass; cited so the reference resolves, not as the current home of anything |
+| **`measured 2026-10-26`** | **taken on this checkout** — either read at a file's own bytes, or driven against the checkout's own built addon through the published entry, and reported raw |
+
+**AND ONE RESOLUTION RULE, SO NO CITATION HERE DANGLES: a bare `write-and-read.md`, `crossing.md`,
+`store-model.md`, `seams-and-lifecycle.md`, `parameter-semantics.md`, `resolution.md`, `kernel-surface.md` or
+`package.md` in a citation is one of this project's ARCHIVED `docs/specs/` parts, and resolves under
+`archive/pre-strata-docs-2026-10-24/docs/specs/<unit>/` — the archive prefix is printed where each is first cited
+and is elided afterwards only to keep the prose readable.**
+
+**AND THE SHORT NAMES THIS FILE USES, so every citation resolves from any line:**
+
+| the short name | the file it is |
+|---|---|
+| **`index.d.ts`** | `bindings/js/index.d.ts` — **the declaration of record** |
+| **`README.md`** | `bindings/js/README.md` — the readme that ships in the package |
+| **`surface.md`** | `docs/specs/storeroom-js/surface.md` |
+| **`js/contract.md`** | `docs/specs/storeroom-js/contract.md` |
+| **`native/contract.md`** | `docs/specs/storeroom-native/contract.md` |
+| **`json-crossing/contract.md`** | `docs/specs/storeroom-json-crossing/contract.md` |
+| **`held-listener/contract.md`** | `docs/specs/storeroom-held-listener-identity/contract.md` |
+| **`publish/contract.md`** | `docs/specs/storeroom-publish/contract.md` |
+
+**AND THE ROW IDS, WHICH ARE STABLE NAMES AND ARE CITED INSTEAD OF A LINE NUMBER ON PURPOSE:** **`DD-n`, `PAR-…`
+and `P-…` are the contracts' own named rows** (each contract ids its own families at its `§0.2` or `§0.3`);
+**`A…` ids are the ARCHIVED authority log's rows** (`archive/pre-strata-docs-2026-10-24/docs/decisions.md`); and
+**`D-…` ids are `strata/decisions.md`'s own rulings**, which outrank every other document in this tree.
+
+**HOW TO CHECK WHICH VERSION YOU ACTUALLY HAVE, at your own install — because a guide's claim about a version is
+worth nothing to you if you cannot falsify it:**
+
+1. **What you have:** read `node_modules/provident-storeroom/package.json` and check `"version"`, then read its
+   five `optionalDependencies` values. **All six figures must be the SAME version** — the main `version` and the
+   five exact pins move together and never singly (`bindings/js/package.json`, measured 2026-10-26; the coupling
+   rule is `PUB-DD-10` at `docs/specs/storeroom-publish/contract.md §0.3`).
+2. **Which realm you are in:** you must be in **Node ESM** — the claimed realm is the ES module itself, reached by
+   EITHER of Node's two specifiers for it, `import` and `require`, at or above the declared floor (`>=22.12.0`).
+   **No other realm is claimed** (§1).
+3. **What is actually loaded:** construct a store and read the empty address. If the loader resolved a
+   differently-versioned platform package, that is where it shows.
+
+**⟶ AND THE INSTANCE'S OWN MEMBER COUNT IS FIFTEEN, NOT FOURTEEN, 2026-11-17 — AND THE PARAGRAPH BELOW IS READ THROUGH THIS LINE.** `readTiered`
+was added to the surface and the count was left behind in three places (this line, `§3`'s heading and `§3.1`'s); **the tree answers fifteen and the
+guide now says so everywhere it says it.** **THE SHAPE OF THIS GUIDE, IN ONE LINE: one module name, one instance with fifteen own members, one thrown
+refusal form, three tiers, two population routes for constraints, and a value domain narrower than JSON's.** The
+rest is the consequences.
+
+---
+
+## §1 · What you get
+
+`provident-storeroom` is **a native Rust register, reached through a Node-API addon, behind a thin ES-module
+facade.** The package itself is small — an ESM entry, its own parts, a readme and a hand-authored type declaration
+— and **the binary does not travel in it**: it arrives in a separate per-platform package (§2).
+
+**THE CLAIMED REALM IS THE ES MODULE ITSELF — ONE FILE, ONE NAMESPACE, ONE DECLARED MEMBER SET — AND IT IS REACHED
+BY EITHER OF NODE'S TWO SPECIFIERS FOR IT** (`bindings/js/README.md`, opening clauses; `A70`; `docs/specs/storeroom-js/contract.md §3.1`'s
+re-derivation of 2026-11-17, `D-128`/`D-129`; and
+`archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-js/package.md §1`–`§2`, archived): you `import` it as an ES
+module, and a CommonJS host `require`s the SAME entry through the package's own `require` condition, at or above the
+declared floor. **Node CJS as a module format, Electron's
+`main`/`preload`/`renderer`, the browser, `worker_threads` and any IPC route are each UNCLAIMED** — the package's
+own readme enumerates them one by one and describes no other realm as supported.
+
+**⟶ ONE OF THEM IS NOW SUPPORTED AS A BUILD, IN A SECOND PACKAGE — 2026-11-17** (`D-154` item 1; `D-157` item 1).
+**`@auspicion/provident-storeroom-js-wasm` is this same store on a WebAssembly host**, and it differs from the
+package this guide documents in three ways a consumer meets at once:
+
+* **THE BINDINGS ARE HANDED IN, NOT LOOKED FOR.** `storeCreate(bindings, cfg)` takes the module as its first
+  position — the package instantiates nothing, loads no addon and reaches no filesystem.
+* **THERE IS NO `filePath`.** The key is not in domain on that arm, a construction that carries it is refused at the
+  `cfg` gate, and the **`file` tier means *durable with no path***: the store keeps its durability against a
+  caller's function (`saveCall`), and a save it cannot confirm is a save it does not claim.
+* **A VALUE MUST BE CLONEABLE.** The crossing is a deep copy in both directions, so a value the store holds cannot be
+  mutated behind it — that is what keeps a listener's firing and a constraint's pass honest — and **a `Proxy` you pass
+  as a VALUE is refused before any trap of yours runs**: a reactive store's own object is a `Proxy` on most client
+  frameworks, so **pass the plain value (`toRaw`, a spread, or a clone) and the store takes it**. **What that refusal
+  covers is the DATA — the values that go INTO the store — and not the settings you construct it with.** `cfg` itself,
+  a `listeners` entry, a `constraints` entry and the commit record the package builds are the package's own carriers:
+  they never enter the Rust store, and on this build a `Proxy` handed in one of those positions is **read rather than
+  refused**. **So the reactive wrapper is the thing to unwrap where it matters — at every value you write — and a
+  `Proxy` in a settings object is not a refusal you will see; passing plain objects in both places is what keeps the
+  behaviour the same as on the Node build.**
+
+**NO ARTEFACT OF THAT BUILD IS DESCRIBED HERE AS SHIPPED BY THIS PACKAGE**: it is a sibling package with its own
+`files`, its own declaration and its own version line, and this guide's every claim about `provident-storeroom`
+stands unchanged.
+
+**AND THE BUILD HAS A SECTION OF ITS OWN IN THIS GUIDE — §13 — BECAUSE THE THREE DIFFERENCES ABOVE ARE WHAT YOU
+MEET FIRST AND NOT WHAT YOU NEED IN ORDER TO USE IT.** How you hand it the module, what its `cfg` refuses and why,
+how it saves, what its crossing guarantees and what it cannot do are stated there one line each, with the cells that
+measure them (`D-154`, `D-155`, `D-156`, `D-157`, `D-167`; §13).
+
+**The licence of record is `AGPL-3.0`** (`bindings/js/package.json`'s `license` field, measured 2026-10-26), and a
+copy of the repository's `LICENSE` travels with every published artefact, landed byte-for-byte by the release's
+own assembly step (`docs/specs/storeroom-publish/contract.md §2.3` item 2; `PUB-DD-11`). **Three spellings of the
+licence stand in this repository and they are not identical:** the root `Cargo.toml` says `GPL-3.0-or-later`, the
+binding's `Cargo.toml` says `AGPL-3.0-or-later`, and the published manifest says `AGPL-3.0`. **Do not assume the
+root crate's spelling is a typo** — no clause of the tree says so, and the packaging decision it reflects is not
+yours to reverse. **The manifest's field is the one that governs your use of what you installed.**
+
+**AND ONE THING THAT IS ABSENT ON PURPOSE, SAID FIRST BECAUSE YOU WILL LOOK FOR IT: there is no release verb.**
+No `dispose()`, no `close()` and no finalizer is a member (`bindings/js/index.d.ts`, the `StoreInstance`
+declaration; `A74`). **The instance's state is released with the instance and by nothing else — construct one store
+and keep it for the process's life.**
+
+**⟶ AND THE SECOND HALF OF THAT SENTENCE IS NOW BEHAVIOUR RATHER THAN ADVICE, 2026-11-19 — `D-171` ITEMS 1–3.** **THE MEMBER SET DOES NOT MOVE: there is still no `dispose()`, no `close()` and no finalizer you can call, and the instance is still the handle you act through.** **What moves is what happens when YOU drop the instance — a store you stop holding is RELEASED.** The package holds the store's own index in a `FinalizationRegistry` and hands that index to the addon's `storeRelease` entry when the instance is collected; **that entry drops the store and empties its slot in one act, and the slot it leaves is a tombstone — no other store's index shifts into it, so every store you still hold keeps answering its own register.** **BEFORE THIS LANDING NOTHING RETIRED ANYTHING: a constructed-and-dropped store stayed in the addon's own table for the process's life — measured `~573,112` bytes per construct-and-drop against `~42,000` after the fix, on a store told to keep `128 KiB`** (`D-171` items 1 and 3) — **and the WebAssembly build carries the same entry from 2026-11-19, so neither build leaks a store you have let go.** **WHAT TO DO WITH IT, SAID AS THE ADVICE IT IS: one store per process is still the shape the register wants — one journal, one listener map, one `filePath` — and it is no longer a rule you keep in order not to leak.** **AND THERE IS STILL NO RELEASE VERB: you cannot free a store you are still holding, and nothing is thrown at you when one is freed.** (`D-171`; `bindings/js/src/facade.rs`'s `storeRelease` and `bindings/js/src/wasm.rs`'s; `tests/e2e/store-retirement.test.mjs`'s `SR-01`–`SR-03`; `tests/e2e/wasm-arm.test.mjs`'s `CW-8`/`CW-9`.)
+
+**The five decisions this guide exists to inform** — the checklist the archived guide carried and that is still
+true of this surface:
+
+- **Decide the address scheme before you write code.** `['domain', id, 'field']` — pick it once, write it down, and
+  never let two subsystems invent two schemes. **The addresses are your schema** (§4).
+- **Decide the tiers per data class** — what must survive a reboot (`file`), what may survive a reload (`mem`),
+  what may vanish (`temp`) (§5).
+- **Set `journalLength` against your undo promise**, not against a guess: it bounds the journal, which is the
+  whole undo window (§5.4).
+- **Decide the value shapes.** They must be crossing-compatible, so they are shapes you would send over an IPC
+  boundary. Serialize once, at the boundary (§10).
+- **Wrap every verb in one refusal→data mapper.** Refusals are thrown plain objects, and one place to branch on
+  `status` is the whole design (§8).
+
+---
+
+## §2 · How you reach it: install, and the three rungs
+
+### §2.1 One name to install
+
+```sh
+npm install provident-storeroom
+```
+
+**That installs the package and — if your platform is covered — its binary, as a dependency of its own.** You do
+not install five packages; you install one and npm resolves the one your runtime needs.
+
+### §2.2 The five platform packages, named and pinned
+
+**The entry resolves its artefact in a declared order, and the first rung is the scoped per-platform package**
+(`docs/specs/storeroom-publish/contract.md §1.1`; `bindings/js/README.md`, *How the addon is resolved*). **The
+names are a closed set of five and are never built by concatenating tokens** (`P-PUB-2`; `publish/contract.md §1.3`):
+
+- `@auspicion/provident-storeroom-js-linux-x64-gnu`
+- `@auspicion/provident-storeroom-js-linux-arm64-gnu`
+- `@auspicion/provident-storeroom-js-darwin-x64`
+- `@auspicion/provident-storeroom-js-darwin-arm64`
+- `@auspicion/provident-storeroom-js-win32-x64-msvc`
+
+**Measured 2026-10-26 at `bindings/js/package.json`: all five stand in `optionalDependencies`, each pinned to
+`0.5.0` — an exact version, five times, with no caret, no tilde and no range.** **THE PINS ARE EXACT ON PURPOSE AND
+YOU SHOULD NOT "RELAX" THEM:** npm's dedupe could otherwise satisfy the loader with a differently-versioned copy
+hoisted into your tree, and the exact pins are what closes that window (`PUB-DD-10`'s `alt` cell, which prices a
+range and refuses it).
+
+**⟶ AND THE FIGURE IS CORRECTED AT THIS DATE: each of the five is pinned to `1.0.0`, not `0.5.0`** (`bindings/js/
+package.json`, read at its own bytes 2026-10-26; `RCA-8(g)` ANNOTATE-BESIDE — the sentence above stands and is read
+THROUGH this one). **THE READING IT TEACHES IS UNMOVED AND IS THE POINT: five EXACT pins, no caret, no tilde and no
+range, all six figures moving together (§0 item 1; `PUB-DD-10`).** **`1.0.0` is the package's own version (§0 and
+§11), so the main `version` and the five pins are one figure and a consumer who reads a `0.5.0` anywhere in a
+manifest has the wrong package.**
+
+**⟶ AND THE FIGURE MOVES AGAIN, 2026-10-27: each of the five is pinned to `1.0.1`, not `1.0.0`**
+(`bindings/js/package.json`, read at its own bytes; §0's correction of this date; `RCA-8(g)` ANNOTATE-BESIDE — the
+two clauses above stand and are read THROUGH this one). **THE READING THEY TEACH IS UNMOVED AND IS THE POINT: five
+EXACT pins, no caret, no tilde and no range, all six figures moving together (§0 item 1; `PUB-DD-10`) — so `1.0.1`
+is the package's own version and the five pins' one figure, and a consumer who reads anything else in a manifest
+has the wrong package.**
+
+### §2.3 The three rungs
+
+1. **RUNG ONE — the scoped platform package for this runtime's `process.platform` × `process.arch` key.** This is
+   the rung that fires in a published install. **Every throw at this rung is a MISS and not an error** — it falls
+   through rather than reporting (`archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-publish/resolution.md
+   §2.1`–`§2.2`, archived).
+2. **RUNG TWO — the module-relative addon beside the entry** (`build/Release/storeroom_js_binding.node`), computed
+   from the entry module's own location and from no other source: **no environment variable, no configuration
+   key, no path relative to the working directory and no search of a parent directory.** **This is the
+   checkout-only rung** — a `files`-restricted tarball does not carry it — and no version is compared here
+   (`bindings/js/README.md`; `resolution.md §3.2`, archived).
+3. **RUNG THREE — the declared absent-addon form.** Failing both, `storeCreate` throws the one refusal carrying
+   the store's `FilePathUnreachable`, **and no instance is returned.**
+
+**THERE IS NO FALLBACK AND NO JS-SIDE STORE.** An absent or failed addon refuses; it never degrades to a JavaScript
+store, never absorbs state silently and never returns a partial instance (`bindings/js/README.md`; `PUB-DD-1`,
+`PUB-DD-2`; `resolution.md §5.3`, archived).
+
+**AND THE UNCOVERED-TARGET ANSWER IS A DECLARED LIMITATION, NOT AN ERROR YOU CAN FIX AT THE INSTALL:** a
+`process.platform` × `process.arch` pair outside the five covered keys gets **no binary** — rung one is not
+attempted at all, because no name exists for that pair — and a published install carries no `build.rs`, no
+`Cargo.toml`, no `src/**` and **no `postinstall` build-on-install step.** **Your only route is to build the store
+crate from its source yourself; a covered consumer needs no Rust toolchain, an uncovered one does**
+(`publish/contract.md §2.1` item 3; `PUB-DD-1`).
+
+---
+
+## §3 · The surface: one module name and fifteen members
+
+```js
+import { storeCreate } from 'provident-storeroom';
+```
+
+**That is the whole module namespace — ONE name, `storeCreate`, and nothing else.** There is **no** module-level
+`read`, `write`, `listen` or any other verb (`bindings/js/index.d.ts`'s preamble; `surface.md §2.9` item 1's `A127`
+clause, the module count `11 → 1` ✓; measured 2026-10-26: the imported namespace's keys are `["storeCreate"]`).
+
+### §3.1 The instance, and its fifteen own members
+
+```js
+const store = storeCreate({
+  journalLength: 256,       // REQUIRED — a positive integer, bounds the journal and so the undo window
+  listeners: [],            // REQUIRED, even when empty — an absent `listeners` is refused
+  filePath: '/…',           // OPTIONAL — what makes the `file` tier real, and what construction occupies
+  constraints: [],          // OPTIONAL — your own list; NEVER persisted (§7.2)
+});
+```
+
+**`storeCreate` answers an instance carrying exactly FOURTEEN own members** — `10 + 1 + 1 + 2 = 14` ✓ — and they
+are these fourteen and no others (`bindings/js/index.d.ts`, `StoreInstance`;
+`docs/specs/storeroom-held-listener-identity/contract.md §2.7` item 9):
+
+| member | its declared shape | one line |
+|---|---|---|
+| `read` | `(address, tier?) => unknown` | a leaf's literal, a branch's assembled value, or the whole register |
+| `readLiteral` | `(address, tier?) => unknown` | the same, narrowed to a leaf — **a branch refuses** |
+| `write` | `(address, tier, value, commit?) => WriteRecord` | `commit` is the kernel's own position; leaving it out is the supported form |
+| `delete` | `(address, tier?) => DeleteRecord` | **a method name, not an identifier binding** — `store.delete(…)` |
+| `rollback` | `(opId) => RollbackRecord` | walks backward and undoes **that op and everything after it** in scope |
+| `listen` | `(handle, addresses) => Handle` | **you spell the handle**; the address position is a **SET**; answers the standing handle |
+| `unlisten` | `(handle) => void` | withdraws the store-side entry, and the registry entry where the identity stands nowhere |
+| `register` | `(handle, listener) => void` | one handle, one function — a second registration replaces the first |
+| `removeListener` | `(handle) => void` | the entry removed whole and its store entries withdrawn |
+| `addConstraint` | `(pair, constraint) => ConstraintIdentity` | the ADD route; **overwrites at a held pair and throws nothing for it** |
+| `constraintOn` | `(pair, constraint) => void` | enable — idempotent; throws at a pair the store does not carry |
+| `constraintOff` | `(pair, constraint) => void` | disable — idempotent; **not a removal** |
+| `removeConstraint` | `(pair) => void` | **the one act that deletes an identity** |
+| `constraints` | `() => ConstraintPair[]` | the registered pairs, `{address, id}` only — **no function, no identity, no order, no `enabled`** |
+
+**Measured 2026-10-26, on an instance built in memory: `Object.keys(store)` and
+`Object.getOwnPropertyNames(store)` are both this same fourteen-name list, and the `read` member's own descriptor
+reads `writable: true, enumerable: true, configurable: true`.** **THERE IS NO `on`, NO `off` AND NO `settle`.** `on` and
+`off` were merged away — registration is `listen` then `register`, and withdrawal is `unlisten` — and `settle`
+was removed whole when the kernel became the only write path (`index.d.ts`, the member-set clauses of 2026-10-18
+and 2026-10-19; `A127`). **A guide or a README that declares a `settle` member is describing a surface that no
+longer exists.**
+
+### §3.2 The private-state rule
+
+**The instance is the handle you act through, and no own member is a data member.** There is no `store.data`, no
+`state` field and no getter over the register; **`read(address)` is the route.** A consumer that expects
+`store.data`, `store.store` or a `state` property is reading an object that does not exist
+(`archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-js/surface.md §2.1` (e) item 1, archived at its
+operative clause; `A117` (D6)).
+
+### §3.3 The `commit` position, and why you should leave it out
+
+**`write`'s fourth position is the optional `commit`** — `write(address, tier, value, commit?)` — and **an absent
+`commit` is in domain**: the write opens or joins a commit all the same (`surface.md §2.2` clause 3;
+`index.d.ts`, the `write` member). **Passing one is the kernel's own route into a write, and a caller leaving the
+position out is the supported form.** **Every form at that position other than an object carrying a `pending`
+member present and not `undefined` throws the class test's own `TypeError`, whose `status` member is ABSENT** — and
+**a refused position stops the write: no verb is reached and no byte moves** (`surface.md §2.4` item 9 (g) item 1).
+
+**And one reading that catches people: a SUPPLIED `undefined` at a `tier` position is not the same call as no
+position at all.** It is a PRESENT value, and the store answers `AddressMalformed` for it; only the call that
+supplies nothing there folds to the absent tier (`parameter-semantics.md §2.6`, `PAR-JS-6`, archived; `index.d.ts`,
+`TierSet`).
+
+---
+
+## §4 · Addresses
+
+```ts
+type Address = readonly (string | number)[];
+```
+
+**An address is a path from the register, walked one segment at a time.** A segment is either a `string` key or a
+**non-negative integer index** (`bindings/js/index.d.ts`, the `Address` declaration; `PAR-JS-5`).
+
+```js
+store.read([])                     // THE WHOLE REGISTER — measured 2026-10-26: `{}` on a fresh store
+store.read(['users'])              // a branch: its assembled value
+store.read(['users', 0, 'name'])   // a leaf's literal
+store.readLiteral(['users', 0])    // a leaf only — a branch refuses with `ReadTargetIsBranch`
+```
+
+**Five rules, each of which a reader guesses wrong at least once:**
+
+1. **The empty address resolves to the register, and the register is itself a branch** — so read it with `read`,
+   never `readLiteral`.
+2. **The empty string `''` is a legal key, and there is no delimited address form.** `'a.b'` is not an address; it
+   is a single string key that happens to carry a dot, and an address is an ARRAY of segments
+   (`archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-js/crossing.md §1.3`, `AddressArg` rows 2 and 6,
+   archived).
+3. **An integral segment is in domain up to `Number.MAX_SAFE_INTEGER`.** Anything integral above `2^53 − 1` is
+   `AddressMalformed` — refused, never folded onto a nearby address (`crossing.md §1.3`, the `AddressArg` row 3
+   range clause).
+4. **An index aimed at the register is `AddressNotFound`** — the register is keyed by names and holds no index
+   semantics (`archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-native/store-model.md §2.2`, arm
+   `L-INT-REG`).
+5. **An array with a hole is not an address.** A sparse address array is `AddressMalformed`, because the two
+   readings of a hole disagree and neither may be chosen silently (`crossing.md §1.4` item 2).
+
+**And the sentence that saves the most time: a nested write does not create its parent.** Writing beneath a path
+does not bring the path into being; the parent must already stand, and the failure is the write's own
+`AddressNotFound` naming the container it looked in (`archive/pre-strata-docs-2026-10-24` — the archived
+`write-and-read.md` `§3.2`, items 1–2, arm `F-3`). **So create the shape you mean, then fill it** —
+either write the parent first, or **write a whole structured value at the key, which mints the branch tree beneath
+it in one call** (`write-and-read.md §3.4`, arm `W-4`).
+
+**A branch assembles one member per child key**, a branch whose container is an array assembles a **dense array**,
+and **an empty container reads `{}` or `[]` — the two are distinct, and that distinctness is what makes the
+container's kind observable at a read** (`write-and-read.md §4.2`, arms `R-2`/`R-3`). **A write whose value kind
+contradicts the container's answers `ContainerKindConflict` rather than converting** (`write-and-read.md §3.4`,
+arm `F-4`). **That is a design decision you make once per key, not something the store repairs for you.**
+
+---
+
+## §5 · Tiers
+
+**The tier order is `file` > `mem` > `temp` in persistence**, and what each means for you is lifetime: `temp` is
+shadowed by writes to `mem`, `mem` lives for the session, `file` is for anything that must be there on the next
+boot (`archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-native/write-and-read.md §3.1.1`).
+
+### §5.1 The tier order decides which version a read lands on — it is not a layered stack
+
+**Writing at a tier does not add a version beside the old one: the write purges the versions it outranks, and one
+version is left holding the key** (`write-and-read.md §3.4`, arms `W-6` and `W-1`; §3.2 item 3). **A read narrowed
+to a tier the key no longer holds refuses `TierNotFound`, and the message names the tiers that ARE present**
+(`write-and-read.md §4.2`, arm `R-4`'s message obligation).
+
+**There is one state in which two versions DO stand at one key, and it is the exception that makes the rule
+readable: a SHADOW.** When the key holds a version at a tier MORE persistent than the write's, the newer version is added alongside — and the SHADOW wins the unqualified read: an unqualified read selects the LOWEST-persistence version present, `temp` before `mem` before `file`, and a read narrowed by the `tier` argument selects within the passed set by the same rule (`write-and-read.md §3.4`, arm `W-5`;
+`docs/specs/storeroom-native/contract.md §2.3`, whose zero-tier arm states it), while the tier readout's `readTiered` reports that selected version's own tier as each node's `_tier`. ⟶ CORRECTED 2026-11-06 (`D-122`), replacing a reading that gave the unqualified read to the more persistent version. **So "one version per key" is not the
+invariant; "the write's own tier decides which versions survive it" is** (`write-and-read.md §3.4`, arm `W-5`).
+
+**Whether declared semantics and shipped behaviour agree at every arm and every tier combination is not a
+consumer guide's question, and this guide does not turn the rule above into a promise about any particular
+pair — it states what to rely on: the order `file` > `mem` > `temp`, the `TierNotFound` refusal with its named
+tiers, and the arity rule immediately below.**
+
+### §5.2 The tier argument's arity differs by verb
+
+**READERS take absent, ONE token, or an ARRAY of tokens read as an ANY-MATCH set. WRITERS AND DELETES TAKE EXACTLY
+ONE TOKEN** — an array at `write` or `delete` is `OutOfDomainTier` (`bindings/js/index.d.ts`, the `TierSet`
+declaration, which says so directly; `crossing.md §1.3`, `TierArg` rows 2 and 3).
+
+| verb | `tier` absent | one token | an array | `null` / `undefined` |
+|---|---|---|---|---|
+| `read` · `readLiteral` | legal — the lowest persistence present | legal | **legal — an any-match set** | `AddressMalformed` |
+| `write` | `AddressMalformed` | legal | **`OutOfDomainTier`** | `AddressMalformed` |
+| `delete` | legal — every tier at the target | legal | **`OutOfDomainTier`** | `AddressMalformed` |
+
+**Asking "do I have this anywhere durable or in memory?" is a legitimate question — `store.read(addr, ['file',
+'mem'])` answers a node matching ANY of them. A write is going somewhere, and an array there would be a choice you
+did not make.**
+
+**And the tier's domain is three lowercase tokens: `file` · `mem` · `temp`.** `'secure'`, `'FILE'`, `'disk'`,
+`'session'` and `''` are each outside it and each answers `OutOfDomainTier`; **`null` and `undefined` are not
+tier-shaped values at all, so they answer `AddressMalformed` rather than `OutOfDomainTier`**
+(`write-and-read.md §3.1.1`, and its `null`/`undefined` column clause).
+
+**★ AND `listen` HAS NO TIER AT ALL** — it takes a handle and an address SET, and nothing else (`index.d.ts`, the
+`listen` member; `held-listener/contract.md §2.2` item 1's arity `2`). **The archived guide's tier table carries a `listen` row
+and it is superseded: the verb's positions are `(handle, addresses)` and a tier-shaped argument at position two
+is a set-position class refusal, not a tier.**
+
+### §5.3 `write` and `delete` do not treat one tier alike
+
+**A `write` at a tier purges the versions it outranks; a `delete` at a tier removes THAT tier's version and
+leaves every other tier's version at that key untouched** (`write-and-read.md §4.4`, arm `D-1`). **A `delete` with
+no tier removes every version at the target and all downstream of each; a delete of the empty address empties the
+register; and a delete that removes nothing is a SUCCESS — it answers `tiers: []` rather than throwing**
+(`write-and-read.md §4.3`, `§4.4` arms `D-2`, `D-3` and `D-5`). **⟶ AND A `delete` THAT REMOVES SOMETHING NOW PASSES CONSTRAINTS** — see §7.8; a delete that removes
+nothing is not an edit and runs no pass.
+
+### §5.4 Undo is bounded by the journal, and `rollback` is not a single-op undo
+
+**`rollback` walks backward through the journal, from the newest in-scope entry to the oldest, and the scope is
+every operation touching the same subtree as the named op — not the last op alone. There is no partial or subset
+rollback** (`write-and-read.md §6.4`, arms `M-5` and `M-8`). **Its answer's `undoneOps` is the LIST of the ids the
+reversal actually undid — a report of reversals PERFORMED, newest first, and never a census of in-scope entries**
+(`index.d.ts`, the `RollbackRecord` declaration; `write-and-read.md §6.4` item 3 (i)). **`restoredTo` is the base
+state the addressed subtree now stands at, `{ present, value }`.**
+
+**Three more things about the journal, each of which changes how you use it:**
+
+- **The journal is not readable, enumerable, addressable or deletable by any other call.** There is no
+  `journalEntries()`, no `journalLength()` and no `clearJournal()`; **`rollback` is its only consumer, and the op
+  crosses to you as a returned value on every write** (`write-and-read.md §6.3`).
+- **`journalLength` is your whole undo window.** The store compacts entries into a base state as the journal
+  fills, and **a rollback that meets a compacted entry no longer undoes nothing — from 2026-11-02 it REVERTS TO
+  THE LAST VALID STATE BY REGENERATING IT FROM THE DURABLE GROUND TRUTH**: the store rebuilds the state from the
+  `file` tier's own image, and from the state the store was created with where no image stands, and then replays
+  what its journal still reaches. **WHAT THAT MEANS FOR THE VERSIONS YOU NEVER MADE DURABLE, IN ONE SENTENCE:
+  inside the undo window a reversal puts back what it undid, memory-only versions included — and a version whose
+  only record the compaction has already swallowed does not come back.** **So the honest form of the promise is:
+  a reversal reaches as far as your journal still reaches, and the durable state is the floor it never falls
+  below.** **`strata/decisions.md` · `D-108`.**
+- **A rollback appends no journal entry, and an undone entry is marked `compacted: true`.** **The `compacted` flag
+  is ONE predicate with TWO grounds** — compressed into the base state, or undone by a rollback — **and the record
+  carries no member to tell them apart** (`write-and-read.md §6.4` `M-9`).
+
+**★ A REVERSAL IS ALSO JUDGED BY YOUR CONSTRAINTS — AT THE STATE IT LEAVES, AND THAT ARM IS DECLARED BUT NOT
+YET CARRIED, WHICH THIS GUIDE SAYS PLAINLY RATHER THAN LETTING YOU DISCOVER IT.** **The ruling** (`D-38`,
+verbatim: *"Assert the constraints on rollback"*) **makes a `rollback` whose TERMINAL state violates a registered
+constraint FAIL, answering `{status: 'ConstraintPassRefused', message, log}` at rank `20` — the same member a
+constraint-refused `write` answers (`§8.1`).** **IT IS JUDGED AT THE TERMINAL STATE AND NEVER PER UNWINDING
+STEP**, because a per-step check is unsound: a reversal passes through intermediate states no constraint would
+approve, and only the state you are left standing in is a state a constraint can be asked about. **A LAWFUL
+REVERSAL IS UNCHANGED — and no longer silent: a pair of yours that refuses the state it leaves may land its
+REPAIR, and the listeners your own pairs' repairs fire are invoked once, with the triggering address, before the
+member returns** — same `{opId, undoneOps, restoredTo}`, no status and no throw, no member added and no status
+minted (`§9.3`; `strata/decisions.md` · `D-113` item 3, `D-117` item 1). **MEASURED 2026-10-26:
+the shipped `rollback` still consults no constraint** — a refusal registered over the address a reversal
+restores is not evaluated, and the reversal succeeds — **so treat this paragraph as the ruling's declaration
+and NOT as today's behaviour**; the arm's carrier is owed at the `rollback` member and is the only part of this
+guide's constraint story that is not yet observable.
+
+**⟶ AND THE CARRIER THAT PARAGRAPH SAYS IS OWED HAS LANDED (2026-10-26), SO THE RULING IS NOW TODAY'S BEHAVIOUR — WITH FOUR NARROWINGS YOU SHOULD MEET BEFORE YOU RELY ON IT.** `RCA-8(g)` ANNOTATE-BESIDE: **the ★ paragraph above stands BYTE-FOR-BYTE and is read THROUGH this clause — so do its two measured readings, *"the shipped `rollback` still consults no constraint"* and *"the arm's carrier is owed at the `rollback` member"*: each was true of the tree it was measured on and each is FALSE of the shipped tree from this date.** **WHAT YOU NOW GET: a `rollback` whose terminal state a registered constraint refuses throws `{status: 'ConstraintPassRefused', message, log}` at rank `20`, and a lawful reversal answers its unchanged record** — same `{opId, undoneOps, restoredTo}`, no throw, no new member. **WHAT THAT PROMISE DOES NOT COVER — FOUR LINES, EACH WITH ITS REASON:**
+1. **A reversal INSIDE an open commit is NOT judged.** If you reverse from inside a constraint body, a repair, a listener, or the kernel's own failing-attempt floor call, the state the reversal leaves is not the state that stands (the open window moves it again, and the caller sees nothing yet) — **and judging it would invoke your constraint bodies MID-ATTEMPT and break `D-40`'s promise that a failed attempt leaves the store as it found it.** **The judgement is the AT-REST reversal's: your own `rollback` at the surface, where the state it leaves is the state you then read.**
+2. **A DISABLED pair is NOT judged.** A pair you `constraintOff`'d still appears in `constraints()`, but the judgement asks only pairs that are enabled — **because a disabled pair cannot fire, so nothing it would refuse can have run.** Re-enable it and it is asked again at the next reversal.
+3. **A pair registered STRAIGHT THROUGH THE KERNEL'S `K-1` is NOT judged at a reversal.** The judgement reads the package's own registry, which the package's declared registration routes write — `cfg.constraints` at construction and `addConstraint` after it — while a pair placed by a kernel-direct call is evaluated at writes but is **not** in the state the judgement reads (and `constraints()` does not list it either). **Register through the package's routes and the promise covers you.**
+4. **WHEN IT REFUSES AND NO ATTEMPT STANDS, `log` IS ONE `constraint-check` ENTRY — NOT `[]`.** The `log` member is normally *"the attempt's own message log"*, and `[]` is its value where a failure's cause has no attempt; **a reversal's judgement is one of those causes, and here the refusal AUTHORS ITS OWN RECORD instead of reporting an absence:** `log.length === 1`, `log[0].kind === 'constraint-check'`, `log[0].id` the refusing pair's own id, `log[0].state` `null`, `log[0].opId` the reversal's own op id or `null`. **So do not read an empty array as *"nothing failed"* at this arm, and do not read this one entry as an attempt's history — it is the refusal's.** **⟶ AND FROM 2026-10-28 *"the attempt's own message log"* IS READ THROUGH `D-53` AS THE COMMIT'S OWN LIST** (§8.0a above): at this arm no attempt and no commit stands, which is what makes `[]` the wrong value here and one authored entry the right one.
+**AND ONE THING ABOUT A FAILING REPAIR, WHICH IS THE SAME SHAPE AND IS DECLARED RATHER THAN DISCOVERED: THE FLOOR CALL RESTORES THE ADDRESS THE ATTEMPT WROTE; AN ADDRESS A REPAIR LANDED AT BESIDE IT IS NOT RESTORED.** `D-40`'s sentence — *"a failed attempt leaves the store exactly as it found it"* — is measured true of the attempt's own address and false of a beside address: the store's rollback scope is the addressed subtree at or after the named op's own position, so a repair that writes elsewhere leaves THAT value standing after the failed attempt. **If you need the beside address's pre-attempt value, keep it yourself: the store's own floor call does not put it back** (`docs/specs/storeroom-js/contract.md §2.6`'s clause of 2026-10-26, which is where the four narrowings, the `log` arm and this spatial scope are declared; `E2E-C-9` cell 6 in `tests/e2e/blind-constraints-v2.mjs` is the measured reach).
+
+**⟶ AND THE ONE SENTENCE THAT WAS MISSING, DECLARED HERE IN THE TERMS YOUR OWN REVIEW ASKED FOR, 2026-10-28 — `D-55` · `DEF-AN`, THE ARCHITECT, VERBATIM: *"A constraint-refused edit rolls back to the previous safe state, with all edits in the commit undone. Specify this."*** `RCA-8(g)` ANNOTATE-BESIDE: **every clause of §5.4 above and below stands BYTE-FOR-BYTE and is read THROUGH this one; no rank, no status, no member and no promise moves — what this clause adds is the statement of WHAT THE ROLLBACK COVERS.** **THE RULE, IN ONE SENTENCE: a refused edit rolls the commit back to the state it opened at — every edit the commit made is undone, including writes that succeeded before the refusal.** **THE REASON, STATED SO YOU CAN REASON WITH IT: the restore names the mark the commit cached at its OUTERMOST OPENING** (§5.4's closing clause above), **and a commit is one unit of work, so the mark is not the refused op's own — it is where the WHOLE commit began.** **A write, a repair or a delete that landed EARLIER IN THE SAME COMMIT is undone WITH the refusal**, because the commit that carried it is undone; **that is WHY the mark is the outermost opening's and not the nearest one.** **WHAT STILL STANDS: a refused edit moves no state and mints no code beyond the one declared refusal; an edit in a DIFFERENT commit is not touched** — a listener body's own write opens its own commit (`D-53`), so it is a unit of its own and is not undone by yours. **MEASURED ON THIS CHECKOUT, 2026-10-28:** a write that succeeds inside a commit whose listener then reverses and is refused leaves the store at the state the commit opened at — the successful landing gone with the reversal — and the pair is asked at that state (`tests/e2e/discard-witness.mjs`'s `DW-10.5`).
+
+**⟶ AND THAT ONE SENTENCE IS CORRECTED, 2026-10-28 — `D-63`: A REFUSED EDIT ROLLS BACK TO THE LAST VALIDATED STATE, NOT TO THE STATE THE COMMIT OPENED AT.** `RCA-8(g)` ANNOTATE-BESIDE: **the whole paragraph above stands BYTE-FOR-BYTE and is read THROUGH this clause; no rank, no status, no member and no promise moves — what moves is the STATE a refusal restores, and the sentence that names it.** **THE RULING, THE ARCHITECT, VERBATIM:** *"After the constraint sweep ends in a valid state, bump the restore mark. The passing constraint state marks the new next valid state."*
+
+- **OLD → NEW, SO YOU CAN TELL WHICH BEHAVIOUR YOUR VERSION HAS.** **OLD:** *"a refused edit rolls the commit back to the state it opened at — every edit the commit made is undone, including writes that succeeded before the refusal."* **NEW:** *"a refused edit rolls the commit back to THE LAST VALIDATED STATE — every edit the commit made AFTER the last constraint sweep that passed is undone, and every edit that sweep APPROVED stands."* **THE RESTORE IS TOLD A POSITION AND THE POSITION MOVES FORWARD**: it starts where the commit opened and it moves to the store's own journal position at every constraint sweep that ends valid, **before the listeners are delivered.** **So `"the state it opened at"` is now the answer to exactly one case — a commit whose constraint sweep never passed — and it is today's behaviour there and stays.**
+- **WHAT YOU WILL SEE, IN THE THREE SHAPES THAT MATTER TO A CONSUMER.** **(1) An edit that PASSED its checks STANDS even if a later step in the same commit is refused** — you asked for it, the constraints approved it, and the refusal is about what came after. **(2) A REPAIR'S WRITE GOES WITH THE WRITE**: a repair runs *during* the check, so if the check then refuses, the repair's edit is undone with yours. **(3) A LISTENER'S WRITE SURVIVES YOUR REFUSAL**: a listener is delivered *after* every constraint has passed, so its write is a later, discrete act and the restore of yours does not reach it — it is still there afterwards, and you should not treat a refusal as having undone it.
+- **AND THE `DEF-AN` MEASUREMENT ABOVE STILL STANDS, FOR THE REASON IT STANDS.** That drive's pair refuses on the FIRST check, so that commit never reaches a passing sweep, nothing moves the mark, and the store returns to the state the commit opened at — **which is why the reading is unchanged and the rule that produced it is not.** The `D-63` arms are driven beside it in `tests/e2e/discard-witness.mjs` section `W12` (`DW-12.1`–`DW-12.4`), and `tests/e2e/in-commit-restart.test.mjs`, `tests/e2e/direct-pass-restart.test.mjs`, `tests/e2e/downstream-claims.test.mjs` and `tests/e2e/def-ae-restore-mark.test.mjs` carry the re-derived readings.
+
+**⟶ AND WHAT THE STORE HOLDS AFTER A REFUSED REVERSAL, DECLARED HERE BECAUSE `1.2.0`'s ONE BEHAVIOUR CHANGE IS THIS AND NO SHIPPED DOCUMENT SAID IT UNTIL NOW.** `RCA-8(g)` ANNOTATE-BESIDE: **every clause of §5.4 above stands BYTE-FOR-BYTE and is read THROUGH this one; this clause adds the declaration the release owed and moves no promise it prints.**
+
+- **THE FACT: WHEN A REVERSAL IS REFUSED, THE COMPENSATING ACT PUTS THE STORE BACK AT THE MARK THE COMMIT CACHED WHEN IT OPENED — the journal's LAST VALID POSITION as it stood when that commit began (an op id, or the FLOOR where the journal held no entry then) — and never at whatever the journal's head happens to be when the refusal is built.** **Every address the reversal MOVED is read again afterwards and counted as restored only where it stands exactly as it stood before the reversal — the same value at the same tier, or absent where it was absent — and the refusal's one log entry says so address by address**, naming each address that could not be put back with what stands there instead and what it was owed (§8.1 row `20`; `js/contract.md §2.6`'s clause of 2026-10-27). **A reversal taken AT REST makes the two marks describe the same state** — it appends no journal entry — **so this is where the store stands either way at the surface.**
+- **WHAT `1.2.0` CHANGED, IN ONE SENTENCE, SO YOU KNOW WHICH BEHAVIOUR YOUR VERSION HAS: BEFORE `1.2.0` THE RESTORE NAMED THE JOURNAL'S HEAD; FROM `1.2.0` IT NAMES THE OPENING MARK.** **Why the head was wrong is the measurement the ruling was taken on (`DEF-AE`):** *"a reversal appends no journal entry, so the head describes the state that stood before the action"* is true of a reversal **you** take at rest and **false of one taken inside a write's own commit** — there the ENCLOSING WRITE'S OWN OP stands at the head when a listener body's reversal runs, so the old compensation restored the write's LANDING and **a write that reported a refusal had left its own value standing** (measured: `9` stayed `9` where the refused write should have restored `7`). **In `1.2.0` a write that reports a refusal leaves the store where the ATTEMPT found it, not where the refusal's own op landed.** **A LAWFUL reversal is unchanged** (same `{opId, undoneOps, restoredTo}`, no throw), **and a lawful write still answers its record with its value standing.** **MEASURED ON THIS CHECKOUT, 2026-10-28:** a refused write restores the pre-attempt value at its own tier, and the reversal's own refusal restores the pre-reversal standing tier for tier (`tests/e2e/def-ae-restore-mark.test.mjs` cells `1`–`2`; `tests/e2e/refused-reversal-restore.test.mjs`'s shadow, higher-tier/parent and absent arms). **So the store after a refused reversal holds exactly the state the act FOUND — not a later landing that the refusal's own sentence has already told you was undone.**
+
+**⟶ ★ AND THE JOURNAL'S CAP IS A BOUND AND NOT A MARK, 2026-11-17 — `D-160`, AND `D-164` FOR ITS SECOND ARM. THIS IS THE ONE BEHAVIOUR CHANGE OF THE LANDING THAT YOU WILL MEET AT YOUR OWN CALL SITES, SO IT IS STATED IN THE ORDER YOU MEET IT.** `RCA-8(g)` ANNOTATE-BESIDE: **every clause of §5.4 above stands BYTE-FOR-BYTE and is read THROUGH this one — the scope, the report, the floor law, `restoredTo` and the four narrowings are unmoved; what moves is what the journal KEEPS, and therefore which op ids still work.**
+
+1. **`journalLength` IS THE WIDTH OF THE COMPENSATION WINDOW AND IT IS NOT A RETENTION PROMISE.** What survives is the base state — the register at the last compression — **plus at most `journalLength` uncompacted ops**, and **an op the compaction reaches is REMOVED: its entry is gone and its op id is gone with it** (`D-160` items 1–2). **So the `opId` a write answered is a token whose lifetime is measured in WRITES and not in the store's life, and a program that keeps op ids for a long time keeps ids the journal no longer holds.**
+2. **THE ID THAT WAS DROPPED AND THE ID THAT NEVER EXISTED ARE TOLD APART, AND THEY DO NOT ANSWER THE SAME.** An id that named an op the compaction **dropped** names a **recoverable** history and is never answered as unknown; **an id that never named an op — a fabricated `'op-999999'`, a malformed `'op-'`, a token another store minted — answers `JournalOpUnknown`**, because no compaction can have dropped what never stood there (`D-160` item 3; `D-164` item 4: the watermark separates a recoverable history from a client error, and it is one number and not a retained list).
+3. **WHAT A `rollback` OF A DROPPED OP DOES DEPENDS ON ONE THING — WHETHER YOUR STORE CAN READ A FILE BACK.** **With a `filePath`** whose image the store can read — **and where no image stands, the state the store was created with — the store REBUILDS its base from that file, replays what its journal still reaches, and the call RETURNS a record: no refusal is involved.** `undoneOps` is `[]`, because nothing was undone — **the entry the call named is gone** — and `restoredTo` is the register as it stands after the rebuild (`D-164` items 1–2). **With NO READ PATH — a `saveCall` store, whose channel is write-only by construction, and any `mem` store — the call THROWS `RollbackCompacted`**, and **that token is a SIGNAL and not a verdict on you: recover the value from the copy you kept**, because such a store cannot retrieve its own durable ground truth even in principle (`D-165` items 1–3).
+4. **AND NOTHING ELSE ABOUT A REFUSAL MOVES BY THIS CLAUSE.** A `rollback` still appends no journal entry, the mark a refusal's compensation names is still the commit's opening mark or the last state a pass validated (`D-63`'s clause above), and **`record.compacted` still reads `false` on every write's record** — a declared member with a constant, because the mark is not the mechanism (`D-160` item 4; `D-180`).
+
+**THE MOVE, IN ONE SENTENCE, SO YOU CAN TELL WHICH BEHAVIOUR YOUR VERSION HAS: BEFORE THIS LANDING THE CAP WAS A MARK — the oldest entries were FLAGGED and kept for the store's life, and the flag was what told a reversal it had gone past the floor; FROM THIS LANDING THE CAP IS A BOUND — the oldest entries are REMOVED, memory is `O(store + journalLength)` instead of growing with every write ever made, and the two answers are told apart by one number rather than by a retained list.** (`D-160` items 1–2; `D-164`; `D-165`; `tests/e2e/journal-compaction.test.mjs`; `tests/e2e/journal-retention-floor.test.mjs`.)
+
+**⟶ AND THE RESTORE BEHIND A REFUSAL READS THE COMPACTED FLOOR, 2026-11-17 — `D-178`, LANDED AS `D-179`, AND IT IS THE HALF THAT DECIDES WHETHER A VALUE SURVIVES A REFUSAL.** A refusal's compensation restores the store to a POSITION — the mark the commit cached, or the last state a pass validated (§5.4 above) — **and the replay behind that restore begins at the COMPACTED FLOOR: the point the journal was last compressed to.** **So a mark whose predecessors the compaction dropped still restores the state they left, and a value written before the window moved is not lost by a refusal that comes after it.** **MEASURED BOTH WAYS, ON A STORE AT `journalLength: 2`:** with the replay starting from the state the store was born with, a restoral to a RETAINED mark whose predecessor had been dropped **lost the value that mark named** — `a` read `AddressNotFound` where the mark's own state held it; with the replay starting at the floor, **the same restoral answers the state the mark names** — `a` back, `c` still absent — **and a restoral naming an op the compaction DROPPED is still `JournalOpUnknown`, because that id is no longer a position anything can be restored to** (`D-179` items 2–3; `tests/e2e/journal-retention-floor.test.mjs`'s `RF-1`–`RF-4`). **YOU DO NOT CALL THIS VERB: the store's restore-to-a-position is not one of the instance's members, and what you observe is the consequence — the state you read after a refusal.** **AND IT IS NOT THE REGENERATION OF ITEM 3 ABOVE: a `rollback` of a dropped op rebuilds from the FILE because it has no mark to name, while this rebuilds from the FLOOR because it has one** (`D-180` item 6; `D-184` item 2 pins both halves in one cell).
+
+---
+
+## §6 · Watching for changes: the listener surface
+
+**Listeners fire on `write` and `delete`, on a `rollback`'s judgement, and at the four REGISTRATION instants —
+and never on a read.** A read is not a change, and a store that fired on reads would fire on every render; **nor
+does any read-driven traversal fire a listener** (`archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-native/write-and-read.md §6.5`).
+
+**⟶ AND THE LIST IS CORRECTED IN PLACE, 2026-11-06 — `PIN-13`, `D-125` item `2` (iii).** The shipped sentence read
+*"Listeners fire on `write` and `delete`, and never on a read … **nor does a boot or any read-driven traversal
+fire a listener**"* — **a closed list of TWO firing acts, and a claim about the boot that is FALSE from this
+date.** **THE CORRECTED LIST IS THREE ACTS, AND THE FOURTH TERM IS AN INSTANT AND NOT A VERB:** **a `write`** and
+**a `delete`** (the acts this section was written for), **a `rollback` whose judgement runs your pairs' repairs**
+(`D-117` item `1`: the reversal delivers, after its save), **and the four REGISTRATION instants** — `storeCreate`,
+**a boot over an existing `filePath`**, `addConstraint` and a re-arm (**`D-125` item `1`**, verbatim: *"Widen:
+`addConstraint`, a re-arm, the boot and the creation ALL deliver after their repairs"*). **THE RULE IS THE
+REPAIR'S WRITE AND NOT THE ACT'S KIND**: wherever a repair runs, the listeners its write fires are delivered —
+after the constraints pass, after the save, with **no delivery on a refusing arm** — so **a boot DOES fire a
+listener where a repair's write triggers one, and its set at that instant is your adopted listeners whose watched
+address exists.** **A READ STILL FIRES NOTHING, and `listen`/`register` themselves still fire nothing**: those two
+are the listener surface and not a repair's write. **AND A LISTENER BODY THAT THROWS IS ANSWERED AS ITSELF —
+`caught === thrown` — at a `write`, at a `delete` and inside a `rollback`'s judgement; at the four REGISTRATION
+instants it refuses the act at rank `21` `ListenerBodyThrew` instead** (`§8.1`'s set, one member wider below;
+`docs/specs/storeroom-js/surface.md §2.7` item 4's carve).
+
+```js
+const handle = store.listen('greeting-watch', [['greeting']]);   // YOU spell the handle; the addresses are a SET
+store.register(handle, (address) => {                            // handle + your function
+  console.log('changed at', address);                            // the ONE argument is the write's address
+});
+
+store.write(['greeting'], 'mem', 'hello');
+
+store.unlisten(handle);                                          // withdraw the registration
+```
+
+**Measured 2026-10-26: `store.listen('h1', [['b']])` answered the string `'h1'`, and `store.register('h1', () =>
+{})` answered `undefined`.** **Each address in the set is itself an array of segments — `[['b']]` is a set of one
+address — and `[]` (the empty set) is in the domain.**
+
+**★ AND THE ELEMENT SHAPE OF `cfg.listeners[]` — THE ONE FORM OF THIS KEY THE GUIDE NEVER STATED, ADDED HERE
+2026-11-11 AT GATE 4's FINDING (`role_l4_implementer`).** **THE CONSTRUCTION'S `listeners` KEY TAKES AN ARRAY OF
+`{ address, handle, listener }` ELEMENTS, AND ALL THREE MEMBERS ARE REQUIRED** (`D-123` item `2`, the architect,
+verbatim: *"Refuse listeners that don't carry functions, and fire all ones with an existing address after
+constraints pass. Why would a listener that doesn't have a function to fire on the listened address be accepted?"*;
+`PIN-8`):
+
+```js
+const store = storeCreate({
+  journalLength: 256,
+  listeners: [
+    { address: ['greeting'], handle: 'greeting-watch', listener: (address) => console.log('changed at', address) },
+  ],
+});
+```
+
+- **`address`** is a JS array of segments — ONE address, in the same form `listen`'s set holds inside itself.
+- **`handle`** is the handle you spell: a plain non-empty `string`, exactly the `listen` handle — **so a `cfg`
+  listener and a later `listen(handle, …)` name the same channel.**
+- **`listener`** is the JS function the adopted handle fires, and it takes the ONE argument every listener body
+  takes: the address the act landed at. **IT IS REQUIRED AND IT IS CHECKED BEFORE ANY FILESYSTEM ACT**: a
+  two-member element, or an element whose `listener` is not a function, refuses the construction at its step 2 in
+  the package's one thrown form with `status: 'AddressMalformed'` and the container `'listeners'` — **no code is
+  minted for either and no file is created** (`PIN-9`).
+- **AND THE FUNCTION NEVER CROSSES: only `{ address, handle }` reaches the store**, which is why the store's own
+  listener records stay two-membered. **THE PACKAGE ARMS THE SUBSTANCE** on the instance it returns, so a `cfg`
+  handle is registered and firing from the instant the instance exists — the same two acts a caller performs with
+  `listen` + `register`, done for you (`D-123` item `2`; `PIN-8`).
+- **THE ARRAY IS `REQUIRED` AND MAY BE EMPTY** — `listeners: []` is the ordinary no-listener store — **and
+  DUPLICATES ARE KEPT**: two elements at one address are two store entries, and two elements naming one handle
+  leave the LAST body standing (§2.4 rule 2, one handle one function).
+
+**AND THE FOUR REGISTRATION INSTANTS ARE WHERE THESE ELEMENTS FIRE:** a `cfg.listeners[]` element runs at the
+creation, at a boot over an existing `filePath`, at `addConstraint` and at a re-arm — **and the throw carve is
+`§6.5a`'s** (`PIN-6` (i); `D-125` item `1`).
+
+### §6.1 `listen` takes an address SET and answers the handle
+
+**THE SIGNATURE IS `listen(handle: Handle, addresses: readonly Address[]): Handle`** — arity `2`, position `1` a
+non-empty `string` you spell, position `2` an ARRAY of addresses
+(`docs/specs/storeroom-held-listener-identity/contract.md §2.2` items 1 and 2; `bindings/js/index.d.ts`'s `listen`
+member, amended 2026-10-24).
+
+**Four rules about that second position, and they are the ones a reader gets wrong:**
+
+1. **A SINGLE address supplied as a bare array-of-segments is NOT an address set.** `listen('h', ['a'])` puts the
+   STRING `'a'` where an address belongs — a string is not a segment list — so that call is a set-position class
+   refusal, not a registration. **You mean `listen('h', [['a']])`** (`held-listener/contract.md §2.2` item 2: *"the
+   position is a set and a segment list is a different shape"*). **The outside-value set of the set position is: ABSENT · `null` · `undefined` · a non-array · an
+   array carrying a member outside the address domain · an array carrying a nested array-of-arrays that is not
+   itself an address — and the declared answer for each is the one thrown form carrying the store's
+   `AddressMalformed`.**
+2. **THE EMPTY ARRAY IS IN DOMAIN.** `listen('h', [])` is a lawful call.
+3. **THE SET IS AN ASSIGNMENT, NOT A UNION.** `listen(h, S2)` after `listen(h, S1)` **destroys `S1` wholly and
+   installs `S2`**, with no intermediate state observable. **You cannot narrow a live handle's standing by
+   omitting an address you previously named** (`held-listener/contract.md §2.2` items 3 and 4; `(R1)`).
+4. **THE CALL ANSWERS THE HANDLE.** On success `listen` returns the handle it watches under — your own spelling,
+   returned as the identity the store holds for that entry — and **every failure remains the one thrown form**
+   (`D-22`, verbatim: *"Listen should return the handle on success, or error message on fail. Discard the noop
+   prefix"*; `held-listener/contract.md §2.2`'s 2026-10-25 clause). **A caller that ignores the return is unaffected by the
+   return's existence.**
+
+### §6.2 `register`, `unlisten`, `removeListener`
+
+**`register(handle, listener)` installs the function under a handle this instance holds an entry for; a second
+`register` for one handle REPLACES the first, and the replaced function is dropped without notice**
+(`surface.md §2.4` rule 2). **Measured 2026-10-26: `store.register('h9', () => {})` at a handle no `listen` wrote
+and no `cfg.listeners` adopted threw the ONE PLAIN FORM — `{status: 'AddressMalformed', message, log}`, whose
+message says *"this instance holds no listener entry for it — a registration names a handle `listen` wrote or
+`cfg.listeners` adopted"*.** **That is the declared reading and not a `TypeError`:** the registration site's
+refusal *"is a rejection under `A76` and travels in this section's single form, with its `status` drawn from the
+store's closed set"* (`surface.md §2.5` item 5 (g)'s operative reading of 2026-10-17; `index.d.ts`'s `register`
+block). **A `TypeError` from a store-reaching verb is itself treated as a finding at that site, which is how you
+can tell the two apart.**
+
+**`unlisten(handle)` withdraws the registration and performs the package's own half too:** the store-side entry
+named by the call is withdrawn, and the registry's entry for the identity is removed **where the identity no
+longer stands anywhere** (`surface.md §2.4` item 7 (b)'s step list, merged into this one member;
+`held-listener/contract.md §5.5`'s fourth added entry). **Over a value outside the domain it is a PLAIN NO-OP SUCCESS** — a
+fabricated handle, a blank token, a prior session's token — producing no code and removing no other registration.
+
+**`removeListener(handle)` is the stronger member and it is not the same act: the listener entry is removed WHOLE
+and its store entries are withdrawn, and every arm that is not a REAL removal THROWS** (`held-listener/contract.md §2.7` item 2;
+`PAR-HL-14`, `PAR-HL-15`; `index.d.ts`). **Measured 2026-10-26: `removeListener` at a handle the instance holds no
+entry for threw the one plain form with `AddressMalformed` and the message *"…removeListener's first argument is
+'h9', and this instance holds no listener entry for it"*.** **So `unlisten` is a no-op and `removeListener` is not:
+choose the one whose answer you want when the handle is stale.**
+
+### §6.3 The store invokes nothing
+
+**The store returns the triggered set and invokes no callback.** The invocation is the CLIENT's act, and the
+package's per-instance registry is the handle→function map (`write-and-read.md §3.5`'s amended record and the
+store-side clause it cites; `surface.md §2.4` items 5–6). **That is why a registration is a member of the
+instance and not a function you hand to the store.**
+
+**Four rules, and they are the package's rather than yours to reimplement:**
+
+1. **An unregistered handle fires nothing, silently** — no warning, no log, no code. **The silence is an
+   assertable observable** (`surface.md §2.4` rule 1).
+2. **`triggered` membership is decided by address and by nothing else:** a handle appears exactly where **its
+   listener's address is a PREFIX of the triggering address** (`surface.md §2.3` item 5). **So a listener bound at
+   a strict descendant of a deleted address does NOT fire.**
+
+   **⟶ AND THE SECOND ARM IS `TOUCHED`, 2026-10-29 — `D-66` AND `D-67`, AND THE SENTENCE ABOVE IS READ THROUGH
+   THIS ONE.** `RCA-8(g)` ANNOTATE-BESIDE: **that sentence was the build's rule until this date, and the
+   architect measured what it costs** — verbatim: *"Does the listener get fired when the value is purged by a
+   higher-persistence write that doesn't include it? Because that's the actual problem"* (`strata/decisions.md`
+   · `D-67`). **THE ANSWER WAS NO, AND THAT WAS THE DEFECT.** **So a handle now appears where its address is a
+   PREFIX of the triggering address (`D-56`, unmoved) OR WHERE THE ACT TOUCHED IT (`D-66`)** — the touched set
+   being the paths the act's value contains together with the whole subtree of every version that act PURGED,
+   **a purge at a higher persistence included, which is the case the prefix rule could not reach.** **A LISTENER
+   BOUND AT A STRICT DESCENDANT OF A DELETED ADDRESS DOES FIRE**: the cascade removed its node, so the value a
+   read there returns changed. **AND A CONSTRAINT IS REACHED BY THE SAME ONE PREDICATE** (`D-69`: a registration
+   is a handle and a body, and a pair has both), **so `triggered` names both kinds in one list and the kernel
+   filters it — an element that is a constraint's `id` is ASKED, a listener's is DELIVERED.** **MEASURED
+   2026-10-29 on this checkout** (`tests/e2e/discard-witness.mjs`'s `DW-14.1`/`DW-14.2`/`DW-14.3`): a listener at
+   `['a','b','c']` fires once for a write at `['a','b']` that writes `c`; a `file`-tier write that purges a node
+   with a `mem` shadow fires the listener bound at the purged path **and** asks the constraint bound there, while
+   the pair at an address neither value names is asked nothing.
+3. **A registration made during a firing window is not invoked during that window.** A delivery's recipient set
+   is read from the array as it stands when the window opens (`surface.md §2.4`, the delivery-window clause).
+4. **One invocation per distinct handle.** A handle bound at two addresses that both match fires ONCE
+   (`held-listener/contract.md §2.4` item 6; `surface.md`, *"a lawful duplicate fires once per distinct handle"*).
+
+### §6.4 What a record's `triggered` and `watched` carry
+
+**A trigger is a PAIR, `{handle, address}` — not a bare handle.** **`address` is the address the listener was
+BOUND at, never the address the write targeted**, and the two are told apart: **the invocation's one argument is
+the write's address** (`index.d.ts`, `TriggerPair`; `held-listener/contract.md §2.4` items 1 and 7; `PAR-HL-19`–`PAR-HL-21`).
+**There is no parallel `triggeredAddresses` array and none may be added.**
+
+**★ ⟶ AND WHAT THAT ONE ARGUMENT DOES NOT CARRY, STATED BESIDE IT 2026-10-29: it names the ACT's address and
+never what MOVED under it — so a container listener that must know which position moved diffs the collection
+itself** (§7.9's item 4, where the reason is given: the act's address is the store's own datum, and which
+position moved is the caller's question).
+
+- **`write` answers `{op, watched, triggered}`** (`index.d.ts`, `WriteRecord`). **`op` is the store's own journal
+  record and not a number** — `{opId, kind, address, tier, before, after, seq, compacted}` — and **the op's
+  `opId` is a string** and is the token `rollback` accepts (`index.d.ts`, `JournalOp`). **`watched` carries
+  ADDRESSES where `triggered` carries pairs — two types on purpose, so a call site cannot confuse the two lists**
+  (`index.d.ts`, `WriteRecord`; `write-and-read.md §3.5`).
+- **`delete` answers `{address, tiers, triggered}`** — `tiers` naming the tiers whose versions were REMOVED, and
+  `address` being your own array (`index.d.ts`, `DeleteRecord`).
+- **`rollback` answers `{opId, undoneOps, restoredTo}`** (`index.d.ts`, `RollbackRecord`).
+- **Neither list's ORDER is declared.** Compare them as SETS, never as sequences (`DD-22`, `DD-37`;
+  `held-listener/contract.md §2.4` item 6's no-order rule).
+- **`triggered` is always a list and may be empty; it is never absent.** A delete that removes nothing is a
+  SUCCESS carrying `tiers: []` and `triggered: []` (`write-and-read.md §4.4`, arm `D-3`).
+- **The kernel's own `pending` list carries the same pair element as `triggered`**, because `pending` is seeded as
+  a clone of the store's returned set (`index.d.ts`, `CommitRecord`; `held-listener/contract.md §2.4` item 3).
+
+**⟶ AND THAT BULLET IS THE ONE THAT MOVED, 2026-10-29 — `D-56`: A PASSING WRITE NOW EMPTIES `pending`.** `RCA-8(g)`
+ANNOTATE-BESIDE: **every clause above stands BYTE-FOR-BYTE and is read THROUGH this one; the record's four members,
+the seeding rule and the by-identity check-off do not move — what moves is HOW MUCH of the seeded set the pass takes
+out of it.** **THE MECHANISM, IN ONE SENTENCE: `pending` is seeded whole from the store's `triggered` set and every
+handle the pass EVALUATES is checked off by identity, so when the pass's set and the store's set are the SAME SET the
+residue is EMPTY.** **`AT `1.4.0`'s PREDECESSOR** the pass selected only the pairs standing at the act's EXACT
+address, the store's `triggered` set was already the wider PREFIX set, and the difference was the residue you saw: a
+pair at `['window','tabs']` fired for a write at `['window','tabs','landingPage']` (a listener, `§6.4`) and was
+never asked by the pass — so its handle stayed in `pending` and the delivery ran it. **NOW the pass's set IS the
+`triggered` set** (`§7.6`'s clause of 2026-10-29, `D-56`), **so on a PASSING write every handle in the returned set is
+checked off, `record.pending` reads `[]`, and the delivery's residue is empty.** **MEASURED `1` → `0` on a passing
+write.** **WHAT THAT MEANS FOR YOU, SAID PLAINLY: `pending` IS NO LONGER A LIST OF "WHAT I STILL OWE A DELIVERY TO" —
+IT IS THE LIST OF HANDLES THE PASS DID NOT EVALUATE, and on a passing write there are none.** **A non-empty `pending`
+therefore means one of two things and only two**: the write FAILED (the record's `pending` is then the whole returned
+set, because a failing arm checks nothing off), or a handle stands in `triggered` that stands at none of the pass's
+addresses — **which, from this date, is the DESCENDANT direction `D-56` does not cover.** **Read `triggered` for what
+fired and `pending` for what the pass left; on a passing write they are no longer the same list, and `pending` is the
+shorter one.** (`D-56`; `index.d.ts`'s `CommitRecord`; §7.6's prefix-set clause; §7.8's ancestor clause.)
+
+**⟶ AND THE SENTENCE THAT SAYS A PASSING WRITE EMPTIES `pending` IS RE-MEASURED ONE ARM FURTHER, 2026-10-29 — THE PASS CHECKS OFF WHAT IT ASKED, AND A LISTENER'S HANDLE IS THE DELIVERY'S.** `RCA-8(g)` ANNOTATE-BESIDE: **the clause above stands BYTE-FOR-BYTE and is read THROUGH this one — so does its *"on a PASSING write every handle in the returned set is checked off, `record.pending` reads `[]`"*, which is exactly true of a fired set made of CONSTRAINTS and is not true of a fired set that also carries a LISTENER.** **MEASURED 2026-10-29 ON THIS CHECKOUT, THROUGH THE PUBLISHED ENTRY, BOTH ARMS PRINTED:** a pair at `['anc']` with a passing write at `['anc','child']` — `K-2`'s record carries `['anc-pair']` and after the pass it carries `[]` ✓ **the `1 → 0` the clause above measured**; the same write with a listener also bound at `['anc','child']` — `K-2`'s record carries `['anc-pair','watch-child']` and **after the pass it carries `['watch-child']`**, because **the pass evaluates CONSTRAINT ROWS and a listener's handle is the DELIVERY's work and never the pass's.** **SO READ IT PRECISELY: ON A PASSING WRITE `pending` HOLDS EXACTLY THE HANDLES THE PASS DID NOT EVALUATE — NO CONSTRAINT AT AN ADDRESS IT ASKED, AND EVERY LISTENER THE DELIVERY WILL FIRE** — **and `[]` is that member's value when nothing but constraints was fired.** **NO MEMBER MOVES AND NO FIGURE OF THE CLAUSE ABOVE IS WITHDRAWN: this is its reading, one arm wider.** (`D-56`; `D-69`; `tests/e2e/discard-witness.mjs`'s `DW-14.4`; §7.6's prefix-set clause.)
+
+**⟶ AND THE COMPOSITION IS NOW MEASURED, 2026-10-29 — `D-69`, AND EVERY SENTENCE ABOVE STANDS BYTE-FOR-BYTE.**
+`RCA-8(g)` ANNOTATE-BESIDE: **the clause above reasons about the member's SIZE; this one states what the member now
+CARRIES, because `D-69` moved the store's set as well as the pass's.** **THE STORE NOW NAMES A CONSTRAINT STANDING AT
+A TOUCHED DESCENDANT** — `D-66`'s criterion, computed where the per-tier versions live (`D-67`) — **so `pending` is
+seeded with that `id` where it was not before, and the pass then ASKS it and CHECKS IT OFF like any other element.**
+**MEASURED, BEFORE → AFTER, on one drive** (`tests/e2e/discard-witness.mjs`'s `DW-14.4`): a write whose pair stands at a
+TOUCHED DESCENDANT and whose listener stands at an ancestor — at `K-2`'s return the member carries **2** elements
+(the constraint's `id` AND the listener's handle) where the prefix-only composition carried **1**, and after the pass
+it carries **1** (the listener's handle, which is the DELIVERY's work and never the pass's) — **so the composition
+moves AT `K-2` and the delivered residue is unmoved.** **WHAT THAT MEANS FOR YOU, SAID PLAINLY: a `pending` entry is
+either a listener the delivery still owes (the residue) or a constraint the pass has not reached (the failing arm's
+whole set) — and on a passing write the pass asks EVERY element the store named that IT HOLDS A ROW FOR, so the
+residue's only remaining constraint is one it holds no row for.** **THAT ONE STATE IS REACHABLE AND MEASURED**
+(`tests/e2e/discard-witness.mjs`'s `DW-14.3`): **a registration whose own constraint REFUSED it at the registration
+instant** — `ConstraintRefusedAtRegistration`, state `2` of `contract.md §7.3` (b) — **leaves the store-side entry
+standing and NO row in the kernel's registry**, so the store's `triggered` names that handle, the pass asks nothing
+for it, and it stays in the residue; **it fires NOTHING, silently, and its body's one run is the registration's own
+evaluation** (`surface.md §2.4` rule 1). (`D-69`; `D-66`; `D-67`; `kernel-surface.md §2.1` item 2's `A112` reading.)
+
+**⟶ AND THE DELIVERED SET GAINS ONE ACT'S WORTH AND `pending` ONE SOURCE, 2026-11-01 — `D-104`, AND EVERY CLAUSE ABOVE STANDS BYTE-FOR-BYTE AND IS READ THROUGH THIS ONE.** `RCA-8(g)` ANNOTATE-BESIDE: **the record's four members, the seed, the check-off, the residue's reading, the failing arm's whole-set arm and every figure the clauses above print do not move; what moves is WHOSE listeners the member may carry and WHICH SET the one delivery fires.** **THE DEFECT THIS CLAUSE CLOSES, STATED FIRST SO THE BEHAVIOUR IS NOT READ AS A WIDENING FOR ITS OWN SAKE: a repair's write's `triggered` listeners stood on the REPAIR'S OWN WRITE RECORD** — `bindings/js/index.mjs:444`-`:448`'s `{op, watched, triggered}`, the record the entry stands in its leg slot at `:452` — **and NO DELIVERY SITE READ THEM**: the terminal arm delivers the COMMIT's `pending` residue, and the repair's write's own delivery is withheld (*"this frame is the leg … its silence is total"*), **so a listener the repair's edit fired was invoked by NOTHING** (`strata/decisions.md` · `D-104` item `1`, verbatim: *"This is a behavior defect, wrap into the fix patch"*). **FROM THIS DATE IT IS INVOKED, AND THE FIVE THINGS YOU CAN OBSERVE ARE THESE:**
+
+1. **IT IS DELIVERED IN THE COMMIT'S ONE DELIVERY, AFTER THE PASS** — the same `deliver` call and the same instant as the residue's, at the terminal arm, after the attempt is closed, after the mark and after a `file`-tier save — **so no listener a repair's edit fired runs inside the repair body or inside the pass** (`D-104` item `2`; the architect's own flow, *"any new non-constraint listeners are bookmarked to be run after commit"*; `surface.md §2.7` item `6`'s ordering law, unmoved by this clause).
+2. **ONE INVOCATION PER DISTINCT HANDLE** (rule `4` above; `surface.md §2.4` rule `3`): **a listener fired by BOTH the original write and the repair's edit is invoked ONCE.** **And the MEMBER carries ONE element for it** — a second de-duplication, by `handle` against the handles that stand in `pending` now, with its own ground: `pending` is also YOUR work list, and a member carrying one handle twice would let your own loop run that body twice.
+3. **A PAIR IS NEVER IN THE SET, AND ITS HANDLE IS NOT MERGED EITHER.** A repair's edit that triggers a constraint's `id` has that id ASKED and never delivered (`D-69`); **the id is kept out of the member exactly as it is kept out of the delivery**, so `pending` carries no id the pass will not evaluate.
+4. **THE DELIVERED SET CARRIES ONE ADDRESS FOR THE WHOLE BATCH — THE LEG'S OP ADDRESS, WHICH IS THE REPAIR'S WHERE A REPAIR LANDED — AND NO PER-HANDLE ATTRIBUTION IS ASSERTED.** **No member, no clause and no cell says which of the two acts fired a doubly-fired handle** (`DD-22`, `DD-37`: the trigger set has no order and no per-element provenance; `AB-3`). **A handle fired by the repair's edit alone is handed the act that fired it; a handle the ORIGINAL write alone fired is handed the repair's address as well** — one leg slot, **PRE-EXISTING, and `Q-3`'s and not this fix's**.
+5. **`pending` NOW CARRIES THE REPAIR'S LISTENERS TOO, AND ITS READING IS UNMOVED: THE HANDLES THE PASS DID NOT EVALUATE — AND A LISTENER IS NEVER THE PASS'S.** (`D-56`; `D-69`; the clause above at its own words, *"NO CONSTRAINT AT AN ADDRESS IT ASKED, AND EVERY LISTENER THE DELIVERY WILL FIRE"*.) **So a passing repaired write's residue has A SOURCE WIDER THAN THE COMMIT'S OWN WRITE, and that is the whole of the change: an entry may be a listener a REPAIR's edit fired that the commit's write never returned.** **AND THE SUBSEQUENCE, PRINTED BECAUSE THE SET RELATION WAS ASSERTABLE UNTIL THIS DATE: on a repaired write `pending` is NO LONGER A SUBSET OF `triggered`** — `triggered` stays the store's own returned set for the COMMIT's write, VERBATIM, and writing a second act's handles into it would forge a store result.
+
+**AND THE FAILING ARM DISCARDS THEM WITH THE REST, WHICH IS `surface.md §2.7` item `6` READ AND NOT A NEW RULE:** **a failed attempt invokes NONE of them and its `pending` ends EMPTY.** The discard's filter is widened to the union of the failed write's returned set and the sets this attempt's repairs' writes returned — **one removal, by the set each entry came back in.**
+
+**TWO HALVES ARE HELD AND ARE PRINTED AS HELD, NOT ASSERTED — the architect's word is owed on each, and the behaviour above is unaffected by either answer.** **`Q-7` — THE `discarded` WITNESS CANNOT NAME THEM.** `D-104` item `2`'s *"the witness (`discarded`) reads them as it reads any other discarded raise"* cannot be honoured at the bytes: **a failed write's arm answers no record at all** (it throws the four-member refusal, `§8`), **and the witness's element is `{opId, addresses}` — a discarded REVERSAL REQUEST — into which no listener handle could be written**, and minting a member for one is a record-shape move `D-104` item `4` forbids. **So this guide asserts the failing arm's two observables — the invocation count `0` and a `pending` holding none of those handles — and prints no witness claim.** **`Q-2` — THE DELETE-SHAPED COMMIT.** A repair during a `delete`'s pass lands on the same repair arm, so its listeners reach the DELETE's own delivery **by construction** (`D-55` item `3`); **whether that scope is confirmed or narrowed is the architect's**, and no clause here asserts it.
+
+**And one store behaviour that shows up in the records if you use integer addresses: a delete of an indexed
+version of an array container RENUMBERS the surviving anchors in container order from `0`, each keeping its tier
+and its node** (`write-and-read.md §4.4`'s renumbering clause).
+
+**★ AND WHICH KIND YOU ARE IS THE QUESTION THIS SURFACE LEAVES YOU, 2026-10-29 — `D-70`: IF YOUR CALLBACK CHANGES
+THE STORE IT IS A CONSTRAINT OR A REPAIR (§7), AND IF IT TELLS THE WORLD IT IS A LISTENER.** **§7.9 states the three
+rules, each with its reason, and they govern what you register and where — because this surface's other kind is one
+section away and the two are NOT interchangeable: a listener at a derived index is a registration on a value the
+store never wrote, and a listener that writes has no loop guard to bound it.** (`D-70`; §7.9.)
+
+### §6.5 ★ A LISTENER'S OUTCOME IS NOT YOURS — its own commit, and its refusal cannot fail your write
+
+**★ THE RULING, IN THE ARCHITECT'S OWN SENTENCE** (`strata/decisions.md` · `D-71`, verbatim): *"A listener is
+independent of the commit record of the triggering caller. The caller does not need to know about the outcome of
+the listeners."* **AND THE CONSEQUENCES, STATED BECAUSE EACH IS SOMETHING YOU WILL OTHERWISE GUESS AT:**
+
+1. **A LISTENER RUNS IN ITS OWN COMMIT** (`D-45`), **AND ITS OUTCOME — PASSED OR REFUSED — IS THAT COMMIT'S**, not
+   yours.
+2. **YOUR RECORD IS YOUR WRITE'S — `op`, `watched`, `triggered` (`§6.4`) — AND IT CARRIES NO MEMBER FOR WHAT A
+   LISTENER'S OWN COMMIT DID.** **⟶ AND THE SENTENCE THAT STOOD HERE — *"THE TRIGGERING CALLER RECEIVES ITS OWN
+   OUTCOME AND NOTHING ABOUT THE LISTENER'S"* — IS WITHDRAWN AS A PROHIBITION, 2026-10-29, BY `D-76` ITEM 1
+   (`DEF-AU`), BECAUSE IT HARDENED A PERMISSION INTO A CLAIM.** **THE ARCHITECT'S OWN SENTENCE ABOVE IS A
+   PERMISSION** — *"the caller does not NEED to know about the outcome of the listeners"* — **and a caller that
+   does not NEED to know is not a caller that CANNOT: `D-73` kept the throw in the very next ruling precisely so
+   the client can log errors cleanly, which is the caller learning the outcome** (`§6.5a`). **THE TRUE PAIR, AND IT
+   IS THE PAIR TO CARRY AWAY:** **a listener's REFUSAL is CONTAINED** — its own commit's, invisible upward;
+   **a listener's THROW is the CHANNEL** — **and the caller is the only party positioned to log the violation,
+   because the listener's act is in the listener's own commit.** **NOTHING ABOVE IS NARROWED BY THE CORRECTION: the
+   record still carries no member for a listener's commit, and neither `triggered` nor the `log` gains one.**
+3. **A LISTENER'S REFUSAL DOES NOT FAIL THE WRITE THAT FIRED IT.** **A listener is a SIDE EFFECT for external
+   code, and a side effect's failure is the side effect's** — your write already passed every constraint and
+   already answered before the delivery ran.
+4. **AND BECAUSE OF THAT, THE ONLY THINGS A CHAIN OF LISTENER WRITES EXPOSES UPWARD ARE ITS COST AND ITS THROW** —
+   depth, and whatever the listener itself does with what its own call returns; **and, where a listener body
+   throws, that error crossing every hop of the stack to you** (`§6.5a`). **Which is why the missing loop guard is
+   the asymmetry that matters** (`§7.9` item 2): **nothing else about the chain is observable, so nothing else can
+   be bounded.** **⟶ AND *"THE ONLY THING … IS ITS COST"* IS CORRECTED AT THIS LINE BY `D-76` ITEM 1 (`DEF-AU`),
+   2026-10-29, WITH ONLY THAT NOUN MOVING: the throw is not a window into the chain — it is where the chain STOPS,
+   and it crosses whether or not you wanted it.**
+
+**MEASURED 2026-10-29 ON THIS CHECKOUT, THROUGH THE PUBLISHED ENTRY — AND THE MEASUREMENT IS THE POINT, BECAUSE
+THIS IS A CLAIM ABOUT WHAT CROSSES AND IT MUST BE PRINTED RATHER THAN ASSUMED.** One store: a listener at `['a']`
+whose body writes `['b'] = 'bad'`, and a constraint at `['b']` that refuses `'bad'` with
+`{message: 'b may not be bad'}`. **WHAT THE DRIVE PRINTED, RAW:**
+
+- **THE CALLER'S `store.write(['a'], 'mem', 1)` ANSWERED NORMALLY** — `{op: {opId: 'op-1', kind: 'write', address:
+  ['a'], tier: 'mem', before: {present: false}, after: {present: true, value: 1}, seq: 1, compacted: false},
+  watched: [['a']], triggered: [{handle: 'watch-a', address: ['a']}]}` — **no refusal, no status and no `log`
+  member: nothing of the listener's outcome crossed.**
+- **THE LISTENER'S OWN WRITE WAS REFUSED, INSIDE THE LISTENER** — caught there as
+  `status: 'ConstraintPassRefused'`, `message: 'b may not be bad'`, own members `['status', 'message', 'log']`
+  — **and that refusal was the listener's to catch; the call above never saw it.**
+- **THE STORE AFTER THE CALL: `['a']` reads `1`, AND `['b']` READS ABSENT (`AddressNotFound`)** — the listener's
+  own commit restored itself to where it opened (`§5.4`), and the caller's landing stands.
+- **THE CONTROL, WHICH IS WHAT MAKES THE MEASUREMENT MEAN ANYTHING: the same caller writing `['b'] = 'bad'
+  DIRECTLY is REFUSED, same `ConstraintPassRefused`, same message.** **So the constraint was armed throughout,
+  and what differs is only WHAT CROSSES — a caller's own refusal crosses, and a listener's does not.**
+
+**⟶ AND TWO BYTES OF THAT MEASUREMENT ARE SUPERSEDED BY A LATER RULING, 2026-11-02 — `D-119`: THE SUBSTANCE IS
+UNMOVED AND THE BYTE STRING IS NOT.** `RCA-8(g)` ANNOTATE-BESIDE: **every measurement above stands as the reading of
+its own date and is read THROUGH this clause; what the drive printed RAW printed what the tree answered then, and
+nothing here re-measures it.** **THE TWO BYTES ARE NAMED SO NEITHER IS FOUND LATER BY A READER WHO ASSUMED THEY STILL
+STOOD: this bullet's *"no refusal, no status and no `log` member"*, and the control's *"RETURNED ITS OWN RECORD with
+no status and no `log`"*.** **FROM `D-119` THE CALLER'S PASSING RECORD DOES CARRY `log` — AND IT CARRIES ITS OWN
+COMMIT'S ENTRIES AND NOTHING OF THE LISTENER'S**, because a listener body's act is in the listener's own commit
+(`D-60`; `D-53`) and that commit's list never crosses to the caller whose delivery fired it. **SO THE SENTENCE TO
+CARRY AWAY IS UNCHANGED IN SUBSTANCE AND SHARPER IN FORM: what crosses is YOUR OWN act's list, and never the
+listener's** — **a listener's refusal remains CONTAINED**, exactly as the next subsection states, and this member
+does not become a channel for it. (`D-119`; `D-60`; `D-53`; `index.d.ts`'s `WriteRecord` clause of the same date.)
+
+**WHAT THAT MEANS FOR YOU, SAID PLAINLY: YOU CANNOT READ A LISTENER'S SUCCESS FROM ANY RETURN VALUE.** **No
+member, no log entry and no status on your record says a listener's own write landed; the only way your code
+learns it is if the listener body tells you out of band.** **That is the design and not a gap, and it is the
+reason the next subsection's chain is bounded by cost alone.** (`D-71`; `D-45`; `§6.4`'s record members; `§7.9`.)
+
+**AND THE ONE THING INDEPENDENCE DOES NOT COVER, MEASURED SO IT IS NOT INFERRED: A LISTENER THAT THROWS IS NOT A
+LISTENER THAT IS REFUSED, AND ITS THROW CROSSES ALL THE WAY UP.** **MEASURED 2026-10-29, on this checkout, through
+the published entry:** with `hA` at `['a']` writing `['x']` and `hN` at `['x']` throwing
+`new Error('boom-in-nested-listener')`, the run printed `["A", "nested throws", "A caught Error"]` **and the OUTER
+`store.write(['a'], 'mem', 1)` THREW that `Error`** — the delivery's own rule that *"a throwing listener body is
+not caught, not retried and not reported"* (`docs/specs/storeroom-js/contract.md §2.7` item 4) **read through the
+nesting's synchronous stack.** **SO THE INDEPENDENCE IS THE COMMIT'S: a refusal is the nested commit's and cannot
+cross, while a raw throw is not a commit outcome and does cross, because the call is on the same stack and nothing
+catches it on the way up — and the caller's write is then never answered at all.** **If you want a listener's
+failure to stay the listener's, catch it in the listener's own body.**
+
+**⟶ ★ A LISTENER BODY MAY SUSPEND, AND THAT CHANGES WHAT YOUR ACT ANSWERS — 2026-11-17, `D-130` ITEMS 4–5.** **Everything §6.5 and §6.5a state about WHOSE failure crosses is unmoved; what this clause adds is the shape of the ANSWER when a body returns a promise.** **THE DELIVERED SET IS STARTED TOGETHER**: every body the set names is invoked, **none queues behind a sibling that suspended**, and **the answer is withheld until the whole set has SETTLED** — not until the first body returns. **So if any delivered body returned a thenable, your `write` and your `delete` answer a `Promise` that resolves with its record, and if none did they answer the record itself; a `rollback` never waits — its judgement's legs carry no settlement — and its record answers the frozen `{}` at both accessors** (`bindings/js/src/entry/instance.mjs`'s two settle sites; `delivery.mjs`'s `settledAnswer`, which cannot reject). **AND THE ANSWER NEVER BECOMES A REFUSAL: a body's rejection is a DATUM and never a rejection of your act, because by the instant a body can reject your act has already committed** (`D-138` items 1–2). **INTERFERENCE BETWEEN YOUR OWN ASYNC BODIES IS YOUR OWN HAZARD** — two bodies that order each other, depend on each other or write each other's addresses are outside what the package defends, exactly as two instances over one `filePath` are (`D-130` item 5) — **so if you need an order, impose it yourself: the package starts the set, waits for it and does nothing else.**
+
+**★ AND A SETTLED DELIVERY PUTS TWO THINGS ON THE RECORD YOU ALREADY HAVE — `bodyFailures` AND `returnedValues`, 2026-11-17 (`D-138`; `D-149`; `D-150`).** **Both are NON-ENUMERABLE, `configurable` own GETTERS on the `write`'s record, the `delete`'s receipt and the `rollback`'s record — so `Object.keys(record)` is exactly what it was and every deep-equality over a receipt is unmoved; `Object.getOwnPropertyNames` is the census that sees them, and a spread or `Object.assign` copy LOSES both, exactly as it loses `discarded` and `log`** (`D-150` item 1).
+- **`record.bodyFailures` is an object keyed by HANDLE, one entry per listener body that REJECTED**, each entry `{status, message, address}`: **`status` is `ListenerBodyRejected` — rank `23` below — `message` is the package's generated sentence over the WATCHED ADDRESS's spelling, and `address` is the address the body was bound at.** **THE BODY'S OWN REASON IS NEVER READ, STORED OR RENDERED** (`D-137` item 5; `D-58`), and **it is present on every arm, answering one shared frozen `{}` where nothing was rejected** — so an empty map never tells you *"no settle ran"* rather than *"nothing rejected"*.
+- **`record.returnedValues` is an object keyed by HANDLE whose entry IS the value the body returned**, settled and never a promise. **A body that returned nothing contributes NO entry** — *"a listener that returns nothing should be assumed to only perform backend code that does not need the channel pass"* (`D-148` item 1(c)) — **and a body that REJECTED contributes none here either: its failure is the entry above and nothing of its reason crosses.** **It carries handles and no addresses: the `{handle, address}` pairs stay `triggered`'s** (`D-149` items 2–4).
+- **AND THE STATUS ITSELF, SO YOU MEET IT AT THE MAP AND NOT AT A THROW: a DELIVERED body that REJECTS is a `ListenerBodyRejected`** — rank `23`, the closed set's newest member, its subject the watched address — **and it is a different arm from a body that THROWS**: **a throw is not caught, not retried and not reported, and it leaves your act UNANSWERED** (§6.5a), while **a rejection is the datum above and your act still answers.**
+
+### §6.5a ★ THE ASYMMETRY IS THE DESIGN — a refusal is CONTAINED, a throw is NOT, and the reason is whose code failed
+
+**★ THE RULING, THE ARCHITECT, VERBATIM** (`strata/decisions.md` · `D-73`): *"Keep the throw so that the client can
+log errors cleanly"* — **and it completes `§6.5`: the independence stands, and the THROW is the one thing it does not
+cover.** **STATE THE TWO HALVES AS A PAIR, BECAUSE THE ASYMMETRY IS THE POINT:**
+
+- **A LISTENER'S REFUSAL IS CONTAINED.** **Its own commit is refused, YOUR write answers its own record, and the
+  refused value never lands** — **because a refusal is a JUDGEMENT ABOUT DATA, and the data had its chance.**
+- **★ A LISTENER'S THROW PROPAGATES TO YOU.** **YOUR write throws the listener's error** — **because a throw is an
+  ERROR IN THE CLIENT'S CODE, and code that swallows errors cannot be debugged.** **A CONTAINED THROW IS AN ERROR
+  NOBODY CAN LOG.**
+
+**AND THE REASON IS WHERE THE CODE RUNS: a listener is where YOUR handler runs** — **the screen update, the render,
+the external call** — **so when that code fails, the failure belongs to you, at the point you can see it.**
+**CONTAINMENT WOULD PRODUCE THE OPPOSITE: "your write succeeded and nothing happened" — the least debuggable outcome
+a library can produce.**
+
+**★ AND THE CONSEQUENCE, STATED SO IT IS NOT A SURPRISE: A LISTENER THAT THROWS LEAVES YOUR WRITE UNANSWERED.** **You
+see the listener's error instead of your own record, and that is your signal to log and decide.** **MEASURED
+2026-10-29 ON THIS CHECKOUT, THROUGH THE PUBLISHED ENTRY, BOTH HALVES PRINTED RAW:**
+
+- **THE THROW.** One listener at `['a']` throwing `new Error('boom-in-listener')`. **`store.write(['a'], 'mem', 1)`
+  THREW**, and what it threw **IS the listener's own `Error` — identity `===` true**, `{name: 'Error', message:
+  'boom-in-listener'}` — **and the write ANSWERED NOTHING** (`undefined`; no record was produced). **The data had
+  already landed (`read(['a'])` answered `1`), because the commit resolved before its delivery ran; what the throw
+  takes away is the ANSWER, not the write.**
+- **THE REFUSAL, as the control.** One listener at `['a']` whose body writes `['b'] = 'bad'`, against a constraint
+  at `['b']` refusing `'bad'`. **The listener's own write was refused INSIDE the listener** — `{status:
+  'ConstraintPassRefused', message: 'b may not be bad', log: […] }`, own members `["status","message","log","address"]` —
+  **`store.write(['a'], 'mem', 1)` RETURNED ITS OWN RECORD** with **no status and no `log`**, and `['b']` read
+  **ABSENT**. **The same caller writing `['b'] = 'bad'` directly WAS refused with the same status — so the
+  constraint was armed throughout, and the difference is only WHAT CROSSES.**
+
+**WHAT THAT MEANS FOR YOU, AND IT IS THE SHAPE TO WRITE: A LISTENER BODY LOGS ITS OWN ERRORS AND DECIDES WHETHER TO
+RETHROW.** **YOUR WRITE IS THE ONE PLACE THE LISTENER'S FAILURE SURFACES.** **Catch in the body to keep a failure
+inside the listener** (`§6.5`'s closing sentence) **— and let it out to hand the error to the caller that can log
+it.** **There is no middle arm: nothing in your record reports a listener's throw afterwards, because after a throw
+there is no record — only the error.** (`D-73`; `D-71`; `D-45`; `docs/specs/storeroom-js/contract.md §2.7`'s clause
+of the same date; `§6.6`'s item 5, where a DEPTH-TWO throw's destination is measured.)
+
+**★★ AND THE ASYMMETRY HAS A CARVE, AT ITS OWN TWO SENTENCES — THE FOUR REGISTRATION INSTANTS ARE NOT A `write` —
+CORRECTED 2026-11-11 AT GATE 4's FINDING (`role_l4_implementer`; ANNOTATE-BESIDE).** **EVERY CLAUSE ABOVE STANDS
+BYTE-FOR-BYTE AND IS READ THROUGH THIS ONE; `caught === thrown` is UNMOVED at a `write`, at a `delete` and inside a
+`rollback`'s judgement, and no measurement above is re-run or withdrawn.** **THE TWO SENTENCES IT NARROWS ARE NAMED
+AND STAND BYTE-FOR-BYTE ABOVE: *"★ A LISTENER'S THROW PROPAGATES TO YOU. YOUR write throws the listener's error"*
+and *"★ AND THE CONSEQUENCE, STATED SO IT IS NOT A SURPRISE: A LISTENER THAT THROWS LEAVES YOUR WRITE
+UNANSWERED."*** **THEY ARE TRUE OF AN ACT THAT HAS AN ANSWER TO LOSE, AND A REGISTRATION IS NOT ONE: AT THE FOUR
+REGISTRATION INSTANTS — `storeCreate`, a boot over an existing `filePath`, `addConstraint` and a re-arm — a fired
+listener body's throw is CONVERTED AND REFUSES THE ACT.** **RANK `21` `ListenerBodyThrew`** — a member of the
+closed status set from 2026-11-06 (`D-124` item `2`, verbatim: *"A CREATION-FIRED BODY THAT THROWS REFUSES AT A
+MINTED RANK `21` `ListenerBodyThrew`"*, *"The closed fail set moves `20 → 21`"*; `D-125` item `2`: *"a fired body's
+throw at those instants is `D-124` item `2`'s rank `21` `ListenerBodyThrew` by the same reading"*) — **so you
+receive the package's ONE THROWN REFUSAL FORM `{status, message, log, address}` and NOT the listener's own value**,
+and the sentence *"catch in the body, decide whether to rethrow"* above becomes **mandatory rather than
+advisory** at those four instants: **a rethrown body refuses the construction (no instance is returned) or the
+registration (the call is refused).** **TWO THINGS ARE UNMOVED AND BOTH MATTER TO YOUR ERROR HANDLER:** the
+delivery sits **after** the registration's saves (`PIN-2`'s ASK → REPAIRS LAND → RE-RUN → SAVE → DELIVER → THE
+ANSWER), so **no rollback composes and the bytes an earlier repair's save wrote stand** (`PIN-10`, `PIN-12`); and
+**at a registration that has already answered an identity the throw PRE-EMPTS the answer while the pair stands
+registered** — the caller receives the refusal and never the identity, and no withdrawal arm is declared
+(`D-125` residual `3`'s default, `PIN-10`). **THE SETS EACH INSTANT DELIVERS ARE `§6`'s, NOT THIS CLAUSE'S:** at a
+`storeCreate` and at a boot it is the adopted listeners whose watched address exists (`PIN-6` (i)); at
+`addConstraint` and a re-arm it is the repair's write's own `triggered` set (`PIN-6` (ii)). (`D-124` item `2`;
+`D-125` items `1`–`2`; `PIN-2`, `PIN-6`, `PIN-10`; `docs/specs/storeroom-js/surface.md §2.7` item `4`'s carve;
+`docs/L1/creation-sweep.md`'s `§3`.)
+
+**★ AND THE PRACTICAL HAZARD THIS ASYMMETRY MAKES REAL, WRITTEN HERE SO YOU MEET IT IN A TEST RATHER THAN IN PRODUCTION: THE WRITE'S DATA LANDED AND ITS ANSWER DID NOT — SO A BLIND RETRY RE-APPLIES A WRITE THAT ALREADY SUCCEEDED.** `RCA-8(g)` ANNOTATE-BESIDE: **every clause of §6.5a above stands BYTE-FOR-BYTE and is read THROUGH this one; no ruling, no measurement and no member moves — what this clause adds is the one consequence of the measured arm that a caller's ERROR HANDLER will otherwise get wrong.** **IT FOLLOWS FROM THE MEASUREMENT ABOVE AND NEEDS NO NEW ONE:** *"the data had already landed (`read(['a'])` answered `1`), because the commit resolved before its delivery ran; what the throw takes away is the ANSWER, not the write"* — **so `try { store.write(...) } catch { retry() }` runs that write a SECOND time, and the store has no way to tell the two apart: there is no commit identity on your side, no idempotency key and no record, because after a throw there is no record** (`§6.5a`'s closing sentence). **AND THE ERROR IS YOURS AND NOT THE PACKAGE'S SHAPE:** it carries **no depth, no handle, no address** (`§6.6` item 5) — a throw at depth two arrives as the same `Error` object a depth-one throw would — **so a retry policy cannot key on where the chain broke, and a listener body's own `catch` is the only containment arm there is.** **WHAT TO WRITE INSTEAD: catch in the body, decide whether to rethrow, and make the write your retry re-issues one whose landing you can recognise** — an `op` you kept from an earlier answer, a value you wrote, or a read before you write. (`D-73`; `D-71`; the `§6.5a` measurement; `§6.6` item 5; `docs/specs/storeroom-js/contract.md §2.7` item 4.)
+
+**★★ AND ONE THING THE ANSWER DOES NOT TELL YOU, MEASURED IN BOTH ARMS ON THIS CHECKOUT 2026-10-29 AND DECLARED HERE RATHER THAN LEFT FOR YOU TO DISCOVER — `D-76` ITEM 2 (`DEF-AU`, ITS SECOND HALF): A `ConstraintPassRefused` DOES NOT SAY WHOSE ACT IT REFUSED.** `RCA-8(g)` ANNOTATE-BESIDE: **every clause above stands BYTE-FOR-BYTE and is read THROUGH this one; no status is minted, no member is added and the throw's BEHAVIOUR IS UNMOVED — the behaviour is correct, and what was owed is this sentence and the rule at its end.** **THE HAZARD: your listener's own act is refused, the listener body does not catch it, and the refusal crosses to you — you catch `ConstraintPassRefused`, `message` and `log` exactly as you would if YOUR write had been refused, WHILE YOUR WRITE'S DATA IS IN THE STORE.** **THAT IS `D-73`'s RETRY HAZARD IN ITS SHARPEST FORM, BECAUSE THE ANSWER DOES NOT EVEN LOOK DIFFERENT.** **MEASURED, BOTH ARMS, ONE PAIR, ONE MESSAGE:**
+
+- **ARM ONE — YOUR OWN ACT REFUSED.** `write(['x','y'], 'mem', {bad: true})` against a pair at `['x']` whose body answers `{message: 'x must hold one'}`: what crosses is `{status: 'ConstraintPassRefused', message: 'x must hold one', log: [{kind: 'constraint-check', id: 'x-must-hold-one', opId: 'op-2', message: 'x must hold one', state: null}, {kind: 'outcome', id: null, opId: 'op-2', message: 'x must hold one', state: 'KC-3'}]}`, **own members `['status','message','log']`** — **and `['x','y']` still reads the value that stood before.**
+- **ARM TWO — YOUR ACT PASSED AND YOUR LISTENER'S WAS REFUSED.** the same pair, the same refusal built inside a listener body that does not catch it: **the same `status` string, the same `message` string, the same three own members, the same entry count, and entries whose `kind`, `id`, `message` and `state` are equal item for item — the ONLY differing byte anywhere in the answer is the log's `opId` (`op-5` here, `op-2` above).** **AND YOU CAN NEVER COMPARE THAT BYTE: a refused act answers no `op`, so you never learn your own act's op id** (`§6.5a`'s closing sentence: after a throw there is no record). **AND YOUR DATA LANDED: `['x','y']` reads `{ok: true}`.**
+- **THE VERDICT, MEASURED AND NOT ASSUMED: THE TWO ANSWERS ARE INDISTINGUISHABLE FROM ANY MEMBER YOU CAN READ.** `Object.keys` reads the same three; a refusal carries **no `triggered`** and **no `op`**; the pair's `id` and the pair's own `message`, the entry count and the terminal `state` are the same on both arms whenever the pair that refuses your listener's act is one that could equally have refused yours — **and the `opId` is a datum with nothing on your side to key it against.** **A LISTENER's raw THROW is distinguishable and this is not:** an `Error` crosses as itself with `status` `undefined` (`§6.5a`) — **but a listener body's uncatched REFUSAL crosses as a refusal and carries nothing that says whose.** **A NEW STATUS OR A NEW MEMBER WOULD TELL YOU, AND NONE WAS MINTED: the closed set is `D-38`'s business and the distinction is the architect's call, not this guide's** (`D-76` item 2).
+- **★★ SO THE RULE, AND IT IS THE ONE THING TO DO WHEN A `ConstraintPassRefused` ARRIVES: DO NOT RETRY ON THE ANSWER — READ THE ADDRESS YOU WROTE.** **A refusal of YOUR act did not land** — the store stands where the act opened at, or at the last state a pass validated (`D-63`; `§5.4`) — **while a listener's refused act left YOUR value standing.** **So: catch the refusal, `read` the address your act wrote, and let that decide.** **Your value stands ⇒ the refusal was a listener's, your write LANDED, and re-issuing it re-applies it** (`§6.5a`'s hazard, unmoved). **Your value does not stand ⇒ the refusal was your own act's, and the write did not happen.** **AND THE TWO LIMITS OF THAT READ, SAID PLAINLY RATHER THAN LEFT TO A GREEN TEST:** it answers *"did my value land"* and never *"whose act was refused"*, so **it is a check of the outcome and not of the identity**; and **a write whose value equalled what already stood cannot be told apart by it**, so the read is evidence and not proof. **THE REMAINING ARM IS THE ONE `D-73` GAVE YOU: make the throw impossible to mistake by making it yours** — catch in the listener body and decide there whether to let it out (`§6.5a`'s shape to write), **because a body that catches leaves your write ANSWERING ITS OWN RECORD.** (`D-76`; `D-73`; `D-71`; `D-63`; `D-38`; the `§6.5a` measurement driven a second time in this clause's two arms.)
+
+**⟶ AND THE MEMBER THAT CLAUSE SAID WAS NOT MINTED WAS MINTED THE NEXT DAY, 2026-10-29 — `D-77`: THE TWO ARMS `D-76` MEASURED ARE NOW SEPARATED BY THE FORM ITSELF.** `RCA-8(g)` ANNOTATE-BESIDE: **the whole of `§6.5a`'s `D-76` clause above stands BYTE-FOR-BYTE as the reading of its own date and is read THROUGH this clause; not one byte of it is deleted, and its RULE — *"do not retry on the answer, read the address you wrote"* — STANDS.** **THE TWO SENTENCES THIS CLAUSE SUPERSEDES, NAMED RATHER THAN OVERWRITTEN: *"the same three own members"* in arm two, and *"A NEW STATUS OR A NEW MEMBER WOULD TELL YOU, AND NONE WAS MINTED"*** — **the first is now FOUR own members on both arms, and the second is discharged: the architect's ruling on the OWED was one word, *"New member"*.**
+**WHAT THE FOURTH MEMBER IS: `address`, the ADDRESS the refusal is about** — a segment array in the caller's own domain, or `null` where nothing is nameable — **and THE TWO ARMS ABOVE NOW DIFFER IN IT: arm one's own refused act answers the address YOU WROTE (`['x','y']` there), and arm two's listener-refused act answers THE LISTENER'S (`['inner']`, or whichever address its body acted at).** **SO THE COMPARISON REPLACES THE READ-BACK AS THE FIRST ANSWER: `address` equal to the address you wrote ⇒ your own act was refused and your write did not happen; different ⇒ a listener's act was and YOUR WRITE STANDS.** **AND THE READ-BACK `D-76` TAUGHT IS NOT WITHDRAWN — it is what you fall back on where `address` is `null` and the cross-check where it is not**, **and its two limits stand: the member names the ACT and never the party, so it is an address and not a verdict; and a write whose value equalled what already stood is still not told apart by reading back.** **NOR IS A FIFTH STATUS MINTED: the closed set stays twenty, and the member carries an address, never a code.** (`D-77`; `D-76`; `bfe844a`; `§7.7`'s clause of the same date; `§8`'s form, corrected above at its own line.) — every window is a synchronous call on one thread, and the stack is the only place its order exists
+
+**★ THE SHAPE, IN ONE STACK** (`strata/decisions.md` · `D-72`). **A commit resolves and its delivery begins; a
+listener that writes opens a commit of its own (`D-45`), which runs its own pass and then ITS delivery — so
+windows are live at once, NESTED, every level a synchronous call on one thread:**
+
+```text
+outer write → its commit → its pass → its delivery → listener A → A's write (a NEW commit) → A's pass → A's delivery → listener B → …
+```
+
+**SO "INTERLEAVING" IS NOT CONCURRENCY — IT IS NESTED SUSPENSION: `A`'s entire chain runs to completion before the
+window that fired it invokes its next listener.** **The outer loop is suspended, not interleaved.**
+
+**FOUR PROPERTIES ARE REAL, AND NOT ONE OF THEM IS DECLARED ANYWHERE UP THE STACK — so each is stated here:**
+
+1. **DEPTH IS UNBOUNDED** — no counter, no cap and no instrument (`D-70`'s absence; `§7.9` item 2). **The stack
+   grows until your code stops calling.**
+2. **★ THE CROSS-WINDOW ORDER IS REAL AND UNDECLARED.** **Within one window the order is unspecified and the list
+   is a set** (`DD-37`; `§6.4`) — **but across windows the nesting imposes one: a nested chain precedes the
+   window's next listener.** **The machine provides that guarantee and no clause promises it — so a consumer
+   relying on the opposite relies on nothing.** **MEASURED 2026-10-29, on this checkout, through the published
+   entry:** listeners `hA` and `hB` at `['a']` and `hC` at `['x']`, where `hA`'s body writes `['x']`, printed
+   `["A", "C (nested commit)", "A-end", "B"]` — **the whole nested chain ran inside `A`'s own call, before `B` was
+   invoked, and `A`'s code resumed after it.**
+3. **★ RE-ENTRANCY IS UNAVOIDABLY OPEN.** **A listener that writes at the address it was delivered for fires
+   itself again**, because the store's trigger set is computed per act. **Nothing detects it, and nothing is
+   meant to** — that is the loop the missing guard leaves open, and the concrete shape of *"no instrument you can
+   read"* (`D-70`).
+4. **AND NOTHING ABOVE SEES BELOW** (`D-71`; `§6.5`). **A chain that fails at depth three is indistinguishable, to
+   the original caller, from one that never ran:** the original record is its own, and the depth-three refusal is
+   that nested commit's.
+
+5. **★ AND A THROW AT DEPTH TWO REACHES THE ORIGINAL CALLER — THE PROPERTY THIS NESTING LEFT UNDECLARED, NOW MEASURED
+   AND DECIDED.** **A FIFTH PROPERTY JOINS THE FOUR ABOVE.** (`RCA-8(g)` ANNOTATE-BESIDE: **the four stand
+   BYTE-FOR-BYTE as the reading of their own date, and item 4's *"nothing above sees below"* is unmoved for
+   OUTCOMES; what this item decides is the THROW's destination, which `D-73` alone rules.**) **THE REASON IS THE
+   STACK'S: a throw is not a commit outcome, so no nested commit contains it, and every level of this chain is a
+   synchronous call with nothing catching in between** (`§6.5a`). **MEASURED 2026-10-29 ON THIS CHECKOUT, THROUGH
+   THE PUBLISHED ENTRY:** `hA` at `['a']` whose body writes `['x']`, and `hN` at `['x']` throwing
+   `new Error('boom-in-nested-listener')`. **THE TRACE WAS `["A enters", "N throws", "A: its own write THREW
+   Error{name:'Error',message:'boom-in-nested-listener'} (=== nested error: true)", "A leaves"]`, AND THE ORIGINAL
+   `store.write(['a'], 'mem', 1)` THREW THE SAME `Error` — identity `===` true — AND ANSWERED NOTHING.** **SO WHERE
+   IT SURFACES IS: FIRST AT `A`'s OWN `write(['x'], …)` INSIDE THE LISTENER, THEN — `A` NOT HAVING CAUGHT IT — OUT
+   THROUGH THE OUTER DELIVERY INTO THE ORIGINAL CALLER.** **YES: A DEPTH-TWO THROW REACHES THE ORIGINAL CALLER, AS
+   THE SAME ERROR OBJECT AT EVERY HOP, AND LEAVES THE ORIGINAL WRITE UNANSWERED.** **AND THE STOP IS YOURS TO PLACE:
+   with `A`'s body catching instead, the measured trace was `["A enters", "N throws", "A caught Error{…} (===
+   nested error: true)", "A leaves"]` and the original write ANSWERED ITS OWN RECORD with `threw: false`** — **so
+   the DEPTH is invisible in the error unless the listener adds it, and a caller that must know where a chain failed
+   annotates the throw itself.** (`D-73`; `D-72`; `§6.5a`; `docs/specs/storeroom-js/contract.md §2.7`'s clause of
+   the same date.)
+
+**WHAT THAT MEANS FOR YOU, IN ONE SENTENCE: if you write a listener that writes, you have moved the order of your
+own effects out of the record and into the call stack, and the only thing you can still hold is the depth you
+yourself refuse to exceed.** (`D-72`; `D-71`; `D-70`; `D-45`; `DD-37`; `§7.9`.)
+
+---
+
+## §7 · Constraining: the pair, the handle, and the two routes
+
+### §7.1 A pair is `{address, id}`, and the `id` IS its handle
+
+**A constraint is addressed by a PAIR — `{ address, id }` — where `address` is an address in §4's domain and `id`
+is a NON-EMPTY `string`** (`bindings/js/index.d.ts`, `ConstraintPair`; `PAR-JS-24`).
+
+**★ AND THE PAIR'S `id` IS ITS HANDLE, INSTANCE-SCOPED AND UNIQUE. YOU NAME IT.** `D-23`: *"Setting a constraint
+should expect a handle name to be used for handle and process/error logging purposes"*; `D-24`: *"The handle
+becomes the id — the handle needs to be unique regardless, and setting a duplicate handle is an overwrite"*;
+`D-29`: *"Handle becomes the internal ID"*. **One `id` names one pair, one identity and one handle** — the older
+`(id, address-set)` keying is superseded, and **there is only ever one pair per `id`.**
+
+**AND THE `address` MEMBER'S TYPE MOVES BY ACT, which is a fact worth knowing before you write a helper:** at the
+REGISTRATION act the pair names a single address; on the `constraints()` read and at `removeConstraint` it is the
+pair's own SET of addresses (`index.d.ts`, `ConstraintPair`; `held-listener/contract.md §2.6` items 4–5). **Measured 2026-10-26:
+after `store.addConstraint({address: ['a'], id: 'c1'}, () => true)`, `store.constraints()` answered
+`[{address: [['a']], id: 'c1'}]` — the element's `address` is a one-member set, and the element carries exactly
+`address` and `id`.**
+
+### §7.2 The two population routes, and the function
+
+**There are exactly TWO ways to populate constraints, and neither substitutes for the other**
+(`surface.md §2.12` item 1; `index.d.ts`).
+
+**ROUTE ONE — the batch at construction, `cfg.constraints`.** **The element is THREE members —
+`{ address, id, constraint }` — AND THE FUNCTION IS REQUIRED** (`D-26`, verbatim: *"The batch in cfg.constraints
+must supply functions"*). **The pair is the element's addressing and the function is its substance**, and **the
+batch ARMS the function at construction** — not merely validates it and defers (`D-27`, verbatim: *"Functions are
+armed"*) — through the same act the add route performs. **The store never sees the function**: a JavaScript
+function cannot cross into Rust, so the crossing carries the pair and **the package arms the substance**.
+
+**A batch element that carries no function — absent, `undefined` or a non-function — is REFUSED at construction,
+under the store's existing `ConstraintListInvalid`, in the one thrown form, BEFORE ANY FILESYSTEM ACT**
+(`D-26` item 5; `D-27`'s closing clause; `bindings/js/src/entry/frame.mjs`, whose `constraintEntry` validates the
+member and whose construction walk refuses the element — read 2026-10-26). **So the state the older prose called
+*"a pair with no function"* HAS NO PRODUCER ON THIS ROUTE:** a batch element is always carried.
+
+**ROUTE TWO — the add route after creation, `addConstraint(pair, constraint)`.** **It CARRIES the function as its
+own argument, and at a pair already held the supplied constraint OVERWRITES the held one under the SAME identity
+the pair was already added under — the call throws nothing for the mere fact that the pair was held** (`D-24`;
+`index.d.ts`, `addConstraint`).
+
+**★ AND THE LIST IS NEVER PERSISTED — not in the file, not as a register key and not in any journal entry.**
+**The importing application supplies it at EVERY startup from its own information, and the store holds the pair's
+`address` and `id` for the instance's life only** (`A118`; `native/contract.md §7.2` item 6; `index.d.ts`,
+`StoreConfig.constraints`). **It is validated at TWO instants, both answering `ConstraintListInvalid` with no
+instance: at CONSTRUCTION, and at a boot over an existing `filePath`, where the LOADED state is validated against
+the list you supplied** (`native/contract.md §8.1` #16's amended trigger clause). **So a constraint list is code
+your application carries, not state your store stores.**
+
+**⟶ AND THREE CONSEQUENCES THE TWO ROUTES OWE THEIR READER, PLUS THE ONE ROUTE A REPAIR MAY TAKE THERE, PLUS THE ONE SCOPE CLAUSE THE LIST-PERSISTENCE PARAGRAPH OWES — 2026-11-02.** `RCA-8(g)` ANNOTATE-BESIDE: **every byte of `§7.2` above stands BYTE-FOR-BYTE and is read THROUGH this clause; nothing above is deleted, no other section of this guide moves, and this clause is one dated correction and not a second site.** Its ground is two rulings of this date — `strata/decisions.md` · `D-90` and `D-91` (`docs/guides/package-use.md §7.2`'s own subject, read at the positions it names).
+
+**(1) ★ THE BATCH AND THE ADD ROUTE TAKE THE SAME ACT, AND THE BATCH'S ACT IS TAKEN WHILE YOU HOLD NO HANDLE.** `cfg.constraints` is armed INSIDE `storeCreate`, before that call has answered you an instance — so **a function the batch arms cannot reach the store by your own binding: there is not yet a binding to close over.** **What a repair invoked at that instant has is THE RECORD IT IS HANDED, and at a registration instant that record carries the route below.** The add route performs the same act with your binding in hand, and the two answer the same evaluation.
+
+**(2) ★ AND THE SKIP'S THRESHOLD IS ABSENCE ALONE — A PAIR IS CARRIED AND SKIPPED EXACTLY WHEN ITS PARENT DOES NOT RESOLVE, AND IT IS APPLIED WHERE THAT PARENT RESOLVES, WHETHER AS A CONTAINER, AS A LEAF, OR AS THE REGISTER.** The discriminator is the pair's own ADDRESS MINUS ITS LAST SEGMENT, and the parent's ABSENCE is the only skip. **⟶ AND THE LEAF ARM THIS ITEM FIRST PRINTED IS REPLACED HERE, 2026-11-02, AND NOT SCOPED — `D-96` (1)–(2); the architect, verbatim: *"Reject this, the constraint being there implicitly expects `'x'` to be a container"*.** **A LEAF STANDING AT A PAIR'S PARENT DOES NOT SKIP ITS PAIR: the pair's own presence declares that parent a container, so the pair is ASKED (`D-96` (2)) — and a body that REFUSES the state it meets at a resolving parent REFUSES THE REGISTRATION AT RANK `19`, `ConstraintRefusedAtRegistration`, on the arm where the refusing pair is the repaired one.** **A skip is not a refusal:** the function is not asked, nothing is refused for it, no entry is written for it, and **the registration does not fail for it** — the pair is registered, `constraints()` names it, and **it applies at the first later instant its parent resolves and an act of yours reaches its address.** **And the rule is GLOBAL, not batch-only:** it is read at every instant that would apply a pair — the batch at construction, the list at a boot over an existing `filePath`, `addConstraint`, a re-enable, and the pass over a write, a `delete` or a `rollback` (`D-90` (1)–(4); `D-96`). **The line is drawn by the NODE and not by how the value looks:** an object written at the parent makes it a container and a primitive written there makes a leaf — **and a pair under EITHER of them is APPLIED**, because neither of them is an absence.
+
+**(3) ★ AND A PAIR WHOSE OWN KEY IS ABSENT IS APPLIED, AND MAY REPAIR ITSELF.** `['window']` on a store holding no `window` has the REGISTER for a parent, and the register is always a container — so **the absence of its own key is the state that pair judges**, which is the arm a repair can rescue. **It is the only arm a repair can rescue: a pair under an absent parent is never asked, so nothing runs to create that parent and a repair it carries cannot reach the arm** (`D-91` (iv)). **To have a repair create `window`, register the pair at `['window']`** — whose own absence is what is judged — and not at an address beneath it.
+
+**(4) ★ AND THE ROUTE A REPAIR MAY TAKE AT A REGISTRATION INSTANT — `D-91`, THE ARCHITECT, VERBATIM: *"Give the registration instant a lawful write route."*** **A repair invoked at a registration instant — from `cfg.constraints`, from a boot over an existing `filePath`, from `addConstraint`, or from a re-enable — CAN WRITE, THROUGH A `write` FUNCTION ON THE RECORD IT IS HANDED.** **THE CONSTRAINT BODY'S OWN CONTEXT IS UNMOVED AND CARRIES NO SUCH MEMBER** (`D-92`: the route is the repair's alone), **so a body that needs a change returns a repair.** **THE ROUTE'S POSITIONS ARE THE STORE'S OWN THREE — `write(address, tier, value)` — AND THERE IS NO FOURTH: the commit is the registration's own and cannot be named**, and a call supplying one is refused before any store act. **ITS ANSWER IS THE STORE'S OWN WRITE RECORD — the very record the store's `write` answers — and the repair becomes creditable by `§7.6`'s repairable arm returning that record's own `op`**, which is the same rule a write's own repair is judged by, pointed at and not re-spelled here. **THE WRITE RUNS NO PASS OF ITS OWN:** the pair is judged by **THE REGISTRATION'S OWN RE-RUN over the op the repair returned**, so a repair that lands the state its own body admits makes the registration stand. **AND THE ROUTE EXISTS AT A REGISTRATION INSTANT AND NOWHERE ELSE**: at a write's own evaluation you already hold the instance, the repair there is handed the record it always was, and nothing about that instant moves.
+
+**★ AND A REGISTRATION THAT REFUSES UNDOES WHAT IT LANDED — CHANGED 2026-11-02, AND THIS IS THE ONE SENTENCE THE OLD TEXT HAD BACKWARDS ABOUT A BEHAVIOUR.** *"A write the route lands before a refusal STANDS"* is **WITHDRAWN**: **A REFUSAL ROLLS BACK, WITHOUT EXCEPTION.** **When a registration refuses — because the repair's body threw, because the repair credited no op, because the re-run refused the repair's own landing, or because a constraint body threw at the re-run — the registration composes a rollback over every op its route landed, and the store is left where the registration found it.** **THE COMPOSITION IS THE SAME INSTRUMENT A FAILING WRITE'S PASS COMPOSES WITH: ONE STORE `rollback` CALL PER DISTINCT ADDRESS THE ROUTE'S LANDINGS TOUCHED, AT THAT ADDRESS'S EARLIEST SUCH OP, SHALLOWEST ADDRESS FIRST** — so one call sweeps an address's whole subtree, and a registration whose landings sit at three addresses gets three calls and no more. **★ AND NO ARM OF THAT COMPOSITION STRANDS YOU — CHANGED AGAIN THE SAME DAY, AND THIS IS THE HALF THE OLD TEXT COULD NOT SAY: where one of those calls meets a store base that has been compacted, THE CALL REVERTS TO THE LAST VALID STATE BY REGENERATING IT FROM THE DURABLE GROUND TRUTH** (`§5.4`, `D-108`) — **so the address's edit does not stand, and the store is where the registration found it on this arm too.** **THE REFUSAL'S `status` DOES NOT MOVE FOR ANY OF IT — it is `ConstraintRefusedAtRegistration` on every arm.**
+
+**★ AND ITS SAVE IS THE PASSING ARM'S CLOSE, AND NOWHERE ELSE — ADDED 2026-11-02 (`D-106`): A `file`-TIER WRITE THE ROUTE LANDS IS SAVED WHEN THE REGISTRATION'S ATTEMPT CLOSES ON ITS PASSING ARM, AND THAT CLOSE IS THE INSTANT THAT OWES IT.** It is the same `commit_file` a `file`-tier write's own save is (`§9.2`), named at the last `file`-tier op the route landed — **so the bytes at `filePath` carry the repaired value the moment the registration returns, and NOT when some later caller happens to save.** **ONE SAVE PER REGISTRATION, WHATEVER ITS REPAIRS:** the image a save writes is the whole register's, so a registration whose commit carries several `file`-tier repairs pays ONE serialization and every earlier repair rides in that image. **AND A REGISTRATION THAT MOVED NO `file`-TIER DATA SAVES NOTHING** — a repair that writes a scalar at `mem` or `temp` leaves every durable version standing and owes none, **while a repair that writes a CONTAINER value at an address holding a `file`-tier version replaces that version and owes its save like any other.** **A SAVE THAT CANNOT LAND IS REPORTED AND NOT SWALLOWED**: the store's own `FileCommitFailed`, after the store's journal rollback, exactly as a write's save answers it (`§9.4`) — **and the registration then refuses, on the paragraph above's arm, so that landing you were told was unsaved is undone too.** **★ AND A REFUSING ARM OWES NO SAVE OF ITS OWN**: it undoes its own landings, so the file and the memory agree, **and the bytes are made right by the reversal's own instrument (`§9.3`) and by nothing at the close** — which, on that arm, is the instrument writing NO byte, because the store it returns to is the store the file still holds (`strata/decisions.md` · `D-111` item 1) — and a second save there would write one image twice, which the store's per-record law refuses.
+
+**(5) ★ AND THE LIST-PERSISTENCE PARAGRAPH ABOVE — the one that opens *"★ AND THE LIST IS NEVER PERSISTED — not in the file, not as a register key and not in any journal entry"* — IS READ THROUGH THIS ITEM FROM HERE, 2026-11-02, AND THIS ITEM IS THE SCOPE CLAUSE THAT PARAGRAPH OWES.** **THE LOADED STATE IS NOT VALIDATED FOR RESOLVABILITY:** a pair whose parent does not resolve is not refused at CONSTRUCTION and not refused at a boot over an existing `filePath`, **and no list is refused for it — the pair is CARRIED and SKIPPED, which is item (2)'s rule, and a skip is not a refusal of the pair or of the list.** **So at both of those instants `ConstraintListInvalid` — the one status that paragraph declares — answers THE MALFORMED LIST ALONE:** an element whose `address` is not a segment array, an `id` that is not a string, the list's own outside forms, **and the package's own construction-time rejections, which `§7.2` states at its own paragraphs and which this item points at rather than re-spells.** **AND A WELL-FORMED PAIR IS NEVER ANSWERED BY THE SHAPE ARM** — `native/contract.md §8.1` item 3's own sentence, which the withdrawal above makes TRUE of this tree rather than needing an amendment.
+
+**★ AND A REPEATED HANDLE ANSWERS DIFFERENTLY AT THE TWO ROUTES, WHICH IS A DIFFERENCE OF ACT AND NOT AN
+INCONSISTENCY** (`D-27`'s own table):
+
+| the act | a repeated handle |
+|---|---|
+| **`cfg.constraints`, the batch** | **REJECTED** — the list is ONE supplied act, so an internal ambiguity is malformed input and not a second write |
+| **`addConstraint(pair, constraint)`** | **OVERWRITE** — acts are separate in time, so a later one replaces the earlier |
+
+**At construction that means TWO refusals the store cannot take and the package owns:** no two elements of one
+`cfg.constraints` may name one `id`, **and no element's `id` may equal a `handle` this construction's `listeners`
+adopts — a cross-KIND collision, rejected regardless of kind** (`D-27`, verbatim: *"Reject duplicate handles in
+batch - regardless of listener/constraint type"*; `index.d.ts`, `StoreConfig.constraints`). **Both are refused
+before any filesystem act, under `ConstraintListInvalid`; the package mints no code.**
+
+**⟶ READ THROUGH THIS CLAUSE FROM 2026-11-01 — THE BATCH'S CROSS-KIND COLLISION IS THE HANDLE, AND THE ADDRESS IS NOT A
+COLLISION AT ALL (`D-98`, `ACTIVE`, 2026-11-01).** `RCA-8(g)` ANNOTATE-BESIDE: **the two construction refusals above stand
+BYTE-FOR-BYTE and are read THROUGH this clause; nothing above is deleted, and this clause is one dated correction and not
+a second site.** **IT IS THE HANDLE RULE AND IT ALWAYS WAS** — `D-27`, verbatim: *"Reject duplicate handles in batch -
+regardless of listener/constraint type"* — **and its sentence is spelled now as the rest of this corpus spells it: *a
+listener and a constraint do not share one handle*** (`bindings/js/README.md:232`–`:233`, the hand-authored page that
+already read this way and that this correction makes the others agree with rather than the file it edits). **AND ONE
+SENTENCE THIS PARAGRAPH OWED ITS READER, THE SHARED ADDRESS BEING THE WHOLE OF WHAT THE RULING MAKES LAWFUL: an element's
+`address` coinciding with an adopted listener's `address` is NOT a collision at all** — a constraint pair and a listener
+MAY stand at ONE address, so the construction refuses the shared HANDLE and admits the shared address (`D-98` clauses
+(i)–(iii); `docs/L1/cross-kind-handle-only.md` §3.4, §4.2). **Its member, its instant and its no-state-moves sentence are
+unmoved**: `ConstraintListInvalid`, in the pre-create walk, before any filesystem act (`docs/L1/surface-deltas.md` §2's
+`B-3` row).
+
+### §7.3 A cross-kind duplicate is REJECTED, in both directions
+
+**A duplicate handle of the SAME kind is an overwrite. A duplicate handle ACROSS KINDS — a listener where a
+constraint stands, or a constraint where a listener stands — is REJECTED** (`D-25`, verbatim: *"Attempting to
+overwrite a listener with a constraint or vice versa is rejected"*; `D-29`: *"Listen cannot overwrite constraint,
+only other listeners"*).
+
+**⟶ RE-DERIVED 2026-11-01 — THE RULE SENTENCE READS THE HANDLE, AND THE ADDRESS IT USED TO READ IS LAWFUL (`D-98`,
+`ACTIVE`, 2026-11-01).** `RCA-8(g)` ANNOTATE-BESIDE: **`§7.3`'s heading and its first paragraph stand BYTE-FOR-BYTE and
+are read THROUGH this clause; the paragraph that stood below them measured the DEFECT and has MOVED OUT, and its one
+pointer stands where it stood.** **THE LAW, IN THREE CLAUSES** — `D-98` item 1, the architect, verbatim: *"A constraint and
+a listener can share an address, as can multiple constraints/listeners. The restriction is that a listener and a
+constraint cannot have the same **handle**."* **(i) A CONSTRAINT PAIR AND A LISTENER MAY STAND AT ONE ADDRESS** — different
+handles, one address, both reached by the act: the pair ASKED by the pass, the listener DELIVERED after it. **(ii) MULTIPLE
+CONSTRAINTS at one address, and MULTIPLE LISTENERS at one address, are LAWFUL.** **(iii) THE ONLY CROSS-KIND RESTRICTION IS
+THE HANDLE** — a listener's handle equal to a constraint pair's `id`, and a pair whose `id` equals a live listener's
+handle, are REFUSED, **in both directions**. **AND A `listen` AT A PAIR'S ADDRESS STANDS**: the act is lawful, it answers
+its handle (`D-22`), it purges none of the pair's rows and installs the listener beside it — so an application that moved
+a subscription off a constrained address to work around a refusal may reclaim that address, and whether it does is that
+application's decision and not this guide's.
+
+**⟶ AND (iii)'s *"live listener"* IS `§6.2`'s TWO ACTS, 2026-11-01 — A `listen` WITH NO `register` IS A RESERVATION, AND A
+PAIR MAY TAKE ITS HANDLE.** `RCA-8(g)` ANNOTATE-BESIDE: **(iii) stands BYTE-FOR-BYTE and is read THROUGH this clause; the
+sentence is not re-spelled, and nothing else in `§7.3` moves.** **THE ANCHOR, IN ONE SENTENCE: an entry `listen` wrote
+that `register` has not filled is a RESERVATION — it fires nothing and carries no kind — and a pair may take its handle
+(`D-24`'s same-kind overwrite); the refusal above is read for a listener a `register` has made live.** **So *live* names
+the SECOND of the two acts and not the entry's existence: `listen` writes the entry and `register` fills it (`§6.2`;
+`§6.3` rule 1 — an unregistered handle fires nothing, silently), and a live listener is `off === false` AND a function AND
+`kind !== 'constraint'`** (`bindings/js/index.d.ts`'s `addConstraint` clause of this date; the `listenerStandingAt`
+predicate at `bindings/js/src/entry/delivery.mjs`; `docs/L1/cross-kind-handle-only.md` §9.4). **MEASURED 2026-11-01 ON
+THIS CHECKOUT'S `1.7.0` BUILD, ONE FRESH INSTANCE PER ARM — THE ARM FIRES FOR A LIVE LISTENER AT ANY ADDRESS AND IN BOTH
+DIRECTIONS, AND THE RESERVED CASE IS THE DECLARED LAWFUL ARM:** `listen('dup', [['q']])` with no `register` leaves a
+reservation, and the `addConstraint({address: ['q'], id: 'dup'})` after it is **ANSWERED**; with `register('dup', fn)`
+before it, the same `addConstraint` **THROWS** `AddressMalformed`; a live listener at `['x']` and the pair at `['q']`
+**THROWS** too — **the arm reads the HANDLE and not the address** — and a listener claiming a carried pair's `id`
+**THROWS** in the other direction (`B-5`) (`strata/research.md` §9's drives; `§7.3`'s first paragraph;
+`bindings/js/index.d.ts`'s `addConstraint` clause).
+
+**THE RULE SENTENCE, RE-DERIVED IN PLACE: *a listener and a constraint do not share one handle*** — one word more than the
+address reading, its spelling `bindings/js/README.md:232`–`:233`'s, and it is the clause half of all four refusal
+messages (`docs/L1/cross-kind-handle-only.md` §3.4, §3.6). **WHAT DOES NOT MOVE:** a duplicate handle of the SAME kind is
+still an OVERWRITE (`D-24`); the cross-kind refusal is still the surface's ONE thrown form `{status, message, log,
+address}` — `status` `'AddressMalformed'` at the three single-registration arms and `'ConstraintListInvalid'` at the batch,
+`log` `[]`, and `address` `null` because the subject is a string in the handle namespace and not a place — and **no state
+moves**: each refusal is taken after the positions' class tests and above every store act and every purge (`index.d.ts`,
+the `register`/`addConstraint`/`StoreConfig.constraints` clauses; `docs/L1/surface-deltas.md` §2).
+
+**⟶ THE 2026-10-26 MEASURED PARAGRAPH THAT STOOD HERE HAS MOVED OUT BYTE-EXACTLY (`RCA-8(g)`, `D-98` item 5).** **the measurement that stood here measured the address refusal this guide's rule no longer makes; its bytes are at `docs/guides/backup/D98-2026-11-01-guide-move-out.md §1`.**
+
+### §7.4 The toggles, and the read
+
+**`constraintOn(pair, constraint)` ENABLES and `constraintOff(pair, constraint)` DISABLES. Both are IDEMPOTENT,
+both take the `constraint` position REQUIRED (it is a no-op on every success — the caller supplies as a function
+the identity it holds at that pair, and the entry never substitutes one), and both THROW at a pair the entry does
+not carry** (`index.d.ts`, the two toggle members; `surface.md §2.12` items 2–3).
+
+**A toggle is NOT a removal.** A disabled pair is still registered and still carried; a write the disabled
+constraint would have refused is ACCEPTED. **`removeConstraint(pair)` is the ONE act that deletes an identity:
+the pair, its N address rows, the kernel's registration and the store's home entry all go, and a fresh
+`addConstraint` at that pair afterwards answers a NEW identity** (`held-listener/contract.md §2.6` item 3; `§2.7` item 3;
+`index.d.ts`).
+
+**`constraints()` is the registered-pair read, and it reports PAIRS with four declared exclusions**
+(`index.d.ts`, the `constraints` member, items 1–4; `surface.md §2.4` item 9 (f)'s `constraints` clause):
+
+1. **NO constraint function is returned** — a disabled pair makes the hazard sharp, since the caller's function is
+   kept in the entry while the kernel holds a stub.
+2. **NO opaque identity is exposed** — the pair is your own datum; `ConstraintIdentity` is the package's opaque
+   handle for it, and the two are not the same datum. **Compare identities, never contents.**
+3. **NO ORDER is promised** — compare the returned pairs **as a SET and never as a sequence.**
+4. **A DISABLED PAIR DOES APPEAR, and there is therefore NO `enabled` member on an element and NO way to read a
+   pair's state off this return.** `constraintOff` is a toggle and not a removal; **an absence here means nothing
+   was ever registered.**
+
+**The read takes no argument, makes no store call, appends no journal entry and changes no node**
+(`index.d.ts`).
+
+**⟶ AND EXCLUSION 3 ABOVE IS RETIRED, 2026-10-26, ON `D-39`'S `DEF-R` RULING — VERBATIM *"add deterministic
+ordering"* — WHICH RULES THAT *"that exclusion is superseded and the order becomes part of what the method
+promises"*** (`strata/decisions.md`; `RCA-8(g)` ANNOTATE-BESIDE — the four exclusions above stand BYTE-FOR-BYTE and
+are read THROUGH this clause). **`constraints()` EMITS IN REGISTRATION SEQUENCE — THE ORDER THE PAIRS WERE
+REGISTERED — DETERMINISTICALLY AND STABLY ACROSS EVERY CALL AND EVERY INTERVENING ACT; THE ORDER IS PART OF WHAT
+THE METHOD PROMISES.** **So you MAY now compare the returned array element by element, and the sequence you read
+is the sequence your own calls stood in: a pair from `cfg.constraints` in its list position, then each
+`addConstraint` in the order you made it; a pass, a refusal, a toggle and a `rollback` move none of it.** **THE
+OTHER THREE EXCLUSIONS STAND UNCHANGED: no function, no opaque identity, and a disabled pair still appears with no
+`enabled` member beside it.**
+
+### §7.5 ★ Reads check NO constraint
+
+**The constraint mechanism is unconditional on the WRITE/COMMIT path, over the triggered handle set — and
+`read`, `readLiteral` and a branch's assembly CONSULT NO CONSTRAINT, refuse nothing on a constraint's verdict, and
+filter nothing on one.** **There is no read-side enforcement arm, none is declared, and none is owed**
+(`strata/decisions.md` `D-1-bis`, where the architect refused the read-side reading by name, reading (a)):
+*"a is correct"*.
+
+**So a constraint cannot be used as a read filter, a field-level permission, or a projection. It is a gate on
+writes and on nothing else** — and **reads consult no constraint's verdict, filter nothing on one, and refuse
+nothing because of one.**
+
+### §7.6 ★ `context.value` is what the write verb returned — read anything else yourself
+
+**★ THE ONE SENTENCE TO CARRY AWAY: `context.value` is the value the write verb returned; a constraint that
+cares about another location reads it.** (`D-50`, the architect, verbatim: *"If a constraint needs to look for
+the data at a given location, it can read()"*.)
+
+**AND THE CASE THAT MAKES IT MATTER IS A REPAIR THAT LANDS SOMEWHERE ELSE.** A constraint that refuses `2` at
+its own address `['a']` returns a repair that writes `11` at a *different* address `['b']`. **The repair's op is
+the attempt's last op, so the re-run hands your body the value that op landed — `11` — while the address your
+pair judges still stands at `2`.** **That is not a machinery defect: it is the value the write verb returned, and
+the package cannot be wrong about a value it was told to hand over — it can only be wrong about what it stored.**
+**If your constraint cares about the state at any other location — the address it judges, the address its repair
+landed at, or anywhere else — IT READS THAT LOCATION.** The body is your code, it closes over the store handle
+you already hold, and `store.read(address)` is a published verb. **Measured 2026-10-28**
+(`tests/e2e/discard-witness.mjs`, the `W8` cell): the re-run handed the pair `11` while its own address read
+`2`; **the same body with `store.read(['b'])` refused on what it read** — the write failed and the store was
+restored — **and the same body without the read passed, answering its record with its own value still standing at
+its address.** **The read is the whole difference.**
+
+**⟶ AND THE TWO RETURNS YOUR CONSTRAINT AND ITS REPAIR MAY MAKE ARE DECLARED HERE, 2026-10-30 — AND THE SECOND OF THEM IS THE ONE THIS SECTION IS ABOUT.** **EVERY SENTENCE OF THIS CLAUSE — THE ONE THIS MARK OPENS, DATED 2026-10-30 — HOLDS AT THE WRITE'S OWN EVALUATION, THE INSTANT THE KERNEL EVALUATES THE VALUE YOUR FUNCTION RETURNED, AND AT THAT INSTANT ONLY, EXCEPT WHERE A SENTENCE NAMES ITS OWN INSTANT IN ITS OWN WORDS.** **AND §7.6 CARRIES CLAUSES THIS DATED CLAUSE DID NOT WRITE, EACH AT ITS OWN EARLIER DAY — the clauses that state what a READ reads and what a DELETE asks, and the clauses that fix which pairs an act asks — AND A SENTENCE STANDING IN ONE OF THOSE IS OUTSIDE THIS FRAME AND IS READ AT ITS OWN INSTANT BY ITS OWN WORDS.** `RCA-8(g)` ANNOTATE-BESIDE: **every other clause of §7.6 — those standing above this one and those standing below it alike — stands BYTE-FOR-BYTE and is read THROUGH this one; the read rule, the addresses the pass asks, and the membership rule do not move, and this clause MOVES no byte of theirs. What this clause adds is the SHAPE of the two returns, the four ways the repair arm meets you, and ONE EXAMPLE you can drive as written.**
+
+**★ YOUR CONSTRAINT'S ANSWER IS A CLOSED THREE-ARM SET, READ IN THIS ORDER, AND THERE IS NO FOURTH ARM.** **`true` is the ONLY pass value; `{ message, repair }` is a REPAIRABLE violation; `{ message }` is an UNREPAIRABLE violation, whose `message` is the refusal's own sentence.** **A value outside those three is read as the `{ message }` arm and never as an arm of its own**, so a shape you invent beyond them is not distinguished from a bare refusal — the kernel does not ask it a second question.
+
+**AND `message` IS REQUIRED ON THE REPAIR ARM, BECAUSE THE KERNEL READS IT FIRST.** The arm's gate is the `message` member, read before any `repair` is looked for, and a `repair` is looked for only inside that branch: **a return carrying only `repair` is the arm outside the three, and its repair is NEVER SEEN**; **and AT THE WRITE'S OWN EVALUATION a `message` present but not a non-empty string keeps the repair readable while the refusal answers the kernel's own unrecognized sentence** — so write both members, and write `message` as the sentence you want your caller to read. **AT THE WRITE'S OWN EVALUATION — AT THAT INSTANT AND NO OTHER — THE KERNEL READS `message` AND `repair` AS OWN MEMBERS OF THE OBJECT YOUR FUNCTION RETURNED: a pair carried on a prototype is NOT SEEN there, and such a return answers the unrecognized sentence instead** (`bindings/js/src/entry/kernel-attempt.mjs:686-699`, `:690-696`). **THIS IS THE ONLY SENTENCE IN THIS GUIDE THAT STATES THAT RULE, AND IT IS THE LANDING INSTANT'S: the registration act reads the same closed outcome at `bindings/js/src/entry/kernel-registration.mjs:330-332`, where an inherited `repair` IS seen and invoked, so ONE RETURNED SHAPE ANSWERS TWO DIFFERENT THINGS AT THE TWO INSTANTS — a repair at registration and no repair at a write — and that divergence is OWED to a code-bearing unit and is contradicted by no sentence here** (`strata/decisions.md` · `D-35`). **THE EXAMPLE BELOW ESCAPES THE QUESTION BY CONSTRUCTION: it returns ONE OBJECT LITERAL whose two members are own members, so both instants read it alike.** **⟶ AND THE DIVERGENCE THAT SENTENCE RECORDS IS CURED, 2026-11-04 — `U-STOREROOM-REGISTRATION-OWN-MEMBERS`, ON `D-120`.** `RCA-8(g)` ANNOTATE-BESIDE: **every sentence above stands BYTE-FOR-BYTE and is read THROUGH this mark; no sentence of it is deleted, none is re-spelled, and no citation of that sentence is corrected or re-pointed.** **THE REGISTRATION INSTANT'S READ OF THE CLOSED OUTCOME'S `message` AND `repair` WAS CONVERTED TO THE OWN-MEMBER RULE AT THIS UNIT'S LANDING**, so the divergence that sentence records is **CURED rather than OWED**, the state its own words left to a code-bearing unit. **THE RULE THAT SENTENCE STATES THEREFORE HOLDS AT BOTH INSTANTS** — said of the own-member rule and of nothing else: `message` and `repair` read as OWN members of the object your function returned, so **a pair carried on a prototype is NOT SEEN at EITHER instant**; **AND EACH INSTANT KEEPS ITS OWN REFUSAL — the registration answers its own rank-19 sentence, and the write answers its own `unrecognized` and `{ message }` arms — so what the two instants now answer alike is the MEMBERSHIP question and never a sentence.** **AND THE WRITE'S SIDE IS UNCHANGED, THE SUBSTITUTION CLAUSE INCLUDED: a `message` present and not a non-empty string still keeps the repair readable at the write and still answers the kernel's own unrecognized sentence there.**
+
+**THE REPAIR'S OWN RETURN IS A CLOSED TWO-ARM SET.** **`{ ok: true, op }` is the repairable arm: `op` is REQUIRED and is THE STORE'S OWN OPERATION RECORD — `WriteRecord.op`, or `DeleteRecord.op` where that member is non-`null`, a `delete` that removed nothing answering `null` and crediting nothing — the one the verb your repair called returned.** **`{ ok: false, message }` is the failed arm: `ok` and `message`, and `op` ABSENT and never `null`, because an `op` there is read by nothing.** **At the write's own evaluation a return carrying any other identity fails `KC-4`** (`docs/specs/storeroom-constraints/contract.md:552`; the two arms print at `:558`) — **that one sentence covers every outside form of that return and this guide enumerates none of them.** **AND THE OP MUST BE ONE THE ATTEMPT CAN BE SHOWN TO HAVE LANDED: that ground is the kernel's own credit check, declared at `bindings/js/src/entry/kernel-foundations.mjs:1105-1131`, and it is POINTED AT here rather than re-spelled.** **No ordinal ground is claimed at the registration instant, whose credit check runs with no invoked-for op** (`bindings/js/src/entry/kernel-registration.mjs:510-517`).
+
+**THE REPAIR IS HANDED ONE ARGUMENT — ITS OWN RECORD, WHICH IS NOT YOUR CONSTRAINT'S AND IS NOT INTERCHANGEABLE WITH IT: the two records stand apart at THREE PLACES — by COUNT, SIX against FIVE; by `id`, which the repair's record carries where the constraint's carries `attempt`; and by `pending`, which rides the repair's record ALONE** (`bindings/js/src/entry/kernel-attempt.mjs:607-613`, `:756-782`; the kernel's own words at `bindings/js/src/entry/kernel-registration.mjs:373-374`). **AND THE COMMIT YOUR REPAIR IS PART OF RIDES THAT RECORD — its own `pending` member, the `CommitRecord.pending` this package declares at `bindings/js/index.d.ts:772`, POINTED AT and re-declared nowhere: pass it as `write`'s DECLARED FOURTH POSITION and the write you make JOINS the commit you are inside** (`bindings/js/index.d.ts:862`; `strata/decisions.md` · `D-46`). **No member census of either record is printed here, and that position's own class test is not restated.** A repair that names nothing in the fourth place also joins, by the kernel's own name; the fourth position is how YOU name it.
+
+**⟶ AND THE UNNAMED POSITION IS UNSUPPORTED FOR A REPAIR, 2026-11-01 — `D-103`, WHICH RE-DERIVES THE PARAGRAPH ABOVE'S LAST SENTENCE AND MOVES NO BYTE OF IT.** **`RCA-8(g)` ANNOTATE-BESIDE: *"A repair that names nothing in the fourth place also joins, by the kernel's own name; the fourth position is how YOU name it"* STANDS BYTE-FOR-BYTE and is read THROUGH this clause; what it describes is a MECHANISM OF THE CODE and NOT a second lawful route, and under `D-103` it is not a route at all.** **THE ARCHITECT, VERBATIM** (`strata/decisions.md` · `D-103`, 2026-11-01): ***"Writing a repair function that does not pass the commit in is unsupported"***. **THE ROUTE IS ONE AND IT IS THE NAMED ONE — THE COMMIT PASSED AT `write`'S DECLARED FOURTH POSITION IS *THE* ROUTE** (`D-46`: the commit id is the discriminator that lets a repair JOIN the attempt being tracked, and the repair's own record carries that commit at its `pending` member, paragraph above) — **so a repair that OMITS the commit is UNSUPPORTED.** **AND THE FRAME'S FALLBACK IS A MECHANISM OF THE CODE, NOT A SUPPORTED ROUTE:** the frame's own name at `bindings/js/src/entry/kernel-attempt.mjs:820`-`:822` (`state.mjs`'s `openCommit`: *"the entry's position wins where it is supplied, and this name is the fallback where it is not"*) is the CODE's and it STAYS, **and what falls is its standing as a DOCUMENTED ROUTE** (`D-103` item `2` — the mechanism's bytes are unmoved here and by that ruling, and this clause neither edits them nor re-spells them).
+
+**AND NOTHING IS PROMISED FOR THE REPAIR THAT OMITS IT — the tracking `D-46` exists for, named item by item, because an unsupported shape promises none of it:** **the op in `attempt.ops`** · **the entries in the commit's log** · **the `pending` delivery** · **the rollback's scope** · **and a `file`-tier save riding the commit's terminal act.** **THE PACKAGE DECLARES NOTHING ABOUT THAT SHAPE** (`D-103` item `1`), so **none of the five is owed for it** — and where one of them happens to hold, it holds as the mechanism's accident and not as a promise of this package.
+
+**AND IT IS NOT A REFUSAL, WHICH IS THE OTHER HALF OF `D-103` (item `3`) AND IS SAID HERE SO THIS CLAUSE IS NOT READ AS ONE:** the position stays `commit?: CommitCarrier`, OPTIONAL, **because a CALLER's own write must not name a commit — its write IS its own commit — and requiring the member would break that route.** **So an unsupported repair is not stopped, not thrown at and given no status and no token of its own**: it is the corpus's standing for an unsupported route, the class `strata/brief.md:252` gives the register-one-thing-as-both anti-pattern (*"an unsupported anti-pattern rather than a defect"*). **NO TYPE MOVES, NO CODE BYTE MOVES AND NO CELL IS RE-DERIVED by this clause** (`D-103`'s own `TERMS`: the mechanism bytes `0`, the types `0`, the code bytes `0`, the refusal it does NOT take `1`).
+
+**AND THE FOUR WAYS THIS ARM MEETS YOU, EACH DECLARED BECAUSE SILENCE HIDES A STATE A CONSUMER MEETS:**
+
+1. **(a) A THROW FROM YOUR REPAIR BODY CROSSES TO YOUR OWN CALL UNCONVERTED ON A WRITE**, where the throwable carries no store code: the write hands you back the very value you threw (`bindings/js/src/entry/kernel-attempt.mjs:833-854`).
+2. **(b) AT THE REGISTRATION INSTANT THAT SAME THROW IS CAUGHT AND CONVERTED INTO THE REGISTRATION'S REFUSAL** — `addConstraint` refuses, and no caller meets your body's value on that route (`bindings/js/src/entry/kernel-registration.mjs:498-508`).
+3. **(c) A PAIR'S REPAIR NEVER RUNS TWICE:** an applied repair may not run again, and a second violation of the same pair FAILS the attempt (`docs/specs/storeroom-constraints/contract.md:736`, `P-SM-6`'s row).
+4. **⟶ (d) AND WHAT A FAILED ATTEMPT DOES TO THE EDITS A REPAIR LANDED IS `docs/guides/package-use.md §5.4`'s OWN RULE — CITED BY PATH AND SECTION, STATED THERE AND NOT RE-SPELLED HERE.** **The plan that rule is read against is live code and is read at its own bytes: `bindings/js/src/entry/kernel-terminal.mjs:184-196`, the call site at `:215`, and `floorCallPlan` at `:288-343`; `strata/decisions.md` · `D-40` is the ruling that CLOSES that scope.** **AND ONE SENTENCE FOLLOWS FROM `§5.4`'s RULE, AS THAT RULE'S CONSEQUENCE AND NOTHING MORE: a repair's own writes are part of the attempt.**
+
+**⟶ AND THE LISTENERS YOUR REPAIR'S OWN WRITE FIRES ARE DELIVERED, 2026-11-01 — `D-104`, AND EVERY CLAUSE OF THIS SECTION ABOVE STANDS BYTE-FOR-BYTE AND IS READ THROUGH THIS ONE.** `RCA-8(g)` ANNOTATE-BESIDE: **the two returned arms, the record's shape, the commit at the fourth position, the credit rule and the address geometry do not move; what this clause adds is what happens to a listener a repair's EDIT fires, and what your repair's record carries when an earlier repair in the same commit fired one.** **WHAT WAS TRUE UNTIL THIS DATE, SAID PLAINLY BECAUSE IT IS WHAT YOU MAY HAVE BUILT AROUND: a repair's write answered its own record — `{op, watched, triggered}` — and no delivery site read that record's `triggered` list, so a listener bound where your repair wrote was invoked by NOTHING** (`D-104` item `1`). **FROM THIS DATE IT IS INVOKED — in the COMMIT's ONE delivery, AFTER the pass, ONCE PER DISTINCT HANDLE — and the five observables and the two held halves live at `§6.4`'s clause of this date, which this clause POINTS AT and does not respell; do not read two rules.** **AND THREE THINGS THAT ARE THIS SECTION'S OWN:**
+1. **THE REPAIR'S WRITE STILL HAS NO PASS OF ITS OWN ON THE SUPPORTED ROUTE, AND THAT IS UNCHANGED**: it names the commit at the fourth position (the `D-103` clause above), joins it, and its op is the attempt's landing that the RE-RUN judges. **So its listeners are discarded exactly where the attempt fails — the store refused the repair's verb, so no op is credited and `KC-4` answers (arm (d)); or the re-run refused the landing (arms (c)/(e)/(f)) — and a failed attempt invokes none of them** (`§6.4`'s failing-arm clause; `surface.md §2.7` item `6`).
+2. **THE ADDRESS YOUR REPAIR'S LISTENERS CARRY IS THE REPAIR'S OWN OP ADDRESS**, because the delivery's one argument is the leg's op and the leg is the repair's write's record where a repair landed. **It is ONE address for the whole batch, and a doubly-fired handle's attribution is asserted nowhere** (`§6.4`'s item `4`; `DD-22`, `DD-37`).
+3. **`RepairContext.pending` GAINS THE SAME SOURCE — AND THIS IS A MEMBER YOUR OWN BODY READS** (the record clause above, `:1073`; `index.d.ts`'s `RepairContext`). The member is a FRESH LIST read per evaluation off the commit's record, **so in a commit with MORE THAN ONE REPAIR, every repair after the first is handed a `pending` carrying an EARLIER repair's listener elements.** **Its declared shape does not move** — six members, the pair element `{handle, address}`, a fresh list — **and the alternative is refused**: handing a repair the member minus those elements would make the context disagree with the record it stands for.
+
+**⟶ AND THE REPAIR THAT RAN FOR YOUR WRITE LEAVES ITS ENTRY ON YOUR OWN ANSWER, 2026-11-02 — `D-119`.** **THE LIST THIS SECTION HAS JUST DESCRIBED IS NOT ONLY A REFUSAL'S: a `write` that PASSES carries the commit's own log at `record.log`** (`D-119`: *"Cache the log and pass to the surface on resolution, same as on failure"*), **so the `repair-run` entry a repair left is a datum YOU read rather than infer — and that entry's `opId` is THE OP THE REPAIR LANDED**, which is the address it moved your write to, with the record's own `op` beside it naming the commit's last landing. **THE DELIVERY ABOVE IS UNMOVED**: `D-104` item `1`'s set is still `pending`'s, and what is DELIVERED is not this clause's subject — **one list is read by the caller and by a listener body that holds the same answer, and the delivery's membership does not move with it** (`D-119` item 4; `surface.md §2.7` item `6`). **AND `[]` ON THIS ARM IS HONEST WHERE THE WRITE JOINED A COMMIT RATHER THAN OPENING ONE**: a repair body's own nested `write` answers `[]`, and the enclosing write's answer carries the entries, its own and the repair's alike (`§8.0a`'s clause of the same date). **No member of your repair's record moves, and no member of the commit's record moves.** (`D-119`; `D-113` item 3; `D-53`.)
+
+**AND ONE THING THIS ACT MOVES THAT IS NOT A CLAIM — A LINE NUMBER, DECLARED RATHER THAN LEFT TO BE FOUND.** The two clauses of 2026-11-01 add **`12`** lines inside `§6.4` (the clause opens at `:662`) and **`7`** inside `§7.6` (the clause opens at `:1088`), so **a line number this guide printed in the tree the act inherited reads `+12` where it named a line at or after `§6.4`'s clause and `+19` where it named a line at or after `§7.6`'s**; **a printed number is read through that table until a re-anchoring pass re-derives it at its own site, and the words and the claims each of them carries are unmoved by this act** (`RCA-8(g)`; the same shape the 2026-11-01 anchor's own re-anchoring declared, and `typecheck/consumer-fixture.ts`'s citation of the worked example stays owed to its owner).
+
+**⟶ AND HERE IS THE EXAMPLE THIS SECTION OWES — a repair that lands SOMEWHERE ELSE, which is this section's own subject, self-contained and driveable as written through the package's one export.** It is the shape the package's own e2e drive takes (`tests/e2e/repair-in-commit.test.mjs:95-115`), with the commit named by the repair's own hand:
+
+```js
+const store = storeCreate({ journalLength: 256, listeners: [] });
+
+store.write(['a'], 'mem', 1);
+store.addConstraint({ address: ['a'], id: 'two-goes-elsewhere' }, (context) =>
+  (context.value === 2
+    ? {
+        message: 'the landed value is not one this pair admits, and the repair moves it elsewhere',
+        repair: (repairContext) => {
+          const landed = store.write(['b'], 'mem', 11, repairContext);   // the commit, at write's fourth position
+          return { ok: true, op: landed.op };                            // the store's own record, not a copy
+        },
+      }
+    : true));
+
+const written = store.write(['a'], 'mem', 2);   // the pair refuses 2, its repair writes 11 at ['b'], the re-run passes
+store.read(['a']);   // 2  — the address your pair judges; the repair did not move it
+store.read(['b']);   // 11 — where the repair landed, inside the commit it is part of
+```
+
+**WHAT THE EXAMPLE SHOWS, IN THE ORDER THE MACHINERY RUNS IT.** **Your constraint returns ONE object literal carrying both members** — `message` the refusal's sentence, `repair` a function — so both instants read the same pair. **The repair runs with ITS OWN RECORD, makes its OWN `write` at `['b']` with that record in the fourth position, and RETURNS `{ ok: true, op: landed.op }`: the store's own record of the write it just made, never a number and never a record you assembled yourself.** **And the credit is visible to you:** `written.op` is that same op — in the drive named below, `{"opId":"op-3","kind":"write","address":["b"],"seq":3,…}` — **so the op the repair returned IS the op its own edit produced, which is what makes the re-run come back through that op's own landing and hand your body the value the repair landed (`11`) while the address your pair judges still stands at `2`.** **The write answers its record because that re-run passes; a repair that returned an op it did not land fails `KC-4` instead.** **Note what is NOT in the block: no type annotation, no new symbol, no import the guide does not already publish (`§3`), and no fourth outcome arm.**
+
+**MEASURED 2026-10-30, on this checkout, through the published entry (`bindings/js/index.mjs`), on the block above's exact bytes:** the write's own record carries `op` `{"opId":"op-3","kind":"write","address":["b"],"tier":"mem","before":{"present":false},"after":{"present":true,"value":11},"seq":3,"compacted":false}`, `store.read(['a'])` answers `2` and `store.read(['b'])` answers `11` — **so the repair was READ, its edit LANDED at the beside address, and its op was CREDITED.** **That drive is a measurement of the landing pass and not a committed test**; the package's own suite drives this arm at `tests/e2e/repair-in-commit.test.mjs`.
+
+**(1) WHAT CROSSED.** **A repair's answer that the credit check does not admit FAILS THE ATTEMPT, and what your caller catches is the refusal crossing as the set's rank-`20` member `ConstraintPassRefused`, with the kernel's token `KC-4` riding the TERMINAL entry's `state`** — `KC-4` is the kernel's repair-failed token (`bindings/js/src/entry/kernel-foundations.mjs:62`), the crossing and the token's seat are declared at `docs/specs/storeroom-js/surface.md:2079`, and the repair-body path that answers it prints at `docs/specs/storeroom-constraints/contract.md:557`. **This clause names `KC-4` and declares no member of any set.**
+**(2) WHAT THE REFUSAL SAYS — THREE MESSAGES REACH THE ARM AND THE COPY BELOW IS THE FALL-THROUGH'S ALONE.** **The message a `KC-4` refusal carries is drawn from ONE OF THREE SOURCES, the choice among them standing at `bindings/js/src/entry/kernel-attempt.mjs:878`-`:883`: where `ok` is `true` and the op the return names is defective, the kernel's own OP-IDENTITY SENTENCE, which stands at `bindings/js/src/entry/kernel-foundations.mjs:1139`-`:1150` and which this clause NAMES AND NEVER QUOTES; where `ok` is `false` and the return's `message` is a non-empty string, THE CALLER'S OWN `message`, which is no kernel sentence at all, so a caller holding a `{ok: false, message}` refusal is holding THEIR OWN WORDS and not the copy below; and, on the remaining arm, the `produced no op` template at `bindings/js/src/entry/kernel-attempt.mjs:883`, COPIED ON 2026-11-01 FROM THAT ONE LINE, template literal and interpolations included, character for character:**
+
+```js
+`the repair ${pair.id} produced no op at ${addressSpelling(attempt.address)}`
+```
+
+**and the one thing a reader must not take from it is this: the address in that sentence is the ATTEMPT's, and it is no claim about where the repair wrote** — **the sentence's own text is unedited here, this clause mints no second address, and it claims no correction and no fix of it; and the scope holds at EVERY sentence this arm composes, the op-identity pair interpolating the same `addressSpelling(attempt.address)`, while the caller's own arm composes no sentence to conclude anything from.**
+**(3) WHAT THE LIST IS — THE CENSUS, THE ONE RULE ABOUT IT, AND THE POINTER TO `§8.0a`.** **THE CENSUS IS THIS CLAUSE'S: the `log` a `KC-4` refusal crosses with is the COMMIT's one list and not the attempt's** (`docs/guides/package-use.md:1337`-`:1345`), **and the reading rule about a count of entries and a count of verdicts is `§8.0a`'s alone — this clause SENDS YOU TO THAT SENTENCE, names its home and not its content, and prints no count, no member census and no kind** (`docs/guides/package-use.md:1389`-`:1392`). **THE ONE RULE THIS CLAUSE STATES, AND IT IS A RULE ABOUT THE LIST: THE VERDICT IS THE LAST ENTRY WHOSE `state` IS NOT `null`; the terminal act appends the deciding attempt's `outcome` entry ONCE and it carries the arm's one token (`bindings/js/src/entry/kernel-terminal.mjs:66`-`:72`); it stands last because that attempt appended it LAST, and NEVER because no other entry carries a `state`.** **A CROSSED LIST MAY LAWFULLY CARRY MORE THAN ONE SUCH ENTRY: a constraint body's refused write shows that refusal's own entries VERBATIM before the enclosing `outcome` entry, as `§8.0a`'s nested-write bullet says in its own words, and `tests/e2e/blind-defect-cases.test.mjs:633`-`:646` prints an inner refusal's own `outcome` entry in ONE list beside the enclosing attempt's entries — so AN INNER REFUSAL'S ENTRY IS NOT THE VERDICT, and the LAST such entry is.** **The member the verdict is found by is the one `bindings/js/index.d.ts:357`-`:358` prints, cited for that member alone and for NO per-attempt scope, that scope being this clause's own statement of what a list may hold.** **The instance is cited and not re-taken: `tests/e2e/downstream-claims.test.mjs:1498`-`:1501` prints a `passed` entry inside a refusal's own list.** **The seat that token rides is already printed in this guide, at `§7.8`'s step 3 (`docs/guides/package-use.md:1102`-`:1105`), and this clause cites it there instead of re-deriving it.**
+**(4) WHETHER YOUR REPAIR'S EDIT STANDS — THE ADDRESS GEOMETRY, BOTH CONJUNCTS OF THE SWEEP, AND THE PLAN'S ONE SKIP ARM THAT BEARS ON IT.** **THE TEST IS THE ADDRESS, and it is the credit rule's declared consequence: whether the address the repair wrote IS ONE THE ATTEMPT'S OWN OPS NAMED — AT IT OR UNDER IT — because the floor call's candidates are taken from `attempt.ops` ALONE (`bindings/js/src/entry/kernel-terminal.mjs:288`-`:343`), each call's own scope is the named op's ADDRESSED SUBTREE AT OR AFTER THAT OP'S `seq` (`bindings/js/src/entry/kernel-terminal.mjs:255`-`:256`), and the store's own filter is `is_prefix(address, entry.address) && entry.seq >= floor` (`src/store.rs:2628`), where `address` is the call's named op's own address (`src/store.rs:2617`) and `floor` is that op's own `seq` (`src/store.rs:2622`).** **CREDIT IS THE MECHANISM AND NEVER THE TEST: the refusal returns before the uncredited op ever joins `attempt.ops` (`bindings/js/src/entry/kernel-attempt.mjs:885`-`:892`), and the ground that refused it is the kernel's own credit check (`bindings/js/src/entry/kernel-foundations.mjs:1105`-`:1131`).** **THE SWEEP DECIDES AT BOTH HALVES OF ITS FILTER: an entry must stand AT OR UNDER the address the call named AND ITS ORDINAL AT OR ABOVE THAT CALL'S FLOOR — so a write whose ordinal stands below the call's floor is NOT swept by that call whatever its address, and the prefix half ALONE sweeps nothing.** **AND THE FLOOR CALL'S PLAN DECLARES TWO SKIP CASES AT ITS OWN RANGE AND NAMES THEM, `COVERED` and `UNREACHABLE`, and this clause states those two names and no third case (`bindings/js/src/entry/kernel-terminal.mjs:264`-`:274`): `COVERED`, where every entry was already swept; and `UNREACHABLE`, where an already-issued address is a prefix of the candidate's and that call's floor stands AFTER the candidate's own first owed op while that address still has an owed op at or after that floor — and `UNREACHABLE` is the one that bears on the consequence, because the OUTER CALL IS KEPT AND THE INNER ADDRESS'S EARLIER ENTRIES STAND, so a write at an address the attempt DID name can still stand and *"credited or not"* is no answer at that end either.**
+**(5) WHAT THAT MEANS FOR THE STORE — THE CONSEQUENCE IN THE GEOMETRY'S OWN TERMS, AND `§5.4` READ BY LINE AT BOTH OF ITS SENTENCES.** **The store's answer for the address the repair wrote: a write AT OR UNDER AN ADDRESS THE ATTEMPT'S OWN OPS NAMED IS SWEPT WITH THE ATTEMPT, and a write at an address NO attempt op named STANDS — and it stands too where that address's call is skipped on `UNREACHABLE`, the arm item (4) names at `bindings/js/src/entry/kernel-terminal.mjs:264`-`:274`.** **AND `§5.4` IS READ BY LINE, AT BOTH OF ITS SENTENCES: `docs/guides/package-use.md:469` declares that the floor call restores the address the attempt wrote and that an address a repair landed at BESIDE it is NOT restored — the arm where the address lies OUTSIDE the attempt's own addressed subtree, so it STANDS; `docs/guides/package-use.md:476`(2) declares that A REPAIR'S WRITE GOES WITH THE WRITE — the arm where the repair's write lies INSIDE the attempt's own commit, so it is UNDONE WITH THE WRITE — and that sentence is UNSCOPED BY CREDIT, so it is no statement about credited writes only.** **THE DISCRIMINATOR BETWEEN THE TWO IS THE ADDRESS AND NEVER THE CREDIT, which is what lets both stand at once: this clause sends you to both lines, adjudicates neither, and moves no byte of `§5.4`.**
+**CONSOLIDATED, 2026-11-02 — ONE CLAUSE OF FIVE ITEMS, ONE QUOTE AND THIS MARK.** **What stands above is the five items as ONE clause, consolidated on 2026-11-02 from a first draft whose superseded sentences moved out, and the move is declared at `docs/specs/storeroom-repair-failure-path/contract.md`, the unit's live corpus path.** **The first draft got six things wrong, and here is each in one sentence.** **It presented the copy as the arm's sentence, when the copy is the fall-through's, one of three.** **It put the reading rule at this clause as well as at `§8.0a`, when the rule is `§8.0a`'s alone and this clause keeps the census and the pointer.** **It made the verdict the one entry whose `state` is not `null`, when the verdict is the LAST such entry and a crossed list may lawfully carry more than one.** **It made credit the test, when the axis is the address's membership in the attempt's ops, read at both conjuncts of the filter and at the plan's `UNREACHABLE` arm.** **It named `§5.4` once only, when both of its lines are read here at `docs/guides/package-use.md:469` and `docs/guides/package-use.md:476`(2), with the address as the discriminator and never the credit.** **It stated the store-state consequence by credit, when the consequence is stated in the address geometry.**
+
+**★ AND THE CONSEQUENCE A READER GETS WRONG, IN `D-50`'S OWN WORDS: *"a constraint that reads inside its body is
+caller code entering the surface, so by `D-45` that read opens its own commit"* — **⟶ MEASURED 2026-10-28, AND THAT CLAUSE IS WRONG: A READ BRACKETS NO COMMIT AT ALL.** `read`, `readLiteral` and `constraints` are the surface's **NON-BRACKETING** calls — the count during a constraint body's read is the attempt's own and is left undisturbed, `attempt-opened` does not fire for it, and the same `attempt` is in force. **So the accurate consequence is the shorter one: a read inside a body runs INSIDE the attempt's window, opens nothing, and disturbs nothing.** (The `D-45` quote above is kept as the reading of its own date; this sentence governs.) — AND A READ RUNS NO CHECK, SO
+NOTHING IS JUDGED BY IT.** **No constraint is asked on the value it returns, no pass runs, and the value you
+read back is never a verdict.** **AND THE COUNT'S OWN RULE IS WHERE THE ACT'S SHAPE IS VISIBLE — MEASURED
+2026-10-28 AT THE `W8` CELL, ON BOTH SIDES OF THE READ: `read`, `readLiteral` and `constraints` are the surface's
+NON-BRACKETING calls — no commit is bracketed for them — so the count during your read is the attempt's own
+(`open` `1`, `live` `1`) and it is left undisturbed (`open` `1`, the same attempt).** **THE DECLARED SENTENCE IS
+THE AUTHORSHIP — the read is not the write's act — and the count shows what that authorship costs: nothing is
+opened and nothing is judged for it.** **So the load-bearing half for you is the authorship and the absence of a
+check: your read is your own act at the surface, it carries no judgement, and it neither re-asks a constraint nor
+re-runs the pass. A read is data, never a verdict — if you want a state judged, read it and judge it in your
+body.**
+
+**⟶ AND THE PASS ASKS EXACTLY THE PAIRS STANDING AT THE ADDRESS IT WRITES, 2026-10-28 — `D-50`'S CONSEQUENCE, WHICH NO CLAUSE ABOVE SPELLS OUT.** `RCA-8(g)` ANNOTATE-BESIDE: **every clause of §7.6 above stands BYTE-FOR-BYTE and is read THROUGH this one; this clause adds one declaration and moves nothing it prints.** **THE RULE: A WRITE'S CONSTRAINT PASS JUDGES THE PAIRS STANDING AT THE ADDRESS IT WRITES — the kernel's own `pairsAtAddress` reads the pair record at that one address — SO A PAIR AT A DIFFERENT ADDRESS IS NOT ASKED.** **If a constraint cares about another location it READS it** (`D-50`, the architect, verbatim: *"If a constraint needs to look for the data at a given location, it can read()"*). **MEASURED 2026-10-28, on this checkout, through the published entry, in a two-address drive:** a pair `b1` registered at `['b']`; **a write at `['a']` asked `b1` `0` times**; **the same write at `['b']` asked it once**, and the value the body was handed was the one that write returned. **So an action one address away is INVISIBLE to your pair** — it was never asked at the address the action moved — **and the body's own `store.read` is the only thing that makes it visible.** **That is the whole reason this section tells you to read what you care about: the pass will not ask a pair that does not stand where you wrote.** (`held-listener/contract.md §2.8` item `1`, `HL-8`: *"the pass selects the rows whose address IS the triggering address"*, preserving the EXACT-ADDRESS rule rather than widening it; `D-50`; §7.1–§7.5's declarations; the pass's own scan at `bindings/js/src/entry/kernel-foundations.mjs:782`.)
+
+**⟶ AND THE PASS'S SET IS NOW A PREFIX SET, 2026-10-29 — `D-56`, WHICH SUPERSEDES THE CLAUSE ABOVE.** `RCA-8(g)` ANNOTATE-BESIDE: **the paragraph above stands BYTE-FOR-BYTE as the rule of the build that printed it, and it is READ THROUGH this one.** **THE ARCHITECT, VERBATIM** (`strata/decisions.md` · `D-56`): *"A listener/constraint should fire when the descendants of its targeted address node change, because the descendants become part of the object that is read from that address"*. **SO A PAIR AT `['tabs']` IS ASKED FOR A DELETE AT `['tabs','landingPage']`** — the value read at `['tabs']` CONTAINS the subtree the delete moved, so your pair judges an object that moved — **and a pair at `['tabs','landingPage']` is still asked for that same delete.** **WHAT IS STILL NOT ASKED IS THE OTHER DIRECTION**, which the ruling does not cover: a delete at `['tabs']` does not ask the pair at `['tabs','landingPage']`, and the object that pair judges then reads as ABSENT. **THE MEMBERSHIP RULE, STATED ONCE: your pair is asked when THE ACT'S ADDRESS IS AT OR BELOW YOUR PAIR'S ADDRESS.** **AND WHAT YOUR PAIR IS HANDED DID NOT MOVE**: the context carries THE ACT'S `address`, `tier` and `value` — so a pair standing at an ancestor is handed the value that landed AT THE ACT'S ADDRESS (absence, for a delete), **not** the object at its own. **A PAIR THAT JUDGES ITS OWN ADDRESS READS IT** (`§7.6`'s `read()` rule, which `D-56` leaves standing — it is no longer NECESSARY for an ancestor's interest in a descendant, and it is still correct for the pair's own object). **MEASURED 2026-10-29, on this checkout, through the published entry** (`tests/e2e/discard-witness.mjs`'s `DW-10.13`/`DW-10.15`/`DW-10.16`): a pair at `['window','tabs']` and a delete at `['window','tabs','landingPage']` — **the pair IS asked (2 asks: its registration's and the pass's), its refusal crosses, and the delete rolls back** (`window.tabs` reads `{"landingPage":{"active":true},"settings":{"active":false}}` again); a pair AT the act's own address is asked once by the pass, unchanged; a pair at the act's DESCENDANT is asked `0` times and its address reads ABSENT afterwards.
+
+**⟶ AND THE DESCENDANT DIRECTION IS RULED TOO, 2026-10-29 — `D-66`, AND THE TWO CLAUSES ABOVE STAND BYTE-FOR-BYTE AND ARE READ THROUGH THIS ONE.** `RCA-8(g)` ANNOTATE-BESIDE: **this clause completes the membership rule; it moves no clause above it and no figure of this section.** **THE ARCHITECT, VERBATIM** (`strata/decisions.md` · `D-66`): *"A pair at a descendant should only be asked if the change also affects that descendant, ex. write(['a', 'b'], {'c': "foo", 'd': "bar"} should trigger at ['a'], ['a', 'b'], ['a', 'b', 'c'], and ['a', 'b', 'd'], but not ['a', 'b', 'e']"*. **SO THE MEMBERSHIP RULE IS NOW: your pair is asked when THE ACT CHANGES THE VALUE AT YOUR PAIR'S ADDRESS — which means the act's address is at or below yours (`D-56`, unmoved), OR your pair's address is one the act TOUCHED.** **WHAT "TOUCHED" MEANS, IN THE TWO VERBS YOU DRIVE:** **a `write` touches exactly the paths its value contains** — write `{c:'foo', d:'bar'}` at `['a','b']` and the pairs at `['a','b','c']` and `['a','b','d']` ARE asked, while the pair at `['a','b','e']` is NOT, **because the write did not touch `e`** (it stands neither before nor after the act) — and a value with a nested object touches its own sub-paths by the same rule one level down, an array its own indices, a scalar nothing below itself; **a `delete` touches the WHOLE SUBTREE at its address**, because a descendant of a deleted node is ABSENT after the act and was not before, **which is a change to what a read there returns** — so a delete at `['window','tabs']` DOES ask a pair standing at `['window','tabs','settings']`. **AND WHAT YOUR PAIR IS STILL NOT ASKED FOR IS A DESCENDANT THE ACT DID NOT TOUCH**, which is the whole of the distinction: it is not "descendant", it is "touched". **ONE THING YOUR PAIR IS HANDED, ON EVERY ARM**: the context carries THE ACT'S `address`, `tier` and `value` — so a pair standing at a touched descendant is handed the value the act landed AT THE ACT'S ADDRESS (absence, for a delete), **not** the object at its own; **a pair that judges its own address READS it** (`§7.6`'s own rule, which stands). **MEASURED 2026-10-29, on this checkout, through the published entry** (`tests/e2e/discard-witness.mjs`'s `DW-13.1`/`DW-13.2`/`DW-13.3` and `DW-10.16`): the ruling's own drive asks `['a']`, `['a','b']`, `['a','b','c']` and `['a','b','d']` and NOT `['a','b','e']`; a nested value asks its own sub-paths and not a sibling it did not write; a delete at `['window','tabs']` asks the pair at `['window','tabs','settings']`; **and the pass's set is still ONE snapshot, FIXED WHEN THE PASS BEGINS and in ONE registration order across the ancestors, the act's own address and the touched descendants** (a pair registered during a pass enters the next one and no earlier one).
+
+**⟶ AND A WRITE'S TOUCHED SET IS NOW BOTH VALUES', 2026-10-29 — `D-66` READ SYMMETRICALLY, AND THE CLAUSE ABOVE STANDS BYTE-FOR-BYTE AND IS READ THROUGH THIS ONE.** `RCA-8(g)` ANNOTATE-BESIDE: **the one sentence this clause supersedes is that clause's bullet *"a `write` touches exactly the paths its value contains"*, named here rather than overwritten; the `delete` bullet and every other figure of this section are unmoved.** **THE GAP, MEASURED BEFORE IT WAS CLOSED: A WRITE THAT REPLACES A NODE DROPS THE SUB-PATHS THE OLD VALUE CARRIED.** Write `{c: 1}` over `{c:{x:1}}` and the path `['a','b','c','x']` stands PRESENT before the act and ABSENT after it — **a change to what a read there returns** — **and `x` is in neither the written value's path set nor the word "descendant", so the pair standing there went unasked.** **THE CRITERION THAT CLAUSE ALREADY NAMES DECIDES IT WITHOUT A NEW RULE** — *"your pair is asked when the act changes the value at your pair's address"* — **and a path that DISAPPEARS changed as surely as a path that APPEARS.** **SO THE WRITE ARM IS SYMMETRIC: your pair is asked when the act touched the value it WROTE *or* the value it REPLACED** (`op.before.value`, the state the store's own journal carries), **and the touched set is the union of the two path sets** — a path in both being yours once, not twice. **THE `delete` ARM DOES NOT MOVE**: the whole subtree it removed, exactly as the clause above states it. **AND A FIRST WRITE AT AN ADDRESS HAS NO BEFORE VALUE AND NEEDS NONE**: `op.before` is present on every op and answers `present: false` where nothing stood, so that write's union is the written value's path set exactly and nothing throws. **`['a','b','e']` IS STILL NOT ASKED**, for the reason the clause above gives: `e` stands in neither value, so neither half of the union touches it. **MEASURED 2026-10-29, ON THIS CHECKOUT, THROUGH THE PUBLISHED ENTRY** (`tests/e2e/discard-witness.mjs`'s `DW-13.5` and `DW-13.6`, with `DW-13.1`–`DW-13.4` still green): a write of `{c:1}` over `{c:{x:1}}` at `['a','b']` now ASKS the pair at `['a','b','c','x']` and does NOT ask `['a','b','c','z']` or `['a','b','y']`, which stand in neither value; the first write at an empty `['f']` asks `['f','g']` and `['f','g','q']` and not `['f','h']`; **and the pass's set is still ONE snapshot, FIXED WHEN THE PASS BEGINS, in ONE registration order.** (`D-66`; `D-56`; §7.6's touched-set clause of the same date; `bindings/js/src/entry/kernel-foundations.mjs`'s `touchedAddresses`.)
+
+**⟶ AND THE CREDIT IS THE FAILING PAIR'S MARK, NOT THE OP YOUR REPAIR RETURNS, 2026-11-01 — `D-105`, AND EVERY CLAUSE OF THIS SECTION ABOVE STANDS BYTE-FOR-BYTE AND IS READ THROUGH THIS ONE.** `RCA-8(g)` ANNOTATE-BESIDE: **what this clause supersedes is NAMED rather than overwritten — `:1071`'s *"`{ ok: true, op }` is the repairable arm: `op` is REQUIRED"* and its *"At the write's own evaluation a return carrying any other identity fails `KC-4`"*; `:1117`'s *"a repair that returned an op it did not land fails `KC-4` instead"*, WITHDRAWN BY NAME; and `:1122`'s THREE sources of a `KC-4` refusal's message, which are TWO on the write path from this date** — **those three sentences stand as the reading of their own date and are read through this clause; not one byte of them moves.** **THE ARCHITECT, VERBATIM** (`strata/decisions.md` · `D-105`, 2026-11-01): ***"You don't need the ops, the rollback point is determined independently. Track the failing constraints for the duplicate repairs. The only supported route for repairs is with the commit id so that its triggers can be joined to the commit and the constraint battery run again."*** **SO A REPAIR THAT DOES ITS WRITE AND RETURNS `undefined` — the natural shape of `repair: () => { … }` — IS CREDITED.** **Its credit is the FAILING PAIR'S MARK (`attempt.appliedRepairs`, keyed by the pair), THE VALUE IT RETURNED IS READ BY NOTHING, and the same one arm takes `{ ok: true }`, `{ ok: true, op }` — the store's own journal record, INFORMATIONAL — and every value outside the declared arms at all (`true`, `false`, `7`, `'done'`, `{ ok: 'yes' }`, `{ ok: false }` with no `message`).** **WHY THE RETURN IS READ BY NOTHING IS THE SAME FACT AS WHY THE CREDIT MOVED: what this attempt knows about your repair's landing is your repair's own WRITE'S LEG (the clause below) and never your return** — so a returned `op` cannot set a pin, cannot join `attempt.ops`, cannot become the re-run's landing, cannot move the checkpoint and is named by no sentence (`bindings/js/src/entry/kernel-attempt.mjs:1003`, `:1048`-`:1052`). **AND THE ONE RETURN THAT STILL FAILS IS THE DECLARED FAILED ARM: `{ ok: false, message }` with a non-empty `message` fails the attempt `KC-4` CARRYING THE CALLER'S OWN WORDS, verbatim, and nothing is pinned, credited or merged** (`bindings/js/src/entry/kernel-attempt.mjs:1017`-`:1019`; `D-105` item `4`: *"The failed arm still fails (`{ok: false, message}` — the caller's words)"*). **THE RESIDUAL `KC-4` KEEPS THE `produced no op` TEMPLATE BYTE-FOR-BYTE, AND IT ANSWERS ONE OF THE TWO ARMS THAT REMAIN.** **The template is the sentence this section already prints, unedited — template literal and interpolations included — and it stands at `bindings/js/src/entry/kernel-attempt.mjs:1040`:** **the two arms are `(d1)` THE DECLARED FAILED ARM, which composes the CALLER'S sentence and no kernel sentence at all, and `(d2)` THE INVOCATION LANDED NOTHING, which is the template's own arm and its whole population.** **`(d2)`'s FIVE ABSENT ARMS, EACH READ AT ITS OWN GUARD, ARE THESE AND NO OTHERS** (`bindings/js/src/entry/kernel-attempt.mjs:189`-`:196`): **no invocation bracket** (the channel is read away, so a bare read would answer a PREVIOUS invocation's legs) · **a nested attempt opened across the invocation** · **a store carrying no `REPAIR_LEG` channel** · **a channel that THREW** · and **a bracketed invocation whose answer is not a non-empty array of elements carrying an `op`.** **NO STATUS IS MINTED: `KC-4` is the one token that answers both arms, and the closed status set is unmoved.** **AND `D-88` (2)'s *"recorded, not repaired"* DISPOSITION IS READ THROUGH THIS CLAUSE — HALVED, AND NOT CLOSED.** **THE OP-DENIAL HALF DISSOLVES BY CARRIER:** the arm that denied an op the kernel was HANDED is gone, because a repair whose edit lands on the supported route is CREDITED and never reaches the arm. **THE ADDRESS HALF SURVIVES, ON `(d2)`'S NESTED-ATTEMPT ARM**, where the repair's edit DID land — in its own commit, at an address the sentence does not name — **so the row stays OPEN with its population NARROWED in its own record and no successor unit queued, and the address that sentence names is the ATTEMPT's and remains no claim about where your repair wrote** (`:1128`'s sentence, unmoved). **AND WHAT THIS CLAUSE IS NOT: a decision on any of the six questions the declaration sends up.** **They are OPEN, printed as open, and answered by no sentence of this guide** (`docs/L1/op-free-repair-credit.md` §8.3): **`Q-1`** the registration instant is a second credit site and keeps its own rule · **`Q-2`** the unnamed route's regression (the third clause below) · **`Q-3`** whether a refused repair's landed edit should be undone too · **`Q-4`** the sentence's own text · **`Q-5`** two bookkeeping items owed to the battery · **`Q-6`** `delete`'s missing commit position (the third clause below).
+
+**⟶ AND THE LEG IS YOUR REPAIR'S OWN WRITE — THE PINS FOLLOW THE LEG AND NEVER YOUR RETURN, 2026-11-01.** `RCA-8(g)` ANNOTATE-BESIDE: **no clause above moves; this one declares what the attempt takes, and `:1052`-`:1054`'s sentence is now TRUE OF THE LEG rather than of the return.** **THE REPAIR'S WRITE IS THE COMMIT'S LEG.** **Every `write` your repair makes through the commit it names mints ONE LEG — `{op, triggered}`, that write's own journal `op` and the elements it returned — at `appendRepairLeg`** (`bindings/js/src/entry/state.mjs:421`, the element mint at `:437`, the leg mint at `:469`), **and the kernel reads the legs of THAT INVOCATION once, synchronously after your body returns** (`bindings/js/src/entry/kernel-attempt.mjs:189`-`:196`, `:1023`). **THE PINS, ONE BY ONE, SO YOU CAN CHECK THE RECORD YOU HOLD AGAINST THEM:** **`entry.opId` IS THE LAST LEG'S `opId`** — the `repair-run` entry names the LANDING and not the invocation; **`attempt.ops` IS THE COMMIT'S OWN LANDING PLUS EVERY LEG'S OP, IN LEG ORDER** — `attempt.ops = [written.op]` at a write's mint and `[removal.op]` at a delete's (`bindings/js/src/entry/kernel-commit.mjs:178`, `:368`), then one append per leg, de-duplicated by `opId` (`bindings/js/src/entry/kernel-attempt.mjs:1059`-`:1066`); **and `attempt.checkpoint` is the PASS's and not the credit's** — a passing sweep bumps it, a failing one leaves it. **SO THE RE-RUN'S VALUE IS THE LEG'S LANDED VALUE: `attempt.ops`' TAIL IS THE LEG'S OP, and the context your body is handed is built from it — `op` is that op, `tier` is its tier, and `value` is its `op.after.value`** (`bindings/js/src/entry/kernel-attempt.mjs:567`-`:568`). **A REPAIR THAT WRITES TWICE APPENDS TWO OPS AND THE LAST IS THE LANDING** — the first landing is not the state the repair left — **so a record's `ops` grows by the repair's WRITE COUNT and not by its repair count, and a cell asserting `1 + repairs` is green only on fixtures whose repairs write once.** **AND WHAT THE RETURN NO LONGER DOES, AS THE LIST IT IS: it cannot be the credit (the pair's mark is), cannot set any pin above, cannot be the rollback's instrument** — the rollback point is `D-63`'s restore mark and the floor call's candidates are taken from `attempt.ops` alone, which is the commit's own record, not your return — **and cannot be the sentence your caller reads.** (`D-105` items `1`-`2`; `docs/L1/op-free-repair-credit.md` §2, §4.)
+
+**⟶ AND YOUR REPAIR'S EDIT'S TRIGGERED PAIRS ARE ASKED BY THE COMMIT'S NEXT BATTERY — ONCE, AT THE RE-RUN, AGAINST THE OP AND THE VALUE YOUR REPAIR LANDED, 2026-11-01.** `RCA-8(g)` ANNOTATE-BESIDE: **every clause above stands BYTE-FOR-BYTE and is read through this one; the membership rule, the snapshot rule and the read rule do not move, and this clause adds one subject to the battery rather than a second battery.** **THE PAIRS YOUR REPAIR'S WRITE FIRED JOIN THE COMMIT.** **At the merge seat — after the credit, before the re-run — the legs are split by ONE membership test: a LISTENER's handle is DELIVERED, a CARRIED PAIR's `id` joins `attempt.repairPaired`** (`bindings/js/src/entry/kernel-commit.mjs:110`, `:334`; `bindings/js/src/entry/kernel-attempt.mjs:1103`, the split at `:1096`, the member's own de-duplication at `:1281`-`:1282`) **— and the next battery's snapshot is the SAME selection function with ONE more argument, `pairsTriggered(kernel, stored, attempt.repairPaired)`** (`bindings/js/src/entry/kernel-attempt.mjs:648`; `bindings/js/src/entry/kernel-foundations.mjs:1264`). **SO THE REGISTRY STILL SUPPLIES THE ORDER, the commit's own triggered set plus the joined list supply the MEMBERSHIP, and the set is materialised ONCE PER RUN AT THE SAME INSTANT** — a pair joined by one repair enters the snapshot of the run that follows it and of no other. **WHAT THAT MEANS TO YOUR BODY, IN THE ONE FORM THAT MATTERS: a pair standing where your repair wrote IS ASKED — exactly ONCE, at the RE-RUN, against the repair's `op` and the value it landed — even though the commit's own write never touched it.** **A pair already in the commit's triggered set is asked ONCE and not twice; a handle the store returned TWICE inside one leg's list stands ONCE in the member; and a pair an earlier run already checked off IS re-asked** — the loop guard is the applied-repair marker and the restart budget, and neither moves (`D-42`). **AND THE LISTENERS your repair's edit fires are NOT a second rule here: they ride the COMMIT's ONE delivery, after the pass, once per distinct handle — the clause of 2026-11-01 at `:1088`-`:1091` owns that, and this clause POINTS AT IT and respells none of it.** **TWO CONSEQUENCES MARKED AND NOT ABSORBED, EACH A QUESTION THIS GUIDE DOES NOT ANSWER:** **(a) THE UNNAMED ROUTE'S REPAIR NOW FAILS ITS ENCLOSING WRITE.** A repair that omits the commit (`:1073`'s last sentence, read through `:1075`-`:1077`) lands in its OWN commit, and the enclosing attempt cannot track an op landed in ANOTHER commit (`D-46`) — **so its caller's own write now meets `ConstraintPassRefused` where it met a receipt: `D-103`'s *unsupported* arriving as a refusal IN FACT and not by decree, while `D-103` item `3` is unmoved — the position, the type and the code's fallback take no byte.** **That is the declaration's `Q-2`, and it is the architect's to confirm or refuse; it is printed here and not decided, with the alternative routes priced at `docs/L1/op-free-repair-credit.md` §8.3.** **(b) A `delete` HAS NO COMMIT POSITION, SO A DELETION-REPAIR CANNOT BE ON THE SUPPORTED ROUTE.** `delete`'s declared arity is `delete(address, tier?)` (`bindings/js/index.d.ts:936`; `bindings/js/index.mjs:564`) — **there is no fourth position for it to name a commit at** — **so a repair whose only edit is a deletion opens its own commit by construction and is refused `KC-4` on `(d2)` from this date.** **Giving `delete` a fourth position is a member-and-arity move and a MINOR of its own, and that is the architect's** — the declaration's `Q-6`, open. (`D-105` item `3`; `D-69`; `docs/L1/op-free-repair-credit.md` §3, §8.3.)
+
+**AND ONE THING THIS ACT MOVES THAT IS NOT A CLAIM — A LINE NUMBER, DECLARED RATHER THAN LEFT TO BE FOUND, ON THE TERMS THE 2026-11-01 ACT ABOVE ALREADY SET.** **This act adds `8` lines inside `§7.6` — the three clauses and this movement clause, with their separating blank lines — so a line number this guide prints that names a line at or after `§7.7`'s heading (`:1155` as this act found it) reads `+8` from this date, and every line number this guide prints INSIDE `§7.6` above these clauses is unmoved.** **A printed number is read through that table until a re-anchoring pass re-derives it at its own site; the words, and the claim each number carries, are unmoved by this act** (`RCA-8(g)`).
+
+### §7.7 ★ The check is BOUNDED — THREE restarts per terminal act, and past the budget it fails closed
+
+**★ THE LIMIT, DECLARED HERE BECAUSE NO CLAUSE OF THIS GUIDE SAID IT: A CONSTRAINT CHECK RESTARTS AT MOST THREE TIMES PER TERMINAL ACT.** The bound is **`RESTART_LIMIT` = `3`**, one exported constant at **`bindings/js/src/entry/constraints.mjs:1366`**. **THE BUDGET IS SPENT AND NOT RESET by an action raised inside a restart** — a body that reverses again inside a restart's own ask spends the SAME budget and not a fresh one — **AND PAST IT THE CHECK FAILS CLOSED IN THE ONE FORM:** the write throws the same plain `{status, message, log, address}` it throws for a refused pass (§8), with `status` **`'ConstraintPassRefused'`** and **ONE log entry** whose message says the budget was spent rather than that a pair refused a state it never judged. **The store is restored** — the request's own watch records what is owed — so the terminal act leaves no unjudged effect standing (`D-42` item `3`; `D-41` item `4`).
+
+**⟶ AND THE CROSSED FORM IS FOUR MEMBERS FROM 2026-10-29 — `D-77`, THE ARCHITECT'S RULING, ONE WORD: *"New member"*.** Every figure above and below that prints that form as THREE is read THROUGH this clause and stands as the reading of its own date. **THE FOURTH MEMBER IS *WHICH ACT WAS REFUSED* — `address`, the ADDRESS the refusal is about**: a segment array in the caller's own domain, or the declared `null` where there is nothing to name. The measurement it answers: **a caller's OWN act refused and a caller's act that PASSED while a LISTENER's was refused cross with the same `status`, the same `message`, the same keys and the same two log entries** — only the `opId` differs, and a refused act answers no `op` to key against — so the caller read `ConstraintPassRefused` and concluded its own write did not happen while the store says it did. **Compare the member with the address you wrote: `equal` means your own act, `different` means a listener's, and a retry is then a decision rather than a guess.** **IT IS PRESENT ON EVERY REFUSAL, `null` WHERE NOTHING IS NAMEABLE** (*"a member absent on some arm is the `DEF-AH` defect wearing a new name"*), so `Object.keys(caught)` reads exactly `["status","message","log","address"]`, length `4`, on EVERY arm. **THE CLOSED STATUS SET IS NOT REACHED — twenty stays twenty — and the member is no heuristic a consumer has to reproduce.** The form's one home is `docs/specs/storeroom-js/surface.md §2.5` item `4-ter`.
+
+**⟶ AND THE ARM PAST THE BUDGET NAMES THE PAIR THAT WAS BEING ASKED, AND SAYS WHAT IT IS, 2026-10-28 — `DEF-AL`, MEASURED AND CLOSED HERE.** `RCA-8(g)` ANNOTATE-BESIDE: **the two clauses above stand BYTE-FOR-BYTE and are read THROUGH this one; this clause re-reads what the refusal NAMES and what its `message` SAYS, and moves no status, no form and no bound.** **WHAT WAS MEASURED:** the arm named the FIRST WATCHED ADDRESS rather than the one the budget was spent at, **so registration order decided the accusation — the pair it named had answered `true` on every ask it received**, and the crossed `message` was **byte-identical to a genuine refusal's**, so a consumer reading only the message could not tell a pair refusing from a budget running out. **WHAT IT DOES NOW:**
+- **the one `log` entry names the pair that was BEING ASKED when the budget ran out, and the address it was being asked at** — not the first watched address — **and its sentence says that pair refused nothing and that the check could not settle**;
+- **the crossed `message` keeps the store's generated sentence for `ConstraintPassRefused` and then says, in its own words, that this is a RESTART BUDGET EXHAUSTION and NOT a constraint pair refusing a state** — no pair refused the state the check was asking it for, a pair body acted inside the check at every restart, and the budget is spent. **A GENUINE refusal never carries that clause**, so the two are distinguishable by the message alone.
+**`status` stays `ConstraintPassRefused`, the form stays `{status, message, log, address}`, ONE log entry stands, and the store is still restored by the refusal's own compensating act.** (`D-42`; `D-41` item `4`; §7.7's bound above.) **MEASURED 2026-10-28, on this checkout, with a passing pair registered FIRST: the entry named the passing pair and the passing pair's address before this clause, and names the pair the check was asking and its own address after it; the crossed message said `'t5' was refused by a constraint pass, the state this act would leave is not one the registered constraints admit` before and carries the budget's own clause after — beside a control in which a genuine refusal still reads as its refusing pair's own sentence.**
+
+**MEASURED 2026-10-28, ON THIS CHECKOUT, THROUGH THE PUBLISHED ENTRY — AND THE MEASUREMENT IS THE POINT: THE RESIDUAL IS THE BUDGET, NOT THE STATE AND NOT THE JOURNAL.** A pair whose body raises ONE FRESH REVERSAL on every ask the restart makes, **with every ask passing**, was driven twice: **with `60` fresh reversals available it rests at exactly `3` restart asks** (the listener's own action plus one per ask — `4` actions in all), **and with `40` available it answers identically, `3`.** **The body had `57` and `37` reversals it never got to spend, and nothing structural stopped it: every ask it made passed.** The terminal write then refused `ConstraintPassRefused` with its log entry saying the budget was spent.
+
+**AND WHY THE BOUND EXISTS, SAID PLAINLY: NO STRUCTURAL STATE DISTINGUISHES A BODY THAT KEEPS REVERSING FROM ONE THAT MEANS TO.** The machinery cannot tell a loop from a caller with more work to do, so the restarts are COUNTED and the check fails closed instead of spinning.
+
+**WHAT DOES NOT SPEND THE BUDGET**, so a lawful in-commit action costs at most one round and no more: **a request whose watch shows no moved address is consumed and asks nothing** — it can neither loop nor exhaust the budget — and **the count belongs to the PASS's own scope**, so a nested pass (a listener body's own write) has a scope and a budget of its own, exactly as it has its own commit (`js/contract.md §2.6`'s clause of 2026-10-27, item `4`).
+
+**⟶ AND WHEN TWO OF YOUR LISTENERS EACH REVERSE IN ONE COMMIT, THE CHECK JUDGES THE STATE THE COMMIT STANDS AT — BOTH RAISES, NOT THE LAST ONE, 2026-10-28 — `D-55` ITEM 6 · `DEF-AP`, MEASURED.** `RCA-8(g)` ANNOTATE-BESIDE: **every clause of §7.7 above stands BYTE-FOR-BYTE and is read THROUGH this one; the bound, the budget's own arm and `D-42`'s window rule do not move.** **WHAT WAS MEASURED ON `1.3.0`:** two listeners each reversing inside ONE commit left **only the LAST raise judged** — the earlier listener's violation was asked **zero** times, **registration order decided which raise was lost**, and when the survivor's judgement passed **the write returned normally with the violation standing**. **THE ROW'S OWN ESCAPE — declare that an overwritten raise may leave a violation unjudged — IS UNAVAILABLE**, because §5.4's safe-state rule is the promise. **WHAT THE PACKAGE DOES: the request's watch is MERGED to the EARLIEST reading of each address** — the state the commit opened at — **so the restarted check sees every address the WHOLE commit moved, whichever raise named it, and asks the pairs at the state the commit STANDS at.** **A raise is therefore never lost to a later one in the same commit**, and the write that used to answer normally now refuses. (`tests/e2e/discard-witness.mjs`'s `DW-10.7`: both pairs are asked at the drain, the write refuses `ConstraintPassRefused`, the whole commit is undone; under a revert of the merge the earlier pair is asked ZERO times and the write ANSWERS.)
+
+### §7.8 ★ A `delete` IS AN EDITING VERB — it passes constraints, and its listeners run AFTER them
+
+**★ FROM 2026-10-29 A `delete` RUNS A CONSTRAINT PASS OF ITS OWN** (`D-55` item `3`, verbatim: *"A delete is an
+editing verb and must pass constraints. This includes all of the relevant commit and message logic."*). **`D-38`
+said the same for `rollback`** (item `4`: *"A reverse is an editing verb and must be treated as above"*). **So the
+three editing verbs — `write`, `delete`, `rollback` — all ask the pairs, and only a `read` does not (§7.5).**
+
+**What you see, in order, when you call `store.delete(addr, tier?)`:**
+
+1. **the delete lands** — the versions are removed exactly as they always were (`§5.3`);
+2. **the pairs standing AT THE DELETED ADDRESS are asked against THE STATE THE DELETE LEFT** — the address's
+   absence, with the delete's own journal op handed to the pair as `context.op`, so a constraint can tell a
+   delete from a write and refuse one;
+3. **every one of them passes ⇒ you get the record** — `{ address, tiers, triggered, op }` (`§3.3`), unchanged;
+   **one refuses ⇒ you get the ordinary refusal**: the same `{status, message, log, address}` every constraint refusal
+   throws (§8), `status: 'ConstraintPassRefused'`, its `log` naming the pair and carrying the kernel's token in
+   the terminal entry's `state`, **and the delete is UNDONE together with every edit the delete's own attempt made** (a repair's write included)
+   — the store stands at the state the commit opened at;
+4. **and the listeners fire AFTER step 2** — so a listener fired by a delete observes a JUDGED state, never one a
+   constraint is about to refuse. **A refused delete fires no listener at all.**
+
+```js
+store.write(['window','tabs'], 'mem', { landingPage: { active: true } });
+store.addConstraint({ address: ['window','tabs','landingPage'], id: 'landing-page-must-stand' },
+  (ctx) => (ctx.op !== null && ctx.op.kind === 'delete'
+    ? { message: 'the landing page is not removable' }
+    : true));
+
+store.delete(['window','tabs','landingPage']);
+// throws { status: 'ConstraintPassRefused', message: 'the landing page is not removable', log: [ … ] }
+// log[0] = { kind: 'constraint-check', id: 'landing-page-must-stand', opId: 'op-3', state: null, … }
+// log[1] = { kind: 'outcome',         id: null,                 opId: 'op-3', state: 'KC-3', … }
+store.read(['window','tabs','landingPage']);   // { active: true } — the delete was undone
+```
+
+**The pair is asked with `context.value` = the AFTER-state (absence), `context.tier` = the delete's tier or `null`,
+and `context.attempt` = the attempt's own identity.** **⟶ `RCA-8(g)` MOVE-OUT, AUTHORED 2026-10-29 BY `D-76` ITEM 3 (`DEF-AT`): THE SENTENCE THAT STOOD HERE — *"A pair at an ANCESTOR address is not asked by the delete's pass — the pass keeps the write's exact-address rule and not the trigger set's prefix widening — even though such a listener DOES fire for the delete"* — IS NO LONGER AT THIS LINE.** **It is contradicted by the clause two paragraphs below in this same section, by `D-56` and by measurement, and its byte-exact text stands at `docs/guides/backup/D76-2026-10-29-guide-move-out.md §1`, whose head names this source path and its pre-move line range; NO BYTE OF IT IS RE-EMITTED HERE, and the operative rule is `D-56`'s, printed below.** **And a delete that removes nothing is not an edit**: `tiers: []`,
+no pass, no refusal, no delivery (`§5.3`).
+
+**⟶ AND THE SECOND OF THOSE THREE SENTENCES IS CORRECTED, 2026-10-29 — `D-56`: THE PAIR AT AN ANCESTOR IS ASKED, AND
+THE DELETE AT `['window','tabs','landingPage']` IS ASKED OF THE PAIR AT `['window','tabs']`.** `RCA-8(g)`
+ANNOTATE-BESIDE: **the paragraph above stands BYTE-FOR-BYTE as the rule of the build that printed it and is read
+THROUGH this clause; the AFTER-state, the `tier`, the attempt identity, the `discarded` witness, the "removes nothing
+mints nothing" rule and the four steps above are all unmoved.** **THE ARCHITECT, VERBATIM: *"A listener/constraint
+should fire when the descendants of their targeted address node change, because the descendants become part of the
+object that is read from that address"*** (`D-56`) — **so the delete's pass asks the pairs standing at the deleted
+address AND the pairs standing at every ANCESTOR of it, because the value read at an ancestor CONTAINS the subtree the
+delete moved.** **WHAT YOU SEE, ON THE EXACT TREE `§6.4` USES:** with a pair registered at `['window','tabs']` and a
+**`delete(['window','tabs','landingPage'])`**, **the pair IS asked** — and **its refusal CROSSES and the delete ROLLS
+BACK**, so `window.tabs` reads `{"landingPage":{"active":true},"settings":{"active":false}}` again. **MEASURED
+2026-10-29 on this checkout through the published entry** (`tests/e2e/discard-witness.mjs`'s
+`DW-10.13`/`DW-10.15`/`DW-10.16`): the ancestor pair is asked **2** times (its registration's evaluation and the
+pass's), a pair AT the deleted address is asked **once** by the pass and unchanged, **and a pair at a DESCENDANT of
+the deleted address is asked `0` times and its address reads ABSENT afterwards** — that last direction is the one
+`D-56` does not cover and this guide does not claim. **THE MEMBERSHIP RULE, ONCE: your pair is asked when THE ACT'S
+ADDRESS IS AT OR BELOW YOUR PAIR'S ADDRESS.** **AND WHAT YOUR PAIR IS HANDED DID NOT MOVE**: the ACT's `address`, the
+ACT's `tier` and the value that landed at the ACT's address (absence, for a delete) — **not** the object standing at
+its own address — so **a pair that wants its OWN object reads it** (`§7.6`'s `read()` rule, which `D-56` leaves
+standing and which is no longer NECESSARY for an ancestor's interest in a descendant). **So the "exactly one tab is
+active" constraint `§6.4` writes now judges the delete as well as the write — and a delete that would leave a state
+your pair refuses is refused at the delete.** (`D-56`; §7.6's prefix-set clause of the same date; `HL-8` item 1 and
+attempt-lifecycle `§2.4` item 5 (iv), annotated at their own homes and not rewritten.)
+
+**Why you care: a delete cannot be used to slip a state past a constraint you registered, and a listener you write
+for the use case in `§6.4` — "exactly one tab is active" — now runs on a state the pass has already approved.**
+**WHAT THE WITNESS STILL SPEAKS FOR** (§8's `record.discarded`): a `rollback` your listener raises inside the
+DELIVERY is still after every check, so it is reported and its effect stands — but a `rollback` a PAIR BODY raises
+inside the delete's own pass is now drained and judged at the state the delete left (`§7.7`).
+
+**MEASURED, ON THIS CHECKOUT, THROUGH THE PUBLISHED ENTRY:** a pair at the deleted address is asked **twice** —
+its registration and the delete's pass — where before this clause it was asked **once**; a listener fired by a
+delete reads the pass's ask already taken (`1`, where it read `0`) and the after-state the pass approved; a
+refused delete leaves the store at the state it opened at; and the delete's log is the commit's ONE list with
+`seq` `1..2` (`tests/e2e/discard-witness.mjs`'s `DW-10.8`–`DW-10.13`).
+
+**⟶ AND TWO READINGS OF THAT MEASUREMENT SENTENCE ARE THE READINGS OF THEIR OWN DATE, 2026-10-29 — THE POSITION IS
+THE ARRAY INDEX (`D-65`) AND A REFUSED DELETE RESTS AT THE LAST VALIDATED STATE (`D-63`).** `RCA-8(g)`
+ANNOTATE-BESIDE: **every clause of §7.8 above stands BYTE-FOR-BYTE and is read THROUGH this one; the asks, the
+after-state, the witness and the four steps are unmoved — two figures and one noun move.** **(i) *"the delete's log is
+the commit's ONE list with `seq` `1..2`"* IS READ AS: the commit's ONE list, TWO entries, standing at INDEX `0` and
+`1`** — the `seq` member is gone from `LogEntry` (`D-65`; §8.0a's retirement clause below), so `log[0]` is the
+`constraint-check` entry and `log[1]` the `outcome` entry, and the position is where an entry stands in the array.
+**(ii) *"a refused delete leaves the store at the state it opened at"* IS READ AS: at THE LAST VALIDATED STATE** —
+which is the state it opened at whenever the delete's sweep never passed, and the state a passing sweep approved
+otherwise (`D-63`; §5.4's `D-63` clause). **AND THE THIRD THING THIS CLAUSE OWES, WHICH NO EARLIER CLAUSE OF §7.8
+NAMES: WHAT THE DELETE'S RECEIPT CARRIES AND WHAT FOLLOWS FROM IT.**
+- **THE RECEIPT.** `delete` still ANSWERS `{address, op, tiers, triggered}` (`index.d.ts`, `DeleteRecord`), and the
+  **non-enumerable `discarded` witness** still rides it unlisted (`§8`). **⟶ AND BESIDE BOTH, FROM THIS DATE, A
+  NON-ENUMERABLE `commit` MEMBER** — **the same four-member `CommitRecord` a write's `K-2` mints** (`attempt`, `op`,
+  `triggered`, `pending`). **`Object.keys(receipt)` still shows the record's own members and not this one**, so a
+  consumer that copies a receipt loses the commit as it loses the witness — **read it off the receipt itself.**
+- **ADOPTION.** The entry **ADOPTS** that record: it stands the delete's own receipt in the leg slot for the pass and
+  **restores the enclosing leg in a `finally`**, so a refusal raised inside the delete's pass reports the DELETE's
+  record and not an enclosing write's.
+- **THE `pending` RESIDUE.** The delete's `pending` is **the returned set MINUS the handles the delete's own pass
+  checked off** — on a passing delete, empty (`D-56`; §6.2's clause) — **and the delivery fires THE RESIDUE**, not the
+  whole returned set.
+- **`K-4` AND `K-5` BY REFERENCE.** Both readers now answer a delete's attempt **BY REFERENCE** where they refused
+  `NO-REF` before — so `K.log(store, receipt.commit.attempt)` and `K.report(store, receipt.commit.attempt)`
+  reach the delete's own attempt once it has passed, and not only through a refusal's `log` — and **both still
+  refuse a LIVE attempt with `KC-7`** (`D-58`; §8.6's clause). **`receipt.commit` is `null` on the arm that removed
+  nothing** (`D-3`), so guard it before you reach through it.
+- **THE SAVE.** The `file`-tier save is the delete's own op, on the passing arm — **§9.3's clause below is its home
+  and this bullet does not restate its scope.**
+**AND NO KERNEL ITEM IS OWED FOR ANY OF IT: the verb is the surface, the kernel's set stays `K-1`…`K-6`, and a `K-7`
+`commitRemoval` would be owed only if you could drive a delete's attempt directly — you cannot** (`D-57`'s second
+half; `D-3`; `D-44`; `D-53`).
+
+### §7.9 ★ WHICH KIND — two different jobs, and why a derived value is not an address
+
+**★ THIS IS WHERE THE TWO SURFACES MEET, AND IT IS THE SECTION TO READ BEFORE YOU REGISTER ANYTHING.** `§6`'s
+listener and this section's constraint stand over the SAME address domain and are named in the SAME `triggered`
+list (`§6.2`'s `D-69` clause: *an element that is a constraint's `id` is ASKED, a listener's is DELIVERED*), and
+**they are not interchangeable.** **Three rules, each with its reason.**
+
+1. **★ WHICH KIND. IF YOUR CALLBACK CHANGES THE STORE, IT IS A CONSTRAINT OR A REPAIR; IF IT TELLS THE WORLD, IT IS
+   A LISTENER** — **updating external code with new data, changing the rendered information on screen.**
+   **THE REASON, STATED: a constraint runs INSIDE the pass, its answer is JUDGED — a `{message}` is a refusal that
+   rolls the commit back (`§5.4`) — and it HAS LOOP GUARDS**: the restart budget (`RESTART_LIMIT` `3`, `§7.7`), the
+   applied-repair marker (an applied repair never runs twice, `P-SM-6`), and the per-op floor. **A listener runs
+   AFTER every constraint, opens its OWN commit when it writes, and HAS NO LOOP GUARD** — nothing counts its
+   writes, nothing marks its repair, and its write is a unit of its own (`D-53`) — **so a listener that writes as a
+   matter of course drives a chain the machinery does not bound.** **The loop guard exists only inside the pass;
+   that is the whole reason a data-changing callback belongs there.** (`D-70`, the architect, verbatim: *"Functions
+   that automatically produce changes in the stored data should be written as constraint/repair, not as listeners,
+   because constraint/repair has loop guards while listeners don't"* — and *"The use case for listeners is for
+   updating external code with new data, ex. changing the rendered information on screen"*.)
+2. **★ A DERIVED VALUE IS NOT AN ADDRESS. AN INDEX INSIDE A COLLECTION IS DERIVED.** **`delete(['v',0])` RENUMBERS
+   the survivors in container order from `0` (`§6.4`'s closing clause), so `['v',1]` stops meaning what it meant:
+   the node that stood there stands at `['v',0]` afterwards and a DIFFERENT node stands at `['v',1]`.** **So a
+   registration at an index is a registration on a value the store never wrote** — it names a POSITION, and the
+   store writes LOCATIONS. **THE RULE: a constraint or a listener that cares about positional membership REGISTERS
+   AT THE CONTAINER — `['v']` — AND READS WHAT IT CARES ABOUT** (`D-50`'s `read()` rule, `§7.6`; `D-70`, verbatim:
+   *"A constraint/listener that cares about a derived value like the vec index should listen to the vec, not the
+   contained node"*).
+3. **AND THE CONSEQUENCE A CONSUMER WILL OTHERWISE DISCOVER: A REGISTRATION AT AN INDEX WILL NOT FIRE WHEN ITS
+   NEIGHBOURS MOVE — AND THAT IS NOT A DEFECT, BECAUSE NOTHING WAS WRITTEN AT THAT ADDRESS.** **`D-70`, verbatim:
+   *"a listener at `['v','1']` does not hear it — correctly … A registration at a DERIVED address is a
+   registration on a value the store never wrote … the `triggered` list is right to be empty, because nothing at
+   `['v','1']` was written."*** **The act's address was `['v',0]`, the anchor it removed was at `['v',0]`, and no
+   op of the store carries `['v',1]` as its address** — so there is no firing to owe. **The store owes you the
+   CONTAINER's firing; it does not owe you a firing for a renumbering.** **And a registration at an index is not
+   the only way to get this wrong — a listener whose job is to change data is the other half of rule 1.**
+
+**MEASURED 2026-10-29, ON THIS CHECKOUT, THROUGH THE PUBLISHED ENTRY** (`tests/e2e/discard-witness.mjs`'s
+`DW-15.1`/`DW-15.2`/`DW-15.3`; the drive is `store.write(['v'], 'mem', [{b:1}, {b:2}, {b:3}])` and then
+`store.delete(['v',0])`, so `{b:2}` moves from `['v',1]` to `['v',0]` and `{b:3}` from `['v',2]` to `['v',1]`):
+
+- **THE LISTENER AT `['v']` FIRES, ONCE**, is handed the ACT's address `['v',0]`, and **the collection it reads
+  inside its body is the RENUMBERED one** — `[{"b":2},{"b":3}]`, the value it cares about, read at the address that
+  is not derived; **and the record's `triggered` names its handle at `['v']`, the address it was bound at.**
+- **THE LISTENER AT `['v',1]` DOES NOT FIRE** — `0` invocations, its handle nowhere in `triggered` — **and the
+  cell asserts `0` as CORRECT, citing `D-70`, not as a defect**: `['v',1]` named `{"b":2}` before the act and
+  names `{"b":3}` after it, so the renumber moved a DIFFERENT node under the position it registered.
+- **THE CONSTRAINT AT `['v']` IS ASKED FOR THE SAME DELETE** — once by the pass — and it is handed **THE ACT's
+  `address` (`['v',0]`), `tier` and `value`**: the value the delete left AT THE ACT'S ADDRESS, which under a
+  renumbering is **the survivor that moved into index `0`, `{"b":2}`, and NOT the collection.** **The collection it
+  JUDGES is the one its body reads at `['v']`** (`D-50`): the renumbered `[{"b":2},{"b":3}]`. **Its registration's
+  own ask is the one with no attempt, and that ask's `value` IS the collection at `['v']`** — so a container pair
+  is asked at the container and reads at the container, whichever ask it is answering. **Its `id` stands in the
+  same `triggered` list as the two listener handles.**
+
+**EACH CELL BITES UNDER A `/tmp` REVERT, AND THE REVERT IS THE ONE THIS RULE NAMES — THE CONTAINER REGISTRATION
+REPLACED BY AN INDEX ONE:** `['v']` → `['v',1]` at the listener turns `DW-15.1` RED (no firing, no collection read)
+and at the pair turns `DW-15.3` RED (the pass asks it `0` times); the mirror move — the index listener's `['v',1]`
+→ `['v']` — turns `DW-15.2` RED (the `0` becomes a `1`). **So each arm is held by the registration's ADDRESS and by
+nothing else in the drive.**
+
+**AND WHAT `D-70` DOES NOT CHANGE, SAID PLAINLY: no member, status, kernel item or bound moves.** **This section
+declares a rule of USE over a surface that was already measured — the seventh residual closes by DECLARATION, not by
+machinery** (`D-70`'s own terms; `§3.1`'s fourteen members; `§8.1`'s twenty statuses; `§7.7`'s budget).
+
+**★ AND THE FOUR THINGS THIS SECTION STILL LEFT A CONSUMER TO DISCOVER, WRITTEN DOWN 2026-10-29 — `D-66` READ
+BESIDE `D-70`, AND EVERY SENTENCE ABOVE STANDS BYTE-FOR-BYTE AND IS READ THROUGH THIS CLAUSE.** `RCA-8(g)`
+ANNOTATE-BESIDE: **this clause declares no member, no status, no kernel item and no bound, and it moves no figure
+of `§3.1`, `§8.1` or `§7.7`. Each of the four is a reading this surface leaves you to DERIVE unless it is
+stated — none of them is a rule the surface lacks, and that is exactly why they have to be written.**
+
+1. **★ THE RECONCILIATION, IN ONE CLAUSE: THE REACH IS PER ADDRESS THE STORE WROTE, NOT PER POSITION.** **`D-66`'s
+   sentence — *"a pair is asked when the act changes the value at its address"* — is a criterion over the
+   addresses the act WROTE and the addresses it REPLACED, and `D-70`'s — *"nothing was written at `['v',1]`"* —
+   is that same criterion read at an address the act never wrote.** **The two collide only ON THEIR FACE, and the
+   noun reconciles them: a `VEC` renumber DOES change what a read at an index returns, but AN INDEX'S *MEANING*
+   CHANGING IS NOT THE STORE *WRITING* IT.** **The store wrote `['v',0]` and replaced nothing at `['v',1]`, so it
+   owes you a firing at the one address it wrote and none at the other** — which is rule 3 above, measured at
+   `DW-15.1`/`DW-15.2`.
+2. **★ THE MISSING LOOP GUARD IS AN ABSENCE, AND THIS IS WHAT IT MEANS.** **Nothing observably bounds a chain of
+   listener writes: no budget, no depth, no counter and NO INSTRUMENT YOU CAN READ.** **The constraint side is
+   different for one reason and not for a better one: THE GUARDS ARE THE PASS'S, and a listener does not run in a
+   pass** — the restart budget (`RESTART_LIMIT` `3`), the applied-repair marker and the per-op floor all belong to
+   the pass, and a listener is delivered after it. **SO YOU BOUND YOUR OWN CHAIN, in your own code, with your own
+   count, because the package will not.** **And the practical shape is a sequence rather than a defect: a listener
+   that writes is a listener whose writes OPEN COMMITS, whose commits RUN CONSTRAINTS, whose constraints FIRE
+   LISTENERS — the machine follows that as far as your code takes it and stops only when your code stops.**
+3. **★ A CALLBACK THAT BOTH WRITES AND RENDERS IS NOT REFUSED.** **The two kinds are A RULE OF USE, not an enforced
+   classification.** **The package registers such a function, delivers it as a listener, and lets its write go
+   UNGUARDED — nothing inspects a listener's body for a store call, and no refusal names the mix.** **So a consumer
+   who assumes the package enforces the split will build the chain of item 2 believing it cannot happen.**
+4. **WHAT MOVED IS NOT REPORTED.** **The delivery's one argument is the ACT's address** — `['v',0]`, the address the
+   store wrote — **and not what shifted under it.** **So a container listener that must know which position moved
+   DIFFS THE COLLECTION ITSELF**, inside its own body, at the container (`D-50`'s `read()` rule). **The reason is
+   not an omission: the act's address is THE STORE'S OWN DATUM** — it stands on every op and on every record
+   `§6.4` declares — **whereas WHICH POSITION MOVED IS THE CALLER'S QUESTION, asked against state the caller chose
+   to keep.**
+
+---
+
+## §8 · Refusals
+
+**One failure surface, everywhere, and it is THROWN:**
+
+```js
+try {
+  const v = store.read(['users', 0, 'name']);
+} catch (e) {
+  // e is a PLAIN OBJECT — never an Error subclass, never a rejected promise, never a tagged union
+  const { status, message, log, address } = e;   // FOUR members since D-77, in the form's own order
+}
+```
+
+**A refusal is a thrown object literal carrying exactly `{status, message, log, address}`** — **never an `Error` subclass,
+never a returned tagged union, never a `Promise` rejection**, so `try/catch` is the whole error model
+(`bindings/js/index.d.ts`, `StoreRefusal`; `surface.md §2.5`'s clause of 2026-10-16, the crossing form's one home;
+`js/contract.md §1.4`).
+
+**★ AND THE `log` MEMBER IS ALWAYS PRESENT, and it is a plain own enumerable data member of that same object** —
+written with an object literal, not `defineProperty`, not a getter, not on a prototype and not behind a `Symbol`.
+**So `Object.keys(caught)` reads exactly `["status","message","log","address"]` and its length is `4` on EVERY arm.** It is
+never absent, never `null` and never a non-array; `[]` is its declared value where the failure's cause has no
+attempt at all, and every failure whose attempt exists carries that attempt's own entries**
+(`index.d.ts`, `StoreRefusal` items 4, 9 and 10; `surface.md §2.5`).
+
+**⟶ AND TWO CELLS OF THIS SECTION WERE STALE AND ARE CORRECTED AT THEIR OWN LINES, 2026-10-29 — `D-77`'s MEMBER APPLIED HERE AND NOT ONLY AT `§7.7`'s CLAUSE.** `RCA-8(g)` ANNOTATE-BESIDE: **the withdrawn bytes are quoted in this clause, the prose around them stands BYTE-FOR-BYTE, and the defect is the one this branch keeps meeting: A CORRECTION APPLIED AT ONE SITE AND NOT AT THE OTHERS.** **`§7.7` printed `D-77`'s four-member form on 2026-10-29 while this section — the form's own home in the guide of USE — still printed THREE in its sample and contradicted itself in its census.** **CELL ONE, THE SAMPLE:** it read *"`const { status, message, log } = e;`"* **and it now reads `const { status, message, log, address } = e;`** — **because a consumer who copies the sample would meet three of four members and never learn the one member that separates its own refusal from a listener's.** **CELL TWO, THE CENSUS:** it read *"`Object.keys(caught)` reads exactly `["status","message","log","address"]` and its length is `3` on EVERY arm"* — **four names beside a length of three, in one sentence** — **and it now reads `4`.** **NEITHER MOVED A BYTE OF THE REFUSAL: both are readings of `D-77`'s form, which `bfe844a` shipped, and both were wrong at this file's own line.** (`D-77`; `bfe844a`; `§7.7`'s clause of the same date; `index.d.ts`'s `StoreRefusal`; `scripts/publish.sh --figures` does not assert these — a reader does.)
+
+**⟶ AND THE REST OF THE AUDIT, PRINTED SO IT IS A CHECK AND NOT A CLAIM: FOUR PLACES IN THIS GUIDE STILL PRINT THAT FORM AS THREE, AND EVERY ONE OF THEM IS A DATED READING WITH ITS OWN CORRECTING CLAUSE BESIDE IT — WHICH IS WHY THEY STAND AND THE TWO ABOVE DID NOT.** **`§5.4`'s rank-`20` sentence (`{status: 'ConstraintPassRefused', message, log}`), `§6.2`'s `cfg`-side measurement (`{status: 'AddressMalformed', message, log}`), `§6.5a`'s arm two (*"the same three own members"*) and `§8.1`'s `ConstraintBodyThrew` paragraph (`{status: 'ConstraintPassRefused', message, log}`)** — **each is the reading of a tree that carried three members, each is read THROUGH a correcting clause (`§7.7`'s `D-77` clause of this date, `§6.5a`'s `D-77` clause of this date, and the `D-55`/`DEF-AK` clauses of 2026-10-28 around `§8.1`), and none of them is a place where a consumer copies the form.** **WHAT DISTINGUISHES THE TWO CORRECTED ABOVE IS NOT STYLE: `§8` IS THE FORM'S OWN HOME IN THIS GUIDE, AND ITS SAMPLE AND ITS CENSUS ARE WHAT A CONSUMER READS AND RE-SPELLS — a dated measurement is a record, and a sample is an instruction.** (`D-77`; `RCA-8(g)`; `§7.7`; `§6.5a`; `§8.1`.)
+
+**Measured 2026-10-26, on refusals from `read`, `readLiteral`, `write`, `delete`, `rollback`, `listen`,
+`unlisten`, `register` and `removeListener`: every one was an `Object` whose `Object.keys` was
+`["status","message","log","address"]`, whose `log` was `[]`, and which was not an `Error` instance.**
+
+### §8.0a What the `log` IS: one list per COMMIT — and what that buys you
+
+**⟶ ADDED 2026-10-28. THIS SUBSECTION IS THE ONE THING TO KNOW ABOUT `log`, AND IT CHANGES WHAT YOU WILL SEE
+IN IT.** `RCA-8(g)` ANNOTATE-BESIDE: **the paragraph above stands BYTE-FOR-BYTE and is read THROUGH this
+subsection.** **The architect, verbatim: *"If it's part of the same commit, then it uses the same message log.
+If it opens a new commit, it uses the new commit's message log. Constraints/Repairs should always use the same
+commit. Listeners should open a new commit, because the triggering commit already passed constraints"***
+(`strata/decisions.md` · `D-53`).
+
+**SO THE LIST BELONGS TO THE COMMIT AND NOT TO THE ATTEMPT.** One write is one commit, and everything that
+commit does — the constraint passes that judged its value, a repair's own write, the re-run after that repair,
+and the terminal arm's `outcome` entry — **appends to ONE array**. Consequences you can rely on, each measured
+on this checkout:
+
+- **the entries run `0..n-1` CONTINUOUSLY across those steps**, because the position of an entry in the list
+  **IS the array index** and there is one list (`D-65`; the `seq` member that used to restate it is gone). A
+  repair's `commit` entry can stand in the middle of the list, between the refused pass's entries and the
+  re-run's: **it is a real entry of the same commit, not a second log.**
+
+**⟶ AND WHAT `seq` IS TRUE OF, SAID PLAINLY, 2026-10-28 — `DEF-AI`, MEASURED.** **`seq` is the position of the
+entry in the commit's own message log; it is not the store's journal ordinal, and the two differ by design.**
+`RCA-8(g)` ANNOTATE-BESIDE: **the bullets above stand BYTE-FOR-BYTE and are read THROUGH this paragraph.** **THE
+MEASUREMENT THAT OWES IT: a refusal's entry carried `seq` `1` while the store's own journal counter read `41`, and a
+consumer read the two as one ordinal.** They are two ordinals with two homes — **`JournalOp.seq`, the store's
+append ordinal that orders the store's record, and this `seq`, the kernel's append ordinal on the COMMIT's one
+list** — and neither equals the other by construction. **AND THE ORDER ACROSS A COMMIT'S ATTEMPTS IS MEASURED, NOT
+CLAIMED: one repair write appends the five entries `constraint-check` `1` · `repair-run` `2` · `commit` `3` ·
+`constraint-check` `4` · `commit` `5` — strictly increasing in array order, continuous from `1`, across the pass,
+the repair's own joined write and the re-run** (`tests/e2e/repair-in-commit.test.mjs`'s `D-46` (1) cell, printed).
+**No entry is ever minted from the store's journal counter**: that would be a second ordinal with no consumer.
+(`D-53`; `D-48` · `DEF-AI`; `index.d.ts`'s `LogEntry` carries the same sentence.)
+
+**⟶ AND THE MEMBER THAT SENTENCE WAS ABOUT IS GONE, 2026-10-28 — `D-65`: THE ARRAY INDEX IS THE POSITION.**
+`RCA-8(g)` ANNOTATE-BESIDE: **every byte above stands BYTE-FOR-BYTE and is read THROUGH this paragraph; what it says
+of `seq` is RETIRED, not rewritten.** **THE RULING, THE ARCHITECT, ONE WORD: *"Drop it"*** (`strata/decisions.md` ·
+`D-65`) — `seq: log.length + 1` IS the index of the entry being appended, a second copy of a fact the array already
+carries, so **the entry carries FIVE members — `kind` · `id` · `message` · `opId` · `state` — and NO `seq`.**
+**WHAT THAT MEANS FOR YOU, WITHOUT A MEMBER TO READ:** the position of an entry is **`log.indexOf(entry)`**, or
+the index of the loop you are already in; the order across a commit's attempts is the same order those bullets
+measured, read off the array; and **`JournalOp.seq` IS UNMOVED** — the store's append ordinal is a different subject
+and is now impossible to confuse with the commit's, because the commit's no longer has a member to be confused
+with. **NO OTHER MEMBER, KIND, STATUS, COUNT OR SENTENCE OF THIS GUIDE MOVES** (`bindings/js/index.d.ts`'s
+`LogEntry` carries the same retirement).
+- **A nested write a CONSTRAINT body makes is part of the same commit**, so **its entries are in YOUR list** —
+  which is why a constraint body that performs a refused write now shows you that refusal's own
+  `constraint-check` and `outcome` entries, verbatim, before the enclosing `outcome` entry. **That is `DEF-AK`'s
+  `constraint` host.** (Its `listener` host is unchanged, and the difference is the next bullet.)
+- **A LISTENER's write OPENS A COMMIT OF ITS OWN**, so **its entries are NOT in the list of the commit that
+  triggered it**: *the triggering commit already passed constraints, so what the listener does is a new
+  question.* If you need to know what the listener's own write decided, catch the refusal the listener body
+  lets out — it carries **its own** `log`, and so does a refusal you throw out of a listener.
+- **A failed `file`-tier SAVE now crosses WITH THE COMMIT'S ENTRIES — its `log` is no longer `[]`.** The save is
+  the write's LAST constraint: when it fails, the one `outcome` entry that ends your list carries **`KC-9`**,
+  and the entries before it are everything the commit did. **So a consumer can tell the two failing arms apart
+  from the log alone: `ConstraintPassRefused` ends at `KC-3`/`KC-5`/`KC-6`/`KC-8`, `FileCommitFailed` ends at
+  `KC-9`.** (See `§8.1`'s token line below — the kernel's set is `KC-1`…`KC-9` from this date, and the store's
+  closed status set has not moved.)
+- **A refusal that names no attempt still carries `[]`** — a `listen` refusal, a construction refusal, a
+  detached member's — and a `TypeError` from a constraint method carries `[]` too. **The list is the COMMIT's
+  and there is no commit there.**
+
+**⟶ AND THAT BULLET IS SCOPED TO THE STATE IT IS TRUE OF — 2026-11-02.** `RCA-8(g)` ANNOTATE-BESIDE: **the bullet above stands BYTE-FOR-BYTE and is read THROUGH this clause.** **A CONSTRUCTION REFUSAL CARRIES `[]` WHERE THE ELEMENT THAT REFUSED CARRIED NO REPAIR** — **and where that element DID carry one, and its pair was asked, the refusal carries the entries that element's own `constraint-check` and `repair-run` appended**, because a repair is invoked at that instant and its invocation is part of the judgement. **So the two states are told apart by THE ELEMENT YOU SUPPLIED and by nothing about the route**: no repair on the element, no entries; a repair on it, that element's own. **And where the element's pair is SKIPPED — its parent does not resolve — there is nothing to refuse and nothing to carry: `§7.2`'s own clause states what a skip is.** **The counting caution below and the verdict rule it sends you to are UNMOVED by this sentence and neither is restated here.**
+
+**READ THIS BEFORE YOU LOG-COUNT.** `log.length` is **not** *"how many constraints were evaluated"* and not
+*"how many attempts this write made"*: it is **every entry of the commit**, in append order, from every attempt
+the commit held. Count entries by `kind` and `id` (and by `opId` where you need the iteration) rather than
+assuming a shape, because **a repair or a body's own write legitimately adds entries to the list you caught.**
+**And what the count above cannot tell you: where the refusal you caught carries a commit's list, several entries in it may lawfully read *passed*, so a count of entries is not a count of verdicts, and `§7.6`'s clause names the one entry that decides — while on the other arm, where a refusal names no attempt and still carries `[]`, nothing above promises a list to count.**
+
+**AND THE ONE PLACE THE INVARIANT IS NOT REACHED, SAID PLAINLY RATHER THAN LEFT TO A MEASUREMENT: a pair body
+invoked at a REVERSAL's judgement has no commit record standing beside it to name**, so a write such a body
+makes still opens a commit of its own and its entries land in that commit's list and not in the reversal's
+refusal (`js/contract.md §2.6`'s `D-53` clause, item `6`).
+
+**⟶ AND A THROWN MESSAGE STANDS IN THAT LOG, 2026-10-28 — `D-55` ITEM 1 · `DEF-AK`, MEASURED.** `RCA-8(g)` ANNOTATE-BESIDE: **every clause of §8.0a above stands BYTE-FOR-BYTE and is read THROUGH this one; the list's home, its one-`kind`-per-entry rule and its `seq` ordinal do not move — ⟶ and from 2026-10-28 the ordinal is the ARRAY INDEX and the member is gone (`D-65`), so *"its six members"* above is read as the FIVE-member shape this guide declares at `LogEntry`.** **THE RULING, THE ARCHITECT, VERBATIM: *"Include a thrown message in the message log. Obviously."*** **WHAT `1.3.0` DID, MEASURED: a constraint body that threw its own `Error` crossed `ConstraintBodyThrew` whose `log` carried only the attempt's `outcome` entry — the thrown value's own literal occurred ZERO TIMES in it — while the crossed sentence said *"a constraint body's throwable crosses as this refusal"*, a carriage the log did not make.** **WHAT YOU GET NOW:**
+- **the value the body threw is PRINTED IN THE LOG**, in the ONE entry the attempt's terminal act appends (the `outcome` entry): *"the constraint `c1` threw; the attempt is closed — the value it threw was …"*. **THE FORM IS NAMED AND NOT SILENTLY STRINGIFIED**: an `Error` (or any object) reads *"an object whose own `message` member is the string "…""*, a thrown string reads *"a string whose text is "…""*, a thrown number *"a number whose value is 42"*, a thrown `void 0` *"no value at all"*, and an object with no `message` *"an object carrying no own string `message` member"*. **Nothing is read off a prototype and no caller code runs to spell it**;
+- **and the crossed `message` stops claiming the value crosses**: after the store's generated sentence it says, in its own words, that the value the body threw does **NOT** cross as this refusal — and it names where the form it threw stands, which is that `log` entry. **THE CALLER'S OWN TEXT IS QUOTED IN THE LOG AND NEVER IN THE SENTENCE**, so a forged `{status, message}` cannot make the package speak a refusal it did not find (`DEF-A`'s protection, unmoved);
+- **where no attempt stands there is no commit log to carry it** — a registration-time body's throw crosses with `log: []`, which is `surface.md §2.5` item 4's declared arm — **and the crossed sentence says exactly that instead of pointing at a list that would not hold the form**. (`tests/e2e/discard-witness.mjs`'s `DW-10.3`/`DW-10.4` print the readings for an `Error`, a string and an object with no `message`; both cells are RED under a revert of the terminal sentence.)
+
+**⟶ ★ AND THAT ENTRY IS BOUNDED, 2026-10-28 — `D-74` · `DEF-AR`, MEASURED, AND IT IS THE SENTENCE TO CARRY AWAY FROM THIS SECTION.** `RCA-8(g)` ANNOTATE-BESIDE: **every clause above stands BYTE-FOR-BYTE and is read THROUGH this one; the entry's five members, its `outcome` kind, its position as the array index and every form the clause above prints are UNMOVED.** **THE FINDING, AS THE DOWNSTREAM FILED IT: *"bound the log entry as the message is bounded — compose it from a summary of the inner refusal rather than re-serialising it."*** **WHAT WAS MEASURED ON THIS CHECKOUT BEFORE THIS CLAUSE: a chain of inner refusals — each level's constraint body making the write the next level's body throws on, which is a LAWFUL chain that stops at the caller's own depth limit and loops not at all — wrote the previous level's whole form into the next level's `outcome` entry, so THE ENTRY DOUBLED AT EVERY LEVEL: `134,228,754` characters at depth `26` (`268,446,544` as its JSON text, the figure the downstream's `longestLogEntryChars` prints as `268,446,682` on its own spelling), and at depth `28` the composition passed V8's maximum string length and died with `RangeError: Invalid string length` — the very class `1.4.0` answered with, arriving one level deeper. THE ENTRY IS A LOG LINE, AND A LINE THAT CAN BE 268 MB IS NOT A LINE.**
+- **WHAT YOU READ NOW IS A SUMMARY, WHEN THE VALUE THE BODY THREW IS ITSELF A REFUSAL** — with its own `status`, `message` and `log` — **and NEVER the serialised refusal**: *"a refusal, "ConstraintBodyThrew", carrying 27 log entries — its first message is "…""*. **Three facts and nothing else**: the inner refusal's own **status**, its **entry count**, and its **first entry's message**. **Nothing of its log is copied**, so a refusal whose `log` carries fifty thousand entries costs your caller one number;
+- **THE BOUND IS ONE NUMBER AND IT IS THE MESSAGE'S OWN: `307` characters**, one exported constant at **`bindings/js/src/entry/kernel-foundations.mjs`** (`MESSAGE_CEILING`), and it is what a message has when it has nothing inner to quote (`errorMessage('ConstraintBodyThrew', <subject>)` plus the one clause this package appends — measured `306` on this checkout's spelling and printed by the downstream at `307`). **THE CLIP IS APPLIED TO THE ENTRY'S TOTAL — head, form and tail together — and not to a level**, which is the bug this clause replaces: **the same figure at depth `26`, at depth `28` and at the first refusal alike** (`tests/e2e/discard-witness.mjs`'s `DW-17.1`/`DW-17.3`, printed before → after);
+- **AND NO ENTRY IS UNBOUNDED FOR ANY THROWN VALUE**, measured on all six shapes (`DW-17.2`): an `Error` (`152` characters), a string (`117`), a number (`102`), an object with no `message` (`126`), a refusal (`174`), a refusal whose `log` is itself huge, a thrown string of four mebibytes and a thrown `message` of four mebibytes — **the last two at exactly `307`, each CLIPPED AND SAYING SO with a trailing `…`**;
+- **THE LAWFUL ARMS ARE UNCHANGED WHERE THEY FIT THE BOUND** (`DW-17.4`): a plain `Error`, a string and an object with no `message` answer the very words the clause above prints, byte for byte — **the bound cuts a value that does not fit and touches no value that does**;
+- **and `LogEntry` DID NOT GAIN A MEMBER** (`DW-17.5`): the bound is on the FORM'S CONTENT and not a new column, so every entry still carries exactly `id` · `kind` · `message` · `opId` · `state` (`D-65`'s five, `D-74`'s own terms). **THE MESSAGE BESIDE IT IS BOUNDED THE SAME WAY**, at the one place it quotes an inner refusal's `message` — because a sentence quoting the whole of an inner sentence is the same class of compounding: **measured `134,229,071` characters at depth `26` and `268,447,241` at `27` before, and `753` at every depth after**, which is why a depth-`28` chain crosses as `ConstraintBodyThrew` at all rather than dying in the caller's own frame. **SO THE FINDING'S OWN `307` IS READ AS THE BOUND AND NOT AS A MEASURED LENGTH: on this checkout the *sentence* the package generates is `306` characters, and the figure the downstream measured at depth `28` was the saturation of a chain that had already died.**
+
+**⟶ AND THE RECORD YOU ARE HANDED IS FINAL, 2026-10-28 — `D-55` ITEM 6 · `DEF-AO`, MEASURED.** `RCA-8(g)` ANNOTATE-BESIDE: **every clause above stands BYTE-FOR-BYTE and is read THROUGH this one; the log's home on the commit, its entries and its identity are unmoved.** **THE RULING, THE ARCHITECT, VERBATIM: *"Attempts don't log. This is what the commits are for. The commits have their log handed off to the client and are dropped after closing out."*** **SO: a closed attempt's report and its log DO NOT MUTATE AFTER THE HANDOFF — a consumer holding a refusal is holding the record, and a record that changes after it is given out is not a record.** **WHAT THE PACKAGE DOES: at the end of the commit's own processing — the restarted check's amendment included, which is part of closing out — the report and the log it carries are `Object.freeze`d**, so a later act can neither append an entry nor re-member the report. **THE LIST IS THE SAME LIST** (`D-53`: *"the crossed report IS that list"*) — the refusal you caught and `report(store, ref)`'s `log` are ONE array, now sealed. **AND THE LIST IS SEALED WITH ITS COMMIT**, never at a nested attempt's own handoff: a constraint body's nested write is part of your commit (`D-53`), so freezing the list from inside it would stop the enclosing attempt's own `append`. (`tests/e2e/discard-witness.mjs`'s `DW-10.6` holds the crossed refusal and the closed report, drives four further acts, and prints the bytes before → after beside `Object.isFrozen` on both; RED under a revert of the seal.)
+**⟶ AND ITS SECOND HALF IS NOW DELIVERED, 2026-10-28 — `D-58` · THE DROP, AND NOTHING OF A RUNNING COMMIT.** `RCA-8(g)` ANNOTATE-BESIDE: **every clause above stands BYTE-FOR-BYTE and is read THROUGH this one; the seal, the list's identity and the log's home on the commit are unmoved.** **THE RULING, THE ARCHITECT, VERBATIM: *"The client does not need any insight into the current state of a commit/attempt before it completes. Don't expose any of it. After a commit/attempt resolves/rejects, the store does not need to retain the message log or other client-returned data. Don't retain it."*** **WHAT THAT MEANS FOR YOU, IN TWO SENTENCES. (1) A RUNNING COMMIT HANDS YOU NOTHING**: the log reader refuses a live attempt with `KC-7` — the same refusal the report reader already answered — so an in-flight `seq` list is no longer a thing you can read; **and (2) ONCE THE COMMIT RESOLVES OR REJECTS, THE STORE KEEPS NO MESSAGE LOG**: what it goes on holding is the outcome, the ops and the reversal's record, and the list it handed you — the entries on the refusal you caught, or on `report`'s return — is the ONLY copy, sealed at the handoff. **WHAT THIS COSTS, SAID PLAINLY**: on an arm whose handoff carries no list at all — a repair body that throws, and a PASSING `write` (whose answer is `{op, watched, triggered}` and has never carried one) — the entries are no longer readable after the call. **THAT IS THE RULING'S PRICE AND NOT A DEFECT**, and it is why the seal mattered: a record you hold is the record. (`tests/e2e/discard-witness.mjs`'s `DW-11.1`–`DW-11.4` print both readers, the pass's own instant, the retained shape before → after and the single-copy proof; each RED under its own `/tmp` revert.)
+
+**⟶ AND THE PASSING HALF OF *"WHAT THIS COSTS"* IS WITHDRAWN, 2026-11-02 — `D-119` · THE LOG CROSSES ON RESOLUTION TOO.** `RCA-8(g)` ANNOTATE-BESIDE: **every clause above stands BYTE-FOR-BYTE and is read THROUGH this one; the seal, the list's identity with the commit's, the drop and the running commit's `KC-7` are all unmoved.** **THE RULING, THE ARCHITECT, VERBATIM: *"Cache the log and pass to the surface on resolution, same as on failure. This is needed so that manual data changes can check what additional data changed downstream of their request."*** **SO ONE HALF OF THE SENTENCE ABOVE IS WITHDRAWN BY NAME** — *"on an arm whose handoff carries no list at all — a repair body that throws, and a PASSING `write` (whose answer is `{op, watched, triggered}` and has never carried one) — the entries are no longer readable after the call"* — **and the OTHER half stands: a repair body that throws still leaves no record at all.** **WHAT YOU READ NOW: a `write` and a `delete` that pass carry the commit's own list at `record.log`, non-enumerably and present on every passing answer, and a `rollback` that passes carries its judgement's own list** — the entries in the order the commit appended them, and, on the first two verbs, **the same array a refusal about that commit crosses with**, so a pass and a later refusal cannot disagree. **THE `[]` ARMS ARE FOUR AND EACH MEANS *this act appended nothing it can report***: a nested call inside a constraint or a repair body (the commit it joined has not crossed, and the act that owns it reports the entries), a `D-3` delete, a reversal's non-judging arms, and a judgement that ran and appended nothing — **and a passing write over a store carrying NO pair answers ONE entry, `kind === 'commit'`, because that entry is appended unconditionally.** **NOTHING THE STORE RETAINS MOVES**: `dropHandoff` still leaves `{attempt, ops, outcome, rollback}` and no list, so the answer's list is still the ONLY copy. (`D-119`; `D-58`; `D-53`; `index.d.ts`'s `WriteRecord`, `DeleteRecord` and `RollbackRecord` clauses of the same date; `tests/e2e/resolution-log.test.mjs`'s `RSL-1`–`RSL-9` print the readings.)
+
+**AND THE RECORD THAT SURVIVES THE HANDOFF HAS FOUR MEMBERS, NAMED HERE BECAUSE THE CLAUSE ABOVE SAYS WHAT IT HOLDS WITHOUT SPELLING ITS SHAPE: `{attempt, ops, outcome, rollback}`** — the attempt's identity, the ops the commit appended, the outcome it reached, and the reversal's record where one ran — **and NO message list.** **A log entry's position is its ARRAY INDEX (`D-65`), so *"an in-flight `seq` list"* above is read as an in-flight ENTRY list**: there is no `seq` member in it and no list to read while the attempt runs. (`D-58`; `D-65`; `bindings/js/src/entry/kernel-terminal.mjs`'s `dropHandoff`, which is where the closed record's four members are written; `D-55` item `6` is the seal they are frozen under.)
+
+
+**⟶ AND A CLOSED ATTEMPT'S REPORT IS RETAINED BY REACHABILITY AND NOT BY A COUNT, 2026-11-17 — `D-175`, `D-176`, WHICH WITHDRAW `D-162`'s WINDOW.** **A closed attempt's report lives EXACTLY AS LONG AS THE ATTEMPT CAN BE NAMED: while you still hold the attempt's reference — the `attempt` member of the `CommitRecord` a `delete`'s receipt carries (§7.8), an object carrying the attempt's own `id` — the readers answer it, and when no way of naming it is left the report goes with it.** **SO THE PACKAGE KEEPS NO WINDOW AND NO FIXED NUMBER OF ATTEMPTS**: the `1024` this guide would otherwise print has no reader, a fourth-thousand write and a sixteen-thousandth retain the same bytes per write (measured `0.80` B/write at `4,000` writes and `0.09` at `16,000`, pinned), and **the only bound left is how long your own code holds a reference.** **AND THE TWO FORMS OF NAMING AGREE, WHICH IS THE ONE THING WORTH KNOWING BEFORE YOU DEPEND ON EITHER: an attempt's `AttemptRef` record AND its bare `id` string both answer while the attempt lives** — the id is resolved through a weak index, so **the two can never disagree about whether the attempt is still answerable** (`parameter-semantics.md §2.15`, the archived constraints part) — **and an id that names nothing answers `KC-2`, the same refusal an id that never named an attempt already met.** (`D-175`; `D-176` items 1–3; `tests/e2e/kernel-attempt-window.test.mjs`'s `KAW-1`/`KAW-3`.)
+
+**EVERY REFUSAL NAMES ITSELF** — by a `status` from the store's own closed set, and by a **human `message` that
+carries the address, the domain, and what was found instead.** The message is generated from the code and the
+failing trigger's arguments and never hand-authored at a call site
+(`archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-native/seams-and-lifecycle.md §8.2`, archived);
+**`index.d.ts` carries both, verbatim from the store.**
+
+### §8.1 The set is TWENTY-ONE and open by design
+
+**⟶ RE-DERIVED AGAIN 2026-11-17 — THE SET IS TWENTY-THREE, ON THE ARCHITECT'S RULING `D-137` ITEM 5, WHOSE MEMBER L1 PINS AT RANK `23` `ListenerBodyRejected`.** **`StoreStatus` carries TWENTY-THREE members, plus the open escape arm `(string & {})`** — `src/error.rs`'s `CODES` is `[&str; 23]` and the declaration of record carries the same twenty-three literals in the same rank order — **and the appended term is the DELIVERED LISTENER BODY's REJECTION: a body that rejects refuses the act that fired it, and the act's own record carries the refusal as a datum at `bodyFailures` (§6.5).** **NO RANK OF `1`…`22` MOVES, `ListenerBodyThrew` at rank `21` is NOT WIDENED by it, and the two are the promise pair's two halves: a THROW leaves your act unanswered and a REJECTION is answered as data.** The algebra reads `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 23` ✓. **Every paragraph, table row and title below is the reading of its own date and is read THROUGH this clause** (the guide's figures move with the set's own membership, which is this section's own rule); **the heading's `TWENTY-ONE` and the `TWENTY-TWO` of the clause below are the figures of their own dates and are read through this clause too.**
+
+**AND THE THREE RANKS THE CLAUSES BELOW APPENDED ARE PRINTED HERE IN ONE PLACE, SO THE SET'S TAIL IS NOT LEFT TO BE GATHERED ACROSS FOUR DATED PARAGRAPHS:**
+
+| rank | status |
+|---|---|
+| 21 | `ListenerBodyThrew` — a REGISTRATION-fired listener body's THROW, at the four registration instants and at those only (2026-11-06) |
+| 22 | `FileImageRefused` — a `filePath` whose bytes are not this store's image, at the CONSTRUCTION and at no other instant (2026-11-06) |
+| 23 | `ListenerBodyRejected` — a DELIVERED listener body that REJECTED, carried as the act's own datum (2026-11-17) |
+
+**⟶ RE-DERIVED AGAIN 2026-11-06 — THE SET IS TWENTY-TWO, ON THE ARCHITECT'S RULING `D-126` ITEM `2`, VERBATIM:
+*"Mint/revive a code: a corrupt image refuses the construction"*, whose member L1 pins at `docs/L1/creation-sweep.md`
+`§3` `PIN-11` as rank `22` `FileImageRefused`.** **`StoreStatus` carries TWENTY-TWO members, plus the open escape
+arm `(string & {})`** — ranks `1`…`21` stand exactly as the clauses below print them, and **the appended term is
+`FileImageRefused` at rank `22`: THE ONE STATUS A CORRUPT IMAGE ANSWERS WITH**, at the CONSTRUCTION and at no other
+instant. **`storeCreate` throwing it returns NO INSTANCE**: the store reads `cfg.filePath` before the package asks
+anything, so no image is installed and no listener is delivered, **and the corrupt file STANDS — un-written-to,
+un-truncated and un-repaired**, which is the evidence you keep. **Its subject is the store's own image and not the
+constraint list** — your `cfg.constraints` may be absent and innocent when those bytes are read, so rank `16`
+`ConstraintListInvalid` is never the answer here — **and a ZERO-LENGTH file and an ABSENT file are still no image at
+all**: both still construct, both load nothing and both cross no code. The algebra reads
+`11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 22` ✓. **Every paragraph, table row and title below is the reading of
+its own date and is read THROUGH this clause** (the guide's figures move with the set's own membership, which is
+this section's own rule); **the heading's `TWENTY-ONE`, and the `TWENTY` the clauses below print, are the figures of
+their own dates and are read through this clause too.**
+
+**⟶ RE-DERIVED AGAIN 2026-11-06 — THE SET IS TWENTY-ONE, ON THE ARCHITECT'S RULING `D-124` ITEM `2`, VERBATIM:
+*"A CREATION-FIRED BODY THAT THROWS REFUSES AT A MINTED RANK `21` `ListenerBodyThrew`"*, *"The closed fail set
+moves `20 → 21`"*.** **`StoreStatus` carries TWENTY-ONE members, plus the open escape arm `(string & {})`** —
+ranks `1`…`20` stand exactly as the clauses below print them, and **the appended term is `ListenerBodyThrew` at
+rank `21`: THE ONE STATUS A REGISTRATION-FIRED LISTENER BODY'S THROW ANSWERS WITH**, at `storeCreate` (a
+construction and a boot over an existing `filePath`), at `addConstraint` and at a re-arm, and at those four
+instants only. **`ConstraintBodyThrew` KEEPS rank `18` and IS NOT WIDENED** — its subject is the CONSTRAINT body, and the minting clause's rule is that a code names the subject and the one thing wrong with it — **and at every OTHER instant the identity promise stands byte-unmoved: `caught === thrown`.** The algebra reads
+`11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 21` ✓. **Every paragraph, table row and title below is the reading of its
+own date and is read THROUGH this clause** (the guide's figures move with the set's own membership, which is this
+section's own rule); **the heading's `TWENTY` is the figure of its own date and is read through this clause too.**
+
+**⟶ RE-DERIVED AGAIN 2026-10-26 — THE SET IS TWENTY, ON THE ARCHITECT'S TWO RULINGS, VERBATIM: *"Expand the
+returned fail-state list to include the refusal"* and *"Assert the constraints on rollback"*.** **`StoreStatus`
+carries TWENTY members, plus the open escape arm `(string & {})`** — ranks `1`…`19` stand exactly as the two
+paragraphs below print them, and **the appended term is `ConstraintPassRefused` at rank `20`: THE ONE STATUS A
+CONSTRAINT REFUSAL ANSWERS WITH.** **Two arms and one member:** a `write` whose registered constraint refuses it
+(`{status: 'ConstraintPassRefused', message, log}`, with the kernel's own token still riding the attempt's
+`log[].state` — `KC-3`, `KC-5`, `KC-6`, `KC-8` as the case is), **and** a `rollback` whose terminal state a
+registered constraint refuses (`§5.4`). **`FileCommitFailed` KEEPS rank `15` AND IS NOW THE **SAVE'S** CODE
+ALONE** — it is produced by a failing `file`-tier save and by nothing else — **so a constraint refusal never
+answers it again**, and the status stops naming a layer that did not fail. The algebra reads
+`11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 20` ✓. **Every paragraph and every table row below is the reading of its
+own date and is read THROUGH this clause** (the guide's figures move with the set's own membership, which is
+this section's own rule).
+
+**★ AND THE KERNEL'S OWN TOKEN SET — the one that rides `log[].state` — GREW BY ONE ON 2026-10-28, WHILE THIS
+SECTION'S SET DID NOT MOVE AT ALL.** **The architect, verbatim: *"Open the token set"*** (`strata/decisions.md` ·
+`D-53`). **The kernel's states are `KC-1`…`KC-9` from this date; the appended member is the SAVE ARM's own,
+`KC-9`, and `KC-8` keeps its declared meaning (the composition's floor) unmoved.** **WHY IT WAS OWED: a save
+failure and a constraint refusal both ended at `KC-8` on the arm where the failed save's compensation met a
+floor code, so `KC-8` crossed as two statuses and neither arm was derivable from the log's terminal state.** **So
+now: a constraint's refusal ends at `KC-3`/`KC-5`/`KC-6`/`KC-8`, a failed save ends at `KC-9`, and the two are
+told apart by the list you caught.** **NO MEMBER OF THE STORE'S CLOSED STATUS SET MOVES AND NO RANK OF IT
+MOVES**: `KC-9` rides `log[].state` exactly as every other token does, and `status` still never carries a `KC`
+spelling at all — the paragraph above's own law (`A120` (2)), unmoved.
+
+**⟶ RE-DERIVED 2026-10-26 TO THE ARCHITECT'S RULING AND NOT TO THE BYTES** (`DEF-S` and `DEF-N`; the architect,
+verbatim: *"Expand the returned error set for both S/N"*). **`StoreStatus` carries NINETEEN members, plus the open
+escape arm `(string & {})`** — ranks `1`…`17` stand exactly as the paragraph below prints them, and the two
+appended terms are `ConstraintBodyThrew` at rank `18` (a constraint BODY's throw, which the package's crossing
+converts into the one failure form from a value the KERNEL marked as a body's own) and
+`ConstraintRefusedAtRegistration` at rank `19` (the REGISTRATION VERDICT: a well-formed pair whose body answered
+non-`true` at registration or at a re-enable). **`ConstraintListInvalid` stays at rank `16` and names the SHAPE
+arm alone — a malformed entry — so a pair that is `{address: ['a'], id: 'c1'}` is never refused with it.** The
+algebra reads `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 = 19` ✓. The paragraph and the table below are the 2026-10-23
+reading and stand as their own date's (the guide's figures move with the set's own membership, which is the
+`§8.1` rule the same paragraph states two sentences later).
+
+**`StoreStatus` carries SEVENTEEN members, plus an open escape arm `(string & {})`**
+(`bindings/js/index.d.ts`, the `StoreStatus` declaration; `docs/specs/storeroom-native/contract.md §8.1`'s
+2026-10-23 amendment, whose own words are *"the operative set is `17` members ranked `1`…`17`"*; the algebra
+`11 + 2 + 1 + 1 + 1 + 1 = 17` ✓). **`ValueRefusedAtBoundary` is written at rank `17`, LAST of the seventeen and
+BEFORE the escape arm**, and `ConstraintListInvalid` stands at rank `16`. **The store implements seventeen
+(`src/error.rs`'s `CODES`).**
+
+| rank | status |
+|---|---|
+| 1–11 | `AddressMalformed` · `AddressNotFound` · `LeafHasNoDownstream` · `TierNotFound` · `OutOfDomainTier` · `ParentAnchorMonotonicityViolation` · `ContainerKindConflict` · `ReadTargetIsBranch` · `WriteParentNotLink` · `JournalOpUnknown` · `RollbackCompacted` |
+| 12–16 | `ConstructionArgumentMissing` · `FilePathUnreachable` · `ValueNotAdmitted` · `FileCommitFailed` · `ConstraintListInvalid` |
+| 17 | `ValueRefusedAtBoundary` |
+| 18–19 | `ConstraintBodyThrew` · `ConstraintRefusedAtRegistration` (`DEF-S`, `DEF-N`, 2026-10-26) |
+| 20 | `ConstraintPassRefused` (`DEF-H`, `DEF-W`, 2026-10-26) — a constraint's refusal of a `write`, and of a `rollback` whose terminal state it refuses |
+| escape | `(string & {})` |
+
+**THE ESCAPE ARM IS LOAD-BEARING RATHER THAN LOOSENESS.** The store's set has already moved three times — fourteen
+to fifteen, fifteen to sixteen, and sixteen to seventeen — and an immutably-enumerated union would mis-type a LAWFUL
+refusal the moment the set moves again; **the arm is what keeps a member the store has added typeable in an
+installed `0.5.0`** (`index.d.ts`, `StoreStatus`; `PUB-DD-3`). **It has just done so: the 2026-10-26 ruling
+added `ConstraintBodyThrew` and `ConstraintRefusedAtRegistration` at ranks `18` and `19`, and an installed copy
+whose union stopped at `17` would mistype both.** **So: do
+not `switch` on these without a `default`, and NEVER treat an unknown `status` as success.** The set is the
+store's to close; **the package mints no member, widens no set and renames none.**
+
+**★ AND ONE ARM OF ROW `20` IS NOT WHOSE IT LOOKS LIKE, DECLARED HERE SO YOU MEET IT BEFORE A TEST DOES — `D-76` ITEM 2 (`DEF-AU`), 2026-10-29.** **`ConstraintPassRefused` ALSO CROSSES WHEN THE REFUSED ACT WAS A LISTENER'S AND NOT YOURS**: **your own write's data then STANDS IN THE STORE**, and the answer carries **no member that says so** — *"so the status alone is not a statement that your write did not happen."* **WHAT TO DO IS `§6.5a`'s rule of use, where both arms are measured and printed side by side: DO NOT RETRY ON THE ANSWER — READ THE ADDRESS YOU WROTE.** **NO RANK MOVES, NO MEMBER IS MINTED AND NO BEHAVIOUR MOVES: the distinction is a closed set's business (`D-38`) and the architect's call, not this guide's** (`D-76`; `D-73`; `§6.5a`).
+
+**⟶ AND AN INNER REFUSAL A CONSTRAINT BODY THREW NOW CROSSES BESIDE THE CROSSED ONE, 2026-10-28 — `DEF-AK`, MEASURED AND DECLARED.** `RCA-8(g)` ANNOTATE-BESIDE: **the paragraph above stands BYTE-FOR-BYTE and is read THROUGH this one; no rank moves and no member is minted.** **WHAT WAS MEASURED: a LISTENER body propagates an inner refusal VERBATIM — same `status`, same `message`, same two-entry `log` — while a CONSTRAINT body making the IDENTICAL write had it REPLACED by a generated `ConstraintBodyThrew` whose single log entry was the OUTER attempt's, with the inner refusal's own literal occurring ZERO TIMES anywhere. WHICH HOST YOU WERE INSIDE DECIDED WHAT YOU WERE TOLD.**
+- **`ConstraintBodyThrew` is still the `status` that crosses** — the body did throw, and rank `18` says so — **but the inner refusal is now REACHABLE from what you catch, under `Symbol.for('provident-storeroom.inner-refusal')`:** a non-enumerable own member carrying the value the body threw, so **its own `status`, its own `message` and its own `log` are all there to read.** `Object.keys(caught)` still reads `["status","message","log","address"]` — FOUR members in the form's own order (`D-77`) — and the form is unmoved.
+- **AND THE CROSSED SENTENCE STOPS CLAIMING MORE THAN IT DELIVERS.** Its own bytes — *"a constraint body's throwable crosses as this refusal"* — now stand followed by **the package's own clause saying the value the body threw does NOT cross as this refusal, naming the inner `status` and quoting the inner `message`, and saying where the inner refusal crosses instead.** A body that threw something that is **not** a refusal (**a `TypeError`, a string**) has **nothing carried beside the crossed form**; there is no inner refusal to name, and the generated sentence names the CODE rather than promising a value.
+- **A FORGED THREE-MEMBER OBJECT IS STILL NOT QUOTED.** The inner refusal is recognised by **a mark this package sets on the forms IT builds** — never by the shape a caller can spell — so a body throwing `{status, message, log, address}` of its own gets the generated sentence and nothing of its text is repeated back as though the package had found a refusal there (`DEF-A`'s protection, extended one layer in).
+- **THE LISTENER ARM IS UNCHANGED, AND THAT IS THE CONTROL:** nothing marks a listener's throw, so it still crosses **as itself**, by identity — `caught === thrown`, its own `status`, `message` and `log`. **A `rollback` whose judgement a pair's body threw** crosses `ConstraintBodyThrew` at rank `18` and carries any inner refusal the same way (`§5.4`).
+- **⟶ AND THE CONSTRAINT HOST'S LIST IS NOW THE COMMIT'S, WHICH IS THE DEEPER HALF OF THE SAME RULING (2026-10-28, `D-53`).** The inner refusal's own two entries are **IN the crossed report** — the `constraint-check` entry naming the inner pair and the `outcome` entry carrying `KC-3` — on the same array the enclosing attempt appends to, at a continuous `seq`; **`carriedInner.log` and `caught.log` are ONE array, not two.** **READ §8.0a ABOVE BEFORE COUNTING ENTRIES**: the listener's list is still its own, because the listener's write opens its own commit, and that difference between the two hosts is now the difference the ruling draws rather than an asymmetry nobody declared.
+
+**AND `ValueRefusedAtBoundary` IS THE ONE YOU WILL MEET ON THE VALUE ROUTE:** the package's own walk decides a
+value's class **before any store verb is called** and answers this member with the failing target's spelling
+(§10). **`ValueNotAdmitted` stays at rank `14` and is the STORE's own answer on the native route — a pass that
+reads rank `17` as a rename of rank `14` has destroyed a member.**
+
+**⟶ AND THREE FIGURES OF THIS SECTION ARE CORRECTED AT THIS DATE, EACH AT ITS OWN SITE, SO THE NINETEEN ABOVE IS
+NOT LEFT DISAGREEING WITH ITS OWN NEIGHBOURS** (`RCA-8(g)` ANNOTATE-BESIDE: every sentence above stands BYTE-FOR-
+BYTE and is read THROUGH this clause). **(i) *"The store implements seventeen (`src/error.rs`'s `CODES`)"* READS
+NINETEEN**: `src/error.rs`'s `CODES` is `[&str; 19]`, ranks `18` and `19` being the two this set's 2026-10-26 ruling
+appended — **so the declaration of record and the crate agree at nineteen, which is the row above.** **(ii)
+*"installed `0.5.0`"* READS `1.0.0`** (`bindings/js/package.json`, read at its own bytes; §0's correction clause).
+
+**⟶ AND THAT CORRECTED FIGURE IS ITSELF ONE RELEASE BEHIND, 2026-10-27: *"installed `0.5.0`"* READS `1.0.1`**
+(`bindings/js/package.json` at its own bytes; §0's correction of this date; `RCA-8(g)` ANNOTATE-BESIDE — the
+sentence above stands and is read THROUGH this one). **THE SENTENCE'S OWN POINT IS UNMOVED: the escape arm is what
+keeps a member the set has since gained typeable in an installed copy, and the set is the store's to close.**
+**(iii) THE SET HAS NOW MOVED FOUR TIMES, NOT THREE**: fourteen to fifteen, fifteen to sixteen, sixteen to
+seventeen, **and seventeen to nineteen** — **the escape arm's argument is strengthened rather than weakened by the
+fourth move, which is exactly the arm's own evidence.** **NO TABLE ROW, NO RANK AND NO TRIGGER MOVES, and the two
+appended members are the ones the table's `18–19` row already prints.**
+
+**⟶ AND TWO FIGURES OF THAT CORRECTION ARE THEMSELVES RE-READ AT THE SHIPPED TREE, 2026-10-26, BECAUSE THE SET MOVED AGAIN AFTER THE CORRECTION WAS FILED AND ITS OWN ALGEBRA MOVED WITH IT.** `RCA-8(g)` ANNOTATE-BESIDE: **the correction's sentences — including its *"READS NINETEEN"* and its *"FOUR TIMES, NOT THREE"* — stand BYTE-FOR-BYTE and are read THROUGH this clause; THIS clause re-reads two figures and moves no site, no rank and no trigger.** **(i) *"`src/error.rs`'s `CODES` is `[&str; 19]`"* READS `[&str; 20]`** — read at the crate's own bytes — **ranks `18`, `19` and `20` being the three the 2026-10-26 rulings appended, so the declaration of record and the crate agree at TWENTY, which is this section's own heading and its table's own `20` row.** **(ii) THE SET HAS NOW MOVED FIVE TIMES, NOT FOUR:** fourteen to fifteen, fifteen to sixteen, sixteen to seventeen, **seventeen to nineteen, and nineteen to twenty** — **the fifth move being `ConstraintPassRefused` at rank `20`, appended on the architect's ruling *"Assert the constraints on rollback"* — and the escape arm's argument is strengthened rather than weakened by the fifth move, exactly as it was by the fourth.** **NO TABLE ROW, NO RANK AND NO TRIGGER MOVES BY THIS CLAUSE: the heading's algebra `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 20` ✓ is the one figure of this section that stood right before it and stands right after it.**
+
+### §8.2 The two states that share `FilePathUnreachable`, and what each means for you
+
+**`FilePathUnreachable` is the one member that answers for two unrelated failures, and a handler that treats them
+as one "file problem" will retry a construction that cannot succeed, or discard a running store.**
+
+| the state | when you meet it | what it means |
+|---|---|---|
+| **`FilePathUnreachable`** | **at `storeCreate`** — no addon loaded at either rung (§2.3), or a provided `filePath` that failed the construction-time reachability test | **NO INSTANCE WAS RETURNED AND NOTHING WAS CREATED.** There is no store to retry against |
+| **`FileCommitFailed`** | **on a `file`-tier write's save, on an instance that is running** | **THE INSTANCE IS FINE AND THE WRITE FAILED — AFTER THE STORE'S OWN JOURNAL ROLLBACK ALREADY RAN** (§9.2) |
+
+**The refused `filePath` forms, each answering `FilePathUnreachable` with nothing created:** an absent parent
+directory; a path that is a directory; an existing file that is not writable; a name occupied by a DANGLING
+SYMLINK; a parent on a read-only mount (`EROFS`); and a create the process is denied (`EACCES`)
+(`docs/specs/storeroom-native/contract.md §8.1` #13's amended trigger clause; `§10.4` part 5).
+
+### §8.3 The refusal that is not `{status, message, log, address}` — declared, and narrow
+
+**Two positions throw a `TypeError` instead of the one form, and both are DECLARED rather than accidental:**
+
+1. **`write`'s `commit` position.** Every form at that position outside the admitted one throws **the class
+   test's own `TypeError`, whose `status` member is ABSENT and whose STRING `message` member is REQUIRED**
+   (`surface.md §2.4` item 9 (g) item 1; `index.d.ts`, the `write` member). **A refused position stops the write:
+   no verb is reached and no byte moves.**
+2. **The three constraint methods' argument positions.** **Every outside form of either position throws ONE
+   `TypeError`, whose `status` member is ABSENT, and nothing is added, enabled, disabled or otherwise changed**
+   (`index.d.ts`, `addConstraint`; `surface.md §2.4` item 5's constraint-argument rule (ii);
+   `parameter-semantics.md §2.25`, archived).
+
+**Measured 2026-10-26, and it is the sharpest of these:** `store.constraintOn({address: ['a'], id: 'c1'}, () =>
+true)` at a pair this entry does not carry threw a **`TypeError`** whose `Object.keys` was `["log"]`, whose
+`status` was **absent**, and whose message read *"the pair at the first argument of `constraintOn` carries no
+constraint in this instance, and a toggle names a pair the entry carries"*. **So the `TypeError` carries `log` and
+no `status`, and no clause declares that member set** (`docs/L1/open-items-2026-10-25.md §2`'s item (d) records
+the residue and its owner, `role_spec_writer`).
+
+**THE PRACTICAL RULE, AND IT IS THE WHOLE OF WHAT YOU NEED: catch broad, branch on `status` when it is present,
+and never assume a caught value has one.** **A `TypeError` whose `status` is absent is either a declared
+class-test site above or your own bug — and it is never a store refusal.**
+
+---
+
+## §9 · The `file` tier
+
+### §9.1 Construction, `filePath`, and the file the store leaves behind
+
+**`filePath` is OPTIONAL and its absence is in domain: the register is created at `mem`.** **The register's own
+tier is fixed at creation and never moves** — `file` where a `filePath` was provided and passed the probe, `mem`
+otherwise (`docs/specs/storeroom-native/contract.md §10.4`; the archived `write-and-read.md` `§3.2`'s register-tier
+clauses). **That matters because it is the parent anchor
+the monotonic clause is evaluated against at a register key: in a `mem`-register store the `file` tier is
+unreachable at register keys, and through the chain below them.**
+
+**★ AND A PROVIDED, ABSENT PATH IS CREATED AT CONSTRUCTION — EXCLUSIVELY, ZERO-LENGTH AND EMPTY, with no register
+key, no journal entry and no registration committed** (`native/contract.md §10.4` part 3; `DD-28`'s amended cell). **So
+`storeCreate` is itself a filesystem act: if your own arrangement of the path depends on its absence, the store
+will have occupied it before you look.**
+
+**AN EXISTING FILE IS NEVER TRUNCATED, AND THAT IS DELIBERATE:** the primitive is an exclusive create, and its
+`AlreadyExists` falls through to a write-mode open that writes no byte — **so `storeCreate` over an existing
+store's file is safe, and it is not a reset** (`native/contract.md §10.4` parts 2 and 6).
+
+**AND EVERY CONSTRUCTION ARGUMENT IS VALIDATED BEFORE ANY FILESYSTEM ACT**, so a refused construction leaves
+**no instance, no file, no directory and no byte** — which holds for the later-argument failures too, and is what
+the ordering buys (`native/contract.md §10.4` part 4; `§8.1` #1 and #12).
+
+**⟶ AND THAT GUARANTEE IS THE ORDERING'S AND NOT THE CONSTRUCTION'S WHOLE — CORRECTED AT ITS OWN SENTENCE,
+2026-11-11, AT GATE 4's FINDING (`role_l4_implementer`; ANNOTATE-BESIDE).** **THE SENTENCE ABOVE STANDS
+BYTE-FOR-BYTE AND IS READ THROUGH THIS CLAUSE; no argument-validation order moves and no byte of the store's own
+`§10.4` guarantee is withdrawn.** **WHAT IT DOES NOT COVER: A CONSTRUCTION THAT REFUSES *AFTER* THE EXCLUSIVE
+CREATE.** The creation validates its arguments first — that is what the sentence buys — and then it **creates the
+store and, over it, performs the constraint SWEEP**: `storeCreate` sweeps the whole register, refuses an
+inconsistent result at rank `20` `ConstraintPassRefused` (a cycle, or a register a carried pair still violates
+after the rounds end) and refuses a fired listener body's throw at rank `21` `ListenerBodyThrew` (`D-123` item
+`1`, `D-124` items `1`–`2`, `D-125` items `2`–`4`). **AT THOSE ARMS THE EXCLUSIVE CREATE HAS ALREADY RUN, AND
+`PIN-12` DECLARES THAT THE FILE IT CREATED STANDS** — `PIN-12`, verbatim: *"A refused creation leaves the store's
+own created file and every earlier sibling registration's already-saved `file` landing standing, and no removal arm
+is declared"* — **and an earlier `cfg.constraints` element's repair that reached a `file`-tier save has left its
+bytes too.** **SO THE ARM-BY-ARM RULE FOR YOU: a construction refused for an OUTSIDE ARGUMENT leaves nothing
+(asserted above and unchanged); a construction refused by the SWEEP, or by a fired listener body's throw, leaves
+the zero-length file the store created and any bytes an earlier repair's save wrote, and no instance.** **NO
+ROLLBACK COMPOSES AND NO REMOVAL ARM EXISTS** (`D-107`'s composition is per route and the delivery sits after every
+save, `PIN-10`, `PIN-12`), **so a retry that expects an absent `filePath` must unlink it itself.** (`D-123` item
+`4`'s diagnosis requirement; `strata/decisions.md` · `D-124` · `D-125`; `docs/L1/creation-sweep.md`'s `PIN-12`.)
+
+**⟶ AND THE ARM-BY-ARM RULE ABOVE GAINS ITS THIRD ARM FROM 2026-11-06 — A CONSTRUCTION REFUSED ON A CORRUPT
+IMAGE — CORRECTED AT THE SAME SENTENCE (`role_l4_implementer`; ANNOTATE-BESIDE).** **THE SENTENCE
+*"AND EVERY CONSTRUCTION ARGUMENT IS VALIDATED BEFORE ANY FILESYSTEM ACT … so a refused construction leaves no
+instance, no file, no directory and no byte"* AND THE CARVE'S OWN ARM LIST ABOVE
+STAND BYTE-FOR-BYTE AND ARE READ THROUGH THIS CLAUSE; no argument order, no reachability form, no save instant and
+no `PIN-12` byte moves.** **WHAT THEY DO NOT COVER, AND IT IS THE ONE REFUSAL WHOSE SUBJECT IS THE PATH'S OWN
+CONTENT: a `filePath` that EXISTS, is REACHABLE and is NOT EMPTY, and whose bytes are not this store's image.**
+**`storeCreate` READS THAT FILE BEFORE THE PACKAGE ASKS ANYTHING AND REFUSES THE CONSTRUCTION AT RANK `22`
+`FileImageRefused`** — `D-126` item `2`, verbatim: *"Mint/revive a code: a corrupt image refuses the construction"*
+(`strata/decisions.md` · `D-126` item `2`; the member L1 pins at `docs/L1/creation-sweep.md` `§3` `PIN-11`) — **so
+no instance is returned, and the file is left EXACTLY AS IT WAS FOUND: un-written-to, un-truncated, un-repaired
+and NOT REMOVED.** **"LEAVES NOTHING" THERE MEANS THE CONSTRUCTION DID NOTHING, NOT THAT THE PATH IS EMPTY:** the
+bytes were already at the path, no arm of the construction wrote one, and the refusal precedes every save, **so no
+rollback composes and no removal arm exists — and that is the point: the evidence survives, so you can tell a
+corrupt image from an empty path and repair or move the file yourself rather than have the next save write a
+readable image over it** (`D-118` item 1). **AND THE THREE CLASSES ARE TOLD APART HERE SO YOU DO NOT APPLY ONE TO
+ANOTHER:** an **ABSENT** `filePath` and a **ZERO-LENGTH** one are still **no image at all** — both still construct,
+both load nothing and both cross no code (`native/contract.md §10.4` part 3; `DD-38`); a present, non-empty image
+the store **READS** loads normally; and a present, non-empty image it **REFUSES** refuses the construction at rank
+`22` and at no other instant. **YOUR ERROR HANDLER THEREFORE HAS TWO CONSTRUCTION REFUSALS ABOUT THE PATH ITSELF** —
+`FilePathUnreachable` (the path cannot be used, `§8.1`) and `FileImageRefused` (the path holds something that is
+not this store's) — **and nothing at all for the two silent classes**, **and the second is the one to catch
+separately, because it is the only one after which a file you must not touch is still sitting at your `filePath`.**
+(`D-126` item `2`; `docs/L1/creation-sweep.md`'s `PIN-11`; `native/contract.md §8.1`'s row `22` and this guide's
+`§8.1` clause of 2026-11-06 above.)
+
+**THE FILE IS THE STORE'S, NOT YOURS.** Do not read, edit, parse or migrate it by hand; its shape is the store's
+own and a hand-migration is a corruption waiting to happen. **If you need a migration, read the old value through
+`read` and write the new one through `write`** (`A117`/`A127`'s private-state rule; `write-and-read.md §7.2`).
+
+**★ AND ONE NAMED LIMITATION WITH NO RULE, so you do not discover it as a mystery: a `filePath` naming a SYMLINK to
+a real writable file is ACCEPTED at construction, and the first `file`-tier write's save replaces the link with a
+regular file.** **Three remedies exist and all are priced; the choice is the architect's and no clause declares
+one** (`archive/pre-strata-docs-2026-10-24/docs/defects.md`, `DEF-2026-10-13-D`; `strata/brief.md §6`). **If you
+point `filePath` at a symlink deliberately, know that the store will end up holding a regular file at that name
+and the link will be gone.**
+
+### §9.2 The file saves after ANY act that changes the `file`-tier data
+
+**`DD-28`'s sentence is law, and it is read for what it is: *"`file`-TIER DURABILITY IS PRODUCED BY A SUCCESSFUL `file`-TIER `write` ONLY"* (`docs/specs/storeroom-native/contract.md` `DD-28`) is a statement about THE ACTS THAT OWE A SAVE, and no longer a closed list of them** (`strata/decisions.md` · `D-106` item 2). **THE RULE, IN THE FORM YOU CAN HOLD: the file saves after ANY action that changes the file-tier data, without exception.** **A `file`-tier `write` is the paradigm and not the boundary** — an act that moves `file`-tier data without being a `file`-tier write is under the same duty, **so an act that leaves the bytes alone after moving that data is a defect and not a nuance.**
+
+**WHERE THE SAVE HAPPENS — FOUR INSTANTS, AND EACH ONE IS NAMED, BECAUSE A SAVE NAMED WITHOUT ITS INSTANT IS THE SENTENCE THAT HID THIS:**
+
+- **(I) A WRITE'S TERMINAL ARM, ON ITS PASSING ARM** — its first act, before any delivered listener body runs. **A `mem`- or `temp`-tier write owes a save on this instant TOO, and exactly when it moved a `file`-tier version: a write of a CONTAINER value at an address holding a `file`-tier version REPLACES that version with its own subtree, so the durable version has left the register and the bytes must follow it — while a SCALAR at the same address SHADOWS the durable version instead, leaves it standing, and owes nothing** (`strata/decisions.md` · `D-106` item 2).
+- **(II) A `delete`'S TERMINAL ARM, ON ITS PASSING ARM** — at the delete's own op, and **at EVERY tier scope: a whole-target delete's op stands at no tier and the save still happens where the act removed at least one version standing at the `file` tier** (`§9.3`).
+- **(III) THE CLOSE OF A REGISTRATION, ON ITS PASSING ARM** — `addConstraint`, `constraintOn`'s re-arm, a `storeCreate` carrying `cfg.constraints`, and a boot over an existing `filePath` carrying them — **which saves the `file`-tier write a repair landed through the route `§7.2` (4) declares, and which saves NOTHING on a refusing arm** (`§7.2` (4)).
+- **(IV) A REVERSAL'S OWN END — AND IT IS TWO SAVES OF TWO DIFFERENT ACTS, WHICH THIS SENTENCE SEPARATES BECAUSE THE OLD ONE JOINED THEM** (`strata/decisions.md` · `D-112` items 1–2). **A `rollback` THAT PUT A `file`-TIER VERSION BACK IS SAVED BY THE PACKAGE, AFTER ITS CONSTRAINT JUDGEMENT HAS PASSED** — the store's `rollback` performs no write of its own, and the save is the same state-keyed write a restore makes, keyed to the image the path already holds and to no record; **the reversion comes FIRST and the save follows it.** **AND A REFUSED `rollback`'S COMPENSATING RESTORE STILL SAVES, AND THAT SAVE IS THE STORE'S OWN** — `restoreMark` replays and saves the restored image where the path does not already hold it, exactly as it has since 2026-10-27 (`§9.3`). **AND THE SAME INSTANT COVERS THE REVERSAL THAT MEETS A COMPACTED BASE**: it regenerates the last valid state instead of refusing it (`§5.4`, `§9.3`), and then the judgement's save writes it here.
+
+**A CALLER'S `store.write(addr, 'file', value)` IS SAVED BY INSTANT (I) AND NOT BY THE VERB.** The package routes a three-position write through the kernel's commit and its attempt, **so the terminal arm IS in that path** — and **the addon's `write` verb performs no file I/O on any of its arms.**
+
+**A REFUSAL IS NOT A SAVE'S INSTANT, AND THAT IS THE OTHER HALF OF THE SAME RULE: A REFUSAL ROLLS BACK.** **A registration that refuses — because its repair's body threw, because the repair credited no op, because the re-run refused the repair's own landing, OR BECAUSE A CONSTRAINT BODY THREW AT THE RE-RUN — composes a rollback over what its route landed, so there is nothing left standing for a save to carry and nothing the close owes** (the throwing arm's refusal is still `ConstraintBodyThrew`, and its `log` carries the rollback's own step where the rollback met a store code) **— and a write's own failing pass saves nothing at all, leaving the bytes byte-identical to what they were before the call.** **AND A REFUSAL IS NEVER A REFUSAL TO UNDO: where the reversal's own walk meets a base that has been compacted, the store regenerates the last valid state from the durable ground truth rather than leaving the edit standing** — **and where the image standing at `filePath` is one the store's own loader cannot read, that image is treated as NO image at all and the regeneration rebuilds from the state the store was created with, so a refusal rolls back there too and the save that follows puts a readable image back at the path** (`strata/decisions.md` · `D-118`) — **so a refusal leaves the store where the call found it, and this section declares no exception to that.** **The one thing a regeneration cannot put back is a version the compaction had already swallowed and no file image carries; that version is gone, and `§5.4` states it as the window's own edge rather than as a failure.**
+
+**SO THE BYTES AT `filePath` ARE THE BYTES OF THE LAST SUCCESSFUL SAVE, whose instants are (I)–(IV) and no other act's.** **AND AN ACT THAT MOVES NO `file`-TIER DATA SAVES NOTHING AND OWES NOTHING**: a `mem`- or `temp`-tier write **that leaves every `file`-tier version standing — which a scalar write does at an address it shadows and a container write does only where no durable version stood there to be replaced**, a `delete` that removed only versions at other tiers, a reversal that put back only versions at other tiers, and a registration whose repairs never touched the `file` tier.
+
+**⟶ AND YOUR PASSING ANSWER NAMES WHAT YOUR ACT MOVED DOWNSTREAM, 2026-11-02 — `D-119`.** **THE RULING, THE ARCHITECT, VERBATIM: *"Cache the log and pass to the surface on resolution, same as on failure. This is needed so that manual data changes can check what additional data changed downstream of their request."*** **SO A `write` AND A `delete` THAT PASS ANSWER WITH THE COMMIT'S OWN LIST AT `record.log`** — **the `constraint-check` entry for each pair the pass asked, the `repair-run` entry for every repair that landed an edit, and the `commit` entry that closes the arm, in the order the commit appended them, and the same list a refusal about that commit carries** — **so what your act moved beyond what you asked for is readable off the answer you already hold, WITHOUT a second call, a `read` sweep or a diff**; **a `rollback` that passes carries its judgement's own list the same way**, which is where a repair the judgement ran leaves its entry (`D-113` item 3; `D-117` item 1). **The member is non-enumerable and present on every passing answer, and `[]` means *this act appended nothing it can report*** — never *"nothing happened"*: a nested call inside a constraint or a repair body answers `[]` because the commit it joined has not crossed, and the act that owns that commit reports the entries. **AND NOT ONE BYTE OF THE SAVE RULE ABOVE MOVES: this paragraph is what you can AUDIT, and (I)–(IV) is what is SAVED.** (`D-119`; `D-53`; `D-58`; `index.d.ts`'s three record clauses of the same date.)
+
+**⟶ WHAT THIS SECTION REPLACED, 2026-11-02 — ONE SENTENCE PER ITEM, AND NO MARK BESIDE ANY SENTENCE ABOVE.** **(a)** It taught that `store.write(addr, 'file', value)` *"COMMITS, with no kernel attempt and no terminal arm in the path"*; **WITHDRAWN — that sentence is false of the package's own surface**, where every `store.write` reaches the kernel's commit and its attempt and where the terminal arm is the save; it was true only of the addon verb, which writes no byte. **(b)** Its heading made durability *"a `file`-tier WRITE's act"*; **widened to the rule above.** **(c)** Its last paragraph said *"both saves stand"*, a bare write's and the terminal arm's; **WITHDRAWN — there is ONE save, at instants (I)–(IV), and a reader who counted two was counting one act twice.** **(d)** It said nothing about a refusal, which is the state a reader most needs: **added, and `§7.2` (4) is where the registration's arm is stated.** **(e)** Its refusal paragraph said the compacted floor *"is all-or-nothing, the call undoes nothing, and the refusal's `log` names the address whose edit survives it"*; **WITHDRAWN — the reversal regenerates and no address's edit survives a refusal** (`D-108`). **The rulings are `strata/decisions.md` · `D-106`, `D-107` and `D-108`, and the measurement behind the first is `strata/research.md` §13; this guide states the rule and takes no measurement of its own.**
+
+### §9.3 A `delete` and a `rollback` save the `file`-tier data they move
+
+**A `delete` SAVES, AT EVERY TIER SCOPE, AND THE SAVE IS ITS TERMINAL ARM'S AT THE RECORD'S OWN OP.** **A `file`-tier deletion is durable:** `delete(['k'], 'file')` followed by a fresh `storeCreate` over the same `filePath` answers `AddressNotFound` for what it removed. **★ AND A WHOLE-TARGET DELETE — NO TIER NAMED — SAVES TOO, FROM 2026-11-02 (`strata/decisions.md` · `D-106`):** its op stands at **no tier**, so the save is keyed to **WHAT THE ACT MOVED** — the versions the delete removed, read off the delete's own journal entry — and **where at least one of them stood at the `file` tier the bytes are written, while where none did nothing is written and nothing is owed.** **So the answer in one line: a deletion is durable at ANY scope, provided it removed something durable.**
+
+**A SUCCESSFUL `rollback` SAVES THE VERSIONS IT PUT BACK, AND THE REVERSION COMES FIRST.** **THE SEMANTIC IS UNMOVED: a reversal reverts to the LAST VALID STATE, and that act is not contingent on any byte** (`D-107` item 3's *"Rollback should still revert to the last valid state"*). **Where a reversal restores a version standing at the `file` tier and the image the path already holds is not the state the reversal left, the RESTORED IMAGE IS WRITTEN — but the writer is the PACKAGE, and the instant is the END OF THE REVERSAL'S CONSTRAINT JUDGEMENT, not the `rollback` verb's own end** (`strata/decisions.md` · `D-112` items 1–2): **the store's `rollback` performs no write at all**, and the save is the same state-keyed write a restore makes — **it writes where the image the path holds is not the state the reversal left and writes nothing where it is** — so the version a reversal restored does **NOT** stand again after a re-boot, and a fresh `storeCreate` reads the value the reversal restored. **THE REVERSAL STILL APPENDS NO JOURNAL ENTRY** — *"a save is an effect and not an op"* — **and the next write's `seq` still continues as though the reversal had not happened; the save needs no op of its own because it is keyed to the STATE the reversal left and not to a record.** **A reversal that restores only `mem`- or `temp`-tier versions writes no byte.** **★ AND A REVERSAL THAT RETURNS THE STORE TO WHERE ITS CALL FOUND IT WRITES NOTHING, AND THAT IS THE SAME RULE APPLIED FOR THE FIRST TIME ON THE ARM THAT HAD IT WRONG — `strata/decisions.md` · `D-111` item 1.** **A reversal the kernel composes to undo a FAILING attempt is COMPENSATION and not an act of yours: it changes nothing durable, so there is nothing to save, and the file's bytes after a refused write are BYTE-IDENTICAL to what they were before the call** — measured, a zero-length file stays zero-length and a standing image's inode is not moved. **A CALLER'S OWN `rollback` IS AN ACT AND STILL SAVES** (item 2). **AND THE COMPENSATION IS EXCLUDED FROM THE SAVE BY THE ORDERING AND NOT BY THAT QUESTION** (`strata/decisions.md` · `D-112` item 3, correcting the sentence that stood here): a compensation reaches NEITHER the judgement NOR the save, so the question the save asks is **whether THIS save has been performed** — the image the path holds against the state the store stands at — and it is the whole of what stops a redundant write, because this arm has no record and no mark to consult.
+
+**★ AND A REVERSAL THAT MEETS A COMPACTED BASE REGENERATES THE LAST VALID STATE INSTEAD OF REFUSING IT — FROM 2026-11-02 (`strata/decisions.md` · `D-108`), AND THIS IS THE ONE ARM THE OLD TEXT SENTENCE HAD BACKWARDS.** **When the entries a reversal would walk are old enough that the journal has compacted them, the store does NOT answer that the reversal fails and undoes nothing: it REBUILDS the last valid state from what is durable — the `file` tier's own image, and the state the store was created with where no image stands — and then replays what its journal still reaches.** **The reversion comes first and the save follows it here exactly as on the ordinary arm**, so a reversal that regenerated leaves the bytes agreeing with the memory too. **AND WHAT IT CANNOT PUT BACK, STATED PLAINLY BECAUSE YOU WILL MEET IT: a `mem`- or `temp`-tier version whose only record is an entry the compaction has already swallowed is not restored by a regeneration, and no file image carries it.** **That is the undo window's own edge — inside it a reversal puts back what it undid, and beyond it a reversal reaches as far as your journal still reaches.**
+
+**★ AND A REVERSAL WHOSE SAVE CANNOT LAND TELLS YOU TWO THINGS, AND BOTH ARE TRUE AT ONCE: THE REVERSAL STANDS IN MEMORY, AND THE BYTES WERE NOT UPDATED.** **There is no journal entry to roll back — a reversal appends none — so the store cannot un-restore what it has already restored, and the refusal is `FileCommitFailed` AFTER the reversal stands.** **That is not the write's form and it is not a wider version of it: a write's failed save is rolled back in the journal first and the caller is never handed the rolled-back state, while a reversal's failed save leaves you a state the bytes do not describe — so read `filePath`, or a fresh boot, before you assume the reversal was durable.**
+
+**★ AND A REVERSAL'S JUDGEMENT MAY NOW RUN YOUR PAIRS' REPAIRS, AND IT DELIVERS THE LISTENERS THOSE REPAIRS' WRITES FIRE — once per distinct handle, with the triggering address as their single argument, AFTER the save and BEFORE `rollback` returns its record** (`strata/decisions.md` · `D-113` item 3, `D-117` item 1). **THE PAIR THAT REFUSES THE STATE A REVERSAL LEAVES MAY CARRY A REPAIR ON ITS OWN ANSWER**: the repair lands in the same commit the judgement stands in, the reversal's judgement then asks again over the state that repair left, and the reversal stands with that edit — **so a `rollback` you expect to throw may instead land a repair and return its record.** **AND THE LISTENERS YOUR REPAIRS' WRITES FIRE ARE INVOKED, WHICH THEY WERE NOT BEFORE**: the body runs after the reversal's save and before this member returns, **and a judgement that refuses, a pair body that throws, and a reversal that fired nothing all invoke NOTHING** — the record is unmoved either way, same `{opId, undoneOps, restoredTo}`, no member added and no status minted.
+
+**AND A REFUSED REVERSAL'S COMPENSATING RESTORE SAVES, as it has since 2026-10-27:** the restore that puts the state back before a reversal compares the `file` tier's projection of the state it restored with the image the path already holds and, where the two differ, saves the restored image — **so a restore that returns the store to what the file already describes writes no byte, and one that moves a `file`-tier version off it writes.** **So BOTH of a reversal's arms leave the bytes agreeing with the memory — and the two acts that make it so are DIFFERENT ACTS at DIFFERENT INSTANTS, which is the one thing the sentence that stood here had wrong** (`strata/decisions.md` · `D-112` items 1–3): a reversal that STANDS is saved by the package after its judgement (the paragraph above), and a reversal that is REFUSED is saved by the store's own restore, here. **The store's `rollback` writes no byte on either arm.**
+
+**AND A DELETION OR A REVERSAL THAT CANNOT LAND ITS SAVE IS REPORTED, NOT SWALLOWED:** at a `delete`'s save, `FileCommitFailed` answers AFTER the store's own journal rollback has run (`§9.4`); at a reversal's, it answers after the reversion has stood and before any byte moved (the paragraph above).
+
+**⟶ WHAT THIS SECTION REPLACED, 2026-11-02 — ONE SENTENCE PER ITEM, AND NO MARK BESIDE ANY SENTENCE ABOVE.** **(a)** Its heading said *"A `delete` and a `rollback` perform no file I/O"*; **WITHDRAWN for both verbs.** **(b)** Its first paragraph said a `delete` *"at ANY tier scope, INCLUDING one that removes `file`-tier versions — performs no file I/O"*, and its one-line advice said *"durability is a property of `file`-tier WRITES … if you delete something durable and the process then restarts, expect it back"*; **WITHDRAWN — a deletion is durable at any scope and a durable removal does not come back.** **(c)** Its 2026-10-29 clause said *"a WHOLE-TARGET delete — no tier named — … nothing is saved and the version still comes back after a re-boot"* and *"a `file`-tier deletion is durable; a whole-target deletion is not"*; **WITHDRAWN — both are false from this date.** **(d)** Its 2026-10-27 clause said a *"SUCCESSFUL `rollback` still performs none either"*; **and its *"the in-memory state restored and the bytes not updated"* half now reads as the reversal's own form rather than a refused arm's alone** — **the first WITHDRAWN, the second WIDENED to the arm this section's third paragraph declares.** **(e)** Its first paragraph said a rollback whose candidate set includes a compacted entry fails and undoes nothing; **WITHDRAWN — the reversal regenerates (`§5.4`, and the paragraph this section adds for it).** **The facts those two clauses established are the paragraphs of this section and not marks inside it.** **The rulings are `strata/decisions.md` · `D-106`, `D-107` and `D-108`; this section takes no measurement of its own.**
+
+### §9.4 When the save itself fails
+
+**On a `file`-tier write's save that fails — the act itself failing, not a constraint — the store rolls the write
+back in the journal AUTOMATICALLY, and the caller receives `FileCommitFailed` AFTER that rollback has run and
+never the rolled-back state.** **The package compensates for nothing** (`surface.md §2.11` clause 5;
+`write-and-read.md §6.4` item 8; `native/contract.md §8.1` rank #15).
+
+**So `FileCommitFailed` is the one refusal to take seriously: surface it to the user rather than retrying blindly,
+because the store's own recovery has already happened by the time you see it.**
+
+---
+
+## §10 · The value domain
+
+**THE CROSSING IS A DEEP COPY IN BOTH DIRECTIONS.** When you write, the store copies your value into itself; when
+you read, it copies out. **Neither side holds a reference to the other's data, at any verb, at any argument
+position, at any return position** — so you may drop your reference immediately after a write, and a value you
+read is yours to mutate (`docs/specs/storeroom-json-crossing/contract.md §4`'s copy discipline, and `§5`'s
+copy-out form).
+
+### §10.1 The admitted tree
+
+**The admitted tree is the bare JSON tree and nothing else** — a **string** that is a sequence of Unicode scalar
+values (no lone surrogate), a **finite** number (`-0` normalizes to `0`), a **boolean**, a **dense, genuine
+`Array`** whose elements are admitted values, and a **plain object** whose own enumerable string-keyed members
+carry admitted values (`json-crossing/contract.md §1`, its bullets).
+
+**★ AND THE ONE MEMBER JSON CAN SPELL AND THIS STORE CANNOT: `null` IS NOT ADMITTED.** *"`null` is not admitted,
+although JSON can spell it, because the store's own taxonomy makes `StoreValue::Null` an outside class"* — and
+`undefined` is not admitted either (`json-crossing/contract.md §1`'s closing bullet of that list; `A140`, `A147`,
+`A148`; `src/value.rs`'s admitted/outside taxonomy). **So a JSON payload carrying `null` anywhere in it refuses as
+a WHOLE value — and there is no envelope, no marker and no `{"v":…}`/`{"e":…}` spelling that rescues it** (the
+envelope is retired: `A148` Q1). **And a plain object from ANY realm is admitted** — a `vm` object, a
+worker's object, a `structuredClone`d one (`json-crossing/contract.md §1`'s 2026-10-24 clause, item (1)(a); `§3`'s
+`p` classification `plain`/`foreign`/`null`).
+
+**A value is a PLAIN OBJECT when its own prototype is ONE LINK from the value and ends the chain, and that
+prototype carries the standard `Object.prototype` member set** (`json-crossing/contract.md §1`'s 2026-10-24 clause, items
+(1)(a)–(c)). **That is why `Object.create({ a: 1 })` is REFUSED:** its prototype's own prototype is an
+`Object.prototype`, so the value's prototype is not terminal, and it is classified as **`a class instance or
+another prototype-carrying non-plain object`** — the same row a class instance answers (`json-crossing/contract.md §2` row 14;
+`§1` clause's item (1)(b)). **The two refusals are ONE row because they are one shape condition, not because the
+package is being blunt.** A `Object.create(null)` tree, by contrast, is ADMITTED.
+
+**An ARRAY is admitted by the same three conditions on its own chain — `value → Array.prototype →
+Object.prototype → null` — and `Array.isArray` alone may not stand as the test** (`json-crossing/contract.md §1` clause of
+2026-10-24, item (2)). **So a `vm` array, a worker's array and a `structuredClone`d array are admitted by the same
+rule as this realm's own.**
+
+### §10.2 What refuses, and with which status
+
+**Every refusal on this route is `ValueRefusedAtBoundary`, decided by the package's own walk BEFORE ANY STORE
+VERB IS CALLED, and it carries the failing target's spelling at its own value position**
+(`json-crossing/contract.md §2`'s class table, whose rows all answer that one status; `§4`'s 2026-10-23 clause, item (4)).
+
+**The classes, from `json-crossing/contract.md §2`'s rows — SEVENTEEN rows, and the contract's own 2026-10-24 clause
+makes every one of its census sites read `seventeen`/`17` (read at their own bytes 2026-10-26; no cell of this guide
+drove one):**
+
+- **`null` and `undefined`** (rows 1–2) are refused as VALUES, always and everywhere — **and an object member
+  whose value is `undefined` refuses the WHOLE value.** The member is not dropped and its key is not skipped,
+  because any other answer would drop a member silently (`json-crossing/contract.md §1`'s admitted tree; `DD-8`).
+- **a function** (row 3) · **a symbol** (row 4) · **a `bigint`** (row 6) · **a non-finite number** —
+  `NaN`, `Infinity`, `-Infinity` (row 7).
+- **a string carrying a LONE SURROGATE** (rows 9 and 10) — **at a value, and at an object member's KEY**, which
+  is why a key you built from a truncated astral character refuses the value around it.
+- **cyclic values** (row 11) — refused on the walk's own ancestor stack.
+- **anything that is not a plain collection** (rows 12–14): a `Map`, a `Set`, a weak collection, a typed array, an
+  `ArrayBuffer`, a `DataView`, a `Date`, a `RegExp`, a `Promise`, an `Error`, **a `Proxy`**, a class instance, an
+  object wrapper around a primitive (`new String('a')`, `new Number(1)`).
+- **a SPARSE ARRAY** (row 16) — **an array is dense if and only if every index in `0…length − 1` is an OWN
+  property; an index whose only carrier is the prototype is a HOLE, and a prototype-carried index is never read**
+  (`json-crossing/contract.md §2`'s 2026-10-24 clause, item (5)).
+- **an object or array carrying an own ACCESSOR** (row 15) — **and note the consequence: a getter cannot occur on
+  an admitted value, so the copy reads each member exactly once as a structural property rather than as a promise
+  about your getter** (`json-crossing/contract.md §4`'s read-once clause).
+- **an object or array carrying an own SYMBOL-keyed member** (row 5).
+- **a class instance, and any other prototype-carrying non-plain object** (row 14) — `Object.create({a: 1})`
+  included, for the reason §10.1 gives.
+- **a class extending `Array`** (row 13).
+- **★ an ARRAY CARRYING A NON-INDEX OWN MEMBER** (row 17) — **`const a = [1]; a.foo = 3` is REFUSED, not stored
+  without its member.** **The predicate is exact: every string in `Object.keys(a)` must be a canonical index in
+  `0…length − 1`**, so a named member on an array has no JSON spelling and the package will not drop it for you
+  (`json-crossing/contract.md §2`'s 2026-10-24 clause, items (1)–(8); the arm is decided in the walk —
+  `bindings/js/src/entry/carrier.mjs`, read 2026-10-26).
+
+### §10.3 The two ceilings, and there is no knob for either
+
+**The walk refuses a value whose nesting depth exceeds `126`, and it refuses one whose node count exceeds
+`1,000,000`.** **BOTH FIGURES ARE THE OPERATIVE ADMISSION CEILING ON BOTH ROUTES, AND DEPTH `127` AND BEYOND IS
+REFUSED AT THE PACKAGE'S WALK, BEFORE ANY STORE VERB, as the depth class `a value over the walk ceiling` with the
+status `ValueRefusedAtBoundary`** (`json-crossing/contract.md §4`'s 2026-10-23 clause, item (2); `§8` row 7's type `integer,
+0…126`).
+
+**AND THE NODE FIGURE IS A VISIT COUNT, WHICH IS THE ONE THING ABOUT IT THAT SURPRISES PEOPLE:** the walk counts
+its root as its first node, so **a value of `n` own nodes counts `n + 1`, the declared admitted own-node range is
+`0…999,999`, and a value of `1,000,000` own nodes is REFUSED** (`json-crossing/contract.md §8` row 8; `§4`'s clause of
+2026-10-24 on `F-RA-4`). **A shared sub-value is counted ONCE PER POSITION it occupies, not once in the caller's
+graph: a dense root array of `1,000,000` elements is `1,000,000` own nodes and is REFUSED, while an acyclic diamond
+carrying two distinct objects counts three visits and is ADMITTED.** **The ceiling's subject is the crossing's own
+work — the visits the walk performs and the nodes the copy allocates — and a census of your graph would bound
+neither.**
+
+**THE PACKAGE SHIPS NO CONFIGURATION KNOB FOR EITHER BOUND** — *"the package ships no configuration knob for
+either bound"* is `DD-10`'s own sentence (`js/contract.md` `DD-10`). **AND TWO OF THAT ROW'S OTHER TERMS ARE
+SUPERSEDED, NAMED SO YOU DO NOT READ THEM OFF IT:** the depth figure it prints is `64`, re-derived to the operative
+`126` by `json-crossing/contract.md §4`'s 2026-10-23 clause, **and the status it prints is `ValueNotAdmitted`, where
+the package's walk now answers `ValueRefusedAtBoundary`** (§8.1's rank `17`). **The row's SUBJECT — one bound per
+call, neither configurable — is what this guide relies on, and it is unmoved.**
+
+### §10.4 The practical rule
+
+**If you are storing something that came from a form, a JSON payload or an IPC message, you are already inside
+the domain.** The failures come from storing *live* things — a class instance, a `Date` you meant to serialize, a
+DOM node, a `Buffer`. **Serialize at the boundary, once, consciously** — **and if it cannot cross IPC, it cannot
+be stored, which is one rule for both boundaries** (`strata/brief.md §5` item 2).
+
+---
+
+## §11 · The installed package, exactly
+
+**These are the manifest's own facts, measured 2026-10-26 at `bindings/js/package.json` — not a summary of a
+contract.**
+
+| the field | its value |
+|---|---|
+| `name` / `version` | `provident-storeroom` / `0.5.0` |
+| `type` | `module` — **the entry is ESM, `require` reaches the SAME entry through the `require` condition, and there is no CJS arm** |
+| `license` | `AGPL-3.0` |
+| `engines` | `{ "node": ">=22.12.0" }` |
+| `exports` | **ONE arm, THREE conditions** — `"."` → `{ "types": "./index.d.ts", "import": "./index.mjs", "require": "./index.mjs" }` |
+| `optionalDependencies` | **five names, each pinned exactly to `0.5.0`** (§2.2) |
+| `files` | **five rows**: `index.mjs` · `README.md` · `index.d.ts` · `src/entry/` · `src/constraint-kernel.mjs` |
+
+**⟶ AND TWO OF THOSE ROWS ARE CORRECTED AT THIS DATE: `version` is `1.0.0` and each of the five
+`optionalDependencies` is pinned to `1.0.0`** (`bindings/js/package.json`, read at its own bytes 2026-10-26;
+`RCA-8(g)` ANNOTATE-BESIDE — the table above stands as the reading of its own date and is read THROUGH this
+clause). **`name`, `type`, `license`, `engines`, `exports` and `files` are UNMOVED and were re-read at the same
+bytes; the five `files` rows are still a fact of this tree and not a rule (the ★ paragraph below).**
+
+**⟶ AND THE TWO FIGURES THAT CLAUSE CORRECTS MOVE AGAIN, 2026-10-27: `version` is `1.0.1` and each of the five
+`optionalDependencies` is pinned to `1.0.1`** (`bindings/js/package.json`, read at its own bytes; §0's correction of
+this date; `RCA-8(g)` ANNOTATE-BESIDE — the table and the correction above stand and are read THROUGH this clause).
+**AND THE `files` ROW'S OWN FIGURE IS RE-READ AT ITS OWN SITE IN THE CLAUSE BELOW: it reads SIX rows, the sixth
+being the consumer guide's landed copy, `README.guide.md`.**
+
+**⟶ AND THE FIVE FIGURES THIS GUIDE PRINTS ABOUT THE SHIPPED TREE ARE RE-MEASURED AT IT ON ONE DATE, 2026-10-27, SO
+THE GUIDE IS NOT LEFT ONE TREE BEHIND ANY OF THEM.** `RCA-8(g)` ANNOTATE-BESIDE: **every table row, every ★
+paragraph and every figure above stands BYTE-FOR-BYTE and is read THROUGH this clause; THIS clause adds no rule and
+moves no figure — it records, at one date, the reading of each figure the guide states about the shipped tree, and
+each is the figure its own clause already prints.** **THE FIVE, EACH WITH ITS MEASUREMENT:**
+1. **THE STATUS SET IS TWENTY** — `src/error.rs`'s `CODES` is `[&str; 20]`, ranks `1`…`20`, and the declaration of record (`index.d.ts`, `StoreStatus`) agrees with the crate at twenty (§8.1's heading, its table's `20` row and its dated clauses).
+2. **THE PACKED MEMBER SET IS NINETEEN BARE AND TWENTY ASSEMBLED** — measured with `npm pack --json` at `bindings/js`: the BARE tarball carries `19` paths (`1` `package.json` + `4` root files — `README.guide.md` among them + `13` entry modules + `1` kernel: `1 + 4 + 13 + 1 = 19` ✓), and the ASSEMBLED tarball — the same stage with the release's `LICENSE` copy — carries `20`, the nineteen plus the licence (the ★ re-read clause (ii) below; the installed battery's `INSTALL-01` prints `members=20` on every run).
+3. **THE ALLOWLIST IS SIX ROWS** — `bindings/js/package.json`'s `files` reads `index.mjs` · `README.md` · `README.guide.md` · `index.d.ts` · `src/entry/` · `src/constraint-kernel.mjs` (`6 = 4 + 2` ✓) — **and `README.guide.md` is THIS document's landed copy** (§0's clause on the landing; the ★ re-read clause (i) below).
+4. **THE INSTANCE CARRIES FOURTEEN OWN MEMBERS** — measured on an instance built in memory from the shipped artefact: `Object.keys` and `Object.getOwnPropertyNames` are both the same fourteen-name list, and `read`'s own descriptor reads `writable: true, enumerable: true, configurable: true` (§3's table; §3.1).
+5. **THE DEPTH CEILING IS `126`** — the crossing's guard reads `depth > 126` (`bindings/js/src/crossing.rs`), so a value of depth `126` is admitted and one of depth `127` is refused; the node ceiling stands at `1,000,000` beside it (`json-crossing/contract.md §4`'s clause; §10.4).
+**NO FIGURE MOVES BY THIS CLAUSE, AND THE ONE THING IT ADDS IS THE DATE ON WHICH ALL FIVE WERE READ AT THE SAME TREE.**
+
+**⟶ AND THE SIX FIGURES THIS GUIDE STATES ABOUT THE SHIPPED TREE ARE RE-MEASURED AGAIN AT THE `1.5.0` PREPARATION, 2026-10-29 — EVERY ONE OF THEM UNMOVED, AND THE PACKED SET MEASURED RATHER THAN CARRIED.** `RCA-8(g)` ANNOTATE-BESIDE: **every row, every ★ paragraph and every dated clause above stands BYTE-FOR-BYTE and is read THROUGH this one; this clause adds no rule, moves no figure and re-reads all six at one tree.** **THE SIX, EACH WITH THE READING ITS OWN BYTES GIVE THIS DATE:** **(1) THE STATUS SET IS TWENTY** — `src/error.rs`'s `CODES` is `[&str; 20]`, ranks `1`…`20` (`§8.1`'s heading, its table's `20` row). **(2) THE KERNEL'S TOKEN SET IS NINE** — `bindings/js/src/entry/kernel-foundations.mjs`'s `KC` carries `KC-1`…`KC-9` and no tenth (§8.0a's `KC-9` clause). **(3) THE INSTANCE CARRIES FOURTEEN OWN MEMBERS** (§3.1's table; `index.d.ts`'s `StoreInstance`). **(4) THE DEPTH CEILING IS `126`** — `bindings/js/src/entry/carrier.mjs`'s `ENCODER_CEILING = 126` and `bindings/js/src/crossing.rs`'s `depth > 126` are ONE figure, with `127` and beyond refused at the walk and the node ceiling at `1,000,000` beside it (`§10.3`). **(5) THE ALLOWLIST IS SEVEN ROWS** — `index.mjs` · `README.md` · `README.guide.md` · `RELEASE-NOTES.md` · `index.d.ts` · `src/entry/` · `src/constraint-kernel.mjs`, `7 = 5 + 2` ✓ (the clause of 2026-10-28 above). **(6) THE PACKED MEMBER SET IS `20` BARE AND `21` ASSEMBLED** — measured with `npm pack --dry-run --json` at `bindings/js` this date: `1` `package.json` + `5` root files + `13` entry modules + `1` kernel `= 20` ✓, and the assembled artefact adds the release's `LICENSE` for `21` (the clause above). **AND THE VERSION IS `1.5.0` AT ELEVEN CELLS** (§0's clause of this date). **NO FIGURE MOVED BETWEEN THE `1.4.0` PREPARATION AND THIS ONE**, and the reason is named rather than left to inference: **the twenty-seven commits past `v1.4.0` add no member, no status, no token, no ceiling, no packed byte and no allowlist row** — they declare the reach, the two kinds, the derived address, the listener's independence, the delivery's nesting and the throw (`D-66` … `D-73`), and those are clauses of use rather than rows of this section. (`D-66`–`D-73`; §0's clause of this date; `scripts/publish.sh --figures`.)
+**⟶ AND THE SIX FIGURES ARE RE-MEASURED AGAIN AT THE `1.6.0` PREPARATION, 2026-10-29 — FIVE OF THEM UNMOVED AND ONE MOVED, WHICH IS THE POINT OF MEASURING.** `RCA-8(g)` ANNOTATE-BESIDE: **every row, every ★ paragraph and every dated clause above stands BYTE-FOR-BYTE and is read THROUGH this one; this clause adds no rule and re-reads all six at one tree — the eleven commits past `v1.5.0` (`git describe` `v1.5.0-11-g8f5454f`).** **THE SIX, EACH WITH THE READING ITS OWN BYTES GIVE THIS DATE:** **(1) THE STATUS SET IS TWENTY** — `src/error.rs`'s `CODES` is `[&str; 20]`, ranks `1`…`20` (`§8.1`'s heading, its table's `20` row), **UNMOVED by `D-77`: the member is an address and never a code.** **(2) THE KERNEL'S TOKEN SET IS NINE** — `bindings/js/src/entry/kernel-foundations.mjs`'s `KC` carries `KC-1`…`KC-9` and no tenth, **UNMOVED** (§8.0a's `KC-9` clause). **(3) THE INSTANCE CARRIES FOURTEEN OWN MEMBERS** — measured at a live instance this date by `Object.getOwnPropertyNames`: `read` · `readLiteral` · `write` · `delete` · `rollback` · `listen` · `unlisten` · `addConstraint` · `constraintOn` · `constraintOff` · `constraints` · `removeListener` · `removeConstraint` · `register`, `14` ✓ — **UNMOVED** (§3.1's table; `index.d.ts`'s `StoreInstance`). **(4) THE DEPTH CEILING IS `126`** — `bindings/js/src/entry/carrier.mjs`'s `ENCODER_CEILING = 126` and `bindings/js/src/crossing.rs`'s `depth > 126` are ONE figure, with `127` and beyond refused at the walk and the node ceiling at `1,000,000` beside it, **UNMOVED** (`§10.3`). **(5) THE ALLOWLIST IS SEVEN ROWS** — `index.mjs` · `README.md` · `README.guide.md` · `RELEASE-NOTES.md` · `index.d.ts` · `src/entry/` · `src/constraint-kernel.mjs`, `7 = 5 + 2` ✓, **UNMOVED** (the clause of 2026-10-28 above; no document this release ships was added to `files` and none was removed). **(6) ★ THE PACKED MEMBER SET IS `20` BARE AND `21` ASSEMBLED, AND THE COUNT IS UNMOVED WHILE THE SET'S `README.md` AND `README.guide.md` GREW** — measured with `npm pack --dry-run --json` at `bindings/js` this date: `1` `package.json` + `5` root files + `13` entry modules + `1` kernel `= 20` ✓, and the assembled artefact adds the release's `LICENSE` for `21` (the clause above). **AND THE ONE FIGURE THAT MOVED IS NOT OF THE SIX: `LogEntry` KEEPS ITS FIVE MEMBERS (`kind` · `id` · `opId` · `message` · `state`, `D-65`), AND THE FOURTH MEMBER `D-77` ADDED IS ON THE *FAILURE FORM* AND NOT ON A LOG ENTRY** — so **the entry is five, the refusal is four, and neither is the other.** **AND THE VERSION IS `1.6.0` AT ELEVEN CELLS** (§0's clause of this date). **THE REASON THE FIVE ARE UNMOVED IS NAMED RATHER THAN LEFT TO INFERENCE: the eleven commits past `v1.5.0` add no status, no token, no ceiling and no allowlist row, and their one shape change is the refusal's fourth member (`D-77`)** — `D-74` bounds an entry's content and adds no column, `D-75` puts a witness on paths that already existed, and `D-76`/`D-78` declare what the machinery already did. (`D-74`; `D-75`; `D-77`; `D-78`; §0's clause of this date; `scripts/publish.sh --figures`.)
+**★ THE `exports` MAP HAS ONE ARM, AND THAT IS A PROMISE ABOUT WHAT IS REACHABLE:** **the addon is NOT reachable
+as a subpath and neither is the constraint kernel.** **The one arm carries THREE conditions and one file: `types`
+names the declaration, and `import` and `require` name the SAME `./index.mjs` — so there is no wildcard export, no
+deep import to the addon and no CJS arm, which is to say no `.cjs` artefact, no `main` field and no second build**
+(`bindings/js/README.md`; `docs/specs/storeroom-publish/contract.md §1.3`; `docs/specs/storeroom-js/contract.md §3.1`'s
+re-derivation of 2026-11-17, `D-128`;
+`archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-js/package.md §1.3`, archived). **The addon is reached
+INTERNALLY by the package's own `createRequire`-style step and is not an entry point: a consumer that spells the
+addon's path directly is outside every clause of the contract** — the load succeeds or it does not, and nothing
+about it is yours to configure.
+
+**★ AND THE `files` ALLOWLIST IS A CONSEQUENCE OF REACHABILITY, NOT A DECLARED COUNT.** **The rule that binds is:
+whatever the entry requires by path must ship in the tarball.** **The strict count is lifted and no hand-maintained
+arity replaces it** (`strata/decisions.md` `D-3` and `D-4`; `D-4`'s own words: *"The strict count is lifted, the
+delivery module and the e2e/blind scenario testing will determine the required publish shape"*). **THE FIVE ROWS
+ABOVE ARE THEREFORE A FACT OF THIS TREE AND NOT A RULE:** the hub imports its parts from `src/entry/` and the
+barrel, so those paths must ship; **when the entry requires nothing by path, nothing is owed — and neither you
+nor a later release should read "five" as a contract.**
+
+**What else no published tarball carries, each for a declared reason** (`publish/contract.md §2.1`; `P-PUB-7`'s surviving
+prohibitions, which the lifted count did NOT touch):
+
+- **no `.node` binary, at any key, on any target** — the binary travels in the platform packages;
+- **no `build/Release` path**;
+- **no `postinstall` build-on-install step.**
+
+**AND THE LICENCE ROW IS A SEPARATE QUESTION, ANSWERED SEPARATELY:** **measured 2026-10-26, the five allowlist rows
+carry no `LICENSE` row, and that is right — the licence TEXT travels at assembly time instead, into all six
+artefacts, and a `files` row changes no byte of the tarball** (`publish/contract.md §2.3`; `PUB-DD-11`; and the fact that
+makes the choice cheap). **Whether a row is ever added is EVIDENCE-CONDITIONAL and not rule-bound:** `delivery`
+adds it **only if an e2e/install scenario shows a consumer or a scanner needs the row** (`strata/decisions.md`
+`D-8`, reading (iii)). **So do not read the row's absence as a prohibition and do not read its future presence as
+a change of licence.**
+
+**⟶ AND FOUR FIGURES OF THIS SECTION ARE RE-READ AT THE SHIPPED TREE, 2026-10-26, EACH AT ITS OWN SITE, SO THE ALLOWLIST IS NOT LEFT AT A COUNT THE MANIFEST NO LONGER CARRIES.** `RCA-8(g)` ANNOTATE-BESIDE: **every table row, every ★ paragraph and every figure above stands BYTE-FOR-BYTE and is read THROUGH this clause; THIS clause re-reads four figures and moves no rule of theirs — the reachability rule, the licence reading's ground and the `engines` floor all stand whole.** **(i) THE `files` ROW READS SIX ROWS, NOT FIVE** — `bindings/js/package.json`'s `files` array, read at its own bytes: `index.mjs` · `README.md` · `README.guide.md` · `index.d.ts` · `src/entry/` · `src/constraint-kernel.mjs` — **`6 = 4 + 2` ✓, the four root files plus the entry directory and the kernel** — and **the sixth row is the consumer guide's landed copy, `README.guide.md`, staged byte-for-byte from `docs/guides/package-use.md` by the release's assembly and imported by nothing** (`scripts/publish.sh`'s guide stage; `distribution.md §4.2` item 3's documented-text class). **THE TWO *"FIVE"* READINGS ABOVE — the table's own *"five rows"* and the ★ paragraph's *"THE FIVE ROWS ABOVE"* — are the reading of their own date and are read THROUGH this clause; and so is the licence paragraph's *"the five allowlist rows"*, whose subject is UNMOVED: NONE of the SIX rows is a `LICENSE` row, and none will be unless `D-8`'s evidence condition is met.** **THE RULE THE COUNT CARRIES IS UNMOVED EITHER WAY: whatever the entry requires by path must ship, and the count is a fact of this tree and not a contract.** **(ii) THE PACKED SET READS NINETEEN MEMBERS BARE AND TWENTY ASSEMBLED** — measured at the shipped packers: **the bare tarball carries `19` files** (`1` `package.json` + `4` root files + `13` entry modules + `1` kernel, `1 + 4 + 13 + 1 = 19` ✓, the guide standing among the four root files), **and the assembled artefact carries `20`, the nineteen plus `LICENSE`, which lands only in the assembled tree** — so a consumer comparing a bare `npm pack` tree with the release's artefact should expect exactly one member's difference and it is the licence. **(iii) AND THE GUIDE ITSELF NOW SHIPS:** **this document's canonical text reaches `node_modules/provident-storeroom/README.guide.md` in an installed package, beside `README.md`** — so a reader of the installed tree holds the document this file is, at that one path, and the landing adds no code, no export and no import. **(iv) THE STATUS SET IS TWENTY** — the figure `§8.1`'s heading and table print, and the one `§8.1`'s own dated clause and `§12.3`'s entry still spell `nineteen`: **each is read through the correction of this date at its own site, and the crate's own `CODES` is `[&str; 20]` at its bytes**, so the declaration of record and the crate agree at twenty.**
+
+**⟶ AND THE CHANGE LIST NOW SHIPS AND THE ALLOWLIST NAMES SEVEN ROWS, 2026-10-28 — `DEF-AC` (a), MEASURED.** `RCA-8(g)` ANNOTATE-BESIDE: **every row and every dated clause above stands BYTE-FOR-BYTE and is read THROUGH this clause; THIS clause re-reads three figures of this section and adds one document, and it moves no rule of theirs.** **(i) THE `files` ROW READS SEVEN ROWS, NOT SIX** — `bindings/js/package.json`'s `files` array, read at its own bytes: `index.mjs` · `README.md` · `README.guide.md` · `RELEASE-NOTES.md` · `index.d.ts` · `src/entry/` · `src/constraint-kernel.mjs` — **`7 = 5 + 2` ✓, the five root files plus the entry directory and the kernel** — and **the seventh row is the CHANGE LIST's landed copy, `RELEASE-NOTES.md`, staged byte-for-byte from the repository root by the release's assembly and imported by nothing**, the same mechanism and the same declared non-code class as `README.guide.md`. **NONE OF THE SEVEN IS A `LICENSE` ROW**, and none will be unless `D-8`'s evidence condition is met. **(ii) THE PACKED SET READS TWENTY MEMBERS BARE AND TWENTY-ONE ASSEMBLED** — **the bare tarball carries `20` files** (`1` `package.json` + `5` root files + `13` entry modules + `1` kernel, `1 + 5 + 13 + 1 = 20` ✓, the guide and the change list standing among the five root files), **and the assembled artefact carries `21`, the twenty plus `LICENSE`** — so a consumer comparing a bare `npm pack` tree with the release's artefact still expects exactly one member's difference and it is still the licence. **(iii) AND THE CHANGE LIST IS ON DISK IN AN INSTALLED PACKAGE**: `node_modules/provident-storeroom/RELEASE-NOTES.md` is **the declaration of `1.2.0`'s one behaviour change** — *"a refused reversal now restores to the commit's opening mark, not the journal's head"* — and **that is the row's own subject: a consumer receives the behaviour change WITH a shipped declaration of it, not a root document it can only reach by reading the repository** (`scripts/publish.sh`'s notes stage; the preflight REFUSES a drifted landing and refuses an allowlist that does not name it). **THE RULE THE COUNT CARRIES IS UNMOVED EITHER WAY: whatever the entry requires by path must ship, and the count is a fact of this tree and not a contract.**
+
+**AND THE `engines` FLOOR IS ONE DECLARATION WITH ONE READER — YOURS, AND ITS FIGURE HAS MOVED TO `>=22.12.0`.**
+`RCA-8(g)` ANNOTATE-BESIDE, 2026-11-17: **the paragraph above stands BYTE-FOR-BYTE as the reading of its own date and
+is read THROUGH this one.** **`D-127` — the architect, verbatim: *"Bump the floor, there's no backwards
+compatibility concerns"* — SUPERSEDES ITS FIGURE, and its closing ground is superseded with it: *"raising the floor
+would be a false restriction rather than a correction"* was the reading of a floor anchored to the CARRIER, and the
+ruling withdrew that ground at its own words.** **THE ANCHOR HAS MOVED FROM THE CARRIER TO THE LOADER, AND THE
+FIGURE IS `D-129` ITEM 1'S:** `require(esm)` is unflagged only from `Node 20.19.0` / `Node 22.12.0` (and on `23.x`+),
+and still flagged on `21.x` and `22.0`–`22.11`, so **`>=22.12.0` is the one single comparator set under which the
+`require` route this package declares is true at EVERY admitted version** (`docs/specs/storeroom-js/contract.md
+§0.2`'s re-derivation of
+`DD-38`; `bindings/js/package.json`'s `engines`, and the five platform manifests move with it — one declaration, one
+reader). **AND THE CARRIER IS NOT THAT FIGURE'S BINDING CONSTRAINT AND NEVER WAS:** the addon's highest-referenced
+Node-API class is still the `napi_*` pair at **Node-API version 6** (`Node 12.17.0` / `10.20.0`), read at
+`bindings/js/build.rs:35`–`:36`, and the ESM entry uses only `node:` builtins — so `max(carrier, loader)` is the
+loader's alone (`DD-29` declares no Node-API floor; and
+`archive/pre-strata-docs-2026-10-24/docs/specs/storeroom-publish/parameter-semantics.md §2.6`, `PAR-PUB-6`,
+archived). **And the one other version number in that
+file is not a runtime floor at all:** `bindings/js/build.rs`
+pins `24.11.0` as **the Windows import library's fixed, reproducible byte** — a build input for one platform's
+linker, exporting the `napi_*` symbols and needing to equal no consumer's runtime (`build.rs:41`). **Every other
+Node version number in this package's repository is addressed to its publisher or to that linker and not to you.**
+
+---
+
+## §12 · ★ Behaviours a client can BREAK — declared OUT OF SCOPE
+
+**This chapter is the most valuable part of this guide, and it is not a list of bugs. It is the list of places
+where the package's promises STOP — where a client who does something unusual gets a raw host error, a silent
+wrong answer, or their own code back, and where the project has RULED that this is acceptable rather than
+defended.**
+
+**THE RULING BEHIND ALMOST ALL OF IT IS ONE SENTENCE, AND IT IS THE ARCHITECT'S** (`strata/decisions.md` `D-35`,
+verbatim): *"The client will be able to break the JS code if they want to, the node_modules import is still in
+client scope. Guard against parameter access and at the Rust boundary."* **So the package defends exactly two
+things — what it reads off a value YOU supplied, and everything crossing into Rust — and nothing else about your
+own realm is defended.** **Each entry below says what breaks, why it is out of scope with its ruling, and what to
+do instead.**
+
+### §12.1 Deleting or redefining `Array.prototype` members
+
+**WHAT BREAKS:** the package reads arrays IT MINTED with the realm's own prototype methods, so **`delete
+Array.prototype.slice` makes a LAWFUL `write` throw a RAW HOST `TypeError`** — **measured, and the measurement is
+the ruling's: this guide did not re-take it** — and `Array.prototype.map`/`filter`/`includes` deletions do the same
+at other sites. **The most exposed site is `written.triggered`**, the copy of the store's returned trigger set that
+the commit path takes.
+**WHY IT IS OUT OF SCOPE:** `D-36`, verbatim: *"Presume the client isn't going to vandalize Array.prototype"* —
+the ~8 such sites are **not debts and are not fixed**, and the premise is the realm's: **the client will not
+delete or redefine `Array.prototype`'s members.** **WHAT TO DO INSTEAD:** do not patch `Array.prototype` in a
+process that holds a store. **The distinction the ruling draws is provenance — a value YOU supplied is read by
+own-property forms and crossed as a null-prototype node; a value the package minted is read with the realm's
+methods, which is ordinary JavaScript** (`D-36`; `bindings/js/src/entry/kernel-commit.mjs`, the `written.triggered`
+copy).
+
+### §12.2 Detaching or rebinding a store member
+
+**⟶ CORRECTED 2026-10-26, AND THIS IS THE ONE ENTRY OF THIS CHAPTER WHOSE READING NO LONGER BINDS AT THE
+DETACHMENT HALF: a detached call is now REFUSED. THE AS-FILED TEXT BELOW STANDS BYTE FOR BYTE AND IS READ
+THROUGH THIS CLAUSE — `RCA-8(g)` ANNOTATE-BESIDE — so a client who quoted it is not left with a silent
+reversal.**
+
+**WHAT REPLACED IT, MEASURED ON THE FIXED TREE:** **every one of the fourteen members that CAN refuse a
+detached call now refuses it in the ONE plain form** — `{status: 'AddressMalformed', message: "the receiver
+position is not the store object this addon's storeCreate returned", log: []}` — **and moves no state**.
+**The twelve that carry the receiver arm answer those exact bytes**: the seven store-reaching verbs (`read`,
+`readLiteral`, `write`, `delete`, `rollback`, `listen`, `unlisten`), the four constraint members
+(`addConstraint`, `removeConstraint`, `constraintOn`, `constraintOff`, which until this date ANSWERED — two
+of them editing the store's pair registry — or threw the constraint methods' `TypeError`) and
+`removeListener`. **`register` keeps its own domain refusal** (the handle-domain arm, `AddressMalformed`, its
+own message) where the handle is not one the instance holds, **which is the arm the ruling keeps rather than
+replaces**; a detached `register` whose handle the entry DOES hold still answers and still moves that entry,
+because that member's re-install path hands the entry's own published receiver rather than the call's.
+**`constraints()` still answers a detached read** — its arity is `0`, its own clause declares it *"THROWS
+NOTHING"* (`docs/specs/storeroom-js/surface.md §2.4` item 9 (f)), and it performs no store call and changes
+no node, so the state half of the promise holds at it and the refusal half has nothing to refuse.
+
+**WHY IT IS NO LONGER OUT OF SCOPE:** the architect *"Run the fix by rejecting the detached functions."*
+**The detached call is not defended because your realm is yours — it is refused because the ANSWER it was
+giving was a state edit against a store the call had already lost: `constraints()` read what a detached
+`addConstraint` had carried, and a bound write at that address evaluated a function nobody had lawfully
+registered. A refusal is what the seven verbs had always answered; the four outliers were the defect.**
+
+**WHAT BREAKS:** **`const { read } = store; read(['x'])` resolves NO receiver.** **Measured 2026-10-26:** the seven
+store-reaching verbs (`read`, `readLiteral`, `write`, `delete`, `rollback`, `listen`, `unlisten`) answer the one
+declared refusal — `{status: 'AddressMalformed', message: "the receiver position is not the store object this
+addon's storeCreate returned", log: []}`; `register` and `removeListener` answer their own domain refusals in the
+same form; **and three members do NOT refuse for the detachment at all** — detached `addConstraint` and
+`removeConstraint` **ANSWERED and edited the real store's pair registry**, detached `constraints()` **answered it**,
+and the detached toggles threw the constraint methods' `TypeError`. **A REBOUND member is worse: `store.read = fn`
+succeeds — the `read` member's own descriptor reads `writable: true, enumerable: true, configurable: true` — the
+call answers your own function, and the package raises nothing and prints nothing** (measured 2026-10-26:
+descriptor, call and console all read).
+**WHY IT IS OUT OF SCOPE:** `D-35` — a member is an own property of an object in your own realm, and the package
+defends parameter access and the Rust boundary, not the mutability of its own product. **WHAT TO DO INSTEAD:**
+**always call a member on the receiver — never destructure one, never pass one as a callback, and never assign to
+one.** **And do not rely on the detachment being detected:** for three of the fourteen it is not detected at all,
+and for two more the answer is the constraint methods' `TypeError` rather than the one form.
+**⟶ AND THE REBOUND HALF IS UNMOVED AND IS STILL OUT OF SCOPE** (`D-35`, `D-36`): `store.read = fn` still succeeds,
+still answers your own function, and the package still raises nothing — **rebinding is client scope and is not
+detected, before this correction and after it.** **The detachment half is what moved: do not rely on a detached
+call being DETECTED as a call at all — it is refused before it reads or edits anything, which is the answer that
+keeps `constraints()` and the store's own home entry exactly as they stood.**
+
+**⟶ AND WHAT IS TRUE AFTER THE DETACHED-CALL REJECTION, IN ONE QUOTABLE LINE — THE ENTRY'S OWN SUMMARY, ADDED
+BECAUSE THE AS-FILED TEXT BESIDE IT STILL READS AS THE OLD WORLD** (`RCA-8(g)` ANNOTATE-BESIDE; nothing above is
+withdrawn): **DETACHING IS REFUSED; REBINDING IS THE CLIENT'S OWN FUNCTION AND IS STILL UNDETECTED.** **Detaching —
+`const { read } = store; read(['x'])` — answers `{status: 'AddressMalformed', message: "the receiver position is not
+the store object this addon's storeCreate returned", log: []}` at every member that can refuse it, and moves no
+state; `register` keeps its own domain refusal and `constraints()` answers, because it takes no argument, makes no
+store call and changes no node.** **Rebinding — `store.read = fn` — succeeds, answers YOUR function, and is still
+undetected: it is client scope by `D-35`, and it is the half of this entry that remains OUT OF SCOPE.**
+
+### §12.3 Freezing or sealing a store
+
+**WHAT BREAKS:** `Object.freeze(store)` **before** the store's first kernel act, then a lawful `write` or
+`addConstraint`, throws a **raw host `TypeError`** — *"Cannot define property `Symbol(provident-storeroom.kernel)`,
+object is not extensible"* — **with `status` absent, not one of the seventeen, and not the one form.** **It is
+ORDER-DEPENDENT:** freeze *after* any kernel act and the same write succeeds. **WHY IT IS OUT OF SCOPE:** `D-35`
+classifies it as client-scope breakage, not a defect — **the ruling declines the fix and accepts the form**:
+*"a raw host `TypeError` where a lawful call used to answer is still worth a note, not a fix."* **WHAT TO DO
+INSTEAD:** **do not freeze or seal a store.** If you need an immutable handle, wrap it — a plain object holding
+the instance and closing over it, never the instance itself.
+
+**⟶ AND THE SET SIZE THIS ENTRY PRINTS IS CORRECTED AT THIS DATE: it is NINETEEN, not seventeen** (§8.1; the algebra
+`11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 = 19` ✓; `RCA-8(g)` ANNOTATE-BESIDE — the sentence above stands and is read THROUGH
+this one). **THE ENTRY'S OWN POINT IS UNMOVED AND IS SHARPER AT NINETEEN: a raw host `TypeError` carries NO `status`
+member at all, so it is not any member of the closed set, whatever the set's size — and a consumer who reads a
+caught value by its `status` will find none here (§8.3).**
+
+**⟶ AND THAT CORRECTED SIZE IS ITSELF RE-READ: the set is TWENTY, not nineteen** (§8.1's heading and its table's `20` row; the algebra `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 20` ✓; `RCA-8(g)` ANNOTATE-BESIDE — the correction above stands and is read THROUGH this one). **THE ENTRY'S OWN POINT IS UNMOVED AND SHARPER AT TWENTY: a raw host `TypeError` carries NO `status` member at all, so it is not any member of the closed set, WHATEVER THE SET'S SIZE — and a consumer who reads a caught value by its `status` will find none here (§8.3).**
+
+### §12.4 Reaching the kernel record on the store
+
+**WHAT BREAKS:** **the kernel's record is an own symbol-keyed property of the store and it is MUTABLE.**
+`Object.getOwnPropertySymbols(store)` yields the slot, and the record carries `pairs`, `handles`, `live`, `closed`
+and `store`. **`store[SYM].pairs.clear()` makes an ARMED constraint stop refusing — the value lands — while
+`constraints()` still reports the pair.** **WHY IT IS OUT OF SCOPE:** `D-35` — it is your own realm and your own
+object; the ruling stands `cdd2467` and declines the revert that would have re-privatised the record. **WHAT TO DO
+INSTEAD:** **treat the symbol slot as private.** Do not enumerate a store's symbols, do not write to one, and do
+not read a store's internals to reconstruct state — **`read(address)` and `constraints()` are the routes, and a
+constraint's enforcement is not yours to toggle by hand.**
+
+### §12.5 Prototype forgery on a registered symbol
+
+**WHAT BREAKS:** **a getter at `Object.prototype[Symbol.for('provident-storeroom.kernel')]` supplies ONE record to
+EVERY store in the process** — measured in the record at `D-35`: `a[SYM] === b[SYM]` with a shared `attempts`
+counter of `2` after one write each. **The key is guessable because `Symbol.for` is a REGISTERED symbol, and the
+store's own read of the slot walks the prototype chain.** **WHY IT IS OUT OF SCOPE:** `D-35`'s third vector of the
+same client-scope class — **a getter you install on a prototype in your own realm is your own act, and own-property
+discipline cannot help a READ.** **WHAT TO DO INSTEAD:** **do not install anything on `Object.prototype` or
+`Array.prototype` in a process that holds a store** — and if a dependency does, that is the dependency's defect
+reaching your store, not the store's.
+
+### §12.6 Values you read back inherit your realm's prototypes
+
+**WHAT BREAKS:** **the values the crate mints on the way out carry the realm's `Object.prototype`** (and
+`Array.prototype` for arrays), so **a client's own prototype pollution APPEARS on what it reads back** — a
+`store.read()` answer inherits any member you have added to `Object.prototype`. **WHY IT IS OUT OF SCOPE:** the
+contract **does not pin the copy-out's prototype at all**: *"the contract pins the tree and not the allocation"*,
+and **no cell may assert a prototype identity on the copy-out, in either direction**
+(`docs/specs/storeroom-json-crossing/contract.md §5`'s 2026-10-24 clause, on `F-RA-15`; the same clause's ground is
+`D-35`'s client-scope line). **WHAT TO DO INSTEAD:** **do not pollute `Object.prototype`** — and **do not assert
+that a read-back's prototype is or is not a particular object.** **What IS declared is that the answer is a FRESH
+tree sharing no mutable member with the store or with another crossing**, which is the guarantee worth relying on
+(`json-crossing/contract.md §5`, item (3)(c)).
+
+### §12.6b The two known fail-states, and how you leave them
+
+**⟶ ADDED `1.1.0` — THIS IS THE ONE PART OF THE PROMISE A CONSUMER READING ONLY `node_modules` HAD NOWHERE TO FIND, AND IT SHIPS HERE BECAUSE THIS DOCUMENT SHIPS.**
+
+**Two windows in the constraint machinery are known and are NOT defects. Each is a state you can leave.**
+
+1. **A `delete`'s listener delivery** — **AND FROM 2026-10-29 THE DELETE ITSELF RUNS ONE, WHICH IS WHY THIS WINDOW IS DEFINED BY THE DELIVERY AND NOT BY THE VERB (§7.8: the delivery sits AFTER the pass, so a listener fired by a delete sees a JUDGED state).** A listener invoked by a delete's delivery runs **no constraint pass** — there is no attempt for a pass to run over. **A `rollback` issued from inside it is unjudged, and its effect stands.**
+2. **A registration's own evaluation.** `addConstraint`'s and `constraintRegister`'s evaluation of a supplied body runs **no pass** for the same reason — **an action raised there is unjudged and its effect stands.**
+
+**THE FIRST EXIT — RELOAD THE FILE.** Since `1.1.0`, **a restore that moved a version standing at the `file` tier SAVES the restored image**, so **the file records the state the store was restored to, and a fresh boot over that path returns to judged bytes.**
+
+**THE SECOND EXIT — REGENERATE THE STORE.** Construct a new instance and replay your writes; **a judged state by construction.**
+
+**Neither window is new and neither is a defect**: both are places **a pass does not begin**, not places a judgement was skipped mid-flight.
+
+**⟶ AND ONE CLAUSE OF ITEM 1 ABOVE IS CORRECTED AT ITS OWN SITE, 2026-10-29 — `D-55` ITEM 3 AND `D-57`: A `delete` DOES MINT AN ATTEMPT NOW, AND THE WINDOW'S REAL REASON IS THE DELIVERY'S POSITION.** `RCA-8(g)` ANNOTATE-BESIDE: **item 1's operative claim — a listener invoked by a `delete`'s delivery runs no constraint pass, and a `rollback` raised there is unjudged and its effect stands — is UNMOVED; what is false of this tree is its given reason, *"there is no attempt for a pass to run over."*** **THE TREE AT `1.4.0`: a `delete` opens its own commit, its own attempt and its own pass, and its receipt carries the four-member `CommitRecord`** (`§7.8`'s clause; `D-57`'s second half; `D-55` item 3). **SO THE ATTEMPT EXISTS — IT HAS ALREADY CLOSED** — **and the window stays passless for the ruling's own reason: the delivery runs AFTER the pass, and after a pass nothing re-enters on that work** (`D-64`; `§7.8`'s four steps). **NOTHING ELSE OF ITEM 1, OF ITEM 2, OF THE EXITS OR OF THE WITNESS MOVES.** (`D-55` item 3; `D-57`; `D-64`; §7.8; §12.6's clause above.)
+
+**⟶ AND THE ONE RAISE THIS SECTION'S LIST DOES NOT NAME IS JUDGED, 2026-10-29 — `D-42` · `D-54`, MEASURED, AND THE LIST STAYS TWO.** `RCA-8(g)` ANNOTATE-BESIDE: **every byte of the two items, of the two exits and of the three clauses above stands BYTE-FOR-BYTE and is read THROUGH this clause; this clause adds no window and takes none away.** **THE QUESTION A CONSUMER ASKED, IN THEIR OWN WORDS:** *"host 6 — a raise from a constraint body DURING A DELETE'S CONSTRAINT PASS — does not judge, its effect stands, and it is not among the guide's declared windows."* **IT IS NOT JUDGED — IT IS JUDGED, AND THE LIST OF TWO IS COMPLETE.**
+
+**1. WHAT WAS MEASURED, ON THIS TREE, BEFORE AND AFTER THE MECHANISM WAS FOLLOWED.** The drive is one pair standing at `['a']`: `write(['a'], 'mem', 5)`, `write(['a'], 'mem', 9)` (the reversal's target), then `delete(['a'], 'mem')` with the pair's body issuing `rollback(<the 9 write's op>)` the first time a pass asks it. **THE PAIR'S ASKS, IN ORDER: `[9, undefined, 5]`** — at its REGISTRATION (`9`), by the DELETE'S OWN PASS at the state the delete left (absence), and **by the RESTARTED CHECK AT THE STATE THE REVERSAL LEFT (`5`)**. The delete answers **`ConstraintPassRefused`** with **ONE `constraint-check` entry naming the pair** and `opId` the reversal's own echo, the store is restored by that refusal's compensating act, **and `5` — the state the reversal left — is nowhere in the store afterwards.** The raise is taken with the delete's own window open (`open 1`, `live 1`), the reversal still answers its declared record (`{opId, undoneOps, restoredTo}`), and **the pair is asked at `5` ONCE, never per step** (`D-38`).
+
+**2. WHY THE RESTART REACHES THERE — THE SITE, NAMED, BECAUSE "IT JUST DOES" IS NOT AN ANSWER.** A `delete` runs **the same pass function a write's attempt runs**: its commit act opens the attempt (`kernel-commit.mjs`'s `commitRemoval`, no probe write landed), the entry runs the pass through `kernel-attempt.mjs`'s `runAttempt` **inside the `delete`'s own commit window**, and that scope **JOINS** the window rather than opening a second one — so **the request a body raises is stamped with the window the `delete` opened, and the drain at the pass's terminal is stamped with that same identity.** `constraints.mjs`'s `drainRestartRequests` therefore **consumes it, asks the pairs at the state the reversal left, and carries any refusal into the pass's report** (`D-54` (b) — the drain runs on **both** arms, the passing and the throwing one). **NOT ONE OF THE THREE CAUSES A MISSED JUDGEMENT WOULD NEED IS PRESENT**: the window identity matches, `reversalAtRest` answers "step" for a commit that is still open (`open 1`/`live 1` — which is why no per-step judgement is taken at the raise's own instant), and the delete's attempt does not close on a path that skips the drain. **THE EMPTY WITNESS AGREES RATHER THAN CONTRADICTING**: a delete whose pass raised and judged a request answers **`discarded: []`**, because the pass's drain consumed the request **before** the delivery ran (`§7.8`: the delivery sits after the pass) — **`[]` there is the reading of a JUDGED raise, and the same `[]` on a delivery's raise is the reading of an IGNORED one. The witness is not the judge; the ask is.**
+
+**3. AND THE SEVEN HOSTS THIS MACHINERY HAS, EACH LABELLED ON THIS TREE — THE TABLE TO KEEP THE COUNT IN.** Each row is the same drive: a pair whose body reverses, and the one readable evidence is **the pair being asked again at the state the reversal left**.
+
+| host | where the raise is taken | judged? |
+|---|---|---|
+| `H1` | a constraint body, during a **write's pass** | **JUDGED** — the pairs asked `[9, 7, 5]` |
+| `H2` | a repair body, during a **write's pass** | **JUDGED** — `[9, 7, 9]`: the terminal ask is the state the pass's own rollback left |
+| `H3` | a listener body, in a **write's delivery** | **JUDGED** — `[9, 5]` |
+| `H4` | a **registration's own evaluation** | **NOT JUDGED** — `[9]`; the DECLARED window (item 2 above) |
+| `H5` | a **`delete`'s listener delivery** | **NOT JUDGED** — `[9]`, and `discarded` reports it; the DECLARED window (item 1 above) |
+| `H6` | a constraint body, during a **`delete`'s own pass** | **JUDGED** — `[9, undefined, 5]` |
+| `H7` | a **reentrant reversal-then-write** (a listener reverses, then writes) | **JUDGED** — `[9, 5]` |
+
+**SO THE MEASURED SET IS FIVE JUDGED AND TWO NOT, AND THE TWO ARE EXACTLY THE TWO WINDOWS DECLARED IN THE LIST ABOVE.**
+
+**⟶ AND WHAT MAKES A ROW "JUDGED" IS NOW STATED RATHER THAN IMPLIED, 2026-11-17 — `D-168`, THE ARCHITECT, VERBATIM: *"Always judge the
+current state."*** **The judgement's subject is the state your store stands in at the instant it runs** — the kernel reads it off the store
+at that moment, so the value a pair is handed **is** the store's current read and cannot be a snapshot of an earlier one. **So a row is
+JUDGED when a judgement ran over the act, and the arrays beside it name the states the pair was handed — not a state it ought to have been
+handed.** **`H2`'s row shows the difference plainly**: a repair body's reversal is followed by the failing write's own rollback, so the
+terminal judgement is taken at the rolled-back state — *that* is the current state, and judging it is the law, not a lapse. **A raise taken inside a pass is judged by that pass's own terminal check whichever verb opened the pass; a raise taken where NO PASS RUNS AT ALL — a registration's evaluation, a `delete`'s listener delivery — is not, and its effect stands, with the two exits intact.** (`D-42`; `D-54`'s three hosts, its item (a) and (b); `D-55` item 3; `D-64`; `tests/e2e/discard-witness.mjs` section `W16`, cells `DW-16.1`–`DW-16.4`: `DW-16.1` — `H6` judged, the asks, the refusal and the store printed — is **RED under a `/tmp` revert that removes the `delete`'s pass**, and `DW-16.3` — the seven-row table — is RED with it.)
+
+**⟶ AND THE SENTENCE THAT STOOD HERE IS WITHDRAWN AS FALSE, 2026-10-28 — `D-54`, MEASURED, AND IT IS WITHDRAWN RATHER THAN NARROWED. THE BYTES WERE: *"And every pass that DOES run drains its own restart request — so the fail-state is bounded by the two acts that run none."* THE CONSUMER MEASURED THREE HOSTS WHERE NEITHER HALF HOLDS — a repair body, a delete's pass, and a reentrant reversal-then-write — AND IN EACH ONE A PASS RAN, THE REVERSAL WAS LEFT UNJUDGED, AND ITS EFFECT STOOD (zero judge invocations; the refused `5` still there). What follows replaces them and is true of the code after that fix.**
+
+**THE RULE NOW, IN ONE SENTENCE: NO PASS CONSUMES A RESTART REQUEST IT DID NOT RAISE, AND A REQUEST RAISED INSIDE A PASS IS CARRIED TO THAT PASS'S OWN TERMINAL STATE AND JUDGED THERE — ONCE, AS `D-38` DECLARES, AND NEVER PER STEP.** The budget, its three asks, the failing-closed arm and `D-42` are exactly as they were; what changed is where the request is carried.
+
+- **A PASS THAT RUNS TO ITS PASSING ARM** drains the request its bodies raised after the pass and before its commit closes — unchanged, and the arm this section always described.
+- **A PASS THAT ENDS BY THROWING** reaches the SAME judgement: a repair body that reversed and then broke the attempt's re-run, or a pair that refused after its delivery's act, is judged at the TERMINAL state the pass left, inside the same window, before you meet the pass's answer. **A pass's own refusal is superseded by the verdict of the check it invalidated — the state that pass left**; a constraint body's own throwable and a store's own refusal still cross as themselves, so no caller's value is re-shaped.
+- **A NESTED PASS NO LONGER DROPS AN ENCLOSING WINDOW'S REQUEST.** The restart's consumer compares window identities; where they differ it ASKS NOTHING AND TAKES NOTHING. The request stands for the act that raised it (`D-42` item `3`), and the enclosing pass's own check is the one that judges it. **A request no pass ever matches still dies with its window**, and the two passless windows below have their own answers.
+- **AND THE PACKAGE'S OWN COMPENSATING ROLLBACK IS NOT AN ACTION OF YOURS.** The kernel's terminal act composes the attempt's rollback through the `rollback` member; while it does, it carries a flag and neither raises a request nor is judged as a step — `D-42`: *"a restart is only ever raised by a consumer's own `rollback` member call."*
+
+**SO THE FAIL-STATE OF PASS-HOSTED REVERSALS IS EMPTY, AND WHAT GUARANTEES IT IS ONE CONSUMER: the drain in the pass's own commit scope, reached on BOTH arms, matching the window that raised the request, and judging at the pass's terminal state.** The exits below are now owed to the two passless windows alone.
+
+**YOUR `delete` QUESTION, ANSWERED HERE, AND IT IS A THIRD CASE AND NOT THE DECLARED ONE.** **⟶ AND ITS FIRST CLAUSE IS SUPERSEDED FROM 2026-10-29 — `D-55` ITEM `3` BUILT THE PASS THIS SENTENCE SAID DID NOT EXIST: a `delete` now runs a constraint pass of its own kind, at the delete's own journal op, with the delivery after it (§7.8 below); the sentence is kept so the ruling it recorded is legible.** `RCA-8(g)` ANNOTATE-BESIDE: **every other byte of this paragraph stands — the declared window is still the LISTENER DELIVERY, which still runs no pass, the `discarded` witness still reports what that delivery discarded and the reversal's effect still stands, and the third case the consumer measured (a `delete` performed INSIDE a pass) is still judged by that pass.** **WHAT MOVED IS ONLY THE PREMISE: `D-1-bis` (`a delete consults no constraint`) is superseded by `D-55` item `3` (`A delete is an editing verb and must pass constraints`) for the delete's OWN act; it remains the ground of the DELIVERY window, which runs after that act's pass has closed.** The original bytes read: A `delete` runs **no constraint pass of its own** (`D-1-bis`); the window declared above is its LISTENER DELIVERY, which runs no pass and is UNCHANGED — the `discarded` witness still reports the discard and the reversal's effect still stands. **Where a `delete` is performed INSIDE a pass — the case the consumer measured — the delete's window IS that pass's window**, and a reversal raised by the listener its delivery fires is a DIFFERENT ACT AT A DIFFERENT INSTANT from the declared window: **a THIRD case, and it is now judged** — the request lands in the pass's window and that pass's terminal check asks the pairs at the state the reversal left. **A registration's own evaluation remains the second passless window, silent and identity-only** (`D-49`), and both exits below still leave it honestly.
+
+**⟶ ADDED 2026-10-28 — `D-49`: THE DISCARD IS NOW OBSERVABLE ON THE `delete`'S OWN ANSWER, AND THE OTHER
+WINDOW STILL CARRIES NOTHING. READ THIS BEFORE YOU RELY ON EITHER FAIL-STATE.**
+
+**THE USE CASE THAT MADE IT A DEFECT, IN YOUR TERMS.** Your `window.tabs` is one object; **a listener you
+installed at `window.tabs` DOES fire when you delete `window.tabs.landingPage`** — the triggered set's rule is the
+address prefix, and the invocation's one argument is the deleted address. That is exactly where you would check
+your own invariant — *"exactly one tab is active"* — **and that check IS the kind of act the delete-delivery
+window throws away**: if it fails and you raise a `rollback`, **the request dies with the window** (`DEF-AH`).
+
+- **WHAT YOU CAN NOW SEE.** **A `delete`'s record carries `discarded` beside its four members** — a list, `0` or
+  `1` long, of `{ opId, addresses }`: **`opId` is the id the reversal you raised named**, and **`addresses` are
+  the addresses the discarded check would have been asked at**. **`record.discarded.length === 0` means this
+  act's delivery discarded nothing.** **This is a WITNESS, not a repair** — the delete still answers everything
+  it answered, **throws nothing**, mints no new status, and the reversal's effect **still stands**; the
+  fail-state, the exits below and the behaviour of both windows are unchanged.
+- **READ IT BY ITS NAME, AND EXPECT IT NOT TO BE ENUMERABLE.** `record.discarded` works; **`Object.keys(record)`
+  still prints the four members you already know**, and **a spread or `Object.assign` copy of a receipt does not
+  carry the witness** — read `discarded` off the record itself.
+- **WHAT IT CANNOT SHOW, SAID PLAINLY.** **A registration's answer (`addConstraint`) is an opaque identity and
+  carries NO witness** — an action raised inside that evaluation is still unobservable, and no member was
+  invented for it. **And the machinery holds ONE pending request per instance**: a second in-flight action
+  overwrites the first, so the witness reports the **last** request a delivery raised, and earlier ones were
+  never recorded. **Neither limit is a defect; both are the declared shape.**
+
+**⟶ AND THE WITNESS NOW REPORTS EVERY RAISE, AT ANY COUNT, ON EVERY PATH, 2026-10-29 — `D-75`. READ THIS BEFORE YOU
+READ ANY `discarded` LIST, AND READ THE `D-49` BYTES ABOVE THROUGH IT: NOT ONE OF THEM IS DELETED, AND THE TWO
+CLAUSES BELOW ARE WITHDRAWN BY NAME.**
+
+**THE DEMAND, VERBATIM: *"report every discarded raise at any count, on every path."*** **It was filed because
+the witness was ABSENT MORE OFTEN THAN PRESENT, and the sentence it carries is the thing it could not say.**
+
+- **THE THREE THINGS THAT WERE BROKEN, IN YOUR TERMS.** **(1) TWO RAISES ANSWERED `[]`.** If your listener raised
+  a `rollback` and a second listener raised another in the same delete, the record said nothing had been
+  discarded — because **the machinery keeps ONE request and merges the second raise into it, and the merged
+  request's addresses were never re-measured**. **(2) A RAISE INSIDE A CONSTRAINT BODY WAS INVISIBLE ON BOTH
+  ANSWERS.** A `rollback` your constraint body raised while it was being asked carried no witness on the
+  `rollback`'s own record and none on the write's record. **(3) AND `[]` THEREFORE MEANT TWO THINGS.** *"Nothing
+  was discarded"* and *"I wasn't told"* read the same.
+- **WHAT YOU CAN SEE NOW: THE COUNT IS THE RAISES, NOT THE SLOTS.** `discarded` is **one entry per raise the
+  act's delivery threw away, in raise order, at any count** — each entry `{ opId, addresses }`, `opId` the id
+  THAT raise's reversal answered and `addresses` the addresses THAT raise's reversal moved. **An entry whose
+  `addresses` is `[]` is a raise that moved nothing your pairs watch: it is still COUNTED, and no address is
+  invented for it** (a reversal that moves the register itself reports `addresses: [[]]` — one element, the empty
+  address — so the two are told apart by the lengths `0` and `1`).
+- **AND IT IS PRESENT WHEREVER AN ACT CAN DISCARD, `0` INCLUDED.** **`a.delete`'s receipt** carries it (as it did);
+  **`a.write`'s record carries it too** — a write's window is drained by its own pass, so it reads `[]` and MEANS
+  it — **and `a.rollback`'s own record carries it**, answering the entry where the act's window discarded that
+  raise, and `[]` where a pass's drain consumed and JUDGED it (`D-42`: a raise a pass carries to its terminal
+  judgement was judged, not discarded). **`record.discarded.length === 0` now reads, on every one of them:
+  NOTHING WAS DISCARDED — and the member is present to say so.**
+- **READ THE ROLLBACK'S MEMBER AFTER THE ACT RETURNS.** `a.rollback(...)`'s `discarded` is a **LIVE VIEW**, not a
+  snapshot: the pass that judges a body's raise runs *after* the body returned, so read at that instant it says
+  `[]` — nothing has been discarded YET. **Read it once the act whose window the raise stands in has returned and
+  it is the settled answer.** **A WRITE'S AND A DELETE'S are accessors for the same reason** — a write's delivery
+  runs before its drain.
+- **STILL UNCARRIED, SAID PLAINLY BECAUSE `D-49` ASKED FOR IT TO BE SAID.** **A registration's answer
+  (`addConstraint`) is an opaque identity and carries NO witness.** What has changed is where its raise is
+  ANSWERED: **the store's next at-rest act proves that window has ended, the raise settles as discarded, and the
+  `rollback` record you already hold names it then** — on the raise's own answer, never on the unrelated call.
+- **NOTHING ELSE MOVED.** The `delete`'s four enumerable members, the `write`'s three and the `rollback`'s three
+  are the members `Object.keys` prints; `discarded` is a **NON-ENUMERABLE own member** on all three (an accessor
+  on the write's and the rollback's, an own data property on the delete's), so **a spread or `Object.assign` copy
+  does not carry it — read it off the record itself.** No status is minted, no refusal is added, and the
+  fail-state and both exits are unchanged.
+
+**MEASURED 2026-10-29, ON THIS CHECKOUT, THROUGH THE PUBLISHED ENTRY** (`tests/e2e/discard-witness.mjs`'s `W18`):
+one raise with a pair at the raised address answers **one entry**; **TWO raises with pairs at both answer TWO
+entries — the arm that answered `[]` before** — each naming its own op id and its own moved address; two raises
+with a pair at only the first answer two entries, the second's `addresses` empty; and inside a constraint body, at
+one raise and at two, **the raise's own answer and the triggering write's answer both carry `discarded`**. Every
+one of those five cells is RED under its own `/tmp` revert. (`D-75`; `D-49`; `D-55` item 6 · `DEF-AP`; §8's
+`record.discarded` clause above.)
+
+**⟶ AND THE MEMBER'S PRESENCE IS ITSELF A CLAIM, 2026-10-29 — `D-78`: `undefined` IS NOT `[]`, AND THESE ARE THE
+TWO LINES YOU WILL COMPARE WITHOUT THINKING.** **THE DOWNSTREAM'S DEMAND, VERBATIM: *"say when the member is
+present, and that `undefined` is not `[]`."*** **AN ABSENT MEMBER AND AN EMPTY LIST ARE DIFFERENT CLAIMS:** **one is
+about an act that cannot have this outcome at all, and the other is a statement about an act that can — so a
+consumer reading absence cannot tell *"not reported"* from *"nothing to report."***
+
+- **WHICH ANSWERS CARRY IT — THREE, AND THEY ARE EXACTLY THE THREE THAT CAN DISCARD A RAISE: `a.delete`'s receipt,
+  `a.write`'s record, and `a.rollback`'s own record.** **On all three the member is PRESENT on every return, `0`
+  included** — it is not a member that appears when something went wrong, and nothing in your drive has to happen
+  for it to be there.
+- **`[]` MEANS: THIS ACT'S DELIVERY DISCARDED NOTHING.** **Present, empty, and TRUE.** The act *can* discard a
+  raise, you were told, and this time there was nothing in its window to throw away. **`record.discarded.length ===
+  0` is that sentence and no other.**
+- **`undefined` MEANS: THIS ACT CANNOT DISCARD A RAISE, SO THE QUESTION DOES NOT ARISE.** **A `read` — and
+  `readLiteral`, and every member that hands you a VALUE rather than a record of an act — carries no such member at
+  all** (`store.read(['a'])` answers your tree, and `answer.discarded` is `undefined` — no such member stands on
+  it). **DO NOT READ ABSENCE AS
+  "NOTHING WAS DISCARDED":** it says this act was never in the position to discard, **and a consumer that treats the
+  two alike has answered a question about an act whose outcome cannot be that one.**
+- **THE TRAP, NAMED: THE TWO LINES ASK DIFFERENT QUESTIONS.** **`if (record.discarded === undefined)` asks *"can
+  this act discard at all?"*** — it is a question about the ACT. **`if (record.discarded.length === 0)` asks *"did
+  it, this time?"*** — it is a question about YOUR run. **Neither line is a spelling of the other, and on a `read`
+  the second one throws.**
+- **AND A COPY LOSES THE MEMBER ENTIRELY.** `discarded` is a **NON-ENUMERABLE** own member on all three (an
+  accessor on the `write`'s and the `rollback`'s, an own data property on the `delete`'s), so **`{...receipt}` and
+  `Object.assign({}, receipt)` carry the enumerable members and NOT the witness** — **the copy's `record.discarded`
+  is `undefined` whatever the original said**, which is how a consumer ends up asking the "cannot discard" question
+  about an act that can (`D-49`'s non-enumerability, and `D-55` item 2's root). **Read it off the record itself.**
+- **WHAT TO DO: CHECK PRESENCE FIRST, THEN LENGTH.** `if ('discarded' in record)` distinguishes *"this act cannot
+  discard"* from *"it can"*; only then does `record.discarded.length === 0` mean *"nothing was discarded."* **AND DO
+  NOT WRITE `record.discarded?.length` (OR TEST IT FOR TRUTHINESS) AND CALL IT DONE:** `undefined` and `0` are both
+  falsy and one test then answers both questions — **that collapse is exactly what this clause exists to
+  prevent.** If you need one expression, name which question you are asking: `record.discarded === undefined` for
+  the act, `record.discarded.length === 0` for the run.
+- **MEASURED 2026-10-29, ON THIS CHECKOUT, THROUGH THE PUBLISHED ENTRY — SIX ARMS AND A SEVENTH.** **`delete`: a
+  listener in its delivery raises a `rollback` → `discarded: [{opId, addresses}]` (`1` entry); the same delete whose
+  delivery raises nothing → `discarded: []`.** **`write`: a raise its own drain never reached → `1` entry; a raise
+  its own pass's drain consumed and JUDGED → `[]`.** **`rollback`: raised in a delete's delivery → `1` entry; an
+  at-rest reversal → `[]`.** **AND ONE ACT THAT CANNOT DISCARD — `read`: the member is ABSENT on its answer
+  (`record.discarded === undefined`, `Array.isArray(record.discarded) === false`), and that is not `[]`.** **So no
+  act that can discard was missing it and no act that cannot discard carried it.** (`D-78`; `D-75`; `D-49`; `D-55`
+  item 2.)
+
+
+**THE EXITS ARE STILL YOURS AND ARE UNCHANGED: reload the file, or regenerate the store.** What changed is that
+**the `delete` now tells you the discard happened** — *"a fail-state is honest only if the consumer learns it
+happened"* (`D-49`).
+**⟶ AND AN ENTRY IS NEVER SHIPPED WITH AN EMPTY ADDRESS LIST, 2026-10-28 — `D-55` ITEM 2 · `DEF-AH`, MEASURED.** `RCA-8(g)` ANNOTATE-BESIDE: **every bullet above stands BYTE-FOR-BYTE and is read THROUGH this clause; the member's name, its non-enumerability, its `{ opId, addresses }` shape and the two limits stay exactly as they were.** **THE RULING, THE ARCHITECT, VERBATIM: *"A witness address of `[]` corresponds to the register itself. This is not a legal response for any other watched address."*** **SO THE TWO EMPTY THINGS ARE NOT THE SAME THING, AND THE SHIPPED `1.3.0` CONFLATED THEM: an ADDRESS of `[]` is THE REGISTER (the root) and is lawful; an entry whose address LIST is `[]` is never lawful.** **WHAT `1.3.0` DID, MEASURED: a delivery whose reversal moved NOTHING — a nested write, then a reversal of an op the watched address never held — reported `addresses: []`**, a list with no address in it. **WHAT YOU GET NOW:** **`record.discarded` is `[]` where nothing moved** — *if nothing moved there is no discard to report, so the entry is ABSENT and not empty* — **and a reversal that moves the ROOT reports `addresses: [[]]`**: one element, whose segment list is empty. **THE TWO READINGS BESIDE EACH OTHER, so a consumer can tell them apart: `[]` is "nothing was discarded"; `[[]]` is "the register itself is what moved".** **NO OTHER MEMBER MOVES:** `opId` is still the id the reversal named, the list is still `0` or `1` long, and nothing is minted into the status set. (`tests/e2e/discard-witness.mjs`'s `DW-10.1`/`DW-10.2` measure both arms; the empty-list arm is RED under a revert of the one line.)
+
+**⟶ `RCA-8(g)` MOVE-OUT, AUTHORED 2026-10-29 BY `D-76` ITEM 3 (`DEF-AT`): THE CLAUSE THAT STOOD HERE — the `D-55` item-3 `DEF-X` measurement headed *"AND YOUR `delete`'S OWN PASS IS STILL A MEASUREMENT AND NOT A BEHAVIOUR"*, its *"IT NEVER CALLS THE KERNEL"* and the shape it said would have to be built before a delete could have one — IS NO LONGER AT THIS LINE.** **`§7.8` above and the measurement both falsify it: a `delete` reaches the kernel, opens an attempt of its own kind at its own journal op, runs a pass over the pairs standing at the deleted address AND at every ancestor of it, appends that attempt's `outcome` entry, and delivers AFTER that pass** (`D-55` item `3`; `D-56`; `D-57`; the `1.4.0` section of this package's change list). **Its byte-exact text stands at `docs/guides/backup/D76-2026-10-29-guide-move-out.md §2`, whose head names this source path and its pre-move line range; NO BYTE OF IT IS RE-EMITTED HERE, and the ruling it recorded stays legible at that archive.**
+
+### §12.7 A skip is not a green, and your own throws are not refusals
+
+**WHAT BREAKS:** **a `skipped` cell is a cell that DID NOT RUN** — *"a skip is not a green"*, in the authority
+log's own words: *"`skipped 1` is a cell that did not run"* (`strata/decisions.md`, the examiner's findings) —
+**and a client's own throw is not the package's form.** **A listener body that throws is NOT CAUGHT, NOT RETRIED
+AND NOT REPORTED:** the package does not wrap your callback, and what escapes is your own throwable, not
+`{status, message, log, address}` (`docs/specs/storeroom-js/surface.md §2.7` item 4). **WHY IT IS OUT OF SCOPE:** `D-35` —
+**anything that enters the package from your side and leaves it is your shape, and the one thrown form is the
+package's answer to its OWN refusals.** **WHAT TO DO INSTEAD:** **catch inside your listener if you want a
+listener's failure to be yours**, and **never count a skipped test as a passed one** — and never treat a caught
+value with no `status` as a store refusal (§8.3).
+
+---
+
+## §13 · The second realm: the WebAssembly build
+
+**`@auspicion/provident-storeroom-js-wasm` IS THIS SAME STORE COMPILED TO WEBASSEMBLY, PUBLISHED AS ITS OWN PACKAGE**
+(`D-154` item 1; `D-157` item 1). **Nothing of it ships inside `provident-storeroom`, and nothing in this section moves a
+claim §1–§12 makes about `provident-storeroom`:** the store, its verbs, its tiers, its statuses and its receipts are the
+same code, **and what differs is how the bindings arrive and what the `file` tier means.**
+
+### §13.1 What it is, and how you construct one
+
+**THE BINDINGS ARE HANDED IN AND NEVER LOOKED FOR.** The Node build resolves a `.node` artefact down three rungs
+(§2.3); **this one instantiates nothing, loads no addon and reaches no filesystem**, so the HOST instantiates the module
+and hands it in. **THE FACTORY TAKES TWO POSITIONS — `storeCreate(bindings, cfg)` — and the first is the module:**
+
+```js
+// the HOST instantiates: read or fetch the package's own `storeroom_js_binding_bg.wasm`, hand it to the glue's
+// own `initSync`, and pass the initialised module namespace to the factory as position one.
+const store = storeCreate(bindings, {
+  journalLength: 256,   // REQUIRED, as on the Node build
+  listeners: [],        // REQUIRED, even when empty
+  saveCall,             // OPTIONAL — how this arm saves (§13.2)
+  initialImage,         // OPTIONAL — the image text a store boots from (§13.3)
+});
+```
+
+**A FIRST POSITION THAT IS NOT THE MODULE IS REFUSED BEFORE ANY BYTE OF YOUR `cfg` IS READ** — `null`, `undefined`, a
+primitive, a function, and an object carrying no callable `storeCreate` — **in the package's own class form: a
+`TypeError` whose `status` member is ABSENT**, because **no store exists at that instant — no instance, no verb, no op**
+(`D-157` item 3; `bindings/js/src/entry/addon-slot.mjs`'s `installAddon`). **The slot is left empty by the refusal**, so
+every later call answers the same form rather than a half-installed table.
+
+**`saveCall` AND `initialImage` ARE `cfg` KEYS ON BOTH ARMS** — they joined the four the construction already carried
+(`D-131`; `D-137`) — **and on this arm they are the whole of durability.** **THE ENTRY'S OWN LOAD-TIME GRAPH STAYS
+SYNCHRONOUS AND CARRIES NO `node:` SPECIFIER**, which is what lets the host hold the instance before the entry
+evaluates (`D-155` item 3; §13.5's `CW-4`). **And once the store exists, every member, record and refusal §3–§12 states
+answers as it does there: this arm is a second HEAD over one body, and the two `cfg` differences are the ones stated
+here.**
+
+### §13.2 `filePath` is REFUSED, and `saveCall` is how this arm saves
+
+**THERE IS NO `filePath` ON THIS BUILD, AND THE REASON IS THE HOST'S: a browser has no filesystem to put a path in**
+(`D-154` item 4). **So the key is not in the arm's generated declaration (`filePath?: never`), the filesystem calls and
+the process-id read are compiled out with the writer and the reader they belong to, and a construction that supplies a
+path is REFUSED before any filesystem act — `FilePathUnreachable`, the store's own Path arm, its message naming the path
+you gave** (`tests/e2e/wasm-arm.test.mjs`'s `CW-2`).
+
+**AND THE `file` TIER IS UNTOUCHED BY THAT REMOVAL: it means *durable with no path*.** **A `storeCreate` carrying a
+`saveCall` and no `filePath` IS a `file`-tier register** — set by the construction and spelled by nobody (`D-132`
+item 1) — **so a `file`-tier `write` LANDS on it, the receipt's `op.tier` reads `file`, and the value reads back.**
+**A construction with NEITHER a `saveCall` NOR a path is an ordinary `mem` register, where the same `file`-tier write is
+refused `ParentAnchorMonotonicityViolation`** — one verb, two stores, two answers, and the difference is only what you
+spelled at the construction (`CW-1`; `CW-5`).
+
+**`saveCall(image)` IS THE SAVE: the package invokes it with THE STORE'S OWN IMAGE TEXT — ONE position, a string, the
+same text the store composes for its own image — and YOUR RETURN IS THE VERDICT.** **`{success: true}` is the passing
+arm**; **anything else is the failing arm: the write is rolled back in the journal and you receive `FileCommitFailed`
+after that rollback, as §9.4 says** (`D-146` item 2). **A failed save's own `message[]` rides in the log as `'save'`
+entries, one entry per string, so the reason you wrote is not lost** (`D-153` item 1). **AND THE CHANNEL IS WRITE-ONLY
+BY CONSTRUCTION** — you decide where the copy goes and the store cannot read it back — **which is why a dropped op's
+reversal answers `RollbackCompacted` on this arm (§5.4's item 3) and why `initialImage` is the only way into such a
+store** (`D-165` items 1–2). **`filePath` and `saveCall` are mutually exclusive**: a construction carrying both is
+refused, because two save mechanisms over one register is a state the store cannot answer for.
+
+### §13.3 `initialImage` is the seed, and the empty string is not one
+
+**`initialImage` IS IMAGE TEXT AND NOTHING ELSE** — this store's own, exactly as `saveCall` is handed it — **and a store
+constructed with one boots from it with every admitted member installed at `file` tier** (`D-137` item 4). **On this arm
+it is the BOOTSTRAP, which is what makes a write-only save channel survivable: the image you kept seeds the store you
+rebuild.** **AN EMPTY STRING IS NOT A SEED AND IS REFUSED AS BROKEN CONFIG — `AddressMalformed`, the status a bad `cfg`
+already answers — and absence alone means *no seed*, so the creation state stands** (`D-147` item 4; `CW-2`).
+
+### §13.4 The clone law, and the two answers a `Proxy` gets
+
+**THE CROSSING IS A DEEP COPY IN BOTH DIRECTIONS, AND HERE THAT IS A LAW AND NOT A HABIT.** A value you write is
+COPIED, so mutating your object afterwards changes nothing the store holds; a value you read is a FRESH TREE, so
+mutating what `read` answered changes nothing the store holds. **The ground is the ruling's own: *"allowing the app to
+change values managed by the store would circumvent listener/constraint detection"*** (`D-156` item 2) — **so a value
+never crosses by reference on this arm, no crossing holds a live handle into your object, and no application-side
+mutation can fire a listener or pass a constraint without a `write`** (`tests/e2e/wasm-arm.test.mjs`'s `CW-7`).
+
+**AND THE `Proxy` QUESTION HAS TWO ANSWERS ON THIS ARM, WHICH IS THE ONE THING TO CARRY AWAY:**
+
+- **A `Proxy` YOU PASS AS A VALUE IS REFUSED, AND NOT ONE TRAP RUNS.** **The arm's detector IS `structuredClone`** —
+  a `Proxy` cannot survive serialisation, so **the refusal fires before any handler of yours is reached** — **and the
+  answer is the one the Node build gives, `ValueRefusedAtBoundary`** (`D-156` item 1; `CW-7`'s eight trap counters all
+  at `0`). **So a reactive store's own object — a `Proxy` on most client frameworks — is refused at every VALUE
+  position, and passing the plain value (`toRaw`, a spread, a clone) is what the store takes.**
+- **A `Proxy` AT A CARRIER POSITION IS NOT DETECTED, AND THAT IS DECLARED RATHER THAN ACCIDENTAL.** `cfg` itself, a
+  `listeners` entry, a `constraints` entry and the commit record the package builds **never enter the Rust store**, and
+  the only platform signal that could tell a `Proxy` from its target cannot tell it from a carrier that carries a
+  FUNCTION — **which the API's own keys require by definition** (`D-166` item 1; `D-167` items 1–2). **So a `Proxy`
+  handed as `cfg` on this arm is READ rather than refused: its traps run for the reads a construction must make anyway,
+  and a target missing a declared key is refused for that honest reason** (`D-167` item 5). **On the Node build the two
+  questions share one instrument, and nothing about them moves.**
+
+### §13.5 What this build cannot do
+
+- **IT HAS NO `commitFile`.** **The arm's module exports NINETEEN entries where the Node addon's set is TWENTY, and the
+  one name absent by ruling is `commitFile`**: the writer is unreachable from JS by construction and from Rust by the
+  empty-path early return, **so no declaration is owed for an entry that answers nobody** (`D-155` item 4, its figure
+  re-cut to nineteen when the retirement's entry joined the set). **The retirement's own entry, `storeRelease`, is on
+  BOTH arms** — a store you drop is released on either build (§1).
+- **IT CANNOT READ ITS OWN SAVES BACK.** The `saveCall` channel is write-only, so **the durable ground truth lives in the
+  copy YOU keep**: **the store never reconstructs state from a file, a reversal needing a dropped op answers
+  `RollbackCompacted`, and `initialImage` is the only seed** (§13.2, §13.3).
+- **IT CANNOT REFUSE A `Proxy` AT THE SETTINGS YOU CONSTRUCT IT WITH** — the declared loss in §13.4's second bullet, and
+  the only one this arm takes.
+- **IT DOES NOT SHIP INSIDE `provident-storeroom`.** It is a sixth artefact with its own manifest, its own declaration,
+  its own `version` line and its own licence copy, so **§11's `files` rows, `exports` arm and resolution rungs are the
+  main package's alone** (`D-157` item 1; §11).
+
+**THE CELLS THAT MEASURE ALL OF IT ARE `tests/e2e/wasm-arm.test.mjs`'s EIGHT — `CW-1`, `CW-2`, `CW-4`, `CW-5`, `CW-6`,
+`CW-7`, `CW-8`, `CW-9`** (`CW-3` is not one of them): the construction and its save, the `cfg` domain, the synchronous
+graph with no host specifier, the tier's two arms, the nineteen entries, the clone law with its eight trap counters, the
+retirement's entry, and the package's own finalizer reaching the arm. **Each of them BUILDS the arm and fails when it
+cannot**, so a green there is a build's green and not a claim's — **and none of them was driven against a published
+tarball: the released-bytes layer is open, exactly as §14 says of this guide's own claims.**
+
+## §14 · What this guide does not cover
+
+**Stated rather than left to be inferred, because a guide that hides its own edges is the next thing to fail
+quietly.**
+
+- **IT DOES NOT COVER ELECTRON, AND THE STORY IT DOES NOT TELL IS NOT ABSENT FROM THE REPOSITORY.** The Electron
+  integration story — main-process-only execution, a data-only preload bridge, `asarUnpack` for `**/*.node`, code
+  signing, a `filePath` under `app.getPath('userData')`, and the verification ladder *envelope* → *loaded in dev*
+  → *loaded in the packaged app* → *installed from the registry* — lives in the archived
+  `archive/pre-strata-docs-2026-10-24/docs/guides/electron-integration.md`. **It describes a superseded surface
+  exactly as this guide's predecessor does, and §2.3's rungs and §11's manifest facts are what it predates.** **A
+  consumer who has not measured their own Electron packaging has measured nothing about it** — `LIVE / INSTALL` is
+  open in this project and the `APP` layer is `NONE` (`strata/brief.md §6`).
+- **IT DOES NOT COVER THE RELEASED-BYTES LAYER.** Nothing here was driven against a published tarball, and the
+  layer that would do it — an install-shaped battery — is declared and not the thing this file reports on.
+  **`D-4`'s publish shape is evidence-derived, and the evidence is not this guide's.**
+- **IT DOES NOT DESCRIBE AN APPLICATION.** It says nothing about how you should structure a store, what your
+  schema should be, or whether any program works. It describes the package a consumer installs and what it
+  answers.
+- **IT DOES NOT SETTLE THE TIER-EVICTION QUESTION AS A SEMANTIC CLAIM.** §5.1 states the rule and what to rely on;
+  whether declared semantics and shipped behaviour agree at every arm and every tier combination is a question
+  for the clauses and not a consumer guide's.
+- **IT DOES NOT REPORT THE `A112` ORDERING MEASUREMENT.** The law is that the surface runs the triggered
+  constraints first and the other listeners only once every constraint has passed, and §9.2 states it as the law
+  (`surface.md §2.11`). **Whether delivery now follows the pass is `OWED` a measurement on this branch and is not
+  claimed here either way** (`strata/decisions.md` `D-1-bis`'s closing clause; `strata/brief.md §6`).
+- **IT DOES NOT RE-DERIVE ANY FIGURE IT CITES.** Where a contract's own text and its later annotate-beside clauses
+  print two readings, this guide cites the operative one and names the superseded one where a consumer would
+  otherwise be misled — **and where it cites an archived file, it says so.**
+- **AND IT STATES NO MEASUREMENT OF ITS OWN beyond the two of 2026-10-26 this file names.** **It is a consumer
+  document, not a test report:** the declared documents are the instrument for questions of semantics, and a
+  driven run is the instrument for questions of behaviour. **This guide tries to say which is which, and it is not
+  the instrument that decides between them.**
+
+**⟶ CORRECTED 2026-10-28 — THE BULLET ABOVE'S *"the two of 2026-10-26"* NO LONGER COUNTS THIS FILE, AND THE FIGURE IS MOVED RATHER THAN THE RULE.** `RCA-8(g)` ANNOTATE-BESIDE: **the bullet above stands BYTE-FOR-BYTE and is read THROUGH this clause.** **This file now names FOUR measurements of its own — the two of 2026-10-26 the bullet carries, §7.6's two-address `b1` drive and §7.7's 60/40-reversal restart-budget drive, both taken 2026-10-28 on this checkout through the published entry — and each is named where it stands rather than gathered here.** **WHAT DOES NOT MOVE IS THE BULLET'S RULE AND THE DOCUMENT'S OWN STANDING: this guide is a consumer document and not a test report; a figure it states is either declared and cited or measured and marked; and the declared documents and the driven batteries remain the instruments for questions of semantics and of behaviour respectively.** **A reader who wants the measurements re-run finds their drives named at their sites, and no figure of this file is offered as a green.**
+
+**⟶ CORRECTED 2026-10-30 — THE COUNT IN THE CLAUSE ABOVE NO LONGER COUNTS THIS FILE EITHER, AND THE FIGURE IS MOVED RATHER THAN THE RULE.** `RCA-8(g)` ANNOTATE-BESIDE: **that clause stands BYTE-FOR-BYTE and is read THROUGH this one.** **This file now names FIVE measurements of its own — the FOUR that clause counts, and `§7.6`'s landing drive of 2026-10-30, taken on this checkout through the published entry on its block's exact bytes — and each is named where it stands rather than gathered here.** **WHAT DOES NOT MOVE IS THE BULLET'S RULE AND THE DOCUMENT'S OWN STANDING: this guide is a consumer document and not a test report; a figure it states is either declared and cited or measured and marked; and the declared documents and the driven batteries remain the instruments for questions of semantics and of behaviour respectively.**

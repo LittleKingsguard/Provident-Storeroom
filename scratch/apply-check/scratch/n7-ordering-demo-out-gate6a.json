@@ -1,0 +1,2716 @@
+{
+  "demo": "N7 — ordering gate demo verification (`A112`): \"Verify ordering holding in demo\"",
+  "run": "gate6a",
+  "layer": "LIVE / ASSEMBLED PACKAGE",
+  "layerStatement": {
+    "resolution": "the package is RESOLVED BY ITS PUBLISHED NAME through scratch/node_modules/provident-storeroom -> bindings/js (package.json v0.1.3, exports \".\" -> ./index.mjs); the kernel module is reached at its declared checkout home bindings/js/src/constraint-kernel.mjs, and its own fixture binding is the package SELF-REFERENCE (Node resolves 'provident-storeroom' from bindings/js/src to bindings/js/index.mjs), so the kernel, the driver and the store share ONE module instance and ONE loaded addon; the Rust store behind the JS binding is exercised in a real Node process (node v24.20.0).",
+    "publishedInstall": "NOT exercised, and it could not show this demo at all: package.json \"files\" carries index.mjs + README.md + index.d.ts only and \"exports\" declares \".\" alone, so an install from the registry carries NO src/constraint-kernel.mjs and no subpath that reaches it — the constraint kernel is checkout-only today (kernel-surface.md §1 item 1 declares its one checkout home), which is to say src/ reaches no consumer. What the published install WOULD show is the store half alone: the eight verbs and the per-instance {register,on,off} members — enough to observe the delivery window (a listener body running inside write()'s own frame) but not the constraint pass, its ordering or its discard.",
+    "storeModuleKeys": [
+      "delete",
+      "listen",
+      "read",
+      "readLiteral",
+      "rollback",
+      "storeCreate",
+      "unlisten",
+      "write"
+    ]
+  },
+  "fixture": {
+    "address": [
+      "n7",
+      "ord"
+    ],
+    "prefixAddress": [
+      "n7"
+    ],
+    "tier": "mem",
+    "constraintPair": {
+      "address": [
+        "n7",
+        "ord"
+      ],
+      "id": "n7c",
+      "passReturn": "true",
+      "failReturn": "{message}"
+    },
+    "registrationVariants": [
+      "prefix-address",
+      "on-at-adopted-address",
+      "register-at-adopted-handle"
+    ],
+    "drivingOrder": "K-1 register -> listener registration -> K-2 commit -> K-3 runAttempt -> store read / log / report"
+  },
+  "verdicts": [
+    {
+      "limb": 1,
+      "cell": "L1-prefix-address-r1",
+      "requires": "THE MODEL REQUIRES: the pair's body runs, and the plain listener's body runs ONLY AFTER the pass — the listener never runs before any constraint of that write (A112: the triggered constraints first, and only once every constraint has passed the other listeners).",
+      "observed": "constraint body calls=1 at seqs [6]; listener body calls=1 at seqs [7]; listener ran inside the K-2 window=false; listener ran before K-2 returned=false; constraint body calls at K-2's return=0; listener calls at K-2's return=0; terminal arm=passed; store read at [\"n7\",\"ord\"]={\"absent\":false,\"value\":\"100\"}",
+      "verdict": "PASS"
+    },
+    {
+      "limb": 1,
+      "cell": "L1-prefix-address-r2",
+      "requires": "THE MODEL REQUIRES: the pair's body runs, and the plain listener's body runs ONLY AFTER the pass — the listener never runs before any constraint of that write (A112: the triggered constraints first, and only once every constraint has passed the other listeners).",
+      "observed": "constraint body calls=1 at seqs [50]; listener body calls=1 at seqs [51]; listener ran inside the K-2 window=false; listener ran before K-2 returned=false; constraint body calls at K-2's return=0; listener calls at K-2's return=0; terminal arm=passed; store read at [\"n7\",\"ord\"]={\"absent\":false,\"value\":\"200\"}",
+      "verdict": "PASS"
+    },
+    {
+      "limb": 1,
+      "cell": "L1-on-at-adopted-address-r1",
+      "requires": "THE MODEL REQUIRES: the pair's body runs, and the plain listener's body runs ONLY AFTER the pass — the listener never runs before any constraint of that write (A112: the triggered constraints first, and only once every constraint has passed the other listeners).",
+      "observed": "constraint body calls=1 at seqs [22]; listener body calls=0 at seqs []; listener ran inside the K-2 window=false; listener ran before K-2 returned=false; constraint body calls at K-2's return=0; listener calls at K-2's return=0; terminal arm=passed; store read at [\"n7\",\"ord\"]={\"absent\":false,\"value\":\"100\"}",
+      "verdict": "FAIL"
+    },
+    {
+      "limb": 1,
+      "cell": "L1-on-at-adopted-address-r2",
+      "requires": "THE MODEL REQUIRES: the pair's body runs, and the plain listener's body runs ONLY AFTER the pass — the listener never runs before any constraint of that write (A112: the triggered constraints first, and only once every constraint has passed the other listeners).",
+      "observed": "constraint body calls=1 at seqs [66]; listener body calls=0 at seqs []; listener ran inside the K-2 window=false; listener ran before K-2 returned=false; constraint body calls at K-2's return=0; listener calls at K-2's return=0; terminal arm=passed; store read at [\"n7\",\"ord\"]={\"absent\":false,\"value\":\"200\"}",
+      "verdict": "FAIL"
+    },
+    {
+      "limb": 1,
+      "cell": "L1-register-at-adopted-handle-r1",
+      "requires": "THE MODEL REQUIRES: the pair's body runs, and the plain listener's body runs ONLY AFTER the pass — the listener never runs before any constraint of that write (A112: the triggered constraints first, and only once every constraint has passed the other listeners).",
+      "observed": "constraint body calls=1 at seqs [36]; listener body calls=0 at seqs []; listener ran inside the K-2 window=false; listener ran before K-2 returned=false; constraint body calls at K-2's return=0; listener calls at K-2's return=0; terminal arm=passed; store read at [\"n7\",\"ord\"]={\"absent\":false,\"value\":\"100\"}",
+      "verdict": "FAIL"
+    },
+    {
+      "limb": 1,
+      "cell": "L1-register-at-adopted-handle-r2",
+      "requires": "THE MODEL REQUIRES: the pair's body runs, and the plain listener's body runs ONLY AFTER the pass — the listener never runs before any constraint of that write (A112: the triggered constraints first, and only once every constraint has passed the other listeners).",
+      "observed": "constraint body calls=1 at seqs [80]; listener body calls=0 at seqs []; listener ran inside the K-2 window=false; listener ran before K-2 returned=false; constraint body calls at K-2's return=0; listener calls at K-2's return=0; terminal arm=passed; store read at [\"n7\",\"ord\"]={\"absent\":false,\"value\":\"200\"}",
+      "verdict": "FAIL"
+    },
+    {
+      "limb": 2,
+      "cell": "L2-prefix-address-r1",
+      "requires": "THE MODEL REQUIRES: with the constraint failing, the write/commit fails on constraints and the listener's body must NOT have run at all — it is discarded, never delivered.",
+      "observed": "K-2 threw=false (it wrote pending=2 of triggered=2 and did NOT fail on constraints); terminal arm=KC-3 (failed on constraints=true); report={\"outcome\":\"failed\",\"members\":[\"attempt\",\"log\",\"ops\",\"outcome\",\"rollback\"],\"ops\":1,\"rollbackSteps\":[{\"opId\":\"op-4\",\"answer\":\"ok\",\"failed\":false,\"undoneOps\":[\"op-4\"],\"restoredTo\":{\"present\":true,\"value\":0},\"checkpoint\":null}]}; the store's own read at [\"n7\",\"ord\"]: before the attempt's write={\"absent\":false,\"value\":\"0\"}, after the arm={\"absent\":false,\"value\":\"0\"} (composition calls all returned=true, undid the attempt's own op=true, floor step=null); THE LISTENER BODY CALLS: at K-2's return=0, delivered in total=0 (inside the K-2 window=false, before any constraint=false); pending after the arm=0 of triggered=2; the discard reached the listener's handle=true; the declared caller's own loop over `pending` (layer (b)) invocations on this record=0 (the handle left pending with the discard, so that loop delivers nothing); log=[\"1:constraint-check:n7c:null\",\"2:outcome:null:KC-3\"]",
+      "verdict": "PASS"
+    },
+    {
+      "limb": 2,
+      "cell": "L2-prefix-address-r2",
+      "requires": "THE MODEL REQUIRES: with the constraint failing, the write/commit fails on constraints and the listener's body must NOT have run at all — it is discarded, never delivered.",
+      "observed": "K-2 threw=false (it wrote pending=2 of triggered=2 and did NOT fail on constraints); terminal arm=KC-3 (failed on constraints=true); report={\"outcome\":\"failed\",\"members\":[\"attempt\",\"log\",\"ops\",\"outcome\",\"rollback\"],\"ops\":1,\"rollbackSteps\":[{\"opId\":\"op-16\",\"answer\":\"ok\",\"failed\":false,\"undoneOps\":[\"op-16\"],\"restoredTo\":{\"present\":true,\"value\":0},\"checkpoint\":null}]}; the store's own read at [\"n7\",\"ord\"]: before the attempt's write={\"absent\":false,\"value\":\"0\"}, after the arm={\"absent\":false,\"value\":\"0\"} (composition calls all returned=true, undid the attempt's own op=true, floor step=null); THE LISTENER BODY CALLS: at K-2's return=0, delivered in total=0 (inside the K-2 window=false, before any constraint=false); pending after the arm=0 of triggered=2; the discard reached the listener's handle=true; the declared caller's own loop over `pending` (layer (b)) invocations on this record=0 (the handle left pending with the discard, so that loop delivers nothing); log=[\"1:constraint-check:n7c:null\",\"2:outcome:null:KC-3\"]",
+      "verdict": "PASS"
+    },
+    {
+      "limb": 2,
+      "cell": "L2-on-at-adopted-address-r1",
+      "requires": "THE MODEL REQUIRES: with the constraint failing, the write/commit fails on constraints and the listener's body must NOT have run at all — it is discarded, never delivered.",
+      "observed": "K-2 threw=false (it wrote pending=1 of triggered=1 and did NOT fail on constraints); terminal arm=KC-3 (failed on constraints=true); report={\"outcome\":\"failed\",\"members\":[\"attempt\",\"log\",\"ops\",\"outcome\",\"rollback\"],\"ops\":1,\"rollbackSteps\":[{\"opId\":\"op-8\",\"answer\":\"ok\",\"failed\":false,\"undoneOps\":[\"op-8\"],\"restoredTo\":{\"present\":true,\"value\":0},\"checkpoint\":null}]}; the store's own read at [\"n7\",\"ord\"]: before the attempt's write={\"absent\":false,\"value\":\"0\"}, after the arm={\"absent\":false,\"value\":\"0\"} (composition calls all returned=true, undid the attempt's own op=true, floor step=null); THE LISTENER BODY CALLS: at K-2's return=0, delivered in total=0 (inside the K-2 window=false, before any constraint=false); pending after the arm=0 of triggered=1; the discard reached the listener's handle=true; the declared caller's own loop over `pending` (layer (b)) invocations on this record=0 (the handle left pending with the discard, so that loop delivers nothing); log=[\"1:constraint-check:n7c:null\",\"2:outcome:null:KC-3\"]",
+      "verdict": "PASS"
+    },
+    {
+      "limb": 2,
+      "cell": "L2-on-at-adopted-address-r2",
+      "requires": "THE MODEL REQUIRES: with the constraint failing, the write/commit fails on constraints and the listener's body must NOT have run at all — it is discarded, never delivered.",
+      "observed": "K-2 threw=false (it wrote pending=1 of triggered=1 and did NOT fail on constraints); terminal arm=KC-3 (failed on constraints=true); report={\"outcome\":\"failed\",\"members\":[\"attempt\",\"log\",\"ops\",\"outcome\",\"rollback\"],\"ops\":1,\"rollbackSteps\":[{\"opId\":\"op-20\",\"answer\":\"ok\",\"failed\":false,\"undoneOps\":[\"op-20\"],\"restoredTo\":{\"present\":true,\"value\":0},\"checkpoint\":null}]}; the store's own read at [\"n7\",\"ord\"]: before the attempt's write={\"absent\":false,\"value\":\"0\"}, after the arm={\"absent\":false,\"value\":\"0\"} (composition calls all returned=true, undid the attempt's own op=true, floor step=null); THE LISTENER BODY CALLS: at K-2's return=0, delivered in total=0 (inside the K-2 window=false, before any constraint=false); pending after the arm=0 of triggered=1; the discard reached the listener's handle=true; the declared caller's own loop over `pending` (layer (b)) invocations on this record=0 (the handle left pending with the discard, so that loop delivers nothing); log=[\"1:constraint-check:n7c:null\",\"2:outcome:null:KC-3\"]",
+      "verdict": "PASS"
+    },
+    {
+      "limb": 2,
+      "cell": "L2-register-at-adopted-handle-r1",
+      "requires": "THE MODEL REQUIRES: with the constraint failing, the write/commit fails on constraints and the listener's body must NOT have run at all — it is discarded, never delivered.",
+      "observed": "K-2 threw=false (it wrote pending=1 of triggered=1 and did NOT fail on constraints); terminal arm=KC-3 (failed on constraints=true); report={\"outcome\":\"failed\",\"members\":[\"attempt\",\"log\",\"ops\",\"outcome\",\"rollback\"],\"ops\":1,\"rollbackSteps\":[{\"opId\":\"op-12\",\"answer\":\"ok\",\"failed\":false,\"undoneOps\":[\"op-12\"],\"restoredTo\":{\"present\":true,\"value\":0},\"checkpoint\":null}]}; the store's own read at [\"n7\",\"ord\"]: before the attempt's write={\"absent\":false,\"value\":\"0\"}, after the arm={\"absent\":false,\"value\":\"0\"} (composition calls all returned=true, undid the attempt's own op=true, floor step=null); THE LISTENER BODY CALLS: at K-2's return=0, delivered in total=0 (inside the K-2 window=false, before any constraint=false); pending after the arm=0 of triggered=1; the discard reached the listener's handle=true; the declared caller's own loop over `pending` (layer (b)) invocations on this record=0 (the handle left pending with the discard, so that loop delivers nothing); log=[\"1:constraint-check:n7c:null\",\"2:outcome:null:KC-3\"]",
+      "verdict": "PASS"
+    },
+    {
+      "limb": 2,
+      "cell": "L2-register-at-adopted-handle-r2",
+      "requires": "THE MODEL REQUIRES: with the constraint failing, the write/commit fails on constraints and the listener's body must NOT have run at all — it is discarded, never delivered.",
+      "observed": "K-2 threw=false (it wrote pending=1 of triggered=1 and did NOT fail on constraints); terminal arm=KC-3 (failed on constraints=true); report={\"outcome\":\"failed\",\"members\":[\"attempt\",\"log\",\"ops\",\"outcome\",\"rollback\"],\"ops\":1,\"rollbackSteps\":[{\"opId\":\"op-24\",\"answer\":\"ok\",\"failed\":false,\"undoneOps\":[\"op-24\"],\"restoredTo\":{\"present\":true,\"value\":0},\"checkpoint\":null}]}; the store's own read at [\"n7\",\"ord\"]: before the attempt's write={\"absent\":false,\"value\":\"0\"}, after the arm={\"absent\":false,\"value\":\"0\"} (composition calls all returned=true, undid the attempt's own op=true, floor step=null); THE LISTENER BODY CALLS: at K-2's return=0, delivered in total=0 (inside the K-2 window=false, before any constraint=false); pending after the arm=0 of triggered=1; the discard reached the listener's handle=true; the declared caller's own loop over `pending` (layer (b)) invocations on this record=0 (the handle left pending with the discard, so that loop delivers nothing); log=[\"1:constraint-check:n7c:null\",\"2:outcome:null:KC-3\"]",
+      "verdict": "PASS"
+    },
+    {
+      "limb": 3,
+      "cell": "L3-replacement-seam",
+      "requires": "THE MODEL'S OWN TERMS: report what the app's own registration at the address the kernel adopted does to limbs 1 and 2 — does the pass still gate the app's body, and is the app's body discarded when the constraints fail? (surface.md §2.4 item 7 (a) + rule 2: one function per handle, a later registration REPLACES; docs/defects.md DEF-2026-10-15-N.)",
+      "observed": "on([\"n7\",\"ord\"], appFn) returned a handle IDENTICAL to the kernel's adopted K-1 handle=true (the store's listen is idempotent at the address, so the app's registration replaced the kernel's adopted slot). PASSING write: constraint body calls=1 (seqs [22]), app listener body calls=0 (seqs []), inside the K-2 window=false, before any constraint=false → THE PASS DOES NOT GATE THE APP'S BODY; the constraint pair itself still ran (calls=1). FAILING write: terminal arm=KC-3, app listener body calls at K-2's return=0, delivered total=0 → THE APP'S BODY IS NOT DISCARDED (it had already run); what the arm discarded is the record member: pending 1 → 0 (the discard reached that handle=true). The same seam through the §2.4 item 5 site register(adoptedHandle, appFn): passing write listener calls=0 before any constraint=false; failing write listener calls delivered=0. Baseline, listener at the PREFIX address [\"n7\"] (its OWN handle, no replacement): passing write listener calls=1 inside the K-2 window=false before any constraint=false; failing write listener calls delivered=0, and that handle STILL STANDS in pending after the arm=false (so the declared caller loop over pending would deliver it again: layer (b) probe invocations=0).",
+      "verdict": "NOT-REPRODUCED"
+    },
+    {
+      "limb": 4,
+      "cell": "L4-repeat",
+      "requires": "THE MODEL REQUIRES: the result is not a first-call artifact — the passing and the failing write are each run twice in one process (and each handling is run on two fresh stores).",
+      "observed": "four sequential attempts at ONE address on ONE store in one process: L4-seq1-pass: arm=passed, constraintBody@K-2=0, listener@K-2=0, listenerDelivered=1, pending@arm=1, storeRead@arm={\"absent\":false,\"value\":\"100\"} | L4-seq2-fail: arm=KC-3, constraintBody@K-2=0, listener@K-2=0, listenerDelivered=0, pending@arm=0, storeRead@arm={\"absent\":false,\"value\":\"0\"} | L4-seq3-pass: arm=passed, constraintBody@K-2=0, listener@K-2=0, listenerDelivered=1, pending@arm=1, storeRead@arm={\"absent\":false,\"value\":\"300\"} | L4-seq4-fail: arm=KC-8, constraintBody@K-2=0, listener@K-2=0, listenerDelivered=0, pending@arm=0, storeRead@arm={\"absent\":false,\"value\":\"400\"}; the same failure repeats identically across the two rounds of every variant on fresh stores=true; the listener is delivered inside the K-2 window on every attempt (4 of 4), so the failure of limbs 1 and 2 is not a first-call artifact. AND THE REPEAT IS NOT UNIFORM: the failing attempts' arm tokens diverge=true — the first failing attempt answers KC-3 (its own constraint violation), the SECOND answers KC-8 with the per-op rollback met the store's own RollbackCompacted at op-29, so nothing was restored and THE VALUE THE CONSTRAINTS REFUSED STANDS at the address (store read after the arm={\"absent\":false,\"value\":\"400\"}). The cause is the store's own rollback scope, measured through its own verb: rolling back the newest op at that key reports undoneOps=[the op and the earlier op at the same key] and the store then compacts, so the second failing attempt's rollback is out of scope (measured through the store's own verb on a store of its own: {\"opIds\":[\"op-31\",\"op-32\",\"op-33\",\"op-34\"],\"firstRollback\":{\"opId\":\"op-32\",\"undoneOps\":[\"op-32\",\"op-31\"],\"restoredTo\":{\"present\":true,\"value\":0}},\"readAfterFirstRollback\":\"0\",\"secondRollback\":{\"threw\":\"RollbackCompacted\",\"message\":\"'op-34' is out of scope because it is compacted, compacted operations are out of scope\"},\"readAfterSecondRollback\":\"400\"}). The kernel's KC-8 arm is its declared arm for that floor; the consequence — a refused value left standing — is not contemplated by the ordering model.",
+      "verdict": "FAIL (limbs 1 and 2 fail on every attempt — 4 of 4 — so the failure is no artifact; and the repeat additionally changes the arm token on the second failing attempt)"
+    }
+  ],
+  "totals": {
+    "cells": 16,
+    "limbsExecuted": 4,
+    "limb1": {
+      "cells": 6,
+      "pass": 2,
+      "fail": 4
+    },
+    "limb2": {
+      "cells": 6,
+      "pass": 6,
+      "fail": 0
+    },
+    "limb3": [
+      "NOT-REPRODUCED"
+    ],
+    "limb4": [
+      "FAIL (limbs 1 and 2 fail on every attempt — 4 of 4 — so the failure is no artifact; and the repeat additionally changes the arm token on the second failing attempt)"
+    ],
+    "verdictsTotal": 14
+  },
+  "determinismDigest": "d4dcf3a2eb70212fd607431e6a401b6b895ee5fc6cd9c90e23ca1767d0ba75bc",
+  "storeRollbackScopeProbe": {
+    "opIds": [
+      "op-31",
+      "op-32",
+      "op-33",
+      "op-34"
+    ],
+    "firstRollback": {
+      "opId": "op-32",
+      "undoneOps": [
+        "op-32",
+        "op-31"
+      ],
+      "restoredTo": {
+        "present": true,
+        "value": 0
+      }
+    },
+    "readAfterFirstRollback": "0",
+    "secondRollback": {
+      "threw": "RollbackCompacted",
+      "message": "'op-34' is out of scope because it is compacted, compacted operations are out of scope"
+    },
+    "readAfterSecondRollback": "400"
+  },
+  "directWriteProbe": {
+    "note": "the store half alone: no K-1/K-2/K-3 of the kernel ran in this probe",
+    "handleIsOpaque": true,
+    "writeThrew": null,
+    "triggered": 1,
+    "listenerBodyCalls": 1,
+    "listenerBodyRanBetweenTheWriteVerbsOwnEnterAndReturn": true
+  },
+  "trail": [
+    {
+      "seq": 1,
+      "phase": "K-1",
+      "cell": "L1-prefix-address-r1",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 2,
+      "phase": "K-1",
+      "cell": "L1-prefix-address-r1",
+      "kind": "K1.return",
+      "adoptedHandleType": "object"
+    },
+    {
+      "seq": 3,
+      "phase": "K-2",
+      "cell": "L1-prefix-address-r1",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 4,
+      "phase": "K-2",
+      "cell": "L1-prefix-address-r1",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 5,
+      "phase": "K-3",
+      "cell": "L1-prefix-address-r1",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 6,
+      "phase": "K-3",
+      "cell": "L1-prefix-address-r1",
+      "kind": "constraint.body",
+      "pair": "n7c",
+      "returned": "true"
+    },
+    {
+      "seq": 7,
+      "phase": "K-3",
+      "cell": "L1-prefix-address-r1",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"n7\",\"ord\"]"
+    },
+    {
+      "seq": 8,
+      "phase": "K-3",
+      "cell": "L1-prefix-address-r1",
+      "kind": "K3.return",
+      "thrown": null,
+      "outcome": "passed"
+    },
+    {
+      "seq": 9,
+      "phase": "layer-b",
+      "cell": "L1-prefix-address-r1",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"n7\",\"ord\"]"
+    },
+    {
+      "seq": 10,
+      "phase": "K-1",
+      "cell": "L2-prefix-address-r1",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 11,
+      "phase": "K-1",
+      "cell": "L2-prefix-address-r1",
+      "kind": "K1.return",
+      "adoptedHandleType": "object"
+    },
+    {
+      "seq": 12,
+      "phase": "K-2",
+      "cell": "L2-prefix-address-r1",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 13,
+      "phase": "K-2",
+      "cell": "L2-prefix-address-r1",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 14,
+      "phase": "K-3",
+      "cell": "L2-prefix-address-r1",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 15,
+      "phase": "K-3",
+      "cell": "L2-prefix-address-r1",
+      "kind": "constraint.body",
+      "pair": "n7c",
+      "returned": "{message}"
+    },
+    {
+      "seq": 16,
+      "phase": "K-3",
+      "cell": "L2-prefix-address-r1",
+      "kind": "K3.return",
+      "thrown": "KC-3",
+      "outcome": null
+    },
+    {
+      "seq": 17,
+      "phase": "K-1",
+      "cell": "L1-on-at-adopted-address-r1",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 18,
+      "phase": "K-1",
+      "cell": "L1-on-at-adopted-address-r1",
+      "kind": "K1.return",
+      "adoptedHandleType": "object"
+    },
+    {
+      "seq": 19,
+      "phase": "K-2",
+      "cell": "L1-on-at-adopted-address-r1",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 20,
+      "phase": "K-2",
+      "cell": "L1-on-at-adopted-address-r1",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 21,
+      "phase": "K-3",
+      "cell": "L1-on-at-adopted-address-r1",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 22,
+      "phase": "K-3",
+      "cell": "L1-on-at-adopted-address-r1",
+      "kind": "constraint.body",
+      "pair": "n7c",
+      "returned": "true"
+    },
+    {
+      "seq": 23,
+      "phase": "K-3",
+      "cell": "L1-on-at-adopted-address-r1",
+      "kind": "K3.return",
+      "thrown": null,
+      "outcome": "passed"
+    },
+    {
+      "seq": 24,
+      "phase": "K-1",
+      "cell": "L2-on-at-adopted-address-r1",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 25,
+      "phase": "K-1",
+      "cell": "L2-on-at-adopted-address-r1",
+      "kind": "K1.return",
+      "adoptedHandleType": "object"
+    },
+    {
+      "seq": 26,
+      "phase": "K-2",
+      "cell": "L2-on-at-adopted-address-r1",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 27,
+      "phase": "K-2",
+      "cell": "L2-on-at-adopted-address-r1",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 28,
+      "phase": "K-3",
+      "cell": "L2-on-at-adopted-address-r1",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 29,
+      "phase": "K-3",
+      "cell": "L2-on-at-adopted-address-r1",
+      "kind": "constraint.body",
+      "pair": "n7c",
+      "returned": "{message}"
+    },
+    {
+      "seq": 30,
+      "phase": "K-3",
+      "cell": "L2-on-at-adopted-address-r1",
+      "kind": "K3.return",
+      "thrown": "KC-3",
+      "outcome": null
+    },
+    {
+      "seq": 31,
+      "phase": "K-1",
+      "cell": "L1-register-at-adopted-handle-r1",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 32,
+      "phase": "K-1",
+      "cell": "L1-register-at-adopted-handle-r1",
+      "kind": "K1.return",
+      "adoptedHandleType": "object"
+    },
+    {
+      "seq": 33,
+      "phase": "K-2",
+      "cell": "L1-register-at-adopted-handle-r1",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 34,
+      "phase": "K-2",
+      "cell": "L1-register-at-adopted-handle-r1",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 35,
+      "phase": "K-3",
+      "cell": "L1-register-at-adopted-handle-r1",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 36,
+      "phase": "K-3",
+      "cell": "L1-register-at-adopted-handle-r1",
+      "kind": "constraint.body",
+      "pair": "n7c",
+      "returned": "true"
+    },
+    {
+      "seq": 37,
+      "phase": "K-3",
+      "cell": "L1-register-at-adopted-handle-r1",
+      "kind": "K3.return",
+      "thrown": null,
+      "outcome": "passed"
+    },
+    {
+      "seq": 38,
+      "phase": "K-1",
+      "cell": "L2-register-at-adopted-handle-r1",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 39,
+      "phase": "K-1",
+      "cell": "L2-register-at-adopted-handle-r1",
+      "kind": "K1.return",
+      "adoptedHandleType": "object"
+    },
+    {
+      "seq": 40,
+      "phase": "K-2",
+      "cell": "L2-register-at-adopted-handle-r1",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 41,
+      "phase": "K-2",
+      "cell": "L2-register-at-adopted-handle-r1",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 42,
+      "phase": "K-3",
+      "cell": "L2-register-at-adopted-handle-r1",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 43,
+      "phase": "K-3",
+      "cell": "L2-register-at-adopted-handle-r1",
+      "kind": "constraint.body",
+      "pair": "n7c",
+      "returned": "{message}"
+    },
+    {
+      "seq": 44,
+      "phase": "K-3",
+      "cell": "L2-register-at-adopted-handle-r1",
+      "kind": "K3.return",
+      "thrown": "KC-3",
+      "outcome": null
+    },
+    {
+      "seq": 45,
+      "phase": "K-1",
+      "cell": "L1-prefix-address-r2",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 46,
+      "phase": "K-1",
+      "cell": "L1-prefix-address-r2",
+      "kind": "K1.return",
+      "adoptedHandleType": "object"
+    },
+    {
+      "seq": 47,
+      "phase": "K-2",
+      "cell": "L1-prefix-address-r2",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 48,
+      "phase": "K-2",
+      "cell": "L1-prefix-address-r2",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 49,
+      "phase": "K-3",
+      "cell": "L1-prefix-address-r2",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 50,
+      "phase": "K-3",
+      "cell": "L1-prefix-address-r2",
+      "kind": "constraint.body",
+      "pair": "n7c",
+      "returned": "true"
+    },
+    {
+      "seq": 51,
+      "phase": "K-3",
+      "cell": "L1-prefix-address-r2",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"n7\",\"ord\"]"
+    },
+    {
+      "seq": 52,
+      "phase": "K-3",
+      "cell": "L1-prefix-address-r2",
+      "kind": "K3.return",
+      "thrown": null,
+      "outcome": "passed"
+    },
+    {
+      "seq": 53,
+      "phase": "layer-b",
+      "cell": "L1-prefix-address-r2",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"n7\",\"ord\"]"
+    },
+    {
+      "seq": 54,
+      "phase": "K-1",
+      "cell": "L2-prefix-address-r2",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 55,
+      "phase": "K-1",
+      "cell": "L2-prefix-address-r2",
+      "kind": "K1.return",
+      "adoptedHandleType": "object"
+    },
+    {
+      "seq": 56,
+      "phase": "K-2",
+      "cell": "L2-prefix-address-r2",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 57,
+      "phase": "K-2",
+      "cell": "L2-prefix-address-r2",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 58,
+      "phase": "K-3",
+      "cell": "L2-prefix-address-r2",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 59,
+      "phase": "K-3",
+      "cell": "L2-prefix-address-r2",
+      "kind": "constraint.body",
+      "pair": "n7c",
+      "returned": "{message}"
+    },
+    {
+      "seq": 60,
+      "phase": "K-3",
+      "cell": "L2-prefix-address-r2",
+      "kind": "K3.return",
+      "thrown": "KC-3",
+      "outcome": null
+    },
+    {
+      "seq": 61,
+      "phase": "K-1",
+      "cell": "L1-on-at-adopted-address-r2",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 62,
+      "phase": "K-1",
+      "cell": "L1-on-at-adopted-address-r2",
+      "kind": "K1.return",
+      "adoptedHandleType": "object"
+    },
+    {
+      "seq": 63,
+      "phase": "K-2",
+      "cell": "L1-on-at-adopted-address-r2",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 64,
+      "phase": "K-2",
+      "cell": "L1-on-at-adopted-address-r2",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 65,
+      "phase": "K-3",
+      "cell": "L1-on-at-adopted-address-r2",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 66,
+      "phase": "K-3",
+      "cell": "L1-on-at-adopted-address-r2",
+      "kind": "constraint.body",
+      "pair": "n7c",
+      "returned": "true"
+    },
+    {
+      "seq": 67,
+      "phase": "K-3",
+      "cell": "L1-on-at-adopted-address-r2",
+      "kind": "K3.return",
+      "thrown": null,
+      "outcome": "passed"
+    },
+    {
+      "seq": 68,
+      "phase": "K-1",
+      "cell": "L2-on-at-adopted-address-r2",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 69,
+      "phase": "K-1",
+      "cell": "L2-on-at-adopted-address-r2",
+      "kind": "K1.return",
+      "adoptedHandleType": "object"
+    },
+    {
+      "seq": 70,
+      "phase": "K-2",
+      "cell": "L2-on-at-adopted-address-r2",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 71,
+      "phase": "K-2",
+      "cell": "L2-on-at-adopted-address-r2",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 72,
+      "phase": "K-3",
+      "cell": "L2-on-at-adopted-address-r2",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 73,
+      "phase": "K-3",
+      "cell": "L2-on-at-adopted-address-r2",
+      "kind": "constraint.body",
+      "pair": "n7c",
+      "returned": "{message}"
+    },
+    {
+      "seq": 74,
+      "phase": "K-3",
+      "cell": "L2-on-at-adopted-address-r2",
+      "kind": "K3.return",
+      "thrown": "KC-3",
+      "outcome": null
+    },
+    {
+      "seq": 75,
+      "phase": "K-1",
+      "cell": "L1-register-at-adopted-handle-r2",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 76,
+      "phase": "K-1",
+      "cell": "L1-register-at-adopted-handle-r2",
+      "kind": "K1.return",
+      "adoptedHandleType": "object"
+    },
+    {
+      "seq": 77,
+      "phase": "K-2",
+      "cell": "L1-register-at-adopted-handle-r2",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 78,
+      "phase": "K-2",
+      "cell": "L1-register-at-adopted-handle-r2",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 79,
+      "phase": "K-3",
+      "cell": "L1-register-at-adopted-handle-r2",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 80,
+      "phase": "K-3",
+      "cell": "L1-register-at-adopted-handle-r2",
+      "kind": "constraint.body",
+      "pair": "n7c",
+      "returned": "true"
+    },
+    {
+      "seq": 81,
+      "phase": "K-3",
+      "cell": "L1-register-at-adopted-handle-r2",
+      "kind": "K3.return",
+      "thrown": null,
+      "outcome": "passed"
+    },
+    {
+      "seq": 82,
+      "phase": "K-1",
+      "cell": "L2-register-at-adopted-handle-r2",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 83,
+      "phase": "K-1",
+      "cell": "L2-register-at-adopted-handle-r2",
+      "kind": "K1.return",
+      "adoptedHandleType": "object"
+    },
+    {
+      "seq": 84,
+      "phase": "K-2",
+      "cell": "L2-register-at-adopted-handle-r2",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 85,
+      "phase": "K-2",
+      "cell": "L2-register-at-adopted-handle-r2",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 86,
+      "phase": "K-3",
+      "cell": "L2-register-at-adopted-handle-r2",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 87,
+      "phase": "K-3",
+      "cell": "L2-register-at-adopted-handle-r2",
+      "kind": "constraint.body",
+      "pair": "n7c",
+      "returned": "{message}"
+    },
+    {
+      "seq": 88,
+      "phase": "K-3",
+      "cell": "L2-register-at-adopted-handle-r2",
+      "kind": "K3.return",
+      "thrown": "KC-3",
+      "outcome": null
+    },
+    {
+      "seq": 89,
+      "phase": "K-1",
+      "cell": "L4-seq1-pass",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 90,
+      "phase": "K-1",
+      "cell": "L4-seq1-pass",
+      "kind": "K1.return",
+      "adoptedHandleType": "object"
+    },
+    {
+      "seq": 91,
+      "phase": "K-2",
+      "cell": "L4-seq1-pass",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 92,
+      "phase": "K-2",
+      "cell": "L4-seq1-pass",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 93,
+      "phase": "K-3",
+      "cell": "L4-seq1-pass",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 94,
+      "phase": "K-3",
+      "cell": "L4-seq1-pass",
+      "kind": "constraint.body",
+      "pair": "n7c",
+      "returned": "true"
+    },
+    {
+      "seq": 95,
+      "phase": "K-3",
+      "cell": "L4-seq1-pass",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"n7\",\"ord\"]"
+    },
+    {
+      "seq": 96,
+      "phase": "K-3",
+      "cell": "L4-seq1-pass",
+      "kind": "K3.return",
+      "thrown": null,
+      "outcome": "passed"
+    },
+    {
+      "seq": 97,
+      "phase": "layer-b",
+      "cell": "L4-seq1-pass",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"n7\",\"ord\"]"
+    },
+    {
+      "seq": 98,
+      "phase": "K-1",
+      "cell": "L4-seq2-fail",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 99,
+      "phase": "K-1",
+      "cell": "L4-seq2-fail",
+      "kind": "K1.return",
+      "adoptedHandleType": "object"
+    },
+    {
+      "seq": 100,
+      "phase": "K-2",
+      "cell": "L4-seq2-fail",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 101,
+      "phase": "K-2",
+      "cell": "L4-seq2-fail",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 102,
+      "phase": "K-3",
+      "cell": "L4-seq2-fail",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 103,
+      "phase": "K-3",
+      "cell": "L4-seq2-fail",
+      "kind": "constraint.body",
+      "pair": "n7c",
+      "returned": "{message}"
+    },
+    {
+      "seq": 104,
+      "phase": "K-3",
+      "cell": "L4-seq2-fail",
+      "kind": "K3.return",
+      "thrown": "KC-3",
+      "outcome": null
+    },
+    {
+      "seq": 105,
+      "phase": "K-1",
+      "cell": "L4-seq3-pass",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 106,
+      "phase": "K-1",
+      "cell": "L4-seq3-pass",
+      "kind": "K1.return",
+      "adoptedHandleType": "object"
+    },
+    {
+      "seq": 107,
+      "phase": "K-2",
+      "cell": "L4-seq3-pass",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 108,
+      "phase": "K-2",
+      "cell": "L4-seq3-pass",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 109,
+      "phase": "K-3",
+      "cell": "L4-seq3-pass",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 110,
+      "phase": "K-3",
+      "cell": "L4-seq3-pass",
+      "kind": "constraint.body",
+      "pair": "n7c",
+      "returned": "true"
+    },
+    {
+      "seq": 111,
+      "phase": "K-3",
+      "cell": "L4-seq3-pass",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"n7\",\"ord\"]"
+    },
+    {
+      "seq": 112,
+      "phase": "K-3",
+      "cell": "L4-seq3-pass",
+      "kind": "K3.return",
+      "thrown": null,
+      "outcome": "passed"
+    },
+    {
+      "seq": 113,
+      "phase": "layer-b",
+      "cell": "L4-seq3-pass",
+      "kind": "app-listener.body",
+      "listenerArg": "[\"n7\",\"ord\"]"
+    },
+    {
+      "seq": 114,
+      "phase": "K-1",
+      "cell": "L4-seq4-fail",
+      "kind": "K1.enter"
+    },
+    {
+      "seq": 115,
+      "phase": "K-1",
+      "cell": "L4-seq4-fail",
+      "kind": "K1.return",
+      "adoptedHandleType": "object"
+    },
+    {
+      "seq": 116,
+      "phase": "K-2",
+      "cell": "L4-seq4-fail",
+      "kind": "K2.enter"
+    },
+    {
+      "seq": 117,
+      "phase": "K-2",
+      "cell": "L4-seq4-fail",
+      "kind": "K2.return",
+      "thrown": null
+    },
+    {
+      "seq": 118,
+      "phase": "K-3",
+      "cell": "L4-seq4-fail",
+      "kind": "K3.enter"
+    },
+    {
+      "seq": 119,
+      "phase": "K-3",
+      "cell": "L4-seq4-fail",
+      "kind": "constraint.body",
+      "pair": "n7c",
+      "returned": "{message}"
+    },
+    {
+      "seq": 120,
+      "phase": "K-3",
+      "cell": "L4-seq4-fail",
+      "kind": "K3.return",
+      "thrown": "KC-8",
+      "outcome": null
+    },
+    {
+      "seq": 121,
+      "phase": "store-write",
+      "cell": "direct-write-probe",
+      "kind": "write.enter"
+    },
+    {
+      "seq": 122,
+      "phase": "store-write",
+      "cell": "direct-write-probe",
+      "kind": "app-listener.body",
+      "listenerArg": "direct store write, no kernel"
+    },
+    {
+      "seq": 123,
+      "phase": "store-write",
+      "cell": "direct-write-probe",
+      "kind": "write.return",
+      "thrown": null
+    }
+  ],
+  "cells": [
+    {
+      "cell": "L1-prefix-address-r1",
+      "limb": 1,
+      "variant": "prefix-address",
+      "outcome": "pass",
+      "round": 1,
+      "store": "fresh store",
+      "setup": {
+        "opId": "op-1",
+        "address": [
+          "n7"
+        ],
+        "value": {
+          "ord": 0
+        }
+      },
+      "constraintCalls": 1,
+      "listenerCalls": 2,
+      "listenerArgs": [
+        "[\"n7\",\"ord\"]",
+        "[\"n7\",\"ord\"]"
+      ],
+      "listenerRegisteredAtTheAdoptedAddress": false,
+      "listenerHandleIsTheKernelAdoptedHandle": false,
+      "listenerCallsAfterRegistration": 0,
+      "stateBeforeTheAttemptsWrite": {
+        "absent": false,
+        "value": "0"
+      },
+      "k2": {
+        "threw": false,
+        "members": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "triggeredAtReturn": 2,
+        "pendingAtReturn": 2
+      },
+      "constraintCallsAtK2Return": 0,
+      "listenerCallsAtK2Return": 0,
+      "arm": {
+        "kind": "returned",
+        "outcome": "passed"
+      },
+      "constraintCallsAfterK3": 1,
+      "listenerCallsDelivered": 1,
+      "order": {
+        "constraintBodySeqs": [
+          6
+        ],
+        "listenerBodySeqs": [
+          7
+        ],
+        "constraintBodyCalls": 1,
+        "listenerBodyCalls": 1,
+        "listenerRanBeforeAnyConstraint": false,
+        "listenerRanBeforeK2Returned": false,
+        "listenerRanInsideTheK2Window": false,
+        "constraintBodyRanInsideTheK3Window": true
+      },
+      "triggeredAfterTerminalArm": 2,
+      "pendingAfterTerminalArm": 1,
+      "pendingCarriesTheListenerHandleAfterTheArm": true,
+      "theDiscardReachedThatHandle": false,
+      "storeReadAtAttemptAddress": {
+        "absent": false,
+        "value": "100"
+      },
+      "rolledBackToThePreWriteState": false,
+      "storeReadAtPrefixAddress": {
+        "absent": false,
+        "value": "{\"ord\":100}"
+      },
+      "log": [
+        "1:constraint-check:n7c:null",
+        "2:commit:null:null"
+      ],
+      "report": {
+        "outcome": "passed",
+        "members": [
+          "attempt",
+          "log",
+          "ops",
+          "outcome",
+          "rollback"
+        ],
+        "ops": 1,
+        "rollbackSteps": []
+      },
+      "compositionIssuedCalls": 0,
+      "compositionCallsAllReturned": false,
+      "compositionUndidTheAttemptsOwnOp": false,
+      "compositionFloor": null,
+      "layerB": {
+        "invocations": 1,
+        "note": "the app listener handle still stands in `pending` after the arm, so the declared caller loop would invoke it a second time"
+      },
+      "listenerCallsIncludingTheLayerBProbe": 2
+    },
+    {
+      "cell": "L2-prefix-address-r1",
+      "limb": 2,
+      "variant": "prefix-address",
+      "outcome": "fail",
+      "round": 1,
+      "store": "fresh store",
+      "setup": {
+        "opId": "op-3",
+        "address": [
+          "n7"
+        ],
+        "value": {
+          "ord": 0
+        }
+      },
+      "constraintCalls": 1,
+      "listenerCalls": 0,
+      "listenerArgs": [],
+      "listenerRegisteredAtTheAdoptedAddress": false,
+      "listenerHandleIsTheKernelAdoptedHandle": false,
+      "listenerCallsAfterRegistration": 0,
+      "stateBeforeTheAttemptsWrite": {
+        "absent": false,
+        "value": "0"
+      },
+      "k2": {
+        "threw": false,
+        "members": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "triggeredAtReturn": 2,
+        "pendingAtReturn": 2
+      },
+      "constraintCallsAtK2Return": 0,
+      "listenerCallsAtK2Return": 0,
+      "arm": {
+        "kind": "thrown",
+        "status": "KC-3",
+        "message": "n7: the constraint refused this landing",
+        "carriesLog": true
+      },
+      "constraintCallsAfterK3": 1,
+      "listenerCallsDelivered": 0,
+      "order": {
+        "constraintBodySeqs": [
+          15
+        ],
+        "listenerBodySeqs": [],
+        "constraintBodyCalls": 1,
+        "listenerBodyCalls": 0,
+        "listenerRanBeforeAnyConstraint": false,
+        "listenerRanBeforeK2Returned": false,
+        "listenerRanInsideTheK2Window": false,
+        "constraintBodyRanInsideTheK3Window": true
+      },
+      "triggeredAfterTerminalArm": 2,
+      "pendingAfterTerminalArm": 0,
+      "pendingCarriesTheListenerHandleAfterTheArm": false,
+      "theDiscardReachedThatHandle": true,
+      "storeReadAtAttemptAddress": {
+        "absent": false,
+        "value": "0"
+      },
+      "rolledBackToThePreWriteState": true,
+      "storeReadAtPrefixAddress": {
+        "absent": false,
+        "value": "{\"ord\":0}"
+      },
+      "log": [
+        "1:constraint-check:n7c:null",
+        "2:outcome:null:KC-3"
+      ],
+      "report": {
+        "outcome": "failed",
+        "members": [
+          "attempt",
+          "log",
+          "ops",
+          "outcome",
+          "rollback"
+        ],
+        "ops": 1,
+        "rollbackSteps": [
+          {
+            "opId": "op-4",
+            "answer": "ok",
+            "failed": false,
+            "undoneOps": [
+              "op-4"
+            ],
+            "restoredTo": {
+              "present": true,
+              "value": 0
+            },
+            "checkpoint": null
+          }
+        ]
+      },
+      "compositionIssuedCalls": 1,
+      "compositionCallsAllReturned": true,
+      "compositionUndidTheAttemptsOwnOp": true,
+      "compositionFloor": null,
+      "layerB": {
+        "invocations": 0,
+        "note": null
+      },
+      "listenerCallsIncludingTheLayerBProbe": 0
+    },
+    {
+      "cell": "L1-on-at-adopted-address-r1",
+      "limb": 1,
+      "variant": "on-at-adopted-address",
+      "outcome": "pass",
+      "round": 1,
+      "store": "fresh store",
+      "setup": {
+        "opId": "op-5",
+        "address": [
+          "n7"
+        ],
+        "value": {
+          "ord": 0
+        }
+      },
+      "constraintCalls": 1,
+      "listenerCalls": 0,
+      "listenerArgs": [],
+      "listenerRegisteredAtTheAdoptedAddress": true,
+      "listenerHandleIsTheKernelAdoptedHandle": true,
+      "listenerCallsAfterRegistration": 0,
+      "stateBeforeTheAttemptsWrite": {
+        "absent": false,
+        "value": "0"
+      },
+      "k2": {
+        "threw": false,
+        "members": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "triggeredAtReturn": 1,
+        "pendingAtReturn": 1
+      },
+      "constraintCallsAtK2Return": 0,
+      "listenerCallsAtK2Return": 0,
+      "arm": {
+        "kind": "returned",
+        "outcome": "passed"
+      },
+      "constraintCallsAfterK3": 1,
+      "listenerCallsDelivered": 0,
+      "order": {
+        "constraintBodySeqs": [
+          22
+        ],
+        "listenerBodySeqs": [],
+        "constraintBodyCalls": 1,
+        "listenerBodyCalls": 0,
+        "listenerRanBeforeAnyConstraint": false,
+        "listenerRanBeforeK2Returned": false,
+        "listenerRanInsideTheK2Window": false,
+        "constraintBodyRanInsideTheK3Window": true
+      },
+      "triggeredAfterTerminalArm": 1,
+      "pendingAfterTerminalArm": 0,
+      "pendingCarriesTheListenerHandleAfterTheArm": false,
+      "theDiscardReachedThatHandle": true,
+      "storeReadAtAttemptAddress": {
+        "absent": false,
+        "value": "100"
+      },
+      "rolledBackToThePreWriteState": false,
+      "storeReadAtPrefixAddress": {
+        "absent": false,
+        "value": "{\"ord\":100}"
+      },
+      "log": [
+        "1:constraint-check:n7c:null",
+        "2:commit:null:null"
+      ],
+      "report": {
+        "outcome": "passed",
+        "members": [
+          "attempt",
+          "log",
+          "ops",
+          "outcome",
+          "rollback"
+        ],
+        "ops": 1,
+        "rollbackSteps": []
+      },
+      "compositionIssuedCalls": 0,
+      "compositionCallsAllReturned": false,
+      "compositionUndidTheAttemptsOwnOp": false,
+      "compositionFloor": null,
+      "layerB": {
+        "invocations": 0,
+        "note": null
+      },
+      "listenerCallsIncludingTheLayerBProbe": 0
+    },
+    {
+      "cell": "L2-on-at-adopted-address-r1",
+      "limb": 2,
+      "variant": "on-at-adopted-address",
+      "outcome": "fail",
+      "round": 1,
+      "store": "fresh store",
+      "setup": {
+        "opId": "op-7",
+        "address": [
+          "n7"
+        ],
+        "value": {
+          "ord": 0
+        }
+      },
+      "constraintCalls": 1,
+      "listenerCalls": 0,
+      "listenerArgs": [],
+      "listenerRegisteredAtTheAdoptedAddress": true,
+      "listenerHandleIsTheKernelAdoptedHandle": true,
+      "listenerCallsAfterRegistration": 0,
+      "stateBeforeTheAttemptsWrite": {
+        "absent": false,
+        "value": "0"
+      },
+      "k2": {
+        "threw": false,
+        "members": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "triggeredAtReturn": 1,
+        "pendingAtReturn": 1
+      },
+      "constraintCallsAtK2Return": 0,
+      "listenerCallsAtK2Return": 0,
+      "arm": {
+        "kind": "thrown",
+        "status": "KC-3",
+        "message": "n7: the constraint refused this landing",
+        "carriesLog": true
+      },
+      "constraintCallsAfterK3": 1,
+      "listenerCallsDelivered": 0,
+      "order": {
+        "constraintBodySeqs": [
+          29
+        ],
+        "listenerBodySeqs": [],
+        "constraintBodyCalls": 1,
+        "listenerBodyCalls": 0,
+        "listenerRanBeforeAnyConstraint": false,
+        "listenerRanBeforeK2Returned": false,
+        "listenerRanInsideTheK2Window": false,
+        "constraintBodyRanInsideTheK3Window": true
+      },
+      "triggeredAfterTerminalArm": 1,
+      "pendingAfterTerminalArm": 0,
+      "pendingCarriesTheListenerHandleAfterTheArm": false,
+      "theDiscardReachedThatHandle": true,
+      "storeReadAtAttemptAddress": {
+        "absent": false,
+        "value": "0"
+      },
+      "rolledBackToThePreWriteState": true,
+      "storeReadAtPrefixAddress": {
+        "absent": false,
+        "value": "{\"ord\":0}"
+      },
+      "log": [
+        "1:constraint-check:n7c:null",
+        "2:outcome:null:KC-3"
+      ],
+      "report": {
+        "outcome": "failed",
+        "members": [
+          "attempt",
+          "log",
+          "ops",
+          "outcome",
+          "rollback"
+        ],
+        "ops": 1,
+        "rollbackSteps": [
+          {
+            "opId": "op-8",
+            "answer": "ok",
+            "failed": false,
+            "undoneOps": [
+              "op-8"
+            ],
+            "restoredTo": {
+              "present": true,
+              "value": 0
+            },
+            "checkpoint": null
+          }
+        ]
+      },
+      "compositionIssuedCalls": 1,
+      "compositionCallsAllReturned": true,
+      "compositionUndidTheAttemptsOwnOp": true,
+      "compositionFloor": null,
+      "layerB": {
+        "invocations": 0,
+        "note": null
+      },
+      "listenerCallsIncludingTheLayerBProbe": 0
+    },
+    {
+      "cell": "L1-register-at-adopted-handle-r1",
+      "limb": 1,
+      "variant": "register-at-adopted-handle",
+      "outcome": "pass",
+      "round": 1,
+      "store": "fresh store",
+      "setup": {
+        "opId": "op-9",
+        "address": [
+          "n7"
+        ],
+        "value": {
+          "ord": 0
+        }
+      },
+      "constraintCalls": 1,
+      "listenerCalls": 0,
+      "listenerArgs": [],
+      "listenerRegisteredAtTheAdoptedAddress": true,
+      "listenerHandleIsTheKernelAdoptedHandle": true,
+      "listenerCallsAfterRegistration": 0,
+      "stateBeforeTheAttemptsWrite": {
+        "absent": false,
+        "value": "0"
+      },
+      "k2": {
+        "threw": false,
+        "members": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "triggeredAtReturn": 1,
+        "pendingAtReturn": 1
+      },
+      "constraintCallsAtK2Return": 0,
+      "listenerCallsAtK2Return": 0,
+      "arm": {
+        "kind": "returned",
+        "outcome": "passed"
+      },
+      "constraintCallsAfterK3": 1,
+      "listenerCallsDelivered": 0,
+      "order": {
+        "constraintBodySeqs": [
+          36
+        ],
+        "listenerBodySeqs": [],
+        "constraintBodyCalls": 1,
+        "listenerBodyCalls": 0,
+        "listenerRanBeforeAnyConstraint": false,
+        "listenerRanBeforeK2Returned": false,
+        "listenerRanInsideTheK2Window": false,
+        "constraintBodyRanInsideTheK3Window": true
+      },
+      "triggeredAfterTerminalArm": 1,
+      "pendingAfterTerminalArm": 0,
+      "pendingCarriesTheListenerHandleAfterTheArm": false,
+      "theDiscardReachedThatHandle": true,
+      "storeReadAtAttemptAddress": {
+        "absent": false,
+        "value": "100"
+      },
+      "rolledBackToThePreWriteState": false,
+      "storeReadAtPrefixAddress": {
+        "absent": false,
+        "value": "{\"ord\":100}"
+      },
+      "log": [
+        "1:constraint-check:n7c:null",
+        "2:commit:null:null"
+      ],
+      "report": {
+        "outcome": "passed",
+        "members": [
+          "attempt",
+          "log",
+          "ops",
+          "outcome",
+          "rollback"
+        ],
+        "ops": 1,
+        "rollbackSteps": []
+      },
+      "compositionIssuedCalls": 0,
+      "compositionCallsAllReturned": false,
+      "compositionUndidTheAttemptsOwnOp": false,
+      "compositionFloor": null,
+      "layerB": {
+        "invocations": 0,
+        "note": null
+      },
+      "listenerCallsIncludingTheLayerBProbe": 0
+    },
+    {
+      "cell": "L2-register-at-adopted-handle-r1",
+      "limb": 2,
+      "variant": "register-at-adopted-handle",
+      "outcome": "fail",
+      "round": 1,
+      "store": "fresh store",
+      "setup": {
+        "opId": "op-11",
+        "address": [
+          "n7"
+        ],
+        "value": {
+          "ord": 0
+        }
+      },
+      "constraintCalls": 1,
+      "listenerCalls": 0,
+      "listenerArgs": [],
+      "listenerRegisteredAtTheAdoptedAddress": true,
+      "listenerHandleIsTheKernelAdoptedHandle": true,
+      "listenerCallsAfterRegistration": 0,
+      "stateBeforeTheAttemptsWrite": {
+        "absent": false,
+        "value": "0"
+      },
+      "k2": {
+        "threw": false,
+        "members": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "triggeredAtReturn": 1,
+        "pendingAtReturn": 1
+      },
+      "constraintCallsAtK2Return": 0,
+      "listenerCallsAtK2Return": 0,
+      "arm": {
+        "kind": "thrown",
+        "status": "KC-3",
+        "message": "n7: the constraint refused this landing",
+        "carriesLog": true
+      },
+      "constraintCallsAfterK3": 1,
+      "listenerCallsDelivered": 0,
+      "order": {
+        "constraintBodySeqs": [
+          43
+        ],
+        "listenerBodySeqs": [],
+        "constraintBodyCalls": 1,
+        "listenerBodyCalls": 0,
+        "listenerRanBeforeAnyConstraint": false,
+        "listenerRanBeforeK2Returned": false,
+        "listenerRanInsideTheK2Window": false,
+        "constraintBodyRanInsideTheK3Window": true
+      },
+      "triggeredAfterTerminalArm": 1,
+      "pendingAfterTerminalArm": 0,
+      "pendingCarriesTheListenerHandleAfterTheArm": false,
+      "theDiscardReachedThatHandle": true,
+      "storeReadAtAttemptAddress": {
+        "absent": false,
+        "value": "0"
+      },
+      "rolledBackToThePreWriteState": true,
+      "storeReadAtPrefixAddress": {
+        "absent": false,
+        "value": "{\"ord\":0}"
+      },
+      "log": [
+        "1:constraint-check:n7c:null",
+        "2:outcome:null:KC-3"
+      ],
+      "report": {
+        "outcome": "failed",
+        "members": [
+          "attempt",
+          "log",
+          "ops",
+          "outcome",
+          "rollback"
+        ],
+        "ops": 1,
+        "rollbackSteps": [
+          {
+            "opId": "op-12",
+            "answer": "ok",
+            "failed": false,
+            "undoneOps": [
+              "op-12"
+            ],
+            "restoredTo": {
+              "present": true,
+              "value": 0
+            },
+            "checkpoint": null
+          }
+        ]
+      },
+      "compositionIssuedCalls": 1,
+      "compositionCallsAllReturned": true,
+      "compositionUndidTheAttemptsOwnOp": true,
+      "compositionFloor": null,
+      "layerB": {
+        "invocations": 0,
+        "note": null
+      },
+      "listenerCallsIncludingTheLayerBProbe": 0
+    },
+    {
+      "cell": "L1-prefix-address-r2",
+      "limb": 1,
+      "variant": "prefix-address",
+      "outcome": "pass",
+      "round": 2,
+      "store": "fresh store",
+      "setup": {
+        "opId": "op-13",
+        "address": [
+          "n7"
+        ],
+        "value": {
+          "ord": 0
+        }
+      },
+      "constraintCalls": 1,
+      "listenerCalls": 2,
+      "listenerArgs": [
+        "[\"n7\",\"ord\"]",
+        "[\"n7\",\"ord\"]"
+      ],
+      "listenerRegisteredAtTheAdoptedAddress": false,
+      "listenerHandleIsTheKernelAdoptedHandle": false,
+      "listenerCallsAfterRegistration": 0,
+      "stateBeforeTheAttemptsWrite": {
+        "absent": false,
+        "value": "0"
+      },
+      "k2": {
+        "threw": false,
+        "members": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "triggeredAtReturn": 2,
+        "pendingAtReturn": 2
+      },
+      "constraintCallsAtK2Return": 0,
+      "listenerCallsAtK2Return": 0,
+      "arm": {
+        "kind": "returned",
+        "outcome": "passed"
+      },
+      "constraintCallsAfterK3": 1,
+      "listenerCallsDelivered": 1,
+      "order": {
+        "constraintBodySeqs": [
+          50
+        ],
+        "listenerBodySeqs": [
+          51
+        ],
+        "constraintBodyCalls": 1,
+        "listenerBodyCalls": 1,
+        "listenerRanBeforeAnyConstraint": false,
+        "listenerRanBeforeK2Returned": false,
+        "listenerRanInsideTheK2Window": false,
+        "constraintBodyRanInsideTheK3Window": true
+      },
+      "triggeredAfterTerminalArm": 2,
+      "pendingAfterTerminalArm": 1,
+      "pendingCarriesTheListenerHandleAfterTheArm": true,
+      "theDiscardReachedThatHandle": false,
+      "storeReadAtAttemptAddress": {
+        "absent": false,
+        "value": "200"
+      },
+      "rolledBackToThePreWriteState": false,
+      "storeReadAtPrefixAddress": {
+        "absent": false,
+        "value": "{\"ord\":200}"
+      },
+      "log": [
+        "1:constraint-check:n7c:null",
+        "2:commit:null:null"
+      ],
+      "report": {
+        "outcome": "passed",
+        "members": [
+          "attempt",
+          "log",
+          "ops",
+          "outcome",
+          "rollback"
+        ],
+        "ops": 1,
+        "rollbackSteps": []
+      },
+      "compositionIssuedCalls": 0,
+      "compositionCallsAllReturned": false,
+      "compositionUndidTheAttemptsOwnOp": false,
+      "compositionFloor": null,
+      "layerB": {
+        "invocations": 1,
+        "note": "the app listener handle still stands in `pending` after the arm, so the declared caller loop would invoke it a second time"
+      },
+      "listenerCallsIncludingTheLayerBProbe": 2
+    },
+    {
+      "cell": "L2-prefix-address-r2",
+      "limb": 2,
+      "variant": "prefix-address",
+      "outcome": "fail",
+      "round": 2,
+      "store": "fresh store",
+      "setup": {
+        "opId": "op-15",
+        "address": [
+          "n7"
+        ],
+        "value": {
+          "ord": 0
+        }
+      },
+      "constraintCalls": 1,
+      "listenerCalls": 0,
+      "listenerArgs": [],
+      "listenerRegisteredAtTheAdoptedAddress": false,
+      "listenerHandleIsTheKernelAdoptedHandle": false,
+      "listenerCallsAfterRegistration": 0,
+      "stateBeforeTheAttemptsWrite": {
+        "absent": false,
+        "value": "0"
+      },
+      "k2": {
+        "threw": false,
+        "members": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "triggeredAtReturn": 2,
+        "pendingAtReturn": 2
+      },
+      "constraintCallsAtK2Return": 0,
+      "listenerCallsAtK2Return": 0,
+      "arm": {
+        "kind": "thrown",
+        "status": "KC-3",
+        "message": "n7: the constraint refused this landing",
+        "carriesLog": true
+      },
+      "constraintCallsAfterK3": 1,
+      "listenerCallsDelivered": 0,
+      "order": {
+        "constraintBodySeqs": [
+          59
+        ],
+        "listenerBodySeqs": [],
+        "constraintBodyCalls": 1,
+        "listenerBodyCalls": 0,
+        "listenerRanBeforeAnyConstraint": false,
+        "listenerRanBeforeK2Returned": false,
+        "listenerRanInsideTheK2Window": false,
+        "constraintBodyRanInsideTheK3Window": true
+      },
+      "triggeredAfterTerminalArm": 2,
+      "pendingAfterTerminalArm": 0,
+      "pendingCarriesTheListenerHandleAfterTheArm": false,
+      "theDiscardReachedThatHandle": true,
+      "storeReadAtAttemptAddress": {
+        "absent": false,
+        "value": "0"
+      },
+      "rolledBackToThePreWriteState": true,
+      "storeReadAtPrefixAddress": {
+        "absent": false,
+        "value": "{\"ord\":0}"
+      },
+      "log": [
+        "1:constraint-check:n7c:null",
+        "2:outcome:null:KC-3"
+      ],
+      "report": {
+        "outcome": "failed",
+        "members": [
+          "attempt",
+          "log",
+          "ops",
+          "outcome",
+          "rollback"
+        ],
+        "ops": 1,
+        "rollbackSteps": [
+          {
+            "opId": "op-16",
+            "answer": "ok",
+            "failed": false,
+            "undoneOps": [
+              "op-16"
+            ],
+            "restoredTo": {
+              "present": true,
+              "value": 0
+            },
+            "checkpoint": null
+          }
+        ]
+      },
+      "compositionIssuedCalls": 1,
+      "compositionCallsAllReturned": true,
+      "compositionUndidTheAttemptsOwnOp": true,
+      "compositionFloor": null,
+      "layerB": {
+        "invocations": 0,
+        "note": null
+      },
+      "listenerCallsIncludingTheLayerBProbe": 0
+    },
+    {
+      "cell": "L1-on-at-adopted-address-r2",
+      "limb": 1,
+      "variant": "on-at-adopted-address",
+      "outcome": "pass",
+      "round": 2,
+      "store": "fresh store",
+      "setup": {
+        "opId": "op-17",
+        "address": [
+          "n7"
+        ],
+        "value": {
+          "ord": 0
+        }
+      },
+      "constraintCalls": 1,
+      "listenerCalls": 0,
+      "listenerArgs": [],
+      "listenerRegisteredAtTheAdoptedAddress": true,
+      "listenerHandleIsTheKernelAdoptedHandle": true,
+      "listenerCallsAfterRegistration": 0,
+      "stateBeforeTheAttemptsWrite": {
+        "absent": false,
+        "value": "0"
+      },
+      "k2": {
+        "threw": false,
+        "members": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "triggeredAtReturn": 1,
+        "pendingAtReturn": 1
+      },
+      "constraintCallsAtK2Return": 0,
+      "listenerCallsAtK2Return": 0,
+      "arm": {
+        "kind": "returned",
+        "outcome": "passed"
+      },
+      "constraintCallsAfterK3": 1,
+      "listenerCallsDelivered": 0,
+      "order": {
+        "constraintBodySeqs": [
+          66
+        ],
+        "listenerBodySeqs": [],
+        "constraintBodyCalls": 1,
+        "listenerBodyCalls": 0,
+        "listenerRanBeforeAnyConstraint": false,
+        "listenerRanBeforeK2Returned": false,
+        "listenerRanInsideTheK2Window": false,
+        "constraintBodyRanInsideTheK3Window": true
+      },
+      "triggeredAfterTerminalArm": 1,
+      "pendingAfterTerminalArm": 0,
+      "pendingCarriesTheListenerHandleAfterTheArm": false,
+      "theDiscardReachedThatHandle": true,
+      "storeReadAtAttemptAddress": {
+        "absent": false,
+        "value": "200"
+      },
+      "rolledBackToThePreWriteState": false,
+      "storeReadAtPrefixAddress": {
+        "absent": false,
+        "value": "{\"ord\":200}"
+      },
+      "log": [
+        "1:constraint-check:n7c:null",
+        "2:commit:null:null"
+      ],
+      "report": {
+        "outcome": "passed",
+        "members": [
+          "attempt",
+          "log",
+          "ops",
+          "outcome",
+          "rollback"
+        ],
+        "ops": 1,
+        "rollbackSteps": []
+      },
+      "compositionIssuedCalls": 0,
+      "compositionCallsAllReturned": false,
+      "compositionUndidTheAttemptsOwnOp": false,
+      "compositionFloor": null,
+      "layerB": {
+        "invocations": 0,
+        "note": null
+      },
+      "listenerCallsIncludingTheLayerBProbe": 0
+    },
+    {
+      "cell": "L2-on-at-adopted-address-r2",
+      "limb": 2,
+      "variant": "on-at-adopted-address",
+      "outcome": "fail",
+      "round": 2,
+      "store": "fresh store",
+      "setup": {
+        "opId": "op-19",
+        "address": [
+          "n7"
+        ],
+        "value": {
+          "ord": 0
+        }
+      },
+      "constraintCalls": 1,
+      "listenerCalls": 0,
+      "listenerArgs": [],
+      "listenerRegisteredAtTheAdoptedAddress": true,
+      "listenerHandleIsTheKernelAdoptedHandle": true,
+      "listenerCallsAfterRegistration": 0,
+      "stateBeforeTheAttemptsWrite": {
+        "absent": false,
+        "value": "0"
+      },
+      "k2": {
+        "threw": false,
+        "members": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "triggeredAtReturn": 1,
+        "pendingAtReturn": 1
+      },
+      "constraintCallsAtK2Return": 0,
+      "listenerCallsAtK2Return": 0,
+      "arm": {
+        "kind": "thrown",
+        "status": "KC-3",
+        "message": "n7: the constraint refused this landing",
+        "carriesLog": true
+      },
+      "constraintCallsAfterK3": 1,
+      "listenerCallsDelivered": 0,
+      "order": {
+        "constraintBodySeqs": [
+          73
+        ],
+        "listenerBodySeqs": [],
+        "constraintBodyCalls": 1,
+        "listenerBodyCalls": 0,
+        "listenerRanBeforeAnyConstraint": false,
+        "listenerRanBeforeK2Returned": false,
+        "listenerRanInsideTheK2Window": false,
+        "constraintBodyRanInsideTheK3Window": true
+      },
+      "triggeredAfterTerminalArm": 1,
+      "pendingAfterTerminalArm": 0,
+      "pendingCarriesTheListenerHandleAfterTheArm": false,
+      "theDiscardReachedThatHandle": true,
+      "storeReadAtAttemptAddress": {
+        "absent": false,
+        "value": "0"
+      },
+      "rolledBackToThePreWriteState": true,
+      "storeReadAtPrefixAddress": {
+        "absent": false,
+        "value": "{\"ord\":0}"
+      },
+      "log": [
+        "1:constraint-check:n7c:null",
+        "2:outcome:null:KC-3"
+      ],
+      "report": {
+        "outcome": "failed",
+        "members": [
+          "attempt",
+          "log",
+          "ops",
+          "outcome",
+          "rollback"
+        ],
+        "ops": 1,
+        "rollbackSteps": [
+          {
+            "opId": "op-20",
+            "answer": "ok",
+            "failed": false,
+            "undoneOps": [
+              "op-20"
+            ],
+            "restoredTo": {
+              "present": true,
+              "value": 0
+            },
+            "checkpoint": null
+          }
+        ]
+      },
+      "compositionIssuedCalls": 1,
+      "compositionCallsAllReturned": true,
+      "compositionUndidTheAttemptsOwnOp": true,
+      "compositionFloor": null,
+      "layerB": {
+        "invocations": 0,
+        "note": null
+      },
+      "listenerCallsIncludingTheLayerBProbe": 0
+    },
+    {
+      "cell": "L1-register-at-adopted-handle-r2",
+      "limb": 1,
+      "variant": "register-at-adopted-handle",
+      "outcome": "pass",
+      "round": 2,
+      "store": "fresh store",
+      "setup": {
+        "opId": "op-21",
+        "address": [
+          "n7"
+        ],
+        "value": {
+          "ord": 0
+        }
+      },
+      "constraintCalls": 1,
+      "listenerCalls": 0,
+      "listenerArgs": [],
+      "listenerRegisteredAtTheAdoptedAddress": true,
+      "listenerHandleIsTheKernelAdoptedHandle": true,
+      "listenerCallsAfterRegistration": 0,
+      "stateBeforeTheAttemptsWrite": {
+        "absent": false,
+        "value": "0"
+      },
+      "k2": {
+        "threw": false,
+        "members": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "triggeredAtReturn": 1,
+        "pendingAtReturn": 1
+      },
+      "constraintCallsAtK2Return": 0,
+      "listenerCallsAtK2Return": 0,
+      "arm": {
+        "kind": "returned",
+        "outcome": "passed"
+      },
+      "constraintCallsAfterK3": 1,
+      "listenerCallsDelivered": 0,
+      "order": {
+        "constraintBodySeqs": [
+          80
+        ],
+        "listenerBodySeqs": [],
+        "constraintBodyCalls": 1,
+        "listenerBodyCalls": 0,
+        "listenerRanBeforeAnyConstraint": false,
+        "listenerRanBeforeK2Returned": false,
+        "listenerRanInsideTheK2Window": false,
+        "constraintBodyRanInsideTheK3Window": true
+      },
+      "triggeredAfterTerminalArm": 1,
+      "pendingAfterTerminalArm": 0,
+      "pendingCarriesTheListenerHandleAfterTheArm": false,
+      "theDiscardReachedThatHandle": true,
+      "storeReadAtAttemptAddress": {
+        "absent": false,
+        "value": "200"
+      },
+      "rolledBackToThePreWriteState": false,
+      "storeReadAtPrefixAddress": {
+        "absent": false,
+        "value": "{\"ord\":200}"
+      },
+      "log": [
+        "1:constraint-check:n7c:null",
+        "2:commit:null:null"
+      ],
+      "report": {
+        "outcome": "passed",
+        "members": [
+          "attempt",
+          "log",
+          "ops",
+          "outcome",
+          "rollback"
+        ],
+        "ops": 1,
+        "rollbackSteps": []
+      },
+      "compositionIssuedCalls": 0,
+      "compositionCallsAllReturned": false,
+      "compositionUndidTheAttemptsOwnOp": false,
+      "compositionFloor": null,
+      "layerB": {
+        "invocations": 0,
+        "note": null
+      },
+      "listenerCallsIncludingTheLayerBProbe": 0
+    },
+    {
+      "cell": "L2-register-at-adopted-handle-r2",
+      "limb": 2,
+      "variant": "register-at-adopted-handle",
+      "outcome": "fail",
+      "round": 2,
+      "store": "fresh store",
+      "setup": {
+        "opId": "op-23",
+        "address": [
+          "n7"
+        ],
+        "value": {
+          "ord": 0
+        }
+      },
+      "constraintCalls": 1,
+      "listenerCalls": 0,
+      "listenerArgs": [],
+      "listenerRegisteredAtTheAdoptedAddress": true,
+      "listenerHandleIsTheKernelAdoptedHandle": true,
+      "listenerCallsAfterRegistration": 0,
+      "stateBeforeTheAttemptsWrite": {
+        "absent": false,
+        "value": "0"
+      },
+      "k2": {
+        "threw": false,
+        "members": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "triggeredAtReturn": 1,
+        "pendingAtReturn": 1
+      },
+      "constraintCallsAtK2Return": 0,
+      "listenerCallsAtK2Return": 0,
+      "arm": {
+        "kind": "thrown",
+        "status": "KC-3",
+        "message": "n7: the constraint refused this landing",
+        "carriesLog": true
+      },
+      "constraintCallsAfterK3": 1,
+      "listenerCallsDelivered": 0,
+      "order": {
+        "constraintBodySeqs": [
+          87
+        ],
+        "listenerBodySeqs": [],
+        "constraintBodyCalls": 1,
+        "listenerBodyCalls": 0,
+        "listenerRanBeforeAnyConstraint": false,
+        "listenerRanBeforeK2Returned": false,
+        "listenerRanInsideTheK2Window": false,
+        "constraintBodyRanInsideTheK3Window": true
+      },
+      "triggeredAfterTerminalArm": 1,
+      "pendingAfterTerminalArm": 0,
+      "pendingCarriesTheListenerHandleAfterTheArm": false,
+      "theDiscardReachedThatHandle": true,
+      "storeReadAtAttemptAddress": {
+        "absent": false,
+        "value": "0"
+      },
+      "rolledBackToThePreWriteState": true,
+      "storeReadAtPrefixAddress": {
+        "absent": false,
+        "value": "{\"ord\":0}"
+      },
+      "log": [
+        "1:constraint-check:n7c:null",
+        "2:outcome:null:KC-3"
+      ],
+      "report": {
+        "outcome": "failed",
+        "members": [
+          "attempt",
+          "log",
+          "ops",
+          "outcome",
+          "rollback"
+        ],
+        "ops": 1,
+        "rollbackSteps": [
+          {
+            "opId": "op-24",
+            "answer": "ok",
+            "failed": false,
+            "undoneOps": [
+              "op-24"
+            ],
+            "restoredTo": {
+              "present": true,
+              "value": 0
+            },
+            "checkpoint": null
+          }
+        ]
+      },
+      "compositionIssuedCalls": 1,
+      "compositionCallsAllReturned": true,
+      "compositionUndidTheAttemptsOwnOp": true,
+      "compositionFloor": null,
+      "layerB": {
+        "invocations": 0,
+        "note": null
+      },
+      "listenerCallsIncludingTheLayerBProbe": 0
+    },
+    {
+      "cell": "L4-seq1-pass",
+      "limb": 4,
+      "variant": "prefix-address",
+      "outcome": "pass",
+      "round": 1,
+      "store": "SAME STORE (sequence)",
+      "setup": {
+        "opId": "op-25",
+        "address": [
+          "n7"
+        ],
+        "value": {
+          "ord": 0
+        }
+      },
+      "constraintCalls": 1,
+      "listenerCalls": 2,
+      "listenerArgs": [
+        "[\"n7\",\"ord\"]",
+        "[\"n7\",\"ord\"]"
+      ],
+      "listenerRegisteredAtTheAdoptedAddress": false,
+      "listenerHandleIsTheKernelAdoptedHandle": false,
+      "listenerCallsAfterRegistration": 0,
+      "stateBeforeTheAttemptsWrite": {
+        "absent": false,
+        "value": "0"
+      },
+      "k2": {
+        "threw": false,
+        "members": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "triggeredAtReturn": 2,
+        "pendingAtReturn": 2
+      },
+      "constraintCallsAtK2Return": 0,
+      "listenerCallsAtK2Return": 0,
+      "arm": {
+        "kind": "returned",
+        "outcome": "passed"
+      },
+      "constraintCallsAfterK3": 1,
+      "listenerCallsDelivered": 1,
+      "order": {
+        "constraintBodySeqs": [
+          94
+        ],
+        "listenerBodySeqs": [
+          95
+        ],
+        "constraintBodyCalls": 1,
+        "listenerBodyCalls": 1,
+        "listenerRanBeforeAnyConstraint": false,
+        "listenerRanBeforeK2Returned": false,
+        "listenerRanInsideTheK2Window": false,
+        "constraintBodyRanInsideTheK3Window": true
+      },
+      "triggeredAfterTerminalArm": 2,
+      "pendingAfterTerminalArm": 1,
+      "pendingCarriesTheListenerHandleAfterTheArm": true,
+      "theDiscardReachedThatHandle": false,
+      "storeReadAtAttemptAddress": {
+        "absent": false,
+        "value": "100"
+      },
+      "rolledBackToThePreWriteState": false,
+      "storeReadAtPrefixAddress": {
+        "absent": false,
+        "value": "{\"ord\":100}"
+      },
+      "log": [
+        "1:constraint-check:n7c:null",
+        "2:commit:null:null"
+      ],
+      "report": {
+        "outcome": "passed",
+        "members": [
+          "attempt",
+          "log",
+          "ops",
+          "outcome",
+          "rollback"
+        ],
+        "ops": 1,
+        "rollbackSteps": []
+      },
+      "compositionIssuedCalls": 0,
+      "compositionCallsAllReturned": false,
+      "compositionUndidTheAttemptsOwnOp": false,
+      "compositionFloor": null,
+      "layerB": {
+        "invocations": 1,
+        "note": "the app listener handle still stands in `pending` after the arm, so the declared caller loop would invoke it a second time"
+      },
+      "listenerCallsIncludingTheLayerBProbe": 2
+    },
+    {
+      "cell": "L4-seq2-fail",
+      "limb": 4,
+      "variant": "prefix-address",
+      "outcome": "fail",
+      "round": 2,
+      "store": "SAME STORE (sequence)",
+      "setup": null,
+      "constraintCalls": 1,
+      "listenerCalls": 0,
+      "listenerArgs": [],
+      "listenerRegisteredAtTheAdoptedAddress": false,
+      "listenerHandleIsTheKernelAdoptedHandle": false,
+      "listenerCallsAfterRegistration": 0,
+      "stateBeforeTheAttemptsWrite": {
+        "absent": false,
+        "value": "100"
+      },
+      "k2": {
+        "threw": false,
+        "members": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "triggeredAtReturn": 2,
+        "pendingAtReturn": 2
+      },
+      "constraintCallsAtK2Return": 0,
+      "listenerCallsAtK2Return": 0,
+      "arm": {
+        "kind": "thrown",
+        "status": "KC-3",
+        "message": "n7: the constraint refused this landing",
+        "carriesLog": true
+      },
+      "constraintCallsAfterK3": 1,
+      "listenerCallsDelivered": 0,
+      "order": {
+        "constraintBodySeqs": [
+          103
+        ],
+        "listenerBodySeqs": [],
+        "constraintBodyCalls": 1,
+        "listenerBodyCalls": 0,
+        "listenerRanBeforeAnyConstraint": false,
+        "listenerRanBeforeK2Returned": false,
+        "listenerRanInsideTheK2Window": false,
+        "constraintBodyRanInsideTheK3Window": true
+      },
+      "triggeredAfterTerminalArm": 2,
+      "pendingAfterTerminalArm": 0,
+      "pendingCarriesTheListenerHandleAfterTheArm": false,
+      "theDiscardReachedThatHandle": true,
+      "storeReadAtAttemptAddress": {
+        "absent": false,
+        "value": "0"
+      },
+      "rolledBackToThePreWriteState": false,
+      "storeReadAtPrefixAddress": {
+        "absent": false,
+        "value": "{\"ord\":0}"
+      },
+      "log": [
+        "1:constraint-check:n7c:null",
+        "2:outcome:null:KC-3"
+      ],
+      "report": {
+        "outcome": "failed",
+        "members": [
+          "attempt",
+          "log",
+          "ops",
+          "outcome",
+          "rollback"
+        ],
+        "ops": 1,
+        "rollbackSteps": [
+          {
+            "opId": "op-27",
+            "answer": "ok",
+            "failed": false,
+            "undoneOps": [
+              "op-27",
+              "op-26"
+            ],
+            "restoredTo": {
+              "present": true,
+              "value": 0
+            },
+            "checkpoint": null
+          }
+        ]
+      },
+      "compositionIssuedCalls": 1,
+      "compositionCallsAllReturned": true,
+      "compositionUndidTheAttemptsOwnOp": true,
+      "compositionFloor": null,
+      "layerB": {
+        "invocations": 0,
+        "note": null
+      },
+      "listenerCallsIncludingTheLayerBProbe": 0
+    },
+    {
+      "cell": "L4-seq3-pass",
+      "limb": 4,
+      "variant": "prefix-address",
+      "outcome": "pass",
+      "round": 3,
+      "store": "SAME STORE (sequence)",
+      "setup": null,
+      "constraintCalls": 1,
+      "listenerCalls": 2,
+      "listenerArgs": [
+        "[\"n7\",\"ord\"]",
+        "[\"n7\",\"ord\"]"
+      ],
+      "listenerRegisteredAtTheAdoptedAddress": false,
+      "listenerHandleIsTheKernelAdoptedHandle": false,
+      "listenerCallsAfterRegistration": 0,
+      "stateBeforeTheAttemptsWrite": {
+        "absent": false,
+        "value": "0"
+      },
+      "k2": {
+        "threw": false,
+        "members": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "triggeredAtReturn": 2,
+        "pendingAtReturn": 2
+      },
+      "constraintCallsAtK2Return": 0,
+      "listenerCallsAtK2Return": 0,
+      "arm": {
+        "kind": "returned",
+        "outcome": "passed"
+      },
+      "constraintCallsAfterK3": 1,
+      "listenerCallsDelivered": 1,
+      "order": {
+        "constraintBodySeqs": [
+          110
+        ],
+        "listenerBodySeqs": [
+          111
+        ],
+        "constraintBodyCalls": 1,
+        "listenerBodyCalls": 1,
+        "listenerRanBeforeAnyConstraint": false,
+        "listenerRanBeforeK2Returned": false,
+        "listenerRanInsideTheK2Window": false,
+        "constraintBodyRanInsideTheK3Window": true
+      },
+      "triggeredAfterTerminalArm": 2,
+      "pendingAfterTerminalArm": 1,
+      "pendingCarriesTheListenerHandleAfterTheArm": true,
+      "theDiscardReachedThatHandle": false,
+      "storeReadAtAttemptAddress": {
+        "absent": false,
+        "value": "300"
+      },
+      "rolledBackToThePreWriteState": false,
+      "storeReadAtPrefixAddress": {
+        "absent": false,
+        "value": "{\"ord\":300}"
+      },
+      "log": [
+        "1:constraint-check:n7c:null",
+        "2:commit:null:null"
+      ],
+      "report": {
+        "outcome": "passed",
+        "members": [
+          "attempt",
+          "log",
+          "ops",
+          "outcome",
+          "rollback"
+        ],
+        "ops": 1,
+        "rollbackSteps": []
+      },
+      "compositionIssuedCalls": 0,
+      "compositionCallsAllReturned": false,
+      "compositionUndidTheAttemptsOwnOp": false,
+      "compositionFloor": null,
+      "layerB": {
+        "invocations": 1,
+        "note": "the app listener handle still stands in `pending` after the arm, so the declared caller loop would invoke it a second time"
+      },
+      "listenerCallsIncludingTheLayerBProbe": 2
+    },
+    {
+      "cell": "L4-seq4-fail",
+      "limb": 4,
+      "variant": "prefix-address",
+      "outcome": "fail",
+      "round": 4,
+      "store": "SAME STORE (sequence)",
+      "setup": null,
+      "constraintCalls": 1,
+      "listenerCalls": 0,
+      "listenerArgs": [],
+      "listenerRegisteredAtTheAdoptedAddress": false,
+      "listenerHandleIsTheKernelAdoptedHandle": false,
+      "listenerCallsAfterRegistration": 0,
+      "stateBeforeTheAttemptsWrite": {
+        "absent": false,
+        "value": "300"
+      },
+      "k2": {
+        "threw": false,
+        "members": [
+          "attempt",
+          "op",
+          "pending",
+          "triggered"
+        ],
+        "triggeredAtReturn": 2,
+        "pendingAtReturn": 2
+      },
+      "constraintCallsAtK2Return": 0,
+      "listenerCallsAtK2Return": 0,
+      "arm": {
+        "kind": "thrown",
+        "status": "KC-8",
+        "message": "the per-op rollback met the store's own RollbackCompacted at op-29",
+        "carriesLog": true
+      },
+      "constraintCallsAfterK3": 1,
+      "listenerCallsDelivered": 0,
+      "order": {
+        "constraintBodySeqs": [
+          119
+        ],
+        "listenerBodySeqs": [],
+        "constraintBodyCalls": 1,
+        "listenerBodyCalls": 0,
+        "listenerRanBeforeAnyConstraint": false,
+        "listenerRanBeforeK2Returned": false,
+        "listenerRanInsideTheK2Window": false,
+        "constraintBodyRanInsideTheK3Window": true
+      },
+      "triggeredAfterTerminalArm": 2,
+      "pendingAfterTerminalArm": 0,
+      "pendingCarriesTheListenerHandleAfterTheArm": false,
+      "theDiscardReachedThatHandle": true,
+      "storeReadAtAttemptAddress": {
+        "absent": false,
+        "value": "400"
+      },
+      "rolledBackToThePreWriteState": false,
+      "storeReadAtPrefixAddress": {
+        "absent": false,
+        "value": "{\"ord\":400}"
+      },
+      "log": [
+        "1:constraint-check:n7c:null",
+        "2:outcome:null:KC-8"
+      ],
+      "report": {
+        "outcome": "failed",
+        "members": [
+          "attempt",
+          "log",
+          "ops",
+          "outcome",
+          "rollback"
+        ],
+        "ops": 1,
+        "rollbackSteps": [
+          {
+            "opId": "op-29",
+            "answer": "RollbackCompacted",
+            "failed": true,
+            "undoneOps": [],
+            "restoredTo": {
+              "present": true,
+              "value": 400
+            },
+            "checkpoint": null
+          }
+        ]
+      },
+      "compositionIssuedCalls": 1,
+      "compositionCallsAllReturned": false,
+      "compositionUndidTheAttemptsOwnOp": false,
+      "compositionFloor": {
+        "opId": "op-29",
+        "answer": "RollbackCompacted",
+        "failed": true,
+        "undoneOps": [],
+        "restoredTo": {
+          "present": true,
+          "value": 400
+        },
+        "checkpoint": null
+      },
+      "layerB": {
+        "invocations": 0,
+        "note": null
+      },
+      "listenerCallsIncludingTheLayerBProbe": 0
+    }
+  ]
+}

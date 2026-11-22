@@ -1,0 +1,141 @@
+SWEEP FOR THE HARDCODED/UNDERIVED VERDICT CLASS — `U-STOREROOM-CONSTRAINTS`, `A112` blind greens set
+driver swept: scratch/rerun-a112-kernel-fix/blind-greens-a112-rerun.mjs (the operative driver behind every verdict of the set)
+original driver `scratch/blind-greens-a112.mjs` swept too: its ONLY two literal verdicts are its
+  line 213 ([A112-B4], `outcome: 'FAIL'`, fixed by the 2026-10-14 re-run) and its line 394
+  ([A112-D4], `outcome: 'PASS'`) — the two edits the 2026-10-14 section names, confirmed here.
+
+CLASS A — a LITERAL verdict (a constant string, not a derivation):
+  ONLY [A112-D4] in the operative driver — `return { outcome: 'PASS', observed: ... }`.
+CLASS B — a verdict derived from the observation's INVERSE (the predicate answers PASS exactly
+  when the cell's own printed expected observable is false):
+  ONLY [A112-E8] — `(isStoreCode === 'yes' && inKernelForm === 'no' && codeInMessage === 'yes')`
+  while its expected reads "the kernel's answer is KC-4".
+CLASS C — every OTHER cell: the verdict is a predicate over members the cell's expectation names,
+  read from the driver text below. All rows are the driver's own text; no row was rewritten.
+THE TWO KNOWN TEXT/VERDICT FORKS, UNMOVED: [A112-B4] (fixed 2026-10-14) and [A112-B3], whose PASS
+  rests on the clause and not on its own stricter sentence (recorded in the 2026-10-14 section).
+LESSER, NAMED: [A112-E9] prints `closure.readState=`, and [A112-B1]/[A112-G2]/[A112-D2]/[A112-D5]
+  print the ordering datum that no verdict of theirs reads — consistent with the N7 policy; no
+  verdict in that class is hardcoded.
+
+CELLS SWEPT: 41 (cell() blocks + ne() blocks)
+
+### A112-A1  [driver verdict: PASS]
+  EXPECTED: 'exactly the five items K-1..K-5 and no sixth',
+  VERDICT-EXPR: return { outcome: ok ? 'PASS' : 'FAIL', observed: 'keys=[' + names.join(',') + '] allFunctions=' + names.every(n => typeof KERNEL[n] === 'function') };
+### A112-A2  [driver verdict: PASS]
+  EXPECTED: 'the closed 8-verb namespace and no ninth name; the instance carries {register,on,off}',
+  VERDICT-EXPR: return { outcome: (ok && ik === 'off,on,register') ? 'PASS' : 'FAIL', observed: 'store=[' + names.join(',') + '] instance=[' + ik + ']' };
+### A112-A3  [driver verdict: PASS]
+  EXPECTED: 'one adopted handle for the address on all four calls',
+  VERDICT-EXPR: return { outcome: all ? 'PASS' : 'FAIL', observed: 'equal-adopted=' + all };
+### A112-A4  [driver verdict: PASS]
+  EXPECTED: 'CommitRecord = {attempt,op,triggered,pending}; triggered carries the store s returned handle verbatim',
+  VERDICT-EXPR: return { outcome: (keys === 'attempt,op,pending,triggered' && verbatim && two) ? 'PASS' : 'FAIL',
+### A112-B1  [driver verdict: PASS]
+  EXPECTED: 'pending is the whole returned set: every handle of triggered is present in pending',
+  VERDICT-EXPR: return { outcome: (whole && noExtra) ? 'PASS' : 'FAIL',
+### A112-B2  [driver verdict: PASS]
+  EXPECTED: 'the ancestor pair s handle is returned because [a] is a prefix of the landing; the attempt s own pass is address-scoped and never evaluates it, so it stands in pending at the retu
+  VERDICT-EXPR: return { outcome: carried ? 'PASS' : 'FAIL',
+### A112-B3  [driver verdict: PASS]
+  EXPECTED: 'the subtraction is accounted for: every handle that leaves `pending` did so against a delivery of its own pair that PASSED, and no handle leaves otherwise',
+  VERDICT-EXPR: return { outcome: (passSide && !failSide) ? 'FAIL' : (passSide && failSide ? 'PASS' : 'FAIL'),
+### A112-B4  [driver verdict: PASS]
+  EXPECTED: 'on the failing arm every handle of the failed write s own returned set leaves and no pass checks any of them off, and the never-evaluated ancestor s handle leaves only if the fail
+  VERDICT-EXPR: return { outcome: removedWithoutItsOwnPass ? 'FAIL' : 'PASS',
+### A112-B5  [driver verdict: PASS]
+  EXPECTED: 'the caller s reading tracks the subtraction: the entries checked off as they passed are gone from the member the record carries',
+  VERDICT-EXPR: return { outcome: (atK2 === 1 && atK3 === 0 && rep.outcome === 'passed') ? 'PASS' : 'FAIL',
+### A112-B6  [driver verdict: PASS]
+  EXPECTED: 'each write writes its own whole returned set: a fresh K-2 carries its own set, not a residue of the first',
+  VERDICT-EXPR: return { outcome: (snap1.trig === 1 && snap1.pend === 1 && after1 === 0 && rep1.outcome === 'passed' && snap2.trig === 1 && snap2.pend === 1 && after2 === 0 && rep2.outcome === 'passed' && calls === 2) ? 'PASS' : 'FAIL',
+### A112-C1  [driver verdict: PASS]
+  EXPECTED: 'the arm reaches the loop with nothing left in it to invoke',
+  VERDICT-EXPR: return { outcome: (thrown && thrown.status === 'KC-3' && cm.pending.length === 0 && loopInvocations === 0) ? 'PASS' : 'FAIL',
+### A112-C2  [driver verdict: PASS]
+  EXPECTED: 'a write whose set is discarded carries `pending` == [] from the write itself on; a write whose set is not discarded carries it and it leaves only by check-off',
+  VERDICT-EXPR: return { outcome: (discardedArm || carriedThenRemoved) ? 'PASS' : 'FAIL',
+### A112-C3  [driver verdict: PASS]
+  EXPECTED: 'each evaluated pair delivers its own function exactly once, and no other',
+  VERDICT-EXPR: return { outcome: (seq === 'pq' && checked === 'p,q' && rep.outcome === 'passed') ? 'PASS' : 'FAIL',
+### A112-C4  [driver verdict: PASS]
+  EXPECTED: 'the pass s `constraint-check` id sequence is the registry s first-registration order b,a,c and the replacement moves nothing',
+  VERDICT-EXPR: return { outcome: (seq === 'b,a,c' && rep.outcome === 'passed') ? 'PASS' : 'FAIL',
+### A112-D1  [driver verdict: PASS]
+  EXPECTED: 'the store invokes nothing: the constraint body s count stays 0 on the bare write',
+  VERDICT-EXPR: return { outcome: (afterFirst === 0 && afterWithdraw === 0) ? 'PASS' : 'FAIL',
+### A112-D2  [driver verdict: NOT-EXERCISABLE]
+  EXPECTED: 'at K-2 s return the constraint body has run AND its handle has been checked off, and no body of another kind of that same call has run yet',
+### A112-D3  [driver verdict: PASS]
+  EXPECTED: 'the caller s loop reads its work off `pending` and invokes each remaining handle once — for a passing pair s already-checked-off handle there is nothing left to invoke',
+  VERDICT-EXPR: return { outcome: (remaining === 0 && loopCalls === 0 && lh !== undefined) ? 'PASS' : 'FAIL',
+### A112-D4  [driver verdict: PASS]
+  EXPECTED: 'a listener the app registered after the kernel s adoption is not invoked while the kernel s registration stands',
+  VERDICT-EXPR: return { outcome: 'PASS', observed: 'on() returned the SAME adopted handle=' + same + '; kernel body runs at K-3 (delivery); app listener calls at K-2=' + atK2 + ', after K-3=' + appCalls + '; outcome=' + (rep ? rep.outcome : st(thrown)) + '; pending after K-3
+### A112-D5  [driver verdict: NOT-EXERCISABLE]
+  EXPECTED: 'the constraint s own delivery of that write has completed before any plain listener body of that call runs',
+### A112-E1  [driver verdict: PASS]
+  EXPECTED: 'KC-7 before the write verb (no write happened), and no KC-7 after the terminal arm',
+  VERDICT-EXPR: return { outcome: (second === 'KC-7' && atRefusal === '1' && rep.outcome === 'passed' && fresh === 'returned') ? 'PASS' : 'FAIL',
+### A112-E2  [driver verdict: PASS]
+  EXPECTED: 'no KC-7, the write verb is reached; what the store then answers about the pre-state is OWED to J-20–J-22 and is not read here',
+  VERDICT-EXPR: return { outcome: (thrown && thrown.status === 'KC-3' && fresh === 'returned') ? 'PASS' : 'FAIL',
+### A112-E3  [driver verdict: PASS]
+  EXPECTED: 'KC-7 for K-2 and for K-3 and for K-5; K-1 admitted; K-4 returns the open record s log; the log s seq/kind/id sequence is unchanged',
+  VERDICT-EXPR: return { outcome: ok ? 'PASS' : 'FAIL',
+### A112-E4  [driver verdict: PASS]
+  EXPECTED: 'KC-5 carried by the thrown form s status and by the `outcome` entry s state, with exactly ONE `repair-run` entry for that pair',
+  VERDICT-EXPR: return { outcome: (st(thrown) === 'KC-5' && outcomeState === 'KC-5' && repairRuns === 1 && checks === 2) ? 'PASS' : 'FAIL',
+### A112-E5  [driver verdict: NOT-EXERCISABLE]
+  EXPECTED: 'KC-6 carried by the thrown form s status and by the `outcome` entry s state',
+### A112-E6  [driver verdict: PASS]
+  EXPECTED: 'KC-8 carried by the thrown form s status and by the attempt s ONE `outcome` entry s state, that entry naming the store s own answer',
+  VERDICT-EXPR: return { outcome: ok ? 'PASS' : 'FAIL',
+### A112-E7  [driver verdict: PASS]
+  EXPECTED: 'a closed attempt s report carries the RollbackStep list the composition performed',
+  VERDICT-EXPR: return { outcome: ok ? 'PASS' : 'FAIL',
+### A112-E8  [driver verdict: PASS]
+  EXPECTED: 'the kernel s answer is KC-4, its message NAMES the store s own code, and `ops` holds no op for the attempt',
+  VERDICT-EXPR: return { outcome: (isStoreCode === 'yes' && inKernelForm === 'no' && codeInMessage === 'yes') ? 'PASS' : 'FAIL',
+### A112-E9  [driver verdict: PASS]
+  EXPECTED: 'the body s own throwable, unchanged; the closed record s `outcome` entry reads `null`; a fresh K-2 returns a record',
+  VERDICT-EXPR: return { outcome: (isOwn && closedState === 'null' && fresh.startsWith('returned')) ? 'PASS' : 'FAIL',
+### A112-F1  [driver verdict: PASS]
+  EXPECTED: 'KC-1 for the two outside address shapes; KC-2 for the empty id and the non-function; the token carried by the thrown form s `status`',
+  VERDICT-EXPR: return { outcome: ok ? 'PASS' : 'FAIL',
+### A112-F2  [driver verdict: PASS]
+  EXPECTED: 'the thrown object is the store s own code, unconverted, and no `KC` token appears; no attempt is opened and the address holds none',
+  VERDICT-EXPR: return { outcome: (tierErr === 'OutOfDomainTier' && !kc && inDomain.startsWith('returned') && held === 'KC-7') ? 'PASS' : 'FAIL',
+### A112-F3  [driver verdict: PASS]
+  EXPECTED: 'one form: exactly {status, message, log}, with the `log` carrying LogEntry members',
+  VERDICT-EXPR: return { outcome: (keys === 'log,message,status' && kcOnly === 'yes') ? 'PASS' : 'FAIL',
+### A112-F4  [driver verdict: NOT-EXERCISABLE]
+  EXPECTED: 'the kernel holds no store function and mints no store member',
+### A112-G1  [driver verdict: PASS]
+  EXPECTED: 'success arm: `rollback` == [] (an empty list, never an absent member); failure arm: one step per performed call',
+  VERDICT-EXPR: return { outcome: (success && failSteps >= 1) ? 'PASS' : 'FAIL',
+### A112-G2  [driver verdict: PASS]
+  EXPECTED: 'the two windows reports read EQUAL on outcome, on the ops kind sequence and on the log s kind/id/state sequences (message strings excluded)',
+  VERDICT-EXPR: return { outcome: th ? st(th) : rp.outcome, opsKinds: (rp ? rp.ops.map(o => o.kind) : []).join(','), log: lg.map(e => e.kind + '/' + String(e.id) + '/' + String(e.state)).join(','), pending: cm.pending.length, triggered: cm.triggered.length };
+  VERDICT-EXPR: return { outcome: equal ? 'PASS' : 'FAIL',
+### A112-G3  [driver verdict: NOT-EXERCISABLE]
+  EXPECTED: 'no handle of the returned set is omitted, and no entry is read as carrying a listener the constraints have not yet passed',
+### A112-G4  [driver verdict: PASS]
+  EXPECTED: 'the ancestor pair s handle stands in `triggered` (the store s own prefix rule) and in `pending`, and no pass of that attempt checks it off (the pass is address-scoped)',
+  VERDICT-EXPR: return { outcome: (atK2 === 1 && atK3 === 1 && stillThere && rep.outcome === 'passed') ? 'PASS' : 'FAIL',
+### A112-G5  [driver verdict: PASS]
+  EXPECTED: 'the second K-2 returns a fresh CommitRecord and throws no KC-7 (the first attempt s address only is held)',
+  VERDICT-EXPR: return { outcome: (second === 'returned' && rep1 && rep1.outcome === 'passed') ? 'PASS' : 'FAIL',
+### A112-G6  [driver verdict: PASS]
+  EXPECTED: 'exactly ONE `outcome` entry, carrying KC-8 and not the pass s own arm (KC-5), with the floor s answer named in its message',
+  VERDICT-EXPR: return { outcome: (outcomes.length === 1 && tokens === 'KC-8' && named) ? 'PASS' : 'FAIL',
+### A112-H1  [driver verdict: PASS]
+  EXPECTED: 'every entry carries exactly {seq,kind,id,message,opId,state}; seq is 1..n ascending with no gap',
+  VERDICT-EXPR: return { outcome: (oneSet && ascending && nonOutcomeNull && k4 === seqs.join(',')) ? 'PASS' : 'FAIL',
+### A112-H2  [driver verdict: PASS]
+  EXPECTED: 'K-4 returns the final log; K-5 s five members equal K-3 s report; K-3 over the closed record throws KC-2 (and not KC-7)',
+  VERDICT-EXPR: return { outcome: (same && keys === 'attempt,log,ops,outcome,rollback' && lg4.length === rep.log.length && stale === 'KC-2') ? 'PASS' : 'FAIL',
+### A112-H3  [driver verdict: PASS]
+  EXPECTED: 'exactly {address, tier, value, attempt, op}',
+  VERDICT-EXPR: return { outcome: (keys === 'address,attempt,op,tier,value' && opKind === 'write') ? 'PASS' : 'FAIL',

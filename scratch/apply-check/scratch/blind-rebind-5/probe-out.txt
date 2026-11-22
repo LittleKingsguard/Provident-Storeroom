@@ -1,0 +1,15 @@
+(1) unnamed-key boot
+    image      = "{\"a\":5,\"b\":6}"
+    answer     = INSTANCE
+    read([])   = {"a":5,"b":6}
+    image after= "{\"a\":5,\"b\":6}"
+(2) present `{}` image
+    size before= 2 answer = THREW {"status":"ConstraintListInvalid","message":"'a' is not a valid constraint entry in 'constraints', a constraint entry is an address and an id, and the address is a segment array"}
+    image after= "{}" byte-identical= true
+(3) zero-byte file
+    first create ok= true size= 0
+    answer     = INSTANCE
+    read([])   = {}
+    size after = 0
+(4) control: one named address resolves, one does not
+    answer     = THREW {"status":"ConstraintListInvalid","message":"'zz' is not a valid constraint entry in 'constraints', a constraint entry is an address and an id, and the address is a segment array"} byte-identical= true

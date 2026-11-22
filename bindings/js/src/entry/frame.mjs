@@ -595,6 +595,13 @@ export function decodeBaseState(encoded) {
   return { present: encoded.present, value: decodeValue(encoded.value) };
 }
 
+// **⟶ AND THE DECODED RECORD CARRIES SEVEN MEMBERS FROM 2026-11-17, NOT EIGHT: `compacted` IS DELETED**
+// (`strata/decisions.md` · `D-189` item 2, the architect VERBATIM: *"If .compacted is always false drop it"*).
+// **THE STORE'S OWN RECORD NO LONGER CARRIES THE MEMBER** (`src/records.rs`), so the crossing's carrier has
+// none (`bindings/js/src/crossing.rs`) and this decoder — which rebuilds the record in the store's own
+// spellings and mints no member of its own — has none to rebuild. **No `null`, no `undefined` and no default
+// stands in its place**: a key here would be a member `index.d.ts` does not declare, and the package's record
+// would then disagree with the store's on a member both are supposed to spell alike.
 export function decodeJournalOp(encoded) {
   return {
     opId: encoded.opId,
@@ -604,7 +611,6 @@ export function decodeJournalOp(encoded) {
     before: decodeBaseState(encoded.before),
     after: decodeBaseState(encoded.after),
     seq: encoded.seq,
-    compacted: encoded.compacted,
   };
 }
 

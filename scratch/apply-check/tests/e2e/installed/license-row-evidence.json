@@ -1,0 +1,5 @@
+{
+  "about": "THE EVIDENCE HOME `D-8` (iii)'s CONDITIONAL READS (docs/L1/test-stratification.md §2.9; `Q18` answered at `D-9`). The `LICENSE` row is lawful in `bindings/js/package.json`'s `files` allowlist ONLY IF a recorded item here names a consumer or a scanner requirement for it; a row without one fails `INSTALL-12`, a row with one passes, and no row passes. The antecedent — does a consumer or a scanner need the row? — is an INSTALL observation and not a documentary fact, which is why this record lives beside the installed battery and not in a greens cell (`D-8`, `D-9`).",
+  "row": "LICENSE",
+  "evidence": []
+}

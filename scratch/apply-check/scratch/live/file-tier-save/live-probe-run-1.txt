@@ -1,0 +1,24 @@
+== P1: THE FAILING SAVE'S OWN RECORD (FTS-04.9) ==========================
+thrown status = "FileCommitFailed"
+thrown members = status,message
+K.log(attempt) = [{"seq":1,"kind":"constraint-check","id":"cB","opId":"op-2","message":"the constraint cB passed at [\"b\"]","state":null},{"seq":2,"kind":"commit","id":null,"opId":"op-2","message":"every constraint registered at [\"b\"] passed; the commit stands","state":null},{"seq":3,"kind":"outcome","id":null,"opId":"op-2","message":"the per-op rollback met the store's own JournalOpUnknown at op-2","state":"KC-8"}]
+K.report(attempt) = {"attempt":{"id":"attempt-2"},"outcome":"failed","ops":[{"opId":"op-2","kind":"write","address":["b"],"tier":"file","before":{"present":false},"after":{"present":true,"value":222},"seq":2,"compacted":false}],"log":[{"seq":1,"kind":"constraint-check","id":"cB","opId":"op-2","message":"the constraint cB passed at [\"b\"]","state":null},{"seq":2,"kind":"commit","id":null,"opId":"op-2","message":"every constraint registered at [\"b\"] passed; the commit stands","state":null},{"seq":3,"kind":"outcome","id":null,"opId":"op-2","message":"the per-op rollback met the store's own JournalOpUnknown at op-2","state":"KC-8"}],"rollback":[{"opId":"op-2","answer":"JournalOpUnknown","failed":true,"undoneOps":[],"restoredTo":{"present":false},"checkpoint":null}]}
+thrown.log = undefined
+
+== P2: THE REPAIR'S CONTEXT AND THE FIFTH POSITION (FTS-11) ==============
+repair context, as the kernel handed it: [{"members":"address,id,op,pending,tier,value","keys":"address,id,op,pending,tier,value","pendingType":"object","pendingIsArray":true,"pendingLen":1,"pending":"[{}]","op":"\"op-3\"","address":"[\"c\"]","id":"\"c1\"","value":"99","tier":"\"file\"","writeWithContext":"PROCEEDED \"op-4\"","writeWithBarePending":"PROCEEDED \"op-5\""}]
+runAttempt outcome = passed ; ops = [["op-3",["c"],null],["op-4",["c"],null]]
+log kinds = [["constraint-check",null,"op-3"],["repair-run",null,"op-4"],["constraint-check",null,"op-4"],["commit",null,"op-4"]]
+file bytes = "{\"c\":10}" ; listener invocations = 3
+
+== P3: THE FIVE-MEMBER LITERAL AND THE BARE CARRIER AT THE FIFTH POSITION ==
+five-member literal {op,address,id,value,tier} -> REFUSED TypeError: the write's fifth argument is a plain object, and the commit position takes an object carrying a `pending` member
+{ pending: [] } -> PROCEEDED "op-6"
+{ pending: undefined } -> REFUSED TypeError: the write's fifth argument is a plain object, and the commit position takes an object carrying a `pending` member
+file bytes = ""
+
+== P4: THE ADDON'S OWN COMMIT AND VERSION EXPORTS ========================
+addon exports = ["call","errorMessage","register","storeCreate","version"]
+addon.version() = "0.1.3"
+
+FIXTURES LEFT AT /media/ryanr/Shared Files/Projects/Provident-Storeroom/scratch/live/file-tier-save/fs/probe-1792115928836

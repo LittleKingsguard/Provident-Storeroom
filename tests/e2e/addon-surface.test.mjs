@@ -43,16 +43,26 @@
 // re-cut against is a verb through its OWN entry against the same verb through the package's wrapper — one
 // call and its own decoder, not two shapes: a comparison that cannot fail and would pass trivially at any
 // byte.** The clause's package-layer half never depended on the dispatcher and did not leave: the record
-// members, the corpus equality across two stores and the operation record's eight members stand asserted in
+// members, the corpus equality across two stores and the operation record's **SEVEN** members stand asserted in
 // the group's first cell, and the golden's key-set exclusion in its third.
+//
+// **⟶ AND "EIGHT" IN THE SENTENCE ABOVE IS SUPERSEDED AT ITS OWN BYTE `2026-11-17`: THE OPERATION RECORD
+// CARRIES SEVEN MEMBERS AND NOT EIGHT, BECAUSE `compacted` IS REMOVED FROM IT** (`strata/decisions.md` ·
+// `D-189` item 2, the architect VERBATIM: *"If .compacted is always false drop it"*). **THE DIRECTIVE WAS A
+// CONDITIONAL AND THE TREE ANSWERED IT**: both of the store's producers set the flag `false`, so the member
+// carried nothing, and the discrimination it once shared is the `journal_floor` watermark's (`D-160` item 3).
+// **So every count of the record's members in this file moves `8 → 7`, and every assertion that named the
+// member is re-derived: a cell that names a member the declaration no longer carries is a cell asserting a
+// surface that does not exist.**
 //
 // **⟶ AND THE SENTENCE JUST ABOVE IS CORRECTED IN PLACE `2026-11-22`, BECAUSE IT SAYS "ASSERTED" OF BYTES NO RUN
 // REACHES** (`D-181` item 5; `D-57`'s discipline, applied to this record as it was to the docblock below). The
 // first cell's recording half is behind its `oldDispatcherShape() === null` branch and is reached on NO
 // evaluation of this tree, so those members are **WRITTEN THERE AND MEASURED NOWHERE** — `S-PARITY`'s
 // package-layer half is not carried by a live instrument at all, and the write and delete member sets are
-// asserted a second time by `sas_d7_s_unwrap_parity_…` while the operation record's eight members are asserted
-// there nowhere. **The capture cell is KEPT and its reason is recorded at its own byte** (`D-181` item 5, arm
+// asserted a second time by `sas_d7_s_unwrap_parity_…` while the operation record's **SEVEN** members are asserted
+// there nowhere. **⟶ SEVEN, NOT EIGHT, FROM 2026-11-17 (`D-189` item 2: `compacted` is removed from the record
+// — the head's dated clause above states it, and this one reads the count through it).** **The capture cell is KEPT and its reason is recorded at its own byte** (`D-181` item 5, arm
 // `(c)`): it is a RECORD and not coverage, and the head says so here rather than letting the word "asserted"
 // carry a claim the run does not make. **THE EXCLUSION CELL IS UNMOVED** and its `compared` floor is re-derived
 // to the figure this file now holds.
@@ -61,7 +71,7 @@
 // WAS TAKEN AND THE FILE GREW THE THING IT SAID WAS MISSING** (`D-182`'s two smaller items; `role_l3_test_writer`).
 // **(a) THE OPERATION RECORD'S EIGHT MEMBERS HAVE A LIVE INSTRUMENT NOW.** The package's own `write` answers the
 // store's journal record on every call — `bindings/js/index.d.ts`'s `JournalOp` — so the members are asserted **BY
-// NAME, on a body that runs on this tree**, at `sas_d3_s_parity_the_live_write_carries_the_operations_eight_members_…`
+// NAME, on a body that runs on this tree**, at `sas_d3_s_parity_the_live_write_carries_the_operations_seven_members_…`
 // below. The capture cell's recording half is unchanged and remains **a RECORD and not coverage**; what changed is
 // that the claim no longer rests on it. **(b) THE EXCLUSION CELL'S `compared` FLOOR IS GONE RATHER THAN
 // RE-DERIVED** (`D-181` item 4's trap, disarmed by REMOVING the figure): the limb is a PARTITION of this file's
@@ -692,7 +702,7 @@ test('sas_d2_s_no_instance_the_packages_own_surface_carries_no_instance_position
 //
 // **⟶ AND THE GROUP HOLDS THREE AGAIN, ON A CELL ADDED RATHER THAN ONE UN-RETIRED** (`D-182`'s first smaller
 // item; dated `2026-11-22`). The third is
-// `sas_d3_s_parity_the_live_write_carries_the_operations_eight_members_the_capture_wrote_and_no_run_reached`: the
+// `sas_d3_s_parity_the_live_write_carries_the_operations_seven_members_the_capture_wrote_and_no_run_reached`: the
 // live instrument for `P-SAS-3`'s package-layer half, driving the package's own `write` — **not a re-filing of the
 // retired cell, whose subject (`call`) is deleted and cannot return.** The corpus's consumer is still the capture
 // cell alone; the live cell mints its own writes and reads no row of `PARITY_CORPUS`.
@@ -767,7 +777,7 @@ const GOLDEN = {
 // **WHAT IT CAPTURED, WHILE THE OLD SHAPE STOOD.** `contract.md §6` item `1`'s capture: one corpus — the store's
 // declared value domain, six rows, `PARITY_CORPUS` above — driven through the package's receiver surface BESIDE
 // the old dispatcher's `call(index, verb, args)` at its own three positions, and RECORDED member for member into
-// `GOLDEN.records` (the write record's members, the operation record's eight, the delete receipt's three, and the
+// `GOLDEN.records` (the write record's members, the operation record's seven, the delete receipt's three, and the
 // carrier spelling at the artefact layer), with the invocation item `1` requires to be named, the seed (`null` —
 // the corpus is a fixed list), and item `4`'s run-versus-skip record in `GOLDEN.ran` / `GOLDEN.skipped`.
 //
@@ -791,9 +801,12 @@ const GOLDEN = {
 //   * **ARM `(a)`, RETIREMENT, DESTROYS THE INSTRUMENT.** What this cell holds and no other byte of this tree
 //     holds: the only written spelling of the two-shape capture; `§6` item `4`'s run-versus-skip ledger; the
 //     invocation and its date (the frozen artefact, `DISCHARGED 2026-10-21`); the corpus's only consumer; and —
-//     measurably — the ONLY assertion of the operation record's EIGHT members
-//     (`address`, `after`, `before`, `compacted`, `kind`, `opId`, `seq`, `tier`), which holds on this tree
-//     (measured `2026-11-22`) and which no other cell asserts. **A head record would describe all of that and keep
+//     measurably — the ONLY assertion of the operation record's SEVEN members
+//     (`address`, `after`, `before`, `kind`, `opId`, `seq`, `tier`), which holds on this tree
+//     (measured `2026-11-22`) and which no other cell asserts. **⟶ AND IT WAS EIGHT UNTIL `2026-11-17`, WHEN
+//     `D-189` ITEM 2 REMOVED `compacted` FROM THE RECORD** — the name is re-derived here and the reason is at
+//     its byte: the member is GONE (not renamed, not deprecated), so a limb asserting it would assert a
+//     surface the declaration no longer carries. **A head record would describe all of that and keep
 //     none of it: the description of an instrument is not the instrument.**
 //   * **ARM `(b)`, REMOVE THE DUPLICATE, DESTROYS THE LAST CLAIM AND GAINS NONE.** With the duplicate gone the
 //     cell's whole reachable body is a ledger push and a `return`: **it can fail on no byte**, which is the very
@@ -887,9 +900,13 @@ test('sas_d3_s_parity_the_golden_captures_the_two_shapes_record_for_record_and_e
     const opB = layoutB.delete(address, 'mem');
     assert.deepEqual(Object.keys(opB).sort(), ['address', 'tiers', 'triggered'],
       `P-SAS-3 — the delete receipt's members, unmoved by the route the call took: ${row.label}`);
+    // **⟶ AND THE SET IS SEVEN FROM `2026-11-17`, RE-DERIVED HERE WITH ITS REASON AT ITS BYTE** (`D-189`
+    // item 2): `compacted` is REMOVED from the store's record and from `index.d.ts`'s `JournalOp`, so the
+    // capture's own census moves `8 → 7` — a set that still named it would be comparing a record against a
+    // declaration that no longer carries the member.
     assert.deepEqual(Object.keys(byReceiver.op).sort(),
-      ['address', 'after', 'before', 'compacted', 'kind', 'opId', 'seq', 'tier'],
-      `P-SAS-3 — and the operation record\'s eight members, as \`surface.md §2.2\` declares them: ${row.label}`);
+      ['address', 'after', 'before', 'kind', 'opId', 'seq', 'tier'],
+      `P-SAS-3 — and the operation record\'s seven members, as \`surface.md §2.2\` declares them: ${row.label}`);
   }
   assert.equal(GOLDEN.records.length, PARITY_CORPUS.length,
     'the corpus is driven whole: the capture is the record set and not a sample');
@@ -898,10 +915,17 @@ test('sas_d3_s_parity_the_golden_captures_the_two_shapes_record_for_record_and_e
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════
-// **⟶ THE LIVE INSTRUMENT FOR THE OPERATION RECORD'S EIGHT MEMBERS — ADDED `2026-11-22`** (`D-182`'s first
+// **⟶ THE LIVE INSTRUMENT FOR THE OPERATION RECORD'S SEVEN MEMBERS — ADDED `2026-11-22`** (`D-182`'s first
 // smaller item, taken; `D-181` item 5's own sentence: *"a live instrument is a new cell, not this pass's item."*)
 //
-// **WHAT WAS WRONG, IN ONE LINE.** The eight members (`address`, `after`, `before`, `compacted`, `kind`, `opId`,
+// **⟶ AND ITS COUNT MOVED `8 → 7`, AND ITS CELL'S OWN NAME WITH IT, `2026-11-17`** (`strata/decisions.md` ·
+// `D-189` item 2). **THE OLD NAME WAS
+// `sas_d3_s_parity_the_live_write_carries_the_operations_eight_members_the_capture_wrote_and_no_run_reached`
+// and this block said "EIGHT" at every count**, because the eighth member was `compacted`. **The member is
+// REMOVED — not renamed and not deprecated** — so the census moves, the name moves with it, and the old
+// spelling is recorded HERE rather than left for a reader to meet as a name that lies about its own body.
+//
+// **WHAT WAS WRONG, IN ONE LINE.** The seven members (`address`, `after`, `before`, `kind`, `opId`,
 // `seq`, `tier`) were measured TRUE on this tree and measured by NOTHING that could fail: the only assertion of
 // them stood inside the capture cell's recording half, behind `oldDispatcherShape() === null`, which is reached on
 // NO evaluation (the block above that cell says so at its own byte). **A claim carried by a byte-image no run
@@ -912,7 +936,10 @@ test('sas_d3_s_parity_the_golden_captures_the_two_shapes_record_for_record_and_e
 // (`docs/specs/storeroom-js/surface.md §2.2`), and `op` **IS** the store's journal record crossed member for
 // member: `bindings/js/index.d.ts`'s `JournalOp` — *"THE STORE'S OWN JOURNAL OP, CROSSED MEMBER FOR MEMBER AND IN
 // THE STORE'S OWN SPELLINGS — `DD-39`'s eight declared names (`distribution.md §5.2` item 1; `P-PUB-7`):
-// `{ opId, kind, address, tier, before, after, seq, compacted }`."* **So `write` is the live surface that
+// `{ opId, kind, address, tier, before, after, seq, compacted }`."* **⟶ AND THAT QUOTATION IS THE DECLARATION AS
+// IT STOOD BEFORE `2026-11-17` AND IS KEPT AS THE READING OF ITS DATE**: from `D-189` item 2 the declaration
+// reads `{ opId, kind, address, tier, before, after, seq }` — SEVEN names — and `index.d.ts`'s own docblock
+// carries the removal with its reason. **So `write` is the live surface that
 // actually produces an operation record, and this cell drives it** — no stub, no artefact key set, no private
 // kernel state.
 //
@@ -924,17 +951,17 @@ test('sas_d3_s_parity_the_golden_captures_the_two_shapes_record_for_record_and_e
 // (`surface.md §2.2`), so **no `{k, s}` form is reachable from the package's own answer at all** — the carrier
 // spelling is a difference between the two records, and its producer is gone with the dispatcher
 // (`export-set-and-dispatch.md §2`: *"`call` IS DELETED … THE SPLIT IS PRECISELY ITS REPLACEMENT"*). **SO THE
-// OPERATION RECORD'S MEMBER SET IS THE SAME EIGHT ON BOTH PATHS AND THE CARRIER SPELLING IS NOT** — this cell
+// OPERATION RECORD'S MEMBER SET IS THE SAME SEVEN ON BOTH PATHS AND THE CARRIER SPELLING IS NOT** — this cell
 // asserts exactly what the live path carries, and `dispatcherCarrierAddress` / `dispatcherCarrierTier` are named
 // as **owed and owed to nobody**: a cell asserting them would be the same defect one layer over.
 //
 // **AND ONE THING THE CAPTURE COULD NEVER HAVE SHOWN**: the two base-state records carry BOTH declared members on
 // both arms (`index.d.ts`'s `BaseState` is `{ present, value }`, `value` being `undefined` where no version stood),
-// so a limb that asserted only the eight NAMES would still miss a `before`/`after` that lost a member. Both limbs
+// so a limb that asserted only the seven NAMES would still miss a `before`/`after` that lost a member. Both limbs
 // are asserted below.
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════
 
-test('sas_d3_s_parity_the_live_write_carries_the_operations_eight_members_the_capture_wrote_and_no_run_reached', () => {
+test('sas_d3_s_parity_the_live_write_carries_the_operations_seven_members_the_capture_wrote_and_no_run_reached', () => {
   const layout = mem();
   const written = layout.write(['a'], 'mem', 1);
   // **THE WRITE RECORD'S OWN THREE, AS THE CAPTURE ASSERTED THEM AND AS `surface.md §2.2` DECLARES THEM** —
@@ -942,11 +969,13 @@ test('sas_d3_s_parity_the_live_write_carries_the_operations_eight_members_the_ca
   assert.deepEqual(Object.keys(written).sort(), ['op', 'triggered', 'watched'],
     'P-SAS-3 / `surface.md §2.2` — `write` returns `{ op, watched, triggered }`; "a record member moved" is '
     + 'this row\'s first failure (`contract.md §5`)');
-  // **THE OPERATION RECORD'S EIGHT MEMBERS, BY NAME, ON A BODY THAT RUNS.**
+  // **THE OPERATION RECORD'S SEVEN MEMBERS, BY NAME, ON A BODY THAT RUNS** — **⟶ SEVEN AND NOT EIGHT FROM
+  // `2026-11-17`: `compacted` is REMOVED from the record and from the declaration** (`D-189` item 2), so the
+  // census is re-derived here and the member it used to name is named nowhere in this set.
   const op = written.op;
   assert.deepEqual(Object.keys(op).sort(),
-    ['address', 'after', 'before', 'compacted', 'kind', 'opId', 'seq', 'tier'],
-    'P-SAS-3 — the operation record\'s eight members, as `index.d.ts`\'s `JournalOp` declares them and '
+    ['address', 'after', 'before', 'kind', 'opId', 'seq', 'tier'],
+    'P-SAS-3 — the operation record\'s seven members, as `index.d.ts`\'s `JournalOp` declares them and '
     + '`distribution.md §5.2` item 1 names them. **THIS IS THE ASSERTION THE CAPTURE CELL HOLDS AND NO RUN '
     + 'REACHES** (`D-181` item 5); it is measured HERE, on a live write. Got '
     + `${JSON.stringify(Object.keys(op).sort())}`);
@@ -960,8 +989,15 @@ test('sas_d3_s_parity_the_live_write_carries_the_operations_eight_members_the_ca
   assert.equal(op.tier, 'mem', 'the tier the version was minted at, as one of the store\'s three tokens');
   assert.equal(typeof op.opId, 'string', 'the id a `rollback` takes (`PAR-JS-9`: a non-empty string)');
   assert.equal(op.seq, 1, 'the journal\'s own append ordinal, strictly increasing from 1 (`§6.2`)');
-  assert.equal(op.compacted, false,
-    'the store\'s own flag, carried verbatim — `false` here, since the compaction dropped nothing');
+  // **⟶ AND THE VALUE LIMB THAT NAMED `compacted` IS DELETED AT ITS OWN BYTE, 2026-11-17** (`D-189`
+  // item 2): the member is GONE — not renamed, not deprecated and NOT TYPED AS A CONSTANT — so a limb asserting
+  // *"the store's own flag, carried verbatim — `false` here"* would assert a key the record does not carry.
+  // **WHAT REPLACES IT IS A NEGATIVE LIMB**: the absence is asserted, because a member that quietly came back
+  // (on one arm, at one route) is exactly what a removal has to be measured by.
+  assert.equal(Object.hasOwn(op, 'compacted'), false,
+    'the operation record does NOT carry `compacted` any more (`D-189` item 2): the member is removed from the '
+    + 'store\'s record, from the crossing and from the declaration, so an own key of that name on a live '
+    + 'record is a surface nobody declared');
   // **THE TWO BASE-STATE RECORDS CARRY BOTH DECLARED MEMBERS ON BOTH ARMS**, `value` being `undefined` where no
   // version stood (`index.d.ts`'s `BaseState`: *"`value` is that version's value where one did — `undefined` where
   // none did"*). **`Object.keys` SEES THAT MEMBER AND `JSON.stringify` DOES NOT**, which is why the arm is
@@ -974,7 +1010,7 @@ test('sas_d3_s_parity_the_live_write_carries_the_operations_eight_members_the_ca
   assert.equal(op.before.value, undefined, 'so its `value` member is `undefined` — and is still PRESENT');
   assert.equal(op.after.present, true, 'and a version stands after it');
   assert.equal(op.after.value, 1, 'with the value the caller wrote');
-  // **A SECOND WRITE ANSWERS THE SAME EIGHT** — the record is the store's own at every op, not a one-shot shape.
+  // **A SECOND WRITE ANSWERS THE SAME SEVEN** — the record is the store's own at every op, not a one-shot shape.
   const second = layout.write(['a'], 'mem', 2);
   assert.deepEqual(Object.keys(second.op).sort(), Object.keys(op).sort(),
     'P-SAS-3 — "a record member moved" (`contract.md §5`) is asked of a SECOND op as well as the first: a member '
@@ -982,10 +1018,10 @@ test('sas_d3_s_parity_the_live_write_carries_the_operations_eight_members_the_ca
   assert.equal(second.op.seq, 2, 'and the ordinal advances while the member set does not');
   // **AND THE DELETE'S RECEIPT CARRIES AN OPERATION RECORD TOO, AT THE SAME NAME AND THE SAME SHAPE**
   // (`index.d.ts`: *"IT IS THE MEMBER `WriteRecord` CARRIES, AT THE SAME NAME AND THE SAME TYPE"*). **A second
-  // live route to the same eight members** — which is what makes this a member SET and not one verb's answer.
+  // live route to the same seven members** — which is what makes this a member SET and not one verb's answer.
   const receipt = layout.delete(['a'], 'mem');
   assert.deepEqual(Object.keys(receipt.op).sort(), Object.keys(op).sort(),
-    'P-SAS-3 — the delete\'s operation record carries the same eight members, so the set is the STORE\'s record '
+    'P-SAS-3 — the delete\'s operation record carries the same seven members, so the set is the STORE\'s record '
     + 'and not `write`\'s private shape');
   assert.equal(receipt.op.kind, 'delete', 'and its `kind` is the store\'s own token for the other op kind');
 });

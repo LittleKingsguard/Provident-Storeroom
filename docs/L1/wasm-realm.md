@@ -315,7 +315,7 @@ cargo check --offline --target wasm32-unknown-unknown --manifest-path bindings/j
 handle = 0 | a saveCall-shaped store: no filePath, durable without a path
 write(addr, file, {a:1})    → {"op":{"opId":"op-1","kind":"write","address":["tabs"],"tier":"file",
                                  "before":{"present":false},"after":{"present":true,"value":{"a":1}},
-                                 "seq":1,"compacted":false},"watched":[],"triggered":[],
+                                 "seq":1},"watched":[],"triggered":[],
                                  "triggeringAddress":["tabs"]}
 read(addr)                  → {"a":1}
 exportImage()               → "{\"tabs\":{\"a\":1}}"          ← the store's own image text
@@ -429,7 +429,7 @@ a plain object round-trips → {"a":1}                               ← and the
 storeCreate(glue, cfg)        → an instance with 15 own members
 write(["t"], "mem", {a:1})    → {"op":{"opId":"op-1","kind":"write","address":["t"],"tier":"mem",
                                    "before":{"present":false},"after":{"present":true,"value":{"a":1}},
-                                   "seq":1,"compacted":false},"watched":[],"triggered":[]}
+                                   "seq":1},"watched":[],"triggered":[]}
 read(["t"])                   → {"a":1}
 readLiteral(["t"])            → THREW ReadTargetIsBranch        ← the declared refusal: a container is a branch
 write again {a:2}             → op-2 | read after → {"a":2}

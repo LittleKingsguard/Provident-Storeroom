@@ -1,0 +1,96 @@
+[package]
+name = "storeroom-js-binding"
+version = "0.1.0"
+edition = "2021"
+description = "U-STOREROOM-JS: the pure-Rust conversion core (storeroom_js_binding::crossing) and its Node-API export facade, over the native store"
+license = "AGPL-3.0-or-later"
+
+# `package.md §4.1` item 1 (`A68`): an INDEPENDENT SIBLING CRATE at `bindings/js/`, its own manifest,
+# `crate-type = ["cdylib", "rlib"]` and ONE path dependency on the store.
+#
+# **⟶ 2026-10-25 — IT *IS* A WORKSPACE MEMBER NOW, AND ONLY THAT SENTENCE MOVED.** `§4.1` item 2 read
+# *"It is NOT a workspace member: the root `Cargo.toml` carries no `[workspace]` and this manifest declares
+# none, so `cargo test` at the repository root keeps the store's single-package meaning."* **`D-34` LIFTED
+# THAT REQUIREMENT** (it lifted a requirement and NOT this crate's design: the package, the `crate-type` and
+# the single path dependency all stand), so the root manifest declares the one workspace whose members are
+# `.`, `bindings/js` and `tests`, and this crate is a member of it. **THE CONSEQUENCE IS DECLARED RATHER
+# THAN DISCOVERED:** a member's target directory is the WORKSPACE ROOT's (`./target/`, not
+# `bindings/js/target/`), a member has no `Cargo.lock` of its own (the workspace's root lock IS its lock),
+# and the two Rust legs are therefore package-scoped — `cargo test --offline -p storeroom-native` for the
+# store and `cargo test -p storeroom-tests` for the battery, with a bare root `cargo test` running both.
+#
+# `rlib` is LOAD-BEARING (`§4.1` item 3): it is what lets this crate's own integration tests link
+# `storeroom_js_binding::crossing` and drive the crossing's per-class table with NO Node runtime present.
+#
+# `§4.2` item 1: `edition = "2021"` (`DD-27`). `§4.2` item 3: the only non-registry dependency is the
+# single path dependency on the store — no second path dependency and no vendored copy.
+#
+# ⟶ 2026-10-21 — THE BINDING CRATE FETCHES WHAT IT NEEDS AT BUILD TIME, and the asymmetry is the ruling
+# (`command-sites-and-residue.md §1`, `§3`) — the same ruling that drops `--offline` from every one of this
+# crate's declared commands at the eleven sites of `§2`. The old store dependency-free clause is ARCHIVED —
+# see `archive/spec-history/2026-10-21-dependency-restriction-notes-move-out.md` §2. The store
+# may carry registry dependencies; its `--offline` remains a command property. The `[dependencies]` table
+# below is exactly FOUR entries after `A148` Q2 and `P-ADA-1`, as re-derived, pins it.
+[lib]
+name = "storeroom_js_binding"
+path = "src/lib.rs"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+storeroom-native = { path = "../.." }
+# **THE CARET FLOOR IS THE DECLARED FORM AND THE FEATURE SELECTION IS THE ADOPTION'S OWN**
+# (`binding-crate-and-abi.md §1`: *"the bare `"3.14"` form, whose caret is implicit"*; `P-ADA-1`'s
+# `S-DEP-TABLE` asserts the KEY and the requirement STRING and no feature list). `napi6` is the N-API
+# version whose surface this boundary already reaches: the hand-declared block carried
+# `napi_get_value_bigint_int64`, which IS a `napi6` symbol, and the store's own value model carries
+# `JsValue::BigInt` — so the feature names the version the boundary was ALREADY built against and does not
+# widen it. **A `bigint` is read AS a `bigint` and never through the numeric arm** (`A76`, `JS-6`).
+#
+# **⟶ AND `napi9` IS ADDED BESIDE IT BY `U-STOREROOM-ADDON-SURFACE`, FOR ONE SYMBOL AND NO OTHER, AND THE
+# WIDENING IS RECORDED BECAUSE IT IS A WIDENING.** The receiver's index is published as the store object's
+# own **`Symbol.for`-keyed** channel (`receiver-and-refusal.md §1`), and **a symbol key is the ONLY form the
+# clause's carrier may take**: the product's declared member set is asserted at EXACTLY fourteen own members
+# read through `Object.getOwnPropertyNames` (`surface.md §2.4` item 9 (f); `convenience.test.mjs`'s
+# `memberSet`), and that read COUNTS a string key AND a numeric index alike — so publishing the row at
+# element `0` moved the set `14 → 15` and failed a cell that is not this unit's to change, while a symbol
+# key is invisible to `Object.keys` and to `Object.getOwnPropertyNames` both (the precedent `A117` (D6)
+# already declares for this package's other symbol-keyed channels). **THE SYMBOL IS OBTAINED THROUGH
+# `Symbol::for_desc`, WHICH IS `node_api_symbol_for` — a `napi9` symbol** — and it must be `Symbol.for`
+# rather than an identity symbol because the PACKAGE writes the key and THIS LAYER reads it, and neither
+# holds a reference to the other's symbol object. **NOTHING ELSE ON THIS SURFACE REACHES A `napi9` SYMBOL**:
+# the boundary's own read of the receiver is `napi_get_property` on a `napi6`-era call, so this feature
+# selection widens the SYMBOL NAMESPACE the crate may reference and adds no second capability.
+napi = { version = "3.14", features = ["napi6", "napi9", "compat-mode", "serde-json"] }
+# **THE THIRD ENTRY, AND IT IS THE ADOPTION'S OWN — `binding-crate-and-abi.md §1`, AMENDED 2026-10-21 ON
+# THE ARCHITECT'S RULING, VERBATIM: *"Lift the dependency constraint, it doesn't apply to the rust side."***
+# The clause's table was THREE entries; **`A148` Q2 AMENDS IT TO FOUR** (`P-ADA-1`, re-derived), and a FIFTH
+# remains unlawful. **THE DERIVE IS NOT OPTIONAL AND IT IS NOT IN THE `napi` CRATE**: `#[napi]` — the
+# annotation this whole adoption is defined by — lives in `napi-derive`, a separate proc-macro crate, and
+# `napi-3.14.2` carries no dependency on it and no re-export of it. **THE FLOOR `"3"` IS READ FROM THE
+# LIBRARY'S OWN DOCUMENTED FORM AND NOT GUESSED**: `napi-3.14.2/README.md` §*Building* prints the dependency
+# table every napi-based add-on should carry, and it reads `napi = "3"` beside `napi-derive = "3"`. **NO
+# FEATURE LIST IS DECLARED HERE** — this is the one row whose feature selection the contract does not name,
+# and the bare caret is the whole of the requirement.
+napi-derive = { version = "3" }
+# **THE FOURTH DIRECT ENTRY, LAWFUL BY `A148` Q2 AND `A145` AS RE-DERIVED, AND IRREDUCIBLE**: the bare
+# JSON tree crosses through `napi`'s `serde-json` conversion, whose API is typed in `serde_json::Value`;
+# the crate therefore names the type directly. A FIFTH ENTRY REMAINS UNLAWFUL.
+serde_json = "1"
+
+# =============================================================================================
+# **⟶ THE SECOND CLAIMED REALM'S DEPENDENCY, IN A TARGET TABLE AND NOT IN `[dependencies]`**
+# (`D-154` item 1; `D-157` item 1; `docs/L3/wasm-realm/design.md` §2).
+#
+# **THE CROSSING IS `wasm-bindgen`, AND IT IS THE ONLY DEPENDENCY THIS PACKAGE TAKES THAT THE
+# NATIVE BUILD DOES NOT COMPILE.** A target-specific table is what buys that: `cargo build` on the
+# host never fetches, compiles or links it, and `cargo check --target wasm32-unknown-unknown` builds
+# it beside the `#[cfg(target_arch = "wasm32")]` boundary `src/store.rs` carries.
+#
+# **AND THE FOUR-ENTRY CENSUS IS UNMOVED BY CONSTRUCTION**: `P-ADA-1`'s `S-DEP-TABLE` reads the
+# `[dependencies]` table and stops at the NEXT header (`tests/e2e/addon-adoption.test.mjs:286`–
+# `:301`), so a target table below it is invisible to that cell.
+#
+# **THE VERSION IS PINNED TO THE CLI'S OWN** (`0.2.130`, at `.cargo-home/bin/wasm-bindgen`):
+# `wasm-bindgen` fails hard when the crate and the CLI disagree. **A BUMP MOVES BOTH OR NEITHER.**
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "0.2.130"

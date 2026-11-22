@@ -30,7 +30,9 @@
 //     one `triggered` list stands ONCE in `attempt.repairPaired` and is asked once, `record.triggered` is
 //     UNMOVED and `pending` carries no pair id;
 //   · `ORC-I5` — the LEG'S SHAPE: the channel answers one `{op, triggered}` element per write, the op a FRESH
-//     COPY carrying `opId` · `kind` · `address` · `tier` · `before` · `after` · `seq` · `compacted`; and the three
+//     COPY carrying `opId` · `kind` · `address` · `tier` · `before` · `after` · `seq` (**⟶ SEVEN NAMES AND NOT
+//     EIGHT FROM 2026-11-17: `compacted` is REMOVED from the record, so the copy loses it in the same landing —
+//     `strata/decisions.md` · `D-189` item 2**); and the three
 //     absent answers — a channel READ AWAY, a channel that THROWS, a channel answering a NON-ARRAY — are one arm,
 //     `(d2)`;
 //   · `ORC-I6` — the FAILED ARM'S UNDO PLAN by ADDRESS GEOMETRY and never by credit (`D-89`): a failed-arm
@@ -667,10 +669,16 @@ test('ck_orc_i5_the_leg_is_one_element_per_write_and_the_channels_absent_answers
     assert.deepEqual(Object.keys(leg).sort(), ['op', 'triggered'],
       `leg ${index}: the element is EXACTLY \`{op, triggered}\` — the write's own journal op beside the elements `
       + `it returned, and no third member (§2.2): read ${JSON.stringify(Object.keys(leg).sort())}`);
+    // **⟶ AND THE COPIED OP CARRIES SEVEN MEMBERS AND NOT EIGHT FROM `2026-11-17`** (`strata/decisions.md` ·
+    // `D-189` item 2, the architect VERBATIM: *"If .compacted is always false drop it"*). **The leg copies the
+    // record at its own member list, so when the record lost `compacted` the copy lost it in the same landing**
+    // (`frame.mjs`'s `decodeJournalOp`; `state.mjs`'s `appendRepairLeg`). **A limb still naming eight would
+    // assert a key the kernel itself no longer carries** — and the copy discipline this cell measures is
+    // unmoved: what moved is the list it copies.
     assert.deepEqual(Object.keys(leg.op).sort(),
-      ['address', 'after', 'before', 'compacted', 'kind', 'opId', 'seq', 'tier'],
+      ['address', 'after', 'before', 'kind', 'opId', 'seq', 'tier'],
       `leg ${index}: **THE OP IS COPIED AT ITS OWN MEMBERS** — \`opId\` · \`kind\` · \`address\` · \`tier\` · `
-      + `\`before\` · \`after\` · \`seq\` · \`compacted\` (\`decodeJournalOp\`'s own eight): read `
+      + `\`before\` · \`after\` · \`seq\` (\`decodeJournalOp\`'s own seven): read `
       + `${JSON.stringify(Object.keys(leg.op).sort())}`);
     assert.equal(leg.op.opId, recordReturns[index].op.opId,
       `leg ${index}: and the leg's \`opId\` IS the op THAT WRITE landed — read ${JSON.stringify(leg.op.opId)}`);

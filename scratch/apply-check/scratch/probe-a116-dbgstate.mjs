@@ -1,0 +1,13 @@
+import { write as storeWrite, storeCreate, __dbgState } from 'provident-storeroom';
+const { commit } = await import('../bindings/js/src/constraint-kernel.mjs');
+const store = storeCreate({ journalLength: 8, listeners: [] });
+const st = __dbgState(store);
+const addr = ['ds'];
+const calls = [];
+store.on(addr, () => calls.push(1));
+const rec = { attempt: { id: 'x' }, op: null, triggered: [], pending: [] };
+store.settle(rec);
+const st2 = __dbgState(store);
+console.log('state same obj?', st === st2, 'withheld size', st.withheld.size, 'adopted', st.adopted.size);
+const w = storeWrite(store, addr, 'mem', 1);
+console.log('after bare write: withheld', st.withheld.size, 'adopted', st.adopted.size, 'calls', calls.length);

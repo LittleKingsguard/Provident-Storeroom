@@ -195,7 +195,12 @@ const opTier: Tier | null = op.tier;
 const opBefore: BaseState = op.before;
 const opAfter: BaseState = op.after;
 const opSeq: number = op.seq;
-const opCompacted: boolean = op.compacted;
+// **⟶ AND `const opCompacted: boolean = op.compacted;` STOOD HERE AND IS DELETED `2026-11-17`**
+// (`strata/decisions.md` · `D-189` item 2, the architect VERBATIM: *"If .compacted is always false drop it"*).
+// **THIS FILE IS THE CONSUMER, SO THE REMOVAL IS MEASURED HERE RATHER THAN DESCRIBED**: the member is GONE from
+// `JournalOp` — not renamed, not deprecated and not typed `false` — so the line no longer type-checks, which is
+// exactly what a consumer on `1.12.0` meets when it reads the member. **The class is `MAJOR` (`2.0.0`, `D-190`)
+// for this reason and no other**, and `D-158`'s `MINOR` at `1.13.0` is SUPERSEDED.
 const watched: readonly Address[] = written.watched;
 // `triggered` IS THE PAIR, NOT A BARE HANDLE (`contract.md §2.4` item 1;
 // `trigger-and-pair.md §1`): the pair REPLACES the handle list it supersedes.
@@ -640,7 +645,10 @@ void [
   // member on the real product would still satisfy `StoreInstance` (`:594`–`:597`'s clause, unmoved).
   tieredWhole, tieredAt, tieredOneTier, tieredTierSet, tieredNodeTier, tieredInlineMember,
   tieredTierReadAsSet, tieredValueOffObjectNode,
-  opKind, opAddress, opTier, opBefore, opAfter, opSeq, opCompacted,
+  // **⟶ AND `opCompacted` IS DROPPED FROM THIS LIST `2026-11-17` WITH THE BINDING IT NAMED**
+  // (`strata/decisions.md` · `D-189` item 2): the member is REMOVED from `JournalOp`, so the binding above
+  // cannot exist and neither can a use of it.
+  opKind, opAddress, opTier, opBefore, opAfter, opSeq,
   watched, writtenTriggered, removedAddress, removedTiers, removedTriggered,
   rolledBackOpId, restoredPresent, restoredValue, listened, withdrawn,
   identity, enabled, disabled, registered,

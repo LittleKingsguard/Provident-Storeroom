@@ -1,0 +1,160 @@
+N7 / A117 — GATE 6 RE-RUN OF THE ARCHITECT'S CORRECTION — LIVE FINDINGS DIGEST
+================================================================================
+Role: role_live_scenario_runner. Root: /media/ryanr/Shared Files/Projects/Provident-Storeroom.
+Everything under bindings/**, docs/**, docs/specs/** and every existing record was READ-ONLY; the only
+files written this pass are under scratch/ (new run names; the -b1/-b2, -gate6a/b/c/d records untouched).
+
+1. RECORD PATHS (all new, nothing overwritten)
+   the last battery, UNMODIFIED   scratch/n7-ordering-demo-gate6b-out-b3.{json,txt}   (run b3)
+                                  scratch/n7-ordering-demo-gate6b-out-b4.{json,txt}   (run b4)
+   the earlier battery, UNMODIFIED scratch/n7-ordering-demo-gate6-out-run3.{json,txt} (runs run3/run4)
+                                   scratch/n7-ordering-demo-gate6-out-run4.{json,txt}
+   the ORIGINAL demo, UNMODIFIED   scratch/n7-ordering-demo-out-run3.{json,txt}      (runs run3/run4)
+                                   scratch/n7-ordering-demo-out-run4.{json,txt}
+   the corrected limbs, own driver scratch/n7-a117-arms.mjs
+                                   scratch/n7-a117-arms-out-e1.{json,txt}  (run e1)
+                                   scratch/n7-a117-arms-out-e2.{json,txt}  (run e2)
+   consoles                        scratch/g6e-logs/*.console.txt
+
+2. THE LIMBS THAT MUST CHANGE, WITH VALUES (driver scratch/n7-a117-arms.mjs, runs e1/e2, identical)
+   limb 1 on-at-adopted-address      (A1-on-at-adopted-address-r1, r2)  PASS
+     required: one invocation of the app's body, at the pass's terminal arm, never in the store verb's
+     window, with the triggering address as its SINGLE argument; pending@arm must NOT carry the app's
+     identity (the firing is the registry's resolution, not a residue occurrence).
+     observed r1: app body calls 1 of 1 owed; in the write verb's window 0; at the terminal arm 1;
+       seq 19 inside K-3 with the arm's own frame K3.enter seq 16 / K3.return seq 20; args
+       [["n7","ord"]] exactly one argument; pending@arm 0 of triggered 1, carrying the app's identity
+       FALSE; at instant (b) the seam is handed a residue of length 0 that does NOT carry the app's
+       identity while the record's non-enumerable symbol note stands (length 1) -> the firing is the
+       note's registry resolution; constraint body 1 (inside the pass, seq 17); arm passed.
+       r2 identical modulo the value written (200) and seq offsets.
+   limb 1 register-at-adopted-handle (A1-register-at-adopted-handle-r1, r2)  PASS
+     observed r1: app body calls 1 of 1; window 0; at the arm 1 (seq 29, K3.enter 26 / K3.return 30);
+       single argument ["n7","ord"]; pending@arm 0 of triggered 1, carrying the app's identity FALSE;
+       note length 1 present and non-enumerable; enumerable members at K-2's return and after the arm
+       ["attempt","op","pending","triggered"] (4) both times. r2 identical modulo value/seq.
+   limb 7 the identity control        (D-identity-control)                   PASS
+     EXACT spelling: app body calls 1 of 1 (was 0), window 0, at the arm 1, arg ["c1","pair"], pending
+       @arm 0 carrying the app's identity FALSE, note carries the identity the pass checked off TRUE.
+     PROPER PREFIX spelling: app body calls 1 of 1, window 0, at the arm 1, arg ["c2","pair"], pending
+       @arm 1 (its own residue entry).
+   the failing arm (A2-*)             (six cells: prefix / on-at-adopted / register-at-adopted x 2) PASS
+     app body calls 0 of 0 owed at every one of them; window 0; at the arm 0; pending@arm 0 of
+     triggered 1; the record carries NO symbol note (passing arm alone); arm KC-3; rollback undid the
+     attempt's own op TRUE; store read at the address {"absent":false,"value":"0"}.
+     limb 7's failing arms: exact 0 of 0 and prefix 0 of 0, arm KC-3 both.
+   limb 5 the bare write              (E-bare-write)                         PASS  unchanged
+     fresh store: triggered 1, record members ["op","triggered","watched"] (no `pending`), app body 1
+     INSIDE the verb's own frame, seam reaches 0. after a kernel pass (passed): the kernel-driven write
+     DID deliver the app's body at its own arm 1 time; the next bare write 1 in its own frame, seam
+     reaches 0.
+   the DISCARD limb (2)               PASS 6P/0F  unchanged
+   the repeat limb (4)                (F-repeat) PASS  unchanged
+     seq1 pass arm=passed app=1 pending@arm=1 inWindow=0 | seq2 fail arm=KC-3 app=0 pending@arm=0 |
+     seq3 pass arm=passed app=1 pending@arm=1 | seq4 fail arm=KC-8 app=0 pending@arm=0.
+   limb 3 the replacement seam        (G-replacement-seam)                   PASS
+     at the pair-adopted address the kernel's pair-keyed body runs 1 INSIDE the pass and the app's own
+     replaced body is delivered 1 at the arm, window 0; failing arm delivers neither (0); prefix sibling
+     1 on pass / 0 on fail; the register route the same (1 inside the pass, 1 at the arm, 0 on fail).
+
+3. CHANGED VERDICTS AND CHANGED NUMBERS (was -> now, against scratch/n7-ordering-demo-gate6b-out-b1.json)
+   CHANGED VERDICTS
+     gate6b limb 1 on-at-adopted-address r1/r2          FAIL -> PASS   (clause it was read at is superseded)
+     gate6b limb 1 register-at-adopted-handle r1/r2     FAIL -> PASS
+     gate6b limb 3 L3-replacement-seam                  FAIL -> PASS
+     gate6b limb 7 I-identity-control                   FAIL -> PASS
+     gate6b limb 6 S-stale-adoption                     PASS -> PASS (unchanged; PASS since b1/b2)
+     gate6  limb 1 (all seven cells)                    3P/4F -> 7P/0F (its clause is the `A112` one, not
+                                                        the amended item 8 (c), so the correction greens it
+                                                        entirely); gate6 limb 3 FAIL -> PASS
+   CHANGED NUMBERS
+     O1-on-at-adopted-address-r1 · appBodyCallsOf1Owed            0 -> 1
+     O1-on-at-adopted-address-r1 · appListenerCallsAtTheTerminalArm 0 -> 1
+     O1-on-at-adopted-address-r1 · the invocation's arguments      [] -> [["n7","ord"]]
+     O1-on-at-adopted-address-r2 · appBodyCallsOf1Owed            0 -> 1
+     O1-on-at-adopted-address-r2 · appListenerCallsAtTheTerminalArm 0 -> 1
+     O1-register-at-adopted-handle-r1 · appBodyCallsOf1Owed       0 -> 1
+     O1-register-at-adopted-handle-r1 · appListenerCallsAtTheTerminalArm 0 -> 1
+     O1-register-at-adopted-handle-r2 · appBodyCallsOf1Owed       0 -> 1
+     O1-register-at-adopted-handle-r2 · appListenerCallsAtTheTerminalArm 0 -> 1
+     I-identity-control/EXACT · appBodyCallsOf1Owed               0 -> 1   (args [] -> [["c1","pair"]])
+   UNCHANGED NUMBERS (the ruling's own no-move list, value for value)
+     pending@arm at the pair-adopted address: 0 of triggered=1, and it carries the app's identity FALSE
+       (b1/b2 carried it FALSE too — the residue's own value is untouched by the correction);
+     residue at K-2's return: length 1, carrying the app's identity TRUE (the whole returned set);
+     prefix-address cells: delivered {c1:1, app:1}, in-window {constraint1:0, appListener:0}, at the arm
+       1, pending@arm 1 of triggered=2, args [["n7","ord"]];
+     failing arm: delivered {c1:1, app:0}, in-window 0, pending@arm 0, arm KC-3, rollback undid the op;
+     bare write: record members ["op","triggered","watched"], no `pending`, 1 in its own frame, seam
+       reaches 0; repeat sequence arms passed/KC-3/passed/KC-8 with app 1/0/1/0.
+     record shape: enumerable members "attempt","op","pending","triggered" (4) at K-2's return AND after
+       the arm — NO MEMBER ADDED; the note is a symbol key, non-enumerable, present at the arm.
+
+4. UNMODIFIED BATTERIES AND THE ORIGINAL DEMO (both terms)
+   gate6b (last battery) b3/b4, digest 76ada774cc453dc76e823cfa4666be9a40ad45f88d5d21b9aca1b0a3797005da:
+     cells 20 / verdicts 18 / PASS 12 / FAIL 6 — the six FAILs are its four limb-1 adopted-address cells,
+     limb 3, limb 7. They fail because that battery's verdict strings REQUIRE the withdrawn reading
+     (`§2.4` item 8 (c) as amended 2026-10-15 on `A115` (D2): "not delivered at that instant"), which
+     `A117` (D3) deletes. That battery's own OBSERVED values now read 1 of 1 with the arm call — i.e. the
+     battery contradicts its own printed clause in the direction of the ruling. limb 2 6P/0F, limb 4
+     PASS, limb 5 PASS, limb 6 PASS unchanged; per-limb: 1:3P/4F, 2:6P/0F, 3:0P/1F, 4:1P, 5:1P, 6:1P,
+     7:0P/1F. (was at b1: 18P/0F.)
+   gate6 (earlier battery) run3/run4, digest d0e115fc8e95c99b787206a9031fd0f56e01497d7617399d2a6065a5cd9605dd:
+     cells 20 / verdictCount 18 / limb1 7P/0F, limb2 6P/0F, limb3 PASS, limb4 PASS, limb5 PASS, limb6
+     PASS, limb7 PASS. Its `A112`-read clause is not the amended one, so it was 3P/4F at gate6c/d and is
+     now 7P/0F: the correction moved it to full green. (was at gate6c: limb1 3P/4F, limb3 FAIL.)
+   the ORIGINAL demo run3/run4, digest f5b6f94888e06a9064a5cc8457a7874e49a4195b9517e2931675b2280a3c0ff2:
+     cells 16 / verdicts 14 / limb1 6P/0F (was 2P/4F at gate6a/b), limb2 6P/0F unchanged, limb3
+     NOT-REPRODUCED (its own verdict string is stale: it still reads the limb as failed because limbs 1/2
+     "fail on every attempt", which they no longer do), limb4 FAIL (same stale string).
+   package suite, run not modified: node --test bindings/js/test/*.test.mjs -> tests 349 / pass 349 / fail 0.
+
+5. THE TWO TERMS THE RULING NAMES, AS MEASURED
+   (i) AT THE IN-WINDOW INSTANT THE INVOCATION SET IS EMPTY: across all 17 kernel-driven cells of this
+       driver, in-window invocations of the constraint body AND of the app body = 0.
+   (ii) AT THE TERMINAL ARM EACH IDENTITY OF THE DELIVERED SET IS INVOKED EXACTLY ONCE, WITH THE
+       TRIGGERING ADDRESS AS ITS SINGLE ARGUMENT: 1 per passing cell, one argument, no second argument.
+   (iii) pending@arm at the pair-adopted address = 0 of triggered 1 and does NOT carry the app's
+       identity, while the delivered set does reach it: instant (b) hands the seam a residue of length 0
+       and the record's non-enumerable symbol note of length 1.
+   (iv) ZERO ON THE FAILING ARM, no such note published.
+
+6. DETERMINISM
+   e1 and e2: byte-identical records, digest 1f88ba874fd5671986d859f93f56976ef4994a270c8e8027b179c939b3d702a4
+   b3 and b4: digest 76ada774cc453dc76e823cfa4666be9a40ad45f88d5d21b9aca1b0a3797005da
+   gate6 run3 and run4: digest d0e115fc8e95c99b787206a9031fd0f56e01497d7617399d2a6065a5cd9605dd
+   demo run3 and run4: digest f5b6f94888e06a9064a5cc8457a7874e49a4195b9517e2931675b2280a3c0ff2
+   (each pair identical value for value; every run in this pass was repeated at least twice.)
+
+7. LAYER
+   LIVE / ASSEMBLED PACKAGE: the package is resolved by its published name through
+   scratch/node_modules/provident-storeroom -> bindings/js (index.mjs), the kernel at its checkout home
+   bindings/js/src/constraint-kernel.mjs (its own binding is the package self-reference, so kernel,
+   driver and store share one module instance and one loaded addon); the Rust store behind the JS binding
+   runs in a real Node v24.20.0 process. The only wrapper is the settle observer on the instance this
+   driver itself created. WHAT A PUBLISHED INSTALL WOULD NOT SHOW: package.json "files" carries
+   index.mjs + README.md + index.d.ts and "exports" declares "." alone, so an install carries no src/
+   constraint-kernel.mjs and no subpath reaching it — the pass, its check-off, the checked-off note and
+   the terminal arm are checkout-only; `settle` IS a member of the published instance, so an install
+   would show the withheld window and a delivery, but nothing of the pass that publishes the note.
+
+8. CLAUSES STILL AMBIGUOUS / REQUIRING THE SUPERVISOR'S READING (no verdict taken on them)
+   (a) docs/specs/storeroom-js/surface.md §2.7 item 7 (a): "the checked-off identities whose REGISTERED
+       FUNCTION THE REGISTRY HOLDS AT ITS WINDOW'S OPENING" — the opening is not time-pinned, and the
+       implementation reads the registry at the delivery loop. Not discriminated by any scenario this
+       pass ran: no cell registers the app's function AT/after instant (b).
+   (b) docs/specs/storeroom-js/surface.md §2.4 item 8 (c) as corrected: "IS NOT DELIVERED **INSIDE THE
+       PASS**" — no instant is given for "inside the pass"; the implementation delivers after the pass
+       loop ends and before `runAttempt` returns (measured: constraint seq 17, settle reach/delivery 18,
+       app body 19, K3.return 20).
+   (c) docs/specs/storeroom-js/surface.md §2.7 item 7 (a)/(b): the delivered set is called a SET (one
+       invocation each) and `pending` a COUNT; where a checked-off identity remains in the residue by
+       another route, the "already in `triggered`" skip is a build detail no clause fixes. Not driven:
+       no cell produced a checked-off identity also standing in the residue.
+   (d) docs/specs/storeroom-js/surface.md §2.7 item 7 (c) vs the correction: (c)'s "the residue is EMPTY
+       where every owed firing of that write has been consumed" and the ruled "the empty residue is not
+       the end of the delivery" now coexist in one sub-item; a drive cannot tell which sentence a green
+       is owed to. Read by this pass as the corrected text governs.
+   STALE VERDICT STRINGS FOUND IN RECORDS THAT ARE NOT MINE TO EDIT: the original demo's limb 3
+   ("NOT-REPRODUCED") and limb 4 ("FAIL ... limbs 1 and 2 fail on every attempt") print reasons that no
+   longer hold live — the limbs do not fail; the strings are static text in scratch/n7-ordering-demo.mjs.

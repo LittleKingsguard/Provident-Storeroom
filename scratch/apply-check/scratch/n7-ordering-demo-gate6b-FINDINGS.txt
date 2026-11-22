@@ -1,0 +1,92 @@
+N7 — GATE 6, SECOND RE-RUN (AFTER THE THREE HOST FIXES) — FINDINGS DIGEST
+================================================================================
+Recorded by the live-scenario runner this pass. Every input under bindings/**, docs/specs/** and every
+earlier record was READ-ONLY; the only files written this pass are under scratch/.
+
+ARTEFACTS OF THIS PASS
+  scratch/n7-ordering-demo-gate6-out-gate6c.{json,txt}   the prior battery, unmodified, re-run (run gate6c)
+  scratch/n7-ordering-demo-gate6-out-gate6d.{json,txt}   the same battery, second run (run gate6d)
+  scratch/n7-ordering-demo-gate6-run-gate6c-console.txt  console of the gate6c run
+  scratch/n7-ordering-demo-gate6-run-gate6d-console.txt  console of the gate6d run
+  scratch/n7-ordering-demo-out-gate6c.{json,txt}         the ORIGINAL demo, unmodified, re-run (run gate6c)
+  scratch/n7-ordering-demo-out-gate6d.{json,txt}         the same demo, second run (run gate6d)
+  scratch/n7-ordering-demo-run-gate6c-console.txt        console of the demo gate6c run
+  scratch/n7-ordering-demo-run-gate6d-console.txt        console of the demo gate6d run
+  scratch/n7-ordering-demo-gate6b.mjs                    the SIBLING battery written this pass (additive)
+  scratch/n7-ordering-demo-gate6b-out-b1.{json,txt}      its first run
+  scratch/n7-ordering-demo-gate6b-out-b2.{json,txt}      its second run (identical)
+  scratch/n7-ordering-demo-gate6b-run-b{1,2}-console.txt its consoles
+  scratch/n7-gate6b-probe.mjs                            the identity/control probe written this pass
+  scratch/n7-gate6b-probe-out.txt                        its output
+  EARLIER RECORDS PRESERVED, NOT TOUCHED: -out-run1/2.json, -out-gate6a/b.{json,txt}, live-greens-a112*.
+
+1. THE THREE QUESTIONS, WITH VALUES
+   Q1 DO THE KERNEL-DRIVEN WRITES' WINDOWS HOLD?  YES, MEASURED, NOT ASSUMED.
+      17 kernel-driven writes driven across limbs 1, 2 and 4. IN-WINDOW INVOCATION COUNT = 0 for the
+      app listener AND = 0 for the constraint body on EVERY ONE of the 17. The constraint body's call
+      stands in the K-3 frame (the pass) and the surviving app listener's call stands in the K-3 frame
+      (the terminal arm) — e.g. O1-prefix-address-r1: constraint body seq 7 in K-3, app body seq 9 in
+      K-3, in-window counts {constraint1:0, constraint2:0, appListener:0}; settle reached in K-2 (the
+      verb's frame) with the record and returned, and again in K-3 where the residue was delivered.
+      The one write whose triggered set survives the check-off is delivered ONCE, at the arm.
+   Q2 IS A LISTENER AT AN ADDRESS CARRYING A CONSTRAINT PAIR DELIVERED ON A PASSING WRITE?  NO — 0 of 1.
+      on-at-adopted-address:        r1 0, r2 0  (pending@arm=0, residue EMPTY)
+      register-at-adopted-handle:   r1 0, r2 0  (pending@arm=0, residue EMPTY)
+      identity control, EXACT spelling: 0 of 1; identity control, PROPER-PREFIX spelling: 1 of 1.
+      On the FAILING write: 0 in every cell (never delivered, as before).
+      MEASURED CAUSE (probe): the app's `on` at the written address returns THE VERY IDENTITY the
+      kernel's `register` adopted (the store holds ONE home entry per address), the write's returned
+      set carries that identity ONCE, the pass checks it off, `pending` is EMPTY at the arm, and the
+      terminal arm invokes nothing. The later BARE write at that same address DOES reach the app's
+      body once (1 of 1) — so the body is reachable, and only the kernel-driven write's own delivery of
+      it is consumed by the check-off.
+      THIS IS `docs/specs/storeroom-js/surface.md §2.4` ITEM 8 (c) AS AMENDED 2026-10-15 (on `A115`
+      (D2)) DECLARED VERBATIM: "... the app's own `on` at that address, which replaced the registry's
+      slot, IS NOT DELIVERED AT THAT INSTANT: the identity the pass checked off is the identity the
+      app's registration returned ... so no entry for it stands in `pending` for the residue to reach,
+      and a drive that finds that body run at the delivery instant has found a failure of item 7."
+   Q3 IS ROUTE (i) OF THE STALE ADOPTION CLOSED LIVE?  YES.
+      caller's `settle` threw nothing, returned `undefined`; the second call for the same identity threw
+      nothing; the seam's reaches were pendingLen 0, 0, 1 (the caller's own call), 1 (the delivery) —
+      the caller's own call DELIVERED the residue and ended the identity. The next bare write owed 1
+      in-window invocation and made 1 (seq 217 in its own frame); the write after it owed 1 and made 1
+      (seq 220 in its own frame). No seam reach stands in either write's frame. PREVIOUS STATE: 0 and 1.
+
+2. CHANGED VERDICT SINCE THE LAST BATTERY
+      limb 6 (S-stale-adoption): FAIL -> PASS  (route (i) closed; (ii-a) and (ii-b) unchanged, 1 of 1 each)
+
+3. CHANGED NUMBERS, VERDICT UNCHANGED
+      NONE. Across the whole prior battery record only the limb-6 route (i) numbers moved:
+        firstBareWrite.callsMade 0 -> 1; secondBareWrite.callsMade 1 -> 1;
+        totalAppListenerBodyCallsInTheCell 1 -> 3; firstBareWrite window seqs [205,209] -> [205,209,215,217];
+        appListenerArgsSeen[0] "[\"n7\",\"settleprobe\"]" -> "[]" (the caller's own delivery carries the
+        kernel's empty triggering address), then two "[\"n7\",\"settleprobe\"]".
+      Every limb-1 / limb-2 / limb-3 / limb-4 / limb-5 / limb-7 cell's numbers are IDENTICAL to the
+      previous battery, value for value (delivered counts, in-window counts, pending@arm, seqs).
+      THE ORIGINAL DEMO IS BYTE-FOR-BYTE UNCHANGED: run gate6a/b/c/d all digest
+      d4dcf3a2eb70212fd607431e6a401b6b895ee5fc6cd9c90e23ca1767d0ba75bc (limb1 2P/4F, limb2 6P/0F,
+      limb3 NOT-REPRODUCED, limb4 FAIL) — so the three host fixes move NOTHING this demo drives.
+
+4. VERDICT COUNTS, BOTH TERMS
+      prior battery (unmodified), 3 runs: cells 20 / verdicts 18 / limb1 3P/4F / limb2 6P/0F /
+        limb3 FAIL / limb4 PASS / limb5 PASS / limb6 PASS / limb7 PASS — digest
+        4bf55fed8718e7126cb24567c003388d5674ad559997cfbf56133ae2d62adbe8 (identical in gate6c and gate6d)
+      original demo, 2 runs: cells 16 / limb1 2P/4F / limb2 6P/0F / limb3 NOT-REPRODUCED /
+        limb4 FAIL — digest d4dcf3a2eb70212fd607431e6a401b6b895ee5fc6cd9c90e23ca1767d0ba75bc
+      sibling battery (this pass), 2 runs: cells 20 / verdicts 18 / PASS 18 / FAIL 0 — digest
+        d7b02816557fbc61612c06b614f8780d9891245054c63d106df87dc2a20c5286 (identical in b1 and b2)
+      package suite, read not modified: node --test bindings/js/test/*.test.mjs -> tests 348 / pass 348 /
+        fail 0. (bindings/js/greens/greens.mjs is a DIFFERENT, stale manifest: JSG-01.9 still expects the
+        three-member instance `['off','on','register']` and fails on `settle` — 240 PASS / 1 FAIL. It is
+        neither the 348-suite nor evidence about the seam; reported, not modified.)
+
+5. THE ONE OPEN CLAUSE QUESTION
+      docs/specs/storeroom-js/surface.md §2.7 ITEM 6 ("THE OTHER LISTENERS ARE REACHED ONLY ONCE EVERY
+      CONSTRAINT HAS PASSED") against §2.4 ITEM 8 (c) AS AMENDED, on the SAME address: item 6 is
+      satisfied vacuously (the listener is never reached), item 8 (c) declares the zero delivery. The
+      battery's limb-1 `on-at-adopted-address` / `register-at-adopted-handle` cells FAIL on the item-6
+      reading and PASS on the item-8 (c) reading; the sibling battery records the item-8 (c) reading,
+      and both records are kept so the supervisor can see the split rather than a green.
+      Second, smaller: §2.7 ITEM 5 fixes the TRIGGERING ADDRESS as the invocation's one argument; the
+      CALLER'S OWN `settle` delivery invokes the body with `[]` (the caller-made record carries no
+      triggering address). No clause fixes that argument for a delivery that is not a kernel act.

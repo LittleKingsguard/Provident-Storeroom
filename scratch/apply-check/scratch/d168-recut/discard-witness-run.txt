@@ -1,0 +1,530 @@
+
+── W1 · THE ANCESTOR-FIRE MEASUREMENT (`D-49` item 1) ──────────────────────────────
+        listener invocation count = 1
+        the address it was handed = ["window","tabs","landingPage"]
+        the delete record's `triggered` = [{"handle":"tabs-listener","address":["window","tabs"]}]
+        `window.tabs` after the delete = {"settings":{"active":false}}
+  PASS DW-01.1  a delete at `[window, tabs, landingPage]` FIRES the listener installed at `[window, tabs]` — count `1`
+  PASS DW-01.2  the address handed to the ancestor listener is the DELETED address, `[window, tabs, landingPage]`
+  PASS DW-01.3  the record's `triggered` names the listener at the address it was BOUND at, `[window, tabs]`
+
+── W2 · THE USE CASE: `window.tabs` CHECKS THAT EXACTLY ONE TAB IS ACTIVE ──────────
+        the listener's checks (`address`, `active tabs`, `open commits`) = [{"at":["window","tabs","landingPage"],"active":0,"open":1}]
+        the delete record's enumerable keys = ["address","op","tiers","triggered"]
+        the delete record's own names = ["address","bodyFailures","commit","discarded","log","op","returnedValues","tiers","triggered"]
+        `discarded` (nothing was raised in this delivery) = []
+  PASS DW-02.1  the caller's check RUNS, at the deleted address, with ONE open commit and `0` active tabs left
+  PASS DW-02.2  the act still answers its four ENUMERABLE members, and the witness is a fifth OWN member that is not enumerable
+  PASS DW-02.3  a delivery that raised no action carries `discarded: []` — the member is present and empty, never absent
+
+── W3 · THE WITNESS ON THE ACT'S OWN ANSWER, PRINTED BEFORE → AFTER ───────────────
+        BEFORE — the act's answer, its four enumerable members = {"address":["window","tabs","landingPage"],"tiers":["mem"],"triggered":[{"handle":"one-active-tab","address":["window"]},{"handle":"tabs-listener","address":["window","tabs"]}],"op":{"opId":"op-7","kind":"delete","address":["window","tabs","landingPage"],"tier":null,"before":{"present":true,"value":{"active":true}},"after":{"present":false},"seq":3,"compacted":false}}
+        AFTER — the witness BESIDE it, `record.discarded` = [{"opId":"op-6","addresses":[["window"]]}]
+        the rollback the listener raised = {"ok":true,"value":{"opId":"op-6","undoneOps":["op-6"],"restoredTo":{"present":false}}}
+        the pair's asks (`context.value.tabs` active counts) = [1]
+        `discarded`'s own descriptor = {"enumerable":false,"writable":false,"configurable":true}
+  PASS DW-03.1  the delete's answer reports exactly ONE discarded request, whose `opId` is the id the reversal named
+  PASS DW-03.2  the witness names the ADDRESS the discarded check would have been asked at — the pair's own `[window]` — as a fresh segment list
+  PASS DW-03.3  the witness is a NON-ENUMERABLE, NON-WRITABLE own property: `Object.keys` is still the four
+        the registry the witness could have named (two pairs) = ["[[\"window\"]]","[[\"window\",\"settings\"]]"]
+  PASS DW-03.4  with TWO pairs registered and ONE address moved, the witness names exactly the moved address — one of the two — and never the untouched one
+
+── W3b · A NESTED DELETE RAISES NOTHING AND ITS ANSWER CARRIES `[]` ────────────────
+        the outer delete's `discarded` = [{"opId":"op-9","addresses":[["window"]]}]
+        the nested delete's `discarded` = []
+  PASS DW-03b.1  the request is reported on the OUTER delete's answer — the act whose window raised it
+  PASS DW-03b.2  the NESTED delete's own answer reports nothing — it neither reports nor consumes another window's request
+
+── W4 · A WITNESS IS NOT A REFUSAL: the act answers, nothing is minted, the effect stands ──
+        the delete threw? = no
+        the record's `address` / `tiers` / `op.kind` = [["window","tabs","landingPage"],["mem"],"delete"]
+        the reversal's effect — `window` now reads = {"tabs":{"settings":{"active":false}}}
+  PASS DW-04.1  the delete ANSWERS its record: no throw, `address` verbatim, one removed tier, `op.kind` the delete's own
+  PASS DW-04.2  neither the record nor its witness carries a status token, and the record's members are the declared ones
+  PASS DW-04.3  the reversal the listener performed STANDS — `window.tabs.about` is gone — and no refusal was produced
+
+── W5 · THE CONTROL — the same reversal ONE FRAME OUT is judged and refused ─────────
+        the listener's check inside the delete's window (no action raised) = [0]
+        the delete's witness (this delivery raised nothing) = []
+        the at-rest rollback, one frame out = {"status":"ConstraintPassRefused","log":1}
+        `window` after the refusal = {"tabs":{"about":{"active":false},"settings":{"active":false}}}
+  PASS DW-05.1  the same reversal OUTSIDE the delete's window is refused `ConstraintPassRefused` in the one three-member form
+  PASS DW-05.2  and the store is put BACK: `window.tabs.about` stands again — the state the window's discarded check owed
+
+── W6 · THE REGISTRATION WINDOW: an opaque identity carries NO witness ─────────────
+        the first pair registered against the seed = true
+        the prior op (id, seq, compacted) = ["op-19",2,false]
+        the registration body ran with open commits = 1
+        the rollback it raised = answered its record
+        the registration's answer — `typeof` / own names = ["object",[]]
+        the state the reversal left (`window.tabs`) = {"settings":{"active":false}}
+        the next unrelated write = answered normally
+  PASS DW-06.1  the registration answers an OPAQUE identity carrying NO own member — so no witness can be carried there without a new surface, and none is invented
+  PASS DW-06.2  the request the registration evaluation raised is DISCARDED and NOT attributed to the next unrelated write, which answers normally — and the pair that would refuse that state is never asked
+  PASS DW-06.3  the next write's own record carries `discarded: []` — PRESENT, EMPTY and TRUE: it reports no raise of the registration's window, whose discard belongs to the registration and to the raise's own answer
+
+── W7 · BEHAVIOUR UNCHANGED — no pass runs in either window ────────────────────────
+        the pair's asks: at registration · after the delete = [1,2]
+        the delete's witness (a report, not a check) = [{"opId":"op-22","addresses":[["window"]]}]
+        `window` after the delete (the effect stands) = {"tabs":{"settings":{"active":false}}}
+  PASS DW-07.1  the pair is asked TWICE — once by its registration and once by the delete's own pass (`D-56`) — and NOT a third time by the DELIVERY, which passes no constraint at all
+  PASS DW-07.2  the delete produced NO refusal, NO restored state and NO judgement: the reversal's effect still stands at the end
+  PASS DW-07.3  the record reports the discard while the pair stands unasked BY THE DELIVERY at the state the action left — the witness is the whole of what the act now says (its last ask is the pass's, the second of two)
+
+        WHAT A REQUEST STILL DOES NOT DO, IN ONE PARAGRAPH: a `rollback` raised inside either passless
+        DELIVERY window is still NOT judged — no body is asked at the state it left, no refusal is
+        produced, and nothing is restored. (A `delete` itself runs a pass from 2026-10-29 — `D-55` item
+        3 — but its DELIVERY is still the passless instant, and it sits AFTER that pass.) In the
+        delete's delivery it is now REPORTED on the act's own record
+        (`record.discarded`); in a registration's window it is still silent, because its answer is an
+        opaque identity with no member a witness could stand on. The recovery is unchanged and is still
+        the consumer's: reload the file, or regenerate the store (`D-43` item 2, both exits).
+
+── W8 · `D-50` — a repair that lands elsewhere, and the read that sees it ───────────
+        the value the context handed the pair at the re-run = 11
+        the value the body's own `read(['b'])` returned = 11
+        the window during the read / after it = [{"open":1,"live":1},{"open":1,"live":1}]
+        the attempt the read ran under (and the first ask's) = ["attempt-3","attempt-3"]
+        the write's answer (WITH the read) = ConstraintPassRefused · ["c1 refuses 2 at its own address","c1 refuses what it read at ['b']: 11"]
+        the store after the refused write (`['a']`, `['b']`) = [5,0]
+        the control: the same body WITHOUT the read — what the context handed it = 11
+        the control's write = ANSWERED ITS RECORD
+        the control's store after (`['a']`, `['b']`) — the finding = [2,11]
+        `attempt-opened` for the whole write · WITH the read / without it = [1,1]
+  PASS DW-08.1  A REPAIR THAT LANDS ELSEWHERE IS SEEN BY A READ AND ONLY BY A READ: the re-run hands the pair `11` (the value the write verb returned) while `['a']` still stands at `2`; the same body WITH `read(['b'])` refuses on what it read (`11`) and the write fails with the pair's own repeat, the store restored; the same body WITHOUT the read passes and the write answers its record with its own value still standing — and the read itself ran under the attempt's own window (`1`/`1`) and left it exactly as it found it
+
+        ⟶ RE-DERIVATION NOTE (`D-105`, 2026-11-01): both arms name the commit at `write`'s FOURTH
+        POSITION. WITH THE THREE-POSITION SPELLING THIS CELL ONCE DROVE, the repair's write opens a
+        commit of its own, the enclosing attempt pins no op of it, and BOTH arms fail at `(d2)`/`KC-4`
+        with *"the repair `c1` produced no op at `a`"* — the re-run is never reached and this cell's
+        subject is unobservable. That regression of the unnamed route is `D-103`'s reserved question
+        (`Q-2` of `docs/L1/op-free-repair-credit.md`), measured on this instrument and not absorbed.
+
+        THE SENTENCE TO CARRY AWAY (`D-50`): `context.value` IS THE VALUE THE WRITE VERB RETURNED;
+        A CONSTRAINT THAT CARES ABOUT ANOTHER LOCATION READS IT. And the consequence a reader gets
+        wrong: a read inside a body is caller code entering the surface (`D-45`) and it runs NO
+        CHECK — nothing is judged by it: no other constraint is asked on the value it returns, and
+        that value is never a verdict. A read is a NON-BRACKETING call, so it opens no commit of its
+        own and moves no count; it neither repeats nor replaces the pass the write already ran.
+
+── W9 · `D-54` — three hosts where a pass runs, and the reversal is JUDGED ──────────
+        HOST 1 (repair body) · the pairs asked, in order (each ask BESIDE the store's own read) = [{"value":9,"attempt":null,"op":null,"present":true,"read":9,"current":true},{"value":7,"attempt":"attempt-3","op":"op-34","present":true,"read":7,"current":true},{"value":9,"attempt":null,"op":null,"present":true,"read":9,"current":true}]
+        HOST 1 (repair body) · the window the repair body reversed in (its window) = {"open":1,"live":1,"window":4}
+        HOST 1 (repair body) · the reversal's own record = {"opId":"op-33","undoneOps":["op-34","op-33"],"restoredTo":{"present":true,"value":5}}
+        HOST 1 (repair body) · the write's answer = {"status":"ConstraintPassRefused","log":["repair-host","repair-host",null]}
+        HOST 1 (repair body) · the store after it, before → after = [9]
+  PASS DW-09.1  THE REPAIR HOST IS JUDGED: the pass ran (the pair asked at `7`, the value the write returned), the repair body reversed in the pass's own window (`open 1`, `live 1`), the reversal still ANSWERED its record (the step is not judged as a step), and the pass's terminal state was JUDGED — the terminal judgement asked the pair at the state the store then STOOD in (`9`, what the refused commit's own undo left), EVERY ask's `context.value` was the store's own read at that instant (`D-168`), the declared refusal `ConstraintPassRefused` crossed with ONE `constraint-check` entry naming the host and carrying the sentence its own refusing pair returned, ONE `outcome` entry carrying the kernel's terminal token (`KC-4`, measured), and no entry that is not a declared `LogKind` — and the store stands at `9`
+        HOST 2 (delete's pass) · the pairs asked, in order (each ask BESIDE the store's own read) = [{"value":9,"attempt":null,"op":null,"present":true,"read":9,"current":true},{"value":7,"attempt":"attempt-4","op":"op-38","present":true,"read":7,"current":true},{"value":9,"attempt":null,"op":null,"present":true,"read":9,"current":true}]
+        HOST 2 (delete's pass) · the window the delete's listener reversed in (its window) = {"open":1,"live":1,"window":6}
+        HOST 2 (delete's pass) · the reversal's own record = {"opId":"op-37","undoneOps":["op-38","op-37"],"restoredTo":{"present":true,"value":5}}
+        HOST 2 (delete's pass) · the delete's own answer = {"discarded":[],"triggered":[{"handle":"delete-pass-listener","address":["x"]}]}
+        HOST 2 (delete's pass) · the write's answer = {"status":"ConstraintPassRefused","log":["delete-pass-host",null,null]}
+        HOST 2 (delete's pass) · the store after it = [9]
+  PASS DW-09.2  THE DELETE HOST IS JUDGED: the pass ran (the pair asked at `7`, the value the write returned), the delete ran inside it and its listener delivered at the PASS's window (`open 1`, `live 1` — so the delete opened no window of its own and reports no witness), the reversal ANSWERED its record, and the pass's terminal state was JUDGED — the terminal judgement asked the pair at the state the store then STOOD in (`9`, the LAST VALIDATED MARK: the refused write's own undo leaves `9` standing and the state the reversal left, `5`, does not stand), EVERY ask's `context.value` was the store's own read at that instant (`D-168`), the declared `ConstraintPassRefused` crossed with ONE `constraint-check` entry naming the host and carrying the sentence its refusing pair returned, ONE `outcome` entry carrying the kernel's terminal token (`KC-3`, measured), and no entry that is not a declared `LogKind`
+        HOST 3 (reentrant) · the pairs asked, in order (each ask BESIDE the store's own read) = [{"value":9,"attempt":null,"op":null,"present":true,"read":9,"current":true},{"value":7,"attempt":"attempt-3","op":"op-42","present":true,"read":7,"current":true},{"value":5,"attempt":null,"op":null,"present":true,"read":5,"current":true}]
+        HOST 3 (reentrant) · the window the listener reversed in (its window) = {"open":1,"live":0,"window":5}
+        HOST 3 (reentrant) · the reversal's own record = {"opId":"op-41","undoneOps":["op-42","op-41"],"restoredTo":{"present":true,"value":5}}
+        HOST 3 (reentrant) · the nested write = answered its own record
+        HOST 3 (reentrant) · the outer write's answer = {"status":"ConstraintPassRefused","log":["reentrant-host"]}
+        HOST 3 (reentrant) · the store after it (`['a']`, `['b']`) = [7,11]
+  PASS DW-09.3  THE REENTRANT HOST IS JUDGED: the listener reversed in the OUTER write's window (`open 1`, `live 0`) and then made a nested write in a window of its own, whose pass LEFT the enclosing request standing — and the outer pass's own drain judged it: the pair asked at `5`, the declared `ConstraintPassRefused` with ONE entry naming it, the store restored to the LAST VALIDATED MARK `7` (`D-63`), and the listener's own nested write `b = 11` STANDING — it is beyond the mark, because a listener's write is discrete from the write that triggered it (`D-60`)
+        CONTROL (declared window) · the pairs asked (each ask BESIDE the store's own read) = [{"value":9,"attempt":null,"op":null,"present":true,"read":9,"current":true}]
+        CONTROL (declared window) · the window the delete's listener reversed in = {"open":1,"live":0,"window":6}
+        CONTROL (declared window) · the delete's witness, before → after = [{"opId":"op-46","addresses":[["b"]]}]
+        CONTROL (declared window) · the store after it (the effect STANDS) = 5
+  PASS DW-09.4  THE CONTROL IS UNCHANGED: a delete that OPENS its own window runs NO pass — the pair is asked ONLY at its own registration, NO ask of its is taken over the act (so no judgement runs, `D-168`'s subject never arising) — the one ask it does take is the current state, the request is still reported by `discarded` (ONE entry), and the reversal's effect (`5`) still stands
+
+        THE SENTENCE TO CARRY AWAY (`D-54`): THE FAIL-STATE OF PASS-HOSTED REVERSALS IS EMPTY.
+        Every pass that runs — the passing arm AND the failing arm, a repair body's, a delete's,
+        a reentrant one's — now carries the request its own bodies raised to its terminal state and
+        judges it there; and no pass consumes a request another window raised. The two declared
+        windows that run NO pass stand exactly as they stood: the delete's delivery (reported on
+        `discarded`, effect standing) and the registration's own evaluation (silent, identity-only).
+
+── W10 · `D-55` — the five settled rows, measured ───────────────────────────────────
+        DEF-AH · the delete's `discarded` (the nested-write arm) = [{"opId":"op-49","addresses":[]}]
+        DEF-AH · entries with an EMPTY address list = 1
+        DEF-AH · entries that name an address = 0
+        DEF-AH · the pair's asks (registration / pass) = ["registration","pass"]
+        DEF-AH · the reversal the listener raised = answered its record
+  PASS DW-10.1  a raise whose reversal moved NOTHING is REPORTED — ONE entry, its `opId` the id the reversal answered — and NO address is invented for it: the entry's `addresses` is the empty LIST, which names no address and is not the empty ADDRESS
+        DEF-AH · the ROOT pair registered = true
+        DEF-AH · `discarded` where the reversal moved the ROOT = [{"opId":"op-53","addresses":[[]]}]
+        DEF-AH · `addresses` — one element, the empty SEGMENT list = [[]]
+  PASS DW-10.2  a reversal that moves the root reports `addresses: [[]]` — length `1`, whose one element is the empty segment list — so the root is distinguishable from the empty list above
+        DEF-AK · the throwable's form in the crossed `log` = [{"thrown":"an `Error`","status":"ConstraintBodyThrew","inLog":true,"form":true,"log":["outcome: the constraint thrower threw; the attempt is closed — the value it threw was an object whose own `message` member is the string \"DW-THROWN-ERROR\""]},{"thrown":"a string","status":"ConstraintBodyThrew","inLog":true,"form":true,"log":["outcome: the constraint thrower threw; the attempt is closed — the value it threw was a string whose text is \"DW-THROWN-STRING\""]},{"thrown":"an object without `message`","status":"ConstraintBodyThrew","inLog":null,"form":true,"log":["outcome: the constraint thrower threw; the attempt is closed — the value it threw was an object carrying no own string `message` member"]}]
+        DEF-AK · the crossed message for an `Error` = 'a' was refused by a constraint body that threw, a constraint body's throwable crosses as this refusal — the value the constraint body threw does NOT cross as this refusal: the form the throwable took stands in the `outcome` entry of this refusal's `log`, which is where a throwable's own message crosses
+  PASS DW-10.3  a constraint body that throws an `Error` crosses `ConstraintBodyThrew` whose `log` holds an entry PRINTING THE THROWN MESSAGE, and the crossed sentence says the value does NOT cross as this refusal
+  PASS DW-10.4  a thrown string reaches the log as *"a string whose text is …"* with the literal present, and a thrown object with no `message` reaches it as *"an object … carrying no own string `message` member"* — the form each value took is named
+        DEF-AN · the state the commit OPENED at = {"y":1,"z":9}
+        DEF-AN · the write's answer = ConstraintPassRefused
+        DEF-AN · the pair asked at = [{"y":1,"z":9},2]
+        DEF-AN · the store after the refusal (the landing undone with it) = {"y":1,"z":9}
+  PASS DW-10.5  the write that SUCCEEDED before the refusal is undone with it: the refusal crosses `ConstraintPassRefused` and the store stands at the state the commit opened at — `x.y` back at `1` and `x.z` back at `9`
+        DEF-AO · the crossed refusal's status / log = ["KC-3",2]
+        DEF-AO · the retained record (`K-5`, after `D-58`) — outcome · carries a log? = ["failed",false]
+        DEF-AO · the CROSSED log frozen? · the handed-off record is the one that holds it? = [true,true]
+        DEF-AO · the held log BEFORE → AFTER the further drives = ["[{\"kind\":\"constraint-check\",\"id\":\"must-be-9\",\"opId\":\"op-65\",\"message\":\"a must stand at 9\",\"state\":null},{\"kind\":\"outcome\",\"id\":null,\"opId\":\"op-65\",\"message\":\"a must stand at 9\",\"state\":\"KC-3\"}]","[{\"kind\":\"constraint-check\",\"id\":\"must-be-9\",\"opId\":\"op-65\",\"message\":\"a must stand at 9\",\"state\":null},{\"kind\":\"outcome\",\"id\":null,\"opId\":\"op-65\",\"message\":\"a must stand at 9\",\"state\":\"KC-3\"}]"]
+  PASS DW-10.6  the handed-off record's LOG is FROZEN at the handoff and further drives leave it byte-for-byte unchanged; the store retains no list after the handoff and `K-5` answers none, so the record the consumer holds is the ONLY one
+        DEF-AP · the pairs asked (`b` first, `a` the earlier listener's) — registration, then the drain = [[{"keep":5},{}],[{"keep":5},{}]]
+        DEF-AP · the write's answer = ConstraintPassRefused
+        DEF-AP · the store the commit opened at → after = [[{"keep":5},{"keep":5}],[{"keep":5},{"keep":5}]]
+  PASS DW-10.7  with two listeners each reversing in ONE commit, BOTH pairs are asked at the drain — the earlier listener's raise is not lost — and the write is refused `ConstraintPassRefused` with the whole commit undone
+        X1 · the delete's path — its record = {"address":["a","b"],"tiers":["mem"],"op":"delete","opSeq":2,"discarded":[]}
+        X1 · the pair's asks — registration first (BEFORE the change this list was ONE entry) = [{"at":"registration","op":null,"tier":null,"value":1,"attempt":null},{"at":"pass","op":"delete","tier":null,"attempt":"an AttemptRef"}]
+        X1 · the window inside the pass — open · live (BEFORE the change: [null, null] — no pass ran) = {"open":1,"live":1}
+        X1 · the delivery — what the listener saw WHEN IT FIRED = {"passAsksWhenItFired":1,"openCommitsInside":1,"storeAtFire":"AddressNotFound"}
+  PASS DW-10.8  the delete runs a DELETE-SHAPED attempt of its own: the pair standing AT THE DELETE'S OWN ADDRESS is asked TWICE — its registration and the delete's pass — and the pass's context carries THE DELETE's op, `tier: null`, the AFTER-state (absence) as `value` and an `AttemptRef`; the attempt is LIVE and the commit OPEN at that ask; and the listener fired AFTER the pass, seeing that judged state
+        X2 · the delete — answered, or refused? = REFUSED
+        X2 · the crossed form — own keys · status = [["address","log","message","status"],"ConstraintPassRefused"]
+        X2 · the message = a delete here is not a state this pair admits
+        X2 · the log — each entry's POSITION (the array index; `seq` removed by `D-65`) = [{"position":0,"kind":"constraint-check","id":"refusing-pair","state":null},{"position":1,"kind":"outcome","id":null,"state":"KC-3"}]
+        X2 · the store the commit opened at → after the refusal = [{"c":1},{"c":1}]
+  PASS DW-10.9  a delete whose pass a pair refuses throws the ONE three-member form with `status` `ConstraintPassRefused`, its `log` naming the pair, and the store is put BACK at the state the commit opened at — while a control delete the pair admits is unchanged
+        X2 · THE CONTROL — a delete the pair admits = {"address":["c"],"tiers":["mem"],"opKind":"delete"}
+        X2 · THE CONTROL — the address after it = AddressNotFound
+        X3 · the delivery — BEFORE the change · AFTER it = {"before":{"passAsksWhenItFired":0,"storeAtFire":"AddressNotFound","openCommitsInside":1},"after":{"passAsksWhenItFired":1,"openCommitsInside":1,"storeAtFire":"AddressNotFound"}}
+  PASS DW-10.10  the delivery sits AFTER the pass: the listener fires with the pass's ask already taken (`passAsksWhenItFired` `1`, where the pre-change tree read `0`), inside the delete's own commit window, and sees the after-state the pass approved
+        X4 · the commit's one list — entry by entry, at its own index = [{"position":0,"kind":"constraint-check","id":"refusing-pair","opId":"op-80","state":null,"message":"a delete here is not a state this pair admits"},{"position":1,"kind":"outcome","id":null,"opId":"op-80","state":"KC-3","message":"a delete here is not a state this pair admits"}]
+  PASS DW-10.11  the delete's log IS the commit's one list: each entry stands at its own index `0..n-1` with no gap, no duplicate and no renumbering, the `constraint-check` entry names the pair AND the delete's op (`D-53`'s combined identity), the terminal `outcome` entry names the same op with the kernel's token in `state`, and every entry carries exactly the five declared members with `seq` absent
+        X5 · the reversal at rest — answered, or refused? = REFUSED
+        X5 · the crossed form · status · the judgement's log = {"keys":["address","log","message","status"],"status":"ConstraintPassRefused","entries":[{"keys":["id","kind","message","opId","state"],"kind":"constraint-check","id":"refuses-the-reversal","state":null}]}
+        X5 · the judgement's ask — its identity members = [{"attempt":null,"op":null,"tier":null}]
+        X5 · the attempt counter · live · openCommits around the reversal = {"attemptsBefore":2,"attemptsAfter":2,"live":0,"open":0}
+        X5 · what it still lacks = {"anAttemptRecord":"NONE (no attempt was minted)","attemptIdentityInTheContext":null,"opIdentityInTheContext":null,"aTerminalOutcomeEntry":"ABSENT","aCommitEntryOnThePassingArm":"ABSENT","aKcTokenInTheLogsState":"ABSENT"}
+  PASS DW-10.12  the reversal CARRIES the judgement it always carried — an open commit, the pairs asked at the state it left, the one crossed form with a log naming the pair, and the restore to the commit's cached mark — and STILL LACKS the delete-shaped attempt's machinery: no attempt record, no attempt or op identity in the context, no terminal `outcome` entry with a `KC` token, and no `commit` entry on a passing arm
+        X5b · the inner delete and the outer refusal = {"inner":"answered op-88","outer":"ConstraintPassRefused"}
+        X5b · the commit's ONE list — both attempts' entries, at their own indices (`seq` removed, `D-65`) = [{"position":0,"kind":"constraint-check","id":"outer-pair","opId":"op-87","state":null},{"position":1,"kind":"commit","id":null,"opId":"op-88","state":null},{"position":2,"kind":"outcome","id":null,"opId":"op-87","state":"KC-3"}]
+  PASS DW-10.14  a delete inside a constraint body JOINS the enclosing commit's list: the enclosing pass's `constraint-check`, the delete's own terminal `commit` entry and the enclosing attempt's terminal `outcome` stand in ONE list at indices `0..2`, no second list, no renumbering and no `seq` member
+        X6a · BEFORE — `window.tabs` (the pair's own address) at the delete's opening = {"landingPage":{"active":true},"settings":{"active":false}}
+        X6a · the pair's asks, in order — {at, askAddress, active} = [{"at":"registration","askAddress":["window","tabs"],"active":1},{"at":"pass","askAddress":["window","tabs","landingPage"],"active":0}]
+        X6a · AFTER — the delete's answer = ConstraintPassRefused · "exactly one tab must be active, 0 stand so"
+        X6a · the crossed log (the commit's ONE list), each entry at its own index = [{"position":0,"kind":"constraint-check","id":"one-active-tab","state":null},{"position":1,"kind":"outcome","id":null,"state":"KC-3"}]
+        X6a · AFTER — `window.tabs` once the refusal has taken its rollback = {"landingPage":{"active":true},"settings":{"active":false}}
+        X6a · the listener the refused delete delivered to = 0
+  PASS DW-10.13  THE ANCESTOR PAIR IS ASKED FOR A DELETE AT ITS DESCENDANT: `['window','tabs']` is in the pass at `['window','tabs','landingPage']`, its refusal CROSSES as `ConstraintPassRefused` naming it in the commit's log, and the commit ROLLS BACK — `window.tabs.landingPage` stands again and nothing is delivered
+        X6b · the pair at the ACT'S OWN address: its asks = [{"at":"registration","value":{"active":true}},{"at":"pass","value":"<absent>"}]
+        X6b · the delete's answer and its delivery = ANSWERED · delivered 1 to ["window","tabs","landingPage"]
+  PASS DW-10.15  THE EQUAL-ADDRESS ARM IS UNCHANGED: a pair standing AT the delete's own address is asked ONCE by the pass (its second ask; the first is its registration), and the delete ANSWERS because this pair passes
+        X6c · the DESCENDANT pair's asks for a delete at its ANCESTOR (`['window','tabs']`) = ["registration"]
+        X6c · the ADDRESS each ask was made at = [["window","tabs","settings"]]
+        X6c · the value its REGISTRATION handed it (the state it stood at; it is asked at no other instant) = [{"active":false}]
+        X6c · THE CONTROL'S asks — a pair at `['window']`, whose parent is the register that always resolves = ["registration","pass"]
+        X6c · THE CONTROL'S ask addresses = [["window"],["window","tabs"]]
+        X6c · the delete's `triggered` (the act's REACH — the skipped pair is named here and asked nowhere) = ["descendant-pair","control-at-window","tabs-listener-c"]
+        X6c · WHAT ITS VALUE BECOMES — the store's own read of its address after the delete = <refused: AddressNotFound>
+        X6c · the delete's op: what the act removed, read off the store's own journal op = {"kind":"delete","address":["window","tabs"],"beforePresent":true,"beforeValue":{"landingPage":{"active":true},"settings":{"active":false}},"afterPresent":false}
+        X6c · THE PAIRS STILL CARRIED after the delete (`constraints()` ids) = ["descendant-pair","control-at-window"]
+  PASS DW-10.16  THE DESCENDANT THE DELETE REMOVED IS SKIPPED, NOT ASKED: a delete at `['window','tabs']` asks the pair at `['window','tabs','settings']` ZERO times in its pass — its REGISTRATION ask stands as the only reading — while a CONTROL pair at `['window']`, whose parent is the register that always resolves, IS asked by the SAME delete (so the zero is a measurement and not a dead counter); the removed pair is still named in the act's own `triggered` (the reach is unmoved) and stays CARRIED, and the delete ANSWERS, the removed address now reading `AddressNotFound`
+        X6d · the pass's asks, IN ORDER (registration order across ancestors and the act's own) = ["ancestor-deep","ancestor-parent","at-the-address"]
+        X6d · the `constraint-check` entries with their POSITIONS (the array index) = []
+        X6d · the mid-pass registration and where it was asked = {"registered":true,"inThisPass":false,"asksInOrder":7}
+        X6d · the NEXT pass's asks (the mid-pass registration has entered the set) = ["ancestor-deep","ancestor-parent","at-the-address","registered-during-the-pass"]
+  PASS DW-10.17  THE SNAPSHOT: the pass asks EXACTLY the three pairs registered before it began — in the ONE registration order across the deep ancestor, the parent and the act's own address — and NOT the pair registered during it; the fourth enters the NEXT pass; and the `seq` order of the `constraint-check` entries is that same order
+
+        THE SENTENCE TO CARRY AWAY (`D-55`): A WITNESS ENTRY NEVER SHIPS AN EMPTY ADDRESS LIST while
+        the ROOT still stands as `[[]]`; a thrown message stands in the commit's log and the crossed
+        sentence no longer claims the value crosses; a refused edit undoes the WHOLE commit to the
+        mark its OUTERMOST opening cached; the handed-off report and log are FROZEN; and the drain
+        judges the STATE THE COMMIT STANDS AT, so two raises in one commit are both judged.
+        AND `DEF-X` IS NO LONGER A MEASUREMENT: the delete runs a pass of its own kind, its delivery
+        follows it, and `rollback` is named as the arm that still lacks the same attempt machinery.
+
+── W11 · `D-58` · NO IN-FLIGHT INSIGHT, AND NO RETENTION AFTER THE HANDOFF ─────────────
+  PASS DW-11.0  the registration lands and `K-2` answers its `CommitRecord`
+        D-58 · `K-4` over an OPEN attempt = ["KC-7","the constraint attempt attempt-2 is still open",[]]
+        D-58 · `K-5` over the same OPEN attempt = ["KC-7","the constraint attempt attempt-2 is still open",[]]
+        D-58 · the readers' refusal forms = [["address","log","message","status"],["address","log","message","status"]]
+  PASS DW-11.1  `K-4` OVER A LIVE ATTEMPT REFUSES `KC-7` — the member `K-5` uses — in the same three-member form, the same empty `log` and the same message family; and it no longer answers the in-flight list
+        D-58 · inside the pass — `K-4` / `K-5` = ["KC-7","KC-7"]
+        D-58 · inside the pass — `constraints()` members, the context's commit = [["address","id"],null]
+  PASS DW-11.2  WHILE THE COMMIT RUNS NO ROUTE HANDS A CLIENT ITS STATE: both readers refuse `KC-7` at the pass's own instant, `constraints()` answers `{address, id}` pairs, and the pass's context carries NO commit member
+        D-58 · the closed attempt's retained shape BEFORE → AFTER = [["attempt","log","ops","outcome","rollback"],["attempt","ops","outcome","rollback"]]
+        D-58 · `K-5` AFTER the drop = {"attempt":{"id":"attempt-2"},"outcome":"failed","ops":1,"rollback":1,"log":"<let go>"}
+        D-58 · `K-4` AFTER the drop = []
+  PASS DW-11.3  once the commit has RESOLVED OR REJECTED the retained record is the outcome, the ops and the reversal — the `log` member LET GO — and `K-4` over the closed attempt STILL ANSWERS (the empty retained list) while `K-5` still answers the record
+        D-58 · the crossed refusal's log · the store's closed record = [2,"<let go>"]
+        D-58 · ONE OBJECT? (`K-5`'s answer === the handed record?) = false
+  PASS DW-11.4  THE CONSUMER STILL HOLDS ITS RECORD AFTER THE STORE DROPPED ITS OWN: the crossed refusal's list is populated and frozen, `K-5`'s answer is NOT that object, and the store's record carries no list at all
+
+        THE SENTENCE TO CARRY AWAY (`D-58`): A RUNNING COMMIT HANDS A CLIENT NOTHING — both readers
+        refuse `KC-7`, and the pass's own context carries no commit — and once the commit RESOLVES OR
+        REJECTS the store keeps the OUTCOME, the OPS and the REVERSAL and lets the MESSAGE LOG go: the
+        record the consumer holds is the only copy of it, which is what the seal was for.
+
+── W12 · `D-63` — bump the mark when a sweep ends valid ─────────────────────────────
+        D-63 · the OPENING's cache (measured at rest, before the call) = op-101
+        D-63 · the cache in flight as the SWEEP passes (the verdict's boundary) = ["op-101"]
+        D-63 · the cache in flight when the DELIVERY runs (the mark the restore names) = ["op-102"]
+        D-63 · the store's own `journalMark` at that same instant = op-102
+        D-63 · the pairs asked, in order = [6,7,5]
+        D-63 · the reversal's own record = answered
+        D-63 · the write's answer = ConstraintPassRefused
+        D-63 · the store BEFORE → AFTER (what A wrote) = [6,7]
+  PASS DW-12.1  A VALIDATED EDIT STANDS AGAINST A LATER REFUSAL: write A's sweep passes, the listener's reversal makes the restarted check refuse, the write crosses `ConstraintPassRefused` — and `read ['a']` answers what A wrote (`7`), because the restore names the LAST VALIDATED MARK and the state the reversal left is what it undid
+        D-63 · the repair's pairs asked, in order (5 · the write's 9 · the repair's own 6) = [5,9,6]
+        D-63 · the write's answer = ConstraintPassRefused
+        D-63 · the store AFTER (the repair's landing gone with the write) = 5
+  PASS DW-12.2  A REPAIR'S WRITE IS UNDONE WITH THE WRITE: the repair lands, the re-run refuses it, NO sweep passed so nothing bumped, and `read ['a']` answers the state the commit found (`5`) — the repair's `6` and the write's `9` are both gone
+        D-63 · the listener's own write = answered its own record
+        D-63 · the cache in flight AFTER the listener's write (the mark carried past it) = ["op-109"]
+        D-63 · the outer write's answer = ConstraintPassRefused
+        D-63 · the store AFTER: ['a'] · ['g'] = [7,1]
+  PASS DW-12.3  A LISTENER'S WRITE SURVIVES THE OUTER REFUSAL: the outer write crosses `ConstraintPassRefused`, and the listener's `write(['g'],'mem',1)` answers `1` — it is beyond the bumped mark, so the outer's restore does not reach it — while the outer write's own validated landing (`7`) stands
+        D-63 · (a) the OPENING's cache · the store AFTER = ["op-110",5]
+        D-63 · (a) the write's answer = ConstraintPassRefused
+        D-63 · (b) the OPENING's cache · the reversal's asks · the store AFTER = ["Absent",[null,7,null],"NOTHING (absent)"]
+        D-63 · (b) the write's answer = ConstraintPassRefused
+  PASS DW-12.4  A COMMIT WHOSE SWEEP NEVER PASSES RESTORES TO ITS OPENING: (a) the pair refuses the write's own value on the FIRST sweep and the store answers the state the commit found (`5`); and (b) a pair body's reversal inside a sweep that then FAILS is undone against the cache in flight — the OPENING's, the FLOOR — so the address stands at NOTHING, the state the store was born with. Nothing bumped on either route, and that is today's behaviour and it stays for that case
+
+        THE SENTENCE TO CARRY AWAY (`D-63`): A REFUSED EDIT ROLLS BACK TO THE LAST VALIDATED STATE,
+        NOT TO THE STATE THE COMMIT OPENED AT. The restore is told a POSITION and the position MOVES
+        FORWARD at every constraint sweep that ends valid, so an edit the sweep APPROVED stands against
+        a later refusal in the same commit, a repair's write (during the sweep) goes with the write,
+        a listener's write (in the delivery) is beyond the mark and survives, and a commit that never
+        passes a sweep keeps its opening mark and restores to it — which is why `DEF-AN` closes with no
+        commit identity on the journal at all.
+
+── W13 · `D-66` · A PAIR AT A DESCENDANT IS ASKED ONLY WHEN THE ACT TOUCHED IT ────────
+        X7 · ["a"] = ASKED
+        X7 · ["a","b"] = ASKED
+        X7 · ["a","b","c"] = ASKED
+        X7 · ["a","b","d"] = ASKED
+        X7 · ["a","b","e"] = NOT ASKED
+        X7 · the pass's asks, IN ORDER = [{"id":"at-a","askAddress":["a","b"],"kind":"write","opAddress":["a","b"]},{"id":"at-a.b","askAddress":["a","b"],"kind":"write","opAddress":["a","b"]},{"id":"at-a.b.c","askAddress":["a","b"],"kind":"write","opAddress":["a","b"]},{"id":"at-a.b.d","askAddress":["a","b"],"kind":"write","opAddress":["a","b"]}]
+        X7 · the write's own op (kind · address · value) = {"kind":"write","address":["a","b"],"value":{"c":"foo","d":"bar"}}
+  PASS DW-13.1  THE RULING'S OWN EXAMPLE, ALL FIVE: a write of `{c:'foo', d:'bar'}` at `['a','b']` asks `['a']`, `['a','b']`, `['a','b','c']` and `['a','b','d']` — IN THAT ONE REGISTRATION ORDER — and does NOT ask `['a','b','e']`, because the write did not touch `e`
+        X7 · nested ["n","o","p"] = ASKED
+        X7 · nested ["n","o","p","q"] = ASKED
+        X7 · nested ["n","o","p","r"] = ASKED
+        X7 · nested ["n","o","p","r",0] = ASKED
+        X7 · nested ["n","o","p","z"] = NOT ASKED
+        X7 · the nested pass's asks, IN ORDER = ["at-p","at-p.q","at-p.r","at-p.r[0]"]
+  PASS DW-13.2  THE NESTED WRITE TOUCHES ITS OWN SUB-PATHS: a write of `{p:{q:1, r:[7,8]}}` at `['n','o']` asks the pairs at `['n','o','p']`, `['n','o','p','q']`, `['n','o','p','r']` and `['n','o','p','r',0]` — the array's index spelled as a `number` — and NOT the pair at `['n','o','p','z']`
+        X7 · the pass's asks, IN ORDER — ancestor · the act's own address · the TOUCHED descendant = ["touched-descendant","ancestor-deep","at-the-address"]
+        X7 · the untouched descendant and the mid-pass registration, in THIS pass = {"untouchedAsked":false,"midPassAsked":false,"midPassRegistered":true}
+        X7 · the NEXT pass's asks (the mid-pass registration has entered the set) = ["touched-descendant","ancestor-deep","at-the-address","registered-during-the-pass"]
+  PASS DW-13.3  THE SNAPSHOT SURVIVES THE WIDENING: the pass asks EXACTLY the three rows — the TOUCHED descendant, the deep ancestor and the act's own address — in the ONE registration order they stand in (the touched row FIRST, because it was registered first, and never in a second list after the prefix rows), and neither the UNTOUCHED descendant nor the pair registered during the pass; that pair enters the NEXT pass and no earlier one
+        X7 · delete ["a"] = ASKED
+        X7 · delete ["a","b"] = ASKED
+        X7 · delete ["a","b","c"] = NOT ASKED
+        X7 · delete ["a","b","e"] = NOT ASKED
+        X7 · the pass's asks, ONCE, in order — the two controls whose parents STAND, and nothing else = ["del-a","del-a.b"]
+        X7 · the delete's `triggered` (the act's REACH — the skipped descendant is named here) = ["del-a","del-a.b.c","del-a.b"]
+        X7 · the pairs still CARRIED after the delete (`constraints()` ids) = ["del-a","del-a.b","del-a.b.c","del-a.b.e"]
+        X7 · the delete's op — what it removed (the subtree it touched) = {"kind":"delete","address":["a","b"],"removed":{"c":{"x":1},"d":"bar"}}
+  PASS DW-13.4  A DELETE'S SUBTREE IS IN THE REACH AND THE REMOVED DESCENDANT IS NOT ASKED: a delete at `['a','b']` ASKS `['a']` and `['a','b']` — the two CONTROLS, whose parents stand — and asks `['a','b','c']` ZERO times, because the act removed ITS PARENT (`['a','b']`) and the pair is skipped there rather than asked; `['a','b','c']` is still named in the act's own `triggered`, both skipped pairs stay CARRIED, `['a','b','e']` — which stood nowhere — is named by neither, and the delete ANSWERS with the descendant now reading `AddressNotFound`
+        X7 · residual ["a","b","c","x"] = ASKED
+        X7 · residual ["a","b","c","z"] = NOT ASKED
+        X7 · residual ["a","b","y"] = NOT ASKED
+        X7 · residual · the write's two states — what it WROTE, and what it REPLACED = {"wrote":{"c":1},"replaced":{"c":{"x":1}}}
+        X7 · residual · the touched set the union materialises (`touchedAddresses(op)`) = [["a","b","c"],["a","b","c","x"]]
+        X7 · residual · what a read at the dropped path answers AFTER the act = LeafHasNoDownstream
+  PASS DW-13.5  A WRITE'S TOUCHED SET IS THE UNION OF BOTH VALUES' PATH SETS: a write of `{c:1}` over `{c:{x:1}}` at `['a','b']` ASKS the pair at `['a','b','c','x']` — present before the act and absent after it — and does NOT ask the pairs at `['a','b','c','z']` or `['a','b','y']`, which stand in neither value
+        X7 · first write ["f","g"] = ASKED
+        X7 · first write ["f","g","q"] = ASKED
+        X7 · first write ["f","h"] = NOT ASKED
+        X7 · first write · what `op.before` IS where nothing stood = {"present":false,"hasValue":true,"valueType":"undefined"}
+        X7 · first write · the touched set the union materialises (`touchedAddresses(op)`) = [["f","g"],["f","g","q"]]
+        X7 · first write · `op.before` AS SEEN AT EVERY EVALUATION THE PASS MADE (one row per ask) = [{"kind":"write","hasBefore":true,"beforeIsObject":true,"beforePresent":false,"beforePresentIsBoolean":true,"hasBeforeValue":true,"valueType":"undefined"},{"kind":"write","hasBefore":true,"beforeIsObject":true,"beforePresent":false,"beforePresentIsBoolean":true,"hasBeforeValue":true,"valueType":"undefined"}]
+  PASS DW-13.6  `op.before` IS PRESENT ON EVERY WRITE THE PASS EVALUATES — an object carrying a boolean `present` and an own `value` — and THE FIRST WRITE'S `before` IS `present: false`, so its union is the written value's path set EXACTLY (`['f','g']` and `['f','g','q']` asked, `['f','h']` not) and no arm throws
+        X7 · replacing write · `op.before` where something DID stand = {"present":true,"carried":{"c":{"x":1}}}
+
+        THE SENTENCE TO CARRY AWAY (`D-66`): A PAIR IS ASKED WHEN THE ACT CHANGES THE VALUE AT ITS
+        ADDRESS — the ancestors because a prefix read CONTAINS its subtree (`D-56`), and the
+        descendants THE ACT TOUCHED because a node it created or destroyed has a changed value. A
+        write touches the paths of the value it WROTE and of the value it REPLACED — a path that
+        disappears changed as surely as a path that appears — and a delete the whole subtree it removed.
+        A descendant neither value touched is NOT asked, and the set is still one snapshot, frozen at
+        pass start, in one registration order.
+
+── W14 · `D-67`/`D-69` · THE STORE'S ANSWER IS THE ONLY ANSWER ─────────────────────
+        D-67 · the listener at [a,b,c], invoked how many times = 1
+        D-67 · the ONE argument it was handed (the TRIGGERING address) = ["a","b"]
+        D-67 · the write's `triggered` list = [{"handle":"deep-listener","address":["a","b","c"]}]
+  PASS DW-14.1  ★ A LISTENER AT A TOUCHED DESCENDANT FIRES: the listener bound at `[a,b,c]` runs EXACTLY ONCE for a write at `[a,b]` that writes `c`, and receives the TRIGGERING address `[a,b]` — its own address is NOT a prefix of the act's, so the touched arm is the only one that can reach it
+        D-66 residual · the versions standing at [a,b] before the act = {"m":2}
+        D-66 residual · the same node read at each tier = {"file":true,"mem":false}
+        D-66 residual · the JS projection `touchedAddresses(op)`, printed as the crossing answers it = [["a","b","n"],["a","b",0],["a","b",0,"f"],["a","b",1],["a","b",1,"m"]]
+        D-66 residual · the store's `triggered` list = [{"handle":"at-f-listener","address":["a","b","f"]},{"handle":"at-f-pair","address":["a","b","f"]}]
+        D-66 residual · the listener's invocations = [["a","b"]]
+        D-66 residual · the pass's asks = ["at-f-pair"]
+  PASS DW-14.2  ★ THE PER-TIER RESIDUAL IS CLOSED: a `file`-tier write at `[a,b]` that PURGES the shadow there fires the listener bound at `[a,b,f]` (`1` invocation) and ASKS the constraint standing at `[a,b,f]` — the node both of them bind was removed — while the control at `[a,b,z]`, which neither value names, is asked NOTHING and is not in the trigger set; and the JS projection of the same act NAMES NEITHER, which is the residual the store's answer closes
+        DW-14.3 · ONE `triggered` list carrying BOTH kinds = [{"handle":"the-listener","address":["a"]},{"handle":"the-constraint","address":["a","b","c"]}]
+        DW-14.3 · what each kind RECEIVED, in the order it ran = [{"kind":"constraint","received":["address","attempt","op","tier","value"],"address":["a","b"]},{"kind":"listener","received":["a","b"]}]
+        DW-14.3 · a REFUSED registration: the status, the carried read, the later write's `triggered`, and `pending` at both instants = {"status":"ConstraintRefusedAtRegistration","carried":0,"triggered":["refused-pair"],"pendingAtK2":["refused-pair"],"pendingAfter":["refused-pair"],"delivered":1}
+  PASS DW-14.3  THE PASS IS A FILTER AND THE TWO KINDS PART COMPANY THERE: the write's `triggered` is ONE list carrying the listener's handle AND the constraint's `id`; the constraint is ASKED — handed the `AttemptContext` — and the listener is DELIVERED the triggering address, ONCE each, in that order; and a REFUSED registration's residual handle, which the store still names and no pass asks, is DELIVERED NOTHING — the body's ONE run is the registration's own evaluation and never a listener's invocation
+        pending · AT K-2, the store's WHOLE returned set = ["ancestor-listener","touched-pair"]
+        pending · AT K-2, the PREFIX-ONLY subset (the composition before 2026-10-29, an instrument) = ["ancestor-listener"]
+        pending · AFTER the pass (every asked element checked off) = ["ancestor-listener"]
+        pending · the pass's asks = [["p","q"]]
+  PASS DW-14.4  `pending`'S COMPOSITION MOVES AT `K-2` AND IS UNMOVED AFTER THE PASS: the whole returned set now carries the TOUCHED-DESCENDANT constraint's `id` beside the ancestor listener's handle (2 members where the prefix-only composition had 1), and after the pass the asked element is CHECKED OFF and only the listener's handle stands — so the DELIVERED residue is the same one member it always was
+        census · the product's own members, after a registration = ["addConstraint","constraintOff","constraintOn","constraints","delete","listen","read","readLiteral","readTiered","register","removeConstraint","removeListener","rollback","unlisten","write"]
+        census · the kernel barrel's own items, after a registration = ["commit","log","register","remove","report","runAttempt"]
+  PASS DW-14.5  `K-1` REGISTERING THE PAIR WITH THE STORE MINTS NOTHING: the product still carries EXACTLY its fifteen own members and the kernel barrel EXACTLY its six items, so no seventh kernel item and no sixteenth product member came with the registration
+
+        THE SENTENCE TO CARRY AWAY (`D-69`): THE REGISTRATION IS A HANDLE AND A BODY, AND A PAIR HAS
+        BOTH — its `id` (`D-29`) and its `constraint` (`D-26`). So `K-1` hands the store what it
+        already has, `triggered` names the pair beside the listeners, and the pass FILTERS that one
+        list: an element whose handle is a constraint's `id` is ASKED, a listener's is DELIVERED.
+        The reach is the STORE's — the registration's address is a prefix of the act's OR the act
+        TOUCHED it — and it is computed where the versions live, which is what makes a purge
+        visible to a listener and to a constraint alike.
+
+── W15 · `D-70` · WHICH KIND, AND WHY AN INDEX IS NOT AN ADDRESS ─────────────────────
+        DW-15.1 · `[v]` before the delete = [{"b":1},{"b":2},{"b":3}]
+        DW-15.1 · the container listener at `[v]`: invocations and what it read, per invocation = [{"address":["v",0],"read":[{"b":2},{"b":3}]}]
+        DW-15.1 · the delete record's `triggered` = [{"handle":"v-container-listener","address":["v"]},{"handle":"v-container-pair","address":["v"]}]
+        DW-15.1 · `[v]` AFTER the delete (the renumbered collection) = [{"b":2},{"b":3}]
+  PASS DW-15.1  ★ THE CONTAINER PATTERN WORKS: the listener bound at `[v]` fires EXACTLY ONCE for a delete at `[v,0]`, is handed the act's address `[v,0]`, and the collection it reads inside its body is the RENUMBERED one — `[{b:2},{b:3}]`, where the anchor that was `[v,1]` now stands at index `0` — and the record's `triggered` names the handle at the address it was BOUND at, `[v]`
+        DW-15.2 · the index listener at `[v,1]`: invocations = 0
+        DW-15.2 · what `[v,1]` named BEFORE the act = {"b":2}
+        DW-15.2 · what `[v,1]` names AFTER the act = {"b":3}
+        DW-15.2 · is the index handle in the record's `triggered`? = false
+  PASS DW-15.2  ★ THE INDEX PATTERN DOES NOT WORK, AND THE CELL ASSERTS THAT AS **CORRECT**: the listener bound at the derived `[v,1]` is invoked `0` times for the delete at `[v,0]`, its handle stands NOWHERE in the record's `triggered`, and `[v,1]` names `{b:2}` before the act and `{b:3}` after it — the renumber moved a DIFFERENT node under the position it registered, which is why nothing was written at that address and why `0` is the right number
+        DW-15.3 · the pair's asks, in order (registration first, the pass's second) = [{"duringAttempt":false,"address":["v"],"value":[{"b":1},{"b":2},{"b":3}],"kind":null,"read":[{"b":1},{"b":2},{"b":3}]},{"duringAttempt":true,"address":["v",0],"value":{"b":2},"kind":"delete","read":[{"b":2},{"b":3}]}]
+        DW-15.3 · the pass's asks alone = [{"duringAttempt":true,"address":["v",0],"value":{"b":2},"kind":"delete","read":[{"b":2},{"b":3}]}]
+  PASS DW-15.3  ★ THE CONTAINER CONSTRAINT IS ASKED FOR THE SAME DELETE: registered at `[v]`, it is asked EXACTLY ONCE by the pass — handed the act's `address` `[v,0]`, `tier` and `value` (the node the renumber left at index `0`, `{b:2}`) with the delete's own `op` — and the collection it JUDGES is the one its body reads at `[v]`, the renumbered `[{b:2},{b:3}]`; its `id` stands in the same `triggered` list as the two listener handles, beside them
+
+        THE SENTENCE TO CARRY AWAY (`D-70`): IF YOUR CALLBACK CHANGES THE STORE, IT IS A CONSTRAINT OR A
+        REPAIR — the pass runs it, judges it, and its loop guards (the restart budget, the applied-repair
+        marker, the per-op floor) bound it. IF IT TELLS THE WORLD, IT IS A LISTENER — it runs after the
+        constraints, opens its own commit when it writes, and NOTHING BOUNDS IT. And an INDEX IS A
+        DERIVED VALUE, NOT AN ADDRESS: a registration at `[v,1]` names a position the store never wrote,
+        so `delete([v,0])` renumbers the survivors and tells it NOTHING — correctly. Register at the
+        CONTAINER `[v]` and read what you care about.
+
+── W16 · `D-42`/`D-54` · THE SEVEN HOSTS OF A RAISE, EACH LABELLED ───────────────────
+        H1 · JUDGED · {"asks":[{"value":9,"attempt":null,"op":null,"present":true,"read":9,"current":true},{"value":7,"attempt":"attempt-3","op":"op-144","present":true,"read":7,"current":true},{"value":5,"attempt":null,"op":null,"present":true,"read":5,"current":true}],"act":"ConstraintPassRefused","log":["H1-pair"],"store":7}
+        H2 · JUDGED · {"asks":[{"value":9,"attempt":null,"op":null,"present":true,"read":9,"current":true},{"value":7,"attempt":"attempt-3","op":"op-147","present":true,"read":7,"current":true},{"value":9,"attempt":null,"op":null,"present":true,"read":9,"current":true}],"act":"ConstraintPassRefused","log":["H2-pair","H2-pair",null],"store":9}
+        H3 · JUDGED · {"asks":[{"value":9,"attempt":null,"op":null,"present":true,"read":9,"current":true},{"value":5,"attempt":null,"op":null,"present":true,"read":5,"current":true}],"act":"ConstraintPassRefused","log":["H3-pair"],"store":9}
+        H4 · NOT JUDGED · {"asks":[{"value":9,"attempt":null,"op":null,"present":true,"read":9,"current":true}],"registration":"answered","identityMembers":0,"witness":null,"later":"answered","store":5}
+        H5 · NOT JUDGED · {"asks":[{"value":9,"attempt":null,"op":null,"present":true,"read":9,"current":true}],"act":"answered","witness":[{"opId":"op-156","addresses":[["b"]]}],"store":5}
+        DW-16.4 · the exit after a discarded request — a regenerated store's pair asks = [{"value":9,"attempt":null,"op":null,"present":true,"read":9,"current":true}]
+        H6 · JUDGED · {"asks":[{"value":9,"attempt":null,"op":null,"present":true,"read":9,"current":true},{"attempt":"attempt-3","op":"op-163","present":false,"current":true},{"value":5,"attempt":null,"op":null,"present":true,"read":5,"current":true}],"window":{"open":1,"live":1},"reversal":{"opId":"op-162","undoneOps":["op-163","op-162"],"restoredTo":{"present":true,"value":5}},"act":"ConstraintPassRefused","log":["H6-pair"],"store":"<AddressNotFound>"}
+        H7 · JUDGED · {"asks":[{"value":9,"attempt":null,"op":null,"present":true,"read":9,"current":true},{"value":5,"attempt":null,"op":null,"present":true,"read":5,"current":true}],"act":"ConstraintPassRefused","log":["H7-pair"],"store":9,"nested":"answered"}
+        DW-16 · THE SEVEN-HOST TABLE = [["H1","JUDGED"],["H2","JUDGED"],["H3","JUDGED"],["H4","NOT JUDGED"],["H5","NOT JUDGED"],["H6","JUDGED"],["H7","JUDGED"]]
+        DW-16 · the JUDGED set = ["H1","H2","H3","H6","H7"]
+        DW-16 · the NOT-JUDGED set = ["H4","H5"]
+        DW-16.1 · ★ HOST 6 · the pair's asks, in order = [{"value":9,"attempt":null,"op":null,"present":true,"read":9,"current":true},{"attempt":"attempt-3","op":"op-163","present":false,"current":true},{"value":5,"attempt":null,"op":null,"present":true,"read":5,"current":true}]
+        DW-16.1 · ★ HOST 6 · the window the raise was taken in = {"open":1,"live":1}
+        DW-16.1 · ★ HOST 6 · the reversal's own record = {"opId":"op-162","undoneOps":["op-163","op-162"],"restoredTo":{"present":true,"value":5}}
+        DW-16.1 · ★ HOST 6 · the delete's answer = ConstraintPassRefused
+        DW-16.1 · ★ HOST 6 · the ONE log entry = [["constraint-check","H6-pair","op-162"]]
+        DW-16.1 · ★ HOST 6 · the store after it = <AddressNotFound>
+  PASS DW-16.1  ★ HOST 6 IS JUDGED: the delete's own pass asks the pair at the state the delete left, the body reverses inside the DELETE's OWN window (`open 1`, `live 1`), the reversal answers its record, and THE RESTARTED CHECK ASKS THE PAIR AGAIN — at the state the store stood in when it ran (here `5`, the reversal's own state, and EVERY ask's `context.value` equals the store's own read at that instant: `D-168`) — so the delete refuses `ConstraintPassRefused` with ONE `constraint-check` entry naming the pair, and the reversal's `5` is nowhere in the store afterwards. The request is therefore NOT a third window: it is carried to that pass's terminal judgement, once, and never per step
+        DW-16.2 · ★ HOST 6 (the lawful arm) · the pair's asks, in order = [{"value":9,"attempt":null,"op":null,"present":true,"read":9,"current":true},{"attempt":"attempt-3","op":"op-171","present":false,"current":true},{"value":5,"attempt":null,"op":null,"present":true,"read":5,"current":true}]
+        DW-16.2 · ★ HOST 6 (the lawful arm) · the delete's answer and its `discarded` witness = ["answered",[]]
+        DW-16.2 · ★ HOST 6 (the lawful arm) · the store, which keeps the state the restart approved = 5
+  PASS DW-16.2  ★ AND THE WITNESS AGREES RATHER THAN CONTRADICTING: on the arm where the restarted check PASSES, the pair is still ASKED AGAIN at the state the store stood in when the judgement ran (`5`) — the raise was judged, and every ask's `context.value` equals the store's read at that instant (`D-168`) — the delete ANSWERS with `discarded: []`, and the store keeps the state the restart approved (`5`). The empty witness is therefore the reading of a JUDGED raise and not of an ignored one: the pass's own drain consumed the request before the delivery ran
+  PASS DW-16.3  ★ THE TABLE, RE-MEASURED ON THIS TREE TO `D-168`'S LAW: `H1` (a constraint body in a write's pass), `H2` (a repair body in a write's pass), `H3` (a listener body in a write's delivery), `H6` (a constraint body in a DELETE's own pass) and `H7` (a reentrant reversal-then-write) are all JUDGED — a judgement RAN over the act, and EVERY ask each of them took was the state the store stood in at that instant — and the ONLY hosts that are not are the TWO DECLARED, PASS-RUNNING-NOWHERE windows: `H4` (a registration's own evaluation) and `H5` (a `delete`'s listener delivery), each asked once, at its own registration, and never again
+        DW-16.4 · `H4` · the registration's answer, its own member count and its witness = ["answered",0,null]
+        DW-16.4 · `H5` · the delete's witness and the store it left = [[{"opId":"op-156","addresses":[["b"]]}],5]
+  PASS DW-16.4  ★ THE TWO DECLARED WINDOWS ARE UNCHANGED: neither is judged — in either one the pair is asked ONCE and only at its own registration, so no ask of it is taken over the act and `D-168`'s subject never arises — the registration's answer is still an OPAQUE IDENTITY (an object with NO own member, so no witness can ride it), the `delete`'s delivery still reports what it discarded (ONE entry on `discarded`) and still leaves the reversal's effect standing, and both exits stand: a regenerated store is judged by construction
+
+        THE SENTENCE TO CARRY AWAY: A RAISE TAKEN INSIDE A PASS IS JUDGED BY THAT PASS'S OWN
+        TERMINAL CHECK — whichever verb opened the pass, a write or a delete — and the ONE readable
+        evidence is that your pair is ASKED AGAIN, at the state the store stands in when the judgement
+        runs (`D-168`: *"Always judge the current state"* — the ask is the subject, and no particular
+        value is promised). THE RAISE THAT IS NOT JUDGED IS THE ONE TAKEN WHERE NO PASS RUNS AT ALL:
+        a registration's own evaluation, and a `delete`'s listener delivery. Those two are declared,
+        their effects stand, and their exits are the file reload and a regenerated store.
+
+── W17 · `D-74` · THE LOG ENTRY IS BOUNDED AS THE MESSAGE IS ────────────────────────
+        DW-17.1 · depth 28 · the message's length = 753
+        DW-17.1 · depth 28 · the entries' lengths, in list order = [150,181,181,181,181,181,181,181,181,181,181,181,181,181,181,181,181,181,181,181,181,181,181,181,181,181,181,307]
+        DW-17.1 · depth 28 · the longest entry = {"chars":307,"at":27,"kind":"outcome"}
+        DW-17.1 · depth 28 · the offending entry's FORM = a refusal, "ConstraintBodyThrew", carrying 27 log entries — its first message is "the constraint chain threw; the attempt is closed — the value it threw was an object whose own `message` member is the string \"the caller depth limi…
+        DW-17.1 · the bound read from its one home = 307
+  PASS DW-17.1  ★ A CHAIN OF INNER REFUSALS AT DEPTH 28 CROSSES WITH ITS `ConstraintBodyThrew` STATUS AND THE ENTRY'S LENGTH IS THE BOUND — every entry of the crossed `log` is no longer than the message's own bound, and the entry that carries the thrown value is a SUMMARY of the inner refusal (its status, its entry count and its first message) and not the serialised refusal
+        DW-17.2 · the six shapes (and two over-sized controls), each printed = [{"label":"an `Error`","status":"ConstraintBodyThrew","entries":1,"chars":152,"bounded":true,"form":"an object whose own `message` member is the string \"the plain thrown error\"…"},{"label":"a string","status":"ConstraintBodyThrew","entries":1,"chars":117,"bounded":true,"form":"a string whose text is \"a thrown string\"…"},{"label":"a number","status":"ConstraintBodyThrew","entries":1,"chars":102,"bounded":true,"form":"a number whose value is 7…"},{"label":"an object with no `message`","status":"ConstraintBodyThrew","entries":1,"chars":126,"bounded":true,"form":"an object carrying no own string `message` member…"},{"label":"a refusal","status":"ConstraintBodyThrew","entries":1,"chars":174,"bounded":true,"form":"a refusal, \"ConstraintBodyThrew\", carrying 1 log entry — its first message is \"the f…"},{"label":"a refusal whose `log` is itself huge","status":"ConstraintBodyThrew","entries":1,"chars":293,"bounded":true,"form":"a refusal, \"ConstraintPassRefused\", carrying 50000 log entries — its first message i…"},{"label":"a 4 MiB thrown string","status":"ConstraintBodyThrew","entries":1,"chars":307,"bounded":true,"form":"a string whose text is \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx…"},{"label":"a 4 MiB thrown `message`","status":"ConstraintBodyThrew","entries":1,"chars":307,"bounded":true,"form":"an object whose own `message` member is the string \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx…"}]
+  PASS DW-17.2  EVERY ONE OF THE SIX SHAPES ANSWERS `ConstraintBodyThrew` AND EVERY ONE OF THEIR ENTRIES IS NO LONGER THAN THE BOUND — including the refusal whose `log` carries fifty thousand entries, and including a thrown value of four mebibytes, whose form is CLIPPED and says so (`…` at the cut)
+        DW-17.3 · depth 26 → 28 · the longest entry, in characters = [307,307]
+        DW-17.3 · depth 26 → 28 · the crossed message's length (the datum the entry summarises) = [753,753]
+  PASS DW-17.3  THE BOUND IS THE SAME NUMBER AT BOTH DEPTHS: the longest entry at depth 26 and the longest at depth 28 are equal, both no greater than the module's `MESSAGE_CEILING`, and the crossed message's own length is the same figure at both depths too — the bound carries no depth term
+        DW-17.4 · the lawful arms, form for form = [{"expected":"an object whose own `message` member is the string \"DW-LAWFUL-ERROR\"","form":"an object whose own `message` member is the string \"DW-LAWFUL-ERROR\"","same":true},{"expected":"a string whose text is \"DW-LAWFUL-STRING\"","form":"a string whose text is \"DW-LAWFUL-STRING\"","same":true},{"expected":"an object carrying no own string `message` member","form":"an object carrying no own string `message` member","same":true}]
+  PASS DW-17.4  THE THREE LAWFUL ARMS STILL ANSWER THEIR OWN FORMS, BYTE FOR BYTE — the bound clips a value that does not fit and touches no value that does, so a consumer who could read *"an object whose own `message` member is the string …"* yesterday reads it today
+        DW-17.5 · every entry's own members = [["id","kind","message","opId","state"],["id","kind","message","opId","state"],["id","kind","message","opId","state"],["id","kind","message","opId","state"]]
+  PASS DW-17.5  EVERY ENTRY OF THE CROSSED LOG CARRIES EXACTLY THE FIVE DECLARED MEMBERS — no sixth, no `seq` back, no truncated-form column — and the bound is read off `message` alone
+
+        THE SENTENCE TO CARRY AWAY: AN ENTRY IS A LOG LINE, AND A LINE THAT CAN BE 268 MB IS NOT A
+        LINE. THE FORM THE PACKAGE WRITES IS A SUMMARY — the inner refusal's STATUS, its ENTRY COUNT
+        and its FIRST MESSAGE, clipped at the length a message has when it has nothing inner to
+        quote — and the clip is taken on the TOTAL, so no depth of lawful nesting can grow it.
+
+── W18 · `D-75` · EVERY DISCARDED RAISE, AT ANY COUNT, ON EVERY PATH ─────────────────
+        DW-18.1 · the raise's own answer — `discarded` = [{"opId":"op-285","addresses":[["window"]]}]
+        DW-18.1 · the delete's answer — `discarded` = [{"opId":"op-285","addresses":[["window"]]}]
+        DW-18.1 · the entries' opIds / addresses = [["op-285"],[["[\"window\"]"]]]
+  PASS DW-18.1  ONE raise with a pair at the raised address answers ONE entry, whose `opId` is the id its reversal named and whose `addresses` names the pair's own address
+        DW-18.2 · the two raises' own answers = [[{"opId":"op-288","addresses":[["a","one"]]}],[{"opId":"op-289","addresses":[["a","two"]]}]]
+        DW-18.2 · the delete's answer — `discarded` = [{"opId":"op-288","addresses":[["a","one"]]},{"opId":"op-289","addresses":[["a","two"]]}]
+        DW-18.2 · ★ the COUNT (was `0` before `D-75`) = 2
+        DW-18.2 · the entries' opIds / addresses = [["op-288","op-289"],[["[\"a\",\"one\"]"],["[\"a\",\"two\"]"]]]
+  PASS DW-18.2  TWO raises in one delete delivery answer TWO entries — `discarded.length === 2` where the slot answered `[]` — each naming ITS OWN reversal's id and ITS OWN moved address
+        DW-18.3 · the delete's answer — `discarded` = [{"opId":"op-292","addresses":[["a","one"]]},{"opId":"op-293","addresses":[]}]
+        DW-18.3 · the entries' opIds / addresses = [["op-292","op-293"],[["[\"a\",\"one\"]"],[]]]
+  PASS DW-18.3  TWO raises with a pair at only the FIRST answer TWO entries: the first names `['a','one']`, and the second — DISCARDED by the same window, judged by nobody, its reversal moving only an address no pair watches — is REPORTED with an EMPTY `addresses`, so the list counts it and invents no address for it
+        DW-18.4 · 1 raise(s) inside a body · the raise's own answer — own names / `discarded` = [[["bodyFailures","discarded","log","opId","restoredTo","returnedValues","undoneOps"]],[[]]]
+        DW-18.4 · 1 raise(s) inside a body · the triggering write's answer — `Object.keys` / `discarded` = [["op","triggered","watched"],[]]
+        DW-18.4 · 1 raise(s) inside a body · the witness member's own descriptor = {"enumerable":false,"configurable":true}
+        DW-18.4 · 2 raise(s) inside a body · the raise's own answer — own names / `discarded` = [[["bodyFailures","discarded","log","opId","restoredTo","returnedValues","undoneOps"],["bodyFailures","discarded","log","opId","restoredTo","returnedValues","undoneOps"]],[[],[]]]
+        DW-18.4 · 2 raise(s) inside a body · the triggering write's answer — `Object.keys` / `discarded` = [["op","triggered","watched"],[]]
+        DW-18.4 · 2 raise(s) inside a body · the witness member's own descriptor = {"enumerable":false,"configurable":true}
+        DW-18.4 · ★ the two arms, printed together = [{"count":1,"raiseWitnesses":[[]],"raiseOwnNames":[["bodyFailures","discarded","log","opId","restoredTo","returnedValues","undoneOps"]],"writeWitness":[],"writeKeys":["op","triggered","watched"],"descriptor":{"enumerable":false,"configurable":true}},{"count":2,"raiseWitnesses":[[],[]],"raiseOwnNames":[["bodyFailures","discarded","log","opId","restoredTo","returnedValues","undoneOps"],["bodyFailures","discarded","log","opId","restoredTo","returnedValues","undoneOps"]],"writeWitness":[],"writeKeys":["op","triggered","watched"],"descriptor":{"enumerable":false,"configurable":true}}]
+  PASS DW-18.4  at ONE raise and at TWO: the raise's OWN ANSWER carries `discarded` and the TRIGGERING WRITE's answer carries it — PRESENT on both, `[]` on both because the pass's drain consumed and judged both raises — and the write's three enumerable members are unmoved (the member is a non-enumerable own accessor)
+        DW-18.5 · the control · the delete's `discarded` = []
+        DW-18.5 · the control · the write's `discarded` = []
+        DW-18.5 · the control · the at-rest rollback's `discarded` = []
+  PASS DW-18.5  THE CONTROL: an act that discards nothing carries `discarded: []` — PRESENT on the `delete`, on the `write` and on the at-rest `rollback`, EMPTY on all three, and TRUE on all three (no raise was made in any of their windows)
+
+        THE SENTENCE TO CARRY AWAY (`D-75`): THE COUNT IS THE RAISES, NOT THE SLOTS.
+        `discarded` is one entry per raise the act's delivery threw away, in raise order, and
+        `[]` now means what it says — NOTHING WAS DISCARDED, and the member is present to say so:
+        on the `delete`'s receipt, on the `write`'s record and on the `rollback`'s own answer.
+
+═══════════════════════════════════════════════════════════════════════════════════════════════
+W19 · `D-77` — THE FOURTH MEMBER: WHICH ACT WAS REFUSED
+═══════════════════════════════════════════════════════════════════════════════════════════════
+        W19.1 · arm (a) · the caller's own act REFUSED — the whole form = {"keys":["status","message","log","address"],"status":"ConstraintPassRefused","message":"the constraint admits-one returned a value outside the three declared outcome arms at own","entries":["constraint-check","outcome/KC-3"],"address":["own"]}
+        W19.1 · arm (b) · the caller's act PASSED, a LISTENER's refused — the whole form = {"keys":["status","message","log","address"],"status":"ConstraintPassRefused","message":"the constraint admits-one returned a value outside the three declared outcome arms at inner","entries":["constraint-check","outcome/KC-3"],"address":["inner"]}
+        W19.1 · the caller wrote = {"own":["own"],"listener":["outer"]}
+        W19.1 · the same keys, the same status, the same entry kinds on both arms = {"sameKeys":true,"sameStatus":true,"sameEntryKinds":true}
+        W19.1 · ★ THE FOURTH MEMBER — the ONLY datum that differs = {"own":["own"],"listener":["inner"]}
+        W19.1 · the decision the caller makes from the member — arm (a) = {"act":"your own","retry":true,"why":"the write at this address did not happen — the store is at its pre-write state"}
+        W19.1 · the decision the caller makes from the member — arm (b) = {"act":"a listener's","retry":false,"why":"your own write at this address STANDS; retrying it would apply it twice"}
+        W19.1 · the caller's own write at the triggering address, read back = {"ok":true,"value":2}
+  PASS DW-19.1  THE ROW: the caller's OWN act refused carries the CALLER's address in the fourth member and the caller decides RETRY; a caller's act that PASSED while a listener's was refused carries the LISTENER's address and the caller decides NOT TO RETRY — with the same status, the same keys and the same entry kinds on both arms, which is why the member is the only thing that can decide it
+        W19.2 · THE EVERY-ARM SWEEP — the member PRESENT on every arm, `null` where nothing is nameable:
+          present · address=["a"] · status=ConstraintPassRefused · keys=4 · ConstraintPassRefused (the caller's own act)
+          present · address=["b"] · status=ConstraintPassRefused · keys=4 · ConstraintPassRefused (a listener's act)
+          present · address=["a"] · status=ConstraintBodyThrew · keys=4 · ConstraintBodyThrew (at the landing)
+          present · address=["a"] · status=ConstraintBodyThrew · keys=4 · ConstraintBodyThrew (at the registration instant)
+          present · address=["a"] · status=OutOfDomainTier · keys=4 · OutOfDomainTier (a store verb, at the address the caller named)
+          present · address=null · status=AddressMalformed · keys=4 · AddressMalformed (the address position is not an array)
+          present · address=["absent"] · status=AddressNotFound · keys=4 · AddressNotFound
+          present · address=null · status=FilePathUnreachable · keys=4 · FilePathUnreachable (the store's own path arm)
+          present · address=null · status=ConstraintListInvalid · keys=4 · ConstraintListInvalid
+          present · address=["a"] · status=ConstraintRefusedAtRegistration · keys=4 · ConstraintRefusedAtRegistration
+          present · address=["a"] · status=FileCommitFailed · keys=4 · FileCommitFailed (a failed `file`-tier save)
+          present · address=["a"] · status=ConstraintPassRefused · keys=4 · the `KC`-bearing arm (`KC-7`, held address)
+          present · address=null · status=AddressMalformed · keys=4 · AddressMalformed (a `register` refusal: a handle, no address)
+        W19.2 · arms driven = 13
+        W19.2 · arms whose fourth member is `null` (nothing nameable) = 4
+        W19.2 · arms whose fourth member names an act = 9
+  PASS DW-19.2  THE SWEEP: every refusal arm this suite reaches carries the fourth member as an OWN enumerable member — the two `ConstraintPassRefused` arms, `ConstraintBodyThrew` at a landing and at a registration, the store verb's `OutOfDomainTier`, `AddressMalformed` at an outside address and at a `register` call, `AddressNotFound`, `FilePathUnreachable`, `ConstraintListInvalid`, `ConstraintRefusedAtRegistration`, a failed save's `FileCommitFailed` and the `KC`-bearing arm — each naming its act where it has one and `null` where nothing is nameable, and NONE of them absent
+        W19.3 · `Object.keys(caught)` = ["address","log","message","status"]
+        W19.3 · `Object.getOwnPropertyNames(caught)` = ["address","log","message","status"]
+        W19.3 · the address member's own descriptor = {"value":["a"],"writable":true,"enumerable":true,"configurable":true}
+        W19.3 · the arm's status is a member of the closed twenty (an address is NOT a status) = {"status":"ConstraintPassRefused","isStatusMember":true,"addressIsStatus":false}
+  PASS DW-19.3  THE CENSUS: `Object.keys(caught)` reads exactly `["status","message","log","address"]` — FOUR members, in the object literal's own source order — and the fourth is an ordinary own enumerable writable configurable data member; the arm's `status` is still the closed set's rank-20 member and the member is NOT a status
+
+        THE SENTENCE TO CARRY AWAY (`D-77`): THE STATUS TELLS YOU A CONSTRAINT REFUSED SOMETHING.
+        THE ADDRESS TELLS YOU WHETHER IT WAS YOURS — compare it with what you wrote: equal means
+        YOUR act did not happen and a retry is yours to make; different means a LISTENER's act was
+        refused and your own write STANDS, so a retry would apply it twice.
+
+────────────────────────────────────────────────────────────────────────────────────
+LAYER: ENVELOPE/PURE   APP LAYER: NONE   (no APP-green is claimed)
+SITE:  node tests/e2e/discard-witness.mjs   (cwd: /media/ryanr/Shared Files/Projects/Provident-Storeroom)
+AUTHORED 85 · EXECUTED 85 · PASS 85 · FAIL 0

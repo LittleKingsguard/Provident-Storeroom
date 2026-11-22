@@ -453,7 +453,10 @@ let REPAIR_LEGS_LAST = [];
 /// commit"*). **THE SUBJECT OF THE CHANNEL IS STILL ONE FACT — the invocations that closed last — and it is now
 /// ONE ELEMENT PER WRITE: `{ op, triggered }`, carrying THAT WRITE'S OWN JOURNAL `op` and its returned elements.**
 /// **THE OP IS COPIED AT ITS OWN MEMBERS** — `opId` · `kind` · `address`'s segment list · `tier` · `before` ·
-/// `after` · `seq` · `compacted` (`frame.mjs`'s `decodeJournalOp`, `:421`–`:431`; `index.mjs:445` stands that very
+/// `after` · `seq` **· ⟶ AND NOT `compacted`, WHICH IS DELETED FROM THE LIST 2026-11-17** (`strata/decisions.md` ·
+/// `D-189` item 2, the architect VERBATIM: *"If .compacted is always false drop it"*; the record carries SEVEN
+/// members and the store's own has carried seven since the same landing) (`frame.mjs`'s `decodeJournalOp`,
+/// `:421`–`:431`; `index.mjs:445` stands that very
 /// record) — by the same copy discipline the elements below already take, **so a body that mutates the op it was
 /// handed back can move nothing the kernel reads**: the re-run's `context.value` is this op's `after.value` and
 /// the floor call's candidates are this op's `address` and `opId`. **THE BRACKET, THE STACK, THE CLEAR AND THE
@@ -509,7 +512,11 @@ export function appendRepairLeg(record) {
         ? { present: after.present, value: after.value }
         : after,
       seq: held.seq,
-      compacted: held.compacted,
+      // **⟶ AND `compacted: held.compacted` IS DELETED AT THIS BYTE, 2026-11-17** (`strata/decisions.md` ·
+      // `D-189` item 2): **this copy holds the record's own member list to the copy discipline stated above,
+      // and the record carries SEVEN members now** (`frame.mjs`'s `decodeJournalOp`; `index.d.ts`'s
+      // `JournalOp`). A member copied here that the declaration no longer carries would be a key the kernel
+      // reads and the caller cannot name — and no default stands in its place.
     };
   }
   appendOwn(list, { op, triggered: elements });

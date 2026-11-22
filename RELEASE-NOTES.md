@@ -16,7 +16,7 @@ claims to be installable.**
 
 **⟶ AND THE CUT-STATE IS DROPPED FROM THIS FILE, 2026-10-28 — `D-57`, THE ARCHITECT VERBATIM: *"Drop the cut-state."*** `RCA-8(g)` ANNOTATE-BESIDE: **the title line and every dated paragraph of this file stand BYTE-FOR-BYTE as the reading of their own date, THIS clause is the one that reads them, and not one byte is deleted.** **THE REASON IS STRUCTURAL AND IT WAS MEASURED THREE TIMES: A SHIPPED DOCUMENT IS SEALED BEFORE THE TAG THAT MAKES ITS CUT-STATE TRUE**, so every release packed before its tag ships a document denying itself, and a guard running in that release's own preflight can only ever confirm *"not cut"* — `1.2.0` shipped *"NOT CUT"*, `1.3.0` shipped *"`v1.3.0` DOES NOT EXIST"*, and this file's own head was stale within minutes of the tag that falsified it. **SO EVERY SENTENCE BELOW THAT CLAIMS WHETHER SOME VERSION IS OR IS NOT CUT — *"PREPARED — NOT CUT"*, *"no `v1.3.0`"*, *"nothing in this section is cut"*, *"the release is not cut"*, *"what is installed today is still `1.1.0`"*, and each reading printed beside them — IS READ THROUGH THIS CLAUSE: the cut-state is not a document's to state.** **WHAT SURVIVES IS THE ONE FIGURE A SHIPPED DOCUMENT CAN BE RIGHT ABOUT, AND IT IS GENERATED FROM THE MANIFEST AND ASSERTED BY THE PREFLIGHT:**
 
-PUBLISH-NOTES-VERSION-LINE: THE VERSION THIS CHANGE LIST DESCRIBES IS `1.13.0`.
+PUBLISH-NOTES-VERSION-LINE: THE VERSION THIS CHANGE LIST DESCRIBES IS `2.0.0`.
 
 **AND THE TAG SET SURVIVES AS A RECORD OF RELEASES — PAST TENSE, A LIST OF WHAT HAS BEEN CUT, NEVER A CLAIM ABOUT THE CURRENT ONE** (the record stands in `§1.4.0` below — the section this file's head called `§main` until it was re-cut to name the version it prepares, 2026-10-28 — beside the section for the tree this file describes). (`D-57`; `DEF-AC` (b) — `scripts/publish.sh --figures` generates that line from `bindings/js/package.json`'s `version` and refuses on any disagreement, in this file, in `bindings/js/README.md` and in the shipped guide: three documents, three version lines, one generator, one assertion.)
 
@@ -55,14 +55,23 @@ the value to assert against, not the crate's own `Cargo.toml` version.
 
 ---
 
-## §1.13.0 · a MINOR — the second claimed realm, and the save arm it made possible: a WebAssembly build in its own package, three `cfg` keys' companions, a twenty-third status, and two receipt accessors
+## §2.0.0 · a MAJOR — the second claimed realm, the save arm it made possible, AND THE REMOVAL OF A PUBLISHED DECLARATION MEMBER: a WebAssembly build in its own package, three `cfg` keys' companions, a twenty-third status, two receipt accessors, and `JournalOp.compacted` gone from the record and the declaration
 
-**THE VERSION IS `1.13.0` AND ITS CLASS IS A MINOR — `D-158`, THE ARCHITECT'S RULING OF 2026-11-17, whose words were
-the class alone: *"MINOR — 1.13.0"*. THE VERSION MOVES TWELVE SITES TOGETHER: the main manifest's `version`, its FIVE
+**⟶ THIS HEADING READ `§1.13.0 · a MINOR` UNTIL 2026-11-17, AND `D-158`'s CLASS IS SUPERSEDED — NOT WITHDRAWN.**
+**THE ELEVEN ENTRIES BELOW ARE THE SAME LANDING READ AT A DIFFERENT CLASS**: every one of them still ships, every one of
+them still describes what a consumer on `1.12.0` meets, **and a reader who sees this section re-lettered is not being told
+the work is new** — the work is the same work, and what moved is the number the work is released under, because the same
+landing also removes a member the published declaration carried. **THE ARCHITECT'S RULINGS, VERBATIM AND IN ORDER**
+(`strata/decisions.md`): `D-158` — *"MINOR — 1.13.0"*; `D-189` item 2 — *"If .compacted is always false drop it"*; and
+`D-190` — **`MAJOR — bump to 2.0.0`**. **THE REASON THE CLASS MOVED IS ONE SENTENCE AND IT IS THE ONLY ONE**: `D-189` item
+2 removes `readonly compacted: boolean` from the PUBLISHED `JournalOp` (`bindings/js/index.d.ts`), **and removing a
+declared member is breaking against `1.12.0`** — `D-189` item 2 says it in as many words (*"removing it is breaking
+against `1.12.0` and `D-158`'s `1.13.0` `MINOR` cannot absorb it"*), so a `MINOR` could not carry this landing and the
+class is `MAJOR`. **THE VERSION MOVES TWELVE SITES TOGETHER: the main manifest's `version`, its FIVE
 exact `optionalDependencies` pins, and the SIX `platforms/*/package.json` versions** — the five native siblings and the
 WebAssembly sibling whose `version` its own coupled-version clause names (the admission's reading of `§3.2`'s rule as
 *"the SEVEN manifests move to `X.Y.Z` TOGETHER"*). **The artefact is stamped from the manifest by `bindings/js/build.rs`,
-so `version()` answers `1.13.0`**, and that is the value to assert against.
+so `version()` answers `2.0.0`**, and that is the value to assert against.
 
 **THE HEADLINE IS ONE SENTENCE: THE PACKAGE IS NO LONGER CLOSED AT ONE REALM, AND A WEBASSEMBLY BUILD OF THIS STORE NOW
 SHIPS AS ITS OWN PACKAGE.** `D-154` lifted the claim; the build carries **no `filePath`** — the key is not in domain
@@ -102,14 +111,27 @@ calls and `std::process::id()` are `#[cfg]`-ed out with the writer and the reade
    still `ValueRefusedAtBoundary`.
 8. **THE JOURNAL NOW DROPS HISTORY, AND `journalLength` IS THE WIDTH OF THE COMPENSATION WINDOW.** On `1.12.0` the cap
    was a MARK: the oldest entries were flagged and kept for the store's whole life, and the flag was what told a
-   reversal it had gone past the floor. **From `1.13.0` the cap is a BOUND**: what survives is the base state plus at
+   reversal it had gone past the floor. **From `2.0.0` the cap is a BOUND** (the sentence printed `1.13.0` before
+   `D-190` re-classed this landing; no `1.13.0` is released): what survives is the base state plus at
    most `journalLength` uncompacted ops, **an op the compaction reaches is REMOVED and its op id is gone with it**, and
    memory is `O(store + journalLength)` rather than growing with every write ever made (`D-160` items 1–2). **The two
    refusals stay distinguishable and they are told apart by ONE NUMBER rather than by a retained list**: an op the
    compaction DROPPED answers `RollbackCompacted`, and an id that never named an op answers `JournalOpUnknown`
    (`D-160` item 3 — the floor's own `seq` is the watermark). **A write's record still carries its `compacted` member
    and it reads `false`**: no act sets it any more, because the mark is not the mechanism — **and whether the member
-   survives the drop is a declaration this section does not make** (`D-160` item 4 of its unsettled).
+   survives the drop is a declaration this section does not make** (`D-160` item 4 of its unsettled). **⟶ AND THAT
+   QUESTION IS ANSWERED, AND THE ANSWER IS THAT THE MEMBER DOES NOT SURVIVE: `compacted` IS REMOVED FROM THE WRITE'S
+   RECORD, 2026-11-17** (`strata/decisions.md` · `D-189` item 2, the architect VERBATIM: *"If .compacted is always false
+   drop it"*). **THE DIRECTIVE WAS A CONDITIONAL AND THE SHIPPED TREE ANSWERED IT**: the store produced the flag at
+   exactly two sites and both set it `false`, **so a member that can hold one value carried nothing**, and the
+   discrimination it once shared — *an op this store compacted* against *an op this store never held* — is the
+   `journal_floor` watermark's (`D-160` item 3), which answers `RollbackCompacted` and `JournalOpUnknown` as two
+   refusals without a per-op bit. **SO THIS SENTENCE IS WITHDRAWN, NOT AMENDED** (*"a write's record still carries its
+   `compacted` member"*): the record carries **SEVEN** members — `{ opId, kind, address, tier, before, after, seq }` —
+   and the eighth is **gone: not renamed, not deprecated, and not typed `false`**. **WHAT YOU MEET AS A CONSUMER**:
+   `record.op.compacted` no longer type-checks, and at run time it is `undefined` because the key is absent; the write's
+   record, the delete's receipt's `op`, and every op the kernel's repair leg copies all carry the same seven. **THIS
+   REMOVAL IS THE WHOLE OF WHY THIS RELEASE IS A `MAJOR`** — see the section head.
 9. **A REVERSAL THAT NEEDS AN OP THE COMPACTION DROPPED REGENERATES FROM THE FILE — AND ANSWERS `RollbackCompacted`
    ONLY ON A STORE WITH NO READ PATH.** `D-164` item 2's division, at the two shapes you can construct: **with a
    `filePath` whose image can be read — or the state the store was created with where no image stands — the store
@@ -154,9 +176,14 @@ it on that arm, where the answer is `false` and where the declaration is written
 behaviour moves**). **So the entry's first clause is read as the VALUE clause it is**, and a consumer who took it for
 a statement about `cfg` on the WebAssembly arm took it one gate wide — **which is the defect `D-166` measured when
 every `saveCall` construction was refused as if `cfg` were a `Proxy`, and the arm could not construct the one store
-it exists for.** **AND THE CLASS THIS SECTION CARRIES DOES NOT MOVE FOR ANY OF THE FOUR ENTRIES ABOVE OR FOR THIS
-CLAUSE**: `D-158`'s `MINOR` at `1.13.0` stands, no version cell moves, and **a class claim is the architect's — none
-is made here.**
+it exists for.** **⟶ AND THE CLASS CLAUSE THAT STOOD HERE IS SUPERSEDED AT ITS OWN BYTE, 2026-11-17 — IT READ *"`D-158`'s `MINOR` at
+`1.13.0` stands, no version cell moves, and a class claim is the architect's — none is made here"*.** **`D-158`'s
+`MINOR` DOES NOT STAND ANY MORE: `D-190` SUPERSEDES IT WITH `MAJOR — bump to 2.0.0`**, and the reason is stated once, at
+this section's head: `D-189` item 2 removes a published declaration member, which no `MINOR` absorbs. **THE SENTENCE IS
+WITHDRAWN FOR ITS CLASS HALF AND STANDS FOR ITS OTHER HALF** — the four entries above and the clause they carry move the
+class by nothing, and **they are the same landing this section always described**; what moved is the release's number.
+**No class claim is invented here: the class is `D-190`'s and the version cells follow it**, and a document claiming
+whether a release is CUT is still not this section's to write (`D-57`).
 
 **WHAT DOES NOT MOVE, LISTED AND CLOSED:** the module namespace's one name (`storeCreate`) · the instance's own fifteen
 members, name for name · the one `exports` arm and its three conditions · the `files` allowlist's five rows · the floor
@@ -171,7 +198,7 @@ moves is WHICH ACTS PRODUCE the first, not what it says** (`D-164` item 2; `D-16
 WebAssembly artefact, which is produced by **a job BESIDE the prebuild matrix and never as a sixth row of it**. **The
 main package is still published last**, of all seven.
 
-**AND THIS SECTION DESCRIBES `1.13.0` AND CLAIMS NO TAG**: the cut-state is not a document's to state (`D-57`).
+**AND THIS SECTION DESCRIBES `2.0.0` AND CLAIMS NO TAG**: the cut-state is not a document's to state (`D-57`).
 
 ---
 
