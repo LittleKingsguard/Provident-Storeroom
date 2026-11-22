@@ -8915,3 +8915,37 @@ values never depend on the journal, which is history. **WHAT THE DRIVE RAISED IN
 write's reversal) or **a mark-read that re-arms the journal's head**, **is not established by this pass** — and `D-171`'s drive, `E2E-C-9`'s, and the `fts` cells disagree about nothing here because none
 of them drives this shape. **A PASS THAT TAKES THIS ITEM MUST FIRST ESTABLISH WHAT `restoreMark` PROMISES**, then re-derive `replayMark`'s base against it; **this row does not guess, and `D-160` item 3 of
 its unsettled stays open, narrowed.**
+
+---
+
+### `D-178` — THE REPLAY STARTS FROM THE COMPACTED FLOOR AND NOT FROM `born`: THE RULING, AND THE ONE THING THAT MUST BE REPRODUCED BEFORE IT IS IMPLEMENTED
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `ae8f00d`. **SOURCE:** the architect, on `D-177` item 2. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Replay should start over from the compacted floor instead of 'born'"
+
+**STATUS: `ACTIVE`.**
+
+1. **THE RULING**: `Store::replay_mark`'s base becomes **the state at the COMPACTED FLOOR** — the point the journal was compressed to — and **not `born`**
+   (the boot's creation state). **`born` is the base of a store NOTHING has been dropped from**, which is the state the code's own vocabulary assumed: `state.mjs`'s
+   `windowMark` renders *"`{k:'F'}` names the FLOOR (the state the store was born with, where the journal held no entry when the commit opened)"* — **and
+   `D-160`'s drop made the floor a place the journal was compressed to, so both the base and that sentence are one ruling behind the tree.**
+2. **WHAT IT REQUIRES, AT ITS BYTES.** **(i)** `replay_mark`'s `apply_register(&self.born)` becomes an application of **the floor's own state** wherever a drop
+   has happened (`journal_floor.is_some()`), `born` standing only where nothing has been dropped. **(ii)** The store must therefore **HOLD** that state: a
+   field captured at each compression. **(iii)** And the mark carrier's `{k:'F'}` re-derives with it — the floor is no longer *"the state the store was born
+   with"*.
+3. **★ AND THE ONE THING THAT IS NOT ESTABLISHED, SAID FIRST BECAUSE IT DECIDES THE IMPLEMENTATION'S SHAPE: THE DEFECT THIS FIXES WAS NOT REPRODUCED.**
+   Three drives put a `file` store at `journalLength: 2` and restored to marks by **the carrier the store itself answers** (`Reflect.apply(withAddon().journalMark, store, [])`
+   then `restoreMark(thatCarrier)`, which is the package's own call at `constraints.mjs:3354`): **every one answered `undefined` and left the register byte-unchanged**
+   — including a restoral to a **retained** mark whose predecessor had been dropped (`c` still standing) and one to a **dropped** mark (which owes `JournalOpUnknown`).
+   **SO EITHER THE INVOCATION IS STILL NOT THE VERB'S, OR THE VERB IS INERT ON THIS TREE, AND NEITHER IS KNOWN.** **A pass that implements this row must FIRST make
+   `restoreMark` visibly restore** — `tests/e2e/def-ae-restore-mark.test.mjs` drives this verb and passes, so it holds the invocation, and it is the place to start.
+   **AN IMPLEMENTATION LANDED BEFORE THAT IS A CHANGE TO A PATH NO DRIVE HAS SHOWN RUNNING.**
+4. **AND THE CAPTURE POINT IS A REAL DESIGN CHOICE, NOT A DETAIL.** `append` **pushes the entry and only then** runs the compaction loop
+   (`self.journal.push(...)`, then the drop), so **`assemble_all` at that instant reflects the NEW entry** — it is the HEAD's state and not the floor's.
+   **Two ways to hold the floor, priced and neither chosen:** **(a) CAPTURE BEFORE THE PUSH** when a drop is about to happen — the state as of the last retained
+   entry before the new one, which is the floor a replay needs and costs one full assembly per compressing append (the cost `D-160` already pays once per
+   compressing append, moved earlier); **(b) DERIVE THE FLOOR FROM THE DROPPED ENTRY'S OWN SNAPSHOTS** — `Entry::captured` and `Entry::after` are per-version and
+   per-tier, so a whole-register floor can only be derived by walking back from the current register through every retained entry, which is a replay of its own.
+   **(a) is the shape this row would expect; neither is taken here.**
+5. **WHAT DOES NOT MOVE**: no cell, no figure, no declaration, and **`D-177` item 1's closure stands** (the foreign-id collision remains impossible by construction).
