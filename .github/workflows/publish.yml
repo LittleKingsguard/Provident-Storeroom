@@ -282,7 +282,7 @@ jobs:
           if npm view "$name" version >/dev/null 2>&1; then
             if npm view "$name@$version" version >/dev/null 2>&1; then
               echo "skip=true" >> "$GITHUB_OUTPUT"
-              echo "ok $name@$version already exists — the publish step is SKIPPED (a re-run completes what is missing, and npm refuses a")
+              echo "ok $name@$version already exists — the publish step is SKIPPED (a re-run completes what is missing, and npm refuses a"
               echo "   republished version); the artefact is still built, assembled and guarded by the steps around this one."
             else
               echo "ok $name@$version is not published yet — the publish step runs"
@@ -433,7 +433,7 @@ jobs:
             # publisher cannot, and the job stops before it builds), and the VERSION must not (else the publish step is skipped, and the job still passes).
             if npm view "$name@$version" version >/dev/null 2>&1; then
               echo "skip=true" >> "$GITHUB_OUTPUT"
-              echo "ok $name@$version already exists — the publish step is SKIPPED (npm refuses a republished version, and this release's")
+              echo "ok $name@$version already exists — the publish step is SKIPPED (npm refuses a republished version, and this release's"
               echo "   bootstrap published it by hand; the rest of this job — the build, the staging and the path guard — still runs, so the"
               echo "   artefact this release ships is still built and inspected here)."
             else
@@ -615,7 +615,7 @@ jobs:
           if npm view "$name" version >/dev/null 2>&1; then
             if npm view "$name@$version" version >/dev/null 2>&1; then
               echo "skip=true" >> "$GITHUB_OUTPUT"
-              echo "ok $name@$version already exists — the publish step is SKIPPED (a re-run completes what is missing, and npm refuses a")
+              echo "ok $name@$version already exists — the publish step is SKIPPED (a re-run completes what is missing, and npm refuses a"
               echo "   republished version); the artefact is still built, assembled and guarded by the steps around this one."
             else
               echo "ok $name@$version is not published yet — the publish step runs"
