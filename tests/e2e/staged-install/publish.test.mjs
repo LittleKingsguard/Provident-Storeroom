@@ -3015,13 +3015,17 @@ cell('P-PUB-7', 'S-MANIFEST the licence notice travels with all SEVEN artefacts'
     + '(`D-8` leaves the row evidence-conditional and no scenario of this corpus requires it)');
   assert.equal(mainManifest.license, 'AGPL-3.0', '`§2.3` item 1 site (i): the manifest\'s own field reads the declared spelling');
   // **(2) THE DECLARED MECHANISM, READ AT THE HOME THAT CARRIES IT** — the shipped `README.md`, which `§2.1`
-  // item 3 makes the consumer-facing home of the distribution's answers, asserts the six-artefact claim AND
+  // item 3 makes the consumer-facing home of the distribution's answers, asserts the seven-artefact claim AND
   // names the assembly step that lands the copy. **THE SHIPPED FORM OF THIS CELL READ
   // `declaredFiles.includes('LICENSE') || true`, WHICH IS UNFALSIFIABLE FOR EVERY VALUE OF THE TREE**
   // (`PUB-R-5`): it is replaced here by the two claims the clause actually declares, each of them falsifiable.
   const readme = readFileSync(join(PKG_DIR, 'README.md'), 'utf8').replace(/\n\s*/g, ' ');
-  assert.ok(/SIX artefacts/.test(readme) && /carries a copy of the repository's own `LICENSE`/.test(readme),
-    '`§2.3` item 2 / `distribution.md §4.2` item 1: the shipped `README.md` declares that EACH OF THE SIX '
+  // **⟶ AND THE SHIPPED README'S OWN FIGURE READS SEVEN FROM 2026-11-17** (`D-157` item 1: the second realm's
+  // artefact joined the published set, so `the SIX artefacts` became `the SEVEN artefacts`). **THE PROPERTY IS
+  // UNMOVED AND ONLY ITS SUBJECT COUNT MOVES**: each artefact still carries the repository's own `LICENSE` copy, and
+  // a README that stated the opposite would fail HERE.
+  assert.ok(/SEVEN artefacts/.test(readme) && /carries a copy of the repository's own `LICENSE`/.test(readme),
+    '`§2.3` item 2 / `distribution.md §4.2` item 1: the shipped `README.md` declares that EACH OF THE SEVEN '
     + 'artefacts carries a copy — and a README that stated the opposite would fail HERE');
   assert.ok(/assembly step/.test(readme),
     '`§4.3` item 2 / `Q3-5`: and it names the release\'s own assembly step as the mechanism that lands the copy');

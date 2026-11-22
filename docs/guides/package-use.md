@@ -154,6 +154,24 @@ declared floor. **Node CJS as a module format, Electron's
 `main`/`preload`/`renderer`, the browser, `worker_threads` and any IPC route are each UNCLAIMED** — the package's
 own readme enumerates them one by one and describes no other realm as supported.
 
+**⟶ ONE OF THEM IS NOW SUPPORTED AS A BUILD, IN A SECOND PACKAGE — 2026-11-17** (`D-154` item 1; `D-157` item 1).
+**`@auspicion/provident-storeroom-js-wasm` is this same store on a WebAssembly host**, and it differs from the
+package this guide documents in three ways a consumer meets at once:
+
+* **THE BINDINGS ARE HANDED IN, NOT LOOKED FOR.** `storeCreate(bindings, cfg)` takes the module as its first
+  position — the package instantiates nothing, loads no addon and reaches no filesystem.
+* **THERE IS NO `filePath`.** The key is not in domain on that arm, a construction that carries it is refused at the
+  `cfg` gate, and the **`file` tier means *durable with no path***: the store keeps its durability against a
+  caller's function (`saveCall`), and a save it cannot confirm is a save it does not claim.
+* **A VALUE MUST BE CLONEABLE.** The crossing is a deep copy in both directions, so a value the store holds cannot be
+  mutated behind it — that is what keeps a listener's firing and a constraint's pass honest — and **a `Proxy` is
+  refused before any trap runs**: a reactive store's own object is a `Proxy` on most client frameworks, so **pass
+  the plain value (`toRaw`, a spread, or a clone) and the store takes it**.
+
+**NO ARTEFACT OF THAT BUILD IS DESCRIBED HERE AS SHIPPED BY THIS PACKAGE**: it is a sibling package with its own
+`files`, its own declaration and its own version line, and this guide's every claim about `provident-storeroom`
+stands unchanged.
+
 **The licence of record is `AGPL-3.0`** (`bindings/js/package.json`'s `license` field, measured 2026-10-26), and a
 copy of the repository's `LICENSE` travels with every published artefact, landed byte-for-byte by the release's
 own assembly step (`docs/specs/storeroom-publish/contract.md §2.3` item 2; `PUB-DD-11`). **Three spellings of the

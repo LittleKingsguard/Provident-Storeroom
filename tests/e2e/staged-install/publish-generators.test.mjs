@@ -1329,7 +1329,7 @@ function assertOpIsTheJournalRecord(dts) {
   return opType;
 }
 
-generator('NG-PUB-I', 'the shipped value type-checks against the declaration, and six notices are falsifiable', (recordControl) => {
+generator('NG-PUB-I', 'the shipped value type-checks against the declaration, and seven notices are falsifiable', (recordControl) => {
   const dts = readFileSync(join(PKG_DIR, 'index.d.ts'), 'utf8');
   const readme = readFileSync(join(PKG_DIR, 'README.md'), 'utf8');
   const mainManifest = JSON.parse(readFileSync(MAIN_MANIFEST, 'utf8'));
@@ -1384,9 +1384,11 @@ generator('NG-PUB-I', 'the shipped value type-checks against the declaration, an
 
 // the two halves of the notice claim, factored so the controls can drive them against SCRATCH text
 function assertSixNotices(readme) {
+  // **⟶ THE FUNCTION'S NAME AND ITS FIGURE ARE THE OLD DATE'S; ITS PROPERTY IS UNMOVED.** The shipped README
+  // reads **`the SEVEN artefacts`** from 2026-11-17 (`D-157` item 1), so the assertion follows the shipped bytes.
   const normalized = readme.replace(/\n\s*/g, ' ');
-  assert.ok(/SIX artefacts/.test(normalized) && /carries a copy of the repository's own `LICENSE`/.test(normalized),
-    '§2.3 item 2 / distribution.md §4.2 item 1: the shipped README declares that EACH OF THE SIX artefacts carries a copy');
+  assert.ok(/SEVEN artefacts/.test(normalized) && /carries a copy of the repository's own `LICENSE`/.test(normalized),
+    '§2.3 item 2 / distribution.md §4.2 item 1: the shipped README declares that EACH OF THE SEVEN artefacts carries a copy');
   assert.ok(/assembly step/.test(normalized), 'and names the assembly step that lands the copy (`§4.3` item 2; `Q3-5`)');
 }
 /**

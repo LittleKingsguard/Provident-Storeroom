@@ -9,6 +9,15 @@ UNCLAIMED and each owes its declared answer** (`package.md §2`: Node CJS as a m
 `preload` and `renderer`, the browser, `worker_threads` and any IPC route). **No other realm is described here as
 supported.**
 
+**⟶ AND ONE OF THOSE REALMS IS NOW SUPPORTED AS A BUILD, IN ITS OWN PACKAGE — 2026-11-17** (`D-154` item 1, the
+architect's *"Lift the realm claim restriction and plan for the change"*; `D-157` item 1). **`@auspicion/provident-storeroom-js-wasm`
+carries the same store on a WebAssembly host**, its bindings handed in instead of looked for: no Node-API addon, no
+`filePath` (the key is not in domain there — a browser cannot write one), the `file` tier meaning *durable with no
+path*, saved through a caller's `saveCall` and seeded through an `initialImage`. **IT IS A SECOND PACKAGE AND NOT A
+SECOND ARM OF THIS ONE, AND NOTHING ABOVE MOVES FOR IT**: this package's realm claim, its one `exports` arm, its one
+module name and its `require` condition stand byte-for-byte. **AND THE SENTENCE THIS PARAGRAPH SITS UNDER REMAINS
+TRUE OF THIS PACKAGE**: what ships here reaches Node ESM and nothing else.
+
 **Node CJS stays UNCLAIMED as a module format: the package publishes NO CJS arm — no `.cjs` artefact, no `main`
 field and no second build — and it DOES publish a `require` condition on its one ESM entry, so a CJS host's
 `require` is supported at or above the floor.** **What remains your side of the boundary is the runtime feature
@@ -16,12 +25,13 @@ and the floor: below it the loader refuses the module and the package publishes 
 
 **THE LICENCE OF RECORD IS `AGPL-3.0`** (`DD-43`): it is the repository's own `LICENSE`, and no clause of this
 package changes it. **AND THE LICENCE COPY TRAVELS WITH EVERY ARTEFACT, THIS PACKAGE'S OWN INCLUDED: each of
-the SIX artefacts — this package and the five platform packages — carries a copy of the repository's own
+the SEVEN artefacts — this package, the five native platform packages and the WebAssembly package (`D-157` item 1,
+2026-11-17) — carries a copy of the repository's own
 `LICENSE` as the licence TEXT travelling with it, copied BYTE-FOR-BYTE at the release's own assembly step**
 (`docs/specs/storeroom-publish/contract.md §2.3` item 2; `distribution.md §4.3` item 2; `PUB-DD-11`; `Q3-5`).
 **The copy is an ARTEFACT-LEVEL fact and not a crate-level file**: no `LICENSE` byte is written under
 `bindings/js/` (`§2.3` item 4), the manifest's `files` allowlist names no `LICENSE` row, and **a tarball's own
-copy is not a fifth declaration site** — four AUTHORED sites stay four, while six artefacts CARRY a notice.
+copy is not a fifth declaration site** — four AUTHORED sites stay four, while seven artefacts CARRY a notice.
 
 **★ AND THIS FILE IS THE SHIPPED HALF OF A TWO-PART STORY: the long-form consumer guide — every member, every
 refusal, every file-tier reading and the measured behaviour behind each — **TRAVELS WITH THIS PACKAGE at
