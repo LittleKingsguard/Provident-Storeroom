@@ -8282,3 +8282,44 @@ sentences, uncommitted). **SOURCE:** the architect, in session, answering `docs/
 **TERMS: the arms taken (`2` = (e) · (d)) · the cells re-cut (`0` — the sixth package dissolves the two that blocked the root) · the packages
 (`5 platform siblings + 1 = 6`) · empty-slot states (`2`, told apart by the load path) · the store statuses minted (`0`) · the class forms
 (`1`, `PAR-JS-12`'s) · the sixth package's declarations owed (`name`, `files`, `exports`, `types`, floor, publish path) · the units opened (`0`).**
+
+---
+
+### `D-158` — THE RELEASE CLASS FOR THE SECOND REALM'S LANDING IS A `MINOR`, AND ITS VERSION IS `1.13.0`
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `45a28cd` (the tree carries the nine units, the second realm, the realm
+sentences, the admission of the sixth artefact, the workflow's `wasm` job and the shipped prose, uncommitted). **SOURCE:** the
+architect, in session, answering `docs/L1/publish-readiness.md` §5's last open item — **the one act no other could precede.
+THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "MINOR — 1.13.0"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE CLASS IS A `MINOR`** — the same class the three precedents `RELEASE-NOTES.md` records took (`1.10`, `1.11`, `1.12`), and the
+   same reading of additive work: **a second claimed realm in its own package, two `cfg` keys beside the two required ones, the save
+   arm's three addon entries, the closed set's twenty-third member, and two receipt accessors.** **Nothing a consumer on `1.12.0` has
+   stops working**: the module's one name, the instance's fifteen members, the one `exports` arm, the floor and the five native
+   artefacts all stand.
+2. **THE VERSION IS `1.13.0` AND IT MOVES TWELVE SITES TOGETHER** — the main manifest's `version`, its **five** exact
+   `optionalDependencies` pins, and the **six** `platforms/*/package.json` versions (five native + the WebAssembly sibling). **The
+   artefact is stamped from the manifest by `bindings/js/build.rs`, so `version()` answers `1.13.0`.**
+3. **AND IT DISCHARGES `D-154` ITEM 4 OF ITS UNSETTLED** (*"THE RELEASE CLASS … unclaimed"*), which stood against four earlier rows
+   and is now the only realm item that had been left open for a reason other than its own owner's work.
+4. **AND IT LICENSES THE SECTION `RELEASE-NOTES.md` NOW CARRIES**, written in that file's own house form: the class and its ruling,
+   the twelve moving sites, the headline sentence, **what a consumer on `1.12.0` meets at each entry point** (seven points, the wasm
+   package's class form among them), **what does not move** (eleven items, `DD-24`'s refusal among them with its price's new ground),
+   the published set's `6 → 7`, and **`AND THIS SECTION DESCRIBES 1.13.0 AND CLAIMS NO TAG`** (`D-57`).
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **THE TAG ITSELF** — `D-57`: the cut-state is not a document's to state, and this row claims none.
+2. **THE RESIDUALS** — `STORE_RETIREMENT`'s missing finalizer on the WASM arm · the `structuredClone` probe's priced-and-unmeasured
+   cost · `NG-PUB-F`'s inert control · and `O-3`, `SS-9` and `O-8` moot on that arm and owed on Node (`docs/L1/publish-readiness.md` §3).
+3. **THE SIXTH PACKAGE'S FIRST PUBLISH** — a `delivery` act with its own first-release questions (a new package's initial `publish`
+   permissions, its provenance, and whether it ships `1.13.0` as its first version).
+
+**TERMS: the class claimed (`1` = MINOR) · the version (`1.13.0`) · the sites it moves (`12`) · the manifests (`7`) · the release
+notes' sections (`+1`) · the code moved by this row (`0`) · the rows it discharges (`1` = `D-154` item 4 of its unsettled).**

@@ -55,6 +55,65 @@ the value to assert against, not the crate's own `Cargo.toml` version.
 
 ---
 
+## §1.13.0 · a MINOR — the second claimed realm, and the save arm it made possible: a WebAssembly build in its own package, three `cfg` keys' companions, a twenty-third status, and two receipt accessors
+
+**THE VERSION IS `1.13.0` AND ITS CLASS IS A MINOR — `D-158`, THE ARCHITECT'S RULING OF 2026-11-17, whose words were
+the class alone: *"MINOR — 1.13.0"*. THE VERSION MOVES TWELVE SITES TOGETHER: the main manifest's `version`, its FIVE
+exact `optionalDependencies` pins, and the SIX `platforms/*/package.json` versions** — the five native siblings and the
+WebAssembly sibling whose `version` its own coupled-version clause names (the admission's reading of `§3.2`'s rule as
+*"the SEVEN manifests move to `X.Y.Z` TOGETHER"*). **The artefact is stamped from the manifest by `bindings/js/build.rs`,
+so `version()` answers `1.13.0`**, and that is the value to assert against.
+
+**THE HEADLINE IS ONE SENTENCE: THE PACKAGE IS NO LONGER CLOSED AT ONE REALM, AND A WEBASSEMBLY BUILD OF THIS STORE NOW
+SHIPS AS ITS OWN PACKAGE.** `D-154` lifted the claim; the build carries **no `filePath`** — the key is not in domain
+there, and a construction that supplies it is refused at the `cfg` gate with `AddressMalformed` — so the seven `std::fs`
+calls and `std::process::id()` are `#[cfg]`-ed out with the writer and the reader they belong to, and the register is
+**`file` tier with no path**: a store whose durability is a caller's function.
+
+**WHAT A CONSUMER ON `1.12.0` MEETS, AT EACH ENTRY POINT:**
+
+1. **`import` AND `require` OF `provident-storeroom` ARE UNCHANGED.** Same module, same one name `storeCreate`, same
+   `types` condition standing first, same `require` condition on the same one ESM file, same floor `>=22.12.0`.
+2. **`@auspicion/provident-storeroom-js-wasm` IS NEW, AND IT IS A SECOND PACKAGE AND NOT A SECOND ARM.** Its
+   construction is `storeCreate(bindings, cfg)`: the WebAssembly module is an ARGUMENT, the package instantiates
+   nothing and loads no addon, and a first position that is not the module refuses in the package's own class form
+   (`TypeError`, `status` absent) rather than as a store status. **A store the package never constructed is not a state
+   the store can be in.**
+3. **`cfg` GAINS TWO KEYS ON THE NODE ARM AND KEEPS ITS TWO REQUIRED ONES.** `saveCall` (a function the store hands its
+   own image to, and whose verdict gates the write's answer) and `initialImage` (the image text a store boots from) are
+   both optional and both absent-by-default, so every construction lawful on `1.12.0` is lawful here. **`filePath` and
+   `saveCall` are mutually exclusive** — a construction carrying both is refused, because two save mechanisms over one
+   register is a state the store cannot answer for.
+4. **THE SAVE ARM IS FIVE ENTRIES AND NO NEW VERB.** `exportImage` (the store composes and verifies its own image),
+   `saveSucceeded(opId)` and `saveFailed(opId)` (the caller's verdict, and its mirror), each reached through the store's
+   own pass. **The addon's export set moves `16 → 19`; the instance's own fifteen members DO NOT MOVE.**
+5. **THE CLOSED STATUS SET GAINS ITS TWENTY-THIRD MEMBER, `ListenerBodyRejected`.** A DELIVERED listener body that
+   REJECTS refuses the act that fired it — which is not rank `21`'s `ListenerBodyThrew`: a throw leaves the write
+   unanswered, a rejection RESOLVES it and the refusal is the datum. **No rank of `1`…`22` moves.**
+6. **THE WRITE, DELETE AND ROLLBACK RECEIPTS GAIN TWO NON-ENUMERABLE ACCESSORS**: `bodyFailures` and `returnedValues`,
+   each a `configurable` getter over symbol-keyed data. **`Object.keys` and every deep-equality over a receipt are
+   unmoved** — the one census that sees them is `Object.getOwnPropertyNames`.
+7. **A VALUE MUST BE CLONEABLE, AND A `Proxy` IS REFUSED WITHOUT A TRAP RUNNING.** The crossing is a deep copy in both
+   directions — which is what stops an application mutating a value the store holds, and so bypassing a listener's
+   firing or a constraint's pass — and on the WebAssembly arm the detector is `structuredClone`. **On the Node arm
+   nothing about this moves**: `util.types.isProxy` still reads no member and invokes no handler, and the refusal is
+   still `ValueRefusedAtBoundary`.
+
+**WHAT DOES NOT MOVE, LISTED AND CLOSED:** the module namespace's one name (`storeCreate`) · the instance's own fifteen
+members, name for name · the one `exports` arm and its three conditions · the `files` allowlist's five rows · the floor
+`>=22.12.0` · the five native platform artefacts' shape, names and `os`/`cpu` pairs · `DD-24`'s refusal of a co-equal CJS
+arm, whose PRICE was re-grounded (a second claimable realm no longer makes it wrong; two module systems inside ONE realm
+still does) · `S-ONE-ADDON` and `P-SR-7`'s load-time-reach sentence, unchanged · and the store's own statuses `1`…`22`,
+in their order.
+
+**AND THE PUBLISHED SET MOVES `6 → 7` MANIFESTS** — the main package, the five native platform artefacts, and the
+WebAssembly artefact, which is produced by **a job BESIDE the prebuild matrix and never as a sixth row of it**. **The
+main package is still published last**, of all seven.
+
+**AND THIS SECTION DESCRIBES `1.13.0` AND CLAIMS NO TAG**: the cut-state is not a document's to state (`D-57`).
+
+---
+
 ## §1.12.0 · a MINOR — the `require` route into the one claimed realm: a third condition on the one `exports` arm, naming the SAME `./index.mjs`, and a floor that moves `>=18.0.0` → `>=22.12.0` on all six manifests — one line, two moves
 
 **THE VERSION IS `1.12.0` AND ITS CLASS IS A MINOR — `D-129` ITEM 5 (`Q-C1`), THE ARCHITECT'S RULING OF 2026-11-17 (`strata/decisions.md`, *"Take proposed on all"*), read beside `D-128` ITEM 1 (*"Proceed with arm 1"*) AND `D-127` (*"Bump the floor, there's no backwards compatibility concerns"*).** **`PUB-DD-9` IS THE AUTHORITY FOR THE CLASS AND THE CLASS IS ITS `MINOR` LIMB — *"a MINOR adds a member to the declared surface"*** (`docs/specs/storeroom-publish/contract.md`, the `PUB-DD-9` row, read at its two dated clauses) — **`PATCH` is FORECLOSED (`D-39`'s *"semver breach"*, and `D-126` item 3's *"carries a breaking input requirement on top"*) and `MAJOR` is FORECLOSED BY THAT ROW'S OWN TERMS**, so **one number, `1.12.0`**, and this section names it and not the cut-state (`D-57`).
