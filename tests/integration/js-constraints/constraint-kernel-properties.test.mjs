@@ -1001,7 +1001,20 @@ test('ck_prop_P_TP_8_the_marker_opens_empty_on_a_second_attempt_at_the_same_addr
       assert.equal(first.outcome, 'passed', 'the first attempt resolves once its re-run passes');
       const firstRuns = entries(first.log, 'repair-run');
       assert.equal(firstRuns.length, 1, 'the first attempt ran the repair once, for its own pair');
-      const second = runAttempt(store, commit(store, address, 'mem', n(0, 9)));
+      // **⟶ RE-DERIVED 2026-11-17 — `P-3` (`strata/decisions.md` · `D-193` item 1: *"P-3 checks literal
+      // equivalence, not reference equality"*).** **THE SECOND ATTEMPT'S LITERAL IS DERIVED FROM THE ONE THE FIRST
+      // LEFT STANDING**, because a draw that repeated it made the second write a NO-CHANGE WRITE: `triggered: []`,
+      // so its pass asked no pair, no repair ran, and the two figures this row's clause reads off the TWO ATTEMPTS
+      // (`repairs === 2`, `evaluations === 4`) could not be reached — measured on this seed at 19 attempts.
+      // **THE ROW'S SUBJECT IS UNMOVED AND IS ASSERTED WHOLE: the applied-repair marker is per attempt, never
+      // global** — each attempt still runs its OWN repair once, over its own window, and no closed record carries
+      // the marker. **The draw is still the seed's**: the value is a deterministic function of the state the first
+      // attempt left, and the first attempt's draw is unmoved.
+      const standingValue = store.read(address);
+      const secondValue = typeof standingValue === 'number'
+        ? (standingValue + 1) % 10
+        : n(0, 9);
+      const second = runAttempt(store, commit(store, address, 'mem', secondValue));
       assert.equal(second.outcome, 'passed', 'the second attempt at the same address resolves too');
       assert.equal(entries(second.log, 'repair-run').length, 1,
         'the second attempt ran its OWN repair once: the marker opened EMPTY and is per attempt, never global');

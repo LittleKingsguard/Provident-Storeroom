@@ -377,7 +377,17 @@ test('RSL-4 · THE JOINED ARM: a constraint body\'s nested `write` answers `[]` 
     () => {
       // **THE NESTED CALL IS A BODY'S THREE-POSITION `write`** — it names no commit (`D-46`: a repair names one, a
       // constraint body has none in hand), so it JOINS the enclosing commit (`D-53`).
-      nested = captured(() => store.write(nestedAddress, 'mem', 7));
+      //
+      // **⟶ AND ITS LITERAL IS DERIVED FROM THE ONE STANDING, 2026-11-17 — `P-3` (`strata/decisions.md` · `D-193`
+      // item 1: *"P-3 checks literal equivalence, not reference equality"*).** **THIS BODY RUNS TWICE — once at the
+      // registration ask and once at the write's OWN pass — and the constant it used to write (`7`) therefore left
+      // the second nested call landing the literal the first had already landed: a NO-CHANGE WRITE under `P-3`,
+      // whose `triggered` is `[]`, so the pair at the nested address was asked at neither pass and the enclosing
+      // list carried no `constraint-check` entry for it.** **THE CELL'S SUBJECT IS UNMOVED AND IS ASSERTED WHOLE:
+      // the joined write's entries stand in the ENCLOSING commit's one list** — the body now lands a literal ONE
+      // ABOVE the standing one, so each nested call is a change and the list it must appear in is the same list.
+      const standing = store.read(nestedAddress);
+      nested = captured(() => store.write(nestedAddress, 'mem', standing + 1));
       return true;
     }));
   const written = captured(() => store.write(outerAddress, 'mem', 2));
@@ -433,8 +443,9 @@ test('RSL-4 · THE JOINED ARM: a constraint body\'s nested `write` answers `[]` 
   assert.deepEqual(Object.keys(nestedRecord).sort(), WRITE_RECORD_MEMBERS,
     `and the nested answer's DECLARED members are unmoved by the member it now carries `
       + `(${JSON.stringify(Object.keys(nestedRecord).sort())})`);
-  assert.deepEqual(innerAsks.includes(7), true,
-    `and the pair at the nested address was asked the nested write's value: ${JSON.stringify(innerAsks)}`);
+  assert.deepEqual(innerAsks.includes(nestedRecord.op.after.value), true,
+    'and the pair at the nested address was asked the nested write\'s value — read '
+    + `${JSON.stringify(innerAsks)} against ${JSON.stringify(nestedRecord.op.after.value)}`);
 
   t.diagnostic(`RSL-4 · THE JOINED ARM: the nested write answered log ${JSON.stringify(nestedList)} and its own op `
     + `${JSON.stringify(nestedOpId)}; the enclosing answer's log is `

@@ -122,6 +122,17 @@ path = "tests/integration/store-core/e2e_listener_firing.rs"
 name = "properties"
 path = "tests/integration/store-core/properties.rs"
 
+# ---- `tests/unit/store-core/` — 1 — `P-3`'s cells, at the scope `D-5` declares for them ------------------
+# **⟶ ADDED 2026-11-17 (`P-3`; `docs/L3/change-detection/design.md` §6.2): the design names its cells' home as
+# `tests/unit/store-core/change_detection.rs` — a scope that already carries Rust at
+# `tests/unit/binding-crossing/` — and a target under an extra directory level is invisible to cargo's test
+# auto-discovery (`tests/*.rs` and `tests/*/main.rs` only), so it is named here like every other store target.
+# `CD-14` and `CD-16` are PACKAGE facts and stand at `tests/unit/js-constraints/change-detection.test.mjs`,
+# which cargo never looks at; `14 + 1 = 15` store targets, and the battery's own six are unmoved.
+[[test]]
+name = "change_detection"
+path = "tests/unit/store-core/change_detection.rs"
+
 # ---- `tests/integration/store-fail-set/` — 1 — one drive per member of the closed set -----------------
 [[test]]
 name = "fail_codes"

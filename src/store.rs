@@ -2526,7 +2526,16 @@ impl Store {
     /// lists are *"an INDEX FOR LOOKUP COST only"*, and *"the same two sets must be produced whether the
     /// index is consulted or the home is scanned"* — so the selection below reads the home directly and no
     /// membership depends on a node's lifetime (`A46`) or on the `active`/`carried` split (`A47`).
-    fn triggered_for(&self, address: &[Segment], touched: &[Vec<Segment>]) -> Vec<ListenerTrigger> {
+    ///
+    /// **⟶ AND THE ACT'S VALUE CONDITION REACHES THIS FILTER, 2026-11-17 — `P-3`, `D-193` item 1.** **`changed`
+    /// is the act's own answer and it is handed to `registration_triggered`, which wraps THE PREFIX ARM ALONE**
+    /// (that function's clause); **the touched arm is not narrowed, and `Q-6`'s default is what forbids it.**
+    fn triggered_for(
+        &self,
+        address: &[Segment],
+        touched: &[Vec<Segment>],
+        changed: bool,
+    ) -> Vec<ListenerTrigger> {
         // **`F-9`: THE MAP'S OWN MEMBERS ARE ITERATED — each address's own bucket, in the map's own
         // iteration — and no keyed scan of a linear home runs.**
         //
@@ -2545,7 +2554,7 @@ impl Store {
         // admits a registration whose own address the act TOUCHED**, whichever kind it is.
         self.home
             .members()
-            .filter(|listener| registration_triggered(&listener.address, address, touched))
+            .filter(|listener| registration_triggered(&listener.address, address, touched, changed))
             .map(|listener| ListenerTrigger {
                 handle: listener.handle.clone(),
                 address: listener.address.clone(),
@@ -2560,7 +2569,19 @@ impl Store {
     /// with its OWN handle"*, adopted VERBATIM and never re-minted (`§0.4` clause 2 (b)) — **and there the
     /// address is one member while both handles fire; `listen` itself never adds a second entry at an
     /// address the home already holds** (`§6.5` item 12 (c)).
-    fn watched_for(&self, address: &[Segment], touched: &[Vec<Segment>]) -> Vec<Vec<Segment>> {
+    ///
+    /// **⟶ AND `watched` NARROWS WITH `triggered`, 2026-11-17 — `P-3`, `D-195` item 1.** **The act's value
+    /// condition reaches this filter through the SAME `registration_triggered` call**, which is the whole of
+    /// the store's own projection law read as the amendment it forced: *"the two lists must be produced by ONE
+    /// predicate or the projection is false"* (`:2588`–`:2591`), and `P-TP-8` (e) is amended beside (a) in the
+    /// same bounded amendment for exactly that reason. **So a no-change write answers `[]` here too — the
+    /// projection of an empty prefix set — and no arm of this function decides that on its own.**
+    fn watched_for(
+        &self,
+        address: &[Segment],
+        touched: &[Vec<Segment>],
+        changed: bool,
+    ) -> Vec<Vec<Segment>> {
         let mut watched: Vec<Vec<Segment>> = Vec::new();
         // **`F-9`: the home's own members, one member per distinct address** — the set is the addresses the
         // map's entries carry, and the DISTINCT rule (`§6.5` item 2's kept half) is applied as they walk.
@@ -2569,7 +2590,7 @@ impl Store {
         // must be produced by ONE predicate or the projection is false: **a registration the act touched below
         // stands in the trigger set, and its address therefore stands here too.**
         for listener in self.home.members() {
-            if registration_triggered(&listener.address, address, touched)
+            if registration_triggered(&listener.address, address, touched, changed)
                 && !watched.contains(&listener.address)
             {
                 watched.push(listener.address.clone());
@@ -2914,6 +2935,47 @@ impl Store {
             .iter()
             .copied()
             .min_by_key(|reference| self.refs[*reference].anchor.tier.rank());
+        // **⟶ ADDED 2026-11-17 — `P-3`'S COMPARISON, AND IT IS ONE BOOLEAN ON TWO LITERALS** (`docs/L3/
+        // change-detection/design.md` §2.1–§2.2; `strata/decisions.md` · `D-193`, the architect, VERBATIM:
+        // *"P-3 checks literal equivalence, not reference equality"*).
+        //
+        // **THE BEFORE LITERAL IS THE ASSEMBLED VALUE OF THE LOWEST-RANK VERSION STANDING AT THE PAIR**, read
+        // out of the `Vec<Captured>` `capture` took just above: **its own-node entries carry `assemble_all`'s
+        // answer already** (`capture`'s `:2180`, and it assembles EVERY standing version whether or not
+        // anything reads it), **so this comparison adds NO assembly, NO walk, NO member and NO second
+        // materialisation.** **THE AFTER LITERAL IS THE `value` ARGUMENT the act lands**, which is the same
+        // literal the record's `after` carries at `:3038`–`:3041`. **THE RELATION IS `StoreValue`'s derived
+        // `PartialEq`** (`src/value.rs:15`) — class-strict for free (the variant tag is part of the compare),
+        // key-order-blind for free (`Object` is a `BTreeMap`, `:22`), `-0 == 0` true (inherited through
+        // `f64`, `D-193` item 4's price), `NaN` unreachable (`NonFinite` is its own variant, `:30`, and
+        // `is_admitted` refuses it, `:42`).
+        //
+        // **WHY THE LOWEST RANK, STATED AS THE DERIVATION IT IS** (`D-193` item 5's `O-2`, taken by `D-195`
+        // item 2): the ruling fixes the subject at **ONE LITERAL and not the per-tier list** (`D-193` item 1),
+        // and the only tier-blind single literal an address standing at two versions has is **the one an
+        // unqualified read answers** — `state_now`'s own selection, whose `canonical` sorts by `rank()`
+        // ascending (`:1298`–`:1301`, realised at `:2405`–`:2417`). **IT IS ALSO WHY `state_from_captured`'s
+        // ANSWER IS NOT THIS OPERAND**: where two versions stood, that answers the per-tier LIST (`:2375`–
+        // `:2382`), which the ruling puts outside the subject. `op.before` keeps that list (`:2969`); the
+        // comparison reads the one literal.
+        //
+        // **ABSENCE NEEDS NO BRANCH, AND THAT IS A CONSEQUENCE OF THE TAXONOMY AND NOT OF A TEST**:
+        // `Undefined` is not admitted (`src/value.rs:39`–`:47`), so a first write compares the absent state's
+        // `Undefined` against an admitted literal and the compare cannot succeed — `D-193` item 2. `D-66`'s
+        // own sentence declares it besides: a node the act created *"exists after the write and did not
+        // before"*, so it *"has a value that changed"*.
+        //
+        // **AND IT IS TAKEN HERE BECAUSE THIS IS THE LAST INSTANT THE PRE-LITERAL EXISTS**: `remove_refs`
+        // below (`:3029`) destroys the versions it is assembled from, and the arena rows are the removal's
+        // afterwards (`touched_below`'s own recorded lesson, taken *"BEFORE THEY LEAVE THE ARENA"*).
+        let changed = match captured
+            .iter()
+            .filter(|entry| entry.path.is_empty() && entry.under.is_none())
+            .min_by_key(|entry| entry.tier.rank())
+        {
+            Some(entry) => entry.value != value,
+            None => true,
+        };
         // `F-4`: the value's kind contradicts the TARGET's container kind (`DD-19`: one code, both
         // directions, and the container, the node and the journal stay untouched).
         if let Some(reference) = selected {
@@ -3003,8 +3065,15 @@ impl Store {
         } else {
             self.touched_below(&segments, &captured, &doomed_tiers, Some(&value))
         };
-        let watched = self.watched_for(&segments, &touched);
-        let triggered = self.triggered_for(&segments, &touched);
+        // **⟶ AND BOTH LISTS TAKE THE ACT'S OWN VALUE CONDITION, 2026-11-17 — `P-3`, `D-193` item 1 and
+        // `D-195` item 1.** The two lists are the SAME set seen twice (`§5.8`'s re-derived `(vi)(3)`), so the
+        // one boolean goes to the ONE predicate both of them read: **`watched` narrows with `triggered`
+        // because they are one call and not two rules**, and **the term wraps the prefix arm alone inside
+        // that predicate, so the TOUCHED arm is not narrowed** (the design's §9; `Q-6`'s default). **No
+        // short-circuit of these two lists stands here and none may be added**: `if !changed { (vec![], vec![])
+        // }` would read as the same optimisation and would silently narrow the touched arm.
+        let watched = self.watched_for(&segments, &touched, changed);
+        let triggered = self.triggered_for(&segments, &touched, changed);
         // **⟶ AMENDED 2026-10-15 (`contract.md §7.2` item 1, read with `surface.md §2.11` clause 1): THE
         // WRITE RECORDS, INSTALLS, APPENDS AND RETURNS ITS `WriteResult` ON EVERY TIER AND PERFORMS NO FILE
         // I/O ON ANY OF ITS ARMS.** **THE `file` TIER'S DURABLE COMMIT IS NO LONGER A VERB'S ARM AT ALL: it
@@ -3182,7 +3251,14 @@ impl Store {
         let op = self.append(op, captured, after_state, home);
         // **`§6.5` item 11 / `§5.8` (b): THE DELETE IS THE SECOND TRIGGER EVENT** (`A43`) — the receipt
         // carries the handles of the listeners the trigger fired, selected by the SAME prefix rule.
-        let triggered = self.triggered_for(&segments, &touched);
+        //
+        // **⟶ AND THE VALUE POSITION ANSWERS `true`, 2026-11-17 — `P-3`, `D-193` item 1's own subject.** A
+        // `write`'s literal is what the ruling compares, and **a delete that reaches this line has already
+        // returned at its `removed.is_empty()` arm above** (`:3167`–`:3178`: `triggered: []`, `op: None`, no
+        // entry), **so it removed at least one version and the value at its address did move.** The delete's
+        // rows are UNMOVED by `P-3` (`§7`'s scope is `write` alone), and the position exists so that no later
+        // arm can pass the term by omission.
+        let triggered = self.triggered_for(&segments, &touched, true);
         Ok(DeleteReceipt {
             address: segments,
             tiers,
@@ -4195,12 +4271,42 @@ fn is_prefix(prefix: &[Segment], address: &[Segment]) -> bool {
 /// below it moves it; **and a node the act CREATED OR PURGED has a value that changed, so its own registration
 /// is reached.** An address that is neither above the act nor touched by it is NOT reached: `['a','b','e']`
 /// stays silent for a write at `['a','b']` with `{c, d}` (`D-66`'s own example).
+///
+/// **⟶ AMENDED 2026-11-17 — `P-3`: THE PREFIX ARM GAINS THE ACT'S OWN VALUE CONDITION, AND THE TOUCHED ARM
+/// DOES NOT** (`docs/L3/change-detection/design.md` §4.1; `strata/decisions.md` · `D-193` item 1, the
+/// architect VERBATIM: *"P-3 checks literal equivalence, not reference equality"*, and `D-195` item 1:
+/// **`watched` NARROWS WITH `triggered`**). **THE TERM WRAPS THE PREFIX ARM ALONE**:
+///
+/// ```text
+/// (changed && is_prefix(registration, address)) || touched.iter().any(|path| path == registration)
+/// ```
+///
+/// **THE ANNOTATE-BESIDE NOTE THE TWO ARMS' SENTENCES ABOVE ARE READ THROUGH: nothing of them moves.** The
+/// criterion is still ONE and its second half still grounds the touched arm, **because a node the act created
+/// or purged *"has a value that changed"*** — `D-66`'s own derivation (`strata/decisions.md:3765`–`:3769`) —
+/// **so the value condition belongs to the ancestor arm, which is the arm that reads the ADDRESS's assembled
+/// literal, and it must never be lifted over both arms.**
+///
+/// **★ AND THIS IS THE UNIT'S RISKIEST LINE, PRINTED AS THE FAILURE IT PREVENTS** (the design's §9; `D-194`
+/// item 5): a short-circuit of the two RETURNED LISTS where `changed` is false — `if !changed { (Vec::new(),
+/// Vec::new()) }` at the write's two call sites — reads as the same optimisation and **SILENTLY NARROWS THE
+/// TOUCHED ARM**, so a second identical structured write would stop firing a registration below it at
+/// `['a','b','c']`. **`Q-6`'s default forbids that and `CD-6` is the cell that catches it**; `D-193` item 5's
+/// `Q-5` narrows the KERNEL'S PASS by consequence and never the reach.
+///
+/// **`changed` IS THE ACT'S OWN ANSWER, HANDED IN BY THE VERB THAT PERFORMED IT** — the write computes it on
+/// its two literals (`write`'s own clause), and **a `delete` passes `true`**, because `D-193`'s subject is a
+/// `write`'s literal and a delete that reaches this predicate at all has removed at least one version, so the
+/// value at its address did move. **The position exists so that a later arm cannot pass the term by
+/// omission.**
 fn registration_triggered(
     registration: &[Segment],
     address: &[Segment],
     touched: &[Vec<Segment>],
+    changed: bool,
 ) -> bool {
-    is_prefix(registration, address) || touched.iter().any(|path| path == registration)
+    (changed && is_prefix(registration, address))
+        || touched.iter().any(|path| path == registration)
 }
 
 /// **ONE VALUE'S PATH SET, APPENDED UNDER `prefix`** — the walk `Store::touched_below` states the rule of. Each

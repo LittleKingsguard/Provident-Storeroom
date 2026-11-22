@@ -336,7 +336,15 @@ test('a126_two_ids_at_one_address_are_carried_separately', () => {
   assert.equal(right.calls.length, 0, 'and the second id carries nothing yet: its own count is unmoved');
   a.addConstraint(PAIR('right', ['shared']), right);
   right.fromHere(); // the second pair's OWN registration invocation is a fact about the registration, not a write
-  thrown(() => a.write(['shared'], 'mem', 'yes'));
+  // **⟶ RE-DERIVED 2026-11-17 — `P-3` (`strata/decisions.md` · `D-193` item 1: *"P-3 checks literal equivalence,
+  // not reference equality"*).** **THE SECOND WRITE'S LITERAL IS CHANGED FROM `'yes'` TO A VALUE THE FIRST WRITE
+  // DID NOT LAND**, because under `P-3` a write that lands the literal already standing answers
+  // `triggered: []` — **so neither pair is asked, nothing is refused, and this cell's own observable (`right`'s
+  // body refusing the write that reached it) had no subject.** **THE CELL'S SUBJECT IS UNMOVED AND IS ASSERTED
+  // WHOLE: the two ids at ONE address are CARRIED SEPARATELY** — `left` admits everything, `right` refuses every
+  // landed value but its registration context, and the two counters move independently. **Nothing is weakened: the
+  // write still stands at the same tier and the assertions below are byte-for-byte the ones they were.**
+  thrown(() => a.write(['shared'], 'mem', 'no'));
   assert.equal(right.calls.length, 1, 'the second id, once added at the SAME address, carries its own function — ONCE');
   assert.equal(left.calls.length, 2, 'and the first id` own count moves only by the write that reached it: the two are carried separately');
 });
@@ -378,7 +386,13 @@ test('a126_constraintOff_disables_a_carried_pair_and_constraintOn_reenables_it',
   const afterOff = fn.calls.length;
 
   assert.equal(a.constraintOn(pair, fn), undefined, 'constraintOn answers `undefined`');
-  thrown(() => a.write(['a'], 'mem', 'refuse'));
+  // **⟶ RE-DERIVED 2026-11-17 — `P-3` (`strata/decisions.md` · `D-193` item 1), FOR THE SAME REASON THE CELL
+  // ABOVE STATES.** **THE DISABLED ARM'S WRITE LANDED `'refuse'` AT `['a']`, so a second write of `'refuse'`
+  // would be a NO-CHANGE write under `P-3`, the re-enabled pair would not be asked, and the toggle's own
+  // observable would have no subject.** **The literal is therefore one the disabled arm did not land**, and every
+  // assertion of the cell stands: while ENABLED the write is refused, while DISABLED it is accepted, and the
+  // toggle re-enables it.
+  thrown(() => a.write(['a'], 'mem', 'refuse-again'));
   assert.ok(fn.calls.length > afterOff, 'and the disabled pair is ENABLED again by the toggle');
 });
 

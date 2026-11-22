@@ -686,9 +686,16 @@ fn s5_8_s_watch_iii_no_tier_test_runs_at_any_trigger() {
     ok(store.listen(&h, &[key(&["r"])]),
         "§6.5 item 12: an address-keyed registration carrying no tier",
     );
-    for tier in canonical_tiers() {
+    // **⟶ RE-DERIVED 2026-11-17 — `P-3` (`strata/decisions.md` · `D-193` item 1).** **THIS DRIVE'S DECLARED
+    // SUBJECT IS THE TIER, NOT THE VALUE** — *"a handle set that depends on the write's TIER"* is the failure it
+    // names (`DD-36`) — **and the one literal it used to write at all three tiers is, under `P-3`, a NO-CHANGE
+    // write at the second and the third, so the handle set is correctly empty there and the drive reddened on a
+    // behaviour it never declared.** **The literal is now derived from the tier's own position**; **the
+    // expectation is unmoved** — the handle is returned at EVERY one of the three tiers — **and no assertion is
+    // weakened.**
+    for (i, tier) in canonical_tiers().into_iter().enumerate() {
         let w = ok(
-            store.write(AddressArg::List(key(&["r"])), t(tier), v_num(1.0)),
+            store.write(AddressArg::List(key(&["r"])), t(tier), v_num(1.0 + i as f64)),
             "§3.4: a write at one of the three tiers",
         );
         assert!(

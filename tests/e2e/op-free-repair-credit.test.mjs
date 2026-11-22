@@ -672,7 +672,15 @@ test('ORC-8 · THE FLOOR CALL\'S UNDO ON A FAILING ARM — an op-free repair lan
   const store = make();
   const address = ['orc8-a'];
   const child = ['orc8-a', 'child'];
-  store.write(address, 'mem', {}); // the parent link the descendant write needs
+  // **⟶ AND THE SEED'S OWN LITERAL IS DISTINCT FROM THE ONE THE CELL'S SUBJECT WRITE LANDS, 2026-11-17 — `P-3`
+  // (`strata/decisions.md` · `D-193` item 1: *"P-3 checks literal equivalence, not reference equality"*).** **The
+  // seed is the parent link the descendant write needs and nothing else — but it used to be `{}`, the very literal
+  // the drive's own write lands below, so under `P-3` the subject write was a NO-CHANGE WRITE: `triggered: []`, no
+  // pair asked, no attempt's record in the live map, and this cell's arm unreachable.** **THE SEED'S VALUE IS
+  // THEREFORE ONE THE SUBJECT WRITE DOES NOT LAND**, the parent stays a container, and every assertion below
+  // stands byte-for-byte.
+  const seedContainer = { seed: 1 }; // the parent link the descendant write needs, and the caller's own commit
+  store.write(address, 'mem', seedContainer);
   let repairs = 0;
   let landed = null;
   let attemptRef = null;
@@ -724,7 +732,7 @@ test('ORC-8 · THE FLOOR CALL\'S UNDO ON A FAILING ARM — an op-free repair lan
   assert.equal(read(store, child), '<AddressNotFound>',
     '**SO THE ADDRESS ANSWERS ITS PRE-ATTEMPT STATE** — it stood nowhere before the attempt — read '
     + JSON.stringify(read(store, child)));
-  assert.deepEqual(read(store, address), {},
+  assert.deepEqual(read(store, address), seedContainer,
     'while the attempt\'s own landing is restored to the container the caller committed — read '
     + JSON.stringify(read(store, address)));
   t.diagnostic(`ORC-8 · THE FLOOR CALL'S UNDO: the op-free repair landed ${JSON.stringify(landed.opId)} at `

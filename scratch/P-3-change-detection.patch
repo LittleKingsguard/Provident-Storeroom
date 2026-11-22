@@ -1,0 +1,1978 @@
+diff --git a/Cargo.toml b/Cargo.toml
+index 6e07c1a..5ac4bcc 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -122,6 +122,17 @@ path = "tests/integration/store-core/e2e_listener_firing.rs"
+ name = "properties"
+ path = "tests/integration/store-core/properties.rs"
+ 
++# ---- `tests/unit/store-core/` — 1 — `P-3`'s cells, at the scope `D-5` declares for them ------------------
++# **⟶ ADDED 2026-11-17 (`P-3`; `docs/L3/change-detection/design.md` §6.2): the design names its cells' home as
++# `tests/unit/store-core/change_detection.rs` — a scope that already carries Rust at
++# `tests/unit/binding-crossing/` — and a target under an extra directory level is invisible to cargo's test
++# auto-discovery (`tests/*.rs` and `tests/*/main.rs` only), so it is named here like every other store target.
++# `CD-14` and `CD-16` are PACKAGE facts and stand at `tests/unit/js-constraints/change-detection.test.mjs`,
++# which cargo never looks at; `14 + 1 = 15` store targets, and the battery's own six are unmoved.
++[[test]]
++name = "change_detection"
++path = "tests/unit/store-core/change_detection.rs"
++
+ # ---- `tests/integration/store-fail-set/` — 1 — one drive per member of the closed set -----------------
+ [[test]]
+ name = "fail_codes"
+diff --git a/RELEASE-NOTES.md b/RELEASE-NOTES.md
+index 8b0ad39..4ec61cf 100644
+--- a/RELEASE-NOTES.md
++++ b/RELEASE-NOTES.md
+@@ -55,6 +55,31 @@ the value to assert against, not the crate's own `Cargo.toml` version.
+ 
+ ---
+ 
++## §3.0.0 · a MAJOR — a `write` STOPS FIRING WHERE THE VALUE DID NOT MOVE: `triggered` and `watched` narrow together, a constraint pair at that address is no longer asked, and the two prices the ruling accepts are declared
++
++**⟶ AND THE NUMBER IN THIS HEADING IS THE ARCHITECT'S WORD AND NOT THIS PASS'S** (`strata/decisions.md` · `D-193` item 5's `Q-10`, whose default `D-195` item 2's `O-8` keeps — **the number remains the architect's word at the release act, and no pass mints it**). **THE CLASS IS SETTLED AND IT IS `MAJOR`** — a returned member's MEANING moves on a shipped verb, **and that is not smaller than a member leaving** — **`2.0.0` is spent** (this file's own generated line names it, and `scripts/publish.sh --figures` refuses on any disagreement), **so the next line by this file's own arithmetic is `3.0.0`. THIS SECTION MOVES NO OTHER BYTE: the main manifest, its five exact `optionalDependencies` pins, the six `platforms/*/package.json` versions and the three shipped documents' generated version lines all stand where `2.0.0` left them, and the bump is the release act's** (`D-124` item 3's discipline, kept by `D-190`). **A reader who sees this section at `3.0.0` is being told what the NEXT cut carries, not what a tag carries.**
++
++**THE RULING, VERBATIM** (`strata/decisions.md` · `D-193`): *"P-3 checks literal equivalence, not reference equality"*; and (`D-195`): *"Take the default on the blocker and proceed"*. **The class is this pass's reading of `D-190`'s precedent; the number is his.**
++
++**WHAT A CONSUMER ON `2.0.0` MEETS, AT EACH ENTRY POINT:**
++
++1. **`write` STOPS FIRING THE LISTENERS REGISTERED WHERE THE VALUE DID NOT MOVE.** A `write` that lands **the literal the address already stands at** answers the same record with **`triggered: []` and `watched: []`**, and no listener body runs — **at the act's address, and at every ANCESTOR of it**, because the ancestor's assembled value did not move either. **The test is on the literal and on nothing else:** `file V` then `mem V` **fires nothing** although `readTiered` moves from `file` to `mem`; a `mem V` then `file V` **fires nothing** although the `mem` version is destroyed; `-0` over `0` **fires nothing** although a reversal's judgement would call it moved. **`op` still records the landing, and a `file`-tier write still saves.**
++2. **A CONSTRAINT PAIR AT THAT ADDRESS IS NO LONGER ASKED, AND THAT IS NOT A WEAKENING.** The pass evaluates the store's returned set; the set is now empty, so no pair is asked, nothing is repaired and nothing is refused — **on the same act, and on the same evidence `D-152` already used for the registration instants** (*"a registration that writes nothing fires nothing"*).
++3. **`triggered: []` CANNOT TELL YOU *"no registration stood"* FROM *"nothing changed."*** **The member is present either way and its emptiness is the same emptiness** — `D-78`'s device does not reach this axis. **`op.before` beside `op.after` is a second reading and a partial one**: at an address that stood at two tiers `op.before.value` is the per-tier list, so the two disagree with the rule at exactly the address the rule's price lives at.
++4. **THE GUIDE'S FIRING LIST, THE RE-ENTRANCY CLAUSE AND THE NATIVE CONTRACT ARE RE-SPELLED IN THIS RELEASE, IN PLACE.** `docs/guides/package-use.md §6`'s closed list gains the value condition; `docs/specs/storeroom-js/contract.md`'s *"a listener that writes at the address it was delivered for fires itself again … nothing detects it and nothing is meant to"* **becomes conditional on a value**; and `docs/specs/storeroom-native/contract.md`'s `P-TP-8` **(a)** and **(e)** gain it in one bounded amendment, with the failure list's *"a MISSING handle where a listener's address is a prefix of the write's"* re-cut with them — **because this release is the thing that now detects one form of that sentence.**
++
++**AND WHAT DOES NOT MOVE, NAMED SO THE NARROWING IS NOT READ WIDER THAN IT IS.**
++- **THE TOUCHED ARM IS NOT NARROWED.** A registration at a node a second identical STRUCTURED write creates or purges below it is still told, because those nodes *"exist after the write and did not before"* (`D-66`). **A re-write of the same object at `['a']` still fires a listener bound at `['a','b','c']`.**
++- **THE `delete` IS UNMOVED.** Its receipt is computed on the same one predicate and answers the act's value position `true` — a delete that removes at least one version moved the value at its address — **and a delete that removed nothing still carries `triggered: []`** (`D-3`).
++- **THE JOURNAL IS UNMOVED.** A no-change write **still mints its op**, `seq` still bumps, the compaction can still drop the oldest entry, **and `rollback(opId)` still resolves the id** (`P-TP-8` (g) holds *because* the op is minted).
++- **THE `file` SAVE OF A NO-CHANGE `file` WRITE STILL RUNS** — the same bytes are rewritten and the file's mtime moves. **A durable act that moved no durable datum is the accepted cost of not re-deciding the save's eligibility in the same release.**
++- **`log` KEEPS ITS ONE `commit` ENTRY** (`[]` is never that arm's answer), **`bodyFailures` and `returnedValues` are the one shared frozen `{}` present on both**, and **`discarded` is `[]` because no body ran and therefore no raise was born** — not because a raise was lost (`D-170`).
++- **NO NAME IS MINTED, RENAMED OR REMOVED.** A `changed` flag on the record was priced and **declined** (`D-195` item 2's `O-4`), so `Object.keys` is still `["op","watched","triggered"]` and `Object.getOwnPropertyNames` still reads SEVEN.
++
++**THE CELLS THAT CARRY THIS SECTION.** `CD-1`…`CD-16` (`tests/unit/store-core/change_detection.rs` and `tests/unit/js-constraints/change-detection.test.mjs`), **with `CD-2`, `CD-3` and `CD-9` asserting the ruling's two prices as DECLARED STATES** so a later pass cannot repair them as defects; and one existing drive is **re-derived, not weakened**: `tests/e2e/json-crossing.test.mjs`'s FRESHNESS limb gives its second write a different value, because its subject is the fresh array and not a firing count. **Two Rust drives are re-derived the same way and for the same reason** (`properties.rs`'s `P-TP-8` no-tier-test and kept cells, `watched_addresses.rs`'s `S-WATCH` `(iii)`), **each now varying the value its tiers carry so the tier-independence reading it exists for survives.**
++
++---
++
+ ## §2.0.0 · a MAJOR — the second claimed realm, the save arm it made possible, AND THE REMOVAL OF A PUBLISHED DECLARATION MEMBER: a WebAssembly build in its own package, three `cfg` keys' companions, a twenty-third status, two receipt accessors, and `JournalOp.compacted` gone from the record and the declaration
+ 
+ **⟶ THIS HEADING READ `§1.13.0 · a MINOR` UNTIL 2026-11-17, AND `D-158`'s CLASS IS SUPERSEDED — NOT WITHDRAWN.**
+diff --git a/bindings/js/README.guide.md b/bindings/js/README.guide.md
+index e472eb5..c7860dd 100644
+--- a/bindings/js/README.guide.md
++++ b/bindings/js/README.guide.md
+@@ -565,6 +565,19 @@ are the listener surface and not a repair's write. **AND A LISTENER BODY THAT TH
+ instants it refuses the act at rank `21` `ListenerBodyThrew` instead** (`§8.1`'s set, one member wider below;
+ `docs/specs/storeroom-js/surface.md §2.7` item 4's carve).
+ 
++**⟶ AND A `write` FIRES ONLY WHEN IT CHANGES THE VALUE THERE — THE FIRING LIST GAINS THE VALUE CONDITION, 2026-11-17 — `P-3`, `strata/decisions.md` · `D-193` AND `D-195`.** `RCA-8(g)` ANNOTATE-BESIDE: **the two clauses above — the shipped sentence and its `2026-11-06` correction — stand BYTE-FOR-BYTE and are read THROUGH this clause; no verb, no instant, no rank and no member moves — what moves is WHICH registrations a `write`'s list names.** **THE ARCHITECT, VERBATIM** (`D-193`): *"P-3 checks literal equivalence, not reference equality"*; **and** (`D-195`): *"Take the default on the blocker and proceed"*. **THE ONE SENTENCE: a `write` at an address whose value it does not change fires NOTHING — not the listeners at that address and not the listeners at any ADDRESS ABOVE IT** (an ancestor's value contains its subtree, and that did not move either). **THE FIVE ARMS, EACH WITH WHAT IT NOW MEANS, SO THE LIST ABOVE IS READ WHOLE:**
++
++1. **A `write`** — fires the registrations whose address is a prefix of its own **iff the literal it lands is not the literal an unqualified `read` already answers there** (`D-193` item 1: the comparison is on ONE LITERAL and not on the standing's per-tier list), **PLUS every registration at an address the act TOUCHED below it** — the nodes it created and the subtree of every version it purged — **and that second arm is NOT narrowed**: a second identical structured write still fires a registration below it, because those nodes *"exist after the write and did not before"* (`D-66`). **So a re-write of the same literal at a scalar address answers `triggered: []` and `watched: []`; a re-write of the same object with nodes below it fires those nodes' registrations and nothing above.**
++2. **A `delete`** — UNMOVED, and it is the second firing act for the same reason it always was: a delete that removed at least one version moved the value at its address, and a `delete` that removed nothing carries `triggered: []` (`D-3`).
++3. **A `rollback` whose judgement runs your pairs' repairs** — UNMOVED in its own right, and its DELIVERED set is the store's returned sets, so a repair whose write lands the literal already standing delivers nothing (`D-117`; `D-152`'s *"changed"* is READ AS ACT-EXISTENCE and its union narrows with the store's set — that is the accepted consequence of this release, not a defect).
++4. **The four REGISTRATION instants** — `storeCreate`, a boot over an existing `filePath`, `addConstraint` and a re-arm — UNMOVED, and each instant's delivery is narrowed by exactly the same rule, because it is the same returned set (item 1 above).
++5. **A READ STILL FIRES NOTHING, and `listen`/`register` themselves still fire nothing** — unmoved.
++
++**AND TWO THINGS THIS GUIDE MUST SAY PLAINLY BECAUSE A CONSUMER WILL MEET THEM.**
++
++- **THE TEST IS ON THE VALUE AND ON NOTHING ELSE, AND TWO OF ITS ANSWERS WILL SURPRISE YOU.** **`file 'V'` then `mem 'V'` fires NOTHING**, although `readTiered` now answers `{_tier:'mem'}` where it answered `{_tier:'file'}` and the address stands at two tiers where it stood at one; **and `0` written over a standing `-0` fires NOTHING**, although a constraint's own `sameStanding` would call the pair moved. **Both are the ruling's own price rather than a bug, and both are DECLARED here so that no later change "fixes" them** (`D-193` items 3 and 4: *"a later pass must not 'fix' this as a defect"*).
++- **`triggered: []` NOW CARRIES TWO CLAIMS AND CANNOT TELL THEM APART.** **(A)** *"no registration stood at a prefix of this act's address, and the act touched no registered address"* — the reading it has always carried; **and (B)** *"registrations stood, and the literal the act landed is the literal the address already answered."* **The member is present either way and its emptiness is the same emptiness**, so `[]` alone does not tell you which. **`record.op` is still there on both arms** — a no-change write still mints and still names its op — **and a `file`-tier no-change write still SAVES** (identical bytes, and the file's mtime moves), so do not infer *"nothing happened"* from `[]`: infer *"no listener was told"*.
++
+ ```js
+ const handle = store.listen('greeting-watch', [['greeting']]);   // YOU spell the handle; the addresses are a SET
+ store.register(handle, (address) => {                            // handle + your function
+diff --git a/bindings/js/RELEASE-NOTES.md b/bindings/js/RELEASE-NOTES.md
+index 8b0ad39..4ec61cf 100644
+--- a/bindings/js/RELEASE-NOTES.md
++++ b/bindings/js/RELEASE-NOTES.md
+@@ -55,6 +55,31 @@ the value to assert against, not the crate's own `Cargo.toml` version.
+ 
+ ---
+ 
++## §3.0.0 · a MAJOR — a `write` STOPS FIRING WHERE THE VALUE DID NOT MOVE: `triggered` and `watched` narrow together, a constraint pair at that address is no longer asked, and the two prices the ruling accepts are declared
++
++**⟶ AND THE NUMBER IN THIS HEADING IS THE ARCHITECT'S WORD AND NOT THIS PASS'S** (`strata/decisions.md` · `D-193` item 5's `Q-10`, whose default `D-195` item 2's `O-8` keeps — **the number remains the architect's word at the release act, and no pass mints it**). **THE CLASS IS SETTLED AND IT IS `MAJOR`** — a returned member's MEANING moves on a shipped verb, **and that is not smaller than a member leaving** — **`2.0.0` is spent** (this file's own generated line names it, and `scripts/publish.sh --figures` refuses on any disagreement), **so the next line by this file's own arithmetic is `3.0.0`. THIS SECTION MOVES NO OTHER BYTE: the main manifest, its five exact `optionalDependencies` pins, the six `platforms/*/package.json` versions and the three shipped documents' generated version lines all stand where `2.0.0` left them, and the bump is the release act's** (`D-124` item 3's discipline, kept by `D-190`). **A reader who sees this section at `3.0.0` is being told what the NEXT cut carries, not what a tag carries.**
++
++**THE RULING, VERBATIM** (`strata/decisions.md` · `D-193`): *"P-3 checks literal equivalence, not reference equality"*; and (`D-195`): *"Take the default on the blocker and proceed"*. **The class is this pass's reading of `D-190`'s precedent; the number is his.**
++
++**WHAT A CONSUMER ON `2.0.0` MEETS, AT EACH ENTRY POINT:**
++
++1. **`write` STOPS FIRING THE LISTENERS REGISTERED WHERE THE VALUE DID NOT MOVE.** A `write` that lands **the literal the address already stands at** answers the same record with **`triggered: []` and `watched: []`**, and no listener body runs — **at the act's address, and at every ANCESTOR of it**, because the ancestor's assembled value did not move either. **The test is on the literal and on nothing else:** `file V` then `mem V` **fires nothing** although `readTiered` moves from `file` to `mem`; a `mem V` then `file V` **fires nothing** although the `mem` version is destroyed; `-0` over `0` **fires nothing** although a reversal's judgement would call it moved. **`op` still records the landing, and a `file`-tier write still saves.**
++2. **A CONSTRAINT PAIR AT THAT ADDRESS IS NO LONGER ASKED, AND THAT IS NOT A WEAKENING.** The pass evaluates the store's returned set; the set is now empty, so no pair is asked, nothing is repaired and nothing is refused — **on the same act, and on the same evidence `D-152` already used for the registration instants** (*"a registration that writes nothing fires nothing"*).
++3. **`triggered: []` CANNOT TELL YOU *"no registration stood"* FROM *"nothing changed."*** **The member is present either way and its emptiness is the same emptiness** — `D-78`'s device does not reach this axis. **`op.before` beside `op.after` is a second reading and a partial one**: at an address that stood at two tiers `op.before.value` is the per-tier list, so the two disagree with the rule at exactly the address the rule's price lives at.
++4. **THE GUIDE'S FIRING LIST, THE RE-ENTRANCY CLAUSE AND THE NATIVE CONTRACT ARE RE-SPELLED IN THIS RELEASE, IN PLACE.** `docs/guides/package-use.md §6`'s closed list gains the value condition; `docs/specs/storeroom-js/contract.md`'s *"a listener that writes at the address it was delivered for fires itself again … nothing detects it and nothing is meant to"* **becomes conditional on a value**; and `docs/specs/storeroom-native/contract.md`'s `P-TP-8` **(a)** and **(e)** gain it in one bounded amendment, with the failure list's *"a MISSING handle where a listener's address is a prefix of the write's"* re-cut with them — **because this release is the thing that now detects one form of that sentence.**
++
++**AND WHAT DOES NOT MOVE, NAMED SO THE NARROWING IS NOT READ WIDER THAN IT IS.**
++- **THE TOUCHED ARM IS NOT NARROWED.** A registration at a node a second identical STRUCTURED write creates or purges below it is still told, because those nodes *"exist after the write and did not before"* (`D-66`). **A re-write of the same object at `['a']` still fires a listener bound at `['a','b','c']`.**
++- **THE `delete` IS UNMOVED.** Its receipt is computed on the same one predicate and answers the act's value position `true` — a delete that removes at least one version moved the value at its address — **and a delete that removed nothing still carries `triggered: []`** (`D-3`).
++- **THE JOURNAL IS UNMOVED.** A no-change write **still mints its op**, `seq` still bumps, the compaction can still drop the oldest entry, **and `rollback(opId)` still resolves the id** (`P-TP-8` (g) holds *because* the op is minted).
++- **THE `file` SAVE OF A NO-CHANGE `file` WRITE STILL RUNS** — the same bytes are rewritten and the file's mtime moves. **A durable act that moved no durable datum is the accepted cost of not re-deciding the save's eligibility in the same release.**
++- **`log` KEEPS ITS ONE `commit` ENTRY** (`[]` is never that arm's answer), **`bodyFailures` and `returnedValues` are the one shared frozen `{}` present on both**, and **`discarded` is `[]` because no body ran and therefore no raise was born** — not because a raise was lost (`D-170`).
++- **NO NAME IS MINTED, RENAMED OR REMOVED.** A `changed` flag on the record was priced and **declined** (`D-195` item 2's `O-4`), so `Object.keys` is still `["op","watched","triggered"]` and `Object.getOwnPropertyNames` still reads SEVEN.
++
++**THE CELLS THAT CARRY THIS SECTION.** `CD-1`…`CD-16` (`tests/unit/store-core/change_detection.rs` and `tests/unit/js-constraints/change-detection.test.mjs`), **with `CD-2`, `CD-3` and `CD-9` asserting the ruling's two prices as DECLARED STATES** so a later pass cannot repair them as defects; and one existing drive is **re-derived, not weakened**: `tests/e2e/json-crossing.test.mjs`'s FRESHNESS limb gives its second write a different value, because its subject is the fresh array and not a firing count. **Two Rust drives are re-derived the same way and for the same reason** (`properties.rs`'s `P-TP-8` no-tier-test and kept cells, `watched_addresses.rs`'s `S-WATCH` `(iii)`), **each now varying the value its tiers carry so the tier-independence reading it exists for survives.**
++
++---
++
+ ## §2.0.0 · a MAJOR — the second claimed realm, the save arm it made possible, AND THE REMOVAL OF A PUBLISHED DECLARATION MEMBER: a WebAssembly build in its own package, three `cfg` keys' companions, a twenty-third status, two receipt accessors, and `JournalOp.compacted` gone from the record and the declaration
+ 
+ **⟶ THIS HEADING READ `§1.13.0 · a MINOR` UNTIL 2026-11-17, AND `D-158`'s CLASS IS SUPERSEDED — NOT WITHDRAWN.**
+diff --git a/bindings/js/index.d.ts b/bindings/js/index.d.ts
+index 0f5da22..74524a5 100644
+--- a/bindings/js/index.d.ts
++++ b/bindings/js/index.d.ts
+@@ -714,8 +714,47 @@ export interface JournalOp {
+  */
+ export interface WriteRecord {
+   readonly op: JournalOp;
++  /**
++   * **THE WATCHED ADDRESSES — THE ADDRESS PROJECTION OF `triggered`, AND FROM `P-3` IT NARROWS WITH IT.**
++   * `strata/decisions.md` · `D-195` item 1 (*"Take the default on the blocker and proceed"*) settles what
++   * `D-193` left open: the store's own projection law says the two lists are produced by ONE predicate, so
++   * **a write that changes nothing at its address answers `[]` here TOO** — see `triggered`'s clause below,
++   * which is the one that carries the rule.
++   */
+   readonly watched: readonly Address[];
+-  /** **THE TRIGGER'S PAIRS** (`contract.md §2.4` item 1; `PAR-HL-38`): the pair REPLACES a bare handle list. */
++  /**
++   * **THE TRIGGER'S PAIRS** (`contract.md §2.4` item 1; `PAR-HL-38`): the pair REPLACES a bare handle list.
++   *
++   * **★ AND FROM `P-3` A `write` FIRES ONLY REGISTRATIONS THE ACT'S OWN VALUE REACHES — `strata/decisions.md` ·
++   * `D-193` item 1, the architect, VERBATIM: *"P-3 checks literal equivalence, not reference equality"*.** **A
++   * `write` whose literal is the literal the address already answers answers `triggered: []`** — the prefix
++   * arm gains the act's value condition, **while the TOUCHED arm does not**: a registration at a node the act
++   * created or purged below it is still told (`D-66`; `Q-6`'s default, which no later pass may narrow).
++   * **THE COMPARISON IS ON ONE LITERAL AND NOT ON THE PER-TIER LIST** (`D-193` item 1: at an address standing
++   * at two tiers the compared literal is the one an unqualified read answers), **the relation is the store's own
++   * value equality** (class-strict and key-order-blind), **and two prices are DECLARED rather than repaired**:
++   * `file 'V'` then `mem 'V'` **fires nothing** although `readTiered` moves, and `0` over a standing `-0`
++   * **fires nothing** although a constraint's `sameStanding` would call the pair moved (`D-193` items 3 and 4:
++   * *"a later pass must not 'fix' this as a defect"*). **The suppression reaches a CONSTRAINT PAIR at that
++   * address too** (`D-193` item 5's `Q-5`): the pass evaluates this list, so an empty list asks no pair.
++   *
++   * **⟶ AND THE `D-78` SENTENCE THIS MEMBER OWES, WHICH IS NOT `D-78`'s SHAPE — WHAT YOU MAY CONCLUDE FROM
++   * `[]`.** `docs/specs/storeroom-js/surface.md:235`'s device (`D-78`) draws its axis between an ABSENT member
++   * and an EMPTY list — *"this act cannot discard a raise"* versus *"it can, and this time nothing was
++   * discarded"* — and its remedy is to make the member present so it can say so. **HERE THE MEMBER IS PRESENT IN
++   * BOTH READINGS AND THE AMBIGUITY IS INSIDE ONE ARRAY**, so the declared reading is the one the architect's
++   * default leaves (`D-195` item 2's `O-4`): **`[]` carries TWO claims and CANNOT TELL THEM APART** — **(A)**
++   * *"no registration stood at a prefix of this act's address, and the act touched no registered address"*, and
++   * **(B)** *"registrations stood, and the literal the act landed is the literal the address already
++   * answered."* **BOTH ARE TRUE OF IT, AND `[]` ALONE DOES NOT SAY WHICH.** **What you may rely on therefore:** a
++   * listener you registered at a prefix of a `write`'s address was **not** invoked, and **nothing in the record
++   * says why** — **`op` is present on both arms** (a no-change write still mints its op and its `opId` still
++   * resolves through `rollback`), and **a `file`-tier no-change write still saves**, so `[]` never means *"the
++   * act did not happen"*. **`op.before` beside `op.after` is a SECOND reading and a PARTIAL one**: where an
++   * address stood at two tiers `op.before.value` is the per-tier LIST, so the two disagree with the rule at
++   * exactly the address the rule's price lives at (`D-193` item 3). **A typed `changed` flag is NOT on this
++   * surface and was not minted** (`O-4`'s default (i), declared rather than added).
++   */
+   readonly triggered: readonly TriggerPair[];
+   /**
+    * **THE DISCARD'S WITNESS — PRESENT ON THIS RECORD AT RUNTIME, AND DECLARED HERE RATHER THAN AS A TYPED
+diff --git a/docs/guides/package-use.md b/docs/guides/package-use.md
+index e472eb5..c7860dd 100644
+--- a/docs/guides/package-use.md
++++ b/docs/guides/package-use.md
+@@ -565,6 +565,19 @@ are the listener surface and not a repair's write. **AND A LISTENER BODY THAT TH
+ instants it refuses the act at rank `21` `ListenerBodyThrew` instead** (`§8.1`'s set, one member wider below;
+ `docs/specs/storeroom-js/surface.md §2.7` item 4's carve).
+ 
++**⟶ AND A `write` FIRES ONLY WHEN IT CHANGES THE VALUE THERE — THE FIRING LIST GAINS THE VALUE CONDITION, 2026-11-17 — `P-3`, `strata/decisions.md` · `D-193` AND `D-195`.** `RCA-8(g)` ANNOTATE-BESIDE: **the two clauses above — the shipped sentence and its `2026-11-06` correction — stand BYTE-FOR-BYTE and are read THROUGH this clause; no verb, no instant, no rank and no member moves — what moves is WHICH registrations a `write`'s list names.** **THE ARCHITECT, VERBATIM** (`D-193`): *"P-3 checks literal equivalence, not reference equality"*; **and** (`D-195`): *"Take the default on the blocker and proceed"*. **THE ONE SENTENCE: a `write` at an address whose value it does not change fires NOTHING — not the listeners at that address and not the listeners at any ADDRESS ABOVE IT** (an ancestor's value contains its subtree, and that did not move either). **THE FIVE ARMS, EACH WITH WHAT IT NOW MEANS, SO THE LIST ABOVE IS READ WHOLE:**
++
++1. **A `write`** — fires the registrations whose address is a prefix of its own **iff the literal it lands is not the literal an unqualified `read` already answers there** (`D-193` item 1: the comparison is on ONE LITERAL and not on the standing's per-tier list), **PLUS every registration at an address the act TOUCHED below it** — the nodes it created and the subtree of every version it purged — **and that second arm is NOT narrowed**: a second identical structured write still fires a registration below it, because those nodes *"exist after the write and did not before"* (`D-66`). **So a re-write of the same literal at a scalar address answers `triggered: []` and `watched: []`; a re-write of the same object with nodes below it fires those nodes' registrations and nothing above.**
++2. **A `delete`** — UNMOVED, and it is the second firing act for the same reason it always was: a delete that removed at least one version moved the value at its address, and a `delete` that removed nothing carries `triggered: []` (`D-3`).
++3. **A `rollback` whose judgement runs your pairs' repairs** — UNMOVED in its own right, and its DELIVERED set is the store's returned sets, so a repair whose write lands the literal already standing delivers nothing (`D-117`; `D-152`'s *"changed"* is READ AS ACT-EXISTENCE and its union narrows with the store's set — that is the accepted consequence of this release, not a defect).
++4. **The four REGISTRATION instants** — `storeCreate`, a boot over an existing `filePath`, `addConstraint` and a re-arm — UNMOVED, and each instant's delivery is narrowed by exactly the same rule, because it is the same returned set (item 1 above).
++5. **A READ STILL FIRES NOTHING, and `listen`/`register` themselves still fire nothing** — unmoved.
++
++**AND TWO THINGS THIS GUIDE MUST SAY PLAINLY BECAUSE A CONSUMER WILL MEET THEM.**
++
++- **THE TEST IS ON THE VALUE AND ON NOTHING ELSE, AND TWO OF ITS ANSWERS WILL SURPRISE YOU.** **`file 'V'` then `mem 'V'` fires NOTHING**, although `readTiered` now answers `{_tier:'mem'}` where it answered `{_tier:'file'}` and the address stands at two tiers where it stood at one; **and `0` written over a standing `-0` fires NOTHING**, although a constraint's own `sameStanding` would call the pair moved. **Both are the ruling's own price rather than a bug, and both are DECLARED here so that no later change "fixes" them** (`D-193` items 3 and 4: *"a later pass must not 'fix' this as a defect"*).
++- **`triggered: []` NOW CARRIES TWO CLAIMS AND CANNOT TELL THEM APART.** **(A)** *"no registration stood at a prefix of this act's address, and the act touched no registered address"* — the reading it has always carried; **and (B)** *"registrations stood, and the literal the act landed is the literal the address already answered."* **The member is present either way and its emptiness is the same emptiness**, so `[]` alone does not tell you which. **`record.op` is still there on both arms** — a no-change write still mints and still names its op — **and a `file`-tier no-change write still SAVES** (identical bytes, and the file's mtime moves), so do not infer *"nothing happened"* from `[]`: infer *"no listener was told"*.
++
+ ```js
+ const handle = store.listen('greeting-watch', [['greeting']]);   // YOU spell the handle; the addresses are a SET
+ store.register(handle, (address) => {                            // handle + your function
+diff --git a/docs/specs/storeroom-js/contract.md b/docs/specs/storeroom-js/contract.md
+index be1dedb..0faa412 100644
+--- a/docs/specs/storeroom-js/contract.md
++++ b/docs/specs/storeroom-js/contract.md
+@@ -2182,7 +2182,15 @@ properties below are its elaboration.**
+    imposes one — a nested chain precedes the window's next listener — and the machine provides that guarantee
+    while no clause promises it, so a consumer relying on the opposite relies on nothing.** **(iii) RE-ENTRANCY IS
+    UNAVOIDABLY OPEN**: a listener that writes at the address it was delivered for fires itself again, because the
+-   store's trigger set is computed per act; nothing detects it and nothing is meant to. **(iv) NOTHING ABOVE SEES
++   store's trigger set is computed per act; nothing detects it and nothing is meant to. **⟶ AND THAT SENTENCE IS
++   CONDITIONAL ON A VALUE FROM 2026-11-17 — `P-3`, `strata/decisions.md` · `D-193`, the architect VERBATIM:
++   *"P-3 checks literal equivalence, not reference equality"*.** **THE OPERATIVE READING: a listener that writes **A
++   DIFFERENT LITERAL** at the address it was delivered for fires itself again** — the re-entrancy this item declares
++   **STANDS WHOLE** — **and a listener that writes the literal already standing there fires NOTHING, itself
++   included**, because `triggered` is computed on the literal and not on the act (`D-195` item 1: `watched` narrows
++   with it). **SO ONE FORM OF SELF-RETRIGGERING IS NOW DETECTED, AND THE ITEM'S *"nothing detects it"* IS READ AS
++   *"nothing detects a listener that writes a value"***; **no depth becomes bounded, no guard is added, and the other
++   half of the item — nothing is meant to — is unmoved.** **(iv) NOTHING ABOVE SEES
+    BELOW** (`D-71`): a nested commit's outcome, refusal and record are invisible upward, so a chain that fails at
+    depth three is indistinguishable, to the original caller, from one that never ran.
+ 4. **MEASURED ON THIS TREE, THROUGH THE PUBLISHED ENTRY, 2026-10-29.** **A listener at `['a']` whose body writes
+diff --git a/docs/specs/storeroom-native/contract.md b/docs/specs/storeroom-native/contract.md
+index e113507..85cd91b 100644
+--- a/docs/specs/storeroom-native/contract.md
++++ b/docs/specs/storeroom-native/contract.md
+@@ -3025,6 +3025,13 @@ could not see.** **The row's SUBJECT is unchanged — a registration surface who
+ of the store's addresses, together with the journal's own totality — and only the surface it names is now
+ the listener's.**
+ 
++**⟶ AMENDED 2026-11-17, AT THIS CONTRACT'S VALUE-CONDITION BOUNDED AMENDMENT (`P-3`), ON `strata/decisions.md` · `D-193` AND `D-195`** (`RCA-8(d)` ANNOTATE-BESIDE: **the row below — *"Property, as RE-DERIVED"*, its halves `(a)`…`(g)` and its failure list — STANDS BYTE-FOR-BYTE AND IS READ THROUGH THIS CLAUSE, WHICH IS THE OPERATIVE STATEMENT OF HALVES `(a)` AND `(e)`; the row id, the row COUNT and the register's `≤ 8` cap are UNMOVED — this amendment REPLACES two halves' text and the first member of one failure list, and adds no row** (`AR-5`'s condition; `§0.1` item 5's cap algebra: `8 ≤ 8` ✓; the form the row has taken twice before, `:3015`–`:3020` and `:3672`–`:3684`) | `[T: the row's two list halves under the act's own value condition, and the failure list's first member re-cut with them (`D-193` item 1; `D-195` item 1) | CONTRACT]`).
++**THE RULINGS, THE ARCHITECT, VERBATIM:** `D-193` — *"P-3 checks literal equivalence, not reference equality"*; `D-195` — *"Take the default on the blocker and proceed"*. **`D-193`'s four settled consequences are NOT re-opened here** (one literal and not the per-tier list, `item 1`; the store's own `PartialEq` over `StoreValue`, `item 1`; `file V` then `mem V` fires nothing although `readTiered` moves, `item 3`; `0` over a standing `-0` fires nothing, `item 4`), **and neither are its four standing defaults** (`item 5`: the op is minted, the receipt is the same one with `triggered: []`, the suppression reaches the constraints, the class is its own `MAJOR`).
++**WHAT MOVES, IN TWO SENTENCES AND NO THIRD.** **(1) HALF `(a)`'s PREFIX ARM GAINS THE ACT'S OWN VALUE CONDITION.** *"`WriteResult.triggered` is EXACTLY the set of `handle`s whose registration stands at an address `W` that is a PREFIX of `X` … **or** that the act TOUCHED"* is read as: **the prefix arm admits `W` iff `W` is a prefix of `X` **AND the act CHANGED THE LITERAL AT `X`** — the value an unqualified read answers at `X` is not the literal the act lands** (`D-193` item 1: **the subject is ONE LITERAL and NOT the per-tier list**, so the compared literal is the lowest-rank version's assembled value, **the unqualified read's own answer**, and the relation is the store's `PartialEq` over `StoreValue`) — **and the touched arm is UNMOVED, because a node the act created or purged *"has a value that changed"*** (`D-66`'s own derivation, `strata/decisions.md:3765`–`:3769`; `Q-6`'s default). **SO `NO MEMBER is added and none omitted` IS READ OVER THE CONDITIONED SET, and a no-change write's prefix set is EMPTY where nothing was touched.** **(2) HALF `(e)` MOVES WITH IT, IN THIS SAME BOUNDED AMENDMENT.** **`WriteResult.watched` REMAINS EXACTLY THE ADDRESS PROJECTION OF `triggered`**, and it therefore carries *"no member added, none omitted"* **over the same conditioned set** — `D-195` item 1, and the store's own projection law is its ground: *"the two lists must be produced by ONE predicate or the projection is false"* (`src/store.rs:2567`–`:2570`). **THERE WAS NO THIRD ARM**: either (e) moves beside (a) or the store's own sentence is false.
++**AND NOTHING ELSE OF THE ROW MOVES.** **The touched arm is not narrowed** (`Q-6`: the descendant arm is the criterion's second half) · **`(b)`'s `delete` half is UNMOVED** (its predicate call answers the value position `true`: a delete that reaches it removed at least one version, `D-193`'s subject is a `write`'s literal, and the removed-nothing arm still carries `triggered: []` by `D-3`) · **`(c)` the one home, `(d)` the borrows, `(f)` the order and `(g)` the journal half are UNMOVED** — **`(g)` holds BECAUSE a no-change write still MINTS its op** (`D-193` item 5: `WriteRecord.op` is non-optional, and `rollback(opId)` still resolves it).
++**THE FIRST MEMBER OF THE ROW'S FAILURE LIST IS RE-CUT WITH THEM, NOT WITHDRAWN.** **The old words** (`:3150`–`:3151`): *"**a MISSING handle where a listener's address is a prefix of the write's**"*. **The operative reading: a MISSING handle where a listener's address is a prefix of the write's AND THE WRITE CHANGED THE LITERAL AT ITS OWN ADDRESS.** **A listener whose address is a prefix of a write that landed the literal already standing is NOW CORRECTLY SILENT and its absence is the shipped behaviour** (`D-195` item 1: *"the failure list's … row becomes the shipped behaviour and is re-cut with them"*); **every other member of the list stands byte-for-byte, and *"a handle returned where no listener's address is a prefix"* gains no condition** — the touched arm can still admit one, exactly as before.
++**AND THE PRICES THE RULING ACCEPTS ARE DECLARED HERE SO THAT NO LATER PASS REPAIRS THEM AS DEFECTS.** **`file V` then `mem V` fires nothing although `readTiered` answers `{_tier:'mem'}` where it answered `{_tier:'file'}` and the address stands at two tiers where it stood at one** (`D-193` item 3), **and `0` over a standing `-0` fires nothing although the reversal's judgement would call the same pair moved** (`D-193` item 4). **Both are the reading's own price and neither is a defect.** **THE CLASS IS `MAJOR`** (`D-193` item 5's `Q-10`): a returned member's MEANING moves on a shipped verb, which is not smaller than a member leaving; **the number itself is the architect's and is not minted by this amendment.**
++
+ - **Property, as RE-DERIVED.** **(a) THE HANDLE SET IS EXACTLY THE TRIGGERED SET.** **After any successful
+   `write` at address `X` with the write's tier `t`, `WriteResult.triggered` is EXACTLY the set of `handle`s
+   whose registration stands at an address `W` that is a PREFIX of `X` (descendant-inclusive, `DD-18`) **or
+diff --git a/src/store.rs b/src/store.rs
+index bef6842..3b73567 100644
+--- a/src/store.rs
++++ b/src/store.rs
+@@ -2526,7 +2526,16 @@ impl Store {
+     /// lists are *"an INDEX FOR LOOKUP COST only"*, and *"the same two sets must be produced whether the
+     /// index is consulted or the home is scanned"* — so the selection below reads the home directly and no
+     /// membership depends on a node's lifetime (`A46`) or on the `active`/`carried` split (`A47`).
+-    fn triggered_for(&self, address: &[Segment], touched: &[Vec<Segment>]) -> Vec<ListenerTrigger> {
++    ///
++    /// **⟶ AND THE ACT'S VALUE CONDITION REACHES THIS FILTER, 2026-11-17 — `P-3`, `D-193` item 1.** **`changed`
++    /// is the act's own answer and it is handed to `registration_triggered`, which wraps THE PREFIX ARM ALONE**
++    /// (that function's clause); **the touched arm is not narrowed, and `Q-6`'s default is what forbids it.**
++    fn triggered_for(
++        &self,
++        address: &[Segment],
++        touched: &[Vec<Segment>],
++        changed: bool,
++    ) -> Vec<ListenerTrigger> {
+         // **`F-9`: THE MAP'S OWN MEMBERS ARE ITERATED — each address's own bucket, in the map's own
+         // iteration — and no keyed scan of a linear home runs.**
+         //
+@@ -2545,7 +2554,7 @@ impl Store {
+         // admits a registration whose own address the act TOUCHED**, whichever kind it is.
+         self.home
+             .members()
+-            .filter(|listener| registration_triggered(&listener.address, address, touched))
++            .filter(|listener| registration_triggered(&listener.address, address, touched, changed))
+             .map(|listener| ListenerTrigger {
+                 handle: listener.handle.clone(),
+                 address: listener.address.clone(),
+@@ -2560,7 +2569,19 @@ impl Store {
+     /// with its OWN handle"*, adopted VERBATIM and never re-minted (`§0.4` clause 2 (b)) — **and there the
+     /// address is one member while both handles fire; `listen` itself never adds a second entry at an
+     /// address the home already holds** (`§6.5` item 12 (c)).
+-    fn watched_for(&self, address: &[Segment], touched: &[Vec<Segment>]) -> Vec<Vec<Segment>> {
++    ///
++    /// **⟶ AND `watched` NARROWS WITH `triggered`, 2026-11-17 — `P-3`, `D-195` item 1.** **The act's value
++    /// condition reaches this filter through the SAME `registration_triggered` call**, which is the whole of
++    /// the store's own projection law read as the amendment it forced: *"the two lists must be produced by ONE
++    /// predicate or the projection is false"* (`:2588`–`:2591`), and `P-TP-8` (e) is amended beside (a) in the
++    /// same bounded amendment for exactly that reason. **So a no-change write answers `[]` here too — the
++    /// projection of an empty prefix set — and no arm of this function decides that on its own.**
++    fn watched_for(
++        &self,
++        address: &[Segment],
++        touched: &[Vec<Segment>],
++        changed: bool,
++    ) -> Vec<Vec<Segment>> {
+         let mut watched: Vec<Vec<Segment>> = Vec::new();
+         // **`F-9`: the home's own members, one member per distinct address** — the set is the addresses the
+         // map's entries carry, and the DISTINCT rule (`§6.5` item 2's kept half) is applied as they walk.
+@@ -2569,7 +2590,7 @@ impl Store {
+         // must be produced by ONE predicate or the projection is false: **a registration the act touched below
+         // stands in the trigger set, and its address therefore stands here too.**
+         for listener in self.home.members() {
+-            if registration_triggered(&listener.address, address, touched)
++            if registration_triggered(&listener.address, address, touched, changed)
+                 && !watched.contains(&listener.address)
+             {
+                 watched.push(listener.address.clone());
+@@ -2914,6 +2935,47 @@ impl Store {
+             .iter()
+             .copied()
+             .min_by_key(|reference| self.refs[*reference].anchor.tier.rank());
++        // **⟶ ADDED 2026-11-17 — `P-3`'S COMPARISON, AND IT IS ONE BOOLEAN ON TWO LITERALS** (`docs/L3/
++        // change-detection/design.md` §2.1–§2.2; `strata/decisions.md` · `D-193`, the architect, VERBATIM:
++        // *"P-3 checks literal equivalence, not reference equality"*).
++        //
++        // **THE BEFORE LITERAL IS THE ASSEMBLED VALUE OF THE LOWEST-RANK VERSION STANDING AT THE PAIR**, read
++        // out of the `Vec<Captured>` `capture` took just above: **its own-node entries carry `assemble_all`'s
++        // answer already** (`capture`'s `:2180`, and it assembles EVERY standing version whether or not
++        // anything reads it), **so this comparison adds NO assembly, NO walk, NO member and NO second
++        // materialisation.** **THE AFTER LITERAL IS THE `value` ARGUMENT the act lands**, which is the same
++        // literal the record's `after` carries at `:3038`–`:3041`. **THE RELATION IS `StoreValue`'s derived
++        // `PartialEq`** (`src/value.rs:15`) — class-strict for free (the variant tag is part of the compare),
++        // key-order-blind for free (`Object` is a `BTreeMap`, `:22`), `-0 == 0` true (inherited through
++        // `f64`, `D-193` item 4's price), `NaN` unreachable (`NonFinite` is its own variant, `:30`, and
++        // `is_admitted` refuses it, `:42`).
++        //
++        // **WHY THE LOWEST RANK, STATED AS THE DERIVATION IT IS** (`D-193` item 5's `O-2`, taken by `D-195`
++        // item 2): the ruling fixes the subject at **ONE LITERAL and not the per-tier list** (`D-193` item 1),
++        // and the only tier-blind single literal an address standing at two versions has is **the one an
++        // unqualified read answers** — `state_now`'s own selection, whose `canonical` sorts by `rank()`
++        // ascending (`:1298`–`:1301`, realised at `:2405`–`:2417`). **IT IS ALSO WHY `state_from_captured`'s
++        // ANSWER IS NOT THIS OPERAND**: where two versions stood, that answers the per-tier LIST (`:2375`–
++        // `:2382`), which the ruling puts outside the subject. `op.before` keeps that list (`:2969`); the
++        // comparison reads the one literal.
++        //
++        // **ABSENCE NEEDS NO BRANCH, AND THAT IS A CONSEQUENCE OF THE TAXONOMY AND NOT OF A TEST**:
++        // `Undefined` is not admitted (`src/value.rs:39`–`:47`), so a first write compares the absent state's
++        // `Undefined` against an admitted literal and the compare cannot succeed — `D-193` item 2. `D-66`'s
++        // own sentence declares it besides: a node the act created *"exists after the write and did not
++        // before"*, so it *"has a value that changed"*.
++        //
++        // **AND IT IS TAKEN HERE BECAUSE THIS IS THE LAST INSTANT THE PRE-LITERAL EXISTS**: `remove_refs`
++        // below (`:3029`) destroys the versions it is assembled from, and the arena rows are the removal's
++        // afterwards (`touched_below`'s own recorded lesson, taken *"BEFORE THEY LEAVE THE ARENA"*).
++        let changed = match captured
++            .iter()
++            .filter(|entry| entry.path.is_empty() && entry.under.is_none())
++            .min_by_key(|entry| entry.tier.rank())
++        {
++            Some(entry) => entry.value != value,
++            None => true,
++        };
+         // `F-4`: the value's kind contradicts the TARGET's container kind (`DD-19`: one code, both
+         // directions, and the container, the node and the journal stay untouched).
+         if let Some(reference) = selected {
+@@ -3003,8 +3065,15 @@ impl Store {
+         } else {
+             self.touched_below(&segments, &captured, &doomed_tiers, Some(&value))
+         };
+-        let watched = self.watched_for(&segments, &touched);
+-        let triggered = self.triggered_for(&segments, &touched);
++        // **⟶ AND BOTH LISTS TAKE THE ACT'S OWN VALUE CONDITION, 2026-11-17 — `P-3`, `D-193` item 1 and
++        // `D-195` item 1.** The two lists are the SAME set seen twice (`§5.8`'s re-derived `(vi)(3)`), so the
++        // one boolean goes to the ONE predicate both of them read: **`watched` narrows with `triggered`
++        // because they are one call and not two rules**, and **the term wraps the prefix arm alone inside
++        // that predicate, so the TOUCHED arm is not narrowed** (the design's §9; `Q-6`'s default). **No
++        // short-circuit of these two lists stands here and none may be added**: `if !changed { (vec![], vec![])
++        // }` would read as the same optimisation and would silently narrow the touched arm.
++        let watched = self.watched_for(&segments, &touched, changed);
++        let triggered = self.triggered_for(&segments, &touched, changed);
+         // **⟶ AMENDED 2026-10-15 (`contract.md §7.2` item 1, read with `surface.md §2.11` clause 1): THE
+         // WRITE RECORDS, INSTALLS, APPENDS AND RETURNS ITS `WriteResult` ON EVERY TIER AND PERFORMS NO FILE
+         // I/O ON ANY OF ITS ARMS.** **THE `file` TIER'S DURABLE COMMIT IS NO LONGER A VERB'S ARM AT ALL: it
+@@ -3182,7 +3251,14 @@ impl Store {
+         let op = self.append(op, captured, after_state, home);
+         // **`§6.5` item 11 / `§5.8` (b): THE DELETE IS THE SECOND TRIGGER EVENT** (`A43`) — the receipt
+         // carries the handles of the listeners the trigger fired, selected by the SAME prefix rule.
+-        let triggered = self.triggered_for(&segments, &touched);
++        //
++        // **⟶ AND THE VALUE POSITION ANSWERS `true`, 2026-11-17 — `P-3`, `D-193` item 1's own subject.** A
++        // `write`'s literal is what the ruling compares, and **a delete that reaches this line has already
++        // returned at its `removed.is_empty()` arm above** (`:3167`–`:3178`: `triggered: []`, `op: None`, no
++        // entry), **so it removed at least one version and the value at its address did move.** The delete's
++        // rows are UNMOVED by `P-3` (`§7`'s scope is `write` alone), and the position exists so that no later
++        // arm can pass the term by omission.
++        let triggered = self.triggered_for(&segments, &touched, true);
+         Ok(DeleteReceipt {
+             address: segments,
+             tiers,
+@@ -4195,12 +4271,42 @@ fn is_prefix(prefix: &[Segment], address: &[Segment]) -> bool {
+ /// below it moves it; **and a node the act CREATED OR PURGED has a value that changed, so its own registration
+ /// is reached.** An address that is neither above the act nor touched by it is NOT reached: `['a','b','e']`
+ /// stays silent for a write at `['a','b']` with `{c, d}` (`D-66`'s own example).
++///
++/// **⟶ AMENDED 2026-11-17 — `P-3`: THE PREFIX ARM GAINS THE ACT'S OWN VALUE CONDITION, AND THE TOUCHED ARM
++/// DOES NOT** (`docs/L3/change-detection/design.md` §4.1; `strata/decisions.md` · `D-193` item 1, the
++/// architect VERBATIM: *"P-3 checks literal equivalence, not reference equality"*, and `D-195` item 1:
++/// **`watched` NARROWS WITH `triggered`**). **THE TERM WRAPS THE PREFIX ARM ALONE**:
++///
++/// ```text
++/// (changed && is_prefix(registration, address)) || touched.iter().any(|path| path == registration)
++/// ```
++///
++/// **THE ANNOTATE-BESIDE NOTE THE TWO ARMS' SENTENCES ABOVE ARE READ THROUGH: nothing of them moves.** The
++/// criterion is still ONE and its second half still grounds the touched arm, **because a node the act created
++/// or purged *"has a value that changed"*** — `D-66`'s own derivation (`strata/decisions.md:3765`–`:3769`) —
++/// **so the value condition belongs to the ancestor arm, which is the arm that reads the ADDRESS's assembled
++/// literal, and it must never be lifted over both arms.**
++///
++/// **★ AND THIS IS THE UNIT'S RISKIEST LINE, PRINTED AS THE FAILURE IT PREVENTS** (the design's §9; `D-194`
++/// item 5): a short-circuit of the two RETURNED LISTS where `changed` is false — `if !changed { (Vec::new(),
++/// Vec::new()) }` at the write's two call sites — reads as the same optimisation and **SILENTLY NARROWS THE
++/// TOUCHED ARM**, so a second identical structured write would stop firing a registration below it at
++/// `['a','b','c']`. **`Q-6`'s default forbids that and `CD-6` is the cell that catches it**; `D-193` item 5's
++/// `Q-5` narrows the KERNEL'S PASS by consequence and never the reach.
++///
++/// **`changed` IS THE ACT'S OWN ANSWER, HANDED IN BY THE VERB THAT PERFORMED IT** — the write computes it on
++/// its two literals (`write`'s own clause), and **a `delete` passes `true`**, because `D-193`'s subject is a
++/// `write`'s literal and a delete that reaches this predicate at all has removed at least one version, so the
++/// value at its address did move. **The position exists so that a later arm cannot pass the term by
++/// omission.**
+ fn registration_triggered(
+     registration: &[Segment],
+     address: &[Segment],
+     touched: &[Vec<Segment>],
++    changed: bool,
+ ) -> bool {
+-    is_prefix(registration, address) || touched.iter().any(|path| path == registration)
++    (changed && is_prefix(registration, address))
++        || touched.iter().any(|path| path == registration)
+ }
+ 
+ /// **ONE VALUE'S PATH SET, APPENDED UNDER `prefix`** — the walk `Store::touched_below` states the rule of. Each
+diff --git a/tests/e2e/creation-sweep-listeners.test.mjs b/tests/e2e/creation-sweep-listeners.test.mjs
+index 20b7ff3..e62de66 100644
+--- a/tests/e2e/creation-sweep-listeners.test.mjs
++++ b/tests/e2e/creation-sweep-listeners.test.mjs
+@@ -380,14 +380,25 @@ test('CSW-08 · ONE INVOCATION PER DISTINCT HANDLE (`PIN-6` (iii); `D-125` item
+   store.register(bound, rearm.listener);
+   store.write(['w1'], 'mem', { k: 0 });
+   store.write(['w2'], 'mem', { k: 0 });
++  // **⟶ AND THE REPAIR'S TWO BESIDE WRITES CARRY A LITERAL DERIVED FROM THE RUN, 2026-11-17 — `P-3`
++  // (`strata/decisions.md` · `D-193` item 1: *"P-3 checks literal equivalence, not reference equality"*).** **THE
++  // BODY RUNS TWICE IN THIS DRIVE — at `addConstraint` and at the RE-ARM — and the constant it used to write (`1`)
++  // therefore left the re-arm's second pair of writes landing the literals the first pair had already landed: two
++  // NO-CHANGE WRITES, `triggered: []` twice, an empty union and NO delivery — so this cell's subject (*"the re-arm's
++  // repair fires the handle once, though its two writes name it at two addresses"*) had no subject.** **THE
++  // SUBJECT IS UNMOVED AND IS ASSERTED WHOLE**: the repair's two writes still name the handle at TWO addresses, the
++  // running list is still held across the per-address `deliver` calls, and the handle fires ONCE. **The literal is
++  // a counter so every run is a change**, which is the only thing this re-derivation moves.
++  let repairRuns = 0;
+   const body = (context) => {
+     if (context.value !== undefined) return true;
+     return {
+       message: '`["h"]` must exist',
+       repair: (record) => {
++        repairRuns += 1;
+         const landed = record.write(['h'], 'mem', 'settled').op;
+-        record.write(['w1', 'k'], 'mem', 1);
+-        record.write(['w2', 'k'], 'mem', 1);
++        record.write(['w1', 'k'], 'mem', repairRuns);
++        record.write(['w2', 'k'], 'mem', repairRuns);
+         return { ok: true, op: landed };
+       },
+     };
+diff --git a/tests/e2e/held-listener-identity-properties.test.mjs b/tests/e2e/held-listener-identity-properties.test.mjs
+index 4ac762c..4b50dbf 100644
+--- a/tests/e2e/held-listener-identity-properties.test.mjs
++++ b/tests/e2e/held-listener-identity-properties.test.mjs
+@@ -717,7 +717,18 @@ test('hli_prop_P_HL_4_a_mid_pass_registration_enters_the_next_pass_and_no_earlie
+       assert.equal(firstChecked.includes(lateId), false,
+         'THE MID-PASS REGISTRATION IS ABSENT FROM THE REGISTERING PASS\'S OWN ENTRIES — read '
+         + JSON.stringify(firstChecked) + ' (`S-SEL-SNAPSHOT`; `kernel-selection.md §7` `KF-5`)');
+-      const next = K.runAttempt(store, K.commit(store, address, 'mem', intBetween(rng, 0, 9)));
++      // **⟶ RE-DERIVED 2026-11-17 — `P-3` (`strata/decisions.md` · `D-193` item 1: *"P-3 checks literal
++      // equivalence, not reference equality"*).** **THE SECOND COMMIT'S LITERAL IS DERIVED FROM THE ONE THE FIRST
++      // LEFT STANDING AND NOT DRAWN FROM THE SAME RANGE**, because a draw that repeated the standing literal made
++      // the second write a NO-CHANGE WRITE — `triggered: []`, so the NEXT pass asks nothing and this cell's own
++      // observable (`lateId` IS EVALUATED BY THE NEXT PASS) had no subject. **THE CELL'S SUBJECT IS UNMOVED AND IS
++      // ASSERTED WHOLE**: the mid-pass `K-1` appends no entry to the registering pass and enters the NEXT one, and
++      // the draw is still the seed's — a deterministic function of the state the first commit left.
++      const standingValue = store.read(address);
++      const nextValue = typeof standingValue === 'number'
++        ? (standingValue + 1) % 10
++        : intBetween(rng, 0, 9);
++      const next = K.runAttempt(store, K.commit(store, address, 'mem', nextValue));
+       const nextChecked = next.log.filter((e) => e.kind === 'constraint-check').map((e) => e.id);
+       assert.equal(nextChecked.includes(lateId), true,
+         'and it IS evaluated by the NEXT pass — read ' + JSON.stringify(nextChecked)
+diff --git a/tests/e2e/json-crossing.test.mjs b/tests/e2e/json-crossing.test.mjs
+index dba2bc7..8dc49da 100644
+--- a/tests/e2e/json-crossing.test.mjs
++++ b/tests/e2e/json-crossing.test.mjs
+@@ -4354,7 +4354,7 @@ test('JC-TC-64 the record copy and the delivery are the governed copy path\'s, s
+   // | CONTROL — `storeCreate({ journalLength: 8, listeners: [{ handle: 'h', address: ['a'] }] })`, `register('h', fn)`, then `write(['a', 'b'], 'mem', 'x')` | the record's `op`, `watched` and `triggered`; `watched` and `triggered` NON-EMPTY (`[['a']]` and `[{handle: 'h', address: ['a']}]`); the counting listener fires EXACTLY ONCE, with the triggering address `['a', 'b']` and `arguments.length === 1`; the store's bytes settle at `'x'` |
+   // | (i) `Array.prototype[Symbol.iterator]` replaced by a generator yielding EXACTLY ONE `undefined` | THE SAME RECORD BYTES and the SAME non-empty sets; the listener fires exactly once with `['a', 'b']`; NO RAW HOST ERROR escapes — not the `element.handle` read at the record copy and not the pair destructuring at the delivery; the GOVERNED COUNTER `0`, the kernel's three iteration takes EXCLUDED and RECORDED |
+   // | (ii) `Array.prototype.push` replaced by a function answering `0` that copies nothing | THE SAME RECORD BYTES with `watched` and `triggered` NON-EMPTY and the listener FIRING — a no-op append may not empty the record and silence the delivery; NO RAW HOST ERROR escapes; the GOVERNED COUNTER `0`, the kernel's `attempt.log.push` EXCLUDED and RECORDED |
+-  // | the FRESHNESS LIMB, on the control alone: a second identical write at the same address | a SECOND invocation, whose ONE argument is a FRESH DENSE array `['a', 'b']` and NOT the first invocation's object (`parameter-semantics.md §2.12`; `surface.md §2.4`'s invocation row) |
++  // | the FRESHNESS LIMB, on the control alone: a second write at the same address carrying a **DIFFERENT** literal | a SECOND invocation, whose ONE argument is a FRESH DENSE array `['a', 'b']` and NOT the first invocation's object (`parameter-semantics.md §2.12`; `surface.md §2.4`'s invocation row) |
+   //
+   // **WHAT THE SHIPPED TREE NOW ANSWERS, MEASURED RATHER THAN EXPECTED** (items `(1a)` and `(1b)` of the
+   // clause: arm `(xviii)`'s bytes stand): the record crosses intact, the listener fires once and no host error
+@@ -4518,7 +4518,20 @@ test('JC-TC-64 the record copy and the delivery are the governed copy path\'s, s
+   assert.equal(control.settled, 'x', 'the CONTROL: the store\'s bytes settle at the value the write carried');
+ 
+   // ── THE FRESHNESS LIMB: driven BEFORE the census below, so the red it may carry is not hidden by it ─────
+-  const second = crossingCall(() => control.store.write(drivenAddress, 'mem', 'x'));
++  //
++  // **⟶ AND THE SECOND WRITE'S LITERAL IS RE-DERIVED, 2026-11-17 — `P-3` (`strata/decisions.md` · `D-193` item
++  // 1: *"P-3 checks literal equivalence, not reference equality"*).** **THIS LIMB'S DECLARED SUBJECT IS THE FRESH
++  // ARRAY** — *"each invocation receives a FRESH array"*, `parameter-semantics.md §2.12`; `surface.md §2.4`'s
++  // invocation row — **and NOT a firing count**, which is why the design names it a TOKEN TO RE-DERIVE rather than
++  // a semantic this suite defends (`P-3`'s `C-16`; `strata/proposals.md:714`–`:717`: *"a re-derivation that keeps
++  // the subject can keep the count by changing the second write's value"*). **Its drive used to write `'x'`
++  // twice**, and under `P-3` the second write lands the literal the address already answers, so it fires nothing,
++  // the count below reads `1`, and `control.fired[1].address` is a `TypeError` on `undefined` — a red about a
++  // firing count arriving in a limb that never declared one. **THE VALUE IS THEREFORE A LITERAL THE FIRST WRITE
++  // DID NOT LAND**, the two invocations are two invocations again, and **every assertion of the limb stands
++  // byte-for-byte** — the FRESHNESS is still the thing asserted, and it is asserted over two invocations that are
++  // now genuinely two.
++  const second = crossingCall(() => control.store.write(drivenAddress, 'mem', 'y'));
+   assert.equal(second.raised, false,
+     `the freshness limb: the control's second identical write must be ADMITTED; got ${JSON.stringify(second.failure)}`);
+   assert.equal(control.fired.length, 2,
+diff --git a/tests/e2e/op-free-repair-credit.test.mjs b/tests/e2e/op-free-repair-credit.test.mjs
+index 8e879bd..972104d 100644
+--- a/tests/e2e/op-free-repair-credit.test.mjs
++++ b/tests/e2e/op-free-repair-credit.test.mjs
+@@ -672,7 +672,15 @@ test('ORC-8 · THE FLOOR CALL\'S UNDO ON A FAILING ARM — an op-free repair lan
+   const store = make();
+   const address = ['orc8-a'];
+   const child = ['orc8-a', 'child'];
+-  store.write(address, 'mem', {}); // the parent link the descendant write needs
++  // **⟶ AND THE SEED'S OWN LITERAL IS DISTINCT FROM THE ONE THE CELL'S SUBJECT WRITE LANDS, 2026-11-17 — `P-3`
++  // (`strata/decisions.md` · `D-193` item 1: *"P-3 checks literal equivalence, not reference equality"*).** **The
++  // seed is the parent link the descendant write needs and nothing else — but it used to be `{}`, the very literal
++  // the drive's own write lands below, so under `P-3` the subject write was a NO-CHANGE WRITE: `triggered: []`, no
++  // pair asked, no attempt's record in the live map, and this cell's arm unreachable.** **THE SEED'S VALUE IS
++  // THEREFORE ONE THE SUBJECT WRITE DOES NOT LAND**, the parent stays a container, and every assertion below
++  // stands byte-for-byte.
++  const seedContainer = { seed: 1 }; // the parent link the descendant write needs, and the caller's own commit
++  store.write(address, 'mem', seedContainer);
+   let repairs = 0;
+   let landed = null;
+   let attemptRef = null;
+@@ -724,7 +732,7 @@ test('ORC-8 · THE FLOOR CALL\'S UNDO ON A FAILING ARM — an op-free repair lan
+   assert.equal(read(store, child), '<AddressNotFound>',
+     '**SO THE ADDRESS ANSWERS ITS PRE-ATTEMPT STATE** — it stood nowhere before the attempt — read '
+     + JSON.stringify(read(store, child)));
+-  assert.deepEqual(read(store, address), {},
++  assert.deepEqual(read(store, address), seedContainer,
+     'while the attempt\'s own landing is restored to the container the caller committed — read '
+     + JSON.stringify(read(store, address)));
+   t.diagnostic(`ORC-8 · THE FLOOR CALL'S UNDO: the op-free repair landed ${JSON.stringify(landed.opId)} at `
+diff --git a/tests/e2e/repair-in-commit.test.mjs b/tests/e2e/repair-in-commit.test.mjs
+index 612f9d2..4ebd72e 100644
+--- a/tests/e2e/repair-in-commit.test.mjs
++++ b/tests/e2e/repair-in-commit.test.mjs
+@@ -229,6 +229,16 @@ test('D-46 (1) · A REPAIR IS TRACKED INSIDE ITS ATTEMPT: the repair body\'s wri
+   // HANDOFF PUTS IT.** This drive's caller is the PUBLISHED `write`, which answers `{op, watched, triggered}` on
+   // a passing arm and has never carried a log: the list is measured on a DIRECT `K-2`/`K-3` DRIVE of the same
+   // shape, whose `K-3` return is a handoff and whose `.log` is therefore the commit's one list.
++  // **⟶ AND THE DIRECT DRIVE'S OWN STATE IS RESTORED FIRST, 2026-11-17 — `P-3` (`strata/decisions.md` ·
++  // `D-193` item 1: *"P-3 checks literal equivalence, not reference equality"*).** **The entry's own landing left
++  // `['a'] = REFUSED`, so the direct drive's commit landed that same literal a second time — a NO-CHANGE WRITE
++  // under `P-3`: `triggered: []`, no pair asked, and the one list this limb measures read `[commit]` where its
++  // subject is the ORDER of several attempts' entries.** **THE STATE IS MOVED BACK TO `SEED` (which the pair
++  // ADMITS) AND THE BESIDE ADDRESS TO A LITERAL THE REPAIR DOES NOT LAND, so the direct drive is again the shape
++  // the entry drove** — and **every assertion of the limb stands byte-for-byte: one list, `0..n-1`, no gap, no
++  // renumbering, and no `seq` member.**
++  store.write(['a'], 'mem', SEED);
++  store.write(['z'], 'mem', 0);
+   const directRecord = kernelCommit(store, ['a'], 'mem', REFUSED);
+   const direct = kernelRunAttempt(store, directRecord);
+   assert.equal(direct.outcome, 'passed', 'the direct drive of the same shape passes, as the entry\'s did');
+diff --git a/tests/e2e/repair-listener-delivery.test.mjs b/tests/e2e/repair-listener-delivery.test.mjs
+index a1e54cc..2b3758a 100644
+--- a/tests/e2e/repair-listener-delivery.test.mjs
++++ b/tests/e2e/repair-listener-delivery.test.mjs
+@@ -764,8 +764,16 @@ test('RLD-8 · THE TWO-REPAIR COMMIT — two pairs violate in turn and two repai
+   const address = ['rld8-a'];
+   const ranks = ['rld8-b', 'rld8-c'];
+   const listeners = [];
++  // **⟶ AND THE TWO BESIDE ADDRESSES ARE SEEDED WITH A LITERAL THE REPAIRS DO NOT LAND, 2026-11-17 — `P-3`
++  // (`strata/decisions.md` · `D-193` item 1: *"P-3 checks literal equivalence, not reference equality"*).** **They
++  // were seeded with `1`, which is exactly the rank the SECOND pair's repair lands — so under `P-3` that repair's
++  // write landed the literal already standing, fired nothing at its own listener's address, and this cell's
++  // subject (`BOTH repair listeners are invoked once each`) could not be reached.** **THE CELL'S SUBJECT IS
++  // UNMOVED AND IS ASSERTED WHOLE**: the chain still walks `broken -> 0 -> 1`, one repair write per pair, each at
++  // its OWN listener's address, and neither listener can be fired by the commit's own write.
++  const besideSeed = -1;
+   for (const rank of ranks) {
+-    store.write([rank], 'mem', 1);
++    store.write([rank], 'mem', besideSeed);
+     const bound = bindListener(store, [rank], rank);
+     bound.seen.length = 0;
+     listeners.push(bound);
+diff --git a/tests/e2e/resolution-log.test.mjs b/tests/e2e/resolution-log.test.mjs
+index 7471f68..10c6a4b 100644
+--- a/tests/e2e/resolution-log.test.mjs
++++ b/tests/e2e/resolution-log.test.mjs
+@@ -377,7 +377,17 @@ test('RSL-4 · THE JOINED ARM: a constraint body\'s nested `write` answers `[]`
+     () => {
+       // **THE NESTED CALL IS A BODY'S THREE-POSITION `write`** — it names no commit (`D-46`: a repair names one, a
+       // constraint body has none in hand), so it JOINS the enclosing commit (`D-53`).
+-      nested = captured(() => store.write(nestedAddress, 'mem', 7));
++      //
++      // **⟶ AND ITS LITERAL IS DERIVED FROM THE ONE STANDING, 2026-11-17 — `P-3` (`strata/decisions.md` · `D-193`
++      // item 1: *"P-3 checks literal equivalence, not reference equality"*).** **THIS BODY RUNS TWICE — once at the
++      // registration ask and once at the write's OWN pass — and the constant it used to write (`7`) therefore left
++      // the second nested call landing the literal the first had already landed: a NO-CHANGE WRITE under `P-3`,
++      // whose `triggered` is `[]`, so the pair at the nested address was asked at neither pass and the enclosing
++      // list carried no `constraint-check` entry for it.** **THE CELL'S SUBJECT IS UNMOVED AND IS ASSERTED WHOLE:
++      // the joined write's entries stand in the ENCLOSING commit's one list** — the body now lands a literal ONE
++      // ABOVE the standing one, so each nested call is a change and the list it must appear in is the same list.
++      const standing = store.read(nestedAddress);
++      nested = captured(() => store.write(nestedAddress, 'mem', standing + 1));
+       return true;
+     }));
+   const written = captured(() => store.write(outerAddress, 'mem', 2));
+@@ -433,8 +443,9 @@ test('RSL-4 · THE JOINED ARM: a constraint body\'s nested `write` answers `[]`
+   assert.deepEqual(Object.keys(nestedRecord).sort(), WRITE_RECORD_MEMBERS,
+     `and the nested answer's DECLARED members are unmoved by the member it now carries `
+       + `(${JSON.stringify(Object.keys(nestedRecord).sort())})`);
+-  assert.deepEqual(innerAsks.includes(7), true,
+-    `and the pair at the nested address was asked the nested write's value: ${JSON.stringify(innerAsks)}`);
++  assert.deepEqual(innerAsks.includes(nestedRecord.op.after.value), true,
++    'and the pair at the nested address was asked the nested write\'s value — read '
++    + `${JSON.stringify(innerAsks)} against ${JSON.stringify(nestedRecord.op.after.value)}`);
+ 
+   t.diagnostic(`RSL-4 · THE JOINED ARM: the nested write answered log ${JSON.stringify(nestedList)} and its own op `
+     + `${JSON.stringify(nestedOpId)}; the enclosing answer's log is `
+diff --git a/tests/integration/js-constraints/constraint-kernel-properties.test.mjs b/tests/integration/js-constraints/constraint-kernel-properties.test.mjs
+index 66fe07b..8e73e50 100644
+--- a/tests/integration/js-constraints/constraint-kernel-properties.test.mjs
++++ b/tests/integration/js-constraints/constraint-kernel-properties.test.mjs
+@@ -1001,7 +1001,20 @@ test('ck_prop_P_TP_8_the_marker_opens_empty_on_a_second_attempt_at_the_same_addr
+       assert.equal(first.outcome, 'passed', 'the first attempt resolves once its re-run passes');
+       const firstRuns = entries(first.log, 'repair-run');
+       assert.equal(firstRuns.length, 1, 'the first attempt ran the repair once, for its own pair');
+-      const second = runAttempt(store, commit(store, address, 'mem', n(0, 9)));
++      // **⟶ RE-DERIVED 2026-11-17 — `P-3` (`strata/decisions.md` · `D-193` item 1: *"P-3 checks literal
++      // equivalence, not reference equality"*).** **THE SECOND ATTEMPT'S LITERAL IS DERIVED FROM THE ONE THE FIRST
++      // LEFT STANDING**, because a draw that repeated it made the second write a NO-CHANGE WRITE: `triggered: []`,
++      // so its pass asked no pair, no repair ran, and the two figures this row's clause reads off the TWO ATTEMPTS
++      // (`repairs === 2`, `evaluations === 4`) could not be reached — measured on this seed at 19 attempts.
++      // **THE ROW'S SUBJECT IS UNMOVED AND IS ASSERTED WHOLE: the applied-repair marker is per attempt, never
++      // global** — each attempt still runs its OWN repair once, over its own window, and no closed record carries
++      // the marker. **The draw is still the seed's**: the value is a deterministic function of the state the first
++      // attempt left, and the first attempt's draw is unmoved.
++      const standingValue = store.read(address);
++      const secondValue = typeof standingValue === 'number'
++        ? (standingValue + 1) % 10
++        : n(0, 9);
++      const second = runAttempt(store, commit(store, address, 'mem', secondValue));
+       assert.equal(second.outcome, 'passed', 'the second attempt at the same address resolves too');
+       assert.equal(entries(second.log, 'repair-run').length, 1,
+         'the second attempt ran its OWN repair once: the marker opened EMPTY and is per attempt, never global');
+diff --git a/tests/integration/store-core/properties.rs b/tests/integration/store-core/properties.rs
+index 8709b6b..fc15d5f 100644
+--- a/tests/integration/store-core/properties.rs
++++ b/tests/integration/store-core/properties.rs
+@@ -2527,13 +2527,21 @@ fn p_tp_8_the_listener_surface_and_the_journal_are_total_functions() {
+ 
+     // **(iii) THE NO-TIER-TEST DRIVE** — bind at an address a write's address has as a prefix, and write at
+     // EVERY ONE OF THE THREE TIERS: the handle is returned each time (`DD-36`).
++    // **⟶ RE-DERIVED 2026-11-17 — `P-3` (`strata/decisions.md` · `D-193` item 1): EACH TIER'S WRITE CARRIES A
++    // DIFFERENT LITERAL, SO THE DRIVE'S SUBJECT SURVIVES ITS OWN SUBJECT.** This cell's declared subject is
++    // *"the handle set does NOT depend on the write's tier"* (`DD-36`) — a TIER fact, never a value fact — and
++    // the one value it used to write at all three tiers is, under `P-3`, a NO-CHANGE write at the second and
++    // third (the literal already stands), so `triggered` was correctly `[]` and the cell reddened on a
++    // behaviour it never declared. **The value is now derived FROM THE TIER'S OWN POSITION** and every other
++    // assertion of the drive stands byte-for-byte: the handle is still expected at EVERY one of the three
++    // tiers, `DD-36` still rules nothing carries over from a tier, and no expectation is weakened.
+     drive.attempt();
+     {
+         let mut s = new_store();
+         let h = handle("pr-s1");
+     ok(s.listen(&h, &[key(&["r"])]), "§6.5 item 12");
+-        for tier in canonical_tiers() {
+-            match s.write(AddressArg::List(key(&["r"])), t(tier), v_num(1.0)) {
++        for (i, tier) in canonical_tiers().into_iter().enumerate() {
++            match s.write(AddressArg::List(key(&["r"])), t(tier), v_num(1.0 + i as f64)) {
+                 Ok(wt) => drive.check(
+                     same_handle_set(&wt.triggered, &one_handle(&h)),
+                     &format!(
+@@ -2701,8 +2709,12 @@ fn p_tp_8_the_listener_surface_and_the_journal_are_total_functions() {
+             "§2.2 item 3/§5.8 (a): the purge ran and the reinstall restored ONE entry — the home holds ONE \
+              entry at the address, so a repeated registration does not duplicate the handle",
+         );
+-        for tier in canonical_tiers() {
+-            match s.write(AddressArg::List(key(&["a"])), t(tier), v_num(1.0)) {
++        // **⟶ RE-DERIVED 2026-11-17 — `P-3` (`strata/decisions.md` · `D-193` item 1), FOR THE ONE REASON THE
++        // NO-TIER-TEST DRIVE ABOVE STATES: the cell's subject is that the ADDRESS LIST carries the address at
++        // EVERY tier and that the ONE home entry yields ONE handle — a TIER fact, never a value fact — so the
++        // literal each tier carries is derived from the tier's own position and no expectation below moves.**
++        for (i, tier) in canonical_tiers().into_iter().enumerate() {
++            match s.write(AddressArg::List(key(&["a"])), t(tier), v_num(1.0 + i as f64)) {
+                 Ok(w) => {
+                     drive.check(
+                         w.watched.len() == 1
+diff --git a/tests/integration/store-core/watched_addresses.rs b/tests/integration/store-core/watched_addresses.rs
+index 3d80fd4..6d63f8d 100644
+--- a/tests/integration/store-core/watched_addresses.rs
++++ b/tests/integration/store-core/watched_addresses.rs
+@@ -686,9 +686,16 @@ fn s5_8_s_watch_iii_no_tier_test_runs_at_any_trigger() {
+     ok(store.listen(&h, &[key(&["r"])]),
+         "§6.5 item 12: an address-keyed registration carrying no tier",
+     );
+-    for tier in canonical_tiers() {
++    // **⟶ RE-DERIVED 2026-11-17 — `P-3` (`strata/decisions.md` · `D-193` item 1).** **THIS DRIVE'S DECLARED
++    // SUBJECT IS THE TIER, NOT THE VALUE** — *"a handle set that depends on the write's TIER"* is the failure it
++    // names (`DD-36`) — **and the one literal it used to write at all three tiers is, under `P-3`, a NO-CHANGE
++    // write at the second and the third, so the handle set is correctly empty there and the drive reddened on a
++    // behaviour it never declared.** **The literal is now derived from the tier's own position**; **the
++    // expectation is unmoved** — the handle is returned at EVERY one of the three tiers — **and no assertion is
++    // weakened.**
++    for (i, tier) in canonical_tiers().into_iter().enumerate() {
+         let w = ok(
+-            store.write(AddressArg::List(key(&["r"])), t(tier), v_num(1.0)),
++            store.write(AddressArg::List(key(&["r"])), t(tier), v_num(1.0 + i as f64)),
+             "§3.4: a write at one of the three tiers",
+         );
+         assert!(
+diff --git a/tests/unit/js-constraints/a126-constraint-methods.test.mjs b/tests/unit/js-constraints/a126-constraint-methods.test.mjs
+index 6dcf496..b1a7661 100644
+--- a/tests/unit/js-constraints/a126-constraint-methods.test.mjs
++++ b/tests/unit/js-constraints/a126-constraint-methods.test.mjs
+@@ -336,7 +336,15 @@ test('a126_two_ids_at_one_address_are_carried_separately', () => {
+   assert.equal(right.calls.length, 0, 'and the second id carries nothing yet: its own count is unmoved');
+   a.addConstraint(PAIR('right', ['shared']), right);
+   right.fromHere(); // the second pair's OWN registration invocation is a fact about the registration, not a write
+-  thrown(() => a.write(['shared'], 'mem', 'yes'));
++  // **⟶ RE-DERIVED 2026-11-17 — `P-3` (`strata/decisions.md` · `D-193` item 1: *"P-3 checks literal equivalence,
++  // not reference equality"*).** **THE SECOND WRITE'S LITERAL IS CHANGED FROM `'yes'` TO A VALUE THE FIRST WRITE
++  // DID NOT LAND**, because under `P-3` a write that lands the literal already standing answers
++  // `triggered: []` — **so neither pair is asked, nothing is refused, and this cell's own observable (`right`'s
++  // body refusing the write that reached it) had no subject.** **THE CELL'S SUBJECT IS UNMOVED AND IS ASSERTED
++  // WHOLE: the two ids at ONE address are CARRIED SEPARATELY** — `left` admits everything, `right` refuses every
++  // landed value but its registration context, and the two counters move independently. **Nothing is weakened: the
++  // write still stands at the same tier and the assertions below are byte-for-byte the ones they were.**
++  thrown(() => a.write(['shared'], 'mem', 'no'));
+   assert.equal(right.calls.length, 1, 'the second id, once added at the SAME address, carries its own function — ONCE');
+   assert.equal(left.calls.length, 2, 'and the first id` own count moves only by the write that reached it: the two are carried separately');
+ });
+@@ -378,7 +386,13 @@ test('a126_constraintOff_disables_a_carried_pair_and_constraintOn_reenables_it',
+   const afterOff = fn.calls.length;
+ 
+   assert.equal(a.constraintOn(pair, fn), undefined, 'constraintOn answers `undefined`');
+-  thrown(() => a.write(['a'], 'mem', 'refuse'));
++  // **⟶ RE-DERIVED 2026-11-17 — `P-3` (`strata/decisions.md` · `D-193` item 1), FOR THE SAME REASON THE CELL
++  // ABOVE STATES.** **THE DISABLED ARM'S WRITE LANDED `'refuse'` AT `['a']`, so a second write of `'refuse'`
++  // would be a NO-CHANGE write under `P-3`, the re-enabled pair would not be asked, and the toggle's own
++  // observable would have no subject.** **The literal is therefore one the disabled arm did not land**, and every
++  // assertion of the cell stands: while ENABLED the write is refused, while DISABLED it is accepted, and the
++  // toggle re-enables it.
++  thrown(() => a.write(['a'], 'mem', 'refuse-again'));
+   assert.ok(fn.calls.length > afterOff, 'and the disabled pair is ENABLED again by the toggle');
+ });
+ 
+diff --git a/tests/unit/js-constraints/change-detection.test.mjs b/tests/unit/js-constraints/change-detection.test.mjs
+new file mode 100644
+index 0000000..7246efc
+--- /dev/null
++++ b/tests/unit/js-constraints/change-detection.test.mjs
+@@ -0,0 +1,358 @@
++// tests/unit/js-constraints/change-detection.test.mjs
++//
++// **`P-3`, CHANGE DETECTION ON WRITES — THE PACKAGE-SIDE CELLS OF `docs/L3/change-detection/design.md` §6, AT THE
++// SCOPE `D-5` DECLARES FOR THEM.** `CD-1`…`CD-13` and `CD-15` are UNIT cells on `store-core` and stand at
++// `tests/unit/store-core/change_detection.rs`; **`CD-14` and `CD-16` are PACKAGE facts and belong to
++// `js-constraints`** (the design's own §6.2, last paragraph), **and two of the Rust file's cells name a
++// package-side half that only the kernel's own members can observe — `CD-12`'s `record.log` and `CD-13`'s receipt
++// census — which are driven here BESIDE the store-side half rather than folded into it.**
++//
++// ─────────────────────────────────────────────────────────────────────────────────────────────────────────
++// THE RULING THESE CELLS REST ON, AND WHY THEY ARE NOT FIRING COUNTS
++// ─────────────────────────────────────────────────────────────────────────────────────────────────────────
++//
++// **`strata/decisions.md` · `D-193`, the architect, VERBATIM: *"P-3 checks literal equivalence, not reference
++// equality"***, and **`D-195`: *"Take the default on the blocker and proceed"***. **The store answers a no-change
++// write with `triggered: []` and `watched: []`, and every package site is narrowed BY CONSEQUENCE rather than by
++// an edit** (`D-69`: one predicate, in the store, where the per-tier versions live): the kernel's pass evaluates
++// `record.triggered` (the kernel's own set), the registration instants deliver the store's answered sets, and the
++// record's declared members are unmoved. **So each cell below drives ONE of those consequences and names the
++// control arm that proves its instrument is live** — a cell that only asserted silence would be asserting its own
++// instrument's silence.
++//
++// **AND NO CELL HERE DRIVES A `write`'s FIRING COUNT DIRECTLY: that is `store-core`'s scope and its cells are at
++// the Rust file above.** What is asserted here is what a JS consumer can see that the store's own record cannot:
++// the `constraint-check` entries of `record.log`, the receipt's own member census, an `addConstraint` delivery,
++// and the invocation count of a listener that writes at the address it was delivered for.
++
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
++import { tmpdir } from 'node:os';
++import { join } from 'node:path';
++
++import { storeCreate } from '../../../bindings/js/index.mjs';
++
++const make = (extra = {}) => storeCreate({ journalLength: 32, listeners: [], ...extra });
++const scratch = (tag) => {
++  const dir = mkdtempSync(join(tmpdir(), 'cd-unit-' + tag + '-'));
++  return { dir, filePath: join(dir, 'store.json') };
++};
++const bytesOf = (path) => (existsSync(path) ? readFileSync(path, 'utf8') : null);
++const attempt = (fn) => {
++  try {
++    return { ok: true, value: fn() };
++  } catch (thrown) {
++    return { ok: false, caught: thrown };
++  }
++};
++const statusOf = (caught) => (caught !== null && typeof caught === 'object' ? caught.status ?? null : null);
++const logKinds = (record) => (Array.isArray(record && record.log) ? record.log.map((entry) => entry.kind) : null);
++
++/** Bind a listener at one address and answer the record of its invocations. */
++function bindWatching(instance, handle, address) {
++  const calls = [];
++  const answered = instance.listen(handle, [address]);
++  instance.register(answered, function listener(...args) {
++    calls.push({ argCount: args.length, address: args[0] });
++  });
++  return { handle: answered, calls };
++}
++
++// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
++// `CD-12` · THE PASS IS SILENCED WITH THE FIRING (`Q-5`'s default)
++// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
++
++test('CD-12 · THE PASS IS SILENCED WITH THE FIRING (D-193 item 5 Q-5) — a pair at [\'a\'] that REFUSES 1 is not asked at all when 1 already stands, so the no-change write PASSES: record.log carries NO constraint-check entry and ONE commit entry, while the CONTROL arm (the same pair, a write of 2) IS asked and its log names the check beside the commit', () => {
++  // **`Q-5`'s default, in the architect's own terms** (`D-193` item 5): **the suppression REACHES THE
++  // CONSTRAINTS** — they are one predicate with the listeners (`D-69`) — **and a write a pair would have refused
++  // on must not become admissible because its value was equal**. **THE MECHANISM IS ONE LINE OF THE KERNEL'S,
++  // READ HERE AS THE CELL'S OBSERVABLE**: the pass evaluates `record.triggered`, which the kernel's commit took
++  // verbatim from the store's answer — **so an empty set is an empty pass, and `log`'s entry list is the pass's
++  // own record of what it asked.**
++  //
++  // **STATES ENUMERATED BEFORE THE DRIVE WAS AUTHORED:** (1) `1` stands at `['a']` and a pair registered AFTER it
++  // refuses `1` → a write of `1` is a NO-CHANGE write, the pair is not asked, `log` is `[commit]`, and the write
++  // PASSES; (2) the CONTROL — the same pair, a write of `2`, which the body admits → the pair IS asked and `log`
++  // is `[constraint-check, commit]`; (3) `CD-12b`'s arm — a pair that refuses everything at another address →
++  // the write is refused at rank `20` with the pair's own check in its `log`. **THE FAILURE THIS CELL EXISTS TO
++  // CATCH: a pass that keeps asking because its set is computed somewhere else** — which would refuse a write the
++  // store had already ruled a no-change write.
++  const store = make();
++  store.write(['a'], 'mem', 1);
++
++  const asks = [];
++  const registered = store.addConstraint({ address: ['a'], id: 'cd-12-a' }, (context) => {
++    asks.push({ value: context.value, atRegistration: context.op === null && context.tier === null });
++    // **THE REGISTRATION ASK IS NOT A WRITE'S PASS AND IT REFUSES NOTHING** — `op` and `tier` BOTH `null` is the
++    // instant's own discriminator (`D-125` item 3 keeps the add route's single-pair scope): a body that refused
++    // there would be refused AT REGISTRATION and never reach the arm this cell drives
++    // (`ConstraintRefusedAtRegistration`, measured on the first fixture).
++    if (context.op === null) return true;
++    if (context.value === 1) return { message: '1 is refused at ["a"]' };
++    return true;
++  });
++  assert.notEqual(registered, undefined, 'CD-12: the pair stands registered and answers its identity');
++  assert.deepEqual(store.constraints().map((row) => row.id), ['cd-12-a'],
++    'CD-12: the registry names the one pair this cell drives');
++
++  // ── ARM 1: THE NO-CHANGE WRITE. ─────────────────────────────────────────────────────────────────────
++  asks.length = 0;
++  const noChange = attempt(() => store.write(['a'], 'mem', 1));
++  assert.equal(noChange.ok, true,
++    '**CD-12 — THE WRITE PASSES**: nothing was asked, so nothing could be refused. It answered '
++    + `${JSON.stringify(noChange.ok ? 'a record' : statusOf(noChange.caught))}`);
++  assert.deepEqual(asks, [],
++    '**THE PAIR WAS NOT ASKED — Q-5\'S WHOLE SUBJECT** (D-193 item 5: the suppression REACHES THE CONSTRAINTS): '
++    + `the body ran ${asks.length} time(s) over ${JSON.stringify(asks)}`);
++  assert.deepEqual(logKinds(noChange.value), ['commit'],
++    '**AND log CARRIES NO constraint-check ENTRY AND ONE commit** (the declaration: an empty array is never that '
++    + 'arm\'s answer, and the suppression may not empty log): the record\'s kinds read '
++    + `${JSON.stringify(logKinds(noChange.value))}`);
++  assert.equal(noChange.value.log.length, 1,
++    'CD-12: one entry, and it is the commit\'s: ' + JSON.stringify(noChange.value.log));
++  assert.deepEqual(noChange.value.triggered, [],
++    'CD-12: the store answered an empty set, which is the whole of why the pass asked nothing');
++
++  // ── ARM 2: THE CONTROL, WHICH PROVES THE INSTRUMENT IS LIVE. ────────────────────────────────────────
++  // **THE BODY REFUSES `1` AND ADMITS ANYTHING ELSE**, so the control is a write whose landed value the pair
++  // does not refuse — **and its whole subject is that the pair WAS ASKED**: the pass ran, took the pair's own
++  // `constraint-check` entry, and admitted the write. **A pass that asked nothing would answer `[commit]` here
++  // as it does above, and this arm is what tells the two apart.**
++  asks.length = 0;
++  const changed = attempt(() => store.write(['a'], 'mem', 2));
++  assert.equal(changed.ok, true,
++    'CD-12 control: the pair admits 2, so the changing write STANDS; it answered '
++    + `${JSON.stringify(changed.ok ? 'a record' : statusOf(changed.caught))}`);
++  assert.deepEqual(asks.map((ask) => ask.value), [2],
++    '**AND THE PAIR WAS ASKED ON THE CHANGING ARM** — the instrument is live and the empty list above is a '
++    + `measurement, not a silent body: ${JSON.stringify(asks)}`);
++  assert.deepEqual(logKinds(changed.value), ['constraint-check', 'commit'],
++    'CD-12: the changing arm\'s log names the pair\'s own check beside the commit: '
++    + `${JSON.stringify(logKinds(changed.value))}`);
++});
++
++test('CD-12b · THE PASS\'S REFUSAL ARM IS UNMOVED — where the pair IS asked and refuses, the write is refused at rank 20 WITH its own log, so the silence above is the empty set and not a weakened pass', () => {
++  // **THIS CELL EXISTS BECAUSE `CD-12`'S REFUSING STATE CANNOT BE REACHED AT ITS OWN ADDRESS UNDER `P-3`**: the
++  // pair refuses `1`, and a write LANDING `1` at that address is a no-change write once `1` stands — so the pass
++  // that would have refused it is never asked. **THE REFUSING ARM IS THEREFORE DRIVEN AT A DIFFERENT ADDRESS,
++  // where no such silence applies**, and the caller receives rank `20` `ConstraintPassRefused` with the pair's own
++  // entry in `log`. **THE SUBJECT IS THE PASS'S OWN LOSS, NOT A FIRING COUNT.**
++  const store = make();
++  store.write(['b'], 'mem', 1);
++  // THE REGISTRATION ASK PASSES; EVERY WRITE'S PASS REFUSES (`op !== null` is the pass's own discriminator).
++  store.addConstraint({ address: ['b'], id: 'cd-12-b' }, (context) => (context.op === null
++    ? true
++    : { message: 'refused at ["b"]' }));
++  const refused = attempt(() => store.write(['b'], 'mem', 2));
++  assert.equal(refused.ok, false,
++    '**THE REFUSING ARM STANDS**: a pair that refuses refuses, and `P-3` weakens no pass');
++  assert.equal(statusOf(refused.caught), 'ConstraintPassRefused',
++    `CD-12b: the refusal is the declared rank 20 member, read as ${JSON.stringify(statusOf(refused.caught))}`);
++  assert.equal(logKinds(refused.caught)[0], 'constraint-check',
++    'CD-12b: and the refusal\'s own log OPENS with the pair\'s check — the loss `P-3` makes is the SET\'s, never '
++    + `the pass's machinery: ${JSON.stringify(logKinds(refused.caught))}`);
++  assert.equal(refused.caught.log[0] && refused.caught.log[0].id, 'cd-12-b',
++    'CD-12b: the check entry names the refusing pair\'s own id — '
++    + `${JSON.stringify(refused.caught.log[0])}`);
++});
++
++// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
++// `CD-13` · THE RECEIPT'S CENSUS — the package-side half
++// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
++
++test('CD-13 · THE RECEIPT\'S CENSUS, THE PACKAGE\'S HALF — one ordinary write, one no-change write and one delete: Object.keys is the declared set and getOwnPropertyNames reads SEVEN on both write arms and NINE on the delete, the no-change arm\'s log[0].kind is commit, discarded is empty, and bodyFailures / returnedValues are each THE ONE SHARED FROZEN EMPTY MAP — the SAME object across all three records', () => {
++  // **`O-4`'s default (i), taken by `D-195` item 2**: **a `changed` member was PRICED AND DECLINED**, so this unit
++  // mints NO name. **THE CENSUS IS THE OBSERVABLE AND IT IS UNMOVED**: `Object.keys` still reads the declared
++  // members, **and the own-property census reads the declared members plus the non-enumerable accessors the
++  // receipt has carried since `D-75`/`D-119`** — `discarded`, `log`, `bodyFailures`, `returnedValues` on the write,
++  // and those four beside `commit` on the delete — **none of which this unit adds to, renames or removes.**
++  //
++  // **THE TWO NAMES THE SUPPRESSION CANNOT MAKE AMBIGUOUS ARE THE FROZEN MAPS** (`docs/L3/change-detection/
++  // design.md` §3 row 10): *"the same fact whether no settle ran at all or a settle found none"* (`D-150` item 2)
++  // — so the no-change arm answers the same frozen empty map an ordinary write does, **and it is the SAME
++  // OBJECT**, which is the strong form of that sentence and is asserted here.
++  //
++  // **THE ONE-LINE CHANGE THAT REDDENS IT: assert `log` is empty, or mint an eighth own name, or make
++  // `bodyFailures` absent on the no-change arm.**
++  const store = make();
++  const h = bindWatching(store, 'cd-13', ['a']);
++  const ordinary = store.write(['a'], 'mem', 1);
++  const afterOrdinary = h.calls.length;
++  const noChange = store.write(['a'], 'mem', 1);
++  const afterNoChange = h.calls.length;
++  const deleted = store.delete(['a'], 'mem');
++  const afterDelete = h.calls.length;
++
++  for (const [name, record, declaredKeys, ownCount] of [
++    ['the ordinary write', ordinary, ['op', 'watched', 'triggered'], 7],
++    ['the no-change write', noChange, ['op', 'watched', 'triggered'], 7],
++    ['the delete', deleted, ['address', 'tiers', 'triggered', 'op'], 9],
++  ]) {
++    assert.deepEqual(Object.keys(record), declaredKeys,
++      `CD-13: ${name}'s ENUMERABLE member set is its declared one — ${JSON.stringify(Object.keys(record))}`);
++    assert.equal(Object.getOwnPropertyNames(record).length, ownCount,
++      `CD-13: and ${name}'s own-property census reads ${ownCount} — no member is added by this unit: `
++      + `${JSON.stringify(Object.getOwnPropertyNames(record))}`);
++  }
++
++  // THE NO-CHANGE ARM'S OWN FACTS.
++  assert.deepEqual(noChange.triggered, [], 'CD-13: the no-change arm fired nothing');
++  assert.deepEqual(noChange.watched, [], 'CD-13: and its watch set is empty with it (D-195 item 1)');
++  assert.equal(noChange.log[0].kind, 'commit',
++    '**THE SUPPRESSION CANNOT EMPTY log** — an empty array is never that arm\'s answer: it reads '
++    + `${JSON.stringify(noChange.log)}`);
++  assert.equal(noChange.log.length, 1,
++    `CD-13: ONE entry on the no-change arm, and it is the commit's: ${JSON.stringify(logKinds(noChange))}`);
++  assert.deepEqual(noChange.discarded, [],
++    '**AND THE DISCARDED WITNESS IS EMPTY BECAUSE NO BODY RAN AND THEREFORE NO RAISE WAS BORN**, not because a '
++    + `raise was lost (D-170): it reads ${JSON.stringify(noChange.discarded)}`);
++  assert.equal(afterOrdinary, 1,
++    `CD-13: the ordinary write fires the registration once — it ran ${afterOrdinary} time(s)`);
++  assert.equal(afterNoChange, afterOrdinary,
++    '**CD-13 — THE NO-CHANGE WRITE INVOKED NOBODY**: the count stands at ' + afterNoChange + ' after it, where '
++    + `it was ${afterOrdinary} after the changing write`);
++  assert.equal(afterDelete, afterOrdinary + 1,
++    `CD-13: and the DELETE is still the second firing act — the count reads ${afterDelete}, so this unit narrows `
++    + 'the write\'s arm and not the delete\'s');
++
++  // THE TWO FROZEN MAPS, IN THE STRONG FORM: THE SAME OBJECT ON ALL THREE RECORDS.
++  for (const member of ['bodyFailures', 'returnedValues']) {
++    assert.deepEqual(noChange[member], {},
++      `CD-13: ${member} is the empty map on the no-change arm: ${JSON.stringify(noChange[member])}`);
++    assert.equal(Object.isFrozen(noChange[member]), true,
++      `CD-13: and it is FROZEN — a caller cannot write into the store's own report (${member})`);
++    assert.equal(noChange[member], ordinary[member],
++      `**CD-13 — ${member} IS THE ONE SHARED FROZEN EMPTY MAP**: the no-change and the ordinary arms answer the `
++      + 'SAME object, which is `D-150` item 2\'s sentence in its strong form');
++    assert.equal(noChange[member], deleted[member],
++      `CD-13: and the delete's receipt answers the same object again (${member})`);
++  }
++  assert.notEqual(noChange.bodyFailures, noChange.returnedValues,
++    'CD-13: the two members are two shared empties and not one — each is its own member\'s shared value');
++});
++
++// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
++// `CD-14` · `D-152`'s REGISTRATION INSTANT NARROWS (`O-7`'s default)
++// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
++
++test('CD-14 · D-152\'s REGISTRATION INSTANT IS NARROWED BY CONSEQUENCE (O-7\'s default, taken by D-195 item 2) — an addConstraint whose repair lands the literal already standing delivers NOTHING: the repair runs once, the identity is answered, the pair stands, the bytes carry the repair, and the listener bound at that address is NOT invoked — while the CONTROL (the same shape landing a DIFFERENT literal) is delivered once', () => {
++  // **`D-125` item 1 widens the delivery to `addConstraint`, and `PIN-6` (ii) makes the delivered set THE
++  // STORE'S OWN `triggered`** — so **`O-7`'s default arrives without a package edit**: *"a repair's own write is
++  // the same verb, so mechanically it obeys"* (`D-195` item 2). **THE CONSEQUENCE, NAMED PLAINLY AS THE ACCEPTED
++  // ONE: `D-104`/`D-152`'s delivered union LOSES A MEMBER wherever a repair lands the literal already standing.**
++  // **THE CELL DRIVES THAT ARM AND ITS CONTROL, so a later pass cannot read the silence as a broken delivery.**
++  //
++  // **THE ONE-LINE CHANGE THAT REDDENS IT: assert one delivery** — which is the pre-`P-3` behaviour and not this
++  // unit's.
++
++  const drive = (landed) => {
++    const { dir, filePath } = scratch('cd-14');
++    const store = make({ filePath });
++    store.write(['w'], 'file', 'by-repair');
++    const watched = bindWatching(store, 'cd14-w', ['w']);
++    let repairs = 0;
++    const asks = [];
++    const identity = attempt(() => store.addConstraint({ address: ['a'], id: 'cd14-a' }, (context) => {
++      asks.push({ opIsNull: context.op === null, tierIsNull: context.tier === null, value: context.value });
++      // THE REGISTRATION ASK ALONE: `op` and `tier` BOTH `null`.
++      if (context.op !== null) return true;
++      return {
++        message: '["a"] must exist',
++        repair: (record) => {
++          repairs += 1;
++          return { ok: true, op: record.write(['w'], 'file', landed).op };
++        },
++      };
++    }));
++    const bytes = bytesOf(filePath);
++    const rows = store.constraints();
++    rmSync(dir, { recursive: true, force: true });
++    return { identity, repairs, asks, calls: watched.calls, bytes, rows };
++  };
++
++  // ── THE ARM: THE REPAIR LANDS THE LITERAL ALREADY STANDING. ──────────────────────────────────────────
++  const narrowed = drive('by-repair');
++  assert.equal(narrowed.repairs, 1,
++    '**THE REPAIR RAN EXACTLY ONCE — WHICH IS WHAT SAYS THE SEAT WAS REACHED AT ALL** (D-125 item 1; PIN-6 '
++    + `(ii)): it ran ${narrowed.repairs} time(s) over ${JSON.stringify(narrowed.asks)}`);
++  assert.equal(narrowed.identity.ok, true,
++    '**THE REGISTRATION MUST STAND** (PIN-7 (iii) — the re-run over the landed op admits it): it answered '
++    + `${JSON.stringify(narrowed.identity.ok ? 'an identity' : statusOf(narrowed.identity.caught))}`);
++  assert.deepEqual(narrowed.rows.map((row) => row.id), ['cd14-a'],
++    'CD-14: and the pair is carried — constraints() names it');
++  assert.equal(String(narrowed.bytes).includes('by-repair'), true,
++    '**AND THE SAVE STANDS** (D-125 item 1: after the constraints pass, after the save): the bytes read '
++    + `${JSON.stringify(narrowed.bytes)}`);
++  assert.deepEqual(narrowed.calls, [],
++    '**CD-14 — NOTHING IS DELIVERED**: the repair\'s write landed the literal ["w"] already answered, so its '
++    + 'answered set is EMPTY and the instant\'s union is empty (D-195 item 2\'s O-7). A red here is a pass that '
++    + 'delivered from a repair\'s ACT rather than from the store\'s returned SET; the listener ran '
++    + `${narrowed.calls.length} time(s) with ${JSON.stringify(narrowed.calls)}`);
++
++  // ── THE CONTROL: THE SAME SHAPE LANDING A DIFFERENT LITERAL IS DELIVERED ONCE. ────────────────────────
++  const control = drive('a-different-literal');
++  assert.equal(control.repairs, 1,
++    `CD-14 control: the repair ran once — ${control.repairs} over ${JSON.stringify(control.asks)}`);
++  assert.equal(control.calls.length, 1,
++    '**THE CONTROL PROVES THE INSTRUMENT IS LIVE**: the same route, the same instant and the same binding, with '
++    + 'a repair that lands a DIFFERENT literal, delivers ONCE — it delivered '
++    + `${control.calls.length} time(s)`);
++  assert.equal(control.calls[0] && control.calls[0].argCount, 1,
++    'CD-14 control: and the one argument is the repair\'s own op address (PIN-6 (iv)): '
++    + `${JSON.stringify(control.calls[0] && control.calls[0].argCount)}`);
++  assert.deepEqual(control.calls[0] && control.calls[0].address, ['w'],
++    `CD-14 control: read as ${JSON.stringify(control.calls[0] && control.calls[0].address)}`);
++});
++
++// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
++// `CD-16` · THE RE-ENTRANCY SENTENCE, NOW CONDITIONAL ON A VALUE
++// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
++
++test('CD-16 · THE RE-ENTRANCY SENTENCE IS CONDITIONAL ON A VALUE (docs/specs/storeroom-js/contract.md item 3 (iii), re-spelled in the same pass) — a listener at [\'a\'] whose body writes 1 after 1 stands runs ONCE, not twice; and the CONTROL, the same body writing a DIFFERENT literal, runs TWICE', () => {
++  // **THE DECLARED SENTENCE, QUOTED BEFORE THE READING**: *"(iii) RE-ENTRANCY IS UNAVOIDABLY OPEN: a listener that
++  // writes at the address it was delivered for fires itself again, because the store's trigger set is computed
++  // per act; nothing detects it and nothing is meant to."* **IT IS NOW CONDITIONAL ON A VALUE** — a listener that
++  // writes **A DIFFERENT LITERAL** fires itself again and nothing detects it; **a listener that writes THE LITERAL
++  // ALREADY STANDING fires nothing, itself included** — **and this cell is the drive that sentence owes**, since
++  // `P-3` is the thing that now detects one form of it. **NO DEPTH COUNTER, NO GUARD AND NO CAP IS ADDED**: the
++  // item's other half is unmoved, and the control arm proves the recursion is still real.
++  //
++  // **THE ONE-LINE CHANGE THAT REDDENS IT: assert two invocations** — the pre-`P-3` reading.
++
++  // ── THE ARM: THE BODY REWRITES THE LITERAL ALREADY STANDING. ─────────────────────────────────────────
++  const store = make();
++  let invocations = 0;
++  const h = store.listen('cd16-self', [['a']]);
++  store.register(h, () => {
++    invocations += 1;
++    // **THE BODY WRITES THE ADDRESS IT WAS DELIVERED FOR, WITH THE LITERAL THAT ALREADY STANDS** — the exact
++    // shape the clause's (iii) names.
++    store.write(['a'], 'mem', 1);
++  });
++  const record = store.write(['a'], 'mem', 1);
++  assert.deepEqual(record.triggered.map((pair) => pair.handle), ['cd16-self'],
++    'CD-16: the FIRST write fires the registration, so the body is reached at all');
++  assert.equal(invocations, 1,
++    '**CD-16 — THE BODY RUNS ONCE, NOT TWICE**: its own write landed the literal 1 that already stood, so the '
++    + 'store\'s answered set for it is empty and it is not redelivered. It ran '
++    + `${invocations} time(s); a red here is the pre-P-3 reading of the sentence this release re-spells`);
++
++  // ── THE CONTROL: THE SAME SHAPE WRITING A DIFFERENT LITERAL RUNS TWICE. ──────────────────────────────
++  const controlStore = make();
++  let controlInvocations = 0;
++  const ch = controlStore.listen('cd16-control', [['a']]);
++  controlStore.register(ch, () => {
++    controlInvocations += 1;
++    if (controlInvocations === 1) controlStore.write(['a'], 'mem', 2);
++  });
++  const controlRecord = controlStore.write(['a'], 'mem', 1);
++  assert.deepEqual(controlRecord.triggered.map((pair) => pair.handle), ['cd16-control'],
++    'CD-16 control: the first write fires the registration');
++  assert.equal(controlInvocations, 2,
++    '**THE CONTROL PROVES THE RECURSION IS STILL REAL**: a body that writes a DIFFERENT literal fires itself '
++    + `again and nothing detects it — it ran ${controlInvocations} time(s). A red here is a guard this unit may `
++    + 'not add');
++  assert.equal(controlStore.read(['a']), 2,
++    'CD-16 control: and the nested write landed — the value reads 2, which is why it fired');
++});
+diff --git a/tests/unit/store-core/change_detection.rs b/tests/unit/store-core/change_detection.rs
+new file mode 100644
+index 0000000..64a57d5
+--- /dev/null
++++ b/tests/unit/store-core/change_detection.rs
+@@ -0,0 +1,860 @@
++//! `tests/unit/store-core/change_detection.rs` — **`P-3`, CHANGE DETECTION ON WRITES: THE SIXTEEN CELLS OF
++//! `docs/L3/change-detection/design.md` §6, AT THE SCOPE `D-5` DECLARES FOR THEM.** (`CD-14` and `CD-16` are
++//! PACKAGE facts and stand at `tests/unit/js-constraints/change-detection.test.mjs`; so do `CD-12`'s and
++//! `CD-13`'s halves that only the kernel and the receipt can observe — each cell below says which half it is.)
++//!
++//! **THE RULING THESE CELLS DRIVE** — `strata/decisions.md` · `D-193`, the architect, VERBATIM: *"P-3 checks
++//! literal equivalence, not reference equality"*, and `D-195`: *"Take the default on the blocker and proceed"*.
++//! **The comparison is ONE BOOLEAN on TWO LITERALS**, taken in `Store::write` immediately after `capture`,
++//! `anchors` and `selected` are in hand (`src/store.rs`'s own clause): **the before literal is the ASSEMBLED
++//! value of the LOWEST-RANK version standing at the pair** — the unqualified read's own answer, read out of the
++//! `Vec<Captured>` the write already builds — **and the after literal is the `value` argument the act lands**;
++//! **the relation is `StoreValue`'s derived `PartialEq`.** **The term goes INSIDE `registration_triggered` and
++//! wraps the PREFIX ARM ALONE**, and both returned lists read it because they read one predicate.
++//!
++//! **THREE OF THESE CELLS ASSERT THE RULING'S PRICES AS DECLARED STATES, NOT AS DEFECTS** (`CD-2`, `CD-3`,
++//! `CD-9`; `D-194` item 3 and `D-195` item 3): *"`file V` then `mem V` fires nothing although `readTiered`
++//! moves"* (`D-193` item 3) and *"`0` over a standing `-0` fires nothing"* (`D-193` item 4). **A LATER PASS THAT
++//! "FIXES" ONE OF THESE THREE REDDENS IT, AND THAT IS THE POINT OF THE CELL** — `D-193` item 3 says it in as
++//! many words: *"a later pass must not 'fix' this as a defect"*.
++
++// `D-5`'s move (`docs/L1/test-stratification.json`): this target stands two levels below `tests/integration/`,
++// so the store's one scaffolding module is named by `#[path]` rather than by a `mod support;` beside it.
++#[path = "../../integration/support/mod.rs"]
++mod support;
++use support::*;
++
++use std::time::{Duration, SystemTime};
++
++// ---------------------------------------------------------------------------------------------------
++// `CD-1` — THE CANONICAL CASE.
++// ---------------------------------------------------------------------------------------------------
++
++/// **`CD-1` · THE CANONICAL CASE: a re-write of the literal already standing, at the same tier, answers
++/// `triggered: []` and `watched: []` and leaves the value where it was — while the FIRST write's set carried
++/// the handle.**
++///
++/// **THE ONE-LINE CHANGE THAT REDDENS IT: make the second write's value `2`.** Then the literal moved, the
++/// prefix arm admits the registration, and both lists carry the handle.
++#[test]
++fn cd_1_a_re_write_of_the_literal_already_standing_fires_nothing_and_keeps_the_value() {
++    let mut store = new_store();
++    let h = handle("cd-1");
++    ok(store.listen(&h, &[key(&["a"])]), "§6.5 item 12: a registration at the act's own address");
++
++    let first = ok(
++        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
++        "§3.4 W-3: a first write is a change — `Undefined` is not admitted, so the compare cannot succeed",
++    );
++    assert!(
++        same_handle_set(&first.triggered, &one_handle(&h)),
++        "CD-1: the FIRST write is a change and its `triggered` carries the registration's handle; got {:?}",
++        triggered_handles(&first.triggered)
++    );
++    assert!(
++        same_address_set(&first.watched, &[key(&["a"])]),
++        "CD-1: and `watched` carries its address; got {:?}",
++        first.watched
++    );
++
++    let second = ok(
++        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
++        "§3.4 W-1/W-3: the equal-tier replacement is the same write with a narrower answer",
++    );
++    assert!(
++        second.triggered.is_empty(),
++        "CD-1: `D-193` item 1 — the second write lands the literal the address already answers, so the prefix \
++         arm admits nobody; got {:?}",
++        triggered_handles(&second.triggered)
++    );
++    assert!(
++        second.watched.is_empty(),
++        "CD-1: and `watched` is its ADDRESS PROJECTION, so it is `[]` too (`D-195` item 1); got {:?}",
++        second.watched
++    );
++    assert_eq!(
++        read_at(&store, &key(&["a"])),
++        v_num(1.0),
++        "CD-1: the no-change write is still a write — the value stands, and the act is not a no-op"
++    );
++    assert!(
++        !second.op.opId.is_empty(),
++        "CD-1: and it still MINTS its op (`Q-3`'s default), so the record names the landing even where no \
++         listener was told"
++    );
++}
++
++// ---------------------------------------------------------------------------------------------------
++// `CD-2`, `CD-3` — `D-193` ITEM 3'S PRICE, IN BOTH DIRECTIONS. DECLARED STATES, NOT DEFECTS.
++// ---------------------------------------------------------------------------------------------------
++
++/// **`CD-2` · `D-193` ITEM 3'S PRICE, FIRST DIRECTION — `file 'V'` then `mem 'V'` FIRES NOTHING although
++/// `readTiered` moves from `{_tier:'file'}` to `{_tier:'mem'}` and the address stands at TWO versions where it
++/// stood at one.**
++///
++/// **THIS CELL EXISTS TO MAKE THAT RED A DECLARED STATE AND NOT A DEFECT** (`D-194` item 3): *"a literal
++/// comparison of two strings cannot see the tier standing move, and the architect's reading accepts that"*
++/// (`D-193` item 3). **THE ONE-LINE CHANGE THAT REDDENS IT: make the second write assert a non-empty
++/// `triggered`** — which is exactly what a later pass "repairing" the price would write.
++#[test]
++fn cd_2_file_then_mem_fires_nothing_although_the_read_tier_moves_and_the_versions_grow() {
++    let mut store = new_store();
++    let h = handle("cd-2");
++    ok(store.listen(&h, &[key(&["a"])]), "§6.5 item 12");
++
++    let first = ok(
++        store.write(AddressArg::List(key(&["a"])), w_file(), v_str("V")),
++        "§3.4 W-3 at `file`: the deeper version",
++    );
++    assert!(
++        same_handle_set(&first.triggered, &one_handle(&h)),
++        "CD-2: the `file` write is a first write and fires; got {:?}",
++        triggered_handles(&first.triggered)
++    );
++    assert!(
++        versions_at(&store, &key(&["a"])) == vec![Tier::File],
++        "CD-2: BEFORE — the address stands at ONE version, at `file`; got {:?}",
++        versions_at(&store, &key(&["a"]))
++    );
++    assert_eq!(
++        landing_tier(&store, &key(&["a"])),
++        Tier::File,
++        "CD-2: BEFORE — `readTiered` answers `{{_tier:'file'}}`: the unqualified read's tier is `file`"
++    );
++
++    let second = ok(
++        store.write(AddressArg::List(key(&["a"])), w_mem(), v_str("V")),
++        "§3.4 W-5: `mem` may be added ALONGSIDE a `file` version — rank(`mem`) ≤ rank(`file`), so nothing is purged",
++    );
++
++    // ── THE PRICE, ASSERTED AS THE DECLARED STATE ────────────────────────────────────────────────────────
++    assert!(
++        second.triggered.is_empty(),
++        "**CD-2 — `D-193` ITEM 3'S DECLARED PRICE, NOT A DEFECT**: the literal is `V` on both sides, so the \
++         write is a no-change write and fires nothing, EVEN THOUGH the per-tier standing moved. A red here is \
++         a pass that \"repaired\" the price; got {:?}",
++        triggered_handles(&second.triggered)
++    );
++    assert!(
++        second.watched.is_empty(),
++        "CD-2: and `watched` narrows with it (`D-195` item 1); got {:?}",
++        second.watched
++    );
++
++    // ── AND WHAT MOVED BESIDE IT, SO THE PRICE IS ON THE RECORD RATHER THAN MERELY ALLOWED ─────────────────
++    assert_eq!(
++        landing_tier(&store, &key(&["a"])),
++        Tier::Mem,
++        "CD-2: AFTER — `readTiered` answers `{{_tier:'mem'}}` where it answered `{{_tier:'file'}}`: the \
++         unqualified read now answers the LOWER-rank version"
++    );
++    assert!(
++        versions_at(&store, &key(&["a"])) == vec![Tier::File, Tier::Mem],
++        "CD-2: AND THE ADDRESS STANDS AT TWO VERSIONS WHERE IT STOOD AT ONE — the standing moved and no \
++         listener was told (`D-193` item 3: *\"a later pass must not 'fix' this as a defect\"*); got {:?}",
++        versions_at(&store, &key(&["a"]))
++    );
++    assert_eq!(
++        read_at(&store, &key(&["a"])),
++        v_str("V"),
++        "CD-2: and the read still answers `V`, which is the whole of why the comparison saw no change"
++    );
++}
++
++/// **`CD-3` · THE PRICE'S SECOND DIRECTION — `mem 'V'` then `file 'V'` FIRES NOTHING although the `mem`
++/// version is PURGED, so the address stands at one version where it stood at one, at another tier.**
++///
++/// **THE ONE-LINE CHANGE THAT REDDENS IT: assert that the purge fires** — a pass reading the tier standing as a
++/// change would. **This cell exists for the same reason `CD-2` does** (`D-194` item 3).
++#[test]
++fn cd_3_mem_then_file_fires_nothing_although_the_mem_version_is_purged() {
++    let mut store = new_store();
++    let h = handle("cd-3");
++    ok(store.listen(&h, &[key(&["a"])]), "§6.5 item 12");
++
++    let first = ok(
++        store.write(AddressArg::List(key(&["a"])), w_mem(), v_str("V")),
++        "§3.4 W-3 at `mem`: the shallower version",
++    );
++    assert!(
++        same_handle_set(&first.triggered, &one_handle(&h)),
++        "CD-3: the `mem` write is a first write and fires; got {:?}",
++        triggered_handles(&first.triggered)
++    );
++    assert!(
++        versions_at(&store, &key(&["a"])) == vec![Tier::Mem],
++        "CD-3: BEFORE — ONE version, at `mem`; got {:?}",
++        versions_at(&store, &key(&["a"]))
++    );
++
++    let second = ok(
++        store.write(AddressArg::List(key(&["a"])), w_file(), v_str("V")),
++        "§3.4 W-6: the `file` write PURGES the `mem` version (rank ≤ rank(write tier), `:2937`–`:2941`)",
++    );
++
++    // ── THE PRICE, ASSERTED AS THE DECLARED STATE ────────────────────────────────────────────────────────
++    assert!(
++        second.triggered.is_empty(),
++        "**CD-3 — `D-193` ITEM 3'S DECLARED PRICE IN THE OTHER DIRECTION**: the `mem` version is DESTROYED and \
++         the literal is `V` on both sides, so no listener is told. A red here is a pass that \"repaired\" the \
++         price; got {:?}",
++        triggered_handles(&second.triggered)
++    );
++    assert!(
++        second.watched.is_empty(),
++        "CD-3: and `watched` narrows with it (`D-195` item 1); got {:?}",
++        second.watched
++    );
++
++    // ── AND THE PURGE ITSELF, SO THE PRICE IS MEASURED AND NOT ASSUMED ────────────────────────────────────
++    assert!(
++        versions_at(&store, &key(&["a"])) == vec![Tier::File],
++        "CD-3: AND THE ADDRESS STANDS AT ONE VERSION WHERE IT STOOD AT ONE, AT ANOTHER TIER — the `mem` \
++         version is GONE; got {:?}",
++        versions_at(&store, &key(&["a"]))
++    );
++    assert_eq!(
++        landing_tier(&store, &key(&["a"])),
++        Tier::File,
++        "CD-3: the surviving version is the `file` one"
++    );
++    assert_eq!(
++        read_at(&store, &key(&["a"])),
++        v_str("V"),
++        "CD-3: and the read answers `V` before and after, which is what the comparison saw"
++    );
++}
++
++// ---------------------------------------------------------------------------------------------------
++// `CD-4` — ABSENCE IS A CHANGE, AND IT NEEDS NO BRANCH.
++// ---------------------------------------------------------------------------------------------------
++
++/// **`CD-4` · A FIRST WRITE IS A CHANGE AND `Undefined` IS WHY** — `D-193` item 2: *"`Undefined` is not
++/// admitted (`src/value.rs:39`–`:47`), so no admitted literal can compare equal to the absent state"*.
++///
++/// **THE ONE-LINE CHANGE THAT REDDENS IT: bind the listener AFTER the write, or assert `[]` on the first
++/// write** — a comparison with a special absent branch would answer `[]` here.
++#[test]
++fn cd_4_a_first_write_is_a_change_because_undefined_is_not_admitted() {
++    let mut store = new_store();
++    // **THE PARENT IS A FIXTURE AND NOT THE CELL'S SUBJECT** — a write mints no intermediate node (`§3.2`), so
++    // `['a','b']` can be created only under a standing `['a']`. The registration is made AFTER it, so the one
++    // write this cell drives is the FIRST write at the address it listens at.
++    ok(
++        store.write(AddressArg::List(key(&["a"])), w_mem(), v_obj(&[])),
++        "§3.4 W-4: the parent container, so `['a','b']` is writable at all",
++    );
++    let h = handle("cd-4");
++    ok(
++        store.listen(&h, &[key(&["a", "b"])]),
++        "§6.5 item 12: a registration at the address the act will create",
++    );
++    assert!(
++        store
++            .read(AddressArg::List(key(&["a", "b"])), TierArg::Absent)
++            .is_err(),
++        "CD-4: BEFORE — the address does not resolve, so the pre-literal is `Undefined` (`present: false`)"
++    );
++
++    let w = ok(
++        store.write(AddressArg::List(key(&["a", "b"])), w_mem(), v_num(1.0)),
++        "§3.4 W-3/W-4: the first write at the address",
++    );
++    assert!(
++        same_handle_set(&w.triggered, &one_handle(&h)),
++        "CD-4: a first write is a CHANGE — no admitted literal compares equal to `Undefined`, so the prefix \
++         arm admits the registration and `D-66`'s sentence declares the same fact beside the taxonomy; got {:?}",
++        triggered_handles(&w.triggered)
++    );
++    assert_eq!(
++        read_at(&store, &key(&["a", "b"])),
++        v_num(1.0),
++        "CD-4: and the value stands"
++    );
++}
++
++// ---------------------------------------------------------------------------------------------------
++// `CD-5` — THE ANCESTOR GOES SILENT TOO (`O-3`'s default, taken by `D-195` item 2).
++// ---------------------------------------------------------------------------------------------------
++
++/// **`CD-5` · THE ANCESTOR GOES SILENT TOO — the second identical write at `['a','b']` reaches NEITHER the
++/// registration at `['a']` nor the one at `['a','b']`, because the ancestor's ASSEMBLED value did not move
++/// either.**
++///
++/// **THE DERIVATION** (`docs/L3/change-detection/design.md` §2.1; `O-3`'s default, taken by `D-195` item 2):
++/// **the criterion sentence read whole says yes** — *"a pair is asked when the act CHANGES THE VALUE AT THE
++/// PAIR'S ADDRESS"* (`strata/decisions.md:3765`–`:3766`) — **and the ancestor's value contains its subtree, and
++/// that did not move.** **THE ONE-LINE CHANGE THAT REDDENS IT: assert that `hA` fires** — which is what a pass
++/// that spared ancestors would write.
++#[test]
++fn cd_5_the_ancestor_goes_silent_too() {
++    let mut store = new_store();
++    let ancestor = handle("cd-5-a");
++    let exact = handle("cd-5-ab");
++    ok(
++        store.write(AddressArg::List(key(&["a"])), w_mem(), v_obj(&[])),
++        "§3.4 W-4: the parent container `['a']`, so `['a','b']` is writable — a fixture and not the subject",
++    );
++    ok(store.listen(&ancestor, &[key(&["a"])]), "§6.5 item 12: a strict ancestor");
++    ok(store.listen(&exact, &[key(&["a", "b"])]), "§6.5 item 12: the act's own address");
++
++    let first = ok(
++        store.write(AddressArg::List(key(&["a", "b"])), w_mem(), v_num(1.0)),
++        "§3.4 W-3/W-4",
++    );
++    assert!(
++        same_handle_set(&first.triggered, &vec![ancestor.clone(), exact.clone()]),
++        "CD-5: the FIRST write fires BOTH — the ancestor by the prefix arm and the exact registration by it \
++         too (`D-56`, descendant-inclusive); got {:?}",
++        triggered_handles(&first.triggered)
++    );
++
++    let second = ok(
++        store.write(AddressArg::List(key(&["a", "b"])), w_mem(), v_num(1.0)),
++        "§3.4 W-1: the same literal, at the same tier",
++    );
++    assert!(
++        second.triggered.is_empty(),
++        "**CD-5 — THE ANCESTOR GOES SILENT TOO**: `hA` is NOT reached, because `['a']`'s assembled value \
++         contains the unchanged subtree and did not move (`O-3`'s default, taken by `D-195` item 2). A red \
++         here is a pass that spared ancestors — a different address than the registration's own; got {:?}",
++        triggered_handles(&second.triggered)
++    );
++    assert!(
++        second.watched.is_empty(),
++        "CD-5: and `watched` names no address either; got {:?}",
++        second.watched
++    );
++}
++
++// ---------------------------------------------------------------------------------------------------
++// `CD-6` — THE TOUCHED ARM STANDS (`Q-6`'s default). THE CELL THAT CATCHES THE RISKIEST LINE.
++// ---------------------------------------------------------------------------------------------------
++
++/// **`CD-6` · THE TOUCHED ARM IS NOT NARROWED — a second IDENTICAL STRUCTURED write still fires the
++/// registration BELOW it, because those nodes *"exist after the write and did not before"* (`D-66`).**
++///
++/// **THIS IS THE CELL THAT CATCHES THE DESIGN'S RISKIEST LINE** (`docs/L3/change-detection/design.md` §9;
++/// `D-194` item 5): a short-circuit of the two returned lists where `changed` is false — `if !changed {
++/// (Vec::new(), Vec::new()) }` — reads as the same optimisation and silently narrows the TOUCHED arm. **THE
++/// ONE-LINE CHANGE THAT REDDENS IT: assert `[]` on the second write**, or lift the value term over both arms.
++#[test]
++fn cd_6_the_touched_arm_is_not_narrowed_by_a_no_change_structured_write() {
++    let mut store = new_store();
++    let below = handle("cd-6");
++    ok(
++        store.write(AddressArg::List(key(&["a"])), w_mem(), v_obj(&[])),
++        "§3.4 W-4: the parent container `['a']` — a fixture and not the subject, and the registration below is \
++         made after it",
++    );
++    ok(
++        store.listen(&below, &[key(&["a", "b", "c"])]),
++        "§6.5 item 12: a registration at a node the act CREATES below itself",
++    );
++    let written = v_obj(&[("c", v_num(1.0)), ("d", v_num(2.0))]);
++
++    let first = ok(
++        store.write(AddressArg::List(key(&["a", "b"])), w_mem(), written.clone()),
++        "§3.4 W-4: the structured write that creates `['a','b','c']`",
++    );
++    assert!(
++        same_handle_set(&first.triggered, &one_handle(&below)),
++        "CD-6: the first write creates the node and reaches it through the touched arm; got {:?}",
++        triggered_handles(&first.triggered)
++    );
++
++    let second = ok(
++        store.write(AddressArg::List(key(&["a", "b"])), w_mem(), written),
++        "§3.4 W-1: the SAME structured literal, at the same tier — a no-change write",
++    );
++    assert!(
++        same_handle_set(&second.triggered, &one_handle(&below)),
++        "**CD-6 — THE TOUCHED ARM STANDS (`Q-6`'s default; `D-66`'s own derivation)**: the second identical \
++         structured write re-creates `['a','b','c']` and `['a','b','d']`, so the registration below is reached \
++         BY THE CRITERION'S SECOND HALF and not by the first. `[]` here is the short-circuit that reads as an \
++         optimisation and narrows the touched arm — the design's riskiest line; got {:?}",
++        triggered_handles(&second.triggered)
++    );
++    assert!(
++        same_address_set(&second.watched, &[key(&["a", "b", "c"])]),
++        "CD-6: and `watched` carries the touched registration's own address; got {:?}",
++        second.watched
++    );
++    assert_eq!(
++        read_at(&store, &key(&["a", "b"])),
++        v_obj(&[("c", v_num(1.0)), ("d", v_num(2.0))]),
++        "CD-6: and the value stands as written"
++    );
++}
++
++// ---------------------------------------------------------------------------------------------------
++// `CD-7`, `CD-8` — THE RELATION'S TWO FREE PROPERTIES (`src/value.rs:15`).
++// ---------------------------------------------------------------------------------------------------
++
++/// **`CD-7` · CLASS-STRICTNESS — `1` then `'1'` FIRES**, because the variant tag is part of the compare.
++///
++/// **THE ONE-LINE CHANGE THAT REDDENS IT: assert `[]`** — a relation that coerced or compared by `Debug`
++/// spelling would answer equal.
++#[test]
++fn cd_7_the_relation_is_class_strict_so_a_number_and_a_string_are_a_change() {
++    let mut store = new_store();
++    let h = handle("cd-7");
++    ok(store.listen(&h, &[key(&["a"])]), "§6.5 item 12");
++    ok(
++        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
++        "§3.4 W-3",
++    );
++    let w = ok(
++        store.write(AddressArg::List(key(&["a"])), w_mem(), v_str("1")),
++        "§3.4 W-1: the equal-tier replacement by a value of another CLASS",
++    );
++    assert!(
++        same_handle_set(&w.triggered, &one_handle(&h)),
++        "CD-7: `StoreValue`'s derived `PartialEq` is CLASS-STRICT — the variant tag is part of the compare — so \
++         `1` and `'1'` are two literals and the act is a change; got {:?}",
++        triggered_handles(&w.triggered)
++    );
++}
++
++/// **`CD-8` · KEY-ORDER BLINDNESS — `{x,y}` then `{y,x}` is SILENT**, because `Object` is a `BTreeMap`.
++///
++/// **THE ONE-LINE CHANGE THAT REDDENS IT: assert a fire** — or bind the listener at a MEMBER
++/// (`['a','x']`), where the touched arm would fire it for the right reason and this cell's subject would be
++/// gone.
++#[test]
++fn cd_8_the_relation_is_key_order_blind_so_a_reordered_object_is_not_a_change() {
++    let mut store = new_store();
++    let h = handle("cd-8");
++    ok(store.listen(&h, &[key(&["a"])]), "§6.5 item 12");
++    ok(
++        store.write(
++            AddressArg::List(key(&["a"])),
++            w_mem(),
++            v_obj(&[("x", v_num(1.0)), ("y", v_num(2.0))]),
++        ),
++        "§3.4 W-3",
++    );
++    let w = ok(
++        store.write(
++            AddressArg::List(key(&["a"])),
++            w_mem(),
++            v_obj(&[("y", v_num(2.0)), ("x", v_num(1.0))]),
++        ),
++        "§3.4 W-1: the same members, handed in the other order",
++    );
++    assert!(
++        w.triggered.is_empty(),
++        "CD-8: `Object` is a `BTreeMap` (`src/value.rs:22`), so structural equality is key-order-insensitive BY \
++         CONSTRUCTION and the reordered object is the same literal; got {:?}",
++        triggered_handles(&w.triggered)
++    );
++    assert!(
++        w.watched.is_empty(),
++        "CD-8: and `watched` is empty with it; got {:?}",
++        w.watched
++    );
++}
++
++// ---------------------------------------------------------------------------------------------------
++// `CD-9` — `D-193` ITEM 4'S PRICE: `0` OVER A STANDING `-0`. A DECLARED STATE, NOT A DEFECT.
++// ---------------------------------------------------------------------------------------------------
++
++/// **`CD-9` · `D-193` ITEM 4'S PRICE — `0` written over a standing `-0` FIRES NOTHING, and the two relations'
++/// DISAGREEMENT is asserted beside it so it is on the record.**
++///
++/// **THE TWO SHIPPED RELATIONS, NAMED:** the store's `PartialEq` says `-0 == 0` (**inherited through `f64`**),
++/// and the package's `sameStanding` (`bindings/js/src/entry/constraints.mjs:3642`–`:3643`) says they DIFFER
++/// (**`Object.is`**). **`D-193` item 4 takes the store's, and this cell asserts the other beside it.**
++///
++/// **THE ONE-LINE CHANGE THAT REDDENS IT: assert a fire** — which is what a pass reading `Object.is` into the
++/// store would write.
++#[test]
++fn cd_9_zero_over_a_standing_negative_zero_fires_nothing_while_the_two_relations_disagree() {
++    let mut store = new_store();
++    let h = handle("cd-9");
++    ok(store.listen(&h, &[key(&["a"])]), "§6.5 item 12");
++    ok(
++        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(-0.0)),
++        "§3.4 W-3: the standing `-0`",
++    );
++    let w = ok(
++        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(0.0)),
++        "§3.4 W-1: `0` over a standing `-0`",
++    );
++
++    // ── THE PRICE, ASSERTED AS THE DECLARED STATE ────────────────────────────────────────────────────────
++    assert!(
++        w.triggered.is_empty(),
++        "**CD-9 — `D-193` ITEM 4'S DECLARED PRICE**: the store's `PartialEq` says `-0 == 0`, so the write is a \
++         no-change write and fires nothing. A red here is a pass that \"repaired\" the price; got {:?}",
++        triggered_handles(&w.triggered)
++    );
++    assert!(
++        w.watched.is_empty(),
++        "CD-9: and `watched` narrows with it (`D-195` item 1); got {:?}",
++        w.watched
++    );
++
++    // ── AND THE TWO RELATIONS' DISAGREEMENT, ON THE RECORD ────────────────────────────────────────────────
++    let store_relation_says_equal = v_num(0.0) == v_num(-0.0);
++    let object_is_says_different = 0.0f64.to_bits() != (-0.0f64).to_bits();
++    assert!(
++        store_relation_says_equal,
++        "CD-9: `src/value.rs:15`'s derived `PartialEq` inherits `f64`'s `-0 == 0` — the store's relation"
++    );
++    assert!(
++        object_is_says_different,
++        "CD-9: and the reversal's judgement's relation differs at that same value — `sameStanding`'s `Object.is` \
++         (`constraints.mjs:3642`–`:3643`), spelled here as the two bit patterns, which are not the same bits"
++    );
++    assert!(
++        store_relation_says_equal && object_is_says_different,
++        "**CD-9 — `D-193` ITEM 4'S TWO ANSWERS TO ONE QUESTION, RECORDED AS THE PRICE OF THE READING AND NOT \
++         RE-DECIDED**: the store fires nothing and a reversal's judgement would call the same pair moved"
++    );
++}
++
++// ---------------------------------------------------------------------------------------------------
++// `CD-10` — THE `file` SAVE STANDS (`Q-8`'s default, `O-5` taken by `D-195` item 2).
++// ---------------------------------------------------------------------------------------------------
++
++fn modified(path: &str) -> SystemTime {
++    std::fs::metadata(path)
++        .expect("CD-10: the store's own image must exist")
++        .modified()
++        .expect("CD-10: the platform reports a modification time")
++}
++
++/// **`CD-10` · THE SAVE STANDS — a no-change `file`-tier write still performs the durable act: the file's
++/// BYTES are identical and its MTIME MOVES.**
++///
++/// **THE MECHANISM** (`docs/L3/change-detection/design.md` §3 row 6): `save_owed`'s FIRST DISJUNCT answers
++/// `true` before any departure test (`src/store.rs:1951`–`:1953`), so `commit_file` reaches `write_file` — and
++/// **the save is reachable BECAUSE the op was minted** (`Q-3`), which is why it is a composition of `Q-3` and
++/// `Q-8` and not either one. **`D-106` item 2's rule has a FALSE ANTECEDENT here and is therefore neither
++/// obeyed nor broken** (`O-5`'s default: it still saves).
++///
++/// **THE ONE-LINE CHANGE THAT REDDENS IT: assert the mtime is unmoved**, or skip the save on a no-change arm.
++#[test]
++fn cd_10_a_no_change_file_write_still_saves_identical_bytes_with_a_moved_mtime() {
++    let path = fresh_path("cd-10");
++
++    // **A COARSE-CLOCK GUARD, STATED SO THE CELL IS NOT FLAKY AND NOT WEAKER**: the assertion is that the
++    // mtime MOVED, so a filesystem whose timestamp granularity exceeds this drive's own delay would redden a
++    // correct tree. The probe measures the granularity on the same directory and widens the delay once if it
++    // must — and it asserts nothing about the store.
++    let probe = fresh_path("cd-10-probe");
++    std::fs::write(&probe, b"probe").expect("CD-10: a writable directory");
++    let probe_before = modified(&probe);
++    std::thread::sleep(Duration::from_millis(20));
++    std::fs::write(&probe, b"probe").expect("CD-10: a writable directory");
++    let coarse = modified(&probe) == probe_before;
++
++    let mut store = ok(
++        storeCreate(&cfg_at(&path, 8)),
++        "§7.1: a `filePath` register, so a `file`-tier write is in domain",
++    );
++    let first = ok(
++        store.write(AddressArg::List(key(&["a"])), w_file(), v_num(1.0)),
++        "§3.4 W-3 at `file`",
++    );
++    ok(
++        commit_at_the_terminal_arm(&mut store, &first.op.opId),
++        "§2.11 clause 2: the `file`-tier commit is the TERMINAL ARM's own act, and a Rust-side drive performs it",
++    );
++    let bytes_before = std::fs::read(&path).expect("CD-10: the first save wrote the image");
++    let mtime_before = modified(&path);
++
++    if coarse {
++        std::thread::sleep(Duration::from_millis(1100));
++    } else {
++        std::thread::sleep(Duration::from_millis(20));
++    }
++
++    let second = ok(
++        store.write(AddressArg::List(key(&["a"])), w_file(), v_num(1.0)),
++        "§3.4 W-1: the same literal at the same tier — a no-change write",
++    );
++    assert!(
++        second.triggered.is_empty(),
++        "CD-10: the write IS a no-change write; got {:?}",
++        triggered_handles(&second.triggered)
++    );
++    ok(
++        commit_at_the_terminal_arm(&mut store, &second.op.opId),
++        "**CD-10 — THE SAVE STANDS (`Q-8`'s default)**: the no-change write's op was MINTED, so the terminal \
++         arm's gate finds `answer.op` and the save is reachable",
++    );
++
++    let bytes_after = std::fs::read(&path).expect("CD-10: the second save rewrote the image");
++    let mtime_after = modified(&path);
++
++    assert_eq!(
++        bytes_before, bytes_after,
++        "CD-10: the bytes are IDENTICAL — the act moved no durable datum"
++    );
++    assert!(
++        mtime_after > mtime_before,
++        "**CD-10 — THE FILE WAS REWRITTEN**: the mtime MOVED ({mtime_before:?} → {mtime_after:?}). A red here \
++         is a pass that skipped the save on a no-change arm — `O-5`'s default is that it still saves"
++    );
++}
++
++// ---------------------------------------------------------------------------------------------------
++// `CD-11` — THE OP IS MINTED (`Q-3`'s default), AND `P-TP-8` (g) HOLDS BECAUSE OF IT.
++// ---------------------------------------------------------------------------------------------------
++
++/// **`CD-11` · THE JOURNAL OP IS STILL MINTED — the second identical write's `op` is present, its `opId`
++/// RESOLVES through `rollback` without `JournalOpUnknown`, and `seq` advanced.**
++///
++/// **THE ONE-LINE CHANGE THAT REDDENS IT: assert `op` is absent**, or make `WriteRecord.op` optional — the
++/// published-member break `D-193` item 5's `Q-3` refused.
++#[test]
++fn cd_11_a_no_change_write_still_mints_its_op_and_the_id_still_resolves() {
++    let mut store = new_store_with_journal(8);
++    let first = ok(
++        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
++        "§3.4 W-3",
++    );
++    let second = ok(
++        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
++        "§3.4 W-1: a no-change write",
++    );
++
++    assert!(
++        second.triggered.is_empty(),
++        "CD-11: the act is a no-change write; got {:?}",
++        triggered_handles(&second.triggered)
++    );
++    assert!(
++        !second.op.opId.is_empty() && second.op.opId != first.op.opId,
++        "CD-11: **AN OP IS STILL MINTED (`Q-3`)** — the no-change write answers its own op id ({} against {}), \
++         so `WriteRecord.op` stays non-optional and no published member moves",
++        second.op.opId,
++        first.op.opId
++    );
++    assert!(
++        second.op.seq > first.op.seq,
++        "CD-11: and `seq` STILL BUMPS ({} → {}) — the entry was appended, so the compaction can still drop the \
++         oldest one",
++        first.op.seq,
++        second.op.seq
++    );
++
++    let r = ok(
++        store.rollback(OpIdArg::Id(second.op.opId.clone())),
++        "**CD-11 — `P-TP-8` (g) HOLDS BECAUSE `Q-3` MINTS**: `rollback(opId)` does not fail \
++         `JournalOpUnknown` on a no-change write's own op id",
++    );
++    assert_eq!(
++        r.opId, second.op.opId,
++        "CD-11: the reversal names the op it was given"
++    );
++    assert_eq!(
++        read_at(&store, &key(&["a"])),
++        v_num(1.0),
++        "CD-11: and the state it restores is the state that stood — the value was equal on both sides"
++    );
++}
++
++// ---------------------------------------------------------------------------------------------------
++// `CD-12`, `CD-13`, `CD-15` — the pass's set, the receipt's census, and the projection law.
++// ---------------------------------------------------------------------------------------------------
++
++/// **`CD-12` · THE PASS IS SILENCED WITH THE FIRING (`Q-5`'s default) — THIS CELL DRIVES THE STORE-SIDE HALF
++/// AND NAMES THE OTHER ONE.**
++///
++/// **THE STORE'S HALF IS THE WHOLE MECHANISM**: the kernel's pass evaluates **`record.triggered`**
++/// (`bindings/js/src/entry/kernel-attempt.mjs:669`–`:670`), which `kernel-commit.mjs:187`–`:188` takes VERBATIM
++/// from the store's answer — **so a store-side narrowing IS the pass's narrowing and no package byte moves**
++/// (`D-69`: one predicate, in the store). **WHAT THIS CELL THEREFORE ASSERTS:** the no-change write's returned
++/// set is `[]` **even with a constraint pair registered at that address and a listener beside it**, and the
++/// write still PASSES. **THE RECEIPT'S HALF — `record.log` carrying no `constraint-check` entry and one
++/// `commit` entry — is `kernel-attempt.mjs`'s and is driven at
++/// `tests/unit/js-constraints/change-detection.test.mjs`'s `CD-12` (the kernel's own scope `D-5` names).**
++///
++/// **THE ONE-LINE CHANGE THAT REDDENS IT: assert the pair was asked** — which is the one consequence `D-193`
++/// item 5's `Q-5` names in as many words (*"a write a pair would have refused on must not become admissible
++/// because its value was equal"* — the pass cannot ask what the store does not return).
++#[test]
++fn cd_12_the_store_side_set_is_empty_for_a_no_change_write_beside_a_registered_pair() {
++    let pairs = ConstraintsArg::List(vec![ConstraintEntry::Pair {
++        address: key(&["a"]),
++        id: "cd-12-pair".to_string(),
++    }]);
++    let mut store = ok(
++        storeCreateWithConstraints(&cfg_at(&fresh_path("cd-12"), 8), &pairs),
++        "§7.1 step 4-bis: the supplied `constraints` list is valid",
++    );
++    let h = handle("cd-12");
++    ok(store.listen(&h, &[key(&["a"])]), "§6.5 item 12");
++
++    ok(
++        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
++        "§3.4 W-3",
++    );
++    let w = ok(
++        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
++        "**CD-12 — THE WRITE PASSES**: the pair is not asked, so nothing is refused, nothing is repaired and \
++         nothing is credited (`D-117`'s order never starts)",
++    );
++    assert!(
++        w.triggered.is_empty(),
++        "**CD-12 — THE PASS'S EVALUATED SET IS THE STORE'S RETURNED SET (`Q-5`'s default)**: the no-change \
++         write answers `[]`, so the kernel asks no pair at `['a']`; got {:?}",
++        triggered_handles(&w.triggered)
++    );
++    assert!(
++        w.watched.is_empty(),
++        "CD-12: and `watched` narrows with it; got {:?}",
++        w.watched
++    );
++    assert!(
++        !w.op.opId.is_empty(),
++        "CD-12: the act is still an act — it minted its op and it stands"
++    );
++}
++
++/// **`CD-13` · THE RECEIPT'S CENSUS, THE STORE'S HALF — a no-change write's record is the SAME THREE MEMBERS
++/// with the SAME shapes, and the delete's receipt is the same four.**
++///
++/// **NO MEMBER IS MINTED BY THIS UNIT** (`O-4`'s default (i): the `changed` flag was priced and declined), so
++/// **the write's record is still `{op, watched, triggered}`** — destructured below, which is a compile-time
++/// census in Rust — **and the no-change arm differs from the ordinary arm in the two LISTS' contents and in
++/// nothing else.** **THE PACKAGE-SIDE HALF — `Object.keys` reading `["op","watched","triggered"]`,
++/// `Object.getOwnPropertyNames` reading SEVEN, `log[0].kind === 'commit'`, `discarded` `[]` and the two frozen
++/// `{}`s — is driven at `tests/unit/js-constraints/change-detection.test.mjs`'s `CD-13`, where those members
++/// exist.**
++///
++/// **THE ONE-LINE CHANGE THAT REDDENS IT: assert `log` is `[]`, or assert `bodyFailures` is absent, or mint a
++/// fourth member on the record.**
++#[test]
++fn cd_13_the_receipt_census_is_unmoved_on_the_no_change_arm() {
++    let mut store = new_store();
++    let h = handle("cd-13");
++    ok(store.listen(&h, &[key(&["a"])]), "§6.5 item 12");
++
++    // THE ORDINARY WRITE — three members, both lists populated.
++    let ordinary = ok(
++        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
++        "§3.4 W-3",
++    );
++    let WriteResult {
++        op: ordinary_op,
++        watched: ordinary_watched,
++        triggered: ordinary_triggered,
++    } = ordinary;
++    assert!(
++        !ordinary_op.opId.is_empty() && !ordinary_watched.is_empty() && !ordinary_triggered.is_empty(),
++        "CD-13: the ordinary write's record carries its three members with both lists populated"
++    );
++
++    // THE NO-CHANGE WRITE — the SAME three members, the two lists empty.
++    let no_change = ok(
++        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
++        "§3.4 W-1",
++    );
++    let WriteResult {
++        op: no_change_op,
++        watched: no_change_watched,
++        triggered: no_change_triggered,
++    } = no_change;
++    assert!(
++        !no_change_op.opId.is_empty(),
++        "CD-13: `op` is PRESENT on the no-change arm — the member is non-optional (`Q-3`)"
++    );
++    assert!(
++        no_change_watched.is_empty() && no_change_triggered.is_empty(),
++        "CD-13: and the only difference is the two LISTS' contents — no member is added, renamed or removed by \
++         this unit; got watched {:?} / triggered {:?}",
++        no_change_watched,
++        triggered_handles(&no_change_triggered)
++    );
++
++    // THE DELETE'S RECEIPT — four members, and the D-3 arm's `[]` is unmoved by this unit.
++    let d = ok(
++        store.delete(AddressArg::List(key(&["a"])), t(Tier::Mem)),
++        "§4.3: the delete is the second trigger event",
++    );
++    let DeleteReceipt {
++        address,
++        tiers,
++        triggered: deleted_triggered,
++        op: deleted_op,
++    } = d;
++    assert!(
++        address == key(&["a"]) && tiers == vec![Tier::Mem] && deleted_op.is_some(),
++        "CD-13: the delete's receipt is the same four members, and the removal is journalled"
++    );
++    assert!(
++        same_handle_set(&deleted_triggered, &one_handle(&h)),
++        "CD-13: and the delete's `triggered` is UNMOVED by `P-3` — it answers the act's value position `true`, \
++         because a delete that reaches it removed at least one version; got {:?}",
++        triggered_handles(&deleted_triggered)
++    );
++}
++
++/// **`CD-15` · THE PROJECTION LAW SURVIVES — `watched` equals the ADDRESSES of `triggered` AS SETS, and on a
++/// no-change write with three registrations at three prefixes BOTH ARE `[]`.**
++///
++/// **THE LAW** (`src/store.rs:2567`–`:2570`, `DD-22`): *"the two lists must be produced by ONE predicate or the
++/// projection is false"* — and `D-195` item 1 moved `P-TP-8` (e) with (a) **in the same bounded amendment for
++/// exactly that reason**. **THE ONE-LINE CHANGE THAT REDDENS IT: assert a non-empty `watched` beside an empty
++/// `triggered`** — the incoherence `P-3`'s own §7 item 2 refuses by name.
++#[test]
++fn cd_15_watched_is_the_address_projection_of_triggered_on_a_no_change_write() {
++    let mut store = new_store();
++    // **THE TWO PARENTS ARE FIXTURES AND NOT THE SUBJECT** — `['a','b','c']` is writable only under standing
++    // `['a']` and `['a','b']` containers (`§3.2`: a write mints no intermediate node).
++    ok(
++        store.write(AddressArg::List(key(&["a"])), w_mem(), v_obj(&[])),
++        "§3.4 W-4: the parent container `['a']`",
++    );
++    ok(
++        store.write(AddressArg::List(key(&["a", "b"])), w_mem(), v_obj(&[])),
++        "§3.4 W-4: the parent container `['a','b']`",
++    );
++    for (tag, address) in [
++        ("cd-15-a", key(&["a"])),
++        ("cd-15-b", key(&["a", "b"])),
++        ("cd-15-c", key(&["a", "b", "c"])),
++    ] {
++        ok(
++            store.listen(&handle(tag), &[address]),
++            "§6.5 item 12: three registrations at three prefixes of the act's address",
++        );
++    }
++
++    let first = ok(
++        store.write(AddressArg::List(key(&["a", "b", "c"])), w_mem(), v_num(1.0)),
++        "§3.4 W-3/W-4",
++    );
++    assert!(
++        first.triggered.len() == 3 && first.watched.len() == 3,
++        "CD-15: the FIRST write fires all three and `watched` names all three addresses ({} / {})",
++        first.triggered.len(),
++        first.watched.len()
++    );
++    assert!(
++        same_address_set(&first.watched, &triggered_addresses(&first.triggered)),
++        "CD-15: and `watched` IS the address projection of `triggered` on the moving arm too; got {:?} against {:?}",
++        first.watched,
++        triggered_addresses(&first.triggered)
++    );
++
++    let second = ok(
++        store.write(AddressArg::List(key(&["a", "b", "c"])), w_mem(), v_num(1.0)),
++        "§3.4 W-1: the same literal at the same tier",
++    );
++    assert!(
++        second.triggered.is_empty() && second.watched.is_empty(),
++        "**CD-15 — THE PROJECTION LAW SURVIVES (`D-195` item 1)**: both lists are `[]`, so no member is added \
++         to one and omitted from the other; got {} / {:?}",
++        second.triggered.len(),
++        second.watched
++    );
++    assert!(
++        same_address_set(&second.watched, &triggered_addresses(&second.triggered)),
++        "CD-15: the projection holds at both ends — empty equals empty"
++    );
++}

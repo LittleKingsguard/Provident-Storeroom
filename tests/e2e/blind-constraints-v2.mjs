@@ -925,11 +925,20 @@ scenario(() => {
     `e2e-scenarios.md E2E-C-8 cell 5; ${C.ks21} item 3`,
     rA.ops.length === rBinner?.ops.length && rA.ops.every((o, i) => o.kind === rBinner.ops[i].kind),
     `alpha ops=${JSON.stringify(rA.ops.map((o) => o.kind))} beta ops=${JSON.stringify(rBinner?.ops.map((o) => o.kind))}`);
-  cell(3, "the two windows' logs have equal length and equal kind/id/state sequences",
-    `e2e-scenarios.md E2E-C-8 cell 5; ${C.ks25} item 1`,
-    rA.log.length === rBinner?.log.length
-      && rA.log.every((e, i) => e.kind === rBinner.log[i].kind && e.id === rBinner.log[i].id && e.state === rBinner.log[i].state),
-    `alpha=[${kinds(rA.log)}] beta=[${kinds(rBinner?.log)}]`);
+  // **⟶ AND THE PARITY IS NO LONGER EQUALITY, 2026-11-17 — BECAUSE THE RULING CHANGED WHAT THE SECOND ACT IS** (`D-193`, VERBATIM: *"P-3 checks
+  // literal equivalence, not reference equality"*). **THIS SCENARIO'S PREMISE IS TWO WRITES OF THE SAME LITERAL**, the caller's and the listener body's;
+  // **under change detection the body's own write LANDS THE VALUE THE ADDRESS ALREADY STANDS AT, so it is a no-change write and NO PAIR IS ASKED** — the
+  // pass is silenced, and its log carries `commit` alone where the caller's carries `constraint-check` then `commit`. **SO THIS LIMB ASSERTS THE DIFFERENCE
+  // THE RULING REQUIRES RATHER THAN A PARITY IT REMOVED**: the two windows differ **by exactly the one entry the ruling silences and by nothing else**,
+  // which is a STRONGER statement about the pairing than equality was.
+  cell(3, "the two windows' logs differ by EXACTLY the entry change detection silences — the caller's window is asked, the body's write lands the "
+    + "standing literal and is not (D-193)",
+    `e2e-scenarios.md E2E-C-8 cell 5; ${C.ks25} item 1; \`D-193\``,
+    rA.log.length === 2 && rA.log[0].kind === 'constraint-check' && rA.log[1].kind === 'commit'
+      && rBinner?.log.length === 1 && rBinner.log[0].kind === 'commit'
+      && rBinner.log[0].id === rA.log[1].id && rBinner.log[0].state === rA.log[1].state,
+    `alpha=[${kinds(rA.log)}] beta=[${kinds(rBinner?.log)}] — the caller's carries the constraint-check its pair's pass appended, the body's `
+      + `carries none because its write landed the standing literal`);
   cell(4, "rollback is [] in both windows and each window's attempt reference is its own",
     `${C.ks21} item 3`, rA.rollback.length === 0 && rBinner?.rollback.length === 0 && rA.attempt.id !== rBinner?.attempt.id,
     `alpha attempt=${rA.attempt.id} beta attempt=${rBinner?.attempt.id}`);
@@ -949,15 +958,23 @@ scenario(() => {
   // ── **⟶ THE CELL THE AS-FILED DRIVE COULD NOT REACH, NOW DRIVEN (it was `NOT DRIVABLE BLIND` because the body
   // was never invoked).** The kernel's own window delivered its pass for the same write: the body's own attempt
   // carries the ONE `constraint-check` entry its own pair's pass appended, at the body's own op.
-  cell(7, "the surface's own window delivered its pass for the same write: the body's own attempt carries the ONE constraint-check entry its pair's own pass appended, at the body's own op, and the body's log is the same two-kind sequence alpha's is",
-    `${C.al24} item 5 (iii); ${C.ks21} item 2`,
+  // **⟶ AND THE BODY'S OWN ATTEMPT CARRIES `commit` ALONE, 2026-11-17 — `D-193`, AND THIS LIMB IS WHERE THE RULING IS MOST VISIBLE.** It asserted
+  // that the body's window carries **the ONE `constraint-check` entry its pair's own pass appended**. **THE BODY'S WRITE LANDS THE LITERAL THE ADDRESS
+  // ALREADY STANDS AT** (this scenario's premise), so **it is a no-change write and NO PAIR IS ASKED** — that entry is **not appended**, and **its absence is
+  // the ruling's own signature rather than a lost entry.** **THE LIMB NOW ASSERTS THE ABSENCE AND THAT THE `commit` ENTRY IS STILL THERE** — `CD-12`'s
+  // store-side fact arriving in the blind corpus.
+  cell(7, "the surface's own window's attempt carries `commit` and NO `constraint-check`: its write landed the literal already standing, so the pass "
+    + "was silenced and no pair was asked (D-193) — and the attempt still recorded its own op",
+    `${C.al24} item 5 (iii); ${C.ks21} item 2; \`D-193\``,
     (() => {
       const b = rBinner ?? {};
       const cc = (b.log ?? []).filter((e) => e.kind === 'constraint-check');
-      return cc.length === 1 && cc[0].id === 'x' && (b.ops ?? []).some((o) => o.opId === cc[0].opId)
-        && (b.log ?? []).map((e) => e.kind).join(',') === 'constraint-check,commit';
+      return cc.length === 0
+        && (b.log ?? []).map((e) => e.kind).join(',') === 'commit'
+        && (b.ops ?? []).length === 1;
     })(),
-    `beta inner=[${kinds(rBinner?.log)}] ops=${JSON.stringify((rBinner?.ops ?? []).map((o) => o.opId))} — the pair's own pass appended exactly one entry and the body's own write landed that op`);
+    `beta inner=[${kinds(rBinner?.log)}] ops=${JSON.stringify((rBinner?.ops ?? []).map((o) => o.opId))} — the body's write landed the standing literal, so its`
+      + ` pair was not asked and its op stands alone; before D-193 this limb saw one constraint-check here`);
   // the caller's own write's own attempt: reached its terminal arm with its own record (the second invoker's half)
   void rBouter;
 });

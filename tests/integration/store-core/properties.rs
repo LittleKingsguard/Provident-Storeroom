@@ -2527,13 +2527,21 @@ fn p_tp_8_the_listener_surface_and_the_journal_are_total_functions() {
 
     // **(iii) THE NO-TIER-TEST DRIVE** — bind at an address a write's address has as a prefix, and write at
     // EVERY ONE OF THE THREE TIERS: the handle is returned each time (`DD-36`).
+    // **⟶ RE-DERIVED 2026-11-17 — `P-3` (`strata/decisions.md` · `D-193` item 1): EACH TIER'S WRITE CARRIES A
+    // DIFFERENT LITERAL, SO THE DRIVE'S SUBJECT SURVIVES ITS OWN SUBJECT.** This cell's declared subject is
+    // *"the handle set does NOT depend on the write's tier"* (`DD-36`) — a TIER fact, never a value fact — and
+    // the one value it used to write at all three tiers is, under `P-3`, a NO-CHANGE write at the second and
+    // third (the literal already stands), so `triggered` was correctly `[]` and the cell reddened on a
+    // behaviour it never declared. **The value is now derived FROM THE TIER'S OWN POSITION** and every other
+    // assertion of the drive stands byte-for-byte: the handle is still expected at EVERY one of the three
+    // tiers, `DD-36` still rules nothing carries over from a tier, and no expectation is weakened.
     drive.attempt();
     {
         let mut s = new_store();
         let h = handle("pr-s1");
     ok(s.listen(&h, &[key(&["r"])]), "§6.5 item 12");
-        for tier in canonical_tiers() {
-            match s.write(AddressArg::List(key(&["r"])), t(tier), v_num(1.0)) {
+        for (i, tier) in canonical_tiers().into_iter().enumerate() {
+            match s.write(AddressArg::List(key(&["r"])), t(tier), v_num(1.0 + i as f64)) {
                 Ok(wt) => drive.check(
                     same_handle_set(&wt.triggered, &one_handle(&h)),
                     &format!(
@@ -2701,8 +2709,12 @@ fn p_tp_8_the_listener_surface_and_the_journal_are_total_functions() {
             "§2.2 item 3/§5.8 (a): the purge ran and the reinstall restored ONE entry — the home holds ONE \
              entry at the address, so a repeated registration does not duplicate the handle",
         );
-        for tier in canonical_tiers() {
-            match s.write(AddressArg::List(key(&["a"])), t(tier), v_num(1.0)) {
+        // **⟶ RE-DERIVED 2026-11-17 — `P-3` (`strata/decisions.md` · `D-193` item 1), FOR THE ONE REASON THE
+        // NO-TIER-TEST DRIVE ABOVE STATES: the cell's subject is that the ADDRESS LIST carries the address at
+        // EVERY tier and that the ONE home entry yields ONE handle — a TIER fact, never a value fact — so the
+        // literal each tier carries is derived from the tier's own position and no expectation below moves.**
+        for (i, tier) in canonical_tiers().into_iter().enumerate() {
+            match s.write(AddressArg::List(key(&["a"])), t(tier), v_num(1.0 + i as f64)) {
                 Ok(w) => {
                     drive.check(
                         w.watched.len() == 1

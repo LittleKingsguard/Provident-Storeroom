@@ -717,7 +717,18 @@ test('hli_prop_P_HL_4_a_mid_pass_registration_enters_the_next_pass_and_no_earlie
       assert.equal(firstChecked.includes(lateId), false,
         'THE MID-PASS REGISTRATION IS ABSENT FROM THE REGISTERING PASS\'S OWN ENTRIES — read '
         + JSON.stringify(firstChecked) + ' (`S-SEL-SNAPSHOT`; `kernel-selection.md §7` `KF-5`)');
-      const next = K.runAttempt(store, K.commit(store, address, 'mem', intBetween(rng, 0, 9)));
+      // **⟶ RE-DERIVED 2026-11-17 — `P-3` (`strata/decisions.md` · `D-193` item 1: *"P-3 checks literal
+      // equivalence, not reference equality"*).** **THE SECOND COMMIT'S LITERAL IS DERIVED FROM THE ONE THE FIRST
+      // LEFT STANDING AND NOT DRAWN FROM THE SAME RANGE**, because a draw that repeated the standing literal made
+      // the second write a NO-CHANGE WRITE — `triggered: []`, so the NEXT pass asks nothing and this cell's own
+      // observable (`lateId` IS EVALUATED BY THE NEXT PASS) had no subject. **THE CELL'S SUBJECT IS UNMOVED AND IS
+      // ASSERTED WHOLE**: the mid-pass `K-1` appends no entry to the registering pass and enters the NEXT one, and
+      // the draw is still the seed's — a deterministic function of the state the first commit left.
+      const standingValue = store.read(address);
+      const nextValue = typeof standingValue === 'number'
+        ? (standingValue + 1) % 10
+        : intBetween(rng, 0, 9);
+      const next = K.runAttempt(store, K.commit(store, address, 'mem', nextValue));
       const nextChecked = next.log.filter((e) => e.kind === 'constraint-check').map((e) => e.id);
       assert.equal(nextChecked.includes(lateId), true,
         'and it IS evaluated by the NEXT pass — read ' + JSON.stringify(nextChecked)

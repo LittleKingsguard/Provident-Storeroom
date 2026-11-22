@@ -2518,12 +2518,23 @@ console.log('\n── W13 · `D-66` · A PAIR AT A DESCENDANT IS ASKED ONLY WHEN
   })) }));
   // **THE ACT WRITES THE TAB OBJECT ITSELF, NOT THE SEED'S WRAPPER**: the value's path set is what `D-66` reads,
   // so the write at `['window','tabs']` carries `{landingPage, settings}` and touches those two names and theirs.
-  const sTabs = () => ({ landingPage: { active: true }, settings: { active: false } });
+  // **⟶ AND THE WRITE MUST LAND A LITERAL THE ADDRESS DOES NOT ALREADY STAND AT, 2026-11-17 — `D-193` (`P-3`'s change detection).** The
+  // seed at `['window']` puts `{landingPage:…, settings:{active:false}}` at `['window','tabs']`, **so the write of the SAME literal was a NO-CHANGE
+  // WRITE and its pass asked only the touched descendant** — measured: `pass asks ["touched-descendant"]`. **THE CELL'S SUBJECT IS THE FROZEN SET AND
+  // NOT THE LITERAL**, so the fixture moves one member and **every one of the three rows stands again**: `settings.active` is `true` here where the seed
+  // left it `false`, which is a change at the act's own address and therefore at the ancestor above it.
+  const sTabs = () => ({ landingPage: { active: true }, settings: { active: true } });
   const sRecord = attempt(() => kernel.commit(sStore, ['window', 'tabs'], 'mem', sTabs()));
   const sRun = sRecord.ok ? attempt(() => kernel.runAttempt(sStore, sRecord.value)) : null;
   const sPassAsks = sOrder.filter((one) => one.at === 'pass').map((one) => one.id);
   const sOrderBefore = sOrder.length;
-  const sSecond = attempt(() => sStore.write(['window', 'tabs'], 'mem', sTabs()));
+  // **⟶ AND THE SECOND WRITE LANDS A DIFFERENT LITERAL, 2026-11-17 — FOR THE SAME REASON AND WITH ITS OWN SUBJECT KEPT.** This cell's second
+  // subject is that **the pair registered DURING the first pass is asked by the NEXT pass**; writing `sTabs()` again would be a no-change write under
+  // `D-193` and the next pass would ask only the touched descendant — measured: `next pass ["touched-descendant","registered-during-the-pass"]`.
+  // **So the fixture returns the seeded member to `false`, which is a change against what stands**, and the four-row set the limb asserts is reachable
+  // again: the touched descendant, the deep ancestor, the act's own address, and the mid-pass registration.
+  const sTabsAgain = () => ({ landingPage: { active: true }, settings: { active: false } });
+  const sSecond = attempt(() => sStore.write(['window', 'tabs'], 'mem', sTabsAgain()));
   const sSecondAsks = sOrder.slice(sOrderBefore).filter((one) => one.at === 'pass').map((one) => one.id);
   P('X7 · the pass\'s asks, IN ORDER — ancestor · the act\'s own address · the TOUCHED descendant', sPassAsks);
   P('X7 · the untouched descendant and the mid-pass registration, in THIS pass', {

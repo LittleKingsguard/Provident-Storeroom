@@ -380,14 +380,25 @@ test('CSW-08 · ONE INVOCATION PER DISTINCT HANDLE (`PIN-6` (iii); `D-125` item 
   store.register(bound, rearm.listener);
   store.write(['w1'], 'mem', { k: 0 });
   store.write(['w2'], 'mem', { k: 0 });
+  // **⟶ AND THE REPAIR'S TWO BESIDE WRITES CARRY A LITERAL DERIVED FROM THE RUN, 2026-11-17 — `P-3`
+  // (`strata/decisions.md` · `D-193` item 1: *"P-3 checks literal equivalence, not reference equality"*).** **THE
+  // BODY RUNS TWICE IN THIS DRIVE — at `addConstraint` and at the RE-ARM — and the constant it used to write (`1`)
+  // therefore left the re-arm's second pair of writes landing the literals the first pair had already landed: two
+  // NO-CHANGE WRITES, `triggered: []` twice, an empty union and NO delivery — so this cell's subject (*"the re-arm's
+  // repair fires the handle once, though its two writes name it at two addresses"*) had no subject.** **THE
+  // SUBJECT IS UNMOVED AND IS ASSERTED WHOLE**: the repair's two writes still name the handle at TWO addresses, the
+  // running list is still held across the per-address `deliver` calls, and the handle fires ONCE. **The literal is
+  // a counter so every run is a change**, which is the only thing this re-derivation moves.
+  let repairRuns = 0;
   const body = (context) => {
     if (context.value !== undefined) return true;
     return {
       message: '`["h"]` must exist',
       repair: (record) => {
+        repairRuns += 1;
         const landed = record.write(['h'], 'mem', 'settled').op;
-        record.write(['w1', 'k'], 'mem', 1);
-        record.write(['w2', 'k'], 'mem', 1);
+        record.write(['w1', 'k'], 'mem', repairRuns);
+        record.write(['w2', 'k'], 'mem', repairRuns);
         return { ok: true, op: landed };
       },
     };

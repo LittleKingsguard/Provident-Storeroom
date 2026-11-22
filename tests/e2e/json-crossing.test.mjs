@@ -4354,7 +4354,7 @@ test('JC-TC-64 the record copy and the delivery are the governed copy path\'s, s
   // | CONTROL — `storeCreate({ journalLength: 8, listeners: [{ handle: 'h', address: ['a'] }] })`, `register('h', fn)`, then `write(['a', 'b'], 'mem', 'x')` | the record's `op`, `watched` and `triggered`; `watched` and `triggered` NON-EMPTY (`[['a']]` and `[{handle: 'h', address: ['a']}]`); the counting listener fires EXACTLY ONCE, with the triggering address `['a', 'b']` and `arguments.length === 1`; the store's bytes settle at `'x'` |
   // | (i) `Array.prototype[Symbol.iterator]` replaced by a generator yielding EXACTLY ONE `undefined` | THE SAME RECORD BYTES and the SAME non-empty sets; the listener fires exactly once with `['a', 'b']`; NO RAW HOST ERROR escapes — not the `element.handle` read at the record copy and not the pair destructuring at the delivery; the GOVERNED COUNTER `0`, the kernel's three iteration takes EXCLUDED and RECORDED |
   // | (ii) `Array.prototype.push` replaced by a function answering `0` that copies nothing | THE SAME RECORD BYTES with `watched` and `triggered` NON-EMPTY and the listener FIRING — a no-op append may not empty the record and silence the delivery; NO RAW HOST ERROR escapes; the GOVERNED COUNTER `0`, the kernel's `attempt.log.push` EXCLUDED and RECORDED |
-  // | the FRESHNESS LIMB, on the control alone: a second identical write at the same address | a SECOND invocation, whose ONE argument is a FRESH DENSE array `['a', 'b']` and NOT the first invocation's object (`parameter-semantics.md §2.12`; `surface.md §2.4`'s invocation row) |
+  // | the FRESHNESS LIMB, on the control alone: a second write at the same address carrying a **DIFFERENT** literal | a SECOND invocation, whose ONE argument is a FRESH DENSE array `['a', 'b']` and NOT the first invocation's object (`parameter-semantics.md §2.12`; `surface.md §2.4`'s invocation row) |
   //
   // **WHAT THE SHIPPED TREE NOW ANSWERS, MEASURED RATHER THAN EXPECTED** (items `(1a)` and `(1b)` of the
   // clause: arm `(xviii)`'s bytes stand): the record crosses intact, the listener fires once and no host error
@@ -4518,7 +4518,20 @@ test('JC-TC-64 the record copy and the delivery are the governed copy path\'s, s
   assert.equal(control.settled, 'x', 'the CONTROL: the store\'s bytes settle at the value the write carried');
 
   // ── THE FRESHNESS LIMB: driven BEFORE the census below, so the red it may carry is not hidden by it ─────
-  const second = crossingCall(() => control.store.write(drivenAddress, 'mem', 'x'));
+  //
+  // **⟶ AND THE SECOND WRITE'S LITERAL IS RE-DERIVED, 2026-11-17 — `P-3` (`strata/decisions.md` · `D-193` item
+  // 1: *"P-3 checks literal equivalence, not reference equality"*).** **THIS LIMB'S DECLARED SUBJECT IS THE FRESH
+  // ARRAY** — *"each invocation receives a FRESH array"*, `parameter-semantics.md §2.12`; `surface.md §2.4`'s
+  // invocation row — **and NOT a firing count**, which is why the design names it a TOKEN TO RE-DERIVE rather than
+  // a semantic this suite defends (`P-3`'s `C-16`; `strata/proposals.md:714`–`:717`: *"a re-derivation that keeps
+  // the subject can keep the count by changing the second write's value"*). **Its drive used to write `'x'`
+  // twice**, and under `P-3` the second write lands the literal the address already answers, so it fires nothing,
+  // the count below reads `1`, and `control.fired[1].address` is a `TypeError` on `undefined` — a red about a
+  // firing count arriving in a limb that never declared one. **THE VALUE IS THEREFORE A LITERAL THE FIRST WRITE
+  // DID NOT LAND**, the two invocations are two invocations again, and **every assertion of the limb stands
+  // byte-for-byte** — the FRESHNESS is still the thing asserted, and it is asserted over two invocations that are
+  // now genuinely two.
+  const second = crossingCall(() => control.store.write(drivenAddress, 'mem', 'y'));
   assert.equal(second.raised, false,
     `the freshness limb: the control's second identical write must be ADMITTED; got ${JSON.stringify(second.failure)}`);
   assert.equal(control.fired.length, 2,

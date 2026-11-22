@@ -714,8 +714,47 @@ export interface JournalOp {
  */
 export interface WriteRecord {
   readonly op: JournalOp;
+  /**
+   * **THE WATCHED ADDRESSES — THE ADDRESS PROJECTION OF `triggered`, AND FROM `P-3` IT NARROWS WITH IT.**
+   * `strata/decisions.md` · `D-195` item 1 (*"Take the default on the blocker and proceed"*) settles what
+   * `D-193` left open: the store's own projection law says the two lists are produced by ONE predicate, so
+   * **a write that changes nothing at its address answers `[]` here TOO** — see `triggered`'s clause below,
+   * which is the one that carries the rule.
+   */
   readonly watched: readonly Address[];
-  /** **THE TRIGGER'S PAIRS** (`contract.md §2.4` item 1; `PAR-HL-38`): the pair REPLACES a bare handle list. */
+  /**
+   * **THE TRIGGER'S PAIRS** (`contract.md §2.4` item 1; `PAR-HL-38`): the pair REPLACES a bare handle list.
+   *
+   * **★ AND FROM `P-3` A `write` FIRES ONLY REGISTRATIONS THE ACT'S OWN VALUE REACHES — `strata/decisions.md` ·
+   * `D-193` item 1, the architect, VERBATIM: *"P-3 checks literal equivalence, not reference equality"*.** **A
+   * `write` whose literal is the literal the address already answers answers `triggered: []`** — the prefix
+   * arm gains the act's value condition, **while the TOUCHED arm does not**: a registration at a node the act
+   * created or purged below it is still told (`D-66`; `Q-6`'s default, which no later pass may narrow).
+   * **THE COMPARISON IS ON ONE LITERAL AND NOT ON THE PER-TIER LIST** (`D-193` item 1: at an address standing
+   * at two tiers the compared literal is the one an unqualified read answers), **the relation is the store's own
+   * value equality** (class-strict and key-order-blind), **and two prices are DECLARED rather than repaired**:
+   * `file 'V'` then `mem 'V'` **fires nothing** although `readTiered` moves, and `0` over a standing `-0`
+   * **fires nothing** although a constraint's `sameStanding` would call the pair moved (`D-193` items 3 and 4:
+   * *"a later pass must not 'fix' this as a defect"*). **The suppression reaches a CONSTRAINT PAIR at that
+   * address too** (`D-193` item 5's `Q-5`): the pass evaluates this list, so an empty list asks no pair.
+   *
+   * **⟶ AND THE `D-78` SENTENCE THIS MEMBER OWES, WHICH IS NOT `D-78`'s SHAPE — WHAT YOU MAY CONCLUDE FROM
+   * `[]`.** `docs/specs/storeroom-js/surface.md:235`'s device (`D-78`) draws its axis between an ABSENT member
+   * and an EMPTY list — *"this act cannot discard a raise"* versus *"it can, and this time nothing was
+   * discarded"* — and its remedy is to make the member present so it can say so. **HERE THE MEMBER IS PRESENT IN
+   * BOTH READINGS AND THE AMBIGUITY IS INSIDE ONE ARRAY**, so the declared reading is the one the architect's
+   * default leaves (`D-195` item 2's `O-4`): **`[]` carries TWO claims and CANNOT TELL THEM APART** — **(A)**
+   * *"no registration stood at a prefix of this act's address, and the act touched no registered address"*, and
+   * **(B)** *"registrations stood, and the literal the act landed is the literal the address already
+   * answered."* **BOTH ARE TRUE OF IT, AND `[]` ALONE DOES NOT SAY WHICH.** **What you may rely on therefore:** a
+   * listener you registered at a prefix of a `write`'s address was **not** invoked, and **nothing in the record
+   * says why** — **`op` is present on both arms** (a no-change write still mints its op and its `opId` still
+   * resolves through `rollback`), and **a `file`-tier no-change write still saves**, so `[]` never means *"the
+   * act did not happen"*. **`op.before` beside `op.after` is a SECOND reading and a PARTIAL one**: where an
+   * address stood at two tiers `op.before.value` is the per-tier LIST, so the two disagree with the rule at
+   * exactly the address the rule's price lives at (`D-193` item 3). **A typed `changed` flag is NOT on this
+   * surface and was not minted** (`O-4`'s default (i), declared rather than added).
+   */
   readonly triggered: readonly TriggerPair[];
   /**
    * **THE DISCARD'S WITNESS — PRESENT ON THIS RECORD AT RUNTIME, AND DECLARED HERE RATHER THAN AS A TYPED

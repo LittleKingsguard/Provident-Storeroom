@@ -229,6 +229,16 @@ test('D-46 (1) · A REPAIR IS TRACKED INSIDE ITS ATTEMPT: the repair body\'s wri
   // HANDOFF PUTS IT.** This drive's caller is the PUBLISHED `write`, which answers `{op, watched, triggered}` on
   // a passing arm and has never carried a log: the list is measured on a DIRECT `K-2`/`K-3` DRIVE of the same
   // shape, whose `K-3` return is a handoff and whose `.log` is therefore the commit's one list.
+  // **⟶ AND THE DIRECT DRIVE'S OWN STATE IS RESTORED FIRST, 2026-11-17 — `P-3` (`strata/decisions.md` ·
+  // `D-193` item 1: *"P-3 checks literal equivalence, not reference equality"*).** **The entry's own landing left
+  // `['a'] = REFUSED`, so the direct drive's commit landed that same literal a second time — a NO-CHANGE WRITE
+  // under `P-3`: `triggered: []`, no pair asked, and the one list this limb measures read `[commit]` where its
+  // subject is the ORDER of several attempts' entries.** **THE STATE IS MOVED BACK TO `SEED` (which the pair
+  // ADMITS) AND THE BESIDE ADDRESS TO A LITERAL THE REPAIR DOES NOT LAND, so the direct drive is again the shape
+  // the entry drove** — and **every assertion of the limb stands byte-for-byte: one list, `0..n-1`, no gap, no
+  // renumbering, and no `seq` member.**
+  store.write(['a'], 'mem', SEED);
+  store.write(['z'], 'mem', 0);
   const directRecord = kernelCommit(store, ['a'], 'mem', REFUSED);
   const direct = kernelRunAttempt(store, directRecord);
   assert.equal(direct.outcome, 'passed', 'the direct drive of the same shape passes, as the entry\'s did');

@@ -2182,7 +2182,15 @@ properties below are its elaboration.**
    imposes one — a nested chain precedes the window's next listener — and the machine provides that guarantee
    while no clause promises it, so a consumer relying on the opposite relies on nothing.** **(iii) RE-ENTRANCY IS
    UNAVOIDABLY OPEN**: a listener that writes at the address it was delivered for fires itself again, because the
-   store's trigger set is computed per act; nothing detects it and nothing is meant to. **(iv) NOTHING ABOVE SEES
+   store's trigger set is computed per act; nothing detects it and nothing is meant to. **⟶ AND THAT SENTENCE IS
+   CONDITIONAL ON A VALUE FROM 2026-11-17 — `P-3`, `strata/decisions.md` · `D-193`, the architect VERBATIM:
+   *"P-3 checks literal equivalence, not reference equality"*.** **THE OPERATIVE READING: a listener that writes **A
+   DIFFERENT LITERAL** at the address it was delivered for fires itself again** — the re-entrancy this item declares
+   **STANDS WHOLE** — **and a listener that writes the literal already standing there fires NOTHING, itself
+   included**, because `triggered` is computed on the literal and not on the act (`D-195` item 1: `watched` narrows
+   with it). **SO ONE FORM OF SELF-RETRIGGERING IS NOW DETECTED, AND THE ITEM'S *"nothing detects it"* IS READ AS
+   *"nothing detects a listener that writes a value"***; **no depth becomes bounded, no guard is added, and the other
+   half of the item — nothing is meant to — is unmoved.** **(iv) NOTHING ABOVE SEES
    BELOW** (`D-71`): a nested commit's outcome, refusal and record are invisible upward, so a chain that fails at
    depth three is indistinguishable, to the original caller, from one that never ran.
 4. **MEASURED ON THIS TREE, THROUGH THE PUBLISHED ENTRY, 2026-10-29.** **A listener at `['a']` whose body writes

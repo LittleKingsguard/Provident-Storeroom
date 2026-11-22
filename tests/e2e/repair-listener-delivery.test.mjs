@@ -764,8 +764,16 @@ test('RLD-8 · THE TWO-REPAIR COMMIT — two pairs violate in turn and two repai
   const address = ['rld8-a'];
   const ranks = ['rld8-b', 'rld8-c'];
   const listeners = [];
+  // **⟶ AND THE TWO BESIDE ADDRESSES ARE SEEDED WITH A LITERAL THE REPAIRS DO NOT LAND, 2026-11-17 — `P-3`
+  // (`strata/decisions.md` · `D-193` item 1: *"P-3 checks literal equivalence, not reference equality"*).** **They
+  // were seeded with `1`, which is exactly the rank the SECOND pair's repair lands — so under `P-3` that repair's
+  // write landed the literal already standing, fired nothing at its own listener's address, and this cell's
+  // subject (`BOTH repair listeners are invoked once each`) could not be reached.** **THE CELL'S SUBJECT IS
+  // UNMOVED AND IS ASSERTED WHOLE**: the chain still walks `broken -> 0 -> 1`, one repair write per pair, each at
+  // its OWN listener's address, and neither listener can be fired by the commit's own write.
+  const besideSeed = -1;
   for (const rank of ranks) {
-    store.write([rank], 'mem', 1);
+    store.write([rank], 'mem', besideSeed);
     const bound = bindListener(store, [rank], rank);
     bound.seen.length = 0;
     listeners.push(bound);
