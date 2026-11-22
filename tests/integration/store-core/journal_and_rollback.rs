@@ -2080,7 +2080,11 @@ fn path_debug(path: &[Segment]) -> String {
 ///
 /// Drives: `§6.6` items 1 and 4; `§6.4` `M-9`/`M-6`; the empty-journal row of `§6.6` item 4.
 #[test]
-fn s6_6_bis_the_last_valid_mark_is_the_head_and_a_compacted_entry_is_still_a_mark() {
+fn s6_6_bis_the_last_valid_mark_is_the_head_and_the_journal_holds_no_mark_at_all() {
+    // **⟶ AND THE NAME SAID `a_compacted_entry_is_still_a_mark` UNTIL 2026-11-17, WHICH `D-160` ITEM 1 FALSIFIED**: compaction
+    // DROPS an entry rather than marking it, so no entry is ever `compacted` and *"still a mark"* has no subject. **The
+    // assertions below are UNMOVED and still hold** — every one of them is satisfied with no mark set — so this is a NAME
+    // and a message moved with the ruling, not a cell re-cut (`docs/specs/storeroom-native/contract.md` §6.2's clause).
     let mut store = new_mem_store();
     // (1) A FRESH STORE'S JOURNAL HOLDS NOTHING: the mark is the floor and no op id stands.
     assert_eq!(

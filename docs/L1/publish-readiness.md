@@ -153,7 +153,15 @@ rebuild will read sixteen reds that are not defects.
    other — the observed table is `judged ["H1","H3","H6","H7"] · not judged ["H2","H4","H5"]`. **SO THE SUBJECT IS NOT THE KERNEL'S
    COMMIT WINDOW (which is green: `window {"open":1,"live":1,"window":4}`) BUT THE LOG'S OWN CENSUS, and the fix is a re-cut of three
    predicates to the kinds `LogKind` already declares** — a test-writer act, small, with the ruling that added the `repair-run`/`outcome`
-   entries cited at each byte. **IT IS THE SAME CLASS AS `E2E-C-9`: a cell stale against a declared change, not a broken store.**
+   entries cited at each byte. **⟶ AND THAT DIAGNOSIS IS INCOMPLETE, CORRECTED LATER THE SAME DAY BY MEASUREMENT.** The log census is **one** failing limb and not
+   the whole: `DW-09.1`'s condition also requires `repairAsks.filter(v => Object.is(v, SEED)).length === 1`, and `DW-16.3`'s `H2` row is
+   decided by `askedAtSeed(asks)` alone — **neither of which is a census**. **THE MEASUREMENT**: `H2`'s pair is asked **`[9, 7, 9]`** —
+   **never the state the repair body's reversal left (`5`)** — and `DW-09.1`'s asks are `[9, 7, 9]` too, so **the composition's terminal
+   judgement does not ask the pair at the state the reversal left**, which is `D-54` (b)'s own subject. **SO THE THREE REDS ARE TWO
+   QUESTIONS AND NOT ONE**: (i) the log census, which is a stale predicate; and (ii) **whether a repair body's reversal reaches the pass's
+   terminal judgement at all**, which is either a defect in the tree or a superseded reading of `D-54` (b) — **and the answer decides
+   whether the cells are re-cut or the kernel is repaired.** **NO PASS SHOULD RE-CUT (ii) WITHOUT THAT ANSWER**, and this review does not
+   have it.
    **⟶ AND IT IS DIAGNOSED AND NOT FIXED, `2026-11-17` — SAID HERE BECAUSE THE DIAGNOSIS READS LIKE A CURE AND IS NOT ONE**
    (`RCA-8(d)` ANNOTATE-BESIDE: the entry stands BYTE-FOR-BYTE). **THE THREE PREDICATES STILL COUNT ONE LOG ENTRY WHERE THE
    TREE EMITS THREE** — `DW-09.1`'s `repairLog.length === 1`, `DW-09.2`'s the same with a `commit` entry in the middle,
