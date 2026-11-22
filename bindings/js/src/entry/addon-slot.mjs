@@ -57,13 +57,24 @@
 // **AND `delete` → `_delete` AT THAT SAME TABLE** (`wasm-realm.md` §15: the toolchain emits the entry as `_delete`
 // because the published name is a reserved word), so the parts' `entryOf().delete` is spelled as the module's own
 // `_delete` in one place and no site learns a second name. `commitFile` is **ABSENT** from the injected export set
-// (`D-155` item 4; eighteen of the Node arm's twenty, which is **⟶ NINETEEN UNTIL 2026-11-19 AND TWENTY FROM THE
-// `storeRelease` LANDING** — `facade.rs`'s retirement entry, which has no wasm twin), so the table carries no such
+// (`D-155` item 4; **nineteen of the Node arm's twenty** from 2026-11-19 — *"the Node arm's twenty minus
+// `commitFile`"*, the arithmetic unchanged and its figure re-cut at this sentence), so the table carries no such
 // member and this file mints no stand-in for it: a save that names it on that arm is the design's own declared
-// absence, not a table's omission. **AND THE SAME HOLDS OF `storeRelease` ON THIS ARM**: `state.mjs`'s
-// `STORE_RETIREMENT` calls it, the injected table carries no such member, and **the registry's own `try`/`catch`
-// is what makes that absence SILENT rather than a throwable crossing a finalizer** — the arm's declared state is
-// that its table never retires a store (`docs/L1/wasm-realm.md:311`), and nothing here mints a stand-in.
+// absence, not a table's omission.
+//
+// **⟶ AND `storeRelease` IS THE NINETEENTH, AND IT JOINS `PASSED_THROUGH_ENTRIES` — 2026-11-19, THE ARCHITECT'S
+// CLOSURE ANSWER, ARM `a`.** **THE TWO SENTENCES THAT STOOD HERE ARE QUOTED BEFORE THEY ARE RETIRED**: *"eighteen of
+// the Node arm's twenty, which is NINETEEN UNTIL 2026-11-19 AND TWENTY FROM THE `storeRelease` LANDING —
+// `facade.rs`'s retirement entry, which has no wasm twin"* and *"AND THE SAME HOLDS OF `storeRelease` ON THIS ARM:
+// `state.mjs`'s `STORE_RETIREMENT` calls it, the injected table carries no such member, and the registry's own
+// `try`/`catch` is what makes that absence SILENT rather than a throwable crossing a finalizer — the arm's declared
+// state is that its table never retires a store (`docs/L1/wasm-realm.md:311`), and nothing here mints a stand-in."*
+// **THE TWIN EXISTS NOW (`bindings/js/src/wasm.rs`'s `storeRelease`), the table CARRIES it, and the registry's
+// `catch` is no longer the arm's whole answer — it is the guard it always was on both arms.** **IT IS A
+// PASSED-THROUGH MEMBER AND NOT A HANDLE-FIRST ONE**, and that is the shape of its position, not a choice: the entry
+// takes THE STORE'S OWN INDEX, which the finalizer hands as its held value, so there is no receiver whose row could
+// be prepended — prepending one would hand the entry a second integer and leave the first as a stranger. **A plain
+// forwarder is therefore the exact table entry**, and `state.mjs`'s callback reaches the module unchanged.
 //
 // **NO `node:` SPECIFIER APPEARS IN THIS FILE AND NONE MAY** — that is the whole of the seam.
 
@@ -291,9 +302,17 @@ const HANDLE_FIRST_ENTRIES = [
 /// LEARNS A SECOND NAME.**
 const MODULE_SPELLING = { delete: '_delete' };
 
-/// **THE THREE ENTRIES THAT TAKE NO HANDLE AND CROSS AS THEY ARE** — the construction (`storeCreate`, whose one
-/// position is the encoded config and whose answer is the handle), the version read and the store's generator.
-const PASSED_THROUGH_ENTRIES = ['storeCreate', 'version', 'errorMessage'];
+/// **THE FOUR ENTRIES THAT TAKE NO HANDLE AND CROSS AS THEY ARE** — the construction (`storeCreate`, whose one
+/// position is the encoded config and whose answer is the handle), the version read, the store's generator, **and,
+/// ⟶ FROM 2026-11-19, THE RETIREMENT: `storeRelease(storeIndex)`** (`bindings/js/src/wasm.rs`; `D-171`; the
+/// architect's closure answer, arm `a`). **THE RELEASE IS NOT A HANDLE-FIRST MEMBER AND THAT IS ITS POSITION AND
+/// NOT ITS CONVENIENCE**: the one caller that exists is `state.mjs`'s `STORE_RETIREMENT`, whose held value is THE
+/// STORE'S OWN INDEX — a finalizer has no receiver to be called on and may not hold the store — so the integer the
+/// callback hands IS the entry's first real position, and prepending a receiver's row would hand it a second one.
+/// **`passedThroughEntry` is therefore the whole of what this member needs: no row is read, no argument is added,
+/// and the release reaches the module with the bytes the finalizer passed it.** **THE NODE ARM MOVES NO BYTE**:
+/// `withAddon()` there answers the walked module itself, so this table is not on that arm's path at all.
+const PASSED_THROUGH_ENTRIES = ['storeCreate', 'version', 'errorMessage', 'storeRelease'];
 
 /// **THE TABLE AN INSTALLED MODULE IS READ THROUGH.** Each handle-first member becomes a function that takes the
 /// positions the PARTS hand it (`(address, tier)` and so on) and calls the module's free function with the

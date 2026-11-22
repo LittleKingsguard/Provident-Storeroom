@@ -48,6 +48,16 @@
 // is a declaration and a cell's subject and not this pass's. **`index.d.ts` moves no byte**: the addon's entries
 // are not the package's declared surface (`surface.md §3.8`), and `storeRelease` is reached by the finalizer and
 // by no consumer.
+//
+// **⟶ AND THE FIRST OF THOSE SENTENCES IS RE-CUT AT ITS OWN BYTES, 2026-11-19 — THE SECOND ARM'S PASS LANDED.**
+// *"The second realm's arm has no `storeRelease` and retires nothing (`bindings/js/src/wasm.rs`; `D-155` item 4:
+// its set is eighteen and `commitFile` is the one that is absent BY RULING) — adding a release there would change
+// that export set, which is a declaration and a cell's subject and not this pass's."* **THAT ARM HAS ONE NOW**:
+// `wasm.rs`'s `storeRelease`, its set is **nineteen** (`D-155` item 4's figure re-cut at its own sentence), and its
+// own two cells are `tests/e2e/wasm-arm.test.mjs`'s `CW-8` (the entry's arms, `SR-03`'s limbs one arm over) and
+// `CW-9` (the package's finalizer fired at that arm under `--expose-gc`). **EVERY CELL OF THIS FILE MOVES NO BYTE**:
+// the Node frame's entry, its two tables and these three cells are exactly what they were, and the addon's twenty
+// are still the twenty.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';

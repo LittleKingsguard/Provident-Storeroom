@@ -1,5 +1,17 @@
-//! `wasm` — **THE SECOND CLAIMED REALM'S ENTRY LAYER: EIGHTEEN FREE FUNCTIONS — FIFTEEN OF THEM TAKING THE
-//! HANDLE FIRST, ONE TAKING THE WIRE, AND TWO TAKING NO HANDLE AT ALL.**
+//! `wasm` — **THE SECOND CLAIMED REALM'S ENTRY LAYER: NINETEEN FREE FUNCTIONS — FIFTEEN OF THEM TAKING THE
+//! HANDLE FIRST, ONE TAKING THE WIRE, TWO TAKING NO HANDLE AT ALL, AND ONE TAKING THE STORE'S OWN INDEX.**
+//!
+//! **⟶ THE SET MOVED `18 → 19` ON 2026-11-19, AND THE SENTENCE IT MOVED FROM IS QUOTED BEFORE IT IS RE-DERIVED:
+//! *"THE SECOND CLAIMED REALM'S ENTRY LAYER: EIGHTEEN FREE FUNCTIONS — FIFTEEN OF THEM TAKING THE HANDLE FIRST,
+//! ONE TAKING THE WIRE, AND TWO TAKING NO HANDLE AT ALL."*** **THE ARCHITECT'S CLOSURE ANSWER, ARM `a`, IS THAT
+//! THIS ARM RETIRES A STORE AS THE NODE ARM DOES** — and `D-171` item 5 named the absence at its own last
+//! sentence while leaving it open: *"THE WASM ARM IS UNTOUCHED: its set stays **eighteen** and **its table still
+//! never retires a store** — which is now the one arm of the two whose leak is unclosed, and closing it changes
+//! that arm's export set (a declaration, `D-155` item 4, and `CW-6`'s subject)."* **`D-155` item 4 AND `CW-6` ARE
+//! THE TWO SITES THIS LANDING RE-CUTS**, and the nineteenth entry is [`store_release`] — the retirement's frame,
+//! whose whole docblock stands at its own bytes below. **THE ARITHMETIC KEEPS ITS SHAPE**: the arm's set is *"the
+//! Node arm's twenty minus `commitFile`"*, which is `19`, and it read `18` only because the retirement's entry had
+//! no twin on this arm — so the COUNT moves and the rule that produces it does not.
 //!
 //! **THE FORM IS `docs/L3/wasm-realm/design.md` §1's, AND IT IS A RULING RATHER THAN A TASTE**: the store's
 //! fifteen members and `cfg`'s six keys are the package's, so *"the crossing may be shaped freely beneath
@@ -22,14 +34,25 @@
 //! **`state.receiver` BECOMES `state.handle` AS THE ROUTING DATUM** (`§1`'s closing sentence: *"the
 //! envelope's forced change"*), and the handle is **a `u32` index into a module-level table of `Instance`s**
 //! — [`INSTANCES`], the same `thread_local!` shape `facade.rs`'s table takes, minus the second ids table,
-//! because on this arm the handle IS the row index and no release entry exists to retire a row.
+//! because on this arm the handle IS the row index and `facade.rs`'s second table exists only to map a
+//! RECEIVER's channel to a live row.
 //!
-//! **THE SET IS EIGHTEEN AND IT WAS DELIVERED IN TWO SLICES** (`design.md` §6, at its own words: *"The WASM
-//! module exports 18 of the Node arm's 19: `commitFile` (`facade.rs:1072`) is ABSENT"*; `D-155` item 4).
+//! **⟶ AND THE SENTENCE THAT STOOD HERE IS QUOTED BEFORE IT IS RETIRED, 2026-11-19**: *"… because on this arm the
+//! handle IS the row index and no release entry exists to retire a row."* **THERE IS ONE NOW** — [`store_release`],
+//! the arm's twin of `facade.rs`'s retirement entry — and **it retires a row without a second table, for the
+//! reason the first half of that sentence gives**: the row IS the handle, so a release EMPTIES the slot
+//! ([`Slots`]) and every index minted before it still names the store it was minted for.
+//!
+//! **THE SET IS NINETEEN AND IT WAS DELIVERED IN TWO SLICES AND ONE LATER ENTRY** (`design.md` §6, at its own
+//! words: *"The WASM module exports 18 of the Node arm's 19: `commitFile` (`facade.rs:1072`) is ABSENT"*; `D-155`
+//! item 4 — **⟶ RE-CUT AT ITS OWN SENTENCE, 2026-11-19: the exports are `19` of the Node arm's `20`, and
+//! `commitFile` is still the one that is ABSENT**).
 //! **THE FIRST SLICE WAS THE SIX THE `saveCall` PATH NEEDS** — `storeCreate` · `read` · `write` ·
 //! `exportImage` · `saveSucceeded` · `saveFailed` — **AND THE SECOND IS THE TWELVE THAT COMPLETE `6 + 12 = 18`**:
 //! `delete` · `readLiteral` · `readTiered` · `rollback` · `restoreMark` · `journalMark` · `listen` ·
-//! `unlisten` · `removeListener` · `register` · `version` · `errorMessage`. **`commitFile` IS ABSENT BY
+//! `unlisten` · `removeListener` · `register` · `version` · `errorMessage` — **AND THE NINETEENTH STANDS BESIDE
+//! THE TWO SLICES AND IS NEITHER ONE'S: `storeRelease`, the retirement's frame, declared in its own section at
+//! the end of this file.** **`commitFile` IS ABSENT BY
 //! RULING AND IS DECLARED BY NO BYTE OF THIS FILE** — named nowhere except in the two sentences that record
 //! its absence, which is the only mention a name the arm must not export may have. Each entry is the
 //! `facade.rs` frame it is named after, with the same reader, the same core delegate and the same answer.
@@ -52,18 +75,90 @@ use crate::wasm_codec as codec;
 // the realm is single-threaded by construction — a wasm module has one thread unless it starts one — so the
 // affinity claim the `napi` arm declines to make is the arm's own fact here.
 //
-// **⟶ THE RETIREMENT PATH IS ABSENT AND THAT IS DECLARED, NOT FORGOTTEN** (`design.md` §8:
-// *"`STORE_RETIREMENT` has no finalizer to fire it — so a WASM store is never released and the `INSTANCES`
-// table grows, `SC-10`'s shape one arm over"*). **The `napi` arm's second table (`INSTANCE_IDS`) has no
-// subject here**: it exists to map a receiver's channel to a live row and to retire exactly that row, and
-// this arm's handle is the row INDEX — so the table is `Vec<Instance>` and the miss arm is a length test,
-// with nothing between the handle and the row at all.
+// **⟶ AND THE RETIREMENT PATH, ABSENT AT THE SENTENCE ABOVE, IS HERE FROM 2026-11-19 — THE SENTENCE IS QUOTED
+// BEFORE IT IS MADE TRUE** (`design.md` §8: *"`STORE_RETIREMENT` has no finalizer to fire it — so a WASM store is
+// never released and the `INSTANCES` table grows, `SC-10`'s shape one arm over"*). **THE ARCHITECT'S CLOSURE
+// ANSWER, ARM `a`, IS THAT THIS ARM RETIRES AS THE NODE ARM DOES, so the sentence's subject is discharged and its
+// bytes are kept**: [`store_release`] is the finalizer's frame, the package's `STORE_RETIREMENT` is the caller of
+// it (`state.mjs`'s callback, unchanged), and `addon-slot.mjs`'s dispatch table forwards it (a PASSED-THROUGH
+// member — the release takes the index and not a handle-of-a-receiver, so nothing is prepended).
+//
+// **THE `napi` arm's second table (`INSTANCE_IDS`) STILL HAS NO SUBJECT HERE, AND THE RETIREMENT DOES NOT MINT
+// ONE**: it exists to map a receiver's channel to a live row and to retire exactly that row, and this arm's handle
+// IS the row INDEX — so the table is [`Slots`] and the miss arm is a length test, with nothing between the handle
+// and the row at all. **THE RELEASE EMPTIES THE SLOT AND NEVER SHIFTS IT**, which is the one thing a `Vec::remove`
+// would get wrong on an arm whose handles are row indexes ([`Slots`]' own docblock).
 // =================================================================================================
+/// **THE SLOTS OF [`INSTANCES`] — A STORE'S OWN SLOT, OR THE TOMBSTONE ITS RELEASE LEAVES BEHIND** — the twin of
+/// `facade.rs`'s own table type (`facade.rs:327`), read at `D-171` item 2's sentence: *"It takes the slot (a
+/// TOMBSTONE, so no index shifts and the integer the package holds can never name its neighbour), drops the
+/// instance and removes its id, in one act."* **THE FOUR METHODS ARE THE FOUR READS THE SIXTEEN ENTRIES ALREADY
+/// TAKE**, so not one of them moves a byte.
+///
+/// **⟶ ADDED 2026-11-19 WITH THE ARM'S RETIREMENT, AND THE REASON IT IS A TOMBSTONE IS THIS ARM'S OWN FACT AND NOT
+/// A COPY OF THE OTHER'S.** On this arm the handle IS the row index (`design.md` §1 ground 1), so a `Vec::remove`
+/// would renumber every store minted after the freed one: a store minted as `7` would answer at `6`, and the
+/// integer the package publishes on its own `STORE_INDEX` row would name its NEIGHBOUR — a silent cross-store
+/// defect and not a stale handle. **SO THE ID IS KEPT STABLE AND THE SLOT IS EMPTIED**: `Some(store)` is a live
+/// store and `None` is the tombstone its release left, the row count never shrinks, and an index can name at most
+/// the one store it was minted for.
+///
+/// **WHAT A TOMBSTONE COSTS AND WHAT IT BUYS, AT THIS ARM'S OWN MEASURE.** It costs ONE EMPTY OPTION PER STORE
+/// EVER CONSTRUCTED — the slot's own footprint, and NOT the store's: the `Instance` and the `Store` inside it are
+/// DROPPED at the release, which is the ~18–21 KB per constructed-and-dropped store this arm retained until this
+/// landing (the figure `tests/e2e/store-retirement.test.mjs` measures on the other arm). **IT BUYS ONE OBSERVABLE
+/// AS A PROPERTY OF THE TYPE**: `get_mut` answers `None` for an emptied slot exactly as it does for an index no
+/// mint ever reached, so a released store and a fabricated index are ONE answer — [`no_instance_at`]'s
+/// `AddressNotFound` — at every entry, which is `receiver-and-refusal.md §3`'s rule reached on this arm.
+///
+/// **AND THE `Vec` IS NOT REALLOCATED BY A RELEASE**, so an index is stable against the growth every later
+/// construction performs: nothing but `push` touches the shape.
+struct Slots(Vec<Option<Instance>>);
+
+impl Slots {
+    /// **THE ONE WRITER OF A NEW ROW** — `storeCreate`'s mint, and the index it answers is this row's own.
+    fn push(&mut self, instance: Instance) {
+        self.0.push(Some(instance));
+    }
+
+    /// The row count, which is the number of stores ever constructed and never the number live. **IT IS THE
+    /// HANDLE RESOLVER'S TEST** ([`store_index_of`]), so a handle is in range exactly where a row exists — and a
+    /// TOMBSTONE in that range is the release's own arm, taken one line later by the entry that reads it.
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    /// **THE ONE READER OF A LIVE STORE** — a live row's `&mut`, or `None` for an emptied row and for an index the
+    /// table never reached. **THE ENTRIES TAKE NO OTHER ROUTE TO A STORE**, so no verb can observe the difference
+    /// between a tombstone and a fabricated index at any depth.
+    fn get_mut(&mut self, store_index: usize) -> Option<&mut Instance> {
+        self.0.get_mut(store_index).and_then(Option::as_mut)
+    }
+
+    /// **THE SHARED-BORROW HALF OF THE SAME READ** — `exportImage` and `journalMark` take `&self` on the instance
+    /// and borrow the table without mutability. **The tombstone is `None` here exactly as it is above**, so a
+    /// released store is one observable on the pure reads too.
+    fn get(&self, store_index: usize) -> Option<&Instance> {
+        self.0.get(store_index).and_then(Option::as_ref)
+    }
+
+    /// **THE RELEASE** — the store is TAKEN OUT OF ITS SLOT AND DROPPED, and the slot stands as the tombstone.
+    /// Answers whether this call was the one that freed it: `false` for a slot already emptied and for an index no
+    /// mint ever reached, which are the two arms the entry answers its absent form with.
+    fn release(&mut self, store_index: usize) -> bool {
+        self.0.get_mut(store_index).and_then(Option::take).is_some()
+    }
+}
+
 thread_local! {
     /// **THE HANDLE'S TABLE** — `storeCreate`'s answer is the row it appends, and every other entry's first
     /// position names one. **A HANDLE THE TABLE DOES NOT HOLD ANSWERS THE ONE REFUSED FORM** ([`no_instance_at`])
     /// — **never a panic and never a raw host `TypeError`** (`design.md` §1 ground 2; `C-W10`).
-    static INSTANCES: RefCell<Vec<Instance>> = const { RefCell::new(Vec::new()) };
+    ///
+    /// **⟶ AND THE SLOT TYPE MOVED `Instance` → `Option<Instance>` ON 2026-11-19** ([`Slots`]): a store can now be
+    /// RELEASED, and an emptied slot is the tombstone that keeps every index stable. `RefCell<Slots>` declines
+    /// `Sync` for exactly the reason `RefCell<Vec<…>>` did, so the bound's argument above is unmoved.
+    static INSTANCES: RefCell<Slots> = const { RefCell::new(Slots(Vec::new())) };
 }
 
 // =================================================================================================
@@ -179,6 +274,24 @@ fn no_instance_at(_store_index: u32) -> Refusal {
     }
 }
 
+/// **THE RETIREMENT ENTRY'S OWN MALFORMED ARM — the token `facade.rs`'s `not_a_store_index` answers
+/// (`facade.rs:1412`), at the position this arm's finalizer hands instead of a receiver** (`store_release`'s
+/// docblock; `receiver-and-refusal.md §3`).
+///
+/// **NO STATUS IS MINTED** (`DD-40`): `AddressMalformed` is the store's own member for *"a present argument outside
+/// its domain"*, and the sentence behind it names THIS position — the store's index — rather than a receiver,
+/// because a `message` that named a receiver on a call that has none would be false at its own bytes.
+/// **THE BYTES ARE THE NODE FRAME'S, BYTE FOR BYTE, AND THAT IS THE TWIN'S RULE RATHER THAN AN OMISSION**: the
+/// arms answer ONE form for one caller's mistake, `storeCreate` is the entry's name on both of them, and the word
+/// *"addon"* is this layer's own name for the artefact on both. **THE TWO-MEMBER FORM IS [`throw_refusal`]'S AND IS
+/// UNMOVED**: this function authors a `Refusal` and throws nothing.
+fn not_a_store_index() -> Refusal {
+    Refusal {
+        status: "AddressMalformed".to_string(),
+        message: "the position is not the store index this addon's storeCreate returned".to_string(),
+    }
+}
+
 /// The address's own segments, where the argument IS the declared list shape — `facade.rs`'s `segments_of`:
 /// the `triggeringAddress` member the write's record carries (`PAR-JS-12`, `§2.7` item 2).
 fn segments_of(address: &JsAddressArg) -> Vec<JsSegment> {
@@ -200,7 +313,10 @@ fn op_id_token(op_id: &JsOpIdArg) -> String {
 }
 
 // =================================================================================================
-// THE FIRST SLICE'S SIX ENTRIES — the `saveCall` path's own, and the arm's first six of eighteen
+// THE FIRST SLICE'S SIX ENTRIES — the `saveCall` path's own, and six of the eighteen the TWO SLICES deliver
+// (`6 + 12 = 18`; **⟶ and the ARM's set is NINETEEN from 2026-11-19, the nineteenth standing in its own section
+// below and belonging to neither slice** — the slices' arithmetic is unmoved and this heading's figure was the
+// slice count and never the arm's)
 // =================================================================================================
 
 /// **`storeCreate(wire)` — ONE POSITION, THE ENCODED CONFIG AS A JS OBJECT, ANSWERING THE HANDLE AS A
@@ -376,7 +492,9 @@ pub fn save_failed(handle: JsValue, op_id: JsValue) -> Result<JsValue, JsValue> 
 }
 
 // =================================================================================================
-// THE SECOND SLICE'S TWELVE ENTRIES — `D-155` ITEM 4's ARM COMPLETED AT EIGHTEEN (`design.md` §6)
+// THE SECOND SLICE'S TWELVE ENTRIES — `D-155` ITEM 4's ARM COMPLETED AT EIGHTEEN (`design.md` §6) — **⟶ AND THE
+// ARM IS NINETEEN FROM 2026-11-19, `storeRelease` standing in its own section at the end of this file: the
+// `6 + 12 = 18` this heading counts is the SLICES' and stays exactly so**
 //
 // **EACH IS THE `facade.rs` FRAME IT IS NAMED AFTER, AND WHAT MOVES IS ONLY WHAT `design.md` §1 AND §3
 // MOVE.** The handle is the FIRST POSITION rather than the Node-API receiver (`§1`: on this arm the receiver
@@ -680,4 +798,87 @@ pub fn version() -> String {
 #[wasm_bindgen(js_name = "errorMessage")]
 pub fn error_message(code: String, subject: JsValue, container: JsValue, token: JsValue) -> String {
     codec::error_message(&code, &subject, &container, &token)
+}
+
+// =================================================================================================
+// THE NINETEENTH ENTRY — `storeRelease`, THE RETIREMENT'S FRAME (`D-171`; the architect's closure answer, arm `a`)
+//
+// **IT IS NOT ONE OF THE FIFTEEN PER-VERB AND NOT A MEMBER OF THE PRODUCT'S SURFACE**, exactly as its Node twin is
+// not (`facade.rs:1279`–`:1288`): it is reached by the package's own `STORE_RETIREMENT` callback and by no consumer,
+// and the declaration names it not at all (`surface.md §3.8`; `index.d.ts` moves no byte — the addon's entries are
+// not the package's declared surface). **AND IT IS THE ONE ENTRY OF THE NINETEEN WHOSE STORE IS A POSITION AND NOT
+// THE HANDLE-FIRST FORM**, which is the single place this file's §1 rule is bent — and it is bent by who calls it,
+// not by a taste: see its own docblock.
+// =================================================================================================
+
+/// **`storeRelease(handle)` — THE RETIREMENT'S FRAME: THE STORE IS DROPPED AND ITS SLOT STANDS AS THE TOMBSTONE**
+/// (`facade.rs:473`–`:549`, read as this arm's own; `D-171` item 2; `receiver-and-refusal.md §6`).
+///
+/// **⟶ ADDED 2026-11-19 BY THE ARCHITECT'S CLOSURE ANSWER, ARM `a`: THIS ARM RETIRES AS THE NODE ARM DOES.** The
+/// state it closes is declared at this file's own head and at `design.md` §8 — *"`STORE_RETIREMENT` has no finalizer
+/// to fire it — so a WASM store is never released and the `INSTANCES` table grows"* — and **the package's callback
+/// already existed and already fires**: `state.mjs`'s `STORE_RETIREMENT.register(instance, id)` holds the INTEGER
+/// and calls `withAddon().storeRelease(id)`, so before this entry that call raised and the registry's `catch`
+/// swallowed it. **Nothing in the package moves; the member it calls now exists.**
+///
+/// **THE POSITION IS AN INDEX AND NOT A HANDLE-OF-A-RECEIVER, AND THAT IS FORCED BY WHO CALLS IT.** Every other
+/// entry here resolves its store from the FIRST position, which on this arm is the same integer the Node arm reads
+/// off its Node-API `this` — and **a finalizer has no receiver to be called on**: `FinalizationRegistry`'s callback
+/// is handed the HELD VALUE and nothing else, and the held value may not be the store object itself, because
+/// holding it would be the strong reference that stops the very collection the finalizer exists to observe. **SO
+/// THE INTEGER IS THE WHOLE OF WHAT CROSSES**, and this entry therefore reads `store_index_of` not at all: the
+/// position IS the row's name and there is nothing between it and the table.
+///
+/// **THE POSITION IS READ BY CLASS, AND THAT IS WHY IT IS NOT DECLARED A `u32`.** A declared `u32` parameter would
+/// let the glue perform `arg0 >>> 0`, where a detached call's `undefined` and a `NaN` both become `0` — **a slot the
+/// table DOES hold, and a release that answers while freeing the wrong store** — which is `receiver-and-refusal.md
+/// §3`'s regression read backwards (`store_index_of`'s own clause, one screen up). The value is read through
+/// `wasm_codec`'s `number_of`, which asks the CLASS first ([`codec::number_of`]), and no coercion stands anywhere on
+/// this path.
+///
+/// **★ AND THE `NaN` GUARD IS LOAD-BEARING, STATED AT THE LINE THAT TAKES IT.** `NaN as usize` — and `NaN as u32`
+/// on this arm — **SATURATES TO `0` IN RUST** (a float→integer cast saturates rather than being undefined, which is
+/// the reason the other arm's docblock calls the same cast out): a cast that let `NaN` through would name **THE FIRST
+/// STORE EVER CONSTRUCTED** and free a store the caller never named. **SO THE DOMAIN TEST IS THE GUARD AND NOT A
+/// CAST**: `NaN`, `±Infinity`, a negative and a fraction are one arm and are refused — never coerced — and no store
+/// is touched by any of them.
+///
+/// **THE TWO ABSENT ARMS ARE ONE OBSERVABLE, WHICH IS `receiver-and-refusal.md §3`'s OWN RULE.** A handle whose
+/// slot has ALREADY been emptied and a handle no mint ever reached both answer [`no_instance_at`] — the crate's own
+/// `AddressNotFound` — because [`Slots::release`] is a `get_mut`-guarded take: the tombstone and the fabricated index
+/// read the same `None`. **NEITHER PANICS AND NEITHER ANSWERS `Ok`**: a finalizer that fires twice, or a package
+/// handed the same integer by a stale row, is REFUSED rather than obeyed, so a second release can never free a
+/// second store. **AND A NUMBER THIS ARM COULD NEVER HAVE MINTED** — integral and finite but beyond `u32::MAX` — is
+/// the same table miss and not the malformed arm, because the Node frame's `raw as usize` saturates there and
+/// answers its absent form; the two arms keep one observable for one value.
+///
+/// **THE ANSWER IS `undefined` AND IT IS THE NODE FRAME'S** (`facade.rs:546`'s `make_undefined`), on the one landing
+/// every entry takes ([`answer_or_throw`]).
+#[wasm_bindgen(js_name = "storeRelease")]
+pub fn store_release(handle: JsValue) -> Result<JsValue, JsValue> {
+    let store_index = match codec::number_of(&handle) {
+        // **THE CLASS IS READ FIRST, THEN THE DOMAIN** — a finite, non-negative integer that fits the arm's own
+        // handle width. **Nothing on this path coerces the value**, which is the property the guard above states.
+        Some(raw) if raw.is_finite() && raw >= 0.0 && raw.fract() == 0.0 && raw <= u32::MAX as f64 => raw as u32,
+        // A number this arm could never have minted: the table miss, and NOT the malformed arm (see the docblock).
+        Some(raw) if raw.is_finite() && raw >= 0.0 && raw.fract() == 0.0 => {
+            return Err(throw_refusal(&no_instance_at(u32::MAX)));
+        }
+        // **AND `NaN`, `±inf`, a negative, a fraction and every non-number are THIS arm** — the malformed one, which
+        // touches no store. The `NaN` arm is the load-bearing one: `NaN as u32` would be `0`, the first store's slot.
+        _ => return Err(throw_refusal(&not_a_store_index())),
+    };
+    // **THE ONE ACT** (`§6`): the instance is TAKEN OUT OF ITS SLOT AND DROPPED, and the slot stands as the
+    // tombstone — so every index minted before this act still names the store it was minted for and no later store
+    // is renumbered. **THE `Err` ARM IS THE TOMBSTONE AND THE FABRICATED INDEX ALIKE** ([`no_instance_at`]), and it
+    // is taken BEFORE anything is dropped, so a refused release frees nothing at all.
+    let answer: Result<(), Refusal> = INSTANCES.with(|instances| {
+        let mut instances = instances.borrow_mut();
+        if instances.release(store_index as usize) {
+            Ok(())
+        } else {
+            Err(no_instance_at(store_index))
+        }
+    });
+    answer_or_throw(answer.map(|()| JsValue::UNDEFINED))
 }

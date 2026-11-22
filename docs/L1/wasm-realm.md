@@ -121,13 +121,26 @@ CLAUSE OWES:**
 | **`C-W3`** | **✅ THE FLOOR, AND IT IS NOT A CELL OF THAT FILE** | it is this row's own subject — **every existing cell stays green** — and it is re-measured at the whole suite: `npm test` **`1371` / `1370` / `0`**, `npm run typecheck` **exit `0`**, `cargo test` **22 `ok` / 0 FAILED** |
 | **`C-W4`** | **✅ LANDED** (`CW-4`) | the glue offers **`initSync`** · and the entry's **transitive set carries no `node:` specifier and no top-level `await`**, walked from `index.mjs` downward by specifier — the narrowed subject §10 item 2 fixed |
 | **`C-W5`** | **✅ LANDED** (`CW-5`) | **the same verb, two stores, two answers**: the `file`-tier write LANDS on a `saveCall` store and `readTiered` reads `{ _tier: 'file', value: 1 }` at the address (`file_path === ''`, the tier set by the construction) · the identical write on a store with **neither `saveCall` nor a path** is refused **`ParentAnchorMonotonicityViolation`** · and the durable store is the one that saved |
-| **`C-W6`** | **✅ LANDED** (`CW-6`) | **eighteen** entries, counted off the module · **`commitFile` absent** by `D-155` item 4 · **`delete` spelled `_delete`** (the toolchain escapes a keyword and `addon-slot.mjs`'s `MODULE_SPELLING` spells it back) · `saveSucceeded` and `exportImage` present. **The `19-or-18` fork is gone: §10 item 3 took 18** |
+| **`C-W6`** | **✅ LANDED** (`CW-6`) | **NINETEEN** entries, counted off the module · **`commitFile` absent** by `D-155` item 4 · **`delete` spelled `_delete`** (the toolchain escapes a keyword and `addon-slot.mjs`'s `MODULE_SPELLING` spells it back) · `saveSucceeded` and `exportImage` present · **and `storeRelease` is the nineteenth, added 2026-11-19**. **⟶ THE FIGURE MOVED `18 → 19` AT THIS ROW, AND THE SENTENCE IT MOVED FROM IS QUOTED BEFORE IT IS RE-CUT — *"eighteen entries, counted off the module … The `19-or-18` fork is gone: §10 item 3 took 18"*.** **THE SHAPE OF THE COUNT IS UNMOVED** — the Node arm's twenty minus `commitFile` (`D-155` item 4), which is what `§10` item 3 took and what this landing re-derives one entry wider |
 
 **AND THE FILE'S SIXTH CELL IS NOT A ROW OF THIS TABLE**: `CW-7` in `tests/e2e/wasm-arm.test.mjs` is `D-156`'s own —
 **a value crosses by value both ways (an app-side mutation of the written object and of the read one changes nothing
 the store holds) and a `Proxy` at a VALUE is refused `ValueRefusedAtBoundary` with all eight trap counters at zero**.
 **AND `C-W7`…`C-W11` ARE A DIFFERENT FIVE AND ARE NOT LANDED** — they are `docs/L3/wasm-realm/design.md` §7's, they
 share two ids with this table's numbering only by collision, and no cell of this file claims them.
+
+**⟶ AND TWO MORE CELLS LAND IN THAT FILE ON 2026-11-19, NEITHER OF THEM A ROW OF THIS TABLE** — the arm's RETIREMENT,
+which this plan's seven sections do not price because the arm had no release when it was written (`§9`'s residual
+list and `design.md` §8's last sentence both declared the absence; the architect's closure answer, arm `a`, closes
+it). **`CW-8` drives the entry's arms**: a live store's release answers `undefined`, the released handle answers
+**`AddressNotFound` at the verb that names it** (the observable `SR-03` reads on the Node arm, and never a table
+length — `receiver-and-refusal.md §6`'s `OWED-2`), a second release refuses, a handle no mint reached answers the same
+arm, nine non-index positions answer **`AddressMalformed`**, and a neighbour store still answers its own register
+across the release. **`CW-9` drives the PACKAGE'S FINALIZER**: a child re-executed with `--expose-gc` constructs and
+drops a batch, collects, and then asks the module to release each handle it kept — every one answering
+`AddressNotFound` is a slot the finalizer had ALREADY emptied, so the count is the retirement measured at the entry's
+own answer. **What the cell cannot force is stated at its byte**: the asserting process has no `gc()`, and the host's
+collection TURN is the host's.
 
 **WHAT THIS PLAN'S CELL SECTION OWED AND WHAT IT NOW OWES.** **Owed then: the build. Owed now: none of the six**, and the
 arm's whole behaviour is driven above. **AND THE ONE RESIDUAL THIS SECTION LEANED ON IS ANSWERED RATHER THAN MERELY
@@ -192,6 +205,14 @@ CLOSES WITH THE HAZARD DECLARED AND NOT CURED**: a `Proxy` at a CARRIER gate is 
 **What this plan now says, in one line per step.** **Step 1 unchanged** (the `#[cfg]` boundary — three units on §4's table, route-independent, the only step that lands alone and stays green). **Step 2 gains two sub-decisions** (form, target) **and one verification** (`initSync`). **Step 3 stays the largest** — the receiver convention for **42** call sites in the package (16 `withAddon()`, 8 `.call(state.receiver)`, 14 `Reflect.apply`), which the injected-instance shape decides the form of. **Step 4's census and staging work is now known and one file wider.** **Step 5 unchanged, and still last** — `contract.md:3280`'s failure member re-scoped before any guide sentence lands.
 
 **Residuals, after this amendment:** §9.2 and §9.3 **closed**; **§9.1 (the release class) now the only realm item unclaimed**; §9.4 unchanged (moot on WASM, owed on Node); §9.5 (`isProxy` has no browser equivalent) unchanged and still the design-class problem the crossing cannot solve; §9.6 and §9.7 unchanged.
+
+**⟶ AND ITEM 3'S FIGURE MOVED ON 2026-11-19, AT ITS OWN ROW, WITHOUT MOVING ONE WORD OF THAT ROW'S GROUND.** **THE ROW
+READ *"`commitFile` absent, **18 exports**"* AND CLOSED WITH *"§7's `C-W6` loses its `19-or-18` fork: the WASM arm is
+18"*.** **BOTH FIGURES OF THAT FORK WERE TAKEN BEFORE THE ARM HAD A RETIREMENT**, and the arm now exports
+**NINETEEN** — *"the Node arm's twenty minus `commitFile`"*, the same shape, one entry wider (the architect's closure
+answer, arm `a`; `D-155` item 4 re-cut at its own sentence in `strata/decisions.md`; `CW-6` re-cut at its own count).
+**EVERY OTHER CLAUSE OF THE ROW STANDS BYTE FOR BYTE**: the writer's body still answers nobody, the cfg still leaves
+any faithful arm, and `O-8`'s path slot is still moot on that arm and owed on Node.
 
 ---
 
@@ -312,13 +333,15 @@ exportImage() after unwind  → "{}"                             ← and the ima
 
 ---
 
-## §15 · THE WASM ARM'S ENTRY SET IS COMPLETE `2026-11-17` — eighteen entries, driven, and one name the toolchain moved
+## §15 · THE WASM ARM'S ENTRY SET IS COMPLETE `2026-11-17` — eighteen entries, driven, and one name the toolchain moved — **⟶ NINETEEN FROM 2026-11-19, WITH THE RETIREMENT'S FRAME AS THE NINETEENTH**
 
 **`wasm.rs` 370 → 683 lines, `wasm_codec.rs` 927 → 1134**; the twelve new entries are in, the six readers they needed are in, and `lib.rs`/`crossing.rs`/`Cargo.toml` move no byte.
 
 **THE SET, AT THE INSTANTIATED MODULE** (`Object.keys` of the `initSync`'d glue, `default`/`initSync` excluded): **eighteen names — `_delete` · `errorMessage` · `exportImage` · `journalMark` · `listen` · `read` · `readLiteral` · `readTiered` · `register` · `removeListener` · `restoreMark` · `rollback` · `saveFailed` · `saveSucceeded` · `storeCreate` · `unlisten` · `version` · `write`.** **`commitFile` is `undefined` at runtime and absent from the set** (`D-155` item 4) — the one textual match in the glue is a docblock sentence, not an entry.
 
-**★ AND ONE NAME MOVED, MEASURED, AND IT IS THE TOOLCHAIN'S AND NOT THE ARM'S: `delete` EXPORTS AS `_delete`.** `wasm-bindgen-macro-support-0.2.130/src/parser.rs:1604`–`:1607` escapes every free exported function whose JS name is a keyword — *"Due to legacy behavior, we need to escape all keyword identifiers as `_keyword`"* → `name = format!("_{}", name)` — **and the CLI already owns the machinery that would spell it lawfully** (`wasm-bindgen-cli-support-0.2.130/src/js/mod.rs:712`–`:716` emits `export { id as 'delete' }` for a name that is not an identifier); **the escape fires first and the alias arm is never reached.** **`delete` is the only JS keyword among the eighteen**, which is why the first six never surfaced it. **THE CURES ARE ALL OUTSIDE THE ARM'S RUST**: a `wasm-bindgen` bump · a glue post-step emitting `export { _delete as 'delete' }` · or **the package's forked entry dispatching `delete` to the module's `_delete` member**, which is the cheapest and lands in step 3's dispatch table.
+**⟶ AND THE SET IS NINETEEN FROM 2026-11-19, READ AT THE SAME INSTRUMENT (`Object.keys` of the instantiated glue, the same two exclusions).** **THE LIST ABOVE IS QUOTED, NOT REPLACED, BECAUSE IT IS THE SET OF ITS OWN DATE**, and the entry this section's figure moved for is added beside it: **`storeRelease` — `storeCreate`'s twin, the retirement's frame, `wasm.rs`'s own `#[wasm_bindgen(js_name = "storeRelease")]`.** **IT IS THE ONE ENTRY OF THE NINETEEN WHOSE STORE IS A POSITION AND NOT A HANDLE-STOPPED RECEIVER-CARRIER**: `FinalizationRegistry`'s callback is handed the HELD VALUE — the integer the package publishes on its own `STORE_INDEX` row — and nothing else, so *"a finalizer has no receiver"* is the whole reason, and `addon-slot.mjs` forwards it as a **PASSED-THROUGH** member rather than a handle-first one. **THE FIGURE'S SHAPE IS UNMOVED**: nineteen of the Node arm's twenty, `commitFile` absent (`D-155` item 4, re-cut at its own sentence the same date).
+
+**★ AND ONE NAME MOVED, MEASURED, AND IT IS THE TOOLCHAIN'S AND NOT THE ARM'S: `delete` EXPORTS AS `_delete`.** `wasm-bindgen-macro-support-0.2.130/src/parser.rs:1604`–`:1607` escapes every free exported function whose JS name is a keyword — *"Due to legacy behavior, we need to escape all keyword identifiers as `_keyword`"* → `name = format!("_{}", name)` — **and the CLI already owns the machinery that would spell it lawfully** (`wasm-bindgen-cli-support-0.2.130/src/js/mod.rs:712`–`:716` emits `export { id as 'delete' }` for a name that is not an identifier); **the escape fires first and the alias arm is never reached.** **`delete` is the only JS keyword among the eighteen** — **⟶ AND STILL THE ONLY ONE AMONG THE NINETEEN** (`storeRelease` is not a keyword) — which is why the first six never surfaced it. **THE CURES ARE ALL OUTSIDE THE ARM'S RUST**: a `wasm-bindgen` bump · a glue post-step emitting `export { _delete as 'delete' }` · or **the package's forked entry dispatching `delete` to the module's `_delete` member**, which is the cheapest and lands in step 3's dispatch table.
 
 **DRIVEN BY THE SUPERVISOR on the built module and the emitted glue** (a `mem` store, `initSync({ module })`, the package's own carriers):
 
@@ -341,7 +364,7 @@ errorMessage(...)      → 'a' does not exist in '', it holds no keys   ← the 
 
 **TWO PLACES `facade.rs`'s behaviour could not be carried, both named and neither silent:** the `delete` spelling above, and **`errorMessage`'s `code` position** — the node arm's `String` conversion is strict and throws a library error before the frame is entered, while the glue decodes/coerces it; **no shipped caller can see the difference** (every call site passes a status token) and declaring the position a value would have been a third, third-place answer.
 
-**WHERE THE LADDER STANDS.** Step 1 ✅ · step 2 ✅ (**eighteen entries, driven**) · step 4 ✅ · **step 3 — the loader split — is the last implementation step, and `D-156` unblocked it**: the five `node:util` parts take an injected class-decision instrument, `artefact.mjs`'s Node-only walk is extracted, and the forked entry dispatches through `state.handle` (with `delete → _delete` at that table). · step 5 (the realm sentences) still last, still owing `contract.md:3280`'s re-scope first.
+**WHERE THE LADDER STANDS.** Step 1 ✅ · step 2 ✅ (**eighteen entries, driven** — **⟶ NINETEEN FROM 2026-11-19**, the retirement's frame beside them, this section's own added clause) · step 4 ✅ · **step 3 — the loader split — is the last implementation step, and `D-156` unblocked it**: the five `node:util` parts take an injected class-decision instrument, `artefact.mjs`'s Node-only walk is extracted, and the forked entry dispatches through `state.handle` (with `delete → _delete` at that table). · step 5 (the realm sentences) still last, still owing `contract.md:3280`'s re-scope first.
 
 ---
 
@@ -370,7 +393,7 @@ a plain object round-trips → {"a":1}                               ← and the
 
 **MEASURED.** `npm test`: **`1359` tests, `1358` pass, `0` fail** · the drive above · every part parses (`node --check`).
 
-**WHERE THE LADDER STANDS.** Step 1 ✅ · step 2 ✅ (18 entries, driven) · **step 3: seam ✅, extraction OWED, the fork OWED** · step 4 ✅ · step 5 (the realm sentences) still last, still owing `contract.md:3280`'s re-scope first.
+**WHERE THE LADDER STANDS.** Step 1 ✅ · step 2 ✅ (18 entries, driven — **⟶ 19 FROM 2026-11-19**, `storeRelease`) · **step 3: seam ✅, extraction OWED, the fork OWED** · step 4 ✅ · step 5 (the realm sentences) still last, still owing `contract.md:3280`'s re-scope first.
 
 ---
 

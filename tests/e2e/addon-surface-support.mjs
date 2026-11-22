@@ -143,7 +143,10 @@ export const PER_VERB_ELEVENTH = [
  *  not the dispatcher's arms and they add no member to the product's fifteen: **they are the addon's entries and
  *  the package's reach to them.** `exportImage` takes no op id (the store composes its own image); the two
  *  verdicts each take one. **AND `commitFile` STAYS A MEMBER OF THE SIXTEEN ABOVE ON THIS ARM** — the second
- *  realm's eighteen are a different build's set (`D-155` item 4) and are not read by this cell.
+ *  realm's eighteen are a different build's set (`D-155` item 4) and are not read by this cell. **⟶ AND THAT SET IS
+ *  NINETEEN FROM 2026-11-19**: the second arm gained its retirement's frame (`bindings/js/src/wasm.rs`'s
+ *  `storeRelease`), which is that build's entry and not this one's — `D-155` item 4's figure is re-cut at its own
+ *  sentence, and **this file's twenty, its census and every cell that reads them move no byte**.
  */
 export const SAVE_ARM_THREE = [
   { name: 'exportImage', arity: 0, clause: 'facade.rs\'s `exportImage` entry, 2026-11-17 — the store\'s image, composed and verified by the store itself (`D-148`)' },

@@ -22,7 +22,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -90,6 +90,81 @@ function transitiveSet(start) {
   };
   walk(start);
   return seen;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────────────────────────────
+// **THE RETIREMENT PROBE'S MACHINERY, ABOVE EVERY CELL — AND ITS POSITION IS PART OF ITS CORRECTNESS.**
+// The child branch stands here, before any `test(…)` call, so **the child never registers a cell**: it writes its one
+// JSON line and exits, and the runner in that process has nothing to run and nothing to print over it. (Measured the
+// other way round: with the branch below the cells, the child ran the whole file AND its exit truncated the piped
+// write; see the drained-exit note at the branch.)
+// ─────────────────────────────────────────────────────────────────────────────────────────────────────
+const STORE_INDEX = Symbol.for('provident-storeroom.storeIndex');
+
+const PROBE_FLAG = '--wasm-arm-retirement-probe';
+/** **THE STORES PER BATCH, AND THE WARM-UP BESIDE IT.** The warm-up batch is dropped and collected before the
+ *  measured one so the registry's callback path has run once before the batch that is counted (`SR-01`'s device). */
+const PROBE_WARMUP = 8;
+const PROBE_STORES = 48;
+
+/// **A COLLECTION AND A TURN** — three collects and a settle, which is what a `FinalizationRegistry` callback needs
+/// before it has run: the collect is the host's, the callback is queued on it, and the settle hands it its turn.
+async function settleCollection() {
+  globalThis.gc();
+  globalThis.gc();
+  await new Promise((resolve) => setTimeout(resolve, 25));
+  globalThis.gc();
+}
+
+/// **ONE BATCH: N STORES CONSTRUCTED, EACH WRITTEN TO, EVERY ONE DROPPED** — the only reference that outlives an
+/// iteration is the handle (a NUMBER), so nothing here can retain the store OBJECT.
+async function constructAndDrop(glue, storeCreate, n) {
+  const handles = [];
+  for (let i = 0; i < n; i += 1) {
+    const dropped = storeCreate(glue, { journalLength: 8, listeners: [] });
+    dropped.write(['payload'], 'mem', i);
+    handles.push(dropped[STORE_INDEX]);
+  }
+  return handles;
+}
+
+if (process.argv.includes(PROBE_FLAG)) {
+  const { glue, storeCreate } = await arm();
+  await settleCollection();
+  // THE WARM-UP, DISCARDED: one batch dropped and collected, so the measured batch is not the first callback.
+  await constructAndDrop(glue, storeCreate, PROBE_WARMUP);
+  for (let round = 0; round < 3; round += 1) await settleCollection();
+  const handles = await constructAndDrop(glue, storeCreate, PROBE_STORES);
+  for (let round = 0; round < 4; round += 1) await settleCollection();
+  // **THE ONE READING, TAKEN ONCE AND DESTRUCTIVELY**: a live slot answers `undefined` (and is freed by this very
+  // call), an emptied one answers `AddressNotFound` — so the count cannot be taken twice and is not.
+  let releasedByFinalizer = 0;
+  let stillLive = 0;
+  let unexpected = null;
+  for (const handle of handles) {
+    try {
+      glue.storeRelease(handle);
+      stillLive += 1;
+    } catch (thrown) {
+      if (thrown !== null && typeof thrown === 'object' && thrown.status === 'AddressNotFound') releasedByFinalizer += 1;
+      else unexpected = { status: thrown === null ? null : thrown.status, message: thrown === null ? null : thrown.message };
+    }
+  }
+  // **THE LINE IS WRITTEN SYNCHRONOUSLY TO FD 1 AND THAT IS LOAD-BEARING** — measured, not assumed: when this
+  // child's stdout is a PIPE, which is what `execFileSync` gives it, `process.stdout.write` is ASYNCHRONOUS, so an
+  // immediate `process.exit(0)` truncated it — the parent read a lone `{` and `JSON.parse` threw at position 1 — and
+  // a write CALLBACK is not enough either (measured: it did not fire before the exit and the child then re-entered
+  // this file's own probe). `fs.writeSync` returns only once the bytes are in the pipe, so the one line the parent
+  // parses is the whole line and the exit after it loses nothing.
+  writeSync(1, `${JSON.stringify({
+    gc: typeof globalThis.gc === 'function',
+    stores: PROBE_STORES,
+    handlesAreNumbers: handles.every((handle) => typeof handle === 'number'),
+    releasedByFinalizer,
+    stillLive,
+    unexpected,
+  })}\n`);
+  process.exit(0);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -254,15 +329,24 @@ test('CW-4 · C-W4 — the entry\'s transitive set carries no `node:` specifier 
 });
 
 // ─────────────────────────────────────────────────────────────────────────────────────────────────────
-// **`C-W6` · THE ARM'S EXPORT SET — EIGHTEEN, `commitFile` ABSENT, `delete` SPELLED `_delete`**
+// **`C-W6` · THE ARM'S EXPORT SET — NINETEEN, `commitFile` ABSENT, `delete` SPELLED `_delete`**
+//
+// **⟶ THE FIGURE MOVED `18 → 19` ON 2026-11-19 AND THE SENTENCE IT MOVED FROM IS QUOTED BEFORE IT IS RE-CUT:
+// *"`C-W6` · THE ARM'S EXPORT SET — EIGHTEEN, `commitFile` ABSENT, `delete` SPELLED `_delete`"*, and the cell's own
+// message read *"D-155 item 4: the WASM arm's entry set is eighteen of the Node arm's twenty"*.** **THE ARCHITECT'S
+// CLOSURE ANSWER, ARM `a`, IS THAT THIS ARM RETIRES A STORE AS THE NODE ARM DOES**, so `wasm.rs` gains the
+// nineteenth entry — `storeRelease` — and **the arithmetic keeps its shape: the Node arm's twenty minus
+// `commitFile`.** `D-155` item 4's own sentence is re-cut at its byte in the same pass, and this cell is the other
+// site `D-171` item 5 named by name.
 // ─────────────────────────────────────────────────────────────────────────────────────────────────────
-test('CW-6 · C-W6 — the module exports the eighteen declared entries, and `commitFile` is not one of them', async () => {
+test('CW-6 · C-W6 — the module exports the nineteen declared entries, and `commitFile` is not one of them', async () => {
   const { glue } = await arm();
   const names = Object.keys(glue)
     .filter((name) => name !== 'default' && name !== 'initSync' && typeof glue[name] === 'function')
     .sort();
-  assert.equal(names.length, 18,
-    'D-155 item 4: the WASM arm\'s entry set is eighteen of the Node arm\'s twenty — it read ' + names.join(', '));
+  assert.equal(names.length, 19,
+    'D-155 item 4, re-cut 2026-11-19: the WASM arm\'s entry set is NINETEEN — the Node arm\'s twenty minus '
+    + '`commitFile`, plus the retirement\'s frame — it read ' + names.join(', '));
   assert.equal(names.includes('commitFile'), false,
     'and `commitFile` is the one that is absent BY RULING: the arm has no writer to reach');
   assert.equal(names.includes('_delete'), true,
@@ -270,6 +354,11 @@ test('CW-6 · C-W6 — the module exports the eighteen declared entries, and `co
     + 'what spells it back (`addon-slot.mjs`\'s `MODULE_SPELLING`)');
   assert.equal(names.includes('saveSucceeded'), true, 'the save arm\'s verdicts are entries');
   assert.equal(names.includes('exportImage'), true, 'and so is the image export');
+  // **AND THE NINETEENTH IS THE RETIREMENT'S FRAME** — the one name this figure moved for, named here so a reader of
+  // the count sees which entry answered for the `18 → 19` and not only that the number moved.
+  assert.equal(names.includes('storeRelease'), true,
+    'the nineteenth entry is `storeRelease` — the retirement the package\'s `STORE_RETIREMENT` callback calls, '
+    + 'declared by `bindings/js/src/wasm.rs` and forwarded by `addon-slot.mjs`\'s `PASSED_THROUGH_ENTRIES`');
 });
 
 // ─────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -309,4 +398,149 @@ test('CW-7 · D-156 — a value crosses by value both ways, and a `Proxy` is ref
   assert.deepEqual(Object.keys(counters).filter((name) => counters[name] !== 0), [],
     'and NOT ONE trap ran: the instrument is `structuredClone`, which throws on a Proxy before any handler is '
     + 'reached — `DD-34`\'s property kept on an arm with no `util.types.isProxy`: ' + JSON.stringify(counters));
+});
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════
+// **THE ARM'S RETIREMENT — THE ENTRY'S ARMS, DRIVEN** (the architect's closure answer, arm `a`;
+// `bindings/js/src/wasm.rs`'s `storeRelease`; `D-171` item 5's last sentence is what named the absence open)
+//
+// **THIS IS `tests/e2e/store-retirement.test.mjs`'s `SR-03`, ONE ARM OVER, AND ITS OBSERVABLE IS THE SAME ONE**: a
+// released handle answers `AddressNotFound` at the verb that names it — **THE OBSERVABLE AT ITS OWN ANSWER, AND
+// NEVER A TABLE LENGTH** (`receiver-and-refusal.md §6`'s `OWED-2`: *"NOTHING ASSERTS A TABLE TYPE"*; a release that
+// was measured by the table's size would be measuring the very interior that clause forbids a cell to read). **AND
+// THE INDEX-INVARIANCE IS ASSERTED THE SAME WAY `SR-03` ASSERTS IT — BY A NEIGHBOUR**: `§6`'s requirement is that a
+// retirement removes EXACTLY ONE store, so the second store constructed across the first's release must still
+// answer its own register, which is what a renumbering table would break first.
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════
+
+test('CW-8 · the arm retires a store: the released handle answers `AddressNotFound`, a second release refuses, a handle no mint reached answers the same arm, and a position that is not an index answers `AddressMalformed` — and none of them panics', async () => {
+  const { glue, storeCreate } = await arm();
+  assert.equal(typeof glue.storeRelease, 'function',
+    'the module carries the retirement\'s entry — `wasm-bindgen` publishes it as `storeRelease`, the name '
+    + '`state.mjs`\'s `STORE_RETIREMENT` callback has always called and the name `addon-slot.mjs` now forwards');
+
+  // **THE STORE, ITS REGISTER AND THE INDEX THE PACKAGE HOLDS** — the same three `SR-03` reads on the other arm.
+  const instance = storeCreate(glue, { journalLength: 8, listeners: [] });
+  instance.write(['a'], 'mem', 7);
+  const handle = instance[STORE_INDEX];
+  assert.equal(typeof handle, 'number',
+    'the handle the module minted is published on the store object as the package\'s own `Symbol.for` row — a '
+    + 'NUMBER, which is what the finalizer\'s held value may carry and all it may carry: ' + JSON.stringify(handle));
+  // **A SECOND STORE, HELD ACROSS THE FIRST'S RELEASE**: the store that must still answer (`§6`'s one-entry rule).
+  const neighbour = storeCreate(glue, { journalLength: 8, listeners: [] });
+  neighbour.write(['b'], 'mem', 11);
+
+  // ── (a) THE RELEASE ITSELF: `undefined`, no throw.
+  const released = attempt(() => glue.storeRelease(handle));
+  assert.equal(released.ok, true,
+    'the release of a live store ANSWERS rather than throwing: ' + String(released.ok ? '' : released.caught?.status));
+  assert.equal(released.value, undefined,
+    'and its answer is `undefined` — the crate\'s own shape for an entry that carries nothing back (`register`\'s arm)');
+
+  // ── (b) THE RELEASED STORE'S OWN CALL REFUSES IN THE ONE FORM — the observable `§3` names, read through the
+  // package's own `read` rather than through the module, so the route is the parts' and not the cell's.
+  const after = attempt(() => instance.read(['a'], 'mem'));
+  assert.equal(after.ok, false, 'a call on a RELEASED store refuses rather than answering');
+  assert.equal(statusOf(after), 'AddressNotFound',
+    'and the refusal is the crate\'s own absent arm — `no_instance_at`\'s `AddressNotFound`, the same observable a '
+    + 'detached call and a fabricated index get (`receiver-and-refusal.md §3`): ' + JSON.stringify(statusOf(after)));
+  assert.equal(after.caught instanceof Error, false,
+    'and it is the ONE FORM and never an `Error` (`failure-form.md §1`)');
+
+  // ── (c) THE SECOND STORE STILL ANSWERS ITS OWN — `§6`'s one-entry rule, and the tombstone's whole point.
+  assert.equal(neighbour.read(['b'], 'mem'), 11,
+    '**THE RETIREMENT EMPTIED ONE SLOT AND NEVER SHIFTED ONE** (`§6`): the second store\'s own register answers '
+    + 'after the first store\'s release, so the handle the package holds cannot name its neighbour');
+
+  // ── (d) THE SAME HANDLE AGAIN — an EMPTIED slot, not a live one.
+  const twice = attempt(() => glue.storeRelease(handle));
+  assert.equal(twice.ok, false,
+    'releasing an already-released store refuses rather than releasing again — the release is not idempotent at '
+    + 'its answer: a second call must not free a second store');
+  assert.equal(statusOf(twice), 'AddressNotFound',
+    'and it answers the crate\'s absent arm: ' + JSON.stringify(statusOf(twice)));
+
+  // ── (e) A HANDLE NO MINT EVER REACHED — the same arm, because an emptied slot and a fabricated handle are one
+  // observable (`receiver-and-refusal.md §3`: *"There is no second arm and no second observable"*).
+  const nothing = attempt(() => glue.storeRelease(handle + 4096));
+  assert.equal(statusOf(nothing), 'AddressNotFound',
+    'a handle the table never reached refuses with the SAME token the emptied slot answers: '
+    + JSON.stringify(statusOf(nothing)));
+
+  // ── (f) A POSITION THAT IS NOT AN INDEX — the crate's malformed arm, and never a store touched.
+  const outside = ['not-an-index', null, undefined, {}, Number.NaN, Number.POSITIVE_INFINITY,
+    Number.NEGATIVE_INFINITY, -1, 1.5, true];
+  for (const position of outside) {
+    const answered = attempt(() => glue.storeRelease(position));
+    assert.equal(answered.ok, false,
+      'a position that is not an index refuses: ' + JSON.stringify(position) + ' answered instead');
+    assert.equal(statusOf(answered), 'AddressMalformed',
+      'and its status is the crate\'s own malformed-argument member — the token the Node frame\'s '
+      + '`not_a_store_index` answers and no new one minted (`DD-40`): ' + JSON.stringify(position) + ' answered '
+      + JSON.stringify(statusOf(answered)));
+  }
+  // **★ AND THE `NaN` GUARD IS ASSERTED AT ITS OWN CONSEQUENCE.** `NaN as u32` — `NaN as usize` on the other arm —
+  // SATURATES TO `0` in Rust, so a class test that let `NaN` through would name THE FIRST STORE EVER CONSTRUCTED in
+  // this process and free a store the caller never named. **THE LIVE STORE THIS CELL HOLDS IS RE-READ AFTER ALL
+  // NINE OF THEM**, and it must still answer its own register.
+  assert.equal(neighbour.read(['b'], 'mem'), 11,
+    'and none of those outside positions freed a live store: `NaN` in particular would have saturated to index `0` '
+    + 'and released whatever store this process minted first');
+  // ── (g) AND THE RELEASED STORE STILL READS AS RELEASED, after all of the refusals above.
+  const stillGone = attempt(() => instance.read(['a'], 'mem'));
+  assert.equal(statusOf(stillGone), 'AddressNotFound',
+    'the released store is still released after the nine refusals: the tombstone is not resurrected by a failed '
+    + 'release, and nothing here answered `Ok` for it');
+});
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════
+// **THE FINALIZER REACHES THE ARM — THE PACKAGE'S OWN `STORE_RETIREMENT`, FIRED BY A COLLECTION**
+//
+// **WHAT CAN BE FORCED HERE AND WHAT CANNOT, AT THE BYTE.** `npm test` runs `node --test "tests/**/*.test.mjs"` with
+// no `--expose-gc`, so **NO COLLECTION CAN BE FORCED IN THE PROCESS THAT ASSERTS** — `gc()` is not a function there
+// at all, and a cell claiming it had forced one would be claiming an instrument it does not hold. **SO THE
+// INSTRUMENT IS A CHILD PROCESS THIS FILE RE-EXECUTES ITSELF AS WITH `--expose-gc`**, which is the device
+// `store-retirement.test.mjs` already uses one arm over (`SR-01`/`SR-02`'s probe) — one file, one copy of the
+// instrument, and the asserting process is the same file.
+//
+// **AND WHAT IS *STILL* NOT FORCED IS THE HOST'S TIMING.** V8 queues a finalization callback and runs it on a turn
+// of its own, so the child SETTLES in bounded rounds (`gc`, `gc`, a 25 ms turn, `gc`) and then reads the answer once.
+// **THE READING IS THE ENTRY'S OWN AND NOT A TABLE'S**: after the stores are dropped and collected, the child calls
+// `storeRelease` on each handle it kept — an `AddressNotFound` there means the FINALIZER already emptied that slot
+// (the release refused because there was nothing left to free), while an `undefined` answer means the slot was still
+// live and this call is the one that freed it. **THE COUNT IS THEREFORE THE FINALIZER'S, MEASURED, AND NOT A
+// PROMISE**: the cell asserts that every store the child dropped was already retired when it asked.
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════
+
+/// **THE PROBE, RUN** — one child, `--expose-gc`, this same file. **`--expose-gc` IS THE ONLY WAY `gc()` IS AVAILABLE
+/// HERE AT ALL**, and a child is also what keeps the probe's heap out of the test process's own.
+function retirementProbe() {
+  const stdout = execFileSync(process.execPath, ['--expose-gc', fileURLToPath(import.meta.url), PROBE_FLAG], {
+    encoding: 'utf8',
+    timeout: 300000,
+    maxBuffer: 4 * 1024 * 1024,
+  });
+  return JSON.parse(stdout.trim().split('\n').pop());
+}
+
+const RETIREMENT_REPORT = retirementProbe();
+
+test('CW-9 · the package\'s finalizer reaches the ARM — every store the probe constructed-and-dropped is already retired when the probe asks the module for it', () => {
+  assert.equal(RETIREMENT_REPORT.gc, true,
+    'the probe ran with `--expose-gc`, so what it measured is a retirement and not a lag in the collector');
+  assert.equal(RETIREMENT_REPORT.stores, PROBE_STORES, 'and it measured the batch this cell declares');
+  assert.equal(RETIREMENT_REPORT.handlesAreNumbers, true,
+    'every handle the probe kept is a NUMBER — the held value `STORE_RETIREMENT.register(instance, id)` passes, and '
+    + 'the only thing a finalizer\'s held value may be without retaining the store it observes');
+  assert.equal(RETIREMENT_REPORT.unexpected, null,
+    'the entry answered in the crate\'s own forms and in no third one: ' + JSON.stringify(RETIREMENT_REPORT.unexpected));
+  assert.equal(RETIREMENT_REPORT.stillLive, 0,
+    '**NO MEASURED STORE WAS STILL IN THE ARM\'S TABLE AFTER THE COLLECTION**: each of the '
+    + `${PROBE_STORES} answered \`{status: 'AddressNotFound'}\` when the probe asked to release it, whose declared `
+    + 'reading is *"the package holds no instance at that id"* — the slot was emptied by the finalizer before this '
+    + `probe asked. MEASURED: ${RETIREMENT_REPORT.releasedByFinalizer} of ${RETIREMENT_REPORT.stores}. `
+    + '**BEFORE THE ENTRY EXISTED THE SAME CALL WAS A RAW HOST `TypeError` AND THE STORES STAYED IN THE TABLE**');
+  assert.equal(RETIREMENT_REPORT.releasedByFinalizer, PROBE_STORES,
+    'and the count is the whole batch — a partial count would mean the finalizer reaches the arm for some stores '
+    + `and not others: ${RETIREMENT_REPORT.releasedByFinalizer} of ${PROBE_STORES}`);
 });

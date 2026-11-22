@@ -257,7 +257,15 @@ pub(crate) fn bool_of(value: &JsVal) -> bool {
 /// class is read first, on the value as it is, and a value that is not a JS `number` is never handed to the
 /// numeric conversion at all** (`as_f64` answers `None` for a `bigint` at the glue's own `typeof` test, so
 /// the second half is the same class decision and not a coercion).
-fn number_of(value: &JsVal) -> Option<f64> {
+///
+/// **⟶ AND THIS READER IS THE RETIREMENT POSITION'S OWN FROM 2026-11-19** — `wasm.rs`'s `storeRelease(handle)` reads
+/// its one position through it, which is **the one place this file was asked for nothing new and said so**: a
+/// class-first numeric read already stood here and already answers exactly what that position is, so the entry
+/// layer needed a READER made visible and not a reader authored. **THE DOMAIN TEST IS THE ENTRY'S AND NOT THIS
+/// FUNCTION'S**, which is the Node frame's own division (`facade.rs`'s `storeRelease` takes its class test and its
+/// finite/non-negative/integral test in the entry, and no codec function there performs either), so what moved in
+/// this file is exactly one visibility token: `fn` → `pub(crate) fn`, and no byte of the body.
+pub(crate) fn number_of(value: &JsVal) -> Option<f64> {
     if kind_of(value) != Kind::Number {
         return None;
     }

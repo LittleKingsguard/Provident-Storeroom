@@ -1286,6 +1286,15 @@ fn verb_commit_file(env: Env, receiver: This<Object<'_>>, op_id_pos: JsVal<'_>) 
 // held value may carry). **THE SECOND REALM'S ARM IS NOT THIS PASS'S AND ITS SET DOES NOT MOVE**: `storeRelease` has no
 // `wasm.rs` twin, so that arm's eighteen stand (`D-155` item 4) and its table never retires a store — the absence
 // `docs/L1/wasm-realm.md:311` already declares.
+//
+// **⟶ AND THE SENTENCE ABOVE IS RE-CUT AT ITS OWN BYTES, 2026-11-19 — THE TWIN EXISTS.** *"THE SECOND REALM'S ARM IS
+// NOT THIS PASS'S AND ITS SET DOES NOT MOVE: `storeRelease` has no `wasm.rs` twin, so that arm's eighteen stand
+// (`D-155` item 4) and its table never retires a store — the absence `docs/L1/wasm-realm.md:311` already declares."*
+// **THE ARCHITECT'S CLOSURE ANSWER, ARM `a`, GIVES THAT ARM THE TWIN** (`wasm.rs`'s `storeRelease`, a tombstoned
+// slot table of its own, and `addon-slot.mjs`'s PASSED-THROUGH forwarder for the name): **that arm's set moves
+// `18 → 19` and its table retires a store.** **AND THE HALF OF THE SENTENCE THAT STILL READS TRUE IS THE HALF THAT
+// MATTERS HERE: THIS FILE MOVES NO BYTE** — the Node frame, its two tables, its `Slots` and every one of its entries
+// are untouched by that landing, and the twenty it declares are the twenty it declared.
 
 /// **⟶ ADDED 2026-11-17 BY `U-STOREROOM-03` — `exportImage()`: THE EXPORT CARRIER, POSITION-LESS, ANSWERING THE
 /// STORE'S OWN IMAGE TEXT AS A STRING** (`D-137` items 1–2; `D-133` item 2).

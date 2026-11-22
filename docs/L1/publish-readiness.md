@@ -212,8 +212,9 @@ rebuild will read sixteen reds that are not defects.
    `CW-2` (`C-W2`: `filePath` refused at the store's `Path` arm and an empty `initialImage` with it), `CW-4` (`C-W4`: no
    `node:` specifier and no top-level `await` in the entry's graph), `CW-5` (`C-W5`: the tier is the construction's — the
    same write lands on a `saveCall` store and is refused on a store with neither), `CW-6` (`C-W6`: eighteen entries,
-   `commitFile` absent), and `CW-7` (`D-156`'s: the deep clone both ways and a `Proxy` refused with all eight trap
-   counters at zero). **The two cells this gap's own note said were held out are `C-W1` and `C-W5`, and they were held
+   `commitFile` absent — **⟶ NINETEEN FROM 2026-11-19**, the arm's retirement beside them, and `CW-8`/`CW-9` land with
+   it: the entry's arms driven and the package's own finalizer fired at that arm), and `CW-7` (`D-156`'s: the deep
+   clone both ways and a `Proxy` refused with all eight trap counters at zero). **The two cells this gap's own note said were held out are `C-W1` and `C-W5`, and they were held
    out for a defect in the instrument: `D-166` found it and `D-167` split the seam** (`isProxyOf` for data,
    `isProxyOfCarrier` for carriers). **The arm's own behaviour is claimed by cells and not by a review's hand.**
 

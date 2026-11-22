@@ -1004,10 +1004,18 @@ export const STORE_INDEX = Symbol.for('provident-storeroom.storeIndex');
 /// **AND THE KEY SET MOVED `19 → 20` WITH IT**, which this pass re-derives rather than argues away: the
 /// artefact's live set is the nineteen declared names plus `storeRelease`, and **`§1`'s "exactly the declared
 /// names" is a statement about the DECLARED set, which now carries the twentieth** — a *"`release`"* entry was
-/// never the failure; an **undeclared** name is. **THE SECOND REALM'S ARM IS UNMOVED**: `storeRelease` has no
-/// `wasm.rs` twin (`D-155` item 4's eighteen stand), so on that arm this callback's call is refused by the
-/// table itself — `storeRelease` is not a function there — and **THE `catch` BELOW IS WHAT MAKES THAT ARM'S
-/// ABSENCE SILENT RATHER THAN A THROWN FINALIZER**, which is the same guard, kept and now load-bearing.
+/// never the failure; an **undeclared** name is.
+///
+/// **⟶ AND THE SECOND REALM'S ARM IS NO LONGER UNMOVED, 2026-11-19 — THE SENTENCE IS QUOTED BEFORE IT IS RETIRED**:
+/// *"THE SECOND REALM'S ARM IS UNMOVED: `storeRelease` has no `wasm.rs` twin (`D-155` item 4's eighteen stand), so
+/// on that arm this callback's call is refused by the table itself — `storeRelease` is not a function there — and
+/// THE `catch` BELOW IS WHAT MAKES THAT ARM'S ABSENCE SILENT RATHER THAN A THROWN FINALIZER, which is the same
+/// guard, kept and now load-bearing."* **THE ARCHITECT'S CLOSURE ANSWER, ARM `a`, GIVES THAT ARM THE TWIN**: its set
+/// moves `18 → 19` (*"the Node arm's twenty minus `commitFile`"*, `D-155` item 4's arithmetic with its figure
+/// re-cut), its table empties a slot and never shifts one, and `addon-slot.mjs` forwards this very name as a
+/// PASSED-THROUGH member — **so this callback, unmoved byte for byte, now reaches the arm too.** **THE `catch` IS
+/// KEPT AND IS NO LONGER ANY ARM'S WHOLE ANSWER**: it is the guard it always was on the first arm — a retirement
+/// never throws into a finalizer — and the arm that made it load-bearing has an entry behind it now.
 ///
 /// **⟶ THE GUARD IS KEPT UNMOVED: A RETIREMENT NEVER THROWS INTO A FINALIZER.**
 ///
@@ -1026,9 +1034,10 @@ export const STORE_RETIREMENT = new FinalizationRegistry((storeIndex) => {
     withAddon().storeRelease(storeIndex);
   } catch {
     // **A RETIREMENT NEVER THROWS INTO A FINALIZER**: the callback runs on the host's own collection turn,
-    // and a throwable escaping there would be a raw host error crossing a path no caller asked for. **AND ON
-    // THE SECOND REALM'S ARM THIS CATCH IS THE ARM'S WHOLE ANSWER** — the injected table carries no
-    // `storeRelease` (`D-155` item 4), so the call raises and the release simply does not happen there.
+    // and a throwable escaping there would be a raw host error crossing a path no caller asked for. **AND BOTH
+    // ARMS NOW HAVE THE MEMBER THIS LINE CALLS** (`facade.rs`'s `storeRelease`; `wasm.rs`'s, ⟶ 2026-11-19), so the
+    // catch is the guard and no longer a silence standing in for an absent entry — kept, because a finalizer
+    // turn is the one place a throwable has no caller to be refused by.
   }
 });
 
@@ -1300,9 +1309,11 @@ export function carryRefusal(call, args, log, address) {
 /// value of the one position, and `commitFile`(1) counts one.
 export function commitFile(receiver, opId) {
   // **⟶ AND AN ARM THAT EXPORTS NO `commitFile` PERFORMS NO STORE SAVE — 2026-11-17** (`D-155` item 4; `D-143`'s
-  // arm; `D-144` item 5). **`commitFile` IS ABSENT FROM THE SECOND REALM'S EXPORT SET BY RULING** (eighteen of the
-  // Node arm's twenty — nineteen when this sentence was written, twenty since the 2026-11-19 `storeRelease`
-  // landing, which has no wasm twin either — `D-155` item 4: *"the writer is unreachable"*), **and that ruling was TRUE OF THE STORE'S
+  // arm; `D-144` item 5). **`commitFile` IS ABSENT FROM THE SECOND REALM'S EXPORT SET BY RULING** (⟶ **nineteen** of
+  // the Node arm's twenty from 2026-11-19 — this sentence read *"eighteen of the Node arm's twenty — nineteen when
+  // this sentence was written, twenty since the 2026-11-19 `storeRelease` landing, which has no wasm twin
+  // either"*, and **the twin now exists, so the arm's figure is `19` and the one name that is still absent is
+  // `commitFile` alone** — `D-155` item 4: *"the writer is unreachable"*), **and that ruling was TRUE OF THE STORE'S
   // WRITER AND NOT OF THIS CALL**: the terminal arm reaches this helper on a passing `file`-tier write and lets the
   // STORE decide eligibility, so with no entry here a lawful write threw a raw host **`TypeError`** instead of any
   // declared answer (measured: `state.mjs:1263` ← `delivery.mjs:1245` ← `terminalArm`).

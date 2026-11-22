@@ -8162,6 +8162,12 @@ unchanged: durable with no path) · the plans ordered (`1`) · the code moved (`
    **★ AND THAT DISCHARGES THE ONE `#[cfg]` THE PLAN REFUSED TO DRAW.** The plan held that removing the writer's two acts "leaves a body where they were, and whatever that body answers is
    a declared answer". **With the entry absent it answers nobody**: the arm is dead on both sides of the boundary, so the cfg may leave any faithful arm and **no declaration is owed**.
    **`O-8`'s sentence — `FileCommitFailed`'s `path` slot naming a path a pathless build does not have — becomes MOOT on this arm and stays owed on Node.**
+   **⟶ THE ITEM'S FIGURE MOVES `18 → 19` ON 2026-11-19 AND ITS GROUND DOES NOT MOVE ONE WORD.** **THE SENTENCE AS IT STOOD IS QUOTED BEFORE IT IS RE-DERIVED: *"THE WASM BUILD'S ENTRY SET IS
+   EIGHTEEN: `commitFile` DOES NOT EXIST ON THAT ARM."*** **THE RULING IT RECORDS IS A SET OF EXCLUSIONS AND IT STILL BINDS** — `commitFile` is `cfg`'d out, the writer is unreachable from both
+   sides, the cfg owes no declared answer, and `O-8`'s path slot stays moot on this arm and owed on Node. **WHAT MOVED IS THE COUNT, BECAUSE THE ARM GAINED AN ENTRY THIS ROW DID NOT PRICE**:
+   `bindings/js/src/wasm.rs`'s `storeRelease`, the RETIREMENT'S FRAME, given by the architect's closure answer (arm `a`) and named as the one thing this row's figure withheld by `D-171` item 5.
+   **SO THE SET IS NINETEEN — *"the Node arm's twenty minus `commitFile`"*, the shape this row's own ground produces — and the one name that is absent BY THIS RULING is still `commitFile` alone**
+   (`docs/L1/wasm-realm.md` §7's `C-W6`, §10 item 3 and §15, `docs/L3/wasm-realm/design.md` §6, and `tests/e2e/wasm-arm.test.mjs`'s `CW-6` re-cut with it).
 5. **AND THE THREE TOGETHER MAKE THE PLAN'S SEQUENCE SAFER, NOT LONGER.** **Step 1 is unchanged and still route-independent** · **step 2 gains two sub-decisions before code (the export
    FORM: a `#[wasm_bindgen] pub struct` with methods, or free functions each taking a handle; and the glue TARGET: `web`, `bundler` or `no-modules`)** · **step 3 remains the largest step,
    because the receiver convention changes for `42` call sites in the package** (16 `withAddon()`, 8 `.call(state.receiver)`, 14 `Reflect.apply`) · and **`initSync` becomes the one TOOL
@@ -8623,7 +8629,9 @@ trigger still read the **mark**, and `docs/specs/storeroom-constraints/contract.
    the design and a cell asserting the construction is red.
 6. **AND THE CELLS THAT DO NOT NEED IT ARE LANDED AND GREEN**: `C-W2` (the `cfg` domain: `filePath` refused, and the empty seed with it), `C-W4`
    (the entry's graph synchronous, no `node:` specifier anywhere in it), `C-W6` (the eighteen entries, `commitFile` absent, `delete` spelled
-   `_delete`) and `D-156`'s own two (the deep clone both ways and a `Proxy` refused with **all eight trap counters at zero**).
+   `_delete` — **⟶ NINETEEN FROM 2026-11-19, `CW-6`'s own count re-cut with the arm's retirement: `D-155` item 4's figure one entry wider, `storeRelease`
+   the nineteenth and `commitFile` still the one that is absent by ruling**) and `D-156`'s own two (the deep clone both ways and a `Proxy` refused with
+   **all eight trap counters at zero**).
 
 ---
 
@@ -8764,6 +8772,14 @@ finding is the same family as `D-159`/`D-160`/`D-162`** \u2014 a table that grow
 5. **THE ADDON'S EXPORT SET MOVES `19 \u2192 20`** and every census that counts it moved with its reason at its byte; **`index.d.ts` moved NO byte** (the addon's
    entries are not the package's declared surface). **THE WASM ARM IS UNTOUCHED**: its set stays **eighteen** and **its table still never retires a store** \u2014
    which is now the one arm of the two whose leak is unclosed, and closing it changes that arm's export set (a declaration, `D-155` item 4, and `CW-6`'s subject).
+   **⟶ AND THE ARM THAT SENTENCE LEFT OPEN IS CLOSED, 2026-11-19 — THE SENTENCE IS QUOTED BEFORE IT IS RE-CUT: *"THE WASM ARM IS UNTOUCHED: its set stays
+   eighteen and its table still never retires a store — which is now the one arm of the two whose leak is unclosed, and closing it changes that arm's export set
+   (a declaration, `D-155` item 4, and `CW-6`'s subject)."*** **THE ARCHITECT'S CLOSURE ANSWER, ARM `a`, IS THAT THE ARM RETIRES AS THIS ONE DOES**, so **its set
+   moves `18 → 19`** (`bindings/js/src/wasm.rs`'s `storeRelease`), **its table empties a slot and never shifts one** (a tombstone, because on that arm the
+   handle IS the row index), **and the two subjects this item named are exactly the two sites the landing re-cut**: `D-155` item 4 at its own sentence and `CW-6` at
+   its own count, with `addon-slot.mjs`'s census sentence and `docs/L1/wasm-realm.md` §7/§10/§15/§16 moving with them. **THIS ITEM'S OWN SUBJECT — THE NODE ARM'S
+   ENTRY, ITS TWO TABLES AND ITS CELLS — IS UNMOVED BY THAT LANDING**, which is why this clause is the whole of what this row says about it: the second arm's
+   bytes are the second arm's pass, and no line of `facade.rs` moves for it.
 6. **CELLS**: `tests/e2e/store-retirement.test.mjs` \u2014 `SR-01` (the payload ceiling), `SR-02` (**the finalizer's own answer**: every constructed-and-dropped
    store's index reads `AddressNotFound`, which is the release measured at its own answer and not a table length), `SR-03` (the entry's contract: double
    release, absent index, eight outside classes, and the second store answering across the first's release). **Red first: `0/3` on the pre-fix artefact.**
