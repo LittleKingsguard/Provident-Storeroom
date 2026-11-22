@@ -236,20 +236,34 @@ scratch/jcx-s17/
 
 
 # =================================================================================================
-# ⟶ THE SECOND REALM'S STAGED PACKAGE, 2026-11-17 (`D-157` item 1; `docs/L1/wasm-realm.md` §21)
+# ⟶ THE SECOND REALM'S ADMITTED PACKAGE, 2026-11-17 — AND THE STAGED HOME IT NAMED FIRST, CORRECTED
+#    (`D-157` item 1; `docs/L1/publish-readiness.md` §2 item 3; `docs/L1/wasm-realm.md` §21)
 # =================================================================================================
 #
-# **`bindings/wasm/` IS DECLARED BY ITS MANIFEST AND COMPOSED BY ITS BUILD.** `package.json` is the
-# one tracked byte — the declaration that the sixth artefact exists and what it will carry — and
-# every other file the build stages there is an OUTPUT: the entry composed from
-# `bindings/js/wasm/index.wasm.mjs`, the shared body copied from `bindings/js/src/`, the wasm module
-# and its glue, the declaration emitted by `scripts/emit-declarations.mjs`, and the housekeeping
-# copies. A tracked copy of any of them would be a second copy that could drift from the one the
-# tests drive. The manifest records that the package is STAGED and not admitted to the published set.
-bindings/wasm/index.mjs
-bindings/wasm/index.d.ts
-bindings/wasm/src/
-bindings/wasm/storeroom_js_binding*
-bindings/wasm/LICENSE
-bindings/wasm/README.md
-bindings/wasm/BUILD-INFO.txt
+# **THE SIXTH ARTEFACT IS ADMITTED, AND THIS BLOCK'S SUBJECT IS UNMOVED BY THE ADMISSION: WHAT THE
+# BUILD STAGES IS AN OUTPUT.** `bindings/js/platforms/wasm/package.json` is the one tracked byte — the
+# declaration of the sixth artefact and of what it carries — and every other file the build stages
+# beside it is an OUTPUT: the entry composed from `bindings/js/wasm/index.wasm.mjs`, the shared body
+# copied from `bindings/js/src/`, the wasm module and its glue, the declaration emitted by
+# `scripts/emit-declarations.mjs`, and the housekeeping copies. A tracked copy of any of them would be
+# a second copy that could drift from the one the tests drive. **AND THE MANIFEST NO LONGER SAYS
+# STAGED**: the `_comment` clause that declared it *"STAGED, NOT ADMITTED"* and named its own home as
+# `bindings/wasm/` is GONE, because the admission this block waited on has landed — the package stands
+# among the five native siblings, the contract's artefact set reads SEVEN manifests, and the coupled
+# version rule is read at the seventh.
+#
+# ⟶ CORRECTED 2026-11-17 BY THE ADMISSION PASS, AND THE TWO SENTENCES THAT STOOD HERE ARE
+# RE-EMITTED SO NO READER HUNTS A PATH THE TREE NO LONGER CARRIES: this block's heading read
+# *"⟶ THE SECOND REALM'S STAGED PACKAGE, 2026-11-17 (`D-157` item 1; `docs/L1/wasm-realm.md` §21)"*,
+# its first sentence read *"**`bindings/wasm/` IS DECLARED BY ITS MANIFEST AND COMPOSED BY ITS
+# BUILD.**"*, and its last read *"The manifest records that the package is STAGED and not admitted to
+# the published set."* **THE OPERATIVE READING IS THIS CLAUSE'S: the directory is
+# `bindings/js/platforms/wasm/`, the manifest declares the package ADMITTED, and the seven entries
+# below are re-pointed at the admitted home — the PATHS move and the RULE does not.**
+bindings/js/platforms/wasm/index.mjs
+bindings/js/platforms/wasm/index.d.ts
+bindings/js/platforms/wasm/src/
+bindings/js/platforms/wasm/storeroom_js_binding*
+bindings/js/platforms/wasm/LICENSE
+bindings/js/platforms/wasm/README.md
+bindings/js/platforms/wasm/BUILD-INFO.txt

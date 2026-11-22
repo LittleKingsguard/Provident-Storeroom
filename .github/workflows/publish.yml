@@ -286,13 +286,138 @@ jobs:
           rm -f "bindings/js/platforms/${{ matrix.label }}/LICENSE" \
                 "bindings/js/platforms/${{ matrix.label }}/storeroom_js_binding.node"
 
+  # =============================================================================================
+  # ⟶ THE SIXTH ARTEFACT'S OWN JOB, DATED 2026-11-17 — AND IT IS NOT A SIXTH MATRIX ROW
+  # (`D-157` item 1; `docs/L1/publish-readiness.md` §2 item 4; `docs/L1/wasm-realm.md` §21;
+  # `parameter-semantics.md §4.4` · `PAR-PUB-28`).
+  #
+  # **WHY A JOB AND NOT A ROW.** The `platform` matrix above is FIVE NATIVE TARGETS ON FIVE RUNNERS, and each
+  # leg builds the target its own label names, because `PAR-PUB-28` refuses a cross-compiled artefact as
+  # *"a build this matrix did not perform"*. **A WEBASSEMBLY MODULE HAS NO HOST**: `wasm32-unknown-unknown` is
+  # built once, on any runner, and `wasm-bindgen --target web` turns that module into this package's own
+  # bytes. A sixth row would therefore have had to carry a `target:` that is not a host, a `runner:` that
+  # duplicates another leg's image, and an `os`/`cpu` pair the sixth manifest does not carry at all — **three
+  # declarations that would be FALSE of it**. So the sixth artefact is built and published by A JOB BESIDE THE
+  # MATRIX, `needs: platform`, on one runner, and the matrix stays five rows and five images.
+  #
+  # **THE STEPS, IN THE ORDER THE ARTEFACT NEEDS THEM**: the tagged commit · the `wasm32` target and the
+  # publishing client · `wasm-bindgen` at the crate's own pin, into the CLI home the build script reads · the
+  # fetch the declared offline build asks for · `node scripts/build-wasm-package.mjs`, which IS the staging ·
+  # the manifest's-own-paths guard · the staged publish. **NOT ONE BYTE OF THE PACKAGE IS AUTHORED HERE**: the
+  # script's six steps and `scripts/emit-declarations.mjs`'s WASM arm are the composition, and this job only
+  # hands them a toolchain.
+  #
+  # **AND TWO THINGS IT DELIBERATELY DOES NOT DO, NAMED SO THEIR ABSENCE IS NOT READ AS AN OVERSIGHT.**
+  # **(1) IT CARRIES NO CLEANUP STEP.** The `platform` job removes the `.node` and the licence copy it placed
+  # in a TRACKED directory; every byte THIS job stages lands at `bindings/js/platforms/wasm/`, which
+  # `.gitignore` keeps out of the tracked tree — so there is nothing to put back, and a third `if: always()`
+  # step would be a cleanup for a pollution this artefact does not cause. **(2) IT DECLARES NO JOB-LEVEL
+  # `permissions:` BLOCK**, so the workflow-level `contents: read` · `id-token: write` IS its effective set:
+  # `actions/checkout@v7` documents `contents: read`, the staged publish's `--provenance` is the OIDC exchange
+  # `id-token: write` exists for, and no site of this job documents anything else — which is exactly what
+  # least privilege asks of it (`release.md §1.3` item 3; `§1.4` step 6).
+  #
+  # **ITS RUNNER IS `ubuntu-24.04`, A MEMBER OF THE FIVE, AND DELIBERATELY SO**: the runner census beside this
+  # file reads EVERY literal `runs-on:` against `release.md §1.2`'s five-image table in both directions, so a
+  # sixth image here would be exactly the drift that guard refuses — and a host-independent build has no
+  # reason to name one.
+  wasm:
+    name: wasm (the sixth artefact — a job beside the matrix, never a row of it)
+    needs: platform
+    runs-on: ubuntu-24.04
+    # **THE CLI HOME IS DECLARED ONCE, BECAUSE TWO STEPS MUST AGREE ABOUT IT**: `cargo install --root` writes
+    # the binary to `$CARGO_HOME/bin/wasm-bindgen`, and `scripts/build-wasm-package.mjs` reads exactly that
+    # path (`join(root, '.cargo-home', 'bin', 'wasm-bindgen')`, with `CARGO_HOME` overriding the cargo legs
+    # beside it). **A CARGO_HOME THE INSTALL AND THE SCRIPT DO NOT SHARE IS A HALF-PACKAGE** — the one failure
+    # the script's own first guard exists to prevent.
+    env:
+      CARGO_HOME: ${{ github.workspace }}/.cargo-home
+    steps:
+      # `release.md §1.4` step 1 — the tagged commit, at the tag's own ref and never a branch, so the bytes
+      # this job builds have the tag's identity exactly as the matrix's five legs do.
+      - name: '1. checkout the tagged commit'
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.ref }}
+
+      # `D-154` item 1's target, at the toolchain step: the matrix above installs `matrix.target`, one per
+      # leg, and this job installs the ONE target a host-independent build needs.
+      - name: '1. the wasm32 target, which is no host at all'
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      # The same publishing client the two native sites install, for the same diagnosed cause: trusted
+      # publishing needs `npm >= 11.5.1` and the runner image's own npm predates it. **NO AUTH TOKEN VARIABLE
+      # AND NO REPOSITORY SECRET IS SET BESIDE IT** — the exchange is the host's OIDC federation.
+      - name: 'precondition: the publishing client — Node 24, whose npm performs the OIDC exchange'
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+
+      # **THE PIN IS THE CRATE'S OWN, AND A BUMP MOVES BOTH OR NEITHER**: `bindings/js/Cargo.toml`'s
+      # `[target.'cfg(target_arch = "wasm32")'.dependencies]` reads `wasm-bindgen = "0.2.130"`, and the CLI
+      # fails hard when the crate and the CLI disagree — so `0.2.130` stands here verbatim rather than
+      # "latest".
+      - name: '2. wasm-bindgen, at the crate''s own pin, into the CLI home the script reads'
+        run: cargo install wasm-bindgen-cli --version 0.2.130 --root "$CARGO_HOME"
+
+      # **THE FETCH THE DECLARED OFFLINE COMMAND ASKS FOR, AND NOTHING BESIDE IT.** The build script's cargo
+      # leg carries `--offline` — the store's command property — and `.cargo-home` is a CACHE that no checkout
+      # carries (`.gitignore`'s own clause: *"NOTHING HERE IS OWED TO A FRESH CLONE: the vendored registry is a
+      # CACHE and never a source of record"*). This step fills it from the same registry the lock already
+      # names, ONLINE, before the offline build asks for it.
+      - name: '2. fetch the crates the offline build will ask for'
+        run: cargo fetch --manifest-path bindings/js/Cargo.toml --target wasm32-unknown-unknown
+
+      # `D-157` item 1 / `docs/L1/wasm-realm.md` §21 — **THE STAGING IS THE SCRIPT'S, WHOLE**: the crate for
+      # `wasm32`, `wasm-bindgen --target web` into the package's own directory, the shared body copied from
+      # `bindings/js/src/`, the housekeeping bytes, and the generator's WASM arm installed as this package's
+      # `index.d.ts` (one generator, one source, two arms, each package taking the arm that describes it).
+      # **IT EXITS NONZERO RATHER THAN PRODUCING A HALF-PACKAGE**, naming the environment fact it is missing.
+      - name: '2. build and stage the sixth package'
+        run: node scripts/build-wasm-package.mjs
+
+      # **THE SAME PRE-PUBLISH EXISTENCE GUARD THE PLATFORM SITE CARRIES, READ AT THIS MANIFEST'S OWN
+      # PATHS** (`A89`(4); `PUB-DD-27`'s price): `npm` omits a missing `files` entry SILENTLY, so every path
+      # this manifest names is asserted to exist BEFORE the name and the version are spent. **THE PATHS ARE
+      # READ FROM THE MANIFEST AND NEVER RE-SPELLED HERE**, so a manifest edit cannot outrun its own check.
+      - name: '4. guard: the manifest''s own paths exist before the publish'
+        shell: bash
+        run: |
+          set -euo pipefail
+          dir="bindings/js/platforms/wasm"
+          paths=$(node -e "const m=require('./$dir/package.json');const p=[m.main,(m.files||[])].flat().filter((x)=>typeof x==='string');if(p.length===0){throw new Error('A89(4): the manifest names no path to check')}process.stdout.write([...new Set(p)].join('\n'))")
+          while IFS= read -r path; do
+            test -e "$dir/$path" || { echo "A89(4): the manifest $dir/package.json names '$path' and it does not exist — npm omits a missing files entry SILENTLY"; exit 1; }
+          done <<< "$paths"
+
+      # `release.md §1.4` step 4 read once more, at the SEVENTH manifest — **THE SIXTH ARTEFACT IS PUBLISHED
+      # BEFORE THE MAIN PACKAGE IS REACHED, and the staged verb is the one the registry's trusted-publisher
+      # grant carries for these names** (`§1.5` item 1): the direct `npm publish` is refused at
+      # `403 · OIDC permission denied for this action`, and the promotion is the architect's act (`Q9`) — this
+      # job stages and does not promote. **FLAGS:** `--access public` · `--provenance` · `--tag latest`, each
+      # named by `npm stage publish --help` on this machine (`npm 12.2.0`), and nothing else.
+      - name: '4. publish the wasm artefact'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "bindings/js/platforms/wasm"
+          npm stage publish --access public --provenance --tag latest
+
   # `release.md §1.4` steps 3 and 5 — **THE MAIN PACKAGE IS PUBLISHED LAST, ALWAYS.** It waits on the whole
-  # platform matrix, so its five exact pins are already resolved in the registry when it lands; and its
-  # content is the entry, the shipped `README.md` and the authored `index.d.ts`, **with NO binary**
-  # (`distribution.md §2.1`; `PUB-DD-1`).
+  # platform matrix AND on the sixth artefact's job, so its five exact pins are already resolved in the
+  # registry when it lands and every one of the seven manifests has been staged before it; and its content is
+  # the entry, the shipped `README.md` and the authored `index.d.ts`, **with NO binary** (`distribution.md
+  # §2.1`; `PUB-DD-1`). **⟶ AND THE DEPENDENCY WIDENED FROM ONE NAME TO TWO, DATED 2026-11-17 BY THE ADMISSION
+  # PASS** (`D-157` item 1): it read `needs: platform`, and it now reads `needs: [platform, wasm]` — **THE
+  # ORDER IS STRICTLY STRONGER AND NOT MERELY LONGER: the main package now begins only after the five native
+  # artefacts AND the sixth artefact have landed, so the last position this file's one load-bearing property
+  # names is the position of ALL SEVEN manifests and not of six of them.**
   main:
     name: provident-storeroom (last, always)
-    needs: platform
+    needs: [platform, wasm]
     runs-on: ubuntu-24.04
     # **⟶ THE ATTESTATION'S OWN GRANT, DECLARED ON THE JOB THAT ATTESTS AND NOT ON THE WORKFLOW — CAUSE 3,
     # AND ITS FIX.** **THE DIAGNOSIS, FROM THE FINAL STEP OF THE TAG-TRIGGERED RUN, VERBATIM:**

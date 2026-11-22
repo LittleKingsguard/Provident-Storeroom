@@ -1177,9 +1177,26 @@ const PLATFORM_FIELDS = [
   'repository', 'version',
 ];
 
-/** Every tracked platform manifest, read at its own bytes. */
+/**
+ * **THE FIVE NATIVE PLATFORM MANIFESTS, READ AT THEIR OWN BYTES — AND THE SET IS NARROWED HERE, NOT
+ * WIDENED, WHICH IS THE WHOLE POINT OF THIS PASS** (`PAR-PUB-19`/`PAR-PUB-20`; `distribution.md §3.2`
+ * items 5–6).
+ *
+ * **⟶ NARROWED 2026-11-17 BY THE ADMISSION PASS** (`D-157` item 1; `docs/L1/publish-readiness.md` §2
+ * item 3). The function above read `readdirSync(PLATFORMS)` — EVERY directory under `platforms/` —
+ * and that was true of the tree for exactly as long as the sixth artefact stood OUTSIDE this home.
+ * **THE SIXTH ARTEFACT NOW STANDS AMONG THE FIVE (`platforms/wasm/`), AND THIS GENERATOR'S SUBJECT IS
+ * THE NATIVE BUILD**: its three properties are a `.node` the artefact's own `main` names, an
+ * `os`/`cpu` pair its own `name` SPELLS, and a `files` allowlist carrying that `.node` — **and a
+ * WebAssembly package has NONE of the three BY NATURE**: it carries no `.node`, and its manifest
+ * carries no `os`/`cpu` at all, because a wasm build runs anywhere (`docs/L1/wasm-realm.md` §21).
+ * **SO THE SET IS READ FROM THE DECLARED NATIVE LABELS (`COVERED`) AND NOT BY LISTING THE
+ * DIRECTORY**, and the sixth artefact is read at ITS OWN declared shape by `P-PUB-8`'s `S-TAG` cell
+ * instead. **NOT ONE ASSERTION BELOW IS WEAKENED: the five are still read name for name, the census
+ * is still an exact two-directional set equality, and every control still fails.**
+ */
 function readPlatformManifests() {
-  return readdirSync(PLATFORMS).sort().map((label) => ({
+  return COVERED.map((key) => key.label).sort().map((label) => ({
     label, path: join(PLATFORMS, label, 'package.json'), manifest: JSON.parse(readFileSync(join(PLATFORMS, label, 'package.json'), 'utf8')),
   }));
 }
@@ -1232,7 +1249,7 @@ generator('NG-PUB-H', 'a platform manifest\'s os/cpu match its name, and its fil
     assert.deepEqual(walk(PLATFORMS), [], 'no binary is committed inside a platform directory');
   });
   assert.equal(shipped.verdict, 'PASS', `NG-PUB-H: THE PROPERTY DOES NOT HOLD AT THE SHIPPED FIVE — ${shipped.why}`);
-  recordControl('SHIPPED-FIVE', 'PASS (required)');
+  recordControl('SHIPPED-FIVE', 'PASS (required) — the five NATIVE manifests, and the sixth artefact\'s own shape is `S-TAG`\'s');
   // (2) THE CONTROLS — scratch manifest SETS, each read through the SAME property.
   const base = readPlatformManifests();
   const wrongPair = base.map((m) => (m.label === 'darwin-arm64'

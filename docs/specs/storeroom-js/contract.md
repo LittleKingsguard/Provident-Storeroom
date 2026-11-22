@@ -766,6 +766,61 @@ register still `8` rows with the cap holding (`8 ≤ 8` ✓), the `PAR-JS` range
 §3.1` and `§3.2` — the same ruling's clauses at this home's two parts; A3 docs/specs/storeroom-js/contract.md §0.1
 item 5 — the `≤ 8` cap | numeric or census claim]`).
 
+**⟶ AND THE SIXTH ARTEFACT IS ADMITTED, DATED `2026-11-17` — `DD-25`'S MEMBERSHIP IS UNMOVED AT FIVE AND THE
+ARTEFACT SET ITS PROPERTY IS READ AGAINST MOVES `6 → 7`** (`D-157` item 1; `docs/L1/publish-readiness.md` §2 item 3;
+`docs/L1/wasm-realm.md` §21; the admission's own cells at `tests/e2e/staged-install/publish.test.mjs`). `RCA-8(d)`
+ANNOTATE-BESIDE: **`DD-25`'s row above — its as-filed pin, its `A86` reading and its `A88` reading, with every
+census clause between them — stands BYTE-FOR-BYTE and is read THROUGH this clause; THIS clause is a PURE INSERTION
+— it ADDS NO ROW, DROPS NO ROW, RENUMBERS NO ROW, mints no `DD` id, moves no `PAR-JS` or `HO-` range and re-decides
+no rule of the row it reads.**
+
+**THE ROW'S OWN WORDS, RE-EMITTED VERBATIM FROM ITS AS-FILED PIN SO NEITHER READING IS LEFT TO A DIFF:** ***"the
+prebuild matrix is the three platforms × two architectures the package's first cut supports — `linux-x64` ·
+`linux-arm64` · `darwin-x64` · `darwin-arm64` · `win32-x64` — `5` targets, produced by CI on each release tag and
+hosted as the registry's own per-target optional-dependency artefacts"***.
+
+**WHAT IT READS NOW, TERM BY TERM, AND THE ONE TERM THAT MOVED IS NAMED FIRST BECAUSE IT IS THE ONLY ONE:** ***the
+prebuild matrix is still those `5` targets on those `5` labels, produced by CI on each release tag and hosted as the
+registry's own per-target optional-dependency artefacts — AND THE PUBLISHED SET THE ROW'S OWN PROPERTY IS READ
+AGAINST IS `7` MANIFESTS RATHER THAN `6`: the main package, the `5` native platform artefacts, and the
+WEBASSEMBLY ARTEFACT `@auspicion/provident-storeroom-js-wasm`, which is produced by A JOB BESIDE THE MATRIX and
+never as a sixth row of it.***
+
+1. **THE SIXTH ARTEFACT IS NOT A SIXTH MEMBER OF THIS ROW, AND THAT DISTINCTION IS THE ROW'S WHOLE SUBJECT.** A
+   matrix member is a `label`/`runner`/`target` triple that builds ITS OWN HOST TARGET, and
+   `docs/specs/storeroom-publish/parameter-semantics.md §4.4` (`PAR-PUB-28`) refuses a cross-compiled artefact as
+   *"a build this matrix did not perform"*. **A WebAssembly module has no host**: `wasm32-unknown-unknown` is built
+   once, on any runner, and the package's manifest carries **no `os`/`cpu` pair at all** — because a wasm build runs
+   anywhere — so it is not a target this row could name, and it enters the set as AN ARTEFACT AND NOT AS A ROW. **So
+   `5` STAYS THE MEMBERSHIP AND `5 + 1 + 1 = 7` IS THE SET: five prebuilt targets, one host-independent build, one
+   main package.**
+2. **AND THE COUPLED-VERSION RULE MOVES WITH IT, IN ITS OWN HOME AND BY ITS OWN CLAUSE** — from *"the six manifests
+   move to `X.Y.Z` TOGETHER"* to SEVEN MANIFESTS, with the cells it lands in moving `11 → 12` (`5` exact pins + `1`
+   main `version` + `5` platform `version` fields + `1` wasm `version` field). **The clause is
+   `docs/specs/storeroom-publish/contract.md §3.2`'s dated clause of this date and it is NOT re-carried here**; what
+   this row owes `DD-25`'s half is stated at item `1` above and nowhere else (`RCA-13`: one figure, one home).
+3. **AND NO VERSION MOVES BY THIS ADMISSION: `1.12.0` STANDS ON ALL SEVEN MANIFESTS**, because **the release class is
+   UNCLAIMED and this pass claims none** (`D-154` item 4 of its unsettled; `docs/L1/publish-readiness.md` §2 item 1,
+   where the claim is the architect's and is the one act no other act may precede). **A coupled-version clause that
+   read as a version bump would be claiming a release class by indirection**, which is exactly what this item exists
+   to refuse: the SEVENTH manifest joins the rule AT THE FIGURE THE OTHER SIX CARRY.
+4. **AND WHAT DOES NOT MOVE, ENUMERATED SO THE ADMISSION IS NOT READ AS A WIDER RULING THAN IT IS: the `5` labels ·
+   the hosting (the registry's own per-target optional-dependency artefacts) · the trigger (CI on each release tag) ·
+   `P-SR-7`'s `S-LOAD` · the five EXACT `optionalDependencies` pins and their count (`5`, still five — the sixth
+   artefact is published in its own right and resolves through no pin) · the five covered keys of `resolution.md
+   §3.1` and the totality `K3` demands of them · `DD-26`'s registry identity, which this admission does not reach ·
+   the table's census (`54` AUTHORED rows, `29 + 18 + 3 + 4 = 54` ✓, no row added, dropped or renumbered) · the
+   register (`8` rows, `8 ≤ 8` ✓) · and the closed status set, which mints no member.**
+5. **AND ONE READING THE TWO SENTENCES ABOVE OWE, STATED SO NO READER COLLAPSES THEM: "`5`" IN THIS ROW IS THE *NATIVE*
+   COUNT AND "`7`" IS THE *PUBLISHED* COUNT, and both are true of one tree at one time** — the five are the prebuilt
+   host targets this row governs, and the seven are the manifests the release publishes, which is why the row's
+   cells read `5` while the coupling clause beside it reads `7`. **A pass that widened either figure to make the two
+   agree would be reporting one census as the other.**
+`[A2 docs/decisions.md · `D-157`, item 1 of the architect's ruling, where the sixth package is declared; A1
+`docs/L1/publish-readiness.md` §2 item 3 — the admission as one atomic pass; A1 `docs/L1/wasm-realm.md` §21 — the
+five cells the split act reddened, measured; A1 `docs/specs/storeroom-publish/contract.md §3.2` — the coupled-version
+rule at its own home; read with `DD-25`'s own row above and `P-SR-7`'s `S-LOAD` | numeric or census claim]`
+
 **AND THE FOURTH STRUCTURE OF THE SAME SWEEP THAT NEEDS NO CELL, STATED BECAUSE IT IS THE ONE OF THAT
 DIRECTORY'S NAMED STRUCTURES THAT IS THIS UNIT'S OWN SURFACE'S NEIGHBOUR:** **`U-9` — the `LISTENERS`
 thread-local and `invoke_listeners` in the binding's facade — IS SETTLED IN CODE BY DELETION AND NEEDS NO CELL:

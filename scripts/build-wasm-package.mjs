@@ -19,13 +19,23 @@
 // `wasm32` toolchain (`D-154` item 4's other direction — a Node consumer has no reason to carry one).
 // **Every environment fact it needs is named when it is missing**, and it exits nonzero rather than
 // producing a half-package.
+//
+// **⟶ AND THE PACKAGE'S HOME MOVED WITH ITS ADMISSION, DATED `2026-11-17`** (`D-157` item 1;
+// `docs/L1/publish-readiness.md` §2 item 3): `bindings/wasm/` → `bindings/js/platforms/wasm/`, the
+// directory the five native siblings stand in. **THE PATH IS THE ONE THING THIS SCRIPT'S OWN BYTES
+// MOVE FOR**: the six steps above, the declaration's arm, the body copy and the housekeeping are
+// unmoved byte for byte, and the `.gitignore` block that keeps every output of this script out of
+// the tracked tree is re-pointed at the same home — `package.json` stays the package's ONE tracked
+// byte. **AND THE MANIFEST IT STAGES BESIDE NO LONGER DECLARES ITSELF STAGED**: what `pkg` names is a
+// member of the published set, and what this script composes there is still, every byte of it, an
+// OUTPUT of this run.
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const pkg = join(root, 'bindings', 'wasm');
+const pkg = join(root, 'bindings', 'js', 'platforms', 'wasm');
 const target = join(root, 'target', 'wasm32-unknown-unknown', 'release', 'storeroom_js_binding.wasm');
 const cli = join(root, '.cargo-home', 'bin', 'wasm-bindgen');
 const cargoHome = process.env.CARGO_HOME ?? join(root, '.cargo-home');

@@ -1,5 +1,4 @@
 {
-  "_comment": "STAGED, NOT ADMITTED: this manifest is the sixth artefact D-157 item 1 names, and its ADMISSION to the published set is D-4's publish shape (the contract's declared artefact count and the version-coupling rule at §14/§15 are delivery's). It stands at bindings/wasm/ — outside bindings/js/platforms/, where the five published platform manifests live — until that act lands.",
   "name": "@auspicion/provident-storeroom-js-wasm",
   "version": "1.12.0",
   "description": "provident-storeroom for a WebAssembly host — the same store, the same package, with its bindings handed in.",

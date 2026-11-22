@@ -185,6 +185,24 @@ const FIVE_RUNNERS = [
   { label: 'darwin-arm64', runner: 'macos-15', target: 'aarch64-apple-darwin' }, // ⟶ MOVED: was `macos-14`
   { label: 'win32-x64', runner: 'windows-2022', target: 'x86_64-pc-windows-msvc' },
 ];
+// **⟶ THE SIXTH PUBLISHED ARTEFACT, ADDED `2026-11-17` BY THE ADMISSION PASS** (`D-157` item 1;
+// `docs/L1/publish-readiness.md` §2 item 3; `docs/L1/wasm-realm.md` §21). **IT IS A SIBLING CONSTANT AND
+// NOT A WIDENING, WHICH IS THE ONE THING THIS DECLARATION EXISTS TO SAY: `FIVE_NAMES` STAYS FIVE**, because
+// it is the NATIVE names — the five covered keys of `resolution.md §3.1`, the names the main package pins
+// and the load path requires — **and the sixth artefact is a sixth NAME AT A SIXTH HOME WITH NO COVERED
+// KEY AT ALL.** A WebAssembly build runs anywhere, so its manifest carries **no `os` and no `cpu`**; its
+// allowlist carries a `.wasm` and no `.node`; it pins nothing and is pinned by nothing; and it is built and
+// published by a JOB BESIDE the five-row matrix and never as a sixth row of it (`parameter-semantics.md
+// §4.4` · `PAR-PUB-28`: a cross-compiled artefact would be *"a build this matrix did not perform"*).
+// **SO THE TWO SETS ARE READ SIDE BY SIDE AND NEVER MERGED**: every cell that enumerates
+// `bindings/js/platforms/*` learns this member by reading this constant, and every cell whose subject is a
+// COVERED KEY reads `FIVE_NAMES` and never sees it.
+const WASM_ARTEFACT = {
+  label: 'wasm',
+  name: '@auspicion/provident-storeroom-js-wasm',
+  dir: join(PKG_DIR, 'platforms', 'wasm'),
+  manifest: join(PKG_DIR, 'platforms', 'wasm', 'package.json'),
+};
 // `resolution.md §4.1`'s `NOT COVERED` row — a sample of the pairs it enumerates by name.
 const UNCOVERED = [
   { platform: 'linux', arch: 'ia32' },
@@ -326,6 +344,25 @@ const SCRATCH_UNRESOLVING_METADATA = {
 const PLATFORM_MANIFEST_FIELDS = [
   'bugs', 'cpu', 'engines', 'files', 'homepage', 'license', 'main', 'name', 'os', 'publishConfig',
   'repository', 'version',
+];
+
+/**
+ * **THE SIXTH ARTEFACT'S DECLARED SET — FOURTEEN FIELDS, AND IT IS ITS OWN SET RATHER THAN THE NATIVES'
+ * PLUS TWO** (`D-157` item 1; `docs/L1/wasm-realm.md` §21; `D-155` item 2's WASM arm).
+ *
+ * **WHY IT IS NOT THE TWELVE ABOVE, FIELD BY FIELD, BECAUSE A CENSUS THAT GREW BY ACCIDENT WOULD BE A LIST
+ * RATHER THAN AN ASSERTION:** the wasm package is a **MODULE-SHAPED** package — it ships `index.mjs` and a
+ * declaration the way the main package does — so it carries `type` · `exports` · `types` · `description`
+ * (the main package's realm and identity fields), and it carries **NO `os` · NO `cpu` · NO `main`-as-a-
+ * `.node`**, because a WebAssembly build runs anywhere and its module entry is `index.mjs`. **WHAT DOES NOT
+ * MOVE IS THE PART THAT MATTERS: the twelve-field census of the FIVE NATIVE manifests is asserted
+ * unchanged at `PLATFORM_MANIFEST_FIELDS`, this set is asserted as its own EXACT two-directional equality,
+ * and the three `PUB-DD-7` metadata fields are present in BOTH** — the registry reads `repository.url`
+ * against the provenance for every artefact it accepts, whichever of the seven it is.
+ */
+const WASM_MANIFEST_FIELDS = [
+  'bugs', 'description', 'engines', 'exports', 'files', 'homepage', 'license', 'main', 'name',
+  'publishConfig', 'repository', 'type', 'types', 'version',
 ];
 
 /**
@@ -1124,6 +1161,16 @@ function declaredReleaseVersion(repo) {
  * main's `version` is the released version.** The five names are read from the five platform manifests
  * THEMSELVES, which is why a substitution — a pin pointing at a name whose manifest says another version —
  * is caught here rather than by five comparisons of one string.
+ *
+ * **⟶ AND THE ENUMERATION LEARNS THE SIXTH MEMBER, DATED `2026-11-17` BY THE ADMISSION PASS** (`D-157`
+ * item 1): the walk below reads EVERY directory under `platforms/` that carries a tracked
+ * `package.json`, and the sixth artefact's home — `platforms/wasm/` — is now one of them, so the map
+ * this function returns holds SIX entries. **THE PINS ARE STILL FIVE AND THE LOOKUPS BELOW ARE BY NAME**,
+ * which is what keeps the two sets apart without a second code path: every caller asks for a pin's own
+ * name (`FIVE_NAMES`), so a sixth map entry can never be read as a sixth pin, and a pin whose manifest
+ * is ABSENT still answers `undefined` at the `assert.ok(platform !== undefined)` that refuses it.
+ * **THE SIXTH ENTRY IS READ AT ITS OWN DECLARED SHAPE BY `S-TAG`'S CELL AND AT ITS OWN `version` BY THE
+ * COUPLING CELL, so it is measured rather than merely tolerated.**
  */
 function mainVersionCoupling() {
   const main = JSON.parse(readFileSync(join(PKG_DIR, 'package.json'), 'utf8'));
@@ -2691,7 +2738,7 @@ cell('P-PUB-7', 'S-LICENCE the licence field agrees with the declared four sites
   }
 });
 
-cell('P-PUB-7', 'S-LICENCE no fifth declaration site, and `bindings/js/LICENSE` is refused', async () => {
+cell('P-PUB-7', 'S-LICENCE no fifth declaration site, SIX per-artefact fields that are not one, and `bindings/js/LICENSE` is refused', async () => {
   // `§2.3` item 4 / `PUB-DD-12`: `bindings/js/LICENSE` IS REFUSED — no such file exists in the tree and
   // none is written by any pass. A FIFTH DECLARATION SITE (an authored statement about the licence at a new
   // home) is a finding, and so is a third spelling.
@@ -2707,6 +2754,23 @@ cell('P-PUB-7', 'S-LICENCE no fifth declaration site, and `bindings/js/LICENSE` 
   // FIVE REQUIRED PLATFORM MANIFESTS and a pre-existing assertion line in `greens/greens.mjs`: cells that
   // cannot pass while the contract is satisfied (`PUB-CF-11`). The refusal's own content is asserted
   // FIRST below, so that a bare path set can never be satisfied vacuously.**
+  //
+  // **⟶ AND THE SWEEP LEARNS THE SIXTH ARTEFACT, DATED `2026-11-17` BY THE ADMISSION PASS** (`D-157` item 1;
+  // `docs/L1/publish-readiness.md` §2 item 3). `bindings/js/platforms/wasm/package.json` is the SIXTH
+  // manifest to carry the `license` field, and **IT IS THE SAME KIND OF HOME THE FIVE ALREADY WERE**: an
+  // artefact's own required field and the copy that travels in its tarball, which `§3.2` field 8 and `§4.2`
+  // item 3 declare are **NOT** a fifth declaration SITE. **SO THE FIGURE THIS CELL PRINTS MOVES `5 → 6` AND
+  // THE RULE DOES NOT MOVE**: the four authored sites `(i)`–`(iv)` are still the four, the per-artefact
+  // fields are still exclusions with a clause behind each, and the refusal below still has content because
+  // every excluded home is still asserted to carry what the contract says it carries.
+  //
+  // **AND ONE HOME IS EXCLUDED FOR A DIFFERENT REASON, NAMED WHERE IT STANDS: the sixth artefact's
+  // `README.md` is a BUILD OUTPUT** — `scripts/build-wasm-package.mjs` copies `bindings/js/README.md` there
+  // byte for byte, exactly as the release's assembly stages `README.guide.md` — so it is a tarball's copy of
+  // a document and never *"an authored statement about the licence at a new home"* (`PUB-DD-11`;
+  // `distribution.md §4.2` item 3; the same reading this cell already gives `README.guide.md` below). The
+  // exclusion is not a hole: `(b')`-shaped, the loop under the exclusion list asserts the copy exists, IS
+  // the main package's own README, and carries no `"license":` KEY.
   assert.equal(existsSync(join(PKG_DIR, 'LICENSE')), false, '`bindings/js/LICENSE` is refused');
   const walk = (dir, acc = []) => {
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -2781,6 +2845,14 @@ cell('P-PUB-7', 'S-LICENCE no fifth declaration site, and `bindings/js/LICENSE` 
     // above are excluded for.
     [join(PKG_DIR, 'README.guide.md'),
       'the landed consumer guide is the GENERATED copy of `docs/guides/package-use.md` that the assembly stages; a tarball\'s copy of a document is the document\'s TEXT travelling with the artefact, not an authored declaration site (`PUB-DD-11`; `distribution.md §4.2` item 3)'],
+    // **⟶ ADDED 2026-11-17 BY THE ADMISSION PASS: THE SIXTH ARTEFACT'S OWN NOTICE COPY AND ITS OWN
+    // `README.md` ARE ITS BUILD'S OUTPUTS AND NOT A SECOND AUTHORED HOME.** `scripts/build-wasm-package.mjs`
+    // copies the repository's `LICENSE` and `bindings/js/README.md` into `bindings/js/platforms/wasm/` at
+    // assembly time (`§4.3` item 2's mechanism, one artefact over), so both are the TEXT travelling with the
+    // artefact; the `README.md` is the very document site `(ii)` authors, byte for byte, which is why the
+    // prose occurrence this sweep sees there is site `(ii)`'s and not a new one.
+    [join(PKG_DIR, 'platforms', 'wasm', 'README.md'),
+      'the sixth artefact\'s README is the BYTE-FOR-BYTE COPY of site `(ii)` that the package\'s own build stages; a tarball\'s copy of a document is the document\'s TEXT travelling with the artefact, not a second authored declaration site (`PUB-DD-11`; `distribution.md §4.2` item 3)'],
   ]);
   const candidates = new Set([
     ...walk(PKG_DIR),
@@ -2810,7 +2882,11 @@ cell('P-PUB-7', 'S-LICENCE no fifth declaration site, and `bindings/js/LICENSE` 
   for (const [file, why] of excludedNonSites) {
     if (!existsSync(file)) continue; // a path this pass's own tree does not carry is not an exclusion
     const text = readFileSync(file, 'utf8');
-    const isRequiredPlatformField = file.includes(`${sep}platforms${sep}`);
+    // **⟶ AND THE FIELD-BEARING HOME IS THE MANIFEST AND NOT EVERY PATH UNDER THE DIRECTORY, DATED
+    // `2026-11-17` BY THE ADMISSION PASS**: the sixth artefact's `README.md` is now excluded beside its
+    // manifest, and a `JSON.parse` of a README is not a reading of a field — so the test is the manifest's
+    // own filename and not the directory's name.
+    const isRequiredPlatformField = file.includes(`${sep}platforms${sep}`) && file.endsWith('package.json');
     if (isRequiredPlatformField) {
       assert.equal(typeof JSON.parse(text).license, 'string',
         `the excluded home still carries the field §3.2 field 8 requires (${why})`);
@@ -2832,23 +2908,38 @@ cell('P-PUB-7', 'S-LICENCE no fifth declaration site, and `bindings/js/LICENSE` 
     'and the landed copy IS the consumer guide (its declared heading), not a second document');
   assert.equal(/["']license["']\s*:/i.test(landedGuideText), false,
     'and it carries no `"license":` KEY — the match this sweep sees at it is prose in a document, not a declaration shape');
-  // (c) AND THE FIVE REQUIRED PER-ARTEFACT FIELDS ARE PRESENT — the sites excluded in (b) are REAL, so the
-  // exclusion cannot be read as five missing declarations (`distribution.md §3.2` field 8; `§4.2` item 2).
+  // (c) AND THE SIX REQUIRED PER-ARTEFACT FIELDS ARE PRESENT — the sites excluded in (b) are REAL, so the
+  // exclusion cannot be read as SIX missing declarations (`distribution.md §3.2` field 8; `§4.2` item 2).
+  // **⟶ AND THE COUNT MOVES `5 → 6` BY THE ADMISSION PASS, DATED `2026-11-17`** (`D-157` item 1): the five
+  // NATIVE manifests and the sixth artefact's own home under the same directory, read at the same field.
   const platformManifests = readdirSync(join(PKG_DIR, 'platforms')).sort()
     .map((d) => join(PKG_DIR, 'platforms', d, 'package.json'));
-  assert.equal(platformManifests.length, FIVE_NAMES.length,
-    'the five platform artefacts\' manifests are the five homes the contract enumerates');
+  assert.equal(platformManifests.length, FIVE_NAMES.length + 1,
+    'the SIX per-artefact manifests are the five native homes the contract enumerates PLUS the sixth '
+    + 'artefact\'s own home beside them — and no seventh');
   for (const manifestPath of platformManifests) {
     assert.equal(existsSync(manifestPath), true, `the platform manifest ${manifestPath} exists`);
     const platformManifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
     assert.equal(platformManifest.license, 'AGPL-3.0',
       '`§3.2` field 8: the artefact\'s own `license` field reads the declared spelling — and it is not a SITE');
-    assert.ok(FIVE_NAMES.includes(platformManifest.name),
-      'and that manifest is one of the five declared names, so the exclusion in (b) is the contract\'s own');
+    // **THE DECLARED NAME SET IS NOW TWO SETS READ SIDE BY SIDE** (`WASM_ARTEFACT`): the five native names
+    // and the sixth artefact's, so the exclusion in (b) is the contract's own six and not "whatever stands
+    // under `platforms/`".
+    assert.equal(FIVE_NAMES.includes(platformManifest.name) || platformManifest.name === WASM_ARTEFACT.name, true,
+      `and that manifest is one of the DECLARED names — the five native names or the sixth artefact's `
+      + `(${JSON.stringify(platformManifest.name)} is neither), so the exclusion in (b) is the contract's own`);
+    // **AND THE SIXTH ARTEFACT'S ALLOWLIST CARRIES ITS OWN LICENCE COPY, WHICH IS THE HALF OF `§3.2` FIELD 5
+    // THIS CELL CAN READ AT IT**: it ships no `.node` (so `field 5`'s binary clause is another cell's subject
+    // — `S-TAG`'s), and its notice is the copy this field names.
+    if (platformManifest.name === WASM_ARTEFACT.name) {
+      assert.equal((platformManifest.files ?? []).includes('LICENSE'), true,
+        '`§3.2` field 5 / `distribution.md §4.2` item 1: the SIXTH artefact\'s allowlist carries its licence '
+        + 'copy, because an artefact that ships no copy ships no notice');
+    }
   }
 });
 
-cell('P-PUB-7', 'S-MANIFEST the licence notice travels with all six artefacts', async () => {
+cell('P-PUB-7', 'S-MANIFEST the licence notice travels with all SEVEN artefacts', async () => {
   // `§2.3` item 2 / `PUB-DD-11` / `distribution.md §4.2` item 1: EACH OF THE SIX ARTEFACTS carries a copy of
   // the repository's own `LICENSE`. **AND THE MECHANISM IS THE RELEASE'S OWN ASSEMBLY STEP, NOT A `files`
   // ENTRY** (`§4.3` item 2: *"the licence's TEXT reaches an artefact through the release's own assembly step,
@@ -2866,8 +2957,27 @@ cell('P-PUB-7', 'S-MANIFEST the licence notice travels with all six artefacts', 
   // lands in this sweep with no byte of it changed** (`A88`(a); `docs/specs/storeroom-publish-proposal.md`
   // `§14` item `7`): the main package's own unscoped identity stands (`A82`) and the five platform homes are
   // the five declared names, whatever they are spelled — which is why this line is re-emitted UNMOVED.
-  const noticeBearing = ['provident-storeroom', ...FIVE_NAMES];
-  assert.equal(noticeBearing.length, 6, '`distribution.md §6.3`: SIX artefacts carry a notice');
+  //
+  // **⟶ AND THE NOTICE'S ARTEFACT SET MOVES `6 → 7`, DATED `2026-11-17` BY THE ADMISSION PASS** (`D-157`
+  // item 1; `docs/L1/publish-readiness.md` §2 item 3; `docs/L1/wasm-realm.md` §21). The sixth artefact's
+  // manifest stands at `bindings/js/platforms/wasm/`, its allowlist carries `LICENSE`, and it is ONE OF THE
+  // PUBLISHED SET — **so the census this cell computes is the SEVEN: the main package, the five native
+  // platform artefacts and the WebAssembly artefact.** The list is still DERIVED FROM THE DECLARED NAMES and
+  // still not typed (`A88`(a); `docs/specs/storeroom-publish-proposal.md` §14 item 7), so the seventh is a
+  // name the tree declares and not a name this line invents.
+  //
+  // **AND ONE SENTENCE OF THE SHIPPED `README.md` STILL READS `SIX`, WHICH IS NAMED HERE RATHER THAN QUIETLY
+  // RE-READ: THE PROSE MOVE IS `docs/L1/publish-readiness.md` §2 ITEM 5 AND NOT THIS PASS** — the shipped
+  // `bindings/js/README.md` and its byte-for-byte staged copy `README.guide.md` re-land together, by the
+  // staging mechanism, in the pass that takes the two sentences of prose. **What this cell asserts of the
+  // README below is therefore the mechanism it declares** (*"each artefact carries a copy, through the
+  // assembly step"*), **and what it asserts of the COUNT is the count it computes** — the residual is
+  // stated at `docs/L1/publish-readiness.md` §1's *"a `README` that tells the truth"* row, which is where a
+  // reader is sent, and no assertion here is weakened to hide it.
+  const noticeBearing = ['provident-storeroom', ...FIVE_NAMES, WASM_ARTEFACT.name];
+  assert.equal(noticeBearing.length, 7,
+    '`distribution.md §6.3` as re-derived: SEVEN artefacts carry a notice — the main package, the five '
+    + 'native platform artefacts and the sixth artefact the admission lands');
   // **(1) THE MAIN PACKAGE'S OWN HALF, ASSERTED AS THE CONTRADICTION-FREE PAIR IT IS.** `§2.1` ITEM `6`,
   // LANDED 2026-10-16, fixed the allowlist at FOUR entries — the three above plus THE CONSTRAINT KERNEL'S
   // OWN MODULE — while ITEM `5` keeps the LICENCE COPY OUT OF IT. **SO THE TWO CLAUSES ARE READ TOGETHER AND
@@ -2918,11 +3028,17 @@ cell('P-PUB-7', 'S-MANIFEST the licence notice travels with all six artefacts', 
   // **(3) THE FIVE PLATFORM ARTEFACTS' OWN HALF IS NOT ASSUMED HERE EITHER** — `§3.2` field 5 requires each
   // allowlist to carry its `LICENSE` copy, and that is read at each manifest rather than inferred from the
   // README or from a count.
+  // **⟶ AND THE SIXTH HOME IS READ BESIDE THE FIVE, DATED `2026-11-17`** (`D-157` item 1): the count below
+  // moves `5 → 6` because `bindings/js/platforms/wasm/` is one of the artefacts whose allowlist must carry
+  // the copy. **THE PROPERTY IS UNMOVED AND IT IS THE ONE THAT MATTERS — an artefact whose allowlist omits
+  // the copy ships no notice — and it is now read at every artefact that travels through the assembly step.**
   const platformCopies = readdirSync(join(PKG_DIR, 'platforms')).sort().map((label) => {
     const m = JSON.parse(readFileSync(join(PKG_DIR, 'platforms', label, 'package.json'), 'utf8'));
     return { label, carries: (m.files ?? []).includes('LICENSE') };
   });
-  assert.equal(platformCopies.length, 5, 'the five platform artefacts are the five homes the contract enumerates');
+  assert.equal(platformCopies.length, FIVE_NAMES.length + 1,
+    'the SIX artefacts under `platforms/` are the five native homes the contract enumerates PLUS the sixth '
+    + 'artefact\'s own home beside them');
   for (const { label, carries } of platformCopies) {
     assert.equal(carries, true,
       `\`§3.2\` field 5 / \`distribution.md §4.2\` item 1: ${label}'s allowlist carries the licence copy, because an `
@@ -3085,12 +3201,34 @@ cell('P-PUB-7', 'S-MANIFEST the publish configuration, the supplied fields and t
     [{ label: 'the main package (`bindings/js/package.json`)', manifest }],
     MAIN_MANIFEST_FIELDS,
   );
-  const platformManifests = readdirSync(join(PKG_DIR, 'platforms')).sort().map((label) => ({
+  //
+  // **⟶ AND THE ENUMERATION SPLITS INTO THE TWO DECLARED SETS, DATED `2026-11-17` BY THE ADMISSION PASS**
+  // (`D-157` item 1; `docs/L1/publish-readiness.md` §2 item 3). It read `readdirSync(platforms)` and handed
+  // all six directories ONE field set — true of the tree while the sixth artefact stood outside this home,
+  // and FALSE of it now: **the sixth artefact's manifest is a MODULE-SHAPED manifest and its declared set is
+  // `WASM_MANIFEST_FIELDS`, not the twelve the five natives carry** (`docs/L1/wasm-realm.md` §21: `type`,
+  // `main` = the entry, `types`, `exports`, and **no `os`/`cpu` because a WebAssembly build runs anywhere**).
+  // **SO THE SETS ARE SPLIT AND NOT MERGED, AND BOTH ARE STILL EXACT TWO-DIRECTIONAL EQUALITIES**: the five
+  // natives are read at `PLATFORM_MANIFEST_FIELDS` as before, and the sixth is read at its own fourteen —
+  // beside it and not instead of it. **THE PREDICATE IS THE SAME ONE AT BOTH** (`assertMetadataResolvesToProvenance`),
+  // because the registry reads `repository.url` against the provenance for every artefact it accepts,
+  // whichever of the seven it is — so the three metadata fields are asserted RESOLVING at the seventh
+  // manifest too, and a sixth manifest that carried a placeholder would fail HERE.
+  const nativeManifests = COVERED.map((key) => key.label).sort().map((label) => ({
     label,
     manifest: JSON.parse(readFileSync(join(PKG_DIR, 'platforms', label, 'package.json'), 'utf8')),
   }));
-  assert.equal(platformManifests.length, 5, 'the five platform artefacts are the five manifests read here');
-  assertMetadataResolvesToProvenance(platformManifests, PLATFORM_MANIFEST_FIELDS);
+  assert.equal(nativeManifests.length, 5, 'the five NATIVE platform artefacts are the five manifests read here');
+  assertMetadataResolvesToProvenance(nativeManifests, PLATFORM_MANIFEST_FIELDS);
+  const wasmManifest = JSON.parse(readFileSync(WASM_ARTEFACT.manifest, 'utf8'));
+  assert.equal(wasmManifest.name, WASM_ARTEFACT.name,
+    'the sixth artefact\'s manifest is the one the admission lands at `bindings/js/platforms/wasm/`');
+  assert.deepEqual(Object.keys(wasmManifest).sort(), [...WASM_MANIFEST_FIELDS].sort(),
+    '`PAR-PUB-9`–`PAR-PUB-15` read at the SIXTH artefact: EXACTLY the fourteen fields its own declared set '
+    + 'names — the twelve the native manifests carry LESS `os`/`cpu`/`main`-as-a-`.node`, PLUS the three '
+    + 'module fields `type` · `exports` · `types` and its `description`, and NO field not declared. The set '
+    + 'is asserted in both directions, so a thirteenth-and-a-half field, or a missing `repository`, fails here');
+  assertMetadataResolvesToProvenance([{ label: WASM_ARTEFACT.label, manifest: wasmManifest }], WASM_MANIFEST_FIELDS);
   // **THE REFUSAL, DRIVEN — `§5.7` / `PAR-PUB-13`–`15`: a field naming a path that does not resolve is a
   // FINDING, and this is what makes the assertions above non-vacuous.** The control is a SCRATCH manifest
   // object and never a byte under the repository.
@@ -3347,9 +3485,18 @@ cell('P-PUB-8', 'S-TAG the workflow file and the five platform manifests ARE the
   const workflow = join(REPO_ROOT, '.github', 'workflows', 'publish.yml');
   const platformsDir = join(PKG_DIR, 'platforms');
   const declaredLabels = COVERED.map((k) => k.label);
-  assert.equal(declaredLabels.length, 5, '`distribution.md §3.1`: five platform manifests, one per label');
+  assert.equal(declaredLabels.length, 5, '`distribution.md §3.1`: five NATIVE platform manifests, one per label');
   assert.deepEqual(declaredLabels, ['linux-x64', 'linux-arm64', 'darwin-x64', 'darwin-arm64', 'win32-x64'],
     'the declared labels, name for name');
+  // **⟶ AND THE SIXTH HOME THIS CELL WALKS FOR IS DECLARED BESIDE THE FIVE, DATED `2026-11-17` BY THE
+  // ADMISSION PASS** (`D-157` item 1; `docs/L1/publish-readiness.md` §2 item 3). **THE SET IT WALKS FOR
+  // THEREFORE MOVES `5 → 6` AND THE FIVE-LABEL SET DOES NOT MOVE AT ALL**: the five labels are the covered
+  // keys of `resolution.md §3.1` — an `os`/`cpu` pair each, one `.node` each, one pin each — and the sixth
+  // artefact has no covered key, no `os`/`cpu` and no `.node`, so it is ADMITTED BESIDE THEM AND NOT AMONG
+  // THEM. **The shape it must carry is its own and is asserted at its own byte below**, not by widening one
+  // clause across two kinds of artefact: a `.wasm` allowlist read against a `.node` rule would be a census
+  // that cannot pass, and a rule loosened to let both through would be a census that cannot fail.
+  const admittedLabels = [...declaredLabels, WASM_ARTEFACT.label];
   // **THE DECLARED SHAPES ARE LANDED TEXT, AND THEIR ABSENCE IS NOW THE FINDING** (`release.md §1.1`
   // item `1`'s reconciliation; `§9`'s `Q3-5`, whose `DONE` row records the landing). **THE TWO GUARDS THIS
   // CELL CARRIED ARE RE-EMITTED HERE VERBATIM SO `git diff` HAS NOTHING TO RECOVER — `if
@@ -3365,10 +3512,83 @@ cell('P-PUB-8', 'S-TAG the workflow file and the five platform manifests ARE the
   {
     const present = readdirSync(platformsDir).filter((n) => statSync(join(platformsDir, n)).isDirectory());
     for (const label of present) {
-      assert.ok(declaredLabels.includes(label), `a sixth platform directory is a FINDING: ${label}`);
+      assert.ok(admittedLabels.includes(label), `a SEVENTH platform directory is a FINDING: ${label}`);
       const manifestPath = join(platformsDir, label, 'package.json');
       assert.ok(existsSync(manifestPath), `${label} carries its own tracked package.json`);
       const m = JSON.parse(readFileSync(manifestPath, 'utf8'));
+      // ---------------------------------------------------------------------------------------
+      // **⟶ THE SIXTH ARTEFACT'S OWN DECLARED SHAPE — ADDED `2026-11-17` BY THE ADMISSION PASS**
+      // (`D-157` item 1; `D-155` item 2's WASM arm; `docs/L1/wasm-realm.md` §21). **IT IS READ HERE,
+      // AT ITS OWN BYTE, BECAUSE THIS CELL'S SUBJECT IS THE ADMITTED SET'S SHAPES AND IT IS NOW ONE OF
+      // THEM** — and because every clause below it in this loop is a NATIVE clause (`os`/`cpu` against the
+      // name, `main` naming a `.node`, `files` carrying that `.node`), **which a WebAssembly package
+      // satisfies NONE OF BY NATURE**: those are the reasons `NG-PUB-H` is narrowed to the five and this
+      // branch stands in its place. **THE PROPERTY IS THE SAME ONE THIS CELL CARRIES FOR THE FIVE — *"the
+      // manifest at this home is the declared shape, and no forbidden byte is in it"* — read at the shape the
+      // sixth artefact declares:**
+      //   · **`os` AND `cpu` ARE ABSENT, AND THE ABSENCE IS ASSERTED IN BOTH DIRECTIONS.** A wasm build runs
+      //     anywhere, so an `os`/`cpu` pair here would not be a description of this artefact — it would be a
+      //     second, contradictory key set for a package that installs on every platform. **THIS IS THE ONE
+      //     DIFFERENCE THE WHOLE ADMISSION TURNS ON**, and it is asserted as an absence rather than left to
+      //     the eye (`docs/L1/wasm-realm.md` §21's own words: *"no `os`/`cpu` because a WebAssembly build runs
+      //     anywhere"*);
+      //   · **the entry is a MODULE** — `type: module`, `main` = `index.mjs`, `types` = `index.d.ts`, one
+      //     `exports` arm whose `types` condition points at the declaration `files` carries;
+      //   · **the allowlist carries the `.wasm` and its glue and NO `.node`** — the artefact's binary is a
+      //     `wasm-bindgen` output at the package root, which is the `field 5`-shaped fact read at the one
+      //     artefact where it is not a `.node`;
+      //   · **the fourteen-field census, the licence field, the publish configuration and the three metadata
+      //     fields** — the same assertions the five get, at the set this artefact declares.
+      if (label === WASM_ARTEFACT.label) {
+        assert.equal(m.name, WASM_ARTEFACT.name,
+          `${label}: the sixth artefact's name is the declared spelling, and it is NOT a sixth NATIVE name `
+          + '(`FIVE_NAMES` stays five: this name spells no `<target>-<arch>` pair and covers no key)');
+        assert.equal(m.type, 'module',
+          `${label}: the sixth artefact is a MODULE package — its entry is \`index.mjs\`, and \`type: module\` `
+          + 'is what makes that file the module a consumer\'s resolver takes');
+        assert.equal(m.os, undefined,
+          `${label}: NO \`os\` FIELD — a WebAssembly build runs anywhere, and a target list here would be a `
+          + 'claim about a platform this artefact does not have');
+        assert.equal(m.cpu, undefined,
+          `${label}: NO \`cpu\` FIELD, for the same reason and by the same absence — this is the one `
+          + 'difference the admission turns on (`docs/L1/wasm-realm.md` §21)');
+        assert.equal(m.main, 'index.mjs',
+          `${label}: \`main\` names the artefact's own entry module and never a \`.node\` — this package's `
+          + 'binary is the \`.wasm\` beside it, handed in rather than required by a host loader');
+        assert.equal(m.types, 'index.d.ts',
+          `${label}: \`types\` names the declaration the WASM arm of the generator emits (\`D-155\` item 2) — `
+          + 'the Node arm describes a build this package is not and does not ship here');
+        assert.deepEqual(Object.keys(m.exports ?? {}), ['.'],
+          `${label}: \`PAR-PUB-5\` read at the sixth artefact — ONE arms-bearing entry, the module itself, and `
+          + 'no subpath and no wildcard');
+        assert.deepEqual(Object.keys(m.exports['.'] ?? {}).sort(), ['import', 'types'],
+          `${label}: and that one entry carries the declaration\'s condition and the module\'s, and no third`);
+        assert.equal(m.exports['.'].import, './index.mjs',
+          `${label}: the arm a consumer's runtime takes names the file \`main\` names`);
+        assert.equal(m.exports['.'].types, './index.d.ts',
+          `${label}: and the \`types\` condition names the declaration \`files\` carries, so the two paths agree`);
+        assert.deepEqual(Object.keys(m).sort(), [...WASM_MANIFEST_FIELDS].sort(),
+          `${label}: the FOURTEEN declared fields and no field not declared — an EXACT set equality in both `
+          + 'directions, so a field this artefact\'s own set does not name is a FINDING rather than a detail');
+        assertMetadataResolvesToProvenance([{ label, manifest: m }], WASM_MANIFEST_FIELDS);
+        assert.equal(m.license, 'AGPL-3.0', '`PAR-PUB-22` read at the sixth artefact: the declared spelling');
+        assert.deepEqual(m.publishConfig, { access: 'public' },
+          '`PAR-PUB-24` read at the sixth artefact: a scoped name is private by default');
+        assert.equal(m.files.includes('LICENSE'), true,
+          '`§3.2` field 5 / `distribution.md §4.2` item 1: the artefact ships no notice without its licence copy');
+        assert.ok(m.files.includes('storeroom_js_binding_bg.wasm'),
+          `${label}: \`PAR-PUB-21\` read at this artefact's OWN binary — the allowlist carries the \`.wasm\` its `
+          + 'entry loads, because an allowlist that omitted it would ship a module that cannot start');
+        assert.equal(m.files.some((f) => f.endsWith('.node')), false,
+          `${label}: and it names NO \`.node\` — the native rule's subject does not reach this artefact, and a `
+          + '`.node` row here would be a binary this build never makes');
+        assert.equal(m.version, JSON.parse(readFileSync(join(PKG_DIR, 'package.json'), 'utf8')).version,
+          '`PAR-PUB-18` read at the SEVENTH manifest: the sixth artefact carries the main package\'s own '
+          + '`version`, character for character — the coupled-version rule at its new member, and NOT a bump');
+        assert.equal(m.optionalDependencies, undefined,
+          '`distribution.md §3.3` read at the sixth artefact: it pins nothing and nothing pins it');
+        continue;
+      }
       // **⟶ RE-CUT 2026-10-11 BY THE METADATA-CELL PASS (`role_test_writer`): THE DECLARED SET IS TWELVE,
       // NOT NINE, AND THE CENSUS GROWS RATHER THAN THE ASSERTION LOOSENING.**
       //
@@ -3442,8 +3662,9 @@ cell('P-PUB-8', 'S-TAG the workflow file and the five platform manifests ARE the
         `${label}: \`§3.2\` item 1 — the manifest's own \`name\` is the declared spelling, so the pair read above `
         + 'belongs to THIS artefact and to no other');
     }
-    for (const label of declaredLabels) {
-      assert.ok(present.includes(label), `the declared label ${label} has its own manifest`);
+    for (const label of admittedLabels) {
+      assert.ok(present.includes(label),
+        `the declared label ${label} has its own manifest — the five native homes and the sixth artefact's`);
     }
     // **AND THE CLAIM THE SHIPPED CELL WAS REACHING FOR IS STILL ASSERTED — AT THE HOME WHERE IT IS TRUE.**
     // `distribution.md §3.1`: *"NO BINARY IS EVER COMMITTED TO THE TRACKED TREE, so each platform directory
@@ -3629,18 +3850,34 @@ cell('P-PUB-8', 'S-TAG the workflow file and the five platform manifests ARE the
     assert.equal(/^\s+id-token:\s*write\s*$/m.test(permissions), true,
       `${label}: the host's OIDC federation — and NOT a credential written into this file`);
     // --- `§1.4`: THE SIX STEPS IN THE DECLARED ORDER, WITH STEP 5 LAST, ALWAYS ---
+    // **⟶ AND THE JOB SET MOVES `2 → 3`, DATED `2026-11-17` BY THE ADMISSION PASS** (`D-157` item 1;
+    // `docs/L1/publish-readiness.md` §2 item 4; `docs/L1/wasm-realm.md` §21). The three jobs are the
+    // `platform` matrix, the `wasm` job the sixth artefact is built and published by, and `main` — **and the
+    // job boundaries below are read as BLOCKS and not as slices-to-the-end, because a slice would credit the
+    // middle job's bytes to the platform job and make *"the platform job waits on NOTHING"* answer for
+    // somebody else's `needs:`.** **THE SIX STEPS' ORDER IS UNMOVED AND IT IS NOW READ ACROSS SEVEN
+    // ARTEFACTS: the five native land first (inside the matrix), the sixth artefact lands after them, and the
+    // MAIN PACKAGE IS STILL PUBLISHED LAST, ALWAYS** — its `needs:` names BOTH earlier jobs, which is
+    // strictly stronger than the one name it carried while it was the only job beside the matrix.
     const platformAt = jobs.search(/^\s+platform:\s*$/m);
+    const wasmAt = jobs.search(/^\s+wasm:\s*$/m);
     const mainAt = jobs.search(/^\s+main:\s*$/m);
-    assert.ok(platformAt !== -1 && mainAt !== -1 && platformAt < mainAt,
-      `${label}: the platform job and the main job are both declared, in the order the six steps declare`);
-    const platformJob = jobs.slice(platformAt, mainAt);
+    assert.ok(platformAt !== -1 && wasmAt !== -1 && mainAt !== -1 && platformAt < wasmAt && wasmAt < mainAt,
+      `${label}: the platform job, the sixth artefact's job and the main job are all declared, in the order `
+      + 'the release publishes them');
+    const platformJob = jobs.slice(platformAt, wasmAt);
+    const wasmJob = jobs.slice(wasmAt, mainAt);
     const mainJob = jobs.slice(mainAt);
     assert.equal(/needs:/.test(platformJob), false,
       `${label}: \`§1.4\` steps 1–2 — the platform job waits on NOTHING: it IS the matrix every other step `
       + 'depends on');
-    assert.equal(/^\s+needs:\s*platform\s*$/m.test(mainJob), true,
-      `${label}: \`§1.4\` step 5 — the main package carries \`needs: platform\`, so THE MAIN PACKAGE IS `
-      + 'PUBLISHED LAST, ALWAYS, and its five exact pins are resolved before it lands');
+    assert.equal(/^\s+needs:\s*platform\s*$/m.test(wasmJob), true,
+      `${label}: the SIXTH ARTEFACT's job waits on the matrix (\`needs: platform\`), so it is built and `
+      + 'published only after the five native artefacts have landed — the seventh artefact is ordered, not racy');
+    assert.equal(/^\s+needs:\s*\[platform, wasm\]\s*$/m.test(mainJob), true,
+      `${label}: \`§1.4\` step 5 — the main package carries \`needs: [platform, wasm]\`, so THE MAIN PACKAGE `
+      + 'IS PUBLISHED LAST, ALWAYS: it begins only after the five native artefacts AND the sixth artefact '
+      + 'have landed, and its five exact pins are resolved before it does');
     assert.equal(/^\s+needs:\s*main\s*$/m.test(jobs), false,
       `${label}: \`§2.2\` item 4 — A PLATFORM ARTEFACT PUBLISHED AFTER THE MAIN PACKAGE IS A FINDING: no job `
       + 'waits on the main package');
@@ -3648,6 +3885,11 @@ cell('P-PUB-8', 'S-TAG the workflow file and the five platform manifests ARE the
     const step5 = code.indexOf(`'5. publish the main package'`);
     assert.ok(step4 !== -1 && step5 !== -1 && step4 < step5,
       `${label}: the declared order, step 4 before step 5 — the five platform artefacts land BEFORE the main package`);
+    const wasmPublishStep = code.indexOf(`'4. publish the wasm artefact'`);
+    assert.ok(wasmPublishStep !== -1 && step4 < wasmPublishStep && wasmPublishStep < step5,
+      `${label}: and the SIXTH ARTEFACT's publish step stands between them — after the five, before the main `
+      + 'package — so the order the partial-publish arm depends on still reads: everything else first, the '
+      + 'main package last');
     // **⟶ RE-CUT 2026-10-11 BY THE STAGED-VERB RE-CUT PASS (`role_test_writer`): THE TWO ASSERTIONS THAT STOOD
     // HERE ARE RE-EMITTED VERBATIM, SO `git diff` HAS NOTHING TO RECOVER, AND THEN REPLACED.** **AS FILED THEY
     // READ** *"`assert.equal(platformJob.includes('npm publish'), true, …)` — *"step 4 PUBLISHES THE FIVE
@@ -3674,22 +3916,31 @@ cell('P-PUB-8', 'S-TAG the workflow file and the five platform manifests ARE the
     //     it.** **IT IS ASSERTED TOO, because the staged form is a DECLARED CHOICE and not a detail**: the
     //     registry's grant is scoped to it (`release.md §1.5` item `1`; `PUB-DD-31`). **IT IS THE HALF THAT
     //     WOULD HAVE TO BE RE-CUT IF THE VERB MOVES AGAIN, and nothing else here would.**
+    // **⟶ AND THE SITE SET MOVES `2 → 3`, DATED `2026-11-17`** (`D-157` item 1): one site per ARTEFACT GROUP
+    // — the five native (one step, five legs), the sixth artefact, and the main package. **THE PROPERTY IS
+    // UNMOVED AND IS STILL A COUNT *AND* AN ORDER: one site per group, no site for a group the file does not
+    // declare, and the main package's site last of all.**
     const sites = [...code.matchAll(/npm stage publish/g)].map((m) => m.index);
-    assert.equal(sites.length, 2,
-      `${label}: \`release.md §1.5\` item 1 — EXACTLY TWO publish sites exist, the platform's and the main's, `
-      + 'and no third route to the registry is declared');
+    assert.equal(sites.length, 3,
+      `${label}: \`release.md §1.5\` item 1 as re-derived — EXACTLY THREE publish sites exist: the platform `
+      + 'matrix\'s (five legs, one step), the sixth artefact\'s, and the main package\'s — and no fourth route '
+      + 'to the registry is declared');
     // (·) THE COUPLING, READ WITHOUT A VERB: the platform's site lies inside the platform job, the main's inside
     // the main job, and the platform job opens before the main job does — so the five land first and the main
     // package LAST, whatever the sites are told to run.
     const platformJobAt = code.search(/^\s+platform:\s*$/m);
+    const wasmJobAt = code.search(/^\s+wasm:\s*$/m);
     const mainJobAt = code.search(/^\s+main:\s*$/m);
-    assert.ok(platformJobAt !== -1 && platformJobAt < sites[0] && sites[0] < mainJobAt && mainJobAt < sites[1],
-      `${label}: \`release.md §1.5\` item 4 / \`§1.4\` step 5 — THE ORDER, READ WITHOUT A VERB: step 4's site is `
-      + 'inside the platform job and step 5\'s inside the main job, so THE FIVE PLATFORM ARTEFACTS ARE '
-      + 'PUBLISHED BEFORE THE MAIN PACKAGE AND THE MAIN PACKAGE IS PUBLISHED LAST, ALWAYS');
+    assert.ok(platformJobAt !== -1 && wasmJobAt !== -1 && mainJobAt !== -1
+      && platformJobAt < sites[0] && sites[0] < wasmJobAt && wasmJobAt < sites[1]
+      && sites[1] < mainJobAt && mainJobAt < sites[2],
+    `${label}: \`release.md §1.5\` item 4 / \`§1.4\` step 5 — THE ORDER, READ WITHOUT A VERB: the platform `
+    + 'matrix\'s site is inside the platform job, the sixth artefact\'s inside its own job, and step 5\'s '
+    + 'inside the main job — so THE FIVE NATIVE ARTEFACTS AND THEN THE SIXTH ARE PUBLISHED BEFORE THE MAIN '
+    + 'PACKAGE AND THE MAIN PACKAGE IS PUBLISHED LAST, ALWAYS');
     // (·) THE LITERAL: the staged verb at each site, with the two declared flags unchanged beside it.
     const siteLine = (at) => code.slice(code.lastIndexOf('\n', at) + 1, code.indexOf('\n', at));
-    for (const [who, at] of [['step 4', sites[0]], ['step 5', sites[1]]]) {
+    for (const [who, at] of [['step 4', sites[0]], ['the sixth artefact\'s site', sites[1]], ['step 5', sites[2]]]) {
       const line = siteLine(at);
       assert.equal(line.includes('npm stage publish'), true,
         `${label}: ${who} carries the STAGED verb — \`release.md §1.5\` item 1's declared choice, and the one `
@@ -3777,7 +4028,12 @@ cell('P-PUB-8', 'S-TAG the workflow file and the five platform manifests ARE the
     // `§1.4` step 5: THE MAIN PACKAGE PUBLISHED LAST — its `needs` is what makes the order the arm's precondition.
     // The control REMOVES the declaration; the marker is the adjacency the removal leaves behind, so it is a
     // byte sequence the shipped file does not carry.
-    ['the main package published NOT last', '    name: provident-storeroom (last, always)\n    runs-on: ubuntu-24.04\n', (t) => t.replace(`    needs: platform\n`, ``), 'needs'],
+    // **⟶ AND THE REMOVAL NAMES THE DECLARATION THE FILE NOW CARRIES, DATED `2026-11-17`**: the main job's
+    // `needs:` names BOTH earlier jobs (`[platform, wasm]`), so the control removes THAT line. **The
+    // distinction is load-bearing and not cosmetic: `    needs: platform` is still a byte the file carries —
+    // the sixth artefact's job carries it — so a control that removed THAT line would leave the main package
+    // last and would be measuring the wrong job.**
+    ['the main package published NOT last', '    name: provident-storeroom (last, always)\n    runs-on: ubuntu-24.04\n', (t) => t.replace(`    needs: [platform, wasm]\n`, ``), 'needs'],
     // `§1.4`'s closing prohibition: A CREDENTIAL WRITTEN INTO A TRACKED BYTE.
     ['a credential in a tracked byte', 'NPM_TOKEN', (t) => t.replace(`          ref: \${{ github.ref }}\n`, `          ref: \${{ github.ref }}\n          token: \${{ secrets.NPM_TOKEN }}\n`), 'secrets'],
     // **⟶ ADDED BY THE `A88` PROJECT-TOKEN PASS: A MATRIX ROW LEFT IN THE SUPERSEDED `@auspicion/js-…`
@@ -3828,9 +4084,17 @@ cell('P-PUB-8', 'S-TAG the workflow file and the five platform manifests ARE the
     + `census really read them: ${JSON.stringify(shippedCensus.namedImages)}`);
   assert.equal(shippedCensus.matrixSites, 1,
     '(A) and the one matrix site is where the five row runners are asked for, so the five legs carry the table above');
-  assert.deepEqual(shippedCensus.literalSites, ['ubuntu-24.04'],
-    '(A) AND THE ONE LITERAL SITE BESIDE THE MATRIX IS THE MAIN PACKAGE\'S OWN JOB, WHICH NAMES `linux-x64`\'s '
-    + 'image and therefore a member of the five: a sixth image there, or a label outside the table, is the drift below');
+  // **⟶ AND THE LITERAL SITE SET MOVES `1 → 2`, DATED `2026-11-17` BY THE ADMISSION PASS** (`D-157` item 1):
+  // `bindings/js/platforms/wasm/` is built on NO target-specific host — a `wasm32-unknown-unknown` build runs
+  // anywhere — so its job names the SAME image `linux-x64`'s leg uses (`ubuntu-24.04`), and **THE DISTINCT SET
+  // OF IMAGES IS UNMOVED AT THE CONTRACT'S FIVE**: a wasm job on a sixth image would be exactly the drift this
+  // census exists to refuse, and it is refused here rather than assumed. **THE ORDER IS UNMOVED TOO** — the
+  // sixth artefact's job stands between the matrix and the main package, so the first literal site is now the
+  // sixth artefact's and the second the main package's, and both are members of the five.
+  assert.deepEqual(shippedCensus.literalSites, ['ubuntu-24.04', 'ubuntu-24.04'],
+    '(A) AND THE TWO LITERAL SITES BESIDE THE MATRIX ARE THE SIXTH ARTEFACT\'S JOB AND THE MAIN PACKAGE\'S OWN, '
+    + 'each naming `linux-x64`\'s image and therefore a member of the five: a THIRD image there, or a label '
+    + 'outside the table, is the drift below');
   // ---- (B) A SCRATCH COPY WITH ONE LABEL CHANGED FAILS ----
   const driftedBytes = wfBytes.replace('runner: macos-15-intel', 'runner: macos-14');
   assert.ok(driftedBytes !== wfBytes && driftedBytes.includes('runner: macos-14') && !driftedBytes.includes('runner: macos-15-intel'),
@@ -3852,9 +4116,15 @@ cell('P-PUB-8', 'S-TAG the workflow file and the five platform manifests ARE the
     `(B) AND THE SHIPPED INSTRUMENT FAILS ON THE SAME COPY, naming the same label — the guard stands inside `
     + `\`driveWorkflow\` and not beside it: ${String(driftedInstrument?.message).split('\n')[0].slice(0, 200)}`);
   // ---- (C) AND THE OTHER SIDE OF "NO MORE": A SIXTH IMAGE AT A LITERAL SITE FAILS ----
+  // **⟶ AND THE CONTROL'S OWN SITE IS NAMED AS WHAT IT NOW IS, DATED `2026-11-17`**: the first literal
+  // `runs-on: ubuntu-24.04` in the file is the SIXTH ARTEFACT'S JOB (it stands above the main package's),
+  // so this control injects its second `runs-on:` THERE. **THE PROPERTY IT DRIVES IS UNMOVED** — a `runs-on:`
+  // naming an image outside the contract's table is a stranger, at whichever literal site it stands — and the
+  // control still fails and still names `ubuntu-22.04`.
   const sixthBytes = wfBytes.replace('    runs-on: ubuntu-24.04\n', '    runs-on: ubuntu-24.04\n    runs-on: ubuntu-22.04\n');
   assert.ok(sixthBytes !== wfBytes && sixthBytes.includes('runs-on: ubuntu-22.04'),
-    '(C) THE SIXTH-IMAGE CONTROL really declares a second `runs-on:` at the main package\'s own job');
+    '(C) THE SIXTH-IMAGE CONTROL really declares a second `runs-on:` at the first literal site — the sixth '
+    + 'artefact\'s job, which stands above the main package\'s');
   assert.equal(wfBytes.includes('ubuntu-22.04'), false,
     '(C) and the shipped file names no such image anywhere, so a sixth image is a byte this tree does not carry');
   const sixthVerdict = controlVerdict(() => driveRunnerCensus(stripComments(sixthBytes),
@@ -3980,17 +4250,24 @@ cell('P-PUB-8', 'S-TAG the workflow file and the five platform manifests ARE the
   // ---- (d) THE BOUNDARY: THE WORKFLOW'S OWN TEXT, WHICH LEGITIMATELY CARRIES THE STAGED VERB ----
   const wfCode = wfBytes.split('\n').filter((l) => !/^\s*#/.test(l)).join('\n');
   const wfVerbSites = [...wfCode.matchAll(new RegExp(REFUSED_REGISTRY_VERB.source, 'g'))].map((m) => m[0]);
-  assert.deepEqual(wfVerbSites, ['npm stage publish', 'npm stage publish'],
+  // **⟶ AND THE COUNT MOVES `2 → 3`, DATED `2026-11-17` BY THE ADMISSION PASS** (`D-157` item 1): the workflow
+  // declares ONE staged verb per artefact group — the five native legs, the sixth artefact, and the main
+  // package — so the widened shape matches THREE sites at the file's own code. **THE PROPERTY IS UNMOVED:
+  // every site it matches is a DECLARED RELEASE SITE, and the boundary that keeps the pattern off a
+  // workflow is the instrument's SUBJECT (a package manifest's `scripts` object) and not a narrowing of the
+  // pattern.**
+  assert.deepEqual(wfVerbSites, ['npm stage publish', 'npm stage publish', 'npm stage publish'],
     '(d) MEASURED IN BOTH DIRECTIONS, SO THE BOUNDARY IS NOT MISREAD: pointed at the WORKFLOW\'S OWN BYTES the '
-    + 'widened shape DOES match its two staged sites — THE BOUNDARY IS THE INSTRUMENT\'S SUBJECT AND NOT THE '
-    + 'PATTERN BEING NARROW, and no reader may take this cell as a claim that the pattern cannot see a workflow');
+    + 'widened shape DOES match its THREE staged sites — one per artefact group, which is `release.md §1.5` '
+    + 'item 1\'s own declaration — THE BOUNDARY IS THE INSTRUMENT\'S SUBJECT AND NOT THE PATTERN BEING NARROW, '
+    + 'and no reader may take this cell as a claim that the pattern cannot see a workflow');
   const wfAsManifest = controlVerdict(() => drivePackagePublishVerbs(wfBytes, { label: 'the workflow, misread as a package manifest' }));
   assert.ok(wfAsManifest instanceof SyntaxError,
     '(d) HOW THE BOUNDARY IS KEPT: the refusal instrument\'s FIRST operation parses a JSON manifest, so a '
     + 'workflow\'s YAML is refused by the SUBJECT READER before any `scripts` body is read, and the workflow\'s '
     + 'legitimate staged verb is never reached by the verb list');
   assert.equal(driveWorkflow(wfBytes, { label: 'the shipped workflow, at the boundary' }), 5,
-    '(d) AND THE WORKFLOW\'S OWN INSTRUMENT PASSES IT, all five matrix rows read: the two staged sites are '
+    '(d) AND THE WORKFLOW\'S OWN INSTRUMENT PASSES IT, all five matrix rows read: the THREE staged sites are '
     + '`release.md §1.5` item 1\'s own declaration, and what `§4.1` item 1 forbids is a PASS EXECUTING a publish '
     + 'and not the release workflow DECLARING one — so the workflow\'s own text is refused by NEITHER drive of this cell');
   // ---- THE CENSUS: WHAT THE WIDENED SHAPE MATCHES AND WHAT IT DOES NOT, EVERY ROW AN ASSERTION ----
@@ -4533,13 +4810,21 @@ cell('P-PUB-8', 'S-TAG every documented grant is effective at the job that needs
     + '  falsifier was a dispatch, and the unbuilt link matrix whose only falsifier was a linker.');
 });
 
-cell('P-PUB-8', 'S-TAG the six artefacts\' order and the one version they share', async () => {
+cell('P-PUB-8', 'S-TAG the SEVEN artefacts\' order and the one version they share', async () => {
   // `§3.2` item 2 / `PUB-DD-10` / `distribution.md §6.3` / `release.md §2.2`: the five platform artefacts'
   // `version` equals the MAIN package's, the main package's `optionalDependencies` pins the five at EXACTLY
   // that version, and the five are published BEFORE the main package — which is published LAST, ALWAYS.
+  //
+  // **⟶ AND THE ORDER'S MEMBERSHIP MOVES `6 → 7`, DATED `2026-11-17` BY THE ADMISSION PASS** (`D-157` item 1;
+  // `docs/L1/publish-readiness.md` §2 item 3). The array below is the release's ORDER, so the sixth artefact
+  // belongs in it: **`5` native + `1` WebAssembly + `1` main = `7` ✓, and the main package is STILL the last
+  // member.** **THE PINS ARE STILL FIVE AND THE SIXTH ARTEFACT IS NOT ONE OF THEM** — it is published as a
+  // package in its own right and resolves through no `optionalDependencies` row — which is why the loop over
+  // `manifest.optionalDependencies` below is UNMOVED and the sixth name enters the ORDER alone.
   const manifest = JSON.parse(readFileSync(join(PKG_DIR, 'package.json'), 'utf8'));
-  const order = [...FIVE_NAMES, 'provident-storeroom'];
-  assert.equal(order.length, 6, '`distribution.md §6.3`: SIX artefacts = 5 platform + 1 main');
+  const order = [...FIVE_NAMES, WASM_ARTEFACT.name, 'provident-storeroom'];
+  assert.equal(order.length, 7,
+    '`distribution.md §6.3` as re-derived: SEVEN artefacts = 5 native platform + 1 WebAssembly + 1 main');
   assert.equal(order[order.length - 1], 'provident-storeroom', 'the MAIN package publishes LAST, ALWAYS');
   for (const name of FIVE_NAMES) {
     assert.equal(manifest.optionalDependencies[name], manifest.version,
@@ -4571,10 +4856,22 @@ cell('P-PUB-8', 'S-TAG the partial-publish arm is declared, both windows', async
   // main-package job `needs`, and the main package's own publish step follows theirs. **The before-window
   // arm's premise — *"a failure before the main package leaves nothing a consumer can install incomplete"* —
   // is exactly that order, read at the workflow's bytes.**
+  // **⟶ AND THE DEPENDENCY THIS CELL READS IS THE MAIN JOB'S OWN, DATED `2026-11-17` BY THE ADMISSION PASS.**
+  // The regex below was `/^\s{4}needs: platform$/m`, and with a THIRD job in the file that byte sequence is
+  // still present — **at the sixth artefact's job** — so the assertion would have gone on passing while
+  // reading somebody else's `needs:`. **THE READING IS THEREFORE BOUND TO THE MAIN JOB'S OWN BLOCK**, and the
+  // declaration it finds is the stronger one the admission lands: `needs: [platform, wasm]`, so the five
+  // native artefacts AND the sixth artefact land before the main package can begin. **THE ARM'S PREMISE IS
+  // UNMOVED AND IS NOW TRUE OF SEVEN ARTEFACTS RATHER THAN SIX: a failure before the main package leaves
+  // nothing a consumer can install incomplete.**
   const workflow = readFileSync(join(REPO_ROOT, '.github', 'workflows', 'publish.yml'), 'utf8');
-  assert.match(workflow, /^\s{4}needs: platform$/m,
-    'the main-package job DEPENDS on the platform job (`needs: platform`): the five land before the main '
-    + 'package can begin, which is the partial-publish arm\'s whole premise');
+  const mainJobBlock = workflow.slice(workflow.search(/^  main:\s*$/m));
+  assert.ok(mainJobBlock.length > 0 && mainJobBlock !== workflow, 'the `main` job is declared in the workflow');
+  assert.match(mainJobBlock, /^\s{4}needs:\s*\[platform, wasm\]$/m,
+    'the main-package job DEPENDS on the platform job AND on the sixth artefact\'s (`needs: [platform, wasm]`): '
+    + 'the five native artefacts and the WebAssembly artefact land before the main package can begin, which is '
+    + 'the partial-publish arm\'s whole premise — read at the main job\'s own block, because a bare '
+    + '`needs: platform` now also stands at the sixth artefact\'s job and would answer for the wrong job');
   const platformPublish = workflow.indexOf("- name: '4. publish the platform artefact'");
   const mainPublish = workflow.indexOf("- name: '5. publish the main package'");
   assert.equal(platformPublish !== -1 && mainPublish !== -1, true,
