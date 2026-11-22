@@ -517,7 +517,7 @@ try {
     const expectedNames = PLATFORM_NAMES.map((row) => row.name).sort();
     const exactPins = PLATFORM_NAMES.filter((row) => declared[row.name] === packed.version);
     const floaters = Object.entries(declared).filter(([, pin]) => typeof pin !== 'string' || pin !== packed.version);
-    const entryTable = entryPlatformTable(readFileSync(join(installedDirectory, 'src', 'entry', 'artefact.mjs'), 'utf8'));
+    const entryTable = entryPlatformTable(readFileSync(join(installedDirectory, 'src', 'entry', 'artefact-node.mjs'), 'utf8'));
     const tableRows = PLATFORM_NAMES.filter((row) => entryTable.get(`${row.platform}·${row.arch}`) === row.name);
     const tableExtra = [...entryTable.entries()].filter(([pair, name]) => !PLATFORM_NAMES.some((row) => `${row.platform}·${row.arch}` === pair && row.name === name));
     const platformManifests = PLATFORM_NAMES.map((row) => {
@@ -538,7 +538,7 @@ try {
       detail: [
         `\`optionalDependencies\` carries ${declaredNames.length} names (expected 5): ${JSON.stringify(declaredNames)}`,
         `each pinned EXACTLY to the packed version ${packed.version}: ${exactPins.length}/5${floaters.length === 0 ? '' : ` — floats ${JSON.stringify(floaters)}`}`,
-        `the entry's own table (\`src/entry/artefact.mjs\`, read from the INSTALLED bytes) agrees on ${tableRows.length}/5 pairs${tableExtra.length === 0 ? '' : ` — extra rows ${JSON.stringify(tableExtra)}`}`,
+        `the entry's own table (\`src/entry/artefact-node.mjs\`, read from the INSTALLED bytes) agrees on ${tableRows.length}/5 pairs${tableExtra.length === 0 ? '' : ` — extra rows ${JSON.stringify(tableExtra)}`}`,
         `each \`platforms/<label>/package.json\` names its declared name at the packed version: ${platformManifests.length - manifestMismatch.length}/5`,
       ].join(' :: '),
     };

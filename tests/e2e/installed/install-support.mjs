@@ -507,7 +507,7 @@ export function declaredNonCodeMembers(stageDirectory, manifest) {
   return [...allowed].sort();
 }
 
-/** The entry's own five-name table, parsed from the packed `src/entry/artefact.mjs` bytes — the spelling
+/** The entry's own five-name table, parsed from the packed `src/entry/artefact-node.mjs` bytes — **⟶ and the part moved on 2026-11-17** (`D-156`; the loader split's extraction): the table left `artefact.mjs` for its Node half, so the read's subject moved with it and the parse is unmoved. — the spelling
  *  `INSTALL-07` compares the manifest's five keys against. The table's rows are `'<platform>·<arch>':
  *  '<name>'`, the `·` being U+00B7 as the entry writes it. */
 export function entryPlatformTable(entrySourceBytes) {
