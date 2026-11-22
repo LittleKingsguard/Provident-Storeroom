@@ -272,27 +272,11 @@ jobs:
       # guard needs **no secret**: `npm view` is a public read.
       - name: 'pre-publish guard: this version is not on the registry, because npm refuses a republished one'
         id: versionguard
-        run: |
-          # **A PATH, NOT A MODULE SPECIFIER**: `require('bindings/js/...')` is resolved as a PACKAGE NAME and throws MODULE_NOT_FOUND, because a
-          # `require` argument that does not begin with `./`, `../` or `/` is a specifier and not a path. **MEASURED IN CI, 2026-11-17, on the first run of
-          # these guards** — so the manifest is READ as bytes and parsed, which is unambiguous whatever the working directory is.
-          name="$(node -p "JSON.parse(require('node:fs').readFileSync(process.env.DIR + '/package.json', 'utf8')).name")"
-          version="$(node -p "JSON.parse(require('node:fs').readFileSync(process.env.DIR + '/package.json', 'utf8')).version")"
-          echo "skip=false" >> "$GITHUB_OUTPUT"
-          if npm view "$name" version >/dev/null 2>&1; then
-            if npm view "$name@$version" version >/dev/null 2>&1; then
-              echo "skip=true" >> "$GITHUB_OUTPUT"
-              echo "ok $name@$version already exists — the publish step is SKIPPED (a re-run completes what is missing, and npm refuses a"
-              echo "   republished version); the artefact is still built, assembled and guarded by the steps around this one."
-            else
-              echo "ok $name@$version is not published yet — the publish step runs"
-            fi
-          else
-            echo "REFUSED: '$name' does not exist on the registry, so it has no trusted publisher and this job cannot publish it."
-            echo "A NEW artefact's first publish is a BOOTSTRAP: publish the name once with a credential, configure its trusted publisher"
-            echo "at npmjs.org, and re-run. docs/specs/storeroom-publish/contract.md · PUB-DD-30."
-            exit 1
-          fi
+        # **⟶ AND THE LOGIC IS A SCRIPT AND NOT A SHELL BODY, 2026-11-17 — three CI failures in a row, each with one cause: shell the matrix does not share.**
+        # `windows-2022` executes `run:` in PowerShell, where this body's `>/dev/null 2>&1` and `if …; then` are not syntax; the other two failures were
+        # unbalanced quotes and a stray paren. **The body is one call into `scripts/guard-publish-version.mjs`** — one implementation for every leg, and one
+        # that can be RUN LOCALLY BEFORE A TAG IS MOVED, which is what all three failures lacked.
+        run: node scripts/guard-publish-version.mjs "$DIR"
         env:
           DIR: bindings/js/platforms/${{ matrix.label }}
 
@@ -421,33 +405,11 @@ jobs:
       # told what to do about it rather than left to read an OIDC error.
       - name: '3. guard: the NAME exists on the registry, because a trusted publisher is configured per name'
         id: nameguard
-        run: |
-          name="$(node -p "require('./bindings/js/platforms/wasm/package.json').name")"
-          version="$(node -p "require('./bindings/js/platforms/wasm/package.json').version")"
-          echo "skip=false" >> "$GITHUB_OUTPUT"
-          if npm view "$name" version >/dev/null 2>&1; then
-            echo "ok $name is published (its trusted publisher can be configured)"
-            # **⟶ AND THE VERSION IS THE SECOND HALF, ADDED 2026-11-17 — A BOOTSTRAP PUBLISHES THE RELEASE'S OWN VERSION BY HAND, SO THIS JOB MUST NOT TRY TO
-            # PUBLISH IT AGAIN**: npm refuses a republish of an existing version, and the refusal would fail the job **after** the bootstrap had already done
-            # the right thing. **SO THE GUARD ANSWERS TWO QUESTIONS AND THE SECOND ONE SKIPS INSTEAD OF FAILING**: the NAME must exist (else a trusted
-            # publisher cannot, and the job stops before it builds), and the VERSION must not (else the publish step is skipped, and the job still passes).
-            if npm view "$name@$version" version >/dev/null 2>&1; then
-              echo "skip=true" >> "$GITHUB_OUTPUT"
-              echo "ok $name@$version already exists — the publish step is SKIPPED (npm refuses a republished version, and this release's"
-              echo "   bootstrap published it by hand; the rest of this job — the build, the staging and the path guard — still runs, so the"
-              echo "   artefact this release ships is still built and inspected here)."
-            else
-              echo "ok $name@$version is not published yet — the publish step runs"
-            fi
-          else
-            echo "REFUSED: '$name' does not exist on the registry."
-            echo "Trusted publishing is configured PER PACKAGE, so a name with no published version has no trusted"
-            echo "publisher and this job's OIDC exchange cannot authorize it. A NEW artefact's first publish is a"
-            echo "BOOTSTRAP and not an OIDC publish: publish the name once with a credential, configure its trusted"
-            echo "publisher at npmjs.com, and re-run this job. docs/specs/storeroom-publish/contract.md · PUB-DD-30."
-            exit 1
-          fi
-
+        # **⟶ AND THE LOGIC IS A SCRIPT AND NOT A SHELL BODY, 2026-11-17 — three CI failures in a row, each with one cause: shell the matrix does not share.**
+        # `windows-2022` executes `run:` in PowerShell, where this body's `>/dev/null 2>&1` and `if …; then` are not syntax; the other two failures were
+        # unbalanced quotes and a stray paren. **The body is one call into `scripts/guard-publish-version.mjs`** — one implementation for every leg, and one
+        # that can be RUN LOCALLY BEFORE A TAG IS MOVED, which is what all three failures lacked.
+        run: node scripts/guard-publish-version.mjs bindings/js/platforms/wasm
       # **THE SAME PRE-PUBLISH EXISTENCE GUARD THE PLATFORM SITE CARRIES, READ AT THIS MANIFEST'S OWN
       # PATHS** (`A89`(4); `PUB-DD-27`'s price): `npm` omits a missing `files` entry SILENTLY, so every path
       # this manifest names is asserted to exist BEFORE the name and the version are spent. **THE PATHS ARE
@@ -605,27 +567,11 @@ jobs:
       # guard needs **no secret**: `npm view` is a public read.
       - name: 'pre-publish guard: this version is not on the registry, because npm refuses a republished one'
         id: versionguard
-        run: |
-          # **A PATH, NOT A MODULE SPECIFIER**: `require('bindings/js/...')` is resolved as a PACKAGE NAME and throws MODULE_NOT_FOUND, because a
-          # `require` argument that does not begin with `./`, `../` or `/` is a specifier and not a path. **MEASURED IN CI, 2026-11-17, on the first run of
-          # these guards** — so the manifest is READ as bytes and parsed, which is unambiguous whatever the working directory is.
-          name="$(node -p "JSON.parse(require('node:fs').readFileSync(process.env.DIR + '/package.json', 'utf8')).name")"
-          version="$(node -p "JSON.parse(require('node:fs').readFileSync(process.env.DIR + '/package.json', 'utf8')).version")"
-          echo "skip=false" >> "$GITHUB_OUTPUT"
-          if npm view "$name" version >/dev/null 2>&1; then
-            if npm view "$name@$version" version >/dev/null 2>&1; then
-              echo "skip=true" >> "$GITHUB_OUTPUT"
-              echo "ok $name@$version already exists — the publish step is SKIPPED (a re-run completes what is missing, and npm refuses a"
-              echo "   republished version); the artefact is still built, assembled and guarded by the steps around this one."
-            else
-              echo "ok $name@$version is not published yet — the publish step runs"
-            fi
-          else
-            echo "REFUSED: '$name' does not exist on the registry, so it has no trusted publisher and this job cannot publish it."
-            echo "A NEW artefact's first publish is a BOOTSTRAP: publish the name once with a credential, configure its trusted publisher"
-            echo "at npmjs.org, and re-run. docs/specs/storeroom-publish/contract.md · PUB-DD-30."
-            exit 1
-          fi
+        # **⟶ AND THE LOGIC IS A SCRIPT AND NOT A SHELL BODY, 2026-11-17 — three CI failures in a row, each with one cause: shell the matrix does not share.**
+        # `windows-2022` executes `run:` in PowerShell, where this body's `>/dev/null 2>&1` and `if …; then` are not syntax; the other two failures were
+        # unbalanced quotes and a stray paren. **The body is one call into `scripts/guard-publish-version.mjs`** — one implementation for every leg, and one
+        # that can be RUN LOCALLY BEFORE A TAG IS MOVED, which is what all three failures lacked.
+        run: node scripts/guard-publish-version.mjs "$DIR"
         env:
           DIR: bindings/js
 

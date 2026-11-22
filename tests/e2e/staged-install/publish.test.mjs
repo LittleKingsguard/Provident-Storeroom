@@ -93,6 +93,7 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, readdirSync, statSync, rmSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
@@ -5144,4 +5145,105 @@ cell('GUARD', 'the in-place loop still resolves and works at rung two', async ()
     + 'self-reference above resolves through — and the five platform names stay SCOPED');
   assert.ok(!FIVE_NAMES.some((n) => n === manifest.name),
     'the main package is NOT one of the five scoped platform names (`resolution.md §3.1`)');
+});
+
+// =====================================================================================================
+// **`W-STEP-1` — EVERY `run:` STEP IS SYNTAX THE RUNNER THAT EXECUTES IT CAN PARSE**
+// =====================================================================================================
+//
+// **THE DEFECT THIS MEASURES, AT ITS OWN HISTORY** (`strata/decisions.md` · `D-201` and its follow-ups): **three release runs failed in a row on the
+// workflow's own `run:` bodies, and none of the three could be exercised without a release.** **TWO WERE SHELL SYNTAX** — a line whose string closed
+// with `"` and was followed by a stray `)`, and a whole guard written in bash while the `windows-2022` leg executes `run:` in **PowerShell**, where
+// `>/dev/null 2>&1` and `if …; then` are not syntax. **THE THIRD WAS A `require` ON A PATH WITHOUT `./`.**
+//
+// **SO THE INVARIANT THIS CELL PUTS ON THE WORKFLOW IS NARROW AND TOTAL**: **a step whose body is bash must SAY SO** (`shell: bash`), and a step
+// that says nothing must be **shell-agnostic** — no bash-only construct in it. GitHub's default shell is `pwsh` on the Windows legs and `bash`
+// elsewhere, so a body that mixes the two dialects without declaring one is a run that fails on exactly one matrix leg, after the tag is spent.
+test('W-STEP-1 · every run: step either declares `shell: bash` or carries no bash-only construct, and every body parses', () => {
+  const workflow = readFileSync(join(REPO_ROOT, '.github', 'workflows', 'publish.yml'), 'utf8');
+
+  // **THE BODIES ARE TAKEN BY INDENTATION AND NOT BY A YAML PARSER**, because the workflow's own comments must not be re-emitted: a `run: |`
+  // block runs until a line indented less than its first body line.
+  const lines = workflow.split('\n');
+  const steps = [];
+  for (let i = 0; i < lines.length; i += 1) {
+    const stepHead = /^( +)- name: '?(.+?)'?$/.exec(lines[i]);
+    if (!stepHead) continue;
+    const indent = stepHead[1].length;
+    let shell = null;
+    let run = null;
+    for (let k = i + 1; k < lines.length; k += 1) {
+      const line = lines[k];
+      if (line.trim() === '') continue;
+      const lineIndent = line.length - line.trimStart().length;
+      if (lineIndent <= indent && !line.trimStart().startsWith('- name:')) {
+        if (!line.trimStart().startsWith('- name:')) break;
+      }
+      if (lineIndent <= indent && line.trimStart().startsWith('- name:')) break;
+      const shellMatch = /^\s*shell:\s*(\S+)\s*$/.exec(line);
+      if (shellMatch) shell = shellMatch[1];
+      if (/^\s*run:\s*\|/.test(line)) {
+        const bodyIndent = (() => {
+          for (let b = k + 1; b < lines.length; b += 1) {
+            if (lines[b].trim() === '') continue;
+            return lines[b].length - lines[b].trimStart().length;
+          }
+          return lineIndent;
+        })();
+        const body = [];
+        for (let b = k + 1; b < lines.length; b += 1) {
+          if (lines[b].trim() !== '' && lines[b].length - lines[b].trimStart().length < bodyIndent) break;
+          body.push(lines[b]);
+        }
+        run = body.join('\n');
+        break;
+      }
+      if (/^\s*run:\s*[^|]/.test(line)) {
+        run = line.replace(/^\s*run:\s*/, '');
+        break;
+      }
+    }
+    if (run !== null) steps.push({ name: stepHead[2], shell, run });
+  }
+
+  assert.ok(steps.length >= 10,
+    `the workflow's run: steps must be taken whole — this found ${steps.length}, and a census that finds too few is a census that passes for the wrong reason`);
+
+  // **THE BASH-ONLY CONSTRUCTS**, each one a thing `pwsh` refuses or reads differently.
+  const BASH_ONLY = [
+    [/\/dev\/null/, '`/dev/null` is a POSIX path'],
+    [/\bthen\s*$/m, '`then` closes a bash `if`'],
+    [/\bfi\s*$/m, '`fi` closes a bash `if`'],
+    [/\|\|/, '`||` is bash\'s or-operator'],
+    [/\$\(/, '`$( … )` is bash command substitution'],
+    [/^\s*set -e/m, '`set -e` is bash'],
+  ];
+
+  const offenders = [];
+  for (const step of steps) {
+    if (step.shell === 'bash') continue;
+    for (const [pattern, why] of BASH_ONLY) {
+      if (pattern.test(step.run)) {
+        offenders.push(`'${step.name}' carries ${why} and declares no \`shell: bash\``);
+        break;
+      }
+    }
+  }
+  assert.deepEqual(offenders, [],
+    'W-STEP-1: a step whose body is bash MUST declare `shell: bash`, because the windows-2022 legs run `run:` in pwsh by default — '
+      + 'and this is the failure that cost three release runs after the tag was spent. Offenders: ' + JSON.stringify(offenders, null, 2));
+
+  // **AND EVERY BASH BODY ACTUALLY PARSES.** `bash -n` is a syntax check and runs nothing; it is the check the three failures lacked.
+  const bashSteps = steps.filter((s) => s.shell === 'bash' || !BASH_ONLY.some(([p]) => p.test(s.run)));
+  const broken = [];
+  for (const step of bashSteps) {
+    if (BASH_ONLY.some(([p]) => p.test(step.run)) === false && step.run.trim() === '') continue;
+    const check = spawnSync('bash', ['-n'], { input: step.run, encoding: 'utf8' });
+    if (check.status !== 0) {
+      broken.push(`'${step.name}': ${String(check.stderr).trim().split('\n')[0]}`);
+    }
+  }
+  assert.deepEqual(broken, [],
+    'W-STEP-1: every body that is parsed as bash must PARSE — three release runs died on syntax that a `bash -n` would have caught before the tag. '
+      + 'Broken: ' + JSON.stringify(broken, null, 2));
 });
