@@ -16,7 +16,7 @@ use crate::error::{
     address_not_found, constraint_list_invalid, container_kind_conflict,
     container_kind_conflict_for_key, file_commit_failed, file_image_refused, file_path_unreachable,
     journal_op_unknown, leaf_has_no_downstream, malformed_named, malformed_segment, missing_argument,
-    monotonicity_violation, read_target_is_branch, slashed_address,
+    monotonicity_violation, read_target_is_branch, rollback_compacted, slashed_address,
     tier_not_found, value_not_admitted, write_parent_not_link, StoreError,
 };
 use crate::json;
@@ -59,6 +59,25 @@ static NEXT_OP: AtomicU64 = AtomicU64::new(1);
 /// `docs/specs/storeroom-native/contract.md §0.2` and `§0.4` clause 2 (a) (`P: docs/pending.md · X-7`).
 fn next_op_id() -> String {
     format!("op-{}", NEXT_OP.fetch_add(1, Ordering::SeqCst))
+}
+
+/// **⟶ ADDED 2026-11-17 (`strata/decisions.md` · `D-160` item 3) — THE ORDINAL AN OP ID CARRIES, PARSED AT THE
+/// ONE SITE THAT NEEDS IT.** It answers the number `next_op_id` wrote between `op-` and the end, and `None` for
+/// an id it cannot read — **and `None` is not a failure: it is the answer that a caller-supplied token never
+/// named a store op at all**, which `rollback` reads as `JournalOpUnknown`.
+///
+/// **★ AND THE WATERMARK'S NUMBERING IS THIS ONE, WHICH IS NOT THE ENTRY'S `seq` — MEASURED AT THE BYTES AND
+/// STATED HERE BECAUSE THE TWO ARE DIFFERENT SEQUENCES AND CONFUSING THEM WOULD MAKE THE FLOOR LIE.** `op.seq`
+/// is the JOURNAL's own append ordinal (`Store::append`: `self.last_seq += 1; op.seq = self.last_seq`), **per
+/// instance**; the op id is minted by `next_op_id` from `NEXT_OP`, a **PROCESS-WIDE** counter (`§6.2` property
+/// 3's *"per instance and per session"* uniqueness). So `op-<seq>` is FALSE of this tree: two instances created
+/// in one process each begin their own `seq` at `1` and take DIFFERENT ids, and an instance that has dropped
+/// three entries has no entry left carrying the map from a named id to its `seq`. **A floor compared against
+/// `op.seq` could not be evaluated for the ids it exists to refuse** — the number the dropped entry carried is
+/// gone with the entry — **so the store's floor is kept in the ids' own numbering** (`Store::journal_floor`),
+/// where one number answers every named id the store itself minted.
+fn op_id_ordinal(op_id: &str) -> Option<u64> {
+    op_id.strip_prefix("op-")?.parse::<u64>().ok()
 }
 
 /// `§1.3`: a link — exactly one parent anchor and a container of child anchors.
@@ -602,9 +621,15 @@ struct Entry {
     after: Vec<Captured>,
     /// The pair the entry's pre-state is measured from, recorded at append time.
     home: Option<PairHome>,
-    /// The opIds the journal held COMPACTED at the moment this entry was appended: the marks the entry's
-    /// own append may have set are undone from this list when the entry is popped (`§3.5`).
-    compacted: Vec<String>,
+    // **⟶ DELETED 2026-11-17 (`strata/decisions.md` · `D-160` ITEMS 1 AND 4): THIS ENTRY CARRIED
+    // `compacted: Vec<String>` — THE COMPLETE LIST OF ALREADY-COMPACTED OP IDS AT THE MOMENT THE ENTRY WAS
+    // APPENDED — AND IT IS GONE WITH THE MARK IT PAIRED WITH.** The field the compaction wrote
+    // (`entry.op.compacted`) was read by exactly two acts: `Store::restore_compaction`, which put the marks back
+    // when a popped append was undone, and `Store::write`'s per-write snapshot of the marks that stood at
+    // ENTRY. **Both have no subject once compaction REMOVES an entry rather than marking it**, so the field,
+    // its clone (`docs/L1/journal-retention-rca.md` §1 item 1's measured quadratic) and its two readers are
+    // withdrawn together. **The op id, the `seq` and every other member an entry records are unmoved** — what
+    // left is the per-entry bookkeeping of a mechanism the ruling replaces.
     /// **⟶ ADDED 2026-10-15 (`DEF-2026-10-15-Z`; `implementation-plan.md §10.9` row 3's FAILS-IT cell:
     /// *"a save performed twice for one record"*): WHETHER THIS ENTRY'S OWN `file`-TIER SAVE HAS ALREADY BEEN
     /// PERFORMED.** **A `file`-tier write on the passing arm COMMITS ONCE**, so the act — the terminal arm's
@@ -634,6 +659,27 @@ pub struct Store {
     home: Home,
     file_path: String,
     journal_length: usize,
+    /// **⟶ ADDED 2026-11-17 BY `D-160` ITEM 3 — THE COMPACTION'S WATERMARK: THE ORDINAL OF THE LAST OP THIS
+    /// JOURNAL **DROPPED**, AND THE ONE NUMBER THAT KEEPS THE TWO REFUSALS DISTINGUISHABLE WITHOUT THE LOST
+    /// IDS.** The architect, verbatim: ***"Compaction dropping history is the point"*** (`strata/decisions.md` ·
+    /// `D-160`). **`None` means nothing has been dropped yet**; `Some(n)` means **every op id this store minted
+    /// at or below `op-n` was dropped by the compaction** (`Store::append`'s loop sets it from the entry it
+    /// removes), so a rollback that names one of them answers `RollbackCompacted` while an id that never named a
+    /// store op answers `JournalOpUnknown` — **the discrimination `compacted: Vec<String>` used to make by
+    /// membership, now made by one comparison** (`D-160` item 3: *"THE DISCRIMINATOR IS A WATERMARK AND NOT A
+    /// LIST"*).
+    ///
+    /// **THE NUMBER IS THE OP ID'S OWN ORDINAL AND NOT THE ENTRY'S `seq`, AND THE DIFFERENCE IS MEASURED AT
+    /// THE BYTES** — see [`op_id_ordinal`]: `op.seq` is the journal's per-instance append ordinal while the id
+    /// is minted from the process-wide `NEXT_OP`, so the dropped entry's `seq` is a number no caller-supplied id
+    /// carries and the map from an id to its `seq` left with the entry. **THE COST OF KEEPING ONE NUMBER RATHER
+    /// THAN A LIST IS DECLARED HERE AND NOT PAPERED**: an id another instance minted inside this store's own
+    /// span — numerically at or below the floor — also answers `RollbackCompacted` rather than
+    /// `JournalOpUnknown`, because the id carries no instance. **No act of this store mints such a token for
+    /// this journal** (the store's own ids are strictly increasing and only its own dropped ops fall at or below
+    /// the floor), and `D-160` item 3 prices exactly this trade: the ids need not be retained to keep a refusal
+    /// honest.
+    journal_floor: Option<u64>,
     /// `§6.1` item 5: **the compression's BASE STATE — a SNAPSHOT of the store's own observable state at
     /// the moment of compression, replacing every compressed entry as the walk's floor.** It begins as the
     /// empty register's read (`{}`) and is re-taken whenever an append compresses an entry.
@@ -843,8 +889,12 @@ pub fn storeCreateWithInputs(
     // answered the BYTES STAND) — no removal arm is declared.
     // **AND WHAT IT DOES NOT TOUCH: A ZERO-LENGTH FILE AND AN ABSENT FILE ARE STILL `FileImage::NoImage`** —
     // the reader answers `NoImage` for both, so a construction over either loads nothing and crosses NO code
-    // (`§10.4` part 3; `DD-38`), **and `Members`, the install, `regenerate`'s reading of the third class and
-    // `standing_image`'s `None` are unmoved.**
+    // (`§10.4` part 3; `DD-38`), **and `Members`, the install, the third class's own reading and
+    // `standing_image`'s `None` are unmoved.** **⟶ AND THE ONE OTHER CALLER OF THIS CLASS IS WITHDRAWN FROM
+    // 2026-11-17**: the regeneration read it too, and `D-160` item 5 deletes that arm with the compaction mark it
+    // was built on — **the boot ([`Store::boot_load`]) is the reader this answer has left, and the third class
+    // keeps its two consequences there** (`None` → `Some(0)` for the load-side check, the refusal minted by the
+    // construction's own seam above).
     if let FileImage::Refused = store.read_file_image() {
         return Err(file_image_refused(&store.file_path));
     }
@@ -1103,6 +1153,9 @@ impl Store {
             home,
             file_path,
             journal_length,
+            // **⟶ ADDED 2026-11-17 (`D-160` item 3): NOTHING HAS BEEN DROPPED AT THE CONSTRUCTION**, so the
+            // watermark is absent and every op id answers as the journal's own record finds it.
+            journal_floor: None,
             base_state: StoreValue::Object(BTreeMap::new()),
             born: Vec::new(),
         }
@@ -1715,7 +1768,14 @@ impl Store {
                 if let Some(home) = &entry.home {
                     self.restore(home, &entry.captured);
                 }
-                self.restore_compaction(&entry.compacted);
+                // **⟶ DELETED 2026-11-17 (`strata/decisions.md` · `D-160` item 3): `restore_compaction` STOOD
+                // HERE AND THE CALL IS WITHDRAWN WITH IT.** It re-marked the entries this append's compaction
+                // had marked, because a MARK is reversible and a failed commit's residue may not include one
+                // (`§3.5`, `§6.4` `M-6`). **A DROP IS NOT REVERSIBLE AND IS NOT THE FAILED ACT'S RESIDUE TO
+                // UNDO**: the entry it removed is gone, `journal_floor` keeps naming it, and the observable
+                // state the failure must leave byte-identical is untouched by the drop — the journal keeps
+                // FEWER entries and the floor, never a mark. **`last_seq -= 1` is unmoved**: the popped entry's
+                // ordinal is the append's own and the next append re-takes it.
                 self.last_seq -= 1;
                 Err(failure)
             }
@@ -1748,8 +1808,11 @@ impl Store {
     /// **⟶ ADDED 2026-11-17 BY `U-STOREROOM-04` — `saveFailed(opId)`: THE MIRROR, AND `commit_file`'s FAILURE ARM
     /// AND NOTHING ELSE** (`D-146` item 1).
     ///
-    /// **EXACTLY the five steps of `commit_file`'s failure arm, in the tree's own order**: the entry removed from the
-    /// journal · `restore(home, &entry.captured)` · `restore_compaction(&entry.compacted)` · `last_seq -= 1` · answer.
+    /// **EXACTLY the four steps of `commit_file`'s failure arm, in the tree's own order**: the entry removed from the
+    /// journal · `restore(home, &entry.captured)` · `last_seq -= 1` · answer. **THE FIFTH STEP — the
+    /// `restore_compaction(&entry.compacted)` re-mark — IS DELETED 2026-11-17 by `D-160` item 3** and for the same
+    /// reason it is deleted at its sibling above: **compaction DROPS an entry and a drop is no mark to put back**,
+    /// so a failed save leaves the journal shorter and the floor advanced, exactly as a passing one does.
     /// **IT WRITES NO BYTE**, which keeps the store's own writer suppressed on this arm (`D-133` item 3) and the journal
     /// the STORE's, never the package's. **It asks no gate**: a failure that conditionally unwound would leave standing a
     /// record the store's own writer would have removed.
@@ -1767,7 +1830,8 @@ impl Store {
         if let Some(home) = &entry.home {
             self.restore(home, &entry.captured);
         }
-        self.restore_compaction(&entry.compacted);
+        // **⟶ `restore_compaction(&entry.compacted)` STOOD HERE AND IS DELETED 2026-11-17 (`D-160` item 3)** —
+        // the reason is its sibling's at `commit_file`'s failure arm: a drop is not a mark to put back.
         self.last_seq -= 1;
         Ok(())
     }
@@ -1894,9 +1958,12 @@ impl Store {
     }
 
     /// **THE ONE PLACE THE BYTES AT `file_path` ARE READ AND DECODED, AND THE ONE PLACE THE THREE CLASSES ARE
-    /// SPELLED — `D-110` ITEM 2.** The boot ([`Store::boot_load`]) and the regeneration ([`Store::regenerate`])
-    /// both reach the file through this answer and neither reads the path beside it; **a fact the answer does
-    /// not carry would be carried out of this frame rather than re-derived next to it.** **IT IS A PURE READ:**
+    /// SPELLED — `D-110` ITEM 2.** The boot ([`Store::boot_load`]) and the seed's own read reach the file through
+    /// this answer and neither reads the path beside it; **a fact the answer does not carry would be carried out
+    /// of this frame rather than re-derived next to it.** **⟶ AND THE REGENERATION WAS ITS THIRD CALLER AND IS
+    /// WITHDRAWN, 2026-11-17 (`strata/decisions.md` · `D-160` item 5)**: with the compaction a DROP there is no
+    /// last-valid-state base to rebuild, so no reversal reads the path any more and this answer is the BOOT's and
+    /// the seed's — **one decode and two mappings, unmoved, with one caller fewer.** **IT IS A PURE READ:**
     /// no node is minted, no anchor is installed, nothing is mutated, so a caller may refuse on this answer and
     /// leave the store exactly where it found it.
     fn read_file_image(&self) -> FileImage {
@@ -2207,16 +2274,16 @@ impl Store {
         }
     }
 
-    /// `§6.1` item 5's marks, undone with a popped entry: the failed write's residue may not include a
-    /// compaction mark an append caused (`§3.5`, `§6.4` `M-6`).
-    fn restore_compaction(&mut self, compacted: &[String]) {
-        for entry in self.journal.iter_mut() {
-            // Every mark the journal stood at when the popped entry was appended is put back whole: an
-            // entry the popped append compacted is un-marked, and no entry that stood compacted then is
-            // un-marked by the failure (`§3.5`: the failed write leaves a byte-identical state).
-            entry.op.compacted = compacted.contains(&entry.op.opId);
-        }
-    }
+    // **⟶ DELETED 2026-11-17 (`strata/decisions.md` · `D-160` ITEMS 1, 3 AND 4): `fn restore_compaction(&mut
+    // self, compacted: &[String])` STOOD HERE — `for entry in self.journal.iter_mut() { entry.op.compacted =
+    // compacted.contains(&entry.op.opId); }` — AND IT IS WITHDRAWN WHOLE WITH ITS TWO CALLERS.** It was `§6.1`
+    // item 5's mark-undo: the failed write's residue may not include a compaction mark an append caused
+    // (`§3.5`, `§6.4` `M-6`), so the popped entry carried the list of marks that stood when it was appended and
+    // this frame put them back. **WITH A DROP THERE IS NOTHING TO RE-LEARN AND NOTHING TO PUT BACK**: no entry is
+    // ever marked, so no entry can be un-marked, and the state a failed act owes back is the OBSERVABLE state —
+    // which the drop never moved. **What replaces it is the floor's own record**: a drop is permanent,
+    // `journal_floor` keeps naming the last op it took, and the refusal that names such an op is
+    // `RollbackCompacted` (`Store::rollback`'s lookup arm).
 
     /// The declared `before`/`restoredTo` view of an address: `present` and the value a read answers there.
     /// Where the operation touched MORE THAN ONE version at the addressed node, the value is the ordered
@@ -2294,6 +2361,16 @@ impl Store {
 
     // -----------------------------------------------------------------------------------------------
     // §6.1 item 5 — the journal's bound and its compression trigger.
+    //
+    // **⟶ AND THE BOUND IS A REAL ONE FROM 2026-11-17 (`strata/decisions.md` · `D-160` ITEMS 1–2).** The
+    // architect, verbatim: ***"Compaction dropping history is the point"***. **What the cap bounds is the
+    // HISTORY THE STORE KEEPS** — the compression's base state plus at most `journal_length` entries — and no
+    // longer the count of entries whose flag is set, **so memory is `O(store + journal_length)`**, which is what
+    // this section always said it was. **THE MEASUREMENT THAT PRODUCED THE RULING** is
+    // `docs/L1/journal-retention-rca.md` §2: the journal's total size was QUADRATIC in the write count
+    // (47 · 125 · 472 · 1,850 · 7,277 MB at 1k · 2k · 4k · 8k · 16k writes on one unchanged address), because
+    // every entry additionally carried the complete list of already-compacted op ids and `write` cloned that
+    // list on every write.
     // -----------------------------------------------------------------------------------------------
 
     fn append(
@@ -2302,7 +2379,6 @@ impl Store {
         captured: Vec<Captured>,
         after: Vec<Captured>,
         home: Option<PairHome>,
-        compacted: Vec<String>,
     ) -> JournalOp {
         self.last_seq += 1;
         op.seq = self.last_seq;
@@ -2312,29 +2388,35 @@ impl Store {
             captured,
             after,
             home,
-            compacted,
             saved: false,
         });
         loop {
-            let uncompacted = self
-                .journal
-                .iter()
-                .filter(|entry| !entry.op.compacted)
-                .count();
+            // **THE CONDITION IS `§6.1` ITEM 5's AND ITS SUBJECT MOVES WITH THE RULING**: *"when an append would
+            // leave more than `journalLength` un-compacted entries"* — **and `uncompacted` IS NOW SIMPLY THE
+            // JOURNAL'S OWN LENGTH**, because with a DROP there is no marked-but-retained entry left: every entry
+            // the journal holds is an uncompacted one (`D-160` item 1). **The figure does not move and the
+            // arithmetic becomes the one the cap always claimed.**
+            let uncompacted = self.journal.len();
             if uncompacted <= self.journal_length {
                 break;
             }
-            match self.journal.iter().position(|entry| !entry.op.compacted) {
-                Some(oldest) => {
-                    self.journal[oldest].op.compacted = true;
-                    // `§6.1` item 5: **the base state is a SNAPSHOT of the store's own observable state at
-                    // the moment of compression** — the value every reachable address reads at that moment,
-                    // i.e. the register's whole readable content — and it replaces every compressed entry as
-                    // the walk's floor.
-                    self.base_state = self.assemble_all(self.register_ref);
-                }
-                None => break,
-            }
+            // **⟶ AND THE OLDEST ENTRY IS REMOVED RATHER THAN MARKED, 2026-11-17 (`D-160` ITEM 1).** The line
+            // that stood here read `self.journal[oldest].op.compacted = true;` — **the mark that made the cap a
+            // mark and not a bound**, because the entry stayed, its op id stayed and the vector grew by one entry
+            // per write for the store's whole life (`docs/L1/journal-retention-rca.md` §1 item 4). **With a drop
+            // the op ids are GONE** and the entry's record with them.
+            let dropped = self.journal.remove(0);
+            // **AND THE WATERMARK TAKES THE DROPPED OP'S PLACE AS THE DISCRIMINATOR** (`D-160` item 3): one
+            // number, so a rollback that names this op still answers `RollbackCompacted` while an id that never
+            // named a store op answers `JournalOpUnknown`. It is kept in the ids' own numbering — see
+            // [`op_id_ordinal`] — and `Option::or` keeps the higher floor if a token is ever unreadable, so the
+            // watermark can never move backwards.
+            self.journal_floor = op_id_ordinal(&dropped.op.opId).or(self.journal_floor);
+            // `§6.1` item 5: **the base state is a SNAPSHOT of the store's own observable state at
+            // the moment of compression** — the value every reachable address reads at that moment,
+            // i.e. the register's whole readable content — and it replaces every compressed entry as
+            // the walk's floor.
+            self.base_state = self.assemble_all(self.register_ref);
         }
         stored
     }
@@ -2651,12 +2733,15 @@ impl Store {
         // at ENTRY are marked here, and the mark is carried into the journal once the append lands — because
         // the failed append's pop shifts the indices the mark would otherwise be restored through (`§3.5`,
         // `DD-16`).
-        let compacted_before: Vec<String> = self
-            .journal
-            .iter()
-            .filter(|entry| entry.op.compacted)
-            .map(|entry| entry.op.opId.clone())
-            .collect();
+        //
+        // **⟶ AND THAT WHOLE SNAPSHOT IS DELETED 2026-11-17 (`strata/decisions.md` · `D-160` ITEM 4, AND THE
+        // QUADRATIC WITH IT).** The block that stood here cloned ONE STRING PER ALREADY-COMPACTED ENTRY ON
+        // EVERY WRITE (`docs/L1/journal-retention-rca.md` §1 item 1, measured at §2 as the only quadratic term
+        // in the write path: `(N − journal_length)/2 × the size of one op id` per write, ~115 KB/write at
+        // N = 4,000 with `journalLength: 64`). **It has no subject once the entries are dropped** — nothing is
+        // marked at ENTRY, nothing needs carrying into the journal, and no failed append's pop has a mark to
+        // shift. **The write's own body below is unmoved: the compression is `append`'s, and `append` takes no
+        // list.**
         // `§3.2` item 6: a target that IS the register has no key to install under.
         if segments.is_empty() {
             return Err(write_parent_not_link("''".to_string(), &segments));
@@ -2821,13 +2906,9 @@ impl Store {
         // back. Without it the journal held only the op's `after` READ VIEW, which collapses a shadow's
         // versions into the one value a read answers (`Entry::after`).
         let after_state = self.capture(&home);
-        let op = self.append(
-            op,
-            captured.clone(),
-            after_state,
-            Some(home.clone()),
-            compacted_before.clone(),
-        );
+        // **⟶ AND THE APPEND TAKES FIVE POSITIONS FROM 2026-11-17, NOT SIX** (`D-160` item 4): the list of
+        // already-compacted op ids the write used to hand over is gone, so no caller materialises it.
+        let op = self.append(op, captured.clone(), after_state, Some(home.clone()));
         // **⟶ AND THE ACT'S REACH IS COMPUTED HERE, ONCE, FROM THE STATE THIS WRITE DISPLACED AND THE VALUE IT
         // INSTALLED — `D-67`/`D-66`.** The two lists below are the SAME set seen twice (`§5.8`'s re-derived
         // `(vi)(3)`), so both are handed the one materialisation: **the paths the written value contains, plus
@@ -2992,12 +3073,10 @@ impl Store {
             seq: 0,
             compacted: false,
         };
-        let uncompacted = self
-            .journal
-            .iter()
-            .filter(|entry| !entry.op.compacted)
-            .map(|entry| entry.op.opId.clone())
-            .collect();
+        // **⟶ AND THE LIST THIS DELETE BUILT IS DELETED 2026-11-17 (`strata/decisions.md` · `D-160` item 4).**
+        // The block that stood here collected the journal's UN-compacted op ids into a `Vec<String>` on every
+        // delete (the mirror of `write`'s snapshot, and the second quadratic term in the journal's own path);
+        // **with a drop there is no mark for a caller to carry and `append` takes no list.**
         // **`§6.6`: THE STATE THIS DELETE LEFT.** The addressed pair is named by the PARENT link the delete
         // resolved and by its own key — the convention `rebuild` restores on — and an operation at the EMPTY
         // address names no pair at all, so its after-state is the whole register's (`capture_register`).
@@ -3012,7 +3091,7 @@ impl Store {
         // answers the entry it stored — `seq` included — so the record carries the id `rollback` looks up in
         // `self.journal`, and the delete becomes a NAMED act a caller can reverse. **Measured before this
         // line: the entry was there and `rollback` accepted its id; the id simply never reached the caller.**
-        let op = self.append(op, captured, after_state, home, uncompacted);
+        let op = self.append(op, captured, after_state, home);
         // **`§6.5` item 11 / `§5.8` (b): THE DELETE IS THE SECOND TRIGGER EVENT** (`A43`) — the receipt
         // carries the handles of the listeners the trigger fired, selected by the SAME prefix rule.
         let triggered = self.triggered_for(&segments, &touched);
@@ -3115,17 +3194,18 @@ impl Store {
     /// `§6.3`/`§6.4`: `rollback(opId)` — the journal's only consumer, addressed by op id, TOTAL over its
     /// scope and ALL-OR-NOTHING at its floor.
     ///
-    /// **⟶ AND ITS FLOOR IS A BOUND AND NOT A STRAND, 2026-11-02 (`strata/decisions.md` · `D-108`).** **A
-    /// candidate set that is temporally in scope and holds a compacted entry no longer refuses: the store
-    /// REBUILDS the last valid state from the durable ground truth and then runs the same backward walk**
-    /// ([`Store::regenerate`]) — so no candidate of the bounded set is left standing. **⟶ AND THE REGENERATION
-    /// REFUSES ON NO STATE OF THE PATH, FROM 2026-11-02 (`strata/decisions.md` · `D-118` item 1, correcting
-    /// `D-109`'s narrowing at its own subject): a candidate set holding a compacted entry over a `filePath` whose
-    /// image cannot be read as an object is no longer a refusal — the unreadable image is treated as NO image at
-    /// all and the base is the CREATION STATE, so that arm reverts too and the bytes are made readable by the
-    /// save that follows.** **So no act of this tree produces `RollbackCompacted`; the token keeps its rank, its
-    /// code and its generated message, and its retirement from the closed set is the architect's and not this
-    /// unit's** (`arms.md §B.3`, `D-118` item 2).
+    /// **⟶ AND ITS FLOOR IS THE WATERMARK AND NOT A STRAND, FROM 2026-11-17 (`strata/decisions.md` · `D-160`
+    /// ITEM 3).** `D-108`'s regeneration and `D-118`'s creation-state base stood here, and **both are withdrawn
+    /// with their subject**: a candidate set can no longer HOLD a compacted entry, because the compaction REMOVES
+    /// the entry rather than marking it (`D-160` item 1). **So the arm that used to rebuild a base from the durable
+    /// ground truth has nothing to rebuild onto** (`Store::regenerate` is DELETED by this ruling and not left dead),
+    /// **and the two
+    /// refusals that the mark's retention bought are bought by ONE NUMBER instead**: a rollback that names an op
+    /// the compaction DROPPED answers `RollbackCompacted`, and an id that never named a store op answers
+    /// `JournalOpUnknown` — **the discrimination `compacted: Vec<String>` made by membership, made now by
+    /// comparing the named id's own ordinal with [`Store::journal_floor`]** (`D-160` item 3, verbatim: ***"the ids
+    /// need not be retained to keep a refusal honest"***). **The token's rank, its code and its generated message
+    /// are unmoved** (`arms.md §B.3`; no byte of `src/error.rs` moves for it).
     ///
     /// **⟶ AND THIS FRAME PERFORMS THE REVERSAL AND NO WRITE, 2026-11-02 — `D-112` ITEM 2.** The reversal's save
     /// is **the PACKAGE's** act and stands **behind the constraint judgement**: `D-106`'s arm 3 is a package-side
@@ -3141,33 +3221,50 @@ impl Store {
         let op_id = op_id(&op)?;
         let Some(index) = self.journal.iter().position(|entry| entry.op.opId == op_id) else {
             // `M-11`: an op id the instance's journal does not hold.
-            return Err(journal_op_unknown(&op_id));
+            //
+            // **★ AND FROM 2026-11-17 THE TWO REFUSALS ARE DECIDED HERE, BY ONE NUMBER** (`strata/decisions.md` ·
+            // `D-160` item 3): **a DROPPED op answers `RollbackCompacted` and an id that never existed answers
+            // `JournalOpUnknown`.** The journal no longer holds the dropped ids, so the discriminator is
+            // [`Store::journal_floor`] — the ordinal of the last op the compaction took — and the comparison is the
+            // named id's OWN ordinal against it. **The seq is parsed only for the comparison** ([`op_id_ordinal`],
+            // the store's one reader of the id's numbering), and **an id it cannot parse answers
+            // `JournalOpUnknown`, because an unparseable token never named a store op** and so cannot have been
+            // dropped by anything. **A journal whose floor is absent (`None`, nothing ever dropped) answers
+            // `JournalOpUnknown` for every id it does not hold**, which is `M-11` unmoved.
+            return Err(match op_id_ordinal(&op_id) {
+                Some(ordinal)
+                    if self
+                        .journal_floor
+                        .is_some_and(|dropped_through| ordinal <= dropped_through) =>
+                {
+                    rollback_compacted(&op_id)
+                }
+                _ => journal_op_unknown(&op_id),
+            });
         };
         let address = self.journal[index].op.address.clone();
         // `M-5` item 1's amendment (a) (ii): the TEMPORAL FLOOR, read off the named entry's own `seq` —
         // *"`E.seq` ≥ THE NAMED OP'S OWN `seq`"*, `≥` because *"the named op itself must be reversed or
-        // nothing is"*. It bounds the candidate set FIRST; `M-6`'s compacted floor is then evaluated over
-        // that bounded set.
+        // nothing is"*. It bounds the candidate set, and it is the ONLY floor the walk has from 2026-11-17.
         let floor = self.journal[index].op.seq;
-        // `M-5`/`DD-21`: the candidate set is every entry in the addressed subtree AT OR AFTER the named
-        // op's `seq`, compacted entries included — the walk's floor is then the predicate that decides.
+        // `M-5`/`DD-21`: the candidate set is every entry in the addressed subtree AT OR AFTER the named op's
+        // `seq`. **⟶ AND THE `compacted` PREDICATE THAT STOOD BESIDE IT IS DELETED, 2026-11-17 (`D-160` item 5):
+        // THE WALK CANNOT CROSS THE FLOOR BECAUSE THERE IS NO ENTRY BELOW IT.** The dropped ops are gone, so
+        // every entry this vector can name is an uncompacted one — *"compacted entries included"* has no subject
+        // — and the refusal the mark used to express is now the lookup arm's above, which is the walk's floor
+        // stated as a refusal rather than as a skip.
         let scope: Vec<usize> = (0..self.journal.len())
             .filter(|candidate| {
                 let entry = &self.journal[*candidate].op;
                 is_prefix(&address, &entry.address) && entry.seq >= floor
             })
             .collect();
-        if scope
-            .iter()
-            .any(|candidate| self.journal[*candidate].op.compacted)
-        {
-            // `M-6` AS CORRECTED 2026-11-02 (`D-108`): **THE COMPACTION ARM DOES NOT STRAND THE STATE — IT
-            // REGENERATES IT.** The predicate above this call moves no byte; what moved is the `return` that
-            // used to stand here, which refused. **The reversal then runs its own backward walk over the same
-            // bounded set, unchanged**, so `undoneOps`, `restoredTo` and the marks are the walk's and the arm
-            // differs in its BASE and in nothing it records.
-            self.regenerate(&scope)?;
-        }
+        // **⟶ AND THE REGENERATION CALL IS DELETED 2026-11-17 (`D-160` items 1 and 5).** The block that stood
+        // here asked whether ANY candidate carried the mark and, if one did, re-based the store on the durable
+        // image before walking (`D-108` item 1, `D-118` item 1). **No candidate can carry a mark now**: compaction
+        // removes the entry, so the predicate's subject does not exist and an arm guarded by it could never run.
+        // **What the reversal does instead is what it always did after the regeneration** — the plain backward
+        // walk over its bounded scope, newest first, re-stating each entry's captured pre-state.
         let mut undone = Vec::new();
         for candidate in scope.iter().rev() {
             let (captured, entry_id, entry_home, entry_address) = {
@@ -3210,9 +3307,20 @@ impl Store {
                 None => false,
             };
             // `§6.3`: `undoneOps` is *"the opIds the rollback undid"* — so an entry whose pre-state could
-            // not be put back is NOT reported as undone, and it is not marked out of a later walk either.
+            // not be put back is NOT reported as undone.
+            //
+            // **⟶ AND THE MARK THE WALK SET ON WHAT IT REVERTED IS DELETED, 2026-11-17 (`strata/decisions.md` ·
+            // `D-160` item 5).** The line that stood here read `self.journal[*candidate].op.compacted = true;` —
+            // `M-9`'s mark on a SPENT entry, which a later walk's candidate-set predicate read and a
+            // `regenerate` skipped. **IT IS NOT REPLACED BY A SECOND MECHANISM, AND THAT IS THE RULING'S OWN
+            // ANSWER**: the mark's two grounds were *"the window took it"* and *"a reversal spent it"*, and the
+            // first is now a DROP (`D-160` item 1) while the second has no reader left once the candidate-set
+            // predicate and the regeneration are gone. **What stands in its place is the walk's own
+            // idempotence**: a second reversal of the same op re-states the same captured pre-states over the
+            // same addresses in the same newest-first order, so it lands the same state and reports the same
+            // `undoneOps` — the fact the mark was introduced to protect, held by the walk rather than by a flag
+            // on the record.
             if restored {
-                self.journal[*candidate].op.compacted = true;
                 undone.push(entry_id);
             }
         }
@@ -3222,9 +3330,11 @@ impl Store {
         // save taken here would run BEFORE the judgement and would therefore save a state the judgement may
         // refuse — **and it would be reached by the kernel's own compensation, which the ordering now excludes
         // from the save without needing a predicate to tell it from a caller's reversal** (`D-111` item 1 is
-        // discharged by the ORDERING, `D-112` item 3). **What this frame does is the reversal — the replay, the
-        // regeneration and the report — and nothing else**; the save is `Store::save_state`'s, made after the
-        // judgement, and the compensating restore's own save is `replayMark`'s, unmoved (`D-106` item 4).
+        // discharged by the ORDERING, `D-112` item 3). **What this frame does is the reversal — the backward
+        // walk and the report — and nothing else** (**⟶ and the regeneration is no longer one of its acts from
+        // 2026-11-17: `D-160` item 1 removes the arm that had a base to regenerate**); the save is
+        // `Store::save_state`'s, made after the judgement, and the compensating restore's own save is
+        // `replayMark`'s, unmoved (`D-106` item 4).
         Ok(RollbackResult {
             opId: op_id,
             undoneOps: undone,
@@ -3252,11 +3362,15 @@ impl Store {
     ///     longer describes the operation at all, and `restoreMark` answers `JournalOpUnknown` (`M-11`) for its
     ///     id. **The read therefore answers PRESENT entries only, and PRESENCE is the whole membership test**:
     ///     an id the journal no longer holds is not a state the store can re-state.
-    ///   * **A COMPACTED ENTRY IS STILL A MARK.** `journalLength` bounds the rollback by MARKING entries
-    ///     `compacted` (`§6.1` item 5) and never removes one, and the replay reads every entry it holds — so a
-    ///     mark behind the compression window still replays and is still valid
-    ///     (`s6_6_a_mark_outside_the_window_is_still_replayable` measures exactly that). **The read does not
-    ///     filter on `compacted`, and it must not.**
+    ///   * **⟶ AND AN ENTRY THE COMPACTION TOOK IS NO MARK AT ALL, FROM 2026-11-17 (`strata/decisions.md` ·
+    ///     `D-160` ITEM 1).** The bullet that stood here read *"A COMPACTED ENTRY IS STILL A MARK"* and was true
+    ///     while `journalLength` MARKED entries and removed none — *"the read does not filter on `compacted`, and
+    ///     it must not"*. **THE RULING REVERSES THE PREMISE AND NOT THIS READ**: compaction now REMOVES the
+    ///     entries it reaches, so an entry behind the window is not a mark the journal can name, and a caller
+    ///     that holds one meets the store's own declared answer for an id it does not hold — `JournalOpUnknown`
+    ///     at `restoreMark` (`M-11`, below) and `RollbackCompacted` at `rollback` where the watermark places it
+    ///     (`D-160` item 3). **What this read answers is unmoved and simpler**: the head the journal holds, or
+    ///     `None` where it holds none, and no predicate on `compacted` runs because no entry is ever marked.
     ///   **AND EVERY PRESENT ENTRY IS REPLAYABLE, WHICH IS WHY PRESENCE IS THE TEST RATHER THAN A SECOND
     ///   PREDICATE**: each `write`/`delete` records its own `after` as a per-version, per-tier snapshot
     ///   (`Entry::after`), and the replay re-derives every home from the born floor forward, so the state a
@@ -3323,14 +3437,18 @@ impl Store {
     /// to WRITE — is restored, because here nothing is being written: a state the journal recorded is being
     /// re-stated. The precedent is the store's own `restore`, which the rollback has always rebuilt on.
     ///
-    /// **WHAT THE MARK'S WINDOW IS, DECLARED.** `journalLength` bounds the ROLLBACK's floor by MARKING entries
-    /// `compacted` (`§6.1` item 5) — it never removes one — so **a compacted mark is still replayable and this
-    /// primitive does not refuse it**: compaction is a mark and not an erasure, and the replay reproduces the
-    /// whole chain from the register. What CAN leave the journal is the entry a failed `file`-tier commit
-    /// takes with it (`commit_file`'s `§7.2` item 3 path removes the entry it just reverted), and **a mark the
-    /// journal no longer holds is REFUSED in the store's own declared form — `JournalOpUnknown`** (`M-11`'s
-    /// code, the one the rollback already answers for an op id it does not hold) — **with the store's state
-    /// UNCHANGED**: the mark is resolved before the replay begins, so nothing is half-replayed.
+    /// **WHAT THE MARK'S WINDOW IS, DECLARED.** `journalLength` bounds what the journal KEEPS, and **⟶ FROM
+    /// 2026-11-17 IT BOUNDS IT BY DROPPING THE OLDEST ENTRIES WHOLE** (`strata/decisions.md` · `D-160` item 1):
+    /// the sentence that stood here — *"compaction is a mark and not an erasure"* — describes the mechanism the
+    /// ruling reverses, and **so does its conclusion that a mark behind the window is still replayable.** **THE
+    /// OPERATIVE STATEMENT IS THIS ONE: a position the compaction has taken is NOT a mark this primitive can name**,
+    /// and a caller that holds one meets the store's own refusal for an id the journal does not hold —
+    /// **`JournalOpUnknown`** (`M-11`'s code) — **with the store's state UNCHANGED**, because the mark is resolved
+    /// before the replay begins and nothing is half-replayed. **The head is always a mark the journal holds**
+    /// (`Store::journalMark` answers the head), so the package's window cache never names a dropped position.
+    /// **A second class still leaves the journal the same way** — the entry a failed `file`-tier commit takes with
+    /// it (`commit_file`'s `§7.2` item 3 path removes the entry it just reverted) — and it answers the same code
+    /// for the same reason.
     ///
     /// **IT APPENDS NO ENTRY AND DELIVERS NO TRIGGER** — it re-states what the journal already records, so
     /// the journal and the observable state agree again when it returns. **A SAVE IS AN EFFECT AND NOT AN OP:
@@ -3397,107 +3515,19 @@ impl Store {
         self.replayMark(None)
     }
 
-    /// **⟶ ADDED 2026-11-02 — `D-108`'S FOURTH ARM: THE REGENERATION A LAST-VALID-STATE REVERSAL RUNS WHEN
-    /// ITS CANDIDATE SET MEETS A COMPACTED ENTRY.** The architect, verbatim: *"The default behavior for a
-    /// last-valid-state rollback encountering the compaction should already be to regenerate from
-    /// file/creation data"*. **It changes the BASE a reversal reverts onto and nothing else: it writes no
-    /// journal entry, removes none, re-orders none, steps no `seq`, advances no compression and clears no mark**
-    /// (`M-9`, `DD-30`). **Its only effect on the journal is the loop's own mark on each candidate it re-states,
-    /// set by the caller.**
-    ///
-    /// **THE BASE IS THE STORE'S OWN EXISTING FILE-OR-CONSTRUCTION FALLBACK, AND NOT A READER BESIDE IT —
-    /// 2026-11-02, `D-110`.** The architect, verbatim: *"The regeneration should be an already existing
-    /// fallback that uses the file, if available, and the construction image if not"*. **THE FILE'S IMAGE WHERE
-    /// ONE STANDS, AND THE CONSTRUCTION IMAGE IN THE THREE CLASSES THAT OWE IT** — the classes `boot_load` *"the
-    /// store's own loader … answers `None` for"* (`D-110` item 1): no `filePath`, an absent or unreadable file, a
-    /// zero-length file. **Both grounds are reached through the read and the install the BOOT performs**
-    /// ([`Store::read_file_image`], the one place the path is read and decoded; [`Store::install_file_image`],
-    /// every admitted member minted at `Tier::File`) — **one decode, two mappings, and no second reach of the
-    /// path.** **AND THE CONSTRUCTION IMAGE IS NOT OVERLAID ON THE FILE'S:** where an image stands, the base is
-    /// THAT image over the graph a boot begins from — which is what `boot_load` itself leaves at the
-    /// construction — **because `born` is a one-instant capture, so an overlay would PUT BACK a version the
-    /// durable file has since REMOVED: a durable removal would come back, the state this section's own text
-    /// refuses (*"a deletion is durable at any scope and a durable removal does not come back"*), and the
-    /// reversal's own save would write the stale version into the file.** **The state that separates the two
-    /// compositions, and the reason this frame is spelled the second way: a boot over `{"x":1}`, a tier-named
-    /// `file` delete of `x`, then a `rollback` over a compacted entry — an overlay answers `x` and writes it
-    /// back, while this frame leaves `x` absent and the bytes at what the delete saved.**
-    /// **AND `born` IS NOT THE DURABLE STATE EITHER**: after ANY later successful save the bytes at the path
-    /// have moved past it, so a base taken from `born` where a file image stands would DROP every version whose
-    /// only journal record the compaction has taken **even where the file carries it** — and the reversal's own
-    /// save would then write that loss into the file (`D-108` item 1's first ground; gate 4's `F1`).
-    /// **⟶ AND AN IMAGE THE LOADER REFUSES IS NOT A REFUSAL HERE, FROM 2026-11-02 (`strata/decisions.md` ·
-    /// `D-118` item 1, correcting `D-109`'s narrowing at its own subject).** A present, non-empty `filePath`
-    /// whose bytes cannot be read as this store's state is **TREATED AS NO IMAGE AT ALL**, exactly as where no
-    /// path, no file or a zero-length file stands: the base is the CREATION STATE the store was born with, the
-    /// reversal proceeds, and the save that follows writes a readable image over those bytes. **So this frame
-    /// refuses on NO state of the path**, and the token `RollbackCompacted` — which keeps its rank, its code and
-    /// its generated message — is produced by no act of this tree (`arms.md §B.3`; and no byte of `src/error.rs`
-    /// moves for it, `PIN-14` (v)). **THE READ IS NOT A HAZARD TO THE WALK, AND THE WALK IS WHY: an in-scope
-    /// entry is filtered out of the replay below and the caller's own backward walk then re-states its captured
-    /// pre-state over whatever the base put back, so a durable version the reversal must remove is removed by
-    /// the reversal and never by the base's choice.**
-    ///
-    /// **THE INCREMENTS AND THE FILTER, ONE PREDICATE ON ONE MARK.** Every journal entry is applied in appended
-    /// order **iff (a) it is OUTSIDE the reversal's candidate scope — its address is not under the named
-    /// address or its `seq` is below the floor — AND (b) its `op.compacted` mark does NOT stand.** An in-scope
-    /// entry is not replayed because it is what the reversal is undoing and the caller's walk re-states its
-    /// pre-state next; **an out-of-scope entry whose mark stands IS NOT replayed, because a mark means the entry
-    /// is SPENT** — it fell out of the undo window, or a prior reversal already reverted it — and neither is a
-    /// state this arm may re-instate. **The `compacted` mark has TWO grounds and no member distinguishes them,
-    /// and this arm is lawfully indifferent to which one set it** (`M-9`'s one-predicate clause, read whole).
-    /// **SO THE LAST VALID STATE IS THE DURABLE STATE *PLUS* EVERYTHING THE SURVIVING JOURNAL STILL REACHES: a
-    /// `mem`- or `temp`-tier version whose creating entry is un-marked SURVIVES, because the entry's own `after`
-    /// carries every version at every tier and this replay re-mints each at its own tier; and a version whose
-    /// ONLY record is a compacted entry IS LOST, because the entry is not replayed and no file image carries
-    /// it.** That is `D-108` item 3's answer and it is the undo window's own edge rather than a failure.
-    ///
-    /// **IT IS NOT A SECOND REVERSAL, NOT A JOURNAL RESET, NOT A `restoreMark` CALL AND NOT A SAVE.** It is not
-    /// `restoreMark`: that replays to a POSITION and drops every entry above it, while this replay keeps every
-    /// out-of-scope entry and drops none of them. **It is not a save either, and from 2026-11-02 the save it is not
-    /// is not even this verb's caller's**: `rollback` writes no byte (`D-112` item 2), and the state-keyed write is
-    /// [`Store::save_state`]'s, made by the package after the reversal's judgement and compared against the
-    /// durable state — never against a position this frame took before it moved the base. And it delivers no
-    /// trigger, reads no constraint and opens no `K-2` — the same three negatives the two restore frames carry.
-    fn regenerate(&mut self, scope: &[usize]) -> Result<(), StoreError> {
-        // **THE FALLBACK'S ONE ANSWER, TAKEN BEFORE ANYTHING MOVES — `D-110` item 3.** **⟶ AND AN IMAGE THE
-        // STORE'S OWN LOADER CANNOT READ IS TREATED AS NO IMAGE AT ALL, 2026-11-02 (`strata/decisions.md` ·
-        // `D-118`):** it is NOT a refusal and it is not a state this arm refuses to reach — the three classes
-        // `boot_load` answers `None` for and this fourth one take the same base. **THE ARCHITECT'S OWN WORDS,
-        // VERBATIM: *"In the corrupt file case, then it restores from the store creation image"*.** **SO THE
-        // REGENERATION NEVER REFUSES ON THE IMAGE, THE REVERSAL PROCEEDS, AND THE SAVE THAT FOLLOWS WRITES A
-        // READABLE IMAGE OVER THE CORRUPT FILE — which is the durable state the memory holds.** **WHAT THAT
-        // COSTS IS NAMED AND IT IS NOT A LOSS THE STORE COULD HAVE AVOIDED: the bytes at that path were never
-        // readable as this store's state, so nothing the store could have read is dropped.** **AND NO BYTE OF
-        // `src/error.rs` MOVES FOR IT** (`PIN-14` (v)): `rollback_compacted` keeps its rank, its code and its
-        // generated message and simply has no caller left in this frame — the token's subject is the closed
-        // set's and its retirement is not this unit's act (`arms.md §B.3`, `D-118` item 2).
-        let image = self.read_file_image();
-        match image {
-            // **THE FILE'S IMAGE WHERE ONE STANDS** — installed over the graph a boot begins from, which is the
-            // act `boot_load` itself performs at the construction (`reset_register` then `install_file_image`).
-            FileImage::Members(members) => {
-                self.reset_register();
-                self.install_file_image(&members);
-            }
-            // **AND THE CONSTRUCTION IMAGE IN THE FOUR CLASSES THAT OWE IT** — the three `boot_load` answers its
-            // `None` for, and an image the loader REFUSES, which `D-118` reads as no image at all.
-            FileImage::NoImage | FileImage::Refused => {
-                let born = self.born.clone();
-                self.apply_register(&born);
-            }
-        }
-        for index in 0..self.journal.len() {
-            if scope.contains(&index) {
-                continue;
-            }
-            if self.journal[index].op.compacted {
-                continue;
-            }
-            self.replay_entry(index)?;
-        }
-        Ok(())
-    }
+    // **⟶ DELETED 2026-11-17 (`strata/decisions.md` · `D-160` ITEMS 1, 2 AND 5): `fn regenerate(&mut self,
+    // scope: &[usize])` STOOD HERE — `D-108`'S FOURTH ARM, THE RE-BASE A REVERSAL RAN WHEN ITS CANDIDATE SET
+    // MET A COMPACTED ENTRY — AND IT IS WITHDRAWN WHOLE WITH THE ARM THAT CALLED IT.** Its two grounds were the
+    // durable file image and the construction image, the second in the four classes `D-110`/`D-118` read as NO
+    // IMAGE AT ALL, and its replay skipped every marked entry (*"an out-of-scope entry whose mark stands IS NOT
+    // REPLAYED, because a mark means the entry is SPENT"*). **NONE OF THE THREE SUBJECTS SURVIVES THE RULING**:
+    // compaction is a DROP, so no candidate carries a mark; there is no *"last valid state"* to re-derive from a
+    // durable ground truth, because the state the drop leaves is the store's own and the journal's floor is what
+    // the base state already holds (`D-160` item 2: *"what survives is the base state … plus at most
+    // `journal_length` uncompacted ops"*); and the reversal's backward walk is the plain one either way. **THE
+    // IMAGE READ IT USED IS NOT LOST AND IS NOT DUPLICATED**: `boot_load` reads the path through the SAME
+    // [`Store::read_file_image`] and mints through the SAME [`Store::install_file_image`], and the reversal's
+    // save is the package's (`D-112` item 2), unmoved.
 
     /// **THE REPLAY ITSELF, AT ONE POSITION, AND IT IS THE ONE BODY `restoreMark` AND `restoreFloor` SHARE** —
     /// so the mark's two spellings (an op id, and the floor) cannot drift apart on the replay, the save or the
@@ -3648,8 +3678,11 @@ impl Store {
     /// **THE DURABLE STATE, READ THROUGH THE STORE'S ONE READER — `D-110` item 2, AND `D-108` ITEM 1'S TWO
     /// GROUNDS.** The `file` tier's image where one stands ([`Store::read_file_image`], the one place the path is
     /// read and decoded), and the construction image where none does — the state the store was born with
-    /// ([`Store::born`]), which is the same ground truth [`Store::regenerate`] rebuilds onto and the same class of
-    /// `None` [`Store::boot_load`] exempts (no `filePath`, an absent or unreadable file, a zero-length file).
+    /// ([`Store::born`]), and the same class of `None` [`Store::boot_load`] exempts (no `filePath`, an absent or
+    /// unreadable file, a zero-length file). **⟶ AND THE REGENERATION THAT ALSO READ IT IS WITHDRAWN, 2026-11-17
+    /// (`D-160` item 5)**: `D-108` item 1's re-base had this projection as its ground truth, and the ruling's DROP
+    /// leaves that arm no subject — **so this reading has ONE caller left, the state-keyed save's comparison
+    /// (`replayMark` via `save_file_delta`), which is the guard `D-111` item 1 gave it.**
     ///
     /// **`None` MEANS THE STANDING IMAGE CANNOT BE READ AS THIS STORE'S STATE** — [`FileImage::Refused`] — so
     /// nothing is claimed about it and the caller writes.

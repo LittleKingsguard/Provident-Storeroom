@@ -8394,3 +8394,49 @@ write count.
 
 **TERMS: the drives (`6`) · the arms measured (`2`) · the layers isolated (`0`) · the cells added (`0`) · the figures that may be quoted
 (`1` = the linear ~3.7 KB/write floor, as a FLOOR and not a design) · the rulings this row makes (`0`).**
+
+---
+
+### `D-160` — COMPACTION DROPS HISTORY: THE JOURNAL IS BOUNDED BY ITS CAP, AND THE MARK IS NOT THE MECHANISM
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `ec11787` (the tree carries the RCA `docs/L1/journal-retention-rca.md`). **SOURCE:** the
+architect, in session, answering that RCA's §6. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Compaction dropping history is the point"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **COMPACTION IS A DROP AND NOT A MARK.** The journal's cap bounds **the history the store KEEPS**, not the number of entries whose flag is
+   set: **an entry the compaction reaches is REMOVED, and its op ids are gone.** **So the current implementation is WRONG AND NOT MERELY
+   UNBOUNDED**: `src/store.rs`'s loop marks `op.compacted = true` and pushes forever, and **the RCA measured the consequence — a journal whose
+   total size is QUADRATIC in the write count** (`docs/L1/journal-retention-rca.md` §2: 47 · 125 · 472 · 1,850 · 7,277 MB at 1k · 2k · 4k · 8k ·
+   16k writes; the second realm OOMs between 12,000 and 16,000).
+2. **AND THE BOUND IS `journal_length` PLUS THE FLOOR.** What survives is **the base state** — the register's own snapshot at the moment of the
+   last compression, which the code already carries and already calls *"the walk's floor"* (`src/store.rs:2331`) — **plus at most
+   `journal_length` uncompacted ops.** **Memory becomes `O(store + journal_length)`, which is what the cap always said it was.**
+3. **★ AND THE TWO REFUSALS STAY DISTINGUISHABLE WITHOUT THE DROPPED IDS, WHICH IS THE ONE THING THAT MADE THE MARK LOOK NECESSARY.** A
+   rollback names an op; **a dropped op must answer `RollbackCompacted` and an id that never existed must answer `JournalOpUnknown`** — and once
+   the ids are dropped the two are indistinguishable **by id alone**. **THE DISCRIMINATOR IS A WATERMARK AND NOT A LIST: op ids are the store's
+   own sequence, so "every op at or below the floor's own seq was dropped" is ONE NUMBER**, and the two refusals are decided by comparing the
+   named id's seq with it. **`compacted: Vec<String>`'s replacement is that watermark; the ids need not be retained to keep a refusal honest.**
+4. **AND IT LICENSES THE REMOVAL OF THE PER-ENTRY CLONE.** `src/store.rs:2653`–`:2659` clones one string per already-compacted entry **on every
+   write**; that clone has no subject once the entries are dropped, **and the quadratic with it.**
+
+**WHAT IT DOES NOT SETTLE, AND EACH IS THE IMPLEMENTATION'S.**
+
+1. **THE WATERMARK'S HOME** — a field on the store, an entry on the floor, or the base state's own record; **and whether the floor is an `Entry`
+   or a snapshot beside one.**
+2. **WHAT `restore_compaction` BECOMES** — it exists to re-learn the marks from a stored list; **with a drop there is nothing to re-learn**, and
+   whether it disappears or becomes the watermark's reader is the implementation's.
+3. **WHAT THE IMAGE CARRIES** — the file tier's committed image is composed from the register and the journal; **a drop changes what a boot over an
+   older image can refuse**, and whether the image records the watermark is the implementation's.
+4. **THE `compacted` MEMBER THE JS RECEIPT CARRIES** (`WriteRecord.compacted`) — a fresh write answers `false` today; **whether the member
+   survives the drop, and what it means once nothing is marked**, is a declaration this row does not make.
+5. **THE OWED CELL** — a drive that takes N writes and reads **`heapUsed` against a declared ceiling** (§6's last paragraph), plus a cell for
+   item 3's two refusals at a dropped id and an unknown one. **Neither exists.**
+
+**TERMS: the mechanism (`1` = drop) · the bound (`journal_length` + the floor) · the discriminator (`1` = a seq watermark) · the per-entry
+clones removed (`1` per write) · the memory's shape (`O(store + journal_length)`) · the code moved by this row (`0`) · the units it opens
+(`1`).**

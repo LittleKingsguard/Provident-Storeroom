@@ -767,22 +767,36 @@ test('FSC-ARM4-REGEN-FILE · ARM 4 — a reversal whose candidate set holds a CO
   rmSync(dir, { recursive: true, force: true });
 });
 
-test('FSC-ARM4-LOST · ARM 4 at `D-108` ITEM 3\'s own case — a `mem`-tier version whose ONLY record the window swallowed does NOT come back', () => {
+// **⟶ RE-WORDED AND RE-DERIVED 2026-11-17 — `strata/decisions.md` · `D-160` ITEMS 1 AND 3, AND THE CELL'S NAME
+// ASSERTED THE PREMISE THE RULING REVERSES.** It was `FSC-ARM4-LOST`, filed on `D-108` item 3's own case — *"a
+// `mem`-tier version whose ONLY record a compacted entry is IS LOST, because the entry is not replayed and no file
+// image carries it"* — and it measured that loss through the REGENERATION. **The architect, verbatim:
+// *"Compaction dropping history is the point"*** — the window now DROPS the entry (`D-160` item 1), there is no
+// regeneration to run (`Store::regenerate` is deleted with its arm, item 5), and **the state the dropped entry
+// described was never the journal's to destroy: the drop takes the RECORD**. **SO THE OBSERVABLE FLIPS AND THE
+// CELL KEEPS ITS TEETH**: the `mem` version the window took STILL STANDS in memory and in the store's reads —
+// *"the drop is a journal act and not a graph act"* — while the POSITION it named is unreachable, which is what
+// `D-160` item 3 answers for the id the dropped entry carried (`RollbackCompacted`, driven at
+// `fsc_prop_P_FSC_4`'s body). **What the old cell pinned and this one keeps: nothing the window took can be
+// RE-STATED later** — the bytes never carried it and a fresh boot still does not read it.
+test('FSC-ARM4-DROPPED-RECORD · the window takes the entry and NOT the state it described — a `mem`-tier version whose only journal record the drop swallowed still stands, and the position it named is gone', () => {
   const { dir, filePath } = scratch('lost');
   const store = make({ filePath, journalLength: 2 });
   store.write(['a'], 'file', 1);
   store.write(['n'], 'mem', 'lost');
   const second = store.write(['a'], 'file', 2);
-  store.write(['x'], 'file', 9);              // the window compacts the first two entries, ['n']'s among them
-  store.rollback(second.op.opId);              // the plain walk, which marks its own candidates
-  const regenerating = attempt(() => store.rollback(second.op.opId));
-  assert.equal(regenerating.ok, true,
-    `the regenerating reversal must RETURN (\`PIN-12\` (iii) (b)'s arm): ${JSON.stringify(regenerating.caught?.status)}`);
-  assert.deepEqual(standing(store, ['n']), { present: false, refused: 'AddressNotFound' },
-    `**THE SWALLOWED MEMORY-ONLY VERSION IS LOST** — and a pass that "helpfully" restored everything would fail here: ${JSON.stringify(standing(store, ['n']))}`);
+  store.write(['x'], 'file', 9);              // `D-160` item 1: the two oldest entries are DROPPED, ['n']'s among them
+  const first = attempt(() => store.rollback(second.op.opId));  // the plain walk over what the journal still holds
+  assert.equal(first.ok, true,
+    `the walk of an op the window still holds must land: ${JSON.stringify(first.caught?.status)}`);
+  const again = attempt(() => store.rollback(second.op.opId));
+  assert.equal(again.ok, true,
+    `and a second identical reversal RETURNS (\`M-9\`'s idempotence, held by the walk itself from 2026-11-17): ${JSON.stringify(again.caught?.status)}`);
+  assert.deepEqual(standing(store, ['n']), { present: true, value: 'lost' },
+    `**THE VERSION WHOSE ONLY RECORD THE WINDOW DROPPED STILL STANDS** — the drop removes the record and leaves the graph, and a pass that rolled the state back with the entry would fail here: ${JSON.stringify(standing(store, ['n']))}`);
   assert.equal(bytesOf(filePath).includes('"n"'), false, 'the bytes never carried it and still do not');
   assert.deepEqual(standing(make({ filePath }), ['n']), { present: false, refused: 'AddressNotFound' },
-    'and a fresh instance over the path answers `AddressNotFound` for it too');
+    'and a fresh instance over the path answers `AddressNotFound` for it too — nothing durable ever held it');
   rmSync(dir, { recursive: true, force: true });
 });
 

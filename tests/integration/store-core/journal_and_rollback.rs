@@ -464,16 +464,19 @@ fn s6_4_m8_a_rollback_is_total_over_its_scope() {
     );
 }
 
-// **⟶ RE-DERIVED 2026-11-02 — `D-108` ITEM 1, AND THE MOVEMENT IS RECORDED RATHER THAN MADE SILENTLY.** The
-// cell was filed on `§6.4 M-6`: *"a rollback whose scope includes a compacted entry fails
-// `RollbackCompacted` and undoes NOTHING"*. **`M-6` IS CORRECTED IN THIS UNIT** (`strata/decisions.md` ·
-// `D-108` item 4): a last-valid-state reversal that meets a compacted entry REGENERATES the last valid state
-// from the durable ground truth — the `file` tier's image where one stands, the creation state where none
-// does — and then replays what its journal still reaches. **So the call RETURNS a `RollbackResult` and the
-// reversal IS performed**; `D-109` narrows `RollbackCompacted` to a candidate set holding a compacted entry
-// **AND** a `filePath` whose image cannot be read as an object, which this drive does not stand.
+// **⟶ RE-DERIVED 2026-11-17 — `D-160` ITEMS 1, 2 AND 3 (`strata/decisions.md`), AND THE MOVEMENT IS RECORDED
+// RATHER THAN MADE SILENTLY.** The cell was filed on `§6.4 M-6` twice: *"a rollback whose scope includes a
+// compacted entry fails `RollbackCompacted` and undoes NOTHING"*, and then — after `D-108` item 1 made that arm
+// REGENERATE from the durable ground truth — *"a rollback over a compacted scope regenerates the last valid
+// state"*. **`D-160` ITEM 1 REPLACES BOTH READINGS WITH THE MECHANISM THE RULING NAMES**: the architect, verbatim,
+// ***"Compaction dropping history is the point"*** — the compaction DROPS the entry it reaches, **so there is no
+// compacted entry for a candidate set to hold and no regeneration to run**, and **item 3** gives the dropped op its
+// own refusal **decided by ONE NUMBER, the floor's watermark**: an id at or below the floor answers
+// `RollbackCompacted` and an id that never named a store op answers `JournalOpUnknown`. **The refusal moves
+// nothing** (`M-10`'s all-or-nothing read on this arm), and it answers a code rather than a record, so
+// `undoneOps` is not answered at all.
 #[test]
-fn s6_4_m6_a_rollback_over_a_compacted_scope_regenerates_the_last_valid_state() {
+fn s6_4_m6_a_rollback_over_a_dropped_op_refuses_at_the_floor() {
     let mut store = new_store_with_journal(1);
     let first = ok(
         store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
@@ -481,32 +484,38 @@ fn s6_4_m6_a_rollback_over_a_compacted_scope_regenerates_the_last_valid_state() 
     );
     ok(
         store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(2.0)),
-        "§3.4 W-1: the append compresses the oldest",
+        "§3.4 W-1 / D-160 item 1: the append DROPS the oldest entry",
     );
-    let undone = ok(
+    let refused = failure(
         store.rollback(OpIdArg::Id(first.op.opId.clone())),
-        "D-108 item 1: the compaction arm REGENERATES and returns its record",
+        "D-160 item 3: a dropped op answers at the floor's watermark",
     );
-    assert!(
-        undone.undoneOps.contains(&first.op.opId),
-        "D-108 item 2: no landed edit survives — the reversal performed its undo and reported it; got {:?}",
-        undone.undoneOps
+    assert_code(
+        &refused,
+        "RollbackCompacted",
+        "D-160 item 3: the DROPPED op is `RollbackCompacted` — and the id that never existed is \
+         `JournalOpUnknown`, which the fail-set's own cell drives beside this one",
     );
-    assert!(
-        store
-            .read(AddressArg::List(key(&["a"])), none())
-            .is_err(),
-        "D-108 item 1: the state is the ground truth plus the surviving journal, and here the compacted \
-         entry's version is not replayed (`PIN-12` (ii)) — so it does not stand"
+    assert_eq!(
+        read_at(&store, &key(&["a"])),
+        v_num(2.0),
+        "§6.4 M-10: the refusal undoes NOTHING — the state the second write left stands"
     );
 }
 
 // §6.1 item 5 (`PAR-7`'s observable) + §6.4 M-6 — with `journalLength = n`, after `n + 1` appends the
-// OLDEST entries are compacted and at most `n` remain un-compacted: an operation outside the compacted
-// entry's subtree still rolls back.
+// OLDEST entries are DROPPED and at most `n` remain: an operation outside the dropped entry's subtree still
+// rolls back, and the dropped one answers the floor.
 // Drives: §6.1 item 5 (, §6.4 M-6
+//
+// **⟶ RE-DERIVED 2026-11-17 — `D-160` ITEM 1 (`strata/decisions.md`): THE TRIGGER'S VERB CHANGES AND THE FIGURE
+// DOES NOT.** The cell was filed as *"the OLDEST entries are compacted"* and driven through `D-108` item 1's
+// regeneration; **the ruling makes the compaction a DROP** — *"the architect, verbatim: 'Compaction dropping
+// history is the point'"* — so the oldest op is GONE, the reversal that names it answers `RollbackCompacted`
+// (`D-160` item 3), and the reversal at a surviving op lands as it always did. **`journalLength`'s bound is the
+// fact this cell keeps: at most `n` entries stand.**
 #[test]
-fn s6_1_item5_the_compression_trigger_marks_the_oldest_entries() {
+fn s6_1_item5_the_compression_trigger_drops_the_oldest_entries() {
     let mut store = new_store_with_journal(2);
     let first = ok(
         store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
@@ -520,22 +529,18 @@ fn s6_1_item5_the_compression_trigger_marks_the_oldest_entries() {
         store.write(AddressArg::List(key(&["c"])), w_mem(), v_num(3.0)),
         "§3.4 W-3: the third append triggers it",
     );
-    // **⟶ RE-DERIVED 2026-11-02 — `D-108` ITEM 1.** The first reversal was filed as FAILING
-    // `RollbackCompacted` (`§6.1` item 5's compaction). **It now REGENERATES and RETURNS**: the mark the
-    // compression left is a spent entry the replay does not re-instate, and the state is the durable ground
-    // truth plus the surviving journal. The SECOND reversal — at an un-compacted op — is unmoved.
-    let regenerated = ok(
+    let dropped = failure(
         store.rollback(OpIdArg::Id(first.op.opId.clone())),
-        "§6.1 item 5 / D-108 item 1: the oldest entry is compacted, and the arm regenerates and returns",
+        "§6.1 item 5 / D-160 item 1: the oldest entry is DROPPED, and its id answers the floor",
     );
-    assert!(
-        regenerated.undoneOps.contains(&first.op.opId),
-        "D-108 item 1: the reversal is performed and reported; got {:?}",
-        regenerated.undoneOps
+    assert_code(
+        &dropped,
+        "RollbackCompacted",
+        "D-160 item 3: the dropped op's refusal is the floor's watermark and not a regeneration",
     );
     ok(
         store.rollback(OpIdArg::Id(second.op.opId.clone())),
-        "§6.1 item 5: at most `n` entries remain un-compacted",
+        "§6.1 item 5: at most `n` entries stand, and an operation the window still holds rolls back",
     );
 }
 
@@ -897,13 +902,19 @@ fn s6_6_the_head_mark_after_a_reversal_is_the_pre_reversal_state() {
     );
 }
 
-/// **A MARK OUTSIDE THE `journalLength` WINDOW IS STILL REPLAYABLE, AND THAT IS THE MEASURED ANSWER.**
+/// **A MARK THE COMPACTION TOOK IS NO MARK AT ALL, FROM 2026-11-17 — AND THAT IS THE MEASURED ANSWER.**
 ///
-/// `journalLength` bounds the ROLLBACK by MARKING the oldest entries `compacted` (`§6.1` item 5); it removes
-/// none of them, and the replay reads every entry the journal holds. So the compacted floor that refuses a
-/// rollback (`s6_4_m6_…`) does NOT refuse a mark restore — compaction is a MARK and not an erasure.
+/// **⟶ RE-DERIVED 2026-11-17 (`strata/decisions.md` · `D-160` ITEMS 1 AND 3), AND THE CELL'S NAME ASSERTED THE
+/// PREMISE THE RULING REVERSES.** It was filed as *"a mark outside the `journalLength` window is still
+/// replayable"*, on the reading that `journalLength` MARKS the oldest entries and removes none — *"compaction is a
+/// MARK and not an erasure"*. **`D-160` ITEM 1 MAKES IT AN ERASURE** (*"Compaction dropping history is the
+/// point"*, the architect, verbatim): the entry behind the window is GONE, so the mark that named it is not a mark
+/// this store can name — **`restoreMark` answers `JournalOpUnknown`** (`M-11`, the code it already answers for an
+/// id it does not hold) **and leaves the state where it stands**. **What the window does NOT take is the head**,
+/// and the head still replays here — so the primitive's own subject (`§6.6`'s mark) is read on both sides of the
+/// floor rather than asserted on the wrong one.
 #[test]
-fn s6_6_a_mark_outside_the_window_is_still_replayable() {
+fn s6_6_a_mark_the_compaction_took_is_no_mark_at_all() {
     let mut store = new_store_with_journal(1);
     let first = ok(
         store.write(AddressArg::List(key(&["x"])), w_mem(), v_num(1.0)),
@@ -915,34 +926,33 @@ fn s6_6_a_mark_outside_the_window_is_still_replayable() {
     );
     ok(
         store.write(AddressArg::List(key(&["x"])), w_mem(), v_num(3.0)),
-        "§3.4 W-1",
+        "§3.4 W-1: the window has taken the first two entries (`D-160` item 1)",
     );
-    // **⟶ RE-DERIVED 2026-11-02 — `D-108` ITEM 1.** The reversal was filed as meeting the compacted floor;
-    // **it now REGENERATES and RETURNS**, so the contrast this cell draws is against a reversal that was
-    // PERFORMED rather than refused — and the mark still replays below, which is the fact the cell is about.
-    let performed = ok(
-        store.rollback(OpIdArg::Id(first.op.opId.clone())),
-        "D-108 item 1: the compacted candidate set is regenerated, not refused",
-    );
-    assert!(
-        performed.undoneOps.contains(&first.op.opId),
-        "D-108 item 1: the reversal is performed and reported; got {:?}",
-        performed.undoneOps
-    );
-    // THE MARK IS BEHIND THE SAME FLOOR AND STILL REPLAYS: the state the FIRST write left.
+    // THE HEAD IS A MARK THE JOURNAL HOLDS, AND IT REPLAYS: the state the THIRD write left.
     ok(
-        store.restoreMark(OpIdArg::Id(first.op.opId.clone())),
-        "§6.6: a compacted mark replays",
+        store.restoreMark(OpIdArg::Absent),
+        "§6.6: the head mark replays — `journalMark` answers a position the journal still holds",
     );
     assert_eq!(
         read_at(&store, &key(&["x"])),
-        v_num(1.0),
-        "§6.6: the state immediately AFTER the first write is what the mark names"
+        v_num(3.0),
+        "§6.6: the head names the state immediately after the third write"
+    );
+    // **THE DROPPED MARK IS REFUSED IN THE STORE'S OWN DECLARED FORM AND THE STATE IS UNCHANGED**: the mark is
+    // resolved before the replay begins, so nothing is half-replayed.
+    let refused = failure(
+        store.restoreMark(OpIdArg::Id(first.op.opId.clone())),
+        "§6.6 / D-160 item 1: a mark the compaction took is not a mark the journal holds",
+    );
+    assert_code(
+        &refused,
+        "JournalOpUnknown",
+        "§6.4 M-11: the code `restoreMark` already answers for an id the journal does not hold",
     );
     assert_eq!(
-        tiers_answering_at(&store, &key(&["x"])),
-        vec![Tier::Mem],
-        "§6.6: and it is one version, at the one tier the write used"
+        read_at(&store, &key(&["x"])),
+        v_num(3.0),
+        "§6.6: the refusal changes nothing — the state the head mark left stands"
     );
 }
 

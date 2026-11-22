@@ -1204,9 +1204,18 @@ const g10 = { all: [] };
   //   (c) **THE SAVE** — the bytes at the path are no longer the corrupt text, they PARSE, they read the creation
   //       state's own empty register (this fixture wrote nothing at the `file` tier), and a FRESH boot over that
   //       image constructs and reads the same floor;
-  //   (d) **NO TOKEN** — the call did not throw, and every image state the loader can meet, the readable ones
-  //       included and the zero-length file beside them, RETURNS a record rather than answering
-  //       `RollbackCompacted` (`P-FSC-4` (ii) drives the same class at the e2e scope this row shares).
+  //   (d) **THE TOKEN AND ITS NEIGHBOUR, BOTH WAYS** — every image state the loader can meet, the readable ones
+  //       included and the zero-length file beside them, RETURNS a record at the op the window HOLDS and answers
+  //       `RollbackCompacted` at the op it DROPPED (`D-160` item 3; `P-FSC-4` (ii) drives the same class at the
+  //       e2e scope this row shares).
+  //
+  // **⟶ AND (a)–(d) ARE RE-DERIVED AGAIN 2026-11-17 (`strata/decisions.md` · `D-160` ITEMS 1, 3 AND 5), WHICH IS THE
+  // FOURTH READING OF THIS ROW.** It was *"REBUILDS FROM THE CREATION STATE AND RETURNS … and NO state of that path
+  // answers `RollbackCompacted`"*; **the architect, verbatim: *"Compaction dropping history is the point"*** — the
+  // window now DROPS the entry, so **the dropped id IS the rank's producer** and the held op is the arm that
+  // returns. **`D-118` item 1's creation-state rebuild is withdrawn with its arm** (`Store::regenerate` is
+  // deleted): no reversal reads the path, so the seven-state class cannot differ by image, and the save that
+  // follows the judgement is what makes the bytes readable again.
   // **AND IT IS NOT PUSHED INTO `g10.all`**: that list is the DRIVEN FAILURES the `.18`/`.19`/`.20` aggregates
   // census, and a returning arm is no failure of any kind (`D-108` item 1: *"the answer is not undo nothing and
   // stand where you are"*) — the same ground the neighbour arms below already carry. **ONE CELL AND ONE FIGURE**:
@@ -1214,12 +1223,16 @@ const g10 = { all: [] };
   const cfgJ = mk('g10j');
   const iJ = ns.storeCreate({ ...cfgJ, journalLength: 1 });
   const jw1 = thrown(() => iJ.write(['rc1'], 'temp', 1));
-  thrown(() => iJ.write(['rc2'], 'temp', 1));
+  const jw2 = thrown(() => iJ.write(['rc2'], 'temp', 1));
+  // **THE PRODUCER `D-160` ITEM 3 GIVES THE RANK, READ ON THIS FIXTURE**: the window is `1`, so the second append
+  // DROPPED `['rc1']`'s entry and a rollback that names its id answers the token at the floor's watermark.
+  const j10Floor = thrown(() => iJ.rollback(jw1.value.op.opId));
   // THE SUBJECT `D-118` ITEM 1 NAMES: PRESENT, NON-EMPTY, AND NOT READABLE AS THIS STORE'S IMAGE.
   const CORRUPT = 'not this store\'s image';
   fs.writeFileSync(cfgJ.filePath, CORRUPT);
   const j10Before = thrown(() => iJ.read(['rc1']));
-  const j10Call = thrown(() => iJ.rollback(jw1.value.op.opId));
+  // AND THE ARM THIS ROW'S OTHER OBSERVABLES READ: an op the window still HOLDS.
+  const j10Call = thrown(() => iJ.rollback(jw2.value.op.opId));
   const j10After = thrown(() => iJ.read(['rc1']));
   const j10Beside = thrown(() => iJ.read(['rc2']));
   const j10Bytes = (() => { try { return fs.readFileSync(cfgJ.filePath, 'utf8'); } catch { return null; } })();
@@ -1238,14 +1251,17 @@ const g10 = { all: [] };
     const cfg = mk(`g10j-${name}`);
     const s = ns.storeCreate({ ...cfg, journalLength: 1 });
     const w1 = thrown(() => s.write(['rc1'], 'temp', 1));
-    thrown(() => s.write(['rc2'], 'temp', 1));
+    // THE SECOND APPEND IS KEPT AS A RECORD: with a window of `1` it DROPS the first (`D-160` item 1).
+    const w2 = thrown(() => s.write(['rc2'], 'temp', 1));
     fs.writeFileSync(cfg.filePath, image);
     const before = thrown(() => s.read(['z']));
-    const call = thrown(() => s.rollback(w1.threw ? null : w1.value.op.opId));
+    const call = thrown(() => s.rollback(w2.threw ? null : w2.value.op.opId));
+    const floor = thrown(() => s.rollback(w1.threw ? null : w1.value.op.opId));
     const after = thrown(() => s.read(['z']));
-    return { name, image, id: w1.threw ? null : w1.value.op.opId, cfg, call, before, after,
+    return { name, image, id: w2.threw ? null : w2.value.op.opId, cfg, call, floor, before, after,
       undone: call.threw ? null : call.value?.undoneOps ?? null,
-      returned: !call.threw && call.value !== null && typeof call.value === 'object' };
+      returned: !call.threw && call.value !== null && typeof call.value === 'object',
+      floored: floor.threw ? statusOf(floor) : 'RETURNED' };
   };
   const j10Class = IMAGE_CLASS.map(([name, image]) => armAt(name, image));
   const j10Absent = j10Class.find((a) => a.name === 'empty');
@@ -1253,24 +1269,32 @@ const g10 = { all: [] };
   const j10Returned = j10Record !== null;
   const j10Shape = j10Returned
     && membersAre({ members: Object.keys(j10Record).sort() }, 'opId,restoredTo,undoneOps')
-    && j10Record.opId === jw1.value.op.opId
-    && Array.isArray(j10Record.undoneOps) && j10Record.undoneOps.includes(jw1.value.op.opId)
+    && j10Record.opId === jw2.value.op.opId
+    && Array.isArray(j10Record.undoneOps) && j10Record.undoneOps.includes(jw2.value.op.opId)
     && j10Record.restoredTo !== null && typeof j10Record.restoredTo === 'object'
     && j10Record.restoredTo.present === false;
-  const j10Rebuilt = statusOf(j10After) === 'AddressNotFound'
-    && !j10Beside.threw && rel(j10Beside.value, 1);
+  // **THE FLOOR, WHICH IS THIS ROW'S NEW TEETH** (`D-160` item 3): the id the window took answers the token.
+  const j10Floored = statusOf(j10Floor) === 'RollbackCompacted';
+  // **AND THE DROP IS A JOURNAL ACT, NOT A GRAPH ACT**: `['rc1']`'s entry is gone and the version it described
+  // STANDS (the reversal restored `['rc2']`'s pre-state and touched nothing else).
+  const j10Rebuilt = !j10After.threw && rel(j10After.value, 1)
+    && statusOf(j10Beside) === 'AddressNotFound';
   const j10Saved = j10Bytes !== null && j10Bytes !== CORRUPT
     && j10Image.parsed === true && j10Image.value !== null && typeof j10Image.value === 'object'
     && rel(j10Image.value, {})
     && j10Boot.threw === false && j10BootRoot !== null && j10BootRoot.threw === false
     && rel(j10BootRoot.value, {});
-  const j10NoToken = j10Call.threw === false
+  // **THE WHOLE CLASS, BOTH WAYS**: every state of the path RETURNS at the op the window holds (no image is read
+  // by any reversal any more — the regeneration that read it is withdrawn with `D-160` item 5), and every state
+  // answers the TOKEN at the op it dropped (`D-160` item 3).
+  const j10BothWays = j10Call.threw === false
     && j10Class.every((a) => a.returned && a.id !== null
-      && a.call.value.opId === a.id && Array.isArray(a.call.value.undoneOps));
-  A('JSG-10.12', 'store §8.1 #11; §6.1 item 5; §6.4 M-6 as corrected 2026-11-02 by `strata/decisions.md` · `D-108` item 4, THEN REPLACED 2026-11-02 BY `D-118` ITEMS 1–2 (`D-109` item 1\'s narrowed subject is the arm `D-118` item 1 removes: a `filePath` image the loader cannot read as an object is NO IMAGE AT ALL, and `RollbackCompacted` keeps its place in the twenty as `DECLARED, NO PRODUCER`); `docs/specs/storeroom-file-save-coverage/contract.md` `PIN-11` (iv)',
-    'a rollback whose candidate set includes the entry the append compressed, on a store whose filePath image cannot be read as an object, REBUILDS FROM THE CREATION STATE AND RETURNS — a `RollbackRecord` echoing the id with an `undoneOps` array and a `restoredTo`, the compacted entry\'s address no longer resolving while the append after it stands, the save that follows leaving a READABLE creation-state image at the path — and NO state of that path answers `RollbackCompacted`',
-    j10Returned && j10Shape && j10Rebuilt && j10Saved && j10NoToken,
-    `${statusOf(j10Call)} ; record ${j10Record === null ? 'none' : `{${Object.keys(j10Record).sort().join(',')}} opId=${fmt(j10Record.opId)} undoneOps=${fmt(j10Record.undoneOps)} restoredTo=${fmt(j10Record.restoredTo)}`} ; ['rc1'] before ${j10Before.threw ? fmt(j10Before.err?.status) : fmt(j10Before.value)} / after ${statusOf(j10After)} ; ['rc2'] after ${statusOf(j10Beside)}${j10Beside.threw ? '' : ` ${fmt(j10Beside.value)}`} ; the path after the save reads ${fmt(j10Bytes)} (parses: ${j10Image.parsed}) and a FRESH boot over it reads ${j10BootRoot === null ? 'no instance' : j10BootRoot.threw ? fmt(j10BootRoot.err?.status) : fmt(j10BootRoot.value)} ; THE CLASS, ${j10Class.length} IMAGE STATES -> ${j10Class.map((a) => `${a.name}:${a.call.threw ? fmt(a.call.err?.status) : `RETURNED undoneOps=${fmt(a.undone)}`}`).join(' ')}`);
+      && a.call.value.opId === a.id && Array.isArray(a.call.value.undoneOps)
+      && a.floored === 'RollbackCompacted');
+  A('JSG-10.12', 'store §8.1 #11; §6.1 item 5; §6.4 M-6 as corrected 2026-11-02 by `strata/decisions.md` · `D-108` item 4, THEN REPLACED 2026-11-02 BY `D-118` ITEMS 1–2, AND RE-DERIVED AGAIN 2026-11-17 BY `D-160` ITEMS 1, 3 AND 5 (`D-160`: the compaction DROPS the entry it reaches, so the rank\'s ONE producer is a rollback that names a dropped id — the floor\'s watermark — and the reversal of a HELD op reads no image at all); `docs/specs/storeroom-file-save-coverage/contract.md` `PIN-11` (iv)',
+    'a rollback whose candidate set includes an entry an append DROPPED, on a store whose filePath image cannot be read as an object: the DROPPED id answers `RollbackCompacted` at the floor\'s watermark, while the op the window still HOLDS reverses and RETURNS — a `RollbackRecord` echoing the id with an `undoneOps` array and a `restoredTo`, the dropped entry\'s version STANDING (the drop is a journal act and not a graph act), the save that follows leaving a READABLE image at the path, and EVERY one of the seven image states answering the token at the dropped op and RETURNING at the held one',
+    j10Returned && j10Shape && j10Rebuilt && j10Saved && j10Floored && j10BothWays,
+    `${statusOf(j10Call)} ; the DROPPED id -> ${statusOf(j10Floor)} ; record ${j10Record === null ? 'none' : `{${Object.keys(j10Record).sort().join(',')}} opId=${fmt(j10Record.opId)} undoneOps=${fmt(j10Record.undoneOps)} restoredTo=${fmt(j10Record.restoredTo)}`} ; ['rc1'] before ${j10Before.threw ? fmt(j10Before.err?.status) : fmt(j10Before.value)} / after ${statusOf(j10After)} ; ['rc2'] after ${statusOf(j10Beside)}${j10Beside.threw ? '' : ` ${fmt(j10Beside.value)}`} ; the path after the save reads ${fmt(j10Bytes)} (parses: ${j10Image.parsed}) and a FRESH boot over it reads ${j10BootRoot === null ? 'no instance' : j10BootRoot.threw ? fmt(j10BootRoot.err?.status) : fmt(j10BootRoot.value)} ; THE CLASS, ${j10Class.length} IMAGE STATES -> ${j10Class.map((a) => `${a.name}:held ${a.call.threw ? fmt(a.call.err?.status) : `RETURNED undoneOps=${fmt(a.undone)}`} / dropped ${a.floored}`).join(' ')}`);
   // **AND THE TWO NEIGHBOUR ARMS — the zero-length file and the one INTACT image — ARE MEASURED INSIDE THAT CELL'S
   // OWN CLASS** (`armAt` above), and NOT pushed into `g10.all` either: that list is the DRIVEN FAILURES the
   // `.18`/`.19`/`.20` aggregates census, and a returning arm is no failure of any kind.
@@ -1341,7 +1365,7 @@ const g10 = { all: [] };
   const withPlaceholder = msgs10.filter((m) => typeof m !== 'string' || m.length === 0 || PLACEHOLDER_TOKENS.some((t) => m.includes(t)));
   A('JSG-10.20', 'store §8.2 property (c)', 'every message is non-empty and carries no unsubstituted placeholder token of the generator\'s own form',
     withPlaceholder.length === 0, fmt(withPlaceholder));
-  REDERIVED.push(`JSG-10.12 :: \`D-118\` item 1 READ AT ITS FOUR OBSERVABLES — (a) the RETURNED record ${j10Record === null ? `NONE (threw ${fmt(j10Call.err?.status)})` : `{${Object.keys(j10Record).sort().join(',')}} opId=${fmt(j10Record.opId)} undoneOps=${fmt(j10Record.undoneOps)} restoredTo=${fmt(j10Record.restoredTo)}`} ; (b) the REBUILT CREATION STATE, ['rc1'] before ${j10Before.threw ? fmt(j10Before.err?.status) : fmt(j10Before.value)} / after ${statusOf(j10After)}, with the append after the compressed one standing (['rc2'] = ${j10Beside.threw ? fmt(j10Beside.err?.status) : fmt(j10Beside.value)}) ; (c) the SAVE — the path held ${fmt(CORRUPT)} before the act and ${fmt(j10Bytes)} after it, which PARSES (${j10Image.parsed}) to ${fmt(j10Image.value)}, and a FRESH boot over it reads ${j10BootRoot === null ? 'no instance' : j10BootRoot.threw ? fmt(j10BootRoot.err?.status) : fmt(j10BootRoot.value)} ; (d) NO TOKEN — the class of ${j10Class.length} image states (${j10Class.map((a) => a.name).join(' ')}) EVERY ONE of which ${j10Class.every((a) => a.returned) ? 'RETURNED' : 'did NOT all return'}, the ABSENT arm answering undoneOps=${fmt(j10Absent?.undone)} and the INTACT arm {"z":7} answering undoneOps=${fmt(j10Intact?.undone)} with ['z'] before ${j10Intact?.before.threw ? fmt(j10Intact?.before.err?.status) : fmt(j10Intact?.before.value)} / after ${j10Intact?.after.threw ? fmt(j10Intact?.after.err?.status) : fmt(j10Intact?.after.value)} — \`D-109\` narrowed it, \`D-118\` retired its last producer: DECLARED, NO PRODUCER`);
+  REDERIVED.push(`JSG-10.12 :: \`D-160\` ITEMS 1 AND 3 READ AT FIVE OBSERVABLES — (a) the RETURNED record at the HELD op ${j10Record === null ? `NONE (threw ${fmt(j10Call.err?.status)})` : `{${Object.keys(j10Record).sort().join(',')}} opId=${fmt(j10Record.opId)} undoneOps=${fmt(j10Record.undoneOps)} restoredTo=${fmt(j10Record.restoredTo)}`} ; (b) THE FLOOR — the DROPPED id answers ${statusOf(j10Floor)} ; (c) THE STATE, ['rc1'] before ${j10Before.threw ? fmt(j10Before.err?.status) : fmt(j10Before.value)} / after ${statusOf(j10After)} and ['rc2'] after ${statusOf(j10Beside)} — the drop took the entry and left the version ; (d) THE SAVE — the path held ${fmt(CORRUPT)} before the act and ${fmt(j10Bytes)} after it, which PARSES (${j10Image.parsed}) to ${fmt(j10Image.value)}, and a FRESH boot over it reads ${j10BootRoot === null ? 'no instance' : j10BootRoot.threw ? fmt(j10BootRoot.err?.status) : fmt(j10BootRoot.value)} ; (e) BOTH WAYS OVER ${j10Class.length} IMAGE STATES (${j10Class.map((a) => a.name).join(' ')}) — every one ${j10Class.every((a) => a.returned) ? 'RETURNED at the held op' : 'did NOT all return at the held op'} and every one ${j10Class.every((a) => a.floored === 'RollbackCompacted') ? 'answered the token at the dropped one' : 'did NOT all answer the token at the dropped one'}, with the ABSENT arm undoneOps=${fmt(j10Absent?.undone)} and the INTACT arm {"z":7} answering ${fmt(j10Intact?.floored)} at its dropped op`);
   REDERIVED.push(`JSG-10.16 :: the terminal arm's save, at the failing path -> ${statusOf(wFC)} :: ${fmt(msgOf(wFC))}`);
   REDERIVED.push(`JSG-10.17 :: read(['fc']) after that failure -> ${statusOf(rFC)}`);
   REDERIVED.push(`JSG-10.18/.19/.20 :: ${g10.all.length} driven failures censused (the \`D-118\` returning arm of \`JSG-10.12\` stands OUTSIDE this census, as its two neighbour arms do — a returning arm is no failure) ; did-not-throw=${thrownSet.length} ; outside-the-19=[${outside.join(',') || 'none'}] ; empty-or-placeholder messages=${withPlaceholder.length}`);

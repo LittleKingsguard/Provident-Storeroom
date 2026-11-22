@@ -1018,8 +1018,18 @@ fail_code_cell!(
 // construction's step `7` (`src/store.rs`), so it is the store's own answer and not a member any byte above the
 // boundary produces. **The `15` therefore becomes `16` and the five the package owns are unmoved**, the sum still
 // being asserted so no fourth class appears silently.
+// **⟶ AND RE-DERIVED AGAIN 2026-11-17 (`strata/decisions.md` · `D-160` ITEMS 1 AND 3): `RollbackCompacted` REJOINS
+// THE REACHED CLASS AND THE THIRD CLASS IS EMPTY, SO THE SPLIT IS `18 + 5 + 0 = 23`.** The architect, verbatim:
+// ***"Compaction dropping history is the point"*** — the compaction DROPS the entry it reaches, so **a rollback that
+// names a dropped id answers `RollbackCompacted`** (the floor's watermark, item 3) and the member is produced by
+// the STORE, through this crate's surface, exactly as ranks `1`…`14` and `22` are. **`D-118` item 2's
+// `DECLARED, NO PRODUCER` class loses its only member and the function that names it stays, empty**, because the
+// three figures are asserted to sum to the set's own length and a class that vanished silently would be a figure
+// with no home. **NO MEMBER IS DROPPED, NO RANK MOVES AND EVERY ONE OF THE TWENTY-THREE IS STILL DRIVEN IN THIS
+// CELL** — the dropped id, the held id and an id that never existed are the three answers `fail_code_drive`'s arm
+// now requires.
 #[test]
-fn fail_set_is_closed_at_twenty_two_and_sixteen_of_them_are_reached_from_the_crossing() {
+fn fail_set_is_closed_at_twenty_three_and_eighteen_of_them_are_reached_from_the_crossing() {
     assert_eq!(all_fail_codes().len(), 23, "the store's own array is the census (A148 Q3, read through \
          the 2026-10-26 rulings: *Expand the returned error set for both S/N* and *Expand the returned \
          fail-state list to include the refusal*, and through `D-124` item 2's minting of rank 21 \
@@ -1028,33 +1038,37 @@ fn fail_set_is_closed_at_twenty_two_and_sixteen_of_them_are_reached_from_the_cro
          construction*)");
     assert_eq!(
         crossing_reachable_fail_codes().len(),
-        17,
+        18,
         "the five members the package owns (`ValueRefusedAtBoundary`, `ConstraintBodyThrew`, \
          `ConstraintRefusedAtRegistration`, `ConstraintPassRefused` and `ListenerBodyThrew`) are each declared \
-         at their own boundary, and `RollbackCompacted` is `DECLARED, NO PRODUCER` (`D-118` item 2) — \
-         `23 - 5 - 1 = 17`"
+         at their own boundary, and `RollbackCompacted` is REACHED THROUGH THIS CRATE'S SURFACE again from \
+         2026-11-17 (`D-160` item 3: a dropped id answers the token at the floor's watermark) — \
+         `23 - 5 - 0 = 18`"
     );
     assert_eq!(
         declared_unreachable_fail_codes(),
-        vec!["RollbackCompacted"],
-        "the third class is the one member whose producer `D-118` item 1 removed, and it is named here rather \
-         than folded into either of the other two"
+        Vec::<&'static str>::new(),
+        "the third class is EMPTY from 2026-11-17: its only member was `RollbackCompacted`, whose producer \
+         `D-160` item 3 restored, and the class stays named here rather than folded away so the three figures \
+         still sum to the set's own length"
     );
     assert_eq!(
         crossing_reachable_fail_codes().len() + 5 + declared_unreachable_fail_codes().len(),
         all_fail_codes().len(),
-        "the three figures are the set's own length: `16` reached + `5` produced above this addon + `1` declared \
-         with no producer = `22`, so no member is counted twice and none is dropped"
+        "the three figures are the set's own length: `18` reached + `5` produced above this addon + `0` declared \
+         with no producer = `23`, so no member is counted twice and none is dropped"
     );
     for code in crossing_reachable_fail_codes() {
         assert!(fail_code_drive(code), "`{code}` is a member with a reachable trigger");
     }
     for code in declared_unreachable_fail_codes() {
+        // **AN EMPTY CLASS FROM 2026-11-17** (`D-160` item 3): its only member rejoined the reached list above,
+        // whose loop drives it. The loop stays so a member named here again is still driven at its own boundary.
         assert!(
             fail_code_drive(code),
-            "`{code}` is DECLARED and UNREACHABLE (`D-118` item 2): its drive is the negative one — the two arms \
-             that used to reach it must both RETURN, and the store's own reversal must write no byte of the \
-             corrupt fixture (`D-112` item 2)"
+            "`{code}` is named in the DECLARED, NO PRODUCER class and its drive must still answer: the class is \
+             EMPTY from 2026-11-17 (`D-160` item 3 restored `RollbackCompacted`'s producer), so a member \
+             reappearing here is a figure this cell will not read silently"
         );
     }
     assert!(

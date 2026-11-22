@@ -109,3 +109,31 @@ N = 16,000  rss + 7,277 MB    (× 3.9 — and the Node heap gives out here)
 | **(d) STORE A COUNT instead of ids** — the compacted prefix's length | `restore_compaction` re-marks by position | O(1) storage; keeps the field's shape |
 
 **AND ONE CELL IS OWED WHATEVER IS CHOSEN**: a drive that takes N writes and reads **`heapUsed` (not `rss`)** against a declared ceiling. **No such cell exists**, which is why a quadratic that a store reaches in twelve thousand writes has lived through every green battery this session ran.
+
+---
+
+## §7 · THE CURE LANDED `2026-11-17` — `D-160` took arm (c), and the drive is re-taken
+
+**THE ARCHITECT'S *"Compaction dropping history is the point"* IS `D-160`, AND THE JOURNAL NOW DROPS.** The per-entry `compacted: Vec<String>` — the list of every already-compacted op id, cloned on every write — is **gone**, with the field on `Entry`, the parameter on `append`, the `compacted_before` clone at `:2653`, the `regenerate` filter that skipped marked entries, and `restore_compaction` with both of its callers. **The loop now `remove`s the oldest entry and keeps the `base_state` rebuild it already did.**
+
+**★ AND THE MARK LOOKED NECESSARY FOR ONE REASON, WHICH THE PATCH REFUTED AT THE BYTES.** A dropped op must answer `RollbackCompacted` while an id that never existed answers `JournalOpUnknown` — and with the ids gone the two look alike. **The discriminator is a watermark and not a list**: `journal_floor` carries the ordinal of the last dropped op, **in the ids' OWN numbering** — and **this document's §6 assumed `op-<seq>`, which is FALSE**: `op.seq` is the journal's per-instance append ordinal while the id comes from a process-wide atomic (`src/store.rs:38`, `:60`–`:62`), so **two instances both start `seq` at 1 and take different ids, and no op-id parser existed anywhere in `src/`.**
+
+**THE RCA'S OWN DRIVE, RE-TAKEN ON THE FIXED TREE** — one store, one unchanged address, `journalLength: 64`:
+
+| N writes | `rss` before | **`rss` now** | `heapUsed` per write |
+|---|---|---|---|
+| 1,000 | 47 MB | **19.0 MB** | 4.9 KB |
+| 2,000 | 125 MB | **27.9 MB** | 2.9 KB |
+| 4,000 | 472 MB | **43.4 MB** | 3.7 KB |
+| 8,000 | 1,850 MB | **56.5 MB** | 2.9 KB |
+| 16,000 | 7,277 MB | **110.1 MB** | 2.4 KB |
+
+**7,277 → 110.1 MB is 66×, and the doubling ratio is now `1.47 · 1.56 · 1.30 · 1.95` where the old tree read `2.7 · 3.8 · 3.9 · 3.9`** — **the per-write cost FALLS with N instead of rising**, which is what a bounded journal looks like.
+
+**AND THE ARM THAT DIED AT 16,000 NOW DOES 40,000** — driven live on the staged WebAssembly package: **40,000 writes in 3,819 ms (`95 µs/write`, against ~200 µs before), the value read back intact**, and the two refusals distinct on the Node arm: **a rollback to the DROPPED op answers `RollbackCompacted`; an id never minted answers `JournalOpUnknown`.**
+
+**THE CELLS**: `tests/e2e/journal-compaction.test.mjs` (three: the two refusals at a dropped id and an unknown one; the journal bounded with every verb still answering; **a memory ceiling that reads `heapUsed` and not `rss`, declared at `16 KB` per write against a measured `4.66`–`4.74`, with the old figure `~115 KB/write` stated in its message so a return to the quadratic cannot pass**), plus the re-cut Rust and JS cells listed in the envelope.
+
+**MEASURED, EVERY LEG.** `npm test` **`1362` / `1361` / `0`** · `npm run typecheck` **exit `0`** · `cargo test` **22 `ok` / 0 FAILED** · `cargo check --target wasm32` **0 errors** · `npm run build` **exit `0`** · the package stages.
+
+**AND ONE DECLARATION THIS CURE PUTS BACK IN FRONT OF THE ARCHITECT.** `journalLength` is now **the width of the compensation window**: where the window has taken an op that a composition must reverse, the store refuses and the landed edits stand. **`D-108` item 2's *"no landed edit survives a refusal … unconditional"* is therefore CONDITIONAL ON THE WINDOW'S WIDTH again**, and that is a ruling this document does not make.

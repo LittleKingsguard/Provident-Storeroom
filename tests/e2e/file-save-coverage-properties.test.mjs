@@ -584,9 +584,19 @@ test('fsc_prop_P_FSC_2_no_act_serializes_the_image_twice_and_a_second_identical_
   // **GENERATOR.** `7` act classes x `4` rounds = `28` cases under seed `0x5F1C02`: a registration whose repair
   // lands `0`, `1` and `2`–`4` `file`-tier versions (repairs split across tiers and across distinct addresses,
   // one pair and several); a whole-target delete; a reversal over `1`–`3` undone ops; **a REFUSING registration**
-  // whose route landed `1`–`3` ops at `file`/`mem`; and **a REVERSAL THAT REGENERATES over `journalLength`
-  // `1`–`4`** so the window is the producer. **Every reversal case is then driven a SECOND time with the
-  // identical argument.**
+  // whose route landed `1`–`3` ops at `file`/`mem`; and **a REVERSAL OVER `journalLength` `1`–`4`** so the window
+  // is the producer. **Every reversal case is then driven a SECOND time with the identical argument.**
+  //
+  // **⟶ AND THE LAST CLASS IS RE-CUT ON 2026-11-17 (`strata/decisions.md` · `D-160` ITEMS 1, 3 AND 5), BECAUSE
+  // THE WINDOW IS NO LONGER A MARK.** The class was *"a REVERSAL THAT REGENERATES"*, and its first call had to
+  // LAND so the count above one could be read. **The ruling makes the compaction a DROP** — the architect,
+  // verbatim: ***"Compaction dropping history is the point"*** — so at `journalLength: 1` the third append takes
+  // the reversed op itself and the class now reads the DROPPED FLOOR: `RollbackCompacted` for the dropped id and
+  // `JournalOpUnknown` for an id that never named a store op, the pair item 3 keeps distinguishable. **Both
+  // readings stay driven and neither is retired**: the windows that still hold the reversed op drive the marking
+  // reversal and the once-per-state limb exactly as before, and the window that took it drives the two refusals.
+  // **THE PROPERTY THIS ROW CARRIES IS UNMOVED** — no act serializes the image twice and a second identical act
+  // writes nothing — and the drop adds no serialization to it.
   //
   // **FALSIFIER.** A silent arm that moves the state at all; a saving arm that moves nothing; **and any second
   // identical reversal that writes a byte, moves an inode, or answers a refusal.**
@@ -690,21 +700,41 @@ test('fsc_prop_P_FSC_2_no_act_serializes_the_image_twice_and_a_second_identical_
             `the refusal keeps rank 19 (\`D-107\` item 5): ${JSON.stringify(refused.caught.status)}`);
         };
       } else {
-        // THE REGENERATING REVERSAL: the window is the producer, and the marking reversal runs before the count.
+        // THE WINDOW'S REVERSAL: the marking reversal runs before the count, and where the window has TAKEN the
+        // reversed op the class reads the dropped floor's two refusals instead (`D-160` item 3).
         expect = 'either';
         prepare = () => {
           store.write(['a'], 'file', 1);
           const reversed = store.write(['a'], 'file', 2);
           store.write(['x'], 'file', 9);
           const marking = attempt(() => store.rollback(reversed.op.opId));
-          assert.equal(marking.ok, true,
-            `the marking reversal must land before the regenerating one: ${JSON.stringify(marking.caught?.status)}`);
-          return reversed.op.opId;
+          if (marking.ok) return reversed.op.opId;
+          // **⟶ THE DROPPED FLOOR, 2026-11-17 (`strata/decisions.md` · `D-160` ITEM 3): THE TWO REFUSALS ARE
+          // DRIVEN HERE AND THEY STAY DISTINGUISHABLE.** The op the window took answers `RollbackCompacted` — one
+          // number's comparison against the floor's watermark — while an id that never named a store op answers
+          // `JournalOpUnknown`. **Neither call writes a byte and neither appends an entry** (`M-9`/`M-10`), which
+          // is the fact this row is about.
+          assert.equal(marking.caught.status, 'RollbackCompacted',
+            `P-FSC-2 ${JSON.stringify(draw)}: a DROPPED op answers \`RollbackCompacted\` (\`D-160\` item 3) — it `
+              + `answered ${JSON.stringify(marking.caught?.status)}`);
+          const never = attempt(() => store.rollback('op-never-minted-by-any-store'));
+          assert.equal(never.ok, false,
+            `P-FSC-2 ${JSON.stringify(draw)}: an id that never named a store op REFUSES (\`D-160\` item 3)`);
+          assert.equal(never.caught.status, 'JournalOpUnknown',
+            `P-FSC-2 ${JSON.stringify(draw)}: and it is \`JournalOpUnknown\`, NOT the compaction's code — the two `
+              + `refusals stay distinguishable: ${JSON.stringify(never.caught?.status)}`);
+          assert.equal(attempt(() => store.read(['a'])).ok, true,
+            `P-FSC-2 ${JSON.stringify(draw)}: and the refusals moved nothing — the address still reads`);
+          tally(arms, `${cls} · dropped-floor`);
+          rmSync(dir, { recursive: true, force: true });
+          return null;
         };
       }
 
       // The reversal classes need the id their preparation answers, so the act is bound after `prepare` runs.
       const reversalId = typeof prepare === 'function' ? prepare() : null;
+      // A window that took the reversed op has already been read and tallied above (`D-160` item 3).
+      if (cls === 'regenerating-reversal' && reversalId === null) return;
       if (cls === 'rollback-multi' || cls === 'regenerating-reversal') {
         repeat = reversalId;
         act = () => {
@@ -808,12 +838,25 @@ test('fsc_prop_P_FSC_3_no_landed_edit_survives_a_refusal', (t) => {
   // the reversal's save writes the pre-call image back. **`D-108` item 2 removes the floor's exception from that
   // sentence**: *"NO LANDED EDIT SURVIVES A REFUSAL, ON ANY ARM, AND THAT IS NOW UNCONDITIONAL."*
   //
-  // **GENERATOR.** `24` cases under seed `0x5F1C03`: `3` refusal arms x `4` journal lengths (`1`–`4`, so SOME
-  // cases meet a compacted candidate set and the predicate is read across the fourth arm too) x `2` landing
-  // shapes — **one whose landings sit at DIFFERENT depth-1 keys and one whose landings sit at a descendant of
-  // another**; `1`–`3` landings per case, at tiers drawn from `{file, mem}`. **The three refusal arms are the
-  // three `closeRegistrationAttempt` composes over** (`kernel-registration.mjs`'s own clause): the repair's body
-  // threw, the repair credited no op, and the re-run refused the repair's own landing.
+  // **GENERATOR.** `24` cases under seed `0x5F1C03`: `3` refusal arms x `4` journal lengths (`2`–`5`) x `2`
+  // landing shapes — **one whose landings sit at DIFFERENT depth-1 keys and one whose landings sit at a
+  // descendant of another**; `1`–`min(3, journalLength - 1)` landings per case, at tiers drawn from `{file,
+  // mem}`. **The three refusal arms are the three `closeRegistrationAttempt` composes over**
+  // (`kernel-registration.mjs`'s own clause): the repair's body threw, the repair credited no op, and the re-run
+  // refused the repair's own landing.
+  //
+  // **⟶ AND THE ENVELOPE IS RE-CUT ON 2026-11-17 (`strata/decisions.md` · `D-160` ITEMS 1 AND 3), BECAUSE THE
+  // PREDICATE'S REACH IS NOW THE WINDOW'S.** The row was drawn over `journalLength` `1`–`4` and `1`–`3` landings,
+  // on the reading that a reversal of a compacted entry REGENERATED from the durable ground truth and the
+  // predicate was therefore *"unconditional"* (`D-108` item 2). **The ruling makes the compaction a DROP**: a
+  // reversal that names an op the window took answers `RollbackCompacted` (`D-160` item 3) and **undoes
+  // nothing**, so the store cannot be put back to a position the window has taken — **and the compensation's
+  // reach is exactly what the window still HOLDS.** The drive's seed write stands at the window's opening, so a
+  // repair's `m` landings are all reachable iff `1 + m ≤ journalLength`; **the generator therefore draws
+  // `journalLength` `2`–`5` and `m ≤ journalLength - 1`**, which keeps every case inside the reach the ruling
+  // leaves — **and the predicate is read there in its own unconditional form.** **A case drawn OUTSIDE that reach
+  // is not a weaker case but a different one: the floor's own refusal is driven at `fsc_prop_P_FSC_2`'s
+  // `dropped-floor` arm and at `FSC-ARM4-*`'s, where `D-160` item 3's pair is read.**
   //
   // **FALSIFIER.** Any case where a `read` differs before and after, or where a byte moved, or where a pair was
   // carried afterwards, or where the refusal left rank `19`.
@@ -839,9 +882,10 @@ test('fsc_prop_P_FSC_3_no_landed_edit_survives_a_refusal', (t) => {
     cases: CASES['P-FSC-3'],
     body: (next, i, draw, arms) => {
       const arm = ARMS[i % ARMS.length];
-      const journalLength = 1 + (Math.floor(i / ARMS.length) % 4);
+      const journalLength = 2 + (Math.floor(i / ARMS.length) % 4); // D-160 item 1: the window's reach, see the head
       const shapeIndex = Math.floor(i / 12); // the second half of the budget takes the other shape
-      const count = intBetween(next, 1, 3);
+      // **`D-160` item 1: the repair's landings must fit the window the compensation can still reach.**
+      const count = intBetween(next, 1, Math.min(3, journalLength - 1));
       const landings = landingsFor(next, shapeIndex, count);
       const { dir, filePath } = scratch(`p3-${i}`);
       const store = make({ filePath, journalLength });
@@ -919,7 +963,7 @@ test('fsc_prop_P_FSC_3_no_landed_edit_survives_a_refusal', (t) => {
   // journal lengths occurred, and BOTH landing shapes occurred on every arm — so an edition that leaves ONE
   // arm's landings standing (or one journal window's) fails this run.
   for (const arm of ARMS) {
-    for (const window of [1, 2, 3, 4]) {
+    for (const window of [2, 3, 4, 5]) {
       assert.ok(result.arms[`${arm} · L${window} · different`] > 0 && result.arms[`${arm} · L${window} · descendant`] > 0,
         `P-FSC-3: both landing shapes must be reached on the \`${arm}\` arm at \`journalLength: ${window}\` `
           + `(read ${JSON.stringify(result.arms)})`);
@@ -1014,8 +1058,17 @@ test('fsc_prop_P_FSC_3_no_landed_edit_survives_a_refusal', (t) => {
         seed: describeAnswer(answer(store, ['seed'])),
         beta: describeAnswer(answer(store, ['beta'])),
         bytes: bytesOf(filePath),
-        freshSeed: describeAnswer(answer(make({ filePath }), ['seed'])),
-        freshBeta: describeAnswer(answer(make({ filePath }), ['beta'])),
+        // **A FRESH BOOT OVER THE PATH, AND ITS OWN REFUSAL IS A RESULT ON ONE ARM** (`D-160` item 3): where the
+        // composition met the floor it wrote no byte, so bytes that are not this store's image still stand and the
+        // construction answers rank `22` `FileImageRefused` — the two readings below are both named, neither thrown.
+        fresh: (() => {
+          const boot = attempt(() => make({ filePath }));
+          if (!boot.ok) return { refused: boot.caught.status };
+          return {
+            seed: describeAnswer(answer(boot.value, ['seed'])),
+            beta: describeAnswer(answer(boot.value, ['beta'])),
+          };
+        })(),
       };
     };
 
@@ -1030,41 +1083,51 @@ test('fsc_prop_P_FSC_3_no_landed_edit_survives_a_refusal', (t) => {
         + `${JSON.stringify(wide.refused.caught.log.map((entry) => entry.kind))}`);
     assert.equal(wide.refused.caught.log.filter((entry) => entry.kind === 'outcome').length, 0,
       '(beta) and no entry carries a `state` at all, so no token rides this log');
-    assert.deepEqual(answer(make({ filePath: wide.filePath }), ['beta']), { present: false },
+    assert.deepEqual(wide.fresh.beta, 'absent',
       '(beta) the route\'s landings are WITHDRAWN — nothing of them is durable');
-    // **THE QUANTIFIER HOLDS WHOLE WHERE THE WINDOW DOES NOT TAKE THE PRE-CALL RECORD.**
-    assert.deepEqual(answer(make({ filePath: wide.filePath }), ['seed']), { present: true, value: 'seed' },
-      '(beta) **AND THE PRE-CALL VERSION SURVIVES THE REFUSAL** — the creation-state base plus the surviving '
-        + 'journal reaches it, and the save that follows puts it back');
+    // **THE QUANTIFIER HOLDS WHOLE WHERE THE WINDOW HOLDS EVERY OP THE COMPOSITION MUST REVERSE.**
+    assert.deepEqual(wide.fresh.seed, 'value "seed"',
+      '(beta) **AND THE PRE-CALL VERSION SURVIVES THE REFUSAL** — the walk restores the pre-call state and the '
+        + 'save that follows puts it back');
     assert.equal(wide.bytes, wide.beforeBytes,
       `(beta) so the bytes are BYTE-IDENTICAL to the pre-call image (\`D-107\` item 2): `
         + `${JSON.stringify([wide.beforeBytes, wide.bytes])}`);
 
-    // **AND `D-118` ITEM 4'S PRICE, MEASURED AT THE WINDOW THAT SHOWS IT AND PRINTED, NOT ENCODED.**
+    // **⟶ RE-DERIVED 2026-11-17 (`strata/decisions.md` · `D-160` ITEMS 1 AND 3): AT THE NARROWEST WINDOW THE
+    // COMPOSITION NOW MEETS THE FLOOR ITSELF, AND THAT IS THE ARM THIS BLOCK MEASURES.** `D-118` item 4's price —
+    // *"the window has taken the ONLY record of the pre-call version, so the creation-state base cannot reach it"*
+    // — was the REGENERATION's price; **with a drop there is no regeneration and the pre-call state is not the
+    // base but the graph, which no drop touches.** What the narrow window costs instead is the COMPENSATION: the
+    // first landing's own entry is gone, so the per-op reversal answers `RollbackCompacted` (`D-160` item 3), the
+    // kernel's floor branch fires, and the landed edits STAND — the exception `D-108` item 2 removed and the
+    // ruling puts back for exactly this arm. **Nothing is saved**, so the bytes at the path are still the fixture.
     const narrow = drive(1);
     assert.equal(narrow.refused.caught.status, 'ConstraintRefusedAtRegistration',
-      '(beta-L1) the status is rank 19 on this window too');
-    assert.equal(narrow.refused.caught.log.filter((entry) => entry.kind === 'outcome').length, 0,
-      '(beta-L1) and no `outcome` entry is appended on this window either');
-    assert.deepEqual(narrow.beta, 'absent', '(beta-L1) the route\'s landings are withdrawn');
-    // The bytes answer what the store answers on this arm — the reading `P-FSC-3` owes and that no window moves.
-    assert.deepEqual(JSON.parse(narrow.bytes), {},
-      `(beta-L1) **THE BYTES ANSWER THE STORE'S OWN STATE ON THIS ARM TOO** — the creation-state base leaves `
-        + `the register empty and the save writes it: ${JSON.stringify(narrow.bytes)}`);
-    assert.deepEqual(answer(make({ filePath: narrow.filePath }), []), { present: true, value: {} },
-      '(beta-L1) and a fresh boot reads the same empty register');
-    t.diagnostic(`FSC-P3 · FINDING (beta) RE-DERIVED AND ITS TWO CONSEQUENCES SPLIT. **The refusal's log carries NO `
-      + `\`outcome\` entry on this arm** — the floor's branch does not fire, because \`D-118\` item 1 reads the `
-      + `unreadable image as NO image at all and the regeneration takes the CREATION STATE — so \`PIN-14\` (ii)'s `
-      + `"the only code that can reach here is \`JournalOpUnknown\`" is TRUE again, and the route's landings do NOT `
-      + `stand (\`D-108\` item 2 holds). **AND THE ONE PRICE, PRINTED AND NOT ASSERTED AS BEHAVIOUR**: at `
-      + `\`journalLength: 1\` the window has taken the ONLY record of the pre-call ["seed"] version, so the `
-      + `creation-state base cannot reach it — measured, ["seed"] reads ${narrow.seed} after the call where it read `
-      + `value "seed" before it, and the bytes read ${JSON.stringify(narrow.bytes)}. That is \`D-118\` item 4's named `
-      + `cost (*"a store whose file was replaced by something that is not its image loses whatever the file held and `
-      + `rebuilds from its creation state"*), and the row's quantifier does not carry the exception — the owner of `
-      + `the sentence is the unit's declaration and not this file. At \`journalLength: 8\` the same arm keeps the `
-      + `version and the whole predicate holds (bytes ${JSON.stringify(wide.bytes)}).`);
+      '(beta-L1) the status is rank 19 on this window too — the floor mints no token (`D-107` item 5)');
+    assert.equal(narrow.refused.caught.log.filter((entry) => entry.kind === 'outcome').length, 1,
+      `(beta-L1) **AND THE FLOOR'S OWN \`outcome\` ENTRY IS APPENDED** — the composition's reversal met `
+        + `\`RollbackCompacted\`, which from 2026-11-17 has a producer again (the dropped id, \`D-160\` item 3): `
+        + `${JSON.stringify(narrow.refused.caught.log.map((entry) => entry.kind))}`);
+    assert.deepEqual(narrow.beta, 'value 2',
+      `(beta-L1) **THE ROUTE'S LANDINGS STAND ON THIS ARM** — the ops the window took cannot be reversed, and a `
+        + `reversal that names one answers \`RollbackCompacted\` and undoes nothing: ${narrow.beta}`);
+    assert.equal(narrow.bytes, 'this is not the register\'s image',
+      `(beta-L1) and NO SAVE RAN — the fixture bytes still stand at the path: ${JSON.stringify(narrow.bytes)}`);
+    assert.deepEqual(narrow.fresh, { refused: 'FileImageRefused' },
+      `(beta-L1) so a fresh boot over that path answers the construction's rank 22 \`FileImageRefused\` — the `
+        + `arm \`D-160\` item 3 leaves when the compensation cannot be performed: ${JSON.stringify(narrow.fresh)}`);
+    t.diagnostic(`FSC-P3 · FINDING (beta) RE-DERIVED AGAIN, 2026-11-17 (\`strata/decisions.md\` · \`D-160\` ITEM 3). `
+      + `**The two windows now split on the COMPENSATION and not on the creation-state base.** At `
+      + `\`journalLength: 8\` the whole predicate holds — the landings are withdrawn, ["seed"] reads `
+      + `${wide.fresh.seed} and the bytes are the pre-call image ${JSON.stringify(wide.bytes)} (the refusal's log `
+      + `carries NO \`outcome\` entry, so \`PIN-14\` (ii)'s *"the only code that can reach here is `
+      + `\`JournalOpUnknown\`"* still describes the RETURNING arm). **At \`journalLength: 1\` the window takes the `
+      + `FIRST LANDING's own entry, the per-op reversal answers \`RollbackCompacted\` (the token has a producer `
+      + `again), the floor's \`outcome\` entry IS appended, the landings stand read ${narrow.beta}, no save runs `
+      + `and a fresh boot refuses the fixture (${JSON.stringify(narrow.fresh)}). **THE RULING'S OWN READING: `
+      + `\`journalLength\` is now the width of the compensation window as well as the record's bound**, and the `
+      + `exception \`D-108\` item 2 removed is back for the arm whose ops the window took — the architect's `
+      + `\`D-160\` item 3, not this file's.`);
     rmSync(wide.dir, { recursive: true, force: true });
     rmSync(narrow.dir, { recursive: true, force: true });
   }
@@ -1082,7 +1145,16 @@ test('fsc_prop_P_FSC_3_no_landed_edit_survives_a_refusal', (t) => {
 // re-derived with the limb it named, and the row's own identity `P-FSC-4` is unchanged)
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
 
-test('fsc_prop_P_FSC_4_the_regenerating_reversal_and_the_unreachable_floor', (t) => {
+// **⟶ RE-WORDED 2026-11-17 (`strata/decisions.md` · `D-160` ITEMS 1, 2 AND 5): THE ROW'S FOURTH ARM IS GONE WITH
+// ITS SUBJECT, AND THE CELL'S NAME SAID SO BEFORE THE RULING DID.** It was
+// `fsc_prop_P_FSC_4_the_regenerating_reversal_and_the_unreachable_floor` — *"the regenerating reversal"* (`D-108`
+// item 1) and *"the unreachable floor"* (`D-118` item 2). **The architect, verbatim: *"Compaction dropping
+// history is the point"*** — a compaction DROPS the entry it reaches, so a candidate set can never HOLD a
+// compacted entry, no regeneration has a subject to run on (`Store::regenerate` is deleted with its arm), and
+// **the floor is not *"unreachable"* any more: it is the dropped op's own `RollbackCompacted`, decided by the
+// floor's watermark** (item 3). **THE NAME IS RE-WORDED AND THIS PARAGRAPH IS WHERE THE RE-WORD IS SAID**; the
+// row's own predicate is re-derived at the body below rather than dropped.
+test('fsc_prop_P_FSC_4_the_dropped_record_and_the_walk_s_floor', (t) => {
   // **PROPERTY (`verification.md §4`, `P-FSC-4`, quoted).** *"THE FOURTH ARM'S OWN PREDICATE (`D-108` item 1 and
   // `PIN-12` (iii)): for any reversal whose candidate set meets a compacted entry, after the call (a) the call
   // has RETURNED, (b) `read` at every address OUTSIDE the reversal's scope answers what it answered before
@@ -1094,30 +1166,39 @@ test('fsc_prop_P_FSC_4_the_regenerating_reversal_and_the_unreachable_floor', (t)
   // fact that `RollbackCompacted` has NO producer left (`D-118` item 2) and that an unreadable image is
   // **TREATED AS NO IMAGE AT ALL** — the same base as the zero-length file, and the same answer.
   //
-  // **GENERATOR.** `12` cases under seed `0x5F1C04`: `journalLength` `1`–`4`; a reversed `file`-tier write at
-  // `['a']`; `1`–`4` DISJOINT depth-1 keys whose `file`-tier versions are durable and outside the scope; **one
-  // `mem`-tier version whose ONLY record the window marks** (`['n']`, written FIRST, with at least
-  // `journalLength + 1` appends after it — the window marks the OLDEST unmarked entry per append, so the first
-  // entry is marked once `journalLength + 1` entries have been appended over it); and **one `mem`-tier version
-  // whose record stays un-marked** (`['m']`, appended last, which the window never marks because it marks the
-  // oldest). **Limb (ii) enumerates EIGHT image states** — garbage, `null`, `5`, `[]`, `true`, `{}`, `{"a":1}` and
-  // the zero-length file — each driven twice: over a candidate set holding a compacted entry, and over one that
-  // does not.
+  // **GENERATOR — RE-CUT 2026-11-17 (`D-160` ITEMS 1 AND 2), BECAUSE THE WINDOW'S OWN ARITHMETIC MOVED.** `12`
+  // cases under seed `0x5F1C04`: **`journalLength` `2`–`5`**; a reversed `file`-tier write at `['a']`; **
+  // `journalLength - 1` DISJOINT depth-1 keys** whose `file`-tier versions are durable and outside the scope; **one
+  // `mem`-tier version whose ONLY record the window DROPS** (`['n']`, written FIRST, with `journalLength + 2`
+  // appends after it — the window takes the oldest entry per append past the cap, so the first entry is gone once
+  // `journalLength + 1` entries have been appended over it); and **one `mem`-tier version the window still holds**
+  // (`['m']`, appended last, which is the entry a window of any width keeps). **The two figures are the ruling's
+  // own and not a convenience**: `journalLength - 1` disjoint keys are what the drive can add while the REVERSED
+  // op — the third append, and the head's own predecessor — stays INSIDE the window, which is the one condition
+  // the walk still needs (`D-160` item 1), and `2` is the smallest window that can hold it.
+  //
+  // **Limb (ii) enumerates EIGHT image states** — garbage, `null`, `5`, `[]`, `true`, `{}`, `{"a":1}` and the
+  // zero-length file — each driven twice: over a reversal whose scope the window has narrowed, and over one it
+  // has not.
   //
   // **FALSIFIER.** Any case where the call throws, where an out-of-scope durable version is ABSENT afterwards,
-  // where an out-of-scope `mem` version with an un-marked record is absent, or where a version whose only record
-  // a mark is (the swallowed `mem` version) is PRESENT — *"the cell that a pass that helpfully restored
-  // everything would fail"*; and, for limb (ii), **any image state where the call does not RETURN, any arm on
-  // which a token is answered at all, and any unreadable image whose answer differs from the zero-length file's**
-  // (`D-118` item 1 reads the two as one state).
+  // where the out-of-scope `mem` version the window still holds is absent, or where the DROPPED `mem` version is
+  // absent from the store while it stands in the graph — **the drop removes the RECORD and not the STATE**
+  // (`D-160` item 1), so a pass that "helpfully" rolled the state back with the record fails here; and, for limb
+  // (ii), **any image state where the call does not RETURN, and any state where the reversal answers a token** —
+  // the token now has a producer (the dropped floor's own refusal) and it is driven where the window HAS taken
+  // an op, which is `fsc_prop_P_FSC_2`'s `dropped-floor` arm.
   const result = runProperty({
     row: 'verification.md §4 · P-FSC-4',
     seed: SEEDS['P-FSC-4'],
     cases: CASES['P-FSC-4'],
     body: (next, i, draw, arms) => {
-      const journalLength = 1 + (i % 4);
-      // AT LEAST `journalLength + 1` APPENDS AFTER THE SWALLOWED VERSION, so the window MUST have marked it.
-      const outOfScope = Math.max(1, journalLength - 1) + (i % 2);
+      const journalLength = 2 + (i % 4);
+      // **`D-160` item 1's arithmetic, spelled once and MEASURED**: `journalLength + 1` appends follow the first
+      // entry, so the window MUST have DROPPED it; and `journalLength - 2` disjoint keys are what the drive can add
+      // while the REVERSED op — the third append — is still inside the window after the later `['m']` write, which
+      // is the one condition the walk needs. **`2` is therefore the smallest window this drive can stand.**
+      const outOfScope = journalLength - 2;
       const { dir, filePath } = scratch(`p4-${i}`);
       const store = make({ filePath, journalLength });
       Object.assign(draw, {
@@ -1127,13 +1208,14 @@ test('fsc_prop_P_FSC_4_the_regenerating_reversal_and_the_unreachable_floor', (t)
       });
 
       // ── THE JOURNAL THE REGENERATION MEETS, BUILT IN APPEND ORDER ────────────────────────────────────────
-      store.write(['n'], 'mem', 'swallowed'); // THE SWALLOWED MEMORY-ONLY VERSION: the journal's FIRST entry
+      // THE DROPPED MEMORY-ONLY VERSION: the journal's FIRST entry, and the one the window takes.
+      const swallowed = store.write(['n'], 'mem', 'swallowed');
       store.write(['a'], 'file', 1);
       const reversed = store.write(['a'], 'file', 2);
       for (let k = 0; k < outOfScope; k += 1) store.write([`d${k}`], 'file', 10 + k);
-      const appendsAfterTheSwallowed = 2 + outOfScope; // ['a']'s two writes and the disjoint keys
+      const appendsAfterTheSwallowed = 3 + outOfScope; // ['a']'s two writes, the disjoint keys and ['m']
       assert.ok(appendsAfterTheSwallowed >= journalLength + 1,
-        `P-FSC-4 ${JSON.stringify(draw)}: the drive must put the swallowed version beyond the window — `
+        `P-FSC-4 ${JSON.stringify(draw)}: the drive must put the first version beyond the window — `
           + `${appendsAfterTheSwallowed} appends follow it and the window is ${journalLength}`);
       const appendsBeforeTheReversal = 4 + outOfScope; // the three above, the disjoint keys, and ['m']
 
@@ -1171,17 +1253,30 @@ test('fsc_prop_P_FSC_4_the_regenerating_reversal_and_the_unreachable_floor', (t)
           `P-FSC-4 ${JSON.stringify(draw)}: and it still stands in the BYTES — a regeneration from the durable floor `
             + `ALONE would have dropped it`);
       }
-      assert.deepEqual(answer(store, ['n']), { present: false },
-        `P-FSC-4 ${JSON.stringify(draw)}: **THE SWALLOWED MEMORY-ONLY VERSION IS LOST** — its only record is a marked `
-          + `entry, which \`PIN-12\` (iii) (b) excludes from the replay: read ${describeAnswer(answer(store, ['n']))}`);
+      // **⟶ RE-DERIVED 2026-11-17 (`D-160` ITEM 1): THE DROP REMOVES THE RECORD AND NOT THE STATE.** The version
+      // this cell called *"swallowed"* — *"whose ONLY record the window marks"*, and which `D-108` item 3 read as
+      // LOST — is one the window now DROPS. **The drop is a JOURNAL act**: it takes the entry, and the graph the
+      // entry described stands untouched, so the version still answers. **What is lost is the ability to RE-STATE
+      // it**: the id the entry carried is at or below the floor's watermark, so a reversal that names it answers
+      // `RollbackCompacted` and undoes nothing (the teeth, driven below).
+      assert.deepEqual(answer(store, ['n']), { present: true, value: 'swallowed' },
+        `P-FSC-4 ${JSON.stringify(draw)}: **THE VERSION WHOSE RECORD THE WINDOW DROPPED STILL STANDS** — the drop `
+          + `takes the entry and leaves the state: read ${describeAnswer(answer(store, ['n']))}`);
+      const droppedNamed = attempt(() => store.rollback(swallowed.op.opId));
+      assert.equal(droppedNamed.ok, false,
+        `P-FSC-4 ${JSON.stringify(draw)}: and a reversal that NAMES it is the floor's own refusal — it answered `
+          + `${JSON.stringify(droppedNamed.caught?.status)}`);
+      assert.equal(droppedNamed.caught.status, 'RollbackCompacted',
+        `P-FSC-4 ${JSON.stringify(draw)}: **\`RollbackCompacted\`** — the dropped op's code (\`D-160\` item 3), which `
+          + `is what the mark's retention used to buy: ${JSON.stringify(droppedNamed.caught?.status)}`);
       assert.deepEqual(answer(fresh, ['n']), { present: false },
         `P-FSC-4 ${JSON.stringify(draw)}: the bytes never carried it and a fresh boot does not read it`);
       assert.equal(bytesOf(filePath).includes('"n"'), false,
         `P-FSC-4 ${JSON.stringify(draw)}: and it is nowhere in the image: ${JSON.stringify(bytesOf(filePath))}`);
       assert.deepEqual(answer(store, ['m']), { present: true, value: 'kept' },
-        `P-FSC-4 ${JSON.stringify(draw)}: **AN OUT-OF-SCOPE \`mem\` VERSION WHOSE RECORD IS UN-MARKED SURVIVES THE `
-          + `REGENERATION** (\`PIN-12\` (ii); \`FSC-ARM4-REGEN-MEM\`) — the journal's own \`after\` re-instated it although `
-          + `no file image ever carried it: read ${describeAnswer(answer(store, ['m']))}`);
+        `P-FSC-4 ${JSON.stringify(draw)}: **AN OUT-OF-SCOPE \`mem\` VERSION THE WINDOW STILL HOLDS SURVIVES** `
+          + `(\`FSC-ARM4-REGEN-MEM\`) — no act of the reversal touches it and no file image ever carried it: `
+          + `read ${describeAnswer(answer(store, ['m']))}`);
       assert.deepEqual(answer(fresh, ['m']), { present: false },
         `P-FSC-4 ${JSON.stringify(draw)}: and the file does NOT gain it — a \`mem\`-tier version is never durable`);
       assert.equal(answer(store, ['m'], 'file').present, false,
@@ -1211,9 +1306,10 @@ test('fsc_prop_P_FSC_4_the_regenerating_reversal_and_the_unreachable_floor', (t)
   if (result.failures.length > 0) {
     t.diagnostic(`P-FSC-4 · THE GENERATED INPUTS THAT FAILED:\n${JSON.stringify(result.failures, null, 2)}`);
   }
-  for (const window of [1, 2, 3, 4]) {
+  for (const window of [2, 3, 4, 5]) {
     assert.ok(Object.keys(result.arms).some((name) => name.startsWith(`L${window} `)),
-      `P-FSC-4: the generator must reach \`journalLength: ${window}\` (read ${JSON.stringify(result.arms)})`);
+      `P-FSC-4: the generator must reach \`journalLength: ${window}\` (read ${JSON.stringify(result.arms)}) — `
+        + `and \`2\` is the smallest window the row's own drive can stand (see the head's re-cut clause)`);
   }
   assert.deepEqual(result.failures, [],
     `P-FSC-4 held over ${result.cases} generated cases (seed 0x${(result.seed >>> 0).toString(16)})`);
@@ -1243,7 +1339,14 @@ test('fsc_prop_P_FSC_4_the_regenerating_reversal_and_the_unreachable_floor', (t)
   ];
   const PROBES = [['a'], ['x'], ['y'], []];
 
-  /** A store whose reversal's candidate set holds a compacted entry, plus a later op whose scope holds none. */
+  /** A store whose reversal still has its op in the window, plus a later op whose scope holds none.
+   *
+   *  **⟶ AND THE WINDOW IS `3`, NOT `2`, FROM 2026-11-17 (`strata/decisions.md` · `D-160` ITEM 1).** The drive
+   *  appends four ops — `['a']`'s two writes, `['x']`, and the later `['y']` — so a window of `2` DROPS the
+   *  reversed op at the fourth append and the arm would read the floor's refusal instead of the walk. **A window
+   *  of `3` holds it**, which is what this limb needs; the floor's own answer is driven where a window has taken
+   *  the op (`fsc_prop_P_FSC_2`'s `dropped-floor` arm and `FSC-ARM4-DROPPED-RECORD`).
+   */
   function windowed(tag, journalLength, imageBytes) {
     const { dir, filePath } = scratch(tag);
     const store = make({ filePath, journalLength });
@@ -1260,9 +1363,9 @@ test('fsc_prop_P_FSC_4_the_regenerating_reversal_and_the_unreachable_floor', (t)
   const readings = [];
   for (let at = 0; at < IMAGE_STATES.length; at += 1) {
     const state = IMAGE_STATES[at];
-    const floored = windowed(`p4-narrow-${at}`, 2, state.bytes);
+    const floored = windowed(`p4-narrow-${at}`, 3, state.bytes);
     const answerOnTheFloored = attempt(() => floored.store.rollback(floored.reversed));
-    const plain = windowed(`p4-plain-${at}`, 2, state.bytes);
+    const plain = windowed(`p4-plain-${at}`, 3, state.bytes);
     const answerOnThePlain = attempt(() => plain.store.rollback(plain.later));
     const reading = {
       image: state.bytes,
@@ -1277,10 +1380,11 @@ test('fsc_prop_P_FSC_4_the_regenerating_reversal_and_the_unreachable_floor', (t)
     };
     readings.push(reading);
 
-    // (1) **THE FLOORED CALL RETURNS ON EVERY STATE, AND THE TOKEN IS ANSWERED ON NONE.**
+    // (1) **THE CALL WHOSE OPS THE WINDOW STILL HOLDS RETURNS ON EVERY STATE, AND THE TOKEN IS ANSWERED ON NONE
+    // OF THEM** (`D-160` item 3: the token's producer is a DROPPED id, and no id here is dropped).
     assert.equal(answerOnTheFloored.ok, true,
-      `P-FSC-4 (ii): **THE COMPACTED CANDIDATE SET RETURNS ON EVERY IMAGE STATE** (\`D-118\` item 1) — with the `
-        + `image ${JSON.stringify(state.bytes)} the call answered `
+      `P-FSC-4 (ii): **THE WALK RETURNS ON EVERY IMAGE STATE** — with the image `
+        + `${JSON.stringify(state.bytes)} the call answered `
         + `${JSON.stringify(answerOnTheFloored.caught?.status)}`);
     assert.deepEqual(Object.keys(answerOnTheFloored.value).sort(), ['opId', 'restoredTo', 'undoneOps'],
       'P-FSC-4 (ii): and answers the three-member record');
@@ -1290,9 +1394,9 @@ test('fsc_prop_P_FSC_4_the_regenerating_reversal_and_the_unreachable_floor', (t)
     assert.deepEqual(answerOnTheFloored.value.restoredTo, { present: true, value: 1 },
       'P-FSC-4 (ii): and it answers the reversed op\'s own pre-state');
     assert.notEqual(answerOnTheFloored.ok === false && answerOnTheFloored.caught.status === 'RollbackCompacted', true,
-      `P-FSC-4 (ii): **\`RollbackCompacted\` HAS NO PRODUCER LEFT** (\`D-118\` item 2) — not on the image `
-        + `${JSON.stringify(state.bytes)} over a candidate set that HOLDS a compacted entry, which is the one `
-        + `state \`D-109\` item 1 left it`);
+      `P-FSC-4 (ii): **AND THE TOKEN IS NOT ANSWERED HERE** — the id this call names is one the window still `
+        + `holds, and \`D-160\` item 3 produces the token only for an id at or below the floor's watermark: `
+        + `image ${JSON.stringify(state.bytes)}`);
 
     // (2) **THE CORRUPT-IMAGE REBUILD IS NOT A LOSS THE STORE COULD HAVE AVOIDED, AND IS NOT AN ANSWER OF ITS
     // OWN**: the bytes are made READABLE by the save that follows, and a fresh boot reads what the store answers.
@@ -1307,10 +1411,10 @@ test('fsc_prop_P_FSC_4_the_regenerating_reversal_and_the_unreachable_floor', (t)
         + `${JSON.stringify(reading.boot)} against the store's ${JSON.stringify(reading.memory)} `
         + `(\`D-118\` item 1's save; \`D-116\` item 3)`);
 
-    // (3) THE CONTROL ARM: NO COMPACTED ENTRY IN THE CANDIDATE SET ⇒ NO IMAGE IS READ ⇒ THE CALL RETURNS.
+    // (3) THE CONTROL ARM: A REVERSAL AT A SCOPE THE WINDOW HAS NOT NARROWED READS NO IMAGE AND RETURNS.
     assert.equal(answerOnThePlain.ok, true,
-      `P-FSC-4 (ii): a reversal whose candidate set holds NO compacted entry reads no image and must RETURN on every `
-        + `state — with the image ${JSON.stringify(state.bytes)} it answered `
+      `P-FSC-4 (ii): a reversal at an op the window still holds reads no image and must RETURN on every state — `
+        + `with the image ${JSON.stringify(state.bytes)} it answered `
         + `${JSON.stringify(answerOnThePlain.caught?.status)}`);
     assert.notEqual(answerOnThePlain.value, null, 'P-FSC-4 (ii): and it answers its record');
     rmSync(floored.dir, { recursive: true, force: true });
@@ -1320,11 +1424,14 @@ test('fsc_prop_P_FSC_4_the_regenerating_reversal_and_the_unreachable_floor', (t)
   // **THE WHOLE FAMILY, AS ONE READ** — every member returns, and no member answers a token:
   assert.deepEqual(readings.map((r) => r.floored),
     ['returned', 'returned', 'returned', 'returned', 'returned', 'returned', 'returned', 'returned'],
-    `P-FSC-4 (ii): **THE TOKEN IS UNREACHABLE ON ALL EIGHT STATES OF THE PATH** (\`D-118\` item 2): ${JSON.stringify(readings.map((r) => [r.image, r.floored]))}`);
+    `P-FSC-4 (ii): **EVERY STATE OF THE PATH RETURNS AND NONE ANSWERS THE TOKEN** — the token's producer is the `
+      + `DROPPED floor's own refusal (\`D-160\` item 3), which this family does not reach: `
+      + `${JSON.stringify(readings.map((r) => [r.image, r.floored]))}`);
   assert.equal(readings.every((r) => r.plain === 'returned'), true,
     `P-FSC-4 (ii): and the control arm returned on every state: ${JSON.stringify(readings.map((r) => [r.image, r.plain]))}`);
-  // **AND `D-118` ITEM 1's CLAUSE AS AN EQUALITY**: an unreadable image and a zero-length file are ONE state, so
-  // the five unreadable arms answer EXACTLY what the zero-length arm answers — memory, bytes and boot alike.
+  // **AND THE UNREADABLE-IMAGE CLAUSE AS AN EQUALITY** (`D-118` item 1, unmoved by `D-160`): no reversal reads the
+  // path any more — the regeneration that read it is gone — so the five unreadable arms answer EXACTLY what the
+  // zero-length arm answers, memory, bytes and boot alike.
   const emptyArm = readings.find((r) => r.readable === 'empty');
   for (const unreadable of readings.filter((r) => r.readable === false)) {
     assert.deepEqual({ memory: unreadable.memory, bytes: unreadable.bytes, boot: unreadable.boot },
@@ -1336,14 +1443,17 @@ test('fsc_prop_P_FSC_4_the_regenerating_reversal_and_the_unreachable_floor', (t)
   }
 
   t.diagnostic(`FSC-P4 · P-FSC-4 held over ${result.cases} generated cases, seed 0x${(result.seed >>> 0).toString(16)}: `
-    + `arms ${JSON.stringify(result.arms)}. The regenerating reversal RETURNED a three-member record, the disjoint `
-    + `durable versions stood in memory AND in the bytes, the swallowed \`mem\` version stayed lost, the un-marked one `
-    + `survived in memory alone, no entry was appended, and the \`seq\` the next write named was the appends' own `
-    + `(verification.md §4 P-FSC-4; D-108 items 1–3; PIN-12 (ii)/(iii); PIN-13 (i)–(v)). Limb (ii), RE-DERIVED by `
-    + `D-118: ${JSON.stringify(readings.map((r) => [r.image, r.floored, r.plain]))} — **every state of the path `
-    + `RETURNS and NO state answers \`RollbackCompacted\`**, and the five unreadable images answer exactly what the `
-    + `zero-length file answers (memory ${JSON.stringify(emptyArm.memory)}, bytes ${JSON.stringify(emptyArm.bytes)}), `
-    + `which is \`D-118\` item 1's *"treated as no image at all"* measured as an equality.`);
+    + `arms ${JSON.stringify(result.arms)}. **RE-DERIVED 2026-11-17 BY \`D-160\` ITEM 1**: the reversal RETURNED a `
+    + `three-member record, the disjoint durable versions stood in memory AND in the bytes, **the \`mem\` version `
+    + `whose record the window DROPPED still stood in the graph** and a reversal that named it answered `
+    + `\`RollbackCompacted\` and undid nothing, the version the window still held survived in memory alone, no entry `
+    + `was appended, and the \`seq\` the next write named was the appends' own (verification.md §4 P-FSC-4; `
+    + `D-160 items 1–2 and 3; PIN-13 (i)–(v)). Limb (ii): `
+    + `${JSON.stringify(readings.map((r) => [r.image, r.floored, r.plain]))} — **every state of the path RETURNS `
+    + `and NO state answers \`RollbackCompacted\`** (the token's one producer is a dropped id, and the id here is `
+    + `held), and the five unreadable images answer exactly what the zero-length file answers (memory `
+    + `${JSON.stringify(emptyArm.memory)}, bytes ${JSON.stringify(emptyArm.bytes)}), which is \`D-118\` item 1's `
+    + `*"treated as no image at all"* measured as an equality.`);
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════

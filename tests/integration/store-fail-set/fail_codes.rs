@@ -342,8 +342,16 @@ fn s8_1_10_journal_op_unknown_fires_on_an_unknown_id() {
 // twenty.** **The store-side reading `M-10`'s atomicity loses is replaced by the fact this arm still owes: the
 // reversal writes no byte** (`D-112` item 2) — the corrupt fixture STANDS at the path after the call, and the
 // state the store rebuilt from its creation image is the memory's and the next save's.
+// **⟶ AND THE SENTENCE *"NO ACT OF THIS TREE PRODUCES THE TOKEN"* IS READ THROUGH ITS OWN MARK FROM 2026-11-17
+// (`strata/decisions.md` · `D-160` ITEMS 1 AND 3).** It was `D-118` item 2's, and the ruling gives the rank a
+// producer again — **a rollback that names an op the compaction DROPPED answers `RollbackCompacted` at the floor's
+// watermark** (the architect, verbatim: ***"Compaction dropping history is the point"***). **THIS CELL'S SUBJECT IS
+// UNMOVED AND NARROWER THAN THE RANK'S REACH**: it drives the two arms `D-118` left — an unreadable image over a
+// narrowed scope and the plain walk — and both still RETURN, because neither names a dropped op. **The producer is
+// driven in the sibling cell below** (`s8_1_11_rollback_compacted_fires_at_the_dropped_floor_…`), where the dropped
+// id, the held id and an id that never existed are read at one window.
 #[test]
-fn s8_1_11_rollback_compacted_is_declared_and_unreachable_on_a_compacted_scope_over_an_unreadable_image() {
+fn s8_1_11_rollback_compacted_does_not_fire_on_an_unreadable_image_over_a_narrowed_scope() {
     let path = fresh_path("s8-1-11");
     let mut store = ok(
         storeCreate(&cfg_at(&path, 2)),
@@ -409,18 +417,22 @@ fn s8_1_11_rollback_compacted_is_declared_and_unreachable_on_a_compacted_scope_o
     let _ = first;
 }
 
-// AND THE CONTROL THAT KEEPS THE TOKEN'S LOST PRODUCER FROM BEING READ AS A RETIREMENT OF THE SET: the SAME window
-// with its image intact REGENERATES and RETURNS (`D-108` item 1), and the arm beside it — the compaction over an
-// unreadable image — returns too (`D-118` item 1), so the code is reached by NEITHER and keeps its place in the
-// twenty while no act produces it (`D-118` item 2).
+// **AND THE CONTROL BESIDE IT CARRIES THIS RANK'S ONE PRODUCER FROM 2026-11-17** (`strata/decisions.md` · `D-160`
+// ITEMS 1 AND 3). The cell was the *"does not fire on a compacted scope alone"* control, filed while
+// `RollbackCompacted` had NO producer (`D-118` item 2). **The architect, verbatim: *"Compaction dropping history is
+// the point"*** — the compaction DROPS the entry it reaches, **so the rank's producer is the DROPPED id and the
+// discriminator is the floor's watermark**: an id at or below it answers `RollbackCompacted`, an op the window
+// still HOLDS reverses and answers nothing, and an id that never named a store op answers `JournalOpUnknown`
+// (`D-160` item 3). **THE NAME IS RE-WORDED AND THIS PARAGRAPH IS WHERE THE RE-WORD IS SAID**; the drive below
+// reads all three answers at one window, so the token's reachability and its two neighbours are pinned in one cell.
 #[test]
-fn s8_1_11_rollback_compacted_does_not_fire_on_a_compacted_scope_alone() {
+fn s8_1_11_rollback_compacted_fires_at_the_dropped_floor_and_not_on_a_held_scope() {
     let path = fresh_path("s8-1-11-control");
     let mut store = ok(
         storeCreate(&cfg_at(&path, 2)),
         "§7.1: a two-entry journal at a real path",
     );
-    ok(
+    let first = ok(
         store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
         "§3.4 W-3",
     );
@@ -430,19 +442,35 @@ fn s8_1_11_rollback_compacted_does_not_fire_on_a_compacted_scope_alone() {
     );
     ok(
         store.write(AddressArg::List(key(&["x"])), w_mem(), v_num(9.0)),
-        "§3.4 W-3",
+        "§3.4 W-3: the third append DROPS the first entry (`D-160` item 1)",
     );
-    ok(
-        store.rollback(OpIdArg::Id(second.op.opId.clone())),
-        "D-108 item 1: the first reversal walks and returns",
+    // **THE PRODUCER: THE DROPPED ID ANSWERS THE TOKEN, AND THE ANSWER IS THE WATERMARK'S ONE COMPARISON.**
+    let dropped = failure(
+        store.rollback(OpIdArg::Id(first.op.opId.clone())),
+        "D-160 item 3: a dropped op answers `RollbackCompacted`",
+    );
+    assert_code(
+        &dropped,
+        "RollbackCompacted",
+        "§8.1 #11 is PRODUCED again from 2026-11-17: the floor's watermark refuses the id the compaction took",
+    );
+    // **THE NEIGHBOURS THE SAME WINDOW DECIDES: an id that never named a store op, and an op the journal holds.**
+    let unknown = failure(
+        store.rollback(OpIdArg::Id("op-never-minted".into())),
+        "D-160 item 3: an id that never named a store op is not this rank's",
+    );
+    assert_code(
+        &unknown,
+        "JournalOpUnknown",
+        "D-160 item 3: the two refusals stay DISTINGUISHABLE — the discriminator is a watermark and not a list",
     );
     let performed = ok(
         store.rollback(OpIdArg::Id(second.op.opId.clone())),
-        "D-108 item 2: the second call meets the mark and REGENERATES — it does not refuse",
+        "§6.4 M-5: an op the window still holds reverses and answers no code",
     );
     assert!(
         performed.undoneOps.contains(&second.op.opId),
-        "D-108 item 1: the regenerating reversal is performed and reported; got {:?}",
+        "§6.4 M-8: the reversal is performed over its own bounded scope and reported; got {:?}",
         performed.undoneOps
     );
 }

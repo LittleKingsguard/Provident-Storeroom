@@ -635,8 +635,10 @@ fn p_im_2_a_failed_write_leaves_zero_residue() {
     // the one failing write that lands AFTER the purge stage: a `file`-tier write whose commit cannot land,
     // over a key that already stands at a LESS persistent tier — the state whose automatic rollback
     // re-mints the capture. And because the no-entry check in the loop is a `seq` comparison, it cannot see
-    // a COMPACTION MARK; `NG-4` reads that mark through `rollback(prior.opId)`, which `M-6` permits
-    // (`1 ≤ journalLength`) and which a surviving compaction mark turns into `RollbackCompacted`.
+    // the COMPACTION; `NG-4` reads that through `rollback(prior.opId)`, which `M-6` permits
+    // (`1 ≤ journalLength`) and which **from 2026-11-17 answers `RollbackCompacted` because the entry the
+    // second append DROPPED is what the id named** (`D-160` items 1 and 3 — the reading recorded at the
+    // check itself below).
     // -----------------------------------------------------------------------------------------------
     drive.attempt();
     {
@@ -937,22 +939,26 @@ fn p_im_2_a_failed_write_leaves_zero_residue() {
         // AFTER the failed write so it reads the sibling's state at the same moment the residue comparison
         // does — and it is the TRIGGER's outcome and not residue, because the compaction happened at the
         // SECOND SUCCESSFUL APPEND, before any failed write was attempted.
-        // **⟶ RE-DERIVED 2026-11-02 — `D-108` ITEM 1 AND `D-109`, AND THE MOVEMENT IS RECORDED.** The two
-        // checks below read `M-6`'s all-or-nothing floor: the compacted prior entry refused the rollback and
-        // the sibling instance's registry stayed where it was. **`M-6` IS CORRECTED IN THIS UNIT** (`D-108`
-        // item 4): a last-valid-state reversal that meets a compacted entry REGENERATES from the durable
-        // ground truth (the `file` tier's image where one stands, the creation state where none does) and
-        // RETURNS its record; `D-109` narrows `RollbackCompacted` to a candidate set holding a compacted entry
-        // **AND** a `filePath` whose image cannot be read as an object. **So this drive's call RETURNS, and the
-        // sibling's registry is the state the regeneration describes — the durable ground truth plus every
-        // entry the surviving journal still reaches** (`PIN-12` (iii)), which is why it is no longer compared
-        // against the PRE-call snapshot.
+        // **⟶ RE-DERIVED 2026-11-17 — `D-160` ITEMS 1 AND 3 (`strata/decisions.md`), AND THE MOVEMENT IS
+        // RECORDED.** The two checks below read `M-6`'s all-or-nothing floor twice: first as a REFUSAL, then —
+        // after `D-108` item 1 — as a REQUIRED RETURN from a regeneration out of the durable ground truth.
+        // **`D-160` ITEM 1 replaces both with its own mechanism**: the compaction DROPS the entry it reaches
+        // (*"Compaction dropping history is the point"*, the architect, verbatim), **so `at journalLength = 1`
+        // the sibling's prior entry is GONE and item 3's watermark answers it** — `RollbackCompacted` for the
+        // dropped id, which is what this check now reads. **The three checks after it are unmoved and read the
+        // facts they always read**: a refusal moves nothing, so the sibling's `temp` version, its per-tier reads
+        // and its whole registry are exactly what they were before the call.
         let prior_rollback = s.rollback(OpIdArg::Id(prior.op.opId.clone()));
         drive.check(
-            prior_rollback.is_ok(),
+            prior_rollback
+                .as_ref()
+                .err()
+                .map(|e| e.status.as_str())
+                == Some("RollbackCompacted"),
             &format!(
-                "§6.4 M-6 as corrected (`D-108` item 1): at journalLength = 1 the prior entry is COMPACTED, \
-                 and the arm that met it REGENERATES and RETURNS its record — the sibling answered {:?}",
+                "§6.4 M-6 / D-160 item 3: at journalLength = 1 the sibling's prior entry was DROPPED by the \
+                 second append, and a rollback that names it answers `RollbackCompacted` — the sibling \
+                 answered {:?}",
                 prior_rollback.as_ref().err().map(|e| e.status.clone())
             ),
         );
