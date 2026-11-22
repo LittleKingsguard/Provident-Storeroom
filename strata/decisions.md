@@ -8934,7 +8934,14 @@ its unsettled stays open, narrowed.**
    has happened (`journal_floor.is_some()`), `born` standing only where nothing has been dropped. **(ii)** The store must therefore **HOLD** that state: a
    field captured at each compression. **(iii)** And the mark carrier's `{k:'F'}` re-derives with it — the floor is no longer *"the state the store was born
    with"*.
-3. **★ AND THE ONE THING THAT IS NOT ESTABLISHED, SAID FIRST BECAUSE IT DECIDES THE IMPLEMENTATION'S SHAPE: THE DEFECT THIS FIXES WAS NOT REPRODUCED.**
+3. **★★ CORRECTED THE SAME DAY: THE DEFECT IS REPRODUCED, AND THE THREE "INERT" DRIVES WERE THE SUPERVISOR'S OWN INVOCATION.**
+   **`store.restoreMark` IS NOT A MEMBER OF THE INSTANCE** (its fifteen are `addConstraint`…`write`), so those drives called **`undefined`**, the `TypeError`
+   carried no `status`, and **its empty `.status` printed as `undefined` — which this row read as the verb's answer.** **THE VERB WAS NEVER CALLED.** **With the
+   package's own invocation — `Reflect.apply(withAddon().restoreMark, store, [mark])`, `constraints.mjs:3354` — it restores on BOTH arms** (measured:
+   `b` becomes `AddressNotFound`, the image goes `{"a":"A","b":"B"}` → `{"a":"A"}`, and a fresh boot reads `b` as absent). **AND WITH THAT INVOCATION THE DEFECT IS
+   EXACTLY AS THE ARCHITECT DESCRIBED IT**: `journalLength: 2`, `a` (op-1), `b` (op-2), `c` (op-3, which drops op-1), then a restoral to the RETAINED mark `op-2`
+   answers **`returned`** and leaves **`a = AddressNotFound`**, **`b = "B"`**, **`c = AddressNotFound`** — **the state at `op-2` held `a` and the replay from `born`
+   lost it**, while a restoral to the DROPPED mark `op-1` answers `JournalOpUnknown` (correct). **That is this row's subject, measured.**
    Three drives put a `file` store at `journalLength: 2` and restored to marks by **the carrier the store itself answers** (`Reflect.apply(withAddon().journalMark, store, [])`
    then `restoreMark(thatCarrier)`, which is the package's own call at `constraints.mjs:3354`): **every one answered `undefined` and left the register byte-unchanged**
    — including a restoral to a **retained** mark whose predecessor had been dropped (`c` still standing) and one to a **dropped** mark (which owes `JournalOpUnknown`).
@@ -8949,3 +8956,43 @@ its unsettled stays open, narrowed.**
    per-tier, so a whole-register floor can only be derived by walking back from the current register through every retained entry, which is a replay of its own.
    **(a) is the shape this row would expect; neither is taken here.**
 5. **WHAT DOES NOT MOVE**: no cell, no figure, no declaration, and **`D-177` item 1's closure stands** (the foreign-id collision remains impossible by construction).
+
+---
+
+### `D-179` — THE REPLAY'S BASE IS THE COMPACTED FLOOR: LANDED, AND THE FLOOR IS ADVANCED BY THE DROPPED ENTRY ITSELF
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `aca0d88`. **SOURCE:** `D-178`'s ruling, option (a), implemented. **STATUS: `ACTIVE`.**
+
+1. **`Store::floor_state` IS ONE CAPTURED REGISTER, IT BEGINS AS `born`, AND IT IS ADVANCED ONCE PER DROP BY THE DROPPED ENTRY'S OWN `after`
+   SNAPSHOTS** — in `append`'s compaction loop, at the instant of the drop: **a position the journal was compressed to is a fact the DROP produces and
+   nothing else does**, so the push cannot be the instant (the pushed entry is the HEAD, and `base_state` beside the drop is the head's state — `D-178`
+   item 4). **`replayMark` reads it as its ONE base and does not branch on `journal_floor.is_some()`**: **the uncompacted case is the equality the field
+   begins with**, so there is no second rule. **The bound is O(one register) in the state and O(0) in the history** — nothing that grows with the write
+   count.
+2. **★ AND THE ONE THING THE IMPLEMENTATION HAD TO GET RIGHT AND ALMOST DID NOT: `Captured::under` IS RELATIVE TO THE ENTRY'S OWN ADDRESS**, so a
+   dropped entry's top-level versions carry `under: None`, and **re-based one level down, `None` puts them under no parent version and the rebuild
+   silently skips them.** **The enclosing version is not invented**: it is the one `walk` resolves (`§2.3`, `A28`, lowest persistence) over the floor's
+   own versions — the versions the entry was appended onto. **IT WAS CAUGHT BY DRIVING AND NOT BY READING, AND IT REDDENED NOTHING**: all 1,385 cells
+   and all four new ones stayed green without it, because every one of their addresses is top-level. **The evidence is `scratch/d178-floor-equivalence.mjs`**
+   — the same record on a compacting and a non-compacting store compared at every retained mark: **0 disagreements across caps 1–10, on a nested record
+   and on a two-tier shadow record.**
+3. **THE DEFECT, MEASURED BOTH WAYS.** `journalLength: 2`, `a` (op-1), `b` (op-2), `c` (op-3, dropping op-1), restoral to the **retained** mark `op-2`:
+   **BEFORE — `a = AddressNotFound`, `b = "B"`, `c = AddressNotFound`** (the state at `op-2` held `a` and the replay from `born` lost it); **AFTER —
+   `a = "A"`, `b = "B"`, `c = AddressNotFound`**; and **a restoral to the DROPPED `op-1` answers `JournalOpUnknown` on both trees**, which is the
+   declared answer and did not become a restore. `restoreFloor()` now names the **compacted floor** — `{a:"A"}` where it used to name the creation
+   state.
+4. **`{k:'F'}` DID NOT MOVE, AND CANNOT BE MADE TO FROM WHAT THE STORE ANSWERS**: `journalMark` answers `None` for **two classes it cannot tell apart at
+   that entry** — a store nothing has been dropped from (floor = `born`, the sentence *"the state the store was born with"* true) and a store the
+   compaction has dropped from whose journal is momentarily empty (floor ≠ `born`, the sentence false, and reachable because `commit_file`'s failing arm
+   removes the entry it reverted). **The absent position has one spelling and no second row exists to carry the distinction**, so `state.mjs` moves no
+   byte; **the store-side sentences that WERE false are re-derived at their own lines** (`journalMark`'s `None` is the floor; `restoreFloor`'s is the
+   compacted floor where a drop has happened; and `replayMark`'s *"the empty register the store began with"* is quoted and superseded where a drop has).
+   **`Store::regenerate`'s `apply_register(&self.born)` is unmoved and marked as deliberately NOT this base** — the two answer different questions.
+5. **CELLS**: `tests/e2e/journal-retention-floor.test.mjs` — `RF-1` (the retained mark keeps the dropped version's value), `RF-2` (the uncompacted control,
+   identical before and after), `RF-3` (the dropped mark still refuses `JournalOpUnknown`), `RF-4` (the floor names the compacted floor). **`RF-1` and `RF-4`
+   fail on the pre-fix tree** with the readings item 3 records, printed in their own messages.
+6. **★ AND ONE CELL IS OWED AND NAMED RATHER THAN IMPLIED**: **no cell drives a write BELOW the address whose predecessor was dropped** — the case item 2's
+   `under` re-derivation exists for. **`RF-1`'s drive is all top-level addresses and stays green without the re-derivation.** The fifth cell is owed by the
+   next pass that owns cells; **the equivalence drive is its evidence and is not a substitute for it.**
+7. **MEASURED**: `npm test` **`1385` / `1384` / `0`** · `typecheck` `0` · `cargo test` **22 `ok` / 0 FAILED** · `cargo check --target wasm32` **0 errors** ·
+   `npm run build` `0` · the arm's **eight** cells green and its **nineteen** entries unmoved · **`CHAIN COMPLETE — 11 runners`**.

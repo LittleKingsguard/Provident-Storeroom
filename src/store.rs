@@ -699,6 +699,43 @@ pub struct Store {
     /// boot-loaded key. Captured with the same per-version shape the entries carry (`capture_register`), so a
     /// booted shadow's versions survive the floor as well.
     born: Vec<Captured>,
+    /// **⟶ ADDED 2026-11-17 BY `D-178` — THE STATE THE COMPACTION'S FLOOR STANDS AT, AND THE BASE
+    /// [`Store::replayMark`] BEGINS FROM.** The architect, verbatim: ***"Replay should start over from the
+    /// compacted floor instead of 'born'"*** (`strata/decisions.md` · `D-178`).
+    ///
+    /// **THE SENTENCE THAT STOOD AT `replayMark` READ *"the state the record stands before its first entry — the
+    /// booted image where the store loaded one and the empty register where it did not (`Store::born`)"*, AND IT
+    /// DESCRIBES A STORE NOTHING HAS BEEN DROPPED FROM AND NO LONGER THE WHOLE CLASS.** `D-160` item 1's compaction
+    /// REMOVES the oldest entries whole, **so the effect of every entry it took is absent from `born`** — which is
+    /// the boot's creation state and journals nothing for itself (`§7.2` item 6) — **while it is PRESENT in the
+    /// state the RETAINED entries were appended onto.** That state is this field: **the state immediately after
+    /// the last entry the compaction dropped, which is exactly the base a replay of the journal's own record
+    /// needs.** **MEASURED BEFORE IT WAS ADDED**: `journalLength: 2`, `a` · `b` · `c`, a restoral to the RETAINED
+    /// mark `op-2` answered *returned* and left `a` at `AddressNotFound` although the state at `op-2` held it.
+    ///
+    /// **IT IS ONE STATE AND IT BEGINS AS `born`** (`storeCreateWithInputs` takes the register's capture ONCE and
+    /// this carrier holds it beside `born`), **so a store nothing has been dropped from has a floor EQUAL to
+    /// `born` and ONE code path serves both cases** — `D-178` item 2 (i)'s `journal_floor.is_some()` test is NOT
+    /// read here as a second rule, because the branch it names IS this equality: **a second rule for the
+    /// uncompacted case would be a second place for the two bases to disagree, and nothing but the drop below may
+    /// move this field.**
+    ///
+    /// **IT IS ADVANCED ONCE PER DROP, IN [`Store::append`]'s LOOP, BY THE ENTRY THAT LOOP DROPS**
+    /// ([`Store::advance_floor`]) — and **it is NOT `base_state`, the field above it**: `base_state` is
+    /// `assemble_all`'s answer taken AFTER the push, **so it is the HEAD's state and not the floor's** (`D-178`
+    /// item 4), and it is the COLLAPSED `StoreValue` a read answers rather than the per-version, per-tier carrier
+    /// a replay can begin from (`Entry::after`'s own clause). **The two are different states at the same instant
+    /// and the names must not be read as one another.**
+    ///
+    /// **⟶ AND ITS BOUND IS DECLARED IN BYTES, WHICH IS WHY IT IS ONE STATE AND NOT A LIST.** This field holds
+    /// **ONE REGISTER'S WORTH OF VERSIONS** — one [`Captured`] per standing version at every path, each one a
+    /// `Vec<Segment>` path, an `Option<Tier>` carrier, a `Tier` and one `StoreValue` — **which is the same order as
+    /// `born`, a carrier the store already holds**, and **NOT one capture per drop**: a drop REPLACES the subtree at
+    /// the dropped entry's address INSIDE this state, so the n-th drop costs that entry's own `after` capture and
+    /// never the register times the number of drops. **RETENTION IS `O(one register)` IN THE STATE AND `O(0)` IN
+    /// THE HISTORY** — `D-160` item 2's `O(store + journal_length)` with nothing added to its `journal_length`
+    /// term, and nothing that grows with the write count.
+    floor_state: Vec<Captured>,
 }
 
 /// `§7.1` — **THE CONSTRUCTION, IN THE AMENDMENT'S OWN ORDERED SEQUENCE** (`A49`–`A56`; `§7.1`'s amended
@@ -988,6 +1025,12 @@ pub fn storeCreateWithInputs(
     // store holds before any operation it will journal — the booted image where one was loaded, the empty
     // register where none was. A `file`-tier boot journals nothing (`§7.2` item 6), so nothing else records it.
     store.born = store.capture_register();
+    // **⟶ AND THE FLOOR BEGINS AS IT, 2026-11-17 (`D-178`): ONE CAPTURE, TWO CARRIERS.** The floor the replay
+    // begins from is the born state until the compaction drops something — **so this line is the whole of the
+    // uncompacted case, and `replayMark` reads ONE base on every store instead of branching on whether a drop has
+    // happened.** The clone is taken here and never re-derived: nothing else in the store writes
+    // `Store::floor_state` except the drop in `Store::append`.
+    store.floor_state = store.born.clone();
     Ok(store)
 }
 
@@ -1166,6 +1209,12 @@ impl Store {
             journal_floor: None,
             base_state: StoreValue::Object(BTreeMap::new()),
             born: Vec::new(),
+            // **⟶ AND THE FLOOR'S OWN CARRIER IS EMPTY HERE FOR THE SAME REASON `born` IS, 2026-11-17 (`D-178`):
+            // both are taken at ONE instant, at the end of the construction, from the SAME capture.** An empty
+            // arena's register is empty, so nothing is claimed by the initial value — and no store is handed out
+            // before that instant, since the two assignments stand side by side and the construction returns below
+            // them.
+            floor_state: Vec::new(),
         }
     }
 
@@ -2422,10 +2471,30 @@ impl Store {
             // [`op_id_ordinal`] — and `Option::or` keeps the higher floor if a token is ever unreadable, so the
             // watermark can never move backwards.
             self.journal_floor = op_id_ordinal(&dropped.op.opId).or(self.journal_floor);
+            // **⟶ AND THE FLOOR ADVANCES BY THE VERY ENTRY THIS LOOP JUST TOOK, 2026-11-17 (`D-178`): THIS IS THE
+            // INSTANT, AND IT COSTS ONE ENTRY AND NOT ONE REGISTER.** `Store::floor_state` becomes the state
+            // IMMEDIATELY AFTER the dropped entry — **which is exactly the base the RETAINED entries replay
+            // onto**, because the retained entries are the ones appended after it — **and `Store::advance_floor`
+            // applies the entry's own `after` snapshots to it**; no second assembly runs and nothing walks back
+            // through the retained entries (`D-178` item 4 prices the two shapes this avoids).
+            //
+            // **WHY THIS INSTANT AND NOT THE PUSH ABOVE**: the pushed entry is the journal's HEAD, and the floor
+            // is a state BELOW it. **THE DROP IS THE ONE MOMENT AT WHICH THE FLOOR MOVES AT ALL** — a position the
+            // journal was compressed to is a fact the drop creates — so a state advanced anywhere else would be
+            // advanced by an event that did not occur. And the snapshots applied are the entry's own, taken the
+            // instant its operation landed (`Entry::after`), **so the floor can never see an effect the entry did
+            // not record nor miss one it did.**
+            self.advance_floor(&dropped.op.address, &dropped.after);
             // `§6.1` item 5: **the base state is a SNAPSHOT of the store's own observable state at
             // the moment of compression** — the value every reachable address reads at that moment,
             // i.e. the register's whole readable content — and it replaces every compressed entry as
             // the walk's floor.
+            //
+            // **⟶ AND IT IS THE HEAD'S STATE AND NOT THE FLOOR'S, WHICH IS WHY THE ADVANCE ABOVE DOES NOT USE IT**
+            // (`D-178` item 4, verbatim: *"`append` pushes the entry and only then runs the compaction loop … so
+            // `assemble_all` at that instant reflects the NEW entry — it is the HEAD's state and not the floor's"*).
+            // This line is unmoved and its sentence stands for its own subject; the replay's base is
+            // `Store::floor_state`, which is a different state taken from a different carrier.
             self.base_state = self.assemble_all(self.register_ref);
         }
         stored
@@ -3426,12 +3495,22 @@ impl Store {
 
     /// **`journalMark() → Option<String>` — THE JOURNAL'S LAST VALID MARK, AND THE STORE IS THE ONE THAT SAYS
     /// WHICH ENTRIES ARE VALID.** It answers **the op id of the last entry the journal holds**, or **`None`
-    /// where the journal holds no entry at all** — the state the store was born with (`Store::born`), which the
-    /// mark restore reaches through [`Store::restoreFloor`] and which no op id can name. **IT IS A PURE READ**:
+    /// where the journal holds no entry at all** — the replay's floor, which the mark restore reaches through
+    /// [`Store::restoreFloor`] and which no op id can name. **IT IS A PURE READ**:
     /// it appends nothing, compacts nothing, replays nothing, delivers nothing and touches no file. **Its one
     /// caller is the package's `openCommit` (`bindings/js/src/entry/state.mjs`), which caches the answer on the
     /// window it opens** — so the mark a later compensating act restores is the journal's position AT THAT
     /// INSTANT and not whatever the journal holds when the act finally runs.
+    ///
+    /// **⟶ AND `None` IS THE FLOOR AND NO LONGER ONLY THE BORN STATE, 2026-11-17 (`strata/decisions.md` · `D-178`).**
+    /// The sentence above read *"the state the store was born with (`Store::born`)"*, **and it is true of a store
+    /// nothing has been dropped from**: where `D-160`'s compaction has dropped an entry, **the state an empty
+    /// journal's `None` reaches is `Store::floor_state` — the state immediately after the last entry it took — and
+    /// not the creation state.** **THE CARRIER THIS READ ANSWERS CANNOT TELL THE TWO APART** (the floor row is the
+    /// only spelling the absent position has, and this read answers `None` in both classes), **so
+    /// the distinction is NOT drawn here and no second carrier row is minted**: a package that renders the floor
+    /// row as *"the state the store was born with"* is right where nothing has been dropped and reads one ruling
+    /// behind the tree where something has — and the store's answer stays the one spelling it declares.
     ///
     /// **WHAT "VALID" MEANS HERE, MEASURED RATHER THAN ASSUMED — THE TWO STATES A MARK CAN BE IN:**
     ///   * **AN ENTRY A FAILED `file`-SAVE REMOVED IS GONE, AND IT IS NOT A MARK.** `commit_file`'s failing arm
@@ -3461,8 +3540,9 @@ impl Store {
     /// therefore CACHE it. This read names it, in the store's own terms, so a caller can hold the position it
     /// opened at instead of re-reading the head when the act finally runs.
     pub fn journalMark(&self) -> Option<String> {
-        // THE HEAD IS THE LAST ENTRY THE JOURNAL HOLDS. `None` is the born state, not an error: the record
-        // describes no operation, so the state it describes is the floor the replay begins at.
+        // THE HEAD IS THE LAST ENTRY THE JOURNAL HOLDS. `None` is the FLOOR, not an error: the record describes no
+        // operation, so the state it describes is the floor the replay begins at — `Store::floor_state`, which is
+        // the born state only where nothing has been dropped (`D-178`; see this method's clause).
         self.journal.last().map(|entry| entry.op.opId.clone())
     }
 
@@ -3561,6 +3641,14 @@ impl Store {
         let up_to: Option<usize> = match &mark {
             // THE HEAD: the last entry the journal holds. An EMPTY journal describes no operation at all, so
             // the state it describes is the empty register the store began with — `None` below.
+            //
+            // **⟶ AND THAT SENTENCE IS SUPERSEDED WHERE A DROP HAS HAPPENED, 2026-11-17 (`strata/decisions.md` ·
+            // `D-178`).** An empty journal of a store the compaction HAS dropped from describes no operation
+            // either — **but the state `None` below reaches is the COMPACTED FLOOR and no longer *"the empty
+            // register the store began with"***, because `replayMark` begins from `Store::floor_state` and that
+            // field holds the dropped entries' effects. **This is the same ruling one layer down, at the one place
+            // its old spelling still stood**, and it is stated here because this arm is the reader that reaches
+            // `None`.
             OpIdArg::Absent => self.journal.len().checked_sub(1),
             _ => {
                 let named = op_id(&mark)?;
@@ -3575,9 +3663,10 @@ impl Store {
         self.replayMark(up_to)
     }
 
-    /// **⟶ ADDED 2026-10-27 — `restoreFloor() → void`: THE STORE RETURNS ITS OWN STATE TO THE STATE IT WAS
-    /// BORN WITH, AND IT IS THE MARK'S FLOOR NAMED AS A MARK.** It is the replay of `§6.6` with **NO ENTRY
-    /// APPLIED**: the booted `file`-tier image where one was loaded and the empty register where none was
+    /// **⟶ ADDED 2026-10-27 — `restoreFloor() → void`: THE STORE RETURNS ITS OWN STATE TO ITS FLOOR, AND IT IS THE
+    /// MARK'S FLOOR NAMED AS A MARK.** It is the replay of `§6.6` with **NO ENTRY APPLIED**: the state the
+    /// compaction's floor stands at — the booted `file`-tier image where one was loaded and the empty register
+    /// where none was (`Store::floor_state`), **which is the born state exactly where nothing has been dropped**
     /// (`Store::born`, `§6.6` item 2). **`restoreMark` HAS NO SPELLING FOR THIS STATE ONCE THE JOURNAL IS
     /// NON-EMPTY** — its ABSENT arm names the HEAD, and a caller that opened on an empty journal and later asks
     /// for "the state that stood then" is asking for a position BEFORE the journal's first entry, which an op
@@ -3586,9 +3675,17 @@ impl Store {
     /// through the same replay and the same save (a floor that moves a `file`-tier node saves, exactly as an
     /// op-id mark does — item 5's clause).
     ///
+    /// **⟶ AND FROM 2026-11-17 THE FLOOR THIS SPELLS IS THE COMPACTED ONE WHERE A DROP HAS HAPPENED — `D-178`,
+    /// the architect verbatim: *"Replay should start over from the compacted floor instead of 'born'"*.** The
+    /// sentences above read *"THE STATE IT WAS BORN WITH"* and are the reading of a store nothing has been dropped
+    /// from; **where `D-160`'s compaction has dropped an entry the floor is the state immediately after the last
+    /// entry it took** (`Store::floor_state`), **so this method names THAT state and the dropped entries' effects
+    /// STAND on it** — measured: `journalLength: 2`, `a` · `b` · `c`, and this call answers a register holding `a`,
+    /// where the creation state holds nothing.
+    ///
     /// **IT APPENDS NOTHING, COMPACTS NOTHING, DELIVERS NO TRIGGER AND READS NO CONSTRAINT** — the same three
     /// negatives `restoreMark` carries, for the same reason: a state the record already describes is being
-    /// re-stated, and the born state is the record's own floor (`Store::born`), not a caller's list.
+    /// re-stated, and the floor is the record's own (`Store::floor_state`), not a caller's list.
     pub fn restoreFloor(&mut self) -> Result<(), StoreError> {
         self.replayMark(None)
     }
@@ -3689,6 +3786,13 @@ impl Store {
             }
             // **AND THE CONSTRUCTION IMAGE IN THE FOUR CLASSES THAT OWE IT** — the three `boot_load` answers its
             // `None` for, and an image the loader REFUSES, which `D-118` reads as no image at all.
+            //
+            // **⟶ AND `born` IS READ HERE ON PURPOSE AND IS NOT THE REPLAY'S FLOOR, 2026-11-17 (`D-178`).** This
+            // arm's base is `D-110` item 3's *"the construction image"* — the durable state's stand-in where no
+            // file can be retrieved — and **it is NOT `Store::floor_state`**: a regeneration re-bases a REVERSAL on
+            // what can be retrieved, while the replay re-states a POSITION of the journal's own record. **The two
+            // are different questions about different subjects and this line must not be unified with
+            // `replayMark`'s base**; the floor the replay begins from moves no byte of `D-164`'s arm.
             FileImage::NoImage | FileImage::Refused => {
                 let born = self.born.clone();
                 self.apply_register(&born);
@@ -3709,14 +3813,34 @@ impl Store {
     /// **THE REPLAY ITSELF, AT ONE POSITION, AND IT IS THE ONE BODY `restoreMark` AND `restoreFloor` SHARE** —
     /// so the mark's two spellings (an op id, and the floor) cannot drift apart on the replay, the save or the
     /// answers. `up_to = Some(index)` applies the journal's entries `0..=index`; `up_to = None` applies NONE of
-    /// them and answers the born state.
+    /// them and answers **the CURRENT floor**.
+    ///
+    /// **⟶ THE BASE IS NOW THE COMPACTED FLOOR AND NOT `born` — 2026-11-17, `strata/decisions.md` · `D-178`, the
+    /// architect verbatim: *"Replay should start over from the compacted floor instead of 'born'"*.** The sentence
+    /// that stood here read *"the replay, from the state the record stands before its first entry — the booted
+    /// image where the store loaded one and the empty register where it did not (`Store::born`)"*, **and it is the
+    /// state of a store NOTHING HAS BEEN DROPPED FROM.** Once `D-160`'s compaction drops an entry, **the effect of
+    /// every entry it took is absent from `born`**, so a replay that began there answered a state the journal's own
+    /// record never described: the effects of the dropped entries **belong to the base, and the base is now
+    /// `Store::floor_state`** — the state immediately after the last entry the compaction dropped, which BEGINS
+    /// equal to `born` (so an uncompacted store's answer does not move) and is advanced by each drop and by nothing
+    /// else.
+    ///
+    /// **AND `up_to = None` STILL MEANS THE FLOOR — THE FLOOR'S OWN SPELLING, `Store::restoreFloor` — WHICH IS NOW
+    /// THE COMPACTED FLOOR AND NO LONGER THE CREATION STATE.** **THE SENTENCE THAT ARRIVES AT THIS ARM FROM
+    /// `restoreMark` — *"the state it describes is the empty register the store began with"* — IS SUPERSEDED WHERE
+    /// A DROP HAS HAPPENED**, and it is the same ruling one layer down: the empty journal of a store the compaction
+    /// has dropped from still describes no operation, **but the state `None` reaches is the one below, not the one
+    /// the store was born with.**
     fn replayMark(&mut self, up_to: Option<usize>) -> Result<(), StoreError> {
-        // THE REPLAY, FROM THE STATE THE RECORD STANDS BEFORE ITS FIRST ENTRY — the booted image where the store
-        // loaded one and the empty register where it did not (`Store::born`), never the empty register on
-        // assumption. Each entry's address then names the pair it set, and an operation at the EMPTY address is
-        // applied at the register's own root.
-        let born = self.born.clone();
-        self.apply_register(&born);
+        // THE REPLAY'S BASE IS THE FLOOR — `Store::floor_state`: the state immediately after the last entry the
+        // compaction dropped, and EQUAL to the born state where nothing has been dropped (`storeCreateWithInputs`
+        // takes one capture and this carrier holds it). Each entry's address then names the pair it set, and an
+        // operation at the EMPTY address is applied at the register's own root. **ONE BASE AND ONE PATH — there is
+        // no branch on `journal_floor.is_some()` here** (`D-178` item 2 (i)'s test is the equality the field
+        // begins with), so the two cases cannot drift apart.
+        let floor = self.floor_state.clone();
+        self.apply_register(&floor);
         if let Some(up_to) = up_to {
             for index in 0..=up_to {
                 self.replay_entry(index)?;
@@ -3768,6 +3892,68 @@ impl Store {
         self.restore(&home, &after);
         self.journal[index].home = Some(home);
         Ok(())
+    }
+
+    /// **⟶ ADDED 2026-11-17 BY `D-178` — THE FLOOR'S ONE ADVANCE: ONE ENTRY APPLIED TO THE STATE THE COMPACTION'S
+    /// FLOOR HOLDS, SPELLED ON THE CAPTURED CARRIER AND NOT ON THE GRAPH.**
+    ///
+    /// **THERE WAS NO HELPER THAT APPLIES ONE ENTRY'S SNAPSHOTS TO A STATE, AND THAT IS STATED HERE RATHER THAN
+    /// PAPERED** — [`Store::apply_register`] takes a WHOLE captured state and installs it, [`Store::restore`] takes
+    /// a live GRAPH and a `PairHome`, and [`Store::replay_entry`] is the graph-level primitive. **SO THIS IS
+    /// `replay_entry`'S OWN ACT SPELLED ON THE CARRIER `Store::floor_state` HOLDS — not a second semantics for
+    /// *"apply an entry"*: the two steps below are the two steps `replay_entry` performs, in its order.**
+    ///   * **THE PAIR AT THE ENTRY'S ADDRESS AND ITS WHOLE DOWNSTREAM SUBTREE ARE CLEARED** — `replay_entry` resolves
+    ///     the pair and `restore`'s `rebuild` removes its versions BEFORE it writes any (`remove_refs`); here every
+    ///     captured entry at or below that address leaves the state, which is the same subtree expressed on the
+    ///     absolute paths a register's capture carries.
+    ///   * **EVERY VERSION THE ENTRY LEFT IS WRITTEN AT ITS OWN TIER, UNDER THE VERSION IT HUNG UNDER** —
+    ///     `rebuild`'s `mint` loop and `Captured::under`: **no purge and no monotonicity test**, because a state the
+    ///     record already describes is being re-stated and not being written (`§6.6`'s own clause, which is why this
+    ///     primitive can reach states a `write` cannot). **TWO THINGS MOVE AND ONLY TWO**: the PATH, re-based from
+    ///     the entry's own address to the register's absolute path, and the `under` of the addressed pair's own
+    ///     versions — which is the one carrier re-basing would otherwise falsify, and it is stated below.
+    ///
+    /// **THE EMPTY ADDRESS IS THE SAME ACT AND NOT A SECOND ARM.** `replay_entry` applies `apply_register(&after)`
+    /// there; here an empty prefix clears EVERY captured entry (every path starts with the empty path) and
+    /// re-bases nothing, so what remains is the entry's `after` — the whole register, which is what an operation at
+    /// the EMPTY address left (`capture_register`). **A second arm would be a second place for the one address
+    /// class to drift, and `replay_entry` does not have one either.**
+    ///
+    /// **AND THE `under` CARRIER IS RE-DERIVED FOR THE ADDRESSED PAIR'S OWN VERSIONS, BECAUSE RE-BASING IS WHERE IT
+    /// WOULD OTHERWISE LIE.** [`Captured::under`] names the TIER OF THE ENCLOSING VERSION whose node holds the pair,
+    /// and `rebuild` writes a child only under a version it can find at that tier (`pair_at`). **The entry's own
+    /// capture is RELATIVE to its address, so its top-level versions carry `under: None` — right at the addressed
+    /// pair and FALSE one level down**, once they are re-based onto a deeper absolute path: `None` puts them under
+    /// no parent version at all and `rebuild` skips them. **The enclosing version is not guessed — it is the one
+    /// `replay_entry` itself resolves**: `home_of_address`'s `walk` answers the LOWEST-persistence version at the
+    /// parent path (`§2.3`: *"the lowest-persistence anchor answers"*, `A28`), **and this reads that same rule over
+    /// this state's own versions**, which are the versions the entry was appended onto. **MEASURED BEFORE IT WAS
+    /// ADDED**: a floor advanced by a write at `['a','q']` replayed as `a.q`'s value from BEFORE that write — the
+    /// entry's effect in the state and absent from the replay.
+    fn advance_floor(&mut self, address: &[Segment], after: &[Captured]) {
+        self.floor_state.retain(|entry| !entry.path.starts_with(address));
+        // THE VERSION OF THE ADDRESS'S PARENT THAT THE ADDRESSED PAIR HANGS UNDER — `walk`'s own selection over
+        // this state's versions of that path (`lowest`: rank ascending) — and `None` where the parent IS the
+        // register, whose own top level is the capture's top level and never carries `under` (`capture_register`).
+        let enclosing: Option<Tier> = match address.split_last() {
+            Some((_, parents)) if !parents.is_empty() => self
+                .floor_state
+                .iter()
+                .filter(|entry| entry.path.as_slice() == parents)
+                .map(|entry| entry.tier)
+                .min_by_key(|tier| tier.rank()),
+            _ => None,
+        };
+        for entry in after {
+            let mut rebased = entry.clone();
+            let mut path = address.to_vec();
+            path.extend(entry.path.iter().cloned());
+            rebased.path = path;
+            if entry.path.is_empty() {
+                rebased.under = enclosing;
+            }
+            self.floor_state.push(rebased);
+        }
     }
 
     /// **⟶ ADDED 2026-11-17 BY `U-STOREROOM-03` — THE COMPOSITION AND ITS SELF-VERIFICATION, FACTORED ONCE SO THE

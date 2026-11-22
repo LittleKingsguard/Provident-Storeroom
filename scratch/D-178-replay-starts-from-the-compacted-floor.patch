@@ -1,0 +1,897 @@
+diff --git a/scratch/d178-floor-boot.mjs b/scratch/d178-floor-boot.mjs
+new file mode 100644
+index 0000000..9219522
+--- /dev/null
++++ b/scratch/d178-floor-boot.mjs
+@@ -0,0 +1,74 @@
++// scratch/d178-floor-boot.mjs — **THE BOOTED FLOOR, DRIVEN**: a store whose `born` is a booted `file`-tier image
++// takes the same floor advance as a path-less one, and a restoral to a retained mark keeps the version the cap
++// dropped. Read-only: no byte of src/ and no test is written; every file lives under the temp directory.
++import { copyFileSync, mkdtempSync } from 'node:fs';
++import { tmpdir } from 'node:os';
++import { join } from 'node:path';
++
++import { storeCreate } from '../bindings/js/index.mjs';
++import { withAddon } from '../bindings/js/src/entry/addon-slot.mjs';
++
++const mark = (store) => Reflect.apply(withAddon().journalMark, store, []);
++const restore = (store, m) => {
++  try {
++    Reflect.apply(withAddon().restoreMark, store, [m]);
++    return 'ok';
++  } catch (why) {
++    return 'threw ' + (why && why.status);
++  }
++};
++const commit = (store, opId) => {
++  try {
++    Reflect.apply(withAddon().commitFile, store, [opId]);
++    return 'committed';
++  } catch (why) {
++    return 'refused ' + (why && why.status);
++  }
++};
++const standing = (store, address) => {
++  try {
++    return JSON.stringify(store.read(address));
++  } catch (why) {
++    return 'refused ' + (why && why.status);
++  }
++};
++
++const dir = mkdtempSync(join(tmpdir(), 'd178-floor-boot-'));
++const origin = join(dir, 'origin.json');
++const controlPath = join(dir, 'control.json');
++// (1) An image at `file`: a = 1 and b = 2, committed.
++const first = storeCreate({ filePath: origin, journalLength: 8, listeners: [] });
++const wrote = first.write(['a'], 'file', 1);
++console.log('commit a:', commit(first, wrote.op.opId));
++const wroteB = first.write(['b'], 'file', 2);
++console.log('commit b:', commit(first, wroteB.op.opId));
++// (2) The two stores the drive compares, booted from the SAME bytes.
++copyFileSync(origin, controlPath);
++const compacted = storeCreate({ filePath: origin, journalLength: 2, listeners: [] });
++const control = storeCreate({ filePath: controlPath, journalLength: 64, listeners: [] });
++console.log('booted compacted born:', standing(compacted, []));
++console.log('booted control born:  ', standing(control, []));
++
++// (3) The same record on both: a `mem` write over the FILE version of `a`, then two more so the cap drops the first.
++const drive = (store) => {
++  store.write(['a'], 'mem', 3);
++  const afterFirst = mark(store);
++  store.write(['c'], 'mem', 4);
++  const afterSecond = mark(store);
++  store.write(['d'], 'mem', 5);
++  return { afterFirst, afterSecond };
++};
++const mine = drive(compacted);
++const theirs = drive(control);
++console.log('compacted  after the third write:', standing(compacted, ['a']), standing(compacted, ['c']),
++  standing(compacted, ['d']));
++
++// (4) The retained mark: the state at the second write, whose predecessor the cap dropped.
++console.log('compacted restore retained:', restore(compacted, mine.afterSecond));
++console.log('control   restore retained:', restore(control, theirs.afterSecond));
++console.log('compacted:', standing(compacted, ['a']), standing(compacted, ['b']), standing(compacted, ['c']),
++  standing(compacted, ['d']));
++console.log('control:  ', standing(control, ['a']), standing(control, ['b']), standing(control, ['c']),
++  standing(control, ['d']));
++console.log('compacted bytes still say a =', JSON.stringify(JSON.parse(JSON.stringify(
++  storeCreate({ filePath: origin, journalLength: 8, listeners: [] }).read(['a']) ?? null))));
+diff --git a/scratch/d178-floor-equivalence.mjs b/scratch/d178-floor-equivalence.mjs
+new file mode 100644
+index 0000000..a8f93f1
+--- /dev/null
++++ b/scratch/d178-floor-equivalence.mjs
+@@ -0,0 +1,120 @@
++// scratch/d178-floor-equivalence.mjs — **THE FLOOR'S EQUIVALENCE, DRIVEN RATHER THAN ARGUED**: a store the
++// compaction has dropped from answers, at every RETAINED mark, exactly what a store that dropped nothing answers
++// at the same position of the same record. Read-only: no byte of src/ and no test is written.
++//
++// The subject is the claim that `Store::floor_state` — one state, advanced once per drop, by the dropped entry's
++// own `after` snapshots — is the fold of every dropped entry from `born`, so `floor + retained[0..=k]` equals
++// `born + every[0..=k]`. Two records are driven, each on two stores: `journalLength: CAP` (drops) against
++// `journalLength: 64` (drops nothing). The first covers nested shadows, purge-and-replace, an array's `close_up`,
++// deletes at depth and a register-level delete; **the second is the one the `under` carrier is about** — the same
++// pair standing at TWO tiers, and writes BELOW it, which is where a re-based capture lies about which parent
++// version holds a child.
++//
++// Usage: node scratch/d178-floor-equivalence.mjs [cap]
++import { storeCreate } from '../bindings/js/index.mjs';
++import { withAddon } from '../bindings/js/src/entry/addon-slot.mjs';
++
++const CAP = Number(process.argv[2] ?? 4);
++const FULL = 64;
++
++const mark = (store) => Reflect.apply(withAddon().journalMark, store, []);
++const at = (store, m) => {
++  try {
++    Reflect.apply(withAddon().restoreMark, store, [m]);
++    return { ok: true };
++  } catch (why) {
++    return { ok: false, status: why && why.status };
++  }
++};
++const whole = (store) => {
++  try {
++    return JSON.stringify(store.read([]));
++  } catch (why) {
++    return 'read([]) threw ' + (why && why.status);
++  }
++};
++
++// A row is [tier, address, value-or-'DELETE']; `tier === null` names no tier at all.
++const NESTED = [
++  ['mem', ['a'], { x: 1, y: { z: 'deep' } }],      // 0  a structured shadow
++  ['mem', ['a', 'x'], 2],                          // 1  a nested write
++  ['mem', ['a', 'y', 'z'], 'deeper'],              // 2  and one deeper
++  ['mem', ['b'], [1, 2, 3]],                       // 3  an array
++  ['mem', ['b', 1], 'mid'],                        // 4  an array position, replaced
++  ['mem', ['b', 0], 'DELETE'],                     // 5  close_up: positions shift
++  ['mem', ['a'], 'scalar'],                        // 6  purge-and-replace at the top
++  ['mem', ['b'], 'DELETE'],                        // 7  the array goes whole
++  ['mem', ['a'], { q: { r: [1, 2] } }],            // 8  a new shadow under a scalar
++  ['mem', ['a', 'q', 'r', 0], 9],                  // 9  an array element inside the shadow
++  ['mem', ['a', 'q'], { r: [3, 4], s: 'kept' }],   // 10 an inner node, replaced whole
++  ['mem', ['c'], { deep: { chain: { of: ['keys'] } } }],  // 11
++  ['mem', ['c', 'deep', 'chain', 'of', 0], 'x'],  // 12
++  ['mem', ['a', 'q', 'r', 1], 44],                 // 13
++  ['mem', ['a'], 'DELETE'],                        // 14 the shadow goes
++  ['mem', ['c'], 'DELETE'],                        // 15 and the other
++  [null, [], 'DELETE'],                            // 16 no tier: the whole register
++  ['mem', ['z'], 'last'],                          // 17
++  ['mem', ['y'], { k: 1 }],                        // 18
++  ['mem', ['y', 'k'], 2],                          // 19
++];
++
++// **THE `under` RECORD**: one pair standing at `mem` AND `temp`, writes below it (whose parent version the walk
++// picks by LOWEST persistence, i.e. `temp`), a purge at `mem` that leaves the `temp` version standing, and a
++// delete of the `temp` version with its children.
++const SHADOW = [
++  ['mem', ['s'], { a: 1, b: { c: 2 } }],           // 0  s at mem
++  ['temp', ['s'], { a: 10, b: { c: 20 } }],        // 1  and at temp: a shadow of two versions
++  ['temp', ['s', 'a'], 5],                         // 2  below it — the walk picks the temp version
++  ['temp', ['s', 'b', 'c'], 7],                    // 3  deeper, under the temp version's own chain
++  ['mem', ['t'], 'x'],                             // 4
++  ['temp', ['s', 'zz'], 1],                        // 5  a NEW pair below the shadow
++  ['temp', ['s', 'zz'], 'DELETE'],                 // 6  and it goes
++  ['mem', ['u'], { deep: { er: 1 } }],             // 7
++  ['mem', ['u', 'deep', 'er'], 2],                 // 8
++  ['temp', ['s'], 'DELETE'],                       // 9  the temp version goes with its children
++  ['mem', ['v'], 'end'],                           // 10 and the mem version of `s` still stands
++];
++
++const drive = (rows, journalLength) => {
++  const store = storeCreate({ journalLength, listeners: [] });
++  const marks = [];
++  for (const [tier, address, value] of rows) {
++    if (value === 'DELETE') {
++      if (tier === null) store.delete(address); else store.delete(address, tier);
++    } else store.write(address, tier, value);
++    marks.push(mark(store));
++  }
++  return { store, marks };
++};
++
++const report = (name, rows) => {
++  const compacted = drive(rows, CAP);
++  const control = drive(rows, FULL);
++  let compared = 0;
++  let dropped = 0;
++  let disagreed = 0;
++  for (let row = 0; row < rows.length; row += 1) {
++    const mine = compacted.marks[row];
++    const theirs = control.marks[row];
++    // THE MEMBERSHIP TEST IS THE STORE'S OWN: a mark it no longer holds answers `JournalOpUnknown`, which is the
++    // refusal `D-160` item 3 gives that class — so nothing here re-derives the window's arithmetic.
++    if (at(compacted.store, mine).status === 'JournalOpUnknown') {
++      dropped += 1;
++      if (at(control.store, theirs).ok !== true) console.log(`${name} row ${row}: the CONTROL refused its own mark`);
++      continue;
++    }
++    const left = whole(compacted.store);
++    at(control.store, theirs);
++    const right = whole(control.store);
++    compared += 1;
++    if (left !== right) {
++      disagreed += 1;
++      console.log(`${name} row ${row}: compacted ${left}`);
++      console.log(`${name} row ${row}: control   ${right}`);
++    }
++  }
++  console.log(`${name}: ${dropped} rows dropped, ${compared} retained positions compared, ${disagreed} disagreements`);
++};
++
++report('nested', NESTED);
++report('shadow', SHADOW);
+diff --git a/scratch/d178-prefix-probe.mjs b/scratch/d178-prefix-probe.mjs
+new file mode 100644
+index 0000000..65174f6
+--- /dev/null
++++ b/scratch/d178-prefix-probe.mjs
+@@ -0,0 +1,61 @@
++// scratch/d178-prefix-probe.mjs — the supervisor's drive, taken on the tree BEFORE the fix, and the
++// four cells' readings taken at the same instant. Read-only: no byte of src/ and no test is written.
++import { storeCreate } from '../bindings/js/index.mjs';
++import { withAddon } from '../bindings/js/src/entry/addon-slot.mjs';
++
++const mark = (store) => Reflect.apply(withAddon().journalMark, store, []);
++const restored = (store, carrier) => {
++  try {
++    Reflect.apply(withAddon().restoreMark, store, [carrier === undefined ? null : carrier]);
++    return 'returned';
++  } catch (why) {
++    return 'threw ' + (why && why.status);
++  }
++};
++const standing = (store, address) => {
++  try {
++    return JSON.stringify(store.read(address));
++  } catch (why) {
++    return why && why.status;
++  }
++};
++
++// ---- RF-1's drive -------------------------------------------------------------------------------
++const store = storeCreate({ journalLength: 2, listeners: [] });
++store.write(['a'], 'mem', 'A'); const m1 = mark(store);
++store.write(['b'], 'mem', 'B'); const m2 = mark(store);
++store.write(['c'], 'mem', 'C');
++console.log('marks:', JSON.stringify(m1), JSON.stringify(m2));
++console.log('before  a=', standing(store, ['a']), ' b=', standing(store, ['b']), ' c=', standing(store, ['c']));
++console.log('restore m2 ->', restored(store, m2));
++console.log('after   a=', standing(store, ['a']), ' b=', standing(store, ['b']), ' c=', standing(store, ['c']));
++
++// ---- RF-3: the DROPPED mark ---------------------------------------------------------------------
++const s3 = storeCreate({ journalLength: 2, listeners: [] });
++s3.write(['a'], 'mem', 'A'); const d1 = mark(s3);
++s3.write(['b'], 'mem', 'B');
++s3.write(['c'], 'mem', 'C');
++console.log('restore dropped ->', restored(s3, d1),
++  ' a=', standing(s3, ['a']), ' b=', standing(s3, ['b']), ' c=', standing(s3, ['c']));
++
++// ---- RF-4: the floor carrier, driven as the package drives it ({k:'F'} from a store whose journal
++//      held no entry) ----------------------------------------------------------------------------
++const empty = storeCreate({ journalLength: 2, listeners: [] });
++const floorCarrier = mark(empty);
++const s4 = storeCreate({ journalLength: 2, listeners: [] });
++s4.write(['a'], 'mem', 'A');
++s4.write(['b'], 'mem', 'B');
++s4.write(['c'], 'mem', 'C');
++console.log('floor carrier:', JSON.stringify(floorCarrier));
++console.log('restore floor ->', restored(s4, floorCarrier),
++  ' a=', standing(s4, ['a']), ' b=', standing(s4, ['b']), ' c=', standing(s4, ['c']));
++
++// ---- RF-2: the uncompacted control --------------------------------------------------------------
++const s2 = storeCreate({ journalLength: 8, listeners: [] });
++s2.write(['a'], 'mem', 'A'); const c1 = mark(s2);
++s2.write(['b'], 'mem', 'B'); const c2 = mark(s2);
++s2.write(['c'], 'mem', 'C');
++console.log('control restore m2 ->', restored(s2, c2),
++  ' a=', standing(s2, ['a']), ' b=', standing(s2, ['b']), ' c=', standing(s2, ['c']));
++console.log('control restore m1 ->', restored(s2, c1),
++  ' a=', standing(s2, ['a']), ' b=', standing(s2, ['b']), ' c=', standing(s2, ['c']));
+diff --git a/src/store.rs b/src/store.rs
+index b2b2c1b..28f01e7 100644
+--- a/src/store.rs
++++ b/src/store.rs
+@@ -699,6 +699,43 @@ pub struct Store {
+     /// boot-loaded key. Captured with the same per-version shape the entries carry (`capture_register`), so a
+     /// booted shadow's versions survive the floor as well.
+     born: Vec<Captured>,
++    /// **⟶ ADDED 2026-11-17 BY `D-178` — THE STATE THE COMPACTION'S FLOOR STANDS AT, AND THE BASE
++    /// [`Store::replayMark`] BEGINS FROM.** The architect, verbatim: ***"Replay should start over from the
++    /// compacted floor instead of 'born'"*** (`strata/decisions.md` · `D-178`).
++    ///
++    /// **THE SENTENCE THAT STOOD AT `replayMark` READ *"the state the record stands before its first entry — the
++    /// booted image where the store loaded one and the empty register where it did not (`Store::born`)"*, AND IT
++    /// DESCRIBES A STORE NOTHING HAS BEEN DROPPED FROM AND NO LONGER THE WHOLE CLASS.** `D-160` item 1's compaction
++    /// REMOVES the oldest entries whole, **so the effect of every entry it took is absent from `born`** — which is
++    /// the boot's creation state and journals nothing for itself (`§7.2` item 6) — **while it is PRESENT in the
++    /// state the RETAINED entries were appended onto.** That state is this field: **the state immediately after
++    /// the last entry the compaction dropped, which is exactly the base a replay of the journal's own record
++    /// needs.** **MEASURED BEFORE IT WAS ADDED**: `journalLength: 2`, `a` · `b` · `c`, a restoral to the RETAINED
++    /// mark `op-2` answered *returned* and left `a` at `AddressNotFound` although the state at `op-2` held it.
++    ///
++    /// **IT IS ONE STATE AND IT BEGINS AS `born`** (`storeCreateWithInputs` takes the register's capture ONCE and
++    /// this carrier holds it beside `born`), **so a store nothing has been dropped from has a floor EQUAL to
++    /// `born` and ONE code path serves both cases** — `D-178` item 2 (i)'s `journal_floor.is_some()` test is NOT
++    /// read here as a second rule, because the branch it names IS this equality: **a second rule for the
++    /// uncompacted case would be a second place for the two bases to disagree, and nothing but the drop below may
++    /// move this field.**
++    ///
++    /// **IT IS ADVANCED ONCE PER DROP, IN [`Store::append`]'s LOOP, BY THE ENTRY THAT LOOP DROPS**
++    /// ([`Store::advance_floor`]) — and **it is NOT `base_state`, the field above it**: `base_state` is
++    /// `assemble_all`'s answer taken AFTER the push, **so it is the HEAD's state and not the floor's** (`D-178`
++    /// item 4), and it is the COLLAPSED `StoreValue` a read answers rather than the per-version, per-tier carrier
++    /// a replay can begin from (`Entry::after`'s own clause). **The two are different states at the same instant
++    /// and the names must not be read as one another.**
++    ///
++    /// **⟶ AND ITS BOUND IS DECLARED IN BYTES, WHICH IS WHY IT IS ONE STATE AND NOT A LIST.** This field holds
++    /// **ONE REGISTER'S WORTH OF VERSIONS** — one [`Captured`] per standing version at every path, each one a
++    /// `Vec<Segment>` path, an `Option<Tier>` carrier, a `Tier` and one `StoreValue` — **which is the same order as
++    /// `born`, a carrier the store already holds**, and **NOT one capture per drop**: a drop REPLACES the subtree at
++    /// the dropped entry's address INSIDE this state, so the n-th drop costs that entry's own `after` capture and
++    /// never the register times the number of drops. **RETENTION IS `O(one register)` IN THE STATE AND `O(0)` IN
++    /// THE HISTORY** — `D-160` item 2's `O(store + journal_length)` with nothing added to its `journal_length`
++    /// term, and nothing that grows with the write count.
++    floor_state: Vec<Captured>,
+ }
+ 
+ /// `§7.1` — **THE CONSTRUCTION, IN THE AMENDMENT'S OWN ORDERED SEQUENCE** (`A49`–`A56`; `§7.1`'s amended
+@@ -988,6 +1025,12 @@ pub fn storeCreateWithInputs(
+     // store holds before any operation it will journal — the booted image where one was loaded, the empty
+     // register where none was. A `file`-tier boot journals nothing (`§7.2` item 6), so nothing else records it.
+     store.born = store.capture_register();
++    // **⟶ AND THE FLOOR BEGINS AS IT, 2026-11-17 (`D-178`): ONE CAPTURE, TWO CARRIERS.** The floor the replay
++    // begins from is the born state until the compaction drops something — **so this line is the whole of the
++    // uncompacted case, and `replayMark` reads ONE base on every store instead of branching on whether a drop has
++    // happened.** The clone is taken here and never re-derived: nothing else in the store writes
++    // `Store::floor_state` except the drop in `Store::append`.
++    store.floor_state = store.born.clone();
+     Ok(store)
+ }
+ 
+@@ -1166,6 +1209,12 @@ impl Store {
+             journal_floor: None,
+             base_state: StoreValue::Object(BTreeMap::new()),
+             born: Vec::new(),
++            // **⟶ AND THE FLOOR'S OWN CARRIER IS EMPTY HERE FOR THE SAME REASON `born` IS, 2026-11-17 (`D-178`):
++            // both are taken at ONE instant, at the end of the construction, from the SAME capture.** An empty
++            // arena's register is empty, so nothing is claimed by the initial value — and no store is handed out
++            // before that instant, since the two assignments stand side by side and the construction returns below
++            // them.
++            floor_state: Vec::new(),
+         }
+     }
+ 
+@@ -2422,10 +2471,30 @@ impl Store {
+             // [`op_id_ordinal`] — and `Option::or` keeps the higher floor if a token is ever unreadable, so the
+             // watermark can never move backwards.
+             self.journal_floor = op_id_ordinal(&dropped.op.opId).or(self.journal_floor);
++            // **⟶ AND THE FLOOR ADVANCES BY THE VERY ENTRY THIS LOOP JUST TOOK, 2026-11-17 (`D-178`): THIS IS THE
++            // INSTANT, AND IT COSTS ONE ENTRY AND NOT ONE REGISTER.** `Store::floor_state` becomes the state
++            // IMMEDIATELY AFTER the dropped entry — **which is exactly the base the RETAINED entries replay
++            // onto**, because the retained entries are the ones appended after it — **and `Store::advance_floor`
++            // applies the entry's own `after` snapshots to it**; no second assembly runs and nothing walks back
++            // through the retained entries (`D-178` item 4 prices the two shapes this avoids).
++            //
++            // **WHY THIS INSTANT AND NOT THE PUSH ABOVE**: the pushed entry is the journal's HEAD, and the floor
++            // is a state BELOW it. **THE DROP IS THE ONE MOMENT AT WHICH THE FLOOR MOVES AT ALL** — a position the
++            // journal was compressed to is a fact the drop creates — so a state advanced anywhere else would be
++            // advanced by an event that did not occur. And the snapshots applied are the entry's own, taken the
++            // instant its operation landed (`Entry::after`), **so the floor can never see an effect the entry did
++            // not record nor miss one it did.**
++            self.advance_floor(&dropped.op.address, &dropped.after);
+             // `§6.1` item 5: **the base state is a SNAPSHOT of the store's own observable state at
+             // the moment of compression** — the value every reachable address reads at that moment,
+             // i.e. the register's whole readable content — and it replaces every compressed entry as
+             // the walk's floor.
++            //
++            // **⟶ AND IT IS THE HEAD'S STATE AND NOT THE FLOOR'S, WHICH IS WHY THE ADVANCE ABOVE DOES NOT USE IT**
++            // (`D-178` item 4, verbatim: *"`append` pushes the entry and only then runs the compaction loop … so
++            // `assemble_all` at that instant reflects the NEW entry — it is the HEAD's state and not the floor's"*).
++            // This line is unmoved and its sentence stands for its own subject; the replay's base is
++            // `Store::floor_state`, which is a different state taken from a different carrier.
+             self.base_state = self.assemble_all(self.register_ref);
+         }
+         stored
+@@ -3426,13 +3495,23 @@ impl Store {
+ 
+     /// **`journalMark() → Option<String>` — THE JOURNAL'S LAST VALID MARK, AND THE STORE IS THE ONE THAT SAYS
+     /// WHICH ENTRIES ARE VALID.** It answers **the op id of the last entry the journal holds**, or **`None`
+-    /// where the journal holds no entry at all** — the state the store was born with (`Store::born`), which the
+-    /// mark restore reaches through [`Store::restoreFloor`] and which no op id can name. **IT IS A PURE READ**:
++    /// where the journal holds no entry at all** — the replay's floor, which the mark restore reaches through
++    /// [`Store::restoreFloor`] and which no op id can name. **IT IS A PURE READ**:
+     /// it appends nothing, compacts nothing, replays nothing, delivers nothing and touches no file. **Its one
+     /// caller is the package's `openCommit` (`bindings/js/src/entry/state.mjs`), which caches the answer on the
+     /// window it opens** — so the mark a later compensating act restores is the journal's position AT THAT
+     /// INSTANT and not whatever the journal holds when the act finally runs.
+     ///
++    /// **⟶ AND `None` IS THE FLOOR AND NO LONGER ONLY THE BORN STATE, 2026-11-17 (`strata/decisions.md` · `D-178`).**
++    /// The sentence above read *"the state the store was born with (`Store::born`)"*, **and it is true of a store
++    /// nothing has been dropped from**: where `D-160`'s compaction has dropped an entry, **the state an empty
++    /// journal's `None` reaches is `Store::floor_state` — the state immediately after the last entry it took — and
++    /// not the creation state.** **THE CARRIER THIS READ ANSWERS CANNOT TELL THE TWO APART** (the floor row is the
++    /// only spelling the absent position has, and this read answers `None` in both classes), **so
++    /// the distinction is NOT drawn here and no second carrier row is minted**: a package that renders the floor
++    /// row as *"the state the store was born with"* is right where nothing has been dropped and reads one ruling
++    /// behind the tree where something has — and the store's answer stays the one spelling it declares.
++    ///
+     /// **WHAT "VALID" MEANS HERE, MEASURED RATHER THAN ASSUMED — THE TWO STATES A MARK CAN BE IN:**
+     ///   * **AN ENTRY A FAILED `file`-SAVE REMOVED IS GONE, AND IT IS NOT A MARK.** `commit_file`'s failing arm
+     ///     takes the entry it just reverted out of the journal (`self.journal.remove(index)`), and it restores
+@@ -3461,8 +3540,9 @@ impl Store {
+     /// therefore CACHE it. This read names it, in the store's own terms, so a caller can hold the position it
+     /// opened at instead of re-reading the head when the act finally runs.
+     pub fn journalMark(&self) -> Option<String> {
+-        // THE HEAD IS THE LAST ENTRY THE JOURNAL HOLDS. `None` is the born state, not an error: the record
+-        // describes no operation, so the state it describes is the floor the replay begins at.
++        // THE HEAD IS THE LAST ENTRY THE JOURNAL HOLDS. `None` is the FLOOR, not an error: the record describes no
++        // operation, so the state it describes is the floor the replay begins at — `Store::floor_state`, which is
++        // the born state only where nothing has been dropped (`D-178`; see this method's clause).
+         self.journal.last().map(|entry| entry.op.opId.clone())
+     }
+ 
+@@ -3561,6 +3641,14 @@ impl Store {
+         let up_to: Option<usize> = match &mark {
+             // THE HEAD: the last entry the journal holds. An EMPTY journal describes no operation at all, so
+             // the state it describes is the empty register the store began with — `None` below.
++            //
++            // **⟶ AND THAT SENTENCE IS SUPERSEDED WHERE A DROP HAS HAPPENED, 2026-11-17 (`strata/decisions.md` ·
++            // `D-178`).** An empty journal of a store the compaction HAS dropped from describes no operation
++            // either — **but the state `None` below reaches is the COMPACTED FLOOR and no longer *"the empty
++            // register the store began with"***, because `replayMark` begins from `Store::floor_state` and that
++            // field holds the dropped entries' effects. **This is the same ruling one layer down, at the one place
++            // its old spelling still stood**, and it is stated here because this arm is the reader that reaches
++            // `None`.
+             OpIdArg::Absent => self.journal.len().checked_sub(1),
+             _ => {
+                 let named = op_id(&mark)?;
+@@ -3575,9 +3663,10 @@ impl Store {
+         self.replayMark(up_to)
+     }
+ 
+-    /// **⟶ ADDED 2026-10-27 — `restoreFloor() → void`: THE STORE RETURNS ITS OWN STATE TO THE STATE IT WAS
+-    /// BORN WITH, AND IT IS THE MARK'S FLOOR NAMED AS A MARK.** It is the replay of `§6.6` with **NO ENTRY
+-    /// APPLIED**: the booted `file`-tier image where one was loaded and the empty register where none was
++    /// **⟶ ADDED 2026-10-27 — `restoreFloor() → void`: THE STORE RETURNS ITS OWN STATE TO ITS FLOOR, AND IT IS THE
++    /// MARK'S FLOOR NAMED AS A MARK.** It is the replay of `§6.6` with **NO ENTRY APPLIED**: the state the
++    /// compaction's floor stands at — the booted `file`-tier image where one was loaded and the empty register
++    /// where none was (`Store::floor_state`), **which is the born state exactly where nothing has been dropped**
+     /// (`Store::born`, `§6.6` item 2). **`restoreMark` HAS NO SPELLING FOR THIS STATE ONCE THE JOURNAL IS
+     /// NON-EMPTY** — its ABSENT arm names the HEAD, and a caller that opened on an empty journal and later asks
+     /// for "the state that stood then" is asking for a position BEFORE the journal's first entry, which an op
+@@ -3586,9 +3675,17 @@ impl Store {
+     /// through the same replay and the same save (a floor that moves a `file`-tier node saves, exactly as an
+     /// op-id mark does — item 5's clause).
+     ///
++    /// **⟶ AND FROM 2026-11-17 THE FLOOR THIS SPELLS IS THE COMPACTED ONE WHERE A DROP HAS HAPPENED — `D-178`,
++    /// the architect verbatim: *"Replay should start over from the compacted floor instead of 'born'"*.** The
++    /// sentences above read *"THE STATE IT WAS BORN WITH"* and are the reading of a store nothing has been dropped
++    /// from; **where `D-160`'s compaction has dropped an entry the floor is the state immediately after the last
++    /// entry it took** (`Store::floor_state`), **so this method names THAT state and the dropped entries' effects
++    /// STAND on it** — measured: `journalLength: 2`, `a` · `b` · `c`, and this call answers a register holding `a`,
++    /// where the creation state holds nothing.
++    ///
+     /// **IT APPENDS NOTHING, COMPACTS NOTHING, DELIVERS NO TRIGGER AND READS NO CONSTRAINT** — the same three
+     /// negatives `restoreMark` carries, for the same reason: a state the record already describes is being
+-    /// re-stated, and the born state is the record's own floor (`Store::born`), not a caller's list.
++    /// re-stated, and the floor is the record's own (`Store::floor_state`), not a caller's list.
+     pub fn restoreFloor(&mut self) -> Result<(), StoreError> {
+         self.replayMark(None)
+     }
+@@ -3689,6 +3786,13 @@ impl Store {
+             }
+             // **AND THE CONSTRUCTION IMAGE IN THE FOUR CLASSES THAT OWE IT** — the three `boot_load` answers its
+             // `None` for, and an image the loader REFUSES, which `D-118` reads as no image at all.
++            //
++            // **⟶ AND `born` IS READ HERE ON PURPOSE AND IS NOT THE REPLAY'S FLOOR, 2026-11-17 (`D-178`).** This
++            // arm's base is `D-110` item 3's *"the construction image"* — the durable state's stand-in where no
++            // file can be retrieved — and **it is NOT `Store::floor_state`**: a regeneration re-bases a REVERSAL on
++            // what can be retrieved, while the replay re-states a POSITION of the journal's own record. **The two
++            // are different questions about different subjects and this line must not be unified with
++            // `replayMark`'s base**; the floor the replay begins from moves no byte of `D-164`'s arm.
+             FileImage::NoImage | FileImage::Refused => {
+                 let born = self.born.clone();
+                 self.apply_register(&born);
+@@ -3709,14 +3813,34 @@ impl Store {
+     /// **THE REPLAY ITSELF, AT ONE POSITION, AND IT IS THE ONE BODY `restoreMark` AND `restoreFloor` SHARE** —
+     /// so the mark's two spellings (an op id, and the floor) cannot drift apart on the replay, the save or the
+     /// answers. `up_to = Some(index)` applies the journal's entries `0..=index`; `up_to = None` applies NONE of
+-    /// them and answers the born state.
++    /// them and answers **the CURRENT floor**.
++    ///
++    /// **⟶ THE BASE IS NOW THE COMPACTED FLOOR AND NOT `born` — 2026-11-17, `strata/decisions.md` · `D-178`, the
++    /// architect verbatim: *"Replay should start over from the compacted floor instead of 'born'"*.** The sentence
++    /// that stood here read *"the replay, from the state the record stands before its first entry — the booted
++    /// image where the store loaded one and the empty register where it did not (`Store::born`)"*, **and it is the
++    /// state of a store NOTHING HAS BEEN DROPPED FROM.** Once `D-160`'s compaction drops an entry, **the effect of
++    /// every entry it took is absent from `born`**, so a replay that began there answered a state the journal's own
++    /// record never described: the effects of the dropped entries **belong to the base, and the base is now
++    /// `Store::floor_state`** — the state immediately after the last entry the compaction dropped, which BEGINS
++    /// equal to `born` (so an uncompacted store's answer does not move) and is advanced by each drop and by nothing
++    /// else.
++    ///
++    /// **AND `up_to = None` STILL MEANS THE FLOOR — THE FLOOR'S OWN SPELLING, `Store::restoreFloor` — WHICH IS NOW
++    /// THE COMPACTED FLOOR AND NO LONGER THE CREATION STATE.** **THE SENTENCE THAT ARRIVES AT THIS ARM FROM
++    /// `restoreMark` — *"the state it describes is the empty register the store began with"* — IS SUPERSEDED WHERE
++    /// A DROP HAS HAPPENED**, and it is the same ruling one layer down: the empty journal of a store the compaction
++    /// has dropped from still describes no operation, **but the state `None` reaches is the one below, not the one
++    /// the store was born with.**
+     fn replayMark(&mut self, up_to: Option<usize>) -> Result<(), StoreError> {
+-        // THE REPLAY, FROM THE STATE THE RECORD STANDS BEFORE ITS FIRST ENTRY — the booted image where the store
+-        // loaded one and the empty register where it did not (`Store::born`), never the empty register on
+-        // assumption. Each entry's address then names the pair it set, and an operation at the EMPTY address is
+-        // applied at the register's own root.
+-        let born = self.born.clone();
+-        self.apply_register(&born);
++        // THE REPLAY'S BASE IS THE FLOOR — `Store::floor_state`: the state immediately after the last entry the
++        // compaction dropped, and EQUAL to the born state where nothing has been dropped (`storeCreateWithInputs`
++        // takes one capture and this carrier holds it). Each entry's address then names the pair it set, and an
++        // operation at the EMPTY address is applied at the register's own root. **ONE BASE AND ONE PATH — there is
++        // no branch on `journal_floor.is_some()` here** (`D-178` item 2 (i)'s test is the equality the field
++        // begins with), so the two cases cannot drift apart.
++        let floor = self.floor_state.clone();
++        self.apply_register(&floor);
+         if let Some(up_to) = up_to {
+             for index in 0..=up_to {
+                 self.replay_entry(index)?;
+@@ -3770,6 +3894,68 @@ impl Store {
+         Ok(())
+     }
+ 
++    /// **⟶ ADDED 2026-11-17 BY `D-178` — THE FLOOR'S ONE ADVANCE: ONE ENTRY APPLIED TO THE STATE THE COMPACTION'S
++    /// FLOOR HOLDS, SPELLED ON THE CAPTURED CARRIER AND NOT ON THE GRAPH.**
++    ///
++    /// **THERE WAS NO HELPER THAT APPLIES ONE ENTRY'S SNAPSHOTS TO A STATE, AND THAT IS STATED HERE RATHER THAN
++    /// PAPERED** — [`Store::apply_register`] takes a WHOLE captured state and installs it, [`Store::restore`] takes
++    /// a live GRAPH and a `PairHome`, and [`Store::replay_entry`] is the graph-level primitive. **SO THIS IS
++    /// `replay_entry`'S OWN ACT SPELLED ON THE CARRIER `Store::floor_state` HOLDS — not a second semantics for
++    /// *"apply an entry"*: the two steps below are the two steps `replay_entry` performs, in its order.**
++    ///   * **THE PAIR AT THE ENTRY'S ADDRESS AND ITS WHOLE DOWNSTREAM SUBTREE ARE CLEARED** — `replay_entry` resolves
++    ///     the pair and `restore`'s `rebuild` removes its versions BEFORE it writes any (`remove_refs`); here every
++    ///     captured entry at or below that address leaves the state, which is the same subtree expressed on the
++    ///     absolute paths a register's capture carries.
++    ///   * **EVERY VERSION THE ENTRY LEFT IS WRITTEN AT ITS OWN TIER, UNDER THE VERSION IT HUNG UNDER** —
++    ///     `rebuild`'s `mint` loop and `Captured::under`: **no purge and no monotonicity test**, because a state the
++    ///     record already describes is being re-stated and not being written (`§6.6`'s own clause, which is why this
++    ///     primitive can reach states a `write` cannot). **TWO THINGS MOVE AND ONLY TWO**: the PATH, re-based from
++    ///     the entry's own address to the register's absolute path, and the `under` of the addressed pair's own
++    ///     versions — which is the one carrier re-basing would otherwise falsify, and it is stated below.
++    ///
++    /// **THE EMPTY ADDRESS IS THE SAME ACT AND NOT A SECOND ARM.** `replay_entry` applies `apply_register(&after)`
++    /// there; here an empty prefix clears EVERY captured entry (every path starts with the empty path) and
++    /// re-bases nothing, so what remains is the entry's `after` — the whole register, which is what an operation at
++    /// the EMPTY address left (`capture_register`). **A second arm would be a second place for the one address
++    /// class to drift, and `replay_entry` does not have one either.**
++    ///
++    /// **AND THE `under` CARRIER IS RE-DERIVED FOR THE ADDRESSED PAIR'S OWN VERSIONS, BECAUSE RE-BASING IS WHERE IT
++    /// WOULD OTHERWISE LIE.** [`Captured::under`] names the TIER OF THE ENCLOSING VERSION whose node holds the pair,
++    /// and `rebuild` writes a child only under a version it can find at that tier (`pair_at`). **The entry's own
++    /// capture is RELATIVE to its address, so its top-level versions carry `under: None` — right at the addressed
++    /// pair and FALSE one level down**, once they are re-based onto a deeper absolute path: `None` puts them under
++    /// no parent version at all and `rebuild` skips them. **The enclosing version is not guessed — it is the one
++    /// `replay_entry` itself resolves**: `home_of_address`'s `walk` answers the LOWEST-persistence version at the
++    /// parent path (`§2.3`: *"the lowest-persistence anchor answers"*, `A28`), **and this reads that same rule over
++    /// this state's own versions**, which are the versions the entry was appended onto. **MEASURED BEFORE IT WAS
++    /// ADDED**: a floor advanced by a write at `['a','q']` replayed as `a.q`'s value from BEFORE that write — the
++    /// entry's effect in the state and absent from the replay.
++    fn advance_floor(&mut self, address: &[Segment], after: &[Captured]) {
++        self.floor_state.retain(|entry| !entry.path.starts_with(address));
++        // THE VERSION OF THE ADDRESS'S PARENT THAT THE ADDRESSED PAIR HANGS UNDER — `walk`'s own selection over
++        // this state's versions of that path (`lowest`: rank ascending) — and `None` where the parent IS the
++        // register, whose own top level is the capture's top level and never carries `under` (`capture_register`).
++        let enclosing: Option<Tier> = match address.split_last() {
++            Some((_, parents)) if !parents.is_empty() => self
++                .floor_state
++                .iter()
++                .filter(|entry| entry.path.as_slice() == parents)
++                .map(|entry| entry.tier)
++                .min_by_key(|tier| tier.rank()),
++            _ => None,
++        };
++        for entry in after {
++            let mut rebased = entry.clone();
++            let mut path = address.to_vec();
++            path.extend(entry.path.iter().cloned());
++            rebased.path = path;
++            if entry.path.is_empty() {
++                rebased.under = enclosing;
++            }
++            self.floor_state.push(rebased);
++        }
++    }
++
+     /// **⟶ ADDED 2026-11-17 BY `U-STOREROOM-03` — THE COMPOSITION AND ITS SELF-VERIFICATION, FACTORED ONCE SO THE
+     /// WRITER AND THE EXPORT TAKE THE SAME BYTES** (`D-133` item 2; `D-137` item 2).
+     ///
+diff --git a/tests/e2e/journal-retention-floor.test.mjs b/tests/e2e/journal-retention-floor.test.mjs
+new file mode 100644
+index 0000000..a4e0201
+--- /dev/null
++++ b/tests/e2e/journal-retention-floor.test.mjs
+@@ -0,0 +1,302 @@
++// journal-retention-floor.test.mjs — **`D-178`: THE REPLAY STARTS FROM THE COMPACTED FLOOR'S STATE AND NOT FROM
++// `born`, AND THESE FOUR CELLS ARE THE RULING'S OWN DRIVE.**
++//
++// **THE RULING, THE ARCHITECT, VERBATIM:** *"Replay should start over from the compacted floor instead of
++// 'born'"* (`strata/decisions.md` · `D-178`). **THE SUBJECT IS `D-160`'s DROP**: compaction REMOVES the oldest
++// entries whole, so the effects of every entry it took are absent from `born` — the state the boot's construction
++// captured, which journals no entry for itself (`§7.2` item 6) — and a replay that begins there answers a state
++// the journal's own record never described. **The state at a retained mark is the state the RETAINED entries were
++// appended onto, and that state is the floor the compaction compressed to.**
++//
++// ── PROVENANCE, SAID AT THE HEAD BECAUSE `D-163` REQUIRES IT ─────────────────────────────────────────────────
++//
++// **THESE CELLS WERE WRITTEN BY THE PASS WHOSE RULING CHANGED THE BEHAVIOUR, AND THEY ARE THEREFORE WEAKER EVIDENCE
++// THAN A BLIND PASS'S** (`D-163`'s discipline, applied to the pass that wrote them and not only to the ones it
++// reads): a pass can write a cell that measures the change it made rather than the behaviour the ruling requires.
++// **WHAT OPPOSES THAT HERE IS A PRE-FIX READING FOR EACH CELL, TAKEN ON THIS TREE BEFORE THE CHANGE WITH THE
++// STORED PRE-FIX ARTEFACT** (`scratch/d178-prefix-probe.mjs` — the same drive, the same stores, the same calls) and
++// **printed in each cell's own message beside what it measures now**:
++//
++//   * `RF-1` — pre-fix: `a = AddressNotFound`, `b = "B"`, `c = AddressNotFound`, with the store answering
++//     *returned* from the restoral. **The state at that mark held `a = "A"`.** The cell fails on the pre-fix
++//     tree by construction, which is the strongest thing a cell written by its own pass can offer.
++//   * `RF-2` — pre-fix: `a = "A"`, `b = "B"`, `c` absent, and `a = "A"` with `b` absent at the earlier mark — **the
++//     same answers this tree gives**, which is what makes the floor a change of base and not a change of replay.
++//   * `RF-3` — pre-fix: `JournalOpUnknown`, the state unmoved. **Unchanged, and asserted so that it stays.**
++//   * `RF-4` — pre-fix: the floor read `a = AddressNotFound` (the creation state, which holds nothing) where the
++//     floor of this record holds `a = "A"`.
++//
++// ── WHY THIS FILE AND NOT `kernel-attempt-window.test.mjs` ───────────────────────────────────────────────────
++//
++// **That file's subject is the WINDOW a commit opens and the instants at which its cached mark moves** (`D-63`,
++// `DEF-AE`: `openCommit`, `bumpWindowMark`, `windowMark`). **This file's subject is a STATE THE STORE HOLDS and the
++// base a replay begins from** — `Store::floor_state` and `Store::replayMark` — **which no window, no kernel pass
++// and no delivery instant reaches.** The two subjects touch at exactly one point: the mark carrier a window may
++// cache. **That one point is driven here at the store's own entry (`RF-4`), not at a commit**, so the window's
++// cells keep their own subject and this file does not borrow it.
++//
++// **AND THE INSTRUMENT IS THE PACKAGE'S OWN.** `restoreMark` is not a member of the instance's surface — its
++// fifteen are `addConstraint`…`write` (`D-178` item 3's correction measured three drives that called `undefined`
++// and read the `TypeError` as the verb's answer). **Every call below is `Reflect.apply(withAddon().restoreMark,
++// store, [mark])`, which is `constraints.mjs`'s own invocation**, and every mark is the store's own carrier from
++// `Reflect.apply(withAddon().journalMark, store, [])`. **NO POSITION IS COMPOSED IN THIS FILE.**
++
++import assert from 'node:assert/strict';
++import { test } from 'node:test';
++
++import { storeCreate } from '../../bindings/js/index.mjs';
++import { withAddon } from '../../bindings/js/src/entry/addon-slot.mjs';
++
++/** Run `fn`; answer the thrown value as a value. Every drive below is synchronous, so this is total. */
++function attempt(fn) {
++  try {
++    return { ok: true, value: fn() };
++  } catch (caught) {
++    return { ok: false, caught };
++  }
++}
++
++/** The store's own `journalMark` answer, reached at the addon's entry exactly as the package reaches it. **THE
++ *  ANSWER IS THE STORE'S CARRIER RECORD AND NOT A BARE STRING** (`bindings/js/src/codec.rs`): the op-id spelling
++ *  with the head's id where the journal holds an entry, and the FLOOR's spelling where it holds none. */
++function storeMark(store) {
++  return Reflect.apply(withAddon().journalMark, store, []);
++}
++
++/** The op id a mark carrier names, or `null` for the FLOOR's carrier and for an answer that is no carrier. */
++function markedOp(mark) {
++  if (mark === null || typeof mark !== 'object') return null;
++  return mark.k === 's' && typeof mark.v === 'string' ? mark.v : null;
++}
++
++/** **THE STORE'S OWN FLOOR CARRIER, TAKEN FROM THE STORE'S OWN READ AND NEVER SPELLED HERE.** A store whose journal
++ *  holds no entry answers the FLOOR's carrier, **and that value is exactly what a commit opened on an empty journal
++ *  caches and hands back** (`bindings/js/src/entry/state.mjs`'s `journalMarkAtOpening`; `constraints.mjs`'s
++ *  `restoreReversal`). **The record itself is not written as a literal in this file**: the test tree's own census
++ *  (`json-crossing.test.mjs`'s `JC-TC-44`) reads a written tag literal as a finding, and the store's own answer is
++ *  the honest instrument anyway. */
++function floorCarrier() {
++  return storeMark(storeCreate({ journalLength: 2, listeners: [] }));
++}
++
++/** The status a call answered, or `null` where it returned — so a cell never prints `undefined`. */
++function refusalStatus(outcome) {
++  if (outcome.ok) return null;
++  return typeof outcome.caught.status === 'string' ? outcome.caught.status : 'no status on the thrown value';
++}
++
++/** One address's answer, as a value: the standing register at it, kept apart from a refusal so that a cell can
++ *  assert on both and print either. **No column prints `undefined`** (`DEF-Q`'s rule for a print). */
++function standingAt(store, address) {
++  const read = attempt(() => store.read(address));
++  if (read.ok) return { ok: true, value: read.value };
++  return {
++    ok: false,
++    status: typeof read.caught.status === 'string' ? read.caught.status : 'no status on the thrown value',
++  };
++}
++
++/** A standing printed for a message: the value as JSON, or the code that refused it. */
++function printed(standing) {
++  return standing.ok ? JSON.stringify(standing.value) : `refused ${standing.status}`;
++}
++
++// =============================================================================================================
++// `RF-1` — THE RULING'S OWN DRIVE: A RESTORAL TO A RETAINED MARK WHOSE PREDECESSOR WAS DROPPED
++// =============================================================================================================
++
++test('RF-1 · D-178 — a restoral to a RETAINED mark whose predecessor the compaction DROPPED keeps the dropped version\'s value: `a` stands at "A", `b` stands, `c` is gone (the pre-fix tree measured a = AddressNotFound)', (t) => {
++  // **THE DRIVE IS THE ONE THE SUPERVISOR MEASURED (`strata/decisions.md` · `D-178` item 3)**: a `mem` store at
++  // `journalLength: 2`, three writes at three addresses, so **the third append DROPS the first write's entry**
++  // (`D-160` item 1) — and then a restoral to the mark the SECOND write left, which the journal still holds.
++  // **THE STATE AT THAT MARK HELD `a`**: the write that set it is the entry the cap took, and its effect is in the
++  // state the retained entries were appended onto, i.e. in the compacted floor — and nowhere in `born`.
++  const store = storeCreate({ journalLength: 2, listeners: [] });
++  store.write(['a'], 'mem', 'A');
++  const markAfterA = storeMark(store);
++  store.write(['b'], 'mem', 'B');
++  const markAfterB = storeMark(store);
++  store.write(['c'], 'mem', 'C');
++  // **THE DRIVE'S COHERENCE, ASSERTED BEFORE ITS VERDICT** (`D-21`): two distinct op-id carriers, and the live
++  // register holding all three values — a cell that restored from a store which never had `a` would prove nothing.
++  assert.equal(markAfterB.k === 's' && typeof markAfterB.v === 'string', true,
++    'the drive must hold an op-id carrier at the retained mark; it held ' + JSON.stringify(markAfterB));
++  assert.notEqual(markedOp(markAfterA), markedOp(markAfterB),
++    'the drive must hold two distinct marks, one per retained write: '
++      + JSON.stringify([markedOp(markAfterA), markedOp(markAfterB)]));
++  assert.equal(standingAt(store, ['a']).value, 'A',
++    'the drive must stand `a` before the restoral, or the third write dropped nothing: '
++      + printed(standingAt(store, ['a'])));
++  assert.equal(standingAt(store, ['c']).value, 'C',
++    'and `c` must stand, or the cap did not compress this journal: ' + printed(standingAt(store, ['c'])));
++
++  // **THE ACT, AT THE PACKAGE'S OWN INVOCATION.** The mark is the one the second write's append left — RETAINED,
++  // so the store owes a restoration and not a refusal (`M-11`).
++  const restoredNow = attempt(() => Reflect.apply(withAddon().restoreMark, store, [markAfterB]));
++  assert.equal(refusalStatus(restoredNow), null,
++    'a RETAINED mark must restore and must answer for it; this store answered '
++      + JSON.stringify(refusalStatus(restoredNow)));
++
++  // **THE THREE READINGS THE RULING IS ABOUT** — and each message carries what the PRE-FIX tree measured here.
++  const a = standingAt(store, ['a']);
++  const b = standingAt(store, ['b']);
++  const c = standingAt(store, ['c']);
++  t.diagnostic('RF-1 measured at ' + markedOp(markAfterB) + ', after the restoral: a=' + printed(a)
++    + ' b=' + printed(b) + ' c=' + printed(c)
++    + ' — the pre-fix tree measured a=refused AddressNotFound b="B" c=refused AddressNotFound');
++  assert.equal(a.ok && a.value === 'A', true,
++    'the state the mark names HELD a="A" — the entry that set it is the one `journalLength: 2` dropped, and its '
++      + 'effect belongs in the replay\'s base (the compacted floor). This tree answered a=' + printed(a)
++      + '; the pre-fix tree answered a=refused AddressNotFound');
++  assert.equal(b.ok && b.value === 'B', true,
++    'and the retained write\'s own value stands, which the pre-fix tree also measured: b=' + printed(b));
++  assert.deepEqual(c, { ok: false, status: 'AddressNotFound' },
++    'and the write ABOVE the mark is gone, because the replay stops at the mark: c=' + printed(c));
++  // **AND NOTHING ELSE CAME BACK WITH IT.** The floor is not a licence to keep what stood after the mark: exactly
++  // the dropped write's version is restored, and no address the record never held at that position answers.
++  assert.deepEqual(standingAt(store, ['d']), { ok: false, status: 'AddressNotFound' },
++    'a restoral invents no address: d=' + printed(standingAt(store, ['d'])));
++});
++
++// =============================================================================================================
++// `RF-2` — THE UNCOMPACTED CONTROL: THE SAME STORE WITH NOTHING DROPPED RESTORES EXACTLY AS BEFORE
++// =============================================================================================================
++
++test('RF-2 · D-178 — the uncompacted control: with `journalLength` large enough that nothing is dropped, the same three writes restore to the same two marks exactly as they did before the floor existed, so the change adds a base and moves nothing else', (t) => {
++  // **THE CONTROL'S SUBJECT IS THE SECOND RULE THAT MUST NOT EXIST.** `Store::floor_state` begins EQUAL to `born`
++  // and is advanced only by a drop, so **a store nothing has been dropped from has a floor equal to the creation
++  // state and one code path serves both cases**. **A cell for the uncompacted case is the only thing that can say
++  // so**: the floor's own cell (`RF-1`) would pass just as well if the replay had grown a second, conditional rule.
++  const store = storeCreate({ journalLength: 8, listeners: [] });
++  store.write(['a'], 'mem', 'A');
++  const markAfterA = storeMark(store);
++  store.write(['b'], 'mem', 'B');
++  const markAfterB = storeMark(store);
++  store.write(['c'], 'mem', 'C');
++  assert.equal(markedOp(markAfterB).length > 0, true,
++    'the drive must hold a mark after the second write: ' + JSON.stringify(markAfterB));
++
++  // **(1) THE HEAD MARK REPLAYS ALL THREE WRITES' STATE UP TO IT.**
++  const atSecond = attempt(() => Reflect.apply(withAddon().restoreMark, store, [markAfterB]));
++  assert.equal(refusalStatus(atSecond), null,
++    'a retained mark restores on an uncompacted store: ' + JSON.stringify(refusalStatus(atSecond)));
++  assert.equal(standingAt(store, ['a']).value, 'A',
++    'the first write stands at the second mark: ' + printed(standingAt(store, ['a'])));
++  assert.equal(standingAt(store, ['b']).value, 'B',
++    'and so does the second: ' + printed(standingAt(store, ['b'])));
++  assert.deepEqual(standingAt(store, ['c']), { ok: false, status: 'AddressNotFound' },
++    'and the write above the mark is gone: ' + printed(standingAt(store, ['c'])));
++
++  // **(2) THE EARLIER MARK REPLAYS ONE WRITE AND NOT TWO** — the same shape one position down, so the control
++  // covers a mark that is not the journal's head as well.
++  const atFirst = attempt(() => Reflect.apply(withAddon().restoreMark, store, [markAfterA]));
++  assert.equal(refusalStatus(atFirst), null,
++    'the earlier retained mark restores: ' + JSON.stringify(refusalStatus(atFirst)));
++  assert.equal(standingAt(store, ['a']).value, 'A',
++    'the first write stands at its own mark: ' + printed(standingAt(store, ['a'])));
++  assert.deepEqual(standingAt(store, ['b']), { ok: false, status: 'AddressNotFound' },
++    'and the write above it is gone: ' + printed(standingAt(store, ['b'])));
++  // **AND THE HEAD MARK STILL REPLAYS AFTER THAT**, which is what makes the floor a BASE and not a truncation:
++  // nothing the restoral did removed an entry (`restoreMark` appends none and removes none), so a second restoral
++  // to the newer mark answers the newer state again.
++  const atSecondAgain = attempt(() => Reflect.apply(withAddon().restoreMark, store, [markAfterB]));
++  assert.equal(refusalStatus(atSecondAgain), null,
++    'and the newer mark replays again from the same record: ' + JSON.stringify(refusalStatus(atSecondAgain)));
++  assert.equal(standingAt(store, ['b']).value, 'B',
++    'the second write comes back: ' + printed(standingAt(store, ['b'])));
++  t.diagnostic('RF-2 measured on an uncompacted store: a="A" b="B" c=refused AddressNotFound at the head mark, '
++    + 'a="A" b=refused AddressNotFound at the earlier one — unchanged from the pre-fix tree');
++});
++
++// =============================================================================================================
++// `RF-3` — THE DROPPED MARK STILL ANSWERS `JournalOpUnknown`: THE DECLARED ANSWER, NOT A RESTORE
++// =============================================================================================================
++
++test('RF-3 · D-178 — a mark the compaction DROPPED still answers JournalOpUnknown and the store keeps the state it holds: the floor gives the replay a base and gives a dropped id no restoration', (t) => {
++  // **THE CELL EXISTS BECAUSE THE FLOOR MAKES THE WRONG BEHAVIOUR AVAILABLE.** `journalLength: 2` and three writes
++  // leave the FIRST write's entry dropped, and the state at its mark is now a state the store can compute — the
++  // floor is one entry's advance away from it. **`D-160` item 3 and `M-11` are unmoved: an id the journal does not
++  // hold is not a mark this primitive names**, whatever the store could reconstruct, and the answer is the code
++  // (`JournalOpUnknown`) with the state UNCHANGED — the mark is resolved before the replay begins, so nothing is
++  // half-replayed.
++  const store = storeCreate({ journalLength: 2, listeners: [] });
++  store.write(['a'], 'mem', 'A');
++  const droppedMark = storeMark(store);
++  store.write(['b'], 'mem', 'B');
++  const retainedMark = storeMark(store);
++  store.write(['c'], 'mem', 'C');
++  assert.notEqual(markedOp(droppedMark), markedOp(retainedMark),
++    'the drive must hold a DROPPED mark and a RETAINED one: '
++      + JSON.stringify([markedOp(droppedMark), markedOp(retainedMark)]));
++
++  const onDropped = attempt(() => Reflect.apply(withAddon().restoreMark, store, [droppedMark]));
++  assert.equal(onDropped.ok, false,
++    'a DROPPED mark must REFUSE, and it answered ' + JSON.stringify(refusalStatus(onDropped)));
++  assert.equal(onDropped.caught.status, 'JournalOpUnknown',
++    'the declared code for an id the journal does not hold (`M-11`): ' + JSON.stringify(onDropped.caught.status));
++  // **AND THE REFUSAL MOVED NOTHING** — the three writes stand as the third one left them, so the floor did not
++  // quietly become a restoral of a dropped position.
++  const a = standingAt(store, ['a']);
++  const b = standingAt(store, ['b']);
++  const c = standingAt(store, ['c']);
++  t.diagnostic('RF-3 measured after the refused restoral: a=' + printed(a) + ' b=' + printed(b) + ' c=' + printed(c)
++    + ' — unchanged from the pre-fix tree');
++  assert.deepEqual(a, { ok: true, value: 'A' },
++    'the refusal left `a` where the third write found it: ' + printed(a));
++  assert.deepEqual(b, { ok: true, value: 'B' }, 'and `b`: ' + printed(b));
++  assert.deepEqual(c, { ok: true, value: 'C' }, 'and `c`: ' + printed(c));
++  // **AND THE RETAINED MARK STILL RESTORES AFTER THE REFUSAL**, so the refusal left the record usable — which is
++  // the difference between *"this position is not nameable"* and *"this store cannot be restored"*.
++  const onRetained = attempt(() => Reflect.apply(withAddon().restoreMark, store, [retainedMark]));
++  assert.equal(refusalStatus(onRetained), null,
++    'and a retained mark still restores after the refusal: ' + JSON.stringify(refusalStatus(onRetained)));
++});
++
++// =============================================================================================================
++// `RF-4` — `restoreFloor()` NAMES THE CURRENT FLOOR, WHICH IS NOW THE COMPACTED FLOOR
++// =============================================================================================================
++
++test('RF-4 · D-178 — the floor names the CURRENT floor: on a store the compaction has dropped from it holds the dropped predecessor\'s version (`a = "A"`), where the creation state holds nothing (the pre-fix tree measured a = AddressNotFound)', (t) => {
++  // **THE FLOOR IS REACHED THROUGH ITS OWN ARM AND NOT THROUGH `restoreMark`'s ABSENT CARRIER**: an absent position
++  // names the journal's HEAD (`§6.6` item 1), so the floor is the CARRIER's floor row, which the store's crossing
++  // folds to its own `restoreFloor` (`bindings/js/src/crossing.rs`: the floor row is `Store::restoreFloor`). **The
++  // carrier is the store's own answer** (`floorCarrier`), taken from a store whose journal held no entry.
++  const store = storeCreate({ journalLength: 2, listeners: [] });
++  store.write(['a'], 'mem', 'A');
++  store.write(['b'], 'mem', 'B');
++  store.write(['c'], 'mem', 'C');
++  const floor = floorCarrier();
++  assert.equal(floor !== null && typeof floor === 'object' && floor.k === 'F', true,
++    'the drive must hold the store\'s FLOOR carrier; it held ' + JSON.stringify(floor));
++  assert.equal(standingAt(store, ['a']).value, 'A',
++    'the drive must stand `a` before the restoral: ' + printed(standingAt(store, ['a'])));
++
++  const onFloor = attempt(() => Reflect.apply(withAddon().restoreMark, store, [floor]));
++  assert.equal(refusalStatus(onFloor), null,
++    'the floor is a position the store answers for: ' + JSON.stringify(refusalStatus(onFloor)));
++  const a = standingAt(store, ['a']);
++  const b = standingAt(store, ['b']);
++  const c = standingAt(store, ['c']);
++  t.diagnostic('RF-4 measured at the floor after one drop: a=' + printed(a) + ' b=' + printed(b) + ' c=' + printed(c)
++    + ' — the pre-fix tree measured a=refused AddressNotFound b=refused AddressNotFound c=refused AddressNotFound');
++  // **THE WHOLE SUBJECT IN ONE READING**: the entry `journalLength: 2` dropped set `a`, so the floor the retained
++  // entries replay onto HOLDS `a` — and `born`, which is the state before the journal's first entry, does not.
++  assert.equal(a.ok && a.value === 'A', true,
++    'the floor is the state immediately after the entry the cap dropped, so the dropped write\'s own version '
++      + 'STANDS there: a=' + printed(a) + '; the creation state has nothing, which is what the pre-fix tree '
++      + 'answered (a=refused AddressNotFound)');
++  // **AND THE FLOOR IS NOT THE HEAD**: every entry the journal still holds is ABOVE the floor, so the rest of the
++  // register is gone — a floor that answered `b` or `c` would be the head wearing the floor's name.
++  assert.deepEqual(b, { ok: false, status: 'AddressNotFound' },
++    'and the floor is BELOW every retained entry, so `b` is gone: ' + printed(b));
++  assert.deepEqual(c, { ok: false, status: 'AddressNotFound' },
++    'and `c` with it: ' + printed(c));
++  // **AND THE FLOOR DID NOT COMPACT ANYTHING**: `restoreFloor` appends no entry and removes none, so the journal's
++  // own mark still names the last write and still replays it.
++  const retained = storeMark(store);
++  const onRetained = attempt(() => Reflect.apply(withAddon().restoreMark, store, [retained]));
++  assert.equal(refusalStatus(onRetained), null,
++    'the record is unmoved by the floor, so the head mark still restores: ' + JSON.stringify(refusalStatus(onRetained)));
++  assert.equal(standingAt(store, ['c']).value, 'C',
++    'and the head still re-states the write above the floor: ' + printed(standingAt(store, ['c'])));
++});
