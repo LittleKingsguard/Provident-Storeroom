@@ -28,7 +28,7 @@
 //
 // **IT ADDS NO SECRET**: `npm view` is a public read. **IT TOUCHES NO NETWORK BEYOND THAT READ.**
 
-import { execFileSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import { appendFileSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
@@ -37,15 +37,24 @@ const MISS = /E404|404 Not Found|is not in this registry/i;
 const NETWORK = /EAI_AGAIN|ENOTFOUND|ETIMEDOUT|ECONNREFUSED|ECONNRESET|network|socket hang up|getaddrinfo/i;
 
 /** One `npm view <spec> version`, answered or refused — never guessed. */
+// **⟶ AND THE INVOCATION IS SHELL-AWARE ON WINDOWS — 2026-11-17, FROM A CI FAILURE THAT LOOKED LIKE A REGISTRY OUTAGE.** `npm` on a Windows runner is
+// **`npm.cmd`**, a batch file, and **`execFileSync('npm', …)` cannot launch a `.cmd` without a shell** — so the call failed BEFORE npm ran, with **empty
+// stdout and empty stderr**, and this guard answered *"the registry could not be read"* about a registry it had never contacted. **THE REFUSAL WAS RIGHT AND
+// THE DIAGNOSIS WAS WRONG**, which is why the failure now prints the invocation's own error code: **an empty `npm said:` is a statement about the CALL and not
+// about the network.** **AND `spawnSync` REPORTS A FAILURE TO LAUNCH AS A RESULT RATHER THAN A THROW**, so *"could not invoke"* and *"invoked and refused"* are
+// two different answers here instead of one exception path.
 function view(spec) {
-  try {
-    return { answer: 'present', value: execFileSync('npm', ['view', spec, 'version'], { encoding: 'utf8', stdio: 'pipe' }).trim() };
-  } catch (failure) {
-    const said = `${failure.stdout ?? ''}${failure.stderr ?? ''}`;
-    if (MISS.test(said)) return { answer: 'absent', said };
-    if (NETWORK.test(said)) return { answer: 'failed', said };
-    return { answer: 'failed', said };
+  // **THE SHELL IS FOR THE `.cmd` SHIM AND NOTHING ELSE**: it is how `npm` is spelled on Windows, and every argument is a spec read from a manifest — no
+  // interpolation and no metacharacter, so nothing below is a shell word a shell could re-read.
+  const run = spawnSync('npm', ['view', spec, 'version'], { encoding: 'utf8', shell: process.platform === 'win32' });
+  if (run.error) {
+    return { answer: 'failed', said: `${run.error.code ?? ''} ${run.error.message ?? ''}`.trim() || 'the invocation itself failed' };
   }
+  const said = `${run.stdout ?? ''}${run.stderr ?? ''}`;
+  if (run.status === 0) return { answer: 'present', value: String(run.stdout ?? '').trim() };
+  if (MISS.test(said)) return { answer: 'absent', said };
+  if (NETWORK.test(said)) return { answer: 'failed', said };
+  return { answer: 'failed', said: said.trim() ? said : `npm exited ${run.status} and said nothing (invoked on ${process.platform})` };
 }
 
 // **⟶ AND THE DIRECTORY COMES FROM THE ENVIRONMENT FIRST — 2026-11-17, FROM A FOURTH CI FAILURE AND A SILENT ONE.** The step passed `"$DIR"`
