@@ -511,15 +511,27 @@ test('CSW-09 · NO DELIVERY ON A REFUSING ARM (`PIN-2`; `D-117` item 2; `PIN-6` 
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
-// `CSW-10` · THE THROW — RANK `21`, AND THE PASSING SIBLING'S SAVED BYTES STAND
+// `CSW-10` · THE THROW — RANK `21`, AND THE PASSING SIBLING'S SAVED BYTES STAND IN THE CALLER'S FILE
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 
-test('CSW-10 · THE THROW (`PIN-10`; `D-124` item 2; `PIN-12`) — a creation-fired body that throws: the construction is REFUSED with rank `21` `ListenerBodyThrew` (MINTED), NO instance exists, and the `file` bytes a PASSING SIBLING registration saved still stand', (t) => {
+test('CSW-10 · THE THROW (`PIN-10`; `D-124` item 2; `D-198` item 1) — a creation-fired body that throws: the construction is REFUSED with rank `21` `ListenerBodyThrew` (MINTED), NO instance exists, the `file` bytes a PASSING SIBLING registration saved still stand, and the PRE-EXISTING file they stand in is never touched', (t) => {
   // **`D-124` item 2, VERBATIM**: *"A CREATION-FIRED BODY THAT THROWS REFUSES AT A MINTED RANK `21`
   // `ListenerBodyThrew`"* and *"The closed fail set moves `20 → 21`"*. `PIN-10`: **no rollback composes at the
-  // instant**, because the delivery sits after the save and `D-107`'s composition is spent per route — so
-  // `PIN-12`'s *"every earlier sibling registration's already-saved `file` landing"* STANDS.
+  // instant**, because the delivery sits after the save and `D-107`'s composition is spent per route — so the
+  // sibling registration's already-saved `file` landing STANDS.
+  //
+  // **⟶ AND THE FILE IS THE CALLER'S OWN FROM 2026-11-17 — THE PRE-EXISTING-FILE ARM, RE-DERIVED** (`D-198` item
+  // 1; `PIN-12`'s first clause re-spelt by that row's authority, and `D-197` item 2 named THIS CELL as one of the
+  // three that carried the reversed limb). **WHAT THE CELL LOST**: *"the store's own CREATED file stands"* — the
+  // rank-`21` arm reached no guard at all and the created file stood (`CSW-10` was the measurement), and `D-198`
+  // item 1 removes it. **WHAT IT KEEPS, AND IT IS ITS SUBJECT**: the save the passing sibling reached is not
+  // undone by the refusal, and the file it wrote into is one this construction did not create — so the limb that
+  // survives is the caller's file standing with the sibling's landing in it (`D-198` item 1: *"a file the
+  // construction did not create is never touched"*).
   const { dir, filePath } = scratch('csw10');
+  const seed = make({ filePath });
+  seed.write(['seed'], 'file', 'the-callers-own');
+  const seededBytes = bytesOf(filePath);
   const thrownBody = new Error('the creation-fired listener throws');
   const construction = attempt(() => make({
     filePath,
@@ -534,6 +546,7 @@ test('CSW-10 · THE THROW (`PIN-10`; `D-124` item 2; `PIN-12`) — a creation-fi
   }));
   const refusalStatus = construction.ok ? null : statusOf(construction.caught);
   const bytes = bytesOf(filePath);
+  const stands = existsSync(filePath);
   rmSync(dir, { recursive: true, force: true });
 
   assert.equal(construction.ok, false,
@@ -551,11 +564,18 @@ test('CSW-10 · THE THROW (`PIN-10`; `D-124` item 2; `PIN-12`) — a creation-fi
     `and its subject is the LISTENER's body and not the constraint body's — rank \`18\` is NOT widened `
       + `(\`D-124\` item 2: *"The subject is the LISTENER BODY and not the constraint body"*): the message reads `
       + `${JSON.stringify(messageOf(construction.caught))}`);
+  assert.equal(stands, true,
+    `**A PRE-EXISTING FILE IS NEVER TOUCHED — THE REFUSAL LEAVES IT STANDING** (\`D-198\` item 1: *"a file the `
+      + `construction did not create is never touched"*; \`D-173\`'s guard removes only a file the construction `
+      + `MADE): the path stood at ${JSON.stringify(seededBytes)} before the call and `
+      + `${stands ? 'stands' : 'is GONE'} after it`);
   assert.equal(bytes !== null && bytes.includes('saved-by-sibling'), true,
-    `**AND THE PASSING SIBLING REGISTRATION'S SAVED BYTES STAND** (\`PIN-12\`: *"A REFUSED CREATION LEAVES THE `
-      + `STORE'S OWN CREATED FILE AND EVERY EARLIER SIBLING REGISTRATION'S ALREADY-SAVED \`file\` LANDING `
-      + `STANDING, AND NO REMOVAL ARM IS DECLARED"*; \`PIN-10\`: *"NO ROLLBACK COMPOSES AT ANY OF THEM"*): the `
-      + `file read ${JSON.stringify(bytes)}`);
+    `**AND THE PASSING SIBLING REGISTRATION'S SAVED BYTES STAND IN IT** (\`D-198\` item 1's second sentence — a `
+      + `save is not the file's removal to undo; \`PIN-10\`: *"NO ROLLBACK COMPOSES AT ANY OF THEM"*): the file `
+      + `read ${JSON.stringify(bytes)}`);
+  assert.equal(bytes !== null && bytes.includes('the-callers-own'), true,
+    `and the caller's own datum is in those bytes beside the sibling's landing — a save writes the whole `
+      + `register's image, so neither key is lost: ${JSON.stringify(bytes)}`);
   t.diagnostic(`CSW-10 · THE THROW: the construction answered ${JSON.stringify(refusalStatus)} with message `
     + `${JSON.stringify(messageOf(construction.caught))}; the file read ${JSON.stringify(bytes)}`);
 });

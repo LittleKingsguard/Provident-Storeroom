@@ -75,8 +75,19 @@ test('CSW-19 · THE CYCLE\'S DETECTOR (`u`) — a pair carrying a repair, asked 
   //   (c) NO `JournalOp` WAS APPENDED BY IT — the repair's own `write` answered exactly ONE record, and that
   //       record carries one op identity (`DD-39`: `write` answers the store's own op);
   //   (d) NO SAVE WAS REACHED — the second repair's distinguishable value is in no byte at `filePath`
-  //       (`PIN-12`: the last passing save's bytes stand).
+  //       (`D-106` item 2's save is per passing close).
+  //
+  // **⟶ AND (d)'S FILE IS THE CALLER'S OWN FROM 2026-11-17 — THE PRE-EXISTING-FILE ARM, RE-DERIVED** (`D-198`
+  // item 1; `PIN-12`'s first clause re-spelt by that row's authority). **`D-198` item 1 removes the file a
+  // construction CREATED, so *"the created file stands"* is no longer this cell's to assert** — **but (d)'s
+  // subject was never the file's existence, it was the SAVE**: the drive stands a file FIRST, through the
+  // product's own verb, and `(d)` reads THAT file. **WHAT IT LOSES** is the standing-bytes assertion the row
+  // reverses; **WHAT IT KEEPS** is the subject — a passing registration's save is the last passing byte, the
+  // refusal undoes no save (`D-107`'s rollback is per route), and the second repair's landing is in no byte.
   const { dir, filePath } = scratch('csw19');
+  const seed = make({ filePath });
+  seed.write(['seed'], 'file', 'the-callers-own');
+  const seededBytes = bytesOf(filePath);
   let entriesOfA = 0;
   const opIdsOfA = [];
   const opIdsOfB = [];
@@ -153,13 +164,22 @@ test('CSW-19 · THE CYCLE\'S DETECTOR (`u`) — a pair carrying a repair, asked 
       + `CAP** (\`D-124\` item 1): ${JSON.stringify([...opIdsOfA, ...opIdsOfB])}`);
 
   // ── (c) AND NO SAVE WAS REACHED BY IT. ────────────────────────────────────────────────────────────────
+  // **⟶ THE STANDING-BYTES LIMB IS RE-DERIVED TO THE PRE-EXISTING-FILE ARM, 2026-11-17** (`D-198` item 1: *"a
+  // file the construction did not create is never touched, and one it created never survives a refusal"*).
+  // **`PIN-12`'s first clause is what this limb used to carry, and the row re-spelt it** — so the file read here
+  // is the one the DRIVE stood, and the two things it says are the bound (`CAW-3`; `state.mjs`'s `existed` test)
+  // and the save's own standing.
   assert.equal(bytes !== null, true,
-    `the store's own file must stand, since a passing registration saved into it (\`PIN-12\`): `
-      + `${JSON.stringify(bytes)}`);
+    `**A PRE-EXISTING FILE IS NEVER TOUCHED BY THE REFUSAL** (\`D-198\` item 1; \`D-173\`'s guard removes only a `
+      + `file the construction MADE): the path holds ${JSON.stringify(bytes)} and stood at `
+      + `${JSON.stringify(seededBytes)} before the call`);
+  assert.equal(String(bytes).includes('the-callers-own'), true,
+    `and the caller's own datum is still in it — a save writes the whole register's image, and the refusal `
+      + `undoes no save (\`D-107\`'s rollback is per route): ${JSON.stringify(bytes)}`);
   assert.equal(String(bytes).includes('settled-a-second-time'), false,
     `**NO SAVE WAS REACHED — the second repair's distinguishable value is in no byte at \`filePath\`** `
-      + `(\`PIN-12\`: *"a fresh instance over the same \`filePath\` reads the bytes the last passing save `
-      + `wrote"*; \`D-106\` item 2's save is per passing close): the file read ${JSON.stringify(bytes)}`);
+      + `(\`D-106\` item 2's save is per passing close; what the last passing save wrote stands): the file read `
+      + `${JSON.stringify(bytes)}`);
 
   t.diagnostic(`CSW-19 · THE DETECTOR: the construction answered `
     + `${JSON.stringify(construction.ok ? 'an instance' : statusOf(construction.caught))}; \`detector-a\`'s `

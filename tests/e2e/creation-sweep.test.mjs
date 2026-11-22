@@ -42,6 +42,16 @@
 // **5 · A REFUSED CREATION LEAVES THE STORE'S OWN CREATED FILE AND EVERY EARLIER SIBLING REGISTRATION'S
 // ALREADY-SAVED LANDING STANDING, AND NO REMOVAL ARM IS DECLARED** (`PIN-12`; `D-107`'s rollback is per
 // route), so `CSW-20` reads the bytes a fresh instance over the same `filePath` finds.
+// **⟶ AND THE FIRST CLAUSE OF THAT FACT IS RE-SPELT, 2026-11-17 — `D-198` ITEM 1, THE ARCHITECT'S *"Take default
+// and continue"*, AND THIS FILE'S OWN `CSW-20` IS ONE OF THE THREE CELLS THE ROW NAMES.** **THE FILE RULE IS
+// ONE: the file a construction CREATED is removed on EVERY refusal the construction reaches after the create, and
+// ONLY that file** — *"it extends `D-173`'s direction and does not reverse it"* — **so *"a refused creation leaves
+// the store's own created file standing"* becomes THE PRE-EXISTING-FILE ARM: a file the construction did not
+// create is never touched, and one it created never survives a refusal.** **SO THIS FACT IS READ THROUGH THE ROW
+// AND KEEPS ITS SECOND HALF**: *"every earlier sibling registration's already-saved `file` landing stands"* is
+// unmoved — the saves are not undone, because `D-107`'s rollback is per route — and what is no longer claimed is
+// that the CREATED file survives. **`CSW-20`'s file limbs are re-derived in the row's own direction below**: its
+// drive stands a PRE-EXISTING file before the call, and every byte it reads is that file's.
 //
 // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
 // THE INSTRUMENTS
@@ -386,7 +396,7 @@ test('CSW-03 · THE INCONSISTENT RESULT (`D-123` item 1; `PIN-5`) — a register
 // `CSW-20` · THE CYCLE AT THE CREATION — NO INSTANCE, RANK `20`, AND NOTHING THE REFUSED ROUND LANDED
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 
-test('CSW-20 · THE CYCLE AT THE CREATION (`PIN-4` (i), (ii); `PIN-5`; `PIN-12`; `D-125` item 4) — a construction whose second round would repair an ALREADY-REPAIRED pair returns NO instance, the throw carries rank `20` `ConstraintPassRefused`, and a fresh instance over the same `filePath` reads the bytes the LAST PASSING SAVE wrote — the refused round\'s landing is not observable', (t) => {
+test('CSW-20 · THE CYCLE AT THE CREATION (`PIN-4` (i), (ii); `PIN-5`; `D-125` item 4; `D-198` item 1) — a construction whose second round would repair an ALREADY-REPAIRED pair returns NO instance, the throw carries rank `20` `ConstraintPassRefused`, and a fresh instance over the same `filePath` reads the bytes the LAST PASSING SAVE wrote — the refused round\'s landing is not observable, and the PRE-EXISTING file it was built over is left exactly where it stood', (t) => {
   // **`§4` `CSW-20`, VERBATIM**: *"a construction whose second round would repair an already-repaired pair:
   // **no instance is returned**, the throw carries rank `20` \`ConstraintPassRefused\` (\`PIN-5\`), and **nothing
   // the refused round landed is observable** — a fresh instance over the same \`filePath\` reads the bytes the
@@ -395,7 +405,18 @@ test('CSW-20 · THE CYCLE AT THE CREATION (`PIN-4` (i), (ii); `PIN-5`; `PIN-12`;
   // what A admits — so the round that follows pair B\'s repair asks A again and A would repair a second time.
   // **THE SECOND REPAIR WRITES A DISTINGUISHABLE VALUE**, so its landing is readable in the bytes if it ever
   // reached them.
+  //
+  // **⟶ AND THE FILE IS THE CALLER'S OWN FROM 2026-11-17 — THE PRE-EXISTING-FILE ARM, RE-DERIVED** (`D-198` item
+  // 1; `PIN-12`'s first clause re-spelt). **`D-198` item 1 removes the file a construction CREATED, so *"the
+  // created file stands"* is no longer this cell's to assert — and what the cell's file limb is ABOUT is
+  // unmoved**: a passing registration's save is the last passing byte, and the refused round's landing is in no
+  // byte a fresh instance reads. **SO THE DRIVE STANDS A FILE FIRST**, through the product's own verb, and every
+  // file limb below reads THAT file: it is the arm the rule protects, no refusal removes it, and the saves that
+  // follow write into it exactly as they wrote into a created one.
   const { dir, filePath } = scratch('csw20');
+  const seed = make({ filePath });
+  seed.write(['seed'], 'file', 'the-callers-own');
+  const seededBytes = bytesOf(filePath);
   let repairsOfA = 0;
   let repairsOfB = 0;
   let secondRepairRan = false;
@@ -461,10 +482,21 @@ test('CSW-20 · THE CYCLE AT THE CREATION (`PIN-4` (i), (ii); `PIN-5`; `PIN-12`;
       + `${repairsOfB}`);
 
   // ── (b) NOTHING THE REFUSED ROUND LANDED IS OBSERVABLE — THE BYTES ARE THE LAST PASSING SAVE'S. ────────
+  // **⟶ THE STANDING-BYTES LIMB IS RE-DERIVED TO THE PRE-EXISTING-FILE ARM, 2026-11-17** (`D-198` item 1: *"a
+  // file the construction did not create is never touched, and one it created never survives a refusal"*).
+  // **WHAT IT LOST**: *"the store's own CREATED file stands"* — the assertion `D-198` item 1 reverses, which was
+  // `PIN-12`'s first clause. **WHAT IT KEEPS, AND IT IS THE SUBJECT**: the file this drive stood before the call
+  // is still there, and the caller's own datum is still in it — **the guard's `existed` bound is the whole
+  // reason, and a removal that reached this file would destroy a caller's data** (`CAW-3`; `CFG-2`).
   assert.equal(bytes !== null, true,
-    `**THE REFUSED CREATION LEAVES THE STORE\'S OWN FILE STANDING** (\`PIN-12\`: *"A REFUSED CREATION LEAVES `
-      + `THE STORE\'S OWN CREATED FILE AND EVERY EARLIER SIBLING REGISTRATION\'S ALREADY-SAVED \`file\` LANDING `
-      + `STANDING"*): the path holds ${JSON.stringify(bytes)}`);
+    `**A PRE-EXISTING FILE IS NEVER TOUCHED — THE REFUSED CREATION LEAVES IT STANDING** (\`D-198\` item 1: *"a `
+      + `file the construction did not create is never touched"*; \`D-173\`'s guard removes only a file the `
+      + `construction MADE): the path holds ${JSON.stringify(bytes)} and stood at `
+      + `${JSON.stringify(seededBytes)} before the call`);
+  assert.equal(bytes.includes('the-callers-own'), true,
+    `**AND THE CALLER\'S OWN DATUM SURVIVED THE SAVES AND THE REFUSAL BOTH** — a save writes the whole `
+      + `register's image, so the key is in the bytes on every passing arm, and the refusal undoes no save `
+      + `(\`D-107\`'s rollback is per route): the bytes read ${JSON.stringify(bytes)}`);
   assert.equal(bytes.includes('settled-again'), false,
     `**AND THE SECOND REPAIR\'S LANDING IS NOT IN THE BYTES** — the refused round wrote nothing that a fresh `
       + `instance can read (\`§4\` \`CSW-20\`: *"nothing the refused round landed is observable"*): the bytes `
@@ -473,8 +505,15 @@ test('CSW-20 · THE CYCLE AT THE CREATION (`PIN-4` (i), (ii); `PIN-5`; `PIN-12`;
     `and a fresh instance over the same \`filePath\` must construct: it answered `
       + `${JSON.stringify(fresh === null ? null : (fresh.ok ? 'an instance' : statusOf(fresh.caught)))}`);
   assert.deepEqual(freshB, { present: true, value: 'seeded' },
-    `**AND IT READS THE BYTES THE LAST PASSING SAVE WROTE** (\`PIN-12\`; \`D-106\` item 2 read at the refusing `
-      + `arm): \`read(["b"])\` on the fresh instance = ${JSON.stringify(freshB)}`);
+    `**AND IT READS THE BYTES THE LAST PASSING SAVE WROTE** (\`D-106\` item 2 read at the refusing arm; `
+      + `\`D-198\` item 1's second sentence — a save is not the file's removal to undo): `
+      + `\`read(["b"])\` on the fresh instance = ${JSON.stringify(freshB)}`);
+  assert.deepEqual(fresh !== null && fresh.ok ? standing(fresh.value, ['seed']) : null,
+    { present: true, value: 'the-callers-own' },
+    `**AND THE CALLER\'S OWN KEY IS STILL READABLE FROM A FRESH INSTANCE OVER THAT PATH** — the file is the `
+      + `caller's, no refusal removed it, and the image a save wrote carries the seed (\`D-198\` item 1's `
+      + `PRE-EXISTING-FILE arm): \`read(["seed"])\` = `
+      + `${JSON.stringify(fresh !== null && fresh.ok ? standing(fresh.value, ['seed']) : null)}`);
   assert.deepEqual(freshA, { present: true, value: 'raw' },
     `and \`read(["a"])\` is the value \`cycle-b\`\'s PASSING registration saved, never the second repair\'s: `
       + `${JSON.stringify(freshA)}`);

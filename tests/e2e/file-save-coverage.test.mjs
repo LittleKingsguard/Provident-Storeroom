@@ -165,7 +165,21 @@ test('FSC-ARM1-D · a `storeCreate` carrying `cfg.constraints` over a FRESH path
   // bytes, and the refusal comes from the round AFTER it. **NO LIMB IS LOOSENED**: the zero-length limb, the
   // repaired value and the fresh boot's reading are the ones this cell always carried, and the instance limb is
   // replaced by the refusal that now stands where the instance did.
+  //
+  // **⟶ AND THE IMAGE IT READS IS THE CALLER'S OWN FILE FROM 2026-11-17 — THE PRE-EXISTING-FILE ARM, RE-DERIVED**
+  // (`D-198` item 1: *"the file a construction CREATED is removed on EVERY refusal the construction reaches
+  // after the create, and ONLY that file"*, and its second sentence, *"a file the construction did not create is
+  // never touched"*; `PIN-12`'s first clause re-spelt by that row's authority). **THIS CELL WAS NOT IN THE
+  // DESIGN'S TURN LIST AND IT TURNS ANYWAY** — `docs/L3/creation-as-write/design.md` §6's census names
+  // `CSW-20`/`CSW-19`/`CSW-10` and says *"nothing else in the battery turns"*; **measured, this cell and
+  // `FSC-ARM1-ONCE` carried the same reversed limb**, because their whole evidence for `D-106` arm 1's save is
+  // that the created file stands carrying the repair. **WHAT IT LOSES**: *"the created file stands"*. **WHAT IT
+  // KEEPS, AND IT IS ITS SUBJECT**: the carry's ONE serialization reached the `file` tier before the round that
+  // refused, so the repaired value is in the bytes a later boot reads — now read out of the file the drive stood
+  // first, whose own key proves the guard left the caller's data alone (`state.mjs`'s `existed` test).
   const { dir, filePath } = scratch('arm1d');
+  const seed = make({ filePath });
+  seed.write(['seed'], 'file', 'the-callers-own');
   const construction = attempt(() => storeCreate({
     journalLength: 8,
     listeners: [],
@@ -190,9 +204,15 @@ test('FSC-ARM1-D · a `storeCreate` carrying `cfg.constraints` over a FRESH path
       + `${JSON.stringify(construction.ok ? null : construction.caught.message)}`);
   // `D-106` item 1's measured defect: a construction whose repair lands `99` left a ZERO-LENGTH file, and a
   // second instance over that path answered `AddressNotFound` for the repaired address AND FOR EVERYTHING.
-  assert.notEqual(image?.length, 0,
-    `**THE FILE MUST NOT BE ZERO-LENGTH** (\`FSC-ARM1-D\`; \`C-3\`): ${JSON.stringify(image)}`);
-  assert.deepEqual(JSON.parse(image), { dd: 99 }, 'and it carries the repaired value — the carry\'s save stands, because the refusal is the NEXT round\'s');
+  // **⟶ THE ZERO-LENGTH LIMB IS RE-SPELT, NOT DELETED, 2026-11-17** (`D-198` item 1): on a CREATED file it now
+  // asserts the opposite (`CAW-1`, `CAW-6`), so here it reads the arm the rule protects — **the file stands, it
+  // is the caller's, and its bytes are the caller's key BESIDE the carry's save**.
+  assert.equal(image !== null && image.length > 0, true,
+    `**THE FILE STANDS, AND IT IS NOT ZERO-LENGTH** (\`FSC-ARM1-D\`; \`C-3\`; \`D-198\` item 1's `
+      + `PRE-EXISTING-FILE arm): the path holds ${JSON.stringify(image)}`);
+  assert.deepEqual(JSON.parse(image), { dd: 99, seed: 'the-callers-own' },
+    'and it carries the repaired value BESIDE the caller\'s own key — the carry\'s save stands, because the '
+      + 'refusal is the NEXT round\'s, and no refusal removes a file this construction did not create');
   // ⟶ **AND THE LIMB THAT READ THE ACTING INSTANCE IS RE-PINNED ON THE ARM THAT NOW EXISTS — IT WAS NOT
   // DELETED** (gate 4's finding: `standing(store, ['dd'])` → `{present: true, value: 99}` stood here at old
   // `:195` and went with the `store` binding when the construction turned). **`D-123` item 1's refusal returns
@@ -243,7 +263,17 @@ test('FSC-ARM1-ONCE · ONE registration carrying TWO `file`-tier repairs pays ON
   // at rank `20`. **THE CELL'S SUBJECT IS UNMOVED AND SO IS ITS EVIDENCE**: the carry's ONE serialization wrote
   // BOTH repaired values into the image, and a fresh boot reads each of them; the instance limb is the one the
   // ruling retired, and the refusal stands where it did.
+  //
+  // **⟶ AND THE IMAGE IS THE CALLER'S OWN FILE FROM 2026-11-17 — THE PRE-EXISTING-FILE ARM, RE-DERIVED, FOR
+  // `FSC-ARM1-D`'S REASON AT ITS OWN BYTES** (`D-198` item 1: the created file is removed on every post-create
+  // refusal, and a file the construction did not create is never touched; `PIN-12`'s first clause re-spelt).
+  // **WHAT IT LOSES**: *"the created file stands carrying both repairs"*. **WHAT IT KEEPS, AND IT IS THE CELL'S
+  // SUBJECT**: ONE registration carrying two `file`-tier repairs paid ONE serialization, so both repaired values
+  // are in the image the last passing save wrote — read here out of the file the drive stood first, whose own key
+  // is the proof that the guard left the caller's data alone (`CAW-3`; `state.mjs`'s `existed` test).
   const { dir, filePath } = scratch('arm1once');
+  const seed = make({ filePath });
+  seed.write(['seed'], 'file', 'the-callers-own');
   const rep = (writeAddress, value) => (context) => (context.value !== undefined
     ? true
     : { message: 'absent', repair: (record) => ({ ok: true, op: record.write(writeAddress, 'file', value).op }) });
@@ -265,7 +295,7 @@ test('FSC-ARM1-ONCE · ONE registration carrying TWO `file`-tier repairs pays ON
       + `answered ${JSON.stringify(construction.ok ? null : construction.caught.status)} with message `
       + `${JSON.stringify(construction.ok ? null : construction.caught.message)}`);
   // THE IMAGE CARRIES BOTH — one serialization whose bytes carry the whole register (`PIN-3` (iii)).
-  assert.deepEqual(JSON.parse(bytesOf(filePath)), { w1: 1, w2: 2 },
+  assert.deepEqual(JSON.parse(bytesOf(filePath)), { w1: 1, w2: 2, seed: 'the-callers-own' },
     `**ONE SAVE BY IMAGE** (\`FSC-ARM1-ONCE\`; \`PIN-3\` (iii)): ${JSON.stringify(bytesOf(filePath))}`);
   // AND THE MODIFICATION STATE MOVED EXACTLY ONCE ACROSS THE WHOLE CONSTRUCTION: the construction's own
   // exclusive create leaves a zero-length file, and the close's one save is the only write after it.

@@ -185,17 +185,30 @@ function spellAddressBare(address) {
 
 /// **WHETHER AN ADDRESS RESOLVES IN THE REGISTER** — `PIN-7`'s qualifier, read at the store's own `read`.
 ///
-/// **`AddressNotFound` IS THE ONE ABSENT ANSWER** (`PIN-7`: *"a listener whose watched address does not resolve
-/// is not fired, and that is not a refusal"*): every OTHER answer counts as present — a value, and the store's own
-/// `ReadTargetIsBranch` for an address a CONTAINER stands at, which is present and is exactly what `PIN-7`
-/// distinguishes from absent. **NOTHING IS MINTED, NO LOG ENTRY IS APPENDED AND NOTHING IS THROWN**; the read is
-/// the construction's own act and opens no commit.
+/// **ABSENCE IS THE WALK'S ABSENCE CLASSES, AND THERE ARE TWO OF THEM — `AddressNotFound` AND
+/// `LeafHasNoDownstream`** (`D-198` item 2, repairing `D-197` item 3). **`D-123` item 3** is the first ruling this
+/// carries: *"No listener is asked to fire for a node that is not there"* — and a `leaf` with segments remaining is
+/// a node that is not there: the walk fails `leaf_has_no_downstream` (`src/store.rs:1424`–`:1430`) and `read`
+/// propagates that status **unconverted** (`:2755`–`:2762`), so `read(['a','b'])` where `["a"]` stands at a scalar
+/// answers `LeafHasNoDownstream` and NOT `AddressNotFound`. **`PIN-7`** is the second: *"a listener whose watched
+/// address does not resolve is not fired, and that is not a refusal"* — **and it does not say WHICH status spells
+/// "does not resolve", so the pin's subject is the walk's own classes and not one of them.**
+///
+/// **PRESENCE IS `ReadTargetIsBranch` AND A VALUE** — the store's own answer for an address a CONTAINER stands at,
+/// which is present and is exactly what `PIN-7` distinguishes from absent, and any value the walk answers.
+/// **IT IS NOT WIDENED TO *"any other code means present"***: that sentence was the defect (a walk class read as a
+/// value), and it is not its shape — **a third absent class a later store adds is a THIRD NAME HERE, never a
+/// default.** **NOTHING IS MINTED, NO LOG ENTRY IS APPENDED AND NOTHING IS THROWN**; the read is the
+/// construction's own act and opens no commit.
 function registerHolds(state, address) {
   try {
     state.receiver.read(address);
     return true;
   } catch (refused) {
-    return ownValue(refused, 'status') !== 'AddressNotFound';
+    const status = ownValue(refused, 'status');
+    // THE TWO ABSENT CLASSES, NAMED AT THE BYTE: `AddressNotFound` (`D-123` item 3) and `LeafHasNoDownstream`
+    // (`D-198` item 2; `PIN-7`). Everything else — `ReadTargetIsBranch` included — is present.
+    return status !== 'AddressNotFound' && status !== 'LeafHasNoDownstream';
   }
 }
 
@@ -286,7 +299,56 @@ function deliverAtTheCreation(state, adopted) {
 /// NAMESPACE IS UNMOVED at the eight declared verbs: neither new member is a named export, because both
 /// are reached through THIS factory's own product and through nothing else** (`surface.md §2.1`'s dated
 /// clauses (a)–(b); `A79`).
+///
+/// **⟶ AND THE FILE RULE IS ONE RULE, KEPT AT THIS FRAME — 2026-11-17** (`D-198` item 1; `A55`'s *"every
+/// construction that fails leaves nothing behind"*; `D-197` item 2's three dispositions).
+///
+/// **THE STATE IT ENDS, AT THE BYTES.** `D-173`'s guard was opened before the one filesystem act and undone at
+/// ONE place inside the registration sweep's `catch`, so ONE STATE had THREE DISPOSITIONS: a **post-round
+/// rank-`19`** refusal called `boundaryReject` — which THROWS — from a line ABOVE that `undo()`, so the `undo()`
+/// was **dead code on that arm** and the file the construction created **STOOD** (`CSW-20`, `CSW-19`); every
+/// other refusal fell through to it and the file **was removed**; and a **rank-`21`** delivery refusal reached
+/// **no guard at all** and the file **STOOD** (`CSW-10`). **So `A55` was true on one arm of three, and the line
+/// between two of them was a status comparison inside a refusal conversion — which is nobody's decision.**
+///
+/// **THE FORM CHOSEN — THE WHOLE CONSTRUCTION IN ONE `try`, RE-THROWN — AND WHY `undo()` AT EACH ARM WAS
+/// REFUSED.** The rule is *"the file the construction CREATED is removed on EVERY refusal the construction
+/// reaches after the create, and ONLY that file"*, so the frame that owns the file's whole lifetime states it
+/// once. **Every refusal this construction can reach is a THROWABLE out of `constructStore` below**: the
+/// store's own `storeCreate` refusal, the sweep's carry, its converted post-round verdict, a constraint or
+/// repair body that threw, a store code, a refusal met in the listeners' arming walk, and the rank-`21`
+/// delivery seat. **So no arm is enumerated, no arm can be forgotten, and a later pass that adds one is
+/// covered by construction rather than by a second visit to this file.** **A `return` cannot bypass it** — the
+/// passing path leaves by `return instance` and this `catch` is reached only by a throwable, so the undo cannot
+/// run on a construction that answered. **A `finally` with a flag was refused for the opposite reason**: it runs
+/// on the passing arm too, and a flag consulted there is the second place a later arm could disagree with.
+///
+/// **AND THE GUARD'S OWN BOUND IS UNTOUCHED, WHICH IS THE HALF THAT PROTECTS THE CALLER** (`state.mjs:1053`–`:1072`,
+/// where the `existed` rule is stated and `openConstructionFileGuard` is the one opener; the test is
+/// `bindings/js/index.mjs:163`–`:172`, the node arm's one installation): `undo()` removes a file **only where THIS
+/// CONSTRUCTION made it**, so a file that was there before the call is never touched (`CAW-3`; `CFG-2`). **THE SLOT IS
+/// A VARIABLE OF THIS FRAME AND MINTS NO MEMBER** on any record, attempt, op, instance or declared shape (`A117` (D6)):
+/// the body writes it at the instant the guard opens, which is before the construction's one filesystem act.
 export function storeCreate(cfg) {
+  const fileGuardSlot = { guard: null };
+  try {
+    return constructStore(cfg, fileGuardSlot);
+  } catch (refusal) {
+    // **ONE REFUSAL LEFT THE CONSTRUCTION'S FRAME — AND ONLY A REFUSAL DOES.** The file, where this call made
+    // one, is this call's to remove; **the refusal then crosses UNCHANGED**, because `fail`'s and
+    // `registrationCrossing`'s forms are the caller's own and this frame converts nothing.
+    if (fileGuardSlot.guard !== null) fileGuardSlot.guard.undo();
+    throw refusal;
+  }
+}
+
+/// **THE CONSTRUCTION'S OWN BODY — EVERY STEP, EVERY REFUSAL AND THE ARMS IT HANDS BACK — INSIDE THE ONE FRAME
+/// `storeCreate` ABOVE WRAPS** (`D-198` item 1). **THE FILE GUARD IS OPENED WHERE IT ALWAYS WAS**, before
+/// `addon_.storeCreate` — the construction's one filesystem act — and it is published into the frame's own slot
+/// so that the wrapper's `catch` is the ONE place a post-create refusal removes the file. **Nothing else about
+/// this body's order moves**: the build, the sweep-with-its-saves, the listeners' arming, the one delivery seat
+/// and the answer stand where `D-191`'s four steps and `PIN-2`'s order left them.
+function constructStore(cfg, fileGuardSlot) {
   const addon_ = withAddon();
   // **⟶ THE CONSTRUCTION'S OWN READ OF THE CALLER'S `cfg` STANDS OUTSIDE THE BOUNDARY'S CATCH — CORRECTED
   // 2026-10-17 (`A64`'s one form read with `surface.md §2.5` item 5 (e); the ruling *"catch a throw from a
@@ -367,11 +429,19 @@ export function storeCreate(cfg) {
   const adopted = admittedListenerBatch(cfg);
   // **⟶ AND THE CONSTRUCTION'S FILE GUARD OPENS HERE, BEFORE THE ONE FILESYSTEM ACT — 2026-11-17** (`SS-9`; `A55`'s
   // *"leaves nothing behind"*). **The store's exclusive create at step 4b makes its zero-length file, and the registration
-  // sweep BELOW is the one refuser that runs AFTER it**: a constraint body that throws at its own registration answers
+  // sweep BELOW is the FIRST refuser that runs AFTER it**: a constraint body that throws at its own registration answers
   // `ConstraintBodyThrew` and, without this guard, left that file on disk. **`openConstructionFileGuard` answers `null` on a
   // realm with no filesystem and on a construction with no path**, so the injected arm and every `mem`/`saveCall` store
-  // reach none of this.**
-  const fileGuard = openConstructionFileGuard(
+  // reach none of this.** **⟶ AND *"THE FIRST"* IS THE CORRECTION, 2026-11-17: it is not the only one** — the listeners'
+  // arming walk and the rank-`21` delivery seat run after it too, and the sweep's own conversion throws from above the
+  // `undo()` this guard once had, **which is why the removal now belongs to the frame and not to that `catch`**
+  // (`D-198` item 1; `D-197` item 2; `CSW-10`).
+  //
+  // **⟶ AND IT IS PUBLISHED INTO THE FRAME'S OWN SLOT AND NOT UNDONE HERE — 2026-11-17** (`D-198` item 1). The
+  // slot is written BEFORE the one filesystem act and read by `storeCreate`'s `catch` alone, which is reached
+  // only by a refusal that leaves this frame: **so the removal is stated once, at the frame that owns the file's
+  // lifetime, and no arm of the sweep, the arming walk or the delivery seat has to remember it.**
+  fileGuardSlot.guard = openConstructionFileGuard(
     cfg !== null && typeof cfg === 'object' && Object.hasOwn(cfg, 'filePath') ? cfg.filePath : undefined,
   );
   let id;
@@ -2058,9 +2128,12 @@ export function storeCreate(cfg) {
           );
         }
         // **`D-77`: the batch element's own address — the construction's registration act is at it.**
-        // **⟶ AND A REFUSAL RAISED AFTER THE CREATE REMOVES THE FILE THE CREATE MADE** (`SS-9`): the guard's `undo`
-        // removes it **only where it did not exist before this call**, so a caller's own file is never touched.
-        if (fileGuard !== null) fileGuard.undo();
+        // **⟶ AND THE FILE THIS CONSTRUCTION CREATED IS REMOVED AT NO LINE HERE — MOVED 2026-11-17, NOT DROPPED**
+        // (`D-198` item 1). An `undo()` at this byte stood AFTER the rank-`20` conversion above, **which throws,
+        // so it was DEAD CODE on exactly the arm it most obviously should cover** (`CSW-20`/`CSW-19` measured
+        // the created file standing), and it covered no arm outside this `catch` at all (the rank-`21` delivery
+        // seat measured the same). **The removal is now `storeCreate`'s frame's**, reached by every refusal that
+        // leaves the construction and by nothing else, and the guard's own `existed` bound is untouched there.
         registrationCrossing(refusal, batch[i].addresses[0]);
       }
       if (marker.applied === true && appliedBefore === false) landedInRound += 1;

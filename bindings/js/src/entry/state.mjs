@@ -1052,6 +1052,19 @@ export const STORE_INDEX = Symbol.for('provident-storeroom.storeIndex');
 ///
 /// **IT CAN ONLY REMOVE A FILE THAT DID NOT EXIST BEFORE THE CALL** (`existed` is false), so a caller's own data is never
 /// touched by it: the guard's whole subject is the store's own zero-length artefact.
+///
+/// **⟶ AND ITS REACH IS NOW EVERY POST-CREATE REFUSAL, AND ITS SUBJECT IS NOT ALWAYS ZERO-LENGTH — 2026-11-17**
+/// (`D-198` item 1; `D-197` item 2). **THE REACH**: the guard was undone at ONE byte inside the registration sweep's `catch`,
+/// **which stood after a conversion that throws — so it was dead code on the rank-`20` arm — and it covered no arm outside
+/// that `catch` at all, which the rank-`21` delivery seat measured.** **`instance.mjs`'s `storeCreate` now wraps the whole
+/// construction in one `try` and calls `undo()` from its `catch`**, so *"the file a construction CREATED is removed on every
+/// refusal the construction reaches after the create"* is stated once and no arm has to remember it.
+/// **AND THE SUBJECT IS *"THE FILE THIS CALL MADE"* AND NOT *"A ZERO-LENGTH FILE"***: `existed` is still read before the
+/// call and the guard still removes **only** a file that was absent then, **but a file the construction made can carry bytes
+/// by the time a later arm refuses** — every passing registration's close may save the whole image into it
+/// (`D-106` item 3) before a later round refuses. **WHAT DOES NOT MOVE**: `existed === true` still means this guard touches
+/// nothing, which is the bound that protects the caller (`CAW-3`; `CFG-2`), and the store's own corrupt-image arm still
+/// stands as a refusal that found what it left (`PIN-12`'s spirit, one subject over).
 let CONSTRUCTION_FILE_GUARD = null;
 
 /** Install the realm's file guard. `null` clears it, which is the injected arm's answer. */
