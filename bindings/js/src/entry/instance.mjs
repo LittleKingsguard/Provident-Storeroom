@@ -1879,14 +1879,22 @@ export function storeCreate(cfg) {
   state.receiver = instance;
   // **THE ROW IS REGISTERED FOR RETIREMENT IN THE SAME ACT THAT PUBLISHES IT**, so a store cannot be
   // published without a retirement and the two cannot drift (`§6`: *"retired in the same act that frees the
-  // store"*). **THE CALLBACK IS PER-CONSTRUCTION AND CLOSES OVER THIS INSTANCE'S OWN INDEX ALONE** — it takes
-  // no scan, names no other row, and cannot reach the table as a whole, which is the requirement `§6` states
-  // and the failure `P-SAS-5` catches. **NO REFERENCE TO THE STORE OBJECT IS HELD** (it would be the strong
-  // reference that stops the collection this exists to observe): the closure holds the integer and nothing
-  // else, and the package's own hold on the instance is released with it.
-  STORE_RETIREMENT.register(instance, () => {
-    INSTANCES.delete(instance);
-  });
+  // store"*). **⟶ AND THE HELD VALUE IS NOW THE INTEGER ITSELF, NOT A CLOSURE — 2026-11-19.** **WHAT STOOD
+  // HERE WAS `register(instance, () => { INSTANCES.delete(instance); })`, AND IT WAS WRONG TWICE AT ONCE**:
+  // the held value CLOSED OVER `instance`, so it strongly referenced its own target and **the callback could
+  // never fire** (the sentence beside it claimed *"NO REFERENCE TO THE STORE OBJECT IS HELD"* while the code
+  // held one); **and what it did when it did fire was delete the package's own `WeakMap` row** — an entry that
+  // a collected key has already left, since a `WeakMap`'s entry is not reachable once its key is collected.
+  // **NOTHING WAS SAID TO THE ADDON, SO THE STORE STAYED IN ITS `INSTANCES` TABLE FOR THE PROCESS'S LIFE**
+  // (`facade.rs`'s `storeRelease` docblock measures that at ~18–21 KB per construct-and-drop, linear).
+  //
+  // **SO THE HELD VALUE IS `id` — A NUMBER — AND THE CALLBACK IS `state.mjs`'s `STORE_RETIREMENT` ITSELF**,
+  // which is where the release is applied and where the finalizer's guard already stood. **THE CALLBACK TAKES
+  // NO SCAN, NAMES NO OTHER ROW AND CANNOT REACH THE TABLE AS A WHOLE** (the requirement `§6` states and the
+  // failure `P-SAS-5` catches): it is handed one integer and releases that one row. **A `WeakMap` ENTRY NEEDS
+  // NO DELETE FOR THE RETIREMENT'S OWN REASON** — the entry is gone with its key — so the package loses
+  // nothing by not naming `INSTANCES` here, and **it gains the addon's row being emptied in the same act**.
+  STORE_RETIREMENT.register(instance, id);
   // ═════════════════════════════════════════════════════════════════════════════════════════════════════
   // **⟶ AND `D-99`'S INTERNAL ROUTE, INSTALLED HERE AND NOT WITH THE OTHER TWO CHANNELS — 2026-11-01
   // (`C-17` (iv), §9.2).** **THE INSTALL SITE IS `state.receiver = instance`'S NEIGHBOURHOOD AND NOT `:1693`'S,

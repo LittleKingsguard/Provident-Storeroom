@@ -290,10 +290,84 @@ fn throw_refusal(env: &Env, refusal: &Refusal) {
 // about the affinity fact and still refuse to compile; the `thread_local!` is what the `Sync` bound leaves,
 // and a store reached from a second thread would be a defect of the CALLERS rather than a state this file
 // could guard against.
+//
+// **⟶ AND THE ROW TYPE MOVED ON 2026-11-19 — `Vec<crossing::Instance>` → [`Slots`], WHICH IS
+// `Vec<Option<crossing::Instance>>` WITH ITS OWN FOUR METHODS — WITHOUT MOVING A WORD OF THE BOUND ABOVE.**
+// The `Sync` argument is about `RefCell` and is unmoved: `RefCell<Slots>` declines `Sync` for the same reason
+// `RefCell<Vec<…>>` does, and the two `assert_send` lines still compile. **The type moved because a store can
+// now be RELEASED**, and a `Vec::remove` would renumber the indexes the package holds as integers — the
+// tombstone and its proof are stated at [`Slots`]' own doc comment, and the entries' read is unmoved: every
+// one of them calls `instances.get_mut(store_index)` and gets the same `Option<&mut crossing::Instance>` a
+// `Vec` gave it.
 // =================================================================================================
 
+/// **THE SLOTS OF [`INSTANCES`] — A STORE'S OWN SLOT, OR THE TOMBSTONE ITS RELEASE LEAVES BEHIND.**
+///
+/// **⟶ THE ROW TYPE MOVED `crossing::Instance` → `Option<crossing::Instance>` ON 2026-11-19, AND THE
+/// SENTENCE ABOVE [`INSTANCE_IDS`] THAT PROMISED THIS PATH IS WHAT MADE THE MOVE NECESSARY.** The
+/// `storeRelease` entry below frees a store; **a `Vec::remove` IS NOT THE FORM A RELEASE MAY TAKE**, because
+/// the index `storeCreate` mints IS the store's address on the Node-API side and the package holds that
+/// integer on its own store object (`index.mjs`'s `STORE_INDEX` row): removing row `3` renumbers every later
+/// store, so a store that was minted as `7` would answer at `6` and the integer the package holds would name
+/// its NEIGHBOUR — a silent cross-store defect and not a stale handle (`receiver-and-refusal.md §2`, the
+/// failure `P-SAS-5` names). **SO THE ID IS KEPT STABLE AND THE SLOT IS EMPTIED**: `Some(store)` is a live
+/// store and `None` is the tombstone its release left, the row count never shrinks, and an index can name at
+/// most the one store it was minted for.
+///
+/// **WHAT A TOMBSTONE COSTS AND WHAT IT BUYS, AT ITS OWN MEASURE.** It costs ONE EMPTY OPTION PER STORE EVER
+/// CONSTRUCTED — the slot's own footprint, and NOT the store's: the `Instance` and the `Store` inside it are
+/// DROPPED at the release, which is the ~18–21 KB per store this entry exists to stop retaining.
+/// **IT BUYS THE ONE INVARIANT `§6` STATES** — *"an entry whose store has been freed can never survive to
+/// name nothing"* — as a property of the type rather than of a rule: `get_mut` answers `None` for a freed
+/// slot exactly as it does for an index no mint ever reached, so a released store and a fabricated index are
+/// ONE observable at every entry, which is what `receiver-and-refusal.md §3` declares.
+///
+/// **AND THE `Vec` IS NOT REALLOCATED BY A RELEASE**, so a store's index is also stable against the growth
+/// every later construction performs: nothing but `push` touches the shape.
+struct Slots(Vec<Option<crossing::Instance>>);
+
+impl Slots {
+    /// **THE ONE WRITER OF A NEW ROW** — `storeCreate`'s mint, and the index it answers is this row's own.
+    fn push(&mut self, instance: crossing::Instance) {
+        self.0.push(Some(instance));
+    }
+
+    /// The row count, which is the number of stores ever constructed and never the number live.
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    /// **THE ONE READER OF A LIVE STORE** — a live row's `&mut`, or `None` for an emptied row and for an
+    /// index the table never reached. **THE ENTRIES TAKE NO OTHER ROUTE TO A STORE**, so no verb can observe
+    /// the difference between a tombstone and a fabricated index at any depth.
+    fn get_mut(&mut self, store_index: usize) -> Option<&mut crossing::Instance> {
+        self.0.get_mut(store_index).and_then(Option::as_mut)
+    }
+
+    /// **THE SHARED-BORROW HALF OF THE SAME READ** — the two frames that answer a store's own record
+    /// (`journalMark`) and its own image (`exportImage`) take `&self` on the instance and borrow the table
+    /// without mutability. **The tombstone is `None` here exactly as it is above**, so a released store is one
+    /// observable on the pure reads too.
+    fn get(&self, store_index: usize) -> Option<&crossing::Instance> {
+        self.0.get(store_index).and_then(Option::as_ref)
+    }
+
+    /// **THE RELEASE** — the store is TAKEN OUT OF ITS SLOT AND DROPPED, and the slot stands as the
+    /// tombstone. Answers whether this call was the one that freed it: `false` for a slot already emptied and
+    /// for an index no mint ever reached, which are the two arms the entry answers its absent form with.
+    fn release(&mut self, store_index: usize) -> bool {
+        self.0
+            .get_mut(store_index)
+            .and_then(Option::take)
+            .is_some()
+    }
+}
+
 thread_local! {
-    static INSTANCES: RefCell<Vec<crossing::Instance>> = const { RefCell::new(Vec::new()) };
+    /// **THE STORE TABLE — ONE SLOT PER STORE EVER CONSTRUCTED**, `Some` while the store is live and `None`
+    /// once `storeRelease` has dropped it. **THE SLOT TYPE IS [`Slots`]' OWN AND ITS REASON IS ITS OWN**: the
+    /// index is an address the package holds, so a release empties a row and never shifts one.
+    static INSTANCES: RefCell<Slots> = const { RefCell::new(Slots(Vec::new())) };
     /// **THE RECEIVER TABLE** — `receiver-and-refusal.md §6`'s subject, and this unit's second `OWED` item.
     ///
     /// **IT REMAINS — SOMETHING MUST HOLD THE STORE — AND ITS FORM IS `Vec<usize>`, THE LIVE INDICES OF
@@ -394,6 +468,84 @@ pub fn storeCreate(env: Env, cfg: JsVal<'_>) -> NapiRet<'static> {
             Ok(make_value(&env, store_index as u32))
         }
     }
+}
+
+/// The addon's `storeRelease(storeIndex) -> undefined`: **THE RETIREMENT ENTRY — the store is DROPPED and its
+/// own index is removed from [`INSTANCE_IDS`], IN ONE ACT** (`receiver-and-refusal.md §6`).
+///
+/// **⟶ THE ENTRY EXISTED AS A CITATION BEFORE IT EXISTED AS A FUNCTION, AND THIS IS THE PASS THAT MAKES THE
+/// CITATION TRUE — 2026-11-19.** The docblock above [`INSTANCE_IDS`] has declared since this layer was written
+/// that the store *"is freed by the package's own GC finalizer … which reaches this addon through the standing
+/// `storeRelease` entry below; that entry DROPS the instance AND removes ITS OWN index from this table, IN ONE
+/// ACT"*, and **NO SUCH ENTRY STOOD BELOW IT** — nothing named `storeRelease` existed in this crate, the
+/// package's finalizer deleted a row of its own `WeakMap` and never reached this layer, and **every constructed
+/// store therefore stayed in [`INSTANCES`] for the process's life: ~18–21 KB per constructed-and-dropped store,
+/// linear in the count** (the same shape as `D-159`/`D-160`/`D-162`'s tables, on the shipped arm). **The
+/// sentence is not corrected here; it is KEPT and made true**, and the two tables it names are what this frame
+/// acts on.
+///
+/// **THE POSITION IS AN INDEX AND NOT A RECEIVER, AND THAT IS FORCED BY WHO CALLS IT.** Every per-verb entry
+/// resolves its store from the Node-API `this` ([`store_index_of`]), because the package calls each of them AS
+/// A METHOD ON ITS OWN STORE OBJECT. **A FINALIZER HAS NO RECEIVER**: `FinalizationRegistry`'s callback is
+/// handed the HELD VALUE and nothing else, and the held value may not be the store object itself — holding it
+/// would be the strong reference that stops the very collection the finalizer exists to observe. **SO THE
+/// INDEX IS A DECLARED POSITION HERE AND NOT `this`**, and the one caller that exists — `state.mjs`'s
+/// `STORE_RETIREMENT` — hands the integer it was given (`instance.mjs`'s own `STORE_INDEX` row, published at
+/// the construction). **A DETACHED CALL AND A RECEIVER-LESS CALL ARE THEREFORE THE SAME CALL AT THIS ENTRY**,
+/// which is why it takes no `This<…>` parameter and why its answer does not depend on one.
+///
+/// **THE ID IS A POSITION OF A DIFFERENT KIND FROM THE VERBS' ARGUMENTS AND IT IS READ BY CLASS.** The position
+/// is read as a NUMBER (the same `cast::<f64>()` read [`store_index_of`] takes off the receiver's own channel),
+/// and **a non-number, a NaN, an infinity and a negative are one arm**: they name no index this addon ever
+/// minted, so they answer [`not_a_store_index`] — the crate's own malformed-argument form, the token
+/// `not_a_receiver` answers and no new member (`DD-40`: nothing here mints a status).
+///
+/// **THE TWO ABSENT ARMS ARE ONE OBSERVABLE, WHICH IS `receiver-and-refusal.md §3`'s OWN RULE.** An index the
+/// table does not hold and an index whose store has ALREADY been released both answer
+/// [`no_instance_at`] — the crate's own `AddressNotFound` — because the tombstone a release leaves is the same
+/// `None` a fabricated index reads ([`Slots::get_mut`]). **NEITHER PANICS AND NEITHER ANSWERS `Ok`**: the
+/// release is idempotent at its own answer, so a finalizer that fires twice, or a package that releases and is
+/// then handed the same integer by a stale row, is refused rather than obeyed.
+///
+/// **AND THE TWO TABLES MOVE TOGETHER OR NOT AT ALL.** The instance is taken out of its slot and dropped and
+/// the id is removed from [`INSTANCE_IDS`] INSIDE THE SAME CLOSURE, so no path can free the store and leave its
+/// index standing in the receiver table — which is the state `§6` forbids in its own words: *"an entry whose
+/// store has been freed can never survive to name nothing."* **THE REMOVAL IS A `retain` AND NOT A `remove`**:
+/// the table is a SET of live indices in ascending order, exactly one of them is this store's, and the order
+/// every reader sees is unchanged. **THE STORE TABLE'S OWN ROW IS NOT REMOVED** — it is emptied, so every index
+/// minted before this act still names the store it was minted for and no later store is renumbered.
+///
+/// **THE ENTRY IS ANNOTATED AND ITS ONE-POSITION ARITY IS THE ANNOTATION'S** (`binding-crate-and-abi.md §2`
+/// row 5): `storeRelease` takes ONE argument — the store's index — and answers `undefined`. **IT IS NOT ONE OF
+/// THE PER-VERB ENTRIES AND NOT A MEMBER OF THE PRODUCT'S SURFACE**: it is the retirement's own frame, reached
+/// by the package's finalizer and by no consumer, and `index.d.ts` does not name it.
+#[napi]
+pub fn storeRelease(env: Env, store_pos: JsVal<'_>) -> NapiRet<'static> {
+    // **THE POSITION IS READ BY CLASS, AND `NaN`/`±inf`/a negative ARE NOT INDICES.** `raw as usize` saturates a
+    // NaN to `0` in Rust, which would make a caller's non-answer name the FIRST store — so the guard is the
+    // class test and not a cast: an outside value reaches the malformed arm and no store is touched by it.
+    let store_index = match unsafe { store_pos.cast::<f64>() } {
+        Ok(raw) if raw.is_finite() && raw >= 0.0 && raw.fract() == 0.0 => raw as usize,
+        _ => {
+            throw_refusal(&env, &not_a_store_index());
+            return Ok(make_undefined(&env));
+        }
+    };
+    // **THE ONE ACT** (`§6`): the instance is DROPPED and its own id is removed from the receiver table, in one
+    // closure, so neither half can land without the other. The `Err` arm is the tombstone and the fabricated
+    // index alike ([`no_instance_at`]) — and it is taken BEFORE the id is touched, so a refused release removes
+    // nothing at all.
+    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|instances| {
+        let mut instances = instances.borrow_mut();
+        if !instances.release(store_index) {
+            return Err(no_instance_at(store_index));
+        }
+        // THE SECOND HALF OF THE SAME ACT. `retain` keeps the ascending order every reader of this table sees
+        // and removes exactly the one id of the store that has just been dropped.
+        INSTANCE_IDS.with(|ids| ids.borrow_mut().retain(|held| *held != store_index));
+        Ok(make_undefined(&env))
+    });
+    answer_or_throw(env, answer)
 }
 
 // =================================================================================================
@@ -1123,6 +1275,17 @@ fn verb_commit_file(env: Env, receiver: This<Object<'_>>, op_id_pos: JsVal<'_>) 
 // THREE VERDICTS**: the export answers the image and marks nothing, the first verdict marks the record saved, the second
 // unwinds it — and **NO VERDICT IS CARRIED ON ANY ENTRY'S POSITION** (`D-146` item 2): the addon is told twice, once per
 // outcome, and is never asked to judge.
+//
+// **⟶ AND A TWENTIETH ENTRY STANDS BESIDE THE NINETEEN, ADDED 2026-11-19 — `storeRelease`, AND IT IS NOT ONE OF THE
+// FIFTEEN PER-VERB AND NOT A MEMBER OF THE PRODUCT'S SURFACE.** It is the RETIREMENT's frame (`storeCreate`'s twin,
+// declared at that entry's own docblock): **the set this file declares is therefore `12 + 3 = 15` PER-VERB and
+// `4 + 15 + 1 = 20` IN ALL**, and **NO NAME ANY OF THE FIFTEEN CARRIES MOVES** — every one of them keeps its name, its
+// positions and its answer. **AND THE ONE THING NEW ABOUT ITS SHAPE IS THAT IT TAKES ITS STORE BY POSITION RATHER THAN
+// BY RECEIVER** (`receiver-and-refusal.md §1`'s rule is unmoved for the fifteen: each of those is called as a method on
+// the package's own store object, and **a finalizer has no object to be called on** — the index is the whole of what the
+// held value may carry). **THE SECOND REALM'S ARM IS NOT THIS PASS'S AND ITS SET DOES NOT MOVE**: `storeRelease` has no
+// `wasm.rs` twin, so that arm's eighteen stand (`D-155` item 4) and its table never retires a store — the absence
+// `docs/L1/wasm-realm.md:311` already declares.
 
 /// **⟶ ADDED 2026-11-17 BY `U-STOREROOM-03` — `exportImage()`: THE EXPORT CARRIER, POSITION-LESS, ANSWERING THE
 /// STORE'S OWN IMAGE TEXT AS A STRING** (`D-137` items 1–2; `D-133` item 2).
@@ -1235,6 +1398,21 @@ fn not_a_receiver() -> Refusal {
     Refusal {
         status: "AddressMalformed".to_string(),
         message: "the receiver position is not the store object this addon's storeCreate returned".to_string(),
+    }
+}
+
+/// **THE RETIREMENT ENTRY'S OWN MALFORMED ARM — the same TOKEN [`not_a_receiver`] answers, at the position the
+/// finalizer hands instead of a receiver** (`storeRelease`'s docblock, `receiver-and-refusal.md §3`).
+///
+/// **NO STATUS IS MINTED** (`DD-40`): `AddressMalformed` is the store's own member for *"a present argument
+/// outside its domain"*, and the sentence behind it names THIS position — the store's index — rather than a
+/// receiver, because a `message` that named a receiver on a call that has none would be false at its own bytes.
+/// **THE TWO-MEMBER FORM IS [`throw_refusal`]'S AND IS UNMOVED**: this function authors a `Refusal` and throws
+/// nothing.
+fn not_a_store_index() -> Refusal {
+    Refusal {
+        status: "AddressMalformed".to_string(),
+        message: "the position is not the store index this addon's storeCreate returned".to_string(),
     }
 }
 

@@ -1091,11 +1091,18 @@ scenario('FTS-10', 'the sixteenth member\'s own clause and its template row; the
     // addon's per-verb group, so the artefact's census moves `15 → 16` and the message sentence moves with it —
     // **the cell's subject (the addon's own export set IS the declared one, by SET EQUALITY) is kept whole and
     // the drive is unchanged.**
-    cell('FTS-10.2', 'the built artefact\'s own export set (`bindings/js/build/Release/storeroom_js_binding.node`, read live), superseding `package.md §1.3` item 4\'s five-name figure — the review\'s §3.2 row 19, re-read 2026-10-27 and again 2026-11-06',
-      'the addon\'s own exports are the sixteen the artefact carries — `commitFile`, `delete`, `errorMessage`, `journalMark`, `listen`, `read`, `readLiteral`, `readTiered`, `register`, `removeListener`, `restoreMark`, `rollback`, `storeCreate`, `unlisten`, `version`, `write` — by SET EQUALITY, `errorMessage` among them',
+    // **⟶ RE-DERIVED 2026-11-19 — THE CENSUS MOVES `16 → 20`, AND IT HAD BEEN STALE AT SIXTEEN SINCE THE SAVE ARM
+    // LANDED.** **THIS CELL WAS RED ON THE PRE-FIX TREE** (`addon exports=[… 19 names …]` against a sixteen-name
+    // literal): the save arm's three (`exportImage`, `saveSucceeded`, `saveFailed`, `D-148`/`D-149`) arrived without
+    // it, and this pass's `20` is the first figure the list has carried since 2026-11-06. **THE TWENTIETH IS
+    // `storeRelease`** — the retirement's own frame, the store dropped and its index removed from the receiver table
+    // in one act (`receiver-and-refusal.md §6`; `facade.rs`). **THE CELL'S SUBJECT IS UNCHANGED AND SO IS ITS FORM:
+    // SET EQUALITY, SORTED, ONE LITERAL** — so a twenty-first name still reddens it.
+    cell('FTS-10.2', 'the built artefact\'s own export set (`bindings/js/build/Release/storeroom_js_binding.node`, read live), superseding `package.md §1.3` item 4\'s five-name figure — the review\'s §3.2 row 19, re-read 2026-10-27, 2026-11-06 and 2026-11-19',
+      'the addon\'s own exports are the twenty the artefact carries — `commitFile`, `delete`, `errorMessage`, `exportImage`, `journalMark`, `listen`, `read`, `readLiteral`, `readTiered`, `register`, `removeListener`, `restoreMark`, `rollback`, `saveFailed`, `saveSucceeded`, `storeCreate`, `storeRelease`, `unlisten`, `version`, `write` — by SET EQUALITY, `errorMessage` among them',
       () => {
         const keys = Object.keys(ADDON).sort();
-        return C(JSON.stringify(keys) === JSON.stringify(['commitFile', 'delete', 'errorMessage', 'journalMark', 'listen', 'read', 'readLiteral', 'readTiered', 'register', 'removeListener', 'restoreMark', 'rollback', 'storeCreate', 'unlisten', 'version', 'write']), `addon exports=${JSON.stringify(keys)}`);
+        return C(JSON.stringify(keys) === JSON.stringify(['commitFile', 'delete', 'errorMessage', 'exportImage', 'journalMark', 'listen', 'read', 'readLiteral', 'readTiered', 'register', 'removeListener', 'restoreMark', 'rollback', 'saveFailed', 'saveSucceeded', 'storeCreate', 'storeRelease', 'unlisten', 'version', 'write']), `addon exports=${JSON.stringify(keys)}`);
       });
     // **⟶ RE-DERIVED 2026-10-26 WITH THE SET (title and figure together): TWENTY codes, not sixteen** — and the
     // appended rank-`20` row is driven here by the same loop, so `§8.2`'s completeness is asserted over the set the

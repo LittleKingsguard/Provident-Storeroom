@@ -70,7 +70,7 @@ import {
   ADDON_ARTEFACT, PACKAGE_ENTRY, PKG_DIR, DELETED_WRAPPER_NAMES,
   OWED_STRUCTURE_TOKENS, OWED1_TOKEN_ASSERTION_SHAPES,
   require_, addonKeySet, generated, isTheDeclaredForm, isTheArtefactForm, callAndClassify,
-  deletedWrapperCallSites, SAVE_ARM_THREE,
+  deletedWrapperCallSites, SAVE_ARM_THREE, RETIREMENT_ONE,
 } from './addon-surface-support.mjs';
 import { moduleCodeFiles, moduleCodeLines } from './module-set.mjs';
 
@@ -134,10 +134,17 @@ test('sas_d1_s_export_set_the_artefacts_own_keyset_is_exactly_the_thirteen_decla
   // of the product's fifteen members, reached at the boundary's own entry exactly as `read` is, and every one of
   // the entries already declared keeps its name and its arity.
   assert.equal(PER_VERB_TWELFTH.length, 1, 'the tier readout\'s compiled read, declared beside the nine and the two');
+  // **⟶ AND A TWENTIETH ENTRY STANDS BESIDE THE NINETEEN, 2026-11-19 (`RETIREMENT_ONE`)** — `storeRelease`, the
+  // retirement's frame: `facade.rs`'s `INSTANCE_IDS` docblock declared it before it existed, and this landing is
+  // what makes the declaration true. **IT IS NEITHER ONE OF THE FIFTEEN PER-VERB NOR A MEMBER OF THE PRODUCT'S
+  // SURFACE** (fifteen instance members, unmoved), and it is the ONE entry that takes its store BY POSITION and
+  // not by the receiver — *"a finalizer has no receiver"*.
+  assert.equal(RETIREMENT_ONE.length, 1, 'the retirement\'s own frame, declared beside the fifteen and the save arm');
   assert.equal(STANDING_FOUR.length + PER_VERB_NINE.length + PER_VERB_TENTH.length + PER_VERB_ELEVENTH.length
-    + PER_VERB_TWELFTH.length + SAVE_ARM_THREE.length, 19,
-    '`4 + 9 + 1 + 1 + 1 = 16 ✓` (§1\'s own `[CENSUS]`, read with the tenth, eleventh and twelfth rows)');
-  assert.equal(DECLARED_SURFACE.length, 19, 'and the tables are one set of NINETEEN, each name accounted for');
+    + PER_VERB_TWELFTH.length + SAVE_ARM_THREE.length + RETIREMENT_ONE.length, 20,
+    '`4 + 9 + 1 + 1 + 1 + 3 + 1 = 20 ✓` (§1\'s own `[CENSUS]`, read with the tenth, eleventh and twelfth rows, '
+    + 'the save arm\'s three and the retirement\'s one)');
+  assert.equal(DECLARED_SURFACE.length, 20, 'and the tables are one set of TWENTY, each name accounted for');
 });
 
 test('sas_d1_s_export_set_call_is_absent_because_the_split_is_precisely_its_replacement', () => {
@@ -259,6 +266,15 @@ function declaredArgumentsFor(name) {
     case 'exportImage': return [];
     case 'saveSucceeded': return ['an-op-id'];
     case 'saveFailed': return ['an-op-id'];
+    // **⟶ AND THE RETIREMENT'S OWN FRAME, ADDED 2026-11-19 (`RETIREMENT_ONE`): ONE POSITION, THE STORE'S INDEX.**
+    // It is driven with an index that names NOTHING — `987654321`, above any index a run of this file could have
+    // minted — because **a declared-arity call must not RELEASE a store another cell of this file is holding**:
+    // the entry's declared answer for an index it does not hold is the crate's absent arm (`AddressNotFound`),
+    // which is what `S-ARITY`'s *"the declared call answers or refuses in the one form"* reads. **THE POSITION IS
+    // A NUMBER AND NOT A HANDLE**, which is the whole reason this row needs `S-NO-INSTANCE`'s exemption, stated at
+    // that cell below: an integer at position `0` is this entry's DECLARED class, and `S-NO-INSTANCE` is about a
+    // `u32` taking a *first real argument's* place.
+    case 'storeRelease': return [987654321];
     default: return null;
   }
 }
@@ -486,6 +502,18 @@ test('sas_d2_s_no_instance_no_entry_accepts_an_integer_at_position_zero', () => 
   for (const entry of DECLARED_SURFACE) {
     if (typeof addon[entry.name] !== 'function') continue;
     const args = declaredArgumentsFor(entry.name);
+    // **⟶ RE-CUT 2026-11-19 — `storeRelease` IS EXEMPT BY NAME, AND THE REASON IS THE STRATEGY'S OWN PREMISE,
+    // WHICH THIS ROW HAS NOW FALSIFIED.** `S-NO-INSTANCE` reads *"no entry accepts a `u32` at position `0` **in
+    // place of its first real argument**"* (`contract.md §5`) — and **on this row the integer at position `0` IS
+    // the first real argument**: `storeRelease(storeIndex)` takes the store's own index, because *"a finalizer has
+    // no receiver"* (`facade.rs`'s entry docblock; `FinalizationRegistry`'s callback is handed its held value and
+    // nothing else). **THE COMMENT BELOW CARRIES THE OLD PREMISE — *"No verb of the thirteen declares one"* — AND
+    // IT WAS TRUE OF THE THIRTEEN AND IS FALSE OF THE TWENTIETH.** **AND THE LIMB MUST BE EXEMPT FOR A SECOND
+    // REASON THAT IS NOT ABOUT MEANING AT ALL**: driven with `0` or `1` in a file that CONSTRUCTS STORES, this
+    // entry would RELEASE the store those integers name, and every later cell in this file would be reading a
+    // store some earlier cell had legitimately thrown away. **THE EXEMPTION IS NAMED, NOT SILENT**, and the rest
+    // of the table is driven exactly as it always was.
+    if (entry.name === 'storeRelease') continue;
     // **`F-3`: "AN ENTRY ACCEPTS AN INTEGER AT POSITION `0` IN PLACE OF ITS FIRST REAL ARGUMENT."**
     // `S-NO-INSTANCE`: *"no entry accepts a `u32` at position `0` in place of its first real argument."*
     // **THE INTEGERS ARE `0` AND `1`**, because a position-`0` index is what the pre-split ABI took and the
@@ -889,13 +917,28 @@ test('sas_d4_s_refuse_form_a_member_whose_store_is_collected_refuses_in_the_same
   //     `sas_the_two_owed_items_…` cell below scans for exactly that token and caught an earlier draft of this
   //     very comment. **The retainer is named by its PATH and its LINE, which is what makes it checkable, and
   //     its type is left where the clause leaves it.**
-  //   · `bindings/js/src/facade.rs:1092` cites a `storeRelease` entry that would drop the instance; **IT
-  //     DOES NOT EXIST** — the artefact's live export set is exactly the thirteen declared names, and a
-  //     fourteenth would BE the failure `F-2` names (`export-set-and-dispatch.md §1`).
-  //   · `bindings/js/index.mjs:3048` — `STORE_RETIREMENT.register(instance, () => INSTANCES.delete(instance))`;
-  //     the callback closes over `instance` and fires only AFTER a collection the first bullet prevents.
-  //   · No release verb exists on the instance or the module (**measured: release-ish own members `[]`**),
-  //     and the call is synchronous in the same turn as the drop, so no finalizer turn intervenes either.
+  //   · `bindings/js/src/facade.rs:1092` cited a `storeRelease` entry that would drop the instance; **IT DID NOT
+  //     EXIST** — the artefact's live export set was exactly the declared names, and a fourteenth would have BEEN
+  //     the failure `F-2` names (`export-set-and-dispatch.md §1`). **⟶ AND IT EXISTS FROM 2026-11-19**: the
+  //     twentieth entry is `storeRelease`, the artefact exports it, and `F-2`'s failure is an UNDECLARED name —
+  //     the set moved `19 → 20` and the declaration moved with it (`RETIREMENT_ONE`; the `D-1` cell above
+  //     asserts the equality at its new size).
+  //   · `bindings/js/src/entry/instance.mjs` — `STORE_RETIREMENT.register(instance, () => INSTANCES.delete(
+  //     instance))`: **⟶ THE CALLBACK CLOSED OVER `instance` AND COULD NEVER FIRE, AND IT NOW CARRIES THE
+  //     INTEGER INSTEAD** (`register(instance, id)`), with the release applied in `state.mjs`'s registry
+  //     callback under its own guard. **THE FIRST BULLET STILL PREVENTS THE COLLECTION THIS CELL NEEDS**: the
+  //     addon's table no longer retains the store, but a construction the caller can still reach is not
+  //     collected either, so `§3`'s collected-store row is still not drivable by DROPPING A STORE IN-TEST.
+  //   · No release verb exists on the instance or the module (**measured: release-ish own members `[]`**) — the
+  //     retirement is the ADDON's entry and the finalizer's route, and no consumer can call it.
+  //
+  // **⟶ THE REVISIT CONDITION BELOW IS NOW `MET` AND THE CELL IS STILL `PARKED`, AND BOTH HALVES ARE SAID AT
+  // THEIR OWN BYTE.** *"A release entry on the artefact"* landed on 2026-11-19 (`storeRelease`), so **`§3`'s
+  // second row IS drivable — as a RELEASED store rather than a collected one** — and it is driven, in the one
+  // declared form, by `tests/e2e/store-retirement.test.mjs`'s `SR-03` — *released: the store's own call answers
+  // `AddressNotFound`, and a second store's call still answers its own*. **THIS CELL STILL ASSERTS THE LIVE
+  // LANDING AND PARKS THE COLLECTED-STORE ARM**, because *collected* and *released* are two states and the
+  // finalizer's firing is not a state this layer can force in the turn the call is made.
   //
   // **SO THE ARM IS `PARKED`, NOT WEAKENED — `OPEN`, NEVER GREEN.** `§3`'s "collected store" row is driven
   // FOR REAL where ownership is really owned: **`bindings/js/tests/addon_adoption.rs`**, the Rust layer,

@@ -258,6 +258,12 @@ function declaredArgumentsFor(name) {
     case 'exportImage': return [];
     case 'saveSucceeded': return ['an-op-id'];
     case 'saveFailed': return ['an-op-id'];
+    // **⟶ AND THE RETIREMENT'S OWN FRAME, ADDED 2026-11-19 (`RETIREMENT_ONE`): ONE POSITION, THE STORE'S INDEX.**
+    // The index it is driven with names NOTHING (`987654321`), because the declared call must not release a store
+    // this file's other rows are reading — the entry's answer for an index it does not hold is the crate's absent
+    // arm, which is the one form `S-ARITY` accepts. **THE POSITION IS A NUMBER**, and `S-NO-INSTANCE` is exempt for
+    // this row at the drive below, for the strategy's own premise (*"in place of its first real argument"*).
+    case 'storeRelease': return [987654321];
     default: return null;
   }
 }
@@ -292,7 +298,10 @@ test('sas_prop_P_SAS_1_S_EXPORT_SET_the_keyset_is_exactly_the_thirteen_and_call_
         + '`export-set-and-dispatch.md §1` is the set: `4` STANDING plus `9` PER-VERB plus the journal mark '
         + 'restore and the journal mark read that stand beside them, plus 2026-11-06\'s third read verb '
         + '`readTiered`, `4 + 9 + 1 + 1 + 1 = 16 ✓` (amended 2026-10-27 and again 2026-10-27, annotate-beside; '
-        + 'and again 2026-11-06 for `U-STOREROOM-TIER-READOUT`, `D-121-ter` item 5)');
+        + 'and again 2026-11-06 for `U-STOREROOM-TIER-READOUT`, `D-121-ter` item 5) — **AND THE SAVE ARM\'S THREE '
+        + 'AND THE RETIREMENT\'S ONE STAND BESIDE THEM FROM 2026-11-17 AND 2026-11-19: `4 + 9 + 1 + 1 + 1 + 3 + 1 = '
+        + '20 ✓`** (`SAVE_ARM_THREE`; `RETIREMENT_ONE` — `storeRelease`, the retirement the `facade.rs` docblock '
+        + 'declared before it existed)');
       // (b) EACH DECLARED NAME, DRAWN FROM THE SEED, IS PRESENT.
       const declared = choose(DECLARED_SURFACE_NAMES_SORTED);
       assert.equal(addonKeySet().includes(declared), true,
@@ -363,7 +372,13 @@ test('sas_prop_P_SAS_2_S_ARITY_S_NO_INSTANCE_every_entry_takes_its_verbs_own_arg
       // SEEDED SEQUENCE IS UNMOVED**, and every entry of arity `≥ 1` — which is every entry that HAS a
       // position `0` — asserts exactly what it always did.
       const substituted = [int(0, 3), ...declared.slice(1)];
-      if (declared.length > 0) {
+      // **⟶ RE-CUT 2026-11-19 — `storeRelease` IS EXEMPT BY NAME, AND FOR TWO REASONS THAT ARE NOT ONE.** The
+      // strategy's premise — *"in place of its FIRST REAL ARGUMENT"* — is falsified by this row, whose first real
+      // argument IS the integer (the store's own index: *"a finalizer has no receiver"*); **and the limb would ALSO
+      // do real damage here**: the drawn integer is `0`–`3`, and this entry would RELEASE the store one of them
+      // names, so every later attempt in this file could read a store a previous attempt had legitimately freed.
+      // **THE DRAW IS STILL CONSUMED BELOW SO THE SEEDED SEQUENCE IS UNMOVED** — the assertion is what is skipped.
+      if (declared.length > 0 && entry.name !== 'storeRelease') {
         const withInstance = callAndClassify(addon[entry.name].bind(addon), substituted);
         assert.equal(withInstance.refused, true,
           `attempt ${i}: S-NO-INSTANCE — no entry accepts a \`u32\` at position 0 in place of its first real `

@@ -1,0 +1,964 @@
+diff --git a/bindings/js/src/entry/addon-slot.mjs b/bindings/js/src/entry/addon-slot.mjs
+index 61d6c76..42d9a5b 100644
+--- a/bindings/js/src/entry/addon-slot.mjs
++++ b/bindings/js/src/entry/addon-slot.mjs
+@@ -56,9 +56,14 @@
+ //
+ // **AND `delete` → `_delete` AT THAT SAME TABLE** (`wasm-realm.md` §15: the toolchain emits the entry as `_delete`
+ // because the published name is a reserved word), so the parts' `entryOf().delete` is spelled as the module's own
+-// `_delete` in ONE place and no site learns a second name. `commitFile` is **ABSENT** from the injected export set
+-// (`D-155` item 4; eighteen of the Node arm's nineteen), so the table carries no such member and this file mints no
+-// stand-in for it: a save that names it on that arm is the design's own declared absence, not a table's omission.
++// `_delete` in one place and no site learns a second name. `commitFile` is **ABSENT** from the injected export set
++// (`D-155` item 4; eighteen of the Node arm's twenty, which is **⟶ NINETEEN UNTIL 2026-11-19 AND TWENTY FROM THE
++// `storeRelease` LANDING** — `facade.rs`'s retirement entry, which has no wasm twin), so the table carries no such
++// member and this file mints no stand-in for it: a save that names it on that arm is the design's own declared
++// absence, not a table's omission. **AND THE SAME HOLDS OF `storeRelease` ON THIS ARM**: `state.mjs`'s
++// `STORE_RETIREMENT` calls it, the injected table carries no such member, and **the registry's own `try`/`catch`
++// is what makes that absence SILENT rather than a throwable crossing a finalizer** — the arm's declared state is
++// that its table never retires a store (`docs/L1/wasm-realm.md:311`), and nothing here mints a stand-in.
+ //
+ // **NO `node:` SPECIFIER APPEARS IN THIS FILE AND NONE MAY** — that is the whole of the seam.
+ 
+diff --git a/bindings/js/src/entry/instance.mjs b/bindings/js/src/entry/instance.mjs
+index 0564242..218f613 100644
+--- a/bindings/js/src/entry/instance.mjs
++++ b/bindings/js/src/entry/instance.mjs
+@@ -1879,14 +1879,22 @@ export function storeCreate(cfg) {
+   state.receiver = instance;
+   // **THE ROW IS REGISTERED FOR RETIREMENT IN THE SAME ACT THAT PUBLISHES IT**, so a store cannot be
+   // published without a retirement and the two cannot drift (`§6`: *"retired in the same act that frees the
+-  // store"*). **THE CALLBACK IS PER-CONSTRUCTION AND CLOSES OVER THIS INSTANCE'S OWN INDEX ALONE** — it takes
+-  // no scan, names no other row, and cannot reach the table as a whole, which is the requirement `§6` states
+-  // and the failure `P-SAS-5` catches. **NO REFERENCE TO THE STORE OBJECT IS HELD** (it would be the strong
+-  // reference that stops the collection this exists to observe): the closure holds the integer and nothing
+-  // else, and the package's own hold on the instance is released with it.
+-  STORE_RETIREMENT.register(instance, () => {
+-    INSTANCES.delete(instance);
+-  });
++  // store"*). **⟶ AND THE HELD VALUE IS NOW THE INTEGER ITSELF, NOT A CLOSURE — 2026-11-19.** **WHAT STOOD
++  // HERE WAS `register(instance, () => { INSTANCES.delete(instance); })`, AND IT WAS WRONG TWICE AT ONCE**:
++  // the held value CLOSED OVER `instance`, so it strongly referenced its own target and **the callback could
++  // never fire** (the sentence beside it claimed *"NO REFERENCE TO THE STORE OBJECT IS HELD"* while the code
++  // held one); **and what it did when it did fire was delete the package's own `WeakMap` row** — an entry that
++  // a collected key has already left, since a `WeakMap`'s entry is not reachable once its key is collected.
++  // **NOTHING WAS SAID TO THE ADDON, SO THE STORE STAYED IN ITS `INSTANCES` TABLE FOR THE PROCESS'S LIFE**
++  // (`facade.rs`'s `storeRelease` docblock measures that at ~18–21 KB per construct-and-drop, linear).
++  //
++  // **SO THE HELD VALUE IS `id` — A NUMBER — AND THE CALLBACK IS `state.mjs`'s `STORE_RETIREMENT` ITSELF**,
++  // which is where the release is applied and where the finalizer's guard already stood. **THE CALLBACK TAKES
++  // NO SCAN, NAMES NO OTHER ROW AND CANNOT REACH THE TABLE AS A WHOLE** (the requirement `§6` states and the
++  // failure `P-SAS-5` catches): it is handed one integer and releases that one row. **A `WeakMap` ENTRY NEEDS
++  // NO DELETE FOR THE RETIREMENT'S OWN REASON** — the entry is gone with its key — so the package loses
++  // nothing by not naming `INSTANCES` here, and **it gains the addon's row being emptied in the same act**.
++  STORE_RETIREMENT.register(instance, id);
+   // ═════════════════════════════════════════════════════════════════════════════════════════════════════
+   // **⟶ AND `D-99`'S INTERNAL ROUTE, INSTALLED HERE AND NOT WITH THE OTHER TWO CHANNELS — 2026-11-01
+   // (`C-17` (iv), §9.2).** **THE INSTALL SITE IS `state.receiver = instance`'S NEIGHBOURHOOD AND NOT `:1693`'S,
+diff --git a/bindings/js/src/entry/state.mjs b/bindings/js/src/entry/state.mjs
+index b7f1934..d469802 100644
+--- a/bindings/js/src/entry/state.mjs
++++ b/bindings/js/src/entry/state.mjs
+@@ -969,11 +969,49 @@ export const INSTANCES = new WeakMap(); // instance -> the package's own per-ins
+ /// `STORE_RETIREMENT` is the package-side `FinalizationRegistry` whose callback retires the freed store's own
+ /// row from the addon's receiver table (`§6`). **ITS HELD VALUE IS THE INDEX ALONE AND NOTHING ELSE, AND IT
+ /// HOLDS NO REFERENCE TO THE STORE** — holding the object would be the strong reference that stops the very
+-/// collection this callback exists to observe.
++/// collection this callback exists to observe. **⟶ AND THAT SENTENCE WAS FALSE OF THE SHIPPED CALLBACK AND IS
++/// TRUE FROM 2026-11-19**: `instance.mjs` registered a CLOSURE that closed over `instance`, i.e. a held value
++/// that strongly referenced its own target and could never fire; **the registration now passes the integer**
++/// (`STORE_RETIREMENT.register(instance, id)`), so the sentence is a property of the value — a `Number` — and
++/// the release it fires is `storeRelease`'s.
+ export const STORE_INDEX = Symbol.for('provident-storeroom.storeIndex');
+ 
+-/// **THE ROW IS RETIRED BY DROPPING THE PACKAGE'S OWN HOLD ON THE STORE, AND THE ADDON NEEDS NO ENTRY FOR
+-/// IT** — the mechanism, and why it is this one:
++/// **⟶ THE RETIREMENT NOW REACHES THE ADDON, AND THE THREE SENTENCES THIS BLOCK CARRIED — EACH OF WHICH SAID
++/// IT MUST NOT — ARE QUOTED HERE AND RETIRED — 2026-11-19.** **WHAT THEY DECLARED, QUOTED BEFORE THEY ARE
++/// RETIRED:** *"THE ROW IS RETIRED BY DROPPING THE PACKAGE'S OWN HOLD ON THE STORE, AND THE ADDON NEEDS NO
++/// ENTRY FOR IT"* · *"AND THE ADDON'S TABLE IS REACHED BY NO SECOND EXPORT, WHICH IS FORCED RATHER THAN
++/// CHOSEN: `export-set-and-dispatch.md
++/// §1` fixes the artefact's key set at EXACTLY the thirteen declared names … so a `finalize`, `retained` or
++/// `release` entry on the artefact WOULD ITSELF BE THE FAILURE `F-2` NAMES"* · *"SO THE RETIREMENT IS THE
++/// PACKAGE'S OWN ACT ON ITS OWN HOLD; the addon's row is retired by the addon when the receiver it is handed no
++/// longer resolves."*
++///
++/// **EVERY ONE OF THE THREE WAS FALSE OF THE BEHAVIOUR AND THE FIRST WAS FALSE OF THE MECHANISM.** The addon's
++/// `INSTANCES` table holds every constructed store for the process's life — `bindings/js/src/facade.rs`'s own
++/// docblock at `INSTANCE_IDS` declares the retirement path and, until this pass, cited a `storeRelease` entry
++/// that did not exist — so **a dropped store was never retired by anything: ~18–21 KB per
++/// construct-and-drop, linear, on the shipped arm.** *"The addon's row is retired by the addon when the
++/// receiver it is handed no longer resolves"* was the worse half: **a row that is never removed resolves
++/// forever**, so the sentence described the state that makes the defect invisible.
++///
++/// **WHAT STANDS INSTEAD, AND IT IS ONE ACT ON THE ADDON'S OWN TWO TABLES**: the held value is **the integer**
++/// the store object was published with (`STORE_INDEX`), the callback hands it to `withAddon().storeRelease`, and
++/// **that entry drops the instance and removes its own id from the receiver table in one act**
++/// (`facade.rs`'s `storeRelease`; `receiver-and-refusal.md §6`). **THE HELD VALUE IS STILL THE INDEX ALONE AND
++/// STILL HOLDS NO REFERENCE TO THE STORE** — which is now a property of the value rather than of a promise:
++/// a `Number` cannot hold anything.
++///
++/// **AND THE KEY SET MOVED `19 → 20` WITH IT**, which this pass re-derives rather than argues away: the
++/// artefact's live set is the nineteen declared names plus `storeRelease`, and **`§1`'s "exactly the declared
++/// names" is a statement about the DECLARED set, which now carries the twentieth** — a *"`release`"* entry was
++/// never the failure; an **undeclared** name is. **THE SECOND REALM'S ARM IS UNMOVED**: `storeRelease` has no
++/// `wasm.rs` twin (`D-155` item 4's eighteen stand), so on that arm this callback's call is refused by the
++/// table itself — `storeRelease` is not a function there — and **THE `catch` BELOW IS WHAT MAKES THAT ARM'S
++/// ABSENCE SILENT RATHER THAN A THROWN FINALIZER**, which is the same guard, kept and now load-bearing.
++///
++/// **⟶ THE GUARD IS KEPT UNMOVED: A RETIREMENT NEVER THROWS INTO A FINALIZER.**
++///
++/// **THE PARAGRAPHS BELOW ARE THE READING OF THE MOMENT BEFORE THIS PASS AND ARE READ THROUGH THIS CLAUSE.**
+ ///
+ /// **WHAT MUST BE OBSERVED IS THE CALL, NOT THE TABLE.** `§6` requires that *"an entry whose store has been
+ /// freed must be retired in the same act that frees the store"*, and its stated reason is the observable:
+@@ -983,23 +1021,14 @@ export const STORE_INDEX = Symbol.for('provident-storeroom.storeIndex');
+ /// READS THE TABLE'S TYPE, ITS LENGTH OR A ROW** — `contract.md §7`'s `OWED-2` prohibits exactly that
+ /// (*"NOTHING ASSERTS A TABLE TYPE"*), so the table's interior is not an observable this unit may be graded
+ /// on and is not one this comment claims.
+-///
+-/// **AND THE ADDON'S TABLE IS REACHED BY NO SECOND EXPORT, WHICH IS FORCED RATHER THAN CHOSEN:**
+-/// `export-set-and-dispatch.md §1` fixes the artefact's key set at EXACTLY the thirteen declared names —
+-/// `P-SAS-1` asserts equality, and `§2`'s failure list names *"an undeclared name"* — **so a `finalize`,
+-/// `retained` or `release` entry on the artefact WOULD ITSELF BE THE FAILURE `F-2` NAMES.** The thirteen
+-/// stand and there is no fourteenth.
+-///
+-/// **SO THE RETIREMENT IS THE PACKAGE'S OWN ACT ON ITS OWN HOLD; the addon's row is retired by the addon when
+-/// the receiver it is handed no longer resolves.** The two halves are one requirement: **a store the caller
+-/// can still reach resolves its own row and answers; a store it cannot reach is refused in the one form**,
+-/// which is the whole of what `§3` and `§6` ask and the whole of what `P-SAS-5` reads.
+-export const STORE_RETIREMENT = new FinalizationRegistry((retire) => {
++export const STORE_RETIREMENT = new FinalizationRegistry((storeIndex) => {
+   try {
+-    retire();
++    withAddon().storeRelease(storeIndex);
+   } catch {
+     // **A RETIREMENT NEVER THROWS INTO A FINALIZER**: the callback runs on the host's own collection turn,
+-    // and a throwable escaping there would be a raw host error crossing a path no caller asked for.
++    // and a throwable escaping there would be a raw host error crossing a path no caller asked for. **AND ON
++    // THE SECOND REALM'S ARM THIS CATCH IS THE ARM'S WHOLE ANSWER** — the injected table carries no
++    // `storeRelease` (`D-155` item 4), so the call raises and the release simply does not happen there.
+   }
+ });
+ 
+@@ -1272,7 +1301,8 @@ export function carryRefusal(call, args, log, address) {
+ export function commitFile(receiver, opId) {
+   // **⟶ AND AN ARM THAT EXPORTS NO `commitFile` PERFORMS NO STORE SAVE — 2026-11-17** (`D-155` item 4; `D-143`'s
+   // arm; `D-144` item 5). **`commitFile` IS ABSENT FROM THE SECOND REALM'S EXPORT SET BY RULING** (eighteen of the
+-  // Node arm's nineteen, `D-155` item 4: *"the writer is unreachable"*), **and that ruling was TRUE OF THE STORE'S
++  // Node arm's twenty — nineteen when this sentence was written, twenty since the 2026-11-19 `storeRelease`
++  // landing, which has no wasm twin either — `D-155` item 4: *"the writer is unreachable"*), **and that ruling was TRUE OF THE STORE'S
+   // WRITER AND NOT OF THIS CALL**: the terminal arm reaches this helper on a passing `file`-tier write and lets the
+   // STORE decide eligibility, so with no entry here a lawful write threw a raw host **`TypeError`** instead of any
+   // declared answer (measured: `state.mjs:1263` ← `delivery.mjs:1245` ← `terminalArm`).
+diff --git a/bindings/js/src/facade.rs b/bindings/js/src/facade.rs
+index 7ec3896..e2ccd03 100644
+--- a/bindings/js/src/facade.rs
++++ b/bindings/js/src/facade.rs
+@@ -290,10 +290,84 @@ fn throw_refusal(env: &Env, refusal: &Refusal) {
+ // about the affinity fact and still refuse to compile; the `thread_local!` is what the `Sync` bound leaves,
+ // and a store reached from a second thread would be a defect of the CALLERS rather than a state this file
+ // could guard against.
++//
++// **⟶ AND THE ROW TYPE MOVED ON 2026-11-19 — `Vec<crossing::Instance>` → [`Slots`], WHICH IS
++// `Vec<Option<crossing::Instance>>` WITH ITS OWN FOUR METHODS — WITHOUT MOVING A WORD OF THE BOUND ABOVE.**
++// The `Sync` argument is about `RefCell` and is unmoved: `RefCell<Slots>` declines `Sync` for the same reason
++// `RefCell<Vec<…>>` does, and the two `assert_send` lines still compile. **The type moved because a store can
++// now be RELEASED**, and a `Vec::remove` would renumber the indexes the package holds as integers — the
++// tombstone and its proof are stated at [`Slots`]' own doc comment, and the entries' read is unmoved: every
++// one of them calls `instances.get_mut(store_index)` and gets the same `Option<&mut crossing::Instance>` a
++// `Vec` gave it.
+ // =================================================================================================
+ 
++/// **THE SLOTS OF [`INSTANCES`] — A STORE'S OWN SLOT, OR THE TOMBSTONE ITS RELEASE LEAVES BEHIND.**
++///
++/// **⟶ THE ROW TYPE MOVED `crossing::Instance` → `Option<crossing::Instance>` ON 2026-11-19, AND THE
++/// SENTENCE ABOVE [`INSTANCE_IDS`] THAT PROMISED THIS PATH IS WHAT MADE THE MOVE NECESSARY.** The
++/// `storeRelease` entry below frees a store; **a `Vec::remove` IS NOT THE FORM A RELEASE MAY TAKE**, because
++/// the index `storeCreate` mints IS the store's address on the Node-API side and the package holds that
++/// integer on its own store object (`index.mjs`'s `STORE_INDEX` row): removing row `3` renumbers every later
++/// store, so a store that was minted as `7` would answer at `6` and the integer the package holds would name
++/// its NEIGHBOUR — a silent cross-store defect and not a stale handle (`receiver-and-refusal.md §2`, the
++/// failure `P-SAS-5` names). **SO THE ID IS KEPT STABLE AND THE SLOT IS EMPTIED**: `Some(store)` is a live
++/// store and `None` is the tombstone its release left, the row count never shrinks, and an index can name at
++/// most the one store it was minted for.
++///
++/// **WHAT A TOMBSTONE COSTS AND WHAT IT BUYS, AT ITS OWN MEASURE.** It costs ONE EMPTY OPTION PER STORE EVER
++/// CONSTRUCTED — the slot's own footprint, and NOT the store's: the `Instance` and the `Store` inside it are
++/// DROPPED at the release, which is the ~18–21 KB per store this entry exists to stop retaining.
++/// **IT BUYS THE ONE INVARIANT `§6` STATES** — *"an entry whose store has been freed can never survive to
++/// name nothing"* — as a property of the type rather than of a rule: `get_mut` answers `None` for a freed
++/// slot exactly as it does for an index no mint ever reached, so a released store and a fabricated index are
++/// ONE observable at every entry, which is what `receiver-and-refusal.md §3` declares.
++///
++/// **AND THE `Vec` IS NOT REALLOCATED BY A RELEASE**, so a store's index is also stable against the growth
++/// every later construction performs: nothing but `push` touches the shape.
++struct Slots(Vec<Option<crossing::Instance>>);
++
++impl Slots {
++    /// **THE ONE WRITER OF A NEW ROW** — `storeCreate`'s mint, and the index it answers is this row's own.
++    fn push(&mut self, instance: crossing::Instance) {
++        self.0.push(Some(instance));
++    }
++
++    /// The row count, which is the number of stores ever constructed and never the number live.
++    fn len(&self) -> usize {
++        self.0.len()
++    }
++
++    /// **THE ONE READER OF A LIVE STORE** — a live row's `&mut`, or `None` for an emptied row and for an
++    /// index the table never reached. **THE ENTRIES TAKE NO OTHER ROUTE TO A STORE**, so no verb can observe
++    /// the difference between a tombstone and a fabricated index at any depth.
++    fn get_mut(&mut self, store_index: usize) -> Option<&mut crossing::Instance> {
++        self.0.get_mut(store_index).and_then(Option::as_mut)
++    }
++
++    /// **THE SHARED-BORROW HALF OF THE SAME READ** — the two frames that answer a store's own record
++    /// (`journalMark`) and its own image (`exportImage`) take `&self` on the instance and borrow the table
++    /// without mutability. **The tombstone is `None` here exactly as it is above**, so a released store is one
++    /// observable on the pure reads too.
++    fn get(&self, store_index: usize) -> Option<&crossing::Instance> {
++        self.0.get(store_index).and_then(Option::as_ref)
++    }
++
++    /// **THE RELEASE** — the store is TAKEN OUT OF ITS SLOT AND DROPPED, and the slot stands as the
++    /// tombstone. Answers whether this call was the one that freed it: `false` for a slot already emptied and
++    /// for an index no mint ever reached, which are the two arms the entry answers its absent form with.
++    fn release(&mut self, store_index: usize) -> bool {
++        self.0
++            .get_mut(store_index)
++            .and_then(Option::take)
++            .is_some()
++    }
++}
++
+ thread_local! {
+-    static INSTANCES: RefCell<Vec<crossing::Instance>> = const { RefCell::new(Vec::new()) };
++    /// **THE STORE TABLE — ONE SLOT PER STORE EVER CONSTRUCTED**, `Some` while the store is live and `None`
++    /// once `storeRelease` has dropped it. **THE SLOT TYPE IS [`Slots`]' OWN AND ITS REASON IS ITS OWN**: the
++    /// index is an address the package holds, so a release empties a row and never shifts one.
++    static INSTANCES: RefCell<Slots> = const { RefCell::new(Slots(Vec::new())) };
+     /// **THE RECEIVER TABLE** — `receiver-and-refusal.md §6`'s subject, and this unit's second `OWED` item.
+     ///
+     /// **IT REMAINS — SOMETHING MUST HOLD THE STORE — AND ITS FORM IS `Vec<usize>`, THE LIVE INDICES OF
+@@ -396,6 +470,84 @@ pub fn storeCreate(env: Env, cfg: JsVal<'_>) -> NapiRet<'static> {
+     }
+ }
+ 
++/// The addon's `storeRelease(storeIndex) -> undefined`: **THE RETIREMENT ENTRY — the store is DROPPED and its
++/// own index is removed from [`INSTANCE_IDS`], IN ONE ACT** (`receiver-and-refusal.md §6`).
++///
++/// **⟶ THE ENTRY EXISTED AS A CITATION BEFORE IT EXISTED AS A FUNCTION, AND THIS IS THE PASS THAT MAKES THE
++/// CITATION TRUE — 2026-11-19.** The docblock above [`INSTANCE_IDS`] has declared since this layer was written
++/// that the store *"is freed by the package's own GC finalizer … which reaches this addon through the standing
++/// `storeRelease` entry below; that entry DROPS the instance AND removes ITS OWN index from this table, IN ONE
++/// ACT"*, and **NO SUCH ENTRY STOOD BELOW IT** — nothing named `storeRelease` existed in this crate, the
++/// package's finalizer deleted a row of its own `WeakMap` and never reached this layer, and **every constructed
++/// store therefore stayed in [`INSTANCES`] for the process's life: ~18–21 KB per constructed-and-dropped store,
++/// linear in the count** (the same shape as `D-159`/`D-160`/`D-162`'s tables, on the shipped arm). **The
++/// sentence is not corrected here; it is KEPT and made true**, and the two tables it names are what this frame
++/// acts on.
++///
++/// **THE POSITION IS AN INDEX AND NOT A RECEIVER, AND THAT IS FORCED BY WHO CALLS IT.** Every per-verb entry
++/// resolves its store from the Node-API `this` ([`store_index_of`]), because the package calls each of them AS
++/// A METHOD ON ITS OWN STORE OBJECT. **A FINALIZER HAS NO RECEIVER**: `FinalizationRegistry`'s callback is
++/// handed the HELD VALUE and nothing else, and the held value may not be the store object itself — holding it
++/// would be the strong reference that stops the very collection the finalizer exists to observe. **SO THE
++/// INDEX IS A DECLARED POSITION HERE AND NOT `this`**, and the one caller that exists — `state.mjs`'s
++/// `STORE_RETIREMENT` — hands the integer it was given (`instance.mjs`'s own `STORE_INDEX` row, published at
++/// the construction). **A DETACHED CALL AND A RECEIVER-LESS CALL ARE THEREFORE THE SAME CALL AT THIS ENTRY**,
++/// which is why it takes no `This<…>` parameter and why its answer does not depend on one.
++///
++/// **THE ID IS A POSITION OF A DIFFERENT KIND FROM THE VERBS' ARGUMENTS AND IT IS READ BY CLASS.** The position
++/// is read as a NUMBER (the same `cast::<f64>()` read [`store_index_of`] takes off the receiver's own channel),
++/// and **a non-number, a NaN, an infinity and a negative are one arm**: they name no index this addon ever
++/// minted, so they answer [`not_a_store_index`] — the crate's own malformed-argument form, the token
++/// `not_a_receiver` answers and no new member (`DD-40`: nothing here mints a status).
++///
++/// **THE TWO ABSENT ARMS ARE ONE OBSERVABLE, WHICH IS `receiver-and-refusal.md §3`'s OWN RULE.** An index the
++/// table does not hold and an index whose store has ALREADY been released both answer
++/// [`no_instance_at`] — the crate's own `AddressNotFound` — because the tombstone a release leaves is the same
++/// `None` a fabricated index reads ([`Slots::get_mut`]). **NEITHER PANICS AND NEITHER ANSWERS `Ok`**: the
++/// release is idempotent at its own answer, so a finalizer that fires twice, or a package that releases and is
++/// then handed the same integer by a stale row, is refused rather than obeyed.
++///
++/// **AND THE TWO TABLES MOVE TOGETHER OR NOT AT ALL.** The instance is taken out of its slot and dropped and
++/// the id is removed from [`INSTANCE_IDS`] INSIDE THE SAME CLOSURE, so no path can free the store and leave its
++/// index standing in the receiver table — which is the state `§6` forbids in its own words: *"an entry whose
++/// store has been freed can never survive to name nothing."* **THE REMOVAL IS A `retain` AND NOT A `remove`**:
++/// the table is a SET of live indices in ascending order, exactly one of them is this store's, and the order
++/// every reader sees is unchanged. **THE STORE TABLE'S OWN ROW IS NOT REMOVED** — it is emptied, so every index
++/// minted before this act still names the store it was minted for and no later store is renumbered.
++///
++/// **THE ENTRY IS ANNOTATED AND ITS ONE-POSITION ARITY IS THE ANNOTATION'S** (`binding-crate-and-abi.md §2`
++/// row 5): `storeRelease` takes ONE argument — the store's index — and answers `undefined`. **IT IS NOT ONE OF
++/// THE PER-VERB ENTRIES AND NOT A MEMBER OF THE PRODUCT'S SURFACE**: it is the retirement's own frame, reached
++/// by the package's finalizer and by no consumer, and `index.d.ts` does not name it.
++#[napi]
++pub fn storeRelease(env: Env, store_pos: JsVal<'_>) -> NapiRet<'static> {
++    // **THE POSITION IS READ BY CLASS, AND `NaN`/`±inf`/a negative ARE NOT INDICES.** `raw as usize` saturates a
++    // NaN to `0` in Rust, which would make a caller's non-answer name the FIRST store — so the guard is the
++    // class test and not a cast: an outside value reaches the malformed arm and no store is touched by it.
++    let store_index = match unsafe { store_pos.cast::<f64>() } {
++        Ok(raw) if raw.is_finite() && raw >= 0.0 && raw.fract() == 0.0 => raw as usize,
++        _ => {
++            throw_refusal(&env, &not_a_store_index());
++            return Ok(make_undefined(&env));
++        }
++    };
++    // **THE ONE ACT** (`§6`): the instance is DROPPED and its own id is removed from the receiver table, in one
++    // closure, so neither half can land without the other. The `Err` arm is the tombstone and the fabricated
++    // index alike ([`no_instance_at`]) — and it is taken BEFORE the id is touched, so a refused release removes
++    // nothing at all.
++    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|instances| {
++        let mut instances = instances.borrow_mut();
++        if !instances.release(store_index) {
++            return Err(no_instance_at(store_index));
++        }
++        // THE SECOND HALF OF THE SAME ACT. `retain` keeps the ascending order every reader of this table sees
++        // and removes exactly the one id of the store that has just been dropped.
++        INSTANCE_IDS.with(|ids| ids.borrow_mut().retain(|held| *held != store_index));
++        Ok(make_undefined(&env))
++    });
++    answer_or_throw(env, answer)
++}
++
+ // =================================================================================================
+ // THE NINE PER-VERB ENTRIES — `U-STOREROOM-ADDON-SURFACE`, `export-set-and-dispatch.md §1`
+ //
+@@ -1123,6 +1275,17 @@ fn verb_commit_file(env: Env, receiver: This<Object<'_>>, op_id_pos: JsVal<'_>)
+ // THREE VERDICTS**: the export answers the image and marks nothing, the first verdict marks the record saved, the second
+ // unwinds it — and **NO VERDICT IS CARRIED ON ANY ENTRY'S POSITION** (`D-146` item 2): the addon is told twice, once per
+ // outcome, and is never asked to judge.
++//
++// **⟶ AND A TWENTIETH ENTRY STANDS BESIDE THE NINETEEN, ADDED 2026-11-19 — `storeRelease`, AND IT IS NOT ONE OF THE
++// FIFTEEN PER-VERB AND NOT A MEMBER OF THE PRODUCT'S SURFACE.** It is the RETIREMENT's frame (`storeCreate`'s twin,
++// declared at that entry's own docblock): **the set this file declares is therefore `12 + 3 = 15` PER-VERB and
++// `4 + 15 + 1 = 20` IN ALL**, and **NO NAME ANY OF THE FIFTEEN CARRIES MOVES** — every one of them keeps its name, its
++// positions and its answer. **AND THE ONE THING NEW ABOUT ITS SHAPE IS THAT IT TAKES ITS STORE BY POSITION RATHER THAN
++// BY RECEIVER** (`receiver-and-refusal.md §1`'s rule is unmoved for the fifteen: each of those is called as a method on
++// the package's own store object, and **a finalizer has no object to be called on** — the index is the whole of what the
++// held value may carry). **THE SECOND REALM'S ARM IS NOT THIS PASS'S AND ITS SET DOES NOT MOVE**: `storeRelease` has no
++// `wasm.rs` twin, so that arm's eighteen stand (`D-155` item 4) and its table never retires a store — the absence
++// `docs/L1/wasm-realm.md:311` already declares.
+ 
+ /// **⟶ ADDED 2026-11-17 BY `U-STOREROOM-03` — `exportImage()`: THE EXPORT CARRIER, POSITION-LESS, ANSWERING THE
+ /// STORE'S OWN IMAGE TEXT AS A STRING** (`D-137` items 1–2; `D-133` item 2).
+@@ -1238,6 +1401,21 @@ fn not_a_receiver() -> Refusal {
+     }
+ }
+ 
++/// **THE RETIREMENT ENTRY'S OWN MALFORMED ARM — the same TOKEN [`not_a_receiver`] answers, at the position the
++/// finalizer hands instead of a receiver** (`storeRelease`'s docblock, `receiver-and-refusal.md §3`).
++///
++/// **NO STATUS IS MINTED** (`DD-40`): `AddressMalformed` is the store's own member for *"a present argument
++/// outside its domain"*, and the sentence behind it names THIS position — the store's index — rather than a
++/// receiver, because a `message` that named a receiver on a call that has none would be false at its own bytes.
++/// **THE TWO-MEMBER FORM IS [`throw_refusal`]'S AND IS UNMOVED**: this function authors a `Refusal` and throws
++/// nothing.
++fn not_a_store_index() -> Refusal {
++    Refusal {
++        status: "AddressMalformed".to_string(),
++        message: "the position is not the store index this addon's storeCreate returned".to_string(),
++    }
++}
++
+ 
+ /// **THE ONE LANDING EVERY PER-VERB ENTRY TAKES**: a refusal is THROWN AS THE VALUE by [`throw_refusal`] and
+ /// the frame answers `undefined` behind the pending exception — **no `Result` arm carrying a library error is
+diff --git a/tests/e2e/addon-surface-properties.test.mjs b/tests/e2e/addon-surface-properties.test.mjs
+index 15645f1..c633e48 100644
+--- a/tests/e2e/addon-surface-properties.test.mjs
++++ b/tests/e2e/addon-surface-properties.test.mjs
+@@ -258,6 +258,12 @@ function declaredArgumentsFor(name) {
+     case 'exportImage': return [];
+     case 'saveSucceeded': return ['an-op-id'];
+     case 'saveFailed': return ['an-op-id'];
++    // **⟶ AND THE RETIREMENT'S OWN FRAME, ADDED 2026-11-19 (`RETIREMENT_ONE`): ONE POSITION, THE STORE'S INDEX.**
++    // The index it is driven with names NOTHING (`987654321`), because the declared call must not release a store
++    // this file's other rows are reading — the entry's answer for an index it does not hold is the crate's absent
++    // arm, which is the one form `S-ARITY` accepts. **THE POSITION IS A NUMBER**, and `S-NO-INSTANCE` is exempt for
++    // this row at the drive below, for the strategy's own premise (*"in place of its first real argument"*).
++    case 'storeRelease': return [987654321];
+     default: return null;
+   }
+ }
+@@ -292,7 +298,10 @@ test('sas_prop_P_SAS_1_S_EXPORT_SET_the_keyset_is_exactly_the_thirteen_and_call_
+         + '`export-set-and-dispatch.md §1` is the set: `4` STANDING plus `9` PER-VERB plus the journal mark '
+         + 'restore and the journal mark read that stand beside them, plus 2026-11-06\'s third read verb '
+         + '`readTiered`, `4 + 9 + 1 + 1 + 1 = 16 ✓` (amended 2026-10-27 and again 2026-10-27, annotate-beside; '
+-        + 'and again 2026-11-06 for `U-STOREROOM-TIER-READOUT`, `D-121-ter` item 5)');
++        + 'and again 2026-11-06 for `U-STOREROOM-TIER-READOUT`, `D-121-ter` item 5) — **AND THE SAVE ARM\'S THREE '
++        + 'AND THE RETIREMENT\'S ONE STAND BESIDE THEM FROM 2026-11-17 AND 2026-11-19: `4 + 9 + 1 + 1 + 1 + 3 + 1 = '
++        + '20 ✓`** (`SAVE_ARM_THREE`; `RETIREMENT_ONE` — `storeRelease`, the retirement the `facade.rs` docblock '
++        + 'declared before it existed)');
+       // (b) EACH DECLARED NAME, DRAWN FROM THE SEED, IS PRESENT.
+       const declared = choose(DECLARED_SURFACE_NAMES_SORTED);
+       assert.equal(addonKeySet().includes(declared), true,
+@@ -363,7 +372,13 @@ test('sas_prop_P_SAS_2_S_ARITY_S_NO_INSTANCE_every_entry_takes_its_verbs_own_arg
+       // SEEDED SEQUENCE IS UNMOVED**, and every entry of arity `≥ 1` — which is every entry that HAS a
+       // position `0` — asserts exactly what it always did.
+       const substituted = [int(0, 3), ...declared.slice(1)];
+-      if (declared.length > 0) {
++      // **⟶ RE-CUT 2026-11-19 — `storeRelease` IS EXEMPT BY NAME, AND FOR TWO REASONS THAT ARE NOT ONE.** The
++      // strategy's premise — *"in place of its FIRST REAL ARGUMENT"* — is falsified by this row, whose first real
++      // argument IS the integer (the store's own index: *"a finalizer has no receiver"*); **and the limb would ALSO
++      // do real damage here**: the drawn integer is `0`–`3`, and this entry would RELEASE the store one of them
++      // names, so every later attempt in this file could read a store a previous attempt had legitimately freed.
++      // **THE DRAW IS STILL CONSUMED BELOW SO THE SEEDED SEQUENCE IS UNMOVED** — the assertion is what is skipped.
++      if (declared.length > 0 && entry.name !== 'storeRelease') {
+         const withInstance = callAndClassify(addon[entry.name].bind(addon), substituted);
+         assert.equal(withInstance.refused, true,
+           `attempt ${i}: S-NO-INSTANCE — no entry accepts a \`u32\` at position 0 in place of its first real `
+diff --git a/tests/e2e/addon-surface-support.mjs b/tests/e2e/addon-surface-support.mjs
+index bb8e04b..cdf4b44 100644
+--- a/tests/e2e/addon-surface-support.mjs
++++ b/tests/e2e/addon-surface-support.mjs
+@@ -155,14 +155,46 @@ export const PER_VERB_TWELFTH = [
+   { name: 'readTiered', arity: 3, clause: 'facade.rs\'s `readTiered` entry, 2026-11-06 — "the compiled read, `read`\'s own two positions with the answer compiled"' },
+ ];
+ 
+-/** **THE NINETEEN, AS ONE SET** — `4 + 9 + 1 + 1 + 1 + 3 = 19 ✓` (`SAVE_ARM_THREE` added 2026-11-17) (`§1`'s own `[CENSUS]`, read with
+- *  `PER_VERB_TENTH`, `PER_VERB_ELEVENTH` and `PER_VERB_TWELFTH`). **THE PRODUCT'S FIFTEEN ARE UNMOVED**: every
+- *  one of them keeps its name and its arity, and the sixteenth is the ADDON entry the product's own member set
+- *  reaches at this same moment — `readTiered`, the tenth of the per-verb group. */
++/**
++ * **⟶ THE TWENTIETH ENTRY, ADDED 2026-11-19 — `storeRelease`, AND IT IS NOT ONE OF THE FIFTEEN PER-VERB AND
++ * NOT A MEMBER OF THE PRODUCT'S SURFACE.**
++ *
++ * It is the RETIREMENT's frame: `bindings/js/src/facade.rs`'s docblock above `INSTANCE_IDS` has declared since
++ * the receiver table was written that a freed store *"is freed by the package's own GC finalizer … which reaches
++ * this addon through the standing `storeRelease` entry below; that entry DROPS the instance AND removes ITS OWN
++ * index from this table, IN ONE ACT"* — **and until this landing no such entry existed**, so every constructed
++ * store stayed in the addon's table for the process's life (`tests/e2e/store-retirement.test.mjs` measures that
++ * at `~573 KB/store` with a payload, `~18–21 KB` without one, and `0 of 400` released). **ITS ONE POSITION IS
++ * THE STORE'S OWN INDEX** — the integer `storeCreate` mints and the package publishes on its own `Symbol.for`
++ * row — **and it is the ONE entry of the twenty that takes its store BY POSITION rather than by the Node-API
++ * `this`**: *"a finalizer has no receiver"* — `FinalizationRegistry`'s callback is handed its held value and
++ * nothing else, and the held value may not be the store object. **SO `S-NO-INSTANCE` — *"no entry accepts a
++ * `u32` at position `0` in place of its first real argument"* — HAS NO SUBJECT ON THIS ROW**: the integer IS the
++ * first real argument, and the two cells that drive that strategy say so at their own bytes. **IT ADDS NO
++ * MEMBER TO THE PRODUCT'S FIFTEEN AND NO BYTE TO `index.d.ts`**: it is reached by the finalizer's callback and
++ * by no consumer (`surface.md §3.8`: the addon's export set is not a published API).
++ *
++ * **THE COUNT MOVES `19 → 20` WITH IT**, and the arithmetic is stated where it is asserted: `4 + 9 + 1 + 1 + 1
++ * + 3 + 1 = 20`.
++ */
++export const RETIREMENT_ONE = [
++  {
++    name: 'storeRelease',
++    arity: 1,
++    clause: 'facade.rs\'s `storeRelease` entry, 2026-11-19 — the retirement: the store is dropped and its own '
++      + 'index removed from the receiver table in one act (`receiver-and-refusal.md §6`)',
++  },
++];
++
++/** **THE TWENTY, AS ONE SET** — `4 + 9 + 1 + 1 + 1 + 3 + 1 = 20 ✓` (`SAVE_ARM_THREE` added 2026-11-17;
++ *  `RETIREMENT_ONE` added 2026-11-19) (`§1`'s own `[CENSUS]`, read with `PER_VERB_TENTH`, `PER_VERB_ELEVENTH`,
++ *  `PER_VERB_TWELFTH` and `RETIREMENT_ONE`). **THE PRODUCT'S FIFTEEN ARE UNMOVED**: every one of them keeps its
++ *  name and its arity, the per-verb group's tenth is the ADDON entry the product's own member set reaches
++ *  (`readTiered`), and the twentieth is the RETIREMENT's — an entry no member names and no consumer can see. */
+ export const DECLARED_SURFACE = [...STANDING_FOUR, ...PER_VERB_NINE, ...PER_VERB_TENTH, ...PER_VERB_ELEVENTH,
+-  ...PER_VERB_TWELFTH, ...SAVE_ARM_THREE];
++  ...PER_VERB_TWELFTH, ...SAVE_ARM_THREE, ...RETIREMENT_ONE];
+ 
+-/** The sixteen NAMES, sorted — the form `S-EXPORT-SET` asserts against, *"assert equality with the declared
++/** The twenty NAMES, sorted — the form `S-EXPORT-SET` asserts against, *"assert equality with the declared
+  *  set, sorted"* (`contract.md §5`, `P-SAS-1`). */
+ export const DECLARED_SURFACE_NAMES_SORTED = DECLARED_SURFACE.map((e) => e.name).sort();
+ 
+diff --git a/tests/e2e/addon-surface.test.mjs b/tests/e2e/addon-surface.test.mjs
+index 3bd08a5..85759cb 100644
+--- a/tests/e2e/addon-surface.test.mjs
++++ b/tests/e2e/addon-surface.test.mjs
+@@ -70,7 +70,7 @@ import {
+   ADDON_ARTEFACT, PACKAGE_ENTRY, PKG_DIR, DELETED_WRAPPER_NAMES,
+   OWED_STRUCTURE_TOKENS, OWED1_TOKEN_ASSERTION_SHAPES,
+   require_, addonKeySet, generated, isTheDeclaredForm, isTheArtefactForm, callAndClassify,
+-  deletedWrapperCallSites, SAVE_ARM_THREE,
++  deletedWrapperCallSites, SAVE_ARM_THREE, RETIREMENT_ONE,
+ } from './addon-surface-support.mjs';
+ import { moduleCodeFiles, moduleCodeLines } from './module-set.mjs';
+ 
+@@ -134,10 +134,17 @@ test('sas_d1_s_export_set_the_artefacts_own_keyset_is_exactly_the_thirteen_decla
+   // of the product's fifteen members, reached at the boundary's own entry exactly as `read` is, and every one of
+   // the entries already declared keeps its name and its arity.
+   assert.equal(PER_VERB_TWELFTH.length, 1, 'the tier readout\'s compiled read, declared beside the nine and the two');
++  // **⟶ AND A TWENTIETH ENTRY STANDS BESIDE THE NINETEEN, 2026-11-19 (`RETIREMENT_ONE`)** — `storeRelease`, the
++  // retirement's frame: `facade.rs`'s `INSTANCE_IDS` docblock declared it before it existed, and this landing is
++  // what makes the declaration true. **IT IS NEITHER ONE OF THE FIFTEEN PER-VERB NOR A MEMBER OF THE PRODUCT'S
++  // SURFACE** (fifteen instance members, unmoved), and it is the ONE entry that takes its store BY POSITION and
++  // not by the receiver — *"a finalizer has no receiver"*.
++  assert.equal(RETIREMENT_ONE.length, 1, 'the retirement\'s own frame, declared beside the fifteen and the save arm');
+   assert.equal(STANDING_FOUR.length + PER_VERB_NINE.length + PER_VERB_TENTH.length + PER_VERB_ELEVENTH.length
+-    + PER_VERB_TWELFTH.length + SAVE_ARM_THREE.length, 19,
+-    '`4 + 9 + 1 + 1 + 1 = 16 ✓` (§1\'s own `[CENSUS]`, read with the tenth, eleventh and twelfth rows)');
+-  assert.equal(DECLARED_SURFACE.length, 19, 'and the tables are one set of NINETEEN, each name accounted for');
++    + PER_VERB_TWELFTH.length + SAVE_ARM_THREE.length + RETIREMENT_ONE.length, 20,
++    '`4 + 9 + 1 + 1 + 1 + 3 + 1 = 20 ✓` (§1\'s own `[CENSUS]`, read with the tenth, eleventh and twelfth rows, '
++    + 'the save arm\'s three and the retirement\'s one)');
++  assert.equal(DECLARED_SURFACE.length, 20, 'and the tables are one set of TWENTY, each name accounted for');
+ });
+ 
+ test('sas_d1_s_export_set_call_is_absent_because_the_split_is_precisely_its_replacement', () => {
+@@ -259,6 +266,15 @@ function declaredArgumentsFor(name) {
+     case 'exportImage': return [];
+     case 'saveSucceeded': return ['an-op-id'];
+     case 'saveFailed': return ['an-op-id'];
++    // **⟶ AND THE RETIREMENT'S OWN FRAME, ADDED 2026-11-19 (`RETIREMENT_ONE`): ONE POSITION, THE STORE'S INDEX.**
++    // It is driven with an index that names NOTHING — `987654321`, above any index a run of this file could have
++    // minted — because **a declared-arity call must not RELEASE a store another cell of this file is holding**:
++    // the entry's declared answer for an index it does not hold is the crate's absent arm (`AddressNotFound`),
++    // which is what `S-ARITY`'s *"the declared call answers or refuses in the one form"* reads. **THE POSITION IS
++    // A NUMBER AND NOT A HANDLE**, which is the whole reason this row needs `S-NO-INSTANCE`'s exemption, stated at
++    // that cell below: an integer at position `0` is this entry's DECLARED class, and `S-NO-INSTANCE` is about a
++    // `u32` taking a *first real argument's* place.
++    case 'storeRelease': return [987654321];
+     default: return null;
+   }
+ }
+@@ -486,6 +502,18 @@ test('sas_d2_s_no_instance_no_entry_accepts_an_integer_at_position_zero', () =>
+   for (const entry of DECLARED_SURFACE) {
+     if (typeof addon[entry.name] !== 'function') continue;
+     const args = declaredArgumentsFor(entry.name);
++    // **⟶ RE-CUT 2026-11-19 — `storeRelease` IS EXEMPT BY NAME, AND THE REASON IS THE STRATEGY'S OWN PREMISE,
++    // WHICH THIS ROW HAS NOW FALSIFIED.** `S-NO-INSTANCE` reads *"no entry accepts a `u32` at position `0` **in
++    // place of its first real argument**"* (`contract.md §5`) — and **on this row the integer at position `0` IS
++    // the first real argument**: `storeRelease(storeIndex)` takes the store's own index, because *"a finalizer has
++    // no receiver"* (`facade.rs`'s entry docblock; `FinalizationRegistry`'s callback is handed its held value and
++    // nothing else). **THE COMMENT BELOW CARRIES THE OLD PREMISE — *"No verb of the thirteen declares one"* — AND
++    // IT WAS TRUE OF THE THIRTEEN AND IS FALSE OF THE TWENTIETH.** **AND THE LIMB MUST BE EXEMPT FOR A SECOND
++    // REASON THAT IS NOT ABOUT MEANING AT ALL**: driven with `0` or `1` in a file that CONSTRUCTS STORES, this
++    // entry would RELEASE the store those integers name, and every later cell in this file would be reading a
++    // store some earlier cell had legitimately thrown away. **THE EXEMPTION IS NAMED, NOT SILENT**, and the rest
++    // of the table is driven exactly as it always was.
++    if (entry.name === 'storeRelease') continue;
+     // **`F-3`: "AN ENTRY ACCEPTS AN INTEGER AT POSITION `0` IN PLACE OF ITS FIRST REAL ARGUMENT."**
+     // `S-NO-INSTANCE`: *"no entry accepts a `u32` at position `0` in place of its first real argument."*
+     // **THE INTEGERS ARE `0` AND `1`**, because a position-`0` index is what the pre-split ABI took and the
+@@ -889,13 +917,28 @@ test('sas_d4_s_refuse_form_a_member_whose_store_is_collected_refuses_in_the_same
+   //     `sas_the_two_owed_items_…` cell below scans for exactly that token and caught an earlier draft of this
+   //     very comment. **The retainer is named by its PATH and its LINE, which is what makes it checkable, and
+   //     its type is left where the clause leaves it.**
+-  //   · `bindings/js/src/facade.rs:1092` cites a `storeRelease` entry that would drop the instance; **IT
+-  //     DOES NOT EXIST** — the artefact's live export set is exactly the thirteen declared names, and a
+-  //     fourteenth would BE the failure `F-2` names (`export-set-and-dispatch.md §1`).
+-  //   · `bindings/js/index.mjs:3048` — `STORE_RETIREMENT.register(instance, () => INSTANCES.delete(instance))`;
+-  //     the callback closes over `instance` and fires only AFTER a collection the first bullet prevents.
+-  //   · No release verb exists on the instance or the module (**measured: release-ish own members `[]`**),
+-  //     and the call is synchronous in the same turn as the drop, so no finalizer turn intervenes either.
++  //   · `bindings/js/src/facade.rs:1092` cited a `storeRelease` entry that would drop the instance; **IT DID NOT
++  //     EXIST** — the artefact's live export set was exactly the declared names, and a fourteenth would have BEEN
++  //     the failure `F-2` names (`export-set-and-dispatch.md §1`). **⟶ AND IT EXISTS FROM 2026-11-19**: the
++  //     twentieth entry is `storeRelease`, the artefact exports it, and `F-2`'s failure is an UNDECLARED name —
++  //     the set moved `19 → 20` and the declaration moved with it (`RETIREMENT_ONE`; the `D-1` cell above
++  //     asserts the equality at its new size).
++  //   · `bindings/js/src/entry/instance.mjs` — `STORE_RETIREMENT.register(instance, () => INSTANCES.delete(
++  //     instance))`: **⟶ THE CALLBACK CLOSED OVER `instance` AND COULD NEVER FIRE, AND IT NOW CARRIES THE
++  //     INTEGER INSTEAD** (`register(instance, id)`), with the release applied in `state.mjs`'s registry
++  //     callback under its own guard. **THE FIRST BULLET STILL PREVENTS THE COLLECTION THIS CELL NEEDS**: the
++  //     addon's table no longer retains the store, but a construction the caller can still reach is not
++  //     collected either, so `§3`'s collected-store row is still not drivable by DROPPING A STORE IN-TEST.
++  //   · No release verb exists on the instance or the module (**measured: release-ish own members `[]`**) — the
++  //     retirement is the ADDON's entry and the finalizer's route, and no consumer can call it.
++  //
++  // **⟶ THE REVISIT CONDITION BELOW IS NOW `MET` AND THE CELL IS STILL `PARKED`, AND BOTH HALVES ARE SAID AT
++  // THEIR OWN BYTE.** *"A release entry on the artefact"* landed on 2026-11-19 (`storeRelease`), so **`§3`'s
++  // second row IS drivable — as a RELEASED store rather than a collected one** — and it is driven, in the one
++  // declared form, by `tests/e2e/store-retirement.test.mjs`'s `SR-03` — *released: the store's own call answers
++  // `AddressNotFound`, and a second store's call still answers its own*. **THIS CELL STILL ASSERTS THE LIVE
++  // LANDING AND PARKS THE COLLECTED-STORE ARM**, because *collected* and *released* are two states and the
++  // finalizer's firing is not a state this layer can force in the turn the call is made.
+   //
+   // **SO THE ARM IS `PARKED`, NOT WEAKENED — `OPEN`, NEVER GREEN.** `§3`'s "collected store" row is driven
+   // FOR REAL where ownership is really owned: **`bindings/js/tests/addon_adoption.rs`**, the Rust layer,
+diff --git a/tests/e2e/creation-sweep-frozen.test.mjs b/tests/e2e/creation-sweep-frozen.test.mjs
+index 7c92e62..cced444 100644
+--- a/tests/e2e/creation-sweep-frozen.test.mjs
++++ b/tests/e2e/creation-sweep-frozen.test.mjs
+@@ -455,10 +455,16 @@ test('CSW-15 · FROZEN SHAPES (`PIN-14`) — the instance\'s own member set is F
+   // READ THROUGH THIS CLAUSE**: the figure it froze was the sixteen of its own date, and **the instance's member
+   // set below is STILL FIFTEEN — unchanged, which is the half of `PIN-14` that did not move and the half this
+   // cell exists to keep from moving.**
++  // **⟶ AND IT IS TWENTY FROM 2026-11-19 — `storeRelease`, THE RETIREMENT'S OWN FRAME** (`facade.rs`'s entry:
++  // the store is dropped and its index removed from the receiver table in one act, `receiver-and-refusal.md
++  // §6`). **THE INSTANCE'S MEMBER SET IS STILL FIFTEEN AND `PIN-14`'s *"no instance member"* HALF IS UNMOVED**:
++  // the twentieth is an ADDON entry the finalizer reaches and no product member names, so the half of this cell
++  // that keeps the MEMBER set frozen is exactly as it was. **THE RE-CUT IS THE CENSUS'S AND NOT A LOOSENING** —
++  // the list is asserted at EQUALITY, so a twenty-first name would still redden this cell.
+   const DECLARED_EXPORTS = [
+     'commitFile', 'delete', 'errorMessage', 'exportImage', 'journalMark', 'listen', 'read', 'readLiteral',
+     'readTiered', 'register', 'removeListener', 'restoreMark', 'rollback', 'saveFailed', 'saveSucceeded',
+-    'storeCreate', 'unlisten', 'version', 'write',
++    'storeCreate', 'storeRelease', 'unlisten', 'version', 'write',
+   ];
+ 
+   // ── (a) THE INSTANCE'S OWN MEMBER SET IS FIFTEEN. ─────────────────────────────────────────────────────
+@@ -473,7 +479,7 @@ test('CSW-15 · FROZEN SHAPES (`PIN-14`) — the instance\'s own member set is F
+   const addon = require_(join(import.meta.dirname, '..', '..', 'bindings', 'js', 'build', 'Release', 'storeroom_js_binding.node'));
+   const addonNames = Object.keys(addon).filter((name) => typeof addon[name] === 'function').sort();
+   assert.deepEqual(addonNames, DECLARED_EXPORTS,
+-    `**THE ADDON'S EXPORT SET IS NINETEEN FROM 2026-11-17** (\`PIN-14\`: *"no addon export (\`16\`)"*; \`§6\` item 4: `
++    `**THE ADDON'S EXPORT SET IS TWENTY FROM 2026-11-19** (\`PIN-14\`: *"no addon export (\`16\`)"*; \`§6\` item 4: `
+       + `*"the addon's at \`16\` — a cell asserting either has moved is false"*): it read `
+       + `${JSON.stringify(addonNames)}`);
+ 
+diff --git a/tests/e2e/file-tier-save/scenarios.mjs b/tests/e2e/file-tier-save/scenarios.mjs
+index 7b29a09..75c9200 100644
+--- a/tests/e2e/file-tier-save/scenarios.mjs
++++ b/tests/e2e/file-tier-save/scenarios.mjs
+@@ -1091,11 +1091,18 @@ scenario('FTS-10', 'the sixteenth member\'s own clause and its template row; the
+     // addon's per-verb group, so the artefact's census moves `15 → 16` and the message sentence moves with it —
+     // **the cell's subject (the addon's own export set IS the declared one, by SET EQUALITY) is kept whole and
+     // the drive is unchanged.**
+-    cell('FTS-10.2', 'the built artefact\'s own export set (`bindings/js/build/Release/storeroom_js_binding.node`, read live), superseding `package.md §1.3` item 4\'s five-name figure — the review\'s §3.2 row 19, re-read 2026-10-27 and again 2026-11-06',
+-      'the addon\'s own exports are the sixteen the artefact carries — `commitFile`, `delete`, `errorMessage`, `journalMark`, `listen`, `read`, `readLiteral`, `readTiered`, `register`, `removeListener`, `restoreMark`, `rollback`, `storeCreate`, `unlisten`, `version`, `write` — by SET EQUALITY, `errorMessage` among them',
++    // **⟶ RE-DERIVED 2026-11-19 — THE CENSUS MOVES `16 → 20`, AND IT HAD BEEN STALE AT SIXTEEN SINCE THE SAVE ARM
++    // LANDED.** **THIS CELL WAS RED ON THE PRE-FIX TREE** (`addon exports=[… 19 names …]` against a sixteen-name
++    // literal): the save arm's three (`exportImage`, `saveSucceeded`, `saveFailed`, `D-148`/`D-149`) arrived without
++    // it, and this pass's `20` is the first figure the list has carried since 2026-11-06. **THE TWENTIETH IS
++    // `storeRelease`** — the retirement's own frame, the store dropped and its index removed from the receiver table
++    // in one act (`receiver-and-refusal.md §6`; `facade.rs`). **THE CELL'S SUBJECT IS UNCHANGED AND SO IS ITS FORM:
++    // SET EQUALITY, SORTED, ONE LITERAL** — so a twenty-first name still reddens it.
++    cell('FTS-10.2', 'the built artefact\'s own export set (`bindings/js/build/Release/storeroom_js_binding.node`, read live), superseding `package.md §1.3` item 4\'s five-name figure — the review\'s §3.2 row 19, re-read 2026-10-27, 2026-11-06 and 2026-11-19',
++      'the addon\'s own exports are the twenty the artefact carries — `commitFile`, `delete`, `errorMessage`, `exportImage`, `journalMark`, `listen`, `read`, `readLiteral`, `readTiered`, `register`, `removeListener`, `restoreMark`, `rollback`, `saveFailed`, `saveSucceeded`, `storeCreate`, `storeRelease`, `unlisten`, `version`, `write` — by SET EQUALITY, `errorMessage` among them',
+       () => {
+         const keys = Object.keys(ADDON).sort();
+-        return C(JSON.stringify(keys) === JSON.stringify(['commitFile', 'delete', 'errorMessage', 'journalMark', 'listen', 'read', 'readLiteral', 'readTiered', 'register', 'removeListener', 'restoreMark', 'rollback', 'storeCreate', 'unlisten', 'version', 'write']), `addon exports=${JSON.stringify(keys)}`);
++        return C(JSON.stringify(keys) === JSON.stringify(['commitFile', 'delete', 'errorMessage', 'exportImage', 'journalMark', 'listen', 'read', 'readLiteral', 'readTiered', 'register', 'removeListener', 'restoreMark', 'rollback', 'saveFailed', 'saveSucceeded', 'storeCreate', 'storeRelease', 'unlisten', 'version', 'write']), `addon exports=${JSON.stringify(keys)}`);
+       });
+     // **⟶ RE-DERIVED 2026-10-26 WITH THE SET (title and figure together): TWENTY codes, not sixteen** — and the
+     // appended rank-`20` row is driven here by the same loop, so `§8.2`'s completeness is asserted over the set the
+diff --git a/tests/e2e/store-retirement.test.mjs b/tests/e2e/store-retirement.test.mjs
+new file mode 100644
+index 0000000..efa3d8e
+--- /dev/null
++++ b/tests/e2e/store-retirement.test.mjs
+@@ -0,0 +1,314 @@
++// `store-retirement.test.mjs` — **THE RETIREMENT THE ADDON'S OWN DOCBLOCK ALREADY CLAIMED, MEASURED**.
++//
++// **THE FINDING THIS CELL IS WRITTEN AGAINST, AT ITS BYTES.** `bindings/js/src/facade.rs`'s docblock above
++// `INSTANCE_IDS` has declared since the receiver table was written that a store *"is freed by the package's own
++// GC finalizer … which reaches this addon through the standing `storeRelease` entry below; that entry DROPS the
++// instance AND removes ITS OWN index from this table, IN ONE ACT"* — **and no such entry existed.** `grep -rn
++// storeRelease bindings/js/src/` found one doc comment and no definition, the artefact exported nineteen names
++// and none of them was it, and the package's finalizer (`instance.mjs`'s `STORE_RETIREMENT.register`) deleted a
++// row of its own `WeakMap` and never reached this layer. **So every constructed store stayed in the addon's
++// `Vec` for the process's life.**
++//
++// **WHAT THAT COSTS, MEASURED ON THIS TREE RATHER THAN ARGUED — AND THE INSTRUMENT'S OWN CORRECTION.**
++//
++//   * **A ZERO-PAYLOAD STORE: `~15–22 KB/store`, linear, with the store dropped every time** — the supervisor's
++//     own reading (`+17.8 / +17.3 / +36.4 MB` at `N = 200 / 800 / 2000`, i.e. `~18–21 KB`), reproduced here.
++//   * **★ AND THAT FIGURE CANNOT SEE THE FIX, WHICH THIS CELL HAD TO LEARN BY TAKING IT BOTH WAYS.** A
++//     zero-payload run reads `65.5 / 22.2 / 15.2 KB` per store BEFORE the landing and `53.0 / 22.9 / 15.1 KB`
++//     AFTER it: **identical to the noise.** `rss` is a HIGH-WATER MARK, and the runtime reserves heap for the
++//     allocation rate whether or not anything is retained — measured by segment: after `gc()`, `heapUsed` moves
++//     `~0 B/store` in BOTH trees while `heapTotal` (and therefore `rss`) grows in 17–32 MB chunks that are never
++//     handed back. **SO A ZERO-PAYLOAD `rss` CEILING WOULD PASS A RETURNING LEAK AND THIS CELL DOES NOT USE ONE.**
++//   * **THE HONEST MEMORY OBSERVABLE IS THE STORE'S OWN PAYLOAD.** Each store is told to keep a 128 KiB value and
++//     then dropped: a retained store costs its payload, a freed one costs nothing but the allocator's chunk. Both
++//     directions measured three times each: **BEFORE the landing, `573112 / 573112 / 574587` bytes per store**
++//     (flat, batch after batch); **AFTER it, `42025 / 43930 / 42977`** on the first measured batch of the same
++//     three-run shape — and `-3127` to `91013` on later batches, i.e. the allocator's own chunk. **The declared
++//     ceiling is `131072` bytes — EXACTLY THE PAYLOAD THE STORE WAS TOLD TO KEEP**: a store that is still held
++//     cannot cost less than what it holds, and the fixed figure sits 3x under the line while the pre-fix figure
++//     sits 4.4x over it.
++//   * **AND THE EXACT, BYTE-FREE OBSERVABLE IS THE ENTRY'S OWN ANSWER** (`SR-02`): a row the finalizer reached
++//     answers `storeRelease(id)` with `{status: 'AddressNotFound'}` because the addon has already emptied it.
++//     Measured before the landing: `0 of 400` (the entry did not exist; every call threw a host `TypeError`).
++//     After it: `400 of 400`. **THAT IS NOT A TABLE LENGTH** — the addon's table is not observable from JS and no
++//     cell here asserts one (`receiver-and-refusal.md §6`'s `OWED-2`: *"NOTHING ASSERTS A TABLE TYPE"*); it is the
++//     retirement read at the one answer the entry declares.
++//
++// **WHERE `gc()` IS ABSENT, AND WHY THIS CELL DOES NOT NEED IT TO BE PRESENT.** `npm test` runs
++// `node --test "tests/**/*.test.mjs"` with no `--expose-gc`, so nothing collected here can be FORCED in the test
++// process. **The two instruments therefore live in a CHILD PROCESS THIS FILE RE-EXECUTES ITSELF WITH
++// `--expose-gc`** (`MEASURE` below), which is where `gc()` is available by construction; **the process that
++// asserts is the same file, so there is one instrument and no second copy of it.** `SR-02`'s read survives even
++// without a collection — a store the caller still holds answers a live release — and `SR-03` needs no `gc()` at
++// all: it drives the entry directly, which is the half that measures the ENTRY rather than the memory.
++//
++// **WHAT IS NOT THIS PASS'S, STATED SO ITS ABSENCE IS NOT READ AS AN OMISSION.** The second realm's arm has no
++// `storeRelease` and retires nothing (`bindings/js/src/wasm.rs`; `D-155` item 4: its set is eighteen and
++// `commitFile` is the one that is absent BY RULING) — adding a release there would change that export set, which
++// is a declaration and a cell's subject and not this pass's. **`index.d.ts` moves no byte**: the addon's entries
++// are not the package's declared surface (`surface.md §3.8`), and `storeRelease` is reached by the finalizer and
++// by no consumer.
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import { execFileSync } from 'node:child_process';
++import { fileURLToPath } from 'node:url';
++import { createRequire } from 'node:module';
++
++import { storeCreate } from '../../bindings/js/index.mjs';
++
++const HERE = fileURLToPath(import.meta.url);
++const ADDON_ARTEFACT = fileURLToPath(new URL('../../bindings/js/build/Release/storeroom_js_binding.node', import.meta.url));
++const require_ = createRequire(import.meta.url);
++const STORE_INDEX = Symbol.for('provident-storeroom.storeIndex');
++
++// ── THE INSTRUMENT'S PARAMETERS, EACH WITH THE REASON IT HAS THE VALUE IT HAS ────────────────────────────
++/** **`N` — THE STORES PER BATCH.** It is the divisor the marginal figure is taken over, and it is large enough
++ *  that one of the runtime's own 17–32 MB heap chunks costs ~40 KB per store rather than ~500 KB. */
++const N = 400;
++/** **THE WARM-UP BATCH, DISCARDED.** The first batch of this shape pays the runtime's heap reservation for the
++ *  whole allocation rate (measured: `~880–900 KB/store` in the FIRST batch, BOTH before and after the landing) —
++ *  a cost that is not the leak's and would swamp it. **The second batch is the one that answers the question**,
++ *  and it is measured twice so a single chunk landing on one of them cannot decide the cell. */
++const WARMUP_BATCHES = 1;
++const MEASURED_BATCHES = 2;
++/** **THE PAYLOAD — 128 KiB of the store's own `mem` tier, written through the package's own `write`.** A store
++ *  that is never freed keeps this; a store that is freed keeps nothing. **THE SAME STRING INSTANCE IS WRITTEN
++ *  INTO EVERY STORE**, so the figure cannot be the caller's own allocation. */
++const PAYLOAD_CHARS = 131072;
++const PAYLOAD = 'x'.repeat(PAYLOAD_CHARS);
++/** **THE CEILING, AND IT IS THE PAYLOAD ITSELF** — the one bound that is a statement about the property rather
++ *  than about a machine: *a constructed-and-dropped store may not cost more than the data it was told to keep.*
++ *  **MEASURED: `42025`–`43930` bytes/store after the landing, `573112`–`574587` before it** — so the fixed figure
++ *  sits `~3x` under this line and the defected figure `~4.4x` over it. **A RETURN OF THE PRE-FIX BEHAVIOUR IS
++ *  CAUGHT BY A FACTOR OF FOUR**, which is why the figure is printed beside the ceiling in the failure message. */
++const CEILING_BYTES_PER_STORE = PAYLOAD_CHARS;
++/** **THE PRE-FIX FIGURES THIS CELL PRINTS SO THE CEILING IS READABLE AS A CHANGE** — both of them measured on
++ *  this tree: the zero-payload reading the finding was filed with (`~18–21 KB`, the supervisor's) and the
++ *  payload-bearing reading this instrument takes (`~573 KB`). */
++const PRE_FIX_ZERO_PAYLOAD_KB = '~18–21 KB/store (the supervisor\'s reading, reproduced: 15.2–22.2 KB at N = 800 / 2000)';
++const PRE_FIX_PAYLOAD_BYTES_PER_STORE = 573112;
++
++// ═══════════════════════════════════════════════════════════════════════════════════════════════════════
++// THE PROBE — THE CHILD THIS FILE RE-EXECUTES ITSELF AS, WITH `--expose-gc`
++// ═══════════════════════════════════════════════════════════════════════════════════════════════════════
++//
++// **IT PRINTS ONE JSON LINE AND EXITS**, and it registers no test: the guard below runs before every `test(…)`
++// call in this file, so the child never loads a cell.
++const PROBE_FLAG = '--store-retirement-probe';
++
++/// **`gc()` THREE TIMES AND A TURN**, which is what it takes for a `FinalizationRegistry` callback to have run:
++/// the collect is the host's, the callback is queued on it, and the settle hands the queue its turn.
++async function settle() {
++  globalThis.gc();
++  globalThis.gc();
++  await new Promise((resolve) => setTimeout(resolve, 25));
++  globalThis.gc();
++}
++
++/// **ONE BATCH: `N` STORES CONSTRUCTED, EACH GIVEN THE PAYLOAD, EVERY ONE DROPPED.** The only reference that
++/// outlives an iteration is the store's own index — an integer — so nothing here can retain the store *object*.
++async function constructAndDrop() {
++  const ids = [];
++  for (let i = 0; i < N; i += 1) {
++    const dropped = storeCreate({ journalLength: 8, listeners: [] });
++    dropped.write(['payload'], 'mem', PAYLOAD);
++    ids.push(dropped[STORE_INDEX]);
++  }
++  await settle();
++  return ids;
++}
++
++if (process.argv.includes(PROBE_FLAG)) {
++  const addon = require_(ADDON_ARTEFACT);
++  await settle();
++  for (let w = 0; w < WARMUP_BATCHES; w += 1) await constructAndDrop();
++  let previous = process.memoryUsage().rss;
++  const perBatchBytesPerStore = [];
++  let measuredIds = [];
++  for (let b = 0; b < MEASURED_BATCHES; b += 1) {
++    const ids = await constructAndDrop();
++    if (b === 0) measuredIds = ids;
++    const now = process.memoryUsage().rss;
++    perBatchBytesPerStore.push(Math.round((now - previous) / N));
++    previous = now;
++  }
++  // **THE SECOND OBSERVABLE — THE ENTRY'S OWN ANSWER.** A row the finalizer reached is ALREADY EMPTIED, so
++  // `storeRelease` answers `AddressNotFound`; a row that is still live is released here and answers `undefined`;
++  // and an entry that does not exist throws a host `TypeError`, which is a third state and is named as one.
++  let releasedByFinalizer = 0;
++  let stillHeld = 0;
++  let releaseEntryAbsent = false;
++  for (const id of measuredIds) {
++    try {
++      addon.storeRelease(id);
++      stillHeld += 1;
++    } catch (thrown) {
++      if (thrown !== null && typeof thrown === 'object' && thrown.status === 'AddressNotFound') releasedByFinalizer += 1;
++      else releaseEntryAbsent = true;
++    }
++  }
++  process.stdout.write(`${JSON.stringify({
++    gc: typeof globalThis.gc === 'function',
++    n: N,
++    payloadChars: PAYLOAD_CHARS,
++    perBatchBytesPerStore,
++    marginalBytesPerStore: Math.min(...perBatchBytesPerStore),
++    worstBatchBytesPerStore: Math.max(...perBatchBytesPerStore),
++    releasedByFinalizer,
++    stillHeld,
++    releaseEntryAbsent,
++  })}\n`);
++  process.exit(0);
++}
++
++/// **THE PROBE, RUN** — one child, `--expose-gc`, this same file. **`--expose-gc` IS THE ONLY WAY `gc()` IS
++/// AVAILABLE AT ALL HERE** (`npm test` passes no such flag), and a child is also what keeps the measurement's
++/// heap out of the test process's own.
++function probe() {
++  const stdout = execFileSync(process.execPath, ['--expose-gc', HERE, PROBE_FLAG], {
++    encoding: 'utf8',
++    timeout: 180000,
++    maxBuffer: 4 * 1024 * 1024,
++  });
++  return JSON.parse(stdout.trim().split('\n').pop());
++}
++
++const REPORT = probe();
++
++// ═══════════════════════════════════════════════════════════════════════════════════════════════════════
++// `SR-01` · THE MEMORY HALF — THE STORE'S PAYLOAD IS NOT RETAINED
++// ═══════════════════════════════════════════════════════════════════════════════════════════════════════
++
++test('SR-01 · the retained `rss` per constructed-and-dropped store is bounded — the store\'s own 128 KiB payload costs nothing once the store is dropped', () => {
++  assert.equal(REPORT.gc, true,
++    'the probe ran with `--expose-gc`, so the retention it measures is a retention and not a lag in the collector');
++  assert.equal(REPORT.n, N, 'and it measured the batch this cell declares');
++  assert.equal(REPORT.payloadChars, PAYLOAD_CHARS, 'and every store in it was told to keep this cell\'s payload');
++  // **THE ASSERTION, AT ITS CEILING.** `marginalBytesPerStore` is the LOWEST of the measured batches — the limb
++  // that asks "can this workload allocate a whole batch and keep nothing?" — and the worst batch is printed
++  // beside it so a reader can see the allocator's own spread rather than a single number.
++  assert.ok(REPORT.marginalBytesPerStore <= CEILING_BYTES_PER_STORE,
++    `**THE RETAINED RSS PER CONSTRUCTED-AND-DROPPED STORE IS AT MOST THE PAYLOAD THE STORE WAS TOLD TO KEEP** — `
++    + `measured ${REPORT.marginalBytesPerStore} bytes/store (worst batch ${REPORT.worstBatchBytesPerStore}, batches `
++    + `${JSON.stringify(REPORT.perBatchBytesPerStore)}) against the ceiling of ${CEILING_BYTES_PER_STORE} bytes `
++    + `(= the ${PAYLOAD_CHARS}-char payload). **THE PRE-FIX FIGURES, SO THIS LINE IS READ AS A CHANGE AND NOT AS A `
++    + `NUMBER: ${PRE_FIX_PAYLOAD_BYTES_PER_STORE} bytes/store with this payload, and ${PRE_FIX_ZERO_PAYLOAD_KB} with `
++    + 'none** — a store that is never freed cannot cost less than the data it holds, and the pre-fix run sat 4.4x '
++    + 'over this ceiling while the fixed run sits 3x under it. A return of that behaviour is caught here.');
++  // **AND THE CEILING IS NOT VACUOUS**: it is below the defected figure by a factor this line states, so a cell
++  // that passed by being generous would be visible as a ceiling that no longer separates the two.
++  assert.ok(CEILING_BYTES_PER_STORE * 2 <= PRE_FIX_PAYLOAD_BYTES_PER_STORE,
++    'and the ceiling is DISCRIMINATING: the pre-fix figure is more than twice the line this cell holds the '
++    + `landing to (${PRE_FIX_PAYLOAD_BYTES_PER_STORE} vs ${CEILING_BYTES_PER_STORE}), so the limb separates a `
++    + 'retired store from a retained one rather than passing both');
++});
++
++// ═══════════════════════════════════════════════════════════════════════════════════════════════════════
++// `SR-02` · THE EXACT HALF — THE FINALIZER REACHES THE ADDON, READ AT THE ENTRY'S OWN ANSWER
++// ═══════════════════════════════════════════════════════════════════════════════════════════════════════
++//
++// **THIS IS NOT A TABLE LENGTH AND MUST NOT BE READ AS ONE.** The addon's table is not observable from JS
++// (`receiver-and-refusal.md §6`'s `OWED-2`: *"NOTHING ASSERTS A TABLE TYPE"*), and the number below is the
++// ADDON'S ANSWER about each of `N` indexes the package itself published — `AddressNotFound` for an index whose
++// store the finalizer has already dropped, `undefined` for one it has not.
++test('SR-02 · the package\'s finalizer reaches the addon — every constructed-and-dropped store\'s own row answers the absent arm, which is the release read at its own answer', () => {
++  assert.equal(REPORT.releaseEntryAbsent, false,
++    '`storeRelease` exists on the artefact and answers in the crate\'s own forms — before the landing every call '
++    + 'here threw a host `TypeError` because there was no entry at all (`facade.rs`\'s docblock cited one that '
++    + 'did not exist), which is the state this limb was written red against');
++  assert.equal(REPORT.stillHeld, 0,
++    '**NO MEASURED STORE WAS STILL IN THE ADDON\'S TABLE AFTER `gc()`** — every one of the '
++    + `${N} answered \`{status: 'AddressNotFound'}\`, whose declared reading is *"the package holds no instance at `
++    + 'that id"*: the row was emptied by the finalizer before this cell asked. **MEASURED BEFORE THE LANDING: 0 of '
++    + `400** (the entry was absent); after it: ${REPORT.releasedByFinalizer} of ${REPORT.n}`);
++  assert.equal(REPORT.releasedByFinalizer, N,
++    'and the count is the whole batch — a partial count would mean the finalizer reaches the addon for some '
++    + `stores and not others: ${REPORT.releasedByFinalizer} of ${N}`);
++});
++
++// ═══════════════════════════════════════════════════════════════════════════════════════════════════════
++// `SR-03` · THE ENTRY'S OWN CONTRACT — TWO ABSENT ARMS, ONE CLASS ARM, AND NO PANIC IN ANY OF THEM
++// ═══════════════════════════════════════════════════════════════════════════════════════════════════════
++//
++// **NO `gc()` IS NEEDED FOR ANY LIMB BELOW**, which is why the entry's contract is driven here in the test
++// process itself: the release is CALLED, and what is asserted is what the addon answers.
++function addon() {
++  return require_(ADDON_ARTEFACT);
++}
++
++/// A thrown refusal, read as the artefact layer's two members (`failure-form.md §1`: `log` is the JS boundary's
++/// and is built there, never in Rust).
++function thrownBy(call) {
++  try {
++    return { answered: call() };
++  } catch (thrown) {
++    return { thrown };
++  }
++}
++
++test('SR-03 · releasing a store twice, releasing an index that names nothing, and releasing a position that is not an index each answer the crate\'s own arm and none of them panics', () => {
++  const instance = storeCreate({ journalLength: 8, listeners: [] });
++  instance.write(['a'], 'mem', 7);
++  const id = instance[STORE_INDEX];
++  assert.equal(typeof id, 'number',
++    'the index the addon minted is published on the store object as the package\'s own `Symbol.for` row '
++    + '(`receiver-and-refusal.md §1`) — a NUMBER, which is what the held value may carry and all it may carry');
++  // A SECOND STORE, HELD ACROSS THE FIRST'S RELEASE: `§6`'s requirement is that a retirement removes EXACTLY ONE
++  // ENTRY and never the table, and this is the store that must still answer.
++  const neighbour = storeCreate({ journalLength: 8, listeners: [] });
++
++  // ── (a) THE RELEASE ITSELF: `undefined`, no throw, and the store is dropped.
++  const released = thrownBy(() => addon().storeRelease(id));
++  assert.equal('answered' in released, true,
++    `the release of a live store answers rather than throwing: ${JSON.stringify(released.thrown ?? null)}`);
++  assert.equal(released.answered, undefined, 'and its answer is `undefined` — the crate\'s own success shape for a verb that carries nothing back (`register`\'s arm)');
++
++  // ── (b) THE RELEASED STORE'S OWN CALL REFUSES IN THE ONE FORM — the observable `§3` names.
++  const after = thrownBy(() => instance.read(['a'], 'mem'));
++  assert.equal('thrown' in after, true,
++    'a call on a RELEASED store refuses rather than answering: the receiver names an index the table no longer '
++    + 'holds (`store_index_of`), and that is the same one observable a detached call gets (`receiver-and-refusal.md §3`)');
++  assert.equal(after.thrown.status, 'AddressNotFound',
++    `and the refusal's status is the crate's own absent arm, not a minted one (\`DD-40\`): ${JSON.stringify(after.thrown)}`);
++  assert.equal(after.thrown instanceof Error, false,
++    'and it is the ONE FORM and never an `Error` (`failure-form.md §1`)');
++
++  // ── (c) THE SECOND STORE STILL ANSWERS ITS OWN — the property `P-SAS-5` names.
++  neighbour.write(['b'], 'mem', 11);
++  assert.equal(neighbour.read(['b'], 'mem'), 11,
++    '**THE RETIREMENT REMOVED EXACTLY ONE ENTRY AND NEVER THE TABLE** (`§6`): the second store\'s own register '
++    + 'answers after the first store\'s release, so a retirement cannot remove a neighbour\'s row');
++
++  // ── (d) THE SAME INDEX AGAIN — an EMPTIED row, not a live one.
++  const twice = thrownBy(() => addon().storeRelease(id));
++  assert.equal('thrown' in twice, true,
++    'releasing an already-released store refuses rather than releasing again (the release is not idempotent at '
++    + 'its answer: a second call must not free a second store)');
++  assert.equal(twice.thrown.status, 'AddressNotFound',
++    `and it answers the crate's absent arm — \`no_instance_at\`'s own ` + '`AddressNotFound`' + `: ${JSON.stringify(twice.thrown)}`);
++
++  // ── (e) AN INDEX NO MINT EVER REACHED — the same arm, because a fabricated index and an emptied row are one
++  // observable (`receiver-and-refusal.md §3`: *"There is no second arm and no second observable"*).
++  const nothing = thrownBy(() => addon().storeRelease(999999));
++  assert.equal('thrown' in nothing, true, 'an index that names nothing refuses');
++  assert.equal(nothing.thrown.status, 'AddressNotFound',
++    `and it is the SAME token the emptied row answers, which is what makes the two one observable: ${JSON.stringify(nothing.thrown)}`);
++
++  // ── (f) A POSITION THAT IS NOT AN INDEX — the crate's malformed arm, and never a store touched.
++  for (const outside of ['not-an-index', null, undefined, {}, Number.NaN, Number.POSITIVE_INFINITY, -1, 1.5]) {
++    const answered = thrownBy(() => addon().storeRelease(outside));
++    assert.equal('thrown' in answered, true,
++      `a position that is not an index refuses: ${JSON.stringify(outside)} answered instead`);
++    assert.equal(answered.thrown.status, 'AddressMalformed',
++      `and its status is the crate's own malformed-argument member — the same token \`not_a_receiver\` answers at `
++      + `the receiver position — and not a minted one: ${JSON.stringify(outside)} answered ${JSON.stringify(answered.thrown)}`);
++  }
++  // **★ AND THE NaN GUARD IS ASSERTED AT ITS OWN CONSEQUENCE.** `NaN as usize` saturates to `0` in Rust, so a
++  // class test that let `NaN` through would name the FIRST store ever constructed — a release that frees a store
++  // the caller never named. **THE FIRST STORE IS EXACTLY THE ONE THIS CELL RELEASED, SO THE GUARD IS DRIVEN ON A
++  // LIVE STORE THAT MUST STILL ANSWER**: `neighbour` is index 1 here only if nothing was minted before it in this
++  // process, which this cell does not assume — so the LIVE store it holds is the one it re-reads.
++  assert.equal(neighbour.read(['b'], 'mem'), 11,
++    'and none of those outside positions freed the live store this cell held across them: `NaN` in particular '
++    + 'would have saturated to index `0` and released whatever store was minted first');
++});
+diff --git a/tests/e2e/wasm-arm.test.mjs b/tests/e2e/wasm-arm.test.mjs
+index c4d2ea6..72d6571 100644
+--- a/tests/e2e/wasm-arm.test.mjs
++++ b/tests/e2e/wasm-arm.test.mjs
+@@ -262,7 +262,7 @@ test('CW-6 · C-W6 — the module exports the eighteen declared entries, and `co
+     .filter((name) => name !== 'default' && name !== 'initSync' && typeof glue[name] === 'function')
+     .sort();
+   assert.equal(names.length, 18,
+-    'D-155 item 4: the WASM arm\'s entry set is eighteen of the Node arm\'s nineteen — it read ' + names.join(', '));
++    'D-155 item 4: the WASM arm\'s entry set is eighteen of the Node arm\'s twenty — it read ' + names.join(', '));
+   assert.equal(names.includes('commitFile'), false,
+     'and `commitFile` is the one that is absent BY RULING: the arm has no writer to reach');
+   assert.equal(names.includes('_delete'), true,

@@ -155,14 +155,46 @@ export const PER_VERB_TWELFTH = [
   { name: 'readTiered', arity: 3, clause: 'facade.rs\'s `readTiered` entry, 2026-11-06 — "the compiled read, `read`\'s own two positions with the answer compiled"' },
 ];
 
-/** **THE NINETEEN, AS ONE SET** — `4 + 9 + 1 + 1 + 1 + 3 = 19 ✓` (`SAVE_ARM_THREE` added 2026-11-17) (`§1`'s own `[CENSUS]`, read with
- *  `PER_VERB_TENTH`, `PER_VERB_ELEVENTH` and `PER_VERB_TWELFTH`). **THE PRODUCT'S FIFTEEN ARE UNMOVED**: every
- *  one of them keeps its name and its arity, and the sixteenth is the ADDON entry the product's own member set
- *  reaches at this same moment — `readTiered`, the tenth of the per-verb group. */
-export const DECLARED_SURFACE = [...STANDING_FOUR, ...PER_VERB_NINE, ...PER_VERB_TENTH, ...PER_VERB_ELEVENTH,
-  ...PER_VERB_TWELFTH, ...SAVE_ARM_THREE];
+/**
+ * **⟶ THE TWENTIETH ENTRY, ADDED 2026-11-19 — `storeRelease`, AND IT IS NOT ONE OF THE FIFTEEN PER-VERB AND
+ * NOT A MEMBER OF THE PRODUCT'S SURFACE.**
+ *
+ * It is the RETIREMENT's frame: `bindings/js/src/facade.rs`'s docblock above `INSTANCE_IDS` has declared since
+ * the receiver table was written that a freed store *"is freed by the package's own GC finalizer … which reaches
+ * this addon through the standing `storeRelease` entry below; that entry DROPS the instance AND removes ITS OWN
+ * index from this table, IN ONE ACT"* — **and until this landing no such entry existed**, so every constructed
+ * store stayed in the addon's table for the process's life (`tests/e2e/store-retirement.test.mjs` measures that
+ * at `~573 KB/store` with a payload, `~18–21 KB` without one, and `0 of 400` released). **ITS ONE POSITION IS
+ * THE STORE'S OWN INDEX** — the integer `storeCreate` mints and the package publishes on its own `Symbol.for`
+ * row — **and it is the ONE entry of the twenty that takes its store BY POSITION rather than by the Node-API
+ * `this`**: *"a finalizer has no receiver"* — `FinalizationRegistry`'s callback is handed its held value and
+ * nothing else, and the held value may not be the store object. **SO `S-NO-INSTANCE` — *"no entry accepts a
+ * `u32` at position `0` in place of its first real argument"* — HAS NO SUBJECT ON THIS ROW**: the integer IS the
+ * first real argument, and the two cells that drive that strategy say so at their own bytes. **IT ADDS NO
+ * MEMBER TO THE PRODUCT'S FIFTEEN AND NO BYTE TO `index.d.ts`**: it is reached by the finalizer's callback and
+ * by no consumer (`surface.md §3.8`: the addon's export set is not a published API).
+ *
+ * **THE COUNT MOVES `19 → 20` WITH IT**, and the arithmetic is stated where it is asserted: `4 + 9 + 1 + 1 + 1
+ * + 3 + 1 = 20`.
+ */
+export const RETIREMENT_ONE = [
+  {
+    name: 'storeRelease',
+    arity: 1,
+    clause: 'facade.rs\'s `storeRelease` entry, 2026-11-19 — the retirement: the store is dropped and its own '
+      + 'index removed from the receiver table in one act (`receiver-and-refusal.md §6`)',
+  },
+];
 
-/** The sixteen NAMES, sorted — the form `S-EXPORT-SET` asserts against, *"assert equality with the declared
+/** **THE TWENTY, AS ONE SET** — `4 + 9 + 1 + 1 + 1 + 3 + 1 = 20 ✓` (`SAVE_ARM_THREE` added 2026-11-17;
+ *  `RETIREMENT_ONE` added 2026-11-19) (`§1`'s own `[CENSUS]`, read with `PER_VERB_TENTH`, `PER_VERB_ELEVENTH`,
+ *  `PER_VERB_TWELFTH` and `RETIREMENT_ONE`). **THE PRODUCT'S FIFTEEN ARE UNMOVED**: every one of them keeps its
+ *  name and its arity, the per-verb group's tenth is the ADDON entry the product's own member set reaches
+ *  (`readTiered`), and the twentieth is the RETIREMENT's — an entry no member names and no consumer can see. */
+export const DECLARED_SURFACE = [...STANDING_FOUR, ...PER_VERB_NINE, ...PER_VERB_TENTH, ...PER_VERB_ELEVENTH,
+  ...PER_VERB_TWELFTH, ...SAVE_ARM_THREE, ...RETIREMENT_ONE];
+
+/** The twenty NAMES, sorted — the form `S-EXPORT-SET` asserts against, *"assert equality with the declared
  *  set, sorted"* (`contract.md §5`, `P-SAS-1`). */
 export const DECLARED_SURFACE_NAMES_SORTED = DECLARED_SURFACE.map((e) => e.name).sort();
 

@@ -56,9 +56,14 @@
 //
 // **AND `delete` → `_delete` AT THAT SAME TABLE** (`wasm-realm.md` §15: the toolchain emits the entry as `_delete`
 // because the published name is a reserved word), so the parts' `entryOf().delete` is spelled as the module's own
-// `_delete` in ONE place and no site learns a second name. `commitFile` is **ABSENT** from the injected export set
-// (`D-155` item 4; eighteen of the Node arm's nineteen), so the table carries no such member and this file mints no
-// stand-in for it: a save that names it on that arm is the design's own declared absence, not a table's omission.
+// `_delete` in one place and no site learns a second name. `commitFile` is **ABSENT** from the injected export set
+// (`D-155` item 4; eighteen of the Node arm's twenty, which is **⟶ NINETEEN UNTIL 2026-11-19 AND TWENTY FROM THE
+// `storeRelease` LANDING** — `facade.rs`'s retirement entry, which has no wasm twin), so the table carries no such
+// member and this file mints no stand-in for it: a save that names it on that arm is the design's own declared
+// absence, not a table's omission. **AND THE SAME HOLDS OF `storeRelease` ON THIS ARM**: `state.mjs`'s
+// `STORE_RETIREMENT` calls it, the injected table carries no such member, and **the registry's own `try`/`catch`
+// is what makes that absence SILENT rather than a throwable crossing a finalizer** — the arm's declared state is
+// that its table never retires a store (`docs/L1/wasm-realm.md:311`), and nothing here mints a stand-in.
 //
 // **NO `node:` SPECIFIER APPEARS IN THIS FILE AND NONE MAY** — that is the whole of the seam.
 

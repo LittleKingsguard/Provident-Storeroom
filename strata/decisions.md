@@ -8733,3 +8733,37 @@ request it did not raise"*) and the `D-168` reading that narrowed it. **STATUS: 
    satisfied by the window stamp, read at its bytes, and its one residual shown unreachable by measurement.** **The two prunes that keep
    the list bounded are the drain's own and `settleStandingRaises`' ended-window settle, and the `settled` ring is bounded by
    `trimSettled`** — there is no third place a raise can live.
+
+---
+
+### `D-171` — THE RETIREMENT PATH EXISTED ONLY IN A DOCBLOCK: A STORE CONSTRUCTED AND DROPPED WAS NEVER RELEASED, AND IT NOW IS
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `4a8cf66`. **SOURCE:** the supervisor, closing a residual of `docs/L1/publish-readiness.md` §3; **the
+finding is the same family as `D-159`/`D-160`/`D-162`** \u2014 a table that grows per act. **STATUS: `ACTIVE`.**
+
+1. **`facade.rs:306`\u2013`:311` DOCUMENTED A `storeRelease` ENTRY THAT DID NOT EXIST** \u2014 *"the store is freed by the package's own GC finalizer \u2026 which
+   reaches this addon through the standing `storeRelease` entry below; that entry DROPS the instance AND removes ITS OWN index from this table, IN ONE
+   ACT"* \u2014 and **`grep -rn storeRelease bindings/js/src/` found one doc comment and no definition.** **NOR DID THE PACKAGE'S FINALIZER REACH THE ADDON**:
+   `instance.mjs`'s `STORE_RETIREMENT.register(instance, () => { INSTANCES.delete(instance); })` deleted from the **JS** `WeakMap` and nothing else.
+   **So every constructed store stayed in the addon's `Vec<crossing::Instance>` for the process's life \u2014 ON THE SHIPPED ARM.**
+2. **THE ENTRY IS NOW REAL AND THE DOCBLOCK IS MADE TRUE RATHER THAN CORRECTED**: `storeRelease(store_pos)` \u2014 **the one entry of the twenty whose
+   store is a POSITION and not a receiver**, because a `FinalizationRegistry` callback receives the held value and not the object. **It takes the slot
+   (a TOMBSTONE, so no index shifts and the integer the package holds can never name its neighbour), drops the instance and removes its id, in one act.**
+   A released index, an index no mint reached, and a position that is not an index each answer the crate's own arm (`AddressNotFound` / `AddressMalformed`
+   with a new MESSAGE and no new token), **and a `NaN` guard is load-bearing**: `NaN as usize` saturates to `0` in Rust, so a cast would have named the
+   FIRST store. **None panics; a second release refuses rather than freeing a second store.**
+3. **★ AND THE INSTRUMENT THE RESIDUAL WAS FILED WITH COULD NOT SEE THE FIX \u2014 WHICH IS THE PART WORTH KEEPING.** The filed reading (`~18\u201321 KB/store`, a
+   zero-payload single-batch `rss` figure) is reproduced on this tree and is **noise either way** (`65.5 / 22.2 / 15.2` before, `53.0 / 22.9 / 15.1` after).
+   **THE HONEST OBSERVABLE IS THE STORE'S OWN PAYLOAD**: a store told to keep `128 KiB` and then dropped **costs nothing once freed**, so a retained-store
+   cost over that ceiling is the defect stated in bytes. Measured three times each: **BEFORE `~573,112` bytes/store (flat), AFTER `~42,000`**; the cell
+   declares the **payload itself** (`131,072`) as its ceiling \u2014 *"a store that is still held cannot cost less than the data it was told to keep"* \u2014 and its
+   failure message prints both pre-fix figures.
+4. **AND THE SUPERVISOR'S OWN FIRST PROBE OF THE FIX READ `418\u2013489 KB/store`, WHICH IS THE WARM-UP BATCH AND NOT A LEAK.** Re-measured across three
+   batches: **batch 0 pays the runtime's reservation (`494 KB/store`), then `33` and `56 KB/store`** \u2014 the pass's own figure. **A probe that reads its
+   FIRST batch after a process start measures the allocator, not the store.**
+5. **THE ADDON'S EXPORT SET MOVES `19 \u2192 20`** and every census that counts it moved with its reason at its byte; **`index.d.ts` moved NO byte** (the addon's
+   entries are not the package's declared surface). **THE WASM ARM IS UNTOUCHED**: its set stays **eighteen** and **its table still never retires a store** \u2014
+   which is now the one arm of the two whose leak is unclosed, and closing it changes that arm's export set (a declaration, `D-155` item 4, and `CW-6`'s subject).
+6. **CELLS**: `tests/e2e/store-retirement.test.mjs` \u2014 `SR-01` (the payload ceiling), `SR-02` (**the finalizer's own answer**: every constructed-and-dropped
+   store's index reads `AddressNotFound`, which is the release measured at its own answer and not a table length), `SR-03` (the entry's contract: double
+   release, absent index, eight outside classes, and the second store answering across the first's release). **Red first: `0/3` on the pre-fix artefact.**

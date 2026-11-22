@@ -262,7 +262,7 @@ test('CW-6 · C-W6 — the module exports the eighteen declared entries, and `co
     .filter((name) => name !== 'default' && name !== 'initSync' && typeof glue[name] === 'function')
     .sort();
   assert.equal(names.length, 18,
-    'D-155 item 4: the WASM arm\'s entry set is eighteen of the Node arm\'s nineteen — it read ' + names.join(', '));
+    'D-155 item 4: the WASM arm\'s entry set is eighteen of the Node arm\'s twenty — it read ' + names.join(', '));
   assert.equal(names.includes('commitFile'), false,
     'and `commitFile` is the one that is absent BY RULING: the arm has no writer to reach');
   assert.equal(names.includes('_delete'), true,

@@ -969,11 +969,49 @@ export const INSTANCES = new WeakMap(); // instance -> the package's own per-ins
 /// `STORE_RETIREMENT` is the package-side `FinalizationRegistry` whose callback retires the freed store's own
 /// row from the addon's receiver table (`§6`). **ITS HELD VALUE IS THE INDEX ALONE AND NOTHING ELSE, AND IT
 /// HOLDS NO REFERENCE TO THE STORE** — holding the object would be the strong reference that stops the very
-/// collection this callback exists to observe.
+/// collection this callback exists to observe. **⟶ AND THAT SENTENCE WAS FALSE OF THE SHIPPED CALLBACK AND IS
+/// TRUE FROM 2026-11-19**: `instance.mjs` registered a CLOSURE that closed over `instance`, i.e. a held value
+/// that strongly referenced its own target and could never fire; **the registration now passes the integer**
+/// (`STORE_RETIREMENT.register(instance, id)`), so the sentence is a property of the value — a `Number` — and
+/// the release it fires is `storeRelease`'s.
 export const STORE_INDEX = Symbol.for('provident-storeroom.storeIndex');
 
-/// **THE ROW IS RETIRED BY DROPPING THE PACKAGE'S OWN HOLD ON THE STORE, AND THE ADDON NEEDS NO ENTRY FOR
-/// IT** — the mechanism, and why it is this one:
+/// **⟶ THE RETIREMENT NOW REACHES THE ADDON, AND THE THREE SENTENCES THIS BLOCK CARRIED — EACH OF WHICH SAID
+/// IT MUST NOT — ARE QUOTED HERE AND RETIRED — 2026-11-19.** **WHAT THEY DECLARED, QUOTED BEFORE THEY ARE
+/// RETIRED:** *"THE ROW IS RETIRED BY DROPPING THE PACKAGE'S OWN HOLD ON THE STORE, AND THE ADDON NEEDS NO
+/// ENTRY FOR IT"* · *"AND THE ADDON'S TABLE IS REACHED BY NO SECOND EXPORT, WHICH IS FORCED RATHER THAN
+/// CHOSEN: `export-set-and-dispatch.md
+/// §1` fixes the artefact's key set at EXACTLY the thirteen declared names … so a `finalize`, `retained` or
+/// `release` entry on the artefact WOULD ITSELF BE THE FAILURE `F-2` NAMES"* · *"SO THE RETIREMENT IS THE
+/// PACKAGE'S OWN ACT ON ITS OWN HOLD; the addon's row is retired by the addon when the receiver it is handed no
+/// longer resolves."*
+///
+/// **EVERY ONE OF THE THREE WAS FALSE OF THE BEHAVIOUR AND THE FIRST WAS FALSE OF THE MECHANISM.** The addon's
+/// `INSTANCES` table holds every constructed store for the process's life — `bindings/js/src/facade.rs`'s own
+/// docblock at `INSTANCE_IDS` declares the retirement path and, until this pass, cited a `storeRelease` entry
+/// that did not exist — so **a dropped store was never retired by anything: ~18–21 KB per
+/// construct-and-drop, linear, on the shipped arm.** *"The addon's row is retired by the addon when the
+/// receiver it is handed no longer resolves"* was the worse half: **a row that is never removed resolves
+/// forever**, so the sentence described the state that makes the defect invisible.
+///
+/// **WHAT STANDS INSTEAD, AND IT IS ONE ACT ON THE ADDON'S OWN TWO TABLES**: the held value is **the integer**
+/// the store object was published with (`STORE_INDEX`), the callback hands it to `withAddon().storeRelease`, and
+/// **that entry drops the instance and removes its own id from the receiver table in one act**
+/// (`facade.rs`'s `storeRelease`; `receiver-and-refusal.md §6`). **THE HELD VALUE IS STILL THE INDEX ALONE AND
+/// STILL HOLDS NO REFERENCE TO THE STORE** — which is now a property of the value rather than of a promise:
+/// a `Number` cannot hold anything.
+///
+/// **AND THE KEY SET MOVED `19 → 20` WITH IT**, which this pass re-derives rather than argues away: the
+/// artefact's live set is the nineteen declared names plus `storeRelease`, and **`§1`'s "exactly the declared
+/// names" is a statement about the DECLARED set, which now carries the twentieth** — a *"`release`"* entry was
+/// never the failure; an **undeclared** name is. **THE SECOND REALM'S ARM IS UNMOVED**: `storeRelease` has no
+/// `wasm.rs` twin (`D-155` item 4's eighteen stand), so on that arm this callback's call is refused by the
+/// table itself — `storeRelease` is not a function there — and **THE `catch` BELOW IS WHAT MAKES THAT ARM'S
+/// ABSENCE SILENT RATHER THAN A THROWN FINALIZER**, which is the same guard, kept and now load-bearing.
+///
+/// **⟶ THE GUARD IS KEPT UNMOVED: A RETIREMENT NEVER THROWS INTO A FINALIZER.**
+///
+/// **THE PARAGRAPHS BELOW ARE THE READING OF THE MOMENT BEFORE THIS PASS AND ARE READ THROUGH THIS CLAUSE.**
 ///
 /// **WHAT MUST BE OBSERVED IS THE CALL, NOT THE TABLE.** `§6` requires that *"an entry whose store has been
 /// freed must be retired in the same act that frees the store"*, and its stated reason is the observable:
@@ -983,23 +1021,14 @@ export const STORE_INDEX = Symbol.for('provident-storeroom.storeIndex');
 /// READS THE TABLE'S TYPE, ITS LENGTH OR A ROW** — `contract.md §7`'s `OWED-2` prohibits exactly that
 /// (*"NOTHING ASSERTS A TABLE TYPE"*), so the table's interior is not an observable this unit may be graded
 /// on and is not one this comment claims.
-///
-/// **AND THE ADDON'S TABLE IS REACHED BY NO SECOND EXPORT, WHICH IS FORCED RATHER THAN CHOSEN:**
-/// `export-set-and-dispatch.md §1` fixes the artefact's key set at EXACTLY the thirteen declared names —
-/// `P-SAS-1` asserts equality, and `§2`'s failure list names *"an undeclared name"* — **so a `finalize`,
-/// `retained` or `release` entry on the artefact WOULD ITSELF BE THE FAILURE `F-2` NAMES.** The thirteen
-/// stand and there is no fourteenth.
-///
-/// **SO THE RETIREMENT IS THE PACKAGE'S OWN ACT ON ITS OWN HOLD; the addon's row is retired by the addon when
-/// the receiver it is handed no longer resolves.** The two halves are one requirement: **a store the caller
-/// can still reach resolves its own row and answers; a store it cannot reach is refused in the one form**,
-/// which is the whole of what `§3` and `§6` ask and the whole of what `P-SAS-5` reads.
-export const STORE_RETIREMENT = new FinalizationRegistry((retire) => {
+export const STORE_RETIREMENT = new FinalizationRegistry((storeIndex) => {
   try {
-    retire();
+    withAddon().storeRelease(storeIndex);
   } catch {
     // **A RETIREMENT NEVER THROWS INTO A FINALIZER**: the callback runs on the host's own collection turn,
-    // and a throwable escaping there would be a raw host error crossing a path no caller asked for.
+    // and a throwable escaping there would be a raw host error crossing a path no caller asked for. **AND ON
+    // THE SECOND REALM'S ARM THIS CATCH IS THE ARM'S WHOLE ANSWER** — the injected table carries no
+    // `storeRelease` (`D-155` item 4), so the call raises and the release simply does not happen there.
   }
 });
 
@@ -1272,7 +1301,8 @@ export function carryRefusal(call, args, log, address) {
 export function commitFile(receiver, opId) {
   // **⟶ AND AN ARM THAT EXPORTS NO `commitFile` PERFORMS NO STORE SAVE — 2026-11-17** (`D-155` item 4; `D-143`'s
   // arm; `D-144` item 5). **`commitFile` IS ABSENT FROM THE SECOND REALM'S EXPORT SET BY RULING** (eighteen of the
-  // Node arm's nineteen, `D-155` item 4: *"the writer is unreachable"*), **and that ruling was TRUE OF THE STORE'S
+  // Node arm's twenty — nineteen when this sentence was written, twenty since the 2026-11-19 `storeRelease`
+  // landing, which has no wasm twin either — `D-155` item 4: *"the writer is unreachable"*), **and that ruling was TRUE OF THE STORE'S
   // WRITER AND NOT OF THIS CALL**: the terminal arm reaches this helper on a passing `file`-tier write and lets the
   // STORE decide eligibility, so with no entry here a lawful write threw a raw host **`TypeError`** instead of any
   // declared answer (measured: `state.mjs:1263` ← `delivery.mjs:1245` ← `terminalArm`).
