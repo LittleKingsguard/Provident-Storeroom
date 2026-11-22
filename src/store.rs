@@ -3703,7 +3703,7 @@ impl Store {
     /// back but the required op has been compacted is to regenerate the store from the file, or otherwise signal the
     /// client to recover if no file can be retrieved. This was never ambiguous, 108 is a misread"***. **`D-160`'s
     /// drop was the PREMISE this frame already assumed and not the withdrawal of its subject** (`D-164` item 1),
-    /// so the frame returns **byte-for-byte from its pre-`D-160` body — `git show b06133e^:src/store.rs` — with ONE
+    /// so the frame returns **byte-for-byte from its pre-`D-160` body — `git show 1685d96^:src/store.rs` — with ONE
     /// change: the replay's `if self.journal[index].op.compacted { continue; }` skip GOES.** **No entry is marked
     /// any more** (the compaction DROPS the entry it reaches, `D-160` item 1), **so the skip's subject does not
     /// exist and its two grounds — *"the window took it"* and *"a reversal spent it"* — are gone with the mark.**

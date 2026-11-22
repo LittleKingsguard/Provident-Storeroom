@@ -539,7 +539,7 @@ its three cells — and with it the guides and the shipped `README.md` that `was
 
 **WHAT THE SESSION BUILT, IN ONE PLACE.** `D-154` lifted the one-realm claim · `D-155` took three forks and corrected this plan's own `Reflect::set` error · `D-156` took the `structuredClone` instrument and declared the deep-clone law · `D-157` took the sixth package and the class form · **nine units landed, the realm plan's steps 1–5 executed**, and the ledger is `docs/L1/wasm-realm.md` §1–§22 with `docs/L3/wasm-realm/design.md` beneath it.
 
-**⟶ AND THAT READ AS OF ITS OWN DATE, NOT AS THE TREE'S: THE PACKAGE IS ADMITTED FROM `2ec4fc9`** — it moved to
+**⟶ AND THAT READ AS OF ITS OWN DATE, NOT AS THE TREE'S: THE PACKAGE IS ADMITTED FROM `d949447`** — it moved to
 `bindings/js/platforms/wasm/` beside the five native siblings, `DD-25`'s published set reads **seven** manifests, the coupled-version rule
 reads *"the seven manifests move to `X.Y.Z` TOGETHER"*, and `publish.yml` carries a `wasm` job beside the matrix. **The sentence below is
 the row's own state and is read through this one.**

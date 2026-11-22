@@ -8293,7 +8293,7 @@ sentences, uncommitted). **SOURCE:** the architect, in session, answering `docs/
 
 ### `D-158` — THE RELEASE CLASS FOR THE SECOND REALM'S LANDING IS A `MINOR`, AND ITS VERSION IS `1.13.0`
 
-**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `45a28cd` (the tree carries the nine units, the second realm, the realm
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `48d83f0` (the tree carries the nine units, the second realm, the realm
 sentences, the admission of the sixth artefact, the workflow's `wasm` job and the shipped prose, uncommitted). **SOURCE:** the
 architect, in session, answering `docs/L1/publish-readiness.md` §5's last open item — **the one act no other could precede.
 THE ARCHITECT'S WORDS, VERBATIM:**
@@ -8334,7 +8334,7 @@ notes' sections (`+1`) · the code moved by this row (`0`) · the rows it discha
 
 ### `D-159` — A FINDING, NOT A RULING: EVERY WRITE RETAINS MEMORY, THE SECOND REALM OOMs AT ~12,000 WRITES, AND THE ISOLATION IS OWED
 
-**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `7fef847`. **SOURCE:** **the supervisor's own measurement**, taken while discharging the
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `2e07c1a`. **SOURCE:** **the supervisor's own measurement**, taken while discharging the
 residual `docs/L1/publish-readiness.md` §3 named as *"the `structuredClone` probe's cost — priced and unmeasured"*. **THIS ROW ASKS FOR
 NOTHING AND DECIDES NOTHING**: it records what was measured, what the measurement rules out, and what is still owed.
 
@@ -8405,7 +8405,7 @@ write count.
 
 ### `D-160` — COMPACTION DROPS HISTORY: THE JOURNAL IS BOUNDED BY ITS CAP, AND THE MARK IS NOT THE MECHANISM
 
-**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `ec11787` (the tree carries the RCA `docs/L1/journal-retention-rca.md`). **SOURCE:** the
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `12e2d1d` (the tree carries the RCA `docs/L1/journal-retention-rca.md`). **SOURCE:** the
 architect, in session, answering that RCA's §6. **THE ARCHITECT'S WORDS, VERBATIM:**
 
 > "Compaction dropping history is the point"
@@ -8451,7 +8451,7 @@ clones removed (`1` per write) · the memory's shape (`O(store + journal_length)
 
 ### `D-161` — A FINDING: THE SAME UNBOUNDED-MAP DEFECT EXISTS ON THE PACKAGE'S SIDE, IN `kernel.closed`
 
-**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `b06133e` (the tree carries `D-160`'s cure). **SOURCE:** the architect's clarification —
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `1685d96` (the tree carries `D-160`'s cure). **SOURCE:** the architect's clarification —
 *"Literally, what data is being stored to reach a ~4.7KB write volume?"* — answered by measurement. **A FINDING: it decides nothing.**
 
 **STATUS: `ACTIVE` — A FINDING.**
@@ -8473,7 +8473,7 @@ clones removed (`1` per write) · the memory's shape (`O(store + journal_length)
 
 ### `D-162` — `D-161` FIXED: A CLOSED ATTEMPT'S REPORT IS KEPT FOR A WINDOW OF `1024`, AND THE MAP'S OWN ORDER IS THE FIFO
 
-**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `2da657a`. **SOURCE:** the architect — *"Proceed with fix for package-side defect"*. **STATUS: `ACTIVE`.**
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `208936f`. **SOURCE:** the architect — *"Proceed with fix for package-side defect"*. **STATUS: `ACTIVE`.**
 
 1. **THE BOUND**: `CLOSED_ATTEMPT_WINDOW = 1024`; `sealClosedReport` is the **one** writer, and all four seal points go through it
    (`kernel-terminal.mjs:128`/`:158`/`:481`, `kernel-registration.mjs:1146`).
@@ -8496,7 +8496,7 @@ clones removed (`1` per write) · the memory's shape (`O(store + journal_length)
 
 ### `D-163` — `E2E-C-9` RE-DERIVED: TWO RULINGS FALSIFIED IT, NOT ONE, AND THREE LIMBS ARE RETIRED WITH THEIR SUBJECTS
 
-**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `af933d6`. **SOURCE:** the architect — *"Proceed on the E2E fix"*. **STATUS: `ACTIVE`.**
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `1f54894`. **SOURCE:** the architect — *"Proceed on the E2E fix"*. **STATUS: `ACTIVE`.**
 
 1. **THE ROW IS GREEN AND ITS PROVENANCE IS WEAKER, SAID AT ITS OWN BYTE.** `node tests/e2e/blind-constraints-v2.mjs` reads **`rows=17
    cells=125 PASS=125 FAIL=0 NONRUN=0`**, `EXIT 0`, and every other row stands. **BUT A BLIND ROW REWRITTEN BY THE PASS THAT BROKE IT IS
@@ -8529,7 +8529,7 @@ trigger still read the **mark**, and `docs/specs/storeroom-constraints/contract.
 
 ### `D-164` — CORRECTION: `D-108` WAS NEVER ABOUT RETAINING COMPACTED ENTRIES — THE DROPPED ARM REGENERATES FROM THE FILE, OR SIGNALS THE CLIENT WHEN NO FILE CAN BE RETRIEVED
 
-**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `4d64d07`. **SOURCE:** the architect, in session, correcting this supervisor's reading of `D-108`.
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `752e49e`. **SOURCE:** the architect, in session, correcting this supervisor's reading of `D-108`.
 **THE ARCHITECT'S WORDS, VERBATIM:**
 
 > "108 was never supposed to retain compacted entries, getting rid of entries is the point of the compaction. The resolution if an attempted
@@ -8556,7 +8556,7 @@ trigger still read the **mark**, and `docs/specs/storeroom-constraints/contract.
 
 **WHAT IT ORDERS.**
 
-1. **`Store::regenerate` RETURNS**, restored from its pre-`D-160` bytes (`git show b06133e^:src/store.rs`): the file image where one reads,
+1. **`Store::regenerate` RETURNS**, restored from its pre-`D-160` bytes (`git show 1685d96^:src/store.rs`): the file image where one reads,
    the creation state (`born`) where none does — `D-118` item 1's own reading, *"in the corrupt file case, then it restores from the store
    creation image"* — and then the journal's RETAINED entries replayed outside the scope. **The `compacted` skip in that replay has no subject
    and goes.**
@@ -8572,7 +8572,7 @@ trigger still read the **mark**, and `docs/specs/storeroom-constraints/contract.
 
 ### `D-165` — THE NO-FILE ARM'S GROUND, SHARPENED: `saveCall` IS A WRITE-ONLY EXTERNAL PROXY, SO THE PROPERTY IS "NO READ PATH"
 
-**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `ad2d7e8`. **SOURCE:** the architect, in session, clarifying `D-164`'s second arm.
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `53b4a1a`. **SOURCE:** the architect, in session, clarifying `D-164`'s second arm.
 **THE ARCHITECT'S WORDS, VERBATIM:**
 
 > "A case where the store cannot recover from file is in the saveCall branch, where it is saving by way of an external proxy that does
@@ -8595,7 +8595,7 @@ trigger still read the **mark**, and `docs/specs/storeroom-constraints/contract.
 
 ### `D-166` — A FINDING FROM THE ARM'S OWN CELLS: `structuredClone` REFUSES EVERY `saveCall` STORE, SO THE ARM CANNOT CONSTRUCT THE ONLY STORE IT EXISTS FOR
 
-**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e2a823b`. **SOURCE:** **the supervisor's own cells** — `tests/e2e/wasm-arm.test.mjs`'s
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `ab53ea9`. **SOURCE:** **the supervisor's own cells** — `tests/e2e/wasm-arm.test.mjs`'s
 `C-W1`, written to close the gap `docs/L1/publish-readiness.md` §10.2 item 6 named. **A FINDING: it decides nothing.**
 
 **STATUS: `ACTIVE` — A FINDING, AND IT BLOCKS `C-W1`/`C-W5`.**
@@ -8637,7 +8637,7 @@ trigger still read the **mark**, and `docs/specs/storeroom-constraints/contract.
 
 ### `D-167` — THE PROBE IS FOR DATA: THE SEAM HOLDS TWO PREDICATES, AND THE ARM CONSTRUCTS THE STORE IT EXISTS FOR
 
-**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `f7f6973`. **SOURCE:** the architect, answering `D-166`. **THE ARCHITECT'S WORDS, VERBATIM:**
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `b7c3752`. **SOURCE:** the architect, answering `D-166`. **THE ARCHITECT'S WORDS, VERBATIM:**
 
 > "The clone requirement is for data that has to enter the Rust store. constraints, listeners, and the saveCall do not"
 
@@ -8664,7 +8664,7 @@ trigger still read the **mark**, and `docs/specs/storeroom-constraints/contract.
 
 ### `D-168` — ALWAYS JUDGE THE CURRENT STATE: THE JUDGEMENT'S SUBJECT IS THE STATE THE STORE STANDS IN, AT THE INSTANT IT RUNS
 
-**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `2b09819`. **SOURCE:** the architect, answering the `D-54` question this supervisor put.
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `37599fe`. **SOURCE:** the architect, answering the `D-54` question this supervisor put.
 **THE ARCHITECT'S WORDS, VERBATIM:**
 
 > "Always judge the current state"
@@ -8690,7 +8690,7 @@ trigger still read the **mark**, and `docs/specs/storeroom-constraints/contract.
 
 ### `D-169` — THE LEG SLOT IS CLEARED WHEN A BRACKET OPENS: THE STRUCTURE ENFORCES THE ORDERING THE CONTRACT ASSUMED
 
-**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `2ebbe6f`. **SOURCE:** the supervisor, on `D-54`'s first half (*"do not let a pass consume a restart
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `ec61576`. **SOURCE:** the supervisor, on `D-54`'s first half (*"do not let a pass consume a restart
 request it did not raise"*) and the `D-168` reading that narrowed it. **STATUS: `ACTIVE`.**
 
 1. **THE HAZARD, AT ITS MECHANISM**: `REPAIR_LEGS_LAST` (`state.mjs:434`) is a **flat slot** beside a correctly nested `REPAIR_LEGS_OPEN`
@@ -8718,7 +8718,7 @@ request it did not raise"*) and the `D-168` reading that narrowed it. **STATUS: 
 
 ### `D-170` — `D-54`'S SECOND HALF IS DISCHARGED BY THE WINDOW STAMP, AND THE STRANDED-RAISE PATH HAS NO REACHABLE INPUT
 
-**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `4aeb6e9`. **SOURCE:** the supervisor, closing the question it had listed as owed. **STATUS: `ACTIVE`.**
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `4f033cc`. **SOURCE:** the supervisor, closing the question it had listed as owed. **STATUS: `ACTIVE`.**
 
 1. **THE DRAIN CONSUMES ONLY ITS OWN WINDOW, BY A PREDICATE AND NOT BY ORDERING.** A restart request is `{ watched, reversalId,
    window, asked }`; a raise is appended to `record.raises` **stamped with its raising window**; and the drain's consume is
@@ -8746,7 +8746,7 @@ request it did not raise"*) and the `D-168` reading that narrowed it. **STATUS: 
 
 ### `D-171` — THE RETIREMENT PATH EXISTED ONLY IN A DOCBLOCK: A STORE CONSTRUCTED AND DROPPED WAS NEVER RELEASED, AND IT NOW IS
 
-**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `4a8cf66`. **SOURCE:** the supervisor, closing a residual of `docs/L1/publish-readiness.md` §3; **the
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `9d0e1f5`. **SOURCE:** the supervisor, closing a residual of `docs/L1/publish-readiness.md` §3; **the
 finding is the same family as `D-159`/`D-160`/`D-162`** \u2014 a table that grows per act. **STATUS: `ACTIVE`.**
 
 1. **`facade.rs:306`\u2013`:311` DOCUMENTED A `storeRelease` ENTRY THAT DID NOT EXIST** \u2014 *"the store is freed by the package's own GC finalizer \u2026 which
@@ -8788,7 +8788,7 @@ finding is the same family as `D-159`/`D-160`/`D-162`** \u2014 a table that grow
 
 ### `D-173` — THE THREE `file`-TIER ITEMS OWED ON NODE: `SS-9` IS FIXED, AND `O-3`/`O-8` ARE CLOSED BY MEASUREMENT
 
-**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `fd3de79`. **SOURCE:** the supervisor, on `docs/L1/publish-readiness.md` §10.2 item 5's three.
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `823617a`. **SOURCE:** the supervisor, on `docs/L1/publish-readiness.md` §10.2 item 5's three.
 **STATUS: `ACTIVE`.**
 
 1. **`SS-9` WAS LIVE AND IS FIXED.** **MEASURED FIRST**: a construction over an ABSENT `filePath` whose constraint body throws at its own
@@ -8815,7 +8815,7 @@ finding is the same family as `D-159`/`D-160`/`D-162`** \u2014 a table that grow
 
 ### `D-174` — THE `WeakMap` ALTERNATIVE IS DECLINED: THE MAP STANDS, AND THE WINDOW WITH IT
 
-**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `72cb40b`. **SOURCE:** the architect, on the alternative `docs/L1/journal-retention-rca.md` §8.3
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `6175c06`. **SOURCE:** the architect, on the alternative `docs/L1/journal-retention-rca.md` §8.3
 priced and this session's measurement of a receipt's lifetime. **THE ARCHITECT'S WORDS, VERBATIM:**
 
 > "Go with the map"
@@ -8833,7 +8833,7 @@ priced and this session's measurement of a receipt's lifetime. **THE ARCHITECT'S
 
 ### `D-175` — THE `WeakMap` IS THE ARCHITECT'S MEANING, AND ITS LANDING IS BLOCKED BY 43 KERNEL CELLS: THE ATTEMPT IS REVERTED AND THE CAUSE NAMED AS UNKNOWN
 
-**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `3bc29b4` (the map's tree, green). **SOURCE:** the architect's clarification, **VERBATIM**:
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `866ef30` (the map's tree, green). **SOURCE:** the architect's clarification, **VERBATIM**:
 
 > "Clarification: Weak map"
 
@@ -8861,7 +8861,7 @@ priced and this session's measurement of a receipt's lifetime. **THE ARCHITECT'S
 
 ### `D-176` — THE `WeakMap` LANDS, WITH TWO DEFECTS OF MINE FOUND ON THE WAY, AND `§2.15`'S TWO FORMS PRESERVED
 
-**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `0b7ace1`. **SOURCE:** the architect's *"Clarification: Weak map"* (`D-175`), landed.
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `ecd782f`. **SOURCE:** the architect's *"Clarification: Weak map"* (`D-175`), landed.
 **STATUS: `ACTIVE`.**
 
 1. **`kernel.closed` IS A `WeakMap` KEYED BY THE ATTEMPT'S REF**, `kernel.closedIds` is a **`Map<id, WeakRef>`** beside it, `CLOSED_ATTEMPT_WINDOW`'s
@@ -8891,7 +8891,7 @@ priced and this session's measurement of a receipt's lifetime. **THE ARCHITECT'S
 
 ### `D-177` — THE TWO DESIGN ITEMS, REVIEWED: ONE IS CLOSED BY CONSTRUCTION, THE OTHER IS NARROWED AND NEEDS ITS OWN PASS
 
-**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `97cf4d0`. **SOURCE:** the supervisor, reviewing `docs/L1/publish-readiness.md` §11's items 1 and 2.
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `be644f5`. **SOURCE:** the supervisor, reviewing `docs/L1/publish-readiness.md` §11's items 1 and 2.
 **STATUS: `ACTIVE`.**
 
 **1 · THE FOREIGN-ID COLLISION IS CLOSED — IT CANNOT OCCUR.**
@@ -8920,7 +8920,7 @@ its unsettled stays open, narrowed.**
 
 ### `D-178` — THE REPLAY STARTS FROM THE COMPACTED FLOOR AND NOT FROM `born`: THE RULING, AND THE ONE THING THAT MUST BE REPRODUCED BEFORE IT IS IMPLEMENTED
 
-**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `ae8f00d`. **SOURCE:** the architect, on `D-177` item 2. **THE ARCHITECT'S WORDS, VERBATIM:**
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `49d2e8b`. **SOURCE:** the architect, on `D-177` item 2. **THE ARCHITECT'S WORDS, VERBATIM:**
 
 > "Replay should start over from the compacted floor instead of 'born'"
 
@@ -8961,7 +8961,7 @@ its unsettled stays open, narrowed.**
 
 ### `D-179` — THE REPLAY'S BASE IS THE COMPACTED FLOOR: LANDED, AND THE FLOOR IS ADVANCED BY THE DROPPED ENTRY ITSELF
 
-**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `aca0d88`. **SOURCE:** `D-178`'s ruling, option (a), implemented. **STATUS: `ACTIVE`.**
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `b4e70f1`. **SOURCE:** `D-178`'s ruling, option (a), implemented. **STATUS: `ACTIVE`.**
 
 1. **`Store::floor_state` IS ONE CAPTURED REGISTER, IT BEGINS AS `born`, AND IT IS ADVANCED ONCE PER DROP BY THE DROPPED ENTRY'S OWN `after`
    SNAPSHOTS** — in `append`'s compaction loop, at the instant of the drop: **a position the journal was compressed to is a fact the DROP produces and
@@ -9001,7 +9001,7 @@ its unsettled stays open, narrowed.**
 
 ### `D-180` — THE PUBLISH LEDGER, TAKEN ON THE FINAL TREE: NOTHING BLOCKS, AND EIGHT RESIDUALS ARE NAMED FOR AFTER
 
-**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `c8eec15`. **SOURCE:** the architect's question, answered from the tree and not from the record.
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `42e7ca5`. **SOURCE:** the architect's question, answered from the tree and not from the record.
 **STATUS: `ACTIVE`.**
 
 **THE FLOOR, TAKEN ONCE ON THIS TREE AFTER EVERY LANDING**: `npm test` **`1386` / `1385` / `0`** (`1` deliberate skip) · `typecheck` **`0`** · `cargo test`

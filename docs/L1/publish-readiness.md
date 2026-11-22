@@ -1,4 +1,4 @@
-# Publish readiness — the tree at `f176d04`
+# Publish readiness — the tree at `23609bc`
 
 **WHAT THIS FILE IS.** A review of the tree as committed, against what a release would need. **It moves no byte, claims no release class and cuts no tag** (`D-57`: the cut-state is not a document's to state). Written `2026-11-17` by the **L0 supervisor** after the nine units and the second realm landed.
 
@@ -64,9 +64,9 @@
 |---|---|---|
 | **1 · the release class** | **❌ STILL OPEN, AND IT IS THE ONLY ONE** | `1.12.0` stands on all seven manifests; the class is the architect's and no act after this one can precede it |
 | **2 · `RELEASE-NOTES.md`'s section** | **owed, and blocked on item 1** | its version figure is the class's |
-| **3 · the sixth artefact admitted** | **✅ `2ec4fc9`** | `bindings/js/platforms/wasm/` beside the five native siblings; `DD-25` reads the published set as **seven** with the wasm artefact produced by **a job beside the matrix**; the coupling rule reads *"the seven manifests move to `X.Y.Z` together"*; five publish cells moved with their reasons; **no version moved** |
-| **4 · a wasm job in the workflow** | **✅ `2ec4fc9`** | `publish.yml` carries a `wasm` job (`needs: platform`, `runs-on: ubuntu-24.04` — a member of the five, never a sixth image), and **`main` now needs `[platform, wasm]`**, so the main package is published last of all seven |
-| **5 · the two sentences of prose** | **✅ `0ef8aa1`** | `README.md` keeps this package's realm claim byte-for-byte and names the sibling as a **build**; the guide carries the three consumer-visible differences; `README.guide.md` is byte-identical again; the licence sentence reads **seven** |
+| **3 · the sixth artefact admitted** | **✅ `d949447`** | `bindings/js/platforms/wasm/` beside the five native siblings; `DD-25` reads the published set as **seven** with the wasm artefact produced by **a job beside the matrix**; the coupling rule reads *"the seven manifests move to `X.Y.Z` together"*; five publish cells moved with their reasons; **no version moved** |
+| **4 · a wasm job in the workflow** | **✅ `d949447`** | `publish.yml` carries a `wasm` job (`needs: platform`, `runs-on: ubuntu-24.04` — a member of the five, never a sixth image), and **`main` now needs `[platform, wasm]`**, so the main package is published last of all seven |
+| **5 · the two sentences of prose** | **✅ `07494f7`** | `README.md` keeps this package's realm claim byte-for-byte and names the sibling as a **build**; the guide carries the three consumer-visible differences; `README.guide.md` is byte-identical again; the licence sentence reads **seven** |
 | **6 · the installed/publish battery** | **✅ RUN, AND GREEN** | `npm run test:e2e`: **15 cells PASS · 1 `LAYER-LIMIT` (`INSTALL-09`, neither a pass nor a failure by its own clause) · 0 FAIL · `EXIT 0`** — `INSTALL-07` reads **5/5** pins and **5/5** table pairs, against a locally packed tarball installed into a clean directory |
 
 **AND THE WHOLE FLOOR, RE-MEASURED AFTER ALL FOUR: `npm test` `1359` / `1358` / `0` · `npm run typecheck` exit `0` · `cargo test` 22 `ok` / 0 FAILED · `cargo check --target wasm32` 0 errors · `node scripts/build-wasm-package.mjs` exit 0 · the installed battery `EXIT 0`.**
@@ -250,10 +250,10 @@ code and no declaration, and its one touched code file's CODE BYTES are proven i
 | §2 item | discharged by |
 |---|---|
 | **1 · the release class** | **`D-158`** — a `MINOR`, `1.13.0`, claimed by the architect |
-| **2 · `RELEASE-NOTES.md`'s `§1.13.0`** | **`7b06df7`**, extended to eleven behaviour entries by the drift pass (`D-160`…`D-167`), and **the CANONICAL copy re-cut with it** so `publish.sh`'s `cp canonical → landed` no longer erases the section |
-| **3 · the sixth artefact admitted** | **`2ec4fc9`** — `bindings/js/platforms/wasm/`, `DD-25`'s seven manifests, the coupled-version rule, five publish cells |
-| **4 · a wasm job in `publish.yml`** | **`2ec4fc9`** — `wasm` beside the matrix, `main` needs `[platform, wasm]` |
-| **5 · the two sentences of prose** | **`0ef8aa1`** — the guide's section and the README's realm sentence, landed copies byte-identical |
+| **2 · `RELEASE-NOTES.md`'s `§1.13.0`** | **`12a14e3`**, extended to eleven behaviour entries by the drift pass (`D-160`…`D-167`), and **the CANONICAL copy re-cut with it** so `publish.sh`'s `cp canonical → landed` no longer erases the section |
+| **3 · the sixth artefact admitted** | **`d949447`** — `bindings/js/platforms/wasm/`, `DD-25`'s seven manifests, the coupled-version rule, five publish cells |
+| **4 · a wasm job in `publish.yml`** | **`d949447`** — `wasm` beside the matrix, `main` needs `[platform, wasm]` |
+| **5 · the two sentences of prose** | **`07494f7`** — the guide's section and the README's realm sentence, landed copies byte-identical |
 
 **AND §3's RESIDUALS, EACH AT ITS OWN ROW**: the WASM retirement **closed** (`D-172`, the nineteenth entry and a tombstone table) · the `structuredClone` probe's cost **measured** (`D-159` item 4: `18,662 ns/write`, `9.3%` of a write) · `isProxy`'s replacement **resolved as a split** (`D-167`: the probe for data, no carrier detection on that arm, declared) · `O-3` and `O-8` **closed by measurement** and `SS-9` **fixed** (`D-173`) · the four tables of one family **all bounded** (`D-160`, `D-162`, `D-171`, `D-172`) · the `Discard` witness's three reds and the two JAS runners **re-derived** (`D-163`, `D-168`, the JAS pass) · and **`D-175`/`D-176`** put the closed table on a `WeakMap` with `§2.15`'s two forms preserved.
 
