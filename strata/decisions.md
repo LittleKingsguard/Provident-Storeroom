@@ -8886,3 +8886,32 @@ priced and this session's measurement of a receipt's lifetime. **THE ARCHITECT'S
    **eight** cells green · **`CHAIN COMPLETE — 11 runners`** · **the pinned retention `0.80 B/write` at 4,000 writes and `0.09` at 16,000** —
    the same shape the window had, **with the arbitrary `1024` gone**, and **a `KAW-1` re-derived to the property the window approximated: the
    first attempt still nameable after `1056` writes, by its ref and by its id.**
+
+---
+
+### `D-177` — THE TWO DESIGN ITEMS, REVIEWED: ONE IS CLOSED BY CONSTRUCTION, THE OTHER IS NARROWED AND NEEDS ITS OWN PASS
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `97cf4d0`. **SOURCE:** the supervisor, reviewing `docs/L1/publish-readiness.md` §11's items 1 and 2.
+**STATUS: `ACTIVE`.**
+
+**1 · THE FOREIGN-ID COLLISION IS CLOSED — IT CANNOT OCCUR.**
+
+**THE FLAG ASSUMED PER-INSTANCE NUMBERING AND THE TREE HAS PROCESS-GLOBAL NUMBERING**: `src/store.rs:38`'s `static NEXT_OP: AtomicU64 = AtomicU64::new(1)` minted every op id by `format!("op-{}", NEXT_OP.fetch_add(1, SeqCst))`
+(`:61`), so **every id in a process is greater than every id minted before it, across all stores**. **A store's floor is the ordinal of the last op IT dropped, and every op it ever held came from that
+same monotone sequence** — so **a foreign id — one another store minted — is above that store's maximum and therefore strictly above its floor**, and the lookup answers **`JournalOpUnknown`**, which is
+the right answer for an id that never named this store's op. **THE FLAG'S PREMISE (*"op ids come from a process-wide atomic while the floor is an ordinal"*) IS TRUE AND ITS CONCLUSION IS FALSE**: the
+shared sequence is exactly what makes the comparison safe.
+
+**AND ONE DEPENDENCY IS STATED SO THE CLOSURE IS NOT OVERSTATED**: it holds **only while a journal's ids are monotone in its own append order**, which is the case because **a booted store's journal
+starts EMPTY** — the file image carries the register's members and no ops (§6.2's `JournalOp` is the journal's own record, and `read_file_image` answers the *members*). **If a future change ever
+restores a journal from an image, the floor stops being a monotone bound relative to the restored ids and this row must be re-opened.**
+
+**2 · `replayMark`'S BASE IS NARROWED TO A QUESTION ABOUT `restoreMark`'S OWN SUBJECT, AND THE DRIVE THAT WAS MEANT TO FIND THE DEFECT DID NOT.**
+
+**THE DRIVE**: a `file`-tier store at `journalLength: 2`, four writes at four addresses (so the first two journal entries are dropped), a `journalMark` (answering `op-4`), a fifth write, then
+`restoreMark('op-4')`. **MEASURED**: **every value stands before and after** (`a`…`e` all readable), **and `restoreMark` answered `undefined` without moving a byte of the register** — *the fifth
+write's version was NOT undone*. **SO THE FEARED DEFECT — A REPLAY FROM `born` MISSING THE DROPPED ENTRIES' EFFECTS — WAS NOT REACHED**, because **the register is not replayed at all in that path**: the
+values never depend on the journal, which is history. **WHAT THE DRIVE RAISED INSTEAD IS A QUESTION THE ITEM DOES NOT NAME**: whether `restoreMark` is a *restore to a mark* (and therefore owes the fifth
+write's reversal) or **a mark-read that re-arms the journal's head**, **is not established by this pass** — and `D-171`'s drive, `E2E-C-9`'s, and the `fts` cells disagree about nothing here because none
+of them drives this shape. **A PASS THAT TAKES THIS ITEM MUST FIRST ESTABLISH WHAT `restoreMark` PROMISES**, then re-derive `replayMark`'s base against it; **this row does not guess, and `D-160` item 3 of
+its unsettled stays open, narrowed.**
