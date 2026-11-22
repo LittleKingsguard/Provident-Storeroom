@@ -71,14 +71,15 @@ the package's own resolution step and is not an entry point.**
 
 ## The surface
 
-**`storeCreate(cfg)` answers an instance carrying exactly FOURTEEN own members** — `10 + 1 + 1 + 2 = 14` ✓ —
-**and they are these fourteen and no others** (`bindings/js/index.d.ts`, `StoreInstance`;
+**⟶ AND THE FIGURE IS FIFTEEN, 2026-11-17: `readTiered` (the tier readout) was in the instance and absent from this table.** **`storeCreate(cfg)` answers an
+instance carrying exactly FIFTEEN own members** — `10 + 1 + 1 + 1 + 2 = 15` ✓ — **and they are these fifteen and no others** (`bindings/js/index.d.ts`, `StoreInstance`;
 `docs/specs/storeroom-held-listener-identity/contract.md §2.7` item 9):
 
 | The member | Its answer |
 | --- | --- |
 | `read(address, tier?)` | a leaf's literal, a branch's assembled value, or the empty address's whole register |
 | `readLiteral(address, tier?)` | the same, narrowed to a leaf (`ReadTargetIsBranch` on a branch) |
+| `readTiered(address)` | `{ value, tier }[]` — the standing versions at an address and the tier each is at; **a shadowed address answers more than one** |
 | `write(address, tier, value, commit?)` | `{op, watched, triggered}` — **four positions, `commit` the fourth and optional** |
 | `delete(address, tier?)` | `{address, op, tiers, triggered}`, plus a non-enumerable `discarded` witness |
 | `rollback(opId)` | `{opId, undoneOps, restoredTo}` |

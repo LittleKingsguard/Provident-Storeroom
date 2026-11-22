@@ -307,14 +307,17 @@ const store = storeCreate({
 });
 ```
 
-**`storeCreate` answers an instance carrying exactly FOURTEEN own members** — `10 + 1 + 1 + 2 = 14` ✓ — and they
-are these fourteen and no others (`bindings/js/index.d.ts`, `StoreInstance`;
+**⟶ AND THE FIGURE IS FIFTEEN, AND THE TABLE BELOW NOW SHOWS ALL FIFTEEN, 2026-11-17.** `readTiered` (the tier readout, `1.10.0`) **was
+in the instance and had never been in this table**, so the guide said *fourteen* while the surface answered *fifteen* — **and once the section's headings were
+corrected it said *fifteen* above a table of fourteen, which is worse than either.** **`storeCreate` answers an instance carrying exactly FIFTEEN own members** —
+`10 + 1 + 1 + 1 + 2 = 15` ✓ — and they are these fifteen and no others (`bindings/js/index.d.ts`, `StoreInstance`;
 `docs/specs/storeroom-held-listener-identity/contract.md §2.7` item 9):
 
 | member | its declared shape | one line |
 |---|---|---|
 | `read` | `(address, tier?) => unknown` | a leaf's literal, a branch's assembled value, or the whole register |
 | `readLiteral` | `(address, tier?) => unknown` | the same, narrowed to a leaf — **a branch refuses** |
+| `readTiered` | `(address) => { value, tier }[]` | the standing versions at an address **and the tier each is at** — a shadowed address answers more than one (`D-121`) |
 | `write` | `(address, tier, value, commit?) => WriteRecord` | `commit` is the kernel's own position; leaving it out is the supported form |
 | `delete` | `(address, tier?) => DeleteRecord` | **a method name, not an identifier binding** — `store.delete(…)` |
 | `rollback` | `(opId) => RollbackRecord` | walks backward and undoes **that op and everything after it** in scope |
@@ -572,6 +575,19 @@ instants it refuses the act at rank `21` `ListenerBodyThrew` instead** (`§8.1`'
 3. **A `rollback` whose judgement runs your pairs' repairs** — UNMOVED in its own right, and its DELIVERED set is the store's returned sets, so a repair whose write lands the literal already standing delivers nothing (`D-117`; `D-152`'s *"changed"* is READ AS ACT-EXISTENCE and its union narrows with the store's set — that is the accepted consequence of this release, not a defect).
 4. **The four REGISTRATION instants** — `storeCreate`, a boot over an existing `filePath`, `addConstraint` and a re-arm — UNMOVED, and each instant's delivery is narrowed by exactly the same rule, because it is the same returned set (item 1 above).
 5. **A READ STILL FIRES NOTHING, and `listen`/`register` themselves still fire nothing** — unmoved.
+
+**⟶ AND THREE MORE A CONSUMER WILL MEET AT A CONSTRUCTION, ADDED 2026-11-17 — `P-2`, `strata/decisions.md` · `D-197`, `D-198`, `D-199`.**
+
+- **A CONSTRUCTION THAT REFUSES NO LONGER LEAVES THE FILE IT MADE.** With a `filePath` that did not exist, a construction **creates a zero-length file before it
+  asks your constraints**; **if the construction then refuses, that file is removed — on EVERY refusing arm**, the post-round inconsistency and a thrown body
+  included, where earlier releases left it standing on two of them. **A file that existed before your call is never touched, and its bytes are never modified.**
+  **So: `storeCreate` either answers an instance and leaves its file, or refuses and leaves nothing behind.**
+- **A LISTENER WHOSE ADDRESS DOES NOT RESOLVE IS NOT FIRED — AND AN ADDRESS *BELOW A SCALAR* DOES NOT RESOLVE.** A seed standing `{"a": 5}` with a listener
+  adopted at `['a','b']`: **the construction fires nothing for it**, because there is no node at that address to hand your body. **That is not a refusal and it is
+  not an error — it is the same silence any absent address gets**, and it now holds for the `LeafHasNoDownstream` shape as well as for `AddressNotFound`.
+- **AND THE TWO SETS AT ONE INSTANT ARE TWO SETS, NOT ONE.** A construction's fired set is **your adopted listeners whose watched address exists** (the bullet
+  above); **a repair's own write inside that construction fires nothing where it lands the literal already standing** — that is `P-3`'s rule arriving at a
+  construction, and the two are deliberately not unified.
 
 **AND TWO THINGS THIS GUIDE MUST SAY PLAINLY BECAUSE A CONSUMER WILL MEET THEM.**
 
