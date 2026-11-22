@@ -85,6 +85,21 @@ installKernelResolver(() => KERNEL);
 // **AND IT IS A PROBE AND NOT A CARRIER**: the clone's result is DISCARDED, because the crossing's own readers build
 // the store's value from the value itself and `D-156`'s deep-clone law is about what the store HOLDS, not about this
 // call. Nothing here hands a cloned value to any reader.
+//
+// **⟶ AND THE SETTER'S SECOND POSITION IS THIS ARM'S CARRIER ANSWER, WHICH IS `false` — `D-167`, 2026-11-17.**
+// **THE ARCHITECT'S RULING, VERBATIM: *"The clone requirement is for data that has to enter the Rust store.
+// constraints, listeners, and the saveCall do not"*** — and on THIS arm the probe cannot be asked of a carrier at
+// all: **`structuredClone` throws for BOTH a `Proxy` and any object carrying a function** (`D-166` items 1–2,
+// measured: `structuredClone({ saveCall: () => {} })` and `structuredClone(new Proxy({}, {}))` fail identically),
+// **and the carriers the API requires are function-bearing by definition** (`cfg.saveCall`, a listener's
+// `listener`, a constraint's `constraint`). **SO THE DECLARATION IS TAKEN HERE, AT THE BYTE THAT TAKES IT: a
+// `Proxy` at a carrier gate is NOT DETECTED on this arm** — the arm cannot tell one from its lawful carrier, and
+// it chooses the answer that leaves the store constructible over the one that refuses the only store it exists for
+// (`D-154` item 4). **WHAT DOES NOT MOVE IS THE VALUE CROSSING**: the first position above is still the probe, so a
+// `Proxy` handed to a verb as a VALUE is still refused in the declared form with NO TRAP RUN — `DD-34`'s property,
+// kept on the population it is about. **The `false` is a FUNCTION AND NOT AN OMITTED ARGUMENT** on purpose: the
+// setter requires both, so this arm states the answer it takes instead of inheriting a default that means the same
+// thing by accident. The predicate, the declaration and its price are `class-instrument.mjs`'s `isProxyOfCarrier`.
 installClassInstrument((value) => {
   try {
     structuredClone(value);
@@ -92,7 +107,7 @@ installClassInstrument((value) => {
   } catch {
     return true;
   }
-});
+}, () => false);
 
 // ---------------------------------------------------------------------------------------------
 // THE SURFACE — `surface.md §2.9` item 1: the ONE value-level name, `storeCreate`, and NOTHING else.

@@ -8624,3 +8624,30 @@ trigger still read the **mark**, and `docs/specs/storeroom-constraints/contract.
 6. **AND THE CELLS THAT DO NOT NEED IT ARE LANDED AND GREEN**: `C-W2` (the `cfg` domain: `filePath` refused, and the empty seed with it), `C-W4`
    (the entry's graph synchronous, no `node:` specifier anywhere in it), `C-W6` (the eighteen entries, `commitFile` absent, `delete` spelled
    `_delete`) and `D-156`'s own two (the deep clone both ways and a `Proxy` refused with **all eight trap counters at zero**).
+
+---
+
+### `D-167` — THE PROBE IS FOR DATA: THE SEAM HOLDS TWO PREDICATES, AND THE ARM CONSTRUCTS THE STORE IT EXISTS FOR
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `f7f6973`. **SOURCE:** the architect, answering `D-166`. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "The clone requirement is for data that has to enter the Rust store. constraints, listeners, and the saveCall do not"
+
+**STATUS: `ACTIVE`.**
+
+1. **THE SEAM HOLDS TWO PREDICATES.** `isProxyOf` is the **DATA** question — the `structuredClone` probe on the WASM arm, `types.isProxy` on
+   Node — and `isProxyOfCarrier` is the **CARRIER** question, which on Node is also `types.isProxy` (nothing on that arm moves) and on the WASM
+   arm answers **`false`**: **a `Proxy` at a carrier gate is NOT DETECTED on that arm, and that is DECLARED at the predicate's own byte** with
+   the platform's ground (the only distinguishing signal is `structuredClone`, and it cannot tell a `Proxy` from a function-carrying carrier,
+   while the carriers the API requires are function-bearing by definition).
+2. **THE CARRIER GATES MOVED, THE DATA SITES DID NOT** — `cfg` itself through a carrier-shaped sibling (`isPlainObjectCarrier`), `cfg.listeners`,
+   `cfg.constraints`, the two batch walks, and the write's commit record (which carries `write`, a function, by construction).
+3. **AND THE RULING'S OWN SENTENCE CLOSES THE ELEMENT SITES TOO** — *"constraints, listeners … do not"* is read at the ELEMENT and not only at
+   the ARRAY: the listeners element, the constraints element and `isLawfulListenerElement` are carriers, because an element carries the body.
+   **WITH THAT, THE ARM CONSTRUCTS A LISTENERS-BEARING STORE** — driven: `write(['t'],'mem',1)` answers `triggered:
+   [{"handle":"h","address":["t"]}]`, **a registered body FIRES once**, and **an async body settles once**.
+4. **THE ARM IS WHOLE.** The `saveCall` store constructs and saves (`D-166`'s blocker gone), the seeded store reads back, a listeners-bearing store
+   delivers, and the value crossing is untouched: **a `Proxy` at a VALUE is still `ValueRefusedAtBoundary` with all eight trap counters at zero.**
+5. **WHAT IT COSTS, SAID PLAINLY**: on the WASM arm a `Proxy` handed as `cfg` — or as a listeners or constraints batch — is **read** rather than
+   refused-for-being-a-Proxy: its traps run for the reads a construction must make anyway, and a target missing a key is refused for the honest
+   reason. **The loss is bounded by the API's own surface and no wider.**

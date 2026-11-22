@@ -1,6 +1,7 @@
 // =====================================================================================================
 // **`wasm-arm.test.mjs` — THE SECOND REALM, CLAIMED BY CELLS AND NOT ONLY BY A DRIVE** (`D-154`, `D-155`,
-// `D-156`, `D-164`; `docs/L1/wasm-realm.md` §7's `C-W1`, `C-W2`, `C-W4`, `C-W5` and `C-W6`)
+// `D-156`, `D-164`, and — for the two cells that are no longer held out — `D-166` and `D-167`;
+// `docs/L1/wasm-realm.md` §7's `C-W1`, `C-W2`, `C-W4`, `C-W5` and `C-W6`)
 // =====================================================================================================
 //
 // **WHY THIS FILE EXISTS, IN ONE SENTENCE: THE ARM WAS DRIVEN BY HAND IN EVERY REVIEW THAT CLAIMED IT, AND
@@ -92,19 +93,117 @@ function transitiveSet(start) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────────────────────────────
-// **`C-W1` AND `C-W5` ARE HELD OUT, AND THE REASON IS A DEFECT THIS FILE FOUND** (`D-166`).
+// **`C-W1` AND `C-W5` LAND HERE, AND THEIR PROVENANCE IS THE GAP THEY CLOSE** (`D-166` found the defect;
+// `D-167` is the ruling that made them writable): **the cells build the arm themselves** — the module above does,
+// by `scripts/build-wasm-package.mjs`, and fails in words when the toolchain cannot (`P-PUB-7`'s doctrine: no cell
+// here skips) — **and they are the two `docs/L1/publish-readiness.md` §10.2 item 6 named as the last real gap
+// between "the arm works" and "the suite says so"** (`docs/L1/wasm-realm.md` §7's `C-W1` and `C-W5`).
 //
-// **THE ARM CANNOT CONSTRUCT A `saveCall` STORE TODAY**: the class instrument `D-156` chose is `structuredClone`,
-// and `structuredClone` THROWS for BOTH a `Proxy` AND any object carrying a function — measured:
-// `{ saveCall: () => {} }` and `new Proxy({}, {})` fail identically. `cfg.saveCall` is a function by
-// definition, and `cfg.listeners[].listener` is too, so **every configuration the arm exists for is refused as
-// if it were a Proxy**: `storeCreate(bindings, { journalLength, listeners: [], saveCall })` answers
-// `AddressMalformed` — *"'cfg' is not a legal address segment in '', … the construction's cfg is a Proxy"*.
-//
-// **SO `C-W1` (construct · file tier · save through `saveCall` · seed through `initialImage` · read back), `C-W5`
-// (the `file` tier with no caller spelling) AND ANY SEEDED STORE CANNOT BE WRITTEN HONESTLY YET** — a cell asserting the
-// refusal would encode a defect as the design, and a cell asserting the construction would be red. **They land
-// with `D-166`'s fix, which is the instrument's own question and the architect's.**
+// **THEY WERE HELD OUT FOR ONE REASON AND IT IS DISCHARGED AT ITS OWN SEAT.** The arm's class instrument is
+// `structuredClone` (`D-156`), and `structuredClone` throws for BOTH a `Proxy` AND any object carrying a function
+// (`{ saveCall: () => {} }` and `new Proxy({}, {})` fail identically, `D-166` item 1, measured) — so every `cfg`
+// the arm exists for was refused as *"a Proxy"* before any of it could be constructed, and **a cell asserting that
+// refusal would have encoded a defect as the design**. **The fix is the architect's and it splits the question**
+// (`D-167`, verbatim: *"The clone requirement is for data that has to enter the Rust store. constraints,
+// listeners, and the saveCall do not"*): the carrier gates are decided without the probe, the value crossing keeps
+// it. **THE PRICE IS DECLARED WHERE IT IS TAKEN** (`class-instrument.mjs`'s `isProxyOfCarrier`): a `Proxy` at a
+// carrier gate is not detected on this arm — and `CW-7` below is the cell that says the DATA half is unmoved.
+
+// ─────────────────────────────────────────────────────────────────────────────────────────────────────
+// **`C-W1` · THE ARM CONSTRUCTS THE STORE IT EXISTS FOR — `saveCall` IN, THE IMAGE OUT, THE IMAGE BACK IN**
+// ─────────────────────────────────────────────────────────────────────────────────────────────────────
+test('CW-1 · C-W1 — a `saveCall` store constructs, its `file`-tier write lands, the caller\'s saver takes the image '
+  + 'text naming the address, and a second store seeded with that image reads the value back', async () => {
+  const { glue, storeCreate } = await arm();
+  /** Every image the caller's saver was handed, in the order the store handed them over (`D-144` item 1: ONE position). */
+  const saved = [];
+  // **THE CONSTRUCTION IS THE ONE `D-166` MEASURED AS REFUSED** — `journalLength`, an empty listeners list and a
+  // `saveCall`, and no `filePath` (it is not in domain on this arm, `C-W2` above) — **and on this arm it is the
+  // whole of a durable store** (`D-154` item 4: `saveCall` + `initialImage` replace the path).
+  const store = storeCreate(glue, {
+    journalLength: 8,
+    listeners: [],
+    saveCall: (image) => {
+      saved.push(image);
+      // **THE VERDICT IS THE CALLER'S AND IT IS THE ONLY ONE THAT SAVES** (`D-146` item 2): anything that is not
+      // `{ success: true }` is the failed arm, the store rolls the write back and answers rank `15`
+      // `FileCommitFailed`. A cell that returned `undefined` here would drive the other arm and assert nothing.
+      return { success: true };
+    },
+  });
+  // **A FIFTEEN-MEMBER STORE** — `surface.md §2.4` item 9 (f)'s declared census, unmoved by the second realm and
+  // unmoved by this landing (`D-167` adds no member, no `cfg` key and no entry).
+  assert.equal(Object.getOwnPropertyNames(store).length, 15,
+    'the arm constructs the store the whole realm exists for: `saveCall` with no path, and the instance carries the '
+    + 'fifteen declared members — it read ' + JSON.stringify(Object.getOwnPropertyNames(store)));
+
+  // **A `file`-TIER WRITE LANDS.** On this arm there is no `filePath` to write to; the tier is lawful because the
+  // construction set `durable_without_path` with no caller spelling (`D-132` item 1's third entry condition).
+  const receipt = store.write(['c'], 'file', { a: 1 });
+  assert.equal(receipt.op.tier, 'file',
+    'the `file`-tier write LANDS on a `saveCall` store — the receipt\'s own op reads tier ' + JSON.stringify(receipt.op.tier));
+  assert.deepEqual(store.read(['c']), { a: 1 }, 'and the value is readable at its address afterwards');
+
+  // **THE CALLER'S SAVER RECEIVES THE IMAGE, AS TEXT, NAMING THE ADDRESS** (`D-144` item 1: one position; `D-137`
+  // item 2: the export marks nothing).
+  assert.equal(saved.length, 1, 'the passing write performed ONE save through the caller\'s function — it performed '
+    + saved.length);
+  const image = saved[0];
+  assert.equal(typeof image, 'string',
+    'the saver is handed the store\'s own IMAGE TEXT and never a record, a handle or a view — it was handed '
+    + (typeof image));
+  assert.ok(image.includes('c'),
+    'and the text names the address that moved: the image reads ' + JSON.stringify(image).slice(0, 160));
+
+  // **AND A SECOND STORE SEEDED WITH THAT IMAGE READS THE VALUE BACK** — `initialImage` is the only way into such a
+  // store (`D-165` item 1: the save channel is write-only by construction, so the copy the caller kept IS the
+  // ground truth, and this is the act that proves the copy is a lawful seed).
+  const seeded = storeCreate(glue, { journalLength: 8, listeners: [], initialImage: image });
+  assert.deepEqual(seeded.read(['c']), { a: 1 },
+    'the image the caller was handed SEEDS a store: the value the first store held is the value the second one reads');
+});
+
+// ─────────────────────────────────────────────────────────────────────────────────────────────────────
+// **`C-W5` · THE `file` TIER IS A FACT ABOUT THE CONSTRUCTION AND NOT ABOUT THE VERB**
+// ─────────────────────────────────────────────────────────────────────────────────────────────────────
+test('CW-5 · C-W5 — the same `file`-tier write lands on a `saveCall` store and is refused on a store with neither '
+  + '`saveCall` nor a path, so the tier is the construction\'s and not the verb\'s', async () => {
+  const { glue, storeCreate } = await arm();
+
+  // **ARM ONE: THE `saveCall` STORE.** The same construction `C-W1` drives, and the register it produces reads
+  // `file` — which is `docs/L1/wasm-realm.md` §3's coherence claim read at its own byte.
+  const saved = [];
+  const durable = storeCreate(glue, {
+    journalLength: 8,
+    listeners: [],
+    saveCall: (image) => { saved.push(image); return { success: true }; },
+  });
+  const durableWrite = attempt(() => durable.write(['t'], 'file', 1));
+  assert.equal(durableWrite.ok, true,
+    'a `file`-tier write lands on a `saveCall` store — it threw '
+    + (durableWrite.ok ? 'nothing' : String(durableWrite.caught?.status)));
+  assert.equal(durableWrite.value.op.tier, 'file', 'and its receipt names the tier the store is in');
+  // **AND THE READOUT IS THE STORE'S OWN** (`readTiered`): a leaf at a `file`-tier address answers its tier beside
+  // its value, so the claim is read at the datum and not inferred from the verb that wrote it.
+  assert.deepEqual(durable.readTiered(['t']), { _tier: 'file', value: 1 },
+    'the register itself reads `file` tier at the address — `file_path == \'\'` with the tier bit set by the '
+    + 'construction, no caller spelling anywhere (`D-132` item 1, third entry condition)');
+
+  // **ARM TWO: NEITHER `saveCall` NOR A PATH — THE `mem` STORE.** The SAME VERB, the SAME POSITIONS, the SAME TIER
+  // WORD, and the answer is the store's refusal: **a child anchor may not outrank its parent's tier**
+  // (`ParentAnchorMonotonicityViolation`), which is what a `file`-tier write asks of a `mem` store and gets.
+  const plain = storeCreate(glue, { journalLength: 8, listeners: [] });
+  const plainWrite = attempt(() => plain.write(['t'], 'file', 1));
+  assert.equal(plainWrite.ok, false, 'the identical write on a store with neither `saveCall` nor a path does NOT land');
+  assert.equal(statusOf(plainWrite), 'ParentAnchorMonotonicityViolation',
+    'and it answers the store\'s own declared refusal for a child anchor outranking its parent — not a package '
+    + 'code and not a host error: ' + statusOf(plainWrite));
+
+  // **SO THE TIER IS THE CONSTRUCTION'S.** One verb, two stores, two answers: the difference is what the caller
+  // spelled at `storeCreate` and nothing the write did.
+  assert.equal(saved.length, 1, 'and the durable store is the one that saved — the `mem` store performed no save '
+    + 'at all: ' + saved.length);
+});
 
 // ─────────────────────────────────────────────────────────────────────────────────────────────────────
 // **`C-W2` · THE ARM'S `cfg` DOMAIN — `filePath` IS NOT IN DOMAIN, AND THE EMPTY SEED IS REFUSED**

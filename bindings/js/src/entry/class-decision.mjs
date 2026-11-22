@@ -8,7 +8,16 @@
 // `structuredClone` while **the ANSWER does not move** (`D-156` item 1: the refusal stays rank-neutral and
 // class-for-class what this arm answers). **NO DECISION, NO ORDER AND NO ANSWER OF THIS FILE MOVES** — only the
 // predicate's name and its home.
-import { isProxyOf } from './class-instrument.mjs';
+// **⟶ AND THE CARRIER PREDICATE JOINS THE IMPORT FROM 2026-11-17 — `D-167`.** `class-instrument.mjs` holds two
+// answers now: `isProxyOf` is THE DATA QUESTION (*does this value enter the Rust store?* — the `structuredClone`
+// probe on the WASM arm) and `isProxyOfCarrier` is THE CARRIER QUESTION (*is this the package's own `cfg` /
+// listeners / constraints carrier?* — `false` on that arm, with the declaration at the predicate itself).
+// **EVERY `isProxyOf` SITE BELOW KEEPS ITS ANSWER BYTE-FOR-BYTE**: each is about a value's class or a value's
+// PROTOTYPE LINK, and a link is data. **THE CARRIER ANSWER IS TAKEN BY ONE PREDICATE AND ONE ONLY** —
+// `isPlainObjectCarrier` below, the carrier-shaped sibling of `isPlainObjectValue`, whose one reader is
+// `frame.mjs`'s `encodeConfig`. **The split cannot live inside the shared predicate** (`isPlainObjectValue`
+// classifies both carriers and values), so it lives at the call.
+import { isProxyOf, isProxyOfCarrier } from './class-instrument.mjs';
 import { boundaryReject } from './addon-slot.mjs';
 import { appendOwn } from './refusal.mjs';
 
@@ -295,7 +304,15 @@ function referenceSet(standardMembers, liveCensus, allowance) {
 /// reached.** Where a spend is refused this predicate answers `false`, i.e. **"not a standard shape"**: the
 /// conservative direction, since the class answer is `'class'` and the render guard keeps walking instead of
 /// exempting a link whose census it could not pay for.
-function isStandardObjectPrototype(proto, allowance) {
+/// **⟶ AND WHICH PREDICATE THE LINK IS ASKED OF IS THE CALLER'S FROM 2026-11-17 — `D-167`.** The link test is
+/// `linkInstrument`'s answer, **defaulting to `isProxyOf`, so every existing caller is byte-unmoved**; the carrier
+/// sibling below passes `isProxyOfCarrier` instead, because the object whose prototype link is being read THERE is
+/// the package's `cfg` and not a value (the split lives at the call and this is the one place the call has to
+/// reach one link deeper). **ON THE NODE ARM THE TWO ARE THE SAME FUNCTION, so the parameter moves nothing there;
+/// on the WASM arm it is the whole of what makes the carrier gate answer "not a `Proxy`" without reading a member
+/// the API does not declare** — the declaration and its price are at `class-instrument.mjs`'s
+/// `isProxyOfCarrier`.
+function isStandardObjectPrototype(proto, allowance, linkInstrument = isProxyOf) {
   if (proto === null) return false;
   // **⟶ `contract.md §2`'s clause of 2026-10-24 on `F-RA-12`, item `(6)(a)`: A PROTOTYPE LINK THAT IS A
   // `Proxy` — INCLUDING A REVOKED ONE — IS `false`, WITH NO TRAP RUN AND BEFORE ANY CENSUS READ OF IT.** A
@@ -305,7 +322,7 @@ function isStandardObjectPrototype(proto, allowance) {
   // and invokes no handler, and a shape the package may not read is not a shape the value carries. **THE
   // GROUND IS `§1`'s OWN** — this guard covers `protoClass`'s whole census path, `arrayClass`'s chain link
   // and `isLanguageStandardPrototype`'s `above` read, so no limb and no conversion test reads a proxy link.
-  if (isProxyOf(proto)) return false;
+  if (linkInstrument(proto)) return false;
   let names;
   try {
     if (!spendGuardRead(allowance, 1)) return false; // ONE `getPrototypeOf` CALL — item `(4c)(ii)`
@@ -360,10 +377,17 @@ function isStandardObjectPrototype(proto, allowance) {
 /// admitted, and unmoved by this clause — and `proto === Object.prototype ? 'plain' : 'foreign'` LABELS an
 /// admitted value's classification and decides NO admission (`§1`'s item `(5)`); a verdict that turned on it
 /// would be the removed test under another name.
-export function protoClass(value) {
+/// **⟶ AND ITS LINK TEST IS A PARAMETER FROM 2026-11-17 (`D-167`), DEFAULTING TO `isProxyOf`** — the data
+/// question, which is what every existing caller asks. `isPlainObjectCarrier` below — the one carrier-shaped
+/// reader — passes `isProxyOfCarrier`, so the object whose link is read there is classified as the carrier it is
+/// and not as a value. **NO CENSUS, NO TERMINALITY TEST AND NO `'class'` ANSWER MOVES**: only which predicate is
+/// asked of the one link.
+export function protoClass(value, linkInstrument = isProxyOf) {
   const proto = Object.getPrototypeOf(value);
   if (proto === null) return 'null';
-  return isStandardObjectPrototype(proto) ? (proto === Object.prototype ? 'plain' : 'foreign') : 'class';
+  return isStandardObjectPrototype(proto, undefined, linkInstrument)
+    ? (proto === Object.prototype ? 'plain' : 'foreign')
+    : 'class';
 }
 
 /// `crossing.md §1.4` item 4 (c), (d) and item 1: an own ACCESSOR, or an own `Symbol`-keyed property,
@@ -502,6 +526,37 @@ export function isPlainObjectValue(value) {
   if (value === null || typeof value !== 'object') return false;
   if (Array.isArray(value) || isProxyOf(value)) return false;
   return protoClass(value) !== 'class';
+}
+
+/// **⟶ THE CARRIER-SHAPED SIBLING — `D-167`, ADDED 2026-11-17. THE SAME PREDICATE WITH THE ONE PREDICATE MOVED:**
+/// the same own-data census (`Array.isArray`, the prototype-link rule below) and **`isProxyOfCarrier` asked of the
+/// value AND of its link**, where `isPlainObjectValue` above asks `isProxyOf` of both.
+///
+/// **IT EXISTS BECAUSE THE SPLIT CANNOT LIVE INSIDE ITS SIBLING.** `isPlainObjectValue` is SHARED: it classifies
+/// `cfg` (a carrier) at `frame.mjs`'s `encodeConfig` and it classifies values (data) at the verbs' walks, so a
+/// decision taken inside it would move the value crossing with the carrier gate. **THE DECISION IS THEREFORE AT
+/// THE CALL, AND THIS IS THE CALL'S OWN COPY OF IT** — one reader, `frame.mjs`'s `encodeConfig`, and no other.
+///
+/// **WHAT MOVES AND WHAT DOES NOT, ON EACH ARM:**
+///   * **On the Node arm: NOTHING.** `isProxyOfCarrier` is `types.isProxy` there — precise, handler-free, exact —
+///     so this predicate answers byte-for-byte what its sibling answers, and every Node cell that hands a `Proxy`
+///     a `cfg` keeps its refusal, its form and its message (`NG-JS-*`, `F-RA-12`, `DD-34`).
+///   * **On the WASM arm: THE ONE THING THAT LETS THE ARM CONSTRUCT A STORE.** The sibling's `isProxyOf` is
+///     `structuredClone`, which throws for BOTH a `Proxy` AND any object carrying a function — and `cfg` carries
+///     functions by definition (`cfg.saveCall`, a listener's `listener`, a constraint's `constraint`) — so the
+///     shared predicate refused every `cfg` the arm exists for (`D-166`, measured: `storeCreate(bindings,
+///     { journalLength, listeners: [], saveCall })` answered `AddressMalformed`). **`isProxyOfCarrier` answers
+///     `false` for every value there, and the declaration and its price are stated at that predicate**
+///     (`class-instrument.mjs`): **a `Proxy` at a carrier gate is NOT DETECTED on that arm.**
+///
+/// **THE CENSUS IS THE SIBLING'S AND IS NOT RE-DERIVED**: `null` and every non-object `false` · an `Array`
+/// `false` · the value's class through the SAME `protoClass` link rule · a class instance or another
+/// prototype-carrying object `false` (`§1.4` item 4 (e)–(g)). **No member is read, no accessor runs and no
+/// `Object.keys` is taken here** — the `cfg` gate's own reads happen after it, by `Object.hasOwn` (`A76`/`JS-5`).
+export function isPlainObjectCarrier(value) {
+  if (value === null || typeof value !== 'object') return false;
+  if (Array.isArray(value) || isProxyOfCarrier(value)) return false;
+  return protoClass(value, isProxyOfCarrier) !== 'class';
 }
 
 /// **THE CLASS THAT FAILED, SPELLED FOR THE VERBOSE REJECTION** (`A76`: *"the rejection names the failing
@@ -1216,7 +1271,7 @@ export function inDomainAddress(address) {
 
 /// **AND THE SEEDING PREDICATE IS THAT ONE PREDICATE** — the entry's own four tests, taken together.
 export function isLawfulListenerElement(entry) {
-  if (!isPlainObjectValue(entry) || !Object.hasOwn(entry, 'address') || !Object.hasOwn(entry, 'handle')) return false;
+  if (!isPlainObjectCarrier(entry) || !Object.hasOwn(entry, 'address') || !Object.hasOwn(entry, 'handle')) return false;
   if (typeof entry.handle !== 'string' || entry.handle === '') return false;
   return inDomainAddress(entry.address);
 }

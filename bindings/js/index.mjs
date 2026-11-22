@@ -138,8 +138,19 @@ adoptModuleContext(import.meta.url, require_, ADDON_PATH);
 // deliberately**: the other arm, refusing everything, refuses every value's prototype link, so no value crosses and
 // no store can be constructed at all. **The entry's installation is therefore the thing that closes the gap, and it
 // happens at the module's own evaluation, before any verb and before any part classifies anything.**
+//
+// **⟶ AND THE SETTER TAKES BOTH PREDICATES FROM 2026-11-17 — `D-167`.** The seam holds two questions now — the DATA
+// one (`isProxyOf`: *does this value enter the Rust store?*) and the CARRIER one (`isProxyOfCarrier`: *is this the
+// package's own `cfg`/listeners/constraints/commit carrier?*) — and **THE NODE ARM'S ANSWER TO BOTH IS
+// `types.isProxy`, WHICH IS WHY THIS LINE CHANGES BY ONE ARGUMENT AND NOTHING ON THIS ARM MOVES BY A BYTE**: that
+// predicate is precise here (it reads the exotic object's own internal slot, invokes no handler and throws for
+// nothing), so every `Proxy` a carrier gate refused before this line changed is still refused, in the same form
+// with the same message. **WHAT THE SECOND ARGUMENT BUYS IS NOTHING ON THIS ARM AND EVERYTHING ON THE OTHER**: it
+// is the arm whose probe cannot answer the carrier question that must be able to answer it differently, and **an
+// entry that installed only the data instrument would leave `isProxyOfCarrier` at its `false` default HERE, which is
+// a silent loss of `DD-34` at every carrier gate** — so the setter requires both and this line passes both.
 // ---------------------------------------------------------------------------------------------
-installClassInstrument((value) => types.isProxy(value));
+installClassInstrument((value) => types.isProxy(value), (value) => types.isProxy(value));
 
 
 // ---------------------------------------------------------------------------------------------

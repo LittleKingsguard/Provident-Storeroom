@@ -8,17 +8,45 @@
 // `structuredClone` while **the ANSWER does not move** (`D-156` item 1: the refusal stays rank-neutral and
 // class-for-class what this arm answers). **NO DECISION, NO ORDER AND NO ANSWER OF THIS FILE MOVES** — only the
 // predicate's name and its home.
-import { isProxyOf } from './class-instrument.mjs';
+// **⟶ AND THE CARRIER PREDICATE BESIDE IT FROM 2026-11-17 — `D-167`.** **THE ARCHITECT, VERBATIM: *"The clone
+// requirement is for data that has to enter the Rust store. constraints, listeners, and the saveCall do not"*** —
+// so **the six gates in this file whose subject is the package's own CARRIER take `isProxyOfCarrier`** — named by
+// FUNCTION and not by line, because this paragraph moves the lines: **the `listeners` array in `encodeListeners` ·
+// the `constraints` array in `encodeConstraints` · the two reads `admittedConstraintBatch` takes of them ·
+// `admittedListenerBatch`'s one · and `cfg` ITSELF at `encodeConfig`'s class gate, through
+// `isPlainObjectCarrier`**, the carrier-shaped sibling of `isPlainObjectValue`, which cannot carry the split
+// because it classifies values too. **EVERY OTHER `isProxyOf` SITE IN THIS FILE IS DATA AND IS UNMOVED**:
+// `constraintAddress`'s address is a value the store resolves and it keeps the probe. **ON THE NODE ARM NOTHING
+// MOVES AT ALL** — `isProxyOfCarrier` IS `types.isProxy` there, so every `Proxy` this file refused it still
+// refuses, in the same form with the same message; **on the WASM arm this is what lets the arm construct a store at
+// all** (`D-166`: `cfg` carries functions by definition and the probe cannot tell a function from a `Proxy`), and
+// the price is declared at `class-instrument.mjs`'s `isProxyOfCarrier`.
+//
+// **★ AND THE TWO `isPlainObjectValue` SITES THAT CLASSIFY ONE LISTENERS OR CONSTRAINTS ENTRY — `encodeListeners`'S
+// ELEMENT TEST AND `constraintEntry` — ARE NOT MOVED BY THIS ROW: A DECLARED RESIDUE AND NOT AN OVERSIGHT.** A `listeners`
+// entry carries `listener` and a `constraints` entry carries `constraint`, so each is a carrier that stays in the
+// package exactly as its array does, and on the WASM arm those two sites still ask the probe and refuse a `cfg`
+// that carries a **batch**: `isPlainObjectValue(entry)` → `isProxyOf(entry)` → `structuredClone` throws on the
+// function member → *"not a plain object"* → `AddressMalformed`, with `cfg`'s own gate now passed. **What this row
+// does construct on that arm is the `saveCall` store `D-166` found it could not** — the configuration the arm exists
+// for (`D-154` item 4) — **and closing the elements is the same one-line move at each site that the sibling above
+// makes possible, which is a ruling this row does not take and names rather than takes.**
+import { isProxyOf, isProxyOfCarrier } from './class-instrument.mjs';
 import { boundaryReject } from './addon-slot.mjs';
 import { appendOwn } from './refusal.mjs';
 import { addressSpelling } from './kernel-foundations.mjs';
-import { arrayClass, classSpelling, hasLoneSurrogate, isAdmittedArray, isLawfulListenerElement, isPlainObjectValue, valueTargetSpelling } from './class-decision.mjs';
+import { arrayClass, classSpelling, hasLoneSurrogate, isAdmittedArray, isLawfulListenerElement, isPlainObjectCarrier, isPlainObjectValue, valueTargetSpelling } from './class-decision.mjs';
 import { encodeAddress, encodeFilePath, encodeJournalLength } from './carrier.mjs';
 
 function encodeListeners(listeners) {
   if (listeners === undefined) return undefined;
   if (listeners === null) return null;
-  if (isProxyOf(listeners)) return { bad: 'non-array' }; // row 3: not the array's shape (`DD-34`)
+  // **⟶ `isProxyOfCarrier` FROM 2026-11-17 (`D-167`): `cfg.listeners` IS A CARRIER, NOT DATA.** The ruling,
+  // verbatim: *"constraints, listeners, and the saveCall do not"* [enter the Rust store] — so the probe that
+  // decides what may CROSS is not asked of this list. **THE ANSWER, THE ORDER AND THE `{bad: 'non-array'}` ARM DO
+  // NOT MOVE**: on the Node arm the two predicates are the same function, and on the WASM arm this is the gate
+  // that stopped a lawful `listeners` list being read as *"a Proxy"* because its elements carry functions.
+  if (isProxyOfCarrier(listeners)) return { bad: 'non-array' }; // row 3: not the array's shape (`DD-34`)
   if (!Array.isArray(listeners)) return { bad: 'non-array' };
   if (arrayClass(listeners) === 'class') return { bad: 'non-array' }; // `JS-2`: a class extending `Array`
   // **⟶ AND THE LIST IS WALKED BY A LOCAL INDEX LOOP, NOT BY `Array.prototype.map`** (`contract.md §2.1`'s
@@ -30,7 +58,7 @@ function encodeListeners(listeners) {
   const encoded = [];
   for (let position = 0; position < listeners.length; position += 1) {
     const entry = listeners[position];
-    if (!isPlainObjectValue(entry)) {
+    if (!isPlainObjectCarrier(entry)) {
       // **⟶ AND THE SENTENCE NAMES THE SHAPE THIS UNIT ACTUALLY ADMITS — GATE 4's FINDING, 2026-11-11.** The
       // message read *"an entry is a plain `{ address, handle }` record"* and told a consumer the very shape the
       // projection at the foot of this loop REFUSES (two own keys where three are required) — `PIN-8`'s third
@@ -84,7 +112,10 @@ function encodeListeners(listeners) {
 function encodeConstraints(constraints) {
   if (constraints === undefined) return undefined;
   if (constraints === null) return null;
-  if (isProxyOf(constraints)) return { bad: 'non-array' }; // `DD-34`'s class order, taken first
+  // **⟶ AND THE FOURTH KEY'S LIST IS A CARRIER TOO FROM 2026-11-17 (`D-167`)** — *"constraints … do not"* [enter
+  // the Rust store] — so the SAME predicate takes it, at the SAME position, answering the same arm. `DD-34`'s class
+  // order is unmoved: the class decision is still taken first, on the value as it is.
+  if (isProxyOfCarrier(constraints)) return { bad: 'non-array' }; // `DD-34`'s class order, taken first
   if (!Array.isArray(constraints)) return { bad: 'non-array' };
   if (arrayClass(constraints) === 'class') return { bad: 'non-array' };
   // **⟶ AND THE FOURTH KEY'S OWN WALK IS A LOCAL INDEX LOOP, NOT `Array.prototype.map`** (`contract.md §2.1`'s
@@ -113,7 +144,7 @@ function encodeConstraints(constraints) {
 /// printed bare.
 function constraintEntry(entry, position) {
   const where = `the constraint entry at position ${position}`;
-  if (!isPlainObjectValue(entry)) return { bad: 'element', subject: where };
+  if (!isPlainObjectCarrier(entry)) return { bad: 'element', subject: where };
   if (!Object.hasOwn(entry, 'address') || entry.address === undefined) {
     return { bad: 'element', subject: where };
   }
@@ -210,7 +241,19 @@ export function spellConstraintAddress(segments) {
 /// prototype-carrying object or a class instance, whose inherited keys the shipped `in`-test read as
 /// PRESENT (`JS-5`).**
 export function encodeConfig(cfg) {
-  if (!isPlainObjectValue(cfg)) {
+  // **⟶ AND `cfg` ITSELF IS THE CARRIER THE WHOLE ROW IS ABOUT — `D-167`, 2026-11-17.** `cfg` is not a value that
+  // crosses: it is the package's own configuration, and `saveCall`/`listener`/`constraint` are functions it carries
+  // BY THE API'S OWN DEFINITION. **So the class gate asks the carrier-shaped sibling**, `isPlainObjectCarrier` —
+  // the same own-data census and the same prototype-link rule, with `isProxyOfCarrier` at the value and at the
+  // link — and **`isPlainObjectValue` STAYS WHAT IT IS AND WHERE IT IS** (`:33`, `:116`), because it classifies
+  // values too and a decision inside it would move the value crossing with this gate. **ON THE NODE ARM THIS IS
+  // THE SAME ANSWER THE SHIPPED BYTE GAVE**, byte for byte: `types.isProxy` is both predicates there, so every
+  // `Proxy` this gate refused it still refuses with the same message. **ON THE WASM ARM IT IS THE LINE THAT LETS
+  // THE ARM CONSTRUCT ANY STORE AT ALL** (`D-166` item 2: `structuredClone({ saveCall: () => {} })` and
+  // `structuredClone(new Proxy({}, {}))` fail identically, so the probe read every `saveCall` `cfg` as *"a Proxy"*
+  // and answered `AddressMalformed`) — and the price, a `Proxy` at a carrier gate being UNDETECTED there, is
+  // declared at the predicate that takes it (`class-instrument.mjs`).
+  if (!isPlainObjectCarrier(cfg)) {
     boundaryReject(
       'AddressMalformed', // `PAR-JS-1`'s declared answer for every outside form of `cfg`, carried — **AND THE MESSAGE BELOW IS RE-SPELLED IN PLACE, 2026-10-16: *"carrying the store's three declared keys"* READS *"carrying the store's four declared keys"*, THE COUNT ALONE MOVING, because the set is `filePath` · `journalLength` · `listeners` · `constraints` (`§2.1`'s `cfg` block and dated clause, both of 2026-10-15), because the sentence's subject is the `cfg` CARRIER CLASS and NEVER a caller obligation (a CALLER-SUPPLIED key BEYOND the four is still IGNORED and never refused, `contract.md §7.1` — no semantics and no refusal path moves with the word), and because NOTHING PINNED THE OLD WORDING: no clause of `docs/specs/**` declares this message's figure and no test reads it — the drives read the TARGET `cfg` and the CLASS that failed (`negative-generators.test.mjs` · `registry.test.mjs`) — so it was ordinary prose written when the count was three and NOT a clause's own byte.**
       'cfg',
@@ -326,12 +369,14 @@ export function admittedConstraintBatch(cfg) {
   const admitted = [];
   const constraints = cfg.constraints;
   if (constraints === undefined || constraints === null) return admitted;
-  if (isProxyOf(constraints) || !isAdmittedArray(constraints)) return admitted;
+  // **⟶ AND THIS READ IS THE CARRIER PREDICATE FROM 2026-11-17 (`D-167`)**, for the reason `encodeConstraints`
+  // states one layer down: the batch is the package's carrier and it never crosses.
+  if (isProxyOfCarrier(constraints) || !isAdmittedArray(constraints)) return admitted;
   // ── THE SUPPLIED LISTENER HANDLES, AND THE ADDRESS EACH IS ADOPTED AT (for `B-3`'s message) ────────────
   const adoptedHandles = [];
   const adoptedAddresses = [];
   if (cfg.listeners !== undefined && cfg.listeners !== null
-    && !isProxyOf(cfg.listeners) && isAdmittedArray(cfg.listeners)) {
+    && !isProxyOfCarrier(cfg.listeners) && isAdmittedArray(cfg.listeners)) {  // `D-167`: a carrier read
     for (let i = 0; i < cfg.listeners.length; i += 1) {
       const entry = cfg.listeners[i];
       if (!isLawfulListenerElement(entry)) continue;
@@ -454,7 +499,7 @@ export function admittedListenerBatch(cfg) {
   const admitted = [];
   const listeners = cfg === null || typeof cfg !== 'object' ? undefined : cfg.listeners;
   if (listeners === undefined || listeners === null) return admitted;
-  if (isProxyOf(listeners) || !isAdmittedArray(listeners)) return admitted;
+  if (isProxyOfCarrier(listeners) || !isAdmittedArray(listeners)) return admitted;  // `D-167`: a carrier read
   for (let position = 0; position < listeners.length; position += 1) {
     const entry = listeners[position];
     // THE STORE'S OWN ADMISSION KEEPS ITS SUBJECT — an element the encoder or the store refuses is skipped and

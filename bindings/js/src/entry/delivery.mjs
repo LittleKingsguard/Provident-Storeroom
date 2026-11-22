@@ -8,7 +8,26 @@
 // `structuredClone` while **the ANSWER does not move** (`D-156` item 1: the refusal stays rank-neutral and
 // class-for-class what this arm answers). **NO DECISION, NO ORDER AND NO ANSWER OF THIS FILE MOVES** — only the
 // predicate's name and its home.
-import { isProxyOf } from './class-instrument.mjs';
+// **⟶ AND THE CARRIER PREDICATE IS THE ONE THIS FILE TAKES, FROM 2026-11-17 — `D-167`.** **BOTH OF THIS FILE'S
+// `Proxy` SITES ARE CARRIER GATES AND NEITHER IS DATA**: the write's fourth position (`commitPositionRefusal` —
+// the site the ruling's classification censuses as `delivery.mjs:53`) and the terminal arm's record (`terminalArm`
+// — its `:1171`) are the COMMIT RECORD: the package's own bookkeeping, which never enters the Rust store. **THOSE
+// TWO LINE NUMBERS ARE THE RULING'S CITED POSITIONS AND NOT THIS FILE'S, BECAUSE THIS PARAGRAPH MOVES THE LINES
+// BELOW THEM.** **THE RULE THE RULING GIVES, APPLIED AT EACH SITE, IS *"CAN THIS
+// RECORD CARRY A FUNCTION? IF IT CAN, IT IS A CARRIER"***, and the answer at the fourth position is measured, not argued: **the
+// repair's own context is the shape the API HANDS THAT POSITION** — `store.write(address, tier, value, context)`,
+// the route `§2.11` clause 6 declares and `tests/e2e/blind-defect-cases.test.mjs:197` drives — and
+// `kernel-registration.mjs`'s `registrationRepairContext` carries `write: registrationRoute(...)`, **a function, as
+// its seventh member**. So a lawful commit record carries a function by construction, `structuredClone` throws on
+// it, and the probe would have refused the repair's own write as *"a Proxy"* on the WASM arm. **AT `:1171` the
+// record carries no function today** — `CommitRecord` is four members and its `attempt` is `AttemptRef { id }`
+// (`index.d.ts`), so the probe answers `false` there and the two predicates agree — **and it is still a carrier by
+// the same rule, because it is the package's own record and not data the store holds**; the switch is therefore
+// behaviourally inert on both arms there, which is the honest reading and is stated rather than dressed up.
+// **ON THE NODE ARM BOTH SWITCHES ARE INERT TOO**: `isProxyOfCarrier` IS `types.isProxy`, so every `Proxy` these
+// two sites refuse is still refused, in the same form with the same message
+// (`tests/e2e/repair-in-commit.test.mjs`'s `Proxy` row and `tests/e2e/file-tier-save-properties.test.mjs`'s).
+import { isProxyOfCarrier } from './class-instrument.mjs';
 import { appendOwn, fail, refusalAddress, refusalLog } from './refusal.mjs';
 import { withAddon, boundaryReject } from './addon-slot.mjs';
 import { arrayClass, classSpelling, hasLoneSurrogate, isPlainObjectValue, targetSpelling } from './class-decision.mjs';
@@ -50,7 +69,11 @@ export function commitPositionRefusal(commit) {
     // **A `Proxy` IS OUTSIDE THE POSITION'S DOMAIN** (`§2.20`'s outside-value row) and is refused BEFORE a
     // member is read from it, so a `get` trap is never raised — the class order `encodeAddress` and
     // `encodeTier` already take at their own carriers (`A76`/`JS-2`).
-    if (!isProxyOf(commit) && !Array.isArray(commit)) {
+    // **⟶ AND THE PREDICATE IS THE CARRIER'S FROM 2026-11-17 (`D-167`)**: this record is the package's own, it
+    // never crosses, and it carries a function whenever it is a repair's context (`write`). **The arm, the order,
+    // the refusal and the sentence do not move** — on the Node arm the answer is identical; on the WASM arm the
+    // probe would have refused every repair's own write as *"a Proxy"* and this is the line that stops it.
+    if (!isProxyOfCarrier(commit) && !Array.isArray(commit)) {
       let pending;
       try {
         pending = commit.pending;
@@ -1168,7 +1191,12 @@ export function terminalArm(state, record) {
   // **THE CLASS TEST COMES FIRST AND IS THE ONE THE FIFTH POSITION ALREADY TAKES** (`docs/specs/storeroom-js/surface.md §2.4` item 9 (g) item 1
   // read with `§2.20`): a value carrying no `pending` is no record position, and this channel is the kernel's
   // own — a caller never reaches it. Nothing is changed by a refused value.
-  if (record === null || typeof record !== 'object' || isProxyOf(record) || record.pending === undefined) {
+  // **⟶ AND THE RECORD IS THE CARRIER PREDICATE'S FROM 2026-11-17 (`D-167`)** — the package's own four-member
+  // `CommitRecord`, which carries the delivered set's handles and never enters the store. **Its members are
+  // cloneable today** (`attempt: AttemptRef { id }`, `op`, `triggered[]`, `pending[]`), so this switch answers
+  // exactly what the shipped byte answered on BOTH arms; it is made because the RECORD's class is the carrier's
+  // and not because a measurement moved.
+  if (record === null || typeof record !== 'object' || isProxyOfCarrier(record) || record.pending === undefined) {
     return undefined;
   }
   // ── `docs/specs/storeroom-js/surface.md §2.11` CLAUSE 2: THE TERMINAL ARM'S FIRST ACT, ON THE PASSING ARM ────
