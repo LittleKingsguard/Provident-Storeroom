@@ -18,7 +18,8 @@
 use std::collections::BTreeMap;
 
 use storeroom_native::{
-    storeCreateWithConstraints, AddressArg, BaseState, ConstraintEntry, ConstraintsArg,
+    storeCreateWithInputs, AddressArg, BaseState, ConstraintEntry, ConstraintsArg,
+    DurableWithoutPathArg, InitialImageArg,
     DeleteReceipt, FilePathArg, JournalLengthArg, ListenerEntry, ListenerHandle, ListenerTrigger,
     ListenersArg, OpIdArg, RollbackResult, Segment, Store, StoreConfig, StoreError, StoreValue, Tier,
     TierArg, TierSetItem, WriteResult,
@@ -1022,11 +1023,43 @@ pub fn create_with_constraints(
     cfg: &JsConfig,
     constraints: Option<&JsConstraintsArg>,
 ) -> Result<Instance, Refusal> {
+    create_with_inputs(cfg, constraints, false, None)
+}
+
+/// **⟶ ADDED 2026-11-17 (`U-STOREROOM-03`/`-04`; `D-137` item 3; `D-132` item 1) — THE CONSTRUCTION'S THIRD INPUT,
+/// `durable_without_path`, ARRIVING BESIDE THE DECLARED KEYS.**
+///
+/// **IT IS NOT A `cfg` KEY AND NOTHING OF IT CROSSES FROM `encodeConfig`'S PROJECTION** (`D-137` item 3: *"The caller
+/// spells NOTHING: the PACKAGE sets it when `saveCall` is present and `filePath` is absent"*), so this frame takes it as a
+/// POSITION of the construction and hands the store its own carrier. **THE WIDEST FUNCTION IS THE BODY AND THE NARROWER
+/// ONES ARE ITS DELEGATES** (`create` → `create_with_constraints`), so every existing drive compiles unmoved.
+///
+/// **⟶ AND THE SEED IS THE FOURTH POSITION, 2026-11-17 (`U-STOREROOM-05`; `D-137` item 4; `D-147` items 1–4).** It is
+/// the ONE declared key of this construction that CROSSES as TEXT — `saveCall` is the caller's function and never crosses
+/// — so the package hands the store the caller's `initialImage` VERBATIM and the store decodes it with its tail. **The
+/// absence is the carrier's `Absent` spelling**, and an empty text never reaches this frame: it is refused one layer up,
+/// at `cfg`'s class gate. **No status is minted here** — the store's own decode refuses what is not its image, at rank
+/// `22` `FileImageRefused`.
+pub fn create_with_inputs(
+    cfg: &JsConfig,
+    constraints: Option<&JsConstraintsArg>,
+    durable_without_path: bool,
+    initial_image: Option<&str>,
+) -> Result<Instance, Refusal> {
     let constraints = match constraints {
         Some(c) => to_constraints_arg(c),
         None => ConstraintsArg::Absent,
     };
-    match storeCreateWithConstraints(&to_config(cfg), &constraints) {
+    let durable = if durable_without_path {
+        DurableWithoutPathArg::Set
+    } else {
+        DurableWithoutPathArg::Absent
+    };
+    let seed = match initial_image {
+        Some(text) => InitialImageArg::Text(text.to_string()),
+        None => InitialImageArg::Absent,
+    };
+    match storeCreateWithInputs(&to_config(cfg), &constraints, &durable, &seed) {
         Ok(store) => Ok(Instance {
             store,
             owned: adopted_tokens(cfg),
@@ -1127,6 +1160,29 @@ impl Instance {
     /// store keeps its ONE writer with TWO keys — an op and a state.
     pub fn save_state(&self) -> Result<(), Refusal> {
         self.store.save_state().map_err(refusal)
+    }
+
+    /// **⟶ ADDED 2026-11-17 BY `U-STOREROOM-03` — `exportImage`'s FORWARDING DELEGATE** (`D-133` item 2; `D-137`
+    /// item 2). **It is the store's own `export_image` and nothing else**, at the register's own subject (`&[]`), so the
+    /// image crosses OUT as the store's own text and no value crosses IN. **IT MARKS NOTHING**: the store's method takes
+    /// `&self` and so does this delegate, and the refusal (`FileCommitFailed`, rank `15`) is the writer's own check
+    /// inherited, never a second one.
+    pub fn export_image(&self) -> Result<String, Refusal> {
+        self.store.export_image(&[]).map_err(refusal)
+    }
+
+    /// **⟶ ADDED 2026-11-17 BY `U-STOREROOM-04` — `saveSucceeded`'s FORWARDING DELEGATE** (`D-144` item 6; `D-145`
+    /// item 3). **One line and no declared surface**: the mark the `saveCall` arm owes the once-per-record law, at the op
+    /// the package read off a settled record.
+    pub fn save_succeeded(&mut self, op_id: &str) -> Result<(), Refusal> {
+        self.store.save_succeeded(op_id).map_err(refusal)
+    }
+
+    /// **⟶ ADDED 2026-11-17 BY `U-STOREROOM-04` — `saveFailed`'s FORWARDING DELEGATE, THE MIRROR** (`D-146` item 1).
+    /// **`commit_file`'s failure arm and nothing else** — and no byte, which keeps the store's own writer suppressed on
+    /// this arm (`D-133` item 3) and the journal the STORE's, never the package's.
+    pub fn save_failed(&mut self, op_id: &str) -> Result<(), Refusal> {
+        self.store.save_failed(op_id).map_err(refusal)
     }
 
     /// `§2.2` / `PAR-JS-16`: `delete` — the receipt's `address` VERBATIM and its `tiers` canonical.

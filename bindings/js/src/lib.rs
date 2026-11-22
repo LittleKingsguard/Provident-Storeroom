@@ -14,6 +14,32 @@
 //! the store only through the single path dependency of `§4.2` item 3.
 
 // =================================================================================================
+// ⟶ THE TARGET SPLIT — ADDED 2026-11-17, AND IT IS `docs/L3/wasm-realm/design.md` §2's OWN CLAUSE,
+// VERBATIM: *"`lib.rs` gains a target split the plan did not name: `crossing` stays `pub` and realm-pure;
+// `facade`/`codec` are `#[cfg(not(target_arch = "wasm32"))]`; `wasm` is `#[cfg(target_arch = "wasm32")]`."*
+//
+// **THE DECLARATIONS BELOW ARE THAT SENTENCE READ AT ITS BYTES, AND EACH ONE MOVES NO ITEM**:
+// `crossing` keeps the visibility and the bytes it always had — **the wire model is realm-pure and it is
+// what makes the second claimed realm tractable at all** (`design.md` §1: the instance's fifteen members and
+// `cfg`'s six keys are the package's, so *"the crossing may be shaped freely beneath them"*); `facade` and
+// `codec` keep theirs and gain the `not(wasm32)` predicate, because every byte of both names a Node-API
+// symbol (`facade.rs`'s `#[napi]` entries and `Env`, `codec.rs`'s `napi::bindgen_prelude` imports and its
+// `cast::<…>` sites) and no one of them can compile on an arm that has no Node-API at all.
+//
+// **AND THE PAIR STANDS BESIDE THEM RATHER THAN INSIDE EITHER**: `wasm` is the second realm's `cdylib`
+// half — the six entries of `bindings/js/src/wasm.rs` — and `wasm_codec` is ITS conversion layer, the twin
+// `codec.rs` is the specification of. **`codec`'s visibility ruling CROSSES UNMOVED AND IS RE-STATED RATHER
+// THAN RE-DERIVED**: the conversion layer is an implementation detail of the boundary's own thin frames, so
+// it is `pub(crate)` on both arms and the crate's declared surface is `pub` on exactly the two modules the
+// first paragraph names plus the wasm arm's own entries. **NO RE-EXPORT NAMES A FACADE OR A CODEC SYMBOL**,
+// so the predicate moves no second declaration: this module declares modules and nothing else.
+//
+// **THE NATIVE BUILD IS BYTE-IDENTICAL IN BEHAVIOUR, AND THAT IS THE PREDICATE'S WHOLE CLAIM**: for every
+// target the host compiles, `cfg(not(target_arch = "wasm32"))` is true, so the module set, the item set,
+// the export table and every declared arity are exactly what they were before this clause existed.
+// =================================================================================================
+
+// =================================================================================================
 // THE CRATE'S TWO `allow` ATTRIBUTES, RULED ONE BY ONE AT THE DEAD-SURFACE SWEEP
 // (`docs/open-items-review.md` `§2` row 4's class, swept wide).
 //
@@ -37,7 +63,12 @@
 #![allow(non_snake_case)]
 
 pub mod crossing;
+
+#[cfg(not(target_arch = "wasm32"))]
 pub mod facade;
+
+#[cfg(target_arch = "wasm32")]
+pub mod wasm;
 
 // =================================================================================================
 // `codec` — THE FACADE'S CONVERSION CORE, DECLARED `pub(crate)` AND NOT `pub`
@@ -56,8 +87,36 @@ pub mod facade;
 // `codec` and `codec` imports NOTHING from `facade`** — `NapiRet` alone stayed behind, because the codec
 // never named it; and `crossing.rs` was not touched at all — it is still the pure half, and this crate's
 // dependency on it runs one way.
+//
+// **⟶ AND IT IS NODE-API-BOUND, SO IT IS THE FIRST OF THE TWO MODULES THE `not(wasm32)` PREDICATE NAMES**:
+// its imports are `::napi::bindgen_prelude`'s, its casts are `cast::<…>` at twelve audited `unsafe` sites,
+// and its `Codec` holds an `Env`. The second realm's conversion layer is `wasm_codec`, declared below on the
+// opposite predicate, and **neither arm names the other**.
 // =================================================================================================
+#[cfg(not(target_arch = "wasm32"))]
 pub(crate) mod codec;
+
+// =================================================================================================
+// ⟶ `wasm` AND `wasm_codec` — ADDED 2026-11-17, THE SECOND CLAIMED REALM'S TWO MODULES
+// (`D-154` item 1; `D-155` items 1–3; `docs/L3/wasm-realm/design.md` §§1–4).
+//
+// **`wasm` IS THE ENTRY LAYER, AND ITS FORM IS THE DESIGN'S OWN: FREE FUNCTIONS, EACH TAKING THE HANDLE
+// FIRST** (`design.md` §1's ruling and its three grounds: the receiver is DATA here, a `#[wasm_bindgen]`
+// method called detached raises a raw host `TypeError` where `store_index_of` answers one declared form, and
+// `withAddon()` hands out a module object of free functions). They are `pub` because `#[wasm_bindgen]`'s
+// exports are the artefact's surface, exactly as `facade`'s `pub #[napi]` frames are the first arm's.
+//
+// **`wasm_codec` IS THE CONVERSION LAYER AND ITS VISIBILITY IS `codec`'s OWN RULING, RE-APPLIED**: an
+// implementation detail of the entries' thin frames, reached by them and by no consumer of the crate. **IT
+// IS NOT `pub`, AND THAT IS THE SAME SENTENCE `codec` CARRIES ABOVE** — a `pub(crate)` module crosses the
+// module seam and stops at the crate's edge, so the artefact's export set is the six entries and no item
+// beside them.
+//
+// **THE PAIR SITS ON THE OPPOSITE SIDE OF ONE PREDICATE FROM THE OTHER TWO, AND THE PREDICATE IS THE WHOLE
+// OF THE SPLIT**: `crossing` is on neither side because it is on both.
+// =================================================================================================
+#[cfg(target_arch = "wasm32")]
+pub(crate) mod wasm_codec;
 
 // =================================================================================================
 // THE EXPORT TABLE IS THE LIBRARY'S OWN AND THIS MODULE BUILDS NONE —
@@ -96,4 +155,10 @@ pub(crate) mod codec;
 // **`napi_register_module_v1` REMAINS, AND IT IS THE LIBRARY'S** (`binding-crate-and-abi.md §4` item 1):
 // it is the unavoidable runtime registration symbol, now emitted by `napi-derive` in place of the
 // hand-declared one this module's deleted block used to reach through its hook.
+//
+// **⟶ AND ON THE WASM ARM THE PARAGRAPH ABOVE IS NOT REACHED AT ALL**: `facade` is absent there, so the
+// `#[napi]` collector and `napi_register_module_v1` are absent with it, and the artefact's export set is
+// `#[wasm_bindgen]`'s — **the six entries `wasm.rs` declares and the glue's own `initSync`, and nothing
+// beside them** (`design.md` §6's `18`-name set is the arm's later cut; this slice declares the six the
+// `saveCall` path needs).
 // =================================================================================================

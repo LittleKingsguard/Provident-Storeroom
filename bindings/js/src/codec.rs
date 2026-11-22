@@ -276,7 +276,12 @@ impl<'e> Codec<'e> {
         arg_string(&self.env, &value)
     }
 
-    fn bool_of(&self, value: JsVal<'_>) -> bool {
+    /// **⟶ AND THE CLASS-FIRST BOOLEAN READ LEAVES THIS MODULE'S PRIVACY, 2026-11-17** (`D-137` item 3) — one
+    /// visibility word and no byte of the read itself, taken for the ONE fact the construction's wire carries beyond the
+    /// declared keys: `durable_without_path`, which the facade reads here and hands the crossing as its own position.
+    /// **A value that is not a JS `boolean` answers `false` rather than being coerced**, so a caller-spelled key of that
+    /// name can never be read as the package's own fact.
+    pub(crate) fn bool_of(&self, value: JsVal<'_>) -> bool {
         value.get_type().map(|kind| kind == Kind::Boolean).unwrap_or(false)
             && unsafe { value.cast::<bool>() }.unwrap_or(false)
     }
@@ -838,7 +843,10 @@ impl<'e> Codec<'e> {
         }
     }
 
-    fn string_value(self, text: &str) -> JsVal<'static> {
+    /// **⟶ `pub(crate)`, BECAUSE `facade.rs`'s `exportImage` IS ITS SECOND READER** (`D-137` item 2). The store's
+    /// image text is minted here, at the one accessor `to_js_value`'s own `Str` arm already reads, so nothing new is
+    /// minted for a text-out. **THE WIDENING STOPS AT THE CRATE'S EDGE**: no consumer of this crate can name it.
+    pub(crate) fn string_value(self, text: &str) -> JsVal<'static> {
         make_string(&self.env, text)
     }
 

@@ -245,8 +245,37 @@ export interface StoreConfig {
    * throws there refuses the act at rank `21` `ListenerBodyThrew`.
    */
   readonly listeners: readonly unknown[];
-  /** The file the file tier is backed by, where one is declared (`PAR-JS-2`; ABSENT is in domain). */
+  /**
+   * The file the file tier is backed by, where one is declared (`PAR-JS-2`; ABSENT is in domain).
+   *
+   * **⟦ THIS MEMBER IS THE DECLARATION'S ONE REALM-CONDITIONAL BYTE** (`D-155` item 2; the marker's home is
+   * `docs/L3/wasm-realm/design.md` §6). **THE TWO COMMENT LINES THAT BRACKET THE MEMBER BELOW — both at this
+   * member's own two-space depth, and neither carrying a member's name-and-colon or name-and-paren shape —
+   * DELIMIT THE ONE REGION `scripts/emit-declarations.mjs` READS.** They are comment lines at that depth on
+   * purpose: neither the member read a battery file performs on this interface nor the `StoreStatus` union's
+   * census read can see them, so the marker stands in this file without moving a member census, a status
+   * count or a rank.
+   *
+   * **WHAT THE SCRIPT EMITS FROM THAT REGION: TWO DECLARATIONS, AND NO SECOND HAND-AUTHORED SURFACE.** The
+   * **NODE** arm's declaration is **this file's own bytes with the region unchanged** — the script asserts
+   * that identity byte for byte — and the **WASM** arm's is the same bytes with **exactly the region's body**
+   * replaced by `readonly filePath?: never;`. **So the WASM arm's emission replaces the region's body with
+   * `filePath?: never`** (`D-155` item 2), **and nothing outside the region differs between the two arms.**
+   *
+   * **AND THE MEMBER'S PRESENCE AND ITS OPTIONALITY ARE IDENTICAL ON BOTH ARMS.** `never` narrows the
+   * **value's** type; it does not remove the member, and it does not make the member required — `filePath` is
+   * a DECLARED and OPTIONAL member on either arm, and only a `string` supplied in that position is refused
+   * (as a compile error) on the WASM arm. **That is what keeps `StoreConfig`'s census cell byte-identical
+   * across the arms**: the six members read in the same order with the same optional markers, so one cell
+   * serves both emissions unchanged.
+   *
+   * **THE WASM ARM'S FILE PATH IS NOT DECLARED HERE**: a second package, a second artefact or a subpath is
+   * the publish shape's question (`D-4`; `wasm-realm.md §3(b)`, `SILENT` in this pass), so the script takes
+   * its output directory from its own argument and defaults to a build directory it creates.
+   */
+  // ⟦realm:filePath:begin⟧
   readonly filePath?: string;
+  // ⟦realm:filePath:end⟧
   /**
    * **⟶ ADDED 2026-10-15 (`parameter-semantics.md §2.21`; `surface.md §2.1`'s `cfg` block dated
    * 2026-10-15; `contract.md §8.1` #16) — THE FOURTH DECLARED KEY: THE CONSTRUCTION'S CONSTRAINT LIST**,
@@ -316,6 +345,62 @@ export interface StoreConfig {
     readonly id: string;
     readonly constraint: Constraint;
   }[];
+  /**
+   * **⟶ ADDED 2026-11-17 — `D-144` ITEM 1, VERBATIM: *"Change response to object, success(bool) and message
+   * (string[])"*** (`strata/decisions.md` · `D-144`), read with `D-153` item 2 (*"Add third arm"*) for the thenable's own
+   * arm. **THE CALLER'S OWN SAVER: the store's JSON image goes OUT here instead of to a file**, the one position is that
+   * image text, and the answer is the verdict `SC-2` was closed on — `success` is the verdict and `message` is the reason,
+   * **a LIST by declaration, so several messages are ONE answer**.
+   *
+   * **It is optional and its absence is the ordinary store** — absent, the `file` tier saves through the store's own
+   * writer exactly as it always did. **A non-function `saveCall` is broken config and is refused before any filesystem act**
+   * with the status a bad `cfg` already answers (`AddressMalformed`; `D-144` item 2), **and `filePath` and `saveCall` are
+   * mutually exclusive**: a `cfg` carrying both is refused at that same gate, naming `cfg` (`D-144` item 7). **The function
+   * never crosses into Rust at any depth**: the package holds it, invokes it at ONE position, and tells the store the verdict
+   * through the addon's own `saveSucceeded`/`saveFailed` entries.
+   *
+   * **The answer may be a thenable** — `D-144` item 1's *"(async optional)"*, kept in domain by `D-153` item 2: the
+   * write's answer is then withheld until the saver settles, the delivered set is started after the save on that arm too, and
+   * a failed save answers rank `15` `FileCommitFailed` with these `message` strings carried as log entries. **Every answer
+   * that is not `{success: true}` is a failed save**, and `message` is read only where it is an array. **A save that fails
+   * rolls the commit back before the caller hears of it**, **and a `saveCall` store never reconstructs state from a file** —
+   * its recovery is the client's, fed back through the seed key `U-STOREROOM-05` lands.
+   *
+   * **The duty `D-145` item 5 declares is documentary, not a refusal**: two stores must not be doubled on one `saveCall`
+   * function, and a store that boots empty and then saves will persist an empty image over whatever the backend held.
+   */
+  readonly saveCall?: (image: string) =>
+    | { readonly success: boolean; readonly message: readonly string[] }
+    | Promise<{ readonly success: boolean; readonly message: readonly string[] }>;
+  /**
+   * **⟶ ADDED 2026-11-17 — `D-137` ITEM 4, VERBATIM: *"THE SEED IS IMAGE TEXT ONLY, AND ITS KEY IS `initialImage`"***
+   * (`strata/decisions.md` · `D-137`), read with `D-147` items 1–4. **THE CONSTRUCTION BEGINS WITH CONTENT: this is
+   * THIS STORE'S OWN IMAGE TEXT**, exactly as `saveCall` is handed it and as `exportImage` answers it — the saver speaks
+   * JSON, so the image is the currency of both halves — and **the store decodes it with its own decoder tail at
+   * construction and installs every admitted member at `file` tier**, so a `saveCall`-backed or a `filePath`-backed store
+   * starts life holding the caller's data.
+   *
+   * **It is in domain on every arm** (`D-147` item 1): a `filePath` store may be seeded, a plain `mem` store may be
+   * seeded, and a `saveCall` store is seeded as its BOOTSTRAP — its recovery, because such a store never reconstructs
+   * state from a file (`D-144` item 4). **Guidance, not a refusal, carries the danger**: a seeded `filePath` store's bytes
+   * are in danger of being overwritten by the next `file`-tier write, so seeding is discouraged where the overwrite is not
+   * intended.
+   *
+   * **No save is performed at a seeded construction** (`D-147` item 2: *"a seed is not an act"*): the store and the
+   * caller's backend agree at instant zero because the caller just supplied the state, and **the construction stays
+   * synchronous**.
+   *
+   * **Provenance is declared and left** (`D-147` item 3): the loader's filter is the store's own admission test and nothing
+   * else, so **the image carries no identity** — a stale, foreign or hand-assembled image of admissible values installs
+   * silently — and **the client is responsible for passing its own store's image**. The format is the store's private
+   * composition: opaque, transported verbatim, never hand-edited.
+   *
+   * **An empty string is broken config and is refused at `cfg`'s class gate** under `AddressMalformed`, the seat
+   * `filePath: ''` already takes (`D-147` item 4) — **absence alone means *no seed* and the creation state stands** — and
+   * a value that is not a string is the same gate. **An image the store cannot read is refused at rank `22`
+   * `FileImageRefused` with no instance returned** (`D-135` item 3).
+   */
+  readonly initialImage?: string;
 }
 
 /**
@@ -441,6 +526,7 @@ export type StoreStatus =
   | 'ConstraintPassRefused'
   | 'ListenerBodyThrew'
   | 'FileImageRefused'
+  | 'ListenerBodyRejected'
   | (string & {});
 
 /**
@@ -452,8 +538,10 @@ export type StoreStatus =
  * message log entries are the KERNEL'S records, carried VERBATIM, and no flattening is declared — a client
  * that reads one reads the kernel's own entry.
  *
- * `kind` is the kernel's closed four-member `LogKind` set, and `state` is the kernel's own `KC` token on the
- * one `outcome` entry and `null` on the three non-`outcome` kinds.
+ * `kind` is the kernel's closed FIVE-member `LogKind` set — **⟶ the fifth is `'save'`, minted `2026-11-17` by `D-153`
+ * item 1 (`strata/decisions.md`: *"1. take first option"*) so the caller's `saveCall` `message[]` has a lawful seat as one
+ * entry per string (`D-145` item 2)** — and `state` is the kernel's own `KC` token on the one `outcome` entry and `null`
+ * on the four non-`outcome` kinds.
  *
  * **⟶ AND THE LIST IT STANDS IN IS THE COMMIT'S, NOT THE ATTEMPT'S — 2026-10-28 (`D-53`).** **THE ARCHITECT,
  * VERBATIM: *"If it's part of the same commit, then it uses the same message log. If it opens a new commit, it
@@ -484,7 +572,7 @@ export type StoreStatus =
  * never `status`, exactly as every `KC` token does, so the closed status set keeps its `20` members and its ranks.
  */
 export interface LogEntry {
-  readonly kind: 'constraint-check' | 'repair-run' | 'commit' | 'outcome';
+  readonly kind: 'constraint-check' | 'repair-run' | 'commit' | 'outcome' | 'save';
   readonly id: string | null;
   readonly message: string;
   readonly opId: string | null;
@@ -677,6 +765,85 @@ export interface WriteRecord {
    * reason:** the census that fixes this record at three is outside this pass's write scope, so a typed member
    * would redden a green leg without moving the runtime at all. **A future pass that owns the census owes it the
    * typed line.**
+   */
+  /**
+   * **⟶ ADDED 2026-11-17 — THE DELIVERED SET'S FAILURES: PRESENT ON THIS RECORD AT RUNTIME, AND DECLARED HERE RATHER
+   * THAN AS A TYPED MEMBER** (`U-STOREROOM-06 DELIVERY-SETTLE`; `strata/decisions.md` · `D-138` items 1 and 2; `D-150`
+   * items 1 and 2). `D-138` item 2 is the ruling, verbatim: *"the write resolves, and the status rides on the receipt … its
+   * CARRIER is the write's answer — a datum the caller reads"* — because by the instant a body can reject, the act has
+   * ALREADY COMMITTED (`D-138` item 1), so a rejection of the awaited answer would report a DURABLE SUCCESS as a FAILURE.
+   *
+   * **`record.bodyFailures` IS AN OBJECT AT RUNTIME — ONE ENTRY PER REJECTING LISTENER BODY, KEYED BY THE HANDLE THAT BODY
+   * WAS DELIVERED UNDER** (`D-138`'s plurality: *"`N` rejections become `N` entries"*), each entry `{status, message,
+   * address}`. **`status` IS `'ListenerBodyRejected'`** — rank `23`, `D-137` item 5's own mint: the promise pair's other
+   * half, whose sibling at rank `21` is `ListenerBodyThrew` and **rank `21` is NOT widened by it**. **`message` is the
+   * GENERATED sentence and never the body's own words**, `D-137` item 5's form over that item's declared subject:
+   * *"<address> was refused by a listener body that rejected, a fired listener body's rejection refuses the act that fired
+   * it"* — **its subject is the WATCHED ADDRESS'S SPELLING**, so **the body's own reason is never read, stored or
+   * rendered** (`D-137` item 5; `PIN-5`; `D-58`) — and `address` is the binding's own address.
+   *
+   * **IT IS A NON-ENUMERABLE, `configurable` OWN GETTER OVER A SYMBOL-KEYED DATUM** — `constraints.mjs`'s
+   * `defineBodyFailures` defines it at this name, over the datum `state.mjs` spells `BODY_FAILURES` and `delivery.mjs`'s
+   * `settledAnswer` installs after the one `Promise.allSettled`. **A getter by necessity and not by taste**: the record is
+   * built BEFORE the set settles, so a datum captured at the build would answer `{}` about a body that then rejects — the
+   * same reason `discarded` above is a read. **So `Object.keys(write(...))` is still the three declared members above and
+   * every deep-equality over a write's answer is unmoved**, and `Object.getOwnPropertyNames` reads **SEVEN** with this name
+   * among them (`D-150` item 1). **A spread or an `Object.assign` copy loses it, as it loses `discarded`.**
+   *
+   * **IT IS PRESENT ON EVERY ARM AND ANSWERS ONE SHARED FROZEN `{}` WHERE NOTHING STANDS** — `state.mjs`'s
+   * `BODY_FAILURES_EMPTY`, the same constant on the plain synchronous arm and on a settled arm that found no rejection, so
+   * no reader can tell *"no settle ran"* from *"the settle found no rejection"*. **Never absent, never `undefined`, never a
+   * fresh `{}` per call** (`D-77`'s rule), on `D-138`'s unsettled item 3.
+   *
+   * **IT IS NOT THE CALLER'S OWN COMMIT'S FAILURE.** A listener runs in its own commit and its refusal does not fail the
+   * write that fired it (`D-71`) — **the write RESOLVES**, and this member reports beside the record and never in place of
+   * it. **A body that THROWS synchronously is the other arm and stays an error in the caller's own frame** (`D-73`;
+   * `D-138` item 4's declared asymmetry), and `D-153` item 2 keeps the distinction this member lives on: a failure here is
+   * a datum the settle RESOLVES INTO and never a rejection of the promise (`PIN-5`).
+   *
+   * **AND WHY IT IS A DOCBLOCK AND NOT A TYPED LINE — the same sentence `discarded` and `log` above carry, for the same
+   * reason:** the census that asserts this record's declared member set at three (`tests/e2e/blind-entry-module.test.mjs`'s
+   * `WriteRecord` cell and `tests/e2e/surface.test.mjs`) is outside this pass's write scope, **so a typed member would
+   * redden a green leg without moving the runtime at all.** **A future pass that owns the census owes it the typed line.**
+   */
+  /**
+   * **⟶ ADDED 2026-11-17 — THE DELIVERED SET'S SETTLED RETURN VALUES: PRESENT ON THIS RECORD AT RUNTIME, AND DECLARED
+   * HERE RATHER THAN AS A TYPED MEMBER** (`U-STOREROOM-08 RETURN-VALUES`; `strata/decisions.md` · `D-149` item 2; `D-150`
+   * items 1–3). `D-149` item 2 is the ruling, verbatim: *"answer gains a datum keyed by handle, one entry per listener
+   * that RETURNED A VALUE"* — and `D-150` item 1 is its name and its device.
+   *
+   * **`record.returnedValues` IS AN OBJECT AT RUNTIME — ONE ENTRY PER HANDLE WHOSE BODY RETURNED A VALUE, KEYED BY THAT
+   * HANDLE, AND THE ENTRY IS THE VALUE.** **An `undefined`-RETURNER CONTRIBUTES NO ENTRY and its silence is the caller's to
+   * read** (`D-148` item 1(c), the architect, verbatim: *"A listener that returns nothing should be assumed to only perform
+   * backend code that does not need the channel pass"*), so a handle absent from the map either returned nothing or was not
+   * in the delivered set. **A body that REJECTED contributes no entry here** — its failure is `bodyFailures`' above, and
+   * its reason is never read, stored or rendered. **THE VALUE IS THE SETTLED VALUE AND NEVER THE PROMISE** (`D-149`
+   * item 3: the answer is withheld until the delivered set settles, so a promise a body returned is already settled into a
+   * value or into `bodyFailures`).
+   *
+   * **IT IS A NON-ENUMERABLE, `configurable` OWN GETTER OVER A SYMBOL-KEYED DATUM — `bodyFailures`' own device, member for
+   * member** (`constraints.mjs`'s `defineReturnedValues`), over the datum `state.mjs` spells `RETURNED_VALUES` and
+   * `settledAnswer` installs from `returnedValues(settled, invoked)` after the one `Promise.allSettled` — so the read
+   * answers at the read, for the reason the record is built before the set settles. **So `Object.keys(write(...))` is still
+   * the three declared members above and every deep-equality over a write's answer is unmoved**, and
+   * `Object.getOwnPropertyNames` reads **SEVEN** with this name among them (`D-150` item 1). **A spread or an
+   * `Object.assign` copy loses it, as it loses `discarded` and `bodyFailures`.**
+   *
+   * **IT IS PRESENT ON EVERY ARM AND ANSWERS ONE SHARED FROZEN `{}` WHERE NOTHING STANDS** — `state.mjs`'s
+   * `RETURNED_VALUES_EMPTY`, one frozen constant meaning *"no body returned a value"*, which is the same fact whether no
+   * settle ran at all or a settle found none. **Never absent, never `undefined`, never a fresh `{}` per call** (`D-150`
+   * item 2, verbatim: *"present always, never absent, never `undefined`"*), on `D-77`'s rule.
+   *
+   * **IT IS NOT A SECOND `triggered`, AND IT CARRIES NO HANDLE→ADDRESS RELATION.** The map's keys are HANDLES and nothing
+   * here names an address: the `{handle, address}` pairs stay `triggered`'s above. **Nor is it the channel it replaced** —
+   * `D-149` item 1 dissolved the external `channel`, and item 4 makes the receipt the answer on every arm, so this datum is
+   * read off the record the caller already holds.
+   *
+   * **AND WHY IT IS A DOCBLOCK AND NOT A TYPED LINE — the same sentence `discarded`, `log` and `bodyFailures` above carry,
+   * for the same reason:** the census that asserts this record's declared member set at three
+   * (`tests/e2e/blind-entry-module.test.mjs`'s `WriteRecord` cell and `tests/e2e/surface.test.mjs`) is outside this pass's
+   * write scope, so a typed member would redden a green leg without moving the runtime at all. **The member is declared by
+   * NAME, SHAPE and SEMANTICS here and carried at runtime.** **A future pass that owns the census owes it the typed line.**
    */
 }
 

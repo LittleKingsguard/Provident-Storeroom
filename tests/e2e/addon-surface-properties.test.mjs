@@ -250,6 +250,14 @@ function declaredArgumentsFor(name) {
     // **⟶ AND THE JOURNAL MARK READ, ADDED 2026-10-27: NO POSITION AT ALL.** It reads the store's own record and
     // names a position; there is nothing for a caller to supply (`PER_VERB_ELEVENTH`, arity `0`).
     case 'journalMark': return [];
+    // **⟶ AND THE SAVE ARM'S THREE, 2026-11-17** (`SAVE_ARM_THREE`; `D-148`, `D-149`): **`exportImage` TAKES NO
+    // POSITION** (the store composes and verifies its own image) **and the two verdicts each take one op id**, in
+    // the same carrier shape `rollback` and `commitFile` are driven with. **THE PROPERTY THIS BUILDER SERVES IS
+    // `S-NO-INSTANCE`** — no entry accepts an instance at position zero — **and it holds of these three exactly as
+    // it holds of the sixteen**: an op id is a string, and an image is the store's own.
+    case 'exportImage': return [];
+    case 'saveSucceeded': return ['an-op-id'];
+    case 'saveFailed': return ['an-op-id'];
     default: return null;
   }
 }

@@ -450,9 +450,15 @@ test('CSW-15 · FROZEN SHAPES (`PIN-14`) — the instance\'s own member set is F
     'addConstraint', 'constraintOff', 'constraintOn', 'constraints', 'delete', 'listen', 'read',
     'readLiteral', 'readTiered', 'register', 'removeConstraint', 'removeListener', 'rollback', 'unlisten', 'write',
   ];
+  // **⟶ AND THE ADDON'S EXPORT SET IS NINETEEN FROM 2026-11-17, NOT SIXTEEN** (`D-148`, `D-149`; the three the
+  // save arm added: `exportImage`, `saveSucceeded`, `saveFailed`). **`PIN-14`'s *"no addon export (`16`)"* IS
+  // READ THROUGH THIS CLAUSE**: the figure it froze was the sixteen of its own date, and **the instance's member
+  // set below is STILL FIFTEEN — unchanged, which is the half of `PIN-14` that did not move and the half this
+  // cell exists to keep from moving.**
   const DECLARED_EXPORTS = [
-    'commitFile', 'delete', 'errorMessage', 'journalMark', 'listen', 'read', 'readLiteral', 'readTiered',
-    'register', 'removeListener', 'restoreMark', 'rollback', 'storeCreate', 'unlisten', 'version', 'write',
+    'commitFile', 'delete', 'errorMessage', 'exportImage', 'journalMark', 'listen', 'read', 'readLiteral',
+    'readTiered', 'register', 'removeListener', 'restoreMark', 'rollback', 'saveFailed', 'saveSucceeded',
+    'storeCreate', 'unlisten', 'version', 'write',
   ];
 
   // ── (a) THE INSTANCE'S OWN MEMBER SET IS FIFTEEN. ─────────────────────────────────────────────────────
@@ -467,7 +473,7 @@ test('CSW-15 · FROZEN SHAPES (`PIN-14`) — the instance\'s own member set is F
   const addon = require_(join(import.meta.dirname, '..', '..', 'bindings', 'js', 'build', 'Release', 'storeroom_js_binding.node'));
   const addonNames = Object.keys(addon).filter((name) => typeof addon[name] === 'function').sort();
   assert.deepEqual(addonNames, DECLARED_EXPORTS,
-    `**THE ADDON'S EXPORT SET IS UNMOVED AT SIXTEEN** (\`PIN-14\`: *"no addon export (\`16\`)"*; \`§6\` item 4: `
+    `**THE ADDON'S EXPORT SET IS NINETEEN FROM 2026-11-17** (\`PIN-14\`: *"no addon export (\`16\`)"*; \`§6\` item 4: `
       + `*"the addon's at \`16\` — a cell asserting either has moved is false"*): it read `
       + `${JSON.stringify(addonNames)}`);
 

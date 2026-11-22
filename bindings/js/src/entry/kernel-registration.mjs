@@ -69,14 +69,56 @@ const REGISTRATION_SAVE = Symbol.for('provident-storeroom.registration-save');
 /// `D-125` item `1`, and the route still runs no pass and opens no `K-2`: what it gains is a CALLER.**
 const REGISTRATION_DELIVER = Symbol.for('provident-storeroom.registration-deliver');
 
+/// **⟶ AND THE SECOND SOURCE OF THAT SET — 2026-11-17, `D-151` AND `D-152`.** **THE RULING, VERBATIM (`D-151`):**
+/// ***"If a repair writes at an address that should trigger a listener, that listener should fire, and any behavior to
+/// the contrary is a defect"***; **and (`D-152`):** ***"Fires only the listeners changed by the writes"*** ·
+/// ***"Compute within the store"***.
+///
+/// **THE MEASURED DEFECT THIS KEY CLOSES, AT ITS OWN BYTES.** `owed` is filled by `registrationRoute` — the repair's
+/// `context.write` — **and by nothing else**. **A repair that takes `D-105`'s ONE SUPPORTED ROUTE INSTEAD — the
+/// PUBLISHED `store.write(address, tier, value, record)`, a FOUR-position call that JOINS the registration's commit —
+/// appends NO `owed` entry**: that call takes the entry's `n >= 4` arm, leaves the store's answer on the REPAIR-LEG
+/// channel of the invocation bracket that stands, and delivers nothing in its own frame. **So the close was handed an
+/// EMPTY LIST, its gate never called the channel, and no listener could fire** — the `body-fired = []` of
+/// `docs/specs/storeroom-delivery-settle/contract.md §11`, measured with the write LANDED and its listener silent.
+///
+/// **AND THE CARRIER IS THE STORE'S OWN ANSWER, NEVER A REACH OF THIS MODULE'S** (`D-152` item `2`): every leg carries
+/// one `{op, triggered}` per landing whose elements are `{handle, address}` exactly as `src/store.rs:2211`–`:2240`
+/// computed them. **NO ADDRESS IS WALKED AND NO PREFIX IS TESTED HERE OR BELOW**; the only de-duplication is
+/// `deliver`'s own (`D-152` item `1`; `DD-22`: no order is asserted).
+const REPAIR_LEG = Symbol.for('provident-storeroom.repair-leg');
+
 /// **THE INVOCATION OF A REPAIR BODY, WITH THE SYNTHETIC ATTEMPT'S COMMIT NAMED ON ITS ENTRY** — one call, its
 /// answer the body's own, and a throwable crosses unchanged. **THE SECOND COPY OF THE FIVE-LINE FORM
 /// `kernel-attempt.mjs` DECLARES**, because the two part files share no import and neither may reach the entry
 /// (`kernel-surface.md §1` item 1) or the other's private bytes.
-function repairInCommit(store, commit, run) {
+function repairInCommit(store, commit, run, invocation) {
   const channel = store !== null && typeof store === 'object' ? store[EXTERNAL_CALL] : undefined;
-  if (typeof channel === 'function') return channel(run, commit);
+  if (typeof channel === 'function') {
+    invocation.bracketed = true;
+    return channel(run, commit);
+  }
   return run();
+}
+
+/// **⟶ THE GUARDED READ OF THAT CHANNEL — `D-104`'S TWO GUARDS BYTE FOR BYTE, 2026-11-17** (`D-152` item `2`).
+///
+/// **GUARD (i) — THE READ IS TAKEN ONLY WHERE THIS INVOCATION'S OWN BRACKET STOOD** (`invocation.bracketed`): with no
+/// bracket the append went nowhere, so the channel would answer an EARLIER invocation's legs.
+/// **GUARD (ii) — THE LIST IS DROPPED WHERE A NESTED ATTEMPT WAS OPENED ACROSS THIS INVOCATION** (`kernel.attempts`
+/// moved): a repair body's THREE-position write opens a second `K-2` whose own terminal arm delivers its handles, so
+/// delivering them here as well would invoke a caller's body TWICE (`D-104` item `2`; `D-152` item `2`).
+function repairLegs(store, kernel, invocation, attemptsBefore) {
+  if (invocation.bracketed !== true) return [];
+  if (kernel.attempts !== attemptsBefore) return [];
+  const channel = store !== null && typeof store === 'object' ? store[REPAIR_LEG] : undefined;
+  if (typeof channel !== 'function') return [];
+  try {
+    const legs = Reflect.apply(channel, store, []);
+    return Array.isArray(legs) ? legs : [];
+  } catch (unanswered) {
+    return [];
+  }
 }
 
 /// **⟶ AND THE CONSTRAINT BODY'S INVOCATION AT THE REGISTRATION INSTANT NAMES THE REGISTRATION'S OWN COMMIT —
@@ -684,6 +726,11 @@ function registrationAttempt(kernel, store, pair) {
   // not on the instance (`PIN-14`): it is handed to the route (to fill) and to the close (to deliver), and the
   // close hands it to the entry's channel on its PASSING arm alone.
   const owed = [];
+  // **⟶ AND THE INVOCATION OBJECT `D-104`'S FIRST GUARD IS CARRIED OUT ON, 2026-11-17 (`D-151`, `D-152`)** — a frame
+  // local and not a member: `bracketed` is the one fact this frame cannot see, and `attemptsBefore` is the counter
+  // the second guard reads (taken BEFORE the body is invoked).
+  const repairInvocation = { bracketed: false };
+  const attemptsBefore = kernel.attempts;
   let result;
   const repairContext = registrationRepairContext(store, address, pair.id, attempt.commit, landed, purged, owed);
   try {
@@ -699,7 +746,7 @@ function registrationAttempt(kernel, store, pair) {
     // where it is not — `state.mjs`'s `openCommit`).
     // **AND THE FRAME STANDS FOR THIS INVOCATION TOO (`D-53`)**: the repair's verbs append to this commit's list.
     enterCommitFrame(kernel, attempt.log);
-    result = repairInCommit(store, attempt.commit, () => pair.repair(repairContext));
+    result = repairInCommit(store, attempt.commit, () => pair.repair(repairContext), repairInvocation);
   } catch (body) {
     // A REPAIR WHOSE BODY THROWS IS A FAILED REPAIR AND THE REGISTRATION IS REFUSED — the caller's act is
     // the registration, so the refusal is this module's one form (`3-bis` (d); the `KC` boundary at (e)).
@@ -710,6 +757,24 @@ function registrationAttempt(kernel, store, pair) {
     return registrationRefusal(address, pair.id, attempt.log);
   } finally {
     leaveCommitFrame(kernel);
+  }
+
+  // ══ **⟶ THE SUPPORTED ROUTE'S SET JOINS THE OWED LIST HERE, 2026-11-17 — `D-151` AND `D-152`** ────────────────────────────────
+  // **THE UNION IS A CONCATENATION AND NOT A SECOND PREDICATE** (`D-152` item `2`): `context.write` fills `owed` above,
+  // `D-105`'s ONE SUPPORTED ROUTE fills the leg list instead, **BOTH ARE THE STORE'S OWN `triggered`**, nothing is
+  // walked or re-derived, and **no handle is de-duplicated here** — `deliver`'s dedupe on `entry.handle` is the only
+  // one (`D-152` item `1`), which is what makes a repair that wrote one address through both routes fire ONCE.
+  // **A REPAIR THAT LANDED NO WRITE APPENDS NOTHING** (`D-152` item `1`: *"A registration that writes nothing FIRES
+  // NOTHING"*), and the close's `owed.length > 0` gate then calls no channel and answers no thenable (`PIN-11`).
+  const repaired = repairLegs(store, kernel, repairInvocation, attemptsBefore);
+  for (let leg = 0; leg < repaired.length; leg += 1) {
+    const one = repaired[leg];
+    if (one === null || typeof one !== 'object') continue;
+    const legOp = ownMember(one, 'op');
+    if (legOp === null || typeof legOp !== 'object') continue;
+    const elements = ownMember(one, 'triggered');
+    if (!Array.isArray(elements) || elements.length === 0) continue;
+    appendOwn(owed, { triggered: elements, address: ownMember(legOp, 'address') });
   }
 
   const ok = result !== null && typeof result === 'object' && ownMember(result, 'ok') === true;

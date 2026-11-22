@@ -1,6 +1,15 @@
 // `D-2` (`docs/L1/entry-subdivision.md` §1 part `6a`, `D-33`'s seam at `L2799`) — bytes moved from `bindings/js/index.mjs`; no logic changed.
-import { types } from 'node:util';
-import { boundaryReject } from './artefact.mjs';
+// **⟶ AND THE `Proxy` PREDICATE IS THE INSTALLED CLASS-DECISION INSTRUMENT FROM 2026-11-17** (`D-156` item 1 and
+// the loader split's row for these five parts, `docs/L3/wasm-realm/design.md` §5: the host import line is *"swapped
+// for a local helper"* — **neutralised**, conditional on that design's §4 instrument). **`isProxyOf` IS
+// `class-instrument.mjs`'s one predicate and this file carries no host specifier for the class decision any more**:
+// every site below takes the answer `util.types.isProxy` gave, because **the NODE entry installs `types.isProxy`
+// ITSELF at load** (`index.mjs`, at the head of the module), and on the other arm the instrument is
+// `structuredClone` while **the ANSWER does not move** (`D-156` item 1: the refusal stays rank-neutral and
+// class-for-class what this arm answers). **NO DECISION, NO ORDER AND NO ANSWER OF THIS FILE MOVES** — only the
+// predicate's name and its home.
+import { isProxyOf } from './class-instrument.mjs';
+import { boundaryReject } from './addon-slot.mjs';
 import { appendOwn } from './refusal.mjs';
 import { NODE_CEILING, VALUE_ARGUMENT_POSITION, accessorOrSymbolArm, arrayClass, classSpelling, extendedPath, hasLoneSurrogate, protoClass, shapeArmClass, targetSpelling } from './class-decision.mjs';
 
@@ -254,7 +263,7 @@ export function encodeValue(value, ancestors, depth, path, fault) {
   if (kind === 'function') return refusedValue(fault, value, 'a function', path, { k: 'f' }); // row 8
   if (kind === 'symbol') return refusedValue(fault, value, 'a symbol', path, { k: 'y' }); // row 9
   // `§1.4` item 4 (g), `DD-34` — and NO trap is invoked: `util.types.isProxy` reads no member.
-  if (types.isProxy(value)) return refusedValue(fault, value, 'a Proxy', path, { k: 'P' });
+  if (isProxyOf(value)) return refusedValue(fault, value, 'a Proxy', path, { k: 'P' });
   // `§1.4` item 6: the ancestor stack, never a `WeakSet` — which is what ADMITS an acyclic diamond.
   // **⟶ AND THE STACK IS READ BY INDEX, NOT BY `Array.prototype.includes`** (`contract.md §2.1`'s clause of
   // 2026-10-24 on `F7-1`, items `(1c)(vi)`, `(2b)`'s rows `18` and `29`, and `(10b)`): the as-built membership
@@ -583,7 +592,7 @@ function refuseOutsideSegment(segment, position, prefix, addressArgumentPosition
 /// THIS predicate either.
 function isOutsideAddressValue(value) {
   if (value === undefined || value === null) return true; // row 5's two named classes, on the value as it is
-  if (types.isProxy(value)) return false; // row 12's own arm, decided above, with no trap run
+  if (isProxyOf(value)) return false; // row 12's own arm, decided above, with no trap run
   if (Array.isArray(value)) return false; // rows 1–3, 13, 14 — the ordinary array arm and its own tests
   return true; // rows 5–6: a string, a number, a boolean, an object, a function, a symbol, a bigint
 }
@@ -697,7 +706,7 @@ export function encodeAddress(address, addressArgumentPosition, addressValuePosi
   // `Array.isArray` is TRUE — is refused under its own declared class (`AddressArg` row 11's
   // `AddressMalformed`: *"the shape is not an array"*) rather than ADMITTED because a language predicate made
   // it look like one.
-  if (types.isProxy(address)) {
+  if (isProxyOf(address)) {
     boundaryReject(
       'AddressMalformed', // row 12's own declared code (`DD-34`), carried and never minted (`DD-40`)
       classSpelling(address), // the class half, mandatory under item 5 (b): `a Proxy`
@@ -875,7 +884,7 @@ export function encodeTier(tier, supplied, foldsUndefined, addressArgumentPositi
     return { k: 'N' }; // `refuseSuppliedOutsideTier` throws; this is unreachable and is not a second path
   }
   if (typeof tier === 'string') return { k: 'T', v: tier };
-  if (types.isProxy(tier)) return { k: 'O' }; // row 6: an object, and no trap is invoked
+  if (isProxyOf(tier)) return { k: 'O' }; // row 6: an object, and no trap is invoked
   if (Array.isArray(tier)) {
     if (arrayClass(tier) === 'class') return { k: 'O' }; // row 6: a class extending `Array` is an object
     // **⟶ AND THE TIER SET IS ENCODED BY A LOCAL INDEX LOOP, NOT BY `Array.prototype.map`** (`contract.md §2.1`'s

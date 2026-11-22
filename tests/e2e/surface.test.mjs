@@ -772,9 +772,15 @@ test('file_readings_a_file_tier_delete_saves_its_own_op_and_a_rollback_performs_
     // the receipt carries the record the act minted, under the non-enumerable members `index.d.ts` declares.
     assert.deepEqual(
       Object.getOwnPropertyNames(removed),
-      ['address', 'tiers', 'triggered', 'op', 'commit', 'log', 'discarded'],
+      // **⟶ AND THE TWO DELIVERY-SETTLE ACCESSORS JOIN THE RECEIPT, 2026-11-17** (`D-130` item 5; `D-151`; the
+      // amended `D-137`): **`bodyFailures` and `returnedValues` are the delivered set's own two reads, each a
+      // NON-ENUMERABLE `configurable` GETTER over `Symbol.for`-keyed data**, so `Object.keys` and every deep-equality
+      // over the receipt are unmoved and **this cell — the one census that sees them — reads seven names where it read
+      // five.** They are installed by the terminal arm AFTER `discarded`, which is why they stand last.
+      ['address', 'tiers', 'triggered', 'op', 'commit', 'log', 'discarded', 'bodyFailures', 'returnedValues'],
       'the receipt carries the record the act minted, under the non-enumerable members `index.d.ts` declares — '
-        + '`commit`, then the passing `log` (`D-119`), then `discarded`, which is the order the entry installs them',
+        + '`commit`, then the passing `log` (`D-119`), then `discarded`, which is the order the entry installs them, '
+        + 'then the two delivery-settle accessors (`D-130` item 5: `bodyFailures`, `returnedValues`)',
     );
     assert.equal(removed.commit.op.opId, removed.op.opId, 'and the record names the op the delete landed');
     const fresh = storeCreate({ filePath: path, journalLength: 8, listeners: [] });

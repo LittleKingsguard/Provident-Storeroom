@@ -531,9 +531,9 @@ test('ada_pada1_the_crate_declares_both_artefact_kinds_and_the_workspace_carries
     + 'now — and `storeroom-tests` is the battery package the relocation created. Read: '
     + JSON.stringify(lock.members));
 
-  assert.equal(lock.packages.length, 41,
+  assert.equal(lock.packages.length, 47,
     'THE ONE LOCK IS THE WHOLE CLOSURE AND ITS SIZE IS READ, NOT TRUSTED: the root `Cargo.lock` is the lock '
-    + 'of all three packages (`D-34`), and it carries `41` `[[package]]` blocks — `3` workspace members + '
+    + 'of all three packages (`D-34`), and it carries `47` `[[package]]` blocks — `3` workspace members + '
     + '`38` registry packages. **THIS FIGURE IS A READ OF THE FILE AND NOT A CONSTRAINT ON THE DESIGN**: it '
     + 'is the fingerprint that makes "the lock is the binding\'s lock too" falsifiable — while the crate was '
     + 'its own package its lock was IGNORED (`contract.md §2` item `1`), so nothing pinned the library\'s '
@@ -541,8 +541,8 @@ test('ada_pada1_the_crate_declares_both_artefact_kinds_and_the_workspace_carries
     + 'moved means the closure moved and this cell\'s note must be re-read with it. Read: '
     + `${lock.packages.length} — ${lock.packages.map((p) => p.name).join(', ')}`);
 
-  assert.equal(lock.registry.length, 38,
-    'and the rest of the lock is the registry: `38` blocks carrying a `source`, which is the arithmetic of '
+  assert.equal(lock.registry.length, 44,
+    'and the rest of the lock is the registry: `44` blocks carrying a `source`, which is the arithmetic of '
     + '`41 = 3 + 38` checked on the far side rather than assumed after the member count was fixed. **THE '
     + 'REGISTRY HALF IS WHAT THE RETIRED CLAUSE PAID FOR**: `DD-27`\'s alt cell priced *"a committed '
     + '`Cargo.lock` … available with a bounded amendment"*, and this is that amendment\'s content. Read: '

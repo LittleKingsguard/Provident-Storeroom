@@ -1,6 +1,6 @@
 // `D-2` (`docs/L1/entry-subdivision.md` §1 part `4`) — bytes moved from `bindings/js/index.mjs`; no logic changed.
 import { appendOwn, fail } from './refusal.mjs';
-import { withAddon, boundaryReject } from './artefact.mjs';
+import { withAddon, boundaryReject } from './addon-slot.mjs';
 import { classSpelling, targetSpelling, valueReject } from './class-decision.mjs';
 import { encodeOpId } from './carrier.mjs';
 import { decodeSegments } from './frame.mjs';
@@ -117,6 +117,52 @@ export function commitLogOf(record) {
   if (descriptor === undefined || !Object.hasOwn(descriptor, 'value')) return undefined;
   return descriptor.value;
 }
+
+/// **⟶ ADDED 2026-11-17 — THE DELIVERED SET'S FAILURES, SPELLED HERE AS THE DATUM'S KEY, BESIDE `COMMIT_LOG` AND
+/// `SETTLED_ON_THE_PASSING_ARM`** (`U-STOREROOM-06 DELIVERY-SETTLE`; `contract.md §3`'s `defineBodyFailures` row and
+/// `§4`'s `PIN-5`, `PIN-10`; `design.md §5`, *"a symbol-keyed own property (beside `COMMIT_LOG`/
+/// `SETTLED_ON_THE_PASSING_ARM` in `state.mjs`'s symbol block)"*).
+///
+/// **THE RULING IT CARRIES, `D-138` ITEM 2, VERBATIM: *"the write resolves, and the status rides on the receipt …
+/// its CARRIER is the write's answer — a datum the caller reads"***. **SO THE DATUM LIVES ON THE RECORD UNDER THIS
+/// KEY AND THE RECORD'S FOURTH ACCESSOR READS IT** (`constraints.mjs`'s `defineBodyFailures`: a non-enumerable,
+/// `configurable` own GETTER at the name `bodyFailures`, answering the frozen empty map where this key is absent).
+///
+/// **THE KEY IS A `Symbol.for` SPELLING ON PURPOSE, EXACTLY AS EVERY SYMBOL ABOVE IS ONE** (`A117` (D6)): **NO MEMBER
+/// IS ADDED** — `Object.keys` and `Object.getOwnPropertyNames` read past it, so the record keeps the three enumerable
+/// members `PAR-JS-13` declares and the census moves by the accessor's ONE name and no more (`PIN-10`).
+/// **AND THE TWO MODULES THAT NEED IT DO NOT IMPORT EACH OTHER FOR IT**: `delivery.mjs` installs the datum
+/// (`settledAnswer`) and `constraints.mjs` reads it (the accessor) — both import this file already, so one spelling
+/// in one home means the install and the read cannot drift.
+export const BODY_FAILURES = Symbol.for('provident-storeroom.body-failures');
+
+/// **⟶ AND THE DATUM'S EMPTY VALUE — ONE FROZEN `{}`, MINTED ONCE AND ANSWERED BY BOTH SIDES** (`contract.md §2`'s
+/// *"`BODY_FAILURES` and `BODY_FAILURES_EMPTY` (one symbol and one frozen empty)"*; `design.md §5`: *"A frozen
+/// module-level `{}` is the constant, on `defineResolutionLog`'s precedent for `[]`"*).
+///
+/// **IT SITS BESIDE THE KEY AND NOT BESIDE ITS TWO READERS, AND THE REASON IS THE ONE FACT IT SPELLS**: the empty map
+/// means *"no rejecting body"*, and that is the same fact whether **no settle ran at all** (the plain arm, where
+/// `settledAnswer` never executes) or **a settle ran and found no rejection** (`bodyFailures`' own answer). **THE
+/// RECEIPT'S ACCESSOR AND THE SETTLE MUST ANSWER THE SAME VALUE, or a reader could tell the two apart** — so one
+/// constant, in the one module both frames already import, and neither side mints a second. **IT CARRIES NO CLIENT
+/// DATA**, so `D-58`'s retained-data bound — a retained LIST — has no subject here, and no fresh `{}` is built per
+/// call.
+export const BODY_FAILURES_EMPTY = Object.freeze({});
+
+/// **⟶ ADDED 2026-11-17 — THE DELIVERED SET'S SETTLED RETURN VALUES: THE DATUM'S KEY, BESIDE `BODY_FAILURES` ABOVE**
+/// (`U-STOREROOM-08 RETURN-VALUES`; `D-149` item 2; `D-150` item 1). **The datum lives on the record under this key and the
+/// record's FOURTH accessor reads it** (`constraints.mjs`'s `defineReturnedValues`). **A `Symbol.for` spelling on purpose**
+/// (`A117` (D6)): `Object.keys` and `Object.getOwnPropertyNames` read past it, so the census moves by the accessor's ONE
+/// name and no more (`D-150` item 1: *"`Object.keys` stays `["op","watched","triggered"]`"*). **The two modules that need it
+/// do not import each other for it**: `delivery.mjs` installs the datum and `constraints.mjs` reads it, both from here.
+export const RETURNED_VALUES = Symbol.for('provident-storeroom.returned-values');
+
+/// **⟶ AND THE DATUM'S EMPTY VALUE — ONE FROZEN `{}`, MINTED ONCE AND ANSWERED BY BOTH SIDES** (`D-150` item 2:
+/// *"ITS EMPTY VALUE IS THE SHARED FROZEN `{}` … present always, never absent, never `undefined`"*). **It means *"no body
+/// returned a value"*** — the same fact whether no settle ran (the all-synchronous arm, every reversal's record) or a
+/// settle found no value — so a reader cannot tell the two apart. **It carries no client data** (`D-58`'s bound is a
+/// retained LIST and there is none here), and no fresh `{}` is built per call.
+export const RETURNED_VALUES_EMPTY = Object.freeze({});
 
 /// **⟶ ADDED — `K-6`'s READ-MODEL CHANNEL, under a symbol key for the same reason every symbol above is
 /// one** (`A117` (D6): *"a symbol-keyed own property is invisible to both"* `Object.keys` and
@@ -1213,8 +1259,23 @@ export function carryRefusal(call, args, log, address) {
 /// save the reversal's judgement makes.** **NO ENTRY, ARITY OR MEMBER MOVES**: the absent carrier is a declared
 /// value of the one position, and `commitFile`(1) counts one.
 export function commitFile(receiver, opId) {
+  // **⟶ AND AN ARM THAT EXPORTS NO `commitFile` PERFORMS NO STORE SAVE — 2026-11-17** (`D-155` item 4; `D-143`'s
+  // arm; `D-144` item 5). **`commitFile` IS ABSENT FROM THE SECOND REALM'S EXPORT SET BY RULING** (eighteen of the
+  // Node arm's nineteen, `D-155` item 4: *"the writer is unreachable"*), **and that ruling was TRUE OF THE STORE'S
+  // WRITER AND NOT OF THIS CALL**: the terminal arm reaches this helper on a passing `file`-tier write and lets the
+  // STORE decide eligibility, so with no entry here a lawful write threw a raw host **`TypeError`** instead of any
+  // declared answer (measured: `state.mjs:1263` ← `delivery.mjs:1245` ← `terminalArm`).
+  //
+  // **THE ANSWER IS THAT THERE IS NO SAVE TO PERFORM, AND NOT A REFUSAL**: on that arm a `file`-tier register is
+  // reachable ONLY with a caller's `saveCall` (`D-132` item 1's third entry condition is the arm's only way into the
+  // tier), **and the durable save there is the PACKAGE's `saveCall` arm** — `D-133` item 3: *"the store's own writer
+  // is NOT USED"* — which the terminal arm takes in place of this call. **So an absent entry is the arm's declared
+  // absence and not an omission, and answering `undefined` claims no save and refuses nothing.** **THE NODE ARM IS
+  // BYTE-UNCHANGED**: its entry exists, so the branch is never taken and the call below is the same call.
+  const entry = entryOf().commitFile;
+  if (typeof entry !== 'function') return undefined;
   const args = arguments.length >= 2 ? [encodeOpId(opId)] : [];
-  return Reflect.apply(entryOf().commitFile, receiver, args);
+  return Reflect.apply(entry, receiver, args);
 }
 
 /// The segments an already-encoded address argument carries — the declared list shape's own member, and

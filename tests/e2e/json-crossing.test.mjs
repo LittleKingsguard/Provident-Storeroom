@@ -579,9 +579,9 @@ test('JC-TC-47 no fifth dependency entry is admitted', () => {
 // construction with it, and the store mints that member itself — and **NO RANK OF `1`…`21` MOVES**,
 // `ListenerBodyThrew` keeping rank `21`. **THE CELL IS STILL THE SAME READ** and only the figure and one named
 // member move.
-test('JC-TC-48 the store set is 22 with ValueRefusedAtBoundary at rank 17, ConstraintBodyThrew at 18, ConstraintRefusedAtRegistration at 19, ConstraintPassRefused at 20, ListenerBodyThrew at 21 and FileImageRefused at 22', () => {
+test('JC-TC-48 the store set is 23 with ValueRefusedAtBoundary at rank 17, ConstraintBodyThrew at 18, ConstraintRefusedAtRegistration at 19, ConstraintPassRefused at 20, ListenerBodyThrew at 21 and FileImageRefused at 22', () => {
   const text = readFileSync(new URL('../../src/error.rs', import.meta.url), 'utf8');
-  assert.match(text, /CODES:\s*\[&str;\s*22\]/);
+  assert.match(text, /CODES:\s*\[&str;\s*23\]/);
   assert.ok(text.includes('ValueRefusedAtBoundary'));
   assert.ok(text.includes('ConstraintBodyThrew'));
   assert.ok(text.includes('ConstraintRefusedAtRegistration'));

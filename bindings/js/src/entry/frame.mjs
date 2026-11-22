@@ -1,6 +1,15 @@
 // `D-2` (`docs/L1/entry-subdivision.md` §1 part `6b`, `D-33`'s seam at `L2799`) — bytes moved from `bindings/js/index.mjs`; no logic changed.
-import { types } from 'node:util';
-import { boundaryReject } from './artefact.mjs';
+// **⟶ AND THE `Proxy` PREDICATE IS THE INSTALLED CLASS-DECISION INSTRUMENT FROM 2026-11-17** (`D-156` item 1 and
+// the loader split's row for these five parts, `docs/L3/wasm-realm/design.md` §5: the host import line is *"swapped
+// for a local helper"* — **neutralised**, conditional on that design's §4 instrument). **`isProxyOf` IS
+// `class-instrument.mjs`'s one predicate and this file carries no host specifier for the class decision any more**:
+// every site below takes the answer `util.types.isProxy` gave, because **the NODE entry installs `types.isProxy`
+// ITSELF at load** (`index.mjs`, at the head of the module), and on the other arm the instrument is
+// `structuredClone` while **the ANSWER does not move** (`D-156` item 1: the refusal stays rank-neutral and
+// class-for-class what this arm answers). **NO DECISION, NO ORDER AND NO ANSWER OF THIS FILE MOVES** — only the
+// predicate's name and its home.
+import { isProxyOf } from './class-instrument.mjs';
+import { boundaryReject } from './addon-slot.mjs';
 import { appendOwn } from './refusal.mjs';
 import { addressSpelling } from './kernel-foundations.mjs';
 import { arrayClass, classSpelling, hasLoneSurrogate, isAdmittedArray, isLawfulListenerElement, isPlainObjectValue, valueTargetSpelling } from './class-decision.mjs';
@@ -9,7 +18,7 @@ import { encodeAddress, encodeFilePath, encodeJournalLength } from './carrier.mj
 function encodeListeners(listeners) {
   if (listeners === undefined) return undefined;
   if (listeners === null) return null;
-  if (types.isProxy(listeners)) return { bad: 'non-array' }; // row 3: not the array's shape (`DD-34`)
+  if (isProxyOf(listeners)) return { bad: 'non-array' }; // row 3: not the array's shape (`DD-34`)
   if (!Array.isArray(listeners)) return { bad: 'non-array' };
   if (arrayClass(listeners) === 'class') return { bad: 'non-array' }; // `JS-2`: a class extending `Array`
   // **⟶ AND THE LIST IS WALKED BY A LOCAL INDEX LOOP, NOT BY `Array.prototype.map`** (`contract.md §2.1`'s
@@ -75,7 +84,7 @@ function encodeListeners(listeners) {
 function encodeConstraints(constraints) {
   if (constraints === undefined) return undefined;
   if (constraints === null) return null;
-  if (types.isProxy(constraints)) return { bad: 'non-array' }; // `DD-34`'s class order, taken first
+  if (isProxyOf(constraints)) return { bad: 'non-array' }; // `DD-34`'s class order, taken first
   if (!Array.isArray(constraints)) return { bad: 'non-array' };
   if (arrayClass(constraints) === 'class') return { bad: 'non-array' };
   // **⟶ AND THE FOURTH KEY'S OWN WALK IS A LOCAL INDEX LOOP, NOT `Array.prototype.map`** (`contract.md §2.1`'s
@@ -138,7 +147,7 @@ function constraintEntry(entry, position) {
 /// that domain, the failing ELEMENT's own `address` spelling as a STRING** (`§8.2`'s `<SEGMENT>` slot: a
 /// string key single-quoted, an integer index bare, joined by `/`).
 export function constraintAddress(address) {
-  if (types.isProxy(address) || !Array.isArray(address) || arrayClass(address) === 'class') {
+  if (isProxyOf(address) || !Array.isArray(address) || arrayClass(address) === 'class') {
     return `'${valueTargetSpelling(address)}'`;
   }
   const segments = [];
@@ -218,6 +227,58 @@ export function encodeConfig(cfg) {
   // four is IGNORED and produces no code** (`§8.1`'s complement), and no default, no rename and no fifth
   // key is added here (`DD-36`).
   if (Object.hasOwn(cfg, 'constraints')) out.constraints = encodeConstraints(cfg.constraints);
+  // **⟶ AND THE FIFTH DECLARED KEY IS TESTED HERE AND PROJECTED NOWHERE — `D-144` ITEM 2, 2026-11-17.**
+  // **Its ruling, verbatim: *"Refuse non-function saveCall as broken config"***, and this class gate is the LAST instant
+  // before the construction's first filesystem act. **A `saveCall` that is not a JS function is `cfg`'s own outside form,
+  // taken here in the surface's one thrown form under the status a bad `cfg` already answers** (`AddressMalformed`,
+  // `PAR-JS-1`; `D-144` item 2: *"the package mints no code, and no second non-store failure form is created"*).
+  // **A JAVASCRIPT FUNCTION CANNOT CROSS INTO RUST AT ANY DEPTH**, so the key is **tested and not projected**: it joins
+  // no member of `out`. **Membership is `Object.hasOwn` and never `in`** (`A76`/`JS-5`), so a present `undefined` is the
+  // key's own outside form and is refused here rather than read as its absence.
+  if (Object.hasOwn(cfg, 'saveCall') && typeof cfg.saveCall !== 'function') {
+    boundaryReject(
+      'AddressMalformed',
+      'saveCall',
+      `the construction's saveCall is ${classSpelling(cfg.saveCall)}, and saveCall is a JS function`,
+    );
+  }
+  // **⟶ AND THE ONE CROSS-KEY RULE STANDS BESIDE IT — `D-144` ITEM 7: *"Make filePath and saveCall mutually
+  // exclusive"*.** **A `cfg` carrying both is refused at this same gate, in this same instant, under this same status
+  // and BEFORE ANY FILESYSTEM ACT.** **Its subject is the carrier `'cfg'`** — a cross-KEY rule has no per-key subject,
+  // and `'cfg'` is the target this gate's own class test already names — and the clause names both keys, which is what a
+  // caller needs to see. **No code is minted** (`PAR-JS-1`). It stands after the two per-key class tests, so a `cfg` that
+  // is both excluded and malformed answers the malformed key's own refusal.
+  if (Object.hasOwn(cfg, 'filePath') && Object.hasOwn(cfg, 'saveCall')) {
+    boundaryReject(
+      'AddressMalformed',
+      'cfg',
+      "the construction's cfg carries both filePath and saveCall, and a store saves through its own writer or "
+        + "through the caller's function and never both",
+    );
+  }
+  // **⟶ AND THE SEED — THE SIXTH DECLARED KEY — IS TESTED HERE AND PROJECTED AS A STRING, 2026-11-17 (`U-STOREROOM-05`;
+  // `D-137` item 4; `D-147` items 1–4).** **`initialImage` IS IMAGE TEXT AND NOTHING ELSE**, so unlike `saveCall` it
+  // CROSSES: it is `out`'s own member and the store decodes it with its own decoder tail. **A value that is not a string,
+  // and the EMPTY string, are `cfg`'s outside forms and are refused HERE, at the class gate, before any filesystem act** —
+  // `D-147` item 4, verbatim: *"Refuse empty string - intentional emptiness is excluding param entirely, accepting empty
+  // string is an overwrite risk"* — so **absence alone means *no seed***. **The status is the one a bad `cfg` already
+  // answers** (`AddressMalformed`, `PAR-JS-1`) and **the package mints no code**; the subject is the key's own name, on the
+  // precedent the measured `filePath: ''` arm sets. **Membership is `Object.hasOwn` and never `in`**, so a present
+  // `undefined` is the key's own outside form. **The wire member is `initial_image`** — the spelling the facade reads — and
+  // **the CALLER's key keeps its declared spelling**.
+  if (Object.hasOwn(cfg, 'initialImage')) {
+    const seed = cfg.initialImage;
+    if (typeof seed !== 'string' || seed === '') {
+      boundaryReject(
+        'AddressMalformed',
+        'initialImage',
+        typeof seed === 'string'
+          ? "the construction's initialImage is the empty string, and initialImage is this store's own image text"
+          : `the construction's initialImage is ${classSpelling(seed)}, and initialImage is this store's own image text`,
+      );
+    }
+    out.initial_image = seed;
+  }
   return out;
 }
 
@@ -265,12 +326,12 @@ export function admittedConstraintBatch(cfg) {
   const admitted = [];
   const constraints = cfg.constraints;
   if (constraints === undefined || constraints === null) return admitted;
-  if (types.isProxy(constraints) || !isAdmittedArray(constraints)) return admitted;
+  if (isProxyOf(constraints) || !isAdmittedArray(constraints)) return admitted;
   // ── THE SUPPLIED LISTENER HANDLES, AND THE ADDRESS EACH IS ADOPTED AT (for `B-3`'s message) ────────────
   const adoptedHandles = [];
   const adoptedAddresses = [];
   if (cfg.listeners !== undefined && cfg.listeners !== null
-    && !types.isProxy(cfg.listeners) && isAdmittedArray(cfg.listeners)) {
+    && !isProxyOf(cfg.listeners) && isAdmittedArray(cfg.listeners)) {
     for (let i = 0; i < cfg.listeners.length; i += 1) {
       const entry = cfg.listeners[i];
       if (!isLawfulListenerElement(entry)) continue;
@@ -393,7 +454,7 @@ export function admittedListenerBatch(cfg) {
   const admitted = [];
   const listeners = cfg === null || typeof cfg !== 'object' ? undefined : cfg.listeners;
   if (listeners === undefined || listeners === null) return admitted;
-  if (types.isProxy(listeners) || !isAdmittedArray(listeners)) return admitted;
+  if (isProxyOf(listeners) || !isAdmittedArray(listeners)) return admitted;
   for (let position = 0; position < listeners.length; position += 1) {
     const entry = listeners[position];
     // THE STORE'S OWN ADMISSION KEEPS ITS SUBJECT — an element the encoder or the store refuses is skipped and

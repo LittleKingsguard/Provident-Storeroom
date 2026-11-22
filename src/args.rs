@@ -76,6 +76,64 @@ pub enum FilePathArg {
     NonString,
 }
 
+/// **⟶ ADDED 2026-11-17 BY `U-STOREROOM-03`/`-04` (`D-132` item 2; `D-137` item 3): THE THIRD ENTRY CONDITION
+/// FOR `file`, CARRIED AS ITS OWN ARGUMENT.** One variant per declared state, `Absent` the optional spelling, so
+/// `storeCreate` and every Rust drive keep the spelling they had and the `StoreConfig` literal the red set
+/// spells in six places is unmoved.
+///
+/// **IT IS NOT A `cfg` KEY** (`D-137` item 3): nothing of it crosses from `encodeConfig`'s projection — *"The
+/// caller spells NOTHING: the PACKAGE sets it when `saveCall` is present and `filePath` is absent"*.
+///
+/// **THE CONDITION IT CARRIES IS A REVERSAL AND IS RECORDED AS ONE.** `docs/specs/storeroom-native/contract.md`
+/// `§10.4` part 1 declares the entry in closed form — *"NO SECOND PREDICATE IS AUTHORED"* — and `D-132` item 2
+/// authors exactly that second predicate. **It is the architect's to author; no later pass may present it as a
+/// reading of `§10.4`.**
+#[derive(Clone, Debug, PartialEq)]
+pub enum DurableWithoutPathArg {
+    /// The third entry condition stands: the register is fixed at `file` tier with NO PATH (`D-132` item 1).
+    Set,
+    /// The optional spelling — the construction's own absence, and what the two older entry points pass.
+    Absent,
+}
+
+impl DurableWithoutPathArg {
+    /// **THE ONE QUESTION THE CONSTRUCTION ASKS OF IT**: whether the third condition stands. It reads no key, no
+    /// path and no file.
+    pub fn is_set(&self) -> bool {
+        matches!(self, DurableWithoutPathArg::Set)
+    }
+}
+
+/// **⟶ ADDED 2026-11-17 BY `U-STOREROOM-05` — THE SEED'S CARRIER** (`D-137` item 4; `D-135` items 1–3). **The seed is
+/// image text and nothing else**: the store's own JSON image, decoded at the construction by the store's own decoder tail
+/// (`json::decode` + `is_admitted()`) and installed at `Tier::File` by the load's own mint. **No caller-shaped seed is
+/// owed** — *"the saver speaks JSON, so the image is the currency of both halves"* — so this carrier has ONE variant
+/// carrying text and no arm beside it.
+///
+/// **A BLANK TEXT NEVER REACHES THE STORE, WHICH IS WHY THERE IS NO EMPTY ARM**: `initialImage: ''` is broken config and
+/// is refused at `cfg`'s class gate as `AddressMalformed` — the seat `filePath: ''` already takes — because *"intentional
+/// emptiness is excluding param entirely, accepting empty string is an overwrite risk"* (`D-147` item 4). **So `Absent`
+/// alone means *no seed* and the creation state stands.**
+#[derive(Clone, Debug, PartialEq)]
+pub enum InitialImageArg {
+    /// The caller's image text, as `cfg.initialImage` supplied it — `file`-tier state only, transported verbatim and
+    /// opaque to the caller (`D-135` item 5).
+    Text(String),
+    /// The optional spelling — the construction's own absence, and what the narrower entry points pass.
+    Absent,
+}
+
+impl InitialImageArg {
+    /// **THE ONE QUESTION THE CONSTRUCTION ASKS OF IT**: the image text where one was supplied. It reads no key, no path
+    /// and no file, and it answers `None` for the absence alone.
+    pub fn text(&self) -> Option<&str> {
+        match self {
+            InitialImageArg::Text(text) => Some(text),
+            InitialImageArg::Absent => None,
+        }
+    }
+}
+
 /// `PAR-7`: the journal's configured length, in ENTRIES.
 #[derive(Clone, Debug, PartialEq)]
 pub enum JournalLengthArg {

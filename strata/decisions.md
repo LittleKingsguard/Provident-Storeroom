@@ -6730,3 +6730,1555 @@ presumption (`1` = superseded), the versions foreclosed (`1` = `1.10.1`), the qu
 
 **TERMS: the proposals (`6` = all taken), the floor string (`1` = `">=22.12.0"`), the platform floors (`5` = move), `HO-1`'s meaning (`1` = supported route), the law's home (`1` = `§3.1`), the class (`1` = `MINOR`), the number (`1` = `1.12.0`), the type leg (`0` = none owed), the tags taken (`0`).**
 
+
+---
+
+### `D-130` — A REJECTED LISTENER BODY IS A NEW STATUS, AND ASYNC DELIVERY STARTS ALL BODIES TOGETHER WITH INTERFERENCE THE CALLER'S OWN HAZARD
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af` (the tree carries `research.md §22`/`§22.12` and `proposals.md P-4` uncommitted; `§20`/`§21`/`P-3`/`D-127`…`D-129` are earlier sessions' and are not this row's subject). **SOURCE:** the architect, in session, in answer to `P-4`'s questions — `AL-2`/`AL-3` (a rejected body's disposition), `NQ-1`/`NQ-2`/`AL-6` (concurrency and order under an awaited delivery) — after his earlier answer to `AL-1` (*"Await listeners before the write answers"*, `research.md:2629`–`:2635`). **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Rejected body is new status"
+
+> "For asyncs, start all, assume user is responsible for not registering async listeners that interfere with each other"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **`AL-2` — A LISTENER BODY'S REJECTION IS A REFUSAL AND NOT A SILENCE.** It carries the package's ONE failure form; **it is not a warning, not a log line and not nothing.** So the shape's failure channel is the record's own form and **not** a new kind of report.
+2. **`AL-3` — THE STATUS IS NEW AND IS NOT A WIDENING.** A **NEW** member is appended to the closed set — `src/error.rs`'s `CODES`, **`22 → 23`**, and `bindings/js/index.d.ts`'s `StoreStatus`, **twenty-two literals `22 → 23`**, the escape arm `(string & {})` unmoved — **and `ListenerBodyThrew` at rank `21` is NOT the carrier.** **The store's set is the architect's and this row mints NO NAME, NO SLUG, NO RANK POSITION AND NO MESSAGE**; the message rule of `seams-and-lifecycle.md §8.2` (generated from the code and the failing trigger's arguments, never hand-authored) governs whichever cell he names.
+3. **`NQ-2` IS ANSWERED IN THE NEGATIVE — THE WAITING DOES NOT ASSERT AN ORDER.** **`§2.7` item 3 stands UNAMENDED**: *"NO ORDER IS ASSERTED … a drive compares sets, never sequences"* (`docs/specs/storeroom-js/surface.md:1664`–`:1666`). **So the fork `P-4 §5` priced — serialise (asserting a sequence item 3 declines) or run together (breaking `D-72`'s premise) — takes the second arm, and the price is paid elsewhere: see item 5.**
+4. **`AL-6` — THE WINDOW DOES NOT WAIT FOR A CHAIN; IT WAITS FOR THE DELIVERED SET.** **Every body of the set is STARTED TOGETHER, and the answer is withheld until the delivered set has SETTLED** — the owner's `AL-1` sentence read through this one. **A body therefore may suspend, and its siblings do not queue behind it.**
+5. **`NQ-1` — INTERFERENCE BETWEEN ASYNC BODIES IS THE CALLER'S OWN HAZARD, DECLARED AND NOT DEFENDED AGAINST.** **This follows the corpus's own precedent for a caller-side hazard**: *"TWO INSTANCES OVER ONE `cfg.filePath` ARE THE CALLER'S OWN HAZARD"* (`docs/specs/storeroom-js/contract.md:2512`–`:2517`). **A caller that registers `async` listeners which depend on each other, order each other, or write to each other's addresses is outside what the package defends.** **⟶ AND THE PATH IS CORRECTED AT THIS LINE, `2026-11-17`, BY THE GATE-1 PASS ON THE CONSOLIDATED SHAPE:** it read *"`docs/specs/storeroom-native/contract.md:2512`–`:2517`"*, **which does not resolve at its subject** — the native contract's `:2505`–`:2522` is the `-0` normalization clause — **and the hazard's sentence lives at `docs/specs/storeroom-js/contract.md:2512`–`:2517`, read whole by that pass.** **The precedent is not in doubt; its path was wrong, and `strata/walkthrough.md §3` exit question 5 makes that a defect by definition rather than a blemish.**
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **THE NEW STATUS'S NAME, RANK POSITION AND MESSAGE** — the set is the store's and the architect's; **nothing is minted by this row.**
+2. **WHICH REJECTION CROSSES WHEN SEVERAL BODIES REJECT.** **With `start all`, `N` bodies can reject in one delivery and the package's form carries ONE `{status, message, log, address}`.** **First to settle wins, a declared order, a list, or one refusal per call — SILENT**, and **this row does not choose.**
+3. **WHERE THE STATUS CROSSES.** **Four live sites still declare that a rejection is not the failure form** (`bindings/js/index.d.ts:498`–`:499`; `docs/specs/storeroom-js/surface.md:1275`–`:1278`; `docs/specs/storeroom-js/contract.md:591`; `strata/brief.md:287`–`:289`). **This row says WHAT the failure is; it does not say HOW it reaches the caller** — a rejection from the awaited answer, a throw at a later member, or another carrier. **`P-4`'s `RM-3` stands open.**
+4. **WHAT THE ANSWER CARRIES** (`RM-4`) — **the architect asked this question of L0 and has not yet answered it**; the explanation is owed to him before it can be ruled.
+5. **PACKAGE-INTERNAL STATE UNDER A SUSPENSION IS *NOT* COVERED BY ITEM 5 OF WHAT THIS ROW SETTLES.** **The caller-hazard sentence covers the CALLER'S OWN registrations interfering with each other.** **It cannot cover the package corrupting its own module-level or per-instance slots when two of ITS OWN bodies suspend** — `EXTERNAL_COMMIT`/`EXTERNAL_DEPTH` (`bindings/js/src/entry/state.mjs:319`, `:811`–`:845`), `state.legDelivery` (`index.mjs:858`; `delivery.mjs:984`), `state.listenerFailure` (`delivery.mjs:580`), `witnessDiscardedReversal` (`index.mjs:905`), `REPAIR_LEGS_LAST` (`state.mjs:836`). **Those are the DESIGN's obligation, and `P-4 §7` `N-4` names each; no ruling is owed for them, but a design that leaves one crossing is defective.**
+6. **`RM-6` — WHERE A SUSPENDED BODY'S OWN WRITE NAMES ITS COMMIT STAYS SILENT** (`state.mjs:667`, `:674`–`:675`; `P-4 §7` `N-2`). **`start all` does not decide it: the triggering commit is OPEN for the whole of the suspension, so the JOIN arm `N-2` derives is live rather than foreclosed.**
+7. **THE RESIDUAL `P-4` QUESTIONS, unchanged**: `RM-1` in the letter of an ACTIVE row is given by the two sentences only for the *scheduler-shaped* half and its instruments still need the bounded amendment (`contract.md:602`); `RM-2`, `RM-4`, `RM-5`'s measurement, `RM-7` (which verbs and instants), `RM-8`, `RM-9`, `NQ-3`, `NQ-4`, `NQ-5`, `NQ-6`, `AL-7`…`AL-12` — **none is touched by this row.**
+
+**WHAT IS CARRIED AND NOT ASKED — recorded so no reader takes silence for a decision.** **`AL-7`'s *"one invocation per distinct handle"* stands whole** (`surface.md:394`–`:398`; `delivery.mjs:165`): `start all` changes when bodies run, **not how many identities are invoked**. **`AL-8`'s window membership stands whole** (`delivery.mjs:107`–`:121`): a registration made during the window — including one made by a body that suspended — **takes effect at the next trigger and at no element of this one**, which is deterministic and needs no new rule. **If the architect reads either differently, he will say so and this clause is the pointer.**
+
+**TERMS: the answers (`2` = a new status · start-all with the interference hazard the caller's), the statuses minted (`1` = a NEW member, name owed), the statuses widened (`0`), the order assertions added (`0`), the caller hazards declared (`1`), the `P-4` questions closed (`AL-2`, `AL-3`'s *which*, `AL-6`, `NQ-1`, `NQ-2` = `5`), the `P-4` questions left open (`12`), the cells written (`0`), the code moved (`0`), the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT.** **The next move is his answer to the one question he asked to have explained (`RM-4`), and L0's explanation of it is owed before anything is designed.**
+
+---
+
+### `D-131` — THE SIX-KEY CONFIG: `saveCall` CARRIES THE STORE'S OWN IMAGE, `channel` IS PER-WRITE AND ITS ANSWER IS THE RECEIPT, AND BOTH MAY STAND BESIDE `filePath` WITH `saveCall` WINNING
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, in answer to three questions
+L0 put to him while the intake audit (`strata/research.md §23`) ran. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "saveCall, which is a (async optional) function that the package invokes when saving instead of writing to the filePath, expecting a return of `True` or a verbose error log"
+>
+> "channel, which is an interface function used for batching the writes when communicating from backend<-->frontend. If a channel is registered, the store will pass the listeners and their return values with the write receipt … Channel function returns data to client so that it can load the data."
+>
+> **and, asked directly:** the payload is **"The store's own file image"** · the boundary is **"Per write, its return is the receipt"** · and `filePath` beside it is **"Both allowed, saveCall wins"**.
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE CONFIG'S TWO NEW KEYS, AS `cfg` KEYS BESIDE THE PRESENT FOUR — `4 → 6`.** **THE ANTECEDENT OF *"Add two optional ones"* IS THE FOUR DECLARED KEYS THE PRIOR EXCHANGE NAMED** (the owner asked *"What are the current config options accepted for the store creation?"* and these two bullets answer it), **so `saveCall` and `channel` are `cfg` keys and not instance members, module exports or verb positions.** **This reading answers `§23.13`'s `SC-1` and `CH-1` BY CONTEXT AND NOT BY HIS OWN WORD; if he means otherwise he will say so and this clause is the pointer.** **The cost is `§23.3`'s `A-B11`: `frame.mjs:203`–`:222` passes four keys and ignores the rest, so today BOTH keys are silently inert — measured, `§23.16` (2)(c).**
+2. **`saveCall` CARRIES THE STORE'S OWN FILE IMAGE — NOT A PACKAGE SNAPSHOT AND NOT A DELTA.** **This answers `§23.13`'s `SC-5`.** **The consequence is immediate and is the largest thing this row buys: the store must be able to HAND ITS IMAGE OUT**, and the corpus's only prior text on that class is `D-112`'s unclosed question, which named exactly three carriers — *"a tenth addon entry, a position on the existing one, or a package act that reaches the store's own writer through a channel the corpus already declares"* — and called the choice *"a declaration and not an implementer's choice"* (`strata/decisions.md:5784`–`:5788`). **This row does not choose among the three.**
+3. **`saveCall` AND `filePath` MAY STAND TOGETHER, AND `saveCall` PREVAILS ON THE WRITE PATH.** **This answers `SC-4`, and it is the answer that keeps the tier model coherent — MEASURED, `§23.16` (2)(a): a `file`-tier write on a store with NO `filePath` is REFUSED (`ParentAnchorMonotonicityViolation`), so a `saveCall` store without a `filePath` can never enter the `file` tier and `save_owed` would answer `false` forever, invoking `saveCall` ZERO times.** **So `filePath` REMAINS the probe that fixes the register at `file` (`docs/specs/storeroom-native/contract.md:4868`, `§10.4` pt. 1–3), and `saveCall` REDIRECTS WHERE THE BYTES GO, not whether the register is durable.** **`file` therefore keeps a probed path as its entry condition — `SC-7`'s reversal is NOT taken.** **⟶ THAT LAST CLAUSE IS SUPERSEDED AT THIS LINE, `2026-11-17`, BY `D-132` ITEM 2, WHICH AUTHORS EXACTLY THE THIRD ENTRY CONDITION THIS CLAUSE DECLINES** (*"If a saveCall is provided and a filePath is not, treat the file probe as successful"*), **and `role_l0_critique` found the two rows standing unreconciled (`VN-4`). `D-131` ITEM 3 STANDS FOR EVERYTHING ELSE — `filePath` remains ONE way into the tier, `saveCall` prevails on the write path, and the probe still fixes the register at `file` where a path is given. What does NOT stand is the words *"NOT taken"*: the reversal is taken, by `D-132`, and this pointer is the one home of that correction.**
+4. **`channel` IS INVOKED PER WRITE AND IS NOT BATCHED.** **This answers `CH-6` in the only one of its three arms that schedules nothing**, and `§23.12`'s asymmetry is why it matters: *a per-write call meets `DD-22`'s scheduler refusal NOT by reversing it but by never reaching it* (`docs/specs/storeroom-js/contract.md:602`). **The batching sentence in the request is thereby read as the channel's PURPOSE — one delivery point per write for a backend↔frontend hop — and not as an accumulate-and-flush queue.** **A flush boundary is NOT declared, and none may be invented without a ruling.**
+5. **THE CHANNEL'S ANSWER IS THE RECEIPT.** **This answers `CH-5` in its largest form**: the caller receives what the channel returned, *"so that it can load the data"*. **The channel receives `{listenerHandle: <data>, …}` — one entry per triggered handle, the value being that listener's return value.**
+6. **THE BOUNDARY OF THE PACKAGE'S RESPONSIBILITY IS THE CHANNEL'S RETURN — THE OWNER'S OWN WORDS: *"(End of package scope)"*.** **What the caller does with the data afterwards is the caller's.**
+7. **`A57` IS NOT MOVED BY EITHER KEY.** **The store still invokes nothing; the PACKAGE invokes `saveCall` and `channel`, which is exactly the shape `A57` permits** (`docs/specs/storeroom-js/surface.md:387`; `strata/brief.md:331`–`:332`). **A pass that files this request as an `A57` breach has read the wrong boundary.**
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **`saveCall`'s DECLARED ANSWER AND ITS OUTSIDE FORM** (`SC-2`) — *"`True` or a verbose error log"* is **a third answer shape** beside the store's one crossed form and `PAR-JS-12`'s `TypeError`; **whether `True` is a boolean, a truthy value or an outcome record, and what a non-function `saveCall` answers, are unruled.**
+2. **THE STORE READOUT'S FORM** — `D-112`'s three carriers, unchosen (`D-112`'s own unclosed question, reopened by item 2 above).
+3. **THE BOOT ROUTE FROM A `saveCall` IMAGE.** **Nothing in the tree declares a restore-from-outside route** (`read_file_image` is *"THE ONE PLACE THE BYTES AT `file_path` ARE READ AND DECODED"*, `src/store.rs:1714`), **so an image persisted elsewhere has no declared way back in**, and a store booting over a `filePath` whose bytes `saveCall` superseded reads **the stale file** — measured at `§23.16` (2)(b) for the file's own arm, not for this one.
+4. **`FileCommitFailed` AND WHO ROLLS A FAILED SAVE BACK** (`SC-6`). **The declared rollback lives in `commit_file`'s `Err` arm (`src/store.rs:1601`–`:1609`) and a package-performed save has no such arm**; **`§2.11` clause 5's observable loses its producer unless the store grows an entry or the package grows a second mechanism, and those are different classes.**
+5. **THE RECEIPT'S FORM** (`CH-5`, precise) — **whether the channel's answer REPLACES the receipt or rides beside it.** **`WriteRecord` declares three typed members and carries two more as non-enumerable own accessors** (`bindings/js/index.d.ts:616`–`:680`), and **`D-119` declares the log a RESULT the caller audits its own act with (`:6112`–`:6137`)** — **so a receipt that IS the channel's answer has to say what happens to `op`, `watched`, `triggered`, `discarded` and `log`, and this row does not.**
+6. **A CHANNEL OR SAVE FAILURE'S DISPOSITION** (`CH-4`, and `D-130` item 3's own *"it does not say HOW it reaches the caller"*): silently, as the new twenty-third status `D-130` minted but nobody has named, as a `TypeError`, or as a throw through.
+7. **WHICH OF THE FIVE DELIVERY SITES THE CHANNEL REACHES** (`CH-2`) — *"with the write receipt"* exists at a `write` and a `delete` and nowhere else; a `rollback`'s judgement, the four registration instants and the creation answer other things (`surface.md:1728`; `bindings/js/index.mjs:887`, `:2171`).
+8. **WHICH VALUE CROSSES WHEN SEVERAL LISTENERS RETURN ONE, AND HOW A REPLACED HANDLE'S ENTRY IS KEYED** (`CH-3`) — **`D-130` item 2's plurality question in the channel's voice, made structural by a map.**
+9. **WHETHER `channel`'S ABSENCE OR PRESENCE CHANGES WHAT A LISTENER'S RETURN VALUE IS FOR** (`CH-7`) — the request's own words condition the invocation on registration, and **nothing in the tree conditions an invocation on a body's answer** (`PAR-JS-12`'s observable carries no value term).
+10. **`DD-17`/`A74`'S PREMISE** — *"no in-flight state to flush and no async resource whose abandonment could lose data"* (`docs/specs/storeroom-js/contract.md:2507`–`:2510`) **loses its premise under an `async` `saveCall`, which the request names explicitly.**
+11. **`SC-8`, `SC-10`, `SC-11`, `CH-9`, `CH-10`, `CH-11`** — the WASM question, the second-instance-over-a-backend hazard, and both release classes — **all stand open.**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT.** **A gate-1 pass on this shape (`P-5`) and its adversarial companion are owed before any design work; the intake it rests on is `strata/research.md §23` and `§23.16`.**
+
+---
+
+### `D-132` — `saveCall` WITHOUT A `filePath` ENTERS THE `file` TIER: THE PROBE IS TREATED AS SUCCESSFUL
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, answering the supervisor's report
+of a measured hole (`strata/research.md §23.16` (2)(a)). **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "If a saveCall is provided and a filePath is not, treat the file probe as successful"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **A `saveCall` STORE WITH NO `filePath` IS A `file`-TIER REGISTER.** **This closes the hole the supervisor measured**: without it,
+   *"a `saveCall` store with no `filePath` is a `mem` register, `save_owed` answers `false` for every op, and `saveCall` is invoked
+   ZERO times"* (`§23.16` (2)(a): a `file`-tier write on a path-less store is refused at `ParentAnchorMonotonicityViolation` and no
+   body runs). **So `saveCall` ALONE is from this date a complete durability configuration, and `D-131` item 3's *"`filePath`
+   remains the probe that fixes the register at `file`"* is NARROWED: `filePath` remains ONE way into the tier and is no longer
+   the only one.**
+2. **AND IT AUTHORS A THIRD ENTRY CONDITION FOR `file`, WHICH IS A REVERSAL AND NOT A DECLARATION.** **`docs/specs/storeroom-native/contract.md:4868`
+   (`§10.4` part 1) declares the entry condition in closed form — *"a provided `filePath` is REACHABLE iff (a) the path EXISTS and a
+   write-mode open of it succeeds … or (b) the path is ABSENT and the process can perform an exclusive create at it … **NO SECOND
+   PREDICATE IS AUTHORED**"* — and **this row authors exactly that second predicate**, in the form *"`saveCall` present ∧ `filePath`
+   absent ⇒ the probe is successful"*. **It is the architect's to author; it is recorded as a reversal so no later pass presents it
+   as a reading of `§10.4`.**
+
+**WHAT IT DOES NOT SETTLE — AND THE THREE THAT DECIDE WHETHER IT CAN BE BUILT.**
+
+1. **THE PACKAGE CANNOT IMPLEMENT IT ALONE: THE TIER IS THE STORE'S, AND NO CALLER-SPELLABLE STATE MEANS *"durable, pathless"* —
+   MEASURED.** `src/store.rs:730`–`:731` decides by `if file_path.is_empty() { Tier::Mem } else { …probe… Tier::File }`, and the step's
+   own comment reads *"`filePath`: ABSENT is LEGAL and fixes the register at `mem`; a non-empty string is PROBED"* (`:688`–`:690`).
+   **A caller who tries to spell the missing state is refused before the probe is reached**: `filePath: ''` answers
+   **`AddressMalformed`** (*"'filePath' is not a legal address segment in '', segments are strings or non-negative integers"*),
+   measured `2026-11-17`. **So the ADDON'S CONSTRUCTION MUST LEARN A NEW INPUT** — a carried bit or key that says *file tier,
+   no path* — and that is a store change, a `cfg` row and an arity move in Rust, not a package edit. **This row does not choose its
+   spelling and mints no key.**
+2. **THE STORE'S OWN WRITER BECOMES REACHABLE ON A PATH-LESS REGISTER, AND IT CARRIES NO GUARD.** `commit_file`
+   (`src/store.rs:1581`–`:1611`) tests the journal entry, `save_owed` and `saved`, and **nothing tests the path** — while its
+   state-keyed sibling does (`:3411`–`:3413`). **Today that state is unreachable (measured: the write is refused a layer earlier);
+   this row makes it reachable.** **So the store must either grow a path guard with its own answer, or never enter its own writer
+   when `saveCall` is present** — **`P-4`/`§23.13`'s `SC-3` is thereby promoted from an unmeasured curiosity to a REQUIRED
+   declaration.** **Derived from the bytes; `NOT DRIVEN`, because no implementation exists.**
+3. **THE BOOT ROUTE IS NOW MANDATORY AND NOT OPTIONAL — AND THE TREE DECLARES NONE.** **With no `filePath` there is no image at any
+   path to read**: `read_file_image` is *"THE ONE PLACE THE BYTES AT `file_path` ARE READ AND DECODED"* (`src/store.rs:1714`), and the
+   boot's absent/unreadable arms fall back to the creation state (`D-108` item 1). **So a `saveCall` store SAVES AND CANNOT LOAD:
+   its durability is WRITE-ONLY** — **unless a restore route is declared, and nothing in the tree declares one.** **This is from
+   this date the request's most important open item, and it is `SC-R1` below.**
+4. **`saveCall`'s FORM IS STILL UNRULED** (`SC-2`): *"if a `saveCall` is PROVIDED"* names presence and not validity — **a `saveCall`
+   that is present but not a function, or one whose answer is neither `True` nor a log, has no declared answer, and this row does
+   not supply one.**
+5. **`FilePathUnreachable` LOSES A SUBJECT ON THIS ARM** (rank `13`, `src/error.rs:184`): the probe it names never runs. **And the
+   two-instances-over-one-path hazard moves to the backend, where nothing declares it (`SC-10`).**
+
+**NEW QUESTIONS THIS ROW OPENS, CARRIED WITH THE OLD ONES.**
+
+- **`SC-R1`** — **the restore route**: how does an image persisted by `saveCall` re-enter a store at boot? A new construction input
+   carrying an image, a store entry that accepts bytes, or nothing (**in which case a `saveCall` store cannot boot with its own
+   data, and that must be said in the declaration rather than discovered by a consumer**).
+- **`SC-R2`** — the spelling of the *file tier, no path* input (item 1 above), and whether `saveCall`'s ABSENCE returns the register
+   to `mem` or refuses.
+- **`SC-R3`** — whether the store's own writer is suppressed by that input, or guarded, or removed for the arm (item 2 above).
+
+**TERMS: the entry conditions for `file` (`2 → 3`, and the third is a `REVERSAL` of `§10.4` pt. 1's *"NO SECOND PREDICATE IS AUTHORED"*) ·
+the keys minted (`0`) · the store inputs minted (`0` = owed, `SC-R2`) · the restore routes declared (`0` = owed, `SC-R1`) · the codes
+minted (`0`) · the members moved (`0`) · the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT.** **`saveCall`/`channel` still await their gate-1 pass (`P-5`) and its adversarial
+companion before any design work.**
+
+---
+
+### `D-133` — THE ADDON HANDS THE PACKAGE THE JSON EXPORT, AND THE PACKAGE PASSES IT TO `saveCall` INSTEAD OF THE FILE WRITE
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "If using the saveCall method, the addon will have to hand the JS package the JSON export to pass into the saveCall function
+> instead of the file write"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE CARRIER'S DIRECTION, AND `D-112`'S THREE FORMS NARROW TO TWO.** *"the addon will have to hand the JS package the JSON
+   export"* **excludes the third of `D-112`'s carriers** — *"a package act that reaches the store's own writer through a channel
+   the corpus already declares"* (`strata/decisions.md:5784`–`:5788`) — **and leaves exactly two**: **a tenth addon entry that
+   answers the image, or a position on the existing `commitFile`.** **This row chooses neither.**
+2. **THE ARTEFACT IS THE STORE'S OWN COMPOSITION AND NOT A PACKAGE SNAPSHOT — the text `write_file` writes today**:
+   `let text = json::encode(&self.file_snapshot())` (`src/store.rs:1516`), whose snapshot walks the register's `file`-tier anchors
+   (`:1482`–`:1492`). **It is the WHOLE STATE and not a delta**, which confirms `D-131` item 2 at the level of the artefact.
+3. **ON THIS ARM THE STORE'S OWN WRITER IS NOT USED** — *"instead of the file write"*. **So `§23.13`'s `SC-R3` is answered as
+   SUPPRESSED, not guarded, for the `saveCall` arm.** **What the store does instead of entering `write_file` is the carrier's own
+   question and is not in this row.**
+4. **AND A MEASUREMENT BESIDE IT, TAKEN `2026-11-17`, because it decides whether "the JSON export" is exotic: for an ordinary
+   `file`-tier state the bytes the store writes ARE `JSON.stringify` of the register's own read.**
+   `storeCreate({journalLength: 16, listeners: [], filePath})`; `write(['tabs'], 'file', {a:{url:'x'}, b:2})`; the file read back is
+   **32 bytes, JSON-parseable, and BYTE-IDENTICAL to `JSON.stringify(store.read([]))`** (`{"tabs":{"a":{"url":"x"},"b":2}}`).
+   **The consequence cuts both ways and both halves matter**: **nothing exotic need be minted for the common case**, **and the
+   authority is still the STORE'S composition and never `read([])`**, because **`file_snapshot` assembles at `Tier::File` while
+   `read([])` selects the LOWEST-persistence version present (`D-122`) — so the two texts differ wherever a `mem` or `temp` version
+   shadows a `file` one, which the selection rule makes routine.** **A package that exported `read([])` would ship a text the
+   store's own loader need not accept.**
+
+**WHAT IT DOES NOT SETTLE — AND THE FIVE THAT DECIDE WHETHER THE ARM IS SOUND.**
+
+1. **THE CARRIER'S SPELLING AND ITS ARITY** — a new entry is a `10 → 11` dispatcher figure and a new `PAR` row; **a position on
+   `commitFile` changes that entry's declared answer from `undefined` to a string** (`docs/specs/storeroom-js/surface.md:1915`;
+   `src/facade.rs:1028`–`:1030`'s *"NO POSITION IS MINTED AND NO ARITY MOVES"*). **A declaration, still unmade.**
+2. **THE EXPORT MUST KEEP `write_file`'s SELF-VERIFICATION, AND THIS IS NEW.** **`write_file` RE-DECODES the text it composed and
+   refuses an image the loader would refuse** (`src/store.rs:1522`–`:1524`). **An export route that composes and hands out without
+   that check would hand the caller an image the store would itself have refused** — and, the save now happening outside, nothing
+   downstream performs the check. **Filed as `SC-R4`.**
+3. **THE RETURN JOURNEY IS STILL UNDECLARED — `SC-R1`, and this row makes it the symmetric half of its own sentence.** **If the
+   image leaves as JSON text, the route by which it re-enters at boot is owed in the same breath**: `read_file_image` is *"THE ONE
+   PLACE THE BYTES AT `file_path` ARE READ AND DECODED"* (`:1714`), and a `saveCall` store has no `file_path` at all (`D-132`). **As
+   the record stands, a `saveCall` store SAVES AND CANNOT LOAD.**
+4. **THE STALE-FILE ARM** — with both keys supplied (`D-131` item 3), the file at `filePath` **stops being updated**, so a boot at
+   that path loads an older state which the store then saves through `saveCall`: **two durable artefacts diverging with nothing
+   declared about either.** **No sentence in the tree names it.**
+5. **`strata/brief.md:333`'s INVARIANT 6 NEEDS AN AMENDMENT IN HIS NAME.** *"The file is the store's. Never read, edit, parse or
+   migrate it by hand"* — **the image may now be TRANSPORTED verbatim by the package and handed to a caller-supplied function;
+   parsing, editing and migrating it remain forbidden.** **This row makes the export lawful and does not by itself move the
+   invariant's sentence.**
+
+**UNMOVED BY THIS ROW, AND NAMED SO NO PASS FILED THEM AGAINST IT.** **`SC-2`** (`saveCall`'s answer form and its outside form) ·
+**`SC-6`** (who rolls a failed save back, `§2.11` cl. 5's producer) · **`SC-R2`** (the spelling of the *file tier, no path* input) ·
+**`SC-10`** (a second instance over one backend) · **the release class** — **all open.**
+
+**TERMS: the carrier's direction (`1` = addon → package, chosen) · `D-112`'s forms (`3 → 2` open) · the artefact (`1` = the store's
+own JSON image, whole-state) · the store's writer on this arm (`1` = suppressed) · the carriers minted (`0`) · the restore routes
+declared (`0`) · the self-verification rows added (`1` = `SC-R4`) · the codes minted (`0`) · the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT.** **`P-5` and its adversarial companion remain owed before any design work.**
+
+---
+
+### `D-134` — THE `saveCall` STORE IS EXPECTED TO BE TEMPORARY AND ITS TRUTH TO LIVE ELSEWHERE, AND THE ROUND TRIP GAINS A SEVENTH `cfg` KEY: INITIAL DATA SUPPLIED AT CONSTRUCTION
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, after the supervisor named the
+missing return journey (`D-133` item 3's *"a `saveCall` store SAVES AND CANNOT LOAD"*). **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "The use cases for the saveCall direction are for client-side instances or where data is preserved by DB; in either case the store
+> is likely going to be temporary"
+
+> "Add an additional cfg option for passing in the initial data, to be used when saveCall is active so that the DB can be initialized
+> with data from a source not owned by the storeroom filePath"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE USE CASE IS NAMED, AND IT DISPOSES OF THE SEVERITY OF `SC-R1`.** **A `saveCall` store is a CLIENT-SIDE or TEMPORARY instance
+   whose state's truth is kept by a database the store does not own.** **So *"the store saves and cannot load"* is not a hole for
+   this direction: the store is not the source of truth, and a process that reconstructs it per session never expected it to read
+   its own image back.** **What `SC-R1` becomes is therefore a DIRECTION and not an omission — and the direction is item 2.**
+2. **THE ROUND TRIP IS ASYMMETRIC BY DESIGN, AND THIS ROW MAKES THE ASYMMETRY DELIBERATE: OUT AS THE STORE'S OWN IMAGE, IN AS
+   CALLER-SUPPLIED DATA.** **`D-133` sends the store's JSON image OUT through `saveCall`; this row sends the caller's OWN DATA IN at
+   construction.** **The store therefore never has to parse text it did not compose** — **which also narrows `SC-R4`: the self-
+   verification at `src/store.rs:1522`–`:1524` stays the store's own guard on the outgoing artefact, and the incoming artefact is
+   not an image at all but a value in the API's domain.**
+3. **THE SEVENTH `cfg` KEY: INITIAL DATA, AT CONSTRUCTION, FOR THE `saveCall` DIRECTION.** **It carries *"data from a source not owned
+   by the storeroom `filePath`"*** — i.e. **the DB's copy of the state, supplied by the application, and it is the route by which a
+   `saveCall`-backed store begins life with content.** **The set moves `6 → 7`** (`D-131` item 1 took it `4 → 6`).
+4. **AND A FACT THAT MAKES THE KEY CHEAPER THAN IT LOOKS, NAMED AS A FINDING AND NOT AS A DECISION: THE STORE ALREADY CARRIES A
+   SUPPLIED-STATE CONCEPT.** `src/store.rs:636`–`:639` declares **`base_state: StoreValue`, *"a SNAPSHOT of the store's own observable
+   state"* for the compression's floor**; it is initialised **empty** at creation (`:1011`, `StoreValue::Object(BTreeMap::new())`)
+   and **overwritten during compression** from `assemble_all` (`:2145`–`:2149`). **So a seeded construction is structurally the same
+   kind of act the store already performs on itself — but a base state is the COMPRESSION FLOOR and not the REGISTER, and the two are
+   not the same object.** **Whether the seed populates the base state, the register, or both is the design pass's to price, and this
+   row chooses neither.**
+
+**WHAT IT DOES NOT SETTLE — THE EIGHT THAT DECIDE THE KEY'S SHAPE.**
+
+- **`SE-1` — THE SEED'S SHAPE: THE CALLER'S OWN DATA, OR THE STORE'S IMAGE TEXT?** **The request's own words say *"data from a source
+  not owned by the storeroom `filePath`"*, which reads as the application's data and not as this store's JSON.** **If it is the
+  caller's data, the crossing's declared domain governs it** (structured-clone-compatible values, the `126`-deep ceiling and the
+  `1,000,000`-node budget, `ValueNotAdmitted`), **and a structured write at the register mints the whole branch tree beneath it**
+  (`strata/brief.md` UC-4). **If it is the image text, a parser enters the package, which `brief.md:333` forbids by hand.**
+- **`SE-2` — WHICH TIER THE SEED LANDS AT.** Under `D-132` a `saveCall` store is `file`-tier; **a seed landing at `mem` would be
+  shadowed or purged by the first `file`-tier write, and a seed landing at `file` would owe a save from the instant the store
+  exists** (see `SE-7`). **Undeclared.**
+- **`SE-3` — IS THE SEED AN OP?** **A journal entry with an `opId` makes it rollbackable and counts against `journalLength`; a base
+  state makes it the floor beneath the journal.** **The two have different observed answers for a `rollback` issued before any
+  write, and the record declares nothing.**
+- **`SE-4` — SEED BESIDE AN EXISTING READABLE FILE.** `D-131` item 3 allows `filePath` beside `saveCall`; **so a store may be given a
+  seed AND boot over a file that already holds a state.** **Which wins — the seed, the file, or a refusal — is undeclared, and the
+  two silent behaviours differ (a seed that wins silently discards the file's state; a file that wins silently discards the seed).**
+- **`SE-5` — IS THE KEY LEGAL WITHOUT `saveCall`?** *"to be used when saveCall is active"* **names the key's purpose and not its
+  domain.** **Ignored like a seventh key today, refused, or in domain everywhere — undeclared.**
+- **`SE-6` — ITS VALIDATION'S INSTANT AND ITS CODE.** **Every construction argument is validated before any filesystem act**
+  (`strata/brief.md` UC-2; `contract.md §10.4` parts 1–5), **so a seed's refusal must precede the probe — and whether that refusal
+  is `ValueNotAdmitted`, `ValueRefusedAtBoundary`, `AddressMalformed` or a new member is unruled.**
+- **`SE-7` — DOES A SEEDED STORE OWE A SAVE IMMEDIATELY?** **If the seed lands at `file` tier, the store holds `file`-tier state it
+  has not written; a `saveCall` fired on the next write would export a state the DB already holds, and a `saveCall` never fired
+  would leave the store's `saved` mark and the DB disagreeing.** **The store's `commit_file` already carries a `saved` conjunct
+  (`src/store.rs:1581`–`:1611`); nothing declares its meaning for a seeded construction.**
+- **`SE-8` — THE UNDO WINDOW OVER A SEED.** `journalLength` bounds the journal and the store compacts into a base state as it fills
+  (`strata/brief.md` UC-7); **whether a `rollback` can reach behind a seed, and what `undoneOps` reports there, is undeclared.**
+
+**AND ONE THING THIS ROW CARRIES THAT NO ONE ASKED FOR, RECORDED BECAUSE IT IS A CONSEQUENCE OF THE ASYMMETRY AND NOT OF THE KEY.**
+**A `saveCall` store is expected to be temporary — so a consumer that keeps one for the process's life is outside the declared use
+case.** **The corpus's own standing rule is the opposite — *"There is no release verb — construct one store and keep it for the
+process's life"* (`strata/brief.md:188`–`:189`).** **The two are not in contradiction for this direction: the standing rule governs
+the file-backed store, and this row names a direction in which a store may be per-session.** **No member moves, and no release verb is
+introduced — a temporary store is a store whose caller stops using it.**
+
+**TERMS: the `cfg` keys (`6 → 7`) · the round trip (`2` directions, asymmetric and chosen: image out, data in) · the use cases named
+(`1` = client-side or temporary, truth elsewhere) · the `SC-R1` disposition (`1` = answered in direction, still owed in mechanism) ·
+the keys minted by name (`0` — the key's NAME is the design's, this row names its subject) · the codes minted (`0`) · the tiers chosen
+(`0` = `SE-2` owed) · the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT.** **`P-5` and its adversarial companion remain owed; this row joins `D-131`…`D-133` as
+their input.**
+
+---
+
+### `D-135` — CORRECTION BY NAME: AN IMAGE-TEXT SEED IS POSSIBLE, AND IT IS THE CHEAPER OF THE TWO SEED SHAPES
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, CHALLENGING L0's OWN SENTENCE:
+*"Why is the store's image text not possible? It's already the data it's reading from file"*. **STATUS: `ACTIVE`.**
+
+**THE SENTENCE WITHDRAWN, QUOTED FROM `D-134`'s `SE-1` AND REPLACED AT THIS LINE** (`strata/walkthrough.md §4`: a superseded cell
+leaves and leaves one pointer):
+
+> *"**If it is the image text, a parser enters the package, which `brief.md:333` forbids by hand.**"*
+
+**IT IS FALSE, AND IT IS FALSE ON BOTH OF ITS HALVES.** **(a) No parser enters the PACKAGE, because the store already owns the
+decoder**: `read_file_image` is *"THE ONE PLACE THE BYTES AT `file_path` ARE READ AND DECODED"* (`src/store.rs:1714`) and decodes with
+`json::decode(&text)` at `:1730`, filtering members through `is_admitted()` and answering one of three declared classes —
+`NoImage` · `Members` · `Refused` (`:1720`–`:1737`). **`write_file` verifies its own composition the same way** (`:1522`). **The
+package would transport an opaque string and parse nothing.** **(b) `brief.md:333` DOES NOT FORBID IT** — its sentence is *"the file is
+the store's. Never read, edit, parse or migrate it by hand"*, **and a seed decoded by the store is neither a hand-parse nor an edit.**
+
+**WHAT REPLACES IT — THE CORRECTED READING, AT THE BYTES.**
+
+1. **AN IMAGE-TEXT SEED IS THE BOOT PATH WITH THE TEXT SUPPLIED INSTEAD OF THE PATH.** **The decode is a PURE READ** — its own clause:
+   *"no node is minted, no anchor is installed, nothing is mutated, so a caller may refuse on this answer and leave the store exactly
+   where it found it"* (`:1716`–`:1719`) — **and `Store::boot_load` / `Store::regenerate` are what INSTALL the members.** **So a seed
+   needs a route that feeds text to the same decode, and the installation machinery it then reuses already exists.**
+2. **AND IT IS CHEAPER THAN A CALLER-DATA SEED, NOT DEARER — the `SE-1` comparison inverted.** **A caller-data seed needs the crossing's
+   whole validation at construction** (structured-clone compatibility, the `126`-deep ceiling, the `1,000,000`-node budget,
+   `ValueNotAdmitted`) **AND a structured write that mints the entire branch tree beneath the register** (`strata/brief.md` UC-4). **An
+   image-text seed needs neither: the store decodes what it composed, and `is_admitted()` is already the filter.**
+3. **ITS REFUSAL ALREADY HAS A DECLARED HOME.** **An image the loader cannot accept is `FileImage::Refused`, and its status is rank
+   `22` `FileImageRefused`** (`src/store.rs:1737`; `src/error.rs:195`; `D-126` item 2). **So the seed's failure arm mints no member and
+   opens no rank question — it is `SE-6`'s answer for this shape, and it is already declared.**
+4. **AND THE ROUND TRIP BECOMES SYMMETRIC, WHICH WITHDRAWS `D-134` ITEM 2'S ASYMMETRY AS A DESIGN MERIT.** **Out as the store's JSON
+   image (`D-133`), in as the same text: THE DB STORES EXACTLY THE BYTES THE STORE EMITTED.** **`D-134` item 2 called the asymmetry
+   *"deliberate"*; with the image-text route available and cheaper, the asymmetry is a choice a design may still take and no longer a
+   structural virtue.** **The direction stays: the DB holds the text, the store composes and decodes it, and the caller never parses.**
+5. **THE ONE CONSTRAINT THAT IS REAL AND STAYS.** **An image is `file`-tier state only** — `file_snapshot` walks the register's
+   `Tier::File` anchors (`src/store.rs:1482`–`:1492`). **So an image-text-seeded store is a `file`-tier store, which is exactly what
+   `D-132` declares a `saveCall` store to be** — **and a seed cannot express a `mem` or `temp` version, which the `saveCall` direction
+   does not need.** **And the format remains the store's private composition: OPAQUE to the caller, transported verbatim, never
+   hand-edited.**
+
+**STILL UNDECLARED, AND NAMED RATHER THAN ANSWERED.** **Whether the seed key accepts BOTH shapes (the store's image text AND the
+caller's own data) or only one** (`SE-1` now splits in two, and this row does not choose) · **the import CARRIER** — `D-112`'s remaining
+two forms, symmetric with `D-133`'s export, and neither chosen · **whether an absent or empty seed reads as `NoImage` and the creation
+state stands** (`SE-*`'s degenerate arm) · **`SE-2`…`SE-8` unchanged.**
+
+**TERMS: the withdrawn sentences (`1`) · the corrected readings (`5`) · the parsers added to the package (`0`) · the codes minted (`0`)
+· the ranks opened (`0` — `FileImageRefused` is the seat) · the seed shapes (`2`, neither chosen) · the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT.** **`P-5` and its adversarial companion remain owed.**
+
+---
+
+### `D-136` — THE CHANNEL'S DATA RIDES BESIDE THE RECEIPT, UNDER ITS OWN NAME; THE RECEIPT'S FIVE MEMBERS ARE UNMOVED
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, answering the gate's one blocking
+question (`strata/proposals.md` `P-5`; `D-130:6768`'s *"L0's explanation of it is owed before anything is designed"*). **THE
+ARCHITECT'S WORDS, VERBATIM:**
+
+> "Ride beside it, under its own name"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **`RM-4` IS CLOSED, AND SO IS `CH-5` — the two were one question and one answer closes both.** **The write's answer keeps its
+   declared shape exactly: `WriteRecord`'s THREE typed members `op` · `watched` · `triggered`** (`bindings/js/index.d.ts:616`–`:620`)
+   **and its TWO non-enumerable own accessors `discarded` and `log`** (`:621`–`:644`, `:645`–`:680`) — **and the channel's returned data
+   is attached BESIDE them, under its own name, on the same object.** **So the census moves on the accessor side alone** — a
+   **third** non-enumerable own accessor, `A117` (D6)/`D-119` item 3's device — **and `Object.keys` stays three and every consumer
+   deep-equality over a write's answer is unmoved.**
+2. **`D-131` ITEM 5's TITLE IS NARROWED, BECAUSE ITS OWN BODY HAD ALREADY WITHDRAWN IT.** That row's headline reads *"THE CHANNEL'S
+   ANSWER IS THE RECEIPT"* while its `WHAT IT DOES NOT SETTLE` item 5 says *"whether the channel's answer REPLACES the receipt or
+   rides beside it … this row does not"* (`:6801`). **THIS ROW TAKES THE SECOND ARM AND WITHDRAWS THE FIRST AS A READING: the
+   channel's answer is NOT the receipt; it rides beside it under its own name.** **The `D-131` byte stands; its title is read through
+   this clause from this date.**
+3. **AND `D-119` item 4 STANDS WHOLE, WHICH IS WHY THE OTHER ARM WAS UNAVAILABLE BELOW HIM.** *"The entries are the commit's own, one
+   list, the same objects a refusal crosses with — so a call that passes and a later refusal on the same commit can never
+   disagree"* (`:6124`–`:6128`), grounded on *"a caller that cannot read the passing log cannot audit its own write"*
+   (`:6105`–`:6109`). **A receipt that IS a caller-supplied value carries no log at all, and the passing call and the later refusal
+   would disagree. No layer below the architect could take that arm; this row does not take it either.**
+4. **AND THE CALLER'S READING IS ONE OBJECT, NOT TWO:** `record` keeps its five members and carries the channel's data under the
+   name the declaration will spell. **What that name is, is the design's — this row names the RELATION and not the identifier**
+   (`D-134`'s terms set the precedent for name-vs-subject and this row follows it).
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **THE ACCESSOR'S NAME, ITS TYPE, AND WHETHER A WRITE WITH NO CHANNEL CARRYING ANYTHING CARRIES THE ACCESSOR AT ALL** — an accessor
+   that is absent where no channel stands and present-but-empty where a channel returned nothing are different observables, and the
+   record's own precedent carries both shapes: `discarded` is always present, `log` is present always and `[]` for a joined call
+   (`index.d.ts:670`–`:672`). **Design's to price; this row does not choose.**
+2. **`CH-3` AND `D-130` ITEM 2's PLURALITY** — which value crosses when several listeners return one, which rejection crosses when
+   several bodies reject, and how a replaced handle's entry is keyed — **all still open, and now more visible because the map and the
+   accessor are one artefact.**
+3. **WHETHER AN `async` CHANNEL'S PROMISE MAY CROSS AS `{handle: <promise>}`** (`VN-7`): the request declared `saveCall` *"(async
+   optional)"* and said nothing of the channel, and this row does not supply the word.
+4. **EVERYTHING THE GATE LISTED AS `PRICEABLE`** — the export/import carriers, `SC-2`, `SC-3`, `SC-6`/`SC-R2`, the seed's shape and
+   tier, `CH-2`, `CH-4`, `CH-7`, `CH-8`, the release class — **is untouched by this row.**
+
+**TERMS: the receipt's typed members (`3`, unmoved) · its non-enumerable accessors (`2 → 3`) · `RM-4` (`1` = closed) · `CH-5` (`1` =
+closed) · the arms the ruling withdraws (`1` = *"its answer IS the receipt"*) · the identifiers minted (`0` = design's) · the codes
+minted (`0`) · the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT — EXCEPT THAT IT REMOVES THE ONE THING `P-5` RECORDED AS BLOCKING, WHICH IS WHY THE GATE'S
+TOKEN IS NOW ISSUED AND THE DESIGN PASS MAY OPEN (`strata/proposals.md` `P-5` `§1`).**
+
+---
+
+### `D-137` — FOUR SPELLINGS AND A STATUS: `exportImage` · `durable_without_path` · `initialImage` (image text only) · rank `23` `ListenerBodyRejected`
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, answering the four holes
+`docs/L1/seven-key-config.md` left open, **and delegating the four inventions to L0 in his own words.** **THE ARCHITECT'S WORDS,
+VERBATIM:**
+
+> "Add new entry for export"
+> "Invent a spelling"
+> "Image text only - best practices for writeCall should be interacting with JSON stores anyway"
+> "Invent a status"
+
+**STATUS: `ACTIVE`.**
+
+**ONE WORD IS READ AND NOT ASSUMED.** *"best practices for **writeCall**"* — **no member or key of that name exists in this tree; its
+counterpart `saveCall` does, and the sentence's subject is the store's interaction with a JSON-backed store.** **This row reads it as
+`saveCall` and no other reading is offered.**
+
+**WHAT IT SETTLES — THE FOUR CHOICES TAKEN.**
+
+1. **THE EXPORT CARRIER IS A NEW ADDON ENTRY, AND `D-133`'s TWO SURVIVORS BECOME ONE.** *"Add new entry for export"* **excludes the
+   position on `commitFile`** — so `facade.rs:1028`–`:1033`'s *"NO POSITION IS MINTED AND NO ARITY MOVES"*, `surface.md:1915`'s *"its one
+   argument is an op id and its answer is `undefined`", and `delivery.mjs:939`'s call are UNMOVED.** **THE ADDON'S ENTRY SET MOVES `12 → 13`**
+   (counted at this tree's bytes: twelve `#[napi(js_name = …)]` entries at `facade.rs:581`, `:627`, `:669`, `:713`, `:752`, `:786`, `:852`,
+   `:895`, `:920`, `:951`, `:986`, `:1034`; `surface.md:1917`'s figure of `5` does not resolve at this file and is a recorded defect).
+2. **THE SPELLING IS `exportImage`.** **Position-less, answering the store's own image text as a `string`, and MARKING NOTHING** — it
+   writes no byte, sets no `saved` mark, appends no journal entry, and refuses nothing on its own composition (the re-decode at
+   `src/store.rs:1522`–`:1524` becomes an assertion inside it, which is `SC-R4` discharged by construction). **The name is chosen for the
+   parallel with `commitFile`**: both concern the durable artefact — `commitFile` writes it, `exportImage` answers it.
+3. **THE TIER-WITHOUT-PATH SPELLING IS `durable_without_path`, AND IT IS AN ARGS CARRIER AND NOT A `cfg` KEY.** **The caller spells
+   NOTHING: the PACKAGE sets it when `saveCall` is present and `filePath` is absent**, which is `D-132`'s clause carried to the store.
+   **`cfg` THEREFORE KEEPS SEVEN KEYS** (`D-131` item 1's figure unmoved) **and `DD-36`'s refusal of a key the package injects is NOT
+   engaged, because that refusal governs the CALLER's key set and not the package's internal call shape.** **`SC-R2` IS CLOSED.**
+4. **THE SEED IS IMAGE TEXT ONLY, AND ITS KEY IS `initialImage`.** *"Image text only"* **closes `SE-1` on the arm `D-135` priced as
+   cheaper**, and its ground is the architect's own: **the save side's counterpart already speaks JSON, so the store's image is the
+   currency of both halves and no caller-shaped seed is owed.** **The key's name is invented here because `D-134`'s terms handed it to
+   design and the architect has now delegated the spellings**; **the subject stays his *"initial data"*.** **It is decoded by the store's
+   own decoder tail (`json::decode` + `is_admitted()`, `src/store.rs:1730`–`:1734`) and its refusal arm is rank `22` `FileImageRefused`
+   (`D-135` item 3, unmoved).**
+5. **THE 23rd STATUS IS INVENTED: RANK `23` · `ListenerBodyRejected`.** **THE NAME** follows the family and the promise pair: its
+   sibling at rank `21` is `ListenerBodyThrew` (`src/error.rs:193`), its subject is the same LISTENER BODY, and its verb is the other half
+   of the same pair — **it is NOT a widening of rank `21`** (`D-130` item 2's clause, unmoved: `21` remains the registration-instant
+   throw). **ITS SUBJECT** is the WATCHED ADDRESS'S SPELLING — the address whose triggering fired the body — and **no `<CONTAINER>` slot
+   is printed**, because the act's subject is a delivery and not a place (`ListenerBodyThrew`'s own precedent, `:542`–`:543`). **ITS
+   GENERATED MESSAGE**, in `errorMessage`'s own form:
+
+   ```
+   "<address> was refused by a listener body that rejected, a fired listener body's rejection refuses the act that fired it"
+   ```
+
+   **THE SENTENCE DECLARES WHAT CROSSED AND NOT WHAT THE BODY REJECTED WITH** — the body's own reason is the caller's and is never
+   rendered as though this package had authored it (the clause `ListenerBodyThrew` and `ConstraintBodyThrew` already carry). **`CODES`
+   moves `22 → 23`** (`src/error.rs:171`–`:196`) **and `StoreStatus` moves to twenty-three literals plus its one escape arm**
+   (`bindings/js/index.d.ts:421`–`:444`).
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **HOW THE 23rd STATUS CROSSES — `RM-3`'s standing half, and it is now the LAST blocking semantic for the declaration.** **The four
+   live sites still declare that a rejection is not the failure form** (`index.d.ts:498`–`:499`; `surface.md:1275`–`:1278`;
+   `contract.md:591`; `brief.md:287`–`:289`), **and this row names the status without naming its carrier.** **`D-130` item 1 says a rejected
+   body *"carries the package's ONE failure form"*, which reads toward the awaited answer's rejection — but this row does not say it, and
+   the amendment of those four sites in his name is still owed.**
+2. **`exportImage`'s ARITY IS INVENTED, NOT RULED** — a position-less entry is this row's spelling of a "new entry for export". **If the
+   design finds it needs the op's identity to answer the state that act left, that is a second declaration and it returns here.**
+3. **`durable_without_path`'s REDUNDANCY RULE** — whether it is ignored or refused when a `filePath` is also present (**the probe would
+   govern either way**), and what it means when neither carrier stands (**the writer hazard `SC-3`**). **Design's to price.**
+4. **`initialImage` WITHOUT `saveCall`** (`SE-5`), **its tier and instant** (`SE-2`/`SE-4`), **whether it owes an immediate save**
+   (`SE-7`), **and its provenance** (`VN-5`: an admissible but foreign image installs silently — unchanged by this row).
+5. **`Entry::saved`'s KEEPER IS NOW SHARPER AND STILL UNOWNED**: `exportImage` marks nothing by item 2, so on the `saveCall` arm **nothing
+   in the store ever sets `saved`** and *"once per record"* (`src/store.rs:1573`–`:1580`) has no keeper. **Filed, not cured.**
+6. **THE RECEIPT ACCESSOR'S NAME AND EMPTINESS** (`CH-NAME`, `CH-EMPTY`) — **not invented here: the architect asked for four things and
+   this is a fifth.** **Still open.**
+7. **EVERY OTHER `PRICEABLE` ITEM** — `SC-2`, `SC-3`, `SC-6`, `SC-10`, the import route, `CH-2`/`CH-3`/`CH-4`/`CH-7`/`CH-8`, the plurality
+   rules, the release class — **untouched.**
+
+**TERMS: the export carriers (`2 → 1` = a new entry) · the addon's entries (`12 → 13`) · `cfg`'s keys (`7`, unmoved) · the args carriers
+(`+1` = `durable_without_path`) · `SE-1` (`1` = image text only) · the seed's key (`1` = `initialImage`) · the status set (`22 → 23`) · the
+statuses widened (`0`) · the statuses named (`1` = `ListenerBodyRejected`) · the codes moved by package-side spellings (`0`) · the units
+opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT.** **The design at `docs/L1/seven-key-config.md` is amended where these four choices reach it
+(`§8` of that file), and the last blocking semantic is `RM-3`'s carrier.**
+
+---
+
+### `D-138` — A REJECTING BODY'S STATUS RIDES ON THE RECEIPT, NOT IN A REJECTION: **A** IS REFUSED ON THE ARCHITECT'S OWN GROUND, AND THE FOUR "NEVER A REJECTION" SITES STAND UNAMENDED
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, **correcting L0's question by refusing its
+first arm.** **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Correction - A cannot reject cleanly because listeners fire after the write has commited to file/saveCall. Use B and expect the client to
+> recover as needed"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **ARM `A` IS REFUSED, AND THE GROUND IS THE ARCHITECT'S OWN AND IS A DURABILITY FACT.** **The delivered set runs AFTER the terminal arm's
+   SAVE** (`delivery.mjs:939` → `:987`; `docs/specs/storeroom-js/surface.md §2.11` clause 2; `D-117`'s chain) — **so by the instant any body
+   can reject, the act has ALREADY COMMITTED: its `file`-tier bytes are written, or its `saveCall` has returned, or both.** **A rejection of
+   the awaited answer would therefore report a DURABLE SUCCESS as a FAILURE**, and the caller's own recovery — re-issuing the write, or
+   believing the register did not move — would act on a false premise. **This is not a shape preference; it is the one arm that cannot be
+   reconciled with the order the corpus already declares.**
+2. **ARM `B` IS TAKEN: THE WRITE RESOLVES, AND THE STATUS RIDES ON THE RECEIPT.** **The 23rd status of `D-137` (rank `23`
+   `ListenerBodyRejected`) keeps its identity, its subject and its generated message, and its CARRIER is the write's answer** — **a datum the
+   caller reads, beside the channel's data `D-136` already put there.** **`RM-3`'s *"how"* is thereby answered, and the answer is that the
+   failure does not cross as a rejection at all.**
+3. **★ AND THE FOUR LIVE SITES THAT DECLARE A REJECTION IS NOT THE FAILURE FORM STAND UNAMENDED — the amendment `P-5` and `D-137` both owed
+   is WITHDRAWN.** `index.d.ts:498`–`:499` (*"never an `Error` subclass, never a returned tagged union and never a `Promise` rejection"*),
+   `surface.md:1275`–`:1278` (*"no `Promise` rejection (**every verb is synchronous**)"*), `contract.md:591` (`DD-12`'s REFUSES cell) and
+   `brief.md:287`–`:289` (*"thrown synchronously … never a rejection"*) **all stand byte-for-byte.** **`surface.md:1276`'s parenthetical
+   *"(every verb is synchronous)"* also stands — what the shape moves is the verb's ANSWER INSTANT (`RM-2`), and `D-138` keeps the answer's
+   FAILURE FORM synchronous-thrown-shaped in the sense that matters: it is a datum, never a rejection.**
+4. **AND THE SYNCHRONOUS THROW KEEPS ITS OWN CHANNEL, WHICH IS NOW AN EXPLICIT ASYMMETRY AND NOT AN OVERSIGHT.** **A body that throws
+   synchronously leaves the triggering write UNANSWERED and the caller sees the body's error** (`D-73`; `surface.md:1791`–`:1815`; measured
+   `§22.12` `M-1`) — **that arm is untouched.** **A body that REJECTS leaves the write ANSWERED, with the status on the receipt.** **THE
+   TWO ARE DECLARED DIFFERENT ON PURPOSE and no pass may harmonise them**: *a throw is an error in the client's code caught at the
+   invocation, which the caller is positioned to log* (`D-73`'s own ground: *"code that swallows errors cannot be debugged"*); *a rejection
+   arrives after the durable act and cannot unwind it, so the caller must be told without losing its record.*
+5. **AND THE CLIENT'S RECOVERY IS THE CLIENT'S — *"expect the client to recover as needed"*.** **The package neither retries, nor rolls
+   back, nor suppresses; it reports.** **`DD-23`'s *"not caught, not retried, not reported"* is NOT reversed: the package catches nothing,
+   retries nothing and reports through its own answer's datum rather than through any side channel it does not own** (`DD-12`'s one-form
+   ground, `contract.md:590`–`:591`).
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **THE ACCESSOR'S NAME AND ITS EMPTINESS** (`CH-NAME`, `CH-EMPTY`) — **still open, and now load-bearing for two data at one seat**: the
+   channel's values (`D-136`) and the delivery's failures (`D-138`). **Whether they share ONE accessor or take TWO is the design's to price,
+   and the receipt's `getOwnPropertyNames` census moves `5 → 6` or `5 → 7` with that choice.** **No name is minted by this row.**
+2. **THE PLURALITY, WHICH IS NOW A SHAPE AND NOT A CHOICE AMONG BAD ARMS.** **`D-130` item 2's four arms were priced for a SCALAR carrier that
+   could answer once. A receipt datum can carry one entry PER HANDLE** — **and if it does, the plurality dissolves: `N` rejections become `N`
+   entries and no rule is owed for *which one crosses*, because none is dropped.** **That is a consequence this row notes and does not
+   decide**; **the design prices it, and the architect confirms.**
+3. **WHETHER THE ACCESSOR IS PRESENT WHEN NOTHING IS OWED** — with no channel and no failing body, and with no channel but a failing body
+   (`D-138` requires the second to be observable, so **an accessor that is present-and-empty for `log` and absent here would make the
+   failure unreadable in exactly that case**). **`CH-EMPTY`'s answer is now forced toward *present always* by this row's own requirement —
+   the design must say so explicitly and the architect confirm it.**
+4. **EVERYTHING ELSE STANDS**: `SC-2` (`saveCall`'s answer and outside form), `SC-3`, `SC-6`, `SC-10`, the import route, `CH-2`/`CH-4`/`CH-7`/`CH-8`,
+   `SE-2`/`SE-4`/`SE-5`/`SE-7`, `VN-5`'s provenance, `Entry::saved`'s keeper, the release class.
+
+**TERMS: the failure carriers (`2 → 1` = the receipt's datum; the rejection arm refused) · the sites amended (`0` — the four stand) · the
+statuses withdrawn (`0`) · the statuses carried (`1` = `ListenerBodyRejected`, `D-137`) · the accessors (`+1` or `+2`, design's pricing) · the
+`cfg` keys (`7`, unmoved) · the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT.** **`RM-3` IS CLOSED, AND WITH IT THE LAST DECLARATION `P-5` RECORDED AS BLOCKING. The design at
+`docs/L1/seven-key-config.md` is amended where this reaches it (`§9`), and the first unit — `U-STOREROOM-06 DELIVERY-SETTLE` — may be
+designed.**
+
+---
+
+### `D-139` — THE TWO SPELLINGS ARE ACCEPTED, AND WHERE NO RECEIPT EXISTS THE PACKAGE FORGES ONE AND HANDS IT TO THE CHANNEL
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, answering
+`docs/L3/delivery-settle/design.md`'s two pending spellings and its third open question. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Accept spellings"
+
+> "If a channel is given during store creation, forge a write receipt and pass to the channel so that it can proceed"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **`CH-NAME` AND `CH-EMPTY` ARE CLOSED AS PROPOSED.** **The receipt's failure accessor is `bodyFailures`, non-enumerable,
+   `configurable`, a getter over a symbol-keyed datum** — and **it is PRESENT ON EVERY RECEIPT, reading `{}` when nothing failed** (`D-138`'s
+   own requirement: a body's failure must be readable exactly when no channel stands). **`Object.keys` stays `["op","watched","triggered"]`;
+   `Object.getOwnPropertyNames` moves `5 → 6`.** *(Design: `docs/L3/delivery-settle/design.md §5`.)*
+2. **AND THE NO-RECEIPT INSTANTS GAIN A CHANNEL PATH — the third open question of that design is answered, and not by either arm it
+   priced.** **The question was: a rejecting body at the CREATION and at the FOUR REGISTRATION INSTANTS has no `WriteRecord` and no
+   `DeleteRecord` to ride on, so either the package observes its settlement and answers nothing (a declared silence) or it observes nothing
+   and the rejection stays as fatal as `M-2` measured.** **THE ARCHITECT'S ANSWER IS A THIRD ARM: WHERE NO RECEIPT EXISTS AND A CHANNEL
+   STANDS, THE PACKAGE FORGES ONE AND PASSES IT TO THE CHANNEL.** **So the delivery's data — `D-136`'s channel values and `D-138`'s
+   `bodyFailures` — reaches the CALLER'S OWN FUNCTION at every delivery instant, and no failure at those instants is dropped and none is
+   silenced.**
+3. **THE FORGED RECEIPT IS THE CHANNEL'S ARGUMENT AND NOT THE CALLER'S ANSWER.** **`D-136` item 2's relation is unmoved: the channel's data
+   rides BESIDE a receipt, and the caller receives its own answer.** **At an instant whose answer is an instance or an opaque identity,
+   there is no receipt to ride beside, so the package supplies the channel with the one it would have had** — **and the caller's answer
+   there is UNMOVED: an instance at the creation, an identity or `undefined` at a registration** (`D-125` item 1's own clause: a delivery
+   there *"DOES NOT change the answer's declared type"*, `strata/decisions.md:6548`–`:6549`).
+4. **AND `CH-2` IS THEREBY ANSWERED IN SUBSTANCE: THE CHANNEL IS NOT RESTRICTED TO `write` AND `delete`.** **The five delivery sites all reach
+   it** — the terminal arm's residue (`delivery.mjs:987`), a `delete`'s own arm (`index.mjs:887`), a reversal's judgement
+   (`constraints.mjs:3037`), a registration's delivery (`delivery.mjs:575`) and the creation's (`index.mjs:2171`) — **the last three
+   through the forged receipt.**
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **THE FORGED RECEIPT'S DECLARED SHAPE.** **A `WriteRecord`'s typed members are `op` · `watched` · `triggered`** (`bindings/js/index.d.ts:616`–`:620`)
+   **and the no-receipt instants have no `op` and no `watched`.** **What the forgery puts in those two positions — `null`, an empty array, an
+   omitted member — is a new observable on a value the channel's own function reads, and it is NOT declared here.** **The one member that
+   IS determined is `triggered`: the instant's delivered set is known** (`D-131` item 5's map is keyed by exactly those handles).
+2. **WHETHER THE FORGED RECEIPT CARRIES THE SAME ACCESSORS.** **`bodyFailures` must be readable on it — that is what item 2 of what this row
+   settles is FOR** — **while `discarded` and `log` are a write's and a commit's own facts and a registration has neither.** **Whether they are
+   absent, empty or present-with-an-empty-value is undeclared.**
+3. **WHETHER THE CALLER EVER SEES A FORGED RECEIPT.** **This row says the CHANNEL receives it and the caller's answer is unmoved**; **a
+   caller-facing forged receipt would be a new member on `StoreInstance`'s answers and is not this row's.**
+4. **WHAT HAPPENS WHEN A BODY REJECTS AT A NO-RECEIPT INSTANT AND **NO** CHANNEL STANDS.** **The forged-receipt path requires a channel
+   (`"If a channel is given"`).** **Absent one, the design's status quo stands: the package observes nothing there, and the rejection is
+   `M-2`'s measured fatal unhandled rejection — the caller's own hazard by `D-130` item 5.** **This row does not change that arm and no pass
+   may read it as having changed it.**
+5. **THE SCOPE OF "DURING STORE CREATION".** **Read here as *"where `cfg.channel` was given at construction"* — the condition for having a
+   channel at all, since `channel` is a construction key (`D-131` item 1) — and NOT as *"at the creation instant only".** **So the forged path
+   is owed at every no-receipt instant, the creation's and the four registrations'.** **If he means the creation instant alone, he will say so
+   and this clause is the pointer.** *(The reading is L0's and is flagged as such, not presented as his word.)*
+6. **EVERYTHING ELSE STANDS**: `SC-2`, `SC-3`, `SC-6`, `SC-10`, the import route, `CH-3`'s keying, `CH-4`'s failure disposition,
+   `CH-7`, `CH-8`, `SE-2`/`SE-4`/`SE-5`/`SE-7`, `VN-5`, `Entry::saved`'s keeper, the release class.
+
+**TERMS: the spellings (`2` = accepted as proposed) · the receipt's accessors (`2 → 3`, `bodyFailures` third) · the delivery sites the channel
+reaches (`2 → 5`, three through a forged receipt) · the forged receipts (`1` class, shape owed) · the statuses minted (`0`) · the members moved
+on any caller-facing answer (`0`) · the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT.** **`docs/L3/delivery-settle/design.md` is amended at its `§11`; `U-08 CHANNEL`'s brief gains the
+forged path, and the forged receipt's shape goes with its other priceable items.**
+
+---
+
+### `D-140` — A FORGED RECEIPT'S `op` IS THE FIRST OP ATTACHED TO THE COMMIT, OR `null` WHEN NOTHING TRIGGERED
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, answering `D-139`'s open item 1 —
+the shape of the receipt the package forges where an act has none. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Use the first op attached to the commit, or null if nothing triggered"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE FORGED RECEIPT'S `op` IS TAKEN, NOT INVENTED.** **Where the act carries an op, the forgery uses THE FIRST OP ATTACHED TO THE
+   COMMIT** — the earliest operation the commit recorded for itself — **and where the act attached none — *"nothing triggered"*, his own
+   condition — the member is `null`.** **So the forgery borrows a fact the commit already holds rather than minting one**, which is the
+   cheapest possible answer and keeps the receipt's `op` readable by the same code that reads a real one's.
+2. **AND WITH `D-139` ITEMS 2–3 THIS CLOSES THE FORGERY'S THREE MEMBERS:** **`triggered` is the instant's delivered set** (`D-131` item 5's map is
+   keyed by exactly those handles), **`watched` is that same set's ADDRESS PROJECTION** — the store's own `watched_for` relation, one member per
+   distinct address however many handles stand there (`src/store.rs:2211`–`:2240`; `DD-35`; `D-67`/`D-69`'s one-predicate law), **and `op` is
+   this row's.** **`watched` and `triggered` are therefore NOT open questions any more, and `D-139` item 1 of its unsettled is closed.**
+3. **`null` IS A DECLARED VALUE IN THAT POSITION AND NOT AN ABSENT MEMBER.** **The member stands on every forged receipt; its value is `null`
+   exactly where the act attached no op.** **That distinguishes it from the `CH-EMPTY` question, which is about a MAP's empty value.**
+4. **AND THE CHANNEL'S PARAMETER TYPE MUST ADMIT IT.** **A forged receipt whose `op` may be `null` cannot be typed as `WriteRecord`, whose `op`
+   is `JournalOp` non-nullable** (`bindings/js/index.d.ts:616`–`:617`). **The channel's declared parameter is therefore a receipt TYPE whose `op`
+   admits `null` — a declaration `U-08` owes and that this row does not spell.** **It moves no member of any caller-facing answer and no census.**
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **WHICH CARRIER OF "THE COMMIT" THE FIRST OP IS READ OFF, AND THIS ROW DOES NOT PRETEND THE PHRASE SETTLES IT.** **Two referents stand in
+   the tree**: **the kernel's `CommitRecord` carries its own `op` member** (`{attempt, op, triggered, pending}`, `index.d.ts:962`–`:993`) **and
+   its log carries `op` inside several entries' payloads** (`kernel-attempt.mjs:741`'s `{pair, op}`, `:873`'s `{pair, op}`). **"The FIRST op"
+   reads as the log's earliest, since a single member has no first; a commit that attached several entries with ops makes the two readings
+   differ.** **The design resolves it and says which; if he means the record's own `op`, that is one word.**
+   **⟶ AND THERE IS A THIRD READING, FOUND `2026-11-17` AFTER THIS ROW WAS WRITTEN, WHICH MAKES THE FORK *FIRST* VERSUS *LAST* AND NOT *RECORD* VERSUS *LOG*: a WRITE'S OWN RECORD does not carry the commit's first op at all — `constraints.mjs:855`–`:860` builds `op: landed` from `report.ops[report.ops.length - 1]`, the attempt report's LAST op, falling back to the store leg's own `answer.op` where there is no report, and its own comment says why: *"the store afterwards holds the REPAIRED one"*, so the record describes the store.* **This row's *"first op attached to the commit"* and the shipped record's LAST op are therefore two rules for ONE member name on two receipts the same channel reads.** **Both are defensible — the forgery has no settled state to describe, so the first op is the only honest answer there — but no pass may leave the difference undeclared: a channel that reads `op` must be able to tell which receipt it holds, or the two rules must be reconciled in his name.** **⟶ AND THAT FORK IS CLOSED AT `D-141`, `2026-11-17`: the forge takes THE COMMIT'S OWN OP, so the ordinal reading — *first* versus *last* — loses its subject and one rule governs the member for both receipts.**
+2. **WHETHER THE FORGERY CARRIES `discarded` AND `log`** — still open (`D-139` item 2 of its unsettled): **those are a write's and a commit's own
+   facts and a registration has neither.** **`bodyFailures` must be there** (`D-139` item 1), **and `op`/`watched`/`triggered` now are.**
+3. **WHETHER THE CHANNEL IS INVOKED AT ALL WHEN NOTHING TRIGGERED.** **This row gives that case a SHAPE (`op: null`) and not an INSTANT** —
+   **if the delivered set is empty there is nothing to tell the channel, and whether the call is made with an empty `triggered`/`watched` or
+   skipped is `CH-7`'s**, still open.
+4. **EVERYTHING ELSE STANDS**: `SC-2`, `SC-3`, `SC-6`, `SC-10`, the import route, `CH-3`, `CH-4`, `CH-8`, `SE-2`/`SE-4`/`SE-5`/`SE-7`,
+   `VN-5`, `Entry::saved`'s keeper, the release class.
+
+**TERMS: the forged receipt's members (`3` = `op` · `watched` · `triggered` named) · its absent member (`0` — `op` is `null`, not absent) ·
+the carriers of "the commit" (`2` = the record's, the log's; design resolves) · the caller-facing members moved (`0`) · the censuses moved
+(`0`) · the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT.**
+
+---
+
+### `D-141` — A FORGED RECEIPT TAKES THE COMMIT'S OWN OP WHERE THE REGISTRATION OPENED ONE, AND `null` WHERE THE COMMIT CARRIES NONE
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, answering L0's report that
+`D-140`'s *"first op"* and the shipped record's *"last op"* were two rules for one member name. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "If the registration opens a commit, and the commit has an op, use that"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE FORGED RECEIPT'S `op` IS THE COMMIT'S OWN OP, AND NOT AN ORDINAL POSITION IN ITS LOG.** **`D-140`'s phrase *"the first op attached to
+   the commit"* is READ THROUGH THIS CLAUSE from this date: what is taken is THE OP THE COMMIT CARRIES** — **not the first entry of the
+   commit's log, and not the earliest of several entries that carry one.** **The referent is settled by the architect's own words and the third
+   reading L0 filed at `D-140` loses its subject** *(the `first` versus `last` fork closes: there is one op per commit and it is the one the
+   act reports)*.
+2. **AND THE REGISTRATION'S COMMIT IS THE ONE THAT CARRIES IT — THIS ROW IS THE MECHANISM `D-140` ASSUMED.** **`addConstraint`
+   (`bindings/js/index.mjs:1217`) and `constraintOn` (`:1409`) open a commit themselves (`openCommit(instance)` at `:1239` and `:1425`), and a
+   repair their pass lands JOINS that commit rather than opening a second** (`kernel-attempt.mjs:85`–`:93`; `D-46`; `D-53`) — **so the commit
+   that carries an op is the registration's own, and the op it carries is the one the act's report names.**
+3. **THE THREE CASES, SPELLED.** **A registration whose act or whose repair WROTE something** → **the forge uses that op**, **and it is the
+   SAME value a write's own record would carry** (the attempt report's op, `constraints.mjs:855`–`:860`). **A registration whose commit
+   carries NO op — the act wrote nothing and no repair landed** → **`null`.** **THE CREATION** → **`null`, because there is no commit at all**
+   (`storeCreate` is not a commit; `D-125` item 1's creation instant delivers without one).
+4. **SO ONE RULE NOW GOVERNS THE MEMBER FOR THE CHANNEL, WHICH IS WHAT THE TENSION REQUIRED.** **A channel that reads `op` sees the commit's op
+   on both receipts — the write's own and the forged one — and `null` exactly where no commit carried one.** **No tell is owed and no
+   reconciliation remains outstanding.**
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **WHETHER THE ACT'S REPORT OP IS "THE COMMIT'S OP" WHEN THE COMMIT RAN SEVERAL WRITES.** **A registration's pass may land MORE than one repair,
+   each a write with its own JournalOp** (`kernel-attempt.mjs:873`'s `repair-run` entry per attempt). **This row names the commit's op and does
+   not say which write's it is when the commit carries several** — **the shipped record's answer is the report's LAST op** (`constraints.mjs:855`–`:860`,
+   *"the record DESCRIBES THE STORE"*), **and this row is read as adopting that answer unless he says otherwise; a different choice would make the
+   forged receipt's `op` differ from the real one's on the same commit.**
+2. **WHETHER THE FORGERY CARRIES `discarded` AND `log`** — still open (`D-139` item 2 of its unsettled): a registration's commit has a `log`
+   **and** a registration has no witness of a write's discard. **`bodyFailures` must be there** (`D-139` item 1).
+3. **WHETHER THE CHANNEL IS CALLED AT ALL WHEN NOTHING TRIGGERED** — `CH-7`'s, still open.
+4. **EVERYTHING ELSE STANDS**: `SC-2`, `SC-3`, `SC-6`, `SC-10`, the import route, `CH-3`, `CH-4`, `CH-8`,
+   `SE-2`/`SE-4`/`SE-5`/`SE-7`, `VN-5`, `Entry::saved`'s keeper, the release class.
+
+**TERMS: the forged receipt's `op` (`1` rule, referent settled) · its `null` cases (`2` = no op in the commit · no commit at all) · the
+ordinal readings withdrawn (`1` = `D-140`'s *"first"* as a position in the log) · the caller-facing members moved (`0`) · the censuses moved
+(`0`) · the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT.**
+
+---
+
+### `D-142` — A FORGED RECEIPT CARRIES `log`; `discarded` IS CLARIFIED AND LEFT OPEN
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, answering the two members `D-139` left
+open on a forged receipt. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Carry log"
+> "Clarify discard"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **`log` IS CARRIED ON THE FORGED RECEIPT, AND IT IS THE COMMIT'S OWN LIST.** **`D-119`'s member — a non-enumerable, `configurable` own
+   accessor at the name `log`** (`bindings/js/src/entry/constraints.mjs:1935`–`:1988`; `index.d.ts:645`–`:680`) — **is present on the forged
+   receipt and answers the entries the commit appended**: the pass's `constraint-check` entries, every `repair-run` a repair landed, and the
+   entry that closes the commit. **Its ground is unmoved and applies with full force here**: *"a caller that cannot read the passing log cannot
+   audit its own write"* (`D-119` item 1) — **and at a registration the list is not empty in principle, because a registration's pass asks the
+   pairs and may land repairs** (`kernel-attempt.mjs:741`, `:873`). **The one thing this row does NOT import is `discarded`'s REASON for being
+   an accessor** (`constraints.mjs:1958`–`:1962`): a log is built after every act that appends to it and answers one cached reference, so it is
+   an accessor for the census's sake and not for liveness's.
+
+**`discarded` IS CLARIFIED BELOW AND NOT RULED — the clarification is what he asked for.**
+
+**WHAT `discarded` IS, IN ITS OWN TERMS.** **An array of `{opId: string | null, addresses: readonly Address[]}`** (`index.d.ts:629`), whose
+entries are **one per RAISE stamped with THIS act's commit window that no pass's drain consumed**, in raise order; **`[]` means the pass's drain
+consumed and JUDGED every raise of this window, and the member is present to say so.** **It is a `D-75` member — the architect's words: *"report
+every discarded raise at any count, on every path"* — and it is a NON-ENUMERABLE own ACCESSOR whose READ IS LIVE BY NECESSITY**: the answer is
+built before the pass that judges the raise has run (`D-42`), so a datum captured at the call would answer `[]` about a discarding window
+forever. **THE WITNESS IS COMPUTED PER WINDOW** (`constraints.mjs:1908`–`:1916`): the settled entries plus every raise in `record.raises` whose
+`raise.window === window`, and nothing else.
+
+**SO WHAT CARRYING IT ON A FORGED RECEIPT WOULD MEAN, CASE BY CASE.**
+
+| instant | the window the forged receipt would speak for | what `discarded` would hold |
+|---|---|---|
+| **a registration** (`addConstraint`, `constraintOn`, or a re-arm) | **the registration's OWN commit** — it opens one (`openCommit(instance)` at `index.mjs:1239`, `:1425`), and a repair joins it (`D-141` item 2) | **a real, non-trivial value**: the raises stamped with THAT window that no drain consumed. **A body fired at the registration instant can raise a `rollback`, and it is stamped with this window** — so `[]` would be a CLAIM (*every raise was judged*) and not a default |
+| **the creation** | **there is no single one.** `storeCreate` is not a commit; the creation fires each adopted listener at its registration's own close (`index.mjs:1902`, `:2171`), so **the creation carries N windows, not one** | **`discarded` has no subject until a rule names which window a creation-time forged receipt speaks for** — one per adopted registration, or the first, or none |
+| **a `write` or a `delete`** | the act's own commit, unchanged | unmoved — **this row does not touch the real receipt** |
+
+**THE THREE WAYS IT COULD LAND, PRICED AND NONE CHOSEN.**
+
+1. **Carry it exactly as a write's record does** — a live accessor over the forged receipt's own window. **Cheap at a registration** (the window
+   exists and the machinery is `defineDiscardWitness`'s), **and it needs the creation's window rule before it can be total.**
+2. **Carry `[]` on forged receipts** — **a claim that no raise of that window was discarded, and a registration can falsify it**: a body fired
+   there may raise, and the drain may not consume it. **Refused unless he says the registration arm's raises are judged by construction.**
+3. **Omit it** — **and `D-77`/`D-78`'s rule refuses this**: *"the member is PRESENT on every passing answer, `[]` included, never absent and
+   never `undefined`"* (`constraints.mjs:1966`–`:1968`).
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **THE CHOICE ABOVE, and (if it is 1) the creation's window rule.**
+2. **`CH-7`** — whether the channel is invoked at all when the delivered set is empty (unchanged).
+3. **EVERYTHING ELSE STANDS**: `SC-2`, `SC-3`, `SC-6`, `SC-10`, the import route, `CH-3`, `CH-4`, `CH-8`,
+   `SE-2`/`SE-4`/`SE-5`/`SE-7`, `VN-5`, `Entry::saved`'s keeper, the release class.
+
+**TERMS: the forged receipt's members (`log` = carried · `discarded` = clarified, open) · the windows a forged receipt can speak for (`1` at a
+registration, `N` at the creation = owed) · the caller-facing members moved (`0`) · the censuses moved (`0`) · the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT.**
+
+---
+
+### `D-143` — `discarded` IS CARRIED ON A REGISTRATION'S FORGED RECEIPT, AND IS PRESENT-AND-EMPTY AT THE CREATION BECAUSE THERE IS NO PRIOR STATE TO DISCARD
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, answering `D-142`'s open item 1.
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Carry it for registration. On creation it has no prior state to discard"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **AT A REGISTRATION INSTANT THE FORGED RECEIPT CARRIES `discarded` — THE LIVE WITNESS OVER THE REGISTRATION'S OWN COMMIT WINDOW.** **The
+   window exists** (`addConstraint` opens one at `bindings/js/index.mjs:1239`, `constraintOn` at `:1425`, and a repair joins it — `D-141` item 2),
+   **the device exists** (`defineDiscardWitness`, `constraints.mjs:1928`–`:1936`), **and the computation exists** (`:1908`–`:1916`: the settled
+   entries plus every raise whose `raise.window === window`). **So `D-142`'s option 1 is taken for this instant, and it is the option that does
+   not make a claim a fired body can contradict.**
+2. **AT THE CREATION THE MEMBER IS PRESENT AND `[]`, ON THE ARCHITECT'S OWN GROUND — "NO PRIOR STATE TO DISCARD".** **`storeCreate` is not a
+   commit and the register holds no operation when the creation's first listener is fired**, **so there is nothing a raise could be discarded
+   FROM** — **and no window rule is owed**, which is what `D-142`'s third table cell demanded. **The member's presence at `[]` keeps
+   `D-77`/`D-78`'s rule whole**: *"PRESENT on every passing answer, `[]` included, never absent and never `undefined`"*
+   (`constraints.mjs:1966`–`:1968`).
+3. **SO THE FORGED RECEIPT IS NOW COMPLETE IN ALL FIVE MEMBERS:** `op` (`D-140` as read through `D-141`: the commit's own op, `null` at the
+   creation) · `watched` (the instant's delivered set's address projection) · `triggered` (the instant's delivered set, as pairs) · `log` (the
+   commit's own list, `D-142` item 1) · `discarded` (the registration's live witness; present-and-empty at the creation, item 2 above).
+
+**WHAT IT DOES NOT SETTLE — AND ONE FLAG THAT IS THIS ROW'S OWN HONESTY.**
+
+1. **THE GROUND IS A CLAIM AND THE DESIGN MUST MAKE IT TRUE RATHER THAN ASSUME IT.** **"No prior state to discard" is a SEMANTIC FACT ABOUT THE
+   EMPTY JOURNAL, not a mechanical impossibility**: a creation-time body CAN call `rollback`, and **what it meets there — a refusal because the
+   journal holds no op, or an empty `undoneOps` — is a behaviour the design must state and a cell must prove.** **If such a call can produce a
+   raise stamped with a registration's window and left unconsumed, then `[]` would be a false claim at that instant and the member's answer would
+   have to be re-opened in his name.** **Filed as a design/cell obligation, not as an open question.**
+2. **WHETHER `[]` AT THE CREATION IS THE SHARED FROZEN CONSTANT OR A FRESH ARRAY** — `D-142`'s own precedent (`RESOLUTION_LOG_EMPTY`,
+   `constraints.mjs:1988`) makes the shared constant the pattern; **the design may take it and moves nothing.**
+3. **`CH-7`** — whether the channel is invoked at all when the delivered set is empty: still open.
+4. **EVERYTHING ELSE STANDS**: `SC-2`, `SC-3`, `SC-6`, `SC-10`, the import route, `CH-3`, `CH-4`, `CH-8`,
+   `SE-2`/`SE-4`/`SE-5`/`SE-7`, `VN-5`, `Entry::saved`'s keeper, the release class.
+
+**TERMS: the forged receipt's members (`5` named: `op` · `watched` · `triggered` · `log` · `discarded`) · the windows owed (`0` — the creation's
+emptiness removes the question) · the claims this row rests on (`1` = *no prior state to discard*, to be proved by a cell) · the caller-facing
+members moved (`0`) · the censuses moved (`0`) · the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT.**
+
+---
+
+### `D-144` — `saveCall` CLOSES: `{success, message[]}` · a non-function is BROKEN CONFIG · a failed save ROLLS THE COMMIT BACK · the refusal PASSES THROUGH to the kernel · NO FILE RECONSTRUCTION · a SUCCESS SURFACE · `filePath` and `saveCall` are MUTUALLY EXCLUSIVE
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, answering `P-5`'s `saveCall` remainder.
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "SaveCall
+> Change response to object, success(bool) and message (string[])
+> Refuse non-function saveCall as broken config
+> On failed save, signal package to roll back commit
+> Passthrough saveCall refusal response to kernel
+> In cases where store would attempt to reconstruct state from file (ex. attempting to rollback to a compacted state), error as if it's a mem-tier store to instruct the client to rebuild
+> Add addon surface for informing addon that save suceeded
+> Make filePath and saveCall mutually exclusive"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES — SEVEN, EACH WITH ITS CONSEQUENCE.**
+
+1. **`SC-2` IS CLOSED: `saveCall`'s answer is an OBJECT, `{success: boolean, message: string[]}`.** **It replaces *"a return of `True` or a verbose error log"*** — **the boolean is the verdict and the array is the reason, and the reason is a LIST by declaration, so several messages are one answer.** **`success: true` with a non-empty `message` is in domain and means what it says** (a save that succeeded and said why); **this row does not forbid it.**
+2. **`SC-2`'s OUTSIDE FORM IS CLOSED: A NON-FUNCTION `saveCall` IS REFUSED AS BROKEN CONFIG.** **Not ignored as a key beyond the four, and not a `PAR-JS-12`-style `TypeError`** — **it is `cfg`'s own outside-form refusal, taken at the class gate `frame.mjs:203`–`:210` carries, BEFORE ANY FILESYSTEM ACT.** **The status is the one a bad `cfg` already answers** (`AddressMalformed`, `PAR-JS-1`), **the package mints no code, and no second non-store failure form is created** — **which leaves `CH-8`'s one-form question for the CHANNEL alone.**
+3. **`SC-6` IS CLOSED IN DIRECTION: A FAILED SAVE ROLLS THE COMMIT BACK, AND THE SIGNAL IS THE PACKAGE'S TO SEND.** **`saveCall` answering `success: false` is the signal; the commit is then rolled back, and the caller receives the failure AFTER that rollback** — `§2.11` clause 5's declared order, *"the store rolls the write back first and answers second"* (`surface.md:1899`). **THE MECHANISM IS NOT SPELLED HERE and is the design's**: **the rollback machinery is `commit_file`'s `Err` arm** (`src/store.rs:1601`–`:1609`: remove the journal entry, `restore(home, captured)`, `restore_compaction`, `last_seq -= 1`) **and on this arm the store's writer never runs** (`D-133` item 3) — **so the design must name the store-side route the package's signal reaches.** **A package-side re-implementation of the journal's rollback is the dearest arm and would be a second mechanism.**
+4. **AND THE REFUSAL'S CONTENT PASSES THROUGH TO THE KERNEL.** **`saveCall`'s `message: string[]` is not the package's to render, drop or paraphrase — it crosses to the kernel**, **which is what builds the commit's log and the answer that crosses** (`D-53`; `D-119`). **THIS GIVES `VN-2` A SOURCE where it had only a lost one**: the kernel no longer needs the store's rethrow to know a save failed — **the package tells it, with the reason.** **The mapping of a `string[]` into the answer (the one form's `message` is a single string, and its `log` is a list of entries) is the design's to spell; this row requires the passthrough and does not choose the rendering.**
+5. **AND A `saveCall` STORE NEVER RECONSTRUCTS STATE FROM A FILE: where the store would, it ERRORS AS A MEM-TIER STORE WOULD, INSTRUCTING THE CLIENT TO REBUILD.** **So the file's three loader classes — `NoImage` · `Members` · `Refused`** (`src/store.rs:1720`–`:1737`) **and the regeneration-from-creation-state arm (`D-108` item 1) are NOT reached on this arm at all**: **a store that would read a file to rebuild — a rollback whose candidate set includes a compacted entry (`RollbackCompacted`, rank `11`), or any reconstruction — answers the MEM-TIER answer instead, and the client's recovery is its own rebuild** (fed back through `initialImage`, `D-134`/`D-135`).
+6. **AND A SECOND ADDON SURFACE EXISTS SO THE STORE CAN BE TOLD THE SAVE SUCCEEDED.** **`exportImage` marks nothing** (`D-137` item 2) **and the store's own writer does not run** (`D-133` item 3), **so nothing set `Entry::saved`** — **the keeper gap `P-5` filed as `VN-2`'s sibling is closed by this surface.** **The ADDON'S ENTRY SET MOVES `13 → 14`** (`D-137` item 1 took it `12 → 13`): **`exportImage`, and this one.** **THE SPELLING IS INVENTED UNDER `D-137`'s DELEGATION: `saveSucceeded(opId)`** — **it takes the operation the save was owed for and marks that record saved, and it writes no byte.** *(If he prefers another word, one word replaces it; `U-09` is where it lands.)*
+7. **AND `filePath` AND `saveCall` ARE MUTUALLY EXCLUSIVE.** **A `cfg` carrying both is REFUSED** — **at the same class gate and before any filesystem act, as broken config** (item 2's arm). **This SUPERSEDES `D-131` item 3**, and its consequences are large and are spelled in `WHAT IT SUPERSEDES` below.
+
+**WHAT IT SUPERSEDES, BY NAME.**
+
+| superseded | why | what now stands |
+|---|---|---|
+| **`D-131` item 3** — *"`saveCall` and `filePath` may stand together, `saveCall` PREVAILS on the write path"* | **item 7 makes them exclusive** | **a `saveCall` store has NO `filePath`**, so **`D-132`'s third entry condition is the ONLY way a `saveCall` store enters the `file` tier**, and the probe never runs. **`FilePathUnreachable` has no subject on this arm.** |
+| **`D-137` item 3's redundancy question** — whether `durable_without_path` is ignored or refused beside a `filePath` | **no `filePath` can stand beside it** | **the question is MOOT; `durable_without_path` is set exactly where `saveCall` is present, and nowhere else** |
+| **`D-133` item 4's stale-file arm** | **no file is written and none is read** | **DISSOLVED: there is no second durable artefact to diverge** |
+| **`VN-3`** — *"the save's declared durability observable has no subject"* | **item 5 removes file reconstruction entirely** | **the observable has no subject ON THIS ARM AT ALL and must be replaced in the declaration**: **the truth is the client's backend, and the package may not read it** (`A57`; `P-SR-7`) — **so durability on this arm is DECLARED UNOBSERVABLE IN THIS REPOSITORY, said plainly rather than left as a missing test** |
+| **`VN-2`** — *"the `save-failed-at-the-terminal-arm` mark loses its producer"* | **item 4 passes the refusal to the kernel** | **the mark's subject is the package's own throwable/failure datum and the kernel receives the reason**; **the mark's SENTENCE is still owed to a spec pass, and its classification now has a source** |
+| **`Entry::saved`'s keeper gap** | **item 6's surface** | **the store keeps the mark; the package informs it** |
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **THE ROLLBACK'S STORE-SIDE ROUTE** (item 3): a new entry, a reading of an existing one, or a package-side mechanism. **And whether the failure's status is `FileCommitFailed` (rank `15`) with the `saveCall` messages carried, or a different seat** — **item 4 requires the passthrough and does not name the status**; **this is the one question `U-04` cannot be designed without.**
+2. **THE `message: string[]`'s RENDERING** in the answer — the one form's `message` is one string and its `log` is a list.
+3. **`saveSucceeded(opId)`'s ARITY** — invented position-less or op-keyed; **and what it answers.**
+4. **WHAT A `saveCall` STORE ANSWERS AT BOOT WHEN `initialImage` IS ABSENT** — the creation state, by `D-108`'s fallback, or a refusal. **Now that no file is ever read, this is the ordinary arm and it is undeclared.**
+5. **`SE-2`/`SE-3`/`SE-4`/`SE-5`/`SE-7`/`SE-8`** and **`VN-5`** — the seed's tier, op-or-base-state, versus a file (now vacuous, since no `filePath` stands), legal-without-`saveCall`, an immediate save, the undo window, provenance. **`SE-4` is thereby DISSOLVED by item 7** (there is no readable file to race), **and the rest stand.**
+6. **`SC-10`** (a second instance over one backend) and **the release class** — open.
+
+**TERMS: the `saveCall` answers (`2` members: `success`, `message`) · its outside form (`1` = broken config, refused) · the rollback (`1` = taken, mechanism owed) · the passthrough (`1` = to the kernel) · the file-reconstruction arms removed (`1` class) · the addon's entries (`13 → 14`) · the surfaces spelled (`1` = `saveSucceeded`) · the `cfg` keys (`7`, unmoved) · the exclusive pairs (`1` = `filePath` ∧ `saveCall`) · the supersessions (`6` named) · the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT.** **`U-04 SAVE-CALL` is unblocked on everything except items 1–3 of what this row does not settle; `U-05 SEED` keeps its own five.**
+
+---
+
+### `D-145` — THE LAST FIVE `saveCall` ANSWERS: `FileCommitFailed` IS WIDENED · THE SAVER'S MESSAGES RIDE IN THE LOG · `saveSucceeded` REFUSES A BAD OP · BOOT-EMPTY IS THE CLIENT'S RESPONSIBILITY · THE BACKEND HAZARD IS DOCUMENTED AND THE CLASS DEFERRED
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, answering L0's elaboration of `D-144`'s
+remainder. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "1. Widen. A store instance can't have both the store write and an external saver any more, so there's no conflict
+> 2. Use log
+> 3. answer with refusal
+> 4. First option, client is responsible for passing correct config
+> 5.1. Provide guidance in docs for responsible use, including not doubling two stores on the exact same saveCall function
+> 5.2. Review when release-ready"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE FAILED SAVE'S SEAT IS `FileCommitFailed` (rank `15`), WIDENED — NO NEW STATUS.** **THE ARCHITECT'S GROUND IS THAT THE TWO SUBJECTS CAN NO
+   LONGER COEXIST AT ONE INSTANCE:** `filePath` and `saveCall` are mutually exclusive (`D-144` item 7), **so a store either saves through its own
+   writer or through the caller's function and never both** — **and one status for "the save failed" therefore has one subject at every instance
+   that can reach it.** **`CODES` STAYS AT `23`** (`src/error.rs:171`–`:196`, plus `D-137`'s rank `23`), **and `StoreStatus` stays at twenty-three
+   literals plus its escape arm.** **AND ITS GENERATED MESSAGE OWES AN AMENDMENT, NAMED HERE RATHER THAN DISCOVERED LATER:** `src/error.rs:460`–`:466`
+   prints *"`<subject>` could not be committed to `<path>`, the file write failed at `<path>`"* — **which speaks of a path twice, and on the
+   `saveCall` arm there is no path.** **The widened sentence is a spec pass's byte and the `path` slot's disposition is its question**; **this row
+   rules the SEAT and not the prose.**
+2. **THE SAVER'S `message: string[]` RIDES IN THE `log`.** **The one form's generated `message` stays the generated sentence for rank `15`; the
+   caller's own words cross as LOG ENTRIES.** **That keeps the "never hand-authored at a call site" rule whole** (the generated field carries no
+   caller prose), **serves `D-119`'s audit law**, **and gives a `string[]` the list-shaped surface the corpus already has.** **Whether each string is
+   ONE entry or the array is one entry's payload is the design's to spell.**
+3. **`saveSucceeded(opId)` IS ARITY `1` AND ANSWERS `undefined`, AND A CALL IT CANNOT HONOUR ANSWERS A REFUSAL — NOT THE SILENT `Ok(())`
+   `commit_file` takes.** **The three silent arms of `commit_file`** (`src/store.rs:1585`–`:1594`: an unknown op, an op owing no save, an
+   already-saved op) **are the precedent this row DECLINES to inherit.** **So a `saveSucceeded` naming an op this store does not hold REFUSES**,
+   **and the seat is the op-keyed failure's existing one — `JournalOpUnknown`, rank `10`** (`src/error.rs:180`) — **rather than a new member.**
+   **⟶ AND ONE ARM IS FLAGGED RATHER THAN ASSUMED:** the **already-saved** op (`:1591`–`:1594`) is **not the same subject** — *"a save performed
+   twice for one record"* is `commit_file`'s own FAILS-IT state and today it writes no byte and answers `Ok(())`. **This row reads *"answer with
+   refusal"* as reaching the unknown-op arm it was asked about and NOT as converting the idempotent arm into a refusal; if he means both, one
+   word says so, and the once-per-record law's observable changes with it.**
+4. **A `saveCall` STORE BOOTS EMPTY WHEN NO `initialImage` IS GIVEN, AND THE RESPONSIBILITY IS THE CLIENT'S.** **No cross-key refusal is owed** —
+   **the pair `{saveCall, initialImage}` is NOT enforced as a pair**, and **the declaration and the guides must say plainly that a store which
+   boots empty and then saves will persist an empty image over whatever the client's backend held.** **This row records the hazard as DECLARED
+   and UNGUARDED, by his word.**
+5. **AND THE BACKEND HAZARD IS GUIDANCE, NOT A REFUSAL: *"not doubling two stores on the exact same `saveCall` function"* is a DOCUMENTED DUTY.**
+   **The package may not refuse a second instance over one backend** (`docs/specs/storeroom-js/contract.md:3256`), **so the sentence lands in the
+   guides and in the `saveCall` key's own declaration prose, and nowhere in code.** **A documentary unit is owed by that sentence.**
+6. **AND THE RELEASE CLASS IS DEFERRED BY NAME: *"Review when release-ready"*.** **`RM-9`/`SC-11`/`CH-11` stay open with a NAMED REVISIT INSTANT** —
+   the release's own readiness review — **which is the positive revisit condition `strata/walkthrough.md` exit question `12` demands for a
+   residual.**
+
+**WHAT IT DOES NOT SETTLE — AND THE ONE THING STILL BLOCKING `U-04`.**
+
+1. **★ THE ROLLBACK'S STORE-SIDE ROUTE IS STILL UNRULED, BECAUSE THE ANSWER ABOVE IS THE STATUS AND NOT THE ROUTE.** **The five restoration steps
+   live in `commit_file`'s failure arm** (`src/store.rs:1601`–`:1608`) **behind a writer that never runs on this arm** (`D-133` item 3), **so the
+   package's failure signal has no declared road into them.** **L0 PROPOSES, AND THIS ROW DOES NOT RULE, THE MIRROR OF `D-144` ITEM 6:
+   `saveFailed(opId)` — arity `1`, answers `undefined`, performing exactly `commit_file`'s five failure steps and writing no byte** — **which makes
+   the addon's entry set `14 → 15` and keeps the journal the STORE's own. The one-word alternative is a single entry carrying a verdict, which the
+   corpus's surface discipline keeps away from the addon.** **`U-04` cannot be designed past its failure arm until this is one or the other.**
+2. **THE `FileCommitFailed` SENTENCE'S `path` SLOT** (item 1) — a spec pass's byte, owed with the widening.
+3. **THE ALREADY-SAVED ARM OF `saveSucceeded`** (item 3's flag).
+4. **THE `message[]` ENTRY SHAPE** (item 2: one entry per string, or one entry carrying the array).
+5. **THE SEED'S REMAINING FIVE** — `SE-2`, `SE-3`, `SE-5`, `SE-7`, `SE-8` — and `VN-5`'s provenance.
+6. **THE CHANNEL'S FIVE** — `CH-3`, `CH-4`, `CH-7`, `CH-8`, `CH-7`, the accessor's name, `VN-7`.
+
+**TERMS: the `saveCall` answers taken (`5`) · the statuses minted (`0`) · the statuses widened (`1` = `FileCommitFailed`) · the set (`23`, unmoved) ·
+the addon's entries (`14` now; `15` if the proposal is accepted) · the cross-key refusals (`0` for the seed pair; `1` for `filePath` ∧ `saveCall`) ·
+the documentary units owed (`2` = the boot hazard and the backend hazard) · the classes deferred (`1`, with a named revisit) · the units opened
+(`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT.** **`U-04` is blocked on item 1 alone; everything else it needed is now declared.**
+
+---
+
+### `D-146` — `saveFailed(opId)` IS THE MIRROR OF `saveSucceeded`: ARITY `1`, ANSWERS `undefined`, PERFORMS THE FAILURE ARM AND WRITES NO BYTE
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, accepting L0's proposal at `D-145` item 1 of
+its unsettled. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Mirror"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE ROLLBACK'S STORE-SIDE ROUTE IS A NEW ADDON ENTRY, `saveFailed(opId)`** — **arity `1`, answering `undefined`, on `commitFile`'s own
+   declared form** (`src/facade.rs:1028`–`:1030`: *"its one argument is an op id and its answer is `undefined`"*). **It performs EXACTLY
+   `commit_file`'s failure arm and nothing else** (`src/store.rs:1601`–`:1608`): **remove the journal entry · `restore(home, &entry.captured)` ·
+   `restore_compaction(&entry.compacted)` · `last_seq -= 1` · answer.** **IT WRITES NO BYTE**, which is what keeps the store's own writer
+   suppressed on this arm (`D-133` item 3) and the journal the STORE's, never the package's.
+2. **AND THE PAIR IS ONE SHAPE AT TWO VERDICTS — the two entries are each other's mirror**, which is `D-144` item 6's surface completed:
+   `exportImage()` answers the image and marks nothing · `saveSucceeded(opId)` marks the record saved · **`saveFailed(opId)` unwinds it.**
+   **NO VERDICT IS CARRIED ON ANY ENTRY'S POSITION** — the addon is told twice, once per outcome, and never asked to judge.
+3. **THE ADDON'S ENTRY SET MOVES `14 → 15`** (`D-137` item 1 took it `12 → 13`; `D-144` item 6 took it `13 → 14`).
+4. **AND `SC-6` IS CLOSED IN FULL — route and seat.** **The route is this entry; the seat is rank `15` `FileCommitFailed` widened**
+   (`D-145` item 1) — **so `§2.11` clause 5's declared order is kept exactly: the rollback happens, and the caller receives the failure AFTER it**
+   (`docs/specs/storeroom-js/surface.md:1899`). **The package sends the signal (a `success: false` from `saveCall`); the store unwinds; the kernel
+   answers with the caller's own messages in the `log`** (`D-145` item 2).
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **`saveFailed`'s ARMS WHERE THE OP IS UNKNOWN OR OWES NOTHING.** **`saveSucceeded` refuses those (`D-145` item 3), and the mirror of a refusal
+   is not a refusal**: **a `saveFailed` naming an op this store does not hold has nothing to unwind, and whether it refuses at `JournalOpUnknown`
+   (matching its mirror) or answers `undefined` as a no-op (matching `commit_file`'s own silent arms) is undecided.** **One word, and the design may
+   not assume either.**
+2. **WHETHER `saveFailed`'s ANSWER CARRIES THE UNWOUND STATE** — **the design's to price; `undefined` is `commitFile`'s precedent and not an
+   argument against a signal nobody has asked for.**
+3. **THE ALREADY-SAVED ARM OF `saveSucceeded`** (`D-145` item 3's flag) and **the `message[]` entry shape** (`:6800`) — unchanged.
+4. **THE SEED'S FIVE AND THE CHANNEL'S FIVE** — unchanged.
+
+**TERMS: the addon's entries (`14 → 15`) · the rollback's route (`1` = taken) · the verdict positions (`0` — two calls, no verdict on a position) ·
+the bytes written by the new entry (`0`) · the statuses minted (`0`) · the `cfg` keys (`7`, unmoved) · the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT. `SC-6` IS CLOSED AND `U-04 SAVE-CALL` IS FULLY DECLARED** except for the two design details this row
+flags.
+
+---
+
+### `D-147` — THE SEED CLOSES: IN DOMAIN EVERYWHERE WITH GUIDANCE · NO IMMEDIATE SAVE · PROVENANCE DECLARED AND LEFT · AN EMPTY STRING IS REFUSED
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, answering `D-144`/`D-145`'s seed remainder.
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "1. In domain everywhere (Guidance should discourage it where overwrites are not intentional, though - stores should enforce their
+> defaults with repairs, and `file` pathed stores are in danger of being overwritten)
+> 2. No immediate save
+> 3. Declare and leave
+> Bonus: Refuse empty string - intentional emptiness is excluding param entirely, accepting empty string is an overwrite risk"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **`SE-5` — `initialImage` IS IN DOMAIN ON EVERY ARM, AND THE DANGER IS CARRIED BY GUIDANCE AND NOT BY A REFUSAL.** **A `filePath` store may be
+   seeded; a plain `mem` store may be seeded; a `saveCall` store is seeded as its bootstrap.** **His grounds are three and each is a sentence the
+   guides owe**: **guidance must discourage seeding where an overwrite is not intended** · **a store should enforce its DEFAULTS WITH REPAIRS —
+   not by refusing the seed** (the constraint kernel's own mechanism, `D-1`'s unconditional write-path pass) · **and a `file`-pathed store's bytes
+   are IN DANGER OF BEING OVERWRITTEN**, which is the risk stated rather than defended against. **So the seed-versus-file collision is not resolved
+   by precedence law; it is resolved by the caller knowing what it asked for.**
+2. **`SE-7` — NO IMMEDIATE SAVE.** **A seeded construction fires no `saveCall`.** **It follows from `save_owed`'s own ground — the eligibility is an
+   act's DEPARTURE** (`src/store.rs:1640`–`:1674`) **and a seed is not an act** — **and its consequences are declared rather than left implicit**:
+   **the store and the client's backend agree at instant zero because the client just supplied the state** · **they DIVERGE after a `mem`-tier act
+   until the next `file`-tier write, which is every store's ordinary shape** · **the `saved` mark has no subject for a seed** (there is no journal
+   entry to mark) · **and the construction stays SYNCHRONOUS** — **no `async` stands at creation**, which keeps `DD-17`'s *"commits synchronously,
+   so there is no in-flight state to flush"* whole (`contract.md:2507`–`:2510`).
+3. **`VN-5` — PROVENANCE IS DECLARED AND LEFT: the image carries no identity, and the client is responsible for passing its own store's image.**
+   **`read_file_image`'s filter is `is_admitted()` and nothing else** (`:1730`–`:1737`), **so a stale, foreign or hand-assembled image of admissible
+   values installs silently and the store answers as if it were its own.** **That is now a DECLARED property with a documentary duty** — the
+   guides and the key's own declaration prose — **and not a hole.** **Adding a format marker to the image is REFUSED by this row**: it would change
+   the durable bytes on every arm and every existing file, a migration-class act no pass may take.
+4. **AND AN EMPTY-STRING SEED IS REFUSED — *"intentional emptiness is excluding param entirely, accepting empty string is an overwrite risk"*.** **So
+   `initialImage: ''` is BROKEN CONFIG**: **absence means *no seed* and the creation state stands; an empty string means a caller that computed a
+   value rather than omitting one, and it is refused rather than read as absence.** **THE SEAT IS `cfg`'s class gate — `AddressMalformed` — on the
+   precedent this tree already sets and which the supervisor MEASURED at `2026-11-17` for its neighbour: `filePath: ''` answers
+   `AddressMalformed` (*"'filePath' is not a legal address segment in '', segments are strings or non-negative integers"*).** **The status is a
+   reading of consistency and not his word; if he means rank `22` `FileImageRefused` instead, one word moves it.**
+   **And a NON-STRING seed is the same gate:** `initialImage: 5` and its siblings are `cfg`'s outside forms, refused before any filesystem act.
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **THE SEED-VERSUS-FILE PRECEDENCE WHEN A `filePath` STORE BOTH CARRIES A SEED AND BOOTS OVER A FILE THAT HOLDS STATE.** **Item 1 puts the case in
+   domain and item 1's third ground acknowledges the danger; no precedence is declared.** **THE BINDING FACT IS THE INSTALL ORDER**: **a seed installed
+   BEFORE `born` is taken (`src/store.rs:842`) and a file installed through the boot's own load are two installs at `Tier::File` over the same home, and
+   the LAST one wins** — **so the answer turns on which the design runs second.** **This row does not choose it; the design states it and the guides
+   say it, and `D-145` item 4's *"client is responsible for passing correct config"* is the arm that lets it stand either way.**
+2. **THE `filePath`+seed case's DURABILITY CONSEQUENCE** — a seed that wins means the next `file`-tier write overwrites the path with the seeded
+   state: **exactly the danger item 1 names, stated and not defended.**
+3. **THE CHANNEL'S FIVE** — `CH-3`, `CH-4`, `CH-7`, `CH-8`, the accessor's name, `VN-7` — **unchanged and now the ONLY open cluster.**
+4. **THE TWO SMALL READINGS ABOVE** (the empty-string seat, `AddressMalformed` versus rank `22`).
+5. **THE RELEASE CLASS** — deferred by `D-145` item 6 with its named revisit.
+
+**TERMS: the seed's questions closed (`4` = domain · immediate save · provenance · empty string) · the seeds refused (`1` = empty string) · the
+documentary duties owed (`3` = the seed's overwrite danger, the boot hazard `D-145` item 4, the backend hazard `D-145` item 5) · the image's format
+changed (`0`) · the statuses minted (`0`) · the `cfg` keys (`7`, unmoved) · the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT. `U-05 SEED` IS DECLARED** except for the install order this row flags, which is the design's to state.
+
+---
+
+### `D-148` — THE CHANNEL CLOSES: A NON-FUNCTION REFUSED · A NEW 24TH STATUS FOR A CHANNEL THAT FAILS · A LISTENER KEEPS ITS VALUE ONLY IF IT RETURNS ONE · A CONSTRAINT LEAVES THE REGISTRY · AND THE CHANNEL'S DELIVERY **IS** THE ANSWER
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, answering the channel cluster.
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "1. Refuse handles that don't have a function (Should already be the case, defect if not). A constraint is not a listener and shouldn't be in the
+> registry or part of this returned set. A listener that returns nothing should be assumed to only perform backend code that does not need the
+> channel pass. Declare that return-undefined functions will not pass back over channel, responsibility is on client.
+> 2. Add new status
+> 3. Channel returns the normal receipt for its action, or the forged receipt for one that previously didn't return one
+> 4. Refuse non-function channel
+> 5. When the channel is in use, the channel delivery *is* the answer"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **`CH-3` IS CLOSED, AND IT CLOSES INTO THREE SEPARATE SENTENCES.**
+   **(a) A HANDLE WITH NO FUNCTION IS REFUSED, AND *"SHOULD ALREADY BE THE CASE"* IS CONFIRMED AT THE BYTES — NO DEFECT.** **The construction refuses an
+   entry carrying no `listener`** (`bindings/js/src/entry/frame.mjs`'s entry walk; `PIN-8`/`PIN-9`; the architect's own ground quoted at
+   `index.d.ts:239`–`:242`: *"Why would a listener that doesn't have a function to fire on the listened address be accepted?"*), **and the
+   registration route refuses a non-function at its own site** (`PAR-JS-12`'s one non-store form). **So no handle without a body can be adopted, and
+   no such handle can stand in a returned set.**
+   **(b) A CONSTRAINT IS NOT A LISTENER, AND THAT IS A SEMANTIC STATEMENT — NO CODE MOVES.** **⟶ CORRECTED AT THIS LINE, `2026-11-17`, ON THE ARCHITECT'S OWN CLARIFICATION — *"the constraint behavior doesn't need to change, argument was semantics"*.** **THIS SENTENCE READ *"A CONSTRAINT … LEAVES THE REGISTRY"* AND CLAIMED A CHANGE THAT SUPERSEDED PART OF `D-69`'S MECHANISM; BOTH HALVES ARE WITHDRAWN BY NAME.** **What the tree already does implements the semantics exactly, and nothing in it moves**: **the registration seam writes the pair's body into the package's registry under `entry.kind = 'constraint'`** (`delivery.mjs:279`), **`deliver` skips it by that kind** (`:181`) **so no constraint ever reaches the delivered set or the channel's value map**, **and `register` refuses to replace such an entry with a caller's function** (`:788`). **`D-69`'s requirement stands whole, its mechanism stands whole, and THE REGISTRY'S KINDS STAY AT TWO — the `TERMS` line below prints *"`2 → 1`"* and is superseded at this clause.** **What this item contributes is the DECLARED READING: a constraint is asked by the pass and is never a listener, so it is neither a member of the delivered set nor a key in the channel's map — which the shipped device already guarantees.**
+   **(c) A BODY THAT RETURNS `undefined` DOES NOT PASS BACK OVER THE CHANNEL, AND THAT IS DECLARED — *"responsibility is on client"*.** **A listener
+   that returns nothing is assumed to perform backend work that needs no channel pass**; **so the channel's value map carries ONE ENTRY PER HANDLE
+   THAT RETURNED A VALUE and no entry for the rest.** **Silence is therefore meaningful and declared: a handle absent from the map either returned
+   nothing or was not part of the delivered set, and the caller owns the distinction.**
+2. **`CH-4` IS CLOSED BY A NEW STATUS — RANK `24`.** **A CHANNEL THAT FAILS (throws or rejects) REFUSES THE ACT, and the member is NEW rather than a
+   widening** (unlike `FileCommitFailed`, `D-145` item 1: **a channel is not a listener body and rank `23`'s name would misname it**). **THE MINTING
+   IS INVENTED UNDER `D-137`'s DELEGATION, on the family's own pattern** (`ListenerBodyThrew` `21` · `ListenerBodyRejected` `23`): **`ChannelThrew`**,
+   **rank `24`**, **subject the ACT'S OWN ADDRESS — the triggering address — because a channel call is per act and not per registration**, **and the
+   generated message:**
+   ```
+   "<address> was refused by the channel, the caller's own channel function failed while delivering this act's events"
+   ```
+   **`CODES` moves `23 → 24` and `StoreStatus` to twenty-four literals plus its escape arm.** **AND THE ASYMMETRY WITH `D-138` IS DECLARED, NOT SLIPPED
+   IN**: **a listener's failure cannot refuse the act because the act has already committed and the caller must not lose its record** (`D-138` items 1
+   and 4); **a channel's failure refuses the act because, with a channel in use, there is no record for the caller to lose — the delivery IS the
+   answer** (item 5). **The two arms differ because their SUBJECTS differ, exactly as `D-144` item 1's widening turned on one subject per instance.**
+3. **THE CHANNEL IS HANDED A RECEIPT — THE REAL ONE FOR AN ACT THAT RETURNS ONE, THE FORGED ONE FOR AN ACT THAT DOES NOT.** **So the channel's
+   argument carries the action's identity**: **a `write`'s or a `delete`'s own receipt with its five members** (`D-136`, `D-143`), **and at the
+   creation or a registration the forged receipt** (`D-139`, `D-140`…`D-143`: the commit's op or `null`, the delivered set's `watched` and
+   `triggered`, the commit's `log`, the registration's `discarded`, and `bodyFailures`).
+4. **`CH-8` IS CLOSED: A NON-FUNCTION `channel` IS REFUSED, ON `saveCall`'s OWN ARM.** **Broken config, at `cfg`'s class gate, before any filesystem
+   act** (`D-144` item 2's arm) — **so the package mints no second non-store failure form, `DD-12`'s one-form law stands whole, and `CH-8`'s
+   question is answered by consistency rather than by a new device.**
+5. **★ AND `CH-5` IS SETTLED IN ITS LARGEST FORM — WHEN A CHANNEL IS IN USE, ITS DELIVERY IS THE ANSWER.** **`write` and `delete` answer WHAT THE
+   CHANNEL RETURNED rather than a receipt carrying the channel's data beside it.** **THIS SUPERSEDES `D-136` ITEM 1's *"rides beside"* FOR THE
+   CHANNEL'S DATA — and it DISSOLVES the channel's unnamed accessor, which is why `CH-NAME` is closed as *no such member***. **What survives of
+   `D-136` is the RECEIPT: its five members are unmoved, `bodyFailures` stays third accessor, and THAT receipt is what the channel is handed** (item 3).
+   **A store with NO channel is unchanged: its answer is the receipt, with `bodyFailures` and everything else.**
+
+**WHAT IT DOES NOT SETTLE — AND THE ONE READING WHICH IS L0's.**
+
+1. **THE CHANNEL'S EXACT SIGNATURE, AND THE READING THIS ROW TAKES IS FLAGGED.** **His item 3 names the RECEIPT and his original request named the MAP**
+   (*"Result is passed to channel as `{listenerHandle: <data>, …}`"*). **This row reads them as TWO POSITIONS — `channel(values, receipt)` — the map
+   first because it is the payload his request declared, the receipt second because it is the identity item 3 names.** **The alternative reading is one
+   position with the values riding on the receipt as an accessor** (which would revive `CH-NAME` for that accessor). **The design may not choose
+   between them; one word from him settles it and the declaration follows.**
+2. **WHAT A CHANNEL RECEIVES WHEN THE ACT'S DELIVERED SET IS EMPTY** — `CH-7`, still open, and now sharper: with item 5 making the delivery the answer,
+   a channel invoked with an empty map returns the caller's whole answer.
+3. **`VN-7` — THE CHANNEL'S ASYNC-NESS** — still open: item 5 makes the channel's return the answer, which raises whether the answer also waits for a
+   channel that returns a promise.
+4. **THE KERNEL'S HOLD ON A CONSTRAINT BODY** (item 1 (b)) — where the pair's function lives once it leaves the registry, and what `register`'s
+   refusal at `delivery.mjs:788` becomes. **A design/code move with `D-69`'s requirement intact.**
+5. **THE RELEASE CLASS** — deferred with its named revisit (`D-145` item 6).
+
+**TERMS: the channel's questions closed (`5` = the map's contents · a failing channel · the receipt it is handed · a non-function channel · the
+delivery-as-answer) · the statuses minted (`1` = rank `24` `ChannelThrew`) · the statuses withdrawn (`0`) · the accessors dissolved (`1` = the
+channel's own) · the registry's kinds (`2 → 1`) · the readings flagged (`1` = the signature) · the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT.**
+
+---
+
+### `D-149` — THE EXTERNAL `channel` IS NOT NEEDED: THE RECEIPT CARRIES THE LISTENERS' RETURN VALUES, AND THE WHOLE CHANNEL CLUSTER DISSOLVES
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, reconsidering the channel's paradigm and confirming the
+outcome. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "The channel itself would not be needed, but the write receipt would still need to include data that is not currently contained, ex. the listener
+> function returns"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **`channel` IS NOT A `cfg` KEY.** **`cfg` MOVES `7 → 6`**: `journalLength` · `listeners` · `filePath` · `constraints` · `saveCall` ·
+   `initialImage`. **The package invokes no caller-supplied function beyond the listeners themselves** — **which is `A57`'s minimal shape restored**:
+   *"the store returns handles and invokes nothing"* was always about the store, and **now the package's own invocation surface holds one class of
+   function and no other.**
+2. **★ AND THE RECEIPT CARRIES WHAT IT DOES NOT CARRY TODAY: THE LISTENERS' RETURN VALUES.** **A `write`'s — and, on the same reasoning, a `delete`'s —
+   answer gains a datum keyed by handle, one entry per listener that RETURNED A VALUE** (`D-148` item 1(c), unmoved: a body that returns `undefined`
+   contributes no entry, and the caller owns that silence). **Its seat is `bodyFailures`' own device** (`D-136` items 1 and 4): **a NON-ENUMERABLE,
+   `configurable` own accessor over a symbol-keyed datum, so `Object.keys` stays `["op","watched","triggered"]` and every consumer deep-equality over
+   an answer is unmoved.** **`Object.getOwnPropertyNames` moves `6 → 7`** (three typed + `discarded` · `log` · `bodyFailures` · this one).
+   **THE NAME IS NOT MINTED HERE — it is the one identifier this change leaves owed, on `D-137`'s delegation precedent, and `U-09` is where it lands.**
+3. **AND THE SETTLE IS WHAT MAKES THE DATUM POSSIBLE, WHICH IS WHY THIS IS COHERENT RATHER THAN MERELY SIMPLER.** **The answer is withheld until the
+   delivered set settles** (`D-130` item 4) — **so the map is COMPLETE when the caller reads it, and a promise a body returned is already settled into a
+   value or into `bodyFailures`.** **The two rulings were never independent: the awaited answer is what a per-handle result map needs in order to exist at
+   all.**
+4. **THE CALLER'S ANSWER IS THE RECEIPT AGAIN.** **`D-148` item 5's *"when the channel is in use, the channel delivery is the answer"* has no subject,
+   so the receipt is the answer on every arm — and `D-119`'s audit property is restored**: *"a caller that cannot read the passing log cannot audit its own
+   write."* **Under item 5 the caller had to have its own channel hand the record back to see it; it no longer does.**
+
+**WHAT IT DISSOLVES — NAMED SO NOTHING IS CARRIED FORWARD AS IF IT STILL STOOD.**
+
+| dissolved | what it was for |
+|---|---|
+| **the forged receipt, whole** — `D-139` items 2–4 · `D-140` · `D-141` · `D-142` · `D-143` | **it existed only so the PACKAGE could invoke a channel at instants that have no receipt.** **With the package invoking nothing, there is nothing to forge, no `op: null` case, no "the commit's op", no `watched` projection to compute and no `discarded` at a creation.** **The five members' answers stand as the RECEIPT's own declarations and are no longer a forgery's.** |
+| **rank `24` `ChannelThrew`** (`D-148` item 2) | **a channel the package invokes can fail; a channel the caller invokes fails in the caller's own frame.** **IT WAS MINTED AND NEVER IMPLEMENTED, so its withdrawal moves no byte: `CODES` STAYS AT `23`** (twenty-two + `ListenerBodyRejected`) **and `StoreStatus` at twenty-three literals plus its escape arm.** |
+| **`CH-7`** (called when nothing triggered?) | **an empty map is an empty map; nothing is called.** |
+| **`VN-7`** (the channel's async-ness) | **no package-side invocation, no question whether the answer waits for it.** |
+| **`CH-4`**, **`CH-8`**, **`CH-2`**, **`CH-5`**, **`CH-1`**, **`CH-6`**, **`VN-6`** | **all channel-shaped; all lost their subject.** **`VN-6`'s name collision goes with the key.** |
+| **`D-131` items 4–6**, **`D-136` item 1**, **`D-148` items 2, 3, 5** | superseded by items 1 and 4 above. |
+
+**WHAT SURVIVES, AND IS NOT WEAKENED.**
+
+- **`D-148` item 1(a)** — a handle with no function is refused, and that was measured as already true.
+- **`D-148` item 1(b)** — a constraint is asked by the pass and is never a listener, so it is neither in the delivered set nor a key in the datum. **No code moved for it then and none moves now.**
+- **`D-148` item 1(c)** — value-only entries; `undefined`-returners do not appear; responsibility is the client's.
+- **`D-130` items 3–5** — start all, settle, no order asserted, interference the caller's hazard.
+- **`D-138`** — a rejecting body's status rides on the receipt as `bodyFailures`, and the write RESOLVES.
+- **`D-136`** — the receipt's five members and the three-accessor family, now four.
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **THE DATUM'S NAME**, and whether an empty map is the shared frozen constant or a fresh `{}` — **`D-142`'s own precedent says the frozen constant; the name is owed** (`D-137`'s delegation stands).
+2. **WHICH ANSWERS CARRY IT.** **`write` and `delete` are named by his words and their own reasoning; a `rollback`'s judgement answers a `judgementLog` and not a receipt, and whether it delivers values that must be surfaced is the design's to price.** **The creation and the four registration instants carry NO values — their answers are an instance and an identity, and the caller is the one who acted, so nothing is lost that the caller does not already know.**
+3. **Whether `bodyFailures` and this datum ever share a seat** — `D-136`'s two-accessor reasoning put them apart on `CH-3`'s keying question, **which has now dissolved; the design may revisit that and moves nothing by keeping them apart.**
+4. **THE REST OF THE OPEN SET, unchanged**: the seed's install order · `saveFailed`'s unknown-op arm · `saveSucceeded`'s already-saved arm · the `message[]` entry shape · `FileCommitFailed`'s message's `path` slot (a spec byte) · three documentary duties · the release class with its named revisit.
+
+**TERMS: the `cfg` keys (`7 → 6`) · the statuses withdrawn (`1` = rank `24`, never implemented) · the set (`23`, unmoved) · the receipts gaining a datum (`2` = `write`, `delete`; the reversal's judgement owed) · the accessors (`3 → 4`) · the forged receipts (`0` — nothing is forged any more) · the identifiers owed (`1` = the datum's name) · the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT.**
+
+---
+
+### `D-150` — THE RETURN-VALUES DATUM IS NAMED `returnedValues`
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, accepting L0's proposal.
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Stick with returnedValues and proceed with design"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE RECEIPT'S FOURTH ACCESSOR IS `returnedValues`** — **a NON-ENUMERABLE, `configurable` own accessor over a symbol-keyed datum, one entry
+   per listener that RETURNED A VALUE, keyed by handle** (`D-149` item 2; `D-148` item 1(c) unmoved: an `undefined`-returner contributes no entry).
+   **`Object.keys` stays `["op","watched","triggered"]`; `Object.getOwnPropertyNames` reads SEVEN** — the three typed plus `discarded` · `log` ·
+   `bodyFailures` · `returnedValues`.
+2. **ITS EMPTY VALUE IS THE SHARED FROZEN `{}`**, on `D-142`'s own precedent for the empty map and `defineResolutionLog`'s for the shared `[]`
+   (`constraints.mjs:1988`) — **present always, never absent, never `undefined`** (`D-77`/`D-78`'s rule).
+3. **AND THE IDENTIFIER IS NOW THE DECLARATION'S, WHICH UNBLOCKS `U-09` ON THAT POINT.** **`StoreInstance` is unmoved at fifteen; `CommitRecord` at
+   four; `WriteRecord` keeps its three typed members and gains its fourth accessor.**
+
+**WHAT IT DOES NOT SETTLE.** **Whether the datum's carriage rides `U-06`'s implementer pass or stays `U-08`'s own unit** — **the plan's `§13` keeps
+them apart and the design pass decides the boundary; either way the code is the same delivery point.** · **the four small design items already
+flagged** (the seed's install order · `saveFailed`'s unknown-op arm · `saveSucceeded`'s already-saved arm · the `message[]` entry shape) · **three
+documentary duties** · **the release class with its named revisit.**
+
+**TERMS: the identifiers owed (`0`) · the accessors (`4`) · the censuses moved (`1` = `getOwnPropertyNames` `6 → 7`) · the units opened (`0`).**
+
+**IT ORDERS NO CODE MOVE AND OPENS NO UNIT — AND IT IS THE LAST IDENTIFIER THE THREE REQUESTS OWED.**
+
+---
+
+### `D-151` — A REPAIR'S WRITE AT A LISTENED ADDRESS MUST FIRE ITS LISTENER, AND THE MEASURED BEHAVIOUR IS A DEFECT
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af` (the tree carries `U-STOREROOM-06`'s landing uncommitted). **SOURCE:** the architect, in
+session, ruling on the finding `docs/specs/storeroom-delivery-settle/contract.md §11` filed. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "If a repair writes at an address that should trigger a listener, that listener should fire, and any behavior to the contrary is a defect"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE EXPECTED BEHAVIOUR IS DECLARED AND THE MEASURED BEHAVIOUR IS A DEFECT.** **A repair's write that lands at an address a listener watches FIRES that
+   listener** — **`D-104` item 2's *"a repair's write's listeners are delivered in the commit's delivery"* (`strata/decisions.md:5321`–`:5326`) is the
+   declared rule and it is NOT narrowed.** **The probe recorded at `contract.md §11` (a repair landing `P = 7`, its listener never fired, while a plain
+   write at the same address fires it) is therefore a DEFECT IN THE TREE and not a declaration read too widely.** **The `D-125` item 1 question the same
+   section raised is NOT answered here and is not needed to: the defect stands on `D-104` item 2 alone.**
+2. **AND THE DEFECT'S LOCUS IS NAMED SO IT IS NOT REDISCOVERED.** **At an `addConstraint` (`bindings/js/index.mjs:1292`) and at a `constraintOn`
+   (`:1478`) the registration sets `state.registrationDelivery = 'triggered'` and **THE FILE CALLS `deliver` NOWHERE FOR THAT INSTANT** — the only two
+   `deliver(state, …)` calls in `index.mjs` are the creation's (`:339`) and the delete's (`:917`).** **So the set the registration's mode names is never
+   handed to a delivery at all, and no listener can fire from either the act or a repair leg — which is exactly what the probe measured.** **The fix is
+   a DELIVERY AT THOSE TWO MEMBERS over the set the instant owes; it is package-side and touches no store byte unless the set itself must be computed
+   from the register, which `D-67`/`D-69`'s one-predicate-in-the-store law would make a store question.**
+3. **AND THE TWO CELLS THAT MEASURED IT ARE UNBLOCKED IN PRINCIPLE AND STAY RED UNTIL THE FIX LANDS** — **`S-SLOTS-3` and `S-SETTLE-3`'s arm (b.1)/(b.2)**
+   remain in `tests/e2e/delivery-settle.test.mjs`, red, as the standing witness of the defect. **`U-STOREROOM-06`'s own pins are all discharged by its
+   ten green cells; the two reds are not this unit's requirement and must not be read as a failure of its landing.**
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **WHAT SET A REGISTRATION INSTANT OWES.** **The act's own address's watching listeners (the `D-125` item 1 reading the probes could not reach), the
+   union of its repair legs' triggered sets (`D-104` item 2), or both.** **This row rules the repair leg and not the act arm**, and **the two cells need the
+   answer before they can be re-specified** if the act arm is also owed.
+2. **WHETHER THE SET IS COMPUTED BY THE STORE OR THE PACKAGE** — `D-67`/`D-69`'s *"one predicate, in the store, where the per-tier versions live"* points
+   at the store; the registration mints no journal op for the store to key on, which is the whole reason the set is empty today.
+3. **THE UNIT THAT CARRIES THE FIX**, and its class (a repair of a declared rule is a fix; whether it is `PATCH` or `MINOR` is `D-124` item 3's discipline
+   and nobody has claimed it).
+
+**TERMS: the declared behaviour (`1` = a repair's write fires its listener) · the defects ruled (`1`) · the loci named (`2` = `:1292`, `:1478`) · the cells
+left red as witness (`2`) · the units opened (`0`) · the statuses minted (`0`) · the store bytes moved (`0`).**
+
+---
+
+### `D-152` — A REGISTRATION INSTANT FIRES ONLY THE LISTENERS ITS REPAIR WRITES CHANGED, AND THE REACH IS COMPUTED IN THE STORE
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, answering the two questions `D-151` left open.
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Fires only the listeners changed by the writes"
+> "Compute within the store"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **THE SET A REGISTRATION INSTANT OWES IS THE LISTENERS ITS REPAIR WRITES CHANGED — AND NOTHING ELSE.** **A registration that writes nothing FIRES NOTHING**, so **`D-125` item 1's
+   *"the four registration instants deliver"* is READ THROUGH this clause**: *deliver* names **the delivery of the writes the instant's pass landed**, **not** a delivery of the act's own
+   address's watching set. **The first probe at `contract.md §11` (a listener at the pair's own address, nothing written, `fired = []`) therefore measured CORRECT BEHAVIOUR, and the second
+   (a repair landing `P = 7` with its listener silent) measured the DEFECT `D-151` rules.**
+2. **AND THE REACH IS THE STORE'S TO COMPUTE — `D-67`/`D-69`'s one-predicate law, unmoved and now applied to this arm.** **The store already computes each repair write's `triggered` and
+   `watched` from its own `Captured` records** (`src/store.rs:2211`–`:2240`; `D-69`: *"the store computes the reach of an act, and the kernel computed a second one"*). **So the set is not
+   minted by the package: it is UNIONED from the writes the pass landed, each of which the store has already answered.** **The package may not compute a reach of its own** — a second
+   predicate is the defect `D-67` was filed for.
+
+**WHAT IT MEANS FOR THE FIX — the shape is now fully determined and no declaration is left.**
+
+- **THE LOCUS IS UNCHANGED (`D-151` item 2):** `addConstraint` (`bindings/js/index.mjs:1292`) and `constraintOn` (`:1478`) set `state.registrationDelivery = 'triggered'` and call `deliver`
+  nowhere. **What is missing is the DELIVERY, not the COMPUTATION** — the union of the repair legs' own store-answered `triggered` sets, handed to `deliver` at those two members.
+- **A REGISTRATION WITH NO REPAIR LANDS NOTHING TO DELIVER, AND THAT IS NOT A SILENCE**: it is the declared meaning of *"only the listeners changed by the writes"*.
+- **AND THE TWO RED CELLS BECOME REACHABLE EXACTLY AS THEY STAND**: `S-SLOTS-3` needs a repair's write to fire a throwing body and `S-SETTLE-3`'s (b.1)/(b.2) need one to fire a
+  suspending body — **both already arm their repairs to write at the listened address**, so both go green when the delivery lands and for no other reason.
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **THE ORDER OF THE UNION AND ITS DEDUPE.** **`DD-22` forbids asserting an order**; whether two legs that both watched one address yield one entry or two is the one mechanical question the
+   cells will settle — **a drive compares the SET, and the implementation's dedupe must be the store's own identity rule (`deliver`'s dedupe on `entry.handle`, `delivery.mjs:160`) rather
+   than a second one.**
+2. **WHETHER THE UNION IS DELIVERED ONCE, OR ONCE PER LEG.** **`D-104` item 2 says a repair's write's listeners are delivered *"in the commit's delivery"* — one delivery for the commit —
+   and this row does not narrow that; a per-leg delivery would repeat a listener's invocation and breach the once-per-distinct-handle law.**
+3. **THE UNIT AND ITS CLASS** — `D-151` item 3's.
+
+**TERMS: the set (`1` = the listeners the repair writes changed) · the computation (`1` = the store) · the act arm (`0` = not owed) · the deliverables the fix owes (`1` = a delivery at
+two members) · the store bytes the fix may move (`0` — the predicate exists) · the units opened (`0`).**
+
+---
+
+### `D-153` — THE SAVER'S MESSAGES GET A FIFTH `LogKind`, AND THE FAILED ASYNC SAVE GETS A THIRD ARM
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af` (the tree carries `U-06` and `U-08` landed, uncommitted). **SOURCE:** the architect, in
+session, answering the two `BLOCKING` declarations `docs/L3/image-export-and-save-call/design.md` filed. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "1. take first option
+> 5. Add third arm"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **`O-1` — THE CALLER'S `message: string[]` RIDES IN LOG ENTRIES OF A NEW FIFTH `LogKind`, AND THE `log` KINDS MOVE `4 → 5`.** **The design's arm (i)
+   is taken: `D-145` item 2's list shape is honoured** — *one entry per string, in the commit's own list* — **and the kind set is widened rather than
+   bent.** **THE COST IS PAID WHERE THE DESIGN SAID IT WOULD BE, AND IT IS TWO BYTES OUTSIDE `U-03`/`U-04`'s ORIGINAL SET**: **the `LogKind` union in
+   `bindings/js/src/entry/kernel-foundations.mjs` and the declaration's own literal (`bindings/js/index.d.ts`).** **This row WIDENS THE PAIR'S WRITE SET
+   BY THOSE TWO FILES and by nothing else**: the fifth kind is a declared member of a closed set, so it is minted in the kernel's foundations and
+   declared in the type, exactly as the four before it were. **THE SPELLING IS INVENTED UNDER `D-137`'s DELEGATION: `'save'`** — lowercase like the four
+   (`'constraint-check'` · `'repair-run'` · `'outcome'` · `'commit'`), and its subject is the durable act the package performed on the store's behalf.
+   **A cell asserting the caller's messages in the log may now go green.**
+2. **`O-5` — THE ASYNC ARM GETS ITS THIRD ARM, AND `U-06`'S BRANCH BECOMES THREE-WAY.** **A failed `saveCall` that was AWAITED MUST REACH THE CALLER'S
+   ANSWER**: the branch `settle === null ? recordOut : settledAnswer(settle, recordOut)` gains a third arm for **a settle that settles into a REFUSAL
+   rather than into an answer**, and **that arm answers the refusal** — `FileCommitFailed` (rank `15`, widened, `D-145` item 1) **with the saver's
+   `message[]` carried as the fifth kind's entries** (item 1 above), **because the caller must not lose the reason it wrote.** **THE DOMAIN IS NOT NARROWED:
+   a thenable answer stays in domain** (`D-144` item 1's *"(async optional)"*), **and the synchronous answer's arm is unmoved.** **THIS ROW OWES ONE BYTE OF
+   `U-06`'S LANDED FILE** — `bindings/js/src/entry/constraints.mjs`'s tail — **and it authorises that byte**, which `D-152`'s settled state did not.
+   **THE THIRD ARM MUST NOT MAKE `settledAnswer` ABLE TO REJECT** (`PIN-5`: *"No `Promise` rejection is a failure form on any arm"*): the refusal is a
+   **datum the settle RESOLVES INTO**, never a rejection of the promise — the distinction `D-138` item 4 drew and this row keeps.
+
+**WHAT IT DOES NOT SETTLE — the design's `PRICEABLE` list, carried forward unchanged.** **`O-2`** the already-saved arm (`saveSucceeded`'s idempotence)
+· **`O-3`** the path-less writer's stray sibling and whether a guard is owed · **`O-4`** the `saveCall` answer's validation (a runtime refusal versus a
+tolerant read) · **`O-6`** a malformed op id's classifier at the new entries · **`O-8`** the export's refusal seat and `FileCommitFailed`'s `path` slot on
+an arm with no path (a spec byte, `D-145` item 1 of its unsettled) · **`O-9`** the per-passing-op saver cost · **`O-10`** the verdict entries'
+reachability on a `filePath` store. **Each is priced in the design and none is taken here.**
+
+**TERMS: the `LogKind` set (`4 → 5`) · the kinds spelled (`1` = `'save'`) · the files this row admits to the pair's write set (`2` = `kernel-foundations.mjs`,
+`index.d.ts`) · the `U-06` bytes it authorises (`1` = `constraints.mjs`'s tail) · the arms added to the settle branch (`2 → 3`) · the domain narrowed
+(`0` — the async answer stays in domain) · the rejections made a failure form (`0`) · the statuses minted (`0` — rank `15` widened by `D-145`) · the units
+opened (`0`).**
+
+---
+
+### `D-154` — THE REALM CLAIM IS LIFTED: A SECOND CLAIMED REALM IS PERMITTED, AND THE WASM BUILD CARRIES NO `filePath`
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af` (the tree carries the nine-unit ladder landed and green, uncommitted). **SOURCE:** the architect, in session,
+answering L0's WASM assessment (`strata/research.md §24`). **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Lift the realm claim restriction and plan for the change. The WASM version would not need the fs calls because it has no reason to support the filePath option,
+> given the sandboxing it is subject to in browser"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **★ THE ONE-CLAIMED-REALM RESTRICTION IS LIFTED, AND IT IS LIFTED BY THE ONLY AUTHORITY THAT COULD LIFT IT.** **`A70`'s *one claimed realm* ground, `P-SR-7`'s *"NO other realm"*
+   (`docs/specs/storeroom-js/contract.md:3272`), `contract.md §1.5`'s *"THE PACKAGE CLAIMS `{ Node ESM }` AND PROMISES NO OTHER REALM … no clause of this package's documentation may
+   describe an unclaimed realm as supported"*, and `HO-1`'s *supported-route* reading all stand on one premise — that a SECOND claimed realm is not on offer — and that premise is
+   WITHDRAWN AT THIS LINE.** **A second claimed realm is now PERMITTED, and a browser/WebAssembly build of the store may be described as supported.** **THIS IS THE LARGEST SINGLE
+   CHANGE THIS SESSION MAKES TO THE CORPUS'S OWN CONSTITUTION, and the sentences above are the ones a documentation pass owes.**
+2. **AND `DD-24`'S *"SECOND claimed realm"* REFUSAL IS NOT REPEALED — ITS SUBJECT IS DIFFERENT AND IT IS NAMED HERE SO THE TWO ARE NOT CONFUSED.** `DD-24` refuses *"a co-equal CJS arm"*
+   as a second claimed realm **inside the Node realm** — the same entry, two module systems — and this row does not touch it. **What is lifted is the claim that the product may serve ONE
+   REALM AND NO OTHER; what stands is that one realm's two module systems are not both claimed.** **`D-129` item 5's `HO-1` *supported-route* reading likewise stands as the Node arm's
+   own answer.**
+3. **AND `P-SR-7`'S LOAD-TIME-REACH REFUSAL STANDS WHOLE.** *"No WASM module is loaded at any point **to reach the store**"* is a sentence about a NODE consumer's boot: no wasm instantiated
+   to reach a Node-API addon. **A WASM BUILD of the store is not a module loaded to reach this store — it IS this store — and `SC-8`'s reading is now the record's reading.** **So the two
+   sentences that survive are: a Node consumer reaches the store through the one addon (`S-ONE-ADDON`), and a WASM consumer reaches it through a WASM build and no addon at all.**
+4. **AND THE WASM BUILD CARRIES NO `filePath`, WHICH IS WHY IT NEEDS NO `std::fs`.** **The architect's ground is the browser's own: *"it has no reason to support the filePath option, given
+   the sandboxing it is subject to in browser"*.** **So on that build `cfg.filePath` is NOT IN DOMAIN** — the key is absent from its declared config and a caller supplying one is refused as
+   broken config, the arm `D-144` item 2 already uses — **and the `file` tier's PATH arm is not compiled**: the seven `std::fs` calls and `std::process::id()` that `strata/research.md §24`
+   measured are `#[cfg]`-ed out with the writer and reader they belong to.
+   **AND THE TIER MODEL IS UNTOUCHED BY THAT REMOVAL, BY AN ARGUMENT THE LAST TWO UNITS ALREADY MADE**: a path-less register that is durable **is `Tier::File` with `file_path == ""`**
+   — `D-132` item 1's third entry condition, which on a WASM build is the ONLY configuration — **and its saves go through the caller's `saveCall` with `initialImage` for the load side.**
+   **So the WASM build is not a weaker store: it is a `saveCall` store whose `filePath` arm does not exist.**
+5. **AND IT IS PLANNED, NOT BUILT.** **"Plan for the change" is the second half of his sentence**, and this row orders **a plan and no implementation**: the realm's sentences, the build's
+   `cfg` domain, the second crossing and loader, and the cells — **`docs/L1/wasm-realm.md`, an L1 plan.** **No code, no addon, no crate target and no declaration byte moves by this row.**
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **WHAT THE SECOND CROSSING IS** — `wasm-bindgen`, hand-rolled exports, or a third — and **what of the Node crossing's discipline is re-authored against it** (the one thrown form,
+   the class-first reads, `carryRefusal`'s unconverted crossing). **The plan prices them; this row chooses none.**
+2. **HOW THE DECLARATION EXPRESSES A REALM-CONDITIONAL `StoreConfig`** — one `index.d.ts` with `filePath` optional everywhere and refused on the WASM arm at runtime, **or** two declarations
+   with the key absent on the WASM arm. **A declaration question, and it is the architect's.**
+3. **THE SYNCHRONOUS-GRAPH ORDERING** (`contract.md:2379`; `D-129` item 4): **`WebAssembly.instantiate` is asynchronous**, so a WASM entry cannot honour a synchronous load-time graph
+   unless the host instantiates the module before the entry runs and injects it. **The plan states the order; whether the law then reads as *"the entry's own graph"* with the
+   instantiation outside it is his reading to give.**
+4. **THE CLASS OF THE RELEASE THAT SHIPS A SECOND REALM** — `D-124` item 3's discipline, and nobody has claimed it. **`MINOR` would say a build moved; `MAJOR` a realm did.**
+5. **EVERY REMAINING `file`-TIER QUESTION THE LANDED UNITS LEFT** — `O-3` (the path-less writer's stray sibling: moot on a WASM build, since the writer is not compiled), `O-9`, `O-10`
+   (closed by `D-151`'s fix), and the seed's zero-byte-file finding (`SS-9`: moot here for the same reason as `O-3`).
+
+**TERMS: the realm claim (`1`, lifted) · the realms now permitted (`2`) · `P-SR-7`'s load-time-reach sentence (`1`, standing) · `DD-24`'s refusal (`1`, standing, different subject) ·
+the WASM build's `cfg.filePath` (`1` = NOT IN DOMAIN) · the platform calls removed from that build (`8` = seven `std::fs` + one `process::id()`) · the `file` tier's meaning (`1`,
+unchanged: durable with no path) · the plans ordered (`1`) · the code moved (`0`) · the declarations moved (`0`) · the units opened (`0`).**
+
+**IT ORDERS A PLAN AND NO CODE. `docs/L1/wasm-realm.md` IS THAT PLAN, AND NO LANDING MAY CITE THIS ROW AS AUTHORITY FOR A BYTE.**
+
+---
+
+### `D-155` — THE WASM PLAN'S THREE FORKS TAKEN: A GENERATED REALM-CONDITIONAL DECLARATION · AN INJECTED INSTANCE · AND NO `commitFile` ON THAT BUILD
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, answering `docs/L1/wasm-realm.md`'s priced arms — **with
+`wasm-bindgen` already his by the question that asked what its choice changed in the others.** **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Option 2 - iii
+> Option 3 - b
+> Option 4 - d"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES — THREE, EACH WITH WHAT IT BINDS.**
+
+1. **THE CROSSING IS `wasm-bindgen`** (item 1 of the priced routes, taken by the question that preceded this one), **AND THE REFUSAL KEEPS ITS DISCIPLINE.**
+   **⟶ CORRECTED AT THIS LINE, `2026-11-17`, BY `docs/L3/wasm-realm/design.md` §3, BECAUSE THE MECHANISM THIS ROW NAMED IS THE ONE `D-35` REMOVED.** **This row printed
+   *"`js_sys::Object` plus `Reflect::set` reproduces `throw_refusal`'s own construction"*, and `Reflect::set` is `[[Set]]` — precisely what `D-35` took out of that frame
+   (`facade.rs:182`–`:194`) because a non-writable own `status` on `Object.prototype` makes `[[Set]]` answer `false` and DROPS the member** (measured on the artefact as
+   `own=["message"]`). **The twin is `define_property`, not `set`** — **same two names, same two strings from the same core bytes, same flags, and NO CALLER-FACING SURFACE
+   MOVES** — so **the discipline is kept by `DefineOwnProperty` and by nothing else**, and a crossing that used `set` would hand the caller the bare object instead of the one
+   form. **`D-35`'s measurement is re-run on that arm as a cell (`C-W7`), not assumed.**
+2. **`option 2 (iii)` — ONE DECLARATION SOURCE, TWO GENERATED DECLARATIONS: the WASM arm types `filePath?: never`.** **The hand-authored declaration stays ONE SOURCE** — it is not
+   duplicated and it is not forked by hand — **and the realm-conditional shape is PRODUCED by a build step**, so the type is truthful on both arms and no hand-maintained second
+   surface exists. **WHAT IT BINDS:** the declaration's census cells (`tests/e2e/blind-entry-module.test.mjs`'s `StoreConfig` cell) must read the arm's own generated file, and
+   `D-129` item 6's `typecheck:stage` — which copies exactly two files today — must learn the third. **WHERE THE REALM MARKER LIVES IS THE DESIGN'S** and this row does not spell it.
+3. **`option 3 (b)` — AN INJECTED INSTANCE, AND THE SYNCHRONOUS-GRAPH LAW IS READ AS *"THE ENTRY'S OWN GRAPH"*.** **The host instantiates asynchronously, then hands the instance to
+   the package; the entry's own load-time graph stays synchronous and carries no top-level `await`** (`contract.md:2379`; `D-129` item 4). **THIS IS THE READING `D-154` item 3 of its
+   unsettled reserved for him, and he has given it by taking the arm.** **WHAT IT BINDS:** a new entry shape — a construction that TAKES the instance — which is a declaration of the
+   same class as `storeCreate`'s own and is NOT spelled here; and **no `instantiateStreaming` and no `await __wbg_init()` may stand in the entry's graph**, because either would make
+   the arm this one was chosen over.
+4. **`option 4 (d)` — THE WASM BUILD'S ENTRY SET IS EIGHTEEN: `commitFile` DOES NOT EXIST ON THAT ARM.** **The export set is the set of annotated items**, so `commitFile` is `cfg`'d out with
+   no facade surgery, the writer is unreachable from JS, **and `save_file_delta`'s `file_path.is_empty()` early return keeps it unreachable from Rust too.**
+   **★ AND THAT DISCHARGES THE ONE `#[cfg]` THE PLAN REFUSED TO DRAW.** The plan held that removing the writer's two acts "leaves a body where they were, and whatever that body answers is
+   a declared answer". **With the entry absent it answers nobody**: the arm is dead on both sides of the boundary, so the cfg may leave any faithful arm and **no declaration is owed**.
+   **`O-8`'s sentence — `FileCommitFailed`'s `path` slot naming a path a pathless build does not have — becomes MOOT on this arm and stays owed on Node.**
+5. **AND THE THREE TOGETHER MAKE THE PLAN'S SEQUENCE SAFER, NOT LONGER.** **Step 1 is unchanged and still route-independent** · **step 2 gains two sub-decisions before code (the export
+   FORM: a `#[wasm_bindgen] pub struct` with methods, or free functions each taking a handle; and the glue TARGET: `web`, `bundler` or `no-modules`)** · **step 3 remains the largest step,
+   because the receiver convention changes for `42` call sites in the package** (16 `withAddon()`, 8 `.call(state.receiver)`, 14 `Reflect.apply`) · and **`initSync` becomes the one TOOL
+   fact to verify before the crossing is written**, because the law's reading is now given and only its instrument is unknown.
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **THE REALM MARKER'S HOME** and the generation step's own shape (item 2) — a design question.
+2. **THE INJECTED INSTANCE'S SPELLING** — a new entry name, a factory, or `storeCreate` gaining a position (item 3) — **a declaration, and it changes what `withAddon()` hands out.**
+3. **THE EXPORT FORM AND THE GLUE TARGET** (item 5) — two sub-decisions of the crossing, priced in the plan and not taken here.
+4. **`initSync`'s availability on the pinned version** — a tool fact, not a ruling, and it decides whether item 3's reading needs any instrument at all.
+5. **THE RELEASE CLASS** (`D-154` item 4 of its unsettled) — **still unclaimed, and now the only thing about this realm that is.**
+6. **THE SENTENCE PASSES** `D-154` item 1 names — unchanged by this row, and `bindings/js/README.md`'s shipped byte among them.
+
+**TERMS: the options taken (`3` = (iii) · (b) · (d), beside `wasm-bindgen`) · the declarations hand-maintained (`1`) · the declarations generated (`2`) · the entry sets (`Node 19`,
+`WASM 18`) · the call sites whose convention changes (`42`) · the `#[cfg]` questions discharged (`1`) · the readings given by him (`1` = the sync-graph law's subject) · the code moved
+(`0`) · the units opened (`0`) · the plans amended (`1`).**
+
+---
+
+### `D-156` — THE WASM ARM DETECTS A `Proxy` WITH `structuredClone`, AND ITS CROSSING IS A DEEP CLONE IN BOTH DIRECTIONS
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af`. **SOURCE:** the architect, in session, answering the `isProxy` question
+`docs/L3/wasm-realm/design.md` §4 left open. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Take the structuredClone on the WASM arm. WASM still should be deep-clone operation because allowing the app to change values managed by
+> the store would circumvent listener/constraint detection"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **`DD-34`'s INSTRUMENT ON THE SECOND REALM IS `structuredClone`, AND ARM (iv) IS TAKEN.** **Per the structured-serialisation algorithm a
+   `Proxy` exotic object is NOT serializable — `DataCloneError` — so `try { structuredClone(value) } catch { refuse }` restores a detector
+   that RUNS NO TRAP BEFORE THE REFUSAL**, which is `DD-34`'s whole property: *"a `Proxy` … is REFUSED … WITH NO TRAP RUN"*. **The refusal
+   stays rank-neutral and class-for-class what the Node arm answers** (`ValueNotAdmitted`, `NonPlainCollection`): **the INSTRUMENT differs and
+   the ANSWER does not.** **The price is the design's own and it is accepted: one clone per value on that arm's crossing.**
+2. **★ AND THE DEEPER HALF OF THE SENTENCE IS A LAW AND NOT AN IMPLEMENTATION NOTE: THE WASM ARM'S CROSSING IS A DEEP CLONE IN BOTH
+   DIRECTIONS.** **HIS GROUND, VERBATIM: *"allowing the app to change values managed by the store would circumvent listener/constraint
+   detection"*** — **so a value crosses BY VALUE and never by reference, and no crossing on that arm may hold a live reference into a
+   caller's object or expose a view into the store's own state.** **`strata/brief.md`'s INVARIANT 2 stated the rule** (*"the crossing is a deep
+   copy in both directions"*); **this row declares its GROUND**, and the ground is the one that could have been got wrong on this arm because
+   `wasm-bindgen` can carry an `externref` — **a JS object the store could hold by handle — and that shape is REFUSED BY THIS ROW.**
+3. **AND IT IS ONE LAW AT THREE OBSERVABLES, EACH A CELL CLASS.** A value the caller hands in is **copied at the crossing**, so mutating the
+   caller's object afterwards changes nothing the store holds · a value the store answers is **a fresh object**, so mutating what `read`
+   returned changes nothing the store holds · and **therefore no app-side mutation can fire a listener or trip a constraint without a `write`**,
+   because the store never shares a mutable object with the app. **`D-71`'s independence and the constraint pass's reach both rest on this.**.
+4. **AND IT MAKES `structuredClone` DO DOUBLE DUTY, WHICH IS WHY IT IS THE RIGHT INSTRUMENT HERE AND NOT MERELY THE AVAILABLE ONE**: it is the
+   `Proxy` detector (item 1) **and** a test that the value is clone-compatible at all — which is exactly the domain `INV-2` declares
+   (*"if it cannot cross IPC it cannot be stored"*). **A value that cannot be cloned is a value the domain already refuses; on this arm the
+   refusal happens at the instrument rather than one layer down.**
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **WHERE THE DETECTOR IS INJECTED** — the five parts that import `node:util` (`frame.mjs` · `class-decision.mjs` · `carrier.mjs` ·
+   `delivery.mjs` · `constraints.mjs`, **25 `types.isProxy` sites**) must take their class-decision instrument from the realm, the Node arm keeping
+   `types.isProxy` and the WASM arm taking the `structuredClone` probe. **The seam's shape is the loader split's (§5 of the design) and this row
+   does not spell it.**
+2. **WHETHER THE PROBE IS TAKEN ONCE PER VALUE OR ONCE PER CLASS DECISION** — one `structuredClone` per value is the design's price; whether the
+   probe's result is carried beside the value to avoid a second clone at the second class test is the implementation's.
+3. **THE COST ON THE HOT PATH, PRICED AND NOT MEASURED**: a clone per value on every crossing read and write. **No measurement exists on this
+   arm, and none may be claimed.**
+4. **THE RELEASE CLASS** (`D-154` item 4 of its unsettled) and **`D-155` item 2 of its unsettled** (the factory's spelling) — unchanged.
+
+**TERMS: the arms taken (`1` = `structuredClone`) · the answers changed (`0` — `ValueNotAdmitted` on both arms) · the crossing's direction (`2` =
+deep clone in and out, DECLARED BY THIS ROW) · the `externref` shapes refused (`1` class) · the sites whose instrument is injected (`25`, in five
+parts) · the cells this row owes (`3` = the two mutation observables and the no-bypass one) · the code moved (`0`) · the units opened (`0`).**
+
+---
+
+### `D-157` — THE SECOND REALM SHIPS AS A SIXTH PLATFORM PACKAGE, AND A HOST THAT HANDS THE FACTORY NOTHING IS REFUSED IN THE PACKAGE'S OWN CLASS FORM
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e3136af` (the tree carries the nine-unit ladder, the second realm and the realm
+sentences, uncommitted). **SOURCE:** the architect, in session, answering `docs/L1/wasm-realm.md` §18's `F-1` and `F-2`.
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "1 - e
+> 2 - d"
+
+**STATUS: `ACTIVE`.**
+
+**WHAT IT SETTLES.**
+
+1. **`F-1` — ARM (e): THE SECOND REALM SHIPS AS A SIXTH PACKAGE, BESIDE THE FIVE PLATFORM PACKAGES.** **So a browser/WebAssembly build is
+   published the way a platform variant already is** (`@auspicion/provident-storeroom-js-{linux-x64,linux-arm64,darwin-x64,darwin-arm64,win32-x64}`
+   — five siblings the corpus minted for exactly this), **and NOT as a second entry inside the `provident-storeroom` package.**
+   **★ AND IT DISSOLVES THE TWO CELLS THAT BLOCKED THE ROOT RATHER THAN RE-CUTTING THEM**: `blind-cjs-interop.test.mjs:308`'s *"the root carries
+   exactly one `.mjs`"* and `S-ONE-ADDON`'s `.wasm` scan are **the NODE package's own sentences about its own root**, and a sixth package has
+   its own root, its own `files`, its own `exports` and its own cells. **Neither sentence is amended and neither cell moves.** **The fork's
+   home is therefore the sixth package's root — `index.wasm.mjs` becomes its `index.mjs`** — and the *move* is a `git mv` plus that package's
+   manifest.
+2. **AND IT MAKES THE PUBLISHED SURFACE TWO PACKAGES AND NOT ONE ENTRY'S MAP**, so **`blind-package-surface`'s and the `exports`-reading cells
+   describe the Node package alone**, and the sixth package owes its own surface cells — **which is a unit, not a byte**, and is named below.
+3. **`F-2` — ARM (d): A HOST THAT HANDS THE INJECTED FACTORY NOTHING IS REFUSED IN THE PACKAGE'S OWN CLASS FORM — `PAR-JS-12`'s ONE
+   `TypeError`, its `status` member ABSENT and a string `message` required.** **THE GROUND, AND IT IS A GROUND AND NOT A PREFERENCE:** the state
+   is *"the second realm's factory was called without its bindings"*, **and nothing of the store is in it** — no instance exists, no verb is
+   reached, no op is minted, no journal is touched. **A member of the closed set would name a state the STORE cannot be in**, and the corpus
+   keeps that set for the store's states (its one package-produced member, rank `23` `ListenerBodyRejected`, is a failure of a delivery the
+   store's own pass asked for — which this is not).
+4. **AND IT IS IMPLEMENTED AS TWO STATES TOLD APART BY ONE OF THE FILE'S OWN FACTS, NOT BY A FLAG.** **A LOAD PATH STANDS ONLY ON THE
+   HOST-BORNE ARM** (`installAddonPath`, called once by the Node entry), so in `addon-slot.mjs`'s `withAddon()`: **where a path stands and the
+   walk answered nothing, the artefact is absent and the surface's DECLARED form is the answer** (`FilePathUnreachable` with the attempt list,
+   `PUB-R-3`'s arm, **byte-unmoved**); **where no path stands, no bindings were installed and the class form is thrown.** **`installAddon`'s
+   own refusal — a first position that is not the module — takes the same class form**, and **both leave the slot EMPTY**, so every later call
+   answers the same form rather than a half-installed table.
+
+**WHAT IT DOES NOT SETTLE.**
+
+1. **THE SIXTH PACKAGE'S NAME, `files`, `exports`, `types` CONDITION, floor and publish path** — **every one a declaration** (`D-4` hands the
+   publish shape to `delivery`), and **the corpus's platform packages are the template, not the decision**.
+2. **WHETHER THE SIXTH PACKAGE CARRIES THE WASM DECLARATION AS ITS `index.d.ts`** — the generator emits two arms and the WASM arm's PATH has
+   stood `SILENT` (`D-155` item 2); **this row gives it a home and not a filename.**
+3. **THE SIXTH PACKAGE'S OWN CELLS** — a surface cell, a reachability cell, an install-shape cell — **a unit, and not this row's.**
+4. **THE RELEASE CLASS** (`D-154` item 4 of its unsettled) — unchanged, and now covering a sixth package.
+5. **THE GUIDES AND THE SHIPPED `README.md`** (`wasm-realm.md` §2 rows 9 and 10) — a guide pass, waiting on a build that ships, which this row
+   now makes a package rather than a recipe.
+
+**TERMS: the arms taken (`2` = (e) · (d)) · the cells re-cut (`0` — the sixth package dissolves the two that blocked the root) · the packages
+(`5 platform siblings + 1 = 6`) · empty-slot states (`2`, told apart by the load path) · the store statuses minted (`0`) · the class forms
+(`1`, `PAR-JS-12`'s) · the sixth package's declarations owed (`name`, `files`, `exports`, `types`, floor, publish path) · the units opened (`0`).**

@@ -1,10 +1,36 @@
 // `D-2` (`docs/L1/entry-subdivision.md` §1 part `8`) — bytes moved from `bindings/js/index.mjs`; no logic changed.
-import { types } from 'node:util';
+// **⟶ AND THE `Proxy` PREDICATE IS THE INSTALLED CLASS-DECISION INSTRUMENT FROM 2026-11-17** (`D-156` item 1 and
+// the loader split's row for these five parts, `docs/L3/wasm-realm/design.md` §5: the host import line is *"swapped
+// for a local helper"* — **neutralised**, conditional on that design's §4 instrument). **`isProxyOf` IS
+// `class-instrument.mjs`'s one predicate and this file carries no host specifier for the class decision any more**:
+// every site below takes the answer `util.types.isProxy` gave, because **the NODE entry installs `types.isProxy`
+// ITSELF at load** (`index.mjs`, at the head of the module), and on the other arm the instrument is
+// `structuredClone` while **the ANSWER does not move** (`D-156` item 1: the refusal stays rank-neutral and
+// class-for-class what this arm answers). **NO DECISION, NO ORDER AND NO ANSWER OF THIS FILE MOVES** — only the
+// predicate's name and its home.
+import { isProxyOf } from './class-instrument.mjs';
 import { appendOwn, fail, refusalAddress, refusalLog } from './refusal.mjs';
-import { withAddon, require_ } from './artefact.mjs';
+import { withAddon } from './addon-slot.mjs';
+// **⟶ AND `require_` IS THE NODE HALF'S FROM 2026-11-17** (`D-156` item 1; `docs/L3/wasm-realm/design.md` §5's
+// row for this part — *"the lazy `require_` of the barrel"*, *"neutralised"*, conditional on that design's §4).
+// The kernel's lazy reach below is the HUB's own `createRequire(import.meta.url)`, handed in through
+// `adoptModuleContext` (`I-29`), and from this pass the slot and that seam are `src/entry/artefact-node.mjs`'s —
+// the three-rung walk reads it there too and it is the SAME live binding, so `D-14`'s resolution base does not move
+// either: the kernel's barrel is still required from the HUB's own directory and never from this part's.
+// **THE LAZINESS ITSELF IS UNMOVED** (`kernel-surface.md` §1 item 1; `A121`, `A122`): this file still reaches no
+// byte of the kernel until the first constraint act. **NO NAME OF THE LINE ABOVE MOVES.**
+import { requireKernel } from './kernel-loader.mjs';
 import { classSpelling, isAdmittedArray, isPlainObjectValue } from './class-decision.mjs';
 import { constraintAddress } from './frame.mjs';
-import { INSTANCES, carryRefusal, commitFile, currentWindow, homeAddressKey, installRestartConsumer, isStoreReceiver, openCommits, closeCommit, openCommit, windowMark } from './state.mjs';
+// **⟶ AND TWO NAMES JOIN THIS IMPORT, 2026-11-17 — `U-STOREROOM-06 DELIVERY-SETTLE`.** **`BODY_FAILURES` IS THE KEY
+// THE RECEIPT'S ACCESSOR READS** (`state.mjs`'s symbol block, beside `COMMIT_LOG`; `design.md §5`) **and
+// `BODY_FAILURES_EMPTY` IS THE ONE FROZEN `{}` THAT ACCESSOR ANSWERS WHERE THE KEY IS ABSENT** — the same value
+// `delivery.mjs`'s `bodyFailures` answers when a settle found no rejection, so the two arms of the same fact cannot
+// answer two different objects. **NO OTHER NAME OF THIS LINE MOVES.**
+// **⟶ AND TWO MORE NAMES DO, 2026-11-17 — `U-STOREROOM-08 RETURN-VALUES`** (`D-150` items 1–2):
+// `RETURNED_VALUES` is the key the fourth accessor reads and `RETURNED_VALUES_EMPTY` is the one frozen `{}` it answers
+// where the key is absent — the same value `delivery.mjs`'s `settledAnswer` installs when a settle found no value.
+import { INSTANCES, carryRefusal, commitFile, currentWindow, homeAddressKey, installRestartConsumer, isStoreReceiver, openCommits, closeCommit, openCommit, windowMark, BODY_FAILURES, BODY_FAILURES_EMPTY, RETURNED_VALUES, RETURNED_VALUES_EMPTY } from './state.mjs';
 // **THE KERNEL'S OWN RECORD, FOR ONE FIELD AND ONE ONLY** (`D-46`/`D-30`): `kernelFor(store)` answers the
 // instance's kernel record — the same accessor every kernel act takes the instance through — and
 // `reversalAtRest` below reads that record's own `live` map for the count of OPEN ATTEMPTS. `kernel-foundations`
@@ -34,7 +60,13 @@ import { repairInCommit, repairLegs, runAttempt } from './kernel-attempt.mjs';
 // IS ACYCLIC AND MEASURED**: `delivery.mjs` imports `state.mjs`, `kernel-foundations.mjs`, `carrier.mjs`,
 // `frame.mjs`, `refusal.mjs`, `artefact.mjs` and `class-decision.mjs`, **and imports neither this file nor
 // `kernel-attempt.mjs`**, so this reach adds no cycle and no second conversion rule.
-import { deliver } from './delivery.mjs';
+//
+// **⟶ AND A SECOND NAME DOES, 2026-11-17 — `settledAnswer`, THE WRITE's OWN SUSPENSION POINT**
+// (`U-STOREROOM-06 DELIVERY-SETTLE`; `contract.md §3`'s `constraintWrite` row: *"the tail's **read-and-clear** of
+// `state.legSettle` into a local, and the branch `settle === null ? recordOut : settledAnswer(settle, recordOut)`"*).
+// **IT IS `delivery.mjs`'S AND IS NOT A SECOND SETTLE**: one `await` over one `Promise.allSettled` that `deliver`
+// already started, inside a function body, and the edge it travels is the one above — so no cycle is added either.
+import { deliver, settledAnswer, isSaveSettle, settledSaveAnswer } from './delivery.mjs';
 // **⟶ AND THE CARRIERS, ADDED 2026-10-26 FOR THE REFUSAL'S OWN UNDOING (`DEF-W`'s `(a)`).** The
 // compensating act below reaches the store's own verb at its entry, with the SAME carrier forms every member
 // hands it (`carrier.mjs` is the boundary's one encoder for the three positions and imports nothing of this
@@ -83,7 +115,7 @@ const ARGUMENT_POSITION_SECOND = 'second argument';
 /// the kernel.
 let KERNEL = null;
 export function constraintsKernel() {
-  if (KERNEL === null) KERNEL = require_('./src/constraint-kernel.mjs');
+  if (KERNEL === null) KERNEL = requireKernel();
   return KERNEL;
 }
 
@@ -765,7 +797,7 @@ export function enumerateConstraints(state) {
 /// outside every pair's own address domain, so no pair of this entry can stand at one.
 function carriesConstraintAt(state, address) {
   if (state.constraints.size === 0) return false;
-  if (types.isProxy(address) || !isAdmittedArray(address)) return false;
+  if (isProxyOf(address) || !isAdmittedArray(address)) return false;
   // **⟶ THE PER-WRITE GATE IS A SET-MEMBERSHIP TEST, NOT AN EQUALITY TEST** (`P: docs/pending.md · P-7`'s
   // keying ruling, item (iv), verbatim: *"`carriesConstraintAt`'s `JSON.stringify(address)` key and
   // `entry.addressKey` must answer TRUE where ANY of the pair's N addresses matches — the per-write gate is a
@@ -826,6 +858,27 @@ export function constraintWrite(state, instance, address, tier, value) {
     // left it in hand.**
     constraintCrossing(refusal, address);
   }
+  // ── THE DELIVERED SET'S SETTLE, READ AND CLEARED IN ONE SYNCHRONOUS BREATH ─────────────────────────────────────
+  // **⟶ THE SLOT'S ONE READER-AND-CLEARER, ADDED 2026-11-17 — `PIN-8`** (`contract.md §3`'s `constraintWrite` row;
+  // `PIN-8`: *"`state.legSettle` has exactly **one writer** (`terminalArm:987`) and **one reader-and-clearer**
+  // (`constraintWrite`'s tail, synchronously, before `settledAnswer` is invoked); its value is `null` at every
+  // microtask boundary"*).
+  //
+  // **THE INSTANT IS THE WHOLE OF THE SAFETY ARGUMENT AND IT IS THREE FACTS.** *(i)* **IT IS AFTER THE KERNEL
+  // RETURNED** — `runAttempt` is the frame whose `settleArm` performed the terminal arm's delivery, so the slot can
+  // hold nothing but THIS act's settle; *(ii)* **IT IS BEFORE ANY RECORD ACCESSOR IS READ** — `report`'s members, the
+  // report's last op and the store leg's `watched`/`triggered` are all read below, and none of them may be read while
+  // a slot two acts could share is still standing; *(iii)* **IT IS BEFORE THE ONE `await`** — `settledAnswer` is
+  // reached at the tail, on the value this local holds, so **no suspension can stand between the write and the
+  // clear** and the value is `null` at every microtask boundary.
+  //
+  // **NOTHING IS CAUGHT, RETRIED OR ROLLED BACK HERE** — a refusal above threw before these bytes, and both `catch`
+  // arms of this function are untouched (`contract.md §3`: *"a change to either `catch`"* is in the must-not column).
+  // **A NESTED WRITE HAS ALREADY CLEARED ITS OWN VALUE BEFORE THIS LINE SEES ANYTHING**: `deliver` runs the whole
+  // start loop inside the assignment `terminalArm` makes, so a body's own write — and its own tail — completes
+  // inside `runAttempt`, and this read then sees the ENCLOSING act's settle and never the nested one's.
+  const settle = state.legSettle;
+  state.legSettle = null;
   // **⟶ AND THE RESTART'S REFUSAL, WHERE THE RESTARTED CHECK REFUSED — `D-42` (2026-10-27), REACHED THROUGH
   // THE REPORT SINCE 2026-10-27.** The attempt's own terminal arm returned (its pass, its save and its
   // delivery all ran, so a listener body's `rollback` and a constraint body's `rollback` have both been
@@ -893,7 +946,44 @@ export function constraintWrite(state, instance, address, tier, value) {
   // entries (`resolution-log.md` §4.2). **NO DECLARED MEMBER MOVES**: the record keeps the three `index.d.ts`
   // declares, and `Object.keys` reads them and nothing else (`A117` (D6)).
   defineResolutionLog(recordOut, resolutionLogOf(report));
-  return recordOut;
+  // **⟶ AND THE RECEIPT'S THIRD ACCESSOR IS INSTALLED AT THE BUILD — `PIN-10`, 2026-11-17.**
+  // **THE RULING, `PIN-10`, VERBATIM: *"`Object.keys(record)` stays `["op","watched","triggered"]`;
+  // `Object.getOwnPropertyNames` moves `5 → 6` with `bodyFailures` present; the descriptor is `{ enumerable: false,
+  // configurable: true, get: … }`; the plain arm reads the frozen empty `{}` and is present, never absent and never
+  // `undefined`; and no seventh name is added here."*** **IT IS INSTALLED HERE AND NOT BY THE SETTLE** (`contract.md
+  // §3`: *"the **accessor's installation on every arm**, at the build; the **datum's installation by `settledAnswer`
+  // only**"*) — **which is why it is a GETTER and not a datum**: this record is built *before* the delivered set has
+  // settled, so a value captured here would answer `{}` about a body that then rejects (`design.md §5`: *"A getter by
+  // necessity, not by taste"*). **BESIDE THE TWO ACCESSORS ALREADY HERE, BY THE FAMILY'S OWN DEVICE** — one
+  // `Object.defineProperty`, `enumerable: false`, `configurable: true` — so the record's declared three are unmoved
+  // and `Object.keys` reads them and nothing else.
+  defineBodyFailures(recordOut);
+  // **⟶ AND THE RECEIPT'S FOURTH ACCESSOR IS INSTALLED BESIDE IT, AT THE SAME BUILD — 2026-11-17** (`D-150` item 1;
+  // `D-149` item 2). `contract.md §8`'s boundary fixes that the outcomes are already total and final at the answer's
+  // instant, so this unit defines a member over data it does not recompute — no second wait, no second settle. The
+  // ACCESSOR is installed on every arm and the DATUM is `settledAnswer`'s alone, which is why it is a getter again.
+  defineReturnedValues(recordOut);
+  //
+  // **⟶ AND THE ANSWER IS THE SETTLE'S OR THE RECORD'S, AND THE WAIT IS THE LAST THING THIS FUNCTION DOES —
+  // 2026-11-17** (`contract.md §3`: *"answers `settle === null ? recordOut : settledAnswer(settle, recordOut)`"*;
+  // `PIN-6`: *"an all-synchronous delivered set answers a **record**, not a thenable"*). **THE LOCAL IS THE READ THE
+  // TAIL ALREADY TOOK** — one read of the slot, never a second — **and `recordOut`'s three members are the three it
+  // built above, byte for byte** (`:859`–`:863`, unmoved). **NO `async` AND NO `await` STANDS IN THIS FUNCTION**:
+  // the suspension is `delivery.mjs`'s `settledAnswer`, entered here and nowhere else, **after** `closeCommit` has
+  // run in the caller's `finally` (`index.mjs:759`–`:761`) and after the record is complete.
+  //
+  // **⟶ AND THE BRANCH IS THREE-WAY FROM 2026-11-17 — `D-153` ITEM 2, THE ARCHITECT, VERBATIM: *"5. Add third arm"***
+  // (`strata/decisions.md` · `D-153`), given to the design's `O-5`. **The third arm is the awaited save's**: a `saveCall`
+  // store whose saver answered a thenable hands this slot THE SAVE'S OWN COMPOSED SETTLE, **and a settle that settles into a
+  // REFUSAL answers the refusal** — rank `15` `FileCommitFailed`, widened and never minted, with the saver's `message[]`
+  // already standing on the log as the fifth kind's entries. **The arm is told by the value and never by a flag the tail
+  // sets**: `isSaveSettle` is the settle's own mark, so the DELIVERY's settle takes the arm it has always taken, byte for
+  // byte, and `settledAnswer` keeps its body and **cannot reject on any arm** (`PIN-5`). **The refusal is a datum the settle
+  // resolves into and never a rejection of the settle**: the composed promise resolves, `settledSaveAnswer` reads what it
+  // resolved into, and what crosses the caller's answer is the surface's ONE thrown form — `D-153` item 2's own sentence,
+  // kept at the only frame that can throw it. **No `async` and no `await` stands in this function.**
+  if (settle === null) return recordOut;
+  return isSaveSettle(settle) ? settledSaveAnswer(settle, recordOut) : settledAnswer(settle, recordOut);
 }
 
 /**
@@ -1969,6 +2059,66 @@ export function defineResolutionLog(record, list) {
   const held = Array.isArray(list) === true ? list : RESOLUTION_LOG_EMPTY;
   Object.defineProperty(record, 'log', {
     get: () => held,
+    enumerable: false,
+    configurable: true,
+  });
+  return record;
+}
+
+/// **⟶ ADDED 2026-11-17 — THE DELIVERED SET'S FAILURES ON A RECORD: THE THIRD OF THIS FAMILY, THE SAME DEVICE**
+/// (`U-STOREROOM-06 DELIVERY-SETTLE`; `contract.md §3`'s `defineBodyFailures` row; `PIN-5`, `PIN-10`; `design.md §5`:
+/// *"The accessor is the **third of the family** and lives with the other two"*).
+///
+/// **IT INSTALLS A NON-ENUMERABLE, `configurable` OWN `GETTER` AT THE NAME `bodyFailures`, OVER `record[BODY_FAILURES]`,
+/// ANSWERING THE FROZEN EMPTY MAP WHERE THE SYMBOL KEY IS ABSENT** — **present always, never absent and never
+/// `undefined`** (`D-138`'s unsettled item 3, which forces the presence: *"a body's failure must be readable
+/// **exactly when no channel stands**, so no `channel`-conditional presence and no `undefined` arm"*; `D-139` item 1:
+/// *"`bodyFailures` and *present always, `{}`* are ACCEPTED"*).
+///
+/// **A GETTER BY NECESSITY, NOT BY TASTE** (`design.md §5`): *"the record is built at `constraints.mjs:859`–`:895`
+/// *before* the set settles, so a datum captured there would answer `{}` about a body that then rejects — the same
+/// reason `discarded` is a read"*. **SO THE DATUM ARRIVES LATER THAN THE ACCESSOR** (`delivery.mjs`'s `settledAnswer`
+/// installs it after the one `Promise.allSettled`) **and the read answers at the read.**
+///
+/// **THE READ IS THE FAMILY'S `[[GetOwnProperty]]` AND NEVER A `[[Get]]`** (`D-35`'s read half, the form
+/// `state.mjs`'s `commitLogOf` and `delivery.mjs`'s `ownDataMember` take): a caller's accessor planted at the
+/// well-known symbol on `Object.prototype` answers nothing, because only an OWN data row is taken — and an absent
+/// row, and an own accessor row, both answer the frozen constant exactly as an absent key does. **NO DATA PROPERTY,
+/// NO ENUMERABLE MEMBER, NO FRESH `{}` PER CALL AND NO SECOND ACCESSOR**: `returnedValues` is `U-08`'s and this unit
+/// adds one name to `Object.getOwnPropertyNames` and nothing to `Object.keys` (`PIN-10`; `contract.md §8`).
+export function defineBodyFailures(record) {
+  // **A RECEIPT THAT IS NOT AN OBJECT CANNOT CARRY A MEMBER** — `defineResolutionLog`'s own guard, read for this
+  // member: the member never depends on the arm for its PRESENCE, and a non-object answer has no census to move.
+  if (record === null || typeof record !== 'object') return record;
+  Object.defineProperty(record, 'bodyFailures', {
+    get: () => {
+      const descriptor = Object.getOwnPropertyDescriptor(record, BODY_FAILURES);
+      return descriptor === undefined || !Object.hasOwn(descriptor, 'value')
+        ? BODY_FAILURES_EMPTY
+        : descriptor.value;
+    },
+    enumerable: false,
+    configurable: true,
+  });
+  return record;
+}
+
+/// **⟶ ADDED 2026-11-17 — THE DELIVERED SET'S SETTLED RETURN VALUES ON A RECORD: THE FOURTH OF THIS FAMILY, THE SAME
+/// DEVICE MEMBER FOR MEMBER** (`U-STOREROOM-08 RETURN-VALUES`; `D-149` item 2; `D-150` items 1–2). **It installs a
+/// NON-ENUMERABLE, `configurable` own GETTER at the name `returnedValues`, over `record[RETURNED_VALUES]`, answering the
+/// frozen empty map where the key is absent — present always, never absent, never `undefined`** (`D-150` item 2).
+/// **A getter by necessity, for `defineBodyFailures`' exact reason** (`design.md §5`): the record is built BEFORE the set
+/// settles, so a datum captured here would answer `{}` about a body that then returns a value. **The read is the family's
+/// `[[GetOwnProperty]]` and never a `[[Get]]`**, so a caller's accessor planted at the well-known symbol answers nothing.
+export function defineReturnedValues(record) {
+  if (record === null || typeof record !== 'object') return record;
+  Object.defineProperty(record, 'returnedValues', {
+    get: () => {
+      const descriptor = Object.getOwnPropertyDescriptor(record, RETURNED_VALUES);
+      return descriptor === undefined || !Object.hasOwn(descriptor, 'value')
+        ? RETURNED_VALUES_EMPTY
+        : descriptor.value;
+    },
     enumerable: false,
     configurable: true,
   });

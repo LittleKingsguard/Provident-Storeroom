@@ -234,3 +234,22 @@ scratch/def-f-probe/
 scratch/jcx-impl/
 scratch/jcx-s17/
 
+
+# =================================================================================================
+# ⟶ THE SECOND REALM'S STAGED PACKAGE, 2026-11-17 (`D-157` item 1; `docs/L1/wasm-realm.md` §21)
+# =================================================================================================
+#
+# **`bindings/wasm/` IS DECLARED BY ITS MANIFEST AND COMPOSED BY ITS BUILD.** `package.json` is the
+# one tracked byte — the declaration that the sixth artefact exists and what it will carry — and
+# every other file the build stages there is an OUTPUT: the entry composed from
+# `bindings/js/wasm/index.wasm.mjs`, the shared body copied from `bindings/js/src/`, the wasm module
+# and its glue, the declaration emitted by `scripts/emit-declarations.mjs`, and the housekeeping
+# copies. A tracked copy of any of them would be a second copy that could drift from the one the
+# tests drive. The manifest records that the package is STAGED and not admitted to the published set.
+bindings/wasm/index.mjs
+bindings/wasm/index.d.ts
+bindings/wasm/src/
+bindings/wasm/storeroom_js_binding*
+bindings/wasm/LICENSE
+bindings/wasm/README.md
+bindings/wasm/BUILD-INFO.txt

@@ -142,7 +142,7 @@ const FOURTEEN = [
   'removeConstraint',
 ];
 
-/** The store's closed set as the declaration enumerates it: TWENTY-TWO literals ranked `1`…`22`, with
+/** The store's closed set as the declaration enumerates it: TWENTY-THREE literals ranked `1`…`23`, with
  *  `ValueRefusedAtBoundary` at `17`, `ConstraintBodyThrew` at `18`, `ConstraintRefusedAtRegistration` at
  *  `19`, `ConstraintPassRefused` at `20`, `ListenerBodyThrew` at `21` and `FileImageRefused` at `22` appended
  *  last, and the `(string & {})` escape arm after them.
@@ -169,7 +169,7 @@ const FOURTEEN = [
  *  non-empty image the loader REFUSES refuses the construction with it, and THE STORE MINTS that member itself
  *  at `src/store.rs`'s step 7 — **`no rank of `1`…`21` moves`, and the set's own arithmetic is `21 → 22`.**
  */
-const TWENTY_TWO = [
+const TWENTY_THREE = [
   'AddressMalformed',
   'AddressNotFound',
   'LeafHasNoDownstream',
@@ -197,6 +197,13 @@ const TWENTY_TWO = [
   // ⟶ APPENDED 2026-11-06 (`D-126` item 2; `PIN-11`; the architect: *"Mint/revive a code: a corrupt image refuses
   // the construction"*).
   'FileImageRefused',
+  // ⟶ APPENDED 2026-11-17 (`D-150` item 2; the architect: *"a rejected delivery body is a new status"*; the
+  // amended `strata/decisions.md` · `D-140`'s own clause is read through it). **THE MINTED TERM IS
+  // `ListenerBodyRejected` AT RANK `23`** — a DELIVERED listener body that REJECTS refuses the act that fired it,
+  // which is not the same failure as a body that THROWS (rank `21`): a throw leaves the write unanswered (`D-73`),
+  // a rejection RESOLVES it and the rejection is a datum (`D-138`). **`no rank of `1`…`22` moves`, and the set's own
+  // arithmetic is `22 → 23`.**
+  'ListenerBodyRejected',
 ];
 
 // ---------------------------------------------------------------------------------------------
@@ -321,12 +328,20 @@ test('entry-module · package.md §1.3 item 4 · THE ADDON\'S FIVE NAMES ARE ALL
   }
 });
 
-test('entry-module · index.d.ts `StoreConfig` · THE CONFIG CARRIES FOUR DECLARED KEYS AND EXACTLY TWO OF THEM ARE REQUIRED — `journalLength` and `listeners`; `filePath` and `constraints` carry the optional marker', () => {
+// **⟶ AND THE CONFIG CARRIES SIX DECLARED KEYS FROM 2026-11-17, OF WHICH EXACTLY TWO ARE STILL REQUIRED**
+// (`D-146` item 4, `D-147` item 5; the architect's `saveCall` and `initialImage`). **THE TWO NEW KEYS ARE BOTH
+// OPTIONAL AND BOTH ABSENT-BY-DEFAULT**, so every construction lawful before this date is lawful after it:
+// `journalLength` and `listeners` remain the only required pair, `filePath` and `constraints` keep their own
+// optionality, and the added pair are the save arm's (`saveCall` carries the store's image OUT, `initialImage`
+// carries state IN). **NO COUNT OF `4` SURVIVES THIS READING AND NONE SHOULD**: the title moves with the figure.
+test('entry-module · index.d.ts `StoreConfig` · THE CONFIG CARRIES SIX DECLARED KEYS AND EXACTLY TWO OF THEM ARE REQUIRED — `journalLength` and `listeners`; `filePath`, `constraints`, `saveCall` and `initialImage` are OPTIONAL', () => {
   assert.deepEqual(membersOf('StoreConfig'), [
     { name: 'journalLength', optional: false },
     { name: 'listeners', optional: false },
     { name: 'filePath', optional: true },
     { name: 'constraints', optional: true },
+    { name: 'saveCall', optional: true },
+    { name: 'initialImage', optional: true },
   ]);
 });
 
@@ -361,9 +376,9 @@ test('entry-module · index.d.ts `Handle` and `Listener` · the handle is a `str
 // expectations are the ruling's. **AND IT MOVES AGAIN WITH THE NEXT COUNT** (`DEF-H`/`DEF-W`; *"Expand the
 // returned fail-state list to include the refusal"*): the declaration publishes `20`; then `21` (`D-124` item 2)
 // and `22` (`D-126` item 2, the corrupt image's refusal).
-test('entry-module · index.d.ts `StoreStatus` · THE CLOSED SET READS TWENTY-TWO LITERALS RANKED `1`…`22`, the last five being `ConstraintBodyThrew`, `ConstraintRefusedAtRegistration`, `ConstraintPassRefused`, `ListenerBodyThrew` and `FileImageRefused`, and the `(string & {})` ESCAPE ARM STANDS AFTER THEM', () => {
-  assert.deepEqual(statusLiterals(), TWENTY_TWO);
-  assert.equal(TWENTY_TWO.length, 22);
+test('entry-module · index.d.ts `StoreStatus` · THE CLOSED SET READS TWENTY-THREE LITERALS RANKED `1`…`23`, the last six being `ConstraintBodyThrew`, `ConstraintRefusedAtRegistration`, `ConstraintPassRefused`, `ListenerBodyThrew` and `FileImageRefused`, and the `(string & {})` ESCAPE ARM STANDS AFTER THEM', () => {
+  assert.deepEqual(statusLiterals(), TWENTY_THREE);
+  assert.equal(TWENTY_THREE.length, 23);
   assert.match(DECLARATION, /\| \(string & \{\}\);/);
 });
 
@@ -379,7 +394,10 @@ test('entry-module · index.d.ts `StoreRefusal` and `LogEntry` · the failure fo
     membersOf('LogEntry').map((member) => member.name),
     ['kind', 'id', 'message', 'opId', 'state'],
   );
-  assert.match(DECLARATION, /readonly kind: 'constraint-check' \| 'repair-run' \| 'commit' \| 'outcome';/);
+  // **⟶ AND THE FIFTH LOG KIND IS `'save'` FROM 2026-11-17** (`D-151` item 2; the architect's *"Add a fifth member"*).
+  // **FOUR KINDS BECOME FIVE AND NO EXISTING KIND MOVES**: a save's own log line is not a commit's, a repair's, a
+  // constraint check's or an op's outcome, and `LogKind` is a closed set.
+  assert.match(DECLARATION, /readonly kind: 'constraint-check' \| 'repair-run' \| 'commit' \| 'outcome' \| 'save';/);
   // **⟶ AND THE DECLARATION'S `seq` SENTENCE IS RETIRED — `D-65`, 2026-10-28: THE ARRAY INDEX IS THE
   // POSITION.** The assertion here read that *"`seq` is the position of the entry in the commit's own message
   // log; it is not the store's journal ordinal, and the two differ by design"* stood at the shipped bytes.

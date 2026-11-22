@@ -1,0 +1,43 @@
+{
+  "_comment": "STAGED, NOT ADMITTED: this manifest is the sixth artefact D-157 item 1 names, and its ADMISSION to the published set is D-4's publish shape (the contract's declared artefact count and the version-coupling rule at §14/§15 are delivery's). It stands at bindings/wasm/ — outside bindings/js/platforms/, where the five published platform manifests live — until that act lands.",
+  "name": "@auspicion/provident-storeroom-js-wasm",
+  "version": "1.12.0",
+  "description": "provident-storeroom for a WebAssembly host — the same store, the same package, with its bindings handed in.",
+  "type": "module",
+  "main": "index.mjs",
+  "types": "index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.mjs"
+    }
+  },
+  "files": [
+    "index.mjs",
+    "index.d.ts",
+    "storeroom_js_binding.js",
+    "storeroom_js_binding_bg.wasm",
+    "storeroom_js_binding.d.ts",
+    "storeroom_js_binding_bg.wasm.d.ts",
+    "src/entry/",
+    "src/constraint-kernel.mjs",
+    "LICENSE",
+    "README.md",
+    "BUILD-INFO.txt"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "license": "AGPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LittleKingsguard/Provident-Storeroom.git"
+  },
+  "homepage": "https://github.com/LittleKingsguard/Provident-Storeroom#readme",
+  "bugs": {
+    "url": "https://github.com/LittleKingsguard/Provident-Storeroom/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -168,7 +168,24 @@ pub struct StoreError {
 /// [`storeErrorMessage`] still resolves its clause by lookup in it (`§8.2`): the appended member carries its
 /// own clause in the generator below, so `errorMessage('FileImageRefused', …)` answers a declared sentence and
 /// never the outside-the-set sentence.
-pub const CODES: [&str; 22] = [
+///
+/// **⟶ AND AMENDED 2026-11-17 BY `D-137` ITEM 5 (`strata/decisions.md:7171`), VERBATIM: *"THE 23rd STATUS IS
+/// INVENTED: RANK `23` · `ListenerBodyRejected`"*, whose seat L1 pins at `docs/L1/seven-key-config.md` §15 item 2 as
+/// `U-07`'s.** **THE OPERATIVE CENSUS IS `23`, RANKED `1`…`23`, AND THE APPENDED TERM IS `ListenerBodyRejected` AT RANK
+/// `23`.** **THE CLAUSES ABOVE STAND BYTE-FOR-BYTE AND ARE READ THROUGH THIS ONE:** their `22`s are the figures of their own
+/// dates. **NO RANK OF `1`…`22` MOVES**, and the array on the `pub const` below is `[&str; 23]`.
+///
+/// **THE NAMING FOLLOWS THE SAME DECLARED CONVENTION**: rank `23`'s subject is the same LISTENER BODY rank `21`'s is and
+/// its defect is its past participle `Rejected` — **the other half of the same promise pair**, **and rank `21` is NOT
+/// widened** (`D-130` item 2: `ListenerBodyThrew` at `21` is explicitly NOT its carrier).
+///
+/// **THE STORE NEVER MINTS IT AND THE PACKAGE'S DELIVERY CARRIES IT**: `src/store.rs` has no trigger for it, the settle
+/// `bindings/js/src/entry/delivery.mjs`'s `bodyFailures` performs is the PACKAGE's, and the package writes this member's
+/// literal where its `Promise.allSettled` finds a rejection — the status is a member of THIS set and is USED AND NEVER
+/// MINTED by the package (`DD-40`; `D-149` item 1), while its sentence is rendered by the generator below like every other
+/// member's. **AND NO DRIVE THAT COUNTS THIS ARRAY MAY ASSERT `22` ANY LONGER.** The array remains the set's own census and
+/// not a second statement of it.
+pub const CODES: [&str; 23] = [
     "AddressMalformed",
     "AddressNotFound",
     "LeafHasNoDownstream",
@@ -193,6 +210,8 @@ pub const CODES: [&str; 22] = [
     "ListenerBodyThrew",
     // ⟶ APPENDED 2026-11-06 (`D-126` item `2`; `§3` `PIN-11`: a corrupt image refuses the construction).
     "FileImageRefused",
+    // ⟶ APPENDED 2026-11-17 (`D-137` item `5`: the promise pair's other half — a rejecting listener body).
+    "ListenerBodyRejected",
 ];
 
 /// **⟶ THE CLOSED ARM TOKEN — ONE MEMBER, MINTED 2026-11-01 (`D-98` item 4; `C-7`, §3.2, §3.7).**
@@ -558,6 +577,17 @@ pub(crate) fn build(m: &Msg) -> String {
         // states the two admissions the path has left — this store's image, or no image at all.
         "FileImageRefused" => format!(
             "{} is not an image this store reads, the file at this path must hold this store's image or be empty",
+            m.subject
+        ),
+        // `§8.1` #23 and `§8.2`'s row of 2026-11-17 — **`D-137` item `5`, verbatim: *"THE 23rd STATUS IS INVENTED:
+        // RANK `23` · `ListenerBodyRejected`"***. The subject is the LISTENER BODY rank `21`'s is and its defect is the
+        // other half of the same promise pair. **RANK `21` IS NOT WIDENED** (`D-130` item 2). **THE SENTENCE DECLARES WHAT
+        // CROSSED AND NOT WHAT THE BODY REJECTED WITH**: the body's own reason is the caller's and is never rendered as
+        // though this package had authored it. **`<SEGMENT>` IS THE WATCHED ADDRESS'S SPELLING** — the address whose
+        // triggering fired the body — and no `<CONTAINER>` slot is printed, because the act's subject is a delivery and
+        // not a place (`ListenerBodyThrew`'s own precedent, `:542`–`:543`).
+        "ListenerBodyRejected" => format!(
+            "{} was refused by a listener body that rejected, a fired listener body's rejection refuses the act that fired it",
             m.subject
         ),
         other => format!("{} is a failure of the code {other}, no clause is declared here", m.subject),

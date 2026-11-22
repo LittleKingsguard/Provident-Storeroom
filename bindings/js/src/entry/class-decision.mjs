@@ -1,6 +1,15 @@
 // `D-2` (`docs/L1/entry-subdivision.md` §1 part `5`; the split is `D-33`'s) — bytes moved from `bindings/js/index.mjs`; no logic changed.
-import { types } from 'node:util';
-import { boundaryReject } from './artefact.mjs';
+// **⟶ AND THE `Proxy` PREDICATE IS THE INSTALLED CLASS-DECISION INSTRUMENT FROM 2026-11-17** (`D-156` item 1 and
+// the loader split's row for these five parts, `docs/L3/wasm-realm/design.md` §5: the host import line is *"swapped
+// for a local helper"* — **neutralised**, conditional on that design's §4 instrument). **`isProxyOf` IS
+// `class-instrument.mjs`'s one predicate and this file carries no host specifier for the class decision any more**:
+// every site below takes the answer `util.types.isProxy` gave, because **the NODE entry installs `types.isProxy`
+// ITSELF at load** (`index.mjs`, at the head of the module), and on the other arm the instrument is
+// `structuredClone` while **the ANSWER does not move** (`D-156` item 1: the refusal stays rank-neutral and
+// class-for-class what this arm answers). **NO DECISION, NO ORDER AND NO ANSWER OF THIS FILE MOVES** — only the
+// predicate's name and its home.
+import { isProxyOf } from './class-instrument.mjs';
+import { boundaryReject } from './addon-slot.mjs';
 import { appendOwn } from './refusal.mjs';
 
 // ⟶ CARVED UP 2026-10-24 (`D-2`/`D-33`): `inDomainAddress` and `isLawfulListenerElement`, with the doc blocks that
@@ -296,7 +305,7 @@ function isStandardObjectPrototype(proto, allowance) {
   // and invokes no handler, and a shape the package may not read is not a shape the value carries. **THE
   // GROUND IS `§1`'s OWN** — this guard covers `protoClass`'s whole census path, `arrayClass`'s chain link
   // and `isLanguageStandardPrototype`'s `above` read, so no limb and no conversion test reads a proxy link.
-  if (types.isProxy(proto)) return false;
+  if (isProxyOf(proto)) return false;
   let names;
   try {
     if (!spendGuardRead(allowance, 1)) return false; // ONE `getPrototypeOf` CALL — item `(4c)(ii)`
@@ -416,7 +425,7 @@ export function arrayClass(value, allowance) {
   // THEREFORE BEFORE EVERY CENSUS READ BELOW.** The limb answers `'class'` and not a boolean, so the guard
   // is spelled here as well as in `isStandardObjectPrototype` above; `util.types.isProxy` reads no member,
   // runs no trap and throws for no revoked link.
-  if (types.isProxy(proto)) return 'class';
+  if (isProxyOf(proto)) return 'class';
   let names;
   let symbols;
   let above;
@@ -491,7 +500,7 @@ export function isAdmittedArray(value) {
 /// ANY REALM IS ACCEPTED** — the (e)-half is structural, never an identity test (`DD-7`, `DD-35`).
 export function isPlainObjectValue(value) {
   if (value === null || typeof value !== 'object') return false;
-  if (Array.isArray(value) || types.isProxy(value)) return false;
+  if (Array.isArray(value) || isProxyOf(value)) return false;
   return protoClass(value) !== 'class';
 }
 
@@ -505,7 +514,7 @@ export function classSpelling(value) {
   if (value === undefined) return 'undefined';
   const kind = typeof value;
   if (kind !== 'object' && kind !== 'function') return `a ${kind}`;
-  if (types.isProxy(value)) return 'a Proxy';
+  if (isProxyOf(value)) return 'a Proxy';
   if (Array.isArray(value)) return arrayClass(value) === 'class' ? 'a class extending Array' : 'an Array';
   if (kind === 'function') return 'a function';
   return protoClass(value) === 'class'
@@ -550,7 +559,7 @@ export function targetSpelling(value) {
     // class and the renderer's `typeof` split is not a fact about it. Nothing else at this renderer moves: the
     // `bigint` limb, `String(value)`, the `try` and the `catch` all stand, and no identity is compared and no
     // prototype is frozen (`C-11` is untouched).
-    if ((typeof value === 'object' || typeof value === 'function') && value !== null && types.isProxy(value)) {
+    if ((typeof value === 'object' || typeof value === 'function') && value !== null && isProxyOf(value)) {
       return classSpelling(value);
     }
     return String(value);
@@ -759,7 +768,7 @@ function isLanguageStandardPrototype(link, allowance) {
 function carriesConversionMember(value, allowance) {
   if (value === null || (typeof value !== 'object' && typeof value !== 'function')) return false;
   try {
-    if (types.isProxy(value)) return true;
+    if (isProxyOf(value)) return true;
     if (ownsConversionMember(value, allowance)) return true;
     if (!spendGuardRead(allowance, 1)) return true; // the `getPrototypeOf` read below — item `(4c)(ii)`
     let link = Object.getPrototypeOf(value);
@@ -768,7 +777,7 @@ function carriesConversionMember(value, allowance) {
       // ONE POSITION PER LINK ENTERED (item `(1c)`), charged BEFORE the read that reached the link, so no
       // chain can be entered unpaid and exhaustion answers "caller code is reachable".
       if (!spendGuardPosition(allowance, 1)) return true;
-      if (types.isProxy(link)) return true;
+      if (isProxyOf(link)) return true;
       // ITEM `(1a)`'S READ — ONE KEY, OWN, BY DESCRIPTOR (so no getter is called), BEFORE THE STOP.
       if (!spendGuardRead(allowance, 1)) return true; // ONE descriptor read — item `(4c)(i)`
       if (Object.getOwnPropertyDescriptor(link, Symbol.toPrimitive) !== undefined) return true;
@@ -815,7 +824,7 @@ function carriesConversionMember(value, allowance) {
 function carriesTagMember(value, allowance) {
   if (value === null || (typeof value !== 'object' && typeof value !== 'function')) return false;
   try {
-    if (types.isProxy(value)) return true; // a descriptor read on a `Proxy` would run a trap
+    if (isProxyOf(value)) return true; // a descriptor read on a `Proxy` would run a trap
     // **⟶ AND EVERY READ IS CHARGED, AS THE SIBLING WALK'S ARE** (`contract.md §2.1`'s clause of 2026-10-24 on
     // `F7-2`, items `(4c)` and `(4e)`): each `@@toStringTag` descriptor read is `1` and each `getPrototypeOf`
     // call is `1`; a refused spend answers `true` (the WITH branch, the class spelling).
@@ -826,7 +835,7 @@ function carriesTagMember(value, allowance) {
     while (link !== null) {
       // ONE POSITION PER LINK ENTERED (item `(1c)`), before the read that reached the link.
       if (!spendGuardPosition(allowance, 1)) return true;
-      if (types.isProxy(link)) return true;
+      if (isProxyOf(link)) return true;
       if (!spendGuardRead(allowance, 1)) return true; // ONE descriptor read — item `(4c)(i)`
       if (Object.getOwnPropertyDescriptor(link, Symbol.toStringTag) !== undefined) return true;
       if (!spendGuardRead(allowance, 1)) return true; // the loop's `getPrototypeOf` — item `(4c)(ii)`
@@ -905,7 +914,7 @@ function carriesTagMember(value, allowance) {
 function arrayElementsReachCallerCode(value, path, allowance) {
   if (value === null || typeof value !== 'object') return false;
   try {
-    if (types.isProxy(value)) return true;
+    if (isProxyOf(value)) return true;
     if (!Array.isArray(value)) return false;
     // AN ANCESTOR ON THE CURRENT PATH IS A CYCLE, NOT AN ALIAS — asked by a local loop over the datum's own
     // indices, never by `Array.prototype.includes`.
@@ -1088,7 +1097,7 @@ export function valueTargetSpelling(value, rowClass) {
     // `util.types.isProxy` refusal exists to avoid — even though a throwing trap was caught by the `catch`
     // below. **THE CLASS IS READ WITH `util.types.isProxy` ALONE AND NO TRAP RUNS**, exactly as
     // `targetSpelling` does at its own arm.
-    if ((typeof value === 'object' || typeof value === 'function') && value !== null && types.isProxy(value)) {
+    if ((typeof value === 'object' || typeof value === 'function') && value !== null && isProxyOf(value)) {
       return classSpelling(value);
     }
     // **AND A TARGET THE MESSAGE MAY NOT CARRY IS NAMED AS ITS OWN CLASS RATHER THAN AS ITS BYTES**: a string
@@ -1191,7 +1200,7 @@ export function shapeArmClass(refusal) {
 /// `encodeSegment` pushes and `Segment::is_in_domain` admits, so the elements the store ADOPTS and the
 /// elements this predicate ACCEPTS are one set and the mirror holds one entry per store entry.
 export function inDomainAddress(address) {
-  if (types.isProxy(address) || !Array.isArray(address) || arrayClass(address) === 'class') return false;
+  if (isProxyOf(address) || !Array.isArray(address) || arrayClass(address) === 'class') return false;
   for (let i = 0; i < address.length; i += 1) {
     if (!(i in address)) return false; // a hole is `AddressArg` row 14's own outside shape (`DD-8`)
     const segment = address[i];

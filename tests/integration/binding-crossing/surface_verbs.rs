@@ -1020,7 +1020,7 @@ fail_code_cell!(
 // being asserted so no fourth class appears silently.
 #[test]
 fn fail_set_is_closed_at_twenty_two_and_sixteen_of_them_are_reached_from_the_crossing() {
-    assert_eq!(all_fail_codes().len(), 22, "the store's own array is the census (A148 Q3, read through \
+    assert_eq!(all_fail_codes().len(), 23, "the store's own array is the census (A148 Q3, read through \
          the 2026-10-26 rulings: *Expand the returned error set for both S/N* and *Expand the returned \
          fail-state list to include the refusal*, and through `D-124` item 2's minting of rank 21 \
          `ListenerBodyThrew`, which moves the set `20 → 21`, and `D-126` item 2's minting of rank 22 \
@@ -1028,11 +1028,11 @@ fn fail_set_is_closed_at_twenty_two_and_sixteen_of_them_are_reached_from_the_cro
          construction*)");
     assert_eq!(
         crossing_reachable_fail_codes().len(),
-        16,
+        17,
         "the five members the package owns (`ValueRefusedAtBoundary`, `ConstraintBodyThrew`, \
          `ConstraintRefusedAtRegistration`, `ConstraintPassRefused` and `ListenerBodyThrew`) are each declared \
          at their own boundary, and `RollbackCompacted` is `DECLARED, NO PRODUCER` (`D-118` item 2) — \
-         `22 - 5 - 1 = 16`"
+         `23 - 5 - 1 = 17`"
     );
     assert_eq!(
         declared_unreachable_fail_codes(),

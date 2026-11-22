@@ -840,14 +840,14 @@ fn s8_1_every_driven_code_is_a_member_of_the_closed_set() {
     // list compared member for member.
     assert_eq!(
         distinct.len(),
-        22,
+        23,
         "§8.1: the set carries 22 members, ranked 1…22 (`11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 22` ✓ — the \
          as-filed `11 + 2 + 1 + 1 = 15` counted the amended heading's own members one short; AMENDED \
          2026-10-15, `DEF-2026-10-15-Y`; WIDENED 2026-10-23 by `A148` Q3 with `ValueRefusedAtBoundary` at \
          rank 17; WIDENED 2026-10-26 on the rulings for `DEF-S`/`DEF-N` with `ConstraintBodyThrew` at 18 and \
          `ConstraintRefusedAtRegistration` at 19, and for `DEF-H`/`DEF-W` with `ConstraintPassRefused` at 20; \
          WIDENED 2026-11-06 on `D-124` item 2 with `ListenerBodyThrew` at 21, and on `D-126` item 2 with \
-         `FileImageRefused` at 22)"
+         `FileImageRefused` at 22; APPENDED 2026-11-17 on `D-150` item 2 with `ListenerBodyRejected` at 23 — a          delivered listener body that REJECTS refuses the act that fired it (`D-138`), which is not rank 21's          throw)"
     );
     assert!(
         distinct.contains(&"FileImageRefused"),
@@ -925,6 +925,9 @@ fn s8_1_every_driven_code_is_a_member_of_the_closed_set() {
         "ListenerBodyThrew",
         // ⟶ APPENDED 2026-11-06 (`D-126` item `2`; `PIN-11`; the minting of rank `22`).
         "FileImageRefused",
+        // **⟶ AND RANK `23` `ListenerBodyRejected`, APPENDED 2026-11-17** (`D-150` item 2): a DELIVERED listener
+        // body that REJECTS refuses the act that fired it, appended LAST after `FileImageRefused`.
+        "ListenerBodyRejected",
     ];
     assert_eq!(
         CLOSED_CODES.to_vec(),
@@ -932,7 +935,7 @@ fn s8_1_every_driven_code_is_a_member_of_the_closed_set() {
         "§8.1's own rank order: `FilePathUnreachable` at `13`, `ValueNotAdmitted` at `14`, \
          `FileCommitFailed` at `15`, `ConstraintListInvalid` at `16`, `ValueRefusedAtBoundary` at `17`, \
          `ConstraintBodyThrew` at `18`, `ConstraintRefusedAtRegistration` at `19`, \
-         `ConstraintPassRefused` at `20`, `ListenerBodyThrew` at `21` and `FileImageRefused` LAST at `22` — \
+         `ConstraintPassRefused` at `20`, `ListenerBodyThrew` at `21`, `FileImageRefused` at `22` and `ListenerBodyRejected` LAST at `23` — \
          no existing rank moves \
          (AMENDED 2026-10-15, `DEF-2026-10-15-Y`; WIDENED 2026-10-23, `A148` Q3; WIDENED 2026-10-26, the \
          `DEF-S`/`DEF-N` and `DEF-H`/`DEF-W` rulings; WIDENED 2026-11-06, `D-124` item 2 and `D-126` item 2). \

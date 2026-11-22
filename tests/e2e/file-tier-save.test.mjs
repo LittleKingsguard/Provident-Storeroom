@@ -1529,12 +1529,12 @@ test('fts_S_CENSUS_the_sixteenth_member_is_reachable_and_the_terms_of_the_algebr
     'S-CENSUS: the array\'s declared arity IS the number of members it carries — the same reading this file\'s '
     + '`P-TP-8` census takes at `:1623`; read '
     + `${JSON.stringify({ declaredArity: CODES_SOURCE.declaredArity, members: STORE_CLOSED_SET.length })}`);
-  assert.equal(STORE_CLOSED_SET.length, 22, 'S-CENSUS: the closed set is TWENTY-TWO members. FAIL-STATE: "a set '
+  assert.equal(STORE_CLOSED_SET.length, 23, 'S-CENSUS: the closed set is TWENTY-THREE members from 2026-11-17 (`ListenerBodyRejected`, `D-150` item 2). FAIL-STATE: "a set '
     + 'of `15` or `17`" (`contract.md §8.1`, amended heading; `implementation-plan.md §10.9` row 8), read from '
     + '2026-10-26 through the rulings that append ranks `18`, `19` and `20`, from `D-124` item `2` through '
     + 'the minting of rank `21` and from `D-126` item `2` through the minting of rank `22`; read '
     + JSON.stringify(STORE_CLOSED_SET));
-  assert.equal(11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1, 22, 'S-CENSUS: and its own terms sum it');
+  assert.equal(11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1, 23, 'S-CENSUS: and its own terms sum it — the appended `ListenerBodyRejected` is the twelfth term');
   assert.deepEqual(STORE_CLOSED_SET.slice(11, 13), ['ConstructionArgumentMissing', 'FilePathUnreachable'],
     'S-CENSUS: the construction group\'s TWO members hold ranks 12 and 13');
   assert.equal(STORE_CLOSED_SET[15], 'ConstraintListInvalid',
@@ -1559,6 +1559,15 @@ test('fts_S_CENSUS_the_sixteenth_member_is_reachable_and_the_terms_of_the_algebr
     + 'store at `src/store.rs`\'s step 7 (`D-126` item `2`; `PIN-11`), appended LAST after `ListenerBodyThrew`; '
     + '`ConstraintListInvalid` keeps `16` its own malformed-list trigger and is NOT revived (the subject of a '
     + 'corrupt image is the image and not the constraint list)');
+  // **⟶ AND RANK `23` IS `ListenerBodyRejected`, APPENDED LAST ON 2026-11-17** (`D-150` item 2; the architect:
+  // *"a rejected delivery body is a new status"*; the amended `D-140` clause is read through it). **A DELIVERED
+  // listener body that REJECTS refuses the act that fired it**, which is `D-138`'s resolution and not `D-73`'s
+  // throw: **a throw leaves the write unanswered, a rejection resolves it and the rejection is a datum.** **NO RANK
+  // OF `1`…`22` MOVES** and the appended term takes no existing member's trigger.
+  assert.equal(STORE_CLOSED_SET[22], 'ListenerBodyRejected',
+    'S-CENSUS: rank `23` is `ListenerBodyRejected` — a rejected listener body refuses the act that fired it '
+    + '(`D-150` item `2`), appended LAST after `FileImageRefused`; `ListenerBodyThrew` keeps `21` and is NOT '
+    + 'widened (the subject there is a body that THROWS, and here a body that REJECTS)');
 
   // AND THE NEW MEMBER IS REACHABLE THROUGH A TRIGGER THE SPEC DECLARES: the create-side validation failure.
   const { cfg } = cfgFor({ constraints: [{ address: 'a', id: 'c' }] });
@@ -1697,7 +1706,7 @@ test('fts_S_CENSUS_no_rank_moves_and_no_second_register', async () => {
   // `FileImageRefused` AT RANK `22`.** `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 22` ✓ and **NO RANK OF
   // `1`…`21` MOVES** — `FileCommitFailed` keeps rank `15`, `ConstraintListInvalid` keeps rank `16` with its own
   // malformed-entry trigger, `ConstraintPassRefused` keeps rank `20` and `ListenerBodyThrew` keeps rank `21`.
-  assert.equal(codes.length, 22,
+  assert.equal(codes.length, 23,
     'S-CENSUS: THE OPERATIVE SET IS TWENTY-TWO (`contract.md §8.1`\'s 2026-10-23 amendment, `A148` Q3, read '
     + 'through the 2026-10-26 rulings that append ranks `18`/`19` — *"Expand the returned error set for both '
     + 'S/N"* — and rank `20` — *"Expand the returned fail-state list to include the refusal"* — and through '
@@ -1711,7 +1720,10 @@ test('fts_S_CENSUS_no_rank_moves_and_no_second_register', async () => {
     'FilePathUnreachable', 'ValueNotAdmitted', 'FileCommitFailed', 'ConstraintListInvalid',
     'ValueRefusedAtBoundary', 'ConstraintBodyThrew', 'ConstraintRefusedAtRegistration',
     'ConstraintPassRefused', 'ListenerBodyThrew', 'FileImageRefused',
-  ], 'S-CENSUS: NO RANK OF `1`…`21` MOVED AND THE NEW TERMS ARE APPENDED LAST — '
+    // **⟶ AND RANK `23` `ListenerBodyRejected`, APPENDED 2026-11-17** (`D-150` item 2): the delivered body's
+    // rejection, which RESOLVES the write and refuses the act (`D-138`) — **no rank of `1`…`22` moves.**
+    'ListenerBodyRejected',
+  ], 'S-CENSUS: NO RANK OF `1`…`22` MOVED AND THE NEW TERMS ARE APPENDED LAST — '
     + '`ValueRefusedAtBoundary` at rank `17`, `ConstraintBodyThrew` at `18`, '
     + '`ConstraintRefusedAtRegistration` at `19`, `ConstraintPassRefused` at `20`, `ListenerBodyThrew` at '
     + '`21` and `FileImageRefused` at `22`, `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 22` ✓ '

@@ -70,7 +70,7 @@ import {
   ADDON_ARTEFACT, PACKAGE_ENTRY, PKG_DIR, DELETED_WRAPPER_NAMES,
   OWED_STRUCTURE_TOKENS, OWED1_TOKEN_ASSERTION_SHAPES,
   require_, addonKeySet, generated, isTheDeclaredForm, isTheArtefactForm, callAndClassify,
-  deletedWrapperCallSites,
+  deletedWrapperCallSites, SAVE_ARM_THREE,
 } from './addon-surface-support.mjs';
 import { moduleCodeFiles, moduleCodeLines } from './module-set.mjs';
 
@@ -135,9 +135,9 @@ test('sas_d1_s_export_set_the_artefacts_own_keyset_is_exactly_the_thirteen_decla
   // the entries already declared keeps its name and its arity.
   assert.equal(PER_VERB_TWELFTH.length, 1, 'the tier readout\'s compiled read, declared beside the nine and the two');
   assert.equal(STANDING_FOUR.length + PER_VERB_NINE.length + PER_VERB_TENTH.length + PER_VERB_ELEVENTH.length
-    + PER_VERB_TWELFTH.length, 16,
+    + PER_VERB_TWELFTH.length + SAVE_ARM_THREE.length, 19,
     '`4 + 9 + 1 + 1 + 1 = 16 ✓` (§1\'s own `[CENSUS]`, read with the tenth, eleventh and twelfth rows)');
-  assert.equal(DECLARED_SURFACE.length, 16, 'and the tables are one set of sixteen, each name accounted for');
+  assert.equal(DECLARED_SURFACE.length, 19, 'and the tables are one set of NINETEEN, each name accounted for');
 });
 
 test('sas_d1_s_export_set_call_is_absent_because_the_split_is_precisely_its_replacement', () => {
@@ -252,6 +252,13 @@ function declaredArgumentsFor(name) {
     // **⟶ AND THE JOURNAL MARK READ, ADDED 2026-10-27: NO POSITION AT ALL.** The store reads its own record
     // and names a position; there is nothing for a caller to supply (`PER_VERB_ELEVENTH`, arity `0`).
     case 'journalMark': return [];
+    // **⟶ AND THE SAVE ARM'S THREE, ADDED 2026-11-17 (`SAVE_ARM_THREE`; `D-148`, `D-149`).**
+    // **`exportImage` TAKES NO POSITION** — the store composes and verifies its own image, so there is nothing for
+    // a caller to supply (`facade.rs:1139`). **AND THE TWO VERDICTS EACH TAKE ONE**, the op id, in the same carrier
+    // shape `rollback` and `commitFile` are driven with (`facade.rs:1165`, `:1192`; `D-149`'s mirror pair).
+    case 'exportImage': return [];
+    case 'saveSucceeded': return ['an-op-id'];
+    case 'saveFailed': return ['an-op-id'];
     default: return null;
   }
 }

@@ -76,3 +76,21 @@ napi-derive = { version = "3" }
 # JSON tree crosses through `napi`'s `serde-json` conversion, whose API is typed in `serde_json::Value`;
 # the crate therefore names the type directly. A FIFTH ENTRY REMAINS UNLAWFUL.
 serde_json = "1"
+
+# =============================================================================================
+# **⟶ THE SECOND CLAIMED REALM'S DEPENDENCY, IN A TARGET TABLE AND NOT IN `[dependencies]`**
+# (`D-154` item 1; `D-157` item 1; `docs/L3/wasm-realm/design.md` §2).
+#
+# **THE CROSSING IS `wasm-bindgen`, AND IT IS THE ONLY DEPENDENCY THIS PACKAGE TAKES THAT THE
+# NATIVE BUILD DOES NOT COMPILE.** A target-specific table is what buys that: `cargo build` on the
+# host never fetches, compiles or links it, and `cargo check --target wasm32-unknown-unknown` builds
+# it beside the `#[cfg(target_arch = "wasm32")]` boundary `src/store.rs` carries.
+#
+# **AND THE FOUR-ENTRY CENSUS IS UNMOVED BY CONSTRUCTION**: `P-ADA-1`'s `S-DEP-TABLE` reads the
+# `[dependencies]` table and stops at the NEXT header (`tests/e2e/addon-adoption.test.mjs:286`–
+# `:301`), so a target table below it is invisible to that cell.
+#
+# **THE VERSION IS PINNED TO THE CLI'S OWN** (`0.2.130`, at `.cargo-home/bin/wasm-bindgen`):
+# `wasm-bindgen` fails hard when the crate and the CLI disagree. **A BUMP MOVES BOTH OR NEITHER.**
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "0.2.130"

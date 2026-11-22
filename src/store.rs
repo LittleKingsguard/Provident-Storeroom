@@ -7,7 +7,8 @@
 
 use crate::args::{
     address_segments, construction_listeners, delete_tier, op_id, read_tier_sel, write_tier,
-    AddressArg, ConstraintEntry, ConstraintsArg, FilePathArg, JournalLengthArg, OpIdArg, StoreConfig,
+    AddressArg, ConstraintEntry, ConstraintsArg, DurableWithoutPathArg, FilePathArg, InitialImageArg,
+    JournalLengthArg, OpIdArg, StoreConfig,
     TierArg, TierSel,
 };
 use std::cell::RefCell;
@@ -672,6 +673,33 @@ pub fn storeCreateWithConstraints(
     cfg: &StoreConfig,
     constraints: &ConstraintsArg,
 ) -> Result<Store, StoreError> {
+    storeCreateWithInputs(cfg, constraints, &DurableWithoutPathArg::Absent, &InitialImageArg::Absent)
+}
+
+/// **⟶ ADDED 2026-11-17 BY `U-STOREROOM-03`/`-04` — THE SAME CONSTRUCTION WITH THE THIRD ENTRY CONDITION
+/// SUPPLIED** (`D-132` items 1–2; `D-137` item 3).
+///
+/// **IT IS A THIRD ENTRY POINT AND NOT A SECOND CONSTRUCTION**: the widest frame holds the body and the narrower
+/// ones delegate, so `storeCreate` and `storeCreateWithConstraints` keep their names and arities and every Rust
+/// drive compiles unmoved. **THE INPUT IS NOT A `cfg` KEY** (`D-137` item 3).
+///
+/// **ITS ONE MOVED STEP IS STEP 4b's, WHICH BECOMES THREE-WAY, AND THE THIRD ARM PERFORMS NO FILESYSTEM ACT**:
+/// `register_tier` answers `Tier::File` with `file_path == ""` (`D-132` item 1), so `ParentAnchorMonotonicityViolation`
+/// (rank `6`) is the code that DISAPPEARS on this arm — and it disappears because the tier is `file`, not because a
+/// check is relaxed. **The exclusive create's two arms are skipped, so `FilePathUnreachable` (rank `13`) has no
+/// subject** (`D-132` item 5).
+///
+/// **⟶ AND THE FOURTH INPUT ARRIVES HERE, 2026-11-17 (`U-STOREROOM-05`; `D-137` item 4; `D-147` items 1–4) — THE SEED.**
+/// It takes the carrier this unit places beside `DurableWithoutPathArg`, by the same widening: **the widest frame holds the
+/// body and the narrower entry points pass that carrier's `Absent` spelling**. **AND ITS ONE INSTANT IS STEP 7's**: the
+/// tier is already FIXED and `store.born` is not yet taken, so a seed stands INSIDE the born floor — both replayers start
+/// FROM `born`, so no `rollback` can reach behind a seeded construction.
+pub fn storeCreateWithInputs(
+    cfg: &StoreConfig,
+    constraints: &ConstraintsArg,
+    durable: &DurableWithoutPathArg,
+    initial_image: &InitialImageArg,
+) -> Result<Store, StoreError> {
     // Step 2 — `journalLength`: ABSENT → `ConstructionArgumentMissing`; present but outside `{≥ 1 integer}`
     // → `AddressMalformed` (`DD-16`, `DD-17`'s operative form).
     let journal_length = match cfg.journalLength {
@@ -690,12 +718,24 @@ pub fn storeCreateWithConstraints(
     let file_path = match &cfg.filePath {
         FilePathArg::Absent => String::new(),
         FilePathArg::Path(p) if !p.is_empty() => {
-            // **THE PROBE ITSELF: ARM (a) IS DECIDED HERE AND ARM (b) IS DECIDED BY STEP 4b'S OWN
-            // `create_new`** — ONE PREDICATE, TWO KERNEL-DECIDED ARMS (`§10.4` part 1; `DD-45`'s amended
-            // clause, whose *"a second reachability predicate"* is refused).
+            // **⟶ AND ON A `wasm32` TARGET THERE IS NO PROBE TO TAKE, BECAUSE THERE IS NO FILESYSTEM (2026-11-17 —
+            // `D-154` item 4; `docs/L1/wasm-realm.md` §4).** **The WASM build carries NO `filePath`: the key is not in
+            // domain there and the PACKAGE refuses it at `cfg`'s own class gate, so this arm answers the store's own
+            // `FilePathUnreachable` — never a probe, never a create, never a silent acceptance of a path it cannot
+            // honour.** **`path_is_reachable` is not compiled on that target** (it is the one function whose whole body is
+            // the platform), so this arm cannot name it: **the arm and the function leave together, which is what keeps the
+            // build whole.**
+            // **THE PROBE ITSELF: ARM (a) IS DECIDED HERE AND ARM (b) IS DECIDED BY STEP 4b'S OWN `create_new`** —
+            // ONE PREDICATE, TWO KERNEL-DECIDED ARMS (`§10.4` part 1; `DD-45`'s amended clause, whose *"a second
+            // reachability predicate"* is refused). **IT IS A STATEMENT AND NOT THE ARM'S VALUE**, so the arm answers
+            // `p.clone()` on both targets and only this act moves.
+            #[cfg(not(target_arch = "wasm32"))]
             if !path_is_reachable(p) {
                 return Err(file_path_unreachable(p));
             }
+            #[cfg(target_arch = "wasm32")]
+            return Err(file_path_unreachable(p));
+            #[cfg_attr(target_arch = "wasm32", allow(unreachable_code))]
             p.clone()
         }
         _ => return Err(malformed_named("filePath")),
@@ -727,9 +767,18 @@ pub fn storeCreateWithConstraints(
     // (`§10.4` part 6). **EVERY OTHER FAILURE — `EROFS`, `EACCES`, `ENOENT`, a path that IS a directory —
     // REFUSES AT CONSTRUCTION with `FilePathUnreachable` AND RETURNS NO INSTANCE** (`§10.4` part 5;
     // `§8.1` #13), **leaving nothing behind**.
-    let register_tier = if file_path.is_empty() {
-        Tier::Mem
-    } else {
+    // **⟶ AMENDED 2026-11-17 (`U-STOREROOM-03`/`-04`; `D-132` item 2): STEP 4b IS THREE-WAY, AND THE THIRD ARM
+    // PERFORMS NO FILESYSTEM ACT.** *"If a saveCall is provided and a filePath is not, treat the file probe as
+    // successful"* — the architect's words, verbatim — so a path-less register whose construction was told the
+    // save's bytes live elsewhere stands at `Tier::File` with NO PATH (`D-132` item 1). **THE FIRST ARM'S BYTES ARE
+    // UNMOVED, name for name.** **WHAT THE THIRD ARM DOES NOT DO IS THE POINT**: it opens nothing, creates nothing,
+    // probes nothing and returns no `FilePathUnreachable`.
+    // **⟶ AND ON A `wasm32` TARGET STEP 4b KEEPS ITS FORK AND LOSES ITS ARM: the path is always empty there (step 3's
+    // `Path` arm refuses), so the create-and-probe branch is DEAD BY CONSTRUCTION and is not compiled** (2026-11-17 —
+    // `D-154` item 4; `docs/L1/wasm-realm.md` §4). **THE THIRD ARM'S BYTES ARE UNMOVED ON BOTH TARGETS**, because the
+    // durable register is exactly what a WASM build has.
+    #[cfg(not(target_arch = "wasm32"))]
+    let register_tier = if !file_path.is_empty() {
         match std::fs::OpenOptions::new()
             .write(true)
             .create_new(true)
@@ -744,7 +793,20 @@ pub fn storeCreateWithConstraints(
             Err(_) => return Err(file_path_unreachable(&file_path)),
         }
         Tier::File
+    } else if durable.is_set() {
+        // THE THIRD ENTRY CONDITION — `saveCall` PRESENT ∧ `filePath` ABSENT, AND THE PROBE TREATED AS SUCCESSFUL
+        // (`D-132` items 1–2). **NO PATH IS PROBED, CREATED OR OPENED**: the register is `file` tier and `file_path`
+        // is the empty string, which is what every downstream site reads to answer the mem-tier way without
+        // reconstructing a file (`D-144` item 5).
+        Tier::File
+    } else {
+        Tier::Mem
     };
+    // **⟶ AND THE `wasm32` TARGET'S OWN STEP 4b: TWO ARMS AND NO PROBE** — the path cannot be non-empty there (step 3's
+    // `Path` arm refuses), so the fork is `durable`'s alone and **`Tier::File` with `file_path == ""` is the whole store**
+    // (`D-154` item 4's own coherence, and `D-155` item 3's consequence).
+    #[cfg(target_arch = "wasm32")]
+    let register_tier = if durable.is_set() { Tier::File } else { Tier::Mem };
     // Step 5 — the home is POPULATED FROM the array step 3-bis validated, and a rejected array admits
     // NOTHING. **The adopted entry is the DECLARED `Listener` record, filed in the address-keyed map
     // (`A45`; `DD-39`).**
@@ -787,6 +849,34 @@ pub fn storeCreateWithConstraints(
         return Err(file_image_refused(&store.file_path));
     }
     let _loaded = store.boot_load();
+    // **⟶ STEP 7'S THIRD ACT, ADDED 2026-11-17 BY `U-STOREROOM-05` — THE SEED: THE BOOT PATH WITH THE TEXT SUPPLIED
+    // INSTEAD OF THE PATH** (`D-135` item 1; `D-137` item 4; `D-147` items 1–4). **The caller's image text is decoded by
+    // the store's own decoder tail** (`classify_image`: `json::decode` + the `is_admitted()` filter, and no second parser)
+    // **and installed at `Tier::File` by the load's own mint** (`install_file_image`), so a `saveCall`-backed or a
+    // `filePath`-backed store BEGINS LIFE WITH THE CALLER'S DATA.
+    //
+    // **ITS INSTANT IS THIS ONE, AND IT IS THIS UNIT'S DESIGN CONSTRAINT**: the tier is already FIXED, the boot's own load
+    // has already run, and `store.born` is NOT YET TAKEN — so **a seed is INSIDE the born floor**, which is the replay's
+    // floor and the regeneration's construction image, and **no `rollback` can reach behind it**. **AND THE SEED RUNS
+    // SECOND**: the boot's load and this install are two installs at `Tier::File` over one home and the last one wins, so a
+    // `filePath` store carrying both boots the file and then lays the caller's image over it — exactly the overwrite
+    // `D-147` item 1 has the guides discourage rather than a refusal this frame may mint.
+    //
+    // **A SEED IS NOT AN ACT** (`D-147` item 2): no journal entry, no `saved` mark, no byte, no `seq` step and **no
+    // `async`**. **AND ITS REFUSAL MINTS NO MEMBER**: an image the loader cannot accept is `FileImage::Refused`, whose
+    // status is rank `22` `FileImageRefused`, and **the decode is a PURE READ** — *"no node is minted, no anchor is
+    // installed, nothing is mutated"* — so the arm answers the store's own refusal with **no instance and nothing left
+    // behind**. **`NoImage` is unreachable from a seed**: the empty string is refused one layer up at `cfg`'s class gate.
+    if let Some(text) = initial_image.text() {
+        match Store::classify_image(text) {
+            FileImage::Members(members) => {
+                let _seeded = store.install_file_image(&members);
+            }
+            FileImage::NoImage | FileImage::Refused => {
+                return Err(file_image_refused(&store.file_path));
+            }
+        }
+    }
     // **⟶ STEP 7'S OWN SECOND HALF, ADDED 2026-10-15 (`§7.1` step 7 as amended; `parameter-semantics.md
     // §2.21`): THE LOAD INSTANT VALIDATES THE SUPPLIED LIST AGAINST THE STATE IT JUST LOADED** — *"the
     // list's validation at the construction and its validation at the load"* (*"that is what detects a
@@ -921,6 +1011,11 @@ fn construction_constraints(arg: &ConstraintsArg) -> Result<Vec<(Vec<Segment>, S
 /// THE `is_dir` ARM, A SYMLINK TO A DIRECTORY REACHES ARM (a) AND IS UNREACHABLE BY ITS OPEN (`EISDIR`),
 /// and a name no entry occupies is unmoved into arm (b)'s create** (`contract.md §10.4` part 1; the red
 /// set's own drives).
+// **⟶ AND THE ONE FUNCTION WHOSE WHOLE BODY IS THE PLATFORM LEAVES THE `wasm32` BUILD, 2026-11-17** (`D-154` item 4;
+// `docs/L1/wasm-realm.md` §4). **Its body is `symlink_metadata` plus a write-mode open and nothing else**, so there is no
+// realm-pure half to keep — and **its two callers leave with it** (step 3's `Path` arm and step 4b's `AlreadyExists`
+// fall-through), which is the only way a `#[cfg]` that removes a function can be sound.
+#[cfg(not(target_arch = "wasm32"))]
 fn path_is_reachable(path: &str) -> bool {
     let candidate = std::path::Path::new(path);
     match std::fs::symlink_metadata(candidate) {
@@ -1512,24 +1607,41 @@ impl Store {
     /// PRIOR BYTES STAND: THE REFUSAL IS BEFORE THE SIBLING IS
     /// WRITTEN, SO THE PATH IS NEVER TOUCHED, AND THE CALLER'S OWN FAILURE ARM ROLLS THE WRITE BACK FIRST
     /// AND ANSWERS SECOND (`surface.md §2.11` clause 5).**
+    ///
+    /// **⟶ AND ITS FIRST TWO ACTS ARE FACTORED INTO `Store::compose_verified_image`, 2026-11-17 (`U-STOREROOM-03`):
+    /// the composition and the re-decode move into ONE helper that this writer and the export share, so the
+    /// verification is taken ONCE and by both callers.** **WHAT STAYS HERE IS THE TWO FILESYSTEM ACTS AND NOTHING
+    /// ELSE** — the sibling's write and the rename — so the export can never reach a name, create a sibling or touch
+    /// a byte.
     fn write_file(&self, address: &[Segment]) -> Result<(), StoreError> {
-        let text = json::encode(&self.file_snapshot());
-        // THE LOADER'S OWN ACCEPTANCE, APPLIED TO THE IMAGE BEFORE IT IS WRITTEN: the store's one read of the
-        // path (`Store::read_file_image`) IS THE LOADER, and its `Ok(StoreValue::Object(_))` arm is the
-        // acceptance every load rests on, so this asks that same acceptance of the image the commit is about
-        // to rename over the path. It reads the text it is about to write and never the standing bytes, so it
-        // is the commit's own verification (`A144`) and not a second reader of the durable state (`D-110`).
-        if !matches!(json::decode(&text), Ok(StoreValue::Object(_))) {
-            return Err(file_commit_failed(address, &self.file_path));
+        let text = self.compose_verified_image(address)?;
+        // **⟶ AND THE TWO FILESYSTEM ACTS LEAVE THE `wasm32` BUILD, 2026-11-17** (`D-154` item 4; `D-155` item 4;
+        // `docs/L1/wasm-realm.md` §4). **THE SIGNATURE AND THE COMPOSE STAY ON BOTH TARGETS**, because `commit_file` and
+        // `save_file_delta` both name this function and `save_file_delta` is `save_state`'s own body.
+        //
+        // **AND WHAT THE `wasm32` ARM ANSWERS IS DEAD CODE, WHICH IS WHY `D-155` ITEM 4 NEEDED NO DECLARATION FOR IT**:
+        // the path is empty on every construction there (step 3's `Path` arm refuses) and `save_file_delta` returns early
+        // on an empty path, **so nothing on either side of the boundary reaches this arm** — and **`commitFile` is not
+        // an entry on that build at all** (18 exports, `D-155` item 4). **The arm answers the store's own rank `15`
+        // `FileCommitFailed`, because a save that cannot be committed is exactly what it would be, and no reader exists to
+        // disagree with it.** **TWO ARMS AND NO SHARED TAIL**: each is the function's own tail on its own target, so
+        // neither target compiles a byte of the other's act.
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            let temp = format!("{}.snst-commit-{}", self.file_path, std::process::id());
+            let committed = std::fs::write(&temp, text.as_bytes())
+                .and_then(|_| std::fs::rename(&temp, &self.file_path));
+            if committed.is_err() {
+                let _ = std::fs::remove_file(&temp);
+                return Err(file_commit_failed(address, &self.file_path));
+            }
+            Ok(())
         }
-        let temp = format!("{}.snst-commit-{}", self.file_path, std::process::id());
-        let committed = std::fs::write(&temp, text.as_bytes())
-            .and_then(|_| std::fs::rename(&temp, &self.file_path));
-        if committed.is_err() {
-            let _ = std::fs::remove_file(&temp);
-            return Err(file_commit_failed(address, &self.file_path));
+        #[cfg(target_arch = "wasm32")]
+        {
+            let _unread = text;
+            Err(file_commit_failed(address, &self.file_path))
         }
-        Ok(())
     }
 
     /// **`surface.md §2.11` CLAUSE 2 / `contract.md §7.2` ITEM 2 AS AMENDED 2026-10-15 — THE TERMINAL ARM'S
@@ -1608,6 +1720,56 @@ impl Store {
                 Err(failure)
             }
         }
+    }
+
+    /// **⟶ ADDED 2026-11-17 BY `U-STOREROOM-04` — `saveSucceeded(opId)`: THE MARK THE `saveCall` ARM OWES THE
+    /// ONCE-PER-RECORD LAW, AND NO BYTE** (`D-144` item 6; `D-145` item 3).
+    ///
+    /// **IT SETS `journal[index].saved = true` AND DOES NOTHING ELSE**: no `write_file`, no composition, no journal
+    /// append, no sequence move, **no byte**. **THE THREE ARMS, AND THE TWO `commit_file` TAKES THIS ACT DOES NOT**
+    /// (`D-145` item 3): an op this store does not hold **REFUSES** at `JournalOpUnknown` (rank `10`); **the `save_owed`
+    /// gate is DROPPED** (its subject is *where* a save is owed, never *whether one has run*, and `commit_file` asks it
+    /// before it asks `saved`, so the mark's only reader is unreachable for such an entry); **an already-saved entry
+    /// answers `Ok(())` and writes nothing** — idempotent, the reading `D-145` item 3 left open and this frame takes.
+    ///
+    /// **THE POSITION IS CLASSIFIED BY THE STORE'S OWN CLASSIFIER**, so a blank op id answers `AddressMalformed` naming
+    /// `opId` (the design's `O-6` preference: one classifier, never two).
+    pub fn save_succeeded(&mut self, op_id: &str) -> Result<(), StoreError> {
+        // THE FULL PATH, BECAUSE THIS FRAME'S ONE POSITION IS NAMED `op_id` (`commitFile`'s declared form) and the
+        // bare name would resolve to the parameter rather than to the classifier.
+        let token = crate::args::op_id(&OpIdArg::Id(op_id.to_string()))?;
+        let Some(index) = self.journal.iter().position(|entry| entry.op.opId == token) else {
+            return Err(journal_op_unknown(&token));
+        };
+        self.journal[index].saved = true;
+        Ok(())
+    }
+
+    /// **⟶ ADDED 2026-11-17 BY `U-STOREROOM-04` — `saveFailed(opId)`: THE MIRROR, AND `commit_file`'s FAILURE ARM
+    /// AND NOTHING ELSE** (`D-146` item 1).
+    ///
+    /// **EXACTLY the five steps of `commit_file`'s failure arm, in the tree's own order**: the entry removed from the
+    /// journal · `restore(home, &entry.captured)` · `restore_compaction(&entry.compacted)` · `last_seq -= 1` · answer.
+    /// **IT WRITES NO BYTE**, which keeps the store's own writer suppressed on this arm (`D-133` item 3) and the journal
+    /// the STORE's, never the package's. **It asks no gate**: a failure that conditionally unwound would leave standing a
+    /// record the store's own writer would have removed.
+    ///
+    /// **★ THE UNKNOWN-OP ARM BELOW IS A READING AND NOT A RULING.** `D-146` item 1 of its unsettled prices both arms and
+    /// chooses neither: **(a) refuse at `JournalOpUnknown`**, the exact mirror of `save_succeeded`, whose cost is a second
+    /// failure pre-empting the first; **or (b) answer `Ok(())` as a no-op**, `commit_file`'s own silent arm. **This frame
+    /// takes (a)**, mirroring the success arm, and this paragraph is the reading's own name.
+    pub fn save_failed(&mut self, op_id: &str) -> Result<(), StoreError> {
+        let token = crate::args::op_id(&OpIdArg::Id(op_id.to_string()))?;
+        let Some(index) = self.journal.iter().position(|entry| entry.op.opId == token) else {
+            return Err(journal_op_unknown(&token));
+        };
+        let entry = self.journal.remove(index);
+        if let Some(home) = &entry.home {
+            self.restore(home, &entry.captured);
+        }
+        self.restore_compaction(&entry.compacted);
+        self.last_seq -= 1;
+        Ok(())
     }
 
     /// **⟶ ADDED 2026-11-02 — THE STATE-KEYED SAVE: THE SECOND READING OF `OpIdArg`'S ABSENT CARRIER, AND THE
@@ -1711,23 +1873,16 @@ impl Store {
         }
     }
 
-    /// **THE ONE PLACE THE BYTES AT `file_path` ARE READ AND DECODED, AND THE ONE PLACE THE THREE CLASSES ARE
-    /// SPELLED — `D-110` ITEM 2.** The boot ([`Store::boot_load`]) and the regeneration ([`Store::regenerate`])
-    /// both reach the file through this answer and neither reads the path beside it; **a fact the answer does
-    /// not carry would be carried out of this frame rather than re-derived next to it.** **IT IS A PURE READ:**
-    /// no node is minted, no anchor is installed, nothing is mutated, so a caller may refuse on this answer and
-    /// leave the store exactly where it found it.
-    fn read_file_image(&self) -> FileImage {
-        if self.file_path.is_empty() {
-            return FileImage::NoImage;
-        }
-        let Ok(text) = std::fs::read_to_string(&self.file_path) else {
-            return FileImage::NoImage;
-        };
-        if text.is_empty() {
-            return FileImage::NoImage;
-        }
-        match json::decode(&text) {
+    /// **⟶ ADDED 2026-11-17 BY `U-STOREROOM-05` — THE LOADER'S TAIL, FACTORED SO A SEED AND A FILE ARE CLASSIFIED BY ONE
+    /// ACT** (`D-135` item 1; `D-137` item 4).
+    ///
+    /// **It is `read_file_image`'s LAST THREE ACTS and nothing else** — `json::decode`, the `Ok(StoreValue::Object(_))`
+    /// acceptance and the `is_admitted()` filter — so *"decoded by the store's own decoder tail"* is ONE body and no
+    /// second parser enters either half. **IT IS AN ASSOCIATE FUNCTION AND NOT A METHOD**: it reads no path and takes no
+    /// `&self`, which is what makes the decode's own clause structural rather than documentary. **AND IT HAS NO `NoImage`
+    /// ARM**: the absence of an image is a fact about a PATH and never about text.
+    fn classify_image(text: &str) -> FileImage {
+        match json::decode(text) {
             Ok(StoreValue::Object(members)) => FileImage::Members(
                 members
                     .into_iter()
@@ -1736,6 +1891,36 @@ impl Store {
             ),
             _ => FileImage::Refused,
         }
+    }
+
+    /// **THE ONE PLACE THE BYTES AT `file_path` ARE READ AND DECODED, AND THE ONE PLACE THE THREE CLASSES ARE
+    /// SPELLED — `D-110` ITEM 2.** The boot ([`Store::boot_load`]) and the regeneration ([`Store::regenerate`])
+    /// both reach the file through this answer and neither reads the path beside it; **a fact the answer does
+    /// not carry would be carried out of this frame rather than re-derived next to it.** **IT IS A PURE READ:**
+    /// no node is minted, no anchor is installed, nothing is mutated, so a caller may refuse on this answer and
+    /// leave the store exactly where it found it.
+    fn read_file_image(&self) -> FileImage {
+        // **⟶ AND THE ONE PLATFORM ACT LEAVES THE `wasm32` BUILD, 2026-11-17** (`D-154` item 4; `docs/L1/wasm-realm.md`
+        // §4). **THE FUNCTION STAYS ON BOTH TARGETS** — four callers name it and **all four already answer the mem-tier
+        // way through the empty-path return above** — so only the read moves, and it moves as ONE TAIL PER TARGET: on
+        // `wasm32` the path is empty on every construction, so `NoImage` is the whole answer and the decode's tail is
+        // never reached there; on every other target the read, the empty-text class and `classify_image`'s tail stand byte
+        // for byte, because they are facts about TEXT and the SEED decodes through that tail on every build.
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            let Ok(text) = std::fs::read_to_string(&self.file_path) else {
+                return FileImage::NoImage;
+            };
+            if text.is_empty() {
+                return FileImage::NoImage;
+            }
+            // **⟶ THE TAIL IS `classify_image` FROM 2026-11-17 (`U-STOREROOM-05`)**, so the boot's class, the regeneration's
+            // class and the seed's class are ONE decode; the `NoImage` arms above stay this frame's own, because they are
+            // facts about a path and never about text.
+            Store::classify_image(&text)
+        }
+        #[cfg(target_arch = "wasm32")]
+        FileImage::NoImage
     }
 
     /// **THE LOAD'S INSTALL, FACTORED OUT SO THE BOOT AND THE REGENERATION INSTALL AN IMAGE BY ONE ACT —
@@ -3376,6 +3561,43 @@ impl Store {
         self.restore(&home, &after);
         self.journal[index].home = Some(home);
         Ok(())
+    }
+
+    /// **⟶ ADDED 2026-11-17 BY `U-STOREROOM-03` — THE COMPOSITION AND ITS SELF-VERIFICATION, FACTORED ONCE SO THE
+    /// WRITER AND THE EXPORT TAKE THE SAME BYTES** (`D-133` item 2; `D-137` item 2).
+    ///
+    /// **`write_file`'s first two acts and nothing else**: the whole-state serialization of the `file` tier's
+    /// projection (`json::encode(&self.file_snapshot())`) **and the loader's own acceptance applied before any byte is
+    /// written**. **THE TWO FILESYSTEM ACTS ARE ON THE FAR SIDE OF THE FACTORING**. **IT TAKES `&self` AND CAN NEVER TAKE
+    /// `&mut self`**, which is what makes "marks nothing" structural rather than documentary. **The refusal is the one
+    /// the writer already answers with** — `FileCommitFailed` (rank `15`) — because the check is `write_file`'s and no
+    /// code is minted for it.
+    fn compose_verified_image(&self, address: &[Segment]) -> Result<String, StoreError> {
+        let text = json::encode(&self.file_snapshot());
+        // THE LOADER'S OWN ACCEPTANCE, APPLIED TO THE IMAGE BEFORE IT IS WRITTEN OR HANDED OUT: the store's one read
+        // of the path (`Store::read_file_image`) IS THE LOADER, and its `Ok(StoreValue::Object(_))` arm is the
+        // acceptance every load rests on. It reads the text and never the standing bytes (`A144`; `D-110`).
+        if !matches!(json::decode(&text), Ok(StoreValue::Object(_))) {
+            return Err(file_commit_failed(address, &self.file_path));
+        }
+        Ok(text)
+    }
+
+    /// **⟶ ADDED 2026-11-17 BY `U-STOREROOM-03` — `exportImage()`'s STORE HALF: THE IMAGE THE WRITER WOULD WRITE,
+    /// ANSWERED AS TEXT, AND NOTHING MARKED** (`D-133` item 2; `D-137` item 2).
+    ///
+    /// **IT IS THE STORE'S OWN COMPOSITION AND NOT A PACKAGE SNAPSHOT**: *"the addon will have to hand the JS package the
+    /// JSON export"* is `D-133`'s direction, and the artefact is the text `write_file` writes today — the WHOLE STATE
+    /// and not a delta. **THE AUTHORITY IS THE STORE'S COMPOSITION AND NEVER `read([])`** (`D-133` item 4).
+    ///
+    /// **IT MARKS NOTHING** (`D-137` item 2): no `Entry::saved`, no journal entry, no byte, no sibling, no rename. **AND
+    /// THE RE-DECODE IS RETAINED** (`SC-R4`, discharged by construction): `D-137` item 2's literal *"assertion"* is NOT
+    /// taken, because a release-mode pass-through would hand the caller an image the loader refuses.
+    ///
+    /// **ITS SUBJECT IS THE REGISTER** (`&[]`), which is `save_file_delta`'s own subject, so a refusal names what the
+    /// state-keyed save already names.
+    pub fn export_image(&self, address: &[Segment]) -> Result<String, StoreError> {
+        self.compose_verified_image(address)
     }
 
     /// **⟶ ADDED 2026-11-02 — THE STATE-KEYED SAVE, FACTORED OUT SO THERE IS ONE INSTRUMENT AND NOT THREE**

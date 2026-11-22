@@ -95,6 +95,21 @@ use crate::crossing::{self, JsAddressArg, JsOpIdArg, JsSegment, Refusal};
 
 /// The address's own segments, where the argument IS the declared list shape — the triggering address a
 /// listener is handed (`PAR-JS-12`). Any outside shape carries no triggering address and invokes nothing.
+/// **⟶ ADDED 2026-11-17 BY `U-STOREROOM-04` — THE TWO VERDICT ENTRIES' ONE POSITION, FOLDED TO THE STORE'S OWN
+/// CARRIER** (`D-145` item 3; the design's `O-6`).
+///
+/// **THE ONE POSITION THE VERDICTS TAKE IS AN OP ID, AND THE STORE'S OWN CLASSIFIER ANSWERS EVERY ROW THAT IS NOT ONE**:
+/// the carrier's `Str` row is the op id the package read off a settled record, and **every other row is handed on as the
+/// BLANK token**, which the store's `op_id` refuses as `AddressMalformed` naming `opId` — **so one classifier answers and
+/// no second is authored.** `commitFile`'s hand-authored `JournalOpUnknown` arm below is the reading these two entries do
+/// not inherit.
+fn op_id_token(op_id: &JsOpIdArg) -> String {
+    match op_id {
+        JsOpIdArg::Str(token) => token.clone(),
+        _ => String::new(),
+    }
+}
+
 fn segments_of(address: &JsAddressArg) -> Vec<JsSegment> {
     match address {
         JsAddressArg::List(segments) | JsAddressArg::CrossRealmList(segments) => segments.clone(),
@@ -338,7 +353,30 @@ pub fn storeCreate(env: Env, cfg: JsVal<'_>) -> NapiRet<'static> {
     let constraints = codec
         .member(cfg, "constraints")
         .map(|value| codec.constraints_arg(value));
-    match crossing::create_with_constraints(&config, constraints.as_ref()) {
+    // **⟶ AND THE WIRE'S ONE MORE FACT IS READ HERE, 2026-11-17 — `durable_without_path`, THE PACKAGE'S OWN CALL
+    // SHAPE AND NOT A CALLER KEY** (`D-137` item 3; `D-132` item 1's third `file` entry condition). **Read by ownership
+    // and by class**: its absence is `false`, and a present value that is not a JS `boolean` is `false` too, so the read
+    // is the package's fact and never a value a caller can spell (`A76` part (1); `codec.rs`'s `bool_of`). **No status is
+    // minted and `cfg` gains no key**: the wire carries it beside the six and the store receives it as the
+    // construction's third input.
+    let durable_without_path = codec
+        .member(cfg, "durable_without_path")
+        .map(|value| codec.bool_of(value))
+        .unwrap_or(false);
+    // **⟶ AND THE SEED'S WIRE MEMBER IS READ HERE, 2026-11-17 (`U-STOREROOM-05`; `D-137` item 4).** **`initialImage` is
+    // `cfg`'s sixth declared key and the ONE carrier of the caller's image text**, and it CROSSES — unlike `saveCall` — so
+    // the wire carries it and the store decodes it with its own tail. **Read by ownership and by class**, and a text that
+    // is empty is taken as the carrier's ABSENCE (`frame.mjs` refuses the empty string as broken config one layer up).
+    let initial_image = codec
+        .member(cfg, "initial_image")
+        .map(|value| arg_string(&env, &value))
+        .filter(|text| !text.is_empty());
+    match crossing::create_with_inputs(
+        &config,
+        constraints.as_ref(),
+        durable_without_path,
+        initial_image.as_deref(),
+    ) {
         Err(refusal) => {
             throw_refusal(&env, &refusal);
             Ok(make_undefined(&env))
@@ -1072,6 +1110,99 @@ fn verb_commit_file(env: Env, receiver: This<Object<'_>>, op_id_pos: JsVal<'_>) 
                 });
             }
         }
+        Ok(codec.undefined_value())
+    });
+    answer_or_throw(env, answer)
+}
+
+// **⟶ AND THREE ENTRIES STAND BESIDE THE TWELVE, ADDED 2026-11-17 BY `U-STOREROOM-03`/`-04` (`D-137` items 1–2;
+// `D-144` item 6; `D-146` item 3): `exportImage`, `saveSucceeded`, `saveFailed`.** **THE SET THIS FILE DECLARES IS
+// THEREFORE `12 + 3 = 15` PER-VERB AND `4 + 15 = 19` IN ALL** — the figure the last landing's build reported was
+// `12 + 4 = 16` — **and NO NAME ANY OF THE TWELVE CARRIES MOVES**: `commitFile` keeps its one position and its
+// `undefined` answer byte-for-byte (`D-137` item 1 excludes the position on `commitFile`). **THE THREE ARE ONE SHAPE AT
+// THREE VERDICTS**: the export answers the image and marks nothing, the first verdict marks the record saved, the second
+// unwinds it — and **NO VERDICT IS CARRIED ON ANY ENTRY'S POSITION** (`D-146` item 2): the addon is told twice, once per
+// outcome, and is never asked to judge.
+
+/// **⟶ ADDED 2026-11-17 BY `U-STOREROOM-03` — `exportImage()`: THE EXPORT CARRIER, POSITION-LESS, ANSWERING THE
+/// STORE'S OWN IMAGE TEXT AS A STRING** (`D-137` items 1–2; `D-133` item 2).
+///
+/// **IT IS A NEW ENTRY AND NOT A POSITION ON `commitFile`** — *"Add new entry for export"*, the architect's words, which
+/// EXCLUDE the second of `D-133`'s two surviving carriers — so **`commitFile`'s own doc block still holds verbatim:
+/// *"its one argument is an op id and its answer is `undefined`"*.** **ITS ZERO POSITIONS ARE THE WHOLE OF IT.**
+///
+/// **IT MARKS NOTHING AND IS A PURE READ**: the store's own method takes `&self`, so the table is borrowed and **not**
+/// borrowed mutably (the form `journalMark`'s frame takes), and the text crosses OUT on the device the tree already has,
+/// the codec's `string_value`. **NO VALUE CROSSES IN.** **Its refusal is the store's own, thrown by `answer_or_throw`**:
+/// `FileCommitFailed` (rank `15`), the writer's own check inherited (`SC-R4`, discharged by construction).
+#[napi(js_name = "exportImage")]
+fn verb_export_image(env: Env, receiver: This<Object<'_>>) -> NapiRet<'static> {
+    let store_index = match store_index_of(&env, &receiver) {
+        Ok(store_index) => store_index,
+        Err(refusal) => {
+            throw_refusal(&env, &refusal);
+            return Ok(make_undefined(&env));
+        }
+    };
+    let codec = Codec { env, _marker: std::marker::PhantomData };
+    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|instances| {
+        let instances = instances.borrow();
+        let store = instances.get(store_index).ok_or_else(|| no_instance_at(store_index))?;
+        let text = store.export_image()?;
+        Ok(codec.string_value(&text))
+    });
+    answer_or_throw(env, answer)
+}
+
+/// **⟶ ADDED 2026-11-17 BY `U-STOREROOM-04` — `saveSucceeded(opId)`: ONE POSITION, THE OP ID, ANSWERING `undefined`**
+/// (`D-144` item 6; `D-145` item 3).
+///
+/// **ITS DECLARED FORM IS `commitFile`'S OWN, SATISFIED VERBATIM** — *"its one argument is an op id and its answer is
+/// `undefined`"* — **which is exactly why the pair is landable**: a second caller of the same shape, not a second shape.
+/// **THE STORE IS TOLD, NOT ASKED TO JUDGE** (`D-146` item 2). **The position is classified by the store's own classifier**
+/// (`op_id_token`), and **it writes no byte**.
+#[napi(js_name = "saveSucceeded")]
+fn verb_save_succeeded(env: Env, receiver: This<Object<'_>>, op_id_pos: JsVal<'_>) -> NapiRet<'static> {
+    let store_index = match store_index_of(&env, &receiver) {
+        Ok(store_index) => store_index,
+        Err(refusal) => {
+            throw_refusal(&env, &refusal);
+            return Ok(make_undefined(&env));
+        }
+    };
+    let codec = Codec { env, _marker: std::marker::PhantomData };
+    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|instances| {
+        let mut instances = instances.borrow_mut();
+        let store = instances.get_mut(store_index).ok_or_else(|| no_instance_at(store_index))?;
+        let op_id = codec.op_id(&op_id_pos);
+        store.save_succeeded(&op_id_token(&op_id))?;
+        Ok(codec.undefined_value())
+    });
+    answer_or_throw(env, answer)
+}
+
+/// **⟶ ADDED 2026-11-17 BY `U-STOREROOM-04` — `saveFailed(opId)`: THE MIRROR, ONE POSITION AND `undefined`**
+/// (`D-146` items 1–3; `D-144` item 4).
+///
+/// **THE ARCHITECT'S WHOLE WORD ON IT IS *"Mirror"***, and what it mirrors is `saveSucceeded`'s declared form: one position
+/// — the op id — and an `undefined` answer, with the store performing `commit_file`'s five failure steps and writing no
+/// byte. **THE CALLER RECEIVES ITS FAILURE AFTER THE ROLLBACK** (`§2.11` clause 5's order): this entry returns before the
+/// package throws, so `SC-6` is closed in route and in seat, and the journal stays the STORE's.
+#[napi(js_name = "saveFailed")]
+fn verb_save_failed(env: Env, receiver: This<Object<'_>>, op_id_pos: JsVal<'_>) -> NapiRet<'static> {
+    let store_index = match store_index_of(&env, &receiver) {
+        Ok(store_index) => store_index,
+        Err(refusal) => {
+            throw_refusal(&env, &refusal);
+            return Ok(make_undefined(&env));
+        }
+    };
+    let codec = Codec { env, _marker: std::marker::PhantomData };
+    let answer: Result<JsVal<'static>, Refusal> = INSTANCES.with(|instances| {
+        let mut instances = instances.borrow_mut();
+        let store = instances.get_mut(store_index).ok_or_else(|| no_instance_at(store_index))?;
+        let op_id = codec.op_id(&op_id_pos);
+        store.save_failed(&op_id_token(&op_id))?;
         Ok(codec.undefined_value())
     });
     answer_or_throw(env, answer)

@@ -137,16 +137,30 @@ export const PER_VERB_ELEVENTH = [
  * the arguments a caller supplies, the two declared positions plus the package's own absent carrier), so the
  * row is driven at its declared arity and at ±1 exactly as `read`'s is.
  */
+/** **⟶ AND THE SAVE ARM'S THREE STAND BESIDE THE TWELFTH, 2026-11-17** (`D-148`, `D-149`, `D-155` item 4;
+ *  `bindings/js/src/facade.rs:1139`–`:1191`). **`exportImage` CARRIES THE STORE'S OWN IMAGE OUT, AND
+ *  `saveSucceeded`/`saveFailed` ARE THE TWO VERDICTS THE CALLER'S SAVER ANSWERS — THE MIRROR PAIR.** They are
+ *  not the dispatcher's arms and they add no member to the product's fifteen: **they are the addon's entries and
+ *  the package's reach to them.** `exportImage` takes no op id (the store composes its own image); the two
+ *  verdicts each take one. **AND `commitFile` STAYS A MEMBER OF THE SIXTEEN ABOVE ON THIS ARM** — the second
+ *  realm's eighteen are a different build's set (`D-155` item 4) and are not read by this cell.
+ */
+export const SAVE_ARM_THREE = [
+  { name: 'exportImage', arity: 0, clause: 'facade.rs\'s `exportImage` entry, 2026-11-17 — the store\'s image, composed and verified by the store itself (`D-148`)' },
+  { name: 'saveSucceeded', arity: 1, clause: 'facade.rs\'s `saveSucceeded` entry, 2026-11-17 — the caller\'s save was confirmed; the commit lands (`D-149`)' },
+  { name: 'saveFailed', arity: 1, clause: 'facade.rs\'s `saveFailed` entry, 2026-11-17 — the mirror: the caller\'s save failed and the write unwinds (`D-149`)' },
+];
+
 export const PER_VERB_TWELFTH = [
   { name: 'readTiered', arity: 3, clause: 'facade.rs\'s `readTiered` entry, 2026-11-06 — "the compiled read, `read`\'s own two positions with the answer compiled"' },
 ];
 
-/** **THE SIXTEEN, AS ONE SET** — `4 + 9 + 1 + 1 + 1 = 16 ✓` (`§1`'s own `[CENSUS]`, read with
+/** **THE NINETEEN, AS ONE SET** — `4 + 9 + 1 + 1 + 1 + 3 = 19 ✓` (`SAVE_ARM_THREE` added 2026-11-17) (`§1`'s own `[CENSUS]`, read with
  *  `PER_VERB_TENTH`, `PER_VERB_ELEVENTH` and `PER_VERB_TWELFTH`). **THE PRODUCT'S FIFTEEN ARE UNMOVED**: every
  *  one of them keeps its name and its arity, and the sixteenth is the ADDON entry the product's own member set
  *  reaches at this same moment — `readTiered`, the tenth of the per-verb group. */
 export const DECLARED_SURFACE = [...STANDING_FOUR, ...PER_VERB_NINE, ...PER_VERB_TENTH, ...PER_VERB_ELEVENTH,
-  ...PER_VERB_TWELFTH];
+  ...PER_VERB_TWELFTH, ...SAVE_ARM_THREE];
 
 /** The sixteen NAMES, sorted — the form `S-EXPORT-SET` asserts against, *"assert equality with the declared
  *  set, sorted"* (`contract.md §5`, `P-SAS-1`). */

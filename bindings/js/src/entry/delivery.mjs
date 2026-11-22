@@ -1,12 +1,33 @@
 // `D-2` (`docs/L1/entry-subdivision.md` §1 part `7`) — bytes moved from `bindings/js/index.mjs`; no logic changed.
-import { types } from 'node:util';
-import { appendOwn, fail } from './refusal.mjs';
-import { withAddon, boundaryReject } from './artefact.mjs';
+// **⟶ AND THE `Proxy` PREDICATE IS THE INSTALLED CLASS-DECISION INSTRUMENT FROM 2026-11-17** (`D-156` item 1 and
+// the loader split's row for these five parts, `docs/L3/wasm-realm/design.md` §5: the host import line is *"swapped
+// for a local helper"* — **neutralised**, conditional on that design's §4 instrument). **`isProxyOf` IS
+// `class-instrument.mjs`'s one predicate and this file carries no host specifier for the class decision any more**:
+// every site below takes the answer `util.types.isProxy` gave, because **the NODE entry installs `types.isProxy`
+// ITSELF at load** (`index.mjs`, at the head of the module), and on the other arm the instrument is
+// `structuredClone` while **the ANSWER does not move** (`D-156` item 1: the refusal stays rank-neutral and
+// class-for-class what this arm answers). **NO DECISION, NO ORDER AND NO ANSWER OF THIS FILE MOVES** — only the
+// predicate's name and its home.
+import { isProxyOf } from './class-instrument.mjs';
+import { appendOwn, fail, refusalAddress, refusalLog } from './refusal.mjs';
+import { withAddon, boundaryReject } from './addon-slot.mjs';
 import { arrayClass, classSpelling, hasLoneSurrogate, isPlainObjectValue, targetSpelling } from './class-decision.mjs';
 import { encodeAddress, encodeOpId, handleWire, inDomainHandle } from './carrier.mjs';
 import { decodeSegments, spellConstraintAddress } from './frame.mjs';
-import { addressSpelling } from './kernel-foundations.mjs';
-import { entryOf, carryRefusal, commitFile, homeAddressKey, externalCall, commitLogOf, SETTLED_ON_THE_PASSING_ARM, SAVE_FAILED_AT_THE_TERMINAL_ARM } from './state.mjs';
+import { addressSpelling, append } from './kernel-foundations.mjs';
+// **⟶ AND TWO NAMES JOIN THE `state.mjs` IMPORT, 2026-11-17 — `U-STOREROOM-06 DELIVERY-SETTLE`.**
+// **`BODY_FAILURES` IS THE `Symbol.for` KEY THE RECEIPT'S DATUM IS INSTALLED UNDER** — it stands in `state.mjs`'s
+// symbol block beside `COMMIT_LOG` and `SETTLED_ON_THE_PASSING_ARM` (`design.md §5`: *"`settledAnswer` installs
+// `record[BODY_FAILURES] = failures`, a symbol-keyed own property (beside `COMMIT_LOG`/`SETTLED_ON_THE_PASSING_ARM`
+// in `state.mjs`'s symbol block) — invisible to both censuses"*) — **and `BODY_FAILURES_EMPTY` is the ONE FROZEN `{}`
+// the empty map answers**, the very value the receipt's accessor answers where the key is absent
+// (`constraints.mjs`'s `defineBodyFailures`), so **no reader can tell *"no settle ran"* from *"the settle found no
+// rejection"*** (`contract.md §2`: *"`BODY_FAILURES` and `BODY_FAILURES_EMPTY` (one symbol and one frozen
+// empty)"*). **NO OTHER NAME OF THIS LINE MOVES.**
+// **⟶ AND TWO MORE NAMES DO, 2026-11-17 — `U-STOREROOM-08 RETURN-VALUES`** (`D-150` item 1): `RETURNED_VALUES` is
+// the key the receipt's fourth datum is installed under, and `RETURNED_VALUES_EMPTY` the one frozen `{}` a settle that
+// found no value answers — the very value the accessor answers where the key is absent.
+import { entryOf, carryRefusal, commitFile, homeAddressKey, externalCall, commitLogOf, BODY_FAILURES, BODY_FAILURES_EMPTY, RETURNED_VALUES, RETURNED_VALUES_EMPTY, SETTLED_ON_THE_PASSING_ARM, SAVE_FAILED_AT_THE_TERMINAL_ARM } from './state.mjs';
 
 /// `PAR-JS-13`: the returned record is `{op, watched, triggered}` — fresh on every call, never a view.
 ///
@@ -29,7 +50,7 @@ export function commitPositionRefusal(commit) {
     // **A `Proxy` IS OUTSIDE THE POSITION'S DOMAIN** (`§2.20`'s outside-value row) and is refused BEFORE a
     // member is read from it, so a `get` trap is never raised — the class order `encodeAddress` and
     // `encodeTier` already take at their own carriers (`A76`/`JS-2`).
-    if (!types.isProxy(commit) && !Array.isArray(commit)) {
+    if (!isProxyOf(commit) && !Array.isArray(commit)) {
       let pending;
       try {
         pending = commit.pending;
@@ -102,7 +123,47 @@ export function commitPositionRefusal(commit) {
 ///   triggering ADDRESS as its argument; no other argument is declared and no return value is read"*) — the
 ///   address the addon's own record carries beside the id set. **The two are different data and the cells
 ///   assert exactly one argument** (`S-FIRE-WINDOW`'s `argCount === 1`).
-export function deliver(state, triggered, triggeringAddress) {
+///
+/// **⟶ ADDED 2026-11-17 — THE FOURTH POSITION `settlement`, AND THE ANSWER THAT REPLACES THIS LOOP'S `void`**
+/// (`U-STOREROOM-06 DELIVERY-SETTLE`; `contract.md §3`'s `deliver` row and `§4`'s `PIN-1`, `PIN-2`, `PIN-3`,
+/// `PIN-4`, `PIN-6`, `PIN-9`; `design.md §2` row `1` and `§3`). **THE SCOPE SENTENCE, VERBATIM (`contract.md §1`):
+/// *"every body of a write's or a delete's delivered set is *started* in the one synchronous invocation loop, and
+/// the act's answer is *withheld* until that set has settled"*** — **so the loop below does not move**: its
+/// snapshot, its dedupe on `entry.handle`, its kind test and its one-argument invocation are the bytes they were
+/// (`PIN-1`'s *"in the one shipped loop"*). **WHAT IT GAINS IS THREE FACTS AND NOTHING ELSE:**
+///   * **THE `invoked` LIST** — one `{handle, address, returned}` per **STARTED** recipient: `returned` is what
+///     `externalCall` handed back, `address` is the binding's own address off the trigger pair (`:157`'s
+///     `item.address`). **IT IS A LOCAL OF THIS FUNCTION AND NOT A COUNTER** — a count would have to be
+///     module-level or a slot of `state`, *"a sixth slot `§4` must defend"* (`design.md §3`).
+///   * **THE TWO `null` ARMS**, which are what keep this landing invisible where nothing suspends: `null` where
+///     **`settlement` is falsy** — *this caller has no answer to withhold*, the creation's, the four registration
+///     instants' and the reversal's legs' arm (`PIN-2`: *"and **only** where an answer exists"*; `PIN-11`;
+///     `D-149` item 1) — and `null` where **no started invocation returned a thenable** (`PIN-6`, VERBATIM: *"A
+///     delivered set whose bodies are all synchronous produces **no thenable**: `deliver` answers `null`,
+///     `settledAnswer` is never invoked, `write` answers the record it answered before"*). **BOTH ARE TAKEN
+///     BEFORE `bodyFailures` IS REACHED**, so no all-synchronous delivery produces a promise anywhere.
+///   * **THE ANSWER `null | Promise<readonly BodyFailure[]>`** — `bodyFailures(invoked)` below, which awaits the one
+///     `Promise.allSettled` over the started invocations' returned values and answers the rejections as a datum.
+///     **IT CANNOT REJECT ON ANY ARM**: `Promise.allSettled` has no rejecting arm, and **no `async` frame stands
+///     between a store act and the caller** (`PIN-5`: *"No `Promise` rejection is a failure form on any arm"*).
+///
+/// **AND THE SEAM THIS LOOP MAY NOT CROSS — `D-73`, WHICH IS THE UNIT'S SPINE.** **NO `async` AND NO `await` STANDS
+/// ANYWHERE BETWEEN THE FIRST INVOCATION AND THE LAST** (`PIN-4`'s second half), **and no `try` closes around an
+/// invocation**: a body that throws SYNCHRONOUSLY leaves this function as a throw, crosses `terminalArm` (whose
+/// assignment carries no `try`), `settleArm` and `runAttempt`, and is re-thrown unchanged — **the write answers no
+/// record and no thenable, and a sibling already started is neither awaited nor observed** (`design.md §7` arm 1;
+/// `D-138` item 4's declared asymmetry, kept). **`settledAnswer` IS ENTERED ONLY AFTER THIS LOOP RETURNED
+/// NORMALLY**, which is the whole of what keeps a synchronous throw off the rejection channel.
+///
+/// **AND THE SENTENCE ABOVE — *"no return value is read"* — IS RE-DERIVED, NOT WITHDRAWN** (`RCA-8(g)`'s
+/// annotate-beside): it says the invocation reads no return value **as an argument, a member or a subject of the
+/// store's act**, and from this date the answer a body hands back is **captured into a local and settled** — never
+/// passed anywhere, never rendered, and never a member of any record but the datum's own entries.
+///
+/// **NO ORDER IS ASSERTED BY THE ANSWER EITHER** (`PIN-3`; `DD-22`: *"a drive compares sets, never sequences"*):
+/// `allSettled` reports a **set** of outcomes, the started count is `invoked.length`, and the datum's own key order
+/// is the arrival order and is promised by no clause.
+export function deliver(state, triggered, triggeringAddress, settlement) {
   const address = typeof triggeringAddress === 'object' && triggeringAddress !== null ? triggeringAddress : [];
   // **⟶ THE RECIPIENT SET IS SNAPSHOTTED WHEN THE WINDOW OPENS, BEFORE THE FIRST INVOCATION — `C-2` OF THE
   // GATE-4 ADVERSARIAL PASS (2026-10-11; `CF-DUP-3`'s re-homing clause, `surface.md §2.4` item 7 (b),
@@ -153,6 +214,16 @@ export function deliver(state, triggered, triggeringAddress) {
   // occurrence, in an order no clause asserts (`DD-22`).
   const matched = [];
   const recipients = [];
+  // **⟶ AND THE STARTED SET'S OWN LIST, ADDED 2026-11-17 — ONE ENTRY PER **STARTED** RECIPIENT AND NEVER ONE PER
+  // DELIVERED ELEMENT** (`contract.md §3`'s `deliver` row: *"the local `invoked` list, one `{handle, address,
+  // returned}` per **started** recipient"*; `design.md §3` step `(2)`). **IT IS FILLED BY THE INVOCATION LOOP BELOW
+  // AND BY NOTHING ELSE**, so its length is the started count `PIN-9` compares against the deduplicated triggered
+  // set's count, and its members are the only datum the settle — and `U-08`'s `returnedValues` after it — ever reads
+  // (`contract.md §8`: *"both consumers … read **the same list at the same instant**"*). **NO SECOND LIST, NO
+  // COUNTER, NO QUEUE, NO MAP AND NO `state` SLOT**: the snapshot above already holds one recipient per distinct
+  // handle, so the started set is that snapshot's FUNCTIONAL members and this list is the record of which of them
+  // the loop reached.
+  const invoked = [];
   for (let i = 0; i < triggered.length; i += 1) {
     const item = triggered[i];
     let seen = false;
@@ -176,9 +247,19 @@ export function deliver(state, triggered, triggeringAddress) {
     // storeroom-js/surface.md §2.4` rule 1) — no longer excludes it by ABSENCE. **THE KIND DOES**: *"an element
     // whose handle is a constraint's `id` is asked; a listener's is delivered."* **A PAIR'S BODY IS ASKED BY THE
     // PASS, WITH THE `AttemptContext` ITS SHAPE DECLARES; IT IS NEVER INVOKED HERE, WITH THE TRIGGERING ADDRESS.**
+    //
+    // **⟶ AND THE ROW'S THIRD POSITION IS THE BINDING'S OWN ADDRESS, ADDED 2026-11-17** (`contract.md §3`'s
+    // `deliver` row: *"one `{handle, address, returned}` per **started** recipient"*; `design.md §5`: *"`address` is
+    // the binding's own address off the pair at `deliver:157`"*). **IT IS READ FROM THE TRIGGER PAIR THIS ITERATION
+    // ALREADY HOLDS** — the store's own decoded segments — **and it is NOT the one argument the invocation is
+    // handed**: that argument remains the TRIGGERING address (`PAR-JS-12`), because **the two are different data**
+    // (`:140`–`:141`, `AB-3`: *"A body cannot tell which binding matched, and that is declared."*). **THE
+    // SNAPSHOT'S MEMBERSHIP, ITS ORDER, ITS KIND TEST AND ITS FUNCTION SLOT DO NOT MOVE**: the third position is a
+    // datum carried on the row for the settle's message, never a second test and never a second invocation.
     appendOwn(recipients, [
       item.handle,
       entry === undefined || entry.off === true || entry.kind === 'constraint' ? undefined : entry.fn,
+      item.address,
     ]);
   }
   for (let r = 0; r < recipients.length; r += 1) {
@@ -203,9 +284,204 @@ export function deliver(state, triggered, triggeringAddress) {
       // (`tests/e2e/external-commit.test.mjs` prints both figures). **NOTHING IS INFERRED FROM THE FRAME ANY
       // MORE**: the name is set here, restored when the body returns or throws, and every internal step of the
       // listener's own write names the commit that write opened.
-      externalCall(state.receiver, () => listener(decodeSegments(address)));
+      //
+      // **⟶ AND THE INVOCATION'S ANSWER IS CAPTURED, 2026-11-17 — THE ONE BYTE THIS LOOP GAINS** (`contract.md §3`'s
+      // `deliver` row; `design.md §3` step `(2)`: *"for each recipient with a function, `const returned =
+      // externalCall(state.receiver, () => listener(decodeSegments(address)))` and append"*). **THE CALL IS THE
+      // SHIPPED CALL AND ITS ONE ARGUMENT IS THE SHIPPED ARGUMENT**: what moves is that the answer it hands back is
+      // **STOOD BESIDE THE RECIPIENT instead of being dropped**. **A THROW HERE LEAVES THIS FUNCTION IMMEDIATELY
+      // AND NO BYTE BELOW RUNS** — no `try`, no `catch`, no retry and no rollback (`D-73`; `design.md §7` arm 1) —
+      // and a body that suspends is **STARTED, NOT WAITED FOR**: the loop reaches the next recipient in the same
+      // synchronous frame (`PIN-1`; `contract.md §6` row 7: *"a suspension delays no sibling and the answer only"*).
+      const returned = externalCall(state.receiver, () => listener(decodeSegments(address)));
+      appendOwn(invoked, { handle: pair[0], address: pair[2], returned });
     }
   }
+  // ── THE SETTLE'S TWO `null` ARMS, AND THEN THE ANSWER ────────────────────────────────────────────────────────
+  // **⟶ THE FIRST ARM IS THE MISSING CALLER — `PIN-2`'s *"and **only** where an answer exists"*.** The creation
+  // (`index.mjs:334`), the four registration instants (`:575`) and the reversal's legs (`constraints.mjs:3037`) pass
+  // NO fourth position, so this function answers `null` and **observes nothing there** — which is `PIN-11`'s
+  // deliberate asymmetry (`D-138` item 4): **a rejecting body at those instants stays `D-130` item 5's caller hazard
+  // and is never converted into a declared silence.** **NOTHING IS READ AT ALL ON THIS ARM** — no `then` is touched,
+  // no `Promise` is built — so the no-receipt instants are answered by the loop's own throw or by nothing.
+  if (!settlement) return null;
+  // **⟶ THE SECOND ARM IS THE ALL-SYNCHRONOUS SET — `PIN-6`, VERBATIM: *"a delivered set whose bodies are all
+  // synchronous produces **no thenable**"*.** **THE READ IS ONE `typeof` ON THE LANGUAGE'S OWN ASSIMILATION SLOT**:
+  // the answer a body handed back is asked whether it carries a callable `then`, which is the same question
+  // `Promise.allSettled` asks a moment later — **and NOTHING OF THE BODY IS INVOKED TO ASK IT.** **THE LOOP IS A
+  // LOCAL INDEX LOOP** (`contract.md §2.1` item `(1c)(i)`'s form): no `Array.prototype.some`, no iterator and no
+  // spread, so a forged prototype reaches no byte of this path; a non-object answer — `undefined`, `null`, a string,
+  // a number — cannot be a thenable and is skipped by the class test before any member is read.
+  let thenable = false;
+  for (let s = 0; s < invoked.length; s += 1) {
+    const answered = invoked[s].returned;
+    if (
+      answered !== null
+      && (typeof answered === 'object' || typeof answered === 'function')
+      && typeof answered.then === 'function'
+    ) {
+      thenable = true;
+      break;
+    }
+  }
+  if (!thenable) return null;
+  return bodyFailures(invoked);
+}
+
+/// **⟶ ADDED 2026-11-17 — `settledAnswer(settle, answer)`: THE UNIT'S ONLY SUSPENSION POINT**
+/// (`U-STOREROOM-06 DELIVERY-SETTLE`; `contract.md §3`'s own row for it; `design.md §2` row `8`, `§3`, `§6`).
+///
+/// **WHAT IT DOES IS THREE THINGS IN ONE ORDER AND NOTHING ELSE: it waits for the settle, it stands the datum on the
+/// answer, and it answers.** *"one `Promise.allSettled` over `invoked`'s returned values, then the datum, then the
+/// answer"* (`contract.md §3`) — the settle having been started by `bodyFailures` below **after `deliver`'s loop
+/// returned normally**, so **no `async` frame ever stands between a store act and the caller** (`PIN-4`).
+///
+/// **ITS "MUST NOT ACQUIRE" COLUMN IS THE DECLARATION, AND IT IS NEGATIVE** (`contract.md §3`): **no invocation** —
+/// nothing of the delivered set is called here · **no store call** · **no `deliver`** · **no `.then`** (the `await`
+/// resolves through the promise's own internal slots and reads no `Promise.prototype` member — a corpus reason, not a
+/// measurement, `design.md §3`) · **no `new Promise`** · **no timeout** (a timer is a scheduler, `contract.md:602`) ·
+/// and **no read of any package slot** — `state` is not among this function's positions.
+///
+/// **IT CANNOT REJECT ON ANY ARM**, which is `PIN-5`'s *"No `Promise` rejection is a failure form on any arm"*: the
+/// settle it awaits is `Promise.allSettled`'s, whose answer is a list on every input, and the only work after the
+/// `await` is one `defineProperty` on the record this frame already holds and one `return`. **A BODY'S REJECTION IS
+/// THEREFORE A DATUM AND NEVER A REJECTION OF THE WRITE** (`D-138` items 2 and 4: *"the write **resolves** with that
+/// same record"*), and nothing retries and nothing rolls back.
+///
+/// **AND THE WAIT IS THE ANSWER'S WHOLE WAIT** (`PIN-9`): the frame it resumes in holds no store call, no invocation
+/// and no commit — `closeCommit` has already run in the caller's own `finally`, `state.leg` and `state.legDelivery`
+/// are restored, and the record is built (`design.md §6`: *"the only thing unsettled when the caller receives the
+/// record is the caller's own knowledge of the bodies' outcomes — **which is the datum**"*).
+export async function settledAnswer(settle, answer) {
+  // **⟶ AND THE ONE `await` ANSWERS THE SETTLE'S TWO DATA, 2026-11-17** (`U-STOREROOM-08 RETURN-VALUES`;
+  // `contract.md §8`: *"both consumers … read the same list at the same instant"*). **No second wait and no second
+  // settle**: `bodyFailures` below performed the one `Promise.allSettled`, and this frame resumes on the very microtask
+  // the failure datum always resumed on, so the map is over outcomes already total and final.
+  const settledOutcome = await settle;
+  const failures = settledOutcome.failures;
+  const values = returnedValues(settledOutcome.settled, settledOutcome.invoked);
+  // **THE DATUM IS A SYMBOL-KEYED OWN DATA PROPERTY AND NEVER A MEMBER** (`A117` (D6)): invisible to `Object.keys` and
+  // to `Object.getOwnPropertyNames`, so the record's declared census moves by nothing. **IT IS DEFINED AND NOT
+  // ASSIGNED** — `[[Set]]` walks the chain, and a caller's accessor at the well-known symbol would answer for the
+  // accessor that reads it; `[[DefineOwnProperty]]` is this record's own row and nothing else (`F8-2`'s write vector).
+  Object.defineProperty(answer, BODY_FAILURES, {
+    value: failures,
+    enumerable: false,
+    writable: false,
+    configurable: true,
+  });
+  // **⟶ AND THE VALUE MAP IS INSTALLED IN THE SAME FRAME, BY THE SAME DEVICE, 2026-11-17** (`D-149` item 2's seat;
+  // `D-150` item 1). **Defined and not assigned**, for the failure datum's own reason: `[[Set]]` walks the chain, while
+  // `[[DefineOwnProperty]]` is this record's own row and nothing else (`F8-2`'s write vector). **The value is the map
+  // `returnedValues` built from the same `settled` array, or the shared frozen `{}` where no body returned one.**
+  Object.defineProperty(answer, RETURNED_VALUES, {
+    value: values,
+    enumerable: false,
+    writable: false,
+    configurable: true,
+  });
+  return answer;
+}
+
+/// **⟶ ADDED 2026-11-17 — `bodyFailures(invoked)`: THE SETTLE ITSELF, AND THE PLURALITY AS DATA**
+/// (`contract.md §3`'s own row; `design.md §3` steps `(5)`, `§5`'s *"the plurality — confirmed, with one correction to
+/// `D-138`'s claim"*).
+///
+/// **ONE `Promise.allSettled` OVER THE STARTED INVOCATIONS' RETURNED VALUES, AND NOTHING ELSE IS WAITED FOR** —
+/// **no timer, no queue, no flush boundary and no scheduler is minted anywhere** (`D-131` item 4: a timer is a
+/// scheduler) — **and the outcome count equals the started count because the list it walks is `deliver`'s own**
+/// (`PIN-9`: *"the answer resolves after the last settlement and after no other event"*).
+///
+/// **ITS ANSWER IS A MAP KEYED BY HANDLE — ONE ENTRY PER REJECTING BODY, `{status, message, address}`** (`design.md
+/// §5`: *"Each entry is `{status, message, address}`"*; `D-138`'s plurality: *"`N` rejections become `N` entries and
+/// no rule is owed for *which one crosses*, because none is dropped"*). **`status` IS RANK `23`'S OWN NAME, USED AND
+/// NEVER MINTED, RENAMED OR WIDENED** (`D-137` item 5; `D-149` item 1: *"rank `23` `ListenerBodyRejected` is USED
+/// here and neither minted, renamed nor widened, and no rank `24` exists"*) · **`message` is the generator's own
+/// sentence** — `"<address> was refused by a listener body that rejected, a fired listener body's rejection refuses
+/// the act that fired it"` — rendered over **the watched address's spelling** (`D-137` item 5: *"ITS SUBJECT is the
+/// WATCHED ADDRESS'S SPELLING — the address whose triggering fired the body"*) · **`address` is the binding's own
+/// address, off the pair `deliver` read at `:157`**.
+///
+/// **THE REJECTION'S OWN REASON IS NEVER READ, STORED OR RENDERED** (`PIN-5`; `D-137` item 5: *"the sentence declares
+/// what crossed and not what the body rejected with"*; `D-58`'s retained-data bound): the settled result's `reason`
+/// member is not touched on any arm and nothing of it reaches the entry — so no throwable crosses as itself, and this
+/// is **not** a catch-and-report (`DD-23`'s *"not caught, not retried, not reported"*: the package catches nothing and
+/// reports through its own answer's datum).
+///
+/// **NO ORDER IS ASSERTED AMONG THE ENTRIES** (`PIN-3`; `DD-22`). A JS object's own string keys are read in insertion
+/// order, so the ARRIVAL order is legible at `Object.keys(failures)` — **and no clause promises it and no drive may
+/// assert it** (`design.md §5`'s one correction to `D-138`). **THE KEYS ARE THE HANDLES**: a body that settled
+/// fulfilled is not in the map, an absent handle is not in it, and the per-handle value map `U-08` owes is a
+/// different datum read off this same list at this same instant (`contract.md §8`).
+///
+/// **AN EMPTY MAP IS THE ONE FROZEN CONSTANT** (`state.mjs`'s `BODY_FAILURES_EMPTY`): `{}` here means *"this settle
+/// found no rejection"*, it carries no client data, and it is **the same value the receipt's accessor answers where
+/// no settle ran at all** — `D-58`'s bound is a retained LIST and there is none here (`design.md §5`, on
+/// `defineResolutionLog`'s precedent for `[]`).
+async function bodyFailures(invoked) {
+  // **THE RETURNED VALUES ARE COLLECTED BY A LOCAL INDEX LOOP AND APPLIED BY NOTHING ELSE** (`contract.md §2.1` item
+  // `(1c)(i)`'s form): no `.map`, no spread and no iterator reaches a mutable prototype, and the list is fresh.
+  const answered = [];
+  for (let i = 0; i < invoked.length; i += 1) appendOwn(answered, invoked[i].returned);
+  const settled = await Promise.allSettled(answered);
+  let failures = BODY_FAILURES_EMPTY;
+  for (let i = 0; i < settled.length; i += 1) {
+    if (settled[i].status !== 'rejected') continue;
+    const entry = invoked[i];
+    // **THE MAP IS MINTED AT THE FIRST REJECTION AND NEVER BEFORE**, so a settle that found none answers the frozen
+    // constant and no mutable empty ever reaches a caller's record.
+    if (failures === BODY_FAILURES_EMPTY) failures = {};
+    const spelled = Array.isArray(entry.address) ? addressSpelling(entry.address) : '';
+    // **THE ROW IS AN OWN-PROPERTY DEFINE AND NOT AN ASSIGNMENT** (`F8-2`'s write vector, read for a map): an
+    // inherited accessor at the handle's own key would otherwise turn a lawful delivery's datum into a raw host
+    // `TypeError`, and a handle a caller spelled as `__proto__` would move a prototype instead of adding a row.
+    Object.defineProperty(failures, entry.handle, {
+      value: {
+        status: 'ListenerBodyRejected',
+        message: `${spelled} was refused by a listener body that rejected, a fired listener body's rejection refuses the act that fired it`,
+        address: entry.address,
+      },
+      enumerable: true,
+      writable: true,
+      configurable: true,
+    });
+  }
+  // **⟶ AND THE ANSWER IS THE SETTLE'S TWO DATA, 2026-11-17 — THE FAILURE MAP UNMOVED, HANDED OUT WITH THE `settled`
+  // LIST IT WAS COMPUTED FROM AND THE `invoked` LIST IT WAS COMPUTED OVER** (`contract.md §8`). **This is the one byte
+  // of this function that moves, and it adds no wait and no settle**: the outcome count is still `invoked.length`
+  // (`PIN-9`), the one `Promise.allSettled` above is still the only one, and `settledAnswer` is this answer's one reader.
+  return { failures, settled, invoked };
+}
+
+/// **⟶ ADDED 2026-11-17 — `returnedValues(settled, invoked)`: THE DELIVERED SET'S SETTLED RETURN VALUES AS ONE MAP,
+/// KEYED BY HANDLE** (`U-STOREROOM-08 RETURN-VALUES`; `D-149` item 2; `D-150` items 1–2; `contract.md §8`).
+///
+/// **`D-149` ITEM 2: *"the answer gains a datum keyed by handle, one entry per listener that RETURNED A VALUE"*** —
+/// **and `D-148` item 1(c) fixes what an entry IS**: *"a body that returns `undefined` … does not pass back"*, so
+/// **an `undefined`-returner contributes NO entry and its silence is the caller's to read**.
+///
+/// **IT READS THE FULFILLED HALF OF THE ONE SETTLED LIST AND NOTHING ELSE** — the same `settled` array `bodyFailures`
+/// awaited and the same `invoked` list it walked; it awaits nothing, invokes nothing and builds no promise. **A result is
+/// read for its value only where it FULFILLED**, so a rejected body never crosses as a value and its `reason` is never
+/// read, stored or rendered (`D-137` item 5; `D-58`; `PIN-5`). **No order is asserted** (`PIN-3`; `DD-22`). **A row is an
+/// own-property DEFINE and never an assignment** (`F8-2`'s write vector). **An empty map is `RETURNED_VALUES_EMPTY`**, the
+/// one frozen constant, so no reader can tell *"no settle ran"* from *"the settle found no value"* (`D-150` item 2).
+function returnedValues(settled, invoked) {
+  let values = RETURNED_VALUES_EMPTY;
+  for (let i = 0; i < settled.length; i += 1) {
+    if (settled[i].status !== 'fulfilled') continue;
+    const entry = invoked[i];
+    const value = settled[i].value;
+    if (value === undefined) continue;
+    if (values === RETURNED_VALUES_EMPTY) values = {};
+    Object.defineProperty(values, entry.handle, {
+      value,
+      enumerable: true,
+      writable: true,
+      configurable: true,
+    });
+  }
+  return values;
 }
 
 // ⟶ MOVED 2026-10-18 (`RCA-8(g)`): deleteOp is deleted; its doc block and body are now the
@@ -479,7 +755,23 @@ export function installRegistrationSave(instance, state) {
   Object.defineProperty(instance, REGISTRATION_SAVE, {
     value: (opId) => {
       if (typeof opId !== 'string' || opId.length === 0) return undefined;
-      commitFile(state.receiver, opId);
+      // **⟶ AND THE INSTANT'S SAVE TAKES THE TERMINAL ARM'S OWN BRANCH FROM 2026-11-17 — `D-133` ITEM 3, AND THE DEFECT
+      // THE DEMO FOUND.** **`D-133` item 3, verbatim: *"the store's own writer is NOT USED"*** — and until this line the
+      // registration instant was the ONE path where it still was, so **a seeded `saveCall` store whose constraint landed a
+      // `file`-tier repair could not be constructed at all**: the store's writer answered rank `15` `FileCommitFailed` on a
+      // path-less register, unwound the repair, and the caller's saver — which would have succeeded — was never reached
+      // (measured; the discriminator is exactly `saveCall` ∧ a `file`-tier write, since the same repair at `mem` tier and
+      // the same repair on a `filePath` store both stood).
+      //
+      // **THE BRANCH IS THE TERMINAL ARM'S AND IT IS TOLD BY ONE VALUE**: `state.saveCall` is `null` exactly where the caller
+      // supplied none, so the `file` arm keeps today's bytes byte-for-byte and the `saveCall` arm performs the export, the
+      // caller's function and the verdict entry — the same three acts, in the same order, in the same `§2.11` clause 2
+      // position, before any body of the instant's delivered set.
+      if (state.saveCall === null) {
+        commitFile(state.receiver, opId);
+        return undefined;
+      }
+      saveAtRegistration(state, opId);
       return undefined;
     },
     writable: false,
@@ -876,7 +1168,7 @@ export function terminalArm(state, record) {
   // **THE CLASS TEST COMES FIRST AND IS THE ONE THE FIFTH POSITION ALREADY TAKES** (`docs/specs/storeroom-js/surface.md §2.4` item 9 (g) item 1
   // read with `§2.20`): a value carrying no `pending` is no record position, and this channel is the kernel's
   // own — a caller never reaches it. Nothing is changed by a refused value.
-  if (record === null || typeof record !== 'object' || types.isProxy(record) || record.pending === undefined) {
+  if (record === null || typeof record !== 'object' || isProxyOf(record) || record.pending === undefined) {
     return undefined;
   }
   // ── `docs/specs/storeroom-js/surface.md §2.11` CLAUSE 2: THE TERMINAL ARM'S FIRST ACT, ON THE PASSING ARM ────
@@ -885,6 +1177,12 @@ export function terminalArm(state, record) {
   // **AND THE OP'S OWN TIER WORD IS NOT READ AT THIS GATE FROM 2026-11-02**: the eligibility question is the
   // store's (`PIN-4` (i)), and the conjunct that pre-answered it here is below, withdrawn with its reason.
   const answer = state.leg;
+  // **⟶ AND THE AWAITED SAVE'S ONE LOCAL, 2026-11-17 — `null` ON EVERY SYNCHRONOUS ARM.** It is written by the save
+  // block below and read by the delivery assignment at the foot of this frame: **a `saveCall` that answered a thenable
+  // hands the slot its own composed settle** (`D-153` item 2), **and every other arm — the `file` arm, and a `saveCall`
+  // whose verdict arrived synchronously — leaves it `null`**, so the delivery below is this arm's own and the slot's
+  // value is byte-for-byte what it was (`PIN-8`: one writer, one reader).
+  let saveSettle = null;
   if (
     record[SETTLED_ON_THE_PASSING_ARM] === true
     && answer !== null
@@ -936,7 +1234,18 @@ export function terminalArm(state, record) {
       // act at the commit's own op address, and that address is read off the leg the store's verb left
       // (`state.leg.op.address`, decoded by `index.mjs` at the verb's return) — the carrier this call hands
       // spells an OP ID and never an address, so the member would be `null` if it were derived here.
-      carryRefusal(() => commitFile(state.receiver, answer.op.opId), [encodeOpId(answer.op.opId)], commitLogOf(record), answer.op.address);
+      // **⟶ AND THE ACT IS THE CALLER'S WHERE THE CALLER SUPPLIED A SAVER — `U-STOREROOM-04`, 2026-11-17.** **`D-133`
+      // item 3, verbatim: *"the store's own writer is NOT USED"***, so on a `saveCall` store this one call is **the export,
+      // the caller's function and the verdict entry** and `commitFile` is not reached at all. **The `file` arm keeps
+      // today's bytes, unmoved.** **The two arms are told apart by one value and nothing else**: `state.saveCall` is `null`
+      // exactly where the caller supplied none. **`saveThroughCaller` answers `null` where the verdict arrived
+      // synchronously and the composed settle where the answer was a thenable** (`D-144` item 1's *"(async optional)"*) —
+      // and in both the act stands FIRST, before any body of the delivered set (`§2.11` clause 2).
+      if (state.saveCall === null) {
+        carryRefusal(() => commitFile(state.receiver, answer.op.opId), [encodeOpId(answer.op.opId)], commitLogOf(record), answer.op.address);
+      } else {
+        saveSettle = saveThroughCaller(state, record, answer, answer.op);
+      }
     } catch (saveFailure) {
       // **THE FAILURE CARRIES THE VERY THROWABLE AND ITS OWN MARK** (`docs/specs/storeroom-js/surface.md §2.11` clause 9): the kernel's catch
       // reads `SAVE_FAILED_AT_THE_TERMINAL_ARM` to tell a failed save from a body of the delivered set that
@@ -984,9 +1293,318 @@ export function terminalArm(state, record) {
   if (state.legDelivery !== 'member') {
     // `deliver` is THE SAME loop the post-verb window uses (`docs/specs/storeroom-js/surface.md §2.4` rules 1–3 read once, at both instants): ONE
     // invocation per DISTINCT handle, and a handle with no registered function fires nothing silently.
-    deliver(state, triggered, triggeringAddress);
+    //
+    // **⟶ AND THE DELIVERED SET'S SETTLE LEAVES BY THE STATE SLOT AND NOT BY THIS ARM'S RETURN — ONE ASSIGNMENT,
+    // 2026-11-17** (`contract.md §3`'s `terminalArm` row: *"**one assignment** at `:987`: `state.legSettle =
+    // deliver(state, triggered, triggeringAddress, true)` — taken only where `state.legDelivery !== 'member'`"*;
+    // `PIN-2`'s *"`settlement` is passed at `delivery.mjs:987` and `index.mjs:887` and nowhere else"*; `PIN-8`).
+    // **THE RETURN CANNOT CARRY IT AND THAT IS FORCED, NOT PREFERRED**: `PAR-JS-19`'s answer cell says *"ITS ANSWER
+    // IS `undefined` AND NO KERNEL ACT BRANCHES ON IT"* (`state.mjs:84`–`:85`) and the kernel discards it
+    // (`kernel-attempt.mjs:550`) — **so `return undefined` below stands byte-for-byte, and the settle leaves by the
+    // slot exactly as `state.leg` carries the leg's record.**
+    //
+    // **THE SLOT'S LIFETIME IS ONE SYNCHRONOUS SPAN** (`PIN-8`): **one writer** — this line — **and one
+    // reader-and-clearer** — `constraintWrite`'s tail, synchronously, after the kernel returned and before any
+    // record accessor is read — **so the value is `null` at every microtask boundary**, and **a nested write's own
+    // tail clears its own value BEFORE this enclosing assignment is made** (`deliver` runs the whole start loop
+    // inside its own call, and the assignment stands after it returns).
+    //
+    // **NO `try` GOES AROUND IT** (`D-73`; `contract.md §3`'s *"a `try` around the delivery"* in the must-not column):
+    // a body that throws synchronously leaves `deliver` as a throw, crosses this frame unchanged, and **the write
+    // answers nothing** — no `async`, no `await`, no rollback and no second writer of the slot exist here.
+    // **⟶ AND THE SLOT'S VALUE IS THE SAVE'S WHERE THE SAVER'S ANSWER WAS AWAITED — 2026-11-17** (`D-153` item 2).
+    // **One writer and one reader still** (`PIN-8`): the composed settle was created by the save block above and starts the
+    // delivered set at its own tail, **after the save has settled and never before**, so `§2.11` clause 2's order holds on
+    // the awaited arm too. **The all-synchronous arm is byte-unmoved**: `deliver` is called exactly where it was, with the
+    // same four positions, and `PIN-6`'s *"no thenable anywhere"* stands for every `file`-arm write and every `saveCall`
+    // write whose saver answered in its own frame.
+    state.legSettle = saveSettle === null ? deliver(state, triggered, triggeringAddress, true) : saveSettle;
   }
   return undefined;
+}
+
+// ---------------------------------------------------------------------------------------------
+// **⟶ ADDED 2026-11-17 — `saveCall`'S ARM OF THE TERMINAL SAVE: THE EXPORT, THE CALLER'S FUNCTION AND THE VERDICT
+// ENTRY** (`U-STOREROOM-04 SAVE-CALL`; `D-132` item 1; `D-133` item 3; `D-137` items 1–2; `D-144` items 1–7;
+// `D-145` items 1–2; `D-146`; `D-153` items 1–2).
+//
+// **THE SAVE'S PLACE DOES NOT MOVE; ITS ACT CHANGES IDENTITY**: on a store constructed with a `saveCall` the arm performs
+// `exportImage()`'s act — synchronous, marking nothing, refusing at rank `15` as the writer it replaces does — hands
+// the text to the caller's function at ONE position, and crosses the verdict to the store through `saveSucceeded(opId)`
+// or `saveFailed(opId)` and through nothing else (`D-146` item 2: *"no verdict is carried on any entry's position"*).
+//
+// **THE THREE ARMS.** **SUCCESS** — `success === true` — marks the record saved and answers `null`, so the arm's
+// delivery below runs after it (`§2.11` clause 2, by construction). **FAILURE** — any other answer, a non-object, a
+// THROW, and a thenable that settles into either — is the failed arm: **`saveFailed(opId)` FIRST** (`§2.11` clause 5:
+// *"the store rolls the write back first and answers second"*; `D-146` item 1), **the caller's `message[]` as one
+// `'save'`-kind entry per string on the commit's own list** (`D-145` item 2; `D-153` item 1), **and then the surface's ONE
+// form at rank `15` `FileCommitFailed`** — widened and never minted, **its `message` the store's generator's** and never
+// the caller's words. **AWAITED** — a thenable — the arm starts no delivery of its own and hands `state.legSettle` a
+// composed settle that does.
+//
+// **THE SAVER'S ANSWER IS READ TOLERANTLY AND NO CODE IS MINTED FOR A MALFORMED ONE** (`design.md §4`'s arm `(b)`, the
+// always-available default): every answer that is not `{success: true}` is a failed save, and `message` is read **only
+// where it is an array**, each member crossing only where it is a `string`.
+// ---------------------------------------------------------------------------------------------
+
+/// **THE FAILED SAVE'S SEAT, SPELLED HERE BECAUSE NO STORE CALL PRODUCES IT ON THIS ARM** — `D-145` item 1's rank `15`,
+/// **widened and not joined**: `CODES` stays at its array's length, `StoreStatus` at its literals, and **no code is minted**.
+const FILE_COMMIT_FAILED = 'FileCommitFailed';
+
+/// **THE AWAITED SAVE'S OWN SETTLE, MARKED SO `constraintWrite`'S TAIL CAN TELL IT FROM THE DELIVERY'S** — the third arm's
+/// carrier (`D-153` item 2). **A `Symbol.for` spelling on purpose** (`A117` (D6)): no member is added to any record, and
+/// both its writer and its reader are this file's.
+const SAVE_SETTLE = Symbol.for('provident-storeroom.save-settle-at-the-terminal-arm');
+
+/// **WHETHER THIS SLOT'S VALUE IS THE AWAITED SAVE'S COMPOSED SETTLE** — answered by the settlement's mark and by nothing
+/// else (`D-153` item 2). The DELIVERY's settle is a different promise and carries no mark, so it takes the arm it has
+/// always taken.
+export function isSaveSettle(value) {
+  if (value === null || (typeof value !== 'object' && typeof value !== 'function')) return false;
+  if (typeof value.then !== 'function') return false;
+  return value[SAVE_SETTLE] === true;
+}
+
+/// **⟶ AND THE THIRD ARM'S OWN ANSWER — `D-153` ITEM 2's *"the refusal is a datum the settle RESOLVES INTO, never a
+/// rejection of the promise"*.**
+///
+/// **The settle cannot reject**: `saveAwaited` below catches the thenable's rejection and reads it as the failed arm, so what
+/// this frame awaits is a value on every input. **A settle carrying a refusal answers that refusal** — the surface's one
+/// thrown form, already built at the arm that performed the rollback and appended the caller's words — **and a settle
+/// carrying none is the delivery's, handed to `settledAnswer` unchanged.** **The value is already settled**, so
+/// `settledAnswer`'s `await` resolves on the spot: no second wait, no second settle, no second `Promise.allSettled`.
+export async function settledSaveAnswer(settle, answer) {
+  const settledOutcome = await settle;
+  if (
+    settledOutcome !== null
+    && typeof settledOutcome === 'object'
+    && settledOutcome.refusal !== undefined
+    && settledOutcome.refusal !== null
+  ) {
+    throw settledOutcome.refusal;
+  }
+  return settledAnswer(settledOutcome, answer);
+}
+
+/// **THE `saveCall` ARM'S WHOLE ACT, IN THE ONE ORDER `§2.11` DECLARES** — the export, the call, the verdict — and its
+/// two answers: **`null` where the verdict arrived synchronously** (the arm's delivery is then the caller's own) and **the
+/// composed settle where the saver answered a thenable.**
+function saveThroughCaller(state, record, answer, op) {
+  const commitList = commitLogOf(record);
+  const addon_ = withAddon();
+  // **THE EXPORT IS THE STORE'S OWN ACT AND IT MARKS NOTHING** (`D-137` item 2): its refusal crosses in the surface's one
+  // form through `carryRefusal`, exactly as the writer's failing write does.
+  const text = carryRefusal(() => addon_.exportImage.call(state.receiver), [], commitList, op.address);
+  let verdict;
+  try {
+    // **ONE POSITION, THE IMAGE TEXT** (`D-144` item 1). **A THROW IS THE FAILED ARM** (`design.md §4`).
+    verdict = Reflect.apply(state.saveCall, undefined, [text]);
+  } catch (thrown) {
+    throw saveFailedEntry(state, op, commitList, null);
+  }
+  if (
+    verdict !== null
+    && (typeof verdict === 'object' || typeof verdict === 'function')
+    && typeof verdict.then === 'function'
+  ) {
+    return saveAwaited(state, record, answer, op, verdict, commitList);
+  }
+  if (isSaveSuccess(verdict)) {
+    saveSucceededEntry(state, op, commitList);
+    return null;
+  }
+  throw saveFailedEntry(state, op, commitList, verdict);
+}
+
+/// **THE AWAITED ARM: ONE COMPOSED SETTLE, ITS HEAD THE SAVE AND ITS TAIL THE DELIVERED SET** (`D-153` item 2).
+///
+/// **It resolves on every input and rejects on none.** The verdict entry runs, **the caller's words are appended on the
+/// commit's list BEFORE anything is answered**, and then either **the delivered set is started** — this file's one
+/// `deliver`, with the same four positions the synchronous arm hands it, so the save still precedes every body it starts
+/// (`§2.11` clause 2) — or **a refusal datum is resolved**, which the tail reads and throws.
+function saveAwaited(state, record, answer, op, pending, commitList) {
+  const ownsDelivery = state.legDelivery !== 'member';
+  const composed = (async () => {
+    let verdict;
+    try {
+      verdict = await pending;
+    } catch (thrown) {
+      // **A REJECTED ANSWER IS THE FAILED ARM**: the reason is the caller's and is neither read, stored nor rendered.
+      verdict = null;
+    }
+    let refusal;
+    try {
+      if (isSaveSuccess(verdict)) {
+        saveSucceededEntry(state, op, commitList);
+        if (!ownsDelivery) return settleOfNothing();
+        const triggered = Array.isArray(record.pending) ? record.pending.slice() : [];
+        const triggeringAddress = answer === null || answer === undefined
+          || answer.op === null || answer.op === undefined
+          ? undefined
+          : answer.op.address;
+        const delivered = deliver(state, triggered, triggeringAddress, true);
+        return delivered === null ? settleOfNothing() : delivered;
+      }
+      refusal = saveFailedEntry(state, op, commitList, verdict);
+    } catch (thrown) {
+      // **A VERDICT ENTRY'S OWN REFUSAL IS THE FAILED ARM AND NEVER THE CALLER'S ANSWER**: carried as the datum, at the seat
+      // it names, and never as a rejection of the settle.
+      refusal = refusalFormOf(thrown, op, commitList);
+    }
+    record[SAVE_FAILED_AT_THE_TERMINAL_ARM] = refusal;
+    return { refusal };
+  })();
+  // **THE MARK IS DEFINED AND NOT ASSIGNED** (`F8-2`'s write vector): a promise is an object, and `[[Set]]` would walk the
+  // chain a caller owns.
+  Object.defineProperty(composed, SAVE_SETTLE, {
+    value: true,
+    enumerable: false,
+    writable: false,
+    configurable: true,
+  });
+  return composed;
+}
+
+/// **⟶ ADDED 2026-11-17 — `saveAtRegistration(state, opId)`: THE `saveCall` ARM AT A REGISTRATION INSTANT**
+/// (`D-133` item 3; `D-144` item 1; `D-146`; the terminal arm's own trio below is its precedent, act for act).
+///
+/// **THE THREE ACTS IN `§2.11` CLAUSE 2'S OWN ORDER, AND THE INSTANT IS THE REASON THEY ARE SPELLED APART FROM
+/// `saveThroughCaller`**: the export, the caller's function at ONE position, and the verdict entry — **and no delivery is
+/// started here**, because the instant's delivery is `registrationDelivery`'s own and starting a second one would invoke a
+/// body twice (`D-104` item 2's once-per-distinct-handle law).
+///
+/// **A FAILED SAVE IS `saveFailed(opId)` FIRST AND THE ONE FORM SECOND** (`D-146` item 1; `§2.11` clause 5): the store
+/// unwinds, and rank `15` `FileCommitFailed` crosses with the caller's `message[]` carried as the fifth kind's entries where
+/// a commit list stands to carry them — **and at this instant it is `null`, because the close that names this op has no
+/// record in hand** (`design.md §4`'s own note on the instant), so the words ride the copy the helper builds.
+///
+/// **★ AND AN AWAITED SAVER IS A DECLARED BOUNDARY HERE, STATED RATHER THAN SILENTLY UNCONFIRMED.** A construction is
+/// SYNCHRONOUS (`D-147` item 2), so this frame cannot wait for a thenable: **an answer that is a thenable takes the failed
+/// arm and refuses the act at rank `15`**, because a save this frame cannot confirm must not be claimed. **The `saveCall`
+/// key's own declaration says so in the same breath as its `(async optional)` domain**: the asynchrony is a WRITE's, and a
+/// construction's save is synchronous by construction.
+function saveAtRegistration(state, opId) {
+  const addon_ = withAddon();
+  // **THE EXPORT IS THE STORE'S OWN ACT AND IT MARKS NOTHING** (`D-137` item 2).
+  const text = carryRefusal(() => addon_.exportImage.call(state.receiver), [], null, null);
+  let verdict;
+  try {
+    verdict = Reflect.apply(state.saveCall, undefined, [text]);
+  } catch (thrown) {
+    throw saveRegistrationFailure(state, opId, null);
+  }
+  const awaited = verdict !== null
+    && (typeof verdict === 'object' || typeof verdict === 'function')
+    && typeof verdict.then === 'function';
+  if (!awaited && isSaveSuccess(verdict)) {
+    const wire = encodeOpId(opId);
+    carryRefusal(() => addon_.saveSucceeded.call(state.receiver, wire), [wire], null, null);
+    return undefined;
+  }
+  throw saveRegistrationFailure(state, opId, awaited ? null : verdict);
+}
+
+/// **THE REGISTRATION INSTANT'S FAILED ARM**: `saveFailed(opId)` first, then the one form at rank `15` with the caller's
+/// words as `'save'`-kind entries (`D-146` item 1; `D-145` items 1–2; `D-153` item 1). **The store's own rollback runs
+/// before the form is built**, and **no journal entry survives it**.
+function saveRegistrationFailure(state, opId, verdict) {
+  const addon_ = withAddon();
+  const wire = encodeOpId(opId);
+  carryRefusal(() => addon_.saveFailed.call(state.receiver, wire), [wire], null, null);
+  const op = { opId, address: null };
+  const log = appendSaveMessages(null, op, verdict);
+  return saveFailureForm(op, log);
+}
+
+/// **`saveSucceeded(opId)` AT THE ONE INSTANT IT IS OWED** (`D-144` item 6; `D-145` item 3): the record the save was owed for
+/// is marked saved and **no byte moves**. Its one position is the op id, encoded exactly as `commitFile`'s is.
+function saveSucceededEntry(state, op, commitList) {
+  const addon_ = withAddon();
+  const wire = encodeOpId(op.opId);
+  carryRefusal(() => addon_.saveSucceeded.call(state.receiver, wire), [wire], commitList, op.address);
+}
+
+/// **`saveFailed(opId)` AND THE CALLER'S WORDS, THEN THE SURFACE'S ONE FORM** — the failed arm's three acts in the declared
+/// order: **the rollback FIRST** (`D-146` item 1; `§2.11` clause 5), **then one `'save'` entry per string on the commit's
+/// own list**, **then the rank-`15` form**. **It answers the form and throws nothing**: the synchronous arm throws it at its
+/// own site, and the awaited arm resolves it as a datum.
+function saveFailedEntry(state, op, commitList, verdict) {
+  const addon_ = withAddon();
+  const wire = encodeOpId(op.opId);
+  carryRefusal(() => addon_.saveFailed.call(state.receiver, wire), [wire], commitList, op.address);
+  const log = appendSaveMessages(commitList, op, verdict);
+  return saveFailureForm(op, log);
+}
+
+/// **THE ONE FORM, AT RANK `15`, WITH THE STORE'S OWN SENTENCE** (`D-145` item 1): **its `message` is asked of the
+/// generator, never authored here**, and its `path` slot's disposition on an arm with no path is a spec byte and not this
+/// pass's (`design.md §7` `O-8`).
+function saveFailureForm(op, log) {
+  const addon_ = withAddon();
+  const spelled = Array.isArray(op.address) ? addressSpelling(op.address) : '';
+  return {
+    status: FILE_COMMIT_FAILED,
+    message: addon_.errorMessage(FILE_COMMIT_FAILED, spelled),
+    log: refusalLog(log),
+    address: refusalAddress(op.address),
+  };
+}
+
+/// **A REFUSAL A VERDICT ENTRY ANSWERED WITH, RE-SHAPED INTO THIS ARM'S ONE FORM** — its `status` and `message` cross
+/// VERBATIM and `log`/`address` are attached beside them (`surface.md §2.5` item 10 (ii)). **A RAW HOST THROWABLE IS NOT
+/// THIS FORM'S PROVENANCE** (`D-35`'s read half), so its sentence never becomes a refusal's `message`.
+function refusalFormOf(thrown, op, commitList) {
+  const isObject = thrown !== null && typeof thrown === 'object';
+  const status = isObject && typeof thrown.status === 'string' ? thrown.status : null;
+  const message = status !== null && typeof thrown.message === 'string'
+    ? thrown.message
+    : saveFailureForm(op, commitList).message;
+  return {
+    status: status === null ? FILE_COMMIT_FAILED : status,
+    message,
+    log: refusalLog(commitList),
+    address: refusalAddress(op.address),
+  };
+}
+
+/// **THE CALLER'S `message: string[]` AS LOG ENTRIES OF THE FIFTH KIND, ON THE COMMIT'S OWN LIST** (`D-145` item 2;
+/// `D-153` item 1: *"one entry per string, in the commit's own list"*).
+///
+/// **The list is the attempt's own log by identity** (`kernel-commit.mjs` defines `COMMIT_LOG` with `value: attempt.log`), so
+/// the kernel's one appender is handed a carrier whose `log` member IS that array. **Every member is the kernel's own
+/// reading**: `kind` `'save'`, `opId` the op the save was for, `state` `null`, and `id` the op's address spelling. **A string
+/// is the only member that crosses** — a non-string is skipped — and no caller text is ever rendered into a sentence this
+/// package authored.
+///
+/// **⟶ AND THE LIST IS CHOSEN BY ONE FACT THE AWAITED ARM MAKES TRUE, MEASURED 2026-11-17**: the pass SEALS the commit's
+/// list when it closes (`D-119`'s `sealHandoff`), and on the awaited arm the pass has already closed — so an append to it
+/// raises a raw host `TypeError` on a refusal path. **The entries are carried anyway and nothing is mutated**: where the
+/// list is still open (every synchronous arm) they are written into it and the refusal's `log` IS that array by identity;
+/// where it is sealed, they ride a copy taken at their own instant, in the same append order.
+function appendSaveMessages(commitList, op, verdict) {
+  const messages = verdict !== null && typeof verdict === 'object' && Array.isArray(verdict.message)
+    ? verdict.message
+    : [];
+  const spelled = Array.isArray(op.address) ? addressSpelling(op.address) : null;
+  const open = Array.isArray(commitList) && Object.isExtensible(commitList);
+  const carried = open ? commitList : (Array.isArray(commitList) ? commitList.slice() : []);
+  for (let i = 0; i < messages.length; i += 1) {
+    const message = messages[i];
+    if (typeof message !== 'string') continue;
+    append({ log: carried }, 'save', { pair: { id: spelled }, op }, message, null);
+  }
+  return carried;
+}
+
+/// **`{success: true}` AND NOTHING ELSE** (`D-144` item 1): the boolean is the verdict and the array is the reason.
+function isSaveSuccess(verdict) {
+  return verdict !== null && typeof verdict === 'object' && verdict.success === true;
+}
+
+/// **THE SETTLE OF A DELIVERED SET THAT STARTED NOTHING THAT SUSPENDED** — the same two data `deliver`'s answer carries on
+/// the all-synchronous arm, built at the frozen empty it is.
+function settleOfNothing() {
+  return { failures: BODY_FAILURES_EMPTY, settled: [], invoked: [] };
 }
 
 /// **⟶ THE ORDERING SEAM IS REMOVED WHOLE, 2026-10-18 — `settle(record)` IS NOT A MEMBER OF THIS PRODUCT.

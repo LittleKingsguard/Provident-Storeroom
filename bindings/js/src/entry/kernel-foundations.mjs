@@ -1017,7 +1017,16 @@ export function commitLogInFlight(kernel) {
 
 // ---------------------------------------------------------------------------------------------
 // THE MESSAGE LOG (`kernel-surface.md §2.5` item 1; `PAR-C-4`). FIVE MEMBERS — `kind` · `id` · `opId` ·
-// `message` · `state` — ONE KIND PER ENTRY: `constraint-check` | `repair-run` | `commit` | `outcome`.
+// `message` · `state` — ONE KIND PER ENTRY: `constraint-check` | `repair-run` | `commit` | `outcome` | `save`.
+//
+// **⟶ AND THE FIFTH MEMBER IS ADDED 2026-11-17 — `D-153` ITEM 1, THE ARCHITECT, VERBATIM: *"1. take first option"***
+// (`strata/decisions.md` · `D-153`), given to the design's `O-1` and spelled there as **`'save'`** — lowercase like the
+// four before it, and its subject is the durable act the package performed on the store's behalf. **The set moves
+// `4 → 5` and nothing else moves**: the entry's five members are unmoved, `append` mints no second shape, and a `'save'`
+// entry carries one caller word per string (`D-145` item 2's list shape, one entry per string), with `opId` the op the save
+// was for, `state` `null` (only `outcome` carries a `KC` token) and `id` the op's address spelling. **A `'save'` entry is
+// appended by the terminal arm's failed-save arm alone**, and no clause of this file reads it.
+
 //
 // **⟶ AND THE ENTRY CARRIES NO `seq`, 2026-10-28 — `D-65`: THE ARRAY INDEX IS THE POSITION.** `RCA-8(g)`
 // ANNOTATE-BESIDE: the clause above read *"SIX MEMBERS, `seq` ASCENDING FROM `1`"* and **every other byte of

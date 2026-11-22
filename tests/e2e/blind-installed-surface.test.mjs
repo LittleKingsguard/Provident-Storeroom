@@ -127,8 +127,14 @@ const ENGINES_NODE = '>=22.12.0';
  *  no module and import nothing, so the reachability rule admits them through its own declared non-code class,
  *  and no limb of that rule moves. */
 const ALLOWLIST = ['index.mjs', 'README.md', 'README.guide.md', 'RELEASE-NOTES.md', 'index.d.ts', 'src/entry/', 'src/constraint-kernel.mjs'];
-const ENTRY_MODULE_COUNT = 13;
-const PACKED_FILE_COUNT = 20; // 1 package.json + 5 root files + 13 entry modules + 1 kernel = 20 ✓
+// **⟶ AND THE TWO FIGURES MOVE WITH THE ENTRY'S OWN PARTS, 2026-11-17** (`D-157` item 1; the second realm's
+// loader split added `class-instrument.mjs`, `addon-slot.mjs`, `artefact-node.mjs`, `instance.mjs` and
+// `kernel-loader.mjs` to `src/entry/`): **the directory has EIGHTEEN modules and the packed set carries
+// `1 package.json + 5 root files + 18 entry modules + 1 kernel = 25`.** **THE FIGURES ARE THE PART SET'S OWN
+// MEASUREMENT AND NOT A CONSTRAINT ON THE DESIGN** (`P-PUB-7`'s doctrine: *"a fourteenth part … is a LAWFUL change
+// and a pinned figure would go red on the commit that lands it"*).
+const ENTRY_MODULE_COUNT = 18;
+const PACKED_FILE_COUNT = 25; // 1 package.json + 5 root files + 18 entry modules + 1 kernel = 25 ✓
 /** The consumer guide's landed name at the packaging root — the assembly's stage target, beside `README.md`. */
 const GUIDE_MEMBER = 'README.guide.md';
 /** **THE CHANGE LIST'S LANDED NAME** — `DEF-AC` (a)'s stage target, the guide's landing one document over. */

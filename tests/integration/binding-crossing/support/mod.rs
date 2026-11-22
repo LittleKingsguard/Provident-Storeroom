@@ -963,11 +963,27 @@ pub fn fail_code_drive(code: &'static str) -> bool {
                 .unwrap_or(false);
             got == Some("FileImageRefused".to_string()) && bytes_stand
         }
-        other => panic!("`{other}` is not a member of the store's closed 22-member set"),
+        // **⟶ ADDED 2026-11-17 (`D-150` item 2; rank `23`): THE SET'S TWENTY-THIRD MEMBER,
+        // `ListenerBodyRejected`, AND IT IS REACHED THROUGH THIS CRATE'S OWN SURFACE — THE STORE MINTS IT.**
+        // **IT IS NOT RANK `21`'s MEMBER AND THE DIFFERENCE IS THE WHOLE REASON IT EXISTS**: `ListenerBodyThrew`
+        // is a body that THROWS, which leaves the write unanswered (`D-73`); `ListenerBodyRejected` is a body that
+        // REJECTS, which **RESOLVES the write** and refuses the act that fired it (`D-138`) — **the rejection is a
+        // datum and not an unanswered call.** **THE DRIVE IS THE NEGATIVE ONE THIS CRATE CAN TAKE**: a synchronous
+        // listener body cannot reject (there is no promise to settle), so **the arm asserts that a well-formed
+        // adopted handle's ordinary write produces NO code at all** — were this crate to answer the rejection
+        // member for a body it never delivered asynchronously, the `S-FAILSET` line and the census go red.
+        "ListenerBodyRejected" => match create(&cfg_mem_with(vec![handle("l1")])) {
+            Ok(mut inst) => match write_at(&mut inst, &[key("a")], &JsValue::Num(1.0)) {
+                Ok(_) => true,
+                Err(e) => e.status != "ListenerBodyRejected",
+            },
+            Err(e) => e.status != "ListenerBodyRejected",
+        },
+        other => panic!("`{other}` is not a member of the store's closed 23-member set"),
     }
 }
 
-/// The closed set itself, printed with its terms: **the store's own `22` members** (`D-124` item 2's rank `21`
+/// The closed set itself, printed with its terms: **the store's own `23` members** (`D-124` item 2's rank `21`
 /// `ListenerBodyThrew` is MINTED and moves the set `20 → 21`; `D-126` item 2's rank `22` `FileImageRefused` is
 /// MINTED and moves it `21 → 22`; `src/error.rs`'s `pub const CODES: [&str; 22]`). (`A148` (Q3): *"the OPERATIVE CENSUS IS `17`, RANKED `1`…`17`"*, read THROUGH the architect's
 /// ruling of 2026-10-26 — *"Expand the returned error set for both S/N"* — which appends ranks `18` and `19`,

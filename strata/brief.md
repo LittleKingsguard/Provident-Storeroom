@@ -70,6 +70,15 @@ concrete shape is more specific than the sentence:
   `require` condition serving a CJS host through Node's own `require(esm)` at or above the declared floor. That
   is a SUPPORTED ROUTE into the claimed realm AND NOT A SECOND CLAIMED REALM. No CJS build ships: no `.cjs`, no
   `main`, no second module (`docs/specs/storeroom-js/contract.md` `§3.1`'s and `§3.2`'s 2026-11-17 clauses).**
+  **⟶ RE-SAID 2026-11-17 (`D-154` item 1; `strata/decisions.md`): *"The claimed realm is Node ESM and nothing
+  else"* is the NODE BUILD'S realm and not the package's whole claim. A SECOND BUILD is now permitted AND
+  supported as a build, and it exists: a WebAssembly build of the same store, its bindings handed in instead of
+  looked for (`bindings/js/wasm/index.wasm.mjs`: `storeCreate(bindings, cfg)`, no `filePath` in its `cfg` and not
+  one `std::fs` call compiled). NOTHING OF IT SHIPS: no `.wasm` artefact stands in the package's `files`, no
+  second entry stands in the published `exports` map, and that build's canonical home is a shipped cell's
+  question and `delivery`'s. The unclaimed set above stays unclaimed FOR THE NODE BUILD, and the browser's
+  `HO-5` row stays with its duty narrowed to what the package still does not ship to it
+  (`docs/specs/storeroom-js/contract.md` `§3.2`'s and `§5.7`'s 2026-11-17 clauses).**
 - **Licence of record:** `LICENSE` is `AGPL-3.0` and travels with every published artefact at assembly time.
   **Three spellings stand in the tree and they are not identical:** the root `Cargo.toml` says
   `GPL-3.0-or-later`, `bindings/js/Cargo.toml` says `AGPL-3.0-or-later`, and `bindings/js/package.json` says
