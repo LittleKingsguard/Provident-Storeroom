@@ -9305,3 +9305,31 @@ asserted nowhere** (`D-184` item 4).
 - **(b) WHETHER `JournalOp.compacted` SURVIVES THE DROP** (`D-160` item 4 of its unsettled, still owed). **The member is produced and always `false`; with entries
   DROPPED rather than flagged, its subject may be gone** — which is a declaration about the record's shape, not a fix. **THE ARCHITECT'S.**
 - **(c) THE RELEASE ACT** — the class is claimed (`D-158`, `1.13.0`) and **no tag is cut**. **`delivery`'s.**
+
+---
+
+### `D-189` — TWO ARCHITECT'S DECISIONS: THE MARK KEEPS ONE FLOOR SPELLING, AND `JournalOp.compacted` IS DROPPED
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `0c7c4a3`. **SOURCE:** the architect, on `D-188` items (a) and (b). **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Keep floor-only"
+> "If .compacted is always false drop it"
+
+**STATUS: `ACTIVE`.**
+
+1. **THE MARK KEEPS ONE SPELLING — THE FLOOR.** **No second carrier row is minted for `{k:'F'}`**, so **the absent position names the floor and the guides and specs
+   already carry that sentence**, and **a caller cannot be told the two classes apart** (a store nothing has been dropped from, where the floor *is* `born`; and a store the
+   compaction has dropped from whose journal is momentarily empty). **THE DECISION IS SOUND ON ITS OWN EVIDENCE**: **the two classes answer the SAME RESTORE**, so a
+   distinction no caller can act on would be a carrier row bought for nothing. **`D-180` item 1's *"needs a second spelling"* is ANSWERED and not deferred**: what it
+   needed was a sentence true of both classes, and the floor is that sentence.
+2. **`JournalOp.compacted` IS DROPPED — AND THE DIRECTIVE IS A CONDITIONAL ANSWERED BY THE TREE.** **MEASURED: the member is produced at two sites
+   (`src/store.rs:2981`, `:3153`) and BOTH SET IT `false`.** **So a member that can hold one value carries nothing**, and its subject — the discrimination
+   `compacted: Vec<String>` once made between *"an op this store compacted"* and *"an op this store never held"* — **is now carried by the `journal_floor` watermark**
+   (`D-160` item 3), which answers `RollbackCompacted` and `JournalOpUnknown` as two distinct refusals **without a per-op flag**. **The removal is a surface change and
+   the class is the architect's next word** (`D-190`): `index.d.ts:694` declares `readonly compacted: boolean` on the PUBLISHED `JournalOp`, so **removing it is breaking
+   against `1.12.0` and `D-158`'s `1.13.0` `MINOR` cannot absorb it.**
+3. **WHAT THE REMOVAL TOUCHES, ENUMERATED SO THE UNIT IS SIZED**: `src/records.rs:176` (the field) · `src/store.rs`'s two producers · `bindings/js/src/entry/frame.mjs:607`
+   and `state.mjs:512` (the two projections) · **`bindings/js/index.d.ts:694`** (the declared member and its `678`–`684` prose) · **`src/store.rs:625`/`:668`'s
+   docblock mentions** and `:2335`'s · **every cell that counts the record's members** (the live-instrument cell `D-184` item 1 landed asserts **eight**, and the capture
+   cell's eight-member claim) · **the specs** (`storeroom-native` `§6.2`'s `compacted` member, `storeroom-delivery-settle`'s record rows) · **the notes**
+   (`§1.13.0`'s item naming it) · **the guides**, where it appears as *"`compacted` still reads `false`"* (§5.4 item 4).
