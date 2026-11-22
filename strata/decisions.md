@@ -9418,3 +9418,41 @@ asserted nowhere** (`D-184` item 4).
    `triggered: []`**, with the `D-78` sentence written in the same pass · **`Q-5` the suppression REACHES THE CONSTRAINTS** — they are one predicate with the listeners
    (`D-69`), **and a write a pair would have refused on must not become admissible because its value was equal** · **`Q-10` its own `MAJOR`** (`2.0.0` is spent; the next
    number is the architect's word and this row does not mint it).
+
+---
+
+### `D-194` — `P-3`'S DESIGN IS LANDED AT `docs/L3/change-detection/design.md`: THE COMPARISON'S SITE IS PINNED, AND ONE CLAUSE BLOCKS IT
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `040e40b`. **SOURCE:** `role_l3_designer`'s design, landed by the supervisor. **STATUS: `ACTIVE`.**
+
+1. **THE COMPARISON IS PINNED AT ITS BYTES AND IT COSTS NOTHING.** The before literal is **the assembled value of the lowest-rank version standing at the pair's own
+   node, read out of the `Vec<Captured>` the write takes at `src/store.rs:2911`** — **`capture` assembles every standing version whether or not anything reads it, so the
+   design adds NO assembly, NO walk and NO store member**; the after literal is **the `value` parameter the act lands**; and the comparison is **one boolean at
+   `:2911`–`:2916`, consumed at `:3006`–`:3007`**, before `remove_refs` at `:2967` destroys the versions the pre-literal is assembled from. **The rule in one sentence:
+   the act is a change iff the value an unqualified read answers at the address is not the literal it will answer afterwards.**
+2. **ABSENCE NEEDS NO BRANCH.** `Undefined` **is not admitted** (`src/value.rs:39`–`:47`), so **no admitted literal can compare equal to the absent state** — *"a first write
+   is a change"* follows from the taxonomy and not from a test — and `D-66`'s own sentence declares it besides.
+3. **★ AND THE RULING'S PRICE IS NOW A CELL AND NOT A PROHIBITION**: `CD-2` drives `file V` then `mem V` and **asserts `triggered: []` BESIDE `readTiered` moving from
+   `{_tier:'file'}` to `{_tier:'mem'}` and the version count growing `1 → 2`**, so **that red is a DECLARED state rather than a defect a later pass repairs** (`D-193`
+   item 3). `CD-3` does the same for the purge direction and `CD-9` for `-0` (`D-193` item 4), with `sameStanding`'s disagreement asserted on the record.
+4. **THE SUPPRESSION IS ENUMERATED ACT BY ACT, AND WHAT IT DOES **NOT** SUPPRESS IS NAMED ON PURPOSE** (§3's eleven rows): the journal op **is still minted** and its
+   `seq` still bumps and the compaction can still drop the oldest entry · **the `file` save STANDS** (`save_owed`'s first disjunct answers before any departure test)
+   · **the touched arm is NOT narrowed** · **`log` keeps its `commit` entry** · **`bodyFailures` and `returnedValues` are the one shared frozen `{}`** · and the discarded
+   witness is `[]` **because no body ran and therefore no raise was born**, not because a raise was lost (`D-170`).
+5. **THE RISKIEST LINE IS ONE TOKEN**: ***"the term wraps the prefix arm and not the predicate."*** **A short-circuit of the two returned lists where `changed` is false
+   reads as the same optimisation and silently narrows the TOUCHED arm** — a second identical structured write would stop firing below it — **and `CD-6` is the cell that
+   catches it.** The cheaper near-miss is reading `state_from_captured`'s answer (**the per-tier list**) instead of the lowest-rank captured entry: **`D-193` item 1 undone
+   in one line**, green on every ordinary scalar re-write and wrong exactly where the ruling's price lives — **`CD-2`/`CD-3` catch it.**
+6. **★ AND ONE CLAUSE BLOCKS IT (`O-1`), WITH NO THIRD ARM.** **Does `watched` narrow with `triggered`, and does `P-TP-8` (e) move with (a)?** **The store's own projection
+   law says the two lists come from ONE predicate** (`src/store.rs:2567`–`:2570`), and **`P-TP-8` (e) declares `watched` exactly the prefix set *"with no member added, none
+   omitted"*** — **so either (e) is amended beside (a), or the two lists disagree and the store's own sentence is false.** **THE DESIGN'S DEFAULT IS THAT `watched` NARROWS WITH
+   `triggered` AND (e) IS AMENDED IN THE SAME BOUNDED AMENDMENT AS (a)**, and the architect's word is what settles it.
+7. **EIGHT OPEN QUESTIONS, EACH WITH A DEFAULT, ONE BLOCKING** (§8): `O-1` (blocking) · **`O-2` which literal when two versions stand** (default: the lowest-rank, the
+   unqualified read's answer) · **`O-3` does the rule silence ANCESTORS** (default: yes — it is the criterion) · **`O-4` what `triggered: []` lets a caller conclude**
+   (default: the `D-78` sentence, declared indistinguishable) · **`O-5` does a no-change `file` write still save** (default: yes) · **`O-6` `D-152`'s *"changed"*** (default:
+   act-existence, and its union narrows with the store's set) · **`O-7` a repair's own write** (default: obeys mechanically) · **`O-8` the version number** (default
+   `3.0.0`, and the number is his word).
+8. **THE ONE CELL NOBODY WOULD LOOK AT IS NAMED**: `constraint-kernel-properties.test.mjs:1121` asserts `triggered` carries two handles from a write of the constant `1` at a
+   **fixed-seed random address**, and **nothing in its title, clause or row id mentions changing a value** — so it turns if that seed ever draws an address it already used.
+   Two neighbours are one step from the same red: `e2e_listener_firing.rs:1063` (`lf_c7`, green only because its three values are `1.0`/`2.0`/`3.0`, **which it never declares
+   load-bearing**) and `held-listener-identity-greens.mjs:676`'s two-pair count.
