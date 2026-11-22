@@ -8996,3 +8996,41 @@ its unsettled stays open, narrowed.**
    next pass that owns cells; **the equivalence drive is its evidence and is not a substitute for it.**
 7. **MEASURED**: `npm test` **`1385` / `1384` / `0`** · `typecheck` `0` · `cargo test` **22 `ok` / 0 FAILED** · `cargo check --target wasm32` **0 errors** ·
    `npm run build` `0` · the arm's **eight** cells green and its **nineteen** entries unmoved · **`CHAIN COMPLETE — 11 runners`**.
+
+---
+
+### `D-180` — THE PUBLISH LEDGER, TAKEN ON THE FINAL TREE: NOTHING BLOCKS, AND EIGHT RESIDUALS ARE NAMED FOR AFTER
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `c8eec15`. **SOURCE:** the architect's question, answered from the tree and not from the record.
+**STATUS: `ACTIVE`.**
+
+**THE FLOOR, TAKEN ONCE ON THIS TREE AFTER EVERY LANDING**: `npm test` **`1386` / `1385` / `0`** (`1` deliberate skip) · `typecheck` **`0`** · `cargo test`
+**22 `ok` / 0 FAILED** · `cargo check --target wasm32` **0 errors** · `npm run build` **`0`** · **the installed battery `EXIT 0`, 15 cells `PASS`** (`INSTALL-09`
+`LAYER-LIMIT` for the four non-host declared names) · **`CHAIN COMPLETE — 11 runners, every one exit 0`** · the arm's **8** cells green, its **19** entries
+unmoved. **NOTHING BLOCKS A PUBLISH.**
+
+**AND TWO ROWS FROM THE SAME LIST AS `O-3`/`O-8` ARE CLOSED BY MEASUREMENT IN THIS PASS**: **`O-6`** — a malformed op id at the new entries answers **one**
+classifier (`rollback('not-an-op')`, `rollback('op-')`, `rollback('op-999999')` and a malformed mark carrier each answer **`JournalOpUnknown`** with the id named
+in the message) · and **`O-4`** was closed by `D-151`'s fix. **`JournalOp.compacted` HAS ITS PRODUCERS** (`src/store.rs` sets it at both op-minting sites,
+always `false`), so `D-160` item 4's *"no producer"* is the milder and true form: **a declared member with a constant**.
+
+**THE EIGHT RESIDUALS, EACH WITH ITS OWN REASON AND ITS OWN OWNER:**
+
+1. **`{k:'F'}`'s renderer** still says *"the state the store was born with"*, and **the store CANNOT distinguish its two classes at that entry** — a store
+   nothing was dropped from (`floor = born`, sentence true) and one the compaction dropped from whose journal is momentarily empty (reachable through
+   `commit_file`'s failing arm, sentence false). **IT NEEDS A SECOND SPELLING FOR THE ABSENT POSITION** — a design act, not a fix (`D-179` item 4).
+2. **`D-178` item 4's capture-point question is answered by `D-179` and NOT by a measurement of the cost**: the floor advances **by the dropped entry** (O(one
+   entry)), so option (a)'s priced "one full assembly per compressing append" **was never needed and was never taken** — which is the better answer and one nobody
+   has measured the alternative against. **A cost note, not a hazard.**
+3. **`NG-PUB-F`'s inert control** — its as-filed half splices a `node:path` call into a part that no longer imports one. **A test-writer item** (attempted twice,
+   reverted both times rather than landed half-right).
+4. **Two spec parts the cells cite are NOT ON THIS TREE** — `seams-and-lifecycle.md` and `crossing.md`, **36 citations**, declared at the JAS runners' heads.
+   **A corpus-completeness item; no test can fix it and no pass may re-point a citation without knowing where the law now stands.**
+5. **One skipped cell** — `sas_d3_s_parity_…` skips with its reason (*"the old dispatcher shape is absent after the split; the golden was captured before
+   it"*). **A golden without a subject: it should be RETIRED rather than skipped**, since a skip is a cell that never executes and cannot fail.
+6. **`replayMark` and `regenerate` answer different questions and that is DELIBERATE** (`D-179` item 4): `regenerate` keeps `born` because it regenerates from the
+   file image (`D-164`'s arm). **Named here so a later pass does not unify them by tidiness.**
+7. **The release act** — the class is claimed (`D-158`, `1.13.0`, a `MINOR`) and **no tag is cut** (`D-57`). **`delivery`'s act.**
+8. **The `WeakMap`'s id-only read** — `D-175`/`D-176` preserved `§2.15`'s two forms through a weak id index, so **nothing is owed**; what remains is that
+   **`closedIds` is bounded by a sweep of every 256 seals and by nothing else** — a bound with a constant in it, like the window it replaced, and **the only
+   one left in that file.**
