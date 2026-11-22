@@ -2329,14 +2329,21 @@ tree sharing no mutable member with the store or with another crossing**, which 
 | host | where the raise is taken | judged? |
 |---|---|---|
 | `H1` | a constraint body, during a **write's pass** | **JUDGED** — the pairs asked `[9, 7, 5]` |
-| `H2` | a repair body, during a **write's pass** | **JUDGED** — `[9, 7, 5]` |
+| `H2` | a repair body, during a **write's pass** | **JUDGED** — `[9, 7, 9]`: the terminal ask is the state the pass's own rollback left |
 | `H3` | a listener body, in a **write's delivery** | **JUDGED** — `[9, 5]` |
 | `H4` | a **registration's own evaluation** | **NOT JUDGED** — `[9]`; the DECLARED window (item 2 above) |
 | `H5` | a **`delete`'s listener delivery** | **NOT JUDGED** — `[9]`, and `discarded` reports it; the DECLARED window (item 1 above) |
 | `H6` | a constraint body, during a **`delete`'s own pass** | **JUDGED** — `[9, undefined, 5]` |
 | `H7` | a **reentrant reversal-then-write** (a listener reverses, then writes) | **JUDGED** — `[9, 5]` |
 
-**SO THE MEASURED SET IS FIVE JUDGED AND TWO NOT, AND THE TWO ARE EXACTLY THE TWO WINDOWS DECLARED IN THE LIST ABOVE.** **A raise taken inside a pass is judged by that pass's own terminal check whichever verb opened the pass; a raise taken where NO PASS RUNS AT ALL — a registration's evaluation, a `delete`'s listener delivery — is not, and its effect stands, with the two exits intact.** (`D-42`; `D-54`'s three hosts, its item (a) and (b); `D-55` item 3; `D-64`; `tests/e2e/discard-witness.mjs` section `W16`, cells `DW-16.1`–`DW-16.4`: `DW-16.1` — `H6` judged, the asks, the refusal and the store printed — is **RED under a `/tmp` revert that removes the `delete`'s pass**, and `DW-16.3` — the seven-row table — is RED with it.)
+**SO THE MEASURED SET IS FIVE JUDGED AND TWO NOT, AND THE TWO ARE EXACTLY THE TWO WINDOWS DECLARED IN THE LIST ABOVE.**
+
+**⟶ AND WHAT MAKES A ROW "JUDGED" IS NOW STATED RATHER THAN IMPLIED, 2026-11-17 — `D-168`, THE ARCHITECT, VERBATIM: *"Always judge the
+current state."*** **The judgement's subject is the state your store stands in at the instant it runs** — the kernel reads it off the store
+at that moment, so the value a pair is handed **is** the store's current read and cannot be a snapshot of an earlier one. **So a row is
+JUDGED when a judgement ran over the act, and the arrays beside it name the states the pair was handed — not a state it ought to have been
+handed.** **`H2`'s row shows the difference plainly**: a repair body's reversal is followed by the failing write's own rollback, so the
+terminal judgement is taken at the rolled-back state — *that* is the current state, and judging it is the law, not a lapse. **A raise taken inside a pass is judged by that pass's own terminal check whichever verb opened the pass; a raise taken where NO PASS RUNS AT ALL — a registration's evaluation, a `delete`'s listener delivery — is not, and its effect stands, with the two exits intact.** (`D-42`; `D-54`'s three hosts, its item (a) and (b); `D-55` item 3; `D-64`; `tests/e2e/discard-witness.mjs` section `W16`, cells `DW-16.1`–`DW-16.4`: `DW-16.1` — `H6` judged, the asks, the refusal and the store printed — is **RED under a `/tmp` revert that removes the `delete`'s pass**, and `DW-16.3` — the seven-row table — is RED with it.)
 
 **⟶ AND THE SENTENCE THAT STOOD HERE IS WITHDRAWN AS FALSE, 2026-10-28 — `D-54`, MEASURED, AND IT IS WITHDRAWN RATHER THAN NARROWED. THE BYTES WERE: *"And every pass that DOES run drains its own restart request — so the fail-state is bounded by the two acts that run none."* THE CONSUMER MEASURED THREE HOSTS WHERE NEITHER HALF HOLDS — a repair body, a delete's pass, and a reentrant reversal-then-write — AND IN EACH ONE A PASS RAN, THE REVERSAL WAS LEFT UNJUDGED, AND ITS EFFECT STOOD (zero judge invocations; the refused `5` still there). What follows replaces them and is true of the code after that fix.**
 

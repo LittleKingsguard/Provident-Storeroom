@@ -169,6 +169,15 @@ rebuild will read sixteen reds that are not defects.
    re-cut of three predicates to the kinds `LogKind` already declares, and it is a TEST-WRITER ACT: no pass of this
    kind may make it, and this one did not.** **IT STAYS A BLOCKER IN THIS REVIEW'S OWN TERMS** (`§10.1`'s opening
    sentence counts it as one), **and it is the LAST ONE STANDING**.
+
+   **⟶ AND IT IS DISCHARGED `2026-11-17` — BY THE RULING AND THEN BY THE RE-CUT** (`D-168`: *"Always judge the current state"*).
+   **THE RULING SAID WHICH SIDE WAS WRONG**: the judgement's subject is the state the store stands in at the instant it runs
+   (`kernel-terminal.mjs`'s `baseState` is `store.read(address)`), so a cell asserting *"the pair was handed the state the reversal
+   left"* asserted a subject no ruling requires. **THE THREE PREDICATES ARE RE-CUT, AND THE RUNNER READS `AUTHORED 85 · EXECUTED 85 ·
+   PASS 85 · FAIL 0`, `exit 0`** — the log census to the declared kinds' three entries, the state predicate to **`context.value`
+   ≡ `store.read(address)` at every ask**, and "judged" to *the judgement ran over the act*. **`H2` is JUDGED and `H4`/`H5` remain the
+   only unjudged hosts, which are `D-54`'s own withdrawn windows.** **THE PROVENANCE IS WEAKER AND SAYS SO AT BOTH CELL HEADS**: a runner
+   rewritten by the pass whose ruling broke it is evidence of consistency, never of prediction.
 3. **`RELEASE-NOTES.md`'s `§1.13.0` IS STALE BY TWO BEHAVIOURS.** It was written before `D-160` and `D-162` and **mentions neither**: (a) **the journal DROPS history and `journalLength` is now the width of the compensation window** — a semantic the notes must state, because it conditions `D-108` item 2's *"no landed edit survives a refusal … unconditional"*; and (b) **a closed attempt's report is retained for the most recent `1024` attempts, and a pruned id answers `KC-2`**, the same refusal an id that never named an attempt meets.
    **⟶ AND IT IS FIXED BY THE PASS THAT OWNS THIS CLAUSE, `2026-11-17` — AND BY MORE THAN THE TWO BEHAVIOURS IT NAMED**
    (`RCA-8(d)` ANNOTATE-BESIDE: the entry stands BYTE-FOR-BYTE as the diagnosis). **`RELEASE-NOTES.md`'s `§1.13.0` now

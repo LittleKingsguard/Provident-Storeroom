@@ -8651,3 +8651,29 @@ trigger still read the **mark**, and `docs/specs/storeroom-constraints/contract.
 5. **WHAT IT COSTS, SAID PLAINLY**: on the WASM arm a `Proxy` handed as `cfg` — or as a listeners or constraints batch — is **read** rather than
    refused-for-being-a-Proxy: its traps run for the reads a construction must make anyway, and a target missing a key is refused for the honest
    reason. **The loss is bounded by the API's own surface and no wider.**
+
+---
+
+### `D-168` — ALWAYS JUDGE THE CURRENT STATE: THE JUDGEMENT'S SUBJECT IS THE STATE THE STORE STANDS IN, AT THE INSTANT IT RUNS
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `2b09819`. **SOURCE:** the architect, answering the `D-54` question this supervisor put.
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Always judge the current state"
+
+**STATUS: `ACTIVE`.**
+
+1. **THE JUDGEMENT IS OF THE CURRENT STATE — ALWAYS, AND ON EVERY HOST.** Not the state a repair's reversal left, not the state before a
+   rollback, not a snapshot a caller can point at: **the subject is what the store answers at the instant the judgement runs.**
+2. **AND THE TREE ALREADY DOES IT, BY CONSTRUCTION.** `kernel-terminal.mjs`'s `baseState(store, address)` is
+   `{ present: true, value: store.read(address) }` — **the terminal judgement's base is a READ OFF THE STORE at the moment it is taken**, so the
+   `context.value` a pair is handed **is** the current state and cannot be another. **`D-54`'s symptom (*"zero judge invocations, the refused `5`
+   still there"*) is therefore not a statement about WHICH state should be judged but about whether a judgement ran at all.**
+3. **SO THE THREE `DW` HOSTS ARE RIGHT AND THEIR STATE PREDICATE IS WRONG.** `askedAtSeed(asks)` — *"the pair was handed the state the reversal
+   left"* — **asserts a subject the ruling does not require**: the pair is handed the CURRENT state, and on a repair host that state is what the
+   pass's own rollback left. **The cells are re-cut to the law**: the pair was asked, at the current state (its `context.value` equal to the
+   store's read at that instant), and the pass's log carries the three entries the declared kinds produce.
+4. **AND WHAT `D-54` STILL OWES IS NARROWED TO ITS FIRST HALF**: *"do not let a pass consume a restart request it did not raise."* **The
+   `REPAIR_LEGS_LAST` single slot is that half's mechanism** (`state.mjs:434`/`:882`/`:933` — a flat slot beside a correctly nested
+   `REPAIR_LEGS_OPEN` stack), and **a request lost there means a judgement never runs — which `D-168` does not excuse**: it says what the
+   subject is when a judgement happens, not that a judgement may be skipped. **The host-3 (reentrant) carriage stays owed.**

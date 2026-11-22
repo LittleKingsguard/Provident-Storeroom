@@ -125,6 +125,87 @@ const witnessOf = (record) => (record !== null && typeof record === 'object' && 
 const statusesIn = (v) => (v === null || typeof v !== 'object' ? [] : Object.keys(v)
   .filter((k) => typeof v[k] === 'string' && /^[A-Z][A-Za-z]+$/.test(v[k])));
 
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+// **⟶ THE JUDGEMENT'S SUBJECT, MEASURED AND NOT ASSUMED — ADDED 2026-11-17 (`D-168`).**
+//
+// **THE RULING** (`strata/decisions.md` · `D-168`, 2026-11-17, the architect, verbatim): *"Always judge the
+// current state"* — read whole, with `D-54` (the defect row it answers) and `D-42` (*"Actions inside of an
+// open commit start the constraint check over again"*). **IT SETTLES WHAT AN ASK IS ABOUT**: the judgement's
+// subject is **the state the store stands in at the instant the judgement runs** — *never* the state a repair's
+// reversal left, *never* the pre-write state, *never* a snapshot. **And `D-54`'s symptom (*"zero judge
+// invocations, the refused `5` still there"*) was about whether a judgement RAN, and not about WHICH state it
+// judged.**
+//
+// **THE TREE ALREADY DOES IT BY CONSTRUCTION, WHICH IS WHY THIS FILE MEASURES THE LAW INSTEAD OF ASSUMING A
+// VALUE.** `kernel-terminal.mjs`'s `baseState(store, address)` is `{ present: true, value: store.read(address)
+// }`, and each of the three sites that hand a pair its five-member context reads the store at that instant:
+// `kernel-attempt.mjs`'s pass (the act's own landed value), `kernel-registration.mjs`'s registration
+// (`readCurrent(store, address)`) and `constraints.mjs`'s `judgeReversal` (`standingAt(instance, address)`,
+// taken *"fresh at this instant and not off any op a leg carries"*). **SO THE ONE PROPERTY A CELL HERE MAY
+// CLAIM IS THAT THE TWO READINGS AGREE AT EVERY ASK** — and `recordAsk` takes both readings at once and puts
+// them side by side, so the claim is a measurement rather than a restatement.
+//
+// **THE ABSENT ARM IS THE TREE'S OWN SPELLING AND NOT A HOLE**: where the store refuses the read
+// (`AddressNotFound` — the address a `delete` removed), `baseState` answers `{ present: false, value:
+// undefined }`, so the ask's subject is the ABSENCE and the equality is claimed against `undefined`.
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+/**
+ * **⟶ THE ONE `recordAsk(context, store, address)` — EVERY HOST'S BODY THAT KEEPS AN `asks` ARRAY RECORDS ITS
+ * ASK HERE AND NOWHERE ELSE** (`D-168`). It puts the context's `value` BESIDE the store's own read at the same
+ * address, and `current` is `true` only where the two agree — *"the judgement's subject is the current state"*,
+ * verified directly rather than inferred from a value the drive happened to expect. **The read is taken at the
+ * context's OWN address by default**, the address the pair was handed; a drive may name another.
+ *
+ * **A READ INSIDE A BODY IS LAWFUL AND INERT** (`D-50`: *"If a constraint needs to look for the data at a given
+ * location, it can read()"*; `D-45`: a callback's call enters at the surface; `D-1-bis`: a read consults no
+ * constraint) — it opens no commit, moves no count and judges nothing, which `DW-08.1` measures on this tree.
+ */
+const recordAsk = (context, store, address = context.address) => {
+  let standing = { present: false, value: undefined };
+  try {
+    standing = { present: true, value: store.read(address) };
+  } catch (refused) {
+    standing = { present: false, value: undefined }; // `baseState`'s absent arm, spelled as the tree spells it
+  }
+  const attemptId = context.attempt === null || context.attempt === undefined ? null : context.attempt.id;
+  const opId = context.op === null || context.op === undefined || context.op.opId === undefined
+    ? null
+    : context.op.opId;
+  return {
+    value: context.value,
+    attempt: attemptId,
+    op: opId,
+    present: standing.present,
+    read: standing.value,
+    current: standing.present === true ? Object.is(context.value, standing.value) : context.value === undefined,
+  };
+};
+
+/** **`D-168`'S LIMB ONE — THE PAIR WAS ASKED AT ALL.** A host that asks its pair nothing has no judgement and
+ *  no ask, so every further limb is read behind this one. */
+const askedOf = (asks) => Array.isArray(asks) && asks.length >= 1;
+
+/** **`D-168`'S LIMB TWO — EVERY ASK'S `context.value` WAS THE STORE'S OWN READ AT THAT INSTANT**, which is the
+ *  ruling's whole subject measured at each ask instead of assumed at one. */
+const askedAtTheCurrentState = (asks) => askedOf(asks) && asks.every((ask) => ask.current === true);
+
+/**
+ * **`D-168`'S LIMB THREE — "JUDGED" IS "A JUDGEMENT RAN OVER THE ACT", AND IT IS NOT A VALUE THAT WAS ASKED
+ * ABOUT.** A pair's body is asked ONCE by its own registration instant (that instant's own evaluation) and,
+ * where a pass or a reversal's terminal judgement reaches it, **AGAIN at the state the store then stands in**.
+ * **So the measured subject is the ASK's existence and not its value**: a judged host carries an ask after the
+ * registration's own, and what that ask carries is the current state — *whatever it carries*.
+ */
+const judgedOverAnAct = (asks) => askedOf(asks) && asks.some((ask, at) => at > 0);
+
+/** **AND THE PASS'S OWN ASK BESIDE THE VERDICT, NEVER AS THE VERDICT**: the asks that carry the act's `attempt` —
+ *  a PASS's ask. **It is printed so a reader can see WHICH KIND of judgement reached a host**, and it cannot be
+ *  the verdict: a reversal's terminal judgement hands its context `attempt: null` and `op: null` by its own
+ *  declaration (`constraints.mjs`'s `reversalOutcome`, the five-member context at the pair's own address), so a
+ *  host judged ONLY there measures `0` here and is judged all the same — `H3` and `H7` are exactly those two. */
+const passAsksOf = (asks) => (Array.isArray(asks) ? asks.filter((ask) => ask.attempt !== null).length : 0);
+
 /** THE USE CASE'S TREE, AT ONE ADDRESS: `window.tabs` reads as an object with exactly one ACTIVE tab. */
 const tabsSeed = () => ({ tabs: { landingPage: { active: true }, settings: { active: false } } });
 
@@ -750,14 +831,80 @@ console.log('\n── W9 · `D-54` — three hosts where a pass runs, and the re
     ? caught.status
     : null);
   /** A pair whose law is: admit `LANDED`, refuse every other state — so the state the reversal leaves (`SEED`)
-   *  is the one it refuses, and the value the write landed (`THIRD`) is the one a repair may see. */
-  const refusesTheRest = (asked) => (context) => {
-    asked.push(context.value);
+   *  is the one it refuses, and the value the write landed (`THIRD`) is the one a repair may see.
+   *  **⟶ AND ITS ASK IS RECORDED BY `recordAsk` FROM 2026-11-17** (`D-168`), so the drive reads the state the
+   *  pair was handed BESIDE the store's own read at that instant and not in place of it. */
+  const refusesTheRest = (store, asked) => (context) => {
+    asked.push(recordAsk(context, store));
     if (Object.is(context.value, LANDED)) return true;
     return { message: 'the state this pair is asked for is not one it admits' };
   };
-  const restoreSaid = (log) => (log.length === 1 && typeof log[0].message === 'string'
-    && /\bUNDONE\b/.test(log[0].message));
+  // ═════════════════════════════════════════════════════════════════════════════════════════════════════
+  // **⟶ THE LOG CENSUS, RE-CUT 2026-11-17 TO `D-168` — AND THE PROVENANCE OF THE THREE CELLS IT SERVES IS
+  // WEAKER, SAID FIRST, BEFORE THEY SAY WHAT THEY MEASURE.** `DW-09.1` and `DW-09.2` were re-cut by the pass
+  // whose own ruling broke them, and **a runner rewritten by the pass whose ruling broke it is weaker evidence
+  // than a fresh one**: a green here is evidence that the tree is CONSISTENT WITH `D-168`, never that a blind
+  // author could have predicted it. The same discipline `E2E-C-9` carries at its own head
+  // (`tests/e2e/blind-constraints-v2.mjs`; `D-163` item 1), stated here for these cells.
+  //
+  // **WHAT WAS WRONG WAS THE SUBJECT, NOT THE TREE.** Each cell asserted the log was ONE entry (`log.length ===
+  // 1` at `:759`/`:807`/`:876` of the old bytes) while the tree emits THREE on these two hosts, and each
+  // asserted its pair had been handed `SEED` — *"the state the reversal left"* — while the terminal judgement is
+  // taken at **the state the store stands in when it runs** (`D-168` items 1–3), which on a repair host is what
+  // that pass's own failure and the commit's undo left. **`D-54`'s symptom was about whether a judgement RAN,
+  // not about which state it judged** (`D-168` item 2), so the census below asks for the entries the declared
+  // kinds produce and the three limbs below ask for the ask, its value being the current state, and the
+  // judgement having run.
+  // ═════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  /** **`LogKind`'S CLOSED SET, AT ITS ONE HOME** (`kernel-foundations.mjs`: *"`message` · `state` — ONE KIND PER
+   *  ENTRY: `constraint-check` | `repair-run` | `commit` | `outcome` | `save`"*; `save` joined it at `D-153` item
+   *  1's `4 → 5`). **NOTHING OUTSIDE THIS LIST MAY BE ADMITTED INTO A CROSSED LOG BY ANY CELL OF THIS FILE.** */
+  const DECLARED_LOG_KINDS = ['constraint-check', 'repair-run', 'commit', 'outcome', 'save'];
+  /** The refusal's own sentence, at ONE spelling so the one-entry arm and the census below cannot drift apart. */
+  const saidUndone = (entry) => (entry !== null && typeof entry === 'object'
+    && typeof entry.message === 'string' && /\bUNDONE\b/.test(entry.message));
+  /** **⟶ RE-CUT, NOT WITHDRAWN**: the one-entry reading `DW-09.3` still takes of its own log (that host's
+   *  refusal crosses ONE entry and no `outcome`), now read through the one spelling above. */
+  const restoreSaid = (log) => (Array.isArray(log) && log.length === 1 && saidUndone(log[0]));
+  /**
+   * **THE CENSUS (`D-168` item 3's third limb): EXACTLY ONE `constraint-check` NAMING THE REFUSAL, EXACTLY ONE
+   * `outcome` CARRYING THE KERNEL'S TERMINAL ARM, AND NOTHING THAT IS NOT A DECLARED KIND.**
+   *
+   * The old limb read *"the log is ONE entry, the `constraint-check` naming the pair"*, which is the census of a
+   * tree that appended nothing else; **the tree appends the entries the declared kinds describe** — a repair's
+   * `repair-run` on the repair host, the failed arm's `commit` on the delete host, and the ONE `outcome` that
+   * closes every refused attempt — and **a census that forbids them asserts a tree this one is not.** What the
+   * ruling and the declared kinds DO require is that no cell admit an entry of no declared kind, and that the
+   * refusal and its outcome each appear exactly once: that is what this predicate reads.
+   *
+   * **⟶ AND THE `UNDONE` SENTENCE IS NOT IN THESE TWO HOSTS' ENTRY — MEASURED, 2026-11-17, AND SAID AT THE BYTE
+   * RATHER THAN LEFT AS A LIMB THAT CANNOT HOLD.** That sentence is the REVERSAL'S JUDGEMENT'S own form
+   * (`constraints.mjs`'s `reversalRefusal` — *"the constraint … refused the state the reversal left at … the
+   * reversal was UNDONE: …"*), and it stands exactly where that judgement is what refused: `DW-09.3`'s
+   * reentrant host (whose crossed `log` carries it, and `restoreSaid` above still reads it there) and `H6`'s
+   * delete pass (`DW-16.1`'s `UNDONE` limb). **On these two hosts the refusal is the PASS'S OWN TERMINAL ARM**
+   * and the crossed entries are measured as: `[{constraint-check, the pair's own sentence}, {repair-run | commit},
+   * {outcome, KC-…}]` — the repair host answering `KC-4` (*"the repair gave up"*) and the delete host `KC-3`
+   * (*"the delete host refuses the state its delivery left"*). **So the census asks for the sentence the refusing
+   * pair actually returned, and for the kernel's own terminal token on the ONE `outcome`** — and it does not
+   * invent a sentence no host wrote.
+   */
+  const logCensusIsDeclared = (log, id) => {
+    if (!Array.isArray(log) || log.length < 2) return false;
+    const kinds = log.map((entry) => (entry !== null && typeof entry === 'object' ? entry.kind : null));
+    if (kinds.some((kind) => DECLARED_LOG_KINDS.includes(kind) === false)) return false;
+    const checks = log.filter((entry) => entry.kind === 'constraint-check');
+    const outcomes = log.filter((entry) => entry.kind === 'outcome');
+    if (checks.length !== 1 || outcomes.length !== 1) return false;
+    if (checks[0].id !== id) return false;
+    // THE REFUSAL'S OWN SENTENCE — the one the refusing pair returned, named by the entry that carries it.
+    if (typeof checks[0].message !== 'string' || checks[0].message.length === 0) return false;
+    // AND THE ONE `outcome` IS THE TERMINAL ARM: the kernel's own `KC` token and never a null state.
+    if (typeof outcomes[0].state !== 'string' || /^KC-\d+$/.test(outcomes[0].state) === false) return false;
+    // THE REFUSAL COMES FIRST AND THE OUTCOME AFTER IT — the order both hosts are measured in.
+    return log.indexOf(checks[0]) < log.indexOf(outcomes[0]);
+  };
 
   // ── HOST 1 · A REPAIR BODY ─────────────────────────────────────────────────────────────────────────
   const repairStore = make();
@@ -767,7 +914,7 @@ console.log('\n── W9 · `D-54` — three hosts where a pass runs, and the re
   let repairRollback = null;
   let repairWindow = null;
   const repairRegistered = attempt(() => repairStore.addConstraint({ address: ['a'], id: 'repair-host' }, (context) => {
-    repairAsks.push(context.value);
+    repairAsks.push(recordAsk(context, repairStore));
     if (Object.is(context.value, THIRD) && context.attempt !== null) {
       return {
         message: 'the repair host refuses this state and reverses',
@@ -787,7 +934,7 @@ console.log('\n── W9 · `D-54` — three hosts where a pass runs, and the re
   const repairLog = repairCaught !== null && Array.isArray(repairCaught.log) ? repairCaught.log : [];
   const repairStanding = repairStore.read(['a']);
 
-  P('HOST 1 (repair body) · the pairs asked, in order', repairAsks);
+  P('HOST 1 (repair body) · the pairs asked, in order (each ask BESIDE the store\'s own read)', repairAsks);
   P('HOST 1 (repair body) · the window the repair body reversed in (its window)', repairWindow);
   P('HOST 1 (repair body) · the reversal\'s own record', repairRollback === null ? '<not reached>'
     : (repairRollback.ok ? repairRollback.value : String(repairRollback.caught)));
@@ -795,21 +942,26 @@ console.log('\n── W9 · `D-54` — three hosts where a pass runs, and the re
     : { status: statusOf(repairCaught), log: repairLog.map((entry) => entry.id) });
   P('HOST 1 (repair body) · the store after it, before → after', [repairStanding]);
 
-  A('DW-09.1', '`D-54` (b) — a repair body\'s reversal is carried to the pass\'s TERMINAL state; `D-38` (the judgement is of the terminal state, once); `D-42` item 3',
-    'THE REPAIR HOST IS JUDGED: the pass ran (the pair asked at `7`), the repair body reversed in the pass\'s own window (`open 1`, `live 1`), the reversal still ANSWERED its record (the step is not judged as a step), and the pass\'s terminal state was JUDGED — the pair asked at `5`, the declared refusal `ConstraintPassRefused` with ONE `constraint-check` entry naming it, and the store restored to `9`',
+  A('DW-09.1', '`D-54` (b) — a repair body\'s reversal is carried to the pass\'s TERMINAL state; `D-38` (the judgement is of the terminal state, once); `D-42` item 3; **`D-168`** (*"Always judge the current state"*) — the judgement\'s subject is the state the store STANDS IN at the instant it runs, measured at every ask',
+    'THE REPAIR HOST IS JUDGED: the pass ran (the pair asked at `7`, the value the write returned), the repair body reversed in the pass\'s own window (`open 1`, `live 1`), the reversal still ANSWERED its record (the step is not judged as a step), and the pass\'s terminal state was JUDGED — the terminal judgement asked the pair at the state the store then STOOD in (`9`, what the refused commit\'s own undo left), EVERY ask\'s `context.value` was the store\'s own read at that instant (`D-168`), the declared refusal `ConstraintPassRefused` crossed with ONE `constraint-check` entry naming the host and carrying the sentence its own refusing pair returned, ONE `outcome` entry carrying the kernel\'s terminal token (`KC-4`, measured), and no entry that is not a declared `LogKind` — and the store stands at `9`',
     repairRegistered.ok === true
       && repairWindow !== null && repairWindow.open === 1 && repairWindow.live === 1
       && repairRollback !== null && repairRollback.ok === true
-      && repairAsks[0] === LANDED && repairAsks[1] === THIRD
-      && repairAsks.filter((value) => Object.is(value, SEED)).length === 1
+      && repairAsks.length === 3
+      && repairAsks[0].value === LANDED && repairAsks[1].value === THIRD
+      && repairAsks[1].attempt !== null
+      && askedAtTheCurrentState(repairAsks) && judgedOverAnAct(repairAsks)
+      && repairAsks[2].attempt === null && repairAsks[2].op === null
+      && repairAsks[2].value === LANDED
       && statusOf(repairCaught) === PASS_REFUSED
-      && repairLog.length === 1 && repairLog[0].kind === 'constraint-check'
-      && repairLog[0].id === 'repair-host' && restoreSaid(repairLog)
+      && logCensusIsDeclared(repairLog, 'repair-host')
       && repairStanding === LANDED,
     `registered ${repairRegistered.ok} · window ${JSON.stringify(repairWindow)} · reversal `
       + `${repairRollback !== null && repairRollback.ok ? 'answered' : '<not reached>'} · asks ${JSON.stringify(repairAsks)} · `
-      + `answer ${repairCaught === null ? 'ANSWERED' : statusOf(repairCaught)} · log ${JSON.stringify(repairLog.map((entry) => [entry.kind, entry.id]))} · `
-      + `store ${JSON.stringify(repairStanding)} (the reversal left ${SEED}, the pair refuses ${SEED}, the commit opened at ${LANDED})`);
+      + `pass asks ${passAsksOf(repairAsks)} · every ask the current state `
+      + `${JSON.stringify(askedAtTheCurrentState(repairAsks))} · `
+      + `answer ${repairCaught === null ? 'ANSWERED' : statusOf(repairCaught)} · log ${JSON.stringify(repairLog.map((entry) => [entry.kind, entry.id, entry.state === undefined ? null : entry.state]))} · `
+      + `store ${JSON.stringify(repairStanding)} (the reversal left ${SEED}, the commit's undo left ${LANDED}, and the pair is asked at each state the store STOOD in)`);
 
   // ── HOST 2 · A DELETE'S PASS ──────────────────────────────────────────────────────────────────────
   // THE DELETE IS PERFORMED INSIDE A PASS: it joins that pass's commit (`opened === false`), its delivery
@@ -834,7 +986,7 @@ console.log('\n── W9 · `D-54` — three hosts where a pass runs, and the re
     }
   });
   const deleteRegistered = attempt(() => deleteStore.addConstraint({ address: ['a'], id: 'delete-pass-host' }, (context) => {
-    deleteAsks.push(context.value);
+    deleteAsks.push(recordAsk(context, deleteStore));
     if (context.attempt !== null && deleteActed === false) {
       deleteActed = true;
       deleteReceipt = attempt(() => deleteStore.delete(['x'], 'mem'));
@@ -851,7 +1003,7 @@ console.log('\n── W9 · `D-54` — three hosts where a pass runs, and the re
   const deleteDiscarded = deleteReceipt !== null && deleteReceipt.ok
     && Array.isArray(deleteReceipt.value.discarded) ? deleteReceipt.value.discarded : null;
 
-  P('HOST 2 (delete\'s pass) · the pairs asked, in order', deleteAsks);
+  P('HOST 2 (delete\'s pass) · the pairs asked, in order (each ask BESIDE the store\'s own read)', deleteAsks);
   P('HOST 2 (delete\'s pass) · the window the delete\'s listener reversed in (its window)', deleteWindow);
   P('HOST 2 (delete\'s pass) · the reversal\'s own record', deleteRollback === null ? '<not reached>'
     : (deleteRollback.ok ? deleteRollback.value : String(deleteRollback.caught)));
@@ -862,24 +1014,28 @@ console.log('\n── W9 · `D-54` — three hosts where a pass runs, and the re
     : { status: statusOf(deleteCaught), log: deleteLog.map((entry) => entry.id) });
   P('HOST 2 (delete\'s pass) · the store after it', [deleteStanding]);
 
-  A('DW-09.2', '`D-54` (b) — a reversal raised while a delete runs inside a pass is carried to THAT pass\'s terminal state; `D-43` item 1 (`D-1-bis` — *a delete consults no constraint* — is READ THROUGH `D-55` item 3 of 2026-10-29: the delete now runs a pass of its own kind, at its own address, and this host registers no pair there)',
-    'THE DELETE HOST IS JUDGED: the pass ran (the pair asked at `7`), the delete ran inside it and its listener delivered at the PASS\'s window (`open 1`, `live 1` — so the delete opened no window of its own and reports no witness), the reversal ANSWERED its record, and the pass\'s terminal state was JUDGED — the pair asked at `5`, the declared `ConstraintPassRefused` with ONE entry naming it, and the store restored to the LAST VALIDATED MARK `7` (`D-63`: the write\'s own approved landing stands, and the state the reversal left does not)',
+  A('DW-09.2', '`D-54` (b) — a reversal raised while a delete runs inside a pass is carried to THAT pass\'s terminal state; `D-43` item 1 (`D-1-bis` — *a delete consults no constraint* — is READ THROUGH `D-55` item 3 of 2026-10-29: the delete now runs a pass of its own kind, at its own address, and this host registers no pair there); **`D-168`** (*"Always judge the current state"*) — the terminal judgement\'s subject is the state the store STANDS IN at that instant, measured at every ask',
+    'THE DELETE HOST IS JUDGED: the pass ran (the pair asked at `7`, the value the write returned), the delete ran inside it and its listener delivered at the PASS\'s window (`open 1`, `live 1` — so the delete opened no window of its own and reports no witness), the reversal ANSWERED its record, and the pass\'s terminal state was JUDGED — the terminal judgement asked the pair at the state the store then STOOD in (`9`, the LAST VALIDATED MARK: the refused write\'s own undo leaves `9` standing and the state the reversal left, `5`, does not stand), EVERY ask\'s `context.value` was the store\'s own read at that instant (`D-168`), the declared `ConstraintPassRefused` crossed with ONE `constraint-check` entry naming the host and carrying the sentence its refusing pair returned, ONE `outcome` entry carrying the kernel\'s terminal token (`KC-3`, measured), and no entry that is not a declared `LogKind`',
     deleteRegistered.ok === true && deleteActed === true
       && deleteWindow !== null && deleteWindow.open === 1 && deleteWindow.live === 1
       && deleteRollback !== null && deleteRollback.ok === true
       && deleteReceipt !== null && deleteReceipt.ok === true && deleteDiscarded !== null
       && deleteReceipt.value.discarded.length === 0
-      && deleteAsks[0] === LANDED && deleteAsks[1] === THIRD
-      && deleteAsks.filter((value) => Object.is(value, SEED)).length === 1
+      && deleteAsks.length === 3
+      && deleteAsks[0].value === LANDED && deleteAsks[1].value === THIRD
+      && deleteAsks[1].attempt !== null
+      && askedAtTheCurrentState(deleteAsks) && judgedOverAnAct(deleteAsks)
+      && deleteAsks[2].attempt === null && deleteAsks[2].op === null
+      && deleteAsks[2].value === LANDED
       && statusOf(deleteCaught) === PASS_REFUSED
-      && deleteLog.length === 1 && deleteLog[0].kind === 'constraint-check'
-      && deleteLog[0].id === 'delete-pass-host' && restoreSaid(deleteLog)
-      && deleteStanding === THIRD,
+      && logCensusIsDeclared(deleteLog, 'delete-pass-host')
+      && deleteStanding === LANDED,
     `registered ${deleteRegistered.ok} · acted ${deleteActed} · window ${JSON.stringify(deleteWindow)} · reversal `
       + `${deleteRollback !== null && deleteRollback.ok ? 'answered' : '<not reached>'} · delete `
       + `${deleteReceipt === null ? '<not reached>' : (deleteReceipt.ok ? `answered, discarded ${JSON.stringify(deleteDiscarded)}` : String(deleteReceipt.caught))} · `
-      + `asks ${JSON.stringify(deleteAsks)} · answer ${deleteCaught === null ? 'ANSWERED' : statusOf(deleteCaught)} · `
-      + `log ${JSON.stringify(deleteLog.map((entry) => [entry.kind, entry.id]))} · store ${JSON.stringify(deleteStanding)}`);
+      + `asks ${JSON.stringify(deleteAsks)} · pass asks ${passAsksOf(deleteAsks)} · every ask the current state `
+      + `${JSON.stringify(askedAtTheCurrentState(deleteAsks))} · answer ${deleteCaught === null ? 'ANSWERED' : statusOf(deleteCaught)} · `
+      + `log ${JSON.stringify(deleteLog.map((entry) => [entry.kind, entry.id, entry.state === undefined ? null : entry.state]))} · store ${JSON.stringify(deleteStanding)}`);
 
   // ── HOST 3 · A REENTRANT REVERSAL-THEN-WRITE ───────────────────────────────────────────────────────
   // THE LISTENER BODY OF THE OUTER WRITE'S DELIVERY reverses at `['a']` and THEN writes at `['b']`. The nested
@@ -904,7 +1060,7 @@ console.log('\n── W9 · `D-54` — three hosts where a pass runs, and the re
   // refuses only the state the reversal leaves (`SEED`) — the shape `D-42`'s in-commit arms measure.
   const reentrantRegistered = attempt(() => reentrantStore.addConstraint({ address: ['a'], id: 'reentrant-host' },
     (context) => {
-      reentrantAsks.push(context.value);
+      reentrantAsks.push(recordAsk(context, reentrantStore));
       return Object.is(context.value, SEED)
         ? { message: 'the state the reversal leaves is not one this pair admits' }
         : true;
@@ -915,7 +1071,7 @@ console.log('\n── W9 · `D-54` — three hosts where a pass runs, and the re
   const reentrantStanding = reentrantStore.read(['a']);
   const reentrantNestedStanding = attempt(() => reentrantStore.read(['b']));
 
-  P('HOST 3 (reentrant) · the pairs asked, in order', reentrantAsks);
+  P('HOST 3 (reentrant) · the pairs asked, in order (each ask BESIDE the store\'s own read)', reentrantAsks);
   P('HOST 3 (reentrant) · the window the listener reversed in (its window)', reentrantWindow);
   P('HOST 3 (reentrant) · the reversal\'s own record', reentrantRollback === null ? '<not reached>'
     : (reentrantRollback.ok ? reentrantRollback.value : String(reentrantRollback.caught)));
@@ -932,8 +1088,16 @@ console.log('\n── W9 · `D-54` — three hosts where a pass runs, and the re
       && reentrantWindow !== null && reentrantWindow.open === 1 && reentrantWindow.live === 0
       && reentrantRollback !== null && reentrantRollback.ok === true
       && reentrantNested !== null && reentrantNested.ok === true
-      && reentrantAsks[0] === LANDED
-      && reentrantAsks.filter((value) => Object.is(value, SEED)).length === 1
+      && reentrantAsks.length === 3
+      && reentrantAsks[0].value === LANDED
+      && reentrantAsks[1].value === THIRD
+      && reentrantAsks[2].value === SEED
+      // **⟶ AND THE ASKS ARE THE CURRENT STATE BESIDE THE PAIR'S OWN VALUES — `D-168`, 2026-11-17.** The limbs
+      // above name the values (`9` at the registration, `7` the write returned, `5` the reversal left) and this
+      // one MEASURES that each of them WAS the store's own read at that instant; **the value the terminal
+      // judgement is handed is the state the store stood in, which here happens to be the reversal's own `5`** —
+      // the ask is the subject, and no particular value is required of any other host.
+      && askedAtTheCurrentState(reentrantAsks) && judgedOverAnAct(reentrantAsks)
       && statusOf(reentrantCaught) === PASS_REFUSED
       && reentrantLog.length === 1 && reentrantLog[0].kind === 'constraint-check'
       && reentrantLog[0].id === 'reentrant-host' && restoreSaid(reentrantLog)
@@ -962,7 +1126,7 @@ console.log('\n── W9 · `D-54` — three hosts where a pass runs, and the re
   const controlTarget = controlStore.write(['b'], 'mem', LANDED);
   const controlAsks = [];
   const controlRegistered = attempt(() => controlStore.addConstraint({ address: ['b'], id: 'declared-window-pair' },
-    refusesTheRest(controlAsks)));
+    refusesTheRest(controlStore, controlAsks)));
   let controlRollback = null;
   let controlWindow = null;
   const controlListener = controlStore.listen('declared-window-listener', [['a']]);
@@ -977,19 +1141,20 @@ console.log('\n── W9 · `D-54` — three hosts where a pass runs, and the re
     ? controlDelete.value.discarded
     : null;
   const controlStanding = controlStore.read(['b']);
-  P('CONTROL (declared window) · the pairs asked', controlAsks);
+  P('CONTROL (declared window) · the pairs asked (each ask BESIDE the store\'s own read)', controlAsks);
   P('CONTROL (declared window) · the window the delete\'s listener reversed in', controlWindow);
   P('CONTROL (declared window) · the delete\'s witness, before → after', controlWitness);
   P('CONTROL (declared window) · the store after it (the effect STANDS)', controlStanding);
-  A('DW-09.4', '`D-54` (the two declared windows unchanged); `D-43` item 2; `D-49` (a witness reports, it does not run the check)',
-    'THE CONTROL IS UNCHANGED: a delete that OPENS its own window runs NO pass — the pair is asked ONLY at registration, never at the state the reversal left — the request is still reported by `discarded` (ONE entry), and the reversal\'s effect (`5`) still stands',
+  A('DW-09.4', '`D-54` (the two declared windows unchanged); `D-43` item 2; `D-49` (a witness reports, it does not run the check); `D-168` (a judgement is of the state the store stands in — and here NO judgement runs over the act at all)',
+    'THE CONTROL IS UNCHANGED: a delete that OPENS its own window runs NO pass — the pair is asked ONLY at its own registration, NO ask of its is taken over the act (so no judgement runs, `D-168`\'s subject never arising) — the one ask it does take is the current state, the request is still reported by `discarded` (ONE entry), and the reversal\'s effect (`5`) still stands',
     controlRegistered.ok === true
       && controlWindow !== null && controlWindow.open === 1 && controlWindow.live === 0
       && controlRollback !== null && controlRollback.ok === true
       && controlDelete.ok === true
       && controlWitness !== null && controlWitness.length === 1
-      && controlAsks.length === 1 && controlAsks[0] === LANDED
-      && controlAsks.filter((value) => Object.is(value, SEED)).length === 0
+      && controlAsks.length === 1 && controlAsks[0].value === LANDED
+      && askedAtTheCurrentState(controlAsks) && judgedOverAnAct(controlAsks) === false
+      && controlAsks.filter((ask) => Object.is(ask.value, SEED)).length === 0
       && controlStanding === SEED,
     `registered ${controlRegistered.ok} · window ${JSON.stringify(controlWindow)} · reversal `
       + `${controlRollback !== null && controlRollback.ok ? 'answered' : '<not reached>'} · delete `
@@ -2972,8 +3137,19 @@ console.log('\n── W15 · `D-70` · WHICH KIND, AND WHY AN INDEX IS NOT AN AD
 // declares exactly TWO windows (a registration's own evaluation and a `delete`'s LISTENER DELIVERY), does not
 // name it. **SO THE RAISE IS DRIVEN IN EVERY HOST THIS TREE HAS, THE SAME WAY EACH TIME**: a pair whose body
 // issues `rollback(target.opId)` refuses the state the reversal leaves (`5`), and the ONE readable evidence
-// that a host is judged is **the pair being ASKED AGAIN AT `5`** and the act refusing
+// that a host is judged is **that a judgement RAN OVER THE ACT — the pair asked once more than its own
+// registration asked it, every ask being the state the store stood in at that instant** — and the act refusing
 // `ConstraintPassRefused` with a `constraint-check` entry naming that pair.
+//
+// **⟶ RE-CUT 2026-11-17 BY `D-168` (`strata/decisions.md`: *"Always judge the current state"*, read with `D-54`
+// and `D-42`), AND THIS SECTION'S PROVENANCE IS WEAKER, SAID BEFORE IT SAYS WHAT IT MEASURES.** The predicate
+// that stood here read *"the pair being ASKED AGAIN AT `5`"* — *"the state the reversal left"* — and `D-168`
+// item 3 settles that as **a subject the ruling does not require**: the judgement's subject is the state the
+// store STANDS IN when it runs, which on a repair host is what that pass's own failure and the commit's undo
+// left (`9`, not `5`). **A table re-cut by the pass whose ruling broke it is weaker evidence than a fresh one:
+// the sets below are evidence that THIS TREE is consistent with `D-168`, never that a blind author could have
+// predicted them** — the same discipline `E2E-C-9` carries at its own head (`tests/e2e/blind-constraints-v2.mjs`;
+// `D-163` item 1).
 //
 // **THE SEVEN HOSTS, AND WHERE EACH COMES FROM.** `H1` a constraint body during a WRITE's pass and `H2` a
 // repair body during a WRITE's pass (`D-42`, `D-54`); `H3` a listener body in a WRITE's DELIVERY (`D-45`,
@@ -3001,8 +3177,32 @@ console.log('\n── W16 · `D-42`/`D-54` · THE SEVEN HOSTS OF A RAISE, EACH L
     table.push({ id, judged, facts });
     console.log(`        ${id} · ${judged === true ? 'JUDGED' : 'NOT JUDGED'} · ${JSON.stringify(facts)}`);
   };
-  /** The one ask that proves a judgement happened: the pair handed the state the reversal left. */
-  const askedAtSeed = (asks) => asks.some((value) => Object.is(value, SEED));
+  // ═════════════════════════════════════════════════════════════════════════════════════════════════════
+  // **⟶ THE PREDICATE THAT STOOD HERE IS WITHDRAWN BY `D-168`, 2026-11-17 — QUOTED, NOT DELETED.**
+  //
+  //   `const askedAtSeed = (asks) => asks.some((value) => Object.is(value, SEED));`
+  //   *"The one ask that proves a judgement happened: the pair handed the state the reversal left."*
+  //
+  // **BOTH ITS SENTENCES ARE WRONG ON THIS TREE, AND THE MEASUREMENT SAYS SO.** (i) **The verdict is not the
+  // value**: `D-168` items 1–3 — the judgement's subject is the state the store STANDS IN at the instant it
+  // runs, and *"`D-54`'s symptom was about whether a judgement RAN, not about WHICH state it judged"* — so a
+  // cell may not make `5` the price of the verdict. **Measured, `H2` (a repair body) is judged and is never
+  // handed `5`**: its asks are `[9, 7, 9]`, because its reversal runs INSIDE the commit, the commit's own undo
+  // restores the pre-write state, and the terminal judgement is taken at THAT state — `9`. (ii) **And *"handed
+  // `5`"* is a property of the host's PATH and not of the judgement**: `H1`, `H3`, `H6` and `H7` read `5` at
+  // their judgement only because their reversals stand AT REST when the drain judges them, so the same
+  // sentence that is true of those four is false of the fifth — **which is the whole of `D-168` item 3's
+  // finding: the predicate asserted a subject the ruling does not require.**
+  //
+  // **WHAT REPLACES IT IS THE LAW, MEASURED AT EVERY ASK**: `recordAsk` (this file's head, `D-168`) puts the
+  // context's `value` beside `store.read(address)` at the same instant, and the three limbs are
+  // `askedOf` · `askedAtTheCurrentState` · `judgedOverAnAct`. **THE VERDICT IS `judgedOverAnAct`, and the
+  // current-state limb is asserted beside it at every host** (`DW-16.3`), so a table that reads `JUDGED` also
+  // reads that every ask it was read from was the current state. **THE PASS'S OWN ASK COUNT IS PRINTED BESIDE
+  // EACH HOST** (`passAsksOf`) and is a reading and never the verdict: the terminal judgement hands its context
+  // `attempt: null` and `op: null` by its own declaration, so `H3` and `H7` measure `0` there and are judged all
+  // the same.
+  // ═════════════════════════════════════════════════════════════════════════════════════════════════════
   const answerOf = (result) => (result.ok === true
     ? 'answered'
     : (result.caught !== null && typeof result.caught === 'object' ? result.caught.status : String(result.caught)));
@@ -3019,7 +3219,7 @@ console.log('\n── W16 · `D-42`/`D-54` · THE SEVEN HOSTS OF A RAISE, EACH L
     const asks = [];
     let reversal = null;
     store.addConstraint({ address: ['a'], id: 'H1-pair' }, (context) => {
-      asks.push(context.value);
+      asks.push(recordAsk(context, store));
       if (context.attempt !== null && reversal === null && Object.is(context.value, THIRD)) {
         reversal = attempt(() => store.rollback(target.op.opId));
       }
@@ -3029,7 +3229,7 @@ console.log('\n── W16 · `D-42`/`D-54` · THE SEVEN HOSTS OF A RAISE, EACH L
     });
     const act = attempt(() => store.write(['a'], 'mem', THIRD));
     const standing = attempt(() => store.read(['a']));
-    label('H1', askedAtSeed(asks), {
+    label('H1', judgedOverAnAct(asks), {
       asks, act: answerOf(act), log: logIdsOf(act), store: storeOf(standing),
     });
   }
@@ -3042,7 +3242,7 @@ console.log('\n── W16 · `D-42`/`D-54` · THE SEVEN HOSTS OF A RAISE, EACH L
     const asks = [];
     let reversal = null;
     store.addConstraint({ address: ['a'], id: 'H2-pair' }, (context) => {
-      asks.push(context.value);
+      asks.push(recordAsk(context, store));
       if (context.attempt !== null && Object.is(context.value, THIRD)) {
         return {
           message: 'H2 refuses this state and repairs',
@@ -3058,7 +3258,7 @@ console.log('\n── W16 · `D-42`/`D-54` · THE SEVEN HOSTS OF A RAISE, EACH L
     });
     const act = attempt(() => store.write(['a'], 'mem', THIRD));
     const standing = attempt(() => store.read(['a']));
-    label('H2', askedAtSeed(asks), {
+    label('H2', judgedOverAnAct(asks), {
       asks, act: answerOf(act), log: logIdsOf(act), store: storeOf(standing),
     });
   }
@@ -3072,7 +3272,7 @@ console.log('\n── W16 · `D-42`/`D-54` · THE SEVEN HOSTS OF A RAISE, EACH L
     const asks = [];
     let reversal = null;
     store.addConstraint({ address: ['a'], id: 'H3-pair' }, (context) => {
-      asks.push(context.value);
+      asks.push(recordAsk(context, store));
       return Object.is(context.value, SEED)
         ? { message: 'H3 refuses the state the reversal left' }
         : true;
@@ -3083,7 +3283,7 @@ console.log('\n── W16 · `D-42`/`D-54` · THE SEVEN HOSTS OF A RAISE, EACH L
     });
     const act = attempt(() => store.write(['b'], 'mem', 2));
     const standing = attempt(() => store.read(['a']));
-    label('H3', askedAtSeed(asks), {
+    label('H3', judgedOverAnAct(asks), {
       asks, act: answerOf(act), log: logIdsOf(act), store: storeOf(standing),
     });
   }
@@ -3096,14 +3296,14 @@ console.log('\n── W16 · `D-42`/`D-54` · THE SEVEN HOSTS OF A RAISE, EACH L
     const asks = [];
     let reversal = null;
     const registered = attempt(() => store.addConstraint({ address: ['a'], id: 'H4-pair' }, (context) => {
-      asks.push(context.value);
+      asks.push(recordAsk(context, store));
       if (reversal === null) reversal = attempt(() => store.rollback(target.op.opId));
       return true;
     }));
     // A LATER, UNRELATED ACT — the request must NOT be attributed to it (`D-42` item 3).
     const later = attempt(() => store.write(['z'], 'mem', 3));
     const standing = attempt(() => store.read(['a']));
-    label('H4', askedAtSeed(asks), {
+    label('H4', judgedOverAnAct(asks), {
       asks,
       registration: answerOf(registered),
       // THE OPAQUE IDENTITY, read as it is: an answer with NO own member, so no witness can ride it.
@@ -3123,7 +3323,7 @@ console.log('\n── W16 · `D-42`/`D-54` · THE SEVEN HOSTS OF A RAISE, EACH L
     const asks = [];
     let reversal = null;
     store.addConstraint({ address: ['b'], id: 'H5-pair' }, (context) => {
-      asks.push(context.value);
+      asks.push(recordAsk(context, store));
       return Object.is(context.value, SEED)
         ? { message: 'H5 refuses the state the reversal left' }
         : true;
@@ -3135,7 +3335,7 @@ console.log('\n── W16 · `D-42`/`D-54` · THE SEVEN HOSTS OF A RAISE, EACH L
     const act = attempt(() => store.delete(['a'], 'mem'));
     const witness = act.ok === true && Array.isArray(act.value.discarded) ? act.value.discarded : null;
     const standing = attempt(() => store.read(['b']));
-    label('H5', askedAtSeed(asks), {
+    label('H5', judgedOverAnAct(asks), {
       asks,
       act: answerOf(act),
       witness,
@@ -3147,7 +3347,7 @@ console.log('\n── W16 · `D-42`/`D-54` · THE SEVEN HOSTS OF A RAISE, EACH L
     regenerated.write(['b'], 'mem', LANDED);
     const freshAsks = [];
     regenerated.addConstraint({ address: ['b'], id: 'H5-pair' }, (context) => {
-      freshAsks.push(context.value);
+      freshAsks.push(recordAsk(context, regenerated));
       return true;
     });
     P('DW-16.4 · the exit after a discarded request — a regenerated store\'s pair asks', freshAsks);
@@ -3160,7 +3360,7 @@ console.log('\n── W16 · `D-42`/`D-54` · THE SEVEN HOSTS OF A RAISE, EACH L
     store.write(['a'], 'mem', SEED);
     const target = store.write(['a'], 'mem', LANDED);
     store.addConstraint({ address: ['a'], id: 'H6-pair' }, (context) => {
-      host6.asks.push(context.value);
+      host6.asks.push(recordAsk(context, store));
       if (context.attempt !== null && host6.reversal === null) {
         // THE WINDOW THE RAISE IS TAKEN IN, read at the instant the body runs.
         host6.window = windowOf(store);
@@ -3173,7 +3373,7 @@ console.log('\n── W16 · `D-42`/`D-54` · THE SEVEN HOSTS OF A RAISE, EACH L
     host6.act = attempt(() => store.delete(['a'], 'mem'));
     host6.standing = attempt(() => store.read(['a']));
     host6.receipt = host6.act.ok === true ? host6.act.value : null;
-    label('H6', askedAtSeed(host6.asks), {
+    label('H6', judgedOverAnAct(host6.asks), {
       asks: host6.asks,
       window: host6.window,
       reversal: host6.reversal === null ? '<not reached>'
@@ -3194,7 +3394,7 @@ console.log('\n── W16 · `D-42`/`D-54` · THE SEVEN HOSTS OF A RAISE, EACH L
     let reversal = null;
     let nested = null;
     store.addConstraint({ address: ['a'], id: 'H7-pair' }, (context) => {
-      asks.push(context.value);
+      asks.push(recordAsk(context, store));
       return Object.is(context.value, SEED)
         ? { message: 'H7 refuses the state the reversal left' }
         : true;
@@ -3207,7 +3407,7 @@ console.log('\n── W16 · `D-42`/`D-54` · THE SEVEN HOSTS OF A RAISE, EACH L
     });
     const act = attempt(() => store.write(['b'], 'mem', 2));
     const standing = attempt(() => store.read(['a']));
-    label('H7', askedAtSeed(asks), {
+    label('H7', judgedOverAnAct(asks), {
       asks, act: answerOf(act), log: logIdsOf(act), store: storeOf(standing),
       nested: nested === null ? '<not reached>' : answerOf(nested),
     });
@@ -3228,12 +3428,13 @@ console.log('\n── W16 · `D-42`/`D-54` · THE SEVEN HOSTS OF A RAISE, EACH L
   P('DW-16.1 · ★ HOST 6 · the ONE log entry', host6.act.ok === true || !Array.isArray(host6.act.caught.log)
     ? [] : host6.act.caught.log.map((entry) => [entry.kind, entry.id, entry.opId]));
   P('DW-16.1 · ★ HOST 6 · the store after it', storeOf(host6.standing));
-  A('DW-16.1', '`D-42` (the ruling, verbatim: *"Actions inside of an open commit start the constraint check over again"*) · `D-54` (b) (a raise inside a pass is carried to THAT pass\'s terminal judgement) · `D-55` item 3 (`a delete is an editing verb and must pass constraints`) · `D-54`\'s third host · `D-31`',
-    '★ HOST 6 IS JUDGED: the delete\'s own pass asks the pair at the state the delete left, the body reverses inside the DELETE\'s OWN window (`open 1`, `live 1`), the reversal answers its record, and THE RESTARTED CHECK ASKS THE PAIR AT THE STATE THE REVERSAL LEFT (`5`) — so the delete refuses `ConstraintPassRefused` with ONE `constraint-check` entry naming the pair, and the reversal\'s `5` is nowhere in the store afterwards. The request is therefore NOT a third window: it is carried to that pass\'s terminal judgement, once, and never per step',
+  A('DW-16.1', '`D-42` (the ruling, verbatim: *"Actions inside of an open commit start the constraint check over again"*) · `D-54` (b) (a raise inside a pass is carried to THAT pass\'s terminal judgement) · **`D-168`** (the judgement\'s subject is the state the store STANDS IN at that instant, measured at every ask) · `D-55` item 3 (`a delete is an editing verb and must pass constraints`) · `D-54`\'s third host · `D-31`',
+    '★ HOST 6 IS JUDGED: the delete\'s own pass asks the pair at the state the delete left, the body reverses inside the DELETE\'s OWN window (`open 1`, `live 1`), the reversal answers its record, and THE RESTARTED CHECK ASKS THE PAIR AGAIN — at the state the store stood in when it ran (here `5`, the reversal\'s own state, and EVERY ask\'s `context.value` equals the store\'s own read at that instant: `D-168`) — so the delete refuses `ConstraintPassRefused` with ONE `constraint-check` entry naming the pair, and the reversal\'s `5` is nowhere in the store afterwards. The request is therefore NOT a third window: it is carried to that pass\'s terminal judgement, once, and never per step',
     host6.reversal !== null && host6.reversal.ok === true
       && host6.window !== null && host6.window.open === 1 && host6.window.live === 1
       && host6.asks.length === 3
-      && Object.is(host6.asks[0], LANDED) && Object.is(host6.asks[2], SEED)
+      && host6.asks[0].value === LANDED && host6.asks[2].value === SEED
+      && askedAtTheCurrentState(host6.asks) && judgedOverAnAct(host6.asks)
       && host6.act.ok === false
       && host6.act.caught.status === PASS_REFUSED
       && Array.isArray(host6.act.caught.log) && host6.act.caught.log.length === 1
@@ -3260,7 +3461,7 @@ console.log('\n── W16 · `D-42`/`D-54` · THE SEVEN HOSTS OF A RAISE, EACH L
     const target = store.write(['a'], 'mem', LANDED);
     let reversal = null;
     store.addConstraint({ address: ['a'], id: 'H6b-pair' }, (context) => {
-      lawful6.asks.push(context.value);
+      lawful6.asks.push(recordAsk(context, store));
       if (context.attempt !== null && reversal === null) {
         reversal = attempt(() => store.rollback(target.op.opId));
       }
@@ -3278,25 +3479,44 @@ console.log('\n── W16 · `D-42`/`D-54` · THE SEVEN HOSTS OF A RAISE, EACH L
     lawful6.witness,
   ]);
   P('DW-16.2 · ★ HOST 6 (the lawful arm) · the store, which keeps the state the restart approved', storeOf(lawful6.store));
-  A('DW-16.2', '`D-49` (a witness reports the delivery\'s discard; it does not run the check) · `D-42` item 3 (a request belongs to the act that raised it) · `D-54` (b) · `D-63` (a validated sweep\'s state stands against a later refusal)',
-    '★ AND THE WITNESS AGREES RATHER THAN CONTRADICTING: on the arm where the restarted check PASSES, the pair is still ASKED at the state the reversal left (`5`) — the raise was judged — the delete ANSWERS with `discarded: []`, and the store keeps the state the restart approved (`5`). The empty witness is therefore the reading of a JUDGED raise and not of an ignored one: the pass\'s own drain consumed the request before the delivery ran',
+  A('DW-16.2', '`D-49` (a witness reports the delivery\'s discard; it does not run the check) · `D-42` item 3 (a request belongs to the act that raised it) · `D-54` (b) · `D-63` (a validated sweep\'s state stands against a later refusal) · **`D-168`** (the judgement is of the state the store stands in)',
+    '★ AND THE WITNESS AGREES RATHER THAN CONTRADICTING: on the arm where the restarted check PASSES, the pair is still ASKED AGAIN at the state the store stood in when the judgement ran (`5`) — the raise was judged, and every ask\'s `context.value` equals the store\'s read at that instant (`D-168`) — the delete ANSWERS with `discarded: []`, and the store keeps the state the restart approved (`5`). The empty witness is therefore the reading of a JUDGED raise and not of an ignored one: the pass\'s own drain consumed the request before the delivery ran',
     lawful6.asks.length === 3
-      && Object.is(lawful6.asks[2], SEED)
+      && lawful6.asks[2].value === SEED
+      && askedAtTheCurrentState(lawful6.asks) && judgedOverAnAct(lawful6.asks)
       && lawful6.act.ok === true
       && lawful6.witness !== null && lawful6.witness.length === 0
       && lawful6.store.ok === true && Object.is(lawful6.store.value, SEED),
-    `asks ${JSON.stringify(lawful6.asks)} · answer ${answerOf(lawful6.act)} · witness `
+    `asks ${JSON.stringify(lawful6.asks)} · every ask the current state `
+      + `${JSON.stringify(askedAtTheCurrentState(lawful6.asks))} · answer ${answerOf(lawful6.act)} · witness `
       + `${JSON.stringify(lawful6.witness)} · store ${storeOf(lawful6.store)}`);
 
   // ── DW-16.3 · THE SEVEN-HOST TABLE: FIVE JUDGED, TWO NOT — AND THE TWO ARE THE DECLARED WINDOWS ───
-  A('DW-16.3', '`D-42` · `D-54` (a) and (b) · `D-45`/`D-46` · `D-64` (after the pass nothing re-enters) · `D-43` item 2 (the two declared windows) · `D-31`',
-    '★ THE TABLE, RE-MEASURED ON THIS TREE: `H1` (a constraint body in a write\'s pass), `H2` (a repair body in a write\'s pass), `H3` (a listener body in a write\'s delivery), `H6` (a constraint body in a DELETE\'s own pass) and `H7` (a reentrant reversal-then-write) are all JUDGED — the pair is asked at the state the reversal left — and the ONLY hosts that are not are the TWO DECLARED, PASS-RUNNING-NOWHERE windows: `H4` (a registration\'s own evaluation) and `H5` (a `delete`\'s listener delivery)',
+  // **⟶ RE-DERIVED 2026-11-17 BY `D-168` (items 1–3), AND `H2` MOVES INTO THE JUDGED SET AT THIS BYTE.**
+  // The `judged` field is no longer `askedAtSeed(asks)` (*"the pair was handed the state the reversal left"*):
+  // it is **`judgedOverAnAct(asks)`** — *"a judgement RAN over the act"*, read as an ask taken AFTER the
+  // registration instant's own — **and the current-state law (`askedAtTheCurrentState`) is asserted beside it at
+  // ALL SEVEN HOSTS**, so this cell is also the one place the property is claimed of `H3`, `H4`, `H5`, `H6` and
+  // `H7` and not only of the three hosts that were red. **`H2` IS A REPAIR HOST AND IS JUDGED**: its asks are
+  // `[9, 7, 9]`, the terminal judgement taking the state the failed repair's commit left — and `5`, the state
+  // the reversal left, is never handed to it. The ruling does not require that value (`D-168` item 3), and the
+  // old predicate's falsity on `H2` was a statement about the predicate and not about the tree. **`H4` AND `H5`
+  // DO NOT MOVE**: they are the guide's two declared, pass-running-nowhere windows (`D-54`'s withdrawal of its
+  // own two hosts), each asked exactly ONCE — at its own registration — and by no judgement at all.
+  A('DW-16.3', '`D-168` (the ruling, verbatim: *"Always judge the current state"*; item 3 — the cells\' state predicate is re-cut to the law) · `D-54` (a) and (b) (its two declared windows stay withdrawn) · `D-42` · `D-45`/`D-46` · `D-64` (after the pass nothing re-enters) · `D-43` item 2 (the two declared windows) · `D-31`',
+    '★ THE TABLE, RE-MEASURED ON THIS TREE TO `D-168`\'S LAW: `H1` (a constraint body in a write\'s pass), `H2` (a repair body in a write\'s pass), `H3` (a listener body in a write\'s delivery), `H6` (a constraint body in a DELETE\'s own pass) and `H7` (a reentrant reversal-then-write) are all JUDGED — a judgement RAN over the act, and EVERY ask each of them took was the state the store stood in at that instant — and the ONLY hosts that are not are the TWO DECLARED, PASS-RUNNING-NOWHERE windows: `H4` (a registration\'s own evaluation) and `H5` (a `delete`\'s listener delivery), each asked once, at its own registration, and never again',
     table.length === 7
       && judged.length === 5
       && notJudged.length === 2
       && judged.join(',') === 'H1,H2,H3,H6,H7'
-      && notJudged.join(',') === 'H4,H5',
-    `judged ${JSON.stringify(judged)} · not judged ${JSON.stringify(notJudged)}`);
+      && notJudged.join(',') === 'H4,H5'
+      // **THE LAW AT EVERY HOST AND NOT ONLY AT THE THREE THAT WERE RED** (`D-168`): every ask of every one of
+      // the seven was the store's own read at that instant, and each host's pass-ask count is printed beside it.
+      && table.every((one) => askedAtTheCurrentState(one.facts.asks))
+      && table.every((one) => askedOf(one.facts.asks)),
+    `judged ${JSON.stringify(judged)} · not judged ${JSON.stringify(notJudged)} · `
+      + `pass asks per host ${JSON.stringify(table.map((one) => [one.id, passAsksOf(one.facts.asks)]))} · `
+      + `every ask the current state ${JSON.stringify(table.map((one) => [one.id, askedAtTheCurrentState(one.facts.asks)]))}`);
 
   // ── DW-16.4 · THE TWO DECLARED WINDOWS ARE UNCHANGED — UNJUDGED, AND THEIR EXITS INTACT ───────────
   // **`H4` IS THE IDENTITY-ONLY ARM** — `addConstraint` answers an opaque identity, so nothing on that answer
@@ -3313,12 +3533,14 @@ console.log('\n── W16 · `D-42`/`D-54` · THE SEVEN HOSTS OF A RAISE, EACH L
     table.find((one) => one.id === 'H5').facts.witness,
     table.find((one) => one.id === 'H5').facts.store,
   ]);
-  A('DW-16.4', '`D-43` item 2 (the two known passless windows and their exits) · `D-49` (a witness reports; it does not run the check) · `D-42` item 3 (a request no pass matches dies with its window)',
-    '★ THE TWO DECLARED WINDOWS ARE UNCHANGED: neither is judged — the pair is never asked at the state the reversal left in either one — the registration\'s answer is still an OPAQUE IDENTITY (an object with NO own member, so no witness can ride it), the `delete`\'s delivery still reports what it discarded (ONE entry on `discarded`) and still leaves the reversal\'s effect standing, and both exits stand: a regenerated store is judged by construction',
+  A('DW-16.4', '`D-43` item 2 (the two known passless windows and their exits) · `D-49` (a witness reports; it does not run the check) · `D-42` item 3 (a request no pass matches dies with its window) · `D-168` (a judgement is of the state the store stands in — and here NO judgement runs at all)',
+    '★ THE TWO DECLARED WINDOWS ARE UNCHANGED: neither is judged — in either one the pair is asked ONCE and only at its own registration, so no ask of it is taken over the act and `D-168`\'s subject never arises — the registration\'s answer is still an OPAQUE IDENTITY (an object with NO own member, so no witness can ride it), the `delete`\'s delivery still reports what it discarded (ONE entry on `discarded`) and still leaves the reversal\'s effect standing, and both exits stand: a regenerated store is judged by construction',
     table.find((one) => one.id === 'H4').judged === false
+      && askedAtTheCurrentState(table.find((one) => one.id === 'H4').facts.asks)
       && table.find((one) => one.id === 'H4').facts.identityMembers === 0
       && table.find((one) => one.id === 'H4').facts.witness === null
       && table.find((one) => one.id === 'H5').judged === false
+      && askedAtTheCurrentState(table.find((one) => one.id === 'H5').facts.asks)
       && Array.isArray(table.find((one) => one.id === 'H5').facts.witness)
       && table.find((one) => one.id === 'H5').facts.witness.length === 1
       && Object.is(table.find((one) => one.id === 'H5').facts.store, SEED),
@@ -3330,10 +3552,11 @@ console.log('\n── W16 · `D-42`/`D-54` · THE SEVEN HOSTS OF A RAISE, EACH L
   console.log('');
   console.log('        THE SENTENCE TO CARRY AWAY: A RAISE TAKEN INSIDE A PASS IS JUDGED BY THAT PASS\'S OWN');
   console.log('        TERMINAL CHECK — whichever verb opened the pass, a write or a delete — and the ONE readable');
-  console.log('        evidence is that your pair is ASKED AGAIN at the state the reversal left. THE RAISE THAT IS');
-  console.log('        NOT JUDGED IS THE ONE TAKEN WHERE NO PASS RUNS AT ALL: a registration\'s own evaluation, and');
-  console.log('        a `delete`\'s listener delivery. Those two are declared, their effects stand, and their');
-  console.log('        exits are the file reload and a regenerated store.');
+  console.log('        evidence is that your pair is ASKED AGAIN, at the state the store stands in when the judgement');
+  console.log('        runs (`D-168`: *"Always judge the current state"* — the ask is the subject, and no particular');
+  console.log('        value is promised). THE RAISE THAT IS NOT JUDGED IS THE ONE TAKEN WHERE NO PASS RUNS AT ALL:');
+  console.log('        a registration\'s own evaluation, and a `delete`\'s listener delivery. Those two are declared,');
+  console.log('        their effects stand, and their exits are the file reload and a regenerated store.');
 }
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════
