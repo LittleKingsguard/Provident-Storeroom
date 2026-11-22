@@ -279,6 +279,14 @@ from the pass's first text, the corrected text is what stands.**
 
 ## §1 · The gate-1 verdict
 
+**⟶ AND THE BLOCK IS LIFTED AT ITS OWN QUESTION, 2026-11-17 — `D-191`.** **`BLOCKED-ON-SEMANTICS` NAMED A MISSING SUBJECT AND THE ARCHITECT HAS NOW GIVEN IT,
+VERBATIM: *"For P-2, treat as a whole-store write, i.e. build the store, then check all constraints/repairs (because everything is new data), save, then
+fire all listeners (same reason), as with other editing actions (write/delete)"*.** **SO THIS PROPOSAL IS `DESIGN-READY` AT ITS GATE**: the acts it
+inherits (the constraint pass with its repair flows, the save, the listener delivery) and their order against the build are named, **and its class is a
+`MAJOR`'s subject because its break is behavioural.** **WHAT IT STILL DOES NOT DECIDE IS ENUMERATED AT `D-191` ITEM 4** — the create's own file against the
+terminal arm's save, the delivered set's extent, the refusal's file-behaviour, and the class — **and none of them is a gate question.** **THE SEQUENCE IS THE
+ARCHITECT'S: `P-3` IS THE CYCLE'S FIRST UNIT AND THIS ONE FOLLOWS IT.**
+
 **`BLOCKED-ON-SEMANTICS` — THE TOKEN STANDS; ITS GROUNDS ARE REPLACED** (`role_l0_critique`, `§6`'s verdict paragraph).
 
 **THE GROUND IS NOT *"NO CLAUSE AUTHORIZES IT."*** An absence invites `APPROVE-WITH-CONDITIONS`, and `strata/brief.md:45`–`:47`

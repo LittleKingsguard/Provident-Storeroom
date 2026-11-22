@@ -9333,3 +9333,22 @@ asserted nowhere** (`D-184` item 4).
    docblock mentions** and `:2335`'s · **every cell that counts the record's members** (the live-instrument cell `D-184` item 1 landed asserts **eight**, and the capture
    cell's eight-member claim) · **the specs** (`storeroom-native` `§6.2`'s `compacted` member, `storeroom-delivery-settle`'s record rows) · **the notes**
    (`§1.13.0`'s item naming it) · **the guides**, where it appears as *"`compacted` still reads `false`"* (§5.4 item 4).
+
+---
+
+### `D-191` — `P-2`'S BLOCKING QUESTION IS ANSWERED: CREATION IS A WHOLE-STORE WRITE, IN THE EDITING ACTION'S OWN ORDER
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `dc23cd0`. **SOURCE:** the architect, on `P-2`'s `BLOCKED-ON-SEMANTICS` gate-1 verdict (`strata/proposals.md · `P-2`).
+**THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "For P-2, treat as a whole-store write, i.e. build the store, then check all constraints/repairs (because everything is new data), save,
+> then fire all listeners (same reason), as with other editing actions (write/delete)"
+
+**STATUS: `ACTIVE`.**
+
+1. **THE SUBJECT IS NAMED, SO `P-2`'S BLOCK IS LIFTED AT ITS OWN QUESTION.** `P-2`'s gate-1 returned it **`BLOCKED-ON-SEMANTICS`** because *"creation treated as an editing action"* had **no row** in the corpus and **named no acts**. **THE ARCHITECT NAMES THE SUBJECT: A CREATION IS A `write` WHOSE TARGET IS THE WHOLE STORE**, and it takes **the editing action's own order**.
+2. **THE ORDER, AS FOUR STEPS WITH ITS OWN REASONS — AND THE REASON MATTERS AS MUCH AS THE STEP**: **build the store** · **check all constraints and their repair flows** (*"because everything is new data"*) · **save** · **fire all listeners** (*"same reason"*).
+   **— SO THE ORDER IS THE `write` PATH'S OWN** (`D-44`'s commit, the constraint pass, the terminal arm's save, then the delivered set at the end), **and the difference is the TARGET'S EXTENT and not the sequence**: a `write` lands one address and a creation lands everything the construction put there. **THE `because everything is new data` IS THE GROUND FOR BOTH BULK STEPS**: a creation has no previous state to compare against, so **every seeded or loaded address is a change**, and **a listener fires because its subject changed rather than because a write touched it**.
+3. **AND IT SETTLES THE TWO THINGS `P-2`'S GATE-1 COULD NOT**: **(i) WHICH ACTS IT INHERITS** — the constraint pass with its repair flows, the save, and the listener delivery, **all three, in that order**; **(ii) IN WHAT ORDER AGAINST THE ARMING** — **after** the build, which is what makes *"everything is new data"* true at the instant the constraints are asked (the register the construction produced is the state they judge).
+4. **WHAT THIS ROW DOES NOT DECIDE, NAMED SO A DESIGN PASS DOES NOT ASSUME IT**: **whether the create's `create_new` file at step 4b counts as the "save"** or whether the terminal arm's save runs beside it (`D-106`'s eligibility rule has to be read at a creation, where the act moved *everything*) · **what the delivered set is** when a listener's address was never seeded (does a creation fire a listener whose address resolves only because an *ancestor* is present?) · **whether a refusal in the constraint pass leaves the created file behind** (`A55`'s *"leaves nothing behind"*, which `D-173`'s guard now implements at the arming sweep and **not** at the constraint pass) · **and the class**: **`P-2`'s break is behavioural** — a construction that today boots and arms would start refusing and firing — **so it is a `MAJOR`'s subject or nobody's.**
+5. **AND `P-2` MOVES FROM `BLOCKED-ON-SEMANTICS` TO DESIGN-READY AT ITS GATE, WHILE `P-3` REMAINS THE CYCLE'S FIRST UNIT** (the architect's *"Start with P-3"*): **this row is the intake answer and mints no unit.** `strata/proposals.md`'s `P-2` carries the verdict change at its own §1.
