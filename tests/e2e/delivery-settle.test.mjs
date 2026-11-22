@@ -1429,7 +1429,7 @@ test('S-SYNCTHROW · THE ANTI-HARMONISATION CONTROL (`PIN-4`) — a synchronousl
 // answer this block must hold; without it the same `M-2` fatality would end the run. It is asserted `0`.
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 
-test('S-RECEIPT-ACCESSOR · THE CENSUS MOVES BY ONE NAME AND NO MORE (`PIN-10`, `PIN-12`) — over a plain write, a rejected-body write, a delete and a rollback: `Object.keys` is unmoved, `getOwnPropertyNames` reads `6` for the write with `bodyFailures` present, the descriptor is a non-enumerable `configurable` GETTER, and the plain arm reads the frozen `{}` and is PRESENT', async (t) => {
+test('S-RECEIPT-ACCESSOR · THE CENSUS MOVES BY ONE NAME AND NO MORE (`PIN-10`, `PIN-12`) — over a plain write, a rejected-body write, a delete and a rollback: `Object.keys` is unmoved, `getOwnPropertyNames` reads `7` for the write with `bodyFailures` AND `returnedValues` present — **⟶ AND THE TITLE IS RE-CUT FROM `6` 2026-11-17: the ASSERTION was re-pinned to seven when `U-STOREROOM-08` landed and the title was left behind, so this name contradicted the cell it names. A title printing a figure that the assertion does not read is the same defect as a sentence one layer up**, the descriptor is a non-enumerable `configurable` GETTER, and the plain arm reads the frozen `{}` and is PRESENT', async (t) => {
   const unhandled = countUnhandled();
   let drive = null;
   try {
