@@ -1,0 +1,419 @@
+
+E2E-C-1 — the happy path: one constraint passes and the attempt resolves
+   cells=8 PASS=8 FAIL=0 NOT-DRIVABLE-BLIND=0 NONRUN=0 (declared population 8)
+   PASS                [E2E-C-1.1] K-1 returns the handle the pair stands under — the caller's own `id`, adopted from `store.listen` and never minted by the kernel (`D-22`, `D-24`)
+        cites: kernel-surface.md §2.1 item 1 read THROUGH D-22/D-24 (strata/decisions.md, 2026-10-24)
+        observed: handle="x" typeof=string
+   PASS                [E2E-C-1.2] CommitRecord has exactly {attempt, op, triggered, pending}; attempt is {id: non-empty string}; op is the write's op
+        cites: kernel-surface.md §2.1 item 2
+        observed: keys=attempt,op,pending,triggered attempt={"id":"attempt-1"} opId=op-1
+   PASS                [E2E-C-1.3] 'passed' (the success arm's ONE value) and the SAME attempt reference K-2 minted
+        cites: kernel-surface.md §2.1 item 3; attempt-lifecycle.md §2.4 item 4 arm (a)
+        observed: outcome=passed keys=attempt,log,ops,outcome,rollback attempt-match=true
+   PASS                [E2E-C-1.4] ops has one member, in creation order, and it is the store's own op (opId equal to the write's)
+        cites: kernel-surface.md §2.1 item 3; attempt-lifecycle.md §2.4 item 1
+        observed: ops.length=1 ops[0].opId=op-1 write=op-1
+   PASS                [E2E-C-1.5] rollback is [] (an empty list, never an absent member) and triggered is the write's own returned set
+        cites: kernel-surface.md §2.1 items 2–3; composition-and-states.md §2.6 item 8 (i)
+        observed: rollback=[] triggered=1 pending=0
+   PASS                [E2E-C-1.6] the log is one constraint-check (id 'x', opId the write's op, state null) then one commit entry (id null, opId the last op), at positions 0 and 1; five-member entries with `seq` ABSENT (`D-65`)
+        cites: kernel-surface.md §2.5 items 1–3; `D-65`
+        observed: shape=ok kinds=[constraint-check/x/null commit/null/null] positions=[[0,0],[1,1]]
+   PASS                [E2E-C-1.7] the attempt context carries exactly {address, tier, value, attempt, op}, all verbatim: address [a], tier mem, value 1, the attempt id, the evaluated op
+        cites: parameter-semantics.md §2.16; kernel-surface.md §2.3 item 1
+        observed: landing contexts=1 of 1 invocation(s); ctx={"address":["a"],"attempt":{"id":"attempt-1"},"op":"op-1","tier":"mem","value":1}
+   PASS                [E2E-C-1.8] K-4 and K-5 over the CLOSED attempt answer the record the store STILL NEEDS — `D-58`: the outcome, the ops and the reversal, NO log — while the FIVE-member report and its list are the ones `K-3` handed off
+        cites: kernel-surface.md §2.1 items 4–5; parameter-semantics.md §2.5 observable; `strata/decisions.md` · `D-58` (2026-10-28)
+        observed: K-4 over the closed attempt=[] · K-5 keys=attempt,ops,outcome,rollback · the handed-off list=2 entries
+E2E-C-2 — a two-op failing attempt: the unrepaired violation fails it, the composition reverses the repaired op, and its second same-address call meets the floor so the attempt's first write stands
+   cells=10 PASS=10 FAIL=0 NOT-DRIVABLE-BLIND=0 NONRUN=0 (declared population 10)
+   PASS                [E2E-C-2.1] K-2 returns a record whose op is the write it landed, and THE PASS WAS NOT EVALUATED BY THE COMMIT — the three registered pairs run 0 more times when K-2 has returned
+        cites: e2e-scenarios.md E2E-C-2 step (2) read with step (3); kernel-surface.md §2.1 item 2
+        observed: record op=op-3 keys=attempt,op,pending,triggered; evaluations the commit added: x=0 y=0 z=0 (absolute at K-2's return: x=1 y=1 z=1, the three the caller's own earlier write's landing pass took)
+   PASS                [E2E-C-2.2] the pass over op1 evaluates ['a']'s pairs in first-registration order and STOPS AT THE FIRST VIOLATION: x, then y (whose repair runs and lands its own op), and the re-run then halts at x — so z, registered last, is never reached
+        cites: attempt-lifecycle.md §2.4 items 5 (ii),(iv); kernel-surface.md §2.5 item 1
+        observed: evaluations the pass took: x=2 y=1 z=0 of which the caller's earlier write's landing pass took x=1 y=1 z=1; repair's op=op-4 write op=op-3
+   PASS                [E2E-C-2.3] the attempt fails by THROWING {status, message, log} and never by returning
+        cites: fail-surface.md §1.1 items 1 and 4
+        observed: threw=true keys=address,log,message,status
+   PASS                [E2E-C-2.4] status is the kernel's own KC-6 — the arm (['a'],'x') stands on, `x` IN ran and OUT of appliedRepairs — and never the floor's KC-8; and the store answers the attempt's floor, the caller's own earlier `7` standing at ['a'] with both of the attempt's ops undone (D-40, 2026-10-26)
+        cites: fail-surface.md §1.1 item 1; fail-surface.md §2 (the KC-6 row); composition-and-states.md §2.6 item 6 (a) and item 5 (b); strata/decisions.md · D-40 (2026-10-26)
+        observed: status=KC-6 message="the pair a#x violated a re-run and no repair had been applied to it" read(['a'])=7 (the caller's own earlier write at ['a'] was 7); the floor state the ruling is about is the caller's value, standing because ONE call over the attempt's first op swept exactly the attempt
+   PASS                [E2E-C-2.5] the thrown form carries the message log, and its outcome entry's state is the SAME token
+        cites: fail-surface.md §1.1 item 1 (c); kernel-surface.md §2.5 item 1
+        observed: log.len=5 outcome.state=KC-6
+   PASS                [E2E-C-2.6] the pair (['a'],'x') carries TWO constraint-check entries against TWO opIds (op1 then the repaired op) and never three, the repair ran ONCE, and the outcome entry closes the log; the whole log is 2 + 1 + 1 + 1 = 5 entries, pair (['a'],'z') never being reached
+        cites: attempt-lifecycle.md §2.4 items 5 (ii),(iv); kernel-surface.md §2.5 item 3 limb (ii); e2e-scenarios.md E2E-C-2 cell 5
+        observed: kinds=[constraint-check/x/null constraint-check/y/null repair-run/y/null constraint-check/x/null outcome/null/KC-6] length=5
+   PASS                [E2E-C-2.7] the composition issues ONE CALL PER STILL-OWED OP, IN ITEM 2'S DECLARED ORDER (the repaired op's call first, the attempt's first op's call LAST, one call per op and never a second over one opId); every step carries all six members; and the step count is the calls ISSUED, which MAY RUN BELOW the list's size — an op an earlier call's own undoneOps already reports undone is no longer still owed and gets NO call
+        cites: composition-and-states.md §2.6 item 2 (the call list, fixed when the composition begins) and item 5 (a) (the skip and the member-based test); parameter-semantics.md §2.17
+        observed: len=1 declaredList=["op-4","op-3"] steps=[{"opId":"op-3","ans":"ok","failed":false,"undone":["op-4","op-3"],"cp":null}] repair-op=op-4 write-op=op-3 caller's-earlier-op=op-2
+   PASS                [E2E-C-2.8] D-40 (2026-10-26): a failed attempt leaves the store exactly as it found it — the composition's ONE call over the attempt's first op reports BOTH of the attempt's ops undone, no step names the caller's own earlier op (its `seq` lies below the floor call's own, `M-5` (a) (ii)), and the read answers the caller's own earlier `7` at ['a']
+        cites: composition-and-states.md §2.6 item 8 (iii) (the withdrawal, the limit and A111); contract.md §5.7 (P-TP-7); docs/specs/storeroom-native/write-and-read.md §6.4 items 1/3/4 (M-5/M-7/M-8); strata/decisions.md · D-40 (2026-10-26)
+        observed: read after failure = 7 (the caller's earlier write at ['a'] was 7, op op-2); report ops=["op-3","op-4"]; undone union=["op-4","op-3"] — THE ATTEMPT'S FLOOR READ OFF THE STORE'S OWN ANSWER (D-40, 2026-10-26): the earlier op op-2 is named by no step's undoneOps, the attempt's own ops ["op-3","op-4"] BOTH are, and the address answers the caller's own 7 — the attempt left it exactly as it found it
+   PASS                [E2E-C-2.9] the docs' own step (2) premise (*"a write is checked atomically as it lands"*) HAS AN OBSERVABLE AT THIS BUILD: the caller's own three-position write under the pair set IS evaluated at its landing — all three pairs at `['a']` ran, in first-registration order, and the write was admitted (the pass arm) — while the kernel's own K-2 write adds no evaluation at its own return (its pass runs at `K-3`, which is the asymmetry this limb records and claims nowhere as lawful)
+        cites: kernel-surface.md §2.3 item 1 (the atomic landing evaluation); composition-and-states.md §2.6 item 8 (i); parameter-semantics.md §2.17; contract.md §0.1 item 5 (i); e2e-scenarios.md E2E-C-2 step (7)
+        observed: the caller's own earlier write's landing pass ran x=1 y=1 z=1 (z REACHED here and never in the attempt's own pass) and the write landed op op-2; the kernel's own K-2 added x=0 y=0 z=0, its pass running at K-3 — the OWED store-side seam (J-20–J-22) is therefore LIVE on the caller's route and UNREACHED on the kernel's, and NO limb of this drive reads the second as satisfied
+   PASS                [E2E-C-2.10] the failing pair (['a'],'x') is IN ran (it entered on op1) and NOT IN appliedRepairs (it carries no repair), so the attempt reaches arm (f): the ONE repair of this window belongs to (['a'],'y') and its repair-run count is 1, never 0
+        cites: attempt-lifecycle.md §2.4 item 4's disjointness rule and arm (f); fail-surface.md §2's KC-5/KC-6 rows
+        observed: repair-run entries: y=1 x=0
+E2E-C-3 — a successful repair: the re-run passes and the attempt resolves
+   cells=7 PASS=7 FAIL=0 NOT-DRIVABLE-BLIND=0 NONRUN=0 (declared population 7)
+   PASS                [E2E-C-3.1] the re-run passes: outcome 'passed'
+        cites: attempt-lifecycle.md §2.4 item 4 arm (g); composition-and-states.md §2.7 item 6
+        observed: outcome=passed
+   PASS                [E2E-C-3.2] ops carries the write's op FIRST and the repair's op second, in creation order
+        cites: attempt-lifecycle.md §2.4 item 1; composition-and-states.md §2.6 item 2
+        observed: ops=["op-5","op-6"]
+   PASS                [E2E-C-3.3] the repair context carries exactly {op, address, id, value, tier, pending} — six members: the violated pair and the value standing at the address, plus the commit's own pending handed as a fresh list
+        cites: parameter-semantics.md §2.16; kernel-surface.md §2.3 item 2 (the six-member shape, 5 + 1 = 6); kernel-surface.md §2.1 §1 item 4 (the count)
+        observed: repair ctx={"address":["a"],"id":"x","op":"op-5","tier":"mem","value":99,"pending":[{"handle":"x","address":["a"]}]} — members=6, pending is a list of 1 pair(s)
+   PASS                [E2E-C-3.4] the repair-run entry belongs to the pair, its opId is the op the repair produced, its state is null
+        cites: kernel-surface.md §2.5 item 1 (the repair-run row)
+        observed: repair-run={"kind":"repair-run","id":"x","opId":"op-6","message":"the repair x landed op-6","state":null}
+   PASS                [E2E-C-3.5] the log's own message provenance: the constraint supplied its OWN string and it is carried WHOLE on its constraint-check entry; the repair's SUCCESS arm ({ok: true, op}) carries NO message, so the repair-run entry's text is the KERNEL's own generated sentence (and never a rewritten caller string)
+        cites: kernel-surface.md §2.5 item 1 (the message table — the two provenances); fail-surface.md §1.1 item 2 (ii)
+        observed: constraint-check msg="value too large" repair-run msg="the repair x landed op-6"
+   PASS                [E2E-C-3.6] the log is constraint-check(x, op1) · repair-run(x, op2) · constraint-check(x, op2) · commit — one check per pair per pass
+        cites: attempt-lifecycle.md §2.4 items 5 (ii),(iv); kernel-surface.md §2.5 item 1
+        observed: shape=ok kinds=[constraint-check/x/null repair-run/x/null constraint-check/x/null commit/null/null]
+   PASS                [E2E-C-3.7] rollback is [] on the success arm (the member exists and is empty)
+        cites: kernel-surface.md §2.1 item 3; parameter-semantics.md §2.17
+        observed: rollback=[]
+E2E-C-4 — a failed repair: KC-4, and what was attempted is in the log
+   cells=7 PASS=7 FAIL=0 NOT-DRIVABLE-BLIND=0 NONRUN=0 (declared population 7)
+   PASS                [E2E-C-4.1] the attempt throws the kernel form with exactly {status, message, log}
+        cites: fail-surface.md §1.1 item 1
+        observed: keys=address,log,message,status
+   PASS                [E2E-C-4.2] status is KC-4 and the thrown form's log differs from the open record's by TWO entries: the repair-run entry and the outcome entry
+        cites: fail-surface.md §1.1 item 3; kernel-surface.md §2.5 item 1
+        observed: status=KC-4 kinds=[constraint-check/x/null repair-run/x/null outcome/null/KC-4]
+   PASS                [E2E-C-4.3] the repair-run entry's message carries WHAT WAS ATTEMPTED, verbatim from the repair's own return
+        cites: kernel-surface.md §2.5 item 1 (the repair-run row); parameter-semantics.md §2.8
+        observed: repair-run={"kind":"repair-run","id":"x","opId":"op-7","message":"attempted to clamp at 5 and was refused","state":null}
+   PASS                [E2E-C-4.4] the repair ran exactly once for the pair, and no op was credited to the attempt
+        cites: parameter-semantics.md §2.9
+        observed: repairRuns=1 ops=1
+   PASS                [E2E-C-4.5] the closed record K-5 returns carries that same final log and the failed outcome
+        cites: kernel-surface.md §2.1 items 3,5
+        observed: report outcome=failed
+   PASS                [E2E-C-4.6] a thrown form's status is never a store member and the log's outcome state is the SAME token
+        cites: fail-surface.md §1.1 item 1 (a),(c)
+        observed: status=KC-4 outcome.state=KC-4
+   PASS                [E2E-C-4.7] the store's own read at ['a'] answers the state that stood there before commit — here the write's own key was created by the rolled-back op, so the pre-state is the key's ABSENCE and the store's own answer is its AddressNotFound
+        cites: composition-and-states.md §2.7 (the disposed state); contract.md §5.7 (P-TP-7); storeroom-native/write-and-read.md §2.2 (L-3)
+        observed: read=threw AddressNotFound
+E2E-C-5 — the first-repeat rule, driven on BOTH limbs in three windows: the KC-6 limb, the KC-6 limb again, and the KC-5 limb
+   cells=9 PASS=9 FAIL=0 NOT-DRIVABLE-BLIND=0 NONRUN=0 (declared population 9)
+   PASS                [E2E-C-5.1] arm (f): the pair (['a'],'c1') is IN ran and NOT IN appliedRepairs, so the repeat is limb (f) and the THROWN FORM'S CARRIER reads that limb's own KC-6 — while the store answers the attempt's floor, the address it wrote to standing nowhere (D-40, 2026-10-26)
+        cites: attempt-lifecycle.md §2.4 item 4 arm (f); fail-surface.md §2's KC-6 row ("is NOT IN appliedRepairs ... NO repair is registered for it"); composition-and-states.md §2.6 item 5 (b) and item 6 (a); strata/decisions.md · D-40 (2026-10-26)
+        observed: status=KC-6 message="the pair a#c1 violated a re-run and no repair had been applied to it" c1 repair-runs=0 read(['a'])=threw AddressNotFound
+   PASS                [E2E-C-5.2] the repeated pair's repair-run count is 0 and the repair that DID run belongs to (['a'],'c2') — the two limbs are disjoint on appliedRepairs
+        cites: attempt-lifecycle.md §2.4 item 4 (the disjointness rule); fail-surface.md §2's KC-5 row
+        observed: kinds=[constraint-check/c1/null constraint-check/c2/null repair-run/c2/null constraint-check/c1/null outcome/null/KC-6]
+   PASS                [E2E-C-5.3] the repeated pair was evaluated twice, at two opIds, and its OWN violation count is 1 and never 2 — the first evaluation passed, the second violated
+        cites: attempt-lifecycle.md §2.4 items 5 (ii),(iv); fail-surface.md §2's KC-6 row ("the pair's OWN VIOLATION count of 1")
+        observed: kinds=[constraint-check/c1/null constraint-check/c2/null repair-run/c2/null constraint-check/c1/null outcome/null/KC-6] c1-fn-runs=2
+   PASS                [E2E-C-5.4] the second window drives the SAME limb and the same carrier token: KC-6, with (['a'],'cQ') in ran and out of appliedRepairs — and the same floor state, the address the attempt wrote to standing nowhere (D-40, 2026-10-26)
+        cites: attempt-lifecycle.md §2.4 item 4 arm (f); e2e-scenarios.md E2E-C-5 cell 5 ((β)/() half); composition-and-states.md §2.6 item 5 (b); strata/decisions.md · D-40 (2026-10-26)
+        observed: status=KC-6 message="the pair a#cQ violated a re-run and no repair had been applied to it" cQ-fn-runs=2 cQ repair-runs=0 read(['a'])=threw AddressNotFound
+   PASS                [E2E-C-5.5] the two windows are DISJOINT on the two predicates and not one limb in two spellings: both read the pair IN ran and NOT IN appliedRepairs, and neither invoked a repair for the repeated pair
+        cites: attempt-lifecycle.md §2.4 item 4's disjointness rule
+        observed: kinds=[constraint-check/cQ/null constraint-check/cP/null repair-run/cP/null constraint-check/cQ/null outcome/null/KC-6]
+   PASS                [E2E-C-5.6] arm (e): the repeated pair (['a'],'C1') IS IN appliedRepairs, and the thrown form's CARRIER reads that limb's own KC-5 — with the outcome entry carrying that same token, and the store answering the attempt's floor (the address it wrote to standing nowhere) (D-40, 2026-10-26)
+        cites: attempt-lifecycle.md §2.4 item 4 arm (e); fail-surface.md §2's KC-5 row ("IS IN appliedRepairs before it"); composition-and-states.md §2.6 item 5 (b); strata/decisions.md · D-40 (2026-10-26)
+        observed: status=KC-5 outcome.state=KC-5 C1 repair-runs=1 read(['a'])=threw AddressNotFound kinds=[constraint-check/C1/null repair-run/C1/null constraint-check/C1/null outcome/null/KC-5]
+   PASS                [E2E-C-5.7] no repair runs a second time: the repeated pair's repair-run count is exactly 1 and never 2
+        cites: fail-surface.md §2's KC-5 row (its observable); e2e-scenarios.md E2E-C-5 cell 5
+        observed: C1 repair-runs=1 C1-fn-runs=2
+   PASS                [E2E-C-5.8] the attempt is closed on every failure arm, so the stale CommitRecord the caller still holds is refused KC-2 by a second K-3 — and never KC-7
+        cites: kernel-surface.md §2.1 item 3 (RD-9); parameter-semantics.md §2.15
+        observed: second K-3 = KC-2
+   PASS                [E2E-C-5.9] the two limbs are DISJOINT on appliedRepairs alone and not on registration — the carrier reads KC-6 on the window whose pair is OUT of appliedRepairs and KC-5 on the window whose pair is IN it — and the pair's OWN repair-run count discriminates them the same way: 0 where its repair never ran, 1 where it had; both windows answer the same floor state, their address standing nowhere (D-40, 2026-10-26)
+        cites: attempt-lifecycle.md §2.4 item 4 (the disjointness rule, registration-keyed reading withdrawn by name); fail-surface.md §2 — the two rows; composition-and-states.md §2.6 item 5 (b); strata/decisions.md · D-40 (2026-10-26)
+        observed: limb tokens: (alpha)=KC-6 (gamma)=KC-5 — TWO tokens, the limb's own, because no window of this row meets the floor; the limb discriminator: alpha's repeated pair c1 repair-runs=0, gamma's repeated pair C1 repair-runs=1; floors: read(alpha ['a'])=threw AddressNotFound, read(gamma ['a'])=threw AddressNotFound
+E2E-C-6 — two registrations at one address, the pair's idempotence, and the KC-7 / KC-2 halves
+   cells=8 PASS=8 FAIL=0 NOT-DRIVABLE-BLIND=0 NONRUN=0 (declared population 8)
+   PASS                [E2E-C-6.1] the pass evaluates the two pairs in first-registration order: A then B, each once, each at the write's op
+        cites: kernel-surface.md §2.1 item 1 (order clause); attempt-lifecycle.md §2.4 item 5 (ii)
+        observed: kinds=[constraint-check/A/null constraint-check/B/null commit/null/null]
+   PASS                [E2E-C-6.2] each pair is evaluated exactly once in ONE pass (at most once per pass) — read off the FIRST attempt's own pass, before the second attempt's pass moves the counters
+        cites: attempt-lifecycle.md §2.4 item 5 (iv)
+        observed: after the first attempt's own pass: A=1 B=1; totals after the second attempt's own pass: A=2 B=2
+   PASS                [E2E-C-6.3] BOTH halves of the two-state rule: (a) a second K-2 at the SAME address while the first attempt stands OPEN — the hold opening with K-2's own write verb and released only by the attempt's own terminal arm — is REFUSED with KC-7 BEFORE the write verb is reached; (b) a second K-2 at that address ONCE THE EARLIER ATTEMPT HAS REACHED ITS TERMINAL ARM is LAWFUL WHENEVER IT IS ISSUED and RETURNS A FRESH CommitRecord, no second act being needed beside the terminal arm
+        cites: kernel-surface.md §2.1 item 2 (the hold's timing and both halves of the rule, read whole: the KC-7 refusal and the fresh record); fail-surface.md §2's KC-7 row; fail-surface.md §2's KC-2 row
+        observed: second K-2 while the attempt stood OPEN = KC-7; second K-2 after the terminal arm = returned a fresh record (attempt attempt-2 against attempt-1); its own K-3 = returned("passed"); stale K-3 = KC-2
+   PASS                [E2E-C-6.4] the stale record the caller still holds after a terminal arm is answered with KC-2 by K-3 and NEVER with KC-7, and no state moves: K-4 and K-5 over that same reference still ANSWER — the empty retained list and the retained record (`D-58`: the list was handed off with `K-3`'s return)
+        cites: kernel-surface.md §2.1 item 2 (RD-9, read whole); parameter-semantics.md §2.15; `D-58`
+        observed: second K-3 = KC-2; K-4 answers [] and K-5 the retained record (attempt,ops,outcome,rollback) over the same reference
+   PASS                [E2E-C-6.5] a re-registration at the SAME pair replaces the function, adds no second entry (one constraint-check entry)
+        cites: kernel-surface.md §2.1 item 1 (pair idempotence); composition-and-states.md §2.7 item 2
+        observed: kinds=[constraint-check/A/null commit/null/null] replaced-ran=0 replacement-ran=1
+   PASS                [E2E-C-6.6] a re-registration at the same pair returns the SAME adopted handle (the store holds ONE entry at the address)
+        cites: kernel-surface.md §2.1 item 1 (idempotence at the pair)
+        observed: two K-1 calls at pair (a,A) compared by identity
+   PASS                [E2E-C-6.7] the replacement's new function survives in the caller-side registry and nowhere else
+        cites: kernel-surface.md §2.1 item 1 (CC-5)
+        observed: replacement=1 replaced=0
+   PASS                [E2E-C-6.8] a third id at the same address is appended AFTER every pair standing — the pass order is A then C
+        cites: kernel-surface.md §2.1 item 1 (order clause)
+        observed: third registration appended last
+E2E-C-7 — the function's side, the log's own order, and a comparison that can fail
+   cells=7 PASS=7 FAIL=0 NOT-DRIVABLE-BLIND=0 NONRUN=0 (declared population 7)
+   PASS                [E2E-C-7.1] the pass over ['a'] evaluates exactly the pairs at the attempt's OWN address: the two at ['a'] and NOT the pair at ['a','b']
+        cites: attempt-lifecycle.md §2.4 item 5 (iv)
+        observed: ctx a1=1 a2=1 checks=2
+   PASS                [E2E-C-7.2] the value the constraint read is the object the caller wrote, VERBATIM (the data the constraint confirms)
+        cites: parameter-semantics.md §2.16; kernel-surface.md §2.3 item 1
+        observed: ctx.value={"n":1}
+   PASS                [E2E-C-7.3] op in the attempt context is the op WHOSE LANDING left the state the evaluation runs at — the write's own op
+        cites: kernel-surface.md §2.3 item 1
+        observed: ctx.op=op-18 write=op-18
+   PASS                [E2E-C-7.4] every constraint-check entry names the op it evaluated and carries state null
+        cites: kernel-surface.md §2.5 item 1 (the constraint-check row)
+        observed: kinds=[constraint-check/a1/null constraint-check/a2/null commit/null/null]
+   PASS                [E2E-C-7.5] K-4 over the OPEN attempt REFUSES `KC-7` — the member `K-5` already answers (`D-58`, 2026-10-28): an in-flight `seq` list is no longer a consumer read
+        cites: kernel-surface.md §2.1 item 4; kernel-surface.md §2.3 item 1; `D-58`
+        observed: K-4 at commit time = KC-7
+   PASS                [E2E-C-7.6] the SAME registered pair reaches DIFFERENT outcomes for different values: passed for 1, KC-3 for 9 — the comparison can fail
+        cites: parameter-semantics.md §2.5 observable; attempt-lifecycle.md §2.4 item 4 arm (c)
+        observed: small=passed big=KC-3 values=1,9
+   PASS                [E2E-C-7.7] the kernel's own order is the log's ARRAY INDEX and nothing store-side: each entry stands at its own position 0..n-1 in both attempts, `seq` ABSENT, no entry carrying a member outside the five (`D-65`)
+        cites: kernel-surface.md §2.5 item 1 (order); attempt-lifecycle.md §2.4 item 5 (ii); `D-65`
+        observed: small shape=ok big kinds=[constraint-check/v/null outcome/null/KC-3]
+E2E-C-8 — parity between the app's own call and the app's listener body
+   cells=6 PASS=6 FAIL=0 NOT-DRIVABLE-BLIND=0 NONRUN=0 (declared population 6)
+   PASS                [E2E-C-8.1] both windows resolve to the success arm for the same pair and the same value
+        cites: attempt-lifecycle.md §2.4 item 4 arm (a)
+        observed: alpha=passed beta=passed (beta reached through the surface's own delivery at the terminal arm: the body ran 1x at first level)
+   PASS                [E2E-C-8.2] the two windows' ops are of equal length with equal kind sequences
+        cites: e2e-scenarios.md E2E-C-8 cell 5; kernel-surface.md §2.1 item 3
+        observed: alpha ops=["write"] beta ops=["write"]
+   PASS                [E2E-C-8.3] the two windows' logs have equal length and equal kind/id/state sequences
+        cites: e2e-scenarios.md E2E-C-8 cell 5; kernel-surface.md §2.5 item 1
+        observed: alpha=[constraint-check/x/null commit/null/null] beta=[constraint-check/x/null commit/null/null]
+   PASS                [E2E-C-8.4] rollback is [] in both windows and each window's attempt reference is its own
+        cites: kernel-surface.md §2.1 item 3
+        observed: alpha attempt=attempt-1 beta attempt=attempt-2
+   PASS                [E2E-C-8.5] the body ran ONCE, invoked by the surface's own delivery at the terminal arm; the handle it was invoked from STANDS AS A PAIR in the caller's own write's `CommitRecord.pending` at K-2's return — the member is POPULATED, and the caller's own loop is ONE invoker among the ordered layers and never the only one
+        cites: kernel-surface.md §2.1 item 2 (the loop, the member's populated state and its declared extent); kernel-surface.md §2.2 item 2; A112 (the layers and their order)
+        observed: pending at K-2's return=[{"handle":"x","address":["a"]},{"handle":"blind-c8-at-a","address":["a"]}] — the listener's pair stands there (carriesHandle=true) and so does the pair's own (x); the body ran 1x at first level, handed ["a"] (the write's own address); the surface delivered 2 distinct handle(s) and the pair x was checked off by the pass
+   PASS                [E2E-C-8.7] the surface's own window delivered its pass for the same write: the body's own attempt carries the ONE constraint-check entry its pair's own pass appended, at the body's own op, and the body's log is the same two-kind sequence alpha's is
+        cites: attempt-lifecycle.md §2.4 item 5 (iii); kernel-surface.md §2.1 item 2
+        observed: beta inner=[constraint-check/x/null commit/null/null] ops=["op-23"] — the pair's own pass appended exactly one entry and the body's own write landed that op
+E2E-C-9 — the compaction arm: a reversal that names an op the compaction DROPPED is refused with `RollbackCompacted` — the token has a producer again at the dropped floor, and where the window took an op the composition owes, the landed edits stand
+   cells=9 PASS=9 FAIL=0 NOT-DRIVABLE-BLIND=0 NONRUN=0 (declared population 9)
+   PASS                [E2E-C-9.1] THE COMPACTION ARM, RE-DERIVED TO ITS ONE SURVIVING PRODUCER: the composition's ONE call over the attempt's first op NAMES AN OP THE COMPACTION DROPPED — the attempt's two repairs at one address pushed that op out of a window of 2 while the attempt stood — and the store REFUSES with `RollbackCompacted` instead of returning a record: the step's `answer` is that code, `failed` is `true` and `undoneOps` is EMPTY because nothing was undone; the address then answers the LAST REPAIR'S LANDING and never the state the attempt found, because a refusal restores nothing and the landed edits stand where the window took an owed op; and the caller's own reversal of an op the same window took — taken inside the failing pair's body and again at the row's own level — is refused with that same code, while an id that named no store op still answers `JournalOpUnknown` (`D-160` items 1 and 3; the RCA's §7 drive; `D-108` item 2 CONDITIONAL on the window's width)
+        cites: strata/decisions.md · D-160 (2026-11-17) items 1, 3 and 5; docs/L1/journal-retention-rca.md §7 (the drive's two refusals and the compensation-window declaration); strata/decisions.md · D-108 item 2 READ THROUGH them; composition-and-states.md §2.6 item 5 (b) and item 6 (a) (THE FLOOR GOVERNS); fail-surface.md §2's KC-8 row; parameter-semantics.md §2.17; attempt-lifecycle.md §2.4 item 8 (ii)
+        observed: status=KC-8 message="the per-op rollback met the store's own RollbackCompacted at op-30" commitOp=op-30 lastRepairOp=op-32 repairRuns=2 steps=[{"opId":"op-30","answer":"RollbackCompacted","failed":true,"undoneOps":[],"restoredTo":{"present":true,"value":0},"checkpoint":null}] read(['a'])=0 (the state the attempt found was 5; its own commit landed 9 and its LAST repair landed 0) — THE ARM'S FACT, MEASURED: the window is 2 and the attempt landed three appends at ['a'] (its own first op and two repairs), so the compaction removed the first of them; the composition's one call NAMES that op and the watermark answers RollbackCompacted — the producer the old title denied; the caller's own reversal of a pre-attempt op answers the same code, while 'op-999999999' answers JournalOpUnknown, which is D-160 item 3's discriminator; the refusal undid nothing, so the landed repairs STAND — the RCA's §7 declaration, measured rather than restated
+   PASS                [E2E-C-9.2] `RollbackCompacted` FIRES ON EVERY ONE OF THE THREE WINDOWS AND NOT ONE OF THEM RETURNS A RECORD: the three states differ in nothing but the bytes standing at `filePath`, and the caller's own reversal of an op the compaction DROPPED is refused with that code on all three (`D-160` item 3) — the refusal undoes nothing and writes no byte, so the address answers the `3` its writes left and the memory-only version the window swallowed still stands; the INTACT window's fresh instance reads the image's own member and the ZERO-LENGTH window's reads the creation state, while the CORRUPT window REFUSES THE CONSTRUCTION with `FileImageRefused` (`D-126` item 2) — the third state is a refusal of the instance and no longer an answer equal to the zero-length one, and the corrupt bytes are not overwritten
+        cites: strata/decisions.md · D-160 (2026-11-17) item 3 (the watermark's two refusals) and D-126 (2026-11-06) item 2 (a corrupt image refuses the construction, and PIN-11's silence is retired with it); D-118 item 1 READ THROUGH BOTH and RETIRED at its equality; D-108 items 1–3 withdrawn with their subject; docs/specs/storeroom-file-save-coverage/contract.md PIN-12 (ii) and (iii), PIN-13 (v); docs/specs/storeroom-file-save-coverage/verification.md V-13 (i)–(vii) and FSC-ARM4-LOST
+        observed: UNREADABLE ["this is not the store's image"] -> RollbackCompacted :: "'op-38' is out of scope because it is compacted, compacted operations are out of scope"; state before {"present":true,"value":3} / after {"present":true,"value":3}, ['m'] {"present":true,"value":"swallowed"}, ['z'] {"present":false,"status":"AddressNotFound"}, bytes "this is not the store's image", a fresh instance FileImageRefused :: "'/tmp/scnt-blind-vCXUgl/compact17.json' is not an image this store reads, the file at this path must hold this store's image or be empty" · INTACT ["{\"z\":7}"] -> RollbackCompacted; ['z'] before {"present":false,"status":"AddressNotFound"} / after {"present":false,"status":"AddressNotFound"} / a fresh instance {"present":true,"value":7}, ['a'] after {"present":true,"value":3}, ['m'] after {"present":true,"value":"swallowed"}, bytes "{\"z\":7}" · EMPTY -> RollbackCompacted; ['a'] {"present":true,"value":3}, ['m'] {"present":true,"value":"swallowed"}, ['z'] {"present":false,"status":"AddressNotFound"}, bytes "", a fresh instance {"ok":true,"a":{"present":false,"status":"AddressNotFound"},"m":{"present":false,"status":"AddressNotFound"},"z":{"present":false,"status":"AddressNotFound"}} — **ALL THREE REFUSE WITH THE STORE'S OWN CODE AND NOT ONE RETURNS A RECORD: the token has a producer again (D-160 item 3), the refusal moves no state and writes no byte, and the corrupt window's THIRD STATE is the construction's own reply (FileImageRefused, D-126 item 2) rather than the zero-length window's equal**
+   PASS                [E2E-C-9.3] the attempt carries ONE `outcome` entry, its state is the FLOOR's own token `KC-8` (and not the pair's `KC-3`), its message NAMES the store's `RollbackCompacted` at the op the composition's call named, and no second entry is appended — the composition's floor branch fires on the arm this row drives, the step beside it records `failed` true with an empty `undoneOps`, and the entry is appended once (`D-160` item 3; `composition-and-states.md §2.6` item 5 (b) and item 6 (a); `fail-surface.md §2`'s KC-8 row)
+        cites: composition-and-states.md §2.6 item 6 (a) READ WITH D-160 item 3 (the floor branch's producer is the watermark); fail-surface.md §1.1 item 1 (c); fail-surface.md §2's KC-8 row (the store's member named inside the outcome entry's message); attempt-lifecycle.md §2.4 item 8 (ii)
+        observed: log=[constraint-check/x/null repair-run/x/null constraint-check/x/null constraint-check/z/null repair-run/z/null constraint-check/x/null constraint-check/z/null constraint-check/y/null outcome/null/KC-8] outcomeEntries=1 outcome={"kind":"outcome","id":null,"opId":"op-32","message":"the per-op rollback met the store's own RollbackCompacted at op-30","state":"KC-8"} compositionStep={"opId":"op-30","answer":"RollbackCompacted","failed":true,"undoneOps":[],"restoredTo":{"present":true,"value":0},"checkpoint":null} — the ONE entry is the attempt's, its state is the floor's own token, and the message names the store's RollbackCompacted at op-30: the arm's producer, read at the log the old cell read for its absence
+   PASS                [E2E-C-9.4] the floor meets the STILL-OWED op's call and never the checkpoint op: the checkpoint member is null on every step of this attempt (no landing left the address valid), so no call of this walk stands over a stop op
+        cites: composition-and-states.md §2.6 item 8 (iv) and (iii); parameter-semantics.md §2.17
+        observed: checkpoints=[null] declaredList=["op-32","op-31","op-30"] performed=["op-30"]
+   PASS                [E2E-C-9.5] the composition is per-op over the attempt's OWN ops and reports exactly the calls it PERFORMED — each step six members, in performed order, every performed opId drawn from ITEM 2'S DECLARED CALL LIST, one call per op and never two over one opId
+        cites: composition-and-states.md §2.6 item 2 (the call list) and item 5 (a); parameter-semantics.md §2.17
+        observed: steps=["op-46","op-47"] declaredList=["op-47","op-46"] status=KC-3
+   PASS                [E2E-C-9.6] the composition's reach is the ATTEMPT'S WHOLE FOOTPRINT — one floor call per distinct address the attempt's owed ops touched, at each address's own first owed op — so a failing attempt leaves BESIDE addresses too restored: the repair's address answers its seeded value, the attempt's own address answers what stood there before it, every op of every touched address is named in a step's undoneOps and in that address's step opId, and no step performs nothing unless `failed` is true
+        cites: parameter-semantics.md §2.17 observable; composition-and-states.md §2.6 item 5 (a); storeroom-js/contract.md §2.6's clause of 2026-10-26, item 5 (annotate-beside: the spatial scope is superseded — one floor call per distinct address, the attempt's footprint restored)
+        observed: union=["op-46","op-47"] steps=[{"opId":"op-46","answer":"ok","undoneOps":["op-46"],"restoredTo":{"present":false}},{"opId":"op-47","answer":"ok","undoneOps":["op-47"],"restoredTo":{"present":true,"value":41}}] declaredList=["op-47","op-46"] ops=[{"id":"op-46","address":["a"]},{"id":"op-47","address":["b"]}] read(['a'])="threw AddressNotFound" read(['b'])="41" (the seed at ['b'] was 41; the repair wrote 7 there; ['a'] held nothing before the attempt and the attempt landed 99)
+   PASS                [E2E-C-9.7] no op is passed to the store verb twice, and no call of the walk comes AFTER a call that had already undone it
+        cites: composition-and-states.md §2.6 item 4 (the guard) and item 5 (a) (the skip); parameter-semantics.md §2.17 outside values
+        observed: performed set checked pairwise against the calls that preceded each one
+   PASS                [E2E-C-9.8] all steps of one attempt carry IDENTICALLY the attempt's one checkpoint value (one op or null on every step)
+        cites: parameter-semantics.md §2.17; composition-and-states.md §2.6 item 8
+        observed: checkpoints=["null"]
+   PASS                [E2E-C-9.9] the checkpoint names the OP whose landing left the state valid — an op, never a pair key, and never an op the walk passed to the store verb
+        cites: composition-and-states.md §2.6 item 8 (iii) (A104: the checkpoint may name an op ANOTHER attempt landed)
+        observed: checkpoint values=[null]
+E2E-C-10 — the same attempt, delivered two ways: parity is required on every member
+   cells=7 PASS=7 FAIL=0 NOT-DRIVABLE-BLIND=0 NONRUN=0 (declared population 7)
+   PASS                [E2E-C-10.1] both windows fail on the same arm: the same status token, read off the form each caller caught
+        cites: fail-surface.md §1.1 item 1 (c); e2e-scenarios-b.md E2E-C-10 step (5) (i)
+        observed: alpha=KC-3 beta=KC-3 — the body ran 1x from the caller's own loop (heard [["a"]]), the caller's own write threw KC-3, and the body's own attempt is closed so K-5 answers: read
+   PASS                [E2E-C-10.2] outcome equal, ops of equal LENGTH with equal kind sequences
+        cites: e2e-scenarios-b.md E2E-C-10 step (5) (ii); kernel-surface.md §2.1 item 3
+        observed: alpha outcome=failed ops=["write"] | beta outcome=failed ops=["write"]
+   PASS                [E2E-C-10.3] log of equal length with equal kind/id/state sequences
+        cites: e2e-scenarios-b.md E2E-C-10 step (5) (iii); kernel-surface.md §2.5 item 1
+        observed: alpha=[constraint-check/x/null outcome/null/KC-3] beta=[constraint-check/x/null outcome/null/KC-3] · the retained records carry no log (true / true)
+   PASS                [E2E-C-10.4] rollback of equal length, each step six members with equal answer/failed, and each window's own undoneOps naming only ops of ITS OWN attempt (the opIds are not compared across windows)
+        cites: parameter-semantics.md §2.17; e2e-scenarios-b.md E2E-C-10 step (5) (iv)
+        observed: alpha rollback=[["ok",false,1]] beta rollback=[["ok",false,1]] — the step COUNT and the answer/failed readings are compared; each window's undoneOps is read against its OWN ops
+   PASS                [E2E-C-10.5] the instrument each window read is NAMED: both are the kernel's own record read through K-5 over an attempt CLOSED by its own terminal act — and after `D-58` that record is the retained four-member one, the log having been handed off with the refusal
+        cites: kernel-surface.md §2.1 item 5; fail-surface.md §1.2 item 4; `D-58`
+        observed: alpha keys=attempt,ops,outcome,rollback beta keys=attempt,ops,outcome,rollback — both read through K-5 over an attempt CLOSED by its own terminal act
+   PASS                [E2E-C-10.6] message strings may differ where the kernel's own text names the trigger's arguments — and both are non-empty kernel sentences
+        cites: e2e-scenarios.md E2E-C-8 cell 5; fail-surface.md §1.1 item 2 (i)
+        observed: alpha's sentence="too large" beta's="too large"
+   PASS                [E2E-C-10.7] the beta window's delivery came through the caller's own loop — the failing caller's own write DISCARDS its set, so no body is invoked inside its own window — and the two windows' answers are one token
+        cites: kernel-surface.md §2.1 item 2 (the loop and the discard rule); A112 (one invoker among the ordered layers); attempt-lifecycle.md §2.4 item 8 (i) (5)
+        observed: the caller's own loop over its K-2 snapshot invoked 1 body(ies) — pending at K-2's return=[{"handle":"x","address":["a"]},{"handle":"blind-c10-at-a","address":["a"]},{"handle":"x","address":["a","b"]}], of which 2 handle(s) the caller has no function for (the pair's own); the body was handed ["a"] (the operation's own address); alpha=KC-3 beta=KC-3
+E2E-C-11 — the marker is per-attempt: a second attempt runs the same repair again
+   cells=7 PASS=7 FAIL=0 NOT-DRIVABLE-BLIND=0 NONRUN=0 (declared population 7)
+   PASS                [E2E-C-11.1] the FIRST attempt resolves passed with its own repair-run entry
+        cites: attempt-lifecycle.md §2.4 item 4 arm (g)
+        observed: attempt1=passed repair-runs=1
+   PASS                [E2E-C-11.2] the SECOND, separate attempt at the same address runs the SAME repair AGAIN — its marker started empty, so its own repair-run entry exists
+        cites: parameter-semantics.md §2.9 observable; contract.md §5.8 (P-TP-8)
+        observed: attempt2=passed repair-runs=1
+   PASS                [E2E-C-11.3] the marker did not survive attempt 1: attempt 2's ops carry its own repair op, distinct from attempt 1's
+        cites: kernel-surface.md §2.5 item 2 (lifetime)
+        observed: attempt1 op2=op-53 attempt2 op2=op-55
+   PASS                [E2E-C-11.4] NO closed record carries the marker: the closed AttemptReport has exactly five members and no appliedRepairs member
+        cites: kernel-surface.md §2.1 item 3; kernel-surface.md §2.5 item 2
+        observed: keys=attempt,log,ops,outcome,rollback
+   PASS                [E2E-C-11.5] nor does any closed record carry ran/open/checkpoint/ref/commit: the open shape's nine members are read off an OPEN attempt only
+        cites: attempt-lifecycle.md §2.4 item 1
+        observed: keys=attempt,log,ops,outcome,rollback
+   PASS                [E2E-C-11.6] the two attempts' logs are each their own list — each list's positions are its own ARRAY INDICES, `seq` ABSENT (`D-65`) — and the witnesses name different opIds
+        cites: kernel-surface.md §2.5 item 1 (append-only within one attempt); `D-65`
+        observed: attempt1=[constraint-check/A/null repair-run/A/null constraint-check/A/null commit/null/null] at positions [[0,0],[1,1],[2,2],[3,3]] · attempt2=[constraint-check/A/null repair-run/A/null constraint-check/A/null commit/null/null] at positions [[0,0],[1,1],[2,2],[3,3]]
+   PASS                [E2E-C-11.7] K-4 over each closed attempt ANSWERS — the empty retained list on both — while the two attempts' own lists are the ones `K-3` handed off, each its own (`D-58`)
+        cites: kernel-surface.md §2.1 item 4; `D-58`
+        observed: K-4 over each closed attempt answers [[],[]] · the handed-off lists 4/4 entries
+E2E-C-12 — refusals at K-1: the kernel's own channel, and a registry that does not move
+   cells=7 PASS=7 FAIL=0 NOT-DRIVABLE-BLIND=0 NONRUN=0 (declared population 7)
+   PASS                [E2E-C-12.1] the kernel refuses an address shape outside its domain BEFORE the store's listen is called: KC-1, in the kernel's own form, with an empty log
+        cites: kernel-surface.md §2.1 item 1 channel (i); fail-surface.md §1.1 item 1
+        observed: status=KC-1 keys=address,log,message,status
+   PASS                [E2E-C-12.2] an id that is not a non-empty string is KC-2 (the kernel's own channel)
+        cites: kernel-surface.md §2.1 item 1 channel (i); parameter-semantics.md §2.2
+        observed: status=KC-2
+   PASS                [E2E-C-12.3] a constraint that is not a function is KC-2
+        cites: kernel-surface.md §2.1 item 1 channel (i)
+        observed: status=KC-2
+   PASS                [E2E-C-12.4] NO store member appears as a refused registration's status: all three are the kernel's own closed tokens
+        cites: fail-surface.md §1.2 item 1 (i); contract.md §5.3 (P-IM-3)
+        observed: statuses=KC-1,KC-2,KC-2
+   PASS                [E2E-C-12.5] a refused registration leaves the registry exactly as it stood: the lawful registration after the three refusals stands and the pass evaluates ONE pair
+        cites: kernel-surface.md §2.1 item 1 (no entry added on either channel)
+        observed: lawful K-1 ok=true
+   PASS                [E2E-C-12.6] nothing was added by the refusals: the pass's constraint-check entries name the ONE lawfully registered pair
+        cites: e2e-scenarios-b.md E2E-C-12; kernel-surface.md §2.5 item 1
+        observed: entry ids=[lawful]
+   PASS                [E2E-C-12.7] the store's own machinery was not reached by a refused call: a fourth K-1 at the lawful pair still returns the adopted handle
+        cites: kernel-surface.md §2.1 item 1 (listen throws ⇒ it created nothing)
+        observed: a further K-1 at the lawful pair returned the adopted handle
+E2E-C-13 — two store codes at the caller's own verb calls, and the one asymmetry between them
+   cells=7 PASS=7 FAIL=0 NOT-DRIVABLE-BLIND=0 NONRUN=0 (declared population 7)
+   PASS                [E2E-C-13.1] a tier the store refuses throws the STORE's own code OutOfDomainTier at the verb call, in the surface's ONE thrown form — a plain object whose member set is exactly {address, log, message, status}, `log` an ARRAY
+        cites: kernel-surface.md §2.1 item 2 (the tier refusal); fail-surface.md §3 item 2; fail-surface.md §1.2 item 2; surface.md §2.5 items 4 and 9 (the failure-form override, 2026-10-17)
+        observed: status=OutOfDomainTier keys=address,log,message,status log=[]
+   PASS                [E2E-C-13.2] it opens NO attempt: a second refused commit at the same address is refused the same way and never KC-7
+        cites: kernel-surface.md §2.1 item 2 (the tier refusal); parameter-semantics.md §2.11 (ii)
+        observed: second refusal = OutOfDomainTier
+   PASS                [E2E-C-13.3] the repair's own write at an address whose ancestor is a leaf is refused by the store with the store's own code, in the surface's ONE thrown form — a plain object whose member set is exactly {address, log, message, status}, `log` an ARRAY and `[]` (no attempt was minted)
+        cites: fail-surface.md §3 item 2 (the write path's own codes); parameter-semantics.md §2.7; surface.md §2.5 items 4 and 9 (the failure-form override, 2026-10-17)
+        observed: repair write status=WriteParentNotLink keys=address,log,message,status log=[] message="'b' cannot be written into 'a', it holds a leaf and not a link"
+   PASS                [E2E-C-13.4] the repair body THREW at its own verb call, so K-3 answers on the KERNEL's own channel — the thrown form is the kernel's `{address, log, message, status}` with `status: KC-4`, and the body's own caught object is NOT what the caller holds (the kernel converts no channel into another; it NAMES the store's code in its sentence)
+        cites: parameter-semantics.md §2.16 (a throwing repair body); attempt-lifecycle.md §2.4 item 8 (i); fail-surface.md §1.2 item 1 (no conversion); e2e-scenarios-b.md E2E-C-13 step (5) (β)
+        observed: the object the body caught is the store's own (status=WriteParentNotLink, keys=address,log,message,status); the object K-3 threw back is the kernel's (status=KC-4, keys=address,log,message,status); identity between them=false; the kernel's sentence="the repair x was attempted and the store refused its own edit — the store's answer is WriteParentNotLink"
+   PASS                [E2E-C-13.5] the attempt is closed as failed and its own outcome entry carries KC-4's token — the kernel's own state for a repair that threw, on the kernel's own channel
+        cites: fail-surface.md §1.1 item 3; composition-and-states.md §2.7 item 13; fail-surface.md §2's KC-4 row (the carrier named: where the repair body throws before it returns, the carrier IS the attempt's own message log — its ONE outcome entry, read off the log the caller holds after the throw)
+        observed: report outcome=failed retained keys=attempt,ops,outcome,rollback thrown log=[constraint-check/x/null repair-run/x/null outcome/null/KC-4]
+   PASS                [E2E-C-13.6] the store's code is NAMED inside the repair-run entry's message as the store's own answer, and the entry's state stays null
+        cites: kernel-surface.md §2.5 item 1 (the message table); fail-surface.md §1.2 item 3 (the asymmetry's own carrier clause: the store's code is NAMED INSIDE the repair-run entry's message)
+        observed: repair-run={"kind":"repair-run","id":"x","opId":"op-58","message":"the repair x was attempted and the store refused its own edit — the store's answer is WriteParentNotLink","state":null} — the store's own code the repair's verb call threw (WriteParentNotLink) IS named inside this entry's message (the message table's own carrier clause, kernel-surface.md §2.5 item 1) and the entry's state stays null
+   PASS                [E2E-C-13.7] the two channels are not converted into one another: the store's code reached the repair body UNCHANGED at its own verb call (same status, same members), no store code is ever a kernel state, the thrown form's `status` is the kernel's own token, and the repair ran once
+        cites: fail-surface.md §1.2 item 1 (no conversion), items 2 and 4; fail-surface.md §1.1 item 1 (a) (a thrown form's status IS a kernel token)
+        observed: store code at K-2=OutOfDomainTier; store code at the repair's own verb call=WriteParentNotLink (the body held the store's own object unchanged=false); the caller holds the kernel's form (status=KC-4); kernel state=KC-4; repair calls=1
+E2E-C-14 — an unknown attempt reference, and the refusal that is not KC-7
+   cells=7 PASS=7 FAIL=0 NOT-DRIVABLE-BLIND=0 NONRUN=0 (declared population 7)
+   PASS                [E2E-C-14.1] K-5 over a CLOSED attempt returns the retained record and K-4 ANSWERS the empty retained list — the log was handed off with `K-3`'s return (`D-58`)
+        cites: kernel-surface.md §2.1 items 4–5; `D-58`
+        observed: report=passed retained keys=attempt,ops,outcome,rollback K-4=[] handed-off log=2
+   PASS                [E2E-C-14.2] K-4 and K-5 accept the bare id string as the SAME argument (the AttemptRef or its id, nothing else)
+        cites: parameter-semantics.md §2.15 domain
+        observed: bare-id reads compared member for member
+   PASS                [E2E-C-14.3] an id the kernel holds no attempt for is KC-2 from BOTH readers
+        cites: parameter-semantics.md §2.15 outside values; kernel-surface.md §2.1 items 4–5
+        observed: K-4=KC-2 K-5=KC-2
+   PASS                [E2E-C-14.4] null, undefined and an empty-id AttemptRef are each KC-2 (the closed outside-value set)
+        cites: parameter-semantics.md §2.15 outside values
+        observed: three outside values over K-5: KC-2,KC-2,KC-2
+   PASS                [E2E-C-14.5] K-3 over the SAME stale record (its attempt already disposed of) is KC-2 and NOT KC-7
+        cites: kernel-surface.md §2.1 item 3 (RD-9); parameter-semantics.md §2.15 observable
+        observed: K-3 again = KC-2
+   PASS                [E2E-C-14.6] no state moved and no entry was appended: the closed record and its log are untouched by the refusals
+        cites: kernel-surface.md §2.1 item 3 (no entry appended)
+        observed: log after the refusals compared member for member
+   PASS                [E2E-C-14.7] the reference K-3 minted is the same one K-5 accepts — the commit's member, the report's and the record's are one reference
+        cites: kernel-surface.md §2.1 items 2–5
+        observed: refs=attempt-1/attempt-1/attempt-1
+E2E-C-15 — a nested processing: the second top-level attempt at a DESCENDANT address
+   cells=8 PASS=8 FAIL=0 NOT-DRIVABLE-BLIND=0 NONRUN=0 (declared population 8)
+   PASS                [E2E-C-15.1] the nested K-2 at a descendant address is NOT refused: the record is returned (KC-7 refuses only at the ONE address of the live attempt)
+        cites: attempt-lifecycle.md §2.4 item 8 (ii); contract.md §0.1 item 5 (v) RC-18
+        observed: inner attempt=attempt-2 outer attempt=attempt-3 inner commit=returned
+   PASS                [E2E-C-15.2] the inner attempt fails on its OWN address's pair and its failure is composed per-op over its OWN ops, in ITEM 2'S DECLARED ORDER — the step count is the calls ISSUED and may run below the list's size
+        cites: composition-and-states.md §2.6 items 1 and 2; composition-and-states.md §2.6 item 5 (a)
+        observed: inner=KC-3 steps=["op-61"] declaredList=["op-61"] (this window's inner attempt created ONE op of its own)
+   PASS                [E2E-C-15.3] the inner composition's performed set is its own — it DOES name the outer body's own write, because that op is the inner attempt's own state (its before-image is that write's value) and no step of it names the OUTER attempt's first write
+        cites: composition-and-states.md §2.6 item 1 (the candidate set is exactly the attempt's own ops)
+        observed: undone union=["op-61"] outer-body write=op-61 outer first write=op-62
+   PASS                [E2E-C-15.4] the inner walk's `checkpoint` member is the ADDRESS-WIDE NULL ARM on every step — no landing of any attempt this window opened left every registered pair at `['a','b']` passing — and the walk therefore stops nowhere early (its performed set is drawn from item 2's whole call list)
+        cites: composition-and-states.md §2.6 item 8 (iii) and (iv) (A104, the null arm as the caller-side reading); parameter-semantics.md §2.17; e2e-scenarios-b.md E2E-C-15 step (5)
+        observed: checkpoint read off the inner composition = [null] while the outer body's own write landed op-61: the NULL ARM, address-wide — the non-null arm is OWED with the store-side per-landing pass (J-20–J-22) and is NEVER a drive's demand (A102 D3; paragraph §2.17), so this cell reads the arm a caller-side drive reaches and does not read it as proof that no landing left the address valid; performed=["op-61"] declaredList=["op-61"]
+   PASS                [E2E-C-15.5] no step passed the checkpoint op to the store verb (a walk rolling back its own stop op would sweep the last valid state)
+        cites: composition-and-states.md §2.6 item 4; parameter-semantics.md §2.17 outside values
+        observed: performed opIds compared against the checkpoint
+   PASS                [E2E-C-15.6] the inner pass never evaluated the ancestor pair: no entry of the inner attempt's log carries the ancestor id
+        cites: attempt-lifecycle.md §2.4 item 5 (iv)
+        observed: inner log ids=[]
+   PASS                [E2E-C-15.7] the OUTER attempt reached its own terminal act and its record carries the outer body's own write — each commit this drive opened has its own resolution, and the inner attempt's failure did not resolve the outer one
+        cites: composition-and-states.md §2.7 (the valid states)
+        observed: outer=failed outer ops=["op-62"] outer-body write=op-61 inner=KC-3
+   PASS                [E2E-C-15.8] the checkpoint's own home: the member is ONE value on every step of ONE attempt (never a per-step or per-address derivation), it is the ADDRESS-WIDE NULL ARM on both compositions this window opens, and the outer body's own landing does not move it — a non-null reading is OWED with the store-side per-landing pass and is never a drive's demand
+        cites: composition-and-states.md §2.6 item 8 (i) and (iii) (the member's domain and its address-wide arm); parameter-semantics.md §2.17 (both arms, and which one a caller-side drive can reach)
+        observed: checkpoint read off the inner composition = [null] while the outer body's own write landed op-61, and off the outer = [null] while its own write landed op-62 (declared call list ["op-62"]): ONE value per attempt, both of them the address-wide NULL arm — the reachable arm at a caller-side surface and the arm that makes the member's reading a verification rather than an OWED clause read as settled (A102 D3; composition-and-states.md §2.6 item 8 (iii))
+E2E-C-16 — the delivery layer, and the caller's own loop as its one invoker
+   cells=8 PASS=8 FAIL=0 NOT-DRIVABLE-BLIND=0 NONRUN=0 (declared population 8)
+   PASS                [E2E-C-16.1] the caller's own write's record carries pending as THE WHOLE RETURNED SET at K-2's return — `A112`'s rule, each entry leaving it only by being checked off as it passes — and THE ONE REACHABLE ACT that leaves a listener's entry standing there is THE CALLER'S OWN `store.write` MADE UNDER A REGISTRATION: no pass of the attempt checked that pair off, so its PAIR stands in the member the caller's own loop consumes
+        cites: kernel-surface.md §2.1 item 2 (the member's populated state, the whole-set rule and the loop); A112 (the check-off, not a sift)
+        observed: pending at K-2's return=[{"handle":"blind-c16-watch","address":["a"]},{"handle":"cA","address":["a","b"]}] (length 2) against triggered=[{"handle":"blind-c16-watch","address":["a"]},{"handle":"cA","address":["a","b"]}] (length 2); the watched handle stands in pending=true; the body ran 0x during K-2's own window and 1x from the caller's own loop
+   PASS                [E2E-C-16.2] the two members carry the SAME EXTENT at K-2's return and differ only later: triggered carries every handle the write returned, and pending carries that same set — the kernel invokes no body in K-2's window, and a pair leaves pending only by being checked off as it passes (after a pass has run)
+        cites: kernel-surface.md §2.1 item 2 (the two members' declared states, the whole-set rule and the check-off)
+        observed: triggered=["blind-c16-watch","cA"] pending=["blind-c16-watch","cA"] — one set, carried by two members at this instant
+   PASS                [E2E-C-16.3] the listener body ran from the CALLER'S OWN LOOP and was handed THE TRIGGERING ADDRESS — the operation's own address, never the watch address (`Listener = (address: Address) => void`) — while the PAIR it was resolved from carries the BINDING address, which is its proper prefix
+        cites: kernel-surface.md §2.1 item 2 (the two kinds' call shapes and the referent of the triggering address); storeroom-native/write-and-read.md §6.5 item 3; trigger-and-pair.md §1.2 (the pair's address is THE BINDING's) and §5 item 5 (the pair's address vs triggeringAddress)
+        observed: loop entries=[{"handle":"blind-c16-watch","kind":"plain","ok":true},{"handle":"cA"}]; the loop's own invocation was handed ["a","b"] against the watch address ['a'] and the operation's own address ["a","b"]; the pair the handle was resolved from carries ["a"] (THE BINDING's, per trigger-and-pair.md §1.2); the surface's own delivery reached the body 0x inside K-2
+   PASS                [E2E-C-16.4] the listener body opened the SECOND top-level attempt at the other address — the hold is taken at the call's own address, so a K-2 at a DIFFERENT address is not refused KC-7 — and its own CommitRecord is a record of its own attempt, crossing back into the first processing
+        cites: attempt-lifecycle.md §2.4 item 8 (ii); contract.md §5.7 (the registry's keying rule, A106 Q4); kernel-surface.md §2.1 item 2 (the hold's address)
+        observed: second attempt=attempt-3 (the first attempt's is attempt-2); its K-2 returned keys=attempt,op,pending,triggered; secondErr=undefined
+   PASS                [E2E-C-16.5] the K-1 pair's own pass ran — the first attempt's own list (the one its refusal handed off, `D-58`) carries its `constraint-check` entry and its one `outcome` entry reads KC-3 — and NO entry the caller's own loop produced carries the constraint kind (a constraint is the kernel's to invoke, never the caller's loop's)
+        cites: kernel-surface.md §2.1 item 2 (the loop's call shape, both kinds); kernel-surface.md §2.5 item 1; parameter-semantics.md §2.16; `D-58`
+        observed: first attempt final=KC-3 log=[constraint-check/cA/null outcome/null/KC-3]; the retained record keys=attempt,ops,outcome,rollback; loop entries of kind constraint=0; the loop RESOLVED 1 entry and left 1 unresolved (the pair's own handle, for which the caller holds no function)
+   PASS                [E2E-C-16.6] the SECOND top-level processing is driven to ITS OWN terminal arm, fails on its OWN address's pair, and its own `outcome` entry carries the token — its report is the same five-member shape and mints no ninth member
+        cites: attempt-lifecycle.md §2.4 item 4; fail-surface.md §1.1 item 1 (c); fail-surface.md §2 (the KC-3 row: no repair registered for the pair)
+        observed: the second processing's K-3 = KC-3; its handed-off log=[constraint-check/cB/null outcome/null/KC-3] keys=attempt,ops,outcome,rollback
+   PASS                [E2E-C-16.7] the FIRST TERMINAL ACTOR is the SECOND top-level processing: its own K-2 return and its `K-3` both precede the first processing's `K-3` return — the order the docs' steps (5)–(8) declare — and the two processes are two attempts, never one
+        cites: attempt-lifecycle.md §2.4 item 8 (ii) head and items 1-5; contract.md §5.7 (A106 Q1/Q3)
+        observed: the second processing reached its terminal act before the outer K-3 returned (KC-3); the first processing's own K-3 then returned KC-3; the second attempt attempt-3 is not the first attempt-2
+   PASS                [E2E-C-16.8] the docs' own step (1): the caller's own write's record leaves the listener's PAIR in pending for the caller's own loop to invoke — the loop being ONE invoker among the JS surface's own ordered layers — and the loop's own call is read off the function's own recorded argument
+        cites: e2e-scenarios-b.md E2E-C-16 steps (1) and (2); kernel-surface.md §2.1 item 2; A112
+        observed: at K-2's return pending held 2 of 2 triggered handle(s) (the listener's pair stands there=true); the caller's own loop invoked it 1x, handed ["a","b"] — the whole returned set is the populating member (A112), and the loop's own call is this cell's reading
+SURFACE — the unit's declared surface: five items and the caller's own store
+   cells=3 PASS=3 FAIL=0 NOT-DRIVABLE-BLIND=0 NONRUN=0 (declared population 3)
+   PASS                [SURFACE.1] the kernel module at the declared checkout home exports exactly the six items K-1 to K-6, and no seventh (`docs/L1/surface-deltas.md` §4.1)
+        cites: kernel-surface.md §2.1 (the five signatures) read WITH the sixth, K-6 (remove), which the held-listener-identity unit landed; kernel-surface.md §1 items 1-2; parameter-semantics.md §2.16
+        observed: exports=commit,log,register,remove,report,runAttempt
+   PASS                [SURFACE.2] the store's own package namespace stands at its ONE remaining name, `storeCreate`, and none of the ten store-reaching verbs is a module-level name any longer
+        cites: storeroom-js/surface.md §2.1/§2.2; surface.md §2.9 item 1's A127 clause (11 -> 1); parameter-semantics.md §2.16 observable
+        observed: package exports=storeCreate
+   PASS                [SURFACE.3] the fixture is the package's own storeCreate(cfg) over the three declared keys, and the kernel's items take it in the FIRST position
+        cites: kernel-surface.md §2.1 (the five signatures); kernel-surface.md §1 item 5; storeroom-js/surface.md §2.1/§2.2
+        observed: instance constructed through the declared construction call
+
+TOTALS: rows=17 cells=125 PASS=125 FAIL=0 NOT-DRIVABLE-BLIND=0 NONRUN=0 DECLARED=125
+
+FAILED CELLS:
+
+CELLS THAT DID NOT EXECUTE (neither PASS nor FAIL — `D-21`):
+  none
+
+EXIT 0 (exit 0 iff no cell FAILed, none was NOT-DRIVABLE-BLIND and none was NONRUN) :: FAIL=0 NONRUN=0 NOT-DRIVABLE-BLIND=0

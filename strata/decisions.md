@@ -8485,3 +8485,36 @@ clones removed (`1` per write) · the memory's shape (`O(store + journal_length)
 6. **CELLS**: `tests/e2e/kernel-attempt-window.test.mjs` — `KAW-1` (the window's size, the dropped oldest meeting `KC-2`, the held newest
    answering `[]`, and the pruned and never-minted refusals being equal) and `KAW-2` (the per-write ceiling, with the pinned figure in the
    message and the reason the cell reads unpinned stated at the byte).
+
+---
+
+### `D-163` — `E2E-C-9` RE-DERIVED: TWO RULINGS FALSIFIED IT, NOT ONE, AND THREE LIMBS ARE RETIRED WITH THEIR SUBJECTS
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `af933d6`. **SOURCE:** the architect — *"Proceed on the E2E fix"*. **STATUS: `ACTIVE`.**
+
+1. **THE ROW IS GREEN AND ITS PROVENANCE IS WEAKER, SAID AT ITS OWN BYTE.** `node tests/e2e/blind-constraints-v2.mjs` reads **`rows=17
+   cells=125 PASS=125 FAIL=0 NONRUN=0`**, `EXIT 0`, and every other row stands. **BUT A BLIND ROW REWRITTEN BY THE PASS THAT BROKE IT IS
+   WEAKER EVIDENCE THAN A FRESH ONE**: this row's prediction has now been falsified twice (`D-108`/`D-118`, then `D-160`), and a green here
+   is evidence the tree is **consistent with `D-160`**, never that a blind author could have predicted it.
+2. **★ THE DIAGNOSIS THIS ROW WAS SENT TO FIX WAS HALF WRONG, AND THE MEASUREMENT SAYS SO.** The failure was attributed to the fixture's own
+   `floor.rollback` inside a constraint body. **Measured, that call RETURNED** (the repair's op is retained at a window of 2); **the `x0`
+   throw was `FileImageRefused` from the CORRUPT WINDOW's fresh boot**, which stands *before* the first cell — hence nine `NONRUN` and not
+   one. **So the row was falsified by TWO rulings**: `D-160` item 1 (**compaction drops**, so the arm the row drives — a candidate set holding
+   a `compacted` entry — has no subject), and **`D-126` item 2** (*"a corrupt image refuses the construction"*), which retires `D-118` item
+   1's equality (corrupt == zero-length) and its *"the save writes a readable image over the corrupt bytes"*.
+3. **AND HAD ONLY THE `x0` BEEN FIXED, TWO CELLS WOULD HAVE GONE GREEN ASSERTING A DELETED ARM** — measured: `status=KC-3`, the plain walk,
+   no regeneration anywhere. **That is the vacuous-pass trap and the re-derivation refused it.**
+4. **THE THREE RETIREMENTS, EACH WITH ITS RULING**: (i) **`D-108`'s regeneration over a RETAINED compacted entry and the `RollbackResult` it
+   returned** — withdrawn with their subject by `D-160` items 1 and 5; (ii) **`D-118` item 1's equality and its overwrite claim** — retired by
+   `D-126` item 2; (iii) **the old title's clause *"`RollbackCompacted` has no producer left"*** — retired by `D-160` item 3, **quoted in the
+   row's head as the falsified sentence rather than deleted.**
+5. **THE FILE'S REPORTER CANNOT EXPRESS A RETIREMENT** (`D-21`'s four tags, and both non-executing tags turn the exit red), **so every
+   retirement is recorded at its own byte and the cell EXECUTES an assertion of the tree's answer** — never `markUnrun`, never `nd`.
+6. **WHAT THE ROW NOW MEASURES**: the compaction arm's **one surviving producer** — a reversal naming an op the window dropped is refused
+   `RollbackCompacted`, the step answers `failed:true` with `undoneOps:[]` and the attempt's state is the floor's own `KC-8`; a never-minted id
+   still answers `JournalOpUnknown`; **and where the window took an op the composition owes, the landed edits STAND** (measured, not declared).
+
+**AND THE SPEC PROSE THIS LEAVES OWED, NAMED AND NOT MOVED**: `docs/specs/storeroom-native/contract.md` §6.4 items 1–2 and §8.1 #11's
+trigger still read the **mark**, and `docs/specs/storeroom-constraints/contract.md` §2.6 item 6's `S-ROLLBACK-FLOOR` predicate is worded on
+*"a compacted entry in the candidate set"* — **both are re-derivable to the `journal_floor` watermark and neither is this row's**; and
+`kernel-terminal.mjs`'s doc comments still describe the deleted regeneration as current (the code is right; the prose is superseded).

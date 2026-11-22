@@ -369,6 +369,13 @@ scenario(() => {
 // all**: its cells 4, 7, 8 and 10 assert the `D-40` end state and stand as filed, and the compaction arm's own
 // prediction is re-derived where it IS driven — `E2E-C-9`, whose three superseded cells are re-derived at their
 // own bytes in this pass.
+//
+// **⟶ AND THE `D-108`/`D-109` READING PRINTED IN THE PARAGRAPH ABOVE IS ITSELF SUPERSEDED, 2026-11-17 — A POINTER
+// AND NOT A RE-DERIVATION (`strata/decisions.md` · `D-160`): compaction DROPS the entry (*"Compaction dropping
+// history is the point"*), so no candidate set can hold a `compacted` entry, `Store::regenerate` and its call are
+// DELETED, and a reversal that names a dropped op answers `RollbackCompacted` again by the `journal_floor`
+// watermark. **THIS ROW MOVES NO BYTE AND NO CELL FOR IT** — its composition issues one call and meets no floor —
+// and `E2E-C-9` carries the re-derivation, the retired limbs and the rulings at its own bytes.**
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
 group('E2E-C-2', 'a two-op failing attempt: the unrepaired violation fails it, the composition reverses the repaired op, and its second same-address call meets the floor so the attempt\'s first write stands');
 scenario(() => {
@@ -956,87 +963,119 @@ scenario(() => {
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
-// E2E-C-9 — THE COMPACTION ARM: THE REVERSAL RETURNS A RECORD AND REGENERATES, AND `RollbackCompacted`
-// HAS **NO PRODUCER LEFT** (`D-118` item 2, correcting `D-109` item 1 at its own subject)
+// E2E-C-9 — THE COMPACTION ARM: A REVERSAL THAT NAMES AN OP THE COMPACTION **DROPPED** IS REFUSED WITH
+// `RollbackCompacted` — THE TOKEN HAS A PRODUCER AGAIN AT THE DROPPED FLOOR, AND WHERE THE WINDOW TOOK AN OWED OP
+// THE LANDED EDITS STAND
 //
-// **⟶ RE-DERIVED 2026-11-02 — `strata/decisions.md` · `D-108`, `D-109` AND `D-118`, AND `docs/specs/storeroom-
-// file-save-coverage/sites.md §4.2` ITEM 11, WHICH DECLARES THIS ROW'S COMPACTION CELLS AS THE ONES THAT MUST
-// TURN.** The row as filed asserted the SUPERSEDED answer — *"the store answers `RollbackCompacted`, the kernel
-// reports `KC-8`, and NOTHING is restored: the address answers the value its own commit landed"* — and its three
-// cells read that answer at the store, at the step and at the log. **`D-108` REPLACES THE ANSWER WITH THE
-// REGENERATION** (*"The default behavior for a last-valid-state rollback encountering the compaction should
-// already be to regenerate from file/creation data"*): a reversal whose temporally bounded candidate set holds a
-// compacted entry **returns a `RollbackResult` and rebuilds the last valid state from the durable ground truth** —
-// the file's image where one stands, the creation state where none does — **so no landed edit survives, on any
-// arm.** **`D-109` THEN NARROWED THE TOKEN TO ONE STATE, AND `D-118` ITEM 1 REMOVES THAT STATE**: the architect,
-// verbatim, *"In the corrupt file case, then it restores from the store creation image"* — a present, non-empty
-// `filePath` image the store's loader cannot read is **TREATED AS NO IMAGE AT ALL**, the regeneration falls back to
-// `Store::born` exactly as where no path, no file or a zero-length file stands, the reversal proceeds, and the save
-// that follows writes a readable image over the corrupt file. **SO THE TOKEN IS `DECLARED, NO PRODUCER`, its place
-// in the twenty is unmoved, and `D-107` item 1 is unconditional** (`D-118` item 2).
+// **⟶ RE-DERIVED 2026-11-17 — `strata/decisions.md` · `D-160` (ITEMS 1, 3 AND 5) AND
+// `docs/L1/journal-retention-rca.md` §7 — BECAUSE A RULING AND NOT A BUG IN THIS ROW'S PROSE FALSIFIED IT.** The
+// title this row carried was
 //
-// **THE THREE CELLS BELOW KEEP THEIR IDS, THEIR ARMS AND THEIR SUBJECTS; TWO OF THEM TURN, IN PLACE AND NOT
-// QUIETLY EDITED** (`verification.md` `V-14`; `sites.md §4.2` item 11): cell 1 drives the REGENERATING arm and
-// asserts what a reversal that meets the compaction RETURNS (unmoved by `D-118`); **cell 2 is RE-DERIVED from
-// *"the token fires on exactly one state"* to *"the token fires on NO state, and an unreadable image answers
-// exactly what a zero-length file answers"* — it says so at its own cell**; cell 3 still reads the attempt's log
-// for the token the composition no longer meets (unmoved). **THIS CELL'S BLINDNESS IS NOW IMPOSSIBLE, AND THAT IS
-// SAID HERE RATHER THAN LEFT TO THE READER:** this row was authored from the documentation alone and its
-// prediction was written down before the fix, so it read *"the floor answers a code and undoes nothing"* because
-// the documents of its date said so; the rulings move the behaviour it predicted, and a blind cell whose
-// prediction a ruling has superseded cannot stay blind — it is re-derived from `D-108`/`D-109`/`D-118` and the
-// declaration directory that applies them, which is what these three cells now are. **No subject is deleted and no
-// limb is relaxed: the old limbs' subjects — the RETURNED answer, the STEP's own record, and the LOG's one
-// `outcome` entry — are all still asserted, each against the answer the rulings name.**
+//   > *"the compaction arm: the reversal returns a record and regenerates from the durable ground truth, and
+//   > `RollbackCompacted` has no producer left — an image the loader cannot read is rebuilt from the creation
+//   > state"*
+//
+// **AND ITS SECOND CLAUSE IS FALSE ON THIS TREE, ON THE ARCHITECT'S OWN WORDS *"Compaction dropping history is the
+// point"* (`D-160`, verbatim).** The row was written when compaction **MARKED** a journal entry and the entry
+// stayed **RETAINED**, so a reversal whose temporally bounded candidate set met that entry could **regenerate from
+// the durable ground truth and RETURN** a `RollbackResult` (`D-108` items 1–2; `D-109` item 1; `D-118` item 1).
+// **`D-160` ITEM 1 MAKES COMPACTION A DROP — an entry it reaches is REMOVED and its op ids are gone** — so no
+// candidate set can HOLD a compacted entry, the regeneration has nothing to rebuild onto, and **`D-160` ITEM 5
+// DELETES it** (`Store::regenerate`, the rollback's regeneration block and the `compacted` filter, `src/store.rs`).
+// **`D-160` ITEM 3 PUTS THE PRODUCER BACK**: a named op at or below the `journal_floor` watermark **answers
+// `RollbackCompacted`** while an id that named no store op still answers `JournalOpUnknown` — **the two refusals
+// kept apart by ONE NUMBER now that the ids are gone** — and the RCA's §7 drive measured exactly that pair on this
+// tree (*"a rollback to the DROPPED op answers `RollbackCompacted`; an id never minted answers
+// `JournalOpUnknown`"*).
+//
+// **SO THE ROW'S SUBJECT — THE COMPACTION ARM — SURVIVES AND ITS ANSWER MOVED FROM A REGENERATION TO A DECLARED
+// REFUSAL**, and the row is titled as what it now measures and not as what it measured. **AND THE PRICE THE RULING
+// PUTS ON THE ARM IS THE ONE THE RCA'S §7 STATED AND THIS ROW NOW MEASURES** (`journal-retention-rca.md` §7's last
+// paragraph): `journalLength` is **the width of the compensation window**, so **where the window has taken an op a
+// composition must reverse, the store refuses and THE LANDED EDITS STAND** — **`D-108` item 2's *"no landed edit
+// survives a refusal … unconditional"* is therefore CONDITIONAL ON THE WINDOW'S WIDTH**. **THE ROW MAKES NO SUCH
+// DECLARATION AND DOES NOT READ ONE AS SETTLED**: the RCA's §7 puts that condition *"in front of the architect"* and
+// `docs/L1/publish-readiness.md` §10.1 item 4 carries it as an OPEN blocker — **so cell 1 asserts the STORE'S
+// MEASURED ANSWER (the address stands at the last repair's landing after the refusal) and claims no lawful end state
+// for it; a pass that rules otherwise moves that one expectation and no other byte of this row.**
+//
+// **WHAT IS RETIRED, WITH ITS RULING AND NOT BY SILENCE.** The old cell 1's subject — **the `D-108` regeneration
+// over a RETAINED compacted entry, and the `RollbackResult` it RETURNED** — is **RETIRED with `D-108` items 1–2,
+// `D-109` item 1 and `D-118` item 1, which `D-160` items 1 and 5 withdraw WITH THEIR SUBJECT**: there is no state
+// of this tree in which a reversal meets a retained compacted entry, so a cell asserting one would either fail for
+// the truth of the tree or pass vacuously. **The cell keeps its id, its arm, its six-member step and its address
+// reading; what it asserts moved from the record the regeneration returned to the code a dropped floor answers.**
+// **AND THE OLD CELL 2'S EQUALITY IS RETIRED TOO, BY A SECOND RULING THAT MOVED THIS ROW** — *"a present, non-empty
+// `filePath` image the store's loader cannot read is TREATED AS NO IMAGE AT ALL"* is `D-118` item 1's reading, and
+// **`strata/decisions.md` · `D-126` item 2 (`2026-11-06`) RETIRED IT**, on the architect's words *"Mint/revive a
+// code: a corrupt image refuses the construction"*: the corrupt window's third state is **a construction refusal,
+// `FileImageRefused`, and no longer an answer equal to the zero-length window's**. Cell 2 says so at its own byte.
+//
+// **AND THE PROVENANCE IS STATED PLAINLY, BECAUSE IT IS WEAKER EVIDENCE THAN A FRESH ROW'S: A BLIND ROW REWRITTEN
+// BY THE PASS THAT BROKE IT IS WEAKER EVIDENCE THAN A FRESH ONE.** This file's rows were authored from the
+// documentation alone and their predictions written down before any code; **this row's prediction has now been
+// superseded TWICE (`D-108`/`D-118`, then `D-160`), and each re-derivation is read off the ruling and off a drive's
+// measurement rather than off the documents of its date.** A later pass should read a green here as evidence that
+// the tree is CONSISTENT WITH `D-160`, never as evidence that a blind author could have predicted it.
+// **THE FILE'S REPORTER HAS FOUR TAGS AND NO RETIREMENT TAG** (`D-21`: `PASS` · `FAIL` · `NONRUN` · `NOT DRIVABLE
+// BLIND`), so **a retired subject is recorded at its own byte and the cell EXECUTES an assertion of the tree's
+// answer** — `NOT DRIVABLE BLIND` exits `1` and `NONRUN` is precisely the evaporation `D-21` exists to show, so
+// neither may be used to carry a retirement.
+//
+// **EVERY CELL KEEPS ITS ID AND ITS SUBJECT, AND EACH SAYS AT ITS BYTE WHAT MOVED; CELLS 5…9 SAY THAT NOTHING
+// DID** (`docs/specs/storeroom-file-save-coverage/verification.md` `V-14`; `sites.md §4.2` item 11).
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════
-group('E2E-C-9', 'the compaction arm: the reversal returns a record and regenerates from the durable ground truth, and `RollbackCompacted` has no producer left — an image the loader cannot read is rebuilt from the creation state');
+group('E2E-C-9', 'the compaction arm: a reversal that names an op the compaction DROPPED is refused with `RollbackCompacted` — the token has a producer again at the dropped floor, and where the window took an op the composition owes, the landed edits stand');
 scenario(() => {
   const store = newStore();
   // ── (A) THE DOCUMENTED WINDOW, REACHED: the store's own `journalLength` is the app's declared control over
   // the journal's compression (storeroom-native/write-and-read.md §6.1 item 5: the trigger is the APPEND, and
   // `cfg.journalLength` is a caller-supplied positive integer of ENTRIES, storeroom-js/parameter-semantics.md
-  // §2.3), so repeated writes at ['a'] put a compacted entry inside the attempt's own call's reach.
+  // §2.3), so repeated writes at ['a'] put ops the compaction DROPS in this row's own hand.
+  // **⟶ AND THE FIXTURE MOVED, SAID HERE SO A READER SEES WHAT MOVED AND WHY (`D-160` items 1 and 5).** The
+  // as-filed fixture reached the arm on the caller's own reversal of the REPAIR'S op, which left that entry
+  // `compacted` while the entry stood RETAINED — **the state `D-160` item 1 removed, so that act now answers a
+  // REFUSAL instead of a record and the arm's only reachable producer is A CALL THAT NAMES AN OP THE WINDOW TOOK.**
+  // The fixture manufactures exactly that, twice: the attempt's own FIRST op is pushed out of a window of `2` by the
+  // two repairs the attempt lands at ['a'] (one repair per pair — `D-124` item 1, `D-126` item 1), and the window took
+  // the six pre-attempt writes as well, the first of which the caller's own hand reverses.
   const floor = pkg.storeCreate({ filePath: path.join(TMP, `floor${(storeSeq += 1)}.json`), journalLength: 2, listeners: [] });
-  for (let i = 0; i < 6; i += 1) floor.write(['a'], 'mem', i);
-  let floorRepairOp = null, floorRepairRuns = 0;
-  // ── **⟶ RE-DERIVED 2026-10-26 TO THE RULING AND NOT TO THE BYTES — `strata/decisions.md` · `D-40`
-  // (2026-10-26), VERBATIM: *"A failing repair triggers a rollback like a constraint rejection."*** **THE
-  // DIRECTION THIS ROW'S FIXTURE MOVED, STATED SO A READER CAN SEE IT:** the 2026-10-25 pass reached the floor
-  // through a TWO-CALL walk — the first call over the repair's op left it `compacted` and the SECOND call's
-  // temporally bounded candidate set included it. **`D-40`'s composition issues ONE call, over the attempt's
-  // FIRST op, so that producer is gone; the compacted entry must now stand inside THAT ONE call's own
-  // candidate set.** The drive below therefore compacts the repair's landing BY THE CALLER'S OWN ACT, inside the
-  // pass: the pair `y`'s body calls the store's own `rollback` verb over the op the repair landed (`ctx.op`) —
-  // an ordinary three-position verb of the surface this driver already drives — and the attempt then fails
-  // (its `checkpoint` is `null` address-wide). **THE COMPACTION ARM IS MET BY THE ATTEMPT'S OWN FLOOR CALL**, and
-  // from 2026-11-02 the answer it meets is the REGENERATION and not the strand (`D-108`; the note at the foot of
-  // this block states the movement rather than re-writing the sentence above it).
-  // **THE PRE-ATTEMPT WRITES ARE KEPT AS THE DOCUMENTED START POINT** — they compress the journal — but they
-  // stand BELOW every call's `seq` floor and are not the producer of this arm; the store's own answer is
-  // named in each cell's observation.
-  // ── **⟶ ANNOTATE-BESIDE 2026-11-02 — *"THE FLOOR IS MET BY THE ATTEMPT'S OWN FLOOR CALL, all-or-nothing and
-  // NOTHING is restored"* IS SUPERSEDED AND IS READ THROUGH `D-108`; THE DRIVE ABOVE STANDS BYTE-FOR-BYTE.**
-  // The predicate that decides this arm moves no byte (`PIN-11` (i)): the candidate set still holds the entry the
-  // caller's own reversal of the repair's landing left `compacted`, and the attempt's own call still meets it.
-  // **What the store ANSWERS there has moved**: `D-108` makes the arm rebuild the last valid state from the
-  // durable ground truth and RETURN, so the address answers the state the reversal found and not the commit's
-  // landing, and `undoneOps` is the walk's own list rather than an empty one. **`D-109` leaves the token exactly
-  // one state — a present, non-empty `filePath` image the loader cannot read as an object — which cell 2 drives
-  // beside this window as its own control pair.**
+  const stateAt = (s, address) => {
+    try { return { present: true, value: s.read(address, []) }; }
+    catch (e) { return { present: false, status: e.status }; }
+  };
+  const preAttemptWrites = [];
+  for (let i = 0; i < 6; i += 1) preAttemptWrites.push(floor.write(['a'], 'mem', i));
+  let floorRepairOp = null, floorRepairRuns = 0, floorLastRepairValue = null, bodyReversal = null;
+  // ── **`D-40` (2026-10-26) STANDS: the composition issues ONE call, over the attempt's first op** (*"A failing
+  // repair triggers a rollback like a constraint rejection."*). **WHAT MOVED IS WHICH OP THAT CALL NAMES AND WHY THE
+  // STORE DOES NOT HOLD IT** — from `D-160` item 1 the window DROPS what it takes, so a call meets the compaction by
+  // NAMING A DROPPED OP (`D-160` item 3's watermark) and never by finding a RETAINED entry marked `compacted`. The
+  // two repairs below are the fixture's own act and not the caller's: each pair repairs once, each repair lands one
+  // append, and two appends at a window of `2` take the attempt's FIRST op out of the journal.
   register(floor, ['a'], 'x', (ctx) => (ctx.value <= 2 ? true : {
-    repair: (rc) => { floorRepairRuns += 1; const w = floor.write(['a'], 'mem', 1, rc); floorRepairOp = w.op?.opId; return { ok: true, message: 'clamped', op: w.op }; },
+    repair: (rc) => { floorRepairRuns += 1; const w = floor.write(['a'], 'mem', 1, rc); floorRepairOp = w.op?.opId; floorLastRepairValue = 1; return { ok: true, message: 'clamped', op: w.op }; },
     message: 'x is too large',
   }));
-  // the attempt's OWN address holds no valid state at every landing, so the composition runs over the
-  // attempt's own floor call. AND THE CALLER'S OWN ACT IS TAKEN HERE: the body that violates at the re-run
-  // reverses the op that landing left (`M-9`'s compacted residue), so the attempt's ONE call meets it.
+  register(floor, ['a'], 'z', (ctx) => (ctx.value === 0 ? true : {
+    repair: (rc) => { floorRepairRuns += 1; const w = floor.write(['a'], 'mem', 0, rc); floorRepairOp = w.op?.opId; floorLastRepairValue = 0; return { ok: true, message: 'zeroed', op: w.op }; },
+    message: 'z is not zero',
+  }));
+  // ── **THE CALLER'S OWN ACT IS TAKEN HERE AND IT IS NOW A REFUSAL — THE ARM'S PRODUCER, AND NOT AN ACCIDENT**
+  // (`D-160` item 3): `y`'s body reverses an op the compaction TOOK (a pre-attempt write), so the act that used to
+  // RETURN a record and leave the repair's op marked now meets the dropped floor. **ITS ANSWER IS RECORDED AND THEN
+  // ASSERTED IN CELL 1 — IT IS NOT SWALLOWED:** the row owns the throw here rather than letting it reach the
+  // scenario's `x0` gate, and cell 1 asserts the code by name. `y` is the pair that FAILS the attempt (no repair is
+  // left for it), which is what makes the composition run over the attempt's own ops.
   register(floor, ['a'], 'y', (ctx) => {
-    if (ctx.op !== null && ctx.value === 1) floor.rollback(ctx.op.opId);
-    return ctx.value === 0 ? true : { message: 'y unrepaired' };
+    if (ctx.op !== null) bodyReversal = tryCall(() => floor.rollback(preAttemptWrites[0].op.opId));
+    return ctx.value === 5 ? true : { message: 'y unrepaired' };
   });
-  // **THE STATE THE ATTEMPT FINDS, TAKEN BEFORE IT OPENS** — the value cell 1 reads the reversal back to
-  // (`D-108` item 2: *"no landed edit survives a refusal, on any arm"*, and here the arm is the attempt's own
-  // failing one). A READ IS PURE: it appends nothing and moves no mark.
+  // **THE STATE THE ATTEMPT FINDS, TAKEN BEFORE IT OPENS** — the value cell 1 reads the refusal against. **THE OLD
+  // READING OF THIS LINE WAS `D-108` ITEM 2'S *"no landed edit survives a refusal, on any arm"*, AND THAT IS NOW
+  // CONDITIONAL ON THE WINDOW'S WIDTH** (`journal-retention-rca.md` §7's last paragraph): a refusal restores nothing,
+  // so where the window took an op the composition owed, the address answers the attempt's own LAST REPAIR'S LANDING.
+  // A READ IS PURE: it appends nothing and drops no entry.
   const stateBeforeAttempt = readVal(floor, ['a']);
   const cF = commit(floor, ['a'], 'mem', 9);
   const runF = tryCall(() => runAttempt(floor, cF));
@@ -1045,26 +1084,28 @@ scenario(() => {
   const stF = rF.rollback ?? [];
   const declaredF = declaredCallList(rF.ops, stF[0]?.checkpoint ?? null);
   const outcomeF = outcomeOf(fF.log);
+  // ── **AND THE CALLER'S OWN REVERSAL AT THE ROW'S OWN LEVEL, WITH THE TOKEN'S PARTNER BESIDE IT** (`D-160` item 3's
+  // discriminator, measured by the RCA's §7 drive): the same dropped op reversed by the caller's hand outside any
+  // pass, and an id that named no store op at all — **the two refusals the ids' retention used to buy, bought by ONE
+  // WATERMARK now that the ids are gone.**
+  const callerReversal = tryCall(() => floor.rollback(preAttemptWrites[0].op.opId));
+  const callerUnknown = tryCall(() => floor.rollback('op-999999999'));
+  const stateAfterRefusals = stateAt(floor, ['a']);
 
   // ── (A-bis) **THE THREE WINDOWS THAT DIFFER IN NOTHING BUT THE BYTES STANDING AT `filePath`, RE-DERIVED TO
-  // `D-118` ITEM 1: THE TOKEN'S LAST PRODUCER IS GONE AND THE UNREADABLE IMAGE IS THE CREATION STATE.** The
-  // windows were built under `D-109` item 1 to drive *"the one producer `D-109` left, or its control"*; **`D-118`
-  // item 1 reads the unreadable image as NO image at all, so the same three windows now drive the token's
-  // ABSENCE and the equality the clause states** — an image the loader cannot read answers exactly what a
-  // zero-length file answers. **The fixture, the drive and the three arms are UNCHANGED, which is what makes the
-  // comparison the measurement.**
+  // `D-160` ITEM 3 AND `D-126` ITEM 2: THE TOKEN HAS A PRODUCER ON EVERY ONE OF THEM, AND THE THIRD STATE IS A
+  // CONSTRUCTION REFUSAL AND NO LONGER AN ANSWER.** The windows were built under `D-109`/`D-118` to drive *"the one
+  // producer `D-109` left, or its control"* and then *"the token's ABSENCE"*; **`D-160` item 3 gives the token its
+  // producer back at the dropped floor, so all three windows now drive the SAME refusal and the windows' one
+  // difference — the bytes at the path — is what shows the refusal does not depend on them.** **THE FIXTURE, THE
+  // DRIVE AND THE THREE ARMS ARE OTHERWISE UNCHANGED, which is what makes the comparison the measurement.**
   // The drive is the consumer's own: the store's declared `write` and `rollback` verbs, `read` for the state, and
-  // the path read AS BYTES. **EVERY WINDOW IS BUILT THE SAME WAY** — a fresh `storeCreate` over an ABSENT path
-  // (so `born` is the CREATION STATE in all three and no window's base is a booted image), then the same four
-  // appends: one memory-only version at `['m']` that no file image carries, and three writes at `['a']` of which
-  // the append's own compression takes the FIRST (`journalLength: 2`) — and then **the one difference: the image
-  // that stands at the path at the instant of the act.** The call is the reversal of the first `['a']` write, whose
-  // temporally bounded candidate set holds that compacted entry: **the arm `D-118` removes, its INTACT-image
-  // control, and the zero-length state it is put beside.**
-  const stateAt = (s, address) => {
-    try { return { present: true, value: s.read(address, []) }; }
-    catch (e) { return { present: false, status: e.status }; }
-  };
+  // the path read AS BYTES. **EVERY WINDOW IS BUILT THE SAME WAY** — a fresh `storeCreate` over an ABSENT path (so
+  // the construction's own load installs nothing and no window begins at a booted image), then the same four
+  // appends: one memory-only version at `['m']` that no file image carries, and three writes at `['a']` of which the
+  // append's own compression takes the FIRST (`journalLength: 2`) — and then **the one difference: the image that
+  // stands at the path at the instant of the act.** The call is the reversal of the first `['a']` write, **an op the
+  // compaction DROPPED**: the refusal `D-160` item 3 answers with, on all three byte states.
   const compactionWindow = (image) => {
     const p = path.join(TMP, `compact${(storeSeq += 1)}.json`);
     const s = pkg.storeCreate({ filePath: p, journalLength: 2, listeners: [] });
@@ -1077,112 +1118,142 @@ scenario(() => {
     const call = tryCall(() => s.rollback(a1.op.opId));
     const after = { a: stateAt(s, ['a']), m: stateAt(s, ['m']), z: stateAt(s, ['z']), bytes: fs.readFileSync(p, 'utf8') };
     // **A FRESH INSTANCE OVER THE SAME PATH** — the boot's own answer, taken where the boot's answer is the claim.
-    const boot = pkg.storeCreate({ filePath: p, journalLength: 2, listeners: [] });
-    return { path: p, a1, before, call, after, boot: { a: stateAt(boot, ['a']), m: stateAt(boot, ['m']), z: stateAt(boot, ['z']) } };
+    // **⟶ AND IT IS TAKEN INSIDE `tryCall` FROM 2026-11-17 — THE ONE BYTE THIS FIXTURE MOVED, AND IT MOVED BECAUSE A
+    // RULING MOVED THE ANSWER**: a construction over a present, non-empty image the loader cannot read REFUSES with
+    // rank `22` `FileImageRefused` (`strata/decisions.md` · `D-126` item 2, verbatim: *"Mint/revive a code: a corrupt
+    // image refuses the construction"*), so the corrupt window's boot is an ANSWER TO ASSERT and not a throw to let
+    // reach the scenario's `x0` gate. **It is not swallowed: cell 2 asserts that code by name.**
+    const boot = tryCall(() => pkg.storeCreate({ filePath: p, journalLength: 2, listeners: [] }));
+    return {
+      path: p, a1, before, call, after,
+      boot: boot.ok
+        ? { ok: true, a: stateAt(boot.value, ['a']), m: stateAt(boot.value, ['m']), z: stateAt(boot.value, ['z']) }
+        : { ok: false, status: boot.err?.status, message: boot.err?.message },
+    };
   };
   const INTACT_IMAGE = '{"z":7}';
   const REFUSED_IMAGE = "this is not the store's image";     // present, NON-EMPTY, and not an object
-  const intactArm = compactionWindow(INTACT_IMAGE);           // the INTACT-image control: the durable ground truth
-  const refusedArm = compactionWindow(REFUSED_IMAGE);         // D-109's ONE state: no ground truth to rebuild from
+  const intactArm = compactionWindow(INTACT_IMAGE);           // the INTACT-image control: the bytes a boot can read
+  const refusedArm = compactionWindow(REFUSED_IMAGE);         // the state `D-126` item 2 refuses at construction
   const emptyArm = compactionWindow('');                      // the third state: present and EMPTY -> the CREATION state
 
-  // ── CELL 1 — THE REGENERATING ARM, AT THE COMPOSITION'S OWN CALL.
-  // **⟶ RE-DERIVED 2026-11-02 (`D-108`, `D-109`). THE CELL'S BLINDNESS IS NOW IMPOSSIBLE AND IT IS SAID HERE: it
-  // was authored from the documents of its date and predicted the floor's answer — *"the store answers
-  // `RollbackCompacted`, the kernel reports `KC-8`, and NOTHING is restored"* — which `D-108` replaces with the
-  // regeneration. THE SUBJECT IS KEPT WHOLE AND MOVES TO THE ANSWER THE RULING NAMES: what a reversal that MEETS
-  // the compaction RETURNS, and where it leaves the address.** **THE ARMS ARE THE SAME ONES THE OLD LIMBS READ**:
-  // the attempt's own floor call (the composition's ONE call over the attempt's first op), the step's own record,
-  // and the store's own state afterwards.
-  cell(1, "THE COMPACTION ARM RETURNS A RECORD AND REGENERATES: the composition's ONE call over the attempt's first op meets a temporally bounded candidate set holding the entry the caller's own reversal left `compacted`, and the store answers a `RollbackResult` instead of a code — the step's `answer` is `ok`, `failed` is `false`, `undoneOps` names BOTH of the attempt's own ops, and the address answers the state the reversal FOUND and never the `9` the attempt's own commit landed, which is what a stranded all-or-nothing floor would have left standing (`D-108` items 1–2; `D-109` item 1)",
-    `strata/decisions.md · D-108 (2026-11-02) items 1–2 and D-109 item 1; docs/specs/storeroom-file-save-coverage/contract.md PIN-11 (i) and (v), PIN-12 (v), PIN-13 (iv); ${C.cs26} item 6 (a) READ THROUGH the two rulings (THE FLOOR DOES NOT GOVERN THIS ARM); ${C.ps217}`,
-    fF.status !== 'KC-8' && !(fF.message ?? '').includes('RollbackCompacted')
+  // ── CELL 1 — THE ARM, AND ITS ONE SURVIVING PRODUCER, AT THE COMPOSITION'S OWN CALL.
+  // **⟶ RE-DERIVED 2026-11-17 (`D-160` items 1, 3 and 5). WHAT THE CELL'S SUBJECT WAS AND WHAT IT IS, SAID AT THE
+  // BYTE:** the as-filed cell asserted *"THE COMPACTION ARM RETURNS A RECORD AND REGENERATES … the store answers a
+  // `RollbackResult` instead of a code"* over a candidate set holding the entry the caller's own reversal left
+  // `compacted` (`D-108` items 1–2; `D-109` item 1). **THAT STATE DOES NOT EXIST ON THIS TREE, AND THE LIMB IS
+  // RETIRED WITH ITS RULING AND IS NOT DELETED QUIETLY** (`D-160` item 1: compaction DROPS, so no candidate set can
+  // hold a compacted entry; item 5: the regeneration, its reader and the filter it stood on are DELETED,
+  // `src/store.rs`). **THE ARMS ARE THE ONES THE OLD LIMBS READ** — the composition's ONE call over the attempt's
+  // first op, the step's own six members, and the store's own state afterwards — and the answer they read is the one
+  // this tree produces: the refusal `D-160` item 3 decides by the watermark, with the discriminator that keeps it
+  // honest driven beside it.
+  cell(1, "THE COMPACTION ARM, RE-DERIVED TO ITS ONE SURVIVING PRODUCER: the composition's ONE call over the attempt's first op NAMES AN OP THE COMPACTION DROPPED — the attempt's two repairs at one address pushed that op out of a window of 2 while the attempt stood — and the store REFUSES with `RollbackCompacted` instead of returning a record: the step's `answer` is that code, `failed` is `true` and `undoneOps` is EMPTY because nothing was undone; the address then answers the LAST REPAIR'S LANDING and never the state the attempt found, because a refusal restores nothing and the landed edits stand where the window took an owed op; and the caller's own reversal of an op the same window took — taken inside the failing pair's body and again at the row's own level — is refused with that same code, while an id that named no store op still answers `JournalOpUnknown` (`D-160` items 1 and 3; the RCA's §7 drive; `D-108` item 2 CONDITIONAL on the window's width)",
+    `strata/decisions.md · D-160 (2026-11-17) items 1, 3 and 5; docs/L1/journal-retention-rca.md §7 (the drive's two refusals and the compensation-window declaration); strata/decisions.md · D-108 item 2 READ THROUGH them; ${C.cs26} item 5 (b) and item 6 (a) (THE FLOOR GOVERNS); ${C.fs2}'s KC-8 row; ${C.ps217}; ${C.al24} item 8 (ii)`,
+    fF.status === 'KC-8'
       && stF.length === 1 && stepShape(stF[0])
-      && stF[0].failed === false && stF[0].answer === 'ok'
-      && (stF[0].undoneOps ?? []).includes(cF.op.opId)
-      && (stF[0].undoneOps ?? []).includes(floorRepairOp)
+      && stF[0].opId === cF.op.opId
+      && stF[0].answer === 'RollbackCompacted' && stF[0].failed === true
+      && (stF[0].undoneOps ?? []).length === 0
       && stateAt(floor, ['a']).present === true
-      && stateAt(floor, ['a']).value === stateBeforeAttempt
-      && stateBeforeAttempt !== 9,
-    `status=${fF.status} repairRuns=${floorRepairRuns} repairOp=${floorRepairOp} commitOp=${cF.op.opId} steps=${JSON.stringify(stF)} read(['a'])=${readOr(floor, ['a'])} (the state the attempt found was ${JSON.stringify(stateBeforeAttempt)}; the value its own commit landed was 9) — THE ARM'S FACT, MEASURED: the six pre-attempt writes stand BELOW every call's own seq floor (M-5's amendment) and are not its producer; the candidate set is the two ops the attempt owns, of which the caller's own reversal of the repair's landing (the body of y) left one COMPACTED, so the call meets the compaction and the store REGENERATES instead of stranding — the durable ground truth here being the CREATION STATE, since this store was constructed over an absent path and never saved`);
-  // ── CELL 2 — **THE TOKEN ON NO STATE, AND THE CORRUPT IMAGE REBUILT FROM THE CREATION STATE.**
-  // **⟶ RE-DERIVED 2026-11-02 (`D-118` items 1–2, correcting `D-109` item 1 at its own subject), AND THE CELL'S
-  // ID, ITS THREE WINDOWS AND ITS ARMS ARE KEPT WHOLE.** As re-derived under `D-109`, this cell asserted the token
-  // fired on the ONE state whose image the loader could not read; **`D-118` item 1 makes that state NO IMAGE AT
-  // ALL**, so the same three windows now assert the opposite answer and the same subjects: WHICH ANSWER the call
-  // carries (a record, on all three), WHAT the step's store state is afterwards (the creation state on the
-  // unreadable and the empty window, the durable image's member on the intact one), and THAT NOTHING OF THE
-  // CORRUPT BYTES SURVIVES — with the two controls still driven beside it, because an unreachable token with no
+      && stateAt(floor, ['a']).value === floorLastRepairValue
+      && stateAt(floor, ['a']).value !== stateBeforeAttempt
+      && stateAfterRefusals.present === true && stateAfterRefusals.value === floorLastRepairValue
+      && callerReversal.ok === false && callerReversal.err?.status === 'RollbackCompacted'
+      && bodyReversal !== null && bodyReversal.ok === false && bodyReversal.err?.status === 'RollbackCompacted'
+      && callerUnknown.ok === false && callerUnknown.err?.status === 'JournalOpUnknown',
+    `status=${fF.status} message=${JSON.stringify(fF.message)} commitOp=${cF.op.opId} lastRepairOp=${floorRepairOp} repairRuns=${floorRepairRuns} steps=${JSON.stringify(stF)} read(['a'])=${readOr(floor, ['a'])} (the state the attempt found was ${JSON.stringify(stateBeforeAttempt)}; its own commit landed 9 and its LAST repair landed ${JSON.stringify(floorLastRepairValue)}) — THE ARM'S FACT, MEASURED: the window is 2 and the attempt landed three appends at ['a'] (its own first op and two repairs), so the compaction removed the first of them; the composition's one call NAMES that op and the watermark answers RollbackCompacted — the producer the old title denied; the caller's own reversal of a pre-attempt op answers the same code, while 'op-999999999' answers JournalOpUnknown, which is D-160 item 3's discriminator; the refusal undid nothing, so the landed repairs STAND — the RCA's §7 declaration, measured rather than restated`);
+  // ── CELL 2 — **THE TOKEN ON EVERY STATE, AND A THIRD STATE THAT IS NOW A CONSTRUCTION REFUSAL.**
+  // **⟶ RE-DERIVED 2026-11-17 (`D-160` item 3 for the producer, `D-126` item 2 for the third state), AND THE CELL'S
+  // ID, ITS THREE WINDOWS AND ITS ARMS ARE KEPT WHOLE.** As re-derived under `D-118` this cell asserted *"the token
+  // fires on NO state"* and *"an unreadable image answers exactly what a zero-length file answers"*. **BOTH SENTENCES
+  // ARE NOW FALSE, EACH BY ITS OWN RULING, AND NEITHER IS QUIETLY DROPPED:**
+  // **★ (i) THE PRODUCER — `D-160` item 3.** The call below reverses an op the compaction TOOK, so the store answers
+  // `RollbackCompacted` on every window and NOT ONE of them returns a record: the token the old title called
+  // unproducible is produced, and the windows' one difference — the bytes at `filePath` — is what shows the refusal
+  // does not depend on them.
+  // **★ (ii) THE EQUALITY — RETIRED BY `D-126` ITEM 2** (`2026-11-06`, *"Mint/revive a code: a corrupt image refuses
+  // the construction"*; `PIN-11`'s *"CORRUPT FILE DATA CROSSES NONE"* RETIRED by that row): a present, non-empty image
+  // the loader cannot read is **NOT** treated as no image at all any more — it REFUSES THE CONSTRUCTION with rank
+  // `22` `FileImageRefused`, so the corrupt window is no longer an answer that equals the zero-length window's, and
+  // the cell asserts the refusal where it asserted the equality. **`D-118` item 1's other half goes with the
+  // regeneration `D-160` item 5 deleted**: no save follows the call, so the corrupt bytes are NOT overwritten.
+  // **THE SUBJECTS ARE UNMOVED — WHICH ANSWER the call carries, WHAT the store state is afterwards, WHICH answer a
+  // fresh instance gives — and the two controls are still driven beside the refused state, because a token with no
   // control cannot be told from a token nobody looked for.**
-  cell(2, "`RollbackCompacted` FIRES ON NO STATE — a present, NON-EMPTY `filePath` image the store's loader cannot read as an object is TREATED AS NO IMAGE AT ALL, so the reversal rebuilds from the CREATION STATE and RETURNS (`D-118` item 1): the three windows differ in nothing but the bytes standing at `filePath`, ALL THREE answer a three-member record whose `undoneOps` names the reversed op, and NO ONE answers a token — on the corrupt window every address answers absent, the memory-only version the compaction swallowed does NOT come back, and the save that follows writes a readable image over the corrupt bytes that a FRESH INSTANCE reads back as that same state; on the INTACT window the durable image's member stands as it did, the swallowed version is LOST, and the reversal writes no byte of the file; on the EMPTY window the creation state stands and no byte is written either",
-    `strata/decisions.md · D-118 (2026-11-02) items 1–2 and 4 (the creation-state rebuild, the token's lost producer, and the price of the unreadable file); D-108 items 1–3; D-109 item 1 READ THROUGH D-118; docs/specs/storeroom-file-save-coverage/contract.md PIN-11 (iv)'s table of the two ground truths, PIN-12 (ii) and (iii), PIN-13 (v); docs/specs/storeroom-file-save-coverage/verification.md V-13 (i)–(vii) and FSC-ARM4-LOST`,
-    // THE UNREADABLE-IMAGE WINDOW: **IT RETURNS**, the walk is performed, the base is the CREATION STATE, and the
-    // save that follows puts a readable image back.
-    refusedArm.call.ok === true
-      && keysOf(refusedArm.call.value) === 'opId,restoredTo,undoneOps'
-      && (refusedArm.call.value.undoneOps ?? []).includes(refusedArm.a1.op.opId)
-      && refusedArm.call.err?.status !== 'RollbackCompacted'
-      // nothing of the corrupt image's state survives: `['z']` was absent before the call because the fixture was
-      // written AFTER the construction, and it is absent after it — the bytes at the path were never this store's
-      // state (`D-118` item 4).
-      && refusedArm.before.z.present === false
-      && refusedArm.after.a.present === false              // the walk restored the address's pre-state
-      && refusedArm.after.m.present === false              // the version whose only record the window took is LOST
+  cell(2, "`RollbackCompacted` FIRES ON EVERY ONE OF THE THREE WINDOWS AND NOT ONE OF THEM RETURNS A RECORD: the three states differ in nothing but the bytes standing at `filePath`, and the caller's own reversal of an op the compaction DROPPED is refused with that code on all three (`D-160` item 3) — the refusal undoes nothing and writes no byte, so the address answers the `3` its writes left and the memory-only version the window swallowed still stands; the INTACT window's fresh instance reads the image's own member and the ZERO-LENGTH window's reads the creation state, while the CORRUPT window REFUSES THE CONSTRUCTION with `FileImageRefused` (`D-126` item 2) — the third state is a refusal of the instance and no longer an answer equal to the zero-length one, and the corrupt bytes are not overwritten",
+    `strata/decisions.md · D-160 (2026-11-17) item 3 (the watermark's two refusals) and D-126 (2026-11-06) item 2 (a corrupt image refuses the construction, and PIN-11's silence is retired with it); D-118 item 1 READ THROUGH BOTH and RETIRED at its equality; D-108 items 1–3 withdrawn with their subject; docs/specs/storeroom-file-save-coverage/contract.md PIN-12 (ii) and (iii), PIN-13 (v); docs/specs/storeroom-file-save-coverage/verification.md V-13 (i)–(vii) and FSC-ARM4-LOST`,
+    // ALL THREE WINDOWS: **THE CALL REFUSES**. The store's own code, on the same dropped op, whatever the bytes are.
+    refusedArm.call.ok === false && refusedArm.call.err?.status === 'RollbackCompacted'
+      && intactArm.call.ok === false && intactArm.call.err?.status === 'RollbackCompacted'
+      && emptyArm.call.ok === false && emptyArm.call.err?.status === 'RollbackCompacted'
+      // THE REFUSAL UNDOES NOTHING AND WRITES NO BYTE: the state the act found stands at every address on every
+      // window — including `['m']`, the memory-only version whose only record the window took (`D-160` item 1's
+      // drop), which the old regeneration limb asserted LOST and which a refusal leaves exactly where it stood.
+      && refusedArm.before.a.present === true && refusedArm.before.a.value === 3
+      && refusedArm.after.a.present === true && refusedArm.after.a.value === 3
+      && refusedArm.after.m.present === true && refusedArm.after.m.value === 'swallowed'
       && refusedArm.after.z.present === false
-      && refusedArm.after.bytes === '{}'                   // the save wrote the store's own projection over it
-      && refusedArm.boot.a.present === false && refusedArm.boot.m.present === false && refusedArm.boot.z.present === false
-      // THE INTACT-IMAGE CONTROL: it RETURNS, it regenerates from the image, the swallowed version is lost, and the
-      // durable member the image carries stands in memory, in the bytes and in a FRESH instance's answer.
-      && intactArm.call.ok === true
-      && keysOf(intactArm.call.value) === 'opId,restoredTo,undoneOps'
-      && (intactArm.call.value.undoneOps ?? []).includes(intactArm.a1.op.opId)
-      && intactArm.before.z.present === false            // the image was NOT booted: the base is read at the ACT
-      && intactArm.after.z.present === true && intactArm.after.z.value === 7
-      && intactArm.after.a.present === false             // the walk restored the address's pre-state
-      && intactArm.after.m.present === false             // the version whose only record the window took is LOST
-      && intactArm.after.bytes === INTACT_IMAGE          // and the state-keyed save writes no byte (D-116 item 3)
-      && intactArm.boot.z.present === true && intactArm.boot.z.value === 7
-      // THE ZERO-LENGTH WINDOW: the third state, present and EMPTY, is the one `D-118` item 1 puts the unreadable
-      // image BESIDE — both take the creation state, and both return.
-      && emptyArm.call.ok === true
-      && emptyArm.after.a.present === false && emptyArm.after.m.present === false
+      && refusedArm.after.bytes === REFUSED_IMAGE          // no save follows a refusal (D-112 item 2's ordering)
+      && intactArm.after.a.present === true && intactArm.after.a.value === 3
+      && intactArm.after.m.present === true && intactArm.after.m.value === 'swallowed'
+      && intactArm.before.z.present === false              // the image was NOT booted: it was written AFTER the construction
+      && intactArm.after.z.present === false               // and a refusal installs nothing from it
+      && intactArm.after.bytes === INTACT_IMAGE
+      && emptyArm.after.a.present === true && emptyArm.after.a.value === 3
+      && emptyArm.after.m.present === true && emptyArm.after.m.value === 'swallowed'
       && emptyArm.after.z.present === false
-      // **AND THE EQUALITY `D-118` ITEM 1 IS**: the state the corrupt window stands at is the state the
-      // zero-length window stands at — memory and a fresh boot alike. The two paths' BYTES differ (one is written,
-      // one already holds the creation image), which is `D-116` item 3's guard and not a second answer.
-      && JSON.stringify([refusedArm.after.a, refusedArm.after.m, refusedArm.after.z, refusedArm.boot.a, refusedArm.boot.m, refusedArm.boot.z])
-        === JSON.stringify([emptyArm.after.a, emptyArm.after.m, emptyArm.after.z, emptyArm.boot.a, emptyArm.boot.m, emptyArm.boot.z]),
-    `UNREADABLE [${JSON.stringify(REFUSED_IMAGE)}] -> ${refusedArm.call.ok ? 'RETURNED ' + JSON.stringify(refusedArm.call.value) : `${refusedArm.call.err?.status} :: ${JSON.stringify(refusedArm.call.err?.message)}`}; state before ${JSON.stringify(refusedArm.before.a)} / after ${JSON.stringify(refusedArm.after.a)}, ['m'] ${JSON.stringify(refusedArm.after.m)}, ['z'] ${JSON.stringify(refusedArm.after.z)}, bytes ${JSON.stringify(refusedArm.after.bytes)}, a fresh instance ${JSON.stringify(refusedArm.boot)}`
-      + ` · INTACT [${JSON.stringify(INTACT_IMAGE)}] -> ${intactArm.call.ok ? 'RETURNED ' + JSON.stringify(intactArm.call.value) : `${intactArm.call.err?.status} :: ${JSON.stringify(intactArm.call.err?.message)}`}; ['z'] before ${JSON.stringify(intactArm.before.z)} / after ${JSON.stringify(intactArm.after.z)} / a fresh instance ${JSON.stringify(intactArm.boot.z)}, ['a'] after ${JSON.stringify(intactArm.after.a)}, ['m'] after ${JSON.stringify(intactArm.after.m)}, bytes ${JSON.stringify(intactArm.after.bytes)}`
-      + ` · EMPTY -> ${emptyArm.call.ok ? 'RETURNED ' + JSON.stringify(emptyArm.call.value) : `${emptyArm.call.err?.status} :: ${JSON.stringify(emptyArm.call.err?.message)}`}; ['a'] ${JSON.stringify(emptyArm.after.a)}, ['m'] ${JSON.stringify(emptyArm.after.m)}, ['z'] ${JSON.stringify(emptyArm.after.z)}, bytes ${JSON.stringify(emptyArm.after.bytes)} — **NO ONE OF THE THREE STATES REFUSES: the token has no producer left, and the unreadable image answers what the zero-length file answers**`);
-  // ── CELL 3 — THE LOG, WHICH THE COMPOSITION'S FLOOR BRANCH NO LONGER FILLS.
-  // **⟶ RE-DERIVED 2026-11-02 (`D-108` item 2, `PIN-14` (ii) read THROUGH `D-109` item 1). THE CELL'S BLINDNESS IS
-  // NOW IMPOSSIBLE AND IT IS SAID HERE: the old limbs required the ONE `outcome` entry to carry `KC-8` because the
-  // floor was the arm's answer. The subject — ONE `outcome` entry, appended once, carrying the arm's own ONE token
-  // — is kept whole; the token it carries is now the pair's own, and the floor's is asserted ABSENT rather than
-  // present.** **⟶ AND FROM `D-118` THE FLOOR BRANCH HAS NO REACH AT ALL, SO `KC-8` IS UNPRODUCIBLE AND NOT MERELY
-  // UNMET HERE**: the one state `D-109` item 1 left it — a compacted candidate set over an image the loader cannot
-  // read — is cell 2's third window, and it RETURNS there. **`JournalOpUnknown` is the only code the composition's
-  // floor can still answer, and it is not met here either.** The cell's limbs are unmoved; only this sentence is
-  // re-derived, because it is the one that stated a reach.
-  cell(3, "the attempt carries ONE `outcome` entry and its state is the arm's own ONE token (KC-3, the token the thrown form carries) and NEVER the floor's KC-8 — the composition's floor branch does not fire on the regenerating arm, the entry's message names no `RollbackCompacted`, and no second entry is appended (`D-108` item 2; `PIN-14` (ii) read through `D-109` item 1)",
-    `${C.cs26} item 6 (a) read THROUGH D-108/D-109; ${C.fs11} item 1 (c); attempt-lifecycle.md §2.4 item 8 (ii); kernel-terminal.mjs's composeRollback clause of 2026-11-02 (A REGENERATION IS TOLD FROM A REPLAY BY THE CALL RETURNING AND BY NOTHING ELSE)`,
+      && emptyArm.after.bytes === ''
+      // AND THE THIRD STATE IS THE CONSTRUCTION'S OWN REFUSAL (`D-126` item 2) — not an answer that equals the
+      // zero-length window's, which is the equality `D-118` item 1 stated and this ruling retires.
+      && refusedArm.boot.ok === false && refusedArm.boot.status === 'FileImageRefused'
+      && intactArm.boot.ok === true && intactArm.boot.z.present === true && intactArm.boot.z.value === 7
+      && emptyArm.boot.ok === true && emptyArm.boot.a.present === false && emptyArm.boot.m.present === false
+      && emptyArm.boot.z.present === false,
+    `UNREADABLE [${JSON.stringify(REFUSED_IMAGE)}] -> ${refusedArm.call.ok ? 'RETURNED ' + JSON.stringify(refusedArm.call.value) : refusedArm.call.err?.status + ' :: ' + JSON.stringify(refusedArm.call.err?.message)}; state before ${JSON.stringify(refusedArm.before.a)} / after ${JSON.stringify(refusedArm.after.a)}, ['m'] ${JSON.stringify(refusedArm.after.m)}, ['z'] ${JSON.stringify(refusedArm.after.z)}, bytes ${JSON.stringify(refusedArm.after.bytes)}, a fresh instance ${refusedArm.boot.ok ? JSON.stringify(refusedArm.boot) : refusedArm.boot.status + ' :: ' + JSON.stringify(refusedArm.boot.message)}`
+      + ` · INTACT [${JSON.stringify(INTACT_IMAGE)}] -> ${intactArm.call.ok ? 'RETURNED ' + JSON.stringify(intactArm.call.value) : intactArm.call.err?.status}; ['z'] before ${JSON.stringify(intactArm.before.z)} / after ${JSON.stringify(intactArm.after.z)} / a fresh instance ${intactArm.boot.ok ? JSON.stringify(intactArm.boot.z) : intactArm.boot.status}, ['a'] after ${JSON.stringify(intactArm.after.a)}, ['m'] after ${JSON.stringify(intactArm.after.m)}, bytes ${JSON.stringify(intactArm.after.bytes)}`
+      + ` · EMPTY -> ${emptyArm.call.ok ? 'RETURNED ' + JSON.stringify(emptyArm.call.value) : emptyArm.call.err?.status}; ['a'] ${JSON.stringify(emptyArm.after.a)}, ['m'] ${JSON.stringify(emptyArm.after.m)}, ['z'] ${JSON.stringify(emptyArm.after.z)}, bytes ${JSON.stringify(emptyArm.after.bytes)}, a fresh instance ${emptyArm.boot.ok ? JSON.stringify(emptyArm.boot) : emptyArm.boot.status} — **ALL THREE REFUSE WITH THE STORE'S OWN CODE AND NOT ONE RETURNS A RECORD: the token has a producer again (D-160 item 3), the refusal moves no state and writes no byte, and the corrupt window's THIRD STATE is the construction's own reply (FileImageRefused, D-126 item 2) rather than the zero-length window's equal**`);
+  // ── CELL 3 — THE LOG, WHICH THE COMPOSITION'S FLOOR BRANCH **DOES** FILL ON THIS TREE.
+  // **⟶ RE-DERIVED 2026-11-17 (`D-160` item 3), AND ITS SUBJECT IS KEPT WHOLE: ONE `outcome` entry, appended once,
+  // carrying the arm's own ONE token.** The as-filed cell required that token to be `KC-3` and required `KC-8` to be
+  // ABSENT — *"the composition's floor branch does not fire on the regenerating arm"* — which was true of the
+  // regeneration `D-108` had put there. **`D-160` item 5 deletes the regeneration and item 3 gives the floor its
+  // producer, so the cell turns in place: the ONE entry's state IS the floor's own `KC-8`, and its message NAMES the
+  // store's `RollbackCompacted` at the op the call named** — which is the declared shape of that arm
+  // (`composition-and-states.md §2.6` item 6's floor clause; the `KC-8` row's *"thrown with the store's member named
+  // inside the `outcome` entry's `message`"*). **`KC-8` IS PRODUCIBLE HERE AND THE CELL NOW READS IT AS PRODUCED —
+  // the reverse of the sentence it carried, and the reason the row's old title had to go.**
+  cell(3, "the attempt carries ONE `outcome` entry, its state is the FLOOR's own token `KC-8` (and not the pair's `KC-3`), its message NAMES the store's `RollbackCompacted` at the op the composition's call named, and no second entry is appended — the composition's floor branch fires on the arm this row drives, the step beside it records `failed` true with an empty `undoneOps`, and the entry is appended once (`D-160` item 3; `composition-and-states.md §2.6` item 5 (b) and item 6 (a); `fail-surface.md §2`'s KC-8 row)",
+    `${C.cs26} item 6 (a) READ WITH D-160 item 3 (the floor branch's producer is the watermark); ${C.fs11} item 1 (c); ${C.fs2}'s KC-8 row (the store's member named inside the outcome entry's message); ${C.al24} item 8 (ii)`,
     (fF.log ?? []).filter((e) => e.kind === 'outcome').length === 1
-      && outcomeF?.state === fF.status && fF.status === 'KC-3'
-      && !(fF.log ?? []).some((e) => e.state === 'KC-8')
-      && !String(outcomeF?.message ?? '').includes('RollbackCompacted')
-      && stF.length === 1 && stF[stF.length - 1].failed === false,
-    `log=[${kinds(fF.log)}] outcomeEntries=${(fF.log ?? []).filter((e) => e.kind === 'outcome').length} outcome=${JSON.stringify(outcomeF)} compositionStep=${JSON.stringify(stF[stF.length - 1])} — the ONE entry is the attempt's, its state is the thrown form's own token, and the store's compaction arm appended none`);
+      && outcomeF?.state === fF.status && fF.status === 'KC-8'
+      && (fF.log ?? []).some((e) => e.state === 'KC-8')
+      && String(outcomeF?.message ?? '').includes('RollbackCompacted')
+      && String(outcomeF?.message ?? '').includes(cF.op.opId)
+      && stF.length === 1 && stF[stF.length - 1].failed === true
+      && (stF[stF.length - 1].undoneOps ?? []).length === 0,
+    `log=[${kinds(fF.log)}] outcomeEntries=${(fF.log ?? []).filter((e) => e.kind === 'outcome').length} outcome=${JSON.stringify(outcomeF)} compositionStep=${JSON.stringify(stF[stF.length - 1])} — the ONE entry is the attempt's, its state is the floor's own token, and the message names the store's RollbackCompacted at ${cF.op.opId}: the arm's producer, read at the log the old cell read for its absence`);
   cell(4, "the floor meets the STILL-OWED op\'s call and never the checkpoint op: the checkpoint member is null on every step of this attempt (no landing left the address valid), so no call of this walk stands over a stop op",
     `${C.cs26} item 8 (iv) and (iii); ${C.ps217}`,
     rF.rollback.every((s) => s.checkpoint === null) && declaredF.includes(stF[0].opId),
     `checkpoints=${JSON.stringify([...new Set(stF.map((s) => s.checkpoint))])} declaredList=${JSON.stringify(declaredF)} performed=${JSON.stringify(stF.map((s) => s.opId))}`);
+  // ── **⟶ AND CELL 4 IS UNMOVED, SAID HERE RATHER THAN LEFT TO BE ASSUMED (`D-160` moves no byte of it):** the
+  // `checkpoint` member's address-wide `null` arm is `composition-and-states.md §2.6` item 8 (iii)'s and not the
+  // compaction's; the call the floor issued is still the attempt's own FIRST owed op, and the code that call answers
+  // does not move which op the call list names. Its limbs — `null` on every step, and the performed `opId` drawn from
+  // item 2's declared list — stand as filed and PASS on this tree.
 
   // ── (B) THE SAME SHAPE WHERE THE CALLS RETURN: what the composition performed, and nothing wider.
   // **⟶ AND THE BESIDE ADDRESS IS SEEDED, 2026-10-26, SO THE COMPOSITION'S REACH IS READ AS A VALUE AND NOT AS
   // AN ABSENCE.** The repair lands at `['b']`, which the attempt's own address `['a']` does not contain; the seed
   // is what the store stood at there BEFORE the attempt, so a failing attempt that restores the address answers
   // `BESIDE_SEED` and one that leaves it answers the repair's `7`.
+  // **⟶ AND CELLS 5…9 ARE UNMOVED BY THIS PASS, SAID HERE RATHER THAN LEFT TO BE ASSUMED (`D-160` moves not one byte
+  // of them):** this window's store is at the declared `journalLength` of `64`, every op the composition names is
+  // still in its journal, and none of the five cells reads a candidate set, a `compacted` mark or a ground truth. **The
+  // subjects they carry — the performed call list, the attempt's whole footprint restored, the twice-passed guard, the
+  // one `checkpoint` value and its op — are the plain walk's and the refusal arm touches none of them; all five execute
+  // and pass on this tree, and that is a measurement rather than an inheritance.**
   const BESIDE_SEED = 41;
   const store2 = newStore();
   store2.write(['b'], 'mem', BESIDE_SEED);
