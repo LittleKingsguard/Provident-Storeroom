@@ -8705,3 +8705,31 @@ request it did not raise"*) and the `D-168` reading that narrowed it. **STATUS: 
    in `kernel-attempt.mjs:318`) is the *request's* carriage, and **whether an inner `runAttempt`'s drain can strand an outer pass's request is
    NOT established** — it needs a targeted drive of the reentrant host (`H7`) that reads the outer report beside the inner's. **This row does
    not touch it.**
+
+---
+
+### `D-170` — `D-54`'S SECOND HALF IS DISCHARGED BY THE WINDOW STAMP, AND THE STRANDED-RAISE PATH HAS NO REACHABLE INPUT
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `4aeb6e9`. **SOURCE:** the supervisor, closing the question it had listed as owed. **STATUS: `ACTIVE`.**
+
+1. **THE DRAIN CONSUMES ONLY ITS OWN WINDOW, BY A PREDICATE AND NOT BY ORDERING.** A restart request is `{ watched, reversalId,
+   window, asked }`; a raise is appended to `record.raises` **stamped with its raising window**; and the drain's consume is
+   `consumeRaisedRaises(record, window)` — **`if (raise.window !== window) { keep; continue; }`** (`constraints.mjs:2599`–`:2614`), with the
+   request's own take carrying the same predicate (`:2322`–`:2325`, *"A REQUEST BELONGS TO THE ACT THAT RAISED IT"*). **So
+   `D-54`'s first half — *"do not let a pass consume a restart request it did not raise"* — is satisfied for the drain, and a nested
+   `store.write` inside a repair body does reach `runAttempt` (`:849`), so the case is reachable and kept apart.**
+2. **AND THE SECOND HALF IS IMPLEMENTED**: `runAttempt` calls `drainRestart(store, report)` after its own pass, inside the commit scope;
+   the consumer judges the reversal (`judgeReversal(...)`, inside that commit) and a refusal is carried into the report
+   (`carryRestartRefusal`), with the rounds bounded by `RESTART_LIMIT`. **That IS *"carry a request raised inside a pass through to that
+   pass's terminal judgement."***
+3. **AND THE RESIDUAL I NAMED — A RAISE STRANDED BY A WINDOW WITH NO CONSUMER — HAS NO REACHABLE INPUT, MEASURED.**
+   `settleStandingRaises` (`:2571`) has **one** call site: an **at-rest reversal** (`:2562`), so a stranded raise *would* live until such a
+   call. **A DRIVE WAS WRITTEN TO STRAND ONE AND IT DOES NOT**: 100 · 400 · 1,000 rounds of *register a pair, let its body reverse at the
+   registration instant, remove the pair* — the exact declared window with no consumer — retain **0.25 · 0.17 · 0.17 MB** with the collector
+   pinned, **flat**. **AND THE REASON IS THE MECHANISM ITSELF**: a raise is created **inside a pass** (`raiseReversal` runs from a body the
+   pass is asking), and **every pass drains**, so a raise cannot be born into a window that has no consumer. **The registration's own
+   evaluation raises nothing because it runs no pass** — which is the same fact that makes `H4` a declared window rather than a defect.
+4. **SO `D-54` IS CLOSED: (i) the legs — fixed in `D-169` and driven both ways by `tests/e2e/leg-carriage.test.mjs`; (ii) the drain —
+   satisfied by the window stamp, read at its bytes, and its one residual shown unreachable by measurement.** **The two prunes that keep
+   the list bounded are the drain's own and `settleStandingRaises`' ended-window settle, and the `settled` ring is bounded by
+   `trimSettled`** — there is no third place a raise can live.
