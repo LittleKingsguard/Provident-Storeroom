@@ -53,3 +53,24 @@
 - **The fifth platform sibling's own build** — CI's, not this machine's.
 - **Anything about a real browser**: the WASM arm was driven under Node with `initSync`. **A browser's loader is not this harness**, and no cell claims it.
 - **The release class** — unclaimed, and named as the first blocker rather than assumed to be a `MINOR`.
+
+---
+
+## §5 · AMENDED `2026-11-17` — four of the five blockers are cleared, and the fifth is one word
+
+**LATER THAN §1–§4 AND SUPERSEDING THEM WHERE THEY MEET.** The blockers §2 named have moved, and the measurements below are the ones taken after the move.
+
+| §2 item | state | the evidence |
+|---|---|---|
+| **1 · the release class** | **❌ STILL OPEN, AND IT IS THE ONLY ONE** | `1.12.0` stands on all seven manifests; the class is the architect's and no act after this one can precede it |
+| **2 · `RELEASE-NOTES.md`'s section** | **owed, and blocked on item 1** | its version figure is the class's |
+| **3 · the sixth artefact admitted** | **✅ `2ec4fc9`** | `bindings/js/platforms/wasm/` beside the five native siblings; `DD-25` reads the published set as **seven** with the wasm artefact produced by **a job beside the matrix**; the coupling rule reads *"the seven manifests move to `X.Y.Z` together"*; five publish cells moved with their reasons; **no version moved** |
+| **4 · a wasm job in the workflow** | **✅ `2ec4fc9`** | `publish.yml` carries a `wasm` job (`needs: platform`, `runs-on: ubuntu-24.04` — a member of the five, never a sixth image), and **`main` now needs `[platform, wasm]`**, so the main package is published last of all seven |
+| **5 · the two sentences of prose** | **✅ `0ef8aa1`** | `README.md` keeps this package's realm claim byte-for-byte and names the sibling as a **build**; the guide carries the three consumer-visible differences; `README.guide.md` is byte-identical again; the licence sentence reads **seven** |
+| **6 · the installed/publish battery** | **✅ RUN, AND GREEN** | `npm run test:e2e`: **15 cells PASS · 1 `LAYER-LIMIT` (`INSTALL-09`, neither a pass nor a failure by its own clause) · 0 FAIL · `EXIT 0`** — `INSTALL-07` reads **5/5** pins and **5/5** table pairs, against a locally packed tarball installed into a clean directory |
+
+**AND THE WHOLE FLOOR, RE-MEASURED AFTER ALL FOUR: `npm test` `1359` / `1358` / `0` · `npm run typecheck` exit `0` · `cargo test` 22 `ok` / 0 FAILED · `cargo check --target wasm32` 0 errors · `node scripts/build-wasm-package.mjs` exit 0 · the installed battery `EXIT 0`.**
+
+**SO A PUBLISH IS ONE CLASS AND ONE SECTION AWAY.** The class is additive work's — **a `MINOR`**, `1.13.0`, by the three precedents `RELEASE-NOTES.md` already records (`1.10`, `1.11`, `1.12`) — and **it is the architect's to claim**, after which the section writes itself from this landing's own record: the second realm, the three `cfg` keys' companions, the twenty-third status, the two receipt accessors, and the seven-manifest coupling.
+
+**AND THE RESIDUALS §3 NAMED STAND UNCHANGED** — `STORE_RETIREMENT`'s missing finalizer on the WASM arm · the `structuredClone` probe's priced-but-unmeasured cost · `NG-PUB-F`'s inert control · `O-3`, `SS-9` and `O-8` moot on that arm and owed on Node · and the two test files that reach `withAddon` through `artefact.mjs`'s re-export.
