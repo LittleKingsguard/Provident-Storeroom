@@ -9198,3 +9198,39 @@ apart** (52.0 against 51.1 µs), and that gap is the *entire* difference between
 `D-179` advances the floor **by the dropped entry's own snapshots** (O(one entry) instead of O(one register)), and **the measurement shows no cost to find**: the floor's advance is
 not separable from the compaction it belongs to, and **the alternative would have added a whole-register assembly to a path that already pays less than the one that never compacts.**
 **The note is closed as a measurement and not as an argument**, and **a future pass that considers a per-append capture has this table to read first.**
+
+---
+
+### `D-186` — READINESS, TAKEN ON THE FINAL TREE: EVERY GATE GREEN, AND TWO ACTS OUTSIDE THIS LANE
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `dba685c`. **SOURCE:** the supervisor, at the end of the residual sweep. **STATUS: `ACTIVE`.**
+
+**EVERY LEG, MEASURED ON THIS TREE IN ONE PASS:**
+
+| the leg | the reading |
+|---|---|
+| `npm test` | **`1386` / `1386` / `0`**, **`0` skipped**, `0` todo |
+| `npm run typecheck` | exit **`0`** |
+| `cargo test` | **22** `test result: ok` lines, **676** passed, **0 FAILED** |
+| `cargo check --target wasm32-unknown-unknown` | **0 errors** |
+| `npm run build` | exit **`0`** · **the addon's export set is `20`** |
+| **the WASM arm's cells** | **8 / 8** |
+| **`npm run greens`** (11 runners, the whole out-of-glob battery) | **`CHAIN COMPLETE — every one exit 0`** |
+| `discard-witness` | **`85` / `85` / `0`** |
+| `blind-constraints-v2` | **`125` / `125` / `0`** |
+| **the installed battery** (locally packed tarball, clean install) | **`EXIT 0`** — `15` cells `PASS`, `1` `LAYER-LIMIT`, **no cell `FAIL`ed and every cell RAN** |
+
+**SO NOTHING ON THIS TREE IS RED AND NOTHING IS SKIPPED.** **What a publish still owes is TWO ACTS, AND NEITHER IS THIS LANE'S:**
+
+1. **A SPEC ACT** — `docs/specs/storeroom-json-crossing/contract.md:32` cites `docs/specs/storeroom-js/crossing.md §1.2`, **a path that is not tracked**, and it is the *only*
+   place the corpus still points at that part without having declared where the law now stands. **The native specification did the equivalent act for `seams-and-lifecycle`
+   at its own citation table (“relocated:”) and 36 test citations were re-pointed to it (`D-183`); the json-crossing part has had no such declaration**, so **the 16 remaining
+   test citations are correct and declared-absent rather than wrong.** **`role_spec_writer`'s: either declare the relocation the way the native spec did, or author the part.**
+   **THIS IS NOT A TEST'S ACT AND NOT THIS LANE'S** — a test may not decide a relocation the owning specification has not made.
+2. **THE RELEASE ACT** — **the class is claimed (`D-158`, `1.13.0`, a `MINOR`) and NO TAG IS CUT** (`D-57`: a document may not claim what it cannot observe).
+   **`delivery`'s act**, and the tree is in the state that act expects: green on every leg above, the version `1.13.0` across the manifests, and the notes carrying
+   this landing's behaviours.
+
+**AND THE RECORDS THAT REMAIN ARE RECORDS, NOT WORK**: the capture's artefact-layer limbs are **owed to nobody** (their producer `call` is deleted) · **`§6` item 2's
+body-derived rule** is a record and curing it is a decision about that cell · and **the `closedIds` unbounded case** is a collector property **recorded as a measurement and
+asserted nowhere** (`D-184` item 4).
