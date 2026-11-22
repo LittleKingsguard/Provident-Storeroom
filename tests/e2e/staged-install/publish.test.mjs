@@ -1958,9 +1958,22 @@ cell('P-PUB-5', 'S-ONEARM the message is the store\'s generated string at the su
 
 // **⟶ ADDED BY THE PRE-TAG PASS (`PUB-R-13`): `contract.md §1.4` ITEM 7'S STATE — THE LOADED ARTEFACT THAT
 // CARRIES NO USABLE GENERATOR — HAD NO CELL OF THIS RED SET.** The state was driven by the generator
-// `NG-PUB-F` with `3` measured controls (`bindings/js/test/publish-generators.test.mjs`) and by no cell of
-// the red set, so `P-PUB-5`'s stated coverage was wider than the red set that stands
+// `NG-PUB-F` with `4` measured controls (`tests/e2e/staged-install/publish-generators.test.mjs`) and by no cell
+// of the red set, so `P-PUB-5`'s stated coverage was wider than the red set that stands
 // (`archive/gate3/storeroom-publish-red-set.md` `§8.12`; `docs/next-steps.md` `§126`'s item `(iv)`).
+// **⟶ AND THE FIGURE IS `4` FROM `2026-11-22`, BECAUSE THAT GENERATOR'S THIRD CONTROL IS TWO** (`D-181` item 3,
+// TAKEN AT ITS OWN SENTENCE: *"Splitting it into two controls takes the cell from `3` to `4` measured controls
+// and reddens `publish.test.mjs`'s prose count — a census move the pass did not take."* — **this pass takes
+// it**). **THE REASON IS THE ONE THIS ROW IS ABOUT**: `(3a)` hands arm (b) a path the walk never tried IN PLACE OF
+// rung one's own, and `(3b)` APPENDS that same path to arm (b)'s fallback — **two substitutions of independent
+// effect, staged one per control in its own scratch tree, and each is required to fail the generator by name.**
+// A single ledger line covering both could report only *"one of these fired"*, which cannot say WHICH, so the
+// reading could name a clause and not the site that disabled it. **THE TWO READS ARE NOW TWO LINES AND EACH
+// NAMES ITS OWN SITE** (`control-the-mismatch-arms-subject-is-a-path-the-walk-never-tried` ·
+// `control-the-fallbacks-subject-appends-a-path-the-walk-never-tried`); the property, the probe and the clause
+// each control stands on are unmoved. **AND THE CITATION IS RE-POINTED WHILE THE FIGURE IS RE-DERIVED**: the
+// generators file's home is `tests/e2e/staged-install/publish-generators.test.mjs`, and the `bindings/js/test/…`
+// spelling this sentence carried was its pre-move path, which matches no byte of this tree.
 // **THE ROW AND THE STRATEGY ARE THE CONTRACT'S OWN MAP, NOT THIS PASS'S CHOICE**: `§1.4` item 7 cites
 // `P-PUB-5` and files the state as the `present-wrong-version` column's sub-case, and `§5.5`'s FAILURE LIST
 // carries *"a `message` … not the generator's own clause reproduced byte-for-byte in the arm where it

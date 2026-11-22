@@ -1097,19 +1097,36 @@ generator('NG-PUB-F', 'an artefact with no usable generator names rung one\'s pa
     // GENERATOR MEASURED**: the subject is THE MODULE-RELATIVE ADDON PATH IN PLACE OF the rung-one artefact's own
     // — a path the walk never tried at this state, because the walk RETURNED at the arm before rung two — and
     // (3b) appends that same path to arm (b)'s fallback, so the clause is measured from both directions.
-    'control-the-fallback-names-an-untried-path': controlEntry('NG-PUB-F', (text) => {
+    // **⟶ AND THE ONE CONTROL IS TWO FROM `2026-11-22`, EACH COUNTED AND EACH REQUIRED TO FAIL ALONE
+    // (`D-181` ITEM 3, TAKEN AT ITS OWN SENTENCE: *"Splitting it into two controls takes the cell from `3` to
+    // `4` measured controls and reddens `publish.test.mjs`'s prose count — a census move the pass did not
+    // take."*).** As filed the two substitutions below shared ONE `controls` entry, so the one ledger line they
+    // produced could report only *"one of these fired"* and could not say WHICH — and the evidence that each
+    // half can fail was an ISOLATION RUN, which is an experiment and not a permanent instrument.
+    // **THE TWO ARE INDEPENDENT IN EFFECT, SO THEY ARE TWO INSTRUMENTS**: `(3a)` mutates the SUBJECT the
+    // mismatch arm hands arm (b) (`src/entry/artefact-node.mjs:266`), and `(3b)` mutates arm (b)'s own FALLBACK
+    // rendering (`src/entry/artefact-node.mjs:326`). Each control now stages ONE mutation in its own scratch
+    // tree, so each is required to fail the generator BY NAME, and the `F-14` audit prints which site and which
+    // limb for each rather than one verdict for both. **NOTHING IS WEAKENED: the property, the probe, the two
+    // sites and the reading each control must produce are unmoved — only the LEDGER gained a line.**
+    // **⟶ THE CENSUS FIGURE MOVES `3 → 4` MEASURED CONTROLS WITH IT**, and `publish.test.mjs:1961`'s prose
+    // count is re-derived in the same pass (`D-181` item 3, at the sentence quoted above).
+    'control-the-mismatch-arms-subject-is-a-path-the-walk-never-tried': controlEntry('NG-PUB-F', (text) => {
       // (3a) THE SUBJECT HANDED TO ARM (b) IS A PATH THE WALK NEVER TRIED, IN PLACE OF RUNG ONE'S OWN.
       const subjectSite = `message: mismatchArmMessage(candidate, name) };`;
       assert.ok(text.includes(subjectSite),
         'NG-PUB-F: the mismatch arm\'s subject site moved; the control must be re-cut where arm (b) is handed its '
         + 'subject');
+      return text
+        .replace(subjectSite,
+          "message: mismatchArmMessage(candidate, join(dirOf(fileURLToPath(entryUrl)), 'build', 'Release', 'storeroom_js_binding.node')) };");
+    }),
+    'control-the-fallbacks-subject-appends-a-path-the-walk-never-tried': controlEntry('NG-PUB-F', (text) => {
       // (3b) AND THE FALLBACK APPENDS IT BESIDE THE PATH THE WALK DID TRY.
       const fallbackSite = `  return generatorFilePathUnreachable(name);`;
       assert.ok(text.includes(fallbackSite),
         'NG-PUB-F: arm (b)\'s own fallback site moved; the control must be re-cut where the state it drives reaches it');
       return text
-        .replace(subjectSite,
-          "message: mismatchArmMessage(candidate, join(dirOf(fileURLToPath(entryUrl)), 'build', 'Release', 'storeroom_js_binding.node')) };")
         .replace(fallbackSite,
           "  return generatorFilePathUnreachable(name + \"', '\" + join(dirOf(fileURLToPath(entryUrl)), 'build', 'Release', 'storeroom_js_binding.node'));");
     }),
