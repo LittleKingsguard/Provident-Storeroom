@@ -107,6 +107,35 @@
 | **`C-W5`** | the coherence claim | on that arm the construction sets `durable_without_path` with no caller spelling, the register reads `file` tier with `file_path == ""`, and a `file`-tier write lands and reads back | owes the build |
 | **`C-W6`** | the export set | the WASM build's entry set counted against whichever arm §5 lands on — **19 or 18** | **blocked on §5** |
 
+**⟶ AMENDED `2026-11-17` — THE STATUS COLUMN IS RE-DERIVED AND EVERY CELL IN THIS TABLE IS LANDED** (`RCA-8(d)`
+ANNOTATE-BESIDE: **the six rows above stand BYTE-FOR-BYTE as the reading of their own date and are read THROUGH this
+clause; no row is rewritten and no row is deleted**). **THE SUITE'S WORD IS `tests/e2e/wasm-arm.test.mjs` — SIX CELLS,
+ALL GREEN, THE ARM BUILT BY THE FILE ITSELF AND NOT SKIPPED** (`node scripts/build-wasm-package.mjs`; a cell that
+cannot build FAILS in words, `P-PUB-7`'s doctrine). **AND WHAT EACH ONE ACTUALLY ASSERTS, WHICH IS THE COLUMN THIS
+CLAUSE OWES:**
+
+| id | status | what the cell asserts, at its own members |
+|---|---|---|
+| **`C-W1`** | **✅ LANDED** (`CW-1`) | a `saveCall` store **constructs with no path** and carries the fifteen declared members · a **`file`-tier write lands** and the receipt's op reads `tier: 'file'` · the caller's saver is handed the store's **IMAGE TEXT** once, naming the address · **and a second store seeded with that image reads the value back** (`initialImage`) |
+| **`C-W2`** | **✅ LANDED** (`CW-2`), **WITH ONE DIVERGENCE RECORDED AT THE CELL** | `filePath` is refused **at the construction** and its message names the path the caller supplied — **the code is `FilePathUnreachable`, from the STORE's own `Path` arm, and not the `AddressMalformed` at the `cfg` gate this row names**, because the `cfg` reader is realm-blind and one shared part serves both arms: the PLAN'S INTENT AND THE TREE'S ANSWER DIFFER IN THE CODE AND AGREE IN THE FACT (the key is refused, at construction, before any filesystem act) · and an **empty `initialImage`** is refused `AddressMalformed` (`D-147` item 4) |
+| **`C-W3`** | **✅ THE FLOOR, AND IT IS NOT A CELL OF THAT FILE** | it is this row's own subject — **every existing cell stays green** — and it is re-measured at the whole suite: `npm test` **`1371` / `1370` / `0`**, `npm run typecheck` **exit `0`**, `cargo test` **22 `ok` / 0 FAILED** |
+| **`C-W4`** | **✅ LANDED** (`CW-4`) | the glue offers **`initSync`** · and the entry's **transitive set carries no `node:` specifier and no top-level `await`**, walked from `index.mjs` downward by specifier — the narrowed subject §10 item 2 fixed |
+| **`C-W5`** | **✅ LANDED** (`CW-5`) | **the same verb, two stores, two answers**: the `file`-tier write LANDS on a `saveCall` store and `readTiered` reads `{ _tier: 'file', value: 1 }` at the address (`file_path === ''`, the tier set by the construction) · the identical write on a store with **neither `saveCall` nor a path** is refused **`ParentAnchorMonotonicityViolation`** · and the durable store is the one that saved |
+| **`C-W6`** | **✅ LANDED** (`CW-6`) | **eighteen** entries, counted off the module · **`commitFile` absent** by `D-155` item 4 · **`delete` spelled `_delete`** (the toolchain escapes a keyword and `addon-slot.mjs`'s `MODULE_SPELLING` spells it back) · `saveSucceeded` and `exportImage` present. **The `19-or-18` fork is gone: §10 item 3 took 18** |
+
+**AND THE FILE'S SIXTH CELL IS NOT A ROW OF THIS TABLE**: `CW-7` in `tests/e2e/wasm-arm.test.mjs` is `D-156`'s own —
+**a value crosses by value both ways (an app-side mutation of the written object and of the read one changes nothing
+the store holds) and a `Proxy` at a VALUE is refused `ValueRefusedAtBoundary` with all eight trap counters at zero**.
+**AND `C-W7`…`C-W11` ARE A DIFFERENT FIVE AND ARE NOT LANDED** — they are `docs/L3/wasm-realm/design.md` §7's, they
+share two ids with this table's numbering only by collision, and no cell of this file claims them.
+
+**WHAT THIS PLAN'S CELL SECTION OWED AND WHAT IT NOW OWES.** **Owed then: the build. Owed now: none of the six**, and the
+arm's whole behaviour is driven above. **AND THE ONE RESIDUAL THIS SECTION LEANED ON IS ANSWERED RATHER THAN MERELY
+CARRIED: `§9.5`'s `util.types.isProxy` replacement is `D-167`, whose split states the answer and its price AT THE
+PREDICATE'S OWN BYTE** (`class-instrument.mjs`'s `isProxyOf` and `isProxyOfCarrier`; `D-167` items 1–2 and 4). **AND IT
+CLOSES WITH THE HAZARD DECLARED AND NOT CURED**: a `Proxy` at a CARRIER gate is **not detected** on that arm — **so
+`§9.5` closes with that sentence standing, which is the form `D-167` item 5 chose on purpose.**
+
 ---
 
 ## §8 · The order of work, as units and not as wishes
@@ -487,4 +516,8 @@ its three cells — and with it the guides and the shipped `README.md` that `was
 
 **WHAT THE SESSION BUILT, IN ONE PLACE.** `D-154` lifted the one-realm claim · `D-155` took three forks and corrected this plan's own `Reflect::set` error · `D-156` took the `structuredClone` instrument and declared the deep-clone law · `D-157` took the sixth package and the class form · **nine units landed, the realm plan's steps 1–5 executed**, and the ledger is `docs/L1/wasm-realm.md` §1–§22 with `docs/L3/wasm-realm/design.md` beneath it.
 
+**⟶ AND THAT READ AS OF ITS OWN DATE, NOT AS THE TREE'S: THE PACKAGE IS ADMITTED FROM `2ec4fc9`** — it moved to
+`bindings/js/platforms/wasm/` beside the five native siblings, `DD-25`'s published set reads **seven** manifests, the coupled-version rule
+reads *"the seven manifests move to `X.Y.Z` TOGETHER"*, and `publish.yml` carries a `wasm` job beside the matrix. **The sentence below is
+the row's own state and is read through this one.**
 **AND WHAT IS DELIBERATELY NOT DONE, so no pass mistakes the state for a finished release.** **The sixth package is STAGED, NOT ADMITTED**: `bindings/wasm/` sits outside `bindings/js/platforms/`, its manifest declares itself staged, and **the act that admits it must move the contract's artefact set (`DD-25`, the `§14`/`§15` coupling), the workflow's matrix, and five published-artefact cells TOGETHER** (§21's measurement) — **and that act is a RELEASE, whose class `D-154` item 4 of its unsettled still leaves unclaimed.** **The guides and the shipped `bindings/js/README.md` wait on that same shipment** (§2 rows 9–10). **`design.md` §8's `isProxy` residue, the `STORE_RETIREMENT` finalizer and the guides' unwrap sentence remain open as it records them.** **Nothing is committed: 70 changed or untracked paths stand in the working tree.**

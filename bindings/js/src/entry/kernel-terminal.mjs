@@ -179,7 +179,33 @@ export function close(kernel, attempt, outcome) {
  * produce reaches it). **SO A NEWEST-FIRST WALK NOW REACHES THE FLOOR — BY REGENERATING IT AND NOT BY
  * REVERSING IT:** the first call over the repair's op reverses it AND MARKS IT COMPACTED, and the second call
  * — over the write's op, whose candidate set now CONTAINS that compacted entry — REBUILDS the whole state
- * from the durable ground truth before it walks. **THE REDUCTION IS `D-40`'S AND THIS PARAGRAPH DOES NOT
+ * from the durable ground truth before it walks. **⟶ AND THAT FLOOR ARM IS SUPERSEDED AT THIS COMMENT,
+ * 2026-11-17 — THE CODE BELOW IS RIGHT AND THESE SENTENCES ARE ONE RULING BEHIND** (`RCA-8(d)`
+ * ANNOTATE-BESIDE: the paragraph stands as the reading of its own date and is read THROUGH this clause).
+ * **THE SENTENCES ABOVE READ** *"a candidate set that holds a compacted entry is NOT ANSWERED
+ * `RollbackCompacted` ANY MORE … the store REVERTS TO THE LAST VALID STATE BY REGENERATING IT … so that arm
+ * RETURNS a `RollbackResult` and the floor branch below fires on `JournalOpUnknown` ALONE — the single
+ * surviving producer on this path"*; **each of those three terms has moved, and none of them by a byte of this
+ * file.** **(i) A CANDIDATE SET CANNOT HOLD A COMPACTED ENTRY AT ALL, because the compaction REMOVES the entry
+ * and its op ids with it** (`strata/decisions.md` · `D-160` item 1: *"Compaction dropping history is the
+ * point"*), **so the predicate those sentences describe has no subject** — the mark, its per-entry op-id list
+ * and the `restore_compaction` re-mark are withdrawn whole, and the two ids the mark kept apart are kept apart
+ * by ONE NUMBER, `journal_floor`, the watermark of the last op the compaction took (`D-160` item 3). **(ii) A
+ * REVERSAL WHOSE REQUIRED OP THE COMPACTION TOOK IS TWO-WAY, AND THE TOKEN IS ITS SECOND ANSWER** (`D-164`
+ * items 1–2): **with a file the store can read it REGENERATES from that image — or from its creation state
+ * where none stands — and RETURNS**; **with NO READ PATH it answers `RollbackCompacted`, and that answer IS the
+ * client's signal to recover from its own copy** — the path-less `saveCall` store and any `mem` store, named by
+ * `file_path.is_empty()` and by nothing wider (`D-165` items 1–3). **(iii) SO THE FLOOR BRANCH BELOW IS FED BY
+ * BOTH MEMBERS OF ITS UNMOVED TABLE**: `JournalOpUnknown` by an id that never named a store op, and
+ * `RollbackCompacted` by a dropped op on a store with no read path — *"the single surviving producer"* and
+ * `D-109`'s one subject (*"a `filePath` whose image cannot be read as an object"*) are both retired (`D-163`
+ * item 4 (i) and (iii)). **AND THE MARKS THAT PARAGRAPH NAMES ARE GONE WITH THEM: the first call no longer
+ * *"MARKS IT COMPACTED"*, because no act marks anything any more, and a second reversal of the same op
+ * re-states the same captured pre-states over the same addresses — the walk's own idempotence stands where the
+ * mark stood** (`src/store.rs`'s
+ * `rollback`, `M-9`'s mark deleted). **WHAT DOES NOT MOVE: the call is one call over the attempt's first op and
+ * the walk is gone — `D-40`'s reduction is re-opened by nothing here — and a regeneration is still told from a
+ * replay by the call RETURNING and by nothing else.** **THE REDUCTION IS `D-40`'S AND THIS PARAGRAPH DOES NOT
  * RE-OPEN IT**: one call over the attempt's first op reaches that same state in one store act and pays no
  * rebuild for it, which is why the walk is gone and the call below is the only one issued.
  * **THE ONE CALL OVER THE ATTEMPT'S FIRST OP SWEEPS THE WHOLE ATTEMPT IN ONE STORE ACT** — every op of the
@@ -189,7 +215,13 @@ export function close(kernel, attempt, outcome) {
  * last entry is the call that is now the only one, and the calls before it are the ones a newest-first walk
  * would have paid a regeneration for. **NO ARM'S OUTCOME IS RE-SHAPED BY THE REDUCTION:** a plain rejection still leaves
  * the pre-attempt state, a repair answering `{ok: false}` still leaves it, and a PASSING repaired write still
- * lands its repaired value and composes nothing.
+ * lands its repaired value and composes nothing. **⟶ AND THE PRICE NAMED IN THAT SENTENCE — *"the ones a
+ * newest-first walk would have paid a regeneration for"* — IS NO LONGER A PRICE, 2026-11-17** (`D-160` item 1;
+ * `D-164` item 1): **a walk would have paid it for meeting the compaction MARK, and there is no mark to meet,
+ * because the compaction REMOVES the entry instead of flagging it** — **so what the reduction still buys is the
+ * ACT, one store act instead of a walk, and the arm it saves is a regeneration the store no longer performs on
+ * that account. `NO ARM'S OUTCOME IS RE-SHAPED` STANDS WHOLE**: the sentence's claim is about the reduction and
+ * the reduction is unmoved.
  *
  * **THE `checkpoint` MEMBER MOVES NO CALL.** Item 1's filter fixes the call list as `ops` up to and excluding
  * the `checkpoint` op, and the list's LAST entry is the attempt's first op whenever the list is non-empty —
@@ -239,6 +271,19 @@ export function close(kernel, attempt, outcome) {
  * REGENERATES instead of answering `RollbackCompacted` (`D-108`), so the two-element table is unmoved and one of
  * its members is no longer produced. **A regeneration is told from a replay by the call RETURNING and by nothing
  * else**: the step's shape and members are unchanged and carry no flag, and `failed` is `false` on both arms.
+ * **⟶ AND THE MIDDLE CLAUSE OF THAT — *"one of its members is no longer produced"* — IS SUPERSEDED, 2026-11-17,
+ * WITH THE TABLE ITSELF UNMOVED** (`RCA-8(d)` ANNOTATE-BESIDE: the sentences above stand as the reading of their
+ * own date). **BOTH MEMBERS ARE PRODUCED AGAIN AND EACH BY ONE ARM**: `JournalOpUnknown` by an id that never named
+ * a store op, and `RollbackCompacted` by a reversal whose required op the compaction DROPPED on a store with NO
+ * READ PATH — the path-less `saveCall` store and any `mem` store — where that token is the client's signal to
+ * recover from its own image (`D-160` items 1 and 3; `D-163` item 6; `D-164` items 1–2; `D-165` items 1–3). **SO
+ * THE TOKEN IS REACHABLE ON THIS PATH, AND ITS PRODUCER IS THE COMPENSATION WINDOW AND NOT THE ORDERING** — a
+ * still-owed op the window took is a call this composition issues and the store answers. **THE COMPOSITION'S OWN
+ * ORDERING STILL PRODUCES NEITHER** (the pairwise-disjointness below, unchanged): nothing here compacts anything,
+ * because compaction happens on an APPEND and a reversal appends no entry (`M-9`). **AND THE LAST SENTENCE ABOVE
+ * STANDS EXACTLY AS WRITTEN**: a regeneration is told from a replay by the call RETURNING and by nothing else — a
+ * regenerating call returns a `RollbackResult` with `undoneOps: []`, a replay returns one with the ids it
+ * re-stated, and `failed` is `false` on both arms.
  */
 export function composeRollback(kernel, attempt, ops) {
   // An attempt with no op at all owes no call, and nor does one whose `checkpoint` op IS its first op — item 1's
@@ -327,6 +372,25 @@ export function composeRollback(kernel, attempt, ops) {
  * container — measured, `['a']` answers `{b: 99}` where the pre-attempt standing was `{b: 0}`. The plan still
  * issues the call (the container is back and the descendant is readable again), and the value beneath it is the
  * STORE's restore limit and not this composition's ordering.
+ *
+ * **⟶ AND THE ARM BOTH SKIP CASES NAME IS SUPERSEDED, 2026-11-17 — THE PLAN AND ITS CODE ARE UNMOVED AND THE
+ * STORE'S ANSWER UNDER IT IS NOT** (`RCA-8(d)` ANNOTATE-BESIDE: the two bullets and the paragraph beneath them
+ * stand as the reading of their own date). **THE SENTENCES ABOVE READ** *"a second call could only meet the
+ * store's COMPACTED MARK — and that arm REVERTS TO THE LAST VALID STATE BY REGENERATING IT FROM THE DURABLE
+ * GROUND TRUTH"* **and** *"the outer one has already compacted the later entries, so the inner one's scope would
+ * contain a compacted entry and its call would REGENERATE THE WHOLE STATE instead of walking it"*. **THERE IS NO
+ * MARK AND NOTHING IS COMPACTED BY ANY CALL HERE** (`D-160` item 1: the compaction REMOVES the entry; and a
+ * reversal appends no entry, so no append-of-this-composition compacts anything — `M-9`). **SO THE TWO CASES ARE
+ * STILL SKIPPED AND THEIR GROUND IS THE ONE THAT WAS ALWAYS LOAD-BEARING — REDUNDANCY**: a covered address's
+ * entries were already swept, so a second call would re-state the same captured pre-states over the same
+ * addresses (the walk's own idempotence) and would report `undoneOps` for ops it did not freshly undo; an
+ * unreachable address's earlier entries were swept by the outer call for the same reason. **WHAT IS WITHDRAWN IS
+ * THE CONSEQUENCE THE BULLETS NAMED, NOT THE SKIP.** **AND THE PAIRWISE-DISJOINT SENTENCE BENEATH THEM IS
+ * RE-STATED ON ITS OWN SUBJECT: *"the composition's own ordering can never be the producer of
+ * `RollbackCompacted`"* stands, because an ORDERING produces nothing the store refuses on a candidate-set
+ * predicate it no longer has — and the token IS reachable on this path by the WINDOW, where a still-owed op was
+ * dropped before the call was issued** (`D-160` item 3; `D-163` item 6; `D-164` items 1–2). **NO LINE OF THE
+ * FUNCTION BELOW MOVES FOR THIS CLAUSE: the plan is a plan over ops, and every predicate it reads is its own.**
  */
 function floorCallPlan(attempt, ops) {
   const candidates = [];

@@ -182,6 +182,22 @@ N = 16,000  rss + 7,277 MB    (× 3.9 — and the Node heap gives out here)
 
 **WHAT IT NEEDS, PRICED AND NOT CHOSEN** (it is the package's, and the kernel's attempt lifecycle is declared in `attempt-lifecycle.md`):
 
+**⟶ AND THE ONE IS CHOSEN, `2026-11-17` — `D-162` TOOK THE FIRST CURE, AND §9 IS ITS LANDING** (`RCA-8(d)`
+ANNOTATE-BESIDE: **the three cures below stand BYTE-FOR-BYTE as the reading of this section's date and are read THROUGH
+this clause**). **THE ARCHITECT'S INSTRUCTION WAS *"Proceed with fix for package-side defect"*, AND THE CURE IT BUYS IS
+CURE `1` WITH A NUMBER ATTACHED: `CLOSED_ATTEMPT_WINDOW = 1024`, one writer (`sealClosedReport`) at all four seal
+points, and the `Map`'s own insertion order as the FIFO** (`strata/decisions.md` · `D-162` items 1–3). **What a pruned
+id meets is `KC-2`, the same refusal an id that never named an attempt already met** (`D-162` item 4), **and the
+declaration it implies is stated so it can be overruled: a closed attempt's record is retained for the most recent
+`1024` attempts and not for the store's whole life** (`D-162` item 5). **CURES `2` AND `3` STAY PRICED AND UNCHOSEN, AND THIS
+PASS DOES NOT RE-OPEN THEM: `D-162` item 5 NAMES CURE `2` — *"a `WeakMap` keyed by the attempt is the alternative that
+needs no window at all"* — as the declaration it could be overruled into, and cure `3`'s drop-on-the-terminal-act
+remains a decision the same act could take; neither is taken by this tree, and neither is refuted here.**
+**AND THE FIGURE MOVED WHERE THIS SECTION SAID IT WOULD: retained per `write`, pinned, `~700–745 B → 0.04–0.19 B`; flat
+at `0.75 MB` at both 4,000 and 16,000 writes** (§9's table). **THE CELL THIS SECTION ASKED FOR EXISTS**: `KAW-1` and
+`KAW-2` in `tests/e2e/kernel-attempt-window.test.mjs`, the second with the pinned figure in its message and the reason
+it reads unpinned stated at its own byte (`D-162` item 6).
+
 1. **BOUND IT BY THE ATTEMPTS THAT CAN STILL BE ASKED ABOUT** — a closed report is read for a *commit record* and by the terminal's own lookups, so the bound is the number of attempts a live commit frame may still name, not the number ever made.
 2. **OR KEY IT WHERE IT DIES WITH ITS SUBJECT** — a `WeakMap` keyed by the attempt (or by the commit record) would need no pruning at all, **if the readers hold the attempt rather than its id** — `:291` reads it by an id derived from a commit record, so the record and the attempt are both in hand at that site, which makes the `WeakMap` reachable.
 3. **OR DROP ON THE ATTEMPT'S OWN TERMINAL ACT** — `release` already removes the attempt from `live`; the report's retention is a separate decision the same act could take.

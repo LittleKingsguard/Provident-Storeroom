@@ -154,8 +154,31 @@ rebuild will read sixteen reds that are not defects.
    COMMIT WINDOW (which is green: `window {"open":1,"live":1,"window":4}`) BUT THE LOG'S OWN CENSUS, and the fix is a re-cut of three
    predicates to the kinds `LogKind` already declares** — a test-writer act, small, with the ruling that added the `repair-run`/`outcome`
    entries cited at each byte. **IT IS THE SAME CLASS AS `E2E-C-9`: a cell stale against a declared change, not a broken store.**
+   **⟶ AND IT IS DIAGNOSED AND NOT FIXED, `2026-11-17` — SAID HERE BECAUSE THE DIAGNOSIS READS LIKE A CURE AND IS NOT ONE**
+   (`RCA-8(d)` ANNOTATE-BESIDE: the entry stands BYTE-FOR-BYTE). **THE THREE PREDICATES STILL COUNT ONE LOG ENTRY WHERE THE
+   TREE EMITS THREE** — `DW-09.1`'s `repairLog.length === 1`, `DW-09.2`'s the same with a `commit` entry in the middle,
+   and `DW-16.3`'s judged set built on the same predicate — **and the file still reports `3` FAIL.** **The fix is a
+   re-cut of three predicates to the kinds `LogKind` already declares, and it is a TEST-WRITER ACT: no pass of this
+   kind may make it, and this one did not.** **IT STAYS A BLOCKER IN THIS REVIEW'S OWN TERMS** (`§10.1`'s opening
+   sentence counts it as one), **and it is the LAST ONE STANDING**.
 3. **`RELEASE-NOTES.md`'s `§1.13.0` IS STALE BY TWO BEHAVIOURS.** It was written before `D-160` and `D-162` and **mentions neither**: (a) **the journal DROPS history and `journalLength` is now the width of the compensation window** — a semantic the notes must state, because it conditions `D-108` item 2's *"no landed edit survives a refusal … unconditional"*; and (b) **a closed attempt's report is retained for the most recent `1024` attempts, and a pruned id answers `KC-2`**, the same refusal an id that never named an attempt meets.
+   **⟶ AND IT IS FIXED BY THE PASS THAT OWNS THIS CLAUSE, `2026-11-17` — AND BY MORE THAN THE TWO BEHAVIOURS IT NAMED**
+   (`RCA-8(d)` ANNOTATE-BESIDE: the entry stands BYTE-FOR-BYTE as the diagnosis). **`RELEASE-NOTES.md`'s `§1.13.0` now
+   carries FOUR MORE entry points — its EIGHTH through ELEVENTH — for a consumer on `1.12.0`: the journal's DROP and `journalLength` as the compensation
+   window's width, the two-way reversal that regenerates from the file and answers `RollbackCompacted` only on a store
+   with no read path, the closed-attempt window of `1024` with a pruned id answering `KC-2`, and the split class
+   instrument — beside a dated clause that re-reads its seventh entry as a VALUES clause** (`D-160`, `D-162`, `D-164`,
+   `D-165`, `D-167`; the file's own `§1.13.0`). **AND THE TWO ITEMS THIS ENTRY NAMED ARE THE TWO IT NAMED, AT THEIR OWN
+   BYTES**: (`a`) at entry 8 and (`b`) at entry 10. **No version cell moved, no tag is claimed and no artefact is
+   called shipped** (`D-57`).
 4. **THE RULING ON `D-108` ITEM 2** — `D-160`'s consequence makes *"no landed edit survives a refusal"* **conditional on the window's width** (where the window took an op a composition must reverse, the store refuses and landed edits stand). **That is a declaration, and it is the architect's.**
+   **⟶ AND IT IS WITHDRAWN, `2026-11-17` — THE CONDITIONALITY WAS THIS REVIEW'S MISREAD AND `D-164` SAYS SO**
+   (`RCA-8(d)` ANNOTATE-BESIDE: the entry stands BYTE-FOR-BYTE as the reading of its date). **`D-164` item 3: *"`D-108`
+   item 2 stands UNCONDITIONAL and is not affected by the window's width … the conditionality the supervisor raised as
+   an open question was a consequence of its own misread and is WITHDRAWN as a question."** **SO `D-108` item 2 is read
+   as it always stood — *"No landed edit survives a refusal, on any arm"* — and the dropped arm does not refuse: it
+   REGENERATES** (`D-164` items 1–2). **The entry is a WITHDRAWAL and not a discharge: no declaration was owed, none is
+   made, and the architect's instruction closed the item by withdrawing the question.**
 
 ### 10.2 · THE RESIDUALS, NAMED AND NOT BLOCKING
 
@@ -165,7 +188,37 @@ rebuild will read sixteen reds that are not defects.
 4. **`NG-PUB-F`'s inert control** — its as-filed half splices a `node:path` call into a part that no longer imports one; inert only because the probe drives the mismatch state.
 5. **`O-3`, `SS-9` and `O-8`** — moot on the WASM arm and **still owed on Node**.
 6. **NO CELL DRIVES THE WASM ARM'S BEHAVIOUR.** `C-W1`, `C-W2` and `C-W5` from `wasm-realm.md` §7 are **named and unwritten**: the staged package is driven **by hand** in this review and in §7/§9 of the RCA, and **the arm's own behaviour — construction, a `file`-tier write, a save through `saveCall`, a seed through `initialImage`, the `Proxy` refusal, the deep clone — is claimed by no cell.** **That is the last real gap between "the arm works" and "the suite says so".**
+   **⟶ AND THE GAP IS CLOSED, `2026-11-17` — `C-W1`…`C-W6` ARE LANDED IN ONE FILE AND GREEN** (`RCA-8(d)` ANNOTATE-BESIDE:
+   the entry stands BYTE-FOR-BYTE as the finding of its date). **`tests/e2e/wasm-arm.test.mjs` carries SIX cells and
+   builds the arm itself rather than skipping** (`scripts/build-wasm-package.mjs`; `P-PUB-7`'s doctrine): `CW-1` (`C-W1`:
+   the `saveCall` construction, its `file`-tier write, the caller's saver handed the image text, the seeded read-back),
+   `CW-2` (`C-W2`: `filePath` refused at the store's `Path` arm and an empty `initialImage` with it), `CW-4` (`C-W4`: no
+   `node:` specifier and no top-level `await` in the entry's graph), `CW-5` (`C-W5`: the tier is the construction's — the
+   same write lands on a `saveCall` store and is refused on a store with neither), `CW-6` (`C-W6`: eighteen entries,
+   `commitFile` absent), and `CW-7` (`D-156`'s: the deep clone both ways and a `Proxy` refused with all eight trap
+   counters at zero). **The two cells this gap's own note said were held out are `C-W1` and `C-W5`, and they were held
+   out for a defect in the instrument: `D-166` found it and `D-167` split the seam** (`isProxyOf` for data,
+   `isProxyOfCarrier` for carriers). **The arm's own behaviour is claimed by cells and not by a review's hand.**
 
 ### 10.3 · WHAT IS NOT A BLOCKER AND IS WORTH SAYING
 
 **The sixth artefact is admitted, the workflow carries its job, the shipped prose names the build, the class is claimed and the version is `1.13.0` across all twelve sites.** **Nothing in §10.1 is a shipped byte except item 3**, and item 3 is prose in an artefact that travels.
+
+**⟶ AND THE COUNT IS ONE FROM `2026-11-17`: §10.1's items 1, 3 and 4 are closed and item 2 is the one standing**
+(`D-163`; the pass that wrote this clause; `D-164`). **Item 3's prose is FIXED AND STILL TRAVELS** — that is the whole
+point of fixing it — **and item 2 is a test-writer act that mints no shipped byte at all.**
+
+### 10.4 · THE FLOORS, RE-MEASURED AFTER THIS PASS `2026-11-17` — ONE DOCS PASS, AND NOT A FLOOR MOVED BY IT
+
+| leg | the reading, after the docs pass |
+|---|---|
+| `npm test` | **`1371` / `1370` / `0`** (one skipped) |
+| `npm run typecheck` | **exit `0`** |
+| `cargo test` | **22 `ok` / 0 FAILED** |
+| `cargo check --target wasm32-unknown-unknown` | **0 errors** |
+
+**THE FIGURES IN §10'S OWN TABLE ARE THE READING OF ITS DATE AND STAND** (`1359`/`1358`/`0` there, `1364`/`1363`/`0` at
+`D-162`'s landing, `1371`/`1370`/`0` here): **a documentation pass moves no floor, so the move between those rows is the
+cells the three intervening units added and never this pass's** — **this pass added no cell, changed no test, changed no
+code and no declaration, and its one touched code file's CODE BYTES are proven identical with its comments stripped**
+(`bindings/js/src/entry/kernel-terminal.mjs`; token-stream and comment-stripped-print equality against `HEAD`).

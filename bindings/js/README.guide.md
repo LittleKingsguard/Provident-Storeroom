@@ -164,9 +164,15 @@ package this guide documents in three ways a consumer meets at once:
   `cfg` gate, and the **`file` tier means *durable with no path***: the store keeps its durability against a
   caller's function (`saveCall`), and a save it cannot confirm is a save it does not claim.
 * **A VALUE MUST BE CLONEABLE.** The crossing is a deep copy in both directions, so a value the store holds cannot be
-  mutated behind it — that is what keeps a listener's firing and a constraint's pass honest — and **a `Proxy` is
-  refused before any trap runs**: a reactive store's own object is a `Proxy` on most client frameworks, so **pass
-  the plain value (`toRaw`, a spread, or a clone) and the store takes it**.
+  mutated behind it — that is what keeps a listener's firing and a constraint's pass honest — and **a `Proxy` you pass
+  as a VALUE is refused before any trap of yours runs**: a reactive store's own object is a `Proxy` on most client
+  frameworks, so **pass the plain value (`toRaw`, a spread, or a clone) and the store takes it**. **What that refusal
+  covers is the DATA — the values that go INTO the store — and not the settings you construct it with.** `cfg` itself,
+  a `listeners` entry, a `constraints` entry and the commit record the package builds are the package's own carriers:
+  they never enter the Rust store, and on this build a `Proxy` handed in one of those positions is **read rather than
+  refused**. **So the reactive wrapper is the thing to unwrap where it matters — at every value you write — and a
+  `Proxy` in a settings object is not a refusal you will see; passing plain objects in both places is what keeps the
+  behaviour the same as on the Node build.**
 
 **NO ARTEFACT OF THAT BUILD IS DESCRIBED HERE AS SHIPPED BY THIS PACKAGE**: it is a sibling package with its own
 `files`, its own declaration and its own version line, and this guide's every claim about `provident-storeroom`

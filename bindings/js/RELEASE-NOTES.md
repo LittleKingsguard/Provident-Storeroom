@@ -98,13 +98,67 @@ calls and `std::process::id()` are `#[cfg]`-ed out with the writer and the reade
    firing or a constraint's pass — and on the WebAssembly arm the detector is `structuredClone`. **On the Node arm
    nothing about this moves**: `util.types.isProxy` still reads no member and invokes no handler, and the refusal is
    still `ValueRefusedAtBoundary`.
+8. **THE JOURNAL NOW DROPS HISTORY, AND `journalLength` IS THE WIDTH OF THE COMPENSATION WINDOW.** On `1.12.0` the cap
+   was a MARK: the oldest entries were flagged and kept for the store's whole life, and the flag was what told a
+   reversal it had gone past the floor. **From `1.13.0` the cap is a BOUND**: what survives is the base state plus at
+   most `journalLength` uncompacted ops, **an op the compaction reaches is REMOVED and its op id is gone with it**, and
+   memory is `O(store + journalLength)` rather than growing with every write ever made (`D-160` items 1–2). **The two
+   refusals stay distinguishable and they are told apart by ONE NUMBER rather than by a retained list**: an op the
+   compaction DROPPED answers `RollbackCompacted`, and an id that never named an op answers `JournalOpUnknown`
+   (`D-160` item 3 — the floor's own `seq` is the watermark). **A write's record still carries its `compacted` member
+   and it reads `false`**: no act sets it any more, because the mark is not the mechanism — **and whether the member
+   survives the drop is a declaration this section does not make** (`D-160` item 4 of its unsettled).
+9. **A REVERSAL THAT NEEDS AN OP THE COMPACTION DROPPED REGENERATES FROM THE FILE — AND ANSWERS `RollbackCompacted`
+   ONLY ON A STORE WITH NO READ PATH.** `D-164` item 2's division, at the two shapes you can construct: **with a
+   `filePath` whose image can be read — or the state the store was created with where no image stands — the store
+   REBUILDS its base from that file and the call RETURNS a `RollbackResult`; no refusal is involved.** **With NO READ
+   PATH the call answers `RollbackCompacted`, and that token is your signal to recover the value from your own copy**
+   — the path-less `saveCall` store, whose channel is write-only by construction, and any `mem` store, which has no
+   durable ground truth at all (`D-165` items 1–3; the test is the empty path and it is the whole test). **The token's
+   rank, its code and its generated message are unmoved; what moves is the set of acts that produce it** (`D-163`
+   item 6; `D-164` items 3–4).
+10. **A CLOSED ATTEMPT'S REPORT IS KEPT FOR THE MOST RECENT `1024` ATTEMPTS, AND A PRUNED ID ANSWERS `KC-2`.** The
+   package no longer retains one attempt report per act for the life of the instance: the window is `1024`
+   (`CLOSED_ATTEMPT_WINDOW`) and the FIFO is the map's own insertion order, so a fourth-thousand write and a
+   sixteen-thousandth retain the same bytes (`D-162` items 1–3). **What you can observe is age and only age**: an
+   attempt inside the window answers as it did, and **an id the window has pruned answers `KC-2` — the SAME refusal
+   an id that never named an attempt already met**, so a caller cannot tell a pruned attempt from a misspelt one
+   (`D-162` item 4; `D-162` item 5 names the window as the declaration it is).
+11. **A `Proxy` IS DETECTED BY WHAT IT HANDS THE STORE, NOT BY WHAT YOU HAND A CONSTRUCTION — ON THE WEBASSEMBLY ARM.**
+   **The clone probe is asked of DATA THAT ENTERS THE RUST STORE**: the write's value, an address, a tier, a value's
+   class and a value's prototype link — the population `DD-34`'s refusal is about — **and there a `Proxy` is still
+   refused in the declared form with not one trap run.** **At a CARRIER gate it is not detected on that arm** — `cfg`
+   itself, `cfg.listeners`, `cfg.constraints` and the write's commit record are the package's own data and never
+   cross into the store, and the one platform signal that tells a `Proxy` from its target cannot tell it from a
+   carrier that carries a function, which the API's own keys require (`D-166` item 1; `D-167` items 1–2 and 5).
+   **What that costs you is bounded and it is stated**: a `cfg` handed as a `Proxy` on that arm is READ rather than
+   refused — its traps run for the reads a construction must make anyway, and a target missing a declared key is
+   refused for that reason. **On the Node arm both questions are `util.types.isProxy` and not a byte moves.**
+
+**⟶ AND THE SEVENTH ENTRY'S HEADLINE IS TRUE OF VALUES AND OF ONE ARM'S DATA, 2026-11-17 — `D-167`, READ BESIDE
+`D-166`, AND THIS CLAUSE IS WHERE THE DIFFERENCE IS SAID RATHER THAN LEFT TO THE ENTRY ABOVE** (`RCA-8(d)`
+ANNOTATE-BESIDE: **the entry stands BYTE-FOR-BYTE as the reading of the date it was written and is read THROUGH this
+clause**). **THE SENTENCES IT CARRIES ARE** *"A VALUE MUST BE CLONEABLE, AND A `Proxy` IS REFUSED WITHOUT A TRAP
+RUNNING … on the WebAssembly arm the detector is `structuredClone`"*. **THE SPLIT IS THE WHOLE OF WHAT MOVED: the
+probe answers the DATA question** — *"is this a `Proxy`"* for the population that enters the Rust store, which is
+`DD-34`'s property and which this entry's sentence states exactly — **and the CARRIER question is answered without
+it on that arm, where the answer is `false` and where the declaration is written at the predicate's own byte**
+(`class-instrument.mjs`'s `isProxyOf` and `isProxyOfCarrier`; **on Node the two are the same instrument and not a
+behaviour moves**). **So the entry's first clause is read as the VALUE clause it is**, and a consumer who took it for
+a statement about `cfg` on the WebAssembly arm took it one gate wide — **which is the defect `D-166` measured when
+every `saveCall` construction was refused as if `cfg` were a `Proxy`, and the arm could not construct the one store
+it exists for.** **AND THE CLASS THIS SECTION CARRIES DOES NOT MOVE FOR ANY OF THE FOUR ENTRIES ABOVE OR FOR THIS
+CLAUSE**: `D-158`'s `MINOR` at `1.13.0` stands, no version cell moves, and **a class claim is the architect's — none
+is made here.**
 
 **WHAT DOES NOT MOVE, LISTED AND CLOSED:** the module namespace's one name (`storeCreate`) · the instance's own fifteen
 members, name for name · the one `exports` arm and its three conditions · the `files` allowlist's five rows · the floor
 `>=22.12.0` · the five native platform artefacts' shape, names and `os`/`cpu` pairs · `DD-24`'s refusal of a co-equal CJS
 arm, whose PRICE was re-grounded (a second claimable realm no longer makes it wrong; two module systems inside ONE realm
-still does) · `S-ONE-ADDON` and `P-SR-7`'s load-time-reach sentence, unchanged · and the store's own statuses `1`…`22`,
-in their order.
+still does) · `S-ONE-ADDON` and `P-SR-7`'s load-time-reach sentence, unchanged · the store's own statuses `1`…`22`,
+in their order · **`RollbackCompacted`'s and `JournalOpUnknown`'s ranks, codes and generated messages, unmoved — what
+moves is WHICH ACTS PRODUCE the first, not what it says** (`D-164` item 2; `D-165` item 3) · **and the `file`-tier
+`saveCall` store's own shape: `exportImage`, `saveSucceeded` and `saveFailed` keep their arities and their answers.**
 
 **AND THE PUBLISHED SET MOVES `6 → 7` MANIFESTS** — the main package, the five native platform artefacts, and the
 WebAssembly artefact, which is produced by **a job BESIDE the prebuild matrix and never as a sixth row of it**. **The
