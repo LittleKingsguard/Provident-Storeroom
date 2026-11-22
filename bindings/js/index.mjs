@@ -84,7 +84,7 @@
 // is the declared observable), and the invocation's ONE argument is the triggering ADDRESS (`PAR-JS-12`):
 // the matched id and the address are two different data and only the address is passed.**
 
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync, unlinkSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname as dirOf, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -111,6 +111,7 @@ import { adoptModuleContext } from './src/entry/artefact-node.mjs';
 // the five parts that decide `DD-34`'s `Proxy` refusal read the predicate from `class-instrument.mjs` and carry
 // no `node:` specifier for it.
 import { installClassInstrument } from './src/entry/class-instrument.mjs';
+import { installConstructionFileGuard } from './src/entry/state.mjs';
 // **⟶ AND THE FIFTEEN MEMBERS' BODY HAS ONE COPY, 2026-11-17** (`D-156` item 1; `design.md` §5: *"the shared
 // body — the fifteen members, `deliver`, the kernel glue — is ONE copy"*). THIS ENTRY IS NOW THE NODE ARM'S
 // HEAD AND ITS ONE EXPORT IS THE SHARED BODY'S: the construction, the instance and the fifteen members stand in
@@ -151,6 +152,24 @@ adoptModuleContext(import.meta.url, require_, ADDON_PATH);
 // a silent loss of `DD-34` at every carrier gate** — so the setter requires both and this line passes both.
 // ---------------------------------------------------------------------------------------------
 installClassInstrument((value) => types.isProxy(value), (value) => types.isProxy(value));
+
+// ---------------------------------------------------------------------------------------------
+// **⟶ AND THE CONSTRUCTION'S FILE GUARD IS INSTALLED HERE — 2026-11-17** (`SS-9`; `A55`'s *"leaves nothing behind"*).
+// **THE NODE ARM IS THE ONLY ARM WITH A FILESYSTEM, SO IT IS THE ONLY ARM THAT INSTALLS ONE**: `existsSync` is read BEFORE
+// the store's exclusive create and `unlinkSync` removes the store's own zero-length artefact **only where the construction
+// made it and then refused** — a construction over an ABSENT path whose constraint body throws at registration.
+// **THE INJECTED ARM INSTALLS NOTHING**: it refuses `filePath` outright, so it never creates a file to remove.
+// ---------------------------------------------------------------------------------------------
+installConstructionFileGuard((filePath) => {
+  const existed = existsSync(filePath);
+  return {
+    existed,
+    undo: () => {
+      if (existed === true) return;
+      try { unlinkSync(filePath); } catch { /* the refusal path never throws for this */ }
+    },
+  };
+});
 
 
 // ---------------------------------------------------------------------------------------------

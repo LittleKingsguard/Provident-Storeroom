@@ -45,7 +45,7 @@ import { admittedConstraintBatch, admittedListenerBatch, constraintAddress, deco
 // (`contract.md §3`: *"`index.mjs`'s `delete` — `:912` becomes the branch on the settle"*); **`defineBodyFailures` is
 // the receipt's third accessor**, installed at the delete's build beside `discarded` and at the rollback's record
 // beside `log` (`PIN-10`'s census: six own names, `Object.keys` unmoved). **NO OTHER NAME OF EITHER LINE MOVES.**
-import { FORGET_PAIR, INSTANCES, STORE_INDEX, STORE_RETIREMENT, TERMINAL_ARM, appendRepairLeg, carryRefusal, closeCommit, crossTriggered, currentWindow, entryOf, installAttemptSeam, isStoreReceiver, openCommit, writeRefusal } from './state.mjs';
+import { FORGET_PAIR, INSTANCES, STORE_INDEX, STORE_RETIREMENT, TERMINAL_ARM, appendRepairLeg, carryRefusal, closeCommit, crossTriggered, currentWindow, entryOf, installAttemptSeam, isStoreReceiver, openCommit, writeRefusal, openConstructionFileGuard} from './state.mjs';
 import { commitPositionRefusal, constraintOverwrittenByListen, deliver, installListenRoute, installRegistrationDelivery, installRegistrationSave, installRegistrationSeam, listenerStandingAt, listenOn, registerOn, settledAnswer, terminalArm } from './delivery.mjs';
 import { ARGUMENT_POSITION_FIRST, addressSetKey, carryConstraint, constraintDetached, constraintPairKey, constraintRefuse, constraintSite, constraintUncarried, constraintDelete, constraintWrite, constraintsKernel, currentRaise, defineBodyFailures, defineDiscardWitness, defineReturnedValues, defineResolutionLog, enumerateConstraints, judgeReversal, registrationCrossing, restoreHeldPair, reversalWatch, unionAddressSets, withEmptyLog, witnessDiscardedReversal, witnessRaise, withdrawStanding } from './constraints.mjs';
 
@@ -365,6 +365,15 @@ export function storeCreate(cfg) {
   // member never crosses (`frame.mjs`'s projection strips it) and **THE PACKAGE ARMS THE SUBSTANCE**, so the
   // adopted handle holds a body from the instant the instance exists.
   const adopted = admittedListenerBatch(cfg);
+  // **⟶ AND THE CONSTRUCTION'S FILE GUARD OPENS HERE, BEFORE THE ONE FILESYSTEM ACT — 2026-11-17** (`SS-9`; `A55`'s
+  // *"leaves nothing behind"*). **The store's exclusive create at step 4b makes its zero-length file, and the registration
+  // sweep BELOW is the one refuser that runs AFTER it**: a constraint body that throws at its own registration answers
+  // `ConstraintBodyThrew` and, without this guard, left that file on disk. **`openConstructionFileGuard` answers `null` on a
+  // realm with no filesystem and on a construction with no path**, so the injected arm and every `mem`/`saveCall` store
+  // reach none of this.**
+  const fileGuard = openConstructionFileGuard(
+    cfg !== null && typeof cfg === 'object' && Object.hasOwn(cfg, 'filePath') ? cfg.filePath : undefined,
+  );
   let id;
   try {
     id = addon_.storeCreate(encoded);
@@ -2049,6 +2058,9 @@ export function storeCreate(cfg) {
           );
         }
         // **`D-77`: the batch element's own address — the construction's registration act is at it.**
+        // **⟶ AND A REFUSAL RAISED AFTER THE CREATE REMOVES THE FILE THE CREATE MADE** (`SS-9`): the guard's `undo`
+        // removes it **only where it did not exist before this call**, so a caller's own file is never touched.
+        if (fileGuard !== null) fileGuard.undo();
         registrationCrossing(refusal, batch[i].addresses[0]);
       }
       if (marker.applied === true && appliedBefore === false) landedInRound += 1;

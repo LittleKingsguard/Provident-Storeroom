@@ -8783,3 +8783,30 @@ finding is the same family as `D-159`/`D-160`/`D-162`** \u2014 a table that grow
 6. **CELLS**: `tests/e2e/store-retirement.test.mjs` \u2014 `SR-01` (the payload ceiling), `SR-02` (**the finalizer's own answer**: every constructed-and-dropped
    store's index reads `AddressNotFound`, which is the release measured at its own answer and not a table length), `SR-03` (the entry's contract: double
    release, absent index, eight outside classes, and the second store answering across the first's release). **Red first: `0/3` on the pre-fix artefact.**
+
+---
+
+### `D-173` — THE THREE `file`-TIER ITEMS OWED ON NODE: `SS-9` IS FIXED, AND `O-3`/`O-8` ARE CLOSED BY MEASUREMENT
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `fd3de79`. **SOURCE:** the supervisor, on `docs/L1/publish-readiness.md` §10.2 item 5's three.
+**STATUS: `ACTIVE`.**
+
+1. **`SS-9` WAS LIVE AND IS FIXED.** **MEASURED FIRST**: a construction over an ABSENT `filePath` whose constraint body throws at its own
+   registration answers **`ConstraintBodyThrew`** — **and the store's exclusive create at step 4b has already made its zero-length file, so the
+   refusal left that file at the path** (measured: `EXISTS, 0 bytes`, against `A55`'s *"leaves nothing behind"*). **THE FIX IS A CHANNEL AND NOT
+   AN IMPORT**: `instance.mjs` carries no `node:` specifier (`C-W4`'s cell asserts the arm's whole graph holds none), so `state.mjs` gains
+   `installConstructionFileGuard` and `openConstructionFileGuard` — a module-level slot, one installer, and a guard `{ existed, undo }` — the
+   construction opens it **before the one filesystem act** and the arming sweep's refusal calls `undo()`. **THE NODE ENTRY INSTALLS IT** with
+   `node:fs` (`existsSync` before the act, `unlinkSync` only where the file did not exist); **the injected arm installs nothing**, which is right
+   because a path-less store refuses `filePath` outright and never creates a file to remove. **IT CAN ONLY REMOVE A FILE THE CONSTRUCTION MADE**,
+   so a caller's data is never touched.
+2. **`O-3` IS CLOSED, MEASURED.** The worry was a path-less writer's stray `.snst-commit-<pid>` sibling. **A `saveCall` store taking a `file`-tier
+   write was driven and its working directory read**: the saver was called, the op answers `tier: 'file'`, and **no `.snst-commit` sibling stands**
+   — **the store's own writer is not reached on that arm** (`D-133` item 3: *"the store's own writer is NOT USED"*), and `save_file_delta` returns
+   early on an empty path.
+3. **`O-8` IS CLOSED BY THE SAME FACT.** Its sentence — `FileCommitFailed`'s `path` slot naming a path a pathless build does not have — **has no
+   subject**, because **nothing produces that member with an empty path on either arm**: the writer is unreachable on a path-less store (item 2),
+   and on the WASM arm it is **dead code by construction** (`D-160`'s cfg boundary and `D-171` item 5's tombstone). **The generated sentence keeps
+   its slot and its words; what it never sees is the subject the row feared.**
+4. **CELLS**: `tests/e2e/construction-file-guard.test.mjs` — `CFG-1` (**a construction refused after its create leaves NO file**) and `CFG-2` (the
+   guard's bound: **the caller's own file stands, bytes unmoved**). **`CFG-1` fails on the pre-fix tree** by the file's own presence.

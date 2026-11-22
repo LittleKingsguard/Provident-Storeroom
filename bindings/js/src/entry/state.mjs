@@ -1029,6 +1029,41 @@ export const STORE_INDEX = Symbol.for('provident-storeroom.storeIndex');
 /// READS THE TABLE'S TYPE, ITS LENGTH OR A ROW** — `contract.md §7`'s `OWED-2` prohibits exactly that
 /// (*"NOTHING ASSERTS A TABLE TYPE"*), so the table's interior is not an observable this unit may be graded
 /// on and is not one this comment claims.
+/// **⟶ THE CONSTRUCTION'S FILE GUARD — ADDED 2026-11-17** (`SS-9`; `A55`'s *"leaves nothing behind"*; `contract.md §10.4` part 5).
+///
+/// **THE DEFECT IT CLOSES, MEASURED**: a construction over an ABSENT `filePath` whose **constraint body throws at its own
+/// registration** answers **`ConstraintBodyThrew`** — **and the store's exclusive create has ALREADY made its zero-length
+/// file at step 4b, so the refusal leaves that file on disk.** `A55` says every construction that fails leaves nothing
+/// behind. **The construction's own checks are placed before the create for exactly this reason** (`instance.mjs`'s step 2),
+/// and **the registration sweep is the one refuser that runs AFTER it** — the store cannot undo a file the PACKAGE'S arming
+/// threw over, so the package must.
+///
+/// **AND IT IS A CHANNEL AND NOT AN IMPORT BECAUSE THE BODY IS REALM-NEUTRAL**: `instance.mjs` carries no `node:` specifier
+/// (`C-W4`'s cell asserts the entry's whole graph holds none), so the filesystem cannot be reached from it. **The node arm
+/// installs `node:fs`; the injected arm installs nothing and `openConstructionFileGuard` answers `null` — which is right,
+/// because a path-less store refuses `filePath` outright and therefore never creates a file to remove.**
+///
+/// **IT CAN ONLY REMOVE A FILE THAT DID NOT EXIST BEFORE THE CALL** (`existed` is false), so a caller's own data is never
+/// touched by it: the guard's whole subject is the store's own zero-length artefact.
+let CONSTRUCTION_FILE_GUARD = null;
+
+/** Install the realm's file guard. `null` clears it, which is the injected arm's answer. */
+export function installConstructionFileGuard(guard) {
+  CONSTRUCTION_FILE_GUARD = typeof guard === 'function' ? guard : null;
+}
+
+/** **THE GUARD FOR ONE CONSTRUCTION** — `{ existed, undo }`, or `null` where the realm installed none. `undo()` removes the
+ *  file **only if this construction created it**, and never throws into the refusal path. */
+export function openConstructionFileGuard(filePath) {
+  if (CONSTRUCTION_FILE_GUARD === null) return null;
+  if (typeof filePath !== 'string' || filePath === '') return null;
+  try {
+    return CONSTRUCTION_FILE_GUARD(filePath);
+  } catch {
+    return null;
+  }
+}
+
 export const STORE_RETIREMENT = new FinalizationRegistry((storeIndex) => {
   try {
     withAddon().storeRelease(storeIndex);
