@@ -74,3 +74,32 @@
 **SO A PUBLISH IS ONE CLASS AND ONE SECTION AWAY.** The class is additive work's — **a `MINOR`**, `1.13.0`, by the three precedents `RELEASE-NOTES.md` already records (`1.10`, `1.11`, `1.12`) — and **it is the architect's to claim**, after which the section writes itself from this landing's own record: the second realm, the three `cfg` keys' companions, the twenty-third status, the two receipt accessors, and the seven-manifest coupling.
 
 **AND THE RESIDUALS §3 NAMED STAND UNCHANGED** — `STORE_RETIREMENT`'s missing finalizer on the WASM arm · the `structuredClone` probe's priced-but-unmeasured cost · `NG-PUB-F`'s inert control · `O-3`, `SS-9` and `O-8` moot on that arm and owed on Node · and the two test files that reach `withAddon` through `artefact.mjs`'s re-export.
+
+---
+
+## §6 · `D-158` — THE CLASS IS CLAIMED, THE NOTES ARE WRITTEN, AND THE REVIEW'S LAST ROW CLOSES
+
+**THE ARCHITECT'S *"MINOR — 1.13.0"* IS RECORDED AT `strata/decisions.md` · `D-158`, AND NOTHING IN §5's TABLE IS OPEN.**
+
+| §5 item | state |
+|---|---|
+| **1 · the release class** | **✅ `D-158` — a `MINOR`, `1.13.0`**, the same class the three precedents took, and it **discharges `D-154` item 4 of its unsettled** |
+| **2 · `RELEASE-NOTES.md`'s section** | **✅ `§1.13.0`**, in the file's own house form: the class and its ruling, the twelve moving sites, the headline sentence, **seven entry points a consumer on `1.12.0` meets**, **eleven things that do not move**, the published set's `6 → 7`, and **`AND THIS SECTION DESCRIBES 1.13.0 AND CLAIMS NO TAG`** (`D-57`) |
+
+**THE VERSION MOVED TWELVE SITES TOGETHER** — the main manifest's `version`, its **five** exact `optionalDependencies` pins, and the
+**six** `platforms/*/package.json` versions (five native + the WebAssembly sibling the coupled-version rule now names). **The artefact
+is stamped from the manifest by `bindings/js/build.rs`, so `version()` answers `1.13.0`**, and `README.md`'s generated version line
+reads the same.
+
+**MEASURED, EVERY LEG, AT THE NEW VERSION.** `npm test` **`1359` / `1358` / `0`** · `npm run typecheck` **exit `0`** · `cargo test`
+**22 `ok` / `0` FAILED** · `cargo check --target wasm32` **0 errors** · `node scripts/build-wasm-package.mjs` **exit `0`** (the package
+stages at `1.13.0`) · **the installed battery `EXIT 0` — 15 cells `PASS`, 1 `LAYER-LIMIT`, 0 FAIL, and `INSTALL-06` reads
+`version=1.13.0` beside the entry.**
+
+**AND ONE THING A LATER PASS MUST KNOW, BECAUSE IT COST THIS PASS SIXTEEN RED CELLS FOR A MINUTE**: **the version bump alone reddens
+sixteen cells until the artefact REBUILDS** — the stamp is baked at build time (`build.rs`), so `version()` answers the OLD figure
+until `npm run build` runs after the manifests move. **The bump and the rebuild are one act**, and a pass that bumps and does not
+rebuild will read sixteen reds that are not defects.
+
+**WHAT REMAINS, AND IT IS NOT THIS REVIEW'S** — the residuals §3 named (unchanged), and **the sixth package's first publish**, which is
+`delivery`'s with its own first-release questions. **No tag is claimed anywhere**: `D-57`.
