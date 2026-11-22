@@ -9273,3 +9273,35 @@ asserted nowhere** (`D-184` item 4).
    **`S-RECEIPT-ACCESSOR` test title** that still prints *"reads 6"* while its assertion was re-pinned to seven (**a title, not an assertion**, and a test file).
 7. **MEASURED**: `npm test` **`1386` / `1386` / `0`**, **`0` skipped** · `typecheck` `0` · **`publish.test.mjs` `65` / `0`** (the shipped-prose census, unmoved) ·
    **`CHAIN COMPLETE — 11 runners`**.
+
+---
+
+### `D-188` — THE DOCUMENTATION IS REGENERATED AND CONSISTENT; TWO DECISIONS ARE THE ARCHITECT'S AND ONE ACT IS `delivery`'S
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `8eff774`. **SOURCE:** `D-187`'s owed list, worked. **STATUS: `ACTIVE`.**
+
+1. **THE GENERATED LANDINGS ARE RE-STAGED AND THE ASSEMBLY'S OWN CHECK PASSES.** `scripts/publish.sh --figures` was **failing, and rightly**: the notes'
+   generated version line read **`1.12.0`** against the manifest's `1.13.0`, and **`bindings/js/README.guide.md` still carried the pre-edit line**. Both landings
+   are copied **byte-for-byte** from their canonicals (`PUB-DD-11`), the notes' own line is re-cut, and the check now reads *"all three shipped documents'
+   version lines AGREE with the manifest"*.
+2. **A TITLE THAT CONTRADICTED ITS OWN ASSERTION IS RE-CUT.** `S-RECEIPT-ACCESSOR`'s name printed *"reads `6`"* while its assertion had been re-pinned to
+   **seven** when `U-STOREROOM-08` landed. **A title printing a figure the assertion does not read is the same defect as a sentence one layer up**, and it is
+   re-cut with the reason at the byte.
+3. **THE SIBLING PART MAP'S TWO `carrier` PATHS ARE BOTH ABSENT, AND THE DIFFERENCE IS DECLARED AT EACH.** `crossing.md`'s law now stands in
+   **`docs/specs/storeroom-json-crossing/contract.md`**, which declares the relocation itself — array and object limbs at its `§1` bullets and `§2` rows
+   `13`/`14`, the structural test at `§1`'s **three** conditions (**with the `(a)`–`(g)` spelling declared NOT relocated, because it does not survive**), and
+   the walk ceiling at `§8`'s register rows `7`/`8`. **`parameter-semantics.md` has no such declaration anywhere**, so its row stands as **the record of an
+   absent part** and a reader may not read it as a path that exists. **A relocation is declared by the owning specification or by nobody.**
+4. **MEASURED**: `npm test` **`1386` / `1386` / `0`**, `0` skipped · `typecheck` `0` · **`CHAIN COMPLETE — 11 runners`** · **`publish.sh --figures` `ok`**.
+
+**WHAT IS LEFT IS TWO DECISIONS AND ONE ACT, AND NONE IS A PASS'S:**
+
+- **(a) A SECOND SPELLING FOR `{k:'F'}`** (`D-179` item 4; `D-180` item 1). **The store cannot distinguish, at `journalMark`'s absent answer, a store nothing has
+  been dropped from (floor = `born`, the sentence *"the state the store was born with"* true) from one the compaction has dropped from whose journal is
+  momentarily empty (floor ≠ `born`, the sentence false — reachable through `commit_file`'s failing arm).** **THE DECISION**: mint a second carrier row (a
+  spelling for "the compacted floor" beside "the born state"), **or** keep one row and the floor-only sentence the guides and specs now carry. **Cost of the
+  first: a carrier row moves, and every consumer that spells a mark by hand must learn it. Cost of the second: a caller cannot tell the two states apart —
+  which today it cannot observe either, because both answer the same restore.** **THE ARCHITECT'S.**
+- **(b) WHETHER `JournalOp.compacted` SURVIVES THE DROP** (`D-160` item 4 of its unsettled, still owed). **The member is produced and always `false`; with entries
+  DROPPED rather than flagged, its subject may be gone** — which is a declaration about the record's shape, not a fix. **THE ARCHITECT'S.**
+- **(c) THE RELEASE ACT** — the class is claimed (`D-158`, `1.13.0`) and **no tag is cut**. **`delivery`'s.**
