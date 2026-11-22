@@ -8323,3 +8323,58 @@ THE ARCHITECT'S WORDS, VERBATIM:**
 
 **TERMS: the class claimed (`1` = MINOR) · the version (`1.13.0`) · the sites it moves (`12`) · the manifests (`7`) · the release
 notes' sections (`+1`) · the code moved by this row (`0`) · the rows it discharges (`1` = `D-154` item 4 of its unsettled).**
+
+---
+
+### `D-159` — A FINDING, NOT A RULING: EVERY WRITE RETAINS MEMORY, THE SECOND REALM OOMs AT ~12,000 WRITES, AND THE ISOLATION IS OWED
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `7fef847`. **SOURCE:** **the supervisor's own measurement**, taken while discharging the
+residual `docs/L1/publish-readiness.md` §3 named as *"the `structuredClone` probe's cost — priced and unmeasured"*. **THIS ROW ASKS FOR
+NOTHING AND DECIDES NOTHING**: it records what was measured, what the measurement rules out, and what is still owed.
+
+**STATUS: `ACTIVE` — A FINDING.**
+
+**THE MEASUREMENTS, EACH TAKEN ON THE COMMITTED TREE.**
+
+| # | drive | the reading |
+|---|---|---|
+| 1 | the WASM arm, one store, `journalLength: 64`, one address, `{a: 1}` per write | **8,000 writes OK · 12,000 OK · 16,000 `RuntimeError: unreachable` at `alloc::rust_oom`** |
+| 2 | the Node arm, the same drive | **16,000 writes OK, `rss` 7,344 MB** |
+| 3 | the Node arm, `heapUsed` growth | **~3.7 KB per write** (500 → 8,000 writes, monotone across the range) |
+| 4 | the Node arm, `rss` growth | **quadratic in appearance**: 46 · 62 · 115 · 226 · 444 KB/write at 1k · 2k · 4k · 8k · 16k **— `rss` doubling per doubling of N** |
+| 5 | **the journal cap as the probe**: 4,000 writes at `journalLength` `4` · `64` · `1024` | **124 · 113 · 75 KB/write — THE RATE DOES NOT TRACK THE CAP** |
+| 6 | **address as the probe**: 8,000 writes to ONE address vs to 8,000 DISTINCT addresses | **226 KB/write EITHER WAY** |
+
+**WHAT THE MEASUREMENTS RULE OUT, AND WHY THAT MATTERS.**
+
+1. **IT IS NOT THE JOURNAL'S LENGTH.** `journalLength` bounds the OP COUNT and the rate does not move with it (row 5): a store capped at
+   `4` ops grows as fast as one capped at `1024`. **So the retention is not "the journal holds too many ops".**
+2. **IT IS NOT A PER-ADDRESS HISTORY.** One address and eight thousand addresses grow alike (row 6), so the retention is not a chain hung
+   off a key.
+3. **★ AND `rss` IS NOT THE FIGURE TO QUOTE. `heapUsed` IS.** Row 3's ~3.7 KB/write is the LIVE JS datum; row 4's quadratic `rss` is **V8's
+   heap EXPANSION under a raised `--max-old-space-size`**, which is why the Node arm looks catastrophic and is merely slow: **the true
+   growth is LINEAR in the number of writes, and the second realm simply has a small heap to fill.** The WASM arm's OOM at ~16,000 writes
+   is that same linear growth meeting a fixed ceiling — **it is the FIRST PLACE THE RETENTION IS VISIBLE, not a different defect.**
+
+**SO THE FINDING IS ONE SENTENCE: A STORE THAT HAS TAKEN N WRITES HOLDS ON THE ORDER OF N × (1–4 KB), WITHOUT BOUND, ON BOTH ARMS** — which
+makes a long-lived page or a busy long-lived process a slow leak, and makes the second realm's ceiling a user-visible failure at a low
+write count.
+
+**WHAT IS OWED, AND WHAT THE ISOLATION NEEDED THAT THIS PASS COULD NOT DO.**
+
+1. **THE LAYER IS NOT ISOLATED.** Three drives through the addon's own entry failed on **this harness's wire** (`AddressMalformed`: the address
+   is the package's TAGGED carrier and the receiver must be the object `storeCreate` returned), so **the retention is known to lie between the
+   package's kernel and the store and is not yet attributed to one of them.** **The isolation is one working raw-addon drive away**, and it is
+   the first thing a pass taking this row should build.
+2. **WHETHER IT IS A LEAK OR A DECLARED RETENTION IS UNKNOWN.** The store keeps ops for `rollback` and `restoreMark`, so *some* per-write
+   retention is by design; **whether N × 3.7 KB is what the design intends, or a copy that outlives its use, is the question** — and it is a
+   question about `src/store.rs`'s journal and the kernel's attempt records, not about either realm.
+3. **NO CELL EXISTS, AND ONE SHOULD.** A drive that takes N writes and reads `heapUsed` (not `rss`) with a declared ceiling would make this
+   falsifiable; **it does not exist**, which is why the retention has lived through every green battery this session ran.
+4. **THE `structuredClone` PROBE'S COST — THE ITEM THIS DRIVE SET OUT TO MEASURE — IS STILL UNMEASURED.** The bench that would have compared
+   the probe against a no-op instrument (`installClassInstrument` is exported, so the seam supports exactly that) **OOM'd before it could report**,
+   and **the OOM is the finding above.** **A bench that runs under a store with few enough writes to survive the ceiling is owed**, and until it
+   runs **no figure for the probe may be quoted** (`docs/L1/wasm-realm.md` §18's `NOT DRIVEN` stands).
+
+**TERMS: the drives (`6`) · the arms measured (`2`) · the layers isolated (`0`) · the cells added (`0`) · the figures that may be quoted
+(`1` = the linear ~3.7 KB/write floor, as a FLOOR and not a design) · the rulings this row makes (`0`).**
