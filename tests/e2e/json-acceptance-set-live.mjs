@@ -10,6 +10,17 @@
 // which is the SUPERSEDED reading), and the loader's container ceiling is **128**. **A reader who needs the law's current
 // home must find it: these files can say what the tree DOES and cannot say what the spec now SAYS.**
 
+
+// **⟶ AND ONE OF THE TWO PARTS THIS FILE CITED IS RE-POINTED TO ITS LIVE HOME, 2026-11-17 — THE OTHER IS NOT, AND THE DIFFERENCE IS THE
+// CORPUS'S AND NOT THIS FILE'S.** `seams-and-lifecycle.md §7.2 item 7 (f)` is now cited as
+// **`docs/specs/storeroom-native/contract.md §7.2 item 7 (f)`**, because **the native specification's own citation table declares that part
+// RELOCATED to itself** (*"`seams-and-lifecycle` … carrier … **relocated:** the construction inputs (`§7`), the boot and lifetime clauses, the
+// constraint-evaluation seam, the fail-code set …"*) and its `§7.2 item 7 (f)` is where the loader acceptance set's sixth part is authored and
+// where `D-126` item 2's three-way answer is amended. **`crossing.md §1.4 item 5` IS NOT RE-POINTED**: no relocation of that part is declared
+// anywhere on this tree — `docs/specs/storeroom-json-crossing/contract.md:32` still cites `docs/specs/storeroom-js/crossing.md §1.2`, a path that is
+// **not tracked either** — so **the citation stands as the record of a part the corpus has not yet re-homed**, and this file may not decide that
+// relocation on its own.** **NO CELL'S ASSERTION MOVED**: a citation is where a cell says its law lives, and the law's text is the spec's.
+
 // ============================================================================
 // THE LIVE RUN FOR THE BLIND GREENS SET `JAS` — the `file` tier's JSON CODEC
 // as a declared contract, driven against the RUNNING PACKAGE.
@@ -329,7 +340,7 @@ scenario('JAS-01', 'class 1: a raw control character inside a string is refused,
   "A FOREIGN IMAGE HAND-WRITTEN BY HAND at a fresh path in a real temporary directory (a file the store did not write), booted by the package's own `storeCreate`.",
   'write the bytes at the path; boot the store over them; settle on the construction\'s answer and read the refusal\'s own members; settle on the escaped form\'s register and keys.',
   () => {
-    const C1 = 'seams-and-lifecycle.md §7.2 item 7 (f) class (1) ("A RAW CONTROL CHARACTER INSIDE A STRING IS REFUSED — a literal LF, a literal TAB or a literal NUL inside a string — AND THE ESCAPED FORM (\\u0000) IS ACCEPTED"); A143 (1)';
+    const C1 = 'docs/specs/storeroom-native/contract.md §7.2 item 7 (f) class (1) ("A RAW CONTROL CHARACTER INSIDE A STRING IS REFUSED — a literal LF, a literal TAB or a literal NUL inside a string — AND THE ESCAPED FORM (\\u0000) IS ACCEPTED"); A143 (1)';
 
     const rawCase = (id, label, raw) => {
       // ⟶ **RE-DERIVED 2026-11-22 (`D-126` item 2; `D-118` item 1 SUPERSEDED).** The as-filed cell read *"the WHOLE
@@ -402,7 +413,7 @@ scenario('JAS-02', 'class 2, the grammar violation: eleven number spellings the 
   "A FOREIGN IMAGE HAND-WRITTEN BY HAND at a fresh path in a real temporary directory, one per named spelling, booted by the package's own `storeCreate`.",
   'write the bytes at the path; boot the store over them; read the whole register; settle on the register the caller sees.',
   () => {
-    const C2 = 'seams-and-lifecycle.md §7.2 item 7 (f) class (2) (the grammar-violation arm); A143 (1)';
+    const C2 = 'docs/specs/storeroom-native/contract.md §7.2 item 7 (f) class (2) (the grammar-violation arm); A143 (1)';
     const SPELLINGS = [
       ['01', 'JAS-02.1'], ['+1', 'JAS-02.2'], ['.5', 'JAS-02.3'], ['1.', 'JAS-02.4'],
       ['1e', 'JAS-02.5'], ['Infinity', 'JAS-02.6'], ['NaN', 'JAS-02.7'], ['0x1', 'JAS-02.8'],
@@ -431,7 +442,7 @@ scenario('JAS-03', 'class 2, the overflow: a grammar-admitted number whose value
   "A FOREIGN IMAGE HAND-WRITTEN BY HAND at a fresh path in a real temporary directory, one per named spelling, booted by the package's own `storeCreate`.",
   'write the bytes at the path; boot the store over them; read the whole register; settle on the register the caller sees.',
   () => {
-    const C3 = 'seams-and-lifecycle.md §7.2 item 7 (f) class (2) (the overflow arm); A143 (1)';
+    const C3 = 'docs/specs/storeroom-native/contract.md §7.2 item 7 (f) class (2) (the overflow arm); A143 (1)';
     for (const [spelling, id] of [['1e400', 'JAS-03.1'], ['1e999999999', 'JAS-03.2'], ['1e309', 'JAS-03.3']]) {
       // ⟶ **RE-DERIVED 2026-11-22 (`D-126` item 2): the overflow is STILL REFUSED, and it is observable AS THE
       // REFUSAL** — the construction answers `FileImageRefused` and no instance exists (`D-118` item 1's empty
@@ -457,7 +468,7 @@ scenario('JAS-04', 'class 2, the underflow half: a number whose value underflows
   "A FOREIGN IMAGE HAND-WRITTEN BY HAND at a fresh path in a real temporary directory, one per named spelling, booted by the package's own `storeCreate`.",
   'write the bytes at the path; boot the store over them; read the whole register and the key; settle on the value the caller sees.',
   () => {
-    const C4 = 'seams-and-lifecycle.md §7.2 item 7 (f) class (2) (the underflow arm); A143 (1)';
+    const C4 = 'docs/specs/storeroom-native/contract.md §7.2 item 7 (f) class (2) (the underflow arm); A143 (1)';
     for (const [spelling, id] of [['1e-400', 'JAS-04.1'], ['1e-324', 'JAS-04.2']]) {
       cell(id, C4,
         `the number spelling \`${spelling}\` is ACCEPTED and its value BECOMES 0: the key loads and reads back 0`,
@@ -488,7 +499,7 @@ scenario('JAS-05', 'class 3: exactly four token separators are admitted and a Un
   "A FOREIGN IMAGE HAND-WRITTEN BY HAND at a fresh path in a real temporary directory, one per separator, booted by the package's own `storeCreate`.",
   'write the bytes at the path; boot the store over them; read the whole register; settle on the register the caller sees.',
   () => {
-    const C5 = 'seams-and-lifecycle.md §7.2 item 7 (f) class (3) ("A UNICODE WHITESPACE CHARACTER AS A TOKEN SEPARATOR IS REFUSED — EXACTLY FOUR SEPARATORS ARE ADMITTED (space, tab, LF, CR), AND U+00A0 IS NOT ONE OF THEM"); A143 (1)';
+    const C5 = 'docs/specs/storeroom-native/contract.md §7.2 item 7 (f) class (3) ("A UNICODE WHITESPACE CHARACTER AS A TOKEN SEPARATOR IS REFUSED — EXACTLY FOUR SEPARATORS ARE ADMITTED (space, tab, LF, CR), AND U+00A0 IS NOT ONE OF THEM"); A143 (1)';
     const seps = [[' ', 'space', 'JAS-05.1'], [CH.TAB, 'tab', 'JAS-05.2'], [CH.LF, 'LF', 'JAS-05.3'], [CH.CR, 'CR', 'JAS-05.4']];
     for (const [sep, name, id] of seps) {
       cell(id, C5,
@@ -524,7 +535,7 @@ scenario('JAS-06', 'the widening class: the loader accepts an escaped surrogate 
   "A FOREIGN IMAGE HAND-WRITTEN BY HAND at a fresh path in a real temporary directory, carrying the escaped pair, booted by the package's own `storeCreate`.",
   'write the bytes at the path; boot the store over them; read the key; settle on the value the caller sees.',
   () => {
-    cell('JAS-06.1', 'seams-and-lifecycle.md §7.2 item 7 (f) ("AND ONE WIDENING CLASS STANDS BESIDE THE FOUR: THE LOADER ACCEPTS AN ESCAPED SURROGATE PAIR (\\uD83D\\uDE00), WHICH THE PRE-SWAP CODEC REFUSED OUTRIGHT"); A143 (1)',
+    cell('JAS-06.1', 'docs/specs/storeroom-native/contract.md §7.2 item 7 (f) ("AND ONE WIDENING CLASS STANDS BESIDE THE FOUR: THE LOADER ACCEPTS AN ESCAPED SURROGATE PAIR (\\uD83D\\uDE00), WHICH THE PRE-SWAP CODEC REFUSED OUTRIGHT"); A143 (1)',
       'the escaped surrogate pair \\uD83D\\uDE00 is ACCEPTED: the key loads and its value IS THE PAIR (two code units, 0xD83D and 0xDE00)',
       () => {
         const b = boot(`{"a":"${ESC.PAIR}","b":7}`);
@@ -548,7 +559,7 @@ scenario('JAS-07', 'class 4: the nesting depth — the loader\'s boundary, deriv
   "A FOREIGN IMAGE HAND-WRITTEN BY HAND at a fresh path in a real temporary directory, carrying N nested containers (the root object counted as the first level), booted by the package's own `storeCreate`.",
   'write the bytes at the path; boot the store over them; read the whole register and the key; the probe finds the LAST ADMITTED and the FIRST REFUSED container count and asserts the bracket on both sides.',
   () => {
-    const C7 = 'seams-and-lifecycle.md §7.2 item 7 (f) class (4) ("A NESTING DEPTH OF 128 OR MORE IS REFUSED") read as a BEHAVIOURAL boundary, with `docs/decisions.md` · `D-17` (*"Tests are for code"*) for where the expectation comes from';
+    const C7 = 'docs/specs/storeroom-native/contract.md §7.2 item 7 (f) class (4) ("A NESTING DEPTH OF 128 OR MORE IS REFUSED") read as a BEHAVIOURAL boundary, with `docs/decisions.md` · `D-17` (*"Tests are for code"*) for where the expectation comes from';
     // THE PROBE, which IS the oracle: one boot per container count, and the boundary is where the answer turns.
     // **⟶ AND FROM 2026-11-22 THE PROBE RECORDS WHICH REFUSAL IT READ (`D-126` item 2).** A count the loader will not
     // read now REFUSES the construction at rank `22` `FileImageRefused`, so the boundary is not *"the register came
@@ -641,7 +652,7 @@ scenario('JAS-08', 'the answer for a file the loader refuses: the construction i
   "A FOREIGN IMAGE HAND-WRITTEN BY HAND at a fresh path in a real temporary directory, carrying a raw control character the loader refuses — beside a ZERO-LENGTH file and an ABSENT path, which `D-126` item 2 leaves constructing.",
   "write the bytes at the path; boot the store over them; settle on the construction's answer and the refusal's own members; then boot the same construction over a zero-length file and over an absent path and settle on those two answers; settle on the refused file's bytes on disk.",
   () => {
-    const C8 = 'seams-and-lifecycle.md §7.2 item 7 (f) (the refused-file answer, arm (a)); A143 (2); §7.2 item 6 (the boot; DD-29); strata/decisions.md `D-126` item 2 (`FileImageRefused`, rank `22`; `D-118` item 1 superseded); contract.md §8.1 row `22` and §7.2\'s three-class clause of 2026-11-06; surface.md §2.5 items `4`/`4-bis`; §10.4 part `5` read at the corrupt arm';
+    const C8 = 'docs/specs/storeroom-native/contract.md §7.2 item 7 (f) (the refused-file answer, arm (a)); A143 (2); §7.2 item 6 (the boot; DD-29); strata/decisions.md `D-126` item 2 (`FileImageRefused`, rank `22`; `D-118` item 1 superseded); contract.md §8.1 row `22` and §7.2\'s three-class clause of 2026-11-06; surface.md §2.5 items `4`/`4-bis`; §10.4 part `5` read at the corrupt arm';
     const REFUSED = `{"a":"x${CH.LF}y","b":7}`;
 
     // **⟶ RE-CUT 2026-11-22 (`D-126` item 2), FROM *"STORE-CREATE STILL RETURNS AN INSTANCE"* TO THE REFUSED HALF OF
@@ -688,7 +699,7 @@ scenario('JAS-08', 'the answer for a file the loader refuses: the construction i
           `${r.detail} · instance=${b.store === null ? 'NONE (so neither `a` nor `b` has a reader)' : 'RETURNED'} · `
           + `bytes on disk unchanged=${unmoved} (${imgStr(onDisk)})`);
       });
-    cell('JAS-08.4', 'seams-and-lifecycle.md §7.2 item 7 (f) ("A PARSEABLE FILE WITH ONE NON-ADMITTED MEMBER LOSES THAT MEMBER, AND A FILE THE LOADER REFUSES LOSES EVERYTHING"); §7.2 item 6 (DD-29); A143 (2)',
+    cell('JAS-08.4', 'docs/specs/storeroom-native/contract.md §7.2 item 7 (f) ("A PARSEABLE FILE WITH ONE NON-ADMITTED MEMBER LOSES THAT MEMBER, AND A FILE THE LOADER REFUSES LOSES EVERYTHING"); §7.2 item 6 (DD-29); A143 (2)',
       'CONTROL: a PARSEABLE file with ONE non-admitted member loses THAT MEMBER only — the rest of the content loads, the instance IS returned, and NO code is produced for the dropped key',
       () => {
         const b = boot('{"a":null,"b":7}');
@@ -714,7 +725,7 @@ scenario('JAS-09', 'the answer for a file the loader refuses, arm (b): the suppl
   "A FOREIGN IMAGE HAND-WRITTEN BY HAND at a fresh path in a real temporary directory, carrying a raw control character the loader refuses, booted with a SUPPLIED CONSTRAINT LIST — beside a ZERO-LENGTH file carrying the same list.",
   "write the bytes at the path; boot the store over them with `cfg.constraints`; settle on the construction's answer and on whether any pair was asked; then do the same over a zero-length file and settle on the register, the carried pairs and the bytes on disk.",
   () => {
-    const C9 = 'seams-and-lifecycle.md §7.2 item 7 (f) (arm (b)); A143 (2); strata/decisions.md `D-126` item 2 (the refusal precedes the package\'s first ask); contract.md §7.2\'s three-class clause of 2026-11-06 and §8.1 #16 (`ConstraintListInvalid`); surface.md §2.1 (the `cfg` block — the FOURTH declared key `constraints`); parameter-semantics.md §2.21 (PAR-JS-21)';
+    const C9 = 'docs/specs/storeroom-native/contract.md §7.2 item 7 (f) (arm (b)); A143 (2); strata/decisions.md `D-126` item 2 (the refusal precedes the package\'s first ask); contract.md §7.2\'s three-class clause of 2026-11-06 and §8.1 #16 (`ConstraintListInvalid`); surface.md §2.1 (the `cfg` block — the FOURTH declared key `constraints`); parameter-semantics.md §2.21 (PAR-JS-21)';
     const REFUSED = `{"a":"x${CH.LF}y","b":7}`;
     const asker = (sink) => (address, id) => ({
       address,

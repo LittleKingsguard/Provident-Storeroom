@@ -10,6 +10,17 @@
 // which is the SUPERSEDED reading), and the loader's container ceiling is **128**. **A reader who needs the law's current
 // home must find it: these files can say what the tree DOES and cannot say what the spec now SAYS.**
 
+
+// **⟶ AND ONE OF THE TWO PARTS THIS FILE CITED IS RE-POINTED TO ITS LIVE HOME, 2026-11-17 — THE OTHER IS NOT, AND THE DIFFERENCE IS THE
+// CORPUS'S AND NOT THIS FILE'S.** `seams-and-lifecycle.md §7.2 item 7 (f)` is now cited as
+// **`docs/specs/storeroom-native/contract.md §7.2 item 7 (f)`**, because **the native specification's own citation table declares that part
+// RELOCATED to itself** (*"`seams-and-lifecycle` … carrier … **relocated:** the construction inputs (`§7`), the boot and lifetime clauses, the
+// constraint-evaluation seam, the fail-code set …"*) and its `§7.2 item 7 (f)` is where the loader acceptance set's sixth part is authored and
+// where `D-126` item 2's three-way answer is amended. **`crossing.md §1.4 item 5` IS NOT RE-POINTED**: no relocation of that part is declared
+// anywhere on this tree — `docs/specs/storeroom-json-crossing/contract.md:32` still cites `docs/specs/storeroom-js/crossing.md §1.2`, a path that is
+// **not tracked either** — so **the citation stands as the record of a part the corpus has not yet re-homed**, and this file may not decide that
+// relocation on its own.** **NO CELL'S ASSERTION MOVED**: a citation is where a cell says its law lives, and the law's text is the spec's.
+
 // ============================================================================
 // THE BLIND GREENS SET FOR THE `file` TIER'S JSON CODEC  (artifact id: JAS)
 // unit: the store's JSON codec as a DECLARED contract — the loader's
@@ -276,7 +287,7 @@ const NBSP = '\u00A0';      // U+00A0, NOT ONE OF THE FOUR ADMITTED SEPARATORS
 // =============================================================== JAS-01 =====
 // THE LOADER'S ACCEPTANCE SET, CLASS 1: A RAW CONTROL CHARACTER INSIDE A
 // STRING IS REFUSED, AND THE ESCAPED FORM IS ACCEPTED.
-// seams-and-lifecycle.md §7.2 item 7 (f) class (1); A143 (1).
+// docs/specs/storeroom-native/contract.md §7.2 item 7 (f) class (1); A143 (1).
 // THE DRIVE: a FOREIGN file (a hand-written image) booted through the JS
 // surface's own `storeCreate`.  **⟶ AND A REFUSED FILE NOW LOADS NOTHING AT ALL: the construction is REFUSED at
 // rank `22` `FileImageRefused` and no instance exists** (`D-126` item 2). The clause's as-filed reading — *"a
@@ -284,9 +295,9 @@ const NBSP = '\u00A0';      // U+00A0, NOT ONE OF THE FOUR ADMITTED SEPARATORS
 // is WITHDRAWN for this class; what it said in a weaker form ("nothing loads") stands, and what it added ("an
 // instance with an empty register") does not.
 scenario('JAS-01', 'class 1: a raw control character inside a string is refused, and the escaped form is accepted',
-  'seams-and-lifecycle.md §7.2 item 7 (f) class (1) ("A RAW CONTROL CHARACTER INSIDE A STRING IS REFUSED — a literal LF, a literal TAB or a literal NUL inside a string — AND THE ESCAPED FORM (\\u0000) IS ACCEPTED"); A143 (1)',
+  'docs/specs/storeroom-native/contract.md §7.2 item 7 (f) class (1) ("A RAW CONTROL CHARACTER INSIDE A STRING IS REFUSED — a literal LF, a literal TAB or a literal NUL inside a string — AND THE ESCAPED FORM (\\u0000) IS ACCEPTED"); A143 (1)',
   () => {
-    const C1 = 'seams-and-lifecycle.md §7.2 item 7 (f) class (1); A143 (1)';
+    const C1 = 'docs/specs/storeroom-native/contract.md §7.2 item 7 (f) class (1); A143 (1)';
 
     const rawCase = (id, label, raw) => {
       // ⟶ **RE-DERIVED 2026-11-22 (`D-126` item 2; `D-118` item 1 SUPERSEDED).** The as-filed cell read *"the
@@ -348,10 +359,10 @@ scenario('JAS-01', 'class 1: a raw control character inside a string is refused,
 // =============================================================== JAS-02 =====
 // CLASS 2, THE GRAMMAR VIOLATION: a number spelling the JSON grammar does not
 // admit is REFUSED.  The clause names ELEVEN spellings.
-// seams-and-lifecycle.md §7.2 item 7 (f) class (2); A143 (1).
+// docs/specs/storeroom-native/contract.md §7.2 item 7 (f) class (2); A143 (1).
 scenario('JAS-02', 'class 2, the grammar violation: eleven number spellings the JSON grammar does not admit are refused',
-  'seams-and-lifecycle.md §7.2 item 7 (f) class (2) ("A GRAMMAR VIOLATION — a spelling the JSON grammar does not admit — IS REFUSED: 01, +1, .5, 1., 1e, Infinity, NaN, 0x1, 1_0, --1, 1.2.3"); A143 (1)', () => {
-    const C2 = 'seams-and-lifecycle.md §7.2 item 7 (f) class (2) (the grammar-violation arm); A143 (1)';
+  'docs/specs/storeroom-native/contract.md §7.2 item 7 (f) class (2) ("A GRAMMAR VIOLATION — a spelling the JSON grammar does not admit — IS REFUSED: 01, +1, .5, 1., 1e, Infinity, NaN, 0x1, 1_0, --1, 1.2.3"); A143 (1)', () => {
+    const C2 = 'docs/specs/storeroom-native/contract.md §7.2 item 7 (f) class (2) (the grammar-violation arm); A143 (1)';
     const SPELLINGS = [
       ['01', 'JAS-02.1'], ['+1', 'JAS-02.2'], ['.5', 'JAS-02.3'], ['1.', 'JAS-02.4'],
       ['1e', 'JAS-02.5'], ['Infinity', 'JAS-02.6'], ['NaN', 'JAS-02.7'], ['0x1', 'JAS-02.8'],
@@ -379,8 +390,8 @@ scenario('JAS-02', 'class 2, the grammar violation: eleven number spellings the 
 // CLASS 2, THE OVERFLOW: a spelling the grammar admits whose value does not
 // fit is REFUSED.  The clause names THREE spellings.
 scenario('JAS-03', 'class 2, the overflow: a grammar-admitted number whose value does not fit is refused',
-  'seams-and-lifecycle.md §7.2 item 7 (f) class (2) ("AN OVERFLOW — a spelling the grammar admits whose value does not fit — IS REFUSED: 1e400, 1e999999999, 1e309"); A143 (1)', () => {
-    const C3 = 'seams-and-lifecycle.md §7.2 item 7 (f) class (2) (the overflow arm); A143 (1)';
+  'docs/specs/storeroom-native/contract.md §7.2 item 7 (f) class (2) ("AN OVERFLOW — a spelling the grammar admits whose value does not fit — IS REFUSED: 1e400, 1e999999999, 1e309"); A143 (1)', () => {
+    const C3 = 'docs/specs/storeroom-native/contract.md §7.2 item 7 (f) class (2) (the overflow arm); A143 (1)';
     for (const [spelling, id] of [['1e400', 'JAS-03.1'], ['1e999999999', 'JAS-03.2'], ['1e309', 'JAS-03.3']]) {
       // ⟶ **RE-DERIVED 2026-11-22 (`D-126` item 2): the overflow is still REFUSED, and it is observable AS THE
       // REFUSAL** — the construction answers `FileImageRefused` and no instance exists (`D-118` item 1's empty
@@ -405,8 +416,8 @@ scenario('JAS-03', 'class 2, the overflow: a grammar-admitted number whose value
 // CLASS 2, THE UNDERFLOW HALF: ACCEPTED, AND IT BECOMES 0.  The clause says so
 // explicitly and calls it NOT a divergence.
 scenario('JAS-04', 'class 2, the underflow half: a number whose value underflows is ACCEPTED and becomes 0',
-  'seams-and-lifecycle.md §7.2 item 7 (f) class (2) ("THE UNDERFLOW HALF IS ACCEPTED AND IS NOT A DIVERGENCE: 1e-400 and 1e-324 BECOME 0"); A143 (1)', () => {
-    const C4 = 'seams-and-lifecycle.md §7.2 item 7 (f) class (2) (the underflow arm); A143 (1)';
+  'docs/specs/storeroom-native/contract.md §7.2 item 7 (f) class (2) ("THE UNDERFLOW HALF IS ACCEPTED AND IS NOT A DIVERGENCE: 1e-400 and 1e-324 BECOME 0"); A143 (1)', () => {
+    const C4 = 'docs/specs/storeroom-native/contract.md §7.2 item 7 (f) class (2) (the underflow arm); A143 (1)';
     for (const [spelling, id] of [['1e-400', 'JAS-04.1'], ['1e-324', 'JAS-04.2']]) {
       cell(id, C4,
         `the number spelling \`${spelling}\` is ACCEPTED and its value BECOMES 0: the key loads and reads back 0`,
@@ -436,8 +447,8 @@ scenario('JAS-04', 'class 2, the underflow half: a number whose value underflows
 // CLASS 3: A UNICODE WHITESPACE CHARACTER AS A TOKEN SEPARATOR IS REFUSED;
 // EXACTLY FOUR SEPARATORS ARE ADMITTED (space, tab, LF, CR).
 scenario('JAS-05', 'class 3: exactly four token separators are admitted and a Unicode whitespace separator is refused',
-  'seams-and-lifecycle.md §7.2 item 7 (f) class (3) ("A UNICODE WHITESPACE CHARACTER AS A TOKEN SEPARATOR IS REFUSED — EXACTLY FOUR SEPARATORS ARE ADMITTED (space, tab, LF, CR), AND U+00A0 IS NOT ONE OF THEM"); A143 (1)', () => {
-    const C5 = 'seams-and-lifecycle.md §7.2 item 7 (f) class (3); A143 (1)';
+  'docs/specs/storeroom-native/contract.md §7.2 item 7 (f) class (3) ("A UNICODE WHITESPACE CHARACTER AS A TOKEN SEPARATOR IS REFUSED — EXACTLY FOUR SEPARATORS ARE ADMITTED (space, tab, LF, CR), AND U+00A0 IS NOT ONE OF THEM"); A143 (1)', () => {
+    const C5 = 'docs/specs/storeroom-native/contract.md §7.2 item 7 (f) class (3); A143 (1)';
     const seps = [[' ', 'space', 'JAS-05.1'], ['\t', 'tab', 'JAS-05.2'], ['\n', 'LF', 'JAS-05.3'], ['\r', 'CR', 'JAS-05.4']];
     for (const [sep, name, id] of seps) {
       cell(id, C5,
@@ -473,8 +484,8 @@ scenario('JAS-05', 'class 3: exactly four token separators are admitted and a Un
 // THE WIDENING CLASS BESIDE THE FOUR: THE LOADER ACCEPTS AN ESCAPED SURROGATE
 // PAIR, WHICH THE PRE-SWAP CODEC REFUSED.
 scenario('JAS-06', 'the widening class: the loader accepts an escaped surrogate pair',
-  'seams-and-lifecycle.md §7.2 item 7 (f) ("AND ONE WIDENING CLASS STANDS BESIDE THE FOUR: THE LOADER ACCEPTS AN ESCAPED SURROGATE PAIR (\\uD83D\\uDE00), WHICH THE PRE-SWAP CODEC REFUSED OUTRIGHT"); A143 (1)', () => {
-    cell('JAS-06.1', 'seams-and-lifecycle.md §7.2 item 7 (f) (the widening class); A143 (1)',
+  'docs/specs/storeroom-native/contract.md §7.2 item 7 (f) ("AND ONE WIDENING CLASS STANDS BESIDE THE FOUR: THE LOADER ACCEPTS AN ESCAPED SURROGATE PAIR (\\uD83D\\uDE00), WHICH THE PRE-SWAP CODEC REFUSED OUTRIGHT"); A143 (1)', () => {
+    cell('JAS-06.1', 'docs/specs/storeroom-native/contract.md §7.2 item 7 (f) (the widening class); A143 (1)',
       'the escaped surrogate pair \\uD83D\\uDE00 is ACCEPTED: the key loads and its value IS THE PAIR (two code units, 0xD83D and 0xDE00)',
       () => {
         const b = boot(`{"a":"${ESC_PAIR}","b":7}`);
@@ -495,8 +506,8 @@ scenario('JAS-06', 'the widening class: the loader accepts an escaped surrogate 
 // on the FOREIGN-FILE route, and the JavaScript layer's OWN ceiling is a
 // SECOND and SEPARATE figure (the package's own walk), on a second route.
 scenario('JAS-07', 'class 4: the nesting depth — the loader\'s boundary on the foreign-file route, and the package\'s own walk\'s separate ceiling',
-  'seams-and-lifecycle.md §7.2 item 7 (f) class (4) (the counting convention and its reach clause); A143 (1); A143 (3); A144 (1); crossing.md §1.4 item 5 (the package\'s own walk ceiling)', () => {
-    const C4 = 'seams-and-lifecycle.md §7.2 item 7 (f) class (4) — the COUNTING CONVENTION clause ("THE LOADER\'S COUNT IS `serde_json`\'S OWN RECURSION COUNT, IN WHICH THE ROOT OBJECT IS THE FIRST LEVEL ⇒ `127` CONTAINERS (THE ROOT COUNTED) ARE ACCEPTED AND `128` CONTAINERS ARE REFUSED; IN THE CORPUS\'S WALK-DEPTH CONVENTION (THE ROOT AT `0`) THE LAST ACCEPTED VALUE IS WALK-DEPTH `126` AND THE FIRST REFUSED IS WALK-DEPTH `127` — THE LOADER\'S LEVEL IS THE WALK-DEPTH PLUS ONE") and its REACH clause ("THE FOREIGN-FILE ROUTE IS OPEN — A HAND-WRITTEN FILE IS AN EXTERNAL EVENT, AND THE LOADER\'S REFUSAL OF IT IS A PLAIN OBSERVABLE — SO THE CLASS IS OBSERVABLE FROM THE JAVASCRIPT LAYER"); A143 (1); A143 (3) ("the refusal class — a file the loader refuses and the store did not write — is a FOREIGN file"); A144 (1) ("an image of `127` CONTAINERS (the root counted) IS ACCEPTED and an image of `128` CONTAINERS IS REFUSED")';
+  'docs/specs/storeroom-native/contract.md §7.2 item 7 (f) class (4) (the counting convention and its reach clause); A143 (1); A143 (3); A144 (1); crossing.md §1.4 item 5 (the package\'s own walk ceiling)', () => {
+    const C4 = 'docs/specs/storeroom-native/contract.md §7.2 item 7 (f) class (4) — the COUNTING CONVENTION clause ("THE LOADER\'S COUNT IS `serde_json`\'S OWN RECURSION COUNT, IN WHICH THE ROOT OBJECT IS THE FIRST LEVEL ⇒ `127` CONTAINERS (THE ROOT COUNTED) ARE ACCEPTED AND `128` CONTAINERS ARE REFUSED; IN THE CORPUS\'S WALK-DEPTH CONVENTION (THE ROOT AT `0`) THE LAST ACCEPTED VALUE IS WALK-DEPTH `126` AND THE FIRST REFUSED IS WALK-DEPTH `127` — THE LOADER\'S LEVEL IS THE WALK-DEPTH PLUS ONE") and its REACH clause ("THE FOREIGN-FILE ROUTE IS OPEN — A HAND-WRITTEN FILE IS AN EXTERNAL EVENT, AND THE LOADER\'S REFUSAL OF IT IS A PLAIN OBSERVABLE — SO THE CLASS IS OBSERVABLE FROM THE JAVASCRIPT LAYER"); A143 (1); A143 (3) ("the refusal class — a file the loader refuses and the store did not write — is a FOREIGN file"); A144 (1) ("an image of `127` CONTAINERS (the root counted) IS ACCEPTED and an image of `128` CONTAINERS IS REFUSED")';
 
     // A FOREIGN image whose CONTAINER COUNT is EXPLICIT: the root object is the
     // FIRST container (the declaration's own convention — the root counted) and
@@ -565,7 +576,7 @@ scenario('JAS-07', 'class 4: the nesting depth — the loader\'s boundary on the
     // THE SECOND ROUTE — THE PACKAGE'S OWN WALK: the ceiling on the VALUE the
     // JavaScript layer HANDS TO THE STORE.  A second and separate figure; it
     // does NOT bound the loader's, and the loader's does not bound it.
-    const CW = 'crossing.md §1.4 item 5 — the PACKAGE\'S OWN WALK ("the PACKAGE\'S OWN WALK admits a value of depth `64` and REFUSES a value of depth `65`") and its two-arm table (the value\'s depth `63`/`64` → ADMITTED, the write succeeds and the value round-trips; `65` → REFUSED `ValueNotAdmitted`; `66` and beyond → REFUSED `ValueNotAdmitted`, the same code and the same form, by the other arm); seams-and-lifecycle.md §7.2 item 7 (f) class (4)\'s REACH clause ("THE PACKAGE\'S OWN WALK REFUSES A VALUE OF DEPTH `65` BEFORE ANY VERB IS CALLED, SO THE JAVASCRIPT LAYER CANNOT HAND THE STORE A `128`-DEEP VALUE, AND THE LOADER\'S `128` AND THAT WALK\'S `65` ARE NOT THE SAME FIGURE AND NEITHER BOUNDS THE OTHER"); A144 (1)';
+    const CW = 'crossing.md §1.4 item 5 — the PACKAGE\'S OWN WALK ("the PACKAGE\'S OWN WALK admits a value of depth `64` and REFUSES a value of depth `65`") and its two-arm table (the value\'s depth `63`/`64` → ADMITTED, the write succeeds and the value round-trips; `65` → REFUSED `ValueNotAdmitted`; `66` and beyond → REFUSED `ValueNotAdmitted`, the same code and the same form, by the other arm); docs/specs/storeroom-native/contract.md §7.2 item 7 (f) class (4)\'s REACH clause ("THE PACKAGE\'S OWN WALK REFUSES A VALUE OF DEPTH `65` BEFORE ANY VERB IS CALLED, SO THE JAVASCRIPT LAYER CANNOT HAND THE STORE A `128`-DEEP VALUE, AND THE LOADER\'S `128` AND THAT WALK\'S `65` ARE NOT THE SAME FIGURE AND NEITHER BOUNDS THE OTHER"); A144 (1)';
 
     // A VALUE of `n` containers, handed to a verb: the root object is the first
     // container and the corpus's walk-depth (the root at 0) is n-1.
@@ -638,8 +649,8 @@ scenario('JAS-07', 'class 4: the nesting depth — the loader\'s boundary on the
 // FOR THIS CLASS"*), **so the cells below are re-cut to the DIFFERENCE the withdrawn equality no longer marks, and
 // the answer for a `NoImage` path — an instance, `0` register keys, NO code — is what it is told apart from.**
 scenario('JAS-08', 'the answer for a file the loader refuses: the construction is REFUSED at rank `22` `FileImageRefused`, no instance exists, and the class SEPARATES from the zero-length/absent path `D-118` item 1 made it equal to',
-  'seams-and-lifecycle.md §7.2 item 7 (f) (the refused-file answer, arm (a)); A143 (2); §7.2 item 6 (the boot; DD-29); strata/decisions.md `D-126` item 2 (`FileImageRefused`, rank `22`; `D-118` item 1 superseded); contract.md §8.1 row `22` and §7.2\'s three-class clause of 2026-11-06; surface.md §2.5 items `4`/`4-bis`; §10.4 part `5` read at the corrupt arm', () => {
-    const C8 = 'seams-and-lifecycle.md §7.2 item 7 (f) (the refused-file answer, arm (a)); A143 (2); strata/decisions.md `D-126` item 2; contract.md §8.1 row `22`';
+  'docs/specs/storeroom-native/contract.md §7.2 item 7 (f) (the refused-file answer, arm (a)); A143 (2); §7.2 item 6 (the boot; DD-29); strata/decisions.md `D-126` item 2 (`FileImageRefused`, rank `22`; `D-118` item 1 superseded); contract.md §8.1 row `22` and §7.2\'s three-class clause of 2026-11-06; surface.md §2.5 items `4`/`4-bis`; §10.4 part `5` read at the corrupt arm', () => {
+    const C8 = 'docs/specs/storeroom-native/contract.md §7.2 item 7 (f) (the refused-file answer, arm (a)); A143 (2); strata/decisions.md `D-126` item 2; contract.md §8.1 row `22`';
     const REFUSED = `{"a":"x${RAW_LF}y","b":7}`; // a foreign file the loader refuses (class 1)
 
     // **⟶ RE-CUT 2026-11-22 (`D-126` item 2), FROM *"STORE-CREATE STILL RETURNS AN INSTANCE"* TO THE REFUSED HALF OF
@@ -690,7 +701,7 @@ scenario('JAS-08', 'the answer for a file the loader refuses: the construction i
           `${r.detail} · instance=${b.store === null ? 'NONE (so neither `a` nor `b` has a reader)' : 'RETURNED'} · `
           + `bytes unmoved=${unmoved} (${imgStr(onDisk)})`);
       });
-    cell('JAS-08.4', 'seams-and-lifecycle.md §7.2 item 7 (f) ("AND THE CORPUS\'S OWN BOOT CLAUSE FOR A *PARSEABLE* FILE STANDS UNMOVED, AND THE TWO ANSWERS ARE DIFFERENT AND EACH IS DECLARED: A PARSEABLE FILE WITH ONE NON-ADMITTED MEMBER LOSES THAT MEMBER, AND A FILE THE LOADER REFUSES LOSES EVERYTHING"); §7.2 item 6 (DD-29); A143 (2)',
+    cell('JAS-08.4', 'docs/specs/storeroom-native/contract.md §7.2 item 7 (f) ("AND THE CORPUS\'S OWN BOOT CLAUSE FOR A *PARSEABLE* FILE STANDS UNMOVED, AND THE TWO ANSWERS ARE DIFFERENT AND EACH IS DECLARED: A PARSEABLE FILE WITH ONE NON-ADMITTED MEMBER LOSES THAT MEMBER, AND A FILE THE LOADER REFUSES LOSES EVERYTHING"); §7.2 item 6 (DD-29); A143 (2)',
       'CONTROL: a PARSEABLE file with ONE non-admitted member loses THAT MEMBER only — the rest of the content loads, the instance IS returned, and NO code is produced for the dropped key',
       () => {
         const b = boot('{"a":null,"b":7}');
@@ -719,7 +730,7 @@ scenario('JAS-08', 'the answer for a file the loader refuses: the construction i
 // (`PIN-5` (iii)) — the cell below keeps that arm alive on a MALFORMED element.
 //
 // **REPORTED AND NOT FIXED HERE (a `D-85` item 2 class finding, for the pass that owns the corpus):** this
-// scenario's cited clause names `seams-and-lifecycle.md §7.2 item 7 (f)` — and `git ls-files | grep -i seams`
+// scenario's cited clause names `docs/specs/storeroom-native/contract.md §7.2 item 7 (f)` — and `git ls-files | grep -i seams`
 // answers NOTHING: `docs/specs/storeroom-native/` holds `contract.md` alone on the tracked tree, and the only
 // copies of `seams-and-lifecycle.md` stand under the two GITIGNORED trees (`archive/pre-strata-docs-2026-10-24/`
 // at `.gitignore:180` and `.reflow-backup/` at `.gitignore:185`). **`D-85` item 2: an archived part is NOT
@@ -746,8 +757,8 @@ scenario('JAS-08', 'the answer for a file the loader refuses: the construction i
 //   (iii) **`JAS-09.3` is UNMOVED**: a readable image carrying the named address yields an INSTANCE, which is the
 //       control that the pair is a well-formed entry.
 scenario('JAS-09', 'the answer for a file the loader refuses, arm (b): the supplied list is NEVER REACHED over a refused image (zero asks, no instance) — and the carried-and-skipped walk is measured where a register still exists, over the zero-length file `D-126` item 2 leaves constructing',
-  'seams-and-lifecycle.md §7.2 item 7 (f) (the refused-file answer, arm (b)) — **the live tree carries no such path: see the `D-85` item 2 note above**; A143 (2); strata/decisions.md `D-126` item 2 (`arm (b) no longer speaks for this class`) and `D-90` (1)–(5), `D-96` (1); the unit\'s `PIN-4` (i)/(iii) and `PIN-5` (i)–(iii); contract.md §7.2\'s three-class clause of 2026-11-06 and §8.1 #16; surface.md §2.1 (the `cfg` block — the FOURTH declared key `constraints`); parameter-semantics.md §2.21 (PAR-JS-21)', () => {
-    const C9 = 'seams-and-lifecycle.md §7.2 item 7 (f) (arm (b)); A143 (2); strata/decisions.md `D-126` item 2 (the refusal precedes the package\'s first ask) and `D-90` (5)/`PIN-5` (i)/(ii) (`ConstraintListInvalid` answers the MALFORMED list alone); contract.md §7.2\'s three-class clause of 2026-11-06; §8.1 #16 (`ConstraintListInvalid`)';
+  'docs/specs/storeroom-native/contract.md §7.2 item 7 (f) (the refused-file answer, arm (b)) — **the live tree carries no such path: see the `D-85` item 2 note above**; A143 (2); strata/decisions.md `D-126` item 2 (`arm (b) no longer speaks for this class`) and `D-90` (1)–(5), `D-96` (1); the unit\'s `PIN-4` (i)/(iii) and `PIN-5` (i)–(iii); contract.md §7.2\'s three-class clause of 2026-11-06 and §8.1 #16; surface.md §2.1 (the `cfg` block — the FOURTH declared key `constraints`); parameter-semantics.md §2.21 (PAR-JS-21)', () => {
+    const C9 = 'docs/specs/storeroom-native/contract.md §7.2 item 7 (f) (arm (b)); A143 (2); strata/decisions.md `D-126` item 2 (the refusal precedes the package\'s first ask) and `D-90` (5)/`PIN-5` (i)/(ii) (`ConstraintListInvalid` answers the MALFORMED list alone); contract.md §7.2\'s three-class clause of 2026-11-06; §8.1 #16 (`ConstraintListInvalid`)';
     const REFUSED = `{"a":"x${RAW_LF}y","b":7}`;
 
     cell('JAS-09.1', C9,
@@ -908,7 +919,7 @@ scenario('JAS-10', 'the store\'s own image round trips: what the store writes, t
 scenario('JAS-11', 'the commit\'s own verification: the refusal of an image the loader would refuse — OUT OF THIS LAYER\'S REACH',
   'seams-and-lifecycle.md §7.2 item 2 (the commit\'s own verification); A144 (1) and (4); crossing.md §1.4 item 5', () => {
     layerLimit('JAS-11.1',
-      'seams-and-lifecycle.md §7.2 item 2 (parts (1) and (2): the commit re-decodes the image it is about to rename over the path and refuses with `FileCommitFailed` when the image does not load); A144 (1) and (4); crossing.md §1.4 item 5; seams-and-lifecycle.md §7.2 item 7 (f) class (4)\'s REACH clause ("AND THE COMMIT\'S VERIFICATION REMAINS UNREACHABLE FROM THE JAVASCRIPT LAYER (A144 (1))")',
+      'seams-and-lifecycle.md §7.2 item 2 (parts (1) and (2): the commit re-decodes the image it is about to rename over the path and refuses with `FileCommitFailed` when the image does not load); A144 (1) and (4); crossing.md §1.4 item 5; docs/specs/storeroom-native/contract.md §7.2 item 7 (f) class (4)\'s REACH clause ("AND THE COMMIT\'S VERIFICATION REMAINS UNREACHABLE FROM THE JAVASCRIPT LAYER (A144 (1))")',
       'LAYER LIMIT — the commit\'s own verification fires only for an image the LOADER would refuse, and the loader\'s ceiling is 128 nested containers (A144 (1)) while the JS package\'s OWN walk refuses a value of depth 128 before any verb is called (and admits 127 — measured) (crossing.md §1.4 item 5). The store admits a value of any depth (A143 (1)), so the only route by which the JS surface could hand the store such a value is closed by the package\'s own walk: the JS layer cannot cause the commit\'s refusal. A144 (1) says the same in its own words: "THE JS SURFACE CANNOT REACH IT — THE NATIVE LIBRARY\'S OWN API WAS." THE DEPTH CLASS ITSELF IS NOT THIS LIMIT — it is observable from this layer on the FOREIGN-FILE route (asserted at JAS-07.1). THIS CELL IS NOT A PASS AND NOT A FAILURE.');
   });
 
@@ -916,8 +927,8 @@ scenario('JAS-11', 'the commit\'s own verification: the refusal of an image the 
 // THE GAPS THIS SET FOUND IN THE DECLARATION ITSELF.
 scenario('JAS-12', 'the gaps in the declaration itself', 'the clauses named at each cell', () => {
     closed('JAS-12.1',
-      'seams-and-lifecycle.md §7.2 item 7 (f) class (4) — the COUNTING CONVENTION clause and its REACH clause; A143 (1); A144 (1)',
-      'CLOSED — the counting convention of the depth class IS NOW DECLARED, and the clause that closed this gap is the gap cell\'s own second branch: "A144 (1) would have to state that its walk-depth figure IS its nested-container figure". A144 (1) states it ("an image of `127` CONTAINERS (the root counted) IS ACCEPTED and an image of `128` CONTAINERS IS REFUSED; IN THE CORPUS\'S WALK-DEPTH CONVENTION (THE ROOT AT `0`) THE LAST ACCEPTED VALUE IS WALK-DEPTH `126` AND THE FIRST REFUSED IS WALK-DEPTH `127`"), and the SAME convention is carried by A143 (1) and, in its own words, by the class sentence itself at seams-and-lifecycle.md §7.2 item 7 (f) class (4) ("THE LOADER\'S COUNT IS `serde_json`\'S OWN RECURSION COUNT, IN WHICH THE ROOT OBJECT IS THE FIRST LEVEL"). THE BOUNDARY IS THEREFORE DERIVABLE FROM THE CLAUSE, AND IT IS ASSERTED AT JAS-07.1 ON THE FOREIGN-FILE ROUTE. NO RESIDUAL GAP REMAINS IN THE COUNTING CONVENTION.');
+      'docs/specs/storeroom-native/contract.md §7.2 item 7 (f) class (4) — the COUNTING CONVENTION clause and its REACH clause; A143 (1); A144 (1)',
+      'CLOSED — the counting convention of the depth class IS NOW DECLARED, and the clause that closed this gap is the gap cell\'s own second branch: "A144 (1) would have to state that its walk-depth figure IS its nested-container figure". A144 (1) states it ("an image of `127` CONTAINERS (the root counted) IS ACCEPTED and an image of `128` CONTAINERS IS REFUSED; IN THE CORPUS\'S WALK-DEPTH CONVENTION (THE ROOT AT `0`) THE LAST ACCEPTED VALUE IS WALK-DEPTH `126` AND THE FIRST REFUSED IS WALK-DEPTH `127`"), and the SAME convention is carried by A143 (1) and, in its own words, by the class sentence itself at docs/specs/storeroom-native/contract.md §7.2 item 7 (f) class (4) ("THE LOADER\'S COUNT IS `serde_json`\'S OWN RECURSION COUNT, IN WHICH THE ROOT OBJECT IS THE FIRST LEVEL"). THE BOUNDARY IS THEREFORE DERIVABLE FROM THE CLAUSE, AND IT IS ASSERTED AT JAS-07.1 ON THE FOREIGN-FILE ROUTE. NO RESIDUAL GAP REMAINS IN THE COUNTING CONVENTION.');
   });
 
 // ---------------------------------------------------------------- report ---

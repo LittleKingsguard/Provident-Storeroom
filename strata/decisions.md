@@ -9120,3 +9120,27 @@ declaration no longer beginning a line with `test('` silently drops `cells` and 
 
 **THE FLOOR**: `npm test` **`1384` / `1384` / `0`**, **`0` skipped** · `typecheck` `0` · `cargo test` 22 `ok` / 0 FAILED · `wasm32` `0` errors · `build` `0` ·
 **`CHAIN COMPLETE — 11 runners`**.
+
+---
+
+### `D-183` — THE CITATION RESIDUAL SPLITS IN TWO: ONE PART IS RE-POINTED TO A HOME THE CORPUS DECLARED, THE OTHER STANDS BECAUSE NOBODY HAS RE-HOMED IT
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `c856b72`. **SOURCE:** `D-180` item 4 / `D-181`'s fifth standing item. **STATUS: `ACTIVE`.**
+
+1. **`seams-and-lifecycle.md §7.2 item 7 (f)` IS RE-POINTED — 36 CITATIONS, ALL OF THEM — because THE CORPUS ITSELF DECLARED THE RELOCATION.**
+   `docs/specs/storeroom-native/contract.md:201`'s citation table carries the part as **`carrier`** with the word **`relocated:`** and the destinations
+   (*"the construction inputs (`§7`), the boot and lifetime clauses, the constraint-evaluation seam, the fail-code set …"*), and **`:4213` authors the
+   clause's sixth part there and `:4215` amends it for `D-126` item 2's three-way answer.** **No test may leave a citation pointing at a path the owning
+   specification has already moved**, so all **36** now read `docs/specs/storeroom-native/contract.md §7.2 item 7 (f)` (26 in
+   `json-acceptance-set-greens.mjs`, 10 in `json-acceptance-set-live.mjs`), **with a dated clause at each head quoting the relocation and stating that
+   NO CELL'S ASSERTION MOVED — a citation is where a cell says its law lives, and the law's text is the spec's.**
+2. **AND `crossing.md §1.4 item 5` IS **NOT** RE-POINTED, DELIBERATELY (16 citations, kept).** **No relocation of that part is declared anywhere on this
+   tree**: `docs/specs/storeroom-json-crossing/contract.md:32` still cites `docs/specs/storeroom-js/crossing.md §1.2` — **a path that is not tracked
+   either** — so the corpus has **not** re-homed the part, and **a test may not decide a relocation the owning specification has not made.** **THE
+   CITATION STANDS AS THE RECORD OF A PART THAT IS ABSENT, WHICH IS WHAT IT HAS ALWAYS BEEN**, and both heads say so at their own line rather than
+   leaving a reader to discover it.
+3. **SO `D-180` item 4 SHRINKS RATHER THAN CLOSES, AND ITS REMAINDER IS NO LONGER A TEST'S:** the test-tree half is discharged (36 re-pointed, 16 declared
+   absent), and **what is left is a corpus act — the json-crossing specification should either declare `crossing.md`'s relocation the way the native one
+   did, or author the part it still cites.** **That is `role_spec_writer`'s lane and not a pass's.**
+4. **MEASURED**: `npm test` **`1384` / `1384` / `0`**, **`0` skipped** · both JAS runners exit `0` · **`CHAIN COMPLETE — 11 runners`** · and the
+   citation ledger reads **0** stale `seams-and-lifecycle` cells, with the part's name surviving only in the two head clauses that say it was re-pointed.
