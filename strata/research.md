@@ -3388,3 +3388,386 @@ async delivery `D-130` rules — that machinery does not exist yet.**
 **WHAT IS *NOT* IN THE WAY, SAID SO THE LIST IS NOT READ AS LONGER THAN IT IS.** **The store's own model already fits a single-threaded host** (`D-72`: *"every level a synchronous call on one thread"*) · **the journal is in memory** · **the JSON codec is the crate's own** (no `serde`, no OS) · **the node budget and the depth ceiling are budgets, not platform facts** · **delivery's asynchrony is the PACKAGE's** and the store stays synchronous (`D-147` item 2: *"a construction's save is synchronous"*) · and **`A57`** (*the store returns handles and invokes nothing*) is a property a WASM boundary inherits unchanged.
 
 **THE ANSWER, IN ONE PARAGRAPH.** **`saveCall` removed the persistence blocker and left three: seven `std::fs` calls and one `process::id()` compiled into one file, a Node-API crossing that a second realm would have to re-author, and the realm claim itself.** **The first is a bounded `#[cfg]`; the second is the real work; the third is the architect's to make and no pass may make it by building.** **`SC-8` stays open and is now the question that stands between the second and the third: whether a WASM BUILD is in `P-SR-7`'s scope at all — and this section's reading, like the audit's before it, is a reading.**
+
+## §24 · THE `P-3` SEMANTIC INTAKE — LANDED 2026-11-17, AND ITS OWN CHANNEL NOTE
+
+**THE PASS HELD NO WRITE CHANNEL AND NO SHELL**: its tool set carried read tools only, so **its returned text is landed here by the supervisor**, on the
+precedent this file already records for the same class of pass (`strata/research.md` §21). **NOTHING IN IT IS A MEASUREMENT**: it names §21.7's figures as
+that section's, at that section's date, and reads the code that would produce them.
+
+**AND ITS FIRST OPERATIVE FINDING IS A WARNING FOR ANY LATER PASS: `P-3`'s OWN `path:line` RANGES HAVE DRIFTED.** Twelve of them now resolve to different
+subjects because the tree moved after the proposal was written — **while the two that carry the contradiction (`docs/specs/storeroom-native/contract.md:3028`–`:3033`
+and `:3149`–`:3150`) stand exactly where `P-3` printed them.** **So `P-3`'s ARGUMENT SURVIVES AND ITS LINE NUMBERS DO NOT**, and a gate-2 pass that pins them
+without re-reading would pin air. **The drift table is the document's §0.3 and it is the first thing to read.**
+
+---
+
+# `P-3` · The semantic intake — the comparison's subject, the equality, what a no-change write still owes, what it answers, and whose break
+
+**WHAT THIS NOTE IS.** The research intake for `P-3`'s gate-1 block (`strata/proposals.md:589`, `:616`–`:661`, verdict `BLOCKED-ON-SEMANTICS`). **IT DESIGNS NOTHING, RANKS NOTHING, DECIDES NOTHING AND OPENS NO UNIT.** It answers the five questions the block leaves open **by option and by ground**, and it ends with the questions only the architect can answer, each carrying a default I can defend.
+
+**DATE OF READING:** this pass, on the working tree as it stands. **Every `path:line` below was read at these bytes.**
+
+**READ THIS NOTE THROUGH §0.3.** The gate-1 record's own citations have drifted under the tree that landed after it, and three of the ranges it rests on now resolve to *different subjects*. A reader who re-derives from `P-3`'s printed ranges will read the wrong bytes.
+
+---
+
+## §0 · Provenance, channel, and the citation drift a re-deriver must not inherit
+
+### §0.1 · What I did and did not do
+
+**READ, NOT DRIVEN.** No shell was held: no `npm test`, no `cargo test`, no drive against the addon. **So this note makes no measurement and re-takes none of `strata/research.md §21.7`'s figures** (`strata/research.md:2153`–`:2183`) — it names them as that section's, at that section's date, and reads the code that would produce them.
+
+**THE ONE THING A READ CAN ESTABLISH AND A DRIVE CANNOT:** *whether a comparison is even expressible at each candidate site* — which pre-state each candidate site can see, and which of the store's own relations is already in scope there. That is §1's and §2's whole subject, and every claim in them is a claim about the bytes.
+
+### §0.2 · The channel
+
+**THE PASS HELD NO WRITE CHANNEL.** Its tool set carried read tools only. **So this note is landed by the supervisor from the pass's returned text**, on the precedent `strata/research.md:1897`–`:1902` records for the `P-3` audit itself (*"its returned text is landed here by the L0 supervisor, because the pass holds no write channel"*). **No repository byte was moved by this pass.**
+
+### §0.3 · THE CITATION DRIFT — three ranges in the gate-1 record now name other subjects
+
+**THE TREE MOVED AFTER `P-3` WAS WRITTEN AND THE RANGES DID NOT TRAVEL WITH IT.** Each row below was read on both sides.
+
+| what `P-3` / `§21` cites | what stands there now | where the cited subject actually stands now |
+|---|---|---|
+| `src/store.rs:3566`–`:3570`, the criterion docblock | `restoreMark`'s docblock | **`src/store.rs:4193`–`:4197`** — *"THE TWO ARMS ARE ONE CRITERION AND NOT TWO RULES"* |
+| `src/store.rs:3571`–`:3577`, `registration_triggered` | inside `restoreMark`'s body | **`src/store.rs:4198`–`:4204`** |
+| `src/store.rs:2652`–`:2657`, the write's reach | `derived_key` / `findAddress` | **`src/store.rs:3001`–`:3007`** |
+| `src/store.rs:1666`–`:1674`, `save_owed` | `assemble` region | **`src/store.rs:1949`–`:1961`** |
+| `src/store.rs:2221`–`:2225`, the projection law | `capture_below` | **`src/store.rs:2563`–`:2579`**, `watched_for` |
+| `src/store.rs:2036`–`:2038`, the `before` view | elsewhere | **`src/store.rs:2346`–`:2348`** |
+| `src/store.rs:2247`–`:2254`, `touched_below`'s two arms | `rebuild` | **`src/store.rs:2593`–`:2600`** |
+| `src/store.rs:2564`–`:2567`, the read's selection | `watched_for`'s comment | **`src/store.rs:1379`–`:1385`**, `lowest` |
+| `docs/guides/package-use.md:497`–`:499`, the closed firing list | the rollback / constraint clause | **`docs/guides/package-use.md:547`–`:549`**, and its correction at `:551`–`:561` |
+| `docs/specs/storeroom-js/contract.md:2109`–`:2111`, the re-entrancy clause | elsewhere | **`docs/specs/storeroom-js/contract.md:2183`–`:2185`** |
+| `docs/specs/storeroom-native/contract.md:3674`–`:3676`, the selection rule stated as a rule | `M-9`'s mark clause | **`docs/specs/storeroom-native/contract.md:3707`–`:3717`** |
+| `contract.md:1794`, `:2237` (the read-selection rule) | unverified this pass | **NOT RE-READ — I claim nothing about these two** |
+
+**WHAT SURVIVED THE DRIFT, AND IT MATTERS BECAUSE TWO OF `P-3`'S LOAD-BEARING ROWS ARE HERE:** `docs/specs/storeroom-native/contract.md:3028`–`:3033` (`P-TP-8` (a)) and `:3149`–`:3150` (its failure list) stand **at exactly the printed lines**, read and confirmed. **Three ranges moved; the two that carry the contradiction did not.**
+
+**SO THE DRIFT IS A PRICE AND NOT A REFUTATION:** `P-3`'s *argument* survives; **its line numbers do not, and a gate-2 pass that pins them without re-reading would pin air.** The corpus has this class filed (`strata/walkthrough.md:88`–`:92`, cited at `strata/envelope.md:387`–`:388`): *"the figure was true when measured and was falsified by the ruling that made it true."*
+
+---
+
+## §1 · THE COMPARISON'S SUBJECT — what is *"the current existing value at an address"* on this store
+
+### §1.1 · The sentence the request must be read against, at its own bytes
+
+**`src/store.rs:4193`–`:4197`, verbatim:**
+
+> **"THE TWO ARMS ARE ONE CRITERION AND NOT TWO RULES**: a pair is asked (and a listener told) when the act **CHANGES THE VALUE AT ITS ADDRESS** — the value read at a prefix contains its subtree, so a change anywhere below it moves it; **and a node the act CREATED OR PURGED has a value that changed, so its own registration is reached.**"
+
+**WHAT THAT DOCBLOCK MAKES THE SUBJECT, SAID EXACTLY — AND IT IS NOT ONE THING, IT IS THREE, AND THE DOCBLOCK ITSELF DISTINGUISHES THEM:**
+
+1. **"THE VALUE AT ITS ADDRESS" IS THE VALUE READ AT A PREFIX, AND IT CONTAINS ITS SUBTREE** — so the subject of the *ancestor* arm is **the assembled read of a whole branch**, not a leaf and not a node's own scalar. The store's `register_triggered` (`:4198`–`:4204`) is then `is_prefix(registration, address) || touched.iter().any(…)` — **a predicate over ADDRESSES with no value operand at all**, which is `P-TP-8` (a)'s landed form (`contract.md:3028`–`:3033`) and the reason `P-3`'s premise is a *reconciliation* and not a gap.
+2. **"A NODE THE ACT CREATED OR PURGED HAS A VALUE THAT CHANGED"** — so the subject of the *touched* arm is **not a value at all but a membership fact about the versions the act created or removed.** This is the arm `Q-4` names and no version of the request mentions.
+3. **THE DOCBLOCK'S OWN SECOND HALF IS THE ONLY PLACE IN THE TREE THAT DEFINES *"CHANGED"* OPERATIONALLY — and it defines it by CREATION AND PURGE, not by comparison.** **So the corpus's own criterion sentence, read whole, does not authorize a value comparison: it authorizes a reach.** The value comparison the request wants is a *fourth* thing the sentence does not name, which is why `§21.2` calls this a disagreement and not a specification gap.
+
+### §1.2 · The five candidates for the subject, each grounded at its bytes
+
+**`(S-1) THE VERSION AT THE WRITTEN TIER.`** The store holds versions keyed by the composite `(key, tier)` — `src/records.rs:14`–`:17`: *"each key's own inner entry is keyed by the TIER — because 'at most ONE child anchor per key/index and tier' is the composite key, so two versions of one key are two anchors and each stands under its own tier."* **The written tier's own version is reachable at the write path**: `anchors = self.refs_at(parent_link, &key)` (`src/store.rs:2912`), then `selected = anchors.iter().min_by_key(rank)` (`:2913`–`:2916`).
+**WHAT IT COSTS:** nothing new — the version is already in hand, and `StoreValue` is `PartialEq` (`src/value.rs:15`).
+**WHAT IT GETS WRONG:** **every tier-crossing write.** A `mem` write at an address where a `file` version stands purges nothing at `file` (`doomed` filters `rank ≤ rank(write tier)`, `:2937`–`:2941`; `file` is rank `2`, `mem` rank `1` — `src/records.rs:26`–`:33`), so the subject "the `mem` version" is **ABSENT before the act and present after** — a `None`-to-`Some` comparison that reports *"changed"* on every first lower-tier write and *"unchanged"* only when a `mem` version already stood at the same value. **The request's own canonical case (write the standing value at an address) is exactly the second one, and the case where a real change occurred is exactly the first — so this candidate is right about the act's own tier and blind to what the address reads as.**
+
+**`(S-2) THE VALUE AN UNQUALIFIED READ ANSWERS.`** `src/store.rs:1379`–`:1385`, `lowest`: *"`§2.3`: the selection is by `rank` ASCENDING — the lowest-persistence anchor answers."* Declared as the rule and corrected in the guide by `D-122`: **an unqualified read selects the LOWEST-persistence version present — the shadowing one** (`strata/envelope.md:299`–`:304`).
+**WHAT IT COSTS:** one `read` per write (or a re-derivation of the same selection), plus the assembled subtree walk (`assemble`).
+**WHAT IT GETS WRONG:** three named cases.
+- **(i) A SHADOW THAT MOVES AND A READ THAT DOES NOT.** Write `file V` at `['a']` in a `filePath` store, then write `mem V`. Before: read answers `V` (the `file` version). After: read answers `V` (the `mem` version). **Equal at every member — and the address now stands at two tiers where it stood at one.** The `readTiered` answer moved (`{_tier:'file'}` → `{_tier:'mem'}`), `save_owed`'s own docblock calls this shape out (`src/store.rs:1940`–`:1943`: *"a `mem`- or `temp`-tier SCALAR at the same address SHADOWS the durable version, leaves it standing"*), and **the request's subject reports "nothing changed".**
+- **(ii) A PURGE AT A TIER THE READ NEVER SHOWED.** Write `file {x:1}` at `['a']`, then `mem {x:1}`, then `file {x:1}` again. The last write's `doomed` is **every version at the address** (rank ≤ `2`), so the `mem` version is purged and the `file` one re-minted — `read` answers `{x:1}` on both sides. **A version left the register and the subject saw nothing.**
+- **(iii) THE TOUCHED ARM ENTIRELY.** A structured write touches one path per own member name (`append_value_paths`, `src/store.rs:4213`–`:4229`), so a **second identical structured write at a parent** moves no assembled value at the parent and touches every member below it, where a registration may stand. This is `Q-4`, and a read-answer subject cannot see it by construction.
+
+**`(S-3) THE WHOLE PER-TIER STANDING AT THE PAIR'S NODE — THE LIST.`** **This is the subject the gate-1 block names and `strata/research.md:2037`–`:2041` grounds:** `src/store.rs:2346`–`:2348` — *"The declared `before`/`restoredTo` view of an address: `present` and the value a read answers there. **Where the operation touched MORE THAN ONE version at the addressed node, the value is the ordered list of the values it touched**, in `§5.1`'s canonical tier order."* Implemented at `src/store.rs:2375`–`:2382`: `if touched.len() > 1` → `StoreValue::Array(ordered …)` sorted by `Reverse(rank)` — **file, mem, temp.**
+**WHAT IT COSTS:** the comparison is over a `Vec<StoreValue>` — a `Vec` compare, and the two lists must be built on both sides of the act (`capture` at `:2911`, `after_state = self.capture(&home)` at `:2992` — **both already exist on the write path**).
+**WHAT IT GETS WRONG — AND THE COST IS STRUCTURAL, NOT INCIDENTAL:** **the subject is a LIST ONLY WHERE MORE THAN ONE VERSION STOOD AT THE PAIR'S OWN NODE.** At exactly one version it collapses to that version's value (`:2383`–`:2391`), and **at ZERO versions it is `absent_state()`** (`:2362`–`:2363`, `:2354`–`:2358`: `present: false`, value `StoreValue::Undefined`). **So the subject's TYPE is not stable across the write it is comparing: an address that stood at one tier and now stands at two goes from `V` to `[V, V]`, and an address that stood at two and now stands at one goes from `[V, V]` to `V` — both are "changed" under a type-strict compare and both are "unchanged" under a member-wise one.** **Whichever relation is picked, the tier-set's cardinality is part of the subject and is not part of the equality unless the architect says it is.** That is a question, and it is in §6.
+
+**`(S-4) THE PAIR'S ADDRESS RATHER THAN THE LEAF — WHICH IS WHAT THE STORE ALREADY USES, AND THE ONE PLACE IT MATTERS MOST.`** The write's pre-state is captured at **`PairHome { link, key }`** (`src/store.rs:604`–`:607`, `:2907`–`:2911`) — *"the LINK its key stands on, and the key"*, recorded because *"the operation's own write may re-mint the anchor the walk would otherwise find"* (`:600`–`:602`). **So the store's subject is ALREADY the pair, not the leaf**: `delete` was corrected on exactly this point and the correction is on the record — `src/store.rs:3065`–`:3074`: *"the `pair_home` call this replaces resolved the LINK of the first version standing at the key, so for a STRUCTURED target it captured the versions of a node that holds none — measured: the entry held an EMPTY before-state, and a reversal of a structured delete restored nothing at all."*
+**WHAT IT COSTS:** nothing — it is what the write already does.
+**WHAT IT GETS WRONG:** nothing about the store, but **it settles nothing about the value**: a pair's `captured` is a `Vec<Captured>`, and the pair's `before` view is the read-view above. **Choosing the pair as the subject decides WHERE the comparison looks and not WHAT it compares — which is §2's question and not §1's.** The request's phrase *"the current existing value at an address"* is satisfied by the pair; it is the word *"value"* that remains undecided.
+
+**`(S-5) A BRANCH WHOSE DESCENDANTS ALL STAND.`** **The store HAS this subject and it is the one the criterion sentence's first clause names** — `src/store.rs:4194`: *"the value read at a prefix contains its subtree, so a change anywhere below it moves it."* It is `assemble` (`:1466`) / `assemble_all` (`:1625`), reached by `read` through `walk`.
+**WHAT IT COSTS:** a whole-subtree assembly per write — **and the store does NOT pay it today on the write path.** `touched_below` deliberately walks the *written value's own paths* rather than assembling (`:2593`–`:2600`, `:2618`–`:2624`), and the comment gives the measured reason: *"a dense array of `999,999` members written at one address materialises `999,999` paths, and a scan per append is `O(n^2)` — measured as a HANG, not a slowness"* (`:2618`–`:2621`).
+**WHAT IT GETS WRONG:** **it is the only candidate that is CORRECT about the case `S-2` gets wrong (i) — and it is the candidate with the worst cost, on the one shape the corpus has already measured as a hang.** A branch subject is right and unaffordable as a per-write default; **a per-write branch comparison is the one shape the corpus's own performance record refuses in advance.**
+
+**`(S-6) THE DURABLE BYTES / THE ACT'S DEPARTURE — the referent `D-106` already uses on the write path.`** `src/store.rs:1949`–`:1961`, `save_owed`: *"An op is eligible exactly when at least one version standing at `Tier::File` LEFT THE REGISTER DURING THE ACT — wrote over, replaced at its own tier, or PURGED"* (`:1930`–`:1932`), read off `Entry::captured` against the entry's own post-state.
+**WHAT IT COSTS:** nothing — it is `O(captured)` over records the entry already holds.
+**WHAT IT GETS WRONG:** **it answers a DIFFERENT question (did a durable version leave?) and says `true` on every `file`-tier write** by its first disjunct (`:1951`–`:1953`), *before* any departure test. **So the store's one shipped change test on the write path is not a value comparison and would answer "changed" for the request's canonical `file`-tier case.** `strata/research.md:2176`–`:2178` measured the consequence — bytes identical, mtime moved — and named it correctly: *"it is not a change test and it is not evidence FOR one."*
+
+### §1.3 · THE CASE WHERE THE ADDRESS DOES NOT RESOLVE AT ALL
+
+**THE SUBJECT IS ABSENT, AND THE WRITE DOES NOT REFUSE — IT MINTS.** For a write, *"the address does not resolve"* is **not a pre-condition and not a failure**: `write` resolves the parent tier-agnostically (`src/store.rs:2836`–`:2837`), captures the pair (empty `captured`), purges nothing, and mints (`:2967`–`:2968`). `state_from_captured` then answers `absent_state()` (`:2362`–`:2363`).
+**SO FOR A WRITE THE "NOTHING STOOD THERE" CASE IS UNAMBIGUOUS AT THE STORE AND ALREADY DECIDED AT THE CRITERION**: the docblock's own words — *"a node the act CREATED OR PURGED has a value that changed"* (`:4195`–`:4196`). **A first write is a change by declaration, and no suppression can reach it without repealing that clause.**
+**THE OTHER VERBS DIVERGE, AND THAT IS WHERE THE CASE REALLY LIVES:**
+- **`read` at a non-resolving address REFUSES** — `src/store.rs:2734`–`:2744` walks and the walk's own arm answers `AddressNotFound` (`:1355`–`:1361`).
+- **`delete` at a non-resolving address REFUSES** — `src/store.rs:3056`–`:3062`, with `L-3`'s code.
+- **`delete` that RESOLVES but removes NOTHING is a SUCCESS carrying `tiers: []`, `triggered: []` and `op: None`** — `src/store.rs:3098`–`:3109`, and it is **the corpus's ONE already-shipped change-conditioned arm**, keyed on removal.
+**SO THE STORE ALREADY HAS A "NOTHING CHANGED ⇒ NOTHING FIRES" ARM AND IT IS THE `delete`'s, KEYED ON REMOVAL AND NOT ON VALUE.** It returns `triggered: []` **and mints no op** (`:3106`–`:3108`: *"`D-3`: nothing was removed, so NO entry was appended and there is no op to name"*). **That arm is §3's precedent and §4's precedent at once, and `P-3`'s gate-1 does not name it:** it is the tree's own answer to *"what does a write owe when nothing moved"*, taken on the verb that already has the case.
+
+### §1.4 · WHAT §1 SETTLES, STATED AS A LIMIT AND NOT A RULING
+
+**THE SUBJECT AND THE EQUALITY ARE TWO QUESTIONS AND THE GATE-1 BLOCK CONFLATES THEM.** §1 shows the store can name **six** subjects and that **four of them are already materialised on the write path with no new work** (`S-1` anchors, `S-3` captured/after_state, `S-4` the pair, `S-6` the entry). **§2 shows that choosing the subject does not choose the relation, and that the relations disagree on shapes the store already contains.** **Both must be named in one sentence, or a landing pass will implement the first and inherit the second.**
+
+---
+
+## §2 · THE EQUALITY — what makes two states *"the same"* on this store
+
+### §2.1 · The four places the corpus already decides equality, at their bytes
+
+**`(E-A) THE STORE'S OWN `PartialEq` OVER `StoreValue` — STRUCTURAL, AND KEY-ORDER-INSENSITIVE BY CONSTRUCTION.`** `src/value.rs:13`–`:15`: *"`Object` is a `BTreeMap` so structural equality is key-order-insensitive by construction (`§5.2` `P-IM-1`'s failure list)"*, with `#[derive(Clone, Debug, PartialEq)]` on `StoreValue` (`:15`).
+**WHAT IT IS EXACTLY:** a variant-tagged, member-wise compare. **Class-strict for free** (a variant tag is part of the compare); **insertion-order-blind for free** (a `BTreeMap` has no insertion order); **`-0 == 0` is TRUE** (IEEE, inherited through `f64`'s `PartialEq`); `NaN` is unreachable because it is the separate `NonFinite` variant (`src/value.rs:24`–`:32`) and `is_admitted` refuses it (`:42`).
+**ITS HOME:** inside `src/`. **THE ONE THING IT CANNOT SEE:** whether the compared value came from a `file` or a `mem` version — **tiers are not part of a `StoreValue`.**
+
+**`(E-B) THE CANONICAL ENCODING — `src/json.rs`.`** The `file` tier's image is canonical: `canonical_number` (`:109`–`:117`) writes *"the shortest decimal spelling that parses back to the same `f64`, WRITTEN IN POSITIONAL NOTATION"* (`:86`–`:90`), objects *"serialises it in sorted key order and the bytes are deterministic"* (`:46`).
+**WHAT IT IS EXACTLY:** **the same relation as (E-A) on every shape except one, and the exception is declared:** `if n == 0.0 { return String::from("0") }` (`:110`–`:115`) — **the ONE declared normalization**, and its own clause says why: *"a `file`-tier `-0` reads back `0`, because only the committed bytes carry the spelling, while a `mem`/`temp` `-0` keeps its sign by never being routed through this image"* (`:111`–`:113`).
+**SO (E-B) IS (E-A) *PLUS* A NORMALIZATION AND *PLUS* AN ENCODING COST — it agrees with (E-A) everywhere except that it is only defined for a `file`-tier state, and it costs a full serialization per comparison.** It is the most expensive relation in view and it buys no discrimination (E-A) lacks.
+
+**`(E-C) THE CORPUS'S `sameStanding` — THE ONE SHIPPED CHANGE PREDICATE, AND IT IS THE PACKAGE'S.`** `bindings/js/src/entry/constraints.mjs:3636`–`:3642`: *"WHETHER TWO STANDINGS ARE THE SAME STATE … IT IS STRUCTURAL AND IT IS TAKEN ON THE STORE'S OWN DECODED VALUES: `Object.is` for the primitives, then `length` and index for the arrays and own keys, by `[[GetOwnProperty]]` and never by a chain read … A state that differs only in key ORDER is the SAME state."* Its one caller is the reversal's judgement — `constraints.mjs:2690`–`:2706`, `movedStanding`, with the skip at `:2695`: `if (sameStanding(one.before, after) === true) continue;`, declared at `docs/specs/storeroom-js/contract.md` (§1826 of its own numbering) and guided at `docs/guides/package-use.md` (`N-6`, `strata/research.md:2111`).
+**WHAT IT IS EXACTLY: (E-A)'s relation read in JS, WITH ONE DIVERGENCE THAT IS DECLARED AND MEASURABLE — `Object.is(-0, 0)` is FALSE** (`:3643`), where `PartialEq` says equal. **So the corpus's two shipped equality relations disagree at exactly one admitted value class, and `P-3`'s own §8 names that fork** (*"the corpus's `sameStanding` versus the store's `PartialEq`, which differ at `-0`"*, `strata/proposals.md:870`).
+**ITS HOME:** the package, over decoded values — **so it cannot see a tier, and it costs a `read` per address.**
+
+**`(E-D) REFERENCE IDENTITY — available and WRONG IN BOTH DIRECTIONS.`** The store's handle to a node is an arena index (`src/records.rs:127`–`:133`, `node: usize`), and every mint allocates a **fresh** one: `new_ref` pushes a new `NodeRef` (`src/store.rs:1244`–`:1245`), and `mint` (`:2073`) is called on every write, always (`:2968`).
+**WHAT IT IS EXACTLY — AND THE FINDING, WHICH IS THE SHARPEST THING IN THIS SECTION:**
+- **On the equal-tier arm the old version is purged first** (`doomed` is every version at `rank ≤ rank(write tier)`, `:2937`–`:2941`; an equal-tier version is included), so `remove_refs` (`:2967`) drops it and `mint` allocates a new reference. **An identical re-write at the same tier ALWAYS changes reference identity — the exact case the request wants to call "nothing changed".**
+- **On the shadowing arm nothing is purged and nothing at the higher tier is touched** (the `file` version's reference survives), so **the write that DID change the address's per-tier standing leaves every surviving version's identity unmoved.**
+**So reference identity is *inverted* on the two cases that matter.** It is the cheapest relation in view and it is the only one that is provably wrong on both. **It is named here because it is the relation a first implementation reaches for, and because the tree's arena makes it look available.**
+
+**`(E-E) THE DEPARTURE RELATION — `save_owed`'s — WHICH IS A VERSION-SET DIFFERENCE AND NOT A VALUE COMPARISON.`** `src/store.rs:1954`–`:1960`: *"a `file`-tier `Captured` in the pre-state with NO COUNTERPART in the post-state left the register during the act."* **It compares `(tier, path)` membership, never a value.**
+**WHAT IT IS EXACTLY: the only relation in the tree that is TIER-AWARE, and it is blind to values by design.** It would answer *"unchanged"* for a `mem` write of a different value over a `mem` version — **because the `mem` version left and a `mem` version returned at the same path.** So it is not a candidate for this request, **but it is the ground the architect must distinguish from the one he picks**, because both would be called "change" in the same sentence.
+
+**`(E-F) THE MEMBER-SET RULE — `D-22`/`DD-22`, WHICH DECIDES SET EQUALITY AND NOT VALUE EQUALITY.`** Its subject is *"a drive compares sets, never sequences"* (`DD-22`, cited at `bindings/js/src/entry/delivery.mjs:186`–`:187` and `strata/research.md:2111`), and it settles that **the trigger set's and the watched set's ORDER is unobservable**. **It does not decide what makes two VALUES the same, and it may not be borrowed to.** `P-3`'s gate-1 does not cite it as an equality ground and neither does this note.
+
+### §2.2 · THE FOUR CASES THE REQUEST NAMES, PRICED AGAINST EVERY RELATION
+
+**THE FOUR CASES ARE THE TASK'S AND EACH IS A CASE THE STORE CONTAINS, NOT A HYPOTHETICAL.** The table gives what each relation answers; **where a relation is wrong, the reason is the store's own mechanics and not a preference.**
+
+| the case | (E-A) `PartialEq` | (E-B) canonical | (E-C) `sameStanding` | (E-D) identity | (E-E) departure |
+|---|---|---|---|---|---|
+| **structurally equal but a different CLASS** — `Num(1.0)` vs `Str("1")` | **distinguishes** (variant tag) | **distinguishes** | **distinguishes** (`Object.is`) | n/a | n/a |
+| **a `Map` whose insertion order differs** | **IMPOSSIBLE AT THE STORE** — a `Map` is `NonPlainCollection` (`src/value.rs:32`, `is_admitted` `:45`) and the crossing refuses it before it is stored (`bindings/js/src/crossing.rs:753`–`:755`: `if o.has_accessor \|\| !is_plain(o) { return StoreValue::NonPlainCollection; }`), so the write is `ValueNotAdmitted` (`src/store.rs:2808`–`:2810`) | impossible | **IMPOSSIBLE over decoded values** (`sameStanding` reads own keys, order-blind, `:3640`–`:3641`) — **BUT REACHABLE if the comparison is taken over the CALLER'S ARGUMENT before the crossing**, where a `Map`'s key order is real | n/a | n/a |
+| **a shadowed address where one tier changed and another did not** | **ONLY IF the relation is handed the per-tier LIST** — `Vec` compare sees cardinality. Handed ONE value, it is blind (§1.2 `S-2` (i)) | same as (E-A), plus an encode | **blind** — it compares *the read answer*, one value | **inverted** (§2.1) | **sees it** — a `mem` version departing is a departure |
+| **a value equal at the pair but whose DESCENDANT moved** | **blind at the pair's own node** — an assembled-subtree compare would see it (`S-5`) and costs the assembly; a pair-node compare cannot | blind | **blind** — `sameStanding` over the addressed read sees the subtree only because `read` assembles it, so it costs a full assembly per write | blind | **sees the purge case, blind to the touched case** |
+
+**AND ONE MORE, WHICH IS THE ONE THAT DECIDES THE ARCHITECT'S SENTENCE AND IS NOT IN THE REQUEST'S FOUR: `-0` vs `0`.** Both are admitted (`Num(-0.0)` is finite, `src/value.rs:42`). **(E-A) and (E-B) say EQUAL; (E-C) says DIFFERENT** (`Object.is`, `constraints.mjs:3643`). **A landing pass that writes "the same" without naming the relation silently picks one of two shipped answers — and the corpus's own §8 already flagged it as a question** (`strata/proposals.md:870`).
+
+### §2.3 · WHAT §2 SETTLES
+
+**THE CORPUS DOES NOT LACK AN EQUALITY — IT HAS TWO, AND THEY DISAGREE AT ONE VALUE CLASS AND AT ONE COST.** `(E-A)` is free and tier-blind; `(E-C)` is the corpus's shipped idiom and costs a `read` per address; `(E-D)` is cheap and inverted; `(E-B)` buys nothing `(E-A)` does not and costs an encode.
+**AND NO RELATION IN VIEW IS BOTH TIER-AWARE AND VALUE-AWARE.** The only tier-aware relation the write path holds is `(E-E)`, which is value-blind. **So "the same value at the same tier set" is a relation the tree does not contain and would have to be composed — and composing it is a decision, not an implementation.** It is `Q-2`.
+
+---
+
+## §3 · WHAT THE "NO CHANGE" SUPPRESSES — and what it must NOT
+
+**THE REQUEST NAMES LISTENERS AND ONLY LISTENERS:** *"'writing' the current existing value at an address doesn't fire listeners"*. **A write performs a fixed sequence of acts and `triggered` is one of the LAST.** Every act below is a site at its bytes, with what a no-change write owes, **in both branches of the one question that splits everything: DOES IT MINT AN OP?**
+
+### §3.0 · The write's acts, in the order the code takes them
+
+Read from `src/store.rs:2798`–`:3019`:
+
+| # | act | site | mint-no-op | mint-an-op |
+|---|---|---|---|---|
+| 1 | `capture` the pair's pre-state | `:2911` | owed (needed to decide at all) | owed |
+| 2 | purge `doomed`, take `doomed_tiers` | `:2937`–`:2966` | **must still run or the write is not performed** | runs |
+| 3 | `remove_refs` + `mint` | `:2967`–`:2968` | **see below — this is the fork** | runs |
+| 4 | build `op` | `:2969`–`:2987` | **not built** | built |
+| 5 | `after_state = capture` | `:2992` | owed only if 4 is | owed |
+| 6 | `append` → `seq` bump → compaction DROP | `:2995` → `:2441`–`:2450`, `:2451`–`:2466` | **not reached** | **runs, and can drop the oldest entry** |
+| 7 | `touched_below` / `watched_for` / `triggered_for` | `:3001`–`:3007` | the sets are still computed unless suppressed | computed |
+| 8 | return `WriteResult { op, watched, triggered }` | `:3014`–`:3018` | **`op` has no value to carry** | carries the op |
+
+### §3.1 · THE CONSTRAINT PASS — *"does a write of the standing value still ask the pairs?"*
+
+**THE PASS'S EVALUATED SET **IS** THE STORE'S RETURNED SET — THERE IS NO SECOND PREDICATE TO SUPPRESS.** `bindings/js/src/entry/kernel-attempt.mjs:669`–`:670`:
+
+```
+669:  const stored = attempt.record === undefined ? undefined : attempt.record.triggered;
+670:  const list = pairsTriggered(kernel, stored, attempt.repairPaired);
+```
+
+with the clause above it, verbatim: *"THE LIST READ IS THE COMMIT'S OWN STORE ANSWER — `record.triggered`, the set the store returned at the instant this commit's act landed"* (`:652`–`:654`). `record.triggered` is set from the store's own answer at `bindings/js/src/entry/kernel-commit.mjs:187`–`:188` (`record.triggered = written.triggered; record.pending = written.triggered.slice();`).
+**SO THE ANSWER IS NOT A DESIGN CHOICE AT THE STORE-SIDE LAYER — IT IS A CONSEQUENCE:** **a store-side narrowing narrows the constraint pass by construction**, and **a package-side narrowing leaves the pass intact** because the store's set never moved. **That is the whole of `P-3`'s `Q-2`, and it is decided by where the comparison sits, not by what the request says.**
+**AND THE SAME SET FEEDS A THIRD CONSUMER THE GATE-1 DOES NOT NAME — `D-105`'s REPAIR CREDIT.** `kernel-attempt.mjs:1100`–`:1122` widens the examined set with `attempt.repairPaired`, and `:1121`–`:1122` says it plainly: *"`record.triggered` IS UNMOVED — it is the store's own returned set."* **So the repair-credit membership narrows with the set, exactly as `strata/research.md:2096`–`:2098` records.**
+
+### §3.2 · THE REPAIR FLOWS — and `D-152`, which is the corpus's most recent word on this exact word
+
+**THE ORDER IS `D-117`'s AND IT IS INSTANT-FOR-INSTANT:** `strata/decisions.md:6034`–`:6039`: *"ask → repairs land → re-run → SAVE → DELIVER → the member's record. THE SAVE PRECEDES EVERY DELIVERED BODY … No delivery occurs on the throwing arm, on the failing arm, or where nothing was fired."*
+**`D-168` IS THE JUDGEMENT'S SUBJECT AND IT IS THE CURRENT STATE, ALWAYS.** `strata/decisions.md:8674`–`:8675`: *"the subject is what the store answers at the instant the judgement runs"*, and `:8676`–`:8677`: `kernel-terminal.mjs`'s `baseState(store, address)` is *"`{ present: true, value: store.read(address) }` — the terminal judgement's base is a READ OFF THE STORE at the moment it is taken."* **Read at the bytes: `bindings/js/src/entry/kernel-terminal.mjs:482`–`:484`.** Two consequences a no-change write meets: **(i) the pass's `context.value` is the READ answer and never the per-tier list — so the pass's subject and §1's subject are already two different things on this tree; (ii) `present: true` is unconditional there, so the pass is told the address stands even where `read` would refuse.**
+**AND THE RULING THAT BEARS MOST DIRECTLY ON THIS REQUEST IS NOT IN `P-3` AT ALL: `D-152`, `2026-11-17`, verbatim *"Fires only the listeners changed by the writes"* / *"Compute within the store"* (`strata/decisions.md:7996`–`:7997`).** **Its mechanism, read at `:8003`–`:8010`, is a WRITE-EXISTENCE test and not a value-equality test:** *"THE SET A REGISTRATION INSTANT OWES IS THE LISTENERS ITS REPAIR WRITES CHANGED … A REGISTRATION THAT WRITES NOTHING FIRES NOTHING"*, and *"the set is not minted by the package: it is UNIONED from the writes the pass landed, each of which the store has already answered."*
+**SO THE CORPUS'S NEWEST USE OF THE WORD "CHANGED" MEANS *"the write landed"*, NOT *"the value differs"* — and that is a warning about the referent, from the same date, in the architect's own words.** **A landing pass that reads `D-152` as a value test would be reading a mechanism that does not contain one.** **AND THE TWO RULINGS INTERACT BY CONSTRUCTION:** if the store's predicate narrows, `D-152`'s union narrows with it (`:8007`–`:8010`'s *"each of which the store has already answered"*), so **`P-3` silently changes a registration instant's firing set — an instant `D-125` item 1 widened to four** (`strata/decisions.md:6520`–`:6522`).
+
+### §3.3 · `D-106` ARM 2'S SAVE ELIGIBILITY — *"the act moved nothing, so is the op eligible?"*
+
+**THE ELIGIBILITY RULE IS THE STORE'S AND IT IS TWO DISJUNCTS WITH ONE MEANING.** `src/store.rs:1770`–`:1772`: *"AN OP IS ELIGIBLE EXACTLY WHEN THE ACT IT NAMES MOVED AT LEAST ONE VERSION STANDING AT `Tier::File`. The first disjunct is the op's own tier word (`op.tier == Some(Tier::File)` …); the second is the WHOLE-TARGET `delete`, whose `op.tier` is `None` and whose own entry records the versions it removed WITH THEIR TIERS."* Implementation: `save_owed` at `:1949`–`:1961`; called from `commit_file` at `:1811`.
+**THE ANSWER FOR A NO-CHANGE WRITE, IN BOTH BRANCHES:**
+- **`mem`/`temp`-tier, no op minted:** no `commit_file` is reached at all (the terminal arm needs `answer.op`, `delivery.mjs:1216`–`:1219`), and `save_owed`'s second disjunct would answer `false` anyway (no `file` version departed). **No save owed, none performed — and nothing lost.**
+- **`file`-tier, no op minted:** **no save is performed — and that is a durable loss of a different kind: the op the act would have carried is the record the save keys on** (`commit_file` looks the entry up BY OP ID, `:1804`–`:1810`). No op, no carrier.
+- **`file`-tier, op minted (today's behaviour):** `save_owed` returns `true` **by the first disjunct, BEFORE any departure test** (`:1951`–`:1953`), so **the save runs and the file is rewritten for an act that moved no durable datum** — bytes identical, mtime moved, measured at `strata/research.md:2176`–`:2178`.
+**SO: SUPPRESSING LISTENERS DOES NOT SUPPRESS THE SAVE, AND THE REQUEST DOES NOT ASK IT TO. The `file` tier's rewrite is a durable act the request leaves standing, and `D-106` item 2's rule** — *"The file must save after ANY action that changes the file-tier data, without exception"* (`strata/decisions.md:5419`–`:5421`) — **is the clause that would have to be read to reach it. It does not answer this case: the act changed nothing, and the rule's antecedent is false.** **Whether a no-change `file` write should still save is `Q-9`, and the tree's answer today is YES, for a reason that is not a change test.**
+
+### §3.4 · THE JOURNAL ENTRY — *"does a no-change write mint an op at all?"*
+
+**TODAY IT DOES, UNCONDITIONALLY, AND THE APPEND CARRIES THREE CONSEQUENCES BEYOND THE ENTRY.**
+1. **The entry is appended with no branch above it:** `src/store.rs:2995` (`let op = self.append(op, captured.clone(), after_state, Some(home.clone()));`), and `append` bumps the sequence at `:2441`–`:2442`: `self.last_seq += 1; op.seq = self.last_seq;`.
+2. **The compaction can DROP the oldest entry as a direct consequence:** `:2451`–`:2466` — the loop removes the oldest entry while `self.journal.len() > self.journal_length` (the clause at `:2457`–`:2460`), and `D-160` item 1 made the cap a **bound** and not a mark (`strata/decisions.md:8406`; `RELEASE-NOTES.md:112`–`:124`).
+3. **So a no-change write that mints an op CONSUMES A JOURNAL SLOT AND CAN DESTROY THE OLDEST OP'S REVERSIBILITY.** `D-160` item 3's watermark then tells the two refusals apart: an op the compaction dropped answers `RollbackCompacted`, an id that never named an op answers `JournalOpUnknown` (`RELEASE-NOTES.md:118`–`:120`).
+**AND THE CORPUS'S OWN PERFORMANCE WORK WAS DRIVEN ON EXACTLY THIS ACT:** `src/store.rs:2429` names the benchmark — *"47 · 125 · 472 · 1,850 · 7,277 MB at 1k · 2k · 4k · 8k · 16k writes **on one unchanged address**"*. **So "a write of the standing value, over and over" is the corpus's measured worst case for journal growth, and the request names the act that produced it.**
+**IF IT MINTS NO OP, THEN `rollback` AND `restoreMark` LOSE A POSITION, AND THE CORPUS'S PROPERTY SAYS SO:**
+- **`rollback` is keyed on the op id** — an id no entry names fails `JournalOpUnknown` (`M-11`, `contract.md:3678`; `src/store.rs`'s own `commit_file` no-op arm at `:1804`–`:1810`).
+- **`restoreMark` replays the journal's own entries** (`src/store.rs:3589`–`:3598` in that method's docblock), so **a state the journal does not record is a state no mark can reach.** A no-change write that mints nothing removes one *reachable* position from the store's history — **which is exactly what the act did not change, so the loss is invisible until a caller holds a mark they expected to exist.**
+- **AND `P-TP-8` (g) IS A DECLARED PROPERTY THAT A NO-OP MINT BREAKS BY NAME:** `docs/specs/storeroom-native/contract.md:3056`–`:3059`: *"**`WriteResult.op.opId` subsequently resolves in the journal: `rollback(opId)` does not fail `JournalOpUnknown`** … and the journal's tracked verbs remain exactly `write` and `delete`."* **A write that answers a `WriteResult` whose `op.opId` names no entry falsifies (g). A write that answers no `op` at all contradicts `WriteRecord.op`'s non-optional type (`bindings/js/index.d.ts:716`). There is no third arm.** This is the single hardest constraint in §3 and it is §4's subject.
+
+### §3.5 · `D-169`'s legs and `D-170`'s drain — what a suppressed pass stops consuming
+
+**THE LEGS ARE RECORDED PER INVOCATION AND THE SLOT IS CLEARED WHEN A BRACKET OPENS.** `strata/decisions.md:8701`–`:8703`: *"`REPAIR_LEGS_LAST = [];` in the bracket's opening, before the run … what moves is that a bracket opening in between now leaves nothing for a stale read to take."* Driven both ways by `tests/e2e/leg-carriage.test.mjs` (`:8704`–`:8711`).
+**THE DRAIN CONSUMES ONLY ITS OWN WINDOW, BY A PREDICATE:** `strata/decisions.md:8723`–`:8728`: `consumeRaisedRaises(record, window)` with `if (raise.window !== window) { keep; continue; }` (`bindings/js/src/entry/constraints.mjs:2599`–`:2614` in that row's numbering).
+**WHAT A NO-CHANGE WRITE OWES HERE, AND IT IS NOT FREE EITHER WAY:**
+- **The raise's birth is inside a pass** — `strata/decisions.md:8737`–`:8739`: *"a raise is created inside a pass (`raiseReversal` runs from a body the pass is asking), and every pass drains, so a raise cannot be born into a window that has no consumer."* **A store-side suppression empties the pass, so no body runs, so no raise is born — which is harmless.** 
+- **But a raise raised by an ENCLOSING window and destined for THIS write's drain would have no consumer at this act** — and the corpus's guarantee is exactly *"every pass drains"*. **A write whose pass does not run is a write that does not drain, and the window's own lifetime becomes the answer.** The row's residual was measured unreachable on the shapes it drove (`:8733`–`:8739`); **it does not drive a pass that is empty by suppression.** This is not a defect — it is an untested interaction, and it belongs in §7.
+
+### §3.6 · THE RECEIPT — `op` / `triggered` / `log` / `discarded`, and the delivered set's `bodyFailures` / `returnedValues`
+
+**THE RECORD'S DECLARED MEMBER SET IS THREE AND ITS OWN-PROPERTY CENSUS IS SEVEN.** `bindings/js/index.d.ts:715`–`:719` declares `op`, `watched`, `triggered`; four non-enumerable accessors ride beside them — `discarded` (`:720`–`:743`), `log` (`:744`–`:779`), `bodyFailures` (`:780`–`:819`), `returnedValues` (`:820`–`:858`) — and `D-150` item 1 pins the census: **`Object.keys` reads `["op","watched","triggered"]`; `Object.getOwnPropertyNames` reads SEVEN** (`strata/decisions.md:7930`–`:7933`).
+
+- **`op`** — non-optional (`:716`), and **the journal-resolution property (§3.4) is declared on it.** A no-change write's `op` is the one member §4 turns on.
+- **`triggered`** — **`[]` WOULD COME TO MEAN TWO THINGS AND THE CORPUS HAS ALREADY RULED THAT CLASS:** `docs/specs/storeroom-js/surface.md:235` (`D-75`/`D-78`: *"`undefined` IS NOT `[]`, AND THE TWO ARE NOT SPELLINGS OF ONE READING"*, *"an ABSENT member and an EMPTY list are different claims"*), and the store's existing `[]` on a write means **no registration stood at a prefix** (`docs/specs/storeroom-native/contract.md:3033`–`:3034`). **Under any suppression `[]` reads both meanings and the two are indistinguishable from `[]` alone** — that is `Q-5` and it is a debt a landing pass may not leave.
+- **`log`** — **a passing write answers at least ONE entry, `kind === 'commit'`, and `[]` is never that arm's answer:** `index.d.ts:750`–`:756`, and the entry is appended unconditionally at `bindings/js/src/entry/kernel-attempt.mjs:506`–`:507`. **So a no-change write that still opens an attempt still answers `log: [commit]`; one that opens no attempt answers `[]` — and `[]` there is the *"no attempt"* claim** (`docs/specs/storeroom-js/surface.md:1380`, which spends a whole clause distinguishing an arm that carries no attempt from `[]`). **The suppression forces a choice between two meanings `log` already carries.**
+- **`discarded`** — *"`[]` means the pass's drain consumed and JUDGED every raise of this window"* (`index.d.ts:730`–`:731`). **A write with no pass answers `[]` for a third reason and the member's own sentence becomes ambiguous at the same seam as `triggered`'s.**
+- **`bodyFailures` and `returnedValues`** — both are *"PRESENT ON EVERY ARM AND ANSWERS ONE SHARED FROZEN `{}` WHERE NOTHING STANDS"* (`index.d.ts:804`, `:843`–`:846`), and both are **defined so that no reader can tell *"no settle ran"* from *"the settle found no rejection"*** (`:805`–`:807`, `D-150` item 2). **A no-change write whose delivered set is empty answers the same frozen `{}` — so these two members are the ONLY members in the record that a suppression does not make ambiguous, and that is because the corpus already paid for the ambiguity once and refused it.**
+
+### §3.7 · THE ONE THING §3 ESTABLISHES THAT NO OPTION ESCAPES
+
+**EVERY ACT BELOW `triggered` IS REACHED THROUGH THE OP OR THROUGH THE PASS, AND THE TWO ARE ONE CHAIN: no pass, no ask, no repair, no raise consumed, no credit; no op, no save, no journal position, no `P-TP-8` (g).** **So the request's one-word subject — *"listeners"* — cannot be changed without changing the store's answer to *"was this an operation"*, and the store's answer to that is the journal.** **That is the costliest finding in this note and it is §3's summary sentence: a no-change write is not a narrower write, it is a different KIND of act, and the tree has one such act already — the `delete` that removed nothing (`src/store.rs:3098`–`:3109`) — which answers `triggered: []`, `op: None`, and no journal entry.**
+
+---
+
+## §4 · WHAT THE WRITE ANSWERS
+
+**THE SURFACE HAS ROOM FOR FOUR ANSWERS AND THE TREE ALREADY HOLDS ONE OF THEM.** Each is grounded in the surface's own vocabulary.
+
+### §4.1 · `(A-1)` THE SAME RECEIPT WITH AN EMPTY `triggered`
+
+**THE FORM:** `{ op, watched, triggered: [], log, discarded, … }` — every member present, `triggered` empty.
+**GROUND IN THE SURFACE:** the shape is lawful as a shape — `triggered` is `readonly TriggerPair[]` (`index.d.ts:719`) and `[]` is a member of it; `watched` is a separate member and **must not narrow with it** (`P-TP-8` (e), `contract.md:3048`–`:3052`; the projection law at `src/store.rs:2567`–`:2570`: *"the two lists must be produced by ONE predicate or the projection is false"* — **so an empty `triggered` with a non-empty `watched` is the incoherence `P-3` §7 item 2 already refuses**).
+**WHAT IT COSTS:** the two-meanings debt (§3.6, `Q-5`), **and it answers a question about the DATA the corpus nowhere declares** (`strata/research.md:2109`, `N-4`).
+**WHAT IT GETS WRONG:** **at the store-side layer it is unreachable without narrowing `watched` too** — so `(A-1)` is only available at the package layer, where the store's set stood intact and `watched` is passed through unchanged.
+
+### §4.2 · `(A-2)` A RECEIPT WHOSE `op` RECORDS A LANDING THAT CHANGED NOTHING — **TODAY'S ANSWER, AND THE ONE THE REQUEST'S MEASUREMENT ALREADY SHOWS**
+
+**THE FORM:** `op.before` and `op.after` both present and equal, `seq` advanced, `opId` resolving in the journal.
+**GROUND IN THE SURFACE, AT ITS BYTES:** this is **exactly what the shipped tree answers**, driven and printed at `strata/research.md:2164`: write #2 of four — `op.seq` `2`, `op.before` `{present:true, value:1}`, `op.after` `{present:true, value:1}`, body ran **yes**. **The record already has the vocabulary to say *"a landing that changed nothing"* and says it by `before` equalling `after`.** `BaseState` is two members (`index.d.ts:669`–`:672`), and nothing forbids them agreeing.
+**WHAT IT COSTS:** **nothing at the surface** — the record is unmoved, `triggered` stays meaningful, `P-TP-8` (g) holds, `log`/`discarded`/`bodyFailures`/`returnedValues` keep their meanings.
+**WHAT IT GETS WRONG:** **it is not an answer to the request at all if the request wants silence** — the listener fires and the record says "equal". **It IS the answer if the architect reads the request as *"a caller must be able to tell"*: today a caller CAN tell, by comparing `op.before` and `op.after`, and the corpus ships that idiom** (`sameStanding`, §2.1 (E-C)) — **which is why `P-3`'s `(e)` shape exists and costs zero** (`strata/proposals.md:773`).
+
+### §4.3 · `(A-3)` AN EXISTING STATUS — **UNAVAILABLE, AND THE REASON IS DECISIVE**
+
+**THE STATUS SET IS A *REFUSAL* SET AND IS CARRIED BY ONE INTERFACE.** `bindings/js/index.d.ts:632`–`:645`: `StoreRefusal { status: StoreStatus; message; log; address }` — **`status` occurs on the refusal and on nothing else.** `StoreStatus` (`:506`–`:530`) is the closed union of **twenty-three** literals (`src/error.rs:188`: `pub const CODES: [&str; 23]`), and `src/error.rs:18`–`:24` declares it *"the CLOSED set, ranked `1`…`16`"* with every later widening appended at the next rank and **no rank of `1`…`n` moving** (`:176`).
+**SO:** every one of the twenty-three is a refusal; **a no-change write that SUCCEEDS can answer no existing status, because the set contains no success member and no member whose subject is *"nothing changed"*.** **`(A-3)` is not a cheap option — it is a category error the surface's own typing refuses.**
+
+### §4.4 · `(A-4)` A NEW STATUS — rank `24`, and what the closed set's own history says about it
+
+**IF a status is minted, its rank is `24`:** the set's convention is append-only with no rank moving (`src/error.rs:176`), and rank `23` `ListenerBodyRejected` is the current highest (`src/error.rs:174`–`:176`; `bindings/js/index.d.ts:529`).
+**DOES THE CLOSED SET ALLOW IT?** **The set has been widened SEVEN times by appended rank — `13` `FilePathUnreachable` (`src/error.rs:19`–`:20`), `16` `ConstraintListInvalid` (`:24`), `17` `ValueRefusedAtBoundary` (`:45`–`:47`), `18`/`19` the body-throw pair (`:60`–`:62`), `20` `ConstraintPassRefused` (`:85`), `21` `ListenerBodyThrew` (`:115`–`:117`), `22` `FileImageRefused` (`:141`–`:144`), `23` `ListenerBodyRejected` (`:173`–`:176`) — so the set is CLOSED TO THE ENUMERATION AND OPEN TO APPEND BY RULING.** **An eighth append is lawful on the architect's word and on nothing else.**
+**WHAT IT COSTS, PRICED AT THE TREE'S OWN EXPERIENCE:**
+- **The declaration exists twice and the second is a staged copy that is NEVER hand-edited** — `bindings/js/index.d.ts` and `typecheck/node_modules/provident-storeroom/index.d.ts` (`strata/proposals.md:771`).
+- **The census is re-derived at every site and the census can be SILENTLY WRONG:** `strata/envelope.md:18`–`:21` records the `20 → 21` re-derivation *"at all seven sites"*, and **§5.2 below shows a census that has ALREADY drifted and is GREEN.**
+- **AND THE CATEGORY PROBLEM REMAINS:** a success arm's datum would sit in the set that `StoreRefusal` alone carries.
+**WHAT IT GETS WRONG:** **it answers a refusal where the request asks for a silence** — and it makes the no-change write *a failure*, which is the one thing `DD-11` refuses: *"it would make an idempotent re-write (`write(a, tier, v)` twice) a failure"* (`docs/specs/storeroom-native/contract.md:469`, cited at `strata/research.md:2108`).
+
+### §4.5 · WHAT §4 ESTABLISHES
+
+**THE SURFACE HAS EXACTLY ONE ANSWER THAT COSTS NOTHING AND ONE THAT COSTS EVERYTHING, AND THE REQUEST NAMES NEITHER.** `(A-2)` is today's answer and requires no surface byte; `(A-1)` requires the package layer and owes the `[]` sentence; `(A-3)` is unavailable by typing; `(A-4)` is an append away and makes an idempotent re-write a failure. **A fifth form is reachable and is a ruling away rather than an implementation — a member on the closed record, the device `op`, `discarded`, `commit`, `log`, `bodyFailures` and `returnedValues` landed with SEVEN times** (`strata/proposals.md:844`–`:847`). **That is `Q-4`.**
+
+---
+
+## §5 · THE BREAK, AND WHOSE
+
+### §5.1 · THE TREE'S OWN CELLS — one turns, one stands, and the census has already drifted
+
+**THE CELL THAT TURNS — AND IT IS THE ONLY ONE IN `tests/**` THAT DRIVES THIS ACT AND ASSERTS A FIRING COUNT.** `tests/e2e/json-crossing.test.mjs`, the FRESHNESS LIMB:
+- **its state table declares the expectation**: `:4357` — *"the FRESHNESS LIMB, on the control alone: a second identical write at the same address | a SECOND invocation"*;
+- **it drives the act**: `:4521` — `control.store.write(drivenAddress, 'mem', 'x')`, the **same value at the same address at the same tier** after `:4516`–`:4518` settled the first;
+- **it asserts the count**: `:4524` — `assert.equal(control.fired.length, 2, 'the freshness limb: a second trigger set fires the registered listener again')`;
+- **and it then indexes the second invocation**: `:4526`–`:4527` — `const secondArgument = control.fired[1].address;`, which under suppression is a **`TypeError` on `undefined`**, not a clean assertion failure.
+**SO THIS CELL FAILS LOUDLY, AT THREE ASSERTIONS, AND ITS FAILURE IS THE SUITE'S ONLY WITNESS TO THE OLD SEMANTIC.**
+**AND ITS SUBJECT IS NARROWER THAN *"a firing count"*:** `:4528`–`:4536` assert **the argument's freshness** — two distinct array objects, each dense, each carrying both segments. **`strata/research.md:2135`–`:2138` is right: `:4524` is a PRECONDITION the subject is driven over, and a re-derivation that keeps the subject can keep the count by changing the second write's value.** **That is `C-16` and it makes the cell a TOKEN TO RE-DERIVE and not a defended semantic.**
+
+**THE CELL THAT STANDS.** `tests/integration/store-core/e2e_json_round_trip.rs:880`–`:882`: *"And writing the SAME value again is a success, never a `PairOccupied` refusal (`DD-11`)"* — `ok(store.write(…, v_num(2.0)), "DD-11")`. **It registers no listener and asserts no firing count, so a listener-only suppression leaves it green — and an answer-level change would turn it red.**
+
+**★ THE CENSUS CLASS HAS ALREADY FAILED ONCE AND IS STILL GREEN, WHICH IS THE HAZARD ANY LANDING PASS INHERITS.** `tests/e2e/blind-entry-surface.test.mjs:319`–`:320` asserts `STATUS_RANK_ORDER.length === 22` and `new Set(…).size === 22`; **its own head says it copies two homes** — `src/error.rs`'s `pub const CODES` and `index.d.ts`'s `StoreStatus` (`:64`–`:74`) — **and both homes now read TWENTY-THREE** (`src/error.rs:188`; `bindings/js/index.d.ts:529`). **The copy printed `[&str; 22]` for `CODES`' arity at `:69`; the home prints `[&str; 23]`.** **So a hand census drifted, stayed self-consistent, and its cells stayed green.** **The file's own head names the rule this is a failure of** (`:72`–`:74`: *"A copy that disagrees with either home is a finding at the home and not a licence to move this array quietly"*) — **and here the finding is that the disagreement is invisible because the cell asserts the copy against itself.** **Any new status, member or count this request mints inherits that blindness.**
+
+### §5.2 · THE DOCUMENTS THAT TURN, each at its own byte
+
+| document | what it states | what a suppression does to it |
+|---|---|---|
+| `docs/specs/storeroom-native/contract.md:3028`–`:3033` | `P-TP-8` (a): after **any** successful `write`, `triggered` is **exactly** the prefix∪touched set, **"and NO MEMBER is added and none omitted"** | **CONTRADICTED** — a suppression *omits* members. **This is the row, and it needs a bounded amendment, which it has had twice** (`:3015`–`:3020`, `:3672`–`:3684` per `P-3` §8; the second of those has itself since been superseded by `D-160` item 5 at `:3672`) |
+| `contract.md:3149`–`:3150` | the failure list: *"**a MISSING handle where a listener's address is a prefix of the write's**"* is the row's own RED | **makes a declared failure the shipped behaviour** |
+| `contract.md:3056`–`:3059` | `P-TP-8` (g): `WriteResult.op.opId` **subsequently resolves in the journal** | **broken by a write that answers no `op`** (§3.4) |
+| `contract.md:3707`–`:3717` | the selection rule stated as a rule, and **`D-66`'s criterion quoted inside it** at `:3709` | the operative clause would have to be re-stated; **the criterion sentence and the instantiation already disagree there in one paragraph** |
+| `docs/guides/package-use.md:547`–`:549` | *"Listeners fire on `write` and `delete`, on a `rollback`'s judgement, and at the four REGISTRATION instants — and never on a read"* | **the closed firing list moves** — and its own correction at `:551`–`:561` is the precedent that **this class of sentence is rewritten in place, not annotated** (`D-125` item 2 (iii)) |
+| `docs/specs/storeroom-js/contract.md:2183`–`:2185` | **RE-ENTRANCY IS UNAVOIDABLY OPEN** — *"a listener that writes at the address it was delivered for fires itself again … nothing detects it and nothing is meant to"* | **a persisted change test would DETECT one form of the very re-entry this clause declares undetected** — *"a sentence a landing pass would have to re-spell in the same pass, not a sentence it can leave"* (`P-3` §2's fourth *against*) |
+| `bindings/js/index.d.ts:715`–`:719` and its four accessors | the record's declared three and its seven-name census | a member, a narrowed member, or a new status moves the file **twice** (`typecheck/node_modules/…` is a staged copy) |
+| `src/store.rs:4193`–`:4197` | the criterion docblock | **already says the criterion in change-terms; it is the corpus's ground FOR the request and would not move** |
+
+### §5.3 · CONSUMER EXPECTATIONS — three, and each is a sentence a consumer can act on today
+
+1. **"A body fires once per write that reaches it."** `docs/guides/package-use.md:547`'s list and `index.d.ts:718`'s `triggered` are the vocabulary; `docs/specs/storeroom-js/contract.md:2183`'s re-entrancy clause is the strong form (*"a listener that writes at the address it was delivered for fires itself again"*). **Under suppression a self-write of the same value stops firing itself — so the clause's example becomes conditional on a value.**
+2. **"`triggered` names who will be invoked."** `deliver`'s loop runs over the set (`bindings/js/src/entry/delivery.mjs:250`–`:287`), and the terminal arm's delivered set is `record.pending` + the checked-off identities (`:1288`). **Under a package-side suppression `triggered` names MORE than is invoked — the asymmetry `D-67` was filed on, one layer up** (`strata/decisions.md:3803`).
+3. **"A write's `op` is a journal position."** `P-TP-8` (g) (`contract.md:3056`–`:3059`) and `rollback`'s own lookup. **A consumer that caches a mark per write (`journalMark`) loses one position per no-change write.**
+
+### §5.4 · CLASS — WHAT A `MAJOR` MUST CARRY HERE, AND WHAT `D-190` ALREADY DECIDED ABOUT THAT
+
+**THE CLASS PRECEDENT IS DIRECTLY ON POINT AND IT WAS DECIDED FOR A SMALLER MOVE.** `D-190` is the architect's **`MAJOR — bump to 2.0.0`**, recorded at `RELEASE-NOTES.md:64`–`:66`, and **the reason it moved from `MINOR` to `MAJOR` is ONE SENTENCE:** *"`D-189` item 2 removes `readonly compacted: boolean` from the PUBLISHED `JournalOp` (`bindings/js/index.d.ts`), and removing a declared member is breaking against `1.12.0`"* (`RELEASE-NOTES.md:66`–`:70`; `bindings/js/index.d.ts:685`–`:696` is that member's own removal clause and names `D-190`).
+**SO THE CORPUS'S OWN PRECEDENT IS: A PUBLISHED DECLARATION MEMBER LEAVING OR CHANGING MEANING IS `MAJOR`.** **A returned member's MEANING changing on a shipped verb is not smaller than a member leaving** — it is larger for every consumer who already reads it, which is `P-3` §5's own reading of `(a)` (*"MAJOR — a returned member's meaning moves on a shipped verb, and four declared sets move with it"*, `strata/proposals.md:768`).
+**WHAT A `MAJOR` MUST CARRY IN THIS PROJECT — read off `RELEASE-NOTES.md:58`–`:134` and `strata/envelope.md`'s own cut discipline:**
+- **a root `RELEASE-NOTES.md` section above the previous one, naming the class in the heading** (`:58`: *"a MAJOR — the second claimed realm, the save arm it made possible, AND THE REMOVAL OF A PUBLISHED DECLARATION MEMBER"*);
+- **a "WHAT A CONSUMER ON `<previous>` MEETS, AT EACH ENTRY POINT" block** (`:84`–`:134`), entry by entry;
+- **the version moving EVERY site together** — `RELEASE-NOTES.md:70`–`:74`: *"the main manifest's `version`, its FIVE exact `optionalDependencies` pins, and the SIX `platforms/*/package.json` versions"*, and **`bindings/js/package.json:3` already reads `2.0.0`, so a second `MAJOR` is `3.0.0` and that is the architect's word**;
+- **the three generated version lines** re-derived — `bindings/js/README.md`, `bindings/js/README.guide.md`, `bindings/js/RELEASE-NOTES.md` — and **both landings re-staged byte-for-byte, never hand-edited** (`RELEASE-NOTES.md:20`–`:21`, `strata/envelope.md:310`–`:312`);
+- **every census site re-derived, and the fail-set census re-derived at all seven** if a status is minted (`strata/envelope.md:18`–`:21`);
+- **the class claim itself recorded as a ruling, not inferred** — `D-124` item 3's discipline, kept by `D-190`.
+
+**AND A CONSUMER'S MIGRATION SENTENCE WOULD HAVE TO SAY, IN THE SHAPE `RELEASE-NOTES.md:84` uses, SOMETHING LIKE:** *"on `X.0.0`, a `write` that lands the value the address already stands at no longer fires the listeners registered there; `triggered` on that write carries — / is — / is absent, and `op` — / records an op that changed nothing / — . Read `<member>` to tell the two cases apart."* **THAT SENTENCE CANNOT BE WRITTEN UNTIL `Q-1`…`Q-4` ARE ANSWERED, AND THAT IS THE PRECISE SENSE IN WHICH THIS IS A `MAJOR`'S SUBJECT AND NOT A PASS'S.**
+
+### §5.5 · DOES IT PAIR WITH `P-2` OR STAND ALONE?
+
+**THE ARCHITECT HAS ALREADY SAID IT STANDS FIRST, AND HE HAS ALSO SAID `P-2`'s BLOCK IS LIFTED AND `P-3` REMAINS THE CYCLE'S FIRST UNIT.** `strata/decisions.md:9354`: *"**`P-3` REMAINS THE CYCLE'S FIRST UNIT** (the architect's *"Start with P-3"*): this row is the intake answer and mints no unit."* **So the ORDER is declared.** **WHAT IS NOT DECLARED IS THE CLASS PAIRING, AND THE TWO REQUESTS TOUCH THE SAME `MAJOR` QUESTION:**
+- **`P-2`'s break is behavioural** — `strata/decisions.md:9353`: *"a construction that today boots and arms would start refusing and firing — so it is a `MAJOR`'s subject or nobody's."*
+- **`P-3`'s break is a returned member's meaning** — §5.4 above.
+**BOTH WOULD LAND ON THE SAME VERSION LINE, AND THE TREE HAS ALREADY SPENT `2.0.0`.** **Whether they share one `3.0.0` or take two is `Q-10`, and the cost of getting it wrong is the one `D-158`→`D-190` already paid: a class claim superseded at its own sentence** (`RELEASE-NOTES.md:60`–`:66`).
+
+---
+
+## §6 · THE QUESTIONS ONLY THE ARCHITECT CAN ANSWER
+
+**EVERY ONE IS THE ARCHITECT'S. Every default is a DEFAULT and none is a recommendation. `P-3` §4's nine (`strata/proposals.md:747`–`:757`) stand unchanged and are NOT re-asked here; the rows below are the questions THIS note's five sections raise, and where a row is `P-3`'s own it is marked so the two records cannot drift.**
+
+| `#` | the question | the default if he does not answer | whose |
+|---|---|---|---|
+| **`Q-1`** | **SHADOWED-ADDRESS EQUALITY — WHAT IS THE SUBJECT AND IS THE TIER SET PART OF IT?** The per-tier standing is a **list** only where more than one version stands (`src/store.rs:2375`–`:2382`), collapses to one value at one (`:2383`–`:2391`), and is `absent` at none (`:2362`–`:2363`). **So a write that takes an address from one tier to two changes the subject's TYPE.** Does the comparison see the tier set, or only the values? | **the per-tier LIST, at the pair's own node, with the tier set part of the subject** — it is the only subject that makes `readTiered`'s answer (`D-121-ter`) agree with the firing rule, and it is the referent `strata/research.md:2037`–`:2041` already names. **A value-only reading is the alternative and it is cheaper; it cannot see a `mem` write that shadows an equal `file` value (§1.2 `S-2` (i)) and would silence the act that changed the tier model** | **the architect's — BLOCKING** |
+| **`Q-2`** | **THE EQUALITY'S RELATION — which of `PartialEq`, `sameStanding`, the canonical encoding, or a composition of two?** The corpus has **two** and they disagree at `-0` (`src/value.rs:15` vs `constraints.mjs:3643`); **the only tier-aware relation in the tree is value-blind** (`save_owed`, `src/store.rs:1954`–`:1960`). | **the store's `PartialEq` over `StoreValue`, compared over `Q-1`'s subject** — it is free, it is already `derive`d, and it is the only relation that lives where `D-69`'s one predicate lives (*"ONE PREDICATE, in the store, where the per-tier versions live"*, `strata/decisions.md:3861`). **The `-0` divergence is then decided AGAINST `sameStanding`, and the architect must know that: the reversal's judgement would keep one answer and the write's firing rule the other** | **the architect's — BLOCKING, and it is `P-3`'s `Q-1`+`Q-2`+`Q-3` asked at the relation** |
+| **`Q-3`** | **DOES A NO-CHANGE WRITE MINT AN OP?** It mints one unconditionally today (`src/store.rs:2995`, `:2441`–`:2442`), and the append can **drop the oldest journal entry** (`:2451`–`:2466`). **Minting keeps `P-TP-8` (g) (`contract.md:3056`–`:3059`) and `rollback`'s reachability and keeps the compaction cost; not minting removes a journal position and falsifies (g) at the answered record.** | **IT MINTS ONE, and the suppression is narrower than the act** — the op is the carrier of the save (`commit_file` looks the entry up by id, `src/store.rs:1804`–`:1810`), of (g), and of `rollback`'s reach, **and the tree has no arm that answers a `WriteRecord` with no `op`.** **The alternative — the `delete`-that-removed-nothing shape (`:3098`–`:3109`, `op: None`, no entry) — is the corpus's one shipped precedent and it changes `WriteRecord.op`'s type from `JournalOp` to `JournalOp \| null` (`index.d.ts:716`), which is a surface break of its own** | **the architect's — BLOCKING** |
+| **`Q-4`** | **WHAT DOES THE RECEIPT CARRY?** Four answers are priced in §4: `(A-1)` the same receipt with `triggered: []` · `(A-2)` today's receipt whose `op.before` equals `op.after` · `(A-3)` a new status — **unavailable, the set is a refusal set** · `(A-4)` rank `24`. **And a fifth is a ruling away: a member on the closed record, the device seven members have already landed with.** | **`(A-1)` with the `[]` sentence written in the same pass** — `(A-2)` alone answers the request with nothing new and is available today, **which is precisely why it may be what he actually wants if the request is about telling rather than silencing**; `(A-1)` is the default only because the request's verb is *"fire"* and not *"report"*. **`Q-5`'s sentence is the debt either way** | **the architect's — BLOCKING** |
+| **`Q-5`** | **DOES THE SUPPRESSION REACH THE CONSTRAINTS, OR ONLY THE LISTENERS?** **They are one predicate and one returned set** (`src/store.rs:2546`–`:2553` and `:2571`–`:2577`; `contract.md:3048`–`:3052`'s projection law; `kernel-attempt.mjs:669`–`:670`). **A store-side narrowing narrows the pass, `D-105`'s repair-credit set and `D-152`'s registration-instant union by construction; a package-side one narrows only the delivery and creates `D-67`'s asymmetry one layer up.** | **THE PASS NARROWS WITH THE FIRING — the two are one predicate by `D-69`, and a write that a pair would have refused on must not become admissible because its value was equal.** **This is `P-3`'s `Q-2`'s consequence read at the constraint axis, and it is the row whose default is a silent ruling if it is not named** | **the architect's — BLOCKING** |
+| **`Q-6`** | **DOES THE RULE REACH THE TOUCHED ARM?** A second identical STRUCTURED write touches one path per own member (`src/store.rs:4213`–`:4229`) **where no assembled value changed**, so the request's words narrow `D-66`'s descendant arm. | **THE TOUCHED ARM IS NOT NARROWED** — `P-3`'s `Q-4` default stands and is re-derived here: a registration there was told by `D-66`'s ruling and not by this request, and §2's table shows every value relation is blind to it anyway | **the architect's — `P-3`'s `Q-4`, unchanged** |
+| **`Q-7`** | **AT WHICH INSTANT — the spelled value or the landed one, and does a repair's write obey the same rule?** `D-118`'s order puts the repair after the ask (`D-117`, `:6034`–`:6039`); the set is computed inside the write (`src/store.rs:3001`–`:3007`) and the save and pass follow it. | **the landing, before any repair** — `P-3`'s `Q-7` default, unchanged, because the set is computed inside the write and a repair cannot retroactively silence it. **But a repair's OWN write is a separate act whose suppression would change `D-104`/`D-152`'s delivered union, and that half is NOT decided by this default** | **the architect's — `P-3`'s `Q-7`, and its repair half is open** |
+| **`Q-8`** | **DOES A NO-CHANGE `file`-TIER WRITE STILL SAVE?** `save_owed`'s first disjunct answers `true` before any departure test (`src/store.rs:1951`–`:1953`), so **today it saves, and the file is rewritten with identical bytes while its mtime moves** (`strata/research.md:2176`–`:2178`). `D-106` item 2's rule (`strata/decisions.md:5419`–`:5421`) does not reach the case: *"any action that changes the file-tier data"* — this action does not. | **IT STILL SAVES** — `D-106` item 2 is the only clause in reach and its antecedent is false, so no clause in the tree forbids the save; and the save is the op's own eligibility ground, whose movement would be a second change to a rule that has already been amended twice. **The cost is named: the request's own act is the one the corpus's journal-retention RCA benchmarked** (`src/store.rs:2429`) | **the architect's** |
+| **`Q-9`** | **DOES `D-152` SURVIVE, AND IS ITS *"CHANGED"* NOW RE-READ?** `D-152` (`strata/decisions.md:7991`, `2026-11-17`) rules *"Fires only the listeners changed by the writes"* and its mechanism is a **write-existence** union of the store's answered sets (`:8003`–`:8010`). **A store-side value test changes the sets it unions, at four instants `D-125` item 1 widened.** | **`D-152` STANDS AND ITS `"changed"` IS READ AS ACT-EXISTENCE, NOT VALUE EQUALITY** — that is what its own mechanism says, and reading it as a value test would import `P-3`'s undecided relation into a different ruling by inference. **Under `Q-5`'s store-side default its union narrows with the store's set and that consequence is his to accept or refuse** | **the architect's** |
+| **`Q-10`** | **CLASS, AND DOES IT PAIR WITH `P-2`?** `D-190` is `MAJOR — bump to 2.0.0` for **removing one published declaration member** (`RELEASE-NOTES.md:64`–`:70`); `bindings/js/package.json:3` already reads `2.0.0`; `P-3` is declared *"the cycle's first unit"* and `P-2`'s break is behavioural (`strata/decisions.md:9353`–`:9354`). **So: `MAJOR`, and one version line or two?** | **`MAJOR`, STANDING ALONE ON ITS OWN VERSION** — the request has its own subject, its own declarations and its own sentence to write, and pairing two unrelated breaks on one number would make one release note carry two migrations. **`2.0.0` is spent, so the number is `3.0.0` and that is his word, not a pass's** (`D-124` item 3's discipline) | **the architect's — BLOCKING for scope** |
+| **`Q-11`** | **IS THE SHIPPED DEFAULT FLIPPED, OR IS THE BEHAVIOUR OPT-IN?** `P-3`'s `Q-9` default stands: **the shipped default STANDS and nothing lands** — and this owner's own precedent on the same fork is opt-in (`P-1` → `D-121`, a third verb, `strata/proposals.md:212`–`:214`). | **the shipped default STANDS; the behaviour is an option or a verb** — restated here only because `Q-3` and `Q-4` cannot be pinned on a default that is itself a silent flip | **the architect's — `P-3`'s `Q-9`, unchanged** |
+| **`Q-12`** | **WHAT MAY A CALLER CONCLUDE FROM `triggered: []`, AND HOW DOES IT TELL THE TWO CASES APART?** `docs/specs/storeroom-js/surface.md:235` (`D-78`) says an absent member and an empty list are different claims; the store's existing `[]` means *"no registration stood at a prefix"* (`contract.md:3033`–`:3034`). | **the sentence is owed in the same pass and the two cases are declared indistinguishable from `[]` alone** — `P-3`'s `Q-5` default, unchanged; §3.6 shows `log` and `discarded` inherit the same ambiguity at the same seam | **the architect's — a debt a landing pass may not leave** |
+
+---
+
+## §7 · WHAT I COULD NOT ESTABLISH FROM THE TREE
+
+**EACH OF THESE IS A PLACE WHERE THE TREE DOES NOT DECIDE, AND I HAVE NOT FILLED IT WITH A PLAUSIBLE READING.**
+
+1. **WHETHER A PASS THAT RUNS EMPTY STILL DRAINS ITS WINDOW.** `D-170`'s guarantee is *"every pass drains"* (`strata/decisions.md:8737`–`:8739`), and a suppressed pass is a pass that does not run. **The residual was measured unreachable on the shapes that row drove; a pass emptied by a value test is not one of them.** No clause answers it and no cell drives it. §3.5.
+2. **WHETHER `D-152`'s *"changed"* AND THIS REQUEST'S *"changed"* ARE ONE WORD.** The row's mechanism is act-existence; the request's is value-equality; the two share a spelling and neither document distinguishes them. **A ruling is needed and I have not inferred one.** §3.2.
+3. **THE `-0` ARM'S DIRECTION.** `src/value.rs:15` and `constraints.mjs:3643` give two answers and **no clause says which governs a firing rule.** `A59` (c) governs the *file image* (`src/json.rs:111`–`:113`) and says nothing about a comparison. §2.1.
+4. **WHETHER A SHADOWING WRITE OF AN EQUAL VALUE IS *"A CHANGE"* IN THE CORPUS'S OWN TERMS.** `save_owed`'s docblock calls the shadowing write one that *"leaves it standing"* (`src/store.rs:1940`–`:1943`) and refuses it a save; `D-66`'s criterion calls creation-and-purge changes. **Neither says whether minting a `mem` version over an equal `file` version is a change.** This is the single case on which §1's and §2's answers converge, and the tree is silent. §1.2, §2.2.
+5. **WHETHER `WriteRecord.op` MAY BECOME OPTIONAL.** The `delete`'s receipt `op` is `Option<JournalOp>` (`src/records.rs:223`) and the write's is not (`bindings/js/index.d.ts:716`). **No clause explains the asymmetry, and no clause forbids closing it — and closing it would be a published-member change of the class `D-190` already paid for.** §3.4, §4.
+6. **WHETHER ANY CLAUSE RELIED ON A NO-CHANGE WRITE *FIRING*.** The corpus's one cell says it does (`json-crossing.test.mjs:4357`); the re-entrancy clause's example depends on it (`storeroom-js/contract.md:2183`–`:2185`). **No clause declares the firing a capability.** `P-3` §6 already withdrew the argument that an equal-value write is the product's *only* re-check lever (`strata/proposals.md:813`–`:817`) — `addConstraint`/re-arm re-run unconditionally — **so the capability claim is dead, and what remains is an expectation with no clause behind it.**
+7. **`P-3`'s OWN RANGES.** Twelve of them drifted (§0.3). **Two I did not re-read at all** — `docs/specs/storeroom-native/contract.md:1794` and `:2237` — and I make no claim about them. **A gate-2 pass must re-take every `path:line` in `P-3` at the landing date**, which is this project's standing rule anyway.
+8. **WHETHER `tests/e2e/blind-entry-surface.test.mjs`'s 22 is a LIVE RED OR A SILENT GREEN.** I read the array (22 literals) and the assertion (`length, 22`) and the two homes (23 each) and **the cell is self-consistently green on a copy that disagrees with both homes.** **Whether some other cell catches it in CI is a run, and this pass held no shell.** §5.1.
+
+---

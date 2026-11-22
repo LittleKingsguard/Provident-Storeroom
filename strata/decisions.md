@@ -9352,3 +9352,34 @@ asserted nowhere** (`D-184` item 4).
 3. **AND IT SETTLES THE TWO THINGS `P-2`'S GATE-1 COULD NOT**: **(i) WHICH ACTS IT INHERITS** — the constraint pass with its repair flows, the save, and the listener delivery, **all three, in that order**; **(ii) IN WHAT ORDER AGAINST THE ARMING** — **after** the build, which is what makes *"everything is new data"* true at the instant the constraints are asked (the register the construction produced is the state they judge).
 4. **WHAT THIS ROW DOES NOT DECIDE, NAMED SO A DESIGN PASS DOES NOT ASSUME IT**: **whether the create's `create_new` file at step 4b counts as the "save"** or whether the terminal arm's save runs beside it (`D-106`'s eligibility rule has to be read at a creation, where the act moved *everything*) · **what the delivered set is** when a listener's address was never seeded (does a creation fire a listener whose address resolves only because an *ancestor* is present?) · **whether a refusal in the constraint pass leaves the created file behind** (`A55`'s *"leaves nothing behind"*, which `D-173`'s guard now implements at the arming sweep and **not** at the constraint pass) · **and the class**: **`P-2`'s break is behavioural** — a construction that today boots and arms would start refusing and firing — **so it is a `MAJOR`'s subject or nobody's.**
 5. **AND `P-2` MOVES FROM `BLOCKED-ON-SEMANTICS` TO DESIGN-READY AT ITS GATE, WHILE `P-3` REMAINS THE CYCLE'S FIRST UNIT** (the architect's *"Start with P-3"*): **this row is the intake answer and mints no unit.** `strata/proposals.md`'s `P-2` carries the verdict change at its own §1.
+
+---
+
+### `D-192` — `P-3`'S INTAKE IS LANDED AND ITS BLOCK IS NOW TWELVE QUESTIONS: THE REQUEST'S OWN CANONICAL CASE IS NOT THE ONE IT THINKS, AND THE TREE HAS A PRECEDENT
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `68527dc`. **SOURCE:** `role_l0_research`'s intake, `strata/research.md §24`. **STATUS: `ACTIVE`.**
+
+1. **★ THE FINDING THAT DECIDES THE SCOPE: THE REQUEST'S CANONICAL CASE IS NOT THE CASE IT THINKS IT IS, AND THE COUNTER-EXAMPLE IS ORDINARY.** Write `file V` at
+   one address in a `filePath` store, then write `mem V`. **EVERY SUBJECT THE READ PATH OFFERS SAYS *"NOTHING CHANGED"*** — the unqualified read answers `V` on both
+   sides, and `op.before.value` and `op.after.value` are both `V` — **while the address's per-tier standing went from ONE version to TWO, the `readTiered` answer
+   moved from `{_tier:'file'}` to `{_tier:'mem'}`, and nothing on the write path was purged.** **SO THE CHEAPEST SUBJECTS SILENCE THE WRITE THAT DID CHANGE THE
+   MODEL**, and the only subject that sees it is **the per-tier LIST, whose type is not stable across the act** (one version → a value; two → a list; none → absent).
+   **A reader of the request would not predict that, and it is the reason the block is semantic and not clerical.**
+2. **AND THE TREE ALREADY HAS ONE *"NOTHING CHANGED ⇒ NOTHING FIRES"* ARM, WHICH THE GATE-1 DID NOT NAME**: the **`delete` that resolved and removed nothing** answers
+   `triggered: []` **and mints no op** (“`D-3`: nothing was removed, so NO entry was appended”). **It is keyed on REMOVAL and not on value**, and it is **both §3's and
+   §4's precedent at once** — the tree's own answer to *"what does a verb owe when nothing moved"*, taken on the verb that already has the case.
+3. **THE SUBJECT IS SIX CANDIDATES AND FOUR ARE FREE; THE RELATION IS TWO AND THEY DISAGREE AT ONE ADMITTED VALUE.** Subjects: the written tier's version · the
+   **per-tier list** · the **pair** (what the store already captures) · the entry's own captured/after · the **branch** (right and **unaffordable** — the corpus's own
+   measured hang, `O(n²)` on a 999,999-member array) · the **durable departure** (`save_owed`, **value-blind by design**). Relations: the store's `PartialEq`
+   (**says `-0 == 0`**, class-strict and key-order-blind for free) versus the shipped `sameStanding` (**says they differ**, `Object.is`). **Reference identity is
+   the only relation provably wrong on BOTH of the request's cases and it is exactly inverted** — an identical same-tier re-write always mints a new reference,
+   and the write that shadows an equal higher-tier value leaves every surviving reference unmoved.
+4. **AND ONE COST THAT COMPOUNDS: A NO-CHANGE WRITE MINTS A JOURNAL OP UNCONDITIONALLY, AND THAT APPEND CAN DROP THE OLDEST ENTRY.** **The corpus's own journal-growth
+   benchmark is *"16k writes on one unchanged address"*** — so the feature's canonical use is the benchmark that measured the retention work.
+5. **SO THE BLOCK IS NOW TWELVE QUESTIONS, SIX OF THEM BLOCKING, AND EVERY ONE IS THE ARCHITECT'S** (`strata/research.md §24 §6`): **the shadowed subject and whether the
+   tier set is inside it** · **the relation** · **whether a no-change write mints an op** · **what the receipt carries** · **whether the suppression reaches the
+   CONSTRAINTS (they are one predicate with the listeners, `D-69`)** · **the class and whether it pairs with `P-2` on one `MAJOR` or takes its own**. **`P-3`'s own nine
+   stand unchanged and are not re-asked.** **EVERY ROW CARRIES A DEFENDABLE DEFAULT, SO NONE OF THE TWELVE CAN HOLD THE CYCLE UP BY BEING UNANSWERED.**
+6. **AND `P-3`'S OWN RANGES HAVE DRIFTED — TWELVE OF THEM** — which is the corpus's own filed class (*"the figure was true when measured and was falsified by the
+   ruling that made it true"*). **Two that carry the contradiction stand exactly where the proposal printed them**, so **the argument survives and the line numbers do
+   not**; the drift table opens the landed intake and a gate-2 pass must re-take every citation at the landing date.
