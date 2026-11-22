@@ -383,14 +383,20 @@ try {
   const cleanups = fourPrefixed.filter((n) => /remove|clean/i.test(n));
   const publishers = fourPrefixed.filter((n) => /publish/i.test(n) && !/guard:/i.test(n) && !/remove|clean/i.test(n));
   const accounted = fourGuards.length + publishers.length + cleanups.length;
-  const ok = publishers.length >= 1 && guardNames.length === 1
+  // **⟶ AND THE `pre-publish guard` COUNT IS NO LONGER ONE, 2026-11-17 — THE IDEMPOTENCY GUARD JOINED THE CLASS.** The clause's version guard is the
+  // **VERSION-IDENTITY** guard (*"the assembled artefact's `version()` equals its platform manifest's `version`"*); **two registry-version guards were added the
+  // same day** (`D-201`'s follow-up: `npm` refuses a republished version, so a re-run must SKIP what already published rather than fail on it), **and they carry
+  // the same spelling because they are the same class.** **SO THIS CELL NAMES THE GUARD THE CLAUSE OWNS INSTEAD OF COUNTING A CLASS THAT HAS LEGITIMATELY GROWN**:
+  // a count would be re-cut by every future pre-publish guard, and the clause never claimed to be the only one.
+  const identityGuard = guardNames.filter((n) => n.includes('version() equals its platform manifest'));
+  const ok = publishers.length >= 1 && identityGuard.length === 1 && guardNames.length >= 1
     && fourGuards.length === publishers.length
     && accounted === fourPrefixed.length
     && !fourGuards.some((n) => n.includes('pre-publish guard'));
   say('CF-09', ok ? 'PASS' : 'FAIL',
     `four-prefixed steps=${fourPrefixed.length} [${fourPrefixed.join(' | ')}]; existence guards by the clause's `
     + `ordinal-prefixed form=${existenceGuards.length} [${existenceGuards.join(' | ')}]; version guards=${guardNames.length} `
-    + `[${guardNames.join(' | ')}]; publishers=${publishers.length} cleanups=${cleanups.length}; one existence guard per `
+    + `[${guardNames.join(' | ')}] (the identity guard: ${identityGuard.length}); publishers=${publishers.length} cleanups=${cleanups.length}; one existence guard per `
     + `publisher=${fourGuards.length} == ${publishers.length}; guards+publishers+cleanups=${accounted} == ${fourPrefixed.length}`,
     'release.md §1.4a item 11(b)');
 } catch (e) {

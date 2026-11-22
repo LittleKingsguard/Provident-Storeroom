@@ -263,7 +263,38 @@ jobs:
       # *"`npm stage publish` | No | Designed for automated workflows; defers 2FA to approval"*).
       # **THE PRE-PUBLISH GUARD ABOVE AND THE CLEANUP BELOW ARE UNMOVED: what moved is the ACTION, not the
       # assembly, the guards or the order.**
+      # **⟶ AND THE SAME TWO-QUESTION GUARD THE `wasm` JOB CARRIES, ADDED HERE 2026-11-17 — AND ITS SPELLING IS `pre-publish guard:` DELIBERATELY**: the platform
+      # job already carries one of that name for the version identity, `CF-09` counts the `4.`-prefixed steps' arithmetic, and a guard that is not a PUBLISH step
+      # must not enter that count. — BECAUSE A RE-RUN IS A NORMAL RECOVERY AND IT MUST NOT DIE ON WHAT ALREADY
+      # SUCCEEDED.** **npm REFUSES A REPUBLISHED VERSION**, so a release that failed at ONE artefact could never be completed by re-running: every artefact that had
+      # already published would refuse on the second attempt and the run would fail again at the same place. **SO EACH PUBLISH SITE ASKS TWO QUESTIONS — DOES THE NAME
+      # EXIST (else a trusted publisher cannot, and the job stops) and IS THIS VERSION ALREADY THERE (else the publish is SKIPPED and the job passes)** — and the
+      # guard needs **no secret**: `npm view` is a public read.
+      - name: 'pre-publish guard: this version is not on the registry, because npm refuses a republished one'
+        id: versionguard
+        run: |
+          name="$(node -p "require(process.env.DIR + '/package.json').name")"
+          version="$(node -p "require(process.env.DIR + '/package.json').version")"
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+          if npm view "$name" version >/dev/null 2>&1; then
+            if npm view "$name@$version" version >/dev/null 2>&1; then
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              echo "ok $name@$version already exists — the publish step is SKIPPED (a re-run completes what is missing, and npm refuses a")
+              echo "   republished version); the artefact is still built, assembled and guarded by the steps around this one."
+            else
+              echo "ok $name@$version is not published yet — the publish step runs"
+            fi
+          else
+            echo "REFUSED: '$name' does not exist on the registry, so it has no trusted publisher and this job cannot publish it."
+            echo "A NEW artefact's first publish is a BOOTSTRAP: publish the name once with a credential, configure its trusted publisher"
+            echo "at npmjs.org, and re-run. docs/specs/storeroom-publish/contract.md · PUB-DD-30."
+            exit 1
+          fi
+        env:
+          DIR: bindings/js/platforms/${{ matrix.label }}
+
       - name: '4. publish the platform artefact'
+        if: steps.versionguard.outputs.skip != 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -564,7 +595,36 @@ jobs:
       # architect promotes in the declared order — the five platform artefacts, then the main package.**
       # **FLAGS:** `--access public` · `--provenance` · `--tag latest`, each named by `npm stage publish
       # --help` on this machine (`npm 12.2.0`), and NOTHING ELSE.
+      # **⟶ AND THE SAME TWO-QUESTION GUARD THE `wasm` JOB CARRIES, ADDED HERE 2026-11-17 — BECAUSE A RE-RUN IS A NORMAL RECOVERY AND IT MUST NOT DIE ON WHAT ALREADY
+      # SUCCEEDED.** **npm REFUSES A REPUBLISHED VERSION**, so a release that failed at ONE artefact could never be completed by re-running: every artefact that had
+      # already published would refuse on the second attempt and the run would fail again at the same place. **SO EACH PUBLISH SITE ASKS TWO QUESTIONS — DOES THE NAME
+      # EXIST (else a trusted publisher cannot, and the job stops) and IS THIS VERSION ALREADY THERE (else the publish is SKIPPED and the job passes)** — and the
+      # guard needs **no secret**: `npm view` is a public read.
+      - name: 'pre-publish guard: this version is not on the registry, because npm refuses a republished one'
+        id: versionguard
+        run: |
+          name="$(node -p "require(process.env.DIR + '/package.json').name")"
+          version="$(node -p "require(process.env.DIR + '/package.json').version")"
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+          if npm view "$name" version >/dev/null 2>&1; then
+            if npm view "$name@$version" version >/dev/null 2>&1; then
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              echo "ok $name@$version already exists — the publish step is SKIPPED (a re-run completes what is missing, and npm refuses a")
+              echo "   republished version); the artefact is still built, assembled and guarded by the steps around this one."
+            else
+              echo "ok $name@$version is not published yet — the publish step runs"
+            fi
+          else
+            echo "REFUSED: '$name' does not exist on the registry, so it has no trusted publisher and this job cannot publish it."
+            echo "A NEW artefact's first publish is a BOOTSTRAP: publish the name once with a credential, configure its trusted publisher"
+            echo "at npmjs.org, and re-run. docs/specs/storeroom-publish/contract.md · PUB-DD-30."
+            exit 1
+          fi
+        env:
+          DIR: bindings/js
+
       - name: '5. publish the main package'
+        if: steps.versionguard.outputs.skip != 'true'
         working-directory: bindings/js
         run: npm stage publish --access public --provenance --tag latest
 
