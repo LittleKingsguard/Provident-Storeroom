@@ -276,9 +276,13 @@ jobs:
         # `windows-2022` executes `run:` in PowerShell, where this body's `>/dev/null 2>&1` and `if …; then` are not syntax; the other two failures were
         # unbalanced quotes and a stray paren. **The body is one call into `scripts/guard-publish-version.mjs`** — one implementation for every leg, and one
         # that can be RUN LOCALLY BEFORE A TAG IS MOVED, which is what all three failures lacked.
-        run: node scripts/guard-publish-version.mjs "$DIR"
+        # **⟶ AND THE LOGIC IS A SCRIPT AND NOT A SHELL BODY, 2026-11-17 — FOUR CI FAILURES IN A ROW, EACH WITH ONE CAUSE: A SHELL THE MATRIX
+        # DOES NOT SHARE.** `windows-2022` runs `run:` in PowerShell: `/dev/null` and `if …; then` are not syntax there, and **a bare `"$VARIABLE"`
+        # is worse** — legal in both dialects and EMPTY in one. **So the body interpolates nothing and holds no control flow**: one call into
+        # `scripts/guard-publish-version.mjs`, which reads its directory from `GUARD_DIR` and can be RUN LOCALLY BEFORE A TAG IS MOVED.
+        run: node scripts/guard-publish-version.mjs
         env:
-          DIR: bindings/js/platforms/${{ matrix.label }}
+          GUARD_DIR: bindings/js/platforms/${{ matrix.label }}
 
       - name: '4. publish the platform artefact'
         if: steps.versionguard.outputs.skip != 'true'
@@ -380,6 +384,7 @@ jobs:
       # "latest".
       - name: '2. wasm-bindgen, at the crate''s own pin, into the CLI home the script reads'
         run: cargo install wasm-bindgen-cli --version 0.2.130 --root "$CARGO_HOME"
+        shell: bash
 
       # **THE FETCH THE DECLARED OFFLINE COMMAND ASKS FOR, AND NOTHING BESIDE IT.** The build script's cargo
       # leg carries `--offline` — the store's command property — and `.cargo-home` is a CACHE that no checkout
@@ -409,7 +414,13 @@ jobs:
         # `windows-2022` executes `run:` in PowerShell, where this body's `>/dev/null 2>&1` and `if …; then` are not syntax; the other two failures were
         # unbalanced quotes and a stray paren. **The body is one call into `scripts/guard-publish-version.mjs`** — one implementation for every leg, and one
         # that can be RUN LOCALLY BEFORE A TAG IS MOVED, which is what all three failures lacked.
-        run: node scripts/guard-publish-version.mjs bindings/js/platforms/wasm
+        # **⟶ AND THE LOGIC IS A SCRIPT AND NOT A SHELL BODY, 2026-11-17 — FOUR CI FAILURES IN A ROW, EACH WITH ONE CAUSE: A SHELL THE MATRIX
+        # DOES NOT SHARE.** `windows-2022` runs `run:` in PowerShell: `/dev/null` and `if …; then` are not syntax there, and **a bare `"$VARIABLE"`
+        # is worse** — legal in both dialects and EMPTY in one. **So the body interpolates nothing and holds no control flow**: one call into
+        # `scripts/guard-publish-version.mjs`, which reads its directory from `GUARD_DIR` and can be RUN LOCALLY BEFORE A TAG IS MOVED.
+        run: node scripts/guard-publish-version.mjs
+        env:
+          GUARD_DIR: bindings/js/platforms/wasm
       # **THE SAME PRE-PUBLISH EXISTENCE GUARD THE PLATFORM SITE CARRIES, READ AT THIS MANIFEST'S OWN
       # PATHS** (`A89`(4); `PUB-DD-27`'s price): `npm` omits a missing `files` entry SILENTLY, so every path
       # this manifest names is asserted to exist BEFORE the name and the version are spent. **THE PATHS ARE
@@ -571,9 +582,13 @@ jobs:
         # `windows-2022` executes `run:` in PowerShell, where this body's `>/dev/null 2>&1` and `if …; then` are not syntax; the other two failures were
         # unbalanced quotes and a stray paren. **The body is one call into `scripts/guard-publish-version.mjs`** — one implementation for every leg, and one
         # that can be RUN LOCALLY BEFORE A TAG IS MOVED, which is what all three failures lacked.
-        run: node scripts/guard-publish-version.mjs "$DIR"
+        # **⟶ AND THE LOGIC IS A SCRIPT AND NOT A SHELL BODY, 2026-11-17 — FOUR CI FAILURES IN A ROW, EACH WITH ONE CAUSE: A SHELL THE MATRIX
+        # DOES NOT SHARE.** `windows-2022` runs `run:` in PowerShell: `/dev/null` and `if …; then` are not syntax there, and **a bare `"$VARIABLE"`
+        # is worse** — legal in both dialects and EMPTY in one. **So the body interpolates nothing and holds no control flow**: one call into
+        # `scripts/guard-publish-version.mjs`, which reads its directory from `GUARD_DIR` and can be RUN LOCALLY BEFORE A TAG IS MOVED.
+        run: node scripts/guard-publish-version.mjs
         env:
-          DIR: bindings/js
+          GUARD_DIR: bindings/js
 
       - name: '5. publish the main package'
         if: steps.versionguard.outputs.skip != 'true'

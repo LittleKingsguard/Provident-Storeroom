@@ -5166,44 +5166,41 @@ test('W-STEP-1 · every run: step either declares `shell: bash` or carries no ba
   // block runs until a line indented less than its first body line.
   const lines = workflow.split('\n');
   const steps = [];
+  // **A STEP RUNS FROM ITS `- name:` TO THE NEXT ONE, AND `shell:` IS COLLECTED WHEREVER IT STANDS IN THAT SPAN — order-independently, because a
+  // step may declare `shell:` AFTER `run:` and a scan that broke at the first `run:` would never see it.** (That is the bug this cell had on its
+  // first cut: it read the file, found the shell missing, and reported a step that declares it.)
+  const heads = [];
   for (let i = 0; i < lines.length; i += 1) {
-    const stepHead = /^( +)- name: '?(.+?)'?$/.exec(lines[i]);
-    if (!stepHead) continue;
-    const indent = stepHead[1].length;
+    const m = /^( +)- name: '?(.+?)'?$/.exec(lines[i]);
+    if (m) heads.push({ at: i, indent: m[1].length, name: m[2] });
+  }
+  for (let h = 0; h < heads.length; h += 1) {
+    const from = heads[h].at;
+    const to = h + 1 < heads.length ? heads[h + 1].at : lines.length;
     let shell = null;
     let run = null;
-    for (let k = i + 1; k < lines.length; k += 1) {
+    for (let k = from; k < to; k += 1) {
       const line = lines[k];
-      if (line.trim() === '') continue;
-      const lineIndent = line.length - line.trimStart().length;
-      if (lineIndent <= indent && !line.trimStart().startsWith('- name:')) {
-        if (!line.trimStart().startsWith('- name:')) break;
-      }
-      if (lineIndent <= indent && line.trimStart().startsWith('- name:')) break;
       const shellMatch = /^\s*shell:\s*(\S+)\s*$/.exec(line);
       if (shellMatch) shell = shellMatch[1];
+      if (run !== null) continue;
       if (/^\s*run:\s*\|/.test(line)) {
-        const bodyIndent = (() => {
-          for (let b = k + 1; b < lines.length; b += 1) {
-            if (lines[b].trim() === '') continue;
-            return lines[b].length - lines[b].trimStart().length;
-          }
-          return lineIndent;
-        })();
+        let bodyIndent = null;
         const body = [];
-        for (let b = k + 1; b < lines.length; b += 1) {
-          if (lines[b].trim() !== '' && lines[b].length - lines[b].trimStart().length < bodyIndent) break;
-          body.push(lines[b]);
+        for (let b = k + 1; b < to; b += 1) {
+          const bodyLine = lines[b];
+          if (bodyLine.trim() === '') { body.push(''); continue; }
+          const indentOfBody = bodyLine.length - bodyLine.trimStart().length;
+          if (bodyIndent === null) bodyIndent = indentOfBody;
+          if (indentOfBody < bodyIndent) break;
+          body.push(bodyLine);
         }
         run = body.join('\n');
-        break;
-      }
-      if (/^\s*run:\s*[^|]/.test(line)) {
+      } else if (/^\s*run:\s*[^|]/.test(line)) {
         run = line.replace(/^\s*run:\s*/, '');
-        break;
       }
     }
-    if (run !== null) steps.push({ name: stepHead[2], shell, run });
+    if (run !== null) steps.push({ name: heads[h].name, shell, run });
   }
 
   assert.ok(steps.length >= 10,
@@ -5219,6 +5216,13 @@ test('W-STEP-1 · every run: step either declares `shell: bash` or carries no ba
     [/^\s*set -e/m, '`set -e` is bash'],
   ];
 
+  // **⟶ AND A BARE `$VAR` IS ON THE LIST BECAUSE IT FAILS *SILENTLY*, WHICH IS WORSE THAN A SYNTAX ERROR, 2026-11-17 — A FOURTH CI FAILURE.**
+  // A guard step passed its directory as `"$DIR"`. **In bash that expands; in PowerShell the same text is a variable that does not exist, so it expands to
+  // the EMPTY STRING** and the tool answered `usage:` — **a body that is legal syntax in both shells and means two different things in them.** **A
+  // `$NAME` in a step that declares no shell is therefore exactly as unsafe as `/dev/null` is**, and the cell counts it. **GitHub expressions
+  // (`${{ … }}`) are excluded**, because the host expands those BEFORE any shell sees the body.
+  const SHELL_VARIABLE = /\$[A-Za-z_][A-Za-z0-9_]*/;
+
   const offenders = [];
   for (const step of steps) {
     if (step.shell === 'bash') continue;
@@ -5227,6 +5231,11 @@ test('W-STEP-1 · every run: step either declares `shell: bash` or carries no ba
         offenders.push(`'${step.name}' carries ${why} and declares no \`shell: bash\``);
         break;
       }
+    }
+    const withoutExpressions = step.run.replace(/\$\{\{[^}]*\}\}/g, '');
+    if (SHELL_VARIABLE.test(withoutExpressions)) {
+      const found = SHELL_VARIABLE.exec(withoutExpressions)[0];
+      offenders.push(`'${step.name}' interpolates \`${found}\` and declares no \`shell: bash\` \u2014 bash expands it and pwsh does NOT`);
     }
   }
   assert.deepEqual(offenders, [],

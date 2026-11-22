@@ -48,7 +48,11 @@ function view(spec) {
   }
 }
 
-const dir = process.argv[2];
+// **⟶ AND THE DIRECTORY COMES FROM THE ENVIRONMENT FIRST — 2026-11-17, FROM A FOURTH CI FAILURE AND A SILENT ONE.** The step passed `"$DIR"`
+// on the command line, which is **bash**: on the `windows-2022` legs the same text is a **PowerShell variable that does not exist**, so it expanded to
+// the empty string and this file answered `usage:` — **a syntax-valid body that means two different things in two shells, which is worse than one
+// that refuses.** So the argument is read from `GUARD_DIR` and the command line is only the LOCAL convenience.
+const dir = process.env.GUARD_DIR || process.argv[2];
 if (!dir) {
   console.error('usage: node scripts/guard-publish-version.mjs <package-dir>');
   process.exit(2);
