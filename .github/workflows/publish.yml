@@ -273,8 +273,11 @@ jobs:
       - name: 'pre-publish guard: this version is not on the registry, because npm refuses a republished one'
         id: versionguard
         run: |
-          name="$(node -p "require(process.env.DIR + '/package.json').name")"
-          version="$(node -p "require(process.env.DIR + '/package.json').version")"
+          # **A PATH, NOT A MODULE SPECIFIER**: `require('bindings/js/...')` is resolved as a PACKAGE NAME and throws MODULE_NOT_FOUND, because a
+          # `require` argument that does not begin with `./`, `../` or `/` is a specifier and not a path. **MEASURED IN CI, 2026-11-17, on the first run of
+          # these guards** — so the manifest is READ as bytes and parsed, which is unambiguous whatever the working directory is.
+          name="$(node -p "JSON.parse(require('node:fs').readFileSync(process.env.DIR + '/package.json', 'utf8')).name")"
+          version="$(node -p "JSON.parse(require('node:fs').readFileSync(process.env.DIR + '/package.json', 'utf8')).version")"
           echo "skip=false" >> "$GITHUB_OUTPUT"
           if npm view "$name" version >/dev/null 2>&1; then
             if npm view "$name@$version" version >/dev/null 2>&1; then
@@ -603,8 +606,11 @@ jobs:
       - name: 'pre-publish guard: this version is not on the registry, because npm refuses a republished one'
         id: versionguard
         run: |
-          name="$(node -p "require(process.env.DIR + '/package.json').name")"
-          version="$(node -p "require(process.env.DIR + '/package.json').version")"
+          # **A PATH, NOT A MODULE SPECIFIER**: `require('bindings/js/...')` is resolved as a PACKAGE NAME and throws MODULE_NOT_FOUND, because a
+          # `require` argument that does not begin with `./`, `../` or `/` is a specifier and not a path. **MEASURED IN CI, 2026-11-17, on the first run of
+          # these guards** — so the manifest is READ as bytes and parsed, which is unambiguous whatever the working directory is.
+          name="$(node -p "JSON.parse(require('node:fs').readFileSync(process.env.DIR + '/package.json', 'utf8')).name")"
+          version="$(node -p "JSON.parse(require('node:fs').readFileSync(process.env.DIR + '/package.json', 'utf8')).version")"
           echo "skip=false" >> "$GITHUB_OUTPUT"
           if npm view "$name" version >/dev/null 2>&1; then
             if npm view "$name@$version" version >/dev/null 2>&1; then
