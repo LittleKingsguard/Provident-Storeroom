@@ -9234,3 +9234,42 @@ not separable from the compaction it belongs to, and **the alternative would hav
 **AND THE RECORDS THAT REMAIN ARE RECORDS, NOT WORK**: the capture's artefact-layer limbs are **owed to nobody** (their producer `call` is deleted) · **`§6` item 2's
 body-derived rule** is a record and curing it is a decision about that cell · and **the `closedIds` unbounded case** is a collector property **recorded as a measurement and
 asserted nowhere** (`D-184` item 4).
+
+---
+
+### `D-187` — THE SPECS AND THE GUIDES ARE REGENERATED FOR THE LANDING, AND FIVE STALE FIGURES OUTSIDE BOTH LENSES ARE RE-CUT
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `70666d7`. **SOURCE:** the architect's instruction, *"Update specs and then regenerate guide docs for new behavior changes and WASM realm"*. **STATUS: `ACTIVE`.**
+
+1. **THE SPEC CORPUS GAINED TEN CLAUSES ACROSS SIX PARTS**, each an ANNOTATE-BESIDE that **quotes the superseded sentence before it is re-cut**:
+   `storeroom-native` §6.6's three (the replay's base is `Store::floor_state`; the absent position's two indistinguishable classes; `restoreFloor`'s subject) ·
+   `storeroom-js`'s one (`DEF-AE`'s item 2 and its cell `(4)`) · **`storeroom-json-crossing`'s one, which is the SPEC ACT `D-183` and `D-186` SAID WAS OWED** ·
+   `storeroom-delivery-settle`'s three (the record's own name counts, one per record: write `7`, rollback `7`, delete `9`) · `storeroom-addon-surface`'s one
+   (`P-SAS-1`: the addon's set is **twenty**, 5 standing + 15 per-verb, `storeRelease` the one positional entry, `call` still absent, **the arm's nineteen declared as
+   that row's non-subject**) · `storeroom-file-save-coverage`'s one (`PIN-11` (ii): the pin's subject stands, **its two citations moved**).
+2. **★ AND THE JSON-CROSSING PART TOOK ARM (a) — IT DECLARED THE RELOCATION, BECAUSE THE LAW GENUINELY STANDS THERE.** Each subject was verified at its destination
+   and not assumed: `§1.2` row `5` survives split across `§1`'s array bullet plus `§2` row `13`; row `4` across `§1`'s object bullet plus `§2` row `14`;
+   **`§1.4` item `4`'s structural test survives at THREE conditions and NOT at seven — so the `(a)`–`(g)` spelling is declared NOT relocated rather than invented to
+   match an absent part**; and **`§1.4` item `5` — the subject of the sixteen unmoved test citations — survives at `§8`'s register rows `7` and `8` with `§4`'s
+   ceiling clause.** **So the corpus now has a live home for that clause, and a later test pass can re-point those 16 citations without a second spec act.**
+3. **THE GUIDES ARE REGENERATED**: `docs/guides/package-use.md` gains **§13 — THE WEBASSEMBLY REALM** (the five subsections: the bindings handed in; `filePath` refused, the
+   `file` tier without a path, `saveCall` as the channel; `initialImage` as image text; **the clone law in both directions and the two `Proxy` answers**; what it cannot do),
+   plus dated clauses for **compaction's drop and what a consumer observes in order** (`rollback` of a dropped op **returns** where a readable `filePath` exists and
+   **throws `RollbackCompacted`** where there is no read path) · **the restore that reads the compacted floor** · **retention by reachability in place of the window** ·
+   **a store released when it is dropped** · and **the two receipt accessors with `ListenerBodyRejected` at rank 23**. `bindings/js/README.md` moves with it.
+   **AND THE INTERNAL CARRIAGES (`D-169`, `D-170`) ARE DELIBERATELY ABSENT FROM THE GUIDES**: no consumer acts on a leg slot or a window stamp, and the one observable
+   consequence — a refusal restoring the state the pass opened on — was already the guide's subject.
+4. **AND FIVE FIGURES OUTSIDE BOTH LENSES WERE FOUND BY THE PASSES AND RE-CUT HERE**: the guide's generated line read **`1.12.0`** against a `1.13.0` manifest · its
+   **"fourteen own members"** in three places against the tree's **fifteen** (`readTiered`) · the README's **"four keys"** against the tree's **six** (`saveCall`,
+   `initialImage` joined the two required ones with `constraints`) · and **`RELEASE-NOTES.md` item 10 declared the `1024`-attempt window `D-176` replaced**, so it is
+   **re-cut to retention-by-reachability with the superseded window quoted and `CLOSED_ATTEMPT_WINDOW` named as having no reader** · and its WebAssembly `filePath`
+   refusal was `AddressMalformed` where the shipped bytes answer **`FilePathUnreachable`** (re-cut, with `CW-2` named as the divergence's own recorder). **Both note copies
+   are byte-identical.**
+5. **AND ONE IDENTIFIER WAS DANGLING AND IS NOW RESOLVABLE**: `D-172` **has no heading** — the WASM arm's retirement is recorded as **`D-171` item 5's dated clause of
+   2026-11-19** (its own heredoc leaked that day and the substance landed there) — so a reader searching the name this session's commits use now finds it **through this row's item 6.**
+6. **WHAT THE PASSES COULD NOT CLOSE, AND SAID**: a **second spelling for `{k:'F'}`'s absent position** (a design act, `D-180` item 1) · whether **`JournalOp.compacted`
+   survives** the drop (`D-160` item 4 of its unsettled) · the **sibling part-map rows** for `crossing.md` and `parameter-semantics.md` in `storeroom-js/` (**both absent
+   paths, named and not edited**) · **`bindings/js/README.guide.md` needs re-staging** by `scripts/publish.sh`'s assembly (`PUB-DD-11`), which no test compares · and the
+   **`S-RECEIPT-ACCESSOR` test title** that still prints *"reads 6"* while its assertion was re-pinned to seven (**a title, not an assertion**, and a test file).
+7. **MEASURED**: `npm test` **`1386` / `1386` / `0`**, **`0` skipped** · `typecheck` `0` · **`publish.test.mjs` `65` / `0`** (the shipped-prose census, unmoved) ·
+   **`CHAIN COMPLETE — 11 runners`**.

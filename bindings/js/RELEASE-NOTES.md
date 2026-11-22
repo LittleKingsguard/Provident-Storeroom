@@ -66,7 +66,9 @@ so `version()` answers `1.13.0`**, and that is the value to assert against.
 
 **THE HEADLINE IS ONE SENTENCE: THE PACKAGE IS NO LONGER CLOSED AT ONE REALM, AND A WEBASSEMBLY BUILD OF THIS STORE NOW
 SHIPS AS ITS OWN PACKAGE.** `D-154` lifted the claim; the build carries **no `filePath`** — the key is not in domain
-there, and a construction that supplies it is refused at the `cfg` gate with `AddressMalformed` — so the seven `std::fs`
+there, and a construction that supplies it is refused **by the store's own path arm with `FilePathUnreachable`, whose message names the path** —
+**⟶ RE-CUT 2026-11-17: this entry said `AddressMalformed` at the `cfg` gate, and the shipped bytes answer `FilePathUnreachable`** (`CW-2`
+measures the divergence itself and records it; the guide prints the measured answer) — so the seven `std::fs`
 calls and `std::process::id()` are `#[cfg]`-ed out with the writer and the reader they belong to, and the register is
 **`file` tier with no path**: a store whose durability is a caller's function.
 
@@ -117,13 +119,18 @@ calls and `std::process::id()` are `#[cfg]`-ed out with the writer and the reade
    durable ground truth at all (`D-165` items 1–3; the test is the empty path and it is the whole test). **The token's
    rank, its code and its generated message are unmoved; what moves is the set of acts that produce it** (`D-163`
    item 6; `D-164` items 3–4).
-10. **A CLOSED ATTEMPT'S REPORT IS KEPT FOR THE MOST RECENT `1024` ATTEMPTS, AND A PRUNED ID ANSWERS `KC-2`.** The
-   package no longer retains one attempt report per act for the life of the instance: the window is `1024`
-   (`CLOSED_ATTEMPT_WINDOW`) and the FIFO is the map's own insertion order, so a fourth-thousand write and a
-   sixteen-thousandth retain the same bytes (`D-162` items 1–3). **What you can observe is age and only age**: an
-   attempt inside the window answers as it did, and **an id the window has pruned answers `KC-2` — the SAME refusal
-   an id that never named an attempt already met**, so a caller cannot tell a pruned attempt from a misspelt one
-   (`D-162` item 4; `D-162` item 5 names the window as the declaration it is).
+10. **A CLOSED ATTEMPT'S REPORT IS KEPT WHILE THE ATTEMPT CAN STILL BE NAMED — BY REACHABILITY, NOT BY A WINDOW.** The package does not
+   retain one report per act for the life of the instance, and **it no longer keeps a count either**: the closed table is a `WeakMap` keyed by the
+   attempt's reference, so **a report lives exactly as long as something can still name the attempt — which is the receipt you were handed** — and
+   the collector is what ends it, not an eviction (`D-175`, the architect's one-word clarification *"Clarification: Weak map"*; `D-176`).
+   **BOTH DECLARED WAYS OF NAMING AN ATTEMPT STILL ANSWER**: the `AttemptRef` record **or its `id` string**
+   (`parameter-semantics.md §2.15`), through a weak id index beside the map — **and the two cannot disagree**, because an id whose attempt has been
+   collected and an id that never named one both answer `KC-2`. **★ AND THIS ENTRY IS RE-CUT FROM A SUPERSEDED ONE, SAID PLAINLY**: it declared a
+   `1024`-attempt window (`CLOSED_ATTEMPT_WINDOW`) whose FIFO was the map's own insertion order (`D-162` items 1–3). **`D-162`'s window was the right
+   bound while the table was a `Map`; it is not what the tree does now**, and `CLOSED_ATTEMPT_WINDOW`'s `1024` stands with no reader. **What a consumer
+   observes is unchanged in kind**: an attempt that can still be named answers as it did, an id that names nothing answers `KC-2`. **What moved is that
+   AGE NO LONGER ENDS AN ANSWER — being unreachable does** (`D-176` item 2).
+
 11. **A `Proxy` IS DETECTED BY WHAT IT HANDS THE STORE, NOT BY WHAT YOU HAND A CONSTRUCTION — ON THE WEBASSEMBLY ARM.**
    **The clone probe is asked of DATA THAT ENTERS THE RUST STORE**: the write's value, an address, a tier, a value's
    class and a value's prototype link — the population `DD-34`'s refusal is about — **and there a `Proxy` is still

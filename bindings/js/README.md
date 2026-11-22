@@ -139,7 +139,14 @@ SPELLING — wrong, not redundant. **AND NO OWN MEMBER IS A DATA MEMBER:** there
 field and no getter over the register; `store.read(address)` is the route to state. **There is no release
 verb** — construct one store and keep it for the process's life.
 
-### The construction's four keys
+**⟶ AND THAT SECOND SENTENCE IS NOW BEHAVIOUR RATHER THAN ADVICE, 2026-11-19 — `D-171` ITEMS 1–3.** **THERE IS STILL NO RELEASE VERB AND NO MEMBER MOVES.** What changed is that **a store you DROP is now released**: the package holds the store's own index in a `FinalizationRegistry` and hands it to the addon's `storeRelease` when the instance is collected, and that entry drops the store and empties its slot in one act — **before this landing a constructed-and-dropped store stayed in the addon's table for the process's life (`~573,112` bytes per construct-and-drop against `~42,000` after it)**, and **the WebAssembly artefact carries the same entry** (`bindings/js/src/facade.rs`; `bindings/js/src/wasm.rs`; `tests/e2e/store-retirement.test.mjs`). **So one store per process is still the shape the register wants, and it is no longer a rule you keep in order not to leak.**
+
+### The construction's six keys
+
+**⟶ AND THE COUNT IS SIX FROM 2026-11-17 — THE HEADING SAID FOUR AND THE TREE TAKES SIX.** `saveCall` and `initialImage` joined `filePath` and the two
+required keys (`journalLength`, `listeners`) along with `constraints`; **the heading and every sentence that counts them read six.** **The two newest are the
+ones a path-less store needs** (`saveCall` is how such a store saves and `initialImage` is the only way it can start with state), **and `§13` of the guide is
+where they are described.**
 
 **`cfg` carries FOUR declared keys and no fifth: `filePath` · `journalLength` · `listeners` · `constraints`**
 (`parameter-semantics.md §2.21`; `docs/specs/storeroom-native/contract.md §7.1`). `journalLength` and
