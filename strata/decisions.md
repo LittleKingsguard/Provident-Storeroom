@@ -9518,3 +9518,28 @@ asserted nowhere** (`D-184` item 4).
    construction created is removed on **every** post-create refusal arm, and **only** that file — **which turns `CSW-20`, `CSW-19` and `CSW-10` and requires `PIN-12`'s first
    clause to be re-spelt by L1 to the pre-existing-file arm.** **THE DESIGN ALSO NAMES THE ONE CELL NOBODY WOULD LOOK AT: `CSW-19`, whose title is the CYCLE DETECTOR and whose
    third limb asserts the file stands** — a pass grepping for cells whose *name* mentions a file misses it.
+
+---
+
+### `D-198` — `O-1` IS ANSWERED BY DEFAULT AND `P-2` PROCEEDS: ONE FILE RULE, AND THE WALK'S ABSENCE CLASSES ARE THE CREATION'S
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `0f8ab64`. **SOURCE:** the architect, on `D-197` item 5's blocking question. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Take default and continue"
+
+**STATUS: `ACTIVE`.**
+
+1. **THE FILE RULE IS ONE: the file a construction CREATED is removed on EVERY refusal the construction reaches after the create, and ONLY that file.** **The ground is `A55` read at *"what
+   the construction CAUSES"*** — the file's existence is caused by this call, the refusal is this call's answer, and no caller data is in it. **It extends `D-173`'s direction and does
+   not reverse it**, and **it ends the state `D-197` item 2 measured**: three dispositions for one state, the line between two of them a status comparison in a refusal conversion, and **the
+   guard dead code on the arm it most obviously should cover.** **`PIN-12`'s first clause is re-spelt by this row's authority as the default took it** — *"a refused creation leaves the
+   store's own created file standing"* becomes **the PRE-EXISTING-FILE arm**: a file the construction did not create is never touched, and one it created never survives a refusal.
+2. **AND THE WALK'S ABSENCE CLASSES ARE THE CREATION'S**: `AddressNotFound` **and** `LeafHasNoDownstream` are **absence**; `ReadTargetIsBranch` and a value are **presence**. **`D-197` item
+   3 is repaired by that sentence and by nothing else** — *"any other code means present"* is the defect and not its shape. **The three rulings it contradicted are named**: `D-123` item 3
+   (*"No listener is asked to fire for a node that is not there"*), `PIN-7`, and `D-191`'s own ground.
+3. **THE CELLS TURN AND ARE RE-DERIVED, NOT WEAKENED**: `CSW-20`, `CSW-19` and `CSW-10` lose their **standing-bytes** limbs — **those limbs are `PIN-12`'s and they are the assertion this
+   row's default reverses** — and each gains the **pre-existing-file** limb, which is the bound that survives. **`CAW-1`…`CAW-8` are the unit's own cells** (`D-197` item 4's list), with
+   `CAW-1`/`CAW-2`/`CAW-5` **red on today's bytes** — the two statements' order and the one test's absent class. **`CAW-3` is the guard's bound and it must stay green before and after**,
+   because a caller's file is never touched.
+4. **THE CLASS IS `MINOR` CONTENT RIDING `3.0.0`, AND THE NUMBER IS THE ARCHITECT'S** (`D-197` §7): no published member is added, removed or renamed; **`2.0.0` is spent and `3.0.0` is
+   `P-3`'s line**; **the versions do not move in this row** and `publish.sh --figures` must stay `ok`.
