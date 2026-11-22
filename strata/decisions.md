@@ -9089,3 +9089,34 @@ never measured against) · and **the release itself** — the class is claimed a
 
 **THE FLOOR**: `npm test` **`1384` / `1384` / `0`**, **`0` skipped** · `typecheck` `0` · `cargo test` **22 `ok` / 0 FAILED** · `cargo check --target wasm32`
 **0 errors** · `npm run build` `0` · **`CHAIN COMPLETE — 11 runners`**.
+
+---
+
+### `D-182` — `D-181`'S THREE TEST-SIDE ITEMS CLOSED, AND TWO SMALLER ONES NAMED IN THEIR PLACE
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `93b89f1`. **SOURCE:** `D-181` items 3, 4 and 5, worked. **STATUS: `ACTIVE`.**
+
+1. **`NG-PUB-F`'S CONTROL IS SPLIT, AND THE CENSUS MOVED WITH IT (item 3).** One entry holding two chained substitutions becomes **two controls, one
+   substitution each**, each staging **its own mutation in its own scratch tree** — **so the attribution is structural rather than a matter of removing the
+   other's `.replace` with an experiment.** **Measured: controls `3 → 4`, the ledger line `4 → 5`, `publish.test.mjs`'s prose `3 → 4`, and `npm test`
+   unchanged at `1384`** — a control is an entry inside one generator and **not** a `test(\u2026)` row, which is why the count did not move and why the figure
+   was measured rather than assumed. **SAID PLAINLY: both halves red at the SAME limb** (`assert.equal(A.message, gen(RUNG_ONE_TAIL))`); **what the split buys
+   is that the ledger names the SITE instead of a different clause.**
+2. **AND THE SPEC ROW THE SPLIT FALSIFIED IS RE-DERIVED**: `docs/specs/storeroom-publish/contract.md`'s `P-PUB-5` row said *"`3` measured controls"* and now
+   says **`4`**, with the split's reason at its byte — **the figure the pass could not move because it was outside its write set.**
+3. **THE FLOOR IS RE-DERIVED `20 → 21` (item 4), AND ITS SHAPE IS CONFIRMED RIGHT.** Read at the cell, the limb's subject is **"the diff excludes
+   something"** — the excluded set is already asserted **by name** one limb above, so **a floor is the correct shape and a named set would be a second census
+   every rename falsifies.** **The cost, stated: zero headroom**, so the next retirement in that file still trips it — **armed exactly, and now legible**,
+   with the message printing `compared` of `cells` and the exclusion.
+4. **THE CAPTURE CELL IS KEPT, ARM (c), WITH ITS REASON AT ITS BYTE (item 5).** **RETIREMENT WOULD DESTROY THE INSTRUMENT**: it is the only written spelling of
+   the two-shape capture, the `§6` item 4 run/skip ledger, the dated invocation, **and the only assertion of the operation record's eight members** (measured
+   true here: `address, after, before, compacted, kind, opId, seq, tier`). **REMOVING THE DUPLICATE ASSERTION WOULD DESTROY THE LAST CLAIM**: the remaining body
+   is a ledger push and a `return` — **a cell that runs and reports `PASS` without being able to fail, which is `D-180` item 5's skip one degree worse.** **It
+   stands as a RECORD and not as a claim**, and its head now says the operation-record members are **written there and measured nowhere.**
+
+**TWO SMALLER ITEMS NAMED IN PLACE OF THE THREE (each its own owner):** **the operation record's eight members are asserted by a cell that cannot fail** — **a
+live instrument is a new cell, not this pass's item** · and **`compared.length >= 21` is at zero headroom**, so a cell renamed to contain `s_export_set_` or a
+declaration no longer beginning a line with `test('` silently drops `cells` and reds it — **`D-181` item 4's trap, armed exactly.**
+
+**THE FLOOR**: `npm test` **`1384` / `1384` / `0`**, **`0` skipped** · `typecheck` `0` · `cargo test` 22 `ok` / 0 FAILED · `wasm32` `0` errors · `build` `0` ·
+**`CHAIN COMPLETE — 11 runners`**.
