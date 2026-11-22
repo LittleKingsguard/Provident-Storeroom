@@ -9568,3 +9568,24 @@ asserted nowhere** (`D-184` item 4).
 4. **AND THE VERSION SITES DO NOT MOVE**, because they already read `2.0.0` (`D-190` moved all twelve plus the three generated lines): **`bash scripts/publish.sh --figures` is `ok` with
    all three lines at `2.0.0`**, and **no manifest, pin or platform version changed in this row.**
 5. **MEASURED**: `npm test` **`1399` / `1399` / `0`**, `0` skipped · **`CHAIN COMPLETE — 11 runners`** · **`--figures` `ok`**.
+
+---
+
+### `D-201` — A NEW ARTEFACT'S FIRST PUBLISH IS A BOOTSTRAP, NOT AN OIDC PUBLISH — AND THE WORKFLOW NOW GUARDS IT
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **SOURCE:** the release of `2.0.0`, which failed at the sixth artefact's publish. **STATUS: `ACTIVE`.**
+
+1. **THE FAILURE, AT ITS MECHANISM: TRUSTED PUBLISHING IS CONFIGURED PER PACKAGE NAME.** `@auspicion/provident-storeroom-js-wasm` is **new in this release**
+   (`D-157`'s sixth artefact), so **no trusted publisher exists for it**, the OIDC exchange has nothing to authorize, and **its job's `npm stage publish` failed —
+   after the build, the staging and the path guard had all passed**, which is the one instant the job cannot recover from.
+2. **AND THE WORKFLOW'S OWN CLAIM WAS TRUE OF SIX AND FALSE OF THE SEVENTH**: it asserts at three sites that the publish steps carry **no `secrets.*`**, and that
+   holds **only for a package a trusted publisher is already configured for.** **A NEW ARTEFACT'S FIRST PUBLISH IS A BOOTSTRAP AND NOT AN OIDC PUBLISH.**
+3. **THE WORKFLOW NOW GUARDS IT INSTEAD OF DISCOVERING IT**: a step in the `wasm` job reads **the name from the manifest** and runs `npm view "$name" version`;
+   where the registry does not answer it, the job **fails BEFORE any byte is built**, with the recovery named at its own message — *"a NEW artefact's first publish is
+   a BOOTSTRAP … publish the name once with a credential, configure its trusted publisher at npmjs.com, and re-run this job"* — and citing
+   `docs/specs/storeroom-publish/contract.md · PUB-DD-30`. **IT ADDS NO SECRET**: `npm view` is a public read, so **the workflow's auth shape is unmoved** and
+   **no token variable is introduced into CI.**
+4. **AND THE GUARD IS THE CHEAPER HALF OF THE TWO; THE EXPENSIVE HALF IS THE OWNER'S.** The recovery is **operational and outside the repository**: publish the name
+   **once** with a credential, **configure its trusted publisher for that name**, and **re-run the failed job** — after which the OIDC path works and every later
+   release behaves as the workflow says. **`PUB-DD-30`'s residual is not closed by this row**: it names the configuration that lives on the registry, and **this row
+   adds the half a first publish meets before that configuration can exist.**

@@ -379,6 +379,26 @@ jobs:
       - name: '2. build and stage the sixth package'
         run: node scripts/build-wasm-package.mjs
 
+      # **⟶ AND THE NAME ITSELF MUST EXIST ON THE REGISTRY BEFORE THIS JOB TRIES TO BE TRUSTED FOR IT — ADDED 2026-11-17, FROM A RELEASE THAT FAILED HERE.**
+      # **TRUSTED PUBLISHING IS CONFIGURED PER PACKAGE NAME**, so a name that has never been published has **no trusted publisher to match** and the OIDC
+      # exchange has nothing to authorize: **the publish step fails, and it fails AFTER the build, the staging and the path guard have all passed** — the
+      # failure is discovered at the one instant the job cannot recover from. **THIS STEP MOVES THAT FAILURE TO A GUARD, BEFORE ANY BYTE IS BUILT**, and it
+      # needs **no secret**: `npm view` is a public read. **A NAME THAT ANSWERS IS THE ONLY NAME THIS JOB CAN PUBLISH**, and a name that does not answer is
+      # told what to do about it rather than left to read an OIDC error.
+      - name: '3. guard: the NAME exists on the registry, because a trusted publisher is configured per name'
+        run: |
+          name="$(node -p "require('./bindings/js/platforms/wasm/package.json').name")"
+          if npm view "$name" version >/dev/null 2>&1; then
+            echo "ok $name is published (its trusted publisher can be configured)"
+          else
+            echo "REFUSED: '$name' does not exist on the registry."
+            echo "Trusted publishing is configured PER PACKAGE, so a name with no published version has no trusted"
+            echo "publisher and this job's OIDC exchange cannot authorize it. A NEW artefact's first publish is a"
+            echo "BOOTSTRAP and not an OIDC publish: publish the name once with a credential, configure its trusted"
+            echo "publisher at npmjs.com, and re-run this job. docs/specs/storeroom-publish/contract.md · PUB-DD-30."
+            exit 1
+          fi
+
       # **THE SAME PRE-PUBLISH EXISTENCE GUARD THE PLATFORM SITE CARRIES, READ AT THIS MANIFEST'S OWN
       # PATHS** (`A89`(4); `PUB-DD-27`'s price): `npm` omits a missing `files` entry SILENTLY, so every path
       # this manifest names is asserted to exist BEFORE the name and the version are spent. **THE PATHS ARE
