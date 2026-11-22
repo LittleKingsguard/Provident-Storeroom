@@ -9048,3 +9048,44 @@ always `false`), so `D-160` item 4's *"no producer"* is the milder and true form
 8. **The `WeakMap`'s id-only read** — `D-175`/`D-176` preserved `§2.15`'s two forms through a weak id index, so **nothing is owed**; what remains is that
    **`closedIds` is bounded by a sweep of every 256 seals and by nothing else** — a bound with a constant in it, like the window it replaced, and **the only
    one left in that file.**
+
+---
+
+### `D-181` — THE RESIDUAL LEDGER, RE-TAKEN: TWO CLOSED, THREE NEWLY NAMED, AND FIVE THAT STAND
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `3051df1`. **SOURCE:** `D-180`'s eight, worked. **STATUS: `ACTIVE`.**
+
+**CLOSED IN THIS PASS (2)**
+
+1. **`D-180` item 3 · `NG-PUB-F`'s inert control** — **the pass took both arms the file allows**: the inert as-filed half is **retired with a dated record**, the
+   successor splice lands in `artefact-node.mjs` (the part with the mismatch arm **and** the three `node:` imports) at a site the mismatch drive evaluates, **both
+   halves fail in isolation** (each shown by removing the other's `.replace`, restored `diff`-clean), and **the guarded behaviour was seen red** — altering
+   `generatorFilePathUnreachable`'s rendering reddens the cell with *"THE PROPERTY DOES NOT HOLD AT THE SHIPPED BYTES"*.
+2. **`D-180` item 5 · the permanently-skipped cell** — **RETIRED, and arm (b) was tested and does not exist**: what replaced `call(index, verb, args)` is the nine
+   per-verb entries, so the only live *"same verb, other shape"* is a verb through its own entry against the package's wrapper — one call and its own decoder,
+   which would pass trivially at any byte. **`P-SAS-3`'s old-dispatcher half now has NO INSTRUMENT AND CAN HAVE NONE** — recorded, not repaired, and its clause
+   still stands in the spec. **AND `D-180`'s OWN PREDICTED FIGURE WAS WRONG**: the skip was a **nested** `test.skip`, so Node counts two rows and retirement takes
+   `tests −2`/`pass −1` — **measured `1384`/`1384`/`0` with `0` skipped**, not the `1385`/`1384` the row predicted.
+
+**AND `D-180` item 1's SENTENCES ARE RE-DERIVED**: `constraints.mjs`'s two `{k:'F'}` sentences said *"the state the store was born with"*, which `D-179` made false
+where a drop has happened. **They now name THE FLOOR and are true of both of its classes** — the store cannot tell them apart at that entry, so naming the floor
+is the only sentence that does not lie.
+
+**NEWLY NAMED, EACH SMALL AND EACH ITS OWN OWNER (3)**
+
+3. **`NG-PUB-F`'s two halves are independent in effect but NOT SEPARATELY COUNTED.** Splitting it into two controls takes the cell from **`3` to `4`** measured
+   controls and **reddens `publish.test.mjs`'s prose count** — a census move the pass did not take. **The evidence for each half is its isolation run, which is
+   not a permanent instrument**; a ledger split is what would make it one. **A census move for whoever owns that count.**
+4. **`sas_d3_s_parity_the_goldens_diff_excludes_…`'s `compared.length >= 20` limb now has ONE row of headroom** (`21`), so **any further retirement in that group
+   trips a cell from a different group than the one edited**. **A brittleness, not a defect**; the figure should be re-derived to whatever the group now holds.
+5. **A second cell of the skip's own class is named and NOT retired**: the capture cell is green only because **its first branch asserts `call` absent — already
+   asserted by `sas_d1_s_export_set_call_is_absent_…`** — and its recording half is unreachable in this tree. **`D-180` item 5 ruled on the skip and not on the
+   capture**; the capture's pre-split records are the only evidence the old comparison ever ran, which is why retiring it is not free.
+
+**AND FIVE STAND, UNCHANGED FROM `D-180`**: the two spec parts the cells cite are **not on this tree** (36 citations, declared at the JAS runners' heads) · the
+`WeakMap`'s `closedIds` is bounded by a sweep of every `256` seals and by nothing else (the only constant left in that file) · `replayMark` and `regenerate` answer
+different questions **deliberately** · **`D-178` item 4's cost note** (the floor advances by the dropped entry, so the priced option (a) was never needed and was
+never measured against) · and **the release itself** — the class is claimed and **no tag is cut**, which is `delivery`'s act.
+
+**THE FLOOR**: `npm test` **`1384` / `1384` / `0`**, **`0` skipped** · `typecheck` `0` · `cargo test` **22 `ok` / 0 FAILED** · `cargo check --target wasm32`
+**0 errors** · `npm run build` `0` · **`CHAIN COMPLETE — 11 runners`**.
