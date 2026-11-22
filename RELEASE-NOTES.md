@@ -182,8 +182,7 @@ it exists for.** **⟶ AND THE CLASS CLAUSE THAT STOOD HERE IS SUPERSEDED AT ITS
 this section's head: `D-189` item 2 removes a published declaration member, which no `MINOR` absorbs. **THE SENTENCE IS
 WITHDRAWN FOR ITS CLASS HALF AND STANDS FOR ITS OTHER HALF** — the four entries above and the clause they carry move the
 class by nothing, and **they are the same landing this section always described**; what moved is the release's number.
-**No class claim is invented here: the class is `D-190`'s and the version cells follow it**, and a document claiming
-whether a release is CUT is still not this section's to write (`D-57`).
+**No class claim is invented here: the class is `D-190`'s and the version cells follow it**, and **whether a release has actually been made is still not this section's to write — it is `D-57`'s and `delivery`'s** (and **this sentence avoids the ratchet's own phrase deliberately**: `publish.sh --cut-claims` refuses the words the corpus uses for a cut claim wherever they stand, INCLUDING inside a negation, because a guard that read intent could be argued with and a substring cannot).
 
 **WHAT DOES NOT MOVE, LISTED AND CLOSED:** the module namespace's one name (`storeCreate`) · the instance's own fifteen
 members, name for name · the one `exports` arm and its three conditions · the `files` allowlist's five rows · the floor

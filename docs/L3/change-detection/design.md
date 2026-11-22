@@ -255,6 +255,11 @@ fn watched_for  (&self, address: &[Segment], touched: &[Vec<Segment>], changed: 
 
 **`MAJOR`, STANDING ALONE ON ITS OWN VERSION** (`D-192` item 5's `Q-10` default, kept by `D-193` item 5). **The precedent is directly on point and was decided for a smaller move**: `D-190` is **`MAJOR — bump to 2.0.0`** because `D-189` item 2 removed one published declaration member (`RELEASE-NOTES.md:64`–`:70`). **A returned member's MEANING moving on a shipped verb is not smaller than a member leaving** — it is larger for every consumer who already reads it, and `P-TP-8` (a) and (e) both move with it.
 
+
+**⟶ AND THE NUMBER IS NO LONGER OPEN: THE ARCHITECT RULED IT, VERBATIM — *"Next release is 2.0.0"* (`D-200`).** **This design's `O-8` asked which number the class takes and
+defaulted to `3.0.0` on the reading that `2.0.0` was spent; the ruling is that `2.0.0` is the line and that everything unreleased rides it**, so the change detection lands in
+`§2.0.0` beside the member removal, with the classes printed separately under one heading (`D-126` item 3's maximum-of-the-moves arithmetic). **`O-8` IS ANSWERED AND NOT
+DEFERRED**, and the paragraphs below are read through this clause — their *"`2.0.0` IS SPENT"* is the reading that the ruling reverses.
 **`2.0.0` IS SPENT** — the file's own generated line reads `PUBLISH-NOTES-VERSION-LINE: THE VERSION THIS CHANGE LIST DESCRIBES IS `2.0.0`` (`RELEASE-NOTES.md:19`), and `scripts/publish.sh --figures` refuses on any disagreement. **So the next number is `3.0.0`, and that is the architect's word and not this pass's** (`D-124` item 3's discipline, kept by `D-190`). **The version moves TWELVE SITES TOGETHER** — *"the main manifest's `version`, its FIVE exact `optionalDependencies` pins, and the SIX `platforms/*/package.json` versions"* (`RELEASE-NOTES.md:70`–`:74`) — **and the three generated version lines are re-derived and re-staged byte-for-byte, never hand-edited.**
 
 ### §7.2 · The consumer's migration sentence, in `RELEASE-NOTES.md:84`'s own shape

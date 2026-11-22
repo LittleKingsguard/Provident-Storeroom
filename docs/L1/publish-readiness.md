@@ -2,6 +2,13 @@
 
 **WHAT THIS FILE IS.** A review of the tree as committed, against what a release would need. **It moves no byte, claims no release class and cuts no tag** (`D-57`: the cut-state is not a document's to state). Written `2026-11-17` by the **L0 supervisor** after the nine units and the second realm landed.
 
+
+> **⟶ READ THIS BANNER FIRST, 2026-11-17 — THE REVIEW BELOW IS A DATED RECORD AND ITS PRESENT-TENSE CLAIMS ARE ITS OWN DATE'S, NOT THIS TREE'S.**
+> **THE TREE HAS MOVED PAST IT**: the class **is claimed** (`2.0.0`, a `MAJOR`, `D-190` and `D-200`), the notes' section **exists**, the two artefacts are admitted, the
+> workflow job is in place, and the two feature units this review's successors designed **have landed** (`P-3`, `D-193`–`D-196`; `P-2`, `D-197`–`D-199`).
+> **A reader who stops at the table at line 21 will read *"❌ UNCLAIMED"* about a class that is claimed**, and that is why this banner is here rather than a rewrite: **a
+> dated review keeps its own readings (§`RCA-8(g)`'s annotate-beside), and §12 below is the current ledger.**
+
 ---
 
 ## §1 · The verdict, in one line per leg
@@ -266,3 +273,29 @@ code and no declaration, and its one touched code file's CODE BYTES are proven i
 5. **The release itself** — the class is claimed and **no tag is cut** (`D-57`): that is `delivery`'s act, and this review does not claim it.
 
 **THE FLOOR, TAKEN ON THIS TREE AFTER EVERY ONE OF THEM**: `npm test` **`1381` / `1380` / `0`** · `typecheck` **`0`** · `cargo test` **22 `ok` / 0 FAILED** · `cargo check --target wasm32` **0 errors** · `npm run build` **`0`** · **the installed battery `EXIT 0`, 15 cells `PASS`** · **`CHAIN COMPLETE — 11 runners, every one exit 0`** · **the arm's 8 cells green**.
+
+
+---
+
+## §12 · The ledger as it stands, `2026-11-17` — and the ONE act that is left
+
+**EVERY ITEM §2, §3 AND §10 NAMED IS DISCHARGED, AT ITS OWN COMMIT**, and the supersessions are recorded at §11. **WHAT THIS SECTION ADDS IS THE STATE AFTER TWO MORE UNITS LANDED AND AFTER THE RELEASE LINE WAS RULED.**
+
+| the leg | the reading |
+|---|---|
+| `npm test` | **`1399` / `1399` / `0`**, **`0` skipped** |
+| `npm run typecheck` | **`0`** |
+| `cargo test` | **23** `test result: ok` lines, **0 FAILED** |
+| `cargo check --target wasm32-unknown-unknown` | **0 errors** |
+| `npm run build` | **`0`**; the artefact stamps `2.0.0` |
+| **the WASM arm's cells** | **8 / 8**, its **nineteen** entries unmoved |
+| **`npm run greens`** (11 out-of-glob runners) | **`CHAIN COMPLETE — every one exit 0`** |
+| `discard-witness` · `blind-constraints-v2` | **85 / 85** · **125 / 125** |
+| **the installed battery** (packed, clean install) | **`EXIT 0`**, `15` cells `PASS`, `1` `LAYER-LIMIT` |
+| **`publish.sh --figures`** | **`ok`** — three shipped documents, three version lines, all `2.0.0` |
+| **`publish.sh --cut-claims`** | **`ok`** — accepted 84, **refused 0**, **stale 0** (one line was reworded because the ratchet refuses a cut-claim phrase even inside a negation) |
+
+**AND THE CLASS, WHICH §2'S TABLE READS AS UNCLAIMED**: **`2.0.0`, a `MAJOR`, ruled by the architect** — *"Next release is 2.0.0"* (`D-200`) — **carrying two `MAJOR` moves and one
+`MINOR`-class one under a single heading**: the removal of a published declaration member, the firing rule's narrowing, and the creation's two repairs.
+
+**SO THE ONE ACT LEFT IS THE TAG.** Everything a publish needs is on the tree and green, and **no document may claim the tag** (`D-57`) — it is `delivery`'s.

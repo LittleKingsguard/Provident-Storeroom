@@ -193,6 +193,10 @@ whose *name* mentions a file finds `CFG-*` and `CSW-10` and misses it.
 **`D-191` item 4(4)'s class question is answered for what remains, not for what shipped, because the break it names shipped in `1.11.0`.** What this design changes is **one
 side effect of a refusal** and **one resolution test**; **neither adds, removes nor renames a published member.**
 
+**⟶ AND THE NUMBER IS RULED: *"Next release is 2.0.0"* (`D-200`).** **This design's `O-6` defaulted to `MINOR` content riding `3.0.0` and the paragraph below says so; the ruling
+makes `2.0.0` the line, so this unit's content rides THAT one beside `P-3`'s `MAJOR`, and `O-6` is answered — the class question stands (its content adds, removes and renames no
+published member) and only the number it rides changed. The sentence below is the reading the ruling supersedes.**
+
 **SO: `MINOR`-class content, riding the next cut, and the number is the architect's.** `2.0.0` is spent; `3.0.0` is `P-3`'s. **By `D-126` item 3's own arithmetic a version is
 the maximum of the moves it carries, so this unit rides `3.0.0` beside `P-3`'s `MAJOR`, with the classes printed separately.** **No pass mints the number.**
 
