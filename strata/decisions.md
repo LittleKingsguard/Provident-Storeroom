@@ -9482,3 +9482,39 @@ asserted nowhere** (`D-184` item 4).
 3. **THE UNIT PROCEEDS IN THE DESIGN'S OWN ORDER** (`docs/L3/change-detection/design.md`): the store's one predicate gains the term **inside it, wrapping the prefix arm
    alone** (the design's riskiest line), the four sites move as §4 enumerates, and **the sixteen cells §6 names are the acceptance**: `CD-1`…`CD-16`, with `CD-2`,
    `CD-3` and `CD-9` **asserting `D-193`'s prices as DECLARED STATES** so a later pass cannot repair them as defects.
+
+---
+
+### `D-197` — `P-2`'S DESIGN: THE FOUR STEPS ALREADY SHIPPED, AND TWO LIVE DEFECTS WERE FOUND IN THEM
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `d3b345a`. **SOURCE:** `role_l3_designer`, landed at `docs/L3/creation-as-write/design.md` by the supervisor.
+**STATUS: `ACTIVE`.**
+
+1. **★ THE GOVERNING FINDING, AND IT RESHAPES THE UNIT: `D-191`'S FOUR STEPS ARE ALREADY THE SHIPPED ORDER.** `D-123`–`D-126` ruled and landed the creation's sweep, its
+   refusal and its delivery at `1.11.0`, and **the tree already refuses** (`CSW-04`, `CSW-09`, `CSW-10`, `CSW-20`, `CSW-03`) **and already fires** (`CSW-06`, `CSW-07`,
+   `CSW-08`, `CSW-23`, `CSW-26`, `CSW-B1`). **So `P-2` is NOT a build order — it is a conformance pin plus the two defects below**, and `D-191` item 4(4)'s class ground is
+   **stale**: the break it names shipped in `1.11.0`. **`D-191` ITEM 4(3)'s parenthetical is also falsified**: it says `D-173`'s guard covers the arming sweep *and not* the
+   constraint pass — **they are one act** (`carryConstraint` arms the pair and asks the body in one call), and the guard's `undo()` sits inside that act's own `catch`.
+2. **★★ DEFECT ONE, AND IT IS LIVE: WHICH REFUSAL LEAVES THE CREATED FILE IS DECIDED BY A STATEMENT'S ORDER, AND THE CORPUS HOLDS THREE DISPOSITIONS FOR ONE STATE.**
+   `instance.mjs`'s sweep `catch`: a **post-round rank-`19`** refusal calls `boundaryReject` at `:2051`, **which throws — so `fileGuard.undo()` at `:2063` is NEVER
+   REACHED and the created file STANDS**; **every other refusal** falls through and **the file is REMOVED**; and **a rank-`21` delivery refusal** reaches **no guard at all** and
+   the file **STANDS**. **SO `A55`'s *"every construction that fails leaves nothing behind"* IS TRUE ON ONE ARM OF THREE**, the line between the first two is **a status
+   comparison in a refusal conversion**, and **`D-173`'s own guard is dead code on the arm it most obviously should cover.** **And the contract already splits on it**:
+   `contract.md:4919` declares that a failure reached after the exclusive create **leaves the created file standing** (`PIN-12`) while `D-173` measured `SS-9` against `A55`
+   and removed it — **the corpus's newest act is a removal, its newest pin says standing, and the tree splits the difference by statement order, which is nobody's
+   decision.**
+3. **★★ DEFECT TWO, ALSO LIVE AND WITH NO CELL: THE CREATION FIRES A LISTENER AT AN ADDRESS THAT DOES NOT RESOLVE WITHIN A SCALAR.** `registerHolds` reads absence as
+   **`status === 'AddressNotFound'` and nothing else** (`instance.mjs:198`), **but the walk has a third class and it is an absence**: a leaf with segments remaining fails
+   `leaf_has_no_downstream`, whose status is **`LeafHasNoDownstream`**, propagated by `read` unconverted. **So a seed standing `{"a": 5}` with an adopted listener at
+   `['a','b']` FIRES it** — contradicting `D-123` item 3 (*"No listener is asked to fire for a node that is not there"*), `PIN-7`, and `D-191`'s own ground at once. **No
+   cell catches it** (`CSW-07`'s absent case is `['nowhere']` in an empty register — `AddressNotFound`). **The repair is one test widened to the walk's absence classes, and
+   `CAW-5`'s reddening change is today's bytes.**
+4. **THE PARTS THE RULING'S OWN QUESTIONS ARE ANSWERED WITHOUT MOVING ANYTHING**: the save **is not** step 4b's zero-length create and **not** the terminal arm's (a
+   construction drives no `runAttempt`, so no `leg` exists at it) — **it is the registration close's, one per `file`-landing registration**, and **`D-106` arm 2 has no subject
+   at the creation's own act**; **the file is not written twice** (the doubling is `save_state()` at the creation's end, **priced and refused**); **the delivered set is
+   `adopted ∩ resolving`**, which `D-123` item 3 and `D-125` item 1 already ruled; and **a creation's attempts are UNNAMEABLE** — `kernel.closed` is a `WeakMap` keyed by
+   the ref object, the attempt frame is its only strong holder, so `log`/`report` on `attempt-<n>` answer `KC-2` after the frame pops.
+5. **AND ONE CLAUSE IS BLOCKING (`O-1`) BECAUSE IT MOVES A PIN**: **one file rule, or the three the tree holds?** **The design's default is ONE RULE** — the file a
+   construction created is removed on **every** post-create refusal arm, and **only** that file — **which turns `CSW-20`, `CSW-19` and `CSW-10` and requires `PIN-12`'s first
+   clause to be re-spelt by L1 to the pre-existing-file arm.** **THE DESIGN ALSO NAMES THE ONE CELL NOBODY WOULD LOOK AT: `CSW-19`, whose title is the CYCLE DETECTOR and whose
+   third limb asserts the file stands** — a pass grepping for cells whose *name* mentions a file misses it.
