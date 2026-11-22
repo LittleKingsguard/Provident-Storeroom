@@ -386,10 +386,25 @@ jobs:
       # needs **no secret**: `npm view` is a public read. **A NAME THAT ANSWERS IS THE ONLY NAME THIS JOB CAN PUBLISH**, and a name that does not answer is
       # told what to do about it rather than left to read an OIDC error.
       - name: '3. guard: the NAME exists on the registry, because a trusted publisher is configured per name'
+        id: nameguard
         run: |
           name="$(node -p "require('./bindings/js/platforms/wasm/package.json').name")"
+          version="$(node -p "require('./bindings/js/platforms/wasm/package.json').version")"
+          echo "skip=false" >> "$GITHUB_OUTPUT"
           if npm view "$name" version >/dev/null 2>&1; then
             echo "ok $name is published (its trusted publisher can be configured)"
+            # **⟶ AND THE VERSION IS THE SECOND HALF, ADDED 2026-11-17 — A BOOTSTRAP PUBLISHES THE RELEASE'S OWN VERSION BY HAND, SO THIS JOB MUST NOT TRY TO
+            # PUBLISH IT AGAIN**: npm refuses a republish of an existing version, and the refusal would fail the job **after** the bootstrap had already done
+            # the right thing. **SO THE GUARD ANSWERS TWO QUESTIONS AND THE SECOND ONE SKIPS INSTEAD OF FAILING**: the NAME must exist (else a trusted
+            # publisher cannot, and the job stops before it builds), and the VERSION must not (else the publish step is skipped, and the job still passes).
+            if npm view "$name@$version" version >/dev/null 2>&1; then
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              echo "ok $name@$version already exists — the publish step is SKIPPED (npm refuses a republished version, and this release's")
+              echo "   bootstrap published it by hand; the rest of this job — the build, the staging and the path guard — still runs, so the"
+              echo "   artefact this release ships is still built and inspected here)."
+            else
+              echo "ok $name@$version is not published yet — the publish step runs"
+            fi
           else
             echo "REFUSED: '$name' does not exist on the registry."
             echo "Trusted publishing is configured PER PACKAGE, so a name with no published version has no trusted"
@@ -420,6 +435,7 @@ jobs:
       # job stages and does not promote. **FLAGS:** `--access public` · `--provenance` · `--tag latest`, each
       # named by `npm stage publish --help` on this machine (`npm 12.2.0`), and nothing else.
       - name: '4. publish the wasm artefact'
+        if: steps.nameguard.outputs.skip != 'true'
         shell: bash
         run: |
           set -euo pipefail
