@@ -1,5 +1,5 @@
 // `D-13` (`docs/L1/kernel-subdivision.md` §1 part `9e`) — the terminal act, the reference's spellings and the record readers: bytes moved from `bindings/js/src/constraint-kernel.mjs`; no logic changed.
-import { KC, STORE_FLOOR_CODES, refuse, kernelFor, append, appendOwn } from './kernel-foundations.mjs';
+import { KC, STORE_FLOOR_CODES, append, appendOwn, kernelFor, refuse, sealClosedReport } from './kernel-foundations.mjs';
 /**
  * The attempt reference a READER was handed — THE `AttemptRef` RECORD OR ITS `id` STRING AND NOTHING
  * ELSE (`attempt-lifecycle.md §2.4` item 1: "`K-4`/`K-5` accept either the `AttemptRef` record or its
@@ -125,7 +125,8 @@ export function terminal(kernel, attempt, status, message) {
     log: attempt.log,
     rollback: attempt.rollback.slice(),
   };
-  kernel.closed.set(attempt.ref.id, attempt.report);
+  // ⟶ AND THE SEAL GOES THROUGH THE WINDOW'S ONE WRITER (`D-161`; `kernel-foundations.mjs`'s `sealClosedReport`).
+  sealClosedReport(kernel, attempt.ref.id, attempt.report);
   release(kernel, attempt);
 }
 
@@ -155,7 +156,7 @@ export function close(kernel, attempt, outcome) {
     rollback: [],
   };
   attempt.report = report;
-  kernel.closed.set(attempt.ref.id, report);
+  sealClosedReport(kernel, attempt.ref.id, report);
   release(kernel, attempt);
   return report;
 }
@@ -478,7 +479,7 @@ export function dropHandoff(kernel, report) {
   if (report === null || typeof report !== 'object') return;
   const attempt = report.attempt;
   if (attempt === null || typeof attempt !== 'object' || typeof attempt.id !== 'string') return;
-  kernel.closed.set(attempt.id, {
+  sealClosedReport(kernel, attempt.id, {
     attempt,
     outcome: report.outcome,
     ops: report.ops,

@@ -1,5 +1,5 @@
 // `D-13` (`docs/L1/kernel-subdivision.md` §1 part `9b`) — the registration act, its evaluation, and the registry's removal: bytes moved from `bindings/js/src/constraint-kernel.mjs`; no logic changed.
-import { KC, KERNEL_REFUSAL, markBodyThrow, refuse, inDomainAddress, inDomainId, pairRowAt, sameAddress, kernelFor, append, appendOwn, ownMember, landedOp, pairsTriggered, enterCommitFrame, leaveCommitFrame, pairApplication, PAIR_APPLICABLE } from './kernel-foundations.mjs';
+import { KC, KERNEL_REFUSAL, PAIR_APPLICABLE, append, appendOwn, enterCommitFrame, inDomainAddress, inDomainId, kernelFor, landedOp, leaveCommitFrame, markBodyThrow, ownMember, pairApplication, pairRowAt, pairsTriggered, refuse, sameAddress, sealClosedReport } from './kernel-foundations.mjs';
 import { composeRollback, dropHandoff } from './kernel-terminal.mjs';
 
 /// **⟶ ADDED 2026-10-27 — `D-46`'s NAME ON A REPAIR INVOCATION'S OWN ENTRY, SPELLED HERE AS
@@ -1143,7 +1143,7 @@ function closeRegistrationAttempt(kernel, attempt, landed, outcome = 'failed', p
   // **THE TWO RECORDS ARE THE ATTEMPT'S OWN INSTANCE'S** (`D-30`): the caller's `store` is the one this
   // synthetic attempt was opened against, and its kernel is IN HAND ONE FRAME ABOVE, so no second position
   // and no second lookup is taken.
-  kernel.closed.set(attempt.ref.id, report);
+  sealClosedReport(kernel, attempt.ref.id, report);
   // **⟶ AND THE REGISTRATION'S COMMIT DROPS ITS LOG ON CLOSE TOO — `D-58`, 2026-10-28.** The synthetic attempt
   // resolves or rejects here, and the list was handed off on the refusing arm by the refusal the caller builds
   // from `attempt.log` (the attempt object, not this record). **What the store retains is the outcome, the ops

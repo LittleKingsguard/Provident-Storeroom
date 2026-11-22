@@ -187,3 +187,29 @@ N = 16,000  rss + 7,277 MB    (× 3.9 — and the Node heap gives out here)
 3. **OR DROP ON THE ATTEMPT'S OWN TERMINAL ACT** — `release` already removes the attempt from `live`; the report's retention is a separate decision the same act could take.
 
 **AND THE CELL SHOULD PIN THE COLLECTOR.** `JC-MEMORY`'s figure is a mix, so its message should say which half it bounds; a cell that calls `global.gc()` where available and asserts the RETAINED figure measures the thing the ruling is about.
+
+---
+
+## §9 · THE PACKAGE-SIDE FIX LANDED `2026-11-17` — `D-161`'s map is a window, and the retention is gone
+
+**THE SECOND UNBOUNDED MAP IS BOUNDED, AND IT TOOK TWO ATTEMPTS AT THE MECHANISM — THE FIRST ONE REDDENED A HOSTILE-HOST CELL AND THAT IS THE INTERESTING PART.**
+
+**WHAT LANDED**: `kernel-foundations.mjs` gains **`CLOSED_ATTEMPT_WINDOW = 1024`** and **`sealClosedReport`**, and **all four seal points go through it** (`kernel-terminal.mjs:128`/`:158`/`:481`, `kernel-registration.mjs:1146`) — no path can seal a report and skip the bound. **The window's FIFO is the `Map`'s OWN INSERTION ORDER**: a re-seal deletes and re-sets, so *"the most recent N"* stays true of a repeated seal, and the eviction loop drops the oldest until the size is the window.
+
+**★ AND THE FIRST MECHANISM WAS A PLAIN ARRAY, AND THE CORPUS REFUSED IT AT ITS OWN BYTE.** `closedOrder.push(id)` **reddened `crossing · contract.md §2.1 item (1c)`**: that cell puts a **getter-only accessor on `Array.prototype`'s index `1`**, and a plain array's `push` writes its index through `[[Set]]` — so a lawful `write` **threw** `TypeError: Cannot set property 1 … which has only a getter`, from the seal, inside the store's own pass. **The rule the corpus already carried is that an array the package builds is DEFINED and never SET**; a `Map` writes its own internal table and consults no prototype, **so the fix is immune to that class of host mutation by construction** — and the cell that caught it is the reason to trust it.
+
+**THE MEASUREMENT, WITH THE COLLECTOR PINNED** (`docs/L1/journal-retention-rca.md` §8.1's instrument):
+
+| | before `D-161` | **after** |
+|---|---|---|
+| retained per `write`, pinned | **~700–745 B** | **0.04–0.19 B** |
+| retained at 4,000 / 16,000 writes | 3.26 MB / 12.66 MB (growing) | **0.75 MB / 0.75 MB (flat)** |
+| the unpinned figure `JC-MEMORY` reads | ~10 KB/write | ~4.7 KB/write (unchanged — it is garbage) |
+
+**AND THE TWO HALVES ARE HELD APART ON PURPOSE**: `JC-MEMORY` still reads the **unpinned** figure and says so; **`KAW-2`** reads it too and declares a ceiling wide enough for the collector's own garbage, **so what it catches is a return to per-write RETENTION, which runs to hundreds of bytes and thousands once a map is unbounded again** — the pinned figure is in its message as what the fix actually produces.
+
+**WHAT A PRUNED ID CHANGES, AND IT IS NOTHING A CALLER CAN SEE BUT AGE**: `log(store, reference)` answers a held closed attempt with the empty list (its log crossed with the report) and **a pruned id with `KC-2`** — **the same refusal an id that never named an attempt already meets.** `KAW-1` drives both, and asserts the two refusals are equal.
+
+**MEASURED, EVERY LEG.** `npm test` **`1364` / `1363` / `0`** (two new cells) · `npm run typecheck` **exit `0`** · `cargo test` **22 `ok` / 0 FAILED** · `cargo check --target wasm32` **0 errors** · `npm run build` **exit `0`** · the package stages.
+
+**AND ONE DECLARATION THIS FIX IMPLIES, NAMED RATHER THAN BURIED**: **a closed attempt's record is retained for the most recent `1024` attempts and not for the store's whole life.** That is the store's own discipline one layer up (`D-160` item 3 — *history past a window answers a declared refusal*), and it is a declaration the architect may overrule by naming a different window or a different mechanism (a `WeakMap` keyed by the attempt is priced in §8.3 and would need no window at all).

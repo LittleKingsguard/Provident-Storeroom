@@ -707,6 +707,47 @@ const KERNEL_SLOT = Symbol.for('provident-storeroom.kernel');
  * observation can see a record that is not the instance's own, and a store that already carries one is never
  * given a second.
  */
+/// **⟶ THE WINDOW A CLOSED ATTEMPT'S REPORT IS KEPT FOR — 2026-11-17** (`D-161`; `docs/L1/journal-retention-rca.md` §8).
+///
+/// **THE DEFECT IT ANSWERS, MEASURED: `kernel.closed` WAS WRITTEN ON EVERY TERMINAL ACT AND NEVER PRUNED** — no `delete`, no cap,
+/// no clear anywhere in `src/entry/` — **so every write left one attempt record and its report in an unbounded `Map`,**
+/// `~700-745 B` per write with the collector pinned. **`D-160` bounded the STORE's journal; this is the same shape one layer up.**
+///
+/// **WHY A WINDOW IS THE DECLARED ANSWER AND NOT A WEAKENING.** The map has exactly two readers, and their lifetimes are not the
+/// same: `drainFailingPass` reads the report for a **commit record in the SAME synchronous call that sealed it** (so any window
+/// comfortably above one call's attempt count is enough), and `log()` answers a caller who names an attempt by id **— and after the
+/// handoff that answer is the empty list either way** (*"the store retains nothing"*, `kernel-terminal.mjs:450`'s own clause). **What a
+/// pruned id changes is only WHICH refusal it meets: `KC-2` (`arg`) instead of a closed attempt's empty log** — **which is the same
+/// refusal an id that never named an attempt already meets**, so the window takes nothing a caller could distinguish except its age.
+/// **THE DISCIPLINE IS THE STORE'S OWN** (`D-160` item 3): history past a window is DROPPED, and what was dropped answers a declared
+/// refusal rather than being retained to answer `[]`.
+///
+/// **THE FIGURE: `1024`.** One write opens a handful of attempts (a pass, its nested passes, a retry), so this is orders of magnitude
+/// above any single call's need — and it bounds the retention at `1024 x ~700 B` = **~700 KB worst case**, against the unbounded
+/// `N x 700 B` measured.
+export const CLOSED_ATTEMPT_WINDOW = 1024;
+
+/// **THE ONE WAY A CLOSED REPORT IS SEALED: SET, THEN EVICT THE OLDEST UNTIL THE WINDOW HOLDS.** Every `closed.set` call site goes
+/// through this, so no path can seal a report and skip the bound (`D-161`).
+export function sealClosedReport(kernel, id, report) {
+  // **THE MAP'S OWN INSERTION ORDER IS THE FIFO, AND THERE IS NO SECOND STRUCTURE** — **and no ARRAY, which is not a
+  // style preference but this corpus's rule**: a plain array's `push` writes its index through `[[Set]]`, so a host
+  // that puts a getter-only accessor on `Array.prototype`'s index makes it THROW (`surface.md` §2.1 item (1c)'s own
+  // cell, which measured exactly that when this seal first used `push`). **A `Map` writes its own internal table and
+  // consults no prototype, so the seal is immune to that class of host mutation by construction.**
+  //
+  // **A RE-SEAL MOVES THE ATTEMPT TO THE END RATHER THAN QUEUEING IT TWICE**: the same attempt can be sealed by its
+  // terminal act and again by `dropHandoff`, so the delete-then-set pair is what keeps *"the most recent N"* true of
+  // a repeated seal instead of leaving the id's original position to evict a live entry.
+  kernel.closed.delete(id);
+  kernel.closed.set(id, report);
+  while (kernel.closed.size > CLOSED_ATTEMPT_WINDOW) {
+    const oldest = kernel.closed.keys().next();
+    if (oldest.done === true) break;
+    kernel.closed.delete(oldest.value);
+  }
+}
+
 export function kernelFor(store) {
   let kernel = store[KERNEL_SLOT];
   if (kernel === undefined) {

@@ -8462,3 +8462,26 @@ clones removed (`1` per write) · the memory's shape (`O(store + journal_length)
    zero.
 4. **OWED**: a ruling or a unit on the map's bound (three cures priced in `docs/L1/journal-retention-rca.md` §8.3, none chosen), and the
    cell's instrument pinned so it bounds retention rather than allocation.
+
+---
+
+### `D-162` — `D-161` FIXED: A CLOSED ATTEMPT'S REPORT IS KEPT FOR A WINDOW OF `1024`, AND THE MAP'S OWN ORDER IS THE FIFO
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `2da657a`. **SOURCE:** the architect — *"Proceed with fix for package-side defect"*. **STATUS: `ACTIVE`.**
+
+1. **THE BOUND**: `CLOSED_ATTEMPT_WINDOW = 1024`; `sealClosedReport` is the **one** writer, and all four seal points go through it
+   (`kernel-terminal.mjs:128`/`:158`/`:481`, `kernel-registration.mjs:1146`).
+2. **THE FIFO IS THE `Map`'S INSERTION ORDER** — no second structure, **and no array**: the first mechanism used `Array.prototype.push`,
+   which writes its index through `[[Set]]`, and **a getter-only accessor on `Array.prototype[1]` made a lawful `write` throw** from
+   inside the seal (the cell at `crossing · contract.md §2.1 item (1c)` caught it). **A `Map` consults no prototype, so the seal is immune
+   to that class of host mutation by construction.**
+3. **MEASURED, PINNED**: retention falls **~700–745 B/write → 0.04–0.19 B/write**, and **flat** (0.75 MB at both 4,000 and 16,000 writes
+   against 3.26 → 12.66 MB before).
+4. **WHAT A PRUNED ID MEETS**: `KC-2` — **the same refusal an id that never named an attempt already meets**, so the window takes nothing a
+   caller can distinguish but the attempt's age, and `log()` still answers a held closed attempt with the empty list its handoff leaves.
+5. **THE DECLARATION IT IMPLIES, NAMED SO IT CAN BE OVERRULED**: a closed attempt's record is retained for **the most recent `1024` attempts**
+   and not for the store's life — the store's own discipline one layer up (`D-160` item 3). **A `WeakMap` keyed by the attempt is the
+   alternative that needs no window at all** (`docs/L1/journal-retention-rca.md` §8.3).
+6. **CELLS**: `tests/e2e/kernel-attempt-window.test.mjs` — `KAW-1` (the window's size, the dropped oldest meeting `KC-2`, the held newest
+   answering `[]`, and the pruned and never-minted refusals being equal) and `KAW-2` (the per-write ceiling, with the pinned figure in the
+   message and the reason the cell reads unpinned stated at the byte).
