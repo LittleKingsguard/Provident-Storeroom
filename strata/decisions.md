@@ -9589,3 +9589,39 @@ asserted nowhere** (`D-184` item 4).
    **once** with a credential, **configure its trusted publisher for that name**, and **re-run the failed job** — after which the OIDC path works and every later
    release behaves as the workflow says. **`PUB-DD-30`'s residual is not closed by this row**: it names the configuration that lives on the registry, and **this row
    adds the half a first publish meets before that configuration can exist.**
+
+---
+
+### `D-202` — `2.0.0` IS CUT AND PUBLISHED, AND THE FIVE FAILURES THAT GOT IT THERE ARE NOW INSTRUMENTS
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **TAG:** `v2.0.0` → `861b877`. **SOURCE:** the architect, verbatim: *"Now published"*. **STATUS: `ACTIVE`.**
+
+1. **THE RELEASE IS `2.0.0`, A `MAJOR`, AND IT CARRIES WHAT `D-200` ASSEMBLED**: the second realm in its own package · the save arm (`saveCall`, `exportImage`, the `channel`
+   and the seed) · the removal of a published declaration member (`record.op.compacted`) · the firing rule's narrowing (change detection, `P-3`) · and the creation's
+   two repairs (`P-2`). **Seven artefacts**: `provident-storeroom` plus the five native platform packages and `@auspicion/provident-storeroom-js-wasm`.
+2. **AND THE RUNBOOK'S POST-RELEASE CHECK PASSES WHOLE** — **this is the first time `--verify` could ever pass, because every one of its limbs needs a released version**:
+   *"tag `v2.0.0` exists locally"* · *"exists on origin — the pushed tag is what fired the release workflow"* · *"the manifest reads `2.0.0` … the code has not moved since
+   its release"* · the eleven version cells reading the released version · the cut claims at their baseline · `cargo` **690 pass / 0 fail** · `npm test` **1400 / 0** · and
+   the guide and change list landed byte-for-byte at the packaging root.
+3. **★ THE SIXTH ARTEFACT NEEDED A BOOTSTRAP, AND THAT IS A PROPERTY OF TRUSTED PUBLISHING AND NOT OF THIS PACKAGE** (`D-201`): **trusted publishing is configured PER
+   PACKAGE NAME**, so a name that has never been published has **no trusted publisher** and its first publish cannot be an OIDC one. **The sixth artefact was published once
+   with a credential**, its trusted publisher was configured, and every release after this one publishes it through the federation like the other six. **It carries no
+   provenance attestation for `2.0.0`** — the one artefact of the seven whose first version was not attested — **and its bundled README predates the `readTiered` table
+   correction**, so that documentation gap lives in one published tarball until the next release.
+4. **★ AND FIVE CI FAILURES WERE OURS, EACH WITH ONE CAUSE AND EACH NOW AN INSTRUMENT.** **None was in the package**; all five were in the workflow's own machinery, and
+   **not one could be exercised without spending a release** — which is the property that made them expensive:
+   **(i)** `require('bindings/js/…')` — **a `require` argument without `./`, `../` or `/` is a MODULE SPECIFIER**;
+   **(ii)** a string closing with `"` followed by a **stray `)`** — and a repair that **deleted the closing quote**, making the file worse than the bug;
+   **(iii)** **bash in PowerShell** — `windows-2022` runs `run:` in `pwsh`, where `>/dev/null 2>&1` and `if …; then` are not syntax;
+   **(iv)** a **bare `"$DIR"`** — legal in both dialects and **EMPTY in one**, so the tool answered `usage:` on one leg and worked on four;
+   **(v)** **`npm.cmd`** — `execFileSync('npm', …)` cannot launch a batch file without a shell, so the guard refused, correctly, **about a registry it had never contacted**.
+   **WHAT THEY BOUGHT, AND IT IS PERMANENT**: the guard is **one Node script** (`scripts/guard-publish-version.mjs`) instead of three shell bodies · it reads **`GUARD_DIR`**
+   and interpolates nothing · **its launch failures are named** rather than blank · **`W-STEP-1`** fails locally when any `run:` step mixes dialects without declaring
+   `shell: bash` or interpolates a shell variable — **proven to bite on both** · and **every publish site skips a version that already exists**, so a partial release
+   completes by re-running instead of repeating the same wall.
+5. **AND ONE ACT OF OURS IS NOT INSTRUMENTED AND IS RECORDED AS SUCH**: **the tag moved four times**, because **the workflow lives inside the tagged tree** — every fix to a
+   `run:` body needed a new tag. **The package bytes were identical across the moves** (`git diff` over `src/`, `bindings/js/src` and the manifests was empty; what moved was
+   `.github/`, `docs/` and `strata/`), **so no published artefact disagrees with the tag** — but **a release whose machinery is inside the released tree cannot be repaired
+   without moving the release**, and **that is a fact for the next cycle's design, not a defect of this one.**
+6. **WHAT IS TRUE OF THE TREE NOW**: `v2.0.0` is cut and published · the manifest reads `2.0.0` at the tag's own commit · **`npm test` `1400` / `0` and the eleven out-of-glob
+   runners all exit `0`** · and **`scripts/publish.sh --check` will refuse the next tag until a `--bump` moves the version, which is the correct post-release state.**

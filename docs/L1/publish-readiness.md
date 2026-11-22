@@ -298,4 +298,6 @@ code and no declaration, and its one touched code file's CODE BYTES are proven i
 **AND THE CLASS, WHICH §2'S TABLE READS AS UNCLAIMED**: **`2.0.0`, a `MAJOR`, ruled by the architect** — *"Next release is 2.0.0"* (`D-200`) — **carrying two `MAJOR` moves and one
 `MINOR`-class one under a single heading**: the removal of a published declaration member, the firing rule's narrowing, and the creation's two repairs.
 
-**SO THE ONE ACT LEFT IS THE TAG.** Everything a publish needs is on the tree and green, and **no document may claim the tag** (`D-57`) — it is `delivery`'s.
+**⟶ AND THE TAG IS CUT AND THE RELEASE IS PUBLISHED, 2026-11-17 — the architect, verbatim: *"Now published"* (`D-202`).** `v2.0.0` → `861b877`, the seven artefacts
+carrying it, **and `scripts/publish.sh --verify 2.0.0` passing every one of its limbs for the first time** — because every limb of that mode needs a released version.
+**THE ONE ACT THIS LEDGER SAID WAS LEFT IS DONE**, and what it leaves behind is the next cycle's: **a version must be bumped before another tag.**
