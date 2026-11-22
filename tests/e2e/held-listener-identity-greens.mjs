@@ -591,8 +591,13 @@ const K6 = (store, pair) => kernel.remove(store, pair);
   // ruling. **THIS IS THE ROW'S FOURTH DATED RE-DERIVATION** (`op` 2026-10-27, `discarded` 2026-10-28, `commit`
   // 2026-10-29 preceded it) and not a red cell left behind; the name sorts between `discarded` and `op`.
   A('HLI-07.6', 'contract.md §2.4 item 1 (`DeleteReceipt.triggered` moves with it); `D-43` item 3 (`op` joins the record); `D-49` (`discarded` joins it); §2.6\'s 2026-10-29 clause (`commit` joins it); `D-119` (`log` joins it)',
-    "the delete receipt's own members are exactly `['address','commit','discarded','log','op','tiers','triggered']` (as `ownNames` sorts them)",
-    !d.threw && ownNames(d.value).join(',') === 'address,commit,discarded,log,op,tiers,triggered',
+    "the delete receipt's own members are exactly `['address','bodyFailures','commit','discarded','log','op','returnedValues','tiers','triggered']` (as `ownNames` sorts them)",
+    // **⟶ AND THE RECEIPT GAINS THE TWO DELIVERY-SETTLE ACCESSORS, 2026-11-17** (`D-130` item 5; `D-151`): `bodyFailures`
+    // and `returnedValues` are non-enumerable `configurable` GETTERS over `Symbol.for`-keyed data, **so `Object.keys` and
+    // every deep-equality over the receipt are unmoved and the ONE census that sees them is `getOwnPropertyNames` — which
+    // is this cell.** The figure is the same one `tests/e2e/surface.test.mjs`'s receipt cell carries, and it moves here for
+    // the same reason and no other.
+    !d.threw && ownNames(d.value).join(',') === 'address,bodyFailures,commit,discarded,log,op,returnedValues,tiers,triggered',
     d.threw ? fmt(statusOf(d)) : fmt(ownNames(d.value)));
   A('HLI-07.7', 'contract.md §2.4 item 1; trigger-and-pair.md §2 item 1',
     "the delete receipt's `triggered` is a pair list too",

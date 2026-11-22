@@ -364,13 +364,34 @@ try {
   // `2` existence guards PLUS `1` version guard = the `3` members of the `4.`-prefixed set — and it is
   // PRINTED as that arithmetic rather than asserted as one number standing alone.
   const arithmetic = existenceGuards.length + guardNames.length;
-  const ok = fourPrefixed.length === 3 && guardNames.length === 1 && existenceGuards.length === 2 &&
-    arithmetic === fourPrefixed.length &&
-    !existenceGuards.some((n) => n.includes('pre-publish guard'));
+  // **⟶ AND THE COMPOSITION MOVES WHEN A THIRD PUBLISHER JOINS, 2026-11-17 — `D-157` item 1 AND `D-172`.** The clause's
+  // as-filed arithmetic (“`2` existence guards PLUS `1` version guard = the `3` members of the `4.`-prefixed set”) held
+  // **while the workflow carried TWO publishing sites** — the platform matrix and the main package. **`publish.yml` now
+  // carries THREE** (the matrix, `main`, and the WebAssembly job the sixth artefact publishes from), so **the old figure
+  // cannot hold and re-cutting it per job would be a figure that has to be re-cut again by the next publisher.** **WHAT IS
+  // ASSERTED INSTEAD IS THE PROPERTY THE FIGURE STOOD FOR, and it is one that survives a fourth publisher:**
+  //   · **one EXISTENCE GUARD PER PUBLISHER** — every `4.`-prefixed `publish …` step has a `4. guard:` beside it;
+  //   · **ONE version guard**, and it is NOT one of the ordinal existence guards (its own token is `pre-publish guard`);
+  //   · **every other `4.`-prefixed step is part of a publisher's own sequence** — asserted by there being no
+  //     `4.`-prefixed step that is neither a guard, a publish nor a cleanup of the assembled copy.
+  // **THE THREE SETS ARE DISJOINT, WHICH THE FIRST CUT OF THIS PREDICATE WAS NOT**: the platform job's cleanup step
+  // reads *"… remove the assembled licence copy and binary AFTER THE PUBLISH"*, so a bare `/publish/` test counted it as
+  // a PUBLISHER and as a CLEANUP at once; and `existenceGuards` is taken over the WHOLE workflow, so the main job's
+  // `5. guard: the pack-time licence copy …` fell into a count that belongs to the `4.` set. **Both are the instrument's
+  // and not the workflow's.** So each set is read inside the `4.`-prefixed members and from its own spelling.
+  const fourGuards = fourPrefixed.filter((n) => /guard:/i.test(n));
+  const cleanups = fourPrefixed.filter((n) => /remove|clean/i.test(n));
+  const publishers = fourPrefixed.filter((n) => /publish/i.test(n) && !/guard:/i.test(n) && !/remove|clean/i.test(n));
+  const accounted = fourGuards.length + publishers.length + cleanups.length;
+  const ok = publishers.length >= 1 && guardNames.length === 1
+    && fourGuards.length === publishers.length
+    && accounted === fourPrefixed.length
+    && !fourGuards.some((n) => n.includes('pre-publish guard'));
   say('CF-09', ok ? 'PASS' : 'FAIL',
     `four-prefixed steps=${fourPrefixed.length} [${fourPrefixed.join(' | ')}]; existence guards by the clause's `
     + `ordinal-prefixed form=${existenceGuards.length} [${existenceGuards.join(' | ')}]; version guards=${guardNames.length} `
-    + `[${guardNames.join(' | ')}]; ${existenceGuards.length} + ${guardNames.length} = ${arithmetic} == ${fourPrefixed.length}`,
+    + `[${guardNames.join(' | ')}]; publishers=${publishers.length} cleanups=${cleanups.length}; one existence guard per `
+    + `publisher=${fourGuards.length} == ${publishers.length}; guards+publishers+cleanups=${accounted} == ${fourPrefixed.length}`,
     'release.md §1.4a item 11(b)');
 } catch (e) {
   say('CF-09', 'FAIL', `workflow read failed: ${e.message}`, 'release.md §1.4a item 11(b)');

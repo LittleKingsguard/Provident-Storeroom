@@ -48,6 +48,53 @@
 // RUN:  node tests/e2e/json-acceptance-set-greens.mjs   (from the repository root)   ⟶ MOVED 2026-10-25 (`D-5`): this command read `node bindings/js/greens/json-acceptance-set-greens.mjs` until the batteries were stratified.
 // EXIT: 0 iff no cell FAILed.  A LAYER-LIMIT is not a failure and does not move the exit.
 // ============================================================================
+
+// ─────────────────────────────────────────────────────────────────────────────────────────────────────
+// **⟶ RE-DERIVED 2026-11-22 (`D-126` ITEM 2) — AND THIS RUNNER'S PROVENANCE IS WEAKER THAN A BLIND ONE'S, SAID
+// FIRST, BEFORE IT SAYS WHAT IT MEASURES.** Twenty-four cells of this set were authored over the answer the corpus
+// then gave a file the loader refuses, and that answer is superseded by **`strata/decisions.md` · `D-126` item `2`**
+// (2026-11-06), the architect verbatim: ***"Mint/revive a code: a corrupt image refuses the construction"*** — the
+// member pinned at rank `22` **`FileImageRefused`** (`docs/L1/creation-sweep.md §3` `PIN-11`;
+// `docs/specs/storeroom-native/contract.md §8.1`'s row `22`), minted by the store itself at its construction's
+// step `7` (`src/store.rs`'s `read_file_image`, the third class `FileImage::Refused`). **A runner rewritten by the
+// pass whose ruling broke it is WEAKER EVIDENCE THAN A FRESH ONE: what follows is evidence that THIS TREE is
+// consistent with `D-126` item `2`, never that a blind author could have predicted it** (the `E2E-C-9`/`D-163`
+// provenance discipline; `tests/e2e/blind-constraints-v2.mjs`'s own head, read with `D-163` item `1`).
+//
+// **THE RULING THAT WAS SUPERSEDED, NAMED SO NO LATER PASS CHASES IT.** **`D-118` item `1`** read *"a present image
+// the store's own loader cannot read is TREATED AS NO IMAGE AT ALL, and the regeneration falls back to the creation
+// state … exactly as where no `filePath`, no file, or a zero-length file stands"* — **so a construction over a
+// corrupt file RETURNED AN INSTANCE WITH AN EMPTY REGISTER, and `D-118` item `1`'s own EQUALITY (the corrupt window
+// equals the zero-length window) is the reading every cell below stood on.** `D-126` item `2` **WITHDRAWS THE
+// EQUALITY**: the two classes now answer DIFFERENTLY — a `NoImage` path (an absent file, a zero-length file) still
+// constructs an instance with `0` register keys and crosses NO code, while a present, NON-EMPTY image the loader
+// REFUSES refuses the construction and **no instance exists** (`contract.md §7.2`'s three-class clause of
+// 2026-11-06; `§8.1` row `22`; `§10.4` part `5`'s clause read at the corrupt arm; `DD-38`). **The refusal carries
+// the surface's one form** — `status`, the store's own generated `message`, `log: []` and `address: null`
+// (`docs/specs/storeroom-js/surface.md §2.5` items `4` and `4-bis`, and the arm table at `:1373`/`:1377`) — **and
+// the corrupt bytes STAND, UN-WRITTEN-TO AND UN-REPAIRED**, because the refusal precedes every save (`D-126`
+// residual `2` answered the bytes stand; `PIN-12`'s spirit; `contract.md §8.1` row `22`).
+//
+// **WHAT MOVED, CELL BY CELL, AND WHICH OF THREE THINGS EACH CELL IS NOW.** Every cell keeps its id, **no cell is
+// retired and no id is re-used**, so the census is UNMOVED at `50` and the exit rule is unmoved (`0` iff no cell
+// FAILed, a LAYER-LIMIT never moving it):
+//   (1) **ITS SUBJECT IS THE PARSER'S STRICTNESS — `JAS-01.1`–`01.3`, `JAS-02.1`–`02.11`, `JAS-03.1`–`03.3`,
+//       `JAS-05.5`, and `JAS-07.1`'s refused arm.** The strictness is STILL OBSERVABLE, and it is observable AS THE
+//       REFUSAL: the construction answers `FileImageRefused` for a file the loader will not read. **A refusal loads
+//       NOTHING, so the "sibling key" limb is no longer a key absent from an empty register — there is NO REGISTER:
+//       nothing was built, and that is STRONGER than what these cells used to assert.**
+//   (2) **ITS SUBJECT WAS THE `D-118` EQUALITY ITSELF — `JAS-08.1`, `JAS-08.2`, `JAS-08.3`, and `JAS-09.1`/`09.2`'s
+//       refused-class limbs.** Re-cut to the DIFFERENCE the pair now marks, because this runner has cells that can
+//       carry it: `JAS-08.1` is the refused half (the refusal's whole shape), `JAS-08.2` is the SEPARATION
+//       (absent and zero-length construct, the corrupt image refuses), `JAS-08.3` is the whole-file limb read at
+//       the only route a refused file leaves open, and `JAS-09.1`'s list-walk measurement is moved to the class the
+//       ruling LEAVES CONSTRUCTING.
+//   (3) **ITS SUBJECT IS A CONTROL THAT NEEDS A NON-CORRUPT FILE — `JAS-09.2`.** Given a file the loader reads (the
+//       zero-length path, whose register the control needs), so the control goes on controlling.
+// **NO CELL IS WEAKENED AND NONE PASSES VACUOUSLY**: each re-cut cell asserts the refusal's own members and the
+// store's own sentence, so a tree that answered an instance, a different member, a non-empty log or a named
+// address FAILs at the byte where it used to pass. **THE CELLS THIS PASS COULD NOT RE-DERIVE HONESTLY: NONE.**
+// ─────────────────────────────────────────────────────────────────────────────────────────────────────
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -169,6 +216,44 @@ const registerOf = (store) => { const r = tryCall(() => store.read([])); return 
 // One key's own read: the key's ABSENCE answers `AddressNotFound` (§8.1 #2).
 const keyOf = (store, key) => tryCall(() => store.read([key]));
 
+// ─────────────────────────────────────────────────────────────────────────────────────────────────────
+// **THE ONE ANSWER A REFUSED FILE LEAVES OPEN** (`D-126` item `2`; `§8.1` row `22`): the construction is REFUSED
+// at the store's own rank `22` `FileImageRefused` and NO INSTANCE EXISTS. The refusal is read at EVERY member the
+// surface declares — `status`, the store's own generated `message` (the `filePath` quoted), `log: []` and
+// `address: null` (`docs/specs/storeroom-js/surface.md §2.5` items `4`/`4-bis` and `:1373`/`:1377`; `contract.md
+// §9`'s `FileImageRefused` rule) — so a tree that answered an instance, another member, a non-empty log or a named
+// address FAILs here rather than slipping past. **`own` is asserted as well**: the form's one spelling is
+// `status,message,log,address`, in that order (`surface.md §2.5` item `9`), so a fourth-member drift is a red too.
+const REFUSAL_SENTENCE = (p) => `'${p}' is not an image this store reads, the file at this path must hold this store's image or be empty`;
+function refusedShape(b) {
+  if (b.r.ok) {
+    return {
+      ok: false,
+      detail: `construction=INSTANCE register=${show(registerOf(b.store))} where \`D-126\` item 2 REFUSES it (\`FileImageRefused\`)`,
+    };
+  }
+  const e = b.r.v || {};
+  const sentence = REFUSAL_SENTENCE(b.P);
+  const own = Object.keys(e).join(',');
+  const ok = e.status === 'FileImageRefused'
+    && e.address === null
+    && Array.isArray(e.log) && e.log.length === 0
+    && e.message === sentence
+    && own === 'status,message,log,address';
+  return {
+    ok,
+    detail: `construction=REFUSED status=${JSON.stringify(e.status)} address=${JSON.stringify(e.address)} `
+      + `log=${show(e.log)} own=${own} message=${JSON.stringify(e.message)} verbatim=${e.message === sentence}`,
+  };
+}
+// A cell whose subject is the refusal itself: the file's bytes at a fresh path, the boot, and the refusal's shape.
+// **AND WHAT A REFUSAL LOADS, SAID ONCE BECAUSE EVERY RE-CUT CELL BELOW DEPENDS ON IT:** **NOTHING** — no instance,
+// no register and no key — so a cell that also names a well-formed sibling says at its own byte that there is no
+// register for that sibling to be absent from (`D-126` item `2`; `contract.md §7.2`'s three-class clause).
+function refusedCell(id, clause, observable, bytes) {
+  cell(id, clause, observable, () => refusedShape(boot(bytes)));
+}
+
 // THE BYTES OF A FOREIGN IMAGE, spelled from the clause's own examples.
 const RAW_LF = '\n';        // a literal LF inside a string
 const RAW_TAB = '\t';       // a literal TAB inside a string
@@ -182,22 +267,26 @@ const NBSP = '\u00A0';      // U+00A0, NOT ONE OF THE FOUR ADMITTED SEPARATORS
 // STRING IS REFUSED, AND THE ESCAPED FORM IS ACCEPTED.
 // seams-and-lifecycle.md §7.2 item 7 (f) class (1); A143 (1).
 // THE DRIVE: a FOREIGN file (a hand-written image) booted through the JS
-// surface's own `storeCreate`.  A refused file loads NOTHING (the register
-// begins empty) and the instance is still returned.
+// surface's own `storeCreate`.  **⟶ AND A REFUSED FILE NOW LOADS NOTHING AT ALL: the construction is REFUSED at
+// rank `22` `FileImageRefused` and no instance exists** (`D-126` item 2). The clause's as-filed reading — *"a
+// refusal loads NOTHING (the register begins empty) and the instance is still returned"* — is `D-118` item 1's and
+// is WITHDRAWN for this class; what it said in a weaker form ("nothing loads") stands, and what it added ("an
+// instance with an empty register") does not.
 scenario('JAS-01', 'class 1: a raw control character inside a string is refused, and the escaped form is accepted',
-  'seams-and-lifecycle.md §7.2 item 7 (f) class (1) ("A RAW CONTROL CHARACTER INSIDE A STRING IS REFUSED — a literal LF, a literal TAB or a literal NUL inside a string — AND THE ESCAPED FORM (\\u0000) IS ACCEPTED"); A143 (1)', () => {
+  'seams-and-lifecycle.md §7.2 item 7 (f) class (1) ("A RAW CONTROL CHARACTER INSIDE A STRING IS REFUSED — a literal LF, a literal TAB or a literal NUL inside a string — AND THE ESCAPED FORM (\\u0000) IS ACCEPTED"); A143 (1)',
+  () => {
     const C1 = 'seams-and-lifecycle.md §7.2 item 7 (f) class (1); A143 (1)';
 
     const rawCase = (id, label, raw) => {
-      cell(id, C1,
-        `a file carrying a ${label} inside a string is REFUSED: the WHOLE file does not load, the register begins EMPTY, the instance is returned and no error reaches the caller`,
-        () => {
-          const b = boot(`{"a":"x${raw}y","b":7}`);
-          if (!b.r.ok) return C(false, `the construction threw: ${describe(b.r.v)}`);
-          const reg = registerOf(b.store);
-          return C(reg !== null && same(reg, {}),
-            `register=${show(reg)} (an empty object is the clause's "the register begins EMPTY")`);
-        });
+      // ⟶ **RE-DERIVED 2026-11-22 (`D-126` item 2; `D-118` item 1 SUPERSEDED).** The as-filed cell read *"the
+      // WHOLE file does not load, the register begins EMPTY, the instance is returned and no error reaches the
+      // caller"* — `D-118` item 1's reading, under which a corrupt image was *"treated as NO image at all"*. **The
+      // strictness is UNMOVED and is now observable AS THE REFUSAL**: a present, non-empty image the loader will not
+      // read refuses the construction, so the well-formed sibling `b` is not a key missing from an empty register —
+      // **there is NO REGISTER, because nothing was built.**
+      refusedCell(id, C1,
+        `a file carrying a ${label} inside a string is REFUSED: the construction answers rank \`22\` \`FileImageRefused\` — the store's own sentence naming the path, \`address: null\`, \`log: []\` — and NO instance is returned, so the well-formed sibling \`b\` has no register to be absent from`,
+        `{"a":"x${raw}y","b":7}`);
     };
     rawCase('JAS-01.1', 'literal LF', RAW_LF);
     rawCase('JAS-01.2', 'literal TAB', RAW_TAB);
@@ -258,15 +347,12 @@ scenario('JAS-02', 'class 2, the grammar violation: eleven number spellings the 
       ['1_0', 'JAS-02.9'], ['--1', 'JAS-02.10'], ['1.2.3', 'JAS-02.11'],
     ];
     for (const [spelling, id] of SPELLINGS) {
-      cell(id, C2,
-        `the number spelling \`${spelling}\` is REFUSED: the WHOLE file does not load and the register begins EMPTY`,
-        () => {
-          const b = boot(`{"a":${spelling},"b":7}`);
-          if (!b.r.ok) return C(false, `the construction threw: ${describe(b.r.v)}`);
-          const reg = registerOf(b.store);
-          return C(reg !== null && same(reg, {}),
-            `spelling=${spelling} register=${show(reg)}`);
-        });
+      // ⟶ **RE-DERIVED 2026-11-22 (`D-126` item 2).** The spelling is STILL REFUSED — the whole file does not load —
+      // and the refusal is now the CONSTRUCTION's own answer instead of an empty register the caller could read:
+      // the as-filed *"the register begins EMPTY"* is `D-118` item 1's reading and is withdrawn for this class.
+      refusedCell(id, C2,
+        `the number spelling \`${spelling}\` is REFUSED: the construction answers \`FileImageRefused\` and NO instance is returned — the whole file does not load because NOTHING IS BUILT, so the well-formed sibling \`b\` has no register to be absent from`,
+        `{"a":${spelling},"b":7}`);
     }
     cell('JAS-02.12', C2,
       'CONTROL: a grammar-admitted number spelling loads, so the drive discriminates the refusal',
@@ -285,14 +371,12 @@ scenario('JAS-03', 'class 2, the overflow: a grammar-admitted number whose value
   'seams-and-lifecycle.md §7.2 item 7 (f) class (2) ("AN OVERFLOW — a spelling the grammar admits whose value does not fit — IS REFUSED: 1e400, 1e999999999, 1e309"); A143 (1)', () => {
     const C3 = 'seams-and-lifecycle.md §7.2 item 7 (f) class (2) (the overflow arm); A143 (1)';
     for (const [spelling, id] of [['1e400', 'JAS-03.1'], ['1e999999999', 'JAS-03.2'], ['1e309', 'JAS-03.3']]) {
-      cell(id, C3,
-        `the number spelling \`${spelling}\` is REFUSED as out of range: the WHOLE file does not load and the register begins EMPTY`,
-        () => {
-          const b = boot(`{"a":${spelling},"b":7}`);
-          if (!b.r.ok) return C(false, `the construction threw: ${describe(b.r.v)}`);
-          const reg = registerOf(b.store);
-          return C(reg !== null && same(reg, {}), `spelling=${spelling} register=${show(reg)}`);
-        });
+      // ⟶ **RE-DERIVED 2026-11-22 (`D-126` item 2): the overflow is still REFUSED, and it is observable AS THE
+      // REFUSAL** — the construction answers `FileImageRefused` and no instance exists (`D-118` item 1's empty
+      // register is withdrawn for this class).
+      refusedCell(id, C3,
+        `the number spelling \`${spelling}\` is REFUSED as out of range: the construction answers \`FileImageRefused\` and NO instance is returned — the whole file does not load because nothing is built`,
+        `{"a":${spelling},"b":7}`);
     }
     cell('JAS-03.4', C3,
       'CONTROL: a grammar-admitted spelling whose value DOES fit loads, so the drive discriminates the overflow refusal',
@@ -354,14 +438,14 @@ scenario('JAS-05', 'class 3: exactly four token separators are admitted and a Un
           return C(reg !== null && same(reg, { a: 1, b: 2 }), `separator=${name} register=${show(reg)}`);
         });
     }
-    cell('JAS-05.5', C5,
-      'U+00A0 as a token separator is REFUSED: the WHOLE file does not load and the register begins EMPTY',
-      () => {
-        const b = boot(`{"a":1,${NBSP}"b":2}`);
-        if (!b.r.ok) return C(false, `the construction threw: ${describe(b.r.v)}`);
-        const reg = registerOf(b.store);
-        return C(reg !== null && same(reg, {}), `separator=U+00A0 register=${show(reg)}`);
-      });
+    // ⟶ **RE-DERIVED 2026-11-22 (`D-126` item 2): U+00A0 in the SEPARATOR role is still REFUSED, and the refusal is
+    // the construction's own** — `FileImageRefused`, no instance (`D-118` item 1's empty register is withdrawn).
+    // **AND THE CHARACTER-VERSUS-ROLE DISCRIMINATION IS CARRIED BY `JAS-05.6` BELOW**, where the same U+00A0 inside
+    // a string is ADMITTED: a separator the grammar does not admit refuses the whole file; the character in a
+    // string is not a separator and loads.
+    refusedCell('JAS-05.5', C5,
+      'U+00A0 as a token separator is REFUSED: the construction answers `FileImageRefused` and NO instance is returned — the whole file does not load because nothing is built',
+      `{"a":1,${NBSP}"b":2}`);
     cell('JAS-05.6', C5,
       'CONTROL: U+00A0 INSIDE a string is not a token separator and is admitted (the acceptance set is the JSON grammar\'s), so the drive discriminates the separator role from the character',
       () => {
@@ -429,7 +513,7 @@ scenario('JAS-07', 'class 4: the nesting depth — the loader\'s boundary on the
     };
 
     cell('JAS-07.1', C4,
-      'THE LOADER\'S BOUNDARY, ON THE FOREIGN-FILE ROUTE: an image of `127` CONTAINERS (the root counted — the corpus\'s walk-depth `126`) is ACCEPTED — the key loads and its value IS the nested array; and an image of `128` CONTAINERS (walk-depth `127`) is REFUSED — the WHOLE file does not load, the register begins EMPTY, the instance IS returned and no error reaches the caller',
+      'THE LOADER\'S BOUNDARY, ON THE FOREIGN-FILE ROUTE: an image of `127` CONTAINERS (the root counted — the corpus\'s walk-depth `126`) is ACCEPTED — the key loads and its value IS the nested array; and an image of `128` CONTAINERS (walk-depth `127`) is REFUSED — the construction answers `FileImageRefused` (`address: null`, `log: []`, the store\'s own sentence), NO instance is returned, and nothing loads',
       () => {
         const notes = [];
         let ok = true;
@@ -450,20 +534,19 @@ scenario('JAS-07', 'class 4: the nesting depth — the loader\'s boundary on the
           }
         }
         // arm (b): `128` CONTAINERS — the DECLARED REFUSED FIGURE (walk-depth 127)
+        // ⟶ **RE-DERIVED 2026-11-22 (`D-126` item 2): the depth ceiling is still observable — the file does not
+        // load — and it is observable AS THE REFUSAL.** The as-filed arm read *"the register begins empty, the
+        // instance is returned and no error reaches the caller"*: `D-118` item 1's reading, withdrawn here. **What it
+        // said in the stronger form stands: the loader's boundary is exactly where a `127`-container image loads and
+        // a `128`-container image does not — and the second now refuses the CONSTRUCTION.**
         {
           const bytes = imageBytes(128);
           const counted = containersIn(bytes);
           const b = boot(bytes);
-          if (!b.r.ok) {
-            ok = false;
-            notes.push(`128 containers (walk-depth 127): CONSTRUCTION THREW ${describe(b.r.v)}`);
-          } else {
-            const reg = registerOf(b.store);
-            const a = keyOf(b.store, 'a');
-            const good = counted === 128 && reg !== null && same(reg, {}) && !a.ok;
-            if (!good) ok = false;
-            notes.push(`128 containers (walk-depth 127): ${good ? 'REFUSED — the whole file does not load, the register begins empty, the instance is returned, no error reached the caller' : `NOT REFUSED (register=${brief(reg)}, read(a)=${a.ok ? 'a value' : describe(a.v)})`} :: containers counted in the bytes = ${counted}`);
-          }
+          const r = refusedShape(b);
+          const good = counted === 128 && r.ok;
+          if (!good) ok = false;
+          notes.push(`128 containers (walk-depth 127): ${good ? 'REFUSED — the construction answers `FileImageRefused`, no instance is returned, nothing loads' : `NOT REFUSED AS DECLARED (${r.detail})`} :: containers counted in the bytes = ${counted}`);
         }
         return C(ok, notes.join(' | '));
       });
@@ -534,40 +617,67 @@ scenario('JAS-07', 'class 4: the nesting depth — the loader\'s boundary on the
   });
 
 // =============================================================== JAS-08 =====
-// THE ANSWER FOR A FILE THE LOADER REFUSES — ARM (a): NO CONSTRAINT LIST.
-// THE WHOLE FILE DOES NOT LOAD, THE REGISTER BEGINS EMPTY, THE INSTANCE IS
-// RETURNED, AND NO ERROR REACHES THE CALLER.
-scenario('JAS-08', 'the answer for a file the loader refuses, arm (a): the whole file does not load, the register begins empty, the instance is returned',
-  'seams-and-lifecycle.md §7.2 item 7 (f) (the refused-file answer, arm (a)); A143 (2); §7.2 item 6 (the boot; DD-29)', () => {
-    const C8 = 'seams-and-lifecycle.md §7.2 item 7 (f) (the refused-file answer, arm (a)); A143 (2)';
+// THE ANSWER FOR A FILE THE LOADER REFUSES — `D-126` ITEM 2'S: THE CONSTRUCTION IS REFUSED AT RANK `22`
+// `FileImageRefused` AND NO INSTANCE EXISTS.
+// **⟶ THE AS-FILED READING IS SUPERSEDED AND IS NAMED SO NO LATER PASS CHASES IT.** This scenario stood on arm (a)
+// of the refused-file answer — *"the whole file does not load, the register begins EMPTY, the instance is returned,
+// and no error reaches the caller"* — which is `D-118` item 1's reading, the one that made a corrupt image *"treated
+// as NO image at all"* and therefore EQUAL to the zero-length path. **`D-126` item 2 WITHDRAWS the equality and the
+// class now refuses the construction** (`contract.md §7.2`'s three-class clause of 2026-11-06: *"ARM (a) IS RETIRED
+// FOR THIS CLASS"*), **so the cells below are re-cut to the DIFFERENCE the withdrawn equality no longer marks, and
+// the answer for a `NoImage` path — an instance, `0` register keys, NO code — is what it is told apart from.**
+scenario('JAS-08', 'the answer for a file the loader refuses: the construction is REFUSED at rank `22` `FileImageRefused`, no instance exists, and the class SEPARATES from the zero-length/absent path `D-118` item 1 made it equal to',
+  'seams-and-lifecycle.md §7.2 item 7 (f) (the refused-file answer, arm (a)); A143 (2); §7.2 item 6 (the boot; DD-29); strata/decisions.md `D-126` item 2 (`FileImageRefused`, rank `22`; `D-118` item 1 superseded); contract.md §8.1 row `22` and §7.2\'s three-class clause of 2026-11-06; surface.md §2.5 items `4`/`4-bis`; §10.4 part `5` read at the corrupt arm', () => {
+    const C8 = 'seams-and-lifecycle.md §7.2 item 7 (f) (the refused-file answer, arm (a)); A143 (2); strata/decisions.md `D-126` item 2; contract.md §8.1 row `22`';
     const REFUSED = `{"a":"x${RAW_LF}y","b":7}`; // a foreign file the loader refuses (class 1)
 
+    // **⟶ RE-CUT 2026-11-22 (`D-126` item 2), FROM *"STORE-CREATE STILL RETURNS AN INSTANCE"* TO THE REFUSED HALF OF
+    // THE DIFFERENCE.** The as-filed wording was `D-118` item 1's verbatim expectation; the cell now asserts the
+    // store's own answer at every member it declares, so an instance coming back is a RED and not a green.
     cell('JAS-08.1', C8,
-      'over a file the loader REFUSES, `storeCreate` still RETURNS AN INSTANCE and NO ERROR REACHES THE CALLER',
-      () => {
-        const b = boot(REFUSED);
-        return C(b.r.ok && b.store !== null,
-          `construction=${b.r.ok ? 'INSTANCE' : `THREW ${describe(b.r.v)}`}`);
-      });
+      'over a file the loader REFUSES, the construction is REFUSED at rank `22` `FileImageRefused`: `address: null`, `log: []`, the store\'s own sentence naming the path, and NO INSTANCE is returned',
+      () => refusedShape(boot(REFUSED)));
+    // **⟶ RE-CUT 2026-11-22 (`D-126` item 2): THIS CELL IS THE SEPARATION ITSELF.** `D-118` item 1 asserted the
+    // corrupt image and the zero-length file were the SAME window; `D-126` item 2 makes them answer differently, and
+    // the pair is still a measurement — it measures that the classes SEPARATE. An absent path is included because
+    // `NoImage` is both (an absent file and a zero-length file) and both still construct (`§10.4` part 3; `DD-38`).
     cell('JAS-08.2', C8,
-      'over a file the loader REFUSES, the register begins EMPTY',
+      'THE DIFFERENCE THE WITHDRAWN EQUALITY NOW MARKS: a ZERO-LENGTH file and an ABSENT path still CONSTRUCT — an instance, a register of `0` keys, NO code — while the SAME construction over the present, non-empty REFUSED image answers `FileImageRefused` and returns NO instance',
       () => {
-        const b = boot(REFUSED);
-        if (!b.r.ok) return C(false, `the construction threw: ${describe(b.r.v)}`);
-        const reg = registerOf(b.store);
-        const a = keyOf(b.store, 'a');
-        return C(reg !== null && same(reg, {}) && !a.ok,
-          `register=${show(reg)} read(a)=${a.ok ? JSON.stringify(a.v) : `threw ${describe(a.v)}`}`);
+        const zero = boot('');
+        const zeroReg = zero.r.ok ? registerOf(zero.store) : null;
+        const absent = tryCall(() => {
+          const d = tmp();
+          const P = path.join(d, 'store.json');
+          return PKG.storeCreate({ filePath: P, journalLength: 8, listeners: [] });
+        });
+        const absentReg = absent.ok ? registerOf(absent.v) : null;
+        const r = refusedShape(boot(REFUSED));
+        const ok = zero.r.ok && zeroReg !== null && same(zeroReg, {})
+          && absent.ok && absentReg !== null && same(absentReg, {})
+          && r.ok;
+        return C(ok,
+          `zero-length: ${zero.r.ok ? `INSTANCE register=${show(zeroReg)}` : `THREW ${describe(zero.r.v)}`} · `
+          + `absent: ${absent.ok ? `INSTANCE register=${show(absentReg)}` : `THREW ${describe(absent.v)}`} · `
+          + `refused image: ${r.detail}`);
       });
+    // **⟶ RE-CUT 2026-11-22 (`D-126` item 2): "THE WHOLE FILE DOES NOT LOAD" IS TRUE IN A STRONGER SENSE THAN THE
+    // CELL COULD ASSERT BEFORE.** The as-filed limb read *"the sibling well-formed key is gone too"* — a key missing
+    // from an EMPTY REGISTER. **A refusal loads NOTHING, so there is no register at all for the sibling to be absent
+    // from**: no instance exists, so `b` has no reader. **AND WHAT THE REFUSAL LEAVES IS ASSERTED BESIDE IT**: the
+    // corrupt bytes STAND, un-written-to and un-repaired (`D-126` residual 2; `contract.md §8.1` row `22`).
     cell('JAS-08.3', C8,
-      'over a file the loader REFUSES, THE WHOLE FILE DOES NOT LOAD: the sibling well-formed key is gone too',
+      'over a file the loader REFUSES, THE WHOLE FILE DOES NOT LOAD — in the sense the ruling gives the sentence: NOTHING IS BUILT, so the well-formed sibling `b` has no register to be read from at all (the only route a refused file leaves open is the refusal itself) — AND the corrupt bytes STAND, un-written-to and un-repaired',
       () => {
+        const bytes = Buffer.from(REFUSED, 'utf8');
         const b = boot(REFUSED);
-        if (!b.r.ok) return C(false, `the construction threw: ${describe(b.r.v)}`);
-        const reg = registerOf(b.store);
-        const bb = keyOf(b.store, 'b');
-        return C(reg !== null && same(reg, {}) && !bb.ok,
-          `register=${show(reg)} read(b)=${bb.ok ? JSON.stringify(bb.v) : `threw ${describe(bb.v)}`}`);
+        const r = refusedShape(b);
+        const onDisk = bytesOf(b.P);
+        const unmoved = onDisk !== null && onDisk.equals(bytes);
+        const ok = r.ok && b.store === null && unmoved;
+        return C(ok,
+          `${r.detail} · instance=${b.store === null ? 'NONE (so neither `a` nor `b` has a reader)' : 'RETURNED'} · `
+          + `bytes unmoved=${unmoved} (${imgStr(onDisk)})`);
       });
     cell('JAS-08.4', 'seams-and-lifecycle.md §7.2 item 7 (f) ("AND THE CORPUS\'S OWN BOOT CLAUSE FOR A *PARSEABLE* FILE STANDS UNMOVED, AND THE TWO ANSWERS ARE DIFFERENT AND EACH IS DECLARED: A PARSEABLE FILE WITH ONE NON-ADMITTED MEMBER LOSES THAT MEMBER, AND A FILE THE LOADER REFUSES LOSES EVERYTHING"); §7.2 item 6 (DD-29); A143 (2)',
       'CONTROL: a PARSEABLE file with ONE non-admitted member loses THAT MEMBER only — the rest of the content loads, the instance IS returned, and NO code is produced for the dropped key',
@@ -604,48 +714,81 @@ scenario('JAS-08', 'the answer for a file the loader refuses, arm (a): the whole
 // at `.gitignore:180` and `.reflow-backup/` at `.gitignore:185`). **`D-85` item 2: an archived part is NOT
 // citable; where a citation must resolve, the cited section is REGENERATED.** The citation is left byte-unmoved
 // here on purpose — this pass is not authorised to edit `docs/**` — and is reported in the envelope instead.
-scenario('JAS-09', 'the answer for a file the loader refuses, arm (b): a supplied constraint list is CARRIED and SKIPPED — the instance is returned, the pair whose parent is absent is not asked, and `ConstraintListInvalid` answers the malformed element alone',
-  'seams-and-lifecycle.md §7.2 item 7 (f) (the refused-file answer, arm (b)) — **the live tree carries no such path: see the `D-85` item 2 note above**; A143 (2); strata/decisions.md `D-90` (1)–(5) and `D-96` (1); the unit\'s `PIN-4` (i)/(iii) and `PIN-5` (i)–(iii); contract.md §8.1 #16; surface.md §2.1 (the `cfg` block — the FOURTH declared key `constraints`); parameter-semantics.md §2.21 (PAR-JS-21)', () => {
-    const C9 = 'seams-and-lifecycle.md §7.2 item 7 (f) (arm (b)); A143 (2); strata/decisions.md `D-90` (5) and the unit\'s `PIN-5` (i)/(ii) (`ConstraintListInvalid` answers the MALFORMED list alone); contract.md §8.1 #16 (`ConstraintListInvalid`)';
+// **⟶ AND THE WHOLE OF ARM (b)'s ANSWER FOR THE REFUSED CLASS IS SUPERSEDED, 2026-11-22 — `D-126` ITEM `2`.** The
+// revision above (2026-11-02) re-derived this scenario over the reading that a construction over a corrupt file
+// RETURNS AN INSTANCE with an empty register — `D-118` item 1's — and measured `D-90`'s carried-and-skipped walk on
+// it. **A present, non-empty image the loader REFUSES now REFUSES THE CONSTRUCTION at rank `22`
+// `FileImageRefused`, and the refusal PRECEDES THE PACKAGE'S FIRST ASK**, so `cfg.constraints` *"is never
+// reached"* and arm (b) does not speak for this class at all (`contract.md §7.2`'s three-class clause of
+// 2026-11-06: *"ARM (a) IS RETIRED FOR THIS CLASS, AND ARM (b) NO LONGER SPEAKS FOR IT EITHER"*). **SO THE CELLS
+// BELOW ARE RE-CUT THREE WAYS AND NONE IS WEAKENED:**
+//   (i) **`JAS-09.1` keeps BOTH of its subjects by re-cutting each to a class that still carries it** — over the
+//       REFUSED class the list is NEVER REACHED (the refusal, ZERO asks, and no instance to name a pair); the
+//       carried-and-skipped walk is measured over the NO-IMAGE class, the ZERO-LENGTH file, which the ruling LEAVES
+//       CONSTRUCTING and whose register is empty in the same way, so `D-90`'s parent discriminator bites exactly as
+//       before; and the SHAPE ARM survives verbatim, because the package's own list check (`B-1`) refuses a
+//       malformed element BEFORE ANY FILESYSTEM ACT — the ordering the live runner's `JAS-09.3` records at its own
+//       2026-10-25 `D-26` note.
+//   (ii) **`JAS-09.2` is a CONTROL and gets a file the loader reads**: an empty list changes nothing on the refused
+//       side (`FileImageRefused` again) while it constructs on the `NoImage` side, so the refusal is the FILE's
+//       class and not the list's.
+//   (iii) **`JAS-09.3` is UNMOVED**: a readable image carrying the named address yields an INSTANCE, which is the
+//       control that the pair is a well-formed entry.
+scenario('JAS-09', 'the answer for a file the loader refuses, arm (b): the supplied list is NEVER REACHED over a refused image (zero asks, no instance) — and the carried-and-skipped walk is measured where a register still exists, over the zero-length file `D-126` item 2 leaves constructing',
+  'seams-and-lifecycle.md §7.2 item 7 (f) (the refused-file answer, arm (b)) — **the live tree carries no such path: see the `D-85` item 2 note above**; A143 (2); strata/decisions.md `D-126` item 2 (`arm (b) no longer speaks for this class`) and `D-90` (1)–(5), `D-96` (1); the unit\'s `PIN-4` (i)/(iii) and `PIN-5` (i)–(iii); contract.md §7.2\'s three-class clause of 2026-11-06 and §8.1 #16; surface.md §2.1 (the `cfg` block — the FOURTH declared key `constraints`); parameter-semantics.md §2.21 (PAR-JS-21)', () => {
+    const C9 = 'seams-and-lifecycle.md §7.2 item 7 (f) (arm (b)); A143 (2); strata/decisions.md `D-126` item 2 (the refusal precedes the package\'s first ask) and `D-90` (5)/`PIN-5` (i)/(ii) (`ConstraintListInvalid` answers the MALFORMED list alone); contract.md §7.2\'s three-class clause of 2026-11-06; §8.1 #16 (`ConstraintListInvalid`)';
     const REFUSED = `{"a":"x${RAW_LF}y","b":7}`;
 
     cell('JAS-09.1', C9,
-      'over a file the loader REFUSES, a supplied constraint list is CARRIED AND SKIPPED: the instance IS returned, both pairs are named by `constraints()`, the pair whose PARENT does not resolve is asked ZERO times while the CONTROL pair at `[\'x\']` — whose parent is the register that always resolves — is asked once, the register reads empty, and the file\'s bytes are UNMOVED; AND the shape arm is alive: a MALFORMED element still answers `ConstraintListInvalid` with its verbatim sentence and `log: []`',
+      'over a file the loader REFUSES, a supplied constraint list is NEVER REACHED: the construction answers `FileImageRefused`, ZERO pairs are asked (the refusal precedes the package\'s first ask), and no instance exists to name a pair — AND the SAME two-pair list over the NO-IMAGE class (the ZERO-LENGTH file, which still constructs) is CARRIED AND SKIPPED as `D-90` declares: the instance IS returned, both pairs are named by `constraints()`, the pair whose PARENT does not resolve is asked ZERO times while the CONTROL pair at `[\'x\']` — whose parent is the register that always resolves — is asked once, the register reads empty and the file stays `0` bytes; AND the shape arm is alive: a MALFORMED element still answers `ConstraintListInvalid` with its verbatim sentence and `log: []`, the package\'s own list check running before any filesystem act',
       () => {
-        // ⟶ RE-DERIVED 2026-11-02 (`D-90` (1)–(5), `D-96` (1), the unit's `PIN-4` (i)/(iii), `PIN-5` (i)).
-        // **WHAT THE CELL USED TO ASSERT IS THE SUPERSEDED CLAUSE**: *"a supplied constraint list that NAMES AT
-        // LEAST ONE ADDRESS … answers `ConstraintListInvalid` and NO INSTANCE IS RETURNED"* — the boot's LIST-WIDE
-        // REFUSAL, which `D-90` (5) deletes and `PIN-5` (i) names as deleted rather than narrowed. **MEASURED
-        // TODAY ON THIS TREE**: the construction returns an INSTANCE with an EMPTY register, and every supplied
-        // pair's address then fails to resolve — exactly the walk `PIN-5` deleted.
+        // ⟶ RE-DERIVED 2026-11-02 over `D-90` (1)–(5)/`D-96` (1)/`PIN-4`/`PIN-5`, AND RE-CUT AGAIN 2026-11-22 BY
+        // `D-126` ITEM `2`. **WHAT THE 2026-11-02 BYTES MEASURED WAS THE WALK OVER A CORRUPT FILE'S EMPTY REGISTER —
+        // a state the ruling removes**, because the construction no longer RETURNS over a corrupt image at all. The
+        // subject is kept WHOLE and SPLIT BY CLASS: the refusal's own answer over the refused image, the walk's own
+        // answer over the zero-length file.
+        //
         // **THE DISCRIMINATOR IS THE PAIR'S PARENT, SO THE DRIVE SUPPLIES ONE PAIR OF EACH ARM.** `['x','deep']`
         // has an ABSENT parent `['x']` in an empty register ⇒ **SKIPPED** (`D-90` (1), the ruling's own first
         // example) ⇒ asked ZERO times and CARRIED (`PIN-4` (i)). `['x']` has the EMPTY REGISTER for a parent,
         // which always resolves ⇒ **APPLIED**, *"with the absence of its own key as the state it judges"*
         // (`D-90` (1), the ruling's own second example) ⇒ asked once. **THE SECOND IS THE CONTROL THAT MAKES THE
-        // ZERO A MEASUREMENT**: without it a dead counter and a skip would read the same.
-        const asks = [];
-        const pair = (address, id) => ({
+        // ZERO A MEASUREMENT**: without it a dead counter and a skip would read the same. **AND THE REGISTER IS
+        // EMPTY IN THE SAME WAY** (`contra` the refused class): a zero-length file is `FileImage::NoImage` and
+        // carries `0` keys with NO code (`contract.md §7.2` item 6 part 3; `§10.4` part 3; `DD-38`).
+        const makePair = (sink) => (address, id) => ({
           address,
           id,
           constraint: (context) => {
-            asks.push({ id, at: context.attempt === null ? 'registration' : 'pass' });
+            sink.push({ id, at: context.attempt === null ? 'registration' : 'pass' });
             return true;
           },
         });
-        const b = boot(REFUSED, { constraints: [pair(['x', 'deep'], 'skipped-pair'), pair(['x'], 'control-pair')] });
-        if (!b.r.ok) return C(false, `the construction THREW ${describe(b.r.v)} where the ruling RETURNS AN INSTANCE`);
-        const reg = registerOf(b.store);
-        const carried = tryCall(() => b.store.constraints().map((one) => one.id));
-        const skippedAsks = asks.filter((one) => one.id === 'skipped-pair');
-        const controlAsks = asks.filter((one) => one.id === 'control-pair');
-        const deep = tryCall(() => b.store.read(['x', 'deep']));
-        const bytes = bytesOf(b.P);
-        const unmoved = bytes !== null && bytes.equals(Buffer.from(REFUSED, 'utf8'));
+        // (i) THE REFUSED CLASS: the list is never reached, so no pair is asked and no pair is nameable.
+        const refusedAsks = [];
+        const refused = boot(REFUSED, {
+          constraints: [makePair(refusedAsks)(['x', 'deep'], 'skipped-pair'), makePair(refusedAsks)(['x'], 'control-pair')],
+        });
+        const refusal = refusedShape(refused);
+        // (ii) THE NO-IMAGE CLASS: the zero-length file, which the ruling leaves constructing.
+        const noImageAsks = [];
+        const noImage = boot('', {
+          constraints: [makePair(noImageAsks)(['x', 'deep'], 'skipped-pair'), makePair(noImageAsks)(['x'], 'control-pair')],
+        });
+        const reg = noImage.r.ok ? registerOf(noImage.store) : null;
+        const carried = noImage.r.ok ? tryCall(() => noImage.store.constraints().map((one) => one.id)) : { ok: false, v: null };
+        const skippedAsks = noImageAsks.filter((one) => one.id === 'skipped-pair');
+        const controlAsks = noImageAsks.filter((one) => one.id === 'control-pair');
+        const deep = noImage.r.ok ? tryCall(() => noImage.store.read(['x', 'deep'])) : { ok: false, v: new Error('no instance') };
+        const noImageBytes = bytesOf(noImage.P);
+        const noImageUnmoved = noImageBytes !== null && noImageBytes.length === 0;
         // **AND THE SHAPE ARM, KEPT ALIVE ON ITS OWN ELEMENT** — a malformed one (its `address` is not a segment
-        // array), which `PIN-5` (ii) leaves as `ConstraintListInvalid`'s only surviving trigger here. Its
-        // sentence is asserted VERBATIM and its log's emptiness is the construction's own (`PIN-5` (iii): the
-        // status keeps its rank and its sentence).
+        // array), which `PIN-5` (ii) leaves as `ConstraintListInvalid`'s surviving trigger. Its sentence is asserted
+        // VERBATIM and its log's emptiness is the construction's own (`PIN-5` (iii): the status keeps its rank and its
+        // sentence). **⟶ READ AT THE REFUSED FILE ON PURPOSE, 2026-11-22**: the malformed element is refused
+        // `ConstraintListInvalid` BEFORE the file is read — the package's list check (`B-1`) runs before any
+        // filesystem act, as the live runner's `JAS-09.3` records at its own 2026-10-25 `D-26` note — so `D-126` item 2's
+        // refusal does not pre-empt rank `16`'s own trigger and this arm is still alive over a corrupt path.
         const SHAPE_SENTENCE = `'a' is not a valid constraint entry in 'constraints', a constraint entry is an address and an id, and the address is a segment array`;
         const shape = boot(REFUSED, { constraints: [{ address: 'a', id: 'c2', constraint: () => true }] });
         const shapeStatus = shape.r.ok ? '<INSTANCE>' : (shape.r.v && shape.r.v.status);
@@ -655,28 +798,44 @@ scenario('JAS-09', 'the answer for a file the loader refuses, arm (b): a supplie
           && shapeStatus === 'ConstraintListInvalid'
           && shapeMessage === SHAPE_SENTENCE
           && Array.isArray(shapeLog) && shapeLog.length === 0;
-        const ok = reg !== null && same(reg, {})
+        const ok = refusal.ok && refusedAsks.length === 0 && refused.store === null
+          && reg !== null && same(reg, {})
           && carried.ok && Array.isArray(carried.v)
           && carried.v.includes('skipped-pair') && carried.v.includes('control-pair')
           && skippedAsks.length === 0
           && controlAsks.length === 1 && controlAsks[0].at === 'registration'
           && deep.ok === false && deep.v && deep.v.status === 'AddressNotFound'
-          && unmoved
+          && noImageUnmoved
           && shapeOk;
         return C(ok,
-          `construction=INSTANCE · register=${show(reg)} · constraints()=${show(carried.ok ? carried.v : describe(carried.v))} · `
+          `REFUSED CLASS: ${refusal.detail} · pairs asked ${refusedAsks.length} time(s) (the refusal precedes the first ask) · `
+          + `NO-IMAGE CLASS (zero-length): construction=INSTANCE register=${show(reg)} constraints()=${show(carried.ok ? carried.v : describe(carried.v))} · `
           + `skipped-pair asked ${skippedAsks.length} time(s) · control-pair asked ${JSON.stringify(controlAsks)} · `
           + `read(x.deep)=${deep.ok ? JSON.stringify(deep.v) : `threw ${describe(deep.v)}`} · `
-          + `bytes unmoved=${unmoved} (${imgStr(bytes)}) · `
+          + `the zero-length file stays 0 bytes=${noImageUnmoved} (${imgStr(noImageBytes)}) · `
           + `SHAPE ARM: threw=${shapeStatus} message=${JSON.stringify(shapeMessage)} log=${show(shapeLog)} verbatim=${shapeMessage === SHAPE_SENTENCE}`);
       });
+    // **⟶ RE-CUT 2026-11-22 (`D-126` item 2): THIS IS THE CONTROL THAT NEEDS A NON-CORRUPT FILE.** Its as-filed
+    // subject — *"over the SAME refused file with an EMPTY constraint list the instance IS RETURNED"* — was arm (a)'s
+    // answer, which the ruling retires for this class outright. **What the control is FOR is kept and given the file
+    // it needs:** an EMPTY list changes NOTHING on the refused side (the refusal is the image's, not the list's), and
+    // the same empty list over the `NoImage` class constructs an instance with `0` keys — **so the discriminator this
+    // cell owns is the FILE's class and not the list's contents**, and the zero-length file stays `0` bytes.
     cell('JAS-09.2', C9,
-      'CONTROL: over the SAME refused file with an EMPTY constraint list the instance IS RETURNED (an empty list has nothing to skip and nothing to refuse, so the answer stays in arm (a))',
+      'CONTROL: the constraint LIST is not what the refusal answers — over the SAME refused file an EMPTY list answers `FileImageRefused` exactly as a two-pair list does (zero asks), while over the NO-IMAGE class (the zero-length file, which the ruling leaves constructing) the same EMPTY list returns an INSTANCE with a register of `0` keys — so the refusal is the FILE\'s class and not the list\'s, and the zero-length file stays `0` bytes',
       () => {
-        const b = boot(REFUSED, { constraints: [] });
-        if (!b.r.ok) return C(false, `the construction threw: ${describe(b.r.v)}`);
-        const reg = registerOf(b.store);
-        return C(reg !== null && same(reg, {}), `construction=INSTANCE register=${show(reg)}`);
+        const refusedEmpty = boot(REFUSED, { constraints: [] });
+        const refusal = refusedShape(refusedEmpty);
+        const noImage = boot('', { constraints: [] });
+        const reg = noImage.r.ok ? registerOf(noImage.store) : null;
+        const noImageBytes = bytesOf(noImage.P);
+        const unmoved = noImageBytes !== null && noImageBytes.length === 0;
+        const ok = refusal.ok && refusedEmpty.store === null
+          && noImage.r.ok && reg !== null && same(reg, {}) && unmoved;
+        return C(ok,
+          `refused + EMPTY list: ${refusal.detail} · `
+          + `zero-length + EMPTY list: ${noImage.r.ok ? `INSTANCE register=${show(reg)}` : `THREW ${describe(noImage.r.v)}`} · `
+          + `the zero-length file stays 0 bytes=${unmoved} (${imgStr(noImageBytes)})`);
       });
     cell('JAS-09.3', `${C9}; contract.md §7.2 item 1 ("THE LOADED STATE 'SATISFIES' THE SUPPLIED LIST IFF EVERY SUPPLIED PAIR'S OWN 'address' RESOLVES IN THE LOADED STATE")`,
       'CONTROL: the SAME supplied list over a PARSEABLE image that DOES carry the named address yields an INSTANCE — so the pair is a well-formed entry, its asking at `JAS-09.1`\'s control is the REGISTER-PARENT arm of `D-90` (1) and not a refusal of the list\'s own shape, and the loaded state it stands over is the state it judges',

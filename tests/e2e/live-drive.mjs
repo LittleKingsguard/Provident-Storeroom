@@ -929,18 +929,23 @@ console.log(JSON.stringify({ pid: process.pid, value: i.read(${JSON.stringify(['
   A(`${sc}.3`, '`contract.md §2.6` 2026-10-29 clause item `4` (read through store §7.2 item 6, whose boot is unmoved)',
     'the booted instance reads the image the DELETE\'s own save wrote — the removed version does NOT stand again',
     back.threw && statusOf(back) === 'AddressNotFound', back.threw ? statusOf(back) : String(back.value));
-  // **AND THE WHOLE-TARGET ARM IS THE CONTROL, AND ITS READING IS UNMOVED**: a delete naming NO tier lands an
-  // op whose `tier` is absent, so the store's own `commit_file` serializes nothing and the version STANDS AGAIN —
-  // the store's declared boot, not a defect (`DD-28`'s reading survives for that arm).
+  // **⟶ AND THE WHOLE-TARGET ARM'S READING IS SUPERSEDED — `D-106` ARM 2, NOT `DD-28`.** `DD-28`'s *"that arm serializes
+  // nothing"* was written before the eligibility rule existed. **`D-106` arm 2: *"AN OP IS ELIGIBLE EXACTLY WHEN THE ACT IT
+  // NAMED MOVED AT LEAST ONE VERSION STANDING AT `Tier::File`"*** — and **a delete naming NO tier removes the address at EVERY
+  // tier, so it MOVES a `file`-tier version and is eligible. The store's own `commit_file` therefore saves, the image
+  // describes the state the delete left, and the version does NOT stand again.** **The absence of a `tier` on the op is
+  // not the criterion and never was under `D-106`: what the act MOVED is** (`strata/decisions.md` · `D-106` arm 2, and the
+  // clause at `surface.md §2.11` clause 2 that puts the save on the terminal arm).
   const wholeSeed = kernelSaveFileLive(inst, ['dw'], 'durable-whole');
   A(`${sc}.6`, 'surface.md §2.11 clause 2', 'the control seed landed on the TERMINAL ARM (no throw)',
     !wholeSeed.threw, wholeSeed.threw ? `threw ${statusOf(wholeSeed)}` : 'the save landed');
   inst.delete(['dw']);
   const wholeFresh = ns.storeCreate(cfg);
   const wholeBack = thrown(() => wholeFresh.read(['dw']));
-  A(`${sc}.7`, 'store §7.2 item 6; `contract.md §2.6` 2026-10-29 clause item `4` (the whole-target arm)',
-    'a delete naming NO tier saves nothing — the booted instance sees THAT version STAND AGAIN',
-    !wholeBack.threw && wholeBack.value === 'durable-whole',
+  A(`${sc}.7`, 'store §7.2 item 6; `D-106` arm 2 (the eligibility rule); `contract.md §2.6` 2026-10-29 clause item `4`',
+    'a delete naming NO tier MOVED a `file`-tier version, so it is ELIGIBLE and saves — the booted instance does NOT see '
+      + 'that version stand again (`DD-28`\'s *"serializes nothing"* is superseded by `D-106` arm 2)',
+    wholeBack.threw && statusOf(wholeBack) === 'AddressNotFound',
     wholeBack.threw ? statusOf(wholeBack) : String(wholeBack.value));
   end(sc, `the file-tier delete answered tiers ${JSON.stringify(del.tiers)}, carried the record naming ${del.commit === null || del.commit === undefined ? 'no op' : del.commit.op.opId}, and ['dd'] answered ${statusOf(gone)} in that instance, while the booted instance read ${back.threw ? statusOf(back) : JSON.stringify(back.value)} — the delete's own save is what persists it; the WHOLE-TARGET control at ['dw'] read ${wholeBack.threw ? statusOf(wholeBack) : JSON.stringify(wholeBack.value)} after its boot, which is the store's declared boot for an op standing at no tier`);
 }

@@ -1063,11 +1063,16 @@ scenario('FTS-10', 'the sixteenth member\'s own clause and its template row; the
     // corrupt image refuses the construction"*): TWENTY-TWO, `11 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 22` ✓,
     // with `FileImageRefused` appended at rank `22` and NO RANK OF `1`…`21` MOVING.**
     const setClosed = CLOSED_SET;
-    cell('FTS-10.1', 'contract.md §8.1 (the set is closed at 22 members) + §2.2 clause 7',
-      'the closed set this artifact drives against is the twenty-two named ranks, `ConstraintListInvalid` at 16, `ConstraintPassRefused` at 20, `ListenerBodyThrew` at 21 and `FileImageRefused` last',
-      () => C(closedSetSource.declaredArity === setClosed.length && setClosed.length === 22
+    // **⟶ AND THE FIGURE MOVES TWENTY-TWO → TWENTY-THREE, 2026-11-17** (`D-150` item 2: *"a rejected delivery body is a new
+    // status"*): `ListenerBodyRejected` is appended at rank `23` — a DELIVERED listener body that REJECTS refuses the act that
+    // fired it, which is not rank `21`'s throw (a throw leaves the write unanswered, a rejection RESOLVES it and the refusal is
+    // the datum) — **and NO RANK OF `1`…`22` MOVES.** The two ranks this cell names above nineteen keep their slots.
+    cell('FTS-10.1', 'contract.md §8.1 (the set is closed at 23 members) + §2.2 clause 7',
+      'the closed set this artifact drives against is the twenty-three named ranks, `ConstraintListInvalid` at 16, `ConstraintPassRefused` at 20, `ListenerBodyThrew` at 21 and `FileImageRefused` last',
+      () => C(closedSetSource.declaredArity === setClosed.length && setClosed.length === 23
         && setClosed[15] === 'ConstraintListInvalid' && setClosed[19] === 'ConstraintPassRefused'
-        && setClosed[20] === 'ListenerBodyThrew' && setClosed[21] === 'FileImageRefused',
+        && setClosed[20] === 'ListenerBodyThrew' && setClosed[21] === 'FileImageRefused'
+        && setClosed[22] === 'ListenerBodyRejected',
       `set=${setClosed.length} members (the array declares ${closedSetSource.declaredArity}), `
         + `#16=${JSON.stringify(setClosed[15])}, #20=${JSON.stringify(setClosed[19])}, `
         + `#21=${JSON.stringify(setClosed[20])}, #22=${JSON.stringify(setClosed[21])}`));
