@@ -8440,3 +8440,25 @@ architect, in session, answering that RCA's §6. **THE ARCHITECT'S WORDS, VERBAT
 **TERMS: the mechanism (`1` = drop) · the bound (`journal_length` + the floor) · the discriminator (`1` = a seq watermark) · the per-entry
 clones removed (`1` per write) · the memory's shape (`O(store + journal_length)`) · the code moved by this row (`0`) · the units it opens
 (`1`).**
+
+---
+
+### `D-161` — A FINDING: THE SAME UNBOUNDED-MAP DEFECT EXISTS ON THE PACKAGE'S SIDE, IN `kernel.closed`
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `b06133e` (the tree carries `D-160`'s cure). **SOURCE:** the architect's clarification —
+*"Literally, what data is being stored to reach a ~4.7KB write volume?"* — answered by measurement. **A FINDING: it decides nothing.**
+
+**STATUS: `ACTIVE` — A FINDING.**
+
+1. **THE ANSWER, LITERALLY: A KERNEL ATTEMPT REPORT, ONE PER WRITE, IN `kernel.closed`.** `kernel-terminal.mjs:128`/`:158`/`:481` and
+   `kernel-registration.mjs:1146` write it; **four readers read it by id; NOTHING DELETES FROM IT** (no `delete`, no prune, no cap in
+   `src/entry/`). Measured with the collector pinned: **~700–745 B retained per `write`**, `~27 B` per `read`, `~4 B` for a call that reaches
+   no store.
+2. **AND MOST OF THE CELL'S 4.7 KB IS NOT RETENTION AT ALL.** `heapUsed` counts live PLUS uncollected: the same drive reads **~10 KB/write
+   unpinned** and **~0.8 KB/write with `gc()` on both sides.** **`JC-MEMORY`'s figure is a mix, and the pinned figure is the one that describes
+   the store.**
+3. **SO `D-160` FIXED ONE HALF AND THIS IS THE OTHER.** The store's journal now drops (`D-160` item 1); **the package's `closed` map still
+   retains every attempt's report for the life of the store's kernel** — the same shape one layer up, and the reason `JC-MEMORY` does not read
+   zero.
+4. **OWED**: a ruling or a unit on the map's bound (three cures priced in `docs/L1/journal-retention-rca.md` §8.3, none chosen), and the
+   cell's instrument pinned so it bounds retention rather than allocation.

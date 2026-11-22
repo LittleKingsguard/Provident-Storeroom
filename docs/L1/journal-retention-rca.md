@@ -137,3 +137,53 @@ N = 16,000  rss + 7,277 MB    (× 3.9 — and the Node heap gives out here)
 **MEASURED, EVERY LEG.** `npm test` **`1362` / `1361` / `0`** · `npm run typecheck` **exit `0`** · `cargo test` **22 `ok` / 0 FAILED** · `cargo check --target wasm32` **0 errors** · `npm run build` **exit `0`** · the package stages.
 
 **AND ONE DECLARATION THIS CURE PUTS BACK IN FRONT OF THE ARCHITECT.** `journalLength` is now **the width of the compensation window**: where the window has taken an op that a composition must reverse, the store refuses and the landed edits stand. **`D-108` item 2's *"no landed edit survives a refusal … unconditional"* is therefore CONDITIONAL ON THE WINDOW'S WIDTH again**, and that is a ruling this document does not make.
+
+---
+
+## §8 · THE SECOND RETENTION — WHAT THE 4.7 KB IS, LITERALLY
+
+**THE ARCHITECT ASKED WHAT DATA IS STORED TO REACH A ~4.7 KB PER-WRITE FIGURE. THE ANSWER IS TWO THINGS, AND NEITHER OF THEM IS THE STORE'S JOURNAL.**
+
+### 8.1 · MOST OF THE FIGURE IS UNCOLLECTED GARBAGE, NOT RETENTION
+
+**`heapUsed` counts LIVE PLUS NOT-YET-COLLECTED.** With the collector pinned (`global.gc()` twice on each side of the drive, `--expose-gc`), the same 4,000-write drive reads:
+
+| | per write |
+|---|---|
+| **unpinned** (what `JC-MEMORY` measures) | **~10 KB allocated** |
+| **pinned** (`gc()` on both sides) | **~0.8 KB RETAINED** |
+
+**So ~9 of the ~10 KB is garbage the collector had not taken yet**, and the cell's `4.66–4.74` is that mix at its own moment. **The pinned figure is the one that describes the store: ~0.8 KB per write.**
+
+### 8.2 · AND THE 0.8 KB IS A KERNEL REPORT PER WRITE, IN A MAP NOTHING EVER PRUNES
+
+**THE RETAINED BYTES ARE `kernel.closed`**, and they are the package's, not the store's:
+
+- **`src/entry/kernel-terminal.mjs:128`** — `kernel.closed.set(attempt.ref.id, attempt.report)` on the terminal arm;
+- **`:158`** — the same on the failed arm, with its report `{ outcome: 'failed', ops: attempt.ops.slice(), log: attempt.log, rollback: attempt.rollback.slice() }`;
+- **`:481`** — `dropHandoff` writes `{ attempt, outcome, ops, rollback }` under the same map;
+- **`src/entry/kernel-registration.mjs:1146`** — the registration instant's own report.
+
+**AND NOTHING DELETES FROM IT.** `grep` finds `closed.set` and `closed.get` (four readers: `kernel-attempt.mjs:291`, `kernel-terminal.mjs:449`, `:505`) and **no `closed.delete`, no prune, no cap, no clear** anywhere in `src/entry/`. **So every write leaves one attempt record and its report in an unbounded `Map` keyed by attempt id, for the life of that store's kernel** — the kernel being the object at `store[KERNEL_SLOT]` (`kernel-foundations.mjs:710`).
+
+**THE SHAPE, MEASURED, PER VERB** (4,000 calls, collector pinned):
+
+| the call | retained per call |
+|---|---|
+| **`write`** | **~700–745 B** |
+| `read` | ~27 B |
+| `constraints()` (no store call) | ~4 B |
+
+**`write` is the only verb with an attempt, and the attempt is the retained thing** — one report carrying the attempt record, its `ops` and `rollback` arrays (both sliced fresh) and its `log`.
+
+### 8.3 · SO THE SAME DEFECT EXISTS TWICE, ONE LAYER APART
+
+**`D-160` fixed the store's half: the journal marks became drops and the per-entry op-id list went.** **The package's half is untouched and has the same shape** — a `Map` keyed per act, written on every act, read back by id, and never pruned. **It is why `JC-MEMORY` still reads ~4.7 KB after the store was bounded, and it is why the pinned figure is not zero.**
+
+**WHAT IT NEEDS, PRICED AND NOT CHOSEN** (it is the package's, and the kernel's attempt lifecycle is declared in `attempt-lifecycle.md`):
+
+1. **BOUND IT BY THE ATTEMPTS THAT CAN STILL BE ASKED ABOUT** — a closed report is read for a *commit record* and by the terminal's own lookups, so the bound is the number of attempts a live commit frame may still name, not the number ever made.
+2. **OR KEY IT WHERE IT DIES WITH ITS SUBJECT** — a `WeakMap` keyed by the attempt (or by the commit record) would need no pruning at all, **if the readers hold the attempt rather than its id** — `:291` reads it by an id derived from a commit record, so the record and the attempt are both in hand at that site, which makes the `WeakMap` reachable.
+3. **OR DROP ON THE ATTEMPT'S OWN TERMINAL ACT** — `release` already removes the attempt from `live`; the report's retention is a separate decision the same act could take.
+
+**AND THE CELL SHOULD PIN THE COLLECTOR.** `JC-MEMORY`'s figure is a mix, so its message should say which half it bounds; a cell that calls `global.gc()` where available and asserts the RETAINED figure measures the thing the ruling is about.
