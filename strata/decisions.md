@@ -8371,10 +8371,26 @@ write count.
    question about `src/store.rs`'s journal and the kernel's attempt records, not about either realm.
 3. **NO CELL EXISTS, AND ONE SHOULD.** A drive that takes N writes and reads `heapUsed` (not `rss`) with a declared ceiling would make this
    falsifiable; **it does not exist**, which is why the retention has lived through every green battery this session ran.
-4. **THE `structuredClone` PROBE'S COST — THE ITEM THIS DRIVE SET OUT TO MEASURE — IS STILL UNMEASURED.** The bench that would have compared
-   the probe against a no-op instrument (`installClassInstrument` is exported, so the seam supports exactly that) **OOM'd before it could report**,
-   and **the OOM is the finding above.** **A bench that runs under a store with few enough writes to survive the ceiling is owed**, and until it
-   runs **no figure for the probe may be quoted** (`docs/L1/wasm-realm.md` §18's `NOT DRIVEN` stands).
+4. **⟶ AND THE `structuredClone` PROBE'S COST IS NOW MEASURED, ON A BENCH SMALL ENOUGH TO SURVIVE THE CEILING** — **and it is the seam
+   itself that made the measurement possible**, because `installClassInstrument` is exported: the same store is driven twice, once with the probe
+   the second head installs and once with a no-op, and the difference is the probe's own cost. **THE METHOD, STATED SO THE FIGURE IS NOT READ AS
+   A BENCHMARK**: the WebAssembly arm under a Node host, `journalLength: 32`, one address, a four-member value, **400 writes per round, 50 warm-up,
+   6 rounds each way ALTERNATING** so ordering cannot favour either, and **medians**. **THE READING:**
+
+   | the drive | the reading |
+   |---|---|
+   | the clone probe installed | **220,179 ns/write** |
+   | a no-op probe installed | **201,517 ns/write** |
+   | **the probe's own cost** | **18,662 ns/write — 9.3% of a write** |
+   | `structuredClone` of that value, standalone | **898 ns** |
+
+   **SO THE PROBE COSTS UNDER A TENTH OF A WRITE on that arm**, which is the figure `docs/L1/wasm-realm.md` §18's `NOT DRIVEN` was waiting
+   for. **AND THE GAP BETWEEN THE TWO NUMBERS IS ITSELF A FINDING THE BENCH DID NOT SET OUT TO MAKE**: a standalone clone of the same value is
+   `898 ns` and the probe's measured share is `18,662 ns` — **so the probe is entered on the order of twenty times per write**, or the
+   instrument is read at sites this pass did not enumerate. **That is not a defect claimed here; it is a question the next pass should answer
+   at the call sites** (`isProxyOf`'s readers, five parts, 25 static sites — and a write's crossing walks a value tree, so a per-NODE read is
+   the likely shape). **AND THE 220 µs PER WRITE IS THE OTHER HALF OF THIS ROW**: a write on that arm is two hundred microseconds, which is far
+   more than a value's copy and is the same heaviness the retention above describes.
 
 **TERMS: the drives (`6`) · the arms measured (`2`) · the layers isolated (`0`) · the cells added (`0`) · the figures that may be quoted
 (`1` = the linear ~3.7 KB/write floor, as a FLOOR and not a design) · the rulings this row makes (`0`).**
