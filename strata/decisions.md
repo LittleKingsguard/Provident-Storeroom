@@ -9456,3 +9456,29 @@ asserted nowhere** (`D-184` item 4).
    **fixed-seed random address**, and **nothing in its title, clause or row id mentions changing a value** — so it turns if that seed ever draws an address it already used.
    Two neighbours are one step from the same red: `e2e_listener_firing.rs:1063` (`lf_c7`, green only because its three values are `1.0`/`2.0`/`3.0`, **which it never declares
    load-bearing**) and `held-listener-identity-greens.mjs:676`'s two-pair count.
+
+---
+
+### `D-195` — `O-1` IS ANSWERED BY DEFAULT AND `P-3` PROCEEDS: `watched` NARROWS WITH `triggered`, AND `P-TP-8` (e) IS AMENDED BESIDE (a)
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `964436b`. **SOURCE:** the architect, on `D-194` item 6's blocking question. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Take the default on the blocker and proceed"
+
+**STATUS: `ACTIVE`.**
+
+1. **THE BLOCKER IS SETTLED: `watched` NARROWS WITH `triggered`, AND `P-TP-8` (e) IS AMENDED IN THE SAME BOUNDED AMENDMENT AS (a).** **The store's own projection law decides it** —
+   `src/store.rs:2567`–`:2570`: *"the two lists must be produced by ONE predicate or the projection is false"* — and **there was never a third arm**: the alternatives were
+   (e) moving beside (a) or **the store's own sentence being false**. **So both declarations move together**: **(a)**'s *"NO MEMBER is added and none omitted"* and **(e)**'s
+   parallel sentence both gain the value condition, **and the failure list's *"a MISSING handle where a listener's address is a prefix of the write's"*** (`:3150`–`:3151`)
+   **becomes the shipped behaviour and is re-cut with them.** **THE ROW HAS BEEN AMENDED TWICE BEFORE** (`:3015`–`:3020`, `:3672`–`:3684`), so the amendment is the established
+   form and not a rewrite.
+2. **AND THE OTHER SEVEN DEFAULTS ARE TAKEN WITH IT, NAMED SO NONE IS SILENT**: **`O-2`** the lowest-rank literal — **the unqualified read's answer** · **`O-3` ANCESTORS GO
+   SILENT** (it is the criterion's own first clause) · **`O-4`** `triggered: []` **cannot distinguish *"no registration stood"* from *"nothing changed"***, and **the `D-78`
+   sentence is owed in the same pass** · **`O-5`** a no-change `file` write **still saves** · **`O-6`** `D-152` **stands and its *"changed"* is read as ACT-EXISTENCE**, with its union
+   narrowing as an accepted consequence · **`O-7`** a repair's own write **obeys mechanically** — **no special case, because a special case would be a second predicate by
+   another name** · **`O-8`** the number: **a `MAJOR`, and `2.0.0` is spent, so the next line is `3.0.0`** — **the class is the reading of `D-190`'s precedent and the NUMBER
+   remains the architect's word when the release is cut.**
+3. **THE UNIT PROCEEDS IN THE DESIGN'S OWN ORDER** (`docs/L3/change-detection/design.md`): the store's one predicate gains the term **inside it, wrapping the prefix arm
+   alone** (the design's riskiest line), the four sites move as §4 enumerates, and **the sixteen cells §6 names are the acceptance**: `CD-1`…`CD-16`, with `CD-2`,
+   `CD-3` and `CD-9` **asserting `D-193`'s prices as DECLARED STATES** so a later pass cannot repair them as defects.
