@@ -544,6 +544,152 @@ fn s6_4_m6_a_rollback_over_a_dropped_op_regenerates_from_the_file_or_signals_the
     );
 }
 
+// §6.6's floor + §6.4 M-6 (`D-164` item 2's arm) — **THE COMPACTED FLOOR AND THE FILE'S IMAGE ARE TWO BASES
+// BECAUSE THEY ANSWER TWO QUESTIONS, AND THIS CELL PINS THE DIFFERENCE SO A LATER PASS CANNOT UNIFY THEM BY
+// TIDINESS.**
+//
+// **THE RULING, QUOTED AT ITS OWN SENTENCE** (`strata/decisions.md` · `D-179` item 4): ***"`Store::regenerate`'s
+// `apply_register(&self.born)` is unmoved and marked as deliberately NOT this base — the two answer different
+// questions."*** **AND `D-180` ITEM 6 NAMED THE RISK THIS CELL EXISTS FOR**: *"`replayMark` and `regenerate`
+// answer different questions and that is DELIBERATE (`D-179` item 4): `regenerate` keeps `born` because it
+// regenerates from the file image (`D-164`'s arm). **Named here so a later pass does not unify them by
+// tidiness.**"*
+//
+// **THE TWO QUESTIONS, IN THE STORE'S OWN WORDS.** A REPLAY re-states a POSITION of the journal's own record, so
+// its base is the state the record already describes before the entries it applies — **`Store::floor_state`, the
+// state immediately after the last entry `D-160`'s compaction dropped** (`D-179` item 1; `replayMark`'s one base,
+// with the uncompacted case an equality and not a branch). A REGENERATION re-bases a REVERSAL on what can be
+// RETRIEVED, so its base is **the file's image**, the durable state, and the entries it applies are every
+// retained entry OUTSIDE the reversal's scope (`D-164` item 1's arm; `D-110` item 3's fallback).
+//
+// **THE FIXTURE IS THE ONE STATE THAT SEPARATES THEM — A STORE THAT HAS BOTH**: a journal the compaction has
+// dropped from (so the floor has advanced past `born`) **and** a booted file image (so the regeneration has a
+// retrievable base). `journalLength: 2`, two `mem` writes after the boot, and the third append drops the first:
+// **the floor then carries the dropped entry's effect and the image does not, and the retained entries are on the
+// image and not on the floor.** The two paths are driven one after the other on that one store, each landing read
+// before the next runs, so every figure below is attributable to the path that produced it.
+//
+// **AND THE FAILURE THIS CELL IS BUILT TO GIVE**: unify either base with the other by tidiness — `replayMark`'s
+// `floor_state` → `born`, or `regenerate`'s image → `floor_state` — and one half of the difference below goes
+// red, by name, at the path that moved. Neither unification is a legal change (`D-179` item 4), and this is the
+// only byte of the tree that would say so.
+//
+// Drives: §6.6, §6.4 M-6, `D-164` item 2 (a), `D-179` items 1 and 4
+#[test]
+fn d179_the_compacteds_floor_and_the_files_image_are_two_bases_and_both_paths_are_driven() {
+    // ── (0) THE IMAGE: A FIRST STORE WRITES ONE `file`-TIER MEMBER AND THE TERMINAL ARM'S ACT COMMITS IT.
+    let path = fresh_path("d179-two-bases");
+    let mut image_store = ok(
+        storeCreate(&cfg_at(&path, 8)),
+        "§7.1: the three arguments valid — an instance is returned",
+    );
+    let seeded = ok(
+        image_store.write(AddressArg::List(key(&["x"])), w_file(), v_num(1.0)),
+        "§3.4 W-3 at file: the durable member the image will carry",
+    );
+    ok(
+        commit_at_the_terminal_arm(&mut image_store, &seeded.op.opId),
+        "§7.2 item 2 as amended / §2.11 clause 2: the terminal arm's own act puts the `file` tier at the path",
+    );
+    drop(image_store);
+
+    // ── (1) THE STORE WITH BOTH: IT BOOTS THAT IMAGE, AND ITS BOUND IS TWO SO THE THIRD APPEND DROPS THE FIRST.
+    let mut store = ok(
+        storeCreate(&cfg_at(&path, 2)),
+        "§7.2 item 6: a fresh instance over an equal `cfg.filePath` boot-loads the image",
+    );
+    assert_eq!(
+        read_at(&store, &key(&["x"])),
+        v_num(1.0),
+        "§7.2 item 6 / D-110 item 1: the register's own key is LOADED, so this store has a BOOTED IMAGE and not \
+         merely a path — which is the half of the fixture the regeneration's base is taken from"
+    );
+    let a = ok(
+        store.write(AddressArg::List(key(&["a"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3: the entry the compaction is about to drop",
+    );
+    ok(
+        store.write(AddressArg::List(key(&["b"])), w_mem(), v_num(1.0)),
+        "§3.4 W-3: a retained entry, outside every later scope",
+    );
+    ok(
+        store.write(AddressArg::List(key(&["c"])), w_mem(), v_num(1.0)),
+        "§6.1 item 5 / D-160 item 1: the third append DROPS the oldest entry — `a`'s",
+    );
+
+    // ── (2) THE REPLAY'S PATH — `restoreFloor`, WHOSE BASE IS THE COMPACTED FLOOR AND NOT THE IMAGE.
+    ok(
+        store.restoreFloor(),
+        "§6.6 / D-178 / D-179: the floor is a mark and a mark is a replay; `up_to = None` is its spelling",
+    );
+    assert_eq!(
+        ok(
+            store.read(AddressArg::List(key(&["a"])), none()),
+            "**D-179 item 1 — THE DROPPED ENTRY'S EFFECT STANDS ON THE FLOOR.** The compaction dropped `a`'s \
+             entry, so no retained entry can put `a` back and the only base that carries it is the compacted \
+             floor; a replay that began at `born` (or at the file's image) answers `AddressNotFound` here",
+        ),
+        v_num(1.0),
+        "and its VALUE is the one the dropped entry left behind"
+    );
+    assert_code(
+        &failure(
+            store.read(AddressArg::List(key(&["b"])), none()),
+            "the floor is a POSITION and not the journal's head: nothing above it is applied",
+        ),
+        "AddressNotFound",
+        "**AND THE RETAINED ENTRIES ARE NOT ON THE FLOOR** — `b` stands only above it, so the replay that applies \
+         NONE of them answers the position the record describes and not the head",
+    );
+    assert_eq!(
+        read_at(&store, &key(&["x"])),
+        v_num(1.0),
+        "the durable member is on the floor too, which is why the floor is 'the state after the last dropped \
+         entry' and not 'the creation state'"
+    );
+
+    // ── (3) THE REGENERATION'S PATH — `rollback` OVER THE DROPPED OP, WHOSE BASE IS THE FILE'S IMAGE.
+    let performed = ok(
+        store.rollback(OpIdArg::Id(a.op.opId.clone())),
+        "§6.4 M-6 / D-164 item 2 (a): a dropped op on a store WITH a retrievable file REGENERATES and RETURNS",
+    );
+    assert!(
+        performed.undoneOps.is_empty(),
+        "D-164 item 2 (a): `undoneOps` is the ids the reversal UNDID and nothing was there to undo — the op the \
+         caller named is gone; got {:?}",
+        performed.undoneOps
+    );
+    assert_code(
+        &failure(
+            store.read(AddressArg::List(key(&["a"])), none()),
+            "the regeneration's base is the FILE's image, which never carried `a`",
+        ),
+        "AddressNotFound",
+        "**D-179 ITEM 4 — `regenerate` KEEPS ITS OWN BASE, AND THIS IS THE BYTE THAT SHOWS IT.** `a`'s effect is \
+         on the compacted floor and NOT on the image, so the two paths land on DIFFERENT states from the same \
+         journal: the replay answered `1` here and the regeneration answers `AddressNotFound`. **Unifying the two \
+         bases would make exactly one of these two assertions fail**, which is what this cell exists to do"
+    );
+    assert_eq!(
+        read_at(&store, &key(&["b"])),
+        v_num(1.0),
+        "D-164 item 1: the retained entry is replayed OUTSIDE the (empty) scope, because the regeneration applies \
+         the journal's retained entries onto the image — the half the floor never reaches"
+    );
+    assert_eq!(
+        read_at(&store, &key(&["c"])),
+        v_num(1.0),
+        "and so is the second retained entry: the regeneration's state is the image PLUS the journal, which is \
+         what makes it a different state and not a different spelling of the same one"
+    );
+    assert_eq!(
+        read_at(&store, &key(&["x"])),
+        v_num(1.0),
+        "**AND THE DURABLE MEMBER SURVIVES BOTH PATHS** — it is on the floor and on the image, so it is the one \
+         member the difference is NOT about (`D-164` item 1: the regeneration never refuses on the image)"
+    );
+}
+
 // §6.1 item 5 (`PAR-7`'s observable) + §6.4 M-6 — with `journalLength = n`, after `n + 1` appends the
 // OLDEST entries are DROPPED and at most `n` remain: an operation outside the dropped entry's subtree still
 // rolls back, and the dropped one answers the floor.

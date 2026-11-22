@@ -57,6 +57,17 @@
 // carry a claim the run does not make. **THE EXCLUSION CELL IS UNMOVED** and its `compared` floor is re-derived
 // to the figure this file now holds.
 //
+// **⟶ AND BOTH OF THOSE SENTENCES ARE SUPERSEDED AT THEIR OWN BYTES `2026-11-22`, BECAUSE THE PASS `D-182` NAMED
+// WAS TAKEN AND THE FILE GREW THE THING IT SAID WAS MISSING** (`D-182`'s two smaller items; `role_l3_test_writer`).
+// **(a) THE OPERATION RECORD'S EIGHT MEMBERS HAVE A LIVE INSTRUMENT NOW.** The package's own `write` answers the
+// store's journal record on every call — `bindings/js/index.d.ts`'s `JournalOp` — so the members are asserted **BY
+// NAME, on a body that runs on this tree**, at `sas_d3_s_parity_the_live_write_carries_the_operations_eight_members_…`
+// below. The capture cell's recording half is unchanged and remains **a RECORD and not coverage**; what changed is
+// that the claim no longer rests on it. **(b) THE EXCLUSION CELL'S `compared` FLOOR IS GONE RATHER THAN
+// RE-DERIVED** (`D-181` item 4's trap, disarmed by REMOVING the figure): the limb is a PARTITION of this file's
+// own cells now, derived from their declarations and their bodies, so a retirement anywhere in this file no longer
+// reddens a cell from another group — and a cell silently dropped from BOTH sets still reddens.
+//
 // **WHAT THE RETIREMENT DOES NOT CLAIM.** It does not claim `P-SAS-3` is satisfied, and it does not claim the
 // old dispatcher's answers were never compared — the comparison was made once, before the split, against a
 // golden this tree can no longer produce. **It claims exactly what remains observable: the package-layer
@@ -81,6 +92,13 @@
 // | `D-6` | `P-SAS-6` | `sas_d6_s_unwrap_sites_*` (`2`) + `sas_d6_s_state_id_gone_*` (`2`) |
 // | `D-7` | `P-SAS-7` | `sas_d7_s_unwrap_parity_*` (`2`) |
 // | `D-8` | `P-SAS-8` | `sas_d8_s_fault_arm_*` (`2`) |
+//
+// **⟶ THE `D-3` ROW ABOVE READS `2` AT ITS DATE AND THE GROUP HOLDS `3` — ITS THIRD CELL IS THE LIVE ONE, DATED
+// `2026-11-22`** (`D-182`'s first smaller item). The row counted what the group held after `D-180` item 5 retired
+// the skipped dispatcher cell; the cell added below is not a re-filing of that one — **the retired cell's subject
+// left the tree and cannot return**, while this one drives a path that runs — and **the file therefore declares
+// `26` cells where the row's arithmetic counts `25`.** No cell of any group was retired, renamed or weakened for
+// it, and **the exclusion cell needs no figure re-derived**: its census limb is a partition now, not a floor.
 //
 // **THE VALID STATES, EACH AT ITS OWN CELL** — `V-1` the thirteen with `call` absent · `V-2` the arities ·
 // `V-3` the byte-parity (**RETIRED 2026-11-22 with its cell — the old dispatcher left the tree; head record**) ·
@@ -671,6 +689,13 @@ test('sas_d2_s_no_instance_the_packages_own_surface_carries_no_instance_position
 // (`export-set-and-dispatch.md §2`), so from that landing onward it asserted its golden's absence and reported
 // `SKIP` — the one status that cannot red. **The file head carries what it measured, when it stopped measuring
 // anything and which ruling removed its subject. The capture cell and the exclusion cell are unmoved.**
+//
+// **⟶ AND THE GROUP HOLDS THREE AGAIN, ON A CELL ADDED RATHER THAN ONE UN-RETIRED** (`D-182`'s first smaller
+// item; dated `2026-11-22`). The third is
+// `sas_d3_s_parity_the_live_write_carries_the_operations_eight_members_the_capture_wrote_and_no_run_reached`: the
+// live instrument for `P-SAS-3`'s package-layer half, driving the package's own `write` — **not a re-filing of the
+// retired cell, whose subject (`call`) is deleted and cannot return.** The corpus's consumer is still the capture
+// cell alone; the live cell mints its own writes and reads no row of `PARITY_CORPUS`.
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════
 
 /** **THE CORPUS THE TWO SHAPES ARE DRIVEN OVER.** `S-PARITY` says *"over the same corpus"* — so one corpus,
@@ -872,6 +897,99 @@ test('sas_d3_s_parity_the_golden_captures_the_two_shapes_record_for_record_and_e
     'and no cell of this group skipped while the old shape stood — the capture ran every row');
 });
 
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════
+// **⟶ THE LIVE INSTRUMENT FOR THE OPERATION RECORD'S EIGHT MEMBERS — ADDED `2026-11-22`** (`D-182`'s first
+// smaller item, taken; `D-181` item 5's own sentence: *"a live instrument is a new cell, not this pass's item."*)
+//
+// **WHAT WAS WRONG, IN ONE LINE.** The eight members (`address`, `after`, `before`, `compacted`, `kind`, `opId`,
+// `seq`, `tier`) were measured TRUE on this tree and measured by NOTHING that could fail: the only assertion of
+// them stood inside the capture cell's recording half, behind `oldDispatcherShape() === null`, which is reached on
+// NO evaluation (the block above that cell says so at its own byte). **A claim carried by a byte-image no run
+// reaches is a record, and a record is not an instrument.**
+//
+// **THE LIVE PATH, READ FROM THE TREE AND NOT ASSUMED.** The package's own `write` — reached through the one
+// declared factory, `storeCreate` — answers `{ op, watched, triggered }` on every admitted call
+// (`docs/specs/storeroom-js/surface.md §2.2`), and `op` **IS** the store's journal record crossed member for
+// member: `bindings/js/index.d.ts`'s `JournalOp` — *"THE STORE'S OWN JOURNAL OP, CROSSED MEMBER FOR MEMBER AND IN
+// THE STORE'S OWN SPELLINGS — `DD-39`'s eight declared names (`distribution.md §5.2` item 1; `P-PUB-7`):
+// `{ opId, kind, address, tier, before, after, seq, compacted }`."* **So `write` is the live surface that
+// actually produces an operation record, and this cell drives it** — no stub, no artefact key set, no private
+// kernel state.
+//
+// **AND WHAT IT CANNOT SEE, SAID HERE SO THE CLAIM IS NOT READ ONE LAYER TOO WIDE.** The capture's `GOLDEN` row
+// holds four limbs: the receiver record's three member names, the receiver's DECODED address, and the
+// ARTEFACT-LAYER carrier spelling of that same address (`{k, s}`) beside its tier, read through the old
+// dispatcher's `call(index, verb, args)`. **THE LIVE PATH CARRIES THE FIRST TWO AND NOT THE THIRD**: the package
+// ENCODES an address to the crossing's carrier and DECODES the answer back to a JS segment array
+// (`surface.md §2.2`), so **no `{k, s}` form is reachable from the package's own answer at all** — the carrier
+// spelling is a difference between the two records, and its producer is gone with the dispatcher
+// (`export-set-and-dispatch.md §2`: *"`call` IS DELETED … THE SPLIT IS PRECISELY ITS REPLACEMENT"*). **SO THE
+// OPERATION RECORD'S MEMBER SET IS THE SAME EIGHT ON BOTH PATHS AND THE CARRIER SPELLING IS NOT** — this cell
+// asserts exactly what the live path carries, and `dispatcherCarrierAddress` / `dispatcherCarrierTier` are named
+// as **owed and owed to nobody**: a cell asserting them would be the same defect one layer over.
+//
+// **AND ONE THING THE CAPTURE COULD NEVER HAVE SHOWN**: the two base-state records carry BOTH declared members on
+// both arms (`index.d.ts`'s `BaseState` is `{ present, value }`, `value` being `undefined` where no version stood),
+// so a limb that asserted only the eight NAMES would still miss a `before`/`after` that lost a member. Both limbs
+// are asserted below.
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════
+
+test('sas_d3_s_parity_the_live_write_carries_the_operations_eight_members_the_capture_wrote_and_no_run_reached', () => {
+  const layout = mem();
+  const written = layout.write(['a'], 'mem', 1);
+  // **THE WRITE RECORD'S OWN THREE, AS THE CAPTURE ASSERTED THEM AND AS `surface.md §2.2` DECLARES THEM** —
+  // driven here on the path that runs, so the outer shape is pinned beside the inner one.
+  assert.deepEqual(Object.keys(written).sort(), ['op', 'triggered', 'watched'],
+    'P-SAS-3 / `surface.md §2.2` — `write` returns `{ op, watched, triggered }`; "a record member moved" is '
+    + 'this row\'s first failure (`contract.md §5`)');
+  // **THE OPERATION RECORD'S EIGHT MEMBERS, BY NAME, ON A BODY THAT RUNS.**
+  const op = written.op;
+  assert.deepEqual(Object.keys(op).sort(),
+    ['address', 'after', 'before', 'compacted', 'kind', 'opId', 'seq', 'tier'],
+    'P-SAS-3 — the operation record\'s eight members, as `index.d.ts`\'s `JournalOp` declares them and '
+    + '`distribution.md §5.2` item 1 names them. **THIS IS THE ASSERTION THE CAPTURE CELL HOLDS AND NO RUN '
+    + 'REACHES** (`D-181` item 5); it is measured HERE, on a live write. Got '
+    + `${JSON.stringify(Object.keys(op).sort())}`);
+  // **AND EACH MEMBER AT ITS VALUE** — a member that is present and EMPTY would pass a name-only limb.
+  assert.deepEqual(op.address, ['a'],
+    'the address member is the DECODED JS segment array at the package layer — the limb the carrier spelling '
+    + 'replaces at the artefact layer (`surface.md §2.2`)');
+  assert.equal(op.kind, 'write',
+    'the store\'s own kind token for a write op (`index.d.ts`: `kind` is typed `string` because its membership '
+    + 'is the STORE\'s to close)');
+  assert.equal(op.tier, 'mem', 'the tier the version was minted at, as one of the store\'s three tokens');
+  assert.equal(typeof op.opId, 'string', 'the id a `rollback` takes (`PAR-JS-9`: a non-empty string)');
+  assert.equal(op.seq, 1, 'the journal\'s own append ordinal, strictly increasing from 1 (`§6.2`)');
+  assert.equal(op.compacted, false,
+    'the store\'s own flag, carried verbatim — `false` here, since the compaction dropped nothing');
+  // **THE TWO BASE-STATE RECORDS CARRY BOTH DECLARED MEMBERS ON BOTH ARMS**, `value` being `undefined` where no
+  // version stood (`index.d.ts`'s `BaseState`: *"`value` is that version's value where one did — `undefined` where
+  // none did"*). **`Object.keys` SEES THAT MEMBER AND `JSON.stringify` DOES NOT**, which is why the arm is
+  // asserted at its keys and not at its serialization.
+  assert.deepEqual(Object.keys(op.before).sort(), ['present', 'value'],
+    'P-SAS-3 — the `before` base state declares BOTH members even where no version stood');
+  assert.deepEqual(Object.keys(op.after).sort(), ['present', 'value'],
+    'P-SAS-3 — and so does the `after` base state');
+  assert.equal(op.before.present, false, 'nothing stood at `["a"]` before this write');
+  assert.equal(op.before.value, undefined, 'so its `value` member is `undefined` — and is still PRESENT');
+  assert.equal(op.after.present, true, 'and a version stands after it');
+  assert.equal(op.after.value, 1, 'with the value the caller wrote');
+  // **A SECOND WRITE ANSWERS THE SAME EIGHT** — the record is the store's own at every op, not a one-shot shape.
+  const second = layout.write(['a'], 'mem', 2);
+  assert.deepEqual(Object.keys(second.op).sort(), Object.keys(op).sort(),
+    'P-SAS-3 — "a record member moved" (`contract.md §5`) is asked of a SECOND op as well as the first: a member '
+    + 'that appeared only on the first write would be a member the record does not carry');
+  assert.equal(second.op.seq, 2, 'and the ordinal advances while the member set does not');
+  // **AND THE DELETE'S RECEIPT CARRIES AN OPERATION RECORD TOO, AT THE SAME NAME AND THE SAME SHAPE**
+  // (`index.d.ts`: *"IT IS THE MEMBER `WriteRecord` CARRIES, AT THE SAME NAME AND THE SAME TYPE"*). **A second
+  // live route to the same eight members** — which is what makes this a member SET and not one verb's answer.
+  const receipt = layout.delete(['a'], 'mem');
+  assert.deepEqual(Object.keys(receipt.op).sort(), Object.keys(op).sort(),
+    'P-SAS-3 — the delete\'s operation record carries the same eight members, so the set is the STORE\'s record '
+    + 'and not `write`\'s private shape');
+  assert.equal(receipt.op.kind, 'delete', 'and its `kind` is the store\'s own token for the other op kind');
+});
+
 test('sas_d3_s_parity_the_goldens_diff_excludes_the_keyset_cells_and_the_exclusion_is_the_d1_group_alone', () => {
   // **`contract.md §6` item `2`, ASSERTED AS A PROPERTY OF THIS FILE RATHER THAN LEFT TO A READER'S EYE.**
   // The rule is: *"THE GOLDEN COMPARES EVERYTHING EXCEPT THE CELLS THAT READ THE ARTEFACT'S KEY SET … The
@@ -880,6 +998,17 @@ test('sas_d3_s_parity_the_goldens_diff_excludes_the_keyset_cells_and_the_exclusi
   // **SO THE EXCLUSION SET IS DERIVED, NOT DECLARED: every cell name in this file is examined, and the cells
   // that read the artefact's own key set are the ones whose body reaches `addonKeySet`.** The check below is
   // a TEXT read of this file at its own bytes, which is the same instrument `S-UNWRAP-SITES` uses.
+  //
+  // **⟶ AND THAT SENTENCE IS CORRECTED AT ITS OWN BYTE `2026-11-22`, BECAUSE THE EXCLUSION IS DERIVED FROM NAMES
+  // AND NOT FROM BODIES, AND THE DIFFERENCE WAS MEASURED** (`role_l3_test_writer`). The set the diff excludes is
+  // the four `s_export_set_` names — `§6` item 2's own instrument, *"the key-set cells … carried by `P-SAS-1`
+  // alone"* — and the body read (*"whose body reaches `addonKeySet`"*) is NOT the same set on this tree:
+  // `addonKeySet(` is reached at six sites — four inside the `D-1` cells, one module-level read
+  // (`ARTEFACT_KEYS_AT_READ`), and one inside the capture cell's
+  // `assert.equal(addonKeySet().includes('call'), false, …)`, the `D-1` claim that record cell duplicates
+  // (`D-181` item 5). **So the body read is refused as an instrument at the census limb below — it would redden
+  // on a RECORD — and what the limb asserts instead is that the two sets the diff holds account for every
+  // declared cell exactly once.** The exclusion stays derived, by the declaration the rule itself uses.
   const ownBytes = readFileSync(new URL(import.meta.url), 'utf8');
   const cells = [...ownBytes.matchAll(/^test\('([^']+)'/gm)].map((hit) => hit[1]);
   assert.ok(cells.length > 0, 'this file declares cells and the read found them');
@@ -896,36 +1025,49 @@ test('sas_d3_s_parity_the_goldens_diff_excludes_the_keyset_cells_and_the_exclusi
    + 'the key set would fail BY DESIGN after the split and mask every other diff');
   const excluded = new Set(keySetCells);
   const compared = cells.filter((name) => !excluded.has(name));
-  // **⟶ RE-DERIVED `2026-11-22` (`D-181` item 4): THE FIGURE MOVES `20 → 21`, AND THE MESSAGE NOW PRINTS THE
-  // GROUP'S OWN CENSUS.** `D-181` item 4: *"`compared.length >= 20` limb now has ONE row of headroom (`21`), so
-  // any further retirement in that group trips a cell from a different group than the one edited. **A
-  // brittleness, not a defect**; the figure should be re-derived to whatever the group now holds."*
+  // **⟶ THE CENSUS LIMB IS A PARTITION OF THIS FILE'S OWN CELLS, DATED `2026-11-22`** — `D-182`'s second smaller
+  // item, taken; `D-181` item 4's trap, disarmed by REMOVING the figure instead of re-deriving it.
   //
-  // **WHICH ARM THE LIMB'S OWN SUBJECT SUPPORTS, READ AT THE CELL AND NOT ASSUMED.** This cell's name is
-  // *"the goldens diff excludes the keyset cells and the exclusion is the d1 group alone"* and the limb's own
-  // message is *"every other cell of this file is compared as it stands"* — `§6` item `2`'s third bullet. **THE
-  // SUBJECT IS THEREFORE "THE DIFF EXCLUDES SOMETHING", NOT "THESE PARTICULAR ROWS ARE COMPARED"**: the excluded
-  // set is already asserted EXACTLY, by name, one limb above (`deepEqual` over the four `s_export_set_` names),
-  // and what is left for this limb is the COMPLEMENT — an open-ended set the clause itself spells as *"every
-  // other"*. **A FLOOR IS THE RIGHT SHAPE AND A NAMED SET THE WRONG ONE**: `deepEqual(compared.sort(), […21
-  // names…])` would be a second census of this file's cells that every rename or addition would falsify, and it
-  // would say nothing the `deepEqual` above does not already say about the exclusion. **THE FIGURE IS THE TRAP,
-  // AND IT IS RE-DERIVED RATHER THAN DEFUSED**: `21` is what the compared group holds on this date, so a
-  // retirement anywhere in this file — of ANY group — lands HERE, at a cell that did not edit it. **THAT IS THE
-  // LIMB'S JOB AND THE RECORD SAYS SO**: this cell is where a retirement anywhere in this file must be
-  // acknowledged, because `§6` item `2`'s rule is a statement about the whole file's compared set. **WHAT THE
-  // FIGURE MUST NOT DO IS FAIL SILENTLY ABOUT WHY**: the message below prints `compared` of `cells` AND the
-  // `excluded.size` that produces the difference, so the next retirement reads what it broke, at which figure,
-  // before it reads as a defect of this cell.
-  assert.ok(compared.length >= 21,
-    `every other cell of this file is compared as it stands (${compared.length} of ${cells.length} cells, with `
-    + `the ${excluded.size} \`s_export_set_\` cells excluded by name) — "every other cell is compared as it `
-    + `stands" (\`§6\` item \`2\`). **A RED HERE IS USUALLY A RETIREMENT SOMEWHERE ELSE IN THIS FILE** `
-    + `(\`D-181\` item \`4\`): the floor is this file's own census and not a claim about any particular row, so `
-    + `read what you retired and re-derive the figure to whatever the group now holds — it stood at \`21\` of `
-    + `\`${cells.length}\` when it was last measured`);
-  assert.equal(excluded.size + compared.length, cells.length,
-    'the two sets partition this file\'s cells: nothing is both excluded and compared, and nothing escapes both');
+  // **WHY THE FLOOR HAD TO GO, AT ITS OWN REASON.** `D-181` item 4: *"`compared.length >= 20` limb now has ONE
+  // row of headroom (`21`), so any further retirement in that group trips a cell from a different group than the
+  // one edited. **A brittleness, not a defect**"* — and the pass that re-derived the figure to `21` left **ZERO**
+  // headroom. **THE FIGURE MEASURED THE GROUP'S SIZE AND THE LIMB'S SUBJECT IS NOT ITS SIZE**: the limb's message
+  // was *"every other cell of this file is compared as it stands"* (`§6` item `2`'s third bullet), and the
+  // EXCLUDED set is already asserted exactly, by name, one limb above. **A floor answers "how many rows are
+  // there", which is a question every retirement and every addition falsifies; the clause's question is "does the
+  // diff account for every cell", which a retirement leaves TRUE.**
+  //
+  // **THE FORM TAKEN: THE TWO SETS THE DIFF HOLDS MUST NAME EVERY DECLARED CELL, AND EACH EXACTLY ONCE.** `cells`
+  // is read from the declarations; `excluded` is the four `s_export_set_` names (asserted, above) and `compared`
+  // is the rest — **so the partition is a claim about THE DECLARATIONS, and a cell can escape BOTH sets only by
+  // escaping the read that finds the declarations.** That is what the limb below pins: the population is taken a
+  // second time, from any `test(`/`test.` form at a line's start, indentation allowed, and the deduplicated
+  // account of the two sets must equal it. **A cell declared in a form the name pattern cannot see (`test.skip(`,
+  // an indented declaration, a double-quoted or template name), a cell name declared twice, or a `compared` set
+  // quietly truncated somewhere both make the two figures disagree — the "silently dropped from both sets" case,
+  // which the old identity limb COULD NOT catch because `compared` was defined as `cells` minus `excluded`.**
+  //
+  // **AND THE ARMS REFUSED, WITH THE MEASUREMENT THAT REFUSED THEM.** **(a) A RE-DERIVED FLOOR** (`>= 22` now
+  // that this file declares `26` cells) is the same defect at the next figure. **(b) A NAMED SET** of the `22`
+  // compared rows is a second census of this file's cells that every rename or addition falsifies, and it says
+  // nothing the `deepEqual` above does not already say about the exclusion. **(c) A BODY-DERIVED PARTITION** —
+  // deriving "reads the artefact's key set" from each cell's own text rather than from its name — **was measured
+  // and refused**: `addonKeySet(` is reached at six sites in this file — four inside the `D-1` cells, one
+  // module-level read, and **one inside the CAPTURE cell's own
+  // `assert.equal(addonKeySet().includes('call'), false, …)`** (the `D-1` claim it duplicates, recorded at that
+  // cell by `D-181` item 5). **So a body read finds a RECORD and reports it as a defect** — the honest cure for
+  // that reach is the capture cell's own record, and a limb that reddens on it would be arming a red nobody can
+  // green without deleting a record this corpus keeps on purpose.
+  const declarations = [...ownBytes.matchAll(/(?:^|\n)[ \t]*test[.(]/g)];
+  const held = new Set([...excluded, ...compared]);
+  assert.equal(held.size, declarations.length,
+    `every declared cell of this file is accounted for EXACTLY ONCE across the diff's two sets — `
+    + `\`${excluded.size}\` excluded \`s_export_set_\` cells and \`${compared.length}\` compared ones, `
+    + `\`${held.size}\` distinct names, against \`${declarations.length}\` declarations read at their own bytes `
+    + `("every other cell is compared as it stands", \`§6\` item \`2\`) — **A CELL DECLARED IN A FORM THE NAME `
+    + `PATTERN CANNOT SEE, OR ONE COUNTED TWICE, OR ONE DROPPED FROM \`compared\`, ESCAPES BOTH SETS AND SHOWS `
+    + `HERE AS THIS DIFFERENCE** (\`D-182\`; the figure this limb replaced was a floor at the group's exact `
+    + `size, which reddened on a retirement instead — \`D-181\` item \`4\`)`);
 });
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════

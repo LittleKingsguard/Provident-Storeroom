@@ -9144,3 +9144,34 @@ declaration no longer beginning a line with `test('` silently drops `cells` and 
    did, or author the part it still cites.** **That is `role_spec_writer`'s lane and not a pass's.**
 4. **MEASURED**: `npm test` **`1384` / `1384` / `0`**, **`0` skipped** · both JAS runners exit `0` · **`CHAIN COMPLETE — 11 runners`** · and the
    citation ledger reads **0** stale `seams-and-lifecycle` cells, with the part's name surviving only in the two head clauses that say it was re-pointed.
+
+---
+
+### `D-184` — FOUR RESIDUALS CLOSED WITH CELLS THAT CAN FAIL: THE EIGHT MEMBERS LIVE, THE TWO BASES PINNED, A PARTITION INSTEAD OF A FLOOR, AND THE SWEEP'S BOUND MEASURED
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `241752f`. **SOURCE:** `D-181` items 3–5 and `D-182`'s two named — worked. **STATUS: `ACTIVE`.**
+
+1. **THE OPERATION RECORD'S EIGHT MEMBERS NOW HAVE A LIVE INSTRUMENT** (`D-182` item 4's owed cell). `sas_d3_s_parity_the_live_write_carries_the_operations_eight_members_…`
+   drives the package's own `write` and asserts **`address, after, before, compacted, kind, opId, seq, tier`** **by name**, each at its value, both of the base state's
+   two members, a second op, **and the delete receipt's `op` as a second route**. **AND IT SAYS WHAT IT CANNOT SEE**: the capture's artefact-layer limbs
+   (`dispatcherCarrierAddress`/`dispatcherCarrierTier`) have **no live counterpart** because their producer `call` is deleted — **the same shape at the package
+   layer and not at the carrier.** **FAILURE SHOWN**: deleting `compacted: encoded.compacted,` at `frame.mjs:607` reddens it with the seven-member actual.
+2. **THE DELIBERATE `replayMark`/`regenerate` DIFFERENCE IS PINNED** (`D-180` item 6; `D-179` item 4). A Rust test drives **a store that boots a committed image and
+   whose cap drops an entry**, then **both paths**: the floor answers `{x:1, a:1}`, and `regenerate` answers the image `{x:1}` plus the retained `b`,`c` — **two
+   different states from one journal**, with `D-179` item 4 quoted at the cell. **BOTH HALVES DRIVABLE IN ONE CELL**, `regenerate` reached through its only public
+   producer. **FAILURE SHOWN TWICE**: the floor reverted to `born` reddens the first half; the regeneration's base moved to the floor reddens the second.
+3. **A FLOOR AT ZERO HEADROOM BECOMES A PARTITION** (`D-182` item 3; `D-181` item 4). `compared.length >= 21` is **gone**: the limb now asserts that
+   **`excluded ∪ compared names every declared cell exactly once** — **a partition, not a count**, so **a retirement stays green while a cell silently dropped
+   from both sets reddens.** **THE REFUSED ARMS ARE NAMED WITH THEIR MEASUREMENTS**, including the body-derived partition (the capture cell reads `addonKeySet()`
+   at six sites, one of them its own duplicate claim). **FAILURE SHOWN**: indenting one `test(` reddens it with *"25 distinct names, against 26 declarations"*.
+4. **THE `256` SWEEP NOW HAS A MEASURED BOUND — AND THE BOUND IS THE CODE'S, NOT A NICER ONE** (`D-180` item 8; `D-181`). `KAW-3` drives **5,120 writes** with
+   receipts dropped, a `--expose-gc` child, a drain turn per batch (**a sweep's own `deref()` pins its targets for the job — measured `5120 → 5120` without
+   it**), and measures `maxSize 191`, `survivors 64`, `maxRise 127`, over `10,240` seals. **THE TRUE WORST CASE IS ASSERTED: `size ≤ survivors + 255`, and
+   UNBOUNDED when the refs stay reachable (`1200` writes → `1200`)** — **so `≤ 256` IS ASSERTED NOWHERE, because the code does not guarantee it.** Limbs: the
+   constant still declared `256` · the rise `≤ 255` (the schedule) · the size `≤ survivors + 255` · **flatness** (the second half's max no higher than the
+   first's `+ 255`, which is the pruning itself) · an absolute `≤ 511` · and a discriminating workload. **FAILURE SHOWN TWICE**: the constant set to `1 << 20`
+   reddens the declaration limb; the pruning body deleted reddens *"5120 exceeds 2560"*.
+5. **COUNTS: `1386` / `1386` / `0` / `0` SKIPPED, not the `1388` the plan predicted** — two items add a `test(…)` row, **item 3 is a rewrite inside an existing
+   row (`+0`)** and **item 2 is a Rust `#[test]` (`+0` npm, `+1` cargo: `46 → 47`)**. **The plan's figure was arithmetic about a shape and the code had another.**
+6. **NAMED AND NOT CLOSED**: the capture's carrier limbs are **owed to nobody** (their producer is deleted) · **`§6` item 2's body-derived rule** is a record and
+   not a defect, and curing it is a decision about that cell · **the unbounded case is a collector property and is recorded as a measurement, asserted nowhere**.
