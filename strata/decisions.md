@@ -8820,9 +8820,39 @@ priced and this session's measurement of a receipt's lifetime. **THE ARCHITECT'S
 
 > "Go with the map"
 
-**STATUS: `ACTIVE`.**
+**STATUS: `ACTIVE` — AND ⟶ CORRECTED AT THIS LINE THE SAME DAY, BECAUSE ITS TITLE AND ITS ITEM 1 READ THE ARCHITECT'S WORDS THE WRONG WAY.**
+
+**THE CORRECTION, VERBATIM FROM THE ARCHITECT:** *"Clarification: Weak map"* — **so *"Go with the map"* named the `WeakMap` and not the `Map`.** **THIS ROW'S TITLE (… IS DECLINED: THE MAP STANDS) AND ITS ITEM 1 (*"`D-162`'S WINDOW STANDS"*) ARE FALSE OF THE DECISION**; **what is true is the opposite: the `WeakMap` is TAKEN, the window's `1024` has no subject, and the id-only read degrades to `KC-2` by declaration.** **The evidence this row collected — the receipt's measured lifetime (0 B per write when the caller drops it, ~1.6 KB when it is kept, `state.leg` a slot and not a ledger) — is exactly what the `WeakMap` needs, and it is kept.** **The three items below are read through this clause: item 1 is REVERSED, item 2's cost is the accepted declaration, item 3's measurement is the ground, item 4's *"nothing moves"* is FALSE — the landing is `D-175`'s.** **A LATER PASS MUST NOT READ THIS ROW'S TITLE WITHOUT THIS LINE.**
 
 1. **`D-162`'S WINDOW STANDS**: `kernel.closed` stays a **`Map<id, report>`** bounded by `CLOSED_ATTEMPT_WINDOW = 1024`, its FIFO the map's own insertion order, one writer (`sealClosedReport`) at all four seal points, and **a pruned id answering `KC-2` — the same refusal an id that never named an attempt meets** (`KAW-1`).
 2. **AND THE ALTERNATIVE IS DECLINED WITH ITS EVIDENCE INTACT, SO A LATER PASS CAN REOPEN IT ON FACTS AND NOT ON TASTE.** The `WeakMap` keyed by `attempt.ref` was priced and is available — the seal sites hold the ref, and the receipt carries it (`CommitRecord.attempt`). **Its decisive cost was measured**: **a caller holding only an ID STRING cannot read a closed attempt's log**, because a string has no key. **THE WINDOW ALREADY ANSWERS THAT CALLER `KC-2`** — for a pruned id — **so the `WeakMap` would make the boundary exact instead of arbitrary, at the price of declaring that a caller must hold the attempt rather than its id.** **THE ARCHITECT TAKES THE MAP AND THEREFORE TAKES THE WINDOW'S OWN APPROXIMATION OF REACHABILITY.**
 3. **AND THE MEASUREMENT THAT MADE THE CHOICE POSSIBLE IS KEPT AT ITS OWN ROW**: a receipt is disposed **the moment the caller drops its last reference, and nothing in the package keeps one** — 2,000 writes with the receipt dropped retain **0 B per write**, with the receipts kept the caller retains **~1.6 KB each**, and **`state.leg` is a slot and not a ledger** (one receipt, the latest). **So the `WeakMap` would not have been "never disposed": it would have been exactly "as long as the caller can ask".** **The window spends that exactness for a figure no measurement produced, and that is the trade this row accepts.**
 4. **WHAT DOES NOT MOVE**: no code byte, no cell, no figure, no declaration. **`D-162`'s five items stand whole**, `KAW-1` and `KAW-2` remain the window's proof, and **the residual §10.2 named — that `CLOSED_ATTEMPT_WINDOW`'s `1024` is a declared figure and not a derived one — is unchanged and now DECLARED AS ACCEPTED** rather than open.
+
+---
+
+### `D-175` — THE `WeakMap` IS THE ARCHITECT'S MEANING, AND ITS LANDING IS BLOCKED BY 43 KERNEL CELLS: THE ATTEMPT IS REVERTED AND THE CAUSE NAMED AS UNKNOWN
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `3bc29b4` (the map's tree, green). **SOURCE:** the architect's clarification, **VERBATIM**:
+
+> "Clarification: Weak map"
+
+**STATUS: `ACTIVE` — THE DECISION IS THE WEAKMAP; THE IMPLEMENTATION IS REVERTED AND OWED.**
+
+1. **`D-174`'S TITLE AND ITEM 1 WERE A MISREAD OF *"Go with the map"*, AND THAT ROW NOW CARRIES ITS OWN CORRECTION AT ITS FIRST LINE.** `D-175` is
+   the decision: **`kernel.closed` is to become a `WeakMap` keyed by the attempt's `ref` object**, retention tied to reachability rather than to
+   `CLOSED_ATTEMPT_WINDOW`'s declared `1024`, and the id-string read degraded to `KC-2` by declaration.
+2. **★ AND THE IMPLEMENTATION WAS ATTEMPTED AND REVERTED, WITH THE MEASUREMENT THAT FORCED IT.** The five changes were made (`closed: new WeakMap()`,
+   the sealer keyed on `ref` with the eviction loop gone, the four seal sites passing `attempt.ref`, `drainFailingPass` keyed on
+   `commitRecord.attempt`, and `log`/`report` keyed on the reference object): **`npm test` read `1381` tests with `1337` pass and `43` FAIL.** **The
+   failing population is the `ck_constraint_*` kernel cells, and ONE of them measures the shape directly**: the retained record read
+   `['attempt','log','ops','outcome','rollback']` where `D-58` requires `['attempt','ops','outcome','rollback']` — **a `log` member the sealed
+   report should not carry.** **THE TREE WAS RESTORED FROM `HEAD` FOR ONE REASON: THE CAUSE IS NOT ESTABLISHED, AND A 43-RED TREE IS NOT A LANDING.**
+3. **WHAT IS KNOWN AND WHAT IS NOT.** **KNOWN**: the cells drive `log(store, record.attempt)` — **the ref object, not an id string** — so the
+   declared id-only cost is **not** what reddens them. **KNOWN**: the failure appears only under the `WeakMap` + ref-keyed sealing, so it lies in the
+   **key identity or in which seal arm writes last**, not in the reader's shape. **NOT KNOWN**: whether `attempt.ref` is the same object at all four
+   seal sites and at the receipt, and which arm's report (the `:159` failed arm carries a `log`; `dropHandoff`'s does not) is the one the cell reads.
+   **THE NEXT PASS MUST ANSWER THOSE TWO QUESTIONS BEFORE IT TOUCHES A BYTE**, and `attempt.id` versus `attempt.ref.id` is the first place to look:
+   `dropHandoff` keyed by `attempt.id` while the other three keyed by `attempt.ref.id`, and **under the window those were two string keys; under a
+   `WeakMap` they are one object — WHICH IS THE CHANGE THAT COULD HAVE MOVED WHICH REPORT A READER FINDS.**
+4. **THE WINDOW STANDS UNTIL THEN**, and no cell, figure or declaration of `D-162` moves in this row.
