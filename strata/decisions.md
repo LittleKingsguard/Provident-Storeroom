@@ -9543,3 +9543,28 @@ asserted nowhere** (`D-184` item 4).
    because a caller's file is never touched.
 4. **THE CLASS IS `MINOR` CONTENT RIDING `3.0.0`, AND THE NUMBER IS THE ARCHITECT'S** (`D-197` §7): no published member is added, removed or renamed; **`2.0.0` is spent and `3.0.0` is
    `P-3`'s line**; **the versions do not move in this row** and `publish.sh --figures` must stay `ok`.
+
+---
+
+### `D-200` — THE RELEASE LINE IS `2.0.0`: `P-3` AND `P-2` RIDE IT, AND THE NOTES ARE ONE SECTION
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `d8453b9`. **SOURCE:** the architect, on the next release's number. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Next release is 2.0.0"
+
+**STATUS: `ACTIVE`.**
+
+1. **`2.0.0` IS THE LINE, AND IT IS NOT MOVED BY THE TWO LANDINGS THAT FOLLOWED IT.** `D-190` claimed it for **one published declaration member's removal** (`record.op.compacted`,
+   `D-189` item 2). **`P-3`'s firing rule (`D-193`/`D-195`/`D-196`) and `P-2`'s two repairs (`D-197`/`D-198`/`D-199`) were written into a `§3.0.0` section that said, at its own
+   first clause, that the number was the architect's.** **THE ARCHITECT HAS RULED IT, AND THE SECTION IS `§2.0.0` WITH THOSE ENTRIES INSIDE IT.**
+2. **AND THE ARITHMETIC THAT MAKES ONE NUMBER HOLD THREE CLASSES IS `D-126` ITEM 3'S OWN**: **a version is the maximum of the moves it carries.** **So `2.0.0` carries two `MAJOR`
+   moves** — the member removal and the firing rule's narrowing — **and one `MINOR`-class move riding them** — `P-2`'s content, which adds, removes and renames no published
+   member — **and the notes print the classes separately under one heading rather than as three lines.** **No number follows this one until a release is cut and a new move needs
+   a bigger one** (`D-124` item 3's discipline).
+3. **WHAT MOVED IN THE NOTES, SAID SO A READER OF THE DIFF IS NOT SURPRISED**: the `§3.0.0` heading is **gone**; its entries are **renumbered `12`–`17`** into the `§2.0.0`
+   list; a dated `⟶` clause at the join **records the merge and quotes the ruling**; and **every *"the number is the architect's"* clause the two landings carried is answered
+   rather than left standing.** **The entries keep their own text, their own grounds and their own cells** (`CD-1`…`CD-16`, `CAW-1`…`CAW-8`, and the five re-derived `CSW`/`FSC`
+   drives). **Both landed copies are re-staged byte-for-byte.**
+4. **AND THE VERSION SITES DO NOT MOVE**, because they already read `2.0.0` (`D-190` moved all twelve plus the three generated lines): **`bash scripts/publish.sh --figures` is `ok` with
+   all three lines at `2.0.0`**, and **no manifest, pin or platform version changed in this row.**
+5. **MEASURED**: `npm test` **`1399` / `1399` / `0`**, `0` skipped · **`CHAIN COMPLETE — 11 runners`** · **`--figures` `ok`**.
