@@ -9383,3 +9383,38 @@ asserted nowhere** (`D-184` item 4).
 6. **AND `P-3`'S OWN RANGES HAVE DRIFTED — TWELVE OF THEM** — which is the corpus's own filed class (*"the figure was true when measured and was falsified by the
    ruling that made it true"*). **Two that carry the contradiction stand exactly where the proposal printed them**, so **the argument survives and the line numbers do
    not**; the drift table opens the landed intake and a gate-2 pass must re-take every citation at the landing date.
+
+---
+
+### `D-193` — `P-3` COMPARES **LITERAL EQUIVALENCE** AND NOT REFERENCE EQUALITY: WHAT THAT SETTLES, AND THE ONE CONSEQUENCE IT ACCEPTS
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `9ed60a5`. **SOURCE:** the architect, on `D-192`'s question table. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "P-3 checks literal equivalence, not reference equality"
+
+**STATUS: `ACTIVE`.**
+
+1. **THE RELATION IS THE VALUE'S OWN LITERAL EQUIVALENCE — `Q-2` IS ANSWERED AND IT ANSWERS `Q-1` WITH IT.** **The comparison is between the LITERAL at the address
+   and the literal the act would land** — the decoded value's own equality, **not a reference comparison**. **`Q-2`'s default is confirmed** (the store's own `PartialEq`
+   over `StoreValue`, class-strict and key-order-blind by construction, since an `Object` is a `BTreeMap`), **and `Q-1`'s default is DECLINED: the subject is ONE LITERAL
+   and NOT the per-tier list.** **The list's type instability — one version → a value, two → a list, none → absent — is therefore out of scope**, and the subject has
+   one shape across the act.
+2. **AND IT REMOVES THE TRAP THE INTAKE NAMED, WHICH IS WHY THIS IS THE RIGHT READING**: `D-192` item 1 records the counter-example — **write `file V`, then `mem V`,
+   and every read-path literal says *"nothing changed"* while the per-tier standing went from one version to two.** **REFERENCE IDENTITY WAS THE RELATION THAT SAW THAT
+   MOVE AND IT WAS WRONG IN BOTH DIRECTIONS** (an identical same-tier re-write always mints a new reference; the shadowing write leaves every surviving reference
+   unmoved). **THE ARCHITECT'S READING SENDS THE COMPARISON TO THE VALUE AND LEAVES THE TIER MODEL OUT OF THE FIRING RULE.**
+3. **★ AND IT ACCEPTS ONE CONSEQUENCE, SAID PLAINLY BECAUSE IT IS A CONSEQUENCE AND NOT A DETAIL: ON THE SHADOWING ARM A WRITE THAT CHANGES THE ADDRESS'S PER-TIER
+   STANDING **WILL FIRE NOTHING**.** `file V` then `mem V`: **the literal is `V` on both sides, so the write is a no-change write**, even though `readTiered` now answers
+   `{_tier:'mem'}` where it answered `{_tier:'file'}` and the address stands at two tiers where it stood at one. **That is the reading's own price**: **`readTiered`'s
+   consumer sees a change that no listener is told about.** **A LATER PASS MUST NOT *"FIX"* THIS AS A DEFECT** — **the literal is the architect's subject and the
+   tier model is deliberately outside it.**
+4. **WHAT THIS STILL DOES NOT SETTLE, AND IT IS ONE VALUE AND NOT A DESIGN QUESTION: `-0`.** The corpus's two shipped relations disagree at exactly that admitted value
+   — the store's `PartialEq` says `-0 == 0`, and the package's `sameStanding` says they differ (`Object.is`). **THE READING TAKEN HERE IS THE STORE'S**, because the
+   subject is the store's literal and `D-69`'s one predicate lives where the per-tier versions live. **SO A WRITE OF `0` OVER A STANDING `-0` (OR THE REVERSE) DOES NOT
+   FIRE**, while **the reversal's judgement would call the same pair moved** — **two answers to one question, recorded here as the price of the reading, and not
+   re-decided.**
+5. **THE OTHER FOUR BLOCKING QUESTIONS KEEP THEIR DEFAULTS AND THE DESIGN OPENS ON THEM** (`D-192` item 5): **`Q-3` a no-change write MINTS AN OP** (the op carries the
+   save, `P-TP-8` (g) and `rollback`'s reach; the alternative makes `WriteRecord.op` optional, a break of its own) · **`Q-4` the receipt is the same one with
+   `triggered: []`**, with the `D-78` sentence written in the same pass · **`Q-5` the suppression REACHES THE CONSTRAINTS** — they are one predicate with the listeners
+   (`D-69`), **and a write a pair would have refused on must not become admissible because its value was equal** · **`Q-10` its own `MAJOR`** (`2.0.0` is spent; the next
+   number is the architect's word and this row does not mint it).
