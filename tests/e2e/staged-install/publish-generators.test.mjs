@@ -1012,9 +1012,13 @@ generator('NG-PUB-F', 'an artefact with no usable generator names rung one\'s pa
     const A = assertArmHere(r);
     // **THE SUBJECT, ASSERTED AS AN EXACT RENDERING AND NOT AS AN INCLUSION** — an inclusion test is satisfied
     // by a message that names rung one AND appends rung two, which is precisely the FINDING this clause names.
+    // **⟶ AND THE MESSAGE NAMES BOTH SUBSTITUTIONS FROM `2026-11-22` (`D-180` item 3)**: the control re-cut below
+    // fails this same limb by handing arm (b) the module-relative addon path IN PLACE OF rung one's own, so the
+    // reading printed below a red control says which of the two it caught rather than only which clause it stands on.
     assert.equal(A.message, gen(RUNG_ONE_TAIL),
       '`§1.4` item 7: the subject is the RUNG-ONE ARTEFACT\'S OWN PATH ALONE, rendered by the generator\'s own '
-      + `\'<subject>\' slot, and NEVER the both-paths join — at this state only rung one was tried; got ${JSON.stringify(A.message)}`);
+      + `\'<subject>\' slot, and NEVER the both-paths join nor the module-relative addon path in its place — at `
+      + `this state only rung one was tried; got ${JSON.stringify(A.message)}`);
     assert.equal(A.message.includes(RUNG_TWO_TAIL), false,
       'and the module-relative addon path appears nowhere in it: this walk reached rung two on NO evaluation');
     assert.equal(r.requests.filter(isRungTwo).length, 0,
@@ -1066,30 +1070,48 @@ generator('NG-PUB-F', 'an artefact with no usable generator names rung one\'s pa
         .replace(memberSite,
           "  throw {\n    status: refusal.status,\n    message: refusal.message,\n    log: refusalLog(log),\n    address: refusalAddress(address),\n    code: \'AddonVersionMismatch\',\n  };");
     }),
-    // (3) THE ARM (b) FALLBACK ITSELF NAMES A PATH THE WALK NEVER TRIED.
-    // **⟶ RE-CUT BY THE `F-14` PASS (`§13`), AND THE AS-FILED SITE IS KEPT BESIDE THE NEW ONE.** `absentSubject()`
-    // is reached through `addonLoadMessage()`, which is the `addon === null && addonArm === null` state — the
-    // walk that reached NO artefact at all (`index.mjs:332`–`:340`). **THE STATE THIS GENERATOR DRIVES IS THE
-    // MISMATCH STATE, WHERE ARM (b) IS `mismatchArmMessage`'s OWN FALLBACK (`index.mjs:322`) AND
-    // `absentSubject()` IS NEVER CALLED** — so the as-filed mutation reached no evaluation of the probe's state,
-    // the property still held, and the control PASSED this generator: the `F-14` class again, measured rather
-    // than assumed. **THE AS-FILED SUBSTITUTION, RE-EMITTED VERBATIM** — `return text.replace(before, "  const
-    // subject = absentSubject() + \", '\" + join(dirOf(fileURLToPath(import.meta.url)), 'never', 'tried',
-    // 'x.node');");` — **STANDS UNMOVED BESIDE THE NEW ONE, AND THE FALLBACK SITE IS THEREFORE MUTATED TOO, at
-    // the SAME clause the control names** — an
-    // arm (b) subject that names a path the walk never tried — **and the as-filed substitution stands unmoved
-    // beside it**, so the control measures the clause it was written for at the state it is written about.
+    // (3) THE ARM (b) SUBJECT NAMES A PATH THE WALK NEVER TRIED — FROM TWO SIDES, AND BOTH ARE EVALUATED.
+    // **⟶ RE-CUT `2026-11-22` (`D-180` item 3): THE AS-FILED HALF IS RETIRED AND ITS SUCCESSOR IS CUT WHERE THE
+    // DRIVE EVALUATES.** As filed, this control's first substitution was
+    //   `  const subject = absentSubject() + ", '" + join(dirOf(fileURLToPath(import.meta.url)), 'never', 'tried', 'x.node');`
+    // and it could not fail, for TWO independent reasons, both measured rather than assumed:
+    //   * **ITS SITE IS IN THE WRONG STATE.** `absentSubject()`'s only caller is `addon-slot.mjs`'s
+    //     `addonLoadMessage()` — the `addon === null && addonArm === null` ABSENT state — while this probe drives
+    //     the MISMATCH state, where `withAddon()` answers `addonArm` first and `addonLoadMessage()` is reached on
+    //     no evaluation at all. The mutated line was therefore never executed, the property still held, and this
+    //     control's verdict rested wholly on its second substitution: the `F-14` class again, a check that
+    //     appears to measure and does not.
+    //   * **AND ITS SPLICE CALLED NAMES THAT PART DOES NOT IMPORT.** `addon-slot.mjs` carries no `node:path` and
+    //     no `node:url` specifier — its whole import set is `./refusal.mjs` and `./class-decision.mjs` — so had
+    //     the site ever been reached it would have died `ReferenceError: join is not defined` before rendering
+    //     anything: a verdict attributable to the LEVER and not to the mutation, which is the same class the
+    //     `F-14` repair exists to refuse.
+    // **SO THE AS-FILED HALF IS NOT KEPT "BESIDE" THE NEW ONE: an inert mutation standing beside a live one is a
+    // claim the control cannot observe** (`D-57`'s discipline, read at a control rather than at a document; the
+    // residual is `D-180` item 3's, and `docs/L1/publish-readiness.md:116` records both reverted attempts).
+    // **IT IS REPLACED BY A SPLICE AT A SITE THE MISMATCH DRIVE DOES EVALUATE, IN THE PART THAT IMPORTS EXACTLY
+    // WHAT IT CALLS**: `artefact-node.mjs` carries both the mismatch arm and the three `node:` names
+    // (`import { dirname as dirOf, join } from 'node:path'` and `fileURLToPath` from `node:url`), and it reads
+    // `entryUrl` — the ENTRY's own adopted module context — so the path it renders is rung two's own and not a
+    // part-relative one. **ITS SUBJECT IS `§1.4` ITEM 7'S SECOND NAMED FAILURE, WHICH NO CONTROL OF THIS
+    // GENERATOR MEASURED**: the subject is THE MODULE-RELATIVE ADDON PATH IN PLACE OF the rung-one artefact's own
+    // — a path the walk never tried at this state, because the walk RETURNED at the arm before rung two — and
+    // (3b) appends that same path to arm (b)'s fallback, so the clause is measured from both directions.
     'control-the-fallback-names-an-untried-path': controlEntry('NG-PUB-F', (text) => {
-      const before = `  const subject = absentSubject();`;
-      assert.ok(text.includes(before), 'NG-PUB-F: the absent subject site moved; the control must be re-cut');
+      // (3a) THE SUBJECT HANDED TO ARM (b) IS A PATH THE WALK NEVER TRIED, IN PLACE OF RUNG ONE'S OWN.
+      const subjectSite = `message: mismatchArmMessage(candidate, name) };`;
+      assert.ok(text.includes(subjectSite),
+        'NG-PUB-F: the mismatch arm\'s subject site moved; the control must be re-cut where arm (b) is handed its '
+        + 'subject');
+      // (3b) AND THE FALLBACK APPENDS IT BESIDE THE PATH THE WALK DID TRY.
       const fallbackSite = `  return generatorFilePathUnreachable(name);`;
       assert.ok(text.includes(fallbackSite),
         'NG-PUB-F: arm (b)\'s own fallback site moved; the control must be re-cut where the state it drives reaches it');
       return text
-        .replace(before,
-          "  const subject = absentSubject() + \", '\" + join(dirOf(fileURLToPath(import.meta.url)), 'never', 'tried', 'x.node');")
+        .replace(subjectSite,
+          "message: mismatchArmMessage(candidate, join(dirOf(fileURLToPath(entryUrl)), 'build', 'Release', 'storeroom_js_binding.node')) };")
         .replace(fallbackSite,
-          "  return generatorFilePathUnreachable(name + \"', '\" + join(dirOf(fileURLToPath(import.meta.url)), 'never', 'tried', 'x.node'));");
+          "  return generatorFilePathUnreachable(name + \"', '\" + join(dirOf(fileURLToPath(entryUrl)), 'build', 'Release', 'storeroom_js_binding.node'));");
     }),
   },
 }));

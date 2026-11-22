@@ -3259,8 +3259,8 @@ export function judgeReversal(instance, watched, reversalId, state) {
 /// openings are outermost: a repair's write and a pass's scope join, so they take the outermost mark and not a
 /// later one), and **a callback's own commit is its own opening with its own cache** (a listener body's call names
 /// nothing and opens, so the mark it restores to is where ITS window opened). **THE MARK IS OPAQUE HERE**: the
-/// store answered a carrier — `{k:'s', v:<op id>}`, or `{k:'F'}` for the FLOOR, the state the store was born with
-/// when the journal held no entry at the opening — and this act hands the very same carrier back. **NEITHER THE
+/// store answered a carrier — `{k:'s', v:<op id>}`, or `{k:'F'}` for the FLOOR, **the state the journal's floor stands at
+/// when the opening found no entry** — and this act hands the very same carrier back. **NEITHER THE
 /// PACKAGE NOR THIS FUNCTION COMPOSES A POSITION.**
 ///
 /// **AND A WINDOW WITH NO CACHE IS A WINDOW THAT NEVER OPENED: THIS ACT REFUSES RATHER THAN FALLING BACK TO THE
@@ -3339,8 +3339,11 @@ function restoreReversal(instance, moved) {
   // and the delivery), **so what this act restores is THE LAST VALIDATED STATE**: a validated edit STANDS against a
   // later refusal in the same commit, and a commit whose sweep never passed still restores to its opening.
   // **THE CARRIER IS THE STORE'S OWN ANSWER, HANDED BACK VERBATIM**: `{k:'s', v:<op id>}` names an entry and
-  // `{k:'F'}` names the FLOOR (the state the store was born with, where the journal held no entry when the commit
-  // opened). **NOTHING IS COMPOSED HERE**, so the mark has one spelling and it lives at the store's edge.
+  // `{k:'F'}` names the FLOOR — **and since `D-179` the floor is NOT "the state the store was born with"**: it is the
+  // state the COMPACTION stands at, which equals the creation state only where nothing has been dropped. **THE STORE
+  // CANNOT TELL THE TWO CLASSES APART AT THAT ENTRY** (both answer `None`; `D-179` item 4), **so this sentence names
+  // the floor rather than its two arms** — and it is TRUE OF BOTH, which the born-reading was not.
+  // **NOTHING IS COMPOSED HERE**, so the mark has one spelling and it lives at the store's edge.
   let refused = null;
   let cacheless = false;
   const mark = windowMark(instance);

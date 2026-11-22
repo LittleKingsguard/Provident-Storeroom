@@ -9024,10 +9024,24 @@ always `false`), so `D-160` item 4's *"no producer"* is the milder and true form
    has measured the alternative against. **A cost note, not a hazard.**
 3. **`NG-PUB-F`'s inert control** — its as-filed half splices a `node:path` call into a part that no longer imports one. **A test-writer item** (attempted twice,
    reverted both times rather than landed half-right).
+   **⟶ CLOSED 2026-11-17 — THE RE-CUT TOOK BOTH ARMS THE FILE ALLOWS.** The inert half is **retired with a dated record** and the successor splice lands
+   in `artefact-node.mjs` (the part with the mismatch arm and the three `node:` imports), reading `entryUrl` at a site the mismatch drive evaluates.
+   **BOTH HALVES FAIL IN ISOLATION** — each shown by removing the other's `.replace`, running, and restoring `diff`-clean — and **the guarded
+   behaviour was seen red**: altering `generatorFilePathUnreachable`'s rendering reddens the cell with *"THE PROPERTY DOES NOT HOLD AT THE SHIPPED BYTES"*.
+   **THE PASS NAMED WHAT IT COULD NOT LEDGER**: the two halves are independent in effect but not separately counted, and splitting them would take the
+   cell from `3` to `4` measured controls and redden `publish.test.mjs`'s prose count — **a census move not taken.**
 4. **Two spec parts the cells cite are NOT ON THIS TREE** — `seams-and-lifecycle.md` and `crossing.md`, **36 citations**, declared at the JAS runners' heads.
    **A corpus-completeness item; no test can fix it and no pass may re-point a citation without knowing where the law now stands.**
 5. **One skipped cell** — `sas_d3_s_parity_…` skips with its reason (*"the old dispatcher shape is absent after the split; the golden was captured before
    it"*). **A golden without a subject: it should be RETIRED rather than skipped**, since a skip is a cell that never executes and cannot fail.
+   **⟶ RETIRED 2026-11-17 — AND ARM (b) WAS TESTED AND DOES NOT EXIST.** What replaced `call(index, verb, args)` is the nine PER-VERB entries, so the only
+   live *"same verb, other shape"* left is a verb through its own entry against the same verb through the package's wrapper — **one call and its own
+   decoder, which would pass trivially at any byte.** **So the honest act is that NO instrument exists, not that one was skipped**: the cell is withdrawn and
+   the file's head records what it measured, when it stopped measuring anything, and which ruling removed its subject (`export-set-and-dispatch.md §2`:
+   *"`call` IS DELETED … THE SPLIT IS PRECISELY ITS REPLACEMENT, SO IT DOES NOT SURVIVE"*). **AND THE ARITHMETIC THIS ROW WAS WRITTEN WITH WAS MINE AND WRONG**:
+   the skip was a **nested** `test.skip` inside a running `test(\u2026)`, so Node counts two rows — retiring it takes `tests −2` and `pass −1`, and the
+   measured reading is **`1384` / `1384` / `0` / `0` skipped**, not the `1385`/`1384` the plan predicted. **`P-SAS-3`'s old-dispatcher half now has no
+   instrument and can have none — recorded, not repaired, and the clause still stands in the spec.**
 6. **`replayMark` and `regenerate` answer different questions and that is DELIBERATE** (`D-179` item 4): `regenerate` keeps `born` because it regenerates from the
    file image (`D-164`'s arm). **Named here so a later pass does not unify them by tidiness.**
 7. **The release act** — the class is claimed (`D-158`, `1.13.0`, a `MINOR`) and **no tag is cut** (`D-57`). **`delivery`'s act.**

@@ -14,6 +14,45 @@
 // such cell is named in the digest at the foot of this header rather than left to be discovered.
 //
 // ─────────────────────────────────────────────────────────────────────────────────────────────────────
+// ## ⟶ ONE CELL RETIRED, DATED `2026-11-22`, AND THIS IS ITS RECORD
+//
+// **`sas_d3_s_parity_each_verbs_answer_is_byte_identical_to_the_same_verb_through_the_old_dispatcher` IS
+// WITHDRAWN FROM THIS FILE** — the `D-3` group's second cell, and the only cell of the whole suite that
+// reported a `SKIP`. **THE RULING THAT RETIRES IT IS `D-180` ITEM 5, AT ITS OWN SENTENCE:** *"A golden without
+// a subject: it should be RETIRED rather than skipped, since a skip is a cell that never executes and cannot
+// fail."*
+//
+// **WHAT IT MEASURED, WHILE IT COULD.** `contract.md §5`'s `P-SAS-3` — *"each verb's result is byte-identical
+// to the same verb's result through the old dispatcher"*, strategy `S-PARITY`: *"drive both shapes over the
+// same corpus, compare records member-for-member"* — driven as `read`'s, `write`'s and `delete`'s answer
+// through the package's receiver shape beside the same verb through the artefact's own
+// `call(index, verb, args)`, and a second store's answer through both shapes again.
+//
+// **WHEN IT STOPPED MEASURING ANYTHING.** The instant `U-STOREROOM-ADDON-SURFACE`'s gate 3 landed the split
+// and `call` left the artefact's export set (`export-set-and-dispatch.md §2`: *"`call` IS DELETED. It was the
+// dispatcher: one entry taking `(instance, verb, args)` and matching the verb across nine arms. THE SPLIT IS
+// PRECISELY ITS REPLACEMENT, SO IT DOES NOT SURVIVE."*). **From that landing the cell's first statement was
+// `oldDispatcherShape() === null` and its whole remaining act was `test.skip(…)` — and a skip is the one status
+// that cannot red: it stood in the count as a permanent, unobservable hole, which is the defect `D-57` removed
+// from the shipped documents when it narrowed the cut-state claim to *"the version line, which is the only
+// figure a tarball can be right about"* — a cell may not claim what it cannot observe.**
+//
+// **WHY IT IS RETIRED AND NOT RE-GIVEN A SUBJECT (`D-180` ITEM 5; NO ARM `(b)`).** What replaced `call` is the
+// nine PER-VERB entries (`contract.md §1`: *"the addon's export set is exactly the thirteen declared names —
+// `4` standing plus `9` per-verb — and `call` is absent"*). **So the only live shape the old comparison could be
+// re-cut against is a verb through its OWN entry against the same verb through the package's wrapper — one
+// call and its own decoder, not two shapes: a comparison that cannot fail and would pass trivially at any
+// byte.** The clause's package-layer half never depended on the dispatcher and did not leave: the record
+// members, the corpus equality across two stores and the operation record's eight members stand asserted in
+// the group's first cell, and the golden's key-set exclusion in its third.
+//
+// **WHAT THE RETIREMENT DOES NOT CLAIM.** It does not claim `P-SAS-3` is satisfied, and it does not claim the
+// old dispatcher's answers were never compared — the comparison was made once, before the split, against a
+// golden this tree can no longer produce. **It claims exactly what remains observable: the package-layer
+// parity, at the group's two surviving cells.** No other cell of this file reads the retired name, and the
+// key-set exclusion is unmoved because the retired cell was never one of the four `s_export_set_` cells.
+//
+// ─────────────────────────────────────────────────────────────────────────────────────────────────────
 // ## THE STATES ENUMERATED BEFORE ANY CELL WAS AUTHORED
 //
 // `test-cases.md` is the view — **`26` rows: `11` valid states, `7` fail-states, `8` drives** — and the
@@ -25,7 +64,7 @@
 // | --- | --- | --- |
 // | `D-1` | `P-SAS-1` | `sas_d1_s_export_set_*` (`4` cells: the equality, `call` absent, `commit`/`constraints` absent, `removeListener` present) |
 // | `D-2` | `P-SAS-2` | `sas_d2_s_arity_*` (`3`) + `sas_d2_s_no_instance_*` (`2`) |
-// | `D-3` | `P-SAS-3` | `sas_d3_s_parity_*` (`3` — and the golden's key-set exclusion, `§6` item `2`) |
+// | `D-3` | `P-SAS-3` | `sas_d3_s_parity_*` (`2` — the third was RETIRED 2026-11-22, see the head's dated record; and the golden's key-set exclusion, `§6` item `2`) |
 // | `D-4` | `P-SAS-4` | `sas_d4_s_refuse_form_*` (`2`) + `sas_d4_s_refuse_keys_*` (`3`) |
 // | `D-5` | `P-SAS-5` | `sas_d5_s_table_remove_*` (`2`) |
 // | `D-6` | `P-SAS-6` | `sas_d6_s_unwrap_sites_*` (`2`) + `sas_d6_s_state_id_gone_*` (`2`) |
@@ -33,7 +72,8 @@
 // | `D-8` | `P-SAS-8` | `sas_d8_s_fault_arm_*` (`2`) |
 //
 // **THE VALID STATES, EACH AT ITS OWN CELL** — `V-1` the thirteen with `call` absent · `V-2` the arities ·
-// `V-3` the byte-parity · `V-4` the receiver resolves the store · `V-5` two constructions answer two stores ·
+// `V-3` the byte-parity (**RETIRED 2026-11-22 with its cell — the old dispatcher left the tree; head record**) ·
+// `V-4` the receiver resolves the store · `V-5` two constructions answer two stores ·
 // `V-6` a live receiver reaches its store and one naming nothing refuses · `V-7` a freed store's entry
 // retired while a second survives · `V-8` every member reaches its own entry · `V-9` no `state.id` survives
 // and the registration path reaches `register` at arity `2` · `V-10` the `ValueNotAdmitted` re-render appears
@@ -613,12 +653,22 @@ test('sas_d2_s_no_instance_the_packages_own_surface_carries_no_instance_position
 //
 // **THE THIRD CELL BELOW IS THE EXCLUSION ITSELF, ASSERTED RATHER THAN ASSUMED: it walks this file's own
 // cells, names the ones that read the key set, and asserts that set is exactly the `D-1` group and no other.**
+//
+// **⟶ AND THIS GROUP HOLDS TWO CELLS FROM `2026-11-22`, NOT THREE — THE SECOND IS RETIRED** (`D-180` item 5).
+// `sas_d3_s_parity_each_verbs_answer_is_byte_identical_to_the_same_verb_through_the_old_dispatcher` measured
+// `P-SAS-3`'s old-dispatcher half; **its subject left the tree when this unit's own split deleted `call`**
+// (`export-set-and-dispatch.md §2`), so from that landing onward it asserted its golden's absence and reported
+// `SKIP` — the one status that cannot red. **The file head carries what it measured, when it stopped measuring
+// anything and which ruling removed its subject. The capture cell and the exclusion cell are unmoved.**
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════
 
 /** **THE CORPUS THE TWO SHAPES ARE DRIVEN OVER.** `S-PARITY` says *"over the same corpus"* — so one corpus,
- *  built here once, and every cell of this group reads THE SAME rows rather than minting its own. **THE
- *  VALUES ARE THE STORE'S OWN DECLARED DOMAIN** (`surface.md §2.2`: a string, a boolean, a finite number, a
- *  plain object or an array), and the address is a segment array (`§1.5`). */
+ *  built here once, and every cell of this group reads THE SAME rows rather than minting its own. **⟶ THAT
+ *  SENTENCE IS CORRECTED IN PLACE `2026-11-22`: FROM THE RETIREMENT IT IS THE CAPTURE CELL ALONE THAT DRIVES
+ *  THE CORPUS** (`D-180` item 5 — the group's second cell went with the old dispatcher, and a corpus one cell
+ *  reads is not one *"every cell of this group"* reads; the rows are unmoved and are still the store's whole
+ *  declared domain). **THE VALUES ARE THE STORE'S OWN DECLARED DOMAIN** (`surface.md §2.2`: a string, a boolean,
+ *  a finite number, a plain object or an array), and the address is a segment array (`§1.5`). */
 const PARITY_CORPUS = [
   { label: 'a string', value: 'v' },
   { label: 'a finite number', value: 1 },
@@ -640,7 +690,19 @@ const PARITY_CORPUS = [
  *  records which cells ran and which skipped"* — *"the artefact-dependent cells skip when no `.node` exists,
  *  and a skip that becomes a run is a diff and not noise"* (`contract.md §6` item `4`). **THE GOLDEN IS
  *  CAPTURED BEFORE STEP `1` — at this red pass, while `call` still stands — so the post-split run compares
- *  against these same records.** */
+ *  against these same records.**
+ *
+ *  **⟶ AND BOTH OF THOSE SENTENCES ARE CORRECTED IN PLACE `2026-11-22`, BECAUSE THE SPLIT FALSIFIED BOTH AND
+ *  `D-57`'S DISCIPLINE APPLIES TO A DOCBLOCK AS MUCH AS TO A CELL** (`D-180` item 5). **(a)** No drive of this
+ *  file skips now: `call` is gone, the capture cell's first branch asserts the absence and returns, and the one
+ *  cell that did skip was RETIRED — **so the sentence above describes a behaviour that no cell of this file has,
+ *  and `contract.md §6` item `4`'s run-versus-skip record is carried by the capture cell's `GOLDEN.ran`/
+ *  `GOLDEN.skipped` arrays, which the shipped tree can only leave empty.** **(b)** `GOLDEN` is MODULE STATE AND
+ *  NOT A PERSISTED IMAGE, so *"the post-split run compares against these same records"* compares against
+ *  whatever this process captured — **and on the shipped tree this process captures nothing, because the capture
+ *  cell returns at its first branch. The golden's records are real only on a tree whose artefact still answers
+ *  `call`, which is the tree the unit's gate 3 drove; the clause's package-layer half is asserted at the capture
+ *  cell itself and needs no golden at all.** */
 function oldDispatcherShape() {
   const addon = require_(ADDON_ARTEFACT);
   if (typeof addon.call !== 'function') return null;
@@ -739,65 +801,6 @@ test('sas_d3_s_parity_the_golden_captures_the_two_shapes_record_for_record_and_e
     'the corpus is driven whole: the capture is the record set and not a sample');
   assert.deepEqual(GOLDEN.skipped, [],
     'and no cell of this group skipped while the old shape stood — the capture ran every row');
-});
-
-test('sas_d3_s_parity_each_verbs_answer_is_byte_identical_to_the_same_verb_through_the_old_dispatcher', () => {
-  const addon = oldDispatcherShape();
-  if (addon === null) {
-    GOLDEN.skipped.push('sas_d3_s_parity_each_verbs_answer_is_byte_identical_to_the_same_verb_through_the_old_dispatcher');
-    test.skip('the old dispatcher shape is absent after the split; the golden was captured before it');
-    return;
-  }
-  GOLDEN.ran.push('sas_d3_s_parity_each_verbs_answer_is_byte_identical_to_the_same_verb_through_the_old_dispatcher');
-  // **THE VERBS DRIVEN ARE THE ONES THE CORPUS CAN DRIVE WITHOUT A LISTENER OR A FILE**: `read`, `readLiteral`,
-  // `write`, `delete`. `listen`/`unlisten`/`removeListener`/`commitFile`/`rollback` carry a registry, an
-  // attempt ledger or the file tier and are driven at their own cells below.
-  //
-  // ── **THE COMPARISON'S LAYER, STATED BECAUSE THE TWO SHAPES RETURN TWO DIFFERENT SPELLINGS OF ONE ANSWER.**
-  // The old dispatcher is reached at the ARTEFACT and answers the CROSSING'S OWN CARRIER — an address as
-  // `{k, s}` — while the package DECODES that carrier back to a JS value (`docs/specs/storeroom-js/surface.md
-  // §2.2`'s read row answers *"the assembled JS value"*). **THE UNIT'S OWN CLAUSE PUTS THE PARITY AT THE
-  // PACKAGE'S SURFACE AND NOWHERE ELSE** (`contract.md §1` item 1: *"A consumer of the package cannot observe
-  // the change except in one named case"*; `§3`'s table: *"what a consumer observes"* does NOT move).
-  // **SO THE CELL BELOW DRIVES THE SAME VERB OVER THE SAME STORE AND ASSERTS THAT THE CONSUMER-VISIBLE ANSWER
-  // IS THE SAME — and the artefact-layer spelling is recorded in `GOLDEN.records` rather than compared against
-  // a package-layer value it was never declared to equal.** A cell that compared the carrier against the
-  // decoded value would be asserting a re-encoding the clause does not promise, which is `F-4`'s failure read
-  // backwards.
-  const layout = mem();
-  const other = mem();
-  const address = ['parity-b'];
-
-  // (a) THE SAME STORE, THE SAME VERB, THE SAME ARGUMENTS — through the package's receiver shape.
-  layout.write(address, 'mem', 'v');
-  const receiverRead = layout.read(address, 'mem');
-  assert.equal(receiverRead, 'v',
-    'P-SAS-3 / V-3 — the receiver shape answers the assembled JS value (`surface.md §2.2`\'s read row), and '
-    + '`export-set-and-dispatch.md §3`\'s table puts "what a consumer observes" on the does-not-move side');
-
-  // (b) THE OLD DISPATCHER'S SHAPE, DRIVEN AT THE SAME STORE — recorded so the capture carries BOTH shapes at
-  // the instant `contract.md §6` item `1` names. **ITS ANSWER IS THE CROSSING'S CARRIER**, and the cell asserts
-  // the one relation the clauses make between the two: THE SAME UNDERLYING VALUE, spelled at each layer's own
-  // declared form — the carrier's `{k, s}` segments decoding to the address the package reports.
-  const index = addon.storeCreate({ journalLength: 8, listeners: [] });
-  addon.call(index, 'write', [{ k: 'L', s: address }, { k: 'T', v: 'mem' }, 'v']);
-  const dispatcherRead = addon.call(index, 'read', [{ k: 'L', s: address }, { k: 'T', v: 'mem' }]);
-  GOLDEN.records.push({ case: 'the read through the old dispatcher', carrier: dispatcherRead });
-  assert.equal(dispatcherRead, 'v',
-    'P-SAS-3 — and the old dispatcher\'s shape reaches the SAME value in the same store: `contract.md §5`\'s '
-    + '`S-PARITY` comparison is "the same verb\'s result", and the result is this store\'s leaf value at either '
-    + 'route. **THE CARRIER SPELLING IS THE CROSSING\'S AND IS NOT COMPARED TO THE DECODED VALUE** — that '
-    + 're-encoding is `docs/specs/storeroom-js/surface.md §2.2`\'s declared decode and not this unit\'s change');
-
-  // (c) A SECOND STORE, DRIVEN THROUGH BOTH SHAPES — so the parity is not an accident of one instance
-  // (`receiver-and-refusal.md §2`: *"one `storeCreate` builds one store"*).
-  other.write(['parity-d'], 'mem', 4);
-  assert.equal(other.read(['parity-d'], 'mem'), 4,
-    'P-SAS-3 — a second store\'s answer is its own, through the receiver shape');
-  const otherIndex = addon.storeCreate({ journalLength: 8, listeners: [] });
-  addon.call(otherIndex, 'write', [{ k: 'L', s: ['parity-d'] }, { k: 'T', v: 'mem' }, 4]);
-  assert.equal(addon.call(otherIndex, 'read', [{ k: 'L', s: ['parity-d'] }, { k: 'T', v: 'mem' }]), 4,
-    'and through the old dispatcher shape, on that second store');
 });
 
 test('sas_d3_s_parity_the_goldens_diff_excludes_the_keyset_cells_and_the_exclusion_is_the_d1_group_alone', () => {
