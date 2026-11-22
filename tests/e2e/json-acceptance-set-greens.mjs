@@ -1,4 +1,15 @@
 #!/usr/bin/env node
+
+// **⟶ AND TWO PARTS THE CELLS BELOW CITE ARE **NOT ON THIS TREE**, 2026-11-17 — DECLARED HERE RATHER THAN REPOINTED
+// (`D-85` item 2's class; the architect's *"an archived part is CITED and never rewritten"*, `contract.md:700`).**
+// `seams-and-lifecycle.md` and `crossing.md` are cited by **36 cells in this file and its sibling** (`§7.2 item 7 (f)`
+// and `§1.4 item 5`), and **`git ls-files` carries neither**: they are archived parts, so **no byte of the citations
+// moves here** and **no pass may re-point them without knowing where the law now stands.** **WHAT THE CELLS ASSERT IS
+// THEREFORE MEASURED AND NOT QUOTED**: the walk's ceiling is **127 ADMITTED / 128 REFUSED, answering
+// `ValueRefusedAtBoundary`** (measured on this tree; the archived `§1.4 item 5` prints *"exceeds 64 … `ValueNotAdmitted`"*,
+// which is the SUPERSEDED reading), and the loader's container ceiling is **128**. **A reader who needs the law's current
+// home must find it: these files can say what the tree DOES and cannot say what the spec now SAYS.**
+
 // ============================================================================
 // THE BLIND GREENS SET FOR THE `file` TIER'S JSON CODEC  (artifact id: JAS)
 // unit: the store's JSON codec as a DECLARED contract — the loader's
@@ -898,7 +909,7 @@ scenario('JAS-11', 'the commit\'s own verification: the refusal of an image the 
   'seams-and-lifecycle.md §7.2 item 2 (the commit\'s own verification); A144 (1) and (4); crossing.md §1.4 item 5', () => {
     layerLimit('JAS-11.1',
       'seams-and-lifecycle.md §7.2 item 2 (parts (1) and (2): the commit re-decodes the image it is about to rename over the path and refuses with `FileCommitFailed` when the image does not load); A144 (1) and (4); crossing.md §1.4 item 5; seams-and-lifecycle.md §7.2 item 7 (f) class (4)\'s REACH clause ("AND THE COMMIT\'S VERIFICATION REMAINS UNREACHABLE FROM THE JAVASCRIPT LAYER (A144 (1))")',
-      'LAYER LIMIT — the commit\'s own verification fires only for an image the LOADER would refuse, and the loader\'s ceiling is 128 nested containers (A144 (1)) while the JS package\'s OWN walk refuses a value of depth 65 before any verb is called (crossing.md §1.4 item 5). The store admits a value of any depth (A143 (1)), so the only route by which the JS surface could hand the store such a value is closed by the package\'s own walk: the JS layer cannot cause the commit\'s refusal. A144 (1) says the same in its own words: "THE JS SURFACE CANNOT REACH IT — THE NATIVE LIBRARY\'S OWN API WAS." THE DEPTH CLASS ITSELF IS NOT THIS LIMIT — it is observable from this layer on the FOREIGN-FILE route (asserted at JAS-07.1). THIS CELL IS NOT A PASS AND NOT A FAILURE.');
+      'LAYER LIMIT — the commit\'s own verification fires only for an image the LOADER would refuse, and the loader\'s ceiling is 128 nested containers (A144 (1)) while the JS package\'s OWN walk refuses a value of depth 128 before any verb is called (and admits 127 — measured) (crossing.md §1.4 item 5). The store admits a value of any depth (A143 (1)), so the only route by which the JS surface could hand the store such a value is closed by the package\'s own walk: the JS layer cannot cause the commit\'s refusal. A144 (1) says the same in its own words: "THE JS SURFACE CANNOT REACH IT — THE NATIVE LIBRARY\'S OWN API WAS." THE DEPTH CLASS ITSELF IS NOT THIS LIMIT — it is observable from this layer on the FOREIGN-FILE route (asserted at JAS-07.1). THIS CELL IS NOT A PASS AND NOT A FAILURE.');
   });
 
 // =============================================================== JAS-12 =====
