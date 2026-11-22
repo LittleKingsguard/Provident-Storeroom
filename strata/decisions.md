@@ -9175,3 +9175,26 @@ declaration no longer beginning a line with `test('` silently drops `cells` and 
    row (`+0`)** and **item 2 is a Rust `#[test]` (`+0` npm, `+1` cargo: `46 → 47`)**. **The plan's figure was arithmetic about a shape and the code had another.**
 6. **NAMED AND NOT CLOSED**: the capture's carrier limbs are **owed to nobody** (their producer is deleted) · **`§6` item 2's body-derived rule** is a record and
    not a defect, and curing it is a decision about that cell · **the unbounded case is a collector property and is recorded as a measurement, asserted nowhere**.
+
+---
+
+### `D-185` — THE FLOOR'S ADVANCE IS NOT A MEASURABLE COST, AND THE OPTION I PRICED WAS NEVER NEEDED
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `40bb8cb`. **SOURCE:** `D-178` item 4's cost note, measured. **STATUS: `ACTIVE`.**
+
+**MEASURED, TWENTY THOUSAND WRITES PER ARM, THREE RUNS EACH, MEDIANS:**
+
+| `journalLength` | | ns/write | the three runs |
+|---|---|---|---|
+| **`2`** (compacts on nearly every write) | the floor advances constantly | **52,028** | 51,824 / 52,028 / 54,774 |
+| **`16`** (compacts every ~14 writes) | | **51,121** | 50,997 / 51,121 / 51,443 |
+| **`1000000`** (never compacts) | no advance at all | **73,908** | 73,342 / 73,908 / 74,900 |
+
+**AND THE FIGURE THAT MATTERS IS THE THIRD ROW: THE STORE THAT NEVER COMPACTS IS THE SLOWEST, by ~42%.** Its journal grows without bound, so **every append carries a larger
+history than a compacted store's does** — **the floor's advance rides inside a path that is already much cheaper than not compacting.** The two compacting arms are **~900 ns
+apart** (52.0 against 51.1 µs), and that gap is the *entire* difference between compacting on nearly every write and compacting one in fourteen.
+
+**SO `D-178` ITEM 4'S PRICED OPTION (a) — *"capture before the push, one full `assemble_all` per compressing append"* — WAS NEVER NEEDED AND IS NOT WHAT LANDED**:
+`D-179` advances the floor **by the dropped entry's own snapshots** (O(one entry) instead of O(one register)), and **the measurement shows no cost to find**: the floor's advance is
+not separable from the compaction it belongs to, and **the alternative would have added a whole-register assembly to a path that already pays less than the one that never compacts.**
+**The note is closed as a measurement and not as an argument**, and **a future pass that considers a per-append capture has this table to read first.**
