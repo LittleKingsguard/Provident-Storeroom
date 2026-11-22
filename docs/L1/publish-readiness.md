@@ -103,3 +103,21 @@ rebuild will read sixteen reds that are not defects.
 
 **WHAT REMAINS, AND IT IS NOT THIS REVIEW'S** — the residuals §3 named (unchanged), and **the sixth package's first publish**, which is
 `delivery`'s with its own first-release questions. **No tag is claimed anywhere**: `D-57`.
+
+---
+
+## §7 · THE RESIDUALS, WORKED `2026-11-17` — two closed, one measured, one found, one deliberately left
+
+**§3's list, item by item, with what actually happened.**
+
+| §3 item | outcome |
+|---|---|
+| **the `structuredClone` probe's cost — priced and unmeasured** | **✅ MEASURED, AND IN A WAY THAT FOUND SOMETHING ELSE.** The `installClassInstrument` seam lets the same store be driven twice — once with the probe, once with a no-op — so the probe's cost is the difference: **`18,662 ns/write`, `9.3%` of a write** (`220,179` against `201,517`; 400 writes per round, 50 warm-up, six alternating rounds, medians, the WebAssembly arm under a Node host). **Recorded at `D-159` item 4.** |
+| **`NG-PUB-F`'s inert control** | **⚠️ STILL OWED, AND THE RE-CUT WAS ATTEMPTED AND REVERTED.** The as-filed half splices `join(dirOf(fileURLToPath(...)))` into `absentSubject()`, which now lives in `addon-slot.mjs` and imports no host module — **inert only because the probe drives the mismatch state.** The re-cut needs the spliced value to be a literal; **the edit was made twice and both times the anchor matched an earlier site and damaged the file, so it was reverted from `HEAD` rather than landed half-right.** **The landmine is documented at the control and in this row**: a pass that widens that probe to the absent state must re-cut it first. |
+| **the two test files reaching `withAddon` through `artefact.mjs`'s re-export** | **✅ CLOSED.** `def-ae-restore-mark.test.mjs` and `discard-witness.mjs` now import from `addon-slot.mjs`, so a later pass that retires the re-export does not have to find them. |
+| **`STORE_RETIREMENT`'s missing finalizer on the WASM arm** | **OPEN, and now larger than it was**: see `D-159`. |
+| **`O-3`, `SS-9` and `O-8` — moot on the WASM arm, owed on Node** | **OPEN, unchanged.** |
+
+**★ AND THE FINDING THE RESIDUAL PASS WAS NOT LOOKING FOR — `D-159`.** Measuring the probe's cost needed a bench, **and the bench OOM'd.** The trail from there is one row: **a store that has taken N writes holds on the order of N × (1–4 KB), without bound, on both arms.** The WebAssembly arm is merely the first place it meets a ceiling — **it OOMs at about 16,000 writes** (`rust_oom` at `alloc`) — while the Node arm reaches 7.3 GB of `rss` at the same count. **Two probes rule out the obvious causes**: the rate does not track `journalLength` (`124` · `113` · `75` KB/write at caps `4` · `64` · `1024`) and one address grows like eight thousand distinct ones. **And `rss` is the wrong figure**: `heapUsed` grows ~`3.7 KB` per write, so the growth is LINEAR and V8's heap merely expands to hold it. **The layer is not isolated** — three raw-addon drives failed on this harness's wire, so the retention lies between the kernel and the store and is attributed to neither. **No cell catches it, which is why it has lived through every green battery this session ran.**
+
+**THE FLOOR, AFTER ALL OF IT: `npm test` `1359` / `1358` / `0`.** Nothing in this pass moved a shipped byte.

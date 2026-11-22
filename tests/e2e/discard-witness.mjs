@@ -64,7 +64,10 @@ import { currentWindow, openCommits, windowMark } from '../../bindings/js/src/en
 // **THE STORE'S OWN POSITION, REACHED AT THE ADDON'S ENTRY EXACTLY AS THE PACKAGE REACHES IT** — the instrument
 // `D-63`'s two boundaries are measured with (`state.mjs`'s opening cache IS this answer, and the bump IS its
 // re-read). A cell that measured the gap from anywhere else would be measuring its own arithmetic.
-import { withAddon } from '../../bindings/js/src/entry/artefact.mjs';
+// **⟶ AND THE IMPORT READS THE SEAM'S OWN HOME FROM 2026-11-17** (`D-156`; the loader split): `withAddon` lives
+// in `addon-slot.mjs` and `artefact.mjs` re-exports it. **BOTH WORK AND THIS FILE NOW NAMES THE HOME**, so a later
+// pass that retires the re-export does not have to find this line.
+import { withAddon } from '../../bindings/js/src/entry/addon-slot.mjs';
 // **THE `D-67`/`D-66` PER-TIER CELL NEEDS A `file`-TIER STORE** — the residual is a HIGHER-PERSISTENCE write that
 // purges a value, so the drive constructs at an OS-temporary path and removes it at the end of its own block.
 import fs from 'node:fs';

@@ -44,7 +44,10 @@ import { test } from 'node:test';
 
 import { storeCreate } from '../../bindings/js/index.mjs';
 import { windowMark } from '../../bindings/js/src/entry/state.mjs';
-import { withAddon } from '../../bindings/js/src/entry/artefact.mjs';
+// **⟶ AND THE IMPORT READS THE SEAM'S OWN HOME FROM 2026-11-17** (`D-156`; the loader split): `withAddon` lives
+// in `addon-slot.mjs` and `artefact.mjs` re-exports it. **BOTH WORK AND THIS FILE NOW NAMES THE HOME**, so a later
+// pass that retires the re-export does not have to find this line.
+import { withAddon } from '../../bindings/js/src/entry/addon-slot.mjs';
 
 /** `surface.md §2.5` items 3–4: the ONE crossed form's member set, sorted ascending. */
 const REFUSAL_MEMBERS = ['address', 'log', 'message', 'status'];
