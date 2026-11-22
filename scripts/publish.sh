@@ -105,8 +105,13 @@ PIN_NAMES=(
 )
 # The carrier's phrase. The suite's `declaredReleaseVersion` helper REGEXES
 # this literal, so it must move in the same pass as the cells.
-CARRIER="docs/specs/storeroom-publish-proposal.md"
-CARRIER_PHRASE='the six manifests move to'
+# **⟶ AND THE ANCHOR IS THE LIVE CONTRACT, NOT THE ARCHIVED PROPOSAL — 2026-11-17.** It read `docs/specs/storeroom-publish-proposal.md`, which
+# **this tree does not carry**, so every dry run warned "the helper's anchor has moved" and the warning was RIGHT. **The rule it anchors now
+# stands in the publish contract's own coupling clause.**
+CARRIER="docs/specs/storeroom-publish/contract.md"
+# **AND THE COUNT IN THE PHRASE MOVED WITH THE SEVENTH ARTEFACT** (`D-157`/`D-172`): the published set is the main package plus the SIX platform
+# manifests, so the sentence reads "seven" where this line read "six".
+CARRIER_PHRASE='manifests move to'
 
 # **THE CONSUMER GUIDE'S ONE AUTHORED HOME AND ITS LANDED COPY — THE INVARIANT, STATED HERE BECAUSE IT IS THE
 # WHOLE MECHANISM: `docs/guides/package-use.md` IS THE CANONICAL TEXT AND IS NEVER EDITED IN TWO PLACES.** The
