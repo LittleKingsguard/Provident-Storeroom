@@ -8810,3 +8810,19 @@ finding is the same family as `D-159`/`D-160`/`D-162`** \u2014 a table that grow
    its slot and its words; what it never sees is the subject the row feared.**
 4. **CELLS**: `tests/e2e/construction-file-guard.test.mjs` — `CFG-1` (**a construction refused after its create leaves NO file**) and `CFG-2` (the
    guard's bound: **the caller's own file stands, bytes unmoved**). **`CFG-1` fails on the pre-fix tree** by the file's own presence.
+
+---
+
+### `D-174` — THE `WeakMap` ALTERNATIVE IS DECLINED: THE MAP STANDS, AND THE WINDOW WITH IT
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `72cb40b`. **SOURCE:** the architect, on the alternative `docs/L1/journal-retention-rca.md` §8.3
+priced and this session's measurement of a receipt's lifetime. **THE ARCHITECT'S WORDS, VERBATIM:**
+
+> "Go with the map"
+
+**STATUS: `ACTIVE`.**
+
+1. **`D-162`'S WINDOW STANDS**: `kernel.closed` stays a **`Map<id, report>`** bounded by `CLOSED_ATTEMPT_WINDOW = 1024`, its FIFO the map's own insertion order, one writer (`sealClosedReport`) at all four seal points, and **a pruned id answering `KC-2` — the same refusal an id that never named an attempt meets** (`KAW-1`).
+2. **AND THE ALTERNATIVE IS DECLINED WITH ITS EVIDENCE INTACT, SO A LATER PASS CAN REOPEN IT ON FACTS AND NOT ON TASTE.** The `WeakMap` keyed by `attempt.ref` was priced and is available — the seal sites hold the ref, and the receipt carries it (`CommitRecord.attempt`). **Its decisive cost was measured**: **a caller holding only an ID STRING cannot read a closed attempt's log**, because a string has no key. **THE WINDOW ALREADY ANSWERS THAT CALLER `KC-2`** — for a pruned id — **so the `WeakMap` would make the boundary exact instead of arbitrary, at the price of declaring that a caller must hold the attempt rather than its id.** **THE ARCHITECT TAKES THE MAP AND THEREFORE TAKES THE WINDOW'S OWN APPROXIMATION OF REACHABILITY.**
+3. **AND THE MEASUREMENT THAT MADE THE CHOICE POSSIBLE IS KEPT AT ITS OWN ROW**: a receipt is disposed **the moment the caller drops its last reference, and nothing in the package keeps one** — 2,000 writes with the receipt dropped retain **0 B per write**, with the receipts kept the caller retains **~1.6 KB each**, and **`state.leg` is a slot and not a ledger** (one receipt, the latest). **So the `WeakMap` would not have been "never disposed": it would have been exactly "as long as the caller can ask".** **The window spends that exactness for a figure no measurement produced, and that is the trade this row accepts.**
+4. **WHAT DOES NOT MOVE**: no code byte, no cell, no figure, no declaration. **`D-162`'s five items stand whole**, `KAW-1` and `KAW-2` remain the window's proof, and **the residual §10.2 named — that `CLOSED_ATTEMPT_WINDOW`'s `1024` is a declared figure and not a derived one — is unchanged and now DECLARED AS ACCEPTED** rather than open.
