@@ -8856,3 +8856,33 @@ priced and this session's measurement of a receipt's lifetime. **THE ARCHITECT'S
    `dropHandoff` keyed by `attempt.id` while the other three keyed by `attempt.ref.id`, and **under the window those were two string keys; under a
    `WeakMap` they are one object — WHICH IS THE CHANGE THAT COULD HAVE MOVED WHICH REPORT A READER FINDS.**
 4. **THE WINDOW STANDS UNTIL THEN**, and no cell, figure or declaration of `D-162` moves in this row.
+
+---
+
+### `D-176` — THE `WeakMap` LANDS, WITH TWO DEFECTS OF MINE FOUND ON THE WAY, AND `§2.15`'S TWO FORMS PRESERVED
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `0b7ace1`. **SOURCE:** the architect's *"Clarification: Weak map"* (`D-175`), landed.
+**STATUS: `ACTIVE`.**
+
+1. **`kernel.closed` IS A `WeakMap` KEYED BY THE ATTEMPT'S REF**, `kernel.closedIds` is a **`Map<id, WeakRef>`** beside it, `CLOSED_ATTEMPT_WINDOW`'s
+   `1024` stands with **no reader**, the eviction loop and the order array are gone, and **the five seal points and the three readers are re-keyed**:
+   three seals pass `attempt.ref`, **`dropHandoff` passes the ref ITSELF**, `drainFailingPass` reads `commitRecord.attempt`, and `log`/`report`
+   resolve a bare id through the weak index.
+2. **★ AND `parameter-semantics.md §2.15` IS PRESERVED — *"the `AttemptRef` record OR ITS `id` STRING and NOTHING ELSE"*** — which the plain
+   `WeakMap` broke: a string has no key, so `blind-kernel-surface.mjs`'s two-form cell read the record's `[]` beside a `KC-2`. **The weak id index
+   restores it WITHOUT restoring the strong path**: `closedIds` holds a `WeakRef`, so the id answers **while the ref lives** and meets `KC-2` when
+   it does not — **the same instant the report is gone, so the two forms can never disagree about whether the attempt is still answerable.**
+3. **★ AND TWO DEFECTS WERE MINE, EACH FOUND BY A CELL AND EACH NAMED HERE RATHER THAN SWEPT:**
+   **(a) `dropHandoff`'s `attempt` IS the ref** (`report.attempt` is `attempt.ref`, `{id}` and nothing else), so sealing it with `attempt.ref`
+   answered `undefined`, the sealer's own guard skipped it, **and the reader fell through to another arm's report** — the failed arm's, which
+   carries the `log` member `D-58` forbids. **`43` cells red, resolved by one token: seal with `attempt`.**
+   **(b) THE ID TABLE'S FIRST CLEANER WAS A FINALIZER WHOSE HELD VALUE WAS THE KERNEL — AND THE KERNEL HOLDS THE STORE.** A
+   `FinalizationRegistry.register(ref, { kernel, id })` hands the registry a **STRONG** held value, so every sealed ref pinned its kernel and its
+   store: **measured, `store-retirement` read `431,104 bytes` per constructed-and-dropped store and `400 of 400` still in the addon's table** —
+   **the very leak the retirement had just closed.** **The cleaner is a LAZY SWEEP that holds nothing**, taken **every `256` SEALS** — and its
+   first form swept whenever the table was large, **which rebuilt the whole `Map` on every seal: `8383 B per write` against the cell's declared
+   `4096`**, a quadratic disguised as a bound.
+4. **MEASURED AFTER THE LANDING.** `npm test` **`1381` / `1380` / `0`** · `typecheck` `0` · `cargo check --target wasm32` **0 errors** · the arm's
+   **eight** cells green · **`CHAIN COMPLETE — 11 runners`** · **the pinned retention `0.80 B/write` at 4,000 writes and `0.09` at 16,000** —
+   the same shape the window had, **with the arbitrary `1024` gone**, and **a `KAW-1` re-derived to the property the window approximated: the
+   first attempt still nameable after `1056` writes, by its ref and by its id.**

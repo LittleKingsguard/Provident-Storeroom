@@ -288,7 +288,11 @@ export function runAttempt(store, commitRecord) {
 /// crosses verbatim (`§1.2` item `2`), and neither is re-shaped by a later check's verdict — the request is
 /// still judged and the store still restored by that judgement's own compensating act.
 function drainFailingPass(store, commitRecord, thrown) {
-  const closed = kernelFor(store).closed.get(commitAttemptIdOf(commitRecord));
+  // **⟶ THE KEY IS THE ATTEMPT THE RECORD CARRIES — `D-175`** (`CommitRecord.attempt` is the ref).
+  const closed = commitRecord !== null && typeof commitRecord === 'object'
+    && commitRecord.attempt !== null && typeof commitRecord.attempt === 'object'
+    ? kernelFor(store).closed.get(commitRecord.attempt)
+    : undefined;
   if (closed === undefined) throw thrown;
   const answered = drainRestart(store, closed);
   // **⟶ THE FAILING ARM'S RECORD IS SEALED AT ITS OWN HANDOFF — `DEF-AO`.** The drain has already amended the

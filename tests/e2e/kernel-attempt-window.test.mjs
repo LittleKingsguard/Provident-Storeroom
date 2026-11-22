@@ -53,37 +53,38 @@ function freshStore() {
 // -----------------------------------------------------------------------------------------------------
 // **THE TWO HALVES OF ONE WINDOW: A RECENT ATTEMPT ANSWERS, A PRUNED ONE MEETS THE DECLARED REFUSAL.**
 // -----------------------------------------------------------------------------------------------------
-test('KAW-1 · D-161 — the closed map holds a WINDOW and the oldest reports are dropped, driven through `log`', () => {
+test('KAW-1 · D-175 — the closed table is a WEAKMAP keyed by the attempt, and BOTH declared forms answer while it lives', () => {
   const store = freshStore();
-  // **THE ATTEMPT IDS COME FROM THE KERNEL'S OWN ORDER**, because the receipt's `op.opId` is the JOURNAL's
-  // sequence and the attempt id is the kernel's own (`kernel-foundations.mjs`'s `attempts` counter) — two
-  // different numbers, which is why a cell cannot take one for the other.
   const kernel = kernelFor(store);
-  const writes = CLOSED_ATTEMPT_WINDOW + 32;
-  for (let i = 0; i < writes; i += 1) store.write(['k'], 'mem', i);
+  // **NO WINDOW TO ASSERT**: `CLOSED_ATTEMPT_WINDOW`'s `1024` stands as the superseded mechanism's declared figure with no reader,
+  // and what is asserted instead is the PROPERTY THE WINDOW APPROXIMATED — **retention tied to reachability, and the two forms
+  // `parameter-semantics.md §2.15` declares both answering while the attempt can still be named.**
+  assert.equal(typeof kernel.closed.get, 'function', 'the closed table answers a read');
+  assert.equal(typeof kernel.closed.size, 'undefined',
+    'D-175: it is a `WeakMap` — it has NO size, so nothing can bound it by a count and nothing needs to');
 
-  // **BOUNDED: the map and its order both stop at the declared window**, however many acts sealed a report.
-  assert.equal(kernel.closed.size, CLOSED_ATTEMPT_WINDOW,
-    'D-161: the map holds the window and no more \u2014 ' + writes + ' writes sealed ' + writes
-      + ' reports and the window is ' + CLOSED_ATTEMPT_WINDOW + '. The map\'s OWN INSERTION ORDER is the FIFO, '
-      + 'so there is one structure and one bound (and no array: a poisoned `Array.prototype` cannot reach a Map)');
+  const writes = 1056;                     // far past the superseded window, so the old mechanism would have dropped the first
+  const receipts = [];
+  for (let i = 0; i < writes; i += 1) receipts.push(store.write(['k'], 'mem', i));
 
-  // **THE OLDEST IS DROPPED: it is in neither structure, and its id meets `KC-2` — the refusal an id that
-  // never named an attempt already meets, which is why the window costs a caller nothing but the age.**
-  const oldest = 'attempt-1';
-  assert.equal(kernel.closed.has(oldest), false, 'D-161: the first attempt is past the window and is gone');
-  assert.equal(statusOf(attempt(() => kernelLog(store, oldest))), 'KC-2',
-    'D-161: and its id meets the declared refusal');
+  // **THE OLDEST IS STILL ANSWERABLE** — the window would have taken it, and it is the whole difference between the two mechanisms.
+  const oldest = receipts[0].op;
+  const oldestAttempt = kernel.closedIds.get('attempt-1')?.deref();
+  assert.ok(oldestAttempt !== undefined,
+    'D-175: the first attempt is still nameable after ' + writes + ' writes — the window would have dropped it at '
+      + '`CLOSED_ATTEMPT_WINDOW`');
+  const byRecord = attempt(() => kernelLog(store, oldestAttempt));
+  assert.equal(byRecord.ok, true, 'and its REF answers `log`');
+  assert.deepEqual(byRecord.value, [], 'with the empty list, because its log crossed with the report (`D-58`)');
+  const byId = attempt(() => kernelLog(store, 'attempt-1'));
+  assert.equal(byId.ok, true,
+    'AND ITS `id` STRING ANSWERS TOO — `parameter-semantics.md §2.15` holds on this table: the weak id index resolves');
+  assert.deepEqual(byId.value, byRecord.value, 'to the same answer the reference gives');
+
+  // **AND A NAME THAT IS NOBODY'S MEETS THE DECLARED REFUSAL**, which is the one answer the two forms share.
   assert.equal(statusOf(attempt(() => kernelLog(store, 'never-minted'))), 'KC-2',
-    'D-161: the same refusal an id that never existed meets — age and non-existence are indistinguishable');
-
-  // **AND THE NEWEST IS HELD: the map carries it and `log` answers the empty list** — the log crossed with
-  // the report, so *"the store retains nothing"* (`kernel-terminal.mjs:450`).
-  const newest = [...kernel.closed.keys()].pop();
-  assert.equal(kernel.closed.has(newest), true, 'D-161: the last attempt is inside the window');
-  const answered = attempt(() => kernelLog(store, newest));
-  assert.equal(answered.ok, true, 'D-161: and it still answers');
-  assert.deepEqual(answered.value, [], 'with the empty list, because its log crossed with the report');
+    'D-175: an id no mint reached meets `KC-2` — and a name whose attempt has been COLLECTED meets the same one, because the report '
+      + 'is gone at that instant too, so the two forms cannot disagree');
 });
 
 // -----------------------------------------------------------------------------------------------------

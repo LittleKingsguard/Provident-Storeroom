@@ -1143,7 +1143,7 @@ function closeRegistrationAttempt(kernel, attempt, landed, outcome = 'failed', p
   // **THE TWO RECORDS ARE THE ATTEMPT'S OWN INSTANCE'S** (`D-30`): the caller's `store` is the one this
   // synthetic attempt was opened against, and its kernel is IN HAND ONE FRAME ABOVE, so no second position
   // and no second lookup is taken.
-  sealClosedReport(kernel, attempt.ref.id, report);
+  sealClosedReport(kernel, attempt.ref, report);
   // **⟶ AND THE REGISTRATION'S COMMIT DROPS ITS LOG ON CLOSE TOO — `D-58`, 2026-10-28.** The synthetic attempt
   // resolves or rejects here, and the list was handed off on the refusing arm by the refusal the caller builds
   // from `attempt.log` (the attempt object, not this record). **What the store retains is the outcome, the ops

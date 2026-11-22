@@ -126,7 +126,7 @@ export function terminal(kernel, attempt, status, message) {
     rollback: attempt.rollback.slice(),
   };
   // ⟶ AND THE SEAL GOES THROUGH THE WINDOW'S ONE WRITER (`D-161`; `kernel-foundations.mjs`'s `sealClosedReport`).
-  sealClosedReport(kernel, attempt.ref.id, attempt.report);
+  sealClosedReport(kernel, attempt.ref, attempt.report);
   release(kernel, attempt);
 }
 
@@ -156,7 +156,7 @@ export function close(kernel, attempt, outcome) {
     rollback: [],
   };
   attempt.report = report;
-  sealClosedReport(kernel, attempt.ref.id, report);
+  sealClosedReport(kernel, attempt.ref, report);
   release(kernel, attempt);
   return report;
 }
@@ -511,7 +511,16 @@ export function log(store, reference) {
     // empty list every kernel refusal carries (`fail-surface.md §1.1` item 4).
     refuse(KC.attemptOpen, `the constraint attempt ${id} is still open`, []);
   }
-  const closed = kernel.closed.get(id);
+  // **⟶ A BARE ID STRING CANNOT REACH A CLOSED ATTEMPT — `D-175`'s declared cost**: the key is the ref OBJECT, and a string has
+  // none, so the string arm falls to the `KC-2` below (the same refusal a pruned id met under the window). **The receipt carries it.**
+  // **⟶ BOTH FORMS ANSWER: the reference IS the key, and a bare ID STRING reaches its ref through the WEAK index — so
+  // `parameter-semantics.md §2.15`'s *"the record or its `id` string"* holds while the report's own lifetime stays reachability's**
+  // (`D-175`). A string whose ref has been collected dereferences to nothing and meets the `KC-2` below — **the same instant the
+  // report is gone, so the two forms cannot disagree.**
+  const key = reference !== null && typeof reference === 'object'
+    ? reference
+    : (kernel.closedIds.get(id)?.deref());
+  const closed = key === undefined ? undefined : kernel.closed.get(key);
   // **AND A CLOSED ATTEMPT ANSWERS — WITH THE ENTRIES THE STORE STILL HOLDS, WHICH AFTER THE HANDOFF IS NONE**
   // (`D-58`'s second demand): the log was handed to the client with the report and dropped here, so the answer
   // is the empty list and it reads *"the store retains nothing"*, never *"the attempt logged nothing"* — the
@@ -543,7 +552,7 @@ export function dropHandoff(kernel, report) {
   if (report === null || typeof report !== 'object') return;
   const attempt = report.attempt;
   if (attempt === null || typeof attempt !== 'object' || typeof attempt.id !== 'string') return;
-  sealClosedReport(kernel, attempt.id, {
+  sealClosedReport(kernel, attempt, {
     attempt,
     outcome: report.outcome,
     ops: report.ops,
@@ -567,7 +576,16 @@ export function report(store, reference) {
     // open record is refused whether the attempt is mid-run or has not yet begun.
     refuse(KC.attemptOpen, `the constraint attempt ${id} is still open`, []);
   }
-  const closed = kernel.closed.get(id);
+  // **⟶ A BARE ID STRING CANNOT REACH A CLOSED ATTEMPT — `D-175`'s declared cost**: the key is the ref OBJECT, and a string has
+  // none, so the string arm falls to the `KC-2` below (the same refusal a pruned id met under the window). **The receipt carries it.**
+  // **⟶ BOTH FORMS ANSWER: the reference IS the key, and a bare ID STRING reaches its ref through the WEAK index — so
+  // `parameter-semantics.md §2.15`'s *"the record or its `id` string"* holds while the report's own lifetime stays reachability's**
+  // (`D-175`). A string whose ref has been collected dereferences to nothing and meets the `KC-2` below — **the same instant the
+  // report is gone, so the two forms cannot disagree.**
+  const key = reference !== null && typeof reference === 'object'
+    ? reference
+    : (kernel.closedIds.get(id)?.deref());
+  const closed = key === undefined ? undefined : kernel.closed.get(key);
   if (closed !== undefined) return closed;
   // AN UNKNOWN REFERENCE IS KC-2 AND NEVER KC-7 (`kernel-surface.md §2.1` item 5).
   refuse(KC.arg, `no constraint attempt answers to ${id}`, []);

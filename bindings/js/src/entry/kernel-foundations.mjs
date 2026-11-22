@@ -729,24 +729,47 @@ export const CLOSED_ATTEMPT_WINDOW = 1024;
 
 /// **THE ONE WAY A CLOSED REPORT IS SEALED: SET, THEN EVICT THE OLDEST UNTIL THE WINDOW HOLDS.** Every `closed.set` call site goes
 /// through this, so no path can seal a report and skip the bound (`D-161`).
-export function sealClosedReport(kernel, id, report) {
-  // **THE MAP'S OWN INSERTION ORDER IS THE FIFO, AND THERE IS NO SECOND STRUCTURE** — **and no ARRAY, which is not a
-  // style preference but this corpus's rule**: a plain array's `push` writes its index through `[[Set]]`, so a host
-  // that puts a getter-only accessor on `Array.prototype`'s index makes it THROW (`surface.md` §2.1 item (1c)'s own
-  // cell, which measured exactly that when this seal first used `push`). **A `Map` writes its own internal table and
-  // consults no prototype, so the seal is immune to that class of host mutation by construction.**
-  //
-  // **A RE-SEAL MOVES THE ATTEMPT TO THE END RATHER THAN QUEUEING IT TWICE**: the same attempt can be sealed by its
-  // terminal act and again by `dropHandoff`, so the delete-then-set pair is what keeps *"the most recent N"* true of
-  // a repeated seal instead of leaving the id's original position to evict a live entry.
-  kernel.closed.delete(id);
-  kernel.closed.set(id, report);
-  while (kernel.closed.size > CLOSED_ATTEMPT_WINDOW) {
-    const oldest = kernel.closed.keys().next();
-    if (oldest.done === true) break;
-    kernel.closed.delete(oldest.value);
+/// **THE ONE SEALER, AND IT KEEPS THE TWO FORMS `parameter-semantics.md §2.15` DECLARES** — *"the `AttemptRef` record OR ITS
+/// `id` STRING and NOTHING ELSE"*. **THE REPORT LIVES IN A `WeakMap` KEYED BY THE REF**, so retention is reachability and not a count
+/// (`D-175`); **and the ID is reachable only through a `WeakRef`**, so the string form answers **while the ref lives** and meets the
+/// declared `KC-2` when it does not — **which is the same instant the report itself is gone, so the two forms can never disagree
+/// about whether the attempt is still answerable.** **THE ID TABLE IS PRUNED BY A `FinalizationRegistry`**, so it does not outlive its
+/// ref either: one entry per attempt that something can still name.
+export function sealClosedReport(kernel, ref, report) {
+  if (ref === null || typeof ref !== 'object') return;
+  kernel.closed.set(ref, report);
+  if (typeof ref.id !== 'string') return;
+  try {
+    kernel.closedIds.set(ref.id, new WeakRef(ref));
+    pruneClosedIds(kernel);
+  } catch {
+    // **A HOST WITHOUT `WeakRef` LOSES THE ID FORM AND KEEPS THE REPORT** — the arm `D-175` priced.
   }
 }
+
+/// **⟶ AND THE ID TABLE IS SWEPT LAZILY AND NOT BY A FINALIZER — CORRECTED 2026-11-17, BECAUSE THE FINALIZER'S HELD VALUE WAS THE
+/// LEAK IT WAS THERE TO PREVENT.** A `FinalizationRegistry.register(ref, { kernel, id })` hands the registry a **STRONG** held value, and
+/// **the kernel holds the store** (`kernel.store`) — so every sealed ref pinned its kernel and therefore its store for the process's life:
+/// **measured, the retirement's own cells read `431,104 bytes` per constructed-and-dropped store and `400 of 400` still in the addon's
+/// table.** **The sweep holds NOTHING**: it walks the table when it grows past a bound and drops every entry whose `WeakRef` no longer
+/// dereferences, which is the same "an attempt something can still name" bound without a second strong path.
+const CLOSED_ID_SWEEP = 256;
+
+/// **⟶ AND THE SWEEP IS TAKEN ON A COUNT AND NOT WHENEVER THE TABLE IS LARGE — CORRECTED THE SAME DAY, AND IT WAS A QUADRATIC.**
+/// The first form swept on `size > 256`, which — once the table passed the bound and its refs were still ALIVE — rebuilt the whole `Map`
+/// **ON EVERY SEAL**: O(n) per write, and its own garbage. **Measured: `8383 B per write` against the cell's declared `4096`, where the
+/// superseded window read `~4.7 KB`.** **A sweep every `256` SEALS is amortised O(1) per write and its bound is the same "an attempt something
+/// can still name".**
+function pruneClosedIds(kernel) {
+  kernel.closedSeals += 1;
+  if (kernel.closedSeals % CLOSED_ID_SWEEP !== 0) return;
+  const kept = new Map();
+  for (const [id, ref] of kernel.closedIds) {
+    if (ref.deref() !== undefined) kept.set(id, ref);
+  }
+  kernel.closedIds = kept;
+}
+
 
 export function kernelFor(store) {
   let kernel = store[KERNEL_SLOT];
@@ -790,7 +813,11 @@ export function kernelFor(store) {
       // (`release`), so THIS map's membership IS the hold and no second structure is taken
       // (`attempt-lifecycle.md §2.4` item 8 (ii) (g); `contract.md §2.8` item 7).
       live: new Map(),
-      closed: new Map(),
+      // **⟶ A `WeakMap` KEYED BY THE ATTEMPT'S REF OBJECT — `D-175`.**
+      // **⟶ A `WeakMap` KEYED BY THE ATTEMPT'S REF — `D-175` — WITH A WEAK ID INDEX BESIDE IT, so `§2.15`'s two forms both answer.
+      closed: new WeakMap(),
+      closedIds: new Map(),
+      closedSeals: 0,
       attempts: 0,
       // **⟶ AND THE COMMIT'S FRAME, 2026-10-28 (`D-53`)**: the stack of attempts whose commit the kernel is, at
       // this instant, invoking caller code inside. `K-2` reads its top and joins that attempt's list; a write
