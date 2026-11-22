@@ -8584,3 +8584,43 @@ trigger still read the **mark**, and `docs/specs/storeroom-constraints/contract.
    lookup-miss arm, clause (a), quoting the architect).
 3. **AND IT NAMES WHAT THE TOKEN MEANS**: a `RollbackCompacted` answer is not *"the store cannot remember"* — it is *"this store was never
    able to read its history back, so YOU must recover"*, which is the same division `D-144` item 5 draws for a save a store cannot confirm.
+
+---
+
+### `D-166` — A FINDING FROM THE ARM'S OWN CELLS: `structuredClone` REFUSES EVERY `saveCall` STORE, SO THE ARM CANNOT CONSTRUCT THE ONLY STORE IT EXISTS FOR
+
+**DATE:** 2026-11-17. **BRANCH:** `main`. **HEAD:** `e2a823b`. **SOURCE:** **the supervisor's own cells** — `tests/e2e/wasm-arm.test.mjs`'s
+`C-W1`, written to close the gap `docs/L1/publish-readiness.md` §10.2 item 6 named. **A FINDING: it decides nothing.**
+
+**STATUS: `ACTIVE` — A FINDING, AND IT BLOCKS `C-W1`/`C-W5`.**
+
+1. **THE MEASUREMENT, WHICH IS THE WHOLE OF IT**: `structuredClone` throws for **a `Proxy` AND for any object carrying a function** — measured,
+   side by side: `structuredClone({ saveCall: () => {} })` and `structuredClone(new Proxy({}, {}))` fail identically (`DataCloneError`), and so
+   does `structuredClone([() => {}])`. **So the instrument `D-156` chose cannot tell the two apart.**
+2. **AND `cfg` CARRIES FUNCTIONS BY DEFINITION**: `saveCall` is a function (`D-146` item 4), and `cfg.listeners[]`'s `listener` was one until
+   `D-26` stripped it. **So on the WASM arm every `saveCall` construction is refused as if `cfg` were a Proxy**:
+   `storeCreate(bindings, { journalLength, listeners: [], saveCall })` answers **`AddressMalformed`** — *"'cfg' is not a legal address segment in
+   '', … the construction's cfg is a Proxy"*. **THE ARM CANNOT CONSTRUCT THE ONE STORE IT EXISTS FOR**: its whole purpose is `saveCall` durability
+   with no `filePath` (`D-154` item 4), and the instrument refuses that configuration at the gate.
+3. **THE TWO QUESTIONS ARE DIFFERENT AND THE INSTRUMENT CONFLATES THEM**: *"is this a `Proxy`?"* (asked of `cfg`, of values, of prototype links)
+   and *"is this cloneable?"* (asked of values, by `INV-2`). **For VALUES the conflation is harmless and even correct** — an uncloneable value is
+   refused by the domain anyway, and the refusal runs no trap. **For CARRIERS it is fatal**, because the API's own shape is function-bearing.
+4. **THE FOUR WAYS OUT, PRICED AND NONE CHOSEN.**
+   **(a) SPLIT THE SEAM INTO TWO PREDICATES** — `isProxyOf` for carriers and `isProxyOfValue` (the clone probe) for values — with the carrier's
+   answer on this arm **declared as unable to detect a `Proxy`**. Cost: the `DD-34` property is lost **at the carrier gates only**, and the design's
+   §4 arm (i) is then literally true for them; the value crossing keeps the property. One seam, two questions, one declaration.
+   **(b) PROJECT AROUND FUNCTIONS BEFORE THE PROBE** — strip function members and clone the projection. Cost: building the projection **reads
+   members of the object being tested**, which is the exact trap hazard the refusal exists to prevent; a hostile handler could then make itself
+   look cloneable.
+   **(c) DETECT BY A `Proxy`-ONLY SIGNAL** — there is none in the platform: no ECMAScript operation distinguishes a `Proxy` from its target
+   (`design.md` §4's own finding). Refused as an option by the platform.
+   **(d) DECLARE THE ARM'S CARRIER GATES UNDETECTED AND KEEP THE VALUE PROBE** — which is (a) with the seam left as one predicate and the
+   declaration made in prose. **It is the cheapest and it is what the design already prices; its cost is that `frame.mjs`'s `cfg`/listener gates
+   would run a lying handler on that arm.**
+5. **WHAT THIS ROW DOES NOT DO**: it does not choose. **`D-156`'s instrument is the architect's ruling and this row is evidence against its
+   reach, not a replacement for it.** **`C-W1` and `C-W5` — the arm's construction, its `file`-tier write, its `saveCall`, its `initialImage`
+   seed, and the coherence — cannot be written honestly until the seam is split**, because a cell asserting the refusal would encode a defect as
+   the design and a cell asserting the construction is red.
+6. **AND THE CELLS THAT DO NOT NEED IT ARE LANDED AND GREEN**: `C-W2` (the `cfg` domain: `filePath` refused, and the empty seed with it), `C-W4`
+   (the entry's graph synchronous, no `node:` specifier anywhere in it), `C-W6` (the eighteen entries, `commitFile` absent, `delete` spelled
+   `_delete`) and `D-156`'s own two (the deep clone both ways and a `Proxy` refused with **all eight trap counters at zero**).
