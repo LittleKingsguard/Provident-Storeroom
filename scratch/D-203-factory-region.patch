@@ -1,0 +1,1109 @@
+diff --git a/RELEASE-NOTES.md b/RELEASE-NOTES.md
+index 6c433f3..d5574a4 100644
+--- a/RELEASE-NOTES.md
++++ b/RELEASE-NOTES.md
+@@ -16,7 +16,7 @@ claims to be installable.**
+ 
+ **⟶ AND THE CUT-STATE IS DROPPED FROM THIS FILE, 2026-10-28 — `D-57`, THE ARCHITECT VERBATIM: *"Drop the cut-state."*** `RCA-8(g)` ANNOTATE-BESIDE: **the title line and every dated paragraph of this file stand BYTE-FOR-BYTE as the reading of their own date, THIS clause is the one that reads them, and not one byte is deleted.** **THE REASON IS STRUCTURAL AND IT WAS MEASURED THREE TIMES: A SHIPPED DOCUMENT IS SEALED BEFORE THE TAG THAT MAKES ITS CUT-STATE TRUE**, so every release packed before its tag ships a document denying itself, and a guard running in that release's own preflight can only ever confirm *"not cut"* — `1.2.0` shipped *"NOT CUT"*, `1.3.0` shipped *"`v1.3.0` DOES NOT EXIST"*, and this file's own head was stale within minutes of the tag that falsified it. **SO EVERY SENTENCE BELOW THAT CLAIMS WHETHER SOME VERSION IS OR IS NOT CUT — *"PREPARED — NOT CUT"*, *"no `v1.3.0`"*, *"nothing in this section is cut"*, *"the release is not cut"*, *"what is installed today is still `1.1.0`"*, and each reading printed beside them — IS READ THROUGH THIS CLAUSE: the cut-state is not a document's to state.** **WHAT SURVIVES IS THE ONE FIGURE A SHIPPED DOCUMENT CAN BE RIGHT ABOUT, AND IT IS GENERATED FROM THE MANIFEST AND ASSERTED BY THE PREFLIGHT:**
+ 
+-PUBLISH-NOTES-VERSION-LINE: THE VERSION THIS CHANGE LIST DESCRIBES IS `2.0.0`.
++PUBLISH-NOTES-VERSION-LINE: THE VERSION THIS CHANGE LIST DESCRIBES IS `2.0.1`.
+ 
+ **AND THE TAG SET SURVIVES AS A RECORD OF RELEASES — PAST TENSE, A LIST OF WHAT HAS BEEN CUT, NEVER A CLAIM ABOUT THE CURRENT ONE** (the record stands in `§1.4.0` below — the section this file's head called `§main` until it was re-cut to name the version it prepares, 2026-10-28 — beside the section for the tree this file describes). (`D-57`; `DEF-AC` (b) — `scripts/publish.sh --figures` generates that line from `bindings/js/package.json`'s `version` and refuses on any disagreement, in this file, in `bindings/js/README.md` and in the shipped guide: three documents, three version lines, one generator, one assertion.)
+ 
+@@ -55,6 +55,88 @@ the value to assert against, not the crate's own `Cargo.toml` version.
+ 
+ ---
+ 
++## §2.0.1 · a PATCH — the WebAssembly arm's declaration spells the factory with the TWO positions its runtime and its guide require: one shipped artefact corrected in the declaration alone, the instrument that would have caught it, and no byte of the runtime moved
++
++**THE VERSION IS `2.0.1` AND ITS CLASS IS A PATCH, AND THE CLASS IS NOT A JUDGEMENT THIS FILE MAKES: IT IS `D-203`
++ITEM 5'S OWN SENTENCE.** `strata/decisions.md` · `D-203`, item 5, verbatim: *"its class is a **patch on the arm at
++most** (the one-position form it replaces **could not construct at all**), and **the number is the architect's.**"*
++**THE ARTEFACT IS `@auspicion/provident-storeroom-js-wasm`, THE SIXTH PACKAGE, AND IT IS THE ONLY ARTEFACT OF THE SET
++WHOSE BYTES MOVE** — this release reaches a published declaration and nothing else.
++
++**THE FINDING, AT THE BYTE (`D-203` items 1–3).** The arm's SHIPPED declaration read
++`export function storeCreate(cfg: StoreConfig): StoreInstance;` — **the Node arm's line, byte for byte** — while its
++runtime takes the initialised module at its FIRST position (`bindings/js/platforms/wasm/index.mjs`: *"`storeCreate(bindings,
++cfg)` takes the initialised module at its FIRST position"*) and the guide teaches exactly that construction
++(`docs/guides/package-use.md` §13.1: *"THE FACTORY TAKES TWO POSITIONS — `storeCreate(bindings, cfg)` — and the first is
++the module"*). **So a TypeScript consumer of the arm could not spell the construction its own runtime requires**:
++`storeCreate(bindings, cfg)` **failed the declared signature**, and `storeCreate(cfg)` **compiled and could not carry the
++injected module** (`D-203` item 3).
++
++1. **THE DECLARATION'S GENERATOR GAINS A SECOND REALM REGION, AND LOSES NO GUARD.** `scripts/emit-declarations.mjs`
++   replaced **one** region (`// ⟦realm:filePath:begin⟧` … end) and refused a second marker by name; **it now derives a
++   SET of regions**, each refused exactly as the one was — **each marker exactly once, each alone on its own line at two
++   spaces of indentation, the body between them exactly the line the Node arm declares, a refusal on overlap, and every
++   refusal naming WHICH REGION it refused.** The refuse-on-second-marker rule is refuse-on-second-marker-**per region**,
++   and it is not weakened: a duplicated marker still stops the run rather than being taken at its first match.
++2. **THE ARM'S FACTORY BODY IS `export function storeCreate(bindings: unknown, cfg: StoreConfig): StoreInstance;`, AND
++   `unknown` IS THE HONEST TYPE OF A HOST-SUPPLIED MODULE.** The package instantiates nothing on this arm (`D-155` item
++   3), the HOST hands the initialised module in, and **the runtime validates what arrives** (`bindings/js/src/entry/
++   addon-slot.mjs`'s `installAddon`, which refuses `null`, `undefined`, a primitive, a function and an object carrying no
++   callable `storeCreate`) — **so a named type in that position would be this package claiming the HOST's shape.** The
++   arm's `filePath` body is the `readonly filePath?: never;` it has been since `D-155` item 2, byte for byte.
++3. **THE NODE ARM'S DECLARATION MOVES NO BYTE.** `bindings/js/index.d.ts` still declares `storeCreate(cfg: StoreConfig):
++   StoreInstance;` at its one position; **the factory's markers are two comment lines at two spaces of indentation**, so
++   no member census, no status count and no module-level export count can see them — the arm's emission is still the
++   source's own bytes with the regions' bodies replaced, and the generator still asserts that identity before it writes.
++4. **AND THE INSTRUMENT `D-203` ITEM 5 OWED NOW EXISTS — `CW-10`.** `tests/e2e/wasm-arm.test.mjs` compiles a generated
++   `.ts` file in a temp directory with the project's own `tsc` (`--noEmit`, TypeScript 5.9.3) against **the STAGED ARM's
++   `bindings/js/platforms/wasm/index.d.ts`**, and requires all three limbs: **`storeCreate(bindings, cfg)` TYPECHECKS**;
++   **`storeCreate(cfg)` does NOT**, through a `@ts-expect-error` whose unused form is itself `TS2578` and therefore a
++   failing run; and **`filePath: 'x'` does NOT**, the `never` narrowing read beside the region it belongs to. **It fails on
++   the `2.0.0` tree and passes on this one** — which is the only reading that makes it an instrument rather than a
++   decoration (`D-203` item 4: *"no TypeScript consumer is compiled against the ARM's declaration anywhere"*).
++
++**WHAT A CONSUMER ON `2.0.0` MEETS:**
++
++- **A TYPESCRIPT CONSUMER OF THE WEBASSEMBLY ARM CAN NOW WRITE THE CONSTRUCTION THE GUIDE TEACHES.** `storeCreate(bindings,
++  cfg)` compiles against the arm's shipped declaration, with the host's initialised module at position one and a `cfg`
++  that carries no `filePath`; **`storeCreate(cfg)` is now the compile error it always was at runtime**, and it stops being
++  the one form the compiler blessed and the store refused.
++- **THE RUNTIME NEVER MOVED.** **No `.mjs` byte and no `.rs` byte of this release changes**: the arm's entry still takes
++  two positions, the crossing is the same clone, the nineteen module entries are unmoved, and every cell that drives the
++  arm in JavaScript (`CW-1`…`CW-9`) reads what it read on `2.0.0`.
++- **A JAVASCRIPT CONSUMER SEES NO CHANGE AT ALL.** The defect was declaration-only (`D-203` item 6), so an application
++  that already called `storeCreate(bindings, cfg)` — the only form the runtime ever admitted — observes the same store,
++  the same members, the same statuses and the same refusals.
++- **AND A CONSUMER OF `provident-storeroom` ITSELF SEES NO CHANGE EITHER**: its declaration's factory, its member set, its
++  statuses, its refusal messages and its records are byte-unmoved by this release.
++
++**THE MIGRATION SENTENCE, FOR A CONSUMER WHO WORKED AROUND THE DEFECT ON `2.0.0`.** **If you cast or annotated around the
++arm's one-position signature — a `@ts-expect-error`, an `as` cast, or a locally declared wrapper — DELETE THE WORKAROUND
++AND WRITE THE CALL THE GUIDE TEACHES**: `storeCreate(bindings, cfg)`, where `bindings` is the module namespace the host
++obtained from the glue's own `initSync` and `cfg` is your configuration. **The runtime call was always two-positioned, so
++the call itself does not move and the workaround is the only thing that does**; a consumer who never wrote one has no
++migration to perform.
++
++**WHAT DOES NOT MOVE, NAMED ONE BY ONE:** **the runtime, in every arm and every entry** — the nineteen module entries,
++the fifteen instance members, the save channel and the crossing · **the `cfg` domain on both realms** — `filePath` is
++still `never` on the arm and still a `string` on the Node build · **the closed status set** and every refusal's code and
++message · **the Node arm's own declaration surface** · **the guide's §13.1**, which was already right and is not edited by
++this release (*"THE FACTORY TAKES TWO POSITIONS"*) · and **the cell count of every battery that was green on `2.0.0`**,
++which this release leaves green, one cell richer.
++
++**THE VERSION MOVES TWELVE SITES TOGETHER: the main manifest's `version`, its FIVE exact `optionalDependencies` pins, and
++the SIX `platforms/*/package.json` versions** — the five native siblings and the WebAssembly sibling, whose `version` its
++own coupled-version clause names. **The artefact is stamped from the manifest by `bindings/js/build.rs`, so `version()`
++answers `2.0.1`**, and that is the value to assert against. **AND THE THREE GENERATED VERSION LINES — `bindings/js/README.md`,
++the guide's landing `bindings/js/README.guide.md` and the change list's landing `bindings/js/RELEASE-NOTES.md` — are
++re-derived from that manifest and re-staged BYTE-FOR-BYTE from their canonicals, never hand-edited** (`DEF-AC` (b);
++`scripts/publish.sh --figures` is the assertion).
++
++**AND THIS RELEASE DESCRIBES `2.0.1` AND CLAIMS NO TAG**: the cut-state is not a document's to state (`D-57`).
++
++---
++
+ ## §2.0.0 · a MAJOR — the second claimed realm, the save arm it made possible, AND THE REMOVAL OF A PUBLISHED DECLARATION MEMBER: a WebAssembly build in its own package, three `cfg` keys' companions, a twenty-third status, two receipt accessors, and `JournalOp.compacted` gone from the record and the declaration
+ 
+ **⟶ THIS HEADING READ `§1.13.0 · a MINOR` UNTIL 2026-11-17, AND `D-158`'s CLASS IS SUPERSEDED — NOT WITHDRAWN.**
+diff --git a/bindings/js/README.guide.md b/bindings/js/README.guide.md
+index 4e5f44c..b984e86 100644
+--- a/bindings/js/README.guide.md
++++ b/bindings/js/README.guide.md
+@@ -30,7 +30,7 @@ preflight REFUSES when these two lines do not read what it computed** (`scripts/
+ one check, read-only). **THE TWO LINES ARE THIS GUIDE'S OPERATIVE FIGURES; every dated paragraph below is the
+ reading of its own date and is read through them.**
+ 
+-PUBLISH-GUIDE-VERSION-LINE: THE VERSION THIS GUIDE DESCRIBES IS `2.0.0`.
++PUBLISH-GUIDE-VERSION-LINE: THE VERSION THIS GUIDE DESCRIBES IS `2.0.1`.
+ PUBLISH-GUIDE-CUT-STATE: NOT STATED -- this document describes the behaviour at the version line above, and the cut-state is the release's to state, not a shipped document's (`D-57`).
+ 
+ **⟶ AND THE CUT-STATE SENTENCE ABOVE IS WITHDRAWN, 2026-10-28 — THE CUT-STATE IS NOT A DOCUMENT'S TO STATE.** `RCA-8(g)` ANNOTATE-BESIDE, and the architect's ruling verbatim (`strata/decisions.md` · `D-57`): *"Drop the cut-state."* **The two marked lines above stand BYTE-FOR-BYTE as the reading of their own date and are read THROUGH this clause — not one byte of either is deleted — and the sentence this clause withdraws is the SECOND of them, the one that claims to say whether the release this guide travels in is cut.** **THE REASON IS MEASURED, THREE TIMES OVER, AND IT IS STRUCTURAL RATHER THAN A MISTAKE: A SHIPPED DOCUMENT IS SEALED BEFORE THE TAG THAT MAKES ITS CUT-STATE TRUE**, so every release packed before its tag ships a document denying itself, and a guard running in that release's own preflight can only ever confirm *"not cut"* — `1.2.0` shipped *"NOT CUT"*, `1.3.0` shipped *"`v1.3.0` DOES NOT EXIST"*, and the change list's head was stale within minutes of the tag that falsified it. **SO THE CUT-STATE SENTENCE IS DROPPED AS A CLAIM AND THE VERSION LINE STAYS**, because the version line is the ONE figure a tarball can be right about: the manifest knows it and travels beside it. **`scripts/publish.sh --figures` GENERATES AND ASSERTS THE VERSION LINE AND NOTHING ELSE** — the cut-state generation and its assertion are removed in the same act, so a tag set that moves can no longer redden this guide — **and the same one line is asserted in THREE shipped documents: this guide, `README.md` beside it, and the change list** (`DEF-AC`'s remaining demand, *"guard the release notes too"* and *"`README.md` still declares no version at all"*). **THE TAG SET IS NOT DELETED AND NOT DENIED: it is a RECORD OF RELEASES held in the change list, PAST TENSE — a list of what has been cut — and never a claim about the current one.** **AND WHAT THIS CLAUSE DOES NOT SAY, SAID PLAINLY BECAUSE A READER WILL LOOK FOR IT: it does not say whether the version this guide prints is cut.** That is not a document's to state; the record of what has been cut is in `RELEASE-NOTES.md`, and the registry is the registry.
+diff --git a/bindings/js/README.md b/bindings/js/README.md
+index 8fe4471..87f73eb 100644
+--- a/bindings/js/README.md
++++ b/bindings/js/README.md
+@@ -50,7 +50,7 @@ an edit belongs.
+ 
+ **⟶ AND THE ONE FIGURE THIS PAGE CAN BE RIGHT ABOUT IS GENERATED AND ASSERTED, 2026-10-28 — `DEF-AC`'s third part, and `D-57`'s one surviving figure.** `RCA-8(g)` ANNOTATE-BESIDE: **every clause above stands BYTE-FOR-BYTE and is read THROUGH this one; nothing above moves.** **THE DEFECT THIS CLOSES: THIS PAGE DECLARED NO VERSION AT ALL** — a shipped document a consumer reads first, saying nothing about which release it describes — **so `scripts/publish.sh --figures` now GENERATES the line below from `bindings/js/package.json`'s `version` and REFUSES when it disagrees, exactly as it does at the guide's and the change list's own marked lines: three shipped documents, three version lines, one generator, one assertion.** **AND THE CUT-STATE IS NOT STATED HERE, OR ANYWHERE ELSE IN THIS PACKAGE'S DOCUMENTS** (`D-57`, the architect verbatim: *"Drop the cut-state"*): a document is sealed before the tag that would make its cut-state true, so **the cut-state is not a document's to state**; the record of what has been cut is the change list's, and it is past tense. **EVERY OTHER CLAIM OF THIS PAGE STANDS EXACTLY AS IT STOOD.**
+ 
+-PUBLISH-README-VERSION-LINE: THE VERSION THIS README DESCRIBES IS `2.0.0`.
++PUBLISH-README-VERSION-LINE: THE VERSION THIS README DESCRIBES IS `2.0.1`.
+ 
+ ## The one entry
+ 
+diff --git a/bindings/js/RELEASE-NOTES.md b/bindings/js/RELEASE-NOTES.md
+index 6c433f3..d5574a4 100644
+--- a/bindings/js/RELEASE-NOTES.md
++++ b/bindings/js/RELEASE-NOTES.md
+@@ -16,7 +16,7 @@ claims to be installable.**
+ 
+ **⟶ AND THE CUT-STATE IS DROPPED FROM THIS FILE, 2026-10-28 — `D-57`, THE ARCHITECT VERBATIM: *"Drop the cut-state."*** `RCA-8(g)` ANNOTATE-BESIDE: **the title line and every dated paragraph of this file stand BYTE-FOR-BYTE as the reading of their own date, THIS clause is the one that reads them, and not one byte is deleted.** **THE REASON IS STRUCTURAL AND IT WAS MEASURED THREE TIMES: A SHIPPED DOCUMENT IS SEALED BEFORE THE TAG THAT MAKES ITS CUT-STATE TRUE**, so every release packed before its tag ships a document denying itself, and a guard running in that release's own preflight can only ever confirm *"not cut"* — `1.2.0` shipped *"NOT CUT"*, `1.3.0` shipped *"`v1.3.0` DOES NOT EXIST"*, and this file's own head was stale within minutes of the tag that falsified it. **SO EVERY SENTENCE BELOW THAT CLAIMS WHETHER SOME VERSION IS OR IS NOT CUT — *"PREPARED — NOT CUT"*, *"no `v1.3.0`"*, *"nothing in this section is cut"*, *"the release is not cut"*, *"what is installed today is still `1.1.0`"*, and each reading printed beside them — IS READ THROUGH THIS CLAUSE: the cut-state is not a document's to state.** **WHAT SURVIVES IS THE ONE FIGURE A SHIPPED DOCUMENT CAN BE RIGHT ABOUT, AND IT IS GENERATED FROM THE MANIFEST AND ASSERTED BY THE PREFLIGHT:**
+ 
+-PUBLISH-NOTES-VERSION-LINE: THE VERSION THIS CHANGE LIST DESCRIBES IS `2.0.0`.
++PUBLISH-NOTES-VERSION-LINE: THE VERSION THIS CHANGE LIST DESCRIBES IS `2.0.1`.
+ 
+ **AND THE TAG SET SURVIVES AS A RECORD OF RELEASES — PAST TENSE, A LIST OF WHAT HAS BEEN CUT, NEVER A CLAIM ABOUT THE CURRENT ONE** (the record stands in `§1.4.0` below — the section this file's head called `§main` until it was re-cut to name the version it prepares, 2026-10-28 — beside the section for the tree this file describes). (`D-57`; `DEF-AC` (b) — `scripts/publish.sh --figures` generates that line from `bindings/js/package.json`'s `version` and refuses on any disagreement, in this file, in `bindings/js/README.md` and in the shipped guide: three documents, three version lines, one generator, one assertion.)
+ 
+@@ -55,6 +55,88 @@ the value to assert against, not the crate's own `Cargo.toml` version.
+ 
+ ---
+ 
++## §2.0.1 · a PATCH — the WebAssembly arm's declaration spells the factory with the TWO positions its runtime and its guide require: one shipped artefact corrected in the declaration alone, the instrument that would have caught it, and no byte of the runtime moved
++
++**THE VERSION IS `2.0.1` AND ITS CLASS IS A PATCH, AND THE CLASS IS NOT A JUDGEMENT THIS FILE MAKES: IT IS `D-203`
++ITEM 5'S OWN SENTENCE.** `strata/decisions.md` · `D-203`, item 5, verbatim: *"its class is a **patch on the arm at
++most** (the one-position form it replaces **could not construct at all**), and **the number is the architect's.**"*
++**THE ARTEFACT IS `@auspicion/provident-storeroom-js-wasm`, THE SIXTH PACKAGE, AND IT IS THE ONLY ARTEFACT OF THE SET
++WHOSE BYTES MOVE** — this release reaches a published declaration and nothing else.
++
++**THE FINDING, AT THE BYTE (`D-203` items 1–3).** The arm's SHIPPED declaration read
++`export function storeCreate(cfg: StoreConfig): StoreInstance;` — **the Node arm's line, byte for byte** — while its
++runtime takes the initialised module at its FIRST position (`bindings/js/platforms/wasm/index.mjs`: *"`storeCreate(bindings,
++cfg)` takes the initialised module at its FIRST position"*) and the guide teaches exactly that construction
++(`docs/guides/package-use.md` §13.1: *"THE FACTORY TAKES TWO POSITIONS — `storeCreate(bindings, cfg)` — and the first is
++the module"*). **So a TypeScript consumer of the arm could not spell the construction its own runtime requires**:
++`storeCreate(bindings, cfg)` **failed the declared signature**, and `storeCreate(cfg)` **compiled and could not carry the
++injected module** (`D-203` item 3).
++
++1. **THE DECLARATION'S GENERATOR GAINS A SECOND REALM REGION, AND LOSES NO GUARD.** `scripts/emit-declarations.mjs`
++   replaced **one** region (`// ⟦realm:filePath:begin⟧` … end) and refused a second marker by name; **it now derives a
++   SET of regions**, each refused exactly as the one was — **each marker exactly once, each alone on its own line at two
++   spaces of indentation, the body between them exactly the line the Node arm declares, a refusal on overlap, and every
++   refusal naming WHICH REGION it refused.** The refuse-on-second-marker rule is refuse-on-second-marker-**per region**,
++   and it is not weakened: a duplicated marker still stops the run rather than being taken at its first match.
++2. **THE ARM'S FACTORY BODY IS `export function storeCreate(bindings: unknown, cfg: StoreConfig): StoreInstance;`, AND
++   `unknown` IS THE HONEST TYPE OF A HOST-SUPPLIED MODULE.** The package instantiates nothing on this arm (`D-155` item
++   3), the HOST hands the initialised module in, and **the runtime validates what arrives** (`bindings/js/src/entry/
++   addon-slot.mjs`'s `installAddon`, which refuses `null`, `undefined`, a primitive, a function and an object carrying no
++   callable `storeCreate`) — **so a named type in that position would be this package claiming the HOST's shape.** The
++   arm's `filePath` body is the `readonly filePath?: never;` it has been since `D-155` item 2, byte for byte.
++3. **THE NODE ARM'S DECLARATION MOVES NO BYTE.** `bindings/js/index.d.ts` still declares `storeCreate(cfg: StoreConfig):
++   StoreInstance;` at its one position; **the factory's markers are two comment lines at two spaces of indentation**, so
++   no member census, no status count and no module-level export count can see them — the arm's emission is still the
++   source's own bytes with the regions' bodies replaced, and the generator still asserts that identity before it writes.
++4. **AND THE INSTRUMENT `D-203` ITEM 5 OWED NOW EXISTS — `CW-10`.** `tests/e2e/wasm-arm.test.mjs` compiles a generated
++   `.ts` file in a temp directory with the project's own `tsc` (`--noEmit`, TypeScript 5.9.3) against **the STAGED ARM's
++   `bindings/js/platforms/wasm/index.d.ts`**, and requires all three limbs: **`storeCreate(bindings, cfg)` TYPECHECKS**;
++   **`storeCreate(cfg)` does NOT**, through a `@ts-expect-error` whose unused form is itself `TS2578` and therefore a
++   failing run; and **`filePath: 'x'` does NOT**, the `never` narrowing read beside the region it belongs to. **It fails on
++   the `2.0.0` tree and passes on this one** — which is the only reading that makes it an instrument rather than a
++   decoration (`D-203` item 4: *"no TypeScript consumer is compiled against the ARM's declaration anywhere"*).
++
++**WHAT A CONSUMER ON `2.0.0` MEETS:**
++
++- **A TYPESCRIPT CONSUMER OF THE WEBASSEMBLY ARM CAN NOW WRITE THE CONSTRUCTION THE GUIDE TEACHES.** `storeCreate(bindings,
++  cfg)` compiles against the arm's shipped declaration, with the host's initialised module at position one and a `cfg`
++  that carries no `filePath`; **`storeCreate(cfg)` is now the compile error it always was at runtime**, and it stops being
++  the one form the compiler blessed and the store refused.
++- **THE RUNTIME NEVER MOVED.** **No `.mjs` byte and no `.rs` byte of this release changes**: the arm's entry still takes
++  two positions, the crossing is the same clone, the nineteen module entries are unmoved, and every cell that drives the
++  arm in JavaScript (`CW-1`…`CW-9`) reads what it read on `2.0.0`.
++- **A JAVASCRIPT CONSUMER SEES NO CHANGE AT ALL.** The defect was declaration-only (`D-203` item 6), so an application
++  that already called `storeCreate(bindings, cfg)` — the only form the runtime ever admitted — observes the same store,
++  the same members, the same statuses and the same refusals.
++- **AND A CONSUMER OF `provident-storeroom` ITSELF SEES NO CHANGE EITHER**: its declaration's factory, its member set, its
++  statuses, its refusal messages and its records are byte-unmoved by this release.
++
++**THE MIGRATION SENTENCE, FOR A CONSUMER WHO WORKED AROUND THE DEFECT ON `2.0.0`.** **If you cast or annotated around the
++arm's one-position signature — a `@ts-expect-error`, an `as` cast, or a locally declared wrapper — DELETE THE WORKAROUND
++AND WRITE THE CALL THE GUIDE TEACHES**: `storeCreate(bindings, cfg)`, where `bindings` is the module namespace the host
++obtained from the glue's own `initSync` and `cfg` is your configuration. **The runtime call was always two-positioned, so
++the call itself does not move and the workaround is the only thing that does**; a consumer who never wrote one has no
++migration to perform.
++
++**WHAT DOES NOT MOVE, NAMED ONE BY ONE:** **the runtime, in every arm and every entry** — the nineteen module entries,
++the fifteen instance members, the save channel and the crossing · **the `cfg` domain on both realms** — `filePath` is
++still `never` on the arm and still a `string` on the Node build · **the closed status set** and every refusal's code and
++message · **the Node arm's own declaration surface** · **the guide's §13.1**, which was already right and is not edited by
++this release (*"THE FACTORY TAKES TWO POSITIONS"*) · and **the cell count of every battery that was green on `2.0.0`**,
++which this release leaves green, one cell richer.
++
++**THE VERSION MOVES TWELVE SITES TOGETHER: the main manifest's `version`, its FIVE exact `optionalDependencies` pins, and
++the SIX `platforms/*/package.json` versions** — the five native siblings and the WebAssembly sibling, whose `version` its
++own coupled-version clause names. **The artefact is stamped from the manifest by `bindings/js/build.rs`, so `version()`
++answers `2.0.1`**, and that is the value to assert against. **AND THE THREE GENERATED VERSION LINES — `bindings/js/README.md`,
++the guide's landing `bindings/js/README.guide.md` and the change list's landing `bindings/js/RELEASE-NOTES.md` — are
++re-derived from that manifest and re-staged BYTE-FOR-BYTE from their canonicals, never hand-edited** (`DEF-AC` (b);
++`scripts/publish.sh --figures` is the assertion).
++
++**AND THIS RELEASE DESCRIBES `2.0.1` AND CLAIMS NO TAG**: the cut-state is not a document's to state (`D-57`).
++
++---
++
+ ## §2.0.0 · a MAJOR — the second claimed realm, the save arm it made possible, AND THE REMOVAL OF A PUBLISHED DECLARATION MEMBER: a WebAssembly build in its own package, three `cfg` keys' companions, a twenty-third status, two receipt accessors, and `JournalOp.compacted` gone from the record and the declaration
+ 
+ **⟶ THIS HEADING READ `§1.13.0 · a MINOR` UNTIL 2026-11-17, AND `D-158`'s CLASS IS SUPERSEDED — NOT WITHDRAWN.**
+diff --git a/bindings/js/index.d.ts b/bindings/js/index.d.ts
+index 74524a5..1a0b694 100644
+--- a/bindings/js/index.d.ts
++++ b/bindings/js/index.d.ts
+@@ -1646,7 +1646,42 @@ export interface StoreInstance {
+  * runtime first, this checkout's own module-relative addon second, and answers the declared absent form
+  * when neither yields a loadable artefact.
+  */
++/**
++ * **⟦ THE FACTORY'S POSITION IS THE DECLARATION'S SECOND REALM-CONDITIONAL BYTE, ADDED 2026-11-20 — `D-203`, WHOSE
++ * OWN THREE ROWS THIS REGION EXISTS FOR.** *"the arm's runtime takes TWO positions"*
++ * (`bindings/js/platforms/wasm/index.mjs`'s own docblock: *"`storeCreate(bindings, cfg)` takes the initialised module
++ * at its FIRST position"*) · *"the guide teaches TWO"* (`docs/guides/package-use.md` §13.1: *"THE FACTORY TAKES TWO
++ * POSITIONS — `storeCreate(bindings, cfg)` — and the first is the module"*) · *"the arm's SHIPPED declaration takes
++ * ONE"* — which is what this region removes: the arm's emission was the Node arm's signature byte for byte, so **a
++ * TypeScript consumer of `@auspicion/provident-storeroom-js-wasm` could not spell the construction its runtime and its
++ * guide require** (`D-203` item 3: *"`storeCreate(bindings, cfg)` fails the declared signature; `storeCreate(cfg)`
++ * compiles and cannot carry the injected module"*).
++ *
++ * **THE TWO COMMENT LINES THAT BRACKET THE DECLARATION BELOW — both at this file's marker depth of two spaces, and
++ * neither carrying a member's name-and-colon or name-and-paren shape — DELIMIT THE SECOND REGION
++ * `scripts/emit-declarations.mjs` READS**, exactly as the `filePath` markers above delimit the first (`D-155` item 2;
++ * `docs/L3/wasm-realm/design.md` §6). **The form is the reason the region can stand here at all**: no member read a
++ * battery file performs on an interface block matches a line whose first two characters after the indentation are
++ * `//`, and the one read this file's module level is subject to — the count of lines beginning `export function` —
++ * is a count of lines that begin at column zero, which a marker at two spaces is not. **So this region moves no member
++ * census, no status count, no export count and no rank.**
++ *
++ * **WHAT THE WASM ARM'S EMISSION PUTS INSIDE IT IS ONE LINE, AND ITS FIRST TYPE IS `unknown` BECAUSE THAT IS THE
++ * HONEST TYPE OF A HOST-SUPPLIED MODULE**: `export function storeCreate(bindings: unknown, cfg: StoreConfig):
++ * StoreInstance;`. **A NAMED TYPE IN THAT POSITION WOULD BE THIS PACKAGE CLAIMING THE HOST'S SHAPE** — the module is
++ * the host's, the package instantiates nothing (`D-155` item 3), and the runtime validates what arrives
++ * (`bindings/js/src/entry/addon-slot.mjs`'s `installAddon`, which refuses `null`, `undefined`, a primitive, a function
++ * and an object carrying no callable `storeCreate`) — **so the declaration admits every value and the runtime is what
++ * says which values are a module.**
++ *
++ * **AND THE NODE ARM'S SIGNATURE DOES NOT MOVE**, byte for byte: the region's Node body is the line below, the
++ * emission of the Node arm is this file's own bytes with the region unchanged, and the script asserts that identity
++ * before it writes either file. **A reader who opened this declaration to find the ONE name and the ONE position the
++ * Node arm has still finds them, one marker pair down.**
++ */
++  // ⟦realm:factory:begin⟧
+ export function storeCreate(cfg: StoreConfig): StoreInstance;
++  // ⟦realm:factory:end⟧
+ 
+ /**
+  * **THE POST-CREATION CONSTRAINT PAIR — `parameter-semantics.md §2.24` (`PAR-JS-24`)**: the key the three
+diff --git a/bindings/js/package.json b/bindings/js/package.json
+index 07ad272..5390f98 100644
+--- a/bindings/js/package.json
++++ b/bindings/js/package.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "provident-storeroom",
+-  "version": "2.0.0",
++  "version": "2.0.1",
+   "description": "U-STOREROOM-PUBLISH: the published Node ESM binding for the native Rust store of Provident-Storeroom — the entry resolves the scoped per-target platform package first, the checkout's own module-relative addon second, and answers the store's single declared absent-addon form when neither loads",
+   "type": "module",
+   "license": "AGPL-3.0",
+@@ -42,11 +42,11 @@
+     "src/constraint-kernel.mjs"
+   ],
+   "optionalDependencies": {
+-    "@auspicion/provident-storeroom-js-linux-x64-gnu": "2.0.0",
+-    "@auspicion/provident-storeroom-js-linux-arm64-gnu": "2.0.0",
+-    "@auspicion/provident-storeroom-js-darwin-x64": "2.0.0",
+-    "@auspicion/provident-storeroom-js-darwin-arm64": "2.0.0",
+-    "@auspicion/provident-storeroom-js-win32-x64-msvc": "2.0.0"
++    "@auspicion/provident-storeroom-js-linux-x64-gnu": "2.0.1",
++    "@auspicion/provident-storeroom-js-linux-arm64-gnu": "2.0.1",
++    "@auspicion/provident-storeroom-js-darwin-x64": "2.0.1",
++    "@auspicion/provident-storeroom-js-darwin-arm64": "2.0.1",
++    "@auspicion/provident-storeroom-js-win32-x64-msvc": "2.0.1"
+   },
+   "publishConfig": {
+     "access": "public"
+diff --git a/bindings/js/platforms/darwin-arm64/package.json b/bindings/js/platforms/darwin-arm64/package.json
+index 1824b53..89c5f4c 100644
+--- a/bindings/js/platforms/darwin-arm64/package.json
++++ b/bindings/js/platforms/darwin-arm64/package.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "@auspicion/provident-storeroom-js-darwin-arm64",
+-  "version": "2.0.0",
++  "version": "2.0.1",
+   "os": [
+     "darwin"
+   ],
+diff --git a/bindings/js/platforms/darwin-x64/package.json b/bindings/js/platforms/darwin-x64/package.json
+index b2eced1..a60047c 100644
+--- a/bindings/js/platforms/darwin-x64/package.json
++++ b/bindings/js/platforms/darwin-x64/package.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "@auspicion/provident-storeroom-js-darwin-x64",
+-  "version": "2.0.0",
++  "version": "2.0.1",
+   "os": [
+     "darwin"
+   ],
+diff --git a/bindings/js/platforms/linux-arm64/package.json b/bindings/js/platforms/linux-arm64/package.json
+index b908d13..0a86e83 100644
+--- a/bindings/js/platforms/linux-arm64/package.json
++++ b/bindings/js/platforms/linux-arm64/package.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "@auspicion/provident-storeroom-js-linux-arm64-gnu",
+-  "version": "2.0.0",
++  "version": "2.0.1",
+   "os": [
+     "linux"
+   ],
+diff --git a/bindings/js/platforms/linux-x64/package.json b/bindings/js/platforms/linux-x64/package.json
+index 52990ba..26778bc 100644
+--- a/bindings/js/platforms/linux-x64/package.json
++++ b/bindings/js/platforms/linux-x64/package.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "@auspicion/provident-storeroom-js-linux-x64-gnu",
+-  "version": "2.0.0",
++  "version": "2.0.1",
+   "os": [
+     "linux"
+   ],
+diff --git a/bindings/js/platforms/wasm/package.json b/bindings/js/platforms/wasm/package.json
+index 53bee9f..e73d946 100644
+--- a/bindings/js/platforms/wasm/package.json
++++ b/bindings/js/platforms/wasm/package.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "@auspicion/provident-storeroom-js-wasm",
+-  "version": "2.0.0",
++  "version": "2.0.1",
+   "description": "provident-storeroom for a WebAssembly host — the same store, the same package, with its bindings handed in.",
+   "type": "module",
+   "main": "index.mjs",
+diff --git a/bindings/js/platforms/win32-x64/package.json b/bindings/js/platforms/win32-x64/package.json
+index 135d330..8f85259 100644
+--- a/bindings/js/platforms/win32-x64/package.json
++++ b/bindings/js/platforms/win32-x64/package.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "@auspicion/provident-storeroom-js-win32-x64-msvc",
+-  "version": "2.0.0",
++  "version": "2.0.1",
+   "os": [
+     "win32"
+   ],
+diff --git a/docs/guides/package-use.md b/docs/guides/package-use.md
+index 4e5f44c..b984e86 100644
+--- a/docs/guides/package-use.md
++++ b/docs/guides/package-use.md
+@@ -30,7 +30,7 @@ preflight REFUSES when these two lines do not read what it computed** (`scripts/
+ one check, read-only). **THE TWO LINES ARE THIS GUIDE'S OPERATIVE FIGURES; every dated paragraph below is the
+ reading of its own date and is read through them.**
+ 
+-PUBLISH-GUIDE-VERSION-LINE: THE VERSION THIS GUIDE DESCRIBES IS `2.0.0`.
++PUBLISH-GUIDE-VERSION-LINE: THE VERSION THIS GUIDE DESCRIBES IS `2.0.1`.
+ PUBLISH-GUIDE-CUT-STATE: NOT STATED -- this document describes the behaviour at the version line above, and the cut-state is the release's to state, not a shipped document's (`D-57`).
+ 
+ **⟶ AND THE CUT-STATE SENTENCE ABOVE IS WITHDRAWN, 2026-10-28 — THE CUT-STATE IS NOT A DOCUMENT'S TO STATE.** `RCA-8(g)` ANNOTATE-BESIDE, and the architect's ruling verbatim (`strata/decisions.md` · `D-57`): *"Drop the cut-state."* **The two marked lines above stand BYTE-FOR-BYTE as the reading of their own date and are read THROUGH this clause — not one byte of either is deleted — and the sentence this clause withdraws is the SECOND of them, the one that claims to say whether the release this guide travels in is cut.** **THE REASON IS MEASURED, THREE TIMES OVER, AND IT IS STRUCTURAL RATHER THAN A MISTAKE: A SHIPPED DOCUMENT IS SEALED BEFORE THE TAG THAT MAKES ITS CUT-STATE TRUE**, so every release packed before its tag ships a document denying itself, and a guard running in that release's own preflight can only ever confirm *"not cut"* — `1.2.0` shipped *"NOT CUT"*, `1.3.0` shipped *"`v1.3.0` DOES NOT EXIST"*, and the change list's head was stale within minutes of the tag that falsified it. **SO THE CUT-STATE SENTENCE IS DROPPED AS A CLAIM AND THE VERSION LINE STAYS**, because the version line is the ONE figure a tarball can be right about: the manifest knows it and travels beside it. **`scripts/publish.sh --figures` GENERATES AND ASSERTS THE VERSION LINE AND NOTHING ELSE** — the cut-state generation and its assertion are removed in the same act, so a tag set that moves can no longer redden this guide — **and the same one line is asserted in THREE shipped documents: this guide, `README.md` beside it, and the change list** (`DEF-AC`'s remaining demand, *"guard the release notes too"* and *"`README.md` still declares no version at all"*). **THE TAG SET IS NOT DELETED AND NOT DENIED: it is a RECORD OF RELEASES held in the change list, PAST TENSE — a list of what has been cut — and never a claim about the current one.** **AND WHAT THIS CLAUSE DOES NOT SAY, SAID PLAINLY BECAUSE A READER WILL LOOK FOR IT: it does not say whether the version this guide prints is cut.** That is not a document's to state; the record of what has been cut is in `RELEASE-NOTES.md`, and the registry is the registry.
+diff --git a/scripts/emit-declarations.mjs b/scripts/emit-declarations.mjs
+index 8567f35..e4dcfd0 100644
+--- a/scripts/emit-declarations.mjs
++++ b/scripts/emit-declarations.mjs
+@@ -14,30 +14,39 @@
+ //
+ //  So this step reads ONE source and writes TWO declarations:
+ //
+-//    · the NODE arm's — THE SOURCE'S OWN BYTES, the marked region unchanged, and the identity is
+-//      ASSERTED (the written file is read back and compared, byte for byte, with the source);
+-//    · the WASM arm's — the same bytes with EXACTLY the region's body replaced by
+-//      `  readonly filePath?: never;`, and everything outside the region asserted byte-identical.
++//    · the NODE arm's — THE SOURCE'S OWN BYTES, every marked region unchanged, and the identity is
++//      ASSERTED twice over: the written file is read back and compared, byte for byte, with the source, and
++//      the declared Node bodies are asserted to compose back to it;
++//    · the WASM arm's — the same bytes with EXACTLY each region's body replaced by that region's one
++//      replacement line, and everything outside the regions asserted byte-identical.
+ //
+ //  **NEITHER OUTPUT IS HAND-EDITED AND NEITHER IS A SECOND SOURCE.** Both are artefacts of this run:
+ //  delete them and the run reproduces them. A second run over the same inputs writes the same bytes.
+ //
+-//  THE MARKER, AND WHY IT IS A COMMENT LINE AT THE MEMBER'S OWN DEPTH
+-//  ---------------------------------------------------------------------------
+-//  The region is delimited in the source by two comment lines around the ONE member that differs:
++//  THE REGIONS — TWO FROM 2026-11-20, ONE BEFORE IT — AND WHY THEY ARE COMMENT LINES AT THEIR OWN DEPTH
++//  ------------------------------------------------------------------------------------------------------
++//  **ONE REGION STOOD HERE UNTIL `D-203`, WHOSE FINDING WAS THAT THE ARM'S SHIPPED DECLARATION SPELLED THE
++//  FACTORY WITH ONE POSITION WHERE THE RUNTIME AND THE GUIDE REQUIRE TWO** — so the set now carries that
++//  member's region and the factory's:
+ //
+ //      // ⟦realm:filePath:begin⟧
+ //        readonly filePath?: string;
+ //      // ⟦realm:filePath:end⟧
+ //
+-//  (both markers indented two spaces, i.e. at the member's own depth). **THE FORM IS CHOSEN SO THAT
+-//  NOTHING THAT READS THE DECLARATION CAN SEE IT**: the member read a battery file performs on
+-//  `export interface … { … }` blocks matches only a line that begins with exactly two spaces and then
+-//  an optional `readonly`, an identifier and `:` or `(`, so a line whose first two characters after the
+-//  indentation are `//` is not a member and cannot move a member census; and the `StoreStatus` census
+-//  reads the union's own `|`-led arm lines, which stand a hundred and fifty lines past this interface,
+-//  so the marker is not in its range at all. **THE MARKERS ARE MARKERS AND NOT PROSE: each appears
+-//  EXACTLY ONCE, and a source carrying zero, two or an unbalanced pair is a REFUSAL below.**
++//      // ⟦realm:factory:begin⟧
++//      export function storeCreate(cfg: StoreConfig): StoreInstance;
++//      // ⟦realm:factory:end⟧
++//
++//  (both markers of both regions indented two spaces, i.e. at the depth the file's markers keep). **THE FORM
++//  IS CHOSEN SO THAT NOTHING THAT READS THE DECLARATION CAN SEE IT**: the member read a battery file performs
++//  on `export interface … { … }` blocks matches only a line that begins with exactly two spaces and then an
++//  optional `readonly`, an identifier and `:` or `(`, so a line whose first two characters after the
++//  indentation are `//` is not a member and cannot move a member census; the `StoreStatus` census reads the
++//  union's own `|`-led arm lines, which stand well past either region, so no marker is in its range at all;
++//  and the one module-level count this file is subject to — the number of lines beginning `export function` —
++//  counts only lines that begin at column zero, which a marker at two spaces is not. **THE MARKERS ARE
++//  MARKERS AND NOT PROSE: each appears EXACTLY ONCE, and a source carrying zero, two or an unbalanced pair of
++//  ANY region's markers is a REFUSAL below, named by region.**
+ //
+ //  SYNCHRONOUS, DELIBERATELY — AND WHY
+ //  ---------------------------------------------------------------------------
+@@ -88,15 +97,39 @@ const DEFAULT_OUTPUT = join(REPO_ROOT, 'build', 'declarations');
+ const NODE_FILE = 'index.d.ts';
+ const WASM_FILE = 'index.wasm.d.ts';
+ 
+-/// The marker lines, as they stand in the source — one occurrence each, at two spaces of indentation.
+-const BEGIN = '// ⟦realm:filePath:begin⟧';
+-const END = '// ⟦realm:filePath:end⟧';
+-
+-/// **THE REGION'S TWO BODIES** — the source's own member line, and the one replacement the WASM arm
+-/// makes. Both carry their own newline, so the region is a whole number of lines on both arms and no
+-/// byte outside it moves.
+-const NODE_BODY = '  readonly filePath?: string;\n';
+-const WASM_BODY = '  readonly filePath?: never;\n';
++/// **THE REGIONS — THE SET THIS STEP DERIVES, EACH WITH ITS OWN PAIR OF MARKERS AND ITS OWN TWO BODIES.**
++/// **ONE REGION UNTIL 2026-11-20 (`D-155` item 2's `filePath` member); TWO FROM `D-203`, AND THE SECOND IS THE
++/// FACTORY'S POSITION** — the WASM arm's runtime takes the initialised module at its FIRST position and the caller's
++/// `cfg` at its SECOND (`bindings/js/platforms/wasm/index.mjs`; `docs/guides/package-use.md` §13.1), so the declaration
++/// that describes that arm must spell two positions where the Node arm spells one, and the one member it already
++/// narrowed was not the whole of what the realm changes.
++///
++/// **EVERY REGION IS DERIVED AND REFUSED BY THE SAME RULES THE ONE REGION WAS DERIVED AND REFUSED BY**: each marker
++/// EXACTLY ONCE, each alone on its own line at two spaces of indentation, the body between them EXACTLY the line the
++/// Node arm declares, a refusal on overlap, and **every refusal names WHICH REGION it refused** — so a source that is
++/// wrong in two places reports both rather than the first.
++///
++/// **`name` IS THE NAME THE REFUSALS SPEAK AND THE NAME THE OUTPUT PRINTS**, never a filename and never a position.
++const REGIONS = [
++  {
++    name: 'filePath',
++    begin: '// ⟦realm:filePath:begin⟧',
++    end: '// ⟦realm:filePath:end⟧',
++    nodeBody: '  readonly filePath?: string;\n',
++    wasmBody: '  readonly filePath?: never;\n',
++  },
++  {
++    name: 'factory',
++    begin: '// ⟦realm:factory:begin⟧',
++    end: '// ⟦realm:factory:end⟧',
++    nodeBody: 'export function storeCreate(cfg: StoreConfig): StoreInstance;\n',
++    // **`unknown` IS THE HONEST TYPE OF A HOST-SUPPLIED MODULE**: the package instantiates nothing on this arm
++    // (`D-155` item 3), the host hands the initialised module in, and the runtime is what validates it
++    // (`addon-slot.mjs`'s `installAddon`). A named type in that position would be this package claiming the host's
++    // shape — so the region's replacement admits every value and the runtime says which values are a module.
++    wasmBody: 'export function storeCreate(bindings: unknown, cfg: StoreConfig): StoreInstance;\n',
++  },
++];
+ 
+ /// A REFUSAL, AND IT IS ALWAYS LOUD: a message on stderr naming the byte, then a non-zero exit.
+ /// **NO PATH IN THIS FILE NO-OPS.**
+@@ -152,39 +185,41 @@ if (!existsSync(SOURCE)) {
+ }
+ const source = readFileSync(SOURCE, 'utf8');
+ 
+-/// **THE REGION, DERIVED FROM THE SOURCE'S OWN BYTES.** The two markers must each occur EXACTLY once,
+-/// each must stand alone on its own line at the member's own two-space depth, and the bytes between
+-/// them must be EXACTLY the one member line this step replaces — so the region is not a range this
+-/// script guesses at, it is a range the source declares. **EVERY FAILURE HERE NAMES THE BYTE.**
+-function regionOf(text) {
+-  const begins = occurrences(text, BEGIN);
+-  const ends = occurrences(text, END);
++/// **ONE REGION, DERIVED FROM THE SOURCE'S OWN BYTES.** The region's two markers must each occur EXACTLY once,
++/// each must stand alone on its own line at this file's marker depth of two spaces, and the bytes between them
++/// must be EXACTLY the one line this step replaces — so the region is not a range this script guesses at, it is a
++/// range the source declares. **EVERY FAILURE HERE NAMES THE REGION AND THE BYTE**, and each rule below is the rule
++/// this step applied to its one region before 2026-11-20, applied now to each region of the set by its own name.
++function regionOf(text, region) {
++  const named = `the '${region.name}' region`;
++  const begins = occurrences(text, region.begin);
++  const ends = occurrences(text, region.end);
+ 
+   if (begins === 0) {
+-    refuse(`the begin marker is ABSENT from ${relative(REPO_ROOT, SOURCE)}: the source declares no `
+-      + `region this step could emit a WASM arm from, so the realm-conditional member cannot be `
+-      + `derived. The marker is the line \`${BEGIN}\` at two spaces of indentation.`);
++    refuse(`the begin marker of ${named} is ABSENT from ${relative(REPO_ROOT, SOURCE)}: the source declares no `
++      + `region this step could emit a WASM arm from, so the realm-conditional byte cannot be derived. The `
++      + `marker is the line \`${region.begin}\` at two spaces of indentation.`);
+   }
+   if (begins > 1) {
+-    refuse(`the begin marker appears ${begins} times in ${relative(REPO_ROOT, SOURCE)} (at lines `
+-      + `${offsetsOf(text, BEGIN).map((at) => lineOf(text, at)).join(', ')}): the source must declare `
+-      + 'ONE realm region, and a second begin marker is a refusal rather than a first match.');
++    refuse(`the begin marker of ${named} appears ${begins} times in ${relative(REPO_ROOT, SOURCE)} (at lines `
++      + `${offsetsOf(text, region.begin).map((at) => lineOf(text, at)).join(', ')}): each region declares its `
++      + 'begin marker EXACTLY once, and a second one is a refusal rather than a first match.');
+   }
+   if (ends === 0) {
+-    refuse(`the end marker is ABSENT from ${relative(REPO_ROOT, SOURCE)}: the begin marker stands at `
+-      + `line ${lineOf(text, text.indexOf(BEGIN))} with nothing closing it. The marker is the line `
+-      + `\`${END}\` at two spaces of indentation.`);
++    refuse(`the end marker of ${named} is ABSENT from ${relative(REPO_ROOT, SOURCE)}: its begin marker stands `
++      + `at line ${lineOf(text, text.indexOf(region.begin))} with nothing closing it. The marker is the line `
++      + `\`${region.end}\` at two spaces of indentation.`);
+   }
+   if (ends > 1) {
+-    refuse(`the end marker appears ${ends} times in ${relative(REPO_ROOT, SOURCE)} (at lines `
+-      + `${offsetsOf(text, END).map((at) => lineOf(text, at)).join(', ')}): the source must declare `
+-      + 'ONE realm region, and a second end marker is a refusal rather than a first match.');
++    refuse(`the end marker of ${named} appears ${ends} times in ${relative(REPO_ROOT, SOURCE)} (at lines `
++      + `${offsetsOf(text, region.end).map((at) => lineOf(text, at)).join(', ')}): each region declares its end `
++      + 'marker EXACTLY once, and a second one is a refusal rather than a first match.');
+   }
+ 
+-  const beginAt = text.indexOf(BEGIN);
+-  const endAt = text.indexOf(END);
++  const beginAt = text.indexOf(region.begin);
++  const endAt = text.indexOf(region.end);
+   if (endAt < beginAt) {
+-    refuse(`the two markers are UNBALANCED: the end marker stands at byte ${endAt} (line `
++    refuse(`the two markers of ${named} are UNBALANCED: the end marker stands at byte ${endAt} (line `
+       + `${lineOf(text, endAt)}) BEFORE the begin marker at byte ${beginAt} (line `
+       + `${lineOf(text, beginAt)}), so the region has no body this step could replace.`);
+   }
+@@ -192,53 +227,86 @@ function regionOf(text) {
+   const beginLineStart = text.lastIndexOf('\n', beginAt) + 1;
+   const endLineStart = text.lastIndexOf('\n', endAt) + 1;
+   if (text.slice(beginLineStart, beginAt) !== '  ') {
+-    refuse(`the begin marker is not an indented comment line at the member's own depth: line `
++    refuse(`the begin marker of ${named} is not an indented comment line at this file's marker depth: line `
+       + `${lineOf(text, beginAt)} reads ${JSON.stringify(text.slice(beginLineStart, beginAt))} before `
+       + 'the marker, where exactly two spaces are required. The indentation is the marker\'s whole '
+       + 'point — it is what keeps the line out of reach of the readers of this file.');
+   }
+   if (text.slice(endLineStart, endAt) !== '  ') {
+-    refuse(`the end marker is not an indented comment line at the member's own depth: line `
++    refuse(`the end marker of ${named} is not an indented comment line at this file's marker depth: line `
+       + `${lineOf(text, endAt)} reads ${JSON.stringify(text.slice(endLineStart, endAt))} before the `
+       + 'marker, where exactly two spaces are required (the same reading as the begin marker\'s).');
+   }
+ 
+   const bodyStart = text.indexOf('\n', beginAt) + 1;
+   if (bodyStart === 0 || bodyStart >= endLineStart) {
+-    refuse(`the region between the markers is EMPTY: the begin marker at line `
++    refuse(`the ${named} between its markers is EMPTY: the begin marker at line `
+       + `${lineOf(text, beginAt)} is closed by the end marker at line ${lineOf(text, endAt)} with no `
+-      + `member line between them, so the WASM arm would replace nothing. The region's body is the `
+-      + `one line \`${NODE_BODY.trim()}\`.`);
++      + `line between them, so the WASM arm would replace nothing. The region's body is the one line `
++      + `\`${region.nodeBody.trim()}\`.`);
+   }
+   const body = text.slice(bodyStart, endLineStart);
+-  if (body !== NODE_BODY) {
+-    const at = firstDifference(body, NODE_BODY);
++  if (body !== region.nodeBody) {
++    const at = firstDifference(body, region.nodeBody);
+     const differsAt = at === -1 ? 'no byte differs and the lengths do' : `byte ${at} differs`;
+-    refuse(`the region's body is not the ONE member line this step replaces: it reads `
+-      + `${JSON.stringify(body)}, where \`${NODE_BODY.trim()}\` is the declared body — `
+-      + `${differsAt}. The region carries the member and nothing else, so that the WASM arm's `
+-      + 'emission replaces a member and not a docblock or a neighbour.');
++    refuse(`the body of ${named} is not the ONE line this step replaces: it reads `
++      + `${JSON.stringify(body)}, where \`${region.nodeBody.trim()}\` is the declared body — `
++      + `${differsAt}. The region carries that line and nothing else, so that the WASM arm's emission `
++      + 'replaces a declaration or a member and not a docblock or a neighbour.');
+   }
+ 
+-  return { bodyStart, bodyEnd: endLineStart, body };
++  return { name: region.name, wasmBody: region.wasmBody, nodeBody: region.nodeBody, bodyStart, bodyEnd: endLineStart, body };
+ }
+ 
+-const region = regionOf(source);
++/// **THE SET, DERIVED IN SOURCE ORDER — AND REFUSED WHEN TWO REGIONS OVERLAP.** The order is the source's and not
++/// this file's, so the emission below walks the text once; an overlap would make one region's replacement cut into
++/// another's body, which is a source that declares two regions where only one can be read.
++const regions = REGIONS.map((region) => regionOf(source, region))
++  .sort((left, right) => left.bodyStart - right.bodyStart);
++
++for (let index = 1; index < regions.length; index += 1) {
++  const previous = regions[index - 1];
++  const current = regions[index];
++  if (current.bodyStart < previous.bodyEnd) {
++    refuse(`the '${previous.name}' region (lines ${lineOf(source, previous.bodyStart)}–`
++      + `${lineOf(source, previous.bodyEnd - 1)}) and the '${current.name}' region (starting at line `
++      + `${lineOf(source, current.bodyStart)}) OVERLAP in ${relative(REPO_ROOT, SOURCE)}: they must be disjoint, `
++      + 'or one region\'s replacement would cut into the other\'s body.');
++  }
++}
+ 
+ // ---------------------------------------------------------------------------------------------
+ // THE TWO EMISSIONS — PURE FUNCTIONS OF THE SOURCE'S BYTES
+ // ---------------------------------------------------------------------------------------------
+-/// The bytes OUTSIDE the region, on both arms. They are taken once, from the source, so that the two
+-/// files below are provably identical outside it rather than merely built from the same text.
+-const outsideBefore = source.slice(0, region.bodyStart);
+-const outsideAfter = source.slice(region.bodyEnd);
++/// One text composed from the source's bytes, with every region's body taken from the arm this step is composing
++/// for. Nothing outside the regions is re-serialised or normalised: the pieces between them are the source's own.
++function compose(nodeArm) {
++  let out = '';
++  let at = 0;
++  for (const region of regions) {
++    out += source.slice(at, region.bodyStart);
++    out += nodeArm ? region.nodeBody : region.wasmBody;
++    at = region.bodyEnd;
++  }
++  return out + source.slice(at);
++}
+ 
+ /// The Node arm's declaration IS the source: not a re-serialisation, not a normalisation — the bytes
+-/// the hand-authored file holds, which is what makes the identity assertion below a real one.
++/// the hand-authored file holds, which is what makes the identity assertion below a real one. **AND THE
++/// COMPOSITION IS ASSERTED AGAINST IT**, so a region whose declared Node body was not the source's own bytes
++/// would be refused here rather than shipped as a second surface wearing the source's name.
+ const nodeText = source;
++const composedNode = compose(true);
++if (composedNode !== source) {
++  const at = firstDifference(composedNode, source);
++  refuse(`the declared Node bodies do not compose back to the source: the composition and `
++    + `${relative(REPO_ROOT, SOURCE)} first differ at byte ${at} (line ${at === -1 ? '—' : lineOf(source, at)}), `
++    + `so some region's Node body is not the bytes the source holds. Regions: `
++    + `${regions.map((region) => `'${region.name}'`).join(', ')}.`);
++}
+ 
+-/// The WASM arm's declaration is those same outside bytes with the one replacement between them.
+-const wasmText = outsideBefore + WASM_BODY + outsideAfter;
++/// The WASM arm's declaration is those same outside bytes with each region's replacement between them.
++const wasmText = compose(false);
+ 
+ // ---------------------------------------------------------------------------------------------
+ // THE OUTPUT DIRECTORY — THE CALLER'S, AND NEVER INSIDE THE PACKAGE
+@@ -290,35 +358,54 @@ if (nodeWritten !== nodeText || nodeWritten !== source) {
+     + 'bytes or it is not the Node arm.');
+ }
+ 
+-// (2) EVERYTHING OUTSIDE THE REGION, BYTE-IDENTICAL — read against BOTH the source and the Node
+-//     emission, because the claim is about the pair of files this run wrote and about the one source
+-//     they came from.
+-const wasmBefore = wasmWritten.slice(0, outsideBefore.length);
+-const wasmAfter = wasmWritten.slice(wasmWritten.length - outsideAfter.length);
+-if (wasmBefore !== outsideBefore || wasmBefore !== nodeWritten.slice(0, outsideBefore.length)) {
+-  refuse(`the WASM arm's emission differs from the source BEFORE the region: the outside bytes `
+-    + `(0…${outsideBefore.length}) do not match. Only the region's body may move between the arms.`);
++// (2) EVERYTHING OUTSIDE THE REGIONS, BYTE-IDENTICAL — read against the source, which the assertion above has
++//     already established is the Node emission's own bytes, so one walk serves both arms. **THE WALK IS IN SOURCE
++//     ORDER AND NAMES THE REGION IT IS STANDING IN**, so a second region cannot hide behind the first: the bytes
++//     between two regions are checked as strictly as the bytes before the first and after the last.
++let sourceAt = 0;
++let writtenAt = 0;
++for (const region of regions) {
++  const before = source.slice(sourceAt, region.bodyStart);
++  if (wasmWritten.slice(writtenAt, writtenAt + before.length) !== before) {
++    refuse(`the WASM arm's emission differs from the source BEFORE the '${region.name}' region: the `
++      + `outside bytes (${sourceAt}…${region.bodyStart}) do not match. Only each region's body may move `
++      + 'between the arms.');
++  }
++  writtenAt += before.length;
++  const writtenBody = wasmWritten.slice(writtenAt, writtenAt + region.wasmBody.length);
++  if (writtenBody !== region.wasmBody) {
++    refuse(`the WASM arm's '${region.name}' body is not the declared replacement: it reads `
++      + `${JSON.stringify(writtenBody)} where ${JSON.stringify(region.wasmBody)} is declared.`);
++  }
++  writtenAt += region.wasmBody.length;
++  sourceAt = region.bodyEnd;
+ }
+-if (wasmAfter !== outsideAfter || wasmAfter !== nodeWritten.slice(nodeWritten.length - outsideAfter.length)) {
+-  refuse(`the WASM arm's emission differs from the source AFTER the region: the outside bytes `
+-    + `(${region.bodyEnd}…${source.length}) do not match. Only the region's body may move between `
+-    + 'the arms.');
++const tail = source.slice(sourceAt);
++if (wasmWritten.slice(writtenAt) !== tail) {
++  refuse(`the WASM arm's emission differs from the source AFTER the last region: the outside bytes `
++    + `(${sourceAt}…${source.length}) do not match. Only each region's body may move between the arms.`);
+ }
+-if (wasmWritten.length !== outsideBefore.length + WASM_BODY.length + outsideAfter.length) {
+-  refuse(`the WASM arm's emission is not the outside bytes PLUS the replacement: it reads `
+-    + `${wasmWritten.length} bytes where ${outsideBefore.length} + ${WASM_BODY.length} + `
+-    + `${outsideAfter.length} are declared.`);
++if (wasmWritten.length !== writtenAt + tail.length) {
++  refuse(`the WASM arm's emission is not the outside bytes PLUS the replacements: it reads `
++    + `${wasmWritten.length} bytes where ${writtenAt + tail.length} are declared.`);
+ }
+-if (wasmWritten.slice(outsideBefore.length, wasmWritten.length - outsideAfter.length) !== WASM_BODY) {
+-  refuse(`the WASM arm's region body is not the declared replacement: it reads `
+-    + `${JSON.stringify(wasmWritten.slice(outsideBefore.length, wasmWritten.length - outsideAfter.length))} `
+-    + `where ${JSON.stringify(WASM_BODY)} is declared.`);
++/// **AND THE LENGTH IS ACCOUNTED FOR TWICE — by the walk above and by the sum of the deltas**, so an
++/// emission that swallowed a byte and gave one back in the same place could not pass unnoticed.
++const expectedWasmLength = source.length
++  + regions.reduce((moved, region) => moved + region.wasmBody.length - region.nodeBody.length, 0);
++if (wasmWritten.length !== expectedWasmLength) {
++  refuse(`the WASM arm's emission moves by the regions' own differences and by nothing else: it reads `
++    + `${wasmWritten.length} bytes where ${expectedWasmLength} are declared for regions `
++    + `${regions.map((region) => `'${region.name}' (+${region.wasmBody.length - region.nodeBody.length})`).join(', ')}.`);
+ }
+ 
+ // ---------------------------------------------------------------------------------------------
+ // THE ANSWER — THE TWO ABSOLUTE PATHS THIS RUN WROTE, AND WHAT EACH ONE IS
+ // ---------------------------------------------------------------------------------------------
+ process.stdout.write(`emit-declarations: ${nodePath} (${statSync(nodePath).size} bytes) — the Node arm: `
+-  + `${relative(REPO_ROOT, SOURCE)}'s own bytes, region unchanged, identity asserted\n`);
+-process.stdout.write(`emit-declarations: ${wasmPath} (${statSync(wasmPath).size} bytes) — the WASM arm: the `
+-  + `region's body replaced by \`${WASM_BODY.trim()}\`, everything outside it byte-identical\n`);
++  + `${relative(REPO_ROOT, SOURCE)}'s own bytes, ${regions.length} region(s) unchanged, identity asserted\n`);
++for (const region of regions) {
++  process.stdout.write(`emit-declarations:   region '${region.name}' -> \`${region.wasmBody.trim()}\`\n`);
++}
++process.stdout.write(`emit-declarations: ${wasmPath} (${statSync(wasmPath).size} bytes) — the WASM arm: each `
++  + `region's body replaced as printed above, everything outside the regions byte-identical\n`);
+diff --git a/tests/e2e/realm-declaration.test.mjs b/tests/e2e/realm-declaration.test.mjs
+index 9ba4ffb..2d4a9e3 100644
+--- a/tests/e2e/realm-declaration.test.mjs
++++ b/tests/e2e/realm-declaration.test.mjs
+@@ -44,14 +44,29 @@ const SOURCE_PATH = join(PACKAGE_DIR, 'index.d.ts');
+ const SOURCE = readFileSync(SOURCE_PATH, 'utf8');
+ const SCRIPT = join(REPO_ROOT, 'scripts', 'emit-declarations.mjs');
+ 
+-// The generator's two emitted names, and its two marker lines — transcribed from the source and from
+-// `scripts/emit-declarations.mjs`, never computed from them.
++// The generator's two emitted names, and the marker lines and bodies of the TWO regions it reads — transcribed
++// from the source and from `scripts/emit-declarations.mjs`, never computed from them.
++//
++// **⟶ ONE REGION UNTIL 2026-11-20; TWO FROM `D-203`** — the factory's position joined the `filePath` member's, and
++// the cells below read the set the same way they read the one: each region's markers once each at two spaces of
++// indentation, each region's body exactly the line the Node arm declares, and NO byte outside the regions moved
++// between the arms.
+ const NODE_FILE = 'index.d.ts';
+ const WASM_FILE = 'index.wasm.d.ts';
+ const BEGIN = '// ⟦realm:filePath:begin⟧';
+ const END = '// ⟦realm:filePath:end⟧';
+ const SOURCE_BODY = '  readonly filePath?: string;\n';
+ const WASM_BODY = '  readonly filePath?: never;\n';
++const FACTORY_BEGIN = '// ⟦realm:factory:begin⟧';
++const FACTORY_END = '// ⟦realm:factory:end⟧';
++const FACTORY_SOURCE_BODY = 'export function storeCreate(cfg: StoreConfig): StoreInstance;\n';
++const FACTORY_WASM_BODY = 'export function storeCreate(bindings: unknown, cfg: StoreConfig): StoreInstance;\n';
++
++/** **THE SET, IN SOURCE ORDER, AS THE GENERATOR DECLARES IT** — the reading the second cell below walks. */
++const REGIONS = [
++  { name: 'filePath', begin: BEGIN, end: END, nodeBody: SOURCE_BODY, wasmBody: WASM_BODY },
++  { name: 'factory', begin: FACTORY_BEGIN, end: FACTORY_END, nodeBody: FACTORY_SOURCE_BODY, wasmBody: FACTORY_WASM_BODY },
++];
+ 
+ /** **THE MEMBER PATTERN, TRANSCRIBED FROM `tests/e2e/blind-entry-module.test.mjs`** — a line at the
+  *  block's own two-space depth carrying an optional `readonly`, a name, its optional marker and then the
+@@ -117,12 +132,15 @@ const emit = () => {
+ // THE CELLS
+ // ---------------------------------------------------------------------------------------------
+ 
+-test('realm-declaration · D-155 item 2 and docs/L3/wasm-realm/design.md §6 · THE SOURCE DECLARES ONE REALM REGION — two marker lines, once each, in that order, and filePath alone between them', () => {
++test('realm-declaration · D-155 item 2 and docs/L3/wasm-realm/design.md §6 · THE SOURCE DECLARES THE `filePath` REALM REGION — two marker lines, once each, in that order, and filePath alone between them (a SECOND region, the one the factory stands in, joins it in `D-203` and is read by the cell below)', () => {
+   const begins = occurrences(SOURCE, BEGIN);
+   const ends = occurrences(SOURCE, END);
+-  assert.equal(begins, 1, 'the source must carry the begin marker EXACTLY once and carries it '
++  // **⟶ "ONE REGION" READ THE WHOLE FILE UNTIL 2026-11-20; FROM `D-203` IT READS ONE REGION'S MARKERS**, which is
++  // the rule the generator applies to each region of its set: the `factory` region's markers are a different pair
++  // and are counted in the cell below, and neither pair may appear twice.
++  assert.equal(begins, 1, 'the source must carry this region\'s begin marker EXACTLY once and carries it '
+     + begins + ' time(s): ' + BEGIN);
+-  assert.equal(ends, 1, 'the source must carry the end marker EXACTLY once and carries it '
++  assert.equal(ends, 1, 'the source must carry this region\'s end marker EXACTLY once and carries it '
+     + ends + ' time(s): ' + END);
+ 
+   const beginAt = SOURCE.indexOf(BEGIN);
+@@ -198,37 +216,51 @@ test('realm-declaration · D-155 item 2 · BOTH EMISSIONS ARE PRODUCED FROM THE
+   }
+ });
+ 
+-test('realm-declaration · D-155 item 2 and docs/L3/wasm-realm/design.md §6 · THE TWO EMISSIONS DIFFER ONLY INSIDE THE REGION — the WASM arm narrows filePath to never and moves NEITHER the member\'s presence NOR its optionality', () => {
++test('realm-declaration · D-155 item 2, D-203 and docs/L3/wasm-realm/design.md §6 · THE TWO EMISSIONS DIFFER ONLY INSIDE THE REGIONS — the WASM arm narrows filePath to never and spells the factory with two positions, and moves NEITHER the member\'s presence NOR its optionality', () => {
+   const out = emit();
+   try {
+     assert.equal(out.status, 0, 'the emissions are produced for this cell to read. stderr: ' + out.stderr);
+     const node = out.node;
+     const wasm = out.wasm;
+ 
+-    // The region, read off the NODE emission — which IS the source's own bytes, so these offsets are the
+-    // source's.
+-    const beginAt = node.indexOf(BEGIN);
+-    const endAt = node.indexOf(END);
+-    const bodyStart = node.indexOf('\n', beginAt) + 1;
+-    const bodyEnd = node.lastIndexOf('\n', endAt) + 1;
+-    const nodeBody = node.slice(bodyStart, bodyEnd);
+-    const nodeTail = node.slice(bodyEnd);
++    // **THE WALK IS THE GENERATOR'S OWN, AND IT IS A WALK AND NOT A SLICE FROM ONE MARKER PAIR** (`D-203`): the
++    // bytes BETWEEN two regions are asserted as strictly as the bytes before the first and after the last, so a
++    // second region cannot hide inside the arithmetic of the first. `nodeAt`/`wasmAt` are the two arms' own
++    // cursors, because each replacement moves its arm's offset by its own length.
++    let nodeAt = 0;
++    let wasmAt = 0;
++    for (const region of REGIONS) {
++      const beginAt = node.indexOf(region.begin);
++      const endAt = node.indexOf(region.end);
++      assert.equal(beginAt !== -1 && endAt > beginAt, true, 'the NODE emission carries the ' + region.name
++        + ' region\'s two markers, in order');
++      const bodyStart = node.indexOf('\n', beginAt) + 1;
++      const bodyEnd = node.lastIndexOf('\n', endAt) + 1;
+ 
+-    // (1) THE ONE REPLACEMENT, AND THE TWO BODIES IT MOVES BETWEEN.
+-    const wasmBody = wasm.slice(bodyStart, wasm.length - nodeTail.length);
+-    assert.equal(nodeBody, SOURCE_BODY, 'the source\'s region body is the string-typed member: '
+-      + JSON.stringify(nodeBody));
+-    assert.equal(wasmBody, WASM_BODY, 'and the WASM arm\'s is the SAME MEMBER narrowed to never: '
+-      + JSON.stringify(wasmBody));
++      // The bytes before this region, on both arms — identical, and this is the assertion the ONE-region reading
++      // made once, made now once per region.
++      assert.equal(wasm.slice(wasmAt, wasmAt + (bodyStart - nodeAt)), node.slice(nodeAt, bodyStart),
++        'every byte of the ' + region.name + ' region\'s PREFIX is identical between the two arms ('
++        + (bodyStart - nodeAt) + ' bytes at source offset ' + nodeAt + ')');
++      wasmAt += bodyStart - nodeAt;
++      nodeAt = bodyEnd;
+ 
+-    // (2) NOTHING OUTSIDE THE REGION DIFFERS — prefix, suffix, and the length that follows from them.
+-    assert.equal(wasm.slice(0, bodyStart), node.slice(0, bodyStart), 'every byte BEFORE the region is '
+-      + 'identical between the two arms (' + bodyStart + ' bytes)');
+-    assert.equal(wasm.slice(wasm.length - nodeTail.length), nodeTail, 'and every byte AFTER it ('
+-      + nodeTail.length + ' bytes)');
+-    assert.equal(wasm.length, node.length - nodeBody.length + wasmBody.length, 'the emitted length '
+-      + 'moves by the region body\'s own difference and by nothing else — ' + node.length + ' to '
+-      + wasm.length + ', with ' + WASM_BODY.length + ' where ' + SOURCE_BODY.length + ' stood');
++      // The region's two bodies: the source's own line on the Node arm, the declared replacement on the WASM arm.
++      assert.equal(node.slice(bodyStart, bodyEnd), region.nodeBody, 'the source\'s ' + region.name
++        + ' region body is the line the Node arm declares: ' + JSON.stringify(node.slice(bodyStart, bodyEnd)));
++      assert.equal(wasm.slice(wasmAt, wasmAt + region.wasmBody.length), region.wasmBody, 'and the WASM arm\'s '
++        + region.name + ' body is the SAME subject spelled for that realm: '
++        + JSON.stringify(wasm.slice(wasmAt, wasmAt + region.wasmBody.length)));
++      wasmAt += region.wasmBody.length;
++    }
++
++    // (2) NOTHING OUTSIDE THE REGIONS DIFFERS — the tail, and the length that follows from the two bodies.
++    assert.equal(wasm.slice(wasmAt), node.slice(nodeAt), 'every byte AFTER the last region is identical between '
++      + 'the two arms (' + (node.length - nodeAt) + ' bytes)');
++    const moved = REGIONS.reduce((sum, region) => sum + region.wasmBody.length - region.nodeBody.length, 0);
++    assert.equal(wasm.length, node.length + moved, 'the emitted length moves by the regions\' own differences and '
++      + 'by nothing else — ' + node.length + ' to ' + wasm.length + ', where the bodies move the total by '
++      + moved + ' (' + REGIONS.map((region) => region.name + ' ' + (region.wasmBody.length - region.nodeBody.length)).join(', ') + ')');
+ 
+     // (3) **THE MEMBER'S PRESENCE AND OPTIONALITY ARE UNCHANGED — READ THE WAY
+     // `blind-entry-module.test.mjs` READS A MEMBER.** The census is the same list on both arms, in the
+@@ -252,13 +284,25 @@ test('realm-declaration · D-155 item 2 and docs/L3/wasm-realm/design.md §6 ·
+     assert.match(wasm, /^ {2}readonly filePath\?: never;$/m, 'the WASM arm\'s member is never — a '
+       + 'string supplied in that position is refused there and nowhere else');
+ 
+-    // (5) THE MARKERS THEMSELVES STAND ON BOTH ARMS: the region is emitted and not consumed, so a reader
+-    // of either declaration sees the same two comment lines and the pair is re-derivable from either
++    // (4b) **AND THE FACTORY'S POSITION IS THE SECOND REGION'S SUBJECT (`D-203`)**: one position on the Node arm,
++    // two on the WASM arm, and the module's own type `unknown` because the module is the HOST's.
++    assert.equal(node.includes('\n' + FACTORY_SOURCE_BODY), true,
++      'the Node arm\'s factory is the one position it has always had: ' + JSON.stringify(FACTORY_SOURCE_BODY.trim()));
++    assert.equal(wasm.includes('\n' + FACTORY_WASM_BODY), true,
++      'and the WASM arm\'s takes the initialised module at its FIRST position, typed `unknown` because the package '
++      + 'instantiates nothing and the runtime validates what arrives: ' + JSON.stringify(FACTORY_WASM_BODY.trim()));
++    assert.equal(wasm.includes('\n' + FACTORY_SOURCE_BODY), false,
++      'and the Node arm\'s signature is absent from the WASM arm — the defect `D-203` found was exactly its presence');
++
++    // (5) THE MARKERS THEMSELVES STAND ON BOTH ARMS: each region is emitted and not consumed, so a reader
++    // of either declaration sees the same marker pairs and each region is re-derivable from either
+     // emitted file, not only from the hand-authored one.
+-    assert.equal(occurrences(node, BEGIN), 1, 'the NODE arm carries the begin marker once');
+-    assert.equal(occurrences(wasm, BEGIN), 1, 'and so does the WASM arm');
+-    assert.equal(occurrences(node, END), 1, 'the NODE arm carries the end marker once');
+-    assert.equal(occurrences(wasm, END), 1, 'and so does the WASM arm');
++    for (const region of REGIONS) {
++      assert.equal(occurrences(node, region.begin), 1, 'the NODE arm carries the ' + region.name + ' begin marker once');
++      assert.equal(occurrences(wasm, region.begin), 1, 'and so does the WASM arm');
++      assert.equal(occurrences(node, region.end), 1, 'the NODE arm carries the ' + region.name + ' end marker once');
++      assert.equal(occurrences(wasm, region.end), 1, 'and so does the WASM arm');
++    }
+   } finally {
+     rmSync(out.dir, { recursive: true, force: true });
+   }
+diff --git a/tests/e2e/wasm-arm.test.mjs b/tests/e2e/wasm-arm.test.mjs
+index 292d616..242dd68 100644
+--- a/tests/e2e/wasm-arm.test.mjs
++++ b/tests/e2e/wasm-arm.test.mjs
+@@ -21,9 +21,10 @@
+ 
+ import assert from 'node:assert/strict';
+ import { test } from 'node:test';
+-import { execFileSync } from 'node:child_process';
+-import { existsSync, readFileSync, writeSync } from 'node:fs';
+-import { dirname, join, resolve } from 'node:path';
++import { execFileSync, spawnSync } from 'node:child_process';
++import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync, writeSync } from 'node:fs';
++import { tmpdir } from 'node:os';
++import { dirname, join, relative, resolve, sep } from 'node:path';
+ import { fileURLToPath, pathToFileURL } from 'node:url';
+ 
+ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
+@@ -544,3 +545,180 @@ test('CW-9 · the package\'s finalizer reaches the ARM — every store the probe
+     'and the count is the whole batch — a partial count would mean the finalizer reaches the arm for some stores '
+     + `and not others: ${RETIREMENT_REPORT.releasedByFinalizer} of ${PROBE_STORES}`);
+ });
++
++// ═════════════════════════════════════════════════════════════════════════════════════════════════════
++// **`CW-10` · THE ARM'S DECLARED SURFACE, COMPILED — THE INSTRUMENT `D-203` ITEM 5 OWED**
++//
++// **WHY THIS CELL EXISTS, IN THE FINDING'S OWN WORDS.** `D-203` item 4: *"**no TypeScript consumer is compiled
++// against the ARM's declaration anywhere**"* — `typecheck/consumer-fixture.ts` targets the NODE package, and the
++// arm's cells (`CW-1`…`CW-9`) drive the runtime in JAVASCRIPT and never a compiler. **So the arm's declared
++// surface went unmeasured from `D-155` item 2 until this cell**, and the defect it hid was that the arm's shipped
++// `index.d.ts` spelled `export function storeCreate(cfg: StoreConfig): StoreInstance;` — **the Node arm's line** —
++// while the arm's runtime takes the initialised module at its FIRST position (`bindings/js/platforms/wasm/index.mjs`)
++// and the guide teaches that construction (`docs/guides/package-use.md` §13.1). **A consumer could write
++// `storeCreate(cfg)`, compile, and never be able to construct a store.**
++//
++// **THE THREE LIMBS, AND EACH ONE IS A LIMB AND NOT A DECORATION** (`D-203` item 5; item 3's own two sentences):
++//   1. `storeCreate(bindings, cfg)` TYPECHECKS — the construction the runtime and the guide require, with the module
++//      at position one and a `cfg` that carries no `filePath`;
++//   2. `storeCreate(cfg)` DOES NOT — the one-position form is the NODE arm's, and a fixture that checked only the
++//      positive would have passed on the broken declaration for the wrong reason;
++//   3. `filePath: 'x'` DOES NOT — the arm's `StoreConfig` narrows that member to `never` (`D-155` item 2), and this
++//      limb is what says the FIRST region still lands while the second is read beside it.
++// **AND THE TWO NEGATIVES ARE `@ts-expect-error` LINES, WHICH IS THE SELF-CHECKING FORM**: TypeScript reports an
++// UNUSED directive as its own error (`TS2578`), so a negative limb that stopped being negative — or a positive limb
++// that stopped being positive — reddens this cell rather than passing it.
++//
++// **THE FILE IT COMPILES AGAINST IS THE STAGED ARM — `bindings/js/platforms/wasm/index.d.ts` — AND THE CELL DEPENDS
++// ON A BUILD ONLY WHEN THE STAGED BYTES ARE NOT THE GENERATOR'S OWN ARM.** `ensureBuilt()` above builds the arm when
++// its runtime artefacts are absent, but a STALE declaration can stand beside a current runtime: so the cell produces
++// the arm's emission into a temp directory, compares, and — when the staged file disagrees — runs
++// `scripts/build-wasm-package.mjs` (whose step 5 installs that very emission as `index.d.ts`) and re-reads. **A cell
++// that measured whatever happened to be on disk would be measuring an unknown file; this one measures the generator's
++// arm or fails in words.**
++// ═════════════════════════════════════════════════════════════════════════════════════════════════════
++
++/// The arm's STAGED declaration, the generator that produces it, and the compiler `npm run typecheck` already drives.
++const ARM_DECLARATION = join(PKG, 'index.d.ts');
++const EMITTER = join(ROOT, 'scripts', 'emit-declarations.mjs');
++const TSC = join(ROOT, 'node_modules', 'typescript', 'bin', 'tsc');
++
++/// **THE ARM'S OWN EMISSION, PRODUCED INTO A TEMP DIRECTORY AND READ BACK** — exactly the bytes `build-wasm-package.mjs`
++/// step 5 installs, and the reading is of the generator rather than of whatever a previous run left behind.
++function emittedArm() {
++  const dir = mkdtempSync(join(tmpdir(), 'cw-10-emit-'));
++  try {
++    const run = spawnSync(process.execPath, [EMITTER, dir], { cwd: ROOT, encoding: 'utf8' });
++    assert.equal(run.status, 0,
++      'the declaration generator must answer exit 0 for the arm to have an emission this cell can measure. It said: '
++      + `${(run.stderr ?? '').slice(0, 800)}`);
++    return readFileSync(join(dir, 'index.wasm.d.ts'), 'utf8');
++  } finally {
++    rmSync(dir, { recursive: true, force: true });
++  }
++}
++
++/// **THE STAGED ARM, MADE CURRENT BEFORE IT IS MEASURED.** A declaration that is absent or that is not the generator's
++/// arm is REBUILT (`scripts/build-wasm-package.mjs`), never tolerated, and the rebuild is asserted to have landed the
++/// emission this cell then compiles against.
++function stagedArm() {
++  const staged = existsSync(ARM_DECLARATION) ? readFileSync(ARM_DECLARATION, 'utf8') : null;
++  if (staged !== null && staged === emittedArm()) return staged;
++  const script = join(ROOT, 'scripts', 'build-wasm-package.mjs');
++  assert.ok(existsSync(script), 'the build script this cell falls back to is present: ' + script);
++  const run = spawnSync(process.execPath, [script], { cwd: ROOT, encoding: 'utf8' });
++  // **A REBUILD THAT CANNOT RUN IS THE ARM'S OWN DECLARED ABSENCE AND NOT A SKIP** (`P-PUB-7`'s doctrine): the same
++  // refusal `ensureBuilt()` prints, one artefact over.
++  assert.equal(run.status, 0,
++    'CW-10: the arm\'s staged declaration is not the generator\'s arm and the rebuild that would stage it could not run '
++    + '(it needs the wasm32-unknown-unknown target and the wasm-bindgen CLI in .cargo-home/bin). The build said: '
++    + `${(run.stderr ?? '').slice(0, 800)}`);
++  assert.ok(existsSync(ARM_DECLARATION), 'the rebuild staged the arm\'s declaration at ' + ARM_DECLARATION);
++  const rebuilt = readFileSync(ARM_DECLARATION, 'utf8');
++  assert.equal(rebuilt, emittedArm(),
++    'and what it staged IS the generator\'s WASM arm — the emission `scripts/emit-declarations.mjs` produces, with each '
++    + 'of its realms\' bodies replaced by that realm\'s own');
++  return rebuilt;
++}
++
++/// **THE CONSUMER'S FILE** — a `.ts` compiled with `--noEmit` against the STAGED ARM, written into a temp directory so
++/// that this cell writes nothing into the checkout. **`bindings` IS A PLAIN `object` HERE AND `unknown` AT THE
++/// DECLARATION**: the declared type of a host-supplied module is `unknown` on purpose (`D-203` item 5 — the runtime
++/// validates it, and a named type would be this package claiming the HOST's shape), so anything the host may hand over
++/// is assignable to it and nothing here has to imitate a module's shape.
++function fixtureSource(specifier) {
++  return [
++    '// GENERATED BY tests/e2e/wasm-arm.test.mjs\'s CW-10 — `D-203` item 5. Compiled with --noEmit, never run.',
++    `import { storeCreate } from '${specifier}';`,
++    `import type { StoreConfig, StoreInstance } from '${specifier}';`,
++    '',
++    '// THE HOST INSTANTIATES NOTHING HERE: the module is the caller\'s, so its declared type is `unknown`.',
++    'const bindings: object = {};',
++    '// AND THIS `cfg` CARRIES NO `filePath` — it is not in domain on this arm (`D-154` item 4).',
++    'const cfg: StoreConfig = { journalLength: 256, listeners: [] };',
++    '',
++    '// LIMB ONE — THE TWO-POSITION CONSTRUCTION THE RUNTIME AND THE GUIDE REQUIRE. It must compile.',
++    'const store: StoreInstance = storeCreate(bindings, cfg);',
++    "store.read(['a'], 'mem');",
++    '',
++    '// LIMB TWO — THE ONE-POSITION FORM IS THE NODE ARM\'S AND MUST NOT COMPILE HERE (`D-203` item 3).',
++    '// @ts-expect-error — `storeCreate(cfg)` is one position: an unused directive here is a FAILURE.',
++    'storeCreate(cfg);',
++    '',
++    '// LIMB THREE — `filePath` IS `never` ON THIS ARM AND MUST NOT BE SPELLABLE (`D-155` item 2).',
++    '// @ts-expect-error — a string in that position is refused on this arm and nowhere else.',
++    "const withPath: StoreConfig = { journalLength: 8, listeners: [], filePath: 'x' };",
++    '',
++  ].join('\n');
++}
++
++test('CW-10 · D-203 — a TypeScript consumer compiled against the STAGED ARM writes `storeCreate(bindings, cfg)` and '
++  + 'typechecks, while `storeCreate(cfg)` and `filePath` are both refused', () => {
++  const declared = stagedArm();
++  assert.ok(existsSync(TSC), 'the project\'s own compiler is present and is what this cell drives: ' + TSC);
++
++  // **THE FIXTURE, WRITTEN INTO A FRESH TEMP DIRECTORY AND COMPILED THERE.** The specifier is the arm's declaration
++  // reached relatively from that directory, so the file this compilation reads IS `bindings/js/platforms/wasm/index.d.ts`.
++  const dir = mkdtempSync(join(tmpdir(), 'cw-10-fixture-'));
++  try {
++    const specifier = relative(dir, ARM_DECLARATION.replace(/\.d\.ts$/, '')).split(sep).join('/');
++    writeFileSync(join(dir, 'fixture.ts'), fixtureSource(specifier.startsWith('.') ? specifier : `./${specifier}`));
++    // **`moduleResolution: bundler` AND `types: []` ARE THE TWO SETTINGS THIS READING NEEDS**: the first resolves the
++    // extensionless relative specifier a consumer would write, the second keeps any `@types` package on the machine
++    // from entering the graph — so the file that answers this compilation is the arm's declaration and nothing else.
++    writeFileSync(join(dir, 'tsconfig.json'), `${JSON.stringify({
++      compilerOptions: {
++        strict: true,
++        noEmit: true,
++        target: 'ES2022',
++        module: 'esnext',
++        moduleResolution: 'bundler',
++        types: [],
++        skipLibCheck: false,
++      },
++      files: ['fixture.ts'],
++    }, null, 2)}\n`);
++
++    const run = spawnSync(process.execPath, [TSC, '-p', join(dir, 'tsconfig.json')], { cwd: dir, encoding: 'utf8' });
++    const output = `${run.stdout ?? ''}${run.stderr ?? ''}`.trim();
++
++    // ── THE THREE LIMBS, READ AT THE COMPILER'S OWN ANSWER. `tsc` exits 0 only when limb one compiled, and when both
++    //    `@ts-expect-error` directives were USED — an unused one is `TS2578`, which is an error of this run.
++    assert.equal(run.status, 0,
++      'CW-10, `D-203` item 5: a TypeScript consumer of the WebAssembly arm must be able to write the construction its '
++      + 'runtime and its guide require. `storeCreate(bindings, cfg)` must TYPECHECK, `storeCreate(cfg)` must NOT (its '
++      + '@ts-expect-error must be USED), and `filePath` must NOT (`never`). The compilation that decides this is over '
++      + `the STAGED ARM at ${ARM_DECLARATION}; tsc said: ${output}`);
++    console.log('[CW-10] tsc --noEmit over the staged arm: exit 0 — `storeCreate(bindings, cfg)` compiles, '
++      + '`storeCreate(cfg)` and `filePath` are both refused at their own `@ts-expect-error` lines');
++
++    // ── AND THE BYTES THE COMPILER READ ARE THE ARM'S, NAMED SO THE READING ABOVE CANNOT BE OF SOME OTHER FILE: the
++    //    factory's region body is the TWO-position line, and the Node arm's source beside it is the ONE-position line —
++    //    which is what makes the region realm-conditional rather than a second hand-maintained surface.
++    const armLines = declared.split('\n');
++    const armBegin = armLines.indexOf('  // ⟦realm:factory:begin⟧');
++    assert.notEqual(armBegin, -1, 'the arm\'s declaration carries the factory region\'s begin marker at the marker '
++      + 'depth this file uses: ' + JSON.stringify('  // ⟦realm:factory:begin⟧'));
++    assert.equal(armLines[armBegin + 1],
++      'export function storeCreate(bindings: unknown, cfg: StoreConfig): StoreInstance;',
++      'and the body between the factory region\'s markers is the TWO-position declaration — `unknown` is the honest '
++      + 'type of a host-supplied module and the runtime validates it. It reads: '
++      + JSON.stringify(armLines[armBegin + 1]));
++    assert.equal(armLines[armBegin + 2], '  // ⟦realm:factory:end⟧',
++      'and the region is closed at the same depth it opened');
++
++    const nodeLines = readFileSync(join(ROOT, 'bindings', 'js', 'index.d.ts'), 'utf8').split('\n');
++    const nodeBegin = nodeLines.indexOf('  // ⟦realm:factory:begin⟧');
++    assert.notEqual(nodeBegin, -1, 'the SOURCE declaration carries the same marker pair, because the arm\'s emission '
++      + 'is this file\'s bytes with the region\'s body replaced and not a second authored surface (`D-155` item 2)');
++    assert.equal(nodeLines[nodeBegin + 1], 'export function storeCreate(cfg: StoreConfig): StoreInstance;',
++      'and the NODE arm\'s signature is the one position it has always had — the movement is the realm\'s and not the '
++      + 'package\'s. It reads: ' + JSON.stringify(nodeLines[nodeBegin + 1]));
++
++    assert.equal(declared.includes('  readonly filePath?: never;\n'), true,
++      'and the FIRST region still lands on this arm: `filePath` narrows to `never` (`D-155` item 2), which is the '
++      + 'member census the two arms share');
++  } finally {
++    rmSync(dir, { recursive: true, force: true });
++  }
++});

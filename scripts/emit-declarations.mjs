@@ -14,30 +14,39 @@
 //
 //  So this step reads ONE source and writes TWO declarations:
 //
-//    · the NODE arm's — THE SOURCE'S OWN BYTES, the marked region unchanged, and the identity is
-//      ASSERTED (the written file is read back and compared, byte for byte, with the source);
-//    · the WASM arm's — the same bytes with EXACTLY the region's body replaced by
-//      `  readonly filePath?: never;`, and everything outside the region asserted byte-identical.
+//    · the NODE arm's — THE SOURCE'S OWN BYTES, every marked region unchanged, and the identity is
+//      ASSERTED twice over: the written file is read back and compared, byte for byte, with the source, and
+//      the declared Node bodies are asserted to compose back to it;
+//    · the WASM arm's — the same bytes with EXACTLY each region's body replaced by that region's one
+//      replacement line, and everything outside the regions asserted byte-identical.
 //
 //  **NEITHER OUTPUT IS HAND-EDITED AND NEITHER IS A SECOND SOURCE.** Both are artefacts of this run:
 //  delete them and the run reproduces them. A second run over the same inputs writes the same bytes.
 //
-//  THE MARKER, AND WHY IT IS A COMMENT LINE AT THE MEMBER'S OWN DEPTH
-//  ---------------------------------------------------------------------------
-//  The region is delimited in the source by two comment lines around the ONE member that differs:
+//  THE REGIONS — TWO FROM 2026-11-20, ONE BEFORE IT — AND WHY THEY ARE COMMENT LINES AT THEIR OWN DEPTH
+//  ------------------------------------------------------------------------------------------------------
+//  **ONE REGION STOOD HERE UNTIL `D-203`, WHOSE FINDING WAS THAT THE ARM'S SHIPPED DECLARATION SPELLED THE
+//  FACTORY WITH ONE POSITION WHERE THE RUNTIME AND THE GUIDE REQUIRE TWO** — so the set now carries that
+//  member's region and the factory's:
 //
 //      // ⟦realm:filePath:begin⟧
 //        readonly filePath?: string;
 //      // ⟦realm:filePath:end⟧
 //
-//  (both markers indented two spaces, i.e. at the member's own depth). **THE FORM IS CHOSEN SO THAT
-//  NOTHING THAT READS THE DECLARATION CAN SEE IT**: the member read a battery file performs on
-//  `export interface … { … }` blocks matches only a line that begins with exactly two spaces and then
-//  an optional `readonly`, an identifier and `:` or `(`, so a line whose first two characters after the
-//  indentation are `//` is not a member and cannot move a member census; and the `StoreStatus` census
-//  reads the union's own `|`-led arm lines, which stand a hundred and fifty lines past this interface,
-//  so the marker is not in its range at all. **THE MARKERS ARE MARKERS AND NOT PROSE: each appears
-//  EXACTLY ONCE, and a source carrying zero, two or an unbalanced pair is a REFUSAL below.**
+//      // ⟦realm:factory:begin⟧
+//      export function storeCreate(cfg: StoreConfig): StoreInstance;
+//      // ⟦realm:factory:end⟧
+//
+//  (both markers of both regions indented two spaces, i.e. at the depth the file's markers keep). **THE FORM
+//  IS CHOSEN SO THAT NOTHING THAT READS THE DECLARATION CAN SEE IT**: the member read a battery file performs
+//  on `export interface … { … }` blocks matches only a line that begins with exactly two spaces and then an
+//  optional `readonly`, an identifier and `:` or `(`, so a line whose first two characters after the
+//  indentation are `//` is not a member and cannot move a member census; the `StoreStatus` census reads the
+//  union's own `|`-led arm lines, which stand well past either region, so no marker is in its range at all;
+//  and the one module-level count this file is subject to — the number of lines beginning `export function` —
+//  counts only lines that begin at column zero, which a marker at two spaces is not. **THE MARKERS ARE
+//  MARKERS AND NOT PROSE: each appears EXACTLY ONCE, and a source carrying zero, two or an unbalanced pair of
+//  ANY region's markers is a REFUSAL below, named by region.**
 //
 //  SYNCHRONOUS, DELIBERATELY — AND WHY
 //  ---------------------------------------------------------------------------
@@ -88,15 +97,39 @@ const DEFAULT_OUTPUT = join(REPO_ROOT, 'build', 'declarations');
 const NODE_FILE = 'index.d.ts';
 const WASM_FILE = 'index.wasm.d.ts';
 
-/// The marker lines, as they stand in the source — one occurrence each, at two spaces of indentation.
-const BEGIN = '// ⟦realm:filePath:begin⟧';
-const END = '// ⟦realm:filePath:end⟧';
-
-/// **THE REGION'S TWO BODIES** — the source's own member line, and the one replacement the WASM arm
-/// makes. Both carry their own newline, so the region is a whole number of lines on both arms and no
-/// byte outside it moves.
-const NODE_BODY = '  readonly filePath?: string;\n';
-const WASM_BODY = '  readonly filePath?: never;\n';
+/// **THE REGIONS — THE SET THIS STEP DERIVES, EACH WITH ITS OWN PAIR OF MARKERS AND ITS OWN TWO BODIES.**
+/// **ONE REGION UNTIL 2026-11-20 (`D-155` item 2's `filePath` member); TWO FROM `D-203`, AND THE SECOND IS THE
+/// FACTORY'S POSITION** — the WASM arm's runtime takes the initialised module at its FIRST position and the caller's
+/// `cfg` at its SECOND (`bindings/js/platforms/wasm/index.mjs`; `docs/guides/package-use.md` §13.1), so the declaration
+/// that describes that arm must spell two positions where the Node arm spells one, and the one member it already
+/// narrowed was not the whole of what the realm changes.
+///
+/// **EVERY REGION IS DERIVED AND REFUSED BY THE SAME RULES THE ONE REGION WAS DERIVED AND REFUSED BY**: each marker
+/// EXACTLY ONCE, each alone on its own line at two spaces of indentation, the body between them EXACTLY the line the
+/// Node arm declares, a refusal on overlap, and **every refusal names WHICH REGION it refused** — so a source that is
+/// wrong in two places reports both rather than the first.
+///
+/// **`name` IS THE NAME THE REFUSALS SPEAK AND THE NAME THE OUTPUT PRINTS**, never a filename and never a position.
+const REGIONS = [
+  {
+    name: 'filePath',
+    begin: '// ⟦realm:filePath:begin⟧',
+    end: '// ⟦realm:filePath:end⟧',
+    nodeBody: '  readonly filePath?: string;\n',
+    wasmBody: '  readonly filePath?: never;\n',
+  },
+  {
+    name: 'factory',
+    begin: '// ⟦realm:factory:begin⟧',
+    end: '// ⟦realm:factory:end⟧',
+    nodeBody: 'export function storeCreate(cfg: StoreConfig): StoreInstance;\n',
+    // **`unknown` IS THE HONEST TYPE OF A HOST-SUPPLIED MODULE**: the package instantiates nothing on this arm
+    // (`D-155` item 3), the host hands the initialised module in, and the runtime is what validates it
+    // (`addon-slot.mjs`'s `installAddon`). A named type in that position would be this package claiming the host's
+    // shape — so the region's replacement admits every value and the runtime says which values are a module.
+    wasmBody: 'export function storeCreate(bindings: unknown, cfg: StoreConfig): StoreInstance;\n',
+  },
+];
 
 /// A REFUSAL, AND IT IS ALWAYS LOUD: a message on stderr naming the byte, then a non-zero exit.
 /// **NO PATH IN THIS FILE NO-OPS.**
@@ -152,39 +185,41 @@ if (!existsSync(SOURCE)) {
 }
 const source = readFileSync(SOURCE, 'utf8');
 
-/// **THE REGION, DERIVED FROM THE SOURCE'S OWN BYTES.** The two markers must each occur EXACTLY once,
-/// each must stand alone on its own line at the member's own two-space depth, and the bytes between
-/// them must be EXACTLY the one member line this step replaces — so the region is not a range this
-/// script guesses at, it is a range the source declares. **EVERY FAILURE HERE NAMES THE BYTE.**
-function regionOf(text) {
-  const begins = occurrences(text, BEGIN);
-  const ends = occurrences(text, END);
+/// **ONE REGION, DERIVED FROM THE SOURCE'S OWN BYTES.** The region's two markers must each occur EXACTLY once,
+/// each must stand alone on its own line at this file's marker depth of two spaces, and the bytes between them
+/// must be EXACTLY the one line this step replaces — so the region is not a range this script guesses at, it is a
+/// range the source declares. **EVERY FAILURE HERE NAMES THE REGION AND THE BYTE**, and each rule below is the rule
+/// this step applied to its one region before 2026-11-20, applied now to each region of the set by its own name.
+function regionOf(text, region) {
+  const named = `the '${region.name}' region`;
+  const begins = occurrences(text, region.begin);
+  const ends = occurrences(text, region.end);
 
   if (begins === 0) {
-    refuse(`the begin marker is ABSENT from ${relative(REPO_ROOT, SOURCE)}: the source declares no `
-      + `region this step could emit a WASM arm from, so the realm-conditional member cannot be `
-      + `derived. The marker is the line \`${BEGIN}\` at two spaces of indentation.`);
+    refuse(`the begin marker of ${named} is ABSENT from ${relative(REPO_ROOT, SOURCE)}: the source declares no `
+      + `region this step could emit a WASM arm from, so the realm-conditional byte cannot be derived. The `
+      + `marker is the line \`${region.begin}\` at two spaces of indentation.`);
   }
   if (begins > 1) {
-    refuse(`the begin marker appears ${begins} times in ${relative(REPO_ROOT, SOURCE)} (at lines `
-      + `${offsetsOf(text, BEGIN).map((at) => lineOf(text, at)).join(', ')}): the source must declare `
-      + 'ONE realm region, and a second begin marker is a refusal rather than a first match.');
+    refuse(`the begin marker of ${named} appears ${begins} times in ${relative(REPO_ROOT, SOURCE)} (at lines `
+      + `${offsetsOf(text, region.begin).map((at) => lineOf(text, at)).join(', ')}): each region declares its `
+      + 'begin marker EXACTLY once, and a second one is a refusal rather than a first match.');
   }
   if (ends === 0) {
-    refuse(`the end marker is ABSENT from ${relative(REPO_ROOT, SOURCE)}: the begin marker stands at `
-      + `line ${lineOf(text, text.indexOf(BEGIN))} with nothing closing it. The marker is the line `
-      + `\`${END}\` at two spaces of indentation.`);
+    refuse(`the end marker of ${named} is ABSENT from ${relative(REPO_ROOT, SOURCE)}: its begin marker stands `
+      + `at line ${lineOf(text, text.indexOf(region.begin))} with nothing closing it. The marker is the line `
+      + `\`${region.end}\` at two spaces of indentation.`);
   }
   if (ends > 1) {
-    refuse(`the end marker appears ${ends} times in ${relative(REPO_ROOT, SOURCE)} (at lines `
-      + `${offsetsOf(text, END).map((at) => lineOf(text, at)).join(', ')}): the source must declare `
-      + 'ONE realm region, and a second end marker is a refusal rather than a first match.');
+    refuse(`the end marker of ${named} appears ${ends} times in ${relative(REPO_ROOT, SOURCE)} (at lines `
+      + `${offsetsOf(text, region.end).map((at) => lineOf(text, at)).join(', ')}): each region declares its end `
+      + 'marker EXACTLY once, and a second one is a refusal rather than a first match.');
   }
 
-  const beginAt = text.indexOf(BEGIN);
-  const endAt = text.indexOf(END);
+  const beginAt = text.indexOf(region.begin);
+  const endAt = text.indexOf(region.end);
   if (endAt < beginAt) {
-    refuse(`the two markers are UNBALANCED: the end marker stands at byte ${endAt} (line `
+    refuse(`the two markers of ${named} are UNBALANCED: the end marker stands at byte ${endAt} (line `
       + `${lineOf(text, endAt)}) BEFORE the begin marker at byte ${beginAt} (line `
       + `${lineOf(text, beginAt)}), so the region has no body this step could replace.`);
   }
@@ -192,53 +227,86 @@ function regionOf(text) {
   const beginLineStart = text.lastIndexOf('\n', beginAt) + 1;
   const endLineStart = text.lastIndexOf('\n', endAt) + 1;
   if (text.slice(beginLineStart, beginAt) !== '  ') {
-    refuse(`the begin marker is not an indented comment line at the member's own depth: line `
+    refuse(`the begin marker of ${named} is not an indented comment line at this file's marker depth: line `
       + `${lineOf(text, beginAt)} reads ${JSON.stringify(text.slice(beginLineStart, beginAt))} before `
       + 'the marker, where exactly two spaces are required. The indentation is the marker\'s whole '
       + 'point — it is what keeps the line out of reach of the readers of this file.');
   }
   if (text.slice(endLineStart, endAt) !== '  ') {
-    refuse(`the end marker is not an indented comment line at the member's own depth: line `
+    refuse(`the end marker of ${named} is not an indented comment line at this file's marker depth: line `
       + `${lineOf(text, endAt)} reads ${JSON.stringify(text.slice(endLineStart, endAt))} before the `
       + 'marker, where exactly two spaces are required (the same reading as the begin marker\'s).');
   }
 
   const bodyStart = text.indexOf('\n', beginAt) + 1;
   if (bodyStart === 0 || bodyStart >= endLineStart) {
-    refuse(`the region between the markers is EMPTY: the begin marker at line `
+    refuse(`the ${named} between its markers is EMPTY: the begin marker at line `
       + `${lineOf(text, beginAt)} is closed by the end marker at line ${lineOf(text, endAt)} with no `
-      + `member line between them, so the WASM arm would replace nothing. The region's body is the `
-      + `one line \`${NODE_BODY.trim()}\`.`);
+      + `line between them, so the WASM arm would replace nothing. The region's body is the one line `
+      + `\`${region.nodeBody.trim()}\`.`);
   }
   const body = text.slice(bodyStart, endLineStart);
-  if (body !== NODE_BODY) {
-    const at = firstDifference(body, NODE_BODY);
+  if (body !== region.nodeBody) {
+    const at = firstDifference(body, region.nodeBody);
     const differsAt = at === -1 ? 'no byte differs and the lengths do' : `byte ${at} differs`;
-    refuse(`the region's body is not the ONE member line this step replaces: it reads `
-      + `${JSON.stringify(body)}, where \`${NODE_BODY.trim()}\` is the declared body — `
-      + `${differsAt}. The region carries the member and nothing else, so that the WASM arm's `
-      + 'emission replaces a member and not a docblock or a neighbour.');
+    refuse(`the body of ${named} is not the ONE line this step replaces: it reads `
+      + `${JSON.stringify(body)}, where \`${region.nodeBody.trim()}\` is the declared body — `
+      + `${differsAt}. The region carries that line and nothing else, so that the WASM arm's emission `
+      + 'replaces a declaration or a member and not a docblock or a neighbour.');
   }
 
-  return { bodyStart, bodyEnd: endLineStart, body };
+  return { name: region.name, wasmBody: region.wasmBody, nodeBody: region.nodeBody, bodyStart, bodyEnd: endLineStart, body };
 }
 
-const region = regionOf(source);
+/// **THE SET, DERIVED IN SOURCE ORDER — AND REFUSED WHEN TWO REGIONS OVERLAP.** The order is the source's and not
+/// this file's, so the emission below walks the text once; an overlap would make one region's replacement cut into
+/// another's body, which is a source that declares two regions where only one can be read.
+const regions = REGIONS.map((region) => regionOf(source, region))
+  .sort((left, right) => left.bodyStart - right.bodyStart);
+
+for (let index = 1; index < regions.length; index += 1) {
+  const previous = regions[index - 1];
+  const current = regions[index];
+  if (current.bodyStart < previous.bodyEnd) {
+    refuse(`the '${previous.name}' region (lines ${lineOf(source, previous.bodyStart)}–`
+      + `${lineOf(source, previous.bodyEnd - 1)}) and the '${current.name}' region (starting at line `
+      + `${lineOf(source, current.bodyStart)}) OVERLAP in ${relative(REPO_ROOT, SOURCE)}: they must be disjoint, `
+      + 'or one region\'s replacement would cut into the other\'s body.');
+  }
+}
 
 // ---------------------------------------------------------------------------------------------
 // THE TWO EMISSIONS — PURE FUNCTIONS OF THE SOURCE'S BYTES
 // ---------------------------------------------------------------------------------------------
-/// The bytes OUTSIDE the region, on both arms. They are taken once, from the source, so that the two
-/// files below are provably identical outside it rather than merely built from the same text.
-const outsideBefore = source.slice(0, region.bodyStart);
-const outsideAfter = source.slice(region.bodyEnd);
+/// One text composed from the source's bytes, with every region's body taken from the arm this step is composing
+/// for. Nothing outside the regions is re-serialised or normalised: the pieces between them are the source's own.
+function compose(nodeArm) {
+  let out = '';
+  let at = 0;
+  for (const region of regions) {
+    out += source.slice(at, region.bodyStart);
+    out += nodeArm ? region.nodeBody : region.wasmBody;
+    at = region.bodyEnd;
+  }
+  return out + source.slice(at);
+}
 
 /// The Node arm's declaration IS the source: not a re-serialisation, not a normalisation — the bytes
-/// the hand-authored file holds, which is what makes the identity assertion below a real one.
+/// the hand-authored file holds, which is what makes the identity assertion below a real one. **AND THE
+/// COMPOSITION IS ASSERTED AGAINST IT**, so a region whose declared Node body was not the source's own bytes
+/// would be refused here rather than shipped as a second surface wearing the source's name.
 const nodeText = source;
+const composedNode = compose(true);
+if (composedNode !== source) {
+  const at = firstDifference(composedNode, source);
+  refuse(`the declared Node bodies do not compose back to the source: the composition and `
+    + `${relative(REPO_ROOT, SOURCE)} first differ at byte ${at} (line ${at === -1 ? '—' : lineOf(source, at)}), `
+    + `so some region's Node body is not the bytes the source holds. Regions: `
+    + `${regions.map((region) => `'${region.name}'`).join(', ')}.`);
+}
 
-/// The WASM arm's declaration is those same outside bytes with the one replacement between them.
-const wasmText = outsideBefore + WASM_BODY + outsideAfter;
+/// The WASM arm's declaration is those same outside bytes with each region's replacement between them.
+const wasmText = compose(false);
 
 // ---------------------------------------------------------------------------------------------
 // THE OUTPUT DIRECTORY — THE CALLER'S, AND NEVER INSIDE THE PACKAGE
@@ -290,35 +358,54 @@ if (nodeWritten !== nodeText || nodeWritten !== source) {
     + 'bytes or it is not the Node arm.');
 }
 
-// (2) EVERYTHING OUTSIDE THE REGION, BYTE-IDENTICAL — read against BOTH the source and the Node
-//     emission, because the claim is about the pair of files this run wrote and about the one source
-//     they came from.
-const wasmBefore = wasmWritten.slice(0, outsideBefore.length);
-const wasmAfter = wasmWritten.slice(wasmWritten.length - outsideAfter.length);
-if (wasmBefore !== outsideBefore || wasmBefore !== nodeWritten.slice(0, outsideBefore.length)) {
-  refuse(`the WASM arm's emission differs from the source BEFORE the region: the outside bytes `
-    + `(0…${outsideBefore.length}) do not match. Only the region's body may move between the arms.`);
+// (2) EVERYTHING OUTSIDE THE REGIONS, BYTE-IDENTICAL — read against the source, which the assertion above has
+//     already established is the Node emission's own bytes, so one walk serves both arms. **THE WALK IS IN SOURCE
+//     ORDER AND NAMES THE REGION IT IS STANDING IN**, so a second region cannot hide behind the first: the bytes
+//     between two regions are checked as strictly as the bytes before the first and after the last.
+let sourceAt = 0;
+let writtenAt = 0;
+for (const region of regions) {
+  const before = source.slice(sourceAt, region.bodyStart);
+  if (wasmWritten.slice(writtenAt, writtenAt + before.length) !== before) {
+    refuse(`the WASM arm's emission differs from the source BEFORE the '${region.name}' region: the `
+      + `outside bytes (${sourceAt}…${region.bodyStart}) do not match. Only each region's body may move `
+      + 'between the arms.');
+  }
+  writtenAt += before.length;
+  const writtenBody = wasmWritten.slice(writtenAt, writtenAt + region.wasmBody.length);
+  if (writtenBody !== region.wasmBody) {
+    refuse(`the WASM arm's '${region.name}' body is not the declared replacement: it reads `
+      + `${JSON.stringify(writtenBody)} where ${JSON.stringify(region.wasmBody)} is declared.`);
+  }
+  writtenAt += region.wasmBody.length;
+  sourceAt = region.bodyEnd;
 }
-if (wasmAfter !== outsideAfter || wasmAfter !== nodeWritten.slice(nodeWritten.length - outsideAfter.length)) {
-  refuse(`the WASM arm's emission differs from the source AFTER the region: the outside bytes `
-    + `(${region.bodyEnd}…${source.length}) do not match. Only the region's body may move between `
-    + 'the arms.');
+const tail = source.slice(sourceAt);
+if (wasmWritten.slice(writtenAt) !== tail) {
+  refuse(`the WASM arm's emission differs from the source AFTER the last region: the outside bytes `
+    + `(${sourceAt}…${source.length}) do not match. Only each region's body may move between the arms.`);
 }
-if (wasmWritten.length !== outsideBefore.length + WASM_BODY.length + outsideAfter.length) {
-  refuse(`the WASM arm's emission is not the outside bytes PLUS the replacement: it reads `
-    + `${wasmWritten.length} bytes where ${outsideBefore.length} + ${WASM_BODY.length} + `
-    + `${outsideAfter.length} are declared.`);
+if (wasmWritten.length !== writtenAt + tail.length) {
+  refuse(`the WASM arm's emission is not the outside bytes PLUS the replacements: it reads `
+    + `${wasmWritten.length} bytes where ${writtenAt + tail.length} are declared.`);
 }
-if (wasmWritten.slice(outsideBefore.length, wasmWritten.length - outsideAfter.length) !== WASM_BODY) {
-  refuse(`the WASM arm's region body is not the declared replacement: it reads `
-    + `${JSON.stringify(wasmWritten.slice(outsideBefore.length, wasmWritten.length - outsideAfter.length))} `
-    + `where ${JSON.stringify(WASM_BODY)} is declared.`);
+/// **AND THE LENGTH IS ACCOUNTED FOR TWICE — by the walk above and by the sum of the deltas**, so an
+/// emission that swallowed a byte and gave one back in the same place could not pass unnoticed.
+const expectedWasmLength = source.length
+  + regions.reduce((moved, region) => moved + region.wasmBody.length - region.nodeBody.length, 0);
+if (wasmWritten.length !== expectedWasmLength) {
+  refuse(`the WASM arm's emission moves by the regions' own differences and by nothing else: it reads `
+    + `${wasmWritten.length} bytes where ${expectedWasmLength} are declared for regions `
+    + `${regions.map((region) => `'${region.name}' (+${region.wasmBody.length - region.nodeBody.length})`).join(', ')}.`);
 }
 
 // ---------------------------------------------------------------------------------------------
 // THE ANSWER — THE TWO ABSOLUTE PATHS THIS RUN WROTE, AND WHAT EACH ONE IS
 // ---------------------------------------------------------------------------------------------
 process.stdout.write(`emit-declarations: ${nodePath} (${statSync(nodePath).size} bytes) — the Node arm: `
-  + `${relative(REPO_ROOT, SOURCE)}'s own bytes, region unchanged, identity asserted\n`);
-process.stdout.write(`emit-declarations: ${wasmPath} (${statSync(wasmPath).size} bytes) — the WASM arm: the `
-  + `region's body replaced by \`${WASM_BODY.trim()}\`, everything outside it byte-identical\n`);
+  + `${relative(REPO_ROOT, SOURCE)}'s own bytes, ${regions.length} region(s) unchanged, identity asserted\n`);
+for (const region of regions) {
+  process.stdout.write(`emit-declarations:   region '${region.name}' -> \`${region.wasmBody.trim()}\`\n`);
+}
+process.stdout.write(`emit-declarations: ${wasmPath} (${statSync(wasmPath).size} bytes) — the WASM arm: each `
+  + `region's body replaced as printed above, everything outside the regions byte-identical\n`);

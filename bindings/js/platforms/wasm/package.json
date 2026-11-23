@@ -1,6 +1,6 @@
 {
   "name": "@auspicion/provident-storeroom-js-wasm",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "provident-storeroom for a WebAssembly host — the same store, the same package, with its bindings handed in.",
   "type": "module",
   "main": "index.mjs",

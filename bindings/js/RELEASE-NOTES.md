@@ -16,7 +16,7 @@ claims to be installable.**
 
 **⟶ AND THE CUT-STATE IS DROPPED FROM THIS FILE, 2026-10-28 — `D-57`, THE ARCHITECT VERBATIM: *"Drop the cut-state."*** `RCA-8(g)` ANNOTATE-BESIDE: **the title line and every dated paragraph of this file stand BYTE-FOR-BYTE as the reading of their own date, THIS clause is the one that reads them, and not one byte is deleted.** **THE REASON IS STRUCTURAL AND IT WAS MEASURED THREE TIMES: A SHIPPED DOCUMENT IS SEALED BEFORE THE TAG THAT MAKES ITS CUT-STATE TRUE**, so every release packed before its tag ships a document denying itself, and a guard running in that release's own preflight can only ever confirm *"not cut"* — `1.2.0` shipped *"NOT CUT"*, `1.3.0` shipped *"`v1.3.0` DOES NOT EXIST"*, and this file's own head was stale within minutes of the tag that falsified it. **SO EVERY SENTENCE BELOW THAT CLAIMS WHETHER SOME VERSION IS OR IS NOT CUT — *"PREPARED — NOT CUT"*, *"no `v1.3.0`"*, *"nothing in this section is cut"*, *"the release is not cut"*, *"what is installed today is still `1.1.0`"*, and each reading printed beside them — IS READ THROUGH THIS CLAUSE: the cut-state is not a document's to state.** **WHAT SURVIVES IS THE ONE FIGURE A SHIPPED DOCUMENT CAN BE RIGHT ABOUT, AND IT IS GENERATED FROM THE MANIFEST AND ASSERTED BY THE PREFLIGHT:**
 
-PUBLISH-NOTES-VERSION-LINE: THE VERSION THIS CHANGE LIST DESCRIBES IS `2.0.0`.
+PUBLISH-NOTES-VERSION-LINE: THE VERSION THIS CHANGE LIST DESCRIBES IS `2.0.1`.
 
 **AND THE TAG SET SURVIVES AS A RECORD OF RELEASES — PAST TENSE, A LIST OF WHAT HAS BEEN CUT, NEVER A CLAIM ABOUT THE CURRENT ONE** (the record stands in `§1.4.0` below — the section this file's head called `§main` until it was re-cut to name the version it prepares, 2026-10-28 — beside the section for the tree this file describes). (`D-57`; `DEF-AC` (b) — `scripts/publish.sh --figures` generates that line from `bindings/js/package.json`'s `version` and refuses on any disagreement, in this file, in `bindings/js/README.md` and in the shipped guide: three documents, three version lines, one generator, one assertion.)
 
@@ -52,6 +52,88 @@ RELEASE-NOTES.md`.**
 `version`, its FIVE exact `optionalDependencies` pins, and the FIVE `platforms/*/package.json` versions. **The
 artefact is stamped from the manifest by `bindings/js/build.rs`, so `version()` answers `1.1.0`** and that is
 the value to assert against, not the crate's own `Cargo.toml` version.
+
+---
+
+## §2.0.1 · a PATCH — the WebAssembly arm's declaration spells the factory with the TWO positions its runtime and its guide require: one shipped artefact corrected in the declaration alone, the instrument that would have caught it, and no byte of the runtime moved
+
+**THE VERSION IS `2.0.1` AND ITS CLASS IS A PATCH, AND THE CLASS IS NOT A JUDGEMENT THIS FILE MAKES: IT IS `D-203`
+ITEM 5'S OWN SENTENCE.** `strata/decisions.md` · `D-203`, item 5, verbatim: *"its class is a **patch on the arm at
+most** (the one-position form it replaces **could not construct at all**), and **the number is the architect's.**"*
+**THE ARTEFACT IS `@auspicion/provident-storeroom-js-wasm`, THE SIXTH PACKAGE, AND IT IS THE ONLY ARTEFACT OF THE SET
+WHOSE BYTES MOVE** — this release reaches a published declaration and nothing else.
+
+**THE FINDING, AT THE BYTE (`D-203` items 1–3).** The arm's SHIPPED declaration read
+`export function storeCreate(cfg: StoreConfig): StoreInstance;` — **the Node arm's line, byte for byte** — while its
+runtime takes the initialised module at its FIRST position (`bindings/js/platforms/wasm/index.mjs`: *"`storeCreate(bindings,
+cfg)` takes the initialised module at its FIRST position"*) and the guide teaches exactly that construction
+(`docs/guides/package-use.md` §13.1: *"THE FACTORY TAKES TWO POSITIONS — `storeCreate(bindings, cfg)` — and the first is
+the module"*). **So a TypeScript consumer of the arm could not spell the construction its own runtime requires**:
+`storeCreate(bindings, cfg)` **failed the declared signature**, and `storeCreate(cfg)` **compiled and could not carry the
+injected module** (`D-203` item 3).
+
+1. **THE DECLARATION'S GENERATOR GAINS A SECOND REALM REGION, AND LOSES NO GUARD.** `scripts/emit-declarations.mjs`
+   replaced **one** region (`// ⟦realm:filePath:begin⟧` … end) and refused a second marker by name; **it now derives a
+   SET of regions**, each refused exactly as the one was — **each marker exactly once, each alone on its own line at two
+   spaces of indentation, the body between them exactly the line the Node arm declares, a refusal on overlap, and every
+   refusal naming WHICH REGION it refused.** The refuse-on-second-marker rule is refuse-on-second-marker-**per region**,
+   and it is not weakened: a duplicated marker still stops the run rather than being taken at its first match.
+2. **THE ARM'S FACTORY BODY IS `export function storeCreate(bindings: unknown, cfg: StoreConfig): StoreInstance;`, AND
+   `unknown` IS THE HONEST TYPE OF A HOST-SUPPLIED MODULE.** The package instantiates nothing on this arm (`D-155` item
+   3), the HOST hands the initialised module in, and **the runtime validates what arrives** (`bindings/js/src/entry/
+   addon-slot.mjs`'s `installAddon`, which refuses `null`, `undefined`, a primitive, a function and an object carrying no
+   callable `storeCreate`) — **so a named type in that position would be this package claiming the HOST's shape.** The
+   arm's `filePath` body is the `readonly filePath?: never;` it has been since `D-155` item 2, byte for byte.
+3. **THE NODE ARM'S DECLARATION MOVES NO BYTE.** `bindings/js/index.d.ts` still declares `storeCreate(cfg: StoreConfig):
+   StoreInstance;` at its one position; **the factory's markers are two comment lines at two spaces of indentation**, so
+   no member census, no status count and no module-level export count can see them — the arm's emission is still the
+   source's own bytes with the regions' bodies replaced, and the generator still asserts that identity before it writes.
+4. **AND THE INSTRUMENT `D-203` ITEM 5 OWED NOW EXISTS — `CW-10`.** `tests/e2e/wasm-arm.test.mjs` compiles a generated
+   `.ts` file in a temp directory with the project's own `tsc` (`--noEmit`, TypeScript 5.9.3) against **the STAGED ARM's
+   `bindings/js/platforms/wasm/index.d.ts`**, and requires all three limbs: **`storeCreate(bindings, cfg)` TYPECHECKS**;
+   **`storeCreate(cfg)` does NOT**, through a `@ts-expect-error` whose unused form is itself `TS2578` and therefore a
+   failing run; and **`filePath: 'x'` does NOT**, the `never` narrowing read beside the region it belongs to. **It fails on
+   the `2.0.0` tree and passes on this one** — which is the only reading that makes it an instrument rather than a
+   decoration (`D-203` item 4: *"no TypeScript consumer is compiled against the ARM's declaration anywhere"*).
+
+**WHAT A CONSUMER ON `2.0.0` MEETS:**
+
+- **A TYPESCRIPT CONSUMER OF THE WEBASSEMBLY ARM CAN NOW WRITE THE CONSTRUCTION THE GUIDE TEACHES.** `storeCreate(bindings,
+  cfg)` compiles against the arm's shipped declaration, with the host's initialised module at position one and a `cfg`
+  that carries no `filePath`; **`storeCreate(cfg)` is now the compile error it always was at runtime**, and it stops being
+  the one form the compiler blessed and the store refused.
+- **THE RUNTIME NEVER MOVED.** **No `.mjs` byte and no `.rs` byte of this release changes**: the arm's entry still takes
+  two positions, the crossing is the same clone, the nineteen module entries are unmoved, and every cell that drives the
+  arm in JavaScript (`CW-1`…`CW-9`) reads what it read on `2.0.0`.
+- **A JAVASCRIPT CONSUMER SEES NO CHANGE AT ALL.** The defect was declaration-only (`D-203` item 6), so an application
+  that already called `storeCreate(bindings, cfg)` — the only form the runtime ever admitted — observes the same store,
+  the same members, the same statuses and the same refusals.
+- **AND A CONSUMER OF `provident-storeroom` ITSELF SEES NO CHANGE EITHER**: its declaration's factory, its member set, its
+  statuses, its refusal messages and its records are byte-unmoved by this release.
+
+**THE MIGRATION SENTENCE, FOR A CONSUMER WHO WORKED AROUND THE DEFECT ON `2.0.0`.** **If you cast or annotated around the
+arm's one-position signature — a `@ts-expect-error`, an `as` cast, or a locally declared wrapper — DELETE THE WORKAROUND
+AND WRITE THE CALL THE GUIDE TEACHES**: `storeCreate(bindings, cfg)`, where `bindings` is the module namespace the host
+obtained from the glue's own `initSync` and `cfg` is your configuration. **The runtime call was always two-positioned, so
+the call itself does not move and the workaround is the only thing that does**; a consumer who never wrote one has no
+migration to perform.
+
+**WHAT DOES NOT MOVE, NAMED ONE BY ONE:** **the runtime, in every arm and every entry** — the nineteen module entries,
+the fifteen instance members, the save channel and the crossing · **the `cfg` domain on both realms** — `filePath` is
+still `never` on the arm and still a `string` on the Node build · **the closed status set** and every refusal's code and
+message · **the Node arm's own declaration surface** · **the guide's §13.1**, which was already right and is not edited by
+this release (*"THE FACTORY TAKES TWO POSITIONS"*) · and **the cell count of every battery that was green on `2.0.0`**,
+which this release leaves green, one cell richer.
+
+**THE VERSION MOVES TWELVE SITES TOGETHER: the main manifest's `version`, its FIVE exact `optionalDependencies` pins, and
+the SIX `platforms/*/package.json` versions** — the five native siblings and the WebAssembly sibling, whose `version` its
+own coupled-version clause names. **The artefact is stamped from the manifest by `bindings/js/build.rs`, so `version()`
+answers `2.0.1`**, and that is the value to assert against. **AND THE THREE GENERATED VERSION LINES — `bindings/js/README.md`,
+the guide's landing `bindings/js/README.guide.md` and the change list's landing `bindings/js/RELEASE-NOTES.md` — are
+re-derived from that manifest and re-staged BYTE-FOR-BYTE from their canonicals, never hand-edited** (`DEF-AC` (b);
+`scripts/publish.sh --figures` is the assertion).
+
+**AND THIS RELEASE DESCRIBES `2.0.1` AND CLAIMS NO TAG**: the cut-state is not a document's to state (`D-57`).
 
 ---
 

@@ -21,9 +21,10 @@
 
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync, writeSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { execFileSync, spawnSync } from 'node:child_process';
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync, writeSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -543,4 +544,181 @@ test('CW-9 · the package\'s finalizer reaches the ARM — every store the probe
   assert.equal(RETIREMENT_REPORT.releasedByFinalizer, PROBE_STORES,
     'and the count is the whole batch — a partial count would mean the finalizer reaches the arm for some stores '
     + `and not others: ${RETIREMENT_REPORT.releasedByFinalizer} of ${PROBE_STORES}`);
+});
+
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════
+// **`CW-10` · THE ARM'S DECLARED SURFACE, COMPILED — THE INSTRUMENT `D-203` ITEM 5 OWED**
+//
+// **WHY THIS CELL EXISTS, IN THE FINDING'S OWN WORDS.** `D-203` item 4: *"**no TypeScript consumer is compiled
+// against the ARM's declaration anywhere**"* — `typecheck/consumer-fixture.ts` targets the NODE package, and the
+// arm's cells (`CW-1`…`CW-9`) drive the runtime in JAVASCRIPT and never a compiler. **So the arm's declared
+// surface went unmeasured from `D-155` item 2 until this cell**, and the defect it hid was that the arm's shipped
+// `index.d.ts` spelled `export function storeCreate(cfg: StoreConfig): StoreInstance;` — **the Node arm's line** —
+// while the arm's runtime takes the initialised module at its FIRST position (`bindings/js/platforms/wasm/index.mjs`)
+// and the guide teaches that construction (`docs/guides/package-use.md` §13.1). **A consumer could write
+// `storeCreate(cfg)`, compile, and never be able to construct a store.**
+//
+// **THE THREE LIMBS, AND EACH ONE IS A LIMB AND NOT A DECORATION** (`D-203` item 5; item 3's own two sentences):
+//   1. `storeCreate(bindings, cfg)` TYPECHECKS — the construction the runtime and the guide require, with the module
+//      at position one and a `cfg` that carries no `filePath`;
+//   2. `storeCreate(cfg)` DOES NOT — the one-position form is the NODE arm's, and a fixture that checked only the
+//      positive would have passed on the broken declaration for the wrong reason;
+//   3. `filePath: 'x'` DOES NOT — the arm's `StoreConfig` narrows that member to `never` (`D-155` item 2), and this
+//      limb is what says the FIRST region still lands while the second is read beside it.
+// **AND THE TWO NEGATIVES ARE `@ts-expect-error` LINES, WHICH IS THE SELF-CHECKING FORM**: TypeScript reports an
+// UNUSED directive as its own error (`TS2578`), so a negative limb that stopped being negative — or a positive limb
+// that stopped being positive — reddens this cell rather than passing it.
+//
+// **THE FILE IT COMPILES AGAINST IS THE STAGED ARM — `bindings/js/platforms/wasm/index.d.ts` — AND THE CELL DEPENDS
+// ON A BUILD ONLY WHEN THE STAGED BYTES ARE NOT THE GENERATOR'S OWN ARM.** `ensureBuilt()` above builds the arm when
+// its runtime artefacts are absent, but a STALE declaration can stand beside a current runtime: so the cell produces
+// the arm's emission into a temp directory, compares, and — when the staged file disagrees — runs
+// `scripts/build-wasm-package.mjs` (whose step 5 installs that very emission as `index.d.ts`) and re-reads. **A cell
+// that measured whatever happened to be on disk would be measuring an unknown file; this one measures the generator's
+// arm or fails in words.**
+// ═════════════════════════════════════════════════════════════════════════════════════════════════════
+
+/// The arm's STAGED declaration, the generator that produces it, and the compiler `npm run typecheck` already drives.
+const ARM_DECLARATION = join(PKG, 'index.d.ts');
+const EMITTER = join(ROOT, 'scripts', 'emit-declarations.mjs');
+const TSC = join(ROOT, 'node_modules', 'typescript', 'bin', 'tsc');
+
+/// **THE ARM'S OWN EMISSION, PRODUCED INTO A TEMP DIRECTORY AND READ BACK** — exactly the bytes `build-wasm-package.mjs`
+/// step 5 installs, and the reading is of the generator rather than of whatever a previous run left behind.
+function emittedArm() {
+  const dir = mkdtempSync(join(tmpdir(), 'cw-10-emit-'));
+  try {
+    const run = spawnSync(process.execPath, [EMITTER, dir], { cwd: ROOT, encoding: 'utf8' });
+    assert.equal(run.status, 0,
+      'the declaration generator must answer exit 0 for the arm to have an emission this cell can measure. It said: '
+      + `${(run.stderr ?? '').slice(0, 800)}`);
+    return readFileSync(join(dir, 'index.wasm.d.ts'), 'utf8');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+/// **THE STAGED ARM, MADE CURRENT BEFORE IT IS MEASURED.** A declaration that is absent or that is not the generator's
+/// arm is REBUILT (`scripts/build-wasm-package.mjs`), never tolerated, and the rebuild is asserted to have landed the
+/// emission this cell then compiles against.
+function stagedArm() {
+  const staged = existsSync(ARM_DECLARATION) ? readFileSync(ARM_DECLARATION, 'utf8') : null;
+  if (staged !== null && staged === emittedArm()) return staged;
+  const script = join(ROOT, 'scripts', 'build-wasm-package.mjs');
+  assert.ok(existsSync(script), 'the build script this cell falls back to is present: ' + script);
+  const run = spawnSync(process.execPath, [script], { cwd: ROOT, encoding: 'utf8' });
+  // **A REBUILD THAT CANNOT RUN IS THE ARM'S OWN DECLARED ABSENCE AND NOT A SKIP** (`P-PUB-7`'s doctrine): the same
+  // refusal `ensureBuilt()` prints, one artefact over.
+  assert.equal(run.status, 0,
+    'CW-10: the arm\'s staged declaration is not the generator\'s arm and the rebuild that would stage it could not run '
+    + '(it needs the wasm32-unknown-unknown target and the wasm-bindgen CLI in .cargo-home/bin). The build said: '
+    + `${(run.stderr ?? '').slice(0, 800)}`);
+  assert.ok(existsSync(ARM_DECLARATION), 'the rebuild staged the arm\'s declaration at ' + ARM_DECLARATION);
+  const rebuilt = readFileSync(ARM_DECLARATION, 'utf8');
+  assert.equal(rebuilt, emittedArm(),
+    'and what it staged IS the generator\'s WASM arm — the emission `scripts/emit-declarations.mjs` produces, with each '
+    + 'of its realms\' bodies replaced by that realm\'s own');
+  return rebuilt;
+}
+
+/// **THE CONSUMER'S FILE** — a `.ts` compiled with `--noEmit` against the STAGED ARM, written into a temp directory so
+/// that this cell writes nothing into the checkout. **`bindings` IS A PLAIN `object` HERE AND `unknown` AT THE
+/// DECLARATION**: the declared type of a host-supplied module is `unknown` on purpose (`D-203` item 5 — the runtime
+/// validates it, and a named type would be this package claiming the HOST's shape), so anything the host may hand over
+/// is assignable to it and nothing here has to imitate a module's shape.
+function fixtureSource(specifier) {
+  return [
+    '// GENERATED BY tests/e2e/wasm-arm.test.mjs\'s CW-10 — `D-203` item 5. Compiled with --noEmit, never run.',
+    `import { storeCreate } from '${specifier}';`,
+    `import type { StoreConfig, StoreInstance } from '${specifier}';`,
+    '',
+    '// THE HOST INSTANTIATES NOTHING HERE: the module is the caller\'s, so its declared type is `unknown`.',
+    'const bindings: object = {};',
+    '// AND THIS `cfg` CARRIES NO `filePath` — it is not in domain on this arm (`D-154` item 4).',
+    'const cfg: StoreConfig = { journalLength: 256, listeners: [] };',
+    '',
+    '// LIMB ONE — THE TWO-POSITION CONSTRUCTION THE RUNTIME AND THE GUIDE REQUIRE. It must compile.',
+    'const store: StoreInstance = storeCreate(bindings, cfg);',
+    "store.read(['a'], 'mem');",
+    '',
+    '// LIMB TWO — THE ONE-POSITION FORM IS THE NODE ARM\'S AND MUST NOT COMPILE HERE (`D-203` item 3).',
+    '// @ts-expect-error — `storeCreate(cfg)` is one position: an unused directive here is a FAILURE.',
+    'storeCreate(cfg);',
+    '',
+    '// LIMB THREE — `filePath` IS `never` ON THIS ARM AND MUST NOT BE SPELLABLE (`D-155` item 2).',
+    '// @ts-expect-error — a string in that position is refused on this arm and nowhere else.',
+    "const withPath: StoreConfig = { journalLength: 8, listeners: [], filePath: 'x' };",
+    '',
+  ].join('\n');
+}
+
+test('CW-10 · D-203 — a TypeScript consumer compiled against the STAGED ARM writes `storeCreate(bindings, cfg)` and '
+  + 'typechecks, while `storeCreate(cfg)` and `filePath` are both refused', () => {
+  const declared = stagedArm();
+  assert.ok(existsSync(TSC), 'the project\'s own compiler is present and is what this cell drives: ' + TSC);
+
+  // **THE FIXTURE, WRITTEN INTO A FRESH TEMP DIRECTORY AND COMPILED THERE.** The specifier is the arm's declaration
+  // reached relatively from that directory, so the file this compilation reads IS `bindings/js/platforms/wasm/index.d.ts`.
+  const dir = mkdtempSync(join(tmpdir(), 'cw-10-fixture-'));
+  try {
+    const specifier = relative(dir, ARM_DECLARATION.replace(/\.d\.ts$/, '')).split(sep).join('/');
+    writeFileSync(join(dir, 'fixture.ts'), fixtureSource(specifier.startsWith('.') ? specifier : `./${specifier}`));
+    // **`moduleResolution: bundler` AND `types: []` ARE THE TWO SETTINGS THIS READING NEEDS**: the first resolves the
+    // extensionless relative specifier a consumer would write, the second keeps any `@types` package on the machine
+    // from entering the graph — so the file that answers this compilation is the arm's declaration and nothing else.
+    writeFileSync(join(dir, 'tsconfig.json'), `${JSON.stringify({
+      compilerOptions: {
+        strict: true,
+        noEmit: true,
+        target: 'ES2022',
+        module: 'esnext',
+        moduleResolution: 'bundler',
+        types: [],
+        skipLibCheck: false,
+      },
+      files: ['fixture.ts'],
+    }, null, 2)}\n`);
+
+    const run = spawnSync(process.execPath, [TSC, '-p', join(dir, 'tsconfig.json')], { cwd: dir, encoding: 'utf8' });
+    const output = `${run.stdout ?? ''}${run.stderr ?? ''}`.trim();
+
+    // ── THE THREE LIMBS, READ AT THE COMPILER'S OWN ANSWER. `tsc` exits 0 only when limb one compiled, and when both
+    //    `@ts-expect-error` directives were USED — an unused one is `TS2578`, which is an error of this run.
+    assert.equal(run.status, 0,
+      'CW-10, `D-203` item 5: a TypeScript consumer of the WebAssembly arm must be able to write the construction its '
+      + 'runtime and its guide require. `storeCreate(bindings, cfg)` must TYPECHECK, `storeCreate(cfg)` must NOT (its '
+      + '@ts-expect-error must be USED), and `filePath` must NOT (`never`). The compilation that decides this is over '
+      + `the STAGED ARM at ${ARM_DECLARATION}; tsc said: ${output}`);
+    console.log('[CW-10] tsc --noEmit over the staged arm: exit 0 — `storeCreate(bindings, cfg)` compiles, '
+      + '`storeCreate(cfg)` and `filePath` are both refused at their own `@ts-expect-error` lines');
+
+    // ── AND THE BYTES THE COMPILER READ ARE THE ARM'S, NAMED SO THE READING ABOVE CANNOT BE OF SOME OTHER FILE: the
+    //    factory's region body is the TWO-position line, and the Node arm's source beside it is the ONE-position line —
+    //    which is what makes the region realm-conditional rather than a second hand-maintained surface.
+    const armLines = declared.split('\n');
+    const armBegin = armLines.indexOf('  // ⟦realm:factory:begin⟧');
+    assert.notEqual(armBegin, -1, 'the arm\'s declaration carries the factory region\'s begin marker at the marker '
+      + 'depth this file uses: ' + JSON.stringify('  // ⟦realm:factory:begin⟧'));
+    assert.equal(armLines[armBegin + 1],
+      'export function storeCreate(bindings: unknown, cfg: StoreConfig): StoreInstance;',
+      'and the body between the factory region\'s markers is the TWO-position declaration — `unknown` is the honest '
+      + 'type of a host-supplied module and the runtime validates it. It reads: '
+      + JSON.stringify(armLines[armBegin + 1]));
+    assert.equal(armLines[armBegin + 2], '  // ⟦realm:factory:end⟧',
+      'and the region is closed at the same depth it opened');
+
+    const nodeLines = readFileSync(join(ROOT, 'bindings', 'js', 'index.d.ts'), 'utf8').split('\n');
+    const nodeBegin = nodeLines.indexOf('  // ⟦realm:factory:begin⟧');
+    assert.notEqual(nodeBegin, -1, 'the SOURCE declaration carries the same marker pair, because the arm\'s emission '
+      + 'is this file\'s bytes with the region\'s body replaced and not a second authored surface (`D-155` item 2)');
+    assert.equal(nodeLines[nodeBegin + 1], 'export function storeCreate(cfg: StoreConfig): StoreInstance;',
+      'and the NODE arm\'s signature is the one position it has always had — the movement is the realm\'s and not the '
+      + 'package\'s. It reads: ' + JSON.stringify(nodeLines[nodeBegin + 1]));
+
+    assert.equal(declared.includes('  readonly filePath?: never;\n'), true,
+      'and the FIRST region still lands on this arm: `filePath` narrows to `never` (`D-155` item 2), which is the '
+      + 'member census the two arms share');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });

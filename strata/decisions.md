@@ -9660,3 +9660,33 @@ asserted nowhere** (`D-184` item 4).
 6. **WHAT IS TRUE OF THE TREE NOW**: **`2.0.0` is published with this defect in the sixth artefact's declaration**; the runtime is correct and the guide is correct; **only the
    emitted `index.d.ts` is wrong**, and **a JavaScript consumer is unaffected** (the defect is declaration-only). **`npm test` `1400` / `0` and the eleven runners are green because
    nothing compiles the arm — which is the finding's own point.**
+
+---
+
+### `D-204` — THE ARM'S DECLARATION IS FIXED AT `2.0.1`, AND `CW-10` IS THE INSTRUMENT THAT WOULD HAVE CAUGHT IT
+
+**DATE:** 2026-11-20. **BRANCH:** `main`. **HEAD:** `0b80b17`. **SOURCE:** the architect's *"Proceed with patch version fix"*, on `D-203`. **STATUS: `ACTIVE`.**
+
+1. **THE DECLARATION PIPELINE GAINS A SECOND REALM REGION, AND THE RUNTIME MOVES NO BYTE.** `bindings/js/index.d.ts` now brackets the factory in
+   **`// ⟦realm:factory:begin⟧` … `// ⟦realm:factory:end⟧`** at the same two-space depth the `filePath` region uses, and `scripts/emit-declarations.mjs`
+   generalises from **one** region to a **set**: each region is derived and refused on its own (each marker exactly once, alone on its own line, its body exactly what
+   that region replaces), **the refuse-on-a-second-marker rule is per region**, and **four new refusals** guard the set (regions may not overlap · the declared Node
+   bodies must compose back to the source · a written body must equal its declared replacement · the emission may move by the regions' own deltas and nothing
+   else, **length accounted twice**).
+2. **THE TWO ARMS, AT THEIR LINES**: the **arm** emits **`export function storeCreate(bindings: unknown, cfg: StoreConfig): StoreInstance;`** and the **Node arm keeps
+   `storeCreate(cfg: StoreConfig)` byte-unmoved**. **`unknown` is the honest type of a host-supplied module** — the runtime validates it (`addon-slot.mjs`'s
+   `installAddon`), and a named type would be this package claiming the host's shape.
+3. **★ AND THE CELL `D-203` ITEM 5 SPECIFIED EXISTS AND BITES BOTH WAYS.** **`CW-10`** compiles a fixture with the project's own `tsc` **against the STAGED ARM** and asserts **three** limbs: **`storeCreate(bindings, cfg)` typechecks** · **`storeCreate(cfg)` does NOT** (`@ts-expect-error`, and an **unused** directive is itself `TS2578`) · **`filePath: 'x'` does NOT** (the `never`).
+   **ON `2.0.0`'s DECLARATION IT READS `pass 8 · fail 1`** — `TS2554: Expected 1 arguments, but got 2` **and** `TS2578: Unused '@ts-expect-error'` — **so the one-position form compiled and the two-position form did not, which is the defect in one line.** **AFTER: `pass 9 · fail 0`.**
+   **AND IT IS THE INSTRUMENT, NOT THE FIX, THAT CLOSES THE CLASS**: nothing compiled the arm before, and **a positive-only fixture would have passed on the broken
+   declaration for the wrong reason** — which is why limb 2 exists.
+4. **THE CLASS IS A `PATCH` (`2.0.1`), AND THE GROUND IS `D-203` ITEM 5'S OWN**: the form being replaced **could not construct at all**. **All fifteen version sites moved**
+   (the main manifest, its five exact pins, the six platform manifests, the three generated lines), **both landings re-staged byte-for-byte**, **`--figures` `ok`** and
+   **`--cut-claims` refused 0 / stale 0**. **The declaration's own class reading is re-cut at its byte to name `2.0.1` while keeping `2.0.0`'s `MAJOR` sentence** — the
+   file has carried two classes since.
+5. **AND ONE CELL OUTSIDE THE BRIEF HAD TO MOVE, SAID RATHER THAN HIDDEN**: `tests/e2e/realm-declaration.test.mjs`'s third cell sliced from the `filePath` markers **to
+   end-of-file**, which a lower region falsified on arithmetic alone. **It now walks the region set** (per-region prefix identity, declared replacement, identical tail,
+   `length = Σ deltas`), **keeps its member-census, `never` and marker-count limbs, and adds a factory-positions limb** — no limb weakened.
+6. **MEASURED**: `npm test` **`1401` / `1401` / `0`**, `0` skipped · `typecheck` `0` · `cargo test` **23 `ok` / 0 FAILED** · `cargo check --target wasm32` **0 errors** ·
+   `build` `0` · the arm's **nineteen** entries unmoved (`CW-6`) · `publish.test.mjs` **66 / 66** · **`CHAIN COMPLETE — 11 runners`**. **NO TAG AND NO PUBLISH**:
+   `release.md §4.1` — the three tag lines are printed for the architect and not run.

@@ -693,7 +693,10 @@ export interface BaseState {
  * read returns `undefined` because the key is absent, and it is absent from the write's record, the delete's
  * record and every op the kernel's repair leg copies. **THE CLASS IS `MAJOR` (`2.0.0`, `D-190`) for exactly
  * this reason**: a PUBLISHED declaration member left the surface, which no `MINOR` absorbs — **`D-158`'s
- * `MINOR` at `1.13.0` is SUPERSEDED and this declaration describes `2.0.0`.**
+ * `MINOR` at `1.13.0` is SUPERSEDED and this declaration describes `2.0.0`.** **⟶ AND THE LINE THAT NAMES THE VERSION IS RE-CUT, 2026-11-20 — the
+ * sentence above is `2.0.0`'s own reading and stands; **what a reader needs is that this declaration now describes `2.0.1`**, whose class is a `PATCH` because
+ * `D-203`'s fix changes the ARM's emitted declaration and no runtime byte** (`D-203` item 5: *"a patch on the arm at most … could not construct at all"*).
+ * **The `MAJOR` reading above is not withdrawn: it is `2.0.0`'s, and this file has carried two classes since.**
  */
 export interface JournalOp {
   readonly opId: string;
@@ -1646,7 +1649,42 @@ export interface StoreInstance {
  * runtime first, this checkout's own module-relative addon second, and answers the declared absent form
  * when neither yields a loadable artefact.
  */
+/**
+ * **⟦ THE FACTORY'S POSITION IS THE DECLARATION'S SECOND REALM-CONDITIONAL BYTE, ADDED 2026-11-20 — `D-203`, WHOSE
+ * OWN THREE ROWS THIS REGION EXISTS FOR.** *"the arm's runtime takes TWO positions"*
+ * (`bindings/js/platforms/wasm/index.mjs`'s own docblock: *"`storeCreate(bindings, cfg)` takes the initialised module
+ * at its FIRST position"*) · *"the guide teaches TWO"* (`docs/guides/package-use.md` §13.1: *"THE FACTORY TAKES TWO
+ * POSITIONS — `storeCreate(bindings, cfg)` — and the first is the module"*) · *"the arm's SHIPPED declaration takes
+ * ONE"* — which is what this region removes: the arm's emission was the Node arm's signature byte for byte, so **a
+ * TypeScript consumer of `@auspicion/provident-storeroom-js-wasm` could not spell the construction its runtime and its
+ * guide require** (`D-203` item 3: *"`storeCreate(bindings, cfg)` fails the declared signature; `storeCreate(cfg)`
+ * compiles and cannot carry the injected module"*).
+ *
+ * **THE TWO COMMENT LINES THAT BRACKET THE DECLARATION BELOW — both at this file's marker depth of two spaces, and
+ * neither carrying a member's name-and-colon or name-and-paren shape — DELIMIT THE SECOND REGION
+ * `scripts/emit-declarations.mjs` READS**, exactly as the `filePath` markers above delimit the first (`D-155` item 2;
+ * `docs/L3/wasm-realm/design.md` §6). **The form is the reason the region can stand here at all**: no member read a
+ * battery file performs on an interface block matches a line whose first two characters after the indentation are
+ * `//`, and the one read this file's module level is subject to — the count of lines beginning `export function` —
+ * is a count of lines that begin at column zero, which a marker at two spaces is not. **So this region moves no member
+ * census, no status count, no export count and no rank.**
+ *
+ * **WHAT THE WASM ARM'S EMISSION PUTS INSIDE IT IS ONE LINE, AND ITS FIRST TYPE IS `unknown` BECAUSE THAT IS THE
+ * HONEST TYPE OF A HOST-SUPPLIED MODULE**: `export function storeCreate(bindings: unknown, cfg: StoreConfig):
+ * StoreInstance;`. **A NAMED TYPE IN THAT POSITION WOULD BE THIS PACKAGE CLAIMING THE HOST'S SHAPE** — the module is
+ * the host's, the package instantiates nothing (`D-155` item 3), and the runtime validates what arrives
+ * (`bindings/js/src/entry/addon-slot.mjs`'s `installAddon`, which refuses `null`, `undefined`, a primitive, a function
+ * and an object carrying no callable `storeCreate`) — **so the declaration admits every value and the runtime is what
+ * says which values are a module.**
+ *
+ * **AND THE NODE ARM'S SIGNATURE DOES NOT MOVE**, byte for byte: the region's Node body is the line below, the
+ * emission of the Node arm is this file's own bytes with the region unchanged, and the script asserts that identity
+ * before it writes either file. **A reader who opened this declaration to find the ONE name and the ONE position the
+ * Node arm has still finds them, one marker pair down.**
+ */
+  // ⟦realm:factory:begin⟧
 export function storeCreate(cfg: StoreConfig): StoreInstance;
+  // ⟦realm:factory:end⟧
 
 /**
  * **THE POST-CREATION CONSTRAINT PAIR — `parameter-semantics.md §2.24` (`PAR-JS-24`)**: the key the three

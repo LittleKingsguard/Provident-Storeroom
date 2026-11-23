@@ -44,14 +44,29 @@ const SOURCE_PATH = join(PACKAGE_DIR, 'index.d.ts');
 const SOURCE = readFileSync(SOURCE_PATH, 'utf8');
 const SCRIPT = join(REPO_ROOT, 'scripts', 'emit-declarations.mjs');
 
-// The generator's two emitted names, and its two marker lines — transcribed from the source and from
-// `scripts/emit-declarations.mjs`, never computed from them.
+// The generator's two emitted names, and the marker lines and bodies of the TWO regions it reads — transcribed
+// from the source and from `scripts/emit-declarations.mjs`, never computed from them.
+//
+// **⟶ ONE REGION UNTIL 2026-11-20; TWO FROM `D-203`** — the factory's position joined the `filePath` member's, and
+// the cells below read the set the same way they read the one: each region's markers once each at two spaces of
+// indentation, each region's body exactly the line the Node arm declares, and NO byte outside the regions moved
+// between the arms.
 const NODE_FILE = 'index.d.ts';
 const WASM_FILE = 'index.wasm.d.ts';
 const BEGIN = '// ⟦realm:filePath:begin⟧';
 const END = '// ⟦realm:filePath:end⟧';
 const SOURCE_BODY = '  readonly filePath?: string;\n';
 const WASM_BODY = '  readonly filePath?: never;\n';
+const FACTORY_BEGIN = '// ⟦realm:factory:begin⟧';
+const FACTORY_END = '// ⟦realm:factory:end⟧';
+const FACTORY_SOURCE_BODY = 'export function storeCreate(cfg: StoreConfig): StoreInstance;\n';
+const FACTORY_WASM_BODY = 'export function storeCreate(bindings: unknown, cfg: StoreConfig): StoreInstance;\n';
+
+/** **THE SET, IN SOURCE ORDER, AS THE GENERATOR DECLARES IT** — the reading the second cell below walks. */
+const REGIONS = [
+  { name: 'filePath', begin: BEGIN, end: END, nodeBody: SOURCE_BODY, wasmBody: WASM_BODY },
+  { name: 'factory', begin: FACTORY_BEGIN, end: FACTORY_END, nodeBody: FACTORY_SOURCE_BODY, wasmBody: FACTORY_WASM_BODY },
+];
 
 /** **THE MEMBER PATTERN, TRANSCRIBED FROM `tests/e2e/blind-entry-module.test.mjs`** — a line at the
  *  block's own two-space depth carrying an optional `readonly`, a name, its optional marker and then the
@@ -117,12 +132,15 @@ const emit = () => {
 // THE CELLS
 // ---------------------------------------------------------------------------------------------
 
-test('realm-declaration · D-155 item 2 and docs/L3/wasm-realm/design.md §6 · THE SOURCE DECLARES ONE REALM REGION — two marker lines, once each, in that order, and filePath alone between them', () => {
+test('realm-declaration · D-155 item 2 and docs/L3/wasm-realm/design.md §6 · THE SOURCE DECLARES THE `filePath` REALM REGION — two marker lines, once each, in that order, and filePath alone between them (a SECOND region, the one the factory stands in, joins it in `D-203` and is read by the cell below)', () => {
   const begins = occurrences(SOURCE, BEGIN);
   const ends = occurrences(SOURCE, END);
-  assert.equal(begins, 1, 'the source must carry the begin marker EXACTLY once and carries it '
+  // **⟶ "ONE REGION" READ THE WHOLE FILE UNTIL 2026-11-20; FROM `D-203` IT READS ONE REGION'S MARKERS**, which is
+  // the rule the generator applies to each region of its set: the `factory` region's markers are a different pair
+  // and are counted in the cell below, and neither pair may appear twice.
+  assert.equal(begins, 1, 'the source must carry this region\'s begin marker EXACTLY once and carries it '
     + begins + ' time(s): ' + BEGIN);
-  assert.equal(ends, 1, 'the source must carry the end marker EXACTLY once and carries it '
+  assert.equal(ends, 1, 'the source must carry this region\'s end marker EXACTLY once and carries it '
     + ends + ' time(s): ' + END);
 
   const beginAt = SOURCE.indexOf(BEGIN);
@@ -198,37 +216,51 @@ test('realm-declaration · D-155 item 2 · BOTH EMISSIONS ARE PRODUCED FROM THE 
   }
 });
 
-test('realm-declaration · D-155 item 2 and docs/L3/wasm-realm/design.md §6 · THE TWO EMISSIONS DIFFER ONLY INSIDE THE REGION — the WASM arm narrows filePath to never and moves NEITHER the member\'s presence NOR its optionality', () => {
+test('realm-declaration · D-155 item 2, D-203 and docs/L3/wasm-realm/design.md §6 · THE TWO EMISSIONS DIFFER ONLY INSIDE THE REGIONS — the WASM arm narrows filePath to never and spells the factory with two positions, and moves NEITHER the member\'s presence NOR its optionality', () => {
   const out = emit();
   try {
     assert.equal(out.status, 0, 'the emissions are produced for this cell to read. stderr: ' + out.stderr);
     const node = out.node;
     const wasm = out.wasm;
 
-    // The region, read off the NODE emission — which IS the source's own bytes, so these offsets are the
-    // source's.
-    const beginAt = node.indexOf(BEGIN);
-    const endAt = node.indexOf(END);
-    const bodyStart = node.indexOf('\n', beginAt) + 1;
-    const bodyEnd = node.lastIndexOf('\n', endAt) + 1;
-    const nodeBody = node.slice(bodyStart, bodyEnd);
-    const nodeTail = node.slice(bodyEnd);
+    // **THE WALK IS THE GENERATOR'S OWN, AND IT IS A WALK AND NOT A SLICE FROM ONE MARKER PAIR** (`D-203`): the
+    // bytes BETWEEN two regions are asserted as strictly as the bytes before the first and after the last, so a
+    // second region cannot hide inside the arithmetic of the first. `nodeAt`/`wasmAt` are the two arms' own
+    // cursors, because each replacement moves its arm's offset by its own length.
+    let nodeAt = 0;
+    let wasmAt = 0;
+    for (const region of REGIONS) {
+      const beginAt = node.indexOf(region.begin);
+      const endAt = node.indexOf(region.end);
+      assert.equal(beginAt !== -1 && endAt > beginAt, true, 'the NODE emission carries the ' + region.name
+        + ' region\'s two markers, in order');
+      const bodyStart = node.indexOf('\n', beginAt) + 1;
+      const bodyEnd = node.lastIndexOf('\n', endAt) + 1;
 
-    // (1) THE ONE REPLACEMENT, AND THE TWO BODIES IT MOVES BETWEEN.
-    const wasmBody = wasm.slice(bodyStart, wasm.length - nodeTail.length);
-    assert.equal(nodeBody, SOURCE_BODY, 'the source\'s region body is the string-typed member: '
-      + JSON.stringify(nodeBody));
-    assert.equal(wasmBody, WASM_BODY, 'and the WASM arm\'s is the SAME MEMBER narrowed to never: '
-      + JSON.stringify(wasmBody));
+      // The bytes before this region, on both arms — identical, and this is the assertion the ONE-region reading
+      // made once, made now once per region.
+      assert.equal(wasm.slice(wasmAt, wasmAt + (bodyStart - nodeAt)), node.slice(nodeAt, bodyStart),
+        'every byte of the ' + region.name + ' region\'s PREFIX is identical between the two arms ('
+        + (bodyStart - nodeAt) + ' bytes at source offset ' + nodeAt + ')');
+      wasmAt += bodyStart - nodeAt;
+      nodeAt = bodyEnd;
 
-    // (2) NOTHING OUTSIDE THE REGION DIFFERS — prefix, suffix, and the length that follows from them.
-    assert.equal(wasm.slice(0, bodyStart), node.slice(0, bodyStart), 'every byte BEFORE the region is '
-      + 'identical between the two arms (' + bodyStart + ' bytes)');
-    assert.equal(wasm.slice(wasm.length - nodeTail.length), nodeTail, 'and every byte AFTER it ('
-      + nodeTail.length + ' bytes)');
-    assert.equal(wasm.length, node.length - nodeBody.length + wasmBody.length, 'the emitted length '
-      + 'moves by the region body\'s own difference and by nothing else — ' + node.length + ' to '
-      + wasm.length + ', with ' + WASM_BODY.length + ' where ' + SOURCE_BODY.length + ' stood');
+      // The region's two bodies: the source's own line on the Node arm, the declared replacement on the WASM arm.
+      assert.equal(node.slice(bodyStart, bodyEnd), region.nodeBody, 'the source\'s ' + region.name
+        + ' region body is the line the Node arm declares: ' + JSON.stringify(node.slice(bodyStart, bodyEnd)));
+      assert.equal(wasm.slice(wasmAt, wasmAt + region.wasmBody.length), region.wasmBody, 'and the WASM arm\'s '
+        + region.name + ' body is the SAME subject spelled for that realm: '
+        + JSON.stringify(wasm.slice(wasmAt, wasmAt + region.wasmBody.length)));
+      wasmAt += region.wasmBody.length;
+    }
+
+    // (2) NOTHING OUTSIDE THE REGIONS DIFFERS — the tail, and the length that follows from the two bodies.
+    assert.equal(wasm.slice(wasmAt), node.slice(nodeAt), 'every byte AFTER the last region is identical between '
+      + 'the two arms (' + (node.length - nodeAt) + ' bytes)');
+    const moved = REGIONS.reduce((sum, region) => sum + region.wasmBody.length - region.nodeBody.length, 0);
+    assert.equal(wasm.length, node.length + moved, 'the emitted length moves by the regions\' own differences and '
+      + 'by nothing else — ' + node.length + ' to ' + wasm.length + ', where the bodies move the total by '
+      + moved + ' (' + REGIONS.map((region) => region.name + ' ' + (region.wasmBody.length - region.nodeBody.length)).join(', ') + ')');
 
     // (3) **THE MEMBER'S PRESENCE AND OPTIONALITY ARE UNCHANGED — READ THE WAY
     // `blind-entry-module.test.mjs` READS A MEMBER.** The census is the same list on both arms, in the
@@ -252,13 +284,25 @@ test('realm-declaration · D-155 item 2 and docs/L3/wasm-realm/design.md §6 · 
     assert.match(wasm, /^ {2}readonly filePath\?: never;$/m, 'the WASM arm\'s member is never — a '
       + 'string supplied in that position is refused there and nowhere else');
 
-    // (5) THE MARKERS THEMSELVES STAND ON BOTH ARMS: the region is emitted and not consumed, so a reader
-    // of either declaration sees the same two comment lines and the pair is re-derivable from either
+    // (4b) **AND THE FACTORY'S POSITION IS THE SECOND REGION'S SUBJECT (`D-203`)**: one position on the Node arm,
+    // two on the WASM arm, and the module's own type `unknown` because the module is the HOST's.
+    assert.equal(node.includes('\n' + FACTORY_SOURCE_BODY), true,
+      'the Node arm\'s factory is the one position it has always had: ' + JSON.stringify(FACTORY_SOURCE_BODY.trim()));
+    assert.equal(wasm.includes('\n' + FACTORY_WASM_BODY), true,
+      'and the WASM arm\'s takes the initialised module at its FIRST position, typed `unknown` because the package '
+      + 'instantiates nothing and the runtime validates what arrives: ' + JSON.stringify(FACTORY_WASM_BODY.trim()));
+    assert.equal(wasm.includes('\n' + FACTORY_SOURCE_BODY), false,
+      'and the Node arm\'s signature is absent from the WASM arm — the defect `D-203` found was exactly its presence');
+
+    // (5) THE MARKERS THEMSELVES STAND ON BOTH ARMS: each region is emitted and not consumed, so a reader
+    // of either declaration sees the same marker pairs and each region is re-derivable from either
     // emitted file, not only from the hand-authored one.
-    assert.equal(occurrences(node, BEGIN), 1, 'the NODE arm carries the begin marker once');
-    assert.equal(occurrences(wasm, BEGIN), 1, 'and so does the WASM arm');
-    assert.equal(occurrences(node, END), 1, 'the NODE arm carries the end marker once');
-    assert.equal(occurrences(wasm, END), 1, 'and so does the WASM arm');
+    for (const region of REGIONS) {
+      assert.equal(occurrences(node, region.begin), 1, 'the NODE arm carries the ' + region.name + ' begin marker once');
+      assert.equal(occurrences(wasm, region.begin), 1, 'and so does the WASM arm');
+      assert.equal(occurrences(node, region.end), 1, 'the NODE arm carries the ' + region.name + ' end marker once');
+      assert.equal(occurrences(wasm, region.end), 1, 'and so does the WASM arm');
+    }
   } finally {
     rmSync(out.dir, { recursive: true, force: true });
   }
