@@ -9690,3 +9690,25 @@ asserted nowhere** (`D-184` item 4).
 6. **MEASURED**: `npm test` **`1401` / `1401` / `0`**, `0` skipped · `typecheck` `0` · `cargo test` **23 `ok` / 0 FAILED** · `cargo check --target wasm32` **0 errors** ·
    `build` `0` · the arm's **nineteen** entries unmoved (`CW-6`) · `publish.test.mjs` **66 / 66** · **`CHAIN COMPLETE — 11 runners`**. **NO TAG AND NO PUBLISH**:
    `release.md §4.1` — the three tag lines are printed for the architect and not run.
+
+---
+
+### `D-205` — THE BOOTSTRAP IS A ONE-TIME ACT AND THE SIXTH ARTEFACT'S IS DONE: FROM `2.0.1` IT PUBLISHES THROUGH THE FEDERATION LIKE THE OTHER SIX
+
+**DATE:** 2026-11-20. **BRANCH:** `main`. **HEAD:** `618b546`. **SOURCE:** the architect's question — *"Is this updated for the WASM arm not needing to be bootstrapped any more?"*
+**STATUS: `ACTIVE`.**
+
+1. **THE ANSWER TO THE QUESTION WAS *PARTLY*, AND THE HALF THAT WAS MISSING WAS THE STATE RATHER THAN A RULE.** **Nothing in the tree was WRONG**: the guard's message
+   fires **only** when the name is absent, and `D-201`'s and `PUB-DD-30`'s clauses are **conditional on a name that has never been published**. **What no row said is that the
+   condition is now FALSE** — so a reader of the handoff or the contract would still expect the arm to need a credential, and would be surprised by a run that does not.
+2. **AND WHAT IS TRUE NOW, RECORDED**: **`@auspicion/provident-storeroom-js-wasm` was bootstrapped at `2.0.0`** — published once with a credential, and **its trusted publisher
+   configured for that name** afterwards — **so from `2.0.1` onward every artefact this project ships publishes through the host's OIDC federation, with provenance, and no
+   credential is needed anywhere.** **The three prose sites now say so**: `docs/L1/handoff-2.0.0.md`'s hard-won-facts row (**one-time per name, and this name's is done**) and
+   its owed-item 2 (**the provenance and README facts are `2.0.0`'s alone, and `2.0.1` onward is attested**), and `docs/specs/storeroom-publish/contract.md`'s clause (**the act
+   is a bootstrap rather than a duty, and the clause above must not be read as a standing requirement**).
+3. **AND IT CHANGES WHAT `2.0.1`'s RUN SHOULD DO, WHICH IS THE PRACTICAL HALF**: the arm's guard will answer **name present, version absent** — so **the publish step RUNS**, through
+   OIDC, on the arm, **with no credential and no bootstrap**. **The one thing to confirm is the configuration itself, which lives on the registry and not on this tree**:
+   **the arm's trusted publisher must name this repository and `publish.yml`** (`PUB-DD-30`'s residual, still the one item no pass can read). **If it does not, `2.0.1`'s arm job
+   fails at the exchange exactly as `2.0.0`'s did, and the fix is the configuration rather than another credential.**
+4. **AND ONE THING IS DELIBERATELY NOT CLAIMED**: **`2.0.0`'s arm artefact stays as it is** — bootstrapped, unattested, and carrying the older bundled README. **A published
+   version is immutable**, and `D-202` item 3 records those facts where they belong: **of `2.0.0`**.

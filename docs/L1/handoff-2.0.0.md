@@ -74,7 +74,7 @@ this cycle's; everything earlier stands.
 | **`require('a/b')` is a module specifier**, not a path; `./a/b` is a path. | an instant `MODULE_NOT_FOUND` on every leg |
 | **`npm` is `npm.cmd` on Windows**; `execFileSync('npm', …)` cannot launch it without `shell: true`. | a refusal that looks like a registry outage |
 | **An ask that failed is not an answer** (`D-21`) — the guard **refuses** rather than concluding | a "not published" conclusion from a dead network |
-| **Trusted publishing is per package name**: a new artefact's **first publish is a bootstrap** with a credential, and its trusted publisher must exist afterwards. | `D-201`'s failure, after the build had already passed |
+| **Trusted publishing is per package name**: a new artefact's **first publish is a bootstrap** with a credential, and its trusted publisher must exist afterwards. **IT IS ONE-TIME PER NAME, AND THE SIXTH ARTEFACT'S HAS HAPPENED** — `@auspicion/provident-storeroom-js-wasm` was bootstrapped at `2.0.0` and its publisher is configured, so **every later release publishes it through the federation like the other six, with provenance** (`D-205`). | `D-201`'s failure, after the build had already passed |
 | **`npm stage approve`/`reject` take a `stage-id`**, not a package spec; **approve the main package LAST** (its pins must exist first). | an incomplete consumer set |
 | **`git commit --amend --reset-author` resets the AUTHOR DATE too**; replay with explicit `GIT_AUTHOR_DATE`/`GIT_COMMITTER_DATE`. | a session's chronology collapsed into one minute |
 | **A `FinalizationRegistry` held value is STRONG** — holding the kernel there pins the store and defeats the retirement. | a leak that a cell (`SR-01`) catches late |
@@ -101,8 +101,8 @@ this cycle's; everything earlier stands.
 ## 7 · What is owed, named rather than implied
 
 1. **`P-1`** — the durability tier of returned data: **additive**, and it still needs its ten questions answered. The only proposal left.
-2. **The sixth artefact's `2.0.0`** carries **no provenance attestation** and a **bundled README predating the `readTiered` table fix**. Both are fixed from the
-   next release onward.
+2. **The sixth artefact's `2.0.0`** carries **no provenance attestation** and a **bundled README predating the `readTiered` table fix** — **and both are facts about `2.0.0`
+   alone**: the bootstrap is one-time, so **`2.0.1` onward publishes that arm through OIDC with provenance and the current guide**, exactly like the other six (`D-205`).
 3. **A second spelling for `{k:'F'}`** — **answered by default (`D-189` item 1, the mark keeps one floor spelling)**, so this is *closed*, listed here only because
    the design docs still discuss it as open.
 4. **`crossing.md`'s absent parts** — `docs/specs/storeroom-js/contract.md`'s part map declares one relocated and one **absent**, and the spec act that would close
