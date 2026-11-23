@@ -9625,3 +9625,38 @@ asserted nowhere** (`D-184` item 4).
    without moving the release**, and **that is a fact for the next cycle's design, not a defect of this one.**
 6. **WHAT IS TRUE OF THE TREE NOW**: `v2.0.0` is cut and published · the manifest reads `2.0.0` at the tag's own commit · **`npm test` `1400` / `0` and the eleven out-of-glob
    runners all exit `0`** · and **`scripts/publish.sh --check` will refuse the next tag until a `--bump` moves the version, which is the correct post-release state.**
+
+---
+
+### `D-203` — A DOWNSTREAM FINDING, VERIFIED AT THE BYTES: THE ARM'S EMITTED DECLARATION SPELLS THE FACTORY WITH ONE POSITION WHERE ITS RUNTIME AND THE GUIDE REQUIRE TWO
+
+**DATE:** 2026-11-20 (the finder's date) / 2026-11-17 (this review). **BRANCH:** `main`. **HEAD:** `5de825f`.
+**SOURCE:** `Provident-Electron`, downstream, `strata/records/modularity-unit.md` · **`H-5`**, filed here as
+`docs/L1/handoff-2.0.0-wasm-storecreate-declaration.md`. **STATUS: `ACTIVE` — A PUBLISHED DEFECT IN `2.0.0`.**
+
+1. **THE FINDING IS CORRECT, AND EVERY ONE OF ITS CITATIONS READS AT THE BYTES IT NAMES.**
+   - **the arm's runtime takes TWO positions**: `bindings/js/platforms/wasm/index.mjs`'s own docblock — *"`storeCreate(bindings, cfg)` takes the initialised module at its
+     FIRST position"* — and the code under it;
+   - **the guide teaches TWO**: `docs/guides/package-use.md:2584` · §13.1 — *"THE FACTORY TAKES TWO POSITIONS — `storeCreate(bindings, cfg)` — and the first is the
+     module"* — and `:163`, *"THE BINDINGS ARE HANDED IN, NOT LOOKED FOR"*;
+   - **the arm's SHIPPED declaration takes ONE**: `bindings/js/platforms/wasm/index.d.ts:1649` reads
+     **`export function storeCreate(cfg: StoreConfig): StoreInstance;`** — **the Node arm's signature, byte for byte.**
+2. **AND THE MECHANISM IS THE ONE THE DOWNSTREAM SUSPECTED: THE GENERATOR HAS EXACTLY ONE REALM-CONDITIONAL REGION, AND THE FACTORY IS OUTSIDE IT.** `scripts/emit-declarations.mjs`
+   replaces the **`// ⟦realm:filePath:begin⟧` … `// ⟦realm:filePath:end⟧` body** and nothing else — which is why the arm's `StoreConfig` **does** carry
+   `readonly filePath?: never;` (verified: the narrowing lands) while its **factory signature does not move**. `scripts/build-wasm-package.mjs:85`–`:87` then stages the arm's emission
+   as `index.d.ts` and deletes `index.wasm.d.ts` — **so what ships is the arm's bytes with the Node arm's factory in them.**
+3. **THE SYMPTOM, STATED IN THE CONSUMER'S OWN TERMS**: a TypeScript consumer of `@auspicion/provident-storeroom-js-wasm` **cannot spell the construction the guide teaches
+   and the runtime requires**. `storeCreate(bindings, cfg)` **fails the declared signature**; `storeCreate(cfg)` **compiles and cannot carry the injected module.** **The one
+   construction position the WebAssembly realm exists to permit is the one its declaration rejects.**
+4. **★ AND NOTHING CAUGHT IT, AND THE REASON IS A GAP RATHER THAN AN OVERSIGHT IN A CELL**: **no TypeScript consumer is compiled against the ARM's declaration
+   anywhere.** `typecheck/` carries one fixture (`consumer-fixture.ts`) and it targets the **Node** package; the arm's cells (`CW-1`…`CW-9`) **drive the runtime in
+   JavaScript** and never a compiler. **So the arm's declared surface has been unmeasured since `D-155` item 2 declared it, and the *only* evidence it was right is the
+   generator's own "identity asserted" line — which asserts the identity of the region it replaces, not the shape of what it emits.**
+5. **THE FIX'S SHAPE IS THE DOWNSTREAM'S AND THE CLASS IS THE ARCHITECT'S; WHAT THIS ROW BINDS IS THE INSTRUMENT**: **a second generator region for the factory's position**
+   — the arm emitting `storeCreate(bindings: …, cfg: StoreConfig)` while the Node build keeps `storeCreate(cfg)` — **reaches a declaration change on a published
+   artefact**, so its class is a **patch on the arm at most** (the one-position form it replaces **could not construct at all**), and **the number is the architect's.**
+   **AND THE CELL IS OWED AND SPECIFIED HERE**: **a TypeScript fixture compiled against the STAGED ARM** that writes the two-position construction and is required to
+   typecheck — **which is the only instrument that would have failed on the day `D-155` item 2 landed**, and the one that must exist before this fix can be called done.
+6. **WHAT IS TRUE OF THE TREE NOW**: **`2.0.0` is published with this defect in the sixth artefact's declaration**; the runtime is correct and the guide is correct; **only the
+   emitted `index.d.ts` is wrong**, and **a JavaScript consumer is unaffected** (the defect is declaration-only). **`npm test` `1400` / `0` and the eleven runners are green because
+   nothing compiles the arm — which is the finding's own point.**
